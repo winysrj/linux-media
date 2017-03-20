@@ -1,329 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:46627 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752317AbdC2OPt (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:32844 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753806AbdCTLTY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 10:15:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Mon, 20 Mar 2017 07:19:24 -0400
+Received: by mail-wr0-f194.google.com with SMTP id g10so17628425wrg.0
+        for <linux-media@vger.kernel.org>; Mon, 20 Mar 2017 04:19:23 -0700 (PDT)
+Received: from macbox (ip-37-24-178-151.hsi14.unitymediagroup.de. [37.24.178.151])
+        by smtp.gmail.com with ESMTPSA id k128sm13058278wmf.16.2017.03.20.04.10.21
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 20 Mar 2017 04:10:21 -0700 (PDT)
+Date: Mon, 20 Mar 2017 12:10:14 +0100
+From: Daniel Scheller <d.scheller.oss@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv5 02/11] media: add CEC notifier support
-Date: Wed, 29 Mar 2017 16:15:34 +0200
-Message-Id: <20170329141543.32935-3-hverkuil@xs4all.nl>
-In-Reply-To: <20170329141543.32935-1-hverkuil@xs4all.nl>
-References: <20170329141543.32935-1-hverkuil@xs4all.nl>
+Subject: Re: [PATCH 11/13] [media] dvb-frontends/stv0367: add Digital
+ Devices compatibility
+Message-ID: <20170320121014.4357d500@macbox>
+In-Reply-To: <20170307185727.564-12-d.scheller.oss@gmail.com>
+References: <20170307185727.564-1-d.scheller.oss@gmail.com>
+        <20170307185727.564-12-d.scheller.oss@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Am Tue,  7 Mar 2017 19:57:25 +0100
+schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
 
-Add support for CEC notifiers, which is used to convey CEC physical address
-information from video drivers to their CEC counterpart driver(s).
+> - add a third *_attach function which will make use of a third
+> frontend_ops struct which announces both -C and -T support (the same
+> as with DD's own driver stv0367dd). This is necessary to support both
+> delivery systems on one FE without having to do large conversions to
+> VB2 or the need to select either -C or -T mode via modparams and the
+> like. Additionally, the frontend_ops point to new "glue" functions
+> which will then call into the existing functionality depending on the
+> active delivery system/demod state (all used functionality works
+> almost OOTB).
 
-Based on an earlier version from Russell King:
+In the meantime I realised that stv0367ddb_ops is missing symbolrate
+limits which w_scan complains about. Will be added in a V2 series.
 
-https://patchwork.kernel.org/patch/9277043/
-
-The cec_notifier is a reference counted object containing the CEC physical address
-state of a video device.
-
-When a new notifier is registered the current state will be reported to
-that notifier at registration time.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- MAINTAINERS                  |   4 +-
- drivers/media/Kconfig        |   3 ++
- drivers/media/Makefile       |   4 ++
- drivers/media/cec-notifier.c | 116 +++++++++++++++++++++++++++++++++++++++++++
- include/media/cec-notifier.h |  93 ++++++++++++++++++++++++++++++++++
- 5 files changed, 219 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/cec-notifier.c
- create mode 100644 include/media/cec-notifier.h
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 83a42ef1d1a7..cfb2670aa372 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3066,7 +3066,7 @@ F:	drivers/net/ieee802154/cc2520.c
- F:	include/linux/spi/cc2520.h
- F:	Documentation/devicetree/bindings/net/ieee802154/cc2520.txt
- 
--CEC DRIVER
-+CEC FRAMEWORK
- M:	Hans Verkuil <hans.verkuil@cisco.com>
- L:	linux-media@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
-@@ -3076,9 +3076,11 @@ F:	Documentation/media/kapi/cec-core.rst
- F:	Documentation/media/uapi/cec
- F:	drivers/media/cec/
- F:	drivers/media/cec-edid.c
-+F:	drivers/media/cec-notifier.c
- F:	drivers/media/rc/keymaps/rc-cec.c
- F:	include/media/cec.h
- F:	include/media/cec-edid.h
-+F:	include/media/cec-notifier.h
- F:	include/uapi/linux/cec.h
- F:	include/uapi/linux/cec-funcs.h
- 
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index 3512316e7a46..799429f51d1a 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -99,6 +99,9 @@ config MEDIA_CEC_DEBUG
- config MEDIA_CEC_EDID
- 	bool
- 
-+config MEDIA_CEC_NOTIFIER
-+	bool
-+
- #
- # Media controller
- #	Selectable only for webcam/grabbers, as other drivers don't use it
-diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-index d87ccb8eeabe..8b36a571d443 100644
---- a/drivers/media/Makefile
-+++ b/drivers/media/Makefile
-@@ -6,6 +6,10 @@ ifeq ($(CONFIG_MEDIA_CEC_EDID),y)
-   obj-$(CONFIG_MEDIA_SUPPORT) += cec-edid.o
- endif
- 
-+ifeq ($(CONFIG_MEDIA_CEC_NOTIFIER),y)
-+  obj-$(CONFIG_MEDIA_SUPPORT) += cec-notifier.o
-+endif
-+
- ifeq ($(CONFIG_MEDIA_CEC_SUPPORT),y)
-   obj-$(CONFIG_MEDIA_SUPPORT) += cec/
- endif
-diff --git a/drivers/media/cec-notifier.c b/drivers/media/cec-notifier.c
-new file mode 100644
-index 000000000000..a5938c4d3ab4
---- /dev/null
-+++ b/drivers/media/cec-notifier.c
-@@ -0,0 +1,116 @@
-+/*
-+ * cec-notifier.c - notify CEC drivers of physical address changes
-+ *
-+ * Copyright 2016 Russell King <rmk+kernel@arm.linux.org.uk>
-+ * Copyright 2016-2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you may redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/export.h>
-+#include <linux/string.h>
-+#include <linux/slab.h>
-+#include <linux/list.h>
-+#include <linux/kref.h>
-+
-+#include <media/cec-notifier.h>
-+
-+struct cec_notifier {
-+	struct mutex lock;
-+	struct list_head head;
-+	struct kref kref;
-+	struct device *dev;
-+	struct cec_adapter *cec_adap;
-+	void (*callback)(struct cec_adapter *adap, u16 pa);
-+
-+	u16 phys_addr;
-+};
-+
-+static LIST_HEAD(cec_notifiers);
-+static DEFINE_MUTEX(cec_notifiers_lock);
-+
-+struct cec_notifier *cec_notifier_get(struct device *dev)
-+{
-+	struct cec_notifier *n;
-+
-+	mutex_lock(&cec_notifiers_lock);
-+	list_for_each_entry(n, &cec_notifiers, head) {
-+		if (n->dev == dev) {
-+			mutex_unlock(&cec_notifiers_lock);
-+			kref_get(&n->kref);
-+			return n;
-+		}
-+	}
-+	n = kzalloc(sizeof(*n), GFP_KERNEL);
-+	if (!n)
-+		goto unlock;
-+	n->dev = dev;
-+	n->phys_addr = CEC_PHYS_ADDR_INVALID;
-+	mutex_init(&n->lock);
-+	kref_init(&n->kref);
-+	list_add_tail(&n->head, &cec_notifiers);
-+unlock:
-+	mutex_unlock(&cec_notifiers_lock);
-+	return n;
-+}
-+EXPORT_SYMBOL_GPL(cec_notifier_get);
-+
-+static void cec_notifier_release(struct kref *kref)
-+{
-+	struct cec_notifier *n =
-+		container_of(kref, struct cec_notifier, kref);
-+
-+	list_del(&n->head);
-+	kfree(n);
-+}
-+
-+void cec_notifier_put(struct cec_notifier *n)
-+{
-+	mutex_lock(&cec_notifiers_lock);
-+	kref_put(&n->kref, cec_notifier_release);
-+	mutex_unlock(&cec_notifiers_lock);
-+}
-+EXPORT_SYMBOL_GPL(cec_notifier_put);
-+
-+void cec_notifier_set_phys_addr(struct cec_notifier *n, u16 pa)
-+{
-+	mutex_lock(&n->lock);
-+	n->phys_addr = pa;
-+	if (n->callback)
-+		n->callback(n->cec_adap, n->phys_addr);
-+	mutex_unlock(&n->lock);
-+}
-+EXPORT_SYMBOL_GPL(cec_notifier_set_phys_addr);
-+
-+void cec_notifier_register(struct cec_notifier *n,
-+			   struct cec_adapter *adap,
-+			   void (*callback)(struct cec_adapter *adap, u16 pa))
-+{
-+	kref_get(&n->kref);
-+	mutex_lock(&n->lock);
-+	n->cec_adap = adap;
-+	n->callback = callback;
-+	n->callback(adap, n->phys_addr);
-+	mutex_unlock(&n->lock);
-+}
-+EXPORT_SYMBOL_GPL(cec_notifier_register);
-+
-+void cec_notifier_unregister(struct cec_notifier *n)
-+{
-+	mutex_lock(&n->lock);
-+	n->callback = NULL;
-+	mutex_unlock(&n->lock);
-+	cec_notifier_put(n);
-+}
-+EXPORT_SYMBOL_GPL(cec_notifier_unregister);
-diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
-new file mode 100644
-index 000000000000..79ad3a48361c
---- /dev/null
-+++ b/include/media/cec-notifier.h
-@@ -0,0 +1,93 @@
-+/*
-+ * cec-notifier.h - notify CEC drivers of physical address changes
-+ *
-+ * Copyright 2016 Russell King <rmk+kernel@arm.linux.org.uk>
-+ * Copyright 2016-2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you may redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef LINUX_CEC_NOTIFIER_H
-+#define LINUX_CEC_NOTIFIER_H
-+
-+#include <linux/types.h>
-+#include <media/cec-edid.h>
-+
-+struct device;
-+struct cec_adapter;
-+struct cec_notifier;
-+
-+#ifdef CONFIG_MEDIA_CEC_NOTIFIER
-+
-+/**
-+ * cec_notifier_get - find or create a new cec_notifier for the given device.
-+ * @dev: device that sends the events.
-+ *
-+ * If a notifier for device @dev already exists, then increase the refcount
-+ * and return that notifier.
-+ *
-+ * If it doesn't exist, then allocate a new notifier struct and return a
-+ * pointer to that new struct.
-+ *
-+ * Return NULL if the memory could not be allocated.
-+ */
-+struct cec_notifier *cec_notifier_get(struct device *dev);
-+
-+/**
-+ * cec_notifier_put - decrease refcount and delete when the refcount reaches 0.
-+ * @n: notifier
-+ */
-+void cec_notifier_put(struct cec_notifier *n);
-+
-+/**
-+ * cec_notifier_set_phys_addr - set a new physical address.
-+ * @n: the CEC notifier
-+ *
-+ * Set a new CEC physical address.
-+ */
-+void cec_notifier_set_phys_addr(struct cec_notifier *n, u16 pa);
-+
-+/**
-+ * cec_notifier_register - register a callback with the notifier
-+ * @n: the CEC notifier
-+ * @adap: the CEC adapter, passed as argument to the callback function
-+ * @callback: the callback function
-+ */
-+void cec_notifier_register(struct cec_notifier *n,
-+			   struct cec_adapter *adap,
-+			   void (*callback)(struct cec_adapter *adap, u16 pa));
-+
-+/**
-+ * cec_notifier_unregister - unregister the callback from the notifier.
-+ * @n: the CEC notifier
-+ */
-+void cec_notifier_unregister(struct cec_notifier *n);
-+
-+#else
-+static inline struct cec_notifier *cec_notifier_get(struct device *dev)
-+{
-+	/* A non-NULL pointer is expected on success */
-+	return (struct cec_notifier *)0xdeadfeed;
-+}
-+
-+static inline void cec_notifier_put(struct cec_notifier *n)
-+{
-+}
-+
-+static inline void cec_notifier_set_phys_addr(struct cec_notifier *n, u16 pa)
-+{
-+}
-+#endif
-+
-+#endif
--- 
-2.11.0
+Daniel
