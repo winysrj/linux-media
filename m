@@ -1,212 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40455 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751459AbdCCQls (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 11:41:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: Laura Abbott <labbott@redhat.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        devel@driverdev.osuosl.org, romlem@google.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        linux-mm@kvack.org, Mark Brown <broonie@kernel.org>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 10/12] staging: android: ion: Use CMA APIs directly
-Date: Fri, 03 Mar 2017 18:41:33 +0200
-Message-ID: <2140021.hmlAgxcLbU@avalon>
-In-Reply-To: <1488491084-17252-11-git-send-email-labbott@redhat.com>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com> <1488491084-17252-11-git-send-email-labbott@redhat.com>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:35989 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756091AbdCTTsQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 15:48:16 -0400
+Subject: Re: [PATCH v5 38/39] media: imx: csi: fix crop rectangle reset in
+ sink set_fmt
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-39-git-send-email-steve_longerbeam@mentor.com>
+ <20170319152233.GW21222@n2100.armlinux.org.uk>
+ <327d67d9-68c1-7f74-0c0f-f6aee1c4b546@gmail.com>
+ <1490010926.2917.59.camel@pengutronix.de>
+ <20170320120855.GH21222@n2100.armlinux.org.uk>
+ <1490018451.2917.86.camel@pengutronix.de>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <709728d3-83ab-90cf-44d4-dcf41e6fbee7@gmail.com>
+Date: Mon, 20 Mar 2017 12:48:11 -0700
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1490018451.2917.86.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laura,
 
-Thank you for the patch.
 
-On Thursday 02 Mar 2017 13:44:42 Laura Abbott wrote:
-> When CMA was first introduced, its primary use was for DMA allocation
-> and the only way to get CMA memory was to call dma_alloc_coherent. This
-> put Ion in an awkward position since there was no device structure
-> readily available and setting one up messed up the coherency model.
-> These days, CMA can be allocated directly from the APIs. Switch to using
-> this model to avoid needing a dummy device. This also avoids awkward
-> caching questions.
+On 03/20/2017 07:00 AM, Philipp Zabel wrote:
+> On Mon, 2017-03-20 at 12:08 +0000, Russell King - ARM Linux wrote:
+>> On Mon, Mar 20, 2017 at 12:55:26PM +0100, Philipp Zabel wrote:
+>>> The above paragraph suggests we skip any rectangles that are not
+>>> supported. In our case that would be 3. and 4., since the CSI can't
+>>> compose into a larger frame. I hadn't realised that the crop selection
+>>> currently happens on the source pad.
+>> I'd recommend viewing the documentation in its post-processed version,
+>> because then you get the examples as pictures, and they say that a
+>> picture is worth 1000 words.  See
+>>
+>>    https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/dev-subdev.html
+>>
+>> There is almost an exact example of what we're trying to do - it's
+>> figure 4.6.  Here, we have a sink pad with a cropping rectangle on
+>> the input, which is then scaled to a composition rectangle (there's
+>> no bounds rectangle, and it's specified that in such a case the
+>> top,left of the composition rectangle will always be 0,0 - see quote
+>> below).
+>>
+>> Where it differs is that the example also supports source cropping
+>> for two source pads.  We don't support that.
+>>
+>> The same document says:
+>>
+>>    Scaling support is optional. When supported by a subdev, the crop
+>>    rectangle on the subdev's sink pad is scaled to the size configured
+>>    using the
+>>    :ref:`VIDIOC_SUBDEV_S_SELECTION <VIDIOC_SUBDEV_G_SELECTION>` IOCTL
+>>    using ``V4L2_SEL_TGT_COMPOSE`` selection target on the same pad. If the
+>>    subdev supports scaling but not composing, the top and left values are
+>>    not used and must always be set to zero.
+> Right, this sentence does imply that when scaling is supported, there
+> must be a sink compose rectangle, even when composing is not.
 
-If the DMA mapping API isn't suitable for today's requirements anymore, I 
-believe that's what needs to be fixed, instead of working around the problem 
-by introducing another use-case-specific API.
+Ok, this all makes consistent sense to me too. So:
 
-> Signed-off-by: Laura Abbott <labbott@redhat.com>
-> ---
->  drivers/staging/android/ion/ion_cma_heap.c | 97 +++++++--------------------
->  1 file changed, 26 insertions(+), 71 deletions(-)
-> 
-> diff --git a/drivers/staging/android/ion/ion_cma_heap.c
-> b/drivers/staging/android/ion/ion_cma_heap.c index d562fd7..6838825 100644
-> --- a/drivers/staging/android/ion/ion_cma_heap.c
-> +++ b/drivers/staging/android/ion/ion_cma_heap.c
-> @@ -19,24 +19,19 @@
->  #include <linux/slab.h>
->  #include <linux/errno.h>
->  #include <linux/err.h>
-> -#include <linux/dma-mapping.h>
-> +#include <linux/cma.h>
-> +#include <linux/scatterlist.h>
-> 
->  #include "ion.h"
->  #include "ion_priv.h"
-> 
->  struct ion_cma_heap {
->  	struct ion_heap heap;
-> -	struct device *dev;
-> +	struct cma *cma;
->  };
-> 
->  #define to_cma_heap(x) container_of(x, struct ion_cma_heap, heap)
-> 
-> -struct ion_cma_buffer_info {
-> -	void *cpu_addr;
-> -	dma_addr_t handle;
-> -	struct sg_table *table;
-> -};
-> -
-> 
->  /* ION CMA heap operations functions */
->  static int ion_cma_allocate(struct ion_heap *heap, struct ion_buffer
-> *buffer, @@ -44,93 +39,53 @@ static int ion_cma_allocate(struct ion_heap
-> *heap, struct ion_buffer *buffer, unsigned long flags)
->  {
->  	struct ion_cma_heap *cma_heap = to_cma_heap(heap);
-> -	struct device *dev = cma_heap->dev;
-> -	struct ion_cma_buffer_info *info;
-> -
-> -	dev_dbg(dev, "Request buffer allocation len %ld\n", len);
-> -
-> -	if (buffer->flags & ION_FLAG_CACHED)
-> -		return -EINVAL;
-> +	struct sg_table *table;
-> +	struct page *pages;
-> +	int ret;
-> 
-> -	info = kzalloc(sizeof(*info), GFP_KERNEL);
-> -	if (!info)
-> +	pages = cma_alloc(cma_heap->cma, len, 0);
-> +	if (!pages)
->  		return -ENOMEM;
-> 
-> -	info->cpu_addr = dma_alloc_coherent(dev, len, &(info->handle),
-> -						GFP_HIGHUSER | __GFP_ZERO);
-> -
-> -	if (!info->cpu_addr) {
-> -		dev_err(dev, "Fail to allocate buffer\n");
-> +	table = kmalloc(sizeof(struct sg_table), GFP_KERNEL);
-> +	if (!table)
->  		goto err;
-> -	}
-> 
-> -	info->table = kmalloc(sizeof(*info->table), GFP_KERNEL);
-> -	if (!info->table)
-> +	ret = sg_alloc_table(table, 1, GFP_KERNEL);
-> +	if (ret)
->  		goto free_mem;
-> 
-> -	if (dma_get_sgtable(dev, info->table, info->cpu_addr, info->handle,
-> -			    len))
-> -		goto free_table;
-> -	/* keep this for memory release */
-> -	buffer->priv_virt = info;
-> -	buffer->sg_table = info->table;
-> -	dev_dbg(dev, "Allocate buffer %p\n", buffer);
-> +	sg_set_page(table->sgl, pages, len, 0);
-> +
-> +	buffer->priv_virt = pages;
-> +	buffer->sg_table = table;
->  	return 0;
-> 
-> -free_table:
-> -	kfree(info->table);
->  free_mem:
-> -	dma_free_coherent(dev, len, info->cpu_addr, info->handle);
-> +	kfree(table);
->  err:
-> -	kfree(info);
-> +	cma_release(cma_heap->cma, pages, buffer->size);
->  	return -ENOMEM;
->  }
-> 
->  static void ion_cma_free(struct ion_buffer *buffer)
->  {
->  	struct ion_cma_heap *cma_heap = to_cma_heap(buffer->heap);
-> -	struct device *dev = cma_heap->dev;
-> -	struct ion_cma_buffer_info *info = buffer->priv_virt;
-> +	struct page *pages = buffer->priv_virt;
-> 
-> -	dev_dbg(dev, "Release buffer %p\n", buffer);
->  	/* release memory */
-> -	dma_free_coherent(dev, buffer->size, info->cpu_addr, info->handle);
-> +	cma_release(cma_heap->cma, pages, buffer->size);
->  	/* release sg table */
-> -	sg_free_table(info->table);
-> -	kfree(info->table);
-> -	kfree(info);
-> -}
-> -
-> -static int ion_cma_mmap(struct ion_heap *mapper, struct ion_buffer *buffer,
-> -			struct vm_area_struct *vma)
-> -{
-> -	struct ion_cma_heap *cma_heap = to_cma_heap(buffer->heap);
-> -	struct device *dev = cma_heap->dev;
-> -	struct ion_cma_buffer_info *info = buffer->priv_virt;
-> -
-> -	return dma_mmap_coherent(dev, vma, info->cpu_addr, info->handle,
-> -				 buffer->size);
-> -}
-> -
-> -static void *ion_cma_map_kernel(struct ion_heap *heap,
-> -				struct ion_buffer *buffer)
-> -{
-> -	struct ion_cma_buffer_info *info = buffer->priv_virt;
-> -	/* kernel memory mapping has been done at allocation time */
-> -	return info->cpu_addr;
-> -}
-> -
-> -static void ion_cma_unmap_kernel(struct ion_heap *heap,
-> -				 struct ion_buffer *buffer)
-> -{
-> +	sg_free_table(buffer->sg_table);
-> +	kfree(buffer->sg_table);
->  }
-> 
->  static struct ion_heap_ops ion_cma_ops = {
->  	.allocate = ion_cma_allocate,
->  	.free = ion_cma_free,
-> -	.map_user = ion_cma_mmap,
-> -	.map_kernel = ion_cma_map_kernel,
-> -	.unmap_kernel = ion_cma_unmap_kernel,
-> +	.map_user = ion_heap_map_user,
-> +	.map_kernel = ion_heap_map_kernel,
-> +	.unmap_kernel = ion_heap_unmap_kernel,
->  };
-> 
->  struct ion_heap *ion_cma_heap_create(struct ion_platform_heap *data)
-> @@ -147,7 +102,7 @@ struct ion_heap *ion_cma_heap_create(struct
-> ion_platform_heap *data) * get device from private heaps data, later it
-> will be
->  	 * used to make the link with reserved CMA memory
->  	 */
-> -	cma_heap->dev = data->priv;
-> +	cma_heap->cma = data->priv;
->  	cma_heap->heap.type = ION_HEAP_TYPE_DMA;
->  	return &cma_heap->heap;
->  }
+- the CSI hardware cropping rectangle should be specified via the
+   sink pad crop selection.
 
--- 
-Regards,
+- the CSI hardware /2 downscaler should be specified via the
+   sink pad compose selection.
 
-Laurent Pinchart
+- the final source pad rectangle is the same as the sink pad
+   compose rectangle.
+
+So that leaves only step 4 (source pad crop selection) as
+unsupported.
+
+Steve
+
+
+> I have previously set up scaling like this:
+>
+> media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080@1/60]"
+> media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/960x540@1/30]"
+>
+> Does this mean, it should work like this instead?
+>
+> media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080@1/60]"
+> media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY2X8/1920x1080@1/60,compose:(0,0)/960x540]"
+> media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/960x540@1/30]"
+>
+> I suppose setting the source pad format should not be allowed to modify
+> the sink compose rectangle.
+>
+> regards
+> Philipp
+>
