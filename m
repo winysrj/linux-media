@@ -1,153 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40495 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751663AbdCCQpI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 11:45:08 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: Daniel Vetter <daniel@ffwll.ch>, Laura Abbott <labbott@redhat.com>,
-        devel@driverdev.osuosl.org, romlem@google.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        arve@android.com, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-        Riley Andrews <riandrews@android.com>,
-        Mark Brown <broonie@kernel.org>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of staging
-Date: Fri, 03 Mar 2017 18:45:40 +0200
-Message-ID: <10344634.XsotFaGzfj@avalon>
-In-Reply-To: <20170303100433.lm5t4hqxj6friyp6@phenom.ffwll.local>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com> <20170303100433.lm5t4hqxj6friyp6@phenom.ffwll.local>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:36477 "EHLO
+        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757358AbdCUPUa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Mar 2017 11:20:30 -0400
+Received: by mail-wm0-f46.google.com with SMTP id n11so14637731wma.1
+        for <linux-media@vger.kernel.org>; Tue, 21 Mar 2017 08:20:29 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org
+Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
+        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: [PATCH v4 5/6] drm: bridge: dw-hdmi: Add Documentation on supported input formats
+Date: Tue, 21 Mar 2017 16:12:40 +0100
+Message-Id: <1490109161-20529-6-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1490109161-20529-1-git-send-email-narmstrong@baylibre.com>
+References: <1490109161-20529-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
+This patch adds a new DRM documentation entry and links to the input
+format table added in the dw_hdmi header.
 
-On Friday 03 Mar 2017 11:04:33 Daniel Vetter wrote:
-> On Thu, Mar 02, 2017 at 01:44:32PM -0800, Laura Abbott wrote:
-> > Hi,
-> > 
-> > There's been some recent discussions[1] about Ion-like frameworks. There's
-> > apparently interest in just keeping Ion since it works reasonablly well.
-> > This series does what should be the final clean ups for it to possibly be
-> > moved out of staging.
-> > 
-> > This includes the following:
-> > - Some general clean up and removal of features that never got a lot of
-> >   use as far as I can tell.
-> > 
-> > - Fixing up the caching. This is the series I proposed back in December[2]
-> >   but never heard any feedback on. It will certainly break existing
-> >   applications that rely on the implicit caching. I'd rather make an
-> >   effort to move to a model that isn't going directly against the
-> >   establishement though.
-> > 
-> > - Fixing up the platform support. The devicetree approach was never well
-> >   recieved by DT maintainers. The proposal here is to think of Ion less as
-> >   specifying requirements and more of a framework for exposing memory to
-> >   userspace.
-> > 
-> > - CMA allocations now happen without the need of a dummy device structure.
-> >   This fixes a bunch of the reasons why I attempted to add devicetree
-> >   support before.
-> > 
-> > I've had problems getting feedback in the past so if I don't hear any
-> > major objections I'm going to send out with the RFC dropped to be picked
-> > up. The only reason there isn't a patch to come out of staging is to
-> > discuss any other changes to the ABI people might want. Once this comes
-> > out of staging, I really don't want to mess with the ABI.
-> > 
-> > Feedback appreciated.
-> 
-> Imo looks all good. And I just realized that cross-checking with the TODO,
-> the 2 items about _CUSTOM and _IMPORT ioctls I noted are already there.
-> 
-> Otherwise I looked through the patches, looks all really reasonable.
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ Documentation/gpu/bridge/dw-hdmi.rst | 15 +++++++++++++++
+ Documentation/gpu/index.rst          |  1 +
+ 2 files changed, 16 insertions(+)
+ create mode 100644 Documentation/gpu/bridge/dw-hdmi.rst
 
-Two more items that need to be addressed in my opinion :
-
-- Let's not export the ion_client API, we don't want drivers to be ion-
-specific. Only the dma-buf interface should be visible to drivers.
-
-- I haven't seen any proposal how a heap-based solution could be used in a 
-generic distribution. This needs to be figured out before committing to any 
-API/ABI.
-
-> Wrt merging, my experience from destaging the android syncpt stuff was
-> that merging the patches through the staging tree lead to lots of
-> cross-tree issues with the gpu folks wanting to use that. Ion will
-> probably run into similar things, so I'd propose we pull these cleanup
-> patches and the eventual de-staging in throught drm. Yes that defacto
-> means I'm also volunteering myself a bit :-)
-> 
-> In the end we could put it all into drivers/gpu/ion or something like
-> that.
-> 
-> Thoughts? Greg?
-> -Daniel
-> 
-> > Thanks,
-> > Laura
-> > 
-> > [1] https://marc.info/?l=linux-kernel&m=148699712602105&w=2
-> > [2] https://marc.info/?l=linaro-mm-sig&m=148176050802908&w=2
-> > 
-> > Laura Abbott (12):
-> >   staging: android: ion: Remove dmap_cnt
-> >   staging: android: ion: Remove alignment from allocation field
-> >   staging: android: ion: Duplicate sg_table
-> >   staging: android: ion: Call dma_map_sg for syncing and mapping
-> >   staging: android: ion: Remove page faulting support
-> >   staging: android: ion: Remove crufty cache support
-> >   staging: android: ion: Remove old platform support
-> >   cma: Store a name in the cma structure
-> >   cma: Introduce cma_for_each_area
-> >   staging: android: ion: Use CMA APIs directly
-> >   staging: android: ion: Make Ion heaps selectable
-> >   staging; android: ion: Enumerate all available heaps
-> >  
-> >  drivers/base/dma-contiguous.c                      |   5 +-
-> >  drivers/staging/android/ion/Kconfig                |  51 ++--
-> >  drivers/staging/android/ion/Makefile               |  14 +-
-> >  drivers/staging/android/ion/hisilicon/Kconfig      |   5 -
-> >  drivers/staging/android/ion/hisilicon/Makefile     |   1 -
-> >  drivers/staging/android/ion/hisilicon/hi6220_ion.c | 113 ---------
-> >  drivers/staging/android/ion/ion-ioctl.c            |   6 -
-> >  drivers/staging/android/ion/ion.c                  | 282
-> >  ++++++--------------- drivers/staging/android/ion/ion.h                 
-> >  |   5 +-
-> >  drivers/staging/android/ion/ion_carveout_heap.c    |  16 +-
-> >  drivers/staging/android/ion/ion_chunk_heap.c       |  15 +-
-> >  drivers/staging/android/ion/ion_cma_heap.c         | 102 ++------
-> >  drivers/staging/android/ion/ion_dummy_driver.c     | 156 ------------
-> >  drivers/staging/android/ion/ion_enumerate.c        |  89 +++++++
-> >  drivers/staging/android/ion/ion_of.c               | 184 --------------
-> >  drivers/staging/android/ion/ion_of.h               |  37 ---
-> >  drivers/staging/android/ion/ion_page_pool.c        |   3 -
-> >  drivers/staging/android/ion/ion_priv.h             |  57 ++++-
-> >  drivers/staging/android/ion/ion_system_heap.c      |  14 +-
-> >  drivers/staging/android/ion/tegra/Makefile         |   1 -
-> >  drivers/staging/android/ion/tegra/tegra_ion.c      |  80 ------
-> >  include/linux/cma.h                                |   6 +-
-> >  mm/cma.c                                           |  25 +-
-> >  mm/cma.h                                           |   1 +
-> >  mm/cma_debug.c                                     |   2 +-
-> >  25 files changed, 312 insertions(+), 958 deletions(-)
-> >  delete mode 100644 drivers/staging/android/ion/hisilicon/Kconfig
-> >  delete mode 100644 drivers/staging/android/ion/hisilicon/Makefile
-> >  delete mode 100644 drivers/staging/android/ion/hisilicon/hi6220_ion.c
-> >  delete mode 100644 drivers/staging/android/ion/ion_dummy_driver.c
-> >  create mode 100644 drivers/staging/android/ion/ion_enumerate.c
-> >  delete mode 100644 drivers/staging/android/ion/ion_of.c
-> >  delete mode 100644 drivers/staging/android/ion/ion_of.h
-> >  delete mode 100644 drivers/staging/android/ion/tegra/Makefile
-> >  delete mode 100644 drivers/staging/android/ion/tegra/tegra_ion.c
-
+diff --git a/Documentation/gpu/bridge/dw-hdmi.rst b/Documentation/gpu/bridge/dw-hdmi.rst
+new file mode 100644
+index 0000000..486faad
+--- /dev/null
++++ b/Documentation/gpu/bridge/dw-hdmi.rst
+@@ -0,0 +1,15 @@
++=======================================================
++ drm/bridge/dw-hdmi Synopsys DesignWare HDMI Controller
++=======================================================
++
++Synopsys DesignWare HDMI Controller
++===================================
++
++This section covers everything related to the Synopsys DesignWare HDMI
++Controller implemented as a DRM bridge.
++
++Supported Input Formats and Encodings
++-------------------------------------
++
++.. kernel-doc:: include/drm/bridge/dw_hdmi.h
++   :doc: Supported input formats and encodings
+diff --git a/Documentation/gpu/index.rst b/Documentation/gpu/index.rst
+index e998ee0..d81c6ff 100644
+--- a/Documentation/gpu/index.rst
++++ b/Documentation/gpu/index.rst
+@@ -15,6 +15,7 @@ Linux GPU Driver Developer's Guide
+    vc4
+    vga-switcheroo
+    vgaarbiter
++   bridge/dw-hdmi
+    todo
+ 
+ .. only::  subproject and html
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
