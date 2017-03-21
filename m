@@ -1,123 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:57226 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754666AbdC2N0Y (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:41089 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756437AbdCUJZn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 09:26:24 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v1 1/8] dt-bindings: Document STM32 DCMI bindings
-Date: Wed, 29 Mar 2017 15:25:19 +0200
-Message-ID: <1490793926-6477-2-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1490793926-6477-1-git-send-email-hugues.fruchet@st.com>
-References: <1490793926-6477-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Tue, 21 Mar 2017 05:25:43 -0400
+Message-ID: <1490088242.2913.5.camel@pengutronix.de>
+Subject: Re: [PATCH v3 2/4] media-ctl: print the configured frame interval
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Date: Tue, 21 Mar 2017 10:24:02 +0100
+In-Reply-To: <1486986047-18128-2-git-send-email-p.zabel@pengutronix.de>
+References: <1486986047-18128-1-git-send-email-p.zabel@pengutronix.de>
+         <1486986047-18128-2-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds documentation of device tree bindings for the STM32 DCMI
-(Digital Camera Memory Interface).
+On Mon, 2017-02-13 at 12:40 +0100, Philipp Zabel wrote:
+> After the pad format, also print the frame interval, if already configured.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  utils/media-ctl/media-ctl.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
+> index 572bcf7..383fbfa 100644
+> --- a/utils/media-ctl/media-ctl.c
+> +++ b/utils/media-ctl/media-ctl.c
+> @@ -79,6 +79,7 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
+>  	unsigned int pad, enum v4l2_subdev_format_whence which)
+>  {
+>  	struct v4l2_mbus_framefmt format;
+> +	struct v4l2_fract interval = { 0, 0 };
+>  	struct v4l2_rect rect;
+>  	int ret;
+>  
+> @@ -86,10 +87,17 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
+>  	if (ret != 0)
+>  		return;
+>  
+> +	ret = v4l2_subdev_get_frame_interval(entity, &interval, pad);
+> +	if (ret != 0 && ret != -ENOTTY)
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- .../devicetree/bindings/media/st,stm32-dcmi.txt    | 77 ++++++++++++++++++++++
- 1 file changed, 77 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
+I noticed the documentation says in 8.60.5. Return Value [1]:
 
-diff --git a/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
-new file mode 100644
-index 0000000..f0dc709
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
-@@ -0,0 +1,77 @@
-+STMicroelectronics STM32 Digital Camera Memory Interface (DCMI)
-+
-+Required properties:
-+- compatible: "st,stm32-dcmi"
-+- reg: physical base address and length of the registers set for the device;
-+- interrupts: should contain IRQ line for the DCMI;
-+- clocks: list of clock specifiers, corresponding to entries in
-+          the clock-names property;
-+- clock-names: must contain "mclk", which is the DCMI peripherial clock.
-+- resets: Reference to a reset controller
-+- reset-names: see Documentation/devicetree/bindings/reset/st,stm32-rcc.txt
-+
-+DCMI supports a single port node with parallel bus. It should contain one
-+'port' child node with child 'endpoint' node. Please refer to the bindings
-+defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+
-+Device node example
-+-------------------
-+	dcmi: dcmi@50050000 {
-+		compatible = "st,stm32-dcmi";
-+		reg = <0x50050000 0x400>;
-+		interrupts = <78>;
-+		resets = <&rcc STM32F4_AHB2_RESET(DCMI)>;
-+		clocks = <&rcc 0 STM32F4_AHB2_CLOCK(DCMI)>;
-+		clock-names = "mclk";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&dcmi_pins>;
-+		dmas = <&dma2 1 1 0x414 0x3>;
-+		dma-names = "tx";
-+		status = "disabled";
-+	};
-+
-+Board setup example
-+-------------------
-+
-+&dcmi {
-+	status = "okay";
-+
-+	port {
-+		dcmi_0: endpoint@0 {
-+			remote-endpoint = <&ov2640_0>;
-+			bus-width = <8>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+		};
-+	};
-+};
-+
-+{
-+	[...]
-+	i2c@0 {
-+		ov2640: camera@30 {
-+			compatible = "ovti,ov2640";
-+			reg = <0x30>;
-+			resetb-gpios = <&stmpegpio 2 GPIO_ACTIVE_HIGH>;
-+			pwdn-gpios = <&stmpegpio 0 GPIO_ACTIVE_LOW>;
-+			clocks = <&clk_ext_camera>;
-+			clock-names = "xvclk";
-+			status = "okay";
-+
-+			port {
-+				ov2640_0: endpoint {
-+					remote-endpoint = <&dcmi_0>;
-+				};
-+			};
-+		};
-+	};
-+
-+	clk_ext_camera: clk-ext-camera {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <24000000>;
-+	};
-+}
--- 
-1.9.1
+  EINVAL
+    The struct v4l2_subdev_frame_interval pad references a non-existing
+    pad, or the pad doesn’t support frame intervals.
+
+even though VIDIOC_SUBDEV_G_FRAME_INTERVAL returns ENOTTY (by way of
+ENOIOCTLCMD) if .g_frame_interval in the video ops is not implemented.
+Is this an error in the spec, an error in the code, or just me
+misunderstanding?
+
+Should this line be changed to
+	if (ret != 0 && ret != -ENOTTY && ret != -EINVAL)
+?
+
+[1] https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/vidioc-subdev-g-frame-interval.html#return-value
+
+> +		return;
+> +
+>  	printf("\t\t[fmt:%s/%ux%u",
+>  	       v4l2_subdev_pixelcode_to_string(format.code),
+>  	       format.width, format.height);
+>  
+> +	if (interval.numerator || interval.denominator)
+> +		printf("@%u/%u", interval.numerator, interval.denominator);
+> +
+>  	if (format.field)
+>  		printf(" field:%s", v4l2_subdev_field_to_string(format.field));
+>  
+
+regards
+Philipp
