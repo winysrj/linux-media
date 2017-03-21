@@ -1,96 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58972 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752296AbdCDWxb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Mar 2017 17:53:31 -0500
-Date: Sat, 4 Mar 2017 23:53:28 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCHv2] omap3isp: add support for CSI1 bus
-Message-ID: <20170304225328.GD31766@amd>
-References: <20161228183036.GA13139@amd>
- <10545906.Gxg3yScdu4@avalon>
- <20170215094228.GA8586@amd>
- <2414221.XNA4JCFMRx@avalon>
- <20170302090143.GB27818@amd>
- <20170302101603.GE27818@amd>
- <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
- <20170302123848.GA28230@amd>
- <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="EP0wieDxd4TSJjHq"
-Content-Disposition: inline
-In-Reply-To: <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
+Received: from mail.linux-iscsi.org ([67.23.28.174]:57857 "EHLO
+        linux-iscsi.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753522AbdCUHSL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Mar 2017 03:18:11 -0400
+Message-ID: <1490080687.8236.102.camel@haakon3.risingtidesystems.com>
+Subject: Re: [PATCH 24/29] drivers: convert iblock_req.pending from atomic_t
+ to refcount_t
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+To: Elena Reshetova <elena.reshetova@intel.com>
+Cc: gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
+        xen-devel@lists.xenproject.org, netdev@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Date: Tue, 21 Mar 2017 00:18:07 -0700
+In-Reply-To: <1488810076-3754-25-git-send-email-elena.reshetova@intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+         <1488810076-3754-25-git-send-email-elena.reshetova@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Elena,
 
---EP0wieDxd4TSJjHq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, 2017-03-06 at 16:21 +0200, Elena Reshetova wrote:
+> refcount_t type and corresponding API should be
+> used instead of atomic_t when the variable is used as
+> a reference counter. This allows to avoid accidental
+> refcounter overflows that might lead to use-after-free
+> situations.
+> 
+> Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+> Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+> Signed-off-by: Kees Cook <keescook@chromium.org>
+> Signed-off-by: David Windsor <dwindsor@gmail.com>
+> ---
+>  drivers/target/target_core_iblock.c | 12 ++++++------
+>  drivers/target/target_core_iblock.h |  3 ++-
+>  2 files changed, 8 insertions(+), 7 deletions(-)
 
-Hi!
+After reading up on this thread, it looks like various subsystem
+maintainers are now picking these atomic_t -> refcount_t conversions..
 
-> > > > +	if (isp->phy_type =3D=3D ISP_PHY_TYPE_3430) {
-> > > > +		struct media_pad *pad;
-> > > > +		struct v4l2_subdev *sensor;
-> > > > +		const struct isp_ccp2_cfg *buscfg;
-> > > > +
-> > > > +		pad =3D media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
-> > > > +		sensor =3D media_entity_to_v4l2_subdev(pad->entity);
-> > > > +		/* Struct isp_bus_cfg has union inside */
-> > > > +		buscfg =3D &((struct isp_bus_cfg *)sensor->host_priv)->bus.ccp2;
-> > > > +
-> > > > +		csiphy_routing_cfg_3430(&isp->isp_csiphy2,
-> > > > +					ISP_INTERFACE_CCP2B_PHY1,
-> > > > +					enable, !!buscfg->phy_layer,
-> > > > +					buscfg->strobe_clk_pol);
-> > >=20
-> > > You should do this through omap3isp_csiphy_acquire(), and not call
-> > > csiphy_routing_cfg_3430() directly from here.
-> >=20
-> > Well, unfortunately omap3isp_csiphy_acquire() does have csi2
-> > assumptions hard-coded :-(.
-> >=20
-> > This will probably fail.
-> >=20
-> > 	        rval =3D omap3isp_csi2_reset(phy->csi2);
-> > 	        if (rval < 0)
-> > 		                goto done;
->=20
-> Could you try to two patches I've applied on the ccp2 branch (I'll remove
-> them if there are issues).
->=20
-> That's compile tested for now only.
+That said, applied to target-pending/for-next and will plan to include
+for v4.12-rc1 merge window.
 
-Thanks! They seem to be step in right direction. I still need to call
-csiphy_routing_cfg_3430() directly for camera to work, but at least it
-does not crash if I set up the phy pointer. I'll debug it some more.
-
-Best regards,
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---EP0wieDxd4TSJjHq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAli7RWgACgkQMOfwapXb+vKwLgCgjicwndjAVodrGd+q56KArsf5
-kSsAn01LvtOpOutAJYX7P3rjavQ52duG
-=lzEr
------END PGP SIGNATURE-----
-
---EP0wieDxd4TSJjHq--
+Thanks!
