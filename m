@@ -1,194 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f169.google.com ([209.85.220.169]:33728 "EHLO
-        mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751217AbdCBVpN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 16:45:13 -0500
-Received: by mail-qk0-f169.google.com with SMTP id n127so147102169qkf.0
-        for <linux-media@vger.kernel.org>; Thu, 02 Mar 2017 13:45:07 -0800 (PST)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org
-Subject: [RFC PATCH 05/12] staging: android: ion: Remove page faulting support
-Date: Thu,  2 Mar 2017 13:44:37 -0800
-Message-Id: <1488491084-17252-6-git-send-email-labbott@redhat.com>
-In-Reply-To: <1488491084-17252-1-git-send-email-labbott@redhat.com>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+Received: from mail-pg0-f44.google.com ([74.125.83.44]:36520 "EHLO
+        mail-pg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756464AbdCURo7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Mar 2017 13:44:59 -0400
+Received: by mail-pg0-f44.google.com with SMTP id g2so96601453pge.3
+        for <linux-media@vger.kernel.org>; Tue, 21 Mar 2017 10:44:24 -0700 (PDT)
+Subject: Re: CEC button pass-through
+To: Hans Verkuil <hverkuil@xs4all.nl>
+References: <22e92133-6a64-ffaf-a41f-5ae9b19f24e5@nelint.com>
+ <53fd17db-af5d-335b-0337-e5aeffd12305@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+From: Eric Nelson <eric@nelint.com>
+Message-ID: <7ad3b464-1813-5535-fffc-36589d72d86d@nelint.com>
+Date: Tue, 21 Mar 2017 10:44:22 -0700
+MIME-Version: 1.0
+In-Reply-To: <53fd17db-af5d-335b-0337-e5aeffd12305@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
-The new method of syncing with dma_map means that the page faulting sync
-implementation is no longer applicable. Remove it.
+On 03/21/2017 10:05 AM, Hans Verkuil wrote:
+> On 03/21/2017 05:49 PM, Eric Nelson wrote:
+>> Hi Hans,
+>>
+>> Thanks to your work and those of Russell King, I have an i.MX6
+>> board up and running with the new CEC API, but I'm having
+>> trouble with a couple of sets of remote control keys.
+> 
+> What is your exact setup? Your i.MX6 is hooked up to a TV? And you
+> use the TV's remote control?
+> 
 
-Signed-off-by: Laura Abbott <labbott@redhat.com>
----
- drivers/staging/android/ion/ion.c | 117 --------------------------------------
- 1 file changed, 117 deletions(-)
+Exactly. Custom i.MX6 board with a Samsung television and remote.
 
-diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index a931b30..8eef1d7 100644
---- a/drivers/staging/android/ion/ion.c
-+++ b/drivers/staging/android/ion/ion.c
-@@ -41,37 +41,11 @@
- #include "ion_priv.h"
- #include "compat_ion.h"
- 
--bool ion_buffer_fault_user_mappings(struct ion_buffer *buffer)
--{
--	return (buffer->flags & ION_FLAG_CACHED) &&
--		!(buffer->flags & ION_FLAG_CACHED_NEEDS_SYNC);
--}
--
- bool ion_buffer_cached(struct ion_buffer *buffer)
- {
- 	return !!(buffer->flags & ION_FLAG_CACHED);
- }
- 
--static inline struct page *ion_buffer_page(struct page *page)
--{
--	return (struct page *)((unsigned long)page & ~(1UL));
--}
--
--static inline bool ion_buffer_page_is_dirty(struct page *page)
--{
--	return !!((unsigned long)page & 1UL);
--}
--
--static inline void ion_buffer_page_dirty(struct page **page)
--{
--	*page = (struct page *)((unsigned long)(*page) | 1UL);
--}
--
--static inline void ion_buffer_page_clean(struct page **page)
--{
--	*page = (struct page *)((unsigned long)(*page) & ~(1UL));
--}
--
- /* this function should only be called while dev->lock is held */
- static void ion_buffer_add(struct ion_device *dev,
- 			   struct ion_buffer *buffer)
-@@ -139,25 +113,6 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
- 	buffer->dev = dev;
- 	buffer->size = len;
- 
--	if (ion_buffer_fault_user_mappings(buffer)) {
--		int num_pages = PAGE_ALIGN(buffer->size) / PAGE_SIZE;
--		struct scatterlist *sg;
--		int i, j, k = 0;
--
--		buffer->pages = vmalloc(sizeof(struct page *) * num_pages);
--		if (!buffer->pages) {
--			ret = -ENOMEM;
--			goto err1;
--		}
--
--		for_each_sg(table->sgl, sg, table->nents, i) {
--			struct page *page = sg_page(sg);
--
--			for (j = 0; j < sg->length / PAGE_SIZE; j++)
--				buffer->pages[k++] = page++;
--		}
--	}
--
- 	buffer->dev = dev;
- 	buffer->size = len;
- 	INIT_LIST_HEAD(&buffer->vmas);
-@@ -876,69 +831,6 @@ void ion_pages_sync_for_device(struct device *dev, struct page *page,
- 	dma_sync_sg_for_device(dev, &sg, 1, dir);
- }
- 
--struct ion_vma_list {
--	struct list_head list;
--	struct vm_area_struct *vma;
--};
--
--static int ion_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
--{
--	struct ion_buffer *buffer = vma->vm_private_data;
--	unsigned long pfn;
--	int ret;
--
--	mutex_lock(&buffer->lock);
--	ion_buffer_page_dirty(buffer->pages + vmf->pgoff);
--	BUG_ON(!buffer->pages || !buffer->pages[vmf->pgoff]);
--
--	pfn = page_to_pfn(ion_buffer_page(buffer->pages[vmf->pgoff]));
--	ret = vm_insert_pfn(vma, vmf->address, pfn);
--	mutex_unlock(&buffer->lock);
--	if (ret)
--		return VM_FAULT_ERROR;
--
--	return VM_FAULT_NOPAGE;
--}
--
--static void ion_vm_open(struct vm_area_struct *vma)
--{
--	struct ion_buffer *buffer = vma->vm_private_data;
--	struct ion_vma_list *vma_list;
--
--	vma_list = kmalloc(sizeof(*vma_list), GFP_KERNEL);
--	if (!vma_list)
--		return;
--	vma_list->vma = vma;
--	mutex_lock(&buffer->lock);
--	list_add(&vma_list->list, &buffer->vmas);
--	mutex_unlock(&buffer->lock);
--	pr_debug("%s: adding %p\n", __func__, vma);
--}
--
--static void ion_vm_close(struct vm_area_struct *vma)
--{
--	struct ion_buffer *buffer = vma->vm_private_data;
--	struct ion_vma_list *vma_list, *tmp;
--
--	pr_debug("%s\n", __func__);
--	mutex_lock(&buffer->lock);
--	list_for_each_entry_safe(vma_list, tmp, &buffer->vmas, list) {
--		if (vma_list->vma != vma)
--			continue;
--		list_del(&vma_list->list);
--		kfree(vma_list);
--		pr_debug("%s: deleting %p\n", __func__, vma);
--		break;
--	}
--	mutex_unlock(&buffer->lock);
--}
--
--static const struct vm_operations_struct ion_vma_ops = {
--	.open = ion_vm_open,
--	.close = ion_vm_close,
--	.fault = ion_vm_fault,
--};
--
- static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
- {
- 	struct ion_buffer *buffer = dmabuf->priv;
-@@ -950,15 +842,6 @@ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
- 		return -EINVAL;
- 	}
- 
--	if (ion_buffer_fault_user_mappings(buffer)) {
--		vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND |
--							VM_DONTDUMP;
--		vma->vm_private_data = buffer;
--		vma->vm_ops = &ion_vma_ops;
--		ion_vm_open(vma);
--		return 0;
--	}
--
- 	if (!(buffer->flags & ION_FLAG_CACHED))
- 		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
- 
--- 
-2.7.4
+>> In particular, the directional keys 0x01-0x04 (Up..Right)
+>> and the function keys 0x71-0x74 (F1-F4) don't appear
+>> to be forwarded.
+>>
+>> Running cec-ctl with the "-m" or "-M" options shows that they're
+>> simply not being received.
+> 
+> Other keys appear fine with cec-ctl -M?
+> 
+
+Yes. Most keys are working fine.
+
+> Try to select CEC version 1.4 (use option --cec-version-1.4).
+> 
+
+Same result. I'm seeing most keys, including number keys:
+
+Received from TV to Recording Device 1 (0 to 1):
+CEC_MSG_USER_CONTROL_PRESSED (0x44):
+ui-cmd: Number 1 (0x21)
+Raw: 01 44 21
+Received from TV to Recording Device 1 (0 to 1):
+CEC_MSG_USER_CONTROL_RELEASED (0x45)
+Raw: 01 45
+
+But nothing from either the arrow or function keys.
+
+> With CEC 2.0 you can set various RC profiles, and (very unlikely) perhaps
+> your TV actually understands that.
+> 
+> The default CEC version cec-ctl selects is 2.0.
+> 
+> Note that the CEC framework doesn't do anything with the RC profiles
+> at the moment.
+> 
+
+I don't have the 2.0 spec, so I'm not sure what messages to look for
+in the logs from libCEC.
+
+I have a complete log file here, and it shows messages to and from
+the television, though in a pretty verbose form.
+
+http://pastebin.com/qFrhkNZQ
+
+>>
+>> I'm not sure if I'm missing a flag somewhere to tell my television
+>> that we support these keys, or if I'm missing something else.
+>>
+>> I'm using the --record option at the moment. Using --playback
+>> seems to restrict the keys to an even smaller set (seems to
+>> block numeric keys).
+>>
+>> Do you have any guidance about how to trace this?
+> 
+> cec-ctl -M monitors all messages, so it is weird you don't see them.
+> 
+
+Yep. Weird.
