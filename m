@@ -1,69 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.134]:58019 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753220AbdCBRLM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 12:11:12 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: kasan-dev@googlegroups.com
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 04/26] tty: kbd: reduce stack size with KASAN
-Date: Thu,  2 Mar 2017 17:38:12 +0100
-Message-Id: <20170302163834.2273519-5-arnd@arndb.de>
-In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
-References: <20170302163834.2273519-1-arnd@arndb.de>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:47380 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1757495AbdCURFR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Mar 2017 13:05:17 -0400
+Subject: Re: CEC button pass-through
+To: Eric Nelson <eric@nelint.com>
+References: <22e92133-6a64-ffaf-a41f-5ae9b19f24e5@nelint.com>
+Cc: linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <53fd17db-af5d-335b-0337-e5aeffd12305@xs4all.nl>
+Date: Tue, 21 Mar 2017 18:05:11 +0100
+MIME-Version: 1.0
+In-Reply-To: <22e92133-6a64-ffaf-a41f-5ae9b19f24e5@nelint.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by kernelci, some functions in the VT code use significant
-amounts of kernel stack when local variables get inlined into the caller
-multiple times:
+On 03/21/2017 05:49 PM, Eric Nelson wrote:
+> Hi Hans,
+> 
+> Thanks to your work and those of Russell King, I have an i.MX6
+> board up and running with the new CEC API, but I'm having
+> trouble with a couple of sets of remote control keys.
 
-drivers/tty/vt/keyboard.c: In function 'kbd_keycode':
-drivers/tty/vt/keyboard.c:1452:1: error: the frame size of 2240 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]
+What is your exact setup? Your i.MX6 is hooked up to a TV? And you
+use the TV's remote control?
 
-Annotating those functions as noinline_for_kasan prevents the inlining
-and reduces the overall stack usage in this driver.
+> In particular, the directional keys 0x01-0x04 (Up..Right)
+> and the function keys 0x71-0x74 (F1-F4) don't appear
+> to be forwarded.
+> 
+> Running cec-ctl with the "-m" or "-M" options shows that they're
+> simply not being received.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/tty/vt/keyboard.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Other keys appear fine with cec-ctl -M?
 
-diff --git a/drivers/tty/vt/keyboard.c b/drivers/tty/vt/keyboard.c
-index 397e1509fe51..f8a183c1639f 100644
---- a/drivers/tty/vt/keyboard.c
-+++ b/drivers/tty/vt/keyboard.c
-@@ -300,13 +300,13 @@ int kbd_rate(struct kbd_repeat *rpt)
- /*
-  * Helper Functions.
-  */
--static void put_queue(struct vc_data *vc, int ch)
-+static noinline_for_kasan void put_queue(struct vc_data *vc, int ch)
- {
- 	tty_insert_flip_char(&vc->port, ch, 0);
- 	tty_schedule_flip(&vc->port);
- }
- 
--static void puts_queue(struct vc_data *vc, char *cp)
-+static noinline_for_kasan void puts_queue(struct vc_data *vc, char *cp)
- {
- 	while (*cp) {
- 		tty_insert_flip_char(&vc->port, *cp, 0);
-@@ -554,7 +554,7 @@ static void fn_inc_console(struct vc_data *vc)
- 	set_console(i);
- }
- 
--static void fn_send_intr(struct vc_data *vc)
-+static noinline_for_kasan void fn_send_intr(struct vc_data *vc)
- {
- 	tty_insert_flip_char(&vc->port, 0, TTY_BREAK);
- 	tty_schedule_flip(&vc->port);
--- 
-2.9.0
+Try to select CEC version 1.4 (use option --cec-version-1.4).
+
+With CEC 2.0 you can set various RC profiles, and (very unlikely) perhaps
+your TV actually understands that.
+
+The default CEC version cec-ctl selects is 2.0.
+
+Note that the CEC framework doesn't do anything with the RC profiles
+at the moment.
+
+> 
+> I'm not sure if I'm missing a flag somewhere to tell my television
+> that we support these keys, or if I'm missing something else.
+> 
+> I'm using the --record option at the moment. Using --playback
+> seems to restrict the keys to an even smaller set (seems to
+> block numeric keys).
+> 
+> Do you have any guidance about how to trace this?
+
+cec-ctl -M monitors all messages, so it is weird you don't see them.
+
+> I am seeing these keys when using Pulse8/libCEC code and
+> the vendor driver and am in a position to trace the messages
+> using that setup if it helps.
+
+Regards,
+
+	Hans
