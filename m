@@ -1,154 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:34387 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750984AbdCOSfT (ORCPT
+Received: from mail-pf0-f178.google.com ([209.85.192.178]:34872 "EHLO
+        mail-pf0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757954AbdCUUDn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Mar 2017 14:35:19 -0400
-Date: Wed, 15 Mar 2017 13:35:15 -0500
-From: Rob Herring <robh@kernel.org>
-To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, CARLOS.PALMINHA@synopsys.com,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>, Benoit Parrot <bparrot@ti.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Kamil Debski <k.debski@samsung.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Peter Griffin <peter.griffin@linaro.org>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Simon Horman <simon.horman@netronome.com>,
-        Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: Re: [PATCH 3/4] Documentation: dt: Add bindings documentation for
- CSI-2 Host Video Platform
-Message-ID: <20170315183515.qnai3fwrdqobn6ky@rob-hp-laptop>
-References: <cover.1488885081.git.roliveir@synopsys.com>
- <95825021f5eae29a118ce0a2570c5c1886023110.1488885081.git.roliveir@synopsys.com>
+        Tue, 21 Mar 2017 16:03:43 -0400
+Received: by mail-pf0-f178.google.com with SMTP id 20so36329218pfk.2
+        for <linux-media@vger.kernel.org>; Tue, 21 Mar 2017 13:03:26 -0700 (PDT)
+Subject: Re: CEC button pass-through
+To: Hans Verkuil <hverkuil@xs4all.nl>
+References: <22e92133-6a64-ffaf-a41f-5ae9b19f24e5@nelint.com>
+ <53fd17db-af5d-335b-0337-e5aeffd12305@xs4all.nl>
+ <7ad3b464-1813-5535-fffc-36589d72d86d@nelint.com>
+ <67b5e8a1-8a79-27e2-8e5f-1c58a4adc0d8@nelint.com>
+ <4cacc06e-8573-53fc-39a9-551b426fdcfb@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+From: Eric Nelson <eric@nelint.com>
+Message-ID: <033583b4-4d3e-85b8-88dc-9be366612fe0@nelint.com>
+Date: Tue, 21 Mar 2017 13:03:23 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <95825021f5eae29a118ce0a2570c5c1886023110.1488885081.git.roliveir@synopsys.com>
+In-Reply-To: <4cacc06e-8573-53fc-39a9-551b426fdcfb@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 07, 2017 at 02:37:50PM +0000, Ramiro Oliveira wrote:
-> Create device tree bindings documentation for the CSI-2 Host Video
->  platform.
+Hi Hans,
+
+On 03/21/2017 11:46 AM, Hans Verkuil wrote:
+> On 03/21/2017 07:23 PM, Eric Nelson wrote:
+>> On 03/21/2017 10:44 AM, Eric Nelson wrote:
+>>> On 03/21/2017 10:05 AM, Hans Verkuil wrote:
+>>>> On 03/21/2017 05:49 PM, Eric Nelson wrote:
+>>
+>> <snip>
+>>
+>>>> With CEC 2.0 you can set various RC profiles, and (very unlikely) perhaps
+>>>> your TV actually understands that.
+>>>>
+>>>> The default CEC version cec-ctl selects is 2.0.
+>>>>
+>>>> Note that the CEC framework doesn't do anything with the RC profiles
+>>>> at the moment.
+>>>>
+>>>
+>>> I don't have the 2.0 spec, so I'm not sure what messages to look for
+>>> in the logs from libCEC.
+>>>
+>>> I have a complete log file here, and it shows messages to and from
+>>> the television, though in a pretty verbose form.
+>>>
+>>> http://pastebin.com/qFrhkNZQ
+>>>
+>>
+>> I think this is the culprit:
+>> cec-uinput: L8: << 10:8e:00
+>>
+>>
+>> The 1.3 spec says this about the 8E message:
+>>
+>> "If Menu State indicates activated, TV enters ‘Device Menu Active’
+>> state and forwards those Remote control commands, shown in
+>> Table 26, to the initiator. If deactivated, TV enters ‘Device Menu Inactive’
+>> state and stops forwarding remote control commands".
+>>
+>> In section 13.12.2, it also says this:
+>>
+>> "The TV may initiate a device’s menu by sending a <Menu Request>
+>> [“Activate”] command. It may subsequently remove the menu by sending
+>> a <Menu Request> [“Deactivate”] message. The TV may also query a
+>> devices menu status by sending a <Menu Request> [“Query”]. The
+>> menu device shall always respond with a <Menu Status> command
+>> when it receives a <Menu Request>."
+>>
 > 
-> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
-> ---
->  .../devicetree/bindings/media/snps,plat-csi2.txt   | 77 ++++++++++++++++++++++
->  1 file changed, 77 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/snps,plat-csi2.txt
+> That sounds plausible. When you tested with my CEC framework, did you also
+> run the cec-follower utility? That emulates a CEC follower.
 > 
-> diff --git a/Documentation/devicetree/bindings/media/snps,plat-csi2.txt b/Documentation/devicetree/bindings/media/snps,plat-csi2.txt
-> new file mode 100644
-> index 000000000000..f559257a0a44
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/snps,plat-csi2.txt
-> @@ -0,0 +1,77 @@
-> +Synopsys DesignWare CSI-2 Host Video Platform
-> +
-> +The Synopsys DesignWare CSI-2 Host Video Device subsystem comprises of multiple
-> +sub-devices represented by separate device tree nodes. Currently this includes:
-> +plat-csi2, video-device, and dw-mipi-csi.
-> +
-> +The sub-subdevices are defined as child nodes of the common 'camera'.
-> +
-> +Common 'camera' node
-> +--------------------
-> +
-> +Required properties:
-> +
-> +- compatible: must be "snps,plat-csi2", "simple-bus"
-> +
-> +The 'camera' node must include at least one 'video-device' and one 'dw-mipi-csi'
-> +child node.
-> +
-> +'video-device' device nodes
-> +-------------------
-> +
-> +Required properties:
-> +
-> +- compatible: "snps,video-device"
-> +- dmas, dma-names: List of one DMA specifier and identifier string (as defined
-> +  in Documentation/devicetree/bindings/dma/dma.txt) per port. Each port
-> +  requires a DMA channel with the identifier string set to "vdma" followed by
-> +  the port index.
-> +
-> +Image sensor nodes
-> +------------------
-> +
-> +The sensor device nodes should be added to their control bus controller (e.g.
-> +I2C0) nodes and linked to a port node in the dw-mipi-csi,using the common video
-> +interfaces bindings, defined in video-interfaces.txt.
-> +
-> +Example:
-> +
-> +
-> +	camera {
-> +		compatible = "snps,plat-csi2", "simple-bus";
-> +		#address-cells = <1>;
-> +		#size-cells = <1>;
-> +		ranges;
-> +			video_device: video-device@0x10000 {
 
-Drop the '0x' and any leading 0s on unit addresses.
+Yes. I'm running it with no arguments.
 
-> +				compatible = "snps,video-device";
-> +				dmas = <&axi_vdma_0 0>;
-> +				dma-names = "vdma0";
-> +			};
-
-If video-device is not a real device, then you shouldn't need a DT node. 
-I need a better explanation or diagram of what the h/w blocks and 
-connections look like here.
-
->From the looks of this, you can just move dmas to the csi2 node. But I 
-don't think that is right, because you can't generally just use an 
-external DMA controller with camera data (maybe for validation, but it's 
-not something you see in SoCs).
-
-> +
-> +			csi2:	csi2@0x03000 {
-> +				compatible = "snps,dw-mipi-csi";
-> +				#address-cells = <1>;
-> +				#size-cells = <0>;
-> +				reg = < 0x03000 0x7FF>;
-> +				interrupts = <2>;
-> +				phys = <&mipi_phy_ctrl1 0>;
-> +				resets = <&csi2_rst 1>;
-> +
-> +				output-type = <2>;
-> +				ipi-mode = <0>;
-> +				ipi-color-mode = <0>;
-> +				ipi-auto-flush = <1>;
-> +				virtual-channel = <0>;
-> +
-> +				port@1 {
-> +					reg = <1>;
-> +					csi1_ep1: endpoint {
-> +						remote-endpoint = <&camera>;
-> +						data-lanes = <1 2>;
-> +					};
-> +				};
-> +			};
-> +		};
-> +	};
-> +
-> +The dw-mipi-csi device binding is defined in snps,dw-mipi-csi.txt.
-> -- 
-> 2.11.0
+> Note: you really need to use the --cec-version-1.4 option when configuring
+> the i.MX6 CEC adapter since support for <Menu Request> is only enabled with
+> CEC version 1.4. It is no longer supported with 2.0.
 > 
-> 
+
+I'm not sure what I did in my previous attempt, but I'm now seeing
+both the arrow and function key sets being received by cec-ctl and
+cec-follower with --cec-version-1.4.
+
+Or not. Removing the --cec-version-1.4 parameter still shows these
+events, but after a re-boot and re-selection of the proper source
+on my TV shows that they're no longer coming up with or without
+the parameter.
+
+Further testing showed that by running the older driver and libCEC
+code, then re-booting into the new kernel (with cec-ctl) shows the
+messages with or without the flag.
+
+In other words, the TV seems to retain some state from the
+execution of the Pulse8/libCEC code.
+
+Is there a way to send a raw message to the television using cec-ctl?
+
+Never mind, I found it and after a bunch of messing around,
+confirmed that I can get the menu keys to be passed from my
+TV by sending the 0x8e command with a payload of 0x00 to
+the television:
+
+~/# cec-ctl --custom-command=cmd=0x8e,payload=0x00 --to=0
+
+Thanks for your help with this.
+
+Regards,
+
+
+Eric
