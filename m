@@ -1,124 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34389 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754563AbdC1I2c (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59245 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756925AbdCUV3m (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Mar 2017 04:28:32 -0400
+        Tue, 21 Mar 2017 17:29:42 -0400
+Subject: Re: CEC button pass-through
+To: Eric Nelson <eric@nelint.com>
+References: <22e92133-6a64-ffaf-a41f-5ae9b19f24e5@nelint.com>
+ <53fd17db-af5d-335b-0337-e5aeffd12305@xs4all.nl>
+ <7ad3b464-1813-5535-fffc-36589d72d86d@nelint.com>
+ <67b5e8a1-8a79-27e2-8e5f-1c58a4adc0d8@nelint.com>
+ <4cacc06e-8573-53fc-39a9-551b426fdcfb@xs4all.nl>
+ <033583b4-4d3e-85b8-88dc-9be366612fe0@nelint.com>
+Cc: linux-media@vger.kernel.org
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv6 12/14] ov2640: use standard clk and enable it.
-Date: Tue, 28 Mar 2017 10:23:45 +0200
-Message-Id: <20170328082347.11159-13-hverkuil@xs4all.nl>
-In-Reply-To: <20170328082347.11159-1-hverkuil@xs4all.nl>
-References: <20170328082347.11159-1-hverkuil@xs4all.nl>
+Message-ID: <0d5fc7c9-f609-2a9c-12a1-780d6101be9a@xs4all.nl>
+Date: Tue, 21 Mar 2017 22:29:36 +0100
+MIME-Version: 1.0
+In-Reply-To: <033583b4-4d3e-85b8-88dc-9be366612fe0@nelint.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 03/21/2017 09:03 PM, Eric Nelson wrote:
+> Hi Hans,
+> 
+> On 03/21/2017 11:46 AM, Hans Verkuil wrote:
+>> On 03/21/2017 07:23 PM, Eric Nelson wrote:
+>>> On 03/21/2017 10:44 AM, Eric Nelson wrote:
+>>>> On 03/21/2017 10:05 AM, Hans Verkuil wrote:
+>>>>> On 03/21/2017 05:49 PM, Eric Nelson wrote:
+>>>
+>>> <snip>
+>>>
+>>>>> With CEC 2.0 you can set various RC profiles, and (very unlikely) perhaps
+>>>>> your TV actually understands that.
+>>>>>
+>>>>> The default CEC version cec-ctl selects is 2.0.
+>>>>>
+>>>>> Note that the CEC framework doesn't do anything with the RC profiles
+>>>>> at the moment.
+>>>>>
+>>>>
+>>>> I don't have the 2.0 spec, so I'm not sure what messages to look for
+>>>> in the logs from libCEC.
+>>>>
+>>>> I have a complete log file here, and it shows messages to and from
+>>>> the television, though in a pretty verbose form.
+>>>>
+>>>> http://pastebin.com/qFrhkNZQ
+>>>>
+>>>
+>>> I think this is the culprit:
+>>> cec-uinput: L8: << 10:8e:00
+>>>
+>>>
+>>> The 1.3 spec says this about the 8E message:
+>>>
+>>> "If Menu State indicates activated, TV enters ‘Device Menu Active’
+>>> state and forwards those Remote control commands, shown in
+>>> Table 26, to the initiator. If deactivated, TV enters ‘Device Menu Inactive’
+>>> state and stops forwarding remote control commands".
+>>>
+>>> In section 13.12.2, it also says this:
+>>>
+>>> "The TV may initiate a device’s menu by sending a <Menu Request>
+>>> [“Activate”] command. It may subsequently remove the menu by sending
+>>> a <Menu Request> [“Deactivate”] message. The TV may also query a
+>>> devices menu status by sending a <Menu Request> [“Query”]. The
+>>> menu device shall always respond with a <Menu Status> command
+>>> when it receives a <Menu Request>."
+>>>
+>>
+>> That sounds plausible. When you tested with my CEC framework, did you also
+>> run the cec-follower utility? That emulates a CEC follower.
+>>
+> 
+> Yes. I'm running it with no arguments.
+> 
+>> Note: you really need to use the --cec-version-1.4 option when configuring
+>> the i.MX6 CEC adapter since support for <Menu Request> is only enabled with
+>> CEC version 1.4. It is no longer supported with 2.0.
+>>
+> 
+> I'm not sure what I did in my previous attempt, but I'm now seeing
+> both the arrow and function key sets being received by cec-ctl and
+> cec-follower with --cec-version-1.4.
+> 
+> Or not. Removing the --cec-version-1.4 parameter still shows these
+> events, but after a re-boot and re-selection of the proper source
+> on my TV shows that they're no longer coming up with or without
+> the parameter.
+> 
+> Further testing showed that by running the older driver and libCEC
+> code, then re-booting into the new kernel (with cec-ctl) shows the
+> messages with or without the flag.
+> 
+> In other words, the TV seems to retain some state from the
+> execution of the Pulse8/libCEC code.
+> 
+> Is there a way to send a raw message to the television using cec-ctl?
+> 
+> Never mind, I found it and after a bunch of messing around,
+> confirmed that I can get the menu keys to be passed from my
+> TV by sending the 0x8e command with a payload of 0x00 to
+> the television:
+> 
+> ~/# cec-ctl --custom-command=cmd=0x8e,payload=0x00 --to=0
 
-Convert v4l2_clk to normal clk and enable the clock.
+Or more elegantly:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/ov2640.c | 31 ++++++++++++++-----------------
- 1 file changed, 14 insertions(+), 17 deletions(-)
+cec-ctl --menu-status=menu-state=activated -t0
 
-diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-index 83f88efbce69..0445963c5fae 100644
---- a/drivers/media/i2c/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -16,6 +16,7 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/i2c.h>
-+#include <linux/clk.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/gpio.h>
-@@ -24,7 +25,6 @@
- #include <linux/v4l2-mediabus.h>
- #include <linux/videodev2.h>
- 
--#include <media/v4l2-clk.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-ctrls.h>
-@@ -284,7 +284,7 @@ struct ov2640_priv {
- 	struct v4l2_subdev		subdev;
- 	struct v4l2_ctrl_handler	hdl;
- 	u32	cfmt_code;
--	struct v4l2_clk			*clk;
-+	struct clk			*clk;
- 	const struct ov2640_win_size	*win;
- 
- 	struct gpio_desc *resetb_gpio;
-@@ -1051,14 +1051,11 @@ static int ov2640_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 	}
- 
--	priv->clk = v4l2_clk_get(&client->dev, "xvclk");
--	if (IS_ERR(priv->clk))
--		return -EPROBE_DEFER;
--
--	if (!client->dev.of_node) {
--		dev_err(&client->dev, "Missing platform_data for driver\n");
--		ret = -EINVAL;
--		goto err_clk;
-+	if (client->dev.of_node) {
-+		priv->clk = devm_clk_get(&client->dev, "xvclk");
-+		if (IS_ERR(priv->clk))
-+			return -EPROBE_DEFER;
-+		clk_prepare_enable(priv->clk);
- 	}
- 
- 	ret = ov2640_probe_dt(client, priv);
-@@ -1074,25 +1071,25 @@ static int ov2640_probe(struct i2c_client *client,
- 	priv->subdev.ctrl_handler = &priv->hdl;
- 	if (priv->hdl.error) {
- 		ret = priv->hdl.error;
--		goto err_clk;
-+		goto err_hdl;
- 	}
- 
- 	ret = ov2640_video_probe(client);
- 	if (ret < 0)
--		goto err_videoprobe;
-+		goto err_hdl;
- 
- 	ret = v4l2_async_register_subdev(&priv->subdev);
- 	if (ret < 0)
--		goto err_videoprobe;
-+		goto err_hdl;
- 
- 	dev_info(&adapter->dev, "OV2640 Probed\n");
- 
- 	return 0;
- 
--err_videoprobe:
-+err_hdl:
- 	v4l2_ctrl_handler_free(&priv->hdl);
- err_clk:
--	v4l2_clk_put(priv->clk);
-+	clk_disable_unprepare(priv->clk);
- 	return ret;
- }
- 
-@@ -1101,9 +1098,9 @@ static int ov2640_remove(struct i2c_client *client)
- 	struct ov2640_priv       *priv = to_ov2640(client);
- 
- 	v4l2_async_unregister_subdev(&priv->subdev);
--	v4l2_clk_put(priv->clk);
--	v4l2_device_unregister_subdev(&priv->subdev);
- 	v4l2_ctrl_handler_free(&priv->hdl);
-+	v4l2_device_unregister_subdev(&priv->subdev);
-+	clk_disable_unprepare(priv->clk);
- 	return 0;
- }
- 
--- 
-2.11.0
+See also: cec-ctl --help-device-menu-control
+
+But cec-follower should receive a menu-request message and reply with
+menu-status(activated).
+
+If you run cec-ctl -M, do you see the menu-request message arriving and the
+proper reply?
+
+Again, you must configure the cec adapter with:
+
+cec-ctl --record --cec-version-1.4
+
+otherwise it won't work (I'm not sure that's correct since the TV isn't
+CEC 2.0, I'll have to read up on that).
+
+Regards,
+
+	Hans
