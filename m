@@ -1,87 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:32811 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751713AbdCGT3I (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 14:29:08 -0500
-Received: by mail-wr0-f196.google.com with SMTP id g10so1489114wrg.0
-        for <linux-media@vger.kernel.org>; Tue, 07 Mar 2017 11:27:35 -0800 (PST)
-Received: from dvbdev.wuest.de (ip-178-201-73-185.hsi08.unitymediagroup.de. [178.201.73.185])
-        by smtp.gmail.com with ESMTPSA id m186sm13760369wmd.21.2017.03.07.10.58.33
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Tue, 07 Mar 2017 10:58:34 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 06/13] [media] dvb-frontends/stv0367: make full reinit on set_frontend() optional
-Date: Tue,  7 Mar 2017 19:57:20 +0100
-Message-Id: <20170307185727.564-7-d.scheller.oss@gmail.com>
-In-Reply-To: <20170307185727.564-1-d.scheller.oss@gmail.com>
-References: <20170307185727.564-1-d.scheller.oss@gmail.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:57908 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933051AbdCUSqm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Mar 2017 14:46:42 -0400
+Subject: Re: CEC button pass-through
+To: Eric Nelson <eric@nelint.com>
+References: <22e92133-6a64-ffaf-a41f-5ae9b19f24e5@nelint.com>
+ <53fd17db-af5d-335b-0337-e5aeffd12305@xs4all.nl>
+ <7ad3b464-1813-5535-fffc-36589d72d86d@nelint.com>
+ <67b5e8a1-8a79-27e2-8e5f-1c58a4adc0d8@nelint.com>
+Cc: linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4cacc06e-8573-53fc-39a9-551b426fdcfb@xs4all.nl>
+Date: Tue, 21 Mar 2017 19:46:36 +0100
+MIME-Version: 1.0
+In-Reply-To: <67b5e8a1-8a79-27e2-8e5f-1c58a4adc0d8@nelint.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On 03/21/2017 07:23 PM, Eric Nelson wrote:
+> Hi Hans,
+> 
+> On 03/21/2017 10:44 AM, Eric Nelson wrote:
+>> On 03/21/2017 10:05 AM, Hans Verkuil wrote:
+>>> On 03/21/2017 05:49 PM, Eric Nelson wrote:
+> 
+> <snip>
+> 
+>>> With CEC 2.0 you can set various RC profiles, and (very unlikely) perhaps
+>>> your TV actually understands that.
+>>>
+>>> The default CEC version cec-ctl selects is 2.0.
+>>>
+>>> Note that the CEC framework doesn't do anything with the RC profiles
+>>> at the moment.
+>>>
+>>
+>> I don't have the 2.0 spec, so I'm not sure what messages to look for
+>> in the logs from libCEC.
+>>
+>> I have a complete log file here, and it shows messages to and from
+>> the television, though in a pretty verbose form.
+>>
+>> http://pastebin.com/qFrhkNZQ
+>>
+> 
+> I think this is the culprit:
+> cec-uinput: L8: << 10:8e:00
+> 
+> 
+> The 1.3 spec says this about the 8E message:
+> 
+> "If Menu State indicates activated, TV enters ‘Device Menu Active’
+> state and forwards those Remote control commands, shown in
+> Table 26, to the initiator. If deactivated, TV enters ‘Device Menu Inactive’
+> state and stops forwarding remote control commands".
+> 
+> In section 13.12.2, it also says this:
+> 
+> "The TV may initiate a device’s menu by sending a <Menu Request>
+> [“Activate”] command. It may subsequently remove the menu by sending
+> a <Menu Request> [“Deactivate”] message. The TV may also query a
+> devices menu status by sending a <Menu Request> [“Query”]. The
+> menu device shall always respond with a <Menu Status> command
+> when it receives a <Menu Request>."
+> 
 
-Every time dvb_frontend_ops.set_frontend() is called, an almost full reinit
-of the demodulator will be performed. While this might cause a slight delay
-when switching channels due to all involved tables being rewritten, it can
-even be dangerous in certain causes in that the demod may lock up and
-requires to be powercycled (this can happen on Digital Devices hardware).
-So this adds a flag if it should be done, and to not change behaviour with
-existing card support, it'll be enabled in all cases.
+That sounds plausible. When you tested with my CEC framework, did you also
+run the cec-follower utility? That emulates a CEC follower.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/stv0367.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+Note: you really need to use the --cec-version-1.4 option when configuring
+the i.MX6 CEC adapter since support for <Menu Request> is only enabled with
+CEC version 1.4. It is no longer supported with 2.0.
 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index da10d9a..9370afa 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -93,6 +93,7 @@ struct stv0367_state {
- 	/* flags for operation control */
- 	u8 use_i2c_gatectrl;
- 	u8 deftabs;
-+	u8 reinit_on_setfrontend;
- };
- 
- #define RF_LOOKUP_TABLE_SIZE  31
-@@ -1217,7 +1218,8 @@ static int stv0367ter_set_frontend(struct dvb_frontend *fe)
- 	s8 num_trials, index;
- 	u8 SenseTrials[] = { INVERSION_ON, INVERSION_OFF };
- 
--	stv0367ter_init(fe);
-+	if (state->reinit_on_setfrontend)
-+		stv0367ter_init(fe);
- 
- 	if (fe->ops.tuner_ops.set_params) {
- 		if (state->use_i2c_gatectrl && fe->ops.i2c_gate_ctrl)
-@@ -1717,6 +1719,7 @@ struct dvb_frontend *stv0367ter_attach(const struct stv0367_config *config,
- 	/* demod operation options */
- 	state->use_i2c_gatectrl = 1;
- 	state->deftabs = STV0367_DEFTAB_GENERIC;
-+	state->reinit_on_setfrontend = 1;
- 
- 	dprintk("%s: chip_id = 0x%x\n", __func__, state->chip_id);
- 
-@@ -2511,7 +2514,8 @@ static int stv0367cab_set_frontend(struct dvb_frontend *fe)
- 		break;
- 	}
- 
--	stv0367cab_init(fe);
-+	if (state->reinit_on_setfrontend)
-+		stv0367cab_init(fe);
- 
- 	/* Tuner Frequency Setting */
- 	if (fe->ops.tuner_ops.set_params) {
-@@ -2835,6 +2839,7 @@ struct dvb_frontend *stv0367cab_attach(const struct stv0367_config *config,
- 	/* demod operation options */
- 	state->use_i2c_gatectrl = 1;
- 	state->deftabs = STV0367_DEFTAB_GENERIC;
-+	state->reinit_on_setfrontend = 1;
- 
- 	dprintk("%s: chip_id = 0x%x\n", __func__, state->chip_id);
- 
--- 
-2.10.2
+Regards,
+
+	Hans
