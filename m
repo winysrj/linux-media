@@ -1,87 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:60866 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756040AbdC2OPw (ORCPT
+Received: from smtprelay2.synopsys.com ([198.182.60.111]:48129 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756659AbdCULtw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 10:15:52 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Tue, 21 Mar 2017 07:49:52 -0400
+From: Jose Abreu <Jose.Abreu@synopsys.com>
 To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
+        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        devicetree@vger.kernel.org
-Subject: [PATCHv5 11/11] arm: sti: update sti-cec for CEC notifier support
-Date: Wed, 29 Mar 2017 16:15:43 +0200
-Message-Id: <20170329141543.32935-12-hverkuil@xs4all.nl>
-In-Reply-To: <20170329141543.32935-1-hverkuil@xs4all.nl>
-References: <20170329141543.32935-1-hverkuil@xs4all.nl>
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 1/3] [media] videodev2.h: Add new DV flag CAN_DETECT_REDUCED_FPS
+Date: Tue, 21 Mar 2017 11:49:16 +0000
+Message-Id: <8553b8aba19aa8d5266d215967791f6797e2c107.1490095965.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1490095965.git.joabreu@synopsys.com>
+References: <cover.1490095965.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1490095965.git.joabreu@synopsys.com>
+References: <cover.1490095965.git.joabreu@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Add a new flag to UAPI for DV timings which, whenever set,
+indicates that hardware can detect the difference between
+regular FPS and 1000/1001 FPS.
 
-To use CEC notifier sti CEC driver needs to get phandle
-of the hdmi device.
+This is specific to HDMI receivers. Also, it is only valid
+when V4L2_DV_FL_CAN_REDUCE_FPS is set.
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-CC: devicetree@vger.kernel.org
+Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+Cc: Carlos Palminha <palminha@synopsys.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 ---
- arch/arm/boot/dts/stih407-family.dtsi | 12 ------------
- arch/arm/boot/dts/stih410.dtsi        | 13 +++++++++++++
- 2 files changed, 13 insertions(+), 12 deletions(-)
+ include/uapi/linux/videodev2.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/arch/arm/boot/dts/stih407-family.dtsi b/arch/arm/boot/dts/stih407-family.dtsi
-index d753ac36788f..044184580326 100644
---- a/arch/arm/boot/dts/stih407-family.dtsi
-+++ b/arch/arm/boot/dts/stih407-family.dtsi
-@@ -742,18 +742,6 @@
- 				 <&clk_s_c0_flexgen CLK_ETH_PHY>;
- 		};
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 45184a2..dd7b426 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1371,6 +1371,13 @@ struct v4l2_bt_timings {
+  * InfoFrame).
+  */
+ #define V4L2_DV_FL_HAS_HDMI_VIC			(1 << 8)
++/*
++ * CEA-861 specific: only valid for video receivers.
++ * If set, then HW can detect the difference between regular FPS and
++ * 1000/1001 FPS. Note: This flag is only valid for HDMI VIC codes with
++ * the V4L2_DV_FL_CAN_REDUCE_FPS flag set.
++ */
++#define V4L2_DV_FL_CAN_DETECT_REDUCED_FPS	(1 << 9)
  
--		cec: sti-cec@094a087c {
--			compatible = "st,stih-cec";
--			reg = <0x94a087c 0x64>;
--			clocks = <&clk_sysin>;
--			clock-names = "cec-clk";
--			interrupts = <GIC_SPI 140 IRQ_TYPE_NONE>;
--			interrupt-names = "cec-irq";
--			pinctrl-names = "default";
--			pinctrl-0 = <&pinctrl_cec0_default>;
--			resets = <&softreset STIH407_LPM_SOFTRESET>;
--		};
--
- 		rng10: rng@08a89000 {
- 			compatible      = "st,rng";
- 			reg		= <0x08a89000 0x1000>;
-diff --git a/arch/arm/boot/dts/stih410.dtsi b/arch/arm/boot/dts/stih410.dtsi
-index 3c9672c5b09f..21fe72b183d8 100644
---- a/arch/arm/boot/dts/stih410.dtsi
-+++ b/arch/arm/boot/dts/stih410.dtsi
-@@ -281,5 +281,18 @@
- 				 <&clk_s_c0_flexgen CLK_ST231_DMU>,
- 				 <&clk_s_c0_flexgen CLK_FLASH_PROMIP>;
- 		};
-+
-+		sti-cec@094a087c {
-+			compatible = "st,stih-cec";
-+			reg = <0x94a087c 0x64>;
-+			clocks = <&clk_sysin>;
-+			clock-names = "cec-clk";
-+			interrupts = <GIC_SPI 140 IRQ_TYPE_NONE>;
-+			interrupt-names = "cec-irq";
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&pinctrl_cec0_default>;
-+			resets = <&softreset STIH407_LPM_SOFTRESET>;
-+			hdmi-phandle = <&sti_hdmi>;
-+		};
- 	};
- };
+ /* A few useful defines to calculate the total blanking and frame sizes */
+ #define V4L2_DV_BT_BLANKING_WIDTH(bt) \
 -- 
-2.11.0
+1.9.1
