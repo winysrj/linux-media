@@ -1,97 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:34740 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753215AbdC1AmQ (ORCPT
+Received: from icp-osb-irony-out7.external.iinet.net.au ([203.59.1.107]:56045
+        "EHLO icp-osb-irony-out7.external.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1758110AbdCVCmf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 20:42:16 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v6 25/39] ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
-Date: Mon, 27 Mar 2017 17:40:42 -0700
-Message-Id: <1490661656-10318-26-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+        Tue, 21 Mar 2017 22:42:35 -0400
+Date: Wed, 22 Mar 2017 13:33:39 +1100
+From: Eddie Youseph <psyclone@iinet.net.au>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2] staging: radio-bcm2048: fixed bare use of unsigned int
+Message-Id: <20170322133339.70e47a367c6d9ca907bd7931@iinet.net.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable i.MX v4l2 media staging driver. For video capture on i.MX, the
-video multiplexer subdev is required. On the SabreAuto, the ADV7180
-video decoder is required along with i2c-mux-gpio. The Sabrelite
-and SabreSD require the OV5640 and the SabreLite requires PWM clocks
-for the OV5640.
+Fixed checkpatch WARNING: Prefer 'unsigned int' to bare use of 'unsigned'
 
-Increase max zoneorder to allow larger video buffer allocations.
-
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Eddie Youseph <psyclone@iinet.net.au>
 ---
- arch/arm/configs/imx_v6_v7_defconfig | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+Changes in v2:
+	- Added changelog
 
-diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
-index eaba3b1..5d8c94a 100644
---- a/arch/arm/configs/imx_v6_v7_defconfig
-+++ b/arch/arm/configs/imx_v6_v7_defconfig
-@@ -51,6 +51,7 @@ CONFIG_PREEMPT_VOLUNTARY=y
- CONFIG_AEABI=y
- CONFIG_HIGHMEM=y
- CONFIG_CMA=y
-+CONFIG_FORCE_MAX_ZONEORDER=14
- CONFIG_CMDLINE="noinitrd console=ttymxc0,115200"
- CONFIG_KEXEC=y
- CONFIG_CPU_FREQ=y
-@@ -181,6 +182,7 @@ CONFIG_SERIAL_FSL_LPUART=y
- CONFIG_SERIAL_FSL_LPUART_CONSOLE=y
- # CONFIG_I2C_COMPAT is not set
- CONFIG_I2C_CHARDEV=y
-+CONFIG_I2C_MUX=y
- CONFIG_I2C_MUX_GPIO=y
- # CONFIG_I2C_HELPER_AUTO is not set
- CONFIG_I2C_ALGOPCF=m
-@@ -221,14 +223,20 @@ CONFIG_REGULATOR_PFUZE100=y
- CONFIG_MEDIA_SUPPORT=y
- CONFIG_MEDIA_CAMERA_SUPPORT=y
- CONFIG_MEDIA_RC_SUPPORT=y
-+CONFIG_MEDIA_CONTROLLER=y
-+CONFIG_VIDEO_V4L2_SUBDEV_API=y
- CONFIG_RC_DEVICES=y
- CONFIG_IR_GPIO_CIR=y
- CONFIG_MEDIA_USB_SUPPORT=y
- CONFIG_USB_VIDEO_CLASS=m
- CONFIG_V4L_PLATFORM_DRIVERS=y
-+CONFIG_VIDEO_MULTIPLEXER=y
- CONFIG_SOC_CAMERA=y
- CONFIG_V4L_MEM2MEM_DRIVERS=y
- CONFIG_VIDEO_CODA=y
-+# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
-+CONFIG_VIDEO_ADV7180=m
-+CONFIG_VIDEO_OV5640=m
- CONFIG_SOC_CAMERA_OV2640=y
- CONFIG_IMX_IPUV3_CORE=y
- CONFIG_DRM=y
-@@ -338,6 +346,9 @@ CONFIG_FSL_EDMA=y
- CONFIG_IMX_SDMA=y
- CONFIG_MXS_DMA=y
- CONFIG_STAGING=y
-+CONFIG_STAGING_MEDIA=y
-+CONFIG_VIDEO_IMX_MEDIA=y
-+CONFIG_COMMON_CLK_PWM=y
- CONFIG_IIO=y
- CONFIG_VF610_ADC=y
- CONFIG_MPL3115=y
+ drivers/staging/media/bcm2048/radio-bcm2048.c | 44 +++++++++++++--------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index d605c41..7d33bce 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -2020,27 +2020,27 @@ static irqreturn_t bcm2048_handler(int irq, void *dev)
+ 	return count;							\
+ }
+ 
+-DEFINE_SYSFS_PROPERTY(power_state, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(mute, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(audio_route, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(dac_output, unsigned, int, "%u", 0)
+-
+-DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned, int, "%u", value > 3)
+-
+-DEFINE_SYSFS_PROPERTY(rds, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_wline, unsigned, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(power_state, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(mute, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(audio_route, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(dac_output, unsigned int, int, "%u", 0)
++
++DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned int, int, "%u", value > 3)
++
++DEFINE_SYSFS_PROPERTY(rds, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_wline, unsigned int, int, "%u", 0)
+ property_read(rds_pi, unsigned int, "%x")
+ property_str_read(rds_rt, (BCM2048_MAX_RDS_RT + 1))
+ property_str_read(rds_ps, (BCM2048_MAX_RDS_PS + 1))
+@@ -2052,7 +2052,7 @@ static irqreturn_t bcm2048_handler(int irq, void *dev)
+ property_read(region_top_frequency, unsigned int, "%u")
+ property_signed_read(fm_carrier_error, int, "%d")
+ property_signed_read(fm_rssi, int, "%d")
+-DEFINE_SYSFS_PROPERTY(region, unsigned, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(region, unsigned int, int, "%u", 0)
+ 
+ static struct device_attribute attrs[] = {
+ 	__ATTR(power_state, 0644, bcm2048_power_state_read,
 -- 
-2.7.4
+1.8.3.1
