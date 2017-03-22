@@ -1,74 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-db5eur01on0105.outbound.protection.outlook.com ([104.47.2.105]:55472
-        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751333AbdCCNwl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Mar 2017 08:52:41 -0500
-Subject: Re: [PATCH 01/26] compiler: introduce noinline_for_kasan annotation
-To: Arnd Bergmann <arnd@arndb.de>, <kasan-dev@googlegroups.com>
-References: <20170302163834.2273519-1-arnd@arndb.de>
- <20170302163834.2273519-2-arnd@arndb.de>
-CC: Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>, <netdev@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <linux-wireless@vger.kernel.org>,
-        <kernel-build-reports@lists.linaro.org>,
-        "David S . Miller" <davem@davemloft.net>
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Message-ID: <7e7a62de-3b79-6044-72fa-4ade418953d1@virtuozzo.com>
-Date: Fri, 3 Mar 2017 16:50:20 +0300
+Received: from mail-it0-f66.google.com ([209.85.214.66]:33697 "EHLO
+        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758912AbdCVJeT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 22 Mar 2017 05:34:19 -0400
 MIME-Version: 1.0
-In-Reply-To: <20170302163834.2273519-2-arnd@arndb.de>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170309200818.786255823@cogentembedded.com>
+References: <20170309200818.786255823@cogentembedded.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 22 Mar 2017 10:34:16 +0100
+Message-ID: <CAMuHMdV5-aMx4KuqShm47XtORJK8rMKzw6FUs2Hjsxia+jPfxg@mail.gmail.com>
+Subject: Re: [PATCH v5] media: platform: Renesas IMR driver
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Konstantin Kozhevnikov
+        <Konstantin.Kozhevnikov@cogentembedded.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 03/02/2017 07:38 PM, Arnd Bergmann wrote:
-> When CONFIG_KASAN is set, we can run into some code that uses incredible
-> amounts of kernel stack:
-> 
-> drivers/staging/dgnc/dgnc_neo.c:1056:1: error: the frame size of 11112 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]
-> drivers/media/i2c/cx25840/cx25840-core.c:4960:1: error: the frame size of 94000 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]
-> drivers/media/dvb-frontends/stv090x.c:3430:1: error: the frame size of 5312 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-> 
-> This happens when a sanitizer uses stack memory each time an inline function
-> gets called. This introduces a new annotation for those functions to make
-> them either 'inline' or 'noinline' dependning on the CONFIG_KASAN symbol.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  include/linux/compiler.h | 11 +++++++++++
->  1 file changed, 11 insertions(+)
-> 
-> diff --git a/include/linux/compiler.h b/include/linux/compiler.h
-> index f8110051188f..56b90897a459 100644
-> --- a/include/linux/compiler.h
-> +++ b/include/linux/compiler.h
-> @@ -416,6 +416,17 @@ static __always_inline void __write_once_size(volatile void *p, void *res, int s
->   */
->  #define noinline_for_stack noinline
->  
-> +/*
-> + * CONFIG_KASAN can lead to extreme stack usage with certain patterns when
-> + * one function gets inlined many times and each instance requires a stack
-> + * ckeck.
-> + */
-> +#ifdef CONFIG_KASAN
-> +#define noinline_for_kasan noinline __maybe_unused
-
-
-noinline_iff_kasan might be a better name.  noinline_for_kasan gives the impression
-that we always noinline function for the sake of kasan, while noinline_iff_kasan
-clearly indicates that function is noinline only if kasan is used.
-
-> +#else
-> +#define noinline_for_kasan inline
-> +#endif
+On Thu, Mar 9, 2017 at 9:08 PM, Sergei Shtylyov
+<sergei.shtylyov@cogentembedded.com> wrote:
+> --- /dev/null
+> +++ media_tree/Documentation/devicetree/bindings/media/rcar_imr.txt
+> @@ -0,0 +1,27 @@
+> +Renesas R-Car Image Renderer (Distortion Correction Engine)
+> +-----------------------------------------------------------
 > +
->  #ifndef __always_inline
->  #define __always_inline inline
->  #endif
-> 
+> +The image renderer, or the distortion correction engine, is a drawing processor
+> +with a simple instruction system capable of referencing video capture data or
+> +data in an external memory as 2D texture data and performing texture mapping
+> +and drawing with respect to any shape that is split into triangular objects.
+> +
+> +Required properties:
+> +
+> +- compatible: "renesas,<soctype>-imr-lx4", "renesas,imr-lx4" as a fallback for
+> +  the image renderer light extended 4 (IMR-LX4) found in the R-Car gen3 SoCs,
+> +  where the examples with <soctype> are:
+> +  - "renesas,r8a7795-imr-lx4" for R-Car H3,
+> +  - "renesas,r8a7796-imr-lx4" for R-Car M3-W.
+
+Laurent: what do you think about the need for SoC-specific compatible
+values for the various IM* blocks?
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
