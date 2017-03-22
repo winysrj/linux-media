@@ -1,121 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46563
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932921AbdC3Mh0 (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:59498 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934139AbdCVKep (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 08:37:26 -0400
-Date: Thu, 30 Mar 2017 09:37:16 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Oliver Neukum <oneukum@suse.com>,
-        David Mosberger <davidm@egauge.net>,
-        Jaejoong Kim <climbbb.kim@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-rpi-kernel@lists.infradead.org,
-        Jonathan Corbet <corbet@lwn.net>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        John Youn <johnyoun@synopsys.com>,
-        Roger Quadros <rogerq@ti.com>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-usb@vger.kernel.org
-Subject: Re: [PATCH 22/22] usb: document that URB transfer_buffer should be
- aligned
-Message-ID: <20170330093716.175c2ebe@vento.lan>
-In-Reply-To: <6163606.hRdPdWigB9@avalon>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-        <3181783.rVmBcEVlbi@avalon>
-        <20170330072800.5ee8bc33@vento.lan>
-        <6163606.hRdPdWigB9@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Wed, 22 Mar 2017 06:34:45 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH] media: s5p-mfc: Don't allocate codec buffers from
+ pre-allocated region
+Date: Wed, 22 Mar 2017 11:34:28 +0100
+Message-id: <1490178868-8673-1-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+References: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170322103434eucas1p201996d20d01cdca113b9764117ce6167@eucas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 30 Mar 2017 15:05:30 +0300
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Further investigation revealed that codec buffers also don't need to
+be allocated at higher addresses than firmware base for MFC v6+ hardware.
+Those buffers can be quite large and its size depends on the selected
+format and framesize. This patch changes the way the codec buffers are
+allocated - driver will use generic allocator for them instead of the
+pre-allocated buffer for firmware and contexts.
 
-> Hi Mauro,
-> 
-> On Thursday 30 Mar 2017 07:28:00 Mauro Carvalho Chehab wrote:
-> > Em Thu, 30 Mar 2017 12:34:32 +0300 Laurent Pinchart escreveu:  
-> > > On Thursday 30 Mar 2017 10:11:31 Oliver Neukum wrote:  
-> > >> Am Donnerstag, den 30.03.2017, 01:15 +0300 schrieb Laurent Pinchart:  
-> > >>>> +   may also override PAD bytes at the end of the
-> > >>>> ``transfer_buffer``, up to the
-> > >>>> +   size of the CPU word.  
-> > >>> 
-> > >>> "May" is quite weak here. If some host controller drivers require
-> > >>> buffers to be aligned, then it's an API requirement, and all buffers
-> > >>> must be aligned. I'm not even sure I would mention that some host
-> > >>> drivers require it, I think we should just state that the API requires
-> > >>> buffers to be aligned.  
-> > >> 
-> > >> That effectively changes the API. Many network drivers are written with
-> > >> the assumption that any contiguous buffer is valid. In fact you could
-> > >> argue that those drivers are buggy and must use bounce buffers in those
-> > >> cases.  
-> > 
-> > Blaming the dwc2 driver was my first approach, but such patch got nacked ;)
-> > 
-> > Btw, the dwc2 driver has a routine that creates a temporary buffer if the
-> > buffer pointer is not DWORD aligned. My first approach were to add
-> > a logic there to also use the temporary buffer if the buffer size is
-> > not DWORD aligned:
-> > 	https://patchwork.linuxtv.org/patch/40093/
-> > 
-> > While debugging this issue, I saw *a lot* of network-generated URB
-> > traffic from RPi3 Ethernet port drivers that were using non-aligned
-> > buffers and were subject to the temporary buffer conversion.
-> > 
-> > My understanding here is that having a temporary bounce buffer sucks,
-> > as the performance and latency are affected. So, I see the value of
-> > adding this constraint to the API, pushing the task of getting
-> > aligned buffers to the USB drivers,  
-> 
-> This could however degrade performances when the HCD can handle unaligned 
-> buffers.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+This patch should solve failure of h264 encoding due to insufficient memory
+for codec temporary buffers. Please consider it as part of "[PATCH v3 00/16]
+Exynos MFC v6+ - remove the need for the reserved memory" patchset.
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    | 28 +++++++++++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |  4 ++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |  4 ++--
+ 3 files changed, 34 insertions(+), 2 deletions(-)
 
-No, it won't degrade performance out there, except if the driver
-would need to do double buffering due to such constraint. 
-
-It will just waste memory.
-
-> 
-> > but you're right: that means a lot of work, as all USB drivers should be
-> > reviewed.  
-> 
-> If we decide in the end to push the constraint on the USB device driver side, 
-> then the dwc2 HCD driver should return an error when the buffer isn't 
-> correctly aligned.
-
-Yeah, with such constraint, either the HCD drivers or the USB core
-should complain.
-
-There is another option: to add a field, filled by te USB driver,
-telling the core that the buffer is aligned, e. g. drivers would
-be doing something like:
-
-	urb->transfer_buffer_align = 4;
-
-Something similar could be filled by the HCD driver:
-
-	hc_driver->transfer_buffer_align = 4;
-
-The core will then check if the alignment required by the HCD driver
-is compatible with the buffer alignment ensured by the USB driver.
-If it doesn't, then the core would create a temporary buffer for the
-transfers.
-
-No idea about how easy/hard would be to implement something like
-that.
-
-In such case, it could make sense to generate a warning that
-the driver should be fixed, or that the performance would
-decrease due to double-buffering.
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
+index 34a66189d980..7f33cf23947f 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
+@@ -79,6 +79,25 @@ int s5p_mfc_alloc_priv_buf(struct s5p_mfc_dev *dev, unsigned int mem_ctx,
+ 	return -ENOMEM;
+ }
+ 
++int s5p_mfc_alloc_generic_buf(struct s5p_mfc_dev *dev, unsigned int mem_ctx,
++			   struct s5p_mfc_priv_buf *b)
++{
++	struct device *mem_dev = dev->mem_dev[mem_ctx];
++
++	mfc_debug(3, "Allocating generic buf: %zu\n", b->size);
++
++	b->ctx = mem_ctx;
++	b->virt = dma_alloc_coherent(mem_dev, b->size, &b->dma, GFP_KERNEL);
++	if (!b->virt)
++		goto no_mem;
++
++	mfc_debug(3, "Allocated addr %p %pad\n", b->virt, &b->dma);
++	return 0;
++no_mem:
++	mfc_err("Allocating generic buffer of size %zu failed\n", b->size);
++	return -ENOMEM;
++}
++
+ void s5p_mfc_release_priv_buf(struct s5p_mfc_dev *dev,
+ 			      struct s5p_mfc_priv_buf *b)
+ {
+@@ -97,3 +116,12 @@ void s5p_mfc_release_priv_buf(struct s5p_mfc_dev *dev,
+ 	b->size = 0;
+ }
+ 
++void s5p_mfc_release_generic_buf(struct s5p_mfc_dev *dev,
++			      struct s5p_mfc_priv_buf *b)
++{
++	struct device *mem_dev = dev->mem_dev[b->ctx];
++	dma_free_coherent(mem_dev, b->size, b->virt, b->dma);
++	b->virt = NULL;
++	b->dma = 0;
++	b->size = 0;
++}
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+index 108e59382e0c..16d553fcff08 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+@@ -319,6 +319,10 @@ int s5p_mfc_alloc_priv_buf(struct s5p_mfc_dev *dev, unsigned int mem_ctx,
+ 			   struct s5p_mfc_priv_buf *b);
+ void s5p_mfc_release_priv_buf(struct s5p_mfc_dev *dev,
+ 			      struct s5p_mfc_priv_buf *b);
++int s5p_mfc_alloc_generic_buf(struct s5p_mfc_dev *dev, unsigned int mem_ctx,
++			   struct s5p_mfc_priv_buf *b);
++void s5p_mfc_release_generic_buf(struct s5p_mfc_dev *dev,
++			      struct s5p_mfc_priv_buf *b);
+ 
+ 
+ #endif /* S5P_MFC_OPR_H_ */
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 70071a12db16..85880e9106be 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -239,7 +239,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 
+ 	/* Allocate only if memory from bank 1 is necessary */
+ 	if (ctx->bank1.size > 0) {
+-		ret = s5p_mfc_alloc_priv_buf(dev, BANK_L_CTX, &ctx->bank1);
++		ret = s5p_mfc_alloc_generic_buf(dev, BANK_L_CTX, &ctx->bank1);
+ 		if (ret) {
+ 			mfc_err("Failed to allocate Bank1 memory\n");
+ 			return ret;
+@@ -252,7 +252,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ /* Release buffers allocated for codec */
+ static void s5p_mfc_release_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ {
+-	s5p_mfc_release_priv_buf(ctx->dev, &ctx->bank1);
++	s5p_mfc_release_generic_buf(ctx->dev, &ctx->bank1);
+ }
+ 
+ /* Allocate memory for instance data buffer */
+-- 
+1.9.1
