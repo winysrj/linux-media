@@ -1,68 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f47.google.com ([209.85.215.47]:33680 "EHLO
-        mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752767AbdCFN3T (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 08:29:19 -0500
-Received: by mail-lf0-f47.google.com with SMTP id a6so72435041lfa.0
-        for <linux-media@vger.kernel.org>; Mon, 06 Mar 2017 05:29:18 -0800 (PST)
-MIME-Version: 1.0
-From: =?UTF-8?Q?Fran=C3=A7ois_M?= <f.menning@gmail.com>
-Date: Mon, 6 Mar 2017 14:21:19 +0100
-Message-ID: <CADska5perycsLrjE8mZPFgAbnw_xhjbHDqa5bv0mftDouK_ApA@mail.gmail.com>
-Subject: Mygica T230 Rev. <2016 not working on Linux 4.9 - 2016 model not
- working at all
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35528 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752184AbdCVEdF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 22 Mar 2017 00:33:05 -0400
+From: Arushi Singhal <arushisinghal19971997@gmail.com>
+To: outreachy-kernel@googlegroups.com
+Cc: linux-media@vger.kernel.org, gregkh@linuxfoundation.org,
+        mchehab@kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        Arushi Singhal <arushisinghal19971997@gmail.com>
+Subject: [PATCH 2/3] staging: media: davinci_vpfe: Replace a bit shift by a use of BIT.
+Date: Wed, 22 Mar 2017 09:56:08 +0530
+Message-Id: <20170322042609.23525-3-arushisinghal19971997@gmail.com>
+In-Reply-To: <20170322042609.23525-1-arushisinghal19971997@gmail.com>
+References: <20170322042609.23525-1-arushisinghal19971997@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using Mygica T230 <2016 model on (Arch) Linux 4.9.11 with latest
-openelec-firmware installed.:
-[ 1950.636574] usb 1-1: new high-speed USB device number 7 using xhci_hcd
-[ 1950.770804] usb 1-1: language id specifier not provided by device,
-defaulting to English
-[ 1950.773837] dvb-usb: found a 'Mygica T230 DVB-T/T2/C' in warm state.
-[ 1950.909942] dvb-usb: recv bulk message failed: -11
-[ 1951.016674] dvb-usb: will pass the complete MPEG2 transport stream
-to the software demuxer.
-[ 1951.016920] DVB: registering new adapter (Mygica T230 DVB-T/T2/C)
-[ 1951.021056] dvb-usb: recv bulk message failed: -11
-[ 1951.021071] si2168: probe of 10-0064 failed with error -121
-[ 1951.021077] dvb-usb: no frontend was attached by 'Mygica T230 DVB-T/T2/C'
-[ 1951.021316] input: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:14.0/usb1/1-1/input/input29
-[ 1951.021687] dvb-usb: schedule remote query interval to 100 msecs.
+This patch replaces bit shifting on 1 with the BIT(x) macro.
+This was done with coccinelle:
+@@
+constant c;
+@@
 
-Working state on Linux 4.8.14:
-[ 7999.575183] dvb-usb: will pass the complete MPEG2 transport stream
-to the software demuxer.
-[ 7999.575233] DVB: registering new adapter (Mygica T230 DVB-T/T2/C)
-[ 7999.583571] i2c i2c-5: Added multiplexed i2c bus 6
-[ 7999.583573] si2168 5-0064: Silicon Labs Si2168-B40 successfully identified
-[ 7999.583574] si2168 5-0064: firmware version: B 4.0.2
-[ 7999.585032] media: Linux media interface: v0.10
-[ 7999.587312] si2157 6-0060: Silicon Labs Si2147/2148/2157/2158
-successfully attached
-[ 7999.587317] usb 1-7: DVB: registering adapter 0 frontend 0 (Silicon
-Labs Si2168)...
-[ 7999.587453] input: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:14.0/usb1/1-7/input/input16
-[ 7999.587529] dvb-usb: schedule remote query interval to 100 msecs.
-[ 7999.587563] dvb-usb: Mygica T230 DVB-T/T2/C successfully
-initialized and connected.
-[ 7999.587578] usbcore: registered new interface driver dvb_usb_cxusb
-[ 8006.865027] si2168 5-0064: downloading firmware from file
-'dvb-demod-si2168-b40-01.fw'
-[ 8007.577512] si2168 5-0064: firmware version: B 4.0.11
-[ 8007.591030] si2157 6-0060: found a 'Silicon Labs Si2158-A20'
-[ 8007.591587] si2157 6-0060: downloading firmware from file
-'dvb-tuner-si2158-a20-01.fw'
-[ 8008.793732] si2157 6-0060: firmware version: 2.1.9
+-1 << c
++BIT(c)
 
-The latest released model (with serial 2016) doesn't start at all on
-Linux 4.9.11.
+Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
+---
+ drivers/staging/media/davinci_vpfe/dm365_ipipe.c   |  2 +-
+ drivers/staging/media/davinci_vpfe/dm365_ipipeif.c |  2 +-
+ drivers/staging/media/davinci_vpfe/dm365_isif.c    | 26 +++++++++++-----------
+ drivers/staging/media/davinci_vpfe/dm365_resizer.c |  6 ++---
+ 4 files changed, 18 insertions(+), 18 deletions(-)
 
-I don't know if this is because of the module changes in si2168 or
-other changes in dvb-usb.
-
-Thanks and let me know if more info is needed.
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+index 6a3434cebd79..7eeb53217168 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+@@ -1815,7 +1815,7 @@ vpfe_ipipe_init(struct vpfe_ipipe_device *ipipe, struct platform_device *pdev)
+ 	v4l2_subdev_init(sd, &ipipe_v4l2_ops);
+ 	sd->internal_ops = &ipipe_v4l2_internal_ops;
+ 	strlcpy(sd->name, "DAVINCI IPIPE", sizeof(sd->name));
+-	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
++	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
+ 	v4l2_set_subdevdata(sd, ipipe);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+index 46fd2c7f69c3..c07f028dd6be 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+@@ -1021,7 +1021,7 @@ int vpfe_ipipeif_init(struct vpfe_ipipeif_device *ipipeif,
+ 
+ 	sd->internal_ops = &ipipeif_v4l2_internal_ops;
+ 	strlcpy(sd->name, "DAVINCI IPIPEIF", sizeof(sd->name));
+-	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
++	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
+ 
+ 	v4l2_set_subdevdata(sd, ipipeif);
+ 
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif.c b/drivers/staging/media/davinci_vpfe/dm365_isif.c
+index 569bcdc9ce2f..0d160c1257d2 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_isif.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_isif.c
+@@ -821,7 +821,7 @@ isif_config_dfc(struct vpfe_isif_device *isif, struct vpfe_isif_dfc *vdfc)
+ 
+ 	/* Correct whole line or partial */
+ 	if (vdfc->corr_whole_line)
+-		val |= 1 << ISIF_VDFC_CORR_WHOLE_LN_SHIFT;
++		val |= BIT(ISIF_VDFC_CORR_WHOLE_LN_SHIFT);
+ 
+ 	/* level shift value */
+ 	val |= (vdfc->def_level_shift & ISIF_VDFC_LEVEL_SHFT_MASK) <<
+@@ -849,7 +849,7 @@ isif_config_dfc(struct vpfe_isif_device *isif, struct vpfe_isif_dfc *vdfc)
+ 
+ 	val = isif_read(isif->isif_cfg.base_addr, DFCMEMCTL);
+ 	/* set DFCMARST and set DFCMWR */
+-	val |= 1 << ISIF_DFCMEMCTL_DFCMARST_SHIFT;
++	val |= BIT(ISIF_DFCMEMCTL_DFCMARST_SHIFT);
+ 	val |= 1;
+ 	isif_write(isif->isif_cfg.base_addr, val, DFCMEMCTL);
+ 
+@@ -880,7 +880,7 @@ isif_config_dfc(struct vpfe_isif_device *isif, struct vpfe_isif_dfc *vdfc)
+ 		}
+ 		val = isif_read(isif->isif_cfg.base_addr, DFCMEMCTL);
+ 		/* clear DFCMARST and set DFCMWR */
+-		val &= ~(1 << ISIF_DFCMEMCTL_DFCMARST_SHIFT);
++		val &= ~(BIT(ISIF_DFCMEMCTL_DFCMARST_SHIFT));
+ 		val |= 1;
+ 		isif_write(isif->isif_cfg.base_addr, val, DFCMEMCTL);
+ 
+@@ -904,10 +904,10 @@ isif_config_dfc(struct vpfe_isif_device *isif, struct vpfe_isif_dfc *vdfc)
+ 			   DM365_ISIF_DFCMWR_MEMORY_WRITE, DFCMEMCTL);
+ 	}
+ 	/* enable VDFC */
+-	isif_merge(isif->isif_cfg.base_addr, (1 << ISIF_VDFC_EN_SHIFT),
+-		   (1 << ISIF_VDFC_EN_SHIFT), DFCCTL);
++	isif_merge(isif->isif_cfg.base_addr, (BIT(ISIF_VDFC_EN_SHIFT)),
++		   (BIT(ISIF_VDFC_EN_SHIFT)), DFCCTL);
+ 
+-	isif_merge(isif->isif_cfg.base_addr, (1 << ISIF_VDFC_EN_SHIFT),
++	isif_merge(isif->isif_cfg.base_addr, (BIT(ISIF_VDFC_EN_SHIFT)),
+ 		   (0 << ISIF_VDFC_EN_SHIFT), DFCCTL);
+ 
+ 	isif_write(isif->isif_cfg.base_addr, 0x6, DFCMEMCTL);
+@@ -1140,7 +1140,7 @@ static int isif_config_raw(struct v4l2_subdev *sd, int mode)
+ 	isif_write(isif->isif_cfg.base_addr, val, CGAMMAWD);
+ 	/* Configure DPCM compression settings */
+ 	if (params->v4l2_pix_fmt == V4L2_PIX_FMT_SGRBG10DPCM8) {
+-		val =  1 << ISIF_DPCM_EN_SHIFT;
++		val =  BIT(ISIF_DPCM_EN_SHIFT);
+ 		val |= (params->dpcm_predictor &
+ 			ISIF_DPCM_PREDICTOR_MASK) << ISIF_DPCM_PREDICTOR_SHIFT;
+ 	}
+@@ -1893,7 +1893,7 @@ static const struct v4l2_ctrl_config vpfe_isif_crgain = {
+ 	.name = "CRGAIN",
+ 	.type = V4L2_CTRL_TYPE_INTEGER,
+ 	.min = 0,
+-	.max = (1 << 12) - 1,
++	.max = (BIT(12)) - 1,
+ 	.step = 1,
+ 	.def = 0,
+ };
+@@ -1904,7 +1904,7 @@ static const struct v4l2_ctrl_config vpfe_isif_cgrgain = {
+ 	.name = "CGRGAIN",
+ 	.type = V4L2_CTRL_TYPE_INTEGER,
+ 	.min = 0,
+-	.max = (1 << 12) - 1,
++	.max = (BIT(12)) - 1,
+ 	.step = 1,
+ 	.def = 0,
+ };
+@@ -1915,7 +1915,7 @@ static const struct v4l2_ctrl_config vpfe_isif_cgbgain = {
+ 	.name = "CGBGAIN",
+ 	.type = V4L2_CTRL_TYPE_INTEGER,
+ 	.min = 0,
+-	.max = (1 << 12) - 1,
++	.max = (BIT(12)) - 1,
+ 	.step = 1,
+ 	.def = 0,
+ };
+@@ -1926,7 +1926,7 @@ static const struct v4l2_ctrl_config vpfe_isif_cbgain = {
+ 	.name = "CBGAIN",
+ 	.type = V4L2_CTRL_TYPE_INTEGER,
+ 	.min = 0,
+-	.max = (1 << 12) - 1,
++	.max = (BIT(12)) - 1,
+ 	.step = 1,
+ 	.def = 0,
+ };
+@@ -1937,7 +1937,7 @@ static const struct v4l2_ctrl_config vpfe_isif_gain_offset = {
+ 	.name = "Gain Offset",
+ 	.type = V4L2_CTRL_TYPE_INTEGER,
+ 	.min = 0,
+-	.max = (1 << 12) - 1,
++	.max = (BIT(12)) - 1,
+ 	.step = 1,
+ 	.def = 0,
+ };
+@@ -2044,7 +2044,7 @@ int vpfe_isif_init(struct vpfe_isif_device *isif, struct platform_device *pdev)
+ 	v4l2_subdev_init(sd, &isif_v4l2_ops);
+ 	sd->internal_ops = &isif_v4l2_internal_ops;
+ 	strlcpy(sd->name, "DAVINCI ISIF", sizeof(sd->name));
+-	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
++	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
+ 	v4l2_set_subdevdata(sd, isif);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	pads[ISIF_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+index 857b0e847c5e..3b3469adaf91 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+@@ -1903,7 +1903,7 @@ int vpfe_resizer_init(struct vpfe_resizer_device *vpfe_rsz,
+ 	v4l2_subdev_init(sd, &resizer_v4l2_ops);
+ 	sd->internal_ops = &resizer_v4l2_internal_ops;
+ 	strlcpy(sd->name, "DAVINCI RESIZER CROP", sizeof(sd->name));
+-	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
++	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
+ 	v4l2_set_subdevdata(sd, vpfe_rsz);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+@@ -1927,7 +1927,7 @@ int vpfe_resizer_init(struct vpfe_resizer_device *vpfe_rsz,
+ 	v4l2_subdev_init(sd, &resizer_v4l2_ops);
+ 	sd->internal_ops = &resizer_v4l2_internal_ops;
+ 	strlcpy(sd->name, "DAVINCI RESIZER A", sizeof(sd->name));
+-	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
++	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
+ 	v4l2_set_subdevdata(sd, vpfe_rsz);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+@@ -1949,7 +1949,7 @@ int vpfe_resizer_init(struct vpfe_resizer_device *vpfe_rsz,
+ 	v4l2_subdev_init(sd, &resizer_v4l2_ops);
+ 	sd->internal_ops = &resizer_v4l2_internal_ops;
+ 	strlcpy(sd->name, "DAVINCI RESIZER B", sizeof(sd->name));
+-	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
++	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
+ 	v4l2_set_subdevdata(sd, vpfe_rsz);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+-- 
+2.11.0
