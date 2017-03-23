@@ -1,60 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:33427 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932932AbdCaMUu (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39576 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752443AbdCWNht (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 08:20:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Patrice.chotard@st.com, Hans Verkuil <hans.verkuil@cisco.com>,
-        devicetree@vger.kernel.org
-Subject: [PATCHv6 05/10] s5p-cec.txt: document the HDMI controller phandle
-Date: Fri, 31 Mar 2017 14:20:31 +0200
-Message-Id: <20170331122036.55706-6-hverkuil@xs4all.nl>
-In-Reply-To: <20170331122036.55706-1-hverkuil@xs4all.nl>
-References: <20170331122036.55706-1-hverkuil@xs4all.nl>
+        Thu, 23 Mar 2017 09:37:49 -0400
+Date: Thu, 23 Mar 2017 14:37:33 +0100
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Geliang Tang <geliangtang@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Daeseok Youn <daeseok.youn@gmail.com>,
+        Alan Cox <alan@linux.intel.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        simran singhal <singhalsimran0@gmail.com>,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] staging: media: atomisp: use kvmalloc and kvfree
+Message-ID: <20170323133733.GA16056@kroah.com>
+References: <328d0eb3da461aaaa6140b1409ee7550bcec87bb.1490261279.git.geliangtang@gmail.com>
+ <7ac949fbedccaa86c27db0dd045f10be97ec74b1.1490261637.git.geliangtang@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7ac949fbedccaa86c27db0dd045f10be97ec74b1.1490261637.git.geliangtang@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, Mar 23, 2017 at 09:12:39PM +0800, Geliang Tang wrote:
+> Use kvmalloc() and kvfree() instead of open-coding.
 
-Update the bindings documenting the new hdmi phandle.
+These functions are not in Linus's tree, so I can't apply this patch
+without breaking things :(
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
-CC: linux-samsung-soc@vger.kernel.org
-CC: devicetree@vger.kernel.org
----
- Documentation/devicetree/bindings/media/s5p-cec.txt | 2 ++
- 1 file changed, 2 insertions(+)
+thanks,
 
-diff --git a/Documentation/devicetree/bindings/media/s5p-cec.txt b/Documentation/devicetree/bindings/media/s5p-cec.txt
-index 925ab4d72eaa..4bb08d9d940b 100644
---- a/Documentation/devicetree/bindings/media/s5p-cec.txt
-+++ b/Documentation/devicetree/bindings/media/s5p-cec.txt
-@@ -15,6 +15,7 @@ Required properties:
-   - clock-names : from common clock binding: must contain "hdmicec",
- 		  corresponding to entry in the clocks property.
-   - samsung,syscon-phandle - phandle to the PMU system controller
-+  - hdmi-phandle - phandle to the HDMI controller
- 
- Example:
- 
-@@ -25,6 +26,7 @@ hdmicec: cec@100B0000 {
- 	clocks = <&clock CLK_HDMI_CEC>;
- 	clock-names = "hdmicec";
- 	samsung,syscon-phandle = <&pmu_system_controller>;
-+	hdmi-phandle = <&hdmi>;
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&hdmi_cec>;
- 	status = "okay";
--- 
-2.11.0
+greg k-h
