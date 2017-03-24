@@ -1,230 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f182.google.com ([209.85.220.182]:35629 "EHLO
-        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751862AbdCCSkt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 13:40:49 -0500
-Received: by mail-qk0-f182.google.com with SMTP id v125so10708411qkh.2
-        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 10:40:33 -0800 (PST)
-Subject: Re: [RFC PATCH 04/12] staging: android: ion: Call dma_map_sg for
- syncing and mapping
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        dri-devel@lists.freedesktop.org
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
- <1488491084-17252-5-git-send-email-labbott@redhat.com>
- <1842876.9VofhAIJSQ@avalon>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        devel@driverdev.osuosl.org, romlem@google.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        linux-mm@kvack.org, Mark Brown <broonie@kernel.org>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-From: Laura Abbott <labbott@redhat.com>
-Message-ID: <579647db-3b4a-37bd-d322-49b4f25bc7bc@redhat.com>
-Date: Fri, 3 Mar 2017 10:40:27 -0800
+Received: from smtprelay4.synopsys.com ([198.182.47.9]:54556 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935631AbdCXLwk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 24 Mar 2017 07:52:40 -0400
+Subject: Re: [PATCH 0/3] Handling of reduced FPS in V4L2
+To: Hans Verkuil <hansverk@cisco.com>,
+        Jose Abreu <Jose.Abreu@synopsys.com>,
+        <linux-media@vger.kernel.org>
+References: <cover.1490095965.git.joabreu@synopsys.com>
+ <1939bd77-a74d-3ad6-06db-2b1eaa205aca@synopsys.com>
+ <3a7b5c81-834c-8d1e-2181-6d8f57d20f7b@cisco.com>
+CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        <linux-kernel@vger.kernel.org>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <ccea984f-c68a-b188-49fb-29f04b7a3382@synopsys.com>
+Date: Fri, 24 Mar 2017 11:52:08 +0000
 MIME-Version: 1.0
-In-Reply-To: <1842876.9VofhAIJSQ@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <3a7b5c81-834c-8d1e-2181-6d8f57d20f7b@cisco.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/03/2017 08:37 AM, Laurent Pinchart wrote:
-> Hi Laura,
-> 
-> Thank you for the patch.
-> 
-> On Thursday 02 Mar 2017 13:44:36 Laura Abbott wrote:
->> Technically, calling dma_buf_map_attachment should return a buffer
->> properly dma_mapped. Add calls to dma_map_sg to begin_cpu_access to
->> ensure this happens. As a side effect, this lets Ion buffers take
->> advantage of the dma_buf sync ioctls.
->>
->> Signed-off-by: Laura Abbott <labbott@redhat.com>
->> ---
->>  drivers/staging/android/ion/ion.c | 101 +++++++++++++++++------------------
->>  1 file changed, 50 insertions(+), 51 deletions(-)
->>
->> diff --git a/drivers/staging/android/ion/ion.c
->> b/drivers/staging/android/ion/ion.c index ce4adac..a931b30 100644
->> --- a/drivers/staging/android/ion/ion.c
->> +++ b/drivers/staging/android/ion/ion.c
->> @@ -795,10 +795,6 @@ void ion_client_destroy(struct ion_client *client)
->>  }
->>  EXPORT_SYMBOL(ion_client_destroy);
->>
->> -static void ion_buffer_sync_for_device(struct ion_buffer *buffer,
->> -				       struct device *dev,
->> -				       enum dma_data_direction direction);
->> -
->>  static struct sg_table *dup_sg_table(struct sg_table *table)
->>  {
->>  	struct sg_table *new_table;
->> @@ -825,22 +821,43 @@ static struct sg_table *dup_sg_table(struct sg_table
->> *table) return new_table;
->>  }
->>
->> +static void free_duped_table(struct sg_table *table)
->> +{
->> +	sg_free_table(table);
->> +	kfree(table);
->> +}
->> +
->>  static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment
->> *attachment, enum dma_data_direction direction)
->>  {
->>  	struct dma_buf *dmabuf = attachment->dmabuf;
->>  	struct ion_buffer *buffer = dmabuf->priv;
->> +	struct sg_table *table;
->> +	int ret;
->> +
->> +	/*
->> +	 * TODO: Need to sync wrt CPU or device completely owning?
->> +	 */
->> +
->> +	table = dup_sg_table(buffer->sg_table);
->>
->> -	ion_buffer_sync_for_device(buffer, attachment->dev, direction);
->> -	return dup_sg_table(buffer->sg_table);
->> +	if (!dma_map_sg(attachment->dev, table->sgl, table->nents,
->> +			direction)){
->> +		ret = -ENOMEM;
->> +		goto err;
->> +	}
->> +
->> +err:
->> +	free_duped_table(table);
->> +	return ERR_PTR(ret);
->>  }
->>
->>  static void ion_unmap_dma_buf(struct dma_buf_attachment *attachment,
->>  			      struct sg_table *table,
->>  			      enum dma_data_direction direction)
->>  {
->> -	sg_free_table(table);
->> -	kfree(table);
->> +	dma_unmap_sg(attachment->dev, table->sgl, table->nents, direction);
->> +	free_duped_table(table);
->>  }
->>
->>  void ion_pages_sync_for_device(struct device *dev, struct page *page,
->> @@ -864,38 +881,6 @@ struct ion_vma_list {
->>  	struct vm_area_struct *vma;
->>  };
->>
->> -static void ion_buffer_sync_for_device(struct ion_buffer *buffer,
->> -				       struct device *dev,
->> -				       enum dma_data_direction dir)
->> -{
->> -	struct ion_vma_list *vma_list;
->> -	int pages = PAGE_ALIGN(buffer->size) / PAGE_SIZE;
->> -	int i;
->> -
->> -	pr_debug("%s: syncing for device %s\n", __func__,
->> -		 dev ? dev_name(dev) : "null");
->> -
->> -	if (!ion_buffer_fault_user_mappings(buffer))
->> -		return;
->> -
->> -	mutex_lock(&buffer->lock);
->> -	for (i = 0; i < pages; i++) {
->> -		struct page *page = buffer->pages[i];
->> -
->> -		if (ion_buffer_page_is_dirty(page))
->> -			ion_pages_sync_for_device(dev, ion_buffer_page(page),
->> -						  PAGE_SIZE, dir);
->> -
->> -		ion_buffer_page_clean(buffer->pages + i);
->> -	}
->> -	list_for_each_entry(vma_list, &buffer->vmas, list) {
->> -		struct vm_area_struct *vma = vma_list->vma;
->> -
->> -		zap_page_range(vma, vma->vm_start, vma->vm_end - vma-
->> vm_start);
->> -	}
->> -	mutex_unlock(&buffer->lock);
->> -}
->> -
->>  static int ion_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
->>  {
->>  	struct ion_buffer *buffer = vma->vm_private_data;
->> @@ -1014,16 +999,24 @@ static int ion_dma_buf_begin_cpu_access(struct
->> dma_buf *dmabuf, struct ion_buffer *buffer = dmabuf->priv;
->>  	void *vaddr;
->>
->> -	if (!buffer->heap->ops->map_kernel) {
->> -		pr_err("%s: map kernel is not implemented by this heap.\n",
->> -		       __func__);
->> -		return -ENODEV;
->> +	/*
->> +	 * TODO: Move this elsewhere because we don't always need a vaddr
->> +	 */
->> +	if (buffer->heap->ops->map_kernel) {
->> +		mutex_lock(&buffer->lock);
->> +		vaddr = ion_buffer_kmap_get(buffer);
->> +		mutex_unlock(&buffer->lock);
->>  	}
->>
->> -	mutex_lock(&buffer->lock);
->> -	vaddr = ion_buffer_kmap_get(buffer);
->> -	mutex_unlock(&buffer->lock);
->> -	return PTR_ERR_OR_ZERO(vaddr);
->> +	/*
->> +	 * Close enough right now? Flag to skip sync?
->> +	 */
->> +	if (!dma_map_sg(buffer->dev->dev.this_device, buffer->sg_table->sgl,
->> +			buffer->sg_table->nents,
->> +                        DMA_BIDIRECTIONAL))
-> 
-> Aren't the dma_(un)map_* calls supposed to take a real, physical device as 
-> their first argument ? Beside, this doesn't seem to be the right place to 
-> create the mapping, as you mentioned in the commit message the buffer should 
-> be mapped in the dma_buf map handler. This is something that needs to be 
-> fixed, especially in the light of the comment in ion_buffer_create():
-> 
-
-Yes, this might me a case of me getting the model incorrect again.
-dma_buf_{begin,end}_cpu_access do not take a device structure and
-from the comments:
-
-/**
- * dma_buf_begin_cpu_access - Must be called before accessing a dma_buf from the
- * cpu in the kernel context. Calls begin_cpu_access to allow exporter-specific
- * preparations. Coherency is only guaranteed in the specified range for the
- * specified access direction.
- * @dmabuf:     [in]    buffer to prepare cpu access for.
- * @direction:  [in]    length of range for cpu access.
- *
- * Can return negative error values, returns 0 on success.
- */
-
-If there are no buffer attachments, I guess the notion of 'coherency'
-doesn't apply here so there is no need to do any kind of
-syncing/mapping at all vs. trying to find a device out of nowhere.
-
-I'll have to go back and re-think aligning sync/begin_cpu_access calls
-and dma_buf_map calls, or more likely not overthink this.
+Hi Hans,
 
 
->         /*
->          * this will set up dma addresses for the sglist -- it is not
->          * technically correct as per the dma api -- a specific
->          * device isn't really taking ownership here.  However, in practice on
->          * our systems the only dma_address space is physical addresses.
->          * Additionally, we can't afford the overhead of invalidating every
->          * allocation via dma_map_sg. The implicit contract here is that
->          * memory coming from the heaps is ready for dma, ie if it has a
->          * cached mapping that mapping has been invalidated
->          */
-> 
-> That's a showstopper in my opinion, the DMA address space can't be restricted 
-> to physical addresses, IOMMU have to be supported.
-> 
+>> Can you please review this series, when possible? And if you
+>> could test it on cobalt it would be great :)
+> Hopefully next week. 
 
-I missed a patch in this series to remove that. If Ion is going to exist outside
-of staging it should not be making that assumption at all so I want to drop it.
-Any performance implications should be fixed with the skip sync flag.
+Thanks :)
 
-Thanks,
-Laura
+> Did you have some real-world numbers w.r.t. measured
+> pixelclock frequencies and 60 vs 59.94 Hz and 24 vs 23.976 Hz?
+
+I did make some measurements but I'm afraid I didn't yet test
+with many sources (I mostly tested with signal generators which
+should have a higher precision clock than real sources). I have a
+bunch of players here, I will test them as soon as I can.
+Regarding precision: for our controller is theoretically and
+effectively enough: The worst case is for 640x480, and even in
+that case the difference between 60Hz and 59.94Hz is > 1 unit of
+the measuring register. This still doesn't solve the problem of
+having a bad source with a bad clock, but I don't know if we can
+do much more about that.
+
+>
+> I do want to see that, since this patch series only makes sense if you can
+> actually make use of it to reliably detect the difference.
+>
+> I will try to test that myself with cobalt, but almost certainly I won't
+> be able to tell the difference; if memory serves it can't detect the freq
+> with high enough precision.
+
+Ok, thanks, this would be great because I didn't test the series
+exactly "as is" because I'm using 4.10. I did look at vivid
+driver but it already handles reduced frame rate, so it kind of
+does what it is proposed in this series. If this helper is
+integrated in the v4l2 core then I can send the patch to vivid.
+
+Best regards,
+Jose Miguel Abreu
+
+>
+> Regards,
+>
+> 	Hans
