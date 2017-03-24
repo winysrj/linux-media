@@ -1,123 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52574
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751055AbdCPJf6 (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33147 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935737AbdCXSZr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Mar 2017 05:35:58 -0400
-Date: Thu, 16 Mar 2017 06:29:00 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Michael Zoran <mzoran@crowfest.net>
-Cc: Eric Anholt <eric@anholt.net>, devel@driverdev.osuosl.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/6] staging: BCM2835 MMAL V4L2 camera driver
-Message-ID: <20170316062900.0e835118@vento.lan>
-In-Reply-To: <1489628784.8127.1.camel@crowfest.net>
-References: <20170127215503.13208-1-eric@anholt.net>
-        <20170315110128.37e2bc5a@vento.lan>
-        <87a88m19om.fsf@eliezer.anholt.net>
-        <20170315220834.7019fd8b@vento.lan>
-        <1489628784.8127.1.camel@crowfest.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+        Fri, 24 Mar 2017 14:25:47 -0400
+Received: by mail-wm0-f68.google.com with SMTP id n11so2236237wma.0
+        for <linux-media@vger.kernel.org>; Fri, 24 Mar 2017 11:25:46 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: mchehab@kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH v2 09/12] [media] dvb-frontends/stv0367: fix symbol rate conditions in cab_SetQamSize()
+Date: Fri, 24 Mar 2017 19:24:05 +0100
+Message-Id: <20170324182408.25996-10-d.scheller.oss@gmail.com>
+In-Reply-To: <20170324182408.25996-1-d.scheller.oss@gmail.com>
+References: <20170324182408.25996-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 15 Mar 2017 18:46:24 -0700
-Michael Zoran <mzoran@crowfest.net> escreveu:
+From: Daniel Scheller <d.scheller@gmx.net>
 
-> On Wed, 2017-03-15 at 22:08 -0300, Mauro Carvalho Chehab wrote:
-> 
-> > No, I didn't. Thanks! Applied it but, unfortunately, didn't work.
-> > Perhaps I'm missing some other patch. I'm compiling it from
-> > the Greg's staging tree (branch staging-next):
-> > 	https://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.
-> > git/log/?h=staging-next
-> > 
-> > Btw, as I'm running Raspbian, and didn't want to use compat32 bits, 
-> > I'm compiling the Kernel as an arm32 bits Kernel.
-> > 
-> > I did a small trick to build the DTB on arm32:
-> > 
-> > 	ln -sf ../../../arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts
-> > arch/arm/boot/dts/bcm2837-rpi-3-b.dts
-> > 	ln -sf ../../../arm64/boot/dts/broadcom/bcm2837.dtsi
-> > arch/arm/boot/dts/bcm2837.dtsi
-> > 	git checkout arch/arm/boot/dts/Makefile
-> > 	sed "s,bcm2835-rpi-zero.dtb,bcm2835-rpi-zero.dtb bcm2837-rpi-3-
-> > b.dtb," a && mv a arch/arm/boot/dts/Makefile
-> >   
-> 
-> Two other hacks are currently needed to get the camera to work:
-> 
-> 1. Add this to config.txt(This required to get the firmware to detect
-> the camera)
-> 
-> start_x=1
-> gpu_mem=128
+The values used for comparing symbol rates and the resulting conditional
+reg writes seem wrong (rates multiplied by ten), so fix those values.
+While this doesn't seem to influence operation, it should be fixed anyway.
 
-I had this already.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/stv0367.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-> 
-> 2. VC4 is incompatible with the firmware at this time, so you need 
-> to presently munge the build configuration. What you do is leave
-> simplefb in the build config(I'm assuming you already have that), but
-> you will need to remove VC4 from the config.
-> 
-> The firmware currently adds a node for a simplefb for debugging
-> purposes to show the boot log.  Surprisingly, this is still good enough
-> for basic usage and testing.  
-
-That solved the issue. Thanks! It would be good to add a notice
-about that at the TODO, not let it build if DRM_VC4.
-
-Please consider applying the enclosed path.
-
-> The only remaining issue is that since simplefb is intented for
-> debugging, you wan't be able to use many of the RPI specific
-> applications.  
-> 
-> I've been using cheese and ffmpeg to test the camera which are not RPI
-> specific.
-
-I did a quick test with camorama and qv4l2. it worked with both.
-
-Thanks,
-Mauro
-
-
-[PATCH] staging: bcm2835-camera: make it dependent of !DRM_VC4
-
-Currently, if DRM_VC4 is enabled, this driver doesn't work,
-as the firmware doesn't support having both enabled at the
-same time.
-
-Document that and prevent it to be built if !DRM_VC4.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-diff --git a/drivers/staging/vc04_services/bcm2835-camera/Kconfig b/drivers/staging/vc04_services/bcm2835-camera/Kconfig
-index b8b01aa4e426..678dc2efb91a 100644
---- a/drivers/staging/vc04_services/bcm2835-camera/Kconfig
-+++ b/drivers/staging/vc04_services/bcm2835-camera/Kconfig
-@@ -2,6 +2,8 @@ config VIDEO_BCM2835
- 	tristate "BCM2835 Camera"
- 	depends on MEDIA_SUPPORT
- 	depends on VIDEO_V4L2 && (ARCH_BCM2835 || COMPILE_TEST)
-+	# Currently, firmware is incompatible with VC4 DRM driver
-+	depends on !DRM_VC4
- 	select BCM2835_VCHIQ
- 	select VIDEOBUF2_VMALLOC
- 	select BTREE
-diff --git a/drivers/staging/vc04_services/bcm2835-camera/TODO b/drivers/staging/vc04_services/bcm2835-camera/TODO
-index 61a509992b9a..fec70a1cc4a3 100644
---- a/drivers/staging/vc04_services/bcm2835-camera/TODO
-+++ b/drivers/staging/vc04_services/bcm2835-camera/TODO
-@@ -37,3 +37,4 @@ v4l2 module after VCHI loads.
- This was a temporary workaround for a bug that was fixed mid-2014, and
- we should remove it before stabilizing the driver.
- 
-+6) Make firmware compatible with both DRM_VC4 and VIDEO_BCM2835.
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index fb41c7b..ffc046a 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -1838,11 +1838,11 @@ static enum stv0367cab_mod stv0367cab_SetQamSize(struct stv0367_state *state,
+ 	case FE_CAB_MOD_QAM64:
+ 		stv0367_writereg(state, R367CAB_IQDEM_ADJ_AGC_REF, 0x82);
+ 		stv0367_writereg(state, R367CAB_AGC_PWR_REF_L, 0x5a);
+-		if (SymbolRate > 45000000) {
++		if (SymbolRate > 4500000) {
+ 			stv0367_writereg(state, R367CAB_FSM_STATE, 0xb0);
+ 			stv0367_writereg(state, R367CAB_EQU_CTR_LPF_GAIN, 0xc1);
+ 			stv0367_writereg(state, R367CAB_EQU_CRL_LPF_GAIN, 0xa5);
+-		} else if (SymbolRate > 25000000) {
++		} else if (SymbolRate > 2500000) {
+ 			stv0367_writereg(state, R367CAB_FSM_STATE, 0xa0);
+ 			stv0367_writereg(state, R367CAB_EQU_CTR_LPF_GAIN, 0xc1);
+ 			stv0367_writereg(state, R367CAB_EQU_CRL_LPF_GAIN, 0xa6);
+@@ -1860,9 +1860,9 @@ static enum stv0367cab_mod stv0367cab_SetQamSize(struct stv0367_state *state,
+ 		stv0367_writereg(state, R367CAB_AGC_PWR_REF_L, 0x76);
+ 		stv0367_writereg(state, R367CAB_FSM_STATE, 0x90);
+ 		stv0367_writereg(state, R367CAB_EQU_CTR_LPF_GAIN, 0xb1);
+-		if (SymbolRate > 45000000)
++		if (SymbolRate > 4500000)
+ 			stv0367_writereg(state, R367CAB_EQU_CRL_LPF_GAIN, 0xa7);
+-		else if (SymbolRate > 25000000)
++		else if (SymbolRate > 2500000)
+ 			stv0367_writereg(state, R367CAB_EQU_CRL_LPF_GAIN, 0xa6);
+ 		else
+ 			stv0367_writereg(state, R367CAB_EQU_CRL_LPF_GAIN, 0x97);
+@@ -1875,9 +1875,9 @@ static enum stv0367cab_mod stv0367cab_SetQamSize(struct stv0367_state *state,
+ 		stv0367_writereg(state, R367CAB_IQDEM_ADJ_AGC_REF, 0x94);
+ 		stv0367_writereg(state, R367CAB_AGC_PWR_REF_L, 0x5a);
+ 		stv0367_writereg(state, R367CAB_FSM_STATE, 0xa0);
+-		if (SymbolRate > 45000000)
++		if (SymbolRate > 4500000)
+ 			stv0367_writereg(state, R367CAB_EQU_CTR_LPF_GAIN, 0xc1);
+-		else if (SymbolRate > 25000000)
++		else if (SymbolRate > 2500000)
+ 			stv0367_writereg(state, R367CAB_EQU_CTR_LPF_GAIN, 0xc1);
+ 		else
+ 			stv0367_writereg(state, R367CAB_EQU_CTR_LPF_GAIN, 0xd1);
+-- 
+2.10.2
