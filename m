@@ -1,125 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45296 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750734AbdCAFX0 (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:35776 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935937AbdCXSZt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Mar 2017 00:23:26 -0500
-Message-ID: <9530c863c6b9dba0996cc283c35181e4@smtp-cloud2.xs4all.net>
-Date: Wed, 01 Mar 2017 06:11:43 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 24 Mar 2017 14:25:49 -0400
+Received: by mail-wr0-f194.google.com with SMTP id u108so1593998wrb.2
+        for <linux-media@vger.kernel.org>; Fri, 24 Mar 2017 11:25:47 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: mchehab@kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH v2 05/12] [media] dvb-frontends/stv0367: make PLLSETUP a function, add 58MHz IC speed
+Date: Fri, 24 Mar 2017 19:24:01 +0100
+Message-Id: <20170324182408.25996-6-d.scheller.oss@gmail.com>
+In-Reply-To: <20170324182408.25996-1-d.scheller.oss@gmail.com>
+References: <20170324182408.25996-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Results of the daily build of media_tree:
+This moves the PLL SETUP code from stv0367ter_init() into a dedicated
+function, and also make it possible to configure 58Mhz IC speed at
+27MHz Xtal (used on STV0367-based DDB cards/modules in QAM mode).
 
-date:			Wed Mar  1 05:00:22 CET 2017
-media-tree git hash:	e6b377dbbb944d5e3ceef4e5d429fc5c841e3692
-media_build git hash:	9d6cebc34b27fea784dec19085970d9b4df9783e
-v4l-utils git hash:	646bb9c368a8b65cdea6d934c9022067541d13a9
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/stv0367.c | 73 +++++++++++++++++++++++------------
+ drivers/media/dvb-frontends/stv0367.h |  3 ++
+ 2 files changed, 51 insertions(+), 25 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index 5b52673..da10d9a 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -271,6 +271,53 @@ static void stv0367_write_table(struct stv0367_state *state,
+ 	}
+ }
+ 
++static void stv0367_pll_setup(struct stv0367_state *state,
++				u32 icspeed, u32 xtal)
++{
++	/* note on regs: R367TER_* and R367CAB_* defines each point to
++	 * 0xf0d8, so just use R367TER_ for both cases
++	 */
++
++	switch (icspeed) {
++	case STV0367_ICSPEED_58000:
++		switch (xtal) {
++		default:
++		case 27000000:
++			dprintk("STV0367 SetCLKgen for 58MHz IC and 27Mhz crystal\n");
++			/* PLLMDIV: 27, PLLNDIV: 232 */
++			stv0367_writereg(state, R367TER_PLLMDIV, 0x1b);
++			stv0367_writereg(state, R367TER_PLLNDIV, 0xe8);
++			break;
++		}
++		break;
++	default:
++	case STV0367_ICSPEED_53125:
++		switch (xtal) {
++			/* set internal freq to 53.125MHz */
++		case 16000000:
++			stv0367_writereg(state, R367TER_PLLMDIV, 0x2);
++			stv0367_writereg(state, R367TER_PLLNDIV, 0x1b);
++			break;
++		case 25000000:
++			stv0367_writereg(state, R367TER_PLLMDIV, 0xa);
++			stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
++			break;
++		default:
++		case 27000000:
++			dprintk("FE_STV0367TER_SetCLKgen for 27Mhz\n");
++			stv0367_writereg(state, R367TER_PLLMDIV, 0x1);
++			stv0367_writereg(state, R367TER_PLLNDIV, 0x8);
++			break;
++		case 30000000:
++			stv0367_writereg(state, R367TER_PLLMDIV, 0xc);
++			stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
++			break;
++		}
++	}
++
++	stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
++}
++
+ static int stv0367ter_gate_ctrl(struct dvb_frontend *fe, int enable)
+ {
+ 	struct stv0367_state *state = fe->demodulator_priv;
+@@ -918,31 +965,7 @@ static int stv0367ter_init(struct dvb_frontend *fe)
+ 	stv0367_write_table(state,
+ 		stv0367_deftabs[state->deftabs][STV0367_TAB_TER]);
+ 
+-	switch (state->config->xtal) {
+-		/*set internal freq to 53.125MHz */
+-	case 16000000:
+-		stv0367_writereg(state, R367TER_PLLMDIV, 0x2);
+-		stv0367_writereg(state, R367TER_PLLNDIV, 0x1b);
+-		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
+-		break;
+-	case 25000000:
+-		stv0367_writereg(state, R367TER_PLLMDIV, 0xa);
+-		stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
+-		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
+-		break;
+-	default:
+-	case 27000000:
+-		dprintk("FE_STV0367TER_SetCLKgen for 27Mhz\n");
+-		stv0367_writereg(state, R367TER_PLLMDIV, 0x1);
+-		stv0367_writereg(state, R367TER_PLLNDIV, 0x8);
+-		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
+-		break;
+-	case 30000000:
+-		stv0367_writereg(state, R367TER_PLLMDIV, 0xc);
+-		stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
+-		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
+-		break;
+-	}
++	stv0367_pll_setup(state, STV0367_ICSPEED_53125, state->config->xtal);
+ 
+ 	stv0367_writereg(state, R367TER_I2CRPT, 0xa0);
+ 	stv0367_writereg(state, R367TER_ANACTRL, 0x00);
+diff --git a/drivers/media/dvb-frontends/stv0367.h b/drivers/media/dvb-frontends/stv0367.h
+index 26c38a0..aaa0236 100644
+--- a/drivers/media/dvb-frontends/stv0367.h
++++ b/drivers/media/dvb-frontends/stv0367.h
+@@ -25,6 +25,9 @@
+ #include <linux/dvb/frontend.h>
+ #include "dvb_frontend.h"
+ 
++#define STV0367_ICSPEED_53125	53125000
++#define STV0367_ICSPEED_58000	58000000
++
+ struct stv0367_config {
+ 	u8 demod_address;
+ 	u32 xtal;
+-- 
+2.10.2
