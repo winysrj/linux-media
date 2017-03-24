@@ -1,55 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57446 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932705AbdCJWyZ (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33070 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935497AbdCXSZr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 17:54:25 -0500
-Date: Sat, 11 Mar 2017 00:54:18 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l2-fwnode: Fix clock lane parsing
-Message-ID: <20170310225418.GJ3220@valkosipuli.retiisi.org.uk>
-References: <20161228183036.GA13139@amd>
- <10545906.Gxg3yScdu4@avalon>
- <20170215094228.GA8586@amd>
- <2414221.XNA4JCFMRx@avalon>
- <20170302090143.GB27818@amd>
- <20170302101603.GE27818@amd>
- <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
- <20170302123848.GA28230@amd>
- <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
- <20170306072323.GA23509@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170306072323.GA23509@amd>
+        Fri, 24 Mar 2017 14:25:47 -0400
+Received: by mail-wm0-f68.google.com with SMTP id n11so2235698wma.0
+        for <linux-media@vger.kernel.org>; Fri, 24 Mar 2017 11:25:46 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: mchehab@kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH v2 03/12] [media] dvb-frontends/stv0367: refactor defaults table handling
+Date: Fri, 24 Mar 2017 19:23:59 +0100
+Message-Id: <20170324182408.25996-4-d.scheller.oss@gmail.com>
+In-Reply-To: <20170324182408.25996-1-d.scheller.oss@gmail.com>
+References: <20170324182408.25996-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 06, 2017 at 08:23:24AM +0100, Pavel Machek wrote:
-> Fix clock lane parsing in v4l2-fwnode.
->     
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> index d6666d3..44036b8 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -167,7 +167,7 @@ void v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwn,
->                 bus->data_lane = v;
->  
->         if (!fwnode_property_read_u32(fwn, "clock-lanes", &v))
-> -               bus->data_lane = v;
-> +               bus->clock_lane = v;
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Oh my. Did I really write it like that?
+Change defaults table writing so tables can be of dynamic length without
+having to keep track of their lengths by adding and evaluating an end
+marker (reg 0x0000), also move table writing to a dedicated function to
+remove code duplication. Additionally mark st_register tables const since
+they're used read-only.
 
-I'll merge your fix next Monday. Thanks!
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/stv0367.c      | 30 ++++++++++++++++++++----------
+ drivers/media/dvb-frontends/stv0367_regs.h |  4 ----
+ 2 files changed, 20 insertions(+), 14 deletions(-)
 
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index 0064d9d..5ed52ec 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -99,7 +99,7 @@ struct st_register {
+ };
+ 
+ /* values for STV4100 XTAL=30M int clk=53.125M*/
+-static struct st_register def0367ter[STV0367TER_NBREGS] = {
++static const struct st_register def0367ter[] = {
+ 	{R367TER_ID,		0x60},
+ 	{R367TER_I2CRPT,	0xa0},
+ 	/* {R367TER_I2CRPT,	0x22},*/
+@@ -546,6 +546,7 @@ static struct st_register def0367ter[STV0367TER_NBREGS] = {
+ 	{R367TER_DEBUG_LT7,	0x00},
+ 	{R367TER_DEBUG_LT8,	0x00},
+ 	{R367TER_DEBUG_LT9,	0x00},
++	{0x0000,		0x00},
+ };
+ 
+ #define RF_LOOKUP_TABLE_SIZE  31
+@@ -573,7 +574,7 @@ static const s32 stv0367cab_RF_LookUp2[RF_LOOKUP_TABLE2_SIZE][RF_LOOKUP_TABLE2_S
+ 	}
+ };
+ 
+-static struct st_register def0367cab[STV0367CAB_NBREGS] = {
++static const struct st_register def0367cab[] = {
+ 	{R367CAB_ID,		0x60},
+ 	{R367CAB_I2CRPT,	0xa0},
+ 	/*{R367CAB_I2CRPT,	0x22},*/
+@@ -762,6 +763,7 @@ static struct st_register def0367cab[STV0367CAB_NBREGS] = {
+ 	{R367CAB_T_O_ID_1,	0x00},
+ 	{R367CAB_T_O_ID_2,	0x00},
+ 	{R367CAB_T_O_ID_3,	0x00},
++	{0x0000,		0x00},
+ };
+ 
+ static
+@@ -901,6 +903,20 @@ static u8 stv0367_getbits(u8 reg, u32 label)
+ 	return (reg & mask) >> pos;
+ }
+ #endif
++
++static void stv0367_write_table(struct stv0367_state *state,
++				const struct st_register *deftab)
++{
++	int i = 0;
++
++	while (1) {
++		if (!deftab[i].addr)
++			break;
++		stv0367_writereg(state, deftab[i].addr, deftab[i].value);
++		i++;
++	}
++}
++
+ static int stv0367ter_gate_ctrl(struct dvb_frontend *fe, int enable)
+ {
+ 	struct stv0367_state *state = fe->demodulator_priv;
+@@ -1540,15 +1556,12 @@ static int stv0367ter_init(struct dvb_frontend *fe)
+ {
+ 	struct stv0367_state *state = fe->demodulator_priv;
+ 	struct stv0367ter_state *ter_state = state->ter_state;
+-	int i;
+ 
+ 	dprintk("%s:\n", __func__);
+ 
+ 	ter_state->pBER = 0;
+ 
+-	for (i = 0; i < STV0367TER_NBREGS; i++)
+-		stv0367_writereg(state, def0367ter[i].addr,
+-					def0367ter[i].value);
++	stv0367_write_table(state, def0367ter);
+ 
+ 	switch (state->config->xtal) {
+ 		/*set internal freq to 53.125MHz */
+@@ -2782,13 +2795,10 @@ static int stv0367cab_init(struct dvb_frontend *fe)
+ {
+ 	struct stv0367_state *state = fe->demodulator_priv;
+ 	struct stv0367cab_state *cab_state = state->cab_state;
+-	int i;
+ 
+ 	dprintk("%s:\n", __func__);
+ 
+-	for (i = 0; i < STV0367CAB_NBREGS; i++)
+-		stv0367_writereg(state, def0367cab[i].addr,
+-						def0367cab[i].value);
++	stv0367_write_table(state, def0367cab);
+ 
+ 	switch (state->config->ts_mode) {
+ 	case STV0367_DVBCI_CLOCK:
+diff --git a/drivers/media/dvb-frontends/stv0367_regs.h b/drivers/media/dvb-frontends/stv0367_regs.h
+index 1d15862..cc66d93 100644
+--- a/drivers/media/dvb-frontends/stv0367_regs.h
++++ b/drivers/media/dvb-frontends/stv0367_regs.h
+@@ -2639,8 +2639,6 @@
+ #define	R367TER_DEBUG_LT9	0xf405
+ #define	F367TER_F_DEBUG_LT9	0xf40500ff
+ 
+-#define STV0367TER_NBREGS	445
+-
+ /* ID */
+ #define	R367CAB_ID	0xf000
+ #define	F367CAB_IDENTIFICATIONREGISTER	0xf00000ff
+@@ -3605,6 +3603,4 @@
+ #define	R367CAB_T_O_ID_3	0xf4d3
+ #define	F367CAB_TS_ID_I_H	0xf4d300ff
+ 
+-#define STV0367CAB_NBREGS	187
+-
+ #endif
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.10.2
