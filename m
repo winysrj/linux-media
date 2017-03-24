@@ -1,82 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:38142 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932354AbdCTSK3 (ORCPT
+Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:58512 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965868AbdCXQsl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 14:10:29 -0400
-Date: Mon, 20 Mar 2017 17:59:57 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v5 38/39] media: imx: csi: fix crop rectangle reset in
- sink set_fmt
-Message-ID: <20170320175957.GS21222@n2100.armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-39-git-send-email-steve_longerbeam@mentor.com>
- <20170319152233.GW21222@n2100.armlinux.org.uk>
- <327d67d9-68c1-7f74-0c0f-f6aee1c4b546@gmail.com>
- <1490010926.2917.59.camel@pengutronix.de>
- <20170320120855.GH21222@n2100.armlinux.org.uk>
- <1490018451.2917.86.camel@pengutronix.de>
- <20170320141705.GL21222@n2100.armlinux.org.uk>
- <1490031621.2917.110.camel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1490031621.2917.110.camel@pengutronix.de>
+        Fri, 24 Mar 2017 12:48:41 -0400
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+To: linux-media@vger.kernel.org
+Cc: hans.verkuil@cisco.com, mchehab@kernel.org,
+        linux-kernel@vger.kernel.org, Jose Abreu <Jose.Abreu@synopsys.com>
+Subject: [PATCH 7/8] [media] usb: pulse8-cec: Use cec_get_drvdata()
+Date: Fri, 24 Mar 2017 16:47:58 +0000
+Message-Id: <cc501e17d57fa4a6a31423139af07bb9a8f9baa6.1490373500.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1490373499.git.joabreu@synopsys.com>
+References: <cover.1490373499.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1490373499.git.joabreu@synopsys.com>
+References: <cover.1490373499.git.joabreu@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 20, 2017 at 06:40:21PM +0100, Philipp Zabel wrote:
-> On Mon, 2017-03-20 at 14:17 +0000, Russell King - ARM Linux wrote:
-> > I have tripped over a bug in media-ctl when specifying both a crop and
-> > compose rectangle - the --help output suggests that "," should be used
-> > to separate them.  media-ctl rejects that, telling me the character at
-> > the "," should be "]".  Replacing the "," with " " allows media-ctl to
-> > accept it and set both rectangles, so it sounds like a parser bug - I've
-> > not looked into this any further yet.
-> 
-> I can confirm this. I don't see any place in
-> v4l2_subdev_parse_pad_format that handles the "," separator. There's
-> just whitespace skipping between the v4l2-properties.
+Use helper function to get driver private data from CEC
+adapter.
 
-Maybe this is the easiest solution:
+Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/pulse8-cec/pulse8-cec.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
- utils/media-ctl/options.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-index 83ca1ca..8b97874 100644
---- a/utils/media-ctl/options.c
-+++ b/utils/media-ctl/options.c
-@@ -65,7 +65,7 @@ static void usage(const char *argv0)
- 	printf("\tentity          = entity-number | ( '\"' entity-name '\"' ) ;\n");
- 	printf("\n");
- 	printf("\tv4l2            = pad '[' v4l2-properties ']' ;\n");
--	printf("\tv4l2-properties = v4l2-property { ',' v4l2-property } ;\n");
-+	printf("\tv4l2-properties = v4l2-property { ' '* v4l2-property } ;\n");
- 	printf("\tv4l2-property   = v4l2-mbusfmt | v4l2-crop | v4l2-interval\n");
- 	printf("\t                | v4l2-compose | v4l2-interval ;\n");
- 	printf("\tv4l2-mbusfmt    = 'fmt:' fcc '/' size ; { 'field:' v4l2-field ; } { 'colorspace:' v4l2-colorspace ; }\n");
-
-;)
-
+diff --git a/drivers/media/usb/pulse8-cec/pulse8-cec.c b/drivers/media/usb/pulse8-cec/pulse8-cec.c
+index 7c18dae..1dfc2de 100644
+--- a/drivers/media/usb/pulse8-cec/pulse8-cec.c
++++ b/drivers/media/usb/pulse8-cec/pulse8-cec.c
+@@ -461,7 +461,7 @@ static int pulse8_apply_persistent_config(struct pulse8 *pulse8,
+ 
+ static int pulse8_cec_adap_enable(struct cec_adapter *adap, bool enable)
+ {
+-	struct pulse8 *pulse8 = adap->priv;
++	struct pulse8 *pulse8 = cec_get_drvdata(adap);
+ 	u8 cmd[16];
+ 	int err;
+ 
+@@ -474,7 +474,7 @@ static int pulse8_cec_adap_enable(struct cec_adapter *adap, bool enable)
+ 
+ static int pulse8_cec_adap_log_addr(struct cec_adapter *adap, u8 log_addr)
+ {
+-	struct pulse8 *pulse8 = adap->priv;
++	struct pulse8 *pulse8 = cec_get_drvdata(adap);
+ 	u16 mask = 0;
+ 	u16 pa = adap->phys_addr;
+ 	u8 cmd[16];
+@@ -594,7 +594,7 @@ static int pulse8_cec_adap_log_addr(struct cec_adapter *adap, u8 log_addr)
+ static int pulse8_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
+ 				    u32 signal_free_time, struct cec_msg *msg)
+ {
+-	struct pulse8 *pulse8 = adap->priv;
++	struct pulse8 *pulse8 = cec_get_drvdata(adap);
+ 	u8 cmd[2];
+ 	unsigned int i;
+ 	int err;
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+1.9.1
