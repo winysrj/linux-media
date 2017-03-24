@@ -1,60 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37044 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753138AbdCHN1W (ORCPT
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:40814 "EHLO
+        aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751170AbdCXMMI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 8 Mar 2017 08:27:22 -0500
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 9DD3A6009F
-        for <linux-media@vger.kernel.org>; Wed,  8 Mar 2017 15:26:12 +0200 (EET)
-Date: Wed, 8 Mar 2017 15:26:12 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.12] Sub-device driver fixes
-Message-ID: <20170308132612.GL3220@valkosipuli.retiisi.org.uk>
+        Fri, 24 Mar 2017 08:12:08 -0400
+Subject: Re: [PATCH 0/3] Handling of reduced FPS in V4L2
+To: Jose Abreu <Jose.Abreu@synopsys.com>, linux-media@vger.kernel.org
+References: <cover.1490095965.git.joabreu@synopsys.com>
+ <1939bd77-a74d-3ad6-06db-2b1eaa205aca@synopsys.com>
+ <3a7b5c81-834c-8d1e-2181-6d8f57d20f7b@cisco.com>
+ <ccea984f-c68a-b188-49fb-29f04b7a3382@synopsys.com>
+Cc: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-kernel@vger.kernel.org
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <c0f50bfc-cf2e-2d49-1ea3-22686d078b5d@cisco.com>
+Date: Fri, 24 Mar 2017 13:12:05 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <ccea984f-c68a-b188-49fb-29f04b7a3382@synopsys.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 03/24/17 12:52, Jose Abreu wrote:
+> Hi Hans,
+> 
+> 
+>>> Can you please review this series, when possible? And if you
+>>> could test it on cobalt it would be great :)
+>> Hopefully next week. 
+> 
+> Thanks :)
+> 
+>> Did you have some real-world numbers w.r.t. measured
+>> pixelclock frequencies and 60 vs 59.94 Hz and 24 vs 23.976 Hz?
+> 
+> I did make some measurements but I'm afraid I didn't yet test
+> with many sources (I mostly tested with signal generators which
+> should have a higher precision clock than real sources). I have a
+> bunch of players here, I will test them as soon as I can.
+> Regarding precision: for our controller is theoretically and
+> effectively enough: The worst case is for 640x480, and even in
+> that case the difference between 60Hz and 59.94Hz is > 1 unit of
+> the measuring register. This still doesn't solve the problem of
+> having a bad source with a bad clock, but I don't know if we can
+> do much more about that.
 
-Here are a few minor fixes for sub-device drivers recently added and a
-documentation change.
+I would really like to see a table with different sources sending
+these different framerates and the value that your HW detects.
 
-Please pull.
+If there is an obvious and clear difference, then this feature makes
+sense. If it is all over the place, then I need to think about this
+some more.
 
+To be honest, I expect that you will see 'an obvious and clear'
+difference, but that is no more than a gut feeling at the moment and
+I would like to see some proper test results.
 
-The following changes since commit 700ea5e0e0dd70420a04e703ff264cc133834cba:
+> 
+>>
+>> I do want to see that, since this patch series only makes sense if you can
+>> actually make use of it to reliably detect the difference.
+>>
+>> I will try to test that myself with cobalt, but almost certainly I won't
+>> be able to tell the difference; if memory serves it can't detect the freq
+>> with high enough precision.
+> 
+> Ok, thanks, this would be great because I didn't test the series
+> exactly "as is" because I'm using 4.10. I did look at vivid
+> driver but it already handles reduced frame rate, so it kind of
+> does what it is proposed in this series. If this helper is
+> integrated in the v4l2 core then I can send the patch to vivid.
 
-  Merge tag 'v4.11-rc1' into patchwork (2017-03-06 06:49:34 -0300)
+That would be nice to have in vivid.
 
-are available in the git repository at:
+Regards,
 
-  ssh://linuxtv.org/git/sailus/media_tree.git for-v4.12
-
-for you to fetch changes up to b62e5d5c896052119975cc0b08de4728297a2f9d:
-
-  ad5820: remove incorrect __exit markups (2017-03-08 09:42:02 +0200)
-
-----------------------------------------------------------------
-Dmitry Torokhov (1):
-      ad5820: remove incorrect __exit markups
-
-Javier Martinez Canillas (1):
-      et8ek8: Export OF device ID as module aliases
-
-Sakari Ailus (1):
-      docs-rst: media: Explicitly refer to sub-sampling in scaling documentation
-
- Documentation/media/uapi/mediactl/media-types.rst | 3 ++-
- drivers/media/i2c/ad5820.c                        | 4 ++--
- drivers/media/i2c/et8ek8/et8ek8_driver.c          | 1 +
- 3 files changed, 5 insertions(+), 3 deletions(-)
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Hans
