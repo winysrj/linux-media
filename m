@@ -1,90 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:45224 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753394AbdCBO6h (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 09:58:37 -0500
-Date: Thu, 2 Mar 2017 15:58:08 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: subdevice config into pointer (was Re: [PATCH 1/4] v4l2:
- device_register_subdev_nodes: allow calling multiple times)
-Message-ID: <20170302145808.GA3315@amd>
-References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
- <20170220103114.GA9800@amd>
- <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
- <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
- <20170221110721.GD5021@amd>
- <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
- <20170225000918.GB23662@amd>
- <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
- <20170302090727.GC27818@amd>
- <20170302141617.GG3220@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
-Content-Disposition: inline
-In-Reply-To: <20170302141617.GG3220@valkosipuli.retiisi.org.uk>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34913 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754351AbdCXSZu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 24 Mar 2017 14:25:50 -0400
+Received: by mail-wm0-f67.google.com with SMTP id z133so2223163wmb.2
+        for <linux-media@vger.kernel.org>; Fri, 24 Mar 2017 11:25:44 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: mchehab@kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH v2 01/12] [media] dvb-frontends/stv0367: add flag to make i2c_gatectrl optional
+Date: Fri, 24 Mar 2017 19:23:57 +0100
+Message-Id: <20170324182408.25996-2-d.scheller.oss@gmail.com>
+In-Reply-To: <20170324182408.25996-1-d.scheller.oss@gmail.com>
+References: <20170324182408.25996-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Daniel Scheller <d.scheller@gmx.net>
 
---oyUTqETQ0mS9luUI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Some hardware and bridges (namely ddbridge) require that tuner access is
+limited to one concurrent access and wrap i2c gate control with a
+mutex_lock when attaching frontends. According to vendor information, this
+is required as concurrent tuner reconfiguration can interfere each other
+and at worst cause tuning fails or bad reception quality.
 
-Hi!
+If the demod driver does gate_ctrl before setting up tuner parameters, and
+the tuner does another I2C enable, it will deadlock forever when gate_ctrl
+is wrapped into the mutex_lock. This adds a flag and a conditional before
+triggering gate_ctrl in the demodulator driver.
 
-> > > Making the sub-device bus configuration a pointer should be in a sepa=
-rate
-> > > patch. It makes sense since the entire configuration is not valid for=
- all
-> > > sub-devices attached to the ISP anymore. I think it originally was a
-> > > separate patch, but they probably have been merged at some point. I c=
-an't
-> > > find it right now anyway.
-> >=20
-> > Something like this?
-> >=20
-> > commit df9141c66678b549fac9d143bd55ed0b242cf36e
-> > Author: Pavel <pavel@ucw.cz>
-> > Date:   Wed Mar 1 13:27:56 2017 +0100
-> >=20
-> >     Turn bus in struct isp_async_subdev into pointer; some of our subde=
-vs
-> >     (flash, focus) will not need bus configuration.
-> >=20
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
->=20
-> I applied this to the ccp2 branch with an improved patch
-> description.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/stv0367.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-Thanks!
-
-[But the important part is to get subdevices to work on ccp2 based
-branch, and it still fails to work at all if I attempt to enable
-them. I'd like to understand why...]
-
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---oyUTqETQ0mS9luUI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAli4MwAACgkQMOfwapXb+vI4+gCgmbNcYbc+sxjig/qgYREeqS2n
-ubcAoIajUGPTxlYyO/N/JBMEoAMk6jvh
-=UV2m
------END PGP SIGNATURE-----
-
---oyUTqETQ0mS9luUI--
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index fd49c43..fc80934 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -89,6 +89,8 @@ struct stv0367_state {
+ 	struct stv0367cab_state *cab_state;
+ 	/* DVB-T */
+ 	struct stv0367ter_state *ter_state;
++	/* flags for operation control */
++	u8 use_i2c_gatectrl;
+ };
+ 
+ struct st_register {
+@@ -1827,10 +1829,10 @@ static int stv0367ter_set_frontend(struct dvb_frontend *fe)
+ 	stv0367ter_init(fe);
+ 
+ 	if (fe->ops.tuner_ops.set_params) {
+-		if (fe->ops.i2c_gate_ctrl)
++		if (state->use_i2c_gatectrl && fe->ops.i2c_gate_ctrl)
+ 			fe->ops.i2c_gate_ctrl(fe, 1);
+ 		fe->ops.tuner_ops.set_params(fe);
+-		if (fe->ops.i2c_gate_ctrl)
++		if (state->use_i2c_gatectrl && fe->ops.i2c_gate_ctrl)
+ 			fe->ops.i2c_gate_ctrl(fe, 0);
+ 	}
+ 
+@@ -2321,6 +2323,9 @@ struct dvb_frontend *stv0367ter_attach(const struct stv0367_config *config,
+ 	state->fe.demodulator_priv = state;
+ 	state->chip_id = stv0367_readreg(state, 0xf000);
+ 
++	/* demod operation options */
++	state->use_i2c_gatectrl = 1;
++
+ 	dprintk("%s: chip_id = 0x%x\n", __func__, state->chip_id);
+ 
+ 	/* check if the demod is there */
+@@ -3120,10 +3125,10 @@ static int stv0367cab_set_frontend(struct dvb_frontend *fe)
+ 
+ 	/* Tuner Frequency Setting */
+ 	if (fe->ops.tuner_ops.set_params) {
+-		if (fe->ops.i2c_gate_ctrl)
++		if (state->use_i2c_gatectrl && fe->ops.i2c_gate_ctrl)
+ 			fe->ops.i2c_gate_ctrl(fe, 1);
+ 		fe->ops.tuner_ops.set_params(fe);
+-		if (fe->ops.i2c_gate_ctrl)
++		if (state->use_i2c_gatectrl && fe->ops.i2c_gate_ctrl)
+ 			fe->ops.i2c_gate_ctrl(fe, 0);
+ 	}
+ 
+@@ -3437,6 +3442,9 @@ struct dvb_frontend *stv0367cab_attach(const struct stv0367_config *config,
+ 	state->fe.demodulator_priv = state;
+ 	state->chip_id = stv0367_readreg(state, 0xf000);
+ 
++	/* demod operation options */
++	state->use_i2c_gatectrl = 1;
++
+ 	dprintk("%s: chip_id = 0x%x\n", __func__, state->chip_id);
+ 
+ 	/* check if the demod is there */
+-- 
+2.10.2
