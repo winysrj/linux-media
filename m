@@ -1,71 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33363 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751144AbdCMJzh (ORCPT
+Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:58509 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936880AbdCXQsh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 05:55:37 -0400
-Subject: Re: [PATCH v5 21/39] UAPI: Add media UAPI Kbuild file
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-22-git-send-email-steve_longerbeam@mentor.com>
- <20170311134931.GP3220@valkosipuli.retiisi.org.uk>
- <184c02bf-782d-6dbe-e603-a82ac8dcc8b6@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <a1e9f0b2-0dff-db5e-a2a3-5b34230fb1c3@xs4all.nl>
-Date: Mon, 13 Mar 2017 10:55:19 +0100
-MIME-Version: 1.0
-In-Reply-To: <184c02bf-782d-6dbe-e603-a82ac8dcc8b6@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Fri, 24 Mar 2017 12:48:37 -0400
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+To: linux-media@vger.kernel.org
+Cc: hans.verkuil@cisco.com, mchehab@kernel.org,
+        linux-kernel@vger.kernel.org, Jose Abreu <Jose.Abreu@synopsys.com>
+Subject: [PATCH 5/8] [media] i2c: adv7604: Use cec_get_drvdata()
+Date: Fri, 24 Mar 2017 16:47:56 +0000
+Message-Id: <0ed0990bceae6ed517eeb8744f4593cbeadce2ab.1490373499.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1490373499.git.joabreu@synopsys.com>
+References: <cover.1490373499.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1490373499.git.joabreu@synopsys.com>
+References: <cover.1490373499.git.joabreu@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/11/2017 07:20 PM, Steve Longerbeam wrote:
-> 
-> 
-> On 03/11/2017 05:49 AM, Sakari Ailus wrote:
->> Hi Steve,
->>
->> On Thu, Mar 09, 2017 at 08:53:01PM -0800, Steve Longerbeam wrote:
->>> Add an empty UAPI Kbuild file for media UAPI headers.
->>>
->>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->>
->> The existing V4L2 UAPI headers are under include/uapi/linux. Could you use
->> that directory instead?
->>
->> I actually wouldn't really object doing this but it should have been done in
->> 2002 or so when the first V4L2 header was added. Now the benefit is
->> questionable.
->>
-> 
-> Agreed, I think the current headers should be moved to uapi/media
-> eventually, but for now I'll go ahead and put under uapi/linux.
+Use helper function to get driver private data from CEC
+adapter.
 
-No, while in staging it shouldn't be exported.
+Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Put it in include/linux and move it to uapi when this driver is mainlined.
-
-I don't think we can move headers from uapi/linux to uapi/media, I'm sure it's
-too late for that.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index d8bf435..f1fa9ce 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2050,7 +2050,7 @@ static void adv76xx_cec_isr(struct v4l2_subdev *sd, bool *handled)
+ 
+ static int adv76xx_cec_adap_enable(struct cec_adapter *adap, bool enable)
+ {
+-	struct adv76xx_state *state = adap->priv;
++	struct adv76xx_state *state = cec_get_drvdata(adap);
+ 	struct v4l2_subdev *sd = &state->sd;
+ 
+ 	if (!state->cec_enabled_adap && enable) {
+@@ -2080,7 +2080,7 @@ static int adv76xx_cec_adap_enable(struct cec_adapter *adap, bool enable)
+ 
+ static int adv76xx_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
+ {
+-	struct adv76xx_state *state = adap->priv;
++	struct adv76xx_state *state = cec_get_drvdata(adap);
+ 	struct v4l2_subdev *sd = &state->sd;
+ 	unsigned int i, free_idx = ADV76XX_MAX_ADDRS;
+ 
+@@ -2135,7 +2135,7 @@ static int adv76xx_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
+ static int adv76xx_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
+ 				     u32 signal_free_time, struct cec_msg *msg)
+ {
+-	struct adv76xx_state *state = adap->priv;
++	struct adv76xx_state *state = cec_get_drvdata(adap);
+ 	struct v4l2_subdev *sd = &state->sd;
+ 	u8 len = msg->len;
+ 	unsigned int i;
+-- 
+1.9.1
