@@ -1,124 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f174.google.com ([209.85.128.174]:36446 "EHLO
-        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752207AbdCGRMK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 12:12:10 -0500
-Received: by mail-wr0-f174.google.com with SMTP id u108so6053523wrb.3
-        for <linux-media@vger.kernel.org>; Tue, 07 Mar 2017 09:11:33 -0800 (PST)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org
-Cc: Jose.Abreu@synopsys.com, kieran.bingham@ideasonboard.com,
-        linux-amlogic@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        Neil Armstrong <narmstrong@baylibre.com>
-Subject: [PATCH v3 1/6] drm: bridge: dw-hdmi: Extract PHY interrupt setup to a function
-Date: Tue,  7 Mar 2017 17:42:19 +0100
-Message-Id: <1488904944-14285-2-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
-References: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34922 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935477AbdCXSZr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 24 Mar 2017 14:25:47 -0400
+Received: by mail-wm0-f65.google.com with SMTP id z133so2223216wmb.2
+        for <linux-media@vger.kernel.org>; Fri, 24 Mar 2017 11:25:40 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: mchehab@kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH v2 02/12] [media] dvb-frontends/stv0367: print CPAMP status only if stv_debug is enabled
+Date: Fri, 24 Mar 2017 19:23:58 +0100
+Message-Id: <20170324182408.25996-3-d.scheller.oss@gmail.com>
+In-Reply-To: <20170324182408.25996-1-d.scheller.oss@gmail.com>
+References: <20170324182408.25996-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+From: Daniel Scheller <d.scheller@gmx.net>
 
-In preparation for adding PHY operations to handle RX SENSE and HPD,
-group all the PHY interrupt setup code in a single location and extract
-it to a separate function.
+The CPAMP log lines generated in stv0367_ter_check_cpamp() are printed
+everytime tuning succeeds or fails, quite cluttering the normal kernel log.
+Use dprintk() instead of printk(KERN_ERR...) so that if the information is
+needed, it'll be printed when the stv_debug modparam is enabled.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 50 ++++++++++++++-----------------
- 1 file changed, 23 insertions(+), 27 deletions(-)
+ drivers/media/dvb-frontends/stv0367.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-index 026a0dc..1ed8bc1 100644
---- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-+++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-@@ -1496,7 +1496,7 @@ static int dw_hdmi_setup(struct dw_hdmi *hdmi, struct drm_display_mode *mode)
- }
- 
- /* Wait until we are registered to enable interrupts */
--static int dw_hdmi_fb_registered(struct dw_hdmi *hdmi)
-+static void dw_hdmi_fb_registered(struct dw_hdmi *hdmi)
- {
- 	hdmi_writeb(hdmi, HDMI_PHY_I2CM_INT_ADDR_DONE_POL,
- 		    HDMI_PHY_I2CM_INT_ADDR);
-@@ -1504,15 +1504,6 @@ static int dw_hdmi_fb_registered(struct dw_hdmi *hdmi)
- 	hdmi_writeb(hdmi, HDMI_PHY_I2CM_CTLINT_ADDR_NAC_POL |
- 		    HDMI_PHY_I2CM_CTLINT_ADDR_ARBITRATION_POL,
- 		    HDMI_PHY_I2CM_CTLINT_ADDR);
--
--	/* enable cable hot plug irq */
--	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
--
--	/* Clear Hotplug interrupts */
--	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
--		    HDMI_IH_PHY_STAT0);
--
--	return 0;
- }
- 
- static void initialize_hdmi_ih_mutes(struct dw_hdmi *hdmi)
-@@ -1630,6 +1621,26 @@ static void dw_hdmi_update_phy_mask(struct dw_hdmi *hdmi)
- 		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
- }
- 
-+static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi)
-+{
-+	/*
-+	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
-+	 * any pending interrupt.
-+	 */
-+	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
-+	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
-+		    HDMI_IH_PHY_STAT0);
-+
-+	/* Enable cable hot plug irq. */
-+	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
-+
-+	/* Clear and unmute interrupts. */
-+	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
-+		    HDMI_IH_PHY_STAT0);
-+	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
-+		    HDMI_IH_MUTE_PHY_STAT0);
-+}
-+
- static enum drm_connector_status
- dw_hdmi_connector_detect(struct drm_connector *connector, bool force)
- {
-@@ -2141,29 +2152,14 @@ static int dw_hdmi_detect_phy(struct dw_hdmi *hdmi)
- 			hdmi->ddc = NULL;
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index fc80934..0064d9d 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -1262,9 +1262,9 @@ stv0367_ter_signal_type stv0367ter_check_cpamp(struct stv0367_state *state,
+ 	dprintk("******last CPAMPvalue= %d at wd=%d\n", CPAMPvalue, wd);
+ 	if (CPAMPvalue < CPAMPMin) {
+ 		CPAMPStatus = FE_TER_NOCPAMP;
+-		printk(KERN_ERR "CPAMP failed\n");
++		dprintk("%s: CPAMP failed\n", __func__);
+ 	} else {
+-		printk(KERN_ERR "CPAMP OK !\n");
++		dprintk("%s: CPAMP OK !\n", __func__);
+ 		CPAMPStatus = FE_TER_CPAMPOK;
  	}
  
--	/*
--	 * Configure registers related to HDMI interrupt
--	 * generation before registering IRQ.
--	 */
--	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
--
--	/* Clear Hotplug interrupts */
--	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
--		    HDMI_IH_PHY_STAT0);
--
- 	hdmi->bridge.driver_private = hdmi;
- 	hdmi->bridge.funcs = &dw_hdmi_bridge_funcs;
- #ifdef CONFIG_OF
- 	hdmi->bridge.of_node = pdev->dev.of_node;
- #endif
- 
--	ret = dw_hdmi_fb_registered(hdmi);
--	if (ret)
--		goto err_iahb;
--
--	/* Unmute interrupts */
--	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
--		    HDMI_IH_MUTE_PHY_STAT0);
-+	dw_hdmi_fb_registered(hdmi);
-+	dw_hdmi_phy_setup_hpd(hdmi);
- 
- 	memset(&pdevinfo, 0, sizeof(pdevinfo));
- 	pdevinfo.parent = dev;
 -- 
-1.9.1
+2.10.2
