@@ -1,55 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:35816 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750814AbdCMMye (ORCPT
+Received: from mail-wr0-f182.google.com ([209.85.128.182]:33879 "EHLO
+        mail-wr0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751164AbdCYXOt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 08:54:34 -0400
-From: Johan Hovold <johan@kernel.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>,
-        stable <stable@vger.kernel.org>,
-        Thierry MERLE <thierry.merle@free.fr>
-Subject: [PATCH 2/6] [media] usbvision: fix NULL-deref at probe
-Date: Mon, 13 Mar 2017 13:53:55 +0100
-Message-Id: <20170313125359.29394-3-johan@kernel.org>
-In-Reply-To: <20170313125359.29394-1-johan@kernel.org>
-References: <20170313125359.29394-1-johan@kernel.org>
+        Sat, 25 Mar 2017 19:14:49 -0400
+Received: by mail-wr0-f182.google.com with SMTP id l43so13211418wre.1
+        for <linux-media@vger.kernel.org>; Sat, 25 Mar 2017 16:14:42 -0700 (PDT)
+Subject: Re: [PATCH v7 5/9] media: venus: vdec: add video decoder files
+To: Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1489423058-12492-6-git-send-email-stanimir.varbanov@linaro.org>
+ <52b39f43-6f70-0cf6-abaf-4bb5bd2b3d86@xs4all.nl>
+ <1490379663.5935.13.camel@ndufresne.ca>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <80de2361-e941-abc4-7900-3102d6ce07a4@linaro.org>
+Date: Sun, 26 Mar 2017 01:14:39 +0200
+MIME-Version: 1.0
+In-Reply-To: <1490379663.5935.13.camel@ndufresne.ca>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make sure to check the number of endpoints to avoid dereferencing a
-NULL-pointer or accessing memory beyond the endpoint array should a
-malicious device lack the expected endpoints.
+Hi,
 
-Fixes: 2a9f8b5d25be ("V4L/DVB (5206): Usbvision: set alternate interface
-modification")
-Cc: stable <stable@vger.kernel.org>     # 2.6.21
-Cc: Thierry MERLE <thierry.merle@free.fr>
-Signed-off-by: Johan Hovold <johan@kernel.org>
----
- drivers/media/usb/usbvision/usbvision-video.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+On 24.03.2017 20:21, Nicolas Dufresne wrote:
+> Le vendredi 24 mars 2017 à 15:41 +0100, Hans Verkuil a écrit :
+>>> +static const struct venus_format vdec_formats[] = {
+>>> +     {
+>>> +             .pixfmt = V4L2_PIX_FMT_NV12,
+>>> +             .num_planes = 1,
+>>> +             .type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
+>>
+>> Just curious: is NV12 the only uncompressed format supported by the
+>> hardware?
+>> Or just the only one that is implemented here?
 
-diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-index f5c635a67d74..f9c3325aa4d4 100644
---- a/drivers/media/usb/usbvision/usbvision-video.c
-+++ b/drivers/media/usb/usbvision/usbvision-video.c
-@@ -1501,7 +1501,14 @@ static int usbvision_probe(struct usb_interface *intf,
- 	}
- 
- 	for (i = 0; i < usbvision->num_alt; i++) {
--		u16 tmp = le16_to_cpu(uif->altsetting[i].endpoint[1].desc.
-+		u16 tmp;
-+
-+		if (uif->altsetting[i].desc.bNumEndpoints < 2) {
-+			ret = -ENODEV;
-+			goto err_pkt;
-+		}
-+
-+		tmp = le16_to_cpu(uif->altsetting[i].endpoint[1].desc.
- 				      wMaxPacketSize);
- 		usbvision->alt_max_pkt_size[i] =
- 			(tmp & 0x07ff) * (((tmp & 0x1800) >> 11) + 1);
--- 
-2.12.0
+yes, at least to my knowledge (except below UBWC).
+
+>
+> The downstream kernel[0], from Qualcomm have:
+>
+>         {
+>                 .name = "UBWC YCbCr Semiplanar 4:2:0",
+>                 .description = "UBWC Y/CbCr 4:2:0",
+>                 .fourcc = V4L2_PIX_FMT_NV12_UBWC,
+>                 .num_planes = 2,
+>                 .get_frame_size = get_frame_size_nv12_ubwc,
+>                 .type = CAPTURE_PORT,
+>         },
+>         {
+>                 .name = "UBWC YCbCr Semiplanar 4:2:0 10bit",
+>                 .description = "UBWC Y/CbCr 4:2:0 10bit",
+>                 .fourcc = V4L2_PIX_FMT_NV12_TP10_UBWC,
+>                 .num_planes = 2,
+>                 .get_frame_size = get_frame_size_nv12_ubwc_10bit,
+>                 .type = CAPTURE_PORT,
+>         },
+>
+> I have no idea what UBWC stands for. The performance in NV12 is more
+> then decent from my testing. Though, there is no 10bit variant.
+
+UBWC is some kind of compressed format for NV12 [1]. This format is 
+applicable for the newer venus hardware revisions and I planed to add it 
+later on (when Adreno GPU driver starts handle it).
+
+regards,
+Stan
+
+[1] 
+https://android.googlesource.com/kernel/msm/+/android-7.1.0_r0.2/include/media/msm_media_info.h#151
