@@ -1,132 +1,319 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:40636 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755485AbdCKLXe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 06:23:34 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org
-Subject: [PATCHv5 00/16] atmel-isi/ov7670/ov2640: convert to standalone drivers
-Date: Sat, 11 Mar 2017 12:23:12 +0100
-Message-Id: <20170311112328.11802-1-hverkuil@xs4all.nl>
+Received: from ns.mm-sol.com ([37.157.136.199]:46355 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751181AbdCYWrE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 25 Mar 2017 18:47:04 -0400
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: Re: [PATCH v7 4/9] media: venus: adding core part and helper
+ functions
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1489423058-12492-5-git-send-email-stanimir.varbanov@linaro.org>
+ <249f2504-ed86-acc5-2f65-21c2217590ba@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Message-ID: <22a4a026-28ff-9bd8-502a-79eedde9b5dd@mm-sol.com>
+Date: Sun, 26 Mar 2017 00:36:42 +0200
+MIME-Version: 1.0
+In-Reply-To: <249f2504-ed86-acc5-2f65-21c2217590ba@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-This patch series converts the soc-camera atmel-isi to a standalone V4L2
-driver.
+Thanks for the comments!
 
-The same is done for the ov7670 and ov2640 sensor drivers: the ov7670 was
-used to test the atmel-isi driver. The ov2640 is needed because the em28xx
-driver has a soc_camera include dependency. Both ov7670 and ov2640 sensors
-have been tested with the atmel-isi driver.
+On 03/24/2017 04:23 PM, Hans Verkuil wrote:
+> Some review comments below:
+>
+> On 03/13/17 17:37, Stanimir Varbanov wrote:
+>>  * core.c has implemented the platform dirver methods, file
+>
+> dirver -> driver
+>
+>> operations and v4l2 registration.
+>>
+>>  * helpers.c has implemented common helper functions for:
+>>    - buffer management
+>>
+>>    - vb2_ops and functions for format propagation,
+>>
+>>    - functions for allocating and freeing buffers for
+>>    internal usage. The buffer parameters describing internal
+>>    buffers depends on current format, resolution and codec.
+>>
+>>    - functions for calculation of current load of the
+>>    hardware. Depending on the count of instances and
+>>    resolutions it selects the best clock rate for the video
+>>    core.
+>>
+>>  * firmware loader
+>>
+>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>> ---
+>>  drivers/media/platform/qcom/venus/core.c     | 386 ++++++++++++++++
+>>  drivers/media/platform/qcom/venus/core.h     | 306 +++++++++++++
+>>  drivers/media/platform/qcom/venus/firmware.c | 107 +++++
+>>  drivers/media/platform/qcom/venus/firmware.h |  22 +
+>>  drivers/media/platform/qcom/venus/helpers.c  | 632 +++++++++++++++++++++++++++
+>>  drivers/media/platform/qcom/venus/helpers.h  |  41 ++
+>>  6 files changed, 1494 insertions(+)
+>>  create mode 100644 drivers/media/platform/qcom/venus/core.c
+>>  create mode 100644 drivers/media/platform/qcom/venus/core.h
+>>  create mode 100644 drivers/media/platform/qcom/venus/firmware.c
+>>  create mode 100644 drivers/media/platform/qcom/venus/firmware.h
+>>  create mode 100644 drivers/media/platform/qcom/venus/helpers.c
+>>  create mode 100644 drivers/media/platform/qcom/venus/helpers.h
+>>
+>> diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
+>> new file mode 100644
+>> index 000000000000..557b6ec4cc48
+>> --- /dev/null
+>> +++ b/drivers/media/platform/qcom/venus/core.c
+>> @@ -0,0 +1,386 @@
+>> +/*
+>> + * Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
+>> + * Copyright (C) 2017 Linaro Ltd.
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 and
+>> + * only version 2 as published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + *
+>> + */
+>> +#include <linux/clk.h>
+>> +#include <linux/init.h>
+>> +#include <linux/ioctl.h>
+>> +#include <linux/list.h>
+>> +#include <linux/module.h>
+>> +#include <linux/of_device.h>
+>> +#include <linux/platform_device.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/types.h>
+>> +#include <linux/pm_runtime.h>
+>> +#include <media/videobuf2-v4l2.h>
+>> +#include <media/v4l2-mem2mem.h>
+>> +#include <media/v4l2-ioctl.h>
+>> +
+>> +#include "core.h"
+>> +#include "vdec.h"
+>> +#include "venc.h"
+>> +#include "firmware.h"
+>> +
+>> +static const struct hfi_core_ops venus_core_ops;
+>> +
+>> +static void venus_sys_error_handler(struct work_struct *work)
+>> +{
+>> +	struct venus_core *core =
+>> +			container_of(work, struct venus_core, work.work);
+>> +	int ret;
+>> +
+>> +	dev_warn(core->dev, "system error occurred, starting recovery!\n");
+>> +
+>> +	pm_runtime_get_sync(core->dev);
+>> +
+>> +	hfi_core_deinit(core, true);
+>> +
+>> +	hfi_destroy(core);
+>> +
+>> +	mutex_lock(&core->lock);
+>> +
+>> +	venus_shutdown(&core->dev_fw);
+>> +
+>> +	pm_runtime_put_sync(core->dev);
+>> +
+>> +	ret = hfi_create(core, &venus_core_ops);
+>> +
+>> +	pm_runtime_get_sync(core->dev);
+>> +
+>> +	ret = venus_boot(core->dev, &core->dev_fw);
+>> +
+>> +	ret = hfi_core_resume(core, true);
+>
+> Why assign to ret if you're going to ignore it anyway? Either drop the assignment
+> or do something with it.
 
-The first 5 patches improve the ov7670 sensor driver, mostly adding modern
-features such as DT support.
+Since this is on the recovery path I'm not sure how to proceed on error 
+path. Delay the workqueue and try again later? Whatever, I can rework 
+this to print the errors instead of ignoring them.
 
-The next three convert the atmel-isi and move it out of soc_camera.
+>
+>> +
+>> +	enable_irq(core->irq);
+>> +
+>> +	mutex_unlock(&core->lock);
+>> +
+>> +	ret = hfi_core_init(core);
+>> +	if (ret)
+>> +		dev_err(core->dev, "hfi_core_init (%d)\n", ret);
+>> +
+>> +	pm_runtime_put_sync(core->dev);
+>> +
+>> +	core->sys_error = false;
+>> +}
+>> +
 
-The following 6 patches convert ov2640 and drop the soc_camera dependency
-in em28xx. I have tested that this works with my 'SpeedLink Vicious And
-Divine Laplace webcam'.
+<snip>
 
-The last two patches add isi support to the DT: the first for the ov7670
-sensor, the second modifies it for the ov2640 sensor.
+>> +/**
+>> + * struct venus_inst - holds per instance paramerters
+>> + *
+>> + * @list:	used for attach an instance to the core
+>> + * @lock:	instance lock
+>> + * @core:	a reference to the core struct
+>> + * @internalbufs:	a list of internal bufferes
+>> + * @registeredbufs:	a list of registered capture bufferes
+>> + * @ctrl_handler:	v4l control handler
+>> + * @controls:	an union of decoder and encoder control parameters
+>> + * @fh:	 a holder of v4l file handle structure
+>> + * @width:	current capture width
+>> + * @height:	current capture height
+>> + * @out_width:	current output width
+>> + * @out_height:	current output height
+>> + * @colorspace:	current color space
+>> + * @quantization:	current quantization
+>> + * @xfer_func:	current xfer function
+>> + * @fps:		holds current FPS
+>> + * @timeperframe:	holds current time per frame structure
+>> + * @fmt_out:	a reference to output format structure
+>> + * @fmt_cap:	a reference to capture format structure
+>> + * @num_input_bufs:	holds number of input buffers
+>> + * @num_output_bufs:	holds number of output buffers
+>> + * @input_buf_size	holds input buffer size
+>> + * @output_buf_size:	holds output buffer size
+>> + * @reconfig:	a flag raised by decoder when the stream resolution changed
+>> + * @reconfig_width:	holds the new width
+>> + * @reconfig_height:	holds the new height
+>> + * @sequence:		a sequence counter
+>> + * @codec_cfg:	a flag used to annonce a codec configuration
+>> + * @m2m_dev:	a reference to m2m device structure
+>> + * @m2m_ctx:	a reference to m2m context structure
+>> + * @state:	current state of the instance
+>> + * @done:	a completion for sync HFI operation
+>> + * @error:	an error returned during last HFI sync operation
+>> + * @session_error:	a flag rised by HFI interface in case of session error
+>> + * @ops:		HFI operations
+>> + * @priv:	a private for HFI operations callbacks
+>> + * @session_type:	the type of the session (decoder or encoder)
+>> + * @hprop:	an union used as a holder by get property
+>> + * @cap_width:	width capability
+>> + * @cap_height:	height capability
+>> + * @cap_mbs_per_frame:	macroblocks per frame capability
+>> + * @cap_mbs_per_sec:	macroblocks per second capability
+>> + * @cap_framerate:	framerate capability
+>> + * @cap_scale_x:		horizontal scaling capability
+>> + * @cap_scale_y:		vertical scaling capability
+>> + * @cap_bitrate:		bitrate capability
+>> + * @cap_hier_p:		hier capability
+>> + * @cap_ltr_count:	LTR count capability
+>> + * @cap_secure_output2_threshold: secure OUTPUT2 threshold capability
+>> + * @cap_bufs_mode_static:	buffers allocation mode capability
+>> + * @cap_bufs_mode_dynamic:	buffers allocation mode capability
+>> + * @pl_count:	count of supported profiles/levels
+>> + * @pl:		supported profiles/levels
+>> + * @bufreq:	holds buffer requirements
+>> + */
+>> +struct venus_inst {
+>> +	struct list_head list;
+>> +	struct mutex lock;
+>> +	struct venus_core *core;
+>> +	struct list_head internalbufs;
+>> +	struct list_head registeredbufs;
+>> +
+>> +	struct v4l2_ctrl_handler ctrl_handler;
+>> +	union {
+>> +		struct vdec_controls dec;
+>> +		struct venc_controls enc;
+>> +	} controls;
+>> +	struct v4l2_fh fh;
+>> +	unsigned int streamon_cap, streamon_out;
+>> +	u32 width;
+>> +	u32 height;
+>> +	u32 out_width;
+>> +	u32 out_height;
+>> +	u32 colorspace;
+>> +	u8 ycbcr_enc;
+>> +	u8 quantization;
+>> +	u8 xfer_func;
+>> +	u64 fps;
+>> +	struct v4l2_fract timeperframe;
+>> +	const struct venus_format *fmt_out;
+>> +	const struct venus_format *fmt_cap;
+>> +	unsigned int num_input_bufs;
+>> +	unsigned int num_output_bufs;
+>> +	unsigned int input_buf_size;
+>> +	unsigned int output_buf_size;
+>> +	bool reconfig;
+>> +	u32 reconfig_width;
+>> +	u32 reconfig_height;
+>> +	u64 sequence;
+>> +	bool codec_cfg;
+>> +	struct v4l2_m2m_dev *m2m_dev;
+>> +	struct v4l2_m2m_ctx *m2m_ctx;
+>> +	unsigned int state;
+>> +	struct completion done;
+>> +	unsigned int error;
+>> +	bool session_error;
+>> +	const struct hfi_inst_ops *ops;
+>> +	u32 session_type;
+>> +	union hfi_get_property hprop;
+>> +	struct hfi_capability cap_width;
+>> +	struct hfi_capability cap_height;
+>> +	struct hfi_capability cap_mbs_per_frame;
+>> +	struct hfi_capability cap_mbs_per_sec;
+>> +	struct hfi_capability cap_framerate;
+>> +	struct hfi_capability cap_scale_x;
+>> +	struct hfi_capability cap_scale_y;
+>> +	struct hfi_capability cap_bitrate;
+>> +	struct hfi_capability cap_hier_p;
+>> +	struct hfi_capability cap_ltr_count;
+>> +	struct hfi_capability cap_secure_output2_threshold;
+>> +	bool cap_bufs_mode_static;
+>> +	bool cap_bufs_mode_dynamic;
+>> +	unsigned int pl_count;
+>> +	struct hfi_profile_level pl[HFI_MAX_PROFILE_COUNT];
+>> +	struct hfi_buffer_requirements bufreq[HFI_BUFFER_TYPE_MAX];
+>
+> Just a suggestion: this might work better if you split it in groups of
+> related fields with a comment above each group that gives an indication
+> of what it is for. It's a solid block of fields right now and I think
+> it can be made a bit easier to read that way.
+>
 
-These two final patches are for demonstration purposes only, I do not plan
-on merging them.
+I agree, it will look better. Will try to restructure it.
 
-Tested with my sama5d3-Xplained board, the ov2640 sensor and two ov7670
-sensors: one with and one without reset/pwdn pins. Also tested with my
-em28xx-based webcam.
+<snip>
 
-I'd like to get this in for 4.12. Fingers crossed.
+>> +
+>> +int helper_vb2_buf_prepare(struct vb2_buffer *vb)
+>> +{
+>> +	struct venus_inst *inst = vb2_get_drv_priv(vb->vb2_queue);
+>> +
+>> +	if (vb->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
+>> +	    vb2_plane_size(vb, 0) < inst->output_buf_size)
+>> +		return -EINVAL;
+>> +	else if (vb2_plane_size(vb, 0) < inst->input_buf_size)
+>
+> This logic can't be right: if type == CAPTURE and the plane_size
+>> = output_buf_size, then it will fall into the 'else' and check
+> the same plane_size against the input_buf_size, which is clearly
+> wrong for a CAPTURE buffer.
 
-Regards,
+Obviously this is wrong, will correct.
 
-        Hans
-
-Changes since v4:
-- the ov2640 colorspace fixes were inexplicably part of an atmel-isi patch.
-  Split it off as a separate patch.
-- add V4L2_SUBDEV_FL_HAS_DEVNODE to ov2640.
-- drop #if defined(CONFIG_MEDIA_CONTROLLER) guard around media_entity_cleanup
-  in ov2640.
-
-Changes since v3:
-- ov2640/ov7670: call clk_disable_unprepare where needed. I assumed this was
-  done by the devm_clk_get cleanup, but that wasn't the case.
-- bindings: be even more explicit about which properties are mandatory.
-- ov2640/ov7670: drop unused bus-width from the dts binding examples and from
-  the actual dts patches.
-
-Changes since v2:
-- Incorporated Sakari's and Rob's device tree bindings comments.
-- ov2640: dropped the reset/power changes. These actually broke the em28xx
-  and there was really nothing wrong with it.
-- merged the "ov2640: allow use inside em28xx" into patches 10 and 11.
-  It really shouldn't have been a separate patch in the first place.
-- rebased on top of 4.11-rc1.
-
-Changes since v1:
-
-- Dropped MC support from atmel-isi and ov7670: not needed to make this
-  work. Only for the ov2640 was it kept since the em28xx driver requires it.
-- Use devm_clk_get instead of clk_get.
-- The ov7670 lower limit of the clock speed is 10 MHz instead of 12. Adjust
-  accordingly.
-
-
-
-Hans Verkuil (16):
-  ov7670: document device tree bindings
-  ov7670: call v4l2_async_register_subdev
-  ov7670: fix g/s_parm
-  ov7670: get xclk
-  ov7670: add devicetree support
-  atmel-isi: document device tree bindings
-  atmel-isi: remove dependency of the soc-camera framework
-  atmel-isi: move out of soc_camera to atmel
-  ov2640: fix colorspace handling
-  ov2640: update bindings
-  ov2640: convert from soc-camera to a standard subdev sensor driver.
-  ov2640: use standard clk and enable it.
-  ov2640: add MC support
-  em28xx: drop last soc_camera link
-  sama5d3 dts: enable atmel-isi
-  at91-sama5d3_xplained.dts: select ov2640
-
- .../devicetree/bindings/media/atmel-isi.txt        |   96 +-
- .../devicetree/bindings/media/i2c/ov2640.txt       |   23 +-
- .../devicetree/bindings/media/i2c/ov7670.txt       |   43 +
- MAINTAINERS                                        |    1 +
- arch/arm/boot/dts/at91-sama5d3_xplained.dts        |   59 +-
- arch/arm/boot/dts/sama5d3.dtsi                     |    4 +-
- drivers/media/i2c/Kconfig                          |   11 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/{soc_camera => }/ov2640.c        |  149 +--
- drivers/media/i2c/ov7670.c                         |   75 +-
- drivers/media/i2c/soc_camera/Kconfig               |    6 -
- drivers/media/i2c/soc_camera/Makefile              |    1 -
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/atmel/Kconfig               |   11 +-
- drivers/media/platform/atmel/Makefile              |    1 +
- drivers/media/platform/atmel/atmel-isi.c           | 1384 ++++++++++++++++++++
- .../platform/{soc_camera => atmel}/atmel-isi.h     |    0
- drivers/media/platform/soc_camera/Kconfig          |   11 -
- drivers/media/platform/soc_camera/Makefile         |    1 -
- drivers/media/platform/soc_camera/atmel-isi.c      | 1167 -----------------
- drivers/media/usb/em28xx/em28xx-camera.c           |    9 -
- 21 files changed, 1687 insertions(+), 1367 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
- rename drivers/media/i2c/{soc_camera => }/ov2640.c (92%)
- create mode 100644 drivers/media/platform/atmel/atmel-isi.c
- rename drivers/media/platform/{soc_camera => atmel}/atmel-isi.h (100%)
- delete mode 100644 drivers/media/platform/soc_camera/atmel-isi.c
+<snip>
 
 -- 
-2.11.0
+regards,
+Stan
