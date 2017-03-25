@@ -1,100 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:56501 "EHLO ale.deltatee.com"
+Received: from gofer.mess.org ([88.97.38.141]:51471 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751166AbdCQSuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Mar 2017 14:50:25 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        Johannes Thumshirn <jthumshirn@suse.de>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@atmel.com>
-Cc: linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org,
-        rtc-linux@googlegroups.com, linux-mtd@lists.infradead.org,
-        linux-media@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Fri, 17 Mar 2017 12:48:16 -0600
-Message-Id: <1489776503-3151-10-git-send-email-logang@deltatee.com>
-In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v5 09/16] infiniband: utilize the new cdev_set_parent function
+        id S1751054AbdCYMC5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 25 Mar 2017 08:02:57 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Cc: stable@vger.kernel.org
+Subject: [PATCH 1/8] [media] staging: sir: fill in missing fields and fix probe
+Date: Sat, 25 Mar 2017 12:02:19 +0000
+Message-Id: <d9be670943f4f9f54d8aac84f9db07853ba1666f.1490443026.git.sean@mess.org>
+In-Reply-To: <cover.1490443026.git.sean@mess.org>
+References: <cover.1490443026.git.sean@mess.org>
+In-Reply-To: <cover.1490443026.git.sean@mess.org>
+References: <cover.1490443026.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This replaces the suspect looking cdev.kobj.parent lines with the
-equivalent cdev_set_parent function. This is a straightforward change
-that's largely cosmetic but it does push the kobj.parent ownership
-into char_dev.c where it belongs.
+Some fields are left blank.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: stable@vger.kernel.org # v4.11
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/infiniband/core/user_mad.c    | 4 ++--
- drivers/infiniband/core/uverbs_main.c | 2 +-
- drivers/infiniband/hw/hfi1/device.c   | 2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/staging/media/lirc/lirc_sir.c | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index aca7ff7..25071b8 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -1183,7 +1183,7 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+diff --git a/drivers/staging/media/lirc/lirc_sir.c b/drivers/staging/media/lirc/lirc_sir.c
+index e498ae8..9905990 100644
+--- a/drivers/staging/media/lirc/lirc_sir.c
++++ b/drivers/staging/media/lirc/lirc_sir.c
+@@ -227,6 +227,7 @@ static int init_chrdev(void)
+ 	if (!rcdev)
+ 		return -ENOMEM;
  
- 	cdev_init(&port->cdev, &umad_fops);
- 	port->cdev.owner = THIS_MODULE;
--	port->cdev.kobj.parent = &umad_dev->kobj;
-+	cdev_set_parent(&port->cdev, &umad_dev->kobj);
- 	kobject_set_name(&port->cdev.kobj, "umad%d", port->dev_num);
- 	if (cdev_add(&port->cdev, base, 1))
- 		goto err_cdev;
-@@ -1202,7 +1202,7 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
- 	base += IB_UMAD_MAX_PORTS;
- 	cdev_init(&port->sm_cdev, &umad_sm_fops);
- 	port->sm_cdev.owner = THIS_MODULE;
--	port->sm_cdev.kobj.parent = &umad_dev->kobj;
-+	cdev_set_parent(&port->sm_cdev, &umad_dev->kobj);
- 	kobject_set_name(&port->sm_cdev.kobj, "issm%d", port->dev_num);
- 	if (cdev_add(&port->sm_cdev, base, 1))
- 		goto err_sm_cdev;
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 35c788a..f02d7b9 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -1189,7 +1189,7 @@ static void ib_uverbs_add_one(struct ib_device *device)
- 	cdev_init(&uverbs_dev->cdev, NULL);
- 	uverbs_dev->cdev.owner = THIS_MODULE;
- 	uverbs_dev->cdev.ops = device->mmap ? &uverbs_mmap_fops : &uverbs_fops;
--	uverbs_dev->cdev.kobj.parent = &uverbs_dev->kobj;
-+	cdev_set_parent(&uverbs_dev->cdev, &uverbs_dev->kobj);
- 	kobject_set_name(&uverbs_dev->cdev.kobj, "uverbs%d", uverbs_dev->devnum);
- 	if (cdev_add(&uverbs_dev->cdev, base, 1))
- 		goto err_cdev;
-diff --git a/drivers/infiniband/hw/hfi1/device.c b/drivers/infiniband/hw/hfi1/device.c
-index bf64b5a..bbb6069 100644
---- a/drivers/infiniband/hw/hfi1/device.c
-+++ b/drivers/infiniband/hw/hfi1/device.c
-@@ -69,7 +69,7 @@ int hfi1_cdev_init(int minor, const char *name,
++	rcdev->input_name = "SIR IrDA port";
+ 	rcdev->input_phys = KBUILD_MODNAME "/input0";
+ 	rcdev->input_id.bustype = BUS_HOST;
+ 	rcdev->input_id.vendor = 0x0001;
+@@ -234,6 +235,7 @@ static int init_chrdev(void)
+ 	rcdev->input_id.version = 0x0100;
+ 	rcdev->tx_ir = sir_tx_ir;
+ 	rcdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
++	rcdev->driver_name = KBUILD_MODNAME;
+ 	rcdev->map_name = RC_MAP_RC6_MCE;
+ 	rcdev->timeout = IR_DEFAULT_TIMEOUT;
+ 	rcdev->dev.parent = &sir_ir_dev->dev;
+@@ -740,7 +742,13 @@ static int init_sir_ir(void)
  
- 	cdev_init(cdev, fops);
- 	cdev->owner = THIS_MODULE;
--	cdev->kobj.parent = parent;
-+	cdev_set_parent(cdev, parent);
- 	kobject_set_name(&cdev->kobj, name);
+ static int sir_ir_probe(struct platform_device *dev)
+ {
+-	return 0;
++	int retval;
++
++	retval = init_chrdev();
++	if (retval < 0)
++		return retval;
++
++	return init_sir_ir();
+ }
  
- 	ret = cdev_add(cdev, dev, 1);
+ static int sir_ir_remove(struct platform_device *dev)
+@@ -780,18 +788,8 @@ static int __init sir_ir_init(void)
+ 		goto pdev_add_fail;
+ 	}
+ 
+-	retval = init_chrdev();
+-	if (retval < 0)
+-		goto fail;
+-
+-	retval = init_sir_ir();
+-	if (retval)
+-		goto fail;
+-
+ 	return 0;
+ 
+-fail:
+-	platform_device_del(sir_ir_dev);
+ pdev_add_fail:
+ 	platform_device_put(sir_ir_dev);
+ pdev_alloc_fail:
 -- 
-2.1.4
+2.9.3
