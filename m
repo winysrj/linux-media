@@ -1,104 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:34887 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751652AbdC0Li0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 07:38:26 -0400
-Received: by mail-pg0-f68.google.com with SMTP id g2so12160327pge.2
-        for <linux-media@vger.kernel.org>; Mon, 27 Mar 2017 04:37:36 -0700 (PDT)
-From: vaibhavddit@gmail.com
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        rvarsha016@gmail.com, Vaibhav Kothari <vaibhavddit@gmail.com>
-Subject: [PATCH] Fixing up check-patch error & Warnings
-Date: Mon, 27 Mar 2017 17:07:42 +0530
-Message-Id: <1490614662-30830-1-git-send-email-vaibhavddit@gmail.com>
-In-Reply-To: <1490610746-28579-1-git-send-email-vaibhavddit@gmail.com>
-References: <1490610746-28579-1-git-send-email-vaibhavddit@gmail.com>
+Received: from gofer.mess.org ([88.97.38.141]:48301 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751299AbdCYMC6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 25 Mar 2017 08:02:58 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 5/8] [media] staging: sir: remove unnecessary messages
+Date: Sat, 25 Mar 2017 12:02:23 +0000
+Message-Id: <6551179282c1336c80b47db119c127a0f4ae214d.1490443026.git.sean@mess.org>
+In-Reply-To: <cover.1490443026.git.sean@mess.org>
+References: <cover.1490443026.git.sean@mess.org>
+In-Reply-To: <cover.1490443026.git.sean@mess.org>
+References: <cover.1490443026.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Kothari <vaibhavddit@gmail.com>
+No need to warn when kmalloc fails.
 
-- Removed white-space before comma in memset()
-- Added blank line between declaration and defination
-  at various places
-
-Signed-off-by: Vaibhav Kothari <vaibhavddit@gmail.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/staging/media/atomisp/i2c/gc2235.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/staging/media/lirc/lirc_sir.c | 19 +++----------------
+ 1 file changed, 3 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
-index 9b41023..0df20ba 100644
---- a/drivers/staging/media/atomisp/i2c/gc2235.c
-+++ b/drivers/staging/media/atomisp/i2c/gc2235.c
-@@ -55,7 +55,7 @@ static int gc2235_read_reg(struct i2c_client *client,
- 		return -EINVAL;
+diff --git a/drivers/staging/media/lirc/lirc_sir.c b/drivers/staging/media/lirc/lirc_sir.c
+index 9b09c25..c9ca86f 100644
+--- a/drivers/staging/media/lirc/lirc_sir.c
++++ b/drivers/staging/media/lirc/lirc_sir.c
+@@ -63,8 +63,6 @@ static struct platform_device *sir_ir_dev;
+ 
+ static DEFINE_SPINLOCK(hardware_lock);
+ 
+-static bool debug;
+-
+ /* SECTION: Prototypes */
+ 
+ /* Communication with user-space */
+@@ -374,7 +372,6 @@ static int init_sir_ir(void)
+ 	if (retval < 0)
+ 		return retval;
+ 	init_hardware();
+-	pr_info("Installed.\n");
+ 	return 0;
+ }
+ 
+@@ -407,24 +404,18 @@ static int __init sir_ir_init(void)
+ 	int retval;
+ 
+ 	retval = platform_driver_register(&sir_ir_driver);
+-	if (retval) {
+-		pr_err("Platform driver register failed!\n");
+-		return -ENODEV;
+-	}
++	if (retval)
++		return retval;
+ 
+ 	sir_ir_dev = platform_device_alloc("sir_ir", 0);
+ 	if (!sir_ir_dev) {
+-		pr_err("Platform device alloc failed!\n");
+ 		retval = -ENOMEM;
+ 		goto pdev_alloc_fail;
  	}
  
--	memset(msg, 0 , sizeof(msg));
-+	memset(msg, 0, sizeof(msg));
+ 	retval = platform_device_add(sir_ir_dev);
+-	if (retval) {
+-		pr_err("Platform device add failed!\n");
+-		retval = -ENODEV;
++	if (retval)
+ 		goto pdev_add_fail;
+-	}
  
- 	msg[0].addr = client->addr;
- 	msg[0].flags = 0;
-@@ -354,6 +354,7 @@ static long __gc2235_set_exposure(struct v4l2_subdev *sd, int coarse_itg,
- 	u16 coarse_integration = (u16)coarse_itg;
- 	int ret = 0;
- 	u16 expo_coarse_h, expo_coarse_l, gain_val = 0xF0, gain_val2 = 0xF0;
-+
- 	expo_coarse_h = coarse_integration >> 8;
- 	expo_coarse_l = coarse_integration & 0xff;
+ 	return 0;
  
-@@ -405,6 +406,7 @@ static long gc2235_s_exposure(struct v4l2_subdev *sd,
- 	/* we should not accept the invalid value below. */
- 	if (gain == 0) {
- 		struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
- 		v4l2_err(client, "%s: invalid value\n", __func__);
- 		return -EINVAL;
- 	}
-@@ -746,12 +748,13 @@ static int startup(struct v4l2_subdev *sd)
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	int ret = 0;
-+
- 	if (is_init == 0) {
- 		/* force gc2235 to do a reset in res change, otherwise it
--		* can not output normal after switching res. and it is not
--		* necessary for first time run up after power on, for the sack
--		* of performance
--		*/
-+		 * can not output normal after switching res. and it is not
-+		 * necessary for first time run up after power on, for the sack
-+		 * of performance
-+		 */
- 		power_down(sd);
- 		power_up(sd);
- 		gc2235_write_reg_array(client, gc2235_init_settings);
-@@ -880,6 +883,7 @@ static int gc2235_s_stream(struct v4l2_subdev *sd, int enable)
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	int ret;
-+
- 	mutex_lock(&dev->input_lock);
+@@ -441,7 +432,6 @@ static void __exit sir_ir_exit(void)
+ 	drop_port();
+ 	platform_device_unregister(sir_ir_dev);
+ 	platform_driver_unregister(&sir_ir_driver);
+-	pr_info("Uninstalled.\n");
+ }
  
- 	if (enable)
-@@ -994,6 +998,7 @@ static int gc2235_s_parm(struct v4l2_subdev *sd,
- 			struct v4l2_streamparm *param)
- {
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
-+
- 	dev->run_mode = param->parm.capture.capturemode;
+ module_init(sir_ir_init);
+@@ -459,6 +449,3 @@ MODULE_PARM_DESC(irq, "Interrupt (4 or 3)");
  
- 	mutex_lock(&dev->input_lock);
-@@ -1099,6 +1104,7 @@ static int gc2235_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
-+
- 	dev_dbg(&client->dev, "gc2235_remove...\n");
- 
- 	if (dev->platform_data->platform_deinit)
+ module_param(threshold, int, 0444);
+ MODULE_PARM_DESC(threshold, "space detection threshold (3)");
+-
+-module_param(debug, bool, 0644);
+-MODULE_PARM_DESC(debug, "Enable debugging messages");
 -- 
-1.9.1
+2.9.3
