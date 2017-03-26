@@ -1,69 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34571 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753461AbdCFKkE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 05:40:04 -0500
-Received: by mail-wm0-f67.google.com with SMTP id u132so4952989wmg.1
-        for <linux-media@vger.kernel.org>; Mon, 06 Mar 2017 02:39:57 -0800 (PST)
-Date: Mon, 6 Mar 2017 11:32:04 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Laura Abbott <labbott@redhat.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        dri-devel@lists.freedesktop.org,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        devel@driverdev.osuosl.org, romlem@google.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        linux-mm@kvack.org, Mark Brown <broonie@kernel.org>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 10/12] staging: android: ion: Use CMA APIs directly
-Message-ID: <20170306103204.d3yf6woxpsqvdakp@phenom.ffwll.local>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
- <1488491084-17252-11-git-send-email-labbott@redhat.com>
- <2140021.hmlAgxcLbU@avalon>
- <0541f57b-4060-ea10-7173-26ae77777518@redhat.com>
+Received: from smtp.gentoo.org ([140.211.166.183]:35758 "EHLO smtp.gentoo.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751063AbdCZIKC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 26 Mar 2017 04:10:02 -0400
+Subject: Re: [PATCH v2 01/12] [media] dvb-frontends/stv0367: add flag to make
+ i2c_gatectrl optional
+To: Daniel Scheller <d.scheller.oss@gmail.com>, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+References: <20170324182408.25996-1-d.scheller.oss@gmail.com>
+ <20170324182408.25996-2-d.scheller.oss@gmail.com>
+From: Matthias Schwarzott <zzam@gentoo.org>
+Message-ID: <c90e92df-16e1-8693-c64d-fcb0fedee931@gentoo.org>
+Date: Sun, 26 Mar 2017 10:03:33 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0541f57b-4060-ea10-7173-26ae77777518@redhat.com>
+In-Reply-To: <20170324182408.25996-2-d.scheller.oss@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 03, 2017 at 10:50:20AM -0800, Laura Abbott wrote:
-> On 03/03/2017 08:41 AM, Laurent Pinchart wrote:
-> > Hi Laura,
-> > 
-> > Thank you for the patch.
-> > 
-> > On Thursday 02 Mar 2017 13:44:42 Laura Abbott wrote:
-> >> When CMA was first introduced, its primary use was for DMA allocation
-> >> and the only way to get CMA memory was to call dma_alloc_coherent. This
-> >> put Ion in an awkward position since there was no device structure
-> >> readily available and setting one up messed up the coherency model.
-> >> These days, CMA can be allocated directly from the APIs. Switch to using
-> >> this model to avoid needing a dummy device. This also avoids awkward
-> >> caching questions.
-> > 
-> > If the DMA mapping API isn't suitable for today's requirements anymore, I 
-> > believe that's what needs to be fixed, instead of working around the problem 
-> > by introducing another use-case-specific API.
-> > 
+Am 24.03.2017 um 19:23 schrieb Daniel Scheller:
+> From: Daniel Scheller <d.scheller@gmx.net>
 > 
-> I don't think this is a usecase specific API. CMA has been decoupled from
-> DMA already because it's used in other places. The trying to go through
-> DMA was just another layer of abstraction, especially since there isn't
-> a device available for allocation.
+> Some hardware and bridges (namely ddbridge) require that tuner access is
+> limited to one concurrent access and wrap i2c gate control with a
+> mutex_lock when attaching frontends. According to vendor information, this
+> is required as concurrent tuner reconfiguration can interfere each other
+> and at worst cause tuning fails or bad reception quality.
+> 
+> If the demod driver does gate_ctrl before setting up tuner parameters, and
+> the tuner does another I2C enable, it will deadlock forever when gate_ctrl
+> is wrapped into the mutex_lock. This adds a flag and a conditional before
+> triggering gate_ctrl in the demodulator driver.
+> 
 
-Also, we've had separation of allocation and dma-mapping since forever,
-that's how it works almost everywhere. Not exactly sure why/how arm-soc
-ecosystem ended up focused so much on dma_alloc_coherent.
+If I get this right, the complete call to i2c_gate_ctrl should be disabled.
+Why not just overwrite the function-pointer i2c_gate_ctrl with NULL in
+the relevant attach function (stv0367ddb_attach) or not define it in
+stv0367ddb_ops?
 
-I think separating allocation from dma mapping/coherency is perfectly
-fine, and the way to go.
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+That should have exactly the same effect.
+
+Regards
+Matthias
