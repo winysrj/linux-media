@@ -1,137 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:47148 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751489AbdCNTKI (ORCPT
+Received: from resqmta-ch2-04v.sys.comcast.net ([69.252.207.36]:55510 "EHLO
+        resqmta-ch2-04v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751524AbdCZSfd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:10:08 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 07/16] rcar-vin: move pad lookup to async bound handler
-Date: Tue, 14 Mar 2017 19:59:48 +0100
-Message-Id: <20170314185957.25253-8-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
+        Sun, 26 Mar 2017 14:35:33 -0400
+Subject: [PATCH 2/3] [media] mceusb: sporadic RX truncation corruption fix
+To: Sean Young <sean@mess.org>
+References: <58D6A1DD.2030405@comcast.net>
+ <20170326102748.GA1672@gofer.mess.org>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+From: A Sun <as1033x@comcast.net>
+Message-ID: <58D80963.9080207@comcast.net>
+Date: Sun, 26 Mar 2017 14:33:07 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170326102748.GA1672@gofer.mess.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Information about pads will be needed when enumerating the media bus
-codes in the async complete handler which is run before
-rvin_v4l2_probe(). Move the pad lookup to the async bound handler so
-they are available when needed.
+commit https://github.com/asunxx/linux/commit/d71c609e99cabc0a92a4d0b225486cbc09bbd8bd
+Author: A Sun <as1033x@comcast.net>
+Date:   Sun, 26 Mar 2017 14:11:49 -0400
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Bug:
+
+Intermittent RX truncation and loss of IR received data.
+This resulted in receive stream synchronization errors where driver attempted to incorrectly parse IR data (eg 0x90 below) as command response.
+
+Mar 22 12:01:40 raspberrypi kernel: [ 3969.139898] mceusb 1-1.2:1.0: processed IR data
+Mar 22 12:01:40 raspberrypi kernel: [ 3969.151315] mceusb 1-1.2:1.0: rx data: 00 90 (length=2)
+Mar 22 12:01:40 raspberrypi kernel: [ 3969.151321] mceusb 1-1.2:1.0: Unknown command 0x00 0x90
+Mar 22 12:01:40 raspberrypi kernel: [ 3969.151336] mceusb 1-1.2:1.0: rx data: 98 0a 8d 0a 8e 0a 8e 0a 8e 0a 8e 0a 9a 0a 8e 0a 0b 3a 8e 00 80 41 59 00 00 (length=25)
+Mar 22 12:01:40 raspberrypi kernel: [ 3969.151341] mceusb 1-1.2:1.0: Raw IR data, 24 pulse/space samples
+Mar 22 12:01:40 raspberrypi kernel: [ 3969.151348] mceusb 1-1.2:1.0: Storing space with duration 500000
+
+Bug trigger appears to be normal, but heavy, IR receiver use.
+
+Fix:
+
+Cause may be receiver with ep_in bulk endpoint incorrectly bound to usb_fill_int_urb() urb for interrupt endpoint.
+This may also have been the root cause for "RX -EPIPE (urb status = -32)" lockups.
+In mceusb_dev_probe(), test ep_in endpoint for int versus bulk and use usb_fill_bulk_urb() as appropriate.
+
+Tested with:
+Linux raspberrypi 4.4.50-v7+ #970 SMP Mon Feb 20 19:18:29 GMT 2017 armv7l GNU/Linux
+mceusb 1-1.2:1.0: Registered Pinnacle Systems PCTV Remote USB with mce emulator interface version 1
+mceusb 1-1.2:1.0: 2 tx ports (0x1 cabled) and 2 rx sensors (0x1 active)
+
+Signed-off-by: A Sun <as1033x@comcast.net>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 32 ++++++++++++++++++++++++++++-
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 24 ----------------------
- 2 files changed, 31 insertions(+), 25 deletions(-)
+ drivers/media/rc/mceusb.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 098a0b1cc10a26ba..d7aba15f6761259b 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -31,6 +31,20 @@
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 7b6f9e5..720df6f 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -1401,8 +1401,13 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+ 	INIT_WORK(&ir->kevent, mceusb_deferred_kevent);
  
- #define notifier_to_vin(n) container_of(n, struct rvin_dev, notifier)
- 
-+static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
-+{
-+	unsigned int pad;
-+
-+	if (sd->entity.num_pads <= 1)
-+		return 0;
-+
-+	for (pad = 0; pad < sd->entity.num_pads; pad++)
-+		if (sd->entity.pads[pad].flags & direction)
-+			return pad;
-+
-+	return -EINVAL;
-+}
-+
- static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
- {
- 	struct v4l2_subdev *sd = entity->subdev;
-@@ -101,12 +115,28 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
- 				     struct v4l2_async_subdev *asd)
- {
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	int ret;
- 
- 	v4l2_set_subdev_hostdata(subdev, vin);
- 
- 	if (vin->digital.asd.match.of.node == subdev->dev->of_node) {
--		vin_dbg(vin, "bound digital subdev %s\n", subdev->name);
-+		/* Find surce and sink pad of remote subdevice */
-+
-+		ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
-+		if (ret < 0)
-+			return ret;
-+		vin->digital.source_pad = ret;
-+
-+		ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
-+		if (ret < 0)
-+			return ret;
-+		vin->digital.sink_pad = ret;
-+
- 		vin->digital.subdev = subdev;
-+
-+		vin_dbg(vin, "bound subdev %s source pad: %d sink pad: %d\n",
-+			subdev->name, vin->digital.source_pad,
-+			vin->digital.sink_pad);
- 		return 0;
- 	}
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index ce29a21888da48d5..be6f41bf82ac3bc5 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -870,20 +870,6 @@ static void rvin_notify(struct v4l2_subdev *sd,
- 	}
- }
- 
--static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
--{
--	unsigned int pad;
--
--	if (sd->entity.num_pads <= 1)
--		return 0;
--
--	for (pad = 0; pad < sd->entity.num_pads; pad++)
--		if (sd->entity.pads[pad].flags & direction)
--			return pad;
--
--	return -EINVAL;
--}
--
- int rvin_v4l2_probe(struct rvin_dev *vin)
- {
- 	struct video_device *vdev = &vin->vdev;
-@@ -934,16 +920,6 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
- 		V4L2_CAP_READWRITE;
- 
--	ret = rvin_find_pad(sd, MEDIA_PAD_FL_SOURCE);
--	if (ret < 0)
--		return ret;
--	vin->digital.source_pad = ret;
--
--	ret = rvin_find_pad(sd, MEDIA_PAD_FL_SINK);
--	if (ret < 0)
--		return ret;
--	vin->digital.sink_pad = ret;
--
- 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
- 	rvin_reset_format(vin);
+ 	/* wire up inbound data handler */
+-	usb_fill_int_urb(ir->urb_in, dev, pipe, ir->buf_in, maxp,
++	if (usb_endpoint_xfer_int(ep_in)) {
++		usb_fill_int_urb(ir->urb_in, dev, pipe, ir->buf_in, maxp,
+ 				mceusb_dev_recv, ir, ep_in->bInterval);
++	} else {
++		usb_fill_bulk_urb(ir->urb_in, dev, pipe, ir->buf_in, maxp,
++				mceusb_dev_recv, ir);
++	}
+ 	ir->urb_in->transfer_dma = ir->dma_in;
+ 	ir->urb_in->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
  
 -- 
-2.12.0
+2.1.4
