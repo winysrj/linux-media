@@ -1,116 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60769 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752512AbdCaMUt (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35968 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751652AbdC0LmW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 08:20:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Patrice.chotard@st.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv6 02/10] cec: integrate CEC notifier support
-Date: Fri, 31 Mar 2017 14:20:28 +0200
-Message-Id: <20170331122036.55706-3-hverkuil@xs4all.nl>
-In-Reply-To: <20170331122036.55706-1-hverkuil@xs4all.nl>
-References: <20170331122036.55706-1-hverkuil@xs4all.nl>
+        Mon, 27 Mar 2017 07:42:22 -0400
+Received: by mail-pg0-f65.google.com with SMTP id 81so12199491pgh.3
+        for <linux-media@vger.kernel.org>; Mon, 27 Mar 2017 04:42:21 -0700 (PDT)
+From: vaibhavddit@gmail.com
+To: mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        rvarsha016@gmail.com, Vaibhav Kothari <vaibhavddit@gmail.com>
+Subject: [PATCH] staging:media:atomisp:i2c removed unnecessary white space before comma in memset()
+Date: Mon, 27 Mar 2017 17:12:29 +0530
+Message-Id: <1490614949-30985-1-git-send-email-vaibhavddit@gmail.com>
+In-Reply-To: <1490610746-28579-1-git-send-email-vaibhavddit@gmail.com>
+References: <1490610746-28579-1-git-send-email-vaibhavddit@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Vaibhav Kothari <vaibhavddit@gmail.com>
 
-Support the CEC notifier framework, simplifying drivers that
-depend on this.
+- Fixing up check-patch error & Warnings
+- Added blank line between declaration and defination
+  at various places
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Vaibhav Kothari <vaibhavddit@gmail.com>
 ---
- drivers/media/cec/cec-core.c | 22 ++++++++++++++++++++++
- include/media/cec.h          | 10 ++++++++++
- 2 files changed, 32 insertions(+)
+ drivers/staging/media/atomisp/i2c/gc2235.c | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index 37217e205040..e5070b374276 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -195,6 +195,24 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
- 	put_device(&devnode->dev);
- }
+diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
+index 9b41023..0df20ba 100644
+--- a/drivers/staging/media/atomisp/i2c/gc2235.c
++++ b/drivers/staging/media/atomisp/i2c/gc2235.c
+@@ -55,7 +55,7 @@ static int gc2235_read_reg(struct i2c_client *client,
+ 		return -EINVAL;
+ 	}
  
-+#ifdef CONFIG_MEDIA_CEC_NOTIFIER
-+static void cec_cec_notify(struct cec_adapter *adap, u16 pa)
-+{
-+	cec_s_phys_addr(adap, pa, false);
-+}
+-	memset(msg, 0 , sizeof(msg));
++	memset(msg, 0, sizeof(msg));
+ 
+ 	msg[0].addr = client->addr;
+ 	msg[0].flags = 0;
+@@ -354,6 +354,7 @@ static long __gc2235_set_exposure(struct v4l2_subdev *sd, int coarse_itg,
+ 	u16 coarse_integration = (u16)coarse_itg;
+ 	int ret = 0;
+ 	u16 expo_coarse_h, expo_coarse_l, gain_val = 0xF0, gain_val2 = 0xF0;
 +
-+void cec_register_cec_notifier(struct cec_adapter *adap,
-+			       struct cec_notifier *notifier)
-+{
-+	if (WARN_ON(!adap->devnode.registered))
-+		return;
+ 	expo_coarse_h = coarse_integration >> 8;
+ 	expo_coarse_l = coarse_integration & 0xff;
+ 
+@@ -405,6 +406,7 @@ static long gc2235_s_exposure(struct v4l2_subdev *sd,
+ 	/* we should not accept the invalid value below. */
+ 	if (gain == 0) {
+ 		struct i2c_client *client = v4l2_get_subdevdata(sd);
 +
-+	adap->notifier = notifier;
-+	cec_notifier_register(adap->notifier, adap, cec_cec_notify);
-+}
-+EXPORT_SYMBOL_GPL(cec_register_cec_notifier);
-+#endif
+ 		v4l2_err(client, "%s: invalid value\n", __func__);
+ 		return -EINVAL;
+ 	}
+@@ -746,12 +748,13 @@ static int startup(struct v4l2_subdev *sd)
+ 	struct gc2235_device *dev = to_gc2235_sensor(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	int ret = 0;
 +
- struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 					 void *priv, const char *name, u32 caps,
- 					 u8 available_las)
-@@ -343,6 +361,10 @@ void cec_unregister_adapter(struct cec_adapter *adap)
- 	adap->rc = NULL;
- #endif
- 	debugfs_remove_recursive(adap->cec_dir);
-+#ifdef CONFIG_MEDIA_CEC_NOTIFIER
-+	if (adap->notifier)
-+		cec_notifier_unregister(adap->notifier);
-+#endif
- 	cec_devnode_unregister(&adap->devnode);
- }
- EXPORT_SYMBOL_GPL(cec_unregister_adapter);
-diff --git a/include/media/cec.h b/include/media/cec.h
-index 96a0aa770d61..307f5dcaf034 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -30,6 +30,7 @@
- #include <linux/cec-funcs.h>
- #include <media/rc-core.h>
- #include <media/cec-edid.h>
-+#include <media/cec-notifier.h>
- 
- /**
-  * struct cec_devnode - cec device node
-@@ -173,6 +174,10 @@ struct cec_adapter {
- 	bool passthrough;
- 	struct cec_log_addrs log_addrs;
- 
-+#ifdef CONFIG_MEDIA_CEC_NOTIFIER
-+	struct cec_notifier *notifier;
-+#endif
+ 	if (is_init == 0) {
+ 		/* force gc2235 to do a reset in res change, otherwise it
+-		* can not output normal after switching res. and it is not
+-		* necessary for first time run up after power on, for the sack
+-		* of performance
+-		*/
++		 * can not output normal after switching res. and it is not
++		 * necessary for first time run up after power on, for the sack
++		 * of performance
++		 */
+ 		power_down(sd);
+ 		power_up(sd);
+ 		gc2235_write_reg_array(client, gc2235_init_settings);
+@@ -880,6 +883,7 @@ static int gc2235_s_stream(struct v4l2_subdev *sd, int enable)
+ 	struct gc2235_device *dev = to_gc2235_sensor(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	int ret;
 +
- 	struct dentry *cec_dir;
- 	struct dentry *status_file;
+ 	mutex_lock(&dev->input_lock);
  
-@@ -213,6 +218,11 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
- 		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
- void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
- 
-+#ifdef CONFIG_MEDIA_CEC_NOTIFIER
-+void cec_register_cec_notifier(struct cec_adapter *adap,
-+			       struct cec_notifier *notifier);
-+#endif
+ 	if (enable)
+@@ -994,6 +998,7 @@ static int gc2235_s_parm(struct v4l2_subdev *sd,
+ 			struct v4l2_streamparm *param)
+ {
+ 	struct gc2235_device *dev = to_gc2235_sensor(sd);
 +
- #else
+ 	dev->run_mode = param->parm.capture.capturemode;
  
- static inline int cec_register_adapter(struct cec_adapter *adap,
+ 	mutex_lock(&dev->input_lock);
+@@ -1099,6 +1104,7 @@ static int gc2235_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 	struct gc2235_device *dev = to_gc2235_sensor(sd);
++
+ 	dev_dbg(&client->dev, "gc2235_remove...\n");
+ 
+ 	if (dev->platform_data->platform_deinit)
 -- 
-2.11.0
+1.9.1
