@@ -1,152 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57070 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753716AbdC2HkI (ORCPT
+Received: from mail-ot0-f194.google.com ([74.125.82.194]:35438 "EHLO
+        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752514AbdC0Wvm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 03:40:08 -0400
-Subject: Re: [PATCH v7] [media] vimc: Virtual Media Controller core, capture
- and sensor
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <6c85eaf4-1f91-7964-1cf9-602005b62a94@collabora.co.uk>
- <1490461896-19221-1-git-send-email-helen.koike@collabora.com>
- <f8466f7a-0f33-a610-10fc-2515d5f6b499@iki.fi>
- <ef7c1d62-0553-2c5b-004f-527d82e380b3@collabora.co.uk>
- <20170327150918.6843e285@vento.lan>
- <f668b12f-0da8-98da-63b0-c5064cc87da9@xs4all.nl>
- <20170328142339.GD16657@valkosipuli.retiisi.org.uk>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Helen Koike <helen.koike@collabora.co.uk>,
-        Helen Koike <helen.koike@collabora.com>,
-        linux-media@vger.kernel.org, jgebben@codeaurora.org,
-        Helen Fornazier <helen.fornazier@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cc203084-0018-7851-2cae-c562d2abc060@xs4all.nl>
-Date: Wed, 29 Mar 2017 09:39:58 +0200
+        Mon, 27 Mar 2017 18:51:42 -0400
+Received: by mail-ot0-f194.google.com with SMTP id s100so5538516ota.2
+        for <linux-media@vger.kernel.org>; Mon, 27 Mar 2017 15:51:41 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20170328142339.GD16657@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20161216012425.11179-8-laurent.pinchart+renesas@ideasonboard.com>
+References: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com> <20161216012425.11179-8-laurent.pinchart+renesas@ideasonboard.com>
+From: Shuah Khan <shuahkhan@gmail.com>
+Date: Mon, 27 Mar 2017 16:51:40 -0600
+Message-ID: <CAKocOOPipHsPR-rhOzMOt=12c0nuQ=SpkAKCygjGzWbWki1P5A@mail.gmail.com>
+Subject: Re: [RFC v2 07/11] vb2: dma-contig: Remove redundant sgt_base field
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Rob Clark <robdclark@gmail.com>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Laura Abbott <labbott@redhat.com>,
+        Shuah Khan <shuahkhan@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28/03/17 16:23, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Tue, Mar 28, 2017 at 12:00:36PM +0200, Hans Verkuil wrote:
->> On 27/03/17 20:09, Mauro Carvalho Chehab wrote:
->>> Em Mon, 27 Mar 2017 12:19:51 -0300
->>> Helen Koike <helen.koike@collabora.co.uk> escreveu:
->>>
->>>> Hi Sakari,
->>>>
->>>> On 2017-03-26 10:31 AM, Sakari Ailus wrote:
->>>>> Hi Helen,
->>>>>
->>>>> ...  
->>>>>> +static int vimc_cap_enum_input(struct file *file, void *priv,
->>>>>> +			       struct v4l2_input *i)
->>>>>> +{
->>>>>> +	/* We only have one input */
->>>>>> +	if (i->index > 0)
->>>>>> +		return -EINVAL;
->>>>>> +
->>>>>> +	i->type = V4L2_INPUT_TYPE_CAMERA;
->>>>>> +	strlcpy(i->name, "VIMC capture", sizeof(i->name));
->>>>>> +
->>>>>> +	return 0;
->>>>>> +}
->>>>>> +
->>>>>> +static int vimc_cap_g_input(struct file *file, void *priv, unsigned int *i)
->>>>>> +{
->>>>>> +	/* We only have one input */
->>>>>> +	*i = 0;
->>>>>> +	return 0;
->>>>>> +}
->>>>>> +
->>>>>> +static int vimc_cap_s_input(struct file *file, void *priv, unsigned int i)
->>>>>> +{
->>>>>> +	/* We only have one input */
->>>>>> +	return i ? -EINVAL : 0;
->>>>>> +}  
->>>>>
->>>>> You can drop the input IOCTLs altogether here. If you had e.g. a TV
->>>>> tuner, it'd be the TV tuner driver's responsibility to implement them.
->>>>>  
->>>>
->>>> input IOCTLs seems to be mandatory from v4l2-compliance when capability 
->>>> V4L2_CAP_VIDEO_CAPTURE is set (which is the case):
->>>>
->>>> https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-compliance/v4l2-test-input-output.cpp#n418
->>>>
->>>> https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-compliance/v4l2-compliance.cpp#n989
->>>
->>> The V4L2 spec doesn't actually define what's mandatory and what's
->>> optional. The idea that was agreed on one of the media summits
->>> were to define a set of profiles for different device types,
->>> matching the features required by existing applications to work,
->>> but this was never materialized.
->>>
->>> So, my understanding is that any driver can implement
->>> any V4L2 ioctl.
->>>
->>> Yet, some applications require enum/get/set inputs, or otherwise
->>> they wouldn't work. It is too late to change this behavior. 
->>> So, either the driver or the core should implement those
->>> ioctls, in order to avoid breaking backward-compatibility.
->>
->> The closest we have to determining which ioctls are mandatory or not is
->> v4l2-compliance. That said, v4l2-compliance is actually a bit more strict
->> in some cases than the spec since some ioctls are optional in the spec, but
->> required in v4l2-compliance for the simple reason that there is no reason
->> for drivers NOT to implement those ioctls.
->>
->> However, the v4l2-compliance test was never written for MC devices. It turns
->> out that it works reasonably well as long as a working pipeline is configured
->> first, but these input ioctls are a bit iffy.
->>
->> There are really two options: don't implement them, or implement it as a single
->> input. Multiple inputs make no sense for MC devices: the video node is the
->> endpoint of a video pipeline, you never switch 'inputs' there.
->>
->> The way the input ioctls are implemented here would fit nicely for an MC
->> device IMHO.
->>
->> So should we define these ioctls or not?
->>
->> I am inclined to define them for the following reasons:
->>
->> - Some applications expect them, so adding them to the driver costs little but
->>   allows these applications to work, provided the correct pipeline is configured
->>   first.
->>
->> - If a plugin is needed, then that plugin can always override these ioctls and
->>   for different 'inputs' reconfigure the pipeline.
->>
->> I really don't see implementing this as a problem. Reporting that an MC video node
->> has a "VIMC capture" input seems perfectly reasonable to me.
-> 
-> If we implement it in order to be make an application happy, I would have
-> expected to hear complaints from someone using existing MC based drivers
-> that do not implement the input IOCTLs.
+On Thu, Dec 15, 2016 at 6:24 PM, Laurent Pinchart
+<laurent.pinchart+renesas@ideasonboard.com> wrote:
+> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+>
+> The struct vb2_dc_buf contains two struct sg_table fields: sgt_base and
+> dma_sgt. The former is used by DMA-BUF buffers whereas the latter is used
+> by USERPTR.
+>
+> Unify the two, leaving dma_sgt.
 
-It's for the same reason no one complained about the missing plugin: 'regular'
-applications aren't used for these MC devices since they tend to be used on
-embedded systems with custom software.
+I think this patch should be split in two.
 
-> It is also confusing from application point of view since this interface
-> would not be the interface to configure the input of the pipeline as it
-> might look like.
-> 
+1. Unifying dma_sgt and sgt_base
 
-The whole point is that, once a video pipeline is set up with media-ctl, the
-driver will act just like a non-MC driver with a single input. Which is the
-whole point. Applications that are MC aware won't use this, they would program
-the media controller/subdevs directly.
+>
+> MMAP buffers do not need cache flushing since they have been allocated
+> using dma_alloc_coherent().
 
-It costs us next to nothing and it makes life easier for all. I really don't
-see a downside to this.
+2. That uses vec to check for checking for no flush needed condition.
 
-Regards,
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> Changes since v1:
+>
+> - Test for MMAP or DMABUF type through the vec field instead of the now
+>   gone vma field.
 
-	Hans
+What is this gone vma field? Did I miss a patch in the series that
+makes this change? This check that is changed used dma_sgt and
+db_attach vma
+
+These comments don't agree with the code change.
+
+> - Move the vec field to a USERPTR section in struct vb2_dc_buf, where
+>   the vma field was located.
+> ---
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 25 +++++++++++++------------
+>  1 file changed, 13 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index fb6a177be461..2a00d12ffee2 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -30,12 +30,13 @@ struct vb2_dc_buf {
+>         unsigned long                   attrs;
+>         enum dma_data_direction         dma_dir;
+>         struct sg_table                 *dma_sgt;
+> -       struct frame_vector             *vec;
+>
+>         /* MMAP related */
+>         struct vb2_vmarea_handler       handler;
+>         atomic_t                        refcount;
+> -       struct sg_table                 *sgt_base;
+> +
+> +       /* USERPTR related */
+> +       struct frame_vector             *vec;
+>
+>         /* DMABUF related */
+>         struct dma_buf_attachment       *db_attach;
+> @@ -95,7 +96,7 @@ static void vb2_dc_prepare(void *buf_priv)
+>         struct sg_table *sgt = buf->dma_sgt;
+>
+>         /* DMABUF exporter will flush the cache for us */
+> -       if (!sgt || buf->db_attach)
+> +       if (!buf->vec)
+>                 return;
+
+With the unification dma_sgt is valid for MMAP buffers after vb2_dma_sg_alloc()
+if dma_sgt is not null, sync happens - the patch description doesn't seem to be
+in sync with the change.
+
+I might be missing something. I think it would help if these two changes are
+split since they are really separate changes.
+
+thanks,
+-- Shuah
+
+>
+>         dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents,
+> @@ -108,7 +109,7 @@ static void vb2_dc_finish(void *buf_priv)
+>         struct sg_table *sgt = buf->dma_sgt;
+>
+>         /* DMABUF exporter will flush the cache for us */
+> -       if (!sgt || buf->db_attach)
+> +       if (!buf->vec)
+>                 return;
+>
+>         dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
+> @@ -125,9 +126,9 @@ static void vb2_dc_put(void *buf_priv)
+>         if (!atomic_dec_and_test(&buf->refcount))
+>                 return;
+>
+> -       if (buf->sgt_base) {
+> -               sg_free_table(buf->sgt_base);
+> -               kfree(buf->sgt_base);
+> +       if (buf->dma_sgt) {
+> +               sg_free_table(buf->dma_sgt);
+> +               kfree(buf->dma_sgt);
+>         }
+>         dma_free_attrs(buf->dev, buf->size, buf->cookie, buf->dma_addr,
+>                        buf->attrs);
+> @@ -239,13 +240,13 @@ static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
+>         /* Copy the buf->base_sgt scatter list to the attachment, as we can't
+>          * map the same scatter list to multiple attachments at the same time.
+>          */
+> -       ret = sg_alloc_table(sgt, buf->sgt_base->orig_nents, GFP_KERNEL);
+> +       ret = sg_alloc_table(sgt, buf->dma_sgt->orig_nents, GFP_KERNEL);
+>         if (ret) {
+>                 kfree(attach);
+>                 return -ENOMEM;
+>         }
+>
+> -       rd = buf->sgt_base->sgl;
+> +       rd = buf->dma_sgt->sgl;
+>         wr = sgt->sgl;
+>         for (i = 0; i < sgt->orig_nents; ++i) {
+>                 sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
+> @@ -396,10 +397,10 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
+>         exp_info.flags = flags;
+>         exp_info.priv = buf;
+>
+> -       if (!buf->sgt_base)
+> -               buf->sgt_base = vb2_dc_get_base_sgt(buf);
+> +       if (!buf->dma_sgt)
+> +               buf->dma_sgt = vb2_dc_get_base_sgt(buf);
+>
+> -       if (WARN_ON(!buf->sgt_base))
+> +       if (WARN_ON(!buf->dma_sgt))
+>                 return NULL;
+>
+>         dbuf = dma_buf_export(&exp_info);
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
