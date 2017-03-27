@@ -1,104 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:32748 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753668AbdCTK5Q (ORCPT
+Received: from icp-osb-irony-out2.external.iinet.net.au ([203.59.1.155]:54681
+        "EHLO icp-osb-irony-out2.external.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751394AbdC0GFn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 06:57:16 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: [PATCH v3 14/16] media: s5p-mfc: Use preallocated block allocator
- always for MFC v6+
-Date: Mon, 20 Mar 2017 11:56:40 +0100
-Message-id: <1490007402-30265-15-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
-References: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20170320105654eucas1p13c5d9a82f7410c53e427340b8a572f96@eucas1p1.samsung.com>
+        Mon, 27 Mar 2017 02:05:43 -0400
+Date: Mon, 27 Mar 2017 17:08:28 +1100
+From: Eddie Youseph <psyclone@iinet.net.au>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] staging: radio-bcm2048: fixed bare use of unsigned
+ int
+Message-Id: <20170327170828.98bd4cce571e90711ad2f32b@iinet.net.au>
+In-Reply-To: <20170323133153.GB22558@kroah.com>
+References: <20170322133339.70e47a367c6d9ca907bd7931@iinet.net.au>
+        <20170323133153.GB22558@kroah.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It turned out that all versions of MFC v6+ hardware doesn't have a strict
-requirement for ALL buffers to be allocated on higher addresses than the
-firmware base like it was documented for MFC v5. This requirement is true
-only for the device and per-context buffers. All video data buffers can be
-allocated anywhere for all MFC v6+ versions. Basing on this fact, the
-special DMA configuration based on two reserved memory regions is not
-really needed for MFC v6+ devices, because the memory requirements for the
-firmware, device and per-context buffers can be fulfilled by the simple
-probe-time pre-allocated block allocator instroduced in previous patch.
+On Thu, 23 Mar 2017 14:31:53 +0100
+Greg Kroah-Hartman <gregkh@linuxfoundation.org> wrote:
 
-This patch enables support for such pre-allocated block based allocator
-always for MFC v6+ devices. Due to the limitations of the memory management
-subsystem the largest supported size of the pre-allocated buffer when no
-CMA (Contiguous Memory Allocator) is enabled is 4MiB.
+> On Wed, Mar 22, 2017 at 01:33:39PM +1100, Eddie Youseph wrote:
+> > Fixed checkpatch WARNING: Prefer 'unsigned int' to bare use of 'unsigned'
+> > 
+> > Signed-off-by: Eddie Youseph <psyclone@iinet.net.au>
+> > ---
+> > Changes in v2:
+> > 	- Added changelog
+> 
+> Did you actually build this change?
+> 
+> Please do so...
+> 
+> thanks,
+> 
+> greg k-h
 
-This patch also removes the requirement to provide two reserved memory
-regions for MFC v6+ devices in device tree. Now the driver is fully
-functional without them.
+I recompiled and was faced with many errors.
+I will need to revert the changes.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Acked-by: Andrzej Hajda <a.hajda@samsung.com>
-Tested-by: Smitha T Murthy <smitha.t@samsung.com>
----
- Documentation/devicetree/bindings/media/s5p-mfc.txt | 2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc.c            | 9 ++++++---
- 2 files changed, 7 insertions(+), 4 deletions(-)
+I "wasn't getting errors" the first time around because I forgot I did a 
+"make oldconfig" before, and bcm2048 wasn't being included 
+in the build.
 
-diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-index 2c901286d818..d3404b5d4d17 100644
---- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
-+++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-@@ -28,7 +28,7 @@ Optional properties:
-   - memory-region : from reserved memory binding: phandles to two reserved
- 	memory regions, first is for "left" mfc memory bus interfaces,
- 	second if for the "right" mfc memory bus, used when no SYSMMU
--	support is available
-+	support is available; used only by MFC v5 present in Exynos4 SoCs
- 
- Obsolete properties:
-   - samsung,mfc-r, samsung,mfc-l : support removed, please use memory-region
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index f1528054a713..a56031c3263e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1177,9 +1177,12 @@ static void s5p_mfc_unconfigure_2port_memory(struct s5p_mfc_dev *mfc_dev)
- static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
- {
- 	struct device *dev = &mfc_dev->plat_dev->dev;
--	unsigned long mem_size = SZ_8M;
-+	unsigned long mem_size = SZ_4M;
- 	unsigned int bitmap_size;
- 
-+	if (IS_ENABLED(CONFIG_DMA_CMA) || exynos_is_iommu_available(dev))
-+		mem_size = SZ_8M;
-+
- 	if (mfc_mem_size)
- 		mem_size = memparse(mfc_mem_size, NULL);
- 
-@@ -1239,7 +1242,7 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- {
- 	struct device *dev = &mfc_dev->plat_dev->dev;
- 
--	if (exynos_is_iommu_available(dev))
-+	if (exynos_is_iommu_available(dev) || !IS_TWOPORT(mfc_dev))
- 		return s5p_mfc_configure_common_memory(mfc_dev);
- 	else
- 		return s5p_mfc_configure_2port_memory(mfc_dev);
-@@ -1250,7 +1253,7 @@ static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- 	struct device *dev = &mfc_dev->plat_dev->dev;
- 
- 	s5p_mfc_release_firmware(mfc_dev);
--	if (exynos_is_iommu_available(dev))
-+	if (exynos_is_iommu_available(dev) || !IS_TWOPORT(mfc_dev))
- 		s5p_mfc_unconfigure_common_memory(mfc_dev);
- 	else
- 		s5p_mfc_unconfigure_2port_memory(mfc_dev);
--- 
-1.9.1
+regards,
+
+eddie youseph
