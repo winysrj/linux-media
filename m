@@ -1,135 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02-sz.bfs.de ([194.94.69.103]:26413 "EHLO mx02-sz.bfs.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932345AbdC3HT1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 03:19:27 -0400
-Message-ID: <58DCB178.6070909@bfs.de>
-Date: Thu, 30 Mar 2017 09:19:20 +0200
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
-MIME-Version: 1.0
-To: Daeseok Youn <daeseok.youn@gmail.com>
-CC: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        alan@linux.intel.com, dan.carpenter@oracle.com,
-        singhalsimran0@gmail.com, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 2/2] staging: atomisp: use local variable to reduce the
- number of reference
-References: <20170330062517.GA25231@SEL-JYOUN-D1>
-In-Reply-To: <20170330062517.GA25231@SEL-JYOUN-D1>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-it0-f49.google.com ([209.85.214.49]:35126 "EHLO
+        mail-it0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752979AbdC0O7T (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Mar 2017 10:59:19 -0400
+Received: by mail-it0-f49.google.com with SMTP id y18so76824014itc.0
+        for <linux-media@vger.kernel.org>; Mon, 27 Mar 2017 07:59:04 -0700 (PDT)
+Message-ID: <1490626683.5935.18.camel@ndufresne.ca>
+Subject: Re: [PATCH v7 5/9] media: venus: vdec: add video decoder files
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Date: Mon, 27 Mar 2017 10:58:03 -0400
+In-Reply-To: <6ea4524d-9794-a9b5-8327-367152c92493@xs4all.nl>
+References: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
+         <1489423058-12492-6-git-send-email-stanimir.varbanov@linaro.org>
+         <52b39f43-6f70-0cf6-abaf-4bb5bd2b3d86@xs4all.nl>
+         <be41ccbd-3ff1-bcae-c423-1acc68f35694@mm-sol.com>
+         <6ea4524d-9794-a9b5-8327-367152c92493@xs4all.nl>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-hJgOGKCnhgucUo3AG8si"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+--=-hJgOGKCnhgucUo3AG8si
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Am 30.03.2017 08:25, schrieb Daeseok Youn:
-> Define new local variable to reduce the number of reference.
-> The new local variable is added to save the addess of dfs
-> and used in atomisp_freq_scaling() function.
-> 
-> Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
-> ---
->  .../media/atomisp/pci/atomisp2/atomisp_cmd.c       | 37 ++++++++++++----------
->  1 file changed, 20 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-> index eebfccd..d76a95c 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-> @@ -251,6 +251,7 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
->  {
->  	/* FIXME! Only use subdev[0] status yet */
->  	struct atomisp_sub_device *asd = &isp->asd[0];
-> +	const struct atomisp_dfs_config *dfs;
->  	unsigned int new_freq;
->  	struct atomisp_freq_scaling_rule curr_rules;
->  	int i, ret;
-> @@ -268,20 +269,22 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
->  	    ATOMISP_USE_YUVPP(asd))
->  		isp->dfs = &dfs_config_cht_soc;
->  
-> -	if (isp->dfs->lowest_freq == 0 || isp->dfs->max_freq_at_vmin == 0 ||
-> -	    isp->dfs->highest_freq == 0 || isp->dfs->dfs_table_size == 0 ||
-> -	    !isp->dfs->dfs_table) {
-> +	dfs = isp->dfs;
-> +
-> +	if (dfs->lowest_freq == 0 || dfs->max_freq_at_vmin == 0 ||
-> +	    dfs->highest_freq == 0 || dfs->dfs_table_size == 0 ||
-> +	    !dfs->dfs_table) {
->  		dev_err(isp->dev, "DFS configuration is invalid.\n");
->  		return -EINVAL;
->  	}
->  
->  	if (mode == ATOMISP_DFS_MODE_LOW) {
-> -		new_freq = isp->dfs->lowest_freq;
-> +		new_freq = dfs->lowest_freq;
->  		goto done;
->  	}
->  
->  	if (mode == ATOMISP_DFS_MODE_MAX) {
-> -		new_freq = isp->dfs->highest_freq;
-> +		new_freq = dfs->highest_freq;
->  		goto done;
->  	}
->  
-> @@ -307,26 +310,26 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
->  	}
->  
->  	/* search for the target frequency by looping freq rules*/
-> -	for (i = 0; i < isp->dfs->dfs_table_size; i++) {
-> -		if (curr_rules.width != isp->dfs->dfs_table[i].width &&
-> -		    isp->dfs->dfs_table[i].width != ISP_FREQ_RULE_ANY)
-> +	for (i = 0; i < dfs->dfs_table_size; i++) {
-> +		if (curr_rules.width != dfs->dfs_table[i].width &&
-> +		    dfs->dfs_table[i].width != ISP_FREQ_RULE_ANY)
->  			continue;
-> -		if (curr_rules.height != isp->dfs->dfs_table[i].height &&
-> -		    isp->dfs->dfs_table[i].height != ISP_FREQ_RULE_ANY)
-> +		if (curr_rules.height != dfs->dfs_table[i].height &&
-> +		    dfs->dfs_table[i].height != ISP_FREQ_RULE_ANY)
->  			continue;
-> -		if (curr_rules.fps != isp->dfs->dfs_table[i].fps &&
-> -		    isp->dfs->dfs_table[i].fps != ISP_FREQ_RULE_ANY)
-> +		if (curr_rules.fps != dfs->dfs_table[i].fps &&
-> +		    dfs->dfs_table[i].fps != ISP_FREQ_RULE_ANY)
->  			continue;
-> -		if (curr_rules.run_mode != isp->dfs->dfs_table[i].run_mode &&
-> -		    isp->dfs->dfs_table[i].run_mode != ISP_FREQ_RULE_ANY)
-> +		if (curr_rules.run_mode != dfs->dfs_table[i].run_mode &&
-> +		    dfs->dfs_table[i].run_mode != ISP_FREQ_RULE_ANY)
->  			continue;
->  		break;
->  	}
+Le lundi 27 mars 2017 =C3=A0 10:45 +0200, Hans Verkuil a =C3=A9crit=C2=A0:
+> > > timestamp and sequence are only set for CAPTURE, not OUTPUT. Is
+> > > that correct?
+> >=20
+> > Correct. I can add sequence for the OUTPUT queue too, but I have no
+> > idea how that sequence is used by userspace.
+>=20
+> You set V4L2_BUF_FLAG_TIMESTAMP_COPY, so you have to copy the
+> timestamp from the output buffer
+> to the capture buffer, if that makes sense for this codec. If not,
+> then you shouldn't use that
+> V4L2_BUF_FLAG and just generate new timestamps whenever a capture
+> buffer is ready.
+>=20
+> For sequence numbering just give the output queue its own sequence
+> counter.
 
->  
-> -	if (i == isp->dfs->dfs_table_size)
-> -		new_freq = isp->dfs->max_freq_at_vmin;
-> +	if (i == dfs->dfs_table_size)
-> +		new_freq = dfs->max_freq_at_vmin;
->  	else
-> -		new_freq = isp->dfs->dfs_table[i].isp_freq;
-> +		new_freq = dfs->dfs_table[i].isp_freq;
->  
+Btw, GStreamer and Chromium only supports TIMESTAMP_COPY, and will most
+likely leak frames if you craft timestamp.
 
-you can eliminate the last block by setting
+Nicolas
+--=-hJgOGKCnhgucUo3AG8si
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
- new_freq = dfs->max_freq_at_vmin;
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-  for(i=0;....) {
-        ....
-	new_freq = dfs->dfs_table[i].isp_freq;
-	break;
-}
+iEYEABECAAYFAljZKHsACgkQcVMCLawGqByoUgCbBp7XbvkFYcKl9sYQ2TdzP1LE
+mRwAnjUd2J0Bf3baPl+9SXDQa8YZAXkL
+=k7fQ
+-----END PGP SIGNATURE-----
 
-unfortunately i have no good idea how to make the loop more readable.
-
-
-re,
- wh
-
-
->  done:
->  	dev_dbg(isp->dev, "DFS target frequency=%d.\n", new_freq);
+--=-hJgOGKCnhgucUo3AG8si--
