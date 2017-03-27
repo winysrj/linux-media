@@ -1,76 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:50436 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751036AbdCNQsn (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:41707 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752459AbdC0IvV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 12:48:43 -0400
-Date: Tue, 14 Mar 2017 16:47:28 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Nicolas Dufresne <nicolas@ndufresne.ca>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH v5 15/39] [media] v4l2: add a frame interval error event
-Message-ID: <20170314164728.GQ21222@n2100.armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-16-git-send-email-steve_longerbeam@mentor.com>
- <5b0a0e76-2524-4140-5ccc-380a8f949cfa@xs4all.nl>
- <ec05e6e0-79f2-2db2-bde9-4aed00d76faa@gmail.com>
- <6b574476-77df-0e25-a4d1-32d4fe0aec12@xs4all.nl>
- <5d5cf4a4-a4d3-586e-cd16-54f543dfcce9@gmail.com>
- <aa6a5a1d-18fd-8bed-a349-2654d2d1abe0@xs4all.nl>
- <20170313104538.GF21222@n2100.armlinux.org.uk>
- <1489508491.28116.8.camel@ndufresne.ca>
+        Mon, 27 Mar 2017 04:51:21 -0400
+Subject: Re: [PATCH v7 5/9] media: venus: vdec: add video decoder files
+To: Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1489423058-12492-6-git-send-email-stanimir.varbanov@linaro.org>
+ <52b39f43-6f70-0cf6-abaf-4bb5bd2b3d86@xs4all.nl>
+ <be41ccbd-3ff1-bcae-c423-1acc68f35694@mm-sol.com>
+ <1490581130.25828.1.camel@ndufresne.ca>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0c2e5cb8-249c-a9a2-12fb-68fafb4b9ad5@xs4all.nl>
+Date: Mon, 27 Mar 2017 10:50:40 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1489508491.28116.8.camel@ndufresne.ca>
+In-Reply-To: <1490581130.25828.1.camel@ndufresne.ca>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 14, 2017 at 12:21:31PM -0400, Nicolas Dufresne wrote:
-> My main concern here based on what I'm reading, is that this driver is
-> not even able to notice immediately that a produced frame was corrupted
-> (because it's out of sync). From usability perspective, this is really
-> bad. Can't the driver derive a clock from some irq and calculate for
-> each frame if the timing was correct ? And if not mark the buffer with
-> V4L2_BUF_FLAG_ERROR ?
+On 27/03/17 04:18, Nicolas Dufresne wrote:
+> Le dimanche 26 mars 2017 à 00:30 +0200, Stanimir Varbanov a écrit :
+>>>> +            vb->planes[0].data_offset = data_offset;
+>>>> +            vb->timestamp = timestamp_us * NSEC_PER_USEC;
+>>>> +            vbuf->sequence = inst->sequence++;
+>>>
+>>> timestamp and sequence are only set for CAPTURE, not OUTPUT. Is
+>>> that correct?
+>>
+>> Correct. I can add sequence for the OUTPUT queue too, but I have no idea 
+>> how that sequence is used by userspace.
+> 
+> Neither GStreamer or Chromium seems to use it. What does that number
+> means for a m2m driver ? Does it really means something ?
 
-One of the issues of measuring timing with IRQs is the fact that the
-IRQ subsystem only allows one IRQ to run at a time.  If an IRQ takes
-a relatively long time to process, then it throws the timing of other
-IRQs out.
+It can be used to detect dropped frame (the sequence counter will skip in that
+case).
 
-If you're going to decide that a buffer should be marked in error on
-the basis of an interrupt arriving late, this can trigger spuriously.
+Unlikely to happen for m2m devices, and most apps ignore it as well. But you
+still need to fill it in, it's a V4L2 requirement.
 
-It wasn't that long ago that USB HID was regularly eating something
-like 20ms of interrupt time... that's been solved, but that doesn't
-mean all cases are solved - there are still interrupt handlers in the
-kernel that are on the order of milliseconds to complete.
+Regards,
 
-Given the quality I observe of some USB serial devices (eg, running at
-115200 baud, but feeling like they deliver characters to userspace at
-9600 baud) I wouldn't be surprised if some USB serial drivers eat a lot
-of IRQ time... and if so, all it'll take is to plug such a device in
-to disrupt capture.
-
-That sounds way too fragile to me.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+	Hans
