@@ -1,263 +1,276 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40652
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755234AbdCTO6o (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:36749 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753215AbdC1Alo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 10:58:44 -0400
-Date: Mon, 20 Mar 2017 11:58:21 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Michael Zoran <mzoran@crowfest.net>
-Cc: Eric Anholt <eric@anholt.net>, devel@driverdev.osuosl.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/6] staging: BCM2835 MMAL V4L2 camera driver
-Message-ID: <20170320115821.736931ee@vento.lan>
-In-Reply-To: <1490008101.28090.5.camel@crowfest.net>
-References: <20170127215503.13208-1-eric@anholt.net>
-        <20170315110128.37e2bc5a@vento.lan>
-        <87a88m19om.fsf@eliezer.anholt.net>
-        <20170315220834.7019fd8b@vento.lan>
-        <1489628784.8127.1.camel@crowfest.net>
-        <20170316062900.0e835118@vento.lan>
-        <87shmbv2w3.fsf@eliezer.anholt.net>
-        <20170319135846.395feef8@vento.lan>
-        <1489943068.13607.5.camel@crowfest.net>
-        <20170319221107.05227532@vento.lan>
-        <20170320075831.65189ed7@vento.lan>
-        <1490008101.28090.5.camel@crowfest.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+        Mon, 27 Mar 2017 20:41:44 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v6 08/39] ARM: dts: imx6-sabrelite: add OV5642 and OV5640 camera sensors
+Date: Mon, 27 Mar 2017 17:40:25 -0700
+Message-Id: <1490661656-10318-9-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 20 Mar 2017 04:08:21 -0700
-Michael Zoran <mzoran@crowfest.net> escreveu:
+Adds the OV5642 parallel-bus sensor, and the OV5640 MIPI CSI-2 sensor.
+Both hang off the same i2c2 bus, so they require different (and non-
+default) i2c slave addresses.
 
-> On Mon, 2017-03-20 at 07:58 -0300, Mauro Carvalho Chehab wrote:
-> > Em Sun, 19 Mar 2017 22:11:07 -0300
-> > Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
-> >   
-> > > Em Sun, 19 Mar 2017 10:04:28 -0700
-> > > Michael Zoran <mzoran@crowfest.net> escreveu:
-> > >   
-> > > > A working DT that I tried this morning with the current firmware
-> > > > is
-> > > > posted here:
-> > > > http://lists.infradead.org/pipermail/linux-rpi-kernel/2017-March/
-> > > > 005924
-> > > > .html
-> > > > 
-> > > > It even works with minecraft_pi!    
-> > 
-> > With the new firmware, sometime after booting, I'm getting an oops,
-> > caused
-> > by bcm2835_audio/vchiq:
-> > 
-> > [  298.788995] Unable to handle kernel NULL pointer dereference at
-> > virtual address 00000034
-> > [  298.821458] pgd = ed004000
-> > [  298.832294] [00000034] *pgd=2e5e9835, *pte=00000000,
-> > *ppte=00000000
-> > [  298.857450] Internal error: Oops: 17 [#1] SMP ARM
-> > [  298.876273] Modules linked in: cfg80211 hid_logitech_hidpp
-> > hid_logitech_dj snd_bcm2835(C) snd_pcm snd_timer snd soundcore
-> > vchiq(C) uio_pdrv_genirq uio fuse
-> > [  298.932064] CPU: 3 PID: 847 Comm: pulseaudio Tainted:
-> > G         C      4.11.0-rc1+ #56
-> > [  298.963774] Hardware name: Generic DT based system
-> > [  298.982945] task: ef758580 task.stack: ee4c6000
-> > [  299.001080] PC is at mutex_lock+0x14/0x3c
-> > [  299.017148] LR is at vchiq_add_service_internal+0x138/0x3a0
-> > [vchiq]
-> > [  299.042246] pc : [<c0c849d4>]    lr : [<bf059654>]    psr:
-> > 40000013
-> > sp : ee4c7ca8  ip : 00000000  fp : ef709800
-> > [  299.088240] r10: 00000000  r9 : ee3bffc0  r8 : 00000034
-> > [  299.109153] r7 : 00000003  r6 : 00000000  r5 : ee4c7d00  r4 :
-> > ee1d8c00
-> > [  299.135291] r3 : ef758580  r2 : 00000000  r1 : ffffffc8  r0 :
-> > 00000034
-> > [  299.161431] Flags: nZcv  IRQs on  FIQs on  Mode SVC_32  ISA
-> > ARM  Segment none
-> > [  299.190008] Control: 10c5383d  Table: 2d00406a  DAC: 00000051
-> > [  299.213011] Process pulseaudio (pid: 847, stack limit =
-> > 0xee4c6220)
-> > [  299.238104] Stack: (0xee4c7ca8 to 0xee4c8000)
-> > [  299.255539] 7ca0:                   c1403d54 80400040 ff7f0600
-> > ff7f0660 bf06b578 ee3bffc0
-> > [  299.288301] 7cc0: 00000000 ee3afd00 00000000 ee4c7d00 00000000
-> > bf0640b4 00000000 bf066428
-> > [  299.321064] 7ce0: ee3afd00 ee3afd00 ee4c7d34 ee3af444 ee3bffc0
-> > ee3af444 ee3bffc0 bf0662ec
-> > [  299.353826] 7d00: 41554453 bf065db0 ee3afd00 00010002 bf0d7408
-> > ee3af440 00000000 bf0d7408
-> > [  299.386587] 7d20: ee79bd80 bf0d5a04 00000000 ef709800 00000020
-> > 00000002 00000001 41554453
-> > [  299.419349] 7d40: 00000000 00000000 00000000 bf0d559c ee3af440
-> > 00000001 00000001 00000000
-> > [  299.452111] 7d60: ee24ac80 ee24ac80 ee1c4a00 00000000 ee79bd80
-> > ee24ace8 00000001 bf0d4dfc
-> > [  299.484872] 7d80: 0000000b ffffffff ee4b8c3c 00000000 ee4c7dc8
-> > ee4b8800 ee4b8c28 ee4c6000
-> > [  299.517635] 7da0: 00000000 ee4b8c3c ed029e40 bf0c0404 ee4b8800
-> > ee1c4a00 ee4b8800 ed029e40
-> > [  299.550398] 7dc0: 00000000 bf0c0560 ee072340 00000000 ef758580
-> > c0367b7c ee4b8c40 ee4b8c40
-> > [  299.583161] 7de0: 00000000 ee4b8800 ed029e40 ee318f80 ed029e40
-> > 00000006 ee318f80 bf0c0748
-> > [  299.615924] 7e00: bf0a3430 ee4f6180 00000000 c0428fe0 ee318f80
-> > 000021b0 00000026 ed029e40
-> > [  299.648697] 7e20: ee318f80 ed029e48 c0428f1c ee4c7e94 00000006
-> > c0421cc0 ee4c7ed0 00000000
-> > [  299.681464] 7e40: 00000802 00000000 ee4c7e94 00000006 ee318f80
-> > c0432c8c ee4c7f40 c0433bc0
-> > [  299.714225] 7e60: 00000000 ed029e40 00000000 00000041 00000000
-> > ed004000 00000000 ee4c6000
-> > [  299.746987] 7e80: eec69808 00000005 00000000 00000002 ee318f80
-> > ef0d2910 ee924908 bf0ba284
-> > [  299.779750] 7ea0: ee31bbc0 bebb53c4 ee4e1d00 00000011 ee4c7f74
-> > 00000001 fffff000 c0308b04
-> > [  299.812512] 7ec0: ee4c6000 00000000 bebb5710 c0434578 ef0d2910
-> > ee924908 73541c18 00000008
-> > [  299.845274] 7ee0: ee4a7019 00000000 00000000 ee899bb0 ee318f80
-> > 00000101 00000002 00000084
-> > [  299.878037] 7f00: 00000000 00000000 00000000 ee4c7f10 ee318df8
-> > ed029840 40045532 bebb53c4
-> > [  299.910799] 7f20: ee4c6000 ee4a7000 c1403ef8 bebb550c 00000011
-> > ee5eca00 00000020 ee5eca18
-> > [  299.943562] 7f40: ee4a7000 00000000 00080802 00000002 ffffff9c
-> > fffff000 00000011 ffffff9c
-> > [  299.976324] 7f60: ee4a7000 c0422e70 00000002 c04359b0 ed029840
-> > 00000802 ed020000 00000006
-> > [  300.009086] 7f80: 00000100 00000001 00000000 ffffffff 00000004
-> > b189d000 00000005 c0308b04
-> > [  300.041848] 7fa0: ee4c6000 c0308940 ffffffff 00000004 bebb550c
-> > 00080802 bebb53c4 00084b58
-> > [  300.074611] 7fc0: ffffffff 00000004 b189d000 00000005 00000000
-> > bebb550c 00099448 bebb5710
-> > [  300.107373] 7fe0: 00000000 bebb53c8 b6c40da4 b6c24334 80000010
-> > bebb550c 2fffd861 2fffdc61
-> > [  300.140190] [<c0c849d4>] (mutex_lock) from [<bf059654>]
-> > (vchiq_add_service_internal+0x138/0x3a0 [vchiq])
-> > [  300.178237] [<bf059654>] (vchiq_add_service_internal [vchiq]) from
-> > [<bf0640b4>] (vchiq_open_service+0x58/0xf0 [vchiq])
-> > [  300.221152] [<bf0640b4>] (vchiq_open_service [vchiq]) from
-> > [<bf0662ec>] (vchi_service_open+0x74/0xa8 [vchiq])
-> > [  300.260919] [<bf0662ec>] (vchi_service_open [vchiq]) from
-> > [<bf0d5a04>] (bcm2835_audio_open+0xe8/0x2d0 [snd_bcm2835])
-> > [  300.303111] [<bf0d5a04>] (bcm2835_audio_open [snd_bcm2835]) from
-> > [<bf0d4dfc>] (snd_bcm2835_playback_open_generic+0xc0/0x1c4
-> > [snd_bcm2835])
-> > [  300.352975] [<bf0d4dfc>] (snd_bcm2835_playback_open_generic
-> > [snd_bcm2835]) from [<bf0c0404>] (snd_pcm_open_substream+0x60/0x110
-> > [snd_pcm])
-> > [  300.402848] [<bf0c0404>] (snd_pcm_open_substream [snd_pcm]) from
-> > [<bf0c0560>] (snd_pcm_open+0xac/0x1fc [snd_pcm])
-> > [  300.444009] [<bf0c0560>] (snd_pcm_open [snd_pcm]) from
-> > [<bf0c0748>] (snd_pcm_playback_open+0x3c/0x5c [snd_pcm])
-> > [  300.484459] [<bf0c0748>] (snd_pcm_playback_open [snd_pcm]) from
-> > [<c0428fe0>] (chrdev_open+0xc4/0x180)
-> > [  300.521408] [<c0428fe0>] (chrdev_open) from [<c0421cc0>]
-> > (do_dentry_open.constprop.3+0x1fc/0x304)
-> > [  300.556964] [<c0421cc0>] (do_dentry_open.constprop.3) from
-> > [<c0432c8c>] (path_openat+0x588/0x1078)
-> > [  300.592866] [<c0432c8c>] (path_openat) from [<c0434578>]
-> > (do_filp_open+0x60/0xc4)
-> > [  300.622846] [<c0434578>] (do_filp_open) from [<c0422e70>]
-> > (do_sys_open+0x110/0x1c0)
-> > [  300.653524] [<c0422e70>] (do_sys_open) from [<c0308940>]
-> > (ret_fast_syscall+0x0/0x3c)
-> > 
-> >   
-> Hi, can you e-mail out your config.txt?  Do you have audio enabled in
-> config.txt?
+The OV5642 connects to the parallel-bus mux input port on ipu1_csi0_mux.
 
-yes, I have this:
+The OV5640 connects to the input port on the MIPI CSI-2 receiver on
+mipi_csi.
 
-$ cat config.txt |grep -i audio
-# uncomment to force a HDMI mode rather than DVI. This can make audio work in
-# Enable audio (loads snd_bcm2835)
-dtparam=audio=on
+The OV5642 node is disabled temporarily while the subdev driver is
+cleaned up and submitted later.
 
-Full config attached.
-
-Thanks,
-Mauro
-
-
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
+ arch/arm/boot/dts/imx6dl-sabrelite.dts   |   5 ++
+ arch/arm/boot/dts/imx6q-sabrelite.dts    |   5 ++
+ arch/arm/boot/dts/imx6qdl-sabrelite.dtsi | 148 +++++++++++++++++++++++++++++++
+ 3 files changed, 158 insertions(+)
 
-# Latest RPi Kernel
-#kernel=rpi-4.10.y/vmlinuz-4.11.0-rc2-v8+
-#device_tree=rpi-4.10.y/bcm2837-rpi-3-b.dtb
-
-# Upstream Kernel
-kernel=upstream/vmlinuz-4.11.0-rc1+
-device_tree=upstream/bcm2837-rpi-3-b.dtb
-
-# For more options and information see
-# http://rpf.io/configtxtreadme
-# Some settings may impact device functionality. See link above for details
-
-# uncomment if you get no picture on HDMI for a default "safe" mode
-#hdmi_safe=1
-
-# uncomment this if your display has a black border of unused pixels visible
-# and your display can output without overscan
-disable_overscan=1
-
-# uncomment the following to adjust overscan. Use positive numbers if console
-# goes off screen, and negative if there is too much border
-#overscan_left=16
-#overscan_right=16
-#overscan_top=16
-#overscan_bottom=16
-
-# uncomment to force a console size. By default it will be display's size minus
-# overscan.
-#framebuffer_width=1280
-#framebuffer_height=720
-
-# uncomment if hdmi display is not detected and composite is being output
-#hdmi_force_hotplug=1
-
-# uncomment to force a specific HDMI mode (this will force VGA)
-#hdmi_group=1
-#hdmi_mode=1
-
-# uncomment to force a HDMI mode rather than DVI. This can make audio work in
-# DMT (computer monitor) modes
-#hdmi_drive=2
-
-# uncomment to increase signal to HDMI, if you have interference, blanking, or
-# no display
-#config_hdmi_boost=4
-
-# uncomment for composite PAL
-#sdtv_mode=2
-
-#uncomment to overclock the arm. 700 MHz is the default.
-#arm_freq=800
-
-# Uncomment some or all of these to enable the optional hardware interfaces
-#dtparam=i2c_arm=on
-#dtparam=i2s=on
-#dtparam=spi=on
-
-# Uncomment this to enable the lirc-rpi module
-#dtoverlay=lirc-rpi
-
-# Additional overlays and parameters are documented /boot/overlays/README
-
-# Enable audio (loads snd_bcm2835)
-dtparam=audio=on
-
-# NOOBS Auto-generated Settings:
-hdmi_force_hotplug=1
-start_x=1
-gpu_mem=128
-
-enable_uart=1
+diff --git a/arch/arm/boot/dts/imx6dl-sabrelite.dts b/arch/arm/boot/dts/imx6dl-sabrelite.dts
+index 2f90452..3304076 100644
+--- a/arch/arm/boot/dts/imx6dl-sabrelite.dts
++++ b/arch/arm/boot/dts/imx6dl-sabrelite.dts
+@@ -48,3 +48,8 @@
+ 	model = "Freescale i.MX6 DualLite SABRE Lite Board";
+ 	compatible = "fsl,imx6dl-sabrelite", "fsl,imx6dl";
+ };
++
++&ipu1_csi1_from_ipu1_csi1_mux {
++	clock-lanes = <0>;
++	data-lanes = <1 2>;
++};
+diff --git a/arch/arm/boot/dts/imx6q-sabrelite.dts b/arch/arm/boot/dts/imx6q-sabrelite.dts
+index 02a7cdf..dc51262e 100644
+--- a/arch/arm/boot/dts/imx6q-sabrelite.dts
++++ b/arch/arm/boot/dts/imx6q-sabrelite.dts
+@@ -52,3 +52,8 @@
+ &sata {
+ 	status = "okay";
+ };
++
++&ipu1_csi1_from_mipi_vc1 {
++	clock-lanes = <0>;
++	data-lanes = <1 2>;
++};
+diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+index 89dce27..afe7449 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+@@ -39,6 +39,8 @@
+  *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  *     OTHER DEALINGS IN THE SOFTWARE.
+  */
++
++#include <dt-bindings/clock/imx6qdl-clock.h>
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/input.h>
+ 
+@@ -94,6 +96,42 @@
+ 			pinctrl-0 = <&pinctrl_can_xcvr>;
+ 			gpio = <&gpio1 2 GPIO_ACTIVE_LOW>;
+ 		};
++
++		reg_1p5v: regulator@4 {
++			compatible = "regulator-fixed";
++			reg = <4>;
++			regulator-name = "1P5V";
++			regulator-min-microvolt = <1500000>;
++			regulator-max-microvolt = <1500000>;
++			regulator-always-on;
++		};
++
++		reg_1p8v: regulator@5 {
++			compatible = "regulator-fixed";
++			reg = <5>;
++			regulator-name = "1P8V";
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <1800000>;
++			regulator-always-on;
++		};
++
++		reg_2p8v: regulator@6 {
++			compatible = "regulator-fixed";
++			reg = <6>;
++			regulator-name = "2P8V";
++			regulator-min-microvolt = <2800000>;
++			regulator-max-microvolt = <2800000>;
++			regulator-always-on;
++		};
++	};
++
++	mipi_xclk: mipi_xclk {
++		compatible = "pwm-clock";
++		#clock-cells = <0>;
++		clock-frequency = <22000000>;
++		clock-output-names = "mipi_pwm3";
++		pwms = <&pwm3 0 45>; /* 1 / 45 ns = 22 MHz */
++		status = "okay";
+ 	};
+ 
+ 	gpio-keys {
+@@ -220,6 +258,22 @@
+ 	};
+ };
+ 
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <8>;
++	data-shift = <12>; /* Lines 19:12 used */
++	hsync-active = <1>;
++	vync-active = <1>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&ov5642_to_ipu1_csi0_mux>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
++};
++
+ &audmux {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_audmux>;
+@@ -298,6 +352,53 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c2>;
+ 	status = "okay";
++
++	ov5640: camera@40 {
++		compatible = "ovti,ov5640";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5640>;
++		reg = <0x40>;
++		clocks = <&mipi_xclk>;
++		clock-names = "xclk";
++		DOVDD-supply = <&reg_1p8v>;
++		AVDD-supply = <&reg_2p8v>;
++		DVDD-supply = <&reg_1p5v>;
++		reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>; /* NANDF_D5 */
++		powerdown-gpios = <&gpio6 9 GPIO_ACTIVE_HIGH>; /* NANDF_WP_B */
++
++		port {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			ov5640_to_mipi_csi2: endpoint {
++				remote-endpoint = <&mipi_csi2_in>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++			};
++		};
++	};
++
++	ov5642: camera@42 {
++		compatible = "ovti,ov5642";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5642>;
++		clocks = <&clks IMX6QDL_CLK_CKO2>;
++		clock-names = "xclk";
++		reg = <0x42>;
++		reset-gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
++		powerdown-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
++		gp-gpios = <&gpio1 16 GPIO_ACTIVE_HIGH>;
++		status = "disabled";
++
++		port {
++			ov5642_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <8>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++			};
++		};
++	};
+ };
+ 
+ &i2c3 {
+@@ -411,6 +512,23 @@
+ 			>;
+ 		};
+ 
++		pinctrl_ipu1_csi0: ipu1csi0grp {
++			fsl,pins = <
++				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x1b0b0
++				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x1b0b0
++				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC      0x1b0b0
++				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC     0x1b0b0
++				MX6QDL_PAD_CSI0_DATA_EN__IPU1_CSI0_DATA_EN 0x1b0b0
++			>;
++		};
++
+ 		pinctrl_j15: j15grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_DI0_DISP_CLK__IPU1_DI0_DISP_CLK 0x10
+@@ -444,6 +562,22 @@
+ 			>;
+ 		};
+ 
++		pinctrl_ov5640: ov5640grp {
++			fsl,pins = <
++				MX6QDL_PAD_NANDF_D5__GPIO2_IO05   0x000b0
++				MX6QDL_PAD_NANDF_WP_B__GPIO6_IO09 0x0b0b0
++			>;
++		};
++
++		pinctrl_ov5642: ov5642grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x1b0b0
++				MX6QDL_PAD_GPIO_6__GPIO1_IO06   0x1b0b0
++				MX6QDL_PAD_GPIO_8__GPIO1_IO08   0x130b0
++				MX6QDL_PAD_GPIO_3__CCM_CLKO2    0x000b0
++			>;
++		};
++
+ 		pinctrl_pwm1: pwm1grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_SD1_DAT3__PWM1_OUT 0x1b0b1
+@@ -598,3 +732,17 @@
+ 	vmmc-supply = <&reg_3p3v>;
+ 	status = "okay";
+ };
++
++&mipi_csi {
++	status = "okay";
++
++	port@0 {
++		reg = <0>;
++
++		mipi_csi2_in: endpoint {
++			remote-endpoint = <&ov5640_to_mipi_csi2>;
++			clock-lanes = <0>;
++			data-lanes = <1 2>;
++		};
++	};
++};
+-- 
+2.7.4
