@@ -1,98 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:37564 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751008AbdCMLI3 (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:60767 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754563AbdC1I2l (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 07:08:29 -0400
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-References: <20170311101408.272a9187@vento.lan>
- <20170311153229.yrdjmggb3p2suhdw@ihha.localdomain>
- <acfb5eca-ff00-6d57-339a-3322034cbdb3@gmail.com>
- <20170311184551.GD21222@n2100.armlinux.org.uk>
- <1f1b350a-5523-34bc-07b7-f3cd2d1fd4c1@gmail.com>
- <20170311185959.GF21222@n2100.armlinux.org.uk>
- <4917d7fb-2f48-17cd-aa2f-d54b0f19ed6e@gmail.com>
- <20170312073745.GI21222@n2100.armlinux.org.uk>
- <fba73c10-4b95-f0d2-e681-0b14ef1fbc1c@gmail.com>
- <734a1731-3fb6-b8cd-6806-5405bd21bf83@xs4all.nl>
- <20170313105842.GG21222@n2100.armlinux.org.uk>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, mark.rutland@arm.com,
-        andrew-ct.chen@mediatek.com, minghsiu.tsai@mediatek.com,
-        nick@shmanahar.org, songjun.wu@microchip.com, pavel@ucw.cz,
-        shuah@kernel.org, devel@driverdev.osuosl.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, robert.jarzmik@free.fr,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        geert@linux-m68k.org, p.zabel@pengutronix.de,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        kernel@pengutronix.de, arnd@arndb.de, tiffany.lin@mediatek.com,
-        bparrot@ti.com, robh+dt@kernel.org, horms+renesas@verge.net.au,
-        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
-        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
-        linux-kernel@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-        jean-christophe.trotin@st.com, sakari.ailus@linux.intel.com,
-        fabio.estevam@nxp.com, shawnguo@kernel.org,
-        sudipm.mukherjee@gmail.com
+        Tue, 28 Mar 2017 04:28:41 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cb64ae8e-2047-61fb-81bd-2373decbd45e@xs4all.nl>
-Date: Mon, 13 Mar 2017 12:08:14 +0100
-MIME-Version: 1.0
-In-Reply-To: <20170313105842.GG21222@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv6 09/14] ov2640: fix colorspace handling
+Date: Tue, 28 Mar 2017 10:23:42 +0200
+Message-Id: <20170328082347.11159-10-hverkuil@xs4all.nl>
+In-Reply-To: <20170328082347.11159-1-hverkuil@xs4all.nl>
+References: <20170328082347.11159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/13/2017 11:58 AM, Russell King - ARM Linux wrote:
-> On Mon, Mar 13, 2017 at 11:44:50AM +0100, Hans Verkuil wrote:
->> On 03/12/2017 06:56 PM, Steve Longerbeam wrote:
->>> In summary, I do like the media framework, it's a good abstraction of
->>> hardware pipelines. It does require a lot of system level knowledge to
->>> configure, but as I said that is a matter of good documentation.
->>
->> And the reason we went into this direction is that the end-users that use
->> these SoCs with complex pipelines actually *need* this functionality. Which
->> is also part of the reason why work on improved userspace support gets
->> little attention: they don't need to have a plugin that allows generic V4L2
->> applications to work (at least with simple scenarios).
-> 
-> If you stop inheriting controls from the capture sensor to the v4l2
-> capture device, then this breaks - generic v4l2 applications are not
-> going to be able to show the controls, because they're not visible at
-> the v4l2 capture device anymore.  They're only visible through the
-> subdev interfaces, which these generic applications know nothing about.
-> 
->> If you want to blame anyone for this, blame Nokia who set fire to
->> their linux-based phones and thus to the funding for this work.
-> 
-> No, I think that's completely unfair to Nokia.  If the MC approach is
-> the way you want to go, you should be thanking Nokia for the amount of
-> effort that they have put in to it, and recognising that it was rather
-> unfortunate that the market had changed, which meant that they weren't
-> able to continue.
-> 
-> No one has any right to require any of us to finish what we start
-> coding up in open source, unless there is a contractual obligation in
-> place.  That goes for Nokia too.
-> 
-> Nokia's decision had ramifications far and wide (resulting in knock on
-> effects in TI and further afield), so don't think for a moment I wasn't
-> affected by what happened in Nokia.  Even so, it was a decision for
-> Nokia to make, they had the right to make it, and we have no right to
-> attribute "blame" to Nokia for having made that decision.
-> 
-> To even suggest that Nokia should be blamed is absurd.
-> 
-> Open source gives rights to everyone.  It gives rights to contribute
-> and use, but it also gives rights to walk away without notice (remember
-> the "as is" and "no warranty" clauses?)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Sorry, unfortunate choice of words. While it lasted they did great work.
-But the reason why MC development stopped for quite some time (esp. the
-work on userspace software) was because the funding from Nokia dried up.
+The colorspace is independent of whether YUV or RGB is sent to the SoC.
+Fix this.
 
-Regards,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/i2c/soc_camera/ov2640.c | 23 +++++++----------------
+ 1 file changed, 7 insertions(+), 16 deletions(-)
 
-	Hans
+diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+index 56de18263359..b9a0069f5b33 100644
+--- a/drivers/media/i2c/soc_camera/ov2640.c
++++ b/drivers/media/i2c/soc_camera/ov2640.c
+@@ -794,10 +794,11 @@ static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
+ 		dev_dbg(&client->dev, "%s: Selected cfmt YUYV (YUV422)", __func__);
+ 		selected_cfmt_regs = ov2640_yuyv_regs;
+ 		break;
+-	default:
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
++	default:
+ 		dev_dbg(&client->dev, "%s: Selected cfmt UYVY", __func__);
+ 		selected_cfmt_regs = ov2640_uyvy_regs;
++		break;
+ 	}
+ 
+ 	/* reset hardware */
+@@ -865,17 +866,7 @@ static int ov2640_get_fmt(struct v4l2_subdev *sd,
+ 	mf->width	= priv->win->width;
+ 	mf->height	= priv->win->height;
+ 	mf->code	= priv->cfmt_code;
+-
+-	switch (mf->code) {
+-	case MEDIA_BUS_FMT_RGB565_2X8_BE:
+-	case MEDIA_BUS_FMT_RGB565_2X8_LE:
+-		mf->colorspace = V4L2_COLORSPACE_SRGB;
+-		break;
+-	default:
+-	case MEDIA_BUS_FMT_YUYV8_2X8:
+-	case MEDIA_BUS_FMT_UYVY8_2X8:
+-		mf->colorspace = V4L2_COLORSPACE_JPEG;
+-	}
++	mf->colorspace	= V4L2_COLORSPACE_SRGB;
+ 	mf->field	= V4L2_FIELD_NONE;
+ 
+ 	return 0;
+@@ -897,17 +888,17 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
+ 	ov2640_select_win(&mf->width, &mf->height);
+ 
+ 	mf->field	= V4L2_FIELD_NONE;
++	mf->colorspace	= V4L2_COLORSPACE_SRGB;
+ 
+ 	switch (mf->code) {
+ 	case MEDIA_BUS_FMT_RGB565_2X8_BE:
+ 	case MEDIA_BUS_FMT_RGB565_2X8_LE:
+-		mf->colorspace = V4L2_COLORSPACE_SRGB;
++	case MEDIA_BUS_FMT_YUYV8_2X8:
++	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		break;
+ 	default:
+ 		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
+-	case MEDIA_BUS_FMT_YUYV8_2X8:
+-	case MEDIA_BUS_FMT_UYVY8_2X8:
+-		mf->colorspace = V4L2_COLORSPACE_JPEG;
++		break;
+ 	}
+ 
+ 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+-- 
+2.11.0
