@@ -1,102 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f175.google.com ([209.85.128.175]:33304 "EHLO
-        mail-wr0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932954AbdCUPUE (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39400 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754152AbdC1Uhz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Mar 2017 11:20:04 -0400
-Received: by mail-wr0-f175.google.com with SMTP id u48so114094033wrc.0
-        for <linux-media@vger.kernel.org>; Tue, 21 Mar 2017 08:19:58 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
-        mchehab@kernel.org
-Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
-        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-        sakari.ailus@linux.intel.com
-Subject: [PATCH v4 0/6] drm: bridge: dw-hdmi: Add support for Custom PHYs
-Date: Tue, 21 Mar 2017 16:12:35 +0100
-Message-Id: <1490109161-20529-1-git-send-email-narmstrong@baylibre.com>
+        Tue, 28 Mar 2017 16:37:55 -0400
+Date: Tue, 28 Mar 2017 23:37:11 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Helen Koike <helen.koike@collabora.co.uk>,
+        Helen Koike <helen.koike@collabora.com>,
+        linux-media@vger.kernel.org, jgebben@codeaurora.org,
+        Helen Fornazier <helen.fornazier@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v7] [media] vimc: Virtual Media Controller core, capture
+ and sensor
+Message-ID: <20170328203711.GE16657@valkosipuli.retiisi.org.uk>
+References: <6c85eaf4-1f91-7964-1cf9-602005b62a94@collabora.co.uk>
+ <1490461896-19221-1-git-send-email-helen.koike@collabora.com>
+ <f8466f7a-0f33-a610-10fc-2515d5f6b499@iki.fi>
+ <ef7c1d62-0553-2c5b-004f-527d82e380b3@collabora.co.uk>
+ <20170327150918.6843e285@vento.lan>
+ <f668b12f-0da8-98da-63b0-c5064cc87da9@xs4all.nl>
+ <20170328083826.6cf003ff@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170328083826.6cf003ff@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Amlogic GX SoCs implements a Synopsys DesignWare HDMI TX Controller
-in combination with a very custom PHY.
+Hi Mauro,
 
-Thanks to Laurent Pinchart's changes, the HW report the following :
- Detected HDMI TX controller v2.01a with HDCP (meson_dw_hdmi_phy)
+On Tue, Mar 28, 2017 at 08:38:26AM -0300, Mauro Carvalho Chehab wrote:
+> Em Tue, 28 Mar 2017 12:00:36 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > On 27/03/17 20:09, Mauro Carvalho Chehab wrote:
+> > > Em Mon, 27 Mar 2017 12:19:51 -0300
+> > > Helen Koike <helen.koike@collabora.co.uk> escreveu:
+> > >   
+> > >> Hi Sakari,
+> > >>
+> > >> On 2017-03-26 10:31 AM, Sakari Ailus wrote:  
+> > >>> Hi Helen,
+> > >>>
+> > >>> ...    
+> > >>>> +static int vimc_cap_enum_input(struct file *file, void *priv,
+> > >>>> +			       struct v4l2_input *i)
+> > >>>> +{
+> > >>>> +	/* We only have one input */
+> > >>>> +	if (i->index > 0)
+> > >>>> +		return -EINVAL;
+> > >>>> +
+> > >>>> +	i->type = V4L2_INPUT_TYPE_CAMERA;
+> > >>>> +	strlcpy(i->name, "VIMC capture", sizeof(i->name));
+> > >>>> +
+> > >>>> +	return 0;
+> > >>>> +}
+> > >>>> +
+> > >>>> +static int vimc_cap_g_input(struct file *file, void *priv, unsigned int *i)
+> > >>>> +{
+> > >>>> +	/* We only have one input */
+> > >>>> +	*i = 0;
+> > >>>> +	return 0;
+> > >>>> +}
+> > >>>> +
+> > >>>> +static int vimc_cap_s_input(struct file *file, void *priv, unsigned int i)
+> > >>>> +{
+> > >>>> +	/* We only have one input */
+> > >>>> +	return i ? -EINVAL : 0;
+> > >>>> +}    
+> > >>>
+> > >>> You can drop the input IOCTLs altogether here. If you had e.g. a TV
+> > >>> tuner, it'd be the TV tuner driver's responsibility to implement them.
+> > >>>    
+> > >>
+> > >> input IOCTLs seems to be mandatory from v4l2-compliance when capability 
+> > >> V4L2_CAP_VIDEO_CAPTURE is set (which is the case):
+> > >>
+> > >> https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-compliance/v4l2-test-input-output.cpp#n418
+> > >>
+> > >> https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-compliance/v4l2-compliance.cpp#n989  
+> > > 
+> > > The V4L2 spec doesn't actually define what's mandatory and what's
+> > > optional. The idea that was agreed on one of the media summits
+> > > were to define a set of profiles for different device types,
+> > > matching the features required by existing applications to work,
+> > > but this was never materialized.
+> > > 
+> > > So, my understanding is that any driver can implement
+> > > any V4L2 ioctl.
+> > > 
+> > > Yet, some applications require enum/get/set inputs, or otherwise
+> > > they wouldn't work. It is too late to change this behavior. 
+> > > So, either the driver or the core should implement those
+> > > ioctls, in order to avoid breaking backward-compatibility.  
+> > 
+> > The closest we have to determining which ioctls are mandatory or not is
+> > v4l2-compliance.
+> 
+> Yes, but we should explicitly document what's mandatory at the V4L2
+> API spec and mention the v4l2-compliance tool there.
+> 
+> > That said, v4l2-compliance is actually a bit more strict
+> > in some cases than the spec since some ioctls are optional in the spec, but
+> > required in v4l2-compliance for the simple reason that there is no reason
+> > for drivers NOT to implement those ioctls.
+> > 
+> > However, the v4l2-compliance test was never written for MC devices. It turns
+> > out that it works reasonably well as long as a working pipeline is configured
+> > first, but these input ioctls are a bit iffy.
+> 
+> The way I see, v4l2-compliance V4L2 API check[1] should not be modified to
+> explicitly support devices with MC and/or subdev API.
 
-The following differs from common PHY integration as managed in the current
-driver :
- - Amlogic PHY is not configured through the internal I2C link
- - Amlogic PHY do not use the ENTMDS, SVSRET, PDDQ, ... signals from the controller
- - Amlogic PHY do not export HPD ands RxSense signals to the controller
+The V4L2 API documentation states that
 
-And finally, concerning the controller integration :
- - the Controller registers are not flat memory-mapped, and uses an
-    addr+read/write register pair to write all registers.
- - Inputs only YUV444 pixel data
+	Video inputs and outputs are physical connectors of a device. ...
+	Drivers must implement all the input ioctls when the device has one
+	or more inputs, all the output ioctls when the device has one or
+	more outputs.
 
-Most of these uses case are implemented in Laurent Pinchart v5.1 patchset merged
-in drm-misc-next branch.
+"Inputs" and "outputs", as the spec defines them, mean physical connectors
+to the device.
 
-This is why the following patchset implements :
- - Configure the Input format from the plat_data
- - Add PHY callback to handle HPD and RxSense out of the dw-hdmi driver
+Does e.g. a camera have a physical connector? I don't think one could
+imagine it does, meaning also there is no need to implement these IOCTLs.
 
-To implement the input format handling, the Synopsys HDMIT TX Controller input
-V4L bus formats are used and missing formats + documentation are added.
+That said, I looked at a few drivers and even the omap3isp driver implements
+the input IOCTLs. It provides no useful information whatsoever through them,
+just like most drivers whose hardware has no physical connectors.
 
-This patchset makes the Amlogic GX SoCs HDMI output successfully work, and is
-also tested on the RK3288 ACT8846 EVB Board.
-
-Changes since v3 at [4] :
- - Fix 4:2:0 bus formats naming
- - Add separate 36bit and 48bit tables for bus formats documentation
- - Added 4:2:0 bus config in hdmi_video_sample
- - Moved dw_hdmi documentation in a "bridge" subdir
- - Rebase on drm-misc-next at 62c58af32c93
-
-Changes since v2 at [3] :
- - Rebase on laurent patch "Extract PHY interrupt setup to a function"
- - Reduce phy operations
- - Switch the V4L bus formats and encodings instead of custom enum
-
-Changes since v1 at [2] :
- - Drop patches submitted by laurent
-
-Changes since RFC at [1] :
- - Regmap fixup for 4bytes register access, tested on RK3288 SoC
- - Move phy callbacks to phy_ops and move Synopsys PHY calls into default ops
- - Move HDMI link data into shared header
- - Move Pixel Encoding enum to shared header
-
-[1] http://lkml.kernel.org/r/1484656294-6140-1-git-send-email-narmstrong@baylibre.com
-[2] http://lkml.kernel.org/r/1485774318-21916-1-git-send-email-narmstrong@baylibre.com
-[3] http://lkml.kernel.org/r/1488468572-31971-1-git-send-email-narmstrong@baylibre.com
-[4] http://lkml.kernel.org/r/1488904944-14285-1-git-send-email-narmstrong@baylibre.com
-
-Laurent Pinchart (1):
-  drm: bridge: dw-hdmi: Extract PHY interrupt setup to a function
-
-Neil Armstrong (5):
-  media: uapi: Add RGB and YUV bus formats for Synopsys HDMI TX
-    Controller
-  documentation: media: Add documentation for new RGB and YUV bus
-    formats
-  drm: bridge: dw-hdmi: Switch to V4L bus format and encodings
-  drm: bridge: dw-hdmi: Add Documentation on supported input formats
-  drm: bridge: dw-hdmi: Move HPD handling to PHY operations
-
- Documentation/gpu/bridge/dw-hdmi.rst            |  15 +
- Documentation/gpu/index.rst                     |   1 +
- Documentation/media/uapi/v4l/subdev-formats.rst | 871 +++++++++++++++++++++++-
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c       | 469 ++++++++-----
- include/drm/bridge/dw_hdmi.h                    |  68 ++
- include/uapi/linux/media-bus-format.h           |  13 +-
- 6 files changed, 1266 insertions(+), 171 deletions(-)
- create mode 100644 Documentation/gpu/bridge/dw-hdmi.rst
+Still the bottom line is that the spec does not require them.
 
 -- 
-1.9.1
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
