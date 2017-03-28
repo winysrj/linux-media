@@ -1,124 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:32980 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935410AbdCJNHd (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:44935 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754709AbdC1I0X (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 08:07:33 -0500
-From: simran singhal <singhalsimran0@gmail.com>
-To: mchehab@kernel.org
-Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com
-Subject: [PATCH 1/2] staging: css2400/sh_css: Remove parentheses from return arguments
-Date: Fri, 10 Mar 2017 18:37:23 +0530
-Message-Id: <1489151244-20714-2-git-send-email-singhalsimran0@gmail.com>
-In-Reply-To: <1489151244-20714-1-git-send-email-singhalsimran0@gmail.com>
-References: <1489151244-20714-1-git-send-email-singhalsimran0@gmail.com>
+        Tue, 28 Mar 2017 04:26:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv6 03/14] ov7670: fix g/s_parm
+Date: Tue, 28 Mar 2017 10:23:36 +0200
+Message-Id: <20170328082347.11159-4-hverkuil@xs4all.nl>
+In-Reply-To: <20170328082347.11159-1-hverkuil@xs4all.nl>
+References: <20170328082347.11159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sematic patch used for this is:
-@@
-identifier i;
-constant c;
-@@
-return
-- (
-    \(i\|-i\|i(...)\|c\)
-- )
-  ;
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: simran singhal <singhalsimran0@gmail.com>
-Acked-by: Julia Lawall <julia.lawall@lip6.fr>
+Drop unnecesary memset. Drop the unnecessary extendedmode check and
+set the V4L2_CAP_TIMEPERFRAME capability.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- .../media/atomisp/pci/atomisp2/css2400/sh_css.c      | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/media/i2c/ov7670.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-index 0a1544d..c442d22 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-@@ -1989,7 +1989,7 @@ enum ia_css_err ia_css_suspend(void)
- 	for(i=0;i<MAX_ACTIVE_STREAMS;i++)
- 		ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "==*> after 1: seed %d (%p)\n", i, my_css_save.stream_seeds[i].stream);
- 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "ia_css_suspend() leave\n");
--	return(IA_CSS_SUCCESS);
-+	return IA_CSS_SUCCESS;
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index 9af8d3b8f848..50e4466a2b37 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -1046,7 +1046,6 @@ static int ov7670_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+ 	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+ 
+-	memset(cp, 0, sizeof(struct v4l2_captureparm));
+ 	cp->capability = V4L2_CAP_TIMEPERFRAME;
+ 	info->devtype->get_framerate(sd, &cp->timeperframe);
+ 
+@@ -1061,9 +1060,8 @@ static int ov7670_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+ 
+ 	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+-	if (cp->extendedmode != 0)
+-		return -EINVAL;
+ 
++	cp->capability = V4L2_CAP_TIMEPERFRAME;
+ 	return info->devtype->set_framerate(sd, tpf);
  }
  
- enum ia_css_err
-@@ -2001,10 +2001,10 @@ ia_css_resume(void)
- 
- 	err = ia_css_init(&(my_css_save.driver_env), my_css_save.loaded_fw, my_css_save.mmu_base, my_css_save.irq_type);
- 	if (err != IA_CSS_SUCCESS)
--		return(err);
-+		return err;
- 	err = ia_css_start_sp();
- 	if (err != IA_CSS_SUCCESS)
--		return(err);
-+		return err;
- 	my_css_save.mode = sh_css_mode_resume;
- 	for(i=0;i<MAX_ACTIVE_STREAMS;i++)
- 	{
-@@ -2018,7 +2018,7 @@ ia_css_resume(void)
- 				if (i)
- 					for(j=0;j<i;j++)
- 						ia_css_stream_unload(my_css_save.stream_seeds[j].stream);
--				return(err);
-+				return err;
- 			}
- 			err = ia_css_stream_start(my_css_save.stream_seeds[i].stream);
- 			if (err != IA_CSS_SUCCESS)
-@@ -2028,7 +2028,7 @@ ia_css_resume(void)
- 					ia_css_stream_stop(my_css_save.stream_seeds[j].stream);
- 					ia_css_stream_unload(my_css_save.stream_seeds[j].stream);
- 				}
--				return(err);
-+				return err;
- 			}
- 			*my_css_save.stream_seeds[i].orig_stream = my_css_save.stream_seeds[i].stream;
- 			for(j=0;j<my_css_save.stream_seeds[i].num_pipes;j++)
-@@ -2037,7 +2037,7 @@ ia_css_resume(void)
- 	}
- 	my_css_save.mode = sh_css_mode_working;
- 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "ia_css_resume() leave: return_void\n");
--	return(IA_CSS_SUCCESS);
-+	return IA_CSS_SUCCESS;
- }
- 
- enum ia_css_err
-@@ -10226,7 +10226,7 @@ ia_css_stream_load(struct ia_css_stream *stream)
- 						for(k=0;k<j;k++)
- 							ia_css_pipe_destroy(my_css_save.stream_seeds[i].pipes[k]);
- 					}
--					return(err);
-+					return err;
- 				}
- 			err = ia_css_stream_create(&(my_css_save.stream_seeds[i].stream_config), my_css_save.stream_seeds[i].num_pipes,
- 						    my_css_save.stream_seeds[i].pipes, &(my_css_save.stream_seeds[i].stream));
-@@ -10235,12 +10235,12 @@ ia_css_stream_load(struct ia_css_stream *stream)
- 				ia_css_stream_destroy(stream);
- 				for(j=0;j<my_css_save.stream_seeds[i].num_pipes;j++)
- 					ia_css_pipe_destroy(my_css_save.stream_seeds[i].pipes[j]);
--				return(err);
-+				return err;
- 			}
- 			break;
- 		}
- 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,	"ia_css_stream_load() exit, \n");
--	return(IA_CSS_SUCCESS);
-+	return IA_CSS_SUCCESS;
- #else
- 	/* TODO remove function - DEPRECATED */
- 	(void)stream;
-@@ -10381,7 +10381,7 @@ ia_css_stream_unload(struct ia_css_stream *stream)
- 			break;
- 		}
- 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,	"ia_css_stream_unload() exit, \n");
--	return(IA_CSS_SUCCESS);
-+	return IA_CSS_SUCCESS;
- }
- 
- #endif
 -- 
-2.7.4
+2.11.0
