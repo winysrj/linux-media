@@ -1,106 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:55770 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755697AbdCLMPe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Mar 2017 08:15:34 -0400
-Date: Sun, 12 Mar 2017 13:15:08 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv5 09/16] ov2640: fix colorspace handling
-In-Reply-To: <20170311112328.11802-10-hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1703121313390.22698@axis700.grange>
-References: <20170311112328.11802-1-hverkuil@xs4all.nl>
- <20170311112328.11802-10-hverkuil@xs4all.nl>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41630 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932102AbdC1JlZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Mar 2017 05:41:25 -0400
+Subject: Re: [PATCH 2/8] [media] staging: st-cec: Use cec_get_drvdata()
+To: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jose Abreu <Jose.Abreu@synopsys.com>
+References: <cover.1490373499.git.joabreu@synopsys.com>
+ <4630ddce3d8ca27e4f6addeda17e11b08f345a1a.1490373499.git.joabreu@synopsys.com>
+ <CA+M3ks4a=tg3SuE-OiotB_w7ijhvOiBSVfE32kVAx_WCOoMB1g@mail.gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        hans.verkuil@cisco.com, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f2f395bf-e562-3c8a-a3f9-458b4e0e62a1@xs4all.nl>
+Date: Tue, 28 Mar 2017 11:41:14 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <CA+M3ks4a=tg3SuE-OiotB_w7ijhvOiBSVfE32kVAx_WCOoMB1g@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 11 Mar 2017, Hans Verkuil wrote:
-
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 28/03/17 11:17, Benjamin Gaignard wrote:
+> 2017-03-24 17:47 GMT+01:00 Jose Abreu <Jose.Abreu@synopsys.com>:
+>> Use helper function to get driver private data from CEC
+>> adapter.
 > 
-> The colorspace is independent of whether YUV or RGB is sent to the SoC.
-> Fix this.
+> That looks good for me but does it make sense to merge that now ? or
+> should we wait until
+> cec drivers as move out of staging ?
+> Hans what is your view on that ?
+
+Why not merge this? It makes no sense not to update staging drivers.
+Just because they are in staging doesn't mean you can't improve them :-)
+
+Regards,
+
+	Hans
+
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-I'm not sure why the first hunk is needed and how it is related :-) But it 
-doesn't break anything. I understand, this patch should better go in as a 
-part of a series, so
-
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-Thanks
-Guennadi
-
-> ---
->  drivers/media/i2c/soc_camera/ov2640.c | 23 +++++++----------------
->  1 file changed, 7 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
-> index 56de18263359..b9a0069f5b33 100644
-> --- a/drivers/media/i2c/soc_camera/ov2640.c
-> +++ b/drivers/media/i2c/soc_camera/ov2640.c
-> @@ -794,10 +794,11 @@ static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
->  		dev_dbg(&client->dev, "%s: Selected cfmt YUYV (YUV422)", __func__);
->  		selected_cfmt_regs = ov2640_yuyv_regs;
->  		break;
-> -	default:
->  	case MEDIA_BUS_FMT_UYVY8_2X8:
-> +	default:
->  		dev_dbg(&client->dev, "%s: Selected cfmt UYVY", __func__);
->  		selected_cfmt_regs = ov2640_uyvy_regs;
-> +		break;
->  	}
->  
->  	/* reset hardware */
-> @@ -865,17 +866,7 @@ static int ov2640_get_fmt(struct v4l2_subdev *sd,
->  	mf->width	= priv->win->width;
->  	mf->height	= priv->win->height;
->  	mf->code	= priv->cfmt_code;
-> -
-> -	switch (mf->code) {
-> -	case MEDIA_BUS_FMT_RGB565_2X8_BE:
-> -	case MEDIA_BUS_FMT_RGB565_2X8_LE:
-> -		mf->colorspace = V4L2_COLORSPACE_SRGB;
-> -		break;
-> -	default:
-> -	case MEDIA_BUS_FMT_YUYV8_2X8:
-> -	case MEDIA_BUS_FMT_UYVY8_2X8:
-> -		mf->colorspace = V4L2_COLORSPACE_JPEG;
-> -	}
-> +	mf->colorspace	= V4L2_COLORSPACE_SRGB;
->  	mf->field	= V4L2_FIELD_NONE;
->  
->  	return 0;
-> @@ -897,17 +888,17 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
->  	ov2640_select_win(&mf->width, &mf->height);
->  
->  	mf->field	= V4L2_FIELD_NONE;
-> +	mf->colorspace	= V4L2_COLORSPACE_SRGB;
->  
->  	switch (mf->code) {
->  	case MEDIA_BUS_FMT_RGB565_2X8_BE:
->  	case MEDIA_BUS_FMT_RGB565_2X8_LE:
-> -		mf->colorspace = V4L2_COLORSPACE_SRGB;
-> +	case MEDIA_BUS_FMT_YUYV8_2X8:
-> +	case MEDIA_BUS_FMT_UYVY8_2X8:
->  		break;
->  	default:
->  		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
-> -	case MEDIA_BUS_FMT_YUYV8_2X8:
-> -	case MEDIA_BUS_FMT_UYVY8_2X8:
-> -		mf->colorspace = V4L2_COLORSPACE_JPEG;
-> +		break;
->  	}
->  
->  	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-> -- 
-> 2.11.0
-> 
+>>
+>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+>> Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+>> ---
+>>  drivers/staging/media/st-cec/stih-cec.c | 6 +++---
+>>  1 file changed, 3 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/staging/media/st-cec/stih-cec.c b/drivers/staging/media/st-cec/stih-cec.c
+>> index 3c25638..521206d 100644
+>> --- a/drivers/staging/media/st-cec/stih-cec.c
+>> +++ b/drivers/staging/media/st-cec/stih-cec.c
+>> @@ -133,7 +133,7 @@ struct stih_cec {
+>>
+>>  static int stih_cec_adap_enable(struct cec_adapter *adap, bool enable)
+>>  {
+>> -       struct stih_cec *cec = adap->priv;
+>> +       struct stih_cec *cec = cec_get_drvdata(adap);
+>>
+>>         if (enable) {
+>>                 /* The doc says (input TCLK_PERIOD * CEC_CLK_DIV) = 0.1ms */
+>> @@ -189,7 +189,7 @@ static int stih_cec_adap_enable(struct cec_adapter *adap, bool enable)
+>>
+>>  static int stih_cec_adap_log_addr(struct cec_adapter *adap, u8 logical_addr)
+>>  {
+>> -       struct stih_cec *cec = adap->priv;
+>> +       struct stih_cec *cec = cec_get_drvdata(adap);
+>>         u32 reg = readl(cec->regs + CEC_ADDR_TABLE);
+>>
+>>         reg |= 1 << logical_addr;
+>> @@ -205,7 +205,7 @@ static int stih_cec_adap_log_addr(struct cec_adapter *adap, u8 logical_addr)
+>>  static int stih_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
+>>                                   u32 signal_free_time, struct cec_msg *msg)
+>>  {
+>> -       struct stih_cec *cec = adap->priv;
+>> +       struct stih_cec *cec = cec_get_drvdata(adap);
+>>         int i;
+>>
+>>         /* Copy message into registers */
+>> --
+>> 1.9.1
+>>
+>>
