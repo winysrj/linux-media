@@ -1,127 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:59076 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750919AbdCPFUL (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:51011 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751960AbdC1OOj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Mar 2017 01:20:11 -0400
-Message-ID: <7813a9782310d88bc8bb33f205ac4558@smtp-cloud2.xs4all.net>
-Date: Thu, 16 Mar 2017 06:17:15 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 28 Mar 2017 10:14:39 -0400
+Subject: Re: [PATCH v6 17/39] platform: add video-multiplexer subdevice driver
+To: Steve Longerbeam <slongerbeam@gmail.com>, <robh+dt@kernel.org>,
+        <mark.rutland@arm.com>, <shawnguo@kernel.org>,
+        <kernel@pengutronix.de>, <fabio.estevam@nxp.com>,
+        <linux@armlinux.org.uk>, <mchehab@kernel.org>,
+        <hverkuil@xs4all.nl>, <nick@shmanahar.org>,
+        <markus.heiser@darmarIT.de>, <p.zabel@pengutronix.de>,
+        <laurent.pinchart+renesas@ideasonboard.com>, <bparrot@ti.com>,
+        <geert@linux-m68k.org>, <arnd@arndb.de>,
+        <sudipm.mukherjee@gmail.com>, <minghsiu.tsai@mediatek.com>,
+        <tiffany.lin@mediatek.com>, <jean-christophe.trotin@st.com>,
+        <horms+renesas@verge.net.au>,
+        <niklas.soderlund+renesas@ragnatech.se>, <robert.jarzmik@free.fr>,
+        <songjun.wu@microchip.com>, <andrew-ct.chen@mediatek.com>,
+        <gregkh@linuxfoundation.org>, <shuah@kernel.org>,
+        <sakari.ailus@linux.intel.com>, <pavel@ucw.cz>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+ <1490661656-10318-18-git-send-email-steve_longerbeam@mentor.com>
+CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <devel@driverdev.osuosl.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Message-ID: <14adece8-d73f-212b-2bfa-70eb3602666c@mentor.com>
+Date: Tue, 28 Mar 2017 17:12:46 +0300
+MIME-Version: 1.0
+In-Reply-To: <1490661656-10318-18-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Steve,
 
-Results of the daily build of media_tree:
+On 03/28/2017 03:40 AM, Steve Longerbeam wrote:
+> From: Philipp Zabel <p.zabel@pengutronix.de>
+> 
+> This driver can handle SoC internal and external video bus multiplexers,
+> controlled either by register bit fields or by a GPIO. The subdevice
+> passes through frame interval and mbus configuration of the active input
+> to the output side.
+> 
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> 
+> - fixed a cut&paste error in vidsw_remove(): v4l2_async_register_subdev()
+>   should be unregister.
+> 
+> - added media_entity_cleanup() to vidsw_remove().
+> 
+> - added missing MODULE_DEVICE_TABLE().
+>   Suggested-by: Javier Martinez Canillas <javier@dowhile0.org>
+> 
+> - there was a line left over from a previous iteration that negated
+>   the new way of determining the pad count just before it which
+>   has been removed (num_pads = of_get_child_count(np)).
+> 
+> - removed [gs]_frame_interval ops. timeperframe is not used anywhwere
+>   in this subdev, and currently it has no control over frame rate.
+> 
+> - add link_validate to media_entity_operations.
+> 
+> - moved devicetree binding doc to a separate commit.
+> 
+> - Philipp Zabel has developed a set of patches that allow adding
+>   to the subdev async notifier waiting list using a chaining method
+>   from the async registered callbacks (v4l2_of_subdev_registered()
+>   and the prep patches for that). For now, I've removed the use of
+>   v4l2_of_subdev_registered() for the vidmux driver's registered
+>   callback. This doesn't affect the functionality of this driver,
+>   but allows for it to be merged now, before adding the chaining
+>   support.
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  drivers/media/platform/Kconfig             |   8 +
+>  drivers/media/platform/Makefile            |   2 +
+>  drivers/media/platform/video-multiplexer.c | 451 +++++++++++++++++++++++++++++
+>  3 files changed, 461 insertions(+)
+>  create mode 100644 drivers/media/platform/video-multiplexer.c
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index ab0bb48..c9b8d9c 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -74,6 +74,14 @@ config VIDEO_M32R_AR_M64278
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called arv.
+>  
+> +config VIDEO_MULTIPLEXER
+> +	tristate "Video Multiplexer"
+> +	depends on VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
 
-date:			Thu Mar 16 05:00:15 CET 2017
-media-tree git hash:	700ea5e0e0dd70420a04e703ff264cc133834cba
-media_build git hash:	bc4c2a205c087c8deff3cd14ed663c4767dd2016
-v4l-utils git hash:	ca6a0c099399cc51ecfacff7ef938be6ef73b8b3
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
++ depends on OF
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+> +	help
+> +	  This driver provides support for SoC internal N:1 video bus
+> +	  multiplexers controlled by register bitfields as well as external
+> +	  2:1 video multiplexers controlled by a single GPIO.
+> +
 
-Detailed results are available here:
+[snip]
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+> +static int vidsw_probe(struct platform_device *pdev)
+> +{
+> +	struct device_node *np = pdev->dev.of_node;
+> +	struct of_endpoint endpoint;
+> +	struct device_node *ep;
+> +	struct reg_field field;
+> +	struct vidsw *vidsw;
+> +	struct regmap *map;
+> +	unsigned int num_pads;
+> +	int ret;
+> +
+> +	vidsw = devm_kzalloc(&pdev->dev, sizeof(*vidsw), GFP_KERNEL);
+> +	if (!vidsw)
+> +		return -ENOMEM;
+> +
+> +	platform_set_drvdata(pdev, vidsw);
+> +
+> +	v4l2_subdev_init(&vidsw->subdev, &vidsw_subdev_ops);
+> +	snprintf(vidsw->subdev.name, sizeof(vidsw->subdev.name), "%s",
+> +			np->name);
 
-Full logs are available here:
+.... or oops here       ^^^^^^^^^.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+> +	vidsw->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	vidsw->subdev.dev = &pdev->dev;
+> +
+> +	/*
+> +	 * The largest numbered port is the output port. It determines
+> +	 * total number of pads
+> +	 */
+> +	num_pads = 0;
+> +	for_each_endpoint_of_node(np, ep) {
+> +		of_graph_parse_endpoint(ep, &endpoint);
+> +		num_pads = max(num_pads, endpoint.port + 1);
+> +	}
+> +
+> +	if (num_pads < 2) {
+> +		dev_err(&pdev->dev, "Not enough ports %d\n", num_pads);
+> +		return -EINVAL;
+> +	}
 
-The Media Infrastructure API from this daily build is here:
+This unveils another runtime dependency on OF.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> +
+> +	ret = of_get_reg_field(np, &field);
+> +	if (ret == 0) {
+> +		map = syscon_node_to_regmap(np->parent);
+> +		if (!map) {
+> +			dev_err(&pdev->dev, "Failed to get syscon register map\n");
+> +			return PTR_ERR(map);
+> +		}
+> +
+> +		vidsw->field = devm_regmap_field_alloc(&pdev->dev, map, field);
+> +		if (IS_ERR(vidsw->field)) {
+> +			dev_err(&pdev->dev, "Failed to allocate regmap field\n");
+> +			return PTR_ERR(vidsw->field);
+> +		}
+> +
+> +		regmap_field_read(vidsw->field, &vidsw->active);
+> +	} else {
+> +		if (num_pads > 3) {
+> +			dev_err(&pdev->dev, "Too many ports %d\n", num_pads);
+> +			return -EINVAL;
+> +		}
+> +
+> +		vidsw->gpio = devm_gpiod_get(&pdev->dev, NULL, GPIOD_OUT_LOW);
+> +		if (IS_ERR(vidsw->gpio)) {
+> +			dev_warn(&pdev->dev,
+> +				 "could not request control gpio: %d\n", ret);
+> +			vidsw->gpio = NULL;
+> +		}
+> +
+> +		vidsw->active = gpiod_get_value(vidsw->gpio) ? 1 : 0;
+
+vidsw->active is always set to 0 ?
+
+> +	}
+> +
+> +	vidsw->num_pads = num_pads;
+> +	vidsw->pads = devm_kzalloc(&pdev->dev, sizeof(*vidsw->pads) * num_pads,
+> +			GFP_KERNEL);
+> +	vidsw->format_mbus = devm_kzalloc(&pdev->dev,
+> +			sizeof(*vidsw->format_mbus) * num_pads, GFP_KERNEL);
+> +	vidsw->endpoint = devm_kzalloc(&pdev->dev,
+> +			sizeof(*vidsw->endpoint) * (num_pads - 1), GFP_KERNEL);
+> +
+> +	ret = vidsw_async_init(vidsw, np);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return 0;
+> +}
+> +
+
+--
+With best wishes,
+Vladimir
