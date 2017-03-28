@@ -1,91 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:54815 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753049AbdC3JbN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 05:31:13 -0400
-From: Patrice CHOTARD <patrice.chotard@st.com>
-To: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "moderated list:ARM/S5P EXYNOS AR..."
-        <linux-samsung-soc@vger.kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        "Marek Szyprowski" <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: Re: [PATCHv5 11/11] arm: sti: update sti-cec for CEC notifier support
-Date: Thu, 30 Mar 2017 09:30:39 +0000
-Message-ID: <c29adefb-13e6-e723-eb96-3b0049b39ddd@st.com>
-References: <20170329141543.32935-1-hverkuil@xs4all.nl>
- <20170329141543.32935-12-hverkuil@xs4all.nl>
- <CA+M3ks442wftNR8+dctdSkKMCPSw9Rd2CH5UG-VEP7XySGjCjw@mail.gmail.com>
-In-Reply-To: <CA+M3ks442wftNR8+dctdSkKMCPSw9Rd2CH5UG-VEP7XySGjCjw@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <DC90FABD8B6EC54BBF89C4F78634A12E@st.com>
-Content-Transfer-Encoding: base64
+Received: from gofer.mess.org ([88.97.38.141]:45619 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753330AbdC1UZS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Mar 2017 16:25:18 -0400
+Date: Tue, 28 Mar 2017 21:25:16 +0100
+From: Sean Young <sean@mess.org>
+To: A Sun <as1033x@comcast.net>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH 1/3] [media] mceusb: RX -EPIPE (urb status = -32) lockup
+ failure fix
+Message-ID: <20170328202516.GA27790@gofer.mess.org>
+References: <58D6A1DD.2030405@comcast.net>
+ <20170326102748.GA1672@gofer.mess.org>
+ <58D80838.8050809@comcast.net>
+ <20170326203130.GA6070@gofer.mess.org>
+ <58D8CAD9.80304@comcast.net>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <58D8CAD9.80304@comcast.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgQmVuamFtaW4NCg0KT24gMDMvMzAvMjAxNyAwOTo0MSBBTSwgQmVuamFtaW4gR2FpZ25hcmQg
-d3JvdGU6DQo+ICsgUGF0cmljZSBmb3Igc3RpIERUDQoNCkluIG9yZGVyIHRvIGJlIGNvaGVyZW50
-IHdpdGggYWxsIHByZXZpb3VzIFNUaSBEVCBwYXRjaGVzLA0KDQpjYW4geW91IHVwZGF0ZSB0aGUg
-Y29tbWl0IG1lc3NhZ2Ugd2l0aCAiQVJNOiBkdHM6IFNUaUg0MTA6IHVwZGF0ZSANCnN0aS1jZWMg
-Zm9yIENFQyBub3RpZmllciBzdXBwb3J0Ig0KDQpUaGFua3MNCg0KUGF0cmljZQ0KDQo+DQo+IDIw
-MTctMDMtMjkgMTY6MTUgR01UKzAyOjAwIEhhbnMgVmVya3VpbCA8aHZlcmt1aWxAeHM0YWxsLm5s
-PjoNCj4+IEZyb206IEJlbmphbWluIEdhaWduYXJkIDxiZW5qYW1pbi5nYWlnbmFyZEBsaW5hcm8u
-b3JnPg0KPj4NCj4+IFRvIHVzZSBDRUMgbm90aWZpZXIgc3RpIENFQyBkcml2ZXIgbmVlZHMgdG8g
-Z2V0IHBoYW5kbGUNCj4+IG9mIHRoZSBoZG1pIGRldmljZS4NCj4+DQo+PiBTaWduZWQtb2ZmLWJ5
-OiBCZW5qYW1pbiBHYWlnbmFyZCA8YmVuamFtaW4uZ2FpZ25hcmRAbGluYXJvLm9yZz4NCj4+IFNp
-Z25lZC1vZmYtYnk6IEhhbnMgVmVya3VpbCA8aGFucy52ZXJrdWlsQGNpc2NvLmNvbT4NCj4+IEND
-OiBkZXZpY2V0cmVlQHZnZXIua2VybmVsLm9yZw0KPj4gLS0tDQo+PiAgYXJjaC9hcm0vYm9vdC9k
-dHMvc3RpaDQwNy1mYW1pbHkuZHRzaSB8IDEyIC0tLS0tLS0tLS0tLQ0KPj4gIGFyY2gvYXJtL2Jv
-b3QvZHRzL3N0aWg0MTAuZHRzaSAgICAgICAgfCAxMyArKysrKysrKysrKysrDQo+PiAgMiBmaWxl
-cyBjaGFuZ2VkLCAxMyBpbnNlcnRpb25zKCspLCAxMiBkZWxldGlvbnMoLSkNCj4+DQo+PiBkaWZm
-IC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvc3RpaDQwNy1mYW1pbHkuZHRzaSBiL2FyY2gvYXJt
-L2Jvb3QvZHRzL3N0aWg0MDctZmFtaWx5LmR0c2kNCj4+IGluZGV4IGQ3NTNhYzM2Nzg4Zi4uMDQ0
-MTg0NTgwMzI2IDEwMDY0NA0KPj4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvc3RpaDQwNy1mYW1p
-bHkuZHRzaQ0KPj4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvc3RpaDQwNy1mYW1pbHkuZHRzaQ0K
-Pj4gQEAgLTc0MiwxOCArNzQyLDYgQEANCj4+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIDwmY2xrX3NfYzBfZmxleGdlbiBDTEtfRVRIX1BIWT47DQo+PiAgICAgICAgICAgICAgICAg
-fTsNCj4+DQo+PiAtICAgICAgICAgICAgICAgY2VjOiBzdGktY2VjQDA5NGEwODdjIHsNCj4+IC0g
-ICAgICAgICAgICAgICAgICAgICAgIGNvbXBhdGlibGUgPSAic3Qsc3RpaC1jZWMiOw0KPj4gLSAg
-ICAgICAgICAgICAgICAgICAgICAgcmVnID0gPDB4OTRhMDg3YyAweDY0PjsNCj4+IC0gICAgICAg
-ICAgICAgICAgICAgICAgIGNsb2NrcyA9IDwmY2xrX3N5c2luPjsNCj4+IC0gICAgICAgICAgICAg
-ICAgICAgICAgIGNsb2NrLW5hbWVzID0gImNlYy1jbGsiOw0KPj4gLSAgICAgICAgICAgICAgICAg
-ICAgICAgaW50ZXJydXB0cyA9IDxHSUNfU1BJIDE0MCBJUlFfVFlQRV9OT05FPjsNCj4+IC0gICAg
-ICAgICAgICAgICAgICAgICAgIGludGVycnVwdC1uYW1lcyA9ICJjZWMtaXJxIjsNCj4+IC0gICAg
-ICAgICAgICAgICAgICAgICAgIHBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7DQo+PiAtICAgICAg
-ICAgICAgICAgICAgICAgICBwaW5jdHJsLTAgPSA8JnBpbmN0cmxfY2VjMF9kZWZhdWx0PjsNCj4+
-IC0gICAgICAgICAgICAgICAgICAgICAgIHJlc2V0cyA9IDwmc29mdHJlc2V0IFNUSUg0MDdfTFBN
-X1NPRlRSRVNFVD47DQo+PiAtICAgICAgICAgICAgICAgfTsNCj4+IC0NCj4+ICAgICAgICAgICAg
-ICAgICBybmcxMDogcm5nQDA4YTg5MDAwIHsNCj4+ICAgICAgICAgICAgICAgICAgICAgICAgIGNv
-bXBhdGlibGUgICAgICA9ICJzdCxybmciOw0KPj4gICAgICAgICAgICAgICAgICAgICAgICAgcmVn
-ICAgICAgICAgICAgID0gPDB4MDhhODkwMDAgMHgxMDAwPjsNCj4+IGRpZmYgLS1naXQgYS9hcmNo
-L2FybS9ib290L2R0cy9zdGloNDEwLmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9zdGloNDEwLmR0
-c2kNCj4+IGluZGV4IDNjOTY3MmM1YjA5Zi4uMjFmZTcyYjE4M2Q4IDEwMDY0NA0KPj4gLS0tIGEv
-YXJjaC9hcm0vYm9vdC9kdHMvc3RpaDQxMC5kdHNpDQo+PiArKysgYi9hcmNoL2FybS9ib290L2R0
-cy9zdGloNDEwLmR0c2kNCj4+IEBAIC0yODEsNSArMjgxLDE4IEBADQo+PiAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICA8JmNsa19zX2MwX2ZsZXhnZW4gQ0xLX1NUMjMxX0RNVT4sDQo+
-PiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8JmNsa19zX2MwX2ZsZXhnZW4gQ0xL
-X0ZMQVNIX1BST01JUD47DQo+PiAgICAgICAgICAgICAgICAgfTsNCj4+ICsNCj4+ICsgICAgICAg
-ICAgICAgICBzdGktY2VjQDA5NGEwODdjIHsNCj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGNv
-bXBhdGlibGUgPSAic3Qsc3RpaC1jZWMiOw0KPj4gKyAgICAgICAgICAgICAgICAgICAgICAgcmVn
-ID0gPDB4OTRhMDg3YyAweDY0PjsNCj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGNsb2NrcyA9
-IDwmY2xrX3N5c2luPjsNCj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGNsb2NrLW5hbWVzID0g
-ImNlYy1jbGsiOw0KPj4gKyAgICAgICAgICAgICAgICAgICAgICAgaW50ZXJydXB0cyA9IDxHSUNf
-U1BJIDE0MCBJUlFfVFlQRV9OT05FPjsNCj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGludGVy
-cnVwdC1uYW1lcyA9ICJjZWMtaXJxIjsNCj4+ICsgICAgICAgICAgICAgICAgICAgICAgIHBpbmN0
-cmwtbmFtZXMgPSAiZGVmYXVsdCI7DQo+PiArICAgICAgICAgICAgICAgICAgICAgICBwaW5jdHJs
-LTAgPSA8JnBpbmN0cmxfY2VjMF9kZWZhdWx0PjsNCj4+ICsgICAgICAgICAgICAgICAgICAgICAg
-IHJlc2V0cyA9IDwmc29mdHJlc2V0IFNUSUg0MDdfTFBNX1NPRlRSRVNFVD47DQo+PiArICAgICAg
-ICAgICAgICAgICAgICAgICBoZG1pLXBoYW5kbGUgPSA8JnN0aV9oZG1pPjsNCj4+ICsgICAgICAg
-ICAgICAgICB9Ow0KPj4gICAgICAgICB9Ow0KPj4gIH07DQo+PiAtLQ0KPj4gMi4xMS4wDQo+Pg0K
-Pg0KPg0KPg==
+On Mon, Mar 27, 2017 at 04:18:33AM -0400, A Sun wrote:
+> On 3/26/2017 4:31 PM, Sean Young wrote:
+> > On Sun, Mar 26, 2017 at 02:28:08PM -0400, A Sun wrote:
+> >> commit https://github.com/asunxx/linux/commit/17fe3b51f4ad5202a876ea4c92b5d99d4e166823
+> >> Author: A Sun <as1033x@comcast.net>
+> >> Date:   Sun, 26 Mar 2017 13:24:18 -0400 
+> > 
+> > Please don't include this.
+> > 
+> >>
+> ...
+> >> mceusb 1-1.2:1.0: 2 tx ports (0x1 cabled) and 2 rx sensors (0x1 active)
+> > 
+> > It would be nice to have this tested against a mainline kernel. I thought
+> > that was entirely possible on raspberry pis nowadays.
+> ...
+> >> +	/* kevent support */
+> >> +	struct work_struct kevent;
+> > 
+> > kevent is not a descriptive name. How about something like clear_halt?
+> > 
+> >> +	unsigned long kevent_flags;
+> >> +#		define EVENT_TX_HALT	0
+> >> +#		define EVENT_RX_HALT	1
+> > 
+> > EVENT_TX_HALT is never used, so kevent_flags is only ever set to 1. The
+> > entire field can be dropped.
+> > 
+> ...
+> >> +	if (!schedule_work(&ir->kevent)) {
+> >> +		dev_err(ir->dev, "kevent %d may have been dropped", kevent);
+> >> +	} else {
+> >> +		dev_dbg(ir->dev, "kevent %d scheduled", kevent);
+> >> +	}
+> >> +}
+> > 
+> > Again name is not very descriptive.
+> > 
+> ...
+> >> +		dev_err(ir->dev, "Error: urb status = %d (RX HALT)",
+> >> +			urb->status);
+> >> +		mceusb_defer_kevent(ir, EVENT_RX_HALT);
+> > 
+> > Here you could simply call schedule_work(). Note that EPIPE might also
+> > be returned for device disconnect for some host controllers.
+> > 
+> >> +		return;
+> ...
+> >> +	int status;
+> >> +
+> >> +	if (test_bit(EVENT_RX_HALT, &ir->kevent_flags)) {
+> > 
+> > If condition can go.
+> > 
+> >> +		usb_unlink_urb(ir->urb_in);
+> >> +		status = usb_clear_halt(ir->usbdev, ir->pipe_in);
+> 
+> Hi Sean,
+> 
+> Thanks again for looking at this. This patch is based on similar error and recovery, with the USB ethernet driver usbnet (usbnet.c, usbnet.h).
+> 
+> In usbnet, they call "kevent" (kernel device event?) any kind of hardware state change or event in interrupt context that requires invoking non-interrupt code to handle. I'm not sure what else I should name it. Possible kevent-s are not limited to situations needing usb_clear_halt(). From usbnet:
+>  69 #               define EVENT_TX_HALT    0
+>  70 #               define EVENT_RX_HALT    1
+>  71 #               define EVENT_RX_MEMORY  2
+>  72 #               define EVENT_STS_SPLIT  3
+>  73 #               define EVENT_LINK_RESET 4
+>  74 #               define EVENT_RX_PAUSED  5
+>  75 #               define EVENT_DEV_ASLEEP 6
+>  76 #               define EVENT_DEV_OPEN   7
+>  77 #               define EVENT_DEVICE_REPORT_IDLE 8
+>  78 #               define EVENT_NO_RUNTIME_PM      9
+>  79 #               define EVENT_RX_KILL    10
+>  80 #               define EVENT_LINK_CHANGE        11
+>  81 #               define EVENT_SET_RX_MODE        12
+> So far, the first two are appearing applicable for mceusb.
+
+So far, only EVENT_RX_HALT is relevant for mceusb. It is likely that, this
+will the be only one we will ever need in which case all this kevent kind
+of business is completely unnecessary for a simple usb driver, rather
+than usb networking driver infrastructure.
+ 
+> The unused EVENT_TX_HALT and the apparently extra _kevent functions and kevent_flags are necessary for a later:
+>     [PATCH] [media] mceusb: TX -EPIPE lockup fix
+> ...not yet written, transmit side equivalent bug. I respectfully recommend keeping these hooks in place.
+
+Have you observed this happening?
+
+Speaking of which, how do you reproduce the original -EPIPE issue? I've
+tried to reproduce on my raspberry pi 3 with a very similar mceusb
+device, but I haven't had any luck.
+
+What's the lsusb -vv for this device?
+
+> For now, I think the transmit side EPIPE bug fix is less critical, since the TX bug avoids hanging the host/kernel, but would still cause lockup of the device.
+> 
+> In case of RX EPIPE on disconnect, the fix is still safe. Recovery attempt should fail (in usb_clear_halt() or usb_submit_urb()) and abort without further retry, and the recovery handler itself gets shutdown in mceusb_dev_disconnect().
+
+
+Thanks
+Sean
