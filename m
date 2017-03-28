@@ -1,94 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.134]:64120 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753967AbdCBRLM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 12:11:12 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: kasan-dev@googlegroups.com
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 06/26] rocker: mark rocker_tlv_put_* functions as noinline_for_kasan
-Date: Thu,  2 Mar 2017 17:38:14 +0100
-Message-Id: <20170302163834.2273519-7-arnd@arndb.de>
-In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
-References: <20170302163834.2273519-1-arnd@arndb.de>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35961 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932717AbdC1MyM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Mar 2017 08:54:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Shuah Khan <shuahkhan@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Rob Clark <robdclark@gmail.com>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Laura Abbott <labbott@redhat.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [RFC v2 03/11] vb2: Move cache synchronisation from buffer done to dqbuf handler
+Date: Tue, 28 Mar 2017 15:31:59 +0300
+Message-ID: <3080874.EIbUBugxIQ@avalon>
+In-Reply-To: <CAKocOOP1quatsWr4O7fwxXVhuPisaST-xkJoPRCO41RHSPhhNw@mail.gmail.com>
+References: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com> <20161216012425.11179-4-laurent.pinchart+renesas@ideasonboard.com> <CAKocOOP1quatsWr4O7fwxXVhuPisaST-xkJoPRCO41RHSPhhNw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Inlining these functions creates lots of stack variables when KASAN is
-enabled, leading to this warning about potential stack overflow:
+Hi Shuah,
 
-drivers/net/ethernet/rocker/rocker_ofdpa.c: In function 'ofdpa_cmd_flow_tbl_add':
-drivers/net/ethernet/rocker/rocker_ofdpa.c:621:1: error: the frame size of 2752 bytes is larger than 1536 bytes [-Werror=frame-larger-than=]
+On Monday 27 Mar 2017 15:27:36 Shuah Khan wrote:
+> On Thu, Dec 15, 2016 at 6:24 PM, Laurent Pinchart wrote:
+> > From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > 
+> > The cache synchronisation may be a time consuming operation and thus not
+> > best performed in an interrupt which is a typical context for
+> > vb2_buffer_done() calls. This may consume up to tens of ms on some
+> > machines, depending on the buffer size.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> > Changes since v1:
+> > 
+> > - Don't rename the 'i' loop counter to 'plane'
+> > ---
+> > 
+> >  drivers/media/v4l2-core/videobuf2-core.c | 9 ++++-----
+> >  1 file changed, 4 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> > b/drivers/media/v4l2-core/videobuf2-core.c index
+> > 8ba48703b189..15a83f338072 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-core.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> > @@ -889,7 +889,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum
+> > vb2_buffer_state state)> 
+> >  {
+> >         struct vb2_queue *q = vb->vb2_queue;
+> >         unsigned long flags;
+> > -       unsigned int plane;
+> > 
+> >         if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
+> >                 return;
+> > @@ -910,10 +909,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum
+> > vb2_buffer_state state)
+> >         dprintk(4, "done processing on buffer %d, state: %d\n",
+> >                         vb->index, state);
+> > 
+> > -       /* sync buffers */
+> > -       for (plane = 0; plane < vb->num_planes; ++plane)
+> > -               call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+> > -
+> >         spin_lock_irqsave(&q->done_lock, flags);
+> >         if (state == VB2_BUF_STATE_QUEUED ||
+> >             state == VB2_BUF_STATE_REQUEUEING) {
+> > @@ -1571,6 +1566,10 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+> > 
+> >         vb->state = VB2_BUF_STATE_DEQUEUED;
+> > 
+> > +       /* sync buffers */
+> > +       for (i = 0; i < vb->num_planes; ++i)
+> > +               call_void_memop(vb, finish, vb->planes[i].mem_priv);
+> > +
+> 
+> Does this compile?? Where is "i" defined? Looks like it needs to be added
+> back in.
 
-This marks all of them noinline_for_kasan, which solves the problem by
-keeping the redzone inside of the separate stack frames.
+It's already defined at the beginning of the __vb2_dqbuf() function.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/net/ethernet/rocker/rocker_tlv.h | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+> >         /* unmap DMABUF buffer */
+> >         if (q->memory == VB2_MEMORY_DMABUF)
+> >                 for (i = 0; i < vb->num_planes; ++i) {
 
-diff --git a/drivers/net/ethernet/rocker/rocker_tlv.h b/drivers/net/ethernet/rocker/rocker_tlv.h
-index a63ef82e7c72..3a9573fe0191 100644
---- a/drivers/net/ethernet/rocker/rocker_tlv.h
-+++ b/drivers/net/ethernet/rocker/rocker_tlv.h
-@@ -139,38 +139,38 @@ rocker_tlv_start(struct rocker_desc_info *desc_info)
- int rocker_tlv_put(struct rocker_desc_info *desc_info,
- 		   int attrtype, int attrlen, const void *data);
- 
--static inline int rocker_tlv_put_u8(struct rocker_desc_info *desc_info,
--				    int attrtype, u8 value)
-+static noinline_for_kasan int
-+rocker_tlv_put_u8(struct rocker_desc_info *desc_info, int attrtype, u8 value)
- {
- 	return rocker_tlv_put(desc_info, attrtype, sizeof(u8), &value);
- }
- 
--static inline int rocker_tlv_put_u16(struct rocker_desc_info *desc_info,
--				     int attrtype, u16 value)
-+static noinline_for_kasan int
-+rocker_tlv_put_u16(struct rocker_desc_info *desc_info, int attrtype, u16 value)
- {
- 	return rocker_tlv_put(desc_info, attrtype, sizeof(u16), &value);
- }
- 
--static inline int rocker_tlv_put_be16(struct rocker_desc_info *desc_info,
--				      int attrtype, __be16 value)
-+static noinline_for_kasan int
-+rocker_tlv_put_be16(struct rocker_desc_info *desc_info, int attrtype, __be16 value)
- {
- 	return rocker_tlv_put(desc_info, attrtype, sizeof(__be16), &value);
- }
- 
--static inline int rocker_tlv_put_u32(struct rocker_desc_info *desc_info,
--				     int attrtype, u32 value)
-+static noinline_for_kasan int
-+rocker_tlv_put_u32(struct rocker_desc_info *desc_info, int attrtype, u32 value)
- {
- 	return rocker_tlv_put(desc_info, attrtype, sizeof(u32), &value);
- }
- 
--static inline int rocker_tlv_put_be32(struct rocker_desc_info *desc_info,
--				      int attrtype, __be32 value)
-+static noinline_for_kasan int
-+rocker_tlv_put_be32(struct rocker_desc_info *desc_info, int attrtype, __be32 value)
- {
- 	return rocker_tlv_put(desc_info, attrtype, sizeof(__be32), &value);
- }
- 
--static inline int rocker_tlv_put_u64(struct rocker_desc_info *desc_info,
--				     int attrtype, u64 value)
-+static noinline_for_kasan int
-+rocker_tlv_put_u64(struct rocker_desc_info *desc_info, int attrtype, u64 value)
- {
- 	return rocker_tlv_put(desc_info, attrtype, sizeof(u64), &value);
- }
 -- 
-2.9.0
+Regards,
+
+Laurent Pinchart
