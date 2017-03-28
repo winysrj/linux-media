@@ -1,485 +1,731 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f182.google.com ([209.85.216.182]:33304 "EHLO
-        mail-qt0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751072AbdCRCsk (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:36333 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753976AbdC1AmO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Mar 2017 22:48:40 -0400
-Received: by mail-qt0-f182.google.com with SMTP id i34so76283829qtc.0
-        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 19:48:39 -0700 (PDT)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mon, 27 Mar 2017 20:42:14 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFC PATCHv2 18/21] staging: android: ion: Rework heap registration/enumeration
-Date: Fri, 17 Mar 2017 17:54:50 -0700
-Message-Id: <1489798493-16600-19-git-send-email-labbott@redhat.com>
-In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
-References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v6 24/39] media: imx: Add MIPI CSI-2 Receiver subdev driver
+Date: Mon, 27 Mar 2017 17:40:41 -0700
+Message-Id: <1490661656-10318-25-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Adds MIPI CSI-2 Receiver subdev driver. This subdev is required
+for sensors with a MIPI CSI2 interface.
 
-The current model of Ion heap registration  is based on the outdated
-model of board files. The replacement for board files (devicetree)
-isn't a good replacement for what Ion wants to do. In actuality, Ion
-wants to show what memory is available in the system for something else
-to figure out what to use. Switch to a model where Ion creates its
-device unconditionally and heaps are registed as available regions.
-Currently, only system and CMA heaps are converted over to the new
-model. Carveout and chunk heaps can be converted over when someone wants
-to figure out how.
-
-Signed-off-by: Laura Abbott <labbott@redhat.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/staging/android/ion/Kconfig             | 25 +++++++++
- drivers/staging/android/ion/Makefile            |  7 +--
- drivers/staging/android/ion/ion.c               | 28 +++++------
- drivers/staging/android/ion/ion.h               | 40 +--------------
- drivers/staging/android/ion/ion_carveout_heap.c | 10 ----
- drivers/staging/android/ion/ion_chunk_heap.c    |  9 ----
- drivers/staging/android/ion/ion_cma_heap.c      | 24 +++++++--
- drivers/staging/android/ion/ion_heap.c          | 67 -------------------------
- drivers/staging/android/ion/ion_system_heap.c   | 38 ++++++++------
- 9 files changed, 85 insertions(+), 163 deletions(-)
+ drivers/staging/media/imx/Makefile         |   1 +
+ drivers/staging/media/imx/imx6-mipi-csi2.c | 673 +++++++++++++++++++++++++++++
+ 2 files changed, 674 insertions(+)
+ create mode 100644 drivers/staging/media/imx/imx6-mipi-csi2.c
 
-diff --git a/drivers/staging/android/ion/Kconfig b/drivers/staging/android/ion/Kconfig
-index 15108c4..a517b2d 100644
---- a/drivers/staging/android/ion/Kconfig
-+++ b/drivers/staging/android/ion/Kconfig
-@@ -10,6 +10,31 @@ menuconfig ION
- 	  If you're not using Android its probably safe to
- 	  say N here.
+diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
+index 878a126..3569625 100644
+--- a/drivers/staging/media/imx/Makefile
++++ b/drivers/staging/media/imx/Makefile
+@@ -9,3 +9,4 @@ obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-vdic.o
+ obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-ic.o
  
-+config ION_SYSTEM_HEAP
-+	bool "Ion system heap"
-+	depends on ION
-+	help
-+	  Choose this option to enable the Ion system heap. The system heap
-+	  is backed by pages from the buddy allocator. If in doubt, say Y.
+ obj-$(CONFIG_VIDEO_IMX_CSI) += imx-media-csi.o
++obj-$(CONFIG_VIDEO_IMX_CSI) += imx6-mipi-csi2.o
+diff --git a/drivers/staging/media/imx/imx6-mipi-csi2.c b/drivers/staging/media/imx/imx6-mipi-csi2.c
+new file mode 100644
+index 0000000..6411b48
+--- /dev/null
++++ b/drivers/staging/media/imx/imx6-mipi-csi2.c
+@@ -0,0 +1,673 @@
++/*
++ * MIPI CSI-2 Receiver Subdev for Freescale i.MX6 SOC.
++ *
++ * Copyright (c) 2012-2017 Mentor Graphics Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++#include <linux/clk.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/iopoll.h>
++#include <linux/irq.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-of.h>
++#include <media/v4l2-subdev.h>
++#include "imx-media.h"
 +
-+config ION_CARVEOUT_HEAP
-+	bool "Ion carveout heap support"
-+	depends on ION
-+	help
-+	  Choose this option to enable carveout heaps with Ion. Carveout heaps
-+	  are backed by memory reserved from the system. Allocation times are
-+	  typically faster at the cost of memory not being used. Unless you
-+	  know your system has these regions, you should say N here.
++/*
++ * there must be 5 pads: 1 input pad from sensor, and
++ * the 4 virtual channel output pads
++ */
++#define CSI2_SINK_PAD       0
++#define CSI2_NUM_SINK_PADS  1
++#define CSI2_NUM_SRC_PADS   4
++#define CSI2_NUM_PADS       5
 +
-+config ION_CHUNK_HEAP
-+	bool "Ion chunk heap support"
-+	depends on ION
-+	help
-+          Choose this option to enable chunk heaps with Ion. This heap is
-+	  similar in function the carveout heap but memory is broken down
-+	  into smaller chunk sizes, typically corresponding to a TLB size.
-+	  Unless you know your system has these regions, you should say N here.
++/*
++ * The default maximum bit-rate per lane in Mbps, if the
++ * source subdev does not provide V4L2_CID_LINK_FREQ.
++ */
++#define CSI2_DEFAULT_MAX_MBPS 849
 +
- config ION_CMA_HEAP
- 	bool "Ion CMA heap support"
- 	depends on ION && CMA
-diff --git a/drivers/staging/android/ion/Makefile b/drivers/staging/android/ion/Makefile
-index a892afa..eb7eeed 100644
---- a/drivers/staging/android/ion/Makefile
-+++ b/drivers/staging/android/ion/Makefile
-@@ -1,4 +1,5 @@
--obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o \
--			ion_page_pool.o ion_system_heap.o \
--			ion_carveout_heap.o ion_chunk_heap.o
-+obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o
-+obj-$(CONFIG_ION_SYSTEM_HEAP) += ion_system_heap.o ion_page_pool.o
-+obj-$(CONFIG_ION_CARVEOUT_HEAP) += ion_carveout_heap.o
-+obj-$(CONFIG_ION_CHUNK_HEAP) += ion_chunk_heap.o
- obj-$(CONFIG_ION_CMA_HEAP) += ion_cma_heap.o
-diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index e1fb865..7d40233 100644
---- a/drivers/staging/android/ion/ion.c
-+++ b/drivers/staging/android/ion/ion.c
-@@ -40,6 +40,9 @@
- 
- #include "ion.h"
- 
-+static struct ion_device *internal_dev;
-+static int heap_id = 0;
++struct csi2_dev {
++	struct device          *dev;
++	struct v4l2_subdev      sd;
++	struct media_pad       pad[CSI2_NUM_PADS];
++	struct clk             *dphy_clk;
++	struct clk             *pllref_clk;
++	struct clk             *pix_clk; /* what is this? */
++	void __iomem           *base;
++	struct v4l2_of_bus_mipi_csi2 bus;
 +
- bool ion_buffer_cached(struct ion_buffer *buffer)
- {
- 	return !!(buffer->flags & ION_FLAG_CACHED);
-@@ -1198,9 +1201,10 @@ static int debug_shrink_get(void *data, u64 *val)
- DEFINE_SIMPLE_ATTRIBUTE(debug_shrink_fops, debug_shrink_get,
- 			debug_shrink_set, "%llu\n");
- 
--void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap)
-+void ion_device_add_heap(struct ion_heap *heap)
- {
- 	struct dentry *debug_file;
-+	struct ion_device *dev = internal_dev;
- 
- 	if (!heap->ops->allocate || !heap->ops->free)
- 		pr_err("%s: can not add heap with invalid ops struct.\n",
-@@ -1217,6 +1221,7 @@ void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap)
- 
- 	heap->dev = dev;
- 	down_write(&dev->lock);
-+	heap->id = heap_id++;
- 	/*
- 	 * use negative heap->id to reverse the priority -- when traversing
- 	 * the list later attempt higher id numbers first
-@@ -1256,14 +1261,14 @@ void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap)
- }
- EXPORT_SYMBOL(ion_device_add_heap);
- 
--struct ion_device *ion_device_create(void)
-+int ion_device_create(void)
- {
- 	struct ion_device *idev;
- 	int ret;
- 
- 	idev = kzalloc(sizeof(*idev), GFP_KERNEL);
- 	if (!idev)
--		return ERR_PTR(-ENOMEM);
-+		return -ENOMEM;
- 
- 	idev->dev.minor = MISC_DYNAMIC_MINOR;
- 	idev->dev.name = "ion";
-@@ -1273,7 +1278,7 @@ struct ion_device *ion_device_create(void)
- 	if (ret) {
- 		pr_err("ion: failed to register misc device.\n");
- 		kfree(idev);
--		return ERR_PTR(ret);
-+		return ret;
- 	}
- 
- 	idev->debug_root = debugfs_create_dir("ion", NULL);
-@@ -1292,7 +1297,6 @@ struct ion_device *ion_device_create(void)
- 		pr_err("ion: failed to create debugfs clients directory.\n");
- 
- debugfs_done:
--
- 	idev->buffers = RB_ROOT;
- 	mutex_init(&idev->buffer_lock);
- 	init_rwsem(&idev->lock);
-@@ -1300,15 +1304,7 @@ struct ion_device *ion_device_create(void)
- 	idev->clients = RB_ROOT;
- 	ion_root_client = &idev->clients;
- 	mutex_init(&debugfs_mutex);
--	return idev;
--}
--EXPORT_SYMBOL(ion_device_create);
--
--void ion_device_destroy(struct ion_device *dev)
--{
--	misc_deregister(&dev->dev);
--	debugfs_remove_recursive(dev->debug_root);
--	/* XXX need to free the heaps and clients ? */
--	kfree(dev);
-+	internal_dev = idev;
-+	return 0;
- }
--EXPORT_SYMBOL(ion_device_destroy);
-+subsys_initcall(ion_device_create);
-diff --git a/drivers/staging/android/ion/ion.h b/drivers/staging/android/ion/ion.h
-index 67fcb73..27b08c8 100644
---- a/drivers/staging/android/ion/ion.h
-+++ b/drivers/staging/android/ion/ion.h
-@@ -280,24 +280,10 @@ bool ion_buffer_cached(struct ion_buffer *buffer);
- bool ion_buffer_fault_user_mappings(struct ion_buffer *buffer);
- 
- /**
-- * ion_device_create - allocates and returns an ion device
-- *
-- * returns a valid device or -PTR_ERR
-- */
--struct ion_device *ion_device_create(void);
--
--/**
-- * ion_device_destroy - free and device and it's resource
-- * @dev:		the device
-- */
--void ion_device_destroy(struct ion_device *dev);
--
--/**
-  * ion_device_add_heap - adds a heap to the ion device
-- * @dev:		the device
-  * @heap:		the heap to add
-  */
--void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap);
-+void ion_device_add_heap(struct ion_heap *heap);
- 
- /**
-  * some helpers for common operations on buffers using the sg_table
-@@ -390,30 +376,6 @@ size_t ion_heap_freelist_size(struct ion_heap *heap);
- 
- 
- /**
-- * functions for creating and destroying the built in ion heaps.
-- * architectures can add their own custom architecture specific
-- * heaps as appropriate.
-- */
--
--
--struct ion_heap *ion_heap_create(struct ion_platform_heap *heap_data);
--void ion_heap_destroy(struct ion_heap *heap);
--
--struct ion_heap *ion_system_heap_create(struct ion_platform_heap *unused);
--void ion_system_heap_destroy(struct ion_heap *heap);
--struct ion_heap *ion_system_contig_heap_create(struct ion_platform_heap *heap);
--void ion_system_contig_heap_destroy(struct ion_heap *heap);
--
--struct ion_heap *ion_carveout_heap_create(struct ion_platform_heap *heap_data);
--void ion_carveout_heap_destroy(struct ion_heap *heap);
--
--struct ion_heap *ion_chunk_heap_create(struct ion_platform_heap *heap_data);
--void ion_chunk_heap_destroy(struct ion_heap *heap);
--
--struct ion_heap *ion_cma_heap_create(struct ion_platform_heap *data);
--void ion_cma_heap_destroy(struct ion_heap *heap);
--
--/**
-  * functions for creating and destroying a heap pool -- allows you
-  * to keep a pool of pre allocated memory to use from your heap.  Keeping
-  * a pool of memory that is ready for dma, ie any cached mapping have been
-diff --git a/drivers/staging/android/ion/ion_carveout_heap.c b/drivers/staging/android/ion/ion_carveout_heap.c
-index 7287279..5fdc1f3 100644
---- a/drivers/staging/android/ion/ion_carveout_heap.c
-+++ b/drivers/staging/android/ion/ion_carveout_heap.c
-@@ -145,13 +145,3 @@ struct ion_heap *ion_carveout_heap_create(struct ion_platform_heap *heap_data)
- 
- 	return &carveout_heap->heap;
- }
--
--void ion_carveout_heap_destroy(struct ion_heap *heap)
--{
--	struct ion_carveout_heap *carveout_heap =
--	     container_of(heap, struct  ion_carveout_heap, heap);
--
--	gen_pool_destroy(carveout_heap->pool);
--	kfree(carveout_heap);
--	carveout_heap = NULL;
--}
-diff --git a/drivers/staging/android/ion/ion_chunk_heap.c b/drivers/staging/android/ion/ion_chunk_heap.c
-index 9210bfe..9c257c7 100644
---- a/drivers/staging/android/ion/ion_chunk_heap.c
-+++ b/drivers/staging/android/ion/ion_chunk_heap.c
-@@ -160,12 +160,3 @@ struct ion_heap *ion_chunk_heap_create(struct ion_platform_heap *heap_data)
- 	return ERR_PTR(ret);
- }
- 
--void ion_chunk_heap_destroy(struct ion_heap *heap)
--{
--	struct ion_chunk_heap *chunk_heap =
--	     container_of(heap, struct  ion_chunk_heap, heap);
--
--	gen_pool_destroy(chunk_heap->pool);
--	kfree(chunk_heap);
--	chunk_heap = NULL;
--}
-diff --git a/drivers/staging/android/ion/ion_cma_heap.c b/drivers/staging/android/ion/ion_cma_heap.c
-index e67e78d..dc2a913 100644
---- a/drivers/staging/android/ion/ion_cma_heap.c
-+++ b/drivers/staging/android/ion/ion_cma_heap.c
-@@ -87,7 +87,7 @@ static struct ion_heap_ops ion_cma_ops = {
- 	.unmap_kernel = ion_heap_unmap_kernel,
- };
- 
--struct ion_heap *ion_cma_heap_create(struct ion_platform_heap *data)
-+static struct ion_heap *__ion_cma_heap_create(struct cma *cma)
- {
- 	struct ion_cma_heap *cma_heap;
- 
-@@ -101,14 +101,28 @@ struct ion_heap *ion_cma_heap_create(struct ion_platform_heap *data)
- 	 * get device from private heaps data, later it will be
- 	 * used to make the link with reserved CMA memory
- 	 */
--	cma_heap->cma = data->priv;
-+	cma_heap->cma = cma;
- 	cma_heap->heap.type = ION_HEAP_TYPE_DMA;
- 	return &cma_heap->heap;
- }
- 
--void ion_cma_heap_destroy(struct ion_heap *heap)
-+int __ion_add_cma_heaps(struct cma *cma, void *data)
- {
--	struct ion_cma_heap *cma_heap = to_cma_heap(heap);
-+        struct ion_heap *heap;
++	/* lock to protect all members below */
++	struct mutex lock;
 +
-+	heap = __ion_cma_heap_create(cma);
-+	if (IS_ERR(heap))
-+		return PTR_ERR(heap);
- 
--	kfree(cma_heap);
-+	heap->name = cma_get_name(cma);
++	struct v4l2_mbus_framefmt format_mbus;
 +
-+        ion_device_add_heap(heap);
-+        return 0;
++	int                     power_count;
++	bool                    stream_on;
++	struct v4l2_subdev      *src_sd;
++	bool                    sink_linked[CSI2_NUM_SRC_PADS];
++};
++
++#define DEVICE_NAME "imx6-mipi-csi2"
++
++/* Register offsets */
++#define CSI2_VERSION            0x000
++#define CSI2_N_LANES            0x004
++#define CSI2_PHY_SHUTDOWNZ      0x008
++#define CSI2_DPHY_RSTZ          0x00c
++#define CSI2_RESETN             0x010
++#define CSI2_PHY_STATE          0x014
++#define PHY_STOPSTATEDATA_BIT   4
++#define PHY_STOPSTATEDATA(n)    BIT(PHY_STOPSTATEDATA_BIT + (n))
++#define PHY_RXCLKACTIVEHS       BIT(8)
++#define PHY_RXULPSCLKNOT        BIT(9)
++#define PHY_STOPSTATECLK        BIT(10)
++#define CSI2_DATA_IDS_1         0x018
++#define CSI2_DATA_IDS_2         0x01c
++#define CSI2_ERR1               0x020
++#define CSI2_ERR2               0x024
++#define CSI2_MSK1               0x028
++#define CSI2_MSK2               0x02c
++#define CSI2_PHY_TST_CTRL0      0x030
++#define PHY_TESTCLR		BIT(0)
++#define PHY_TESTCLK		BIT(1)
++#define CSI2_PHY_TST_CTRL1      0x034
++#define PHY_TESTEN		BIT(16)
++#define CSI2_SFT_RESET          0xf00
++
++static inline struct csi2_dev *sd_to_dev(struct v4l2_subdev *sdev)
++{
++	return container_of(sdev, struct csi2_dev, sd);
 +}
 +
-+static int ion_add_cma_heaps(void)
++/*
++ * The required sequence of MIPI CSI-2 startup as specified in the i.MX6
++ * reference manual is as follows:
++ *
++ * 1. Deassert presetn signal (global reset).
++ *        It's not clear what this "global reset" signal is (maybe APB
++ *        global reset), but in any case this step would be probably
++ *        be carried out during driver load in csi2_probe().
++ *
++ * 2. Configure MIPI Camera Sensor to put all Tx lanes in LP-11 state.
++ *        This must be carried out by the MIPI sensor's s_power(ON) subdev
++ *        op.
++ *
++ * 3. D-PHY initialization.
++ * 4. CSI2 Controller programming (Set N_LANES, deassert PHY_SHUTDOWNZ,
++ *    deassert PHY_RSTZ, deassert CSI2_RESETN).
++ * 5. Read the PHY status register (PHY_STATE) to confirm that all data and
++ *    clock lanes of the D-PHY are in LP-11 state.
++ *        These steps (3,4,5) are carried out by csi2_s_power(ON) here.
++ *
++ * 6. Configure the MIPI Camera Sensor to start transmitting a clock on the
++ *    D-PHY clock lane.
++ *        This must be carried out by the MIPI sensor's s_stream(ON) subdev
++ *        op.
++ *
++ * 7. CSI2 Controller programming - Read the PHY status register (PHY_STATE)
++ *    to confirm that the D-PHY is receiving a clock on the D-PHY clock lane.
++ *        This step is carried out by csi2_s_stream(ON) here.
++ */
++
++static void csi2_enable(struct csi2_dev *csi2, bool enable)
 +{
-+	cma_for_each_area(__ion_add_cma_heaps, NULL);
++	if (enable) {
++		writel(0x1, csi2->base + CSI2_PHY_SHUTDOWNZ);
++		writel(0x1, csi2->base + CSI2_DPHY_RSTZ);
++		writel(0x1, csi2->base + CSI2_RESETN);
++	} else {
++		writel(0x0, csi2->base + CSI2_PHY_SHUTDOWNZ);
++		writel(0x0, csi2->base + CSI2_DPHY_RSTZ);
++		writel(0x0, csi2->base + CSI2_RESETN);
++	}
++}
++
++static void csi2_set_lanes(struct csi2_dev *csi2)
++{
++	int lanes = csi2->bus.num_data_lanes;
++
++	writel(lanes - 1, csi2->base + CSI2_N_LANES);
++}
++
++static void dw_mipi_csi2_phy_write(struct csi2_dev *csi2,
++				   u32 test_code, u32 test_data)
++{
++	/* Clear PHY test interface */
++	writel(PHY_TESTCLR, csi2->base + CSI2_PHY_TST_CTRL0);
++	writel(0x0, csi2->base + CSI2_PHY_TST_CTRL1);
++	writel(0x0, csi2->base + CSI2_PHY_TST_CTRL0);
++
++	/* Raise test interface strobe signal */
++	writel(PHY_TESTCLK, csi2->base + CSI2_PHY_TST_CTRL0);
++
++	/* Configure address write on falling edge and lower strobe signal */
++	writel(PHY_TESTEN | test_code, csi2->base + CSI2_PHY_TST_CTRL1);
++	writel(0x0, csi2->base + CSI2_PHY_TST_CTRL0);
++
++	/* Configure data write on rising edge and raise strobe signal */
++	writel(test_data, csi2->base + CSI2_PHY_TST_CTRL1);
++	writel(PHY_TESTCLK, csi2->base + CSI2_PHY_TST_CTRL0);
++
++	/* Clear strobe signal */
++	writel(0x0, csi2->base + CSI2_PHY_TST_CTRL0);
++}
++
++/*
++ * This table is based on the table documented at
++ * https://community.nxp.com/docs/DOC-94312. It assumes
++ * a 27MHz D-PHY pll reference clock.
++ */
++static const struct {
++	u32 max_mbps;
++	u32 hsfreqrange_sel;
++} hsfreq_map[] = {
++	{ 90, 0x00}, {100, 0x20}, {110, 0x40}, {125, 0x02},
++	{140, 0x22}, {150, 0x42}, {160, 0x04}, {180, 0x24},
++	{200, 0x44}, {210, 0x06}, {240, 0x26}, {250, 0x46},
++	{270, 0x08}, {300, 0x28}, {330, 0x48}, {360, 0x2a},
++	{400, 0x4a}, {450, 0x0c}, {500, 0x2c}, {550, 0x0e},
++	{600, 0x2e}, {650, 0x10}, {700, 0x30}, {750, 0x12},
++	{800, 0x32}, {850, 0x14}, {900, 0x34}, {950, 0x54},
++	{1000, 0x74},
++};
++
++static int max_mbps_to_hsfreqrange_sel(u32 max_mbps)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(hsfreq_map); i++)
++		if (hsfreq_map[i].max_mbps > max_mbps)
++			return hsfreq_map[i].hsfreqrange_sel;
++
++	return -EINVAL;
++}
++
++static int csi2_dphy_init(struct csi2_dev *csi2)
++{
++	struct v4l2_ctrl *ctrl;
++	u32 mbps_per_lane;
++	int sel;
++
++	ctrl = v4l2_ctrl_find(csi2->src_sd->ctrl_handler,
++			      V4L2_CID_LINK_FREQ);
++	if (!ctrl)
++		mbps_per_lane = CSI2_DEFAULT_MAX_MBPS;
++	else
++		mbps_per_lane = DIV_ROUND_UP_ULL(2 * ctrl->qmenu_int[ctrl->val],
++						 USEC_PER_SEC);
++
++	sel = max_mbps_to_hsfreqrange_sel(mbps_per_lane);
++	if (sel < 0)
++		return sel;
++
++	dw_mipi_csi2_phy_write(csi2, 0x44, sel);
++
 +	return 0;
- }
-+device_initcall(ion_add_cma_heaps);
-diff --git a/drivers/staging/android/ion/ion_heap.c b/drivers/staging/android/ion/ion_heap.c
-index acb292c..91faa7f 100644
---- a/drivers/staging/android/ion/ion_heap.c
-+++ b/drivers/staging/android/ion/ion_heap.c
-@@ -314,70 +314,3 @@ void ion_heap_init_shrinker(struct ion_heap *heap)
- 	heap->shrinker.batch = 0;
- 	register_shrinker(&heap->shrinker);
- }
--
--struct ion_heap *ion_heap_create(struct ion_platform_heap *heap_data)
--{
--	struct ion_heap *heap = NULL;
--
--	switch (heap_data->type) {
--	case ION_HEAP_TYPE_SYSTEM_CONTIG:
--		heap = ion_system_contig_heap_create(heap_data);
--		break;
--	case ION_HEAP_TYPE_SYSTEM:
--		heap = ion_system_heap_create(heap_data);
--		break;
--	case ION_HEAP_TYPE_CARVEOUT:
--		heap = ion_carveout_heap_create(heap_data);
--		break;
--	case ION_HEAP_TYPE_CHUNK:
--		heap = ion_chunk_heap_create(heap_data);
--		break;
--	case ION_HEAP_TYPE_DMA:
--		heap = ion_cma_heap_create(heap_data);
--		break;
--	default:
--		pr_err("%s: Invalid heap type %d\n", __func__,
--		       heap_data->type);
--		return ERR_PTR(-EINVAL);
--	}
--
--	if (IS_ERR_OR_NULL(heap)) {
--		pr_err("%s: error creating heap %s type %d base %pa size %zu\n",
--		       __func__, heap_data->name, heap_data->type,
--		       &heap_data->base, heap_data->size);
--		return ERR_PTR(-EINVAL);
--	}
--
--	heap->name = heap_data->name;
--	heap->id = heap_data->id;
--	return heap;
--}
--EXPORT_SYMBOL(ion_heap_create);
--
--void ion_heap_destroy(struct ion_heap *heap)
--{
--	if (!heap)
--		return;
--
--	switch (heap->type) {
--	case ION_HEAP_TYPE_SYSTEM_CONTIG:
--		ion_system_contig_heap_destroy(heap);
--		break;
--	case ION_HEAP_TYPE_SYSTEM:
--		ion_system_heap_destroy(heap);
--		break;
--	case ION_HEAP_TYPE_CARVEOUT:
--		ion_carveout_heap_destroy(heap);
--		break;
--	case ION_HEAP_TYPE_CHUNK:
--		ion_chunk_heap_destroy(heap);
--		break;
--	case ION_HEAP_TYPE_DMA:
--		ion_cma_heap_destroy(heap);
--		break;
--	default:
--		pr_err("%s: Invalid heap type %d\n", __func__,
--		       heap->type);
--	}
--}
--EXPORT_SYMBOL(ion_heap_destroy);
-diff --git a/drivers/staging/android/ion/ion_system_heap.c b/drivers/staging/android/ion/ion_system_heap.c
-index 4e6fe37..c50f2d9 100644
---- a/drivers/staging/android/ion/ion_system_heap.c
-+++ b/drivers/staging/android/ion/ion_system_heap.c
-@@ -320,7 +320,7 @@ static int ion_system_heap_create_pools(struct ion_page_pool **pools,
- 	return -ENOMEM;
- }
- 
--struct ion_heap *ion_system_heap_create(struct ion_platform_heap *unused)
-+static struct ion_heap *__ion_system_heap_create(void)
- {
- 	struct ion_system_heap *heap;
- 
-@@ -348,19 +348,19 @@ struct ion_heap *ion_system_heap_create(struct ion_platform_heap *unused)
- 	return ERR_PTR(-ENOMEM);
- }
- 
--void ion_system_heap_destroy(struct ion_heap *heap)
-+static int ion_system_heap_create(void)
- {
--	struct ion_system_heap *sys_heap = container_of(heap,
--							struct ion_system_heap,
--							heap);
--	int i;
-+	struct ion_heap *heap;
- 
--	for (i = 0; i < NUM_ORDERS; i++) {
--		ion_page_pool_destroy(sys_heap->uncached_pools[i]);
--		ion_page_pool_destroy(sys_heap->cached_pools[i]);
--	}
--	kfree(sys_heap);
-+	heap = __ion_system_heap_create();
-+	if (IS_ERR(heap))
-+		return PTR_ERR(heap);
-+	heap->name = "ion_system_heap";
++}
 +
-+	ion_device_add_heap(heap);
++/*
++ * Waits for ultra-low-power state on D-PHY clock lane. This is currently
++ * unused and may not be needed at all, but keep around just in case.
++ */
++static int __maybe_unused csi2_dphy_wait_ulp(struct csi2_dev *csi2)
++{
++	u32 reg;
++	int ret;
++
++	/* wait for ULP on clock lane */
++	ret = readl_poll_timeout(csi2->base + CSI2_PHY_STATE, reg,
++				 !(reg & PHY_RXULPSCLKNOT), 0, 500000);
++	if (ret) {
++		v4l2_err(&csi2->sd, "ULP timeout, phy_state = 0x%08x\n", reg);
++		return ret;
++	}
++
++	/* wait until no errors on bus */
++	ret = readl_poll_timeout(csi2->base + CSI2_ERR1, reg,
++				 reg == 0x0, 0, 500000);
++	if (ret) {
++		v4l2_err(&csi2->sd, "stable bus timeout, err1 = 0x%08x\n", reg);
++		return ret;
++	}
++
 +	return 0;
- }
-+device_initcall(ion_system_heap_create);
- 
- static int ion_system_contig_heap_allocate(struct ion_heap *heap,
- 					   struct ion_buffer *buffer,
-@@ -429,7 +429,7 @@ static struct ion_heap_ops kmalloc_ops = {
- 	.map_user = ion_heap_map_user,
- };
- 
--struct ion_heap *ion_system_contig_heap_create(struct ion_platform_heap *unused)
-+static struct ion_heap *__ion_system_contig_heap_create(void)
- {
- 	struct ion_heap *heap;
- 
-@@ -438,10 +438,20 @@ struct ion_heap *ion_system_contig_heap_create(struct ion_platform_heap *unused)
- 		return ERR_PTR(-ENOMEM);
- 	heap->ops = &kmalloc_ops;
- 	heap->type = ION_HEAP_TYPE_SYSTEM_CONTIG;
-+	heap->name = "ion_system_contig_heap";
- 	return heap;
- }
- 
--void ion_system_contig_heap_destroy(struct ion_heap *heap)
-+static int ion_system_contig_heap_create(void)
- {
--	kfree(heap);
-+	struct ion_heap *heap;
++}
 +
-+	heap = __ion_system_contig_heap_create();
-+	if (IS_ERR(heap))
-+		return PTR_ERR(heap);
++/* Waits for low-power LP-11 state on data and clock lanes. */
++static int csi2_dphy_wait_stopstate(struct csi2_dev *csi2)
++{
++	u32 mask, reg;
++	int ret;
 +
-+	ion_device_add_heap(heap);
++	mask = PHY_STOPSTATECLK |
++		((csi2->bus.num_data_lanes - 1) << PHY_STOPSTATEDATA_BIT);
++
++	ret = readl_poll_timeout(csi2->base + CSI2_PHY_STATE, reg,
++				 (reg & mask) == mask, 0, 500000);
++	if (ret) {
++		v4l2_err(&csi2->sd, "LP-11 timeout, phy_state = 0x%08x\n", reg);
++		return ret;
++	}
++
 +	return 0;
- }
-+device_initcall(ion_system_contig_heap_create);
++}
 +
++/* Wait for active clock on the clock lane. */
++static int csi2_dphy_wait_clock_lane(struct csi2_dev *csi2)
++{
++	u32 reg;
++	int ret;
++
++	ret = readl_poll_timeout(csi2->base + CSI2_PHY_STATE, reg,
++				 (reg & PHY_RXCLKACTIVEHS), 0, 500000);
++	if (ret) {
++		v4l2_err(&csi2->sd, "clock lane timeout, phy_state = 0x%08x\n",
++			 reg);
++		return ret;
++	}
++
++	return 0;
++}
++
++/*
++ * V4L2 subdev operations.
++ */
++
++/* Startup Sequence Steps 3, 4, 5 */
++static int csi2_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct csi2_dev *csi2 = sd_to_dev(sd);
++	int ret = 0;
++
++	mutex_lock(&csi2->lock);
++
++	/*
++	 * If the power count is modified from 0 to != 0 or from != 0 to 0,
++	 * update the power state.
++	 */
++	if (csi2->power_count == !on) {
++		if (on) {
++			dev_dbg(csi2->dev, "power ON\n");
++
++			if (!csi2->src_sd) {
++				ret = -EPIPE;
++				goto out;
++			}
++
++			ret = clk_prepare_enable(csi2->pix_clk);
++			if (ret)
++				goto out;
++
++			/* Step 3 */
++			ret = csi2_dphy_init(csi2);
++			if (ret) {
++				clk_disable_unprepare(csi2->pix_clk);
++				goto out;
++			}
++
++			/* Step 4 */
++			csi2_set_lanes(csi2);
++			csi2_enable(csi2, true);
++
++			/* Step 5 */
++			ret = csi2_dphy_wait_stopstate(csi2);
++			if (ret) {
++				csi2_enable(csi2, false);
++				clk_disable_unprepare(csi2->pix_clk);
++				goto out;
++			}
++		} else {
++			dev_dbg(csi2->dev, "power OFF\n");
++			csi2_enable(csi2, false);
++			clk_disable_unprepare(csi2->pix_clk);
++		}
++	}
++
++	/* Update the power count. */
++	csi2->power_count += on ? 1 : -1;
++	WARN_ON(csi2->power_count < 0);
++out:
++	mutex_unlock(&csi2->lock);
++	return ret;
++}
++
++static int csi2_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct csi2_dev *csi2 = sd_to_dev(sd);
++	int i, ret = 0;
++
++	mutex_lock(&csi2->lock);
++
++	if (!csi2->src_sd) {
++		ret = -EPIPE;
++		goto out;
++	}
++
++	for (i = 0; i < CSI2_NUM_SRC_PADS; i++) {
++		if (csi2->sink_linked[i])
++			break;
++	}
++	if (i >= CSI2_NUM_SRC_PADS) {
++		ret = -EPIPE;
++		goto out;
++	}
++
++	if (enable && !csi2->stream_on) {
++		dev_dbg(csi2->dev, "stream ON\n");
++		ret = csi2_dphy_wait_clock_lane(csi2);
++	} else if (!enable && csi2->stream_on) {
++		dev_dbg(csi2->dev, "stream OFF\n");
++	}
++
++	csi2->stream_on = enable;
++out:
++	mutex_unlock(&csi2->lock);
++	return ret;
++}
++
++static int csi2_link_setup(struct media_entity *entity,
++			   const struct media_pad *local,
++			   const struct media_pad *remote, u32 flags)
++{
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++	struct csi2_dev *csi2 = sd_to_dev(sd);
++	struct v4l2_subdev *remote_sd;
++	int ret = 0;
++
++	dev_dbg(csi2->dev, "link setup %s -> %s", remote->entity->name,
++		local->entity->name);
++
++	remote_sd = media_entity_to_v4l2_subdev(remote->entity);
++
++	mutex_lock(&csi2->lock);
++
++	if (local->flags & MEDIA_PAD_FL_SOURCE) {
++		if (flags & MEDIA_LNK_FL_ENABLED) {
++			if (csi2->sink_linked[local->index]) {
++				ret = -EBUSY;
++				goto out;
++			}
++			csi2->sink_linked[local->index] = true;
++		} else {
++			csi2->sink_linked[local->index] = false;
++		}
++	} else {
++		if (flags & MEDIA_LNK_FL_ENABLED) {
++			if (csi2->src_sd) {
++				ret = -EBUSY;
++				goto out;
++			}
++			csi2->src_sd = remote_sd;
++		} else {
++			csi2->src_sd = NULL;
++		}
++	}
++
++out:
++	mutex_unlock(&csi2->lock);
++	return ret;
++}
++
++static int csi2_get_fmt(struct v4l2_subdev *sd,
++			struct v4l2_subdev_pad_config *cfg,
++			struct v4l2_subdev_format *sdformat)
++{
++	struct csi2_dev *csi2 = sd_to_dev(sd);
++	struct v4l2_mbus_framefmt *fmt;
++
++	mutex_lock(&csi2->lock);
++
++	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY)
++		fmt = v4l2_subdev_get_try_format(&csi2->sd, cfg,
++						 sdformat->pad);
++	else
++		fmt = &csi2->format_mbus;
++
++	sdformat->format = *fmt;
++
++	mutex_unlock(&csi2->lock);
++
++	return 0;
++}
++
++static int csi2_set_fmt(struct v4l2_subdev *sd,
++			struct v4l2_subdev_pad_config *cfg,
++			struct v4l2_subdev_format *sdformat)
++{
++	struct csi2_dev *csi2 = sd_to_dev(sd);
++	int ret = 0;
++
++	if (sdformat->pad >= CSI2_NUM_PADS)
++		return -EINVAL;
++
++	mutex_lock(&csi2->lock);
++
++	if (csi2->stream_on) {
++		ret = -EBUSY;
++		goto out;
++	}
++
++	/* Output pads mirror active input pad, no limits on input pads */
++	if (sdformat->pad != CSI2_SINK_PAD)
++		sdformat->format = csi2->format_mbus;
++
++	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY)
++		cfg->try_fmt = sdformat->format;
++	else
++		csi2->format_mbus = sdformat->format;
++out:
++	mutex_unlock(&csi2->lock);
++	return ret;
++}
++
++/*
++ * retrieve our pads parsed from the OF graph by the media device
++ */
++static int csi2_registered(struct v4l2_subdev *sd)
++{
++	struct csi2_dev *csi2 = sd_to_dev(sd);
++	int i, ret;
++
++	for (i = 0; i < CSI2_NUM_PADS; i++) {
++		csi2->pad[i].flags = (i == CSI2_SINK_PAD) ?
++		MEDIA_PAD_FL_SINK : MEDIA_PAD_FL_SOURCE;
++	}
++
++	/* set a default mbus format  */
++	ret = imx_media_init_mbus_fmt(&csi2->format_mbus,
++				      640, 480, 0, V4L2_FIELD_NONE, NULL);
++	if (ret)
++		return ret;
++
++	return media_entity_pads_init(&sd->entity, CSI2_NUM_PADS, csi2->pad);
++}
++
++static struct media_entity_operations csi2_entity_ops = {
++	.link_setup = csi2_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
++};
++
++static struct v4l2_subdev_core_ops csi2_core_ops = {
++	.s_power = csi2_s_power,
++};
++
++static struct v4l2_subdev_video_ops csi2_video_ops = {
++	.s_stream = csi2_s_stream,
++};
++
++static struct v4l2_subdev_pad_ops csi2_pad_ops = {
++	.get_fmt = csi2_get_fmt,
++	.set_fmt = csi2_set_fmt,
++};
++
++static struct v4l2_subdev_ops csi2_subdev_ops = {
++	.core = &csi2_core_ops,
++	.video = &csi2_video_ops,
++	.pad = &csi2_pad_ops,
++};
++
++static struct v4l2_subdev_internal_ops csi2_internal_ops = {
++	.registered = csi2_registered,
++};
++
++static int csi2_parse_endpoints(struct csi2_dev *csi2)
++{
++	struct device_node *node = csi2->dev->of_node;
++	struct device_node *epnode;
++	struct v4l2_of_endpoint ep;
++
++	epnode = of_graph_get_endpoint_by_regs(node, 0, -1);
++	if (!epnode) {
++		v4l2_err(&csi2->sd, "failed to get sink endpoint node\n");
++		return -EINVAL;
++	}
++
++	v4l2_of_parse_endpoint(epnode, &ep);
++	of_node_put(epnode);
++
++	if (ep.bus_type != V4L2_MBUS_CSI2) {
++		v4l2_err(&csi2->sd, "invalid bus type, must be MIPI CSI2\n");
++		return -EINVAL;
++	}
++
++	csi2->bus = ep.bus.mipi_csi2;
++
++	dev_dbg(csi2->dev, "data lanes: %d\n", csi2->bus.num_data_lanes);
++	dev_dbg(csi2->dev, "flags: 0x%08x\n", csi2->bus.flags);
++	return 0;
++}
++
++static int csi2_probe(struct platform_device *pdev)
++{
++	struct csi2_dev *csi2;
++	struct resource *res;
++	int ret;
++
++	csi2 = devm_kzalloc(&pdev->dev, sizeof(*csi2), GFP_KERNEL);
++	if (!csi2)
++		return -ENOMEM;
++
++	csi2->dev = &pdev->dev;
++
++	v4l2_subdev_init(&csi2->sd, &csi2_subdev_ops);
++	v4l2_set_subdevdata(&csi2->sd, &pdev->dev);
++	csi2->sd.internal_ops = &csi2_internal_ops;
++	csi2->sd.entity.ops = &csi2_entity_ops;
++	csi2->sd.dev = &pdev->dev;
++	csi2->sd.owner = THIS_MODULE;
++	csi2->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
++	strcpy(csi2->sd.name, DEVICE_NAME);
++	csi2->sd.entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
++	csi2->sd.grp_id = IMX_MEDIA_GRP_ID_CSI2;
++
++	ret = csi2_parse_endpoints(csi2);
++	if (ret)
++		return ret;
++
++	csi2->pllref_clk = devm_clk_get(&pdev->dev, "ref");
++	if (IS_ERR(csi2->pllref_clk)) {
++		v4l2_err(&csi2->sd, "failed to get pll reference clock\n");
++		ret = PTR_ERR(csi2->pllref_clk);
++		return ret;
++	}
++
++	csi2->dphy_clk = devm_clk_get(&pdev->dev, "dphy");
++	if (IS_ERR(csi2->dphy_clk)) {
++		v4l2_err(&csi2->sd, "failed to get dphy clock\n");
++		ret = PTR_ERR(csi2->dphy_clk);
++		return ret;
++	}
++
++	csi2->pix_clk = devm_clk_get(&pdev->dev, "pix");
++	if (IS_ERR(csi2->pix_clk)) {
++		v4l2_err(&csi2->sd, "failed to get pixel clock\n");
++		ret = PTR_ERR(csi2->pix_clk);
++		return ret;
++	}
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		v4l2_err(&csi2->sd, "failed to get platform resources\n");
++		return -ENODEV;
++	}
++
++	csi2->base = devm_ioremap(&pdev->dev, res->start, PAGE_SIZE);
++	if (!csi2->base) {
++		v4l2_err(&csi2->sd, "failed to map CSI-2 registers\n");
++		return -ENOMEM;
++	}
++
++	mutex_init(&csi2->lock);
++
++	ret = clk_prepare_enable(csi2->pllref_clk);
++	if (ret) {
++		v4l2_err(&csi2->sd, "failed to enable pllref_clk\n");
++		goto rmmutex;
++	}
++
++	ret = clk_prepare_enable(csi2->dphy_clk);
++	if (ret) {
++		v4l2_err(&csi2->sd, "failed to enable dphy_clk\n");
++		goto pllref_off;
++	}
++
++	platform_set_drvdata(pdev, &csi2->sd);
++
++	ret = v4l2_async_register_subdev(&csi2->sd);
++	if (ret)
++		goto dphy_off;
++
++	return 0;
++
++dphy_off:
++	clk_disable_unprepare(csi2->dphy_clk);
++pllref_off:
++	clk_disable_unprepare(csi2->pllref_clk);
++rmmutex:
++	mutex_destroy(&csi2->lock);
++	return ret;
++}
++
++static int csi2_remove(struct platform_device *pdev)
++{
++	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
++	struct csi2_dev *csi2 = sd_to_dev(sd);
++
++	v4l2_async_unregister_subdev(sd);
++	clk_disable_unprepare(csi2->dphy_clk);
++	clk_disable_unprepare(csi2->pllref_clk);
++	mutex_destroy(&csi2->lock);
++	media_entity_cleanup(&sd->entity);
++
++	return 0;
++}
++
++static const struct of_device_id csi2_dt_ids[] = {
++	{ .compatible = "fsl,imx6-mipi-csi2", },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, csi2_dt_ids);
++
++static struct platform_driver csi2_driver = {
++	.driver = {
++		.name = DEVICE_NAME,
++		.of_match_table = csi2_dt_ids,
++	},
++	.probe = csi2_probe,
++	.remove = csi2_remove,
++};
++
++module_platform_driver(csi2_driver);
++
++MODULE_DESCRIPTION("i.MX5/6 MIPI CSI-2 Receiver driver");
++MODULE_AUTHOR("Steve Longerbeam <steve_longerbeam@mentor.com>");
++MODULE_LICENSE("GPL");
 -- 
 2.7.4
