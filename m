@@ -1,44 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.andi.de1.cc ([85.214.239.24]:51700 "EHLO
-        h2641619.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752493AbdCOWW6 (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34389 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754563AbdC1I2c (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Mar 2017 18:22:58 -0400
-From: Andreas Kemnade <andreas@kemnade.info>
-To: crope@iki.fi, mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH 3/3] [media] af9035: add Logilink vg0022a to device id table
-Date: Wed, 15 Mar 2017 23:22:10 +0100
-Message-Id: <1489616530-4025-4-git-send-email-andreas@kemnade.info>
-In-Reply-To: <1489616530-4025-1-git-send-email-andreas@kemnade.info>
-References: <1489616530-4025-1-git-send-email-andreas@kemnade.info>
+        Tue, 28 Mar 2017 04:28:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv6 12/14] ov2640: use standard clk and enable it.
+Date: Tue, 28 Mar 2017 10:23:45 +0200
+Message-Id: <20170328082347.11159-13-hverkuil@xs4all.nl>
+In-Reply-To: <20170328082347.11159-1-hverkuil@xs4all.nl>
+References: <20170328082347.11159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ths adds the logilink VG00022a dvb-t dongle to the device table.
-The dongle contains (checked by removing the case)
-IT9303
-SI2168
-  214730
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+Convert v4l2_clk to normal clk and enable the clock.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/usb/dvb-usb-v2/af9035.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/i2c/ov2640.c | 31 ++++++++++++++-----------------
+ 1 file changed, 14 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index a95f4b2..db93e59 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -2165,6 +2165,8 @@ static const struct usb_device_id af9035_id_table[] = {
- 	/* IT930x devices */
- 	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9303,
- 		&it930x_props, "ITE 9303 Generic", NULL) },
-+	{ DVB_USB_DEVICE(USB_VID_DEXATEK, 0x0100,
-+		&it930x_props, "Logilink VG0022A", NULL) },
- 	{ }
- };
- MODULE_DEVICE_TABLE(usb, af9035_id_table);
+diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
+index 83f88efbce69..0445963c5fae 100644
+--- a/drivers/media/i2c/ov2640.c
++++ b/drivers/media/i2c/ov2640.c
+@@ -16,6 +16,7 @@
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/i2c.h>
++#include <linux/clk.h>
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/gpio.h>
+@@ -24,7 +25,6 @@
+ #include <linux/v4l2-mediabus.h>
+ #include <linux/videodev2.h>
+ 
+-#include <media/v4l2-clk.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-ctrls.h>
+@@ -284,7 +284,7 @@ struct ov2640_priv {
+ 	struct v4l2_subdev		subdev;
+ 	struct v4l2_ctrl_handler	hdl;
+ 	u32	cfmt_code;
+-	struct v4l2_clk			*clk;
++	struct clk			*clk;
+ 	const struct ov2640_win_size	*win;
+ 
+ 	struct gpio_desc *resetb_gpio;
+@@ -1051,14 +1051,11 @@ static int ov2640_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 	}
+ 
+-	priv->clk = v4l2_clk_get(&client->dev, "xvclk");
+-	if (IS_ERR(priv->clk))
+-		return -EPROBE_DEFER;
+-
+-	if (!client->dev.of_node) {
+-		dev_err(&client->dev, "Missing platform_data for driver\n");
+-		ret = -EINVAL;
+-		goto err_clk;
++	if (client->dev.of_node) {
++		priv->clk = devm_clk_get(&client->dev, "xvclk");
++		if (IS_ERR(priv->clk))
++			return -EPROBE_DEFER;
++		clk_prepare_enable(priv->clk);
+ 	}
+ 
+ 	ret = ov2640_probe_dt(client, priv);
+@@ -1074,25 +1071,25 @@ static int ov2640_probe(struct i2c_client *client,
+ 	priv->subdev.ctrl_handler = &priv->hdl;
+ 	if (priv->hdl.error) {
+ 		ret = priv->hdl.error;
+-		goto err_clk;
++		goto err_hdl;
+ 	}
+ 
+ 	ret = ov2640_video_probe(client);
+ 	if (ret < 0)
+-		goto err_videoprobe;
++		goto err_hdl;
+ 
+ 	ret = v4l2_async_register_subdev(&priv->subdev);
+ 	if (ret < 0)
+-		goto err_videoprobe;
++		goto err_hdl;
+ 
+ 	dev_info(&adapter->dev, "OV2640 Probed\n");
+ 
+ 	return 0;
+ 
+-err_videoprobe:
++err_hdl:
+ 	v4l2_ctrl_handler_free(&priv->hdl);
+ err_clk:
+-	v4l2_clk_put(priv->clk);
++	clk_disable_unprepare(priv->clk);
+ 	return ret;
+ }
+ 
+@@ -1101,9 +1098,9 @@ static int ov2640_remove(struct i2c_client *client)
+ 	struct ov2640_priv       *priv = to_ov2640(client);
+ 
+ 	v4l2_async_unregister_subdev(&priv->subdev);
+-	v4l2_clk_put(priv->clk);
+-	v4l2_device_unregister_subdev(&priv->subdev);
+ 	v4l2_ctrl_handler_free(&priv->hdl);
++	v4l2_device_unregister_subdev(&priv->subdev);
++	clk_disable_unprepare(priv->clk);
+ 	return 0;
+ }
+ 
 -- 
-2.1.4
+2.11.0
