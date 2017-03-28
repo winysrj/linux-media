@@ -1,81 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:56778 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751788AbdCKJVs (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:34262 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754014AbdC1Fcq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 04:21:48 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 2/3] libv4lconvert: by default, offer the original format to the client
-Date: Sat, 11 Mar 2017 06:21:40 -0300
-Message-Id: <3b5962deff0fb5675399f1d9b09a98eb46ac0bd3.1489224099.git.mchehab@s-opensource.com>
-In-Reply-To: <db1d17c0eed07c89fae03275bda0fe4d3d5c1776.1489224099.git.mchehab@s-opensource.com>
-References: <db1d17c0eed07c89fae03275bda0fe4d3d5c1776.1489224099.git.mchehab@s-opensource.com>
-In-Reply-To: <db1d17c0eed07c89fae03275bda0fe4d3d5c1776.1489224099.git.mchehab@s-opensource.com>
-References: <db1d17c0eed07c89fae03275bda0fe4d3d5c1776.1489224099.git.mchehab@s-opensource.com>
+        Tue, 28 Mar 2017 01:32:46 -0400
+Received: by mail-pg0-f67.google.com with SMTP id o123so15764918pga.1
+        for <linux-media@vger.kernel.org>; Mon, 27 Mar 2017 22:32:40 -0700 (PDT)
+From: vaibhavddit@gmail.com
+To: mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        rvarsha016@gmail.com, Vaibhav Kothari <vaibhavddit@gmail.com>
+Subject: [PATCH] staging: media: atomisp: i2c: removed unnecessary white space before comma in memset()
+Date: Tue, 28 Mar 2017 11:02:45 +0530
+Message-Id: <1490679166-13479-1-git-send-email-vaibhavddit@gmail.com>
+In-Reply-To: <1490614949-30985-1-git-send-email-vaibhavddit@gmail.com>
+References: <1490614949-30985-1-git-send-email-vaibhavddit@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The libv4lconvert part of libv4l was meant to provide a common
-place to handle weird proprietary formats. With time, we also
-added support to other standard formats, in order to help
-V4L2 applications that are not performance sensitive to support
-all V4L2 formats.
+From: Vaibhav Kothari <vaibhavddit@gmail.com>
 
-Yet, the hole idea is to let userspace to decide to implement
-their own format conversion code when it needs either more
-performance or more quality than what libv4lconvert provides.
+Removed extra space before comma in memset() as a part of
+checkpatch.pl fix-up.
 
-In other words, applications should have the right to decide
-between using a libv4lconvert emulated format or to implement
-the decoding themselves for non-proprietary formats,
-as this may have significative performance impact.
-
-At the application side, deciding between them is just a matter
-of looking at the V4L2_FMT_FLAG_EMULATED flag.
-
-Yet, we don't want to have a myriad of format converters
-everywhere for the proprietary formats, like V4L2_PIX_FMT_KONICA420,
-V4L2_PIX_FMT_SPCA501, etc. So, let's offer only the emulated
-variant for those weird stuff.
-
-So, this patch changes the libv4lconvert default behavior to
-show emulated formats, except for the explicit ones marked as
-such.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Vaibhav Kothari <vaibhavddit@gmail.com>
 ---
- lib/libv4lconvert/libv4lconvert.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/staging/media/atomisp/i2c/gc2235.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-index 6cfaf6edbc40..d87d6b91a838 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -178,7 +178,7 @@ struct v4lconvert_data *v4lconvert_create_with_dev_ops(int fd, void *dev_ops_pri
- 	/* This keeps tracks of devices which have only formats for which apps
- 	   most likely will need conversion and we can thus safely add software
- 	   processing controls without a performance impact. */
--	int always_needs_conversion = 1;
-+	int always_needs_conversion = 0;
- 
- 	if (!data) {
- 		fprintf(stderr, "libv4lconvert: error: out of memory!\n");
-@@ -208,10 +208,9 @@ struct v4lconvert_data *v4lconvert_create_with_dev_ops(int fd, void *dev_ops_pri
- 		if (j < ARRAY_SIZE(supported_src_pixfmts)) {
- 			data->supported_src_formats |= 1ULL << j;
- 			v4lconvert_get_framesizes(data, fmt.pixelformat, j);
--			if (!supported_src_pixfmts[j].needs_conversion)
--				always_needs_conversion = 0;
--		} else
--			always_needs_conversion = 0;
-+			if (supported_src_pixfmts[j].needs_conversion)
-+				always_needs_conversion = 1;
-+		}
+diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
+index 9b41023..50f4317 100644
+--- a/drivers/staging/media/atomisp/i2c/gc2235.c
++++ b/drivers/staging/media/atomisp/i2c/gc2235.c
+@@ -55,7 +55,7 @@ static int gc2235_read_reg(struct i2c_client *client,
+ 		return -EINVAL;
  	}
  
- 	data->no_formats = i;
+-	memset(msg, 0 , sizeof(msg));
++	memset(msg, 0, sizeof(msg));
+ 
+ 	msg[0].addr = client->addr;
+ 	msg[0].flags = 0;
 -- 
-2.9.3
+1.9.1
