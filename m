@@ -1,47 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:42902 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750898AbdCQLaM (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:36106 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753962AbdC1AmM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Mar 2017 07:30:12 -0400
-Subject: Re: [PATCH v2 03/15] media: s5p-mfc: Replace mem_dev_* entries with an
- array
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Shuah Khan <shuahkhan@gmail.com>, linux-media@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>, shuahkh@osg.samsung.com
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <71641f66-1f15-e1b6-554e-f361ae131dab@samsung.com>
-Date: Fri, 17 Mar 2017 12:29:26 +0100
-MIME-version: 1.0
-In-reply-to: <CAKocOOOa98AJQg4YdV=HWf3QX2w5Fgf59RsrsJNf2yCi2xGM2g@mail.gmail.com>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
-References: <CGME20170220133912eucas1p19fece549b0759c7e6a308e309f6d3081@eucas1p1.samsung.com>
- <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
- <1487597944-2000-4-git-send-email-m.szyprowski@samsung.com>
- <CAKocOOOa98AJQg4YdV=HWf3QX2w5Fgf59RsrsJNf2yCi2xGM2g@mail.gmail.com>
+        Mon, 27 Mar 2017 20:42:12 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v6 18/39] media: Add userspace header file for i.MX
+Date: Mon, 27 Mar 2017 17:40:35 -0700
+Message-Id: <1490661656-10318-19-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/22/2017 05:22 PM, Shuah Khan wrote:
-> On Mon, Feb 20, 2017 at 6:38 AM, Marek Szyprowski
-> <m.szyprowski@samsung.com> wrote:
->> Internal MFC driver device structure contains two pointers to devices used
->> for DMA memory allocation: mem_dev_l and mem_dev_r. Replace them with the
->> mem_dev[] array and use defines for accessing particular banks. This will
->> help to simplify code in the next patches.
-> Hi Marek,
->
-> The change looks good to me. One comment thought that it would be
-> good to keep the left and right banks in the driver code to be in sync
-> with the DT nomenclature.
->
-> BANK_L_CTX instead of BANK1_CTX
-> BANK_R_CTX instead of BANK2_CTX
+This adds a header file for use by userspace programs wanting to interact
+with the i.MX media driver. It defines custom events and v4l2 controls for
+the i.MX v4l2 subdevices.
 
-This patch doesn't apply cleanly, could you please check and resend
-rebased onto my for-v4.12/media/next branch?
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ include/linux/imx-media.h | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+ create mode 100644 include/linux/imx-media.h
+
+diff --git a/include/linux/imx-media.h b/include/linux/imx-media.h
+new file mode 100644
+index 0000000..267777f
+--- /dev/null
++++ b/include/linux/imx-media.h
+@@ -0,0 +1,27 @@
++/*
++ * Copyright (c) 2014-2017 Mentor Graphics Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the
++ * License, or (at your option) any later version
++ */
++
++#ifndef __LINUX_IMX_MEDIA_H__
++#define __LINUX_IMX_MEDIA_H__
++
++/*
++ * events from the subdevs
++ */
++#define V4L2_EVENT_IMX_CLASS                V4L2_EVENT_PRIVATE_START
++#define V4L2_EVENT_IMX_FRAME_INTERVAL_ERROR (V4L2_EVENT_IMX_CLASS + 1)
++
++enum imx_ctrl_id {
++	V4L2_CID_IMX_FIM_ENABLE = (V4L2_CID_USER_IMX_BASE + 0),
++	V4L2_CID_IMX_FIM_NUM,
++	V4L2_CID_IMX_FIM_TOLERANCE_MIN,
++	V4L2_CID_IMX_FIM_TOLERANCE_MAX,
++	V4L2_CID_IMX_FIM_NUM_SKIP,
++};
++
++#endif
+-- 
+2.7.4
