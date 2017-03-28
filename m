@@ -1,123 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:40500 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754679AbdC1I0X (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:35874 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753922AbdC1AmD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Mar 2017 04:26:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv6 05/14] ov7670: add devicetree support
-Date: Tue, 28 Mar 2017 10:23:38 +0200
-Message-Id: <20170328082347.11159-6-hverkuil@xs4all.nl>
-In-Reply-To: <20170328082347.11159-1-hverkuil@xs4all.nl>
-References: <20170328082347.11159-1-hverkuil@xs4all.nl>
+        Mon, 27 Mar 2017 20:42:03 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v6 12/39] ARM: dts: imx6-sabreauto: add pinctrl for gpt input capture
+Date: Mon, 27 Mar 2017 17:40:29 -0700
+Message-Id: <1490661656-10318-13-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add pinctrl groups for both GPT input capture channels.
 
-Add DT support. Use it to get the reset and pwdn pins (if there are any).
-Tested with one sensor requiring reset/pwdn and one sensor that doesn't
-have reset/pwdn pins.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/i2c/ov7670.c | 40 ++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 38 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index 912ff09c6100..7270c68ed18a 100644
---- a/drivers/media/i2c/ov7670.c
-+++ b/drivers/media/i2c/ov7670.c
-@@ -17,6 +17,8 @@
- #include <linux/i2c.h>
- #include <linux/delay.h>
- #include <linux/videodev2.h>
-+#include <linux/gpio.h>
-+#include <linux/gpio/consumer.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-mediabus.h>
-@@ -229,6 +231,8 @@ struct ov7670_info {
- 	};
- 	struct ov7670_format_struct *fmt;  /* Current format */
- 	struct clk *clk;
-+	struct gpio_desc *resetb_gpio;
-+	struct gpio_desc *pwdn_gpio;
- 	int min_width;			/* Filter out smaller sizes */
- 	int min_height;			/* Filter out smaller sizes */
- 	int clock_speed;		/* External clock speed (MHz) */
-@@ -591,8 +595,6 @@ static int ov7670_init(struct v4l2_subdev *sd, u32 val)
- 	return ov7670_write_array(sd, ov7670_default_regs);
- }
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 21dea5f..1212f82 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -456,6 +456,18 @@
+ 			>;
+ 		};
  
--
--
- static int ov7670_detect(struct v4l2_subdev *sd)
- {
- 	unsigned char v;
-@@ -1549,6 +1551,27 @@ static const struct ov7670_devtype ov7670_devdata[] = {
- 	},
- };
- 
-+static int ov7670_init_gpio(struct i2c_client *client, struct ov7670_info *info)
-+{
-+	info->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "powerdown",
-+			GPIOD_OUT_LOW);
-+	if (IS_ERR(info->pwdn_gpio)) {
-+		dev_info(&client->dev, "can't get %s GPIO\n", "powerdown");
-+		return PTR_ERR(info->pwdn_gpio);
-+	}
++		pinctrl_gpt_input_capture0: gptinputcapture0grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT0__GPT_CAPTURE1	0x1b0b0
++			>;
++		};
 +
-+	info->resetb_gpio = devm_gpiod_get_optional(&client->dev, "reset",
-+			GPIOD_OUT_LOW);
-+	if (IS_ERR(info->resetb_gpio)) {
-+		dev_info(&client->dev, "can't get %s GPIO\n", "reset");
-+		return PTR_ERR(info->resetb_gpio);
-+	}
++		pinctrl_gpt_input_capture1: gptinputcapture1grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT1__GPT_CAPTURE2	0x1b0b0
++			>;
++		};
 +
-+	usleep_range(3000, 5000);
-+
-+	return 0;
-+}
-+
- static int ov7670_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
- {
-@@ -1594,6 +1617,10 @@ static int ov7670_probe(struct i2c_client *client,
- 		return -EPROBE_DEFER;
- 	clk_prepare_enable(info->clk);
- 
-+	ret = ov7670_init_gpio(client, info);
-+	if (ret)
-+		goto clk_disable;
-+
- 	info->clock_speed = clk_get_rate(info->clk) / 1000000;
- 	if (info->clock_speed < 10 || info->clock_speed > 48) {
- 		ret = -EINVAL;
-@@ -1693,9 +1720,18 @@ static const struct i2c_device_id ov7670_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, ov7670_id);
- 
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id ov7670_of_match[] = {
-+	{ .compatible = "ovti,ov7670", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, ov7670_of_match);
-+#endif
-+
- static struct i2c_driver ov7670_driver = {
- 	.driver = {
- 		.name	= "ov7670",
-+		.of_match_table = of_match_ptr(ov7670_of_match),
- 	},
- 	.probe		= ov7670_probe,
- 	.remove		= ov7670_remove,
+ 		pinctrl_spdif: spdifgrp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_KEY_COL3__SPDIF_IN 0x1b0b0
 -- 
-2.11.0
+2.7.4
