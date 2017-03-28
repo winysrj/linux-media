@@ -1,198 +1,256 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:39929 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753422AbdC2Syd (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:33283 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753737AbdC1Amw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 14:54:33 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Oliver Neukum <oneukum@suse.com>
-Subject: [PATCH 03/22] usb.rst: Enrich its ReST representation
-Date: Wed, 29 Mar 2017 15:54:02 -0300
-Message-Id: <5afdc8c970c1fecf75e0e0968b160346260dcba9.1490813422.git.mchehab@s-opensource.com>
-In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+        Mon, 27 Mar 2017 20:42:52 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Russell King <rmk+kernel@armlinux.org.uk>
+Subject: [PATCH v6 32/39] media: imx: csi: add frame skipping support
+Date: Mon, 27 Mar 2017 17:40:49 -0700
+Message-Id: <1490661656-10318-33-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- use the proper warning and note markups;
-- add references for parts of the document that will be
-  cross-referenced on other USB docs;
-- some minor adjustments to make it better to read in
-  text mode and in html.
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+The CSI can skip any out of up to 6 input frames, allowing to reduce the
+frame rate at the output pads by small fractions.
+
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 ---
- Documentation/driver-api/usb/usb.rst | 48 +++++++++++++-----------------------
- 1 file changed, 17 insertions(+), 31 deletions(-)
+ drivers/staging/media/imx/imx-media-csi.c | 127 ++++++++++++++++++++++++++++--
+ 1 file changed, 122 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/driver-api/usb/usb.rst b/Documentation/driver-api/usb/usb.rst
-index b856abb3200e..7e820768ee4f 100644
---- a/Documentation/driver-api/usb/usb.rst
-+++ b/Documentation/driver-api/usb/usb.rst
-@@ -102,6 +102,8 @@ disconnect testing (while the device is active) with each different host
- controller driver, to make sure drivers don't have bugs of their own as
- well as to make sure they aren't relying on some HCD-specific behavior.
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 5a09fa8..d9c3a3b 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -1,13 +1,15 @@
+ /*
+  * V4L2 Capture CSI Subdev for Freescale i.MX5/6 SOC
+  *
+- * Copyright (c) 2014-2016 Mentor Graphics Inc.
++ * Copyright (c) 2014-2017 Mentor Graphics Inc.
++ * Copyright (C) 2017 Pengutronix, Philipp Zabel <kernel@pengutronix.de>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
+  * (at your option) any later version.
+  */
++#include <linux/gcd.h>
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+@@ -40,6 +42,18 @@
+ #define H_ALIGN    1 /* multiple of 2 lines */
+ #define S_ALIGN    1 /* multiple of 2 */
  
-+.. _usb_chapter9:
++/*
++ * struct csi_skip_desc - CSI frame skipping descriptor
++ * @keep - number of frames kept per max_ratio frames
++ * @max_ratio - width of skip_smfc, written to MAX_RATIO bitfield
++ * @skip_smfc - skip pattern written to the SKIP_SMFC bitfield
++ */
++struct csi_skip_desc {
++	u8 keep;
++	u8 max_ratio;
++	u8 skip_smfc;
++};
 +
- USB-Standard Types
- ==================
+ struct csi_priv {
+ 	struct device *dev;
+ 	struct ipu_soc *ipu;
+@@ -65,6 +79,7 @@ struct csi_priv {
+ 	const struct imx_media_pixfmt *cc[CSI_NUM_PADS];
+ 	struct v4l2_fract frame_interval;
+ 	struct v4l2_rect crop;
++	const struct csi_skip_desc *skip[CSI_NUM_PADS - 1];
  
-@@ -112,6 +114,8 @@ USB, and in APIs including this host side API, gadget APIs, and usbfs.
- .. kernel-doc:: include/linux/usb/ch9.h
-    :internal:
+ 	/* active vb2 buffers to send to video dev sink */
+ 	struct imx_media_buffer *active_vb2_buf[2];
+@@ -536,10 +551,12 @@ static int csi_setup(struct csi_priv *priv)
+ 	struct v4l2_mbus_config sensor_mbus_cfg;
+ 	struct v4l2_of_endpoint *sensor_ep;
+ 	struct v4l2_mbus_framefmt if_fmt;
++	const struct csi_skip_desc *skip;
  
-+.. _usb_header:
+ 	infmt = &priv->format_mbus[CSI_SINK_PAD];
+ 	outfmt = &priv->format_mbus[priv->active_output_pad];
+ 	sensor_ep = &priv->sensor->sensor_ep;
++	skip = priv->skip[priv->active_output_pad - 1];
+ 
+ 	/* compose mbus_config from sensor endpoint */
+ 	sensor_mbus_cfg.type = sensor_ep->bus_type;
+@@ -564,6 +581,9 @@ static int csi_setup(struct csi_priv *priv)
+ 
+ 	ipu_csi_set_dest(priv->csi, priv->dest);
+ 
++	ipu_csi_set_skip_smfc(priv->csi, skip->skip_smfc, skip->max_ratio - 1,
++			      0);
 +
- Host-Side Data Types and Macros
- ===============================
+ 	ipu_csi_dump(priv->csi);
  
-@@ -209,7 +213,7 @@ library that wraps it. Such libraries include
- `libusb <http://libusb.sourceforge.net>`__ for C/C++, and
- `jUSB <http://jUSB.sourceforge.net>`__ for Java.
+ 	return 0;
+@@ -627,6 +647,79 @@ static void csi_stop(struct csi_priv *priv)
+ 	ipu_csi_disable(priv->csi);
+ }
  
--    **Note**
-+.. note::
++static const struct csi_skip_desc csi_skip[12] = {
++	{ 1, 1, 0x00 }, /* Keep all frames */
++	{ 5, 6, 0x10 }, /* Skip every sixth frame */
++	{ 4, 5, 0x08 }, /* Skip every fifth frame */
++	{ 3, 4, 0x04 }, /* Skip every fourth frame */
++	{ 2, 3, 0x02 }, /* Skip every third frame */
++	{ 3, 5, 0x0a }, /* Skip frames 1 and 3 of every 5 */
++	{ 1, 2, 0x01 }, /* Skip every second frame */
++	{ 2, 5, 0x0b }, /* Keep frames 1 and 4 of every 5 */
++	{ 1, 3, 0x03 }, /* Keep one in three frames */
++	{ 1, 4, 0x07 }, /* Keep one in four frames */
++	{ 1, 5, 0x0f }, /* Keep one in five frames */
++	{ 1, 6, 0x1f }, /* Keep one in six frames */
++};
++
++static void csi_apply_skip_interval(const struct csi_skip_desc *skip,
++				    struct v4l2_fract *interval)
++{
++	unsigned int div;
++
++	interval->numerator *= skip->max_ratio;
++	interval->denominator *= skip->keep;
++
++	/* Reduce fraction to lowest terms */
++	div = gcd(interval->numerator, interval->denominator);
++	if (div > 1) {
++		interval->numerator /= div;
++		interval->denominator /= div;
++	}
++}
++
++/*
++ * Find the skip pattern to produce the output frame interval closest to the
++ * requested one, for the given input frame interval. Updates the output frame
++ * interval to the exact value.
++ */
++static const struct csi_skip_desc *csi_find_best_skip(struct v4l2_fract *in,
++						      struct v4l2_fract *out)
++{
++	const struct csi_skip_desc *skip = &csi_skip[0], *best_skip = skip;
++	u32 min_err = UINT_MAX;
++	u64 want_us;
++	int i;
++
++	/* Default to 1:1 ratio */
++	if (out->numerator == 0 || out->denominator == 0 ||
++	    in->numerator == 0 || in->denominator == 0) {
++		*out = *in;
++		return best_skip;
++	}
++
++	want_us = div_u64((u64)USEC_PER_SEC * out->numerator, out->denominator);
++
++	/* Find the reduction closest to the requested time per frame */
++	for (i = 0; i < ARRAY_SIZE(csi_skip); i++, skip++) {
++		u64 tmp, err;
++
++		tmp = div_u64((u64)USEC_PER_SEC * in->numerator *
++			      skip->max_ratio, in->denominator * skip->keep);
++
++		err = abs((s64)tmp - want_us);
++		if (err < min_err) {
++			min_err = err;
++			best_skip = skip;
++		}
++	}
++
++	*out = *in;
++	csi_apply_skip_interval(best_skip, out);
++
++	return best_skip;
++}
++
+ /*
+  * V4L2 subdev operations.
+  */
+@@ -636,8 +729,16 @@ static int csi_g_frame_interval(struct v4l2_subdev *sd,
+ {
+ 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
  
-     This particular documentation is incomplete, especially with respect
-     to the asynchronous mode. As of kernel 2.5.66 the code and this
-@@ -319,9 +323,7 @@ files. For information about the current format of this file, see the
- sources.
++	if (fi->pad >= CSI_NUM_PADS)
++		return -EINVAL;
++
+ 	mutex_lock(&priv->lock);
++
+ 	fi->interval = priv->frame_interval;
++
++	if (fi->pad != CSI_SINK_PAD)
++		csi_apply_skip_interval(priv->skip[fi->pad - 1], &fi->interval);
++
+ 	mutex_unlock(&priv->lock);
  
- This file, in combination with the poll() system call, can also be used
--to detect when devices are added or removed:
--
--::
-+to detect when devices are added or removed::
+ 	return 0;
+@@ -648,14 +749,27 @@ static int csi_s_frame_interval(struct v4l2_subdev *sd,
+ {
+ 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
  
-     int fd;
-     struct pollfd pfd;
-@@ -407,9 +409,7 @@ The ioctl() Requests
- --------------------
++	if (fi->pad >= CSI_NUM_PADS)
++		return -EINVAL;
++
+ 	mutex_lock(&priv->lock);
  
- To use these ioctls, you need to include the following headers in your
--userspace program:
--
--::
-+userspace program::
+-	/* Output pads mirror active input pad, no limits on input pads */
+-	if (fi->pad == CSI_SRC_PAD_IDMAC || fi->pad == CSI_SRC_PAD_DIRECT)
+-		fi->interval = priv->frame_interval;
++	/* No limits on input pad */
++	if (fi->pad == CSI_SINK_PAD) {
++		priv->frame_interval = fi->interval;
++
++		/* Reset frame skipping ratio to 1:1 */
++		priv->skip[0] = &csi_skip[0];
++		priv->skip[1] = &csi_skip[0];
  
-     #include <linux/usb.h>
-     #include <linux/usbdevice_fs.h>
-@@ -458,9 +458,7 @@ USBDEVFS_CLAIMINTERFACE
+-	priv->frame_interval = fi->interval;
++		goto out;
++	}
++
++	/* Output pads depend on input interval, modified by frame skipping */
++	priv->skip[fi->pad - 1] = csi_find_best_skip(&priv->frame_interval,
++						     &fi->interval);
  
- USBDEVFS_CONNECTINFO
-     Says whether the device is lowspeed. The ioctl parameter points to a
--    structure like this:
--
--    ::
-+    structure like this::
++out:
+ 	mutex_unlock(&priv->lock);
  
- 	struct usbdevfs_connectinfo {
- 		unsigned int   devnum;
-@@ -477,9 +475,7 @@ USBDEVFS_CONNECTINFO
- USBDEVFS_GETDRIVER
-     Returns the name of the kernel driver bound to a given interface (a
-     string). Parameter is a pointer to this structure, which is
--    modified:
--
--    ::
-+    modified::
+ 	return 0;
+@@ -1268,6 +1382,9 @@ static int csi_registered(struct v4l2_subdev *sd)
+ 					      &priv->cc[i]);
+ 		if (ret)
+ 			goto put_csi;
++		/* disable frame skipping */
++		if (i != CSI_SINK_PAD)
++			priv->skip[i - 1] = &csi_skip[0];
+ 	}
  
- 	struct usbdevfs_getdriver {
- 		unsigned int  interface;
-@@ -490,9 +486,7 @@ USBDEVFS_GETDRIVER
- 
- USBDEVFS_IOCTL
-     Passes a request from userspace through to a kernel driver that has
--    an ioctl entry in the *struct usb_driver* it registered.
--
--    ::
-+    an ioctl entry in the *struct usb_driver* it registered::
- 
- 	struct usbdevfs_ioctl {
- 		int     ifno;
-@@ -534,7 +528,7 @@ USBDEVFS_RELEASEINTERFACE
-     the number of the interface (bInterfaceNumber from descriptor); File
-     modification time is not updated by this request.
- 
--	**Warning**
-+.. warning::
- 
- 	*No security check is made to ensure that the task which made
- 	the claim is the one which is releasing it. This means that user
-@@ -574,9 +568,7 @@ a time.
- 
- USBDEVFS_BULK
-     Issues a bulk read or write request to the device. The ioctl
--    parameter is a pointer to this structure:
--
--    ::
-+    parameter is a pointer to this structure::
- 
- 	struct usbdevfs_bulktransfer {
- 		unsigned int  ep;
-@@ -606,9 +598,7 @@ USBDEVFS_CLEAR_HALT
- 
- USBDEVFS_CONTROL
-     Issues a control request to the device. The ioctl parameter points
--    to a structure like this:
--
--    ::
-+    to a structure like this::
- 
- 	struct usbdevfs_ctrltransfer {
- 		__u8   bRequestType;
-@@ -638,7 +628,7 @@ USBDEVFS_RESET
-     the reset, this rebinds all device interfaces. File modification
-     time is not updated by this request.
- 
--	**Warning**
-+.. warning::
- 
- 	*Avoid using this call* until some usbcore bugs get fixed, since
- 	it does not fully synchronize device, interface, and driver (not
-@@ -646,9 +636,7 @@ USBDEVFS_RESET
- 
- USBDEVFS_SETINTERFACE
-     Sets the alternate setting for an interface. The ioctl parameter is
--    a pointer to a structure like this:
--
--    ::
-+    a pointer to a structure like this::
- 
- 	struct usbdevfs_setinterface {
- 		unsigned int  interface;
-@@ -669,7 +657,7 @@ USBDEVFS_SETCONFIGURATION
-     configuration (bConfigurationValue from descriptor). File
-     modification time is not updated by this request.
- 
--	**Warning**
-+.. warning::
- 
- 	*Avoid using this call* until some usbcore bugs get fixed, since
- 	it does not fully synchronize device, interface, and driver (not
-@@ -702,9 +690,7 @@ When usbfs returns these urbs, the status value is updated, and the
- buffer may have been modified. Except for isochronous transfers, the
- actual_length is updated to say how many bytes were transferred; if the
- USBDEVFS_URB_DISABLE_SPD flag is set ("short packets are not OK"), if
--fewer bytes were read than were requested then you get an error report.
--
--::
-+fewer bytes were read than were requested then you get an error report::
- 
-     struct usbdevfs_iso_packet_desc {
- 	    unsigned int                     length;
+ 	/* init default frame interval */
 -- 
-2.9.3
+2.7.4
