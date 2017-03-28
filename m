@@ -1,137 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f195.google.com ([74.125.82.195]:36826 "EHLO
-        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754261AbdCTPLD (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58052 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751923AbdC1OYC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 11:11:03 -0400
-Date: Mon, 20 Mar 2017 10:02:35 -0500
-From: Rob Herring <robh@kernel.org>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Cc: mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v5 02/39] [media] dt-bindings: Add bindings for i.MX
- media driver
-Message-ID: <20170320150235.xfd7c3a26au5qmyz@rob-hp-laptop>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-3-git-send-email-steve_longerbeam@mentor.com>
+        Tue, 28 Mar 2017 10:24:02 -0400
+Date: Tue, 28 Mar 2017 17:23:40 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Helen Koike <helen.koike@collabora.co.uk>,
+        Helen Koike <helen.koike@collabora.com>,
+        linux-media@vger.kernel.org, jgebben@codeaurora.org,
+        Helen Fornazier <helen.fornazier@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v7] [media] vimc: Virtual Media Controller core, capture
+ and sensor
+Message-ID: <20170328142339.GD16657@valkosipuli.retiisi.org.uk>
+References: <6c85eaf4-1f91-7964-1cf9-602005b62a94@collabora.co.uk>
+ <1490461896-19221-1-git-send-email-helen.koike@collabora.com>
+ <f8466f7a-0f33-a610-10fc-2515d5f6b499@iki.fi>
+ <ef7c1d62-0553-2c5b-004f-527d82e380b3@collabora.co.uk>
+ <20170327150918.6843e285@vento.lan>
+ <f668b12f-0da8-98da-63b0-c5064cc87da9@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1489121599-23206-3-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <f668b12f-0da8-98da-63b0-c5064cc87da9@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-+Ramiro
+Hi Hans,
 
-On Thu, Mar 09, 2017 at 08:52:42PM -0800, Steve Longerbeam wrote:
-> Add bindings documentation for the i.MX media driver.
+On Tue, Mar 28, 2017 at 12:00:36PM +0200, Hans Verkuil wrote:
+> On 27/03/17 20:09, Mauro Carvalho Chehab wrote:
+> > Em Mon, 27 Mar 2017 12:19:51 -0300
+> > Helen Koike <helen.koike@collabora.co.uk> escreveu:
+> > 
+> >> Hi Sakari,
+> >>
+> >> On 2017-03-26 10:31 AM, Sakari Ailus wrote:
+> >>> Hi Helen,
+> >>>
+> >>> ...  
+> >>>> +static int vimc_cap_enum_input(struct file *file, void *priv,
+> >>>> +			       struct v4l2_input *i)
+> >>>> +{
+> >>>> +	/* We only have one input */
+> >>>> +	if (i->index > 0)
+> >>>> +		return -EINVAL;
+> >>>> +
+> >>>> +	i->type = V4L2_INPUT_TYPE_CAMERA;
+> >>>> +	strlcpy(i->name, "VIMC capture", sizeof(i->name));
+> >>>> +
+> >>>> +	return 0;
+> >>>> +}
+> >>>> +
+> >>>> +static int vimc_cap_g_input(struct file *file, void *priv, unsigned int *i)
+> >>>> +{
+> >>>> +	/* We only have one input */
+> >>>> +	*i = 0;
+> >>>> +	return 0;
+> >>>> +}
+> >>>> +
+> >>>> +static int vimc_cap_s_input(struct file *file, void *priv, unsigned int i)
+> >>>> +{
+> >>>> +	/* We only have one input */
+> >>>> +	return i ? -EINVAL : 0;
+> >>>> +}  
+> >>>
+> >>> You can drop the input IOCTLs altogether here. If you had e.g. a TV
+> >>> tuner, it'd be the TV tuner driver's responsibility to implement them.
+> >>>  
+> >>
+> >> input IOCTLs seems to be mandatory from v4l2-compliance when capability 
+> >> V4L2_CAP_VIDEO_CAPTURE is set (which is the case):
+> >>
+> >> https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-compliance/v4l2-test-input-output.cpp#n418
+> >>
+> >> https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-compliance/v4l2-compliance.cpp#n989
+> > 
+> > The V4L2 spec doesn't actually define what's mandatory and what's
+> > optional. The idea that was agreed on one of the media summits
+> > were to define a set of profiles for different device types,
+> > matching the features required by existing applications to work,
+> > but this was never materialized.
+> > 
+> > So, my understanding is that any driver can implement
+> > any V4L2 ioctl.
+> > 
+> > Yet, some applications require enum/get/set inputs, or otherwise
+> > they wouldn't work. It is too late to change this behavior. 
+> > So, either the driver or the core should implement those
+> > ioctls, in order to avoid breaking backward-compatibility.
 > 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
->  Documentation/devicetree/bindings/media/imx.txt | 74 +++++++++++++++++++++++++
->  1 file changed, 74 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/imx.txt
+> The closest we have to determining which ioctls are mandatory or not is
+> v4l2-compliance. That said, v4l2-compliance is actually a bit more strict
+> in some cases than the spec since some ioctls are optional in the spec, but
+> required in v4l2-compliance for the simple reason that there is no reason
+> for drivers NOT to implement those ioctls.
 > 
-> diff --git a/Documentation/devicetree/bindings/media/imx.txt b/Documentation/devicetree/bindings/media/imx.txt
-> new file mode 100644
-> index 0000000..3059c06
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/imx.txt
-> @@ -0,0 +1,74 @@
-> +Freescale i.MX Media Video Device
-> +=================================
-> +
-> +Video Media Controller node
-> +---------------------------
-> +
-> +This is the media controller node for video capture support. It is a
-> +virtual device that lists the camera serial interface nodes that the
-> +media device will control.
-> +
-> +Required properties:
-> +- compatible : "fsl,imx-capture-subsystem";
-> +- ports      : Should contain a list of phandles pointing to camera
-> +		sensor interface ports of IPU devices
-> +
-> +example:
-> +
-> +capture-subsystem {
-> +	compatible = "fsl,imx-capture-subsystem";
-> +	ports = <&ipu1_csi0>, <&ipu1_csi1>;
-> +};
-> +
-> +fim child node
-> +--------------
-> +
-> +This is an optional child node of the ipu_csi port nodes. If present and
-> +available, it enables the Frame Interval Monitor. Its properties can be
-> +used to modify the method in which the FIM measures frame intervals.
-> +Refer to Documentation/media/v4l-drivers/imx.rst for more info on the
-> +Frame Interval Monitor.
-> +
-> +Optional properties:
-> +- fsl,input-capture-channel: an input capture channel and channel flags,
-> +			     specified as <chan flags>. The channel number
-> +			     must be 0 or 1. The flags can be
-> +			     IRQ_TYPE_EDGE_RISING, IRQ_TYPE_EDGE_FALLING, or
-> +			     IRQ_TYPE_EDGE_BOTH, and specify which input
-> +			     capture signal edge will trigger the input
-> +			     capture event. If an input capture channel is
-> +			     specified, the FIM will use this method to
-> +			     measure frame intervals instead of via the EOF
-> +			     interrupt. The input capture method is much
-> +			     preferred over EOF as it is not subject to
-> +			     interrupt latency errors. However it requires
-> +			     routing the VSYNC or FIELD output signals of
-> +			     the camera sensor to one of the i.MX input
-> +			     capture pads (SD1_DAT0, SD1_DAT1), which also
-> +			     gives up support for SD1.
-> +
-> +
-> +mipi_csi2 node
-> +--------------
-> +
-> +This is the device node for the MIPI CSI-2 Receiver, required for MIPI
-> +CSI-2 sensors.
-> +
-> +Required properties:
-> +- compatible	: "fsl,imx6-mipi-csi2", "snps,dw-mipi-csi2";
-
-Ramiro is also working on a binding for DW MIPI CSI2 block[1]. We need 1 
-binding for that.
-
-> +- reg           : physical base address and length of the register set;
-> +- clocks	: the MIPI CSI-2 receiver requires three clocks: hsi_tx
-> +		  (the D-PHY clock), video_27m (D-PHY PLL reference
-> +		  clock), and eim_podf;
-> +- clock-names	: must contain "dphy", "ref", "pix";
-> +- port@*        : five port nodes must exist, containing endpoints
-> +		  connecting to the source and sink devices according to
-> +		  of_graph bindings. The first port is an input port,
-> +		  connecting with a MIPI CSI-2 source, and ports 1
-> +		  through 4 are output ports connecting with parallel
-> +		  bus sink endpoint nodes and correspond to the four
-> +		  MIPI CSI-2 virtual channel outputs.
-> +
-> +Optional properties:
-> +- interrupts	: must contain two level-triggered interrupts,
-> +		  in order: 100 and 101;
-> -- 
-> 2.7.4
+> However, the v4l2-compliance test was never written for MC devices. It turns
+> out that it works reasonably well as long as a working pipeline is configured
+> first, but these input ioctls are a bit iffy.
 > 
+> There are really two options: don't implement them, or implement it as a single
+> input. Multiple inputs make no sense for MC devices: the video node is the
+> endpoint of a video pipeline, you never switch 'inputs' there.
+> 
+> The way the input ioctls are implemented here would fit nicely for an MC
+> device IMHO.
+> 
+> So should we define these ioctls or not?
+> 
+> I am inclined to define them for the following reasons:
+> 
+> - Some applications expect them, so adding them to the driver costs little but
+>   allows these applications to work, provided the correct pipeline is configured
+>   first.
+> 
+> - If a plugin is needed, then that plugin can always override these ioctls and
+>   for different 'inputs' reconfigure the pipeline.
+> 
+> I really don't see implementing this as a problem. Reporting that an MC video node
+> has a "VIMC capture" input seems perfectly reasonable to me.
 
-[1] https://lkml.org/lkml/2017/3/7/395
+If we implement it in order to be make an application happy, I would have
+expected to hear complaints from someone using existing MC based drivers
+that do not implement the input IOCTLs.
+
+It is also confusing from application point of view since this interface
+would not be the interface to configure the input of the pipeline as it
+might look like.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
