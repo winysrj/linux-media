@@ -1,52 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36859 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752685AbdCFSWb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 13:22:31 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Dave Airlie <airlied@redhat.com>
-Subject: [GIT FIXES for 4.11] VSP + DU interface update
-Date: Mon, 06 Mar 2017 20:22:32 +0200
-Message-ID: <19090246.7pM2HLYyms@avalon>
+Received: from mail-qt0-f170.google.com ([209.85.216.170]:36653 "EHLO
+        mail-qt0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754738AbdC1JRu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Mar 2017 05:17:50 -0400
+Received: by mail-qt0-f170.google.com with SMTP id r45so58660153qte.3
+        for <linux-media@vger.kernel.org>; Tue, 28 Mar 2017 02:17:49 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <4630ddce3d8ca27e4f6addeda17e11b08f345a1a.1490373499.git.joabreu@synopsys.com>
+References: <cover.1490373499.git.joabreu@synopsys.com> <4630ddce3d8ca27e4f6addeda17e11b08f345a1a.1490373499.git.joabreu@synopsys.com>
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Date: Tue, 28 Mar 2017 11:17:33 +0200
+Message-ID: <CA+M3ks4a=tg3SuE-OiotB_w7ijhvOiBSVfE32kVAx_WCOoMB1g@mail.gmail.com>
+Subject: Re: [PATCH 2/8] [media] staging: st-cec: Use cec_get_drvdata()
+To: Jose Abreu <Jose.Abreu@synopsys.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        hans.verkuil@cisco.com, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+2017-03-24 17:47 GMT+01:00 Jose Abreu <Jose.Abreu@synopsys.com>:
+> Use helper function to get driver private data from CEC
+> adapter.
 
-As discussed on IRC, here's a pull request for the VSP + DU patch that 
-modifies the interface between the two drivers. Given the high risk of 
-conflicts, merging it in v4.11-rc2 is the easiest option, after which I will 
-send pull requests as usual for v4.12.
+That looks good for me but does it make sense to merge that now ? or
+should we wait until
+cec drivers as move out of staging ?
+Hans what is your view on that ?
 
-The patch has been fully tested by itself on top of v4.11-rc1.
-
-The following changes since commit c1ae3cfa0e89fa1a7ecc4c99031f5e9ae99d9201:
-
-  Linux 4.11-rc1 (2017-03-05 12:59:56 -0800)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git vsp1/fixes
-
-for you to fetch changes up to 196855efefa3875b7d552617a4df0e2e80f34db6:
-
-  v4l: vsp1: Adapt vsp1_du_setup_lif() interface to use a structure 
-(2017-03-06 19:21:30 +0200)
-
-----------------------------------------------------------------
-Kieran Bingham (1):
-      v4l: vsp1: Adapt vsp1_du_setup_lif() interface to use a structure
-
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c  |  8 ++++++--
- drivers/media/platform/vsp1/vsp1_drm.c | 33 ++++++++++++++++-----------------
- include/media/vsp1.h                   | 13 +++++++++++--
- 3 files changed, 33 insertions(+), 21 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
+>
+> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+> Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+> ---
+>  drivers/staging/media/st-cec/stih-cec.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/staging/media/st-cec/stih-cec.c b/drivers/staging/media/st-cec/stih-cec.c
+> index 3c25638..521206d 100644
+> --- a/drivers/staging/media/st-cec/stih-cec.c
+> +++ b/drivers/staging/media/st-cec/stih-cec.c
+> @@ -133,7 +133,7 @@ struct stih_cec {
+>
+>  static int stih_cec_adap_enable(struct cec_adapter *adap, bool enable)
+>  {
+> -       struct stih_cec *cec = adap->priv;
+> +       struct stih_cec *cec = cec_get_drvdata(adap);
+>
+>         if (enable) {
+>                 /* The doc says (input TCLK_PERIOD * CEC_CLK_DIV) = 0.1ms */
+> @@ -189,7 +189,7 @@ static int stih_cec_adap_enable(struct cec_adapter *adap, bool enable)
+>
+>  static int stih_cec_adap_log_addr(struct cec_adapter *adap, u8 logical_addr)
+>  {
+> -       struct stih_cec *cec = adap->priv;
+> +       struct stih_cec *cec = cec_get_drvdata(adap);
+>         u32 reg = readl(cec->regs + CEC_ADDR_TABLE);
+>
+>         reg |= 1 << logical_addr;
+> @@ -205,7 +205,7 @@ static int stih_cec_adap_log_addr(struct cec_adapter *adap, u8 logical_addr)
+>  static int stih_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
+>                                   u32 signal_free_time, struct cec_msg *msg)
+>  {
+> -       struct stih_cec *cec = adap->priv;
+> +       struct stih_cec *cec = cec_get_drvdata(adap);
+>         int i;
+>
+>         /* Copy message into registers */
+> --
+> 1.9.1
+>
+>
