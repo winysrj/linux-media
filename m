@@ -1,45 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:32881 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753430AbdC2HMk (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:40200 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754679AbdC1I2O (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 03:12:40 -0400
-Received: by mail-wm0-f65.google.com with SMTP id o81so3335103wmb.0
-        for <linux-media@vger.kernel.org>; Wed, 29 Mar 2017 00:12:39 -0700 (PDT)
-From: Haim Daniel <haimdaniel@gmail.com>
-To: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Cc: Haim Daniel <haimdaniel@gmail.com>
-Subject: [PATCH v2] [media] staging: css2400: fix checkpatch error
-Date: Wed, 29 Mar 2017 10:12:28 +0300
-Message-Id: <1490771548-6134-1-git-send-email-haimdaniel@gmail.com>
-In-Reply-To: <b0bf9753-54d7-5178-5339-37b24d7e8191@gmail.com>
-References: <b0bf9753-54d7-5178-5339-37b24d7e8191@gmail.com>
+        Tue, 28 Mar 2017 04:28:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv6 14/14] em28xx: drop last soc_camera link
+Date: Tue, 28 Mar 2017 10:23:47 +0200
+Message-Id: <20170328082347.11159-15-hverkuil@xs4all.nl>
+In-Reply-To: <20170328082347.11159-1-hverkuil@xs4all.nl>
+References: <20170328082347.11159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-isp_capture_defs.h:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-fix checkpatch ERROR: 
-Macros with complex values should be enclosed in parentheses
+The em28xx driver still used the soc_camera.h header for the ov2640
+driver. Since this driver no longer uses soc_camera, that include can
+be removed.
 
-Signed-off-by: Haim Daniel <haimdaniel@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- .../pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h   | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/em28xx/em28xx-camera.c | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h
-index aa413df..78cbbf6 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h
-@@ -19,7 +19,7 @@
- #define _ISP_CAPTURE_BITS_PER_ELEM                32  /* only for data, not SOP */						           
- #define _ISP_CAPTURE_BYTES_PER_ELEM               (_ISP_CAPTURE_BITS_PER_ELEM/8	)				           
- #define _ISP_CAPTURE_BYTES_PER_WORD               32		/* 256/8 */	
--#define _ISP_CAPTURE_ELEM_PER_WORD                _ISP_CAPTURE_BYTES_PER_WORD / _ISP_CAPTURE_BYTES_PER_ELEM		           
-+#define _ISP_CAPTURE_ELEM_PER_WORD                (_ISP_CAPTURE_BYTES_PER_WORD / _ISP_CAPTURE_BYTES_PER_ELEM)         
+diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
+index 89c890ba7dd6..63aaa577a742 100644
+--- a/drivers/media/usb/em28xx/em28xx-camera.c
++++ b/drivers/media/usb/em28xx/em28xx-camera.c
+@@ -23,7 +23,6 @@
  
- //#define CAPT_RCV_ACK                              1
- //#define CAPT_WRT_ACK                              2               
+ #include <linux/i2c.h>
+ #include <linux/usb.h>
+-#include <media/soc_camera.h>
+ #include <media/i2c/mt9v011.h>
+ #include <media/v4l2-clk.h>
+ #include <media/v4l2-common.h>
+@@ -43,13 +42,6 @@ static unsigned short omnivision_sensor_addrs[] = {
+ 	I2C_CLIENT_END
+ };
+ 
+-static struct soc_camera_link camlink = {
+-	.bus_id = 0,
+-	.flags = 0,
+-	.module_name = "em28xx",
+-	.unbalanced_power = true,
+-};
+-
+ /* FIXME: Should be replaced by a proper mt9m111 driver */
+ static int em28xx_initialize_mt9m111(struct em28xx *dev)
+ {
+@@ -421,7 +413,6 @@ int em28xx_init_camera(struct em28xx *dev)
+ 			.type = "ov2640",
+ 			.flags = I2C_CLIENT_SCCB,
+ 			.addr = client->addr,
+-			.platform_data = &camlink,
+ 		};
+ 		struct v4l2_subdev_format format = {
+ 			.which = V4L2_SUBDEV_FORMAT_ACTIVE,
 -- 
-1.9.1
+2.11.0
