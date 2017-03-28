@@ -1,127 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:43813 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753805AbdCFOZD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:25:03 -0500
-From: Elena Reshetova <elena.reshetova@intel.com>
-To: gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
-        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
-        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, peterz@infradead.org,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Subject: [PATCH 05/29] drivers, md, bcache: convert cached_dev.count from atomic_t to refcount_t
-Date: Mon,  6 Mar 2017 16:20:52 +0200
-Message-Id: <1488810076-3754-6-git-send-email-elena.reshetova@intel.com>
-In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:37568 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754537AbdC1I0X (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Mar 2017 04:26:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org
+Subject: [PATCHv6 00/14] atmel-isi/ov7670/ov2640: convert to standalone drivers
+Date: Tue, 28 Mar 2017 10:23:33 +0200
+Message-Id: <20170328082347.11159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-refcount_t type and corresponding API should be
-used instead of atomic_t when the variable is used as
-a reference counter. This allows to avoid accidental
-refcounter overflows that might lead to use-after-free
-situations.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: David Windsor <dwindsor@gmail.com>
----
- drivers/md/bcache/bcache.h    | 7 ++++---
- drivers/md/bcache/super.c     | 6 +++---
- drivers/md/bcache/writeback.h | 2 +-
- 3 files changed, 8 insertions(+), 7 deletions(-)
+This patch series converts the soc-camera atmel-isi to a standalone V4L2
+driver.
 
-diff --git a/drivers/md/bcache/bcache.h b/drivers/md/bcache/bcache.h
-index c3ea03c..de2be28 100644
---- a/drivers/md/bcache/bcache.h
-+++ b/drivers/md/bcache/bcache.h
-@@ -184,6 +184,7 @@
- #include <linux/mutex.h>
- #include <linux/rbtree.h>
- #include <linux/rwsem.h>
-+#include <linux/refcount.h>
- #include <linux/types.h>
- #include <linux/workqueue.h>
- 
-@@ -299,7 +300,7 @@ struct cached_dev {
- 	struct semaphore	sb_write_mutex;
- 
- 	/* Refcount on the cache set. Always nonzero when we're caching. */
--	atomic_t		count;
-+	refcount_t		count;
- 	struct work_struct	detach;
- 
- 	/*
-@@ -805,13 +806,13 @@ do {									\
- 
- static inline void cached_dev_put(struct cached_dev *dc)
- {
--	if (atomic_dec_and_test(&dc->count))
-+	if (refcount_dec_and_test(&dc->count))
- 		schedule_work(&dc->detach);
- }
- 
- static inline bool cached_dev_get(struct cached_dev *dc)
- {
--	if (!atomic_inc_not_zero(&dc->count))
-+	if (!refcount_inc_not_zero(&dc->count))
- 		return false;
- 
- 	/* Paired with the mb in cached_dev_attach */
-diff --git a/drivers/md/bcache/super.c b/drivers/md/bcache/super.c
-index 85e3f21..cc36ce4 100644
---- a/drivers/md/bcache/super.c
-+++ b/drivers/md/bcache/super.c
-@@ -891,7 +891,7 @@ static void cached_dev_detach_finish(struct work_struct *w)
- 	closure_init_stack(&cl);
- 
- 	BUG_ON(!test_bit(BCACHE_DEV_DETACHING, &dc->disk.flags));
--	BUG_ON(atomic_read(&dc->count));
-+	BUG_ON(refcount_read(&dc->count));
- 
- 	mutex_lock(&bch_register_lock);
- 
-@@ -1018,7 +1018,7 @@ int bch_cached_dev_attach(struct cached_dev *dc, struct cache_set *c)
- 	 * dc->c must be set before dc->count != 0 - paired with the mb in
- 	 * cached_dev_get()
- 	 */
--	atomic_set(&dc->count, 1);
-+	refcount_set(&dc->count, 1);
- 
- 	/* Block writeback thread, but spawn it */
- 	down_write(&dc->writeback_lock);
-@@ -1030,7 +1030,7 @@ int bch_cached_dev_attach(struct cached_dev *dc, struct cache_set *c)
- 	if (BDEV_STATE(&dc->sb) == BDEV_STATE_DIRTY) {
- 		bch_sectors_dirty_init(dc);
- 		atomic_set(&dc->has_dirty, 1);
--		atomic_inc(&dc->count);
-+		refcount_inc(&dc->count);
- 		bch_writeback_queue(dc);
- 	}
- 
-diff --git a/drivers/md/bcache/writeback.h b/drivers/md/bcache/writeback.h
-index 629bd1a..5bac1b0 100644
---- a/drivers/md/bcache/writeback.h
-+++ b/drivers/md/bcache/writeback.h
-@@ -70,7 +70,7 @@ static inline void bch_writeback_add(struct cached_dev *dc)
- {
- 	if (!atomic_read(&dc->has_dirty) &&
- 	    !atomic_xchg(&dc->has_dirty, 1)) {
--		atomic_inc(&dc->count);
-+		refcount_inc(&dc->count);
- 
- 		if (BDEV_STATE(&dc->sb) != BDEV_STATE_DIRTY) {
- 			SET_BDEV_STATE(&dc->sb, BDEV_STATE_DIRTY);
+The same is done for the ov7670 and ov2640 sensor drivers: the ov7670 was
+used to test the atmel-isi driver. The ov2640 is needed because the em28xx
+driver has a soc_camera include dependency. Both ov7670 and ov2640 sensors
+have been tested with the atmel-isi driver.
+
+The first 5 patches improve the ov7670 sensor driver, mostly adding modern
+features such as DT support.
+
+The next three convert the atmel-isi and move it out of soc_camera.
+
+The following 6 patches convert ov2640 and drop the soc_camera dependency
+in em28xx. I have tested that this works with my 'SpeedLink Vicious And
+Divine Laplace webcam'.
+
+Tested with my sama5d3-Xplained board, the ov2640 sensor and two ov7670
+sensors: one with and one without reset/pwdn pins. Also tested with my
+em28xx-based webcam.
+
+I'd like to get this in for 4.12. Fingers crossed.
+
+Regards,
+
+        Hans
+
+Changes since v5:
+- Dropped the last two dts patches as these were for demonstration purposes
+  only.
+- Simplified isi_graph_init() return handling as suggested by Sakari.
+- Simplified atmel-isi format handling as suggested by Guennadi. Thanks for
+  the suggestion, this improves the code nicely!
+- Improved RGB handling in atmel-isi, allowing for all YUV ordering and not
+  just YUYV. Tested with YUYV and UYVY (the only two I can test with my
+  hardware).
+- Improved commit message of the "atmel-isi: document device tree bindings"
+  patch and dropped unnecessary properties from the example as per Rob's
+  comments.
+
+Changes since v4:
+- the ov2640 colorspace fixes were inexplicably part of an atmel-isi patch.
+  Split it off as a separate patch.
+- add V4L2_SUBDEV_FL_HAS_DEVNODE to ov2640.
+- drop #if defined(CONFIG_MEDIA_CONTROLLER) guard around media_entity_cleanup
+  in ov2640.
+
+Changes since v3:
+- ov2640/ov7670: call clk_disable_unprepare where needed. I assumed this was
+  done by the devm_clk_get cleanup, but that wasn't the case.
+- bindings: be even more explicit about which properties are mandatory.
+- ov2640/ov7670: drop unused bus-width from the dts binding examples and from
+  the actual dts patches.
+
+Changes since v2:
+- Incorporated Sakari's and Rob's device tree bindings comments.
+- ov2640: dropped the reset/power changes. These actually broke the em28xx
+  and there was really nothing wrong with it.
+- merged the "ov2640: allow use inside em28xx" into patches 10 and 11.
+  It really shouldn't have been a separate patch in the first place.
+- rebased on top of 4.11-rc1.
+
+Changes since v1:
+
+- Dropped MC support from atmel-isi and ov7670: not needed to make this
+  work. Only for the ov2640 was it kept since the em28xx driver requires it.
+- Use devm_clk_get instead of clk_get.
+- The ov7670 lower limit of the clock speed is 10 MHz instead of 12. Adjust
+  accordingly.
+
+
+Hans Verkuil (14):
+  ov7670: document device tree bindings
+  ov7670: call v4l2_async_register_subdev
+  ov7670: fix g/s_parm
+  ov7670: get xclk
+  ov7670: add devicetree support
+  atmel-isi: update device tree bindings documentation
+  atmel-isi: remove dependency of the soc-camera framework
+  atmel-isi: move out of soc_camera to atmel
+  ov2640: fix colorspace handling
+  ov2640: update bindings
+  ov2640: convert from soc-camera to a standard subdev sensor driver.
+  ov2640: use standard clk and enable it.
+  ov2640: add MC support
+  em28xx: drop last soc_camera link
+
+ .../devicetree/bindings/media/atmel-isi.txt        |   91 +-
+ .../devicetree/bindings/media/i2c/ov2640.txt       |   23 +-
+ .../devicetree/bindings/media/i2c/ov7670.txt       |   43 +
+ MAINTAINERS                                        |    1 +
+ drivers/media/i2c/Kconfig                          |   11 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/{soc_camera => }/ov2640.c        |  153 +--
+ drivers/media/i2c/ov7670.c                         |   75 +-
+ drivers/media/i2c/soc_camera/Kconfig               |    6 -
+ drivers/media/i2c/soc_camera/Makefile              |    1 -
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/atmel/Kconfig               |   11 +-
+ drivers/media/platform/atmel/Makefile              |    1 +
+ drivers/media/platform/atmel/atmel-isi.c           | 1368 ++++++++++++++++++++
+ .../platform/{soc_camera => atmel}/atmel-isi.h     |    0
+ drivers/media/platform/soc_camera/Kconfig          |   11 -
+ drivers/media/platform/soc_camera/Makefile         |    1 -
+ drivers/media/platform/soc_camera/atmel-isi.c      | 1167 -----------------
+ drivers/media/usb/em28xx/em28xx-camera.c           |    9 -
+ 19 files changed, 1614 insertions(+), 1360 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
+ rename drivers/media/i2c/{soc_camera => }/ov2640.c (92%)
+ create mode 100644 drivers/media/platform/atmel/atmel-isi.c
+ rename drivers/media/platform/{soc_camera => atmel}/atmel-isi.h (100%)
+ delete mode 100644 drivers/media/platform/soc_camera/atmel-isi.c
+
 -- 
-2.7.4
+2.11.0
