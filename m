@@ -1,125 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:51278 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750771AbdCBFO3 (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:36810 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753973AbdC1QIq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Mar 2017 00:14:29 -0500
-Message-ID: <dcd1564943cbf5248795fdd16c655632@smtp-cloud3.xs4all.net>
-Date: Thu, 02 Mar 2017 06:11:49 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 28 Mar 2017 12:08:46 -0400
+Date: Tue, 28 Mar 2017 21:38:15 +0530
+From: Arushi Singhal <arushisinghal19971997@gmail.com>
+To: mchehab@kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, outreachy-kernel@googlegroups.com
+Subject: [PATCH v2] staging: media: atomisp: compress return logic
+Message-ID: <20170328160815.GA8320@arushi-HP-Pavilion-Notebook>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Simplify function returns by merging assignment and return.
 
-Results of the daily build of media_tree:
+Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
+---
+changes in v2
+ *correct the error.
 
-date:			Thu Mar  2 05:00:19 CET 2017
-media-tree git hash:	e6b377dbbb944d5e3ceef4e5d429fc5c841e3692
-media_build git hash:	9d6cebc34b27fea784dec19085970d9b4df9783e
-v4l-utils git hash:	646bb9c368a8b65cdea6d934c9022067541d13a9
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c      |  8 ++------
+ .../media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c | 10 ++++------
+ 2 files changed, 6 insertions(+), 12 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+index b1f685a841ba..a04cd3ba7e68 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+@@ -519,9 +519,7 @@ int atomisp_runtime_suspend(struct device *dev)
+ 	if (ret)
+ 		return ret;
+ 	pm_qos_update_request(&isp->pm_qos, PM_QOS_DEFAULT_VALUE);
+-	ret = atomisp_mrfld_power_down(isp);
+-
+-	return ret;
++	return atomisp_mrfld_power_down(isp);
+ }
+ 
+ int atomisp_runtime_resume(struct device *dev)
+@@ -587,9 +585,7 @@ static int atomisp_suspend(struct device *dev)
+ 		return ret;
+ 	}
+ 	pm_qos_update_request(&isp->pm_qos, PM_QOS_DEFAULT_VALUE);
+-	ret = atomisp_mrfld_power_down(isp);
+-
+-	return ret;
++	return atomisp_mrfld_power_down(isp);
+ }
+ 
+ static int atomisp_resume(struct device *dev)
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c
+index 737ad66da900..ed33d4c4c84a 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c
+@@ -440,7 +440,7 @@ enum ia_css_err ia_css_bufq_enqueue_psys_event(
+ enum  ia_css_err ia_css_bufq_dequeue_psys_event(
+ 	uint8_t item[BUFQ_EVENT_SIZE])
+ {
+-	enum ia_css_err return_err;
++	enum ia_css_err;
+ 	int error = 0;
+ 	ia_css_queue_t *q;
+ 
+@@ -457,8 +457,7 @@ enum  ia_css_err ia_css_bufq_dequeue_psys_event(
+ 	}
+ 	error = ia_css_eventq_recv(q, item);
+ 
+-	return_err = ia_css_convert_errno(error);
+-	return return_err;
++	return ia_css_convert_errno(error);
+ 
+ }
+ 
+@@ -466,7 +465,7 @@ enum  ia_css_err ia_css_bufq_dequeue_isys_event(
+ 	uint8_t item[BUFQ_EVENT_SIZE])
+ {
+ #if !defined(HAS_NO_INPUT_SYSTEM)
+-	enum ia_css_err return_err;
++	enum ia_css_err;
+ 	int error = 0;
+ 	ia_css_queue_t *q;
+ 
+@@ -482,8 +481,7 @@ enum  ia_css_err ia_css_bufq_dequeue_isys_event(
+ 		return IA_CSS_ERR_RESOURCE_NOT_AVAILABLE;
+ 	}
+ 	error = ia_css_eventq_recv(q, item);
+-	return_err = ia_css_convert_errno(error);
+-	return return_err;
++	return ia_css_convert_errno(error);
+ #else
+ 	(void)item;
+ 	return IA_CSS_ERR_RESOURCE_NOT_AVAILABLE;
+-- 
+2.11.0
