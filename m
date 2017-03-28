@@ -1,67 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:50788 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932993AbdCaMMl (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:35555 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754642AbdC1I0X (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 08:12:41 -0400
-Subject: Re: [PATCH] vidioc-enumin/output.rst: improve documentation
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <dfd64830-b66d-044d-2a40-82210a32c18a@xs4all.nl>
- <20170331070508.7a8eae16@vento.lan>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Helen Koike <helen.koike@collabora.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
+        Tue, 28 Mar 2017 04:26:23 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7e294a12-b8a9-a09f-c2d0-bf2e2ddcbf8b@xs4all.nl>
-Date: Fri, 31 Mar 2017 14:12:37 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170331070508.7a8eae16@vento.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv6 06/14] atmel-isi: update device tree bindings documentation
+Date: Tue, 28 Mar 2017 10:23:39 +0200
+Message-Id: <20170328082347.11159-7-hverkuil@xs4all.nl>
+In-Reply-To: <20170328082347.11159-1-hverkuil@xs4all.nl>
+References: <20170328082347.11159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 31/03/17 12:05, Mauro Carvalho Chehab wrote:
-> Em Fri, 31 Mar 2017 10:58:39 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> The V4L2_INPUT_TYPE_CAMERA and V4L2_OUTPUT_TYPE_ANALOG descriptions were
->> hopelessly out of date. Fix this, and also fix a few style issues in these
->> documents. Finally add the missing documentation for V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY
->> (only used by the zoran driver).
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
-> 
-> Patch looks OK to me, but see below.
-> 
->> Question: should we perhaps add _TYPE_VIDEO aliases?
-> 
-> IMHO, let's rename it to _TYPE_VIDEO (or STREAM, or V_STREAM), and make 
-> _TYPE_CAMERA an alias, e. g.:
-> 
-> #define V4L2_INPUT_TYPE_VIDEO 2
-> 
-> #define V4L2_INPUT_TYPE_CAMERA V4L2_INPUT_TYPE_VIDEO
-> 
-> This way, we'll let clearer what's currently preferred. We should also
-> change it at the documentation, mentioning that V4L2_INPUT_TYPE_CAMERA
-> is an alias, due to historical reasons.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Does this really make sense to do this now? Everyone is used to the old defines,
-wouldn't changing this just increase confusion?
+The original bindings documentation was incomplete (missing pinctrl-names,
+missing endpoint node properties) and the example was out of date.
 
-Sorry, playing devil's advocate here.
+Add the missing information and tidy up the text.
 
-I'm a bit hesitant of doing this. We've done this in the past for APIs that
-were very new or rarely used, but this is everywhere.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ .../devicetree/bindings/media/atmel-isi.txt        | 91 +++++++++++++---------
+ 1 file changed, 53 insertions(+), 38 deletions(-)
 
-I feel fixing the spec is sufficient.
-
-If more people think that adding this aliases is a good idea, then I can do that.
-
-Regards,
-
-	Hans
+diff --git a/Documentation/devicetree/bindings/media/atmel-isi.txt b/Documentation/devicetree/bindings/media/atmel-isi.txt
+index 251f008f220c..332513a151cc 100644
+--- a/Documentation/devicetree/bindings/media/atmel-isi.txt
++++ b/Documentation/devicetree/bindings/media/atmel-isi.txt
+@@ -1,51 +1,66 @@
+-Atmel Image Sensor Interface (ISI) SoC Camera Subsystem
+-----------------------------------------------
+-
+-Required properties:
+-- compatible: must be "atmel,at91sam9g45-isi"
+-- reg: physical base address and length of the registers set for the device;
+-- interrupts: should contain IRQ line for the ISI;
+-- clocks: list of clock specifiers, corresponding to entries in
+-          the clock-names property;
+-- clock-names: must contain "isi_clk", which is the isi peripherial clock.
+-
+-ISI supports a single port node with parallel bus. It should contain one
++Atmel Image Sensor Interface (ISI)
++----------------------------------
++
++Required properties for ISI:
++- compatible: must be "atmel,at91sam9g45-isi".
++- reg: physical base address and length of the registers set for the device.
++- interrupts: should contain IRQ line for the ISI.
++- clocks: list of clock specifiers, corresponding to entries in the clock-names
++	property; please refer to clock-bindings.txt.
++- clock-names: required elements: "isi_clk".
++- pinctrl-names, pinctrl-0: please refer to pinctrl-bindings.txt.
++
++ISI supports a single port node with parallel bus. It shall contain one
+ 'port' child node with child 'endpoint' node. Please refer to the bindings
+ defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
+ 
+-Example:
+-	isi: isi@f0034000 {
+-		compatible = "atmel,at91sam9g45-isi";
+-		reg = <0xf0034000 0x4000>;
+-		interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
+-
+-		clocks = <&isi_clk>;
+-		clock-names = "isi_clk";
++Endpoint node properties
++------------------------
+ 
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&pinctrl_isi>;
++- bus-width: <8> or <10> (mandatory)
++- hsync-active (default: active high)
++- vsync-active (default: active high)
++- pclk-sample (default: sample on falling edge)
++- remote-endpoint: A phandle to the bus receiver's endpoint node (mandatory).
+ 
+-		port {
+-			#address-cells = <1>;
+-			#size-cells = <0>;
++Example:
+ 
+-			isi_0: endpoint {
+-				remote-endpoint = <&ov2640_0>;
+-				bus-width = <8>;
+-			};
++isi: isi@f0034000 {
++	compatible = "atmel,at91sam9g45-isi";
++	reg = <0xf0034000 0x4000>;
++	interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_isi_data_0_7>;
++	clocks = <&isi_clk>;
++	clock-names = "isi_clk";
++	port {
++		isi_0: endpoint {
++			remote-endpoint = <&ov2640_0>;
++			bus-width = <8>;
++			vsync-active = <1>;
++			hsync-active = <1>;
+ 		};
+ 	};
++};
+ 
+-	i2c1: i2c@f0018000 {
+-		ov2640: camera@0x30 {
+-			compatible = "ovti,ov2640";
+-			reg = <0x30>;
++i2c1: i2c@f0018000 {
++	ov2640: camera@30 {
++		compatible = "ovti,ov2640";
++		reg = <0x30>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
++		resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
++		pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
++		clocks = <&pck0>;
++		clock-names = "xvclk";
++		assigned-clocks = <&pck0>;
++		assigned-clock-rates = <25000000>;
+ 
+-			port {
+-				ov2640_0: endpoint {
+-					remote-endpoint = <&isi_0>;
+-					bus-width = <8>;
+-				};
++		port {
++			ov2640_0: endpoint {
++				remote-endpoint = <&isi_0>;
++				bus-width = <8>;
+ 			};
+ 		};
+ 	};
++};
+-- 
+2.11.0
