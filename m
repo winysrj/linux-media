@@ -1,66 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:56906 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751083AbdCDCCP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Mar 2017 21:02:15 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v2 0/3] RCAR-DU, VSP1: Prevent pre-emptive frame flips on VSP1-DRM pipelines
-Date: Sat,  4 Mar 2017 02:01:16 +0000
-Message-Id: <cover.4a217716bf5515d07dcb6d2b052f883eeecae9e8.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:36526 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753651AbdC1AlP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Mar 2017 20:41:15 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v6 02/39] [media] dt-bindings: Add bindings for i.MX media driver
+Date: Mon, 27 Mar 2017 17:40:19 -0700
+Message-Id: <1490661656-10318-3-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The RCAR-DU utilises a running VSPD pipeline to perform processing
-for the display pipeline.
+Add bindings documentation for the i.MX media driver.
 
-Changes to this pipeline are performed with an atomic flush operation which
-updates the state in the VSPD. Due to the way the running pipeline is
-operated, any flush operation has an implicit latency of one frame interval.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ Documentation/devicetree/bindings/media/imx.txt | 74 +++++++++++++++++++++++++
+ 1 file changed, 74 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/imx.txt
 
-This comes about as the display list is committed, but not updated until the
-next VSP1 interrupt. At this point the frame is being processed, but is not
-complete until the following VSP1 frame end interrupt.
-
-To prevent reporting page flips early, we must track this timing through the
-VSP1, and only allow the rcar-du object to report the page-flip completion
-event after the VSP1 has processed.
-
-This series ensures that tearing and flicker is prevented, without introducing the
-performance impact mentioned in the previous series.
-
-[PATCH 1/3] extends the VSP1 to allow a callback to be registered giving the
-            VSP1 the ability to notify completion events
-[PATCH 2/3] checks for race conditions in the commits of the display list, and
-            in such event postpones the sending of the completion event
-[PATCH 3/3] Utilises the callback extension to send page flips at the end of
-            VSP processing.
-
-These patches have been tested by introducing artificial delays in the commit
-code paths and verifying that no visual tearing or flickering occurs.
-
-Manual start/stop testing has also been performed
-
-Kieran Bingham (3):
-  v4l: vsp1: extend VSP1 module API to allow DRM callbacks
-  v4l: vsp1: Postpone page flip in event of display list race
-  drm: rcar-du: Register a completion callback with VSP1
-
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c  | 10 +++++++--
- drivers/gpu/drm/rcar-du/rcar_du_crtc.h  |  2 ++-
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c   | 29 ++++++++++++++++++++++++++-
- drivers/media/platform/vsp1/vsp1_dl.c   |  9 ++++++--
- drivers/media/platform/vsp1/vsp1_dl.h   |  2 +-
- drivers/media/platform/vsp1/vsp1_drm.c  | 22 ++++++++++++++++++++-
- drivers/media/platform/vsp1/vsp1_drm.h  | 10 +++++++++-
- drivers/media/platform/vsp1/vsp1_pipe.c |  6 ++++-
- drivers/media/platform/vsp1/vsp1_pipe.h |  2 ++-
- include/media/vsp1.h                    |  3 +++-
- 10 files changed, 89 insertions(+), 6 deletions(-)
-
-base-commit: 55e78dfc82988a79773ccca67e121f9a88df81c2
+diff --git a/Documentation/devicetree/bindings/media/imx.txt b/Documentation/devicetree/bindings/media/imx.txt
+new file mode 100644
+index 0000000..3059c06
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/imx.txt
+@@ -0,0 +1,74 @@
++Freescale i.MX Media Video Device
++=================================
++
++Video Media Controller node
++---------------------------
++
++This is the media controller node for video capture support. It is a
++virtual device that lists the camera serial interface nodes that the
++media device will control.
++
++Required properties:
++- compatible : "fsl,imx-capture-subsystem";
++- ports      : Should contain a list of phandles pointing to camera
++		sensor interface ports of IPU devices
++
++example:
++
++capture-subsystem {
++	compatible = "fsl,imx-capture-subsystem";
++	ports = <&ipu1_csi0>, <&ipu1_csi1>;
++};
++
++fim child node
++--------------
++
++This is an optional child node of the ipu_csi port nodes. If present and
++available, it enables the Frame Interval Monitor. Its properties can be
++used to modify the method in which the FIM measures frame intervals.
++Refer to Documentation/media/v4l-drivers/imx.rst for more info on the
++Frame Interval Monitor.
++
++Optional properties:
++- fsl,input-capture-channel: an input capture channel and channel flags,
++			     specified as <chan flags>. The channel number
++			     must be 0 or 1. The flags can be
++			     IRQ_TYPE_EDGE_RISING, IRQ_TYPE_EDGE_FALLING, or
++			     IRQ_TYPE_EDGE_BOTH, and specify which input
++			     capture signal edge will trigger the input
++			     capture event. If an input capture channel is
++			     specified, the FIM will use this method to
++			     measure frame intervals instead of via the EOF
++			     interrupt. The input capture method is much
++			     preferred over EOF as it is not subject to
++			     interrupt latency errors. However it requires
++			     routing the VSYNC or FIELD output signals of
++			     the camera sensor to one of the i.MX input
++			     capture pads (SD1_DAT0, SD1_DAT1), which also
++			     gives up support for SD1.
++
++
++mipi_csi2 node
++--------------
++
++This is the device node for the MIPI CSI-2 Receiver, required for MIPI
++CSI-2 sensors.
++
++Required properties:
++- compatible	: "fsl,imx6-mipi-csi2", "snps,dw-mipi-csi2";
++- reg           : physical base address and length of the register set;
++- clocks	: the MIPI CSI-2 receiver requires three clocks: hsi_tx
++		  (the D-PHY clock), video_27m (D-PHY PLL reference
++		  clock), and eim_podf;
++- clock-names	: must contain "dphy", "ref", "pix";
++- port@*        : five port nodes must exist, containing endpoints
++		  connecting to the source and sink devices according to
++		  of_graph bindings. The first port is an input port,
++		  connecting with a MIPI CSI-2 source, and ports 1
++		  through 4 are output ports connecting with parallel
++		  bus sink endpoint nodes and correspond to the four
++		  MIPI CSI-2 virtual channel outputs.
++
++Optional properties:
++- interrupts	: must contain two level-triggered interrupts,
++		  in order: 100 and 101;
 -- 
-git-series 0.9.1
+2.7.4
