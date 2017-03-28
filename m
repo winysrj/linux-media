@@ -1,15 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:60402
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S934692AbdCLU7n (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:34974 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753215AbdC1Alh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Mar 2017 16:59:43 -0400
-Date: Sun, 12 Mar 2017 17:59:28 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        Mon, 27 Mar 2017 20:41:37 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
         nick@shmanahar.org, markus.heiser@darmarIT.de,
         p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
         bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
@@ -18,117 +16,214 @@ Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
         horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
         robert.jarzmik@free.fr, songjun.wu@microchip.com,
         andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
         devel@driverdev.osuosl.org,
         Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v5 00/39] i.MX Media Driver
-Message-ID: <20170312175923.6ad86dff@vento.lan>
-In-Reply-To: <20170312194700.GR21222@n2100.armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
-        <20170312194700.GR21222@n2100.armlinux.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v6 09/39] ARM: dts: imx6-sabresd: add OV5642 and OV5640 camera sensors
+Date: Mon, 27 Mar 2017 17:40:26 -0700
+Message-Id: <1490661656-10318-10-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 12 Mar 2017 19:47:00 +0000
-Russell King - ARM Linux <linux@armlinux.org.uk> escreveu:
+Enables the OV5642 parallel-bus sensor, and the OV5640 MIPI CSI-2 sensor.
 
-> Another issue.
-> 
-> The "reboot and the /dev/video* devices come up in a completely
-> different order" problem seems to exist with this version.
-> 
-> The dot graph I supplied previously had "ipu1_csi0 capture" on
-> /dev/video4.  I've just rebooted, and now I find it's on
-> /dev/video2 instead.
-> 
-> Here's the extract from the .dot file of the old listing:
-> 
->         n00000018 [label="ipu1_ic_prpenc capture\n/dev/video0", shape=box, style=filled, fillcolor=yellow]
->         n00000021 [label="ipu1_ic_prpvf capture\n/dev/video1", shape=box, style=filled, fillcolor=yellow]
->         n0000002e [label="ipu2_ic_prpenc capture\n/dev/video2", shape=box, style=filled, fillcolor=yellow]
->         n00000037 [label="ipu2_ic_prpvf capture\n/dev/video3", shape=box, style=filled, fillcolor=yellow]
->         n00000048 [label="ipu1_csi0 capture\n/dev/video4", shape=box, style=filled, fillcolor=yellow]
->         n00000052 [label="ipu1_csi1 capture\n/dev/video5", shape=box, style=filled, fillcolor=yellow]
->         n00000062 [label="ipu2_csi0 capture\n/dev/video6", shape=box, style=filled, fillcolor=yellow]
->         n0000006c [label="ipu2_csi1 capture\n/dev/video7", shape=box, style=filled, fillcolor=yellow]
-> 
-> and here's the same after reboot:
-> 
->         n00000014 [label="ipu1_csi0 capture\n/dev/video2", shape=box, style=filled, fillcolor=yellow]
->         n0000001e [label="ipu1_csi1 capture\n/dev/video3", shape=box, style=filled, fillcolor=yellow]
->         n00000028 [label="ipu2_csi0 capture\n/dev/video4", shape=box, style=filled, fillcolor=yellow]
->         n00000035 [label="ipu1_ic_prpenc capture\n/dev/video5", shape=box, style=filled, fillcolor=yellow]
->         n0000003e [label="ipu1_ic_prpvf capture\n/dev/video6", shape=box, style=filled, fillcolor=yellow]
->         n0000004c [label="ipu2_csi1 capture\n/dev/video7", shape=box, style=filled, fillcolor=yellow]
->         n00000059 [label="ipu2_ic_prpenc capture\n/dev/video8", shape=box, style=filled, fillcolor=yellow]
->         n00000062 [label="ipu2_ic_prpvf capture\n/dev/video9", shape=box, style=filled, fillcolor=yellow]
-> 
-> (/dev/video0 and /dev/video1 are taken up by CODA, since I updated the
-> names of the firmware files, and now CODA initialises... seems the
-> back-compat filenames don't work, but that's not a problem with imx6
-> capture.)
-> 
+The OV5642 connects to the parallel-bus mux input port on ipu1_csi0_mux.
 
-Didn't have time yet to read/comment the other e-mails in this thread.
+The OV5640 connects to the input port on the MIPI CSI-2 receiver on
+mipi_csi.
 
-Yet, as this is a simple issue, let me answer it first.
+Until the OV5652 sensor module compatible with the SabreSD becomes
+available for testing, the ov5642 node is currently disabled.
 
-With regards to /dev/video?, the device number depends on the probing 
-order, with can be random on SoC drivers, due to the way OF works. 
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/boot/dts/imx6dl-sabresd.dts   |   5 ++
+ arch/arm/boot/dts/imx6q-sabresd.dts    |   5 ++
+ arch/arm/boot/dts/imx6qdl-sabresd.dtsi | 114 ++++++++++++++++++++++++++++++++-
+ 3 files changed, 123 insertions(+), 1 deletion(-)
 
-Yet, udev/systemd has some rules that provide an unique name for V4L
-devices at /lib/udev/rules.d/60-persistent-v4l.rules. Basically, it
-runs a small application (v4l_id) with creates a persistent symling
-using rules like this:
-
-	KERNEL=="video*", ENV{ID_SERIAL}=="?*", SYMLINK+="v4l/by-id/$env{ID_BUS}-$env{ID_SERIAL}-video-index$attr{index}"
-
-Those names are stored at /dev/v4l/by-path.
-
-For example, on Exynos, we have:
-
-$ ls -lctra /dev/v4l/by-path/
-total 0
-lrwxrwxrwx 1 root root  12 Mar 11 07:19 platform-13e10000.video-scaler-video-index0 -> ../../video7
-lrwxrwxrwx 1 root root  12 Mar 11 07:19 platform-13e00000.video-scaler-video-index0 -> ../../video6
-lrwxrwxrwx 1 root root  12 Mar 11 07:19 platform-11f60000.jpeg-video-index0 -> ../../video4
-lrwxrwxrwx 1 root root  12 Mar 11 07:19 platform-11f50000.jpeg-video-index1 -> ../../video3
-lrwxrwxrwx 1 root root  12 Mar 11 07:19 platform-11f50000.jpeg-video-index0 -> ../../video2
-drwxr-xr-x 3 root root  60 Mar 11 07:19 ..
-lrwxrwxrwx 1 root root  12 Mar 11 07:19 platform-11f60000.jpeg-video-index1 -> ../../video5
-lrwxrwxrwx 1 root root  12 Mar 11 07:19 platform-11000000.codec-video-index1 -> ../../video1
-lrwxrwxrwx 1 root root  12 Mar 11 07:19 platform-11000000.codec-video-index0 -> ../../video0
-
-No matter what driver gets probed first, the above names should not
-change.
-
-So, if you want to write a script, the best is to use the /dev/v4l/by-path.
-
-Unfortunately, gstreamer has some issues with that, as some of their plugins
-don't seem to allow passing the name of the devnode, but just the number of
-/dev/video?.
-
-So, you need some script to convert from /dev/v4l/by-path/foo to
-/dev/video?.
-
-What I'm using on Exynos scripts is this logic:
-
-	NEEDED1=platform-13e00000.video-scaler-video-index0
-	DEV1=$(ls -l /dev/v4l/by-path/$NEEDED1|perl -ne ' print $1 if (m,/video(\d+),)')
-
-Then, if I need to talk with this mem2mem driver using the v4l2video
-convert plugin, I can launch gst with something like:
-
-	gst-launch-1.0 videotestsrc ! v4l2video${DEV1}convert ! fakesink
-
-Thanks,
-Mauro
-
-
-Thanks,
-Mauro
+diff --git a/arch/arm/boot/dts/imx6dl-sabresd.dts b/arch/arm/boot/dts/imx6dl-sabresd.dts
+index 1e45f2f..9607afe 100644
+--- a/arch/arm/boot/dts/imx6dl-sabresd.dts
++++ b/arch/arm/boot/dts/imx6dl-sabresd.dts
+@@ -15,3 +15,8 @@
+ 	model = "Freescale i.MX6 DualLite SABRE Smart Device Board";
+ 	compatible = "fsl,imx6dl-sabresd", "fsl,imx6dl";
+ };
++
++&ipu1_csi1_from_ipu1_csi1_mux {
++	clock-lanes = <0>;
++	data-lanes = <1 2>;
++};
+diff --git a/arch/arm/boot/dts/imx6q-sabresd.dts b/arch/arm/boot/dts/imx6q-sabresd.dts
+index 9cbdfe7..527772b 100644
+--- a/arch/arm/boot/dts/imx6q-sabresd.dts
++++ b/arch/arm/boot/dts/imx6q-sabresd.dts
+@@ -23,3 +23,8 @@
+ &sata {
+ 	status = "okay";
+ };
++
++&ipu1_csi1_from_mipi_vc1 {
++	clock-lanes = <0>;
++	data-lanes = <1 2>;
++};
+diff --git a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+index 63bf95e..643c1d4 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+@@ -10,6 +10,7 @@
+  * http://www.gnu.org/copyleft/gpl.html
+  */
+ 
++#include <dt-bindings/clock/imx6qdl-clock.h>
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/input.h>
+ 
+@@ -146,6 +147,36 @@
+ 	};
+ };
+ 
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <8>;
++	data-shift = <12>; /* Lines 19:12 used */
++	hsync-active = <1>;
++	vsync-active = <1>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&ov5642_to_ipu1_csi0_mux>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
++};
++
++&mipi_csi {
++	status = "okay";
++
++	port@0 {
++		reg = <0>;
++
++		mipi_csi2_in: endpoint {
++			remote-endpoint = <&ov5640_to_mipi_csi2>;
++			clock-lanes = <0>;
++			data-lanes = <1 2>;
++		};
++	};
++};
++
+ &audmux {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_audmux>;
+@@ -213,7 +244,32 @@
+ 			0x8014 /* 4:FN_DMICCDAT */
+ 			0x0000 /* 5:Default */
+ 		>;
+-       };
++	};
++
++	ov5642: camera@3c {
++		compatible = "ovti,ov5642";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5642>;
++		clocks = <&clks IMX6QDL_CLK_CKO>;
++		clock-names = "xclk";
++		reg = <0x3c>;
++		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
++		AVDD-supply = <&vgen3_reg>;  /* 2.8v, rev C board is VGEN3
++						rev B board is VGEN5 */
++		DVDD-supply = <&vgen2_reg>;  /* 1.5v*/
++		powerdown-gpios = <&gpio1 16 GPIO_ACTIVE_HIGH>;
++		reset-gpios = <&gpio1 17 GPIO_ACTIVE_LOW>;
++		status = "disabled";
++
++		port {
++			ov5642_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <8>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++			};
++		};
++	};
+ };
+ 
+ &i2c2 {
+@@ -222,6 +278,32 @@
+ 	pinctrl-0 = <&pinctrl_i2c2>;
+ 	status = "okay";
+ 
++	ov5640: camera@3c {
++		compatible = "ovti,ov5640";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5640>;
++		reg = <0x3c>;
++		clocks = <&clks IMX6QDL_CLK_CKO>;
++		clock-names = "xclk";
++		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
++		AVDD-supply = <&vgen3_reg>;  /* 2.8v, rev C board is VGEN3
++						rev B board is VGEN5 */
++		DVDD-supply = <&vgen2_reg>;  /* 1.5v*/
++		powerdown-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>;
++		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>;
++
++		port {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			ov5640_to_mipi_csi2: endpoint {
++				remote-endpoint = <&mipi_csi2_in>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++			};
++		};
++	};
++
+ 	pmic: pfuze100@08 {
+ 		compatible = "fsl,pfuze100";
+ 		reg = <0x08>;
+@@ -425,6 +507,36 @@
+ 			>;
+ 		};
+ 
++		pinctrl_ipu1_csi0: ipu1csi0grp {
++			fsl,pins = <
++				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x1b0b0
++				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x1b0b0
++				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC      0x1b0b0
++				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC     0x1b0b0
++			>;
++		};
++
++		pinctrl_ov5640: ov5640grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT2__GPIO1_IO19 0x1b0b0
++				MX6QDL_PAD_SD1_CLK__GPIO1_IO20  0x1b0b0
++			>;
++		};
++
++		pinctrl_ov5642: ov5642grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x1b0b0
++				MX6QDL_PAD_SD1_DAT1__GPIO1_IO17 0x1b0b0
++			>;
++		};
++
+ 		pinctrl_pcie: pciegrp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_GPIO_17__GPIO7_IO12	0x1b0b0
+-- 
+2.7.4
