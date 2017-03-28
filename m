@@ -1,118 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:37573 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934033AbdC3ULt (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:36644 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753677AbdC1AuR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 16:11:49 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Noam Camus <noamca@mellanox.com>,
-        James Morris <james.l.morris@oracle.com>,
-        zijun_hu <zijun_hu@htc.com>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        linux-clk@vger.kernel.org, Jani Nikula <jani.nikula@intel.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jens Axboe <axboe@kernel.dk>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-block@vger.kernel.org,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Joonsoo Kim <iamjoonsoo.kim@lge.com>,
-        Ingo Molnar <mingo@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        "Serge E. Hallyn" <serge@hallyn.com>,
-        Michal Hocko <mhocko@suse.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Chris Wilson <chris@chris-wilson.co.uk>, linux-mm@kvack.org,
-        linux-security-module@vger.kernel.org,
-        Silvio Fricke <silvio.fricke@gmail.com>,
-        Takashi Iwai <tiwai@suse.de>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Jan Kara <jack@suse.cz>, Vlastimil Babka <vbabka@suse.cz>,
-        linux-pci@vger.kernel.org, Matt Fleming <matt@codeblueprint.co.uk>,
-        Johannes Weiner <hannes@cmpxchg.org>,
-        Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Andy Lutomirski <luto@kernel.org>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Hillf Danton <hillf.zj@alibaba-inc.com>
-Subject: [PATCH 0/9] convert genericirq.tmpl and kernel-api.tmpl to DocBook
-Date: Thu, 30 Mar 2017 17:11:27 -0300
-Message-Id: <cover.1490904090.git.mchehab@s-opensource.com>
+        Mon, 27 Mar 2017 20:50:17 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v6 13/39] ARM: dts: imx6-sabreauto: add the ADV7180 video decoder
+Date: Mon, 27 Mar 2017 17:40:30 -0700
+Message-Id: <1490661656-10318-14-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jani proposed to batch-convert the remaining DocBooks for us
-to get rid of it.
+Enables the ADV7180 decoder sensor. The ADV7180 connects to the
+parallel-bus mux input on ipu1_csi0_mux.
 
-Well, I tried ;) 
+The ADV7180 power pin is via max7310_b port expander.
 
-The conversion itself can easily done, but the problem is that
-it hits several errors/warnings when parsing kernel-doc tags.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 58 ++++++++++++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
 
-It ends that it takes some time to fix those.
-
-Also, it seems that the "!I" and "!E" tags at the DocBook
-template are not quite right. So, despite being properly
-converted to the corresponding kernel-doc tags at ReST, they
-didn't produce all that it was needed. I manually fixed a
-few, but I guess there are more to be fixed there. Anyway,
-this is something that the subsystem maintainers can fix later,
-as they understand better what functions they want exported at
-the public API documentation, and what functions they want to
-hide.
-
-This series converts just two documents, adding them to the
-core-api.rst book. It addresses the errors/warnings that popup
-after the conversion.
-
-I had to add two fixes to scripts/kernel-doc, in order to solve
-some of the issues.
-
-If I have some time during this weekend, I may try to convert
-some additional documents to DocBook.
-
-
-Mauro Carvalho Chehab (9):
-  scripts/kernel-doc: fix parser for apostrophes
-  scripts/kernel-doc: fix handling of parameters with parenthesis
-  genericirq.tmpl: convert it to ReST
-  genericirq.rst: add cross-reference links and use monospaced fonts
-  kernel-api.tmpl: convert it to ReST
-  kernel-api.rst: fix output of the vsnprintf() documentation
-  kernel-api.rst: make it handle lib/crc32.c
-  kernel-api.rst: fix some complex tags at lib/bitmap.c
-  kernel-api.rst: fix a series of errors when parsing C files
-
- Documentation/DocBook/Makefile        |   4 +-
- Documentation/DocBook/genericirq.tmpl | 520 ----------------------------------
- Documentation/DocBook/kernel-api.tmpl | 331 ----------------------
- Documentation/core-api/genericirq.rst | 440 ++++++++++++++++++++++++++++
- Documentation/core-api/index.rst      |   2 +
- Documentation/core-api/kernel-api.rst | 418 +++++++++++++++++++++++++++
- block/genhd.c                         |   7 +-
- drivers/pci/irq.c                     |   2 +-
- include/linux/clk.h                   |   4 +-
- ipc/util.c                            |  12 +-
- lib/bitmap.c                          |  28 +-
- lib/string.c                          |   2 +-
- lib/vsprintf.c                        |   6 +-
- mm/filemap.c                          |  18 +-
- mm/page_alloc.c                       |   3 +-
- mm/vmalloc.c                          |   2 +-
- scripts/kernel-doc                    |  19 +-
- security/security.c                   |  12 +-
- 18 files changed, 932 insertions(+), 898 deletions(-)
- delete mode 100644 Documentation/DocBook/genericirq.tmpl
- delete mode 100644 Documentation/DocBook/kernel-api.tmpl
- create mode 100644 Documentation/core-api/genericirq.rst
- create mode 100644 Documentation/core-api/kernel-api.rst
-
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 1212f82..a712ff1 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -124,6 +124,21 @@
+ 			#size-cells = <0>;
+ 			reg = <1>;
+ 
++			adv7180: camera@21 {
++				compatible = "adi,adv7180";
++				reg = <0x21>;
++				powerdown-gpios = <&max7310_b 2 GPIO_ACTIVE_LOW>;
++				interrupt-parent = <&gpio1>;
++				interrupts = <27 0x8>;
++
++				port {
++					adv7180_to_ipu1_csi0_mux: endpoint {
++						remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++						bus-width = <8>;
++					};
++				};
++			};
++
+ 			max7310_a: gpio@30 {
+ 				compatible = "maxim,max7310";
+ 				reg = <0x30>;
+@@ -151,6 +166,25 @@
+ 	};
+ };
+ 
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <8>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&adv7180_to_ipu1_csi0_mux>;
++	bus-width = <8>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
++
++	/* enable frame interval monitor on this port */
++	fim {
++		status = "okay";
++	};
++};
++
+ &clks {
+ 	assigned-clocks = <&clks IMX6QDL_PLL4_BYPASS_SRC>,
+ 			  <&clks IMX6QDL_PLL4_BYPASS>,
+@@ -444,6 +478,30 @@
+ 			>;
+ 		};
+ 
++		pinctrl_ipu1_csi0: ipu1csi0grp {
++			fsl,pins = <
++				MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04   0x1b0b0
++				MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05   0x1b0b0
++				MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06   0x1b0b0
++				MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07   0x1b0b0
++				MX6QDL_PAD_CSI0_DAT8__IPU1_CSI0_DATA08   0x1b0b0
++				MX6QDL_PAD_CSI0_DAT9__IPU1_CSI0_DATA09   0x1b0b0
++				MX6QDL_PAD_CSI0_DAT10__IPU1_CSI0_DATA10  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT11__IPU1_CSI0_DATA11  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19  0x1b0b0
++				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK 0x1b0b0
++				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC    0x1b0b0
++				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC   0x1b0b0
++			>;
++		};
++
+ 		pinctrl_max7310: max7310grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_SD2_DAT0__GPIO1_IO15 0x1b0b0
 -- 
-2.9.3
+2.7.4
