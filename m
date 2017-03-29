@@ -1,47 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:9423 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753629AbdCTOmE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 10:42:04 -0400
-Subject: [PATCH 16/24] stating/atomisp: fix -Wold-style-definition warning
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Mon, 20 Mar 2017 14:41:29 +0000
-Message-ID: <149002088805.17109.15017761805145004727.stgit@acox1-desk1.ger.corp.intel.com>
-In-Reply-To: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
-References: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:35036 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751700AbdC2PD5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Mar 2017 11:03:57 -0400
+Date: Wed, 29 Mar 2017 20:33:51 +0530
+From: Arushi Singhal <arushisinghal19971997@gmail.com>
+To: outreachy-kernel@googlegroups.com
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [RESEND PATCH] staging: media: omap4iss: Replace a bit shift by a
+ use of BIT
+Message-ID: <20170329150351.GA3203@arushi-HP-Pavilion-Notebook>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Arnd Bergmann <arnd@arndb.de>
+This patch replaces bit shifting on 1 with the BIT(x) macro.
+This was done with coccinelle:
+@@
+constant c;
+@@
 
-ia_css_dequeue_param_buffers does not have an arguement type, causing a warning:
+-1 << c
++BIT(c)
 
-drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c: In function 'ia_css_dequeue_param_buffers':
-drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c:3728:6: error: old-style function definition [-Werror=old-style-definition]
-
-This adds a 'void' keywork to silence the warning.
-
-Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
 ---
- .../atomisp/pci/atomisp2/css2400/sh_css_params.c   |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/media/omap4iss/iss_csi2.c    | 2 +-
+ drivers/staging/media/omap4iss/iss_ipipe.c   | 2 +-
+ drivers/staging/media/omap4iss/iss_ipipeif.c | 2 +-
+ drivers/staging/media/omap4iss/iss_resizer.c | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c
-index e4599f7..36a0c6b 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c
-@@ -3723,7 +3723,7 @@ static void sh_css_update_isp_mem_params_to_ddr(
- 	IA_CSS_LEAVE_PRIVATE("void");
- }
+diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
+index f71d5f2f179f..f6acc541e8a2 100644
+--- a/drivers/staging/media/omap4iss/iss_csi2.c
++++ b/drivers/staging/media/omap4iss/iss_csi2.c
+@@ -1268,7 +1268,7 @@ static int csi2_init_entities(struct iss_csi2_device *csi2, const char *subname)
+ 	snprintf(name, sizeof(name), "CSI2%s", subname);
+ 	snprintf(sd->name, sizeof(sd->name), "OMAP4 ISS %s", name);
  
--void ia_css_dequeue_param_buffers(/*unsigned int pipe_num*/)
-+void ia_css_dequeue_param_buffers(/*unsigned int pipe_num*/ void)
- {
- 	unsigned int i;
- 	hrt_vaddress cpy;
+-	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
++	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
+ 	v4l2_set_subdevdata(sd, csi2);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c b/drivers/staging/media/omap4iss/iss_ipipe.c
+index d38782e8e84c..d86ef8a031f2 100644
+--- a/drivers/staging/media/omap4iss/iss_ipipe.c
++++ b/drivers/staging/media/omap4iss/iss_ipipe.c
+@@ -508,7 +508,7 @@ static int ipipe_init_entities(struct iss_ipipe_device *ipipe)
+ 	v4l2_subdev_init(sd, &ipipe_v4l2_ops);
+ 	sd->internal_ops = &ipipe_v4l2_internal_ops;
+ 	strlcpy(sd->name, "OMAP4 ISS ISP IPIPE", sizeof(sd->name));
+-	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
++	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
+ 	v4l2_set_subdevdata(sd, ipipe);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+diff --git a/drivers/staging/media/omap4iss/iss_ipipeif.c b/drivers/staging/media/omap4iss/iss_ipipeif.c
+index 23de8330731d..cb88b2bd0d82 100644
+--- a/drivers/staging/media/omap4iss/iss_ipipeif.c
++++ b/drivers/staging/media/omap4iss/iss_ipipeif.c
+@@ -739,7 +739,7 @@ static int ipipeif_init_entities(struct iss_ipipeif_device *ipipeif)
+ 	v4l2_subdev_init(sd, &ipipeif_v4l2_ops);
+ 	sd->internal_ops = &ipipeif_v4l2_internal_ops;
+ 	strlcpy(sd->name, "OMAP4 ISS ISP IPIPEIF", sizeof(sd->name));
+-	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
++	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
+ 	v4l2_set_subdevdata(sd, ipipeif);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
+index f1d352c711d5..4bbfa20b3c38 100644
+--- a/drivers/staging/media/omap4iss/iss_resizer.c
++++ b/drivers/staging/media/omap4iss/iss_resizer.c
+@@ -782,7 +782,7 @@ static int resizer_init_entities(struct iss_resizer_device *resizer)
+ 	v4l2_subdev_init(sd, &resizer_v4l2_ops);
+ 	sd->internal_ops = &resizer_v4l2_internal_ops;
+ 	strlcpy(sd->name, "OMAP4 ISS ISP resizer", sizeof(sd->name));
+-	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
++	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
+ 	v4l2_set_subdevdata(sd, resizer);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+-- 
+2.11.0
