@@ -1,131 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:4839 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S934244AbdC3P2s (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:41138 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754533AbdC2IkR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 11:28:48 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Rob Herring <robh+dt@kernel.org>,
+        Wed, 29 Mar 2017 04:40:17 -0400
+Date: Wed, 29 Mar 2017 09:39:05 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Rob Herring <robh+dt@kernel.org>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
         Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        "kernel@pengutronix.de" <kernel@pengutronix.de>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Nick Dyer <nick@shmanahar.org>, markus.heiser@darmarit.de,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        tiffany lin <tiffany.lin@mediatek.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Simon Horman <horms+renesas@verge.net.au>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Andrew-CT Chen =?utf-8?B?KOmZs+aZuui/qik=?=
+        <andrew-ct.chen@mediatek.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        shuah@kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
         <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v2 1/8] dt-bindings: Document STM32 DCMI bindings
-Date: Thu, 30 Mar 2017 17:27:40 +0200
-Message-ID: <1490887667-8880-2-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1490887667-8880-1-git-send-email-hugues.fruchet@st.com>
-References: <1490887667-8880-1-git-send-email-hugues.fruchet@st.com>
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v6 02/39] [media] dt-bindings: Add bindings for i.MX
+ media driver
+Message-ID: <20170329083904.GZ7909@n2100.armlinux.org.uk>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+ <1490661656-10318-3-git-send-email-steve_longerbeam@mentor.com>
+ <CAL_JsqJm_JjuVPcOBERCqsnjTDdNoKr9xRE9MXMO4ivxGath2Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAL_JsqJm_JjuVPcOBERCqsnjTDdNoKr9xRE9MXMO4ivxGath2Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds documentation of device tree bindings for the STM32 DCMI
-(Digital Camera Memory Interface).
+On Tue, Mar 28, 2017 at 07:21:34PM -0500, Rob Herring wrote:
+> On Mon, Mar 27, 2017 at 7:40 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
+> > Add bindings documentation for the i.MX media driver.
+> >
+> > Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> > ---
+> >  Documentation/devicetree/bindings/media/imx.txt | 74 +++++++++++++++++++++++++
+> >  1 file changed, 74 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/imx.txt
+> >
+> > diff --git a/Documentation/devicetree/bindings/media/imx.txt b/Documentation/devicetree/bindings/media/imx.txt
+> > new file mode 100644
+> > index 0000000..3059c06
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/imx.txt
+> > @@ -0,0 +1,74 @@
+> > +Freescale i.MX Media Video Device
+> > +=================================
+> > +
+> > +Video Media Controller node
+> > +---------------------------
+> > +
+> > +This is the media controller node for video capture support. It is a
+> > +virtual device that lists the camera serial interface nodes that the
+> > +media device will control.
+> > +
+> > +Required properties:
+> > +- compatible : "fsl,imx-capture-subsystem";
+> > +- ports      : Should contain a list of phandles pointing to camera
+> > +               sensor interface ports of IPU devices
+> > +
+> > +example:
+> > +
+> > +capture-subsystem {
+> > +       compatible = "fsl,imx-capture-subsystem";
+> > +       ports = <&ipu1_csi0>, <&ipu1_csi1>;
+> > +};
+> > +
+> > +fim child node
+> > +--------------
+> > +
+> > +This is an optional child node of the ipu_csi port nodes. If present and
+> > +available, it enables the Frame Interval Monitor. Its properties can be
+> > +used to modify the method in which the FIM measures frame intervals.
+> > +Refer to Documentation/media/v4l-drivers/imx.rst for more info on the
+> > +Frame Interval Monitor.
+> > +
+> > +Optional properties:
+> > +- fsl,input-capture-channel: an input capture channel and channel flags,
+> > +                            specified as <chan flags>. The channel number
+> > +                            must be 0 or 1. The flags can be
+> > +                            IRQ_TYPE_EDGE_RISING, IRQ_TYPE_EDGE_FALLING, or
+> > +                            IRQ_TYPE_EDGE_BOTH, and specify which input
+> > +                            capture signal edge will trigger the input
+> > +                            capture event. If an input capture channel is
+> > +                            specified, the FIM will use this method to
+> > +                            measure frame intervals instead of via the EOF
+> > +                            interrupt. The input capture method is much
+> > +                            preferred over EOF as it is not subject to
+> > +                            interrupt latency errors. However it requires
+> > +                            routing the VSYNC or FIELD output signals of
+> > +                            the camera sensor to one of the i.MX input
+> > +                            capture pads (SD1_DAT0, SD1_DAT1), which also
+> > +                            gives up support for SD1.
+> > +
+> > +
+> > +mipi_csi2 node
+> > +--------------
+> > +
+> > +This is the device node for the MIPI CSI-2 Receiver, required for MIPI
+> > +CSI-2 sensors.
+> > +
+> > +Required properties:
+> > +- compatible   : "fsl,imx6-mipi-csi2", "snps,dw-mipi-csi2";
+> 
+> As I mentioned in v5, there's a DW CSI2 binding in progress. This
+> needs to be based on that.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- .../devicetree/bindings/media/st,stm32-dcmi.txt    | 85 ++++++++++++++++++++++
- 1 file changed, 85 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
+Maybe someone can provide some kind of reference to it, and it's
+associated driver?
 
-diff --git a/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
-new file mode 100644
-index 0000000..8180f63
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
-@@ -0,0 +1,85 @@
-+STMicroelectronics STM32 Digital Camera Memory Interface (DCMI)
-+
-+Required properties:
-+- compatible: "st,stm32-dcmi"
-+- reg: physical base address and length of the registers set for the device
-+- interrupts: should contain IRQ line for the DCMI
-+- clocks: list of clock specifiers, corresponding to entries in
-+          the clock-names property
-+- clock-names: must contain "mclk", which is the DCMI peripherial clock
-+- resets: reference to a reset controller
-+- reset-names: see Documentation/devicetree/bindings/reset/st,stm32-rcc.txt
-+
-+DCMI supports a single port node with parallel bus. It should contain one
-+'port' child node with child 'endpoint' node. Please refer to the bindings
-+defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+
-+Device node example
-+-------------------
-+	dcmi: dcmi@50050000 {
-+		compatible = "st,stm32-dcmi";
-+		reg = <0x50050000 0x400>;
-+		interrupts = <78>;
-+		resets = <&rcc STM32F4_AHB2_RESET(DCMI)>;
-+		clocks = <&rcc 0 STM32F4_AHB2_CLOCK(DCMI)>;
-+		clock-names = "mclk";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&dcmi_pins>;
-+		dmas = <&dma2 1 1 0x414 0x3>;
-+		dma-names = "tx";
-+		status = "disabled";
-+	};
-+
-+Board setup example
-+-------------------
-+This example is extracted from STM32F429-EVAL board devicetree.
-+Please note that on this board, the camera sensor reset & power-down
-+line level are inverted (so reset is active high and power-down is
-+active low).
-+
-+/ {
-+	[...]
-+	clocks {
-+		clk_ext_camera: clk-ext-camera {
-+			#clock-cells = <0>;
-+			compatible = "fixed-clock";
-+			clock-frequency = <24000000>;
-+		};
-+	};
-+	[...]
-+};
-+
-+&dcmi {
-+	status = "okay";
-+
-+	port {
-+		dcmi_0: endpoint@0 {
-+			remote-endpoint = <&ov2640_0>;
-+			bus-width = <8>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+		};
-+	};
-+};
-+
-+&i2c@1 {
-+	[...]
-+	ov2640: camera@30 {
-+		compatible = "ovti,ov2640";
-+		reg = <0x30>;
-+		resetb-gpios = <&stmpegpio 2 GPIO_ACTIVE_HIGH>;
-+		pwdn-gpios = <&stmpegpio 0 GPIO_ACTIVE_LOW>;
-+		clocks = <&clk_ext_camera>;
-+		clock-names = "xvclk";
-+		status = "okay";
-+
-+		port {
-+			ov2640_0: endpoint {
-+				remote-endpoint = <&dcmi_0>;
-+			};
-+		};
-+	};
-+};
 -- 
-1.9.1
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
