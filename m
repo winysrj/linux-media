@@ -1,154 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34916 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751816AbdCCK7E (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 05:59:04 -0500
-Received: by mail-wm0-f66.google.com with SMTP id z63so328548wmg.2
-        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 02:59:02 -0800 (PST)
-Date: Fri, 3 Mar 2017 11:04:33 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Laura Abbott <labbott@redhat.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        romlem@google.com, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org
-Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
- staging
-Message-ID: <20170303100433.lm5t4hqxj6friyp6@phenom.ffwll.local>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+Received: from bombadil.infradead.org ([65.50.211.133]:39929 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753422AbdC2Syd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Mar 2017 14:54:33 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Oliver Neukum <oneukum@suse.com>
+Subject: [PATCH 03/22] usb.rst: Enrich its ReST representation
+Date: Wed, 29 Mar 2017 15:54:02 -0300
+Message-Id: <5afdc8c970c1fecf75e0e0968b160346260dcba9.1490813422.git.mchehab@s-opensource.com>
+In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 02, 2017 at 01:44:32PM -0800, Laura Abbott wrote:
-> Hi,
-> 
-> There's been some recent discussions[1] about Ion-like frameworks. There's
-> apparently interest in just keeping Ion since it works reasonablly well.
-> This series does what should be the final clean ups for it to possibly be
-> moved out of staging.
-> 
-> This includes the following:
-> - Some general clean up and removal of features that never got a lot of use
->   as far as I can tell.
-> - Fixing up the caching. This is the series I proposed back in December[2]
->   but never heard any feedback on. It will certainly break existing
->   applications that rely on the implicit caching. I'd rather make an effort
->   to move to a model that isn't going directly against the establishement
->   though.
-> - Fixing up the platform support. The devicetree approach was never well
->   recieved by DT maintainers. The proposal here is to think of Ion less as
->   specifying requirements and more of a framework for exposing memory to
->   userspace.
-> - CMA allocations now happen without the need of a dummy device structure.
->   This fixes a bunch of the reasons why I attempted to add devicetree
->   support before.
-> 
-> I've had problems getting feedback in the past so if I don't hear any major
-> objections I'm going to send out with the RFC dropped to be picked up.
-> The only reason there isn't a patch to come out of staging is to discuss any
-> other changes to the ABI people might want. Once this comes out of staging,
-> I really don't want to mess with the ABI.
-> 
-> Feedback appreciated.
+- use the proper warning and note markups;
+- add references for parts of the document that will be
+  cross-referenced on other USB docs;
+- some minor adjustments to make it better to read in
+  text mode and in html.
 
-Imo looks all good. And I just realized that cross-checking with the TODO,
-the 2 items about _CUSTOM and _IMPORT ioctls I noted are already there.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/driver-api/usb/usb.rst | 48 +++++++++++++-----------------------
+ 1 file changed, 17 insertions(+), 31 deletions(-)
 
-Otherwise I looked through the patches, looks all really reasonable.
-
-Wrt merging, my experience from destaging the android syncpt stuff was
-that merging the patches through the staging tree lead to lots of
-cross-tree issues with the gpu folks wanting to use that. Ion will
-probably run into similar things, so I'd propose we pull these cleanup
-patches and the eventual de-staging in throught drm. Yes that defacto
-means I'm also volunteering myself a bit :-)
-
-In the end we could put it all into drivers/gpu/ion or something like
-that.
-
-Thoughts? Greg?
--Daniel
-
-
-> 
-> Thanks,
-> Laura
-> 
-> [1] https://marc.info/?l=linux-kernel&m=148699712602105&w=2
-> [2] https://marc.info/?l=linaro-mm-sig&m=148176050802908&w=2
-> 
-> Laura Abbott (12):
->   staging: android: ion: Remove dmap_cnt
->   staging: android: ion: Remove alignment from allocation field
->   staging: android: ion: Duplicate sg_table
->   staging: android: ion: Call dma_map_sg for syncing and mapping
->   staging: android: ion: Remove page faulting support
->   staging: android: ion: Remove crufty cache support
->   staging: android: ion: Remove old platform support
->   cma: Store a name in the cma structure
->   cma: Introduce cma_for_each_area
->   staging: android: ion: Use CMA APIs directly
->   staging: android: ion: Make Ion heaps selectable
->   staging; android: ion: Enumerate all available heaps
-> 
->  drivers/base/dma-contiguous.c                      |   5 +-
->  drivers/staging/android/ion/Kconfig                |  51 ++--
->  drivers/staging/android/ion/Makefile               |  14 +-
->  drivers/staging/android/ion/hisilicon/Kconfig      |   5 -
->  drivers/staging/android/ion/hisilicon/Makefile     |   1 -
->  drivers/staging/android/ion/hisilicon/hi6220_ion.c | 113 ---------
->  drivers/staging/android/ion/ion-ioctl.c            |   6 -
->  drivers/staging/android/ion/ion.c                  | 282 ++++++---------------
->  drivers/staging/android/ion/ion.h                  |   5 +-
->  drivers/staging/android/ion/ion_carveout_heap.c    |  16 +-
->  drivers/staging/android/ion/ion_chunk_heap.c       |  15 +-
->  drivers/staging/android/ion/ion_cma_heap.c         | 102 ++------
->  drivers/staging/android/ion/ion_dummy_driver.c     | 156 ------------
->  drivers/staging/android/ion/ion_enumerate.c        |  89 +++++++
->  drivers/staging/android/ion/ion_of.c               | 184 --------------
->  drivers/staging/android/ion/ion_of.h               |  37 ---
->  drivers/staging/android/ion/ion_page_pool.c        |   3 -
->  drivers/staging/android/ion/ion_priv.h             |  57 ++++-
->  drivers/staging/android/ion/ion_system_heap.c      |  14 +-
->  drivers/staging/android/ion/tegra/Makefile         |   1 -
->  drivers/staging/android/ion/tegra/tegra_ion.c      |  80 ------
->  include/linux/cma.h                                |   6 +-
->  mm/cma.c                                           |  25 +-
->  mm/cma.h                                           |   1 +
->  mm/cma_debug.c                                     |   2 +-
->  25 files changed, 312 insertions(+), 958 deletions(-)
->  delete mode 100644 drivers/staging/android/ion/hisilicon/Kconfig
->  delete mode 100644 drivers/staging/android/ion/hisilicon/Makefile
->  delete mode 100644 drivers/staging/android/ion/hisilicon/hi6220_ion.c
->  delete mode 100644 drivers/staging/android/ion/ion_dummy_driver.c
->  create mode 100644 drivers/staging/android/ion/ion_enumerate.c
->  delete mode 100644 drivers/staging/android/ion/ion_of.c
->  delete mode 100644 drivers/staging/android/ion/ion_of.h
->  delete mode 100644 drivers/staging/android/ion/tegra/Makefile
->  delete mode 100644 drivers/staging/android/ion/tegra/tegra_ion.c
-> 
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe, send a message with 'unsubscribe linux-mm' in
-> the body to majordomo@kvack.org.  For more info on Linux MM,
-> see: http://www.linux-mm.org/ .
-> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
-
+diff --git a/Documentation/driver-api/usb/usb.rst b/Documentation/driver-api/usb/usb.rst
+index b856abb3200e..7e820768ee4f 100644
+--- a/Documentation/driver-api/usb/usb.rst
++++ b/Documentation/driver-api/usb/usb.rst
+@@ -102,6 +102,8 @@ disconnect testing (while the device is active) with each different host
+ controller driver, to make sure drivers don't have bugs of their own as
+ well as to make sure they aren't relying on some HCD-specific behavior.
+ 
++.. _usb_chapter9:
++
+ USB-Standard Types
+ ==================
+ 
+@@ -112,6 +114,8 @@ USB, and in APIs including this host side API, gadget APIs, and usbfs.
+ .. kernel-doc:: include/linux/usb/ch9.h
+    :internal:
+ 
++.. _usb_header:
++
+ Host-Side Data Types and Macros
+ ===============================
+ 
+@@ -209,7 +213,7 @@ library that wraps it. Such libraries include
+ `libusb <http://libusb.sourceforge.net>`__ for C/C++, and
+ `jUSB <http://jUSB.sourceforge.net>`__ for Java.
+ 
+-    **Note**
++.. note::
+ 
+     This particular documentation is incomplete, especially with respect
+     to the asynchronous mode. As of kernel 2.5.66 the code and this
+@@ -319,9 +323,7 @@ files. For information about the current format of this file, see the
+ sources.
+ 
+ This file, in combination with the poll() system call, can also be used
+-to detect when devices are added or removed:
+-
+-::
++to detect when devices are added or removed::
+ 
+     int fd;
+     struct pollfd pfd;
+@@ -407,9 +409,7 @@ The ioctl() Requests
+ --------------------
+ 
+ To use these ioctls, you need to include the following headers in your
+-userspace program:
+-
+-::
++userspace program::
+ 
+     #include <linux/usb.h>
+     #include <linux/usbdevice_fs.h>
+@@ -458,9 +458,7 @@ USBDEVFS_CLAIMINTERFACE
+ 
+ USBDEVFS_CONNECTINFO
+     Says whether the device is lowspeed. The ioctl parameter points to a
+-    structure like this:
+-
+-    ::
++    structure like this::
+ 
+ 	struct usbdevfs_connectinfo {
+ 		unsigned int   devnum;
+@@ -477,9 +475,7 @@ USBDEVFS_CONNECTINFO
+ USBDEVFS_GETDRIVER
+     Returns the name of the kernel driver bound to a given interface (a
+     string). Parameter is a pointer to this structure, which is
+-    modified:
+-
+-    ::
++    modified::
+ 
+ 	struct usbdevfs_getdriver {
+ 		unsigned int  interface;
+@@ -490,9 +486,7 @@ USBDEVFS_GETDRIVER
+ 
+ USBDEVFS_IOCTL
+     Passes a request from userspace through to a kernel driver that has
+-    an ioctl entry in the *struct usb_driver* it registered.
+-
+-    ::
++    an ioctl entry in the *struct usb_driver* it registered::
+ 
+ 	struct usbdevfs_ioctl {
+ 		int     ifno;
+@@ -534,7 +528,7 @@ USBDEVFS_RELEASEINTERFACE
+     the number of the interface (bInterfaceNumber from descriptor); File
+     modification time is not updated by this request.
+ 
+-	**Warning**
++.. warning::
+ 
+ 	*No security check is made to ensure that the task which made
+ 	the claim is the one which is releasing it. This means that user
+@@ -574,9 +568,7 @@ a time.
+ 
+ USBDEVFS_BULK
+     Issues a bulk read or write request to the device. The ioctl
+-    parameter is a pointer to this structure:
+-
+-    ::
++    parameter is a pointer to this structure::
+ 
+ 	struct usbdevfs_bulktransfer {
+ 		unsigned int  ep;
+@@ -606,9 +598,7 @@ USBDEVFS_CLEAR_HALT
+ 
+ USBDEVFS_CONTROL
+     Issues a control request to the device. The ioctl parameter points
+-    to a structure like this:
+-
+-    ::
++    to a structure like this::
+ 
+ 	struct usbdevfs_ctrltransfer {
+ 		__u8   bRequestType;
+@@ -638,7 +628,7 @@ USBDEVFS_RESET
+     the reset, this rebinds all device interfaces. File modification
+     time is not updated by this request.
+ 
+-	**Warning**
++.. warning::
+ 
+ 	*Avoid using this call* until some usbcore bugs get fixed, since
+ 	it does not fully synchronize device, interface, and driver (not
+@@ -646,9 +636,7 @@ USBDEVFS_RESET
+ 
+ USBDEVFS_SETINTERFACE
+     Sets the alternate setting for an interface. The ioctl parameter is
+-    a pointer to a structure like this:
+-
+-    ::
++    a pointer to a structure like this::
+ 
+ 	struct usbdevfs_setinterface {
+ 		unsigned int  interface;
+@@ -669,7 +657,7 @@ USBDEVFS_SETCONFIGURATION
+     configuration (bConfigurationValue from descriptor). File
+     modification time is not updated by this request.
+ 
+-	**Warning**
++.. warning::
+ 
+ 	*Avoid using this call* until some usbcore bugs get fixed, since
+ 	it does not fully synchronize device, interface, and driver (not
+@@ -702,9 +690,7 @@ When usbfs returns these urbs, the status value is updated, and the
+ buffer may have been modified. Except for isochronous transfers, the
+ actual_length is updated to say how many bytes were transferred; if the
+ USBDEVFS_URB_DISABLE_SPD flag is set ("short packets are not OK"), if
+-fewer bytes were read than were requested then you get an error report.
+-
+-::
++fewer bytes were read than were requested then you get an error report::
+ 
+     struct usbdevfs_iso_packet_desc {
+ 	    unsigned int                     length;
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.9.3
