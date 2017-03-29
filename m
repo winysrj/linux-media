@@ -1,102 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f175.google.com ([209.85.216.175]:34935 "EHLO
-        mail-qt0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751765AbdCOS4U (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:34794 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753528AbdC2Sye (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Mar 2017 14:56:20 -0400
-Received: by mail-qt0-f175.google.com with SMTP id x35so20098935qtc.2
-        for <linux-media@vger.kernel.org>; Wed, 15 Mar 2017 11:55:14 -0700 (PDT)
-Message-ID: <1489604109.4593.4.camel@ndufresne.ca>
-Subject: Re: media / v4l2-mc: wishlist for complex cameras (was Re: [PATCH
- v4 14/36] [media] v4l2-mc: add a function to inherit controls from a
- pipeline)
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Philippe De Muyter <phdm@macq.eu>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>
-Date: Wed, 15 Mar 2017 14:55:09 -0400
-In-Reply-To: <20170315105049.GA12099@frolo.macqel>
-References: <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
-         <20170310125342.7f047acf@vento.lan>
-         <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
-         <20170311082549.576531d0@vento.lan>
-         <20170313124621.GA10701@valkosipuli.retiisi.org.uk>
-         <20170314004533.3b3cd44b@vento.lan>
-         <e0a6c60b-1735-de0b-21f4-d8c3f4b3f10f@xs4all.nl>
-         <20170314072143.498cde9b@vento.lan> <20170314223254.GA7141@amd>
-         <20170314215420.6fc63c67@vento.lan> <20170315105049.GA12099@frolo.macqel>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-7fq51Td7eGbeBp/kWBM3"
-Mime-Version: 1.0
+        Wed, 29 Mar 2017 14:54:34 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 19/22] usb: composite.h: fix two warnings when building docs
+Date: Wed, 29 Mar 2017 15:54:18 -0300
+Message-Id: <0b976e178cf96a8806c8bf644bb82cac16ccdf67.1490813422.git.mchehab@s-opensource.com>
+In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+By definition, we use /* private: */ tag when we won't be documenting
+a parameter. However, those two parameters are documented:
 
---=-7fq51Td7eGbeBp/kWBM3
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+./include/linux/usb/composite.h:510: warning: Excess struct/union/enum/typedef member 'setup_pending' description in 'usb_composite_dev'
+./include/linux/usb/composite.h:510: warning: Excess struct/union/enum/typedef member 'os_desc_pending' description in 'usb_composite_dev'
 
-Le mercredi 15 mars 2017 =C3=A0 11:50 +0100, Philippe De Muyter a =C3=A9cri=
-t=C2=A0:
-> > I would say: camorama, xawtv3, zbar, google talk, skype. If it runs
-> > with those, it will likely run with any other application.
-> >=20
->=20
-> I would like to add the 'v4l2src' plugin of gstreamer, and on the
-> imx6 its
+So, we need to use /* public: */ to avoid a warning.
 
-While it would be nice if somehow you would get v4l2src to work (in
-some legacy/emulation mode through libv4l2), the longer plan is to
-implement smart bin that handle several v4l2src, that can do the
-required interactions so we can expose similar level of controls as
-found in Android Camera HAL3, and maybe even further assuming userspace
-can change the media tree at run-time. We might be a long way from
-there, specially that some of the features depends on how much the
-hardware can do. Just being able to figure-out how to build the MC tree
-dynamically seems really hard when thinking of generic mechanism. Also,
-Request API will be needed.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ include/linux/usb/composite.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-I think for this one, we'll need some userspace driver that enable the
-features (not hide them), and that's what I'd be looking for from
-libv4l2 in this regard.
-
-> imx-specific counterpart 'imxv4l2videosrc' from the gstreamer-imx
-> package
-> at https://github.com/Freescale/gstreamer-imx, and 'v4l2-ctl'.
-
-This one is specific to IMX hardware using vendor driver. You can
-probably ignore that.
-
-Nicolas
---=-7fq51Td7eGbeBp/kWBM3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEABECAAYFAljJjg0ACgkQcVMCLawGqBzWHACfQymBOSCSce0cthYH9b7XZ0jx
-87wAnR09ioCl/7XxAg/iQxU6O3boR99I
-=mn5/
------END PGP SIGNATURE-----
-
---=-7fq51Td7eGbeBp/kWBM3--
+diff --git a/include/linux/usb/composite.h b/include/linux/usb/composite.h
+index 30a063e98c19..f665d2ceac20 100644
+--- a/include/linux/usb/composite.h
++++ b/include/linux/usb/composite.h
+@@ -504,8 +504,9 @@ struct usb_composite_dev {
+ 	/* protects deactivations and delayed_status counts*/
+ 	spinlock_t			lock;
+ 
+-	unsigned			setup_pending:1;
+-	unsigned			os_desc_pending:1;
++	/* public: */
++	unsigned int			setup_pending:1;
++	unsigned int			os_desc_pending:1;
+ };
+ 
+ extern int usb_string_id(struct usb_composite_dev *c);
+-- 
+2.9.3
