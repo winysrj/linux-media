@@ -1,177 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:35310 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752882AbdCHDYl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 22:24:41 -0500
-Message-ID: <1488942680.4522.2.camel@mtksdaap41>
-Subject: Re: [PATCH v2 1/1] mtk-vcodec: check the vp9 decoder buffer index
- from VPU.
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Wu-Cheng Li <wuchengli@chromium.org>
-CC: <pawel@osciak.com>, <andrew-ct.chen@mediatek.com>,
-        <mchehab@kernel.org>, <matthias.bgg@gmail.com>,
-        <hans.verkuil@cisco.com>, <wuchengli@google.com>,
-        <djkurtz@chromium.org>, <linux-media@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>
-Date: Wed, 8 Mar 2017 11:11:20 +0800
-In-Reply-To: <20170307144207.133234-2-wuchengli@chromium.org>
-References: <20170307144207.133234-1-wuchengli@chromium.org>
-         <20170307144207.133234-2-wuchengli@chromium.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:41433 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752071AbdC2OPv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Mar 2017 10:15:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        devicetree@vger.kernel.org
+Subject: [PATCHv5 10/11] stih-cec: add CEC notifier support
+Date: Wed, 29 Mar 2017 16:15:42 +0200
+Message-Id: <20170329141543.32935-11-hverkuil@xs4all.nl>
+In-Reply-To: <20170329141543.32935-1-hverkuil@xs4all.nl>
+References: <20170329141543.32935-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-03-07 at 22:42 +0800, Wu-Cheng Li wrote:
-> From: Wu-Cheng Li <wuchengli@google.com>
-> 
-> VPU firmware has a bug and may return invalid buffer index for
-> some vp9 videos. Check the buffer indexes before accessing the
-> buffer.
-> 
-> Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
-> ---
->  drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 23 ++++++++++++++-----
->  drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h |  2 ++
->  .../media/platform/mtk-vcodec/vdec/vdec_vp9_if.c   | 26 ++++++++++++++++++++++
->  drivers/media/platform/mtk-vcodec/vdec_drv_if.h    |  2 ++
->  4 files changed, 48 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-> index 502877a4b1df..8a9285a84d47 100644
-> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-> @@ -420,6 +420,11 @@ static void mtk_vdec_worker(struct work_struct *work)
->  			dst_buf->index,
->  			ret, res_chg);
->  		src_buf = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
-> +		if (ret == -EIO) {
-> +			mutex_lock(&ctx->lock);
-> +			src_buf_info->error = true;
-> +			mutex_unlock(&ctx->lock);
-> +		}
->  		v4l2_m2m_buf_done(&src_buf_info->vb, VB2_BUF_STATE_ERROR);
->  	} else if (res_chg == false) {
->  		/*
-> @@ -1176,6 +1181,11 @@ static void vb2ops_vdec_buf_queue(struct vb2_buffer *vb)
->  			       "[%d] vdec_if_decode() src_buf=%d, size=%zu, fail=%d, res_chg=%d",
->  			       ctx->id, src_buf->index,
->  			       src_mem.size, ret, res_chg);
-> +		if (ret == -EIO) {
-> +			mtk_v4l2_err("[%d] Unrecoverable error in vdec_if_decode.",
-> +					ctx->id);
-> +			ctx->state = MTK_STATE_ABORT;
-> +		}
-Should we set buf status to VB2_BUF_STATE_ERROR in this case?
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
->  		return;
->  	}
->  
-> @@ -1217,14 +1227,17 @@ static void vb2ops_vdec_buf_finish(struct vb2_buffer *vb)
->  	struct vb2_v4l2_buffer *vb2_v4l2;
->  	struct mtk_video_dec_buf *buf;
->  
-> -	if (vb->vb2_queue->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-> -		return;
-> -
->  	vb2_v4l2 = container_of(vb, struct vb2_v4l2_buffer, vb2_buf);
->  	buf = container_of(vb2_v4l2, struct mtk_video_dec_buf, vb);
->  	mutex_lock(&ctx->lock);
-> -	buf->queued_in_v4l2 = false;
-> -	buf->queued_in_vb2 = false;
-> +	if (buf->error) {
-> +		mtk_v4l2_err("Unrecoverable error on buffer.");
-Remove mtk_v4l2_err out of mutex_lock/mutex_unlock?
+By using the CEC notifier framework there is no longer any reason
+to manually set the physical address. This was the one blocking
+issue that prevented this driver from going out of staging, so do
+this move as well.
 
+Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+CC: devicetree@vger.kernel.org
+---
+ drivers/media/platform/Kconfig                     | 10 +++++++
+ drivers/media/platform/Makefile                    |  1 +
+ .../st-cec => media/platform/sti/cec}/Makefile     |  0
+ .../st-cec => media/platform/sti/cec}/stih-cec.c   | 31 +++++++++++++++++++---
+ drivers/staging/media/Kconfig                      |  2 --
+ drivers/staging/media/Makefile                     |  1 -
+ drivers/staging/media/st-cec/Kconfig               |  8 ------
+ drivers/staging/media/st-cec/TODO                  |  7 -----
+ 8 files changed, 39 insertions(+), 21 deletions(-)
+ rename drivers/{staging/media/st-cec => media/platform/sti/cec}/Makefile (100%)
+ rename drivers/{staging/media/st-cec => media/platform/sti/cec}/stih-cec.c (93%)
+ delete mode 100644 drivers/staging/media/st-cec/Kconfig
+ delete mode 100644 drivers/staging/media/st-cec/TODO
 
-best regards,
-Tiffany
-> +		ctx->state = MTK_STATE_ABORT;
-> +	}
-> +	if (vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-> +		buf->queued_in_v4l2 = false;
-> +		buf->queued_in_vb2 = false;
-> +	}
->  	mutex_unlock(&ctx->lock);
->  }
->  
-> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h
-> index 362f5a85762e..dc4fc1df63c5 100644
-> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h
-> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h
-> @@ -50,6 +50,7 @@ struct vdec_fb {
->   * @queued_in_v4l2:	Capture buffer is in v4l2 driver, but not in vb2
->   *			queue yet
->   * @lastframe:		Intput buffer is last buffer - EOS
-> + * @error:		An unrecoverable error occurs on this buffer.
->   * @frame_buffer:	Decode status, and buffer information of Capture buffer
->   *
->   * Note : These status information help us track and debug buffer state
-> @@ -63,6 +64,7 @@ struct mtk_video_dec_buf {
->  	bool	queued_in_vb2;
->  	bool	queued_in_v4l2;
->  	bool	lastframe;
-> +	bool	error;
->  	struct vdec_fb	frame_buffer;
->  };
->  
-> diff --git a/drivers/media/platform/mtk-vcodec/vdec/vdec_vp9_if.c b/drivers/media/platform/mtk-vcodec/vdec/vdec_vp9_if.c
-> index e91a3b425b0c..5539b1853f16 100644
-> --- a/drivers/media/platform/mtk-vcodec/vdec/vdec_vp9_if.c
-> +++ b/drivers/media/platform/mtk-vcodec/vdec/vdec_vp9_if.c
-> @@ -718,6 +718,26 @@ static void get_free_fb(struct vdec_vp9_inst *inst, struct vdec_fb **out_fb)
->  	*out_fb = fb;
->  }
->  
-> +static int validate_vsi_array_indexes(struct vdec_vp9_inst *inst,
-> +		struct vdec_vp9_vsi *vsi) {
-> +	if (vsi->sf_frm_idx >= VP9_MAX_FRM_BUF_NUM - 1) {
-> +		mtk_vcodec_err(inst, "Invalid vsi->sf_frm_idx=%u.",
-> +				vsi->sf_frm_idx);
-> +		return -EIO;
-> +	}
-> +	if (vsi->frm_to_show_idx >= VP9_MAX_FRM_BUF_NUM) {
-> +		mtk_vcodec_err(inst, "Invalid vsi->frm_to_show_idx=%u.",
-> +				vsi->frm_to_show_idx);
-> +		return -EIO;
-> +	}
-> +	if (vsi->new_fb_idx >= VP9_MAX_FRM_BUF_NUM) {
-> +		mtk_vcodec_err(inst, "Invalid vsi->new_fb_idx=%u.",
-> +				vsi->new_fb_idx);
-> +		return -EIO;
-> +	}
-> +	return 0;
-> +}
-> +
->  static void vdec_vp9_deinit(unsigned long h_vdec)
->  {
->  	struct vdec_vp9_inst *inst = (struct vdec_vp9_inst *)h_vdec;
-> @@ -834,6 +854,12 @@ static int vdec_vp9_decode(unsigned long h_vdec, struct mtk_vcodec_mem *bs,
->  			goto DECODE_ERROR;
->  		}
->  
-> +		ret = validate_vsi_array_indexes(inst, vsi);
-> +		if (ret) {
-> +			mtk_vcodec_err(inst, "Invalid values from VPU.");
-> +			goto DECODE_ERROR;
-> +		}
-> +
->  		if (vsi->resolution_changed) {
->  			if (!vp9_alloc_work_buf(inst)) {
->  				ret = -EINVAL;
-> diff --git a/drivers/media/platform/mtk-vcodec/vdec_drv_if.h b/drivers/media/platform/mtk-vcodec/vdec_drv_if.h
-> index db6b5205ffb1..ded1154481cd 100644
-> --- a/drivers/media/platform/mtk-vcodec/vdec_drv_if.h
-> +++ b/drivers/media/platform/mtk-vcodec/vdec_drv_if.h
-> @@ -85,6 +85,8 @@ void vdec_if_deinit(struct mtk_vcodec_ctx *ctx);
->   * @res_chg	: [out] resolution change happens if current bs have different
->   *	picture width/height
->   * Note: To flush the decoder when reaching EOF, set input bitstream as NULL.
-> + *
-> + * Return: 0 on success. -EIO on unrecoverable error.
->   */
->  int vdec_if_decode(struct mtk_vcodec_ctx *ctx, struct mtk_vcodec_mem *bs,
->  		   struct vdec_fb *fb, bool *res_chg);
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 2c449b88fc94..7321f6123659 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -476,6 +476,16 @@ config VIDEO_SAMSUNG_S5P_CEC
+          CEC bus is present in the HDMI connector and enables communication
+          between compatible devices.
+ 
++config VIDEO_STI_HDMI_CEC
++       tristate "STMicroelectronics STiH4xx HDMI CEC driver"
++       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (ARCH_STI || COMPILE_TEST)
++       select MEDIA_CEC_NOTIFIER
++       ---help---
++         This is a driver for STIH4xx HDMI CEC interface. It uses the
++         generic CEC framework interface.
++         CEC bus is present in the HDMI connector and enables communication
++         between compatible devices.
++
+ endif #V4L_CEC_DRIVERS
+ 
+ menuconfig V4L_TEST_DRIVERS
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 2f94d82afa4c..940724ab9b70 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -39,6 +39,7 @@ obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
+ obj-$(CONFIG_VIDEO_STI_BDISP)		+= sti/bdisp/
+ obj-$(CONFIG_VIDEO_STI_HVA)		+= sti/hva/
+ obj-$(CONFIG_DVB_C8SECTPFE)		+= sti/c8sectpfe/
++obj-$(CONFIG_VIDEO_STI_HDMI_CEC) 	+= sti/cec/
+ 
+ obj-$(CONFIG_VIDEO_STI_DELTA)		+= sti/delta/
+ 
+diff --git a/drivers/staging/media/st-cec/Makefile b/drivers/media/platform/sti/cec/Makefile
+similarity index 100%
+rename from drivers/staging/media/st-cec/Makefile
+rename to drivers/media/platform/sti/cec/Makefile
+diff --git a/drivers/staging/media/st-cec/stih-cec.c b/drivers/media/platform/sti/cec/stih-cec.c
+similarity index 93%
+rename from drivers/staging/media/st-cec/stih-cec.c
+rename to drivers/media/platform/sti/cec/stih-cec.c
+index 3c25638a9610..636281c64c04 100644
+--- a/drivers/staging/media/st-cec/stih-cec.c
++++ b/drivers/media/platform/sti/cec/stih-cec.c
+@@ -1,6 +1,4 @@
+ /*
+- * drivers/staging/media/st-cec/stih-cec.c
+- *
+  * STIH4xx CEC driver
+  * Copyright (C) STMicroelectronic SA 2016
+  *
+@@ -15,9 +13,11 @@
+ #include <linux/mfd/syscon.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
++#include <linux/of_platform.h>
+ #include <linux/platform_device.h>
+ 
+ #include <media/cec.h>
++#include <media/cec-notifier.h>
+ 
+ #define CEC_NAME	"stih-cec"
+ 
+@@ -129,6 +129,7 @@ struct stih_cec {
+ 	void __iomem		*regs;
+ 	int			irq;
+ 	u32			irq_status;
++	struct cec_notifier	*notifier;
+ };
+ 
+ static int stih_cec_adap_enable(struct cec_adapter *adap, bool enable)
+@@ -303,12 +304,29 @@ static int stih_cec_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	struct resource *res;
+ 	struct stih_cec *cec;
++	struct device_node *np;
++	struct platform_device *hdmi_dev;
+ 	int ret;
+ 
+ 	cec = devm_kzalloc(dev, sizeof(*cec), GFP_KERNEL);
+ 	if (!cec)
+ 		return -ENOMEM;
+ 
++	np = of_parse_phandle(pdev->dev.of_node, "hdmi-phandle", 0);
++
++	if (!np) {
++		dev_err(&pdev->dev, "Failed to find hdmi node in device tree\n");
++		return -ENODEV;
++	}
++
++	hdmi_dev = of_find_device_by_node(np);
++	if (!hdmi_dev)
++		return -EPROBE_DEFER;
++
++	cec->notifier = cec_notifier_get(&hdmi_dev->dev);
++	if (!cec->notifier)
++		return -ENOMEM;
++
+ 	cec->dev = dev;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -335,7 +353,7 @@ static int stih_cec_probe(struct platform_device *pdev)
+ 	cec->adap = cec_allocate_adapter(&sti_cec_adap_ops, cec,
+ 			CEC_NAME,
+ 			CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH |
+-			CEC_CAP_PHYS_ADDR | CEC_CAP_TRANSMIT, 1);
++			CEC_CAP_TRANSMIT, 1);
+ 	ret = PTR_ERR_OR_ZERO(cec->adap);
+ 	if (ret)
+ 		return ret;
+@@ -346,12 +364,19 @@ static int stih_cec_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	cec_register_cec_notifier(cec->adap, cec->notifier);
++
+ 	platform_set_drvdata(pdev, cec);
+ 	return 0;
+ }
+ 
+ static int stih_cec_remove(struct platform_device *pdev)
+ {
++	struct stih_cec *cec = platform_get_drvdata(pdev);
++
++	cec_unregister_adapter(cec->adap);
++	cec_notifier_put(cec->notifier);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+index c0d83cecf528..8ed8202da57a 100644
+--- a/drivers/staging/media/Kconfig
++++ b/drivers/staging/media/Kconfig
+@@ -32,6 +32,4 @@ source "drivers/staging/media/platform/bcm2835/Kconfig"
+ # Keep LIRC at the end, as it has sub-menus
+ source "drivers/staging/media/lirc/Kconfig"
+ 
+-source "drivers/staging/media/st-cec/Kconfig"
+-
+ endif
+diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+index 97b29ece9a2c..3a6adeabede1 100644
+--- a/drivers/staging/media/Makefile
++++ b/drivers/staging/media/Makefile
+@@ -4,4 +4,3 @@ obj-$(CONFIG_LIRC_STAGING)	+= lirc/
+ obj-$(CONFIG_VIDEO_BCM2835)	+= platform/bcm2835/
+ obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
+ obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
+-obj-$(CONFIG_VIDEO_STI_HDMI_CEC) += st-cec/
+diff --git a/drivers/staging/media/st-cec/Kconfig b/drivers/staging/media/st-cec/Kconfig
+deleted file mode 100644
+index c04283db58d6..000000000000
+--- a/drivers/staging/media/st-cec/Kconfig
++++ /dev/null
+@@ -1,8 +0,0 @@
+-config VIDEO_STI_HDMI_CEC
+-       tristate "STMicroelectronics STiH4xx HDMI CEC driver"
+-       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (ARCH_STI || COMPILE_TEST)
+-       ---help---
+-         This is a driver for STIH4xx HDMI CEC interface. It uses the
+-         generic CEC framework interface.
+-         CEC bus is present in the HDMI connector and enables communication
+-         between compatible devices.
+diff --git a/drivers/staging/media/st-cec/TODO b/drivers/staging/media/st-cec/TODO
+deleted file mode 100644
+index c61289742c5c..000000000000
+--- a/drivers/staging/media/st-cec/TODO
++++ /dev/null
+@@ -1,7 +0,0 @@
+-This driver requires that userspace sets the physical address.
+-However, this should be passed on from the corresponding
+-ST HDMI driver.
+-
+-We have to wait until the HDMI notifier framework has been merged
+-in order to handle this gracefully, until that time this driver
+-has to remain in staging.
+-- 
+2.11.0
