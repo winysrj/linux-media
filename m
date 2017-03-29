@@ -1,960 +1,314 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:35814 "EHLO
-        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753351AbdC3JEt (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41804 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754438AbdC2NoN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 05:04:49 -0400
-Received: by mail-lf0-f52.google.com with SMTP id j90so21931323lfk.2
-        for <linux-media@vger.kernel.org>; Thu, 30 Mar 2017 02:04:47 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
-        mchehab@kernel.org
-Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
-        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-        sakari.ailus@linux.intel.com
-Subject: [PATCH v5 3/6] documentation: media: Add documentation for new RGB and YUV bus formats
-Date: Thu, 30 Mar 2017 11:04:32 +0200
-Message-Id: <1490864675-17336-4-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1490864675-17336-1-git-send-email-narmstrong@baylibre.com>
-References: <1490864675-17336-1-git-send-email-narmstrong@baylibre.com>
+        Wed, 29 Mar 2017 09:44:13 -0400
+Subject: Re: [PATCHv6 11/14] ov2640: convert from soc-camera to a standard
+ subdev sensor driver.
+To: Hugues FRUCHET <hugues.fruchet@st.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <20170328082347.11159-1-hverkuil@xs4all.nl>
+ <20170328082347.11159-12-hverkuil@xs4all.nl>
+ <488e156b-2ceb-3895-6bcc-4785b16c93a5@st.com>
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5623f5dd-88b3-10e6-5703-9400a893a530@xs4all.nl>
+Date: Wed, 29 Mar 2017 15:44:05 +0200
+MIME-Version: 1.0
+In-Reply-To: <488e156b-2ceb-3895-6bcc-4785b16c93a5@st.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation for added Bus Formats to describe RGB and YUV formats used
-as input to the Synopsys DesignWare HDMI TX Controller.
+On 29/03/17 15:42, Hugues FRUCHET wrote:
+> Acked-by: Hugues Fruchet <hugues.fruchet@st.com>
+> 
+> Tested successfully on STM324x9I-EVAL evaluation board embedding
+> an OV2640 camera sensor.
+> 
+> I don't understand the comment around s_power op that has been dropped 
+> (it is there in code), and no problem is observed doing several 
+> open/close, tell me if I miss something.
 
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
----
- Documentation/media/uapi/v4l/subdev-formats.rst | 871 +++++++++++++++++++++++-
- 1 file changed, 857 insertions(+), 14 deletions(-)
+Darn, I forgot to remove that comment in the commit log. It's a leftover from
+an earlier version.
 
-diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
-index d6152c9..038474d 100644
---- a/Documentation/media/uapi/v4l/subdev-formats.rst
-+++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-@@ -1258,6 +1258,281 @@ The following tables list existing packed RGB formats.
-       - b\ :sub:`2`
-       - b\ :sub:`1`
-       - b\ :sub:`0`
-+    * .. _MEDIA-BUS-FMT-RGB101010-1X30:
-+
-+      - MEDIA_BUS_FMT_RGB101010_1X30
-+      - 0x1018
-+      -
-+      - 0
-+      - 0
-+      - r\ :sub:`9`
-+      - r\ :sub:`8`
-+      - r\ :sub:`7`
-+      - r\ :sub:`6`
-+      - r\ :sub:`5`
-+      - r\ :sub:`4`
-+      - r\ :sub:`3`
-+      - r\ :sub:`2`
-+      - r\ :sub:`1`
-+      - r\ :sub:`0`
-+      - g\ :sub:`9`
-+      - g\ :sub:`8`
-+      - g\ :sub:`7`
-+      - g\ :sub:`6`
-+      - g\ :sub:`5`
-+      - g\ :sub:`4`
-+      - g\ :sub:`3`
-+      - g\ :sub:`2`
-+      - g\ :sub:`1`
-+      - g\ :sub:`0`
-+      - b\ :sub:`9`
-+      - b\ :sub:`8`
-+      - b\ :sub:`7`
-+      - b\ :sub:`6`
-+      - b\ :sub:`5`
-+      - b\ :sub:`4`
-+      - b\ :sub:`3`
-+      - b\ :sub:`2`
-+      - b\ :sub:`1`
-+      - b\ :sub:`0`
-+
-+.. raw:: latex
-+
-+    \endgroup
-+
-+
-+The following table list existing packed 36bit wide RGB formats.
-+
-+.. tabularcolumns:: |p{4.0cm}|p{0.7cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|
-+
-+.. _v4l2-mbus-pixelcode-rgb-36:
-+
-+.. raw:: latex
-+
-+    \begingroup
-+    \tiny
-+    \setlength{\tabcolsep}{2pt}
-+
-+.. flat-table:: 36bit RGB formats
-+    :header-rows:  2
-+    :stub-columns: 0
-+    :widths: 36 7 3 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
-+
-+    * - Identifier
-+      - Code
-+      -
-+      - :cspan:`35` Data organization
-+    * -
-+      -
-+      - Bit
-+      - 35
-+      - 34
-+      - 33
-+      - 32
-+      - 31
-+      - 30
-+      - 29
-+      - 28
-+      - 27
-+      - 26
-+      - 25
-+      - 24
-+      - 23
-+      - 22
-+      - 21
-+      - 20
-+      - 19
-+      - 18
-+      - 17
-+      - 16
-+      - 15
-+      - 14
-+      - 13
-+      - 12
-+      - 11
-+      - 10
-+      - 9
-+      - 8
-+      - 7
-+      - 6
-+      - 5
-+      - 4
-+      - 3
-+      - 2
-+      - 1
-+      - 0
-+    * .. _MEDIA-BUS-FMT-RGB121212-1X36:
-+
-+      - MEDIA_BUS_FMT_RGB121212_1X36
-+      - 0x1019
-+      -
-+      - r\ :sub:`11`
-+      - r\ :sub:`10`
-+      - r\ :sub:`9`
-+      - r\ :sub:`8`
-+      - r\ :sub:`7`
-+      - r\ :sub:`6`
-+      - r\ :sub:`5`
-+      - r\ :sub:`4`
-+      - r\ :sub:`3`
-+      - r\ :sub:`2`
-+      - r\ :sub:`1`
-+      - r\ :sub:`0`
-+      - g\ :sub:`11`
-+      - g\ :sub:`10`
-+      - g\ :sub:`9`
-+      - g\ :sub:`8`
-+      - g\ :sub:`7`
-+      - g\ :sub:`6`
-+      - g\ :sub:`5`
-+      - g\ :sub:`4`
-+      - g\ :sub:`3`
-+      - g\ :sub:`2`
-+      - g\ :sub:`1`
-+      - g\ :sub:`0`
-+      - b\ :sub:`11`
-+      - b\ :sub:`10`
-+      - b\ :sub:`9`
-+      - b\ :sub:`8`
-+      - b\ :sub:`7`
-+      - b\ :sub:`6`
-+      - b\ :sub:`5`
-+      - b\ :sub:`4`
-+      - b\ :sub:`3`
-+      - b\ :sub:`2`
-+      - b\ :sub:`1`
-+      - b\ :sub:`0`
-+
-+.. raw:: latex
-+
-+    \endgroup
-+
-+
-+The following table list existing packed 48bit wide RGB formats.
-+
-+.. tabularcolumns:: |p{4.0cm}|p{0.7cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|
-+
-+.. _v4l2-mbus-pixelcode-rgb-48:
-+
-+.. raw:: latex
-+
-+    \begingroup
-+    \tiny
-+    \setlength{\tabcolsep}{2pt}
-+
-+.. flat-table:: 48bit RGB formats
-+    :header-rows:  2
-+    :stub-columns: 0
-+    :widths: 36 7 3 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
-+
-+    * - Identifier
-+      - Code
-+      -
-+      - :cspan:`47` Data organization
-+    * -
-+      -
-+      - Bit
-+      - 47
-+      - 46
-+      - 45
-+      - 44
-+      - 43
-+      - 42
-+      - 41
-+      - 40
-+      - 39
-+      - 38
-+      - 37
-+      - 36
-+      - 35
-+      - 34
-+      - 33
-+      - 32
-+      - 31
-+      - 30
-+      - 29
-+      - 28
-+      - 27
-+      - 26
-+      - 25
-+      - 24
-+      - 23
-+      - 22
-+      - 21
-+      - 20
-+      - 19
-+      - 18
-+      - 17
-+      - 16
-+      - 15
-+      - 14
-+      - 13
-+      - 12
-+      - 11
-+      - 10
-+      - 9
-+      - 8
-+      - 7
-+      - 6
-+      - 5
-+      - 4
-+      - 3
-+      - 2
-+      - 1
-+      - 0
-+    * .. _MEDIA-BUS-FMT-RGB161616-1X48:
-+
-+      - MEDIA_BUS_FMT_RGB161616_1X48
-+      - 0x101a
-+      -
-+      - r\ :sub:`15`
-+      - r\ :sub:`14`
-+      - r\ :sub:`13`
-+      - r\ :sub:`12`
-+      - r\ :sub:`11`
-+      - r\ :sub:`10`
-+      - r\ :sub:`9`
-+      - r\ :sub:`8`
-+      - r\ :sub:`7`
-+      - r\ :sub:`6`
-+      - r\ :sub:`5`
-+      - r\ :sub:`4`
-+      - r\ :sub:`3`
-+      - r\ :sub:`2`
-+      - r\ :sub:`1`
-+      - r\ :sub:`0`
-+      - g\ :sub:`15`
-+      - g\ :sub:`14`
-+      - g\ :sub:`13`
-+      - g\ :sub:`12`
-+      - g\ :sub:`11`
-+      - g\ :sub:`10`
-+      - g\ :sub:`9`
-+      - g\ :sub:`8`
-+      - g\ :sub:`7`
-+      - g\ :sub:`6`
-+      - g\ :sub:`5`
-+      - g\ :sub:`4`
-+      - g\ :sub:`3`
-+      - g\ :sub:`2`
-+      - g\ :sub:`1`
-+      - g\ :sub:`0`
-+      - b\ :sub:`15`
-+      - b\ :sub:`14`
-+      - b\ :sub:`13`
-+      - b\ :sub:`12`
-+      - b\ :sub:`11`
-+      - b\ :sub:`10`
-+      - b\ :sub:`9`
-+      - b\ :sub:`8`
-+      - b\ :sub:`7`
-+      - b\ :sub:`6`
-+      - b\ :sub:`5`
-+      - b\ :sub:`4`
-+      - b\ :sub:`3`
-+      - b\ :sub:`2`
-+      - b\ :sub:`1`
-+      - b\ :sub:`0`
- 
- .. raw:: latex
- 
-@@ -5962,10 +6237,10 @@ the following codes.
-       - v\ :sub:`2`
-       - v\ :sub:`1`
-       - v\ :sub:`0`
--    * .. _MEDIA-BUS-FMT-UYVY12-1X24:
-+    * .. _MEDIA-BUS-FMT-UYYVYY8-0-5X24:
- 
--      - MEDIA_BUS_FMT_UYVY12_1X24
--      - 0x2020
-+      - MEDIA_BUS_FMT_UYYVYY8_0_5X24
-+      - 0x2026
-       -
-       -
-       -
-@@ -5975,10 +6250,6 @@ the following codes.
-       -
-       -
-       -
--      - u\ :sub:`11`
--      - u\ :sub:`10`
--      - u\ :sub:`9`
--      - u\ :sub:`8`
-       - u\ :sub:`7`
-       - u\ :sub:`6`
-       - u\ :sub:`5`
-@@ -5987,10 +6258,14 @@ the following codes.
-       - u\ :sub:`2`
-       - u\ :sub:`1`
-       - u\ :sub:`0`
--      - y\ :sub:`11`
--      - y\ :sub:`10`
--      - y\ :sub:`9`
--      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-       - y\ :sub:`7`
-       - y\ :sub:`6`
-       - y\ :sub:`5`
-@@ -6010,9 +6285,81 @@ the following codes.
-       -
-       -
-       -
--      - v\ :sub:`11`
--      - v\ :sub:`10`
--      - v\ :sub:`9`
-+      - v\ :sub:`7`
-+      - v\ :sub:`6`
-+      - v\ :sub:`5`
-+      - v\ :sub:`4`
-+      - v\ :sub:`3`
-+      - v\ :sub:`2`
-+      - v\ :sub:`1`
-+      - v\ :sub:`0`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+    * .. _MEDIA-BUS-FMT-UYVY12-1X24:
-+
-+      - MEDIA_BUS_FMT_UYVY12_1X24
-+      - 0x2020
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      - u\ :sub:`11`
-+      - u\ :sub:`10`
-+      - u\ :sub:`9`
-+      - u\ :sub:`8`
-+      - u\ :sub:`7`
-+      - u\ :sub:`6`
-+      - u\ :sub:`5`
-+      - u\ :sub:`4`
-+      - u\ :sub:`3`
-+      - u\ :sub:`2`
-+      - u\ :sub:`1`
-+      - u\ :sub:`0`
-+      - y\ :sub:`11`
-+      - y\ :sub:`10`
-+      - y\ :sub:`9`
-+      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+    * -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      - v\ :sub:`11`
-+      - v\ :sub:`10`
-+      - v\ :sub:`9`
-       - v\ :sub:`8`
-       - v\ :sub:`7`
-       - v\ :sub:`6`
-@@ -6287,6 +6634,78 @@ the following codes.
-       - v\ :sub:`2`
-       - v\ :sub:`1`
-       - v\ :sub:`0`
-+    * .. _MEDIA-BUS-FMT-UYYVYY10-0-5X30:
-+
-+      - MEDIA_BUS_FMT_UYYVYY10_0_5X30
-+      - 0x2027
-+      -
-+      -
-+      -
-+      - u\ :sub:`9`
-+      - u\ :sub:`8`
-+      - u\ :sub:`7`
-+      - u\ :sub:`6`
-+      - u\ :sub:`5`
-+      - u\ :sub:`4`
-+      - u\ :sub:`3`
-+      - u\ :sub:`2`
-+      - u\ :sub:`1`
-+      - u\ :sub:`0`
-+      - y\ :sub:`9`
-+      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+      - y\ :sub:`9`
-+      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+    * -
-+      -
-+      -
-+      -
-+      -
-+      - v\ :sub:`9`
-+      - v\ :sub:`8`
-+      - v\ :sub:`7`
-+      - v\ :sub:`6`
-+      - v\ :sub:`5`
-+      - v\ :sub:`4`
-+      - v\ :sub:`3`
-+      - v\ :sub:`2`
-+      - v\ :sub:`1`
-+      - v\ :sub:`0`
-+      - y\ :sub:`9`
-+      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+      - y\ :sub:`9`
-+      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-     * .. _MEDIA-BUS-FMT-AYUV8-1X32:
- 
-       - MEDIA_BUS_FMT_AYUV8_1X32
-@@ -6330,6 +6749,430 @@ the following codes.
- 
- 	\endgroup
- 
-+
-+The following table list existing packed 36bit wide YUV formats.
-+
-+.. raw:: latex
-+
-+    \begingroup
-+    \tiny
-+    \setlength{\tabcolsep}{2pt}
-+
-+.. tabularcolumns:: |p{4.0cm}|p{0.7cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|
-+
-+.. _v4l2-mbus-pixelcode-yuv8-36bit:
-+
-+.. flat-table:: 36bit YUV Formats
-+    :header-rows:  2
-+    :stub-columns: 0
-+    :widths: 36 7 3 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
-+
-+    * - Identifier
-+      - Code
-+      -
-+      - :cspan:`35` Data organization
-+    * -
-+      -
-+      - Bit
-+      - 35
-+      - 34
-+      - 33
-+      - 32
-+      - 31
-+      - 30
-+      - 29
-+      - 28
-+      - 27
-+      - 26
-+      - 25
-+      - 24
-+      - 23
-+      - 22
-+      - 21
-+      - 10
-+      - 19
-+      - 18
-+      - 17
-+      - 16
-+      - 15
-+      - 14
-+      - 13
-+      - 12
-+      - 11
-+      - 10
-+      - 9
-+      - 8
-+      - 7
-+      - 6
-+      - 5
-+      - 4
-+      - 3
-+      - 2
-+      - 1
-+      - 0
-+    * .. _MEDIA-BUS-FMT-UYYVYY12-0-5X36:
-+
-+      - MEDIA_BUS_FMT_UYYVYY12_0_5X36
-+      - 0x2028
-+      -
-+      - u\ :sub:`11`
-+      - u\ :sub:`10`
-+      - u\ :sub:`9`
-+      - u\ :sub:`8`
-+      - u\ :sub:`7`
-+      - u\ :sub:`6`
-+      - u\ :sub:`5`
-+      - u\ :sub:`4`
-+      - u\ :sub:`3`
-+      - u\ :sub:`2`
-+      - u\ :sub:`1`
-+      - u\ :sub:`0`
-+      - y\ :sub:`11`
-+      - y\ :sub:`10`
-+      - y\ :sub:`9`
-+      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+      - y\ :sub:`11`
-+      - y\ :sub:`10`
-+      - y\ :sub:`9`
-+      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+    * -
-+      -
-+      -
-+      - v\ :sub:`11`
-+      - v\ :sub:`10`
-+      - v\ :sub:`9`
-+      - v\ :sub:`8`
-+      - v\ :sub:`7`
-+      - v\ :sub:`6`
-+      - v\ :sub:`5`
-+      - v\ :sub:`4`
-+      - v\ :sub:`3`
-+      - v\ :sub:`2`
-+      - v\ :sub:`1`
-+      - v\ :sub:`0`
-+      - y\ :sub:`11`
-+      - y\ :sub:`10`
-+      - y\ :sub:`9`
-+      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+      - y\ :sub:`11`
-+      - y\ :sub:`10`
-+      - y\ :sub:`9`
-+      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+    * .. _MEDIA-BUS-FMT-YUV12-1X36:
-+
-+      - MEDIA_BUS_FMT_YUV12_1X36
-+      - 0x2029
-+      -
-+      - y\ :sub:`11`
-+      - y\ :sub:`10`
-+      - y\ :sub:`9`
-+      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+      - u\ :sub:`11`
-+      - u\ :sub:`10`
-+      - u\ :sub:`9`
-+      - u\ :sub:`8`
-+      - u\ :sub:`7`
-+      - u\ :sub:`6`
-+      - u\ :sub:`5`
-+      - u\ :sub:`4`
-+      - u\ :sub:`3`
-+      - u\ :sub:`2`
-+      - u\ :sub:`1`
-+      - u\ :sub:`0`
-+      - v\ :sub:`11`
-+      - v\ :sub:`10`
-+      - v\ :sub:`9`
-+      - v\ :sub:`8`
-+      - v\ :sub:`7`
-+      - v\ :sub:`6`
-+      - v\ :sub:`5`
-+      - v\ :sub:`4`
-+      - v\ :sub:`3`
-+      - v\ :sub:`2`
-+      - v\ :sub:`1`
-+      - v\ :sub:`0`
-+
-+
-+.. raw:: latex
-+
-+	\endgroup
-+
-+
-+The following table list existing packed 48bit wide YUV formats.
-+
-+.. raw:: latex
-+
-+    \begingroup
-+    \tiny
-+    \setlength{\tabcolsep}{2pt}
-+
-+.. tabularcolumns:: |p{4.0cm}|p{0.7cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|
-+
-+.. _v4l2-mbus-pixelcode-yuv8-48bit:
-+
-+.. flat-table:: 48bit YUV Formats
-+    :header-rows:  2
-+    :stub-columns: 0
-+    :widths: 36 7 3 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
-+
-+    * - Identifier
-+      - Code
-+      -
-+      - :cspan:`47` Data organization
-+    * -
-+      -
-+      - Bit
-+      - 47
-+      - 46
-+      - 45
-+      - 44
-+      - 43
-+      - 42
-+      - 41
-+      - 40
-+      - 39
-+      - 38
-+      - 37
-+      - 36
-+      - 35
-+      - 34
-+      - 33
-+      - 32
-+      - 31
-+      - 30
-+      - 29
-+      - 28
-+      - 27
-+      - 26
-+      - 25
-+      - 24
-+      - 23
-+      - 22
-+      - 21
-+      - 10
-+      - 19
-+      - 18
-+      - 17
-+      - 16
-+      - 15
-+      - 14
-+      - 13
-+      - 12
-+      - 11
-+      - 10
-+      - 9
-+      - 8
-+      - 7
-+      - 6
-+      - 5
-+      - 4
-+      - 3
-+      - 2
-+      - 1
-+      - 0
-+    * .. _MEDIA-BUS-FMT-YUV16-1X48:
-+
-+      - MEDIA_BUS_FMT_YUV16_1X48
-+      - 0x202a
-+      -
-+      - y\ :sub:`15`
-+      - y\ :sub:`14`
-+      - y\ :sub:`13`
-+      - y\ :sub:`12`
-+      - y\ :sub:`11`
-+      - y\ :sub:`10`
-+      - y\ :sub:`8`
-+      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+      - u\ :sub:`15`
-+      - u\ :sub:`14`
-+      - u\ :sub:`13`
-+      - u\ :sub:`12`
-+      - u\ :sub:`11`
-+      - u\ :sub:`10`
-+      - u\ :sub:`9`
-+      - u\ :sub:`8`
-+      - u\ :sub:`7`
-+      - u\ :sub:`6`
-+      - u\ :sub:`5`
-+      - u\ :sub:`4`
-+      - u\ :sub:`3`
-+      - u\ :sub:`2`
-+      - u\ :sub:`1`
-+      - u\ :sub:`0`
-+      - v\ :sub:`15`
-+      - v\ :sub:`14`
-+      - v\ :sub:`13`
-+      - v\ :sub:`12`
-+      - v\ :sub:`11`
-+      - v\ :sub:`10`
-+      - v\ :sub:`9`
-+      - v\ :sub:`8`
-+      - v\ :sub:`7`
-+      - v\ :sub:`6`
-+      - v\ :sub:`5`
-+      - v\ :sub:`4`
-+      - v\ :sub:`3`
-+      - v\ :sub:`2`
-+      - v\ :sub:`1`
-+      - v\ :sub:`0`
-+    * .. _MEDIA-BUS-FMT-UYYVYY16-0-5X48:
-+
-+      - MEDIA_BUS_FMT_UYYVYY16_0_5X48
-+      - 0x202b
-+      -
-+      - u\ :sub:`15`
-+      - u\ :sub:`14`
-+      - u\ :sub:`13`
-+      - u\ :sub:`12`
-+      - u\ :sub:`11`
-+      - u\ :sub:`10`
-+      - u\ :sub:`9`
-+      - u\ :sub:`8`
-+      - u\ :sub:`7`
-+      - u\ :sub:`6`
-+      - u\ :sub:`5`
-+      - u\ :sub:`4`
-+      - u\ :sub:`3`
-+      - u\ :sub:`2`
-+      - u\ :sub:`1`
-+      - u\ :sub:`0`
-+      - y\ :sub:`15`
-+      - y\ :sub:`14`
-+      - y\ :sub:`13`
-+      - y\ :sub:`12`
-+      - y\ :sub:`11`
-+      - y\ :sub:`10`
-+      - y\ :sub:`9`
-+      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+      - y\ :sub:`15`
-+      - y\ :sub:`14`
-+      - y\ :sub:`13`
-+      - y\ :sub:`12`
-+      - y\ :sub:`11`
-+      - y\ :sub:`10`
-+      - y\ :sub:`8`
-+      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+    * -
-+      -
-+      -
-+      - v\ :sub:`15`
-+      - v\ :sub:`14`
-+      - v\ :sub:`13`
-+      - v\ :sub:`12`
-+      - v\ :sub:`11`
-+      - v\ :sub:`10`
-+      - v\ :sub:`9`
-+      - v\ :sub:`8`
-+      - v\ :sub:`7`
-+      - v\ :sub:`6`
-+      - v\ :sub:`5`
-+      - v\ :sub:`4`
-+      - v\ :sub:`3`
-+      - v\ :sub:`2`
-+      - v\ :sub:`1`
-+      - v\ :sub:`0`
-+      - y\ :sub:`15`
-+      - y\ :sub:`14`
-+      - y\ :sub:`13`
-+      - y\ :sub:`12`
-+      - y\ :sub:`11`
-+      - y\ :sub:`10`
-+      - y\ :sub:`9`
-+      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+      - y\ :sub:`15`
-+      - y\ :sub:`14`
-+      - y\ :sub:`13`
-+      - y\ :sub:`12`
-+      - y\ :sub:`11`
-+      - y\ :sub:`10`
-+      - y\ :sub:`8`
-+      - y\ :sub:`8`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+
-+
-+.. raw:: latex
-+
-+	\endgroup
-+
- HSV/HSL Formats
- ^^^^^^^^^^^^^^^
- 
--- 
-1.9.1
+Regards,
+
+	Hans
+
+> 
+> BR,
+> Hugues.
+> 
+> On 03/28/2017 10:23 AM, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Convert ov2640 to a standard subdev driver. The soc-camera driver no longer
+>> uses this driver, so it can safely be converted.
+>>
+>> Note: the s_power op has been dropped: this never worked. When the last open()
+>> is closed, then the power is turned off, and when it is opened again the power
+>> is turned on again, but the old state isn't restored.
+>>
+>> Someone else can figure out in the future how to get this working correctly,
+>> but I don't want to spend more time on this.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> ---
+>>  drivers/media/i2c/Kconfig                   | 11 ++++
+>>  drivers/media/i2c/Makefile                  |  1 +
+>>  drivers/media/i2c/{soc_camera => }/ov2640.c | 89 +++++------------------------
+>>  drivers/media/i2c/soc_camera/Kconfig        |  6 --
+>>  drivers/media/i2c/soc_camera/Makefile       |  1 -
+>>  5 files changed, 27 insertions(+), 81 deletions(-)
+>>  rename drivers/media/i2c/{soc_camera => }/ov2640.c (94%)
+>>
+>> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+>> index cee1dae6e014..db2c63f592c5 100644
+>> --- a/drivers/media/i2c/Kconfig
+>> +++ b/drivers/media/i2c/Kconfig
+>> @@ -520,6 +520,17 @@ config VIDEO_APTINA_PLL
+>>  config VIDEO_SMIAPP_PLL
+>>  	tristate
+>>
+>> +config VIDEO_OV2640
+>> +	tristate "OmniVision OV2640 sensor support"
+>> +	depends on VIDEO_V4L2 && I2C && GPIOLIB
+>> +	depends on MEDIA_CAMERA_SUPPORT
+>> +	help
+>> +	  This is a Video4Linux2 sensor-level driver for the OmniVision
+>> +	  OV2640 camera.
+>> +
+>> +	  To compile this driver as a module, choose M here: the
+>> +	  module will be called ov2640.
+>> +
+>>  config VIDEO_OV2659
+>>  	tristate "OmniVision OV2659 sensor support"
+>>  	depends on VIDEO_V4L2 && I2C
+>> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+>> index 5bc7bbeb5499..50af1e11c85a 100644
+>> --- a/drivers/media/i2c/Makefile
+>> +++ b/drivers/media/i2c/Makefile
+>> @@ -57,6 +57,7 @@ obj-$(CONFIG_VIDEO_VP27SMPX) += vp27smpx.o
+>>  obj-$(CONFIG_VIDEO_SONY_BTF_MPX) += sony-btf-mpx.o
+>>  obj-$(CONFIG_VIDEO_UPD64031A) += upd64031a.o
+>>  obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
+>> +obj-$(CONFIG_VIDEO_OV2640) += ov2640.o
+>>  obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
+>>  obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
+>>  obj-$(CONFIG_VIDEO_OV9650) += ov9650.o
+>> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/ov2640.c
+>> similarity index 94%
+>> rename from drivers/media/i2c/soc_camera/ov2640.c
+>> rename to drivers/media/i2c/ov2640.c
+>> index b9a0069f5b33..83f88efbce69 100644
+>> --- a/drivers/media/i2c/soc_camera/ov2640.c
+>> +++ b/drivers/media/i2c/ov2640.c
+>> @@ -24,8 +24,8 @@
+>>  #include <linux/v4l2-mediabus.h>
+>>  #include <linux/videodev2.h>
+>>
+>> -#include <media/soc_camera.h>
+>>  #include <media/v4l2-clk.h>
+>> +#include <media/v4l2-device.h>
+>>  #include <media/v4l2-subdev.h>
+>>  #include <media/v4l2-ctrls.h>
+>>  #include <media/v4l2-image-sizes.h>
+>> @@ -287,7 +287,6 @@ struct ov2640_priv {
+>>  	struct v4l2_clk			*clk;
+>>  	const struct ov2640_win_size	*win;
+>>
+>> -	struct soc_camera_subdev_desc	ssdd_dt;
+>>  	struct gpio_desc *resetb_gpio;
+>>  	struct gpio_desc *pwdn_gpio;
+>>  };
+>> @@ -677,13 +676,8 @@ static int ov2640_reset(struct i2c_client *client)
+>>  }
+>>
+>>  /*
+>> - * soc_camera_ops functions
+>> + * functions
+>>   */
+>> -static int ov2640_s_stream(struct v4l2_subdev *sd, int enable)
+>> -{
+>> -	return 0;
+>> -}
+>> -
+>>  static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
+>>  {
+>>  	struct v4l2_subdev *sd =
+>> @@ -744,10 +738,16 @@ static int ov2640_s_register(struct v4l2_subdev *sd,
+>>  static int ov2640_s_power(struct v4l2_subdev *sd, int on)
+>>  {
+>>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>> -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+>>  	struct ov2640_priv *priv = to_ov2640(client);
+>>
+>> -	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
+>> +	gpiod_direction_output(priv->pwdn_gpio, !on);
+>> +	if (on && priv->resetb_gpio) {
+>> +		/* Active the resetb pin to perform a reset pulse */
+>> +		gpiod_direction_output(priv->resetb_gpio, 1);
+>> +		usleep_range(3000, 5000);
+>> +		gpiod_direction_output(priv->resetb_gpio, 0);
+>> +	}
+>> +	return 0;
+>>  }
+>>
+>>  /* Select the nearest higher resolution for capture */
+>> @@ -994,26 +994,6 @@ static struct v4l2_subdev_core_ops ov2640_subdev_core_ops = {
+>>  	.s_power	= ov2640_s_power,
+>>  };
+>>
+>> -static int ov2640_g_mbus_config(struct v4l2_subdev *sd,
+>> -				struct v4l2_mbus_config *cfg)
+>> -{
+>> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>> -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+>> -
+>> -	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
+>> -		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
+>> -		V4L2_MBUS_DATA_ACTIVE_HIGH;
+>> -	cfg->type = V4L2_MBUS_PARALLEL;
+>> -	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
+>> -
+>> -	return 0;
+>> -}
+>> -
+>> -static struct v4l2_subdev_video_ops ov2640_subdev_video_ops = {
+>> -	.s_stream	= ov2640_s_stream,
+>> -	.g_mbus_config	= ov2640_g_mbus_config,
+>> -};
+>> -
+>>  static const struct v4l2_subdev_pad_ops ov2640_subdev_pad_ops = {
+>>  	.enum_mbus_code = ov2640_enum_mbus_code,
+>>  	.get_selection	= ov2640_get_selection,
+>> @@ -1023,40 +1003,9 @@ static const struct v4l2_subdev_pad_ops ov2640_subdev_pad_ops = {
+>>
+>>  static struct v4l2_subdev_ops ov2640_subdev_ops = {
+>>  	.core	= &ov2640_subdev_core_ops,
+>> -	.video	= &ov2640_subdev_video_ops,
+>>  	.pad	= &ov2640_subdev_pad_ops,
+>>  };
+>>
+>> -/* OF probe functions */
+>> -static int ov2640_hw_power(struct device *dev, int on)
+>> -{
+>> -	struct i2c_client *client = to_i2c_client(dev);
+>> -	struct ov2640_priv *priv = to_ov2640(client);
+>> -
+>> -	dev_dbg(&client->dev, "%s: %s the camera\n",
+>> -			__func__, on ? "ENABLE" : "DISABLE");
+>> -
+>> -	if (priv->pwdn_gpio)
+>> -		gpiod_direction_output(priv->pwdn_gpio, !on);
+>> -
+>> -	return 0;
+>> -}
+>> -
+>> -static int ov2640_hw_reset(struct device *dev)
+>> -{
+>> -	struct i2c_client *client = to_i2c_client(dev);
+>> -	struct ov2640_priv *priv = to_ov2640(client);
+>> -
+>> -	if (priv->resetb_gpio) {
+>> -		/* Active the resetb pin to perform a reset pulse */
+>> -		gpiod_direction_output(priv->resetb_gpio, 1);
+>> -		usleep_range(3000, 5000);
+>> -		gpiod_direction_output(priv->resetb_gpio, 0);
+>> -	}
+>> -
+>> -	return 0;
+>> -}
+>> -
+>>  static int ov2640_probe_dt(struct i2c_client *client,
+>>  		struct ov2640_priv *priv)
+>>  {
+>> @@ -1076,11 +1025,6 @@ static int ov2640_probe_dt(struct i2c_client *client,
+>>  	else if (IS_ERR(priv->pwdn_gpio))
+>>  		return PTR_ERR(priv->pwdn_gpio);
+>>
+>> -	/* Initialize the soc_camera_subdev_desc */
+>> -	priv->ssdd_dt.power = ov2640_hw_power;
+>> -	priv->ssdd_dt.reset = ov2640_hw_reset;
+>> -	client->dev.platform_data = &priv->ssdd_dt;
+>> -
+>>  	return 0;
+>>  }
+>>
+>> @@ -1091,7 +1035,6 @@ static int ov2640_probe(struct i2c_client *client,
+>>  			const struct i2c_device_id *did)
+>>  {
+>>  	struct ov2640_priv	*priv;
+>> -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+>>  	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
+>>  	int			ret;
+>>
+>> @@ -1112,17 +1055,15 @@ static int ov2640_probe(struct i2c_client *client,
+>>  	if (IS_ERR(priv->clk))
+>>  		return -EPROBE_DEFER;
+>>
+>> -	if (!ssdd && !client->dev.of_node) {
+>> +	if (!client->dev.of_node) {
+>>  		dev_err(&client->dev, "Missing platform_data for driver\n");
+>>  		ret = -EINVAL;
+>>  		goto err_clk;
+>>  	}
+>>
+>> -	if (!ssdd) {
+>> -		ret = ov2640_probe_dt(client, priv);
+>> -		if (ret)
+>> -			goto err_clk;
+>> -	}
+>> +	ret = ov2640_probe_dt(client, priv);
+>> +	if (ret)
+>> +		goto err_clk;
+>>
+>>  	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
+>>  	v4l2_ctrl_handler_init(&priv->hdl, 2);
+>> @@ -1190,6 +1131,6 @@ static struct i2c_driver ov2640_i2c_driver = {
+>>
+>>  module_i2c_driver(ov2640_i2c_driver);
+>>
+>> -MODULE_DESCRIPTION("SoC Camera driver for Omni Vision 2640 sensor");
+>> +MODULE_DESCRIPTION("Driver for Omni Vision 2640 sensor");
+>>  MODULE_AUTHOR("Alberto Panizzo");
+>>  MODULE_LICENSE("GPL v2");
+>> diff --git a/drivers/media/i2c/soc_camera/Kconfig b/drivers/media/i2c/soc_camera/Kconfig
+>> index 7704bcf5cc25..96859f37cb1c 100644
+>> --- a/drivers/media/i2c/soc_camera/Kconfig
+>> +++ b/drivers/media/i2c/soc_camera/Kconfig
+>> @@ -41,12 +41,6 @@ config SOC_CAMERA_MT9V022
+>>  	help
+>>  	  This driver supports MT9V022 cameras from Micron
+>>
+>> -config SOC_CAMERA_OV2640
+>> -	tristate "ov2640 camera support"
+>> -	depends on SOC_CAMERA && I2C
+>> -	help
+>> -	  This is a ov2640 camera driver
+>> -
+>>  config SOC_CAMERA_OV5642
+>>  	tristate "ov5642 camera support"
+>>  	depends on SOC_CAMERA && I2C
+>> diff --git a/drivers/media/i2c/soc_camera/Makefile b/drivers/media/i2c/soc_camera/Makefile
+>> index 6f994f9353a0..974bdb721dbe 100644
+>> --- a/drivers/media/i2c/soc_camera/Makefile
+>> +++ b/drivers/media/i2c/soc_camera/Makefile
+>> @@ -3,7 +3,6 @@ obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
+>>  obj-$(CONFIG_SOC_CAMERA_MT9T031)	+= mt9t031.o
+>>  obj-$(CONFIG_SOC_CAMERA_MT9T112)	+= mt9t112.o
+>>  obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= mt9v022.o
+>> -obj-$(CONFIG_SOC_CAMERA_OV2640)		+= ov2640.o
+>>  obj-$(CONFIG_SOC_CAMERA_OV5642)		+= ov5642.o
+>>  obj-$(CONFIG_SOC_CAMERA_OV6650)		+= ov6650.o
+>>  obj-$(CONFIG_SOC_CAMERA_OV772X)		+= ov772x.o
+>>
