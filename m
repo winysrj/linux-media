@@ -1,91 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:34508 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751970AbdCVEdc (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:18263 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754946AbdC2N0Y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Mar 2017 00:33:32 -0400
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-To: outreachy-kernel@googlegroups.com
-Cc: linux-media@vger.kernel.org, gregkh@linuxfoundation.org,
-        mchehab@kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Arushi Singhal <arushisinghal19971997@gmail.com>
-Subject: [PATCH 3/3] staging: media: omap4iss: Replace a bit shift by a use of BIT.
-Date: Wed, 22 Mar 2017 09:56:09 +0530
-Message-Id: <20170322042609.23525-4-arushisinghal19971997@gmail.com>
-In-Reply-To: <20170322042609.23525-1-arushisinghal19971997@gmail.com>
-References: <20170322042609.23525-1-arushisinghal19971997@gmail.com>
+        Wed, 29 Mar 2017 09:26:24 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v1 3/8] ARM: dts: stm32: Enable DCMI support on STM32F429 MCU
+Date: Wed, 29 Mar 2017 15:25:21 +0200
+Message-ID: <1490793926-6477-4-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1490793926-6477-1-git-send-email-hugues.fruchet@st.com>
+References: <1490793926-6477-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch replaces bit shifting on 1 with the BIT(x) macro.
-This was done with coccinelle:
-@@
-constant c;
-@@
-
--1 << c
-+BIT(c)
-
-Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/staging/media/omap4iss/iss_csi2.c    | 2 +-
- drivers/staging/media/omap4iss/iss_ipipe.c   | 2 +-
- drivers/staging/media/omap4iss/iss_ipipeif.c | 2 +-
- drivers/staging/media/omap4iss/iss_resizer.c | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/stm32f429.dtsi | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
-diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
-index f71d5f2f179f..f6acc541e8a2 100644
---- a/drivers/staging/media/omap4iss/iss_csi2.c
-+++ b/drivers/staging/media/omap4iss/iss_csi2.c
-@@ -1268,7 +1268,7 @@ static int csi2_init_entities(struct iss_csi2_device *csi2, const char *subname)
- 	snprintf(name, sizeof(name), "CSI2%s", subname);
- 	snprintf(sd->name, sizeof(sd->name), "OMAP4 ISS %s", name);
+diff --git a/arch/arm/boot/dts/stm32f429.dtsi b/arch/arm/boot/dts/stm32f429.dtsi
+index ee0da97..e1ff978 100644
+--- a/arch/arm/boot/dts/stm32f429.dtsi
++++ b/arch/arm/boot/dts/stm32f429.dtsi
+@@ -736,6 +736,29 @@
+ 					slew-rate = <3>;
+ 				};
+ 			};
++
++			dcmi_pins: dcmi_pins@0 {
++				pins {
++					pinmux = <STM32F429_PA4_FUNC_DCMI_HSYNC>,
++						 <STM32F429_PB7_FUNC_DCMI_VSYNC>,
++						 <STM32F429_PA6_FUNC_DCMI_PIXCLK>,
++						 <STM32F429_PC6_FUNC_DCMI_D0>,
++						 <STM32F429_PC7_FUNC_DCMI_D1>,
++						 <STM32F429_PC8_FUNC_DCMI_D2>,
++						 <STM32F429_PC9_FUNC_DCMI_D3>,
++						 <STM32F429_PC11_FUNC_DCMI_D4>,
++						 <STM32F429_PD3_FUNC_DCMI_D5>,
++						 <STM32F429_PB8_FUNC_DCMI_D6>,
++						 <STM32F429_PE6_FUNC_DCMI_D7>,
++						 <STM32F429_PC10_FUNC_DCMI_D8>,
++						 <STM32F429_PC12_FUNC_DCMI_D9>,
++						 <STM32F429_PD6_FUNC_DCMI_D10>,
++						 <STM32F429_PD2_FUNC_DCMI_D11>;
++					bias-disable;
++					drive-push-pull;
++					slew-rate = <3>;
++				};
++			};
+ 		};
  
--	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
- 	v4l2_set_subdevdata(sd, csi2);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 		rcc: rcc@40023810 {
+@@ -805,6 +828,20 @@
+ 			status = "disabled";
+ 		};
  
-diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c b/drivers/staging/media/omap4iss/iss_ipipe.c
-index d38782e8e84c..d86ef8a031f2 100644
---- a/drivers/staging/media/omap4iss/iss_ipipe.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipe.c
-@@ -508,7 +508,7 @@ static int ipipe_init_entities(struct iss_ipipe_device *ipipe)
- 	v4l2_subdev_init(sd, &ipipe_v4l2_ops);
- 	sd->internal_ops = &ipipe_v4l2_internal_ops;
- 	strlcpy(sd->name, "OMAP4 ISS ISP IPIPE", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
- 	v4l2_set_subdevdata(sd, ipipe);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-diff --git a/drivers/staging/media/omap4iss/iss_ipipeif.c b/drivers/staging/media/omap4iss/iss_ipipeif.c
-index 23de8330731d..cb88b2bd0d82 100644
---- a/drivers/staging/media/omap4iss/iss_ipipeif.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipeif.c
-@@ -739,7 +739,7 @@ static int ipipeif_init_entities(struct iss_ipipeif_device *ipipeif)
- 	v4l2_subdev_init(sd, &ipipeif_v4l2_ops);
- 	sd->internal_ops = &ipipeif_v4l2_internal_ops;
- 	strlcpy(sd->name, "OMAP4 ISS ISP IPIPEIF", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
- 	v4l2_set_subdevdata(sd, ipipeif);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
-index f1d352c711d5..4bbfa20b3c38 100644
---- a/drivers/staging/media/omap4iss/iss_resizer.c
-+++ b/drivers/staging/media/omap4iss/iss_resizer.c
-@@ -782,7 +782,7 @@ static int resizer_init_entities(struct iss_resizer_device *resizer)
- 	v4l2_subdev_init(sd, &resizer_v4l2_ops);
- 	sd->internal_ops = &resizer_v4l2_internal_ops;
- 	strlcpy(sd->name, "OMAP4 ISS ISP resizer", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
- 	v4l2_set_subdevdata(sd, resizer);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
++		dcmi: dcmi@50050000 {
++			compatible = "st,stm32-dcmi";
++			reg = <0x50050000 0x400>;
++			interrupts = <78>;
++			resets = <&rcc STM32F4_AHB2_RESET(DCMI)>;
++			clocks = <&rcc 0 STM32F4_AHB2_CLOCK(DCMI)>;
++			clock-names = "mclk";
++			pinctrl-names = "default";
++			pinctrl-0 = <&dcmi_pins>;
++			dmas = <&dma2 1 1 0x414 0x3>;
++			dma-names = "tx";
++			status = "disabled";
++		};
++
+ 		rng: rng@50060800 {
+ 			compatible = "st,stm32-rng";
+ 			reg = <0x50060800 0x400>;
 -- 
-2.11.0
+1.9.1
