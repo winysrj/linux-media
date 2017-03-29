@@ -1,215 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42637 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751336AbdCDIz4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Mar 2017 03:55:56 -0500
-Date: Sat, 4 Mar 2017 09:55:51 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: camera subdevice support was Re: [PATCH 1/4] v4l2:
- device_register_subdev_nodes: allow calling multiple times
-Message-ID: <20170304085551.GA19769@amd>
-References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
- <20170220103114.GA9800@amd>
- <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
- <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
- <20170221110721.GD5021@amd>
- <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
- <20170225000918.GB23662@amd>
- <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
- <20170225215321.GA29886@amd>
- <20170225231754.GY16975@valkosipuli.retiisi.org.uk>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:34449 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753794AbdC2HtI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Mar 2017 03:49:08 -0400
+Subject: Re: [PATCH v7] [media] vimc: Virtual Media Controller core, capture
+ and sensor
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <6c85eaf4-1f91-7964-1cf9-602005b62a94@collabora.co.uk>
+ <1490461896-19221-1-git-send-email-helen.koike@collabora.com>
+ <f8466f7a-0f33-a610-10fc-2515d5f6b499@iki.fi>
+ <ef7c1d62-0553-2c5b-004f-527d82e380b3@collabora.co.uk>
+ <20170327150918.6843e285@vento.lan>
+ <f668b12f-0da8-98da-63b0-c5064cc87da9@xs4all.nl>
+ <20170328083826.6cf003ff@vento.lan>
+ <20170328203711.GE16657@valkosipuli.retiisi.org.uk>
+Cc: Helen Koike <helen.koike@collabora.co.uk>,
+        Helen Koike <helen.koike@collabora.com>,
+        linux-media@vger.kernel.org, jgebben@codeaurora.org,
+        Helen Fornazier <helen.fornazier@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <7f8469f3-8c7b-0a05-be18-d573940543e0@xs4all.nl>
+Date: Wed, 29 Mar 2017 09:49:05 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="CE+1k2dSO48ffgeK"
-Content-Disposition: inline
-In-Reply-To: <20170225231754.GY16975@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20170328203711.GE16657@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 28/03/17 22:37, Sakari Ailus wrote:
+> Hi Mauro,
+> 
+> On Tue, Mar 28, 2017 at 08:38:26AM -0300, Mauro Carvalho Chehab wrote:
+>> Em Tue, 28 Mar 2017 12:00:36 +0200
+>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>
+>>> On 27/03/17 20:09, Mauro Carvalho Chehab wrote:
+>>>> Em Mon, 27 Mar 2017 12:19:51 -0300
+>>>> Helen Koike <helen.koike@collabora.co.uk> escreveu:
+>>>>   
+>>>>> Hi Sakari,
+>>>>>
+>>>>> On 2017-03-26 10:31 AM, Sakari Ailus wrote:  
+>>>>>> Hi Helen,
+>>>>>>
+>>>>>> ...    
+>>>>>>> +static int vimc_cap_enum_input(struct file *file, void *priv,
+>>>>>>> +			       struct v4l2_input *i)
+>>>>>>> +{
+>>>>>>> +	/* We only have one input */
+>>>>>>> +	if (i->index > 0)
+>>>>>>> +		return -EINVAL;
+>>>>>>> +
+>>>>>>> +	i->type = V4L2_INPUT_TYPE_CAMERA;
+>>>>>>> +	strlcpy(i->name, "VIMC capture", sizeof(i->name));
+>>>>>>> +
+>>>>>>> +	return 0;
+>>>>>>> +}
+>>>>>>> +
+>>>>>>> +static int vimc_cap_g_input(struct file *file, void *priv, unsigned int *i)
+>>>>>>> +{
+>>>>>>> +	/* We only have one input */
+>>>>>>> +	*i = 0;
+>>>>>>> +	return 0;
+>>>>>>> +}
+>>>>>>> +
+>>>>>>> +static int vimc_cap_s_input(struct file *file, void *priv, unsigned int i)
+>>>>>>> +{
+>>>>>>> +	/* We only have one input */
+>>>>>>> +	return i ? -EINVAL : 0;
+>>>>>>> +}    
+>>>>>>
+>>>>>> You can drop the input IOCTLs altogether here. If you had e.g. a TV
+>>>>>> tuner, it'd be the TV tuner driver's responsibility to implement them.
+>>>>>>    
+>>>>>
+>>>>> input IOCTLs seems to be mandatory from v4l2-compliance when capability 
+>>>>> V4L2_CAP_VIDEO_CAPTURE is set (which is the case):
+>>>>>
+>>>>> https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-compliance/v4l2-test-input-output.cpp#n418
+>>>>>
+>>>>> https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-compliance/v4l2-compliance.cpp#n989  
+>>>>
+>>>> The V4L2 spec doesn't actually define what's mandatory and what's
+>>>> optional. The idea that was agreed on one of the media summits
+>>>> were to define a set of profiles for different device types,
+>>>> matching the features required by existing applications to work,
+>>>> but this was never materialized.
+>>>>
+>>>> So, my understanding is that any driver can implement
+>>>> any V4L2 ioctl.
+>>>>
+>>>> Yet, some applications require enum/get/set inputs, or otherwise
+>>>> they wouldn't work. It is too late to change this behavior. 
+>>>> So, either the driver or the core should implement those
+>>>> ioctls, in order to avoid breaking backward-compatibility.  
+>>>
+>>> The closest we have to determining which ioctls are mandatory or not is
+>>> v4l2-compliance.
+>>
+>> Yes, but we should explicitly document what's mandatory at the V4L2
+>> API spec and mention the v4l2-compliance tool there.
+>>
+>>> That said, v4l2-compliance is actually a bit more strict
+>>> in some cases than the spec since some ioctls are optional in the spec, but
+>>> required in v4l2-compliance for the simple reason that there is no reason
+>>> for drivers NOT to implement those ioctls.
+>>>
+>>> However, the v4l2-compliance test was never written for MC devices. It turns
+>>> out that it works reasonably well as long as a working pipeline is configured
+>>> first, but these input ioctls are a bit iffy.
+>>
+>> The way I see, v4l2-compliance V4L2 API check[1] should not be modified to
+>> explicitly support devices with MC and/or subdev API.
+> 
+> The V4L2 API documentation states that
+> 
+> 	Video inputs and outputs are physical connectors of a device. ...
+> 	Drivers must implement all the input ioctls when the device has one
+> 	or more inputs, all the output ioctls when the device has one or
+> 	more outputs.
+> 
+> "Inputs" and "outputs", as the spec defines them, mean physical connectors
+> to the device.
+> 
+> Does e.g. a camera have a physical connector? I don't think one could
+> imagine it does, meaning also there is no need to implement these IOCTLs.
+> 
+> That said, I looked at a few drivers and even the omap3isp driver implements
+> the input IOCTLs. It provides no useful information whatsoever through them,
+> just like most drivers whose hardware has no physical connectors.
+> 
+> Still the bottom line is that the spec does not require them.
 
---CE+1k2dSO48ffgeK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The spec isn't gospel. The reality is that all non-MC drivers have these ioctls
+and a sensor is considered to be an input.
 
-Dobry den! :-)
+Section 4.1.2 says: "The video input and video standard ioctls must be supported
+by all video capture devices.". Which actually is also wrong since the video
+standard ioctls do not make sense for DV inputs or sensors.
 
-> > > > Ok, I got the camera sensor to work. No subdevices support, so I do=
-n't
-> > > > have focus (etc) working, but that's a start. I also had to remove
-> > > > video-bus-switch support; but I guess it will be easier to use
-> > > > video-multiplexer patches...=20
-> > > >=20
-> > > > I'll have patches over weekend.
-> > >=20
-> > > I briefly looked at what's there --- you do miss the video nodes for =
-the
-> > > non-sensor sub-devices, and they also don't show up in the media grap=
-h,
-> > > right?
-> >=20
-> > Yes.
-> >=20
-> > > I guess they don't end up matching in the async list.
-> >=20
-> > How should they get to the async list?
->=20
-> The patch you referred to does that. The problem is, it does make the bus
-> configuration a pointer as well. There should be two patches. That's not a
-> lot of work to separate them though. But it should be done.
->=20
-> >=20
-> > > I think we need to make the non-sensor sub-device support more generi=
-c;
-> > > it's not just the OMAP 3 ISP that needs it. I think we need to docume=
-nt
-> > > the property for the flash phandle as well; I can write one, or refre=
-sh
-> > > an existing one that I believe already exists.
-> > >=20
-> > > How about calling it either simply "flash" or "camera-flash"? Similar=
-ly
-> > > for lens: "lens" or "camera-lens". I have a vague feeling the "camera=
--"
-> > > prefix is somewhat redundant, so I'd just go for "flash" or "lens".
-> >=20
-> > Actually, I'd go for "flash" and "focus-coil". There may be other
-> > lens properties, such as zoom, mirror movement, lens identification,
-> > ...
->=20
-> Good point. Still there may be other ways to move the lens than the voice
-> coil (which sure is cheap), so how about "flash" and "lens-focus"?
+I'll make a patch correcting these issues.
 
-Ok, so something like this? (Yes, needs binding documentation and you
-wanted it in the core.. can fix.)
+Regards,
 
-BTW, fwnode_handle_put() seems to be missing in the success path of
-isp_fwnodes_parse() -- can you check that?
-
-Best regards,
-								Pavel
-
-
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform=
-/omap3isp/isp.c
-index c80397a..6f6fbed 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2114,7 +2114,7 @@ static int isp_fwnode_parse(struct device *dev, struc=
-t fwnode_handle *fwn,
- 			buscfg->bus.ccp2.lanecfg.data[0].pol =3D
- 				vfwn.bus.mipi_csi1.lane_polarity[1];
-=20
--			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
-+			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", 0,
- 				buscfg->bus.ccp2.lanecfg.data[0].pol,
- 				buscfg->bus.ccp2.lanecfg.data[0].pos);
-=20
-@@ -2162,10 +2162,64 @@ static int isp_fwnode_parse(struct device *dev, str=
-uct fwnode_handle *fwn,
- 	return 0;
- }
-=20
-+static int camera_subdev_parse(struct device *dev, struct v4l2_async_notif=
-ier *notifier,
-+			       const char *key)
-+{
-+	struct device_node *node;
-+	struct isp_async_subdev *isd;
-+
-+	printk("Looking for %s\n", key);
-+=09
-+	node =3D of_parse_phandle(dev->of_node, key, 0);
-+	if (!node)
-+		return 0;
-+
-+	printk("Having subdevice: %p\n", node);
-+	=09
-+	isd =3D devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
-+	if (!isd)
-+		return -ENOMEM;
-+
-+	notifier->subdevs[notifier->num_subdevs] =3D &isd->asd;
-+
-+	isd->asd.match.of.node =3D node;
-+	if (!isd->asd.match.of.node) {
-+		dev_warn(dev, "bad remote port parent\n");
-+		return -EIO;
-+	}
-+
-+	isd->asd.match_type =3D V4L2_ASYNC_MATCH_OF;
-+	notifier->num_subdevs++;
-+
-+	return 0;
-+}
-+
-+static int camera_subdevs_parse(struct device *dev, struct v4l2_async_noti=
-fier *notifier,
-+				int max)
-+{
-+	int res =3D 0;
-+
-+	printk("Going through camera-flashes\n");
-+	if (notifier->num_subdevs < max) {
-+		res =3D camera_subdev_parse(dev, notifier, "flash");
-+		if (res)
-+			return res;
-+	}
-+
-+	if (notifier->num_subdevs < max) {
-+		res =3D camera_subdev_parse(dev, notifier, "lens-focus");
-+		if (res)
-+			return res;
-+	}
-+=09
-+	return 0;
-+}
-+
- static int isp_fwnodes_parse(struct device *dev,
- 			     struct v4l2_async_notifier *notifier)
- {
- 	struct fwnode_handle *fwn =3D NULL;
-+	int res =3D 0;
-=20
- 	notifier->subdevs =3D devm_kcalloc(
- 		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
-@@ -2199,6 +2253,15 @@ static int isp_fwnodes_parse(struct device *dev,
- 		notifier->num_subdevs++;
- 	}
-=20
-+	/* FIXME: missing put in the success path? */
-+
-+	res =3D camera_subdevs_parse(dev, notifier, ISP_MAX_SUBDEVS);
-+	if (res)
-+		goto error;
-+
-+	if (notifier->num_subdevs =3D=3D ISP_MAX_SUBDEVS) {
-+		printk("isp: Maybe too many devices?\n");
-+	}
- 	return notifier->num_subdevs;
-=20
- error:
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---CE+1k2dSO48ffgeK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAli6gRcACgkQMOfwapXb+vKwwQCfUotuchmgrCXrpUZkt00mR8Sc
-b3cAoMDfNNOBY3YADQLFFfcSPrlKkkzp
-=Bqxz
------END PGP SIGNATURE-----
-
---CE+1k2dSO48ffgeK--
+	Hans
