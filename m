@@ -1,64 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out6.electric.net ([192.162.217.186]:53097 "EHLO
-        smtp-out6.electric.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933010AbdC3LOw (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35891 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752859AbdC2Fgk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 07:14:52 -0400
-From: David Laight <David.Laight@ACULAB.COM>
-To: 'Mauro Carvalho Chehab' <mchehab@s-opensource.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
-CC: Oliver Neukum <oneukum@suse.com>,
-        David Mosberger <davidm@egauge.net>,
-        Jaejoong Kim <climbbb.kim@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-        "linux-rpi-kernel@lists.infradead.org"
-        <linux-rpi-kernel@lists.infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        John Youn <johnyoun@synopsys.com>,
-        Roger Quadros <rogerq@ti.com>,
-        "Linux Doc Mailing List" <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
-Subject: RE: [PATCH 22/22] usb: document that URB transfer_buffer should be
- aligned
-Date: Thu, 30 Mar 2017 11:07:27 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6DCFFC2476@AcuExch.aculab.com>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-        <1822963.cezI9HmAB6@avalon>        <1490861491.8660.2.camel@suse.com>
-        <3181783.rVmBcEVlbi@avalon> <20170330072800.5ee8bc33@vento.lan>
-In-Reply-To: <20170330072800.5ee8bc33@vento.lan>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+        Wed, 29 Mar 2017 01:36:40 -0400
+Received: by mail-wr0-f196.google.com with SMTP id u1so579567wra.3
+        for <linux-media@vger.kernel.org>; Tue, 28 Mar 2017 22:36:39 -0700 (PDT)
+To: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+From: Haim Daniel <haimdaniel@gmail.com>
+Subject: [PATCH]: staging: media: css2400: fix checkpatch error
+Message-ID: <b0bf9753-54d7-5178-5339-37b24d7e8191@gmail.com>
+Date: Wed, 29 Mar 2017 08:36:27 +0300
 MIME-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------26C941BE4588EADC006962C6"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab
-> Sent: 30 March 2017 11:28
-...
-> While debugging this issue, I saw *a lot* of network-generated URB
-> traffic from RPi3 Ethernet port drivers that were using non-aligned
-> buffers and were subject to the temporary buffer conversion.
+This is a multi-part message in MIME format.
+--------------26C941BE4588EADC006962C6
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Buffers from the network stack will almost always be 4n+2 aligned.
-Receive data being fed into the network stack really needs to be
-4n=2 aligned.
 
-The USB stack almost certainly has to live with that.
+--------------26C941BE4588EADC006962C6
+Content-Type: text/x-patch;
+ name="0001-media-staging-css2400-fix-checkpatch-error.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0001-media-staging-css2400-fix-checkpatch-error.patch"
 
-If the USB ethernet device doesn't have two bytes of 'pad' before
-the frame data (destination MAC address) then you have to solve
-the problem within the USB stack.
+>From 41d35b455f8eb139912909639e914469ef5e06fb Mon Sep 17 00:00:00 2001
+From: Haim Daniel <haimdaniel@gmail.com>
+Date: Tue, 28 Mar 2017 19:27:57 +0300
+Subject: [PATCH] [media] staging: css2400: fix checkpatch error
 
-For transmits it might be possible to send an initial 2 byte fragment
-from a separate buffer - but only if arbitrary fragment sizes are
-allowed.
-A normal USB3 controller should allow this - but you have to be very
-careful about what happens at the end of the ring.
+isp_capture_defs.h:
 
-	David
+enclose macro with complex values in parentheses.
+
+Signed-off-by: Haim Daniel <haimdaniel@gmail.com>
+---
+ .../pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h   | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h
+index aa413df..78cbbf6 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h
+@@ -19,7 +19,7 @@
+ #define _ISP_CAPTURE_BITS_PER_ELEM                32  /* only for data, not SOP */						           
+ #define _ISP_CAPTURE_BYTES_PER_ELEM               (_ISP_CAPTURE_BITS_PER_ELEM/8	)				           
+ #define _ISP_CAPTURE_BYTES_PER_WORD               32		/* 256/8 */	
+-#define _ISP_CAPTURE_ELEM_PER_WORD                _ISP_CAPTURE_BYTES_PER_WORD / _ISP_CAPTURE_BYTES_PER_ELEM		           
++#define _ISP_CAPTURE_ELEM_PER_WORD                (_ISP_CAPTURE_BYTES_PER_WORD / _ISP_CAPTURE_BYTES_PER_ELEM)         
+ 
+ //#define CAPT_RCV_ACK                              1
+ //#define CAPT_WRT_ACK                              2               
+-- 
+1.9.1
+
+
+--------------26C941BE4588EADC006962C6--
