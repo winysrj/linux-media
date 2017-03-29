@@ -1,108 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:34489 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753498AbdCMTVJ (ORCPT
+Received: from 92-243-34-74.adsl.nanet.at ([92.243.34.74]:42736 "EHLO
+        mail.osadl.at" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1754013AbdC2KnP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 15:21:09 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC 09/10] [media] vb2: add infrastructure to support out-fences
-Date: Mon, 13 Mar 2017 16:20:34 -0300
-Message-Id: <20170313192035.29859-10-gustavo@padovan.org>
-In-Reply-To: <20170313192035.29859-1-gustavo@padovan.org>
-References: <20170313192035.29859-1-gustavo@padovan.org>
+        Wed, 29 Mar 2017 06:43:15 -0400
+Date: Wed, 29 Mar 2017 10:43:09 +0000
+From: Nicholas Mc Guire <der.herr@hofr.at>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Nicholas Mc Guire <hofrat@osadl.org>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH RFC] [media] m5mols: add missing dependency on
+ VIDEO_IR_I2C
+Message-ID: <20170329104309.GA24469@osadl.at>
+References: <1481607848-24053-1-git-send-email-hofrat@osadl.org>
+ <CGME20170329095611epcas1p38e8a9d321864202ce47de1d99ba578ce@epcas1p3.samsung.com>
+ <42bdc11f-8202-c54c-a25c-5ac33b6bddae@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <42bdc11f-8202-c54c-a25c-5ac33b6bddae@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+On Wed, Mar 29, 2017 at 11:56:08AM +0200, Sylwester Nawrocki wrote:
+> On 12/13/2016 06:44 AM, Nicholas Mc Guire wrote:
+> >The Depends on: tag in Kconfig for CONFIG_VIDEO_M5MOLS does not list
+> >VIDEO_IR_I2C so Kconfig displays the dependencies needed so the M-5MOLS
+> >driver can not be found.
+> >
+> >Fixes: commit cb7a01ac324b ("[media] move i2c files into drivers/media/i2c")
+> >Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+> >---
+> >
+> >searching for VIDEO_M5MOLS in menuconfig currently shows the following
+> >dependencies
+> > Depends on: MEDIA_SUPPORT [=m] && I2C [=y] && VIDEO_V4L2 [=m] && \
+> >             VIDEO_V4L2_SUBDEV_API [=y] && MEDIA_CAMERA_SUPPORT [=y]
+> >but as the default settings include MEDIA_SUBDRV_AUTOSELECT=y the
+> >"I2C module for IR" submenu (CONFIG_VIDEO_IR_I2C) is not displayed
+> >adding the VIDEO_IR_I2C to the dependency list makes this clear
+> 
+> > drivers/media/i2c/m5mols/Kconfig | 2 +-
+> > 1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> >diff --git a/drivers/media/i2c/m5mols/Kconfig b/drivers/media/i2c/m5mols/Kconfig
+> >index dc8c250..6847a1b 100644
+> >--- a/drivers/media/i2c/m5mols/Kconfig
+> >+++ b/drivers/media/i2c/m5mols/Kconfig
+> >@@ -1,6 +1,6 @@
+> > config VIDEO_M5MOLS
+> > 	tristate "Fujitsu M-5MOLS 8MP sensor support"
+> >-	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+> >+	depends on I2C && VIDEO_IR_I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+> 
+> There should be no need to enable the "I2C module for IR" to use m5mols
+> driver, so the bug fix needs to be somewhere else.
+>
+yup - my bad - not clear how I came to that conclusion, guess it was due
+to the indirection of VIDEO_M5MOLS needing !CONFIG_MEDIA_SUBDRV_AUTOSELECT
 
-Add vb2_setup_out_fence() and the needed members to struct vb2_buffer.
+Step-by-step its:
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 31 +++++++++++++++++++++++++++++++
- include/media/videobuf2-core.h           |  5 +++++
- 2 files changed, 36 insertions(+)
+0) x86_64_defconfig
+  Depends on: MEDIA_SUPPORT [=n] && I2C [=y] && VIDEO_V4L2 [=n] && VIDEO_V4L2_SUBDEV_API [=n] && MEDIA_CAMERA_SUPPORT [=n]
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index d9cb777..54b1404 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -23,8 +23,11 @@
- #include <linux/sched.h>
- #include <linux/freezer.h>
- #include <linux/kthread.h>
-+#include <linux/sync_file.h>
-+#include <linux/dma-fence.h>
- 
- #include <media/videobuf2-core.h>
-+#include <media/videobuf2-fence.h>
- #include <media/v4l2-event.h>
- #include <media/v4l2-mc.h>
- 
-@@ -1315,6 +1318,34 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
- }
- EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
- 
-+int vb2_setup_out_fence(struct vb2_queue *q, unsigned int index)
-+{
-+	struct vb2_buffer *vb = q->bufs[index];
-+
-+	vb->out_fence_fd = get_unused_fd_flags(O_CLOEXEC);
-+	if (vb->out_fence_fd < 0)
-+		return vb->out_fence_fd;
-+
-+	vb->out_fence = vb2_fence_alloc();
-+	if (!vb->out_fence)
-+		goto err;
-+
-+	vb->sync_file = sync_file_create(vb->out_fence);
-+	if (!vb->sync_file) {
-+		dma_fence_put(vb->out_fence);
-+		vb->out_fence = NULL;
-+		goto err;
-+	}
-+
-+	return 0;
-+
-+err:
-+	put_unused_fd(vb->out_fence_fd);
-+	vb->out_fence_fd = -1;
-+	return -ENOMEM;
-+}
-+EXPORT_SYMBOL_GPL(vb2_setup_out_fence);
-+
- /**
-  * vb2_start_streaming() - Attempt to start streaming.
-  * @q:		videobuf2 queue
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index fe2de99..efdc390 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -263,6 +263,10 @@ struct vb2_buffer {
- 
- 	struct dma_fence	*in_fence;
- 	struct dma_fence_cb	fence_cb;
-+
-+	struct dma_fence	*out_fence;
-+	struct sync_file	*sync_file;
-+	int			out_fence_fd;
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	/*
- 	 * Counters for how often these buffer-related ops are
-@@ -710,6 +714,7 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
-  */
- int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
- 
-+int vb2_setup_out_fence(struct vb2_queue *q, unsigned int index);
- /**
-  * vb2_core_qbuf() - Queue a buffer from userspace
-  *
--- 
-2.9.3
+1) <M> Multimedia support  --->
+ Depends on: MEDIA_SUPPORT [=m] && I2C [=y] && VIDEO_V4L2 [=n] && VIDEO_V4L2_SUBDEV_API [=n] && MEDIA_CAMERA_SUPPORT [=n]
+
+2)    [*]   Cameras/video grabbers support
+ Depends on: MEDIA_SUPPORT [=m] && I2C [=y] && VIDEO_V4L2 [=m] && VIDEO_V4L2_SUBDEV_API [=n] && MEDIA_CAMERA_SUPPORT [=y]
+
+3)    [*]   Media Controller API (NEW)
+      [*]   V4L2 sub-device userspace API (NEW)
+ Depends on: MEDIA_SUPPORT [=m] && I2C [=y] && VIDEO_V4L2 [=m] && VIDEO_V4L2_SUBDEV_API [=y] && MEDIA_CAMERA_SUPPORT [=y]
+
+So now all listed dependencies are satisfied but the M-5MOLS drive is not
+visible du to default CONFIG_MEDIA_SUBDRV_AUTOSELECT=y
+
+Not sure how I ended up with the VIDEO_IR_I2C dependency - which as you 
+state - is wrong. though VIDEO_M5MOLS probably needs a 
+!CONFIG_MEDIA_SUBDRV_AUTOSELECT in the dependency list though.
+
+thx!
+hofrat 
