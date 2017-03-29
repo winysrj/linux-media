@@ -1,165 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:36246 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932554AbdCaJEq (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50981 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932255AbdC2WOr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 05:04:46 -0400
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v3 06/11] [media] s5p-mfc: Add support for HEVC decoder
-Date: Fri, 31 Mar 2017 14:36:35 +0530
-Message-id: <1490951200-32070-7-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
-References: <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
- <CGME20170331090441epcas1p491fae79e00000335ea163eb4c15fc16d@epcas1p4.samsung.com>
+        Wed, 29 Mar 2017 18:14:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        David Mosberger <davidm@egauge.net>,
+        Oliver Neukum <oneukum@suse.com>,
+        Roger Quadros <rogerq@ti.com>,
+        Jaejoong Kim <climbbb.kim@gmail.com>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>
+Subject: Re: [PATCH 22/22] usb: document that URB transfer_buffer should be aligned
+Date: Thu, 30 Mar 2017 01:15:27 +0300
+Message-ID: <1822963.cezI9HmAB6@avalon>
+In-Reply-To: <ee3ea6944e095fa3b2383697a967f4bc9e2d9631.1490813422.git.mchehab@s-opensource.com>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com> <ee3ea6944e095fa3b2383697a967f4bc9e2d9631.1490813422.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for codec definition and corresponding buffer
-requirements for HEVC decoder.
+Hi Mauro,
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
----
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |  1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |  3 +++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  8 ++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 17 +++++++++++++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |  3 +++
- 6 files changed, 31 insertions(+), 2 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-index 3f0dab3..953a073 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-@@ -33,6 +33,7 @@
- #define MFC_NUM_PORTS_V10	1
- 
- /* MFCv10 codec defines*/
-+#define S5P_FIMV_CODEC_HEVC_DEC		17
- #define S5P_FIMV_CODEC_HEVC_ENC         26
- 
- /* Encoder buffer size for MFC v10.0 */
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-index b1b1491..76eca67 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-@@ -101,6 +101,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_VP8_DEC:
- 		codec_type = S5P_FIMV_CODEC_VP8_DEC_V6;
- 		break;
-+	case S5P_MFC_CODEC_HEVC_DEC:
-+		codec_type = S5P_FIMV_CODEC_HEVC_DEC;
-+		break;
- 	case S5P_MFC_CODEC_H264_ENC:
- 		codec_type = S5P_FIMV_CODEC_H264_ENC_V6;
- 		break;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 8368d5c2..f49fa34 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -79,6 +79,7 @@ static inline dma_addr_t s5p_mfc_mem_cookie(void *a, void *b)
- #define S5P_MFC_CODEC_H263_DEC		5
- #define S5P_MFC_CODEC_VC1RCV_DEC	6
- #define S5P_MFC_CODEC_VP8_DEC		7
-+#define S5P_MFC_CODEC_HEVC_DEC		17
- 
- #define S5P_MFC_CODEC_H264_ENC		20
- #define S5P_MFC_CODEC_H264_MVC_ENC	21
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index db6d9fa..4fdaec2 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -144,6 +144,14 @@ static struct s5p_mfc_fmt formats[] = {
- 		.num_planes	= 1,
- 		.versions	= MFC_V6PLUS_BITS,
- 	},
-+	{
-+		.name		= "HEVC Encoded Stream",
-+		.fourcc		= V4L2_PIX_FMT_HEVC,
-+		.codec_mode	= S5P_FIMV_CODEC_HEVC_DEC,
-+		.type		= MFC_FMT_DEC,
-+		.num_planes	= 1,
-+		.versions	= MFC_V10_BIT,
-+	},
- };
- 
- #define NUM_FORMATS ARRAY_SIZE(formats)
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index cb39484..033d655 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -220,6 +220,12 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
- 		ctx->bank1.size = ctx->scratch_buf_size;
- 		break;
-+	case S5P_MFC_CODEC_HEVC_DEC:
-+		mfc_debug(2, "Use min scratch buffer size\n");
-+		ctx->bank1.size =
-+			ctx->scratch_buf_size +
-+			(ctx->mv_count * ctx->mv_size);
-+		break;
- 	case S5P_MFC_CODEC_H264_ENC:
- 		if (IS_MFCV10(dev)) {
- 			mfc_debug(2, "Use min scratch buffer size\n");
-@@ -322,6 +328,7 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	switch (ctx->codec_mode) {
- 	case S5P_MFC_CODEC_H264_DEC:
- 	case S5P_MFC_CODEC_H264_MVC_DEC:
-+	case S5P_MFC_CODEC_HEVC_DEC:
- 		ctx->ctx.size = buf_size->h264_dec_ctx;
- 		break;
- 	case S5P_MFC_CODEC_MPEG4_DEC:
-@@ -436,6 +443,10 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
- 			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
- 					ctx->img_height);
- 		}
-+	} else if (ctx->codec_mode == S5P_MFC_CODEC_HEVC_DEC) {
-+		ctx->mv_size = s5p_mfc_dec_hevc_mv_size(ctx->img_width,
-+				ctx->img_height);
-+		ctx->mv_size = ALIGN(ctx->mv_size, 32);
- 	} else {
- 		ctx->mv_size = 0;
- 	}
-@@ -517,7 +528,8 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	buf_size1 -= ctx->scratch_buf_size;
- 
- 	if (ctx->codec_mode == S5P_FIMV_CODEC_H264_DEC ||
--			ctx->codec_mode == S5P_FIMV_CODEC_H264_MVC_DEC){
-+			ctx->codec_mode == S5P_FIMV_CODEC_H264_MVC_DEC ||
-+			ctx->codec_mode == S5P_FIMV_CODEC_HEVC_DEC) {
- 		writel(ctx->mv_size, mfc_regs->d_mv_buffer_size);
- 		writel(ctx->mv_count, mfc_regs->d_num_mv);
- 	}
-@@ -540,7 +552,8 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 				mfc_regs->d_second_plane_dpb + i * 4);
- 	}
- 	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
--			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC) {
-+			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC ||
-+			ctx->codec_mode == S5P_MFC_CODEC_HEVC_DEC) {
- 		for (i = 0; i < ctx->mv_count; i++) {
- 			/* To test alignment */
- 			align_gap = buf_addr1;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-index 975bbc5..2290f7e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-@@ -29,6 +29,9 @@
- #define enc_lcu_width(x_size)		DIV_ROUND_UP(x_size, 32)
- #define enc_lcu_height(y_size)		DIV_ROUND_UP(y_size, 32)
- 
-+#define s5p_mfc_dec_hevc_mv_size(x, y) \
-+	(DIV_ROUND_UP(x, 64) * DIV_ROUND_UP(y, 64) * 256 + 512)
-+
- /* Definition */
- #define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
- #define ENC_MULTI_SLICE_BIT_MIN		2800
+On Wednesday 29 Mar 2017 15:54:21 Mauro Carvalho Chehab wrote:
+> Several host controllers, commonly found on ARM, like dwc2,
+> require buffers that are CPU-word aligned for they to work.
+> 
+> Failing to do that will cause random troubles at the caller
+> drivers, causing them to fail.
+> 
+> Document it.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  Documentation/driver-api/usb/URB.rst | 18 ++++++++++++++++++
+>  drivers/usb/core/message.c           | 15 +++++++++++++++
+>  include/linux/usb.h                  | 18 ++++++++++++++++++
+>  3 files changed, 51 insertions(+)
+> 
+> diff --git a/Documentation/driver-api/usb/URB.rst
+> b/Documentation/driver-api/usb/URB.rst index d9ea6a3996e7..b83b557e9891
+> 100644
+> --- a/Documentation/driver-api/usb/URB.rst
+> +++ b/Documentation/driver-api/usb/URB.rst
+> @@ -274,6 +274,24 @@ If you specify your own start frame, make sure it's
+> several frames in advance of the current frame.  You might want this model
+> if you're synchronizing ISO data with some other event stream.
+> 
+> +.. note::
+> +
+> +   Several host drivers require that the ``transfer_buffer`` to be aligned
+> +   with the CPU word size (e. g. DWORD for 32 bits, QDWORD for 64 bits).
+
+Is it the CPU word size or the DMA transfer size ? I assume the latter, and I 
+wouldn't be surprised if the alignment requirement was 32-bit on at least some 
+of the 64-bit platforms.
+
+> +   It is up to USB drivers should ensure that they'll only pass buffers
+> +   with such alignments.
+> +
+> +   Please also notice that, due to such restriction, the host driver
+
+s/notice/note/ (and below as well) ?
+
+> +   may also override PAD bytes at the end of the ``transfer_buffer``, up to
+> the
+> +   size of the CPU word.
+
+"May" is quite weak here. If some host controller drivers require buffers to 
+be aligned, then it's an API requirement, and all buffers must be aligned. I'm 
+not even sure I would mention that some host drivers require it, I think we 
+should just state that the API requires buffers to be aligned.
+
+> +   Please notice that ancillary routines that transfer URBs, like
+> +   usb_control_msg() also have such restriction.
+> +
+> +   Such word alignment condition is normally ensured if the buffer is
+> +   allocated with kmalloc(), but this may not be the case if the driver
+> +   allocates a bigger buffer and point to a random place inside it.
+> +
+> 
+>  How to start interrupt (INT) transfers?
+>  =======================================
+> diff --git a/drivers/usb/core/message.c b/drivers/usb/core/message.c
+> index 4c38ea41ae96..1662a4446475 100644
+> --- a/drivers/usb/core/message.c
+> +++ b/drivers/usb/core/message.c
+> @@ -128,6 +128,21 @@ static int usb_internal_control_msg(struct usb_device
+> *usb_dev, * make sure your disconnect() method can wait for it to complete.
+> Since you * don't have a handle on the URB used, you can't cancel the
+> request. *
+> + * .. note::
+> + *
+> + *   Several host drivers require that the @data buffer to be aligned
+> + *   with the CPU word size (e. g. DWORD for 32 bits, QDWORD for 64 bits).
+> + *   It is up to USB drivers should ensure that they'll only pass buffers
+> + *   with such alignments.
+> + *
+> + *   Please also notice that, due to such restriction, the host driver
+> + *   may also override PAD bytes at the end of the @data buffer, up to the
+> + *   size of the CPU word.
+> + *
+> + *   Such word alignment condition is normally ensured if the buffer is
+> + *   allocated with kmalloc(), but this may not be the case if the driver
+> + *   allocates a bigger buffer and point to a random place inside it.
+> + *
+>   * Return: If successful, the number of bytes transferred. Otherwise, a
+> negative * error number.
+>   */
+> diff --git a/include/linux/usb.h b/include/linux/usb.h
+> index 7e68259360de..8b5ad6624708 100644
+> --- a/include/linux/usb.h
+> +++ b/include/linux/usb.h
+> @@ -1373,6 +1373,24 @@ typedef void (*usb_complete_t)(struct urb *);
+>   * capable, assign NULL to it, so that usbmon knows not to use the value.
+>   * The setup_packet must always be set, so it cannot be located in highmem.
+> *
+> + * .. note::
+> + *
+> + *   Several host drivers require that the @transfer_buffer to be aligned
+> + *   with the CPU word size (e. g. DWORD for 32 bits, QDWORD for 64 bits).
+> + *   It is up to USB drivers should ensure that they'll only pass buffers
+> + *   with such alignments.
+> + *
+> + *   Please also notice that, due to such restriction, the host driver
+> + *   may also override PAD bytes at the end of the @transfer_buffer, up to
+> the + *   size of the CPU word.
+> + *
+> + *   Please notice that ancillary routines that start URB transfers, like
+> + *   usb_control_msg() also have such restriction.
+> + *
+> + *   Such word alignment condition is normally ensured if the buffer is
+> + *   allocated with kmalloc(), but this may not be the case if the driver
+> + *   allocates a bigger buffer and point to a random place inside it.
+> + *
+
+Couldn't we avoid three copies of the same text ? The chance they will get 
+out-of-sync is quite high.
+
+>   * Initialization:
+>   *
+>   * All URBs submitted must initialize the dev, pipe, transfer_flags (may be
+
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
