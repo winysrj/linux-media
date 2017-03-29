@@ -1,124 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.60.111]:41919 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759293AbdCVMeY (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53964 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753890AbdC2HfN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Mar 2017 08:34:24 -0400
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org
-Cc: vladimir_zapolskiy@mentor.com, CARLOS.PALMINHA@synopsys.com,
-        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Rob Herring <robh+dt@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Subject: [PATCH v11 0/2] Add support for Omnivision OV5647
-Date: Wed, 22 Mar 2017 12:30:25 +0000
-Message-Id: <cover.1490185140.git.roliveir@synopsys.com>
+        Wed, 29 Mar 2017 03:35:13 -0400
+Date: Wed, 29 Mar 2017 09:34:56 +0200
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Eddie Youseph <psyclone@iinet.net.au>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH v3] Revert "staging: radio-bcm2048: fixed bare use of
+ unsigned int"
+Message-ID: <20170329073456.GA8789@kroah.com>
+References: <20170327172029.5d0c1c13b5c656b768ecbe10@iinet.net.au>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170327172029.5d0c1c13b5c656b768ecbe10@iinet.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Mon, Mar 27, 2017 at 05:20:29PM +1100, Eddie Youseph wrote:
+> This reverts previous changes to checkpatch warning:
+> WARNING: Prefer 'unsigned int' to bare use of 'unsigned'
+> ---
+> Changes in v2:
+> 	- Added changelog
+> 
+> Changes in v3:
+> 	- Revert changes to using bare unsigned
 
-This patchset adds support for the Omnivision OV5647 sensor.
+I don't understand, this patch fails to apply.  What are you making it
+aginst?
 
-At the moment it only supports 640x480 in RAW 8.
+confused,
 
-This is the eleventh version of the OV5647 camera driver patchset.
-
-v11:
- - Remove leftover debug code
-Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-v10:
- - Add more error info to model check
- - Remove empty callback
-Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
- - Change error message in read function
- - Change clock handling
- - Add error checking where it was missing
- - Remove debug messages
- - Remove the need for clock name
-Suggested-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
- - Code refactoring
-
-v9:
- - Remove unused struct
- - Remove comments
- - Refactor error handling in i2c r/w functions
- - Change declarations to single line.
- - Remove value assignment in variable declarion
- - Refactor configurion write loop 
- - Change the variable type that received ov5647_read() read value
- - Remove print from probe function
- - Remove unused device struct
- - Remove OF dependency from Kconfig
-Suggested-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-
-v8:
- - Remove a part of the initialization procedure which wasn't doing 
- anything
- - Check for i2c read/writes return values
- - Add stream_on/off functions
-Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-v7:
- - Remove "0x" and leading 0 from DT documentation examples
-
-v6:
- - Add example to DT documentation
- - Remove data-lanes and clock-lane property from DT
- - Add external clock property to DT
- - Order includes
- - Remove unused variables and functions
- - Add external clock handling
- - Add power on counter
- - Change from g/s_parm to g/s_frame_interval
-
-v5:
- - Refactor code 
- - Change comments
- - Add missing error handling in some functions
-
-v4: 
- - Add correct license
- - Revert debugging info to generic infrastructure
- - Turn defines into enums
- - Correct code style issues
- - Remove unused defines
- - Make sure all errors where being handled
- - Rename some functions to make code more readable
- - Add some debugging info
-
-v3: 
- - No changes. Re-submitted due to lack of responses
-
-v2: 
- - Corrections in DT documentation
-
-Ramiro Oliveira (2):
-  Documentation: DT: Add OV5647 bindings
-  media: i2c: Add support for OV5647 sensor.
-
- .../devicetree/bindings/media/i2c/ov5647.txt       |  35 ++
- MAINTAINERS                                        |   7 +
- drivers/media/i2c/Kconfig                          |  11 +
- drivers/media/i2c/Makefile                         |   1 +
- drivers/media/i2c/ov5647.c                         | 634 +++++++++++++++++++++
- 5 files changed, 688 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
- create mode 100644 drivers/media/i2c/ov5647.c
-
--- 
-2.11.0
+greg k-h
