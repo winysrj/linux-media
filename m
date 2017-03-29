@@ -1,140 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36076 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754430AbdCBJH5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 04:07:57 -0500
-Date: Thu, 2 Mar 2017 10:07:27 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: subdevice config into pointer (was Re: [PATCH 1/4] v4l2:
- device_register_subdev_nodes: allow calling multiple times)
-Message-ID: <20170302090727.GC27818@amd>
-References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
- <20170220103114.GA9800@amd>
- <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
- <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
- <20170221110721.GD5021@amd>
- <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
- <20170225000918.GB23662@amd>
- <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53774 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753640AbdC2HbL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Mar 2017 03:31:11 -0400
+Date: Wed, 29 Mar 2017 09:28:38 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Haim Daniel <haimdaniel@gmail.com>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH v2] [media] staging: css2400: fix checkpatch error
+Message-ID: <20170329072838.GA8008@kroah.com>
+References: <b0bf9753-54d7-5178-5339-37b24d7e8191@gmail.com>
+ <1490771548-6134-1-git-send-email-haimdaniel@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="wxDdMuZNg1r63Hyj"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
+In-Reply-To: <1490771548-6134-1-git-send-email-haimdaniel@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, Mar 29, 2017 at 10:12:28AM +0300, Haim Daniel wrote:
+> isp_capture_defs.h:
 
---wxDdMuZNg1r63Hyj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+What is this line for?
 
-Hi!
+> fix checkpatch ERROR: 
 
-> Making the sub-device bus configuration a pointer should be in a separate
-> patch. It makes sense since the entire configuration is not valid for all
-> sub-devices attached to the ISP anymore. I think it originally was a
-> separate patch, but they probably have been merged at some point. I can't
-> find it right now anyway.
+Trailing whitespace?
 
-Something like this?
-									Pavel
+> Macros with complex values should be enclosed in parentheses
+> 
+> Signed-off-by: Haim Daniel <haimdaniel@gmail.com>
+> ---
+>  .../pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h   | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h
+> index aa413df..78cbbf6 100644
+> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h
+> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h
+> @@ -19,7 +19,7 @@
+>  #define _ISP_CAPTURE_BITS_PER_ELEM                32  /* only for data, not SOP */						           
+>  #define _ISP_CAPTURE_BYTES_PER_ELEM               (_ISP_CAPTURE_BITS_PER_ELEM/8	)				           
+>  #define _ISP_CAPTURE_BYTES_PER_WORD               32		/* 256/8 */	
+> -#define _ISP_CAPTURE_ELEM_PER_WORD                _ISP_CAPTURE_BYTES_PER_WORD / _ISP_CAPTURE_BYTES_PER_ELEM		           
+> +#define _ISP_CAPTURE_ELEM_PER_WORD                (_ISP_CAPTURE_BYTES_PER_WORD / _ISP_CAPTURE_BYTES_PER_ELEM)         
 
-commit df9141c66678b549fac9d143bd55ed0b242cf36e
-Author: Pavel <pavel@ucw.cz>
-Date:   Wed Mar 1 13:27:56 2017 +0100
+Does this change really make sense?  Why keep the trailing whitespace if
+you touch the line?
 
-    Turn bus in struct isp_async_subdev into pointer; some of our subdevs
-    (flash, focus) will not need bus configuration.
+thanks,
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform=
-/omap3isp/isp.c
-index 8a456d4..36bd359 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2030,12 +2030,18 @@ enum isp_of_phy {
- static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwn,
- 			    struct isp_async_subdev *isd)
- {
--	struct isp_bus_cfg *buscfg =3D &isd->bus;
-+	struct isp_bus_cfg *buscfg;
- 	struct v4l2_fwnode_endpoint vfwn;
- 	unsigned int i;
- 	int ret;
- 	bool csi1 =3D false;
-=20
-+	buscfg =3D devm_kzalloc(dev, sizeof(*isd->bus), GFP_KERNEL);
-+	if (!buscfg)
-+		return -ENOMEM;
-+
-+	isd->bus =3D buscfg;
-+
- 	ret =3D v4l2_fwnode_endpoint_parse(fwn, &vfwn);
- 	if (ret)
- 		return ret;
-@@ -2246,7 +2252,7 @@ static int isp_subdev_notifier_bound(struct v4l2_asyn=
-c_notifier *async,
- 		container_of(asd, struct isp_async_subdev, asd);
-=20
- 	isd->sd =3D subdev;
--	isd->sd->host_priv =3D &isd->bus;
-+	isd->sd->host_priv =3D isd->bus;
-=20
- 	return 0;
- }
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform=
-/omap3isp/isp.h
-index 7e6f663..c0b9d1d 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -228,7 +228,7 @@ struct isp_device {
-=20
- struct isp_async_subdev {
- 	struct v4l2_subdev *sd;
--	struct isp_bus_cfg bus;
-+	struct isp_bus_cfg *bus;
- 	struct v4l2_async_subdev asd;
- };
-=20
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/pl=
-atform/omap3isp/ispcsiphy.c
-index f20abe8..be23408 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.c
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-@@ -202,7 +202,7 @@ static int omap3isp_csiphy_config(struct isp_csiphy *ph=
-y)
- 		struct isp_async_subdev *isd =3D
- 			container_of(pipe->external->asd,
- 				     struct isp_async_subdev, asd);
--		buscfg =3D &isd->bus;
-+		buscfg =3D isd->bus;
- 	}
-=20
- 	if (buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY1
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---wxDdMuZNg1r63Hyj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAli34M8ACgkQMOfwapXb+vJe1wCffNltjuOWtDYEoa5pXXpshmVc
-DlkAni2zQPEP4PV4YqEFF+UXGCiUi+GB
-=vPNP
------END PGP SIGNATURE-----
-
---wxDdMuZNg1r63Hyj--
+greg k-h
