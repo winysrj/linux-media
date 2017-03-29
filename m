@@ -1,113 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:42431
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751962AbdCALwV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Mar 2017 06:52:21 -0500
-From: Thibault Saunier <thibault.saunier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>
-Subject: [PATCH v6 2/2] [media] s5p-mfc: Handle 'v4l2_pix_format:field' in try_fmt and g_fmt
-Date: Wed,  1 Mar 2017 08:51:08 -0300
-Message-Id: <20170301115108.14187-3-thibault.saunier@osg.samsung.com>
-In-Reply-To: <20170301115108.14187-1-thibault.saunier@osg.samsung.com>
-References: <20170301115108.14187-1-thibault.saunier@osg.samsung.com>
+Received: from mout.kundenserver.de ([212.227.126.187]:57246 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932715AbdC2VNN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Mar 2017 17:13:13 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Varsha Rao <rvarsha016@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        =?UTF-8?q?J=C3=A9r=C3=A9my=20Lefaure?=
+        <jeremy.lefaure@lse.epita.fr>,
+        sayli karnik <karniksayli1995@gmail.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2] staging: atomisp: avoid false-positive maybe-uninitialized warning
+Date: Wed, 29 Mar 2017 23:12:21 +0200
+Message-Id: <20170329211248.2617903-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is required by the standard that the field order is set by the
-driver, default to NONE in case any is provided, but we can basically
-accept any value provided by the userspace as we will anyway not
-be able to do any deinterlacing.
+In combination with CONFIG_PROFILE_ANNOTATED_BRANCHES=y, the unlikely()
+inside of the WARN() macro becomes too complex for gcc to see that
+we don't use the output arguments of mt9m114_to_res() are used
+correctly:
 
-In this patch we also make sure to pass the interlacing mode provided
-by userspace from the output to the capture side of the device so
-that the information is given back to userspace. This way it can
-handle it and potentially deinterlace afterward.
+drivers/staging/media/atomisp/i2c/mt9m114.c: In function 'mt9m114_get_fmt':
+drivers/staging/media/atomisp/i2c/mt9m114.c:817:13: error: 'height' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+  int width, height;
+             ^~~~~~
+drivers/staging/media/atomisp/i2c/mt9m114.c: In function 'mt9m114_s_exposure_selection':
+drivers/staging/media/atomisp/i2c/mt9m114.c:1179:13: error: 'height' may be used uninitialized in this function [-Werror=maybe-uninitialized]
 
-Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+Without WARN_ON(), there is no problem, so by simply replacing it with
+v4l2_err(), the warnings go away. The WARN() output is also not needed
+here, as we'd probably catch the problem before even getting here,
+and other checks for the same condition already use v4l2_err.
 
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
+v2: fix new build regression found by 0day kbuild bot
+---
+ drivers/staging/media/atomisp/i2c/mt9m114.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-Changes in v6:
-- Pass user output field value to the capture as the device is not
-  doing any deinterlacing and thus decoded content will still be
-  interlaced on the output.
-
-Changes in v5:
-- Just adapt the field and never error out.
-
-Changes in v4: None
-Changes in v3:
-- Do not check values in the g_fmt functions as Andrzej explained in previous review
-
-Changes in v2:
-- Fix a silly build error that slipped in while rebasing the patches
-
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 2 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    | 6 +++++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index ab23236aa942..3816a37de4bc 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -652,6 +652,8 @@ struct s5p_mfc_ctx {
- 	size_t me_buffer_size;
- 	size_t tmv_buffer_size;
+diff --git a/drivers/staging/media/atomisp/i2c/mt9m114.c b/drivers/staging/media/atomisp/i2c/mt9m114.c
+index c4f4c888a59a..ced175c268d1 100644
+--- a/drivers/staging/media/atomisp/i2c/mt9m114.c
++++ b/drivers/staging/media/atomisp/i2c/mt9m114.c
+@@ -689,12 +689,13 @@ static struct mt9m114_res_struct *mt9m114_to_res(u32 w, u32 h)
+ 	return &mt9m114_res[index];
+ }
  
-+	enum v4l2_field field;
-+
- 	enum v4l2_mpeg_mfc51_video_force_frame_type force_frame_type;
+-static int mt9m114_res2size(unsigned int res, int *h_size, int *v_size)
++static int mt9m114_res2size(struct v4l2_subdev *sd, int *h_size, int *v_size)
+ {
++	struct mt9m114_device *dev = to_mt9m114_sensor(sd);
+ 	unsigned short hsize;
+ 	unsigned short vsize;
  
- 	struct list_head ref_queue;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 367ef8e8dbf0..6e5ca86fb331 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -345,7 +345,7 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 		   rectangle. */
- 		pix_mp->width = ctx->buf_width;
- 		pix_mp->height = ctx->buf_height;
--		pix_mp->field = V4L2_FIELD_NONE;
-+		pix_mp->field = ctx->field;
- 		pix_mp->num_planes = 2;
- 		/* Set pixelformat to the format in which MFC
- 		   outputs the decoded frame */
-@@ -380,6 +380,9 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	struct s5p_mfc_dev *dev = video_drvdata(file);
- 	struct s5p_mfc_fmt *fmt;
+-	switch (res) {
++	switch (dev->res) {
+ 	case MT9M114_RES_736P:
+ 		hsize = MT9M114_RES_736P_SIZE_H;
+ 		vsize = MT9M114_RES_736P_SIZE_V;
+@@ -708,7 +709,8 @@ static int mt9m114_res2size(unsigned int res, int *h_size, int *v_size)
+ 		vsize = MT9M114_RES_960P_SIZE_V;
+ 		break;
+ 	default:
+-		WARN(1, "%s: Resolution 0x%08x unknown\n", __func__, res);
++		v4l2_err(sd, "%s: Resolution 0x%08x unknown\n", __func__,
++			 dev->res);
+ 		return -EINVAL;
+ 	}
  
-+	if (f->fmt.pix.field == V4L2_FIELD_ANY)
-+		f->fmt.pix.field = V4L2_FIELD_NONE;
-+
- 	mfc_debug(2, "Type is %d\n", f->type);
- 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
- 		fmt = find_format(f, MFC_FMT_DEC);
-@@ -436,6 +439,7 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 		goto out;
- 	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
- 		/* src_fmt is validated by call to vidioc_try_fmt */
-+		ctx->field = f->fmt.pix.field;
- 		ctx->src_fmt = find_format(f, MFC_FMT_DEC);
- 		ctx->codec_mode = ctx->src_fmt->codec_mode;
- 		mfc_debug(2, "The codec number is: %d\n", ctx->codec_mode);
+@@ -812,15 +814,14 @@ static int mt9m114_get_fmt(struct v4l2_subdev *sd,
+ 				struct v4l2_subdev_pad_config *cfg,
+ 				struct v4l2_subdev_format *format)
+ {
+-    struct v4l2_mbus_framefmt *fmt = &format->format;
+-	struct mt9m114_device *dev = to_mt9m114_sensor(sd);
++	struct v4l2_mbus_framefmt *fmt = &format->format;
+ 	int width, height;
+ 	int ret;
+ 	if (format->pad)
+ 		return -EINVAL;
+ 	fmt->code = MEDIA_BUS_FMT_SGRBG10_1X10;
+ 
+-	ret = mt9m114_res2size(dev->res, &width, &height);
++	ret = mt9m114_res2size(sd, &width, &height);
+ 	if (ret)
+ 		return ret;
+ 	fmt->width = width;
+@@ -1174,7 +1175,6 @@ static int mt9m114_s_exposure_selection(struct v4l2_subdev *sd,
+ 					struct v4l2_subdev_selection *sel)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct mt9m114_device *dev = to_mt9m114_sensor(sd);
+ 	struct misensor_reg exp_reg;
+ 	int width, height;
+ 	int grid_width, grid_height;
+@@ -1192,7 +1192,7 @@ static int mt9m114_s_exposure_selection(struct v4l2_subdev *sd,
+ 	grid_right = sel->r.left + sel->r.width - 1;
+ 	grid_bottom = sel->r.top + sel->r.height - 1;
+ 
+-	ret = mt9m114_res2size(dev->res, &width, &height);
++	ret = mt9m114_res2size(sd, &width, &height);
+ 	if (ret)
+ 		return ret;
+ 
 -- 
-2.11.1
+2.9.0
