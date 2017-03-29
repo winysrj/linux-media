@@ -1,63 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.47.9]:58500 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936859AbdCXQs2 (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:57241 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754975AbdC2N0Z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Mar 2017 12:48:28 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com, mchehab@kernel.org,
-        linux-kernel@vger.kernel.org, Jose Abreu <Jose.Abreu@synopsys.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH 2/8] [media] staging: st-cec: Use cec_get_drvdata()
-Date: Fri, 24 Mar 2017 16:47:53 +0000
-Message-Id: <4630ddce3d8ca27e4f6addeda17e11b08f345a1a.1490373499.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1490373499.git.joabreu@synopsys.com>
-References: <cover.1490373499.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1490373499.git.joabreu@synopsys.com>
-References: <cover.1490373499.git.joabreu@synopsys.com>
+        Wed, 29 Mar 2017 09:26:25 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v1 7/8] ARM: configs: stm32: stmpe 1600 GPIO expandor
+Date: Wed, 29 Mar 2017 15:25:25 +0200
+Message-ID: <1490793926-6477-8-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1490793926-6477-1-git-send-email-hugues.fruchet@st.com>
+References: <1490793926-6477-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use helper function to get driver private data from CEC
-adapter.
+Enable STMPE1600 GPIO expandor.
 
-Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/staging/media/st-cec/stih-cec.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/configs/stm32_defconfig | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/staging/media/st-cec/stih-cec.c b/drivers/staging/media/st-cec/stih-cec.c
-index 3c25638..521206d 100644
---- a/drivers/staging/media/st-cec/stih-cec.c
-+++ b/drivers/staging/media/st-cec/stih-cec.c
-@@ -133,7 +133,7 @@ struct stih_cec {
- 
- static int stih_cec_adap_enable(struct cec_adapter *adap, bool enable)
- {
--	struct stih_cec *cec = adap->priv;
-+	struct stih_cec *cec = cec_get_drvdata(adap);
- 
- 	if (enable) {
- 		/* The doc says (input TCLK_PERIOD * CEC_CLK_DIV) = 0.1ms */
-@@ -189,7 +189,7 @@ static int stih_cec_adap_enable(struct cec_adapter *adap, bool enable)
- 
- static int stih_cec_adap_log_addr(struct cec_adapter *adap, u8 logical_addr)
- {
--	struct stih_cec *cec = adap->priv;
-+	struct stih_cec *cec = cec_get_drvdata(adap);
- 	u32 reg = readl(cec->regs + CEC_ADDR_TABLE);
- 
- 	reg |= 1 << logical_addr;
-@@ -205,7 +205,7 @@ static int stih_cec_adap_log_addr(struct cec_adapter *adap, u8 logical_addr)
- static int stih_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
- 				  u32 signal_free_time, struct cec_msg *msg)
- {
--	struct stih_cec *cec = adap->priv;
-+	struct stih_cec *cec = cec_get_drvdata(adap);
- 	int i;
- 
- 	/* Copy message into registers */
+diff --git a/arch/arm/configs/stm32_defconfig b/arch/arm/configs/stm32_defconfig
+index a9d8e3c..84adc88 100644
+--- a/arch/arm/configs/stm32_defconfig
++++ b/arch/arm/configs/stm32_defconfig
+@@ -49,6 +49,8 @@ CONFIG_SERIAL_STM32_CONSOLE=y
+ # CONFIG_HW_RANDOM is not set
+ # CONFIG_HWMON is not set
+ CONFIG_REGULATOR=y
++CONFIG_GPIO_STMPE=y
++CONFIG_MFD_STMPE=y
+ CONFIG_REGULATOR_FIXED_VOLTAGE=y
+ # CONFIG_USB_SUPPORT is not set
+ CONFIG_NEW_LEDS=y
 -- 
 1.9.1
