@@ -1,42 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33762 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751945AbdCDPQb (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:43364 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753541AbdC2Syf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 4 Mar 2017 10:16:31 -0500
-Date: Sat, 4 Mar 2017 17:15:34 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [media] omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for
- CCP2 mode
-Message-ID: <20170304151533.GY3220@valkosipuli.retiisi.org.uk>
-References: <20161228183036.GA13139@amd>
- <10545906.Gxg3yScdu4@avalon>
- <20170215094228.GA8586@amd>
- <2414221.XNA4JCFMRx@avalon>
- <20170301114545.GA19201@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170301114545.GA19201@amd>
+        Wed, 29 Mar 2017 14:54:35 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 16/22] usb/gadget.rst: remove unused kernel-doc tags
+Date: Wed, 29 Mar 2017 15:54:15 -0300
+Message-Id: <81d3498d4bfd42ba4ac41781f2b5957fb0cfa29f.1490813422.git.mchehab@s-opensource.com>
+In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 01, 2017 at 12:45:46PM +0100, Pavel Machek wrote:
-> ISP CSI1 module needs all the bits correctly set to work.
-> 
-> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
+The DocBook file used to have "!E" include tags for usb gadget functions.
+However, there's nothing there to be documented:
 
-How are you sending the patches?
+	./drivers/usb/gadget/function/f_acm.c:1: warning: no structured comments found
+	./drivers/usb/gadget/function/f_ecm.c:1: warning: no structured comments found
+	./drivers/usb/gadget/function/f_subset.c:1: warning: no structured comments found
+	./drivers/usb/gadget/function/f_obex.c:1: warning: no structured comments found
+	./drivers/usb/gadget/function/f_serial.c:1: warning: no structured comments found
 
-I've applied this to the ccp2 branch.
+So, let's remove it. If someone wants do document the function
+there, they may just revert this patch in the future.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/driver-api/usb/gadget.rst | 15 ---------------
+ 1 file changed, 15 deletions(-)
+
+diff --git a/Documentation/driver-api/usb/gadget.rst b/Documentation/driver-api/usb/gadget.rst
+index c4c76ebb51d3..0488b89de21c 100644
+--- a/Documentation/driver-api/usb/gadget.rst
++++ b/Documentation/driver-api/usb/gadget.rst
+@@ -356,21 +356,6 @@ At this writing, a few of the current gadget drivers have been converted
+ to this framework. Near-term plans include converting all of them,
+ except for "gadgetfs".
+ 
+-.. kernel-doc:: drivers/usb/gadget/function/f_acm.c
+-   :export:
+-
+-.. kernel-doc:: drivers/usb/gadget/function/f_ecm.c
+-   :export:
+-
+-.. kernel-doc:: drivers/usb/gadget/function/f_subset.c
+-   :export:
+-
+-.. kernel-doc:: drivers/usb/gadget/function/f_obex.c
+-   :export:
+-
+-.. kernel-doc:: drivers/usb/gadget/function/f_serial.c
+-   :export:
+-
+ Peripheral Controller Drivers
+ =============================
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.9.3
