@@ -1,50 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f181.google.com ([209.85.192.181]:34363 "EHLO
-        mail-pf0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933365AbdCUQtX (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:36893 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752138AbdC2Syb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Mar 2017 12:49:23 -0400
-Received: by mail-pf0-f181.google.com with SMTP id p189so59100862pfp.1
-        for <linux-media@vger.kernel.org>; Tue, 21 Mar 2017 09:49:22 -0700 (PDT)
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-From: Eric Nelson <eric@nelint.com>
-Subject: CEC button pass-through
-Message-ID: <22e92133-6a64-ffaf-a41f-5ae9b19f24e5@nelint.com>
-Date: Tue, 21 Mar 2017 09:49:20 -0700
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Wed, 29 Mar 2017 14:54:31 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 14/22] usb/persist.txt: convert to ReST and add to driver-api book
+Date: Wed, 29 Mar 2017 15:54:13 -0300
+Message-Id: <d5050ec9dbba7743c2a0d19616346e3bba882b31.1490813422.git.mchehab@s-opensource.com>
+In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This document describe some USB core features. Add it to the
+driver-api book.
 
-Thanks to your work and those of Russell King, I have an i.MX6
-board up and running with the new CEC API, but I'm having
-trouble with a couple of sets of remote control keys.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/driver-api/usb/index.rst             |  1 +
+ .../persist.txt => driver-api/usb/persist.rst}     | 22 +++++++++++++---------
+ 2 files changed, 14 insertions(+), 9 deletions(-)
+ rename Documentation/{usb/persist.txt => driver-api/usb/persist.rst} (94%)
 
-In particular, the directional keys 0x01-0x04 (Up..Right)
-and the function keys 0x71-0x74 (F1-F4) don't appear
-to be forwarded.
-
-Running cec-ctl with the "-m" or "-M" options shows that they're
-simply not being received.
-
-I'm not sure if I'm missing a flag somewhere to tell my television
-that we support these keys, or if I'm missing something else.
-
-I'm using the --record option at the moment. Using --playback
-seems to restrict the keys to an even smaller set (seems to
-block numeric keys).
-
-Do you have any guidance about how to trace this?
-
-I am seeing these keys when using Pulse8/libCEC code and
-the vendor driver and am in a position to trace the messages
-using that setup if it helps.
-
-Please advise,
-
-
-Eric Nelson
+diff --git a/Documentation/driver-api/usb/index.rst b/Documentation/driver-api/usb/index.rst
+index 43f0a8b72b11..3f08cb5d5feb 100644
+--- a/Documentation/driver-api/usb/index.rst
++++ b/Documentation/driver-api/usb/index.rst
+@@ -12,6 +12,7 @@ Linux USB API
+    dma
+    power-management
+    hotplug
++   persist
+    error-codes
+    writing_usb_driver
+    writing_musb_glue_layer
+diff --git a/Documentation/usb/persist.txt b/Documentation/driver-api/usb/persist.rst
+similarity index 94%
+rename from Documentation/usb/persist.txt
+rename to Documentation/driver-api/usb/persist.rst
+index 35d70eda9ad6..af02baf61f57 100644
+--- a/Documentation/usb/persist.txt
++++ b/Documentation/driver-api/usb/persist.rst
+@@ -1,11 +1,12 @@
+-		USB device persistence during system suspend
++USB device persistence during system suspend
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
+-		   Alan Stern <stern@rowland.harvard.edu>
++Alan Stern <stern@rowland.harvard.edu>
++September 2, 2006 (Updated February 25, 2008)
+ 
+-		September 2, 2006 (Updated February 25, 2008)
+ 
+-
+-	What is the problem?
++What is the problem?
++====================
+ 
+ According to the USB specification, when a USB bus is suspended the
+ bus must continue to supply suspend current (around 1-5 mA).  This
+@@ -63,7 +64,8 @@ suspended -- but it will crash as soon as it wakes up, which isn't
+ much better.)
+ 
+ 
+-	What is the solution?
++What is the solution?
++=====================
+ 
+ The kernel includes a feature called USB-persist.  It tries to work
+ around these issues by allowing the core USB device data structures to
+@@ -99,7 +101,7 @@ now a good and happy place.
+ 
+ Note that the "USB-persist" feature will be applied only to those
+ devices for which it is enabled.  You can enable the feature by doing
+-(as root):
++(as root)::
+ 
+ 	echo 1 >/sys/bus/usb/devices/.../power/persist
+ 
+@@ -110,7 +112,8 @@ doesn't even exist, so you only have to worry about setting it for
+ devices where it really matters.
+ 
+ 
+-	Is this the best solution?
++Is this the best solution?
++==========================
+ 
+ Perhaps not.  Arguably, keeping track of mounted filesystems and
+ memory mappings across device disconnects should be handled by a
+@@ -130,7 +133,8 @@ just mass-storage devices.  It might turn out to be equally useful for
+ other device types, such as network interfaces.
+ 
+ 
+-	WARNING: USB-persist can be dangerous!!
++WARNING: USB-persist can be dangerous!!
++=======================================
+ 
+ When recovering an interrupted power session the kernel does its best
+ to make sure the USB device hasn't been changed; that is, the same
+-- 
+2.9.3
