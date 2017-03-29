@@ -1,49 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:52580 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754597AbdCaOjm (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47572 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751666AbdC2OPs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 10:39:42 -0400
-Date: Fri, 31 Mar 2017 15:39:20 +0100
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Daniel Vetter <daniel.vetter@intel.com>,
+        Wed, 29 Mar 2017 10:15:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
         dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
         Krzysztof Kozlowski <krzk@kernel.org>,
         Inki Dae <inki.dae@samsung.com>,
         Marek Szyprowski <m.szyprowski@samsung.com>,
         Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Patrice.chotard@st.com
-Subject: Re: [PATCHv6 00/10] video/exynos/sti/cec: add CEC notifier & use in
- drivers
-Message-ID: <20170331143920.GU7909@n2100.armlinux.org.uk>
-References: <20170331122036.55706-1-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170331122036.55706-1-hverkuil@xs4all.nl>
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCHv5 00/11] video/exynos/sti/cec: add CEC notifier & use in drivers
+Date: Wed, 29 Mar 2017 16:15:32 +0200
+Message-Id: <20170329141543.32935-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 31, 2017 at 02:20:26PM +0200, Hans Verkuil wrote:
-> Comments are welcome. I'd like to get this in for the 4.12 kernel as
-> this is a missing piece needed to integrate CEC drivers.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-First two patches seem fine, and work with dw-hdmi.
+This patch series adds the CEC physical address notifier code, based on
+Russell's code:
 
-I'll hold dw-hdmi off until after 4.11 - I currently have this stuff
-merged against 4.10, and there's some conflicts with 4.11.
+https://patchwork.kernel.org/patch/9277043/
 
-I also wanted to say that tda998x/tda9950 works, and send you those
-patches, but while trying to test them this afternoon in a tree with
-some of the DRM code that was merged during the last merge window on
-a v4.10 based tree (which I need because of etnaviv), the kernel
-oopses in DRM for god-knows-why.  If/when I get this sorted (don't
-know when) I'll send that stuff as a follow-up to your series.
+It adds support for it to the exynos_hdmi drm driver, adds support for
+it to the CEC framework and finally adds support to the s5p-cec driver,
+which now can be moved out of staging.
+
+Also included is similar code for the STI platform, contributed by
+Benjamin Gaignard.
+
+Tested the exynos code with my Odroid U3 exynos4 devboard.
+
+After discussions with Daniel Vetter and Russell King I have removed
+the EDID/ELD/HPD connect/disconnect events from the notifier and now
+just use it to report the CEC physical address. This also means that
+it is now renamed to CEC notifier instead of HPD notifier and that
+it is now in drivers/media. The block_notifier was dropped as well
+and instead a simple callback is registered. This means that the
+relationship between HDMI and CEC is now 1:1 and no longer 1:n, but
+should this be needed in the future, then that can easily be added
+back.
+
+Daniel, regarding your suggestions here:
+
+http://www.spinics.net/lists/dri-devel/msg133907.html
+
+this patch series maps to your mail above as follows:
+
+struct cec_pin == struct cec_notifier
+cec_(un)register_pin == cec_notifier_get/put
+cec_set_address == cec_notifier_set_phys_addr
+cec_(un)register_callbacks == cec_notifier_(un)register
+
+Comments are welcome. I'd like to get this in for the 4.12 kernel as
+this is a missing piece needed to integrate CEC drivers.
+
+Regards,
+
+	Hans
+
+Changes since v4:
+- Dropped EDID/ELD/connect/disconnect support. Instead, just report the
+  CEC physical address (and use INVALID when disconnecting).
+- Since this is now completely CEC specific, move it to drivers/media
+  and rename to cec-notifier.
+- Drop block_notifier. Instead just set a callback for the notifier.
+- Use 'hdmi-phandle' in the bindings for both exynos and sti. So no
+  vendor prefix and 'hdmi-phandle' instead of 'hdmi-handle'.
+- Make struct cec_notifier opaque. Add a helper function to get the
+  physical address from a cec_notifier struct.
+- Provide dummy functions in cec-notifier.h so it can be used when
+  CONFIG_MEDIA_CEC_NOTIFIER is undefined.
+- Don't select the CEC notifier in the HDMI drivers. It should only
+  be enabled by actual CEC drivers.
+
+Changes since v3:
+- Added the STI patches
+- Split the exynos4 binding patches in one for documentation and one
+  for the dts change itself, also use the correct subject and CC to
+  the correct mailinglists (I hope  )
+
+Changes since v2:
+- Split off the dts changes of the s5p-cec patch into a separate patch
+- Renamed HPD_NOTIFIERS to HPD_NOTIFIER to be consistent with the name
+  of the source.
+
+Changes since v1:
+
+Renamed HDMI notifier to HPD (hotplug detect) notifier since this code is
+not HDMI specific, but is interesting for any video source that has to
+deal with hotplug detect and EDID/ELD (HDMI, DVI, VGA, DP, ....).
+Only the use with CEC adapters is HDMI specific, but the HPD notifier
+is more generic.
+
+
+
+
+Benjamin Gaignard (4):
+  sti: hdmi: add CEC notifier support
+  stih-cec.txt: document new hdmi phandle
+  stih-cec: add CEC notifier support
+  arm: sti: update sti-cec for CEC notifier support
+
+Hans Verkuil (7):
+  cec-edid: rename cec_get_edid_phys_addr
+  media: add CEC notifier support
+  cec: integrate CEC notifier support
+  exynos_hdmi: add CEC notifier support
+  ARM: dts: exynos: add HDMI controller phandle to exynos4.dtsi
+  s5p-cec.txt: document the HDMI controller phandle
+  s5p-cec: add cec-notifier support, move out of staging
+
+ .../devicetree/bindings/media/s5p-cec.txt          |   2 +
+ .../devicetree/bindings/media/stih-cec.txt         |   2 +
+ MAINTAINERS                                        |   4 +-
+ arch/arm/boot/dts/exynos4.dtsi                     |   1 +
+ arch/arm/boot/dts/stih407-family.dtsi              |  12 ---
+ arch/arm/boot/dts/stih410.dtsi                     |  13 +++
+ drivers/gpu/drm/exynos/exynos_hdmi.c               |  20 +++-
+ drivers/gpu/drm/sti/sti_hdmi.c                     |  11 ++
+ drivers/gpu/drm/sti/sti_hdmi.h                     |   3 +
+ drivers/media/Kconfig                              |   3 +
+ drivers/media/Makefile                             |   4 +
+ drivers/media/cec-edid.c                           |  15 ++-
+ drivers/media/cec-notifier.c                       | 116 +++++++++++++++++++++
+ drivers/media/cec/cec-core.c                       |  21 ++++
+ drivers/media/i2c/adv7511.c                        |   5 +-
+ drivers/media/i2c/adv7604.c                        |   3 +-
+ drivers/media/i2c/adv7842.c                        |   2 +-
+ drivers/media/platform/Kconfig                     |  28 +++++
+ drivers/media/platform/Makefile                    |   2 +
+ .../media => media/platform}/s5p-cec/Makefile      |   0
+ .../platform}/s5p-cec/exynos_hdmi_cec.h            |   0
+ .../platform}/s5p-cec/exynos_hdmi_cecctrl.c        |   0
+ .../media => media/platform}/s5p-cec/regs-cec.h    |   0
+ .../media => media/platform}/s5p-cec/s5p_cec.c     |  35 ++++++-
+ .../media => media/platform}/s5p-cec/s5p_cec.h     |   3 +
+ .../st-cec => media/platform/sti/cec}/Makefile     |   0
+ .../st-cec => media/platform/sti/cec}/stih-cec.c   |  31 +++++-
+ drivers/media/platform/vivid/vivid-vid-cap.c       |   3 +-
+ drivers/staging/media/Kconfig                      |   4 -
+ drivers/staging/media/Makefile                     |   2 -
+ drivers/staging/media/s5p-cec/Kconfig              |   9 --
+ drivers/staging/media/s5p-cec/TODO                 |   7 --
+ drivers/staging/media/st-cec/Kconfig               |   8 --
+ drivers/staging/media/st-cec/TODO                  |   7 --
+ include/media/cec-edid.h                           |  17 ++-
+ include/media/cec-notifier.h                       |  93 +++++++++++++++++
+ include/media/cec.h                                |   6 ++
+ 37 files changed, 421 insertions(+), 71 deletions(-)
+ create mode 100644 drivers/media/cec-notifier.c
+ rename drivers/{staging/media => media/platform}/s5p-cec/Makefile (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cec.h (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cecctrl.c (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/regs-cec.h (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.c (89%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.h (97%)
+ rename drivers/{staging/media/st-cec => media/platform/sti/cec}/Makefile (100%)
+ rename drivers/{staging/media/st-cec => media/platform/sti/cec}/stih-cec.c (93%)
+ delete mode 100644 drivers/staging/media/s5p-cec/Kconfig
+ delete mode 100644 drivers/staging/media/s5p-cec/TODO
+ delete mode 100644 drivers/staging/media/st-cec/Kconfig
+ delete mode 100644 drivers/staging/media/st-cec/TODO
+ create mode 100644 include/media/cec-notifier.h
 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.11.0
