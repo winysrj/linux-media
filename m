@@ -1,189 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:42769 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752138AbdC2Sye (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:32842 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752869AbdC2QnT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 14:54:34 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Masanari Iida <standby24x7@gmail.com>,
-        Oliver Neukum <oneukum@suse.com>,
-        Christian Gromm <christian.gromm@microchip.com>,
-        Andrey Shvetsov <andrey.shvetsov@k2l.de>,
-        =?UTF-8?q?Rafa=C5=82=20Mi=C5=82ecki?= <rafal@milecki.pl>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Peter Chen <peter.chen@nxp.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        linux-pm@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH 21/22] docs-rst: fix usb cross-references
-Date: Wed, 29 Mar 2017 15:54:20 -0300
-Message-Id: <08a43b314eb2eb80bf0bc93ca81951b69939074b.1490813422.git.mchehab@s-opensource.com>
-In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+        Wed, 29 Mar 2017 12:43:19 -0400
+Received: by mail-wr0-f193.google.com with SMTP id u18so4575628wrc.0
+        for <linux-media@vger.kernel.org>; Wed, 29 Mar 2017 09:43:18 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org
+Cc: liplianin@netup.ru, rjkm@metzlerbros.de, crope@iki.fi
+Subject: [PATCH v3 02/13] [media] dvb-frontends/stv0367: print CPAMP status only if stv_debug is enabled
+Date: Wed, 29 Mar 2017 18:43:02 +0200
+Message-Id: <20170329164313.14636-3-d.scheller.oss@gmail.com>
+In-Reply-To: <20170329164313.14636-1-d.scheller.oss@gmail.com>
+References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As some USB documentation files got moved, adjust their
-cross-references to their new place.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+The CPAMP log lines generated in stv0367_ter_check_cpamp() are printed
+everytime tuning succeeds or fails, quite cluttering the normal kernel log.
+Use dprintk() instead of printk(KERN_ERR...) so that if the information is
+needed, it'll be printed when the stv_debug modparam is enabled.
+
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- Documentation/ABI/stable/sysfs-bus-usb            | 2 +-
- Documentation/driver-api/usb/URB.rst              | 2 ++
- Documentation/driver-api/usb/callbacks.rst        | 4 ++--
- Documentation/driver-api/usb/error-codes.rst      | 2 ++
- Documentation/driver-api/usb/persist.rst          | 2 ++
- Documentation/driver-api/usb/power-management.rst | 2 +-
- Documentation/driver-api/usb/usb.rst              | 4 ++--
- Documentation/power/swsusp.txt                    | 2 +-
- drivers/staging/most/hdm-usb/hdm_usb.c            | 2 +-
- drivers/usb/core/Kconfig                          | 2 +-
- 10 files changed, 15 insertions(+), 9 deletions(-)
+ drivers/media/dvb-frontends/stv0367.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/ABI/stable/sysfs-bus-usb b/Documentation/ABI/stable/sysfs-bus-usb
-index 831f15d9672f..b832eeff9999 100644
---- a/Documentation/ABI/stable/sysfs-bus-usb
-+++ b/Documentation/ABI/stable/sysfs-bus-usb
-@@ -9,7 +9,7 @@ Description:
- 		hubs this facility is always enabled and their device
- 		directories will not contain this file.
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index fc80934..0064d9d 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -1262,9 +1262,9 @@ stv0367_ter_signal_type stv0367ter_check_cpamp(struct stv0367_state *state,
+ 	dprintk("******last CPAMPvalue= %d at wd=%d\n", CPAMPvalue, wd);
+ 	if (CPAMPvalue < CPAMPMin) {
+ 		CPAMPStatus = FE_TER_NOCPAMP;
+-		printk(KERN_ERR "CPAMP failed\n");
++		dprintk("%s: CPAMP failed\n", __func__);
+ 	} else {
+-		printk(KERN_ERR "CPAMP OK !\n");
++		dprintk("%s: CPAMP OK !\n", __func__);
+ 		CPAMPStatus = FE_TER_CPAMPOK;
+ 	}
  
--		For more information, see Documentation/usb/persist.txt.
-+		For more information, see Documentation/driver-api/usb/persist.rst.
- 
- What:		/sys/bus/usb/devices/.../power/autosuspend
- Date:		March 2007
-diff --git a/Documentation/driver-api/usb/URB.rst b/Documentation/driver-api/usb/URB.rst
-index c5d2b68b4dae..d9ea6a3996e7 100644
---- a/Documentation/driver-api/usb/URB.rst
-+++ b/Documentation/driver-api/usb/URB.rst
-@@ -1,3 +1,5 @@
-+.. _usb-urb:
-+
- USB Request Block (URB)
- ~~~~~~~~~~~~~~~~~~~~~~~
- 
-diff --git a/Documentation/driver-api/usb/callbacks.rst b/Documentation/driver-api/usb/callbacks.rst
-index 93a8d53e27e7..2b80cf54bcc3 100644
---- a/Documentation/driver-api/usb/callbacks.rst
-+++ b/Documentation/driver-api/usb/callbacks.rst
-@@ -8,7 +8,7 @@ Usbcore will call into a driver through callbacks defined in the driver
- structure and through the completion handler of URBs a driver submits.
- Only the former are in the scope of this document. These two kinds of
- callbacks are completely independent of each other. Information on the
--completion callback can be found in Documentation/usb/URB.txt.
-+completion callback can be found in :ref:`usb-urb`.
- 
- The callbacks defined in the driver structure are:
- 
-@@ -53,7 +53,7 @@ The callbacks defined in the driver structure are:
- 
- The ioctl interface (2) should be used only if you have a very good
- reason. Sysfs is preferred these days. The PM callbacks are covered
--separately in Documentation/usb/power-management.txt.
-+separately in :ref:`usb-power-management`.
- 
- Calling conventions
- ===================
-diff --git a/Documentation/driver-api/usb/error-codes.rst b/Documentation/driver-api/usb/error-codes.rst
-index 715cc35b29b0..5bc5eda58520 100644
---- a/Documentation/driver-api/usb/error-codes.rst
-+++ b/Documentation/driver-api/usb/error-codes.rst
-@@ -1,3 +1,5 @@
-+.. _usb-error-codes:
-+
- USB Error codes
- ~~~~~~~~~~~~~~~
- 
-diff --git a/Documentation/driver-api/usb/persist.rst b/Documentation/driver-api/usb/persist.rst
-index af02baf61f57..8ee2a62d889b 100644
---- a/Documentation/driver-api/usb/persist.rst
-+++ b/Documentation/driver-api/usb/persist.rst
-@@ -1,3 +1,5 @@
-+.. _usb-persist:
-+
- USB device persistence during system suspend
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
-diff --git a/Documentation/driver-api/usb/power-management.rst b/Documentation/driver-api/usb/power-management.rst
-index 7c547d6b8372..3e4ebbf47b76 100644
---- a/Documentation/driver-api/usb/power-management.rst
-+++ b/Documentation/driver-api/usb/power-management.rst
-@@ -329,7 +329,7 @@ possible to work around the hibernation-forces-disconnect problem by
- using the USB Persist facility.)
- 
- The ``reset_resume`` method is used by the USB Persist facility (see
--``Documentation/usb/persist.txt``) and it can also be used under certain
-+:ref:`usb-persist`) and it can also be used under certain
- circumstances when ``CONFIG_USB_PERSIST`` is not enabled.  Currently, if a
- device is reset during a resume and the driver does not have a
- ``reset_resume`` method, the driver won't receive any notification about
-diff --git a/Documentation/driver-api/usb/usb.rst b/Documentation/driver-api/usb/usb.rst
-index 5ebaf669704c..6824089ef4c8 100644
---- a/Documentation/driver-api/usb/usb.rst
-+++ b/Documentation/driver-api/usb/usb.rst
-@@ -424,8 +424,8 @@ header.
- Unless noted otherwise, the ioctl requests described here will update
- the modification time on the usbfs file to which they are applied
- (unless they fail). A return of zero indicates success; otherwise, a
--standard USB error code is returned. (These are documented in
--``Documentation/usb/error-codes.txt`` in your kernel sources.)
-+standard USB error code is returned (These are documented in
-+:ref:`usb-error-codes`).
- 
- Each of these files multiplexes access to several I/O streams, one per
- endpoint. Each device has one control endpoint (endpoint zero) which
-diff --git a/Documentation/power/swsusp.txt b/Documentation/power/swsusp.txt
-index 8cc17ca71813..9f2f942a01cf 100644
---- a/Documentation/power/swsusp.txt
-+++ b/Documentation/power/swsusp.txt
-@@ -406,7 +406,7 @@ Firewire, CompactFlash, MMC, external SATA, or even IDE hotplug bays)
- before suspending; then remount them after resuming.
- 
- There is a work-around for this problem.  For more information, see
--Documentation/usb/persist.txt.
-+Documentation/driver-api/usb/persist.rst.
- 
- Q: Can I suspend-to-disk using a swap partition under LVM?
- 
-diff --git a/drivers/staging/most/hdm-usb/hdm_usb.c b/drivers/staging/most/hdm-usb/hdm_usb.c
-index 65211d1824b7..2bfea9b48366 100644
---- a/drivers/staging/most/hdm-usb/hdm_usb.c
-+++ b/drivers/staging/most/hdm-usb/hdm_usb.c
-@@ -490,7 +490,7 @@ static void hdm_write_completion(struct urb *urb)
-  * disconnect.  In the interval before the hub driver starts disconnect
-  * processing, devices may receive such fault reports for every request.
-  *
-- * See <https://www.kernel.org/doc/Documentation/usb/error-codes.txt>
-+ * See <https://www.kernel.org/doc/Documentation/driver-api/usb/error-codes.rst>
-  */
- static void hdm_read_completion(struct urb *urb)
- {
-diff --git a/drivers/usb/core/Kconfig b/drivers/usb/core/Kconfig
-index 0e5a889742b3..4d75d9a80001 100644
---- a/drivers/usb/core/Kconfig
-+++ b/drivers/usb/core/Kconfig
-@@ -26,7 +26,7 @@ config USB_DEFAULT_PERSIST
- 	  unplugged, causing any mounted filesystems to be lost.  The
- 	  persist feature can still be enabled for individual devices
- 	  through the power/persist sysfs node. See
--	  Documentation/usb/persist.txt for more info.
-+	  Documentation/driver-api/usb/persist.rst for more info.
- 
- 	  If you have any questions about this, say Y here, only say N
- 	  if you know exactly what you are doing.
 -- 
-2.9.3
+2.10.2
