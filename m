@@ -1,157 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:51707 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755554AbdCKLc4 (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54032 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753890AbdC2HjX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 06:32:56 -0500
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
- <20170302160257.GK3220@valkosipuli.retiisi.org.uk>
- <20170303230645.GR21222@n2100.armlinux.org.uk>
- <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
- <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
- <20170310120902.1daebc7b@vento.lan>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5e1183f4-774f-413a-628a-96e0df321faf@xs4all.nl>
-Date: Sat, 11 Mar 2017 12:32:43 +0100
+        Wed, 29 Mar 2017 03:39:23 -0400
+Date: Wed, 29 Mar 2017 09:38:37 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Haim Daniel <haimdaniel@gmail.com>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH]: staging: media: css2400: fix checkpatch error
+Message-ID: <20170329073837.GA17585@kroah.com>
+References: <b0bf9753-54d7-5178-5339-37b24d7e8191@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20170310120902.1daebc7b@vento.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <b0bf9753-54d7-5178-5339-37b24d7e8191@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/03/17 16:09, Mauro Carvalho Chehab wrote:
-> Em Fri, 10 Mar 2017 13:54:28 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->>> Devices that have complex pipeline that do essentially require using the
->>> Media controller interface to configure them are out of that scope.
->>>   
->>
->> Way too much of how the MC devices should be used is in the minds of developers.
->> There is a major lack for good detailed documentation, utilities, compliance
->> test (really needed!) and libv4l plugins.
-> 
-> Unfortunately, we merged an incomplete MC support at the Kernel. We knew
-> all the problems with MC-based drivers and V4L2 applications by the time
-> it was developed, and we requested Nokia developers (with was sponsoring MC
-> develoment, on that time) to work on a solution to allow standard V4L2
-> applications to work with MC based boards.
-> 
-> Unfortunately, we took the decision to merge MC without that, because 
-> Nokia was giving up on Linux development, and we didn't want to lose the
-> 2 years of discussions and work around it, as Nokia employers were leaving
-> the company. Also, on that time, there was already some patches floating
-> around adding backward support via libv4l. Unfortunately, those patches
-> were never finished.
-> 
-> The net result is that MC was merged with some huge gaps, including
-> the lack of a proper solution for a generic V4L2 program to work
-> with V4L2 devices that use the subdev API.
-> 
-> That was not that bad by then, as MC was used only on cell phones
-> that run custom-made applications. 
-> 
-> The reallity changed, as now, we have lots of low cost SoC based
-> boards, used for all sort of purposes. So, we need a quick solution
-> for it.
-> 
-> In other words, while that would be acceptable support special apps
-> on really embedded systems, it is *not OK* for general purpose SoC
-> harware[1].
-> 
-> [1] I'm calling "general purpose SoC harware" those ARM boards
-> like Raspberry Pi that are shipped to the mass and used by a wide
-> range of hobbyists and other people that just wants to run Linux on
-> ARM. It is possible to buy such boards for a very cheap price,
-> making them to be used not only on special projects, where a custom
-> made application could be interesting, but also for a lot of
-> users that just want to run Linux on a low cost ARM board, while
-> keeping using standard V4L2 apps, like "camorama".
-> 
-> That's perhaps one of the reasons why it took a long time for us to
-> start receiving drivers upstream for such hardware: it is quite 
-> intimidating and not logical to require developers to implement
-> on their drivers 2 complex APIs (MC, subdev) for those
-> hardware that most users won't care. From user's perspective,
-> being able to support generic applications like "camorama" and
-> "zbar" is all they want.
-> 
-> In summary, I'm pretty sure we need to support standard V4L2 
-> applications on boards like Raspberry Pi and those low-cost 
-> SoC-based boards that are shipped to end users.
-> 
->> Anyway, regarding this specific patch and for this MC-aware driver: no, you
->> shouldn't inherit controls from subdevs. It defeats the purpose.
-> 
-> Sorry, but I don't agree with that. The subdev API is an optional API
-> (and even the MC API can be optional).
-> 
-> I see the rationale for using MC and subdev APIs on cell phones,
-> ISV and other embedded hardware, as it will allow fine-tuning
-> the driver's support to allow providing the required quality for
-> certain custom-made applications. but on general SoC hardware,
-> supporting standard V4L2 applications is a need.
-> 
-> Ok, perhaps supporting both subdev API and V4L2 API at the same
-> time doesn't make much sense. We could disable one in favor of the
-> other, either at compilation time or at runtime.
+On Wed, Mar 29, 2017 at 08:36:27AM +0300, Haim Daniel wrote:
 
-Right. If the subdev API is disabled, then you have to inherit the subdev
-controls in the bridge driver (how else would you be able to access them?).
-And that's the usual case.
+> >From 41d35b455f8eb139912909639e914469ef5e06fb Mon Sep 17 00:00:00 2001
+> From: Haim Daniel <haimdaniel@gmail.com>
+> Date: Tue, 28 Mar 2017 19:27:57 +0300
+> Subject: [PATCH] [media] staging: css2400: fix checkpatch error
+> 
+> isp_capture_defs.h:
 
-If you do have the subdev API enabled, AND you use the MC, then the
-intention clearly is to give userspace full control and inheriting controls
-no longer makes any sense (and is highly confusing IMHO).
+What is this line for?
 
 > 
-> This way, if the subdev API is disabled, the driver will be
-> functional for V4L2-based applications that don't support neither
-> MC or subdev APIs.
+> enclose macro with complex values in parentheses.
+> 
+> Signed-off-by: Haim Daniel <haimdaniel@gmail.com>
+> ---
+>  .../pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h   | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-I'm not sure if it makes sense for the i.MX driver to behave differently
-depending on whether the subdev API is enabled or disabled. I don't know
-enough of the hardware to tell if it would ever make sense to disable the
-subdev API.
+Please don't attach your patch, use 'git send-email' to send it
+properly.
 
-Regards,
+thanks,
 
-	Hans
-
-> 
->> As mentioned, I will attempt to try and get some time to work on this
->> later this year. Fingers crossed.
-> 
-> That will be good, and, once we have a solution that works, we can
-> work on cleanup the code, but, until then, drivers for arm-based boards
-> sold to end consumers should work out of the box with standard V4L2 apps.
-> 
-> While we don't have that, I'm OK to merge patches adding such support
-> upstream.
-> 
-> Thanks,
-> Mauro
-> 
+greg k-h
