@@ -1,74 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:46222 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935311AbdCLTr5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Mar 2017 15:47:57 -0400
-Date: Sun, 12 Mar 2017 19:47:00 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v5 00/39] i.MX Media Driver
-Message-ID: <20170312194700.GR21222@n2100.armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from gofer.mess.org ([88.97.38.141]:54213 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932737AbdC2VGs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Mar 2017 17:06:48 -0400
+Date: Wed, 29 Mar 2017 22:06:45 +0100
+From: Sean Young <sean@mess.org>
+To: A Sun <as1033x@comcast.net>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH 1/3] [media] mceusb: RX -EPIPE (urb status = -32) lockup
+ failure fix
+Message-ID: <20170329210645.GA6080@gofer.mess.org>
+References: <58D6A1DD.2030405@comcast.net>
+ <20170326102748.GA1672@gofer.mess.org>
+ <58D80838.8050809@comcast.net>
+ <20170326203130.GA6070@gofer.mess.org>
+ <58D8CAD9.80304@comcast.net>
+ <20170328202516.GA27790@gofer.mess.org>
+ <58DB1075.60302@comcast.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <58DB1075.60302@comcast.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Another issue.
+On Tue, Mar 28, 2017 at 09:40:05PM -0400, A Sun wrote:
+> On 3/28/2017 4:25 PM, Sean Young wrote:
+> <snip>
+> >  
+> >> The unused EVENT_TX_HALT and the apparently extra _kevent functions and kevent_flags are necessary for a later:
+> >>     [PATCH] [media] mceusb: TX -EPIPE lockup fix
+> >> ...not yet written, transmit side equivalent bug. I respectfully recommend keeping these hooks in place.
+> > 
+> > Have you observed this happening?
+> > 
+> 
+> Not yet for my Infrared Transceiver device only. USB halt/stall errors apparently are not USB device specific, and can occur with both TX and RX according to the Linux Urb errors documentation. Calling usb_clear_halt() is required for both cases to recover and restore operation of the stalled endpoint.
 
-The "reboot and the /dev/video* devices come up in a completely
-different order" problem seems to exist with this version.
+Yes, I did not realise this, but you're right, they can happen in both
+cases.
 
-The dot graph I supplied previously had "ipu1_csi0 capture" on
-/dev/video4.  I've just rebooted, and now I find it's on
-/dev/video2 instead.
+> The TX -EPIPE error is already separated out by code in the mceusb driver, but with no error recovery handling.
+> In mce_async_callback()
+>         case -EPIPE:
+>         default:
+>                 dev_err(ir->dev, "Error: request urb status = %d", urb->status);
+>                 break;
+>         }
+> 
+> I believe I can trigger the condition by stress test flooding or otherwise misusing the device's TX end-point in the driver (like the RX case), but I haven't put much work into that yet.
 
-Here's the extract from the .dot file of the old listing:
+The problem in the rx case is that in the EPIPE error case, the urb simply
+resubmitted from the urb callback. In the tx case this does not happen
+so I wouldn't expect a flood. Also after initialisation, no commands are
+sent to the mceusb device except for IR transmit or tx carrier.
 
-        n00000018 [label="ipu1_ic_prpenc capture\n/dev/video0", shape=box, style=filled, fillcolor=yellow]
-        n00000021 [label="ipu1_ic_prpvf capture\n/dev/video1", shape=box, style=filled, fillcolor=yellow]
-        n0000002e [label="ipu2_ic_prpenc capture\n/dev/video2", shape=box, style=filled, fillcolor=yellow]
-        n00000037 [label="ipu2_ic_prpvf capture\n/dev/video3", shape=box, style=filled, fillcolor=yellow]
-        n00000048 [label="ipu1_csi0 capture\n/dev/video4", shape=box, style=filled, fillcolor=yellow]
-        n00000052 [label="ipu1_csi1 capture\n/dev/video5", shape=box, style=filled, fillcolor=yellow]
-        n00000062 [label="ipu2_csi0 capture\n/dev/video6", shape=box, style=filled, fillcolor=yellow]
-        n0000006c [label="ipu2_csi1 capture\n/dev/video7", shape=box, style=filled, fillcolor=yellow]
+> > Speaking of which, how do you reproduce the original -EPIPE issue? I've
+> > tried to reproduce on my raspberry pi 3 with a very similar mceusb
+> > device, but I haven't had any luck.
+> > 
+> 
+> Reproduction of the RX -EPIPE is "hard" to get. I haven't found a consistent way to reproduce, other than inconsistently by:
+>    Bug trigger appears to be normal, but heavy, IR receiver use.
+> In particular, punch up a bunch of buttons at random on a remote control (I used a Sony TV remote) and include some long button presses in the process. Do for say about 1 minute at the time. The bug won't trigger for idle or occasional IR receiver activity.
+> Some mceusb devices may be more susceptible to the problem than others.
+> 
+> > What's the lsusb -vv for this device?
+> 
+> Here it is, on my raspberry pi 3:
+> 
+> ...
+> Bus 001 Device 006: ID 2304:0225 Pinnacle Systems, Inc. Remote Kit Infrared Transceiver
+> Device Descriptor:
+>   bLength                18
+>   bDescriptorType         1
+>   bcdUSB               2.00
+>   bDeviceClass            0 (Defined at Interface level)
+>   bDeviceSubClass         0
+>   bDeviceProtocol         0
+>   bMaxPacketSize0         8
+>   idVendor           0x2304 Pinnacle Systems, Inc.
+>   idProduct          0x0225 Remote Kit Infrared Transceiver
+>   bcdDevice            0.01
+>   iManufacturer           1 Pinnacle Systems
+>   iProduct                2 PCTV Remote USB
+>   iSerial                 5 7FFFFFFFFFFFFFFF
+>   bNumConfigurations      1
+>   Configuration Descriptor:
+>     bLength                 9
+>     bDescriptorType         2
+>     wTotalLength           32
+>     bNumInterfaces          1
+>     bConfigurationValue     1
+>     iConfiguration          3 StandardConfiguration
+>     bmAttributes         0xa0
+>       (Bus Powered)
+>       Remote Wakeup
+>     MaxPower              100mA
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       0
+>       bNumEndpoints           2
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass      0
+>       bInterfaceProtocol      0
+>       iInterface              4 StandardInterface
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0040  1x 64 bytes
+>         bInterval              10
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x02  EP 2 OUT
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0040  1x 64 bytes
+>         bInterval              10
+> Device Status:     0x0000
+>   (Bus Powered)
+> ...
+> 
+> The most recent bug replication I got was while testing the fix methodology for [patch 1/3]. The fault, when it occurs, is between IR data blocks during receive.
+> 
+> ...
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489177] mceusb 1-1.2:1.0: rx data: 90 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f (length=17)
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489184] mceusb 1-1.2:1.0: Raw IR data, 16 pulse/space samples
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489189] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489195] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489199] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489203] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489207] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489211] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489216] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489220] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489224] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489228] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489232] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489236] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489240] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489246] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489250] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489254] mceusb 1-1.2:1.0: Storing space with duration 6350000
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.489257] mceusb 1-1.2:1.0: processed IR data
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.589429] mceusb 1-1.2:1.0: Error: urb status = -32 (RX HALT)
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.589452] mceusb 1-1.2:1.0: kevent 1 scheduled
+> Mar 22 12:16:35 raspberrypi kernel: [ 4863.590203] mceusb 1-1.2:1.0: unhalt usb_submit_urb, status 0
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614325] mceusb 1-1.2:1.0: rx data: 90 0b 98 0c 8c 0c 8c 0c 98 0c 98 0c 98 0c 8c 0c 8c (length=17)
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614338] mceusb 1-1.2:1.0: Raw IR data, 16 pulse/space samples
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614346] mceusb 1-1.2:1.0: Storing space with duration 550000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614355] mceusb 1-1.2:1.0: Storing pulse with duration 1200000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614363] mceusb 1-1.2:1.0: Storing space with duration 600000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614370] mceusb 1-1.2:1.0: Storing pulse with duration 600000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614377] mceusb 1-1.2:1.0: Storing space with duration 600000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614384] mceusb 1-1.2:1.0: Storing pulse with duration 600000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614391] mceusb 1-1.2:1.0: Storing space with duration 600000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614399] mceusb 1-1.2:1.0: Storing pulse with duration 1200000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614405] mceusb 1-1.2:1.0: Storing space with duration 600000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614414] mceusb 1-1.2:1.0: Storing pulse with duration 1200000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614421] mceusb 1-1.2:1.0: Storing space with duration 600000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614428] mceusb 1-1.2:1.0: Storing pulse with duration 1200000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614435] mceusb 1-1.2:1.0: Storing space with duration 600000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614443] mceusb 1-1.2:1.0: Storing pulse with duration 600000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614450] mceusb 1-1.2:1.0: Storing space with duration 600000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614458] mceusb 1-1.2:1.0: Storing pulse with duration 600000
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.614463] mceusb 1-1.2:1.0: processed IR data
+> Mar 22 12:16:36 raspberrypi kernel: [ 4864.648331] mceusb 1-1.2:1.0: rx data: 90 0b 8d 0b 8d 7f 7f 7f 72 b0 0c 98 0c 8c 0c 98 0c (length=17)
+> ...
 
-and here's the same after reboot:
+Anyway, you're right and this patch looks ok. It would be nice to have the
+tx case handled too though.
 
-        n00000014 [label="ipu1_csi0 capture\n/dev/video2", shape=box, style=filled, fillcolor=yellow]
-        n0000001e [label="ipu1_csi1 capture\n/dev/video3", shape=box, style=filled, fillcolor=yellow]
-        n00000028 [label="ipu2_csi0 capture\n/dev/video4", shape=box, style=filled, fillcolor=yellow]
-        n00000035 [label="ipu1_ic_prpenc capture\n/dev/video5", shape=box, style=filled, fillcolor=yellow]
-        n0000003e [label="ipu1_ic_prpvf capture\n/dev/video6", shape=box, style=filled, fillcolor=yellow]
-        n0000004c [label="ipu2_csi1 capture\n/dev/video7", shape=box, style=filled, fillcolor=yellow]
-        n00000059 [label="ipu2_ic_prpenc capture\n/dev/video8", shape=box, style=filled, fillcolor=yellow]
-        n00000062 [label="ipu2_ic_prpvf capture\n/dev/video9", shape=box, style=filled, fillcolor=yellow]
-
-(/dev/video0 and /dev/video1 are taken up by CODA, since I updated the
-names of the firmware files, and now CODA initialises... seems the
-back-compat filenames don't work, but that's not a problem with imx6
-capture.)
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Thanks
+Sean
