@@ -1,83 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34276 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965196AbdCXS0P (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45270 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932953AbdC2V0P (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Mar 2017 14:26:15 -0400
-Received: by mail-wm0-f65.google.com with SMTP id u132so2231757wmg.1
-        for <linux-media@vger.kernel.org>; Fri, 24 Mar 2017 11:26:03 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: mchehab@kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 06/12] [media] dvb-frontends/stv0367: make full reinit on set_frontend() optional
-Date: Fri, 24 Mar 2017 19:24:02 +0100
-Message-Id: <20170324182408.25996-7-d.scheller.oss@gmail.com>
-In-Reply-To: <20170324182408.25996-1-d.scheller.oss@gmail.com>
-References: <20170324182408.25996-1-d.scheller.oss@gmail.com>
+        Wed, 29 Mar 2017 17:26:15 -0400
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 2C8AD60097
+        for <linux-media@vger.kernel.org>; Thu, 30 Mar 2017 00:26:10 +0300 (EEST)
+Date: Thu, 30 Mar 2017 00:25:39 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for v4.12] Make use of refcount_t in V4L2
+Message-ID: <20170329212539.GI16657@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Hi Mauro,
 
-Every time dvb_frontend_ops.set_frontend() is called, an almost full reinit
-of the demodulator will be performed. While this might cause a slight delay
-when switching channels due to all involved tables being rewritten, it can
-even be dangerous in certain causes in that the demod may lock up and
-requires to be powercycled (this can happen on Digital Devices hardware).
-So this adds a flag if it should be done, and to not change behaviour with
-existing card support, it'll be enabled in all cases.
+These patches begin using refcount_t in counting references to VB2 buffers
+as well as cx88 core.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/stv0367.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+Please pull.
 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index da10d9a..9370afa 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -93,6 +93,7 @@ struct stv0367_state {
- 	/* flags for operation control */
- 	u8 use_i2c_gatectrl;
- 	u8 deftabs;
-+	u8 reinit_on_setfrontend;
- };
- 
- #define RF_LOOKUP_TABLE_SIZE  31
-@@ -1217,7 +1218,8 @@ static int stv0367ter_set_frontend(struct dvb_frontend *fe)
- 	s8 num_trials, index;
- 	u8 SenseTrials[] = { INVERSION_ON, INVERSION_OFF };
- 
--	stv0367ter_init(fe);
-+	if (state->reinit_on_setfrontend)
-+		stv0367ter_init(fe);
- 
- 	if (fe->ops.tuner_ops.set_params) {
- 		if (state->use_i2c_gatectrl && fe->ops.i2c_gate_ctrl)
-@@ -1717,6 +1719,7 @@ struct dvb_frontend *stv0367ter_attach(const struct stv0367_config *config,
- 	/* demod operation options */
- 	state->use_i2c_gatectrl = 1;
- 	state->deftabs = STV0367_DEFTAB_GENERIC;
-+	state->reinit_on_setfrontend = 1;
- 
- 	dprintk("%s: chip_id = 0x%x\n", __func__, state->chip_id);
- 
-@@ -2511,7 +2514,8 @@ static int stv0367cab_set_frontend(struct dvb_frontend *fe)
- 		break;
- 	}
- 
--	stv0367cab_init(fe);
-+	if (state->reinit_on_setfrontend)
-+		stv0367cab_init(fe);
- 
- 	/* Tuner Frequency Setting */
- 	if (fe->ops.tuner_ops.set_params) {
-@@ -2835,6 +2839,7 @@ struct dvb_frontend *stv0367cab_attach(const struct stv0367_config *config,
- 	/* demod operation options */
- 	state->use_i2c_gatectrl = 1;
- 	state->deftabs = STV0367_DEFTAB_GENERIC;
-+	state->reinit_on_setfrontend = 1;
- 
- 	dprintk("%s: chip_id = 0x%x\n", __func__, state->chip_id);
- 
+
+The following changes since commit c3d4fb0fb41f4b5eafeee51173c14e50be12f839:
+
+  [media] rc: sunxi-cir: simplify optional reset handling (2017-03-24 08:30:03 -0300)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git refcount_t
+
+for you to fetch changes up to e1588d503639483a5a826dc0a2cd17eab0e44504:
+
+  vb2: convert vb2_vmarea_handler refcount from atomic_t to refcount_t (2017-03-27 19:55:35 +0300)
+
+----------------------------------------------------------------
+Elena Reshetova (2):
+      cx88: convert struct cx88_core.refcount from atomic_t to refcount_t
+      vb2: convert vb2_vmarea_handler refcount from atomic_t to refcount_t
+
+ drivers/media/pci/cx88/cx88-cards.c            |  2 +-
+ drivers/media/pci/cx88/cx88-core.c             |  4 ++--
+ drivers/media/pci/cx88/cx88.h                  |  3 ++-
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 11 ++++++-----
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     | 11 ++++++-----
+ drivers/media/v4l2-core/videobuf2-memops.c     |  6 +++---
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    | 11 ++++++-----
+ include/media/videobuf2-memops.h               |  3 ++-
+ 8 files changed, 28 insertions(+), 23 deletions(-)
+
 -- 
-2.10.2
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
