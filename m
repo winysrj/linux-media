@@ -1,122 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:36387 "EHLO
-        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752975AbdCaThq (ORCPT
+Received: from mail-qt0-f176.google.com ([209.85.216.176]:33430 "EHLO
+        mail-qt0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752206AbdC2JDK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 15:37:46 -0400
-Received: by mail-qk0-f195.google.com with SMTP id r140so518730qke.3
-        for <linux-media@vger.kernel.org>; Fri, 31 Mar 2017 12:37:46 -0700 (PDT)
+        Wed, 29 Mar 2017 05:03:10 -0400
+Received: by mail-qt0-f176.google.com with SMTP id i34so7130590qtc.0
+        for <linux-media@vger.kernel.org>; Wed, 29 Mar 2017 02:03:09 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <d26eed5e-4aa5-dd26-3282-49933a5591d5@xs4all.nl>
-References: <CAHBUmZMCxEGsVZEY2NWpcDtWqne8BfWH5-s5V79Hys56MBeZog@mail.gmail.com>
- <d26eed5e-4aa5-dd26-3282-49933a5591d5@xs4all.nl>
-From: Nigel Terry <nigel@nigelterry.net>
-Date: Fri, 31 Mar 2017 15:37:45 -0400
-Message-ID: <CAHBUmZMBdNUQo5dJCRdNEV=oW+PD46wpn=Pim8wDaFvCbkoZdQ@mail.gmail.com>
-Subject: Re: build_media compilation issues
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Date: Wed, 29 Mar 2017 11:03:07 +0200
+Message-ID: <CA+M3ks4ykYszxmzscnCAwKdahTZxwNWjPg7HvWDHh6bNdnD1=A@mail.gmail.com>
+Subject: Re: [RFC PATCHv2 00/21] Ion clean in preparation for moving out of staging
+To: Laura Abbott <labbott@redhat.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>,
+        =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>,
+        Rom Lemarchand <romlem@google.com>, devel@driverdev.osuosl.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>, Linux MM <linux-mm@kvack.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Solved.
+2017-03-18 1:54 GMT+01:00 Laura Abbott <labbott@redhat.com>:
+>
+> Hi,
+>
+> This is v2 of the series to do some serious Ion clean up in preparation f=
+or
+> moving out of staging. I got good feedback last time so this series mostl=
+y
+> attempts to address that feedback and do more still more cleanup. Highlig=
+hts:
+>
+> - All calls to DMA APIs should now be with a real actual proper device
+>   structure
+> - Patch to stop setting sg_dma_address manually now included
+> - Fix for a bug in the query interface
+> - Removal of custom ioctl interface
+> - Removal of import interface
+> - Removal of any notion of using Ion as an in kernel interface.
+> - Cleanup of ABI so compat interface is no longer needed
+> - Deletion of a bit more platform code
+> - Combined heap enumeration and heap registration code up so there are fe=
+wer
+>   layers of abstraction
+> - Some general cleanup and header reduction.
+> - Removal of both the ion_client and ion_handle structures since these mo=
+stly
+>   become redundant. As a result, Ion only returns a dma_buf fd. The overa=
+ll
+>   result is that the only Ion interfaces are the query ioctl and the allo=
+c
+>   ioctl.
+>
+> The following are still TODOs/open problems:
+> - Sumit's comments about the CMA naming.
+> - Bindings/platform for chunk and carveout heap
+> - There was some discussion about making the sg_table duplication generic=
+. I
+>   got bogged down in handling some of the edge cases for generic handling
+>   so I put this aside. Making it generic is still something that should h=
+appen.
+> - More fine-grained support for restricting heap access. There are good
+>   arguments to be made for having a way for having good integration with
+>   selinux and other policy mechanisms.
+> - While not on the original list, there is still no good good test standa=
+lone
+>   test framework. I noticed that the existing ion_test was fairly generic=
+ so I
+>   proposed moving it to dma_buf. Daniel Vetter suggested just using the V=
+GEM
+>   module instead. Ideally, the tests can live as part of some other exist=
+ing
+>   test set (drm tests maybe?)
+>
+> Feedback appreciated as always.
 
-Between Centos 3.10.0-378.el7.x86_64 and 3.10.0-514.10.2.el7.x86_64,
-the kernel patch to change wait_on_bit
-https://github.com/torvalds/linux/commit/743162013d40ca612b4cb53d3a200dff2d9ab26e
-was added to Centos7.
+Thanks for this v2, it really clean up and simplify ION.
 
-Thus the backport v3.16_wait_on_bit.patch is not required. Without
-that, it builds just fine.
+For me the last question mark is about restricting heap access with
+SElinux policy.
+Since I haven't see other proposals I still believe that we should
+have a /dev/ion/$heapname
+per heap.
 
-Nigel
+>
+> Thanks,
+> Laura
+>
+> Laura Abbott (21):
+>   cma: Store a name in the cma structure
+>   cma: Introduce cma_for_each_area
+>   staging: android: ion: Remove dmap_cnt
+>   staging: android: ion: Remove alignment from allocation field
+>   staging: android: ion: Duplicate sg_table
+>   staging: android: ion: Call dma_map_sg for syncing and mapping
+>   staging: android: ion: Remove page faulting support
+>   staging: android: ion: Remove crufty cache support
+>   staging: android: ion: Remove custom ioctl interface
+>   staging: android: ion: Remove import interface
+>   staging: android: ion: Remove duplicate ION_IOC_MAP
+>   staging: android: ion: Remove old platform support
+>   staging: android: ion: Use CMA APIs directly
+>   staging: android: ion: Stop butchering the DMA address
+>   staging: android: ion: Break the ABI in the name of forward progress
+>   staging: android: ion: Get rid of ion_phys_addr_t
+>   staging: android: ion: Collapse internal header files
+>   staging: android: ion: Rework heap registration/enumeration
+>   staging: android: ion: Drop ion_map_kernel interface
+>   staging: android: ion: Remove ion_handle and ion_client
+>   staging: android: ion: Set query return value
+>
+>  drivers/base/dma-contiguous.c                      |    5 +-
+>  drivers/staging/android/ion/Kconfig                |   56 +-
+>  drivers/staging/android/ion/Makefile               |   18 +-
+>  drivers/staging/android/ion/compat_ion.c           |  195 ----
+>  drivers/staging/android/ion/compat_ion.h           |   29 -
+>  drivers/staging/android/ion/hisilicon/Kconfig      |    5 -
+>  drivers/staging/android/ion/hisilicon/Makefile     |    1 -
+>  drivers/staging/android/ion/hisilicon/hi6220_ion.c |  113 --
+>  drivers/staging/android/ion/ion-ioctl.c            |   85 +-
+>  drivers/staging/android/ion/ion.c                  | 1164 +++-----------=
+------
+>  drivers/staging/android/ion/ion.h                  |  393 +++++--
+>  drivers/staging/android/ion/ion_carveout_heap.c    |   37 +-
+>  drivers/staging/android/ion/ion_chunk_heap.c       |   27 +-
+>  drivers/staging/android/ion/ion_cma_heap.c         |  125 +--
+>  drivers/staging/android/ion/ion_dummy_driver.c     |  156 ---
+>  drivers/staging/android/ion/ion_heap.c             |   68 --
+>  drivers/staging/android/ion/ion_of.c               |  184 ----
+>  drivers/staging/android/ion/ion_of.h               |   37 -
+>  drivers/staging/android/ion/ion_page_pool.c        |    6 +-
+>  drivers/staging/android/ion/ion_priv.h             |  473 --------
+>  drivers/staging/android/ion/ion_system_heap.c      |   53 +-
+>  drivers/staging/android/ion/ion_test.c             |  305 -----
+>  drivers/staging/android/ion/tegra/Makefile         |    1 -
+>  drivers/staging/android/ion/tegra/tegra_ion.c      |   80 --
+>  drivers/staging/android/uapi/ion.h                 |   86 +-
+>  drivers/staging/android/uapi/ion_test.h            |   69 --
+>  include/linux/cma.h                                |    6 +-
+>  mm/cma.c                                           |   25 +-
+>  mm/cma.h                                           |    1 +
+>  mm/cma_debug.c                                     |    2 +-
+>  30 files changed, 610 insertions(+), 3195 deletions(-)
+>  delete mode 100644 drivers/staging/android/ion/compat_ion.c
+>  delete mode 100644 drivers/staging/android/ion/compat_ion.h
+>  delete mode 100644 drivers/staging/android/ion/hisilicon/Kconfig
+>  delete mode 100644 drivers/staging/android/ion/hisilicon/Makefile
+>  delete mode 100644 drivers/staging/android/ion/hisilicon/hi6220_ion.c
+>  delete mode 100644 drivers/staging/android/ion/ion_dummy_driver.c
+>  delete mode 100644 drivers/staging/android/ion/ion_of.c
+>  delete mode 100644 drivers/staging/android/ion/ion_of.h
+>  delete mode 100644 drivers/staging/android/ion/ion_priv.h
+>  delete mode 100644 drivers/staging/android/ion/ion_test.c
+>  delete mode 100644 drivers/staging/android/ion/tegra/Makefile
+>  delete mode 100644 drivers/staging/android/ion/tegra/tegra_ion.c
+>  delete mode 100644 drivers/staging/android/uapi/ion_test.h
+>
+> --
+> 2.7.4
+>
 
-On Thu, Mar 30, 2017 at 3:29 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 30/03/17 00:23, Nigel Terry wrote:
->> I'm trying to use build_media to build the media drivers, specifically
->> usb/em28xx, for Centos7. I'm getting compile errors, see below. Can
->> anyone help me?
->
-> I'll try to take a look at this on Friday or Monday.
->
-> Regards,
->
->         Hans
->
->>
->> Kernel:
->> $ uname -a
->> Linux mythpbx.lan 3.10.0-514.10.2.el7.x86_64 #1 SMP Fri Mar 3 00:04:05
->> UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
->>
->> Errors:
->> ...
->>   CC [M]  /home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.o
->> /home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c: In function
->> 'dvb_usb_start_feed':
->> /home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c:274:2: warning:
->> passing argument 3 of 'wait_on_bit' makes integer from pointer without
->> a cast [enabled by default]
->>   wait_on_bit(&adap->state_bits, ADAP_INIT, wait_schedule,
->> TASK_UNINTERRUPTIBLE);
->>   ^
->> In file included from include/linux/kobject.h:27:0,
->>                  from include/linux/device.h:17,
->>                  from include/linux/input.h:22,
->>                  from /home/mythtv/buildmedia/media_build/v4l/compat.h:10,
->>                  from <command-line>:0:
->> include/linux/wait.h:1044:1: note: expected 'unsigned int' but
->> argument is of type 'int (*)(void *)'
->>  wait_on_bit(void *word, int bit, unsigned mode)
->>  ^
->> /home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c:274:2: error:
->> too many arguments to function 'wait_on_bit'
->>   wait_on_bit(&adap->state_bits, ADAP_INIT, wait_schedule,
->> TASK_UNINTERRUPTIBLE);
->>   ^
->> In file included from include/linux/kobject.h:27:0,
->>                  from include/linux/device.h:17,
->>                  from include/linux/input.h:22,
->>                  from /home/mythtv/buildmedia/media_build/v4l/compat.h:10,
->>                  from <command-line>:0:
->> include/linux/wait.h:1044:1: note: declared here
->>  wait_on_bit(void *word, int bit, unsigned mode)
->>  ^
->> /home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c: In function
->> 'dvb_usb_fe_sleep':
->> /home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c:623:5: warning:
->> passing argument 3 of 'wait_on_bit' makes integer from pointer without
->> a cast [enabled by default]
->>      wait_schedule, TASK_UNINTERRUPTIBLE);
->>      ^
->> In file included from include/linux/kobject.h:27:0,
->>                  from include/linux/device.h:17,
->>                  from include/linux/input.h:22,
->>                  from /home/mythtv/buildmedia/media_build/v4l/compat.h:10,
->>                  from <command-line>:0:
->> include/linux/wait.h:1044:1: note: expected 'unsigned int' but
->> argument is of type 'int (*)(void *)'
->>  wait_on_bit(void *word, int bit, unsigned mode)
->>  ^
->> /home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c:623:5: error:
->> too many arguments to function 'wait_on_bit'
->>      wait_schedule, TASK_UNINTERRUPTIBLE);
->>      ^
->> In file included from include/linux/kobject.h:27:0,
->>                  from include/linux/device.h:17,
->>                  from include/linux/input.h:22,
->>                  from /home/mythtv/buildmedia/media_build/v4l/compat.h:10,
->>                  from <command-line>:0:
->> include/linux/wait.h:1044:1: note: declared here
->>  wait_on_bit(void *word, int bit, unsigned mode)
->>  ^
->> make[3]: *** [/home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.o] Error 1
->> make[2]: *** [_module_/home/mythtv/buildmedia/media_build/v4l] Error 2
->> make[2]: Leaving directory `/usr/src/kernels/3.10.0-514.10.2.el7.x86_64'
->> make[1]: *** [default] Error 2
->> make[1]: Leaving directory `/home/mythtv/buildmedia/media_build/v4l'
->> make: *** [all] Error 2
->> build failed at ./build line 491.
->>
->
+
+
+--=20
+Benjamin Gaignard
+
+Graphic Study Group
+
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+
+Follow Linaro: Facebook | Twitter | Blog
