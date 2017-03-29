@@ -1,135 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:45972 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751188AbdCNRCq (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:57244 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755045AbdC2N0Z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 13:02:46 -0400
-Subject: Re: [PATCH v5 00/39] i.MX Media Driver
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <20170312194700.GR21222@n2100.armlinux.org.uk>
- <20170312175923.6ad86dff@vento.lan>
- <20170312211324.GW21222@n2100.armlinux.org.uk>
- <20170312191002.5f0a2cff@vento.lan>
-CC: Steve Longerbeam <slongerbeam@gmail.com>, <robh+dt@kernel.org>,
-        <mark.rutland@arm.com>, <shawnguo@kernel.org>,
-        <kernel@pengutronix.de>, <fabio.estevam@nxp.com>,
-        <mchehab@kernel.org>, <hverkuil@xs4all.nl>, <nick@shmanahar.org>,
-        <markus.heiser@darmarIT.de>, <p.zabel@pengutronix.de>,
-        <laurent.pinchart+renesas@ideasonboard.com>, <bparrot@ti.com>,
-        <geert@linux-m68k.org>, <arnd@arndb.de>,
-        <sudipm.mukherjee@gmail.com>, <minghsiu.tsai@mediatek.com>,
-        <tiffany.lin@mediatek.com>, <jean-christophe.trotin@st.com>,
-        <horms+renesas@verge.net.au>,
-        <niklas.soderlund+renesas@ragnatech.se>, <robert.jarzmik@free.fr>,
-        <songjun.wu@microchip.com>, <andrew-ct.chen@mediatek.com>,
-        <gregkh@linuxfoundation.org>, <shuah@kernel.org>,
-        <sakari.ailus@linux.intel.com>, <pavel@ucw.cz>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        Wed, 29 Mar 2017 09:26:25 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>, <devel@driverdev.osuosl.org>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <06038465-5634-3f69-521d-3f2a7d14afde@mentor.com>
-Date: Tue, 14 Mar 2017 10:02:26 -0700
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v1 6/8] ARM: dts: stm32: Enable ov2640 camera support of STM32F429-EVAL board
+Date: Wed, 29 Mar 2017 15:25:24 +0200
+Message-ID: <1490793926-6477-7-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1490793926-6477-1-git-send-email-hugues.fruchet@st.com>
+References: <1490793926-6477-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <20170312191002.5f0a2cff@vento.lan>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ arch/arm/boot/dts/stm32429i-eval.dts | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-
-On 03/12/2017 03:10 PM, Mauro Carvalho Chehab wrote:
-> Em Sun, 12 Mar 2017 21:13:24 +0000
-> Russell King - ARM Linux <linux@armlinux.org.uk> escreveu:
->
->> On Sun, Mar 12, 2017 at 05:59:28PM -0300, Mauro Carvalho Chehab wrote:
->>> Yet, udev/systemd has some rules that provide an unique name for V4L
->>> devices at /lib/udev/rules.d/60-persistent-v4l.rules. Basically, it
->>> runs a small application (v4l_id) with creates a persistent symling
->>> using rules like this:
->>>
->>> 	KERNEL=="video*", ENV{ID_SERIAL}=="?*", SYMLINK+="v4l/by-id/$env{ID_BUS}-$env{ID_SERIAL}-video-index$attr{index}"
->>>
->>> Those names are stored at /dev/v4l/by-path.
->> This doesn't help:
->>
->> $ ls -Al /dev/v4l/by-id/
->> total 0
->> lrwxrwxrwx 1 root root 13 Mar 12 19:54 usb-Sonix_Technology_Co.__Ltd._USB_2.0_Camera-video-index0 -> ../../video10
->> $ ls -Al /dev/v4l/by-path/
->> total 0
->> lrwxrwxrwx 1 root root 12 Mar 12 19:54 platform-2040000.vpu-video-index0 -> ../../video0
->> lrwxrwxrwx 1 root root 12 Mar 12 19:54 platform-2040000.vpu-video-index1 -> ../../video1
->> lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index0 -> ../../video2
->> lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index1 -> ../../video3
->> lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index2 -> ../../video4
->> lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index3 -> ../../video5
->> lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index4 -> ../../video6
->> lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index5 -> ../../video7
->> lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index6 -> ../../video8
->> lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index7 -> ../../video9
->> lrwxrwxrwx 1 root root 13 Mar 12 19:54 platform-ci_hdrc.0-usb-0:1:1.0-video-index0 -> ../../video10
->>
->> The problem is the "platform-capture-subsystem-video-index" entries.
->> These themselves change order.  For instance, I now have:
->>
->> - entity 72: ipu1_csi0 capture (1 pad, 1 link)
->>               type Node subtype V4L flags 0
->>               device node name /dev/video6
->>
->> which means it's platform-capture-subsystem-video-index4.  Before, it
->> was platform-capture-subsystem-video-index2.
-> That's a driver problem. v4l_id gets information to build the persistent
-> name from the result of VIDIOC_QUERYCAP.
->
-> In the case of Exynos gsc driver, for example, the information is here:
->
-> static int gsc_m2m_querycap(struct file *file, void *fh,
-> 			   struct v4l2_capability *cap)
-> {
-> 	struct gsc_ctx *ctx = fh_to_ctx(fh);
-> 	struct gsc_dev *gsc = ctx->gsc_dev;
->
-> 	strlcpy(cap->driver, GSC_MODULE_NAME, sizeof(cap->driver));
-> 	strlcpy(cap->card, GSC_MODULE_NAME " gscaler", sizeof(cap->card));
-> 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-> 		 dev_name(&gsc->pdev->dev));
-> 	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE |
-> 		V4L2_CAP_VIDEO_CAPTURE_MPLANE |	V4L2_CAP_VIDEO_OUTPUT_MPLANE;
->
-> 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-> 	return 0;
-> }
->
-> See that the bus_info there is filled with:
->
-> 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s", dev_name(&gsc->pdev->dev));
->
->  From the output you printed, it seems that the i.MX6 is just doing:
-> 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:");
-> for some devices.
-
-imx6 is setting bus_info string on all capture devices as:
-
-snprintf(cap->bus_info, sizeof(cap->bus_info),
-                  "platform:%s", dev_name(priv->dev));
-
-dev_name(priv->dev) is the device name of the attached subdev.
-So the bus_info string, at least for attached CSI subdevs, should
-be "platform:imx-ipuv3-csi".
-
-Maybe there is something else missing, I haven't had a chance to
-look at this yet.
-
-Steve
-
-
->
-> If you change the i.MX6 driver to do the same, you'll likely be able to
-> have unique names there too.
->
-> Regards,
-> Mauro
+diff --git a/arch/arm/boot/dts/stm32429i-eval.dts b/arch/arm/boot/dts/stm32429i-eval.dts
+index 7ffcf07..b7d127c 100644
+--- a/arch/arm/boot/dts/stm32429i-eval.dts
++++ b/arch/arm/boot/dts/stm32429i-eval.dts
+@@ -48,6 +48,7 @@
+ /dts-v1/;
+ #include "stm32f429.dtsi"
+ #include <dt-bindings/input/input.h>
++#include <dt-bindings/gpio/gpio.h>
+ 
+ / {
+ 	model = "STMicroelectronics STM32429i-EVAL board";
+@@ -66,6 +67,14 @@
+ 		serial0 = &usart1;
+ 	};
+ 
++	clocks {
++		clk_ext_camera: clk-ext-camera {
++			#clock-cells = <0>;
++			compatible = "fixed-clock";
++			clock-frequency = <24000000>;
++		};
++	};
++
+ 	soc {
+ 		dma-ranges = <0xc0000000 0x0 0x10000000>;
+ 	};
+@@ -146,6 +155,11 @@
+ 
+ 	port {
+ 		dcmi_0: endpoint@0 {
++			remote-endpoint = <&ov2640_0>;
++			bus-width = <8>;
++			hsync-active = <0>;
++			vsync-active = <0>;
++			pclk-sample = <1>;
+ 		};
+ 	};
+ };
+@@ -155,6 +169,22 @@
+ 	pinctrl-names = "default";
+ 	status = "okay";
+ 
++	ov2640: camera@30 {
++		compatible = "ovti,ov2640";
++		reg = <0x30>;
++		resetb-gpios = <&stmpegpio 2 GPIO_ACTIVE_HIGH>;
++		pwdn-gpios = <&stmpegpio 0 GPIO_ACTIVE_LOW>;
++		clocks = <&clk_ext_camera>;
++		clock-names = "xvclk";
++		status = "okay";
++
++		port {
++			ov2640_0: endpoint {
++				remote-endpoint = <&dcmi_0>;
++			};
++		};
++	};
++
+ 	stmpe1600: stmpe1600@42 {
+ 		compatible = "st,stmpe1600";
+ 		reg = <0x42>;
+-- 
+1.9.1
