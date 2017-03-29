@@ -1,49 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:57514 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S936381AbdCJNId (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:42320 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755154AbdC2Nmz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 08:08:33 -0500
-Subject: Re: [PATCH v6] [media] vimc: Virtual Media Controller core, capture
- and sensor
-To: Helen Koike <helen.koike@collabora.co.uk>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Helen Koike <helen.koike@collabora.com>
-References: <ee909db9-eb2b-d81a-347a-fe12112aa1cf@xs4all.nl>
- <37dc3fa2c020c30f8ced9749f81394d585a37ec1.1473018878.git.helen.koike@collabora.com>
- <1974124.c4lYpJ902j@avalon>
- <599c7289-611c-8328-36b4-9146e24f2c5d@collabora.co.uk>
-Cc: linux-media@vger.kernel.org, jgebben@codeaurora.org,
-        mchehab@osg.samsung.com,
-        Helen Fornazier <helen.fornazier@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ace9b06f-082f-2909-139f-5c44974b4c25@xs4all.nl>
-Date: Fri, 10 Mar 2017 14:08:30 +0100
+        Wed, 29 Mar 2017 09:42:55 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv6 12/14] ov2640: use standard clk and enable it.
+Date: Wed, 29 Mar 2017 13:42:36 +0000
+Message-ID: <3537d572-8954-3e7e-663d-e5d1bc836505@st.com>
+References: <20170328082347.11159-1-hverkuil@xs4all.nl>
+ <20170328082347.11159-13-hverkuil@xs4all.nl>
+In-Reply-To: <20170328082347.11159-13-hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-ID: <9C5D2692E30815468F51134C4CE8F8FE@st.com>
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <599c7289-611c-8328-36b4-9146e24f2c5d@collabora.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Helen,
+Acked-by: Hugues Fruchet <hugues.fruchet@st.com>
 
-On 11/01/17 02:30, Helen Koike wrote:
-> 
-> Thank you for the review, I'll update the patch accordingly and re-submit it.
-> 
-> Helen
+Tested successfully on STM324x9I-EVAL evaluation board embedding
+an OV2640 camera sensor.
 
-Do you know when you have a v7 ready?
+BR,
+Hugues.
 
-We really need a vimc driver so people without hardware can actually fiddle around
-with the MC.
-
-See also my rant here (not directed at you!):
-
-https://www.spinics.net/lists/kernel/msg2462009.html
-
-Regards,
-
-	Hans
+On 03/28/2017 10:23 AM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Convert v4l2_clk to normal clk and enable the clock.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/i2c/ov2640.c | 31 ++++++++++++++-----------------
+>  1 file changed, 14 insertions(+), 17 deletions(-)
+>
+> diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
+> index 83f88efbce69..0445963c5fae 100644
+> --- a/drivers/media/i2c/ov2640.c
+> +++ b/drivers/media/i2c/ov2640.c
+> @@ -16,6 +16,7 @@
+>  #include <linux/init.h>
+>  #include <linux/module.h>
+>  #include <linux/i2c.h>
+> +#include <linux/clk.h>
+>  #include <linux/slab.h>
+>  #include <linux/delay.h>
+>  #include <linux/gpio.h>
+> @@ -24,7 +25,6 @@
+>  #include <linux/v4l2-mediabus.h>
+>  #include <linux/videodev2.h>
+>
+> -#include <media/v4l2-clk.h>
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-subdev.h>
+>  #include <media/v4l2-ctrls.h>
+> @@ -284,7 +284,7 @@ struct ov2640_priv {
+>  	struct v4l2_subdev		subdev;
+>  	struct v4l2_ctrl_handler	hdl;
+>  	u32	cfmt_code;
+> -	struct v4l2_clk			*clk;
+> +	struct clk			*clk;
+>  	const struct ov2640_win_size	*win;
+>
+>  	struct gpio_desc *resetb_gpio;
+> @@ -1051,14 +1051,11 @@ static int ov2640_probe(struct i2c_client *client,
+>  		return -ENOMEM;
+>  	}
+>
+> -	priv->clk = v4l2_clk_get(&client->dev, "xvclk");
+> -	if (IS_ERR(priv->clk))
+> -		return -EPROBE_DEFER;
+> -
+> -	if (!client->dev.of_node) {
+> -		dev_err(&client->dev, "Missing platform_data for driver\n");
+> -		ret = -EINVAL;
+> -		goto err_clk;
+> +	if (client->dev.of_node) {
+> +		priv->clk = devm_clk_get(&client->dev, "xvclk");
+> +		if (IS_ERR(priv->clk))
+> +			return -EPROBE_DEFER;
+> +		clk_prepare_enable(priv->clk);
+>  	}
+>
+>  	ret = ov2640_probe_dt(client, priv);
+> @@ -1074,25 +1071,25 @@ static int ov2640_probe(struct i2c_client *client,
+>  	priv->subdev.ctrl_handler = &priv->hdl;
+>  	if (priv->hdl.error) {
+>  		ret = priv->hdl.error;
+> -		goto err_clk;
+> +		goto err_hdl;
+>  	}
+>
+>  	ret = ov2640_video_probe(client);
+>  	if (ret < 0)
+> -		goto err_videoprobe;
+> +		goto err_hdl;
+>
+>  	ret = v4l2_async_register_subdev(&priv->subdev);
+>  	if (ret < 0)
+> -		goto err_videoprobe;
+> +		goto err_hdl;
+>
+>  	dev_info(&adapter->dev, "OV2640 Probed\n");
+>
+>  	return 0;
+>
+> -err_videoprobe:
+> +err_hdl:
+>  	v4l2_ctrl_handler_free(&priv->hdl);
+>  err_clk:
+> -	v4l2_clk_put(priv->clk);
+> +	clk_disable_unprepare(priv->clk);
+>  	return ret;
+>  }
+>
+> @@ -1101,9 +1098,9 @@ static int ov2640_remove(struct i2c_client *client)
+>  	struct ov2640_priv       *priv = to_ov2640(client);
+>
+>  	v4l2_async_unregister_subdev(&priv->subdev);
+> -	v4l2_clk_put(priv->clk);
+> -	v4l2_device_unregister_subdev(&priv->subdev);
+>  	v4l2_ctrl_handler_free(&priv->hdl);
+> +	v4l2_device_unregister_subdev(&priv->subdev);
+> +	clk_disable_unprepare(priv->clk);
+>  	return 0;
+>  }
+>
+>
