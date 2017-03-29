@@ -1,49 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:33985 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754242AbdCXCQf (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:32881 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753430AbdC2HMk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Mar 2017 22:16:35 -0400
-Date: Thu, 23 Mar 2017 21:16:32 -0500
-From: Rob Herring <robh@kernel.org>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2] media: platform: rcar_imr: add IMR-LSX3 support
-Message-ID: <20170324021632.xp3xnrgklqdeixq6@rob-hp-laptop>
-References: <20170316190000.216761731@cogentembedded.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170316190000.216761731@cogentembedded.com>
+        Wed, 29 Mar 2017 03:12:40 -0400
+Received: by mail-wm0-f65.google.com with SMTP id o81so3335103wmb.0
+        for <linux-media@vger.kernel.org>; Wed, 29 Mar 2017 00:12:39 -0700 (PDT)
+From: Haim Daniel <haimdaniel@gmail.com>
+To: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Cc: Haim Daniel <haimdaniel@gmail.com>
+Subject: [PATCH v2] [media] staging: css2400: fix checkpatch error
+Date: Wed, 29 Mar 2017 10:12:28 +0300
+Message-Id: <1490771548-6134-1-git-send-email-haimdaniel@gmail.com>
+In-Reply-To: <b0bf9753-54d7-5178-5339-37b24d7e8191@gmail.com>
+References: <b0bf9753-54d7-5178-5339-37b24d7e8191@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 16, 2017 at 09:59:50PM +0300, Sergei Shtylyov wrote:
-> Add support for the image renderer light SRAM extended 3 (IMR-LSX3) found
-> only in the R-Car V2H (R8A7792) SoC.  It differs  from IMR-LX4 in that it
-> supports only planar video formats but can use the video capture data for
-> the textures.
-> 
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> 
-> ---
-> This patch  is against the 'media_tree.git' repo's 'master' branch plus the
-> latest version of  the Renesas IMR driver...
-> 
-> Changes in version 2:
-> - renamed *enum* 'imr_gen' to 'imr_type' and the *struct* field of this type
->   from 'gen' to 'type';
-> - rename *struct* 'imr_type' to 'imr_info' and the fields/variables of this type
->   from 'type' to 'info';
-> - added comments to IMR-LX4 only CMRCR2 bits;
-> - added IMR type check to the WTS instruction writing to CMRCCR2.
-> 
->  Documentation/devicetree/bindings/media/rcar_imr.txt |   11 +
+isp_capture_defs.h:
 
-Acked-by: Rob Herring <robh@kernel.org>
+fix checkpatch ERROR: 
+Macros with complex values should be enclosed in parentheses
 
->  drivers/media/platform/rcar_imr.c                    |  106 +++++++++++++++----
->  2 files changed, 97 insertions(+), 20 deletions(-)
+Signed-off-by: Haim Daniel <haimdaniel@gmail.com>
+---
+ .../pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h   | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h
+index aa413df..78cbbf6 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h
+@@ -19,7 +19,7 @@
+ #define _ISP_CAPTURE_BITS_PER_ELEM                32  /* only for data, not SOP */						           
+ #define _ISP_CAPTURE_BYTES_PER_ELEM               (_ISP_CAPTURE_BITS_PER_ELEM/8	)				           
+ #define _ISP_CAPTURE_BYTES_PER_WORD               32		/* 256/8 */	
+-#define _ISP_CAPTURE_ELEM_PER_WORD                _ISP_CAPTURE_BYTES_PER_WORD / _ISP_CAPTURE_BYTES_PER_ELEM		           
++#define _ISP_CAPTURE_ELEM_PER_WORD                (_ISP_CAPTURE_BYTES_PER_WORD / _ISP_CAPTURE_BYTES_PER_ELEM)         
+ 
+ //#define CAPT_RCV_ACK                              1
+ //#define CAPT_WRT_ACK                              2               
+-- 
+1.9.1
