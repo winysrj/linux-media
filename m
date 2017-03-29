@@ -1,47 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:36439 "EHLO
-        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752900AbdCMTUz (ORCPT
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:35234 "EHLO
+        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753391AbdC2HDy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 15:20:55 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC 04/10] [media] uvc: enable subscriptions to other events
-Date: Mon, 13 Mar 2017 16:20:29 -0300
-Message-Id: <20170313192035.29859-5-gustavo@padovan.org>
-In-Reply-To: <20170313192035.29859-1-gustavo@padovan.org>
-References: <20170313192035.29859-1-gustavo@padovan.org>
+        Wed, 29 Mar 2017 03:03:54 -0400
+Date: Wed, 29 Mar 2017 09:03:38 +0200
+From: Greg KH <greg@kroah.com>
+To: vaibhavddit@gmail.com
+Cc: mchehab@kernel.org, devel@driverdev.osuosl.org,
+        rvarsha016@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH] staging: media: atomisp: i2c: removed unnecessary white
+ space before comma in memset()
+Message-ID: <20170329070338.GA9327@kroah.com>
+References: <1490614949-30985-1-git-send-email-vaibhavddit@gmail.com>
+ <1490679166-13479-1-git-send-email-vaibhavddit@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1490679166-13479-1-git-send-email-vaibhavddit@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+On Tue, Mar 28, 2017 at 11:02:45AM +0530, vaibhavddit@gmail.com wrote:
+> From: Vaibhav Kothari <vaibhavddit@gmail.com>
+> 
+> Removed extra space before comma in memset() as a part of
+> checkpatch.pl fix-up.
+> 
+> Signed-off-by: Vaibhav Kothari <vaibhavddit@gmail.com>
+> ---
+>  drivers/staging/media/atomisp/i2c/gc2235.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-Call v4l2_ctrl_subscribe_event to subscribe to more events supported by
-v4l.
+What changed from your prior emails with the same subject?  Always
+version your patches, as SubmittingPatches describes how to do.
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- drivers/media/usb/uvc/uvc_v4l2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Please fix up and resend.
 
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 3e7e283..dfa0ccd 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -1240,7 +1240,7 @@ static int uvc_ioctl_subscribe_event(struct v4l2_fh *fh,
- 	case V4L2_EVENT_CTRL:
- 		return v4l2_event_subscribe(fh, sub, 0, &uvc_ctrl_sub_ev_ops);
- 	default:
--		return -EINVAL;
-+		return v4l2_ctrl_subscribe_event(fh, sub);
- 	}
- }
- 
--- 
-2.9.3
+thanks,
+
+greg k-h
