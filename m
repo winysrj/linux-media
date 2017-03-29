@@ -1,217 +1,1448 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:18760 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751838AbdCPOUq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Mar 2017 10:20:46 -0400
-Subject: Re: DRM Atomic property for color-space conversion
-To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>,
-        Brian Starkey <brian.starkey@arm.com>
-References: <20170127172324.GB12018@e106950-lin.cambridge.arm.com>
- <20170130133513.GO31595@intel.com>
- <20170131123329.GB24500@e106950-lin.cambridge.arm.com>
- <20170131151546.GT31595@intel.com>
- <20170131155541.GF11506@e106950-lin.cambridge.arm.com>
- <20170316140725.GF31595@intel.com>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, mihail.atanassov@arm.com,
-        liviu.dudau@arm.com
-From: "Sharma, Shashank" <shashank.sharma@intel.com>
-Message-ID: <0cff6bab-7593-d3d2-f3b5-71dc21669dab@intel.com>
-Date: Thu, 16 Mar 2017 16:20:29 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170316140725.GF31595@intel.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:33833 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752637AbdC2QnW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Mar 2017 12:43:22 -0400
+Received: by mail-wr0-f195.google.com with SMTP id w43so4565850wrb.1
+        for <linux-media@vger.kernel.org>; Wed, 29 Mar 2017 09:43:20 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org
+Cc: liplianin@netup.ru, rjkm@metzlerbros.de, crope@iki.fi
+Subject: [PATCH v3 04/13] [media] dvb-frontends/stv0367: move out tables, support multiple tab variants
+Date: Wed, 29 Mar 2017 18:43:04 +0200
+Message-Id: <20170329164313.14636-5-d.scheller.oss@gmail.com>
+In-Reply-To: <20170329164313.14636-1-d.scheller.oss@gmail.com>
+References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Regards
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Shashank
+Move the *ter and *cab st_register tables into a separate header file and
+additionally organize them via a multidimensional array, allowing to add
+more tables with differing init values, and also prepare for a base init
+table which should contain general setup values. Also add a state var to
+store the table triplet to be used.
 
+Also fixes three minor style problems reported by checkpatch.
 
-On 3/16/2017 4:07 PM, Ville Syrjälä wrote:
-> On Tue, Jan 31, 2017 at 03:55:41PM +0000, Brian Starkey wrote:
->> On Tue, Jan 31, 2017 at 05:15:46PM +0200, Ville Syrjälä wrote:
->>> On Tue, Jan 31, 2017 at 12:33:29PM +0000, Brian Starkey wrote:
->>>> Hi,
->>>>
->>>> On Mon, Jan 30, 2017 at 03:35:13PM +0200, Ville Syrjälä wrote:
->>>>> On Fri, Jan 27, 2017 at 05:23:24PM +0000, Brian Starkey wrote:
->>>>>> Hi,
->>>>>>
->>>>>> We're looking to enable the per-plane color management hardware in
->>>>>> Mali-DP with atomic properties, which has sparked some conversation
->>>>>> around how to handle YCbCr formats.
->>>>>>
->>>>>> As it stands today, it's assumed that a driver will implicitly "do the
->>>>>> right thing" to display a YCbCr buffer.
->>>>>>
->>>>>> YCbCr data often uses different gamma curves and signal ranges (e.g.
->>>>>> BT.609, BT.701, BT.2020, studio range, full-range), so its desirable
->>>>>> to be able to explicitly control the YCbCr to RGB conversion process
->>>>>> from userspace.
->>>>>>
->>>>>> We're proposing adding a "CSC" (color-space conversion) property to
->>>>>> control this - primarily per-plane for framebuffer->pipeline CSC, but
->>>>>> perhaps one per CRTC too for devices which have an RGB pipeline and
->>>>>> want to output in YUV to the display:
->>>>>>
->>>>>> Name: "CSC"
->>>>>> Type: ENUM | ATOMIC;
->>>>>> Enum values (representative):
->>>>>> "default":
->>>>>> 	Same behaviour as now. "Some kind" of YCbCr->RGB conversion
->>>>>> 	for YCbCr buffers, bypass for RGB buffers
->>>>>> "disable":
->>>>>> 	Explicitly disable all colorspace conversion (i.e. use an
->>>>>> 	identity matrix).
->>>>>> "YCbCr to RGB: BT.709":
->>>>>> 	Only valid for YCbCr formats. CSC in accordance with BT.709
->>>>>> 	using [16..235] for (8-bit) luma values, and [16..240] for
->>>>>> 	8-bit chroma values. For 10-bit formats, the range limits are
->>>>>> 	multiplied by 4.
->>>>>> "YCbCr to RGB: BT.709 full-swing":
->>>>>> 	Only valid for YCbCr formats. CSC in accordance with BT.709,
->>>>>> 	but using the full range of each channel.
->>>>>> "YCbCr to RGB: Use CTM":*
->>>>>> 	Only valid for YCbCr formats. Use the matrix applied via the
->>>>>> 	plane's CTM property
->>>>>> "RGB to RGB: Use CTM":*
->>>>>> 	Only valid for RGB formats. Use the matrix applied via the
->>>>>> 	plane's CTM property
->>>>>> "Use CTM":*
->>>>>> 	Valid for any format. Use the matrix applied via the plane's
->>>>>> 	CTM property
->>>>>> ... any other values for BT.601, BT.2020, RGB to YCbCr etc. etc. as
->>>>>> they are required.
->>>>> Having some RGB2RGB and YCBCR2RGB things in the same property seems
->>>>> weird. I would just go with something very simple like:
->>>>>
->>>>> YCBCR_TO_RGB_CSC:
->>>>> * BT.601
->>>>> * BT.709
->>>>> * custom matrix
->>>>>
->>>> I think we've agreed in #dri-devel that this CSC property
->>>> can't/shouldn't be mapped on-to the existing (hardware implementing
->>>> the) CTM property - even in the case of per-plane color management -
->>>> because CSC needs to be done before DEGAMMA.
->>>>
->>>> So, I'm in favour of going with what you suggested in the first place:
->>>>
->>>> A new YCBCR_TO_RGB_CSC property, enum type, with a list of fixed
->>>> conversions. I'd drop the custom matrix for now, as we'd need to add
->>>> another property to attach the custom matrix blob too.
->>>>
->>>> I still think we need a way to specify whether the source data range
->>>> is broadcast/full-range, so perhaps the enum list should be expanded
->>>> to all combinations of BT.601/BT.709 + broadcast/full-range.
->>> Sounds reasonable. Not that much full range YCbCr stuff out there
->>> perhaps. Well, apart from jpegs I suppose. But no harm in being able
->>> to deal with it.
->>>
->>>> (I'm not sure what the canonical naming for broadcast/full-range is,
->>>> we call them narrow and wide)
->>> We tend to call them full vs. limited range. That's how our
->>> "Broadcast RGB" property is defined as well.
->>>
->> OK, using the same ones sounds sensible.
->>
->>>>> And trying to use the same thing for the crtc stuff is probably not
->>>>> going to end well. Like Daniel said we already have the
->>>>> 'Broadcast RGB' property muddying the waters there, and that stuff
->>>>> also ties in with what colorspace we signal to the sink via
->>>>> infoframes/whatever the DP thing was called. So my gut feeling is
->>>>> that trying to use the same property everywhere will just end up
->>>>> messy.
->>>> Yeah, agreed. If/when someone wants to add CSC on the output of a CRTC
->>>> (after GAMMA), we can add a new property.
->>>>
->>>> That makes me wonder about calling this one SOURCE_YCBCR_TO_RGB_CSC to
->>>> be explicit that it describes the source data. Then we can later add
->>>> SINK_RGB_TO_YCBCR_CSC, and it will be reasonably obvious that its
->>>> value describes the output data rather than the input data.
->>> Source and sink have a slight connotation in my mind wrt. the box that
->>> produces the display signal and the box that eats the signal. So trying
->>> to use the same terms to describe the internals of the pipeline inside
->>> the "source box" migth lead to some confusion. But we do probably need
->>> some decent names for these to make the layout of the pipeline clear.
->>> Input/output are the other names that popped to my mind but those aren't
->>> necessarily any better. But in the end I think I could live with whatever
->>> names we happen to pick, as long as we document the pipeline clearly.
->>>
->>> Long ago I did wonder if we should just start indexing these things
->>> somehow, and then just looking at the index should tell you the order
->>> of the operations. But we already have the ctm/gamma w/o any indexes so
->>> that idea probably isn't so great anymore.
->>>
->>>> I want to avoid confusion caused by ending up with two
->>>> {CS}_TO_{CS}_CSC properties, where one is describing the data to the
->>>> left of it, and the other describing the data to the right of it, with
->>>> no real way of telling which way around it is.
->>> Not really sure what you mean. It should always be
->>> <left>_to_<right>_csc.
->> Agreed, left-to-right. But for instance on a CSC property representing
->> a CRTC output CSC (just before hitting the connector), which happens
->> to be converting RGB to YCbCr:
->>
->> CRTC -> GAMMA -> RGB_TO_YCBCR_CSC
->>
->> ...the enum value "BT.601 Limited" means that the data on the *right*
->> of RGB_TO_YCBCR_CSC is "BT.601 Limited"
->>
->> On the other hand for a CSC on the input of a plane, which happens to
->> be converting YCbCr to RGB:
->>
->> RAM -> YCBCR_TO_RGB_CSC -> DEGAMMA
->>
->> ...the enum value "BT.601 Limited" means that the data on the *left*
->> of YCBCR_TO_RGB_CSC is "BT.601 Limited".
->>
->> Indicating in the property name whether its value is describing the
->> data on the left or the right is needed (and I don't think inferring
->> that "it's always the YCBCR one" is the correct approach).
->>
->> In my example above, "SOURCE_xxx" would mean the enum value is
->> describing the "source" data (i.e. the data on the left) and
->> "SINK_xxx" would mean the enum value is describing the "sink" data
->> (i.e. the data on the right). This doesn't necessarily need to infer a
->> particular point in the pipeline.
-> Right, so I guess you want the values to be named "<a> to <b>" as well?
-> Yes, I think we'll be wanting that as well.
->
-> So what we might need is something like:
-> enum YCBCR_TO_RGB_CSC
->   * YCbCr BT.601 limited to RGB BT.709 full
->   * YCbCr BT.709 limited to RGB BT.709 full <this would be the likely default value IMO>
->   * YCbCr BT.601 limited to RGB BT.2020 full
->   * YCbCr BT.709 limited to RGB BT.2020 full
->   * YCbCr BT.2020 limited to RGB BT.2020 full
->
-> And thanks to BT.2020 we'll need a RGB->RGB CSC property as well. Eg:
-> enum RGB_TO_RGB_CSC
->   * bypass (or separate 709->709, 2020->2020?) <this would be the default>
->   * RGB BT.709 full to RGB BT.2020 full
->
-> Alternatives would involve two properties to define the input and output
-> from the CSC separately, but then you lose the capability to see which
-> combinations are actually supoorted.
-I was thinking about this too, or would it make more sense to create two 
-properties:
-- one for gamut mapping (cases like RGB709->RGB2020)
-- other one for Color space conversion (cases lile YUV 709 -> RGB 709)
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/stv0367.c      | 658 +--------------------------
+ drivers/media/dvb-frontends/stv0367_defs.h | 693 +++++++++++++++++++++++++++++
+ 2 files changed, 701 insertions(+), 650 deletions(-)
+ create mode 100644 drivers/media/dvb-frontends/stv0367_defs.h
 
-Gamut mapping can represent any of the fix function mapping, wereas CSC 
-can bring up any programmable matrix
-
-Internally these properties can use the same HW unit or even same function.
-Does it sound any good ?
-
-- Shashank
-> We may want to add the "curstom matrix" enum value + the blob property
-> for the actual matrix for hw capable of doing that.
->
-> Adding Shashank to cc since he's the one who has been
-> looking at this colorspacey stuff on our side.
->
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index 5ed52ec..5b52673 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -26,6 +26,7 @@
+ #include <linux/i2c.h>
+ 
+ #include "stv0367.h"
++#include "stv0367_defs.h"
+ #include "stv0367_regs.h"
+ #include "stv0367_priv.h"
+ 
+@@ -91,462 +92,7 @@ struct stv0367_state {
+ 	struct stv0367ter_state *ter_state;
+ 	/* flags for operation control */
+ 	u8 use_i2c_gatectrl;
+-};
+-
+-struct st_register {
+-	u16	addr;
+-	u8	value;
+-};
+-
+-/* values for STV4100 XTAL=30M int clk=53.125M*/
+-static const struct st_register def0367ter[] = {
+-	{R367TER_ID,		0x60},
+-	{R367TER_I2CRPT,	0xa0},
+-	/* {R367TER_I2CRPT,	0x22},*/
+-	{R367TER_TOPCTRL,	0x00},/* for xc5000; was 0x02 */
+-	{R367TER_IOCFG0,	0x40},
+-	{R367TER_DAC0R,		0x00},
+-	{R367TER_IOCFG1,	0x00},
+-	{R367TER_DAC1R,		0x00},
+-	{R367TER_IOCFG2,	0x62},
+-	{R367TER_SDFR,		0x00},
+-	{R367TER_STATUS,	0xf8},
+-	{R367TER_AUX_CLK,	0x0a},
+-	{R367TER_FREESYS1,	0x00},
+-	{R367TER_FREESYS2,	0x00},
+-	{R367TER_FREESYS3,	0x00},
+-	{R367TER_GPIO_CFG,	0x55},
+-	{R367TER_GPIO_CMD,	0x00},
+-	{R367TER_AGC2MAX,	0xff},
+-	{R367TER_AGC2MIN,	0x00},
+-	{R367TER_AGC1MAX,	0xff},
+-	{R367TER_AGC1MIN,	0x00},
+-	{R367TER_AGCR,		0xbc},
+-	{R367TER_AGC2TH,	0x00},
+-	{R367TER_AGC12C,	0x00},
+-	{R367TER_AGCCTRL1,	0x85},
+-	{R367TER_AGCCTRL2,	0x1f},
+-	{R367TER_AGC1VAL1,	0x00},
+-	{R367TER_AGC1VAL2,	0x00},
+-	{R367TER_AGC2VAL1,	0x6f},
+-	{R367TER_AGC2VAL2,	0x05},
+-	{R367TER_AGC2PGA,	0x00},
+-	{R367TER_OVF_RATE1,	0x00},
+-	{R367TER_OVF_RATE2,	0x00},
+-	{R367TER_GAIN_SRC1,	0xaa},/* for xc5000; was 0x2b */
+-	{R367TER_GAIN_SRC2,	0xd6},/* for xc5000; was 0x04 */
+-	{R367TER_INC_DEROT1,	0x55},
+-	{R367TER_INC_DEROT2,	0x55},
+-	{R367TER_PPM_CPAMP_DIR,	0x2c},
+-	{R367TER_PPM_CPAMP_INV,	0x00},
+-	{R367TER_FREESTFE_1,	0x00},
+-	{R367TER_FREESTFE_2,	0x1c},
+-	{R367TER_DCOFFSET,	0x00},
+-	{R367TER_EN_PROCESS,	0x05},
+-	{R367TER_SDI_SMOOTHER,	0x80},
+-	{R367TER_FE_LOOP_OPEN,	0x1c},
+-	{R367TER_FREQOFF1,	0x00},
+-	{R367TER_FREQOFF2,	0x00},
+-	{R367TER_FREQOFF3,	0x00},
+-	{R367TER_TIMOFF1,	0x00},
+-	{R367TER_TIMOFF2,	0x00},
+-	{R367TER_EPQ,		0x02},
+-	{R367TER_EPQAUTO,	0x01},
+-	{R367TER_SYR_UPDATE,	0xf5},
+-	{R367TER_CHPFREE,	0x00},
+-	{R367TER_PPM_STATE_MAC,	0x23},
+-	{R367TER_INR_THRESHOLD,	0xff},
+-	{R367TER_EPQ_TPS_ID_CELL, 0xf9},
+-	{R367TER_EPQ_CFG,	0x00},
+-	{R367TER_EPQ_STATUS,	0x01},
+-	{R367TER_AUTORELOCK,	0x81},
+-	{R367TER_BER_THR_VMSB,	0x00},
+-	{R367TER_BER_THR_MSB,	0x00},
+-	{R367TER_BER_THR_LSB,	0x00},
+-	{R367TER_CCD,		0x83},
+-	{R367TER_SPECTR_CFG,	0x00},
+-	{R367TER_CHC_DUMMY,	0x18},
+-	{R367TER_INC_CTL,	0x88},
+-	{R367TER_INCTHRES_COR1,	0xb4},
+-	{R367TER_INCTHRES_COR2,	0x96},
+-	{R367TER_INCTHRES_DET1,	0x0e},
+-	{R367TER_INCTHRES_DET2,	0x11},
+-	{R367TER_IIR_CELLNB,	0x8d},
+-	{R367TER_IIRCX_COEFF1_MSB, 0x00},
+-	{R367TER_IIRCX_COEFF1_LSB, 0x00},
+-	{R367TER_IIRCX_COEFF2_MSB, 0x09},
+-	{R367TER_IIRCX_COEFF2_LSB, 0x18},
+-	{R367TER_IIRCX_COEFF3_MSB, 0x14},
+-	{R367TER_IIRCX_COEFF3_LSB, 0x9c},
+-	{R367TER_IIRCX_COEFF4_MSB, 0x00},
+-	{R367TER_IIRCX_COEFF4_LSB, 0x00},
+-	{R367TER_IIRCX_COEFF5_MSB, 0x36},
+-	{R367TER_IIRCX_COEFF5_LSB, 0x42},
+-	{R367TER_FEPATH_CFG,	0x00},
+-	{R367TER_PMC1_FUNC,	0x65},
+-	{R367TER_PMC1_FOR,	0x00},
+-	{R367TER_PMC2_FUNC,	0x00},
+-	{R367TER_STATUS_ERR_DA,	0xe0},
+-	{R367TER_DIG_AGC_R,	0xfe},
+-	{R367TER_COMAGC_TARMSB,	0x0b},
+-	{R367TER_COM_AGC_TAR_ENMODE, 0x41},
+-	{R367TER_COM_AGC_CFG,	0x3e},
+-	{R367TER_COM_AGC_GAIN1, 0x39},
+-	{R367TER_AUT_AGC_TARGETMSB, 0x0b},
+-	{R367TER_LOCK_DET_MSB,	0x01},
+-	{R367TER_AGCTAR_LOCK_LSBS, 0x40},
+-	{R367TER_AUT_GAIN_EN,	0xf4},
+-	{R367TER_AUT_CFG,	0xf0},
+-	{R367TER_LOCKN,		0x23},
+-	{R367TER_INT_X_3,	0x00},
+-	{R367TER_INT_X_2,	0x03},
+-	{R367TER_INT_X_1,	0x8d},
+-	{R367TER_INT_X_0,	0xa0},
+-	{R367TER_MIN_ERRX_MSB,	0x00},
+-	{R367TER_COR_CTL,	0x23},
+-	{R367TER_COR_STAT,	0xf6},
+-	{R367TER_COR_INTEN,	0x00},
+-	{R367TER_COR_INTSTAT,	0x3f},
+-	{R367TER_COR_MODEGUARD,	0x03},
+-	{R367TER_AGC_CTL,	0x08},
+-	{R367TER_AGC_MANUAL1,	0x00},
+-	{R367TER_AGC_MANUAL2,	0x00},
+-	{R367TER_AGC_TARG,	0x16},
+-	{R367TER_AGC_GAIN1,	0x53},
+-	{R367TER_AGC_GAIN2,	0x1d},
+-	{R367TER_RESERVED_1,	0x00},
+-	{R367TER_RESERVED_2,	0x00},
+-	{R367TER_RESERVED_3,	0x00},
+-	{R367TER_CAS_CTL,	0x44},
+-	{R367TER_CAS_FREQ,	0xb3},
+-	{R367TER_CAS_DAGCGAIN,	0x12},
+-	{R367TER_SYR_CTL,	0x04},
+-	{R367TER_SYR_STAT,	0x10},
+-	{R367TER_SYR_NCO1,	0x00},
+-	{R367TER_SYR_NCO2,	0x00},
+-	{R367TER_SYR_OFFSET1,	0x00},
+-	{R367TER_SYR_OFFSET2,	0x00},
+-	{R367TER_FFT_CTL,	0x00},
+-	{R367TER_SCR_CTL,	0x70},
+-	{R367TER_PPM_CTL1,	0xf8},
+-	{R367TER_TRL_CTL,	0x14},/* for xc5000; was 0xac */
+-	{R367TER_TRL_NOMRATE1,	0xae},/* for xc5000; was 0x1e */
+-	{R367TER_TRL_NOMRATE2,	0x56},/* for xc5000; was 0x58 */
+-	{R367TER_TRL_TIME1,	0x1d},
+-	{R367TER_TRL_TIME2,	0xfc},
+-	{R367TER_CRL_CTL,	0x24},
+-	{R367TER_CRL_FREQ1,	0xad},
+-	{R367TER_CRL_FREQ2,	0x9d},
+-	{R367TER_CRL_FREQ3,	0xff},
+-	{R367TER_CHC_CTL,	0x01},
+-	{R367TER_CHC_SNR,	0xf0},
+-	{R367TER_BDI_CTL,	0x00},
+-	{R367TER_DMP_CTL,	0x00},
+-	{R367TER_TPS_RCVD1,	0x30},
+-	{R367TER_TPS_RCVD2,	0x02},
+-	{R367TER_TPS_RCVD3,	0x01},
+-	{R367TER_TPS_RCVD4,	0x00},
+-	{R367TER_TPS_ID_CELL1,	0x00},
+-	{R367TER_TPS_ID_CELL2,	0x00},
+-	{R367TER_TPS_RCVD5_SET1, 0x02},
+-	{R367TER_TPS_SET2,	0x02},
+-	{R367TER_TPS_SET3,	0x01},
+-	{R367TER_TPS_CTL,	0x00},
+-	{R367TER_CTL_FFTOSNUM,	0x34},
+-	{R367TER_TESTSELECT,	0x09},
+-	{R367TER_MSC_REV,	0x0a},
+-	{R367TER_PIR_CTL,	0x00},
+-	{R367TER_SNR_CARRIER1,	0xa1},
+-	{R367TER_SNR_CARRIER2,	0x9a},
+-	{R367TER_PPM_CPAMP,	0x2c},
+-	{R367TER_TSM_AP0,	0x00},
+-	{R367TER_TSM_AP1,	0x00},
+-	{R367TER_TSM_AP2 ,	0x00},
+-	{R367TER_TSM_AP3,	0x00},
+-	{R367TER_TSM_AP4,	0x00},
+-	{R367TER_TSM_AP5,	0x00},
+-	{R367TER_TSM_AP6,	0x00},
+-	{R367TER_TSM_AP7,	0x00},
+-	{R367TER_TSTRES,	0x00},
+-	{R367TER_ANACTRL,	0x0D},/* PLL stoped, restart at init!!! */
+-	{R367TER_TSTBUS,	0x00},
+-	{R367TER_TSTRATE,	0x00},
+-	{R367TER_CONSTMODE,	0x01},
+-	{R367TER_CONSTCARR1,	0x00},
+-	{R367TER_CONSTCARR2,	0x00},
+-	{R367TER_ICONSTEL,	0x0a},
+-	{R367TER_QCONSTEL,	0x15},
+-	{R367TER_TSTBISTRES0,	0x00},
+-	{R367TER_TSTBISTRES1,	0x00},
+-	{R367TER_TSTBISTRES2,	0x28},
+-	{R367TER_TSTBISTRES3,	0x00},
+-	{R367TER_RF_AGC1,	0xff},
+-	{R367TER_RF_AGC2,	0x83},
+-	{R367TER_ANADIGCTRL,	0x19},
+-	{R367TER_PLLMDIV,	0x01},/* for xc5000; was 0x0c */
+-	{R367TER_PLLNDIV,	0x06},/* for xc5000; was 0x55 */
+-	{R367TER_PLLSETUP,	0x18},
+-	{R367TER_DUAL_AD12,	0x0C},/* for xc5000 AGC voltage 1.6V */
+-	{R367TER_TSTBIST,	0x00},
+-	{R367TER_PAD_COMP_CTRL,	0x00},
+-	{R367TER_PAD_COMP_WR,	0x00},
+-	{R367TER_PAD_COMP_RD,	0xe0},
+-	{R367TER_SYR_TARGET_FFTADJT_MSB, 0x00},
+-	{R367TER_SYR_TARGET_FFTADJT_LSB, 0x00},
+-	{R367TER_SYR_TARGET_CHCADJT_MSB, 0x00},
+-	{R367TER_SYR_TARGET_CHCADJT_LSB, 0x00},
+-	{R367TER_SYR_FLAG,	0x00},
+-	{R367TER_CRL_TARGET1,	0x00},
+-	{R367TER_CRL_TARGET2,	0x00},
+-	{R367TER_CRL_TARGET3,	0x00},
+-	{R367TER_CRL_TARGET4,	0x00},
+-	{R367TER_CRL_FLAG,	0x00},
+-	{R367TER_TRL_TARGET1,	0x00},
+-	{R367TER_TRL_TARGET2,	0x00},
+-	{R367TER_TRL_CHC,	0x00},
+-	{R367TER_CHC_SNR_TARG,	0x00},
+-	{R367TER_TOP_TRACK,	0x00},
+-	{R367TER_TRACKER_FREE1,	0x00},
+-	{R367TER_ERROR_CRL1,	0x00},
+-	{R367TER_ERROR_CRL2,	0x00},
+-	{R367TER_ERROR_CRL3,	0x00},
+-	{R367TER_ERROR_CRL4,	0x00},
+-	{R367TER_DEC_NCO1,	0x2c},
+-	{R367TER_DEC_NCO2,	0x0f},
+-	{R367TER_DEC_NCO3,	0x20},
+-	{R367TER_SNR,		0xf1},
+-	{R367TER_SYR_FFTADJ1,	0x00},
+-	{R367TER_SYR_FFTADJ2,	0x00},
+-	{R367TER_SYR_CHCADJ1,	0x00},
+-	{R367TER_SYR_CHCADJ2,	0x00},
+-	{R367TER_SYR_OFF,	0x00},
+-	{R367TER_PPM_OFFSET1,	0x00},
+-	{R367TER_PPM_OFFSET2,	0x03},
+-	{R367TER_TRACKER_FREE2,	0x00},
+-	{R367TER_DEBG_LT10,	0x00},
+-	{R367TER_DEBG_LT11,	0x00},
+-	{R367TER_DEBG_LT12,	0x00},
+-	{R367TER_DEBG_LT13,	0x00},
+-	{R367TER_DEBG_LT14,	0x00},
+-	{R367TER_DEBG_LT15,	0x00},
+-	{R367TER_DEBG_LT16,	0x00},
+-	{R367TER_DEBG_LT17,	0x00},
+-	{R367TER_DEBG_LT18,	0x00},
+-	{R367TER_DEBG_LT19,	0x00},
+-	{R367TER_DEBG_LT1A,	0x00},
+-	{R367TER_DEBG_LT1B,	0x00},
+-	{R367TER_DEBG_LT1C,	0x00},
+-	{R367TER_DEBG_LT1D,	0x00},
+-	{R367TER_DEBG_LT1E,	0x00},
+-	{R367TER_DEBG_LT1F,	0x00},
+-	{R367TER_RCCFGH,	0x00},
+-	{R367TER_RCCFGM,	0x00},
+-	{R367TER_RCCFGL,	0x00},
+-	{R367TER_RCINSDELH,	0x00},
+-	{R367TER_RCINSDELM,	0x00},
+-	{R367TER_RCINSDELL,	0x00},
+-	{R367TER_RCSTATUS,	0x00},
+-	{R367TER_RCSPEED,	0x6f},
+-	{R367TER_RCDEBUGM,	0xe7},
+-	{R367TER_RCDEBUGL,	0x9b},
+-	{R367TER_RCOBSCFG,	0x00},
+-	{R367TER_RCOBSM,	0x00},
+-	{R367TER_RCOBSL,	0x00},
+-	{R367TER_RCFECSPY,	0x00},
+-	{R367TER_RCFSPYCFG,	0x00},
+-	{R367TER_RCFSPYDATA,	0x00},
+-	{R367TER_RCFSPYOUT,	0x00},
+-	{R367TER_RCFSTATUS,	0x00},
+-	{R367TER_RCFGOODPACK,	0x00},
+-	{R367TER_RCFPACKCNT,	0x00},
+-	{R367TER_RCFSPYMISC,	0x00},
+-	{R367TER_RCFBERCPT4,	0x00},
+-	{R367TER_RCFBERCPT3,	0x00},
+-	{R367TER_RCFBERCPT2,	0x00},
+-	{R367TER_RCFBERCPT1,	0x00},
+-	{R367TER_RCFBERCPT0,	0x00},
+-	{R367TER_RCFBERERR2,	0x00},
+-	{R367TER_RCFBERERR1,	0x00},
+-	{R367TER_RCFBERERR0,	0x00},
+-	{R367TER_RCFSTATESM,	0x00},
+-	{R367TER_RCFSTATESL,	0x00},
+-	{R367TER_RCFSPYBER,	0x00},
+-	{R367TER_RCFSPYDISTM,	0x00},
+-	{R367TER_RCFSPYDISTL,	0x00},
+-	{R367TER_RCFSPYOBS7,	0x00},
+-	{R367TER_RCFSPYOBS6,	0x00},
+-	{R367TER_RCFSPYOBS5,	0x00},
+-	{R367TER_RCFSPYOBS4,	0x00},
+-	{R367TER_RCFSPYOBS3,	0x00},
+-	{R367TER_RCFSPYOBS2,	0x00},
+-	{R367TER_RCFSPYOBS1,	0x00},
+-	{R367TER_RCFSPYOBS0,	0x00},
+-	{R367TER_TSGENERAL,	0x00},
+-	{R367TER_RC1SPEED,	0x6f},
+-	{R367TER_TSGSTATUS,	0x18},
+-	{R367TER_FECM,		0x01},
+-	{R367TER_VTH12,		0xff},
+-	{R367TER_VTH23,		0xa1},
+-	{R367TER_VTH34,		0x64},
+-	{R367TER_VTH56,		0x40},
+-	{R367TER_VTH67,		0x00},
+-	{R367TER_VTH78,		0x2c},
+-	{R367TER_VITCURPUN,	0x12},
+-	{R367TER_VERROR,	0x01},
+-	{R367TER_PRVIT,		0x3f},
+-	{R367TER_VAVSRVIT,	0x00},
+-	{R367TER_VSTATUSVIT,	0xbd},
+-	{R367TER_VTHINUSE,	0xa1},
+-	{R367TER_KDIV12,	0x20},
+-	{R367TER_KDIV23,	0x40},
+-	{R367TER_KDIV34,	0x20},
+-	{R367TER_KDIV56,	0x30},
+-	{R367TER_KDIV67,	0x00},
+-	{R367TER_KDIV78,	0x30},
+-	{R367TER_SIGPOWER,	0x54},
+-	{R367TER_DEMAPVIT,	0x40},
+-	{R367TER_VITSCALE,	0x00},
+-	{R367TER_FFEC1PRG,	0x00},
+-	{R367TER_FVITCURPUN,	0x12},
+-	{R367TER_FVERROR,	0x01},
+-	{R367TER_FVSTATUSVIT,	0xbd},
+-	{R367TER_DEBUG_LT1,	0x00},
+-	{R367TER_DEBUG_LT2,	0x00},
+-	{R367TER_DEBUG_LT3,	0x00},
+-	{R367TER_TSTSFMET,	0x00},
+-	{R367TER_SELOUT,	0x00},
+-	{R367TER_TSYNC,		0x00},
+-	{R367TER_TSTERR,	0x00},
+-	{R367TER_TSFSYNC,	0x00},
+-	{R367TER_TSTSFERR,	0x00},
+-	{R367TER_TSTTSSF1,	0x01},
+-	{R367TER_TSTTSSF2,	0x1f},
+-	{R367TER_TSTTSSF3,	0x00},
+-	{R367TER_TSTTS1,	0x00},
+-	{R367TER_TSTTS2,	0x1f},
+-	{R367TER_TSTTS3,	0x01},
+-	{R367TER_TSTTS4,	0x00},
+-	{R367TER_TSTTSRC,	0x00},
+-	{R367TER_TSTTSRS,	0x00},
+-	{R367TER_TSSTATEM,	0xb0},
+-	{R367TER_TSSTATEL,	0x40},
+-	{R367TER_TSCFGH,	0xC0},
+-	{R367TER_TSCFGM,	0xc0},/* for xc5000; was 0x00 */
+-	{R367TER_TSCFGL,	0x20},
+-	{R367TER_TSSYNC,	0x00},
+-	{R367TER_TSINSDELH,	0x00},
+-	{R367TER_TSINSDELM,	0x00},
+-	{R367TER_TSINSDELL,	0x00},
+-	{R367TER_TSDIVN,	0x03},
+-	{R367TER_TSDIVPM,	0x00},
+-	{R367TER_TSDIVPL,	0x00},
+-	{R367TER_TSDIVQM,	0x00},
+-	{R367TER_TSDIVQL,	0x00},
+-	{R367TER_TSDILSTKM,	0x00},
+-	{R367TER_TSDILSTKL,	0x00},
+-	{R367TER_TSSPEED,	0x40},/* for xc5000; was 0x6f */
+-	{R367TER_TSSTATUS,	0x81},
+-	{R367TER_TSSTATUS2,	0x6a},
+-	{R367TER_TSBITRATEM,	0x0f},
+-	{R367TER_TSBITRATEL,	0xc6},
+-	{R367TER_TSPACKLENM,	0x00},
+-	{R367TER_TSPACKLENL,	0xfc},
+-	{R367TER_TSBLOCLENM,	0x0a},
+-	{R367TER_TSBLOCLENL,	0x80},
+-	{R367TER_TSDLYH,	0x90},
+-	{R367TER_TSDLYM,	0x68},
+-	{R367TER_TSDLYL,	0x01},
+-	{R367TER_TSNPDAV,	0x00},
+-	{R367TER_TSBUFSTATH,	0x00},
+-	{R367TER_TSBUFSTATM,	0x00},
+-	{R367TER_TSBUFSTATL,	0x00},
+-	{R367TER_TSDEBUGM,	0xcf},
+-	{R367TER_TSDEBUGL,	0x1e},
+-	{R367TER_TSDLYSETH,	0x00},
+-	{R367TER_TSDLYSETM,	0x68},
+-	{R367TER_TSDLYSETL,	0x00},
+-	{R367TER_TSOBSCFG,	0x00},
+-	{R367TER_TSOBSM,	0x47},
+-	{R367TER_TSOBSL,	0x1f},
+-	{R367TER_ERRCTRL1,	0x95},
+-	{R367TER_ERRCNT1H,	0x80},
+-	{R367TER_ERRCNT1M,	0x00},
+-	{R367TER_ERRCNT1L,	0x00},
+-	{R367TER_ERRCTRL2,	0x95},
+-	{R367TER_ERRCNT2H,	0x00},
+-	{R367TER_ERRCNT2M,	0x00},
+-	{R367TER_ERRCNT2L,	0x00},
+-	{R367TER_FECSPY,	0x88},
+-	{R367TER_FSPYCFG,	0x2c},
+-	{R367TER_FSPYDATA,	0x3a},
+-	{R367TER_FSPYOUT,	0x06},
+-	{R367TER_FSTATUS,	0x61},
+-	{R367TER_FGOODPACK,	0xff},
+-	{R367TER_FPACKCNT,	0xff},
+-	{R367TER_FSPYMISC,	0x66},
+-	{R367TER_FBERCPT4,	0x00},
+-	{R367TER_FBERCPT3,	0x00},
+-	{R367TER_FBERCPT2,	0x36},
+-	{R367TER_FBERCPT1,	0x36},
+-	{R367TER_FBERCPT0,	0x14},
+-	{R367TER_FBERERR2,	0x00},
+-	{R367TER_FBERERR1,	0x03},
+-	{R367TER_FBERERR0,	0x28},
+-	{R367TER_FSTATESM,	0x00},
+-	{R367TER_FSTATESL,	0x02},
+-	{R367TER_FSPYBER,	0x00},
+-	{R367TER_FSPYDISTM,	0x01},
+-	{R367TER_FSPYDISTL,	0x9f},
+-	{R367TER_FSPYOBS7,	0xc9},
+-	{R367TER_FSPYOBS6,	0x99},
+-	{R367TER_FSPYOBS5,	0x08},
+-	{R367TER_FSPYOBS4,	0xec},
+-	{R367TER_FSPYOBS3,	0x01},
+-	{R367TER_FSPYOBS2,	0x0f},
+-	{R367TER_FSPYOBS1,	0xf5},
+-	{R367TER_FSPYOBS0,	0x08},
+-	{R367TER_SFDEMAP,	0x40},
+-	{R367TER_SFERROR,	0x00},
+-	{R367TER_SFAVSR,	0x30},
+-	{R367TER_SFECSTATUS,	0xcc},
+-	{R367TER_SFKDIV12,	0x20},
+-	{R367TER_SFKDIV23,	0x40},
+-	{R367TER_SFKDIV34,	0x20},
+-	{R367TER_SFKDIV56,	0x20},
+-	{R367TER_SFKDIV67,	0x00},
+-	{R367TER_SFKDIV78,	0x20},
+-	{R367TER_SFDILSTKM,	0x00},
+-	{R367TER_SFDILSTKL,	0x00},
+-	{R367TER_SFSTATUS,	0xb5},
+-	{R367TER_SFDLYH,	0x90},
+-	{R367TER_SFDLYM,	0x60},
+-	{R367TER_SFDLYL,	0x01},
+-	{R367TER_SFDLYSETH,	0xc0},
+-	{R367TER_SFDLYSETM,	0x60},
+-	{R367TER_SFDLYSETL,	0x00},
+-	{R367TER_SFOBSCFG,	0x00},
+-	{R367TER_SFOBSM,	0x47},
+-	{R367TER_SFOBSL,	0x05},
+-	{R367TER_SFECINFO,	0x40},
+-	{R367TER_SFERRCTRL,	0x74},
+-	{R367TER_SFERRCNTH,	0x80},
+-	{R367TER_SFERRCNTM ,	0x00},
+-	{R367TER_SFERRCNTL,	0x00},
+-	{R367TER_SYMBRATEM,	0x2f},
+-	{R367TER_SYMBRATEL,	0x50},
+-	{R367TER_SYMBSTATUS,	0x7f},
+-	{R367TER_SYMBCFG,	0x00},
+-	{R367TER_SYMBFIFOM,	0xf4},
+-	{R367TER_SYMBFIFOL,	0x0d},
+-	{R367TER_SYMBOFFSM,	0xf0},
+-	{R367TER_SYMBOFFSL,	0x2d},
+-	{R367TER_DEBUG_LT4,	0x00},
+-	{R367TER_DEBUG_LT5,	0x00},
+-	{R367TER_DEBUG_LT6,	0x00},
+-	{R367TER_DEBUG_LT7,	0x00},
+-	{R367TER_DEBUG_LT8,	0x00},
+-	{R367TER_DEBUG_LT9,	0x00},
+-	{0x0000,		0x00},
++	u8 deftabs;
+ };
+ 
+ #define RF_LOOKUP_TABLE_SIZE  31
+@@ -574,198 +120,6 @@ static const s32 stv0367cab_RF_LookUp2[RF_LOOKUP_TABLE2_SIZE][RF_LOOKUP_TABLE2_S
+ 	}
+ };
+ 
+-static const struct st_register def0367cab[] = {
+-	{R367CAB_ID,		0x60},
+-	{R367CAB_I2CRPT,	0xa0},
+-	/*{R367CAB_I2CRPT,	0x22},*/
+-	{R367CAB_TOPCTRL,	0x10},
+-	{R367CAB_IOCFG0,	0x80},
+-	{R367CAB_DAC0R,		0x00},
+-	{R367CAB_IOCFG1,	0x00},
+-	{R367CAB_DAC1R,		0x00},
+-	{R367CAB_IOCFG2,	0x00},
+-	{R367CAB_SDFR,		0x00},
+-	{R367CAB_AUX_CLK,	0x00},
+-	{R367CAB_FREESYS1,	0x00},
+-	{R367CAB_FREESYS2,	0x00},
+-	{R367CAB_FREESYS3,	0x00},
+-	{R367CAB_GPIO_CFG,	0x55},
+-	{R367CAB_GPIO_CMD,	0x01},
+-	{R367CAB_TSTRES,	0x00},
+-	{R367CAB_ANACTRL,	0x0d},/* was 0x00 need to check - I.M.L.*/
+-	{R367CAB_TSTBUS,	0x00},
+-	{R367CAB_RF_AGC1,	0xea},
+-	{R367CAB_RF_AGC2,	0x82},
+-	{R367CAB_ANADIGCTRL,	0x0b},
+-	{R367CAB_PLLMDIV,	0x01},
+-	{R367CAB_PLLNDIV,	0x08},
+-	{R367CAB_PLLSETUP,	0x18},
+-	{R367CAB_DUAL_AD12,	0x0C}, /* for xc5000 AGC voltage 1.6V */
+-	{R367CAB_TSTBIST,	0x00},
+-	{R367CAB_CTRL_1,	0x00},
+-	{R367CAB_CTRL_2,	0x03},
+-	{R367CAB_IT_STATUS1,	0x2b},
+-	{R367CAB_IT_STATUS2,	0x08},
+-	{R367CAB_IT_EN1,	0x00},
+-	{R367CAB_IT_EN2,	0x00},
+-	{R367CAB_CTRL_STATUS,	0x04},
+-	{R367CAB_TEST_CTL,	0x00},
+-	{R367CAB_AGC_CTL,	0x73},
+-	{R367CAB_AGC_IF_CFG,	0x50},
+-	{R367CAB_AGC_RF_CFG,	0x00},
+-	{R367CAB_AGC_PWM_CFG,	0x03},
+-	{R367CAB_AGC_PWR_REF_L,	0x5a},
+-	{R367CAB_AGC_PWR_REF_H,	0x00},
+-	{R367CAB_AGC_RF_TH_L,	0xff},
+-	{R367CAB_AGC_RF_TH_H,	0x07},
+-	{R367CAB_AGC_IF_LTH_L,	0x00},
+-	{R367CAB_AGC_IF_LTH_H,	0x08},
+-	{R367CAB_AGC_IF_HTH_L,	0xff},
+-	{R367CAB_AGC_IF_HTH_H,	0x07},
+-	{R367CAB_AGC_PWR_RD_L,	0xa0},
+-	{R367CAB_AGC_PWR_RD_M,	0xe9},
+-	{R367CAB_AGC_PWR_RD_H,	0x03},
+-	{R367CAB_AGC_PWM_IFCMD_L,	0xe4},
+-	{R367CAB_AGC_PWM_IFCMD_H,	0x00},
+-	{R367CAB_AGC_PWM_RFCMD_L,	0xff},
+-	{R367CAB_AGC_PWM_RFCMD_H,	0x07},
+-	{R367CAB_IQDEM_CFG,	0x01},
+-	{R367CAB_MIX_NCO_LL,	0x22},
+-	{R367CAB_MIX_NCO_HL,	0x96},
+-	{R367CAB_MIX_NCO_HH,	0x55},
+-	{R367CAB_SRC_NCO_LL,	0xff},
+-	{R367CAB_SRC_NCO_LH,	0x0c},
+-	{R367CAB_SRC_NCO_HL,	0xf5},
+-	{R367CAB_SRC_NCO_HH,	0x20},
+-	{R367CAB_IQDEM_GAIN_SRC_L,	0x06},
+-	{R367CAB_IQDEM_GAIN_SRC_H,	0x01},
+-	{R367CAB_IQDEM_DCRM_CFG_LL,	0xfe},
+-	{R367CAB_IQDEM_DCRM_CFG_LH,	0xff},
+-	{R367CAB_IQDEM_DCRM_CFG_HL,	0x0f},
+-	{R367CAB_IQDEM_DCRM_CFG_HH,	0x00},
+-	{R367CAB_IQDEM_ADJ_COEFF0,	0x34},
+-	{R367CAB_IQDEM_ADJ_COEFF1,	0xae},
+-	{R367CAB_IQDEM_ADJ_COEFF2,	0x46},
+-	{R367CAB_IQDEM_ADJ_COEFF3,	0x77},
+-	{R367CAB_IQDEM_ADJ_COEFF4,	0x96},
+-	{R367CAB_IQDEM_ADJ_COEFF5,	0x69},
+-	{R367CAB_IQDEM_ADJ_COEFF6,	0xc7},
+-	{R367CAB_IQDEM_ADJ_COEFF7,	0x01},
+-	{R367CAB_IQDEM_ADJ_EN,	0x04},
+-	{R367CAB_IQDEM_ADJ_AGC_REF,	0x94},
+-	{R367CAB_ALLPASSFILT1,	0xc9},
+-	{R367CAB_ALLPASSFILT2,	0x2d},
+-	{R367CAB_ALLPASSFILT3,	0xa3},
+-	{R367CAB_ALLPASSFILT4,	0xfb},
+-	{R367CAB_ALLPASSFILT5,	0xf6},
+-	{R367CAB_ALLPASSFILT6,	0x45},
+-	{R367CAB_ALLPASSFILT7,	0x6f},
+-	{R367CAB_ALLPASSFILT8,	0x7e},
+-	{R367CAB_ALLPASSFILT9,	0x05},
+-	{R367CAB_ALLPASSFILT10,	0x0a},
+-	{R367CAB_ALLPASSFILT11,	0x51},
+-	{R367CAB_TRL_AGC_CFG,	0x20},
+-	{R367CAB_TRL_LPF_CFG,	0x28},
+-	{R367CAB_TRL_LPF_ACQ_GAIN,	0x44},
+-	{R367CAB_TRL_LPF_TRK_GAIN,	0x22},
+-	{R367CAB_TRL_LPF_OUT_GAIN,	0x03},
+-	{R367CAB_TRL_LOCKDET_LTH,	0x04},
+-	{R367CAB_TRL_LOCKDET_HTH,	0x11},
+-	{R367CAB_TRL_LOCKDET_TRGVAL,	0x20},
+-	{R367CAB_IQ_QAM,	0x01},
+-	{R367CAB_FSM_STATE,	0xa0},
+-	{R367CAB_FSM_CTL,	0x08},
+-	{R367CAB_FSM_STS,	0x0c},
+-	{R367CAB_FSM_SNR0_HTH,	0x00},
+-	{R367CAB_FSM_SNR1_HTH,	0x00},
+-	{R367CAB_FSM_SNR2_HTH,	0x23},/* 0x00 */
+-	{R367CAB_FSM_SNR0_LTH,	0x00},
+-	{R367CAB_FSM_SNR1_LTH,	0x00},
+-	{R367CAB_FSM_EQA1_HTH,	0x00},
+-	{R367CAB_FSM_TEMPO,	0x32},
+-	{R367CAB_FSM_CONFIG,	0x03},
+-	{R367CAB_EQU_I_TESTTAP_L,	0x11},
+-	{R367CAB_EQU_I_TESTTAP_M,	0x00},
+-	{R367CAB_EQU_I_TESTTAP_H,	0x00},
+-	{R367CAB_EQU_TESTAP_CFG,	0x00},
+-	{R367CAB_EQU_Q_TESTTAP_L,	0xff},
+-	{R367CAB_EQU_Q_TESTTAP_M,	0x00},
+-	{R367CAB_EQU_Q_TESTTAP_H,	0x00},
+-	{R367CAB_EQU_TAP_CTRL,	0x00},
+-	{R367CAB_EQU_CTR_CRL_CONTROL_L,	0x11},
+-	{R367CAB_EQU_CTR_CRL_CONTROL_H,	0x05},
+-	{R367CAB_EQU_CTR_HIPOW_L,	0x00},
+-	{R367CAB_EQU_CTR_HIPOW_H,	0x00},
+-	{R367CAB_EQU_I_EQU_LO,	0xef},
+-	{R367CAB_EQU_I_EQU_HI,	0x00},
+-	{R367CAB_EQU_Q_EQU_LO,	0xee},
+-	{R367CAB_EQU_Q_EQU_HI,	0x00},
+-	{R367CAB_EQU_MAPPER,	0xc5},
+-	{R367CAB_EQU_SWEEP_RATE,	0x80},
+-	{R367CAB_EQU_SNR_LO,	0x64},
+-	{R367CAB_EQU_SNR_HI,	0x03},
+-	{R367CAB_EQU_GAMMA_LO,	0x00},
+-	{R367CAB_EQU_GAMMA_HI,	0x00},
+-	{R367CAB_EQU_ERR_GAIN,	0x36},
+-	{R367CAB_EQU_RADIUS,	0xaa},
+-	{R367CAB_EQU_FFE_MAINTAP,	0x00},
+-	{R367CAB_EQU_FFE_LEAKAGE,	0x63},
+-	{R367CAB_EQU_FFE_MAINTAP_POS,	0xdf},
+-	{R367CAB_EQU_GAIN_WIDE,	0x88},
+-	{R367CAB_EQU_GAIN_NARROW,	0x41},
+-	{R367CAB_EQU_CTR_LPF_GAIN,	0xd1},
+-	{R367CAB_EQU_CRL_LPF_GAIN,	0xa7},
+-	{R367CAB_EQU_GLOBAL_GAIN,	0x06},
+-	{R367CAB_EQU_CRL_LD_SEN,	0x85},
+-	{R367CAB_EQU_CRL_LD_VAL,	0xe2},
+-	{R367CAB_EQU_CRL_TFR,	0x20},
+-	{R367CAB_EQU_CRL_BISTH_LO,	0x00},
+-	{R367CAB_EQU_CRL_BISTH_HI,	0x00},
+-	{R367CAB_EQU_SWEEP_RANGE_LO,	0x00},
+-	{R367CAB_EQU_SWEEP_RANGE_HI,	0x00},
+-	{R367CAB_EQU_CRL_LIMITER,	0x40},
+-	{R367CAB_EQU_MODULUS_MAP,	0x90},
+-	{R367CAB_EQU_PNT_GAIN,	0xa7},
+-	{R367CAB_FEC_AC_CTR_0,	0x16},
+-	{R367CAB_FEC_AC_CTR_1,	0x0b},
+-	{R367CAB_FEC_AC_CTR_2,	0x88},
+-	{R367CAB_FEC_AC_CTR_3,	0x02},
+-	{R367CAB_FEC_STATUS,	0x12},
+-	{R367CAB_RS_COUNTER_0,	0x7d},
+-	{R367CAB_RS_COUNTER_1,	0xd0},
+-	{R367CAB_RS_COUNTER_2,	0x19},
+-	{R367CAB_RS_COUNTER_3,	0x0b},
+-	{R367CAB_RS_COUNTER_4,	0xa3},
+-	{R367CAB_RS_COUNTER_5,	0x00},
+-	{R367CAB_BERT_0,	0x01},
+-	{R367CAB_BERT_1,	0x25},
+-	{R367CAB_BERT_2,	0x41},
+-	{R367CAB_BERT_3,	0x39},
+-	{R367CAB_OUTFORMAT_0,	0xc2},
+-	{R367CAB_OUTFORMAT_1,	0x22},
+-	{R367CAB_SMOOTHER_2,	0x28},
+-	{R367CAB_TSMF_CTRL_0,	0x01},
+-	{R367CAB_TSMF_CTRL_1,	0xc6},
+-	{R367CAB_TSMF_CTRL_3,	0x43},
+-	{R367CAB_TS_ON_ID_0,	0x00},
+-	{R367CAB_TS_ON_ID_1,	0x00},
+-	{R367CAB_TS_ON_ID_2,	0x00},
+-	{R367CAB_TS_ON_ID_3,	0x00},
+-	{R367CAB_RE_STATUS_0,	0x00},
+-	{R367CAB_RE_STATUS_1,	0x00},
+-	{R367CAB_RE_STATUS_2,	0x00},
+-	{R367CAB_RE_STATUS_3,	0x00},
+-	{R367CAB_TS_STATUS_0,	0x00},
+-	{R367CAB_TS_STATUS_1,	0x00},
+-	{R367CAB_TS_STATUS_2,	0xa0},
+-	{R367CAB_TS_STATUS_3,	0x00},
+-	{R367CAB_T_O_ID_0,	0x00},
+-	{R367CAB_T_O_ID_1,	0x00},
+-	{R367CAB_T_O_ID_2,	0x00},
+-	{R367CAB_T_O_ID_3,	0x00},
+-	{0x0000,		0x00},
+-};
+-
+ static
+ int stv0367_writeregs(struct stv0367_state *state, u16 reg, u8 *data, int len)
+ {
+@@ -1561,7 +915,8 @@ static int stv0367ter_init(struct dvb_frontend *fe)
+ 
+ 	ter_state->pBER = 0;
+ 
+-	stv0367_write_table(state, def0367ter);
++	stv0367_write_table(state,
++		stv0367_deftabs[state->deftabs][STV0367_TAB_TER]);
+ 
+ 	switch (state->config->xtal) {
+ 		/*set internal freq to 53.125MHz */
+@@ -2338,6 +1693,7 @@ struct dvb_frontend *stv0367ter_attach(const struct stv0367_config *config,
+ 
+ 	/* demod operation options */
+ 	state->use_i2c_gatectrl = 1;
++	state->deftabs = STV0367_DEFTAB_GENERIC;
+ 
+ 	dprintk("%s: chip_id = 0x%x\n", __func__, state->chip_id);
+ 
+@@ -2798,7 +2154,8 @@ static int stv0367cab_init(struct dvb_frontend *fe)
+ 
+ 	dprintk("%s:\n", __func__);
+ 
+-	stv0367_write_table(state, def0367cab);
++	stv0367_write_table(state,
++		stv0367_deftabs[state->deftabs][STV0367_TAB_CAB]);
+ 
+ 	switch (state->config->ts_mode) {
+ 	case STV0367_DVBCI_CLOCK:
+@@ -3454,6 +2811,7 @@ struct dvb_frontend *stv0367cab_attach(const struct stv0367_config *config,
+ 
+ 	/* demod operation options */
+ 	state->use_i2c_gatectrl = 1;
++	state->deftabs = STV0367_DEFTAB_GENERIC;
+ 
+ 	dprintk("%s: chip_id = 0x%x\n", __func__, state->chip_id);
+ 
+diff --git a/drivers/media/dvb-frontends/stv0367_defs.h b/drivers/media/dvb-frontends/stv0367_defs.h
+new file mode 100644
+index 0000000..53faad6
+--- /dev/null
++++ b/drivers/media/dvb-frontends/stv0367_defs.h
+@@ -0,0 +1,693 @@
++/*
++ * stv0367_defs.h
++ *
++ * Driver for ST STV0367 DVB-T & DVB-C demodulator IC.
++ *
++ * Copyright (C) ST Microelectronics.
++ * Copyright (C) 2010,2011 NetUP Inc.
++ * Copyright (C) 2010,2011 Igor M. Liplianin <liplianin@netup.ru>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *
++ * GNU General Public License for more details.
++ */
++
++#ifndef STV0367_DEFS_H
++#define STV0367_DEFS_H
++
++#include "stv0367_regs.h"
++
++#define STV0367_DEFTAB_GENERIC	0
++#define STV0367_DEFTAB_MAX	1
++
++#define STV0367_TAB_TER		0
++#define STV0367_TAB_CAB		1
++#define STV0367_TAB_BASE	2
++#define STV0367_TAB_MAX		3
++
++struct st_register {
++	u16	addr;
++	u8	value;
++};
++
++/* values for STV4100 XTAL=30M int clk=53.125M*/
++static const struct st_register def0367ter[] = {
++	{R367TER_ID,		0x60},
++	{R367TER_I2CRPT,	0xa0},
++	/* {R367TER_I2CRPT,	0x22},*/
++	{R367TER_TOPCTRL,	0x00},/* for xc5000; was 0x02 */
++	{R367TER_IOCFG0,	0x40},
++	{R367TER_DAC0R,		0x00},
++	{R367TER_IOCFG1,	0x00},
++	{R367TER_DAC1R,		0x00},
++	{R367TER_IOCFG2,	0x62},
++	{R367TER_SDFR,		0x00},
++	{R367TER_STATUS,	0xf8},
++	{R367TER_AUX_CLK,	0x0a},
++	{R367TER_FREESYS1,	0x00},
++	{R367TER_FREESYS2,	0x00},
++	{R367TER_FREESYS3,	0x00},
++	{R367TER_GPIO_CFG,	0x55},
++	{R367TER_GPIO_CMD,	0x00},
++	{R367TER_AGC2MAX,	0xff},
++	{R367TER_AGC2MIN,	0x00},
++	{R367TER_AGC1MAX,	0xff},
++	{R367TER_AGC1MIN,	0x00},
++	{R367TER_AGCR,		0xbc},
++	{R367TER_AGC2TH,	0x00},
++	{R367TER_AGC12C,	0x00},
++	{R367TER_AGCCTRL1,	0x85},
++	{R367TER_AGCCTRL2,	0x1f},
++	{R367TER_AGC1VAL1,	0x00},
++	{R367TER_AGC1VAL2,	0x00},
++	{R367TER_AGC2VAL1,	0x6f},
++	{R367TER_AGC2VAL2,	0x05},
++	{R367TER_AGC2PGA,	0x00},
++	{R367TER_OVF_RATE1,	0x00},
++	{R367TER_OVF_RATE2,	0x00},
++	{R367TER_GAIN_SRC1,	0xaa},/* for xc5000; was 0x2b */
++	{R367TER_GAIN_SRC2,	0xd6},/* for xc5000; was 0x04 */
++	{R367TER_INC_DEROT1,	0x55},
++	{R367TER_INC_DEROT2,	0x55},
++	{R367TER_PPM_CPAMP_DIR,	0x2c},
++	{R367TER_PPM_CPAMP_INV,	0x00},
++	{R367TER_FREESTFE_1,	0x00},
++	{R367TER_FREESTFE_2,	0x1c},
++	{R367TER_DCOFFSET,	0x00},
++	{R367TER_EN_PROCESS,	0x05},
++	{R367TER_SDI_SMOOTHER,	0x80},
++	{R367TER_FE_LOOP_OPEN,	0x1c},
++	{R367TER_FREQOFF1,	0x00},
++	{R367TER_FREQOFF2,	0x00},
++	{R367TER_FREQOFF3,	0x00},
++	{R367TER_TIMOFF1,	0x00},
++	{R367TER_TIMOFF2,	0x00},
++	{R367TER_EPQ,		0x02},
++	{R367TER_EPQAUTO,	0x01},
++	{R367TER_SYR_UPDATE,	0xf5},
++	{R367TER_CHPFREE,	0x00},
++	{R367TER_PPM_STATE_MAC,	0x23},
++	{R367TER_INR_THRESHOLD,	0xff},
++	{R367TER_EPQ_TPS_ID_CELL, 0xf9},
++	{R367TER_EPQ_CFG,	0x00},
++	{R367TER_EPQ_STATUS,	0x01},
++	{R367TER_AUTORELOCK,	0x81},
++	{R367TER_BER_THR_VMSB,	0x00},
++	{R367TER_BER_THR_MSB,	0x00},
++	{R367TER_BER_THR_LSB,	0x00},
++	{R367TER_CCD,		0x83},
++	{R367TER_SPECTR_CFG,	0x00},
++	{R367TER_CHC_DUMMY,	0x18},
++	{R367TER_INC_CTL,	0x88},
++	{R367TER_INCTHRES_COR1,	0xb4},
++	{R367TER_INCTHRES_COR2,	0x96},
++	{R367TER_INCTHRES_DET1,	0x0e},
++	{R367TER_INCTHRES_DET2,	0x11},
++	{R367TER_IIR_CELLNB,	0x8d},
++	{R367TER_IIRCX_COEFF1_MSB, 0x00},
++	{R367TER_IIRCX_COEFF1_LSB, 0x00},
++	{R367TER_IIRCX_COEFF2_MSB, 0x09},
++	{R367TER_IIRCX_COEFF2_LSB, 0x18},
++	{R367TER_IIRCX_COEFF3_MSB, 0x14},
++	{R367TER_IIRCX_COEFF3_LSB, 0x9c},
++	{R367TER_IIRCX_COEFF4_MSB, 0x00},
++	{R367TER_IIRCX_COEFF4_LSB, 0x00},
++	{R367TER_IIRCX_COEFF5_MSB, 0x36},
++	{R367TER_IIRCX_COEFF5_LSB, 0x42},
++	{R367TER_FEPATH_CFG,	0x00},
++	{R367TER_PMC1_FUNC,	0x65},
++	{R367TER_PMC1_FOR,	0x00},
++	{R367TER_PMC2_FUNC,	0x00},
++	{R367TER_STATUS_ERR_DA,	0xe0},
++	{R367TER_DIG_AGC_R,	0xfe},
++	{R367TER_COMAGC_TARMSB,	0x0b},
++	{R367TER_COM_AGC_TAR_ENMODE, 0x41},
++	{R367TER_COM_AGC_CFG,	0x3e},
++	{R367TER_COM_AGC_GAIN1, 0x39},
++	{R367TER_AUT_AGC_TARGETMSB, 0x0b},
++	{R367TER_LOCK_DET_MSB,	0x01},
++	{R367TER_AGCTAR_LOCK_LSBS, 0x40},
++	{R367TER_AUT_GAIN_EN,	0xf4},
++	{R367TER_AUT_CFG,	0xf0},
++	{R367TER_LOCKN,		0x23},
++	{R367TER_INT_X_3,	0x00},
++	{R367TER_INT_X_2,	0x03},
++	{R367TER_INT_X_1,	0x8d},
++	{R367TER_INT_X_0,	0xa0},
++	{R367TER_MIN_ERRX_MSB,	0x00},
++	{R367TER_COR_CTL,	0x23},
++	{R367TER_COR_STAT,	0xf6},
++	{R367TER_COR_INTEN,	0x00},
++	{R367TER_COR_INTSTAT,	0x3f},
++	{R367TER_COR_MODEGUARD,	0x03},
++	{R367TER_AGC_CTL,	0x08},
++	{R367TER_AGC_MANUAL1,	0x00},
++	{R367TER_AGC_MANUAL2,	0x00},
++	{R367TER_AGC_TARG,	0x16},
++	{R367TER_AGC_GAIN1,	0x53},
++	{R367TER_AGC_GAIN2,	0x1d},
++	{R367TER_RESERVED_1,	0x00},
++	{R367TER_RESERVED_2,	0x00},
++	{R367TER_RESERVED_3,	0x00},
++	{R367TER_CAS_CTL,	0x44},
++	{R367TER_CAS_FREQ,	0xb3},
++	{R367TER_CAS_DAGCGAIN,	0x12},
++	{R367TER_SYR_CTL,	0x04},
++	{R367TER_SYR_STAT,	0x10},
++	{R367TER_SYR_NCO1,	0x00},
++	{R367TER_SYR_NCO2,	0x00},
++	{R367TER_SYR_OFFSET1,	0x00},
++	{R367TER_SYR_OFFSET2,	0x00},
++	{R367TER_FFT_CTL,	0x00},
++	{R367TER_SCR_CTL,	0x70},
++	{R367TER_PPM_CTL1,	0xf8},
++	{R367TER_TRL_CTL,	0x14},/* for xc5000; was 0xac */
++	{R367TER_TRL_NOMRATE1,	0xae},/* for xc5000; was 0x1e */
++	{R367TER_TRL_NOMRATE2,	0x56},/* for xc5000; was 0x58 */
++	{R367TER_TRL_TIME1,	0x1d},
++	{R367TER_TRL_TIME2,	0xfc},
++	{R367TER_CRL_CTL,	0x24},
++	{R367TER_CRL_FREQ1,	0xad},
++	{R367TER_CRL_FREQ2,	0x9d},
++	{R367TER_CRL_FREQ3,	0xff},
++	{R367TER_CHC_CTL,	0x01},
++	{R367TER_CHC_SNR,	0xf0},
++	{R367TER_BDI_CTL,	0x00},
++	{R367TER_DMP_CTL,	0x00},
++	{R367TER_TPS_RCVD1,	0x30},
++	{R367TER_TPS_RCVD2,	0x02},
++	{R367TER_TPS_RCVD3,	0x01},
++	{R367TER_TPS_RCVD4,	0x00},
++	{R367TER_TPS_ID_CELL1,	0x00},
++	{R367TER_TPS_ID_CELL2,	0x00},
++	{R367TER_TPS_RCVD5_SET1, 0x02},
++	{R367TER_TPS_SET2,	0x02},
++	{R367TER_TPS_SET3,	0x01},
++	{R367TER_TPS_CTL,	0x00},
++	{R367TER_CTL_FFTOSNUM,	0x34},
++	{R367TER_TESTSELECT,	0x09},
++	{R367TER_MSC_REV,	0x0a},
++	{R367TER_PIR_CTL,	0x00},
++	{R367TER_SNR_CARRIER1,	0xa1},
++	{R367TER_SNR_CARRIER2,	0x9a},
++	{R367TER_PPM_CPAMP,	0x2c},
++	{R367TER_TSM_AP0,	0x00},
++	{R367TER_TSM_AP1,	0x00},
++	{R367TER_TSM_AP2,	0x00},
++	{R367TER_TSM_AP3,	0x00},
++	{R367TER_TSM_AP4,	0x00},
++	{R367TER_TSM_AP5,	0x00},
++	{R367TER_TSM_AP6,	0x00},
++	{R367TER_TSM_AP7,	0x00},
++	{R367TER_TSTRES,	0x00},
++	{R367TER_ANACTRL,	0x0D},/* PLL stopped, restart at init!!! */
++	{R367TER_TSTBUS,	0x00},
++	{R367TER_TSTRATE,	0x00},
++	{R367TER_CONSTMODE,	0x01},
++	{R367TER_CONSTCARR1,	0x00},
++	{R367TER_CONSTCARR2,	0x00},
++	{R367TER_ICONSTEL,	0x0a},
++	{R367TER_QCONSTEL,	0x15},
++	{R367TER_TSTBISTRES0,	0x00},
++	{R367TER_TSTBISTRES1,	0x00},
++	{R367TER_TSTBISTRES2,	0x28},
++	{R367TER_TSTBISTRES3,	0x00},
++	{R367TER_RF_AGC1,	0xff},
++	{R367TER_RF_AGC2,	0x83},
++	{R367TER_ANADIGCTRL,	0x19},
++	{R367TER_PLLMDIV,	0x01},/* for xc5000; was 0x0c */
++	{R367TER_PLLNDIV,	0x06},/* for xc5000; was 0x55 */
++	{R367TER_PLLSETUP,	0x18},
++	{R367TER_DUAL_AD12,	0x0C},/* for xc5000 AGC voltage 1.6V */
++	{R367TER_TSTBIST,	0x00},
++	{R367TER_PAD_COMP_CTRL,	0x00},
++	{R367TER_PAD_COMP_WR,	0x00},
++	{R367TER_PAD_COMP_RD,	0xe0},
++	{R367TER_SYR_TARGET_FFTADJT_MSB, 0x00},
++	{R367TER_SYR_TARGET_FFTADJT_LSB, 0x00},
++	{R367TER_SYR_TARGET_CHCADJT_MSB, 0x00},
++	{R367TER_SYR_TARGET_CHCADJT_LSB, 0x00},
++	{R367TER_SYR_FLAG,	0x00},
++	{R367TER_CRL_TARGET1,	0x00},
++	{R367TER_CRL_TARGET2,	0x00},
++	{R367TER_CRL_TARGET3,	0x00},
++	{R367TER_CRL_TARGET4,	0x00},
++	{R367TER_CRL_FLAG,	0x00},
++	{R367TER_TRL_TARGET1,	0x00},
++	{R367TER_TRL_TARGET2,	0x00},
++	{R367TER_TRL_CHC,	0x00},
++	{R367TER_CHC_SNR_TARG,	0x00},
++	{R367TER_TOP_TRACK,	0x00},
++	{R367TER_TRACKER_FREE1,	0x00},
++	{R367TER_ERROR_CRL1,	0x00},
++	{R367TER_ERROR_CRL2,	0x00},
++	{R367TER_ERROR_CRL3,	0x00},
++	{R367TER_ERROR_CRL4,	0x00},
++	{R367TER_DEC_NCO1,	0x2c},
++	{R367TER_DEC_NCO2,	0x0f},
++	{R367TER_DEC_NCO3,	0x20},
++	{R367TER_SNR,		0xf1},
++	{R367TER_SYR_FFTADJ1,	0x00},
++	{R367TER_SYR_FFTADJ2,	0x00},
++	{R367TER_SYR_CHCADJ1,	0x00},
++	{R367TER_SYR_CHCADJ2,	0x00},
++	{R367TER_SYR_OFF,	0x00},
++	{R367TER_PPM_OFFSET1,	0x00},
++	{R367TER_PPM_OFFSET2,	0x03},
++	{R367TER_TRACKER_FREE2,	0x00},
++	{R367TER_DEBG_LT10,	0x00},
++	{R367TER_DEBG_LT11,	0x00},
++	{R367TER_DEBG_LT12,	0x00},
++	{R367TER_DEBG_LT13,	0x00},
++	{R367TER_DEBG_LT14,	0x00},
++	{R367TER_DEBG_LT15,	0x00},
++	{R367TER_DEBG_LT16,	0x00},
++	{R367TER_DEBG_LT17,	0x00},
++	{R367TER_DEBG_LT18,	0x00},
++	{R367TER_DEBG_LT19,	0x00},
++	{R367TER_DEBG_LT1A,	0x00},
++	{R367TER_DEBG_LT1B,	0x00},
++	{R367TER_DEBG_LT1C,	0x00},
++	{R367TER_DEBG_LT1D,	0x00},
++	{R367TER_DEBG_LT1E,	0x00},
++	{R367TER_DEBG_LT1F,	0x00},
++	{R367TER_RCCFGH,	0x00},
++	{R367TER_RCCFGM,	0x00},
++	{R367TER_RCCFGL,	0x00},
++	{R367TER_RCINSDELH,	0x00},
++	{R367TER_RCINSDELM,	0x00},
++	{R367TER_RCINSDELL,	0x00},
++	{R367TER_RCSTATUS,	0x00},
++	{R367TER_RCSPEED,	0x6f},
++	{R367TER_RCDEBUGM,	0xe7},
++	{R367TER_RCDEBUGL,	0x9b},
++	{R367TER_RCOBSCFG,	0x00},
++	{R367TER_RCOBSM,	0x00},
++	{R367TER_RCOBSL,	0x00},
++	{R367TER_RCFECSPY,	0x00},
++	{R367TER_RCFSPYCFG,	0x00},
++	{R367TER_RCFSPYDATA,	0x00},
++	{R367TER_RCFSPYOUT,	0x00},
++	{R367TER_RCFSTATUS,	0x00},
++	{R367TER_RCFGOODPACK,	0x00},
++	{R367TER_RCFPACKCNT,	0x00},
++	{R367TER_RCFSPYMISC,	0x00},
++	{R367TER_RCFBERCPT4,	0x00},
++	{R367TER_RCFBERCPT3,	0x00},
++	{R367TER_RCFBERCPT2,	0x00},
++	{R367TER_RCFBERCPT1,	0x00},
++	{R367TER_RCFBERCPT0,	0x00},
++	{R367TER_RCFBERERR2,	0x00},
++	{R367TER_RCFBERERR1,	0x00},
++	{R367TER_RCFBERERR0,	0x00},
++	{R367TER_RCFSTATESM,	0x00},
++	{R367TER_RCFSTATESL,	0x00},
++	{R367TER_RCFSPYBER,	0x00},
++	{R367TER_RCFSPYDISTM,	0x00},
++	{R367TER_RCFSPYDISTL,	0x00},
++	{R367TER_RCFSPYOBS7,	0x00},
++	{R367TER_RCFSPYOBS6,	0x00},
++	{R367TER_RCFSPYOBS5,	0x00},
++	{R367TER_RCFSPYOBS4,	0x00},
++	{R367TER_RCFSPYOBS3,	0x00},
++	{R367TER_RCFSPYOBS2,	0x00},
++	{R367TER_RCFSPYOBS1,	0x00},
++	{R367TER_RCFSPYOBS0,	0x00},
++	{R367TER_TSGENERAL,	0x00},
++	{R367TER_RC1SPEED,	0x6f},
++	{R367TER_TSGSTATUS,	0x18},
++	{R367TER_FECM,		0x01},
++	{R367TER_VTH12,		0xff},
++	{R367TER_VTH23,		0xa1},
++	{R367TER_VTH34,		0x64},
++	{R367TER_VTH56,		0x40},
++	{R367TER_VTH67,		0x00},
++	{R367TER_VTH78,		0x2c},
++	{R367TER_VITCURPUN,	0x12},
++	{R367TER_VERROR,	0x01},
++	{R367TER_PRVIT,		0x3f},
++	{R367TER_VAVSRVIT,	0x00},
++	{R367TER_VSTATUSVIT,	0xbd},
++	{R367TER_VTHINUSE,	0xa1},
++	{R367TER_KDIV12,	0x20},
++	{R367TER_KDIV23,	0x40},
++	{R367TER_KDIV34,	0x20},
++	{R367TER_KDIV56,	0x30},
++	{R367TER_KDIV67,	0x00},
++	{R367TER_KDIV78,	0x30},
++	{R367TER_SIGPOWER,	0x54},
++	{R367TER_DEMAPVIT,	0x40},
++	{R367TER_VITSCALE,	0x00},
++	{R367TER_FFEC1PRG,	0x00},
++	{R367TER_FVITCURPUN,	0x12},
++	{R367TER_FVERROR,	0x01},
++	{R367TER_FVSTATUSVIT,	0xbd},
++	{R367TER_DEBUG_LT1,	0x00},
++	{R367TER_DEBUG_LT2,	0x00},
++	{R367TER_DEBUG_LT3,	0x00},
++	{R367TER_TSTSFMET,	0x00},
++	{R367TER_SELOUT,	0x00},
++	{R367TER_TSYNC,		0x00},
++	{R367TER_TSTERR,	0x00},
++	{R367TER_TSFSYNC,	0x00},
++	{R367TER_TSTSFERR,	0x00},
++	{R367TER_TSTTSSF1,	0x01},
++	{R367TER_TSTTSSF2,	0x1f},
++	{R367TER_TSTTSSF3,	0x00},
++	{R367TER_TSTTS1,	0x00},
++	{R367TER_TSTTS2,	0x1f},
++	{R367TER_TSTTS3,	0x01},
++	{R367TER_TSTTS4,	0x00},
++	{R367TER_TSTTSRC,	0x00},
++	{R367TER_TSTTSRS,	0x00},
++	{R367TER_TSSTATEM,	0xb0},
++	{R367TER_TSSTATEL,	0x40},
++	{R367TER_TSCFGH,	0xC0},
++	{R367TER_TSCFGM,	0xc0},/* for xc5000; was 0x00 */
++	{R367TER_TSCFGL,	0x20},
++	{R367TER_TSSYNC,	0x00},
++	{R367TER_TSINSDELH,	0x00},
++	{R367TER_TSINSDELM,	0x00},
++	{R367TER_TSINSDELL,	0x00},
++	{R367TER_TSDIVN,	0x03},
++	{R367TER_TSDIVPM,	0x00},
++	{R367TER_TSDIVPL,	0x00},
++	{R367TER_TSDIVQM,	0x00},
++	{R367TER_TSDIVQL,	0x00},
++	{R367TER_TSDILSTKM,	0x00},
++	{R367TER_TSDILSTKL,	0x00},
++	{R367TER_TSSPEED,	0x40},/* for xc5000; was 0x6f */
++	{R367TER_TSSTATUS,	0x81},
++	{R367TER_TSSTATUS2,	0x6a},
++	{R367TER_TSBITRATEM,	0x0f},
++	{R367TER_TSBITRATEL,	0xc6},
++	{R367TER_TSPACKLENM,	0x00},
++	{R367TER_TSPACKLENL,	0xfc},
++	{R367TER_TSBLOCLENM,	0x0a},
++	{R367TER_TSBLOCLENL,	0x80},
++	{R367TER_TSDLYH,	0x90},
++	{R367TER_TSDLYM,	0x68},
++	{R367TER_TSDLYL,	0x01},
++	{R367TER_TSNPDAV,	0x00},
++	{R367TER_TSBUFSTATH,	0x00},
++	{R367TER_TSBUFSTATM,	0x00},
++	{R367TER_TSBUFSTATL,	0x00},
++	{R367TER_TSDEBUGM,	0xcf},
++	{R367TER_TSDEBUGL,	0x1e},
++	{R367TER_TSDLYSETH,	0x00},
++	{R367TER_TSDLYSETM,	0x68},
++	{R367TER_TSDLYSETL,	0x00},
++	{R367TER_TSOBSCFG,	0x00},
++	{R367TER_TSOBSM,	0x47},
++	{R367TER_TSOBSL,	0x1f},
++	{R367TER_ERRCTRL1,	0x95},
++	{R367TER_ERRCNT1H,	0x80},
++	{R367TER_ERRCNT1M,	0x00},
++	{R367TER_ERRCNT1L,	0x00},
++	{R367TER_ERRCTRL2,	0x95},
++	{R367TER_ERRCNT2H,	0x00},
++	{R367TER_ERRCNT2M,	0x00},
++	{R367TER_ERRCNT2L,	0x00},
++	{R367TER_FECSPY,	0x88},
++	{R367TER_FSPYCFG,	0x2c},
++	{R367TER_FSPYDATA,	0x3a},
++	{R367TER_FSPYOUT,	0x06},
++	{R367TER_FSTATUS,	0x61},
++	{R367TER_FGOODPACK,	0xff},
++	{R367TER_FPACKCNT,	0xff},
++	{R367TER_FSPYMISC,	0x66},
++	{R367TER_FBERCPT4,	0x00},
++	{R367TER_FBERCPT3,	0x00},
++	{R367TER_FBERCPT2,	0x36},
++	{R367TER_FBERCPT1,	0x36},
++	{R367TER_FBERCPT0,	0x14},
++	{R367TER_FBERERR2,	0x00},
++	{R367TER_FBERERR1,	0x03},
++	{R367TER_FBERERR0,	0x28},
++	{R367TER_FSTATESM,	0x00},
++	{R367TER_FSTATESL,	0x02},
++	{R367TER_FSPYBER,	0x00},
++	{R367TER_FSPYDISTM,	0x01},
++	{R367TER_FSPYDISTL,	0x9f},
++	{R367TER_FSPYOBS7,	0xc9},
++	{R367TER_FSPYOBS6,	0x99},
++	{R367TER_FSPYOBS5,	0x08},
++	{R367TER_FSPYOBS4,	0xec},
++	{R367TER_FSPYOBS3,	0x01},
++	{R367TER_FSPYOBS2,	0x0f},
++	{R367TER_FSPYOBS1,	0xf5},
++	{R367TER_FSPYOBS0,	0x08},
++	{R367TER_SFDEMAP,	0x40},
++	{R367TER_SFERROR,	0x00},
++	{R367TER_SFAVSR,	0x30},
++	{R367TER_SFECSTATUS,	0xcc},
++	{R367TER_SFKDIV12,	0x20},
++	{R367TER_SFKDIV23,	0x40},
++	{R367TER_SFKDIV34,	0x20},
++	{R367TER_SFKDIV56,	0x20},
++	{R367TER_SFKDIV67,	0x00},
++	{R367TER_SFKDIV78,	0x20},
++	{R367TER_SFDILSTKM,	0x00},
++	{R367TER_SFDILSTKL,	0x00},
++	{R367TER_SFSTATUS,	0xb5},
++	{R367TER_SFDLYH,	0x90},
++	{R367TER_SFDLYM,	0x60},
++	{R367TER_SFDLYL,	0x01},
++	{R367TER_SFDLYSETH,	0xc0},
++	{R367TER_SFDLYSETM,	0x60},
++	{R367TER_SFDLYSETL,	0x00},
++	{R367TER_SFOBSCFG,	0x00},
++	{R367TER_SFOBSM,	0x47},
++	{R367TER_SFOBSL,	0x05},
++	{R367TER_SFECINFO,	0x40},
++	{R367TER_SFERRCTRL,	0x74},
++	{R367TER_SFERRCNTH,	0x80},
++	{R367TER_SFERRCNTM,	0x00},
++	{R367TER_SFERRCNTL,	0x00},
++	{R367TER_SYMBRATEM,	0x2f},
++	{R367TER_SYMBRATEL,	0x50},
++	{R367TER_SYMBSTATUS,	0x7f},
++	{R367TER_SYMBCFG,	0x00},
++	{R367TER_SYMBFIFOM,	0xf4},
++	{R367TER_SYMBFIFOL,	0x0d},
++	{R367TER_SYMBOFFSM,	0xf0},
++	{R367TER_SYMBOFFSL,	0x2d},
++	{R367TER_DEBUG_LT4,	0x00},
++	{R367TER_DEBUG_LT5,	0x00},
++	{R367TER_DEBUG_LT6,	0x00},
++	{R367TER_DEBUG_LT7,	0x00},
++	{R367TER_DEBUG_LT8,	0x00},
++	{R367TER_DEBUG_LT9,	0x00},
++	{0x0000,		0x00},
++};
++
++static const struct st_register def0367cab[] = {
++	{R367CAB_ID,		0x60},
++	{R367CAB_I2CRPT,	0xa0},
++	/*{R367CAB_I2CRPT,	0x22},*/
++	{R367CAB_TOPCTRL,	0x10},
++	{R367CAB_IOCFG0,	0x80},
++	{R367CAB_DAC0R,		0x00},
++	{R367CAB_IOCFG1,	0x00},
++	{R367CAB_DAC1R,		0x00},
++	{R367CAB_IOCFG2,	0x00},
++	{R367CAB_SDFR,		0x00},
++	{R367CAB_AUX_CLK,	0x00},
++	{R367CAB_FREESYS1,	0x00},
++	{R367CAB_FREESYS2,	0x00},
++	{R367CAB_FREESYS3,	0x00},
++	{R367CAB_GPIO_CFG,	0x55},
++	{R367CAB_GPIO_CMD,	0x01},
++	{R367CAB_TSTRES,	0x00},
++	{R367CAB_ANACTRL,	0x0d},/* was 0x00 need to check - I.M.L.*/
++	{R367CAB_TSTBUS,	0x00},
++	{R367CAB_RF_AGC1,	0xea},
++	{R367CAB_RF_AGC2,	0x82},
++	{R367CAB_ANADIGCTRL,	0x0b},
++	{R367CAB_PLLMDIV,	0x01},
++	{R367CAB_PLLNDIV,	0x08},
++	{R367CAB_PLLSETUP,	0x18},
++	{R367CAB_DUAL_AD12,	0x0C}, /* for xc5000 AGC voltage 1.6V */
++	{R367CAB_TSTBIST,	0x00},
++	{R367CAB_CTRL_1,	0x00},
++	{R367CAB_CTRL_2,	0x03},
++	{R367CAB_IT_STATUS1,	0x2b},
++	{R367CAB_IT_STATUS2,	0x08},
++	{R367CAB_IT_EN1,	0x00},
++	{R367CAB_IT_EN2,	0x00},
++	{R367CAB_CTRL_STATUS,	0x04},
++	{R367CAB_TEST_CTL,	0x00},
++	{R367CAB_AGC_CTL,	0x73},
++	{R367CAB_AGC_IF_CFG,	0x50},
++	{R367CAB_AGC_RF_CFG,	0x00},
++	{R367CAB_AGC_PWM_CFG,	0x03},
++	{R367CAB_AGC_PWR_REF_L,	0x5a},
++	{R367CAB_AGC_PWR_REF_H,	0x00},
++	{R367CAB_AGC_RF_TH_L,	0xff},
++	{R367CAB_AGC_RF_TH_H,	0x07},
++	{R367CAB_AGC_IF_LTH_L,	0x00},
++	{R367CAB_AGC_IF_LTH_H,	0x08},
++	{R367CAB_AGC_IF_HTH_L,	0xff},
++	{R367CAB_AGC_IF_HTH_H,	0x07},
++	{R367CAB_AGC_PWR_RD_L,	0xa0},
++	{R367CAB_AGC_PWR_RD_M,	0xe9},
++	{R367CAB_AGC_PWR_RD_H,	0x03},
++	{R367CAB_AGC_PWM_IFCMD_L,	0xe4},
++	{R367CAB_AGC_PWM_IFCMD_H,	0x00},
++	{R367CAB_AGC_PWM_RFCMD_L,	0xff},
++	{R367CAB_AGC_PWM_RFCMD_H,	0x07},
++	{R367CAB_IQDEM_CFG,	0x01},
++	{R367CAB_MIX_NCO_LL,	0x22},
++	{R367CAB_MIX_NCO_HL,	0x96},
++	{R367CAB_MIX_NCO_HH,	0x55},
++	{R367CAB_SRC_NCO_LL,	0xff},
++	{R367CAB_SRC_NCO_LH,	0x0c},
++	{R367CAB_SRC_NCO_HL,	0xf5},
++	{R367CAB_SRC_NCO_HH,	0x20},
++	{R367CAB_IQDEM_GAIN_SRC_L,	0x06},
++	{R367CAB_IQDEM_GAIN_SRC_H,	0x01},
++	{R367CAB_IQDEM_DCRM_CFG_LL,	0xfe},
++	{R367CAB_IQDEM_DCRM_CFG_LH,	0xff},
++	{R367CAB_IQDEM_DCRM_CFG_HL,	0x0f},
++	{R367CAB_IQDEM_DCRM_CFG_HH,	0x00},
++	{R367CAB_IQDEM_ADJ_COEFF0,	0x34},
++	{R367CAB_IQDEM_ADJ_COEFF1,	0xae},
++	{R367CAB_IQDEM_ADJ_COEFF2,	0x46},
++	{R367CAB_IQDEM_ADJ_COEFF3,	0x77},
++	{R367CAB_IQDEM_ADJ_COEFF4,	0x96},
++	{R367CAB_IQDEM_ADJ_COEFF5,	0x69},
++	{R367CAB_IQDEM_ADJ_COEFF6,	0xc7},
++	{R367CAB_IQDEM_ADJ_COEFF7,	0x01},
++	{R367CAB_IQDEM_ADJ_EN,	0x04},
++	{R367CAB_IQDEM_ADJ_AGC_REF,	0x94},
++	{R367CAB_ALLPASSFILT1,	0xc9},
++	{R367CAB_ALLPASSFILT2,	0x2d},
++	{R367CAB_ALLPASSFILT3,	0xa3},
++	{R367CAB_ALLPASSFILT4,	0xfb},
++	{R367CAB_ALLPASSFILT5,	0xf6},
++	{R367CAB_ALLPASSFILT6,	0x45},
++	{R367CAB_ALLPASSFILT7,	0x6f},
++	{R367CAB_ALLPASSFILT8,	0x7e},
++	{R367CAB_ALLPASSFILT9,	0x05},
++	{R367CAB_ALLPASSFILT10,	0x0a},
++	{R367CAB_ALLPASSFILT11,	0x51},
++	{R367CAB_TRL_AGC_CFG,	0x20},
++	{R367CAB_TRL_LPF_CFG,	0x28},
++	{R367CAB_TRL_LPF_ACQ_GAIN,	0x44},
++	{R367CAB_TRL_LPF_TRK_GAIN,	0x22},
++	{R367CAB_TRL_LPF_OUT_GAIN,	0x03},
++	{R367CAB_TRL_LOCKDET_LTH,	0x04},
++	{R367CAB_TRL_LOCKDET_HTH,	0x11},
++	{R367CAB_TRL_LOCKDET_TRGVAL,	0x20},
++	{R367CAB_IQ_QAM,	0x01},
++	{R367CAB_FSM_STATE,	0xa0},
++	{R367CAB_FSM_CTL,	0x08},
++	{R367CAB_FSM_STS,	0x0c},
++	{R367CAB_FSM_SNR0_HTH,	0x00},
++	{R367CAB_FSM_SNR1_HTH,	0x00},
++	{R367CAB_FSM_SNR2_HTH,	0x23},/* 0x00 */
++	{R367CAB_FSM_SNR0_LTH,	0x00},
++	{R367CAB_FSM_SNR1_LTH,	0x00},
++	{R367CAB_FSM_EQA1_HTH,	0x00},
++	{R367CAB_FSM_TEMPO,	0x32},
++	{R367CAB_FSM_CONFIG,	0x03},
++	{R367CAB_EQU_I_TESTTAP_L,	0x11},
++	{R367CAB_EQU_I_TESTTAP_M,	0x00},
++	{R367CAB_EQU_I_TESTTAP_H,	0x00},
++	{R367CAB_EQU_TESTAP_CFG,	0x00},
++	{R367CAB_EQU_Q_TESTTAP_L,	0xff},
++	{R367CAB_EQU_Q_TESTTAP_M,	0x00},
++	{R367CAB_EQU_Q_TESTTAP_H,	0x00},
++	{R367CAB_EQU_TAP_CTRL,	0x00},
++	{R367CAB_EQU_CTR_CRL_CONTROL_L,	0x11},
++	{R367CAB_EQU_CTR_CRL_CONTROL_H,	0x05},
++	{R367CAB_EQU_CTR_HIPOW_L,	0x00},
++	{R367CAB_EQU_CTR_HIPOW_H,	0x00},
++	{R367CAB_EQU_I_EQU_LO,	0xef},
++	{R367CAB_EQU_I_EQU_HI,	0x00},
++	{R367CAB_EQU_Q_EQU_LO,	0xee},
++	{R367CAB_EQU_Q_EQU_HI,	0x00},
++	{R367CAB_EQU_MAPPER,	0xc5},
++	{R367CAB_EQU_SWEEP_RATE,	0x80},
++	{R367CAB_EQU_SNR_LO,	0x64},
++	{R367CAB_EQU_SNR_HI,	0x03},
++	{R367CAB_EQU_GAMMA_LO,	0x00},
++	{R367CAB_EQU_GAMMA_HI,	0x00},
++	{R367CAB_EQU_ERR_GAIN,	0x36},
++	{R367CAB_EQU_RADIUS,	0xaa},
++	{R367CAB_EQU_FFE_MAINTAP,	0x00},
++	{R367CAB_EQU_FFE_LEAKAGE,	0x63},
++	{R367CAB_EQU_FFE_MAINTAP_POS,	0xdf},
++	{R367CAB_EQU_GAIN_WIDE,	0x88},
++	{R367CAB_EQU_GAIN_NARROW,	0x41},
++	{R367CAB_EQU_CTR_LPF_GAIN,	0xd1},
++	{R367CAB_EQU_CRL_LPF_GAIN,	0xa7},
++	{R367CAB_EQU_GLOBAL_GAIN,	0x06},
++	{R367CAB_EQU_CRL_LD_SEN,	0x85},
++	{R367CAB_EQU_CRL_LD_VAL,	0xe2},
++	{R367CAB_EQU_CRL_TFR,	0x20},
++	{R367CAB_EQU_CRL_BISTH_LO,	0x00},
++	{R367CAB_EQU_CRL_BISTH_HI,	0x00},
++	{R367CAB_EQU_SWEEP_RANGE_LO,	0x00},
++	{R367CAB_EQU_SWEEP_RANGE_HI,	0x00},
++	{R367CAB_EQU_CRL_LIMITER,	0x40},
++	{R367CAB_EQU_MODULUS_MAP,	0x90},
++	{R367CAB_EQU_PNT_GAIN,	0xa7},
++	{R367CAB_FEC_AC_CTR_0,	0x16},
++	{R367CAB_FEC_AC_CTR_1,	0x0b},
++	{R367CAB_FEC_AC_CTR_2,	0x88},
++	{R367CAB_FEC_AC_CTR_3,	0x02},
++	{R367CAB_FEC_STATUS,	0x12},
++	{R367CAB_RS_COUNTER_0,	0x7d},
++	{R367CAB_RS_COUNTER_1,	0xd0},
++	{R367CAB_RS_COUNTER_2,	0x19},
++	{R367CAB_RS_COUNTER_3,	0x0b},
++	{R367CAB_RS_COUNTER_4,	0xa3},
++	{R367CAB_RS_COUNTER_5,	0x00},
++	{R367CAB_BERT_0,	0x01},
++	{R367CAB_BERT_1,	0x25},
++	{R367CAB_BERT_2,	0x41},
++	{R367CAB_BERT_3,	0x39},
++	{R367CAB_OUTFORMAT_0,	0xc2},
++	{R367CAB_OUTFORMAT_1,	0x22},
++	{R367CAB_SMOOTHER_2,	0x28},
++	{R367CAB_TSMF_CTRL_0,	0x01},
++	{R367CAB_TSMF_CTRL_1,	0xc6},
++	{R367CAB_TSMF_CTRL_3,	0x43},
++	{R367CAB_TS_ON_ID_0,	0x00},
++	{R367CAB_TS_ON_ID_1,	0x00},
++	{R367CAB_TS_ON_ID_2,	0x00},
++	{R367CAB_TS_ON_ID_3,	0x00},
++	{R367CAB_RE_STATUS_0,	0x00},
++	{R367CAB_RE_STATUS_1,	0x00},
++	{R367CAB_RE_STATUS_2,	0x00},
++	{R367CAB_RE_STATUS_3,	0x00},
++	{R367CAB_TS_STATUS_0,	0x00},
++	{R367CAB_TS_STATUS_1,	0x00},
++	{R367CAB_TS_STATUS_2,	0xa0},
++	{R367CAB_TS_STATUS_3,	0x00},
++	{R367CAB_T_O_ID_0,	0x00},
++	{R367CAB_T_O_ID_1,	0x00},
++	{R367CAB_T_O_ID_2,	0x00},
++	{R367CAB_T_O_ID_3,	0x00},
++	{0x0000,		0x00},
++};
++
++/*
++ * Tables combined
++ */
++
++static const struct
++st_register *stv0367_deftabs[STV0367_DEFTAB_MAX][STV0367_TAB_MAX] = {
++	/* generic default/init tabs */
++	{ def0367ter, def0367cab, NULL },
++};
++
++#endif
+-- 
+2.10.2
