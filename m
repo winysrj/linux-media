@@ -1,41 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:36507 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752170AbdCDVvI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Mar 2017 16:51:08 -0500
-Date: Sun, 5 Mar 2017 10:43:19 +1300
-From: Derek Robson <robsonde@gmail.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        swarren@wwwdotorg.org, lee@kernel.org, eric@anholt.net,
-        f.fainelli@gmail.com, rjui@broadcom.com, sbranden@broadcom.com,
-        arnd@arndb.de, mzoran@crowfest.net, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        bcm-kernel-feedback-list@broadcom.com,
+Received: from bombadil.infradead.org ([65.50.211.133]:51147 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753529AbdC2Sye (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Mar 2017 14:54:34 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
         linux-rpi-kernel@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Staging: media: platform: bcm2835 - Style fix
-Message-ID: <20170304214319.GA15368@bigbird>
-References: <20170304013120.24949-1-robsonde@gmail.com>
- <20170304113548.GA4386@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170304113548.GA4386@mwanda>
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Oliver Neukum <oneukum@suse.com>
+Subject: [PATCH 17/22] usb.rst: get rid of some Sphinx errors
+Date: Wed, 29 Mar 2017 15:54:16 -0300
+Message-Id: <ea93a879099e0fcedae10c02c89b6a0475cea128.1490813422.git.mchehab@s-opensource.com>
+In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Mar 04, 2017 at 02:57:22PM +0300, Dan Carpenter wrote:
-> Copy a patch prefix that everyone else has been using:
-> 
-> git log --oneline drivers/staging/media/platform/bcm2835/
-> 
-> The subject is too vague as well.
+Get rid of those warnings:
 
-Is this what you are looking for?
+    Documentation/driver-api/usb/usb.rst:615: ERROR: Unknown target name: "usb_type".
+    Documentation/driver-api/usb/usb.rst:615: ERROR: Unknown target name: "usb_dir".
+    Documentation/driver-api/usb/usb.rst:615: ERROR: Unknown target name: "usb_recip".
+    Documentation/driver-api/usb/usb.rst:679: ERROR: Unknown target name: "usbdevfs_urb_type".
 
-[patch] Staging: bcm2835: fixed style of block comments
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/driver-api/usb/usb.rst | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-And should I just re-send as a V2 with new subject?
-
-Thanks
+diff --git a/Documentation/driver-api/usb/usb.rst b/Documentation/driver-api/usb/usb.rst
+index d15ab8ae5239..5ebaf669704c 100644
+--- a/Documentation/driver-api/usb/usb.rst
++++ b/Documentation/driver-api/usb/usb.rst
+@@ -615,8 +615,8 @@ USBDEVFS_CONTROL
+     The first eight bytes of this structure are the contents of the
+     SETUP packet to be sent to the device; see the USB 2.0 specification
+     for details. The bRequestType value is composed by combining a
+-    USB_TYPE_\* value, a USB_DIR_\* value, and a USB_RECIP_\*
+-    value (from *<linux/usb.h>*). If wLength is nonzero, it describes
++    ``USB_TYPE_*`` value, a ``USB_DIR_*`` value, and a ``USB_RECIP_*``
++    value (from ``linux/usb.h``). If wLength is nonzero, it describes
+     the length of the data buffer, which is either written to the device
+     (USB_DIR_OUT) or read from the device (USB_DIR_IN).
+ 
+@@ -678,7 +678,7 @@ the blocking is separate.
+ 
+ These requests are packaged into a structure that resembles the URB used
+ by kernel device drivers. (No POSIX Async I/O support here, sorry.) It
+-identifies the endpoint type (USBDEVFS_URB_TYPE_\*), endpoint
++identifies the endpoint type (``USBDEVFS_URB_TYPE_*``), endpoint
+ (number, masked with USB_DIR_IN as appropriate), buffer and length,
+ and a user "context" value serving to uniquely identify each request.
+ (It's usually a pointer to per-request data.) Flags can modify requests
+-- 
+2.9.3
