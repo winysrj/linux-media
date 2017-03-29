@@ -1,65 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:37413 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751653AbdCNTGj (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:57010 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753026AbdC2Syc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:06:39 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v3 13/27] rcar-vin: do not cut height in two for top, bottom or alternate fields
-Date: Tue, 14 Mar 2017 20:02:54 +0100
-Message-Id: <20170314190308.25790-14-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Wed, 29 Mar 2017 14:54:32 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Felipe Balbi <balbi@kernel.org>
+Subject: [PATCH 20/22] usb: gadget.h: be consistent at kernel doc macros
+Date: Wed, 29 Mar 2017 15:54:19 -0300
+Message-Id: <5ab585cce6b5bc80913f5861f35c064c8d8ef44f.1490813422.git.mchehab@s-opensource.com>
+In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The height should not be cut in half for the format for top, bottom or
-alternate fields settings. This was a mistake and it was made
-visible by the scaling refactoring.
+There's one value that use spaces instead of tabs to ident.
+That causes the following warning:
 
-Correct behavior is that the user should request a frame size that fits
-the half height frame reflected in the field setting. If not the VIN
-will do it's best to scale the top or bottom to the requested format and
-cropping and scaling do not work as expected.
+./include/linux/usb/gadget.h:193: ERROR: Unexpected indentation.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/usb/gadget.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 80421421625e6f6f..28b62a514bbb93a9 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -142,8 +142,6 @@ static int rvin_reset_format(struct rvin_dev *vin)
- 	case V4L2_FIELD_TOP:
- 	case V4L2_FIELD_BOTTOM:
- 	case V4L2_FIELD_ALTERNATE:
--		vin->format.height /= 2;
--		break;
- 	case V4L2_FIELD_NONE:
- 	case V4L2_FIELD_INTERLACED_TB:
- 	case V4L2_FIELD_INTERLACED_BT:
-@@ -245,8 +243,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	case V4L2_FIELD_TOP:
- 	case V4L2_FIELD_BOTTOM:
- 	case V4L2_FIELD_ALTERNATE:
--		pix->height /= 2;
--		break;
- 	case V4L2_FIELD_NONE:
- 	case V4L2_FIELD_INTERLACED_TB:
- 	case V4L2_FIELD_INTERLACED_BT:
+diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
+index e4516e9ded0f..fbc22a39e7bc 100644
+--- a/include/linux/usb/gadget.h
++++ b/include/linux/usb/gadget.h
+@@ -188,7 +188,7 @@ struct usb_ep_caps {
+  * @caps:The structure describing types and directions supported by endoint.
+  * @maxpacket:The maximum packet size used on this endpoint.  The initial
+  *	value can sometimes be reduced (hardware allowing), according to
+- *      the endpoint descriptor used to configure the endpoint.
++ *	the endpoint descriptor used to configure the endpoint.
+  * @maxpacket_limit:The maximum packet size value which can be handled by this
+  *	endpoint. It's set once by UDC driver when endpoint is initialized, and
+  *	should not be changed. Should not be confused with maxpacket.
 -- 
-2.12.0
+2.9.3
