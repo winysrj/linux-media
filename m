@@ -1,49 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms.lwn.net ([45.79.88.28]:48898 "EHLO ms.lwn.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932934AbdCaPFo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 11:05:44 -0400
-Date: Fri, 31 Mar 2017 09:05:37 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Takashi Iwai <tiwai@suse.de>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Silvio Fricke <silvio.fricke@gmail.com>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 5/9] kernel-api.tmpl: convert it to ReST
-Message-ID: <20170331090537.567730e8@lwn.net>
-In-Reply-To: <0186e4eb40e09f92a7ec59f195d93af38176433f.1490904090.git.mchehab@s-opensource.com>
-References: <cover.1490904090.git.mchehab@s-opensource.com>
-        <0186e4eb40e09f92a7ec59f195d93af38176433f.1490904090.git.mchehab@s-opensource.com>
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:36760 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933140AbdC2WXJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Mar 2017 18:23:09 -0400
+Received: by mail-qt0-f194.google.com with SMTP id n37so3943682qtb.3
+        for <linux-media@vger.kernel.org>; Wed, 29 Mar 2017 15:23:08 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+From: Nigel Terry <nigel@nigelterry.net>
+Date: Wed, 29 Mar 2017 18:23:07 -0400
+Message-ID: <CAHBUmZMCxEGsVZEY2NWpcDtWqne8BfWH5-s5V79Hys56MBeZog@mail.gmail.com>
+Subject: build_media compilation issues
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 30 Mar 2017 17:11:32 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+I'm trying to use build_media to build the media drivers, specifically
+usb/em28xx, for Centos7. I'm getting compile errors, see below. Can
+anyone help me?
 
-> Brainless conversion of genericirq.tmpl book to ReST, via
-> 	Documentation/sphinx/tmplcvt
+Kernel:
+$ uname -a
+Linux mythpbx.lan 3.10.0-514.10.2.el7.x86_64 #1 SMP Fri Mar 3 00:04:05
+UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
 
-This one kind of showcases why I'm nervous about bulk conversions.  It's
-a bit of a dumping-ground document, with a bit of everything, and I think
-we can do better.  And, in particular, this one contains a bunch of stuff
-that belongs in the driver-api manual instead.  So, at a minimum, I would
-really like to see this template split across those two manuals.
-
-If you promise me a followup patch doing that, maybe I can go ahead and
-merge this series now :)
-
-(That's mildly complicated by the fact that you didn't send me parts 6,
-8, and 9; I really would rather get the whole series in cases like this.)
-
-Thanks,
-
-jon
+Errors:
+...
+  CC [M]  /home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.o
+/home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c: In function
+'dvb_usb_start_feed':
+/home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c:274:2: warning:
+passing argument 3 of 'wait_on_bit' makes integer from pointer without
+a cast [enabled by default]
+  wait_on_bit(&adap->state_bits, ADAP_INIT, wait_schedule,
+TASK_UNINTERRUPTIBLE);
+  ^
+In file included from include/linux/kobject.h:27:0,
+                 from include/linux/device.h:17,
+                 from include/linux/input.h:22,
+                 from /home/mythtv/buildmedia/media_build/v4l/compat.h:10,
+                 from <command-line>:0:
+include/linux/wait.h:1044:1: note: expected 'unsigned int' but
+argument is of type 'int (*)(void *)'
+ wait_on_bit(void *word, int bit, unsigned mode)
+ ^
+/home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c:274:2: error:
+too many arguments to function 'wait_on_bit'
+  wait_on_bit(&adap->state_bits, ADAP_INIT, wait_schedule,
+TASK_UNINTERRUPTIBLE);
+  ^
+In file included from include/linux/kobject.h:27:0,
+                 from include/linux/device.h:17,
+                 from include/linux/input.h:22,
+                 from /home/mythtv/buildmedia/media_build/v4l/compat.h:10,
+                 from <command-line>:0:
+include/linux/wait.h:1044:1: note: declared here
+ wait_on_bit(void *word, int bit, unsigned mode)
+ ^
+/home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c: In function
+'dvb_usb_fe_sleep':
+/home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c:623:5: warning:
+passing argument 3 of 'wait_on_bit' makes integer from pointer without
+a cast [enabled by default]
+     wait_schedule, TASK_UNINTERRUPTIBLE);
+     ^
+In file included from include/linux/kobject.h:27:0,
+                 from include/linux/device.h:17,
+                 from include/linux/input.h:22,
+                 from /home/mythtv/buildmedia/media_build/v4l/compat.h:10,
+                 from <command-line>:0:
+include/linux/wait.h:1044:1: note: expected 'unsigned int' but
+argument is of type 'int (*)(void *)'
+ wait_on_bit(void *word, int bit, unsigned mode)
+ ^
+/home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c:623:5: error:
+too many arguments to function 'wait_on_bit'
+     wait_schedule, TASK_UNINTERRUPTIBLE);
+     ^
+In file included from include/linux/kobject.h:27:0,
+                 from include/linux/device.h:17,
+                 from include/linux/input.h:22,
+                 from /home/mythtv/buildmedia/media_build/v4l/compat.h:10,
+                 from <command-line>:0:
+include/linux/wait.h:1044:1: note: declared here
+ wait_on_bit(void *word, int bit, unsigned mode)
+ ^
+make[3]: *** [/home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.o] Error 1
+make[2]: *** [_module_/home/mythtv/buildmedia/media_build/v4l] Error 2
+make[2]: Leaving directory `/usr/src/kernels/3.10.0-514.10.2.el7.x86_64'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/mythtv/buildmedia/media_build/v4l'
+make: *** [all] Error 2
+build failed at ./build line 491.
