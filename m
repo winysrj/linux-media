@@ -1,100 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46036
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S933490AbdC3K2L (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54199 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753805AbdC2H4u (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 06:28:11 -0400
-Date: Thu, 30 Mar 2017 07:28:00 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Oliver Neukum <oneukum@suse.com>,
-        David Mosberger <davidm@egauge.net>,
-        Jaejoong Kim <climbbb.kim@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-rpi-kernel@lists.infradead.org,
-        Jonathan Corbet <corbet@lwn.net>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        John Youn <johnyoun@synopsys.com>,
-        Roger Quadros <rogerq@ti.com>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-usb@vger.kernel.org
-Subject: Re: [PATCH 22/22] usb: document that URB transfer_buffer should be
- aligned
-Message-ID: <20170330072800.5ee8bc33@vento.lan>
-In-Reply-To: <3181783.rVmBcEVlbi@avalon>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-        <1822963.cezI9HmAB6@avalon>
-        <1490861491.8660.2.camel@suse.com>
-        <3181783.rVmBcEVlbi@avalon>
+        Wed, 29 Mar 2017 03:56:50 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] dev-capture.rst/dev-output.rst: video standards ioctls are
+ optional
+Message-ID: <8e21fc74-64a8-8767-8bcf-4b954d4e22c1@xs4all.nl>
+Date: Wed, 29 Mar 2017 09:56:47 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 30 Mar 2017 12:34:32 +0300
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+The documentation for video capture and output devices claims that the video standard
+ioctls are required. This is not the case, they are only required for PAL/NTSC/SECAM
+type inputs and outputs. Sensors do not implement this at all and e.g. HDMI inputs
+implement the DV Timings ioctls.
 
-> Hi Oliver,
-> 
-> On Thursday 30 Mar 2017 10:11:31 Oliver Neukum wrote:
-> > Am Donnerstag, den 30.03.2017, 01:15 +0300 schrieb Laurent Pinchart:  
-> > > > +   may also override PAD bytes at the end of the ``transfer_buffer``,
-> > > > up to the
-> > > > +   size of the CPU word.  
-> > > 
-> > > "May" is quite weak here. If some host controller drivers require buffers
-> > > to be aligned, then it's an API requirement, and all buffers must be
-> > > aligned. I'm not even sure I would mention that some host drivers require
-> > > it, I think we should just state that the API requires buffers to be
-> > > aligned.  
-> > 
-> > That effectively changes the API. Many network drivers are written with
-> > the assumption that any contiguous buffer is valid. In fact you could
-> > argue that those drivers are buggy and must use bounce buffers in those
-> > cases.
+Just drop the mention of 'video standard' ioctls.
 
-Blaming the dwc2 driver was my first approach, but such patch got nacked ;)
-
-Btw, the dwc2 driver has a routine that creates a temporary buffer if the
-buffer pointer is not DWORD aligned. My first approach were to add
-a logic there to also use the temporary buffer if the buffer size is
-not DWORD aligned:
-	https://patchwork.linuxtv.org/patch/40093/
-
-While debugging this issue, I saw *a lot* of network-generated URB
-traffic from RPi3 Ethernet port drivers that were using non-aligned 
-buffers and were subject to the temporary buffer conversion.
-
-My understanding here is that having a temporary bounce buffer sucks,
-as the performance and latency are affected. So, I see the value of
-adding this constraint to the API, pushing the task of getting 
-aligned buffers to the USB drivers, but you're right: that means a lot
-of work, as all USB drivers should be reviewed.
-
-Btw, I'm a lot more concerned about USB storage drivers. When I was
-discussing about this issue at the #raspberrypi-devel IRC channel,
-someone complained that, after switching from the RPi downstream Kernel
-to upstream, his USB data storage got corrupted. Well, if the USB
-storage drivers also assume that the buffer can be continuous,
-that can corrupt data.
-
-That's why I think that being verbose here is a good idea.
-
-I'll rework on this patch to put more emphasis about this issue.
-
-> > 
-> > So we need to include the full story here.  
-> 
-> I personally don't care much about whose side is responsible for handling the 
-> alignment constraints, but I want it to be documented before "fixing" any USB 
-> driver.
-> 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/Documentation/media/uapi/v4l/dev-capture.rst b/Documentation/media/uapi/v4l/dev-capture.rst
+index 32b32055d070..4218742ab5d9 100644
+--- a/Documentation/media/uapi/v4l/dev-capture.rst
++++ b/Documentation/media/uapi/v4l/dev-capture.rst
+@@ -42,8 +42,8 @@ Video capture devices shall support :ref:`audio input <audio>`,
+ :ref:`tuner`, :ref:`controls <control>`,
+ :ref:`cropping and scaling <crop>` and
+ :ref:`streaming parameter <streaming-par>` ioctls as needed. The
+-:ref:`video input <video>` and :ref:`video standard <standard>`
+-ioctls must be supported by all video capture devices.
++:ref:`video input <video>` ioctls must be supported by all video
++capture devices.
 
 
+ Image Format Negotiation
+diff --git a/Documentation/media/uapi/v4l/dev-output.rst b/Documentation/media/uapi/v4l/dev-output.rst
+index 25ae8ec96fdf..342eb4931f5c 100644
+--- a/Documentation/media/uapi/v4l/dev-output.rst
++++ b/Documentation/media/uapi/v4l/dev-output.rst
+@@ -40,8 +40,8 @@ Video output devices shall support :ref:`audio output <audio>`,
+ :ref:`modulator <tuner>`, :ref:`controls <control>`,
+ :ref:`cropping and scaling <crop>` and
+ :ref:`streaming parameter <streaming-par>` ioctls as needed. The
+-:ref:`video output <video>` and :ref:`video standard <standard>`
+-ioctls must be supported by all video output devices.
++:ref:`video output <video>` ioctls must be supported by all video
++output devices.
 
-Thanks,
-Mauro
+
+ Image Format Negotiation
