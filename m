@@ -1,92 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f180.google.com ([74.125.82.180]:32824 "EHLO
-        mail-ot0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933742AbdCJS7O (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49622 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750766AbdC3U1B (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 13:59:14 -0500
-Received: by mail-ot0-f180.google.com with SMTP id 19so82605085oti.0
-        for <linux-media@vger.kernel.org>; Fri, 10 Mar 2017 10:59:13 -0800 (PST)
-Subject: Re: [PATCH v5 07/39] ARM: dts: imx6qdl-sabrelite: remove erratum
- ERR006687 workaround
-To: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-8-git-send-email-steve_longerbeam@mentor.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Troy Kisky <troy.kisky@boundarydevices.com>
-Message-ID: <9f5d0ac4-0602-c729-5c00-1d9ef49247c1@boundarydevices.com>
-Date: Fri, 10 Mar 2017 10:59:11 -0800
+        Thu, 30 Mar 2017 16:27:01 -0400
+Date: Thu, 30 Mar 2017 23:26:26 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Helen Koike <helen.koike@collabora.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org, jgebben@codeaurora.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 2/2] [media] docs-rst: add V4L2_INPUT_TYPE_DEFAULT
+Message-ID: <20170330202626.GM16657@valkosipuli.retiisi.org.uk>
+References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
+ <1490889738-30009-2-git-send-email-helen.koike@collabora.com>
 MIME-Version: 1.0
-In-Reply-To: <1489121599-23206-8-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1490889738-30009-2-git-send-email-helen.koike@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3/9/2017 8:52 PM, Steve Longerbeam wrote:
-> There is a pin conflict with GPIO_6. This pin functions as a power
-> input pin to the OV5642 camera sensor, but ENET uses it as the h/w
-> workaround for erratum ERR006687, to wake-up the ARM cores on normal
-> RX and TX packet done events. So we need to remove the h/w workaround
-> to support the OV5642. The result is that the CPUidle driver will no
-> longer allow entering the deep idle states on the sabrelite.
+Hi Helen and others,
+
+On Thu, Mar 30, 2017 at 01:02:18PM -0300, Helen Koike wrote:
+> add documentation for V4L2_INPUT_TYPE_DEFAULT
 > 
-> This is a partial revert of
-> 
-> commit 6261c4c8f13e ("ARM: dts: imx6qdl-sabrelite: use GPIO_6 for FEC
-> 			interrupt.")
-> commit a28eeb43ee57 ("ARM: dts: imx6: tag boards that have the HW workaround
-> 			for ERR006687")
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> Signed-off-by: Helen Koike <helen.koike@collabora.com>
 > ---
->  arch/arm/boot/dts/imx6qdl-sabrelite.dtsi | 4 ----
->  1 file changed, 4 deletions(-)
+>  Documentation/media/uapi/v4l/vidioc-enuminput.rst | 3 +++
+>  1 file changed, 3 insertions(+)
 > 
-> diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
-> index 8413179..89dce27 100644
-> --- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
-> +++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
-> @@ -270,9 +270,6 @@
->  	txd1-skew-ps = <0>;
->  	txd2-skew-ps = <0>;
->  	txd3-skew-ps = <0>;
-
-How about
-
-+#if !IS_ENABLED(CONFIG_VIDEO_OV5642)
-
-> -	interrupts-extended = <&gpio1 6 IRQ_TYPE_LEVEL_HIGH>,
-> -			      <&intc 0 119 IRQ_TYPE_LEVEL_HIGH>;
-> -	fsl,err006687-workaround-present;
-
-+#endif
-
-Is that allowed ?
-
-
->  	status = "okay";
->  };
+> diff --git a/Documentation/media/uapi/v4l/vidioc-enuminput.rst b/Documentation/media/uapi/v4l/vidioc-enuminput.rst
+> index 17aaaf9..0237e10 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-enuminput.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-enuminput.rst
+> @@ -112,6 +112,9 @@ at index zero, incrementing by one until the driver returns ``EINVAL``.
+>      :stub-columns: 0
+>      :widths:       3 1 4
 >  
-> @@ -373,7 +370,6 @@
->  				MX6QDL_PAD_RGMII_RX_CTL__RGMII_RX_CTL	0x1b030
->  				/* Phy reset */
->  				MX6QDL_PAD_EIM_D23__GPIO3_IO23		0x000b0
-> -				MX6QDL_PAD_GPIO_6__ENET_IRQ		0x000b1
->  			>;
->  		};
->  
-> 
+> +    * - ``V4L2_INPUT_TYPE_DEFAULT``
+> +      - 0
+> +      - This is the default value returned when no input is supported.
+>      * - ``V4L2_INPUT_TYPE_TUNER``
+>        - 1
+>        - This input uses a tuner (RF demodulator).
+
+What would you think of calling this input as "unknown" instead of
+"default"? That's what an input which isn't really specified actually is.
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
