@@ -1,87 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:60985
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S933322AbdCMBKo (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36437 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753755AbdC3Jd4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Mar 2017 21:10:44 -0400
-Date: Sun, 12 Mar 2017 22:02:31 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 12/23] MAINTAINERS: Add file patterns for media
- device tree bindings
-Message-ID: <20170312220231.193801fd@vento.lan>
-In-Reply-To: <1489324627-19126-13-git-send-email-geert@linux-m68k.org>
-References: <1489324627-19126-1-git-send-email-geert@linux-m68k.org>
-        <1489324627-19126-13-git-send-email-geert@linux-m68k.org>
+        Thu, 30 Mar 2017 05:33:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Oliver Neukum <oneukum@suse.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        David Mosberger <davidm@egauge.net>,
+        Jaejoong Kim <climbbb.kim@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-rpi-kernel@lists.infradead.org,
+        Jonathan Corbet <corbet@lwn.net>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        John Youn <johnyoun@synopsys.com>,
+        Roger Quadros <rogerq@ti.com>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-usb@vger.kernel.org
+Subject: Re: [PATCH 22/22] usb: document that URB transfer_buffer should be aligned
+Date: Thu, 30 Mar 2017 12:34:32 +0300
+Message-ID: <3181783.rVmBcEVlbi@avalon>
+In-Reply-To: <1490861491.8660.2.camel@suse.com>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com> <1822963.cezI9HmAB6@avalon> <1490861491.8660.2.camel@suse.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 12 Mar 2017 14:16:56 +0100
-Geert Uytterhoeven <geert@linux-m68k.org> escreveu:
+Hi Oliver,
 
-> Submitters of device tree binding documentation may forget to CC
-> the subsystem maintainer if this is missing.
+On Thursday 30 Mar 2017 10:11:31 Oliver Neukum wrote:
+> Am Donnerstag, den 30.03.2017, 01:15 +0300 schrieb Laurent Pinchart:
+> > > +   may also override PAD bytes at the end of the ``transfer_buffer``,
+> > > up to the
+> > > +   size of the CPU word.
+> > 
+> > "May" is quite weak here. If some host controller drivers require buffers
+> > to be aligned, then it's an API requirement, and all buffers must be
+> > aligned. I'm not even sure I would mention that some host drivers require
+> > it, I think we should just state that the API requires buffers to be
+> > aligned.
 > 
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-As the To: is devicetree, I'm assuming that this patch will be
-applied there, so:
-
-Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-I may also merge via my tree, if that would be better. Just let me
-know in such case.
-
-> Cc: linux-media@vger.kernel.org
-> ---
-> Please apply this patch directly if you want to be involved in device
-> tree binding documentation for your subsystem.
+> That effectively changes the API. Many network drivers are written with
+> the assumption that any contiguous buffer is valid. In fact you could
+> argue that those drivers are buggy and must use bounce buffers in those
+> cases.
 > 
-> v2:
->   - Add Reviewed-by.
-> 
-> Impact on next-20170310:
-> 
-> -Rob Herring <robh+dt@kernel.org> (maintainer:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS,commit_signer:24/39=62%)
-> +Mauro Carvalho Chehab <mchehab@kernel.org> (maintainer:MEDIA INPUT INFRASTRUCTURE (V4L/DVB))
-> +Rob Herring <robh+dt@kernel.org> (maintainer:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS)
->  Mark Rutland <mark.rutland@arm.com> (maintainer:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS)
-> -Mauro Carvalho Chehab <mchehab@kernel.org> (commit_signer:34/39=87%)
-> -Hans Verkuil <hans.verkuil@cisco.com> (commit_signer:13/39=33%)
-> -Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com> (commit_signer:11/39=28%,authored:3/39=8%)
-> -Marek Szyprowski <m.szyprowski@samsung.com> (commit_signer:4/39=10%,authored:4/39=10%)
-> -Kieran Bingham <kieran+renesas@bingham.xyz> (authored:3/39=8%)
-> -Martin Blumenstingl <martin.blumenstingl@googlemail.com> (authored:2/39=5%)
-> -Eric Engestrom <eric@engestrom.ch> (authored:2/39=5%)
-> +linux-media@vger.kernel.org (open list:MEDIA INPUT INFRASTRUCTURE (V4L/DVB))
->  devicetree@vger.kernel.org (open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS)
->  linux-kernel@vger.kernel.org (open list)
-> ---
->  MAINTAINERS | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 2692055d221e2bb2..3e108e31636d4db2 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -8085,6 +8085,7 @@ W:	https://linuxtv.org
->  Q:	http://patchwork.kernel.org/project/linux-media/list/
->  T:	git git://linuxtv.org/media_tree.git
->  S:	Maintained
-> +F:	Documentation/devicetree/bindings/media/
->  F:	Documentation/media/
->  F:	drivers/media/
->  F:	drivers/staging/media/
+> So we need to include the full story here.
 
+I personally don't care much about whose side is responsible for handling the 
+alignment constraints, but I want it to be documented before "fixing" any USB 
+driver.
 
 -- 
-Thanks,
-Mauro
+Regards,
+
+Laurent Pinchart
