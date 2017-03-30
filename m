@@ -1,71 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55772 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752170AbdCDTpC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Mar 2017 14:45:02 -0500
-Date: Sat, 4 Mar 2017 20:44:58 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [media] omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for
- CCP2 mode
-Message-ID: <20170304194458.GC31766@amd>
-References: <20161228183036.GA13139@amd>
- <10545906.Gxg3yScdu4@avalon>
- <20170215094228.GA8586@amd>
- <2414221.XNA4JCFMRx@avalon>
- <20170301114545.GA19201@amd>
- <20170304151533.GY3220@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="FsscpQKzF/jJk6ya"
-Content-Disposition: inline
-In-Reply-To: <20170304151533.GY3220@valkosipuli.retiisi.org.uk>
+Received: from smtp3.goneo.de ([85.220.129.37]:54636 "EHLO smtp3.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932189AbdC3JVC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 05:21:02 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH 02/22] docs-rst: convert usb docbooks to ReST
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <87y3vn2mzk.fsf@intel.com>
+Date: Thu, 30 Mar 2017 11:20:14 +0200
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Takashi Iwai <tiwai@suse.de>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Oliver Neukum <oneukum@suse.com>,
+        Martyn Welch <martyn.welch@collabora.co.uk>,
+        Alexander Dahl <post@lespocky.de>,
+        Jonathan Cameron <jic23@kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <D5D8BF1C-755B-4D56-B744-6A155C5B2313@darmarit.de>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com> <327dcce56a725c7f91f542f2ff97995504d26526.1490813422.git.mchehab@s-opensource.com> <7D76BCB2-53F5-4BD4-8205-5A4852164C91@darmarit.de> <87y3vn2mzk.fsf@intel.com>
+To: Jani Nikula <jani.nikula@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---FsscpQKzF/jJk6ya
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Am 30.03.2017 um 10:21 schrieb Jani Nikula <jani.nikula@intel.com>:
 
-On Sat 2017-03-04 17:15:34, Sakari Ailus wrote:
-> On Wed, Mar 01, 2017 at 12:45:46PM +0100, Pavel Machek wrote:
-> > ISP CSI1 module needs all the bits correctly set to work.
-> >=20
-> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> >=20
->=20
-> How are you sending the patches?
+> On Thu, 30 Mar 2017, Markus Heiser <markus.heiser@darmarit.de> wrote:
+>> Hi Mauro,
+>> 
+>> Am 29.03.2017 um 20:54 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+>> 
+>>> As we're moving out of DocBook, let's convert the remaining
+>>> USB docbooks to ReST.
+>>> 
+>>> The transformation itself on this patch is a no-brainer
+>>> conversion using pandoc.
+>> 
+>> right, its a no-brainer ;-) I'am not very happy with this
+>> conversions, some examples see below.
+>> 
+>> I recommend to use a more elaborate conversion as starting point,
+>> e.g. from my sphkerneldoc project:
+>> 
+>> * https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated/gadget
+>> * https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated/writing_musb_glue_layer
+>> * https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated/writing_usb_driver
+>> 
+>> Since these DocBooks hasn't been changed in the last month, the linked reST
+>> should be up to date.
+> 
+> Markus, I know you've done a lot of work on your conversions, and you
+> like to advocate them, but AFAICT you have never posted the conversions
+> as patches to the list. Your project isn't a clone of the kernel
+> tree. It's a pile of .rst files that nobody knows how to produce from
+> current upstream DocBook .tmpl files. I'm sorry, but this just doesn't
+> work that way.
 
-manually using mutt, for series I do something with git. Hmm. And
-script I was using for that disappeared :-(.
+The conversion is done with the dbxml2rst tool:
 
-> I've applied this to the ccp2 branch.
+  https://github.com/return42/dbxml2rst
 
-Thanks,
-									Pavel
+But you are right, the links I send are decoupled from kernel. It is
+a 5 month old snapshot of a DocBook to reST conversion (now updated,
+with no affect to the linked files, since they have not been patched
+in the meantime) ...
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+> At this point I'd just go with what Mauro has. It's here now, as
+> patches. We've seen from the GPU documentation that polishing the
+> one-time initial conversion is, after a point, wasted effort. Having the
+> documentation in rst attracts more attention and contributions, and any
+> remaining issues will get ironed out in rst.
 
---FsscpQKzF/jJk6ya
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I totally agree with you (I have never said something different)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> This is also one reason I'm in favor of just bulk converting the rest of
+> the .tmpl files using Documentation/sphinx/tmplcvt, get rid of DocBook
+> and be done with it, and have the crowds focus on rst.
 
-iEYEARECAAYFAli7GToACgkQMOfwapXb+vITngCfZeiOMl4x3fVIEMKwQkF17plM
-wigAn1/5EwntuxM3pv3MA+1CF1jxU160
-=WkF5
------END PGP SIGNATURE-----
+I also agree with that. The tmplcvt script is good enough for this task,
+the dbxml2rst tool is more elaborate.
 
---FsscpQKzF/jJk6ya--
+If Jonathan also likes to have a bulk conversion of the rest DocBooks,
+we can use tmplcvt or even dbxml2rst for this task. Everything under
+
+  https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated
+
+is just a "make dbxm2rst", I can update every time and if a bulk conversion
+is the way ... I can send such patches or you send a tmplcvt conversion.
+
+@Jon: what do you think about a bulk conversion?
+
+ -- Markus --
+  
