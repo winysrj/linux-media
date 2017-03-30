@@ -1,101 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:36506 "EHLO
-        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750783AbdCMNWX (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:56341 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932667AbdC3KqI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 09:22:23 -0400
-Date: Mon, 13 Mar 2017 13:21:50 +0000
-From: Mark Brown <broonie@kernel.org>
-To: Brian Starkey <brian.starkey@arm.com>
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Laura Abbott <labbott@redhat.com>,
-        Michal Hocko <mhocko@kernel.org>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>,
-        Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>,
-        Rom Lemarchand <romlem@google.com>, devel@driverdev.osuosl.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        Daniel Vetter <daniel.vetter@intel.com>, linux-mm@kvack.org
-Message-ID: <20170313132150.324h7em7c3iowmwj@sirena.org.uk>
-References: <20170303132949.GC31582@dhcp22.suse.cz>
- <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
- <20170306074258.GA27953@dhcp22.suse.cz>
- <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
- <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk>
- <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
- <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
- <26bc57ae-d88f-4ea0-d666-2c1a02bf866f@redhat.com>
- <CA+M3ks6R=n4n54wofK7pYcWoQKUhzyWQytBO90+pRDRrAhi3ww@mail.gmail.com>
- <20170313105433.GA12980@e106950-lin.cambridge.arm.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="jmd3p5wa7z2gqxvc"
-Content-Disposition: inline
-In-Reply-To: <20170313105433.GA12980@e106950-lin.cambridge.arm.com>
-Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
- staging
+        Thu, 30 Mar 2017 06:46:08 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH v2 08/22] usb/anchors.txt: convert to ReST and add to driver-api book
+Date: Thu, 30 Mar 2017 07:45:42 -0300
+Message-Id: <27e02685a76dae589625368f18782d4a27f34c45.1490870599.git.mchehab@s-opensource.com>
+In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This document describe some USB core functions. Add it to the
+driver-api book.
 
---jmd3p5wa7z2gqxvc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ .../anchors.txt => driver-api/usb/anchors.rst}     | 36 ++++++++++++----------
+ Documentation/driver-api/usb/index.rst             |  1 +
+ 2 files changed, 21 insertions(+), 16 deletions(-)
+ rename Documentation/{usb/anchors.txt => driver-api/usb/anchors.rst} (75%)
 
-On Mon, Mar 13, 2017 at 10:54:33AM +0000, Brian Starkey wrote:
-> On Sun, Mar 12, 2017 at 02:34:14PM +0100, Benjamin Gaignard wrote:
-
-> > Another point is how can we put secure rules (like selinux policy) on
-> > heaps since all the allocations
-> > go to the same device (/dev/ion) ? For example, until now, in Android
-> > we have to give the same
-> > access rights to all the process that use ION.
-> > It will become problem when we will add secure heaps because we won't
-> > be able to distinguish secure
-> > processes to standard ones or set specific policy per heaps.
-> > Maybe I'm wrong here but I have never see selinux policy checking an
-> > ioctl field but if that
-> > exist it could be a solution.
-
-> I might be thinking of a different type of "secure", but...
-
-> Should the security of secure heaps be enforced by OS-level
-> permissions? I don't know about other architectures, but at least on
-> arm/arm64 this is enforced in hardware; it doesn't matter who has
-> access to the ion heap, because only secure devices (or the CPU
-> running a secure process) is physically able to access the memory
-> backing the buffer.
-
-> In fact, in the use-cases I know of, the process asking for the ion
-> allocation is not a secure process, and so we wouldn't *want* to
-> restrict the secure heap to be allocated from only by secure
-> processes.
-
-I think there's an orthogonal level of OS level security that can be
-applied here - it's reasonable for it to want to say things like "only
-processes that are supposed to be implementing functionality X should be
-able to try to allocate memory set aside for that functionality".  This
-mitigates against escallation attacks and so on, it's not really
-directly related to secure memory as such though.
-
---jmd3p5wa7z2gqxvc
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAljGnO0ACgkQJNaLcl1U
-h9ADTgf/cen1KJxzB5DyzPjdff5+hLmkjHDPrpZVfe7FMCTp8wYRsf1OHGAMsHx0
-KsoTEdpQmt6ao4EEQGYPZWs1VSYE12tXejBGQJ0Av8duNXg1BUUUnLJi+xz/sIGb
-tDX3trnLxByCfqFdZEtXuFpErBUtyt3tv5nrcLYzWFcgWaK+Xuf+5WsPZ4McTJCF
-KK7j22M9qZ5J/0C/DyTM2H8EaBb6NjSDfDBnydDYCzYrf+YkxwAdcj8qta9toRyV
-qfBVsD/kkx8dHPPYZG+WXeQCzkQPoluN94P2cN2Ni990mzSAKtgS8maXRJ9MRUBV
-5F4uW1syDtEsiZPAdFPeC/ZXISn65g==
-=C/hC
------END PGP SIGNATURE-----
-
---jmd3p5wa7z2gqxvc--
+diff --git a/Documentation/usb/anchors.txt b/Documentation/driver-api/usb/anchors.rst
+similarity index 75%
+rename from Documentation/usb/anchors.txt
+rename to Documentation/driver-api/usb/anchors.rst
+index fe6a99a32bbd..4b248e691bd6 100644
+--- a/Documentation/usb/anchors.txt
++++ b/Documentation/driver-api/usb/anchors.rst
+@@ -1,3 +1,6 @@
++USB Anchors
++~~~~~~~~~~~
++
+ What is anchor?
+ ===============
+ 
+@@ -13,7 +16,7 @@ Allocation and Initialisation
+ =============================
+ 
+ There's no API to allocate an anchor. It is simply declared
+-as struct usb_anchor. init_usb_anchor() must be called to
++as struct usb_anchor. :c:func:`init_usb_anchor` must be called to
+ initialise the data structure.
+ 
+ Deallocation
+@@ -26,52 +29,53 @@ Association and disassociation of URBs with anchors
+ ===================================================
+ 
+ An association of URBs to an anchor is made by an explicit
+-call to usb_anchor_urb(). The association is maintained until
++call to :c:func:`usb_anchor_urb`. The association is maintained until
+ an URB is finished by (successful) completion. Thus disassociation
+ is automatic. A function is provided to forcibly finish (kill)
+ all URBs associated with an anchor.
+-Furthermore, disassociation can be made with usb_unanchor_urb()
++Furthermore, disassociation can be made with :c:func:`usb_unanchor_urb`
+ 
+ Operations on multitudes of URBs
+ ================================
+ 
+-usb_kill_anchored_urbs()
+-------------------------
++:c:func:`usb_kill_anchored_urbs`
++--------------------------------
+ 
+ This function kills all URBs associated with an anchor. The URBs
+ are called in the reverse temporal order they were submitted.
+ This way no data can be reordered.
+ 
+-usb_unlink_anchored_urbs()
+---------------------------
++:c:func:`usb_unlink_anchored_urbs`
++----------------------------------
++
+ 
+ This function unlinks all URBs associated with an anchor. The URBs
+ are processed in the reverse temporal order they were submitted.
+-This is similar to usb_kill_anchored_urbs(), but it will not sleep.
++This is similar to :c:func:`usb_kill_anchored_urbs`, but it will not sleep.
+ Therefore no guarantee is made that the URBs have been unlinked when
+ the call returns. They may be unlinked later but will be unlinked in
+ finite time.
+ 
+-usb_scuttle_anchored_urbs()
+----------------------------
++:c:func:`usb_scuttle_anchored_urbs`
++-----------------------------------
+ 
+ All URBs of an anchor are unanchored en masse.
+ 
+-usb_wait_anchor_empty_timeout()
+--------------------------------
++:c:func:`usb_wait_anchor_empty_timeout`
++---------------------------------------
+ 
+ This function waits for all URBs associated with an anchor to finish
+ or a timeout, whichever comes first. Its return value will tell you
+ whether the timeout was reached.
+ 
+-usb_anchor_empty()
+-------------------
++:c:func:`usb_anchor_empty`
++--------------------------
+ 
+ Returns true if no URBs are associated with an anchor. Locking
+ is the caller's responsibility.
+ 
+-usb_get_from_anchor()
+----------------------
++:c:func:`usb_get_from_anchor`
++-----------------------------
+ 
+ Returns the oldest anchored URB of an anchor. The URB is unanchored
+ and returned with a reference. As you may mix URBs to several
+diff --git a/Documentation/driver-api/usb/index.rst b/Documentation/driver-api/usb/index.rst
+index cf2fa2e8d236..5dfb04b2d730 100644
+--- a/Documentation/driver-api/usb/index.rst
++++ b/Documentation/driver-api/usb/index.rst
+@@ -6,6 +6,7 @@ Linux USB API
+ 
+    usb
+    gadget
++   anchors
+    writing_usb_driver
+    writing_musb_glue_layer
+ 
+-- 
+2.9.3
