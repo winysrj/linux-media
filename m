@@ -1,148 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:46252 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755476AbdCKLXe (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:40922 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932377AbdC3Wfn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 06:23:34 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Thu, 30 Mar 2017 18:35:43 -0400
+Date: Thu, 30 Mar 2017 23:35:27 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
         Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv5 06/16] atmel-isi: document device tree bindings
-Date: Sat, 11 Mar 2017 12:23:18 +0100
-Message-Id: <20170311112328.11802-7-hverkuil@xs4all.nl>
-In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
-References: <20170311112328.11802-1-hverkuil@xs4all.nl>
+Subject: Re: [PATCHv5 04/11] exynos_hdmi: add CEC notifier support
+Message-ID: <20170330223527.GK7909@n2100.armlinux.org.uk>
+References: <20170329141543.32935-1-hverkuil@xs4all.nl>
+ <20170329141543.32935-5-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170329141543.32935-5-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Mar 29, 2017 at 04:15:36PM +0200, Hans Verkuil wrote:
+> +	cec_notifier_set_phys_addr(hdata->notifier,
+> +				   cec_get_edid_phys_addr(edid));
 
-Document the device tree bindings for this hardware.
+This pattern causes problems - can we have the notifier taking the EDID
+please, and stubs in cec-notifier.h to stub that out?
 
-Mostly copied from the atmel-isc bindings.
+Maybe something like cec_notifier_set_phys_addr_from_edid(edid) ?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- .../devicetree/bindings/media/atmel-isi.txt        | 96 +++++++++++++---------
- 1 file changed, 58 insertions(+), 38 deletions(-)
+Having converted the tda998x code over to your new notifier, the 0-day
+builder reported this tonight:
 
-diff --git a/Documentation/devicetree/bindings/media/atmel-isi.txt b/Documentation/devicetree/bindings/media/atmel-isi.txt
-index 251f008f220c..65249bbd5c00 100644
---- a/Documentation/devicetree/bindings/media/atmel-isi.txt
-+++ b/Documentation/devicetree/bindings/media/atmel-isi.txt
-@@ -1,51 +1,71 @@
--Atmel Image Sensor Interface (ISI) SoC Camera Subsystem
------------------------------------------------
--
--Required properties:
--- compatible: must be "atmel,at91sam9g45-isi"
--- reg: physical base address and length of the registers set for the device;
--- interrupts: should contain IRQ line for the ISI;
--- clocks: list of clock specifiers, corresponding to entries in
--          the clock-names property;
--- clock-names: must contain "isi_clk", which is the isi peripherial clock.
--
--ISI supports a single port node with parallel bus. It should contain one
-+Atmel Image Sensor Interface (ISI)
-+----------------------------------
-+
-+Required properties for ISI:
-+- compatible: must be "atmel,at91sam9g45-isi".
-+- reg: physical base address and length of the registers set for the device.
-+- interrupts: should contain IRQ line for the ISI.
-+- clocks: list of clock specifiers, corresponding to entries in the clock-names
-+	property; please refer to clock-bindings.txt.
-+- clock-names: required elements: "isi_clk".
-+- pinctrl-names, pinctrl-0: please refer to pinctrl-bindings.txt.
-+
-+ISI supports a single port node with parallel bus. It shall contain one
- 'port' child node with child 'endpoint' node. Please refer to the bindings
- defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
- 
--Example:
--	isi: isi@f0034000 {
--		compatible = "atmel,at91sam9g45-isi";
--		reg = <0xf0034000 0x4000>;
--		interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
-+Endpoint node properties
-+------------------------
- 
--		clocks = <&isi_clk>;
--		clock-names = "isi_clk";
-+- bus-width: <8> or <10> (mandatory)
-+- hsync-active (default: active high)
-+- vsync-active (default: active high)
-+- pclk-sample (default: sample on falling edge)
-+- remote-endpoint: A phandle to the bus receiver's endpoint node (mandatory).
- 
--		pinctrl-names = "default";
--		pinctrl-0 = <&pinctrl_isi>;
--
--		port {
--			#address-cells = <1>;
--			#size-cells = <0>;
-+Example:
- 
--			isi_0: endpoint {
--				remote-endpoint = <&ov2640_0>;
--				bus-width = <8>;
--			};
-+isi: isi@f0034000 {
-+	compatible = "atmel,at91sam9g45-isi";
-+	reg = <0xf0034000 0x4000>;
-+	interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_isi_data_0_7>;
-+	clocks = <&isi_clk>;
-+	clock-names = "isi_clk";
-+	status = "ok";
-+	port {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		isi_0: endpoint {
-+			remote-endpoint = <&ov2640_0>;
-+			bus-width = <8>;
-+			vsync-active = <1>;
-+			hsync-active = <1>;
- 		};
- 	};
-+};
-+
-+i2c1: i2c@f0018000 {
-+	status = "okay";
- 
--	i2c1: i2c@f0018000 {
--		ov2640: camera@0x30 {
--			compatible = "ovti,ov2640";
--			reg = <0x30>;
-+	ov2640: camera@30 {
-+		compatible = "ovti,ov2640";
-+		reg = <0x30>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
-+		resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
-+		pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
-+		clocks = <&pck0>;
-+		clock-names = "xvclk";
-+		assigned-clocks = <&pck0>;
-+		assigned-clock-rates = <25000000>;
- 
--			port {
--				ov2640_0: endpoint {
--					remote-endpoint = <&isi_0>;
--					bus-width = <8>;
--				};
-+		port {
-+			ov2640_0: endpoint {
-+				remote-endpoint = <&isi_0>;
-+				bus-width = <8>;
- 			};
- 		};
- 	};
-+};
+>> ERROR: "cec_get_edid_phys_addr" [drivers/gpu/drm/i2c/tda998x.ko] undefined!
+
+which is caused exactly by this problem.  I can add #ifdefs into the
+tda998x driver, but as you're already stubbing out
+cec_notifier_set_phys_addr() in cec-notifier.h, it would be stupid to
+have to resort to #ifdefs in driver code to solve this issue.
+
+Thanks.
+
 -- 
-2.11.0
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
