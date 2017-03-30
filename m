@@ -1,94 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:35036 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751700AbdC2PD5 (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:41466 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933255AbdC3KqL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 11:03:57 -0400
-Date: Wed, 29 Mar 2017 20:33:51 +0530
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-To: outreachy-kernel@googlegroups.com
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [RESEND PATCH] staging: media: omap4iss: Replace a bit shift by a
- use of BIT
-Message-ID: <20170329150351.GA3203@arushi-HP-Pavilion-Notebook>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Thu, 30 Mar 2017 06:46:11 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH v2 02/22] driver-api/basics.rst: add device table header
+Date: Thu, 30 Mar 2017 07:45:36 -0300
+Message-Id: <506defb332850e8b15f0aea4dcee38d2c53fce20.1490870599.git.mchehab@s-opensource.com>
+In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch replaces bit shifting on 1 with the BIT(x) macro.
-This was done with coccinelle:
-@@
-constant c;
-@@
+The structs there at device table are used by other documentation
+at the Kernel. So, add it to the driver API.
 
--1 << c
-+BIT(c)
-
-Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/staging/media/omap4iss/iss_csi2.c    | 2 +-
- drivers/staging/media/omap4iss/iss_ipipe.c   | 2 +-
- drivers/staging/media/omap4iss/iss_ipipeif.c | 2 +-
- drivers/staging/media/omap4iss/iss_resizer.c | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ Documentation/driver-api/basics.rst | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
-index f71d5f2f179f..f6acc541e8a2 100644
---- a/drivers/staging/media/omap4iss/iss_csi2.c
-+++ b/drivers/staging/media/omap4iss/iss_csi2.c
-@@ -1268,7 +1268,7 @@ static int csi2_init_entities(struct iss_csi2_device *csi2, const char *subname)
- 	snprintf(name, sizeof(name), "CSI2%s", subname);
- 	snprintf(sd->name, sizeof(sd->name), "OMAP4 ISS %s", name);
+diff --git a/Documentation/driver-api/basics.rst b/Documentation/driver-api/basics.rst
+index 935b9b8d456c..472e7a664d13 100644
+--- a/Documentation/driver-api/basics.rst
++++ b/Documentation/driver-api/basics.rst
+@@ -7,6 +7,12 @@ Driver Entry and Exit points
+ .. kernel-doc:: include/linux/init.h
+    :internal:
  
--	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
- 	v4l2_set_subdevdata(sd, csi2);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c b/drivers/staging/media/omap4iss/iss_ipipe.c
-index d38782e8e84c..d86ef8a031f2 100644
---- a/drivers/staging/media/omap4iss/iss_ipipe.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipe.c
-@@ -508,7 +508,7 @@ static int ipipe_init_entities(struct iss_ipipe_device *ipipe)
- 	v4l2_subdev_init(sd, &ipipe_v4l2_ops);
- 	sd->internal_ops = &ipipe_v4l2_internal_ops;
- 	strlcpy(sd->name, "OMAP4 ISS ISP IPIPE", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
- 	v4l2_set_subdevdata(sd, ipipe);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-diff --git a/drivers/staging/media/omap4iss/iss_ipipeif.c b/drivers/staging/media/omap4iss/iss_ipipeif.c
-index 23de8330731d..cb88b2bd0d82 100644
---- a/drivers/staging/media/omap4iss/iss_ipipeif.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipeif.c
-@@ -739,7 +739,7 @@ static int ipipeif_init_entities(struct iss_ipipeif_device *ipipeif)
- 	v4l2_subdev_init(sd, &ipipeif_v4l2_ops);
- 	sd->internal_ops = &ipipeif_v4l2_internal_ops;
- 	strlcpy(sd->name, "OMAP4 ISS ISP IPIPEIF", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
- 	v4l2_set_subdevdata(sd, ipipeif);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
-index f1d352c711d5..4bbfa20b3c38 100644
---- a/drivers/staging/media/omap4iss/iss_resizer.c
-+++ b/drivers/staging/media/omap4iss/iss_resizer.c
-@@ -782,7 +782,7 @@ static int resizer_init_entities(struct iss_resizer_device *resizer)
- 	v4l2_subdev_init(sd, &resizer_v4l2_ops);
- 	sd->internal_ops = &resizer_v4l2_internal_ops;
- 	strlcpy(sd->name, "OMAP4 ISS ISP resizer", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
- 	v4l2_set_subdevdata(sd, resizer);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++Driver device table
++-------------------
++
++.. kernel-doc:: include/linux/mod_devicetable.h
++   :internal:
++
+ Atomic and pointer manipulation
+ -------------------------------
  
 -- 
-2.11.0
+2.9.3
