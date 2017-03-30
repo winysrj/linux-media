@@ -1,91 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59940 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750787AbdCBSkT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 13:40:19 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Pavel Machek <pavel@ucw.cz>, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: subdevice config into pointer (was Re: [PATCH 1/4] v4l2: device_register_subdev_nodes: allow calling multiple times)
-Date: Thu, 02 Mar 2017 20:39:51 +0200
-Message-ID: <2358884.6crJRnJuOY@avalon>
-In-Reply-To: <20170302141617.GG3220@valkosipuli.retiisi.org.uk>
-References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz> <20170302090727.GC27818@amd> <20170302141617.GG3220@valkosipuli.retiisi.org.uk>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46036
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933490AbdC3K2L (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 06:28:11 -0400
+Date: Thu, 30 Mar 2017 07:28:00 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Oliver Neukum <oneukum@suse.com>,
+        David Mosberger <davidm@egauge.net>,
+        Jaejoong Kim <climbbb.kim@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-rpi-kernel@lists.infradead.org,
+        Jonathan Corbet <corbet@lwn.net>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        John Youn <johnyoun@synopsys.com>,
+        Roger Quadros <rogerq@ti.com>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-usb@vger.kernel.org
+Subject: Re: [PATCH 22/22] usb: document that URB transfer_buffer should be
+ aligned
+Message-ID: <20170330072800.5ee8bc33@vento.lan>
+In-Reply-To: <3181783.rVmBcEVlbi@avalon>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+        <1822963.cezI9HmAB6@avalon>
+        <1490861491.8660.2.camel@suse.com>
+        <3181783.rVmBcEVlbi@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Em Thu, 30 Mar 2017 12:34:32 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-On Thursday 02 Mar 2017 16:16:17 Sakari Ailus wrote:
-> On Thu, Mar 02, 2017 at 10:07:27AM +0100, Pavel Machek wrote:
-> > Hi!
-> > 
-> > > Making the sub-device bus configuration a pointer should be in a
-> > > separate patch. It makes sense since the entire configuration is not
-> > > valid for all sub-devices attached to the ISP anymore. I think it
-> > > originally was a separate patch, but they probably have been merged at
-> > > some point. I can'tfind it right now anyway.
-> > 
-> > Something like this?
-> > 
-> > 									Pavel
-> > 
-> > commit df9141c66678b549fac9d143bd55ed0b242cf36e
-> > Author: Pavel <pavel@ucw.cz>
-> > Date:   Wed Mar 1 13:27:56 2017 +0100
-> > 
-> >     Turn bus in struct isp_async_subdev into pointer; some of our subdevs
-> >     (flash, focus) will not need bus configuration.
-> > 
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> Hi Oliver,
 > 
-> I applied this to the ccp2 branch with an improved patch description.
+> On Thursday 30 Mar 2017 10:11:31 Oliver Neukum wrote:
+> > Am Donnerstag, den 30.03.2017, 01:15 +0300 schrieb Laurent Pinchart:  
+> > > > +   may also override PAD bytes at the end of the ``transfer_buffer``,
+> > > > up to the
+> > > > +   size of the CPU word.  
+> > > 
+> > > "May" is quite weak here. If some host controller drivers require buffers
+> > > to be aligned, then it's an API requirement, and all buffers must be
+> > > aligned. I'm not even sure I would mention that some host drivers require
+> > > it, I think we should just state that the API requires buffers to be
+> > > aligned.  
+> > 
+> > That effectively changes the API. Many network drivers are written with
+> > the assumption that any contiguous buffer is valid. In fact you could
+> > argue that those drivers are buggy and must use bounce buffers in those
+> > cases.
+
+Blaming the dwc2 driver was my first approach, but such patch got nacked ;)
+
+Btw, the dwc2 driver has a routine that creates a temporary buffer if the
+buffer pointer is not DWORD aligned. My first approach were to add
+a logic there to also use the temporary buffer if the buffer size is
+not DWORD aligned:
+	https://patchwork.linuxtv.org/patch/40093/
+
+While debugging this issue, I saw *a lot* of network-generated URB
+traffic from RPi3 Ethernet port drivers that were using non-aligned 
+buffers and were subject to the temporary buffer conversion.
+
+My understanding here is that having a temporary bounce buffer sucks,
+as the performance and latency are affected. So, I see the value of
+adding this constraint to the API, pushing the task of getting 
+aligned buffers to the USB drivers, but you're right: that means a lot
+of work, as all USB drivers should be reviewed.
+
+Btw, I'm a lot more concerned about USB storage drivers. When I was
+discussing about this issue at the #raspberrypi-devel IRC channel,
+someone complained that, after switching from the RPi downstream Kernel
+to upstream, his USB data storage got corrupted. Well, if the USB
+storage drivers also assume that the buffer can be continuous,
+that can corrupt data.
+
+That's why I think that being verbose here is a good idea.
+
+I'll rework on this patch to put more emphasis about this issue.
+
+> > 
+> > So we need to include the full story here.  
 > 
-> > diff --git a/drivers/media/platform/omap3isp/isp.c
-> > b/drivers/media/platform/omap3isp/isp.c index 8a456d4..36bd359 100644
-> > --- a/drivers/media/platform/omap3isp/isp.c
-> > +++ b/drivers/media/platform/omap3isp/isp.c
-> > @@ -2030,12 +2030,18 @@ enum isp_of_phy {
-> > 
-> >  static int isp_fwnode_parse(struct device *dev, struct fwnode_handle
-> >  *fwn,
-> >  
-> >  			    struct isp_async_subdev *isd)
-> >  
-> >  {
-> > 
-> > -	struct isp_bus_cfg *buscfg = &isd->bus;
-> > +	struct isp_bus_cfg *buscfg;
-> > 
-> >  	struct v4l2_fwnode_endpoint vfwn;
-> >  	unsigned int i;
-> >  	int ret;
-> >  	bool csi1 = false;
-> > 
-> > +	buscfg = devm_kzalloc(dev, sizeof(*isd->bus), GFP_KERNEL);
+> I personally don't care much about whose side is responsible for handling the 
+> alignment constraints, but I want it to be documented before "fixing" any USB 
+> driver.
+> 
 
-Given that you recently get rid of devm_kzalloc() in the driver, let's not 
-introduce a new one here.
 
-> > +	if (!buscfg)
-> > +		return -ENOMEM;
-> > +
-> > +	isd->bus = buscfg;
-> > +
-> >  	ret = v4l2_fwnode_endpoint_parse(fwn, &vfwn);
-> >  	if (ret)
-> >  	
-> >  		return ret;
-> > 
 
-[snip]
-
--- 
-Regards,
-
-Laurent Pinchart
+Thanks,
+Mauro
