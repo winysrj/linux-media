@@ -1,128 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:47105 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751066AbdCNTKG (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:39523 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934333AbdC3QCe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:10:06 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Thu, 30 Mar 2017 12:02:34 -0400
+From: Helen Koike <helen.koike@collabora.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
         Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 03/16] rcar-vin: fix how pads are handled for v4l2 subdevice operations
-Date: Tue, 14 Mar 2017 19:59:44 +0100
-Message-Id: <20170314185957.25253-4-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org, jgebben@codeaurora.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH RFC 1/2] [media] v4l2: add V4L2_INPUT_TYPE_DEFAULT
+Date: Thu, 30 Mar 2017 13:02:17 -0300
+Message-Id: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The rcar-vin driver only uses one pad, pad number 0.
+Add V4L2_INPUT_TYPE_DEFAULT and helpers functions for input ioctls to be
+used when no inputs are available in the device
 
-- All v4l2 operations that did not check that the requested operation
-  was for pad 0 have been updated with a check to enforce this.
-
-- All v4l2 operations that stored (and later restore) the requested pad
-  before substituting it for the subdevice pad number have been updated
-  to not store the incoming pad and simply restore it to 0 after the
-  subdevice operation is complete.
-
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Helen Koike <helen.koike@collabora.com>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 27 +++++++++++++++++++++++++++
+ include/media/v4l2-ioctl.h           | 26 ++++++++++++++++++++++++++
+ include/uapi/linux/videodev2.h       |  1 +
+ 3 files changed, 54 insertions(+)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 7ca27599b9982ffc..610f59e2a9142622 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -550,14 +550,16 @@ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
- {
- 	struct rvin_dev *vin = video_drvdata(file);
- 	struct v4l2_subdev *sd = vin_to_source(vin);
--	int pad, ret;
-+	int ret;
-+
-+	if (timings->pad)
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 0c3f238..ccaf04b 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2573,6 +2573,33 @@ struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
+ 	return vdev->lock;
+ }
+ 
++int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
++				  struct v4l2_input *i)
++{
++	if (i->index > 0)
 +		return -EINVAL;
- 
--	pad = timings->pad;
- 	timings->pad = vin->sink_pad_idx;
- 
- 	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
- 
--	timings->pad = pad;
-+	timings->pad = 0;
- 
- 	return ret;
- }
-@@ -600,14 +602,16 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
- {
- 	struct rvin_dev *vin = video_drvdata(file);
- 	struct v4l2_subdev *sd = vin_to_source(vin);
--	int pad, ret;
-+	int ret;
 +
-+	if (cap->pad)
-+		return -EINVAL;
++	memset(i, 0, sizeof(*i));
++	i->type = V4L2_INPUT_TYPE_DEFAULT;
++	strlcpy(i->name, "Default", sizeof(i->name));
++
++	return 0;
++}
++EXPORT_SYMBOL(v4l2_ioctl_enum_input_default);
++
++int v4l2_ioctl_g_input_default(struct file *file, void *priv, unsigned int *i)
++{
++	*i = 0;
++	return 0;
++}
++EXPORT_SYMBOL(v4l2_ioctl_g_input_default);
++
++int v4l2_ioctl_s_input_default(struct file *file, void *priv, unsigned int i)
++{
++	return i ? -EINVAL : 0;
++}
++EXPORT_SYMBOL(v4l2_ioctl_s_input_default);
++
+ /* Common ioctl debug function. This function can be used by
+    external ioctl messages as well as internal V4L ioctl */
+ void v4l_printk_ioctl(const char *prefix, unsigned int cmd)
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 6cd94e5..accc470 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -652,6 +652,32 @@ struct video_device;
+  */
+ struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned int cmd);
  
--	pad = cap->pad;
- 	cap->pad = vin->sink_pad_idx;
++
++/**
++ * v4l2_ioctl_enum_input_default - v4l2 ioctl helper for VIDIOC_ENUM_INPUT ioctl
++ *
++ * Plug this function in vidioc_enum_input field of the struct v4l2_ioctl_ops to
++ * enumerate a single input as V4L2_INPUT_TYPE_DEFAULT
++ */
++int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
++				  struct v4l2_input *i);
++
++/**
++ * v4l2_ioctl_g_input_default - v4l2 ioctl helper for VIDIOC_G_INPUT ioctl
++ *
++ * Plug this function in vidioc_g_input field of the struct v4l2_ioctl_ops
++ * when using v4l2_ioctl_enum_input_default
++ */
++int v4l2_ioctl_g_input_default(struct file *file, void *priv, unsigned int *i);
++
++/**
++ * v4l2_ioctl_s_input_default - v4l2 ioctl helper for VIDIOC_S_INPUT ioctl
++ *
++ * Plug this function in vidioc_s_input field of the struct v4l2_ioctl_ops
++ * when using v4l2_ioctl_enum_input_default
++ */
++int v4l2_ioctl_s_input_default(struct file *file, void *priv, unsigned int i);
++
+ /* names for fancy debug output */
+ extern const char *v4l2_field_names[];
+ extern const char *v4l2_type_names[];
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 316be62..c10bbde 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1477,6 +1477,7 @@ struct v4l2_input {
+ };
  
- 	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
- 
--	cap->pad = pad;
-+	cap->pad = 0;
- 
- 	return ret;
- }
-@@ -616,17 +620,16 @@ static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
- {
- 	struct rvin_dev *vin = video_drvdata(file);
- 	struct v4l2_subdev *sd = vin_to_source(vin);
--	int input, ret;
-+	int ret;
- 
- 	if (edid->pad)
- 		return -EINVAL;
- 
--	input = edid->pad;
- 	edid->pad = vin->sink_pad_idx;
- 
- 	ret = v4l2_subdev_call(sd, pad, get_edid, edid);
- 
--	edid->pad = input;
-+	edid->pad = 0;
- 
- 	return ret;
- }
-@@ -635,17 +638,16 @@ static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
- {
- 	struct rvin_dev *vin = video_drvdata(file);
- 	struct v4l2_subdev *sd = vin_to_source(vin);
--	int input, ret;
-+	int ret;
- 
- 	if (edid->pad)
- 		return -EINVAL;
- 
--	input = edid->pad;
- 	edid->pad = vin->sink_pad_idx;
- 
- 	ret = v4l2_subdev_call(sd, pad, set_edid, edid);
- 
--	edid->pad = input;
-+	edid->pad = 0;
- 
- 	return ret;
- }
+ /*  Values for the 'type' field */
++#define V4L2_INPUT_TYPE_DEFAULT		0
+ #define V4L2_INPUT_TYPE_TUNER		1
+ #define V4L2_INPUT_TYPE_CAMERA		2
+ #define V4L2_INPUT_TYPE_TOUCH		3
 -- 
-2.12.0
+2.7.4
