@@ -1,178 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43149 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751297AbdCaMYF (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:44544 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932582AbdC3KqJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 08:24:05 -0400
-Message-ID: <1490963040.2371.55.camel@pengutronix.de>
-Subject: Re: [PATCH] [media] docs-rst: clarify field vs frame height in the
- subdev API
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Date: Fri, 31 Mar 2017 14:24:00 +0200
-In-Reply-To: <9fe503ab-fcf1-c56a-5acd-b1350a317d6f@xs4all.nl>
-References: <20170330153820.14853-1-p.zabel@pengutronix.de>
-         <1790355.cli1gBmIc5@avalon> <1490950514.2371.21.camel@pengutronix.de>
-         <9fe503ab-fcf1-c56a-5acd-b1350a317d6f@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Thu, 30 Mar 2017 06:46:09 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH v2 09/22] usb/bulk-streams.txt: convert to ReST and add to driver-api book
+Date: Thu, 30 Mar 2017 07:45:43 -0300
+Message-Id: <b0ac17eff7020d1d520f6dee645222924f8c27f8.1490870599.git.mchehab@s-opensource.com>
+In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2017-03-31 at 13:08 +0200, Hans Verkuil wrote:
-[...]
-> >>>  Applications are responsible for configuring coherent parameters on the
-> >>>  whole pipeline and making sure that connected pads have compatible
-> >>> @@ -379,7 +382,10 @@ is supported by the hardware.
-> >>>     pad for further processing.
-> >>>
-> >>>  2. Sink pad actual crop selection. The sink pad crop defines the crop
-> >>> -   performed to the sink pad format.
-> >>> +   performed to the sink pad format. The crop rectangle always refers to
-> >>> +   the frame size, even if the sink pad format has field order set to
-> >>> +   ``V4L2_FIELD_ALTERNATE`` and the actual processed images are only
-> >>> +   field sized.
-> >>
-> >> I'm not sure to agree with this. I think all selection rectangle coordinates 
-> >> should be expressed relative to the format of the pad they refer to.
-> > 
-> > But that's not how I understood Hans yesterday, and it shows that you
-> > were quite on point with your suggestion to extend the docs.
-> 
-> Actually, it is a bit different from what I said yesterday. Sorry about that.
-> 
-> Whether the top and height fields in struct v4l2_rect are for fields or
-> frames depends on whether it describes memory or video. Historically
-> VIDIOC_CROPCAP and VIDIOC_G/S_CROP used frame coordinates for video
-> capture (crop rectangle) and video output (compose rectangle, i.e. what is
-> composed into the video transmitter).
+This document describe some USB core functions. Add it to the
+driver-api book.
 
-Ok.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ .../bulk-streams.txt => driver-api/usb/bulk-streams.rst}    | 13 +++++++++----
+ Documentation/driver-api/usb/index.rst                      |  1 +
+ 2 files changed, 10 insertions(+), 4 deletions(-)
+ rename Documentation/{usb/bulk-streams.txt => driver-api/usb/bulk-streams.rst} (94%)
 
-> When the selection API was added we could also describe how video is
-> composed into a memory buffer (for capture) or cropped from a memory buffer
-> (for output). Since this deals with memory the v4l2_rect struct contains
-> field coordinates, for the same reason that G/S/TRY_FMT does.
-
-Ok. This would not apply to subdevices that only handle video streams,
-so that would mean that the v4l2_mbus_framefmt passed to
-VIDIOC_SUBDEV_G/S_FMT also should always contain the frame size, never
-the field size.
-
-> The vivid driver *should* do all of this correctly. Since this driver
-> supports any combination of cropping/composing/scaler features it gets
-> quite complicated, so it is always possible that there are bugs, but I
-> did a lot of testing at the time.
-
-I haven't played much with vivid in this regard yet, I've only looked at
-the capture device, and that behaved as I expected after your
-explanation.
-
-> >> For sink pad crop rectangles, if the sink pad receives alternate (or
-> >> top or bottom only) fields, the rectangle coordinates should be
-> >> relative to the field size. Similarly, if the source pad produces
-> >> alternate/top/bottom fields, the rectangle coordinates should also be
-> >> relative to the field size.
-> > 
-> > That's also not how TVP5150 currently implements it. The crop rectangle
-> > is frame sized even though the pad format reports alternating fields,
-> 
-> It is undefined today what the subdev selection rectangles should use.
-> I am inclined to *always* use frame coordinates while dealing with hardware
-> (receivers, transmitters, busses) and only use field coordinates when dealing
-> with actual memory buffers.
->
-> This will avoid having to change any subdev drivers as well, which is a nice
-> bonus. It also is consistent with the way the original API was designed:
-> frame coordinates everywhere, except when dealing with buffers in memory.
-
-Ok, I'll revise this patch accordingly.
-
-> For the record: the DV_TIMINGS ioctls also define the height as frame height,
-> not field height. And the height in struct v4l2_mbus_framefmt is also defined
-> as a frame height.
-
-The v4l2_mbus_framefmt height is defined as "image height", and it
-wasn't clear to me what image meant in this context.
-
-> > the same is true for vivid capture, even though that is not using the
-> > subdev selection API.
-> 
-> ??? vivid uses frame height for crop coordinates when FIELD_ALTERNATE is
-> selected. Where did you see a field height when using vivid?
-
-That's what I meant with "the same": "The crop rectangle is frame sized
-even though the [pad^W] format reports alternating fields".
-
-> Note: by default vivid implements a scaler and composer. So switching to
-> field_alternate would still show a height of 576.
->
-> After disabling the scaler and composer:
-> 
-> v4l2-ctl -c enable_capture_scaler=0
-> v4l2-ctl -c enable_capture_composing=0
-> 
-> it will now be 288.
-
-So in this case the field size is used because S/G_FMT refer to memory.
-
-[...]
-> > Actually, this is exactly the case I want to handle. The CSI receives
-> > FIELD_ALTERNATE frames from the TVP5150 with BT.656 synchronisation, but
-> > it produces SEQ_TB or SEQ_BT (depending on standard) at its output pad.
-> > If the input pad height is 288 lines for example, the output pad height
-> > is 576 lines (in case of no cropping or scaling), and there's a sink
-> > crop and a sink compose rectangle. Should those refer to the 288 lines
-> > per field, or to the 576 lines per frame?
-> 
-> The output pad of the tvp5150 would say FIELD_ALTERNATE and height 576.
-
-Aha, this didn't occur to me at all. This is not what happens currently.
-Commit 4f57d27be2a5 ("[media] tvp5150: fix tvp5150_fill_fmt()") reduced
-the height to half when switching to FIELD_ALTERNATE:
-
-----------8<----------
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 437f1a7ecb96e..c277caaad8be8 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -852,10 +852,10 @@ static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
-        tvp5150_reset(sd, 0);
+diff --git a/Documentation/usb/bulk-streams.txt b/Documentation/driver-api/usb/bulk-streams.rst
+similarity index 94%
+rename from Documentation/usb/bulk-streams.txt
+rename to Documentation/driver-api/usb/bulk-streams.rst
+index ffc02021863e..99b515babdeb 100644
+--- a/Documentation/usb/bulk-streams.txt
++++ b/Documentation/driver-api/usb/bulk-streams.rst
+@@ -1,3 +1,6 @@
++USB bulk streams
++~~~~~~~~~~~~~~~~
++
+ Background
+ ==========
  
-        f->width = decoder->rect.width;
--       f->height = decoder->rect.height;
-+       f->height = decoder->rect.height / 2;
+@@ -25,7 +28,9 @@ time.
+ Driver implications
+ ===================
  
-        f->code = MEDIA_BUS_FMT_UYVY8_2X8;
--       f->field = V4L2_FIELD_SEQ_TB;
-+       f->field = V4L2_FIELD_ALTERNATE;
-        f->colorspace = V4L2_COLORSPACE_SMPTE170M;
+-int usb_alloc_streams(struct usb_interface *interface,
++::
++
++  int usb_alloc_streams(struct usb_interface *interface,
+ 		struct usb_host_endpoint **eps, unsigned int num_eps,
+ 		unsigned int num_streams, gfp_t mem_flags);
  
-        v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", f->width,
----------->8----------
-
-So this should be partially reverted to say:
-        f->height = decoder->rect.height;
-again.
-
-> The CSI output pad would be FIELD_SEQ_BT/TB and height 576.
-
-That I understood.
-
-> The sink crop and sink compose rectangles should all use frame heights.
-
-But I wasn't clear about what height those and the CSI sink pad should
-have. I now understand it should be all frame heights, both pads formats
-and selection rectangles, regardless of the field setting, as none of
-those refer to memory.
-
-> Of course, at the low level the driver will have to check the 'field'
-> value and program the hardware accordingly by dividing the top/height by
-> two when dealing with top/bottom/alternate formats.
-
-thanks
-Philipp
+@@ -53,7 +58,7 @@ controller driver, and may change in the future.
+ 
+ 
+ Picking new Stream IDs to use
+-============================
++=============================
+ 
+ Stream ID 0 is reserved, and should not be used to communicate with devices.  If
+ usb_alloc_streams() returns with a value of N, you may use streams 1 though N.
+@@ -68,9 +73,9 @@ Clean up
+ ========
+ 
+ If a driver wishes to stop using streams to communicate with the device, it
+-should call
++should call::
+ 
+-void usb_free_streams(struct usb_interface *interface,
++  void usb_free_streams(struct usb_interface *interface,
+ 		struct usb_host_endpoint **eps, unsigned int num_eps,
+ 		gfp_t mem_flags);
+ 
+diff --git a/Documentation/driver-api/usb/index.rst b/Documentation/driver-api/usb/index.rst
+index 5dfb04b2d730..6fe7611f7332 100644
+--- a/Documentation/driver-api/usb/index.rst
++++ b/Documentation/driver-api/usb/index.rst
+@@ -7,6 +7,7 @@ Linux USB API
+    usb
+    gadget
+    anchors
++   bulk-streams
+    writing_usb_driver
+    writing_musb_glue_layer
+ 
+-- 
+2.9.3
