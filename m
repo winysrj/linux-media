@@ -1,56 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:56191 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754213AbdCIJtx (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:60053 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932827AbdC3Q6j (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Mar 2017 04:49:53 -0500
-Subject: Re: [PATCH 1/1] docs-rst: media: Push CEC documentation under CEC
- section
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <1489052418-12575-1-git-send-email-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <79c9573c-19da-4f3f-bd7c-0256e1986bab@xs4all.nl>
-Date: Thu, 9 Mar 2017 10:49:47 +0100
-MIME-Version: 1.0
-In-Reply-To: <1489052418-12575-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Thu, 30 Mar 2017 12:58:39 -0400
+Received: from epcas1p3.samsung.com (unknown [182.195.41.47])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0ONN007YK0HOSOA0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 31 Mar 2017 01:58:36 +0900 (KST)
+To: LMML <linux-media@vger.kernel.org>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PULL] Samsung SoC related updates
+Message-id: <7c57cc72-6412-650b-2365-a70a916b7e40@samsung.com>
+Date: Thu, 30 Mar 2017 18:58:31 +0200
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 7bit
+References: <CGME20170330165835epcas1p4330a88d7f9a1ca09f91e5bc8ad167752@epcas1p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/03/17 10:40, Sakari Ailus wrote:
-> The CEC documentation added two sections on the main media kAPI level.
-> There should be only one.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Hi Mauro,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+The following changes since commit c3d4fb0fb41f4b5eafeee51173c14e50be12f839:
 
-Thanks!
+  [media] rc: sunxi-cir: simplify optional reset handling (2017-03-24 08:30:03 -0300)
 
-	Hans
+are available in the git repository at:
 
-> ---
->  Documentation/media/kapi/cec-core.rst | 7 ++-----
->  1 file changed, 2 insertions(+), 5 deletions(-)
-> 
-> diff --git a/Documentation/media/kapi/cec-core.rst b/Documentation/media/kapi/cec-core.rst
-> index 81c6d8e..79db774 100644
-> --- a/Documentation/media/kapi/cec-core.rst
-> +++ b/Documentation/media/kapi/cec-core.rst
-> @@ -27,11 +27,8 @@ HDMI 1.3a specification is sufficient:
->  http://www.microprocessor.org/HDMISpecification13a.pdf
->  
->  
-> -The Kernel Interface
-> -====================
-> -
-> -CEC Adapter
-> ------------
-> +CEC Adapter Interface
-> +---------------------
->  
->  The struct cec_adapter represents the CEC adapter hardware. It is created by
->  calling cec_allocate_adapter() and deleted by calling cec_delete_adapter():
-> 
+  git://linuxtv.org/snawrocki/samsung.git for-v4.12/media/next
+
+for you to fetch changes up to b51f9a138838daeed695af086167eaf51cd905d8:
+
+  s5p-g2d: Fix error handling (2017-03-30 18:13:18 +0200)
+
+----------------------------------------------------------------
+Christophe JAILLET (1):
+      s5p-g2d: Fix error handling
+
+Marek Szyprowski (19):
+      s5p-mfc: Fix initialization of internal structures
+      s5p-mfc: Fix race between interrupt routine and device functions
+      s5p-mfc: Remove unused structures and dead code
+      s5p-mfc: Use generic of_device_get_match_data helper
+      s5p-mfc: Replace mem_dev_* entries with an array
+      s5p-mfc: Replace bank1/bank2 entries with an array
+      s5p-mfc: Simplify alloc/release private buffer functions
+      s5p-mfc: Move setting DMA max segment size to DMA configure function
+      s5p-mfc: Put firmware to private buffer structure
+      s5p-mfc: Move firmware allocation to DMA configure function
+      s5p-mfc: Allocate firmware with internal private buffer alloc function
+      s5p-mfc: Reduce firmware buffer size for MFC v6+ variants
+      s5p-mfc: Split variant DMA memory configuration into separate functions
+      s5p-mfc: Add support for probe-time preallocated block based allocator
+      s5p-mfc: Remove special configuration of IOMMU domain
+      s5p-mfc: Use preallocated block allocator always for MFC v6+
+      s5p-mfc: Rename BANK1/2 to BANK_L/R to better match documentation
+      s5p-mfc: Fix unbalanced call to clock management
+      s5p-mfc: Don't allocate codec buffers from pre-allocated region
+
+Shuah Khan (2):
+      s5p_mfc: Remove unneeded io_modes initialization in s5p_mfc_open()
+      s5p-mfc: Print buf pointer in hex constistently
+
+ .../devicetree/bindings/media/s5p-mfc.txt       |   2 +-
+ drivers/media/platform/s5p-g2d/g2d.c            |   2 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h    |   2 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h    |   2 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v8.h    |   2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        | 245 ++++++++++++-------
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c |   2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  43 ++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |  72 ++----
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h   |   1 -
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |   8 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |  10 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h  |  51 +---
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    |  93 +++++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |  12 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |  48 ++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |  16 +-
+ 17 files changed, 316 insertions(+), 295 deletions(-)
+
+-- 
+Thanks,
+Sylwester
