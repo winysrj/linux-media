@@ -1,144 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f196.google.com ([209.85.223.196]:36476 "EHLO
-        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933024AbdC3K0m (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:38375 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933150AbdC3R02 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 06:26:42 -0400
-MIME-Version: 1.0
-In-Reply-To: <58DCB178.6070909@bfs.de>
-References: <20170330062517.GA25231@SEL-JYOUN-D1> <58DCB178.6070909@bfs.de>
-From: DaeSeok Youn <daeseok.youn@gmail.com>
-Date: Thu, 30 Mar 2017 19:26:40 +0900
-Message-ID: <CAHb8M2CN3SE8SmJVRBri9NG71X35Gksxde4RN+7D-+Aoicy3Eg@mail.gmail.com>
-Subject: Re: [PATCH 2/2] staging: atomisp: use local variable to reduce the
- number of reference
-To: wharms@bfs.de
-Cc: mchehab@kernel.org, Greg KH <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        SIMRAN SINGHAL <singhalsimran0@gmail.com>,
-        linux-media@vger.kernel.org, devel <devel@driverdev.osuosl.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        kernel-janitors <kernel-janitors@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+        Thu, 30 Mar 2017 13:26:28 -0400
+Message-ID: <1490894749.2404.33.camel@pengutronix.de>
+Subject: [RFC] [media] imx: assume MEDIA_ENT_F_ATV_DECODER entities output
+ video on pad 1
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Thu, 30 Mar 2017 19:25:49 +0200
+In-Reply-To: <1490661656-10318-20-git-send-email-steve_longerbeam@mentor.com>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+         <1490661656-10318-20-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-03-30 16:19 GMT+09:00 walter harms <wharms@bfs.de>:
->
->
-> Am 30.03.2017 08:25, schrieb Daeseok Youn:
->> Define new local variable to reduce the number of reference.
->> The new local variable is added to save the addess of dfs
->> and used in atomisp_freq_scaling() function.
->>
->> Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
->> ---
->>  .../media/atomisp/pci/atomisp2/atomisp_cmd.c       | 37 ++++++++++++----------
->>  1 file changed, 20 insertions(+), 17 deletions(-)
->>
->> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
->> index eebfccd..d76a95c 100644
->> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
->> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
->> @@ -251,6 +251,7 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
->>  {
->>       /* FIXME! Only use subdev[0] status yet */
->>       struct atomisp_sub_device *asd = &isp->asd[0];
->> +     const struct atomisp_dfs_config *dfs;
->>       unsigned int new_freq;
->>       struct atomisp_freq_scaling_rule curr_rules;
->>       int i, ret;
->> @@ -268,20 +269,22 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
->>           ATOMISP_USE_YUVPP(asd))
->>               isp->dfs = &dfs_config_cht_soc;
->>
->> -     if (isp->dfs->lowest_freq == 0 || isp->dfs->max_freq_at_vmin == 0 ||
->> -         isp->dfs->highest_freq == 0 || isp->dfs->dfs_table_size == 0 ||
->> -         !isp->dfs->dfs_table) {
->> +     dfs = isp->dfs;
->> +
->> +     if (dfs->lowest_freq == 0 || dfs->max_freq_at_vmin == 0 ||
->> +         dfs->highest_freq == 0 || dfs->dfs_table_size == 0 ||
->> +         !dfs->dfs_table) {
->>               dev_err(isp->dev, "DFS configuration is invalid.\n");
->>               return -EINVAL;
->>       }
->>
->>       if (mode == ATOMISP_DFS_MODE_LOW) {
->> -             new_freq = isp->dfs->lowest_freq;
->> +             new_freq = dfs->lowest_freq;
->>               goto done;
->>       }
->>
->>       if (mode == ATOMISP_DFS_MODE_MAX) {
->> -             new_freq = isp->dfs->highest_freq;
->> +             new_freq = dfs->highest_freq;
->>               goto done;
->>       }
->>
->> @@ -307,26 +310,26 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
->>       }
->>
->>       /* search for the target frequency by looping freq rules*/
->> -     for (i = 0; i < isp->dfs->dfs_table_size; i++) {
->> -             if (curr_rules.width != isp->dfs->dfs_table[i].width &&
->> -                 isp->dfs->dfs_table[i].width != ISP_FREQ_RULE_ANY)
->> +     for (i = 0; i < dfs->dfs_table_size; i++) {
->> +             if (curr_rules.width != dfs->dfs_table[i].width &&
->> +                 dfs->dfs_table[i].width != ISP_FREQ_RULE_ANY)
->>                       continue;
->> -             if (curr_rules.height != isp->dfs->dfs_table[i].height &&
->> -                 isp->dfs->dfs_table[i].height != ISP_FREQ_RULE_ANY)
->> +             if (curr_rules.height != dfs->dfs_table[i].height &&
->> +                 dfs->dfs_table[i].height != ISP_FREQ_RULE_ANY)
->>                       continue;
->> -             if (curr_rules.fps != isp->dfs->dfs_table[i].fps &&
->> -                 isp->dfs->dfs_table[i].fps != ISP_FREQ_RULE_ANY)
->> +             if (curr_rules.fps != dfs->dfs_table[i].fps &&
->> +                 dfs->dfs_table[i].fps != ISP_FREQ_RULE_ANY)
->>                       continue;
->> -             if (curr_rules.run_mode != isp->dfs->dfs_table[i].run_mode &&
->> -                 isp->dfs->dfs_table[i].run_mode != ISP_FREQ_RULE_ANY)
->> +             if (curr_rules.run_mode != dfs->dfs_table[i].run_mode &&
->> +                 dfs->dfs_table[i].run_mode != ISP_FREQ_RULE_ANY)
->>                       continue;
->>               break;
->>       }
->
->>
->> -     if (i == isp->dfs->dfs_table_size)
->> -             new_freq = isp->dfs->max_freq_at_vmin;
->> +     if (i == dfs->dfs_table_size)
->> +             new_freq = dfs->max_freq_at_vmin;
->>       else
->> -             new_freq = isp->dfs->dfs_table[i].isp_freq;
->> +             new_freq = dfs->dfs_table[i].isp_freq;
->>
->
-> you can eliminate the last block by setting
->
->  new_freq = dfs->max_freq_at_vmin;
->
->   for(i=0;....) {
->         ....
->         new_freq = dfs->dfs_table[i].isp_freq;
->         break;
-> }
-Yes, it could be. I will make another patch to improve it as your comment.
->
-> unfortunately i have no good idea how to make the loop more readable.
-I am not sure whether the for-loop is possible to improve for
-readability or not. :-)
+The TVP5150 DT bindings specify a single output port (port 0) that
+corresponds to the video output pad (pad 1, DEMOD_PAD_VID_OUT).
 
-Thanks for comment.
-Regards,
-Daeseok.
->
->
-> re,
->  wh
->
->
->>  done:
->>       dev_dbg(isp->dev, "DFS target frequency=%d.\n", new_freq);
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+I'm trying to get this to work with a TVP5150 analog TV decoder, and the
+first problem is that this device doesn't have pad 0 as its single
+output pad. Instead, as a MEDIA_ENT_F_ATV_DECODER entity, it has for
+pads (input, video out, vbi out, audio out), and video out is pad 1,
+whereas the device tree only defines a single port (0).
+---
+
+ drivers/staging/media/imx/imx-media-dev.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index 17e2386a3ca3a..c52d6ca797965 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -267,6 +267,15 @@ static int imx_media_create_link(struct imx_media_dev *imxmd,
+ 	source_pad = link->local_pad;
+ 	sink_pad = link->remote_pad;
+ 
++	/*
++	 * If the source subdev is an analog video decoder with a single source
++	 * port, assume that this port 0 corresponds to the DEMOD_PAD_VID_OUT
++	 * entity pad.
++	 */
++	if (source->entity.function == MEDIA_ENT_F_ATV_DECODER &&
++	    local_sd->num_sink_pads == 0 && local_sd->num_src_pads == 1)
++		source_pad = DEMOD_PAD_VID_OUT;
++
+ 	v4l2_info(&imxmd->v4l2_dev, "%s: %s:%d -> %s:%d\n", __func__,
+ 		  source->name, source_pad, sink->name, sink_pad);
+ 
+-- 
+2.11.0
