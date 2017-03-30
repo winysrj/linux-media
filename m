@@ -1,56 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:34382 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754181AbdCIWvJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 17:51:09 -0500
-From: simran singhal <singhalsimran0@gmail.com>
-To: mchehab@kernel.org
-Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com
-Subject: [PATCH v1 7/7] staging: gc2235: Do not use multiple blank lines
-Date: Fri, 10 Mar 2017 04:20:29 +0530
-Message-Id: <1489099829-1264-8-git-send-email-singhalsimran0@gmail.com>
-In-Reply-To: <1489099829-1264-1-git-send-email-singhalsimran0@gmail.com>
-References: <1489099829-1264-1-git-send-email-singhalsimran0@gmail.com>
+Received: from bombadil.infradead.org ([65.50.211.133]:37701 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934803AbdC3ULp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 16:11:45 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 7/9] kernel-api.rst: make it handle lib/crc32.c
+Date: Thu, 30 Mar 2017 17:11:34 -0300
+Message-Id: <1a6a2ab560df9b83b8f8614b9f3858a776b5d53d.1490904090.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1490904090.git.mchehab@s-opensource.com>
+References: <cover.1490904090.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1490904090.git.mchehab@s-opensource.com>
+References: <cover.1490904090.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove multiple blank lines. Problem found using checkpatch.pl
-"CHECK: Please don't use multiple blank lines".
+This file has only "internal" functions:
+	./lib/crc32.c:1: warning: no structured comments found
 
-Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/staging/media/atomisp/i2c/gc2235.c | 3 ---
- 1 file changed, 3 deletions(-)
+ Documentation/core-api/kernel-api.rst | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
-index 40a5a2f..b97a74b 100644
---- a/drivers/staging/media/atomisp/i2c/gc2235.c
-+++ b/drivers/staging/media/atomisp/i2c/gc2235.c
-@@ -244,7 +244,6 @@ static int gc2235_g_fnumber_range(struct v4l2_subdev *sd, s32 *val)
- 	return 0;
- }
+diff --git a/Documentation/core-api/kernel-api.rst b/Documentation/core-api/kernel-api.rst
+index e820247e90d3..9a3d3597a6b7 100644
+--- a/Documentation/core-api/kernel-api.rst
++++ b/Documentation/core-api/kernel-api.rst
+@@ -80,7 +80,6 @@ CRC Functions
+    :export:
  
--
- static int gc2235_get_intg_factor(struct i2c_client *client,
- 				struct camera_mipi_info *info,
- 				const struct gc2235_resolution *res)
-@@ -388,7 +387,6 @@ static long __gc2235_set_exposure(struct v4l2_subdev *sd, int coarse_itg,
- 	return ret;
- }
+ .. kernel-doc:: lib/crc32.c
+-   :export:
  
--
- static int gc2235_set_exposure(struct v4l2_subdev *sd, int exposure,
- 	int gain, int digitgain)
- {
-@@ -909,7 +907,6 @@ static int gc2235_s_stream(struct v4l2_subdev *sd, int enable)
- 	return ret;
- }
- 
--
- static int gc2235_s_config(struct v4l2_subdev *sd,
- 			   int irq, void *platform_data)
- {
+ .. kernel-doc:: lib/crc-ccitt.c
+    :export:
 -- 
-2.7.4
+2.9.3
