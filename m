@@ -1,181 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:45599 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751524AbdCCMbt (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:54815 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753049AbdC3JbN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Mar 2017 07:31:49 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 2/4] [media] coda: keep queued buffers on a temporary list during start_streaming
-Date: Fri,  3 Mar 2017 13:12:48 +0100
-Message-Id: <20170303121250.13693-2-p.zabel@pengutronix.de>
-In-Reply-To: <20170303121250.13693-1-p.zabel@pengutronix.de>
-References: <20170303121250.13693-1-p.zabel@pengutronix.de>
+        Thu, 30 Mar 2017 05:31:13 -0400
+From: Patrice CHOTARD <patrice.chotard@st.com>
+To: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "moderated list:ARM/S5P EXYNOS AR..."
+        <linux-samsung-soc@vger.kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        "Marek Szyprowski" <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCHv5 11/11] arm: sti: update sti-cec for CEC notifier support
+Date: Thu, 30 Mar 2017 09:30:39 +0000
+Message-ID: <c29adefb-13e6-e723-eb96-3b0049b39ddd@st.com>
+References: <20170329141543.32935-1-hverkuil@xs4all.nl>
+ <20170329141543.32935-12-hverkuil@xs4all.nl>
+ <CA+M3ks442wftNR8+dctdSkKMCPSw9Rd2CH5UG-VEP7XySGjCjw@mail.gmail.com>
+In-Reply-To: <CA+M3ks442wftNR8+dctdSkKMCPSw9Rd2CH5UG-VEP7XySGjCjw@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <DC90FABD8B6EC54BBF89C4F78634A12E@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Keeping buffers filled into the bitstream on a temporary list instead of
-immediately calling vb2_buffer_done on each of them immediately allows
-start_streaming to correctly decide whether they should be marked as
-done or requeued if an error occurs after the bitstream has been filled.
-
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c    | 28 ++++++++++++++++++++++------
- drivers/media/platform/coda/coda-common.c | 29 ++++++++++++++++++++++-------
- drivers/media/platform/coda/coda.h        |  2 +-
- 3 files changed, 45 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 466a44e4549e5..e3e3225607836 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -224,7 +224,7 @@ static bool coda_bitstream_try_queue(struct coda_ctx *ctx,
- 	return true;
- }
- 
--void coda_fill_bitstream(struct coda_ctx *ctx, bool streaming)
-+void coda_fill_bitstream(struct coda_ctx *ctx, struct list_head *buffer_list)
- {
- 	struct vb2_v4l2_buffer *src_buf;
- 	struct coda_buffer_meta *meta;
-@@ -252,9 +252,16 @@ void coda_fill_bitstream(struct coda_ctx *ctx, bool streaming)
- 				 "dropping invalid JPEG frame %d\n",
- 				 ctx->qsequence);
- 			src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
--			v4l2_m2m_buf_done(src_buf, streaming ?
--					  VB2_BUF_STATE_ERROR :
--					  VB2_BUF_STATE_QUEUED);
-+			if (buffer_list) {
-+				struct v4l2_m2m_buffer *m2m_buf;
-+
-+				m2m_buf = container_of(src_buf,
-+						       struct v4l2_m2m_buffer,
-+						       vb);
-+				list_add_tail(&m2m_buf->list, buffer_list);
-+			} else {
-+				v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_ERROR);
-+			}
- 			continue;
- 		}
- 
-@@ -295,7 +302,16 @@ void coda_fill_bitstream(struct coda_ctx *ctx, bool streaming)
- 				trace_coda_bit_queue(ctx, src_buf, meta);
- 			}
- 
--			v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
-+			if (buffer_list) {
-+				struct v4l2_m2m_buffer *m2m_buf;
-+
-+				m2m_buf = container_of(src_buf,
-+						       struct v4l2_m2m_buffer,
-+						       vb);
-+				list_add_tail(&m2m_buf->list, buffer_list);
-+			} else {
-+				v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
-+			}
- 		} else {
- 			break;
- 		}
-@@ -1747,7 +1763,7 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
- 
- 	/* Try to copy source buffer contents into the bitstream ringbuffer */
- 	mutex_lock(&ctx->bitstream_mutex);
--	coda_fill_bitstream(ctx, true);
-+	coda_fill_bitstream(ctx, NULL);
- 	mutex_unlock(&ctx->bitstream_mutex);
- 
- 	if (coda_get_bitstream_payload(ctx) < 512 &&
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index a7318b5a1e6ce..f3d4a595bb13a 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1378,7 +1378,7 @@ static void coda_buf_queue(struct vb2_buffer *vb)
- 		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
- 		if (vb2_is_streaming(vb->vb2_queue))
- 			/* This set buf->sequence = ctx->qsequence++ */
--			coda_fill_bitstream(ctx, true);
-+			coda_fill_bitstream(ctx, NULL);
- 		mutex_unlock(&ctx->bitstream_mutex);
- 	} else {
- 		if (ctx->inst_type == CODA_INST_ENCODER &&
-@@ -1433,18 +1433,22 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 	struct coda_ctx *ctx = vb2_get_drv_priv(q);
- 	struct v4l2_device *v4l2_dev = &ctx->dev->v4l2_dev;
- 	struct coda_q_data *q_data_src, *q_data_dst;
-+	struct v4l2_m2m_buffer *m2m_buf, *tmp;
- 	struct vb2_v4l2_buffer *buf;
-+	struct list_head list;
- 	int ret = 0;
- 
- 	if (count < 1)
- 		return -EINVAL;
- 
-+	INIT_LIST_HEAD(&list);
-+
- 	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
- 	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
- 		if (ctx->inst_type == CODA_INST_DECODER && ctx->use_bit) {
- 			/* copy the buffers that were queued before streamon */
- 			mutex_lock(&ctx->bitstream_mutex);
--			coda_fill_bitstream(ctx, false);
-+			coda_fill_bitstream(ctx, &list);
- 			mutex_unlock(&ctx->bitstream_mutex);
- 
- 			if (coda_get_bitstream_payload(ctx) < 512) {
-@@ -1460,7 +1464,7 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 
- 	/* Don't start the coda unless both queues are on */
- 	if (!(ctx->streamon_out && ctx->streamon_cap))
--		return 0;
-+		goto out;
- 
- 	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
- 	if ((q_data_src->width != q_data_dst->width &&
-@@ -1495,15 +1499,26 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 	ret = ctx->ops->start_streaming(ctx);
- 	if (ctx->inst_type == CODA_INST_DECODER) {
- 		if (ret == -EAGAIN)
--			return 0;
--		else if (ret < 0)
--			goto err;
-+			goto out;
- 	}
-+	if (ret < 0)
-+		goto err;
- 
--	return ret;
-+out:
-+	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-+		list_for_each_entry_safe(m2m_buf, tmp, &list, list) {
-+			list_del(&m2m_buf->list);
-+			v4l2_m2m_buf_done(&m2m_buf->vb, VB2_BUF_STATE_DONE);
-+		}
-+	}
-+	return 0;
- 
- err:
- 	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-+		list_for_each_entry_safe(m2m_buf, tmp, &list, list) {
-+			list_del(&m2m_buf->list);
-+			v4l2_m2m_buf_done(&m2m_buf->vb, VB2_BUF_STATE_QUEUED);
-+		}
- 		while ((buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx)))
- 			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_QUEUED);
- 	} else {
-diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-index 4b831c91ae4af..6aa9c19c4a896 100644
---- a/drivers/media/platform/coda/coda.h
-+++ b/drivers/media/platform/coda/coda.h
-@@ -259,7 +259,7 @@ int coda_decoder_queue_init(void *priv, struct vb2_queue *src_vq,
- 
- int coda_hw_reset(struct coda_ctx *ctx);
- 
--void coda_fill_bitstream(struct coda_ctx *ctx, bool streaming);
-+void coda_fill_bitstream(struct coda_ctx *ctx, struct list_head *buffer_list);
- 
- void coda_set_gdi_regs(struct coda_ctx *ctx);
- 
--- 
-2.11.0
+SGkgQmVuamFtaW4NCg0KT24gMDMvMzAvMjAxNyAwOTo0MSBBTSwgQmVuamFtaW4gR2FpZ25hcmQg
+d3JvdGU6DQo+ICsgUGF0cmljZSBmb3Igc3RpIERUDQoNCkluIG9yZGVyIHRvIGJlIGNvaGVyZW50
+IHdpdGggYWxsIHByZXZpb3VzIFNUaSBEVCBwYXRjaGVzLA0KDQpjYW4geW91IHVwZGF0ZSB0aGUg
+Y29tbWl0IG1lc3NhZ2Ugd2l0aCAiQVJNOiBkdHM6IFNUaUg0MTA6IHVwZGF0ZSANCnN0aS1jZWMg
+Zm9yIENFQyBub3RpZmllciBzdXBwb3J0Ig0KDQpUaGFua3MNCg0KUGF0cmljZQ0KDQo+DQo+IDIw
+MTctMDMtMjkgMTY6MTUgR01UKzAyOjAwIEhhbnMgVmVya3VpbCA8aHZlcmt1aWxAeHM0YWxsLm5s
+PjoNCj4+IEZyb206IEJlbmphbWluIEdhaWduYXJkIDxiZW5qYW1pbi5nYWlnbmFyZEBsaW5hcm8u
+b3JnPg0KPj4NCj4+IFRvIHVzZSBDRUMgbm90aWZpZXIgc3RpIENFQyBkcml2ZXIgbmVlZHMgdG8g
+Z2V0IHBoYW5kbGUNCj4+IG9mIHRoZSBoZG1pIGRldmljZS4NCj4+DQo+PiBTaWduZWQtb2ZmLWJ5
+OiBCZW5qYW1pbiBHYWlnbmFyZCA8YmVuamFtaW4uZ2FpZ25hcmRAbGluYXJvLm9yZz4NCj4+IFNp
+Z25lZC1vZmYtYnk6IEhhbnMgVmVya3VpbCA8aGFucy52ZXJrdWlsQGNpc2NvLmNvbT4NCj4+IEND
+OiBkZXZpY2V0cmVlQHZnZXIua2VybmVsLm9yZw0KPj4gLS0tDQo+PiAgYXJjaC9hcm0vYm9vdC9k
+dHMvc3RpaDQwNy1mYW1pbHkuZHRzaSB8IDEyIC0tLS0tLS0tLS0tLQ0KPj4gIGFyY2gvYXJtL2Jv
+b3QvZHRzL3N0aWg0MTAuZHRzaSAgICAgICAgfCAxMyArKysrKysrKysrKysrDQo+PiAgMiBmaWxl
+cyBjaGFuZ2VkLCAxMyBpbnNlcnRpb25zKCspLCAxMiBkZWxldGlvbnMoLSkNCj4+DQo+PiBkaWZm
+IC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvc3RpaDQwNy1mYW1pbHkuZHRzaSBiL2FyY2gvYXJt
+L2Jvb3QvZHRzL3N0aWg0MDctZmFtaWx5LmR0c2kNCj4+IGluZGV4IGQ3NTNhYzM2Nzg4Zi4uMDQ0
+MTg0NTgwMzI2IDEwMDY0NA0KPj4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvc3RpaDQwNy1mYW1p
+bHkuZHRzaQ0KPj4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvc3RpaDQwNy1mYW1pbHkuZHRzaQ0K
+Pj4gQEAgLTc0MiwxOCArNzQyLDYgQEANCj4+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgIDwmY2xrX3NfYzBfZmxleGdlbiBDTEtfRVRIX1BIWT47DQo+PiAgICAgICAgICAgICAgICAg
+fTsNCj4+DQo+PiAtICAgICAgICAgICAgICAgY2VjOiBzdGktY2VjQDA5NGEwODdjIHsNCj4+IC0g
+ICAgICAgICAgICAgICAgICAgICAgIGNvbXBhdGlibGUgPSAic3Qsc3RpaC1jZWMiOw0KPj4gLSAg
+ICAgICAgICAgICAgICAgICAgICAgcmVnID0gPDB4OTRhMDg3YyAweDY0PjsNCj4+IC0gICAgICAg
+ICAgICAgICAgICAgICAgIGNsb2NrcyA9IDwmY2xrX3N5c2luPjsNCj4+IC0gICAgICAgICAgICAg
+ICAgICAgICAgIGNsb2NrLW5hbWVzID0gImNlYy1jbGsiOw0KPj4gLSAgICAgICAgICAgICAgICAg
+ICAgICAgaW50ZXJydXB0cyA9IDxHSUNfU1BJIDE0MCBJUlFfVFlQRV9OT05FPjsNCj4+IC0gICAg
+ICAgICAgICAgICAgICAgICAgIGludGVycnVwdC1uYW1lcyA9ICJjZWMtaXJxIjsNCj4+IC0gICAg
+ICAgICAgICAgICAgICAgICAgIHBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7DQo+PiAtICAgICAg
+ICAgICAgICAgICAgICAgICBwaW5jdHJsLTAgPSA8JnBpbmN0cmxfY2VjMF9kZWZhdWx0PjsNCj4+
+IC0gICAgICAgICAgICAgICAgICAgICAgIHJlc2V0cyA9IDwmc29mdHJlc2V0IFNUSUg0MDdfTFBN
+X1NPRlRSRVNFVD47DQo+PiAtICAgICAgICAgICAgICAgfTsNCj4+IC0NCj4+ICAgICAgICAgICAg
+ICAgICBybmcxMDogcm5nQDA4YTg5MDAwIHsNCj4+ICAgICAgICAgICAgICAgICAgICAgICAgIGNv
+bXBhdGlibGUgICAgICA9ICJzdCxybmciOw0KPj4gICAgICAgICAgICAgICAgICAgICAgICAgcmVn
+ICAgICAgICAgICAgID0gPDB4MDhhODkwMDAgMHgxMDAwPjsNCj4+IGRpZmYgLS1naXQgYS9hcmNo
+L2FybS9ib290L2R0cy9zdGloNDEwLmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9zdGloNDEwLmR0
+c2kNCj4+IGluZGV4IDNjOTY3MmM1YjA5Zi4uMjFmZTcyYjE4M2Q4IDEwMDY0NA0KPj4gLS0tIGEv
+YXJjaC9hcm0vYm9vdC9kdHMvc3RpaDQxMC5kdHNpDQo+PiArKysgYi9hcmNoL2FybS9ib290L2R0
+cy9zdGloNDEwLmR0c2kNCj4+IEBAIC0yODEsNSArMjgxLDE4IEBADQo+PiAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICA8JmNsa19zX2MwX2ZsZXhnZW4gQ0xLX1NUMjMxX0RNVT4sDQo+
+PiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8JmNsa19zX2MwX2ZsZXhnZW4gQ0xL
+X0ZMQVNIX1BST01JUD47DQo+PiAgICAgICAgICAgICAgICAgfTsNCj4+ICsNCj4+ICsgICAgICAg
+ICAgICAgICBzdGktY2VjQDA5NGEwODdjIHsNCj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGNv
+bXBhdGlibGUgPSAic3Qsc3RpaC1jZWMiOw0KPj4gKyAgICAgICAgICAgICAgICAgICAgICAgcmVn
+ID0gPDB4OTRhMDg3YyAweDY0PjsNCj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGNsb2NrcyA9
+IDwmY2xrX3N5c2luPjsNCj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGNsb2NrLW5hbWVzID0g
+ImNlYy1jbGsiOw0KPj4gKyAgICAgICAgICAgICAgICAgICAgICAgaW50ZXJydXB0cyA9IDxHSUNf
+U1BJIDE0MCBJUlFfVFlQRV9OT05FPjsNCj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGludGVy
+cnVwdC1uYW1lcyA9ICJjZWMtaXJxIjsNCj4+ICsgICAgICAgICAgICAgICAgICAgICAgIHBpbmN0
+cmwtbmFtZXMgPSAiZGVmYXVsdCI7DQo+PiArICAgICAgICAgICAgICAgICAgICAgICBwaW5jdHJs
+LTAgPSA8JnBpbmN0cmxfY2VjMF9kZWZhdWx0PjsNCj4+ICsgICAgICAgICAgICAgICAgICAgICAg
+IHJlc2V0cyA9IDwmc29mdHJlc2V0IFNUSUg0MDdfTFBNX1NPRlRSRVNFVD47DQo+PiArICAgICAg
+ICAgICAgICAgICAgICAgICBoZG1pLXBoYW5kbGUgPSA8JnN0aV9oZG1pPjsNCj4+ICsgICAgICAg
+ICAgICAgICB9Ow0KPj4gICAgICAgICB9Ow0KPj4gIH07DQo+PiAtLQ0KPj4gMi4xMS4wDQo+Pg0K
+Pg0KPg0KPg==
