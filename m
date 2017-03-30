@@ -1,148 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:36414 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932442AbdCXQFl (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:4839 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S934244AbdC3P2s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Mar 2017 12:05:41 -0400
-Date: Fri, 24 Mar 2017 21:35:06 +0530
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-To: mchehab@kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, outreachy-kernel@googlegroups.com
-Subject: [PATCH v2] staging: media: davinci_vpfe:Replace a bit shift.
-Message-ID: <20170324160506.GA14310@arushi-HP-Pavilion-Notebook>
+        Thu, 30 Mar 2017 11:28:48 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v2 1/8] dt-bindings: Document STM32 DCMI bindings
+Date: Thu, 30 Mar 2017 17:27:40 +0200
+Message-ID: <1490887667-8880-2-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1490887667-8880-1-git-send-email-hugues.fruchet@st.com>
+References: <1490887667-8880-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch replaces bit shifting on 1 with the BIT(x) macro.
-This was done with coccinelle:
-@@
-constant c;
-@@
+This adds documentation of device tree bindings for the STM32 DCMI
+(Digital Camera Memory Interface).
 
--1 << c
-+BIT(c)
-
-Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
-changes in v2
- -Remove unnecessary parenthesis.
+ .../devicetree/bindings/media/st,stm32-dcmi.txt    | 85 ++++++++++++++++++++++
+ 1 file changed, 85 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
 
- drivers/staging/media/davinci_vpfe/dm365_ipipe.c   |  2 +-
- drivers/staging/media/davinci_vpfe/dm365_ipipeif.c |  2 +-
- drivers/staging/media/davinci_vpfe/dm365_isif.c    | 10 +++++-----
- drivers/staging/media/davinci_vpfe/dm365_resizer.c |  6 +++---
- 4 files changed, 10 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-index 6a3434cebd79..7eeb53217168 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-@@ -1815,7 +1815,7 @@ vpfe_ipipe_init(struct vpfe_ipipe_device *ipipe, struct platform_device *pdev)
- 	v4l2_subdev_init(sd, &ipipe_v4l2_ops);
- 	sd->internal_ops = &ipipe_v4l2_internal_ops;
- 	strlcpy(sd->name, "DAVINCI IPIPE", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
- 	v4l2_set_subdevdata(sd, ipipe);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
-index 46fd2c7f69c3..c07f028dd6be 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
-@@ -1021,7 +1021,7 @@ int vpfe_ipipeif_init(struct vpfe_ipipeif_device *ipipeif,
- 
- 	sd->internal_ops = &ipipeif_v4l2_internal_ops;
- 	strlcpy(sd->name, "DAVINCI IPIPEIF", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
- 
- 	v4l2_set_subdevdata(sd, ipipeif);
- 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif.c b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-index 569bcdc9ce2f..74b1247203b1 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_isif.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-@@ -821,7 +821,7 @@ isif_config_dfc(struct vpfe_isif_device *isif, struct vpfe_isif_dfc *vdfc)
- 
- 	/* Correct whole line or partial */
- 	if (vdfc->corr_whole_line)
--		val |= 1 << ISIF_VDFC_CORR_WHOLE_LN_SHIFT;
-+		val |= BIT(ISIF_VDFC_CORR_WHOLE_LN_SHIFT);
- 
- 	/* level shift value */
- 	val |= (vdfc->def_level_shift & ISIF_VDFC_LEVEL_SHFT_MASK) <<
-@@ -849,7 +849,7 @@ isif_config_dfc(struct vpfe_isif_device *isif, struct vpfe_isif_dfc *vdfc)
- 
- 	val = isif_read(isif->isif_cfg.base_addr, DFCMEMCTL);
- 	/* set DFCMARST and set DFCMWR */
--	val |= 1 << ISIF_DFCMEMCTL_DFCMARST_SHIFT;
-+	val |= BIT(ISIF_DFCMEMCTL_DFCMARST_SHIFT);
- 	val |= 1;
- 	isif_write(isif->isif_cfg.base_addr, val, DFCMEMCTL);
- 
-@@ -880,7 +880,7 @@ isif_config_dfc(struct vpfe_isif_device *isif, struct vpfe_isif_dfc *vdfc)
- 		}
- 		val = isif_read(isif->isif_cfg.base_addr, DFCMEMCTL);
- 		/* clear DFCMARST and set DFCMWR */
--		val &= ~(1 << ISIF_DFCMEMCTL_DFCMARST_SHIFT);
-+		val &= ~BIT(ISIF_DFCMEMCTL_DFCMARST_SHIFT);
- 		val |= 1;
- 		isif_write(isif->isif_cfg.base_addr, val, DFCMEMCTL);
- 
-@@ -1140,7 +1140,7 @@ static int isif_config_raw(struct v4l2_subdev *sd, int mode)
- 	isif_write(isif->isif_cfg.base_addr, val, CGAMMAWD);
- 	/* Configure DPCM compression settings */
- 	if (params->v4l2_pix_fmt == V4L2_PIX_FMT_SGRBG10DPCM8) {
--		val =  1 << ISIF_DPCM_EN_SHIFT;
-+		val =  BIT(ISIF_DPCM_EN_SHIFT);
- 		val |= (params->dpcm_predictor &
- 			ISIF_DPCM_PREDICTOR_MASK) << ISIF_DPCM_PREDICTOR_SHIFT;
- 	}
-@@ -2044,7 +2044,7 @@ int vpfe_isif_init(struct vpfe_isif_device *isif, struct platform_device *pdev)
- 	v4l2_subdev_init(sd, &isif_v4l2_ops);
- 	sd->internal_ops = &isif_v4l2_internal_ops;
- 	strlcpy(sd->name, "DAVINCI ISIF", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
- 	v4l2_set_subdevdata(sd, isif);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	pads[ISIF_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-index 857b0e847c5e..3b3469adaf91 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-@@ -1903,7 +1903,7 @@ int vpfe_resizer_init(struct vpfe_resizer_device *vpfe_rsz,
- 	v4l2_subdev_init(sd, &resizer_v4l2_ops);
- 	sd->internal_ops = &resizer_v4l2_internal_ops;
- 	strlcpy(sd->name, "DAVINCI RESIZER CROP", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
- 	v4l2_set_subdevdata(sd, vpfe_rsz);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-@@ -1927,7 +1927,7 @@ int vpfe_resizer_init(struct vpfe_resizer_device *vpfe_rsz,
- 	v4l2_subdev_init(sd, &resizer_v4l2_ops);
- 	sd->internal_ops = &resizer_v4l2_internal_ops;
- 	strlcpy(sd->name, "DAVINCI RESIZER A", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
- 	v4l2_set_subdevdata(sd, vpfe_rsz);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-@@ -1949,7 +1949,7 @@ int vpfe_resizer_init(struct vpfe_resizer_device *vpfe_rsz,
- 	v4l2_subdev_init(sd, &resizer_v4l2_ops);
- 	sd->internal_ops = &resizer_v4l2_internal_ops;
- 	strlcpy(sd->name, "DAVINCI RESIZER B", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
- 	v4l2_set_subdevdata(sd, vpfe_rsz);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
+diff --git a/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
+new file mode 100644
+index 0000000..8180f63
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
+@@ -0,0 +1,85 @@
++STMicroelectronics STM32 Digital Camera Memory Interface (DCMI)
++
++Required properties:
++- compatible: "st,stm32-dcmi"
++- reg: physical base address and length of the registers set for the device
++- interrupts: should contain IRQ line for the DCMI
++- clocks: list of clock specifiers, corresponding to entries in
++          the clock-names property
++- clock-names: must contain "mclk", which is the DCMI peripherial clock
++- resets: reference to a reset controller
++- reset-names: see Documentation/devicetree/bindings/reset/st,stm32-rcc.txt
++
++DCMI supports a single port node with parallel bus. It should contain one
++'port' child node with child 'endpoint' node. Please refer to the bindings
++defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++Device node example
++-------------------
++	dcmi: dcmi@50050000 {
++		compatible = "st,stm32-dcmi";
++		reg = <0x50050000 0x400>;
++		interrupts = <78>;
++		resets = <&rcc STM32F4_AHB2_RESET(DCMI)>;
++		clocks = <&rcc 0 STM32F4_AHB2_CLOCK(DCMI)>;
++		clock-names = "mclk";
++		pinctrl-names = "default";
++		pinctrl-0 = <&dcmi_pins>;
++		dmas = <&dma2 1 1 0x414 0x3>;
++		dma-names = "tx";
++		status = "disabled";
++	};
++
++Board setup example
++-------------------
++This example is extracted from STM32F429-EVAL board devicetree.
++Please note that on this board, the camera sensor reset & power-down
++line level are inverted (so reset is active high and power-down is
++active low).
++
++/ {
++	[...]
++	clocks {
++		clk_ext_camera: clk-ext-camera {
++			#clock-cells = <0>;
++			compatible = "fixed-clock";
++			clock-frequency = <24000000>;
++		};
++	};
++	[...]
++};
++
++&dcmi {
++	status = "okay";
++
++	port {
++		dcmi_0: endpoint@0 {
++			remote-endpoint = <&ov2640_0>;
++			bus-width = <8>;
++			hsync-active = <0>;
++			vsync-active = <0>;
++			pclk-sample = <1>;
++		};
++	};
++};
++
++&i2c@1 {
++	[...]
++	ov2640: camera@30 {
++		compatible = "ovti,ov2640";
++		reg = <0x30>;
++		resetb-gpios = <&stmpegpio 2 GPIO_ACTIVE_HIGH>;
++		pwdn-gpios = <&stmpegpio 0 GPIO_ACTIVE_LOW>;
++		clocks = <&clk_ext_camera>;
++		clock-names = "xvclk";
++		status = "okay";
++
++		port {
++			ov2640_0: endpoint {
++				remote-endpoint = <&dcmi_0>;
++			};
++		};
++	};
++};
 -- 
-2.11.0
+1.9.1
