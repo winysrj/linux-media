@@ -1,80 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:47578 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934692AbdCLVOQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Mar 2017 17:14:16 -0400
-Date: Sun, 12 Mar 2017 21:13:24 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v5 00/39] i.MX Media Driver
-Message-ID: <20170312211324.GW21222@n2100.armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <20170312194700.GR21222@n2100.armlinux.org.uk>
- <20170312175923.6ad86dff@vento.lan>
+Received: from mga05.intel.com ([192.55.52.43]:56100 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932181AbdC3HEh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 03:04:37 -0400
+From: Jani Nikula <jani.nikula@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: [PATCH 04/22] gadget.rst: Enrich its ReST representation and add kernel-doc tag
+In-Reply-To: <874lyb459y.fsf@intel.com>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com> <61bf3d87b32a57f5d223dc3fd0228c342ba1b4a0.1490813422.git.mchehab@s-opensource.com> <874lyb459y.fsf@intel.com>
+Date: Thu, 30 Mar 2017 10:04:32 +0300
+Message-ID: <871stf454v.fsf@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170312175923.6ad86dff@vento.lan>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 12, 2017 at 05:59:28PM -0300, Mauro Carvalho Chehab wrote:
-> Yet, udev/systemd has some rules that provide an unique name for V4L
-> devices at /lib/udev/rules.d/60-persistent-v4l.rules. Basically, it
-> runs a small application (v4l_id) with creates a persistent symling
-> using rules like this:
-> 
-> 	KERNEL=="video*", ENV{ID_SERIAL}=="?*", SYMLINK+="v4l/by-id/$env{ID_BUS}-$env{ID_SERIAL}-video-index$attr{index}"
-> 
-> Those names are stored at /dev/v4l/by-path.
+On Thu, 30 Mar 2017, Jani Nikula <jani.nikula@linux.intel.com> wrote:
+> On Wed, 29 Mar 2017, Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+>> The pandoc conversion is not perfect. Do handwork in order to:
+>>
+>> - add a title to this chapter;
+>> - use the proper warning and note markups;
+>> - use kernel-doc to include Kernel header and c files;
+>
+> Please look at Documentation/sphinx/tmplcvt which takes care of all of
+> that.
 
-This doesn't help:
+That said, since you've already manually done the work, you might want
+to do another conversion using the script, and diff the results to see
+if there's something you've perhaps missed. I'm pretty sure nobody's
+going to read patch 2 line-by-line...
 
-$ ls -Al /dev/v4l/by-id/
-total 0
-lrwxrwxrwx 1 root root 13 Mar 12 19:54 usb-Sonix_Technology_Co.__Ltd._USB_2.0_Camera-video-index0 -> ../../video10
-$ ls -Al /dev/v4l/by-path/
-total 0
-lrwxrwxrwx 1 root root 12 Mar 12 19:54 platform-2040000.vpu-video-index0 -> ../../video0
-lrwxrwxrwx 1 root root 12 Mar 12 19:54 platform-2040000.vpu-video-index1 -> ../../video1
-lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index0 -> ../../video2
-lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index1 -> ../../video3
-lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index2 -> ../../video4
-lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index3 -> ../../video5
-lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index4 -> ../../video6
-lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index5 -> ../../video7
-lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index6 -> ../../video8
-lrwxrwxrwx 1 root root 12 Mar 12 20:53 platform-capture-subsystem-video-index7 -> ../../video9
-lrwxrwxrwx 1 root root 13 Mar 12 19:54 platform-ci_hdrc.0-usb-0:1:1.0-video-index0 -> ../../video10
+BR,
+Jani.
 
-The problem is the "platform-capture-subsystem-video-index" entries.
-These themselves change order.  For instance, I now have:
-
-- entity 72: ipu1_csi0 capture (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video6
-
-which means it's platform-capture-subsystem-video-index4.  Before, it
-was platform-capture-subsystem-video-index2.
+>
+> BR,
+> Jani.
+>
+>> - remove legacy notes with regards to DocBook;
+>> - some other minor adjustments to make it better to read in
+>>   text mode and in html.
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>> ---
+>>  Documentation/driver-api/usb/gadget.rst | 69 +++++++++++++++++++++------------
+>>  1 file changed, 45 insertions(+), 24 deletions(-)
+>>
+>> diff --git a/Documentation/driver-api/usb/gadget.rst b/Documentation/driver-api/usb/gadget.rst
+>> index 4fd9862f3f21..c4c76ebb51d3 100644
+>> --- a/Documentation/driver-api/usb/gadget.rst
+>> +++ b/Documentation/driver-api/usb/gadget.rst
+>> @@ -1,3 +1,7 @@
+>> +Linux-USB "Gadget" kernel mode API
+>> +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>> +
+>> +
+>>  Introduction
+>>  ============
+>>  
+>> @@ -175,16 +179,12 @@ the gadget, and submitting one or more *struct usb\_request* buffers to
+>>  transfer data. Understand those four data types, and their operations,
+>>  and you will understand how this API works.
+>>  
+>> -    **Note**
+>> +.. Note::
+>>  
+>> -    This documentation was prepared using the standard Linux kernel
+>> -    ``docproc`` tool, which turns text and in-code comments into SGML
+>> -    DocBook and then into usable formats such as HTML or PDF. Other than
+>> -    the "Chapter 9" data types, most of the significant data types and
+>> -    functions are described here.
+>> +    Other than the "Chapter 9" data types, most of the significant data
+>> +    types and functions are described here.
+>>  
+>> -    However, docproc does not understand all the C constructs that are
+>> -    used, so some relevant information is likely omitted from what you
+>> +    However, some relevant information is likely omitted from what you
+>>      are reading. One example of such information is endpoint
+>>      autoconfiguration. You'll have to read the header file, and use
+>>      example source code (such as that for "Gadget Zero"), to fully
+>> @@ -192,10 +192,10 @@ and you will understand how this API works.
+>>  
+>>      The part of the API implementing some basic driver capabilities is
+>>      specific to the version of the Linux kernel that's in use. The 2.6
+>> -    kernel includes a *driver model* framework that has no analogue on
+>> -    earlier kernels; so those parts of the gadget API are not fully
+>> -    portable. (They are implemented on 2.4 kernels, but in a different
+>> -    way.) The driver model state is another part of this API that is
+>> +    and upper kernel versions include a *driver model* framework that has
+>> +    no analogue on earlier kernels; so those parts of the gadget API are
+>> +    not fully portable. (They are implemented on 2.4 kernels, but in a
+>> +    different way.) The driver model state is another part of this API that is
+>>      ignored by the kerneldoc tools.
+>>  
+>>  The core API does not expose every possible hardware feature, only the
+>> @@ -301,18 +301,19 @@ USB 2.0 Chapter 9 Types and Constants
+>>  -------------------------------------
+>>  
+>>  Gadget drivers rely on common USB structures and constants defined in
+>> -the ``<linux/usb/ch9.h>`` header file, which is standard in Linux 2.6
+>> -kernels. These are the same types and constants used by host side
+>> +the :ref:`linux/usb/ch9.h <usb_chapter9>` header file, which is standard in
+>> +Linux 2.6+ kernels. These are the same types and constants used by host side
+>>  drivers (and usbcore).
+>>  
+>> -!Iinclude/linux/usb/ch9.h
+>>  Core Objects and Methods
+>>  ------------------------
+>>  
+>>  These are declared in ``<linux/usb/gadget.h>``, and are used by gadget
+>>  drivers to interact with USB peripheral controller drivers.
+>>  
+>> -!Iinclude/linux/usb/gadget.h
+>> +.. kernel-doc:: include/linux/usb/gadget.h
+>> +   :internal:
+>> +
+>>  Optional Utilities
+>>  ------------------
+>>  
+>> @@ -320,7 +321,12 @@ The core API is sufficient for writing a USB Gadget Driver, but some
+>>  optional utilities are provided to simplify common tasks. These
+>>  utilities include endpoint autoconfiguration.
+>>  
+>> -!Edrivers/usb/gadget/usbstring.c !Edrivers/usb/gadget/config.c
+>> +.. kernel-doc:: drivers/usb/gadget/usbstring.c
+>> +   :export:
+>> +
+>> +.. kernel-doc:: drivers/usb/gadget/config.c
+>> +   :export:
+>> +
+>>  Composite Device Framework
+>>  --------------------------
+>>  
+>> @@ -337,7 +343,12 @@ usb\_function*, which packages a user visible role such as "network
+>>  link" or "mass storage device". Management functions may also exist,
+>>  such as "Device Firmware Upgrade".
+>>  
+>> -!Iinclude/linux/usb/composite.h !Edrivers/usb/gadget/composite.c
+>> +.. kernel-doc:: include/linux/usb/composite.h
+>> +   :internal:
+>> +
+>> +.. kernel-doc:: drivers/usb/gadget/composite.c
+>> +   :export:
+>> +
+>>  Composite Device Functions
+>>  --------------------------
+>>  
+>> @@ -345,11 +356,21 @@ At this writing, a few of the current gadget drivers have been converted
+>>  to this framework. Near-term plans include converting all of them,
+>>  except for "gadgetfs".
+>>  
+>> -!Edrivers/usb/gadget/function/f\_acm.c
+>> -!Edrivers/usb/gadget/function/f\_ecm.c
+>> -!Edrivers/usb/gadget/function/f\_subset.c
+>> -!Edrivers/usb/gadget/function/f\_obex.c
+>> -!Edrivers/usb/gadget/function/f\_serial.c
+>> +.. kernel-doc:: drivers/usb/gadget/function/f_acm.c
+>> +   :export:
+>> +
+>> +.. kernel-doc:: drivers/usb/gadget/function/f_ecm.c
+>> +   :export:
+>> +
+>> +.. kernel-doc:: drivers/usb/gadget/function/f_subset.c
+>> +   :export:
+>> +
+>> +.. kernel-doc:: drivers/usb/gadget/function/f_obex.c
+>> +   :export:
+>> +
+>> +.. kernel-doc:: drivers/usb/gadget/function/f_serial.c
+>> +   :export:
+>> +
+>>  Peripheral Controller Drivers
+>>  =============================
+>>  
+>> @@ -475,7 +496,7 @@ can also benefit non-OTG products.
+>>  -  Also on the host side, a driver must support the OTG "Targeted
+>>     Peripheral List". That's just a whitelist, used to reject peripherals
+>>     not supported with a given Linux OTG host. *This whitelist is
+>> -   product-specific; each product must modify ``otg_whitelist.h`` to
+>> +   product-specific; each product must modify* ``otg_whitelist.h`` *to
+>>     match its interoperability specification.*
+>>  
+>>     Non-OTG Linux hosts, like PCs and workstations, normally have some
 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Jani Nikula, Intel Open Source Technology Center
