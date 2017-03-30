@@ -1,135 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:58092 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754681AbdCGNtB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 08:49:01 -0500
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: [PATCH] [media] platform: Order the Makefile alphabetically
-Date: Tue,  7 Mar 2017 14:39:28 +0100
-Message-Id: <20170307133928.24527-1-maxime.ripard@free-electrons.com>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:59330 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S934476AbdC3P24 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 11:28:56 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v2 6/8] ARM: dts: stm32: Enable OV2640 camera support of STM32F429-EVAL board
+Date: Thu, 30 Mar 2017 17:27:45 +0200
+Message-ID: <1490887667-8880-7-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1490887667-8880-1-git-send-email-hugues.fruchet@st.com>
+References: <1490887667-8880-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Makefile was a free for all without a clear order defined. Sort all the
-options based on the Kconfig symbol.
+Enable OV2640 camera support of STM32F429-EVAL board.
 
-Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/platform/Makefile | 89 ++++++++++++++---------------------------
- 1 file changed, 31 insertions(+), 58 deletions(-)
+ arch/arm/boot/dts/stm32429i-eval.dts | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 349ddf6a69da..bd5dc3068cbc 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -1,73 +1,46 @@
- #
- # Makefile for the video capture/playback device drivers.
- #
-+ccflags-y += -I$(srctree)/drivers/media/i2c
+diff --git a/arch/arm/boot/dts/stm32429i-eval.dts b/arch/arm/boot/dts/stm32429i-eval.dts
+index 7ffcf07..b7d127c 100644
+--- a/arch/arm/boot/dts/stm32429i-eval.dts
++++ b/arch/arm/boot/dts/stm32429i-eval.dts
+@@ -48,6 +48,7 @@
+ /dts-v1/;
+ #include "stm32f429.dtsi"
+ #include <dt-bindings/input/input.h>
++#include <dt-bindings/gpio/gpio.h>
  
--obj-$(CONFIG_VIDEO_M32R_AR_M64278) += arv.o
--
--obj-$(CONFIG_VIDEO_VIA_CAMERA) += via-camera.o
--obj-$(CONFIG_VIDEO_CAFE_CCIC) += marvell-ccic/
--obj-$(CONFIG_VIDEO_MMP_CAMERA) += marvell-ccic/
--
--obj-$(CONFIG_VIDEO_OMAP3)	+= omap3isp/
--obj-$(CONFIG_VIDEO_PXA27x)	+= pxa_camera.o
--
--obj-$(CONFIG_VIDEO_VIU) += fsl-viu.o
--
--obj-$(CONFIG_VIDEO_VIVID)		+= vivid/
--obj-$(CONFIG_VIDEO_VIM2M)		+= vim2m.o
--
--obj-$(CONFIG_VIDEO_TI_VPE)		+= ti-vpe/
--
--obj-$(CONFIG_VIDEO_TI_CAL)		+= ti-vpe/
--
--obj-$(CONFIG_VIDEO_MX2_EMMAPRP)		+= mx2_emmaprp.o
-+obj-y					+= omap/
-+obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
-+obj-$(CONFIG_BLACKFIN)                  += blackfin/
-+obj-$(CONFIG_DVB_C8SECTPFE)		+= sti/c8sectpfe/
-+obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
-+obj-$(CONFIG_VIDEO_AM437X_VPFE)		+= am437x/
-+obj-$(CONFIG_VIDEO_ATMEL_ISC)		+= atmel/
-+obj-$(CONFIG_VIDEO_CAFE_CCIC)		+= marvell-ccic/
- obj-$(CONFIG_VIDEO_CODA) 		+= coda/
--
--obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
--
-+obj-$(CONFIG_VIDEO_M32R_AR_M64278)	+= arv.o
-+obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
-+obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC)	+= mtk-vcodec/
-+obj-$(CONFIG_VIDEO_MEDIATEK_VPU)	+= mtk-vpu/
- obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
--
-+obj-$(CONFIG_VIDEO_MMP_CAMERA)		+= marvell-ccic/
-+obj-$(CONFIG_VIDEO_MX2_EMMAPRP)		+= mx2_emmaprp.o
-+obj-$(CONFIG_VIDEO_OMAP3)		+= omap3isp/
-+obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
-+obj-$(CONFIG_VIDEO_RCAR_VIN)		+= rcar-vin/
-+obj-$(CONFIG_VIDEO_RENESAS_FCP) 	+= rcar-fcp.o
-+obj-$(CONFIG_VIDEO_RENESAS_FDP1)	+= rcar_fdp1.o
-+obj-$(CONFIG_VIDEO_RENESAS_JPU) 	+= rcar_jpu.o
-+obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
- obj-$(CONFIG_VIDEO_S3C_CAMIF) 		+= s3c-camif/
- obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS4_IS) 	+= exynos4-is/
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC)	+= s5p-mfc/
--
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
- obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
--
-+obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
-+obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
- obj-$(CONFIG_VIDEO_STI_BDISP)		+= sti/bdisp/
--obj-$(CONFIG_VIDEO_STI_HVA)		+= sti/hva/
--obj-$(CONFIG_DVB_C8SECTPFE)		+= sti/c8sectpfe/
--
- obj-$(CONFIG_VIDEO_STI_DELTA)		+= sti/delta/
--
--obj-$(CONFIG_BLACKFIN)                  += blackfin/
--
--obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
--
--obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
--
--obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
--
--obj-$(CONFIG_VIDEO_RENESAS_FCP) 	+= rcar-fcp.o
--obj-$(CONFIG_VIDEO_RENESAS_FDP1)	+= rcar_fdp1.o
--obj-$(CONFIG_VIDEO_RENESAS_JPU) 	+= rcar_jpu.o
--obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
--
--obj-y	+= omap/
--
--obj-$(CONFIG_VIDEO_AM437X_VPFE)		+= am437x/
--
-+obj-$(CONFIG_VIDEO_STI_HVA)		+= sti/hva/
-+obj-$(CONFIG_VIDEO_TI_CAL)		+= ti-vpe/
-+obj-$(CONFIG_VIDEO_TI_VPE)		+= ti-vpe/
-+obj-$(CONFIG_VIDEO_VIA_CAMERA)		+= via-camera.o
-+obj-$(CONFIG_VIDEO_VIM2M)		+= vim2m.o
-+obj-$(CONFIG_VIDEO_VIU)			+= fsl-viu.o
-+obj-$(CONFIG_VIDEO_VIVID)		+= vivid/
- obj-$(CONFIG_VIDEO_XILINX)		+= xilinx/
--
--obj-$(CONFIG_VIDEO_RCAR_VIN)		+= rcar-vin/
--
--obj-$(CONFIG_VIDEO_ATMEL_ISC)		+= atmel/
--
--ccflags-y += -I$(srctree)/drivers/media/i2c
--
--obj-$(CONFIG_VIDEO_MEDIATEK_VPU)	+= mtk-vpu/
--
--obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC)	+= mtk-vcodec/
--
--obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
+ / {
+ 	model = "STMicroelectronics STM32429i-EVAL board";
+@@ -66,6 +67,14 @@
+ 		serial0 = &usart1;
+ 	};
+ 
++	clocks {
++		clk_ext_camera: clk-ext-camera {
++			#clock-cells = <0>;
++			compatible = "fixed-clock";
++			clock-frequency = <24000000>;
++		};
++	};
++
+ 	soc {
+ 		dma-ranges = <0xc0000000 0x0 0x10000000>;
+ 	};
+@@ -146,6 +155,11 @@
+ 
+ 	port {
+ 		dcmi_0: endpoint@0 {
++			remote-endpoint = <&ov2640_0>;
++			bus-width = <8>;
++			hsync-active = <0>;
++			vsync-active = <0>;
++			pclk-sample = <1>;
+ 		};
+ 	};
+ };
+@@ -155,6 +169,22 @@
+ 	pinctrl-names = "default";
+ 	status = "okay";
+ 
++	ov2640: camera@30 {
++		compatible = "ovti,ov2640";
++		reg = <0x30>;
++		resetb-gpios = <&stmpegpio 2 GPIO_ACTIVE_HIGH>;
++		pwdn-gpios = <&stmpegpio 0 GPIO_ACTIVE_LOW>;
++		clocks = <&clk_ext_camera>;
++		clock-names = "xvclk";
++		status = "okay";
++
++		port {
++			ov2640_0: endpoint {
++				remote-endpoint = <&dcmi_0>;
++			};
++		};
++	};
++
+ 	stmpe1600: stmpe1600@42 {
+ 		compatible = "st,stmpe1600";
+ 		reg = <0x42>;
 -- 
-2.11.0
+1.9.1
