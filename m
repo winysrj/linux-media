@@ -1,67 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:60370 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933837AbdCLQww (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Mar 2017 12:52:52 -0400
-Received: from axis700.grange ([81.173.166.100]) by mail.gmx.com (mrgmx103
- [212.227.17.168]) with ESMTPSA (Nemesis) id 0MSdRI-1cd6Iy2RCW-00RWd2 for
- <linux-media@vger.kernel.org>; Sun, 12 Mar 2017 17:52:44 +0100
-Received: from localhost (localhost [127.0.0.1])
-        by axis700.grange (Postfix) with ESMTP id 72DD28B110
-        for <linux-media@vger.kernel.org>; Sun, 12 Mar 2017 17:52:43 +0100 (CET)
-Date: Sun, 12 Mar 2017 17:52:43 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL] soc-camera for 4.12
-Message-ID: <Pine.LNX.4.64.1703121751340.22698@axis700.grange>
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:60228 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932541AbdC3LD7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 07:03:59 -0400
+Date: Thu, 30 Mar 2017 12:02:49 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v6 00/39] i.MX Media Driver
+Message-ID: <20170330110249.GF7909@n2100.armlinux.org.uk>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This fails at step 1.  The removal of the frame interval support now
+means my setup script fails when trying to set the frame interval on
+the camera:
 
-The following changes since commit 700ea5e0e0dd70420a04e703ff264cc133834cba:
+Enumerating pads and links
+Setting up format SRGGB8_1X8 816x616 on pad imx219 0-0010/0
+Format set: SRGGB8_1X8 816x616
+Setting up frame interval 1/25 on pad imx219 0-0010/0
+Frame interval set: 1/25
+Setting up format SRGGB8_1X8 816x616 on pad imx6-mipi-csi2/0
+Format set: SRGGB8_1X8 816x616
+Setting up frame interval 1/25 on pad imx6-mipi-csi2/0
+Unable to set frame interval: Inappropriate ioctl for device (-25)Unable to setup formats: Inappropriate ioctl for device (25)
 
-  Merge tag 'v4.11-rc1' into patchwork (2017-03-06 06:49:34 -0300)
+This is because media-ctl tries to propagate it from the imx219 source
+pad to the csi2 sink pad, and the csi2 now fails that ioctl.
 
-are available in the git repository at:
+This makes media-ctl return a failure code, which means that it's not
+possible for a script to determine whether the failure was due to the
+camera setup or something else.  So, we have to assume that the
+whole command failed.
 
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-4.12-1
+This is completely broken, and I'm even more convinced that those
+arguing for this behaviour really have not thought it through well
+enough before demanding that this code was removed.
 
-for you to fetch changes up to c259da29a447dbb5737c5c85e99c039263df94cc:
+As far as I'm concerned, the end result is completely broken and
+unusable.  I'm going to be merging the frame interval support back
+into my test tree, because that's the only sane thing to do.
 
-  soc-camera: fix rectangle adjustment in cropping (2017-03-12 12:53:25 +0100)
+If v4l2 people want to object to having frame interval support present
+for all subdevs, then _they_ need to make sure that the rest of their
+software conforms to what they're telling people to do.
 
-----------------------------------------------------------------
-Bhumika Goyal (1):
-      media: i2c: soc_camera: constify v4l2_subdev_* structures
-
-Geliang Tang (1):
-      sh_mobile_ceu_camera: use module_platform_driver
-
-Janusz Krzysztofik (1):
-      media: i2c/soc_camera: fix ov6650 sensor getting wrong clock
-
-Koji Matsuoka (1):
-      soc-camera: fix rectangle adjustment in cropping
-
- drivers/media/i2c/soc_camera/imx074.c                    |  6 +++---
- drivers/media/i2c/soc_camera/mt9m001.c                   |  6 +++---
- drivers/media/i2c/soc_camera/mt9t031.c                   |  6 +++---
- drivers/media/i2c/soc_camera/mt9t112.c                   |  6 +++---
- drivers/media/i2c/soc_camera/mt9v022.c                   |  6 +++---
- drivers/media/i2c/soc_camera/ov2640.c                    |  6 +++---
- drivers/media/i2c/soc_camera/ov5642.c                    |  6 +++---
- drivers/media/i2c/soc_camera/ov6650.c                    |  8 ++++----
- drivers/media/i2c/soc_camera/ov772x.c                    |  6 +++---
- drivers/media/i2c/soc_camera/ov9640.c                    |  6 +++---
- drivers/media/i2c/soc_camera/ov9740.c                    |  6 +++---
- drivers/media/i2c/soc_camera/rj54n1cb0c.c                |  6 +++---
- drivers/media/i2c/soc_camera/tw9910.c                    |  6 +++---
- drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c | 13 +------------
- drivers/media/platform/soc_camera/soc_scale_crop.c       | 11 ++++++-----
- 15 files changed, 47 insertions(+), 57 deletions(-)
-
-Thanks
-Guennadi
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
