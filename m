@@ -1,104 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45689
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932290AbdC3Ips (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:42143 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933363AbdC3KqN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 04:45:48 -0400
-Date: Thu, 30 Mar 2017 05:45:39 -0300
+        Thu, 30 Mar 2017 06:46:13 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
         John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
         linux-rpi-kernel@lists.infradead.org,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: Re: [PATCH 04/22] gadget.rst: Enrich its ReST representation and
- add kernel-doc tag
-Message-ID: <20170330054539.07efa73f@vento.lan>
-In-Reply-To: <874lyb459y.fsf@intel.com>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-        <61bf3d87b32a57f5d223dc3fd0228c342ba1b4a0.1490813422.git.mchehab@s-opensource.com>
-        <874lyb459y.fsf@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Oliver Neukum <oneukum@suse.com>
+Subject: [PATCH v2 17/22] usb.rst: get rid of some Sphinx errors
+Date: Thu, 30 Mar 2017 07:45:51 -0300
+Message-Id: <4c7320e40a69aba397010582e744cf9f53f8ce51.1490870599.git.mchehab@s-opensource.com>
+In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 30 Mar 2017 10:01:29 +0300
-Jani Nikula <jani.nikula@linux.intel.com> escreveu:
+Get rid of those warnings:
 
-> On Wed, 29 Mar 2017, Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
-> > The pandoc conversion is not perfect. Do handwork in order to:
-> >
-> > - add a title to this chapter;
-> > - use the proper warning and note markups;
-> > - use kernel-doc to include Kernel header and c files;  
-> 
-> Please look at Documentation/sphinx/tmplcvt which takes care of all of
-> that.
-
-Ah, didn't know about such script!
-
-Trying it here:
-
-$ Documentation/sphinx/tmplcvt Documentation/DocBook/writing_usb_driver.tmpl 
-sed: couldn't open file convert_template.sed: No such file or directory
-
-It would be good to change the script for it to seek for convert_template.sed
-at the right place.
-
-So, please consider the following patch.
-
-Regards,
-Mauro
-
-
-[PATCH] tmplcvt: make the tool more robust
-
-Currently, the script just assumes to be called at
-Documentation/sphinx/. Change it to work on any directory,
-and make it abort if something gets wrong.
-
-Also, be sure that both parameters are specified.
-
-That should avoid troubles like this:
-
-$ Documentation/sphinx/tmplcvt Documentation/DocBook/writing_usb_driver.tmpl
-sed: couldn't open file convert_template.sed: No such file or directory
+    Documentation/driver-api/usb/usb.rst:615: ERROR: Unknown target name: "usb_type".
+    Documentation/driver-api/usb/usb.rst:615: ERROR: Unknown target name: "usb_dir".
+    Documentation/driver-api/usb/usb.rst:615: ERROR: Unknown target name: "usb_recip".
+    Documentation/driver-api/usb/usb.rst:679: ERROR: Unknown target name: "usbdevfs_urb_type".
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/driver-api/usb/usb.rst | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/sphinx/tmplcvt b/Documentation/sphinx/tmplcvt
-index 909a73065e0a..31df8eb7feca 100755
---- a/Documentation/sphinx/tmplcvt
-+++ b/Documentation/sphinx/tmplcvt
-@@ -7,13 +7,22 @@
- # fix \_
- # title line?
- #
-+set -eu
-+
-+if [ "$2" == "" ]; then
-+	echo "$0 <docbook file> <rst file>"
-+	exit
-+fi
-+
-+DIR=$(dirname $0)
+diff --git a/Documentation/driver-api/usb/usb.rst b/Documentation/driver-api/usb/usb.rst
+index d15ab8ae5239..5ebaf669704c 100644
+--- a/Documentation/driver-api/usb/usb.rst
++++ b/Documentation/driver-api/usb/usb.rst
+@@ -615,8 +615,8 @@ USBDEVFS_CONTROL
+     The first eight bytes of this structure are the contents of the
+     SETUP packet to be sent to the device; see the USB 2.0 specification
+     for details. The bRequestType value is composed by combining a
+-    USB_TYPE_\* value, a USB_DIR_\* value, and a USB_RECIP_\*
+-    value (from *<linux/usb.h>*). If wLength is nonzero, it describes
++    ``USB_TYPE_*`` value, a ``USB_DIR_*`` value, and a ``USB_RECIP_*``
++    value (from ``linux/usb.h``). If wLength is nonzero, it describes
+     the length of the data buffer, which is either written to the device
+     (USB_DIR_OUT) or read from the device (USB_DIR_IN).
  
- in=$1
- rst=$2
- tmp=$rst.tmp
+@@ -678,7 +678,7 @@ the blocking is separate.
  
- cp $in $tmp
--sed --in-place -f convert_template.sed $tmp
-+sed --in-place -f $DIR/convert_template.sed $tmp
- pandoc -s -S -f docbook -t rst -o $rst $tmp
--sed --in-place -f post_convert.sed $rst
-+sed --in-place -f $DIR/post_convert.sed $rst
- rm $tmp
-+echo "book writen to $rst"
+ These requests are packaged into a structure that resembles the URB used
+ by kernel device drivers. (No POSIX Async I/O support here, sorry.) It
+-identifies the endpoint type (USBDEVFS_URB_TYPE_\*), endpoint
++identifies the endpoint type (``USBDEVFS_URB_TYPE_*``), endpoint
+ (number, masked with USB_DIR_IN as appropriate), buffer and length,
+ and a user "context" value serving to uniquely identify each request.
+ (It's usually a pointer to per-request data.) Flags can modify requests
+-- 
+2.9.3
