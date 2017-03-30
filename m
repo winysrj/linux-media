@@ -1,153 +1,297 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:60836 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751325AbdCKXQL (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:54397 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934033AbdC3ULp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 18:16:11 -0500
-Date: Sat, 11 Mar 2017 23:14:56 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-Message-ID: <20170311231456.GH21222@n2100.armlinux.org.uk>
-References: <20170303230645.GR21222@n2100.armlinux.org.uk>
- <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
- <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
- <20170310130733.GU21222@n2100.armlinux.org.uk>
- <c679f755-52a6-3c6f-3d65-277db46676cc@xs4all.nl>
- <20170310140124.GV21222@n2100.armlinux.org.uk>
- <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
- <20170310125342.7f047acf@vento.lan>
- <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
- <20170311082549.576531d0@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170311082549.576531d0@vento.lan>
+        Thu, 30 Mar 2017 16:11:45 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 4/9] genericirq.rst: add cross-reference links and use monospaced fonts
+Date: Thu, 30 Mar 2017 17:11:31 -0300
+Message-Id: <0c4b5d008e1665f4398e6fd60ada2458004c2632.1490904090.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1490904090.git.mchehab@s-opensource.com>
+References: <cover.1490904090.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1490904090.git.mchehab@s-opensource.com>
+References: <cover.1490904090.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Mar 11, 2017 at 08:25:49AM -0300, Mauro Carvalho Chehab wrote:
-> This situation is there since 2009. If I remember well, you tried to write
-> such generic plugin in the past, but never finished it, apparently because
-> it is too complex. Others tried too over the years. 
-> 
-> The last trial was done by Jacek, trying to cover just the exynos4 driver. 
-> Yet, even such limited scope plugin was not good enough, as it was never
-> merged upstream. Currently, there's no such plugins upstream.
-> 
-> If we can't even merge a plugin that solves it for just *one* driver,
-> I have no hope that we'll be able to do it for the generic case.
+The document describes several functions that are documented
+there via kernel doc macros. Add cross-references to them.
 
-This is what really worries me right now about the current proposal for
-iMX6.  What's being proposed is to make the driver exclusively MC-based.
+In order to be consistend with other documents, use monospaced
+fonts for fields.
 
-What that means is that existing applications are _not_ going to work
-until we have some answer for libv4l2, and from what you've said above,
-it seems that this has been attempted multiple times over the last _8_
-years, and each time it's failed.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/core-api/genericirq.rst | 97 +++++++++++++++++------------------
+ 1 file changed, 46 insertions(+), 51 deletions(-)
 
-When thinking about it, it's quite obvious why merely trying to push
-the problem into userspace fails:
-
-  If we assert that the kernel does not have sufficient information to
-  make decisions about how to route and control the hardware, then under
-  what scenario does a userspace library have sufficient information to
-  make those decisions?
-
-So, merely moving the problem into userspace doesn't solve anything.
-
-Loading the problem onto the user in the hope that the user knows
-enough to properly configure it also doesn't work - who is going to
-educate the user about the various quirks of the hardware they're
-dealing with?
-
-I don't think pushing it into platform specific libv4l2 plugins works
-either - as you say above, even just trying to develop a plugin for
-exynos4 seems to have failed, so what makes us think that developing
-a plugin for iMX6 is going to succeed?  Actually, that's exactly where
-the problem lies.
-
-Is "iMX6 plugin" even right?  That only deals with the complexity of
-one part of the system - what about the source device, which as we
-have already seen can be a tuner or a camera with its own multiple
-sub-devices.  What if there's a video improvement chip in the chain
-as well - how is a "generic" iMX6 plugin supposed to know how to deal
-with that?
-
-It seems to me that what's required is not an "iMX6 plugin" but a
-separate plugin for each platform - or worse.  Consider boards like
-the Raspberry Pi, where users can attach a variety of cameras.  I
-don't think this approach scales.  (This is relevant: the iMX6 board
-I have here has a RPi compatible connector for a MIPI CSI2 camera.
-In fact, the IMX219 module I'm using _is_ a RPi camera, it's the RPi
-NoIR Camera V2.)
-
-The iMX6 problem is way larger than just "which subdev do I need to
-configure for control X" - if you look at the dot graphs both Steve
-and myself have supplied, you'll notice that there are eight (yes,
-8) video capture devices.  Let's say that we can solve the subdev
-problem in libv4l2.  There's another problem lurking here - libv4l2
-is /dev/video* based.  How does it know which /dev/video* device to
-open?
-
-We don't open by sensor, we open by /dev/video*.  In my case, there
-is only one correct /dev/video* node for the attached sensor, the
-other seven are totally irrelevant.  For other situations, there may
-be the choice of three functional /dev/video* nodes.
-
-Right now, for my case, there isn't the information exported from the
-kernel to know which is the correct one, since that requires knowing
-which virtual channel the data is going to be sent over the CSI2
-interface.  That information is not present in DT, or anywhere.  It
-only comes from system knowledge - in my case, I know that the IMX219
-is currently being configured to use virtual channel 0.  SMIA cameras
-are also configurable.  Then there's CSI2 cameras that can produce
-different formats via different virtual channels (eg, JPEG compressed
-image on one channel while streaming a RGB image via the other channel.)
-
-Whether you can use one or three in _this_ scenario depends on the
-source format - again, another bit of implementation specific
-information that userspace would need to know.  Kernel space should
-know that, and it's discoverable by testing which paths accept the
-source format - but that doesn't tell you ahead of time which
-/dev/video* node to open.
-
-So, the problem space we have here is absolutely huge, and merely
-having a plugin that activates when you open a /dev/video* node
-really doesn't solve it.
-
-All in all, I really don't think "lets hope someone writes a v4l2
-plugin to solve it" is ever going to be successful.  I don't even
-see that there will ever be a userspace application that is anything
-more than a representation of the dot graphs that users can use to
-manually configure the capture system with system knowledge.
-
-I think everyone needs to take a step back and think long and hard
-about this from the system usability perspective - I seriously
-doubt that we will ever see any kind of solution to this if we
-continue to progress with "we'll sort it in userspace some day."
-
+diff --git a/Documentation/core-api/genericirq.rst b/Documentation/core-api/genericirq.rst
+index 65d023b26864..0054bd48be84 100644
+--- a/Documentation/core-api/genericirq.rst
++++ b/Documentation/core-api/genericirq.rst
+@@ -26,7 +26,7 @@ Rationale
+ =========
+ 
+ The original implementation of interrupt handling in Linux uses the
+-__do_IRQ() super-handler, which is able to deal with every type of
++:c:func:`__do_IRQ` super-handler, which is able to deal with every type of
+ interrupt logic.
+ 
+ Originally, Russell King identified different types of handlers to build
+@@ -43,7 +43,7 @@ During the implementation we identified another type:
+ 
+ -  Fast EOI type
+ 
+-In the SMP world of the __do_IRQ() super-handler another type was
++In the SMP world of the :c:func:`__do_IRQ` super-handler another type was
+ identified:
+ 
+ -  Per CPU type
+@@ -54,11 +54,11 @@ type. This reduces complexity in that particular code path and allows
+ the optimized handling of a given type.
+ 
+ The original general IRQ implementation used hw_interrupt_type
+-structures and their ->ack(), ->end() [etc.] callbacks to differentiate
++structures and their ``->ack``, ``->end`` [etc.] callbacks to differentiate
+ the flow control in the super-handler. This leads to a mix of flow logic
+ and low-level hardware logic, and it also leads to unnecessary code
+-duplication: for example in i386, there is an ioapic_level_irq and an
+-ioapic_edge_irq IRQ-type which share many of the low-level details but
++duplication: for example in i386, there is an ``ioapic_level_irq`` and an
++``ioapic_edge_irq`` IRQ-type which share many of the low-level details but
+ have different flow handling.
+ 
+ A more natural abstraction is the clean separation of the 'irq flow' and
+@@ -83,7 +83,7 @@ IRQ-flow implementation for 'level type' interrupts and add a
+ (sub)architecture specific 'edge type' implementation.
+ 
+ To make the transition to the new model easier and prevent the breakage
+-of existing implementations, the __do_IRQ() super-handler is still
++of existing implementations, the :c:func:`__do_IRQ` super-handler is still
+ available. This leads to a kind of duality for the time being. Over time
+ the new model should be used in more and more architectures, as it
+ enables smaller and cleaner IRQ subsystems. It's deprecated for three
+@@ -116,7 +116,7 @@ status information and pointers to the interrupt flow method and the
+ interrupt chip structure which are assigned to this interrupt.
+ 
+ Whenever an interrupt triggers, the low-level architecture code calls
+-into the generic interrupt code by calling desc->handle_irq(). This
++into the generic interrupt code by calling :c:func:`desc->handle_irq`. This
+ high-level IRQ handling function only uses desc->irq_data.chip
+ primitives referenced by the assigned chip descriptor structure.
+ 
+@@ -125,27 +125,27 @@ High-level Driver API
+ 
+ The high-level Driver API consists of following functions:
+ 
+--  request_irq()
++-  :c:func:`request_irq`
+ 
+--  free_irq()
++-  :c:func:`free_irq`
+ 
+--  disable_irq()
++-  :c:func:`disable_irq`
+ 
+--  enable_irq()
++-  :c:func:`enable_irq`
+ 
+--  disable_irq_nosync() (SMP only)
++-  :c:func:`disable_irq_nosync` (SMP only)
+ 
+--  synchronize_irq() (SMP only)
++-  :c:func:`synchronize_irq` (SMP only)
+ 
+--  irq_set_irq_type()
++-  :c:func:`irq_set_irq_type`
+ 
+--  irq_set_irq_wake()
++-  :c:func:`irq_set_irq_wake`
+ 
+--  irq_set_handler_data()
++-  :c:func:`irq_set_handler_data`
+ 
+--  irq_set_chip()
++-  :c:func:`irq_set_chip`
+ 
+--  irq_set_chip_data()
++-  :c:func:`irq_set_chip_data`
+ 
+ See the autogenerated function documentation for details.
+ 
+@@ -154,19 +154,19 @@ High-level IRQ flow handlers
+ 
+ The generic layer provides a set of pre-defined irq-flow methods:
+ 
+--  handle_level_irq
++-  :c:func:`handle_level_irq`
+ 
+--  handle_edge_irq
++-  :c:func:`handle_edge_irq`
+ 
+--  handle_fasteoi_irq
++-  :c:func:`handle_fasteoi_irq`
+ 
+--  handle_simple_irq
++-  :c:func:`handle_simple_irq`
+ 
+--  handle_percpu_irq
++-  :c:func:`handle_percpu_irq`
+ 
+--  handle_edge_eoi_irq
++-  :c:func:`handle_edge_eoi_irq`
+ 
+--  handle_bad_irq
++-  :c:func:`handle_bad_irq`
+ 
+ The interrupt flow handlers (either pre-defined or architecture
+ specific) are assigned to specific interrupts by the architecture either
+@@ -225,9 +225,9 @@ interrupts.
+ 
+ The following control flow is implemented (simplified excerpt)::
+ 
+-    desc->irq_data.chip->irq_mask_ack();
++    :c:func:`desc->irq_data.chip->irq_mask_ack`;
+     handle_irq_event(desc->action);
+-    desc->irq_data.chip->irq_unmask();
++    :c:func:`desc->irq_data.chip->irq_unmask`;
+ 
+ 
+ Default Fast EOI IRQ flow handler
+@@ -239,7 +239,7 @@ which only need an EOI at the end of the handler.
+ The following control flow is implemented (simplified excerpt)::
+ 
+     handle_irq_event(desc->action);
+-    desc->irq_data.chip->irq_eoi();
++    :c:func:`desc->irq_data.chip->irq_eoi`;
+ 
+ 
+ Default Edge IRQ flow handler
+@@ -251,15 +251,15 @@ interrupts.
+ The following control flow is implemented (simplified excerpt)::
+ 
+     if (desc->status & running) {
+-        desc->irq_data.chip->irq_mask_ack();
++        :c:func:`desc->irq_data.chip->irq_mask_ack`;
+         desc->status |= pending | masked;
+         return;
+     }
+-    desc->irq_data.chip->irq_ack();
++    :c:func:`desc->irq_data.chip->irq_ack`;
+     desc->status |= running;
+     do {
+         if (desc->status & masked)
+-            desc->irq_data.chip->irq_unmask();
++            :c:func:`desc->irq_data.chip->irq_unmask`;
+         desc->status &= ~pending;
+         handle_irq_event(desc->action);
+     } while (status & pending);
+@@ -293,10 +293,10 @@ simplified version without locking.
+ The following control flow is implemented (simplified excerpt)::
+ 
+     if (desc->irq_data.chip->irq_ack)
+-        desc->irq_data.chip->irq_ack();
++        :c:func:`desc->irq_data.chip->irq_ack`;
+     handle_irq_event(desc->action);
+     if (desc->irq_data.chip->irq_eoi)
+-            desc->irq_data.chip->irq_eoi();
++            :c:func:`desc->irq_data.chip->irq_eoi`;
+ 
+ 
+ EOI Edge IRQ flow handler
+@@ -325,14 +325,14 @@ Delayed interrupt disable
+ 
+ This per interrupt selectable feature, which was introduced by Russell
+ King in the ARM interrupt implementation, does not mask an interrupt at
+-the hardware level when disable_irq() is called. The interrupt is kept
++the hardware level when :c:func:`disable_irq` is called. The interrupt is kept
+ enabled and is masked in the flow handler when an interrupt event
+ happens. This prevents losing edge interrupts on hardware which does not
+ store an edge interrupt event while the interrupt is disabled at the
+ hardware level. When an interrupt arrives while the IRQ_DISABLED flag
+ is set, then the interrupt is masked at the hardware level and the
+ IRQ_PENDING bit is set. When the interrupt is re-enabled by
+-enable_irq() the pending bit is checked and if it is set, the interrupt
++:c:func:`enable_irq` the pending bit is checked and if it is set, the interrupt
+ is resent either via hardware or by a software resend mechanism. (It's
+ necessary to enable CONFIG_HARDIRQS_SW_RESEND when you want to use
+ the delayed interrupt disable feature and your hardware is not capable
+@@ -342,25 +342,25 @@ configurable.
+ Chip-level hardware encapsulation
+ ---------------------------------
+ 
+-The chip-level hardware descriptor structure irq_chip contains all the
+-direct chip relevant functions, which can be utilized by the irq flow
++The chip-level hardware descriptor structure :c:type:`irq_chip` contains all
++the direct chip relevant functions, which can be utilized by the irq flow
+ implementations.
+ 
+--  irq_ack()
++-  ``irq_ack``
+ 
+--  irq_mask_ack() - Optional, recommended for performance
++-  ``irq_mask_ack`` - Optional, recommended for performance
+ 
+--  irq_mask()
++-  ``irq_mask``
+ 
+--  irq_unmask()
++-  ``irq_unmask``
+ 
+--  irq_eoi() - Optional, required for EOI flow handlers
++-  ``irq_eoi`` - Optional, required for EOI flow handlers
+ 
+--  irq_retrigger() - Optional
++-  ``irq_retrigger`` - Optional
+ 
+--  irq_set_type() - Optional
++-  ``irq_set_type`` - Optional
+ 
+--  irq_set_wake() - Optional
++-  ``irq_set_wake`` - Optional
+ 
+ These primitives are strictly intended to mean what they say: ack means
+ ACK, masking means masking of an IRQ line, etc. It is up to the flow
+@@ -369,7 +369,7 @@ handler(s) to use these basic units of low-level functionality.
+ __do_IRQ entry point
+ ====================
+ 
+-The original implementation __do_IRQ() was an alternative entry point
++The original implementation :c:func:`__do_IRQ` was an alternative entry point
+ for all types of interrupts. It no longer exists.
+ 
+ This handler turned out to be not suitable for all interrupt hardware
+@@ -415,10 +415,8 @@ This chapter contains the autogenerated documentation of the kernel API
+ functions which are exported.
+ 
+ .. kernel-doc:: kernel/irq/manage.c
+-   :export:
+ 
+ .. kernel-doc:: kernel/irq/chip.c
+-   :export:
+ 
+ Internal Functions Provided
+ ===========================
+@@ -427,13 +425,10 @@ This chapter contains the autogenerated documentation of the internal
+ functions.
+ 
+ .. kernel-doc:: kernel/irq/irqdesc.c
+-   :internal:
+ 
+ .. kernel-doc:: kernel/irq/handle.c
+-   :internal:
+ 
+ .. kernel-doc:: kernel/irq/chip.c
+-   :internal:
+ 
+ Credits
+ =======
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.9.3
