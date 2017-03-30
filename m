@@ -1,95 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35866 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754430AbdCBJBr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 04:01:47 -0500
-Date: Thu, 2 Mar 2017 10:01:43 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, mchehab@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] omap3isp: add support for CSI1 bus
-Message-ID: <20170302090143.GB27818@amd>
-References: <20161228183036.GA13139@amd>
- <10545906.Gxg3yScdu4@avalon>
- <20170215094228.GA8586@amd>
- <2414221.XNA4JCFMRx@avalon>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:33855 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755370AbdC3G3a (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 02:29:30 -0400
+Date: Thu, 30 Mar 2017 15:25:17 +0900
+From: Daeseok Youn <daeseok.youn@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, daeseok.youn@gmail.com,
+        alan@linux.intel.com, dan.carpenter@oracle.com,
+        singhalsimran0@gmail.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH 2/2] staging: atomisp: use local variable to reduce the
+ number of reference
+Message-ID: <20170330062517.GA25231@SEL-JYOUN-D1>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="4SFOXa2GPu3tIq4H"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <2414221.XNA4JCFMRx@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Define new local variable to reduce the number of reference.
+The new local variable is added to save the addess of dfs
+and used in atomisp_freq_scaling() function.
 
---4SFOXa2GPu3tIq4H
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+---
+ .../media/atomisp/pci/atomisp2/atomisp_cmd.c       | 37 ++++++++++++----------
+ 1 file changed, 20 insertions(+), 17 deletions(-)
 
-Hi!
-
-> > >> +
-> > >> +static int isp_of_parse_node_endpoint(struct device *dev,
-> > >> +				      struct device_node *node,
-> > >> +				      struct isp_async_subdev *isd)
-> > >> +{
-> > >> +	struct isp_bus_cfg *buscfg;
-> > >> +	struct v4l2_of_endpoint vep;
-> > >> +	int ret;
-> > >> +
-> > >> +	isd->bus =3D devm_kzalloc(dev, sizeof(*isd->bus), GFP_KERNEL);
-> > >=20
-> > > Why do you now need to allocate this manually ?
-> >=20
-> > bus is now a pointer.
->=20
-> I've seen that, but why have you changed it ?
-
-subdev support. Needs to go into separate patch. Will be done shortly.
-
-> > >> +++ b/drivers/media/platform/omap3isp/ispccp2.c
-> > >> @@ -160,6 +163,33 @@ static int ccp2_if_enable(struct isp_ccp2_device
-> > >> *ccp2, u8 enable) return ret;
-> > >>=20
-> > >>  	}
-> > >>=20
-> > >> +	if (isp->revision =3D=3D ISP_REVISION_2_0) {
-> > >=20
-> > > The isp_csiphy.c code checks phy->isp->phy_type for the same purpose,
-> > > shouldn't you use that too ?
-> >=20
-> > Do you want me to do phy->isp->phy_type =3D=3D ISP_PHY_TYPE_3430 check
-> > here? Can do...
->=20
-> Yes that's what I meant.
-
-Ok, that's something I can do.
-
-But code is still somewhat "interesting". Code in omap3isp_csiphy_acquire()
-assumes csi2, and I don't need most of it.. so I'll just not use it,
-but it looks strange. I'll post new patch shortly.
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---4SFOXa2GPu3tIq4H
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAli333cACgkQMOfwapXb+vJ0kQCfTsWtvdJ9VBeNYzFJivJIetD5
-j3MAn16BOfOG0Oq2dVfAEp42khmxc/8Q
-=mhAp
------END PGP SIGNATURE-----
-
---4SFOXa2GPu3tIq4H--
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index eebfccd..d76a95c 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -251,6 +251,7 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
+ {
+ 	/* FIXME! Only use subdev[0] status yet */
+ 	struct atomisp_sub_device *asd = &isp->asd[0];
++	const struct atomisp_dfs_config *dfs;
+ 	unsigned int new_freq;
+ 	struct atomisp_freq_scaling_rule curr_rules;
+ 	int i, ret;
+@@ -268,20 +269,22 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
+ 	    ATOMISP_USE_YUVPP(asd))
+ 		isp->dfs = &dfs_config_cht_soc;
+ 
+-	if (isp->dfs->lowest_freq == 0 || isp->dfs->max_freq_at_vmin == 0 ||
+-	    isp->dfs->highest_freq == 0 || isp->dfs->dfs_table_size == 0 ||
+-	    !isp->dfs->dfs_table) {
++	dfs = isp->dfs;
++
++	if (dfs->lowest_freq == 0 || dfs->max_freq_at_vmin == 0 ||
++	    dfs->highest_freq == 0 || dfs->dfs_table_size == 0 ||
++	    !dfs->dfs_table) {
+ 		dev_err(isp->dev, "DFS configuration is invalid.\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (mode == ATOMISP_DFS_MODE_LOW) {
+-		new_freq = isp->dfs->lowest_freq;
++		new_freq = dfs->lowest_freq;
+ 		goto done;
+ 	}
+ 
+ 	if (mode == ATOMISP_DFS_MODE_MAX) {
+-		new_freq = isp->dfs->highest_freq;
++		new_freq = dfs->highest_freq;
+ 		goto done;
+ 	}
+ 
+@@ -307,26 +310,26 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
+ 	}
+ 
+ 	/* search for the target frequency by looping freq rules*/
+-	for (i = 0; i < isp->dfs->dfs_table_size; i++) {
+-		if (curr_rules.width != isp->dfs->dfs_table[i].width &&
+-		    isp->dfs->dfs_table[i].width != ISP_FREQ_RULE_ANY)
++	for (i = 0; i < dfs->dfs_table_size; i++) {
++		if (curr_rules.width != dfs->dfs_table[i].width &&
++		    dfs->dfs_table[i].width != ISP_FREQ_RULE_ANY)
+ 			continue;
+-		if (curr_rules.height != isp->dfs->dfs_table[i].height &&
+-		    isp->dfs->dfs_table[i].height != ISP_FREQ_RULE_ANY)
++		if (curr_rules.height != dfs->dfs_table[i].height &&
++		    dfs->dfs_table[i].height != ISP_FREQ_RULE_ANY)
+ 			continue;
+-		if (curr_rules.fps != isp->dfs->dfs_table[i].fps &&
+-		    isp->dfs->dfs_table[i].fps != ISP_FREQ_RULE_ANY)
++		if (curr_rules.fps != dfs->dfs_table[i].fps &&
++		    dfs->dfs_table[i].fps != ISP_FREQ_RULE_ANY)
+ 			continue;
+-		if (curr_rules.run_mode != isp->dfs->dfs_table[i].run_mode &&
+-		    isp->dfs->dfs_table[i].run_mode != ISP_FREQ_RULE_ANY)
++		if (curr_rules.run_mode != dfs->dfs_table[i].run_mode &&
++		    dfs->dfs_table[i].run_mode != ISP_FREQ_RULE_ANY)
+ 			continue;
+ 		break;
+ 	}
+ 
+-	if (i == isp->dfs->dfs_table_size)
+-		new_freq = isp->dfs->max_freq_at_vmin;
++	if (i == dfs->dfs_table_size)
++		new_freq = dfs->max_freq_at_vmin;
+ 	else
+-		new_freq = isp->dfs->dfs_table[i].isp_freq;
++		new_freq = dfs->dfs_table[i].isp_freq;
+ 
+ done:
+ 	dev_dbg(isp->dev, "DFS target frequency=%d.\n", new_freq);
+-- 
+1.9.1
