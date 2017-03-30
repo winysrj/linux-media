@@ -1,86 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:20006 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751132AbdCBHyL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 02:54:11 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Subject: Re: [PATCH v6 2/2] [media] s5p-mfc: Handle 'v4l2_pix_format:field' in
- try_fmt and g_fmt
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <54862f6b-290d-7e87-4297-57ffc35d357a@samsung.com>
-Date: Thu, 02 Mar 2017 08:42:51 +0100
-In-reply-to: <1488381666.14858.5.camel@collabora.com>
-Content-transfer-encoding: 8bit
-References: <20170301115108.14187-1-thibault.saunier@osg.samsung.com>
- <CGME20170301115141epcas2p37801b1fbe0951cc37a4e01bf2bcae3da@epcas2p3.samsung.com>
- <20170301115108.14187-3-thibault.saunier@osg.samsung.com>
- <33dbd3fa-04b2-3d94-5163-0a10589ff1c7@samsung.com>
- <1488381666.14858.5.camel@collabora.com>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:41971 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932913AbdC3QvW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 12:51:22 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Russell King <linux@armlinux.org.uk>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v4 1/4] media-ctl: add pad support to set/get_frame_interval
+Date: Thu, 30 Mar 2017 18:51:13 +0200
+Message-Id: <1490892676-11634-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01.03.2017 16:21, Nicolas Dufresne wrote:
-> Le mercredi 01 mars 2017 à 14:12 +0100, Andrzej Hajda a écrit :
->> - on output side you have encoded bytestream - you cannot say about
->> interlacing in such case, so the only valid value is NONE,
->> - on capture side you have decoded frames, and in this case it
->> depends
->> on the device and driver capabilities, if the driver/device does not
->> support (de-)interlacing (I suppose this is MFC case), interlace type
->> field should be filled according to decoded bytestream header (on
->> output
->> side), but no direct copying from output side!!!
-> I think we need some nuance here for this to actually be usable. If the
-> information is not provided by the driver (yes, hardware is limiting
-> sometimes), it would make sense to copy over the information that
-> userspace provided. Setting NONE is just the worst approximation in my
-> opinion.
+This allows to set and get the frame interval on pads other than pad 0.
 
-The whole point is that s_fmt on output side is to describe format of
-the stream passed to the device, and in case of decoder it is just
-mpeg/h.26x/... stream. It does not contain frames, fields, width, height
-- it is just raw stream of bytes. We cannot say in such case about field
-type, there is not such thing as interlaced byte stream.
-Using s_fmt on output to describe things on capture side look for me
-unnecessary and abuses V4L2 API IMO.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ utils/media-ctl/libv4l2subdev.c | 24 ++++++++++++++----------
+ utils/media-ctl/v4l2subdev.h    |  4 ++--
+ 2 files changed, 16 insertions(+), 12 deletions(-)
 
->
-> About MFC, it will be worth trying to read the DISPLAY_STATUS after the
-> headers has been processed. It's not clearly stated in the spec if this
-> will be set or not.
->
-Documentation for MFC6.5 states clearly:
-
-> Note: On SEQ_DONE, INTERLACE_PICTURE will return the picture type to
-> be decoded based on the
-> sequence header information.
-
-In case of MFC5.1 it is unclear, but I hope HW behaves the same way.
-
-Anyway I agree it will be good to fix it at least for MFC6.5+, any
-volunteer?
-
-
-Regards
-
-Andrzej
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 3dcf943c..2f2ac8ee 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -262,7 +262,8 @@ int v4l2_subdev_set_dv_timings(struct media_entity *entity,
+ }
+ 
+ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+-				   struct v4l2_fract *interval)
++				   struct v4l2_fract *interval,
++				   unsigned int pad)
+ {
+ 	struct v4l2_subdev_frame_interval ival;
+ 	int ret;
+@@ -272,6 +273,7 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+ 		return ret;
+ 
+ 	memset(&ival, 0, sizeof(ival));
++	ival.pad = pad;
+ 
+ 	ret = ioctl(entity->fd, VIDIOC_SUBDEV_G_FRAME_INTERVAL, &ival);
+ 	if (ret < 0)
+@@ -282,7 +284,8 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+ }
+ 
+ int v4l2_subdev_set_frame_interval(struct media_entity *entity,
+-				   struct v4l2_fract *interval)
++				   struct v4l2_fract *interval,
++				   unsigned int pad)
+ {
+ 	struct v4l2_subdev_frame_interval ival;
+ 	int ret;
+@@ -292,6 +295,7 @@ int v4l2_subdev_set_frame_interval(struct media_entity *entity,
+ 		return ret;
+ 
+ 	memset(&ival, 0, sizeof(ival));
++	ival.pad = pad;
+ 	ival.interval = *interval;
+ 
+ 	ret = ioctl(entity->fd, VIDIOC_SUBDEV_S_FRAME_INTERVAL, &ival);
+@@ -617,7 +621,7 @@ static int set_selection(struct media_pad *pad, unsigned int target,
+ 	return 0;
+ }
+ 
+-static int set_frame_interval(struct media_entity *entity,
++static int set_frame_interval(struct media_pad *pad,
+ 			      struct v4l2_fract *interval)
+ {
+ 	int ret;
+@@ -625,20 +629,20 @@ static int set_frame_interval(struct media_entity *entity,
+ 	if (interval->numerator == 0)
+ 		return 0;
+ 
+-	media_dbg(entity->media,
+-		  "Setting up frame interval %u/%u on entity %s\n",
++	media_dbg(pad->entity->media,
++		  "Setting up frame interval %u/%u on pad %s/%u\n",
+ 		  interval->numerator, interval->denominator,
+-		  entity->info.name);
++		  pad->entity->info.name, pad->index);
+ 
+-	ret = v4l2_subdev_set_frame_interval(entity, interval);
++	ret = v4l2_subdev_set_frame_interval(pad->entity, interval, pad->index);
+ 	if (ret < 0) {
+-		media_dbg(entity->media,
++		media_dbg(pad->entity->media,
+ 			  "Unable to set frame interval: %s (%d)",
+ 			  strerror(-ret), ret);
+ 		return ret;
+ 	}
+ 
+-	media_dbg(entity->media, "Frame interval set: %u/%u\n",
++	media_dbg(pad->entity->media, "Frame interval set: %u/%u\n",
+ 		  interval->numerator, interval->denominator);
+ 
+ 	return 0;
+@@ -685,7 +689,7 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
+ 			return ret;
+ 	}
+ 
+-	ret = set_frame_interval(pad->entity, &interval);
++	ret = set_frame_interval(pad, &interval);
+ 	if (ret < 0)
+ 		return ret;
+ 
+diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+index 9c8fee89..413094d5 100644
+--- a/utils/media-ctl/v4l2subdev.h
++++ b/utils/media-ctl/v4l2subdev.h
+@@ -200,7 +200,7 @@ int v4l2_subdev_set_dv_timings(struct media_entity *entity,
+  */
+ 
+ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+-	struct v4l2_fract *interval);
++	struct v4l2_fract *interval, unsigned int pad);
+ 
+ /**
+  * @brief Set the frame interval on a sub-device.
+@@ -217,7 +217,7 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+  * @return 0 on success, or a negative error code on failure.
+  */
+ int v4l2_subdev_set_frame_interval(struct media_entity *entity,
+-	struct v4l2_fract *interval);
++	struct v4l2_fract *interval, unsigned int pad);
+ 
+ /**
+  * @brief Parse a string and apply format, crop and frame interval settings.
+-- 
+2.11.0
