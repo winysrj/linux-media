@@ -1,93 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:3893 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753184AbdCTOmE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 10:42:04 -0400
-Subject: [PATCH 09/24] atomisp: remove another pair of 2400/2401 differences
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Mon, 20 Mar 2017 14:40:20 +0000
-Message-ID: <149002081364.17109.298566334102301120.stgit@acox1-desk1.ger.corp.intel.com>
-In-Reply-To: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
-References: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:44016 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932650AbdC3H4R (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 03:56:17 -0400
+Subject: Re: [PATCHv2 1/2] serio.h: add SERIO_RAINSHADOW_CEC ID
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+References: <20170203152633.33323-1-hverkuil@xs4all.nl>
+ <20170203152633.33323-2-hverkuil@xs4all.nl>
+ <03557e88-4f32-9d6c-20a8-62ae53fd3607@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        linux-input <linux-input@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <aae072f1-0abd-60b1-3679-b169425dedb1@xs4all.nl>
+Date: Thu, 30 Mar 2017 09:56:14 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <03557e88-4f32-9d6c-20a8-62ae53fd3607@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The first of these checks the PCI identifier in order to decide what to do so needs no
-ifdef. The other is simply a variation on what is dumped for debug - so favour dumping the
-most.
+Ping?
 
-Signed-off-by Alan Cox <alan@linux.intel.com>
----
- .../media/atomisp/pci/atomisp2/atomisp_cmd.c       |    7 -------
- .../atomisp/pci/atomisp2/atomisp_dfs_tables.h      |    4 ----
- 2 files changed, 11 deletions(-)
+	Hans
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-index d97a8df..08da8ea 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-@@ -263,12 +263,10 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
- 		return -EINVAL;
- 	}
- 
--#ifdef ISP2401
- 	if ((isp->pdev->device & ATOMISP_PCI_DEVICE_SOC_MASK) ==
- 		ATOMISP_PCI_DEVICE_SOC_CHT && ATOMISP_USE_YUVPP(asd))
- 		isp->dfs = &dfs_config_cht_soc;
- 
--#endif
- 	if (isp->dfs->lowest_freq == 0 || isp->dfs->max_freq_at_vmin == 0 ||
- 	    isp->dfs->highest_freq == 0 || isp->dfs->dfs_table_size == 0 ||
- 	    !isp->dfs->dfs_table) {
-@@ -654,13 +652,8 @@ irqreturn_t atomisp_isr(int irq, void *dev)
- 			}
- 
- 			atomisp_eof_event(asd, eof_event.event.exp_id);
--#ifndef ISP2401
--			dev_dbg(isp->dev, "%s EOF exp_id %d\n", __func__,
--				eof_event.event.exp_id);
--#else
- 			dev_dbg(isp->dev, "%s EOF exp_id %d, asd %d\n",
- 				__func__, eof_event.event.exp_id, asd->index);
--#endif
- 		}
- 
- 		irq_infos &= ~IA_CSS_IRQ_INFO_ISYS_EVENTS_READY;
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_dfs_tables.h b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_dfs_tables.h
-index dfb94e6..204d941 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_dfs_tables.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_dfs_tables.h
-@@ -340,7 +340,6 @@ static const struct atomisp_freq_scaling_rule dfs_rules_cht[] = {
- 		.run_mode = ATOMISP_RUN_MODE_PREVIEW,
- 	},
- 	{
--#ifdef ISP2401
- 		.width = 1280,
- 		.height = 720,
- 		.fps = ISP_FREQ_RULE_ANY,
-@@ -386,7 +385,6 @@ static const struct atomisp_freq_scaling_rule dfs_rules_cht_soc[] = {
- 		.run_mode = ATOMISP_RUN_MODE_PREVIEW,
- 	},
- 	{
--#endif
- 		.width = ISP_FREQ_RULE_ANY,
- 		.height = ISP_FREQ_RULE_ANY,
- 		.fps = ISP_FREQ_RULE_ANY,
-@@ -403,7 +401,6 @@ static const struct atomisp_dfs_config dfs_config_cht = {
- 	.dfs_table_size = ARRAY_SIZE(dfs_rules_cht),
- };
- 
--#ifdef ISP2401
- static const struct atomisp_dfs_config dfs_config_cht_soc = {
- 	.lowest_freq = ISP_FREQ_100MHZ,
- 	.max_freq_at_vmin = ISP_FREQ_356MHZ,
-@@ -412,5 +409,4 @@ static const struct atomisp_dfs_config dfs_config_cht_soc = {
- 	.dfs_table_size = ARRAY_SIZE(dfs_rules_cht_soc),
- };
- 
--#endif
- #endif /* __ATOMISP_DFS_TABLES_H__ */
+On 06/03/17 15:31, Hans Verkuil wrote:
+> Dmitry,
+> 
+> Can I have your Ack for this patch? I'd like to get this driver in for 4.12.
+> 
+> You can also take this for 4.12 yourself, but serio.h doesn't change often
+> so the chance of conflicts is small.
+> 
+> Regards,
+> 
+>     Hans
+> 
+> On 03/02/17 16:26, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Add a new serio ID for the RainShadow Tech USB HDMI CEC adapter.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  include/uapi/linux/serio.h | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/include/uapi/linux/serio.h b/include/uapi/linux/serio.h
+>> index f2447a8..f42e919 100644
+>> --- a/include/uapi/linux/serio.h
+>> +++ b/include/uapi/linux/serio.h
+>> @@ -79,5 +79,6 @@
+>>  #define SERIO_WACOM_IV    0x3e
+>>  #define SERIO_EGALAX    0x3f
+>>  #define SERIO_PULSE8_CEC    0x40
+>> +#define SERIO_RAINSHADOW_CEC    0x41
+>>
+>>  #endif /* _UAPI_SERIO_H */
+>>
+> 
