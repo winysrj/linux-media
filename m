@@ -1,123 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:34489 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754435AbdC3U3P (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:35983 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933370AbdC3KqO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 16:29:15 -0400
-Date: Thu, 30 Mar 2017 23:29:10 +0300
-From: Krzysztof Kozlowski <krzk@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>, Daniel Vetter <daniel@ffwll.ch>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        Russell King <linux@armlinux.org.uk>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        dri-devel@lists.freedesktop.org,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCHv5 00/11] video/exynos/sti/cec: add CEC notifier & use in
- drivers
-Message-ID: <20170330202910.7wpzv4yyh4w67ocu@kozik-lap>
-References: <20170329141543.32935-1-hverkuil@xs4all.nl>
- <20170329174758.55vasy2gxqpg3yb5@phenom.ffwll.local>
- <41757527-6953-6095-a18b-e5c75d93c966@xs4all.nl>
- <20170330074700.57gudirdrcrvi6al@phenom.ffwll.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20170330074700.57gudirdrcrvi6al@phenom.ffwll.local>
+        Thu, 30 Mar 2017 06:46:14 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 19/22] usb: composite.h: fix two warnings when building docs
+Date: Thu, 30 Mar 2017 07:45:53 -0300
+Message-Id: <3f680f3704ef71e06dca67ca7f4584256038fe78.1490870599.git.mchehab@s-opensource.com>
+In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 30, 2017 at 09:47:00AM +0200, Daniel Vetter wrote:
-> On Wed, Mar 29, 2017 at 09:59:34PM +0200, Hans Verkuil wrote:
-> > Hi Daniel,
-> > 
-> > On 29/03/17 19:47, Daniel Vetter wrote:
-> > > On Wed, Mar 29, 2017 at 04:15:32PM +0200, Hans Verkuil wrote:
-> > >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> > >>
-> > >> This patch series adds the CEC physical address notifier code, based on
-> > >> Russell's code:
-> > >>
-> > >> https://patchwork.kernel.org/patch/9277043/
-> > >>
-> > >> It adds support for it to the exynos_hdmi drm driver, adds support for
-> > >> it to the CEC framework and finally adds support to the s5p-cec driver,
-> > >> which now can be moved out of staging.
-> > >>
-> > >> Also included is similar code for the STI platform, contributed by
-> > >> Benjamin Gaignard.
-> > >>
-> > >> Tested the exynos code with my Odroid U3 exynos4 devboard.
-> > >>
-> > >> After discussions with Daniel Vetter and Russell King I have removed
-> > >> the EDID/ELD/HPD connect/disconnect events from the notifier and now
-> > >> just use it to report the CEC physical address. This also means that
-> > >> it is now renamed to CEC notifier instead of HPD notifier and that
-> > >> it is now in drivers/media. The block_notifier was dropped as well
-> > >> and instead a simple callback is registered. This means that the
-> > >> relationship between HDMI and CEC is now 1:1 and no longer 1:n, but
-> > >> should this be needed in the future, then that can easily be added
-> > >> back.
-> > >>
-> > >> Daniel, regarding your suggestions here:
-> > >>
-> > >> http://www.spinics.net/lists/dri-devel/msg133907.html
-> > >>
-> > >> this patch series maps to your mail above as follows:
-> > >>
-> > >> struct cec_pin == struct cec_notifier
-> > >> cec_(un)register_pin == cec_notifier_get/put
-> > >> cec_set_address == cec_notifier_set_phys_addr
-> > >> cec_(un)register_callbacks == cec_notifier_(un)register
-> > >>
-> > >> Comments are welcome. I'd like to get this in for the 4.12 kernel as
-> > >> this is a missing piece needed to integrate CEC drivers.
-> > >>
-> > >> Regards,
-> > >>
-> > >> 	Hans
-> > >>
-> > >> Changes since v4:
-> > >> - Dropped EDID/ELD/connect/disconnect support. Instead, just report the
-> > >>   CEC physical address (and use INVALID when disconnecting).
-> > >> - Since this is now completely CEC specific, move it to drivers/media
-> > >>   and rename to cec-notifier.
-> > >> - Drop block_notifier. Instead just set a callback for the notifier.
-> > >> - Use 'hdmi-phandle' in the bindings for both exynos and sti. So no
-> > >>   vendor prefix and 'hdmi-phandle' instead of 'hdmi-handle'.
-> > >> - Make struct cec_notifier opaque. Add a helper function to get the
-> > >>   physical address from a cec_notifier struct.
-> > >> - Provide dummy functions in cec-notifier.h so it can be used when
-> > >>   CONFIG_MEDIA_CEC_NOTIFIER is undefined.
-> > >> - Don't select the CEC notifier in the HDMI drivers. It should only
-> > >>   be enabled by actual CEC drivers.
-> > > 
-> > > I just quickly scaned through it, but this seems to address all my
-> > > concerns fully. Thanks for respinning. On the entire pile (or just the
-> > > core cec notifier bits):
-> > > 
-> > > Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-> > 
-> > Fantastic! Thank you very much for your comments.
-> > 
-> > One last question: the patches for drivers/gpu/drm: can they go through
-> > the media subsystem or do you want to take them? They do depend on the first
-> > two patches of this series (cec-edid and cec-notifier), so it is a bit more
-> > coordination if they have to go through the drm subsystem.
-> 
-> Doesn't seem to touch anything where I expect conflicts, so as long as it
-> shows up in linux-next timely I think that's good. Please poke driver
-> maintainers for their ack though, but if they fail to respond within a few
-> days you can take my ack for merging the entire pile through media.
-> 
-> Cheers, Daniel
+By definition, we use /* private: */ tag when we won't be documenting
+a parameter. However, those two parameters are documented:
 
-Hi Hans,
+./include/linux/usb/composite.h:510: warning: Excess struct/union/enum/typedef member 'setup_pending' description in 'usb_composite_dev'
+./include/linux/usb/composite.h:510: warning: Excess struct/union/enum/typedef member 'os_desc_pending' description in 'usb_composite_dev'
 
-I will take the exynos DTS patch through samsung-soc. If anyone needs it
-for bisectability, I can provide a tag.
+So, we need to use /* public: */ to avoid a warning.
 
-For the drm and media exynos code, I am not the one to ack.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ include/linux/usb/composite.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Best regards,
-Krzysztof
+diff --git a/include/linux/usb/composite.h b/include/linux/usb/composite.h
+index 30a063e98c19..f665d2ceac20 100644
+--- a/include/linux/usb/composite.h
++++ b/include/linux/usb/composite.h
+@@ -504,8 +504,9 @@ struct usb_composite_dev {
+ 	/* protects deactivations and delayed_status counts*/
+ 	spinlock_t			lock;
+ 
+-	unsigned			setup_pending:1;
+-	unsigned			os_desc_pending:1;
++	/* public: */
++	unsigned int			setup_pending:1;
++	unsigned int			os_desc_pending:1;
+ };
+ 
+ extern int usb_string_id(struct usb_composite_dev *c);
+-- 
+2.9.3
