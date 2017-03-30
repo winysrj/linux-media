@@ -1,101 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.135]:65022 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751495AbdCBTC4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 14:02:56 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: kasan-dev@googlegroups.com
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>, Joe Perches <joe@perches.com>
-Subject: [PATCH 24/26] ocfs2: reduce stack size with KASAN
-Date: Thu,  2 Mar 2017 17:38:32 +0100
-Message-Id: <20170302163834.2273519-25-arnd@arndb.de>
-In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
-References: <20170302163834.2273519-1-arnd@arndb.de>
+Received: from bombadil.infradead.org ([65.50.211.133]:43842 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932582AbdC3KqN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 06:46:13 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Felipe Balbi <balbi@kernel.org>
+Subject: [PATCH v2 20/22] usb: gadget.h: be consistent at kernel doc macros
+Date: Thu, 30 Mar 2017 07:45:54 -0300
+Message-Id: <99c5e340011fb2837042ba5dd6577d04139f3f08.1490870599.git.mchehab@s-opensource.com>
+In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The internal logging infrastructure in ocfs2 causes special warning code to be
-used with KASAN, which produces rather large stack frames:
+There's one value that use spaces instead of tabs to ident.
+That causes the following warning:
 
-fs/ocfs2/super.c: In function 'ocfs2_fill_super':
-fs/ocfs2/super.c:1219:1: error: the frame size of 3264 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+./include/linux/usb/gadget.h:193: ERROR: Unexpected indentation.
 
-By simply passing the mask by value instead of reference, we can avoid the
-problem completely. On 64-bit architectures, this is also more efficient,
-while on the less common (at least among ocfs2 users) 32-bit architectures,
-I'm guessing that the resulting code is comparable to what it was before.
-
-The current version was introduced by Joe Perches as an optimization, maybe
-he can see if my change regresses compared to his.
-
-Cc: Joe Perches <joe@perches.com>
-Fixes: 7c2bd2f930ae ("ocfs2: reduce object size of mlog uses")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- fs/ocfs2/cluster/masklog.c | 10 +++++-----
- fs/ocfs2/cluster/masklog.h |  4 ++--
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ include/linux/usb/gadget.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/ocfs2/cluster/masklog.c b/fs/ocfs2/cluster/masklog.c
-index d331c2386b94..9720c5443e4d 100644
---- a/fs/ocfs2/cluster/masklog.c
-+++ b/fs/ocfs2/cluster/masklog.c
-@@ -64,7 +64,7 @@ static ssize_t mlog_mask_store(u64 mask, const char *buf, size_t count)
- 	return count;
- }
- 
--void __mlog_printk(const u64 *mask, const char *func, int line,
-+void __mlog_printk(const u64 mask, const char *func, int line,
- 		   const char *fmt, ...)
- {
- 	struct va_format vaf;
-@@ -72,14 +72,14 @@ void __mlog_printk(const u64 *mask, const char *func, int line,
- 	const char *level;
- 	const char *prefix = "";
- 
--	if (!__mlog_test_u64(*mask, mlog_and_bits) ||
--	    __mlog_test_u64(*mask, mlog_not_bits))
-+	if (!__mlog_test_u64(mask, mlog_and_bits) ||
-+	    __mlog_test_u64(mask, mlog_not_bits))
- 		return;
- 
--	if (*mask & ML_ERROR) {
-+	if (mask & ML_ERROR) {
- 		level = KERN_ERR;
- 		prefix = "ERROR: ";
--	} else if (*mask & ML_NOTICE) {
-+	} else if (mask & ML_NOTICE) {
- 		level = KERN_NOTICE;
- 	} else {
- 		level = KERN_INFO;
-diff --git a/fs/ocfs2/cluster/masklog.h b/fs/ocfs2/cluster/masklog.h
-index 308ea0eb35fd..0d0f4bf2c3d8 100644
---- a/fs/ocfs2/cluster/masklog.h
-+++ b/fs/ocfs2/cluster/masklog.h
-@@ -163,7 +163,7 @@ extern struct mlog_bits mlog_and_bits, mlog_not_bits;
- #endif
- 
- __printf(4, 5)
--void __mlog_printk(const u64 *m, const char *func, int line,
-+void __mlog_printk(const u64 m, const char *func, int line,
- 		   const char *fmt, ...);
- 
- /*
-@@ -174,7 +174,7 @@ void __mlog_printk(const u64 *m, const char *func, int line,
- do {									\
- 	u64 _m = MLOG_MASK_PREFIX | (mask);				\
- 	if (_m & ML_ALLOWED_BITS)					\
--		__mlog_printk(&_m, __func__, __LINE__, fmt,		\
-+		__mlog_printk(_m, __func__, __LINE__, fmt,		\
- 			      ##__VA_ARGS__);				\
- } while (0)
- 
+diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
+index e4516e9ded0f..fbc22a39e7bc 100644
+--- a/include/linux/usb/gadget.h
++++ b/include/linux/usb/gadget.h
+@@ -188,7 +188,7 @@ struct usb_ep_caps {
+  * @caps:The structure describing types and directions supported by endoint.
+  * @maxpacket:The maximum packet size used on this endpoint.  The initial
+  *	value can sometimes be reduced (hardware allowing), according to
+- *      the endpoint descriptor used to configure the endpoint.
++ *	the endpoint descriptor used to configure the endpoint.
+  * @maxpacket_limit:The maximum packet size value which can be handled by this
+  *	endpoint. It's set once by UDC driver when endpoint is initialized, and
+  *	should not be changed. Should not be confused with maxpacket.
 -- 
-2.9.0
+2.9.3
