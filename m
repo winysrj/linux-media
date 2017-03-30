@@ -1,285 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:48848 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754721AbdC1I0X (ORCPT
+Received: from mail-wr0-f169.google.com ([209.85.128.169]:35646 "EHLO
+        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754499AbdC3JEv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Mar 2017 04:26:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv6 11/14] ov2640: convert from soc-camera to a standard subdev sensor driver.
-Date: Tue, 28 Mar 2017 10:23:44 +0200
-Message-Id: <20170328082347.11159-12-hverkuil@xs4all.nl>
-In-Reply-To: <20170328082347.11159-1-hverkuil@xs4all.nl>
-References: <20170328082347.11159-1-hverkuil@xs4all.nl>
+        Thu, 30 Mar 2017 05:04:51 -0400
+Received: by mail-wr0-f169.google.com with SMTP id k6so45070744wre.2
+        for <linux-media@vger.kernel.org>; Thu, 30 Mar 2017 02:04:50 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org
+Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
+        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: [PATCH v5 6/6] drm: bridge: dw-hdmi: Move HPD handling to PHY operations
+Date: Thu, 30 Mar 2017 11:04:35 +0200
+Message-Id: <1490864675-17336-7-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1490864675-17336-1-git-send-email-narmstrong@baylibre.com>
+References: <1490864675-17336-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The HDMI TX controller support HPD and RXSENSE signaling from the PHY
+via it's STAT0 PHY interface, but some vendor PHYs can manage these
+signals independently from the controller, thus these STAT0 handling
+should be moved to PHY specific operations and become optional.
 
-Convert ov2640 to a standard subdev driver. The soc-camera driver no longer
-uses this driver, so it can safely be converted.
+The existing STAT0 HPD and RXSENSE handling code is refactored into
+a supplementaty set of default PHY operations that are used automatically
+when the platform glue doesn't provide its own operations.
 
-Note: the s_power op has been dropped: this never worked. When the last open()
-is closed, then the power is turned off, and when it is opened again the power
-is turned on again, but the old state isn't restored.
-
-Someone else can figure out in the future how to get this working correctly,
-but I don't want to spend more time on this.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Jose Abreu <joabreu@synopsys.com>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 ---
- drivers/media/i2c/Kconfig                   | 11 ++++
- drivers/media/i2c/Makefile                  |  1 +
- drivers/media/i2c/{soc_camera => }/ov2640.c | 89 +++++------------------------
- drivers/media/i2c/soc_camera/Kconfig        |  6 --
- drivers/media/i2c/soc_camera/Makefile       |  1 -
- 5 files changed, 27 insertions(+), 81 deletions(-)
- rename drivers/media/i2c/{soc_camera => }/ov2640.c (94%)
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 135 ++++++++++++++++++------------
+ include/drm/bridge/dw_hdmi.h              |   5 ++
+ 2 files changed, 86 insertions(+), 54 deletions(-)
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index cee1dae6e014..db2c63f592c5 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -520,6 +520,17 @@ config VIDEO_APTINA_PLL
- config VIDEO_SMIAPP_PLL
- 	tristate
- 
-+config VIDEO_OV2640
-+	tristate "OmniVision OV2640 sensor support"
-+	depends on VIDEO_V4L2 && I2C && GPIOLIB
-+	depends on MEDIA_CAMERA_SUPPORT
-+	help
-+	  This is a Video4Linux2 sensor-level driver for the OmniVision
-+	  OV2640 camera.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called ov2640.
-+
- config VIDEO_OV2659
- 	tristate "OmniVision OV2659 sensor support"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index 5bc7bbeb5499..50af1e11c85a 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -57,6 +57,7 @@ obj-$(CONFIG_VIDEO_VP27SMPX) += vp27smpx.o
- obj-$(CONFIG_VIDEO_SONY_BTF_MPX) += sony-btf-mpx.o
- obj-$(CONFIG_VIDEO_UPD64031A) += upd64031a.o
- obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
-+obj-$(CONFIG_VIDEO_OV2640) += ov2640.o
- obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
- obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
- obj-$(CONFIG_VIDEO_OV9650) += ov9650.o
-diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/ov2640.c
-similarity index 94%
-rename from drivers/media/i2c/soc_camera/ov2640.c
-rename to drivers/media/i2c/ov2640.c
-index b9a0069f5b33..83f88efbce69 100644
---- a/drivers/media/i2c/soc_camera/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -24,8 +24,8 @@
- #include <linux/v4l2-mediabus.h>
- #include <linux/videodev2.h>
- 
--#include <media/soc_camera.h>
- #include <media/v4l2-clk.h>
-+#include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-image-sizes.h>
-@@ -287,7 +287,6 @@ struct ov2640_priv {
- 	struct v4l2_clk			*clk;
- 	const struct ov2640_win_size	*win;
- 
--	struct soc_camera_subdev_desc	ssdd_dt;
- 	struct gpio_desc *resetb_gpio;
- 	struct gpio_desc *pwdn_gpio;
- };
-@@ -677,13 +676,8 @@ static int ov2640_reset(struct i2c_client *client)
+diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+index 16d5fff3..84cc949 100644
+--- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
++++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+@@ -1229,10 +1229,46 @@ static enum drm_connector_status dw_hdmi_phy_read_hpd(struct dw_hdmi *hdmi,
+ 		connector_status_connected : connector_status_disconnected;
  }
  
- /*
-- * soc_camera_ops functions
-+ * functions
++static void dw_hdmi_phy_update_hpd(struct dw_hdmi *hdmi, void *data,
++				   bool force, bool disabled, bool rxsense)
++{
++	u8 old_mask = hdmi->phy_mask;
++
++	if (force || disabled || !rxsense)
++		hdmi->phy_mask |= HDMI_PHY_RX_SENSE;
++	else
++		hdmi->phy_mask &= ~HDMI_PHY_RX_SENSE;
++
++	if (old_mask != hdmi->phy_mask)
++		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
++}
++
++static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi, void *data)
++{
++	/*
++	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
++	 * any pending interrupt.
++	 */
++	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
++	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
++		    HDMI_IH_PHY_STAT0);
++
++	/* Enable cable hot plug irq. */
++	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
++
++	/* Clear and unmute interrupts. */
++	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
++		    HDMI_IH_PHY_STAT0);
++	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
++		    HDMI_IH_MUTE_PHY_STAT0);
++}
++
+ static const struct dw_hdmi_phy_ops dw_hdmi_synopsys_phy_ops = {
+ 	.init = dw_hdmi_phy_init,
+ 	.disable = dw_hdmi_phy_disable,
+ 	.read_hpd = dw_hdmi_phy_read_hpd,
++	.update_hpd = dw_hdmi_phy_update_hpd,
++	.setup_hpd = dw_hdmi_phy_setup_hpd,
+ };
+ 
+ /* -----------------------------------------------------------------------------
+@@ -1808,35 +1844,10 @@ static void dw_hdmi_update_power(struct dw_hdmi *hdmi)
   */
--static int ov2640_s_stream(struct v4l2_subdev *sd, int enable)
--{
--	return 0;
+ static void dw_hdmi_update_phy_mask(struct dw_hdmi *hdmi)
+ {
+-	u8 old_mask = hdmi->phy_mask;
+-
+-	if (hdmi->force || hdmi->disabled || !hdmi->rxsense)
+-		hdmi->phy_mask |= HDMI_PHY_RX_SENSE;
+-	else
+-		hdmi->phy_mask &= ~HDMI_PHY_RX_SENSE;
+-
+-	if (old_mask != hdmi->phy_mask)
+-		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
 -}
 -
- static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct v4l2_subdev *sd =
-@@ -744,10 +738,16 @@ static int ov2640_s_register(struct v4l2_subdev *sd,
- static int ov2640_s_power(struct v4l2_subdev *sd, int on)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	struct ov2640_priv *priv = to_ov2640(client);
+-static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi)
+-{
+-	/*
+-	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
+-	 * any pending interrupt.
+-	 */
+-	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
+-	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
+-		    HDMI_IH_PHY_STAT0);
+-
+-	/* Enable cable hot plug irq. */
+-	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
+-
+-	/* Clear and unmute interrupts. */
+-	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
+-		    HDMI_IH_PHY_STAT0);
+-	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
+-		    HDMI_IH_MUTE_PHY_STAT0);
++	if (hdmi->phy.ops->update_hpd)
++		hdmi->phy.ops->update_hpd(hdmi, hdmi->phy.data,
++					  hdmi->force, hdmi->disabled,
++					  hdmi->rxsense);
+ }
  
--	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
-+	gpiod_direction_output(priv->pwdn_gpio, !on);
-+	if (on && priv->resetb_gpio) {
-+		/* Active the resetb pin to perform a reset pulse */
-+		gpiod_direction_output(priv->resetb_gpio, 1);
-+		usleep_range(3000, 5000);
-+		gpiod_direction_output(priv->resetb_gpio, 0);
+ static enum drm_connector_status
+@@ -2028,6 +2039,41 @@ static irqreturn_t dw_hdmi_hardirq(int irq, void *dev_id)
+ 	return ret;
+ }
+ 
++void __dw_hdmi_setup_rx_sense(struct dw_hdmi *hdmi, bool hpd, bool rx_sense)
++{
++	mutex_lock(&hdmi->mutex);
++
++	if (!hdmi->force) {
++		/*
++		 * If the RX sense status indicates we're disconnected,
++		 * clear the software rxsense status.
++		 */
++		if (!rx_sense)
++			hdmi->rxsense = false;
++
++		/*
++		 * Only set the software rxsense status when both
++		 * rxsense and hpd indicates we're connected.
++		 * This avoids what seems to be bad behaviour in
++		 * at least iMX6S versions of the phy.
++		 */
++		if (hpd)
++			hdmi->rxsense = true;
++
++		dw_hdmi_update_power(hdmi);
++		dw_hdmi_update_phy_mask(hdmi);
 +	}
-+	return 0;
- }
++	mutex_unlock(&hdmi->mutex);
++}
++
++void dw_hdmi_setup_rx_sense(struct device *dev, bool hpd, bool rx_sense)
++{
++	struct dw_hdmi *hdmi = dev_get_drvdata(dev);
++
++	__dw_hdmi_setup_rx_sense(hdmi, hpd, rx_sense);
++}
++EXPORT_SYMBOL_GPL(dw_hdmi_setup_rx_sense);
++
+ static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
+ {
+ 	struct dw_hdmi *hdmi = dev_id;
+@@ -2060,30 +2106,10 @@ static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
+ 	 * ask the source to re-read the EDID.
+ 	 */
+ 	if (intr_stat &
+-	    (HDMI_IH_PHY_STAT0_RX_SENSE | HDMI_IH_PHY_STAT0_HPD)) {
+-		mutex_lock(&hdmi->mutex);
+-		if (!hdmi->force) {
+-			/*
+-			 * If the RX sense status indicates we're disconnected,
+-			 * clear the software rxsense status.
+-			 */
+-			if (!(phy_stat & HDMI_PHY_RX_SENSE))
+-				hdmi->rxsense = false;
+-
+-			/*
+-			 * Only set the software rxsense status when both
+-			 * rxsense and hpd indicates we're connected.
+-			 * This avoids what seems to be bad behaviour in
+-			 * at least iMX6S versions of the phy.
+-			 */
+-			if (phy_stat & HDMI_PHY_HPD)
+-				hdmi->rxsense = true;
+-
+-			dw_hdmi_update_power(hdmi);
+-			dw_hdmi_update_phy_mask(hdmi);
+-		}
+-		mutex_unlock(&hdmi->mutex);
+-	}
++	    (HDMI_IH_PHY_STAT0_RX_SENSE | HDMI_IH_PHY_STAT0_HPD))
++		__dw_hdmi_setup_rx_sense(hdmi,
++					 phy_stat & HDMI_PHY_HPD,
++					 phy_stat & HDMI_PHY_RX_SENSE);
  
- /* Select the nearest higher resolution for capture */
-@@ -994,26 +994,6 @@ static struct v4l2_subdev_core_ops ov2640_subdev_core_ops = {
- 	.s_power	= ov2640_s_power,
+ 	if (intr_stat & HDMI_IH_PHY_STAT0_HPD) {
+ 		dev_dbg(hdmi->dev, "EVENT=%s\n",
+@@ -2357,7 +2383,8 @@ static int dw_hdmi_detect_phy(struct dw_hdmi *hdmi)
+ #endif
+ 
+ 	dw_hdmi_setup_i2c(hdmi);
+-	dw_hdmi_phy_setup_hpd(hdmi);
++	if (hdmi->phy.ops->setup_hpd)
++		hdmi->phy.ops->setup_hpd(hdmi, hdmi->phy.data);
+ 
+ 	memset(&pdevinfo, 0, sizeof(pdevinfo));
+ 	pdevinfo.parent = dev;
+diff --git a/include/drm/bridge/dw_hdmi.h b/include/drm/bridge/dw_hdmi.h
+index 45c2c15..e63d675 100644
+--- a/include/drm/bridge/dw_hdmi.h
++++ b/include/drm/bridge/dw_hdmi.h
+@@ -117,6 +117,9 @@ struct dw_hdmi_phy_ops {
+ 		    struct drm_display_mode *mode);
+ 	void (*disable)(struct dw_hdmi *hdmi, void *data);
+ 	enum drm_connector_status (*read_hpd)(struct dw_hdmi *hdmi, void *data);
++	void (*update_hpd)(struct dw_hdmi *hdmi, void *data,
++			   bool force, bool disabled, bool rxsense);
++	void (*setup_hpd)(struct dw_hdmi *hdmi, void *data);
  };
  
--static int ov2640_g_mbus_config(struct v4l2_subdev *sd,
--				struct v4l2_mbus_config *cfg)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--
--	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
--		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
--		V4L2_MBUS_DATA_ACTIVE_HIGH;
--	cfg->type = V4L2_MBUS_PARALLEL;
--	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
--
--	return 0;
--}
--
--static struct v4l2_subdev_video_ops ov2640_subdev_video_ops = {
--	.s_stream	= ov2640_s_stream,
--	.g_mbus_config	= ov2640_g_mbus_config,
--};
--
- static const struct v4l2_subdev_pad_ops ov2640_subdev_pad_ops = {
- 	.enum_mbus_code = ov2640_enum_mbus_code,
- 	.get_selection	= ov2640_get_selection,
-@@ -1023,40 +1003,9 @@ static const struct v4l2_subdev_pad_ops ov2640_subdev_pad_ops = {
+ struct dw_hdmi_plat_data {
+@@ -147,6 +150,8 @@ int dw_hdmi_probe(struct platform_device *pdev,
+ int dw_hdmi_bind(struct platform_device *pdev, struct drm_encoder *encoder,
+ 		 const struct dw_hdmi_plat_data *plat_data);
  
- static struct v4l2_subdev_ops ov2640_subdev_ops = {
- 	.core	= &ov2640_subdev_core_ops,
--	.video	= &ov2640_subdev_video_ops,
- 	.pad	= &ov2640_subdev_pad_ops,
- };
- 
--/* OF probe functions */
--static int ov2640_hw_power(struct device *dev, int on)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	struct ov2640_priv *priv = to_ov2640(client);
--
--	dev_dbg(&client->dev, "%s: %s the camera\n",
--			__func__, on ? "ENABLE" : "DISABLE");
--
--	if (priv->pwdn_gpio)
--		gpiod_direction_output(priv->pwdn_gpio, !on);
--
--	return 0;
--}
--
--static int ov2640_hw_reset(struct device *dev)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	struct ov2640_priv *priv = to_ov2640(client);
--
--	if (priv->resetb_gpio) {
--		/* Active the resetb pin to perform a reset pulse */
--		gpiod_direction_output(priv->resetb_gpio, 1);
--		usleep_range(3000, 5000);
--		gpiod_direction_output(priv->resetb_gpio, 0);
--	}
--
--	return 0;
--}
--
- static int ov2640_probe_dt(struct i2c_client *client,
- 		struct ov2640_priv *priv)
- {
-@@ -1076,11 +1025,6 @@ static int ov2640_probe_dt(struct i2c_client *client,
- 	else if (IS_ERR(priv->pwdn_gpio))
- 		return PTR_ERR(priv->pwdn_gpio);
- 
--	/* Initialize the soc_camera_subdev_desc */
--	priv->ssdd_dt.power = ov2640_hw_power;
--	priv->ssdd_dt.reset = ov2640_hw_reset;
--	client->dev.platform_data = &priv->ssdd_dt;
--
- 	return 0;
- }
- 
-@@ -1091,7 +1035,6 @@ static int ov2640_probe(struct i2c_client *client,
- 			const struct i2c_device_id *did)
- {
- 	struct ov2640_priv	*priv;
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
- 	int			ret;
- 
-@@ -1112,17 +1055,15 @@ static int ov2640_probe(struct i2c_client *client,
- 	if (IS_ERR(priv->clk))
- 		return -EPROBE_DEFER;
- 
--	if (!ssdd && !client->dev.of_node) {
-+	if (!client->dev.of_node) {
- 		dev_err(&client->dev, "Missing platform_data for driver\n");
- 		ret = -EINVAL;
- 		goto err_clk;
- 	}
- 
--	if (!ssdd) {
--		ret = ov2640_probe_dt(client, priv);
--		if (ret)
--			goto err_clk;
--	}
-+	ret = ov2640_probe_dt(client, priv);
-+	if (ret)
-+		goto err_clk;
- 
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
- 	v4l2_ctrl_handler_init(&priv->hdl, 2);
-@@ -1190,6 +1131,6 @@ static struct i2c_driver ov2640_i2c_driver = {
- 
- module_i2c_driver(ov2640_i2c_driver);
- 
--MODULE_DESCRIPTION("SoC Camera driver for Omni Vision 2640 sensor");
-+MODULE_DESCRIPTION("Driver for Omni Vision 2640 sensor");
- MODULE_AUTHOR("Alberto Panizzo");
- MODULE_LICENSE("GPL v2");
-diff --git a/drivers/media/i2c/soc_camera/Kconfig b/drivers/media/i2c/soc_camera/Kconfig
-index 7704bcf5cc25..96859f37cb1c 100644
---- a/drivers/media/i2c/soc_camera/Kconfig
-+++ b/drivers/media/i2c/soc_camera/Kconfig
-@@ -41,12 +41,6 @@ config SOC_CAMERA_MT9V022
- 	help
- 	  This driver supports MT9V022 cameras from Micron
- 
--config SOC_CAMERA_OV2640
--	tristate "ov2640 camera support"
--	depends on SOC_CAMERA && I2C
--	help
--	  This is a ov2640 camera driver
--
- config SOC_CAMERA_OV5642
- 	tristate "ov5642 camera support"
- 	depends on SOC_CAMERA && I2C
-diff --git a/drivers/media/i2c/soc_camera/Makefile b/drivers/media/i2c/soc_camera/Makefile
-index 6f994f9353a0..974bdb721dbe 100644
---- a/drivers/media/i2c/soc_camera/Makefile
-+++ b/drivers/media/i2c/soc_camera/Makefile
-@@ -3,7 +3,6 @@ obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
- obj-$(CONFIG_SOC_CAMERA_MT9T031)	+= mt9t031.o
- obj-$(CONFIG_SOC_CAMERA_MT9T112)	+= mt9t112.o
- obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= mt9v022.o
--obj-$(CONFIG_SOC_CAMERA_OV2640)		+= ov2640.o
- obj-$(CONFIG_SOC_CAMERA_OV5642)		+= ov5642.o
- obj-$(CONFIG_SOC_CAMERA_OV6650)		+= ov6650.o
- obj-$(CONFIG_SOC_CAMERA_OV772X)		+= ov772x.o
++void dw_hdmi_setup_rx_sense(struct device *dev, bool hpd, bool rx_sense);
++
+ void dw_hdmi_set_sample_rate(struct dw_hdmi *hdmi, unsigned int rate);
+ void dw_hdmi_audio_enable(struct dw_hdmi *hdmi);
+ void dw_hdmi_audio_disable(struct dw_hdmi *hdmi);
 -- 
-2.11.0
+1.9.1
