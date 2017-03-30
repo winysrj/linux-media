@@ -1,125 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:37302 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755025AbdCTRRZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 13:17:25 -0400
-Date: Mon, 20 Mar 2017 17:16:30 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
-        minghsiu.tsai@mediatek.com, nick@shmanahar.org,
-        songjun.wu@microchip.com, hverkuil@xs4all.nl,
-        Steve Longerbeam <steve_longerbeam@mentor.com>, pavel@ucw.cz,
-        robert.jarzmik@free.fr, devel@driverdev.osuosl.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, shuah@kernel.org,
-        geert@linux-m68k.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        sakari.ailus@linux.intel.com, arnd@arndb.de, mchehab@kernel.org,
-        bparrot@ti.com, robh+dt@kernel.org, horms+renesas@verge.net.au,
-        tiffany.lin@mediatek.com, linux-arm-kernel@lists.infradead.org,
-        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
-        linux-kernel@vger.kernel.org, jean-christophe.trotin@st.com,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, shawnguo@kernel.org,
-        sudipm.mukherjee@gmail.com
-Subject: Re: [PATCH v5 38/39] media: imx: csi: fix crop rectangle reset in
- sink set_fmt
-Message-ID: <20170320171630.GR21222@n2100.armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-39-git-send-email-steve_longerbeam@mentor.com>
- <20170319152233.GW21222@n2100.armlinux.org.uk>
- <327d67d9-68c1-7f74-0c0f-f6aee1c4b546@gmail.com>
- <1490010926.2917.59.camel@pengutronix.de>
- <20170320120855.GH21222@n2100.armlinux.org.uk>
- <1490018451.2917.86.camel@pengutronix.de>
- <20170320141705.GL21222@n2100.armlinux.org.uk>
+Received: from mga09.intel.com ([134.134.136.24]:53377 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752931AbdC3IV6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 04:21:58 -0400
+From: Jani Nikula <jani.nikula@intel.com>
+To: Markus Heiser <markus.heiser@darmarit.de>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Takashi Iwai <tiwai@suse.de>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Oliver Neukum <oneukum@suse.com>,
+        Martyn Welch <martyn.welch@collabora.co.uk>,
+        Alexander Dahl <post@lespocky.de>,
+        Jonathan Cameron <jic23@kernel.org>
+Subject: Re: [PATCH 02/22] docs-rst: convert usb docbooks to ReST
+In-Reply-To: <7D76BCB2-53F5-4BD4-8205-5A4852164C91@darmarit.de>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com> <327dcce56a725c7f91f542f2ff97995504d26526.1490813422.git.mchehab@s-opensource.com> <7D76BCB2-53F5-4BD4-8205-5A4852164C91@darmarit.de>
+Date: Thu, 30 Mar 2017 11:21:51 +0300
+Message-ID: <87y3vn2mzk.fsf@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170320141705.GL21222@n2100.armlinux.org.uk>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 20, 2017 at 02:17:05PM +0000, Russell King - ARM Linux wrote:
-> On Mon, Mar 20, 2017 at 03:00:51PM +0100, Philipp Zabel wrote:
-> > On Mon, 2017-03-20 at 12:08 +0000, Russell King - ARM Linux wrote:
-> > > The same document says:
-> > > 
-> > >   Scaling support is optional. When supported by a subdev, the crop
-> > >   rectangle on the subdev's sink pad is scaled to the size configured
-> > >   using the
-> > >   :ref:`VIDIOC_SUBDEV_S_SELECTION <VIDIOC_SUBDEV_G_SELECTION>` IOCTL
-> > >   using ``V4L2_SEL_TGT_COMPOSE`` selection target on the same pad. If the
-> > >   subdev supports scaling but not composing, the top and left values are
-> > >   not used and must always be set to zero.
-> > 
-> > Right, this sentence does imply that when scaling is supported, there
-> > must be a sink compose rectangle, even when composing is not.
-> > 
-> > I have previously set up scaling like this:
-> > 
-> > media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080@1/60]"
-> > media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/960x540@1/30]"
-> > 
-> > Does this mean, it should work like this instead?
-> > 
-> > media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080@1/60]"
-> > media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY2X8/1920x1080@1/60,compose:(0,0)/960x540]"
-> > media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/960x540@1/30]"
-> > 
-> > I suppose setting the source pad format should not be allowed to modify
-> > the sink compose rectangle.
-> 
-> That is what I believe having read these documents several times, but
-> we need v4l2 people to confirm.
-> 
-> Note that setting the format on 'ipu1_csi0':0 should already be done by
-> the previous media-ctl command, so it should be possible to simplify
-> that to:
-> 
-> media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080@1/60]"
-> media-ctl --set-v4l2 "'ipu1_csi0':0[compose:(0,0)/960x540]"
-> media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/960x540@1/30]"
+On Thu, 30 Mar 2017, Markus Heiser <markus.heiser@darmarit.de> wrote:
+> Hi Mauro,
+>
+> Am 29.03.2017 um 20:54 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+>
+>> As we're moving out of DocBook, let's convert the remaining
+>> USB docbooks to ReST.
+>> 
+>> The transformation itself on this patch is a no-brainer
+>> conversion using pandoc.
+>
+> right, its a no-brainer ;-) I'am not very happy with this
+> conversions, some examples see below.
+>
+> I recommend to use a more elaborate conversion as starting point,
+> e.g. from my sphkerneldoc project:
+>
+> * https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated/gadget
+> * https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated/writing_musb_glue_layer
+> * https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated/writing_usb_driver
+>
+> Since these DocBooks hasn't been changed in the last month, the linked reST
+> should be up to date.
 
-There is a slightly puzzling bit in the documentation.  If we consider
-the CSI, and the sink compose rectangle size has to always match the
-the source output pad format size (since in hardware they are one of
-the same), then:
+Markus, I know you've done a lot of work on your conversions, and you
+like to advocate them, but AFAICT you have never posted the conversions
+as patches to the list. Your project isn't a clone of the kernel
+tree. It's a pile of .rst files that nobody knows how to produce from
+current upstream DocBook .tmpl files. I'm sorry, but this just doesn't
+work that way.
 
-  Inside subdevs, the order of image processing steps will always be from
-  the sink pad towards the source pad. This is also reflected in the order
-  in which the configuration must be performed by the user: the changes
-  made will be propagated to any subsequent stages. If this behaviour is
-  not desired, the user must set ``V4L2_SEL_FLAG_KEEP_CONFIG`` flag. This
-                                                                     ^^^^
-  flag causes no propagation of the changes are allowed in any
-  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  circumstances. This may also cause the accessed rectangle to be adjusted
-  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  by the driver, depending on the properties of the underlying hardware.
-  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+At this point I'd just go with what Mauro has. It's here now, as
+patches. We've seen from the GPU documentation that polishing the
+one-time initial conversion is, after a point, wasted effort. Having the
+documentation in rst attracts more attention and contributions, and any
+remaining issues will get ironed out in rst.
 
-presumably, this means if we get a request to change the source compose
-rectangle with V4L2_SEL_FLAG_KEEP_CONFIG set, we need to force its size
-to be the current output format size.  I don't think we can do anything
-else - because the above makes it very clear that any following stages
-shall not be updated.  The last sentence appears to give permission to
-do that.
+This is also one reason I'm in favor of just bulk converting the rest of
+the .tmpl files using Documentation/sphinx/tmplcvt, get rid of DocBook
+and be done with it, and have the crowds focus on rst.
 
-This also has implications when changing the sink crop - the sink crop
-(eg) must not be smaller than the sink compose, as we don't support
-scaling up in CSI.
 
-It seems to me that V4L2_SEL_FLAG_KEEP_CONFIG in practice changes the
-way validation of the request works.  So, rather than validating the
-request against the upstream rectangle and propagating downstream, it
-needs to be validated against both the upstream and downstream
-rectangles instead.
+BR,
+Jani.
 
-It seems there's many subtleties to this...
 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Jani Nikula, Intel Open Source Technology Center
