@@ -1,229 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46930 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752174AbdCEV1w (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44813
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933103AbdC3BGn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 5 Mar 2017 16:27:52 -0500
-Date: Sun, 5 Mar 2017 23:27:46 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Wed, 29 Mar 2017 21:06:43 -0400
+Date: Wed, 29 Mar 2017 22:06:33 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Jonathan Corbet <corbet@lwn.net>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v2.1] v4l: Clearly document interactions between formats,
- controls and buffers
-Message-ID: <20170305212745.GC3220@valkosipuli.retiisi.org.uk>
-References: <20170228150320.10104-3-laurent.pinchart+renesas@ideasonboard.com>
- <20170305143936.11257-1-laurent.pinchart+renesas@ideasonboard.com>
+        David Mosberger <davidm@egauge.net>,
+        Oliver Neukum <oneukum@suse.com>,
+        Roger Quadros <rogerq@ti.com>,
+        Jaejoong Kim <climbbb.kim@gmail.com>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>
+Subject: Re: [PATCH 22/22] usb: document that URB transfer_buffer should be
+ aligned
+Message-ID: <20170329220633.51692689@vento.lan>
+In-Reply-To: <1822963.cezI9HmAB6@avalon>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+        <ee3ea6944e095fa3b2383697a967f4bc9e2d9631.1490813422.git.mchehab@s-opensource.com>
+        <1822963.cezI9HmAB6@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170305143936.11257-1-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Em Thu, 30 Mar 2017 01:15:27 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Thanks for the update.
-
-On Sun, Mar 05, 2017 at 04:39:36PM +0200, Laurent Pinchart wrote:
-> V4L2 exposes parameters that influence buffers sizes through the format
-> ioctls (VIDIOC_G_FMT, VIDIOC_TRY_FMT, VIDIOC_S_FMT, and possibly
-> VIDIOC_G_SELECTION and VIDIOC_S_SELECTION). Other parameters not part of
-> the format structure may also influence buffer sizes or buffer layout in
-> general. One existing such parameter is rotation, which is implemented
-> by the VIDIOC_ROTATE control and thus exposed through the V4L2 control
-
-V4L2_CID_ROTATE
-
-> ioctls.
+> Hi Mauro,
 > 
-> The interaction between those parameters and buffers is currently only
-> partially specified by the V4L2 API. In particular interactions between
-> controls and buffers isn't specified at all. The behaviour of the
-> VIDIOC_S_FMT and VIDIOC_S_SELECTION ioctls when buffers are allocated is
-> also not fully specified.
+> Thank you for the patch.
 > 
-> This commit clearly defines and documents the interactions between
-
-It's say it's a patch, and most kernel developers seem to agree:
-
-$ git log v4.9..v4.10|grep -ci
-'this patch'
-1816
-$ git log v4.9..v4.10|grep -ci
-'this commit'
-217
-
-Up to you. :-)
-
-> formats, selections, controls and buffers.
+> On Wednesday 29 Mar 2017 15:54:21 Mauro Carvalho Chehab wrote:
+> > Several host controllers, commonly found on ARM, like dwc2,
+> > require buffers that are CPU-word aligned for they to work.
+> > 
+> > Failing to do that will cause random troubles at the caller
+> > drivers, causing them to fail.
+> > 
+> > Document it.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > ---
+> >  Documentation/driver-api/usb/URB.rst | 18 ++++++++++++++++++
+> >  drivers/usb/core/message.c           | 15 +++++++++++++++
+> >  include/linux/usb.h                  | 18 ++++++++++++++++++
+> >  3 files changed, 51 insertions(+)
+> > 
+> > diff --git a/Documentation/driver-api/usb/URB.rst
+> > b/Documentation/driver-api/usb/URB.rst index d9ea6a3996e7..b83b557e9891
+> > 100644
+> > --- a/Documentation/driver-api/usb/URB.rst
+> > +++ b/Documentation/driver-api/usb/URB.rst
+> > @@ -274,6 +274,24 @@ If you specify your own start frame, make sure it's
+> > several frames in advance of the current frame.  You might want this model
+> > if you're synchronizing ISO data with some other event stream.
+> > 
+> > +.. note::
+> > +
+> > +   Several host drivers require that the ``transfer_buffer`` to be aligned
+> > +   with the CPU word size (e. g. DWORD for 32 bits, QDWORD for 64 bits).  
 > 
-> The preparatory discussions for the documentation change considered
-> completely disallowing controls that change the buffer size or layout,
-> in favour of extending the format API with a new ioctl that would bundle
-> those controls with format information. The idea has been rejected, as
-> this would essentially be a restricted version of the upcoming request
-> API that wouldn't bring any additional value.
+> Is it the CPU word size or the DMA transfer size ? I assume the latter, and I 
+> wouldn't be surprised if the alignment requirement was 32-bit on at least some 
+> of the 64-bit platforms.
+
+Yeah, it is actually the DMA transfer size. Yet, worse case scenario is that
+the DMA transfer size to be 64 bits on 64 bits CPU.
+
 > 
-> Another option we have considered was to mandate the use of the request
-> API to modify controls that influence buffer size or layout. This has
-> also been rejected on the grounds that requiring the request API to
-> change rotation even when streaming is stopped would significantly
-> complicate implementation of drivers and usage of the V4L2 API for
-> applications.
+> > +   It is up to USB drivers should ensure that they'll only pass buffers
+> > +   with such alignments.
+> > +
+> > +   Please also notice that, due to such restriction, the host driver  
 > 
-> Applications will however be required to use the upcoming request API to
-> change at runtime formats or controls that influence the buffer size or
-> layout, because of the need to synchronize buffers with the formats and
-> controls. Otherwise there would be no way to interpret the content of a
-> buffer correctly.
+> s/notice/note/ (and below as well) ?
+
+OK.
+
+> > +   may also override PAD bytes at the end of the ``transfer_buffer``, up to
+> > the
+> > +   size of the CPU word.  
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
-> Changes since v2:
+> "May" is quite weak here. If some host controller drivers require buffers to 
+> be aligned, then it's an API requirement, and all buffers must be aligned. I'm 
+> not even sure I would mention that some host drivers require it, I think we 
+> should just state that the API requires buffers to be aligned.
+
+What I'm trying to say here is that, on a 32-bits system, if the driver do
+a USB_DIR_IN transfer using some code similar to:
+
+	size = 4;
+	buffer = kmalloc(size, GFP_KERNEL);
+
+	usb_control_msg(udev, pipe, req, type, val, idx, buffer + 2, 2, timeout);
+	usb_control_msg(udev, pipe, req, type, val, idx, buffer, size, timeout);
+
+Drivers like dwc2 will mess with the buffer.
+
+The first transfer will actually work, due to a workaround inside the
+driver that will create a temporary DWORD-aligned buffer, avoiding it
+to go past the buffer.
+
+However, the second transfer will destroy the data received from the
+first usb_control_msg(), as it will write 4 bytes at the buffer.
+
+Not all drivers would do that, though.
+
+Please notice that, as kmalloc will always return a CPU-aligned buffer,
+if the client do something like:
+
+	size = 2;
+	buffer = kmalloc(size, GFP_KERNEL);
+
+	usb_control_msg(udev, pipe, req, type, val, idx, buffer, 2, timeout);
+
+What happens there is that the DMA engine will still write 4 bytes at
+the buffer, but the 2 bytes that go past the end of buffer will be
+written on a memory that will never be used.
+
 > 
-> - Document the interaction with ioctls that can affect formats
->   (VIDIOC_S_SELECTION, VIDIOC_S_INPUT, VIDIOC_S_OUTPUT, VIDIOC_S_STD and
->   VIDIOC_S_DV_TIMINGS)
-> - Clarify the format/control change order
-> ---
->  Documentation/media/uapi/v4l/buffer.rst | 108 ++++++++++++++++++++++++++++++++
->  1 file changed, 108 insertions(+)
+> > +   Please notice that ancillary routines that transfer URBs, like
+> > +   usb_control_msg() also have such restriction.
+> > +
+> > +   Such word alignment condition is normally ensured if the buffer is
+> > +   allocated with kmalloc(), but this may not be the case if the driver
+> > +   allocates a bigger buffer and point to a random place inside it.
+> > +
+> > 
+> >  How to start interrupt (INT) transfers?
+> >  =======================================
+> > diff --git a/drivers/usb/core/message.c b/drivers/usb/core/message.c
+> > index 4c38ea41ae96..1662a4446475 100644
+> > --- a/drivers/usb/core/message.c
+> > +++ b/drivers/usb/core/message.c
+> > @@ -128,6 +128,21 @@ static int usb_internal_control_msg(struct usb_device
+> > *usb_dev, * make sure your disconnect() method can wait for it to complete.
+> > Since you * don't have a handle on the URB used, you can't cancel the
+> > request. *
+> > + * .. note::
+> > + *
+> > + *   Several host drivers require that the @data buffer to be aligned
+> > + *   with the CPU word size (e. g. DWORD for 32 bits, QDWORD for 64 bits).
+> > + *   It is up to USB drivers should ensure that they'll only pass buffers
+> > + *   with such alignments.
+> > + *
+> > + *   Please also notice that, due to such restriction, the host driver
+> > + *   may also override PAD bytes at the end of the @data buffer, up to the
+> > + *   size of the CPU word.
+> > + *
+> > + *   Such word alignment condition is normally ensured if the buffer is
+> > + *   allocated with kmalloc(), but this may not be the case if the driver
+> > + *   allocates a bigger buffer and point to a random place inside it.
+> > + *
+> >   * Return: If successful, the number of bytes transferred. Otherwise, a
+> > negative * error number.
+> >   */
+> > diff --git a/include/linux/usb.h b/include/linux/usb.h
+> > index 7e68259360de..8b5ad6624708 100644
+> > --- a/include/linux/usb.h
+> > +++ b/include/linux/usb.h
+> > @@ -1373,6 +1373,24 @@ typedef void (*usb_complete_t)(struct urb *);
+> >   * capable, assign NULL to it, so that usbmon knows not to use the value.
+> >   * The setup_packet must always be set, so it cannot be located in highmem.
+> > *
+> > + * .. note::
+> > + *
+> > + *   Several host drivers require that the @transfer_buffer to be aligned
+> > + *   with the CPU word size (e. g. DWORD for 32 bits, QDWORD for 64 bits).
+> > + *   It is up to USB drivers should ensure that they'll only pass buffers
+> > + *   with such alignments.
+> > + *
+> > + *   Please also notice that, due to such restriction, the host driver
+> > + *   may also override PAD bytes at the end of the @transfer_buffer, up to
+> > the + *   size of the CPU word.
+> > + *
+> > + *   Please notice that ancillary routines that start URB transfers, like
+> > + *   usb_control_msg() also have such restriction.
+> > + *
+> > + *   Such word alignment condition is normally ensured if the buffer is
+> > + *   allocated with kmalloc(), but this may not be the case if the driver
+> > + *   allocates a bigger buffer and point to a random place inside it.
+> > + *  
 > 
-> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-> index ac58966ccb9b..ce46908bedfb 100644
-> --- a/Documentation/media/uapi/v4l/buffer.rst
-> +++ b/Documentation/media/uapi/v4l/buffer.rst
-> @@ -34,6 +34,114 @@ flags are copied from the OUTPUT video buffer to the CAPTURE video
->  buffer.
->  
->  
-> +Interactions between formats, controls and buffers
-> +==================================================
-> +
-> +V4L2 exposes parameters that influence the buffer size, or the way data is
-> +laid out in the buffer. Those parameters are exposed through both formats and
-> +controls. One example of such a control is the ``V4L2_CID_ROTATE`` control
-> +that modifies the direction in which pixels are stored in the buffer, as well
-> +as the buffer size when the selected format includes padding at the end of
-> +lines.
-> +
-> +The set of information needed to interpret the content of a buffer (e.g. the
-> +pixel format, the line stride, the tiling orientation or the rotation) is
-> +collectively referred to in the rest of this section as the buffer layout.
-> +
-> +Modifying formats or controls that influence the buffer size or layout require
-> +the stream to be stopped. Any attempt at such a modification while the stream
-> +is active shall cause the format or control set ioctl to return the ``EBUSY``
+> Couldn't we avoid three copies of the same text ? The chance they will get 
+> out-of-sync is quite high.
 
-How about:
+IMHO, it is better to document it at those 3 parts, as this issue
+cause buffer overflows, which is pretty serious, as it corrupts data.
 
-s/the format or control set ioctl/the ioctl setting the format or the
-control/
+The URB.rst file contains a quick overview of the URB data transfers,
+and it is likely where a kernel newbie would read first. Experienced
+programmers will look at urb.h.
 
-> +error code.
-> +
-> +Controls that only influence the buffer layout can be modified at any time
-> +when the stream is stopped. As they don't influence the buffer size, no
-> +special handling is needed to synchronize those controls with buffer
-> +allocation.
-> +
-> +Formats and controls that influence the buffer size interact with buffer
-> +allocation. As buffer allocation is an expensive operation, drivers should
-> +allow format or controls that influence the buffer size to be changed with
-> +buffers allocated. A typical ioctl sequence to modify format and controls is
-> +
-> + #. VIDIOC_STREAMOFF
-> + #. VIDIOC_S_EXT_CTRLS
-> + #. VIDIOC_S_FMT
-> + #. VIDIOC_QBUF
-> + #. VIDIOC_STREAMON
-> +
-> +.. note::
-> +
-> +   The API doesn't mandate the above order for control (2.) and format (3.)
-> +   changes. Format and controls can be set in a different order, or even
-> +   interleaved, depending on the device and use case. For instance some
-> +   controls might behave differently for different pixel formats, in which
-> +   case the format might need to be set first.
-> +
-> +Queued buffers must be large enough for the new format or controls.
-> +
-> +Drivers shall return a ``ENOSPC`` error in response to format change
-> +(:c:func:`VIDIOC_S_FMT`) or control changes (:c:func:`VIDIOC_S_CTRL` or
-> +:c:func:`VIDIOC_S_EXT_CTRLS`) if buffers too small for the new format are
-> +currently queued. As a simplification, drivers are allowed to return an error
-> +from these ioctls if any buffer is currently queued, without checking the
-> +queued buffers sizes.
-> +
-> +.. note::
-> +
-> +   The :c:func:`VIDIOC_S_SELECTION` ioctl can, depending on the hardware (for
-> +   instance if the device doesn't include a scaler), modify the format in
-> +   addition to the selection rectangle. Similarly, the
-> +   :c:func:`VIDIOC_S_INPUT`, :c:func:`VIDIOC_S_OUTPUT`, :c:func:`VIDIOC_S_STD`
-> +   and :c:func:`VIDIOC_S_DV_TIMINGS` ioctls can also modify the format and
-> +   selection rectangles. Driver shall return the same ``ENOSPC`` error from
-> +   all ioctls that would result in formats too large for queued buffers.
-> +
-> +Drivers shall also return a ``ENOSPC`` error from the :c:func:`VIDIOC_QBUF`
-> +ioctl if the buffer being queued is too small for the current format or
-> +controls. Together, these requirements ensure that queued buffers will always
-> +be large enough for the configured format and controls.
-> +
-> +Userspace applications can query the buffer size required for a given format
-> +and controls by first setting the desired control values and then trying the
-> +desired format. The :c:func:`VIDIOC_TRY_FMT` ioctl will return the required
-> +buffer size.
-> +
-> + #. VIDIOC_S_EXT_CTRLS(x)
-> + #. VIDIOC_TRY_FMT()
-> + #. VIDIOC_S_EXT_CTRLS(y)
-> + #. VIDIOC_TRY_FMT()
-> +
-> +The :c:func:`VIDIOC_CREATE_BUFS` ioctl can then be used to allocate buffers
-> +based on the queried sizes (for instance by allocating a set of buffers large
-> +enough for all the desired formats and controls, or by allocating separate set
-> +of appropriately sized buffers for each use case).
-> +
-> +To simplify their implementation, drivers may also require buffers to be
-> +reallocated in order to change formats or controls that influence the buffer
-> +size. In that case, to perform such changes, userspace applications shall
-> +first stop the video stream with the :c:func:`VIDIOC_STREAMOFF` ioctl if it
-> +is running and free all buffers with the :c:func:`VIDIOC_REQBUFS` ioctl if
-> +they are allocated. The format or controls can then be modified, and buffers
-> +shall then be reallocated and the stream restarted. A typical ioctl sequence
-> +is
-> +
-> + #. VIDIOC_STREAMOFF
-> + #. VIDIOC_REQBUFS(0)
-> + #. VIDIOC_S_EXT_CTRLS
-> + #. VIDIOC_S_FMT
-> + #. VIDIOC_REQBUFS(n)
-> + #. VIDIOC_QBUF
-> + #. VIDIOC_STREAMON
-> +
-> +The second :c:func:`VIDIOC_REQBUFS` call will take the new format and control
-> +value into account to compute the buffer size to allocate. Applications can
-> +also retrieve the size by calling the :c:func:`VIDIOC_G_FMT` ioctl if needed.
-> +
-> +When reallocation is required, any attempt to modify format or controls that
-> +influences the buffer size while buffers are allocated shall cause the format
-> +or control set ioctl to return the ``EBUSY`` error code.
-> +
-> +
->  .. c:type:: v4l2_buffer
->  
->  struct v4l2_buffer
+usb_control_msg() is a different function, that one might not be
+expecting to have the same issues.
 
-With the above fixed / considered,
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks,
+Mauro
