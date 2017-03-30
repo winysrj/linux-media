@@ -1,93 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39618 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751023AbdCMNR1 (ORCPT
+Received: from mail-lf0-f52.google.com ([209.85.215.52]:35789 "EHLO
+        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752739AbdC3JEp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 09:17:27 -0400
-Date: Mon, 13 Mar 2017 15:16:48 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v4 29/36] media: imx: mipi-csi2: enable setting and
- getting of frame rates
-Message-ID: <20170313131647.GB10701@valkosipuli.retiisi.org.uk>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
- <20170220220409.GX16975@valkosipuli.retiisi.org.uk>
- <20170221001332.GS21222@n2100.armlinux.org.uk>
- <25596b21-70de-5e46-f149-f9ce3a86ecb7@gmail.com>
- <1487667023.2331.8.camel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1487667023.2331.8.camel@pengutronix.de>
+        Thu, 30 Mar 2017 05:04:45 -0400
+Received: by mail-lf0-f52.google.com with SMTP id j90so21930259lfk.2
+        for <linux-media@vger.kernel.org>; Thu, 30 Mar 2017 02:04:44 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
+        mchehab@kernel.org
+Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
+        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com
+Subject: [PATCH v5 0/6] drm: bridge: dw-hdmi: Add support for Custom PHYs
+Date: Thu, 30 Mar 2017 11:04:29 +0200
+Message-Id: <1490864675-17336-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+The Amlogic GX SoCs implements a Synopsys DesignWare HDMI TX Controller
+in combination with a very custom PHY.
 
-On Tue, Feb 21, 2017 at 09:50:23AM +0100, Philipp Zabel wrote:
-...
-> > > Then there's the issue where, if you have this setup:
-> > >
-> > >  camera --> csi2 receiver --> csi --> capture
-> > >
-> > > and the "csi" subdev can skip frames, you need to know (a) at the CSI
-> > > sink pad what the frame rate is of the source (b) what the desired
-> > > source pad frame rate is, so you can configure the frame skipping.
-> > > So, does the csi subdev have to walk back through the media graph
-> > > looking for the frame rate?  Does the capture device have to walk back
-> > > through the media graph looking for some subdev to tell it what the
-> > > frame rate is - the capture device certainly can't go straight to the
-> > > sensor to get an answer to that question, because that bypasses the
-> > > effect of the CSI frame skipping (which will lower the frame rate.)
-> > >
-> > > IMHO, frame rate is just another format property, just like the
-> > > resolution and data format itself, and v4l2 should be treating it no
-> > > differently.
-> > >
-> > 
-> > I agree, frame rate, if indicated/specified by both sides of a link,
-> > should match. So maybe this should be part of v4l2 link validation.
-> > 
-> > This might be a good time to propose the following patch.
-> 
-> I agree with Steve and Russell. I don't see why the (nominal) frame
-> interval should be handled differently than resolution, data format, and
-> colorspace information. I think it should just be propagated in the same
-> way, and there is no reason to have two connected pads set to a
-> different interval. That would make implementing the g/s_frame_interval
-> subdev calls mandatory.
+Thanks to Laurent Pinchart's changes, the HW report the following :
+ Detected HDMI TX controller v2.01a with HDCP (meson_dw_hdmi_phy)
 
-The vast majority of existing drivers do not implement them nor the user
-space expects having to set them. Making that mandatory would break existing
-user space.
+The following differs from common PHY integration as managed in the current
+driver :
+ - Amlogic PHY is not configured through the internal I2C link
+ - Amlogic PHY do not use the ENTMDS, SVSRET, PDDQ, ... signals from the controller
+ - Amlogic PHY do not export HPD ands RxSense signals to the controller
 
-In addition, that does not belong to link validation either: link validation
-should only include static properties of the link that are required for
-correct hardware operation. Frame rate is not such property: hardware that
-supports the MC interface generally does not recognise such concept (with
-the exception of some sensors). Additionally, it is dynamic: the frame rate
-can change during streaming, making its validation at streamon time useless.
+And finally, concerning the controller integration :
+ - the Controller registers are not flat memory-mapped, and uses an
+    addr+read/write register pair to write all registers.
+ - Inputs only YUV444 pixel data
+
+Most of these uses case are implemented in Laurent Pinchart v5.1 patchset merged
+in drm-misc-next branch.
+
+This is why the following patchset implements :
+ - Configure the Input format from the plat_data
+ - Add PHY callback to handle HPD and RxSense out of the dw-hdmi driver
+
+To implement the input format handling, the Synopsys HDMIT TX Controller input
+V4L bus formats are used and missing formats + documentation are added.
+
+This patchset makes the Amlogic GX SoCs HDMI output successfully work, and is
+also tested on the RK3288 ACT8846 EVB Board.
+
+Changes since v4 at [5] :
+ - Rebased on drm-misc-next at bd283d2f66c2
+ - Fix 4:2:0 bus formats naming
+ - Renamed function fd_registered to i2c_init in dw-hdmi.c
+
+Changes since v3 at [4] :
+ - Fix 4:2:0 bus formats naming
+ - Add separate 36bit and 48bit tables for bus formats documentation
+ - Added 4:2:0 bus config in hdmi_video_sample
+ - Moved dw_hdmi documentation in a "bridge" subdir
+ - Rebase on drm-misc-next at 62c58af32c93
+
+Changes since v2 at [3] :
+ - Rebase on laurent patch "Extract PHY interrupt setup to a function"
+ - Reduce phy operations
+ - Switch the V4L bus formats and encodings instead of custom enum
+
+Changes since v1 at [2] :
+ - Drop patches submitted by laurent
+
+Changes since RFC at [1] :
+ - Regmap fixup for 4bytes register access, tested on RK3288 SoC
+ - Move phy callbacks to phy_ops and move Synopsys PHY calls into default ops
+ - Move HDMI link data into shared header
+ - Move Pixel Encoding enum to shared header
+
+[1] http://lkml.kernel.org/r/1484656294-6140-1-git-send-email-narmstrong@baylibre.com
+[2] http://lkml.kernel.org/r/1485774318-21916-1-git-send-email-narmstrong@baylibre.com
+[3] http://lkml.kernel.org/r/1488468572-31971-1-git-send-email-narmstrong@baylibre.com
+[4] http://lkml.kernel.org/r/1488904944-14285-1-git-send-email-narmstrong@baylibre.com
+[5] http://lkml.kernel.org/r/1490109161-20529-1-git-send-email-narmstrong@baylibre.com
+
+Laurent Pinchart (1):
+  drm: bridge: dw-hdmi: Extract PHY interrupt setup to a function
+
+Neil Armstrong (5):
+  media: uapi: Add RGB and YUV bus formats for Synopsys HDMI TX
+    Controller
+  documentation: media: Add documentation for new RGB and YUV bus
+    formats
+  drm: bridge: dw-hdmi: Switch to V4L bus format and encodings
+  drm: bridge: dw-hdmi: Add Documentation on supported input formats
+  drm: bridge: dw-hdmi: Move HPD handling to PHY operations
+
+ Documentation/gpu/bridge/dw-hdmi.rst            |  15 +
+ Documentation/gpu/index.rst                     |   1 +
+ Documentation/media/uapi/v4l/subdev-formats.rst | 871 +++++++++++++++++++++++-
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi.c       | 470 ++++++++-----
+ include/drm/bridge/dw_hdmi.h                    |  68 ++
+ include/uapi/linux/media-bus-format.h           |  13 +-
+ 6 files changed, 1266 insertions(+), 172 deletions(-)
+ create mode 100644 Documentation/gpu/bridge/dw-hdmi.rst
 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.9.1
