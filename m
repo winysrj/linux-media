@@ -1,48 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:20584 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752389AbdCBSHH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Mar 2017 13:07:07 -0500
-From: evgeni.raikhel@intel.com
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, guennadi.liakhovetski@intel.com,
-        eliezer.tamir@intel.com, Evgeni Raikhel <evgeni.raikhel@intel.com>
-Subject: [PATCH v4 0/2]  Intel Depth Formats for SR300 Camera
-Date: Fri,  3 Mar 2017 01:43:18 +0200
-Message-Id: <1488498200-8014-1-git-send-email-evgeni.raikhel@intel.com>
-In-Reply-To: <AA09C8071EEEFC44A7852ADCECA86673A1E6E7@hasmsx108.ger.corp.intel.com>
-References: <AA09C8071EEEFC44A7852ADCECA86673A1E6E7@hasmsx108.ger.corp.intel.com>
+Received: from smtp1-2.goneo.de ([85.220.129.31]:43760 "EHLO smtp1.goneo.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753965AbdC3Lfw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 07:35:52 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH 02/22] docs-rst: convert usb docbooks to ReST
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <318BAC09-137D-4EA6-B2E9-C5BF0E01A769@darmarit.de>
+Date: Thu, 30 Mar 2017 13:35:07 +0200
+Cc: Jani Nikula <jani.nikula@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Takashi Iwai <tiwai@suse.de>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Oliver Neukum <oneukum@suse.com>,
+        Martyn Welch <martyn.welch@collabora.co.uk>,
+        Alexander Dahl <post@lespocky.de>,
+        Jonathan Cameron <jic23@kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <021E49F6-54B8-4413-8299-98A7731125C3@darmarit.de>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com> <327dcce56a725c7f91f542f2ff97995504d26526.1490813422.git.mchehab@s-opensource.com> <7D76BCB2-53F5-4BD4-8205-5A4852164C91@darmarit.de> <87y3vn2mzk.fsf@intel.com> <D5D8BF1C-755B-4D56-B744-6A155C5B2313@darmarit.de> <20170330071258.0ca47e4c@vento.lan> <318BAC09-137D-4EA6-B2E9-C5BF0E01A769@darmarit.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Evgeni Raikhel <evgeni.raikhel@intel.com>
 
-Change Log:
- - Fixing FourCC description in v4l2_ioctl.c to be less than 32 bytes
- - Reorder INZI format entry in Documentation chapter
+Am 30.03.2017 um 13:17 schrieb Markus Heiser <markus.heiser@darmarIT.de>:
+> 
+> If it helps ... dbxml2rst also supports single file conversion  ... I updated:
+> 
+>  https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated
+> 
+> There you find a folder for each DocBook conversion with only one rst file (index.rst)
+> in .. If you like, use it for comparison.
 
-Daniel Patrick Johnson (1):
-  uvcvideo: Add support for Intel SR300 depth camera
+Forget to mentioning one of the main benefits: 
 
-eraikhel (1):
-  Documentation: Intel SR300 Depth camera INZI format
+The conversion with dbxml2rst produce tables with directive ".. flat-table::"
+instead of building ASCII tables (like pandoc does).
 
- Documentation/media/uapi/v4l/depth-formats.rst |  1 +
- Documentation/media/uapi/v4l/pixfmt-inzi.rst   | 81 ++++++++++++++++++++++++++
- drivers/media/usb/uvc/uvc_driver.c             | 15 +++++
- drivers/media/usb/uvc/uvcvideo.h               |  9 +++
- drivers/media/v4l2-core/v4l2-ioctl.c           |  1 +
- include/uapi/linux/videodev2.h                 |  1 +
- 6 files changed, 108 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-inzi.rst
-
--- 
-2.7.4
-
----------------------------------------------------------------------
-Intel Israel (74) Limited
-
-This e-mail and any attachments may contain confidential material for
-the sole use of the intended recipient(s). Any review or distribution
-by others is strictly prohibited. If you are not the intended
-recipient, please contact the sender and delete all copies.
+-- Markus --
