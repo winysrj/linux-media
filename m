@@ -1,66 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:39881 "EHLO
+Received: from bombadil.infradead.org ([65.50.211.133]:36194 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751366AbdCIUI0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 15:08:26 -0500
+        with ESMTP id S934787AbdC3ULp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 16:11:45 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Linux Doc Mailing List <linux-doc@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 3/3] [media] coda: get rid of unused vars
-Date: Thu,  9 Mar 2017 17:08:18 -0300
-Message-Id: <c167861e48f35b109f15f4d046f2857ac6186980.1489090091.git.mchehab@s-opensource.com>
-In-Reply-To: <311737bbe02ab45e7b0c27e95a312b57fc31b21a.1489090091.git.mchehab@s-opensource.com>
-References: <311737bbe02ab45e7b0c27e95a312b57fc31b21a.1489090091.git.mchehab@s-opensource.com>
-In-Reply-To: <311737bbe02ab45e7b0c27e95a312b57fc31b21a.1489090091.git.mchehab@s-opensource.com>
-References: <311737bbe02ab45e7b0c27e95a312b57fc31b21a.1489090091.git.mchehab@s-opensource.com>
+        Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 1/9] scripts/kernel-doc: fix parser for apostrophes
+Date: Thu, 30 Mar 2017 17:11:28 -0300
+Message-Id: <8a132848c3a6d0ddbb50d79f4cdfc2b3f0afc942.1490904090.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1490904090.git.mchehab@s-opensource.com>
+References: <cover.1490904090.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1490904090.git.mchehab@s-opensource.com>
+References: <cover.1490904090.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some vars are not used, as warned by gcc:
+On ReST, adding a text like ``literal`` is valid. However,
+the kernel-doc script won't handle it fine.
 
-drivers/media/platform/coda/coda-common.c: In function 'coda_buf_is_end_of_stream':
-drivers/media/platform/coda/coda-common.c:816:20: warning: variable 'src_vq' set but not used [-Wunused-but-set-variable]
-  struct vb2_queue *src_vq;
-                    ^~~~~~
-drivers/media/platform/coda/coda-common.c: In function 'coda_buf_queue':
-drivers/media/platform/coda/coda-common.c:1315:22: warning: variable 'q_data' set but not used [-Wunused-but-set-variable]
-  struct coda_q_data *q_data;
-                      ^~~~~~
+We really need this feature, in order to escape things like
+%ph, with is found on some C files.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/coda/coda-common.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ scripts/kernel-doc | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index eb6548f46cba..cb76c96759b9 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -813,9 +813,7 @@ static int coda_qbuf(struct file *file, void *priv,
- static bool coda_buf_is_end_of_stream(struct coda_ctx *ctx,
- 				      struct vb2_v4l2_buffer *buf)
- {
--	struct vb2_queue *src_vq;
--
--	src_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-+	v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index 33c85dfdfce9..a4e5cc3b38e8 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -202,6 +202,7 @@ EOF
+ # '&struct_name.member' - name of a structure member
+ # '@parameter' - name of a parameter
+ # '%CONST' - name of a constant.
++# '``LITERAL``' - literal string without any spaces on it.
  
- 	return ((ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG) &&
- 		(buf->sequence == (ctx->qsequence - 1)));
-@@ -1312,9 +1310,6 @@ static void coda_buf_queue(struct vb2_buffer *vb)
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct coda_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vb2_queue *vq = vb->vb2_queue;
--	struct coda_q_data *q_data;
--
--	q_data = get_q_data(ctx, vb->vb2_queue->type);
+ ## init lots of data
  
- 	/*
- 	 * In the decoder case, immediately try to copy the buffer into the
+@@ -210,7 +211,8 @@ my $warnings = 0;
+ my $anon_struct_union = 0;
+ 
+ # match expressions used to find embedded type information
+-my $type_constant = '\%([-_\w]+)';
++my $type_constant = '\b``([^\`]+)``\b';
++my $type_constant2 = '\%([-_\w]+)';
+ my $type_func = '(\w+)\(\)';
+ my $type_param = '\@(\w+(\.\.\.)?)';
+ my $type_fp_param = '\@(\w+)\(\)';  # Special RST handling for func ptr params
+@@ -235,6 +237,7 @@ my $type_member_func = $type_member . '\(\)';
+ # these work fairly well
+ my @highlights_html = (
+                        [$type_constant, "<i>\$1</i>"],
++                       [$type_constant2, "<i>\$1</i>"],
+                        [$type_func, "<b>\$1</b>"],
+                        [$type_enum_xml, "<i>\$1</i>"],
+                        [$type_struct_xml, "<i>\$1</i>"],
+@@ -252,6 +255,7 @@ my $blankline_html = $local_lt . "p" . $local_gt;	# was "<p>"
+ # html version 5
+ my @highlights_html5 = (
+                         [$type_constant, "<span class=\"const\">\$1</span>"],
++                        [$type_constant2, "<span class=\"const\">\$1</span>"],
+                         [$type_func, "<span class=\"func\">\$1</span>"],
+                         [$type_enum_xml, "<span class=\"enum\">\$1</span>"],
+                         [$type_struct_xml, "<span class=\"struct\">\$1</span>"],
+@@ -268,6 +272,7 @@ my $blankline_html5 = $local_lt . "br /" . $local_gt;
+ my @highlights_xml = (
+                       ["([^=])\\\"([^\\\"<]+)\\\"", "\$1<quote>\$2</quote>"],
+                       [$type_constant, "<constant>\$1</constant>"],
++                      [$type_constant2, "<constant>\$1</constant>"],
+                       [$type_enum_xml, "<type>\$1</type>"],
+                       [$type_struct_xml, "<structname>\$1</structname>"],
+                       [$type_typedef_xml, "<type>\$1</type>"],
+@@ -283,6 +288,7 @@ my $blankline_xml = $local_lt . "/para" . $local_gt . $local_lt . "para" . $loca
+ # gnome, docbook format
+ my @highlights_gnome = (
+                         [$type_constant, "<replaceable class=\"option\">\$1</replaceable>"],
++                        [$type_constant2, "<replaceable class=\"option\">\$1</replaceable>"],
+                         [$type_func, "<function>\$1</function>"],
+                         [$type_enum, "<type>\$1</type>"],
+                         [$type_struct, "<structname>\$1</structname>"],
+@@ -298,6 +304,7 @@ my $blankline_gnome = "</para><para>\n";
+ # these are pretty rough
+ my @highlights_man = (
+                       [$type_constant, "\$1"],
++                      [$type_constant2, "\$1"],
+                       [$type_func, "\\\\fB\$1\\\\fP"],
+                       [$type_enum, "\\\\fI\$1\\\\fP"],
+                       [$type_struct, "\\\\fI\$1\\\\fP"],
+@@ -312,6 +319,7 @@ my $blankline_man = "";
+ # text-mode
+ my @highlights_text = (
+                        [$type_constant, "\$1"],
++                       [$type_constant2, "\$1"],
+                        [$type_func, "\$1"],
+                        [$type_enum, "\$1"],
+                        [$type_struct, "\$1"],
+@@ -326,6 +334,7 @@ my $blankline_text = "";
+ # rst-mode
+ my @highlights_rst = (
+                        [$type_constant, "``\$1``"],
++                       [$type_constant2, "``\$1``"],
+                        # Note: need to escape () to avoid func matching later
+                        [$type_member_func, "\\:c\\:type\\:`\$1\$2\$3\\\\(\\\\) <\$1>`"],
+                        [$type_member, "\\:c\\:type\\:`\$1\$2\$3 <\$1>`"],
+@@ -344,6 +353,7 @@ my $blankline_rst = "\n";
+ # list mode
+ my @highlights_list = (
+                        [$type_constant, "\$1"],
++                       [$type_constant2, "\$1"],
+                        [$type_func, "\$1"],
+                        [$type_enum, "\$1"],
+                        [$type_struct, "\$1"],
 -- 
 2.9.3
