@@ -1,108 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.andi.de1.cc ([85.214.239.24]:47808 "EHLO
-        h2641619.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932848AbdCIRpX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 12:45:23 -0500
-From: Andreas Kemnade <andreas@kemnade.info>
-To: linux-media@vger.kernel.org, mchehab@kernel.org
-Cc: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH RFC] dvb: af9035.c: Logilink vg0022a to device id table
-Date: Thu,  9 Mar 2017 17:51:14 +0100
-Message-Id: <1489078274-24227-1-git-send-email-andreas@kemnade.info>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39305 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934152AbdC3Tz1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 15:55:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Helen Koike <helen.koike@collabora.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org, jgebben@codeaurora.org
+Subject: Re: [PATCH RFC 1/2] [media] v4l2: add V4L2_INPUT_TYPE_DEFAULT
+Date: Thu, 30 Mar 2017 22:56:07 +0300
+Message-ID: <2926010.76lXoG2CJo@avalon>
+In-Reply-To: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
+References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ths adds the logilink VG00022a dvb-t dongle to the device table.
-The dongle contains (checked by removing the case)
-IT9303
-SI2168
-  214730
+Hi Helen,
 
-The result is in cold state:
+Thank you for the patch.
 
- usb 1-6: new high-speed USB device number 15 using xhci_hcd
- usb 1-6: New USB device found, idVendor=1d19, idProduct=0100
- usb 1-6: New USB device strings: Mfr=1, Product=2, SerialNumber=3
- usb 1-6: Product: TS Aggregator
- usb 1-6: Manufacturer: ITE Tech., Inc.
- usb 1-6: SerialNumber: XXXXXXXXXXXX
- dvb_usb_af9035 1-6:1.0: prechip_version=83 chip_version=01 chip_type=9306
- dvb_usb_af9035 1-6:1.0: ts mode=5 not supported, defaulting to single tuner mode!
- usb 1-6: dvb_usb_v2: found a 'Logilink VG0022A' in cold state
- usb 1-6: dvb_usb_v2: downloading firmware from file 'dvb-usb-it9303-01.fw'
- dvb_usb_af9035 1-6:1.0: firmware version=1.4.0.0
- usb 1-6: dvb_usb_v2: found a 'Logilink VG0022A' in warm state
- usb 1-6: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
- dvbdev: DVB: registering new adapter (Logilink VG0022A)
- si2168: probe of 6-0067 failed with error -5
+On Thursday 30 Mar 2017 13:02:17 Helen Koike wrote:
+> Add V4L2_INPUT_TYPE_DEFAULT and helpers functions for input ioctls to be
+> used when no inputs are available in the device
+> 
+> Signed-off-by: Helen Koike <helen.koike@collabora.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ioctl.c | 27 +++++++++++++++++++++++++++
+>  include/media/v4l2-ioctl.h           | 26 ++++++++++++++++++++++++++
+>  include/uapi/linux/videodev2.h       |  1 +
+>  3 files changed, 54 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
+> b/drivers/media/v4l2-core/v4l2-ioctl.c index 0c3f238..ccaf04b 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -2573,6 +2573,33 @@ struct mutex *v4l2_ioctl_get_lock(struct video_device
+> *vdev, unsigned cmd) return vdev->lock;
+>  }
+> 
+> +int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
+> +				  struct v4l2_input *i)
+> +{
+> +	if (i->index > 0)
+> +		return -EINVAL;
+> +
+> +	memset(i, 0, sizeof(*i));
+> +	i->type = V4L2_INPUT_TYPE_DEFAULT;
+> +	strlcpy(i->name, "Default", sizeof(i->name));
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(v4l2_ioctl_enum_input_default);
 
-when warmed up by connecing it via  a powered usb hub to win7 and
-then attaching the same usb hub to a linux machine:
+V4L2 tends to use EXPORT_SYMBOL_GPL.
 
- usb 1-6.2: New USB device found, idVendor=1d19, idProduct=0100
- usb 1-6.2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
- usb 1-6.2: Product: TS Aggregator
- usb 1-6.2: Manufacturer: ITE Tech., Inc.
- usb 1-6.2: SerialNumber: XXXXXXXXXXXX
- dvb_usb_af9035 1-6.2:1.0: prechip_version=83 chip_version=01 chip_type=9306
- dvb_usb_af9035 1-6.2:1.0: ts mode=5 not supported, defaulting to single tuner mode!
- usb 1-6.2: dvb_usb_v2: found a 'Logilink VG0022A' in warm state
- usb 1-6.2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
- dvbdev: DVB: registering new adapter (Logilink VG0022A)
- i2c i2c-6: Added multiplexed i2c bus 7
- si2168 6-0067: Silicon Labs Si2168-B40 successfully identified
- si2168 6-0067: firmware version: B 4.0.2
- usb 1-6.2: DVB: registering adapter 0 frontend 0 (Silicon Labs Si2168)...
- si2157 7-0063: Silicon Labs Si2147/2148/2157/2158 successfully attached
- usb 1-6.2: dvb_usb_v2: 'Logilink VG0022A' successfully initialized and connected
- si2168 6-0067: Direct firmware load for dvb-demod-si2168-b40-01.fw failed with error -2
- si2168 6-0067: Direct firmware load for dvb-demod-si2168-02.fw failed with error -2
- si2168 6-0067: firmware file 'dvb-demod-si2168-02.fw' not found
- si2157 7-0063: found a 'Silicon Labs Si2147-A30'
- si2157 7-0063: firmware version: 3.0.5
+What would you think about calling those default functions directly from the 
+core when the input ioctl handlers are not set ? You wouldn't need to modify 
+drivers.
 
-same with the firmware for the si2168 available:
- usb 1-6.2: new high-speed USB device number 12 using xhci_hcd
- usb 1-6.2: New USB device found, idVendor=1d19, idProduct=0100
- usb 1-6.2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
- usb 1-6.2: Product: TS Aggregator
- usb 1-6.2: Manufacturer: ITE Tech., Inc.
- usb 1-6.2: SerialNumber: XXXXXXXXXXXX
- dvb_usb_af9035 1-6.2:1.0: prechip_version=83 chip_version=01 chip_type=9306
- dvb_usb_af9035 1-6.2:1.0: ts mode=5 not supported, defaulting to single tuner mode!
- usb 1-6.2: dvb_usb_v2: found a 'Logilink VG0022A' in warm state
- usb 1-6.2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
- dvbdev: DVB: registering new adapter (Logilink VG0022A)
- i2c i2c-6: Added multiplexed i2c bus 7
- si2168 6-0067: Silicon Labs Si2168-B40 successfully identified
- si2168 6-0067: firmware version: B 4.0.2
- usb 1-6.2: DVB: registering adapter 0 frontend 0 (Silicon Labs Si2168)...
- si2157 7-0063: Silicon Labs Si2147/2148/2157/2158 successfully attached
- usb 1-6.2: dvb_usb_v2: 'Logilink VG0022A' successfully initialized and connected
- si2168 6-0067: downloading firmware from file 'dvb-demod-si2168-b40-01.fw'
- si2168 6-0067: firmware version: B 4.0.11
- si2157 7-0063: unknown chip version Si21255-\xffffffff\xffffffff\xffffffff
- si2157 7-0063: unknown chip version Si21255-\xffffffff\xffffffff\xffffffff
+> +
+> +int v4l2_ioctl_g_input_default(struct file *file, void *priv, unsigned int
+> *i) +{
+> +	*i = 0;
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(v4l2_ioctl_g_input_default);
+> +
+> +int v4l2_ioctl_s_input_default(struct file *file, void *priv, unsigned int
+> i) +{
+> +	return i ? -EINVAL : 0;
+> +}
+> +EXPORT_SYMBOL(v4l2_ioctl_s_input_default);
+> +
+>  /* Common ioctl debug function. This function can be used by
+>     external ioctl messages as well as internal V4L ioctl */
+>  void v4l_printk_ioctl(const char *prefix, unsigned int cmd)
+> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> index 6cd94e5..accc470 100644
+> --- a/include/media/v4l2-ioctl.h
+> +++ b/include/media/v4l2-ioctl.h
+> @@ -652,6 +652,32 @@ struct video_device;
+>   */
+>  struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned int
+> cmd);
+> 
+> +
+> +/**
+> + * v4l2_ioctl_enum_input_default - v4l2 ioctl helper for VIDIOC_ENUM_INPUT
+> ioctl + *
+> + * Plug this function in vidioc_enum_input field of the struct
+> v4l2_ioctl_ops to + * enumerate a single input as V4L2_INPUT_TYPE_DEFAULT
+> + */
+> +int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
+> +				  struct v4l2_input *i);
+> +
+> +/**
+> + * v4l2_ioctl_g_input_default - v4l2 ioctl helper for VIDIOC_G_INPUT ioctl
+> + *
+> + * Plug this function in vidioc_g_input field of the struct v4l2_ioctl_ops
+> + * when using v4l2_ioctl_enum_input_default
+> + */
+> +int v4l2_ioctl_g_input_default(struct file *file, void *priv, unsigned int
+> *i); +
+> +/**
+> + * v4l2_ioctl_s_input_default - v4l2 ioctl helper for VIDIOC_S_INPUT ioctl
+> + *
+> + * Plug this function in vidioc_s_input field of the struct v4l2_ioctl_ops
+> + * when using v4l2_ioctl_enum_input_default
+> + */
+> +int v4l2_ioctl_s_input_default(struct file *file, void *priv, unsigned int
+> i); +
+>  /* names for fancy debug output */
+>  extern const char *v4l2_field_names[];
+>  extern const char *v4l2_type_names[];
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 316be62..c10bbde 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -1477,6 +1477,7 @@ struct v4l2_input {
+>  };
+> 
+>  /*  Values for the 'type' field */
+> +#define V4L2_INPUT_TYPE_DEFAULT		0
+>  #define V4L2_INPUT_TYPE_TUNER		1
+>  #define V4L2_INPUT_TYPE_CAMERA		2
+>  #define V4L2_INPUT_TYPE_TOUCH		3
 
-so firmware uploading to the si2168 somehow messes things up
-
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index c673726..ed674b8 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -2141,6 +2141,8 @@ static const struct usb_device_id af9035_id_table[] = {
- 	/* IT930x devices */
- 	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9303,
- 		&it930x_props, "ITE 9303 Generic", NULL) },
-+	{ DVB_USB_DEVICE(USB_VID_DEXATEK, 0x0100,
-+		&it930x_props, "Logilink VG0022A", NULL) },
- 	{ }
- };
- MODULE_DEVICE_TABLE(usb, af9035_id_table);
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
