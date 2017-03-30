@@ -1,127 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:36622 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750998AbdCLFQx (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39372 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934820AbdC3UPh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Mar 2017 00:16:53 -0500
-Message-ID: <a1c75b237dafedf6fd3a510b3464853c@smtp-cloud3.xs4all.net>
-Date: Sun, 12 Mar 2017 06:16:49 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 30 Mar 2017 16:15:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Oliver Neukum <oneukum@suse.com>,
+        David Mosberger <davidm@egauge.net>,
+        Jaejoong Kim <climbbb.kim@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        GregKroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-rpi-kernel@lists.infradead.org,
+        Jonathan Corbet <corbet@lwn.net>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        John Youn <johnyoun@synopsys.com>,
+        Roger Quadros <rogerq@ti.com>,
+        Linux Doc MailingList <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        USB list <linux-usb@vger.kernel.org>
+Subject: Re: [PATCH 22/22] usb: document that URB transfer_buffer should be aligned
+Date: Thu, 30 Mar 2017 23:16:16 +0300
+Message-ID: <2880864.WB0TZMbSHB@avalon>
+In-Reply-To: <Pine.LNX.4.44L0.1703301152300.1555-100000@iolanthe.rowland.org>
+References: <Pine.LNX.4.44L0.1703301152300.1555-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Alan,
 
-Results of the daily build of media_tree:
+On Thursday 30 Mar 2017 11:55:18 Alan Stern wrote:
+> On Thu, 30 Mar 2017, Mauro Carvalho Chehab wrote:
+> > Em Thu, 30 Mar 2017 10:26:32 -0400 (EDT) Alan Stern escreveu:
+> >> On Thu, 30 Mar 2017, Oliver Neukum wrote:
+> >>>> Btw, I'm a lot more concerned about USB storage drivers. When I was
+> >>>> discussing about this issue at the #raspberrypi-devel IRC channel,
+> >>>> someone complained that, after switching from the RPi downstream
+> >>>> Kernel to upstream, his USB data storage got corrupted. Well, if the
+> >>>> USB storage drivers also assume that the buffer can be continuous,
+> >>>> that can corrupt data.
+> >>> 
+> >>> They do assume that.
+> >> 
+> >> Wait a minute.  Where does that assumption occur?
+> >> 
+> >> And exactly what is the assumption?  Mauro wrote "the buffer can be
+> >> continuous", but that is certainly not what he meant.
+> > 
+> > What I meant to say is that drivers like the uvcdriver (and maybe network
+> > and usb-storage drivers) may allocate a big buffer and get data there on
+> > some random order, e. g.:
+> > 
+> > int get_from_buf_pos(char *buf, int pos, int size)
+> > {
+> > 	/* or an equivalent call to usb_submit_urb() */
+> > 	usb_control_msg(..., buf + pos, size, ...);
+> > }
+> > 
+> > some_function ()
+> > {
+> > 	...
+> > 	
+> > 	chr *buf = kzalloc(4, GFP_KERNEL);
+> > 	
+> > 	/*
+> > 	 * Access the bytes at the array on a random order, with random size,
+> > 	 * Like:
+> > 	 */
+> > 	get_from_buf_pos(buf, 2, 2);	/* should read 0x56, 0x78 */
+> > 	get_from_buf_pos(buf, 0, 2);	/* should read 0x12, 0x34 */
+> > 	
+> > 	/*
+> > 	 * the expected value for the buffer would be:
+> > 	 * 	{ 0x12, 0x34, 0x56, 0x78 }
+> > 	 */
+> > 
+> > E. g. they assume that the transfer URB can work with any arbitrary
+> > pointer and size, without needing of pre-align them.
+> > 
+> > This doesn't work with HCD drivers like dwc2, as each USB_IN operation
+> > will actually write 4 bytes to the buffer.
+> > 
+> > So, what happens, instead, is that each data transfer will get four
+> > bytes. Due to a hack inside dwc2, with checks if the transfer_buffer
+> > is DWORD aligned. So, the first transfer will do what's expected: it will
+> > read 4 bytes to a temporary buffer, allocated inside the driver,
+> > copying just two bytes to buf. So, after the first read, the
+> > 
+> > buffer content will be:
+> > 	buf = { 0x00, x00, 0x56, 0x78 }
+> > 
+> > But, on the second read, it won't be using any temporary
+> > buffer. So, instead of reading a 16-bits word (0x5678),
+> > it will actually read 32 bits, with 16-bits with some random value,
+> > 
+> > causing a buffer overflow. E. g. buffer content will now be:
+> > 	buf = { 0x12, x34, 0xde, 0xad }
+> > 
+> > In other words, the second transfer corrupted the data from the
+> > first transfer.
+> 
+> I'm pretty sure that usb-storage does not do this, at least, not when
+> operating in its normal Bulk-Only-Transport mode.  It never tries to
+> read the results of an earlier transfer after carrying out a later
+> transfer to any part of the same buffer.
 
-date:			Sun Mar 12 05:00:15 CET 2017
-media-tree git hash:	700ea5e0e0dd70420a04e703ff264cc133834cba
-media_build git hash:	bc4c2a205c087c8deff3cd14ed663c4767dd2016
-v4l-utils git hash:	ca6a0c099399cc51ecfacff7ef938be6ef73b8b3
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+The uvcvideo driver does something similar. Given the size of the transfer a 
+bounce buffer shouldn't affect performances. Handling this in the USB core 
+sounds like the best solution to me.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+-- 
+Regards,
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Laurent Pinchart
