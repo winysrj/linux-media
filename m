@@ -1,40 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:37947 "EHLO
-        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751080AbdCNH4A (ORCPT
+Received: from mail-it0-f68.google.com ([209.85.214.68]:35367 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934193AbdC3PkA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 03:56:00 -0400
-Date: Tue, 14 Mar 2017 10:52:02 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Alan Cox <alan@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Varsha Rao <rvarsha016@gmail.com>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, kernel-janitors@vger.kernel.org
-Subject: [patch] staging: atomisp: missing break statement in switch
-Message-ID: <20170314075202.GB6061@mwanda>
+        Thu, 30 Mar 2017 11:40:00 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <1490871164.4738.0.camel@linux.intel.com>
+References: <20170330062449.GA25214@SEL-JYOUN-D1> <1490871164.4738.0.camel@linux.intel.com>
+From: DaeSeok Youn <daeseok.youn@gmail.com>
+Date: Fri, 31 Mar 2017 00:39:43 +0900
+Message-ID: <CAHb8M2A6oEeY5JXKEw6U5LCt1hBYaOQztLphnen7QjE3zuSjyg@mail.gmail.com>
+Subject: Re: [PATCH 1/2] staging: atomisp: simplify the if condition in atomisp_freq_scaling()
+To: Alan Cox <alan@linux.intel.com>
+Cc: mchehab@kernel.org, Greg KH <gregkh@linuxfoundation.org>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        SIMRAN SINGHAL <singhalsimran0@gmail.com>,
+        linux-media@vger.kernel.org, devel <devel@driverdev.osuosl.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        kernel-janitors <kernel-janitors@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Static analysis tools suggest that we probably want a break statement
-here before then next cast statement.  Looks true to me.
+2017-03-30 19:52 GMT+09:00 Alan Cox <alan@linux.intel.com>:
+> On Thu, 2017-03-30 at 15:24 +0900, Daeseok Youn wrote:
+>> The condition line in if-statement is needed to be shorthen to
+>> improve readability.
+>>
+>> Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+>> ---
+>
+> How about a define for ATOMISP_IS_CHT(isp) instead - as we will need
+hmm.. I think there is another way to get a *device*(unsigned short or
+__u32) to mask with "ATOMISP_PCI_DEVICE_SOC_MASK".
+In the atomisp_freq_scaling() function, the "device" value is getting
+started from "isp" structure.
+(isp->pdev->device)
 
-Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+if the function has only "pci_dev" struction as a parameter and it
+need to check the CHT. Then we cannot use the definition like
+ATOMISP_IS_CHT(isp). it means we have another definition to check the
+CHT.
 
-diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-index e3d4d0e0ed9c..ac7598291b95 100644
---- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-+++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-@@ -1132,7 +1132,7 @@ static int ov5693_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- 		break;
- 	case V4L2_CID_FOCUS_STATUS:
- 		ret = ov5693_q_focus_status(&dev->sd, &ctrl->val);
--
-+		break;
- 	case V4L2_CID_BIN_FACTOR_HORZ:
- 		ret = ov5693_g_bin_factor_x(&dev->sd, &ctrl->val);
- 		break;
+Am I right?
+
+> these tests in other places where there are ISP2400/ISP2401 ifdefs ?
+I am not sure whether these tests are needed in other place or not.
+(Actually, I didn't find good H/W reference for Atom ISP device - Can
+you please share the link to refer document like H/W manual to
+develop?) I have tried to clean up the code first. in the meantime, I
+will have a look at the document if I have good reference manual.
+
+Thanks.
+Regards,
+Daeseok.
+>
+> Alan
+>
