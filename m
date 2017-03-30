@@ -1,73 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:36832 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754273AbdCFO65 (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:59100 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933304AbdC3KqL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:58:57 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 15/15] at91-sama5d3_xplained.dts: select ov2640
-Date: Mon,  6 Mar 2017 15:56:16 +0100
-Message-Id: <20170306145616.38485-16-hverkuil@xs4all.nl>
-In-Reply-To: <20170306145616.38485-1-hverkuil@xs4all.nl>
-References: <20170306145616.38485-1-hverkuil@xs4all.nl>
+        Thu, 30 Mar 2017 06:46:11 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH v2 10/22] usb/callbacks.txt: convert to ReST and add to driver-api book
+Date: Thu, 30 Mar 2017 07:45:44 -0300
+Message-Id: <d09739546de017d19634233e34b384345b5f6cfa.1490870599.git.mchehab@s-opensource.com>
+In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This document describe some USB core functions. Add it to the
+driver-api book.
 
-This patch replaces the ov7670 with the ov2640. This patch is not
-meant to be merged but is for demonstration purposes only.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- arch/arm/boot/dts/at91-sama5d3_xplained.dts | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ .../callbacks.txt => driver-api/usb/callbacks.rst} | 61 +++++++++++++++-------
+ Documentation/driver-api/usb/index.rst             |  1 +
+ 2 files changed, 43 insertions(+), 19 deletions(-)
+ rename Documentation/{usb/callbacks.txt => driver-api/usb/callbacks.rst} (78%)
 
-diff --git a/arch/arm/boot/dts/at91-sama5d3_xplained.dts b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-index b10f8b9e6375..65ccb35213a9 100644
---- a/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-+++ b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-@@ -71,7 +71,7 @@
- 					#address-cells = <1>;
- 					#size-cells = <0>;
- 					isi_0: endpoint {
--						remote-endpoint = <&ov7670_0>;
-+						remote-endpoint = <&ov2640_0>;
- 						bus-width = <8>;
- 						vsync-active = <1>;
- 						hsync-active = <1>;
-@@ -87,20 +87,20 @@
- 			i2c1: i2c@f0018000 {
- 				status = "okay";
+diff --git a/Documentation/usb/callbacks.txt b/Documentation/driver-api/usb/callbacks.rst
+similarity index 78%
+rename from Documentation/usb/callbacks.txt
+rename to Documentation/driver-api/usb/callbacks.rst
+index 9e85846bdb98..93a8d53e27e7 100644
+--- a/Documentation/usb/callbacks.txt
++++ b/Documentation/driver-api/usb/callbacks.rst
+@@ -1,3 +1,6 @@
++USB core callbacks
++~~~~~~~~~~~~~~~~~~
++
+ What callbacks will usbcore do?
+ ===============================
  
--				ov7670: camera@21 {
--					compatible = "ovti,ov7670";
--					reg = <0x21>;
-+				ov2640: camera@30 {
-+					compatible = "ovti,ov2640";
-+					reg = <0x30>;
- 					pinctrl-names = "default";
- 					pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
--					reset-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
--					powerdown-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
-+					resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
-+					pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
- 					clocks = <&pck0>;
--					clock-names = "xclk";
-+					clock-names = "xvclk";
- 					assigned-clocks = <&pck0>;
- 					assigned-clock-rates = <25000000>;
+@@ -11,30 +14,42 @@ The callbacks defined in the driver structure are:
  
- 					port {
--						ov7670_0: endpoint {
-+						ov2640_0: endpoint {
- 							remote-endpoint = <&isi_0>;
- 							bus-width = <8>;
- 						};
+ 1. Hotplugging callbacks:
+ 
+- * @probe: Called to see if the driver is willing to manage a particular
+- *	interface on a device.
+- * @disconnect: Called when the interface is no longer accessible, usually
+- *	because its device has been (or is being) disconnected or the
+- *	driver module is being unloaded.
++ - @probe:
++	Called to see if the driver is willing to manage a particular
++	interface on a device.
++
++ - @disconnect:
++	Called when the interface is no longer accessible, usually
++	because its device has been (or is being) disconnected or the
++	driver module is being unloaded.
+ 
+ 2. Odd backdoor through usbfs:
+ 
+- * @ioctl: Used for drivers that want to talk to userspace through
+- *	the "usbfs" filesystem.  This lets devices provide ways to
+- *	expose information to user space regardless of where they
+- *	do (or don't) show up otherwise in the filesystem.
++ - @ioctl:
++	Used for drivers that want to talk to userspace through
++	the "usbfs" filesystem.  This lets devices provide ways to
++	expose information to user space regardless of where they
++	do (or don't) show up otherwise in the filesystem.
+ 
+ 3. Power management (PM) callbacks:
+ 
+- * @suspend: Called when the device is going to be suspended.
+- * @resume: Called when the device is being resumed.
+- * @reset_resume: Called when the suspended device has been reset instead
+- *	of being resumed.
++ - @suspend:
++	Called when the device is going to be suspended.
++
++ - @resume:
++	Called when the device is being resumed.
++
++ - @reset_resume:
++	Called when the suspended device has been reset instead
++	of being resumed.
+ 
+ 4. Device level operations:
+ 
+- * @pre_reset: Called when the device is about to be reset.
+- * @post_reset: Called after the device has been reset
++ - @pre_reset:
++	Called when the device is about to be reset.
++
++ - @post_reset:
++	Called after the device has been reset
+ 
+ The ioctl interface (2) should be used only if you have a very good
+ reason. Sysfs is preferred these days. The PM callbacks are covered
+@@ -58,7 +73,9 @@ an interface. A driver's bond to an interface is exclusive.
+ The probe() callback
+ --------------------
+ 
+-int (*probe) (struct usb_interface *intf,
++::
++
++  int (*probe) (struct usb_interface *intf,
+ 		const struct usb_device_id *id);
+ 
+ Accept or decline an interface. If you accept the device return 0,
+@@ -75,7 +92,9 @@ initialisation that doesn't take too long is a good idea here.
+ The disconnect() callback
+ -------------------------
+ 
+-void (*disconnect) (struct usb_interface *intf);
++::
++
++  void (*disconnect) (struct usb_interface *intf);
+ 
+ This callback is a signal to break any connection with an interface.
+ You are not allowed any IO to a device after returning from this
+@@ -93,7 +112,9 @@ Device level callbacks
+ pre_reset
+ ---------
+ 
+-int (*pre_reset)(struct usb_interface *intf);
++::
++
++  int (*pre_reset)(struct usb_interface *intf);
+ 
+ A driver or user space is triggering a reset on the device which
+ contains the interface passed as an argument. Cease IO, wait for all
+@@ -107,7 +128,9 @@ are in atomic context.
+ post_reset
+ ----------
+ 
+-int (*post_reset)(struct usb_interface *intf);
++::
++
++  int (*post_reset)(struct usb_interface *intf);
+ 
+ The reset has completed.  Restore any saved device state and begin
+ using the device again.
+diff --git a/Documentation/driver-api/usb/index.rst b/Documentation/driver-api/usb/index.rst
+index 6fe7611f7332..441c5dacdf27 100644
+--- a/Documentation/driver-api/usb/index.rst
++++ b/Documentation/driver-api/usb/index.rst
+@@ -8,6 +8,7 @@ Linux USB API
+    gadget
+    anchors
+    bulk-streams
++   callbacks
+    writing_usb_driver
+    writing_musb_glue_layer
+ 
 -- 
-2.11.0
+2.9.3
