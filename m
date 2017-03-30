@@ -1,79 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:33508 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933392AbdC3Ve3 (ORCPT
+Received: from resqmta-ch2-08v.sys.comcast.net ([69.252.207.40]:40940 "EHLO
+        resqmta-ch2-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932749AbdC3QfZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 17:34:29 -0400
-Date: Fri, 31 Mar 2017 00:34:23 +0300
-From: Krzysztof Kozlowski <krzk@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
+        Thu, 30 Mar 2017 12:35:25 -0400
+Subject: Re: [PATCH 1/3] [media] mceusb: RX -EPIPE (urb status = -32) lockup
+ failure fix
+To: Sean Young <sean@mess.org>
+References: <58D6A1DD.2030405@comcast.net>
+ <20170326102748.GA1672@gofer.mess.org> <58D80838.8050809@comcast.net>
+ <20170326203130.GA6070@gofer.mess.org> <58D8CAD9.80304@comcast.net>
+ <20170328202516.GA27790@gofer.mess.org> <58DB1075.60302@comcast.net>
+ <20170329210645.GA6080@gofer.mess.org> <58DC2F89.7000304@comcast.net>
+ <20170330071222.GA9579@gofer.mess.org>
 Cc: linux-media@vger.kernel.org,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCHv5 05/11] ARM: dts: exynos: add HDMI controller phandle to
- exynos4.dtsi
-Message-ID: <20170330213423.eklb2zgmud6sigig@kozik-lap>
-References: <20170329141543.32935-1-hverkuil@xs4all.nl>
- <20170329141543.32935-6-hverkuil@xs4all.nl>
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+From: A Sun <as1033x@comcast.net>
+Message-ID: <58DD33C5.2020202@comcast.net>
+Date: Thu, 30 Mar 2017 12:35:17 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20170329141543.32935-6-hverkuil@xs4all.nl>
+In-Reply-To: <20170330071222.GA9579@gofer.mess.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 29, 2017 at 04:15:37PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 3/30/2017 3:12 AM, Sean Young wrote:
+> On Wed, Mar 29, 2017 at 06:04:58PM -0400, A Sun wrote:
+>> On 3/29/2017 5:06 PM, Sean Young wrote:
+>> <snip>
+>>>
+>>> Anyway, you're right and this patch looks ok. It would be nice to have the
+>>> tx case handled too though.
+>>>
+>>> Thanks
+>>> Sean
+>>>
+>>
+>> Thanks; I'm looking at handling the tx case. If I can figure out the details, I'll post a new patch proposal separate, and likely dependent, on this one.
+>>
+>> My main obstacle at the moment, is I'm looking for a way to get mceusb device to respond with a USB TX error halt/stall (rather than the typical ACK and NAK) on a TX endpoint, in order to test halt/stall error detection and recovery for TX. ..A Sun
 > 
-> Add the new hdmi phandle to exynos4.dtsi. This phandle is needed by the
-> s5p-cec driver to initialize the CEC notifier framework.
+> If you send IR, the drivers send a usb packet. However, the kernel will
+> sleep for however long the IR is in ir_lirc_transmit_ir, so your other option
+> is to set the transmit carrier repeatedly instead. You'd have to set the
+> carrier to a different value every time.
 > 
-> Tested with my Odroid U3.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> CC: linux-samsung-soc@vger.kernel.org
-> CC: devicetree@vger.kernel.org
-> CC: Krzysztof Kozlowski <krzk@kernel.org>
-> ---
->  arch/arm/boot/dts/exynos4.dtsi | 1 +
->  1 file changed, 1 insertion(+)
->
+> {
+> 	int fd, carrier;
+> 
+> 	fd = open("/dev/lirc0", O_RDWR);
+> 	carrier = 38000;
+> 	for (;;) {
+> 		ioctl(fd, LIRC_SET_SEND_CARRIER, &carrier);
+> 		if (++carrier >= 40000)
+> 			carrier = 38000;
+> 	}
+> }
+> 
+> 
+> Sean
+> 
 
-Thanks, applied. Now I noticed that you need it for maintaining the
-bisectability for this driver (although it is a staging driver). In that
-case, if anyone needs this as well then:
+Thanks, this is good to know, for testing where multiple TX I/Os are pending prior to fault. 
 
+I found a way to set up the TX -EPIPE fault administratively:
 
-The following changes since commit c1ae3cfa0e89fa1a7ecc4c99031f5e9ae99d9201:
+	retval = usb_control_msg(ir->usbdev, usb_sndctrlpipe(ir->usbdev, 0),
+		USB_REQ_SET_FEATURE, USB_RECIP_ENDPOINT,
+		USB_ENDPOINT_HALT, usb_pipeendpoint(ir->pipe_out),
+		NULL, 0, USB_CTRL_SET_TIMEOUT);
+	dev_dbg(ir->dev, "set halt retval, %d", retval);
+	
+and have replications now for TX error and lock -out. Error occurs for every TX. No message flooding otherwise, as we expect. The RX side remains working.
 
-  Linux 4.11-rc1 (2017-03-05 12:59:56 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/krzk/linux.git tags/samsung-dt-hdmi-cec-4.12
-
-for you to fetch changes up to 192c1df4a75499a6ab70aca38c6a7e5e40013d77:
-
-  ARM: dts: exynos: add HDMI controller phandle to exynos4.dtsi (2017-03-31 00:21:18 +0300)
-
-----------------------------------------------------------------
-Add to hdmi-cec node a phandle to hdmi node for new hdmi-cec notifier.
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      ARM: dts: exynos: add HDMI controller phandle to exynos4.dtsi
-
- arch/arm/boot/dts/exynos4.dtsi | 1 +
- 1 file changed, 1 insertion(+)
-
-
-Best regards,
-Krzysztof
+...
+[  249.986174] mceusb 1-1.2:1.0: requesting 38000 HZ carrier
+[  249.986210] mceusb 1-1.2:1.0: send request called (size=0x4)
+[  249.986256] mceusb 1-1.2:1.0: send request complete (res=0)
+[  249.986403] mceusb 1-1.2:1.0: Error: request urb status = -32 (TX HALT)
+[  249.999885] mceusb 1-1.2:1.0: send request called (size=0x3)
+[  249.999929] mceusb 1-1.2:1.0: send request complete (res=0)
+[  250.000013] mceusb 1-1.2:1.0: Error: request urb status = -32 (TX HALT)
+[  250.019830] mceusb 1-1.2:1.0: send request called (size=0x21)
+[  250.019868] mceusb 1-1.2:1.0: send request complete (res=0)
+[  250.020007] mceusb 1-1.2:1.0: Error: request urb status = -32 (TX HALT)
+...
