@@ -1,71 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw.crowfest.net ([52.42.241.221]:56686 "EHLO gw.crowfest.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750988AbdCPBqZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Mar 2017 21:46:25 -0400
-Message-ID: <1489628784.8127.1.camel@crowfest.net>
-Subject: Re: [PATCH 0/6] staging: BCM2835 MMAL V4L2 camera driver
-From: Michael Zoran <mzoran@crowfest.net>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Eric Anholt <eric@anholt.net>
-Cc: devel@driverdev.osuosl.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Date: Wed, 15 Mar 2017 18:46:24 -0700
-In-Reply-To: <20170315220834.7019fd8b@vento.lan>
-References: <20170127215503.13208-1-eric@anholt.net>
-         <20170315110128.37e2bc5a@vento.lan> <87a88m19om.fsf@eliezer.anholt.net>
-         <20170315220834.7019fd8b@vento.lan>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49889 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754511AbdCaMUt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 31 Mar 2017 08:20:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Patrice.chotard@st.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv6 03/10] exynos_hdmi: add CEC notifier support
+Date: Fri, 31 Mar 2017 14:20:29 +0200
+Message-Id: <20170331122036.55706-4-hverkuil@xs4all.nl>
+In-Reply-To: <20170331122036.55706-1-hverkuil@xs4all.nl>
+References: <20170331122036.55706-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2017-03-15 at 22:08 -0300, Mauro Carvalho Chehab wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> No, I didn't. Thanks! Applied it but, unfortunately, didn't work.
-> Perhaps I'm missing some other patch. I'm compiling it from
-> the Greg's staging tree (branch staging-next):
-> 	https://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.
-> git/log/?h=staging-next
-> 
-> Btw, as I'm running Raspbian, and didn't want to use compat32 bits, 
-> I'm compiling the Kernel as an arm32 bits Kernel.
-> 
-> I did a small trick to build the DTB on arm32:
-> 
-> 	ln -sf ../../../arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts
-> arch/arm/boot/dts/bcm2837-rpi-3-b.dts
-> 	ln -sf ../../../arm64/boot/dts/broadcom/bcm2837.dtsi
-> arch/arm/boot/dts/bcm2837.dtsi
-> 	git checkout arch/arm/boot/dts/Makefile
-> 	sed "s,bcm2835-rpi-zero.dtb,bcm2835-rpi-zero.dtb bcm2837-rpi-3-
-> b.dtb," a && mv a arch/arm/boot/dts/Makefile
-> 
+Implement the CEC notifier support to allow CEC drivers to
+be informed when there is a new physical address.
 
-Two other hacks are currently needed to get the camera to work:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
+---
+ drivers/gpu/drm/exynos/exynos_hdmi.c | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-1. Add this to config.txt(This required to get the firmware to detect
-the camera)
-
-start_x=1
-gpu_mem=128
-
-2. VC4 is incompatible with the firmware at this time, so you need 
-to presently munge the build configuration. What you do is leave
-simplefb in the build config(I'm assuming you already have that), but
-you will need to remove VC4 from the config.
-
-The firmware currently adds a node for a simplefb for debugging
-purposes to show the boot log.  Surprisingly, this is still good enough
-for basic usage and testing.  
-
-The only remaining issue is that since simplefb is intented for
-debugging, you wan't be able to use many of the RPI specific
-applications.  
-
-I've been using cheese and ffmpeg to test the camera which are not RPI
-specific.
+diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
+index 88ccc0469316..bc4c8d0a66f4 100644
+--- a/drivers/gpu/drm/exynos/exynos_hdmi.c
++++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
+@@ -43,6 +43,8 @@
+ 
+ #include <drm/exynos_drm.h>
+ 
++#include <media/cec-notifier.h>
++
+ #include "exynos_drm_drv.h"
+ #include "exynos_drm_crtc.h"
+ 
+@@ -119,6 +121,7 @@ struct hdmi_context {
+ 	bool				dvi_mode;
+ 	struct delayed_work		hotplug_work;
+ 	struct drm_display_mode		current_mode;
++	struct cec_notifier		*notifier;
+ 	const struct hdmi_driver_data	*drv_data;
+ 
+ 	void __iomem			*regs;
+@@ -822,6 +825,7 @@ static enum drm_connector_status hdmi_detect(struct drm_connector *connector,
+ 	if (gpiod_get_value(hdata->hpd_gpio))
+ 		return connector_status_connected;
+ 
++	cec_notifier_set_phys_addr(hdata->notifier, CEC_PHYS_ADDR_INVALID);
+ 	return connector_status_disconnected;
+ }
+ 
+@@ -860,6 +864,7 @@ static int hdmi_get_modes(struct drm_connector *connector)
+ 		edid->width_cm, edid->height_cm);
+ 
+ 	drm_mode_connector_update_edid_property(connector, edid);
++	cec_notifier_set_phys_addr_from_edid(hdata->notifier, edid);
+ 
+ 	ret = drm_add_edid_modes(connector, edid);
+ 
+@@ -1503,6 +1508,7 @@ static void hdmi_disable(struct drm_encoder *encoder)
+ 	if (funcs && funcs->disable)
+ 		(*funcs->disable)(crtc);
+ 
++	cec_notifier_set_phys_addr(hdata->notifier, CEC_PHYS_ADDR_INVALID);
+ 	cancel_delayed_work(&hdata->hotplug_work);
+ 
+ 	hdmiphy_disable(hdata);
+@@ -1878,15 +1884,22 @@ static int hdmi_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
++	hdata->notifier = cec_notifier_get(&pdev->dev);
++	if (hdata->notifier == NULL) {
++		ret = -ENOMEM;
++		goto err_hdmiphy;
++	}
++
+ 	pm_runtime_enable(dev);
+ 
+ 	ret = component_add(&pdev->dev, &hdmi_component_ops);
+ 	if (ret)
+-		goto err_disable_pm_runtime;
++		goto err_notifier_put;
+ 
+ 	return ret;
+ 
+-err_disable_pm_runtime:
++err_notifier_put:
++	cec_notifier_put(hdata->notifier);
+ 	pm_runtime_disable(dev);
+ 
+ err_hdmiphy:
+@@ -1905,9 +1918,11 @@ static int hdmi_remove(struct platform_device *pdev)
+ 	struct hdmi_context *hdata = platform_get_drvdata(pdev);
+ 
+ 	cancel_delayed_work_sync(&hdata->hotplug_work);
++	cec_notifier_set_phys_addr(hdata->notifier, CEC_PHYS_ADDR_INVALID);
+ 
+ 	component_del(&pdev->dev, &hdmi_component_ops);
+ 
++	cec_notifier_put(hdata->notifier);
+ 	pm_runtime_disable(&pdev->dev);
+ 
+ 	if (!IS_ERR(hdata->reg_hdmi_en))
+-- 
+2.11.0
