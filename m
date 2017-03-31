@@ -1,108 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:35789 "EHLO
-        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752739AbdC3JEp (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:59238 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751297AbdCaM3y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 05:04:45 -0400
-Received: by mail-lf0-f52.google.com with SMTP id j90so21930259lfk.2
-        for <linux-media@vger.kernel.org>; Thu, 30 Mar 2017 02:04:44 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
-        mchehab@kernel.org
-Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
-        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-        sakari.ailus@linux.intel.com
-Subject: [PATCH v5 0/6] drm: bridge: dw-hdmi: Add support for Custom PHYs
-Date: Thu, 30 Mar 2017 11:04:29 +0200
-Message-Id: <1490864675-17336-1-git-send-email-narmstrong@baylibre.com>
+        Fri, 31 Mar 2017 08:29:54 -0400
+Subject: Re: [PATCH] [media] docs-rst: clarify field vs frame height in the
+ subdev API
+To: Philipp Zabel <p.zabel@pengutronix.de>
+References: <20170330153820.14853-1-p.zabel@pengutronix.de>
+ <1790355.cli1gBmIc5@avalon> <1490950514.2371.21.camel@pengutronix.de>
+ <9fe503ab-fcf1-c56a-5acd-b1350a317d6f@xs4all.nl>
+ <1490963040.2371.55.camel@pengutronix.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d75ca572-38cb-bf9b-d6b2-65dcead400ff@xs4all.nl>
+Date: Fri, 31 Mar 2017 14:29:51 +0200
+MIME-Version: 1.0
+In-Reply-To: <1490963040.2371.55.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Amlogic GX SoCs implements a Synopsys DesignWare HDMI TX Controller
-in combination with a very custom PHY.
+On 31/03/17 14:24, Philipp Zabel wrote:
+> On Fri, 2017-03-31 at 13:08 +0200, Hans Verkuil wrote:
+> [...]
+>>>>>  Applications are responsible for configuring coherent parameters on the
+>>>>>  whole pipeline and making sure that connected pads have compatible
+>>>>> @@ -379,7 +382,10 @@ is supported by the hardware.
+>>>>>     pad for further processing.
+>>>>>
+>>>>>  2. Sink pad actual crop selection. The sink pad crop defines the crop
+>>>>> -   performed to the sink pad format.
+>>>>> +   performed to the sink pad format. The crop rectangle always refers to
+>>>>> +   the frame size, even if the sink pad format has field order set to
+>>>>> +   ``V4L2_FIELD_ALTERNATE`` and the actual processed images are only
+>>>>> +   field sized.
+>>>>
+>>>> I'm not sure to agree with this. I think all selection rectangle coordinates 
+>>>> should be expressed relative to the format of the pad they refer to.
+>>>
+>>> But that's not how I understood Hans yesterday, and it shows that you
+>>> were quite on point with your suggestion to extend the docs.
+>>
+>> Actually, it is a bit different from what I said yesterday. Sorry about that.
+>>
+>> Whether the top and height fields in struct v4l2_rect are for fields or
+>> frames depends on whether it describes memory or video. Historically
+>> VIDIOC_CROPCAP and VIDIOC_G/S_CROP used frame coordinates for video
+>> capture (crop rectangle) and video output (compose rectangle, i.e. what is
+>> composed into the video transmitter).
+> 
+> Ok.
+> 
+>> When the selection API was added we could also describe how video is
+>> composed into a memory buffer (for capture) or cropped from a memory buffer
+>> (for output). Since this deals with memory the v4l2_rect struct contains
+>> field coordinates, for the same reason that G/S/TRY_FMT does.
+> 
+> Ok. This would not apply to subdevices that only handle video streams,
+> so that would mean that the v4l2_mbus_framefmt passed to
+> VIDIOC_SUBDEV_G/S_FMT also should always contain the frame size, never
+> the field size.
+> 
+>> The vivid driver *should* do all of this correctly. Since this driver
+>> supports any combination of cropping/composing/scaler features it gets
+>> quite complicated, so it is always possible that there are bugs, but I
+>> did a lot of testing at the time.
+> 
+> I haven't played much with vivid in this regard yet, I've only looked at
+> the capture device, and that behaved as I expected after your
+> explanation.
+> 
+>>>> For sink pad crop rectangles, if the sink pad receives alternate (or
+>>>> top or bottom only) fields, the rectangle coordinates should be
+>>>> relative to the field size. Similarly, if the source pad produces
+>>>> alternate/top/bottom fields, the rectangle coordinates should also be
+>>>> relative to the field size.
+>>>
+>>> That's also not how TVP5150 currently implements it. The crop rectangle
+>>> is frame sized even though the pad format reports alternating fields,
+>>
+>> It is undefined today what the subdev selection rectangles should use.
+>> I am inclined to *always* use frame coordinates while dealing with hardware
+>> (receivers, transmitters, busses) and only use field coordinates when dealing
+>> with actual memory buffers.
+>>
+>> This will avoid having to change any subdev drivers as well, which is a nice
+>> bonus. It also is consistent with the way the original API was designed:
+>> frame coordinates everywhere, except when dealing with buffers in memory.
+> 
+> Ok, I'll revise this patch accordingly.
+> 
+>> For the record: the DV_TIMINGS ioctls also define the height as frame height,
+>> not field height. And the height in struct v4l2_mbus_framefmt is also defined
+>> as a frame height.
+> 
+> The v4l2_mbus_framefmt height is defined as "image height", and it
+> wasn't clear to me what image meant in this context.
 
-Thanks to Laurent Pinchart's changes, the HW report the following :
- Detected HDMI TX controller v2.01a with HDCP (meson_dw_hdmi_phy)
+I looked at the header: include/uapi/linux/v4l2-mediabus.h.
 
-The following differs from common PHY integration as managed in the current
-driver :
- - Amlogic PHY is not configured through the internal I2C link
- - Amlogic PHY do not use the ENTMDS, SVSRET, PDDQ, ... signals from the controller
- - Amlogic PHY do not export HPD ands RxSense signals to the controller
+There it says "frame height".
 
-And finally, concerning the controller integration :
- - the Controller registers are not flat memory-mapped, and uses an
-    addr+read/write register pair to write all registers.
- - Inputs only YUV444 pixel data
+> 
+>>> the same is true for vivid capture, even though that is not using the
+>>> subdev selection API.
+>>
+>> ??? vivid uses frame height for crop coordinates when FIELD_ALTERNATE is
+>> selected. Where did you see a field height when using vivid?
+> 
+> That's what I meant with "the same": "The crop rectangle is frame sized
+> even though the [pad^W] format reports alternating fields".
+> 
+>> Note: by default vivid implements a scaler and composer. So switching to
+>> field_alternate would still show a height of 576.
+>>
+>> After disabling the scaler and composer:
+>>
+>> v4l2-ctl -c enable_capture_scaler=0
+>> v4l2-ctl -c enable_capture_composing=0
+>>
+>> it will now be 288.
+> 
+> So in this case the field size is used because S/G_FMT refer to memory.
 
-Most of these uses case are implemented in Laurent Pinchart v5.1 patchset merged
-in drm-misc-next branch.
+Right.
 
-This is why the following patchset implements :
- - Configure the Input format from the plat_data
- - Add PHY callback to handle HPD and RxSense out of the dw-hdmi driver
+> 
+> [...]
+>>> Actually, this is exactly the case I want to handle. The CSI receives
+>>> FIELD_ALTERNATE frames from the TVP5150 with BT.656 synchronisation, but
+>>> it produces SEQ_TB or SEQ_BT (depending on standard) at its output pad.
+>>> If the input pad height is 288 lines for example, the output pad height
+>>> is 576 lines (in case of no cropping or scaling), and there's a sink
+>>> crop and a sink compose rectangle. Should those refer to the 288 lines
+>>> per field, or to the 576 lines per frame?
+>>
+>> The output pad of the tvp5150 would say FIELD_ALTERNATE and height 576.
+> 
+> Aha, this didn't occur to me at all. This is not what happens currently.
+> Commit 4f57d27be2a5 ("[media] tvp5150: fix tvp5150_fill_fmt()") reduced
+> the height to half when switching to FIELD_ALTERNATE:
+> 
+> ----------8<----------
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index 437f1a7ecb96e..c277caaad8be8 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -852,10 +852,10 @@ static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
+>         tvp5150_reset(sd, 0);
+>  
+>         f->width = decoder->rect.width;
+> -       f->height = decoder->rect.height;
+> +       f->height = decoder->rect.height / 2;
+>  
+>         f->code = MEDIA_BUS_FMT_UYVY8_2X8;
+> -       f->field = V4L2_FIELD_SEQ_TB;
+> +       f->field = V4L2_FIELD_ALTERNATE;
+>         f->colorspace = V4L2_COLORSPACE_SMPTE170M;
+>  
+>         v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", f->width,
+> ---------->8----------
+> 
+> So this should be partially reverted to say:
+>         f->height = decoder->rect.height;
+> again.
+> 
+>> The CSI output pad would be FIELD_SEQ_BT/TB and height 576.
+> 
+> That I understood.
+> 
+>> The sink crop and sink compose rectangles should all use frame heights.
+> 
+> But I wasn't clear about what height those and the CSI sink pad should
+> have. I now understand it should be all frame heights, both pads formats
+> and selection rectangles, regardless of the field setting, as none of
+> those refer to memory.
 
-To implement the input format handling, the Synopsys HDMIT TX Controller input
-V4L bus formats are used and missing formats + documentation are added.
+That's why I think should happen, yes.
 
-This patchset makes the Amlogic GX SoCs HDMI output successfully work, and is
-also tested on the RK3288 ACT8846 EVB Board.
+Note: interlaced formats over subdevs are rare, the use of TOP, BOTTOM
+and ALTERNATE is even rarer. Seeing inconsistent behavior in drivers is
+to be expected given how seldom it is used. And everyone I know of tries
+to avoid interlaced formats like the plague :-)
 
-Changes since v4 at [5] :
- - Rebased on drm-misc-next at bd283d2f66c2
- - Fix 4:2:0 bus formats naming
- - Renamed function fd_registered to i2c_init in dw-hdmi.c
+Regards,
 
-Changes since v3 at [4] :
- - Fix 4:2:0 bus formats naming
- - Add separate 36bit and 48bit tables for bus formats documentation
- - Added 4:2:0 bus config in hdmi_video_sample
- - Moved dw_hdmi documentation in a "bridge" subdir
- - Rebase on drm-misc-next at 62c58af32c93
+	Hans
 
-Changes since v2 at [3] :
- - Rebase on laurent patch "Extract PHY interrupt setup to a function"
- - Reduce phy operations
- - Switch the V4L bus formats and encodings instead of custom enum
-
-Changes since v1 at [2] :
- - Drop patches submitted by laurent
-
-Changes since RFC at [1] :
- - Regmap fixup for 4bytes register access, tested on RK3288 SoC
- - Move phy callbacks to phy_ops and move Synopsys PHY calls into default ops
- - Move HDMI link data into shared header
- - Move Pixel Encoding enum to shared header
-
-[1] http://lkml.kernel.org/r/1484656294-6140-1-git-send-email-narmstrong@baylibre.com
-[2] http://lkml.kernel.org/r/1485774318-21916-1-git-send-email-narmstrong@baylibre.com
-[3] http://lkml.kernel.org/r/1488468572-31971-1-git-send-email-narmstrong@baylibre.com
-[4] http://lkml.kernel.org/r/1488904944-14285-1-git-send-email-narmstrong@baylibre.com
-[5] http://lkml.kernel.org/r/1490109161-20529-1-git-send-email-narmstrong@baylibre.com
-
-Laurent Pinchart (1):
-  drm: bridge: dw-hdmi: Extract PHY interrupt setup to a function
-
-Neil Armstrong (5):
-  media: uapi: Add RGB and YUV bus formats for Synopsys HDMI TX
-    Controller
-  documentation: media: Add documentation for new RGB and YUV bus
-    formats
-  drm: bridge: dw-hdmi: Switch to V4L bus format and encodings
-  drm: bridge: dw-hdmi: Add Documentation on supported input formats
-  drm: bridge: dw-hdmi: Move HPD handling to PHY operations
-
- Documentation/gpu/bridge/dw-hdmi.rst            |  15 +
- Documentation/gpu/index.rst                     |   1 +
- Documentation/media/uapi/v4l/subdev-formats.rst | 871 +++++++++++++++++++++++-
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c       | 470 ++++++++-----
- include/drm/bridge/dw_hdmi.h                    |  68 ++
- include/uapi/linux/media-bus-format.h           |  13 +-
- 6 files changed, 1266 insertions(+), 172 deletions(-)
- create mode 100644 Documentation/gpu/bridge/dw-hdmi.rst
-
--- 
-1.9.1
+> 
+>> Of course, at the low level the driver will have to check the 'field'
+>> value and program the hardware accordingly by dividing the top/height by
+>> two when dealing with top/bottom/alternate formats.
+> 
+> thanks
+> Philipp
+> 
