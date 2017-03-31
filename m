@@ -1,92 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:36566 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753828AbdC1Alm (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:40424 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753515AbdCaDzW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 20:41:42 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v6 03/39] [media] dt/bindings: Add bindings for OV5640
-Date: Mon, 27 Mar 2017 17:40:20 -0700
-Message-Id: <1490661656-10318-4-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+        Thu, 30 Mar 2017 23:55:22 -0400
+Subject: Re: [PATCH RFC 1/2] [media] v4l2: add V4L2_INPUT_TYPE_DEFAULT
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
+ <2926010.76lXoG2CJo@avalon>
+ <34146d93-6651-69a2-0997-aa3ae91b4fd3@collabora.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org, jgebben@codeaurora.org
+From: Helen Koike <helen.koike@collabora.com>
+Message-ID: <1c25c87a-506a-d1b1-6d30-129128cd0205@collabora.com>
+Date: Fri, 31 Mar 2017 00:55:12 -0300
+MIME-Version: 1.0
+In-Reply-To: <34146d93-6651-69a2-0997-aa3ae91b4fd3@collabora.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree binding documentation for the OV5640 camera sensor.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- .../devicetree/bindings/media/i2c/ov5640.txt       | 45 ++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5640.txt
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-new file mode 100644
-index 0000000..540b36c
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-@@ -0,0 +1,45 @@
-+* Omnivision OV5640 MIPI CSI-2 sensor
-+
-+Required Properties:
-+- compatible: should be "ovti,ov5640"
-+- clocks: reference to the xclk input clock.
-+- clock-names: should be "xclk".
-+- DOVDD-supply: Digital I/O voltage supply, 1.8 volts
-+- AVDD-supply: Analog voltage supply, 2.8 volts
-+- DVDD-supply: Digital core voltage supply, 1.5 volts
-+
-+Optional Properties:
-+- reset-gpios: reference to the GPIO connected to the reset pin, if any.
-+	       This is an active low signal to the OV5640.
-+- powerdown-gpios: reference to the GPIO connected to the powerdown pin,
-+		   if any. This is an active high signal to the OV5640.
-+
-+The device node must contain one 'port' child node for its digital output
-+video port, in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+
-+&i2c1 {
-+	ov5640: camera@3c {
-+		compatible = "ovti,ov5640";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_ov5640>;
-+		reg = <0x3c>;
-+		clocks = <&clks IMX6QDL_CLK_CKO>;
-+		clock-names = "xclk";
-+		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
-+		AVDD-supply = <&vgen3_reg>;  /* 2.8v */
-+		DVDD-supply = <&vgen2_reg>;  /* 1.5v */
-+		powerdown-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>;
-+		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>;
-+
-+		port {
-+			ov5640_to_mipi_csi2: endpoint {
-+				remote-endpoint = <&mipi_csi2_from_ov5640>;
-+				clock-lanes = <0>;
-+				data-lanes = <1 2>;
-+			};
-+		};
-+	};
-+};
--- 
-2.7.4
+On 2017-03-30 11:39 PM, Helen Koike wrote:
+> Hi Laurent,
+>
+> Thanks for reviewing
+>
+> On 2017-03-30 04:56 PM, Laurent Pinchart wrote:
+>> Hi Helen,
+>>
+>> Thank you for the patch.
+>>
+>> On Thursday 30 Mar 2017 13:02:17 Helen Koike wrote:
+>>> Add V4L2_INPUT_TYPE_DEFAULT and helpers functions for input ioctls to be
+>>> used when no inputs are available in the device
+>>>
+>>> Signed-off-by: Helen Koike <helen.koike@collabora.com>
+>>> ---
+>>>  drivers/media/v4l2-core/v4l2-ioctl.c | 27 +++++++++++++++++++++++++++
+>>>  include/media/v4l2-ioctl.h           | 26 ++++++++++++++++++++++++++
+>>>  include/uapi/linux/videodev2.h       |  1 +
+>>>  3 files changed, 54 insertions(+)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
+>>> b/drivers/media/v4l2-core/v4l2-ioctl.c index 0c3f238..ccaf04b 100644
+>>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+>>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+>>> @@ -2573,6 +2573,33 @@ struct mutex *v4l2_ioctl_get_lock(struct
+>>> video_device
+>>> *vdev, unsigned cmd) return vdev->lock;
+>>>  }
+>>>
+>>> +int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
+>>> +                  struct v4l2_input *i)
+>>> +{
+>>> +    if (i->index > 0)
+>>> +        return -EINVAL;
+>>> +
+>>> +    memset(i, 0, sizeof(*i));
+>>> +    i->type = V4L2_INPUT_TYPE_DEFAULT;
+>>> +    strlcpy(i->name, "Default", sizeof(i->name));
+>>> +
+>>> +    return 0;
+>>> +}
+>>> +EXPORT_SYMBOL(v4l2_ioctl_enum_input_default);
+>>
+>> V4L2 tends to use EXPORT_SYMBOL_GPL.
+>
+> The whole v4l2-ioctl.c file is using EXPORT_SYMBOL instead of
+> EXPORT_SYMBOL_GPL, should we change it all to EXPORT_SYMBOL_GPL then (in
+> another patch) ?
+>
+>>
+>> What would you think about calling those default functions directly
+>> from the
+>> core when the input ioctl handlers are not set ? You wouldn't need to
+>> modify
+>> drivers.
+>
+> Sure, I'll add them in ops inside __video_register_device when it
+> validates the ioctls
+
+I just realize I can not simply override struct v4l2_ioctl_ops as it is 
+declared as a const inside strut video_device. I'll call those default 
+functions only when the ioctls are handled to not modify vdev->ops.
+
+>
+>>
+>>> +
+>>> +int v4l2_ioctl_g_input_default(struct file *file, void *priv,
+>>> unsigned int
+>>> *i) +{
+>>> +    *i = 0;
+>>> +    return 0;
+>>> +}
+>>> +EXPORT_SYMBOL(v4l2_ioctl_g_input_default);
+>>> +
+>>> +int v4l2_ioctl_s_input_default(struct file *file, void *priv,
+>>> unsigned int
+>>> i) +{
+>>> +    return i ? -EINVAL : 0;
+>>> +}
+>>> +EXPORT_SYMBOL(v4l2_ioctl_s_input_default);
+>>> +
+>>>  /* Common ioctl debug function. This function can be used by
+>>>     external ioctl messages as well as internal V4L ioctl */
+>>>  void v4l_printk_ioctl(const char *prefix, unsigned int cmd)
+>>> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+>>> index 6cd94e5..accc470 100644
+>>> --- a/include/media/v4l2-ioctl.h
+>>> +++ b/include/media/v4l2-ioctl.h
+>>> @@ -652,6 +652,32 @@ struct video_device;
+>>>   */
+>>>  struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev,
+>>> unsigned int
+>>> cmd);
+>>>
+>>> +
+>>> +/**
+>>> + * v4l2_ioctl_enum_input_default - v4l2 ioctl helper for
+>>> VIDIOC_ENUM_INPUT
+>>> ioctl + *
+>>> + * Plug this function in vidioc_enum_input field of the struct
+>>> v4l2_ioctl_ops to + * enumerate a single input as
+>>> V4L2_INPUT_TYPE_DEFAULT
+>>> + */
+>>> +int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
+>>> +                  struct v4l2_input *i);
+>>> +
+>>> +/**
+>>> + * v4l2_ioctl_g_input_default - v4l2 ioctl helper for VIDIOC_G_INPUT
+>>> ioctl
+>>> + *
+>>> + * Plug this function in vidioc_g_input field of the struct
+>>> v4l2_ioctl_ops
+>>> + * when using v4l2_ioctl_enum_input_default
+>>> + */
+>>> +int v4l2_ioctl_g_input_default(struct file *file, void *priv,
+>>> unsigned int
+>>> *i); +
+>>> +/**
+>>> + * v4l2_ioctl_s_input_default - v4l2 ioctl helper for VIDIOC_S_INPUT
+>>> ioctl
+>>> + *
+>>> + * Plug this function in vidioc_s_input field of the struct
+>>> v4l2_ioctl_ops
+>>> + * when using v4l2_ioctl_enum_input_default
+>>> + */
+>>> +int v4l2_ioctl_s_input_default(struct file *file, void *priv,
+>>> unsigned int
+>>> i); +
+>>>  /* names for fancy debug output */
+>>>  extern const char *v4l2_field_names[];
+>>>  extern const char *v4l2_type_names[];
+>>> diff --git a/include/uapi/linux/videodev2.h
+>>> b/include/uapi/linux/videodev2.h
+>>> index 316be62..c10bbde 100644
+>>> --- a/include/uapi/linux/videodev2.h
+>>> +++ b/include/uapi/linux/videodev2.h
+>>> @@ -1477,6 +1477,7 @@ struct v4l2_input {
+>>>  };
+>>>
+>>>  /*  Values for the 'type' field */
+>>> +#define V4L2_INPUT_TYPE_DEFAULT        0
+>>>  #define V4L2_INPUT_TYPE_TUNER        1
+>>>  #define V4L2_INPUT_TYPE_CAMERA        2
+>>>  #define V4L2_INPUT_TYPE_TOUCH        3
+>>
+>
+> Helen
+
+Helen
