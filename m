@@ -1,73 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47780 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932891AbdCKLYh (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52936 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752512AbdCaMUs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 06:24:37 -0500
+        Fri, 31 Mar 2017 08:20:48 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv5 16/16] at91-sama5d3_xplained.dts: select ov2640
-Date: Sat, 11 Mar 2017 12:23:28 +0100
-Message-Id: <20170311112328.11802-17-hverkuil@xs4all.nl>
-In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
-References: <20170311112328.11802-1-hverkuil@xs4all.nl>
+Cc: Daniel Vetter <daniel.vetter@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Patrice.chotard@st.com
+Subject: [PATCHv6 00/10] video/exynos/sti/cec: add CEC notifier & use in drivers
+Date: Fri, 31 Mar 2017 14:20:26 +0200
+Message-Id: <20170331122036.55706-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch replaces the ov7670 with the ov2640. This patch is not
-meant to be merged but is for demonstration purposes only.
+This patch series adds the CEC physical address notifier code, based on
+Russell's code:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- arch/arm/boot/dts/at91-sama5d3_xplained.dts | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+https://patchwork.kernel.org/patch/9277043/
 
-diff --git a/arch/arm/boot/dts/at91-sama5d3_xplained.dts b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-index c6b07f83578b..6951bd6a11d7 100644
---- a/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-+++ b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-@@ -71,7 +71,7 @@
- 					#address-cells = <1>;
- 					#size-cells = <0>;
- 					isi_0: endpoint {
--						remote-endpoint = <&ov7670_0>;
-+						remote-endpoint = <&ov2640_0>;
- 						bus-width = <8>;
- 						vsync-active = <1>;
- 						hsync-active = <1>;
-@@ -87,20 +87,20 @@
- 			i2c1: i2c@f0018000 {
- 				status = "okay";
- 
--				ov7670: camera@21 {
--					compatible = "ovti,ov7670";
--					reg = <0x21>;
-+				ov2640: camera@30 {
-+					compatible = "ovti,ov2640";
-+					reg = <0x30>;
- 					pinctrl-names = "default";
- 					pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
--					reset-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
--					powerdown-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
-+					resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
-+					pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
- 					clocks = <&pck0>;
--					clock-names = "xclk";
-+					clock-names = "xvclk";
- 					assigned-clocks = <&pck0>;
- 					assigned-clock-rates = <25000000>;
- 
- 					port {
--						ov7670_0: endpoint {
-+						ov2640_0: endpoint {
- 							remote-endpoint = <&isi_0>;
- 						};
- 					};
+It adds support for it to the exynos_hdmi drm driver, adds support for
+it to the CEC framework and finally adds support to the s5p-cec driver,
+which now can be moved out of staging.
+
+Also included is similar code for the STI platform, contributed by
+Benjamin Gaignard.
+
+Tested the exynos code with my Odroid U3 exynos4 devboard.
+
+Comments are welcome. I'd like to get this in for the 4.12 kernel as
+this is a missing piece needed to integrate CEC drivers.
+
+Regards,
+
+	Hans
+
+Changes since v5:
+- Add cec_notifier_set_phys_addr_from_edid(). This maps to an empty
+  function if CONFIG_MEDIA_CEC_NOTIFIER is undefined.
+- Dropped the first cec-edid patch. It's no longer needed after the
+  previous change.
+
+Changes since v4:
+- Dropped EDID/ELD/connect/disconnect support. Instead, just report the
+  CEC physical address (and use INVALID when disconnecting).
+- Since this is now completely CEC specific, move it to drivers/media
+  and rename to cec-notifier.
+- Drop block_notifier. Instead just set a callback for the notifier.
+- Use 'hdmi-phandle' in the bindings for both exynos and sti. So no
+  vendor prefix and 'hdmi-phandle' instead of 'hdmi-handle'.
+- Make struct cec_notifier opaque. Add a helper function to get the
+  physical address from a cec_notifier struct.
+- Provide dummy functions in cec-notifier.h so it can be used when
+  CONFIG_MEDIA_CEC_NOTIFIER is undefined.
+- Don't select the CEC notifier in the HDMI drivers. It should only
+  be enabled by actual CEC drivers.
+
+Changes since v3:
+- Added the STI patches
+- Split the exynos4 binding patches in one for documentation and one
+  for the dts change itself, also use the correct subject and CC to
+  the correct mailinglists (I hope  )
+
+Changes since v2:
+- Split off the dts changes of the s5p-cec patch into a separate patch
+- Renamed HPD_NOTIFIERS to HPD_NOTIFIER to be consistent with the name
+  of the source.
+
+Changes since v1:
+
+Renamed HDMI notifier to HPD (hotplug detect) notifier since this code is
+not HDMI specific, but is interesting for any video source that has to
+deal with hotplug detect and EDID/ELD (HDMI, DVI, VGA, DP, ....).
+Only the use with CEC adapters is HDMI specific, but the HPD notifier
+is more generic.
+
+
+Benjamin Gaignard (4):
+  sti: hdmi: add CEC notifier support
+  stih-cec.txt: document new hdmi phandle
+  stih-cec: add CEC notifier support
+  ARM: dts: STiH410: update sti-cec for CEC notifier support
+
+Hans Verkuil (6):
+  media: add CEC notifier support
+  cec: integrate CEC notifier support
+  exynos_hdmi: add CEC notifier support
+  ARM: dts: exynos: add HDMI controller phandle to exynos4.dtsi
+  s5p-cec.txt: document the HDMI controller phandle
+  s5p-cec: add cec-notifier support, move out of staging
+
+ .../devicetree/bindings/media/s5p-cec.txt          |   2 +
+ .../devicetree/bindings/media/stih-cec.txt         |   2 +
+ MAINTAINERS                                        |   4 +-
+ arch/arm/boot/dts/exynos4.dtsi                     |   1 +
+ arch/arm/boot/dts/stih407-family.dtsi              |  12 --
+ arch/arm/boot/dts/stih410.dtsi                     |  13 +++
+ drivers/gpu/drm/exynos/exynos_hdmi.c               |  19 ++-
+ drivers/gpu/drm/sti/sti_hdmi.c                     |  11 ++
+ drivers/gpu/drm/sti/sti_hdmi.h                     |   3 +
+ drivers/media/Kconfig                              |   4 +
+ drivers/media/Makefile                             |   4 +
+ drivers/media/cec-notifier.c                       | 129 +++++++++++++++++++++
+ drivers/media/cec/cec-core.c                       |  22 ++++
+ drivers/media/platform/Kconfig                     |  28 +++++
+ drivers/media/platform/Makefile                    |   2 +
+ .../media => media/platform}/s5p-cec/Makefile      |   0
+ .../platform}/s5p-cec/exynos_hdmi_cec.h            |   0
+ .../platform}/s5p-cec/exynos_hdmi_cecctrl.c        |   0
+ .../media => media/platform}/s5p-cec/regs-cec.h    |   0
+ .../media => media/platform}/s5p-cec/s5p_cec.c     |  35 +++++-
+ .../media => media/platform}/s5p-cec/s5p_cec.h     |   3 +
+ .../st-cec => media/platform/sti/cec}/Makefile     |   0
+ .../st-cec => media/platform/sti/cec}/stih-cec.c   |  31 ++++-
+ drivers/staging/media/Kconfig                      |   4 -
+ drivers/staging/media/Makefile                     |   2 -
+ drivers/staging/media/s5p-cec/Kconfig              |   9 --
+ drivers/staging/media/s5p-cec/TODO                 |   7 --
+ drivers/staging/media/st-cec/Kconfig               |   8 --
+ drivers/staging/media/st-cec/TODO                  |   7 --
+ include/media/cec-notifier.h                       | 111 ++++++++++++++++++
+ include/media/cec.h                                |  10 ++
+ 31 files changed, 423 insertions(+), 60 deletions(-)
+ create mode 100644 drivers/media/cec-notifier.c
+ rename drivers/{staging/media => media/platform}/s5p-cec/Makefile (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cec.h (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cecctrl.c (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/regs-cec.h (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.c (89%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.h (97%)
+ rename drivers/{staging/media/st-cec => media/platform/sti/cec}/Makefile (100%)
+ rename drivers/{staging/media/st-cec => media/platform/sti/cec}/stih-cec.c (93%)
+ delete mode 100644 drivers/staging/media/s5p-cec/Kconfig
+ delete mode 100644 drivers/staging/media/s5p-cec/TODO
+ delete mode 100644 drivers/staging/media/st-cec/Kconfig
+ delete mode 100644 drivers/staging/media/st-cec/TODO
+ create mode 100644 include/media/cec-notifier.h
+
 -- 
 2.11.0
