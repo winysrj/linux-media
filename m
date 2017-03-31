@@ -1,67 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33310 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752950AbdCFPFK (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50909
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754441AbdCaKGd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 10:05:10 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 13/15] em28xx: drop last soc_camera link
-Date: Mon,  6 Mar 2017 15:56:14 +0100
-Message-Id: <20170306145616.38485-14-hverkuil@xs4all.nl>
-In-Reply-To: <20170306145616.38485-1-hverkuil@xs4all.nl>
-References: <20170306145616.38485-1-hverkuil@xs4all.nl>
+        Fri, 31 Mar 2017 06:06:33 -0400
+Date: Fri, 31 Mar 2017 07:06:25 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Joe Perches <joe@perches.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Yuval Mintz <Yuval.Mintz@cavium.com>,
+        Ariel Elior <ariel.elior@cavium.com>,
+        everest-linux-l2@cavium.com, Yishai Hadas <yishaih@mellanox.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Yisen Zhuang <yisen.zhuang@huawei.com>,
+        Salil Mehta <salil.mehta@huawei.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH] treewide: Correct diffrent[iate] and banlance typos
+Message-ID: <20170331070625.39294170@vento.lan>
+In-Reply-To: <962aace119675e5fe87be2a88ddac1a5486f8e60.1490931810.git.joe@perches.com>
+References: <962aace119675e5fe87be2a88ddac1a5486f8e60.1490931810.git.joe@perches.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Thu, 30 Mar 2017 20:44:16 -0700
+Joe Perches <joe@perches.com> escreveu:
 
-The em28xx driver still used the soc_camera.h header for the ov2640
-driver. Since this driver no longer uses soc_camera, that include can
-be removed.
+> Add these misspellings to scripts/spelling.txt too
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h | 2 +-
+>  drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c      | 2 +-
+>  drivers/net/ethernet/hisilicon/hns/hns_enet.c       | 2 +-
+>  drivers/net/ethernet/qlogic/qed/qed_int.c           | 2 +-
+>  drivers/net/ethernet/qlogic/qed/qed_main.c          | 2 +-
+>  drivers/net/ethernet/qlogic/qed/qed_sriov.c         | 2 +-
+>  include/linux/mlx4/device.h                         | 2 +-
+>  scripts/spelling.txt                                | 3 +++
+>  8 files changed, 10 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h b/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h
+> index 354ec07eae87..23ae72468025 100644
+> --- a/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h
+> +++ b/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h
+> @@ -70,7 +70,7 @@
+>  * (3) both long and short but short preferred and long only when necesarry
+>  *
+>  * These modes must be selected compile time via compile switches.
+> -* Compile switch settings for the diffrent modes:
+> +* Compile switch settings for the different modes:
+>  * (1) DRXDAPFASI_LONG_ADDR_ALLOWED=0, DRXDAPFASI_SHORT_ADDR_ALLOWED=1
+>  * (2) DRXDAPFASI_LONG_ADDR_ALLOWED=1, DRXDAPFASI_SHORT_ADDR_ALLOWED=0
+>  * (3) DRXDAPFASI_LONG_ADDR_ALLOWED=1, DRXDAPFASI_SHORT_ADDR_ALLOWED=1
+> diff --git a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c b/drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c
+> index cea6bdcde33f..8baf9d3eb4b1 100644
+> --- a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c
+> +++ b/drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c
+> @@ -1591,7 +1591,7 @@ static int __bnx2x_vlan_mac_execute_step(struct bnx2x *bp,
+>  	if (rc != 0) {
+>  		__bnx2x_vlan_mac_h_pend(bp, o, *ramrod_flags);
+>  
+> -		/* Calling function should not diffrentiate between this case
+> +		/* Calling function should not differentiate between this case
+>  		 * and the case in which there is already a pending ramrod
+>  		 */
+>  		rc = 1;
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/em28xx/em28xx-camera.c | 9 ---------
- 1 file changed, 9 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
-index 89c890ba7dd6..63aaa577a742 100644
---- a/drivers/media/usb/em28xx/em28xx-camera.c
-+++ b/drivers/media/usb/em28xx/em28xx-camera.c
-@@ -23,7 +23,6 @@
- 
- #include <linux/i2c.h>
- #include <linux/usb.h>
--#include <media/soc_camera.h>
- #include <media/i2c/mt9v011.h>
- #include <media/v4l2-clk.h>
- #include <media/v4l2-common.h>
-@@ -43,13 +42,6 @@ static unsigned short omnivision_sensor_addrs[] = {
- 	I2C_CLIENT_END
- };
- 
--static struct soc_camera_link camlink = {
--	.bus_id = 0,
--	.flags = 0,
--	.module_name = "em28xx",
--	.unbalanced_power = true,
--};
--
- /* FIXME: Should be replaced by a proper mt9m111 driver */
- static int em28xx_initialize_mt9m111(struct em28xx *dev)
- {
-@@ -421,7 +413,6 @@ int em28xx_init_camera(struct em28xx *dev)
- 			.type = "ov2640",
- 			.flags = I2C_CLIENT_SCCB,
- 			.addr = client->addr,
--			.platform_data = &camlink,
- 		};
- 		struct v4l2_subdev_format format = {
- 			.which = V4L2_SUBDEV_FORMAT_ACTIVE,
--- 
-2.11.0
+Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+Thanks,
+Mauro
