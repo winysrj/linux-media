@@ -1,55 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:43020 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751591AbdCSKs7 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50718
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932677AbdCaJdR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 19 Mar 2017 06:48:59 -0400
-In-Reply-To: <20170319103801.GQ21222@n2100.armlinux.org.uk>
-References: <20170319103801.GQ21222@n2100.armlinux.org.uk>
-From: Russell King <rmk+kernel@armlinux.org.uk>
-To: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Cc: sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
-        linux-media@vger.kernel.org, kernel@pengutronix.de,
-        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, p.zabel@pengutronix.de
-Subject: [PATCH 1/4] media: imx-media-csi: fix v4l2-compliance check
+        Fri, 31 Mar 2017 05:33:17 -0400
+Date: Fri, 31 Mar 2017 06:33:04 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Helen Koike <helen.koike@collabora.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        jgebben@codeaurora.org
+Subject: Re: [PATCH RFC 1/2] [media] v4l2: add V4L2_INPUT_TYPE_DEFAULT
+Message-ID: <20170331063304.4bba8e7e@vento.lan>
+In-Reply-To: <1539709.tvRnEGTVFr@avalon>
+References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
+        <2926010.76lXoG2CJo@avalon>
+        <34146d93-6651-69a2-0997-aa3ae91b4fd3@collabora.com>
+        <1539709.tvRnEGTVFr@avalon>
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1cpYOK-0006EZ-No@rmk-PC.armlinux.org.uk>
-Date: Sun, 19 Mar 2017 10:48:52 +0000
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2-compliance was failing with:
+Em Fri, 31 Mar 2017 11:41:51 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-                fail: v4l2-test-formats.cpp(1076): cap->timeperframe.numerator == 0 || cap->timeperframe.denominator == 0
-                test VIDIOC_G/S_PARM: FAIL
+> Hi Helen,
+> 
+> On Thursday 30 Mar 2017 23:39:01 Helen Koike wrote:
+> > On 2017-03-30 04:56 PM, Laurent Pinchart wrote:  
+> > > On Thursday 30 Mar 2017 13:02:17 Helen Koike wrote:  
+> > >> Add V4L2_INPUT_TYPE_DEFAULT and helpers functions for input ioctls to be
+> > >> used when no inputs are available in the device
+> > >> 
+> > >> Signed-off-by: Helen Koike <helen.koike@collabora.com>
+> > >> ---
+> > >> 
+> > >>  drivers/media/v4l2-core/v4l2-ioctl.c | 27 +++++++++++++++++++++++++++
+> > >>  include/media/v4l2-ioctl.h           | 26 ++++++++++++++++++++++++++
+> > >>  include/uapi/linux/videodev2.h       |  1 +
+> > >>  3 files changed, 54 insertions(+)
+> > >> 
+> > >> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
+> > >> b/drivers/media/v4l2-core/v4l2-ioctl.c index 0c3f238..ccaf04b 100644
+> > >> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> > >> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> > >> @@ -2573,6 +2573,33 @@ struct mutex *v4l2_ioctl_get_lock(struct
+> > >> video_device *vdev, unsigned cmd) return vdev->lock;
+> > >> 
+> > >>  }
+> > >> 
+> > >> +int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
+> > >> +				  struct v4l2_input *i)
+> > >> +{
+> > >> +	if (i->index > 0)
+> > >> +		return -EINVAL;
+> > >> +
+> > >> +	memset(i, 0, sizeof(*i));
+> > >> +	i->type = V4L2_INPUT_TYPE_DEFAULT;
+> > >> +	strlcpy(i->name, "Default", sizeof(i->name));
+> > >> +
+> > >> +	return 0;
+> > >> +}
+> > >> +EXPORT_SYMBOL(v4l2_ioctl_enum_input_default);  
+> > > 
+> > > V4L2 tends to use EXPORT_SYMBOL_GPL.  
+> > 
+> > The whole v4l2-ioctl.c file is using EXPORT_SYMBOL instead of
+> > EXPORT_SYMBOL_GPL, should we change it all to EXPORT_SYMBOL_GPL then (in
+> > another patch) ?  
+> 
+> You're right, let's leave it as-is then.
 
-Fix this.
+At the time V4L2 was written, there was no EXPORT_SYMBOL_GPL(). That's
+why there are some parts that aren't explicit about the symbol usage
+license.
 
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
----
- drivers/staging/media/imx/imx-media-csi.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+For newer symbols, we're using EXPORT_SYMBOL_GPL(), in order to let
+clear about the licensing for the code.
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 0336891069dc..65346e789dd6 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -680,8 +680,10 @@ static const struct csi_skip_desc *csi_find_best_skip(struct v4l2_fract *in,
- 
- 	/* Default to 1:1 ratio */
- 	if (out->numerator == 0 || out->denominator == 0 ||
--	    in->numerator == 0 || in->denominator == 0)
-+	    in->numerator == 0 || in->denominator == 0) {
-+		*out = *in;
- 		return best_skip;
-+	}
- 
- 	want_us = div_u64((u64)USEC_PER_SEC * out->numerator, out->denominator);
- 
--- 
-2.7.4
+Thanks,
+Mauro
