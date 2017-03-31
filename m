@@ -1,54 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45460 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753286AbdCHOeO (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52731
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933205AbdCaSEl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 8 Mar 2017 09:34:14 -0500
-Subject: Re: [PATCH] atomisp2: unify some ifdef cases caused by format changes
-To: Greg KH <greg@kroah.com>
-References: <148879924465.10733.17814546240558419917.stgit@acox1-desk1.ger.corp.intel.com>
- <90583522-0afb-e556-b1a6-dea0efc5392d@xs4all.nl>
- <20170308133947.GB5221@kroah.com>
- <b13609bf-0e14-685a-01a7-0ba88e15db8c@xs4all.nl>
- <2540e923-6468-a283-26ff-9e48a4f18157@xs4all.nl>
-Cc: Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <08893a3a-69df-9cbd-6fb7-962531477e27@xs4all.nl>
-Date: Wed, 8 Mar 2017 15:32:51 +0100
+        Fri, 31 Mar 2017 14:04:41 -0400
+Date: Fri, 31 Mar 2017 15:04:29 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jani Nikula <jani.nikula@intel.com>,
+        Takashi Iwai <tiwai@suse.de>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Silvio Fricke <silvio.fricke@gmail.com>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH 3/9] genericirq.tmpl: convert it to ReST
+Message-ID: <20170331150429.2e4e5ffe@vento.lan>
+In-Reply-To: <20170331085711.5ff4a550@lwn.net>
+References: <cover.1490904090.git.mchehab@s-opensource.com>
+        <de437318af3e6384319aba8d9e199a4645108822.1490904090.git.mchehab@s-opensource.com>
+        <20170331085711.5ff4a550@lwn.net>
 MIME-Version: 1.0
-In-Reply-To: <2540e923-6468-a283-26ff-9e48a4f18157@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/03/17 14:55, Hans Verkuil wrote:
-> On 08/03/17 14:45, Hans Verkuil wrote:
->> On 08/03/17 14:39, Greg KH wrote:
->>> On Wed, Mar 08, 2017 at 01:49:23PM +0100, Hans Verkuil wrote:
->>>> OK, so I discovered that these patches are for a driver added to linux-next
->>>> without it ever been cross-posted to linux-media.
->>>>
->>>> To be polite, I think that's rather impolite.
->>>
->>> They were, but got rejected due to the size :(
->>>
->>> Mauro was cc:ed directly, he knew these were coming...
->>>
->>> I can take care of the cleanup patches for now, you don't have to review
->>> them if you don't want to.
->>
->> Please do.
->>
->> For the next time if the patches are too large: at least post a message with
->> a link to a repo for people to look at. I would like to know what's going
->> on in staging/media, especially since I will do a lot of the reviewing (at
->> least if it is a V4L2 driver) when they want to move it out of staging.
+Em Fri, 31 Mar 2017 08:57:11 -0600
+Jonathan Corbet <corbet@lwn.net> escreveu:
+
+> On Thu, 30 Mar 2017 17:11:30 -0300
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
 > 
-> Same issue BTW with the bcm2835 driver. That too landed in staging without
-> ever being posted to the linux-media mailinglist. Size is no excuse for that
-> driver since it isn't that large.
+> [Reordering things a bit]
+> 
+> > +==========================
+> > +Linux generic IRQ handling
+> > +==========================
+> > +
+> > +:Copyright: |copy| 2005-2010: Thomas Gleixner
+> > +:Copyright: |copy| 2005-2006:  Ingo Molnar  
+> 
+> It seems maybe they should have been CC'd on this one?  Adding them now
+> (and leaving the full patch for their amusement).
+> 
+> > Brainless conversion of genericirq.tmpl book to ReST, via
+> > 	Documentation/sphinx/tmplcvt  
+> 
+> In general this seems good, but I have to wonder how current this material
+> is at this point?  The last substantive change was in 2013 (3.11), and I've
+> seen a certain amount of IRQ work going by since then.  I'm not opposed to
+> this move at all, but perhaps if it's outdated we should add a note to that
+> effect?
 
-Sorry about the noise. This driver *was* cross-posted to us. Ignore this rant :-)
+Looking on the amount of c:func: references that got solved:
+	http://www.infradead.org/~mchehab/kernel_docs/core-api/genericirq.html
 
-	Hans
+I'd say that it doesn't seem outdated.
+
+It mentions a __do_IRQ() function, with I was unable to found, but
+I was able to find arch-dependent do_IRQ() functions, with seems to
+match the concepts explained at the doc. I almost did a
+	s/__do_IRQ/do_IRQ/
+but, as I wasn't 100% sure, I opted to keep it as-is for others to touch.
+
+It also mentions a request_irq() function, with is there, just without
+kernel-doc markups.
+
+Finally, it includes several core-api files with kernel-doc markups.
+
+So, IMHO, it is worth merging it. Yet, it would be great if the ones
+working on that part of the core could review and update it.
+
+Regards,
+Mauro
