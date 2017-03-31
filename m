@@ -1,109 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:38907 "EHLO
-        aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751562AbdCXM2L (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:48888 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753049AbdCaKAr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Mar 2017 08:28:11 -0400
-Subject: Re: [PATCH 0/3] Handling of reduced FPS in V4L2
-To: Jose Abreu <Jose.Abreu@synopsys.com>, linux-media@vger.kernel.org
-References: <cover.1490095965.git.joabreu@synopsys.com>
- <1939bd77-a74d-3ad6-06db-2b1eaa205aca@synopsys.com>
- <3a7b5c81-834c-8d1e-2181-6d8f57d20f7b@cisco.com>
- <ccea984f-c68a-b188-49fb-29f04b7a3382@synopsys.com>
- <c0f50bfc-cf2e-2d49-1ea3-22686d078b5d@cisco.com>
- <a124edf2-06c8-1c91-bf6f-145d4624a6c9@synopsys.com>
-Cc: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-kernel@vger.kernel.org
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <94c98e4e-3823-1387-c18f-09c347916f4e@cisco.com>
-Date: Fri, 24 Mar 2017 13:28:08 +0100
+        Fri, 31 Mar 2017 06:00:47 -0400
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org
+Subject: [PATCH] dma-buf: fence debugging
 MIME-Version: 1.0
-In-Reply-To: <a124edf2-06c8-1c91-bf6f-145d4624a6c9@synopsys.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <E1cttMI-00068z-3X@rmk-PC.armlinux.org.uk>
+Date: Fri, 31 Mar 2017 11:00:42 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/24/17 13:21, Jose Abreu wrote:
-> Hi Hans,
-> 
-> 
-> On 24-03-2017 12:12, Hans Verkuil wrote:
->> On 03/24/17 12:52, Jose Abreu wrote:
->>> Hi Hans,
->>>
->>>
->>>>> Can you please review this series, when possible? And if you
->>>>> could test it on cobalt it would be great :)
->>>> Hopefully next week. 
->>> Thanks :)
->>>
->>>> Did you have some real-world numbers w.r.t. measured
->>>> pixelclock frequencies and 60 vs 59.94 Hz and 24 vs 23.976 Hz?
->>> I did make some measurements but I'm afraid I didn't yet test
->>> with many sources (I mostly tested with signal generators which
->>> should have a higher precision clock than real sources). I have a
->>> bunch of players here, I will test them as soon as I can.
->>> Regarding precision: for our controller is theoretically and
->>> effectively enough: The worst case is for 640x480, and even in
->>> that case the difference between 60Hz and 59.94Hz is > 1 unit of
->>> the measuring register. This still doesn't solve the problem of
->>> having a bad source with a bad clock, but I don't know if we can
->>> do much more about that.
->> I would really like to see a table with different sources sending
->> these different framerates and the value that your HW detects.
->>
->> If there is an obvious and clear difference, then this feature makes
->> sense. If it is all over the place, then I need to think about this
->> some more.
->>
->> To be honest, I expect that you will see 'an obvious and clear'
->> difference, but that is no more than a gut feeling at the moment and
->> I would like to see some proper test results.
-> 
-> Ok, I will make a table. The test procedure will be like this:
->     - Measure pixel clock value using certified HDMI analyzer
->     - Measure pixel clock using our controller
->     - Compare the values obtained from analyzer, controller and
-> the values that the source is telling to send (the value
-> displayed in source menu for example [though, some of them may
-> not discriminate the exact frame rate, thats why analyzer should
-> be used also]).
-> 
-> Seems ok? I will need some time, something like a week because my
-> setup was "borrowed".
+Add debugfs output to report shared and exclusive fences on a dma_buf
+object.  This produces output such as:
 
-That sounds good. Sorry for adding to your workload, but there is no
-point to have a flag that in practice is meaningless.
+Dma-buf Objects:
+size    flags   mode    count   exp_name
+08294400        00000000        00000005        00000005        drm
+        Exclusive fence: etnaviv 134000.gpu signalled
+        Attached Devices:
+        gpu-subsystem
+Total 1 devices attached
 
-I'm actually very curious about the results!
 
-Regards,
+Total 1 objects, 8294400 bytes
 
-	Hans
 
-> 
-> Best regards,
-> Jose Miguel Abreu
-> 
->>
->>>> I do want to see that, since this patch series only makes sense if you can
->>>> actually make use of it to reliably detect the difference.
->>>>
->>>> I will try to test that myself with cobalt, but almost certainly I won't
->>>> be able to tell the difference; if memory serves it can't detect the freq
->>>> with high enough precision.
->>> Ok, thanks, this would be great because I didn't test the series
->>> exactly "as is" because I'm using 4.10. I did look at vivid
->>> driver but it already handles reduced frame rate, so it kind of
->>> does what it is proposed in this series. If this helper is
->>> integrated in the v4l2 core then I can send the patch to vivid.
->> That would be nice to have in vivid.
->>
->> Regards,
->>
->> 	Hans
->>
-> 
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ drivers/dma-buf/dma-buf.c | 34 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+index 0007b792827b..f72aaacbe023 100644
+--- a/drivers/dma-buf/dma-buf.c
++++ b/drivers/dma-buf/dma-buf.c
+@@ -1059,7 +1059,11 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
+ 	int ret;
+ 	struct dma_buf *buf_obj;
+ 	struct dma_buf_attachment *attach_obj;
+-	int count = 0, attach_count;
++	struct reservation_object *robj;
++	struct reservation_object_list *fobj;
++	struct dma_fence *fence;
++	unsigned seq;
++	int count = 0, attach_count, shared_count, i;
+ 	size_t size = 0;
+ 
+ 	ret = mutex_lock_interruptible(&db_list.lock);
+@@ -1085,6 +1090,34 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
+ 				file_count(buf_obj->file),
+ 				buf_obj->exp_name);
+ 
++		robj = buf_obj->resv;
++		while (true) {
++			seq = read_seqcount_begin(&robj->seq);
++			rcu_read_lock();
++			fobj = rcu_dereference(robj->fence);
++			shared_count = fobj ? fobj->shared_count : 0;
++			fence = rcu_dereference(robj->fence_excl);
++			if (!read_seqcount_retry(&robj->seq, seq))
++				break;
++			rcu_read_unlock();
++		}
++
++		if (fence)
++			seq_printf(s, "\tExclusive fence: %s %s %ssignalled\n",
++				   fence->ops->get_driver_name(fence),
++				   fence->ops->get_timeline_name(fence),
++				   dma_fence_is_signaled(fence) ? "" : "un");
++		for (i = 0; i < shared_count; i++) {
++			fence = rcu_dereference(fobj->shared[i]);
++			if (!dma_fence_get_rcu(fence))
++				continue;
++			seq_printf(s, "\tShared fence: %s %s %ssignalled\n",
++				   fence->ops->get_driver_name(fence),
++				   fence->ops->get_timeline_name(fence),
++				   dma_fence_is_signaled(fence) ? "" : "un");
++		}
++		rcu_read_unlock();
++
+ 		seq_puts(s, "\tAttached Devices:\n");
+ 		attach_count = 0;
+ 
+-- 
+2.7.4
