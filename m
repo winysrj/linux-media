@@ -1,69 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f179.google.com ([209.85.192.179]:33715 "EHLO
-        mail-pf0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757233AbdCUSXg (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52767
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933205AbdCaSM2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Mar 2017 14:23:36 -0400
-Received: by mail-pf0-f179.google.com with SMTP id o190so1494283pfo.0
-        for <linux-media@vger.kernel.org>; Tue, 21 Mar 2017 11:23:35 -0700 (PDT)
-Subject: Re: CEC button pass-through
-To: Hans Verkuil <hverkuil@xs4all.nl>
-References: <22e92133-6a64-ffaf-a41f-5ae9b19f24e5@nelint.com>
- <53fd17db-af5d-335b-0337-e5aeffd12305@xs4all.nl>
- <7ad3b464-1813-5535-fffc-36589d72d86d@nelint.com>
-Cc: linux-media@vger.kernel.org
-From: Eric Nelson <eric@nelint.com>
-Message-ID: <67b5e8a1-8a79-27e2-8e5f-1c58a4adc0d8@nelint.com>
-Date: Tue, 21 Mar 2017 11:23:33 -0700
+        Fri, 31 Mar 2017 14:12:28 -0400
+Date: Fri, 31 Mar 2017 15:12:20 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jani Nikula <jani.nikula@intel.com>,
+        Takashi Iwai <tiwai@suse.de>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Silvio Fricke <silvio.fricke@gmail.com>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 5/9] kernel-api.tmpl: convert it to ReST
+Message-ID: <20170331151220.78cfff0d@vento.lan>
+In-Reply-To: <20170331090537.567730e8@lwn.net>
+References: <cover.1490904090.git.mchehab@s-opensource.com>
+        <0186e4eb40e09f92a7ec59f195d93af38176433f.1490904090.git.mchehab@s-opensource.com>
+        <20170331090537.567730e8@lwn.net>
 MIME-Version: 1.0
-In-Reply-To: <7ad3b464-1813-5535-fffc-36589d72d86d@nelint.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Fri, 31 Mar 2017 09:05:37 -0600
+Jonathan Corbet <corbet@lwn.net> escreveu:
 
-On 03/21/2017 10:44 AM, Eric Nelson wrote:
-> On 03/21/2017 10:05 AM, Hans Verkuil wrote:
->> On 03/21/2017 05:49 PM, Eric Nelson wrote:
-
-<snip>
-
->> With CEC 2.0 you can set various RC profiles, and (very unlikely) perhaps
->> your TV actually understands that.
->>
->> The default CEC version cec-ctl selects is 2.0.
->>
->> Note that the CEC framework doesn't do anything with the RC profiles
->> at the moment.
->>
+> On Thu, 30 Mar 2017 17:11:32 -0300
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
 > 
-> I don't have the 2.0 spec, so I'm not sure what messages to look for
-> in the logs from libCEC.
+> > Brainless conversion of genericirq.tmpl book to ReST, via
+> > 	Documentation/sphinx/tmplcvt  
 > 
-> I have a complete log file here, and it shows messages to and from
-> the television, though in a pretty verbose form.
-> 
-> http://pastebin.com/qFrhkNZQ
-> 
+> This one kind of showcases why I'm nervous about bulk conversions.  It's
+> a bit of a dumping-ground document, with a bit of everything, and I think
+> we can do better.  And, in particular, this one contains a bunch of stuff
+> that belongs in the driver-api manual instead.  So, at a minimum, I would
+> really like to see this template split across those two manuals.
 
-I think this is the culprit:
-cec-uinput: L8: << 10:8e:00
+Yeah, I was in doubt if it should be either at driver-api or core-api
+manuals.
 
+> If you promise me a followup patch doing that, maybe I can go ahead and
+> merge this series now :)
 
-The 1.3 spec says this about the 8E message:
+Surely I can do a patch moving things around.
 
-"If Menu State indicates activated, TV enters ‘Device Menu Active’
-state and forwards those Remote control commands, shown in
-Table 26, to the initiator. If deactivated, TV enters ‘Device Menu Inactive’
-state and stops forwarding remote control commands".
+> (That's mildly complicated by the fact that you didn't send me parts 6,
+> 8, and 9; I really would rather get the whole series in cases like this.)
 
-In section 13.12.2, it also says this:
+Sorry. Just forwarded those missing parts to your e-mail.
 
-"The TV may initiate a device’s menu by sending a <Menu Request>
-[“Activate”] command. It may subsequently remove the menu by sending
-a <Menu Request> [“Deactivate”] message. The TV may also query a
-devices menu status by sending a <Menu Request> [“Query”]. The
-menu device shall always respond with a <Menu Status> command
-when it receives a <Menu Request>."
+They basically fix some kernel-doc headers that are not properly
+parsed by Sphinx.
+
+Thanks,
+Mauro
