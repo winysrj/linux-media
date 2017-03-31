@@ -1,138 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:33838 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753167AbdC2QnW (ORCPT
+Received: from pegasos-out.vodafone.de ([80.84.1.38]:60501 "EHLO
+        pegasos-out.vodafone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932879AbdCaMPk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 12:43:22 -0400
-Received: by mail-wr0-f195.google.com with SMTP id w43so4565893wrb.1
-        for <linux-media@vger.kernel.org>; Wed, 29 Mar 2017 09:43:20 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org
-Cc: liplianin@netup.ru, rjkm@metzlerbros.de, crope@iki.fi
-Subject: [PATCH v3 05/13] [media] dvb-frontends/stv0367: make PLLSETUP a function, add 58MHz IC speed
-Date: Wed, 29 Mar 2017 18:43:05 +0200
-Message-Id: <20170329164313.14636-6-d.scheller.oss@gmail.com>
-In-Reply-To: <20170329164313.14636-1-d.scheller.oss@gmail.com>
-References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
+        Fri, 31 Mar 2017 08:15:40 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+        by pegasos-out.vodafone.de (Rohrpostix2  Daemon) with ESMTP id 3A3FD680476
+        for <linux-media@vger.kernel.org>; Fri, 31 Mar 2017 14:07:01 +0200 (CEST)
+Received: from pegasos-out.vodafone.de ([127.0.0.1])
+        by localhost (rohrpostix2.prod.vfnet.de [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id vqxY6GoVDRzg for <linux-media@vger.kernel.org>;
+        Fri, 31 Mar 2017 14:06:59 +0200 (CEST)
+Subject: Re: [PATCH] dma-buf: fence debugging
+To: Russell King <rmk+kernel@arm.linux.org.uk>,
+        Sumit Semwal <sumit.semwal@linaro.org>
+References: <E1cttMI-00068z-3X@rmk-PC.armlinux.org.uk>
+Cc: linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <deathsimple@vodafone.de>
+Message-ID: <5174f966-74d0-64c0-a206-10216e0aaba6@vodafone.de>
+Date: Fri, 31 Mar 2017 14:06:57 +0200
+MIME-Version: 1.0
+In-Reply-To: <E1cttMI-00068z-3X@rmk-PC.armlinux.org.uk>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Am 31.03.2017 um 12:00 schrieb Russell King:
+> Add debugfs output to report shared and exclusive fences on a dma_buf
+> object.  This produces output such as:
+>
+> Dma-buf Objects:
+> size    flags   mode    count   exp_name
+> 08294400        00000000        00000005        00000005        drm
+>          Exclusive fence: etnaviv 134000.gpu signalled
+>          Attached Devices:
+>          gpu-subsystem
+> Total 1 devices attached
+>
+>
+> Total 1 objects, 8294400 bytes
+>
+>
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-This moves the PLL SETUP code from stv0367ter_init() into a dedicated
-function, and also make it possible to configure 58Mhz IC speed at
-27MHz Xtal (used on STV0367-based DDB cards/modules in QAM mode).
+Reviewed-by: Christian König <christian.koenig@amd.com>
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/stv0367.c | 73 +++++++++++++++++++++++------------
- drivers/media/dvb-frontends/stv0367.h |  3 ++
- 2 files changed, 51 insertions(+), 25 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index 5b52673..da10d9a 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -271,6 +271,53 @@ static void stv0367_write_table(struct stv0367_state *state,
- 	}
- }
- 
-+static void stv0367_pll_setup(struct stv0367_state *state,
-+				u32 icspeed, u32 xtal)
-+{
-+	/* note on regs: R367TER_* and R367CAB_* defines each point to
-+	 * 0xf0d8, so just use R367TER_ for both cases
-+	 */
-+
-+	switch (icspeed) {
-+	case STV0367_ICSPEED_58000:
-+		switch (xtal) {
-+		default:
-+		case 27000000:
-+			dprintk("STV0367 SetCLKgen for 58MHz IC and 27Mhz crystal\n");
-+			/* PLLMDIV: 27, PLLNDIV: 232 */
-+			stv0367_writereg(state, R367TER_PLLMDIV, 0x1b);
-+			stv0367_writereg(state, R367TER_PLLNDIV, 0xe8);
-+			break;
-+		}
-+		break;
-+	default:
-+	case STV0367_ICSPEED_53125:
-+		switch (xtal) {
-+			/* set internal freq to 53.125MHz */
-+		case 16000000:
-+			stv0367_writereg(state, R367TER_PLLMDIV, 0x2);
-+			stv0367_writereg(state, R367TER_PLLNDIV, 0x1b);
-+			break;
-+		case 25000000:
-+			stv0367_writereg(state, R367TER_PLLMDIV, 0xa);
-+			stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
-+			break;
-+		default:
-+		case 27000000:
-+			dprintk("FE_STV0367TER_SetCLKgen for 27Mhz\n");
-+			stv0367_writereg(state, R367TER_PLLMDIV, 0x1);
-+			stv0367_writereg(state, R367TER_PLLNDIV, 0x8);
-+			break;
-+		case 30000000:
-+			stv0367_writereg(state, R367TER_PLLMDIV, 0xc);
-+			stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
-+			break;
-+		}
-+	}
-+
-+	stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
-+}
-+
- static int stv0367ter_gate_ctrl(struct dvb_frontend *fe, int enable)
- {
- 	struct stv0367_state *state = fe->demodulator_priv;
-@@ -918,31 +965,7 @@ static int stv0367ter_init(struct dvb_frontend *fe)
- 	stv0367_write_table(state,
- 		stv0367_deftabs[state->deftabs][STV0367_TAB_TER]);
- 
--	switch (state->config->xtal) {
--		/*set internal freq to 53.125MHz */
--	case 16000000:
--		stv0367_writereg(state, R367TER_PLLMDIV, 0x2);
--		stv0367_writereg(state, R367TER_PLLNDIV, 0x1b);
--		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
--		break;
--	case 25000000:
--		stv0367_writereg(state, R367TER_PLLMDIV, 0xa);
--		stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
--		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
--		break;
--	default:
--	case 27000000:
--		dprintk("FE_STV0367TER_SetCLKgen for 27Mhz\n");
--		stv0367_writereg(state, R367TER_PLLMDIV, 0x1);
--		stv0367_writereg(state, R367TER_PLLNDIV, 0x8);
--		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
--		break;
--	case 30000000:
--		stv0367_writereg(state, R367TER_PLLMDIV, 0xc);
--		stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
--		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
--		break;
--	}
-+	stv0367_pll_setup(state, STV0367_ICSPEED_53125, state->config->xtal);
- 
- 	stv0367_writereg(state, R367TER_I2CRPT, 0xa0);
- 	stv0367_writereg(state, R367TER_ANACTRL, 0x00);
-diff --git a/drivers/media/dvb-frontends/stv0367.h b/drivers/media/dvb-frontends/stv0367.h
-index 26c38a0..aaa0236 100644
---- a/drivers/media/dvb-frontends/stv0367.h
-+++ b/drivers/media/dvb-frontends/stv0367.h
-@@ -25,6 +25,9 @@
- #include <linux/dvb/frontend.h>
- #include "dvb_frontend.h"
- 
-+#define STV0367_ICSPEED_53125	53125000
-+#define STV0367_ICSPEED_58000	58000000
-+
- struct stv0367_config {
- 	u8 demod_address;
- 	u32 xtal;
--- 
-2.10.2
+> ---
+>   drivers/dma-buf/dma-buf.c | 34 +++++++++++++++++++++++++++++++++-
+>   1 file changed, 33 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> index 0007b792827b..f72aaacbe023 100644
+> --- a/drivers/dma-buf/dma-buf.c
+> +++ b/drivers/dma-buf/dma-buf.c
+> @@ -1059,7 +1059,11 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
+>   	int ret;
+>   	struct dma_buf *buf_obj;
+>   	struct dma_buf_attachment *attach_obj;
+> -	int count = 0, attach_count;
+> +	struct reservation_object *robj;
+> +	struct reservation_object_list *fobj;
+> +	struct dma_fence *fence;
+> +	unsigned seq;
+> +	int count = 0, attach_count, shared_count, i;
+>   	size_t size = 0;
+>   
+>   	ret = mutex_lock_interruptible(&db_list.lock);
+> @@ -1085,6 +1090,34 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
+>   				file_count(buf_obj->file),
+>   				buf_obj->exp_name);
+>   
+> +		robj = buf_obj->resv;
+> +		while (true) {
+> +			seq = read_seqcount_begin(&robj->seq);
+> +			rcu_read_lock();
+> +			fobj = rcu_dereference(robj->fence);
+> +			shared_count = fobj ? fobj->shared_count : 0;
+> +			fence = rcu_dereference(robj->fence_excl);
+> +			if (!read_seqcount_retry(&robj->seq, seq))
+> +				break;
+> +			rcu_read_unlock();
+> +		}
+> +
+> +		if (fence)
+> +			seq_printf(s, "\tExclusive fence: %s %s %ssignalled\n",
+> +				   fence->ops->get_driver_name(fence),
+> +				   fence->ops->get_timeline_name(fence),
+> +				   dma_fence_is_signaled(fence) ? "" : "un");
+> +		for (i = 0; i < shared_count; i++) {
+> +			fence = rcu_dereference(fobj->shared[i]);
+> +			if (!dma_fence_get_rcu(fence))
+> +				continue;
+> +			seq_printf(s, "\tShared fence: %s %s %ssignalled\n",
+> +				   fence->ops->get_driver_name(fence),
+> +				   fence->ops->get_timeline_name(fence),
+> +				   dma_fence_is_signaled(fence) ? "" : "un");
+> +		}
+> +		rcu_read_unlock();
+> +
+>   		seq_puts(s, "\tAttached Devices:\n");
+>   		attach_count = 0;
+>   
