@@ -1,55 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:59431 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753775AbdCFO6v (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:56890 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932630AbdCaUqt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:58:51 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 03/15] ov7670: fix g/s_parm
-Date: Mon,  6 Mar 2017 15:56:04 +0100
-Message-Id: <20170306145616.38485-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170306145616.38485-1-hverkuil@xs4all.nl>
-References: <20170306145616.38485-1-hverkuil@xs4all.nl>
+        Fri, 31 Mar 2017 16:46:49 -0400
+Date: Fri, 31 Mar 2017 21:46:29 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Patrice.chotard@st.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv6 01/10] media: add CEC notifier support
+Message-ID: <20170331204629.GV7909@n2100.armlinux.org.uk>
+References: <20170331122036.55706-1-hverkuil@xs4all.nl>
+ <20170331122036.55706-2-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170331122036.55706-2-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Fri, Mar 31, 2017 at 02:20:27PM +0200, Hans Verkuil wrote:
+> +struct cec_notifier *cec_notifier_get(struct device *dev)
+> +{
+> +	struct cec_notifier *n;
+> +
+> +	mutex_lock(&cec_notifiers_lock);
+> +	list_for_each_entry(n, &cec_notifiers, head) {
+> +		if (n->dev == dev) {
+> +			mutex_unlock(&cec_notifiers_lock);
+> +			kref_get(&n->kref);
 
-Drop unnecesary memset. Drop the unnecessary extendedmode check and
-set the V4L2_CAP_TIMEPERFRAME capability.
+Isn't this racy?  What stops one thread trying to get the notifier
+while another thread puts the notifier?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/ov7670.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index 9af8d3b8f848..50e4466a2b37 100644
---- a/drivers/media/i2c/ov7670.c
-+++ b/drivers/media/i2c/ov7670.c
-@@ -1046,7 +1046,6 @@ static int ov7670_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
- 	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
- 
--	memset(cp, 0, sizeof(struct v4l2_captureparm));
- 	cp->capability = V4L2_CAP_TIMEPERFRAME;
- 	info->devtype->get_framerate(sd, &cp->timeperframe);
- 
-@@ -1061,9 +1060,8 @@ static int ov7670_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
- 
- 	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
--	if (cp->extendedmode != 0)
--		return -EINVAL;
- 
-+	cp->capability = V4L2_CAP_TIMEPERFRAME;
- 	return info->devtype->set_framerate(sd, tpf);
- }
- 
 -- 
-2.11.0
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
