@@ -1,62 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:33066 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932430AbdCJEyO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:54:14 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v5 12/39] ARM: dts: imx6-sabreauto: add pinctrl for gpt input capture
-Date: Thu,  9 Mar 2017 20:52:52 -0800
-Message-Id: <1489121599-23206-13-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:36590 "EHLO
+        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933289AbdCaOZe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 31 Mar 2017 10:25:34 -0400
+Received: by mail-wm0-f51.google.com with SMTP id o81so89339wmb.1
+        for <linux-media@vger.kernel.org>; Fri, 31 Mar 2017 07:25:32 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org
+Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
+        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: [PATCH v5.1 5/6] drm: bridge: dw-hdmi: Add Documentation on supported input formats
+Date: Fri, 31 Mar 2017 16:25:18 +0200
+Message-Id: <1490970319-24981-6-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1490970319-24981-1-git-send-email-narmstrong@baylibre.com>
+References: <1490970319-24981-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add pinctrl groups for both GPT input capture channels.
+This patch adds a new DRM documentation entry and links to the input
+format table added in the dw_hdmi header.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 ---
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ Documentation/gpu/bridge/dw-hdmi.rst | 15 +++++++++++++++
+ Documentation/gpu/index.rst          |  1 +
+ 2 files changed, 16 insertions(+)
+ create mode 100644 Documentation/gpu/bridge/dw-hdmi.rst
 
-diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-index 21dea5f..1212f82 100644
---- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-@@ -456,6 +456,18 @@
- 			>;
- 		};
+diff --git a/Documentation/gpu/bridge/dw-hdmi.rst b/Documentation/gpu/bridge/dw-hdmi.rst
+new file mode 100644
+index 0000000..486faad
+--- /dev/null
++++ b/Documentation/gpu/bridge/dw-hdmi.rst
+@@ -0,0 +1,15 @@
++=======================================================
++ drm/bridge/dw-hdmi Synopsys DesignWare HDMI Controller
++=======================================================
++
++Synopsys DesignWare HDMI Controller
++===================================
++
++This section covers everything related to the Synopsys DesignWare HDMI
++Controller implemented as a DRM bridge.
++
++Supported Input Formats and Encodings
++-------------------------------------
++
++.. kernel-doc:: include/drm/bridge/dw_hdmi.h
++   :doc: Supported input formats and encodings
+diff --git a/Documentation/gpu/index.rst b/Documentation/gpu/index.rst
+index e998ee0..d81c6ff 100644
+--- a/Documentation/gpu/index.rst
++++ b/Documentation/gpu/index.rst
+@@ -15,6 +15,7 @@ Linux GPU Driver Developer's Guide
+    vc4
+    vga-switcheroo
+    vgaarbiter
++   bridge/dw-hdmi
+    todo
  
-+		pinctrl_gpt_input_capture0: gptinputcapture0grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_SD1_DAT0__GPT_CAPTURE1	0x1b0b0
-+			>;
-+		};
-+
-+		pinctrl_gpt_input_capture1: gptinputcapture1grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_SD1_DAT1__GPT_CAPTURE2	0x1b0b0
-+			>;
-+		};
-+
- 		pinctrl_spdif: spdifgrp {
- 			fsl,pins = <
- 				MX6QDL_PAD_KEY_COL3__SPDIF_IN 0x1b0b0
+ .. only::  subproject and html
 -- 
-2.7.4
+1.9.1
