@@ -1,89 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:58262 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753294AbdCTJFj (ORCPT
+Received: from mail-wr0-f178.google.com ([209.85.128.178]:33457 "EHLO
+        mail-wr0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933030AbdCaNpm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 05:05:39 -0400
-Date: Mon, 20 Mar 2017 09:05:25 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Philippe De Muyter <phdm@macq.eu>
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
-        linux-media@vger.kernel.org, kernel@pengutronix.de,
-        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, p.zabel@pengutronix.de
-Subject: Re: [PATCH 4/4] media: imx-media-capture: add frame sizes/interval
- enumeration
-Message-ID: <20170320090524.GC21222@n2100.armlinux.org.uk>
-References: <20170319103801.GQ21222@n2100.armlinux.org.uk>
- <E1cpYOa-0006Eu-CL@rmk-PC.armlinux.org.uk>
- <20170320085512.GA20923@frolo.macqel>
+        Fri, 31 Mar 2017 09:45:42 -0400
+Received: by mail-wr0-f178.google.com with SMTP id w43so106684546wrb.0
+        for <linux-media@vger.kernel.org>; Fri, 31 Mar 2017 06:45:41 -0700 (PDT)
+Subject: Re: [PATCH v5 3/6] documentation: media: Add documentation for new
+ RGB and YUV bus formats
+To: Hans Verkuil <hverkuil@xs4all.nl>, dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
+        mchehab@kernel.org
+References: <1490864675-17336-1-git-send-email-narmstrong@baylibre.com>
+ <1490864675-17336-4-git-send-email-narmstrong@baylibre.com>
+ <75ede5b8-ad35-c23f-2f02-c206df379357@xs4all.nl>
+Cc: Jose.Abreu@synopsys.com, kieran.bingham@ideasonboard.com,
+        linux-amlogic@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
+        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com
+From: Neil Armstrong <narmstrong@baylibre.com>
+Message-ID: <bc660ca0-b068-ef12-b422-d7c1672b7c41@baylibre.com>
+Date: Fri, 31 Mar 2017 15:45:38 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170320085512.GA20923@frolo.macqel>
+In-Reply-To: <75ede5b8-ad35-c23f-2f02-c206df379357@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 20, 2017 at 09:55:12AM +0100, Philippe De Muyter wrote:
-> Hi Russel,
+On 03/31/2017 03:14 PM, Hans Verkuil wrote:
+> On 30/03/17 11:04, Neil Armstrong wrote:
+>> Add documentation for added Bus Formats to describe RGB and YUV formats used
+>> as input to the Synopsys DesignWare HDMI TX Controller.
+>>
+>> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+>> ---
+>>  Documentation/media/uapi/v4l/subdev-formats.rst | 871 +++++++++++++++++++++++-
+>>  1 file changed, 857 insertions(+), 14 deletions(-)
 > 
-> On Sun, Mar 19, 2017 at 10:49:08AM +0000, Russell King wrote:
-> > Add support for enumerating frame sizes and frame intervals from the
-> > first subdev via the V4L2 interfaces.
-> > 
-> > Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-> > ---
-> >  drivers/staging/media/imx/imx-media-capture.c | 62 +++++++++++++++++++++++++++
-> >  1 file changed, 62 insertions(+)
-> > 
-> ...
-> > +static int capture_enum_frameintervals(struct file *file, void *fh,
-> > +				       struct v4l2_frmivalenum *fival)
-> > +{
-> > +	struct capture_priv *priv = video_drvdata(file);
-> > +	const struct imx_media_pixfmt *cc;
-> > +	struct v4l2_subdev_frame_interval_enum fie = {
-> > +		.index = fival->index,
-> > +		.pad = priv->src_sd_pad,
-> > +		.width = fival->width,
-> > +		.height = fival->height,
-> > +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-> > +	};
-> > +	int ret;
-> > +
-> > +	cc = imx_media_find_format(fival->pixel_format, CS_SEL_ANY, true);
-> > +	if (!cc)
-> > +		return -EINVAL;
-> > +
-> > +	fie.code = cc->codes[0];
-> > +
-> > +	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_interval, NULL, &fie);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
-> > +	fival->discrete = fie.interval;
+> This looks good, but the "Packed YUV Formats" documentation should be updated.
 > 
-> For some parallel sensors (mine is a E2V ev76c560) "any" frame interval is possible,
-> and hence type should be V4L2_FRMIVAL_TYPE_CONTINUOUS.
+> Currently this says:
+> 
+> -  The number of bus samples per pixel. Pixels that are wider than the
+>    bus width must be transferred in multiple samples. Common values are
+>    1, 1.5 (encoded as 1_5) and 2.
+> 
+> I propose this change:
+> 
+> -  The number of bus samples per pixel. Pixels that are wider than the
+>    bus width must be transferred in multiple samples. Common values are
+>    0.5 (encoded as 0_5; in this case two pixels are transferred per bus
+>    sample), 1, 1.5 (encoded as 1_5) and 2.
+> 
+> With that additional change you can add my:
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Regards,
+> 
+> 	Hans
+> 
 
-For my sensor, any frame interval is also possible, but that isn't the
-point here.
+Hi Hans,
 
-/dev/video* only talks to the CSI source pad, not it's sink pad.  The
-sink pad gets configured with the sensor frame rate via the media
-controller API.  /dev/video* itself has no control over the sensor
-frame rate.
+Thanks for the hint, I will change this and post a v5.1 with your acks.
 
-The media controller stuff completely changes the way the established
-/dev/video* functionality works - the ability to select arbitary frame
-sizes and frame rates supported by the ultimate sensor is gone.  All
-that needs to be setup through the media controller pipeline, one
-subdev at a time.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Neil
