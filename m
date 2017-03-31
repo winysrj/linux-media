@@ -1,74 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:38375 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933150AbdC3R02 (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:59320 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754627AbdCaVRJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 13:26:28 -0400
-Message-ID: <1490894749.2404.33.camel@pengutronix.de>
-Subject: [RFC] [media] imx: assume MEDIA_ENT_F_ATV_DECODER entities output
- video on pad 1
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Thu, 30 Mar 2017 19:25:49 +0200
-In-Reply-To: <1490661656-10318-20-git-send-email-steve_longerbeam@mentor.com>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-         <1490661656-10318-20-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Fri, 31 Mar 2017 17:17:09 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Luis R. Rodriguez" <mcgrof@kernel.org>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Oliver Neukum <oneukum@suse.com>,
+        Alexander Dahl <post@lespocky.de>,
+        Markus Heiser <markus.heiser@darmarit.de>
+Subject: [PATCH] docs-rst: core_api: move driver-specific stuff to drivers_api
+Date: Fri, 31 Mar 2017 18:17:00 -0300
+Message-Id: <1c2d5b55b259a233594a61d7c6294a0b626a8fa6.1490994994.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The TVP5150 DT bindings specify a single output port (port 0) that
-corresponds to the video output pad (pad 1, DEMOD_PAD_VID_OUT).
+There are several stuff there that are actually driver-specific.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Move those to the driver_api book.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
-I'm trying to get this to work with a TVP5150 analog TV decoder, and the
-first problem is that this device doesn't have pad 0 as its single
-output pad. Instead, as a MEDIA_ENT_F_ATV_DECODER entity, it has for
-pads (input, video out, vbi out, audio out), and video out is pad 1,
-whereas the device tree only defines a single port (0).
----
+ Documentation/core-api/kernel-api.rst              | 72 ----------------------
+ Documentation/driver-api/firmware/index.rst        |  1 +
+ .../driver-api/firmware/other_interfaces.rst       | 15 +++++
+ Documentation/driver-api/index.rst                 |  2 +
+ Documentation/driver-api/misc_devices.rst          |  5 ++
+ Documentation/driver-api/pci.rst                   | 50 +++++++++++++++
+ 6 files changed, 73 insertions(+), 72 deletions(-)
+ create mode 100644 Documentation/driver-api/firmware/other_interfaces.rst
+ create mode 100644 Documentation/driver-api/misc_devices.rst
+ create mode 100644 Documentation/driver-api/pci.rst
 
- drivers/staging/media/imx/imx-media-dev.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index 17e2386a3ca3a..c52d6ca797965 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -267,6 +267,15 @@ static int imx_media_create_link(struct imx_media_dev *imxmd,
- 	source_pad = link->local_pad;
- 	sink_pad = link->remote_pad;
+diff --git a/Documentation/core-api/kernel-api.rst b/Documentation/core-api/kernel-api.rst
+index 9a3d3597a6b7..9ec8488319dc 100644
+--- a/Documentation/core-api/kernel-api.rst
++++ b/Documentation/core-api/kernel-api.rst
+@@ -228,72 +228,6 @@ MTRR Handling
+ .. kernel-doc:: arch/x86/kernel/cpu/mtrr/main.c
+    :export:
  
-+	/*
-+	 * If the source subdev is an analog video decoder with a single source
-+	 * port, assume that this port 0 corresponds to the DEMOD_PAD_VID_OUT
-+	 * entity pad.
-+	 */
-+	if (source->entity.function == MEDIA_ENT_F_ATV_DECODER &&
-+	    local_sd->num_sink_pads == 0 && local_sd->num_src_pads == 1)
-+		source_pad = DEMOD_PAD_VID_OUT;
+-PCI Support Library
+--------------------
+-
+-.. kernel-doc:: drivers/pci/pci.c
+-   :export:
+-
+-.. kernel-doc:: drivers/pci/pci-driver.c
+-   :export:
+-
+-.. kernel-doc:: drivers/pci/remove.c
+-   :export:
+-
+-.. kernel-doc:: drivers/pci/search.c
+-   :export:
+-
+-.. kernel-doc:: drivers/pci/msi.c
+-   :export:
+-
+-.. kernel-doc:: drivers/pci/bus.c
+-   :export:
+-
+-.. kernel-doc:: drivers/pci/access.c
+-   :export:
+-
+-.. kernel-doc:: drivers/pci/irq.c
+-   :export:
+-
+-.. kernel-doc:: drivers/pci/htirq.c
+-   :export:
+-
+-.. kernel-doc:: drivers/pci/probe.c
+-   :export:
+-
+-.. kernel-doc:: drivers/pci/slot.c
+-   :export:
+-
+-.. kernel-doc:: drivers/pci/rom.c
+-   :export:
+-
+-.. kernel-doc:: drivers/pci/iov.c
+-   :export:
+-
+-.. kernel-doc:: drivers/pci/pci-sysfs.c
+-   :internal:
+-
+-PCI Hotplug Support Library
+----------------------------
+-
+-.. kernel-doc:: drivers/pci/hotplug/pci_hotplug_core.c
+-   :export:
+-
+-Firmware Interfaces
+-===================
+-
+-DMI Interfaces
+---------------
+-
+-.. kernel-doc:: drivers/firmware/dmi_scan.c
+-   :export:
+-
+-EDD Interfaces
+---------------
+-
+-.. kernel-doc:: drivers/firmware/edd.c
+-   :internal:
+-
+ Security Framework
+ ==================
+ 
+@@ -372,12 +306,6 @@ Char devices
+ .. kernel-doc:: fs/char_dev.c
+    :export:
+ 
+-Miscellaneous Devices
+-=====================
+-
+-.. kernel-doc:: drivers/char/misc.c
+-   :export:
+-
+ Clock Framework
+ ===============
+ 
+diff --git a/Documentation/driver-api/firmware/index.rst b/Documentation/driver-api/firmware/index.rst
+index 1abe01793031..29da39ec4b8a 100644
+--- a/Documentation/driver-api/firmware/index.rst
++++ b/Documentation/driver-api/firmware/index.rst
+@@ -7,6 +7,7 @@ Linux Firmware API
+    introduction
+    core
+    request_firmware
++   other_interfaces
+ 
+ .. only::  subproject and html
+ 
+diff --git a/Documentation/driver-api/firmware/other_interfaces.rst b/Documentation/driver-api/firmware/other_interfaces.rst
+new file mode 100644
+index 000000000000..36c47b1e9824
+--- /dev/null
++++ b/Documentation/driver-api/firmware/other_interfaces.rst
+@@ -0,0 +1,15 @@
++Other Firmware Interfaces
++=========================
 +
- 	v4l2_info(&imxmd->v4l2_dev, "%s: %s:%d -> %s:%d\n", __func__,
- 		  source->name, source_pad, sink->name, sink_pad);
++DMI Interfaces
++--------------
++
++.. kernel-doc:: drivers/firmware/dmi_scan.c
++   :export:
++
++EDD Interfaces
++--------------
++
++.. kernel-doc:: drivers/firmware/edd.c
++   :internal:
++
+diff --git a/Documentation/driver-api/index.rst b/Documentation/driver-api/index.rst
+index 90e742577dfc..8058a87c1c74 100644
+--- a/Documentation/driver-api/index.rst
++++ b/Documentation/driver-api/index.rst
+@@ -27,6 +27,7 @@ available subsections can be seen below.
+    iio/index
+    input
+    usb/index
++   pci
+    spi
+    i2c
+    hsi
+@@ -36,6 +37,7 @@ available subsections can be seen below.
+    80211/index
+    uio-howto
+    firmware/index
++   misc_devices
  
+ .. only::  subproject and html
+ 
+diff --git a/Documentation/driver-api/misc_devices.rst b/Documentation/driver-api/misc_devices.rst
+new file mode 100644
+index 000000000000..c7ee7b02ba88
+--- /dev/null
++++ b/Documentation/driver-api/misc_devices.rst
+@@ -0,0 +1,5 @@
++Miscellaneous Devices
++=====================
++
++.. kernel-doc:: drivers/char/misc.c
++   :export:
+diff --git a/Documentation/driver-api/pci.rst b/Documentation/driver-api/pci.rst
+new file mode 100644
+index 000000000000..01a6c8b7d3a7
+--- /dev/null
++++ b/Documentation/driver-api/pci.rst
+@@ -0,0 +1,50 @@
++PCI Support Library
++-------------------
++
++.. kernel-doc:: drivers/pci/pci.c
++   :export:
++
++.. kernel-doc:: drivers/pci/pci-driver.c
++   :export:
++
++.. kernel-doc:: drivers/pci/remove.c
++   :export:
++
++.. kernel-doc:: drivers/pci/search.c
++   :export:
++
++.. kernel-doc:: drivers/pci/msi.c
++   :export:
++
++.. kernel-doc:: drivers/pci/bus.c
++   :export:
++
++.. kernel-doc:: drivers/pci/access.c
++   :export:
++
++.. kernel-doc:: drivers/pci/irq.c
++   :export:
++
++.. kernel-doc:: drivers/pci/htirq.c
++   :export:
++
++.. kernel-doc:: drivers/pci/probe.c
++   :export:
++
++.. kernel-doc:: drivers/pci/slot.c
++   :export:
++
++.. kernel-doc:: drivers/pci/rom.c
++   :export:
++
++.. kernel-doc:: drivers/pci/iov.c
++   :export:
++
++.. kernel-doc:: drivers/pci/pci-sysfs.c
++   :internal:
++
++PCI Hotplug Support Library
++---------------------------
++
++.. kernel-doc:: drivers/pci/hotplug/pci_hotplug_core.c
++   :export:
 -- 
-2.11.0
+2.9.3
