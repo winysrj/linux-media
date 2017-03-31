@@ -1,97 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:37375 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751065AbdCNTGe (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:40252 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933155AbdCaMUx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:06:34 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Michal Simek <michal.simek@xilinx.com>
-Subject: [PATCH v3 03/27] media: entity: Add media_entity_has_route() function
-Date: Tue, 14 Mar 2017 20:02:44 +0100
-Message-Id: <20170314190308.25790-4-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Fri, 31 Mar 2017 08:20:53 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Patrice.chotard@st.com, Hans Verkuil <hans.verkuil@cisco.com>,
+        devicetree@vger.kernel.org
+Subject: [PATCHv6 10/10] ARM: dts: STiH410: update sti-cec for CEC notifier support
+Date: Fri, 31 Mar 2017 14:20:36 +0200
+Message-Id: <20170331122036.55706-11-hverkuil@xs4all.nl>
+In-Reply-To: <20170331122036.55706-1-hverkuil@xs4all.nl>
+References: <20170331122036.55706-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
-This is a wrapper around the media entity has_route operation.
+To use CEC notifier sti CEC driver needs to get phandle
+of the hdmi device.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+CC: devicetree@vger.kernel.org
 ---
- drivers/media/media-entity.c | 16 ++++++++++++++++
- include/media/media-entity.h | 16 ++++++++++++++++
- 2 files changed, 32 insertions(+)
+ arch/arm/boot/dts/stih407-family.dtsi | 12 ------------
+ arch/arm/boot/dts/stih410.dtsi        | 13 +++++++++++++
+ 2 files changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 5640ca29da8c9bbc..ccd991d2d3450ab3 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -244,6 +244,22 @@ EXPORT_SYMBOL_GPL(media_entity_pads_init);
-  * Graph traversal
-  */
+diff --git a/arch/arm/boot/dts/stih407-family.dtsi b/arch/arm/boot/dts/stih407-family.dtsi
+index d753ac36788f..044184580326 100644
+--- a/arch/arm/boot/dts/stih407-family.dtsi
++++ b/arch/arm/boot/dts/stih407-family.dtsi
+@@ -742,18 +742,6 @@
+ 				 <&clk_s_c0_flexgen CLK_ETH_PHY>;
+ 		};
  
-+bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
-+			    unsigned int pad1)
-+{
-+	if (pad0 >= entity->num_pads || pad1 >= entity->num_pads)
-+		return false;
+-		cec: sti-cec@094a087c {
+-			compatible = "st,stih-cec";
+-			reg = <0x94a087c 0x64>;
+-			clocks = <&clk_sysin>;
+-			clock-names = "cec-clk";
+-			interrupts = <GIC_SPI 140 IRQ_TYPE_NONE>;
+-			interrupt-names = "cec-irq";
+-			pinctrl-names = "default";
+-			pinctrl-0 = <&pinctrl_cec0_default>;
+-			resets = <&softreset STIH407_LPM_SOFTRESET>;
+-		};
+-
+ 		rng10: rng@08a89000 {
+ 			compatible      = "st,rng";
+ 			reg		= <0x08a89000 0x1000>;
+diff --git a/arch/arm/boot/dts/stih410.dtsi b/arch/arm/boot/dts/stih410.dtsi
+index 3c9672c5b09f..21fe72b183d8 100644
+--- a/arch/arm/boot/dts/stih410.dtsi
++++ b/arch/arm/boot/dts/stih410.dtsi
+@@ -281,5 +281,18 @@
+ 				 <&clk_s_c0_flexgen CLK_ST231_DMU>,
+ 				 <&clk_s_c0_flexgen CLK_FLASH_PROMIP>;
+ 		};
 +
-+	if (pad0 == pad1)
-+		return true;
-+
-+	if (!entity->ops || !entity->ops->has_route)
-+		return true;
-+
-+	return entity->ops->has_route(entity, pad0, pad1);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_has_route);
-+
- static struct media_entity *
- media_entity_other(struct media_entity *entity, struct media_link *link)
- {
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index bcb08c1f8c6265e8..b896827b4ebdfaa6 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -830,6 +830,22 @@ __must_check int media_graph_walk_init(
- 	struct media_graph *graph, struct media_device *mdev);
- 
- /**
-+ * media_entity_has_route - Check if two entity pads are connected internally
-+ *
-+ * @entity: The entity
-+ * @pad0: The first pad index
-+ * @pad1: The second pad index
-+ *
-+ * This function can be used to check whether two pads of an entity are
-+ * connected internally in the entity.
-+ *
-+ * The caller must hold entity->graph_obj.mdev->mutex.
-+ *
-+ * Return: true if the pads are connected internally and false otherwise.
-+ */
-+bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
-+			    unsigned int pad1);
-+/**
-  * media_graph_walk_cleanup - Release resources used by graph walk.
-  *
-  * @graph: Media graph structure that will be used to walk the graph
++		sti-cec@094a087c {
++			compatible = "st,stih-cec";
++			reg = <0x94a087c 0x64>;
++			clocks = <&clk_sysin>;
++			clock-names = "cec-clk";
++			interrupts = <GIC_SPI 140 IRQ_TYPE_NONE>;
++			interrupt-names = "cec-irq";
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_cec0_default>;
++			resets = <&softreset STIH407_LPM_SOFTRESET>;
++			hdmi-phandle = <&sti_hdmi>;
++		};
+ 	};
+ };
 -- 
-2.12.0
+2.11.0
