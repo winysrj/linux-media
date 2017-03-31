@@ -1,87 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:33690 "EHLO
-        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754735AbdCGKsv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 05:48:51 -0500
-Received: by mail-lf0-f52.google.com with SMTP id a6so85014878lfa.0
-        for <linux-media@vger.kernel.org>; Tue, 07 Mar 2017 02:48:03 -0800 (PST)
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 11/29] drivers, media: convert cx88_core.refcount from
- atomic_t to refcount_t
-To: "Reshetova, Elena" <elena.reshetova@intel.com>,
-        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
- <1488810076-3754-12-git-send-email-elena.reshetova@intel.com>
- <c6987419-f708-9923-0f9f-87b715600045@cogentembedded.com>
- <2236FBA76BA1254E88B949DDB74E612B41C556E2@IRSMSX102.ger.corp.intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux1394-devel@lists.sourceforge.net"
-        <linux1394-devel@lists.sourceforge.net>,
-        "linux-bcache@vger.kernel.org" <linux-bcache@vger.kernel.org>,
-        "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        "fcoe-devel@open-fcoe.org" <fcoe-devel@open-fcoe.org>,
-        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
-        "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>,
-        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
-        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
-        "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
-        "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-        "peterz@infradead.org" <peterz@infradead.org>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Message-ID: <71ea983c-c2e4-9145-634b-78aef993d982@cogentembedded.com>
-Date: Tue, 7 Mar 2017 13:40:07 +0300
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:50788 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932993AbdCaMMl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 31 Mar 2017 08:12:41 -0400
+Subject: Re: [PATCH] vidioc-enumin/output.rst: improve documentation
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <dfd64830-b66d-044d-2a40-82210a32c18a@xs4all.nl>
+ <20170331070508.7a8eae16@vento.lan>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Helen Koike <helen.koike@collabora.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <7e294a12-b8a9-a09f-c2d0-bf2e2ddcbf8b@xs4all.nl>
+Date: Fri, 31 Mar 2017 14:12:37 +0200
 MIME-Version: 1.0
-In-Reply-To: <2236FBA76BA1254E88B949DDB74E612B41C556E2@IRSMSX102.ger.corp.intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <20170331070508.7a8eae16@vento.lan>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3/7/2017 10:52 AM, Reshetova, Elena wrote:
-
->>> refcount_t type and corresponding API should be
->>> used instead of atomic_t when the variable is used as
->>> a reference counter. This allows to avoid accidental
->>> refcounter overflows that might lead to use-after-free
->>> situations.
->>>
->>> Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
->>> Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
->>> Signed-off-by: Kees Cook <keescook@chromium.org>
->>> Signed-off-by: David Windsor <dwindsor@gmail.com>
->> [...]
->>> diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
->>> index 115414c..16c1313 100644
->>> --- a/drivers/media/pci/cx88/cx88.h
->>> +++ b/drivers/media/pci/cx88/cx88.h
-[...]
->>> @@ -339,7 +340,7 @@ struct cx8802_dev;
->>>
->>>  struct cx88_core {
->>>  	struct list_head           devlist;
->>> -	atomic_t                   refcount;
->>> +	refcount_t                   refcount;
+On 31/03/17 12:05, Mauro Carvalho Chehab wrote:
+> Em Fri, 31 Mar 2017 10:58:39 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> The V4L2_INPUT_TYPE_CAMERA and V4L2_OUTPUT_TYPE_ANALOG descriptions were
+>> hopelessly out of date. Fix this, and also fix a few style issues in these
+>> documents. Finally add the missing documentation for V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY
+>> (only used by the zoran driver).
 >>
->>     Could you please keep the name aligned with above and below?
->
-> You mean "not aligned" to devlist, but with a shift like it was before?
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+> 
+> Patch looks OK to me, but see below.
+> 
+>> Question: should we perhaps add _TYPE_VIDEO aliases?
+> 
+> IMHO, let's rename it to _TYPE_VIDEO (or STREAM, or V_STREAM), and make 
+> _TYPE_CAMERA an alias, e. g.:
+> 
+> #define V4L2_INPUT_TYPE_VIDEO 2
+> 
+> #define V4L2_INPUT_TYPE_CAMERA V4L2_INPUT_TYPE_VIDEO
+> 
+> This way, we'll let clearer what's currently preferred. We should also
+> change it at the documentation, mentioning that V4L2_INPUT_TYPE_CAMERA
+> is an alias, due to historical reasons.
 
-    I mean aligned, like it was before. :-)
+Does this really make sense to do this now? Everyone is used to the old defines,
+wouldn't changing this just increase confusion?
 
-> Sure, will fix. Is the patch ok otherwise?
+Sorry, playing devil's advocate here.
 
-    I haven't noticed anything else...
+I'm a bit hesitant of doing this. We've done this in the past for APIs that
+were very new or rarely used, but this is everywhere.
 
-> Best Regards,
-> Elena.
-[...]
+I feel fixing the spec is sufficient.
 
-MBR, Sergei
+If more people think that adding this aliases is a good idea, then I can do that.
+
+Regards,
+
+	Hans
