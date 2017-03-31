@@ -1,113 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:35989 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756091AbdCTTsQ (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:43080 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933137AbdCaMUw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 15:48:16 -0400
-Subject: Re: [PATCH v5 38/39] media: imx: csi: fix crop rectangle reset in
- sink set_fmt
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-39-git-send-email-steve_longerbeam@mentor.com>
- <20170319152233.GW21222@n2100.armlinux.org.uk>
- <327d67d9-68c1-7f74-0c0f-f6aee1c4b546@gmail.com>
- <1490010926.2917.59.camel@pengutronix.de>
- <20170320120855.GH21222@n2100.armlinux.org.uk>
- <1490018451.2917.86.camel@pengutronix.de>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <709728d3-83ab-90cf-44d4-dcf41e6fbee7@gmail.com>
-Date: Mon, 20 Mar 2017 12:48:11 -0700
-MIME-Version: 1.0
-In-Reply-To: <1490018451.2917.86.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        Fri, 31 Mar 2017 08:20:52 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Patrice.chotard@st.com, Hans Verkuil <hans.verkuil@cisco.com>,
+        devicetree@vger.kernel.org
+Subject: [PATCHv6 09/10] stih-cec: add CEC notifier support
+Date: Fri, 31 Mar 2017 14:20:35 +0200
+Message-Id: <20170331122036.55706-10-hverkuil@xs4all.nl>
+In-Reply-To: <20170331122036.55706-1-hverkuil@xs4all.nl>
+References: <20170331122036.55706-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
+By using the CEC notifier framework there is no longer any reason
+to manually set the physical address. This was the one blocking
+issue that prevented this driver from going out of staging, so do
+this move as well.
 
-On 03/20/2017 07:00 AM, Philipp Zabel wrote:
-> On Mon, 2017-03-20 at 12:08 +0000, Russell King - ARM Linux wrote:
->> On Mon, Mar 20, 2017 at 12:55:26PM +0100, Philipp Zabel wrote:
->>> The above paragraph suggests we skip any rectangles that are not
->>> supported. In our case that would be 3. and 4., since the CSI can't
->>> compose into a larger frame. I hadn't realised that the crop selection
->>> currently happens on the source pad.
->> I'd recommend viewing the documentation in its post-processed version,
->> because then you get the examples as pictures, and they say that a
->> picture is worth 1000 words.  See
->>
->>    https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/dev-subdev.html
->>
->> There is almost an exact example of what we're trying to do - it's
->> figure 4.6.  Here, we have a sink pad with a cropping rectangle on
->> the input, which is then scaled to a composition rectangle (there's
->> no bounds rectangle, and it's specified that in such a case the
->> top,left of the composition rectangle will always be 0,0 - see quote
->> below).
->>
->> Where it differs is that the example also supports source cropping
->> for two source pads.  We don't support that.
->>
->> The same document says:
->>
->>    Scaling support is optional. When supported by a subdev, the crop
->>    rectangle on the subdev's sink pad is scaled to the size configured
->>    using the
->>    :ref:`VIDIOC_SUBDEV_S_SELECTION <VIDIOC_SUBDEV_G_SELECTION>` IOCTL
->>    using ``V4L2_SEL_TGT_COMPOSE`` selection target on the same pad. If the
->>    subdev supports scaling but not composing, the top and left values are
->>    not used and must always be set to zero.
-> Right, this sentence does imply that when scaling is supported, there
-> must be a sink compose rectangle, even when composing is not.
+Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+CC: devicetree@vger.kernel.org
+---
+ drivers/media/platform/Kconfig                     | 10 +++++++
+ drivers/media/platform/Makefile                    |  1 +
+ .../st-cec => media/platform/sti/cec}/Makefile     |  0
+ .../st-cec => media/platform/sti/cec}/stih-cec.c   | 31 +++++++++++++++++++---
+ drivers/staging/media/Kconfig                      |  2 --
+ drivers/staging/media/Makefile                     |  1 -
+ drivers/staging/media/st-cec/Kconfig               |  8 ------
+ drivers/staging/media/st-cec/TODO                  |  7 -----
+ 8 files changed, 39 insertions(+), 21 deletions(-)
+ rename drivers/{staging/media/st-cec => media/platform/sti/cec}/Makefile (100%)
+ rename drivers/{staging/media/st-cec => media/platform/sti/cec}/stih-cec.c (93%)
+ delete mode 100644 drivers/staging/media/st-cec/Kconfig
+ delete mode 100644 drivers/staging/media/st-cec/TODO
 
-Ok, this all makes consistent sense to me too. So:
-
-- the CSI hardware cropping rectangle should be specified via the
-   sink pad crop selection.
-
-- the CSI hardware /2 downscaler should be specified via the
-   sink pad compose selection.
-
-- the final source pad rectangle is the same as the sink pad
-   compose rectangle.
-
-So that leaves only step 4 (source pad crop selection) as
-unsupported.
-
-Steve
-
-
-> I have previously set up scaling like this:
->
-> media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080@1/60]"
-> media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/960x540@1/30]"
->
-> Does this mean, it should work like this instead?
->
-> media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080@1/60]"
-> media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY2X8/1920x1080@1/60,compose:(0,0)/960x540]"
-> media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/960x540@1/30]"
->
-> I suppose setting the source pad format should not be allowed to modify
-> the sink compose rectangle.
->
-> regards
-> Philipp
->
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 2c449b88fc94..7321f6123659 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -476,6 +476,16 @@ config VIDEO_SAMSUNG_S5P_CEC
+          CEC bus is present in the HDMI connector and enables communication
+          between compatible devices.
+ 
++config VIDEO_STI_HDMI_CEC
++       tristate "STMicroelectronics STiH4xx HDMI CEC driver"
++       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (ARCH_STI || COMPILE_TEST)
++       select MEDIA_CEC_NOTIFIER
++       ---help---
++         This is a driver for STIH4xx HDMI CEC interface. It uses the
++         generic CEC framework interface.
++         CEC bus is present in the HDMI connector and enables communication
++         between compatible devices.
++
+ endif #V4L_CEC_DRIVERS
+ 
+ menuconfig V4L_TEST_DRIVERS
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 2f94d82afa4c..940724ab9b70 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -39,6 +39,7 @@ obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
+ obj-$(CONFIG_VIDEO_STI_BDISP)		+= sti/bdisp/
+ obj-$(CONFIG_VIDEO_STI_HVA)		+= sti/hva/
+ obj-$(CONFIG_DVB_C8SECTPFE)		+= sti/c8sectpfe/
++obj-$(CONFIG_VIDEO_STI_HDMI_CEC) 	+= sti/cec/
+ 
+ obj-$(CONFIG_VIDEO_STI_DELTA)		+= sti/delta/
+ 
+diff --git a/drivers/staging/media/st-cec/Makefile b/drivers/media/platform/sti/cec/Makefile
+similarity index 100%
+rename from drivers/staging/media/st-cec/Makefile
+rename to drivers/media/platform/sti/cec/Makefile
+diff --git a/drivers/staging/media/st-cec/stih-cec.c b/drivers/media/platform/sti/cec/stih-cec.c
+similarity index 93%
+rename from drivers/staging/media/st-cec/stih-cec.c
+rename to drivers/media/platform/sti/cec/stih-cec.c
+index 3c25638a9610..636281c64c04 100644
+--- a/drivers/staging/media/st-cec/stih-cec.c
++++ b/drivers/media/platform/sti/cec/stih-cec.c
+@@ -1,6 +1,4 @@
+ /*
+- * drivers/staging/media/st-cec/stih-cec.c
+- *
+  * STIH4xx CEC driver
+  * Copyright (C) STMicroelectronic SA 2016
+  *
+@@ -15,9 +13,11 @@
+ #include <linux/mfd/syscon.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
++#include <linux/of_platform.h>
+ #include <linux/platform_device.h>
+ 
+ #include <media/cec.h>
++#include <media/cec-notifier.h>
+ 
+ #define CEC_NAME	"stih-cec"
+ 
+@@ -129,6 +129,7 @@ struct stih_cec {
+ 	void __iomem		*regs;
+ 	int			irq;
+ 	u32			irq_status;
++	struct cec_notifier	*notifier;
+ };
+ 
+ static int stih_cec_adap_enable(struct cec_adapter *adap, bool enable)
+@@ -303,12 +304,29 @@ static int stih_cec_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	struct resource *res;
+ 	struct stih_cec *cec;
++	struct device_node *np;
++	struct platform_device *hdmi_dev;
+ 	int ret;
+ 
+ 	cec = devm_kzalloc(dev, sizeof(*cec), GFP_KERNEL);
+ 	if (!cec)
+ 		return -ENOMEM;
+ 
++	np = of_parse_phandle(pdev->dev.of_node, "hdmi-phandle", 0);
++
++	if (!np) {
++		dev_err(&pdev->dev, "Failed to find hdmi node in device tree\n");
++		return -ENODEV;
++	}
++
++	hdmi_dev = of_find_device_by_node(np);
++	if (!hdmi_dev)
++		return -EPROBE_DEFER;
++
++	cec->notifier = cec_notifier_get(&hdmi_dev->dev);
++	if (!cec->notifier)
++		return -ENOMEM;
++
+ 	cec->dev = dev;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -335,7 +353,7 @@ static int stih_cec_probe(struct platform_device *pdev)
+ 	cec->adap = cec_allocate_adapter(&sti_cec_adap_ops, cec,
+ 			CEC_NAME,
+ 			CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH |
+-			CEC_CAP_PHYS_ADDR | CEC_CAP_TRANSMIT, 1);
++			CEC_CAP_TRANSMIT, 1);
+ 	ret = PTR_ERR_OR_ZERO(cec->adap);
+ 	if (ret)
+ 		return ret;
+@@ -346,12 +364,19 @@ static int stih_cec_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	cec_register_cec_notifier(cec->adap, cec->notifier);
++
+ 	platform_set_drvdata(pdev, cec);
+ 	return 0;
+ }
+ 
+ static int stih_cec_remove(struct platform_device *pdev)
+ {
++	struct stih_cec *cec = platform_get_drvdata(pdev);
++
++	cec_unregister_adapter(cec->adap);
++	cec_notifier_put(cec->notifier);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+index c0d83cecf528..8ed8202da57a 100644
+--- a/drivers/staging/media/Kconfig
++++ b/drivers/staging/media/Kconfig
+@@ -32,6 +32,4 @@ source "drivers/staging/media/platform/bcm2835/Kconfig"
+ # Keep LIRC at the end, as it has sub-menus
+ source "drivers/staging/media/lirc/Kconfig"
+ 
+-source "drivers/staging/media/st-cec/Kconfig"
+-
+ endif
+diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+index 97b29ece9a2c..3a6adeabede1 100644
+--- a/drivers/staging/media/Makefile
++++ b/drivers/staging/media/Makefile
+@@ -4,4 +4,3 @@ obj-$(CONFIG_LIRC_STAGING)	+= lirc/
+ obj-$(CONFIG_VIDEO_BCM2835)	+= platform/bcm2835/
+ obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
+ obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
+-obj-$(CONFIG_VIDEO_STI_HDMI_CEC) += st-cec/
+diff --git a/drivers/staging/media/st-cec/Kconfig b/drivers/staging/media/st-cec/Kconfig
+deleted file mode 100644
+index c04283db58d6..000000000000
+--- a/drivers/staging/media/st-cec/Kconfig
++++ /dev/null
+@@ -1,8 +0,0 @@
+-config VIDEO_STI_HDMI_CEC
+-       tristate "STMicroelectronics STiH4xx HDMI CEC driver"
+-       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (ARCH_STI || COMPILE_TEST)
+-       ---help---
+-         This is a driver for STIH4xx HDMI CEC interface. It uses the
+-         generic CEC framework interface.
+-         CEC bus is present in the HDMI connector and enables communication
+-         between compatible devices.
+diff --git a/drivers/staging/media/st-cec/TODO b/drivers/staging/media/st-cec/TODO
+deleted file mode 100644
+index c61289742c5c..000000000000
+--- a/drivers/staging/media/st-cec/TODO
++++ /dev/null
+@@ -1,7 +0,0 @@
+-This driver requires that userspace sets the physical address.
+-However, this should be passed on from the corresponding
+-ST HDMI driver.
+-
+-We have to wait until the HDMI notifier framework has been merged
+-in order to handle this gracefully, until that time this driver
+-has to remain in staging.
+-- 
+2.11.0
