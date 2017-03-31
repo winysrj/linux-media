@@ -1,127 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:56255 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933979AbdC3Pif (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60769 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932993AbdCaMUv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 11:38:35 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+        Fri, 31 Mar 2017 08:20:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] docs-rst: clarify field vs frame height in the subdev API
-Date: Thu, 30 Mar 2017 17:38:20 +0200
-Message-Id: <20170330153820.14853-1-p.zabel@pengutronix.de>
+Cc: Daniel Vetter <daniel.vetter@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Patrice.chotard@st.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv6 06/10] s5p-cec: add cec-notifier support, move out of staging
+Date: Fri, 31 Mar 2017 14:20:32 +0200
+Message-Id: <20170331122036.55706-7-hverkuil@xs4all.nl>
+In-Reply-To: <20170331122036.55706-1-hverkuil@xs4all.nl>
+References: <20170331122036.55706-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VIDIOC_SUBDEV_G/S_FMT take the field size if V4L2_FIELD_ALTERNATE field
-order is set, but the VIDIOC_SUBDEV_G/S_SELECTION rectangles still refer
-to frame size, regardless of the field order setting.
-VIDIOC_SUBDEV_ENUM_FRAME_SIZES always returns frame sizes as opposed to
-field sizes.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This was not immediately clear to me when reading the documentation, so
-this patch adds some clarifications in the relevant places.
+By using the CEC notifier framework there is no longer any reason
+to manually set the physical address. This was the one blocking
+issue that prevented this driver from going out of staging, so do
+this move as well.
 
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Update the bindings documenting the new hdmi phandle and
+update exynos4.dtsi accordingly.
+
+Tested with my Odroid U3.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
+CC: linux-samsung-soc@vger.kernel.org
 ---
- Documentation/media/uapi/v4l/dev-subdev.rst              | 16 ++++++++++++----
- Documentation/media/uapi/v4l/subdev-formats.rst          |  3 ++-
- .../media/uapi/v4l/vidioc-subdev-enum-frame-size.rst     |  4 ++++
- .../media/uapi/v4l/vidioc-subdev-g-selection.rst         |  2 ++
- 4 files changed, 20 insertions(+), 5 deletions(-)
+ drivers/media/platform/Kconfig                     | 18 +++++++++++
+ drivers/media/platform/Makefile                    |  1 +
+ .../media => media/platform}/s5p-cec/Makefile      |  0
+ .../platform}/s5p-cec/exynos_hdmi_cec.h            |  0
+ .../platform}/s5p-cec/exynos_hdmi_cecctrl.c        |  0
+ .../media => media/platform}/s5p-cec/regs-cec.h    |  0
+ .../media => media/platform}/s5p-cec/s5p_cec.c     | 35 ++++++++++++++++++----
+ .../media => media/platform}/s5p-cec/s5p_cec.h     |  3 ++
+ drivers/staging/media/Kconfig                      |  2 --
+ drivers/staging/media/Makefile                     |  1 -
+ drivers/staging/media/s5p-cec/Kconfig              |  9 ------
+ drivers/staging/media/s5p-cec/TODO                 |  7 -----
+ 12 files changed, 52 insertions(+), 24 deletions(-)
+ rename drivers/{staging/media => media/platform}/s5p-cec/Makefile (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cec.h (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cecctrl.c (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/regs-cec.h (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.c (89%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.h (97%)
+ delete mode 100644 drivers/staging/media/s5p-cec/Kconfig
+ delete mode 100644 drivers/staging/media/s5p-cec/TODO
 
-diff --git a/Documentation/media/uapi/v4l/dev-subdev.rst b/Documentation/media/uapi/v4l/dev-subdev.rst
-index cd28701802086..2f0a41f3796f0 100644
---- a/Documentation/media/uapi/v4l/dev-subdev.rst
-+++ b/Documentation/media/uapi/v4l/dev-subdev.rst
-@@ -82,7 +82,8 @@ Pad-level Formats
- .. note::
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index ab0bb4879b54..2c449b88fc94 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -460,6 +460,24 @@ config VIDEO_TI_SC
+ config VIDEO_TI_CSC
+ 	tristate
  
-     For the purpose of this section, the term *format* means the
--    combination of media bus data format, frame width and frame height.
-+    combination of media bus data format, frame width and frame height,
-+    unless otherwise noted.
- 
- Image formats are typically negotiated on video capture and output
- devices using the format and
-@@ -120,7 +121,9 @@ can expose pad-level image format configuration to applications. When
- they do, applications can use the
- :ref:`VIDIOC_SUBDEV_G_FMT <VIDIOC_SUBDEV_G_FMT>` and
- :ref:`VIDIOC_SUBDEV_S_FMT <VIDIOC_SUBDEV_G_FMT>` ioctls. to
--negotiate formats on a per-pad basis.
-+negotiate formats on a per-pad basis. Note that when those ioctls are
-+called with or return the field order set to ``V4L2_FIELD_ALTERNATE``,
-+the format contains the field height, which is half the frame height.
- 
- Applications are responsible for configuring coherent parameters on the
- whole pipeline and making sure that connected pads have compatible
-@@ -379,7 +382,10 @@ is supported by the hardware.
-    pad for further processing.
- 
- 2. Sink pad actual crop selection. The sink pad crop defines the crop
--   performed to the sink pad format.
-+   performed to the sink pad format. The crop rectangle always refers to
-+   the frame size, even if the sink pad format has field order set to
-+   ``V4L2_FIELD_ALTERNATE`` and the actual processed images are only
-+   field sized.
- 
- 3. Sink pad actual compose selection. The size of the sink pad compose
-    rectangle defines the scaling ratio compared to the size of the sink
-@@ -393,7 +399,9 @@ is supported by the hardware.
- 5. Source pad format. The source pad format defines the output pixel
-    format of the subdev, as well as the other parameters with the
-    exception of the image width and height. Width and height are defined
--   by the size of the source pad actual crop selection.
-+   by the size of the source pad actual crop selection. If the source pad
-+   format has field order set to ``V4L2_FIELD_ALTERNATE``, the source pad
-+   field height is half the source pad crop selection height.
- 
- Accessing any of the above rectangles not supported by the subdev will
- return ``EINVAL``. Any rectangle referring to a previous unsupported
-diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
-index d6152c907b8ba..f7195e5ee6e78 100644
---- a/Documentation/media/uapi/v4l/subdev-formats.rst
-+++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-@@ -19,7 +19,8 @@ Media Bus Formats
-       - Image width, in pixels.
-     * - __u32
-       - ``height``
--      - Image height, in pixels.
-+      - Image height, in pixels. This is the field height for
-+        ``V4L2_FIELD_ALTERNATE`` field order, or the frame height otherwise.
-     * - __u32
-       - ``code``
-       - Format code, from enum
-diff --git a/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-size.rst b/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-size.rst
-index 746c24ed97a05..a78ae138f8a87 100644
---- a/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-size.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-size.rst
-@@ -55,6 +55,10 @@ maximum values. Applications must use the
- :ref:`VIDIOC_SUBDEV_S_FMT <VIDIOC_SUBDEV_G_FMT>` ioctl to try the
- sub-device for an exact supported frame size.
- 
-+Note that if ``V4L2_FIELD_ALTERNATE`` field order is chosen in the
-+:ref:`VIDIOC_SUBDEV_S_FMT <VIDIOC_SUBDEV_G_FMT>` ioctls, those take
-+the field size, which is only half the height of the frame size.
++menuconfig V4L_CEC_DRIVERS
++	bool "Platform HDMI CEC drivers"
++	depends on MEDIA_CEC_SUPPORT
 +
- Available frame sizes may depend on the current 'try' formats at other
- pads of the sub-device, as well as on the current active links and the
- current values of V4L2 controls. See
-diff --git a/Documentation/media/uapi/v4l/vidioc-subdev-g-selection.rst b/Documentation/media/uapi/v4l/vidioc-subdev-g-selection.rst
-index 071d9c033db6b..253e0ccb78224 100644
---- a/Documentation/media/uapi/v4l/vidioc-subdev-g-selection.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-subdev-g-selection.rst
-@@ -45,6 +45,8 @@ function of the crop API, and more, are supported by the selections API.
- See :ref:`subdev` for more information on how each selection target
- affects the image processing pipeline inside the subdevice.
- 
-+Note that selection rectangles always refer to frame sizes, not field sizes.
++if V4L_CEC_DRIVERS
 +
++config VIDEO_SAMSUNG_S5P_CEC
++       tristate "Samsung S5P CEC driver"
++       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
++       select MEDIA_CEC_NOTIFIER
++       ---help---
++         This is a driver for Samsung S5P HDMI CEC interface. It uses the
++         generic CEC framework interface.
++         CEC bus is present in the HDMI connector and enables communication
++         between compatible devices.
++
++endif #V4L_CEC_DRIVERS
++
+ menuconfig V4L_TEST_DRIVERS
+ 	bool "Media test drivers"
+ 	depends on MEDIA_CAMERA_SUPPORT
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 8959f6e6692a..2f94d82afa4c 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -33,6 +33,7 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC)	+= s5p-mfc/
  
- Types of selection targets
- --------------------------
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
++obj-$(CONFIG_VIDEO_SAMSUNG_S5P_CEC)	+= s5p-cec/
+ obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
+ 
+ obj-$(CONFIG_VIDEO_STI_BDISP)		+= sti/bdisp/
+diff --git a/drivers/staging/media/s5p-cec/Makefile b/drivers/media/platform/s5p-cec/Makefile
+similarity index 100%
+rename from drivers/staging/media/s5p-cec/Makefile
+rename to drivers/media/platform/s5p-cec/Makefile
+diff --git a/drivers/staging/media/s5p-cec/exynos_hdmi_cec.h b/drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
+similarity index 100%
+rename from drivers/staging/media/s5p-cec/exynos_hdmi_cec.h
+rename to drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
+diff --git a/drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c b/drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
+similarity index 100%
+rename from drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c
+rename to drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
+diff --git a/drivers/staging/media/s5p-cec/regs-cec.h b/drivers/media/platform/s5p-cec/regs-cec.h
+similarity index 100%
+rename from drivers/staging/media/s5p-cec/regs-cec.h
+rename to drivers/media/platform/s5p-cec/regs-cec.h
+diff --git a/drivers/staging/media/s5p-cec/s5p_cec.c b/drivers/media/platform/s5p-cec/s5p_cec.c
+similarity index 89%
+rename from drivers/staging/media/s5p-cec/s5p_cec.c
+rename to drivers/media/platform/s5p-cec/s5p_cec.c
+index 2a07968b5ac6..f7adf61caaa8 100644
+--- a/drivers/staging/media/s5p-cec/s5p_cec.c
++++ b/drivers/media/platform/s5p-cec/s5p_cec.c
+@@ -19,11 +19,14 @@
+ #include <linux/mfd/syscon.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
++#include <linux/of_platform.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/timer.h>
+ #include <linux/workqueue.h>
+ #include <media/cec.h>
++#include <media/cec-edid.h>
++#include <media/cec-notifier.h>
+ 
+ #include "exynos_hdmi_cec.h"
+ #include "regs-cec.h"
+@@ -167,10 +170,22 @@ static const struct cec_adap_ops s5p_cec_adap_ops = {
+ static int s5p_cec_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
++	struct device_node *np;
++	struct platform_device *hdmi_dev;
+ 	struct resource *res;
+ 	struct s5p_cec_dev *cec;
+ 	int ret;
+ 
++	np = of_parse_phandle(pdev->dev.of_node, "hdmi-phandle", 0);
++
++	if (!np) {
++		dev_err(&pdev->dev, "Failed to find hdmi node in device tree\n");
++		return -ENODEV;
++	}
++	hdmi_dev = of_find_device_by_node(np);
++	if (hdmi_dev == NULL)
++		return -EPROBE_DEFER;
++
+ 	cec = devm_kzalloc(&pdev->dev, sizeof(*cec), GFP_KERNEL);
+ 	if (!cec)
+ 		return -ENOMEM;
+@@ -200,24 +215,33 @@ static int s5p_cec_probe(struct platform_device *pdev)
+ 	if (IS_ERR(cec->reg))
+ 		return PTR_ERR(cec->reg);
+ 
++	cec->notifier = cec_notifier_get(&hdmi_dev->dev);
++	if (cec->notifier == NULL)
++		return -ENOMEM;
++
+ 	cec->adap = cec_allocate_adapter(&s5p_cec_adap_ops, cec,
+ 		CEC_NAME,
+-		CEC_CAP_PHYS_ADDR | CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT |
++		CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT |
+ 		CEC_CAP_PASSTHROUGH | CEC_CAP_RC, 1);
+ 	ret = PTR_ERR_OR_ZERO(cec->adap);
+ 	if (ret)
+ 		return ret;
++
+ 	ret = cec_register_adapter(cec->adap, &pdev->dev);
+-	if (ret) {
+-		cec_delete_adapter(cec->adap);
+-		return ret;
+-	}
++	if (ret)
++		goto err_delete_adapter;
++
++	cec_register_cec_notifier(cec->adap, cec->notifier);
+ 
+ 	platform_set_drvdata(pdev, cec);
+ 	pm_runtime_enable(dev);
+ 
+ 	dev_dbg(dev, "successfuly probed\n");
+ 	return 0;
++
++err_delete_adapter:
++	cec_delete_adapter(cec->adap);
++	return ret;
+ }
+ 
+ static int s5p_cec_remove(struct platform_device *pdev)
+@@ -225,6 +249,7 @@ static int s5p_cec_remove(struct platform_device *pdev)
+ 	struct s5p_cec_dev *cec = platform_get_drvdata(pdev);
+ 
+ 	cec_unregister_adapter(cec->adap);
++	cec_notifier_put(cec->notifier);
+ 	pm_runtime_disable(&pdev->dev);
+ 	return 0;
+ }
+diff --git a/drivers/staging/media/s5p-cec/s5p_cec.h b/drivers/media/platform/s5p-cec/s5p_cec.h
+similarity index 97%
+rename from drivers/staging/media/s5p-cec/s5p_cec.h
+rename to drivers/media/platform/s5p-cec/s5p_cec.h
+index 03732c13d19f..7015845c1caa 100644
+--- a/drivers/staging/media/s5p-cec/s5p_cec.h
++++ b/drivers/media/platform/s5p-cec/s5p_cec.h
+@@ -59,12 +59,15 @@ enum cec_state {
+ 	STATE_ERROR
+ };
+ 
++struct cec_notifier;
++
+ struct s5p_cec_dev {
+ 	struct cec_adapter	*adap;
+ 	struct clk		*clk;
+ 	struct device		*dev;
+ 	struct mutex		lock;
+ 	struct regmap           *pmu;
++	struct cec_notifier	*notifier;
+ 	int			irq;
+ 	void __iomem		*reg;
+ 
+diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+index abd0e2d57c20..c0d83cecf528 100644
+--- a/drivers/staging/media/Kconfig
++++ b/drivers/staging/media/Kconfig
+@@ -29,8 +29,6 @@ source "drivers/staging/media/omap4iss/Kconfig"
+ 
+ source "drivers/staging/media/platform/bcm2835/Kconfig"
+ 
+-source "drivers/staging/media/s5p-cec/Kconfig"
+-
+ # Keep LIRC at the end, as it has sub-menus
+ source "drivers/staging/media/lirc/Kconfig"
+ 
+diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+index dc89325c463d..97b29ece9a2c 100644
+--- a/drivers/staging/media/Makefile
++++ b/drivers/staging/media/Makefile
+@@ -1,5 +1,4 @@
+ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
+-obj-$(CONFIG_VIDEO_SAMSUNG_S5P_CEC) += s5p-cec/
+ obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
+ obj-$(CONFIG_LIRC_STAGING)	+= lirc/
+ obj-$(CONFIG_VIDEO_BCM2835)	+= platform/bcm2835/
+diff --git a/drivers/staging/media/s5p-cec/Kconfig b/drivers/staging/media/s5p-cec/Kconfig
+deleted file mode 100644
+index 7a3489df3e70..000000000000
+--- a/drivers/staging/media/s5p-cec/Kconfig
++++ /dev/null
+@@ -1,9 +0,0 @@
+-config VIDEO_SAMSUNG_S5P_CEC
+-       tristate "Samsung S5P CEC driver"
+-       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (ARCH_EXYNOS || COMPILE_TEST)
+-       ---help---
+-         This is a driver for Samsung S5P HDMI CEC interface. It uses the
+-         generic CEC framework interface.
+-         CEC bus is present in the HDMI connector and enables communication
+-         between compatible devices.
+-
+diff --git a/drivers/staging/media/s5p-cec/TODO b/drivers/staging/media/s5p-cec/TODO
+deleted file mode 100644
+index 64f21bab38f5..000000000000
+--- a/drivers/staging/media/s5p-cec/TODO
++++ /dev/null
+@@ -1,7 +0,0 @@
+-This driver requires that userspace sets the physical address.
+-However, this should be passed on from the corresponding
+-Samsung HDMI driver.
+-
+-We have to wait until the HDMI notifier framework has been merged
+-in order to handle this gracefully, until that time this driver
+-has to remain in staging.
 -- 
 2.11.0
