@@ -1,120 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39372 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934820AbdC3UPh (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:36246 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932554AbdCaJEq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 16:15:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Oliver Neukum <oneukum@suse.com>,
-        David Mosberger <davidm@egauge.net>,
-        Jaejoong Kim <climbbb.kim@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        GregKroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-rpi-kernel@lists.infradead.org,
-        Jonathan Corbet <corbet@lwn.net>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        John Youn <johnyoun@synopsys.com>,
-        Roger Quadros <rogerq@ti.com>,
-        Linux Doc MailingList <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        USB list <linux-usb@vger.kernel.org>
-Subject: Re: [PATCH 22/22] usb: document that URB transfer_buffer should be aligned
-Date: Thu, 30 Mar 2017 23:16:16 +0300
-Message-ID: <2880864.WB0TZMbSHB@avalon>
-In-Reply-To: <Pine.LNX.4.44L0.1703301152300.1555-100000@iolanthe.rowland.org>
-References: <Pine.LNX.4.44L0.1703301152300.1555-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Fri, 31 Mar 2017 05:04:46 -0400
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v3 06/11] [media] s5p-mfc: Add support for HEVC decoder
+Date: Fri, 31 Mar 2017 14:36:35 +0530
+Message-id: <1490951200-32070-7-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
+References: <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170331090441epcas1p491fae79e00000335ea163eb4c15fc16d@epcas1p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alan,
+Add support for codec definition and corresponding buffer
+requirements for HEVC decoder.
 
-On Thursday 30 Mar 2017 11:55:18 Alan Stern wrote:
-> On Thu, 30 Mar 2017, Mauro Carvalho Chehab wrote:
-> > Em Thu, 30 Mar 2017 10:26:32 -0400 (EDT) Alan Stern escreveu:
-> >> On Thu, 30 Mar 2017, Oliver Neukum wrote:
-> >>>> Btw, I'm a lot more concerned about USB storage drivers. When I was
-> >>>> discussing about this issue at the #raspberrypi-devel IRC channel,
-> >>>> someone complained that, after switching from the RPi downstream
-> >>>> Kernel to upstream, his USB data storage got corrupted. Well, if the
-> >>>> USB storage drivers also assume that the buffer can be continuous,
-> >>>> that can corrupt data.
-> >>> 
-> >>> They do assume that.
-> >> 
-> >> Wait a minute.  Where does that assumption occur?
-> >> 
-> >> And exactly what is the assumption?  Mauro wrote "the buffer can be
-> >> continuous", but that is certainly not what he meant.
-> > 
-> > What I meant to say is that drivers like the uvcdriver (and maybe network
-> > and usb-storage drivers) may allocate a big buffer and get data there on
-> > some random order, e. g.:
-> > 
-> > int get_from_buf_pos(char *buf, int pos, int size)
-> > {
-> > 	/* or an equivalent call to usb_submit_urb() */
-> > 	usb_control_msg(..., buf + pos, size, ...);
-> > }
-> > 
-> > some_function ()
-> > {
-> > 	...
-> > 	
-> > 	chr *buf = kzalloc(4, GFP_KERNEL);
-> > 	
-> > 	/*
-> > 	 * Access the bytes at the array on a random order, with random size,
-> > 	 * Like:
-> > 	 */
-> > 	get_from_buf_pos(buf, 2, 2);	/* should read 0x56, 0x78 */
-> > 	get_from_buf_pos(buf, 0, 2);	/* should read 0x12, 0x34 */
-> > 	
-> > 	/*
-> > 	 * the expected value for the buffer would be:
-> > 	 * 	{ 0x12, 0x34, 0x56, 0x78 }
-> > 	 */
-> > 
-> > E. g. they assume that the transfer URB can work with any arbitrary
-> > pointer and size, without needing of pre-align them.
-> > 
-> > This doesn't work with HCD drivers like dwc2, as each USB_IN operation
-> > will actually write 4 bytes to the buffer.
-> > 
-> > So, what happens, instead, is that each data transfer will get four
-> > bytes. Due to a hack inside dwc2, with checks if the transfer_buffer
-> > is DWORD aligned. So, the first transfer will do what's expected: it will
-> > read 4 bytes to a temporary buffer, allocated inside the driver,
-> > copying just two bytes to buf. So, after the first read, the
-> > 
-> > buffer content will be:
-> > 	buf = { 0x00, x00, 0x56, 0x78 }
-> > 
-> > But, on the second read, it won't be using any temporary
-> > buffer. So, instead of reading a 16-bits word (0x5678),
-> > it will actually read 32 bits, with 16-bits with some random value,
-> > 
-> > causing a buffer overflow. E. g. buffer content will now be:
-> > 	buf = { 0x12, x34, 0xde, 0xad }
-> > 
-> > In other words, the second transfer corrupted the data from the
-> > first transfer.
-> 
-> I'm pretty sure that usb-storage does not do this, at least, not when
-> operating in its normal Bulk-Only-Transport mode.  It never tries to
-> read the results of an earlier transfer after carrying out a later
-> transfer to any part of the same buffer.
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |  1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |  3 +++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  8 ++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 17 +++++++++++++++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |  3 +++
+ 6 files changed, 31 insertions(+), 2 deletions(-)
 
-The uvcvideo driver does something similar. Given the size of the transfer a 
-bounce buffer shouldn't affect performances. Handling this in the USB core 
-sounds like the best solution to me.
-
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+index 3f0dab3..953a073 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+@@ -33,6 +33,7 @@
+ #define MFC_NUM_PORTS_V10	1
+ 
+ /* MFCv10 codec defines*/
++#define S5P_FIMV_CODEC_HEVC_DEC		17
+ #define S5P_FIMV_CODEC_HEVC_ENC         26
+ 
+ /* Encoder buffer size for MFC v10.0 */
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+index b1b1491..76eca67 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+@@ -101,6 +101,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_VP8_DEC:
+ 		codec_type = S5P_FIMV_CODEC_VP8_DEC_V6;
+ 		break;
++	case S5P_MFC_CODEC_HEVC_DEC:
++		codec_type = S5P_FIMV_CODEC_HEVC_DEC;
++		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		codec_type = S5P_FIMV_CODEC_H264_ENC_V6;
+ 		break;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 8368d5c2..f49fa34 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -79,6 +79,7 @@ static inline dma_addr_t s5p_mfc_mem_cookie(void *a, void *b)
+ #define S5P_MFC_CODEC_H263_DEC		5
+ #define S5P_MFC_CODEC_VC1RCV_DEC	6
+ #define S5P_MFC_CODEC_VP8_DEC		7
++#define S5P_MFC_CODEC_HEVC_DEC		17
+ 
+ #define S5P_MFC_CODEC_H264_ENC		20
+ #define S5P_MFC_CODEC_H264_MVC_ENC	21
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index db6d9fa..4fdaec2 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -144,6 +144,14 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.num_planes	= 1,
+ 		.versions	= MFC_V6PLUS_BITS,
+ 	},
++	{
++		.name		= "HEVC Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_HEVC,
++		.codec_mode	= S5P_FIMV_CODEC_HEVC_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
++		.versions	= MFC_V10_BIT,
++	},
+ };
+ 
+ #define NUM_FORMATS ARRAY_SIZE(formats)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index cb39484..033d655 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -220,6 +220,12 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
+ 		ctx->bank1.size = ctx->scratch_buf_size;
+ 		break;
++	case S5P_MFC_CODEC_HEVC_DEC:
++		mfc_debug(2, "Use min scratch buffer size\n");
++		ctx->bank1.size =
++			ctx->scratch_buf_size +
++			(ctx->mv_count * ctx->mv_size);
++		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		if (IS_MFCV10(dev)) {
+ 			mfc_debug(2, "Use min scratch buffer size\n");
+@@ -322,6 +328,7 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 	switch (ctx->codec_mode) {
+ 	case S5P_MFC_CODEC_H264_DEC:
+ 	case S5P_MFC_CODEC_H264_MVC_DEC:
++	case S5P_MFC_CODEC_HEVC_DEC:
+ 		ctx->ctx.size = buf_size->h264_dec_ctx;
+ 		break;
+ 	case S5P_MFC_CODEC_MPEG4_DEC:
+@@ -436,6 +443,10 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
+ 			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
+ 					ctx->img_height);
+ 		}
++	} else if (ctx->codec_mode == S5P_MFC_CODEC_HEVC_DEC) {
++		ctx->mv_size = s5p_mfc_dec_hevc_mv_size(ctx->img_width,
++				ctx->img_height);
++		ctx->mv_size = ALIGN(ctx->mv_size, 32);
+ 	} else {
+ 		ctx->mv_size = 0;
+ 	}
+@@ -517,7 +528,8 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 	buf_size1 -= ctx->scratch_buf_size;
+ 
+ 	if (ctx->codec_mode == S5P_FIMV_CODEC_H264_DEC ||
+-			ctx->codec_mode == S5P_FIMV_CODEC_H264_MVC_DEC){
++			ctx->codec_mode == S5P_FIMV_CODEC_H264_MVC_DEC ||
++			ctx->codec_mode == S5P_FIMV_CODEC_HEVC_DEC) {
+ 		writel(ctx->mv_size, mfc_regs->d_mv_buffer_size);
+ 		writel(ctx->mv_count, mfc_regs->d_num_mv);
+ 	}
+@@ -540,7 +552,8 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 				mfc_regs->d_second_plane_dpb + i * 4);
+ 	}
+ 	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
+-			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC) {
++			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC ||
++			ctx->codec_mode == S5P_MFC_CODEC_HEVC_DEC) {
+ 		for (i = 0; i < ctx->mv_count; i++) {
+ 			/* To test alignment */
+ 			align_gap = buf_addr1;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+index 975bbc5..2290f7e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+@@ -29,6 +29,9 @@
+ #define enc_lcu_width(x_size)		DIV_ROUND_UP(x_size, 32)
+ #define enc_lcu_height(y_size)		DIV_ROUND_UP(y_size, 32)
+ 
++#define s5p_mfc_dec_hevc_mv_size(x, y) \
++	(DIV_ROUND_UP(x, 64) * DIV_ROUND_UP(y, 64) * 256 + 512)
++
+ /* Definition */
+ #define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
+ #define ENC_MULTI_SLICE_BIT_MIN		2800
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
