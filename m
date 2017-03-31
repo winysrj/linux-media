@@ -1,254 +1,295 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:29608 "EHLO mga04.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:32461 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752179AbdCPPSw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Mar 2017 11:18:52 -0400
-Subject: Re: DRM Atomic property for color-space conversion
-To: Local user for Liviu Dudau <liviu.dudau@arm.com>,
-        =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
-References: <20170127172324.GB12018@e106950-lin.cambridge.arm.com>
- <20170130133513.GO31595@intel.com>
- <20170131123329.GB24500@e106950-lin.cambridge.arm.com>
- <20170131151546.GT31595@intel.com>
- <20170131155541.GF11506@e106950-lin.cambridge.arm.com>
- <20170316140725.GF31595@intel.com>
- <0cff6bab-7593-d3d2-f3b5-71dc21669dab@intel.com>
- <20170316143059.GG31595@intel.com>
- <20170316143721.GN6268@e110455-lin.cambridge.arm.com>
-Cc: Brian Starkey <brian.starkey@arm.com>,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, mihail.atanassov@arm.com
-From: "Sharma, Shashank" <shashank.sharma@intel.com>
-Message-ID: <f806a38d-f52c-0cf2-bee6-582f1a35d312@intel.com>
-Date: Thu, 16 Mar 2017 17:14:07 +0200
+        id S934642AbdCaB0u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 21:26:50 -0400
+Date: Fri, 31 Mar 2017 09:26:15 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: kbuild-all@01.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: [PATCH 01/22] driver-api/basics.rst: add device table header
+Message-ID: <201703310948.PP1Cu3J5%fengguang.wu@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20170316143721.GN6268@e110455-lin.cambridge.arm.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="jI8keyz6grp/JLjh"
+Content-Disposition: inline
+In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Regards
 
-Shashank
+--jI8keyz6grp/JLjh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+Hi Mauro,
 
-On 3/16/2017 4:37 PM, Local user for Liviu Dudau wrote:
-> On Thu, Mar 16, 2017 at 04:30:59PM +0200, Ville Syrjälä wrote:
->> On Thu, Mar 16, 2017 at 04:20:29PM +0200, Sharma, Shashank wrote:
->>> Regards
->>>
->>> Shashank
->>>
->>>
->>> On 3/16/2017 4:07 PM, Ville Syrjälä wrote:
->>>> On Tue, Jan 31, 2017 at 03:55:41PM +0000, Brian Starkey wrote:
->>>>> On Tue, Jan 31, 2017 at 05:15:46PM +0200, Ville Syrjälä wrote:
->>>>>> On Tue, Jan 31, 2017 at 12:33:29PM +0000, Brian Starkey wrote:
->>>>>>> Hi,
->>>>>>>
->>>>>>> On Mon, Jan 30, 2017 at 03:35:13PM +0200, Ville Syrjälä wrote:
->>>>>>>> On Fri, Jan 27, 2017 at 05:23:24PM +0000, Brian Starkey wrote:
->>>>>>>>> Hi,
->>>>>>>>>
->>>>>>>>> We're looking to enable the per-plane color management hardware in
->>>>>>>>> Mali-DP with atomic properties, which has sparked some conversation
->>>>>>>>> around how to handle YCbCr formats.
->>>>>>>>>
->>>>>>>>> As it stands today, it's assumed that a driver will implicitly "do the
->>>>>>>>> right thing" to display a YCbCr buffer.
->>>>>>>>>
->>>>>>>>> YCbCr data often uses different gamma curves and signal ranges (e.g.
->>>>>>>>> BT.609, BT.701, BT.2020, studio range, full-range), so its desirable
->>>>>>>>> to be able to explicitly control the YCbCr to RGB conversion process
->>>>>>>>> from userspace.
->>>>>>>>>
->>>>>>>>> We're proposing adding a "CSC" (color-space conversion) property to
->>>>>>>>> control this - primarily per-plane for framebuffer->pipeline CSC, but
->>>>>>>>> perhaps one per CRTC too for devices which have an RGB pipeline and
->>>>>>>>> want to output in YUV to the display:
->>>>>>>>>
->>>>>>>>> Name: "CSC"
->>>>>>>>> Type: ENUM | ATOMIC;
->>>>>>>>> Enum values (representative):
->>>>>>>>> "default":
->>>>>>>>> 	Same behaviour as now. "Some kind" of YCbCr->RGB conversion
->>>>>>>>> 	for YCbCr buffers, bypass for RGB buffers
->>>>>>>>> "disable":
->>>>>>>>> 	Explicitly disable all colorspace conversion (i.e. use an
->>>>>>>>> 	identity matrix).
->>>>>>>>> "YCbCr to RGB: BT.709":
->>>>>>>>> 	Only valid for YCbCr formats. CSC in accordance with BT.709
->>>>>>>>> 	using [16..235] for (8-bit) luma values, and [16..240] for
->>>>>>>>> 	8-bit chroma values. For 10-bit formats, the range limits are
->>>>>>>>> 	multiplied by 4.
->>>>>>>>> "YCbCr to RGB: BT.709 full-swing":
->>>>>>>>> 	Only valid for YCbCr formats. CSC in accordance with BT.709,
->>>>>>>>> 	but using the full range of each channel.
->>>>>>>>> "YCbCr to RGB: Use CTM":*
->>>>>>>>> 	Only valid for YCbCr formats. Use the matrix applied via the
->>>>>>>>> 	plane's CTM property
->>>>>>>>> "RGB to RGB: Use CTM":*
->>>>>>>>> 	Only valid for RGB formats. Use the matrix applied via the
->>>>>>>>> 	plane's CTM property
->>>>>>>>> "Use CTM":*
->>>>>>>>> 	Valid for any format. Use the matrix applied via the plane's
->>>>>>>>> 	CTM property
->>>>>>>>> ... any other values for BT.601, BT.2020, RGB to YCbCr etc. etc. as
->>>>>>>>> they are required.
->>>>>>>> Having some RGB2RGB and YCBCR2RGB things in the same property seems
->>>>>>>> weird. I would just go with something very simple like:
->>>>>>>>
->>>>>>>> YCBCR_TO_RGB_CSC:
->>>>>>>> * BT.601
->>>>>>>> * BT.709
->>>>>>>> * custom matrix
->>>>>>>>
->>>>>>> I think we've agreed in #dri-devel that this CSC property
->>>>>>> can't/shouldn't be mapped on-to the existing (hardware implementing
->>>>>>> the) CTM property - even in the case of per-plane color management -
->>>>>>> because CSC needs to be done before DEGAMMA.
->>>>>>>
->>>>>>> So, I'm in favour of going with what you suggested in the first place:
->>>>>>>
->>>>>>> A new YCBCR_TO_RGB_CSC property, enum type, with a list of fixed
->>>>>>> conversions. I'd drop the custom matrix for now, as we'd need to add
->>>>>>> another property to attach the custom matrix blob too.
->>>>>>>
->>>>>>> I still think we need a way to specify whether the source data range
->>>>>>> is broadcast/full-range, so perhaps the enum list should be expanded
->>>>>>> to all combinations of BT.601/BT.709 + broadcast/full-range.
->>>>>> Sounds reasonable. Not that much full range YCbCr stuff out there
->>>>>> perhaps. Well, apart from jpegs I suppose. But no harm in being able
->>>>>> to deal with it.
->>>>>>
->>>>>>> (I'm not sure what the canonical naming for broadcast/full-range is,
->>>>>>> we call them narrow and wide)
->>>>>> We tend to call them full vs. limited range. That's how our
->>>>>> "Broadcast RGB" property is defined as well.
->>>>>>
->>>>> OK, using the same ones sounds sensible.
->>>>>
->>>>>>>> And trying to use the same thing for the crtc stuff is probably not
->>>>>>>> going to end well. Like Daniel said we already have the
->>>>>>>> 'Broadcast RGB' property muddying the waters there, and that stuff
->>>>>>>> also ties in with what colorspace we signal to the sink via
->>>>>>>> infoframes/whatever the DP thing was called. So my gut feeling is
->>>>>>>> that trying to use the same property everywhere will just end up
->>>>>>>> messy.
->>>>>>> Yeah, agreed. If/when someone wants to add CSC on the output of a CRTC
->>>>>>> (after GAMMA), we can add a new property.
->>>>>>>
->>>>>>> That makes me wonder about calling this one SOURCE_YCBCR_TO_RGB_CSC to
->>>>>>> be explicit that it describes the source data. Then we can later add
->>>>>>> SINK_RGB_TO_YCBCR_CSC, and it will be reasonably obvious that its
->>>>>>> value describes the output data rather than the input data.
->>>>>> Source and sink have a slight connotation in my mind wrt. the box that
->>>>>> produces the display signal and the box that eats the signal. So trying
->>>>>> to use the same terms to describe the internals of the pipeline inside
->>>>>> the "source box" migth lead to some confusion. But we do probably need
->>>>>> some decent names for these to make the layout of the pipeline clear.
->>>>>> Input/output are the other names that popped to my mind but those aren't
->>>>>> necessarily any better. But in the end I think I could live with whatever
->>>>>> names we happen to pick, as long as we document the pipeline clearly.
->>>>>>
->>>>>> Long ago I did wonder if we should just start indexing these things
->>>>>> somehow, and then just looking at the index should tell you the order
->>>>>> of the operations. But we already have the ctm/gamma w/o any indexes so
->>>>>> that idea probably isn't so great anymore.
->>>>>>
->>>>>>> I want to avoid confusion caused by ending up with two
->>>>>>> {CS}_TO_{CS}_CSC properties, where one is describing the data to the
->>>>>>> left of it, and the other describing the data to the right of it, with
->>>>>>> no real way of telling which way around it is.
->>>>>> Not really sure what you mean. It should always be
->>>>>> <left>_to_<right>_csc.
->>>>> Agreed, left-to-right. But for instance on a CSC property representing
->>>>> a CRTC output CSC (just before hitting the connector), which happens
->>>>> to be converting RGB to YCbCr:
->>>>>
->>>>> CRTC -> GAMMA -> RGB_TO_YCBCR_CSC
->>>>>
->>>>> ...the enum value "BT.601 Limited" means that the data on the *right*
->>>>> of RGB_TO_YCBCR_CSC is "BT.601 Limited"
->>>>>
->>>>> On the other hand for a CSC on the input of a plane, which happens to
->>>>> be converting YCbCr to RGB:
->>>>>
->>>>> RAM -> YCBCR_TO_RGB_CSC -> DEGAMMA
->>>>>
->>>>> ...the enum value "BT.601 Limited" means that the data on the *left*
->>>>> of YCBCR_TO_RGB_CSC is "BT.601 Limited".
->>>>>
->>>>> Indicating in the property name whether its value is describing the
->>>>> data on the left or the right is needed (and I don't think inferring
->>>>> that "it's always the YCBCR one" is the correct approach).
->>>>>
->>>>> In my example above, "SOURCE_xxx" would mean the enum value is
->>>>> describing the "source" data (i.e. the data on the left) and
->>>>> "SINK_xxx" would mean the enum value is describing the "sink" data
->>>>> (i.e. the data on the right). This doesn't necessarily need to infer a
->>>>> particular point in the pipeline.
->>>> Right, so I guess you want the values to be named "<a> to <b>" as well?
->>>> Yes, I think we'll be wanting that as well.
->>>>
->>>> So what we might need is something like:
->>>> enum YCBCR_TO_RGB_CSC
->>>>    * YCbCr BT.601 limited to RGB BT.709 full
->>>>    * YCbCr BT.709 limited to RGB BT.709 full <this would be the likely default value IMO>
->>>>    * YCbCr BT.601 limited to RGB BT.2020 full
->>>>    * YCbCr BT.709 limited to RGB BT.2020 full
->>>>    * YCbCr BT.2020 limited to RGB BT.2020 full
->>>>
->>>> And thanks to BT.2020 we'll need a RGB->RGB CSC property as well. Eg:
->>>> enum RGB_TO_RGB_CSC
->>>>    * bypass (or separate 709->709, 2020->2020?) <this would be the default>
->>>>    * RGB BT.709 full to RGB BT.2020 full
->>>>
->>>> Alternatives would involve two properties to define the input and output
->>>> from the CSC separately, but then you lose the capability to see which
->>>> combinations are actually supoorted.
->>> I was thinking about this too, or would it make more sense to create two
->>> properties:
->>> - one for gamut mapping (cases like RGB709->RGB2020)
->>> - other one for Color space conversion (cases lile YUV 709 -> RGB 709)
->>>
->>> Gamut mapping can represent any of the fix function mapping, wereas CSC
->>> can bring up any programmable matrix
->>>
->>> Internally these properties can use the same HW unit or even same function.
->>> Does it sound any good ?
->> It's certainly possible. One problem is that we can't inform userspace
->> upfront which combinations are supported. Whether that's a real problem
->> I'm not sure. With atomic userspace can of course check upfront if
->> something can be done or not, but the main problem is then coming up
->> with a fallback strategy that doesn't suck too badly.
->>
->> Anyways, I don't think I have any strong favorites here. Would be nice
->> to hear what everyone else thinks.
-> I confess to a lack of experience in the subject here, but what is the more common
-> request coming from userspace: converting YUV <-> RGB but keeping the gammut mapping
-> separate, or YUV (gammut x) <-> RGB (gammut y) ? In other words: I can see the usefulness
-> of having an explicit way of decomposing the color mapping process and control the
-> parameters, but how often do apps or compositors go through the whole chain?
-Right now, more or less the interest is on the RGB->YUV conversion side, 
-coz till now BT 2020 gamut was not in
-picture. REC 601 and 709 have very close gamuts, so it was ok to blend 
-frames mostly without bothering about
-gamut, but going fwd, ones REC 2020 comes into picture, we need to 
-bother about mapping gamuts too, else
-blending Rec709 buffers and Rec2020 buffers together would cause very 
-visible gamut mismatch.
+[auto build test WARNING on linus/master]
+[also build test WARNING on v4.11-rc4 next-20170330]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-So considering futuristic developments, it might be ok to consider both. 
-Still, as Ville mentioned, it would be good
-to hear from other too.
+url:    https://github.com/0day-ci/linux/commits/Mauro-Carvalho-Chehab/driver-api-basics-rst-add-device-table-header/20170331-041911
+reproduce: make htmldocs
 
-- Shashank
->
-> Best regards,
-> Liviu
->
->> -- 
->> Ville Syrjälä
->> Intel OTC
+All warnings (new ones prefixed by >>):
+
+   include/linux/init.h:1: warning: no structured comments found
+>> include/linux/mod_devicetable.h:676: warning: Excess struct/union/enum/typedef member 'ver_major' description in 'fsl_mc_device_id'
+>> include/linux/mod_devicetable.h:676: warning: Excess struct/union/enum/typedef member 'ver_minor' description in 'fsl_mc_device_id'
+   kernel/sched/core.c:2085: warning: No description found for parameter 'rf'
+   kernel/sched/core.c:2085: warning: Excess function parameter 'cookie' description in 'try_to_wake_up_local'
+   include/linux/kthread.h:26: warning: Excess function parameter '...' description in 'kthread_create'
+   kernel/sys.c:1: warning: no structured comments found
+   include/linux/device.h:969: warning: No description found for parameter 'dma_ops'
+   drivers/dma-buf/seqno-fence.c:1: warning: no structured comments found
+   include/linux/iio/iio.h:597: warning: No description found for parameter 'trig_readonly'
+   include/linux/iio/trigger.h:151: warning: No description found for parameter 'indio_dev'
+   include/linux/iio/trigger.h:151: warning: No description found for parameter 'trig'
+   include/linux/device.h:970: warning: No description found for parameter 'dma_ops'
+   drivers/regulator/core.c:1467: warning: Excess function parameter 'ret' description in 'regulator_dev_lookup'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'open'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'preclose'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'postclose'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'lastclose'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'set_busid'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'irq_handler'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'irq_preinstall'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'irq_postinstall'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'irq_uninstall'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'debugfs_init'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'debugfs_cleanup'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'gem_open_object'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'gem_close_object'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'prime_handle_to_fd'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'prime_fd_to_handle'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'gem_prime_export'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'gem_prime_import'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'gem_prime_pin'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'gem_prime_unpin'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'gem_prime_res_obj'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'gem_prime_get_sg_table'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'gem_prime_import_sg_table'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'gem_prime_vmap'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'gem_prime_vunmap'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'gem_prime_mmap'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'gem_vm_ops'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'major'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'minor'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'patchlevel'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'name'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'desc'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'date'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'driver_features'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'ioctls'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'num_ioctls'
+   include/drm/drm_drv.h:438: warning: No description found for parameter 'fops'
+   include/drm/drm_color_mgmt.h:1: warning: no structured comments found
+   drivers/gpu/drm/drm_fb_cma_helper.c:557: warning: Excess function parameter 'num_crtc' description in 'drm_fbdev_cma_init'
+   drivers/gpu/drm/drm_fb_cma_helper.c:558: warning: Excess function parameter 'num_crtc' description in 'drm_fbdev_cma_init'
+   drivers/gpu/drm/i915/intel_lpe_audio.c:342: warning: No description found for parameter 'pipe'
+   drivers/gpu/drm/i915/intel_lpe_audio.c:342: warning: No description found for parameter 'dp_output'
+   drivers/gpu/drm/i915/intel_lpe_audio.c:342: warning: No description found for parameter 'link_rate'
+   drivers/gpu/drm/i915/intel_lpe_audio.c:343: warning: No description found for parameter 'pipe'
+   drivers/gpu/drm/i915/intel_lpe_audio.c:343: warning: No description found for parameter 'dp_output'
+   drivers/gpu/drm/i915/intel_lpe_audio.c:343: warning: No description found for parameter 'link_rate'
+   drivers/media/dvb-core/dvb_frontend.h:677: warning: No description found for parameter 'refcount'
+   Documentation/core-api/assoc_array.rst:13: WARNING: Enumerated list ends without a blank line; unexpected unindent.
+   Documentation/doc-guide/sphinx.rst:110: ERROR: Unknown target name: "sphinx c domain".
+   kernel/sched/fair.c:7616: WARNING: Inline emphasis start-string without end-string.
+   kernel/time/timer.c:1200: ERROR: Unexpected indentation.
+   kernel/time/timer.c:1202: ERROR: Unexpected indentation.
+   kernel/time/timer.c:1203: WARNING: Block quote ends without a blank line; unexpected unindent.
+   include/linux/wait.h:122: WARNING: Block quote ends without a blank line; unexpected unindent.
+   include/linux/wait.h:125: ERROR: Unexpected indentation.
+   include/linux/wait.h:127: WARNING: Block quote ends without a blank line; unexpected unindent.
+   kernel/time/hrtimer.c:990: WARNING: Block quote ends without a blank line; unexpected unindent.
+   kernel/signal.c:322: WARNING: Inline literal start-string without end-string.
+   include/linux/iio/iio.h:219: ERROR: Unexpected indentation.
+   include/linux/iio/iio.h:220: WARNING: Block quote ends without a blank line; unexpected unindent.
+   include/linux/iio/iio.h:226: WARNING: Definition list ends without a blank line; unexpected unindent.
+   drivers/iio/industrialio-core.c:639: ERROR: Unknown target name: "iio_val".
+   drivers/iio/industrialio-core.c:646: ERROR: Unknown target name: "iio_val".
+   drivers/message/fusion/mptbase.c:5051: WARNING: Definition list ends without a blank line; unexpected unindent.
+   drivers/tty/serial/serial_core.c:1898: WARNING: Definition list ends without a blank line; unexpected unindent.
+   include/linux/regulator/driver.h:271: ERROR: Unknown target name: "regulator_regmap_x_voltage".
+   include/linux/spi/spi.h:369: ERROR: Unexpected indentation.
+   drivers/usb/core/message.c:478: ERROR: Unexpected indentation.
+   drivers/usb/core/message.c:479: WARNING: Block quote ends without a blank line; unexpected unindent.
+   Documentation/driver-api/usb.rst:623: ERROR: Unknown target name: "usb_type".
+   Documentation/driver-api/usb.rst:623: ERROR: Unknown target name: "usb_dir".
+   Documentation/driver-api/usb.rst:623: ERROR: Unknown target name: "usb_recip".
+   Documentation/driver-api/usb.rst:689: ERROR: Unknown target name: "usbdevfs_urb_type".
+   sound/soc/soc-core.c:2670: ERROR: Unknown target name: "snd_soc_daifmt".
+   sound/core/jack.c:312: ERROR: Unknown target name: "snd_jack_btn".
+   WARNING: dvipng command 'dvipng' cannot be run (needed for math display), check the imgmath_dvipng setting
+
+vim +676 include/linux/mod_devicetable.h
+
+289fcff4 Heikki Krogerus 2015-05-13  660  };
+289fcff4 Heikki Krogerus 2015-05-13  661  
+0afef456 Stuart Yoder    2016-06-22  662  /**
+0afef456 Stuart Yoder    2016-06-22  663   * struct fsl_mc_device_id - MC object device identifier
+0afef456 Stuart Yoder    2016-06-22  664   * @vendor: vendor ID
+0afef456 Stuart Yoder    2016-06-22  665   * @obj_type: MC object type
+0afef456 Stuart Yoder    2016-06-22  666   * @ver_major: MC object version major number
+0afef456 Stuart Yoder    2016-06-22  667   * @ver_minor: MC object version minor number
+0afef456 Stuart Yoder    2016-06-22  668   *
+0afef456 Stuart Yoder    2016-06-22  669   * Type of entries in the "device Id" table for MC object devices supported by
+0afef456 Stuart Yoder    2016-06-22  670   * a MC object device driver. The last entry of the table has vendor set to 0x0
+0afef456 Stuart Yoder    2016-06-22  671   */
+0afef456 Stuart Yoder    2016-06-22  672  struct fsl_mc_device_id {
+0afef456 Stuart Yoder    2016-06-22  673  	__u16 vendor;
+0afef456 Stuart Yoder    2016-06-22  674  	const char obj_type[16];
+0afef456 Stuart Yoder    2016-06-22  675  };
+0afef456 Stuart Yoder    2016-06-22 @676  
+0afef456 Stuart Yoder    2016-06-22  677  
+^1da177e Linus Torvalds  2005-04-16  678  #endif /* LINUX_MOD_DEVICETABLE_H */
+
+:::::: The code at line 676 was first introduced by commit
+:::::: 0afef45654ae908536278ecb143ded5bbc713391 staging: fsl-mc: add support for device table matching
+
+:::::: TO: Stuart Yoder <stuart.yoder@nxp.com>
+:::::: CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+
+--jI8keyz6grp/JLjh
+Content-Type: application/gzip
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
+
+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
+
+--jI8keyz6grp/JLjh--
