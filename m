@@ -1,52 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:44666 "EHLO
-        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753177AbdCFScd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 13:32:33 -0500
-To: linux-media <linux-media@vger.kernel.org>
-Subject: [PATCH -next] media/platform/mtk-jpeg: add slab.h to fix build errors
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        Ming Hsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Bin Liu <bin.liu@mediatek.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <e2c7cefc-707c-5d9b-4f1f-fb4a2cc15e14@infradead.org>
-Date: Mon, 6 Mar 2017 10:32:22 -0800
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:48960 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754720AbdCaKD1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 31 Mar 2017 06:03:27 -0400
+From: Russell King <rmk+kernel@armlinux.org.uk>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org
+Subject: [PATCH] dma-buf: align debugfs output
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <E1cttOq-0006GX-U7@rmk-PC.armlinux.org.uk>
+Date: Fri, 31 Mar 2017 11:03:20 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <rdunlap@infradead.org>
+Align the heading with the values output from debugfs.
 
-Include <linux/slab.h> to fix these build errors:
-
-../drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c: In function 'mtk_jpeg_open':
-../drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c:1017:2: error: implicit declaration of function 'kzalloc' [-Werror=implicit-function-declaration]
-  ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-../drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c:1017:6: warning: assignment makes pointer from integer without a cast [enabled by default]
-  ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-../drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c:1047:2: error: implicit declaration of function 'kfree' [-Werror=implicit-function-declaration]
-  kfree(ctx);
-
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Ming Hsiu Tsai <minghsiu.tsai@mediatek.com>
-Cc: Rick Chang <rick.chang@mediatek.com>
-Cc: Bin Liu <bin.liu@mediatek.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 ---
- drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/dma-buf/dma-buf.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- linux-next-20170306.orig/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
-+++ linux-next-20170306/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
-@@ -22,6 +22,7 @@
- #include <linux/of_platform.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/slab.h>
- #include <linux/spinlock.h>
- #include <media/v4l2-event.h>
- #include <media/v4l2-mem2mem.h>
+diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+index ebaf1923ad6b..f72aaacbe023 100644
+--- a/drivers/dma-buf/dma-buf.c
++++ b/drivers/dma-buf/dma-buf.c
+@@ -1072,7 +1072,8 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
+ 		return ret;
+ 
+ 	seq_puts(s, "\nDma-buf Objects:\n");
+-	seq_puts(s, "size\tflags\tmode\tcount\texp_name\n");
++	seq_printf(s, "%-8s\t%-8s\t%-8s\t%-8s\texp_name\n",
++		   "size", "flags", "mode", "count");
+ 
+ 	list_for_each_entry(buf_obj, &db_list.head, list_node) {
+ 		ret = mutex_lock_interruptible(&buf_obj->lock);
+-- 
+2.7.4
