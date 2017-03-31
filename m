@@ -1,60 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45270 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932953AbdC2V0P (ORCPT
+Received: from mail-wr0-f179.google.com ([209.85.128.179]:32879 "EHLO
+        mail-wr0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933000AbdCaOZa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 17:26:15 -0400
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 2C8AD60097
-        for <linux-media@vger.kernel.org>; Thu, 30 Mar 2017 00:26:10 +0300 (EEST)
-Date: Thu, 30 Mar 2017 00:25:39 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for v4.12] Make use of refcount_t in V4L2
-Message-ID: <20170329212539.GI16657@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Fri, 31 Mar 2017 10:25:30 -0400
+Received: by mail-wr0-f179.google.com with SMTP id w43so108161365wrb.0
+        for <linux-media@vger.kernel.org>; Fri, 31 Mar 2017 07:25:29 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
+        mchehab@kernel.org
+Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
+        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com
+Subject: [PATCH v5.1 2/6] media: uapi: Add RGB and YUV bus formats for Synopsys HDMI TX Controller
+Date: Fri, 31 Mar 2017 16:25:15 +0200
+Message-Id: <1490970319-24981-3-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1490970319-24981-1-git-send-email-narmstrong@baylibre.com>
+References: <1490970319-24981-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+In order to describe the RGB and YUV bus formats used to feed the
+Synopsys DesignWare HDMI TX Controller, add missing formats to the
+list of Bus Formats.
 
-These patches begin using refcount_t in counting references to VB2 buffers
-as well as cx88 core.
+Documentation for these formats is added in a separate patch.
 
-Please pull.
+Reviewed-by: Archit Taneja <architt@codeaurora.org>
+Reviewed-by: Jose Abreu <joabreu@synopsys.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ include/uapi/linux/media-bus-format.h | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-
-The following changes since commit c3d4fb0fb41f4b5eafeee51173c14e50be12f839:
-
-  [media] rc: sunxi-cir: simplify optional reset handling (2017-03-24 08:30:03 -0300)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git refcount_t
-
-for you to fetch changes up to e1588d503639483a5a826dc0a2cd17eab0e44504:
-
-  vb2: convert vb2_vmarea_handler refcount from atomic_t to refcount_t (2017-03-27 19:55:35 +0300)
-
-----------------------------------------------------------------
-Elena Reshetova (2):
-      cx88: convert struct cx88_core.refcount from atomic_t to refcount_t
-      vb2: convert vb2_vmarea_handler refcount from atomic_t to refcount_t
-
- drivers/media/pci/cx88/cx88-cards.c            |  2 +-
- drivers/media/pci/cx88/cx88-core.c             |  4 ++--
- drivers/media/pci/cx88/cx88.h                  |  3 ++-
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 11 ++++++-----
- drivers/media/v4l2-core/videobuf2-dma-sg.c     | 11 ++++++-----
- drivers/media/v4l2-core/videobuf2-memops.c     |  6 +++---
- drivers/media/v4l2-core/videobuf2-vmalloc.c    | 11 ++++++-----
- include/media/videobuf2-memops.h               |  3 ++-
- 8 files changed, 28 insertions(+), 23 deletions(-)
-
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 2168759..ef6fb30 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -33,7 +33,7 @@
+ 
+ #define MEDIA_BUS_FMT_FIXED			0x0001
+ 
+-/* RGB - next is	0x1018 */
++/* RGB - next is	0x101b */
+ #define MEDIA_BUS_FMT_RGB444_1X12		0x1016
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
+@@ -57,8 +57,11 @@
+ #define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
+ #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
+ #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
++#define MEDIA_BUS_FMT_RGB101010_1X30		0x1018
++#define MEDIA_BUS_FMT_RGB121212_1X36		0x1019
++#define MEDIA_BUS_FMT_RGB161616_1X48		0x101a
+ 
+-/* YUV (including grey) - next is	0x2026 */
++/* YUV (including grey) - next is	0x202c */
+ #define MEDIA_BUS_FMT_Y8_1X8			0x2001
+ #define MEDIA_BUS_FMT_UV8_1X8			0x2015
+ #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
+@@ -90,12 +93,18 @@
+ #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
+ #define MEDIA_BUS_FMT_VUY8_1X24			0x2024
+ #define MEDIA_BUS_FMT_YUV8_1X24			0x2025
++#define MEDIA_BUS_FMT_UYYVYY8_0_5X24		0x2026
+ #define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
+ #define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
+ #define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
+ #define MEDIA_BUS_FMT_YVYU12_1X24		0x2023
+ #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
++#define MEDIA_BUS_FMT_UYYVYY10_0_5X30		0x2027
+ #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
++#define MEDIA_BUS_FMT_UYYVYY12_0_5X36		0x2028
++#define MEDIA_BUS_FMT_YUV12_1X36		0x2029
++#define MEDIA_BUS_FMT_YUV16_1X48		0x202a
++#define MEDIA_BUS_FMT_UYYVYY16_0_5X48		0x202b
+ 
+ /* Bayer - next is	0x3021 */
+ #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.9.1
