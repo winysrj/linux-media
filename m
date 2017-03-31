@@ -1,91 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:60767 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754563AbdC1I2l (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Mar 2017 04:28:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv6 09/14] ov2640: fix colorspace handling
-Date: Tue, 28 Mar 2017 10:23:42 +0200
-Message-Id: <20170328082347.11159-10-hverkuil@xs4all.nl>
-In-Reply-To: <20170328082347.11159-1-hverkuil@xs4all.nl>
-References: <20170328082347.11159-1-hverkuil@xs4all.nl>
+Received: from ms.lwn.net ([45.79.88.28]:48754 "EHLO ms.lwn.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933000AbdCaOq6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 31 Mar 2017 10:46:58 -0400
+Date: Fri, 31 Mar 2017 08:46:55 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Jani Nikula <jani.nikula@intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Takashi Iwai <tiwai@suse.de>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Oliver Neukum <oneukum@suse.com>,
+        Martyn Welch <martyn.welch@collabora.co.uk>,
+        Alexander Dahl <post@lespocky.de>,
+        Jonathan Cameron <jic23@kernel.org>
+Subject: Re: [PATCH 02/22] docs-rst: convert usb docbooks to ReST
+Message-ID: <20170331084655.0e7c53e5@lwn.net>
+In-Reply-To: <D5D8BF1C-755B-4D56-B744-6A155C5B2313@darmarit.de>
+References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+        <327dcce56a725c7f91f542f2ff97995504d26526.1490813422.git.mchehab@s-opensource.com>
+        <7D76BCB2-53F5-4BD4-8205-5A4852164C91@darmarit.de>
+        <87y3vn2mzk.fsf@intel.com>
+        <D5D8BF1C-755B-4D56-B744-6A155C5B2313@darmarit.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, 30 Mar 2017 11:20:14 +0200
+Markus Heiser <markus.heiser@darmarit.de> wrote:
 
-The colorspace is independent of whether YUV or RGB is sent to the SoC.
-Fix this.
+> @Jon: what do you think about a bulk conversion?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/i2c/soc_camera/ov2640.c | 23 +++++++----------------
- 1 file changed, 7 insertions(+), 16 deletions(-)
+I'm a bit leery of it, to tell the truth.  We're trying to create a
+better set of kernel docs, and I'm far from convinced that dumping a
+bunch of unloved stuff there in a mechanical way will get us there.
 
-diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
-index 56de18263359..b9a0069f5b33 100644
---- a/drivers/media/i2c/soc_camera/ov2640.c
-+++ b/drivers/media/i2c/soc_camera/ov2640.c
-@@ -794,10 +794,11 @@ static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
- 		dev_dbg(&client->dev, "%s: Selected cfmt YUYV (YUV422)", __func__);
- 		selected_cfmt_regs = ov2640_yuyv_regs;
- 		break;
--	default:
- 	case MEDIA_BUS_FMT_UYVY8_2X8:
-+	default:
- 		dev_dbg(&client->dev, "%s: Selected cfmt UYVY", __func__);
- 		selected_cfmt_regs = ov2640_uyvy_regs;
-+		break;
- 	}
- 
- 	/* reset hardware */
-@@ -865,17 +866,7 @@ static int ov2640_get_fmt(struct v4l2_subdev *sd,
- 	mf->width	= priv->win->width;
- 	mf->height	= priv->win->height;
- 	mf->code	= priv->cfmt_code;
--
--	switch (mf->code) {
--	case MEDIA_BUS_FMT_RGB565_2X8_BE:
--	case MEDIA_BUS_FMT_RGB565_2X8_LE:
--		mf->colorspace = V4L2_COLORSPACE_SRGB;
--		break;
--	default:
--	case MEDIA_BUS_FMT_YUYV8_2X8:
--	case MEDIA_BUS_FMT_UYVY8_2X8:
--		mf->colorspace = V4L2_COLORSPACE_JPEG;
--	}
-+	mf->colorspace	= V4L2_COLORSPACE_SRGB;
- 	mf->field	= V4L2_FIELD_NONE;
- 
- 	return 0;
-@@ -897,17 +888,17 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
- 	ov2640_select_win(&mf->width, &mf->height);
- 
- 	mf->field	= V4L2_FIELD_NONE;
-+	mf->colorspace	= V4L2_COLORSPACE_SRGB;
- 
- 	switch (mf->code) {
- 	case MEDIA_BUS_FMT_RGB565_2X8_BE:
- 	case MEDIA_BUS_FMT_RGB565_2X8_LE:
--		mf->colorspace = V4L2_COLORSPACE_SRGB;
-+	case MEDIA_BUS_FMT_YUYV8_2X8:
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
- 		break;
- 	default:
- 		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
--	case MEDIA_BUS_FMT_YUYV8_2X8:
--	case MEDIA_BUS_FMT_UYVY8_2X8:
--		mf->colorspace = V4L2_COLORSPACE_JPEG;
-+		break;
- 	}
- 
- 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
--- 
-2.11.0
+Each of those docs needs to be looked at, and, first of all, we need to
+decide whether it's worth keeping or not.  Nobody wants to delete docs,
+but old and unmaintained stuff doesn't help our users, IMO.  For the
+stuff we want to keep, we need to look at how it fits into the new
+scheme, probably split it up, etc.
+
+It's a lot slower, but we've been getting rid of 3-6 template files in
+each of the last few cycles, so we are getting there.  I don't think we
+need to just give up on the rest.
+
+Thanks,
+
+jon
