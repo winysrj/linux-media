@@ -1,87 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:60670
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755761AbdCLWiL (ORCPT
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:38758 "EHLO
+        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754687AbdCaOZk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Mar 2017 18:38:11 -0400
-Date: Sun, 12 Mar 2017 19:37:56 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-Message-ID: <20170312193745.636df0bf@vento.lan>
-In-Reply-To: <20170312212904.GA7995@amd>
-References: <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
-        <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
-        <20170310130733.GU21222@n2100.armlinux.org.uk>
-        <c679f755-52a6-3c6f-3d65-277db46676cc@xs4all.nl>
-        <20170310140124.GV21222@n2100.armlinux.org.uk>
-        <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
-        <20170310125342.7f047acf@vento.lan>
-        <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
-        <20170311082549.576531d0@vento.lan>
-        <20170311231456.GH21222@n2100.armlinux.org.uk>
-        <20170312212904.GA7995@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 31 Mar 2017 10:25:40 -0400
+Received: by mail-wm0-f51.google.com with SMTP id t189so101242wmt.1
+        for <linux-media@vger.kernel.org>; Fri, 31 Mar 2017 07:25:38 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org
+Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
+        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: [PATCH v5.1 6/6] drm: bridge: dw-hdmi: Move HPD handling to PHY operations
+Date: Fri, 31 Mar 2017 16:25:19 +0200
+Message-Id: <1490970319-24981-7-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1490970319-24981-1-git-send-email-narmstrong@baylibre.com>
+References: <1490970319-24981-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 12 Mar 2017 22:29:04 +0100
-Pavel Machek <pavel@ucw.cz> escreveu:
+The HDMI TX controller support HPD and RXSENSE signaling from the PHY
+via it's STAT0 PHY interface, but some vendor PHYs can manage these
+signals independently from the controller, thus these STAT0 handling
+should be moved to PHY specific operations and become optional.
 
-> Mid-layer is difficult... there are _hundreds_ of possible
-> pipeline setups. If it should live in kernel or in userspace is a
-> question... but I don't think having it in kernel helps in any way.
+The existing STAT0 HPD and RXSENSE handling code is refactored into
+a supplementaty set of default PHY operations that are used automatically
+when the platform glue doesn't provide its own operations.
 
-Mid-layer is difficult, because we either need to feed some
-library with knowledge for all kernel drivers or we need to improve
-the MC API to provide more details.
+Reviewed-by: Jose Abreu <joabreu@synopsys.com>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 135 ++++++++++++++++++------------
+ include/drm/bridge/dw_hdmi.h              |   5 ++
+ 2 files changed, 86 insertions(+), 54 deletions(-)
 
-For example, several drivers used to expose entities via the
-generic MEDIA_ENT_T_DEVNODE to represent entities of different
-types. See, for example, entities 1, 5 and 7 (and others) at:
-	https://mchehab.fedorapeople.org/mc-next-gen/igepv2_omap3isp.png
-
-A device-specific code could either be hardcoding the entity number
-or checking for the entity strings to add some logic to setup
-controls on those "unknown" entities, a generic app won't be able 
-to do anything with them, as it doesn't know what function(s) such
-entity provide.
-
-Also, on some devices, like the analog TV decoder at:
-	https://mchehab.fedorapeople.org/mc-next-gen/au0828_test/mc_nextgen_test-output.png
-
-May have pads with different signals on their output. In such
-case, pads 1 and 2 provide video, while pad 3 provides audio using a
-different type of output.
-
-The application needs to know such kind of things in order to be able
-to properly setup the pipeline [1].
-
-[1] this specific device has a fixed pipeline, but I'm aware of SoC with
-flexible pipelines that have this kind of issue (nobody upstreamed the
-V4L part of those devices yet).
-
-Thanks,
-Mauro
+diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+index 16d5fff3..84cc949 100644
+--- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
++++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+@@ -1229,10 +1229,46 @@ static enum drm_connector_status dw_hdmi_phy_read_hpd(struct dw_hdmi *hdmi,
+ 		connector_status_connected : connector_status_disconnected;
+ }
+ 
++static void dw_hdmi_phy_update_hpd(struct dw_hdmi *hdmi, void *data,
++				   bool force, bool disabled, bool rxsense)
++{
++	u8 old_mask = hdmi->phy_mask;
++
++	if (force || disabled || !rxsense)
++		hdmi->phy_mask |= HDMI_PHY_RX_SENSE;
++	else
++		hdmi->phy_mask &= ~HDMI_PHY_RX_SENSE;
++
++	if (old_mask != hdmi->phy_mask)
++		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
++}
++
++static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi, void *data)
++{
++	/*
++	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
++	 * any pending interrupt.
++	 */
++	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
++	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
++		    HDMI_IH_PHY_STAT0);
++
++	/* Enable cable hot plug irq. */
++	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
++
++	/* Clear and unmute interrupts. */
++	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
++		    HDMI_IH_PHY_STAT0);
++	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
++		    HDMI_IH_MUTE_PHY_STAT0);
++}
++
+ static const struct dw_hdmi_phy_ops dw_hdmi_synopsys_phy_ops = {
+ 	.init = dw_hdmi_phy_init,
+ 	.disable = dw_hdmi_phy_disable,
+ 	.read_hpd = dw_hdmi_phy_read_hpd,
++	.update_hpd = dw_hdmi_phy_update_hpd,
++	.setup_hpd = dw_hdmi_phy_setup_hpd,
+ };
+ 
+ /* -----------------------------------------------------------------------------
+@@ -1808,35 +1844,10 @@ static void dw_hdmi_update_power(struct dw_hdmi *hdmi)
+  */
+ static void dw_hdmi_update_phy_mask(struct dw_hdmi *hdmi)
+ {
+-	u8 old_mask = hdmi->phy_mask;
+-
+-	if (hdmi->force || hdmi->disabled || !hdmi->rxsense)
+-		hdmi->phy_mask |= HDMI_PHY_RX_SENSE;
+-	else
+-		hdmi->phy_mask &= ~HDMI_PHY_RX_SENSE;
+-
+-	if (old_mask != hdmi->phy_mask)
+-		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
+-}
+-
+-static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi)
+-{
+-	/*
+-	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
+-	 * any pending interrupt.
+-	 */
+-	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
+-	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
+-		    HDMI_IH_PHY_STAT0);
+-
+-	/* Enable cable hot plug irq. */
+-	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
+-
+-	/* Clear and unmute interrupts. */
+-	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
+-		    HDMI_IH_PHY_STAT0);
+-	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
+-		    HDMI_IH_MUTE_PHY_STAT0);
++	if (hdmi->phy.ops->update_hpd)
++		hdmi->phy.ops->update_hpd(hdmi, hdmi->phy.data,
++					  hdmi->force, hdmi->disabled,
++					  hdmi->rxsense);
+ }
+ 
+ static enum drm_connector_status
+@@ -2028,6 +2039,41 @@ static irqreturn_t dw_hdmi_hardirq(int irq, void *dev_id)
+ 	return ret;
+ }
+ 
++void __dw_hdmi_setup_rx_sense(struct dw_hdmi *hdmi, bool hpd, bool rx_sense)
++{
++	mutex_lock(&hdmi->mutex);
++
++	if (!hdmi->force) {
++		/*
++		 * If the RX sense status indicates we're disconnected,
++		 * clear the software rxsense status.
++		 */
++		if (!rx_sense)
++			hdmi->rxsense = false;
++
++		/*
++		 * Only set the software rxsense status when both
++		 * rxsense and hpd indicates we're connected.
++		 * This avoids what seems to be bad behaviour in
++		 * at least iMX6S versions of the phy.
++		 */
++		if (hpd)
++			hdmi->rxsense = true;
++
++		dw_hdmi_update_power(hdmi);
++		dw_hdmi_update_phy_mask(hdmi);
++	}
++	mutex_unlock(&hdmi->mutex);
++}
++
++void dw_hdmi_setup_rx_sense(struct device *dev, bool hpd, bool rx_sense)
++{
++	struct dw_hdmi *hdmi = dev_get_drvdata(dev);
++
++	__dw_hdmi_setup_rx_sense(hdmi, hpd, rx_sense);
++}
++EXPORT_SYMBOL_GPL(dw_hdmi_setup_rx_sense);
++
+ static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
+ {
+ 	struct dw_hdmi *hdmi = dev_id;
+@@ -2060,30 +2106,10 @@ static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
+ 	 * ask the source to re-read the EDID.
+ 	 */
+ 	if (intr_stat &
+-	    (HDMI_IH_PHY_STAT0_RX_SENSE | HDMI_IH_PHY_STAT0_HPD)) {
+-		mutex_lock(&hdmi->mutex);
+-		if (!hdmi->force) {
+-			/*
+-			 * If the RX sense status indicates we're disconnected,
+-			 * clear the software rxsense status.
+-			 */
+-			if (!(phy_stat & HDMI_PHY_RX_SENSE))
+-				hdmi->rxsense = false;
+-
+-			/*
+-			 * Only set the software rxsense status when both
+-			 * rxsense and hpd indicates we're connected.
+-			 * This avoids what seems to be bad behaviour in
+-			 * at least iMX6S versions of the phy.
+-			 */
+-			if (phy_stat & HDMI_PHY_HPD)
+-				hdmi->rxsense = true;
+-
+-			dw_hdmi_update_power(hdmi);
+-			dw_hdmi_update_phy_mask(hdmi);
+-		}
+-		mutex_unlock(&hdmi->mutex);
+-	}
++	    (HDMI_IH_PHY_STAT0_RX_SENSE | HDMI_IH_PHY_STAT0_HPD))
++		__dw_hdmi_setup_rx_sense(hdmi,
++					 phy_stat & HDMI_PHY_HPD,
++					 phy_stat & HDMI_PHY_RX_SENSE);
+ 
+ 	if (intr_stat & HDMI_IH_PHY_STAT0_HPD) {
+ 		dev_dbg(hdmi->dev, "EVENT=%s\n",
+@@ -2357,7 +2383,8 @@ static int dw_hdmi_detect_phy(struct dw_hdmi *hdmi)
+ #endif
+ 
+ 	dw_hdmi_setup_i2c(hdmi);
+-	dw_hdmi_phy_setup_hpd(hdmi);
++	if (hdmi->phy.ops->setup_hpd)
++		hdmi->phy.ops->setup_hpd(hdmi, hdmi->phy.data);
+ 
+ 	memset(&pdevinfo, 0, sizeof(pdevinfo));
+ 	pdevinfo.parent = dev;
+diff --git a/include/drm/bridge/dw_hdmi.h b/include/drm/bridge/dw_hdmi.h
+index 45c2c15..e63d675 100644
+--- a/include/drm/bridge/dw_hdmi.h
++++ b/include/drm/bridge/dw_hdmi.h
+@@ -117,6 +117,9 @@ struct dw_hdmi_phy_ops {
+ 		    struct drm_display_mode *mode);
+ 	void (*disable)(struct dw_hdmi *hdmi, void *data);
+ 	enum drm_connector_status (*read_hpd)(struct dw_hdmi *hdmi, void *data);
++	void (*update_hpd)(struct dw_hdmi *hdmi, void *data,
++			   bool force, bool disabled, bool rxsense);
++	void (*setup_hpd)(struct dw_hdmi *hdmi, void *data);
+ };
+ 
+ struct dw_hdmi_plat_data {
+@@ -147,6 +150,8 @@ int dw_hdmi_probe(struct platform_device *pdev,
+ int dw_hdmi_bind(struct platform_device *pdev, struct drm_encoder *encoder,
+ 		 const struct dw_hdmi_plat_data *plat_data);
+ 
++void dw_hdmi_setup_rx_sense(struct device *dev, bool hpd, bool rx_sense);
++
+ void dw_hdmi_set_sample_rate(struct dw_hdmi *hdmi, unsigned int rate);
+ void dw_hdmi_audio_enable(struct dw_hdmi *hdmi);
+ void dw_hdmi_audio_disable(struct dw_hdmi *hdmi);
+-- 
+1.9.1
