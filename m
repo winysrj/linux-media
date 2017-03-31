@@ -1,126 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:36428 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752089AbdCCWsC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 17:48:02 -0500
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
- <20170302160257.GK3220@valkosipuli.retiisi.org.uk>
- <141eb012-eb24-7558-2bc5-1fe82f6b7b4b@gmail.com>
- <fc8168ef-bf36-b2d9-627b-e4b8c6a5024e@gmail.com>
- <20170303191745.GQ3220@valkosipuli.retiisi.org.uk>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <e657f59e-6ac7-bad0-c35b-626b53946d01@gmail.com>
-Date: Fri, 3 Mar 2017 14:47:24 -0800
-MIME-Version: 1.0
-In-Reply-To: <20170303191745.GQ3220@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:48312 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932470AbdCaD7Z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Mar 2017 23:59:25 -0400
+Message-ID: <d0a8ab4c0ea9967c3c0d69c3a16d7f69@smtp-cloud6.xs4all.net>
+Date: Fri, 31 Mar 2017 05:59:21 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On 03/03/2017 11:17 AM, Sakari Ailus wrote:
-> Hi Steve,
->
-> On Thu, Mar 02, 2017 at 06:12:43PM -0800, Steve Longerbeam wrote:
->>
->>
->> On 03/02/2017 03:48 PM, Steve Longerbeam wrote:
->>>
->>>
->>> On 03/02/2017 08:02 AM, Sakari Ailus wrote:
->>>> Hi Steve,
->>>>
->>>> On Wed, Feb 15, 2017 at 06:19:16PM -0800, Steve Longerbeam wrote:
->>>>> v4l2_pipeline_inherit_controls() will add the v4l2 controls from
->>>>> all subdev entities in a pipeline to a given video device.
->>>>>
->>>>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->>>>> ---
->>>>> drivers/media/v4l2-core/v4l2-mc.c | 48
->>>>> +++++++++++++++++++++++++++++++++++++++
->>>>> include/media/v4l2-mc.h           | 25 ++++++++++++++++++++
->>>>> 2 files changed, 73 insertions(+)
->>>>>
->>>>> diff --git a/drivers/media/v4l2-core/v4l2-mc.c
->>>>> b/drivers/media/v4l2-core/v4l2-mc.c
->>>>> index 303980b..09d4d97 100644
->>>>> --- a/drivers/media/v4l2-core/v4l2-mc.c
->>>>> +++ b/drivers/media/v4l2-core/v4l2-mc.c
->>>>> @@ -22,6 +22,7 @@
->>>>> #include <linux/usb.h>
->>>>> #include <media/media-device.h>
->>>>> #include <media/media-entity.h>
->>>>> +#include <media/v4l2-ctrls.h>
->>>>> #include <media/v4l2-fh.h>
->>>>> #include <media/v4l2-mc.h>
->>>>> #include <media/v4l2-subdev.h>
->>>>> @@ -238,6 +239,53 @@ int v4l_vb2q_enable_media_source(struct
->>>>> vb2_queue *q)
->>>>> }
->>>>> EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
->>>>>
->>>>> +int __v4l2_pipeline_inherit_controls(struct video_device *vfd,
->>>>> +                     struct media_entity *start_entity)
->>>>
->>>> I have a few concerns / questions:
->>>>
->>>> - What's the purpose of this patch? Why not to access the sub-device node
->>>>  directly?
->>>
->>>
->>> I don't really understand what you are trying to say.<snip>
->>>
->>
->> Actually I think I understand what you mean now. Yes, the user can
->> always access a subdev's control directly from its /dev/v4l-subdevXX.
->> I'm only providing this feature as a convenience to the user, so that
->> all controls in a pipeline can be accessed from one place, i.e. the
->> main capture device node.
->
-> No other MC based V4L2 driver does this. You'd be creating device specific
-> behaviour that differs from what the rest of the drivers do. The purpose of
-> MC is to provide the user with knowledge of what devices are there, and the
-> V4L2 sub-devices interface is used to access them in this case.
+date:			Fri Mar 31 05:00:16 CEST 2017
+media-tree git hash:	c3d4fb0fb41f4b5eafeee51173c14e50be12f839
+media_build git hash:	bc4c2a205c087c8deff3cd14ed663c4767dd2016
+v4l-utils git hash:	984caeac9a41f8d4f636b933dfba4f29c5257f96
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-Well, again, I don't mind removing this. As I said it is only a
-convenience (although quite a nice one in my opinion). I'd like
-to hear from others whether this is worth keeping though.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10.1-i686: OK
+linux-4.11-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-x86_64: WARNINGS
+linux-4.10.1-x86_64: WARNINGS
+linux-4.11-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
 
->
-> It does matter where a control is implemented, too. If the pipeline contains
-> multiple sub-devices that implement the same control, only one of them may
-> be accessed. The driver calling the function (or even less the function)
-> would not know which one of them should be ignored.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-Yes the pipeline should not have any duplicate controls. On imx-media no
-pipelines that can be configured have duplicate controls.
+Full logs are available here:
 
-Steve
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
->
-> If you need such functionality, it should be implemented in the user space
-> instead.
->
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
