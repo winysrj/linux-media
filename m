@@ -1,79 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:34986 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934217AbdC3QMe (ORCPT
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:37878 "EHLO
+        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755127AbdCaOZ3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 12:12:34 -0400
-Subject: Re: [PATCH v6 00/39] i.MX Media Driver
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
- <20170330110249.GF7909@n2100.armlinux.org.uk>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <d715bcdf-b2df-8080-6ab4-854aeace31a8@gmail.com>
-Date: Thu, 30 Mar 2017 09:12:29 -0700
-MIME-Version: 1.0
-In-Reply-To: <20170330110249.GF7909@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+        Fri, 31 Mar 2017 10:25:29 -0400
+Received: by mail-wm0-f49.google.com with SMTP id x124so99572wmf.0
+        for <linux-media@vger.kernel.org>; Fri, 31 Mar 2017 07:25:27 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
+        mchehab@kernel.org
+Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
+        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com
+Subject: [PATCH v5.1 0/6] drm: bridge: dw-hdmi: Add support for Custom PHYs
+Date: Fri, 31 Mar 2017 16:25:13 +0200
+Message-Id: <1490970319-24981-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The Amlogic GX SoCs implements a Synopsys DesignWare HDMI TX Controller
+in combination with a very custom PHY.
 
+Thanks to Laurent Pinchart's changes, the HW report the following :
+ Detected HDMI TX controller v2.01a with HDCP (meson_dw_hdmi_phy)
 
-On 03/30/2017 04:02 AM, Russell King - ARM Linux wrote:
-> This fails at step 1.  The removal of the frame interval support now
-> means my setup script fails when trying to set the frame interval on
-> the camera:
->
-> Enumerating pads and links
-> Setting up format SRGGB8_1X8 816x616 on pad imx219 0-0010/0
-> Format set: SRGGB8_1X8 816x616
-> Setting up frame interval 1/25 on pad imx219 0-0010/0
-> Frame interval set: 1/25
-> Setting up format SRGGB8_1X8 816x616 on pad imx6-mipi-csi2/0
-> Format set: SRGGB8_1X8 816x616
-> Setting up frame interval 1/25 on pad imx6-mipi-csi2/0
-> Unable to set frame interval: Inappropriate ioctl for device (-25)Unable to setup formats: Inappropriate ioctl for device (25)
->
-> This is because media-ctl tries to propagate it from the imx219 source
-> pad to the csi2 sink pad, and the csi2 now fails that ioctl.
+The following differs from common PHY integration as managed in the current
+driver :
+ - Amlogic PHY is not configured through the internal I2C link
+ - Amlogic PHY do not use the ENTMDS, SVSRET, PDDQ, ... signals from the controller
+ - Amlogic PHY do not export HPD ands RxSense signals to the controller
 
-I assume you're using Philipp's frame interval patches to media-ctl.
-Can you make the frame interval propagation optional in those patches?
-I.e. don't error-out with a failure code if the ioctl returns ENOTTY.
+And finally, concerning the controller integration :
+ - the Controller registers are not flat memory-mapped, and uses an
+    addr+read/write register pair to write all registers.
+ - Inputs only YUV444 pixel data
 
-Steve
+Most of these uses case are implemented in Laurent Pinchart v5.1 patchset merged
+in drm-misc-next branch.
 
->
-> This makes media-ctl return a failure code, which means that it's not
-> possible for a script to determine whether the failure was due to the
-> camera setup or something else.  So, we have to assume that the
-> whole command failed.
->
-> This is completely broken, and I'm even more convinced that those
-> arguing for this behaviour really have not thought it through well
-> enough before demanding that this code was removed.
->
-> As far as I'm concerned, the end result is completely broken and
-> unusable.  I'm going to be merging the frame interval support back
-> into my test tree, because that's the only sane thing to do.
->
-> If v4l2 people want to object to having frame interval support present
-> for all subdevs, then _they_ need to make sure that the rest of their
-> software conforms to what they're telling people to do.
->
+This is why the following patchset implements :
+ - Configure the Input format from the plat_data
+ - Add PHY callback to handle HPD and RxSense out of the dw-hdmi driver
+
+To implement the input format handling, the Synopsys HDMIT TX Controller input
+V4L bus formats are used and missing formats + documentation are added.
+
+This patchset makes the Amlogic GX SoCs HDMI output successfully work, and is
+also tested on the RK3288 ACT8846 EVB Board.
+
+Changes since v5 at [6] :
+ - Small addition in V4L YUV bus formats documentation
+
+Changes since v4 at [5] :
+ - Rebased on drm-misc-next at bd283d2f66c2
+ - Fix 4:2:0 bus formats naming
+ - Renamed function fd_registered to i2c_init in dw-hdmi.c
+
+Changes since v3 at [4] :
+ - Fix 4:2:0 bus formats naming
+ - Add separate 36bit and 48bit tables for bus formats documentation
+ - Added 4:2:0 bus config in hdmi_video_sample
+ - Moved dw_hdmi documentation in a "bridge" subdir
+ - Rebase on drm-misc-next at 62c58af32c93
+
+Changes since v2 at [3] :
+ - Rebase on laurent patch "Extract PHY interrupt setup to a function"
+ - Reduce phy operations
+ - Switch the V4L bus formats and encodings instead of custom enum
+
+Changes since v1 at [2] :
+ - Drop patches submitted by laurent
+
+Changes since RFC at [1] :
+ - Regmap fixup for 4bytes register access, tested on RK3288 SoC
+ - Move phy callbacks to phy_ops and move Synopsys PHY calls into default ops
+ - Move HDMI link data into shared header
+ - Move Pixel Encoding enum to shared header
+
+[1] http://lkml.kernel.org/r/1484656294-6140-1-git-send-email-narmstrong@baylibre.com
+[2] http://lkml.kernel.org/r/1485774318-21916-1-git-send-email-narmstrong@baylibre.com
+[3] http://lkml.kernel.org/r/1488468572-31971-1-git-send-email-narmstrong@baylibre.com
+[4] http://lkml.kernel.org/r/1488904944-14285-1-git-send-email-narmstrong@baylibre.com
+[5] http://lkml.kernel.org/r/1490109161-20529-1-git-send-email-narmstrong@baylibre.com
+[6] http://lkml.kernel.org/r/1490864675-17336-1-git-send-email-narmstrong@baylibre.com
+
+Laurent Pinchart (1):
+  drm: bridge: dw-hdmi: Extract PHY interrupt setup to a function
+
+Neil Armstrong (5):
+  media: uapi: Add RGB and YUV bus formats for Synopsys HDMI TX
+    Controller
+  documentation: media: Add documentation for new RGB and YUV bus
+    formats
+  drm: bridge: dw-hdmi: Switch to V4L bus format and encodings
+  drm: bridge: dw-hdmi: Add Documentation on supported input formats
+  drm: bridge: dw-hdmi: Move HPD handling to PHY operations
+
+ Documentation/gpu/bridge/dw-hdmi.rst            |  15 +
+ Documentation/gpu/index.rst                     |   1 +
+ Documentation/media/uapi/v4l/subdev-formats.rst | 874 +++++++++++++++++++++++-
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi.c       | 470 ++++++++-----
+ include/drm/bridge/dw_hdmi.h                    |  68 ++
+ include/uapi/linux/media-bus-format.h           |  13 +-
+ 6 files changed, 1268 insertions(+), 173 deletions(-)
+ create mode 100644 Documentation/gpu/bridge/dw-hdmi.rst
+
+-- 
+1.9.1
