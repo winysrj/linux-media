@@ -1,63 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay2.synopsys.com ([198.182.60.111]:45691 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966663AbdCXQsx (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:40342 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750820AbdCaCjO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Mar 2017 12:48:53 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com, mchehab@kernel.org,
-        linux-kernel@vger.kernel.org, Jose Abreu <Jose.Abreu@synopsys.com>,
-        Kamil Debski <kamil@wypas.org>
-Subject: [PATCH 3/8] [media] staging: s5p-cec: Use cec_get_drvdata()
-Date: Fri, 24 Mar 2017 16:47:54 +0000
-Message-Id: <d2c1283b742e653cf7e0865530862b69b4401db9.1490373499.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1490373499.git.joabreu@synopsys.com>
-References: <cover.1490373499.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1490373499.git.joabreu@synopsys.com>
-References: <cover.1490373499.git.joabreu@synopsys.com>
+        Thu, 30 Mar 2017 22:39:14 -0400
+Subject: Re: [PATCH RFC 1/2] [media] v4l2: add V4L2_INPUT_TYPE_DEFAULT
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
+ <2926010.76lXoG2CJo@avalon>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org, jgebben@codeaurora.org
+From: Helen Koike <helen.koike@collabora.com>
+Message-ID: <34146d93-6651-69a2-0997-aa3ae91b4fd3@collabora.com>
+Date: Thu, 30 Mar 2017 23:39:01 -0300
+MIME-Version: 1.0
+In-Reply-To: <2926010.76lXoG2CJo@avalon>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use helper function to get driver private data from CEC
-adapter.
+Hi Laurent,
 
-Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-Cc: Kamil Debski <kamil@wypas.org>
----
- drivers/staging/media/s5p-cec/s5p_cec.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Thanks for reviewing
 
-diff --git a/drivers/staging/media/s5p-cec/s5p_cec.c b/drivers/staging/media/s5p-cec/s5p_cec.c
-index 2a07968..a30b80a 100644
---- a/drivers/staging/media/s5p-cec/s5p_cec.c
-+++ b/drivers/staging/media/s5p-cec/s5p_cec.c
-@@ -37,7 +37,7 @@
- 
- static int s5p_cec_adap_enable(struct cec_adapter *adap, bool enable)
- {
--	struct s5p_cec_dev *cec = adap->priv;
-+	struct s5p_cec_dev *cec = cec_get_drvdata(adap);
- 
- 	if (enable) {
- 		pm_runtime_get_sync(cec->dev);
-@@ -61,7 +61,7 @@ static int s5p_cec_adap_enable(struct cec_adapter *adap, bool enable)
- 
- static int s5p_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
- {
--	struct s5p_cec_dev *cec = adap->priv;
-+	struct s5p_cec_dev *cec = cec_get_drvdata(adap);
- 
- 	s5p_cec_set_addr(cec, addr);
- 	return 0;
-@@ -70,7 +70,7 @@ static int s5p_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
- static int s5p_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
- 				 u32 signal_free_time, struct cec_msg *msg)
- {
--	struct s5p_cec_dev *cec = adap->priv;
-+	struct s5p_cec_dev *cec = cec_get_drvdata(adap);
- 
- 	/*
- 	 * Unclear if 0 retries are allowed by the hardware, so have 1 as
--- 
-1.9.1
+On 2017-03-30 04:56 PM, Laurent Pinchart wrote:
+> Hi Helen,
+>
+> Thank you for the patch.
+>
+> On Thursday 30 Mar 2017 13:02:17 Helen Koike wrote:
+>> Add V4L2_INPUT_TYPE_DEFAULT and helpers functions for input ioctls to be
+>> used when no inputs are available in the device
+>>
+>> Signed-off-by: Helen Koike <helen.koike@collabora.com>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-ioctl.c | 27 +++++++++++++++++++++++++++
+>>  include/media/v4l2-ioctl.h           | 26 ++++++++++++++++++++++++++
+>>  include/uapi/linux/videodev2.h       |  1 +
+>>  3 files changed, 54 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
+>> b/drivers/media/v4l2-core/v4l2-ioctl.c index 0c3f238..ccaf04b 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+>> @@ -2573,6 +2573,33 @@ struct mutex *v4l2_ioctl_get_lock(struct video_device
+>> *vdev, unsigned cmd) return vdev->lock;
+>>  }
+>>
+>> +int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
+>> +				  struct v4l2_input *i)
+>> +{
+>> +	if (i->index > 0)
+>> +		return -EINVAL;
+>> +
+>> +	memset(i, 0, sizeof(*i));
+>> +	i->type = V4L2_INPUT_TYPE_DEFAULT;
+>> +	strlcpy(i->name, "Default", sizeof(i->name));
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL(v4l2_ioctl_enum_input_default);
+>
+> V4L2 tends to use EXPORT_SYMBOL_GPL.
+
+The whole v4l2-ioctl.c file is using EXPORT_SYMBOL instead of 
+EXPORT_SYMBOL_GPL, should we change it all to EXPORT_SYMBOL_GPL then (in 
+another patch) ?
+
+>
+> What would you think about calling those default functions directly from the
+> core when the input ioctl handlers are not set ? You wouldn't need to modify
+> drivers.
+
+Sure, I'll add them in ops inside __video_register_device when it 
+validates the ioctls
+
+>
+>> +
+>> +int v4l2_ioctl_g_input_default(struct file *file, void *priv, unsigned int
+>> *i) +{
+>> +	*i = 0;
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL(v4l2_ioctl_g_input_default);
+>> +
+>> +int v4l2_ioctl_s_input_default(struct file *file, void *priv, unsigned int
+>> i) +{
+>> +	return i ? -EINVAL : 0;
+>> +}
+>> +EXPORT_SYMBOL(v4l2_ioctl_s_input_default);
+>> +
+>>  /* Common ioctl debug function. This function can be used by
+>>     external ioctl messages as well as internal V4L ioctl */
+>>  void v4l_printk_ioctl(const char *prefix, unsigned int cmd)
+>> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+>> index 6cd94e5..accc470 100644
+>> --- a/include/media/v4l2-ioctl.h
+>> +++ b/include/media/v4l2-ioctl.h
+>> @@ -652,6 +652,32 @@ struct video_device;
+>>   */
+>>  struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned int
+>> cmd);
+>>
+>> +
+>> +/**
+>> + * v4l2_ioctl_enum_input_default - v4l2 ioctl helper for VIDIOC_ENUM_INPUT
+>> ioctl + *
+>> + * Plug this function in vidioc_enum_input field of the struct
+>> v4l2_ioctl_ops to + * enumerate a single input as V4L2_INPUT_TYPE_DEFAULT
+>> + */
+>> +int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
+>> +				  struct v4l2_input *i);
+>> +
+>> +/**
+>> + * v4l2_ioctl_g_input_default - v4l2 ioctl helper for VIDIOC_G_INPUT ioctl
+>> + *
+>> + * Plug this function in vidioc_g_input field of the struct v4l2_ioctl_ops
+>> + * when using v4l2_ioctl_enum_input_default
+>> + */
+>> +int v4l2_ioctl_g_input_default(struct file *file, void *priv, unsigned int
+>> *i); +
+>> +/**
+>> + * v4l2_ioctl_s_input_default - v4l2 ioctl helper for VIDIOC_S_INPUT ioctl
+>> + *
+>> + * Plug this function in vidioc_s_input field of the struct v4l2_ioctl_ops
+>> + * when using v4l2_ioctl_enum_input_default
+>> + */
+>> +int v4l2_ioctl_s_input_default(struct file *file, void *priv, unsigned int
+>> i); +
+>>  /* names for fancy debug output */
+>>  extern const char *v4l2_field_names[];
+>>  extern const char *v4l2_type_names[];
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index 316be62..c10bbde 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -1477,6 +1477,7 @@ struct v4l2_input {
+>>  };
+>>
+>>  /*  Values for the 'type' field */
+>> +#define V4L2_INPUT_TYPE_DEFAULT		0
+>>  #define V4L2_INPUT_TYPE_TUNER		1
+>>  #define V4L2_INPUT_TYPE_CAMERA		2
+>>  #define V4L2_INPUT_TYPE_TOUCH		3
+>
+
+Helen
