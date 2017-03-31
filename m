@@ -1,140 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:37436 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751962AbdCNTGu (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50815
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750903AbdCaJsH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:06:50 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v3 26/27] rcar-vin: enable support for r8a7795
-Date: Tue, 14 Mar 2017 20:03:07 +0100
-Message-Id: <20170314190308.25790-27-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 31 Mar 2017 05:48:07 -0400
+Date: Fri, 31 Mar 2017 06:47:59 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Helen Koike <helen.koike@collabora.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        jgebben@codeaurora.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 2/2] [media] docs-rst: add V4L2_INPUT_TYPE_DEFAULT
+Message-ID: <20170331064759.4dbab034@vento.lan>
+In-Reply-To: <20170330202626.GM16657@valkosipuli.retiisi.org.uk>
+References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
+        <1490889738-30009-2-git-send-email-helen.koike@collabora.com>
+        <20170330202626.GM16657@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the SoC specific information for Renesas r8a7795.
+Em Thu, 30 Mar 2017 23:26:26 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/Kconfig     |  2 +-
- drivers/media/platform/rcar-vin/rcar-core.c | 72 +++++++++++++++++++++++++++++
- 2 files changed, 73 insertions(+), 1 deletion(-)
+> Hi Helen and others,
+> 
+> On Thu, Mar 30, 2017 at 01:02:18PM -0300, Helen Koike wrote:
+> > add documentation for V4L2_INPUT_TYPE_DEFAULT
+> > 
+> > Signed-off-by: Helen Koike <helen.koike@collabora.com>
+> > ---
+> >  Documentation/media/uapi/v4l/vidioc-enuminput.rst | 3 +++
+> >  1 file changed, 3 insertions(+)
+> > 
+> > diff --git a/Documentation/media/uapi/v4l/vidioc-enuminput.rst b/Documentation/media/uapi/v4l/vidioc-enuminput.rst
+> > index 17aaaf9..0237e10 100644
+> > --- a/Documentation/media/uapi/v4l/vidioc-enuminput.rst
+> > +++ b/Documentation/media/uapi/v4l/vidioc-enuminput.rst
+> > @@ -112,6 +112,9 @@ at index zero, incrementing by one until the driver returns ``EINVAL``.
+> >      :stub-columns: 0
+> >      :widths:       3 1 4
+> >  
+> > +    * - ``V4L2_INPUT_TYPE_DEFAULT``
+> > +      - 0
+> > +      - This is the default value returned when no input is supported.
 
-diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
-index 111d2a151f6a4d44..e0e981c14b081bc6 100644
---- a/drivers/media/platform/rcar-vin/Kconfig
-+++ b/drivers/media/platform/rcar-vin/Kconfig
-@@ -5,7 +5,7 @@ config VIDEO_RCAR_VIN
- 	select VIDEOBUF2_DMA_CONTIG
- 	---help---
- 	  Support for Renesas R-Car Video Input (VIN) driver.
--	  Supports R-Car Gen2 SoCs.
-+	  Supports R-Car Gen2 and Gen3 SoCs.
- 
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called rcar-vin.
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 68eca8e005f976d6..c30040c42ce588a9 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -1051,6 +1051,74 @@ static const struct rvin_info rcar_info_m1 = {
- 	.max_height = 2048,
- };
- 
-+static const struct rvin_info rcar_info_r8a7795 = {
-+	.chip = RCAR_GEN3,
-+	.use_mc = true,
-+	.max_width = 4096,
-+	.max_height = 4096,
-+
-+	.num_chsels = 6,
-+	.chsels = {
-+		{
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+			{ .csi = RVIN_CSI21, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+			{ .csi = RVIN_CSI40, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+			{ .csi = RVIN_CSI21, .chan = 3 },
-+		}, {
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+			{ .csi = RVIN_CSI21, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+			{ .csi = RVIN_CSI41, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+			{ .csi = RVIN_CSI21, .chan = 3 },
-+		},
-+	},
-+};
-+
- static const struct rvin_info rcar_info_gen2 = {
- 	.chip = RCAR_GEN2,
- 	.use_mc = false,
-@@ -1060,6 +1128,10 @@ static const struct rvin_info rcar_info_gen2 = {
- 
- static const struct of_device_id rvin_of_id_table[] = {
- 	{
-+		.compatible = "renesas,vin-r8a7795",
-+		.data = &rcar_info_r8a7795,
-+	},
-+	{
- 		.compatible = "renesas,vin-r8a7794",
- 		.data = &rcar_info_gen2,
- 	},
--- 
-2.12.0
+Input *IS* supported. The device has one input. So, the description is wrong ;)
+
+> >      * - ``V4L2_INPUT_TYPE_TUNER``
+> >        - 1
+> >        - This input uses a tuner (RF demodulator).  
+> 
+> What would you think of calling this input as "unknown" instead of
+> "default"? That's what an input which isn't really specified actually is.
+
+Yeah, default seems a bad name to me, too.
+
+Actually, I think that the best here would be to not create a new type.
+just use V4L2_INPUT_TYPE_CAMERA. That's actually the default for the
+embedded drivers. If a driver is providing input for something else,
+then it should implement vidioc_enuminput method.
+
+Thanks,
+Mauro
