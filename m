@@ -1,42 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:21553 "EHLO
-        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752170AbdCMMec (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:52580 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754597AbdCaOjm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 08:34:32 -0400
-Date: Mon, 13 Mar 2017 15:34:14 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Alan Cox <alan@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        kernel-janitors@vger.kernel.org
-Subject: [PATCH] staging: atomisp: potential underflow in
- atomisp_get_metadata_by_type()
-Message-ID: <20170313123414.GB9287@mwanda>
+        Fri, 31 Mar 2017 10:39:42 -0400
+Date: Fri, 31 Mar 2017 15:39:20 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Patrice.chotard@st.com
+Subject: Re: [PATCHv6 00/10] video/exynos/sti/cec: add CEC notifier & use in
+ drivers
+Message-ID: <20170331143920.GU7909@n2100.armlinux.org.uk>
+References: <20170331122036.55706-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20170331122036.55706-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-md_type is an enum.  On my tests, GCC treats it as unsigned but
-according to the C standard it's an implementation dependant thing so we
-should check for negatives.
+On Fri, Mar 31, 2017 at 02:20:26PM +0200, Hans Verkuil wrote:
+> Comments are welcome. I'd like to get this in for the 4.12 kernel as
+> this is a missing piece needed to integrate CEC drivers.
 
-Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+First two patches seem fine, and work with dw-hdmi.
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-index d9a5c24633cb..0d77ebc5c865 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-@@ -3005,7 +3005,7 @@ int atomisp_get_metadata_by_type(struct atomisp_sub_device *asd, int flag,
- 		return 0;
- 
- 	md_type = md->type;
--	if (md_type >= ATOMISP_METADATA_TYPE_NUM)
-+	if (md_type < 0 || md_type >= ATOMISP_METADATA_TYPE_NUM)
- 		return -EINVAL;
- 
- 	/* This is done in the atomisp_buf_done() */
+I'll hold dw-hdmi off until after 4.11 - I currently have this stuff
+merged against 4.10, and there's some conflicts with 4.11.
+
+I also wanted to say that tda998x/tda9950 works, and send you those
+patches, but while trying to test them this afternoon in a tree with
+some of the DRM code that was merged during the last merge window on
+a v4.10 based tree (which I need because of etnaviv), the kernel
+oopses in DRM for god-knows-why.  If/when I get this sorted (don't
+know when) I'll send that stuff as a follow-up to your series.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
