@@ -1,95 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47350 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752907AbdC0KGH (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:34115 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934695AbdCaB3I (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 06:06:07 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.12] Various fixes, improvements
-Message-ID: <b2fb554f-5adf-f208-b259-b767118f8844@xs4all.nl>
-Date: Mon, 27 Mar 2017 12:05:01 +0200
+        Thu, 30 Mar 2017 21:29:08 -0400
+Date: Fri, 31 Mar 2017 10:28:54 +0900
+From: Daeseok Youn <daeseok.youn@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, daeseok.youn@gmail.com,
+        alan@linux.intel.com, dan.carpenter@oracle.com,
+        singhalsimran0@gmail.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH 1/2 V2] staging: atomisp: simplify the if condition in
+ atomisp_freq_scaling()
+Message-ID: <20170331012854.GA15866@jyoun-Latitude-E6530>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Various fixes and improvements.
+The condition line in if-statement is needed to be shorthen to
+improve readability.
 
-Regards,
+Add a new definition to check the CHT with atomisp_device structure.
 
-	Hans
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+---
+V2: replace the assigment line with macro to check CHT type.
 
-The following changes since commit 700ea5e0e0dd70420a04e703ff264cc133834cba:
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c      | 3 +--
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h | 4 ++++
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-  Merge tag 'v4.11-rc1' into patchwork (2017-03-06 06:49:34 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.12d
-
-for you to fetch changes up to 6798d00f15b0c965a1a030516c0933684d61a7bd:
-
-  cec-core.rst: document the new cec_get_drvdata() helper (2017-03-27 11:55:58 +0200)
-
-----------------------------------------------------------------
-Anton Leontiev (1):
-      vb2: Fix queue_setup() callback description
-
-Baruch Siach (1):
-      doc: kapi: fix typo
-
-Colin Ian King (2):
-      atmel-isc: fix off-by-one comparison and out of bounds read issue
-      usb: au0828: remove redundant code
-
-Geliang Tang (1):
-      ivtv: use for_each_sg
-
-Hans Verkuil (2):
-      vivid: fix g_edid implementation
-      cec-core.rst: document the new cec_get_drvdata() helper
-
-Hugues Fruchet (1):
-      st-delta: mjpeg: fix static checker warning
-
-Johan Hovold (1):
-      gspca: konica: add missing endpoint sanity check
-
-Jose Abreu (8):
-      cec: Add cec_get_drvdata()
-      staging: st-cec: Use cec_get_drvdata()
-      staging: s5p-cec: Use cec_get_drvdata()
-      i2c: adv7511: Use cec_get_drvdata()
-      i2c: adv7604: Use cec_get_drvdata()
-      i2c: adv7842: Use cec_get_drvdata()
-      usb: pulse8-cec: Use cec_get_drvdata()
-      platform: vivid: Use cec_get_drvdata()
-
-Matthias Kaehlcke (1):
-      vcodec: mediatek: Remove double parentheses
-
-Minghsiu Tsai (1):
-      media: mtk-jpeg: fix continuous log "Context is NULL"
-
- Documentation/media/kapi/cec-core.rst                |  5 +++++
- Documentation/media/kapi/v4l2-core.rst               |  2 +-
- drivers/media/i2c/adv7511.c                          |  6 +++---
- drivers/media/i2c/adv7604.c                          |  6 +++---
- drivers/media/i2c/adv7842.c                          |  6 +++---
- drivers/media/pci/ivtv/ivtv-udma.c                   |  2 +-
- drivers/media/platform/atmel/atmel-isc.c             |  2 +-
- drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c      | 14 ++------------
- drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c |  4 ++--
- drivers/media/platform/sti/delta/delta-mjpeg-dec.c   |  2 +-
- drivers/media/platform/vivid/vivid-cec.c             |  4 ++--
- drivers/media/platform/vivid/vivid-vid-common.c      |  4 ++--
- drivers/media/usb/au0828/au0828-video.c              |  7 -------
- drivers/media/usb/gspca/konica.c                     |  3 +++
- drivers/media/usb/pulse8-cec/pulse8-cec.c            |  6 +++---
- drivers/staging/media/s5p-cec/s5p_cec.c              |  6 +++---
- drivers/staging/media/st-cec/stih-cec.c              |  6 +++---
- include/media/cec.h                                  |  5 +++++
- include/media/videobuf2-core.h                       | 12 ++++++------
- 19 files changed, 49 insertions(+), 53 deletions(-)
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index 94bc793..87224d6 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -261,8 +261,7 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
+ 		return -EINVAL;
+ 	}
+ 
+-	if ((isp->pdev->device & ATOMISP_PCI_DEVICE_SOC_MASK) ==
+-		ATOMISP_PCI_DEVICE_SOC_CHT && ATOMISP_USE_YUVPP(asd))
++	if (ATOMISP_IS_CHT(isp) && ATOMISP_USE_YUVPP(asd))
+ 		isp->dfs = &dfs_config_cht_soc;
+ 
+ 	if (isp->dfs->lowest_freq == 0 || isp->dfs->max_freq_at_vmin == 0 ||
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
+index d366713..97dc5f88 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
+@@ -72,6 +72,10 @@
+ #define ATOMISP_PCI_DEVICE_SOC_ANN	0x1478
+ #define ATOMISP_PCI_DEVICE_SOC_CHT	0x22b8
+ 
++#define ATOMISP_IS_CHT(isp) \
++	(((isp)->pdev->device & ATOMISP_PCI_DEVICE_SOC_MASK) == \
++	ATOMISP_PCI_DEVICE_SOC_CHT)
++
+ #define ATOMISP_PCI_REV_MRFLD_A0_MAX	0
+ #define ATOMISP_PCI_REV_BYT_A0_MAX	4
+ 
+-- 
+2.7.4
