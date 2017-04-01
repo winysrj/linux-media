@@ -1,179 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:49171 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1176917AbdDYIwC (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:42917 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751167AbdDAD7o (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 04:52:02 -0400
-Subject: Re: [PATCH v3 0/7] V4L2 fwnode support
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7d0e3f86-2dcf-77d4-9411-5d98d1956586@xs4all.nl>
-Date: Tue, 25 Apr 2017 10:51:58 +0200
-MIME-Version: 1.0
-In-Reply-To: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Fri, 31 Mar 2017 23:59:44 -0400
+Message-ID: <2431682a85b32c9538b2dd316d8dcb16@smtp-cloud3.xs4all.net>
+Date: Sat, 01 Apr 2017 05:59:42 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/04/17 15:02, Sakari Ailus wrote:
-> Hello everyone,
-> 
-> This patchset adds support for fwnode to V4L2. Besides OF, also ACPI based
-> systems can be supported this way. By using V4L2 fwnode, the individual
-> drivers do not need to be aware of the underlying firmware implementation.
-> The patchset also removes specific V4L2 OF support and converts the
-> affected drivers to use V4L2 fwnode.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Successfully tested with my Atmel sama5d3 board + ov2640 sensor.
+Results of the daily build of media_tree:
 
-Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+date:			Sat Apr  1 05:00:17 CEST 2017
+media-tree git hash:	c3d4fb0fb41f4b5eafeee51173c14e50be12f839
+media_build git hash:	bc4c2a205c087c8deff3cd14ed663c4767dd2016
+v4l-utils git hash:	984caeac9a41f8d4f636b933dfba4f29c5257f96
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-Regards,
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10.1-i686: OK
+linux-4.11-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-x86_64: WARNINGS
+linux-4.10.1-x86_64: WARNINGS
+linux-4.11-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-	Hans
+Detailed results are available here:
 
-> 
-> The patchset depends on another patchset here:
-> 
-> <URL:http://www.spinics.net/lists/linux-acpi/msg72973.html> 
-> 
-> A git tree with the dependencies can be found here:
-> 
-> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi-merge>
-> 
-> v1 of the set can be found here:
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg111073.html> 
-> 
-> and v2 here:
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg114110.html>
-> 
-> changes since v2:
-> 
-> - Use EXPORT_SYMBOL_GPL() instead of EXPORT_SYMBOL().
-> 
-> - Alphabetically order the topics under V4L2 core kAPI documentation.
-> 
-> - Prefer "fwnode" variable name for struct fwnode_handle pointers instead
->   of "fwn". Similarly, use "vep" for struct v4l2_fwnode_endpoint instead
->   of "vfwn".
-> 
-> - Convert existing users of OF matching to fwnode matching.
-> 
-> - Remove OF matching support as well as compatibility between OF and
->   fwnode matching.
-> 
-> - Use of_node_cmp() to determine whether two nodes match in case both of
->   them are OF nodes. There is thus no functional difference between
->   existing OF matching in v1.
-> 
-> - Continue to use struct device_node.full_name on fwnodes that are known
->   to be OF nodes instead of omitting such debug information. Drivers that
->   can actually use fwnode need a new interface to provide this in fwnode
->   framework. This is out of scope of the patchset.
-> 
-> - Remove linux/of.h header inclusion in
->   drivers/media/v4l2-core/v4l2-flash-led-class.c.
-> 
-> - Improved line wrapping primarily in
->   drivers/media/v4l2-core/v4l2-fwnode.c.
-> 
-> - Rewrap KernelDoc documentation for V4L2 fwnode API up to 80 characters
->   per line (new patch).
-> 
-> - Fix KernelDoc documentation, there were a few locations where the
->   argument had been changed but the documentation was not updated
->   accordingly. 
-> 
-> - Fix punctuation and wording in V4L2 fwnode documentation.
-> 
-> - Drop patch "v4l: media/drv-intf/soc_mediabus.h: include dependent header
->   file". It is no longer needed.
-> 
-> - Fix obtaining port parent in v4l2_fwnode_parse_link() on ACPI.
-> 
-> - Include newly OF-supported atmel-isi to V4L2 OF -> fwnode conversion.
-> 
-> - Add that the v4l2-fwnode.c has origins in v4l2-of.c to the commit
->   message and the file header.
-> 
-> changes since v1:
-> 
-> - Use existing dev_fwnode() instead of device_fwnode_handle() added by the
->   ACPI graph patchset,
-> 
-> - Fix too long line of ^'s in ReST documentation and
-> 
-> - Drop the patch rearranging the header files. It'd better go in
->   separately, if at all.
-> 
-> Sakari Ailus (7):
->   v4l: fwnode: Support generic fwnode for parsing standardised
->     properties
->   v4l: async: Add fwnode match support
->   v4l: flash led class: Use fwnode_handle instead of device_node in init
->   v4l: Switch from V4L2 OF not V4L2 fwnode API
->   docs-rst: media: Sort topic list alphabetically
->   docs-rst: media: Switch documentation to V4L2 fwnode API
->   v4l: Remove V4L2 OF framework in favour of V4L2 fwnode framework
-> 
->  Documentation/media/kapi/v4l2-core.rst         |  20 +-
->  Documentation/media/kapi/v4l2-fwnode.rst       |   3 +
->  Documentation/media/kapi/v4l2-of.rst           |   3 -
->  drivers/leds/leds-aat1290.c                    |   5 +-
->  drivers/leds/leds-max77693.c                   |   5 +-
->  drivers/media/i2c/Kconfig                      |   9 +
->  drivers/media/i2c/adv7604.c                    |   7 +-
->  drivers/media/i2c/mt9v032.c                    |   7 +-
->  drivers/media/i2c/ov2659.c                     |   8 +-
->  drivers/media/i2c/s5c73m3/s5c73m3-core.c       |   7 +-
->  drivers/media/i2c/s5k5baf.c                    |   6 +-
->  drivers/media/i2c/smiapp/Kconfig               |   1 +
->  drivers/media/i2c/smiapp/smiapp-core.c         |  29 ++-
->  drivers/media/i2c/tc358743.c                   |  11 +-
->  drivers/media/i2c/tvp514x.c                    |   6 +-
->  drivers/media/i2c/tvp5150.c                    |   7 +-
->  drivers/media/i2c/tvp7002.c                    |   6 +-
->  drivers/media/platform/Kconfig                 |   3 +
->  drivers/media/platform/am437x/Kconfig          |   1 +
->  drivers/media/platform/am437x/am437x-vpfe.c    |  15 +-
->  drivers/media/platform/atmel/Kconfig           |   1 +
->  drivers/media/platform/atmel/atmel-isc.c       |  13 +-
->  drivers/media/platform/exynos4-is/Kconfig      |   2 +
->  drivers/media/platform/exynos4-is/media-dev.c  |  13 +-
->  drivers/media/platform/exynos4-is/mipi-csis.c  |   6 +-
->  drivers/media/platform/omap3isp/isp.c          |  49 ++--
->  drivers/media/platform/pxa_camera.c            |  11 +-
->  drivers/media/platform/rcar-vin/Kconfig        |   1 +
->  drivers/media/platform/rcar-vin/rcar-core.c    |  23 +-
->  drivers/media/platform/soc_camera/Kconfig      |   1 +
->  drivers/media/platform/soc_camera/atmel-isi.c  |   7 +-
->  drivers/media/platform/soc_camera/soc_camera.c |   7 +-
->  drivers/media/platform/ti-vpe/cal.c            |  15 +-
->  drivers/media/platform/xilinx/Kconfig          |   1 +
->  drivers/media/platform/xilinx/xilinx-vipp.c    |  63 +++--
->  drivers/media/v4l2-core/Kconfig                |   3 +
->  drivers/media/v4l2-core/Makefile               |   4 +-
->  drivers/media/v4l2-core/v4l2-async.c           |  21 +-
->  drivers/media/v4l2-core/v4l2-flash-led-class.c |  12 +-
->  drivers/media/v4l2-core/v4l2-fwnode.c          | 342 +++++++++++++++++++++++++
->  drivers/media/v4l2-core/v4l2-of.c              | 327 -----------------------
->  include/media/v4l2-async.h                     |   8 +-
->  include/media/v4l2-flash-led-class.h           |   4 +-
->  include/media/v4l2-fwnode.h                    | 104 ++++++++
->  include/media/v4l2-of.h                        | 128 ---------
->  include/media/v4l2-subdev.h                    |   3 +
->  46 files changed, 690 insertions(+), 638 deletions(-)
->  create mode 100644 Documentation/media/kapi/v4l2-fwnode.rst
->  delete mode 100644 Documentation/media/kapi/v4l2-of.rst
->  create mode 100644 drivers/media/v4l2-core/v4l2-fwnode.c
->  delete mode 100644 drivers/media/v4l2-core/v4l2-of.c
->  create mode 100644 include/media/v4l2-fwnode.h
->  delete mode 100644 include/media/v4l2-of.h
-> 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
