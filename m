@@ -1,215 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38428 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1172867AbdDXOof (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Apr 2017 10:44:35 -0400
-Date: Mon, 24 Apr 2017 17:44:02 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Pavel Machek <pavel@ucw.cz>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
-        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Bhumika Goyal <bhumirks@gmail.com>
-Subject: Re: [PATCH] [media] ov2640: make GPIOLIB an optional dependency
-Message-ID: <20170424144402.GS7456@valkosipuli.retiisi.org.uk>
-References: <a463ea990d2138ca93027b006be96a0324b77fe4.1492602584.git.mchehab@s-opensource.com>
- <20170419132339.GA31747@amd>
- <20170419110300.2dbbf784@vento.lan>
- <20170421063312.GA21434@amd>
- <20170421113934.55158d51@vento.lan>
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:33630 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750792AbdDBEsS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 2 Apr 2017 00:48:18 -0400
+Received: by mail-qt0-f194.google.com with SMTP id r45so15151203qte.0
+        for <linux-media@vger.kernel.org>; Sat, 01 Apr 2017 21:48:18 -0700 (PDT)
+Date: Sun, 2 Apr 2017 00:48:15 -0400
+From: Kevin Wern <kevin.m.wern@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Stephen Warren <swarren@wwwdotorg.org>,
+        Lee Jones <lee@kernel.org>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Ray Jui <rjui@broadcom.com>,
+        Scott Branden <sbranden@broadcom.com>,
+        Eric Anholt <eric@anholt.net>,
+        bcm-kernel-feedback-list@broadcom.com, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH] staging: media/platform/bcm2835: remove gstreamer workaround
+Message-ID: <20170402044815.GA23614@kwern-HP-Pavilion-dv5-Notebook-PC>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170421113934.55158d51@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro and others,
+Gstreamer's v4l2src reacted poorly to certain outputs from the bcm2835
+video driver's ioctl ops function vidioc_enum_framesizes, so a
+workaround was created that could be activated by user input. This
+workaround would replace the driver's ioctl ops struct with another,
+similar struct--only with no function pointed to by
+vidioc_enum_framesizes. With no response, gstreamer would attempt to
+continue with some default settings that happened to work better.
 
-On Fri, Apr 21, 2017 at 11:39:42AM -0300, Mauro Carvalho Chehab wrote:
-> Em Fri, 21 Apr 2017 08:33:12 +0200
-> Pavel Machek <pavel@ucw.cz> escreveu:
-> 
-> > Hi!
-> > 
-> > > > Better solution would be for VIDEO_EM28XX_V4L2 to depend on GPIOLIB,
-> > > > too, no? If not, should there be BUG_ON(priv->pwdn_gpio);
-> > > > BUG_ON(priv->resetb_gpio);?  
-> > > 
-> > > Pavel,
-> > > 
-> > > The em28xx driver was added upstream several years the gpio driver. 
-> > > It controls GPIO using a different logic. It makes no sense to make
-> > > it dependent on GPIOLIB, except if someone converts it to use it.  
-> > 
-> > At least comment in the sourcecode...? Remove pwdn_gpio fields from
-> > structure in !GPIOLIB case, because otherwise they are trap for the
-> > programmer trying to understand what is going on?
-> 
-> 
-> Sorry, I answered to another e-mail thread related to it. I assumed
-> that it was c/c to linux-media, but it is, in fact a private e-mail.
+However, this bug has been fixed in gstreamer since 2014, so we
+shouldn't include this workaround in the stable version of the driver.
 
-I thought so, too! X-)
+Signed-off-by: Kevin Wern <kevin.m.wern@gmail.com>
+---
+ drivers/staging/media/platform/bcm2835/TODO        |  5 --
+ .../media/platform/bcm2835/bcm2835-camera.c        | 59 ----------------------
+ 2 files changed, 64 deletions(-)
 
-> 
-> I can see two alternatives:
-> 
-> 1) Restore old behavior, assuming that all drivers that use OV2640 will
-> have GPIOLIB enabled, with a patch like:
-> 
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> index fd181c99ce11..4e834c36f7da 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -521,6 +521,7 @@ config VIDEO_OV2640
->         tristate "OmniVision OV2640 sensor support"
->         depends on VIDEO_V4L2 && I2C
->         depends on MEDIA_CAMERA_SUPPORT
-> +       depends on GPIOLIB if OF
->         help
->           This is a Video4Linux2 sensor-level driver for the OmniVision
->           OV2640 camera.
-> 
-> However, I was told that some OF drivers don't actually define the GPIO
-> pins.
-> 
-> So, the other option is:
-> 
-> 2) Make the logic smarter for OF, with this change:
-> 
-> 
-> diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-> index 4a2ae24f8722..8855c81a9e1f 100644
-> --- a/drivers/media/i2c/ov2640.c
-> +++ b/drivers/media/i2c/ov2640.c
-> @@ -1048,21 +1048,39 @@ static const struct v4l2_subdev_ops ov2640_subdev_ops = {
->  static int ov2640_probe_dt(struct i2c_client *client,
->  		struct ov2640_priv *priv)
->  {
-> +	int ret;
-> +
->  	/* Request the reset GPIO deasserted */
->  	priv->resetb_gpio = devm_gpiod_get_optional(&client->dev, "resetb",
->  			GPIOD_OUT_LOW);
-> -	if (!priv->resetb_gpio)
-> +	if (!priv->resetb_gpio) {
->  		dev_dbg(&client->dev, "resetb gpio is not assigned!\n");
-> -	else if (IS_ERR(priv->resetb_gpio))
-> -		return PTR_ERR(priv->resetb_gpio);
-> +	} else {
-> +		ret = PTR_ERR(priv->resetb_gpio);
-> +
-> +		if (ret && ret != -ENOSYS) {
-> +			dev_dbg(&client->dev,
-> +				"Error %d while getting resetb gpio\n",
-> +				ret);
-> +			return ret;
-> +		}
-> +	}
-
-This would work. I just wish it'd look nicer. :-)
-
-How about something like:
-
-ret = PTR_ERR(priv->reset_gpio);
-if (!priv->reset_gpio) {
-	dev_dbg("reset gpio is not assigned");
-} else if (ret != -ENOSYS) {
-	dev_dbg("error %d while getting reset gpio, ret);
-	return ret;
-}
-
-I prefer this option as it's not dependent on the system firmware type.
-
->  
->  	/* Request the power down GPIO asserted */
->  	priv->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "pwdn",
->  			GPIOD_OUT_HIGH);
-> -	if (!priv->pwdn_gpio)
-> +	if (!priv->pwdn_gpio) {
->  		dev_dbg(&client->dev, "pwdn gpio is not assigned!\n");
-> -	else if (IS_ERR(priv->pwdn_gpio))
-> -		return PTR_ERR(priv->pwdn_gpio);
-> +	} else {
-> +		ret = PTR_ERR(priv->pwdn_gpio);
-> +
-> +		if (ret && ret != -ENOSYS) {
-> +			dev_dbg(&client->dev,
-> +				"Error %d while getting pwdn gpio\n",
-> +				ret);
-> +			return ret;
-> +		}
-> +	}
->  
->  	return 0;
->  }
-> 
-> For this to work, OF caller drivers will have to depend or select GPIOLIB,
-> if they need those GPIO pins.
-> 
-> IMHO, (2) is better, but I'd like to hear more opinions from the driver
-> authors that require the usage of ov2640 I2C driver.
-> 
-> > 
-> > Plus, something like this, because otherwise it is quite confusing?
-> > 
-> > Thanks,
-> > 								Pavel
-> > 
-> > diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
-> > index 56de182..85620e1 100644
-> > --- a/drivers/media/i2c/soc_camera/ov2640.c
-> > +++ b/drivers/media/i2c/soc_camera/ov2640.c
-> > @@ -1060,7 +1060,7 @@ static int ov2640_hw_reset(struct device *dev)
-> >  		/* Active the resetb pin to perform a reset pulse */
-> >  		gpiod_direction_output(priv->resetb_gpio, 1);
-> >  		usleep_range(3000, 5000);
-> > -		gpiod_direction_output(priv->resetb_gpio, 0);
-> > +		gpiod_set_value(priv->resetb_gpio, 0);
-> >  	}
-> >  
-> >  	return 0;
-> > 
-> 
-> That should be, IMHO, on a separate patch. Why are you changing just
-> one of the set commands there? Shouldn't it be, instead:
-> 
-> diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-> index 8855c81a9e1f..4ec567569ba2 100644
-> --- a/drivers/media/i2c/ov2640.c
-> +++ b/drivers/media/i2c/ov2640.c
-> @@ -770,12 +770,12 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int on)
->  
->  #ifdef CONFIG_GPIOLIB
->         if (priv->pwdn_gpio)
-> -               gpiod_direction_output(priv->pwdn_gpio, !on);
-> +               gpiod_set_value(priv->pwdn_gpio, !on);
-
-As long as the direction is first set somewhere... (I haven't checked.)
-
->         if (on && priv->resetb_gpio) {
->                 /* Active the resetb pin to perform a reset pulse */
-> -               gpiod_direction_output(priv->resetb_gpio, 1);
-> +               gpiod_set_value(priv->resetb_gpio, 1);
->                 usleep_range(3000, 5000);
-> -               gpiod_direction_output(priv->resetb_gpio, 0);
-> +               gpiod_set_value(priv->resetb_gpio, 0);
->         }
->  #endif
-
+diff --git a/drivers/staging/media/platform/bcm2835/TODO b/drivers/staging/media/platform/bcm2835/TODO
+index 61a5099..0ab9e88 100644
+--- a/drivers/staging/media/platform/bcm2835/TODO
++++ b/drivers/staging/media/platform/bcm2835/TODO
+@@ -32,8 +32,3 @@ We should have VCHI create a platform device once it's initialized,
+ and have this driver bind to it, so that we automatically load the
+ v4l2 module after VCHI loads.
+ 
+-5) Drop the gstreamer workaround.
+-
+-This was a temporary workaround for a bug that was fixed mid-2014, and
+-we should remove it before stabilizing the driver.
+-
+diff --git a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+index ca15a69..6a50862 100644
+--- a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
++++ b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+@@ -66,19 +66,6 @@ MODULE_PARM_DESC(max_video_width, "Threshold for video mode");
+ module_param(max_video_height, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(max_video_height, "Threshold for video mode");
+ 
+-/* Gstreamer bug https://bugzilla.gnome.org/show_bug.cgi?id=726521
+- * v4l2src does bad (and actually wrong) things when the vidioc_enum_framesizes
+- * function says type V4L2_FRMSIZE_TYPE_STEPWISE, which we do by default.
+- * It's happier if we just don't say anything at all, when it then
+- * sets up a load of defaults that it thinks might work.
+- * If gst_v4l2src_is_broken is non-zero, then we remove the function from
+- * our function table list (actually switch to an alternate set, but same
+- * result).
+- */
+-static int gst_v4l2src_is_broken;
+-module_param(gst_v4l2src_is_broken, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+-MODULE_PARM_DESC(gst_v4l2src_is_broken, "If non-zero, enable workaround for Gstreamer");
+-
+ /* global device data array */
+ static struct bm2835_mmal_dev *gdev[MAX_BCM2835_CAMERAS];
+ 
+@@ -1456,47 +1443,6 @@ static const struct v4l2_ioctl_ops camera0_ioctl_ops = {
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+-static const struct v4l2_ioctl_ops camera0_ioctl_ops_gstreamer = {
+-	/* overlay */
+-	.vidioc_enum_fmt_vid_overlay = vidioc_enum_fmt_vid_overlay,
+-	.vidioc_g_fmt_vid_overlay = vidioc_g_fmt_vid_overlay,
+-	.vidioc_try_fmt_vid_overlay = vidioc_try_fmt_vid_overlay,
+-	.vidioc_s_fmt_vid_overlay = vidioc_s_fmt_vid_overlay,
+-	.vidioc_overlay = vidioc_overlay,
+-	.vidioc_g_fbuf = vidioc_g_fbuf,
+-
+-	/* inputs */
+-	.vidioc_enum_input = vidioc_enum_input,
+-	.vidioc_g_input = vidioc_g_input,
+-	.vidioc_s_input = vidioc_s_input,
+-
+-	/* capture */
+-	.vidioc_querycap = vidioc_querycap,
+-	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
+-	.vidioc_g_fmt_vid_cap = vidioc_g_fmt_vid_cap,
+-	.vidioc_try_fmt_vid_cap = vidioc_try_fmt_vid_cap,
+-	.vidioc_s_fmt_vid_cap = vidioc_s_fmt_vid_cap,
+-
+-	/* buffer management */
+-	.vidioc_reqbufs = vb2_ioctl_reqbufs,
+-	.vidioc_create_bufs = vb2_ioctl_create_bufs,
+-	.vidioc_prepare_buf = vb2_ioctl_prepare_buf,
+-	.vidioc_querybuf = vb2_ioctl_querybuf,
+-	.vidioc_qbuf = vb2_ioctl_qbuf,
+-	.vidioc_dqbuf = vb2_ioctl_dqbuf,
+-	/* Remove this function ptr to fix gstreamer bug
+-	.vidioc_enum_framesizes = vidioc_enum_framesizes, */
+-	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
+-	.vidioc_g_parm        = vidioc_g_parm,
+-	.vidioc_s_parm        = vidioc_s_parm,
+-	.vidioc_streamon = vb2_ioctl_streamon,
+-	.vidioc_streamoff = vb2_ioctl_streamoff,
+-
+-	.vidioc_log_status = v4l2_ctrl_log_status,
+-	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+-	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+-};
+-
+ /* ------------------------------------------------------------------
+ 	Driver init/finalise
+    ------------------------------------------------------------------*/
+@@ -1813,11 +1759,6 @@ static int __init bm2835_mmal_init_device(struct bm2835_mmal_dev *dev,
+ 	int ret;
+ 
+ 	*vfd = vdev_template;
+-	if (gst_v4l2src_is_broken) {
+-		v4l2_info(&dev->v4l2_dev,
+-			  "Work-around for gstreamer issue is active.\n");
+-		vfd->ioctl_ops = &camera0_ioctl_ops_gstreamer;
+-	}
+ 
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
+ 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
