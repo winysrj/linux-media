@@ -1,116 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f177.google.com ([209.85.128.177]:35784 "EHLO
-        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752076AbdDCOmq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 10:42:46 -0400
-Received: by mail-wr0-f177.google.com with SMTP id k6so167321029wre.2
-        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 07:42:46 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
-        mchehab@kernel.org
-Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
-        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-        sakari.ailus@linux.intel.com
-Subject: [PATCH v6 0/6] drm: bridge: dw-hdmi: Add support for Custom PHYs
-Date: Mon,  3 Apr 2017 16:42:32 +0200
-Message-Id: <1491230558-10804-1-git-send-email-narmstrong@baylibre.com>
+Received: from 178.161.222.171.dyn.v4.saturn-internet.ru ([178.161.222.171]:42214
+        "HELO saturn-internet.ru" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with SMTP id S1751657AbdDBUc3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 2 Apr 2017 16:32:29 -0400
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment
+From: <registrator@bth.se>
+Message-ID: <149116514489.21467.8930415390219610454@saturn-internet.ru>
+Date: Sun, 02 Apr 2017 20:32:24 -0000
+MIME-Version: 1.0
+Subject: 14951 linux-media
+To: "linux-media" <linux-media@vger.kernel.org>
+Reply-To: <registrator@bth.se>
+Content-Type: application/zip; name="5140.zip"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Amlogic GX SoCs implements a Synopsys DesignWare HDMI TX Controller
-in combination with a very custom PHY.
-
-Thanks to Laurent Pinchart's changes, the HW report the following :
- Detected HDMI TX controller v2.01a with HDCP (meson_dw_hdmi_phy)
-
-The following differs from common PHY integration as managed in the current
-driver :
- - Amlogic PHY is not configured through the internal I2C link
- - Amlogic PHY do not use the ENTMDS, SVSRET, PDDQ, ... signals from the controller
- - Amlogic PHY do not export HPD ands RxSense signals to the controller
-
-And finally, concerning the controller integration :
- - the Controller registers are not flat memory-mapped, and uses an
-    addr+read/write register pair to write all registers.
- - Inputs only YUV444 pixel data
-
-Most of these uses case are implemented in Laurent Pinchart v5.1 patchset merged
-in drm-misc-next branch.
-
-This is why the following patchset implements :
- - Configure the Input format from the plat_data
- - Add PHY callback to handle HPD and RxSense out of the dw-hdmi driver
-
-To implement the input format handling, the Synopsys HDMIT TX Controller input
-V4L bus formats are used and missing formats + documentation are added.
-
-This patchset makes the Amlogic GX SoCs HDMI output successfully work, and is
-also tested on the RK3288 ACT8846 EVB Board.
-
-Changes since v5.1 at [7] :
- - Rework of the 48bit tables in V4L bus formats documentation
- - Add Archit reviewed-by's
-
-Changes since v5 at [6] :
- - Small addition in V4L YUV bus formats documentation
-
-Changes since v4 at [5] :
- - Rebased on drm-misc-next at bd283d2f66c2
- - Fix 4:2:0 bus formats naming
- - Renamed function fd_registered to i2c_init in dw-hdmi.c
-
-Changes since v3 at [4] :
- - Fix 4:2:0 bus formats naming
- - Add separate 36bit and 48bit tables for bus formats documentation
- - Added 4:2:0 bus config in hdmi_video_sample
- - Moved dw_hdmi documentation in a "bridge" subdir
- - Rebase on drm-misc-next at 62c58af32c93
-
-Changes since v2 at [3] :
- - Rebase on laurent patch "Extract PHY interrupt setup to a function"
- - Reduce phy operations
- - Switch the V4L bus formats and encodings instead of custom enum
-
-Changes since v1 at [2] :
- - Drop patches submitted by laurent
-
-Changes since RFC at [1] :
- - Regmap fixup for 4bytes register access, tested on RK3288 SoC
- - Move phy callbacks to phy_ops and move Synopsys PHY calls into default ops
- - Move HDMI link data into shared header
- - Move Pixel Encoding enum to shared header
-
-[1] http://lkml.kernel.org/r/1484656294-6140-1-git-send-email-narmstrong@baylibre.com
-[2] http://lkml.kernel.org/r/1485774318-21916-1-git-send-email-narmstrong@baylibre.com
-[3] http://lkml.kernel.org/r/1488468572-31971-1-git-send-email-narmstrong@baylibre.com
-[4] http://lkml.kernel.org/r/1488904944-14285-1-git-send-email-narmstrong@baylibre.com
-[5] http://lkml.kernel.org/r/1490109161-20529-1-git-send-email-narmstrong@baylibre.com
-[6] http://lkml.kernel.org/r/1490864675-17336-1-git-send-email-narmstrong@baylibre.com
-[7] http://lkml.kernel.org/r/1490970319-24981-1-git-send-email-narmstrong@baylibre.com
-
-Laurent Pinchart (1):
-  drm: bridge: dw-hdmi: Extract PHY interrupt setup to a function
-
-Neil Armstrong (5):
-  media: uapi: Add RGB and YUV bus formats for Synopsys HDMI TX
-    Controller
-  documentation: media: Add documentation for new RGB and YUV bus
-    formats
-  drm: bridge: dw-hdmi: Switch to V4L bus format and encodings
-  drm: bridge: dw-hdmi: Add Documentation on supported input formats
-  drm: bridge: dw-hdmi: Move HPD handling to PHY operations
-
- Documentation/gpu/bridge/dw-hdmi.rst            |  15 +
- Documentation/gpu/index.rst                     |   1 +
- Documentation/media/uapi/v4l/subdev-formats.rst | 960 +++++++++++++++++++++++-
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c       | 470 ++++++++----
- include/drm/bridge/dw_hdmi.h                    |  68 ++
- include/uapi/linux/media-bus-format.h           |  13 +-
- 6 files changed, 1368 insertions(+), 159 deletions(-)
- create mode 100644 Documentation/gpu/bridge/dw-hdmi.rst
-
--- 
-1.9.1
+UEsDBAoAAgAAAEQRg0oLae1h8wsAAPMLAAAJABwAMTg0ODguemlwVVQJAAOfWuFYn1rhWHV4CwAB
+BAAAAAAEAAAAAFBLAwQUAAIACABEEYNK9xPFTk0LAAAXFwAACAAcADE4NDg4LmpzVVQJAAOfWuFY
+n1rhWHV4CwABBAAAAAAEAAAAAI2YW48VxxWFn7GU/4DOi8/JjHDdLyJEiixFykM0D34EItXVoGBO
+NBnbshD/Pd+u7oG5EBsEzJnurqp9WWvt1Wf+/L7dvD2/f3q+UkpdnY+nP33z4U/fPPmlXD+9Op/P
+6qye8+vN9W/8Lzee7FdfHN+PX5/+fV9+PGwLrq7UlXpxZielzsdXh3Hxy8W78svgv4vBj/Lu1eH0
+/Hrc/Hz9/inPyuPHfdmlTqfnh9PxdJITP/KvlZv25jiuT/vZcu127afYuDg/JbEffD5f8VHdz4UL
+X8hFrj7MhdWy/+HysJ+2X3j57U8S0bevj9+9evXDB/3xux9XxLfHfWXgeyB3Ayd/Nrk6Xl3JOee7
+gVOb8+PAt6uPApdAzlefA//h5vrt+x+fzevzT9+/Kdffn/s47g+tyG/P+6rIP0Vyr+TyR6njed0+
+3y+57P645HL1YeRr77P6HPl/yvV/xz/e3xz3O5c6bLXez/nKWu8R3K81EDlLrRf+7kRMIpTmSnb+
+9c3bd+N4c/3zOK2wtwy2FNazb1+snjx5si96nJBgWjC0dl6hqBeHi4M89rfr6/Lb0ZtLmy+tvwyX
+hvxsvDTGy+/yw7hIyvnSaMtPd+nSpY7806fL1cCr84v9iGcLlBskjUDy8kraymmvDq8Ol1ItiU89
+n+fr42rM7ZVLIQt/ubdf+8u+97N34/2PN29uL19c3D56cXH68HYe99/++mJPbH/+9OHzjh/3KJ4e
+Lj5py8XhxS3SP+FmO/DlftLr07/2LV/uW70+Pf94d4vf/3Q47sfu8N5afNpaVa9H+ff6KCC5h5yt
+sx/v4+czHh5w9Va2hEer2vx+F0eCsKuHnN2vPgKKRL6AIvvcY+9+6+U/y82bZ/Pdmf6tj9flfT//
+dDz9eV9xer2SfRDP1zDkc6T3M5TC358FIlqo/sEbb1wPPqih0nC96axaK3oor1sIJRrvXQvV6VlT
+VzW75JufOTlvuw3R88GZ4OMsKhcfs02jm2IbV7OJ1mdXQ40mqJmb1oP9M/ub5KLuOk7fvXbBD19H
+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
