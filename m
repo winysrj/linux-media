@@ -1,149 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:35936 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752144AbdDCQXM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 12:23:12 -0400
-Date: Mon, 3 Apr 2017 11:23:10 -0500
-From: Rob Herring <robh@kernel.org>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
+Received: from www.zeus03.de ([194.117.254.33]:48250 "EHLO mail.zeus03.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752328AbdDCK0u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Apr 2017 06:26:50 -0400
+Date: Mon, 3 Apr 2017 12:26:46 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Peter Rosin <peda@axentia.se>
+Cc: linux-kernel@vger.kernel.org,
+        Peter Korsgaard <peter.korsgaard@barco.com>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>
-Subject: Re: [PATCH v2 1/8] dt-bindings: Document STM32 DCMI bindings
-Message-ID: <20170403162309.eikbsmfbxw6admdc@rob-hp-laptop>
-References: <1490887667-8880-1-git-send-email-hugues.fruchet@st.com>
- <1490887667-8880-2-git-send-email-hugues.fruchet@st.com>
+        linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 9/9] [media] cx231xx: stop double error reporting
+Message-ID: <20170403102646.GA2750@katana>
+References: <1491208718-32068-1-git-send-email-peda@axentia.se>
+ <1491208718-32068-10-git-send-email-peda@axentia.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="tThc/1wpZn/ma/RB"
 Content-Disposition: inline
-In-Reply-To: <1490887667-8880-2-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1491208718-32068-10-git-send-email-peda@axentia.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 30, 2017 at 05:27:40PM +0200, Hugues Fruchet wrote:
-> This adds documentation of device tree bindings for the STM32 DCMI
-> (Digital Camera Memory Interface).
-> 
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+
+--tThc/1wpZn/ma/RB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Apr 03, 2017 at 10:38:38AM +0200, Peter Rosin wrote:
+> i2c_mux_add_adapter already logs a message on failure.
+>=20
+> Signed-off-by: Peter Rosin <peda@axentia.se>
 > ---
->  .../devicetree/bindings/media/st,stm32-dcmi.txt    | 85 ++++++++++++++++++++++
->  1 file changed, 85 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
-> new file mode 100644
-> index 0000000..8180f63
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
-> @@ -0,0 +1,85 @@
-> +STMicroelectronics STM32 Digital Camera Memory Interface (DCMI)
-> +
-> +Required properties:
-> +- compatible: "st,stm32-dcmi"
+>  drivers/media/usb/cx231xx/cx231xx-i2c.c | 15 ++++-----------
+>  1 file changed, 4 insertions(+), 11 deletions(-)
+>=20
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/=
+cx231xx/cx231xx-i2c.c
+> index 35e9acfe63d3..dff514e147da 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> @@ -576,17 +576,10 @@ int cx231xx_i2c_mux_create(struct cx231xx *dev)
+> =20
+>  int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no)
+>  {
+> -	int rc;
+> -
+> -	rc =3D i2c_mux_add_adapter(dev->muxc,
+> -				 0,
+> -				 mux_no /* chan_id */,
+> -				 0 /* class */);
+> -	if (rc)
+> -		dev_warn(dev->dev,
+> -			 "i2c mux %d register FAILED\n", mux_no);
+> -
+> -	return rc;
+> +	return i2c_mux_add_adapter(dev->muxc,
+> +				   0,
+> +				   mux_no /* chan_id */,
+> +				   0 /* class */);
 
-Same block and same errata on all stm32 variants?
+Could be argued that the whole function is obsolete now and the
+c231xx-core can call i2c_mux_add_adapter() directly. But maybe this is a
+seperate patch.
 
-> +- reg: physical base address and length of the registers set for the device
-> +- interrupts: should contain IRQ line for the DCMI
-> +- clocks: list of clock specifiers, corresponding to entries in
-> +          the clock-names property
-> +- clock-names: must contain "mclk", which is the DCMI peripherial clock
-> +- resets: reference to a reset controller
-> +- reset-names: see Documentation/devicetree/bindings/reset/st,stm32-rcc.txt
-> +
-> +DCMI supports a single port node with parallel bus. It should contain one
-> +'port' child node with child 'endpoint' node. Please refer to the bindings
-> +defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Example:
-> +
-> +Device node example
-> +-------------------
-> +	dcmi: dcmi@50050000 {
-> +		compatible = "st,stm32-dcmi";
-> +		reg = <0x50050000 0x400>;
-> +		interrupts = <78>;
-> +		resets = <&rcc STM32F4_AHB2_RESET(DCMI)>;
-> +		clocks = <&rcc 0 STM32F4_AHB2_CLOCK(DCMI)>;
-> +		clock-names = "mclk";
+>  }
+> =20
+>  void cx231xx_i2c_mux_unregister(struct cx231xx *dev)
+> --=20
+> 2.1.4
+>=20
 
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&dcmi_pins>;
+--tThc/1wpZn/ma/RB
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Not documented.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-> +		dmas = <&dma2 1 1 0x414 0x3>;
-> +		dma-names = "tx";
+iQIcBAEBAgAGBQJY4iNlAAoJEBQN5MwUoCm2sbMP/R+uUIWP56gcLxJglfrRrEOT
+vI1ZGJhxSTNKmX8wllynWF+y+cVMH3wh4pR/lX6nvx1SWhAYrvoXWPSJyDWlb5wn
+mckYHav1xCHe3lTEDcyPqH5Er8ffpDjaNxmRZmmmot2jH9ett2LLwCTGdOoMc2xd
+IN9n2hiNiSRZIfHz/kVBcXldeFVMpwdF4XmtwL4VuW8X2sAhiU3aFFypJWCN57xM
+6Nj6MPJcNBlX0catYl22OzAyxQK10vWU+vpGgS5czxOW81dCYRBFHkLXVH40GEme
+mFfhSQEimRggBo5HZlKEHXI8+mUQdXWLueLGJNiLaLbF+gByNHKbkIPQKujqUk0A
+6z4gclhO7KSGGwk4XvziwVNCeYNi6dwmbZJ/TBVGi6anUKIWWO9U5DqM8dGbQQYD
+gbFzLH+ntAp3W2QzQ2/ws0h0tH6K5RLvw/FGmfdKUFYu8S8EUYHGkSvFqXr6zjcB
+p3wlx9t9eDICKhJGqgVaCorU9zAUZUxKFEh3TNpYaK/1M4AHIgAZdAZhqU6SHcty
+eAAHbSukO/POS3nt38FW/17N/0K5hJFqgAgMk0NrgzeboORnJaDUGBprlLB/JydD
+96qIQ2NhVrRj1oBMVSSzlmDYjC7Irp/KZOwybbYrQe3M4qVeCJ5hVzF1Y+pVTeCO
+UOj3YW3tZ9kTvRGBJ0zO
+=gZBA
+-----END PGP SIGNATURE-----
 
-Not documented.
-
-> +		status = "disabled";
-
-Drop status from examples.
-
-> +	};
-> +
-> +Board setup example
-
-Please don't split examples. That's just source level details and not 
-part of the ABI.
-
-> +-------------------
-> +This example is extracted from STM32F429-EVAL board devicetree.
-> +Please note that on this board, the camera sensor reset & power-down
-> +line level are inverted (so reset is active high and power-down is
-> +active low).
-> +
-> +/ {
-> +	[...]
-> +	clocks {
-> +		clk_ext_camera: clk-ext-camera {
-> +			#clock-cells = <0>;
-> +			compatible = "fixed-clock";
-> +			clock-frequency = <24000000>;
-> +		};
-> +	};
-> +	[...]
-> +};
-> +
-> +&dcmi {
-> +	status = "okay";
-> +
-> +	port {
-> +		dcmi_0: endpoint@0 {
-> +			remote-endpoint = <&ov2640_0>;
-> +			bus-width = <8>;
-> +			hsync-active = <0>;
-> +			vsync-active = <0>;
-> +			pclk-sample = <1>;
-> +		};
-> +	};
-> +};
-> +
-> +&i2c@1 {
-> +	[...]
-> +	ov2640: camera@30 {
-> +		compatible = "ovti,ov2640";
-> +		reg = <0x30>;
-> +		resetb-gpios = <&stmpegpio 2 GPIO_ACTIVE_HIGH>;
-> +		pwdn-gpios = <&stmpegpio 0 GPIO_ACTIVE_LOW>;
-> +		clocks = <&clk_ext_camera>;
-> +		clock-names = "xvclk";
-> +		status = "okay";
-> +
-> +		port {
-> +			ov2640_0: endpoint {
-> +				remote-endpoint = <&dcmi_0>;
-> +			};
-> +		};
-> +	};
-> +};
-> -- 
-> 1.9.1
-> 
+--tThc/1wpZn/ma/RB--
