@@ -1,130 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:49845 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1952432AbdDYSV2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 14:21:28 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com
-Cc: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Alex Dubov <oakad@yahoo.com>
-Date: Tue, 25 Apr 2017 12:21:08 -0600
-Message-Id: <1493144468-22493-22-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 21/21] memstick: Make use of the new sg_map helper function
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:53084 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751963AbdDCJod (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Apr 2017 05:44:33 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.12] Various fixes
+Message-ID: <46cdb2fc-0271-de5f-858e-ea701c60a76f@xs4all.nl>
+Date: Mon, 3 Apr 2017 11:44:23 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Straightforward conversion, but we have to make use of
-SG_MAP_MUST_NOT_FAIL which may BUG_ON in certain cases
-in the future.
+Fixes, documentation clarifications.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Alex Dubov <oakad@yahoo.com>
----
- drivers/memstick/host/jmb38x_ms.c | 11 ++++++-----
- drivers/memstick/host/tifm_ms.c   | 11 ++++++-----
- 2 files changed, 12 insertions(+), 10 deletions(-)
+Regards,
 
-diff --git a/drivers/memstick/host/jmb38x_ms.c b/drivers/memstick/host/jmb38x_ms.c
-index 48db922..9019e37 100644
---- a/drivers/memstick/host/jmb38x_ms.c
-+++ b/drivers/memstick/host/jmb38x_ms.c
-@@ -303,7 +303,6 @@ static int jmb38x_ms_transfer_data(struct jmb38x_ms_host *host)
- 	unsigned int off;
- 	unsigned int t_size, p_cnt;
- 	unsigned char *buf;
--	struct page *pg;
- 	unsigned long flags = 0;
- 
- 	if (host->req->long_data) {
-@@ -318,14 +317,14 @@ static int jmb38x_ms_transfer_data(struct jmb38x_ms_host *host)
- 		unsigned int uninitialized_var(p_off);
- 
- 		if (host->req->long_data) {
--			pg = nth_page(sg_page(&host->req->sg),
--				      off >> PAGE_SHIFT);
- 			p_off = offset_in_page(off);
- 			p_cnt = PAGE_SIZE - p_off;
- 			p_cnt = min(p_cnt, length);
- 
- 			local_irq_save(flags);
--			buf = kmap_atomic(pg) + p_off;
-+			buf = sg_map(&host->req->sg,
-+				     off - host->req->sg.offset,
-+				     SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
- 		} else {
- 			buf = host->req->data + host->block_pos;
- 			p_cnt = host->req->data_len - host->block_pos;
-@@ -341,7 +340,9 @@ static int jmb38x_ms_transfer_data(struct jmb38x_ms_host *host)
- 				 : jmb38x_ms_read_reg_data(host, buf, p_cnt);
- 
- 		if (host->req->long_data) {
--			kunmap_atomic(buf - p_off);
-+			sg_unmap(&host->req->sg, buf,
-+				 off - host->req->sg.offset,
-+				 SG_KMAP_ATOMIC);
- 			local_irq_restore(flags);
- 		}
- 
-diff --git a/drivers/memstick/host/tifm_ms.c b/drivers/memstick/host/tifm_ms.c
-index 7bafa72..304985d 100644
---- a/drivers/memstick/host/tifm_ms.c
-+++ b/drivers/memstick/host/tifm_ms.c
-@@ -186,7 +186,6 @@ static unsigned int tifm_ms_transfer_data(struct tifm_ms *host)
- 	unsigned int off;
- 	unsigned int t_size, p_cnt;
- 	unsigned char *buf;
--	struct page *pg;
- 	unsigned long flags = 0;
- 
- 	if (host->req->long_data) {
-@@ -203,14 +202,14 @@ static unsigned int tifm_ms_transfer_data(struct tifm_ms *host)
- 		unsigned int uninitialized_var(p_off);
- 
- 		if (host->req->long_data) {
--			pg = nth_page(sg_page(&host->req->sg),
--				      off >> PAGE_SHIFT);
- 			p_off = offset_in_page(off);
- 			p_cnt = PAGE_SIZE - p_off;
- 			p_cnt = min(p_cnt, length);
- 
- 			local_irq_save(flags);
--			buf = kmap_atomic(pg) + p_off;
-+			buf = sg_map(&host->req->sg,
-+				     off - host->req->sg.offset,
-+				     SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
- 		} else {
- 			buf = host->req->data + host->block_pos;
- 			p_cnt = host->req->data_len - host->block_pos;
-@@ -221,7 +220,9 @@ static unsigned int tifm_ms_transfer_data(struct tifm_ms *host)
- 			 : tifm_ms_read_data(host, buf, p_cnt);
- 
- 		if (host->req->long_data) {
--			kunmap_atomic(buf - p_off);
-+			sg_unmap(&host->req->sg, buf,
-+				 off - host->req->sg.offset,
-+				 SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
- 			local_irq_restore(flags);
- 		}
- 
--- 
-2.1.4
+	Hans
+
+The following changes since commit c3d4fb0fb41f4b5eafeee51173c14e50be12f839:
+
+  [media] rc: sunxi-cir: simplify optional reset handling (2017-03-24 08:30:03 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.12e
+
+for you to fetch changes up to 47b1810e23c9d88136402c496351bf0d8b30aa71:
+
+  atmel-isc: fix off-by-one comparison and out of bounds read issue (2017-04-03 11:41:08 +0200)
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      vcodec: mediatek: mark pm functions as __maybe_unused
+
+Colin Ian King (1):
+      atmel-isc: fix off-by-one comparison and out of bounds read issue
+
+Hans Verkuil (5):
+      dev-capture.rst/dev-output.rst: video standards ioctls are optional
+      video.rst: a sensor is also considered to be a physical input
+      v4l2-compat-ioctl32: VIDIOC_S_EDID should return all fields on error.
+      vidioc-enumin/output.rst: improve documentation
+      v4l2-ctrls.c: fix RGB quantization range control menu
+
+Johan Hovold (5):
+      dib0700: fix NULL-deref at probe
+      usbvision: fix NULL-deref at probe
+      cx231xx-cards: fix NULL-deref at probe
+      cx231xx-audio: fix init error path
+      cx231xx-audio: fix NULL-deref at probe
+
+ Documentation/media/uapi/v4l/dev-capture.rst       |  4 ++--
+ Documentation/media/uapi/v4l/dev-output.rst        |  4 ++--
+ Documentation/media/uapi/v4l/video.rst             |  7 ++++---
+ Documentation/media/uapi/v4l/vidioc-enuminput.rst  | 11 ++++++-----
+ Documentation/media/uapi/v4l/vidioc-enumoutput.rst | 15 ++++++++-------
+ drivers/media/platform/atmel/atmel-isc.c           |  2 +-
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c    | 12 ++++--------
+ drivers/media/usb/cx231xx/cx231xx-audio.c          | 42 +++++++++++++++++++++++++++++-------------
+ drivers/media/usb/cx231xx/cx231xx-cards.c          | 45 ++++++++++++++++++++++++++++++++++++++++-----
+ drivers/media/usb/dvb-usb/dib0700_core.c           |  3 +++
+ drivers/media/usb/usbvision/usbvision-video.c      |  9 ++++++++-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  5 ++++-
+ drivers/media/v4l2-core/v4l2-ctrls.c               |  4 ++--
+ 13 files changed, 113 insertions(+), 50 deletions(-)
