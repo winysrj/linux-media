@@ -1,138 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47734 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753996AbdDFNuV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Apr 2017 09:50:21 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>,
-        Evgeny Plehov <EvgenyPlehov@ukr.net>,
-        Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/2] si2157: Add support for Si2141-A10
-Date: Thu,  6 Apr 2017 16:49:11 +0300
-Message-Id: <20170406134911.1922-2-crope@iki.fi>
-In-Reply-To: <20170406134911.1922-1-crope@iki.fi>
-References: <20170406134911.1922-1-crope@iki.fi>
+Received: from mail-he1eur01on0096.outbound.protection.outlook.com ([104.47.0.96]:31631
+        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751993AbdDCIhD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Apr 2017 04:37:03 -0400
+From: Peter Rosin <peda@axentia.se>
+To: <linux-kernel@vger.kernel.org>
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+        Peter Korsgaard <peter.korsgaard@barco.com>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        <linux-i2c@vger.kernel.org>, <linux-iio@vger.kernel.org>,
+        <linux-media@vger.kernel.org>
+Subject: [PATCH 0/9] Unify i2c_mux_add_adapter error reporting
+Date: Mon, 3 Apr 2017 10:38:29 +0200
+Message-ID: <1491208718-32068-1-git-send-email-peda@axentia.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Brüns <stefan.bruens@rwth-aachen.de>
+Hi!
 
-The Si2141 needs two distinct commands for powerup/reset, otherwise it
-will not respond to chip revision requests. It also needs a firmware
-to run properly.
+Many users of the i2c_mux_add_adapter interface log a message
+on failure, but the function already logs such a message. One
+or two of those users actually add more information than already
+provided by the central failure message.
 
-Cc: Evgeny Plehov <EvgenyPlehov@ukr.net>
-Signed-off-by: Stefan Brüns <stefan.bruens@rwth-aachen.de>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/si2157.c      | 23 +++++++++++++++++++++--
- drivers/media/tuners/si2157_priv.h |  2 ++
- 2 files changed, 23 insertions(+), 2 deletions(-)
+So, first fix the central error reporting to provide as much
+information as any current user, and then remove the surplus
+error reporting at the call sites.
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 57b2508..e35b1fa 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -106,6 +106,9 @@ static int si2157_init(struct dvb_frontend *fe)
- 	if (dev->chiptype == SI2157_CHIPTYPE_SI2146) {
- 		memcpy(cmd.args, "\xc0\x05\x01\x00\x00\x0b\x00\x00\x01", 9);
- 		cmd.wlen = 9;
-+	} else if (dev->chiptype == SI2157_CHIPTYPE_SI2141) {
-+		memcpy(cmd.args, "\xc0\x00\x0d\x0e\x00\x01\x01\x01\x01\x03", 10);
-+		cmd.wlen = 10;
- 	} else {
- 		memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
- 		cmd.wlen = 15;
-@@ -115,6 +118,15 @@ static int si2157_init(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	/* Si2141 needs a second command before it answers the revision query */
-+	if (dev->chiptype == SI2157_CHIPTYPE_SI2141) {
-+		memcpy(cmd.args, "\xc0\x08\x01\x02\x00\x00\x01", 7);
-+		cmd.wlen = 7;
-+		ret = si2157_cmd_execute(client, &cmd);
-+		if (ret)
-+			goto err;
-+	}
-+
- 	/* query chip revision */
- 	memcpy(cmd.args, "\x02", 1);
- 	cmd.wlen = 1;
-@@ -131,12 +143,16 @@ static int si2157_init(struct dvb_frontend *fe)
- 	#define SI2157_A30 ('A' << 24 | 57 << 16 | '3' << 8 | '0' << 0)
- 	#define SI2147_A30 ('A' << 24 | 47 << 16 | '3' << 8 | '0' << 0)
- 	#define SI2146_A10 ('A' << 24 | 46 << 16 | '1' << 8 | '0' << 0)
-+	#define SI2141_A10 ('A' << 24 | 41 << 16 | '1' << 8 | '0' << 0)
- 
- 	switch (chip_id) {
- 	case SI2158_A20:
- 	case SI2148_A20:
- 		fw_name = SI2158_A20_FIRMWARE;
- 		break;
-+	case SI2141_A10:
-+		fw_name = SI2141_A10_FIRMWARE;
-+		break;
- 	case SI2157_A30:
- 	case SI2147_A30:
- 	case SI2146_A10:
-@@ -371,7 +387,7 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- 
- static const struct dvb_tuner_ops si2157_ops = {
- 	.info = {
--		.name           = "Silicon Labs Si2146/2147/2148/2157/2158",
-+		.name           = "Silicon Labs Si2141/Si2146/2147/2148/2157/2158",
- 		.frequency_min  = 42000000,
- 		.frequency_max  = 870000000,
- 	},
-@@ -471,6 +487,7 @@ static int si2157_probe(struct i2c_client *client,
- #endif
- 
- 	dev_info(&client->dev, "Silicon Labs %s successfully attached\n",
-+			dev->chiptype == SI2157_CHIPTYPE_SI2141 ?  "Si2141" :
- 			dev->chiptype == SI2157_CHIPTYPE_SI2146 ?
- 			"Si2146" : "Si2147/2148/2157/2158");
- 
-@@ -508,6 +525,7 @@ static int si2157_remove(struct i2c_client *client)
- static const struct i2c_device_id si2157_id_table[] = {
- 	{"si2157", SI2157_CHIPTYPE_SI2157},
- 	{"si2146", SI2157_CHIPTYPE_SI2146},
-+	{"si2141", SI2157_CHIPTYPE_SI2141},
- 	{}
- };
- MODULE_DEVICE_TABLE(i2c, si2157_id_table);
-@@ -524,7 +542,8 @@ static struct i2c_driver si2157_driver = {
- 
- module_i2c_driver(si2157_driver);
- 
--MODULE_DESCRIPTION("Silicon Labs Si2146/2147/2148/2157/2158 silicon tuner driver");
-+MODULE_DESCRIPTION("Silicon Labs Si2141/Si2146/2147/2148/2157/2158 silicon tuner driver");
- MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
- MODULE_LICENSE("GPL");
- MODULE_FIRMWARE(SI2158_A20_FIRMWARE);
-+MODULE_FIRMWARE(SI2141_A10_FIRMWARE);
-diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
-index d6b2c7b..e6436f7 100644
---- a/drivers/media/tuners/si2157_priv.h
-+++ b/drivers/media/tuners/si2157_priv.h
-@@ -42,6 +42,7 @@ struct si2157_dev {
- 
- #define SI2157_CHIPTYPE_SI2157 0
- #define SI2157_CHIPTYPE_SI2146 1
-+#define SI2157_CHIPTYPE_SI2141 2
- 
- /* firmware command struct */
- #define SI2157_ARGLEN      30
-@@ -52,5 +53,6 @@ struct si2157_cmd {
- };
- 
- #define SI2158_A20_FIRMWARE "dvb-tuner-si2158-a20-01.fw"
-+#define SI2141_A10_FIRMWARE "dvb-tuner-si2141-a10-01.fw"
- 
- #endif
+Cheers,
+peda
+
+Peter Rosin (9):
+  i2c: mux: provide more info on failure in i2c_mux_add_adapter
+  i2c: arb: gpio-challenge: stop double error reporting
+  i2c: mux: gpio: stop double error reporting
+  i2c: mux: pca9541: stop double error reporting
+  i2c: mux: pca954x: stop double error reporting
+  i2c: mux: pinctrl: stop double error reporting
+  i2c: mux: reg: stop double error reporting
+  iio: gyro: mpu3050: stop double error reporting
+  [media] cx231xx: stop double error reporting
+
+ drivers/i2c/i2c-mux.c                      |  9 ++++++---
+ drivers/i2c/muxes/i2c-arb-gpio-challenge.c |  4 +---
+ drivers/i2c/muxes/i2c-mux-gpio.c           |  4 +---
+ drivers/i2c/muxes/i2c-mux-pca9541.c        |  4 +---
+ drivers/i2c/muxes/i2c-mux-pca954x.c        |  7 +------
+ drivers/i2c/muxes/i2c-mux-pinctrl.c        |  4 +---
+ drivers/i2c/muxes/i2c-mux-reg.c            |  4 +---
+ drivers/iio/gyro/mpu3050-i2c.c             |  5 ++---
+ drivers/media/usb/cx231xx/cx231xx-i2c.c    | 15 ++++-----------
+ 9 files changed, 18 insertions(+), 38 deletions(-)
+
 -- 
-http://palosaari.fi/
+2.1.4
