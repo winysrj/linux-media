@@ -1,78 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50119
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S938935AbdDYB5t (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40186 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750855AbdDCI6v (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Apr 2017 21:57:49 -0400
-Date: Mon, 24 Apr 2017 22:57:38 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hdegoede@redhat.com
-Subject: Re: support autofocus / autogain in libv4l2
-Message-ID: <20170424225731.7532e368@vento.lan>
-In-Reply-To: <20170424220701.GA27846@amd>
-References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
-        <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
-        <20170414232332.63850d7b@vento.lan>
-        <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
-        <20170419105118.72b8e284@vento.lan>
-        <20170424093059.GA20427@amd>
-        <20170424103802.00d3b554@vento.lan>
-        <20170424220701.GA27846@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Mon, 3 Apr 2017 04:58:51 -0400
+Message-ID: <2b3221c2305e888e5f0104532fc10f8b@smtp-cloud2.xs4all.net>
+Date: Mon, 03 Apr 2017 10:58:49 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 25 Apr 2017 00:07:01 +0200
-Pavel Machek <pavel@ucw.cz> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Hi!
-> 
-> > Please don't add a new application under lib/. It is fine if you want
-> > some testing application, if the ones there aren't enough, but please
-> > place it under contrib/test/.
-> > 
-> > You should likely take a look at v4l2grab first, as it could have
-> > almost everything you would need.  
-> 
-> I really need some kind of video output. v4l2grab is not useful
-> there. v4l2gl might be, but I don't think I have enough dependencies.
+Results of the daily build of media_tree:
 
-Well, you could use some app to show the snaps that v4l2grab takes.
+date:			Mon Apr  3 09:43:35 CEST 2017
+media-tree git hash:	c3d4fb0fb41f4b5eafeee51173c14e50be12f839
+media_build git hash:	479cd7e5371ee685969e1fd20274813de8ae6c9a
+v4l-utils git hash:	984caeac9a41f8d4f636b933dfba4f29c5257f96
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-Yeah, compiling v4l2gl on N9 can indeed be complex. I suspect that it 
-shouldn't hard to compile xawtv there (probably disabling some optional
-features).
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10.1-i686: OK
+linux-4.11-rc1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-x86_64: WARNINGS
+linux-4.10.1-x86_64: WARNINGS
+linux-4.11-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-> Umm, and it looks like libv4l can not automatically convert from
-> GRBG10.. and if it could, going through RGB24 would probably be too
-> slow on this device :-(.
+Detailed results are available here:
 
-I suspect it shouldn't be hard to add support for GRBG10. It already
-supports 8 and 16 bits Bayer formats, at lib/libv4lconvert/bayer.c
-(to both RGB and YUV formats).
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-How it would preform is another question ;)
+Full logs are available here:
 
-> > IMO, the above belongs to a separate processing module under
-> > 	lib/libv4lconvert/processing/  
-> 
-> Is there an example using autogain/autowhitebalance from
-> libv4lconvert?
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-Well, if you plug a USB camera without those controls, it should
-automatically expose controls for it, as if the device had such
-controls.
+The Media Infrastructure API from this daily build is here:
 
-Thanks,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/index.html
