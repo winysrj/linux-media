@@ -1,1859 +1,1140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-cys01nam02on0115.outbound.protection.outlook.com ([104.47.37.115]:2544
-        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751368AbdDNCgI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 22:36:08 -0400
-From: <Yasunari.Takiguchi@sony.com>
-To: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-media@vger.kernel.org>
-CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
-        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
-        Hideki Nozawa <Hideki.Nozawa@sony.com>,
-        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
-        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
-        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
-Subject: [PATCH v2 11/15] [media] cxd2880: Add DVB-T2 control functions for the driver
-Date: Fri, 14 Apr 2017 11:38:43 +0900
-Message-ID: <20170414023843.17957-1-Yasunari.Takiguchi@sony.com>
-In-Reply-To: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
-References: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-qk0-f181.google.com ([209.85.220.181]:33960 "EHLO
+        mail-qk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751734AbdDCS7C (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 14:59:02 -0400
+Received: by mail-qk0-f181.google.com with SMTP id d10so123475909qke.1
+        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 11:58:56 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCHv3 12/22] staging: android: ion: Remove old platform support
+Date: Mon,  3 Apr 2017 11:57:54 -0700
+Message-Id: <1491245884-15852-13-git-send-email-labbott@redhat.com>
+In-Reply-To: <1491245884-15852-1-git-send-email-labbott@redhat.com>
+References: <1491245884-15852-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Device specific platform support has been haphazard for Ion. There have
+been several independent attempts and there are still objections to
+what bindings exist right now. Just remove everything for a fresh start.
 
-Provide definitions, interfaces and functions needed for DVB-T2
-of the Sony CXD2880 DVB-T2/T tuner + demodulator driver.
-
-Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
-Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
-Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
-Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
-Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+Signed-off-by: Laura Abbott <labbott@redhat.com>
 ---
- .../media/dvb-frontends/cxd2880/cxd2880_dvbt2.h    |  402 ++++++
- .../dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c   | 1309 ++++++++++++++++++++
- .../dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h   |   82 ++
- 3 files changed, 1793 insertions(+)
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h
+ drivers/staging/android/ion/Kconfig                |  42 ---
+ drivers/staging/android/ion/Makefile               |   7 -
+ drivers/staging/android/ion/hisilicon/Kconfig      |   5 -
+ drivers/staging/android/ion/hisilicon/Makefile     |   1 -
+ drivers/staging/android/ion/hisilicon/hi6220_ion.c | 113 --------
+ drivers/staging/android/ion/ion_dummy_driver.c     | 155 -----------
+ drivers/staging/android/ion/ion_of.c               | 184 -------------
+ drivers/staging/android/ion/ion_of.h               |  37 ---
+ drivers/staging/android/ion/ion_test.c             | 305 ---------------------
+ drivers/staging/android/ion/tegra/Makefile         |   1 -
+ drivers/staging/android/ion/tegra/tegra_ion.c      |  80 ------
+ drivers/staging/android/uapi/ion_test.h            |  69 -----
+ 12 files changed, 999 deletions(-)
+ delete mode 100644 drivers/staging/android/ion/hisilicon/Kconfig
+ delete mode 100644 drivers/staging/android/ion/hisilicon/Makefile
+ delete mode 100644 drivers/staging/android/ion/hisilicon/hi6220_ion.c
+ delete mode 100644 drivers/staging/android/ion/ion_dummy_driver.c
+ delete mode 100644 drivers/staging/android/ion/ion_of.c
+ delete mode 100644 drivers/staging/android/ion/ion_of.h
+ delete mode 100644 drivers/staging/android/ion/ion_test.c
+ delete mode 100644 drivers/staging/android/ion/tegra/Makefile
+ delete mode 100644 drivers/staging/android/ion/tegra/tegra_ion.c
+ delete mode 100644 drivers/staging/android/uapi/ion_test.h
 
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h
-new file mode 100644
-index 000000000000..1870398cba9d
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h
-@@ -0,0 +1,402 @@
-+/*
-+ * cxd2880_dvbt2.h
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * DVB-T2 related definitions
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef CXD2880_DVBT2_H
-+#define CXD2880_DVBT2_H
-+
-+#include "cxd2880_common.h"
-+
-+enum cxd2880_dvbt2_profile {
-+	CXD2880_DVBT2_PROFILE_BASE,
-+	CXD2880_DVBT2_PROFILE_LITE,
-+	CXD2880_DVBT2_PROFILE_ANY
-+};
-+
-+enum cxd2880_dvbt2_version {
-+	CXD2880_DVBT2_V111,
-+	CXD2880_DVBT2_V121,
-+	CXD2880_DVBT2_V131
-+};
-+
-+enum cxd2880_dvbt2_s1 {
-+	CXD2880_DVBT2_S1_BASE_SISO = 0x00,
-+	CXD2880_DVBT2_S1_BASE_MISO = 0x01,
-+	CXD2880_DVBT2_S1_NON_DVBT2 = 0x02,
-+	CXD2880_DVBT2_S1_LITE_SISO = 0x03,
-+	CXD2880_DVBT2_S1_LITE_MISO = 0x04,
-+	CXD2880_DVBT2_S1_RSVD3 = 0x05,
-+	CXD2880_DVBT2_S1_RSVD4 = 0x06,
-+	CXD2880_DVBT2_S1_RSVD5 = 0x07,
-+	CXD2880_DVBT2_S1_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_base_s2 {
-+	CXD2880_DVBT2_BASE_S2_M2K_G_ANY = 0x00,
-+	CXD2880_DVBT2_BASE_S2_M8K_G_DVBT = 0x01,
-+	CXD2880_DVBT2_BASE_S2_M4K_G_ANY = 0x02,
-+	CXD2880_DVBT2_BASE_S2_M1K_G_ANY = 0x03,
-+	CXD2880_DVBT2_BASE_S2_M16K_G_ANY = 0x04,
-+	CXD2880_DVBT2_BASE_S2_M32K_G_DVBT = 0x05,
-+	CXD2880_DVBT2_BASE_S2_M8K_G_DVBT2 = 0x06,
-+	CXD2880_DVBT2_BASE_S2_M32K_G_DVBT2 = 0x07,
-+	CXD2880_DVBT2_BASE_S2_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_lite_s2 {
-+	CXD2880_DVBT2_LITE_S2_M2K_G_ANY = 0x00,
-+	CXD2880_DVBT2_LITE_S2_M8K_G_DVBT = 0x01,
-+	CXD2880_DVBT2_LITE_S2_M4K_G_ANY = 0x02,
-+	CXD2880_DVBT2_LITE_S2_M16K_G_DVBT2 = 0x03,
-+	CXD2880_DVBT2_LITE_S2_M16K_G_DVBT = 0x04,
-+	CXD2880_DVBT2_LITE_S2_RSVD1 = 0x05,
-+	CXD2880_DVBT2_LITE_S2_M8K_G_DVBT2 = 0x06,
-+	CXD2880_DVBT2_LITE_S2_RSVD2 = 0x07,
-+	CXD2880_DVBT2_LITE_S2_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_guard {
-+	CXD2880_DVBT2_G1_32 = 0x00,
-+	CXD2880_DVBT2_G1_16 = 0x01,
-+	CXD2880_DVBT2_G1_8 = 0x02,
-+	CXD2880_DVBT2_G1_4 = 0x03,
-+	CXD2880_DVBT2_G1_128 = 0x04,
-+	CXD2880_DVBT2_G19_128 = 0x05,
-+	CXD2880_DVBT2_G19_256 = 0x06,
-+	CXD2880_DVBT2_G_RSVD1 = 0x07,
-+	CXD2880_DVBT2_G_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_mode {
-+	CXD2880_DVBT2_M2K = 0x00,
-+	CXD2880_DVBT2_M8K = 0x01,
-+	CXD2880_DVBT2_M4K = 0x02,
-+	CXD2880_DVBT2_M1K = 0x03,
-+	CXD2880_DVBT2_M16K = 0x04,
-+	CXD2880_DVBT2_M32K = 0x05,
-+	CXD2880_DVBT2_M_RSVD1 = 0x06,
-+	CXD2880_DVBT2_M_RSVD2 = 0x07
-+};
-+
-+enum cxd2880_dvbt2_bw {
-+	CXD2880_DVBT2_BW_8 = 0x00,
-+	CXD2880_DVBT2_BW_7 = 0x01,
-+	CXD2880_DVBT2_BW_6 = 0x02,
-+	CXD2880_DVBT2_BW_5 = 0x03,
-+	CXD2880_DVBT2_BW_10 = 0x04,
-+	CXD2880_DVBT2_BW_1_7 = 0x05,
-+	CXD2880_DVBT2_BW_RSVD1 = 0x06,
-+	CXD2880_DVBT2_BW_RSVD2 = 0x07,
-+	CXD2880_DVBT2_BW_RSVD3 = 0x08,
-+	CXD2880_DVBT2_BW_RSVD4 = 0x09,
-+	CXD2880_DVBT2_BW_RSVD5 = 0x0A,
-+	CXD2880_DVBT2_BW_RSVD6 = 0x0B,
-+	CXD2880_DVBT2_BW_RSVD7 = 0x0C,
-+	CXD2880_DVBT2_BW_RSVD8 = 0x0D,
-+	CXD2880_DVBT2_BW_RSVD9 = 0x0E,
-+	CXD2880_DVBT2_BW_RSVD10 = 0x0F,
-+	CXD2880_DVBT2_BW_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_l1pre_type {
-+	CXD2880_DVBT2_L1PRE_TYPE_TS = 0x00,
-+	CXD2880_DVBT2_L1PRE_TYPE_GS = 0x01,
-+	CXD2880_DVBT2_L1PRE_TYPE_TS_GS = 0x02,
-+	CXD2880_DVBT2_L1PRE_TYPE_RESERVED = 0x03,
-+	CXD2880_DVBT2_L1PRE_TYPE_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_papr {
-+	CXD2880_DVBT2_PAPR_0 = 0x00,
-+	CXD2880_DVBT2_PAPR_1 = 0x01,
-+	CXD2880_DVBT2_PAPR_2 = 0x02,
-+	CXD2880_DVBT2_PAPR_3 = 0x03,
-+	CXD2880_DVBT2_PAPR_RSVD1 = 0x04,
-+	CXD2880_DVBT2_PAPR_RSVD2 = 0x05,
-+	CXD2880_DVBT2_PAPR_RSVD3 = 0x06,
-+	CXD2880_DVBT2_PAPR_RSVD4 = 0x07,
-+	CXD2880_DVBT2_PAPR_RSVD5 = 0x08,
-+	CXD2880_DVBT2_PAPR_RSVD6 = 0x09,
-+	CXD2880_DVBT2_PAPR_RSVD7 = 0x0A,
-+	CXD2880_DVBT2_PAPR_RSVD8 = 0x0B,
-+	CXD2880_DVBT2_PAPR_RSVD9 = 0x0C,
-+	CXD2880_DVBT2_PAPR_RSVD10 = 0x0D,
-+	CXD2880_DVBT2_PAPR_RSVD11 = 0x0E,
-+	CXD2880_DVBT2_PAPR_RSVD12 = 0x0F,
-+	CXD2880_DVBT2_PAPR_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_l1post_constell {
-+	CXD2880_DVBT2_L1POST_BPSK = 0x00,
-+	CXD2880_DVBT2_L1POST_QPSK = 0x01,
-+	CXD2880_DVBT2_L1POST_QAM16 = 0x02,
-+	CXD2880_DVBT2_L1POST_QAM64 = 0x03,
-+	CXD2880_DVBT2_L1POST_C_RSVD1 = 0x04,
-+	CXD2880_DVBT2_L1POST_C_RSVD2 = 0x05,
-+	CXD2880_DVBT2_L1POST_C_RSVD3 = 0x06,
-+	CXD2880_DVBT2_L1POST_C_RSVD4 = 0x07,
-+	CXD2880_DVBT2_L1POST_C_RSVD5 = 0x08,
-+	CXD2880_DVBT2_L1POST_C_RSVD6 = 0x09,
-+	CXD2880_DVBT2_L1POST_C_RSVD7 = 0x0A,
-+	CXD2880_DVBT2_L1POST_C_RSVD8 = 0x0B,
-+	CXD2880_DVBT2_L1POST_C_RSVD9 = 0x0C,
-+	CXD2880_DVBT2_L1POST_C_RSVD10 = 0x0D,
-+	CXD2880_DVBT2_L1POST_C_RSVD11 = 0x0E,
-+	CXD2880_DVBT2_L1POST_C_RSVD12 = 0x0F,
-+	CXD2880_DVBT2_L1POST_CONSTELL_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_l1post_cr {
-+	CXD2880_DVBT2_L1POST_R1_2 = 0x00,
-+	CXD2880_DVBT2_L1POST_R_RSVD1 = 0x01,
-+	CXD2880_DVBT2_L1POST_R_RSVD2 = 0x02,
-+	CXD2880_DVBT2_L1POST_R_RSVD3 = 0x03,
-+	CXD2880_DVBT2_L1POST_R_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_l1post_fec_type {
-+	CXD2880_DVBT2_L1POST_FEC_LDPC16K = 0x00,
-+	CXD2880_DVBT2_L1POST_FEC_RSVD1 = 0x01,
-+	CXD2880_DVBT2_L1POST_FEC_RSVD2 = 0x02,
-+	CXD2880_DVBT2_L1POST_FEC_RSVD3 = 0x03,
-+	CXD2880_DVBT2_L1POST_FEC_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_pp {
-+	CXD2880_DVBT2_PP1 = 0x00,
-+	CXD2880_DVBT2_PP2 = 0x01,
-+	CXD2880_DVBT2_PP3 = 0x02,
-+	CXD2880_DVBT2_PP4 = 0x03,
-+	CXD2880_DVBT2_PP5 = 0x04,
-+	CXD2880_DVBT2_PP6 = 0x05,
-+	CXD2880_DVBT2_PP7 = 0x06,
-+	CXD2880_DVBT2_PP8 = 0x07,
-+	CXD2880_DVBT2_PP_RSVD1 = 0x08,
-+	CXD2880_DVBT2_PP_RSVD2 = 0x09,
-+	CXD2880_DVBT2_PP_RSVD3 = 0x0A,
-+	CXD2880_DVBT2_PP_RSVD4 = 0x0B,
-+	CXD2880_DVBT2_PP_RSVD5 = 0x0C,
-+	CXD2880_DVBT2_PP_RSVD6 = 0x0D,
-+	CXD2880_DVBT2_PP_RSVD7 = 0x0E,
-+	CXD2880_DVBT2_PP_RSVD8 = 0x0F,
-+	CXD2880_DVBT2_PP_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_plp_code_rate {
-+	CXD2880_DVBT2_R1_2 = 0x00,
-+	CXD2880_DVBT2_R3_5 = 0x01,
-+	CXD2880_DVBT2_R2_3 = 0x02,
-+	CXD2880_DVBT2_R3_4 = 0x03,
-+	CXD2880_DVBT2_R4_5 = 0x04,
-+	CXD2880_DVBT2_R5_6 = 0x05,
-+	CXD2880_DVBT2_R1_3 = 0x06,
-+	CXD2880_DVBT2_R2_5 = 0x07,
-+	CXD2880_DVBT2_PLP_CR_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_plp_constell {
-+	CXD2880_DVBT2_QPSK = 0x00,
-+	CXD2880_DVBT2_QAM16 = 0x01,
-+	CXD2880_DVBT2_QAM64 = 0x02,
-+	CXD2880_DVBT2_QAM256 = 0x03,
-+	CXD2880_DVBT2_CON_RSVD1 = 0x04,
-+	CXD2880_DVBT2_CON_RSVD2 = 0x05,
-+	CXD2880_DVBT2_CON_RSVD3 = 0x06,
-+	CXD2880_DVBT2_CON_RSVD4 = 0x07,
-+	CXD2880_DVBT2_CONSTELL_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_plp_type {
-+	CXD2880_DVBT2_PLP_TYPE_COMMON = 0x00,
-+	CXD2880_DVBT2_PLP_TYPE_DATA1 = 0x01,
-+	CXD2880_DVBT2_PLP_TYPE_DATA2 = 0x02,
-+	CXD2880_DVBT2_PLP_TYPE_RSVD1 = 0x03,
-+	CXD2880_DVBT2_PLP_TYPE_RSVD2 = 0x04,
-+	CXD2880_DVBT2_PLP_TYPE_RSVD3 = 0x05,
-+	CXD2880_DVBT2_PLP_TYPE_RSVD4 = 0x06,
-+	CXD2880_DVBT2_PLP_TYPE_RSVD5 = 0x07,
-+	CXD2880_DVBT2_PLP_TYPE_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_plp_payload {
-+	CXD2880_DVBT2_PLP_PAYLOAD_GFPS = 0x00,
-+	CXD2880_DVBT2_PLP_PAYLOAD_GCS = 0x01,
-+	CXD2880_DVBT2_PLP_PAYLOAD_GSE = 0x02,
-+	CXD2880_DVBT2_PLP_PAYLOAD_TS = 0x03,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD1 = 0x04,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD2 = 0x05,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD3 = 0x06,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD4 = 0x07,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD5 = 0x08,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD6 = 0x09,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD7 = 0x0A,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD8 = 0x0B,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD9 = 0x0C,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD10 = 0x0D,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD11 = 0x0E,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD12 = 0x0F,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD13 = 0x10,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD14 = 0x11,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD15 = 0x12,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD16 = 0x13,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD17 = 0x14,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD18 = 0x15,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD19 = 0x16,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD20 = 0x17,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD21 = 0x18,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD22 = 0x19,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD23 = 0x1A,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD24 = 0x1B,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD25 = 0x1C,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD26 = 0x1D,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD27 = 0x1E,
-+	CXD2880_DVBT2_PLP_PAYLOAD_RSVD28 = 0x1F,
-+	CXD2880_DVBT2_PLP_PAYLOAD_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_plp_fec {
-+	CXD2880_DVBT2_FEC_LDPC_16K = 0x00,
-+	CXD2880_DVBT2_FEC_LDPC_64K = 0x01,
-+	CXD2880_DVBT2_FEC_RSVD1 = 0x02,
-+	CXD2880_DVBT2_FEC_RSVD2 = 0x03,
-+	CXD2880_DVBT2_FEC_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_plp_mode {
-+	CXD2880_DVBT2_PLP_MODE_NOTSPECIFIED = 0x00,
-+	CXD2880_DVBT2_PLP_MODE_NM = 0x01,
-+	CXD2880_DVBT2_PLP_MODE_HEM = 0x02,
-+	CXD2880_DVBT2_PLP_MODE_RESERVED = 0x03,
-+	CXD2880_DVBT2_PLP_MODE_UNKNOWN = 0xFF
-+};
-+
-+enum cxd2880_dvbt2_plp_btype {
-+	CXD2880_DVBT2_PLP_COMMON,
-+	CXD2880_DVBT2_PLP_DATA
-+};
-+
-+enum cxd2880_dvbt2_stream {
-+	CXD2880_DVBT2_STREAM_GENERIC_PACKETIZED = 0x00,
-+	CXD2880_DVBT2_STREAM_GENERIC_CONTINUOUS = 0x01,
-+	CXD2880_DVBT2_STREAM_GENERIC_ENCAPSULATED = 0x02,
-+	CXD2880_DVBT2_STREAM_TRANSPORT = 0x03,
-+	CXD2880_DVBT2_STREAM_UNKNOWN = 0xFF
-+};
-+
-+struct cxd2880_dvbt2_l1pre {
-+	enum cxd2880_dvbt2_l1pre_type type;
-+	u8 bw_ext;
-+	enum cxd2880_dvbt2_s1 s1;
-+	u8 s2;
-+	u8 mixed;
-+	enum cxd2880_dvbt2_mode fft_mode;
-+	u8 l1_rep;
-+	enum cxd2880_dvbt2_guard gi;
-+	enum cxd2880_dvbt2_papr papr;
-+	enum cxd2880_dvbt2_l1post_constell mod;
-+	enum cxd2880_dvbt2_l1post_cr cr;
-+	enum cxd2880_dvbt2_l1post_fec_type fec;
-+	u32 l1_post_size;
-+	u32 l1_post_info_size;
-+	enum cxd2880_dvbt2_pp pp;
-+	u8 tx_id_availability;
-+	u16 cell_id;
-+	u16 network_id;
-+	u16 sys_id;
-+	u8 num_frames;
-+	u16 num_symbols;
-+	u8 regen;
-+	u8 post_ext;
-+	u8 num_rf_freqs;
-+	u8 rf_idx;
-+	enum cxd2880_dvbt2_version t2_version;
-+	u8 l1_post_scrambled;
-+	u8 t2_base_lite;
-+	u32 crc32;
-+};
-+
-+struct cxd2880_dvbt2_plp {
-+	u8 id;
-+	enum cxd2880_dvbt2_plp_type type;
-+	enum cxd2880_dvbt2_plp_payload payload;
-+	u8 ff;
-+	u8 first_rf_idx;
-+	u8 first_frm_idx;
-+	u8 group_id;
-+	enum cxd2880_dvbt2_plp_constell constell;
-+	enum cxd2880_dvbt2_plp_code_rate plp_cr;
-+	u8 rot;
-+	enum cxd2880_dvbt2_plp_fec fec;
-+	u16 num_blocks_max;
-+	u8 frm_int;
-+	u8 til_len;
-+	u8 til_type;
-+	u8 in_band_a_flag;
-+	u8 in_band_b_flag;
-+	u16 rsvd;
-+	enum cxd2880_dvbt2_plp_mode plp_mode;
-+	u8 static_flag;
-+	u8 static_padding_flag;
-+};
-+
-+struct cxd2880_dvbt2_l1post {
-+	u16 sub_slices_per_frame;
-+	u8 num_plps;
-+	u8 num_aux;
-+	u8 aux_cfg_rfu;
-+	u8 rf_idx;
-+	u32 freq;
-+	u8 fef_type;
-+	u32 fef_length;
-+	u8 fef_intvl;
-+};
-+
-+struct cxd2880_dvbt2_ofdm {
-+	u8 mixed;
-+	u8 is_miso;
-+	enum cxd2880_dvbt2_mode mode;
-+	enum cxd2880_dvbt2_guard gi;
-+	enum cxd2880_dvbt2_pp pp;
-+	u8 bw_ext;
-+	enum cxd2880_dvbt2_papr papr;
-+	u16 num_symbols;
-+};
-+
-+struct cxd2880_dvbt2_bbheader {
-+	enum cxd2880_dvbt2_stream stream_input;
-+	u8 is_single_input_stream;
-+	u8 is_constant_coding_modulation;
-+	u8 issy_indicator;
-+	u8 null_packet_deletion;
-+	u8 ext;
-+	u8 input_stream_identifier;
-+	u16 user_packet_length;
-+	u16 data_field_length;
-+	u8 sync_byte;
-+	u32 issy;
-+	enum cxd2880_dvbt2_plp_mode plp_mode;
-+};
-+
-+#endif
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
-new file mode 100644
-index 000000000000..bdad65b7298a
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
-@@ -0,0 +1,1309 @@
-+/*
-+ * cxd2880_tnrdmd_dvbt2.c
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * control functions for DVB-T2
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include "cxd2880_tnrdmd_dvbt2.h"
-+#include "cxd2880_tnrdmd_dvbt2_mon.h"
-+
-+static enum cxd2880_ret x_tune_dvbt2_demod_setting(struct cxd2880_tnrdmd
-+						   *tnr_dmd,
-+						   enum cxd2880_dtv_bandwidth
-+						   bandwidth,
-+						   enum cxd2880_tnrdmd_clockmode
-+						   clk_mode)
-+{
-+	if (!tnr_dmd)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+				   CXD2880_IO_TGT_SYS, 0x00,
-+				   0x00) != CXD2880_RESULT_OK)
-+		return CXD2880_RESULT_ERROR_IO;
-+
-+	if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+				   CXD2880_IO_TGT_SYS, 0x31,
-+				   0x02) != CXD2880_RESULT_OK)
-+		return CXD2880_RESULT_ERROR_IO;
-+
-+	if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+				   CXD2880_IO_TGT_DMD, 0x00,
-+				   0x04) != CXD2880_RESULT_OK)
-+		return CXD2880_RESULT_ERROR_IO;
-+
-+	if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+				   CXD2880_IO_TGT_DMD, 0x5D,
-+				   0x0B) != CXD2880_RESULT_OK)
-+		return CXD2880_RESULT_ERROR_IO;
-+
-+	if (tnr_dmd->diver_mode != CXD2880_TNRDMD_DIVERMODE_SUB) {
-+		u8 data[2] = { 0x01, 0x01 };
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x00,
-+					   0x00) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+					    CXD2880_IO_TGT_DMD, 0xCE, data,
-+					    2) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+	}
-+
-+	{
-+		u8 data[14] = { 0x07, 0x06, 0x01, 0xF0,
-+			0x00, 0x00, 0x04, 0xB0, 0x00, 0x00, 0x09, 0x9C, 0x0E,
-+			    0x4C
-+		};
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x00,
-+					   0x20) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x8A,
-+					   data[0]) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x90,
-+					   data[1]) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x00,
-+					   0x25) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+					    CXD2880_IO_TGT_DMD, 0xF0, &data[2],
-+					    2) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x00,
-+					   0x2A) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0xDC,
-+					   data[4]) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0xDE,
-+					   data[5]) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x00,
-+					   0x2D) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+					    CXD2880_IO_TGT_DMD, 0x73, &data[6],
-+					    4) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+					    CXD2880_IO_TGT_DMD, 0x8F, &data[10],
-+					    4) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+	}
-+
-+	{
-+		u8 data_a_1[9] = { 0x52, 0x49, 0x2C, 0x51,
-+			0x51, 0x3D, 0x15, 0x29, 0x0C
-+		};
-+		u8 data_b_1[9] = { 0x5D, 0x55, 0x32, 0x5C,
-+			0x5C, 0x45, 0x17, 0x2E, 0x0D
-+		};
-+		u8 data_c_1[9] = { 0x60, 0x00, 0x34, 0x5E,
-+			0x5E, 0x47, 0x18, 0x2F, 0x0E
-+		};
-+
-+		u8 data_a_2[13] = { 0x04, 0xE7, 0x94, 0x92,
-+			0x09, 0xCF, 0x7E, 0xD0, 0x49, 0xCD, 0xCD, 0x1F, 0x5B
-+		};
-+		u8 data_b_2[13] = { 0x05, 0x90, 0x27, 0x55,
-+			0x0B, 0x20, 0x8F, 0xD6, 0xEA, 0xC8, 0xC8, 0x23, 0x91
-+		};
-+		u8 data_c_2[13] = { 0x05, 0xB8, 0xD8, 0x00,
-+			0x0B, 0x72, 0x93, 0xF3, 0x00, 0xCD, 0xCD, 0x24, 0x95
-+		};
-+
-+		u8 data_a_3[5] = { 0x0B, 0x6A, 0xC9, 0x03,
-+			0x33
-+		};
-+		u8 data_b_3[5] = { 0x01, 0x02, 0xE4, 0x03,
-+			0x39
-+		};
-+		u8 data_c_3[5] = { 0x01, 0x02, 0xEB, 0x03,
-+			0x3B
-+		};
-+
-+		u8 *data_1 = NULL;
-+		u8 *data_2 = NULL;
-+		u8 *data_3 = NULL;
-+
-+		switch (clk_mode) {
-+		case CXD2880_TNRDMD_CLOCKMODE_A:
-+			data_1 = data_a_1;
-+			data_2 = data_a_2;
-+			data_3 = data_a_3;
-+			break;
-+		case CXD2880_TNRDMD_CLOCKMODE_B:
-+			data_1 = data_b_1;
-+			data_2 = data_b_2;
-+			data_3 = data_b_3;
-+			break;
-+		case CXD2880_TNRDMD_CLOCKMODE_C:
-+			data_1 = data_c_1;
-+			data_2 = data_c_2;
-+			data_3 = data_c_3;
-+			break;
-+		default:
-+			return CXD2880_RESULT_ERROR_SW_STATE;
-+		}
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x00,
-+					   0x04) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+					    CXD2880_IO_TGT_DMD, 0x1D,
-+					    &data_1[0], 3) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x22,
-+					   data_1[3]) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x24,
-+					   data_1[4]) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x26,
-+					   data_1[5]) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+					    CXD2880_IO_TGT_DMD, 0x29,
-+					    &data_1[6], 2) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x2D,
-+					   data_1[8]) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->diver_mode != CXD2880_TNRDMD_DIVERMODE_SUB) {
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x2E,
-+						    &data_2[0],
-+						    6) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x35,
-+						    &data_2[6],
-+						    7) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+					    CXD2880_IO_TGT_DMD, 0x3C,
-+					    &data_3[0], 2) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+					    CXD2880_IO_TGT_DMD, 0x56,
-+					    &data_3[2], 3) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+	}
-+
-+	switch (bandwidth) {
-+	case CXD2880_DTV_BW_8_MHZ:
-+
-+		{
-+			u8 data_ac[6] = { 0x15, 0x00, 0x00, 0x00,
-+				0x00, 0x00
-+			};
-+			u8 data_b[6] = { 0x14, 0x6A, 0xAA, 0xAA,
-+				0xAB, 0x00
-+			};
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_ac;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+				data = data_b;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x10,
-+						    data,
-+						    6) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x4A,
-+					   0x00) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		{
-+			u8 data_a[2] = { 0x19, 0xD2 };
-+			u8 data_bc[2] = { 0x3F, 0xFF };
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+				data = data_a;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_bc;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x19,
-+						    data,
-+						    2) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		{
-+			u8 data_a[2] = { 0x06, 0x2A };
-+			u8 data_b[2] = { 0x06, 0x29 };
-+			u8 data_c[2] = { 0x06, 0x28 };
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+				data = data_a;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+				data = data_b;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_c;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x1B,
-+						    data,
-+						    2) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
-+			u8 data_a[9] = { 0x28, 0x00, 0x50, 0x00,
-+				0x60, 0x00, 0x00, 0x90, 0x00
-+			};
-+			u8 data_b[9] = { 0x2D, 0x5E, 0x5A, 0xBD,
-+				0x6C, 0xE3, 0x00, 0xA3, 0x55
-+			};
-+			u8 data_c[9] = { 0x2E, 0xAA, 0x5D, 0x55,
-+				0x70, 0x00, 0x00, 0xA8, 0x00
-+			};
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+				data = data_a;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+				data = data_b;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_c;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x4B,
-+						    data,
-+						    9) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+		break;
-+
-+	case CXD2880_DTV_BW_7_MHZ:
-+
-+		{
-+			u8 data_ac[6] = { 0x18, 0x00, 0x00, 0x00,
-+				0x00, 0x00
-+			};
-+			u8 data_b[6] = { 0x17, 0x55, 0x55, 0x55,
-+				0x55, 0x00
-+			};
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_ac;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+				data = data_b;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x10,
-+						    data,
-+						    6) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x4A,
-+					   0x02) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		{
-+			u8 data[2] = { 0x3F, 0xFF };
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x19,
-+						    data,
-+						    2) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		{
-+			u8 data_a[2] = { 0x06, 0x23 };
-+			u8 data_b[2] = { 0x06, 0x22 };
-+			u8 data_c[2] = { 0x06, 0x21 };
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+				data = data_a;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+				data = data_b;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_c;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x1B,
-+						    data,
-+						    2) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
-+			u8 data_a[9] = { 0x2D, 0xB6, 0x5B, 0x6D,
-+				0x6D, 0xB6, 0x00, 0xA4, 0x92
-+			};
-+			u8 data_b[9] = { 0x33, 0xDA, 0x67, 0xB4,
-+				0x7C, 0x71, 0x00, 0xBA, 0xAA
-+			};
-+			u8 data_c[9] = { 0x35, 0x55, 0x6A, 0xAA,
-+				0x80, 0x00, 0x00, 0xC0, 0x00
-+			};
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+				data = data_a;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+				data = data_b;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_c;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x4B,
-+						    data,
-+						    9) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+		break;
-+
-+	case CXD2880_DTV_BW_6_MHZ:
-+
-+		{
-+			u8 data_ac[6] = { 0x1C, 0x00, 0x00, 0x00,
-+				0x00, 0x00
-+			};
-+			u8 data_b[6] = { 0x1B, 0x38, 0xE3, 0x8E,
-+				0x39, 0x00
-+			};
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_ac;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+				data = data_b;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x10,
-+						    data,
-+						    6) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x4A,
-+					   0x04) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		{
-+			u8 data[2] = { 0x3F, 0xFF };
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x19,
-+						    data,
-+						    2) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		{
-+			u8 data_a[2] = { 0x06, 0x1C };
-+			u8 data_b[2] = { 0x06, 0x1B };
-+			u8 data_c[2] = { 0x06, 0x1A };
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+				data = data_a;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+				data = data_b;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_c;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x1B,
-+						    data,
-+						    2) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
-+			u8 data_a[9] = { 0x35, 0x55, 0x6A, 0xAA,
-+				0x80, 0x00, 0x00, 0xC0, 0x00
-+			};
-+			u8 data_b[9] = { 0x3C, 0x7E, 0x78, 0xFC,
-+				0x91, 0x2F, 0x00, 0xD9, 0xC7
-+			};
-+			u8 data_c[9] = { 0x3E, 0x38, 0x7C, 0x71,
-+				0x95, 0x55, 0x00, 0xDF, 0xFF
-+			};
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+				data = data_a;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+				data = data_b;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_c;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x4B,
-+						    data,
-+						    9) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+		break;
-+
-+	case CXD2880_DTV_BW_5_MHZ:
-+
-+		{
-+			u8 data_ac[6] = { 0x21, 0x99, 0x99, 0x99,
-+				0x9A, 0x00
-+			};
-+			u8 data_b[6] = { 0x20, 0xAA, 0xAA, 0xAA,
-+				0xAB, 0x00
-+			};
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_ac;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+				data = data_b;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x10,
-+						    data,
-+						    6) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x4A,
-+					   0x06) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		{
-+			u8 data[2] = { 0x3F, 0xFF };
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x19,
-+						    data,
-+						    2) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		{
-+			u8 data_a[2] = { 0x06, 0x15 };
-+			u8 data_b[2] = { 0x06, 0x15 };
-+			u8 data_c[2] = { 0x06, 0x14 };
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+				data = data_a;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+				data = data_b;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_c;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x1B,
-+						    data,
-+						    2) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
-+			u8 data_a[9] = { 0x40, 0x00, 0x6A, 0xAA,
-+				0x80, 0x00, 0x00, 0xE6, 0x66
-+			};
-+			u8 data_b[9] = { 0x48, 0x97, 0x78, 0xFC,
-+				0x91, 0x2F, 0x01, 0x05, 0x55
-+			};
-+			u8 data_c[9] = { 0x4A, 0xAA, 0x7C, 0x71,
-+				0x95, 0x55, 0x01, 0x0C, 0xCC
-+			};
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+				data = data_a;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+				data = data_b;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_c;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x4B,
-+						    data,
-+						    9) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+		break;
-+
-+	case CXD2880_DTV_BW_1_7_MHZ:
-+
-+		{
-+			u8 data_a[6] = { 0x68, 0x0F, 0xA2, 0x32,
-+				0xCF, 0x03
-+			};
-+			u8 data_c[6] = { 0x68, 0x0F, 0xA2, 0x32,
-+				0xCF, 0x03
-+			};
-+			u8 data_b[6] = { 0x65, 0x2B, 0xA4, 0xCD,
-+				0xD8, 0x03
-+			};
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+				data = data_a;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_c;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+				data = data_b;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x10,
-+						    data,
-+						    6) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x4A,
-+					   0x03) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		{
-+			u8 data[2] = { 0x3F, 0xFF };
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x19,
-+						    data,
-+						    2) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		{
-+			u8 data_a[2] = { 0x06, 0x0C };
-+			u8 data_b[2] = { 0x06, 0x0C };
-+			u8 data_c[2] = { 0x06, 0x0B };
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+				data = data_a;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+				data = data_b;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_c;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x1B,
-+						    data,
-+						    2) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+
-+		if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
-+			u8 data_a[9] = { 0x40, 0x00, 0x6A, 0xAA,
-+				0x80, 0x00, 0x02, 0xC9, 0x8F
-+			};
-+			u8 data_b[9] = { 0x48, 0x97, 0x78, 0xFC,
-+				0x91, 0x2F, 0x03, 0x29, 0x5D
-+			};
-+			u8 data_c[9] = { 0x4A, 0xAA, 0x7C, 0x71,
-+				0x95, 0x55, 0x03, 0x40, 0x7D
-+			};
-+			u8 *data = NULL;
-+
-+			switch (clk_mode) {
-+			case CXD2880_TNRDMD_CLOCKMODE_A:
-+				data = data_a;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_B:
-+				data = data_b;
-+				break;
-+			case CXD2880_TNRDMD_CLOCKMODE_C:
-+				data = data_c;
-+				break;
-+			default:
-+				return CXD2880_RESULT_ERROR_SW_STATE;
-+			}
-+
-+			if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+						    CXD2880_IO_TGT_DMD, 0x4B,
-+						    data,
-+						    9) != CXD2880_RESULT_OK)
-+				return CXD2880_RESULT_ERROR_IO;
-+		}
-+		break;
-+
-+	default:
-+		return CXD2880_RESULT_ERROR_SW_STATE;
-+	}
-+
-+	if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+				   CXD2880_IO_TGT_DMD, 0x00,
-+				   0x00) != CXD2880_RESULT_OK)
-+		return CXD2880_RESULT_ERROR_IO;
-+
-+	if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+				   CXD2880_IO_TGT_DMD, 0xFD,
-+				   0x01) != CXD2880_RESULT_OK)
-+		return CXD2880_RESULT_ERROR_IO;
-+
-+	return CXD2880_RESULT_OK;
-+}
-+
-+static enum cxd2880_ret x_sleep_dvbt2_demod_setting(struct cxd2880_tnrdmd
-+						    *tnr_dmd)
-+{
-+	if (!tnr_dmd)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
-+		u8 data[] = { 0, 1, 0, 2,
-+			0, 4, 0, 8, 0, 16, 0, 32
-+		};
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x00,
-+					   0x1D) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+					    CXD2880_IO_TGT_DMD, 0x47, data,
-+					    12) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+	}
-+
-+	return CXD2880_RESULT_OK;
-+}
-+
-+static enum cxd2880_ret dvbt2_set_profile(struct cxd2880_tnrdmd *tnr_dmd,
-+					  enum cxd2880_dvbt2_profile profile)
-+{
-+	u8 t2_mode_tune_mode = 0;
-+	u8 seq_not2_dtime = 0;
-+	enum cxd2880_ret ret = CXD2880_RESULT_OK;
-+
-+	if (!tnr_dmd)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	{
-+		u8 dtime1 = 0;
-+		u8 dtime2 = 0;
-+
-+		switch (tnr_dmd->clk_mode) {
-+		case CXD2880_TNRDMD_CLOCKMODE_A:
-+			dtime1 = 0x27;
-+			dtime2 = 0x0C;
-+			break;
-+		case CXD2880_TNRDMD_CLOCKMODE_B:
-+			dtime1 = 0x2C;
-+			dtime2 = 0x0D;
-+			break;
-+		case CXD2880_TNRDMD_CLOCKMODE_C:
-+			dtime1 = 0x2E;
-+			dtime2 = 0x0E;
-+			break;
-+		default:
-+			return CXD2880_RESULT_ERROR_SW_STATE;
-+		}
-+
-+		switch (profile) {
-+		case CXD2880_DVBT2_PROFILE_BASE:
-+			t2_mode_tune_mode = 0x01;
-+			seq_not2_dtime = dtime2;
-+			break;
-+
-+		case CXD2880_DVBT2_PROFILE_LITE:
-+			t2_mode_tune_mode = 0x05;
-+			seq_not2_dtime = dtime1;
-+			break;
-+
-+		case CXD2880_DVBT2_PROFILE_ANY:
-+			t2_mode_tune_mode = 0x00;
-+			seq_not2_dtime = dtime1;
-+			break;
-+
-+		default:
-+			return CXD2880_RESULT_ERROR_ARG;
-+		}
-+	}
-+
-+	if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+				   CXD2880_IO_TGT_DMD, 0x00,
-+				   0x2E) != CXD2880_RESULT_OK)
-+		return CXD2880_RESULT_ERROR_IO;
-+
-+	if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+				   CXD2880_IO_TGT_DMD, 0x10,
-+				   t2_mode_tune_mode) != CXD2880_RESULT_OK)
-+		return CXD2880_RESULT_ERROR_IO;
-+
-+	if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+				   CXD2880_IO_TGT_DMD, 0x00,
-+				   0x04) != CXD2880_RESULT_OK)
-+		return CXD2880_RESULT_ERROR_IO;
-+
-+	if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+				   CXD2880_IO_TGT_DMD, 0x2C,
-+				   seq_not2_dtime) != CXD2880_RESULT_OK)
-+		return CXD2880_RESULT_ERROR_IO;
-+
-+	return ret;
-+}
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_tune1(struct cxd2880_tnrdmd *tnr_dmd,
-+					    struct cxd2880_dvbt2_tune_param
-+					    *tune_param)
-+{
-+	enum cxd2880_ret ret = CXD2880_RESULT_OK;
-+
-+	if ((!tnr_dmd) || (!tune_param))
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if ((tnr_dmd->state != CXD2880_TNRDMD_STATE_SLEEP) &&
-+	    (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE))
-+		return CXD2880_RESULT_ERROR_SW_STATE;
-+
-+	if ((tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) &&
-+	    (tune_param->profile == CXD2880_DVBT2_PROFILE_ANY))
-+		return CXD2880_RESULT_ERROR_NOSUPPORT;
-+
-+	ret =
-+	    cxd2880_tnrdmd_common_tune_setting1(tnr_dmd, CXD2880_DTV_SYS_DVBT2,
-+						tune_param->center_freq_khz,
-+						tune_param->bandwidth, 0, 0);
-+	if (ret != CXD2880_RESULT_OK)
-+		return ret;
-+
-+	ret =
-+	    x_tune_dvbt2_demod_setting(tnr_dmd, tune_param->bandwidth,
-+				       tnr_dmd->clk_mode);
-+	if (ret != CXD2880_RESULT_OK)
-+		return ret;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
-+		ret =
-+		    x_tune_dvbt2_demod_setting(tnr_dmd->diver_sub,
-+					       tune_param->bandwidth,
-+					       tnr_dmd->diver_sub->clk_mode);
-+		if (ret != CXD2880_RESULT_OK)
-+			return ret;
-+	}
-+
-+	ret = dvbt2_set_profile(tnr_dmd, tune_param->profile);
-+	if (ret != CXD2880_RESULT_OK)
-+		return ret;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
-+		ret =
-+		    dvbt2_set_profile(tnr_dmd->diver_sub, tune_param->profile);
-+		if (ret != CXD2880_RESULT_OK)
-+			return ret;
-+	}
-+
-+	if (tune_param->data_plp_id == CXD2880_DVBT2_TUNE_PARAM_PLPID_AUTO) {
-+		ret = cxd2880_tnrdmd_dvbt2_set_plp_cfg(tnr_dmd, 1, 0);
-+		if (ret != CXD2880_RESULT_OK)
-+			return ret;
-+	} else {
-+		ret =
-+		    cxd2880_tnrdmd_dvbt2_set_plp_cfg(tnr_dmd, 0,
-+					     (u8)(tune_param->data_plp_id));
-+		if (ret != CXD2880_RESULT_OK)
-+			return ret;
-+	}
-+
-+	return CXD2880_RESULT_OK;
-+}
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_tune2(struct cxd2880_tnrdmd *tnr_dmd,
-+					    struct cxd2880_dvbt2_tune_param
-+					    *tune_param)
-+{
-+	enum cxd2880_ret ret = CXD2880_RESULT_OK;
-+
-+	if ((!tnr_dmd) || (!tune_param))
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if ((tnr_dmd->state != CXD2880_TNRDMD_STATE_SLEEP) &&
-+	    (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE))
-+		return CXD2880_RESULT_ERROR_SW_STATE;
-+
-+	{
-+		u8 en_fef_intmtnt_ctrl = 1;
-+
-+		switch (tune_param->profile) {
-+		case CXD2880_DVBT2_PROFILE_BASE:
-+			en_fef_intmtnt_ctrl = tnr_dmd->en_fef_intmtnt_base;
-+			break;
-+		case CXD2880_DVBT2_PROFILE_LITE:
-+			en_fef_intmtnt_ctrl = tnr_dmd->en_fef_intmtnt_lite;
-+			break;
-+		case CXD2880_DVBT2_PROFILE_ANY:
-+			if (tnr_dmd->en_fef_intmtnt_base &&
-+			    tnr_dmd->en_fef_intmtnt_lite)
-+				en_fef_intmtnt_ctrl = 1;
-+			else
-+				en_fef_intmtnt_ctrl = 0;
-+			break;
-+		default:
-+			return CXD2880_RESULT_ERROR_ARG;
-+		}
-+
-+		ret =
-+		    cxd2880_tnrdmd_common_tune_setting2(tnr_dmd,
-+							CXD2880_DTV_SYS_DVBT2,
-+							en_fef_intmtnt_ctrl);
-+		if (ret != CXD2880_RESULT_OK)
-+			return ret;
-+	}
-+
-+	tnr_dmd->state = CXD2880_TNRDMD_STATE_ACTIVE;
-+	tnr_dmd->frequency_khz = tune_param->center_freq_khz;
-+	tnr_dmd->sys = CXD2880_DTV_SYS_DVBT2;
-+	tnr_dmd->bandwidth = tune_param->bandwidth;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
-+		tnr_dmd->diver_sub->state = CXD2880_TNRDMD_STATE_ACTIVE;
-+		tnr_dmd->diver_sub->frequency_khz = tune_param->center_freq_khz;
-+		tnr_dmd->diver_sub->sys = CXD2880_DTV_SYS_DVBT2;
-+		tnr_dmd->diver_sub->bandwidth = tune_param->bandwidth;
-+	}
-+
-+	return CXD2880_RESULT_OK;
-+}
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_sleep_setting(struct cxd2880_tnrdmd
-+						    *tnr_dmd)
-+{
-+	enum cxd2880_ret ret = CXD2880_RESULT_OK;
-+
-+	if (!tnr_dmd)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if ((tnr_dmd->state != CXD2880_TNRDMD_STATE_SLEEP) &&
-+	    (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE))
-+		return CXD2880_RESULT_ERROR_SW_STATE;
-+
-+	ret = x_sleep_dvbt2_demod_setting(tnr_dmd);
-+	if (ret != CXD2880_RESULT_OK)
-+		return ret;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
-+		ret = x_sleep_dvbt2_demod_setting(tnr_dmd->diver_sub);
-+		if (ret != CXD2880_RESULT_OK)
-+			return ret;
-+	}
-+
-+	return CXD2880_RESULT_OK;
-+}
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_check_demod_lock(struct cxd2880_tnrdmd
-+					       *tnr_dmd,
-+					       enum
-+					       cxd2880_tnrdmd_lock_result
-+					       *lock)
-+{
-+	enum cxd2880_ret ret = CXD2880_RESULT_OK;
-+
-+	u8 sync_stat = 0;
-+	u8 ts_lock = 0;
-+	u8 unlock_detected = 0;
-+	u8 unlock_detected_sub = 0;
-+
-+	if ((!tnr_dmd) || (!lock))
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
-+		return CXD2880_RESULT_ERROR_SW_STATE;
-+
-+	ret =
-+	    cxd2880_tnrdmd_dvbt2_mon_sync_stat(tnr_dmd, &sync_stat, &ts_lock,
-+					       &unlock_detected);
-+	if (ret != CXD2880_RESULT_OK)
-+		return ret;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SINGLE) {
-+		if (sync_stat == 6)
-+			*lock = CXD2880_TNRDMD_LOCK_RESULT_LOCKED;
-+		else if (unlock_detected)
-+			*lock = CXD2880_TNRDMD_LOCK_RESULT_UNLOCKED;
-+		else
-+			*lock = CXD2880_TNRDMD_LOCK_RESULT_NOTDETECT;
-+
-+		return ret;
-+	}
-+
-+	if (sync_stat == 6) {
-+		*lock = CXD2880_TNRDMD_LOCK_RESULT_LOCKED;
-+		return ret;
-+	}
-+
-+	ret =
-+	    cxd2880_tnrdmd_dvbt2_mon_sync_stat_sub(tnr_dmd, &sync_stat,
-+						   &unlock_detected_sub);
-+	if (ret != CXD2880_RESULT_OK)
-+		return ret;
-+
-+	if (sync_stat == 6)
-+		*lock = CXD2880_TNRDMD_LOCK_RESULT_LOCKED;
-+	else if (unlock_detected && unlock_detected_sub)
-+		*lock = CXD2880_TNRDMD_LOCK_RESULT_UNLOCKED;
-+	else
-+		*lock = CXD2880_TNRDMD_LOCK_RESULT_NOTDETECT;
-+
-+	return ret;
-+}
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_check_ts_lock(struct cxd2880_tnrdmd
-+						    *tnr_dmd,
-+						    enum
-+						    cxd2880_tnrdmd_lock_result
-+						    *lock)
-+{
-+	enum cxd2880_ret ret = CXD2880_RESULT_OK;
-+
-+	u8 sync_stat = 0;
-+	u8 ts_lock = 0;
-+	u8 unlock_detected = 0;
-+	u8 unlock_detected_sub = 0;
-+
-+	if ((!tnr_dmd) || (!lock))
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
-+		return CXD2880_RESULT_ERROR_SW_STATE;
-+
-+	ret =
-+	    cxd2880_tnrdmd_dvbt2_mon_sync_stat(tnr_dmd, &sync_stat, &ts_lock,
-+					       &unlock_detected);
-+	if (ret != CXD2880_RESULT_OK)
-+		return ret;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SINGLE) {
-+		if (ts_lock)
-+			*lock = CXD2880_TNRDMD_LOCK_RESULT_LOCKED;
-+		else if (unlock_detected)
-+			*lock = CXD2880_TNRDMD_LOCK_RESULT_UNLOCKED;
-+		else
-+			*lock = CXD2880_TNRDMD_LOCK_RESULT_NOTDETECT;
-+
-+		return ret;
-+	}
-+
-+	if (ts_lock) {
-+		*lock = CXD2880_TNRDMD_LOCK_RESULT_LOCKED;
-+		return ret;
-+	} else if (!unlock_detected) {
-+		*lock = CXD2880_TNRDMD_LOCK_RESULT_NOTDETECT;
-+		return ret;
-+	}
-+
-+	ret =
-+	    cxd2880_tnrdmd_dvbt2_mon_sync_stat_sub(tnr_dmd, &sync_stat,
-+						   &unlock_detected_sub);
-+	if (ret != CXD2880_RESULT_OK)
-+		return ret;
-+
-+	if (unlock_detected && unlock_detected_sub)
-+		*lock = CXD2880_TNRDMD_LOCK_RESULT_UNLOCKED;
-+	else
-+		*lock = CXD2880_TNRDMD_LOCK_RESULT_NOTDETECT;
-+
-+	return ret;
-+}
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_set_plp_cfg(struct cxd2880_tnrdmd
-+						  *tnr_dmd, u8 auto_plp,
-+						  u8 plp_id)
-+{
-+	enum cxd2880_ret ret = CXD2880_RESULT_OK;
-+
-+	if (!tnr_dmd)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if ((tnr_dmd->state != CXD2880_TNRDMD_STATE_SLEEP) &&
-+	    (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE))
-+		return CXD2880_RESULT_ERROR_SW_STATE;
-+
-+	if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+				   CXD2880_IO_TGT_DMD, 0x00,
-+				   0x23) != CXD2880_RESULT_OK)
-+		return CXD2880_RESULT_ERROR_IO;
-+
-+	if (!auto_plp) {
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0xAF,
-+					   plp_id) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+	}
-+
-+	if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+				   CXD2880_IO_TGT_DMD, 0xAD,
-+				   auto_plp ? 0x00 : 0x01) != CXD2880_RESULT_OK)
-+		return CXD2880_RESULT_ERROR_IO;
-+
-+	return ret;
-+}
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_diver_fef_setting(struct cxd2880_tnrdmd
-+							*tnr_dmd)
-+{
-+	enum cxd2880_ret ret = CXD2880_RESULT_OK;
-+
-+	if (!tnr_dmd)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
-+		return CXD2880_RESULT_ERROR_SW_STATE;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SINGLE)
-+		return CXD2880_RESULT_OK;
-+
-+	{
-+		struct cxd2880_dvbt2_ofdm ofdm;
-+
-+		ret = cxd2880_tnrdmd_dvbt2_mon_ofdm(tnr_dmd, &ofdm);
-+		if (ret != CXD2880_RESULT_OK)
-+			return ret;
-+
-+		if (!ofdm.mixed)
-+			return CXD2880_RESULT_OK;
-+	}
-+
-+	{
-+		u8 data[] = { 0, 8, 0, 16,
-+			0, 32, 0, 64, 0, 128, 1, 0
-+		};
-+
-+		if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+					   CXD2880_IO_TGT_DMD, 0x00,
-+					   0x1D) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+
-+		if (tnr_dmd->io->write_regs(tnr_dmd->io,
-+					    CXD2880_IO_TGT_DMD, 0x47, data,
-+					    12) != CXD2880_RESULT_OK)
-+			return CXD2880_RESULT_ERROR_IO;
-+	}
-+
-+	return CXD2880_RESULT_OK;
-+}
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_check_l1post_valid(struct cxd2880_tnrdmd
-+							 *tnr_dmd,
-+							 u8 *l1_post_valid)
-+{
-+	enum cxd2880_ret ret = CXD2880_RESULT_OK;
-+
-+	u8 data;
-+
-+	if ((!tnr_dmd) || (!l1_post_valid))
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if ((tnr_dmd->state != CXD2880_TNRDMD_STATE_SLEEP) &&
-+	    (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE))
-+		return CXD2880_RESULT_ERROR_SW_STATE;
-+
-+	if (tnr_dmd->io->write_reg(tnr_dmd->io,
-+				   CXD2880_IO_TGT_DMD, 0x00,
-+				   0x0B) != CXD2880_RESULT_OK)
-+		return CXD2880_RESULT_ERROR_IO;
-+
-+	if (tnr_dmd->io->read_regs(tnr_dmd->io,
-+				   CXD2880_IO_TGT_DMD, 0x86, &data,
-+				   1) != CXD2880_RESULT_OK)
-+		return CXD2880_RESULT_ERROR_IO;
-+
-+	*l1_post_valid = data & 0x01;
-+
-+	return ret;
-+}
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h
-new file mode 100644
-index 000000000000..8735280f0143
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h
-@@ -0,0 +1,82 @@
-+/*
-+ * cxd2880_tnrdmd_dvbt2.h
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * control interface for DVB-T2
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef CXD2880_TNRDMD_DVBT2_H
-+#define CXD2880_TNRDMD_DVBT2_H
-+
-+#include "cxd2880_common.h"
-+#include "cxd2880_tnrdmd.h"
-+
-+enum cxd2880_tnrdmd_dvbt2_tune_info {
-+	CXD2880_TNRDMD_DVBT2_TUNE_INFO_OK,
-+	CXD2880_TNRDMD_DVBT2_TUNE_INFO_INVALID_PLP_ID
-+};
-+
-+struct cxd2880_dvbt2_tune_param {
-+	u32 center_freq_khz;
-+	enum cxd2880_dtv_bandwidth bandwidth;
-+	u16 data_plp_id;
-+	enum cxd2880_dvbt2_profile profile;
-+	enum cxd2880_tnrdmd_dvbt2_tune_info tune_info;
-+};
-+
-+#define CXD2880_DVBT2_TUNE_PARAM_PLPID_AUTO  0xFFFF
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_tune1(struct cxd2880_tnrdmd *tnr_dmd,
-+					    struct cxd2880_dvbt2_tune_param
-+					    *tune_param);
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_tune2(struct cxd2880_tnrdmd *tnr_dmd,
-+					    struct cxd2880_dvbt2_tune_param
-+					    *tune_param);
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_sleep_setting(struct cxd2880_tnrdmd
-+						    *tnr_dmd);
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_check_demod_lock(struct cxd2880_tnrdmd
-+					       *tnr_dmd,
-+					       enum
-+					       cxd2880_tnrdmd_lock_result
-+					       *lock);
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_check_ts_lock(struct cxd2880_tnrdmd
-+						    *tnr_dmd,
-+						    enum
-+						    cxd2880_tnrdmd_lock_result
-+						    *lock);
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_set_plp_cfg(struct cxd2880_tnrdmd
-+						  *tnr_dmd, u8 auto_plp,
-+						  u8 plp_id);
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_diver_fef_setting(struct cxd2880_tnrdmd
-+							*tnr_dmd);
-+
-+enum cxd2880_ret cxd2880_tnrdmd_dvbt2_check_l1post_valid(struct cxd2880_tnrdmd
-+							 *tnr_dmd,
-+							 u8 *l1_post_valid);
-+
-+#endif
+diff --git a/drivers/staging/android/ion/Kconfig b/drivers/staging/android/ion/Kconfig
+index c8fb413..206c4de 100644
+--- a/drivers/staging/android/ion/Kconfig
++++ b/drivers/staging/android/ion/Kconfig
+@@ -10,45 +10,3 @@ menuconfig ION
+ 	  If you're not using Android its probably safe to
+ 	  say N here.
+ 
+-config ION_TEST
+-	tristate "Ion Test Device"
+-	depends on ION
+-	help
+-	  Choose this option to create a device that can be used to test the
+-	  kernel and device side ION functions.
+-
+-config ION_DUMMY
+-	bool "Dummy Ion driver"
+-	depends on ION
+-	help
+-	  Provides a dummy ION driver that registers the
+-	  /dev/ion device and some basic heaps. This can
+-	  be used for testing the ION infrastructure if
+-	  one doesn't have access to hardware drivers that
+-	  use ION.
+-
+-config ION_TEGRA
+-	tristate "Ion for Tegra"
+-	depends on ARCH_TEGRA && ION
+-	help
+-	  Choose this option if you wish to use ion on an nVidia Tegra.
+-
+-config ION_HISI
+-	tristate "Ion for Hisilicon"
+-	depends on ARCH_HISI && ION
+-	select ION_OF
+-	help
+-	  Choose this option if you wish to use ion on Hisilicon Platform.
+-
+-source "drivers/staging/android/ion/hisilicon/Kconfig"
+-
+-config ION_OF
+-	bool "Devicetree support for Ion"
+-	depends on ION && OF_ADDRESS
+-	help
+-	  Provides base support for defining Ion heaps in devicetree
+-	  and setting them up. Also includes functions for platforms
+-	  to parse the devicetree and expand for their own custom
+-	  extensions
+-
+-	  If using Ion and devicetree, you should say Y here
+diff --git a/drivers/staging/android/ion/Makefile b/drivers/staging/android/ion/Makefile
+index 5d630a0..26672a0 100644
+--- a/drivers/staging/android/ion/Makefile
++++ b/drivers/staging/android/ion/Makefile
+@@ -1,13 +1,6 @@
+ obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o \
+ 			ion_page_pool.o ion_system_heap.o \
+ 			ion_carveout_heap.o ion_chunk_heap.o ion_cma_heap.o
+-obj-$(CONFIG_ION_TEST) += ion_test.o
+ ifdef CONFIG_COMPAT
+ obj-$(CONFIG_ION) += compat_ion.o
+ endif
+-
+-obj-$(CONFIG_ION_DUMMY) += ion_dummy_driver.o
+-obj-$(CONFIG_ION_TEGRA) += tegra/
+-obj-$(CONFIG_ION_HISI) += hisilicon/
+-obj-$(CONFIG_ION_OF) += ion_of.o
+-
+diff --git a/drivers/staging/android/ion/hisilicon/Kconfig b/drivers/staging/android/ion/hisilicon/Kconfig
+deleted file mode 100644
+index 2b4bd07..0000000
+--- a/drivers/staging/android/ion/hisilicon/Kconfig
++++ /dev/null
+@@ -1,5 +0,0 @@
+-config HI6220_ION
+-        bool "Hi6220 ION Driver"
+-        depends on ARCH_HISI && ION
+-        help
+-          Build the Hisilicon Hi6220 ion driver.
+diff --git a/drivers/staging/android/ion/hisilicon/Makefile b/drivers/staging/android/ion/hisilicon/Makefile
+deleted file mode 100644
+index 2a89414..0000000
+--- a/drivers/staging/android/ion/hisilicon/Makefile
++++ /dev/null
+@@ -1 +0,0 @@
+-obj-$(CONFIG_HI6220_ION) += hi6220_ion.o
+diff --git a/drivers/staging/android/ion/hisilicon/hi6220_ion.c b/drivers/staging/android/ion/hisilicon/hi6220_ion.c
+deleted file mode 100644
+index 0de7897..0000000
+--- a/drivers/staging/android/ion/hisilicon/hi6220_ion.c
++++ /dev/null
+@@ -1,113 +0,0 @@
+-/*
+- * Hisilicon Hi6220 ION Driver
+- *
+- * Copyright (c) 2015 Hisilicon Limited.
+- *
+- * Author: Chen Feng <puck.chen@hisilicon.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#define pr_fmt(fmt) "Ion: " fmt
+-
+-#include <linux/err.h>
+-#include <linux/platform_device.h>
+-#include <linux/slab.h>
+-#include <linux/of.h>
+-#include <linux/mm.h>
+-#include "../ion_priv.h"
+-#include "../ion.h"
+-#include "../ion_of.h"
+-
+-struct hisi_ion_dev {
+-	struct ion_heap	**heaps;
+-	struct ion_device *idev;
+-	struct ion_platform_data *data;
+-};
+-
+-static struct ion_of_heap hisi_heaps[] = {
+-	PLATFORM_HEAP("hisilicon,sys_user", 0,
+-		      ION_HEAP_TYPE_SYSTEM, "sys_user"),
+-	PLATFORM_HEAP("hisilicon,sys_contig", 1,
+-		      ION_HEAP_TYPE_SYSTEM_CONTIG, "sys_contig"),
+-	PLATFORM_HEAP("hisilicon,cma", ION_HEAP_TYPE_DMA, ION_HEAP_TYPE_DMA,
+-		      "cma"),
+-	{}
+-};
+-
+-static int hi6220_ion_probe(struct platform_device *pdev)
+-{
+-	struct hisi_ion_dev *ipdev;
+-	int i;
+-
+-	ipdev = devm_kzalloc(&pdev->dev, sizeof(*ipdev), GFP_KERNEL);
+-	if (!ipdev)
+-		return -ENOMEM;
+-
+-	platform_set_drvdata(pdev, ipdev);
+-
+-	ipdev->idev = ion_device_create(NULL);
+-	if (IS_ERR(ipdev->idev))
+-		return PTR_ERR(ipdev->idev);
+-
+-	ipdev->data = ion_parse_dt(pdev, hisi_heaps);
+-	if (IS_ERR(ipdev->data))
+-		return PTR_ERR(ipdev->data);
+-
+-	ipdev->heaps = devm_kzalloc(&pdev->dev,
+-				sizeof(struct ion_heap) * ipdev->data->nr,
+-				GFP_KERNEL);
+-	if (!ipdev->heaps) {
+-		ion_destroy_platform_data(ipdev->data);
+-		return -ENOMEM;
+-	}
+-
+-	for (i = 0; i < ipdev->data->nr; i++) {
+-		ipdev->heaps[i] = ion_heap_create(&ipdev->data->heaps[i]);
+-		if (!ipdev->heaps) {
+-			ion_destroy_platform_data(ipdev->data);
+-			return -ENOMEM;
+-		}
+-		ion_device_add_heap(ipdev->idev, ipdev->heaps[i]);
+-	}
+-	return 0;
+-}
+-
+-static int hi6220_ion_remove(struct platform_device *pdev)
+-{
+-	struct hisi_ion_dev *ipdev;
+-	int i;
+-
+-	ipdev = platform_get_drvdata(pdev);
+-
+-	for (i = 0; i < ipdev->data->nr; i++)
+-		ion_heap_destroy(ipdev->heaps[i]);
+-
+-	ion_destroy_platform_data(ipdev->data);
+-	ion_device_destroy(ipdev->idev);
+-
+-	return 0;
+-}
+-
+-static const struct of_device_id hi6220_ion_match_table[] = {
+-	{.compatible = "hisilicon,hi6220-ion"},
+-	{},
+-};
+-
+-static struct platform_driver hi6220_ion_driver = {
+-	.probe = hi6220_ion_probe,
+-	.remove = hi6220_ion_remove,
+-	.driver = {
+-		.name = "ion-hi6220",
+-		.of_match_table = hi6220_ion_match_table,
+-	},
+-};
+-
+-static int __init hi6220_ion_init(void)
+-{
+-	return platform_driver_register(&hi6220_ion_driver);
+-}
+-
+-subsys_initcall(hi6220_ion_init);
+diff --git a/drivers/staging/android/ion/ion_dummy_driver.c b/drivers/staging/android/ion/ion_dummy_driver.c
+deleted file mode 100644
+index 033bb86..0000000
+--- a/drivers/staging/android/ion/ion_dummy_driver.c
++++ /dev/null
+@@ -1,155 +0,0 @@
+-/*
+- * drivers/gpu/ion/ion_dummy_driver.c
+- *
+- * Copyright (C) 2013 Linaro, Inc
+- *
+- * This software is licensed under the terms of the GNU General Public
+- * License version 2, as published by the Free Software Foundation, and
+- * may be copied, distributed, and modified under those terms.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- */
+-
+-#include <linux/err.h>
+-#include <linux/platform_device.h>
+-#include <linux/slab.h>
+-#include <linux/init.h>
+-#include <linux/bootmem.h>
+-#include <linux/memblock.h>
+-#include <linux/sizes.h>
+-#include <linux/io.h>
+-#include "ion.h"
+-#include "ion_priv.h"
+-
+-static struct ion_device *idev;
+-static struct ion_heap **heaps;
+-
+-static void *carveout_ptr;
+-static void *chunk_ptr;
+-
+-static struct ion_platform_heap dummy_heaps[] = {
+-		{
+-			.id	= ION_HEAP_TYPE_SYSTEM,
+-			.type	= ION_HEAP_TYPE_SYSTEM,
+-			.name	= "system",
+-		},
+-		{
+-			.id	= ION_HEAP_TYPE_SYSTEM_CONTIG,
+-			.type	= ION_HEAP_TYPE_SYSTEM_CONTIG,
+-			.name	= "system contig",
+-		},
+-		{
+-			.id	= ION_HEAP_TYPE_CARVEOUT,
+-			.type	= ION_HEAP_TYPE_CARVEOUT,
+-			.name	= "carveout",
+-			.size	= SZ_4M,
+-		},
+-		{
+-			.id	= ION_HEAP_TYPE_CHUNK,
+-			.type	= ION_HEAP_TYPE_CHUNK,
+-			.name	= "chunk",
+-			.size	= SZ_4M,
+-			.align	= SZ_16K,
+-			.priv	= (void *)(SZ_16K),
+-		},
+-};
+-
+-static const struct ion_platform_data dummy_ion_pdata = {
+-	.nr = ARRAY_SIZE(dummy_heaps),
+-	.heaps = dummy_heaps,
+-};
+-
+-static int __init ion_dummy_init(void)
+-{
+-	int i, err;
+-
+-	idev = ion_device_create();
+-	if (IS_ERR(idev))
+-		return PTR_ERR(idev);
+-	heaps = kcalloc(dummy_ion_pdata.nr, sizeof(struct ion_heap *),
+-			GFP_KERNEL);
+-	if (!heaps)
+-		return -ENOMEM;
+-
+-	/* Allocate a dummy carveout heap */
+-	carveout_ptr = alloc_pages_exact(
+-				dummy_heaps[ION_HEAP_TYPE_CARVEOUT].size,
+-				GFP_KERNEL);
+-	if (carveout_ptr)
+-		dummy_heaps[ION_HEAP_TYPE_CARVEOUT].base =
+-						virt_to_phys(carveout_ptr);
+-	else
+-		pr_err("ion_dummy: Could not allocate carveout\n");
+-
+-	/* Allocate a dummy chunk heap */
+-	chunk_ptr = alloc_pages_exact(
+-				dummy_heaps[ION_HEAP_TYPE_CHUNK].size,
+-				GFP_KERNEL);
+-	if (chunk_ptr)
+-		dummy_heaps[ION_HEAP_TYPE_CHUNK].base = virt_to_phys(chunk_ptr);
+-	else
+-		pr_err("ion_dummy: Could not allocate chunk\n");
+-
+-	for (i = 0; i < dummy_ion_pdata.nr; i++) {
+-		struct ion_platform_heap *heap_data = &dummy_ion_pdata.heaps[i];
+-
+-		if (heap_data->type == ION_HEAP_TYPE_CARVEOUT &&
+-		    !heap_data->base)
+-			continue;
+-
+-		if (heap_data->type == ION_HEAP_TYPE_CHUNK && !heap_data->base)
+-			continue;
+-
+-		heaps[i] = ion_heap_create(heap_data);
+-		if (IS_ERR_OR_NULL(heaps[i])) {
+-			err = PTR_ERR(heaps[i]);
+-			goto err;
+-		}
+-		ion_device_add_heap(idev, heaps[i]);
+-	}
+-	return 0;
+-err:
+-	for (i = 0; i < dummy_ion_pdata.nr; ++i)
+-		ion_heap_destroy(heaps[i]);
+-	kfree(heaps);
+-
+-	if (carveout_ptr) {
+-		free_pages_exact(carveout_ptr,
+-				 dummy_heaps[ION_HEAP_TYPE_CARVEOUT].size);
+-		carveout_ptr = NULL;
+-	}
+-	if (chunk_ptr) {
+-		free_pages_exact(chunk_ptr,
+-				 dummy_heaps[ION_HEAP_TYPE_CHUNK].size);
+-		chunk_ptr = NULL;
+-	}
+-	return err;
+-}
+-device_initcall(ion_dummy_init);
+-
+-static void __exit ion_dummy_exit(void)
+-{
+-	int i;
+-
+-	ion_device_destroy(idev);
+-
+-	for (i = 0; i < dummy_ion_pdata.nr; i++)
+-		ion_heap_destroy(heaps[i]);
+-	kfree(heaps);
+-
+-	if (carveout_ptr) {
+-		free_pages_exact(carveout_ptr,
+-				 dummy_heaps[ION_HEAP_TYPE_CARVEOUT].size);
+-		carveout_ptr = NULL;
+-	}
+-	if (chunk_ptr) {
+-		free_pages_exact(chunk_ptr,
+-				 dummy_heaps[ION_HEAP_TYPE_CHUNK].size);
+-		chunk_ptr = NULL;
+-	}
+-}
+-__exitcall(ion_dummy_exit);
+diff --git a/drivers/staging/android/ion/ion_of.c b/drivers/staging/android/ion/ion_of.c
+deleted file mode 100644
+index 7791c70..0000000
+--- a/drivers/staging/android/ion/ion_of.c
++++ /dev/null
+@@ -1,184 +0,0 @@
+-/*
+- * Based on work from:
+- *   Andrew Andrianov <andrew@ncrmnt.org>
+- *   Google
+- *   The Linux Foundation
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/init.h>
+-#include <linux/platform_device.h>
+-#include <linux/slab.h>
+-#include <linux/of.h>
+-#include <linux/of_platform.h>
+-#include <linux/of_address.h>
+-#include <linux/clk.h>
+-#include <linux/dma-mapping.h>
+-#include <linux/cma.h>
+-#include <linux/dma-contiguous.h>
+-#include <linux/io.h>
+-#include <linux/of_reserved_mem.h>
+-#include "ion.h"
+-#include "ion_priv.h"
+-#include "ion_of.h"
+-
+-static int ion_parse_dt_heap_common(struct device_node *heap_node,
+-				    struct ion_platform_heap *heap,
+-				    struct ion_of_heap *compatible)
+-{
+-	int i;
+-
+-	for (i = 0; compatible[i].name; i++) {
+-		if (of_device_is_compatible(heap_node, compatible[i].compat))
+-			break;
+-	}
+-
+-	if (!compatible[i].name)
+-		return -ENODEV;
+-
+-	heap->id = compatible[i].heap_id;
+-	heap->type = compatible[i].type;
+-	heap->name = compatible[i].name;
+-	heap->align = compatible[i].align;
+-
+-	/* Some kind of callback function pointer? */
+-
+-	pr_info("%s: id %d type %d name %s align %lx\n", __func__,
+-		heap->id, heap->type, heap->name, heap->align);
+-	return 0;
+-}
+-
+-static int ion_setup_heap_common(struct platform_device *parent,
+-				 struct device_node *heap_node,
+-				 struct ion_platform_heap *heap)
+-{
+-	int ret = 0;
+-
+-	switch (heap->type) {
+-	case ION_HEAP_TYPE_CARVEOUT:
+-	case ION_HEAP_TYPE_CHUNK:
+-		if (heap->base && heap->size)
+-			return 0;
+-
+-		ret = of_reserved_mem_device_init(heap->priv);
+-		break;
+-	default:
+-		break;
+-	}
+-
+-	return ret;
+-}
+-
+-struct ion_platform_data *ion_parse_dt(struct platform_device *pdev,
+-				       struct ion_of_heap *compatible)
+-{
+-	int num_heaps, ret;
+-	const struct device_node *dt_node = pdev->dev.of_node;
+-	struct device_node *node;
+-	struct ion_platform_heap *heaps;
+-	struct ion_platform_data *data;
+-	int i = 0;
+-
+-	num_heaps = of_get_available_child_count(dt_node);
+-
+-	if (!num_heaps)
+-		return ERR_PTR(-EINVAL);
+-
+-	heaps = devm_kzalloc(&pdev->dev,
+-			     sizeof(struct ion_platform_heap) * num_heaps,
+-			     GFP_KERNEL);
+-	if (!heaps)
+-		return ERR_PTR(-ENOMEM);
+-
+-	data = devm_kzalloc(&pdev->dev, sizeof(struct ion_platform_data),
+-			    GFP_KERNEL);
+-	if (!data)
+-		return ERR_PTR(-ENOMEM);
+-
+-	for_each_available_child_of_node(dt_node, node) {
+-		struct platform_device *heap_pdev;
+-
+-		ret = ion_parse_dt_heap_common(node, &heaps[i], compatible);
+-		if (ret)
+-			return ERR_PTR(ret);
+-
+-		heap_pdev = of_platform_device_create(node, heaps[i].name,
+-						      &pdev->dev);
+-		if (!heap_pdev)
+-			return ERR_PTR(-ENOMEM);
+-		heap_pdev->dev.platform_data = &heaps[i];
+-
+-		heaps[i].priv = &heap_pdev->dev;
+-
+-		ret = ion_setup_heap_common(pdev, node, &heaps[i]);
+-		if (ret)
+-			goto out_err;
+-		i++;
+-	}
+-
+-	data->heaps = heaps;
+-	data->nr = num_heaps;
+-	return data;
+-
+-out_err:
+-	for ( ; i >= 0; i--)
+-		if (heaps[i].priv)
+-			of_device_unregister(to_platform_device(heaps[i].priv));
+-
+-	return ERR_PTR(ret);
+-}
+-
+-void ion_destroy_platform_data(struct ion_platform_data *data)
+-{
+-	int i;
+-
+-	for (i = 0; i < data->nr; i++)
+-		if (data->heaps[i].priv)
+-			of_device_unregister(to_platform_device(
+-				data->heaps[i].priv));
+-}
+-
+-#ifdef CONFIG_OF_RESERVED_MEM
+-#include <linux/of.h>
+-#include <linux/of_fdt.h>
+-#include <linux/of_reserved_mem.h>
+-
+-static int rmem_ion_device_init(struct reserved_mem *rmem, struct device *dev)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct ion_platform_heap *heap = pdev->dev.platform_data;
+-
+-	heap->base = rmem->base;
+-	heap->base = rmem->size;
+-	pr_debug("%s: heap %s base %pa size %pa dev %p\n", __func__,
+-		 heap->name, &rmem->base, &rmem->size, dev);
+-	return 0;
+-}
+-
+-static void rmem_ion_device_release(struct reserved_mem *rmem,
+-				    struct device *dev)
+-{
+-}
+-
+-static const struct reserved_mem_ops rmem_dma_ops = {
+-	.device_init	= rmem_ion_device_init,
+-	.device_release	= rmem_ion_device_release,
+-};
+-
+-static int __init rmem_ion_setup(struct reserved_mem *rmem)
+-{
+-	phys_addr_t size = rmem->size;
+-
+-	size = size / 1024;
+-
+-	pr_info("Ion memory setup at %pa size %pa MiB\n",
+-		&rmem->base, &size);
+-	rmem->ops = &rmem_dma_ops;
+-	return 0;
+-}
+-
+-RESERVEDMEM_OF_DECLARE(ion, "ion-region", rmem_ion_setup);
+-#endif
+diff --git a/drivers/staging/android/ion/ion_of.h b/drivers/staging/android/ion/ion_of.h
+deleted file mode 100644
+index 8241a17..0000000
+--- a/drivers/staging/android/ion/ion_of.h
++++ /dev/null
+@@ -1,37 +0,0 @@
+-/*
+- * Based on work from:
+- *   Andrew Andrianov <andrew@ncrmnt.org>
+- *   Google
+- *   The Linux Foundation
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ION_OF_H
+-#define _ION_OF_H
+-
+-struct ion_of_heap {
+-	const char *compat;
+-	int heap_id;
+-	int type;
+-	const char *name;
+-	int align;
+-};
+-
+-#define PLATFORM_HEAP(_compat, _id, _type, _name) \
+-{ \
+-	.compat = _compat, \
+-	.heap_id = _id, \
+-	.type = _type, \
+-	.name = _name, \
+-	.align = PAGE_SIZE, \
+-}
+-
+-struct ion_platform_data *ion_parse_dt(struct platform_device *pdev,
+-					struct ion_of_heap *compatible);
+-
+-void ion_destroy_platform_data(struct ion_platform_data *data);
+-
+-#endif
+diff --git a/drivers/staging/android/ion/ion_test.c b/drivers/staging/android/ion/ion_test.c
+deleted file mode 100644
+index 0ab7d11..0000000
+--- a/drivers/staging/android/ion/ion_test.c
++++ /dev/null
+@@ -1,305 +0,0 @@
+-/*
+- *
+- * Copyright (C) 2013 Google, Inc.
+- *
+- * This software is licensed under the terms of the GNU General Public
+- * License version 2, as published by the Free Software Foundation, and
+- * may be copied, distributed, and modified under those terms.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- */
+-
+-#define pr_fmt(fmt) "ion-test: " fmt
+-
+-#include <linux/dma-buf.h>
+-#include <linux/dma-direction.h>
+-#include <linux/fs.h>
+-#include <linux/miscdevice.h>
+-#include <linux/mm.h>
+-#include <linux/module.h>
+-#include <linux/platform_device.h>
+-#include <linux/sched.h>
+-#include <linux/slab.h>
+-#include <linux/uaccess.h>
+-#include <linux/vmalloc.h>
+-
+-#include "ion.h"
+-#include "../uapi/ion_test.h"
+-
+-#define u64_to_uptr(x) ((void __user *)(unsigned long)(x))
+-
+-struct ion_test_device {
+-	struct miscdevice misc;
+-};
+-
+-struct ion_test_data {
+-	struct dma_buf *dma_buf;
+-	struct device *dev;
+-};
+-
+-static int ion_handle_test_dma(struct device *dev, struct dma_buf *dma_buf,
+-			       void __user *ptr, size_t offset, size_t size,
+-			       bool write)
+-{
+-	int ret = 0;
+-	struct dma_buf_attachment *attach;
+-	struct sg_table *table;
+-	pgprot_t pgprot = pgprot_writecombine(PAGE_KERNEL);
+-	enum dma_data_direction dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+-	struct sg_page_iter sg_iter;
+-	unsigned long offset_page;
+-
+-	attach = dma_buf_attach(dma_buf, dev);
+-	if (IS_ERR(attach))
+-		return PTR_ERR(attach);
+-
+-	table = dma_buf_map_attachment(attach, dir);
+-	if (IS_ERR(table))
+-		return PTR_ERR(table);
+-
+-	offset_page = offset >> PAGE_SHIFT;
+-	offset %= PAGE_SIZE;
+-
+-	for_each_sg_page(table->sgl, &sg_iter, table->nents, offset_page) {
+-		struct page *page = sg_page_iter_page(&sg_iter);
+-		void *vaddr = vmap(&page, 1, VM_MAP, pgprot);
+-		size_t to_copy = PAGE_SIZE - offset;
+-
+-		to_copy = min(to_copy, size);
+-		if (!vaddr) {
+-			ret = -ENOMEM;
+-			goto err;
+-		}
+-
+-		if (write)
+-			ret = copy_from_user(vaddr + offset, ptr, to_copy);
+-		else
+-			ret = copy_to_user(ptr, vaddr + offset, to_copy);
+-
+-		vunmap(vaddr);
+-		if (ret) {
+-			ret = -EFAULT;
+-			goto err;
+-		}
+-		size -= to_copy;
+-		if (!size)
+-			break;
+-		ptr += to_copy;
+-		offset = 0;
+-	}
+-
+-err:
+-	dma_buf_unmap_attachment(attach, table, dir);
+-	dma_buf_detach(dma_buf, attach);
+-	return ret;
+-}
+-
+-static int ion_handle_test_kernel(struct dma_buf *dma_buf, void __user *ptr,
+-				  size_t offset, size_t size, bool write)
+-{
+-	int ret;
+-	unsigned long page_offset = offset >> PAGE_SHIFT;
+-	size_t copy_offset = offset % PAGE_SIZE;
+-	size_t copy_size = size;
+-	enum dma_data_direction dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+-
+-	if (offset > dma_buf->size || size > dma_buf->size - offset)
+-		return -EINVAL;
+-
+-	ret = dma_buf_begin_cpu_access(dma_buf, dir);
+-	if (ret)
+-		return ret;
+-
+-	while (copy_size > 0) {
+-		size_t to_copy;
+-		void *vaddr = dma_buf_kmap(dma_buf, page_offset);
+-
+-		if (!vaddr)
+-			goto err;
+-
+-		to_copy = min_t(size_t, PAGE_SIZE - copy_offset, copy_size);
+-
+-		if (write)
+-			ret = copy_from_user(vaddr + copy_offset, ptr, to_copy);
+-		else
+-			ret = copy_to_user(ptr, vaddr + copy_offset, to_copy);
+-
+-		dma_buf_kunmap(dma_buf, page_offset, vaddr);
+-		if (ret) {
+-			ret = -EFAULT;
+-			goto err;
+-		}
+-
+-		copy_size -= to_copy;
+-		ptr += to_copy;
+-		page_offset++;
+-		copy_offset = 0;
+-	}
+-err:
+-	dma_buf_end_cpu_access(dma_buf, dir);
+-	return ret;
+-}
+-
+-static long ion_test_ioctl(struct file *filp, unsigned int cmd,
+-			   unsigned long arg)
+-{
+-	struct ion_test_data *test_data = filp->private_data;
+-	int ret = 0;
+-
+-	union {
+-		struct ion_test_rw_data test_rw;
+-	} data;
+-
+-	if (_IOC_SIZE(cmd) > sizeof(data))
+-		return -EINVAL;
+-
+-	if (_IOC_DIR(cmd) & _IOC_WRITE)
+-		if (copy_from_user(&data, (void __user *)arg, _IOC_SIZE(cmd)))
+-			return -EFAULT;
+-
+-	switch (cmd) {
+-	case ION_IOC_TEST_SET_FD:
+-	{
+-		struct dma_buf *dma_buf = NULL;
+-		int fd = arg;
+-
+-		if (fd >= 0) {
+-			dma_buf = dma_buf_get((int)arg);
+-			if (IS_ERR(dma_buf))
+-				return PTR_ERR(dma_buf);
+-		}
+-		if (test_data->dma_buf)
+-			dma_buf_put(test_data->dma_buf);
+-		test_data->dma_buf = dma_buf;
+-		break;
+-	}
+-	case ION_IOC_TEST_DMA_MAPPING:
+-	{
+-		ret = ion_handle_test_dma(test_data->dev, test_data->dma_buf,
+-					  u64_to_uptr(data.test_rw.ptr),
+-					  data.test_rw.offset,
+-					  data.test_rw.size,
+-					  data.test_rw.write);
+-		break;
+-	}
+-	case ION_IOC_TEST_KERNEL_MAPPING:
+-	{
+-		ret = ion_handle_test_kernel(test_data->dma_buf,
+-					     u64_to_uptr(data.test_rw.ptr),
+-					     data.test_rw.offset,
+-					     data.test_rw.size,
+-					     data.test_rw.write);
+-		break;
+-	}
+-	default:
+-		return -ENOTTY;
+-	}
+-
+-	if (_IOC_DIR(cmd) & _IOC_READ) {
+-		if (copy_to_user((void __user *)arg, &data, sizeof(data)))
+-			return -EFAULT;
+-	}
+-	return ret;
+-}
+-
+-static int ion_test_open(struct inode *inode, struct file *file)
+-{
+-	struct ion_test_data *data;
+-	struct miscdevice *miscdev = file->private_data;
+-
+-	data = kzalloc(sizeof(*data), GFP_KERNEL);
+-	if (!data)
+-		return -ENOMEM;
+-
+-	data->dev = miscdev->parent;
+-
+-	file->private_data = data;
+-
+-	return 0;
+-}
+-
+-static int ion_test_release(struct inode *inode, struct file *file)
+-{
+-	struct ion_test_data *data = file->private_data;
+-
+-	kfree(data);
+-
+-	return 0;
+-}
+-
+-static const struct file_operations ion_test_fops = {
+-	.owner = THIS_MODULE,
+-	.unlocked_ioctl = ion_test_ioctl,
+-	.compat_ioctl = ion_test_ioctl,
+-	.open = ion_test_open,
+-	.release = ion_test_release,
+-};
+-
+-static int __init ion_test_probe(struct platform_device *pdev)
+-{
+-	int ret;
+-	struct ion_test_device *testdev;
+-
+-	testdev = devm_kzalloc(&pdev->dev, sizeof(struct ion_test_device),
+-			       GFP_KERNEL);
+-	if (!testdev)
+-		return -ENOMEM;
+-
+-	testdev->misc.minor = MISC_DYNAMIC_MINOR;
+-	testdev->misc.name = "ion-test";
+-	testdev->misc.fops = &ion_test_fops;
+-	testdev->misc.parent = &pdev->dev;
+-	ret = misc_register(&testdev->misc);
+-	if (ret) {
+-		dev_err(&pdev->dev, "failed to register misc device.\n");
+-		return ret;
+-	}
+-
+-	platform_set_drvdata(pdev, testdev);
+-
+-	return 0;
+-}
+-
+-static int ion_test_remove(struct platform_device *pdev)
+-{
+-	struct ion_test_device *testdev;
+-
+-	testdev = platform_get_drvdata(pdev);
+-	if (!testdev)
+-		return -ENODATA;
+-
+-	misc_deregister(&testdev->misc);
+-	return 0;
+-}
+-
+-static struct platform_device *ion_test_pdev;
+-static struct platform_driver ion_test_platform_driver = {
+-	.remove = ion_test_remove,
+-	.driver = {
+-		.name = "ion-test",
+-	},
+-};
+-
+-static int __init ion_test_init(void)
+-{
+-	ion_test_pdev = platform_device_register_simple("ion-test",
+-							-1, NULL, 0);
+-	if (IS_ERR(ion_test_pdev))
+-		return PTR_ERR(ion_test_pdev);
+-
+-	return platform_driver_probe(&ion_test_platform_driver, ion_test_probe);
+-}
+-
+-static void __exit ion_test_exit(void)
+-{
+-	platform_driver_unregister(&ion_test_platform_driver);
+-	platform_device_unregister(ion_test_pdev);
+-}
+-
+-module_init(ion_test_init);
+-module_exit(ion_test_exit);
+-MODULE_LICENSE("GPL v2");
+diff --git a/drivers/staging/android/ion/tegra/Makefile b/drivers/staging/android/ion/tegra/Makefile
+deleted file mode 100644
+index 808f1f5..0000000
+--- a/drivers/staging/android/ion/tegra/Makefile
++++ /dev/null
+@@ -1 +0,0 @@
+-obj-$(CONFIG_ION_TEGRA) += tegra_ion.o
+diff --git a/drivers/staging/android/ion/tegra/tegra_ion.c b/drivers/staging/android/ion/tegra/tegra_ion.c
+deleted file mode 100644
+index 49e55e5..0000000
+--- a/drivers/staging/android/ion/tegra/tegra_ion.c
++++ /dev/null
+@@ -1,80 +0,0 @@
+-/*
+- * drivers/gpu/tegra/tegra_ion.c
+- *
+- * Copyright (C) 2011 Google, Inc.
+- *
+- * This software is licensed under the terms of the GNU General Public
+- * License version 2, as published by the Free Software Foundation, and
+- * may be copied, distributed, and modified under those terms.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- */
+-
+-#include <linux/err.h>
+-#include <linux/module.h>
+-#include <linux/platform_device.h>
+-#include <linux/slab.h>
+-#include "../ion.h"
+-#include "../ion_priv.h"
+-
+-static struct ion_device *idev;
+-static int num_heaps;
+-static struct ion_heap **heaps;
+-
+-static int tegra_ion_probe(struct platform_device *pdev)
+-{
+-	struct ion_platform_data *pdata = pdev->dev.platform_data;
+-	int err;
+-	int i;
+-
+-	num_heaps = pdata->nr;
+-
+-	heaps = devm_kcalloc(&pdev->dev, pdata->nr,
+-			     sizeof(struct ion_heap *), GFP_KERNEL);
+-
+-	idev = ion_device_create(NULL);
+-	if (IS_ERR(idev))
+-		return PTR_ERR(idev);
+-
+-	/* create the heaps as specified in the board file */
+-	for (i = 0; i < num_heaps; i++) {
+-		struct ion_platform_heap *heap_data = &pdata->heaps[i];
+-
+-		heaps[i] = ion_heap_create(heap_data);
+-		if (IS_ERR_OR_NULL(heaps[i])) {
+-			err = PTR_ERR(heaps[i]);
+-			goto err;
+-		}
+-		ion_device_add_heap(idev, heaps[i]);
+-	}
+-	platform_set_drvdata(pdev, idev);
+-	return 0;
+-err:
+-	for (i = 0; i < num_heaps; ++i)
+-		ion_heap_destroy(heaps[i]);
+-	return err;
+-}
+-
+-static int tegra_ion_remove(struct platform_device *pdev)
+-{
+-	struct ion_device *idev = platform_get_drvdata(pdev);
+-	int i;
+-
+-	ion_device_destroy(idev);
+-	for (i = 0; i < num_heaps; i++)
+-		ion_heap_destroy(heaps[i]);
+-	return 0;
+-}
+-
+-static struct platform_driver ion_driver = {
+-	.probe = tegra_ion_probe,
+-	.remove = tegra_ion_remove,
+-	.driver = { .name = "ion-tegra" }
+-};
+-
+-module_platform_driver(ion_driver);
+-
+diff --git a/drivers/staging/android/uapi/ion_test.h b/drivers/staging/android/uapi/ion_test.h
+deleted file mode 100644
+index 480242e..0000000
+--- a/drivers/staging/android/uapi/ion_test.h
++++ /dev/null
+@@ -1,69 +0,0 @@
+-/*
+- * drivers/staging/android/uapi/ion.h
+- *
+- * Copyright (C) 2011 Google, Inc.
+- *
+- * This software is licensed under the terms of the GNU General Public
+- * License version 2, as published by the Free Software Foundation, and
+- * may be copied, distributed, and modified under those terms.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- */
+-
+-#ifndef _UAPI_LINUX_ION_TEST_H
+-#define _UAPI_LINUX_ION_TEST_H
+-
+-#include <linux/ioctl.h>
+-#include <linux/types.h>
+-
+-/**
+- * struct ion_test_rw_data - metadata passed to the kernel to read handle
+- * @ptr:	a pointer to an area at least as large as size
+- * @offset:	offset into the ion buffer to start reading
+- * @size:	size to read or write
+- * @write:	1 to write, 0 to read
+- */
+-struct ion_test_rw_data {
+-	__u64 ptr;
+-	__u64 offset;
+-	__u64 size;
+-	int write;
+-	int __padding;
+-};
+-
+-#define ION_IOC_MAGIC		'I'
+-
+-/**
+- * DOC: ION_IOC_TEST_SET_DMA_BUF - attach a dma buf to the test driver
+- *
+- * Attaches a dma buf fd to the test driver.  Passing a second fd or -1 will
+- * release the first fd.
+- */
+-#define ION_IOC_TEST_SET_FD \
+-			_IO(ION_IOC_MAGIC, 0xf0)
+-
+-/**
+- * DOC: ION_IOC_TEST_DMA_MAPPING - read or write memory from a handle as DMA
+- *
+- * Reads or writes the memory from a handle using an uncached mapping.  Can be
+- * used by unit tests to emulate a DMA engine as close as possible.  Only
+- * expected to be used for debugging and testing, may not always be available.
+- */
+-#define ION_IOC_TEST_DMA_MAPPING \
+-			_IOW(ION_IOC_MAGIC, 0xf1, struct ion_test_rw_data)
+-
+-/**
+- * DOC: ION_IOC_TEST_KERNEL_MAPPING - read or write memory from a handle
+- *
+- * Reads or writes the memory from a handle using a kernel mapping.  Can be
+- * used by unit tests to test heap map_kernel functions.  Only expected to be
+- * used for debugging and testing, may not always be available.
+- */
+-#define ION_IOC_TEST_KERNEL_MAPPING \
+-			_IOW(ION_IOC_MAGIC, 0xf2, struct ion_test_rw_data)
+-
+-#endif /* _UAPI_LINUX_ION_H */
 -- 
-2.11.0
+2.7.4
