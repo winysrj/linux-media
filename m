@@ -1,70 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48052 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1174402AbdDXU3N (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Apr 2017 16:29:13 -0400
-Date: Mon, 24 Apr 2017 23:29:06 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-        kyungmin.park@samsung.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 1/2] [media] vb2: Fix an off by one error in
- 'vb2_plane_vaddr'
-Message-ID: <20170424202906.GW7456@valkosipuli.retiisi.org.uk>
-References: <20170423213257.14773-1-christophe.jaillet@wanadoo.fr>
- <20170424141655.GQ7456@valkosipuli.retiisi.org.uk>
- <9aab41eb-5543-58d2-211f-95fb00f5176c@wanadoo.fr>
+Received: from mail-he1eur01on0104.outbound.protection.outlook.com ([104.47.0.104]:28716
+        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752224AbdDCIhe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Apr 2017 04:37:34 -0400
+From: Peter Rosin <peda@axentia.se>
+To: <linux-kernel@vger.kernel.org>
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+        Peter Korsgaard <peter.korsgaard@barco.com>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        <linux-i2c@vger.kernel.org>, <linux-iio@vger.kernel.org>,
+        <linux-media@vger.kernel.org>
+Subject: [PATCH 5/9] i2c: mux: pca954x: stop double error reporting
+Date: Mon, 3 Apr 2017 10:38:34 +0200
+Message-ID: <1491208718-32068-6-git-send-email-peda@axentia.se>
+In-Reply-To: <1491208718-32068-1-git-send-email-peda@axentia.se>
+References: <1491208718-32068-1-git-send-email-peda@axentia.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <9aab41eb-5543-58d2-211f-95fb00f5176c@wanadoo.fr>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Christophe,
+i2c_mux_add_adapter already logs a message on failure.
 
-On Mon, Apr 24, 2017 at 10:00:24PM +0200, Christophe JAILLET wrote:
-> Le 24/04/2017 à 16:16, Sakari Ailus a écrit :
-> >On Sun, Apr 23, 2017 at 11:32:57PM +0200, Christophe JAILLET wrote:
-> >>We should ensure that 'plane_no' is '< vb->num_planes' as done in
-> >>'vb2_plane_cookie' just a few lines below.
-> >>
-> >>Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-> >>---
-> >>  drivers/media/v4l2-core/videobuf2-core.c | 2 +-
-> >>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >>
-> >>diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> >>index 94afbbf92807..c0175ea7e7ad 100644
-> >>--- a/drivers/media/v4l2-core/videobuf2-core.c
-> >>+++ b/drivers/media/v4l2-core/videobuf2-core.c
-> >>@@ -868,7 +868,7 @@ EXPORT_SYMBOL_GPL(vb2_core_create_bufs);
-> >>  void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no)
-> >>  {
-> >>-	if (plane_no > vb->num_planes || !vb->planes[plane_no].mem_priv)
-> >>+	if (plane_no >= vb->num_planes || !vb->planes[plane_no].mem_priv)
-> >>  		return NULL;
-> >>  	return call_ptr_memop(vb, vaddr, vb->planes[plane_no].mem_priv);
-> >Oh my. How could this happen?
-> >
-> >This should go to stable as well.
-> Should I resubmit with "Cc: stable@vger.kernel.org" or will you add it
-> yourself?
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/i2c/muxes/i2c-mux-pca954x.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-Please resend. And preferrably figure out which version is the first one
-requiring the fix.
-
-Mauro can then pick it up, and it ends up to stable through his tree. I.e.
-Cc: stable ... tag is enough, no need to send an actual  e-mail there.
-
-Thanks!
-
+diff --git a/drivers/i2c/muxes/i2c-mux-pca954x.c b/drivers/i2c/muxes/i2c-mux-pca954x.c
+index 15dfc1648716..b2a85a2d00f7 100644
+--- a/drivers/i2c/muxes/i2c-mux-pca954x.c
++++ b/drivers/i2c/muxes/i2c-mux-pca954x.c
+@@ -434,13 +434,8 @@ static int pca954x_probe(struct i2c_client *client,
+ 				   idle_disconnect_dt) << num;
+ 
+ 		ret = i2c_mux_add_adapter(muxc, force, num, class);
+-
+-		if (ret) {
+-			dev_err(&client->dev,
+-				"failed to register multiplexed adapter"
+-				" %d as bus %d\n", num, force);
++		if (ret)
+ 			goto fail_del_adapters;
+-		}
+ 	}
+ 
+ 	dev_info(&client->dev,
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.1.4
