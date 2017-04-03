@@ -1,59 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa2.microchip.iphmx.com ([68.232.149.84]:27655 "EHLO
-        esa2.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751040AbdDEFOV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 01:14:21 -0400
-Subject: Re: [PATCH] MAINTAINERS: update atmel-isi.c path
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <d8b1734c-a689-bea5-33f3-113b4b7b3247@xs4all.nl>
-From: "Wu, Songjun" <Songjun.Wu@microchip.com>
-Message-ID: <bea573e5-d759-7f1b-420e-0e178ff57d37@microchip.com>
-Date: Wed, 5 Apr 2017 13:13:46 +0800
+Received: from mail-he1eur01on0124.outbound.protection.outlook.com ([104.47.0.124]:19181
+        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752351AbdDCIhu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Apr 2017 04:37:50 -0400
+From: Peter Rosin <peda@axentia.se>
+To: <linux-kernel@vger.kernel.org>
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+        Peter Korsgaard <peter.korsgaard@barco.com>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        <linux-i2c@vger.kernel.org>, <linux-iio@vger.kernel.org>,
+        <linux-media@vger.kernel.org>
+Subject: [PATCH 9/9] [media] cx231xx: stop double error reporting
+Date: Mon, 3 Apr 2017 10:38:38 +0200
+Message-ID: <1491208718-32068-10-git-send-email-peda@axentia.se>
+In-Reply-To: <1491208718-32068-1-git-send-email-peda@axentia.se>
+References: <1491208718-32068-1-git-send-email-peda@axentia.se>
 MIME-Version: 1.0
-In-Reply-To: <d8b1734c-a689-bea5-33f3-113b4b7b3247@xs4all.nl>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+i2c_mux_add_adapter already logs a message on failure.
 
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/media/usb/cx231xx/cx231xx-i2c.c | 15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-On 4/3/2017 22:54, Hans Verkuil wrote:
-> The driver moved to drivers/media/platform/atmel.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-> After the atmel-isi v6 patch series this atmel-isi entry is no longer correct.
-> Fixed.
-> 
-> Songjun, I don't think Ludovic is still maintainer of this driver. Should that
-> be changed to you? (And no, I'm not planning to maintain this driver going forward :-) )
-> 
-Hi Hans,
-
-It's OK, you can change the maintainer of this driver to me.
-Thank you for this valuable work.
-
-> Regards,
-> 
-> 	Hans
-> ---
->   MAINTAINERS | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 93500928ca4f..08d41f8e5d33 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -2224,7 +2224,7 @@ ATMEL ISI DRIVER
->   M:	Ludovic Desroches <ludovic.desroches@microchip.com>
->   L:	linux-media@vger.kernel.org
->   S:	Supported
-> -F:	drivers/media/platform/soc_camera/atmel-isi.c
-> +F:	drivers/media/platform/atmel/atmel-isi.c
->   F:	include/media/atmel-isi.h
-> 
->   ATMEL LCDFB DRIVER
-> 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+index 35e9acfe63d3..dff514e147da 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
++++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+@@ -576,17 +576,10 @@ int cx231xx_i2c_mux_create(struct cx231xx *dev)
+ 
+ int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no)
+ {
+-	int rc;
+-
+-	rc = i2c_mux_add_adapter(dev->muxc,
+-				 0,
+-				 mux_no /* chan_id */,
+-				 0 /* class */);
+-	if (rc)
+-		dev_warn(dev->dev,
+-			 "i2c mux %d register FAILED\n", mux_no);
+-
+-	return rc;
++	return i2c_mux_add_adapter(dev->muxc,
++				   0,
++				   mux_no /* chan_id */,
++				   0 /* class */);
+ }
+ 
+ void cx231xx_i2c_mux_unregister(struct cx231xx *dev)
+-- 
+2.1.4
