@@ -1,124 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:60030 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752144AbdDJKuF (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:36634 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751571AbdDCILN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 06:50:05 -0400
-Subject: Re: [PATCH] dev-capture.rst/dev-output.rst: video standards ioctls
- are optional
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <8e21fc74-64a8-8767-8bcf-4b954d4e22c1@xs4all.nl>
- <20170410070940.7f55c1b1@vento.lan>
- <19667636-a0a2-1793-4638-af0a25a9198a@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+        Mon, 3 Apr 2017 04:11:13 -0400
+Subject: Re: [Patch v3 05/11] [media] videodev2.h: Add v4l2 definition for
+ HEVC
+To: Smitha T Murthy <smitha.t@samsung.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170331090438epcas1p4152c9aaa9ea69f30d264bcd532d79e75@epcas1p4.samsung.com>
+ <1490951200-32070-6-git-send-email-smitha.t@samsung.com>
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <afd257e0-4b42-8eb4-cd0d-1458e2b5c8f2@xs4all.nl>
-Date: Mon, 10 Apr 2017 12:49:57 +0200
+Message-ID: <70bc6abe-b944-d2bc-5f31-af760ce44c15@xs4all.nl>
+Date: Mon, 3 Apr 2017 10:11:05 +0200
 MIME-Version: 1.0
-In-Reply-To: <19667636-a0a2-1793-4638-af0a25a9198a@xs4all.nl>
+In-Reply-To: <1490951200-32070-6-git-send-email-smitha.t@samsung.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/10/2017 12:36 PM, Hans Verkuil wrote:
-> On 04/10/2017 12:21 PM, Mauro Carvalho Chehab wrote:
->> Em Wed, 29 Mar 2017 09:56:47 +0200
->> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>
->>> The documentation for video capture and output devices claims that the video standard
->>> ioctls are required. This is not the case, they are only required for PAL/NTSC/SECAM
->>> type inputs and outputs. Sensors do not implement this at all and e.g. HDMI inputs
->>> implement the DV Timings ioctls.
->>>
->>> Just drop the mention of 'video standard' ioctls.
->>>
->>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> This is an API change that has the potential of breaking userspace.
->>
->> In the past, several applications were failing if VIDIOC_ENUMSTD ioctl is
->> not implemented. So, I remember we had this discussion before, but I don't
->> remember the dirty details anymore.
->>
->> Yet, looking at the code, it seems that we ended by making VIDIOC_ENUMSTD
->> mandatory and implemented at the core. So, V4L2 core will make this
->> ioctl available for all drivers. The core implementattion will, however, 
->> return -ENODATA  if the driver doesn't set video_device.tvnorms, indicating
->> that standard video timings are not supported.
->>
->> So, instead of the enclosed patch, the documentation should mention the
->> standard ioctls, saying that G_STD/S_STD are optional, and ENUMSTD is
->> mandatory. 
+On 03/31/2017 11:06 AM, Smitha T Murthy wrote:
+> Add V4L2 definition for HEVC compressed format
 > 
-> I don't think so. In v4l2-dev.c ENUMSTD is only enabled if the driver supports
-> the s_std ioctl:
+> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+> ---
+>  include/uapi/linux/videodev2.h | 1 +
+>  1 file changed, 1 insertion(+)
 > 
->         if (is_vid || is_vbi || is_tch) {
->                 /* ioctls valid for video or vbi */
->                 if (ops->vidioc_s_std)
->                         set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 45184a2..38cf5f1 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -629,6 +629,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
+>  #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
+>  #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
+> +#define V4L2_PIX_FMT_HEVC     v4l2_fourcc('H', 'E', 'V', 'C') /* HEVC */
+>  
+>  /*  Vendor-specific formats   */
+>  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
 > 
-> And in case you are wondering: if you have two inputs, one SDTV and one HDTV, then
-> you have both s_std and s_dv_timings ioctls and if you switch to the HDTV input,
-> then tvnorms is set to 0, causing ENUMSTD to return -ENODATA. If you switch back,
-> then the driver will fill in tvnorms to something non-0.
 
-Note that v4l2-compliance will verify that you can't enumerate standards if the
-input/output doesn't indicate STD support. So this patch is really correct.
+You also need to update v4l2-ioctl.c, v4l_fill_fmtdesc().
 
 Regards,
 
 	Hans
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>
->> We could include a note about it may return -ENODATA, although the ENUMSTD
->> documentation already states that it returns -ENODATA:
->> 	https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/vidioc-enumstd.html
->>
->> Regards,
->> Mauro
->>
->>> ---
->>> diff --git a/Documentation/media/uapi/v4l/dev-capture.rst b/Documentation/media/uapi/v4l/dev-capture.rst
->>> index 32b32055d070..4218742ab5d9 100644
->>> --- a/Documentation/media/uapi/v4l/dev-capture.rst
->>> +++ b/Documentation/media/uapi/v4l/dev-capture.rst
->>> @@ -42,8 +42,8 @@ Video capture devices shall support :ref:`audio input <audio>`,
->>>  :ref:`tuner`, :ref:`controls <control>`,
->>>  :ref:`cropping and scaling <crop>` and
->>>  :ref:`streaming parameter <streaming-par>` ioctls as needed. The
->>> -:ref:`video input <video>` and :ref:`video standard <standard>`
->>> -ioctls must be supported by all video capture devices.
->>> +:ref:`video input <video>` ioctls must be supported by all video
->>> +capture devices.
->>>
->>>
->>>  Image Format Negotiation
->>> diff --git a/Documentation/media/uapi/v4l/dev-output.rst b/Documentation/media/uapi/v4l/dev-output.rst
->>> index 25ae8ec96fdf..342eb4931f5c 100644
->>> --- a/Documentation/media/uapi/v4l/dev-output.rst
->>> +++ b/Documentation/media/uapi/v4l/dev-output.rst
->>> @@ -40,8 +40,8 @@ Video output devices shall support :ref:`audio output <audio>`,
->>>  :ref:`modulator <tuner>`, :ref:`controls <control>`,
->>>  :ref:`cropping and scaling <crop>` and
->>>  :ref:`streaming parameter <streaming-par>` ioctls as needed. The
->>> -:ref:`video output <video>` and :ref:`video standard <standard>`
->>> -ioctls must be supported by all video output devices.
->>> +:ref:`video output <video>` ioctls must be supported by all video
->>> +output devices.
->>>
->>>
->>>  Image Format Negotiation
->>
->>
->>
->> Thanks,
->> Mauro
->>
-> 
