@@ -1,116 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37061 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1425404AbdD1JRV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 05:17:21 -0400
-Subject: Re: [PATCH v4 06/27] rcar-vin: move max width and height information
- to chip information
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:34878 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751194AbdDCOHq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 10:07:46 -0400
+Date: Mon, 3 Apr 2017 09:07:43 -0500
+From: Rob Herring <robh@kernel.org>
+To: Steve Longerbeam <steve_longerbeam@mentor.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        "kernel@pengutronix.de" <kernel@pengutronix.de>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Nick Dyer <nick@shmanahar.org>, markus.heiser@darmarit.de,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        tiffany lin <tiffany.lin@mediatek.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Simon Horman <horms+renesas@verge.net.au>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
- <20170427224203.14611-7-niklas.soderlund+renesas@ragnatech.se>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <cd08bb64-3c3a-9b2a-56c7-da4b6612ff94@ideasonboard.com>
-Date: Fri, 28 Apr 2017 10:17:17 +0100
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Andrew-CT Chen =?utf-8?B?KOmZs+aZuui/qik=?=
+        <andrew-ct.chen@mediatek.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        shuah@kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH v6 02/39] [media] dt-bindings: Add bindings for i.MX
+ media driver
+Message-ID: <20170403140743.trxep36s4z4piyl3@rob-hp-laptop>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+ <1490661656-10318-3-git-send-email-steve_longerbeam@mentor.com>
+ <CAL_JsqJm_JjuVPcOBERCqsnjTDdNoKr9xRE9MXMO4ivxGath2Q@mail.gmail.com>
+ <70bacfb5-aef1-76d1-37d2-23a524903d45@mentor.com>
 MIME-Version: 1.0
-In-Reply-To: <20170427224203.14611-7-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <70bacfb5-aef1-76d1-37d2-23a524903d45@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
-
-Another easy one.
-
-On 27/04/17 23:41, Niklas Söderlund wrote:
-> On Gen3 the max supported width and height will be different from Gen2.
-> Move the limits to the struct rvin_info to prepare for Gen3 support.
+On Tue, Mar 28, 2017 at 05:35:52PM -0700, Steve Longerbeam wrote:
 > 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 6 ++++++
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 6 ++----
->  drivers/media/platform/rcar-vin/rcar-vin.h  | 6 ++++++
->  3 files changed, 14 insertions(+), 4 deletions(-)
 > 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index ec1eb723d401fda2..998617711f1ad045 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -257,14 +257,20 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
->  
->  static const struct rvin_info rcar_info_h1 = {
->  	.chip = RCAR_H1,
-> +	.max_width = 2048,
-> +	.max_height = 2048,
->  };
->  
->  static const struct rvin_info rcar_info_m1 = {
->  	.chip = RCAR_M1,
-> +	.max_width = 2048,
-> +	.max_height = 2048,
->  };
->  
->  static const struct rvin_info rcar_info_gen2 = {
->  	.chip = RCAR_GEN2,
-> +	.max_width = 2048,
-> +	.max_height = 2048,
->  };
->  
->  static const struct of_device_id rvin_of_id_table[] = {
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index 7deca15d22b4d6e3..1b364f359ff4b5ed 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -23,8 +23,6 @@
->  #include "rcar-vin.h"
->  
->  #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
-> -#define RVIN_MAX_WIDTH		2048
-> -#define RVIN_MAX_HEIGHT		2048
->  
->  /* -----------------------------------------------------------------------------
->   * Format Conversions
-> @@ -264,8 +262,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
->  	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
->  
->  	/* Limit to VIN capabilities */
-> -	v4l_bound_align_image(&pix->width, 2, RVIN_MAX_WIDTH, walign,
-> -			      &pix->height, 4, RVIN_MAX_HEIGHT, 2, 0);
-> +	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-> +			      &pix->height, 4, vin->info->max_height, 2, 0);
->  
->  	pix->bytesperline = max_t(u32, pix->bytesperline,
->  				  rvin_format_bytesperline(pix));
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-> index c07b4a6893440a6a..32d9d130dd6e2e44 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -91,9 +91,15 @@ struct rvin_graph_entity {
->  /**
->   * struct rvin_info- Information about the particular VIN implementation
->   * @chip:		type of VIN chip
-> + *
-> + * max_width:		max input width the VIN supports
-> + * max_height:		max input height the VIN supports
->   */
->  struct rvin_info {
->  	enum chip_id chip;
-> +
-> +	unsigned int max_width;
-> +	unsigned int max_height;
->  };
->  
->  /**
+> On 03/28/2017 05:21 PM, Rob Herring wrote:
+> > On Mon, Mar 27, 2017 at 7:40 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
+> > > Add bindings documentation for the i.MX media driver.
+> > > 
+> > > <snip>
+> > > +
+> > > +mipi_csi2 node
+> > > +--------------
+> > > +
+> > > +This is the device node for the MIPI CSI-2 Receiver, required for MIPI
+> > > +CSI-2 sensors.
+> > > +
+> > > +Required properties:
+> > > +- compatible   : "fsl,imx6-mipi-csi2", "snps,dw-mipi-csi2";
+> > 
+> > As I mentioned in v5, there's a DW CSI2 binding in progress. This
+> > needs to be based on that.
 > 
+> Hi Rob, I'm not sure what you are asking me to do.
+> 
+> I assume if there's another binding doc in progress, it means
+> someone is working on another Synopsys DW CSI-2 subdevice driver.
+
+Yes. see http://patchwork.ozlabs.org/patch/736177/
+
+> Unfortunately I don't have the time to contribute and switch to
+> this other subdevice, and do test/debug.
+
+>From a DT perspective, I'm not asking that you share the subdevice 
+driver, only the binding. Simply put, there's 1 h/w block here, so there 
+should only be 1 binding. The binding is an ABI, so you can't just merge 
+it and change it later.
+
+The driver side is a decision for the V4L2 maintainers.
+
+> For now I would prefer if this patchset is merged as is, and
+> then contribute/switch to another CSI-2 subdev later. It is
+> also getting very difficult managing all these patches (39 as
+> of this version), and I'd prefer not to spam the lists with
+> such large patchsets for too much longer.
+
+Then maybe you should figure out how to split up the series. I've not 
+looked at it to provide suggestions.
+
+Rob
