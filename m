@@ -1,111 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:49121 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757108AbdDFNNe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Apr 2017 09:13:34 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 0/9] V4L2 fwnode support
-Date: Thu,  6 Apr 2017 16:12:02 +0300
-Message-Id: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-wr0-f181.google.com ([209.85.128.181]:33161 "EHLO
+        mail-wr0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753555AbdDCOmv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 10:42:51 -0400
+Received: by mail-wr0-f181.google.com with SMTP id w43so171973444wrb.0
+        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 07:42:51 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org
+Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
+        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: [PATCH v6 5/6] drm: bridge: dw-hdmi: Add Documentation on supported input formats
+Date: Mon,  3 Apr 2017 16:42:37 +0200
+Message-Id: <1491230558-10804-6-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1491230558-10804-1-git-send-email-narmstrong@baylibre.com>
+References: <1491230558-10804-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(Resending, got one list address wrong. Apologies for the noise...)
+This patch adds a new DRM documentation entry and links to the input
+format table added in the dw_hdmi header.
 
-Hello everyone, 
+Reviewed-by: Archit Taneja <architt@codeaurora.org>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ Documentation/gpu/bridge/dw-hdmi.rst | 15 +++++++++++++++
+ Documentation/gpu/index.rst          |  1 +
+ 2 files changed, 16 insertions(+)
+ create mode 100644 Documentation/gpu/bridge/dw-hdmi.rst
 
-This patchset adds support for fwnode to V4L2. Besides OF, also ACPI based
-systems can be supported this way. By using V4L2 fwnode, the individual 
-drivers do not need to be aware of the underlying firmware implementation.
-The patchset also removes specific V4L2 OF support and converts the 
-affected drivers to use V4L2 fwnode.
-
-The patchset depends on another patchset here:
-
-<URL:http://www.spinics.net/lists/linux-acpi/msg72973.html>
-
-v1 of the set can be found here:
-
-<URL:http://www.spinics.net/lists/linux-media/msg111073.html>
-
-changes since v1:
-
-- Use existing dev_fwnode() instead of device_fwnode_handle() added by the
-  ACPI graph patchset,
-
-- Fix too long line of ^'s in ReST documentation and
-
-- Drop the patch rearranging the header files. It'd better go in
-  separately, if at all.
-
-Sakari Ailus (8):
-  v4l: flash led class: Use fwnode_handle instead of device_node in init
-  v4l: fwnode: Support generic fwnode for parsing standardised
-    properties
-  v4l: async: Add fwnode match support
-  v4l: async: Provide interoperability between OF and fwnode matching
-  v4l: Switch from V4L2 OF not V4L2 fwnode API
-  v4l: media/drv-intf/soc_mediabus.h: include dependent header file
-  docs-rst: media: Switch documentation to V4L2 fwnode API
-  v4l: Remove V4L2 OF framework in favour of V4L2 fwnode framework
-
- Documentation/media/kapi/v4l2-core.rst         |   2 +-
- Documentation/media/kapi/v4l2-fwnode.rst       |   3 +
- Documentation/media/kapi/v4l2-of.rst           |   3 -
- drivers/leds/leds-aat1290.c                    |   5 +-
- drivers/leds/leds-max77693.c                   |   5 +-
- drivers/media/i2c/Kconfig                      |   9 +
- drivers/media/i2c/adv7604.c                    |   7 +-
- drivers/media/i2c/mt9v032.c                    |   7 +-
- drivers/media/i2c/ov2659.c                     |   8 +-
- drivers/media/i2c/s5c73m3/s5c73m3-core.c       |   7 +-
- drivers/media/i2c/s5k5baf.c                    |   6 +-
- drivers/media/i2c/smiapp/Kconfig               |   1 +
- drivers/media/i2c/smiapp/smiapp-core.c         |  29 +-
- drivers/media/i2c/tc358743.c                   |  11 +-
- drivers/media/i2c/tvp514x.c                    |   6 +-
- drivers/media/i2c/tvp5150.c                    |   7 +-
- drivers/media/i2c/tvp7002.c                    |   6 +-
- drivers/media/platform/Kconfig                 |   3 +
- drivers/media/platform/am437x/Kconfig          |   1 +
- drivers/media/platform/am437x/am437x-vpfe.c    |   8 +-
- drivers/media/platform/atmel/Kconfig           |   1 +
- drivers/media/platform/atmel/atmel-isc.c       |   8 +-
- drivers/media/platform/exynos4-is/Kconfig      |   2 +
- drivers/media/platform/exynos4-is/media-dev.c  |   6 +-
- drivers/media/platform/exynos4-is/mipi-csis.c  |   6 +-
- drivers/media/platform/omap3isp/isp.c          |  71 ++---
- drivers/media/platform/pxa_camera.c            |   7 +-
- drivers/media/platform/rcar-vin/Kconfig        |   1 +
- drivers/media/platform/rcar-vin/rcar-core.c    |   6 +-
- drivers/media/platform/soc_camera/Kconfig      |   1 +
- drivers/media/platform/soc_camera/atmel-isi.c  |   7 +-
- drivers/media/platform/soc_camera/soc_camera.c |   3 +-
- drivers/media/platform/ti-vpe/cal.c            |  11 +-
- drivers/media/platform/xilinx/Kconfig          |   1 +
- drivers/media/platform/xilinx/xilinx-vipp.c    |  59 +++--
- drivers/media/v4l2-core/Kconfig                |   3 +
- drivers/media/v4l2-core/Makefile               |   4 +-
- drivers/media/v4l2-core/v4l2-async.c           |  36 ++-
- drivers/media/v4l2-core/v4l2-flash-led-class.c |  11 +-
- drivers/media/v4l2-core/v4l2-fwnode.c          | 353 +++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-of.c              | 327 -----------------------
- include/media/drv-intf/soc_mediabus.h          |   2 +
- include/media/v4l2-async.h                     |   7 +-
- include/media/v4l2-flash-led-class.h           |   4 +-
- include/media/v4l2-fwnode.h                    | 104 ++++++++
- include/media/v4l2-of.h                        | 128 ---------
- include/media/v4l2-subdev.h                    |   3 +
- 47 files changed, 698 insertions(+), 608 deletions(-)
- create mode 100644 Documentation/media/kapi/v4l2-fwnode.rst
- delete mode 100644 Documentation/media/kapi/v4l2-of.rst
- create mode 100644 drivers/media/v4l2-core/v4l2-fwnode.c
- delete mode 100644 drivers/media/v4l2-core/v4l2-of.c
- create mode 100644 include/media/v4l2-fwnode.h
- delete mode 100644 include/media/v4l2-of.h
-
+diff --git a/Documentation/gpu/bridge/dw-hdmi.rst b/Documentation/gpu/bridge/dw-hdmi.rst
+new file mode 100644
+index 0000000..486faad
+--- /dev/null
++++ b/Documentation/gpu/bridge/dw-hdmi.rst
+@@ -0,0 +1,15 @@
++=======================================================
++ drm/bridge/dw-hdmi Synopsys DesignWare HDMI Controller
++=======================================================
++
++Synopsys DesignWare HDMI Controller
++===================================
++
++This section covers everything related to the Synopsys DesignWare HDMI
++Controller implemented as a DRM bridge.
++
++Supported Input Formats and Encodings
++-------------------------------------
++
++.. kernel-doc:: include/drm/bridge/dw_hdmi.h
++   :doc: Supported input formats and encodings
+diff --git a/Documentation/gpu/index.rst b/Documentation/gpu/index.rst
+index e998ee0..d81c6ff 100644
+--- a/Documentation/gpu/index.rst
++++ b/Documentation/gpu/index.rst
+@@ -15,6 +15,7 @@ Linux GPU Driver Developer's Guide
+    vc4
+    vga-switcheroo
+    vgaarbiter
++   bridge/dw-hdmi
+    todo
+ 
+ .. only::  subproject and html
 -- 
-2.7.4
+1.9.1
