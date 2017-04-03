@@ -1,44 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:2319 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1425804AbdD1MK2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 08:10:28 -0400
-Subject: [PATCH 6/8] staging: atomisp: satm include directory is gone
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Fri, 28 Apr 2017 13:10:23 +0100
-Message-ID: <149338142051.2556.6582354563681543425.stgit@acox1-desk1.ger.corp.intel.com>
-In-Reply-To: <149338135275.2556.7708531564733886566.stgit@acox1-desk1.ger.corp.intel.com>
-References: <149338135275.2556.7708531564733886566.stgit@acox1-desk1.ger.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail-qt0-f181.google.com ([209.85.216.181]:33353 "EHLO
+        mail-qt0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752237AbdDCS6e (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 14:58:34 -0400
+Received: by mail-qt0-f181.google.com with SMTP id i34so120894685qtc.0
+        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 11:58:33 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCHv3 07/22] staging: android: ion: Remove page faulting support
+Date: Mon,  3 Apr 2017 11:57:49 -0700
+Message-Id: <1491245884-15852-8-git-send-email-labbott@redhat.com>
+In-Reply-To: <1491245884-15852-1-git-send-email-labbott@redhat.com>
+References: <1491245884-15852-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Arnd Bergmann <arnd@arndb.de>
+The new method of syncing with dma_map means that the page faulting sync
+implementation is no longer applicable. Remove it.
 
-After the satm kernel was removed, we should no longer add the directory
-to the search path. This was found with a 'make W=1' warning:
-
-cc1: error: drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/: No such file or directory [-Werror=missing-include-dirs]
-
-Fixes: 184f8e0981ef ("atomisp: remove satm kernel")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Laura Abbott <labbott@redhat.com>
 ---
- .../staging/media/atomisp/pci/atomisp2/Makefile    |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/staging/android/ion/ion.c | 117 --------------------------------------
+ 1 file changed, 117 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/Makefile b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-index 7417dbd..3fa7c1c 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-@@ -290,7 +290,6 @@ INCLUDES += \
- 	-I$(atomisp)/css2400/isp/kernels/s3a/ \
- 	-I$(atomisp)/css2400/isp/kernels/s3a/s3a_1.0/ \
- 	-I$(atomisp)/css2400/isp/kernels/s3a_stat_ls/ \
--	-I$(atomisp)/css2400/isp/kernels/satm/ \
- 	-I$(atomisp)/css2400/isp/kernels/scale/ \
- 	-I$(atomisp)/css2400/isp/kernels/scale/scale_1.0/ \
- 	-I$(atomisp)/css2400/isp/kernels/sc/ \
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index 6aac935..226ea1f 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -42,37 +42,11 @@
+ #include "ion_priv.h"
+ #include "compat_ion.h"
+ 
+-bool ion_buffer_fault_user_mappings(struct ion_buffer *buffer)
+-{
+-	return (buffer->flags & ION_FLAG_CACHED) &&
+-		!(buffer->flags & ION_FLAG_CACHED_NEEDS_SYNC);
+-}
+-
+ bool ion_buffer_cached(struct ion_buffer *buffer)
+ {
+ 	return !!(buffer->flags & ION_FLAG_CACHED);
+ }
+ 
+-static inline struct page *ion_buffer_page(struct page *page)
+-{
+-	return (struct page *)((unsigned long)page & ~(1UL));
+-}
+-
+-static inline bool ion_buffer_page_is_dirty(struct page *page)
+-{
+-	return !!((unsigned long)page & 1UL);
+-}
+-
+-static inline void ion_buffer_page_dirty(struct page **page)
+-{
+-	*page = (struct page *)((unsigned long)(*page) | 1UL);
+-}
+-
+-static inline void ion_buffer_page_clean(struct page **page)
+-{
+-	*page = (struct page *)((unsigned long)(*page) & ~(1UL));
+-}
+-
+ /* this function should only be called while dev->lock is held */
+ static void ion_buffer_add(struct ion_device *dev,
+ 			   struct ion_buffer *buffer)
+@@ -140,25 +114,6 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
+ 	buffer->dev = dev;
+ 	buffer->size = len;
+ 
+-	if (ion_buffer_fault_user_mappings(buffer)) {
+-		int num_pages = PAGE_ALIGN(buffer->size) / PAGE_SIZE;
+-		struct scatterlist *sg;
+-		int i, j, k = 0;
+-
+-		buffer->pages = vmalloc(sizeof(struct page *) * num_pages);
+-		if (!buffer->pages) {
+-			ret = -ENOMEM;
+-			goto err1;
+-		}
+-
+-		for_each_sg(table->sgl, sg, table->nents, i) {
+-			struct page *page = sg_page(sg);
+-
+-			for (j = 0; j < sg->length / PAGE_SIZE; j++)
+-				buffer->pages[k++] = page++;
+-		}
+-	}
+-
+ 	buffer->dev = dev;
+ 	buffer->size = len;
+ 	INIT_LIST_HEAD(&buffer->vmas);
+@@ -924,69 +879,6 @@ void ion_pages_sync_for_device(struct device *dev, struct page *page,
+ 	dma_sync_sg_for_device(dev, &sg, 1, dir);
+ }
+ 
+-struct ion_vma_list {
+-	struct list_head list;
+-	struct vm_area_struct *vma;
+-};
+-
+-static int ion_vm_fault(struct vm_fault *vmf)
+-{
+-	struct ion_buffer *buffer = vmf->vma->vm_private_data;
+-	unsigned long pfn;
+-	int ret;
+-
+-	mutex_lock(&buffer->lock);
+-	ion_buffer_page_dirty(buffer->pages + vmf->pgoff);
+-	BUG_ON(!buffer->pages || !buffer->pages[vmf->pgoff]);
+-
+-	pfn = page_to_pfn(ion_buffer_page(buffer->pages[vmf->pgoff]));
+-	ret = vm_insert_pfn(vmf->vma, vmf->address, pfn);
+-	mutex_unlock(&buffer->lock);
+-	if (ret)
+-		return VM_FAULT_ERROR;
+-
+-	return VM_FAULT_NOPAGE;
+-}
+-
+-static void ion_vm_open(struct vm_area_struct *vma)
+-{
+-	struct ion_buffer *buffer = vma->vm_private_data;
+-	struct ion_vma_list *vma_list;
+-
+-	vma_list = kmalloc(sizeof(*vma_list), GFP_KERNEL);
+-	if (!vma_list)
+-		return;
+-	vma_list->vma = vma;
+-	mutex_lock(&buffer->lock);
+-	list_add(&vma_list->list, &buffer->vmas);
+-	mutex_unlock(&buffer->lock);
+-	pr_debug("%s: adding %p\n", __func__, vma);
+-}
+-
+-static void ion_vm_close(struct vm_area_struct *vma)
+-{
+-	struct ion_buffer *buffer = vma->vm_private_data;
+-	struct ion_vma_list *vma_list, *tmp;
+-
+-	pr_debug("%s\n", __func__);
+-	mutex_lock(&buffer->lock);
+-	list_for_each_entry_safe(vma_list, tmp, &buffer->vmas, list) {
+-		if (vma_list->vma != vma)
+-			continue;
+-		list_del(&vma_list->list);
+-		kfree(vma_list);
+-		pr_debug("%s: deleting %p\n", __func__, vma);
+-		break;
+-	}
+-	mutex_unlock(&buffer->lock);
+-}
+-
+-static const struct vm_operations_struct ion_vma_ops = {
+-	.open = ion_vm_open,
+-	.close = ion_vm_close,
+-	.fault = ion_vm_fault,
+-};
+-
+ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
+ {
+ 	struct ion_buffer *buffer = dmabuf->priv;
+@@ -998,15 +890,6 @@ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (ion_buffer_fault_user_mappings(buffer)) {
+-		vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND |
+-							VM_DONTDUMP;
+-		vma->vm_private_data = buffer;
+-		vma->vm_ops = &ion_vma_ops;
+-		ion_vm_open(vma);
+-		return 0;
+-	}
+-
+ 	if (!(buffer->flags & ION_FLAG_CACHED))
+ 		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
+ 
+-- 
+2.7.4
