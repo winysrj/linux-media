@@ -1,38 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f173.google.com ([209.85.128.173]:34025 "EHLO
-        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751774AbdDZRAB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Apr 2017 13:00:01 -0400
-Received: by mail-wr0-f173.google.com with SMTP id l9so3652935wre.1
-        for <linux-media@vger.kernel.org>; Wed, 26 Apr 2017 10:00:00 -0700 (PDT)
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: =?UTF-8?Q?Frank_Sch=c3=a4fer?= <fschaefer.oss@googlemail.com>
-Subject: em28xx debug module parameters
-Message-ID: <397bf767-e1be-ea3f-ecff-b761bc25fe34@googlemail.com>
-Date: Wed, 26 Apr 2017 19:00:15 +0200
+Received: from mail-he1eur01on0104.outbound.protection.outlook.com ([104.47.0.104]:28716
+        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752217AbdDCIh3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Apr 2017 04:37:29 -0400
+From: Peter Rosin <peda@axentia.se>
+To: <linux-kernel@vger.kernel.org>
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+        Peter Korsgaard <peter.korsgaard@barco.com>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        <linux-i2c@vger.kernel.org>, <linux-iio@vger.kernel.org>,
+        <linux-media@vger.kernel.org>
+Subject: [PATCH 3/9] i2c: mux: gpio: stop double error reporting
+Date: Mon, 3 Apr 2017 10:38:32 +0200
+Message-ID: <1491208718-32068-4-git-send-email-peda@axentia.se>
+In-Reply-To: <1491208718-32068-1-git-send-email-peda@axentia.se>
+References: <1491208718-32068-1-git-send-email-peda@axentia.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+i2c_mux_add_adapter already logs a message on failure.
 
-Hi Mauro,
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/i2c/muxes/i2c-mux-gpio.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-is there a chance that we can clean up the em28xx debug module parameter
-mess ?
-There are currently 8 (!) of them.
-Do we have to maintain them all forever as "stable userspace interface" ?
-
-For example:
-- "reg_debug" is actually used for usb control message debugging
-- "core_debug" is abused for usb isoc debugging and not used for
-anything else
-- there is a module parameter "isoc_debug", too, but it is used by
-em28xx-v4l only
-...
-
-Regards,
-Frank
+diff --git a/drivers/i2c/muxes/i2c-mux-gpio.c b/drivers/i2c/muxes/i2c-mux-gpio.c
+index 655684d621a4..1a9973ede443 100644
+--- a/drivers/i2c/muxes/i2c-mux-gpio.c
++++ b/drivers/i2c/muxes/i2c-mux-gpio.c
+@@ -245,10 +245,8 @@ static int i2c_mux_gpio_probe(struct platform_device *pdev)
+ 		unsigned int class = mux->data.classes ? mux->data.classes[i] : 0;
+ 
+ 		ret = i2c_mux_add_adapter(muxc, nr, mux->data.values[i], class);
+-		if (ret) {
+-			dev_err(&pdev->dev, "Failed to add adapter %d\n", i);
++		if (ret)
+ 			goto add_adapter_failed;
+-		}
+ 	}
+ 
+ 	dev_info(&pdev->dev, "%d port mux on %s adapter\n",
+-- 
+2.1.4
