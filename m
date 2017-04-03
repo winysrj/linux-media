@@ -1,73 +1,275 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:60499 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751482AbdDFGJ7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Apr 2017 02:09:59 -0400
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v4 00/12] Add MFC v10.10 support
-Date: Thu, 06 Apr 2017 11:41:33 +0530
-Message-id: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
-References: <CGME20170406060957epcas1p36f883512ccfaf24359d1b31a6d199d87@epcas1p3.samsung.com>
+Received: from mail-qt0-f180.google.com ([209.85.216.180]:33325 "EHLO
+        mail-qt0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752412AbdDCS6g (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 14:58:36 -0400
+Received: by mail-qt0-f180.google.com with SMTP id i34so120893415qtc.0
+        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 11:58:35 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCHv3 06/22] staging: android: ion: Call dma_map_sg for syncing and mapping
+Date: Mon,  3 Apr 2017 11:57:48 -0700
+Message-Id: <1491245884-15852-7-git-send-email-labbott@redhat.com>
+In-Reply-To: <1491245884-15852-1-git-send-email-labbott@redhat.com>
+References: <1491245884-15852-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds MFC v10.10 support. MFC v10.10 is used in some
-of Exynos7 variants.
+Technically, calling dma_buf_map_attachment should return a buffer
+properly dma_mapped. Add calls to dma_map_sg to begin_cpu_access to
+ensure this happens. As a side effect, this lets Ion buffers take
+advantage of the dma_buf sync ioctls.
 
-This adds support for following:
+Signed-off-by: Laura Abbott <labbott@redhat.com>
+---
+ drivers/staging/android/ion/ion.c      | 151 ++++++++++++++++++++++-----------
+ drivers/staging/android/ion/ion_priv.h |   1 +
+ 2 files changed, 103 insertions(+), 49 deletions(-)
 
-* Add support for HEVC encoder and decoder
-* Add support for VP9 decoder
-* Update Documentation for control id definitions
-* Update computation of min scratch buffer size requirement for V8 onwards
-
-Changes since v3:
- - Addressed review comments by Andrzej Hajda.
- - Addressed review comments by Hans Verkuil.
- - Addressed review comments by Julia Lawall. 
- - Rebased on latest git://linuxtv.org/snawrocki/samsung.git for-v4.12/media/next.
- - Applied r-o-b from Andrzej on respective patches.
-
-Smitha T Murthy (12):
-  [media] s5p-mfc: Rename IS_MFCV8 macro
-  [media] s5p-mfc: Adding initial support for MFC v10.10
-  [media] s5p-mfc: Use min scratch buffer size as provided by F/W
-  [media] s5p-mfc: Support MFCv10.10 buffer requirements
-  [media] videodev2.h: Add v4l2 definition for HEVC
-  [media] v4l2-ioctl: add HEVC format description
-  Documentation: v4l: Documentation for HEVC v4l2 definition
-  [media] s5p-mfc: Add support for HEVC decoder
-  [media] s5p-mfc: Add VP9 decoder support
-  [media] v4l2: Add v4l2 control IDs for HEVC encoder
-  [media] s5p-mfc: Add support for HEVC encoder
-  Documention: v4l: Documentation for HEVC CIDs
-
- .../devicetree/bindings/media/s5p-mfc.txt          |   1 +
- Documentation/media/uapi/v4l/extended-controls.rst | 391 +++++++++++++
- Documentation/media/uapi/v4l/pixfmt-013.rst        |   5 +
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h      |  88 +++
- drivers/media/platform/s5p-mfc/regs-mfc-v8.h       |   2 +
- drivers/media/platform/s5p-mfc/s5p_mfc.c           |  28 +
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c    |   9 +
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  67 ++-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |   6 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  48 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 602 ++++++++++++++++++++-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.h       |  14 +
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    | 403 ++++++++++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |  15 +
- drivers/media/v4l2-core/v4l2-ctrls.c               | 104 ++++
- drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
- include/uapi/linux/v4l2-controls.h                 | 132 +++++
- include/uapi/linux/videodev2.h                     |   1 +
- 18 files changed, 1840 insertions(+), 77 deletions(-)
- create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index 7dcb8a9..6aac935 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -162,6 +162,7 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
+ 	buffer->dev = dev;
+ 	buffer->size = len;
+ 	INIT_LIST_HEAD(&buffer->vmas);
++	INIT_LIST_HEAD(&buffer->attachments);
+ 	mutex_init(&buffer->lock);
+ 	/*
+ 	 * this will set up dma addresses for the sglist -- it is not
+@@ -796,10 +797,6 @@ void ion_client_destroy(struct ion_client *client)
+ }
+ EXPORT_SYMBOL(ion_client_destroy);
+ 
+-static void ion_buffer_sync_for_device(struct ion_buffer *buffer,
+-				       struct device *dev,
+-				       enum dma_data_direction direction);
+-
+ static struct sg_table *dup_sg_table(struct sg_table *table)
+ {
+ 	struct sg_table *new_table;
+@@ -826,22 +823,89 @@ static struct sg_table *dup_sg_table(struct sg_table *table)
+ 	return new_table;
+ }
+ 
++static void free_duped_table(struct sg_table *table)
++{
++	sg_free_table(table);
++	kfree(table);
++}
++
++struct ion_dma_buf_attachment {
++	struct device *dev;
++	struct sg_table *table;
++	struct list_head list;
++};
++
++static int ion_dma_buf_attach(struct dma_buf *dmabuf, struct device *dev,
++				struct dma_buf_attachment *attachment)
++{
++	struct ion_dma_buf_attachment *a;
++	struct sg_table *table;
++	struct ion_buffer *buffer = dmabuf->priv;
++
++	a = kzalloc(sizeof(*a), GFP_KERNEL);
++	if (!a)
++		return -ENOMEM;
++
++	table = dup_sg_table(buffer->sg_table);
++	if (IS_ERR(table)) {
++		kfree(a);
++		return -ENOMEM;
++	}
++
++	a->table = table;
++	a->dev = dev;
++	INIT_LIST_HEAD(&a->list);
++
++	attachment->priv = a;
++
++	mutex_lock(&buffer->lock);
++	list_add(&a->list, &buffer->attachments);
++	mutex_unlock(&buffer->lock);
++
++	return 0;
++}
++
++static void ion_dma_buf_detatch(struct dma_buf *dmabuf,
++				struct dma_buf_attachment *attachment)
++{
++	struct ion_dma_buf_attachment *a = attachment->priv;
++	struct ion_buffer *buffer = dmabuf->priv;
++
++	free_duped_table(a->table);
++	mutex_lock(&buffer->lock);
++	list_del(&a->list);
++	mutex_unlock(&buffer->lock);
++
++	kfree(a);
++}
++
++
+ static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment *attachment,
+ 					enum dma_data_direction direction)
+ {
+-	struct dma_buf *dmabuf = attachment->dmabuf;
+-	struct ion_buffer *buffer = dmabuf->priv;
++	struct ion_dma_buf_attachment *a = attachment->priv;
++	struct sg_table *table;
++	int ret;
++
++	table = a->table;
+ 
+-	ion_buffer_sync_for_device(buffer, attachment->dev, direction);
+-	return dup_sg_table(buffer->sg_table);
++	if (!dma_map_sg(attachment->dev, table->sgl, table->nents,
++			direction)){
++		ret = -ENOMEM;
++		goto err;
++	}
++	return table;
++
++err:
++	free_duped_table(table);
++	return ERR_PTR(ret);
+ }
+ 
+ static void ion_unmap_dma_buf(struct dma_buf_attachment *attachment,
+ 			      struct sg_table *table,
+ 			      enum dma_data_direction direction)
+ {
+-	sg_free_table(table);
+-	kfree(table);
++	dma_unmap_sg(attachment->dev, table->sgl, table->nents, direction);
+ }
+ 
+ void ion_pages_sync_for_device(struct device *dev, struct page *page,
+@@ -865,38 +929,6 @@ struct ion_vma_list {
+ 	struct vm_area_struct *vma;
+ };
+ 
+-static void ion_buffer_sync_for_device(struct ion_buffer *buffer,
+-				       struct device *dev,
+-				       enum dma_data_direction dir)
+-{
+-	struct ion_vma_list *vma_list;
+-	int pages = PAGE_ALIGN(buffer->size) / PAGE_SIZE;
+-	int i;
+-
+-	pr_debug("%s: syncing for device %s\n", __func__,
+-		 dev ? dev_name(dev) : "null");
+-
+-	if (!ion_buffer_fault_user_mappings(buffer))
+-		return;
+-
+-	mutex_lock(&buffer->lock);
+-	for (i = 0; i < pages; i++) {
+-		struct page *page = buffer->pages[i];
+-
+-		if (ion_buffer_page_is_dirty(page))
+-			ion_pages_sync_for_device(dev, ion_buffer_page(page),
+-						  PAGE_SIZE, dir);
+-
+-		ion_buffer_page_clean(buffer->pages + i);
+-	}
+-	list_for_each_entry(vma_list, &buffer->vmas, list) {
+-		struct vm_area_struct *vma = vma_list->vma;
+-
+-		zap_page_range(vma, vma->vm_start, vma->vm_end - vma->vm_start);
+-	}
+-	mutex_unlock(&buffer->lock);
+-}
+-
+ static int ion_vm_fault(struct vm_fault *vmf)
+ {
+ 	struct ion_buffer *buffer = vmf->vma->vm_private_data;
+@@ -1014,26 +1046,45 @@ static int ion_dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
+ {
+ 	struct ion_buffer *buffer = dmabuf->priv;
+ 	void *vaddr;
++	struct ion_dma_buf_attachment *a;
+ 
+-	if (!buffer->heap->ops->map_kernel) {
+-		pr_err("%s: map kernel is not implemented by this heap.\n",
+-		       __func__);
+-		return -ENODEV;
++	/*
++	 * TODO: Move this elsewhere because we don't always need a vaddr
++	 */
++	if (buffer->heap->ops->map_kernel) {
++		mutex_lock(&buffer->lock);
++		vaddr = ion_buffer_kmap_get(buffer);
++		mutex_unlock(&buffer->lock);
+ 	}
+ 
++
+ 	mutex_lock(&buffer->lock);
+-	vaddr = ion_buffer_kmap_get(buffer);
++	list_for_each_entry(a, &buffer->attachments, list) {
++		dma_sync_sg_for_cpu(a->dev, a->table->sgl, a->table->nents,
++					DMA_BIDIRECTIONAL);
++	}
+ 	mutex_unlock(&buffer->lock);
+-	return PTR_ERR_OR_ZERO(vaddr);
++
++	return 0;
+ }
+ 
+ static int ion_dma_buf_end_cpu_access(struct dma_buf *dmabuf,
+ 				      enum dma_data_direction direction)
+ {
+ 	struct ion_buffer *buffer = dmabuf->priv;
++	struct ion_dma_buf_attachment *a;
++
++	if (buffer->heap->ops->map_kernel) {
++		mutex_lock(&buffer->lock);
++		ion_buffer_kmap_put(buffer);
++		mutex_unlock(&buffer->lock);
++	}
+ 
+ 	mutex_lock(&buffer->lock);
+-	ion_buffer_kmap_put(buffer);
++	list_for_each_entry(a, &buffer->attachments, list) {
++		dma_sync_sg_for_device(a->dev, a->table->sgl, a->table->nents,
++					DMA_BIDIRECTIONAL);
++	}
+ 	mutex_unlock(&buffer->lock);
+ 
+ 	return 0;
+@@ -1044,6 +1095,8 @@ static const struct dma_buf_ops dma_buf_ops = {
+ 	.unmap_dma_buf = ion_unmap_dma_buf,
+ 	.mmap = ion_mmap,
+ 	.release = ion_dma_buf_release,
++	.attach = ion_dma_buf_attach,
++	.detach = ion_dma_buf_detatch,
+ 	.begin_cpu_access = ion_dma_buf_begin_cpu_access,
+ 	.end_cpu_access = ion_dma_buf_end_cpu_access,
+ 	.kmap_atomic = ion_dma_buf_kmap,
+diff --git a/drivers/staging/android/ion/ion_priv.h b/drivers/staging/android/ion/ion_priv.h
+index b09bc7c..297d99d 100644
+--- a/drivers/staging/android/ion/ion_priv.h
++++ b/drivers/staging/android/ion/ion_priv.h
+@@ -72,6 +72,7 @@ struct ion_buffer {
+ 	struct sg_table *sg_table;
+ 	struct page **pages;
+ 	struct list_head vmas;
++	struct list_head attachments;
+ 	/* used to track orphaned buffers */
+ 	int handle_count;
+ 	char task_comm[TASK_COMM_LEN];
 -- 
 2.7.4
