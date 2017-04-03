@@ -1,42 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:39012 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965710AbdD1MJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 08:09:27 -0400
-Subject: [PATCH 1/8] atomisp: handle allocation calls before init in the hmm
- layer
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Fri, 28 Apr 2017 13:09:23 +0100
-Message-ID: <149338135275.2556.7708531564733886566.stgit@acox1-desk1.ger.corp.intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35183 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753585AbdDCQJd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 12:09:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH] uvcvideo: Fix empty packet statistic
+Date: Mon, 03 Apr 2017 19:10:13 +0300
+Message-ID: <2233324.kYs3IlRQ2o@avalon>
+In-Reply-To: <1491218732-12068-2-git-send-email-kbingham@kernel.org>
+References: <1491218732-12068-2-git-send-email-kbingham@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently the code handles this in the abstraction above. We want to remove
-that abstraction so begin by pushing down the sanity check. Unfortunately
-at this point we can't simply fix the init order.
+Hi Kieran,
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
- .../staging/media/atomisp/pci/atomisp2/hmm/hmm.c   |    5 +++++
- 1 file changed, 5 insertions(+)
+Thank you for the patch.
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
-index 151abf0..14537ab 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
-@@ -226,6 +226,11 @@ ia_css_ptr hmm_alloc(size_t bytes, enum hmm_bo_type type,
- 	struct hmm_buffer_object *bo;
- 	int ret;
- 
-+	/* Check if we are initialized. In the ideal world we wouldn't need
-+	   this but we can tackle it once the driver is a lot cleaner */
-+
-+	if (!dummy_ptr)
-+		hmm_init();
- 	/*Get page number from size*/
- 	pgnr = size_to_pgnr_ceil(bytes);
- 
+On Monday 03 Apr 2017 12:25:32 Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> 
+> The frame counters are inadvertently counting packets with content as
+> empty.
+> 
+> Fix it by correcting the logic expression
+> 
+> Fixes: 7bc5edb00bbd [media] uvcvideo: Extract video stream statistics
+> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree.
+
+> ---
+>  drivers/media/usb/uvc/uvc_video.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index 075a0fe77485..7777ed24908b 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -818,7 +818,7 @@ static void uvc_video_stats_decode(struct uvc_streaming
+> *stream,
+> 
+>  	/* Update the packets counters. */
+>  	stream->stats.frame.nb_packets++;
+> -	if (len > header_size)
+> +	if (len <= header_size)
+>  		stream->stats.frame.nb_empty++;
+> 
+>  	if (data[1] & UVC_STREAM_ERR)
+
+-- 
+Regards,
+
+Laurent Pinchart
