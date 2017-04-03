@@ -1,55 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.aosc.io ([199.195.250.187]:49374 "EHLO hermes.aosc.io"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752264AbdDPHAI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Apr 2017 03:00:08 -0400
-From: Icenowy Zheng <icenowy@aosc.io>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Lubomir Rintel <lkundrak@v3.sk>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Icenowy Zheng <icenowy@aosc.io>
-Subject: [PATCH RESEND2] [media] usbtv: add a new usbid
-Date: Sun, 16 Apr 2017 14:51:16 +0800
-Message-Id: <20170416065116.61662-1-icenowy@aosc.io>
+Received: from mailout4.samsung.com ([203.254.224.34]:50100 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751590AbdDCMKe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 08:10:34 -0400
+Received: from epcas5p2.samsung.com (unknown [182.195.41.40])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0ONU02RGG1TKFOC0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 03 Apr 2017 21:10:32 +0900 (KST)
+Subject: Re: [Patch v3 07/11] Documentation: v4l: Documentation for HEVC v4l2
+ definition
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
+        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
+        m.szyprowski@samsung.com, s.nawrocki@samsung.com
+In-reply-to: <3bad0b4f-0f0e-c67a-f9f7-135f5b8411c4@xs4all.nl>
+Date: Mon, 03 Apr 2017 17:42:37 +0530
+Message-id: <1491221557.8493.98.camel@smitha-fedora>
+MIME-version: 1.0
+Content-transfer-encoding: 7bit
+Content-type: text/plain; charset=utf-8
+References: <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170331090444epcas5p43f44be426728ea22d0b13f64f5cf05bd@epcas5p4.samsung.com>
+ <1490951200-32070-8-git-send-email-smitha.t@samsung.com>
+ <3bad0b4f-0f0e-c67a-f9f7-135f5b8411c4@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A new usbid of UTV007 is found in a newly bought device.
+On Mon, 2017-04-03 at 10:10 +0200, Hans Verkuil wrote:
+> On 03/31/2017 11:06 AM, Smitha T Murthy wrote:
+> > Add V4L2 definition for HEVC compressed format
+> > 
+> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+> > Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+> > ---
+> >  Documentation/media/uapi/v4l/pixfmt-013.rst | 5 +++++
+> >  1 file changed, 5 insertions(+)
+> > 
+> > diff --git a/Documentation/media/uapi/v4l/pixfmt-013.rst b/Documentation/media/uapi/v4l/pixfmt-013.rst
+> > index 728d7ed..ff4cac2 100644
+> > --- a/Documentation/media/uapi/v4l/pixfmt-013.rst
+> > +++ b/Documentation/media/uapi/v4l/pixfmt-013.rst
+> > @@ -90,3 +90,8 @@ Compressed Formats
+> >        - ``V4L2_PIX_FMT_VP9``
+> >        - 'VP90'
+> >        - VP9 video elementary stream.
+> > +    * .. _V4L2-PIX-FMT-HEVC:
+> > +
+> > +      - ``V4L2_PIX_FMT_HEVC``
+> > +      - 'HEVC'
+> > +      - HEVC video elementary stream.
+> > 
+> 
+> You should mention here that HEVC == H.265.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+Do you mean change to "HEVC/H.265 video elementary stream" ?
 
-The usbid is 1f71:3301.
-
-The ID on the chip is:
-UTV007
-A89029.1
-1520L18K1
-
-Both video and audio is tested with the modified usbtv driver.
-
-Signed-off-by: Icenowy Zheng <icenowy@aosc.io>
-Acked-by: Lubomir Rintel <lkundrak@v3.sk>
----
-
-Added Lubomir's ACK in the second time of resend.
-
-The old patch may be lost because the old aosc.xyz mail is using Yandex's
-service -- which is rejected by many mail providers. As part of AOSC mailing
-system refactor, we got a new mailing system, so that the patch is now
-resent.
-
- drivers/media/usb/usbtv/usbtv-core.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/usb/usbtv/usbtv-core.c b/drivers/media/usb/usbtv/usbtv-core.c
-index ceb953be0770..cae637845876 100644
---- a/drivers/media/usb/usbtv/usbtv-core.c
-+++ b/drivers/media/usb/usbtv/usbtv-core.c
-@@ -144,6 +144,7 @@ static void usbtv_disconnect(struct usb_interface *intf)
- 
- static struct usb_device_id usbtv_id_table[] = {
- 	{ USB_DEVICE(0x1b71, 0x3002) },
-+	{ USB_DEVICE(0x1f71, 0x3301) },
- 	{}
- };
- MODULE_DEVICE_TABLE(usb, usbtv_id_table);
--- 
-2.12.2
+Thank you for the review.
+Regards,
+Smitha
+> 
