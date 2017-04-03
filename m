@@ -1,91 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:21568 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2993681AbdD1Mxx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 08:53:53 -0400
-Date: Fri, 28 Apr 2017 15:53:31 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        Sean Young <sean@mess.org>, Johan Hovold <johan@kernel.org>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [PATCH 2/2] [media] dib0700: fix error handling in
- dib0700_i2c_xfer_legacy()
-Message-ID: <20170428125331.hjosazb5hs5nzynl@mwanda>
+Received: from mga06.intel.com ([134.134.136.31]:18989 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751008AbdDCIxu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Apr 2017 04:53:50 -0400
+From: "Raikhel, Evgeni" <evgeni.raikhel@intel.com>
+To: "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>
+CC: "Liakhovetski, Guennadi" <guennadi.liakhovetski@intel.com>,
+        "Tamir, Eliezer" <eliezer.tamir@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH v4 0/2]  Intel Depth Formats for SR300 Camera
+Date: Mon, 3 Apr 2017 08:53:44 +0000
+Message-ID: <AA09C8071EEEFC44A7852ADCECA86673020CE09B@hasmsx108.ger.corp.intel.com>
+References: <AA09C8071EEEFC44A7852ADCECA86673A1E6E7@hasmsx108.ger.corp.intel.com>
+ <1488498200-8014-1-git-send-email-evgeni.raikhel@intel.com>
+In-Reply-To: <1488498200-8014-1-git-send-email-evgeni.raikhel@intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mostly this adds some unlocks to error paths.  But, if you see where
-there were "break;" statements before, I changed those paths to return
-error codes instead of returning success.
+Hi Laurent,
+Can you please update on the status of the submission?
+The last version has been reviewed a month ago.
+Is there any estimate on when it is going to be staged/triaged/merged into media tree?
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Please advise,
+Evgeni
 
-diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
-index 4dea79718827..bea1b4764a66 100644
---- a/drivers/media/usb/dvb-usb/dib0700_core.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_core.c
-@@ -287,7 +287,7 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
- {
- 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
- 	struct dib0700_state *st = d->priv;
--	int i,len;
-+	int i, len, result;
- 
- 	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
- 		return -EINTR;
-@@ -304,7 +304,8 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
- 		if (msg[i].len > sizeof(st->buf) - 2) {
- 			deb_info("i2c xfer to big: %d\n",
- 				msg[i].len);
--			return -EIO;
-+			result = -EIO;
-+			goto unlock;
- 		}
- 		memcpy(&st->buf[2], msg[i].buf, msg[i].len);
- 
-@@ -319,13 +320,15 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
- 			if (len <= 0) {
- 				deb_info("I2C read failed on address 0x%02x\n",
- 						msg[i].addr);
--				break;
-+				result = -EIO;
-+				goto unlock;
- 			}
- 
- 			if (msg[i + 1].len > sizeof(st->buf)) {
- 				deb_info("i2c xfer buffer to small for %d\n",
- 					msg[i].len);
--				return -EIO;
-+				result = -EIO;
-+				goto unlock;
- 			}
- 			memcpy(msg[i + 1].buf, st->buf, msg[i + 1].len);
- 
-@@ -334,14 +337,17 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
- 			i++;
- 		} else {
- 			st->buf[0] = REQUEST_I2C_WRITE;
--			if (dib0700_ctrl_wr(d, st->buf, msg[i].len + 2) < 0)
--				break;
-+			result = dib0700_ctrl_wr(d, st->buf, msg[i].len + 2);
-+			if (result < 0)
-+				goto unlock;
- 		}
- 	}
-+	result = i;
-+unlock:
- 	mutex_unlock(&d->usb_mutex);
- 	mutex_unlock(&d->i2c_mutex);
- 
--	return i;
-+	return result;
- }
- 
- static int dib0700_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msg,
+
+-----Original Message-----
+From: Raikhel, Evgeni 
+Sent: Friday, March 03, 2017 01:43
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com; Liakhovetski, Guennadi <guennadi.liakhovetski@intel.com>; Tamir, Eliezer <eliezer.tamir@intel.com>; Raikhel, Evgeni <evgeni.raikhel@intel.com>
+Subject: [PATCH v4 0/2] Intel Depth Formats for SR300 Camera
+
+From: Evgeni Raikhel <evgeni.raikhel@intel.com>
+
+Change Log:
+ - Fixing FourCC description in v4l2_ioctl.c to be less than 32 bytes
+ - Reorder INZI format entry in Documentation chapter
+
+Daniel Patrick Johnson (1):
+  uvcvideo: Add support for Intel SR300 depth camera
+
+eraikhel (1):
+  Documentation: Intel SR300 Depth camera INZI format
+
+ Documentation/media/uapi/v4l/depth-formats.rst |  1 +
+ Documentation/media/uapi/v4l/pixfmt-inzi.rst   | 81 ++++++++++++++++++++++++++
+ drivers/media/usb/uvc/uvc_driver.c             | 15 +++++
+ drivers/media/usb/uvc/uvcvideo.h               |  9 +++
+ drivers/media/v4l2-core/v4l2-ioctl.c           |  1 +
+ include/uapi/linux/videodev2.h                 |  1 +
+ 6 files changed, 108 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-inzi.rst
+
+-- 
+2.7.4
+
+---------------------------------------------------------------------
+Intel Israel (74) Limited
+
+This e-mail and any attachments may contain confidential material for
+the sole use of the intended recipient(s). Any review or distribution
+by others is strictly prohibited. If you are not the intended
+recipient, please contact the sender and delete all copies.
