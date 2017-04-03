@@ -1,208 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:57481 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032305AbdD0Wmz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:42:55 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v4 14/27] rcar-vin: move media bus configuration to struct rvin_info
-Date: Fri, 28 Apr 2017 00:41:50 +0200
-Message-Id: <20170427224203.14611-15-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-qk0-f176.google.com ([209.85.220.176]:33586 "EHLO
+        mail-qk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752426AbdDCS6g (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 14:58:36 -0400
+Received: by mail-qk0-f176.google.com with SMTP id h67so24171455qke.0
+        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 11:58:20 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCHv3 03/22] staging: android: ion: Remove dmap_cnt
+Date: Mon,  3 Apr 2017 11:57:45 -0700
+Message-Id: <1491245884-15852-4-git-send-email-labbott@redhat.com>
+In-Reply-To: <1491245884-15852-1-git-send-email-labbott@redhat.com>
+References: <1491245884-15852-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bus configuration will once the driver is extended to to support Gen3
-contain information not specific to only the directly connected parallel
-subdevice. Move it to struct rvin_info to show it's not always coupled
-to the parallel subdevice.
+The reference counting of dma_map calls was removed. Remove the
+associated counter field as well.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Laura Abbott <labbott@redhat.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 14 +++++++-------
- drivers/media/platform/rcar-vin/rcar-dma.c  | 11 ++++++-----
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  2 +-
- drivers/media/platform/rcar-vin/rcar-vin.h  |  9 ++++-----
- 4 files changed, 18 insertions(+), 18 deletions(-)
+ drivers/staging/android/ion/ion_priv.h | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 998617711f1ad045..ed99b1abb99e9ef9 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -45,15 +45,15 @@ static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
- 	return -EINVAL;
- }
- 
--static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
-+static bool rvin_mbus_supported(struct rvin_dev *vin)
- {
--	struct v4l2_subdev *sd = entity->subdev;
-+	struct v4l2_subdev *sd = vin->digital.subdev;
- 	struct v4l2_subdev_mbus_code_enum code = {
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
- 	};
- 
- 	code.index = 0;
--	code.pad = entity->source_pad;
-+	code.pad = vin->digital.source_pad;
- 	while (!v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code)) {
- 		code.index++;
- 		switch (code.code) {
-@@ -61,7 +61,7 @@ static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
- 		case MEDIA_BUS_FMT_UYVY8_2X8:
- 		case MEDIA_BUS_FMT_UYVY10_2X10:
- 		case MEDIA_BUS_FMT_RGB888_1X24:
--			entity->code = code.code;
-+			vin->code = code.code;
- 			return true;
- 		default:
- 			break;
-@@ -77,14 +77,14 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- 	int ret;
- 
- 	/* Verify subdevices mbus format */
--	if (!rvin_mbus_supported(&vin->digital)) {
-+	if (!rvin_mbus_supported(vin)) {
- 		vin_err(vin, "Unsupported media bus format for %s\n",
- 			vin->digital.subdev->name);
- 		return -EINVAL;
- 	}
- 
- 	vin_dbg(vin, "Found media bus format for %s: %d\n",
--		vin->digital.subdev->name, vin->digital.code);
-+		vin->digital.subdev->name, vin->code);
- 
- 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
- 	if (ret < 0) {
-@@ -201,7 +201,7 @@ static int rvin_digital_graph_parse(struct rvin_dev *vin)
- 	}
- 	of_node_put(np);
- 
--	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->digital.mbus_cfg);
-+	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->mbus_cfg);
- 	of_node_put(ep);
- 	if (ret)
- 		return ret;
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index ef029e4c7882322e..2931ba7998709307 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -634,7 +634,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 	/*
- 	 * Input interface
- 	 */
--	switch (vin->digital.code) {
-+	switch (vin->code) {
- 	case MEDIA_BUS_FMT_YUYV8_1X16:
- 		/* BT.601/BT.1358 16bit YCbCr422 */
- 		vnmc |= VNMC_INF_YUV16;
-@@ -642,7 +642,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	case MEDIA_BUS_FMT_UYVY8_2X8:
- 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
--		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
-+		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
- 		input_is_yuv = true;
- 		break;
-@@ -651,7 +651,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	case MEDIA_BUS_FMT_UYVY10_2X10:
- 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
--		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
-+		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
- 		input_is_yuv = true;
- 		break;
-@@ -663,11 +663,11 @@ static int rvin_setup(struct rvin_dev *vin)
- 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
- 
- 	/* Hsync Signal Polarity Select */
--	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-+	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
- 		dmr2 |= VNDMR2_HPS;
- 
- 	/* Vsync Signal Polarity Select */
--	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
-+	if (!(vin->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
- 		dmr2 |= VNDMR2_VPS;
- 
- 	/*
-@@ -887,6 +887,7 @@ static void rvin_capture_stop(struct rvin_dev *vin)
- 	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
- }
- 
-+
- /* -----------------------------------------------------------------------------
-  * DMA Functions
-  */
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 28b62a514bbb93a9..1ee9dcb621350f77 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -180,7 +180,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 
- 	sd = vin_to_source(vin);
- 
--	v4l2_fill_mbus_format(&format.format, pix, vin->digital.code);
-+	v4l2_fill_mbus_format(&format.format, pix, vin->code);
- 
- 	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
- 	if (pad_cfg == NULL)
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 4805127b7af879a3..43206e85bbaadb5b 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -62,8 +62,6 @@ struct rvin_video_format {
-  * struct rvin_graph_entity - Video endpoint from async framework
-  * @asd:	sub-device descriptor for async framework
-  * @subdev:	subdevice matched using async framework
-- * @code:	Media bus format from source
-- * @mbus_cfg:	Media bus format from DT
-  * @source_pad:	source pad of remote subdevice
-  * @sink_pad:	sink pad of remote subdevice
-  */
-@@ -71,9 +69,6 @@ struct rvin_graph_entity {
- 	struct v4l2_async_subdev asd;
- 	struct v4l2_subdev *subdev;
- 
--	u32 code;
--	struct v4l2_mbus_config mbus_cfg;
--
- 	unsigned int source_pad;
- 	unsigned int sink_pad;
- };
-@@ -115,6 +110,8 @@ struct rvin_info {
-  * @sequence:		V4L2 buffers sequence number
-  * @state:		keeps track of operation state
-  *
-+ * @mbus_cfg:		media bus format from DT
-+ * @code:		media bus coide from subdevice
-  * @format:		active V4L2 pixel format
-  *
-  * @crop:		active cropping
-@@ -141,6 +138,8 @@ struct rvin_dev {
- 	unsigned int sequence;
- 	enum rvin_dma_state state;
- 
-+	struct v4l2_mbus_config mbus_cfg;
-+	u32 code;
- 	struct v4l2_pix_format format;
- 
- 	struct v4l2_rect crop;
+diff --git a/drivers/staging/android/ion/ion_priv.h b/drivers/staging/android/ion/ion_priv.h
+index 5b3059c..46d3ff5 100644
+--- a/drivers/staging/android/ion/ion_priv.h
++++ b/drivers/staging/android/ion/ion_priv.h
+@@ -44,7 +44,6 @@
+  * @lock:		protects the buffers cnt fields
+  * @kmap_cnt:		number of times the buffer is mapped to the kernel
+  * @vaddr:		the kernel mapping if kmap_cnt is not zero
+- * @dmap_cnt:		number of times the buffer is mapped for dma
+  * @sg_table:		the sg table for the buffer if dmap_cnt is not zero
+  * @pages:		flat array of pages in the buffer -- used by fault
+  *			handler and only valid for buffers that are faulted in
+@@ -70,7 +69,6 @@ struct ion_buffer {
+ 	struct mutex lock;
+ 	int kmap_cnt;
+ 	void *vaddr;
+-	int dmap_cnt;
+ 	struct sg_table *sg_table;
+ 	struct page **pages;
+ 	struct list_head vmas;
 -- 
-2.12.2
+2.7.4
