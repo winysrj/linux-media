@@ -1,66 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36697 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753234AbdDOKFl (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38901 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752273AbdDCOyY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Apr 2017 06:05:41 -0400
-Received: by mail-wm0-f66.google.com with SMTP id q125so1908496wmd.3
-        for <linux-media@vger.kernel.org>; Sat, 15 Apr 2017 03:05:40 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@kernel.org,
-        =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 2/5] em28xx: add missing auto-selections for build
-Date: Sat, 15 Apr 2017 12:05:01 +0200
-Message-Id: <20170415100504.3076-2-fschaefer.oss@googlemail.com>
-In-Reply-To: <20170415100504.3076-1-fschaefer.oss@googlemail.com>
-References: <20170415100504.3076-1-fschaefer.oss@googlemail.com>
+        Mon, 3 Apr 2017 10:54:24 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Songjun Wu <Songjun.Wu@microchip.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] MAINTAINERS: update atmel-isi.c path
+Message-ID: <d8b1734c-a689-bea5-33f3-113b4b7b3247@xs4all.nl>
+Date: Mon, 3 Apr 2017 16:54:19 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With MEDIA_SUBDRV_AUTOSELECT enabled in the kernel config, the em28xx
-driver currently does't select some used subdrivers.
-Fix this by adding the missing auto-selections to the Kconfig file.
+The driver moved to drivers/media/platform/atmel.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/em28xx/Kconfig | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+After the atmel-isi v6 patch series this atmel-isi entry is no longer correct.
+Fixed.
 
-diff --git a/drivers/media/usb/em28xx/Kconfig b/drivers/media/usb/em28xx/Kconfig
-index aa131cf9989b..4cc029f18aa8 100644
---- a/drivers/media/usb/em28xx/Kconfig
-+++ b/drivers/media/usb/em28xx/Kconfig
-@@ -12,7 +12,7 @@ config VIDEO_EM28XX_V4L2
- 	select VIDEO_TVP5150 if MEDIA_SUBDRV_AUTOSELECT
- 	select VIDEO_MSP3400 if MEDIA_SUBDRV_AUTOSELECT
- 	select VIDEO_MT9V011 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_CAMERA_SUPPORT
--
-+	select VIDEO_OV2640 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_CAMERA_SUPPORT
- 	---help---
- 	  This is a video4linux driver for Empia 28xx based TV cards.
- 
-@@ -39,6 +39,7 @@ config VIDEO_EM28XX_DVB
- 	depends on VIDEO_EM28XX && DVB_CORE
- 	select DVB_LGDT330X if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_LGDT3305 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_LGDT3306A if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_ZL10353 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_TDA10023 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_S921 if MEDIA_SUBDRV_AUTOSELECT
-@@ -61,6 +62,10 @@ config VIDEO_EM28XX_DVB
- 	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_TC90522 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_QM1D1C0042 if MEDIA_SUBDRV_AUTOSELECT
-+	select MEDIA_TUNER_SIMPLE if MEDIA_SUBDRV_AUTOSELECT
-+	select MEDIA_TUNER_XC2028 if MEDIA_SUBDRV_AUTOSELECT
-+	select MEDIA_TUNER_XC5000 if MEDIA_SUBDRV_AUTOSELECT
-+	select MEDIA_TUNER_MT2060 if MEDIA_SUBDRV_AUTOSELECT
- 	---help---
- 	  This adds support for DVB cards based on the
- 	  Empiatech em28xx chips.
+Songjun, I don't think Ludovic is still maintainer of this driver. Should that
+be changed to you? (And no, I'm not planning to maintain this driver going forward :-) )
+
+Regards,
+
+	Hans
+---
+ MAINTAINERS | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 93500928ca4f..08d41f8e5d33 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2224,7 +2224,7 @@ ATMEL ISI DRIVER
+ M:	Ludovic Desroches <ludovic.desroches@microchip.com>
+ L:	linux-media@vger.kernel.org
+ S:	Supported
+-F:	drivers/media/platform/soc_camera/atmel-isi.c
++F:	drivers/media/platform/atmel/atmel-isi.c
+ F:	include/media/atmel-isi.h
+
+ ATMEL LCDFB DRIVER
 -- 
-2.12.2
+2.11.0
