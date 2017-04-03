@@ -1,72 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f65.google.com ([209.85.214.65]:36270 "EHLO
-        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1427364AbdDWAkS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Apr 2017 20:40:18 -0400
-Received: by mail-it0-f65.google.com with SMTP id x188so6407969itb.3
-        for <linux-media@vger.kernel.org>; Sat, 22 Apr 2017 17:40:18 -0700 (PDT)
-From: Daniel Axtens <dja@axtens.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/2] [media] uvcvideo: Kill video URBs on disconnect
-In-Reply-To: <9757129.ouSjzrobER@avalon>
-References: <20170417085240.12930-1-dja@axtens.net> <20170417085240.12930-2-dja@axtens.net> <9757129.ouSjzrobER@avalon>
-Date: Sun, 23 Apr 2017 10:40:12 +1000
-Message-ID: <87r30k7y8j.fsf@possimpible.ozlabs.ibm.com>
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:45636 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752962AbdDCPQK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 11:16:10 -0400
+Date: Mon, 3 Apr 2017 16:15:11 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Rob Herring <robh@kernel.org>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        "kernel@pengutronix.de" <kernel@pengutronix.de>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Nick Dyer <nick@shmanahar.org>, markus.heiser@darmarit.de,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        tiffany lin <tiffany.lin@mediatek.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Simon Horman <horms+renesas@verge.net.au>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Andrew-CT Chen =?utf-8?B?KOmZs+aZuui/qik=?=
+        <andrew-ct.chen@mediatek.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        shuah@kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH v6 02/39] [media] dt-bindings: Add bindings for i.MX
+ media driver
+Message-ID: <20170403151511.GA7909@n2100.armlinux.org.uk>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+ <1490661656-10318-3-git-send-email-steve_longerbeam@mentor.com>
+ <CAL_JsqJm_JjuVPcOBERCqsnjTDdNoKr9xRE9MXMO4ivxGath2Q@mail.gmail.com>
+ <70bacfb5-aef1-76d1-37d2-23a524903d45@mentor.com>
+ <20170403140743.trxep36s4z4piyl3@rob-hp-laptop>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170403140743.trxep36s4z4piyl3@rob-hp-laptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Mon, Apr 03, 2017 at 09:07:43AM -0500, Rob Herring wrote:
+> On Tue, Mar 28, 2017 at 05:35:52PM -0700, Steve Longerbeam wrote:
+> > I assume if there's another binding doc in progress, it means
+> > someone is working on another Synopsys DW CSI-2 subdevice driver.
+> 
+> Yes. see http://patchwork.ozlabs.org/patch/736177/
+> 
+> > Unfortunately I don't have the time to contribute and switch to
+> > this other subdevice, and do test/debug.
+> 
+> >From a DT perspective, I'm not asking that you share the subdevice 
+> driver, only the binding. Simply put, there's 1 h/w block here, so there 
+> should only be 1 binding. The binding is an ABI, so you can't just merge 
+> it and change it later.
 
-Apologies for takig so long to get back to you.
+I think it would be nice to have some kind of standard base binding
+for CSI2 interfaces, but beyond the standard compatible/reg/interrupts
+and graph properties, I'm not sure what it would look like.
 
-> I assume that the error message is caused by a race between disconnection and 
-> URB handling. When the device is disconnected I believe the USB core will 
-> cancel all in-progress URBs (I'm not very familiar with that part of the USB 
-> core anymore, so please don't consider this or any further related statement 
-> as true without double-checking), resulting in the URB completion handler 
-> being called with an error status. The completion handler should then avoid 
-> resubmitting the URB. However, if the completion handler is in progress when 
-> the device is disconnected, it won't notice that the device got disconnected, 
-> and will try to resubmit the URB.
->
-> I'm not sure to see how this patch will fix the problem. If the URB completion 
-> handler is in progress when the device is being disconnected, won't it call 
-> usb_submit_urb() regardless of whether you call usb_kill_urb() in the 
-> disconnect handler, resulting in an error message being printed ?
+As far as those properties go, the iMX6 version does better than the
+DW version, because we specify the full graph, whereas the DW version
+only specifies the downstream link.  Once that's done, there's some
+properties (like those specifying the output configuration) which
+probably ought to be moved to the graph links instead, once they exist.
 
-You're completely right - I misunderstood the flow of the
-function. Fixing this would require a different approach and would be
-more invasive. Given that this does not cause anything more annoying
-than some log messages, I will leave it for now.
+So, if anything, I think it's the DW version needs to be augmented with
+fuller information, and some of the properties moved.
 
-Regards,
-Daniel
+Also, as I've mentioned in my other reply, while they may both appear
+to be called "Synopsys DW CSI-2" devices, they appear to be quite
+different from the hardware perspective.
 
->
->> ---
->>  drivers/media/usb/uvc/uvc_driver.c | 2 ++
->>  1 file changed, 2 insertions(+)
->> 
->> diff --git a/drivers/media/usb/uvc/uvc_driver.c
->> b/drivers/media/usb/uvc/uvc_driver.c index 2390592f78e0..647e3d8a1256
->> 100644
->> --- a/drivers/media/usb/uvc/uvc_driver.c
->> +++ b/drivers/media/usb/uvc/uvc_driver.c
->> @@ -1877,6 +1877,8 @@ static void uvc_unregister_video(struct uvc_device
->> *dev) if (!video_is_registered(&stream->vdev))
->>  			continue;
->> 
->> +		uvc_video_enable(stream, 0);
->> +
->>  		video_unregister_device(&stream->vdev);
->> 
->>  		uvc_debugfs_cleanup_stream(stream);
->
-> -- 
-> Regards,
->
-> Laurent Pinchart
+The rest 
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
