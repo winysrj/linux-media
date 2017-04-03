@@ -1,66 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:36262 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754202AbdDQIxZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Apr 2017 04:53:25 -0400
-Received: by mail-pf0-f194.google.com with SMTP id i5so23482037pfc.3
-        for <linux-media@vger.kernel.org>; Mon, 17 Apr 2017 01:53:24 -0700 (PDT)
-From: Daniel Axtens <dja@axtens.net>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Daniel Axtens <dja@axtens.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 2/2] [media] uvcvideo: Kill video URBs on disconnect
-Date: Mon, 17 Apr 2017 18:52:40 +1000
-Message-Id: <20170417085240.12930-2-dja@axtens.net>
-In-Reply-To: <20170417085240.12930-1-dja@axtens.net>
-References: <20170417085240.12930-1-dja@axtens.net>
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:32906 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753013AbdDCO2H (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 10:28:07 -0400
+Date: Mon, 3 Apr 2017 09:28:05 -0500
+From: Rob Herring <robh@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv6 06/14] atmel-isi: update device tree bindings
+ documentation
+Message-ID: <20170403142805.tybemhb2xe5jvhwx@rob-hp-laptop>
+References: <20170328082347.11159-1-hverkuil@xs4all.nl>
+ <20170328082347.11159-7-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170328082347.11159-7-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When an in-use webcam is disconnected, I noticed the following
-messages:
+On Tue, Mar 28, 2017 at 10:23:39AM +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The original bindings documentation was incomplete (missing pinctrl-names,
+> missing endpoint node properties) and the example was out of date.
+> 
+> Add the missing information and tidy up the text.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  .../devicetree/bindings/media/atmel-isi.txt        | 91 +++++++++++++---------
+>  1 file changed, 53 insertions(+), 38 deletions(-)
 
-  uvcvideo: Failed to resubmit video URB (-19).
-
--19 is -ENODEV, which does make sense given that the device has
-disappeared.
-
-We could put a case for -ENODEV like we have with -ENOENT, -ECONNRESET
-and -ESHUTDOWN, but the usb_unlink_urb() API documentation says that
-'The disconnect function should synchronize with a driver's I/O
-routines to insure that all URB-related activity has completed before
-it returns.' So we should make an effort to proactively kill URBs in
-the disconnect path instead.
-
-Call uvc_enable_video() (specifying 0 to disable) in the disconnect
-path, which kills and frees URBs.
-
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Daniel Axtens <dja@axtens.net>
-
----
-
-Before this patch, yavta -c hangs when a camera is disconnected, but
-with this patch it exits immediately after the camera is
-disconnected. I'm not sure if this is acceptable - Laurent?
-
----
- drivers/media/usb/uvc/uvc_driver.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 2390592f78e0..647e3d8a1256 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1877,6 +1877,8 @@ static void uvc_unregister_video(struct uvc_device *dev)
- 		if (!video_is_registered(&stream->vdev))
- 			continue;
- 
-+		uvc_video_enable(stream, 0);
-+
- 		video_unregister_device(&stream->vdev);
- 
- 		uvc_debugfs_cleanup_stream(stream);
--- 
-2.9.3
+Acked-by: Rob Herring <robh@kernel.org>
