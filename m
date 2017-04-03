@@ -1,95 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:44813 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1959069AbdDZJOG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Apr 2017 05:14:06 -0400
-Date: Wed, 26 Apr 2017 11:13:59 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-Cc: Kieran Bingham <kbingham@kernel.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: Re: [PATCH] rcar-vin: Use of_nodes as specified by the subdev
-Message-ID: <20170426091356.GN25517@verge.net.au>
-References: <1493132100-31901-1-git-send-email-kbingham@kernel.org>
- <20170426072320.GD25517@verge.net.au>
- <20170426090030.GF4676@bigcity.dyn.berto.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170426090030.GF4676@bigcity.dyn.berto.se>
+Received: from mail-qt0-f175.google.com ([209.85.216.175]:35031 "EHLO
+        mail-qt0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752635AbdDCS6r (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 14:58:47 -0400
+Received: by mail-qt0-f175.google.com with SMTP id x35so120457051qtc.2
+        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 11:58:46 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCHv3 11/22] staging: android: ion: Remove duplicate ION_IOC_MAP
+Date: Mon,  3 Apr 2017 11:57:53 -0700
+Message-Id: <1491245884-15852-12-git-send-email-labbott@redhat.com>
+In-Reply-To: <1491245884-15852-1-git-send-email-labbott@redhat.com>
+References: <1491245884-15852-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 26, 2017 at 11:00:30AM +0200, Niklas Söderlund wrote:
-> Hi Simon,
-> 
-> Thanks for your feedback.
-> 
-> On 2017-04-26 09:23:20 +0200, Simon Horman wrote:
-> > Hi Kieran,
-> > 
-> > On Tue, Apr 25, 2017 at 03:55:00PM +0100, Kieran Bingham wrote:
-> > > From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> > > 
-> > > The rvin_digital_notify_bound() call dereferences the subdev->dev
-> > > pointer to obtain the of_node. On some error paths, this dev node can be
-> > > set as NULL. The of_node is mapped into the subdevice structure on
-> > > initialisation, so this is a safer source to compare the nodes.
-> > > 
-> > > Dereference the of_node from the subdev structure instead of the dev
-> > > structure.
-> > > 
-> > > Fixes: 83fba2c06f19 ("rcar-vin: rework how subdevice is found and
-> > > 	bound")
-> > > Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> > > ---
-> > >  drivers/media/platform/rcar-vin/rcar-core.c | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > 
-> > > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> > > index 5861ab281150..a530dc388b95 100644
-> > > --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> > > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> > > @@ -469,7 +469,7 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
-> > >  
-> > >  	v4l2_set_subdev_hostdata(subdev, vin);
-> > >  
-> > > -	if (vin->digital.asd.match.of.node == subdev->dev->of_node) {
-> > > +	if (vin->digital.asd.match.of.node == subdev->of_node) {
-> > >  		/* Find surce and sink pad of remote subdevice */
-> > >  
-> > >  		ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
-> > 
-> > I see two different accesses to subdev->dev->of_node in the version of
-> > rcar-core.c in linux-next. So I'm unsure if the following comment makes
-> > sense in the context of the version you are working on. It is that
-> > I wonder if all accesses to subdev->dev->of_node should be updated.
-> 
-> Are you sure you checked linux-next and not renesas-drivers? I checked 
-> next-20170424.
-> 
-> $ git grep "dev->of_node" -- drivers/media/platform/rcar-vin/
-> drivers/media/platform/rcar-vin/rcar-core.c:107:        if (vin->digital.asd.match.of.node == subdev->dev->of_node) {
-> drivers/media/platform/rcar-vin/rcar-core.c:161:        ep = of_graph_get_endpoint_by_regs(vin->dev->of_node, 0, 0);
-> 
-> Here vin->dev->of_node is correct and subdev->dev->of_node should be 
-> fixed by Kieran patch. I'm only asking to be sure I did not miss 
-> anything. In renesas-drivers the Gen3 patches are included and more 
-> references to subdev->dev->of_node exists, but as Kieran sates these 
-> fixes will be squashed into those patches since they are not yet picked 
-> up.
+ION_IOC_MAP is the same as ION_IOC_SHARE. We really don't need two
+identical interfaces. Remove it.
 
-I think we are seeing the same thing, sorry for the noise.
+Signed-off-by: Laura Abbott <labbott@redhat.com>
+---
+ drivers/staging/android/ion/compat_ion.c |  1 -
+ drivers/staging/android/ion/ion-ioctl.c  |  1 -
+ drivers/staging/android/uapi/ion.h       | 10 ----------
+ 3 files changed, 12 deletions(-)
 
-git show next-20170424:drivers/media/platform/rcar-vin/rcar-core.c | grep -A 3 "dev->of_node"
-        if (vin->digital.asd.match.of.node == subdev->dev->of_node) {
-                vin_dbg(vin, "bound digital subdev %s\n", subdev->name);
-                vin->digital.subdev = subdev;
-                return 0;
---
-        ep = of_graph_get_endpoint_by_regs(vin->dev->of_node, 0, 0);
-        if (!ep)
-                return 0;
+diff --git a/drivers/staging/android/ion/compat_ion.c b/drivers/staging/android/ion/compat_ion.c
+index ae1ffc3..5037ddd 100644
+--- a/drivers/staging/android/ion/compat_ion.c
++++ b/drivers/staging/android/ion/compat_ion.c
+@@ -144,7 +144,6 @@ long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 							(unsigned long)data);
+ 	}
+ 	case ION_IOC_SHARE:
+-	case ION_IOC_MAP:
+ 		return filp->f_op->unlocked_ioctl(filp, cmd,
+ 						(unsigned long)compat_ptr(arg));
+ 	default:
+diff --git a/drivers/staging/android/ion/ion-ioctl.c b/drivers/staging/android/ion/ion-ioctl.c
+index 7b54eea..a361724 100644
+--- a/drivers/staging/android/ion/ion-ioctl.c
++++ b/drivers/staging/android/ion/ion-ioctl.c
+@@ -118,7 +118,6 @@ long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		break;
+ 	}
+ 	case ION_IOC_SHARE:
+-	case ION_IOC_MAP:
+ 	{
+ 		struct ion_handle *handle;
+ 
+diff --git a/drivers/staging/android/uapi/ion.h b/drivers/staging/android/uapi/ion.h
+index 3a59044..abd72fd 100644
+--- a/drivers/staging/android/uapi/ion.h
++++ b/drivers/staging/android/uapi/ion.h
+@@ -164,16 +164,6 @@ struct ion_heap_query {
+ #define ION_IOC_FREE		_IOWR(ION_IOC_MAGIC, 1, struct ion_handle_data)
+ 
+ /**
+- * DOC: ION_IOC_MAP - get a file descriptor to mmap
+- *
+- * Takes an ion_fd_data struct with the handle field populated with a valid
+- * opaque handle.  Returns the struct with the fd field set to a file
+- * descriptor open in the current address space.  This file descriptor
+- * can then be used as an argument to mmap.
+- */
+-#define ION_IOC_MAP		_IOWR(ION_IOC_MAGIC, 2, struct ion_fd_data)
+-
+-/**
+  * DOC: ION_IOC_SHARE - creates a file descriptor to use to share an allocation
+  *
+  * Takes an ion_fd_data struct with the handle field populated with a valid
+-- 
+2.7.4
