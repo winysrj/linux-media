@@ -1,57 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:49921 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1038048AbdDUKwW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Apr 2017 06:52:22 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] cec: improve MEDIA_CEC_RC dependencies
-Date: Fri, 21 Apr 2017 12:52:17 +0200
-Message-Id: <20170421105224.899350-1-arnd@arndb.de>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59575
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752367AbdDCS1u (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 14:27:50 -0400
+Subject: Re: [RFC 03/10] [media] vb2: add in-fence support to QBUF
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
+References: <20170313192035.29859-1-gustavo@padovan.org>
+ <20170313192035.29859-4-gustavo@padovan.org>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Message-ID: <e961f869-9a4c-b68f-6379-1aea277648de@osg.samsung.com>
+Date: Mon, 3 Apr 2017 14:27:42 -0400
+MIME-Version: 1.0
+In-Reply-To: <20170313192035.29859-4-gustavo@padovan.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changing the IS_REACHABLE() into a plain #ifdef broke the case of
-CONFIG_MEDIA_RC=m && CONFIG_MEDIA_CEC=y:
+Hello Gustavo,
 
-drivers/media/cec/cec-core.o: In function `cec_unregister_adapter':
-cec-core.c:(.text.cec_unregister_adapter+0x18): undefined reference to `rc_unregister_device'
-drivers/media/cec/cec-core.o: In function `cec_delete_adapter':
-cec-core.c:(.text.cec_delete_adapter+0x54): undefined reference to `rc_free_device'
-drivers/media/cec/cec-core.o: In function `cec_register_adapter':
-cec-core.c:(.text.cec_register_adapter+0x94): undefined reference to `rc_register_device'
-cec-core.c:(.text.cec_register_adapter+0xa4): undefined reference to `rc_free_device'
-cec-core.c:(.text.cec_register_adapter+0x110): undefined reference to `rc_unregister_device'
-drivers/media/cec/cec-core.o: In function `cec_allocate_adapter':
-cec-core.c:(.text.cec_allocate_adapter+0x234): undefined reference to `rc_allocate_device'
-drivers/media/cec/cec-adap.o: In function `cec_received_msg':
-cec-adap.c:(.text.cec_received_msg+0x734): undefined reference to `rc_keydown'
-cec-adap.c:(.text.cec_received_msg+0x768): undefined reference to `rc_keyup'
+On 03/13/2017 04:20 PM, Gustavo Padovan wrote:
 
-This adds an additional dependency to explicitly forbid this combination.
+[snip]
 
-Fixes: 5f2c467c54f5 ("[media] cec: add MEDIA_CEC_RC config option")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/cec/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+>  
+>  int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+>  {
+> +	struct dma_fence *fence = NULL;
+>  	int ret;
+>  
+>  	if (vb2_fileio_is_active(q)) {
+> @@ -565,7 +567,17 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+>  	}
+>  
+>  	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
+> -	return ret ? ret : vb2_core_qbuf(q, b->index, b);
+> +
+> +	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
+> +		if (b->memory != VB2_MEMORY_DMABUF)
+> +			return -EINVAL;
+> +
 
-diff --git a/drivers/media/cec/Kconfig b/drivers/media/cec/Kconfig
-index f944d93e3167..488fb908244d 100644
---- a/drivers/media/cec/Kconfig
-+++ b/drivers/media/cec/Kconfig
-@@ -9,6 +9,7 @@ config MEDIA_CEC_NOTIFIER
- config MEDIA_CEC_RC
- 	bool "HDMI CEC RC integration"
- 	depends on CEC_CORE && RC_CORE
-+	depends on CEC_CORE=m || RC_CORE=y
- 	---help---
- 	  Pass on CEC remote control messages to the RC framework.
- 
+I wonder if is correct to check this. Only one side of the pipeline uses
+V4L2_MEMORY_DMABUF while the other uses V4L2_MEMORY_MMAP + VIDIOC_EXPBUF.
+
+So that means that fences can only be used in one direction?
+
+Best regards,
 -- 
-2.9.0
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
