@@ -1,127 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:38779 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750972AbdDIETK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 9 Apr 2017 00:19:10 -0400
-Message-ID: <50dd2ac4db81b6cbab27754cd3de3341@smtp-cloud6.xs4all.net>
-Date: Sun, 09 Apr 2017 06:19:07 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from mail-wr0-f169.google.com ([209.85.128.169]:35815 "EHLO
+        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752962AbdDCOms (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 10:42:48 -0400
+Received: by mail-wr0-f169.google.com with SMTP id k6so167322298wre.2
+        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 07:42:48 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
+        mchehab@kernel.org
+Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
+        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com
+Subject: [PATCH v6 2/6] media: uapi: Add RGB and YUV bus formats for Synopsys HDMI TX Controller
+Date: Mon,  3 Apr 2017 16:42:34 +0200
+Message-Id: <1491230558-10804-3-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1491230558-10804-1-git-send-email-narmstrong@baylibre.com>
+References: <1491230558-10804-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+In order to describe the RGB and YUV bus formats used to feed the
+Synopsys DesignWare HDMI TX Controller, add missing formats to the
+list of Bus Formats.
 
-Results of the daily build of media_tree:
+Documentation for these formats is added in a separate patch.
 
-date:			Sun Apr  9 05:00:17 CEST 2017
-media-tree git hash:	2f65ec0567f77b75f459c98426053a3787af356a
-media_build git hash:	d49f7b2d9934c96a3d2c04021e4da1e12ec97995
-v4l-utils git hash:	08572e7db2120bc45db732d02409dfd3346b8e51
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Reviewed-by: Archit Taneja <architt@codeaurora.org>
+Reviewed-by: Jose Abreu <joabreu@synopsys.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ include/uapi/linux/media-bus-format.h | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 2168759..ef6fb30 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -33,7 +33,7 @@
+ 
+ #define MEDIA_BUS_FMT_FIXED			0x0001
+ 
+-/* RGB - next is	0x1018 */
++/* RGB - next is	0x101b */
+ #define MEDIA_BUS_FMT_RGB444_1X12		0x1016
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
+@@ -57,8 +57,11 @@
+ #define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
+ #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
+ #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
++#define MEDIA_BUS_FMT_RGB101010_1X30		0x1018
++#define MEDIA_BUS_FMT_RGB121212_1X36		0x1019
++#define MEDIA_BUS_FMT_RGB161616_1X48		0x101a
+ 
+-/* YUV (including grey) - next is	0x2026 */
++/* YUV (including grey) - next is	0x202c */
+ #define MEDIA_BUS_FMT_Y8_1X8			0x2001
+ #define MEDIA_BUS_FMT_UV8_1X8			0x2015
+ #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
+@@ -90,12 +93,18 @@
+ #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
+ #define MEDIA_BUS_FMT_VUY8_1X24			0x2024
+ #define MEDIA_BUS_FMT_YUV8_1X24			0x2025
++#define MEDIA_BUS_FMT_UYYVYY8_0_5X24		0x2026
+ #define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
+ #define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
+ #define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
+ #define MEDIA_BUS_FMT_YVYU12_1X24		0x2023
+ #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
++#define MEDIA_BUS_FMT_UYYVYY10_0_5X30		0x2027
+ #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
++#define MEDIA_BUS_FMT_UYYVYY12_0_5X36		0x2028
++#define MEDIA_BUS_FMT_YUV12_1X36		0x2029
++#define MEDIA_BUS_FMT_YUV16_1X48		0x202a
++#define MEDIA_BUS_FMT_UYYVYY16_0_5X48		0x202b
+ 
+ /* Bayer - next is	0x3021 */
+ #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
+-- 
+1.9.1
