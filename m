@@ -1,61 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:43470 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932072AbdDDQnh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 4 Apr 2017 12:43:37 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cec: fix confusing CEC_CAP_RC and
- IS_REACHABLE(CONFIG_RC_CORE) code
-Message-ID: <0bce68f1-c9a6-ad11-c95b-7a044e20c1aa@xs4all.nl>
-Date: Tue, 4 Apr 2017 18:43:33 +0200
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:35793 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751803AbdDCQnX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 12:43:23 -0400
+Date: Mon, 3 Apr 2017 11:43:21 -0500
+From: Rob Herring <robh@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org,
+        Russell King <linux@armlinux.org.uk>,
+        Krzysztof Kozlowski <krzk@kernel.org>, Patrice.chotard@st.com,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        dri-devel@lists.freedesktop.org,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCHv6 05/10] s5p-cec.txt: document the HDMI controller phandle
+Message-ID: <20170403164321.f4mhego5onxy3t2l@rob-hp-laptop>
+References: <20170331122036.55706-1-hverkuil@xs4all.nl>
+ <20170331122036.55706-6-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170331122036.55706-6-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is a bit confusing how CEC_CAP_RC and IS_REACHABLE(CONFIG_RC_CORE)
-interact. By stripping CEC_CAP_RC at the beginning rather than after #else
-it should be a bit clearer what is going on.
+On Fri, Mar 31, 2017 at 02:20:31PM +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Update the bindings documenting the new hdmi phandle.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
+> CC: linux-samsung-soc@vger.kernel.org
+> CC: devicetree@vger.kernel.org
+> ---
+>  Documentation/devicetree/bindings/media/s5p-cec.txt | 2 ++
+>  1 file changed, 2 insertions(+)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Lee Jones <lee.jones@linaro.org>
----
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index e5070b374276..66fd3de15ef8 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -220,6 +220,10 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 	struct cec_adapter *adap;
- 	int res;
-
-+#if !IS_REACHABLE(CONFIG_RC_CORE)
-+	caps &= ~CEC_CAP_RC;
-+#endif
-+
- 	if (WARN_ON(!caps))
- 		return ERR_PTR(-EINVAL);
- 	if (WARN_ON(!ops))
-@@ -252,10 +256,10 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 		return ERR_PTR(res);
- 	}
-
-+#if IS_REACHABLE(CONFIG_RC_CORE)
- 	if (!(caps & CEC_CAP_RC))
- 		return adap;
-
--#if IS_REACHABLE(CONFIG_RC_CORE)
- 	/* Prepare the RC input device */
- 	adap->rc = rc_allocate_device(RC_DRIVER_SCANCODE);
- 	if (!adap->rc) {
-@@ -282,8 +286,6 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 	adap->rc->priv = adap;
- 	adap->rc->map_name = RC_MAP_CEC;
- 	adap->rc->timeout = MS_TO_NS(100);
--#else
--	adap->capabilities &= ~CEC_CAP_RC;
- #endif
- 	return adap;
- }
+Acked-by: Rob Herring <robh@kernel.org> 
