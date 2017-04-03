@@ -1,249 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36973 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752010AbdDKWeP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Apr 2017 18:34:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi,
-        chris.paterson2@renesas.com, geert+renesas@glider.be,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v3 6/7] dt-bindings: media: Add Renesas R-Car DRIF binding
-Date: Wed, 12 Apr 2017 01:35:07 +0300
-Message-ID: <9269429.GycVHU1uD9@avalon>
-In-Reply-To: <1486479757-32128-7-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-References: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com> <1486479757-32128-7-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-qk0-f171.google.com ([209.85.220.171]:36367 "EHLO
+        mail-qk0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751649AbdDCS6U (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 14:58:20 -0400
+Received: by mail-qk0-f171.google.com with SMTP id p22so122959871qka.3
+        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 11:58:20 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCHv3 00/22] Ion clean up in preparation in moving out of staging
+Date: Mon,  3 Apr 2017 11:57:42 -0700
+Message-Id: <1491245884-15852-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ramesh,
+Hi,
 
-Thank you for the patch.
+This is v3 of the series to do some serious Ion cleanup in preparation for
+moving out of staging. I didn't hear much on v2 so I'm going to assume
+people are okay with the series as is. I know there were still some open
+questions about moving away from /dev/ion but in the interest of small
+steps I'd like to go ahead and merge this series assuming there are no more
+major objections. More work can happen on top of this.
 
-On Tuesday 07 Feb 2017 15:02:36 Ramesh Shanmugasundaram wrote:
-> Add binding documentation for Renesas R-Car Digital Radio Interface
-> (DRIF) controller.
-> 
-> Signed-off-by: Ramesh Shanmugasundaram
-> <ramesh.shanmugasundaram@bp.renesas.com>
-> ---
->  .../devicetree/bindings/media/renesas,drif.txt     | 186 ++++++++++++++++++
->  1 file changed, 186 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/renesas,drif.txt
-> b/Documentation/devicetree/bindings/media/renesas,drif.txt new file mode
-> 100644
-> index 0000000..6315609
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
-> @@ -0,0 +1,186 @@
-> +Renesas R-Car Gen3 Digital Radio Interface controller (DRIF)
-> +------------------------------------------------------------
-> +
-> +R-Car Gen3 DRIF is a SPI like receive only slave device. A general
-> +representation of DRIF interfacing with a master device is shown below.
-> +
-> ++---------------------+                +---------------------+
-> +|                     |-----SCK------->|CLK                  |
-> +|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-> +|                     |-----SD0------->|D0                   |
-> +|                     |-----SD1------->|D1                   |
-> ++---------------------+                +---------------------+
-> +
-> +As per the datasheet, each DRIF channel (drifn) is made up of two internal
-> +channels (drifn0 & drifn1). These two internal channels share the common
-> +CLK & SYNC. Each internal channel has its own dedicated resources like
-> +irq, dma channels, address space & clock. This internal split is not
-> +visible to the external master device.
-> +
-> +The device tree model represents each internal channel as a separate node.
-> +The internal channels sharing the CLK & SYNC are tied together by their
-> +phandles using a new property called "renesas,bonding". For the rest of
-> +the documentation, unless explicitly stated, the word channel implies an
-> +internal channel.
-> +
-> +When both internal channels are enabled they need to be managed together
-> +as one (i.e.) they cannot operate alone as independent devices. Out of the
-> +two, one of them needs to act as a primary device that accepts common
-> +properties of both the internal channels. This channel is identified by a
-> +new property called "renesas,primary-bond".
-> +
-> +To summarize,
-> +   - When both the internal channels that are bonded together are enabled,
-> +     the zeroth channel is selected as primary-bond. This channels accepts
-> +     properties common to all the members of the bond.
-> +   - When only one of the bonded channels need to be enabled, the property
-> +     "renesas,bonding" or "renesas,primary-bond" will have no effect. That
-> +     enabled channel can act alone as any other independent device.
-> +
-> +Required properties of an internal channel:
-> +-------------------------------------------
-> +- compatible: "renesas,r8a7795-drif" if DRIF controller is a part of
-> R8A7795 SoC.
-> +	      "renesas,rcar-gen3-drif" for a generic R-Car Gen3 compatible
-> device.
-> +	      When compatible with the generic version, nodes must list the
-> +	      SoC-specific version corresponding to the platform first
-> +	      followed by the generic version.
-> +- reg: offset and length of that channel.
-> +- interrupts: associated with that channel.
-> +- clocks: phandle and clock specifier of that channel.
-> +- clock-names: clock input name string: "fck".
-> +- dmas: phandles to the DMA channels.
-> +- dma-names: names of the DMA channel: "rx".
-> +- renesas,bonding: phandle to the other channel.
-> +
-> +Optional properties of an internal channel:
-> +-------------------------------------------
-> +- power-domains: phandle to the respective power domain.
-> +
-> +Required properties of an internal channel when:
-> +	- It is the only enabled channel of the bond (or)
-> +	- If it acts as primary among enabled bonds
-> +--------------------------------------------------------
-> +- pinctrl-0: pin control group to be used for this channel.
-> +- pinctrl-names: must be "default".
-> +- renesas,primary-bond: empty property indicating the channel acts as
-> primary
-> +			among the bonded channels.
-> +- port: child port node of a channel that defines the local and remote
-> +	endpoints. The remote endpoint is assumed to be a third party tuner
-> +	device endpoint.
+Changes from v2:
+- Dropped the RFC tag
+- Minor bisectability fixes
+- Sumit's comment about CMA naming
+- Updated the TODO list
 
-You should refer to the OF graphs bindings here. How about the following to 
-document the port node ?
+Thanks,
+Laura
 
-- port: child port node corresponding to the data input, in accordance with 
-the video interface bindings defined in
-Documentation/devicetree/bindings/media/video-interfaces.txt. The port node 
-must contain at least one endpoint.
+Laura Abbott (22):
+  cma: Store a name in the cma structure
+  cma: Introduce cma_for_each_area
+  staging: android: ion: Remove dmap_cnt
+  staging: android: ion: Remove alignment from allocation field
+  staging: android: ion: Duplicate sg_table
+  staging: android: ion: Call dma_map_sg for syncing and mapping
+  staging: android: ion: Remove page faulting support
+  staging: android: ion: Remove crufty cache support
+  staging: android: ion: Remove custom ioctl interface
+  staging: android: ion: Remove import interface
+  staging: android: ion: Remove duplicate ION_IOC_MAP
+  staging: android: ion: Remove old platform support
+  staging: android: ion: Use CMA APIs directly
+  staging: android: ion: Stop butchering the DMA address
+  staging: android: ion: Break the ABI in the name of forward progress
+  staging: android: ion: Get rid of ion_phys_addr_t
+  staging: android: ion: Collapse internal header files
+  staging: android: ion: Rework heap registration/enumeration
+  staging: android: ion: Drop ion_map_kernel interface
+  staging: android: ion: Remove ion_handle and ion_client
+  staging: android: ion: Set query return value
+  staging/android: Update Ion TODO list
 
-> +Optional endpoint property:
-> +---------------------------
-> +- renesas,sync-active  : Indicates sync signal polarity, 0/1 for low/high
-> +			 respectively. This property maps to SYNCAC bit in the
-> +			 hardware manual. The default is 1 (active high)
-> +
-> +Example
-> +--------
-> +
-> +SoC common dtsi file
-> +
-> +		drif00: rif@e6f40000 {
-> +			compatible = "renesas,r8a7795-drif",
-> +				     "renesas,rcar-gen3-drif";
-> +			reg = <0 0xe6f40000 0 0x64>;
-> +			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
-> +			clocks = <&cpg CPG_MOD 515>;
-> +			clock-names = "fck";
-> +			dmas = <&dmac1 0x20>, <&dmac2 0x20>;
-> +			dma-names = "rx", "rx";
-> +			power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-> +			renesas,bonding = <&drif01>;
-> +			status = "disabled";
-> +		};
-> +
-> +		drif01: rif@e6f50000 {
-> +			compatible = "renesas,r8a7795-drif",
-> +				     "renesas,rcar-gen3-drif";
-> +			reg = <0 0xe6f50000 0 0x64>;
-> +			interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
-> +			clocks = <&cpg CPG_MOD 514>;
-> +			clock-names = "fck";
-> +			dmas = <&dmac1 0x22>, <&dmac2 0x22>;
-> +			dma-names = "rx", "rx";
-> +			power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-> +			renesas,bonding = <&drif00>;
-> +			status = "disabled";
-> +		};
-> +
-> +
-> +Board specific dts file
-> +
-> +(1) Both internal channels enabled:
-> +-----------------------------------
-> +
-> +When interfacing with a third party tuner device with two data pins as
-> shown
-> +below.
-> +
-> ++---------------------+                +---------------------+
-> +|                     |-----SCK------->|CLK                  |
-> +|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-> +|                     |-----SD0------->|D0                   |
-> +|                     |-----SD1------->|D1                   |
-> ++---------------------+                +---------------------+
-> +
-> +pfc {
-> +	...
-> +
-> +	drif0_pins: drif0 {
-> +		groups = "drif0_ctrl_a", "drif0_data0_a",
-> +				 "drif0_data1_a";
-> +		function = "drif0";
-> +	};
-> +	...
-> +}
-> +
-> +&drif00 {
-> +	pinctrl-0 = <&drif0_pins>;
-> +	pinctrl-names = "default";
-> +	renesas,primary-bond;
-> +	status = "okay";
-> +	port {
-> +		drif0_ep: endpoint {
-> +		     remote-endpoint = <&tuner_ep>;
-> +		};
-> +	};
-> +};
-> +
-> +&drif01 {
-> +	status = "okay";
-> +};
-> +
-> +(2) Internal channel 1 alone is enabled:
-> +----------------------------------------
-> +
-> +When interfacing with a third party tuner device with one data pin as shown
-> +below.
-> +
-> ++---------------------+                +---------------------+
-> +|                     |-----SCK------->|CLK                  |
-> +|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-> +|                     |                |D0 (unused)          |
-> +|                     |-----SD-------->|D1                   |
-> ++---------------------+                +---------------------+
-> +
-> +pfc {
-> +	...
-> +
-> +	drif0_pins: drif0 {
-> +		groups = "drif0_ctrl_a", "drif0_data1_a";
-> +		function = "drif0";
-> +	};
-> +	...
-> +}
-> +
-> +&drif01 {
-> +	pinctrl-0 = <&drif0_pins>;
-> +	pinctrl-names = "default";
-> +	status = "okay";
-> +	port {
-> +		drif0_ep: endpoint {
-> +		     remote-endpoint = <&tuner_ep>;
-> +		     renesas,syncac-active = <0>;
-> +		};
-> +	};
-> +};
+ arch/powerpc/kvm/book3s_hv_builtin.c               |    3 +-
+ drivers/base/dma-contiguous.c                      |    5 +-
+ drivers/staging/android/TODO                       |   21 +-
+ drivers/staging/android/ion/Kconfig                |   56 +-
+ drivers/staging/android/ion/Makefile               |   18 +-
+ drivers/staging/android/ion/compat_ion.c           |  195 ----
+ drivers/staging/android/ion/compat_ion.h           |   29 -
+ drivers/staging/android/ion/hisilicon/Kconfig      |    5 -
+ drivers/staging/android/ion/hisilicon/Makefile     |    1 -
+ drivers/staging/android/ion/hisilicon/hi6220_ion.c |  113 --
+ drivers/staging/android/ion/ion-ioctl.c            |   85 +-
+ drivers/staging/android/ion/ion.c                  | 1168 +++-----------------
+ drivers/staging/android/ion/ion.h                  |  389 +++++--
+ drivers/staging/android/ion/ion_carveout_heap.c    |   37 +-
+ drivers/staging/android/ion/ion_chunk_heap.c       |   27 +-
+ drivers/staging/android/ion/ion_cma_heap.c         |  125 +--
+ drivers/staging/android/ion/ion_dummy_driver.c     |  155 ---
+ drivers/staging/android/ion/ion_heap.c             |   68 --
+ drivers/staging/android/ion/ion_of.c               |  184 ---
+ drivers/staging/android/ion/ion_of.h               |   37 -
+ drivers/staging/android/ion/ion_page_pool.c        |    6 +-
+ drivers/staging/android/ion/ion_priv.h             |  473 --------
+ drivers/staging/android/ion/ion_system_heap.c      |   53 +-
+ drivers/staging/android/ion/ion_test.c             |  305 -----
+ drivers/staging/android/ion/tegra/Makefile         |    1 -
+ drivers/staging/android/ion/tegra/tegra_ion.c      |   80 --
+ drivers/staging/android/uapi/ion.h                 |   86 +-
+ drivers/staging/android/uapi/ion_test.h            |   69 --
+ include/linux/cma.h                                |    6 +-
+ mm/cma.c                                           |   31 +-
+ mm/cma.h                                           |    1 +
+ mm/cma_debug.c                                     |    2 +-
+ 32 files changed, 620 insertions(+), 3214 deletions(-)
+ delete mode 100644 drivers/staging/android/ion/compat_ion.c
+ delete mode 100644 drivers/staging/android/ion/compat_ion.h
+ delete mode 100644 drivers/staging/android/ion/hisilicon/Kconfig
+ delete mode 100644 drivers/staging/android/ion/hisilicon/Makefile
+ delete mode 100644 drivers/staging/android/ion/hisilicon/hi6220_ion.c
+ delete mode 100644 drivers/staging/android/ion/ion_dummy_driver.c
+ delete mode 100644 drivers/staging/android/ion/ion_of.c
+ delete mode 100644 drivers/staging/android/ion/ion_of.h
+ delete mode 100644 drivers/staging/android/ion/ion_priv.h
+ delete mode 100644 drivers/staging/android/ion/ion_test.c
+ delete mode 100644 drivers/staging/android/ion/tegra/Makefile
+ delete mode 100644 drivers/staging/android/ion/tegra/tegra_ion.c
+ delete mode 100644 drivers/staging/android/uapi/ion_test.h
 
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
