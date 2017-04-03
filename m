@@ -1,64 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:45709 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1046362AbdDXO2k (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Apr 2017 10:28:40 -0400
-Message-ID: <1493044118.2446.40.camel@pengutronix.de>
-Subject: Re: [PATCH] V4L2 SDR: Add Real U8 format (V4L2_SDR_FMT_RU8)
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Bertold Van den Bergh <vandenbergh@bertold.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Mon, 24 Apr 2017 16:28:38 +0200
-In-Reply-To: <1492987511-3900-1-git-send-email-vandenbergh@bertold.org>
-References: <1492987511-3900-1-git-send-email-vandenbergh@bertold.org>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f177.google.com ([209.85.128.177]:35784 "EHLO
+        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752076AbdDCOmq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 10:42:46 -0400
+Received: by mail-wr0-f177.google.com with SMTP id k6so167321029wre.2
+        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 07:42:46 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
+        mchehab@kernel.org
+Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
+        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com
+Subject: [PATCH v6 0/6] drm: bridge: dw-hdmi: Add support for Custom PHYs
+Date: Mon,  3 Apr 2017 16:42:32 +0200
+Message-Id: <1491230558-10804-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bertold,
+The Amlogic GX SoCs implements a Synopsys DesignWare HDMI TX Controller
+in combination with a very custom PHY.
 
-On Mon, 2017-04-24 at 00:45 +0200, Bertold Van den Bergh wrote:
-> This patch adds support for the Real U8 format to the V4L2 SDR framework.
-> This will be used for a piece of hardware we are developing.
-> 
-> Signed-off-by: Bertold Van den Bergh <vandenbergh@bertold.org>
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 1 +
->  include/uapi/linux/videodev2.h       | 1 +
->  2 files changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index e5a2187..8b6e097 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1229,6 +1229,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
->  	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
->  	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
->  	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
-> +	case V4L2_SDR_FMT_RU8:		descr = "Real U8"; break;
->  	case V4L2_TCH_FMT_DELTA_TD16:	descr = "16-bit signed deltas"; break;
->  	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
->  	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 2b8feb8..50c3ef4 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -669,6 +669,7 @@ struct v4l2_pix_format {
->  #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
->  #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
->  #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
-> +#define V4L2_SDR_FMT_RU8          v4l2_fourcc('R', 'U', '0', '8') /* real u8 */
+Thanks to Laurent Pinchart's changes, the HW report the following :
+ Detected HDMI TX controller v2.01a with HDCP (meson_dw_hdmi_phy)
 
-When adding new SDR formats, could you also add an entry to
-Documentation/media/uapi/v4l/sdr-formats.rst ? See for example
-Documentation/media/uapi/v4l/pixfmt-sdr-ru12le.rst.
+The following differs from common PHY integration as managed in the current
+driver :
+ - Amlogic PHY is not configured through the internal I2C link
+ - Amlogic PHY do not use the ENTMDS, SVSRET, PDDQ, ... signals from the controller
+ - Amlogic PHY do not export HPD ands RxSense signals to the controller
 
-Also maybe V4L2_SDR_FMT_RU8 should be ordered above V4L2_SDR_FMT_RU12LE?
-I'm not sure from the context.
+And finally, concerning the controller integration :
+ - the Controller registers are not flat memory-mapped, and uses an
+    addr+read/write register pair to write all registers.
+ - Inputs only YUV444 pixel data
 
-regards
-Philipp
+Most of these uses case are implemented in Laurent Pinchart v5.1 patchset merged
+in drm-misc-next branch.
+
+This is why the following patchset implements :
+ - Configure the Input format from the plat_data
+ - Add PHY callback to handle HPD and RxSense out of the dw-hdmi driver
+
+To implement the input format handling, the Synopsys HDMIT TX Controller input
+V4L bus formats are used and missing formats + documentation are added.
+
+This patchset makes the Amlogic GX SoCs HDMI output successfully work, and is
+also tested on the RK3288 ACT8846 EVB Board.
+
+Changes since v5.1 at [7] :
+ - Rework of the 48bit tables in V4L bus formats documentation
+ - Add Archit reviewed-by's
+
+Changes since v5 at [6] :
+ - Small addition in V4L YUV bus formats documentation
+
+Changes since v4 at [5] :
+ - Rebased on drm-misc-next at bd283d2f66c2
+ - Fix 4:2:0 bus formats naming
+ - Renamed function fd_registered to i2c_init in dw-hdmi.c
+
+Changes since v3 at [4] :
+ - Fix 4:2:0 bus formats naming
+ - Add separate 36bit and 48bit tables for bus formats documentation
+ - Added 4:2:0 bus config in hdmi_video_sample
+ - Moved dw_hdmi documentation in a "bridge" subdir
+ - Rebase on drm-misc-next at 62c58af32c93
+
+Changes since v2 at [3] :
+ - Rebase on laurent patch "Extract PHY interrupt setup to a function"
+ - Reduce phy operations
+ - Switch the V4L bus formats and encodings instead of custom enum
+
+Changes since v1 at [2] :
+ - Drop patches submitted by laurent
+
+Changes since RFC at [1] :
+ - Regmap fixup for 4bytes register access, tested on RK3288 SoC
+ - Move phy callbacks to phy_ops and move Synopsys PHY calls into default ops
+ - Move HDMI link data into shared header
+ - Move Pixel Encoding enum to shared header
+
+[1] http://lkml.kernel.org/r/1484656294-6140-1-git-send-email-narmstrong@baylibre.com
+[2] http://lkml.kernel.org/r/1485774318-21916-1-git-send-email-narmstrong@baylibre.com
+[3] http://lkml.kernel.org/r/1488468572-31971-1-git-send-email-narmstrong@baylibre.com
+[4] http://lkml.kernel.org/r/1488904944-14285-1-git-send-email-narmstrong@baylibre.com
+[5] http://lkml.kernel.org/r/1490109161-20529-1-git-send-email-narmstrong@baylibre.com
+[6] http://lkml.kernel.org/r/1490864675-17336-1-git-send-email-narmstrong@baylibre.com
+[7] http://lkml.kernel.org/r/1490970319-24981-1-git-send-email-narmstrong@baylibre.com
+
+Laurent Pinchart (1):
+  drm: bridge: dw-hdmi: Extract PHY interrupt setup to a function
+
+Neil Armstrong (5):
+  media: uapi: Add RGB and YUV bus formats for Synopsys HDMI TX
+    Controller
+  documentation: media: Add documentation for new RGB and YUV bus
+    formats
+  drm: bridge: dw-hdmi: Switch to V4L bus format and encodings
+  drm: bridge: dw-hdmi: Add Documentation on supported input formats
+  drm: bridge: dw-hdmi: Move HPD handling to PHY operations
+
+ Documentation/gpu/bridge/dw-hdmi.rst            |  15 +
+ Documentation/gpu/index.rst                     |   1 +
+ Documentation/media/uapi/v4l/subdev-formats.rst | 960 +++++++++++++++++++++++-
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi.c       | 470 ++++++++----
+ include/drm/bridge/dw_hdmi.h                    |  68 ++
+ include/uapi/linux/media-bus-format.h           |  13 +-
+ 6 files changed, 1368 insertions(+), 159 deletions(-)
+ create mode 100644 Documentation/gpu/bridge/dw-hdmi.rst
+
+-- 
+1.9.1
