@@ -1,65 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:40291 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932907AbdDEL7J (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Apr 2017 07:59:09 -0400
-Message-ID: <1491393519.2904.40.camel@pengutronix.de>
-Subject: Re: [PATCH v6 17/39] platform: add video-multiplexer subdevice
- driver
-From: Lucas Stach <l.stach@pengutronix.de>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, mark.rutland@arm.com,
-        andrew-ct.chen@mediatek.com, minghsiu.tsai@mediatek.com,
-        sakari.ailus@linux.intel.com, nick@shmanahar.org,
-        songjun.wu@microchip.com, hverkuil@xs4all.nl,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        robert.jarzmik@free.fr, devel@driverdev.osuosl.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, shuah@kernel.org,
-        linux@armlinux.org.uk, geert@linux-m68k.org,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        kernel@pengutronix.de, arnd@arndb.de, mchehab@kernel.org,
-        bparrot@ti.com, robh+dt@kernel.org, horms+renesas@verge.net.au,
-        tiffany.lin@mediatek.com, linux-arm-kernel@lists.infradead.org,
-        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
-        linux-kernel@vger.kernel.org, jean-christophe.trotin@st.com,
-        p.zabel@pengutronix.de, fabio.estevam@nxp.com, shawnguo@kernel.org,
-        sudipm.mukherjee@gmail.com
-Date: Wed, 05 Apr 2017 13:58:39 +0200
-In-Reply-To: <20170405111857.GA26831@amd>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-         <1490661656-10318-18-git-send-email-steve_longerbeam@mentor.com>
-         <20170405111857.GA26831@amd>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from ns.mm-sol.com ([37.157.136.199]:49212 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751672AbdDCOL2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Apr 2017 10:11:28 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
+        hans.verkuil@cisco.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        robh+dt@kernel.org, mark.rutland@arm.com,
+        devicetree@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v8 1/2] media: i2c/ov5645: add the device tree binding document
+Date: Mon,  3 Apr 2017 17:02:28 +0300
+Message-Id: <1491228148-28505-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, den 05.04.2017, 13:18 +0200 schrieb Pavel Machek:
-> Hi!
-> 
-> > + * video stream multiplexer controlled via gpio or syscon
-> > + *
-> > + * Copyright (C) 2013 Pengutronix, Sascha Hauer <kernel@pengutronix.de>
-> > + * Copyright (C) 2016 Pengutronix, Philipp Zabel <kernel@pengutronix.de>
-> 
-> This is actually quite interesting. Same email address for two
-> people...
-> 
-> Plus, I believe this wants to say that copyright is with Pengutronix,
-> not Sascha and Philipp. In that case you probably want to list
-> copyright and authors separately?
-> 
-Nope, copyright doesn't get transferred to the employer within the rules
-of the German "Urheberrecht", but stays at the original author of the
-code.
-Same email is just to ensure that any requests regarding this code get
-routed to the right people, even if someone leaves the company or is
-temporarily unavailable. kernel@ is a list for the Pengutronix kernel
-team.
+Add the document for ov5645 device tree binding.
 
-Regards,
-Lucas
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ .../devicetree/bindings/media/i2c/ov5645.txt       | 54 ++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5645.txt b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+new file mode 100644
+index 0000000..fd7aec9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+@@ -0,0 +1,54 @@
++* Omnivision 1/4-Inch 5Mp CMOS Digital Image Sensor
++
++The Omnivision OV5645 is a 1/4-Inch CMOS active pixel digital image sensor with
++an active array size of 2592H x 1944V. It is programmable through a serial I2C
++interface.
++
++Required Properties:
++- compatible: Value should be "ovti,ov5645".
++- clocks: Reference to the xclk clock.
++- clock-names: Should be "xclk".
++- clock-frequency: Frequency of the xclk clock.
++- enable-gpios: Chip enable GPIO. Polarity is GPIO_ACTIVE_HIGH. This corresponds
++  to the hardware pin PWDNB which is physically active low.
++- reset-gpios: Chip reset GPIO. Polarity is GPIO_ACTIVE_LOW. This corresponds to
++  the hardware pin RESETB.
++- vdddo-supply: Chip digital IO regulator.
++- vdda-supply: Chip analog regulator.
++- vddd-supply: Chip digital core regulator.
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	&i2c1 {
++		...
++
++		ov5645: ov5645@78 {
++			compatible = "ovti,ov5645";
++			reg = <0x78>;
++
++			enable-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
++			reset-gpios = <&gpio5 20 GPIO_ACTIVE_LOW>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&camera_rear_default>;
++
++			clocks = <&clks 200>;
++			clock-names = "xclk";
++			clock-frequency = <23880000>;
++
++			vdddo-supply = <&camera_dovdd_1v8>;
++			vdda-supply = <&camera_avdd_2v8>;
++			vddd-supply = <&camera_dvdd_1v2>;
++
++			port {
++				ov5645_ep: endpoint {
++					clock-lanes = <1>;
++					data-lanes = <0 2>;
++					remote-endpoint = <&csi0_ep>;
++				};
++			};
++		};
++	};
+-- 
+1.9.1
