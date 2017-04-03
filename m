@@ -1,62 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:34066 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752427AbdDITie (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Apr 2017 15:38:34 -0400
-Received: by mail-wr0-f195.google.com with SMTP id u18so18615244wrc.1
-        for <linux-media@vger.kernel.org>; Sun, 09 Apr 2017 12:38:33 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: aospan@netup.ru, serjk@netup.ru, mchehab@kernel.org,
-        linux-media@vger.kernel.org
-Cc: rjkm@metzlerbros.de
-Subject: [PATCH 02/19] [media] dvb-frontends/cxd2841er: do I2C reads in one go
-Date: Sun,  9 Apr 2017 21:38:11 +0200
-Message-Id: <20170409193828.18458-3-d.scheller.oss@gmail.com>
-In-Reply-To: <20170409193828.18458-1-d.scheller.oss@gmail.com>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:60613 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752417AbdDCKhb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Apr 2017 06:37:31 -0400
+Subject: Re: [PATCH v2 2/8] [media] stm32-dcmi: STM32 DCMI camera interface
+ driver
+To: Hugues Fruchet <hugues.fruchet@st.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1490887667-8880-1-git-send-email-hugues.fruchet@st.com>
+ <1490887667-8880-3-git-send-email-hugues.fruchet@st.com>
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <06d75af6-1d2e-8cfd-e3f6-96d36ce014f2@xs4all.nl>
+Date: Mon, 3 Apr 2017 12:37:23 +0200
+MIME-Version: 1.0
+In-Reply-To: <1490887667-8880-3-git-send-email-hugues.fruchet@st.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On 03/30/2017 05:27 PM, Hugues Fruchet wrote:
+> This V4L2 subdev driver enables Digital Camera Memory Interface (DCMI)
+> of STMicroelectronics STM32 SoC series.
+> 
+> Signed-off-by: Yannick Fertre <yannick.fertre@st.com>
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>  drivers/media/platform/Kconfig            |   12 +
+>  drivers/media/platform/Makefile           |    2 +
+>  drivers/media/platform/stm32/Makefile     |    1 +
+>  drivers/media/platform/stm32/stm32-dcmi.c | 1417 +++++++++++++++++++++++++++++
+>  4 files changed, 1432 insertions(+)
+>  create mode 100644 drivers/media/platform/stm32/Makefile
+>  create mode 100644 drivers/media/platform/stm32/stm32-dcmi.c
 
-Doing the I2C read operation with two calls to i2c_transfer() causes the
-exclusive I2C bus lock of the underlying adapter to be released. While this
-isn't an issue if only one demodulator is attached to the bus, having two
-or even more causes troubles in that concurrent accesses to the different
-demods will cause all kinds of issues due to wrong data being returned on
-read operations (for example, the TS config register will be set wrong).
-This changes the read_regs() function to do the operation in one go (by
-calling i2c_transfer with the whole msg list instead of one by one) to not
-loose the I2C bus lock, fixing all sorts of random runtime failures.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/cxd2841er.c | 13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+Looks good!
 
-diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-index 60d85ce..525d006 100644
---- a/drivers/media/dvb-frontends/cxd2841er.c
-+++ b/drivers/media/dvb-frontends/cxd2841er.c
-@@ -282,17 +282,8 @@ static int cxd2841er_read_regs(struct cxd2841er_priv *priv,
- 		}
- 	};
- 
--	ret = i2c_transfer(priv->i2c, &msg[0], 1);
--	if (ret >= 0 && ret != 1)
--		ret = -EIO;
--	if (ret < 0) {
--		dev_warn(&priv->i2c->dev,
--			"%s: i2c rw failed=%d addr=%02x reg=%02x\n",
--			KBUILD_MODNAME, ret, i2c_addr, reg);
--		return ret;
--	}
--	ret = i2c_transfer(priv->i2c, &msg[1], 1);
--	if (ret >= 0 && ret != 1)
-+	ret = i2c_transfer(priv->i2c, msg, 2);
-+	if (ret >= 0 && ret != 2)
- 		ret = -EIO;
- 	if (ret < 0) {
- 		dev_warn(&priv->i2c->dev,
--- 
-2.10.2
+Regards,
+
+	Hans
