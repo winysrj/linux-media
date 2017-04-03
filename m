@@ -1,100 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44956 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755214AbdDENOW (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:56291 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752258AbdDCJsE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Apr 2017 09:14:22 -0400
-Date: Wed, 5 Apr 2017 16:13:46 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ricky Liang <jcliang@chromium.org>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Rob Clark <robdclark@gmail.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Laura Abbott <labbott@redhat.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [RFC, v2, 10/11] vb2: dma-contig: Let drivers decide DMA attrs
- of MMAP and USERPTR bufs
-Message-ID: <20170405131345.GA3265@valkosipuli.retiisi.org.uk>
-References: <20161216012425.11179-11-laurent.pinchart+renesas@ideasonboard.com>
- <CAAJzSMep+qccM+UV+T-wgpqTNPYD3yHWqpjJbhH5v4NLxjqZ=w@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAJzSMep+qccM+UV+T-wgpqTNPYD3yHWqpjJbhH5v4NLxjqZ=w@mail.gmail.com>
+        Mon, 3 Apr 2017 05:48:04 -0400
+Message-ID: <1491212880.2378.27.camel@pengutronix.de>
+Subject: Re: [RFC 01/10] [media] vb2: add explicit fence user API
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Date: Mon, 03 Apr 2017 11:48:00 +0200
+In-Reply-To: <20170313192035.29859-2-gustavo@padovan.org>
+References: <20170313192035.29859-1-gustavo@padovan.org>
+         <20170313192035.29859-2-gustavo@padovan.org>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricky,
+Hi Gustavo,
 
-On Mon, Dec 26, 2016 at 03:58:07PM +0800, Ricky Liang wrote:
-> Hi Laurent,
+On Mon, 2017-03-13 at 16:20 -0300, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
 > 
-> On Fri, Dec 16, 2016 at 9:24 AM, Laurent Pinchart
-> <laurent.pinchart+renesas@ideasonboard.com> wrote:
-> > From: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >
-> > The desirable DMA attributes are not generic for all devices using
-> > Videobuf2 contiguous DMA ops. Let the drivers decide.
-> >
-> > This change also results in MMAP buffers always having an sg_table
-> > (dma_sgt field).
-> >
-> > Also arrange the header files alphabetically.
-> >
-> > As a result, also the DMA-BUF exporter must provide ops for synchronising
-> > the cache. This adds begin_cpu_access and end_cpu_access ops to
-> > vb2_dc_dmabuf_ops.
-> >
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/media/v4l2-core/videobuf2-dma-contig.c | 66 ++++++++++++++++++++++----
-> >  1 file changed, 56 insertions(+), 10 deletions(-)
-> >
-> > diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> > index d503647ea522..a0e88ad93f07 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> > @@ -11,11 +11,11 @@
-> >   */
-> >
-> >  #include <linux/dma-buf.h>
-> > +#include <linux/dma-mapping.h>
-> >  #include <linux/module.h>
-> >  #include <linux/scatterlist.h>
-> >  #include <linux/sched.h>
-> >  #include <linux/slab.h>
-> > -#include <linux/dma-mapping.h>
-> >
-> >  #include <media/videobuf2-v4l2.h>
-> >  #include <media/videobuf2-dma-contig.h>
-> > @@ -115,8 +115,11 @@ static void vb2_dc_prepare(void *buf_priv)
-> >         struct vb2_dc_buf *buf = buf_priv;
-> >         struct sg_table *sgt = buf->dma_sgt;
-> >
-> > -       /* DMABUF exporter will flush the cache for us */
-> > -       if (!buf->vec)
-> > +       /*
-> > +        * DMABUF exporter will flush the cache for us; only USERPTR
-> > +        * and MMAP buffers with non-coherent memory will be flushed.
-> > +        */
-> > +       if (!(buf->attrs & DMA_ATTR_NON_CONSISTENT))
+> Turn the reserved2 field into fence_fd that we will use to send
+> an in-fence to the kernel return an out-fence from the kernel to
+> userspace.
 > 
-> Should here be "if (!buf->vec || !(buf->attrs & DMA_ATTR_NON_CONSISTENT))" ?
+> Two new flags were added, V4L2_BUF_FLAG_IN_FENCE and
+> V4L2_BUF_FLAG_OUT_FENCE. They should be used when setting in-fence and
+> out-fence, respectively.
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 ++--
+>  drivers/media/v4l2-core/videobuf2-v4l2.c      | 2 +-
+>  include/uapi/linux/videodev2.h                | 6 ++++--
+>  3 files changed, 7 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index eac9565..0a522cb 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -348,7 +348,7 @@ struct v4l2_buffer32 {
+>  		__s32		fd;
+>  	} m;
+>  	__u32			length;
+> -	__u32			reserved2;
+> +	__s32			fence_fd;
+>  	__u32			reserved;
+>  };
+>  
+> @@ -511,7 +511,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+>  		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+>  		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+>  		put_user(kp->sequence, &up->sequence) ||
+> -		put_user(kp->reserved2, &up->reserved2) ||
+> +		put_user(kp->fence_fd, &up->fence_fd) ||
+>  		put_user(kp->reserved, &up->reserved) ||
+>  		put_user(kp->length, &up->length))
+>  			return -EFAULT;
+> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> index 3529849..d23c1bf 100644
+> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> @@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+>  	b->timestamp = ns_to_timeval(vb->timestamp);
+>  	b->timecode = vbuf->timecode;
+>  	b->sequence = vbuf->sequence;
+> -	b->reserved2 = 0;
+> +	b->fence_fd = -1;
+>  	b->reserved = 0;
+>  
+>  	if (q->is_multiplanar) {
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 45184a2..3b6cfa6 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -911,7 +911,7 @@ struct v4l2_buffer {
+>  		__s32		fd;
+>  	} m;
+>  	__u32			length;
+> -	__u32			reserved2;
+> +	__s32			fence_fd;
+>  	__u32			reserved;
+>  };
+>  
+> @@ -946,8 +946,10 @@ struct v4l2_buffer {
+>  #define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
+>  #define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
+>  #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+> +#define V4L2_BUF_FLAG_IN_FENCE			0x00100000
+> +#define V4L2_BUF_FLAG_OUT_FENCE			0x00200000
+>  /* mem2mem encoder/decoder */
+> -#define V4L2_BUF_FLAG_LAST			0x00100000
+> +#define V4L2_BUF_FLAG_LAST			0x00400000
 
-The patch was originally using struct dma_attrs and I believe rebasing
-changed how it it works. Thank you for pointing that out.
+This is not just a sentinel, it is a meaningful flag that must not be
+changed. It indicates the last buffer produced by a hardware codec.
 
-Using buf->vec for the purpose alone is not enough since also MMAP buffers
-may require cache synchronisation from this patch onwards.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+regards
+Philipp
