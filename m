@@ -1,44 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:43144 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751350AbdDNKL0 (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:36408 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751842AbdDCMMm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Apr 2017 06:11:26 -0400
-Date: Fri, 14 Apr 2017 12:11:14 +0200
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Brian Starkey <brian.starkey@arm.com>
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        liviu.dudau@arm.com, laurent.pinchart@ideasonboard.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/6] drm: writeback: Add out-fences for writeback
- connectors
-Message-ID: <20170414121114.6e6eee7a@bbrezillon>
-In-Reply-To: <1480092544-1725-3-git-send-email-brian.starkey@arm.com>
-References: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
-        <1480092544-1725-3-git-send-email-brian.starkey@arm.com>
+        Mon, 3 Apr 2017 08:12:42 -0400
+Subject: Re: [Patch v3 07/11] Documentation: v4l: Documentation for HEVC v4l2
+ definition
+To: Smitha T Murthy <smitha.t@samsung.com>
+References: <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170331090444epcas5p43f44be426728ea22d0b13f64f5cf05bd@epcas5p4.samsung.com>
+ <1490951200-32070-8-git-send-email-smitha.t@samsung.com>
+ <3bad0b4f-0f0e-c67a-f9f7-135f5b8411c4@xs4all.nl>
+ <1491221557.8493.98.camel@smitha-fedora>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
+        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
+        m.szyprowski@samsung.com, s.nawrocki@samsung.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9a2018ba-7080-4dfc-24a5-c83384bd611d@xs4all.nl>
+Date: Mon, 3 Apr 2017 14:12:36 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1491221557.8493.98.camel@smitha-fedora>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 25 Nov 2016 16:49:00 +0000
-Brian Starkey <brian.starkey@arm.com> wrote:
+On 04/03/2017 02:12 PM, Smitha T Murthy wrote:
+> On Mon, 2017-04-03 at 10:10 +0200, Hans Verkuil wrote:
+>> On 03/31/2017 11:06 AM, Smitha T Murthy wrote:
+>>> Add V4L2 definition for HEVC compressed format
+>>>
+>>> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+>>> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+>>> ---
+>>>  Documentation/media/uapi/v4l/pixfmt-013.rst | 5 +++++
+>>>  1 file changed, 5 insertions(+)
+>>>
+>>> diff --git a/Documentation/media/uapi/v4l/pixfmt-013.rst b/Documentation/media/uapi/v4l/pixfmt-013.rst
+>>> index 728d7ed..ff4cac2 100644
+>>> --- a/Documentation/media/uapi/v4l/pixfmt-013.rst
+>>> +++ b/Documentation/media/uapi/v4l/pixfmt-013.rst
+>>> @@ -90,3 +90,8 @@ Compressed Formats
+>>>        - ``V4L2_PIX_FMT_VP9``
+>>>        - 'VP90'
+>>>        - VP9 video elementary stream.
+>>> +    * .. _V4L2-PIX-FMT-HEVC:
+>>> +
+>>> +      - ``V4L2_PIX_FMT_HEVC``
+>>> +      - 'HEVC'
+>>> +      - HEVC video elementary stream.
+>>>
+>>
+>> You should mention here that HEVC == H.265.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+> Do you mean change to "HEVC/H.265 video elementary stream" ?
 
-> Add the OUT_FENCE_PTR property to writeback connectors, to enable
-> userspace to get a fence which will signal once the writeback is
-> complete. It is not allowed to request an out-fence without a
-> framebuffer attached to the connector.
-> 
-> A timeline is added to drm_writeback_connector for use by the writeback
-> out-fences.
-> 
-> In the case of a commit failure or DRM_MODE_ATOMIC_TEST_ONLY, the fence
-> is set to -1.
-> 
-> Changes from v2:
->  - Rebase onto Gustavo Padovan's v9 explicit sync series
->  - Change out_fence_ptr type to s32 __user *
+Yes, that should do it.
 
-Don't know what happened, but I still see s32 __user * types in this
-patch (I had to patch it to make in work on top of 4.11-rc1).
+Regards,
+
+	Hans
+
+> 
+> Thank you for the review.
+> Regards,
+> Smitha
+>>
+> 
+> 
