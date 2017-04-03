@@ -1,569 +1,570 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:49467 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753472AbdDGKBn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Apr 2017 06:01:43 -0400
-Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0OO102NO5AISN7D0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Fri, 07 Apr 2017 19:01:40 +0900 (KST)
-Subject: Re: [Patch v4 12/12] Documention: v4l: Documentation for HEVC CIDs
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com
-In-reply-to: <f68d8bd2-a2b4-7253-0a48-6c3f509e66cd@samsung.com>
-Date: Fri, 07 Apr 2017 15:33:29 +0530
-Message-id: <1491559409.15698.1237.camel@smitha-fedora>
-MIME-version: 1.0
-Content-transfer-encoding: 7bit
-Content-type: text/plain; charset=utf-8
-References: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
- <CGME20170406061027epcas5p2628e0a8e0fd76e2e267fad3ea1209f65@epcas5p2.samsung.com>
- <1491459105-16641-13-git-send-email-smitha.t@samsung.com>
- <f68d8bd2-a2b4-7253-0a48-6c3f509e66cd@samsung.com>
+Received: from mail-wr0-f181.google.com ([209.85.128.181]:33149 "EHLO
+        mail-wr0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753536AbdDCOmv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 10:42:51 -0400
+Received: by mail-wr0-f181.google.com with SMTP id w43so171972890wrb.0
+        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 07:42:50 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
+        mchehab@kernel.org
+Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
+        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com
+Subject: [PATCH v6 4/6] drm: bridge: dw-hdmi: Switch to V4L bus format and encodings
+Date: Mon,  3 Apr 2017 16:42:36 +0200
+Message-Id: <1491230558-10804-5-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1491230558-10804-1-git-send-email-narmstrong@baylibre.com>
+References: <1491230558-10804-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2017-04-06 at 16:47 +0200, Sylwester Nawrocki wrote:
-> On 04/06/2017 08:11 AM, Smitha T Murthy wrote:
-> > Added V4l2 controls for HEVC encoder
-> 
-> s/HEVC/H.265/HEVC ?
-> 
-Ok I will change it.
+Some display pipelines can only provide non-RBG input pixels to the HDMI TX
+Controller, this patch takes the pixel format from the plat_data if provided.
 
-> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> > ---
-> >  Documentation/media/uapi/v4l/extended-controls.rst | 391 +++++++++++++++++++++
-> >  1 file changed, 391 insertions(+)
-> >
-> > diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-> > index abb1057..85a668d 100644
-> > --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> > +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> > @@ -1960,6 +1960,397 @@ enum v4l2_vp8_golden_frame_sel -
-> >      1, 2 and 3 corresponding to encoder profiles 0, 1, 2 and 3.
-> >
-> >
-> > +HEVC Control Reference
-> 
-> Perhaps "High Efficiency Video Coding (HEVC/H.265) Control Reference" ?
-> 
-I will change it.
+Reviewed-by: Jose Abreu <joabreu@synopsys.com>
+Reviewed-by: Archit Taneja <architt@codeaurora.org>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 326 +++++++++++++++++++++---------
+ include/drm/bridge/dw_hdmi.h              |  63 ++++++
+ 2 files changed, 294 insertions(+), 95 deletions(-)
 
-> > +---------------------
-> > +
-> > +The HEVC controls include controls for encoding parameters of HEVC video
-> > +codec.
-> 
-> s/'HEVC'/'HEVC/H.265' ?
-> 
-Ok I will change it.
-> > +
-> > +
-> > +.. _hevc-control-id:
-> > +
-> > +HEVC Control IDs
-> 
-> s/'HEVC'/'HEVC/H.265' ?
-> 
-I will change it.
-
-> > +^^^^^^^^^^^^^^^
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP``
-> > +    Minimum quantization parameter for HEVC.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP``
-> > +    Maximum quantization parameter for HEVC.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP``
-> > +    Quantization parameter for an I frame for HEVC.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP``
-> > +    Quantization parameter for a P frame for HEVC.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP``
-> > +    Quantization parameter for a B frame for HEVC.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_QP``
-> > +    HIERARCHICAL_QP allows host to specify the quantization parameter values
-> > +    for each temporal layer through HIERARCHICAL_QP_LAYER. This is valid only
-> > +    if HIERARCHICAL_CODING_LAYER is greater than 1.
-> > +
-> > +.. _v4l2-hevc-hierarchical-coding-type:
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE``
-> > +    (enum)
-> > +
-> > +enum v4l2_mpeg_video_hevc_hier_coding_type -
-> > +    Selects the hierarchical coding type for encoding. Possible values are:
-> > +
-> > +.. raw:: latex
-> > +
-> > +    \begin{adjustbox}{width=\columnwidth}
-> > +
-> > +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> > +
-> > +.. flat-table::
-> > +    :header-rows:  0
-> > +    :stub-columns: 0
-> > +
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B``
-> > +      - Use the B frame for hierarchical coding.
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P``
-> > +      - Use the P frame for hierarchical coding.
-> > +
-> > +.. raw:: latex
-> > +
-> > +    \end{adjustbox}
-> > +
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER``
-> > +    Selects the hierarchical coding layer. In normal encoding
-> > +    (non-hierarchial coding), it should be zero. Possible values are 0 ~ 6.
-> > +    0 indicates HIERARCHICAL CODING LAYER 0, 1 indicates HIERARCHICAL CODING
-> > +    LAYER 1 and so on.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_QP``
-> > +    Indicates the hierarchical coding layer quantization parameter.
-> > +    For HEVC it can have a value of 0-51. Hence in the control value passed
-> > +    the LSB 16 bits will indicate the quantization parameter. The MSB 16 bit
-> > +    will pass the layer(0-6) it is meant for.
-> > +
-> > +.. _v4l2-hevc-profile:
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_PROFILE``
-> > +    (enum)
-> > +
-> > +enum v4l2_mpeg_video_hevc_profile -
-> > +    Select the desired profile for HEVC encoder.
-> > +
-> > +.. raw:: latex
-> > +
-> > +    \begin{adjustbox}{width=\columnwidth}
-> > +
-> > +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> > +
-> > +.. flat-table::
-> > +    :header-rows:  0
-> > +    :stub-columns: 0
-> > +
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN``
-> > +      - Main profile.
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE``
-> > +      - Main still picture profile.
-> > +
-> > +.. raw:: latex
-> > +
-> > +    \end{adjustbox}
-> > +
-> > +
-> > +.. _v4l2-hevc-level:
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_LEVEL``
-> > +    (enum)
-> > +
-> > +enum v4l2_mpeg_video_hevc_level -
-> > +    Select the desired level for HEVC encoder.
-> > +
-> > +.. raw:: latex
-> > +
-> > +    \begin{adjustbox}{width=\columnwidth}
-> > +
-> > +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> > +
-> > +.. flat-table::
-> > +       :header-rows:  0
-> > +    :stub-columns: 0
-> > +
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_1``
-> > +      - Level 1.0
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_2``
-> > +      - Level 2.0
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_2_1``
-> > +      - Level 2.1
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_3``
-> > +      - Level 3.0
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_3_1``
-> > +      - Level 3.1
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_4``
-> > +      - Level 4.0
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1``
-> > +      - Level 4.1
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5``
-> > +      - Level 5.0
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1``
-> > +      - Level 5.1
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5_2``
-> > +      - Level 5.2
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6``
-> > +      - Level 6.0
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6_1``
-> > +      - Level 6.1
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2``
-> > +      - Level 6.2
-> > +
-> > +.. raw:: latex
-> > +
-> > +    \end{adjustbox}
-> > +
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION``
-> > +    Indicates the number of evenly spaced subintervals, called ticks, within
-> > +    one modulo time. One modulo time represents the fixed interval of one
-> > +    second. This is a 16bit unsigned integer and has a maximum value upto
-> 
-> s/upto/up to/
-> 
-I will change it.
-
-> > +    0xffff.
-> > +
-> > +.. _v4l2-hevc-profile:
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG``
-> > +    (enum)
-> > +
-> > +enum v4l2_mpeg_video_hevc_tier_flag -
-> > +    TIER_FLAG specifies tier information of the HEVC encoded picture. Tier were
-> > +    made to deal with applications that differ in terms of maximum bit rate.
-> > +    Setting the flag to 0 selects HEVC tier_flag as Main tier and setting this
-> > +    flag to 1 indicates High tier. High tier is for very demanding applications
-> 
-> Demanding in terms of bit rate, i.e. requiring high bit rate? It's a bit
-> unclear here.
-> 
-Yes correct demanding in terms of requiring high bit rate. I will make
-it more clear.
-
-> > +.. raw:: latex
-> > +
-> > +    \begin{adjustbox}{width=\columnwidth}
-> > +
-> > +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> > +
-> > +.. flat-table::
-> > +    :header-rows:  0
-> > +    :stub-columns: 0
-> > +
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_TIER_MAIN``
-> > +      - Main tier.
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_TIER_HIGH``
-> > +      - High tier.
-> > +
-> > +.. raw:: latex
-> > +
-> > +    \end{adjustbox}
-> > +
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH``
-> > +    Selects HEVC maximum coding unit depth.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_LF``
-> > +    Indicates loop filtering. Control ID 0 indicates loop filtering
-> > +    is enabled and when set to 1 indicates no filter.
-> 
-> "Setting this control to 0 enables loop filtering, setting this control
-> to 1 disables loop filtering." ?
-> 
-> Couldn't the meaning be inverted, so setting the control to 0 disables
-> the loop filtering?
-> 
->From register point of view, this control value needs be 0 to enable
-loop filtering.
-
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY``
-> > +    Selects whether to apply the loop filter across the slice boundary or not.
-> > +    If the value is 0, loop filter will not be applied across the slice boundary.
-> > +    If the value is 1, loop filter will be applied across the slice boundary.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2``
-> > +    Selects HEVC loop filter beta offset. The valid range is [-6, +6].
-> 
-> > +    This could be a negative value in the 2's complement expression.
-> 
-> I don't think second sentence is needed.
-> 
-I will remove it.
-
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2``
-> > +    Selects HEVC loop filter tc offset. The valid range is [-6, +6].
-> 
-> > +    This could be a negative value in the 2's complement expression.
-> 
-> Ditto.
-> 
-I will remove it.
-
-> > +.. _v4l2-hevc-refresh-type:
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE``
-> > +    (enum)
-> > +
-> > +enum v4l2_mpeg_video_hevc_hier_refresh_type -
-> > +    Selects refresh type for HEVC encoder.
-> > +    Host has to specify the period into
-> > +    HEVC_REFRESH_PERIOD.
-> > +
-> > +.. raw:: latex
-> > +
-> > +    \begin{adjustbox}{width=\columnwidth}
-> > +
-> > +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> > +
-> > +.. flat-table::
-> > +    :header-rows:  0
-> > +    :stub-columns: 0
-> > +
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_NONE``
-> > +      - Use the B frame for hierarchical coding.
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_CRA``
-> > +      - Use CRA(Clean Random Access Unit) picture encoding.
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_IDR``
-> > +      - Use IDR picture encoding.
-> > +
-> > +.. raw:: latex
-> > +
-> > +    \end{adjustbox}
-> > +
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD``
-> > +    Selects the refresh period for HEVC encoder.
-> > +    This specifies the number of I picture between two CRA/IDR pictures.
-> > +    This is valid only if REFRESH_TYPE is not 0.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU``
-> > +    Indicates HEVC lossless encoding. Setting it to 0 disables lossless
-> > +    encoding. Setting it to 1 enables lossless encoding.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED``
-> > +    Indicates constant intra prediction for HEVC encoder. Specifies the
-> > +    constrained intra prediction in which intra largest coding unit(LCU)
-> > +    prediction is performed by using residual data and decoded samples of
-> > +    neighboring intra LCU only. Setting it to 1 enables this control ID and
-> > +    setting it to 0 disables the control ID.
-> 
-> Could you avoid "disables the control ID", "enables control ID" phrases?
-> And instead describe indirectly what behaviour corresponds to each value of the 
-> control? So the last sentence becomes something like:
-> 
-> "Setting the control to 0 disables ..., setting the control to 1 enables..."
-> 
-Yes I will add sentences describing the behaviour for all the controls.
-
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT``
-> > +    Indicates wavefront parallel processing for HEVC encoder. Setting it to 0
-> > +    disables the control ID and setting it to 1 enables the wavefront parallel
-> > +    processing.
-> 
-> Ditto.
-> 
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_SIGN_DATA_HIDING``
-> > +    Setting it to 1 indicates sign data hiding for HEVC encoder. Setting it to
-> > +    0 disables the control ID.
-> 
-> Ditto.
-> 
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB``
-> > +    Setting the control ID to 1 enables general picture buffers for HEVC
-> 
-> s/control ID/control/
-> 
-I will change it.
-
-> > +    encoder.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID``
-> > +    Indicates temporal identifier specified as temporal_id in
-> > +    nal_unit_header_svc_extension() for HEVC encoder which is enabled by
-> 
-> What is nal_unit_header_svc_extension(), where it comes from?
-> 
-Sorry I had to add nal_unit_header() instead of
-nal_unit_header_svc_extension() as specified in the H.265 codec
-specification document.
-
-> > +    setting the control ID to 1.
-> 
-> s/control ID/control/
-> 
-I will change it.
-
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING``
-> > +    Indicates bi-linear interpolation is conditionally used in the intra
-> > +    prediction filtering process in the CVS when set to 1. Indicates bi-linear
-> > +    interpolation is not used in the CVS when set to 0.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1``
-> > +    Indicates max number of merge candidate motion vectors.
-> 
-> s/max/maximum/ ?
-> 
-I will change it.
-
-> > +    Values are from zero to four.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT``
-> > +    Indicates intra prediction unit split for HEVC Encoder. Setting it to 1
-> > +    disables the feature. Setting it to 1 enables the feature.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION``
-> > +    Indicates temporal motion vector prediction for HEVC encoder. Setting it to
-> > +    0 enables the prediction. Setting it to 1 disables the prediction.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE``
-> > +    Specifies if HEVC generates a stream with a size of length field instead of
-> > +    start code pattern. The size of the length field is configurable among 1,2
-> 
-> s/the length/length/
-> 
-I will correct it.
-
-> > +    or 4 thorugh the SIZE_OF_LENGTH_FIELD. It is not applied at SEQ_START.
-> 
-> s/thorugh/through/
-> s/SIZE_OF_LENGTH_FIELD/V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD control.
-> I would also drop "among 1,2 or 4" as this information belongs to the
-> V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD control's description.
-> 
-Ok I will correct it. 
-
-> > +    Setting it to 0 disables the control ID. Setting it to 1 will enables
-> > +    the control ID.
-> 
-> Again, please specify explicitly what behaviour corresponds to each value
-> of the control.
-> 
-Ok I will add behaviour to describe the values.
-
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CR``
-> > +    Indicates the quantization parameter CR index.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CB``
-> > +    Indicates the quantization parameter CB index.
-> > +
-> > +.. _v4l2-hevc-size-of-length-field:
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD``
-> > +(enum)
-> > +
-> > +enum v4l2_mpeg_video_hevc_size_of_length_field -
-> > +    Indicates the size of length field.
-> > +    This is valid when encoding WITHOUT_STARTCODE_ENABLE is enabled.
-> > +
-> > +.. raw:: latex
-> > +
-> > +    \begin{adjustbox}{width=\columnwidth}
-> > +
-> > +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> > +
-> > +.. flat-table::
-> > +       :header-rows:  0
-> > +    :stub-columns: 0
-> > +
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_0``
-> > +      - Generate start code pattern (Normal).
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_1``
-> > +      - Generate size of length field instead of start code pattern and length is 1.
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_2``
-> > +      - Generate size of length field instead of start code pattern and length is 2.
-> > +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_4``
-> > +      - Generate size of length field instead of start code pattern and length is 4.
-> > +
-> > +.. raw:: latex
-> > +
-> > +    \end{adjustbox}
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER0_BITRATE``
-> > +    Indicates bit rate for hierarchical coding layer 0 for HEVC encoder.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER1_BITRATE``
-> > +    Indicates bit rate for hierarchical coding layer 1 for HEVC encoder.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER2_BITRATE``
-> > +    Indicates bit rate for hierarchical coding layer 2 for HEVC encoder.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER3_BITRATE``
-> > +    Indicates bit rate for hierarchical coding layer 3 for HEVC encoder.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER4_BITRATE``
-> > +    Indicates bit rate for hierarchical coding layer 4 for HEVC encoder.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER5_BITRATE``
-> > +    Indicates bit rate for hierarchical coding layer 5 for HEVC encoder.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER6_BITRATE``
-> > +    Indicates bit rate for hierarchical coding layer 6 for HEVC encoder.
-> > +
-> > +
-> > +MFC 10.10 MPEG Controls
-> > +-----------------------
-> > +
-> > +The following MPEG class controls deal with MPEG decoding and encoding
-> > +settings that are specific to the Multi Format Codec 10.10 device present
-> > +in the S5P family of SoCs by Samsung.
-> 
-> "S5P and Exynos" ?
-> 
-Ok I will add Exynos too.
-
-> > +
-> > +.. _mfc1010-control-id:
-> > +
-> > +MFC 10.10 Control IDs
-> > +^^^^^^^^^^^^^^^^^^^^^
-> > +
-> > +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES``
-> > +    Selects number of P reference picture required for HEVC encoder.
-> 
-> s/picture/pictures
-> or s/picture/frames ?
-> 
-I will change it.
-
-> > +    P-Frame can use 1 or 2 frames for reference.
-> > +
-> > +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_ADAPTIVE_RC_DARK``
-> > +    Indicates HEVC dark region adaptive rate control.
-> > +
-> > +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_ADAPTIVE_RC_SMOOTH``
-> > +    Indicates HEVC smooth region adaptive rate control.
-> > +
-> > +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_ADAPTIVE_RC_STATIC``
-> > +    Indicates HEVC static region adaptive rate control.
-> > +
-> > +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_ADAPTIVE_RC_ACTIVITY``
-> > +    Indicates HEVC activity region adaptive rate control.
-> 
-> For the above controls it is not clear if these are boolean controls
-> and which value corresponds to what behaviour.
-> 
-I will add the value and corresponding behaviour.
-
-> > +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR``
-> > +    Indicates whether to generate SPS and PPS at every IDR. Setting it to 0
-> > +    disables it and setting it to one enables the feature.
-> 
-> "Setting the control to 0 disables generating SPS, PPS at every IDR,
->   setting the control to 1 enables generating SPS, PPS at every IDR."
-> 
-> 
-Ok I will change the controls description as above.
-
-> How about using MFC10 instead of MFC1010 for the controls IDs?
-> 
-There are various version of MFC10 like MFCv10.0, MFC v10.10, MFCv10.11,
-MFCv10.20. I will check if these controls are specific to MFCv10.10, if
-not I will change it to MFC10.
-
-Thank you for the review.
-
-Regards,
-Smitha
+diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+index ff1fae3..16d5fff3 100644
+--- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
++++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+@@ -30,18 +30,15 @@
+ #include <drm/drm_encoder_slave.h>
+ #include <drm/bridge/dw_hdmi.h>
+ 
++#include <uapi/linux/media-bus-format.h>
++#include <uapi/linux/videodev2.h>
++
+ #include "dw-hdmi.h"
+ #include "dw-hdmi-audio.h"
+ 
+ #define DDC_SEGMENT_ADDR	0x30
+ #define HDMI_EDID_LEN		512
+ 
+-#define RGB			0
+-#define YCBCR444		1
+-#define YCBCR422_16BITS		2
+-#define YCBCR422_8BITS		3
+-#define XVYCC444		4
+-
+ enum hdmi_datamap {
+ 	RGB444_8B = 0x01,
+ 	RGB444_10B = 0x03,
+@@ -95,10 +92,10 @@ struct hdmi_vmode {
+ };
+ 
+ struct hdmi_data_info {
+-	unsigned int enc_in_format;
+-	unsigned int enc_out_format;
+-	unsigned int enc_color_depth;
+-	unsigned int colorimetry;
++	unsigned int enc_in_bus_format;
++	unsigned int enc_out_bus_format;
++	unsigned int enc_in_encoding;
++	unsigned int enc_out_encoding;
+ 	unsigned int pix_repet_factor;
+ 	unsigned int hdcp_enable;
+ 	struct hdmi_vmode video_mode;
+@@ -567,6 +564,92 @@ void dw_hdmi_audio_disable(struct dw_hdmi *hdmi)
+ }
+ EXPORT_SYMBOL_GPL(dw_hdmi_audio_disable);
+ 
++static bool hdmi_bus_fmt_is_rgb(unsigned int bus_format)
++{
++	switch (bus_format) {
++	case MEDIA_BUS_FMT_RGB888_1X24:
++	case MEDIA_BUS_FMT_RGB101010_1X30:
++	case MEDIA_BUS_FMT_RGB121212_1X36:
++	case MEDIA_BUS_FMT_RGB161616_1X48:
++		return true;
++
++	default:
++		return false;
++	}
++}
++
++static bool hdmi_bus_fmt_is_yuv444(unsigned int bus_format)
++{
++	switch (bus_format) {
++	case MEDIA_BUS_FMT_YUV8_1X24:
++	case MEDIA_BUS_FMT_YUV10_1X30:
++	case MEDIA_BUS_FMT_YUV12_1X36:
++	case MEDIA_BUS_FMT_YUV16_1X48:
++		return true;
++
++	default:
++		return false;
++	}
++}
++
++static bool hdmi_bus_fmt_is_yuv422(unsigned int bus_format)
++{
++	switch (bus_format) {
++	case MEDIA_BUS_FMT_UYVY8_1X16:
++	case MEDIA_BUS_FMT_UYVY10_1X20:
++	case MEDIA_BUS_FMT_UYVY12_1X24:
++		return true;
++
++	default:
++		return false;
++	}
++}
++
++static bool hdmi_bus_fmt_is_yuv420(unsigned int bus_format)
++{
++	switch (bus_format) {
++	case MEDIA_BUS_FMT_UYYVYY8_0_5X24:
++	case MEDIA_BUS_FMT_UYYVYY10_0_5X30:
++	case MEDIA_BUS_FMT_UYYVYY12_0_5X36:
++	case MEDIA_BUS_FMT_UYYVYY16_0_5X48:
++		return true;
++
++	default:
++		return false;
++	}
++}
++
++static int hdmi_bus_fmt_color_depth(unsigned int bus_format)
++{
++	switch (bus_format) {
++	case MEDIA_BUS_FMT_RGB888_1X24:
++	case MEDIA_BUS_FMT_YUV8_1X24:
++	case MEDIA_BUS_FMT_UYVY8_1X16:
++	case MEDIA_BUS_FMT_UYYVYY8_0_5X24:
++		return 8;
++
++	case MEDIA_BUS_FMT_RGB101010_1X30:
++	case MEDIA_BUS_FMT_YUV10_1X30:
++	case MEDIA_BUS_FMT_UYVY10_1X20:
++	case MEDIA_BUS_FMT_UYYVYY10_0_5X30:
++		return 10;
++
++	case MEDIA_BUS_FMT_RGB121212_1X36:
++	case MEDIA_BUS_FMT_YUV12_1X36:
++	case MEDIA_BUS_FMT_UYVY12_1X24:
++	case MEDIA_BUS_FMT_UYYVYY12_0_5X36:
++		return 12;
++
++	case MEDIA_BUS_FMT_RGB161616_1X48:
++	case MEDIA_BUS_FMT_YUV16_1X48:
++	case MEDIA_BUS_FMT_UYYVYY16_0_5X48:
++		return 16;
++
++	default:
++		return 0;
++	}
++}
++
+ /*
+  * this submodule is responsible for the video data synchronization.
+  * for example, for RGB 4:4:4 input, the data map is defined as
+@@ -579,37 +662,49 @@ static void hdmi_video_sample(struct dw_hdmi *hdmi)
+ 	int color_format = 0;
+ 	u8 val;
+ 
+-	if (hdmi->hdmi_data.enc_in_format == RGB) {
+-		if (hdmi->hdmi_data.enc_color_depth == 8)
+-			color_format = 0x01;
+-		else if (hdmi->hdmi_data.enc_color_depth == 10)
+-			color_format = 0x03;
+-		else if (hdmi->hdmi_data.enc_color_depth == 12)
+-			color_format = 0x05;
+-		else if (hdmi->hdmi_data.enc_color_depth == 16)
+-			color_format = 0x07;
+-		else
+-			return;
+-	} else if (hdmi->hdmi_data.enc_in_format == YCBCR444) {
+-		if (hdmi->hdmi_data.enc_color_depth == 8)
+-			color_format = 0x09;
+-		else if (hdmi->hdmi_data.enc_color_depth == 10)
+-			color_format = 0x0B;
+-		else if (hdmi->hdmi_data.enc_color_depth == 12)
+-			color_format = 0x0D;
+-		else if (hdmi->hdmi_data.enc_color_depth == 16)
+-			color_format = 0x0F;
+-		else
+-			return;
+-	} else if (hdmi->hdmi_data.enc_in_format == YCBCR422_8BITS) {
+-		if (hdmi->hdmi_data.enc_color_depth == 8)
+-			color_format = 0x16;
+-		else if (hdmi->hdmi_data.enc_color_depth == 10)
+-			color_format = 0x14;
+-		else if (hdmi->hdmi_data.enc_color_depth == 12)
+-			color_format = 0x12;
+-		else
+-			return;
++	switch (hdmi->hdmi_data.enc_in_bus_format) {
++	case MEDIA_BUS_FMT_RGB888_1X24:
++		color_format = 0x01;
++		break;
++	case MEDIA_BUS_FMT_RGB101010_1X30:
++		color_format = 0x03;
++		break;
++	case MEDIA_BUS_FMT_RGB121212_1X36:
++		color_format = 0x05;
++		break;
++	case MEDIA_BUS_FMT_RGB161616_1X48:
++		color_format = 0x07;
++		break;
++
++	case MEDIA_BUS_FMT_YUV8_1X24:
++	case MEDIA_BUS_FMT_UYYVYY8_0_5X24:
++		color_format = 0x09;
++		break;
++	case MEDIA_BUS_FMT_YUV10_1X30:
++	case MEDIA_BUS_FMT_UYYVYY10_0_5X30:
++		color_format = 0x0B;
++		break;
++	case MEDIA_BUS_FMT_YUV12_1X36:
++	case MEDIA_BUS_FMT_UYYVYY12_0_5X36:
++		color_format = 0x0D;
++		break;
++	case MEDIA_BUS_FMT_YUV16_1X48:
++	case MEDIA_BUS_FMT_UYYVYY16_0_5X48:
++		color_format = 0x0F;
++		break;
++
++	case MEDIA_BUS_FMT_UYVY8_1X16:
++		color_format = 0x16;
++		break;
++	case MEDIA_BUS_FMT_UYVY10_1X20:
++		color_format = 0x14;
++		break;
++	case MEDIA_BUS_FMT_UYVY12_1X24:
++		color_format = 0x12;
++		break;
++
++	default:
++		return;
+ 	}
+ 
+ 	val = HDMI_TX_INVID0_INTERNAL_DE_GENERATOR_DISABLE |
+@@ -632,26 +727,30 @@ static void hdmi_video_sample(struct dw_hdmi *hdmi)
+ 
+ static int is_color_space_conversion(struct dw_hdmi *hdmi)
+ {
+-	return hdmi->hdmi_data.enc_in_format != hdmi->hdmi_data.enc_out_format;
++	return hdmi->hdmi_data.enc_in_bus_format != hdmi->hdmi_data.enc_out_bus_format;
+ }
+ 
+ static int is_color_space_decimation(struct dw_hdmi *hdmi)
+ {
+-	if (hdmi->hdmi_data.enc_out_format != YCBCR422_8BITS)
++	if (!hdmi_bus_fmt_is_yuv422(hdmi->hdmi_data.enc_out_bus_format))
+ 		return 0;
+-	if (hdmi->hdmi_data.enc_in_format == RGB ||
+-	    hdmi->hdmi_data.enc_in_format == YCBCR444)
++
++	if (hdmi_bus_fmt_is_rgb(hdmi->hdmi_data.enc_in_bus_format) ||
++	    hdmi_bus_fmt_is_yuv444(hdmi->hdmi_data.enc_in_bus_format))
+ 		return 1;
++
+ 	return 0;
+ }
+ 
+ static int is_color_space_interpolation(struct dw_hdmi *hdmi)
+ {
+-	if (hdmi->hdmi_data.enc_in_format != YCBCR422_8BITS)
++	if (!hdmi_bus_fmt_is_yuv422(hdmi->hdmi_data.enc_in_bus_format))
+ 		return 0;
+-	if (hdmi->hdmi_data.enc_out_format == RGB ||
+-	    hdmi->hdmi_data.enc_out_format == YCBCR444)
++
++	if (hdmi_bus_fmt_is_rgb(hdmi->hdmi_data.enc_out_bus_format) ||
++	    hdmi_bus_fmt_is_yuv444(hdmi->hdmi_data.enc_out_bus_format))
+ 		return 1;
++
+ 	return 0;
+ }
+ 
+@@ -662,15 +761,16 @@ static void dw_hdmi_update_csc_coeffs(struct dw_hdmi *hdmi)
+ 	u32 csc_scale = 1;
+ 
+ 	if (is_color_space_conversion(hdmi)) {
+-		if (hdmi->hdmi_data.enc_out_format == RGB) {
+-			if (hdmi->hdmi_data.colorimetry ==
+-					HDMI_COLORIMETRY_ITU_601)
++		if (hdmi_bus_fmt_is_rgb(hdmi->hdmi_data.enc_out_bus_format)) {
++			if (hdmi->hdmi_data.enc_out_encoding ==
++						V4L2_YCBCR_ENC_601)
+ 				csc_coeff = &csc_coeff_rgb_out_eitu601;
+ 			else
+ 				csc_coeff = &csc_coeff_rgb_out_eitu709;
+-		} else if (hdmi->hdmi_data.enc_in_format == RGB) {
+-			if (hdmi->hdmi_data.colorimetry ==
+-					HDMI_COLORIMETRY_ITU_601)
++		} else if (hdmi_bus_fmt_is_rgb(
++					hdmi->hdmi_data.enc_in_bus_format)) {
++			if (hdmi->hdmi_data.enc_out_encoding ==
++						V4L2_YCBCR_ENC_601)
+ 				csc_coeff = &csc_coeff_rgb_in_eitu601;
+ 			else
+ 				csc_coeff = &csc_coeff_rgb_in_eitu709;
+@@ -708,16 +808,23 @@ static void hdmi_video_csc(struct dw_hdmi *hdmi)
+ 	else if (is_color_space_decimation(hdmi))
+ 		decimation = HDMI_CSC_CFG_DECMODE_CHROMA_INT_FORMULA3;
+ 
+-	if (hdmi->hdmi_data.enc_color_depth == 8)
++	switch (hdmi_bus_fmt_color_depth(hdmi->hdmi_data.enc_out_bus_format)) {
++	case 8:
+ 		color_depth = HDMI_CSC_SCALE_CSC_COLORDE_PTH_24BPP;
+-	else if (hdmi->hdmi_data.enc_color_depth == 10)
++		break;
++	case 10:
+ 		color_depth = HDMI_CSC_SCALE_CSC_COLORDE_PTH_30BPP;
+-	else if (hdmi->hdmi_data.enc_color_depth == 12)
++		break;
++	case 12:
+ 		color_depth = HDMI_CSC_SCALE_CSC_COLORDE_PTH_36BPP;
+-	else if (hdmi->hdmi_data.enc_color_depth == 16)
++		break;
++	case 16:
+ 		color_depth = HDMI_CSC_SCALE_CSC_COLORDE_PTH_48BPP;
+-	else
++		break;
++
++	default:
+ 		return;
++	}
+ 
+ 	/* Configure the CSC registers */
+ 	hdmi_writeb(hdmi, interpolation | decimation, HDMI_CSC_CFG);
+@@ -740,32 +847,43 @@ static void hdmi_video_packetize(struct dw_hdmi *hdmi)
+ 	struct hdmi_data_info *hdmi_data = &hdmi->hdmi_data;
+ 	u8 val, vp_conf;
+ 
+-	if (hdmi_data->enc_out_format == RGB ||
+-	    hdmi_data->enc_out_format == YCBCR444) {
+-		if (!hdmi_data->enc_color_depth) {
+-			output_select = HDMI_VP_CONF_OUTPUT_SELECTOR_BYPASS;
+-		} else if (hdmi_data->enc_color_depth == 8) {
++	if (hdmi_bus_fmt_is_rgb(hdmi->hdmi_data.enc_out_bus_format) ||
++	    hdmi_bus_fmt_is_yuv444(hdmi->hdmi_data.enc_out_bus_format)) {
++		switch (hdmi_bus_fmt_color_depth(
++					hdmi->hdmi_data.enc_out_bus_format)) {
++		case 8:
+ 			color_depth = 4;
+ 			output_select = HDMI_VP_CONF_OUTPUT_SELECTOR_BYPASS;
+-		} else if (hdmi_data->enc_color_depth == 10) {
++			break;
++		case 10:
+ 			color_depth = 5;
+-		} else if (hdmi_data->enc_color_depth == 12) {
++			break;
++		case 12:
+ 			color_depth = 6;
+-		} else if (hdmi_data->enc_color_depth == 16) {
++			break;
++		case 16:
+ 			color_depth = 7;
+-		} else {
+-			return;
++			break;
++		default:
++			output_select = HDMI_VP_CONF_OUTPUT_SELECTOR_BYPASS;
+ 		}
+-	} else if (hdmi_data->enc_out_format == YCBCR422_8BITS) {
+-		if (!hdmi_data->enc_color_depth ||
+-		    hdmi_data->enc_color_depth == 8)
++	} else if (hdmi_bus_fmt_is_yuv422(hdmi->hdmi_data.enc_out_bus_format)) {
++		switch (hdmi_bus_fmt_color_depth(
++					hdmi->hdmi_data.enc_out_bus_format)) {
++		case 0:
++		case 8:
+ 			remap_size = HDMI_VP_REMAP_YCC422_16bit;
+-		else if (hdmi_data->enc_color_depth == 10)
++			break;
++		case 10:
+ 			remap_size = HDMI_VP_REMAP_YCC422_20bit;
+-		else if (hdmi_data->enc_color_depth == 12)
++			break;
++		case 12:
+ 			remap_size = HDMI_VP_REMAP_YCC422_24bit;
+-		else
++			break;
++
++		default:
+ 			return;
++		}
+ 		output_select = HDMI_VP_CONF_OUTPUT_SELECTOR_YCC422;
+ 	} else {
+ 		return;
+@@ -1148,28 +1266,35 @@ static void hdmi_config_AVI(struct dw_hdmi *hdmi, struct drm_display_mode *mode)
+ 	/* Initialise info frame from DRM mode */
+ 	drm_hdmi_avi_infoframe_from_display_mode(&frame, mode);
+ 
+-	if (hdmi->hdmi_data.enc_out_format == YCBCR444)
++	if (hdmi_bus_fmt_is_yuv444(hdmi->hdmi_data.enc_out_bus_format))
+ 		frame.colorspace = HDMI_COLORSPACE_YUV444;
+-	else if (hdmi->hdmi_data.enc_out_format == YCBCR422_8BITS)
++	else if (hdmi_bus_fmt_is_yuv422(hdmi->hdmi_data.enc_out_bus_format))
+ 		frame.colorspace = HDMI_COLORSPACE_YUV422;
+ 	else
+ 		frame.colorspace = HDMI_COLORSPACE_RGB;
+ 
+ 	/* Set up colorimetry */
+-	if (hdmi->hdmi_data.enc_out_format == XVYCC444) {
+-		frame.colorimetry = HDMI_COLORIMETRY_EXTENDED;
+-		if (hdmi->hdmi_data.colorimetry == HDMI_COLORIMETRY_ITU_601)
+-			frame.extended_colorimetry =
++	switch (hdmi->hdmi_data.enc_out_encoding) {
++	case V4L2_YCBCR_ENC_601:
++		if (hdmi->hdmi_data.enc_in_encoding == V4L2_YCBCR_ENC_XV601)
++			frame.colorimetry = HDMI_COLORIMETRY_EXTENDED;
++		else
++			frame.colorimetry = HDMI_COLORIMETRY_ITU_601;
++		frame.extended_colorimetry =
+ 				HDMI_EXTENDED_COLORIMETRY_XV_YCC_601;
+-		else /*hdmi->hdmi_data.colorimetry == HDMI_COLORIMETRY_ITU_709*/
+-			frame.extended_colorimetry =
++	case V4L2_YCBCR_ENC_709:
++		if (hdmi->hdmi_data.enc_in_encoding == V4L2_YCBCR_ENC_XV709)
++			frame.colorimetry = HDMI_COLORIMETRY_EXTENDED;
++		else
++			frame.colorimetry = HDMI_COLORIMETRY_ITU_709;
++		frame.extended_colorimetry =
+ 				HDMI_EXTENDED_COLORIMETRY_XV_YCC_709;
+-	} else if (hdmi->hdmi_data.enc_out_format != RGB) {
+-		frame.colorimetry = hdmi->hdmi_data.colorimetry;
+-		frame.extended_colorimetry = HDMI_EXTENDED_COLORIMETRY_XV_YCC_601;
+-	} else { /* Carries no data */
+-		frame.colorimetry = HDMI_COLORIMETRY_NONE;
+-		frame.extended_colorimetry = HDMI_EXTENDED_COLORIMETRY_XV_YCC_601;
++		break;
++	default: /* Carries no data */
++		frame.colorimetry = HDMI_COLORIMETRY_ITU_601;
++		frame.extended_colorimetry =
++				HDMI_EXTENDED_COLORIMETRY_XV_YCC_601;
++		break;
+ 	}
+ 
+ 	frame.scan_mode = HDMI_SCAN_MODE_NONE;
+@@ -1498,19 +1623,30 @@ static int dw_hdmi_setup(struct dw_hdmi *hdmi, struct drm_display_mode *mode)
+ 	    (hdmi->vic == 21) || (hdmi->vic == 22) ||
+ 	    (hdmi->vic == 2) || (hdmi->vic == 3) ||
+ 	    (hdmi->vic == 17) || (hdmi->vic == 18))
+-		hdmi->hdmi_data.colorimetry = HDMI_COLORIMETRY_ITU_601;
++		hdmi->hdmi_data.enc_out_encoding = V4L2_YCBCR_ENC_601;
+ 	else
+-		hdmi->hdmi_data.colorimetry = HDMI_COLORIMETRY_ITU_709;
++		hdmi->hdmi_data.enc_out_encoding = V4L2_YCBCR_ENC_709;
+ 
+ 	hdmi->hdmi_data.video_mode.mpixelrepetitionoutput = 0;
+ 	hdmi->hdmi_data.video_mode.mpixelrepetitioninput = 0;
+ 
+-	/* TODO: Get input format from IPU (via FB driver interface) */
+-	hdmi->hdmi_data.enc_in_format = RGB;
++	/* TOFIX: Get input format from plat data or fallback to RGB888 */
++	if (hdmi->plat_data->input_bus_format >= 0)
++		hdmi->hdmi_data.enc_in_bus_format =
++			hdmi->plat_data->input_bus_format;
++	else
++		hdmi->hdmi_data.enc_in_bus_format = MEDIA_BUS_FMT_RGB888_1X24;
++
++	/* TOFIX: Get input encoding from plat data or fallback to none */
++	if (hdmi->plat_data->input_bus_encoding >= 0)
++		hdmi->hdmi_data.enc_in_encoding =
++			hdmi->plat_data->input_bus_encoding;
++	else
++		hdmi->hdmi_data.enc_in_encoding = V4L2_YCBCR_ENC_DEFAULT;
+ 
+-	hdmi->hdmi_data.enc_out_format = RGB;
++	/* TOFIX: Default to RGB888 output format */
++	hdmi->hdmi_data.enc_out_bus_format = MEDIA_BUS_FMT_RGB888_1X24;
+ 
+-	hdmi->hdmi_data.enc_color_depth = 8;
+ 	hdmi->hdmi_data.pix_repet_factor = 0;
+ 	hdmi->hdmi_data.hdcp_enable = 0;
+ 	hdmi->hdmi_data.video_mode.mdataenablepolarity = true;
+diff --git a/include/drm/bridge/dw_hdmi.h b/include/drm/bridge/dw_hdmi.h
+index bcceee8..45c2c15 100644
+--- a/include/drm/bridge/dw_hdmi.h
++++ b/include/drm/bridge/dw_hdmi.h
+@@ -14,6 +14,67 @@
+ 
+ struct dw_hdmi;
+ 
++/**
++ * DOC: Supported input formats and encodings
++ *
++ * Depending on the Hardware configuration of the Controller IP, it supports
++ * a subset of the following input formats and encodings on it's internal
++ * 48bit bus.
++ *
++ * +----------------------+----------------------------------+------------------------------+
++ * + Format Name          + Format Code                      + Encodings                    +
++ * +----------------------+----------------------------------+------------------------------+
++ * + RGB 4:4:4 8bit       + ``MEDIA_BUS_FMT_RGB888_1X24``    + ``V4L2_YCBCR_ENC_DEFAULT``   +
++ * +----------------------+----------------------------------+------------------------------+
++ * + RGB 4:4:4 10bits     + ``MEDIA_BUS_FMT_RGB101010_1X30`` + ``V4L2_YCBCR_ENC_DEFAULT``   +
++ * +----------------------+----------------------------------+------------------------------+
++ * + RGB 4:4:4 12bits     + ``MEDIA_BUS_FMT_RGB121212_1X36`` + ``V4L2_YCBCR_ENC_DEFAULT``   +
++ * +----------------------+----------------------------------+------------------------------+
++ * + RGB 4:4:4 16bits     + ``MEDIA_BUS_FMT_RGB161616_1X48`` + ``V4L2_YCBCR_ENC_DEFAULT``   +
++ * +----------------------+----------------------------------+------------------------------+
++ * + YCbCr 4:4:4 8bit     + ``MEDIA_BUS_FMT_YUV8_1X24``      + ``V4L2_YCBCR_ENC_601``       +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_709``    +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_XV601``  +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_XV709``  +
++ * +----------------------+----------------------------------+------------------------------+
++ * + YCbCr 4:4:4 10bits   + ``MEDIA_BUS_FMT_YUV10_1X30``     + ``V4L2_YCBCR_ENC_601``       +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_709``    +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_XV601``  +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_XV709``  +
++ * +----------------------+----------------------------------+------------------------------+
++ * + YCbCr 4:4:4 12bits   + ``MEDIA_BUS_FMT_YUV12_1X36``     + ``V4L2_YCBCR_ENC_601``       +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_709``    +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_XV601``  +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_XV709``  +
++ * +----------------------+----------------------------------+------------------------------+
++ * + YCbCr 4:4:4 16bits   + ``MEDIA_BUS_FMT_YUV16_1X48``     + ``V4L2_YCBCR_ENC_601``       +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_709``    +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_XV601``  +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_XV709``  +
++ * +----------------------+----------------------------------+------------------------------+
++ * + YCbCr 4:2:2 8bit     + ``MEDIA_BUS_FMT_UYVY8_1X16``     + ``V4L2_YCBCR_ENC_601``       +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_709``    +
++ * +----------------------+----------------------------------+------------------------------+
++ * + YCbCr 4:2:2 10bits   + ``MEDIA_BUS_FMT_UYVY10_1X20``    + ``V4L2_YCBCR_ENC_601``       +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_709``    +
++ * +----------------------+----------------------------------+------------------------------+
++ * + YCbCr 4:2:2 12bits   + ``MEDIA_BUS_FMT_UYVY12_1X24``    + ``V4L2_YCBCR_ENC_601``       +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_709``    +
++ * +----------------------+----------------------------------+------------------------------+
++ * + YCbCr 4:2:0 8bit     + ``MEDIA_BUS_FMT_UYYVYY8_0_5X24`` + ``V4L2_YCBCR_ENC_601``       +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_709``    +
++ * +----------------------+----------------------------------+------------------------------+
++ * + YCbCr 4:2:0 10bits   + ``MEDIA_BUS_FMT_UYYVYY10_0_5X30``+ ``V4L2_YCBCR_ENC_601``       +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_709``    +
++ * +----------------------+----------------------------------+------------------------------+
++ * + YCbCr 4:2:0 12bits   + ``MEDIA_BUS_FMT_UYYVYY12_0_5X36``+ ``V4L2_YCBCR_ENC_601``       +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_709``    +
++ * +----------------------+----------------------------------+------------------------------+
++ * + YCbCr 4:2:0 16bits   + ``MEDIA_BUS_FMT_UYYVYY16_0_5X48``+ ``V4L2_YCBCR_ENC_601``       +
++ * +                      +                                  + or ``V4L2_YCBCR_ENC_709``    +
++ * +----------------------+----------------------------------+------------------------------+
++ */
++
+ enum {
+ 	DW_HDMI_RES_8,
+ 	DW_HDMI_RES_10,
+@@ -62,6 +123,8 @@ struct dw_hdmi_plat_data {
+ 	struct regmap *regm;
+ 	enum drm_mode_status (*mode_valid)(struct drm_connector *connector,
+ 					   struct drm_display_mode *mode);
++	unsigned long input_bus_format;
++	unsigned long input_bus_encoding;
+ 
+ 	/* Vendor PHY support */
+ 	const struct dw_hdmi_phy_ops *phy_ops;
+-- 
+1.9.1
