@@ -1,168 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:38294 "EHLO
-        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752935AbdDDPTo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 11:19:44 -0400
-Received: by mail-wm0-f42.google.com with SMTP id t189so31057945wmt.1
-        for <linux-media@vger.kernel.org>; Tue, 04 Apr 2017 08:19:43 -0700 (PDT)
-Date: Tue, 4 Apr 2017 16:19:39 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: hans.verkuil@cisco.com, mchehab@kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        kernel@stlinux.com, patrice.chotard@st.com,
-        linux-media@vger.kernel.org, benjamin.gaignard@st.com
-Subject: Re: [PATCH] [media] cec: Handle RC capability more elegantly
-Message-ID: <20170404151939.bvd252nprj6kjmdu@dell>
-References: <20170404144309.31357-1-lee.jones@linaro.org>
- <9fdac3c1-b249-839e-c2bc-f4661994eb3a@xs4all.nl>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:35276 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932159AbdDDWLv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 18:11:51 -0400
+Subject: Re: [RFC] [media] imx: assume MEDIA_ENT_F_ATV_DECODER entities output
+ video on pad 1
+To: Philipp Zabel <p.zabel@pengutronix.de>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+ <1490661656-10318-20-git-send-email-steve_longerbeam@mentor.com>
+ <1490894749.2404.33.camel@pengutronix.de>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <9bfabc5c-d90f-6487-537d-20515ec61f9c@gmail.com>
+Date: Tue, 4 Apr 2017 15:11:46 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <9fdac3c1-b249-839e-c2bc-f4661994eb3a@xs4all.nl>
+In-Reply-To: <1490894749.2404.33.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 04 Apr 2017, Hans Verkuil wrote:
 
-> On 04/04/2017 04:43 PM, Lee Jones wrote:
-> > If a user specifies the use of RC as a capability, they should
-> > really be enabling RC Core code.  If they do not we WARN() them
-> > of this and disable the capability for them.
-> > 
-> > Once we know RC Core code has not been enabled, we can update
-> > the user's capabilities and use them as a term of reference for
-> > other RC-only calls.  This is preferable to having ugly #ifery
-> > scattered throughout C code.
-> > 
-> > Most of the functions are actually safe to call, since they
-> > sensibly check for a NULL RC pointer before they attempt to
-> > deference it.
-> > 
-> > Signed-off-by: Lee Jones <lee.jones@linaro.org>
-> > ---
-> >  drivers/media/cec/cec-core.c | 19 +++++++------------
-> >  1 file changed, 7 insertions(+), 12 deletions(-)
-> > 
-> > diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-> > index cfe414a..51be8d6 100644
-> > --- a/drivers/media/cec/cec-core.c
-> > +++ b/drivers/media/cec/cec-core.c
-> > @@ -208,9 +208,13 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
-> >  		return ERR_PTR(-EINVAL);
-> >  	if (WARN_ON(!available_las || available_las > CEC_MAX_LOG_ADDRS))
-> >  		return ERR_PTR(-EINVAL);
-> > +	if (WARN_ON(caps & CEC_CAP_RC && !IS_REACHABLE(CONFIG_RC_CORE)))
-> > +		caps &= ~CEC_CAP_RC;
-> 
-> Don't use WARN_ON, this is not an error of any kind.
 
-Right, this is not an error.
+On 03/30/2017 10:25 AM, Philipp Zabel wrote:
+> The TVP5150 DT bindings specify a single output port (port 0) that
+> corresponds to the video output pad (pad 1, DEMOD_PAD_VID_OUT).
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+> I'm trying to get this to work with a TVP5150 analog TV decoder, and the
+> first problem is that this device doesn't have pad 0 as its single
+> output pad. Instead, as a MEDIA_ENT_F_ATV_DECODER entity, it has for
+> pads (input, video out, vbi out, audio out), and video out is pad 1,
+> whereas the device tree only defines a single port (0).
 
-That's why we are warning the user instead of bombing out.
+Shouldn't the DT bindings define ports for these other pads?
+I haven't seen this documented anywhere, but shouldn't there
+be a 1:1 correspondence between DT ports and media pads?
 
-> Neither do you need to add the
-> 'caps & CEC_CAP_RC' test. Really, it's just simpler to do what I suggested before
-> with an #if.
+Steve
 
-This does exactly what you asked.
 
-Just to clarify, can you explain to me when asking for RC support, but
-not enabling it would ever be a valid configuration?
-
-> > +
-> >  	adap = kzalloc(sizeof(*adap), GFP_KERNEL);
-> >  	if (!adap)
-> >  		return ERR_PTR(-ENOMEM);
-> > +
-> >  	strlcpy(adap->name, name, sizeof(adap->name));
-> >  	adap->phys_addr = CEC_PHYS_ADDR_INVALID;
-> >  	adap->log_addrs.cec_version = CEC_OP_CEC_VERSION_2_0;
-> > @@ -237,7 +241,6 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
-> >  	if (!(caps & CEC_CAP_RC))
-> >  		return adap;
-> >  
-> > -#if IS_REACHABLE(CONFIG_RC_CORE)
-> 
-> Huh? If CONFIG_RC_CORE is undefined, all these rc_ calls will fail when linking!
-
-I thought I'd tested for that, but it turns out that *my*
-CONFIG_RC_CORE=n config was being over-ridden by the build system.
-
-If it will really fail when linking, it sounds like the RC subsystem
-is not written properly.  I guess that explains why all these drivers
-are riddled with ugly #ifery.
-
-Will fix that too, bear with.
-
-> >  	/* Prepare the RC input device */
-> >  	adap->rc = rc_allocate_device(RC_DRIVER_SCANCODE);
-> >  	if (!adap->rc) {
-> > @@ -264,9 +267,7 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
-> >  	adap->rc->priv = adap;
-> >  	adap->rc->map_name = RC_MAP_CEC;
-> >  	adap->rc->timeout = MS_TO_NS(100);
-> > -#else
-> > -	adap->capabilities &= ~CEC_CAP_RC;
-> > -#endif
-> > +
-> >  	return adap;
-> >  }
-> >  EXPORT_SYMBOL_GPL(cec_allocate_adapter);
-> > @@ -285,7 +286,6 @@ int cec_register_adapter(struct cec_adapter *adap,
-> >  	adap->owner = parent->driver->owner;
-> >  	adap->devnode.dev.parent = parent;
-> >  
-> > -#if IS_REACHABLE(CONFIG_RC_CORE)
-> >  	if (adap->capabilities & CEC_CAP_RC) {
-> >  		adap->rc->dev.parent = parent;
-> >  		res = rc_register_device(adap->rc);
-> > @@ -298,15 +298,13 @@ int cec_register_adapter(struct cec_adapter *adap,
-> >  			return res;
-> >  		}
-> >  	}
-> > -#endif
-> >  
-> >  	res = cec_devnode_register(&adap->devnode, adap->owner);
-> >  	if (res) {
-> > -#if IS_REACHABLE(CONFIG_RC_CORE)
-> >  		/* Note: rc_unregister also calls rc_free */
-> >  		rc_unregister_device(adap->rc);
-> >  		adap->rc = NULL;
-> > -#endif
-> > +
-> >  		return res;
-> >  	}
-> >  
-> > @@ -337,11 +335,10 @@ void cec_unregister_adapter(struct cec_adapter *adap)
-> >  	if (IS_ERR_OR_NULL(adap))
-> >  		return;
-> >  
-> > -#if IS_REACHABLE(CONFIG_RC_CORE)
-> >  	/* Note: rc_unregister also calls rc_free */
-> >  	rc_unregister_device(adap->rc);
-> >  	adap->rc = NULL;
-> > -#endif
-> > +
-> >  	debugfs_remove_recursive(adap->cec_dir);
-> >  	cec_devnode_unregister(&adap->devnode);
-> >  }
-> > @@ -357,9 +354,7 @@ void cec_delete_adapter(struct cec_adapter *adap)
-> >  	kthread_stop(adap->kthread);
-> >  	if (adap->kthread_config)
-> >  		kthread_stop(adap->kthread_config);
-> > -#if IS_REACHABLE(CONFIG_RC_CORE)
-> >  	rc_free_device(adap->rc);
-> > -#endif
-> >  	kfree(adap);
-> >  }
-> >  EXPORT_SYMBOL_GPL(cec_delete_adapter);
-> > 
-> 
-
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+> ---
+>
+>  drivers/staging/media/imx/imx-media-dev.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+>
+> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+> index 17e2386a3ca3a..c52d6ca797965 100644
+> --- a/drivers/staging/media/imx/imx-media-dev.c
+> +++ b/drivers/staging/media/imx/imx-media-dev.c
+> @@ -267,6 +267,15 @@ static int imx_media_create_link(struct imx_media_dev *imxmd,
+>  	source_pad = link->local_pad;
+>  	sink_pad = link->remote_pad;
+>
+> +	/*
+> +	 * If the source subdev is an analog video decoder with a single source
+> +	 * port, assume that this port 0 corresponds to the DEMOD_PAD_VID_OUT
+> +	 * entity pad.
+> +	 */
+> +	if (source->entity.function == MEDIA_ENT_F_ATV_DECODER &&
+> +	    local_sd->num_sink_pads == 0 && local_sd->num_src_pads == 1)
+> +		source_pad = DEMOD_PAD_VID_OUT;
+> +
+>  	v4l2_info(&imxmd->v4l2_dev, "%s: %s:%d -> %s:%d\n", __func__,
+>  		  source->name, source_pad, sink->name, sink_pad);
+>
+>
