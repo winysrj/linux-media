@@ -1,93 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:59198 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754129AbdDRRcE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Apr 2017 13:32:04 -0400
-Date: Tue, 18 Apr 2017 18:31:56 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        liviu.dudau@arm.com, laurent.pinchart@ideasonboard.com,
-        linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v3 0/6] Introduce writeback connectors
-Message-ID: <20170418173156.GA30544@e106950-lin.cambridge.arm.com>
-References: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
- <20170414113517.323ab297@bbrezillon>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:53965 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754579AbdDDPpt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 4 Apr 2017 11:45:49 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Rob Herring <robh@kernel.org>
+CC: Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre TORGUE <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick FERTRE <yannick.fertre@st.com>
+Subject: Re: [PATCH v2 1/8] dt-bindings: Document STM32 DCMI bindings
+Date: Tue, 4 Apr 2017 15:45:17 +0000
+Message-ID: <6e0b4d39-50de-3f0e-3702-3bbd462473c3@st.com>
+References: <1490887667-8880-1-git-send-email-hugues.fruchet@st.com>
+ <1490887667-8880-2-git-send-email-hugues.fruchet@st.com>
+ <20170403162309.eikbsmfbxw6admdc@rob-hp-laptop>
+In-Reply-To: <20170403162309.eikbsmfbxw6admdc@rob-hp-laptop>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-ID: <10FBBF3E65F02F40AE0C0977BDBCDA9E@st.com>
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <20170414113517.323ab297@bbrezillon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Boris,
+Thanks Rob for review, find answers below.
 
-On Fri, Apr 14, 2017 at 11:35:17AM +0200, Boris Brezillon wrote:
->Hi Brian,
+On 04/03/2017 06:23 PM, Rob Herring wrote:
+> On Thu, Mar 30, 2017 at 05:27:40PM +0200, Hugues Fruchet wrote:
+>> This adds documentation of device tree bindings for the STM32 DCMI
+>> (Digital Camera Memory Interface).
+>>
+>> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+>> ---
+>>  .../devicetree/bindings/media/st,stm32-dcmi.txt    | 85 ++++++++++++++++++++++
+>>  1 file changed, 85 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
+>> new file mode 100644
+>> index 0000000..8180f63
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
+>> @@ -0,0 +1,85 @@
+>> +STMicroelectronics STM32 Digital Camera Memory Interface (DCMI)
+>> +
+>> +Required properties:
+>> +- compatible: "st,stm32-dcmi"
 >
->On Fri, 25 Nov 2016 16:48:58 +0000
->Brian Starkey <brian.starkey@arm.com> wrote:
->
->> Hi,
->>
->> This is v3 of my series introducing a new connector type:
->>  DRM_MODE_CONNECTOR_WRITEBACK
->> See v1 and v2 here: [1] [2]
->>
->> Writeback connectors are used to expose the memory writeback engines
->> found in some display controllers, which can write a CRTC's
->> composition result to a memory buffer.
->> This is useful e.g. for testing, screen-recording, screenshots,
->> wireless display, display cloning, memory-to-memory composition.
->>
->> Writeback connectors are given a WRITEBACK_FB_ID property (which acts
->> slightly differently to FB_ID, so gets a new name), as well as
->> a PIXEL_FORMATS blob to list the supported writeback formats, and
->> OUT_FENCE_PTR to be used for out-fences.
->>
->> The changes since v2 are in the commit messages of each commit.
->>
->> The main differences are:
->>  - Subclass drm_connector as drm_writeback_connector
->>  - Slight relaxation of core checks, to allow
->>    (connector->crtc && !connector->fb)
->>  - Dropped PIXEL_FORMATS_SIZE, which was redundant
->>  - Reworked the event interface, drivers don't need to deal with the
->>    fence directly
->>  - Re-ordered the commits to introduce writeback out-fences up-front.
->>
->> I've kept RFC on this series because the event reporting (introduction
->> of drm_writeback_job) is probably up for debate.
->>
->> v4 will be accompanied by igt tests.
->
->I plan to add writeback support to the VC4 driver and wanted to know if
->anything has changed since this v3 (IOW, do you have a v4 + igt tests
->ready)?
->
+> Same block and same errata on all stm32 variants?
 
-Oh that's good to hear. I've got a v4 (just rebased for the most
-part), but was holding off sending it until having some "proper"
-userspace to support it. Unfortunately in the meantime we've had some
-team changes which mean I'm not really able to work on it to move
-things forward - Liviu might be able to pick this up.
-
-I'll collect together what I have and send it out anyway. It includes
-some functional tests in igt, but I'm not sure if that meets the "new
-uapi needs userspace" bar.
-
->>
->> As always, I look forward to any comments.
->
->I'll try to review these patches. Keep in mind that I didn't follow the
->initial discussions and might suggest things or ask questions that have
->already been answered in previous versions of this series or on IRC.
-
-Thanks,
-
--Brian
+Yes, it is the same IP block on all stm32 variants.
 
 >
->Regards,
+>> +- reg: physical base address and length of the registers set for the device
+>> +- interrupts: should contain IRQ line for the DCMI
+>> +- clocks: list of clock specifiers, corresponding to entries in
+>> +          the clock-names property
+>> +- clock-names: must contain "mclk", which is the DCMI peripherial clock
+>> +- resets: reference to a reset controller
+>> +- reset-names: see Documentation/devicetree/bindings/reset/st,stm32-rcc.txt
+>> +
+>> +DCMI supports a single port node with parallel bus. It should contain one
+>> +'port' child node with child 'endpoint' node. Please refer to the bindings
+>> +defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
+>> +
+>> +Example:
+>> +
+>> +Device node example
+>> +-------------------
+>> +	dcmi: dcmi@50050000 {
+>> +		compatible = "st,stm32-dcmi";
+>> +		reg = <0x50050000 0x400>;
+>> +		interrupts = <78>;
+>> +		resets = <&rcc STM32F4_AHB2_RESET(DCMI)>;
+>> +		clocks = <&rcc 0 STM32F4_AHB2_CLOCK(DCMI)>;
+>> +		clock-names = "mclk";
 >
->Boris
+>> +		pinctrl-names = "default";
+>> +		pinctrl-0 = <&dcmi_pins>;
+>
+> Not documented.
+
+Fixed in v3.
+
+>
+>> +		dmas = <&dma2 1 1 0x414 0x3>;
+>> +		dma-names = "tx";
+>
+> Not documented.
+
+Fixed in v3.
+
+>
+>> +		status = "disabled";
+>
+> Drop status from examples.
+
+Fixed in v3.
+
+>
+>> +	};
+>> +
+>> +Board setup example
+>
+> Please don't split examples. That's just source level details and not
+> part of the ABI.
+
+Fixed in v3.
+
+>
+>> +-------------------
+>> +This example is extracted from STM32F429-EVAL board devicetree.
+>> +Please note that on this board, the camera sensor reset & power-down
+>> +line level are inverted (so reset is active high and power-down is
+>> +active low).
+>> +
+>> +/ {
+>> +	[...]
+>> +	clocks {
+>> +		clk_ext_camera: clk-ext-camera {
+>> +			#clock-cells = <0>;
+>> +			compatible = "fixed-clock";
+>> +			clock-frequency = <24000000>;
+>> +		};
+>> +	};
+>> +	[...]
+>> +};
+>> +
+>> +&dcmi {
+>> +	status = "okay";
+>> +
+>> +	port {
+>> +		dcmi_0: endpoint@0 {
+>> +			remote-endpoint = <&ov2640_0>;
+>> +			bus-width = <8>;
+>> +			hsync-active = <0>;
+>> +			vsync-active = <0>;
+>> +			pclk-sample = <1>;
+>> +		};
+>> +	};
+>> +};
+>> +
+>> +&i2c@1 {
+>> +	[...]
+>> +	ov2640: camera@30 {
+>> +		compatible = "ovti,ov2640";
+>> +		reg = <0x30>;
+>> +		resetb-gpios = <&stmpegpio 2 GPIO_ACTIVE_HIGH>;
+>> +		pwdn-gpios = <&stmpegpio 0 GPIO_ACTIVE_LOW>;
+>> +		clocks = <&clk_ext_camera>;
+>> +		clock-names = "xvclk";
+>> +		status = "okay";
+>> +
+>> +		port {
+>> +			ov2640_0: endpoint {
+>> +				remote-endpoint = <&dcmi_0>;
+>> +			};
+>> +		};
+>> +	};
+>> +};
+>> --
+>> 1.9.1
+>>
