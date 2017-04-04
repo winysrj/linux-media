@@ -1,141 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:59747 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753780AbdDEONJ (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:15183 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754823AbdDDPpd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Apr 2017 10:13:09 -0400
-Message-ID: <1491401587.2381.104.camel@pengutronix.de>
-Subject: Re: [PATCH 3/3] [media] coda/imx-vdoa: always wait for job
- completion
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Lucas Stach <l.stach@pengutronix.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel@pengutronix.de,
-        patchwork-lst@pengutronix.de
-Date: Wed, 05 Apr 2017 16:13:07 +0200
-In-Reply-To: <20170405130955.30513-3-l.stach@pengutronix.de>
-References: <20170405130955.30513-1-l.stach@pengutronix.de>
-         <20170405130955.30513-3-l.stach@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Tue, 4 Apr 2017 11:45:33 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v3 6/8] ARM: dts: stm32: Enable OV2640 camera support of STM32F429-EVAL board
+Date: Tue, 4 Apr 2017 17:44:36 +0200
+Message-ID: <1491320678-17246-7-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1491320678-17246-1-git-send-email-hugues.fruchet@st.com>
+References: <1491320678-17246-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2017-04-05 at 15:09 +0200, Lucas Stach wrote:
-> As long as only one CODA context is running we get alternating device_run()
-> and wait_for_completion() calls, but when more then one CODA context is
-> active, other VDOA slots can be inserted between those calls for one context.
-> 
-> Make sure to wait on job completion before running a different context and
-> before destroying the currently active context.
-> 
-> Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Enable OV2640 camera support of STM32F429-EVAL board.
 
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ arch/arm/boot/dts/stm32429i-eval.dts | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-> ---
->  drivers/media/platform/coda/imx-vdoa.c | 49 +++++++++++++++++++++++-----------
->  1 file changed, 33 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/media/platform/coda/imx-vdoa.c b/drivers/media/platform/coda/imx-vdoa.c
-> index 67fd8ffa60a4..ab69a0a9d38b 100644
-> --- a/drivers/media/platform/coda/imx-vdoa.c
-> +++ b/drivers/media/platform/coda/imx-vdoa.c
-> @@ -101,6 +101,8 @@ struct vdoa_ctx {
->  	struct vdoa_data	*vdoa;
->  	struct completion	completion;
->  	struct vdoa_q_data	q_data[2];
-> +	unsigned int		submitted_job;
-> +	unsigned int		completed_job;
->  };
->  
->  static irqreturn_t vdoa_irq_handler(int irq, void *data)
-> @@ -114,7 +116,7 @@ static irqreturn_t vdoa_irq_handler(int irq, void *data)
->  
->  	curr_ctx = vdoa->curr_ctx;
->  	if (!curr_ctx) {
-> -		dev_dbg(vdoa->dev,
-> +		dev_warn(vdoa->dev,
->  			"Instance released before the end of transaction\n");
->  		return IRQ_HANDLED;
->  	}
-> @@ -127,19 +129,44 @@ static irqreturn_t vdoa_irq_handler(int irq, void *data)
->  	} else if (!(val & VDOAIST_EOT)) {
->  		dev_warn(vdoa->dev, "Spurious interrupt\n");
->  	}
-> +	curr_ctx->completed_job++;
->  	complete(&curr_ctx->completion);
->  
->  	return IRQ_HANDLED;
->  }
->  
-> +int vdoa_wait_for_completion(struct vdoa_ctx *ctx)
-> +{
-> +	struct vdoa_data *vdoa = ctx->vdoa;
-> +
-> +	if (ctx->submitted_job == ctx->completed_job)
-> +		return 0;
-> +
-> +	if (!wait_for_completion_timeout(&ctx->completion,
-> +					 msecs_to_jiffies(300))) {
-> +		dev_err(vdoa->dev,
-> +			"Timeout waiting for transfer result\n");
-> +		return -ETIMEDOUT;
-> +	}
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(vdoa_wait_for_completion);
-> +
->  void vdoa_device_run(struct vdoa_ctx *ctx, dma_addr_t dst, dma_addr_t src)
->  {
->  	struct vdoa_q_data *src_q_data, *dst_q_data;
->  	struct vdoa_data *vdoa = ctx->vdoa;
->  	u32 val;
->  
-> +	if (vdoa->curr_ctx)
-> +		vdoa_wait_for_completion(vdoa->curr_ctx);
-> +
->  	vdoa->curr_ctx = ctx;
->  
-> +	reinit_completion(&ctx->completion);
-> +	ctx->submitted_job++;
-> +
->  	src_q_data = &ctx->q_data[V4L2_M2M_SRC];
->  	dst_q_data = &ctx->q_data[V4L2_M2M_DST];
->  
-> @@ -177,21 +204,6 @@ void vdoa_device_run(struct vdoa_ctx *ctx, dma_addr_t dst, dma_addr_t src)
->  }
->  EXPORT_SYMBOL(vdoa_device_run);
->  
-> -int vdoa_wait_for_completion(struct vdoa_ctx *ctx)
-> -{
-> -	struct vdoa_data *vdoa = ctx->vdoa;
-> -
-> -	if (!wait_for_completion_timeout(&ctx->completion,
-> -					 msecs_to_jiffies(300))) {
-> -		dev_err(vdoa->dev,
-> -			"Timeout waiting for transfer result\n");
-> -		return -ETIMEDOUT;
-> -	}
-> -
-> -	return 0;
-> -}
-> -EXPORT_SYMBOL(vdoa_wait_for_completion);
-> -
->  struct vdoa_ctx *vdoa_context_create(struct vdoa_data *vdoa)
->  {
->  	struct vdoa_ctx *ctx;
-> @@ -218,6 +230,11 @@ void vdoa_context_destroy(struct vdoa_ctx *ctx)
->  {
->  	struct vdoa_data *vdoa = ctx->vdoa;
->  
-> +	if (vdoa->curr_ctx == ctx) {
-> +		vdoa_wait_for_completion(vdoa->curr_ctx);
-> +		vdoa->curr_ctx = NULL;
-> +	}
-> +
->  	clk_disable_unprepare(vdoa->vdoa_clk);
->  	kfree(ctx);
->  }
+diff --git a/arch/arm/boot/dts/stm32429i-eval.dts b/arch/arm/boot/dts/stm32429i-eval.dts
+index 7ffcf07..b7d127c 100644
+--- a/arch/arm/boot/dts/stm32429i-eval.dts
++++ b/arch/arm/boot/dts/stm32429i-eval.dts
+@@ -48,6 +48,7 @@
+ /dts-v1/;
+ #include "stm32f429.dtsi"
+ #include <dt-bindings/input/input.h>
++#include <dt-bindings/gpio/gpio.h>
+ 
+ / {
+ 	model = "STMicroelectronics STM32429i-EVAL board";
+@@ -66,6 +67,14 @@
+ 		serial0 = &usart1;
+ 	};
+ 
++	clocks {
++		clk_ext_camera: clk-ext-camera {
++			#clock-cells = <0>;
++			compatible = "fixed-clock";
++			clock-frequency = <24000000>;
++		};
++	};
++
+ 	soc {
+ 		dma-ranges = <0xc0000000 0x0 0x10000000>;
+ 	};
+@@ -146,6 +155,11 @@
+ 
+ 	port {
+ 		dcmi_0: endpoint@0 {
++			remote-endpoint = <&ov2640_0>;
++			bus-width = <8>;
++			hsync-active = <0>;
++			vsync-active = <0>;
++			pclk-sample = <1>;
+ 		};
+ 	};
+ };
+@@ -155,6 +169,22 @@
+ 	pinctrl-names = "default";
+ 	status = "okay";
+ 
++	ov2640: camera@30 {
++		compatible = "ovti,ov2640";
++		reg = <0x30>;
++		resetb-gpios = <&stmpegpio 2 GPIO_ACTIVE_HIGH>;
++		pwdn-gpios = <&stmpegpio 0 GPIO_ACTIVE_LOW>;
++		clocks = <&clk_ext_camera>;
++		clock-names = "xvclk";
++		status = "okay";
++
++		port {
++			ov2640_0: endpoint {
++				remote-endpoint = <&dcmi_0>;
++			};
++		};
++	};
++
+ 	stmpe1600: stmpe1600@42 {
+ 		compatible = "st,stmpe1600";
+ 		reg = <0x42>;
+-- 
+1.9.1
