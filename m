@@ -1,441 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40060
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755317AbdDENXf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 09:23:35 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org
-Subject: [PATCH v2 13/21] error-codes.rst: convert to ReST and add to driver-api book
-Date: Wed,  5 Apr 2017 10:23:07 -0300
-Message-Id: <2755d50d43a21daf6a8f565d1a964a8a4c920e42.1491398120.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
-References: <cover.1491398120.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
-References: <cover.1491398120.git.mchehab@s-opensource.com>
+Received: from mail-lf0-f44.google.com ([209.85.215.44]:34636 "EHLO
+        mail-lf0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753756AbdDDMcJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 08:32:09 -0400
+Received: by mail-lf0-f44.google.com with SMTP id z15so91919642lfd.1
+        for <linux-media@vger.kernel.org>; Tue, 04 Apr 2017 05:32:08 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org
+Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
+        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: [PATCH v6.1 4/4] drm: bridge: dw-hdmi: Move HPD handling to PHY operations
+Date: Tue,  4 Apr 2017 14:31:59 +0200
+Message-Id: <1491309119-24220-5-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1491309119-24220-1-git-send-email-narmstrong@baylibre.com>
+References: <1491309119-24220-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This document describe some USB core features. Add it to the
-driver-api book.
+The HDMI TX controller support HPD and RXSENSE signaling from the PHY
+via it's STAT0 PHY interface, but some vendor PHYs can manage these
+signals independently from the controller, thus these STAT0 handling
+should be moved to PHY specific operations and become optional.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+The existing STAT0 HPD and RXSENSE handling code is refactored into
+a supplementaty set of default PHY operations that are used automatically
+when the platform glue doesn't provide its own operations.
+
+Reviewed-by: Jose Abreu <joabreu@synopsys.com>
+Reviewed-by: Archit Taneja <architt@codeaurora.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 ---
- Documentation/driver-api/usb/error-codes.rst | 205 +++++++++++++++++++++++++++
- Documentation/driver-api/usb/index.rst       |   1 +
- Documentation/usb/error-codes.txt            | 175 -----------------------
- 3 files changed, 206 insertions(+), 175 deletions(-)
- create mode 100644 Documentation/driver-api/usb/error-codes.rst
- delete mode 100644 Documentation/usb/error-codes.txt
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 135 ++++++++++++++++++------------
+ include/drm/bridge/dw_hdmi.h              |   5 ++
+ 2 files changed, 86 insertions(+), 54 deletions(-)
 
-diff --git a/Documentation/driver-api/usb/error-codes.rst b/Documentation/driver-api/usb/error-codes.rst
-new file mode 100644
-index 000000000000..9c11a0fd16cb
---- /dev/null
-+++ b/Documentation/driver-api/usb/error-codes.rst
-@@ -0,0 +1,205 @@
-+USB Error codes
-+~~~~~~~~~~~~~~~
-+
-+:Revised: 2004-Oct-21
-+
-+This is the documentation of (hopefully) all possible error codes (and
-+their interpretation) that can be returned from usbcore.
-+
-+Some of them are returned by the Host Controller Drivers (HCDs), which
-+device drivers only see through usbcore.  As a rule, all the HCDs should
-+behave the same except for transfer speed dependent behaviors and the
-+way certain faults are reported.
-+
-+
-+Error codes returned by :c:func:`usb_submit_urb`
-+================================================
-+
-+Non-USB-specific:
-+
-+
-+=============== ===============================================
-+0		URB submission went fine
-+
-+``-ENOMEM``	no memory for allocation of internal structures
-+=============== ===============================================
-+
-+USB-specific:
-+
-+=======================	=======================================================
-+``-EBUSY``		The URB is already active.
-+
-+``-ENODEV``		specified USB-device or bus doesn't exist
-+
-+``-ENOENT``		specified interface or endpoint does not exist or
-+			is not enabled
-+
-+``-ENXIO``		host controller driver does not support queuing of
-+			this type of urb.  (treat as a host controller bug.)
-+
-+``-EINVAL``		a) Invalid transfer type specified (or not supported)
-+			b) Invalid or unsupported periodic transfer interval
-+			c) ISO: attempted to change transfer interval
-+			d) ISO: ``number_of_packets`` is < 0
-+			e) various other cases
-+
-+``-EXDEV``		ISO: ``URB_ISO_ASAP`` wasn't specified and all the
-+			frames the URB would be scheduled in have already
-+			expired.
-+
-+``-EFBIG``		Host controller driver can't schedule that many ISO
-+			frames.
-+
-+``-EPIPE``		The pipe type specified in the URB doesn't match the
-+			endpoint's actual type.
-+
-+``-EMSGSIZE``		(a) endpoint maxpacket size is zero; it is not usable
-+			    in the current interface altsetting.
-+			(b) ISO packet is larger than the endpoint maxpacket.
-+			(c) requested data transfer length is invalid: negative
-+			    or too large for the host controller.
-+
-+``-ENOSPC``		This request would overcommit the usb bandwidth reserved
-+			for periodic transfers (interrupt, isochronous).
-+
-+``-ESHUTDOWN``		The device or host controller has been disabled due to
-+			some problem that could not be worked around.
-+
-+``-EPERM``		Submission failed because ``urb->reject`` was set.
-+
-+``-EHOSTUNREACH``	URB was rejected because the device is suspended.
-+
-+``-ENOEXEC``		A control URB doesn't contain a Setup packet.
-+=======================	=======================================================
-+
-+Error codes returned by ``in urb->status`` or in ``iso_frame_desc[n].status`` (for ISO)
-+=======================================================================================
-+
-+USB device drivers may only test urb status values in completion handlers.
-+This is because otherwise there would be a race between HCDs updating
-+these values on one CPU, and device drivers testing them on another CPU.
-+
-+A transfer's actual_length may be positive even when an error has been
-+reported.  That's because transfers often involve several packets, so that
-+one or more packets could finish before an error stops further endpoint I/O.
-+
-+For isochronous URBs, the urb status value is non-zero only if the URB is
-+unlinked, the device is removed, the host controller is disabled, or the total
-+transferred length is less than the requested length and the
-+``URB_SHORT_NOT_OK`` flag is set.  Completion handlers for isochronous URBs
-+should only see ``urb->status`` set to zero, ``-ENOENT``, ``-ECONNRESET``,
-+``-ESHUTDOWN``, or ``-EREMOTEIO``. Individual frame descriptor status fields
-+may report more status codes.
-+
-+
-+===============================	===============================================
-+0				Transfer completed successfully
-+
-+``-ENOENT``			URB was synchronously unlinked by
-+				:c:func:`usb_unlink_urb`
-+
-+``-EINPROGRESS``		URB still pending, no results yet
-+				(That is, if drivers see this it's a bug.)
-+
-+``-EPROTO`` [#f1]_, [#f2]_	a) bitstuff error
-+				b) no response packet received within the
-+				   prescribed bus turn-around time
-+				c) unknown USB error
-+
-+``-EILSEQ`` [#f1]_, [#f2]_	a) CRC mismatch
-+				b) no response packet received within the
-+				   prescribed bus turn-around time
-+				c) unknown USB error
-+
-+				Note that often the controller hardware does
-+				not distinguish among cases a), b), and c), so
-+				a driver cannot tell whether there was a
-+				protocol error, a failure to respond (often
-+				caused by device disconnect), or some other
-+				fault.
-+
-+``-ETIME`` [#f2]_		No response packet received within the
-+				prescribed bus turn-around time.  This error
-+				may instead be reported as
-+				``-EPROTO`` or ``-EILSEQ``.
-+
-+``-ETIMEDOUT``			Synchronous USB message functions use this code
-+				to indicate timeout expired before the transfer
-+				completed, and no other error was reported
-+				by HC.
-+
-+``-EPIPE`` [#f2]_		Endpoint stalled.  For non-control endpoints,
-+				reset this status with
-+				:c:func:`usb_clear_halt`.
-+
-+``-ECOMM``			During an IN transfer, the host controller
-+				received data from an endpoint faster than it
-+				could be written to system memory
-+
-+``-ENOSR``			During an OUT transfer, the host controller
-+				could not retrieve data from system memory fast
-+				enough to keep up with the USB data rate
-+
-+``-EOVERFLOW`` [#f1]_		The amount of data returned by the endpoint was
-+				greater than either the max packet size of the
-+				endpoint or the remaining buffer size.
-+				"Babble".
-+
-+``-EREMOTEIO``			The data read from the endpoint did not fill
-+				the specified buffer, and ``URB_SHORT_NOT_OK``
-+				was set in ``urb->transfer_flags``.
-+
-+``-ENODEV``			Device was removed.  Often preceded by a burst
-+				of other errors, since the hub driver doesn't
-+				detect device removal events immediately.
-+
-+``-EXDEV``			ISO transfer only partially completed
-+				(only set in ``iso_frame_desc[n].status``,
-+				not ``urb->status``)
-+
-+``-EINVAL``			ISO madness, if this happens: Log off and
-+				go home
-+
-+``-ECONNRESET``			URB was asynchronously unlinked by
-+				:c:func:`usb_unlink_urb`
-+
-+``-ESHUTDOWN``			The device or host controller has been
-+				disabled due to some problem that could not
-+				be worked around, such as a physical
-+				disconnect.
-+===============================	===============================================
-+
-+
-+.. [#f1]
-+
-+   Error codes like ``-EPROTO``, ``-EILSEQ`` and ``-EOVERFLOW`` normally
-+   indicate hardware problems such as bad devices (including firmware)
-+   or cables.
-+
-+.. [#f2]
-+
-+   This is also one of several codes that different kinds of host
-+   controller use to indicate a transfer has failed because of device
-+   disconnect.  In the interval before the hub driver starts disconnect
-+   processing, devices may receive such fault reports for every request.
-+
-+
-+
-+Error codes returned by usbcore-functions
-+=========================================
-+
-+.. note:: expect also other submit and transfer status codes
-+
-+:c:func:`usb_register`:
-+
-+======================= ===================================
-+``-EINVAL``		error during registering new driver
-+======================= ===================================
-+
-+``usb_get_*/usb_set_*()``,
-+:c:func:`usb_control_msg`,
-+:c:func:`usb_bulk_msg()`:
-+
-+======================= ==============================================
-+``-ETIMEDOUT``		Timeout expired before the transfer completed.
-+======================= ==============================================
-diff --git a/Documentation/driver-api/usb/index.rst b/Documentation/driver-api/usb/index.rst
-index d7610777784b..1e2a0c54eb3d 100644
---- a/Documentation/driver-api/usb/index.rst
-+++ b/Documentation/driver-api/usb/index.rst
-@@ -11,6 +11,7 @@ Linux USB API
-    callbacks
-    dma
-    power-management
-+   error-codes
-    writing_usb_driver
-    writing_musb_glue_layer
+diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+index 16d5fff3..84cc949 100644
+--- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
++++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+@@ -1229,10 +1229,46 @@ static enum drm_connector_status dw_hdmi_phy_read_hpd(struct dw_hdmi *hdmi,
+ 		connector_status_connected : connector_status_disconnected;
+ }
  
-diff --git a/Documentation/usb/error-codes.txt b/Documentation/usb/error-codes.txt
-deleted file mode 100644
-index 9c3eb845ebe5..000000000000
---- a/Documentation/usb/error-codes.txt
-+++ /dev/null
-@@ -1,175 +0,0 @@
--Revised: 2004-Oct-21
++static void dw_hdmi_phy_update_hpd(struct dw_hdmi *hdmi, void *data,
++				   bool force, bool disabled, bool rxsense)
++{
++	u8 old_mask = hdmi->phy_mask;
++
++	if (force || disabled || !rxsense)
++		hdmi->phy_mask |= HDMI_PHY_RX_SENSE;
++	else
++		hdmi->phy_mask &= ~HDMI_PHY_RX_SENSE;
++
++	if (old_mask != hdmi->phy_mask)
++		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
++}
++
++static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi, void *data)
++{
++	/*
++	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
++	 * any pending interrupt.
++	 */
++	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
++	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
++		    HDMI_IH_PHY_STAT0);
++
++	/* Enable cable hot plug irq. */
++	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
++
++	/* Clear and unmute interrupts. */
++	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
++		    HDMI_IH_PHY_STAT0);
++	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
++		    HDMI_IH_MUTE_PHY_STAT0);
++}
++
+ static const struct dw_hdmi_phy_ops dw_hdmi_synopsys_phy_ops = {
+ 	.init = dw_hdmi_phy_init,
+ 	.disable = dw_hdmi_phy_disable,
+ 	.read_hpd = dw_hdmi_phy_read_hpd,
++	.update_hpd = dw_hdmi_phy_update_hpd,
++	.setup_hpd = dw_hdmi_phy_setup_hpd,
+ };
+ 
+ /* -----------------------------------------------------------------------------
+@@ -1808,35 +1844,10 @@ static void dw_hdmi_update_power(struct dw_hdmi *hdmi)
+  */
+ static void dw_hdmi_update_phy_mask(struct dw_hdmi *hdmi)
+ {
+-	u8 old_mask = hdmi->phy_mask;
 -
--This is the documentation of (hopefully) all possible error codes (and
--their interpretation) that can be returned from usbcore.
+-	if (hdmi->force || hdmi->disabled || !hdmi->rxsense)
+-		hdmi->phy_mask |= HDMI_PHY_RX_SENSE;
+-	else
+-		hdmi->phy_mask &= ~HDMI_PHY_RX_SENSE;
 -
--Some of them are returned by the Host Controller Drivers (HCDs), which
--device drivers only see through usbcore.  As a rule, all the HCDs should
--behave the same except for transfer speed dependent behaviors and the
--way certain faults are reported.
+-	if (old_mask != hdmi->phy_mask)
+-		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
+-}
 -
+-static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi)
+-{
+-	/*
+-	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
+-	 * any pending interrupt.
+-	 */
+-	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
+-	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
+-		    HDMI_IH_PHY_STAT0);
 -
--**************************************************************************
--*                   Error codes returned by usb_submit_urb               *
--**************************************************************************
+-	/* Enable cable hot plug irq. */
+-	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
 -
--Non-USB-specific:
+-	/* Clear and unmute interrupts. */
+-	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
+-		    HDMI_IH_PHY_STAT0);
+-	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
+-		    HDMI_IH_MUTE_PHY_STAT0);
++	if (hdmi->phy.ops->update_hpd)
++		hdmi->phy.ops->update_hpd(hdmi, hdmi->phy.data,
++					  hdmi->force, hdmi->disabled,
++					  hdmi->rxsense);
+ }
+ 
+ static enum drm_connector_status
+@@ -2028,6 +2039,41 @@ static irqreturn_t dw_hdmi_hardirq(int irq, void *dev_id)
+ 	return ret;
+ }
+ 
++void __dw_hdmi_setup_rx_sense(struct dw_hdmi *hdmi, bool hpd, bool rx_sense)
++{
++	mutex_lock(&hdmi->mutex);
++
++	if (!hdmi->force) {
++		/*
++		 * If the RX sense status indicates we're disconnected,
++		 * clear the software rxsense status.
++		 */
++		if (!rx_sense)
++			hdmi->rxsense = false;
++
++		/*
++		 * Only set the software rxsense status when both
++		 * rxsense and hpd indicates we're connected.
++		 * This avoids what seems to be bad behaviour in
++		 * at least iMX6S versions of the phy.
++		 */
++		if (hpd)
++			hdmi->rxsense = true;
++
++		dw_hdmi_update_power(hdmi);
++		dw_hdmi_update_phy_mask(hdmi);
++	}
++	mutex_unlock(&hdmi->mutex);
++}
++
++void dw_hdmi_setup_rx_sense(struct device *dev, bool hpd, bool rx_sense)
++{
++	struct dw_hdmi *hdmi = dev_get_drvdata(dev);
++
++	__dw_hdmi_setup_rx_sense(hdmi, hpd, rx_sense);
++}
++EXPORT_SYMBOL_GPL(dw_hdmi_setup_rx_sense);
++
+ static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
+ {
+ 	struct dw_hdmi *hdmi = dev_id;
+@@ -2060,30 +2106,10 @@ static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
+ 	 * ask the source to re-read the EDID.
+ 	 */
+ 	if (intr_stat &
+-	    (HDMI_IH_PHY_STAT0_RX_SENSE | HDMI_IH_PHY_STAT0_HPD)) {
+-		mutex_lock(&hdmi->mutex);
+-		if (!hdmi->force) {
+-			/*
+-			 * If the RX sense status indicates we're disconnected,
+-			 * clear the software rxsense status.
+-			 */
+-			if (!(phy_stat & HDMI_PHY_RX_SENSE))
+-				hdmi->rxsense = false;
 -
--0		URB submission went fine
+-			/*
+-			 * Only set the software rxsense status when both
+-			 * rxsense and hpd indicates we're connected.
+-			 * This avoids what seems to be bad behaviour in
+-			 * at least iMX6S versions of the phy.
+-			 */
+-			if (phy_stat & HDMI_PHY_HPD)
+-				hdmi->rxsense = true;
 -
---ENOMEM		no memory for allocation of internal structures	
--
--USB-specific:
--
---EBUSY		The URB is already active.
--
---ENODEV		specified USB-device or bus doesn't exist
--
---ENOENT		specified interface or endpoint does not exist or
--		is not enabled
--
---ENXIO		host controller driver does not support queuing of this type
--		of urb.  (treat as a host controller bug.)
--
---EINVAL		a) Invalid transfer type specified (or not supported)
--		b) Invalid or unsupported periodic transfer interval
--		c) ISO: attempted to change transfer interval
--		d) ISO: number_of_packets is < 0
--		e) various other cases
--
---EXDEV		ISO: URB_ISO_ASAP wasn't specified and all the frames
--		the URB would be scheduled in have already expired.
--
---EFBIG		Host controller driver can't schedule that many ISO frames.
--
---EPIPE		The pipe type specified in the URB doesn't match the
--		endpoint's actual type.
--
---EMSGSIZE	(a) endpoint maxpacket size is zero; it is not usable
--		    in the current interface altsetting.
--		(b) ISO packet is larger than the endpoint maxpacket.
--		(c) requested data transfer length is invalid: negative
--		    or too large for the host controller.
--
---ENOSPC		This request would overcommit the usb bandwidth reserved
--		for periodic transfers (interrupt, isochronous).
--
---ESHUTDOWN	The device or host controller has been disabled due to some
--		problem that could not be worked around.
--
---EPERM		Submission failed because urb->reject was set.
--
---EHOSTUNREACH	URB was rejected because the device is suspended.
--
---ENOEXEC	A control URB doesn't contain a Setup packet.
--
--
--**************************************************************************
--*                   Error codes returned by in urb->status               *
--*                   or in iso_frame_desc[n].status (for ISO)             *
--**************************************************************************
--
--USB device drivers may only test urb status values in completion handlers.
--This is because otherwise there would be a race between HCDs updating
--these values on one CPU, and device drivers testing them on another CPU.
--
--A transfer's actual_length may be positive even when an error has been
--reported.  That's because transfers often involve several packets, so that
--one or more packets could finish before an error stops further endpoint I/O.
--
--For isochronous URBs, the urb status value is non-zero only if the URB is
--unlinked, the device is removed, the host controller is disabled, or the total
--transferred length is less than the requested length and the URB_SHORT_NOT_OK
--flag is set.  Completion handlers for isochronous URBs should only see
--urb->status set to zero, -ENOENT, -ECONNRESET, -ESHUTDOWN, or -EREMOTEIO.
--Individual frame descriptor status fields may report more status codes.
--
--
--0			Transfer completed successfully
--
---ENOENT			URB was synchronously unlinked by usb_unlink_urb
--
---EINPROGRESS		URB still pending, no results yet
--			(That is, if drivers see this it's a bug.)
--
---EPROTO (*, **)		a) bitstuff error
--			b) no response packet received within the
--			   prescribed bus turn-around time
--			c) unknown USB error 
--
---EILSEQ (*, **)		a) CRC mismatch
--			b) no response packet received within the
--			   prescribed bus turn-around time
--			c) unknown USB error 
--
--			Note that often the controller hardware does not
--			distinguish among cases a), b), and c), so a
--			driver cannot tell whether there was a protocol
--			error, a failure to respond (often caused by
--			device disconnect), or some other fault.
--
---ETIME (**)		No response packet received within the prescribed
--			bus turn-around time.  This error may instead be
--			reported as -EPROTO or -EILSEQ.
--
---ETIMEDOUT		Synchronous USB message functions use this code
--			to indicate timeout expired before the transfer
--			completed, and no other error was reported by HC.
--
---EPIPE (**)		Endpoint stalled.  For non-control endpoints,
--			reset this status with usb_clear_halt().
--
---ECOMM			During an IN transfer, the host controller
--			received data from an endpoint faster than it
--			could be written to system memory
--
---ENOSR			During an OUT transfer, the host controller
--			could not retrieve data from system memory fast
--			enough to keep up with the USB data rate
--
---EOVERFLOW (*)		The amount of data returned by the endpoint was
--			greater than either the max packet size of the
--			endpoint or the remaining buffer size.  "Babble".
--
---EREMOTEIO		The data read from the endpoint did not fill the
--			specified buffer, and URB_SHORT_NOT_OK was set in
--			urb->transfer_flags.
--
---ENODEV			Device was removed.  Often preceded by a burst of
--			other errors, since the hub driver doesn't detect
--			device removal events immediately.
--
---EXDEV			ISO transfer only partially completed
--			(only set in iso_frame_desc[n].status, not urb->status)
--
---EINVAL			ISO madness, if this happens: Log off and go home
--
---ECONNRESET		URB was asynchronously unlinked by usb_unlink_urb
--
---ESHUTDOWN		The device or host controller has been disabled due
--			to some problem that could not be worked around,
--			such as a physical disconnect.
--
--
--(*) Error codes like -EPROTO, -EILSEQ and -EOVERFLOW normally indicate
--hardware problems such as bad devices (including firmware) or cables.
--
--(**) This is also one of several codes that different kinds of host
--controller use to indicate a transfer has failed because of device
--disconnect.  In the interval before the hub driver starts disconnect
--processing, devices may receive such fault reports for every request.
--
--
--
--**************************************************************************
--*              Error codes returned by usbcore-functions                 *
--*           (expect also other submit and transfer status codes)         *
--**************************************************************************
--
--usb_register():
---EINVAL			error during registering new driver
--
--usb_get_*/usb_set_*():
--usb_control_msg():
--usb_bulk_msg():
---ETIMEDOUT		Timeout expired before the transfer completed.
+-			dw_hdmi_update_power(hdmi);
+-			dw_hdmi_update_phy_mask(hdmi);
+-		}
+-		mutex_unlock(&hdmi->mutex);
+-	}
++	    (HDMI_IH_PHY_STAT0_RX_SENSE | HDMI_IH_PHY_STAT0_HPD))
++		__dw_hdmi_setup_rx_sense(hdmi,
++					 phy_stat & HDMI_PHY_HPD,
++					 phy_stat & HDMI_PHY_RX_SENSE);
+ 
+ 	if (intr_stat & HDMI_IH_PHY_STAT0_HPD) {
+ 		dev_dbg(hdmi->dev, "EVENT=%s\n",
+@@ -2357,7 +2383,8 @@ static int dw_hdmi_detect_phy(struct dw_hdmi *hdmi)
+ #endif
+ 
+ 	dw_hdmi_setup_i2c(hdmi);
+-	dw_hdmi_phy_setup_hpd(hdmi);
++	if (hdmi->phy.ops->setup_hpd)
++		hdmi->phy.ops->setup_hpd(hdmi, hdmi->phy.data);
+ 
+ 	memset(&pdevinfo, 0, sizeof(pdevinfo));
+ 	pdevinfo.parent = dev;
+diff --git a/include/drm/bridge/dw_hdmi.h b/include/drm/bridge/dw_hdmi.h
+index 5d6b92c..ed599be 100644
+--- a/include/drm/bridge/dw_hdmi.h
++++ b/include/drm/bridge/dw_hdmi.h
+@@ -117,6 +117,9 @@ struct dw_hdmi_phy_ops {
+ 		    struct drm_display_mode *mode);
+ 	void (*disable)(struct dw_hdmi *hdmi, void *data);
+ 	enum drm_connector_status (*read_hpd)(struct dw_hdmi *hdmi, void *data);
++	void (*update_hpd)(struct dw_hdmi *hdmi, void *data,
++			   bool force, bool disabled, bool rxsense);
++	void (*setup_hpd)(struct dw_hdmi *hdmi, void *data);
+ };
+ 
+ struct dw_hdmi_plat_data {
+@@ -147,6 +150,8 @@ int dw_hdmi_probe(struct platform_device *pdev,
+ int dw_hdmi_bind(struct platform_device *pdev, struct drm_encoder *encoder,
+ 		 const struct dw_hdmi_plat_data *plat_data);
+ 
++void dw_hdmi_setup_rx_sense(struct device *dev, bool hpd, bool rx_sense);
++
+ void dw_hdmi_set_sample_rate(struct dw_hdmi *hdmi, unsigned int rate);
+ void dw_hdmi_audio_enable(struct dw_hdmi *hdmi);
+ void dw_hdmi_audio_disable(struct dw_hdmi *hdmi);
 -- 
-2.9.3
+1.9.1
