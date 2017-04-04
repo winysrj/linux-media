@@ -1,107 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:36194 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754007AbdDMPKB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 11:10:01 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com
-Subject: [RFC v3.1 05/14] vb2: Anticipate queue specific DMA attributes for USERPTR buffers
-Date: Thu, 13 Apr 2017 18:09:21 +0300
-Message-Id: <1492096161-18018-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1492070239-21532-6-git-send-email-sakari.ailus@linux.intel.com>
-References: <1492070239-21532-6-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-lf0-f48.google.com ([209.85.215.48]:34625 "EHLO
+        mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754172AbdDDMcI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 08:32:08 -0400
+Received: by mail-lf0-f48.google.com with SMTP id z15so91919149lfd.1
+        for <linux-media@vger.kernel.org>; Tue, 04 Apr 2017 05:32:07 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org
+Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
+        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: [PATCH v6.1 3/4] drm: bridge: dw-hdmi: Add Documentation on supported input formats
+Date: Tue,  4 Apr 2017 14:31:58 +0200
+Message-Id: <1491309119-24220-4-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1491309119-24220-1-git-send-email-narmstrong@baylibre.com>
+References: <1491309119-24220-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DMA attributes were available for the memop implementation for MMAP
-buffers but not for USERPTR buffers. Do the same for USERPTR. This patch
-makes no functional changes.
+This patch adds a new DRM documentation entry and links to the input
+format table added in the dw_hdmi header.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Archit Taneja <architt@codeaurora.org>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 ---
-since RFC v1:
+ Documentation/gpu/bridge/dw-hdmi.rst | 15 +++++++++++++++
+ Documentation/gpu/index.rst          |  1 +
+ 2 files changed, 16 insertions(+)
+ create mode 100644 Documentation/gpu/bridge/dw-hdmi.rst
 
-- Add missing q->dma_attrs argument to call_ptr_memop(vb, get_userptr...
-
- drivers/media/v4l2-core/videobuf2-core.c       | 2 +-
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 3 ++-
- drivers/media/v4l2-core/videobuf2-dma-sg.c     | 3 ++-
- drivers/media/v4l2-core/videobuf2-vmalloc.c    | 3 ++-
- include/media/videobuf2-core.h                 | 3 ++-
- 5 files changed, 9 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index e866115..c659b64 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1025,7 +1025,7 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
- 		mem_priv = call_ptr_memop(vb, get_userptr,
- 				q->alloc_devs[plane] ? : q->dev,
- 				planes[plane].m.userptr,
--				planes[plane].length, dma_dir);
-+				planes[plane].length, dma_dir, q->dma_attrs);
- 		if (IS_ERR(mem_priv)) {
- 			dprintk(1, "failed acquiring userspace memory for plane %d\n",
- 				plane);
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index d29a07f..30082a4 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -475,7 +475,8 @@ static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn
- #endif
+diff --git a/Documentation/gpu/bridge/dw-hdmi.rst b/Documentation/gpu/bridge/dw-hdmi.rst
+new file mode 100644
+index 0000000..486faad
+--- /dev/null
++++ b/Documentation/gpu/bridge/dw-hdmi.rst
+@@ -0,0 +1,15 @@
++=======================================================
++ drm/bridge/dw-hdmi Synopsys DesignWare HDMI Controller
++=======================================================
++
++Synopsys DesignWare HDMI Controller
++===================================
++
++This section covers everything related to the Synopsys DesignWare HDMI
++Controller implemented as a DRM bridge.
++
++Supported Input Formats and Encodings
++-------------------------------------
++
++.. kernel-doc:: include/drm/bridge/dw_hdmi.h
++   :doc: Supported input formats and encodings
+diff --git a/Documentation/gpu/index.rst b/Documentation/gpu/index.rst
+index e998ee0..d81c6ff 100644
+--- a/Documentation/gpu/index.rst
++++ b/Documentation/gpu/index.rst
+@@ -15,6 +15,7 @@ Linux GPU Driver Developer's Guide
+    vc4
+    vga-switcheroo
+    vgaarbiter
++   bridge/dw-hdmi
+    todo
  
- static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
--	unsigned long size, enum dma_data_direction dma_dir)
-+	unsigned long size, enum dma_data_direction dma_dir,
-+	unsigned long attrs)
- {
- 	struct vb2_dc_buf *buf;
- 	struct frame_vector *vec;
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 29fde1a..102ddb2 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -220,7 +220,8 @@ static void vb2_dma_sg_finish(void *buf_priv)
- 
- static void *vb2_dma_sg_get_userptr(struct device *dev, unsigned long vaddr,
- 				    unsigned long size,
--				    enum dma_data_direction dma_dir)
-+				    enum dma_data_direction dma_dir,
-+				    unsigned long dma_attrs)
- {
- 	struct vb2_dma_sg_buf *buf;
- 	struct sg_table *sgt;
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index f83253a..a4914fc 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -73,7 +73,8 @@ static void vb2_vmalloc_put(void *buf_priv)
- 
- static void *vb2_vmalloc_get_userptr(struct device *dev, unsigned long vaddr,
- 				     unsigned long size,
--				     enum dma_data_direction dma_dir)
-+				     enum dma_data_direction dma_dir,
-+				     unsigned long dma_attrs)
- {
- 	struct vb2_vmalloc_buf *buf;
- 	struct frame_vector *vec;
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index cb97c22..4172f6e 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -122,7 +122,8 @@ struct vb2_mem_ops {
- 
- 	void		*(*get_userptr)(struct device *dev, unsigned long vaddr,
- 					unsigned long size,
--					enum dma_data_direction dma_dir);
-+					enum dma_data_direction dma_dir,
-+					unsigned long dma_attrs);
- 	void		(*put_userptr)(void *buf_priv);
- 
- 	void		(*prepare)(void *buf_priv);
+ .. only::  subproject and html
 -- 
-2.7.4
+1.9.1
