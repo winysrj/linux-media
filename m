@@ -1,148 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40483 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752413AbdDKSPC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Apr 2017 14:15:02 -0400
-Date: Tue, 11 Apr 2017 20:15:00 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [RFC] omap3isp: add support for CSI1 bus
-Message-ID: <20170411181500.GA20947@amd>
-References: <10545906.Gxg3yScdu4@avalon>
- <20170215094228.GA8586@amd>
- <2414221.XNA4JCFMRx@avalon>
- <20170302090143.GB27818@amd>
- <20170302101603.GE27818@amd>
- <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
- <20170302123848.GA28230@amd>
- <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
- <20170306075659.GB23509@amd>
- <20170310134131.GD11875@amd>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39318 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752202AbdDDJkJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 05:40:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Neil Armstrong <narmstrong@baylibre.com>
+Cc: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
+        mchehab@kernel.org, Jose.Abreu@synopsys.com,
+        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com
+Subject: Re: [PATCH v6 4/6] drm: bridge: dw-hdmi: Switch to V4L bus format and encodings
+Date: Tue, 04 Apr 2017 12:40:54 +0300
+Message-ID: <4948994.ktJJpZgFXr@avalon>
+In-Reply-To: <1491230558-10804-5-git-send-email-narmstrong@baylibre.com>
+References: <1491230558-10804-1-git-send-email-narmstrong@baylibre.com> <1491230558-10804-5-git-send-email-narmstrong@baylibre.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ZGiS0Q5IWpPtfppv"
-Content-Disposition: inline
-In-Reply-To: <20170310134131.GD11875@amd>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Neil,
 
---ZGiS0Q5IWpPtfppv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thank you for the patch.
 
-On Fri 2017-03-10 14:41:31, Pavel Machek wrote:
-> On Mon 2017-03-06 08:56:59, Pavel Machek wrote:
-> > omap3isp: add rest of CSI1 support
-> >=20
-> > CSI1 needs one more bit to be set up. Do just that.
-> >=20
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> >=20
-> > ---
-> >=20
-> > Hmm. Looking at that... num_data_lanes probably should be modified in
-> > local variable, not globally like this. Should I do that?
-> >=20
-> > Anything else that needs fixing?
->=20
-> Ping? Feedback here would be nice. This is last "interesting" piece of
-> the hardware support...
+On Monday 03 Apr 2017 16:42:36 Neil Armstrong wrote:
+> Some display pipelines can only provide non-RBG input pixels to the HDMI TX
+> Controller, this patch takes the pixel format from the plat_data if
+> provided.
 
-Any news here? You complained that I was not pushy enough in the past
-;-).
+The commit message doesn't seem to match the subject line.
 
-								Pavel
-							=09
-> > index 24a9fc5..6feba36 100644
-> > --- a/drivers/media/platform/omap3isp/ispccp2.c
-> > +++ b/drivers/media/platform/omap3isp/ispccp2.c
-> > @@ -21,6 +23,7 @@
-> >  #include <linux/mutex.h>
-> >  #include <linux/uaccess.h>
-> >  #include <linux/regulator/consumer.h>
-> > +#include <linux/regmap.h>
-> > =20
-> >  #include "isp.h"
-> >  #include "ispreg.h"
-> > @@ -1149,6 +1152,7 @@ int omap3isp_ccp2_init(struct isp_device *isp)
-> >  				"Could not get regulator vdds_csib\n");
-> >  			ccp2->vdds_csib =3D NULL;
-> >  		}
-> > +		ccp2->phy =3D &isp->isp_csiphy2;
-> >  	} else if (isp->revision =3D=3D ISP_REVISION_15_0) {
-> >  		ccp2->phy =3D &isp->isp_csiphy1;
-> >  	}
-> > diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/medi=
-a/platform/omap3isp/ispcsiphy.c
-> > index 50c0f64..cd6351b 100644
-> > --- a/drivers/media/platform/omap3isp/ispcsiphy.c
-> > +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-> > @@ -197,9 +200,10 @@ static int omap3isp_csiphy_config(struct isp_csiph=
-y *phy)
-> >  	}
-> > =20
-> >  	if (buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY1
-> > -	    || buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY2)
-> > +	    || buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY2) {
-> >  		lanes =3D &buscfg->bus.ccp2.lanecfg;
-> > -	else
-> > +		phy->num_data_lanes =3D 1;
-> > +	} else
-> >  		lanes =3D &buscfg->bus.csi2.lanecfg;
-> > =20
-> >  	/* Clock and data lanes verification */
-> > @@ -302,13 +306,16 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *ph=
-y)
-> >  	if (rval < 0)
-> >  		goto done;
-> > =20
-> > -	rval =3D csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
-> > -	if (rval) {
-> > -		regulator_disable(phy->vdd);
-> > -		goto done;
-> > +	if (phy->isp->revision =3D=3D ISP_REVISION_15_0) {
-> > +		rval =3D csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
-> > +		if (rval) {
-> > +			regulator_disable(phy->vdd);
-> > +			goto done;
-> > +		}
-> > +	=09
-> > +		csiphy_power_autoswitch_enable(phy, true);	=09
-> >  	}
-> > =20
-> > -	csiphy_power_autoswitch_enable(phy, true);
-> >  	phy->phy_in_use =3D 1;
-> > =20
-> >  done:
-> >=20
->=20
->=20
->=20
+> Reviewed-by: Jose Abreu <joabreu@synopsys.com>
+> Reviewed-by: Archit Taneja <architt@codeaurora.org>
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+> ---
+>  drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 326 +++++++++++++++++++--------
+>  include/drm/bridge/dw_hdmi.h              |  63 ++++++
+>  2 files changed, 294 insertions(+), 95 deletions(-)
 
+[snip]
 
+> diff --git a/include/drm/bridge/dw_hdmi.h b/include/drm/bridge/dw_hdmi.h
+> index bcceee8..45c2c15 100644
+> --- a/include/drm/bridge/dw_hdmi.h
+> +++ b/include/drm/bridge/dw_hdmi.h
+> @@ -14,6 +14,67 @@
+>  
+>  struct dw_hdmi;
+>  
+> +/**
+> + * DOC: Supported input formats and encodings
+> + *
+> + * Depending on the Hardware configuration of the Controller IP, it
+> supports
+> + * a subset of the following input formats and encodings on it's internal
+> + * 48bit bus.
+> + *
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+s/it's/its/
 
---ZGiS0Q5IWpPtfppv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+[snip]
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Apart from that,
 
-iEYEARECAAYFAljtHSQACgkQMOfwapXb+vLKswCaAw3Jrh3ck2DbU80Xy6O214M/
-/4cAn3/9bOZrkMFg+6KID/2ELiROPCX6
-=mU04
------END PGP SIGNATURE-----
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
---ZGiS0Q5IWpPtfppv--
+-- 
+Regards,
+
+Laurent Pinchart
