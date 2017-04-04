@@ -1,105 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:38879 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1425804AbdD1MKe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 08:10:34 -0400
-Subject: [PATCH 7/8] staging: atomisp: remove #ifdef for runtime PM functions
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Fri, 28 Apr 2017 13:10:31 +0100
-Message-ID: <149338142997.2556.11440015221647658745.stgit@acox1-desk1.ger.corp.intel.com>
-In-Reply-To: <149338135275.2556.7708531564733886566.stgit@acox1-desk1.ger.corp.intel.com>
-References: <149338135275.2556.7708531564733886566.stgit@acox1-desk1.ger.corp.intel.com>
+Received: from mail-wr0-f169.google.com ([209.85.128.169]:33638 "EHLO
+        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754266AbdDDMyN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 08:54:13 -0400
+Received: by mail-wr0-f169.google.com with SMTP id w43so213063419wrb.0
+        for <linux-media@vger.kernel.org>; Tue, 04 Apr 2017 05:54:13 -0700 (PDT)
+Date: Tue, 4 Apr 2017 13:54:09 +0100
+From: Lee Jones <lee.jones@linaro.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: hans.verkuil@cisco.com, mchehab@kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        kernel@stlinux.com, patrice.chotard@st.com,
+        linux-media@vger.kernel.org, benjamin.gaignard@st.com
+Subject: Re: [PATCH 1/2] [media] cec: Move capability check inside #if
+Message-ID: <20170404125409.ay5yszwdkdxb6nvx@dell>
+References: <20170404123219.22040-1-lee.jones@linaro.org>
+ <4920d83a-8983-36cc-936d-9e0989e833ce@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4920d83a-8983-36cc-936d-9e0989e833ce@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Arnd Bergmann <arnd@arndb.de>
+On Tue, 04 Apr 2017, Hans Verkuil wrote:
 
-The runtime power management functions are called from the reset handler even
-if CONFIG_PM is disabled, leading to a link error:
+> On 04/04/2017 02:32 PM, Lee Jones wrote:
+> > If CONFIG_RC_CORE is not enabled then none of the RC code will be
+> > executed anyway, so we're placing the capability check inside the
+> > 
+> > Signed-off-by: Lee Jones <lee.jones@linaro.org>
+> > ---
+> >  drivers/media/cec/cec-core.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+> > index 37217e2..06a312c 100644
+> > --- a/drivers/media/cec/cec-core.c
+> > +++ b/drivers/media/cec/cec-core.c
+> > @@ -234,10 +234,10 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+> >  		return ERR_PTR(res);
+> >  	}
+> >  
+> > +#if IS_REACHABLE(CONFIG_RC_CORE)
+> >  	if (!(caps & CEC_CAP_RC))
+> >  		return adap;
+> >  
+> > -#if IS_REACHABLE(CONFIG_RC_CORE)
+> >  	/* Prepare the RC input device */
+> >  	adap->rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+> >  	if (!adap->rc) {
+> > 
+> 
+> Not true, there is an #else further down.
 
-drivers/staging/built-in.o: In function `atomisp_reset':
-(.text+0x4cd1c): undefined reference to `atomisp_runtime_suspend'
-drivers/staging/built-in.o: In function `atomisp_reset':
-(.text+0x4cd3a): undefined reference to `atomisp_mrfld_power_down'
-drivers/staging/built-in.o: In function `atomisp_reset':
-(.text+0x4cd58): undefined reference to `atomisp_mrfld_power_up'
-drivers/staging/built-in.o: In function `atomisp_reset':
-(.text+0x4cd77): undefined reference to `atomisp_runtime_resume'
+I saw the #else.  It's inert code that becomes function-less.
 
-Removing the #ifdef around the PM functions avoids the problem, and
-lets us simplify it further. The __maybe_unused annotation is needed
-to ensure the compiler can silently drop the unused callbacks.
+> That said, this code is clearly a bit confusing.
+> 
+> It would be better if at the beginning of the function we'd have this:
+> 
+> #if !IS_REACHABLE(CONFIG_RC_CORE)
+> 	caps &= ~CEC_CAP_RC;
+> #endif
+> 
+> and then drop the #else bit and (as you do in this patch) move the #if up.
+> 
+> Can you make a new patch for this?
 
-Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
- .../media/atomisp/pci/atomisp2/atomisp_v4l2.c      |   14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+Sure.
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-index 35414c9..e3fdbdb 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-@@ -310,7 +310,6 @@ static int __maybe_unused atomisp_restore_iunit_reg(struct atomisp_device *isp)
- 	return 0;
- }
- 
--#ifdef CONFIG_PM
- static int atomisp_mrfld_pre_power_down(struct atomisp_device *isp)
- {
- 	struct pci_dev *dev = isp->pdev;
-@@ -550,7 +549,7 @@ int atomisp_runtime_resume(struct device *dev)
- 	return 0;
- }
- 
--static int atomisp_suspend(struct device *dev)
-+static int __maybe_unused atomisp_suspend(struct device *dev)
- {
- 	struct atomisp_device *isp = (struct atomisp_device *)
- 		dev_get_drvdata(dev);
-@@ -588,7 +587,7 @@ static int atomisp_suspend(struct device *dev)
- 	return atomisp_mrfld_power_down(isp);
- }
- 
--static int atomisp_resume(struct device *dev)
-+static int __maybe_unused atomisp_resume(struct device *dev)
- {
- 	struct atomisp_device *isp = (struct atomisp_device *)
- 		dev_get_drvdata(dev);
-@@ -614,7 +613,6 @@ static int atomisp_resume(struct device *dev)
- 	atomisp_freq_scaling(isp, ATOMISP_DFS_MODE_LOW, true);
- 	return 0;
- }
--#endif
- 
- int atomisp_csi_lane_config(struct atomisp_device *isp)
- {
-@@ -1576,7 +1574,6 @@ static const struct pci_device_id atomisp_pci_tbl[] = {
- 
- MODULE_DEVICE_TABLE(pci, atomisp_pci_tbl);
- 
--#ifdef CONFIG_PM
- static const struct dev_pm_ops atomisp_pm_ops = {
- 	.runtime_suspend = atomisp_runtime_suspend,
- 	.runtime_resume = atomisp_runtime_resume,
-@@ -1584,14 +1581,9 @@ static const struct dev_pm_ops atomisp_pm_ops = {
- 	.resume = atomisp_resume,
- };
- 
--#define DEV_PM_OPS (&atomisp_pm_ops)
--#else
--#define DEV_PM_OPS NULL
--#endif
--
- static struct pci_driver atomisp_pci_driver = {
- 	.driver = {
--		.pm = DEV_PM_OPS,
-+		.pm = &atomisp_pm_ops,
- 	},
- 	.name = "atomisp-isp2",
- 	.id_table = atomisp_pci_tbl,
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
