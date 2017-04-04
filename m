@@ -1,56 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:51846 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754820AbdDDPpd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 4 Apr 2017 11:45:33 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v3 8/8] ARM: configs: stm32: DCMI + OV2640 camera support
-Date: Tue, 4 Apr 2017 17:44:38 +0200
-Message-ID: <1491320678-17246-9-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1491320678-17246-1-git-send-email-hugues.fruchet@st.com>
-References: <1491320678-17246-1-git-send-email-hugues.fruchet@st.com>
+Received: from bombadil.infradead.org ([65.50.211.133]:51753 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752997AbdDDWs3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 18:48:29 -0400
+Date: Tue, 4 Apr 2017 15:48:27 -0700
+From: Kyle McMartin <kyle@infradead.org>
+To: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+Cc: linux-mediatek@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        tiffany.lin@mediatek.com, eddie.huang@mediatek.com,
+        wuchengli@google.com, srv_heupstream@mediatek.com,
+        linux-firmware@kernel.org
+Subject: Re: pull request: linux-firmware: Update Mediatek MT8173 VPU firmware
+Message-ID: <20170404224827.GK13400@bombadil.infradead.org>
+References: <1490686650-43882-1-git-send-email-andrew-ct.chen@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1490686650-43882-1-git-send-email-andrew-ct.chen@mediatek.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable DCMI camera interface and OV2640 camera sensor drivers.
+On Tue, Mar 28, 2017 at 03:37:29PM +0800, Andrew-CT Chen wrote:
+> Hi linux-firmware maintainers,
+> 
+> The following changes since commit 44d8e8d4fdcdff56e9e21208d4b4aa7cd6962656:
+> 
+>   Merge branch 'master' of https://github.com/Netronome/linux-firmware (2017-03-24 09:43:35 -0700)
+> 
+> are available in the git repository at:
+> 
+> 
+>   https://github.com/andrewct-chen/linux_fw_vpu_v1.0.4.git vp9_profile
+> 
+> for you to fetch changes up to 936f3e98847e89f119b24e0fa50f7028d667c744:
+> 
+>   mediatek: update MT8173 VPU firmware for unsupported VP9 profiles (2017-03-28 15:21:24 +0800)
+> 
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- arch/arm/configs/stm32_defconfig | 7 +++++++
- 1 file changed, 7 insertions(+)
+Pulled, thanks Andrew-CT.
 
-diff --git a/arch/arm/configs/stm32_defconfig b/arch/arm/configs/stm32_defconfig
-index 84adc88..3f2e4ce 100644
---- a/arch/arm/configs/stm32_defconfig
-+++ b/arch/arm/configs/stm32_defconfig
-@@ -53,6 +53,13 @@ CONFIG_GPIO_STMPE=y
- CONFIG_MFD_STMPE=y
- CONFIG_REGULATOR_FIXED_VOLTAGE=y
- # CONFIG_USB_SUPPORT is not set
-+CONFIG_VIDEO_V4L2=y
-+CONFIG_MEDIA_SUBDRV_AUTOSELECT=n
-+CONFIG_V4L_PLATFORM_DRIVERS=y
-+CONFIG_MEDIA_SUPPORT=y
-+CONFIG_MEDIA_CAMERA_SUPPORT=y
-+CONFIG_VIDEO_STM32_DCMI=y
-+CONFIG_VIDEO_OV2640=y
- CONFIG_NEW_LEDS=y
- CONFIG_LEDS_CLASS=y
- CONFIG_LEDS_GPIO=y
--- 
-1.9.1
+regards, Kyle
