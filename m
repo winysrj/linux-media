@@ -1,75 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:41903 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755975AbdDMKIr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 06:08:47 -0400
-Message-ID: <1492078027.2383.19.camel@pengutronix.de>
-Subject: Re: [PATCH] [media] imx: csi: retain current field order and
- colorimetry setting as default
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Thu, 13 Apr 2017 12:07:07 +0200
-In-Reply-To: <6c22519f-64f8-7213-d458-23470bdd5ecd@xs4all.nl>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-         <1490661656-10318-22-git-send-email-steve_longerbeam@mentor.com>
-         <1491486929.2392.29.camel@pengutronix.de>
-         <0f9690f8-c7f6-59ff-9e3e-123af9972d4b@xs4all.nl>
-         <1491490451.2392.70.camel@pengutronix.de>
-         <59e72974-bfb0-6061-8b13-5f13f8723ba6@xs4all.nl>
-         <1491494481.2392.102.camel@pengutronix.de>
-         <6c22519f-64f8-7213-d458-23470bdd5ecd@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:37650 "EHLO
+        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752935AbdDDOnT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 10:43:19 -0400
+Received: by mail-wm0-f42.google.com with SMTP id x124so30076403wmf.0
+        for <linux-media@vger.kernel.org>; Tue, 04 Apr 2017 07:43:18 -0700 (PDT)
+From: Lee Jones <lee.jones@linaro.org>
+To: hans.verkuil@cisco.com, mchehab@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        kernel@stlinux.com, patrice.chotard@st.com,
+        linux-media@vger.kernel.org, benjamin.gaignard@st.com,
+        Lee Jones <lee.jones@linaro.org>
+Subject: [PATCH] [media] cec: Handle RC capability more elegantly
+Date: Tue,  4 Apr 2017 15:43:09 +0100
+Message-Id: <20170404144309.31357-1-lee.jones@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2017-04-12 at 09:03 +0200, Hans Verkuil wrote:
-[...]
-> >> Do you have a git tree with this patch? It is really hard to review without
-> >> having the full imx-media-csi.c source.
-> > 
-> > The patch applies on top of
-> > 
-> >   https://github.com/slongerbeam/mediatree.git imx-media-staging-md-v14
-> > 
-> > I have uploaded a branch
-> > 
-> >   git://git.pengutronix.de/git/pza/linux imx-media-staging-md-v14+color
-> > 
-> > with the patch applied on top.
-> > 
-> >> I think one problem is that it is not clearly defined how subdevs and colorspace
-> >> information should work.
-> 
-> Ah, having the full source helped.
-> 
-> Ignore my previous review, it was incorrect.
+If a user specifies the use of RC as a capability, they should
+really be enabling RC Core code.  If they do not we WARN() them
+of this and disable the capability for them.
 
-Ok.
+Once we know RC Core code has not been enabled, we can update
+the user's capabilities and use them as a term of reference for
+other RC-only calls.  This is preferable to having ugly #ifery
+scattered throughout C code.
 
-> I'll have to think about this some more. I'll get back to this, but it may take some
-> time since my vacation starts tomorrow. The spec is simply unclear about how to handle
-> this so we have to come up with some guidelines.
+Most of the functions are actually safe to call, since they
+sensibly check for a NULL RC pointer before they attempt to
+deference it.
 
-Yes, please. Until then, have a nice vacation.
+Signed-off-by: Lee Jones <lee.jones@linaro.org>
+---
+ drivers/media/cec/cec-core.c | 19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
-regards
-Philipp
+diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+index cfe414a..51be8d6 100644
+--- a/drivers/media/cec/cec-core.c
++++ b/drivers/media/cec/cec-core.c
+@@ -208,9 +208,13 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 		return ERR_PTR(-EINVAL);
+ 	if (WARN_ON(!available_las || available_las > CEC_MAX_LOG_ADDRS))
+ 		return ERR_PTR(-EINVAL);
++	if (WARN_ON(caps & CEC_CAP_RC && !IS_REACHABLE(CONFIG_RC_CORE)))
++		caps &= ~CEC_CAP_RC;
++
+ 	adap = kzalloc(sizeof(*adap), GFP_KERNEL);
+ 	if (!adap)
+ 		return ERR_PTR(-ENOMEM);
++
+ 	strlcpy(adap->name, name, sizeof(adap->name));
+ 	adap->phys_addr = CEC_PHYS_ADDR_INVALID;
+ 	adap->log_addrs.cec_version = CEC_OP_CEC_VERSION_2_0;
+@@ -237,7 +241,6 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 	if (!(caps & CEC_CAP_RC))
+ 		return adap;
+ 
+-#if IS_REACHABLE(CONFIG_RC_CORE)
+ 	/* Prepare the RC input device */
+ 	adap->rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!adap->rc) {
+@@ -264,9 +267,7 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 	adap->rc->priv = adap;
+ 	adap->rc->map_name = RC_MAP_CEC;
+ 	adap->rc->timeout = MS_TO_NS(100);
+-#else
+-	adap->capabilities &= ~CEC_CAP_RC;
+-#endif
++
+ 	return adap;
+ }
+ EXPORT_SYMBOL_GPL(cec_allocate_adapter);
+@@ -285,7 +286,6 @@ int cec_register_adapter(struct cec_adapter *adap,
+ 	adap->owner = parent->driver->owner;
+ 	adap->devnode.dev.parent = parent;
+ 
+-#if IS_REACHABLE(CONFIG_RC_CORE)
+ 	if (adap->capabilities & CEC_CAP_RC) {
+ 		adap->rc->dev.parent = parent;
+ 		res = rc_register_device(adap->rc);
+@@ -298,15 +298,13 @@ int cec_register_adapter(struct cec_adapter *adap,
+ 			return res;
+ 		}
+ 	}
+-#endif
+ 
+ 	res = cec_devnode_register(&adap->devnode, adap->owner);
+ 	if (res) {
+-#if IS_REACHABLE(CONFIG_RC_CORE)
+ 		/* Note: rc_unregister also calls rc_free */
+ 		rc_unregister_device(adap->rc);
+ 		adap->rc = NULL;
+-#endif
++
+ 		return res;
+ 	}
+ 
+@@ -337,11 +335,10 @@ void cec_unregister_adapter(struct cec_adapter *adap)
+ 	if (IS_ERR_OR_NULL(adap))
+ 		return;
+ 
+-#if IS_REACHABLE(CONFIG_RC_CORE)
+ 	/* Note: rc_unregister also calls rc_free */
+ 	rc_unregister_device(adap->rc);
+ 	adap->rc = NULL;
+-#endif
++
+ 	debugfs_remove_recursive(adap->cec_dir);
+ 	cec_devnode_unregister(&adap->devnode);
+ }
+@@ -357,9 +354,7 @@ void cec_delete_adapter(struct cec_adapter *adap)
+ 	kthread_stop(adap->kthread);
+ 	if (adap->kthread_config)
+ 		kthread_stop(adap->kthread_config);
+-#if IS_REACHABLE(CONFIG_RC_CORE)
+ 	rc_free_device(adap->rc);
+-#endif
+ 	kfree(adap);
+ }
+ EXPORT_SYMBOL_GPL(cec_delete_adapter);
+-- 
+2.9.3
