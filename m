@@ -1,893 +1,650 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:57469 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1031569AbdD0Wmz (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43604 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753471AbdDDMsM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:42:55 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v4 08/27] rcar-vin: move functions regarding scaling
-Date: Fri, 28 Apr 2017 00:41:44 +0200
-Message-Id: <20170427224203.14611-9-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+        Tue, 4 Apr 2017 08:48:12 -0400
+Date: Tue, 4 Apr 2017 15:47:32 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v6 17/39] platform: add video-multiplexer subdevice driver
+Message-ID: <20170404124732.GD3288@valkosipuli.retiisi.org.uk>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+ <1490661656-10318-18-git-send-email-steve_longerbeam@mentor.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1490661656-10318-18-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In preparation of refactoring the scaling code move the code regarding
-scaling to to the top of the file to avoid the need to add forward
-declarations. No code is changed in this commit only whole functions
-moved inside the same file.
+Hi Steve, Philipp and Pavel,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 804 +++++++++++++++--------------
- 1 file changed, 404 insertions(+), 400 deletions(-)
+On Mon, Mar 27, 2017 at 05:40:34PM -0700, Steve Longerbeam wrote:
+> From: Philipp Zabel <p.zabel@pengutronix.de>
+> 
+> This driver can handle SoC internal and external video bus multiplexers,
+> controlled either by register bit fields or by a GPIO. The subdevice
+> passes through frame interval and mbus configuration of the active input
+> to the output side.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index c5fa176ac9d8cc4a..eff5d8f719e4ab26 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -138,304 +138,6 @@ static u32 rvin_read(struct rvin_dev *vin, u32 offset)
- 	return ioread32(vin->base + offset);
- }
- 
--static int rvin_setup(struct rvin_dev *vin)
--{
--	u32 vnmc, dmr, dmr2, interrupts;
--	v4l2_std_id std;
--	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
--
--	switch (vin->format.field) {
--	case V4L2_FIELD_TOP:
--		vnmc = VNMC_IM_ODD;
--		break;
--	case V4L2_FIELD_BOTTOM:
--		vnmc = VNMC_IM_EVEN;
--		break;
--	case V4L2_FIELD_INTERLACED:
--		/* Default to TB */
--		vnmc = VNMC_IM_FULL;
--		/* Use BT if video standard can be read and is 60 Hz format */
--		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
--			if (std & V4L2_STD_525_60)
--				vnmc = VNMC_IM_FULL | VNMC_FOC;
--		}
--		break;
--	case V4L2_FIELD_INTERLACED_TB:
--		vnmc = VNMC_IM_FULL;
--		break;
--	case V4L2_FIELD_INTERLACED_BT:
--		vnmc = VNMC_IM_FULL | VNMC_FOC;
--		break;
--	case V4L2_FIELD_ALTERNATE:
--	case V4L2_FIELD_NONE:
--		if (vin->continuous) {
--			vnmc = VNMC_IM_ODD_EVEN;
--			progressive = true;
--		} else {
--			vnmc = VNMC_IM_ODD;
--		}
--		break;
--	default:
--		vnmc = VNMC_IM_ODD;
--		break;
--	}
--
--	/*
--	 * Input interface
--	 */
--	switch (vin->digital.code) {
--	case MEDIA_BUS_FMT_YUYV8_1X16:
--		/* BT.601/BT.1358 16bit YCbCr422 */
--		vnmc |= VNMC_INF_YUV16;
--		input_is_yuv = true;
--		break;
--	case MEDIA_BUS_FMT_UYVY8_2X8:
--		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
--		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
--			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
--		input_is_yuv = true;
--		break;
--	case MEDIA_BUS_FMT_RGB888_1X24:
--		vnmc |= VNMC_INF_RGB888;
--		break;
--	case MEDIA_BUS_FMT_UYVY10_2X10:
--		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
--		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
--			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
--		input_is_yuv = true;
--		break;
--	default:
--		break;
--	}
--
--	/* Enable VSYNC Field Toogle mode after one VSYNC input */
--	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
--
--	/* Hsync Signal Polarity Select */
--	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
--		dmr2 |= VNDMR2_HPS;
--
--	/* Vsync Signal Polarity Select */
--	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
--		dmr2 |= VNDMR2_VPS;
--
--	/*
--	 * Output format
--	 */
--	switch (vin->format.pixelformat) {
--	case V4L2_PIX_FMT_NV16:
--		rvin_write(vin,
--			   ALIGN(vin->format.width * vin->format.height, 0x80),
--			   VNUVAOF_REG);
--		dmr = VNDMR_DTMD_YCSEP;
--		output_is_yuv = true;
--		break;
--	case V4L2_PIX_FMT_YUYV:
--		dmr = VNDMR_BPSM;
--		output_is_yuv = true;
--		break;
--	case V4L2_PIX_FMT_UYVY:
--		dmr = 0;
--		output_is_yuv = true;
--		break;
--	case V4L2_PIX_FMT_XRGB555:
--		dmr = VNDMR_DTMD_ARGB1555;
--		break;
--	case V4L2_PIX_FMT_RGB565:
--		dmr = 0;
--		break;
--	case V4L2_PIX_FMT_XBGR32:
--		/* Note: not supported on M1 */
--		dmr = VNDMR_EXRGB;
--		break;
--	default:
--		vin_err(vin, "Invalid pixelformat (0x%x)\n",
--			vin->format.pixelformat);
--		return -EINVAL;
--	}
--
--	/* Always update on field change */
--	vnmc |= VNMC_VUP;
--
--	/* If input and output use the same colorspace, use bypass mode */
--	if (input_is_yuv == output_is_yuv)
--		vnmc |= VNMC_BPS;
--
--	/* Progressive or interlaced mode */
--	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
--
--	/* Ack interrupts */
--	rvin_write(vin, interrupts, VNINTS_REG);
--	/* Enable interrupts */
--	rvin_write(vin, interrupts, VNIE_REG);
--	/* Start capturing */
--	rvin_write(vin, dmr, VNDMR_REG);
--	rvin_write(vin, dmr2, VNDMR2_REG);
--
--	/* Enable module */
--	rvin_write(vin, vnmc | VNMC_ME, VNMC_REG);
--
--	return 0;
--}
--
--static void rvin_disable_interrupts(struct rvin_dev *vin)
--{
--	rvin_write(vin, 0, VNIE_REG);
--}
--
--static u32 rvin_get_interrupt_status(struct rvin_dev *vin)
--{
--	return rvin_read(vin, VNINTS_REG);
--}
--
--static void rvin_ack_interrupt(struct rvin_dev *vin)
--{
--	rvin_write(vin, rvin_read(vin, VNINTS_REG), VNINTS_REG);
--}
--
--static bool rvin_capture_active(struct rvin_dev *vin)
--{
--	return rvin_read(vin, VNMS_REG) & VNMS_CA;
--}
--
--static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
--{
--	if (vin->continuous)
--		return (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
--
--	return 0;
--}
--
--static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
--{
--	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
--		/* If FS is set it's a Even field */
--		if (vnms & VNMS_FS)
--			return V4L2_FIELD_BOTTOM;
--		return V4L2_FIELD_TOP;
--	}
--
--	return vin->format.field;
--}
--
--static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
--{
--	const struct rvin_video_format *fmt;
--	int offsetx, offsety;
--	dma_addr_t offset;
--
--	fmt = rvin_format_from_pixel(vin->format.pixelformat);
--
--	/*
--	 * There is no HW support for composition do the beast we can
--	 * by modifying the buffer offset
--	 */
--	offsetx = vin->compose.left * fmt->bpp;
--	offsety = vin->compose.top * vin->format.bytesperline;
--	offset = addr + offsetx + offsety;
--
--	/*
--	 * The address needs to be 128 bytes aligned. Driver should never accept
--	 * settings that do not satisfy this in the first place...
--	 */
--	if (WARN_ON((offsetx | offsety | offset) & HW_BUFFER_MASK))
--		return;
--
--	rvin_write(vin, offset, VNMB_REG(slot));
--}
--
--static bool rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
--{
--	struct rvin_buffer *buf;
--	struct vb2_v4l2_buffer *vbuf;
--	dma_addr_t phys_addr_top;
--
--	if (vin->queue_buf[slot] != NULL)
--		return true;
--
--	if (list_empty(&vin->buf_list))
--		return false;
--
--	vin_dbg(vin, "Filling HW slot: %d\n", slot);
--
--	/* Keep track of buffer we give to HW */
--	buf = list_entry(vin->buf_list.next, struct rvin_buffer, list);
--	vbuf = &buf->vb;
--	list_del_init(to_buf_list(vbuf));
--	vin->queue_buf[slot] = vbuf;
--
--	/* Setup DMA */
--	phys_addr_top = vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
--	rvin_set_slot_addr(vin, slot, phys_addr_top);
--
--	return true;
--}
--
--static bool rvin_fill_hw(struct rvin_dev *vin)
--{
--	int slot, limit;
--
--	limit = vin->continuous ? HW_BUFFER_NUM : 1;
--
--	for (slot = 0; slot < limit; slot++)
--		if (!rvin_fill_hw_slot(vin, slot))
--			return false;
--	return true;
--}
--
--static void rvin_capture_on(struct rvin_dev *vin)
--{
--	vin_dbg(vin, "Capture on in %s mode\n",
--		vin->continuous ? "continuous" : "single");
--
--	if (vin->continuous)
--		/* Continuous Frame Capture Mode */
--		rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
--	else
--		/* Single Frame Capture Mode */
--		rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
--}
--
--static int rvin_capture_start(struct rvin_dev *vin)
--{
--	struct rvin_buffer *buf, *node;
--	int bufs, ret;
--
--	/* Count number of free buffers */
--	bufs = 0;
--	list_for_each_entry_safe(buf, node, &vin->buf_list, list)
--		bufs++;
--
--	/* Continuous capture requires more buffers then there are HW slots */
--	vin->continuous = bufs > HW_BUFFER_NUM;
--
--	if (!rvin_fill_hw(vin)) {
--		vin_err(vin, "HW not ready to start, not enough buffers available\n");
--		return -EINVAL;
--	}
--
--	rvin_crop_scale_comp(vin);
--
--	ret = rvin_setup(vin);
--	if (ret)
--		return ret;
--
--	rvin_capture_on(vin);
--
--	vin->state = RUNNING;
--
--	return 0;
--}
--
--static void rvin_capture_stop(struct rvin_dev *vin)
--{
--	/* Set continuous & single transfer off */
--	rvin_write(vin, 0, VNFC_REG);
--
--	/* Disable module */
--	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
--}
--
- /* -----------------------------------------------------------------------------
-  * Crop and Scaling Gen2
-  */
-@@ -756,139 +458,441 @@ static const struct vin_coeff vin_coeff_set[] = {
- 			  0x0370e83b, 0x0310d439, 0x03a0f83d,
- 			  0x0370e83c, 0x0300d438, 0x03b0fc3c },
- 	}
--};
-+};
-+
-+static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
-+{
-+	int i;
-+	const struct vin_coeff *p_prev_set = NULL;
-+	const struct vin_coeff *p_set = NULL;
-+
-+	/* Look for suitable coefficient values */
-+	for (i = 0; i < ARRAY_SIZE(vin_coeff_set); i++) {
-+		p_prev_set = p_set;
-+		p_set = &vin_coeff_set[i];
-+
-+		if (xs < p_set->xs_value)
-+			break;
-+	}
-+
-+	/* Use previous value if its XS value is closer */
-+	if (p_prev_set && p_set &&
-+	    xs - p_prev_set->xs_value < p_set->xs_value - xs)
-+		p_set = p_prev_set;
-+
-+	/* Set coefficient registers */
-+	rvin_write(vin, p_set->coeff_set[0], VNC1A_REG);
-+	rvin_write(vin, p_set->coeff_set[1], VNC1B_REG);
-+	rvin_write(vin, p_set->coeff_set[2], VNC1C_REG);
-+
-+	rvin_write(vin, p_set->coeff_set[3], VNC2A_REG);
-+	rvin_write(vin, p_set->coeff_set[4], VNC2B_REG);
-+	rvin_write(vin, p_set->coeff_set[5], VNC2C_REG);
-+
-+	rvin_write(vin, p_set->coeff_set[6], VNC3A_REG);
-+	rvin_write(vin, p_set->coeff_set[7], VNC3B_REG);
-+	rvin_write(vin, p_set->coeff_set[8], VNC3C_REG);
-+
-+	rvin_write(vin, p_set->coeff_set[9], VNC4A_REG);
-+	rvin_write(vin, p_set->coeff_set[10], VNC4B_REG);
-+	rvin_write(vin, p_set->coeff_set[11], VNC4C_REG);
-+
-+	rvin_write(vin, p_set->coeff_set[12], VNC5A_REG);
-+	rvin_write(vin, p_set->coeff_set[13], VNC5B_REG);
-+	rvin_write(vin, p_set->coeff_set[14], VNC5C_REG);
-+
-+	rvin_write(vin, p_set->coeff_set[15], VNC6A_REG);
-+	rvin_write(vin, p_set->coeff_set[16], VNC6B_REG);
-+	rvin_write(vin, p_set->coeff_set[17], VNC6C_REG);
-+
-+	rvin_write(vin, p_set->coeff_set[18], VNC7A_REG);
-+	rvin_write(vin, p_set->coeff_set[19], VNC7B_REG);
-+	rvin_write(vin, p_set->coeff_set[20], VNC7C_REG);
-+
-+	rvin_write(vin, p_set->coeff_set[21], VNC8A_REG);
-+	rvin_write(vin, p_set->coeff_set[22], VNC8B_REG);
-+	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
-+}
-+
-+void rvin_crop_scale_comp(struct rvin_dev *vin)
-+{
-+	u32 xs, ys;
-+
-+	/* Set Start/End Pixel/Line Pre-Clip */
-+	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
-+	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
-+	switch (vin->format.field) {
-+	case V4L2_FIELD_INTERLACED:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
-+		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
-+			   VNELPRC_REG);
-+		break;
-+	default:
-+		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
-+		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
-+			   VNELPRC_REG);
-+		break;
-+	}
-+
-+	/* Set scaling coefficient */
-+	ys = 0;
-+	if (vin->crop.height != vin->compose.height)
-+		ys = (4096 * vin->crop.height) / vin->compose.height;
-+	rvin_write(vin, ys, VNYS_REG);
-+
-+	xs = 0;
-+	if (vin->crop.width != vin->compose.width)
-+		xs = (4096 * vin->crop.width) / vin->compose.width;
-+
-+	/* Horizontal upscaling is up to double size */
-+	if (xs > 0 && xs < 2048)
-+		xs = 2048;
-+
-+	rvin_write(vin, xs, VNXS_REG);
-+
-+	/* Horizontal upscaling is done out by scaling down from double size */
-+	if (xs < 4096)
-+		xs *= 2;
-+
-+	rvin_set_coeff(vin, xs);
-+
-+	/* Set Start/End Pixel/Line Post-Clip */
-+	rvin_write(vin, 0, VNSPPOC_REG);
-+	rvin_write(vin, 0, VNSLPOC_REG);
-+	rvin_write(vin, vin->format.width - 1, VNEPPOC_REG);
-+	switch (vin->format.field) {
-+	case V4L2_FIELD_INTERLACED:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+		rvin_write(vin, vin->format.height / 2 - 1, VNELPOC_REG);
-+		break;
-+	default:
-+		rvin_write(vin, vin->format.height - 1, VNELPOC_REG);
-+		break;
-+	}
-+
-+	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
-+		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
-+	else
-+		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
-+
-+	vin_dbg(vin,
-+		"Pre-Clip: %ux%u@%u:%u YS: %d XS: %d Post-Clip: %ux%u@%u:%u\n",
-+		vin->crop.width, vin->crop.height, vin->crop.left,
-+		vin->crop.top, ys, xs, vin->format.width, vin->format.height,
-+		0, 0);
-+}
-+
-+void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
-+		    u32 width, u32 height)
-+{
-+	/* All VIN channels on Gen2 have scalers */
-+	pix->width = width;
-+	pix->height = height;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * Hardware setup
-+ */
-+
-+static int rvin_setup(struct rvin_dev *vin)
-+{
-+	u32 vnmc, dmr, dmr2, interrupts;
-+	v4l2_std_id std;
-+	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
-+
-+	switch (vin->format.field) {
-+	case V4L2_FIELD_TOP:
-+		vnmc = VNMC_IM_ODD;
-+		break;
-+	case V4L2_FIELD_BOTTOM:
-+		vnmc = VNMC_IM_EVEN;
-+		break;
-+	case V4L2_FIELD_INTERLACED:
-+		/* Default to TB */
-+		vnmc = VNMC_IM_FULL;
-+		/* Use BT if video standard can be read and is 60 Hz format */
-+		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
-+			if (std & V4L2_STD_525_60)
-+				vnmc = VNMC_IM_FULL | VNMC_FOC;
-+		}
-+		break;
-+	case V4L2_FIELD_INTERLACED_TB:
-+		vnmc = VNMC_IM_FULL;
-+		break;
-+	case V4L2_FIELD_INTERLACED_BT:
-+		vnmc = VNMC_IM_FULL | VNMC_FOC;
-+		break;
-+	case V4L2_FIELD_ALTERNATE:
-+	case V4L2_FIELD_NONE:
-+		if (vin->continuous) {
-+			vnmc = VNMC_IM_ODD_EVEN;
-+			progressive = true;
-+		} else {
-+			vnmc = VNMC_IM_ODD;
-+		}
-+		break;
-+	default:
-+		vnmc = VNMC_IM_ODD;
-+		break;
-+	}
-+
-+	/*
-+	 * Input interface
-+	 */
-+	switch (vin->digital.code) {
-+	case MEDIA_BUS_FMT_YUYV8_1X16:
-+		/* BT.601/BT.1358 16bit YCbCr422 */
-+		vnmc |= VNMC_INF_YUV16;
-+		input_is_yuv = true;
-+		break;
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
-+		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
-+		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
-+			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
-+		input_is_yuv = true;
-+		break;
-+	case MEDIA_BUS_FMT_RGB888_1X24:
-+		vnmc |= VNMC_INF_RGB888;
-+		break;
-+	case MEDIA_BUS_FMT_UYVY10_2X10:
-+		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
-+		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
-+			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
-+		input_is_yuv = true;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	/* Enable VSYNC Field Toogle mode after one VSYNC input */
-+	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
-+
-+	/* Hsync Signal Polarity Select */
-+	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-+		dmr2 |= VNDMR2_HPS;
-+
-+	/* Vsync Signal Polarity Select */
-+	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
-+		dmr2 |= VNDMR2_VPS;
-+
-+	/*
-+	 * Output format
-+	 */
-+	switch (vin->format.pixelformat) {
-+	case V4L2_PIX_FMT_NV16:
-+		rvin_write(vin,
-+			   ALIGN(vin->format.width * vin->format.height, 0x80),
-+			   VNUVAOF_REG);
-+		dmr = VNDMR_DTMD_YCSEP;
-+		output_is_yuv = true;
-+		break;
-+	case V4L2_PIX_FMT_YUYV:
-+		dmr = VNDMR_BPSM;
-+		output_is_yuv = true;
-+		break;
-+	case V4L2_PIX_FMT_UYVY:
-+		dmr = 0;
-+		output_is_yuv = true;
-+		break;
-+	case V4L2_PIX_FMT_XRGB555:
-+		dmr = VNDMR_DTMD_ARGB1555;
-+		break;
-+	case V4L2_PIX_FMT_RGB565:
-+		dmr = 0;
-+		break;
-+	case V4L2_PIX_FMT_XBGR32:
-+		/* Note: not supported on M1 */
-+		dmr = VNDMR_EXRGB;
-+		break;
-+	default:
-+		vin_err(vin, "Invalid pixelformat (0x%x)\n",
-+			vin->format.pixelformat);
-+		return -EINVAL;
-+	}
- 
--static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
-+	/* Always update on field change */
-+	vnmc |= VNMC_VUP;
-+
-+	/* If input and output use the same colorspace, use bypass mode */
-+	if (input_is_yuv == output_is_yuv)
-+		vnmc |= VNMC_BPS;
-+
-+	/* Progressive or interlaced mode */
-+	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
-+
-+	/* Ack interrupts */
-+	rvin_write(vin, interrupts, VNINTS_REG);
-+	/* Enable interrupts */
-+	rvin_write(vin, interrupts, VNIE_REG);
-+	/* Start capturing */
-+	rvin_write(vin, dmr, VNDMR_REG);
-+	rvin_write(vin, dmr2, VNDMR2_REG);
-+
-+	/* Enable module */
-+	rvin_write(vin, vnmc | VNMC_ME, VNMC_REG);
-+
-+	return 0;
-+}
-+
-+static void rvin_disable_interrupts(struct rvin_dev *vin)
- {
--	int i;
--	const struct vin_coeff *p_prev_set = NULL;
--	const struct vin_coeff *p_set = NULL;
-+	rvin_write(vin, 0, VNIE_REG);
-+}
- 
--	/* Look for suitable coefficient values */
--	for (i = 0; i < ARRAY_SIZE(vin_coeff_set); i++) {
--		p_prev_set = p_set;
--		p_set = &vin_coeff_set[i];
-+static u32 rvin_get_interrupt_status(struct rvin_dev *vin)
-+{
-+	return rvin_read(vin, VNINTS_REG);
-+}
- 
--		if (xs < p_set->xs_value)
--			break;
-+static void rvin_ack_interrupt(struct rvin_dev *vin)
-+{
-+	rvin_write(vin, rvin_read(vin, VNINTS_REG), VNINTS_REG);
-+}
-+
-+static bool rvin_capture_active(struct rvin_dev *vin)
-+{
-+	return rvin_read(vin, VNMS_REG) & VNMS_CA;
-+}
-+
-+static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
-+{
-+	if (vin->continuous)
-+		return (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
-+
-+	return 0;
-+}
-+
-+static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
-+{
-+	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
-+		/* If FS is set it's a Even field */
-+		if (vnms & VNMS_FS)
-+			return V4L2_FIELD_BOTTOM;
-+		return V4L2_FIELD_TOP;
- 	}
- 
--	/* Use previous value if its XS value is closer */
--	if (p_prev_set && p_set &&
--	    xs - p_prev_set->xs_value < p_set->xs_value - xs)
--		p_set = p_prev_set;
-+	return vin->format.field;
-+}
- 
--	/* Set coefficient registers */
--	rvin_write(vin, p_set->coeff_set[0], VNC1A_REG);
--	rvin_write(vin, p_set->coeff_set[1], VNC1B_REG);
--	rvin_write(vin, p_set->coeff_set[2], VNC1C_REG);
-+static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
-+{
-+	const struct rvin_video_format *fmt;
-+	int offsetx, offsety;
-+	dma_addr_t offset;
- 
--	rvin_write(vin, p_set->coeff_set[3], VNC2A_REG);
--	rvin_write(vin, p_set->coeff_set[4], VNC2B_REG);
--	rvin_write(vin, p_set->coeff_set[5], VNC2C_REG);
-+	fmt = rvin_format_from_pixel(vin->format.pixelformat);
- 
--	rvin_write(vin, p_set->coeff_set[6], VNC3A_REG);
--	rvin_write(vin, p_set->coeff_set[7], VNC3B_REG);
--	rvin_write(vin, p_set->coeff_set[8], VNC3C_REG);
-+	/*
-+	 * There is no HW support for composition do the beast we can
-+	 * by modifying the buffer offset
-+	 */
-+	offsetx = vin->compose.left * fmt->bpp;
-+	offsety = vin->compose.top * vin->format.bytesperline;
-+	offset = addr + offsetx + offsety;
- 
--	rvin_write(vin, p_set->coeff_set[9], VNC4A_REG);
--	rvin_write(vin, p_set->coeff_set[10], VNC4B_REG);
--	rvin_write(vin, p_set->coeff_set[11], VNC4C_REG);
-+	/*
-+	 * The address needs to be 128 bytes aligned. Driver should never accept
-+	 * settings that do not satisfy this in the first place...
-+	 */
-+	if (WARN_ON((offsetx | offsety | offset) & HW_BUFFER_MASK))
-+		return;
- 
--	rvin_write(vin, p_set->coeff_set[12], VNC5A_REG);
--	rvin_write(vin, p_set->coeff_set[13], VNC5B_REG);
--	rvin_write(vin, p_set->coeff_set[14], VNC5C_REG);
-+	rvin_write(vin, offset, VNMB_REG(slot));
-+}
- 
--	rvin_write(vin, p_set->coeff_set[15], VNC6A_REG);
--	rvin_write(vin, p_set->coeff_set[16], VNC6B_REG);
--	rvin_write(vin, p_set->coeff_set[17], VNC6C_REG);
-+static bool rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
-+{
-+	struct rvin_buffer *buf;
-+	struct vb2_v4l2_buffer *vbuf;
-+	dma_addr_t phys_addr_top;
- 
--	rvin_write(vin, p_set->coeff_set[18], VNC7A_REG);
--	rvin_write(vin, p_set->coeff_set[19], VNC7B_REG);
--	rvin_write(vin, p_set->coeff_set[20], VNC7C_REG);
-+	if (vin->queue_buf[slot] != NULL)
-+		return true;
- 
--	rvin_write(vin, p_set->coeff_set[21], VNC8A_REG);
--	rvin_write(vin, p_set->coeff_set[22], VNC8B_REG);
--	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
-+	if (list_empty(&vin->buf_list))
-+		return false;
-+
-+	vin_dbg(vin, "Filling HW slot: %d\n", slot);
-+
-+	/* Keep track of buffer we give to HW */
-+	buf = list_entry(vin->buf_list.next, struct rvin_buffer, list);
-+	vbuf = &buf->vb;
-+	list_del_init(to_buf_list(vbuf));
-+	vin->queue_buf[slot] = vbuf;
-+
-+	/* Setup DMA */
-+	phys_addr_top = vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
-+	rvin_set_slot_addr(vin, slot, phys_addr_top);
-+
-+	return true;
- }
- 
--void rvin_crop_scale_comp(struct rvin_dev *vin)
-+static bool rvin_fill_hw(struct rvin_dev *vin)
- {
--	u32 xs, ys;
-+	int slot, limit;
- 
--	/* Set Start/End Pixel/Line Pre-Clip */
--	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
--	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
--	switch (vin->format.field) {
--	case V4L2_FIELD_INTERLACED:
--	case V4L2_FIELD_INTERLACED_TB:
--	case V4L2_FIELD_INTERLACED_BT:
--		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
--		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
--			   VNELPRC_REG);
--		break;
--	default:
--		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
--		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
--			   VNELPRC_REG);
--		break;
--	}
-+	limit = vin->continuous ? HW_BUFFER_NUM : 1;
- 
--	/* Set scaling coefficient */
--	ys = 0;
--	if (vin->crop.height != vin->compose.height)
--		ys = (4096 * vin->crop.height) / vin->compose.height;
--	rvin_write(vin, ys, VNYS_REG);
-+	for (slot = 0; slot < limit; slot++)
-+		if (!rvin_fill_hw_slot(vin, slot))
-+			return false;
-+	return true;
-+}
- 
--	xs = 0;
--	if (vin->crop.width != vin->compose.width)
--		xs = (4096 * vin->crop.width) / vin->compose.width;
-+static void rvin_capture_on(struct rvin_dev *vin)
-+{
-+	vin_dbg(vin, "Capture on in %s mode\n",
-+		vin->continuous ? "continuous" : "single");
- 
--	/* Horizontal upscaling is up to double size */
--	if (xs > 0 && xs < 2048)
--		xs = 2048;
-+	if (vin->continuous)
-+		/* Continuous Frame Capture Mode */
-+		rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
-+	else
-+		/* Single Frame Capture Mode */
-+		rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
-+}
- 
--	rvin_write(vin, xs, VNXS_REG);
-+static int rvin_capture_start(struct rvin_dev *vin)
-+{
-+	struct rvin_buffer *buf, *node;
-+	int bufs, ret;
- 
--	/* Horizontal upscaling is done out by scaling down from double size */
--	if (xs < 4096)
--		xs *= 2;
-+	/* Count number of free buffers */
-+	bufs = 0;
-+	list_for_each_entry_safe(buf, node, &vin->buf_list, list)
-+		bufs++;
- 
--	rvin_set_coeff(vin, xs);
-+	/* Continuous capture requires more buffers then there are HW slots */
-+	vin->continuous = bufs > HW_BUFFER_NUM;
- 
--	/* Set Start/End Pixel/Line Post-Clip */
--	rvin_write(vin, 0, VNSPPOC_REG);
--	rvin_write(vin, 0, VNSLPOC_REG);
--	rvin_write(vin, vin->format.width - 1, VNEPPOC_REG);
--	switch (vin->format.field) {
--	case V4L2_FIELD_INTERLACED:
--	case V4L2_FIELD_INTERLACED_TB:
--	case V4L2_FIELD_INTERLACED_BT:
--		rvin_write(vin, vin->format.height / 2 - 1, VNELPOC_REG);
--		break;
--	default:
--		rvin_write(vin, vin->format.height - 1, VNELPOC_REG);
--		break;
-+	if (!rvin_fill_hw(vin)) {
-+		vin_err(vin, "HW not ready to start, not enough buffers available\n");
-+		return -EINVAL;
- 	}
- 
--	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
--		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
--	else
--		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
-+	rvin_crop_scale_comp(vin);
- 
--	vin_dbg(vin,
--		"Pre-Clip: %ux%u@%u:%u YS: %d XS: %d Post-Clip: %ux%u@%u:%u\n",
--		vin->crop.width, vin->crop.height, vin->crop.left,
--		vin->crop.top, ys, xs, vin->format.width, vin->format.height,
--		0, 0);
-+	ret = rvin_setup(vin);
-+	if (ret)
-+		return ret;
-+
-+	rvin_capture_on(vin);
-+
-+	vin->state = RUNNING;
-+
-+	return 0;
- }
- 
--void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
--		    u32 width, u32 height)
-+static void rvin_capture_stop(struct rvin_dev *vin)
- {
--	/* All VIN channels on Gen2 have scalers */
--	pix->width = width;
--	pix->height = height;
-+	/* Set continuous & single transfer off */
-+	rvin_write(vin, 0, VNFC_REG);
-+
-+	/* Disable module */
-+	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
- }
- 
- /* -----------------------------------------------------------------------------
+The MUX framework is already in linux-next. Could you use that instead of
+adding new driver + bindings that are not compliant with the MUX framework?
+I don't think it'd be much of a change in terms of code, using the MUX
+framework appears quite simple.
+
+In general the driver looks pretty good, especially regarding the user space
+API implementation which is important for use with other drivers.
+
+I have some more detailed comments below.
+
+> 
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> 
+> - fixed a cut&paste error in vidsw_remove(): v4l2_async_register_subdev()
+>   should be unregister.
+> 
+> - added media_entity_cleanup() to vidsw_remove().
+> 
+> - added missing MODULE_DEVICE_TABLE().
+>   Suggested-by: Javier Martinez Canillas <javier@dowhile0.org>
+> 
+> - there was a line left over from a previous iteration that negated
+>   the new way of determining the pad count just before it which
+>   has been removed (num_pads = of_get_child_count(np)).
+> 
+> - removed [gs]_frame_interval ops. timeperframe is not used anywhwere
+>   in this subdev, and currently it has no control over frame rate.
+> 
+> - add link_validate to media_entity_operations.
+> 
+> - moved devicetree binding doc to a separate commit.
+> 
+> - Philipp Zabel has developed a set of patches that allow adding
+>   to the subdev async notifier waiting list using a chaining method
+>   from the async registered callbacks (v4l2_of_subdev_registered()
+>   and the prep patches for that). For now, I've removed the use of
+>   v4l2_of_subdev_registered() for the vidmux driver's registered
+>   callback. This doesn't affect the functionality of this driver,
+>   but allows for it to be merged now, before adding the chaining
+>   support.
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  drivers/media/platform/Kconfig             |   8 +
+>  drivers/media/platform/Makefile            |   2 +
+>  drivers/media/platform/video-multiplexer.c | 451 +++++++++++++++++++++++++++++
+>  3 files changed, 461 insertions(+)
+>  create mode 100644 drivers/media/platform/video-multiplexer.c
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index ab0bb48..c9b8d9c 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -74,6 +74,14 @@ config VIDEO_M32R_AR_M64278
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called arv.
+>  
+> +config VIDEO_MULTIPLEXER
+> +	tristate "Video Multiplexer"
+> +	depends on VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
+> +	help
+> +	  This driver provides support for SoC internal N:1 video bus
+> +	  multiplexers controlled by register bitfields as well as external
+> +	  2:1 video multiplexers controlled by a single GPIO.
+> +
+>  config VIDEO_OMAP3
+>  	tristate "OMAP 3 Camera support"
+>  	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
+> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+> index 8959f6e..d418add 100644
+> --- a/drivers/media/platform/Makefile
+> +++ b/drivers/media/platform/Makefile
+> @@ -27,6 +27,8 @@ obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
+>  
+>  obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
+>  
+> +obj-$(CONFIG_VIDEO_MULTIPLEXER)		+= video-multiplexer.o
+> +
+>  obj-$(CONFIG_VIDEO_S3C_CAMIF) 		+= s3c-camif/
+>  obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS4_IS) 	+= exynos4-is/
+>  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
+> diff --git a/drivers/media/platform/video-multiplexer.c b/drivers/media/platform/video-multiplexer.c
+> new file mode 100644
+> index 0000000..b18c317
+> --- /dev/null
+> +++ b/drivers/media/platform/video-multiplexer.c
+> @@ -0,0 +1,451 @@
+> +/*
+> + * video stream multiplexer controlled via gpio or syscon
+> + *
+> + * Copyright (C) 2013 Pengutronix, Sascha Hauer <kernel@pengutronix.de>
+> + * Copyright (C) 2016 Pengutronix, Philipp Zabel <kernel@pengutronix.de>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * as published by the Free Software Foundation; either version 2
+> + * of the License, or (at your option) any later version.
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/err.h>
+> +#include <linux/gpio/consumer.h>
+> +#include <linux/mfd/syscon.h>
+> +#include <linux/module.h>
+> +#include <linux/of.h>
+> +#include <linux/of_graph.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/regmap.h>
+> +#include <media/v4l2-async.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-subdev.h>
+> +#include <media/v4l2-of.h>
+> +
+> +struct vidsw {
+> +	struct v4l2_subdev subdev;
+> +	unsigned int num_pads;
+
+You could use subdev.entity.num_pads instead of caching the value locally.
+
+> +	struct media_pad *pads;
+> +	struct v4l2_mbus_framefmt *format_mbus;
+> +	struct v4l2_of_endpoint *endpoint;
+> +	struct regmap_field *field;
+> +	struct gpio_desc *gpio;
+> +	int active;
+> +};
+> +
+> +static inline struct vidsw *v4l2_subdev_to_vidsw(struct v4l2_subdev *sd)
+> +{
+> +	return container_of(sd, struct vidsw, subdev);
+> +}
+> +
+> +static void vidsw_set_active(struct vidsw *vidsw, int active)
+> +{
+> +	vidsw->active = active;
+> +	if (active < 0)
+> +		return;
+> +
+> +	dev_dbg(vidsw->subdev.dev, "setting %d active\n", active);
+> +
+> +	if (vidsw->field)
+> +		regmap_field_write(vidsw->field, active);
+> +	else if (vidsw->gpio)
+> +		gpiod_set_value(vidsw->gpio, active);
+> +}
+> +
+> +static int vidsw_link_setup(struct media_entity *entity,
+> +			    const struct media_pad *local,
+> +			    const struct media_pad *remote, u32 flags)
+> +{
+> +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
+> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
+> +
+> +	/* We have no limitations on enabling or disabling our output link */
+> +	if (local->index == vidsw->num_pads - 1)
+> +		return 0;
+> +
+> +	dev_dbg(sd->dev, "link setup %s -> %s", remote->entity->name,
+> +		local->entity->name);
+> +
+> +	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
+> +		if (local->index == vidsw->active) {
+> +			dev_dbg(sd->dev, "going inactive\n");
+> +			vidsw->active = -1;
+> +		}
+> +		return 0;
+> +	}
+> +
+> +	if (vidsw->active >= 0) {
+> +		struct media_pad *pad;
+> +
+> +		if (vidsw->active == local->index)
+> +			return 0;
+> +
+> +		pad = media_entity_remote_pad(&vidsw->pads[vidsw->active]);
+> +		if (pad) {
+> +			struct media_link *link;
+> +			int ret;
+> +
+> +			link = media_entity_find_link(pad,
+> +						&vidsw->pads[vidsw->active]);
+> +			if (link) {
+> +				ret = __media_entity_setup_link(link, 0);
+
+I wouldn't implicitly disable a link, even if only one can be active at a
+given time. No other drivers do that either.
+
+Perhaps returning an error might be a better thing to do: if you're
+reconfiguring the pipeline anyway, there are likely issues elsewhere in it.
+
+We could also change the behaviour later to allow implicit changes but we
+can't later on go the other way without breaking the user space.
+
+> +				if (ret)
+> +					return ret;
+> +			}
+> +		}
+> +	}
+> +
+> +	vidsw_set_active(vidsw, local->index);
+> +
+> +	return 0;
+> +}
+> +
+> +static struct media_entity_operations vidsw_ops = {
+> +	.link_setup = vidsw_link_setup,
+> +	.link_validate = v4l2_subdev_link_validate,
+> +};
+> +
+> +static bool vidsw_endpoint_disabled(struct device_node *ep)
+> +{
+> +	struct device_node *rpp;
+> +
+> +	if (!of_device_is_available(ep))
+
+ep here is the endpoint, whereas the argument to of_device_is_available()
+should correspond to the actual device.
+
+> +		return true;
+> +
+> +	rpp = of_graph_get_remote_port_parent(ep);
+> +	if (!rpp)
+> +		return true;
+> +
+> +	return !of_device_is_available(rpp);
+> +}
+> +
+> +static int vidsw_async_init(struct vidsw *vidsw, struct device_node *node)
+
+I think I'd arrange this closer to probe as it's related to probe directly.
+Up to you.
+
+> +{
+> +	struct device_node *ep;
+> +	u32 portno;
+> +	int numports;
+> +	int ret;
+> +	int i;
+> +	bool active_link = false;
+> +
+> +	numports = vidsw->num_pads;
+> +
+> +	for (i = 0; i < numports - 1; i++)
+> +		vidsw->pads[i].flags = MEDIA_PAD_FL_SINK;
+> +	vidsw->pads[numports - 1].flags = MEDIA_PAD_FL_SOURCE;
+> +
+> +	vidsw->subdev.entity.function = MEDIA_ENT_F_VID_MUX;
+> +	ret = media_entity_pads_init(&vidsw->subdev.entity, numports,
+> +				     vidsw->pads);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	vidsw->subdev.entity.ops = &vidsw_ops;
+> +
+> +	for_each_endpoint_of_node(node, ep) {
+> +		struct v4l2_of_endpoint endpoint;
+> +
+> +		v4l2_of_parse_endpoint(ep, &endpoint);
+> +
+> +		portno = endpoint.base.port;
+> +		if (portno >= numports - 1)
+> +			continue;
+> +
+> +		if (vidsw_endpoint_disabled(ep)) {
+> +			dev_dbg(vidsw->subdev.dev,
+> +				"port %d disabled\n", portno);
+> +			continue;
+> +		}
+> +
+> +		vidsw->endpoint[portno] = endpoint;
+> +
+> +		if (portno == vidsw->active)
+> +			active_link = true;
+> +	}
+> +
+> +	for (portno = 0; portno < numports - 1; portno++) {
+> +		if (!vidsw->endpoint[portno].base.local_node)
+> +			continue;
+> +
+> +		/* If the active input is not connected, use another */
+> +		if (!active_link) {
+> +			vidsw_set_active(vidsw, portno);
+> +			active_link = true;
+> +		}
+> +	}
+> +
+> +	return v4l2_async_register_subdev(&vidsw->subdev);
+> +}
+> +
+> +int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg)
+
+We should get rid of g_mbus_config() in the long run, but as we don't have
+the alternative (frame descriptors) isn't up to the job yet I guess it's ok.
+I don't think we'll have too many users for the video switch right now.
+
+> +{
+> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
+> +	struct media_pad *pad;
+> +	int ret;
+> +
+> +	if (vidsw->active == -1) {
+> +		dev_err(sd->dev, "no configuration for inactive mux\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	/*
+> +	 * Retrieve media bus configuration from the entity connected to the
+> +	 * active input
+> +	 */
+> +	pad = media_entity_remote_pad(&vidsw->pads[vidsw->active]);
+> +	if (pad) {
+> +		sd = media_entity_to_v4l2_subdev(pad->entity);
+> +		ret = v4l2_subdev_call(sd, video, g_mbus_config, cfg);
+> +		if (ret == -ENOIOCTLCMD)
+> +			pad = NULL;
+> +		else if (ret < 0) {
+> +			dev_err(sd->dev, "failed to get source configuration\n");
+> +			return ret;
+> +		}
+> +	}
+> +	if (!pad) {
+> +		/* Mirror the input side on the output side */
+> +		cfg->type = vidsw->endpoint[vidsw->active].bus_type;
+> +		if (cfg->type == V4L2_MBUS_PARALLEL ||
+> +		    cfg->type == V4L2_MBUS_BT656)
+> +			cfg->flags = vidsw->endpoint[vidsw->active].bus.parallel.flags;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int vidsw_s_stream(struct v4l2_subdev *sd, int enable)
+> +{
+> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
+> +	struct v4l2_subdev *upstream_sd;
+> +	struct media_pad *pad;
+> +
+> +	if (vidsw->active == -1) {
+> +		dev_err(sd->dev, "Can not start streaming on inactive mux\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	pad = media_entity_remote_pad(&sd->entity.pads[vidsw->active]);
+> +	if (!pad) {
+> +		dev_err(sd->dev, "Failed to find remote source pad\n");
+> +		return -ENOLINK;
+> +	}
+> +
+> +	if (!is_media_entity_v4l2_subdev(pad->entity)) {
+> +		dev_err(sd->dev, "Upstream entity is not a v4l2 subdev\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	upstream_sd = media_entity_to_v4l2_subdev(pad->entity);
+> +
+> +	return v4l2_subdev_call(upstream_sd, video, s_stream, enable);
+
+Now that we'll have more than two drivers involved in the same pipeline it
+becomes necessary to define the behaviour of s_stream() throughout the
+pipeline --- i.e. whose responsibility is it to call s_stream() on the
+sub-devices in the pipeline?
+
+I can submit a patch for that. I think the way you do it here is good, as it
+enables the caller to choose the appropriate behaviour, i.e. start the local
+device before or after the upstream sub-device.
+
+> +}
+> +
+> +static const struct v4l2_subdev_video_ops vidsw_subdev_video_ops = {
+> +	.g_mbus_config = vidsw_g_mbus_config,
+> +	.s_stream = vidsw_s_stream,
+> +};
+> +
+> +static struct v4l2_mbus_framefmt *
+> +__vidsw_get_pad_format(struct v4l2_subdev *sd,
+> +		       struct v4l2_subdev_pad_config *cfg,
+> +		       unsigned int pad, u32 which)
+> +{
+> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
+> +
+> +	switch (which) {
+> +	case V4L2_SUBDEV_FORMAT_TRY:
+> +		return v4l2_subdev_get_try_format(sd, cfg, pad);
+> +	case V4L2_SUBDEV_FORMAT_ACTIVE:
+> +		return &vidsw->format_mbus[pad];
+> +	default:
+> +		return NULL;
+> +	}
+> +}
+> +
+> +static int vidsw_get_format(struct v4l2_subdev *sd,
+> +			    struct v4l2_subdev_pad_config *cfg,
+> +			    struct v4l2_subdev_format *sdformat)
+> +{
+> +	sdformat->format = *__vidsw_get_pad_format(sd, cfg, sdformat->pad,
+> +						   sdformat->which);
+> +	return 0;
+> +}
+> +
+> +static int vidsw_set_format(struct v4l2_subdev *sd,
+> +			    struct v4l2_subdev_pad_config *cfg,
+> +			    struct v4l2_subdev_format *sdformat)
+> +{
+> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
+> +	struct v4l2_mbus_framefmt *mbusformat;
+> +
+> +	if (sdformat->pad >= vidsw->num_pads)
+> +		return -EINVAL;
+
+This check is already performed in v4l2-subdev.c.
+
+> +
+> +	mbusformat = __vidsw_get_pad_format(sd, cfg, sdformat->pad,
+> +					    sdformat->which);
+> +	if (!mbusformat)
+> +		return -EINVAL;
+> +
+> +	/* Output pad mirrors active input pad, no limitations on input pads */
+
+Source and sink pads.
+
+> +	if (sdformat->pad == (vidsw->num_pads - 1) && vidsw->active >= 0)
+
+I think it'd be cleaner to test for the pad flag instead of the number. Or,
+add a macro to obtain the source pad number.
+
+> +		sdformat->format = vidsw->format_mbus[vidsw->active];
+> +
+> +	*mbusformat = sdformat->format;
+> +
+> +	return 0;
+> +}
+> +
+> +static struct v4l2_subdev_pad_ops vidsw_pad_ops = {
+> +	.get_fmt = vidsw_get_format,
+> +	.set_fmt = vidsw_set_format,
+> +};
+> +
+> +static struct v4l2_subdev_ops vidsw_subdev_ops = {
+> +	.pad = &vidsw_pad_ops,
+> +	.video = &vidsw_subdev_video_ops,
+> +};
+> +
+> +static int of_get_reg_field(struct device_node *node, struct reg_field *field)
+> +{
+> +	u32 bit_mask;
+> +	int ret;
+> +
+> +	ret = of_property_read_u32(node, "reg", &field->reg);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = of_property_read_u32(node, "bit-mask", &bit_mask);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = of_property_read_u32(node, "bit-shift", &field->lsb);
+> +	if (ret < 0)
+> +		return ret;
+
+I think the above would look nice in a MUX driver. :-)
+
+> +
+> +	field->msb = field->lsb + fls(bit_mask) - 1;
+> +
+> +	return 0;
+> +}
+> +
+> +static int vidsw_probe(struct platform_device *pdev)
+> +{
+> +	struct device_node *np = pdev->dev.of_node;
+> +	struct of_endpoint endpoint;
+> +	struct device_node *ep;
+> +	struct reg_field field;
+> +	struct vidsw *vidsw;
+> +	struct regmap *map;
+> +	unsigned int num_pads;
+> +	int ret;
+> +
+> +	vidsw = devm_kzalloc(&pdev->dev, sizeof(*vidsw), GFP_KERNEL);
+> +	if (!vidsw)
+> +		return -ENOMEM;
+> +
+> +	platform_set_drvdata(pdev, vidsw);
+> +
+> +	v4l2_subdev_init(&vidsw->subdev, &vidsw_subdev_ops);
+> +	snprintf(vidsw->subdev.name, sizeof(vidsw->subdev.name), "%s",
+> +			np->name);
+> +	vidsw->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	vidsw->subdev.dev = &pdev->dev;
+> +
+> +	/*
+> +	 * The largest numbered port is the output port. It determines
+> +	 * total number of pads
+> +	 */
+> +	num_pads = 0;
+
+You can initialise num_pads in variable declaration.
+
+> +	for_each_endpoint_of_node(np, ep) {
+> +		of_graph_parse_endpoint(ep, &endpoint);
+> +		num_pads = max(num_pads, endpoint.port + 1);
+
+Port numbers come directly from DT.
+
+Shouldn't num_pads be only the number of pads that have links with actual
+physical connections? I.e. if a device is disabled, it shouldn't be
+counted here.
+
+> +	}
+> +
+> +	if (num_pads < 2) {
+> +		dev_err(&pdev->dev, "Not enough ports %d\n", num_pads);
+> +		return -EINVAL;
+> +	}
+> +
+> +	ret = of_get_reg_field(np, &field);
+> +	if (ret == 0) {
+> +		map = syscon_node_to_regmap(np->parent);
+> +		if (!map) {
+> +			dev_err(&pdev->dev, "Failed to get syscon register map\n");
+> +			return PTR_ERR(map);
+> +		}
+> +
+> +		vidsw->field = devm_regmap_field_alloc(&pdev->dev, map, field);
+> +		if (IS_ERR(vidsw->field)) {
+> +			dev_err(&pdev->dev, "Failed to allocate regmap field\n");
+> +			return PTR_ERR(vidsw->field);
+> +		}
+> +
+> +		regmap_field_read(vidsw->field, &vidsw->active);
+> +	} else {
+> +		if (num_pads > 3) {
+> +			dev_err(&pdev->dev, "Too many ports %d\n", num_pads);
+> +			return -EINVAL;
+> +		}
+> +
+> +		vidsw->gpio = devm_gpiod_get(&pdev->dev, NULL, GPIOD_OUT_LOW);
+> +		if (IS_ERR(vidsw->gpio)) {
+> +			dev_warn(&pdev->dev,
+> +				 "could not request control gpio: %d\n", ret);
+> +			vidsw->gpio = NULL;
+> +		}
+> +
+> +		vidsw->active = gpiod_get_value(vidsw->gpio) ? 1 : 0;
+> +	}
+> +
+> +	vidsw->num_pads = num_pads;
+> +	vidsw->pads = devm_kzalloc(&pdev->dev, sizeof(*vidsw->pads) * num_pads,
+> +			GFP_KERNEL);
+> +	vidsw->format_mbus = devm_kzalloc(&pdev->dev,
+> +			sizeof(*vidsw->format_mbus) * num_pads, GFP_KERNEL);
+> +	vidsw->endpoint = devm_kzalloc(&pdev->dev,
+> +			sizeof(*vidsw->endpoint) * (num_pads - 1), GFP_KERNEL);
+> +
+> +	ret = vidsw_async_init(vidsw, np);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return 0;
+> +}
+> +
+> +static int vidsw_remove(struct platform_device *pdev)
+> +{
+> +	struct vidsw *vidsw = platform_get_drvdata(pdev);
+> +	struct v4l2_subdev *sd = &vidsw->subdev;
+> +
+> +	v4l2_async_unregister_subdev(sd);
+> +	media_entity_cleanup(&sd->entity);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct of_device_id vidsw_dt_ids[] = {
+> +	{ .compatible = "video-multiplexer", },
+> +	{ /* sentinel */ }
+> +};
+> +MODULE_DEVICE_TABLE(of, vidsw_dt_ids);
+> +
+> +static struct platform_driver vidsw_driver = {
+> +	.probe		= vidsw_probe,
+> +	.remove		= vidsw_remove,
+> +	.driver		= {
+> +		.of_match_table = vidsw_dt_ids,
+> +		.name = "video-multiplexer",
+> +	},
+> +};
+> +
+> +module_platform_driver(vidsw_driver);
+> +
+> +MODULE_DESCRIPTION("video stream multiplexer");
+> +MODULE_AUTHOR("Sascha Hauer, Pengutronix");
+> +MODULE_AUTHOR("Philipp Zabel, Pengutronix");
+> +MODULE_LICENSE("GPL");
+
 -- 
-2.12.2
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
