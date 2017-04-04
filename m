@@ -1,127 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:42834 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752283AbdDZEJU (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37198 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752011AbdDDJcZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Apr 2017 00:09:20 -0400
-Message-ID: <50a4ea122ad2a1d04ea8cde9d5e909c5@smtp-cloud3.xs4all.net>
-Date: Wed, 26 Apr 2017 06:09:17 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 4 Apr 2017 05:32:25 -0400
+Date: Tue, 4 Apr 2017 12:31:51 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Todor Tomov <todor.tomov@linaro.org>
+Cc: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
+        hans.verkuil@cisco.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, robh+dt@kernel.org,
+        mark.rutland@arm.com, devicetree@vger.kernel.org
+Subject: Re: [PATCH v8 1/2] media: i2c/ov5645: add the device tree binding
+ document
+Message-ID: <20170404093150.GB3288@valkosipuli.retiisi.org.uk>
+References: <1491228148-28505-1-git-send-email-todor.tomov@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1491228148-28505-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Todor,
 
-Results of the daily build of media_tree:
+On Mon, Apr 03, 2017 at 05:02:28PM +0300, Todor Tomov wrote:
+> Add the document for ov5645 device tree binding.
+> 
+> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  .../devicetree/bindings/media/i2c/ov5645.txt       | 54 ++++++++++++++++++++++
+>  1 file changed, 54 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5645.txt b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+> new file mode 100644
+> index 0000000..fd7aec9
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+> @@ -0,0 +1,54 @@
+> +* Omnivision 1/4-Inch 5Mp CMOS Digital Image Sensor
+> +
+> +The Omnivision OV5645 is a 1/4-Inch CMOS active pixel digital image sensor with
+> +an active array size of 2592H x 1944V. It is programmable through a serial I2C
+> +interface.
+> +
+> +Required Properties:
+> +- compatible: Value should be "ovti,ov5645".
+> +- clocks: Reference to the xclk clock.
+> +- clock-names: Should be "xclk".
+> +- clock-frequency: Frequency of the xclk clock.
+> +- enable-gpios: Chip enable GPIO. Polarity is GPIO_ACTIVE_HIGH. This corresponds
+> +  to the hardware pin PWDNB which is physically active low.
+> +- reset-gpios: Chip reset GPIO. Polarity is GPIO_ACTIVE_LOW. This corresponds to
+> +  the hardware pin RESETB.
+> +- vdddo-supply: Chip digital IO regulator.
+> +- vdda-supply: Chip analog regulator.
+> +- vddd-supply: Chip digital core regulator.
+> +
+> +The device node must contain one 'port' child node for its digital output
+> +video port, in accordance with the video interface bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +Example:
+> +
+> +	&i2c1 {
+> +		...
+> +
+> +		ov5645: ov5645@78 {
+> +			compatible = "ovti,ov5645";
+> +			reg = <0x78>;
+> +
+> +			enable-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+> +			reset-gpios = <&gpio5 20 GPIO_ACTIVE_LOW>;
+> +			pinctrl-names = "default";
+> +			pinctrl-0 = <&camera_rear_default>;
+> +
+> +			clocks = <&clks 200>;
+> +			clock-names = "xclk";
+> +			clock-frequency = <23880000>;
+> +
+> +			vdddo-supply = <&camera_dovdd_1v8>;
+> +			vdda-supply = <&camera_avdd_2v8>;
+> +			vddd-supply = <&camera_dvdd_1v2>;
+> +
+> +			port {
+> +				ov5645_ep: endpoint {
+> +					clock-lanes = <1>;
+> +					data-lanes = <0 2>;
 
-date:			Wed Apr 26 05:00:15 CEST 2017
-media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
-media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
-v4l-utils git hash:	b514d615166bdc0901a4c71261b87db31e89f464
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+If the sensor does not support lane reordering, I'd use 0 for the clock lane
+and lanes starting from 1 for data-lanes.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+I guess it'd be good to document this but that's definitely out of scope of
+the patchset.
 
-Detailed results are available here:
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+> +					remote-endpoint = <&csi0_ep>;
+> +				};
+> +			};
+> +		};
+> +	};
 
-Full logs are available here:
+-- 
+Kind regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
