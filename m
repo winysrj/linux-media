@@ -1,262 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:60235 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756389AbdDMKJT (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38191 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750877AbdDDESY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 06:09:19 -0400
-Message-ID: <1492078154.2383.21.camel@pengutronix.de>
-Subject: Re: [PATCH 40/40] media: imx: set and propagate empty field,
- colorimetry params
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: gregkh@linuxfoundation.org, mchehab@kernel.org,
-        rmk+kernel@armlinux.org.uk, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Thu, 13 Apr 2017 12:09:14 +0200
-In-Reply-To: <1492044337-11324-1-git-send-email-steve_longerbeam@mentor.com>
-References: <7d836723-dc01-2cea-f794-901b632ce46e@gmail.com>
-         <1492044337-11324-1-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Tue, 4 Apr 2017 00:18:24 -0400
+Message-ID: <43acc24fa9b1c9038b7dd308e8230cc9@smtp-cloud2.xs4all.net>
+Date: Tue, 04 Apr 2017 06:18:21 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-thanks for cleaning this up. Apart from the comments below, this looks
-good to me.
+Results of the daily build of media_tree:
 
-On Wed, 2017-04-12 at 17:45 -0700, Steve Longerbeam wrote:
-> This patch adds a call to imx_media_fill_empty_mbus_fields() in the
-> *_try_fmt() functions at the sink pads, to set empty field order and
-> colorimetry parameters.
-> 
-> If the field order is set to ANY, choose the currently set field order
-> at the sink pad. If the colorspace is set to DEFAULT, choose the
-> current colorspace at the sink pad.  If any of xfer_func, ycbcr_enc
-> or quantization are set to DEFAULT, either choose the current sink pad
-> setting, or the default setting for the new colorspace, if non-DEFAULT
-> colorspace was given.
-> 
-> Colorimetry is also propagated from sink to source pads anywhere
-> this has not already been done. The exception is ic-prpencvf at the
-> source pad, since the Image Converter outputs fixed quantization and
-> Y`CbCr encoding.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
->  drivers/staging/media/imx/imx-ic-prp.c      |  5 ++-
->  drivers/staging/media/imx/imx-ic-prpencvf.c | 25 +++++++++++---
->  drivers/staging/media/imx/imx-media-csi.c   | 12 +++++--
->  drivers/staging/media/imx/imx-media-utils.c | 53 +++++++++++++++++++++++++++++
->  drivers/staging/media/imx/imx-media-vdic.c  |  7 ++--
->  drivers/staging/media/imx/imx-media.h       |  3 +-
->  6 files changed, 95 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/staging/media/imx/imx-ic-prp.c b/drivers/staging/media/imx/imx-ic-prp.c
-> index b4d4e48..8baa0d5 100644
-> --- a/drivers/staging/media/imx/imx-ic-prp.c
-> +++ b/drivers/staging/media/imx/imx-ic-prp.c
-> @@ -180,6 +180,8 @@ static int prp_set_fmt(struct v4l2_subdev *sd,
->  		goto out;
->  	}
->  
-> +	fmt = __prp_get_fmt(priv, cfg, PRP_SINK_PAD, sdformat->which);
-> +
+date:			Tue Apr  4 05:00:15 CEST 2017
+media-tree git hash:	c3d4fb0fb41f4b5eafeee51173c14e50be12f839
+media_build git hash:	227136a2f04ab800e3d3163a77ca5502c61cad5d
+v4l-utils git hash:	08572e7db2120bc45db732d02409dfd3346b8e51
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-Should this be changed to infmt for consistency?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10.1-i686: OK
+linux-4.11-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-x86_64: WARNINGS
+linux-4.10.1-x86_64: WARNINGS
+linux-4.11-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
->  	switch (sdformat->pad) {
->  	case PRP_SINK_PAD:
->  		v4l_bound_align_image(&sdformat->format.width, MIN_W, MAX_W,
-> @@ -193,11 +195,12 @@ static int prp_set_fmt(struct v4l2_subdev *sd,
->  			cc = imx_media_find_ipu_format(code, CS_SEL_ANY);
->  			sdformat->format.code = cc->codes[0];
->  		}
-> +
-> +		imx_media_fill_empty_mbus_fields(&sdformat->format, fmt);
->  		break;
->  	case PRP_SRC_PAD_PRPENC:
->  	case PRP_SRC_PAD_PRPVF:
->  		/* Output pads mirror input pad */
-> -		fmt = __prp_get_fmt(priv, cfg, PRP_SINK_PAD, sdformat->which);
->  		sdformat->format = *fmt;
->  		break;
->  	}
-> diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
-> index 860b406..cdfb51a 100644
-> --- a/drivers/staging/media/imx/imx-ic-prpencvf.c
-> +++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
-> @@ -772,6 +772,8 @@ static void prp_try_fmt(struct prp_priv *priv,
->  			struct v4l2_subdev_format *sdformat,
->  			const struct imx_media_pixfmt **cc)
->  {
-> +	struct v4l2_mbus_framefmt *infmt;
-> +
->  	*cc = imx_media_find_ipu_format(sdformat->format.code, CS_SEL_ANY);
->  	if (!*cc) {
->  		u32 code;
-> @@ -781,11 +783,9 @@ static void prp_try_fmt(struct prp_priv *priv,
->  		sdformat->format.code = (*cc)->codes[0];
->  	}
->  
-> -	if (sdformat->pad == PRPENCVF_SRC_PAD) {
-> -		struct v4l2_mbus_framefmt *infmt =
-> -			__prp_get_fmt(priv, cfg, PRPENCVF_SINK_PAD,
-> -				      sdformat->which);
-> +	infmt = __prp_get_fmt(priv, cfg, PRPENCVF_SINK_PAD, sdformat->which);
->  
-> +	if (sdformat->pad == PRPENCVF_SRC_PAD) {
->  		if (sdformat->format.field != V4L2_FIELD_NONE)
->  			sdformat->format.field = infmt->field;
->  
-> @@ -804,12 +804,29 @@ static void prp_try_fmt(struct prp_priv *priv,
->  					      &sdformat->format.height,
->  					      infmt->height / 4, MAX_H_SRC,
->  					      H_ALIGN_SRC, S_ALIGN);
-> +
-> +		/*
-> +		 * The Image Converter produces fixed quantization
-> +		 * (full range for RGB, limited range for YUV), and
-> +		 * uses a fixed Y`CbCr encoding (V4L2_YCBCR_ENC_601).
-> +		 * For colorspace and transfer func, just propagate
-> +		 * from the sink.
-> +		 */
-> +		sdformat->format.quantization =
-> +			((*cc)->cs != IPUV3_COLORSPACE_YUV) ?
-> +			V4L2_QUANTIZATION_FULL_RANGE :
-> +			V4L2_QUANTIZATION_LIM_RANGE;
-> +		sdformat->format.ycbcr_enc = V4L2_YCBCR_ENC_601;
+Detailed results are available here:
 
-Support for V4L2_YCBCR_ENC_709 and quantization options could be added
-to the IPUv3 core code, so this limitation could be relaxed later.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-> +		sdformat->format.colorspace = infmt->colorspace;
-> +		sdformat->format.xfer_func = infmt->xfer_func;
->  	} else {
->  		v4l_bound_align_image(&sdformat->format.width,
->  				      MIN_W_SINK, MAX_W_SINK, W_ALIGN_SINK,
->  				      &sdformat->format.height,
->  				      MIN_H_SINK, MAX_H_SINK, H_ALIGN_SINK,
->  				      S_ALIGN);
-> +
-> +		imx_media_fill_empty_mbus_fields(&sdformat->format, infmt);
+Full logs are available here:
 
-So we should limit quantization and ycbcr_enc here as well. Right now
-there is no way to convert from limited range RGB to full range RGB, for
-example.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
->  	}
->  }
->  
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> index b11e80f..730d1aa 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -1220,11 +1220,11 @@ static void csi_try_fmt(struct csi_priv *priv,
->  	struct v4l2_mbus_framefmt *infmt;
->  	u32 code;
->  
-> +	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, sdformat->which);
-> +
->  	switch (sdformat->pad) {
->  	case CSI_SRC_PAD_DIRECT:
->  	case CSI_SRC_PAD_IDMAC:
-> -		infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD,
-> -				      sdformat->which);
->  		incc = imx_media_find_mbus_format(infmt->code,
->  						  CS_SEL_ANY, true);
->  
-> @@ -1260,6 +1260,12 @@ static void csi_try_fmt(struct csi_priv *priv,
->  			sdformat->format.field =  (infmt->height == 480) ?
->  				V4L2_FIELD_SEQ_TB : V4L2_FIELD_SEQ_BT;
->  		}
-> +
-> +		/* propagate colorimetry from sink */
-> +		sdformat->format.colorspace = infmt->colorspace;
-> +		sdformat->format.xfer_func = infmt->xfer_func;
-> +		sdformat->format.quantization = infmt->quantization;
-> +		sdformat->format.ycbcr_enc = infmt->ycbcr_enc;
->  		break;
->  	case CSI_SINK_PAD:
->  		v4l_bound_align_image(&sdformat->format.width, MIN_W, MAX_W,
-> @@ -1286,6 +1292,8 @@ static void csi_try_fmt(struct csi_priv *priv,
->  							CS_SEL_ANY, false);
->  			sdformat->format.code = (*cc)->codes[0];
->  		}
-> +
-> +		imx_media_fill_empty_mbus_fields(&sdformat->format, infmt);
->  		break;
->  	}
->  }
-> diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
-> index 7b2f92d..b07d0ae 100644
-> --- a/drivers/staging/media/imx/imx-media-utils.c
-> +++ b/drivers/staging/media/imx/imx-media-utils.c
-> @@ -464,6 +464,59 @@ int imx_media_init_mbus_fmt(struct v4l2_mbus_framefmt *mbus,
->  }
->  EXPORT_SYMBOL_GPL(imx_media_init_mbus_fmt);
->  
-> +/*
-> + * Check whether the field or colorimetry params in tryfmt are
-> + * uninitialized, and if so fill them with the values from fmt.
-> + * The exception is when tryfmt->colorspace has been initialized,
-> + * if so all the further default colorimetry params can be derived
-> + * from tryfmt->colorspace.
-> + */
-> +void imx_media_fill_empty_mbus_fields(struct v4l2_mbus_framefmt *tryfmt,
-> +				      struct v4l2_mbus_framefmt *fmt)
-> +{
-> +	/* fill field if necessary */
-> +	if (tryfmt->field == V4L2_FIELD_ANY)
-> +		tryfmt->field = fmt->field;
-> +
-> +	/* fill colorimetry if necessary */
-> +	if (tryfmt->colorspace == V4L2_COLORSPACE_DEFAULT) {
-> +		tryfmt->colorspace = fmt->colorspace;
-> +		if (tryfmt->xfer_func == V4L2_XFER_FUNC_DEFAULT)
-> +			tryfmt->xfer_func = fmt->xfer_func;
-> +		if (tryfmt->ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT)
-> +			tryfmt->ycbcr_enc = fmt->ycbcr_enc;
-> +		if (tryfmt->quantization == V4L2_QUANTIZATION_DEFAULT)
-> +			tryfmt->quantization = fmt->quantization;
-> +	} else {
-> +		const struct imx_media_pixfmt *cc;
-> +		bool is_rgb = false;
-> +
-> +		cc = imx_media_find_mbus_format(tryfmt->code,
-> +						CS_SEL_ANY, false);
-> +		if (!cc)
-> +			cc = imx_media_find_ipu_format(tryfmt->code,
-> +						       CS_SEL_ANY);
-> +		if (cc && cc->cs != IPUV3_COLORSPACE_YUV)
-> +			is_rgb = true;
-> +
-> +		if (tryfmt->xfer_func == V4L2_XFER_FUNC_DEFAULT) {
-> +			tryfmt->xfer_func =
-> +				V4L2_MAP_XFER_FUNC_DEFAULT(tryfmt->colorspace);
-> +		}
-> +		if (tryfmt->ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT) {
-> +			tryfmt->ycbcr_enc =
-> +				V4L2_MAP_YCBCR_ENC_DEFAULT(tryfmt->colorspace);
-> +		}
-> +		if (tryfmt->quantization == V4L2_QUANTIZATION_DEFAULT) {
-> +			tryfmt->quantization =
-> +				V4L2_MAP_QUANTIZATION_DEFAULT(
-> +					is_rgb, tryfmt->colorspace,
-> +					tryfmt->ycbcr_enc);
-> +		}
-> +	}
-> +}
-> +EXPORT_SYMBOL_GPL(imx_media_fill_empty_mbus_fields);
-> +
+The Media Infrastructure API from this daily build is here:
 
-I'd s/empty/default/ in the function name.
-
-After we agree on and write down some guidelines on expected behaviour
-in the spec, this could be lifted into v4l2-core.
-
-regards
-Philipp
+http://www.xs4all.nl/~hverkuil/spec/index.html
