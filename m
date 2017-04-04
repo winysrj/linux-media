@@ -1,94 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bl2nam02on0105.outbound.protection.outlook.com ([104.47.38.105]:15872
-        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752628AbdDNCoh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 22:44:37 -0400
-From: <Yasunari.Takiguchi@sony.com>
-To: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-media@vger.kernel.org>
-CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
-        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
-        Hideki Nozawa <Hideki.Nozawa@sony.com>,
-        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
-        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
-        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
-Subject: [PATCH v2 14/15] [media] cxd2880: Add all Kconfig files for the driver
-Date: Fri, 14 Apr 2017 11:47:03 +0900
-Message-ID: <20170414024703.18388-1-Yasunari.Takiguchi@sony.com>
-In-Reply-To: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
-References: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40076 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752461AbdDDOvc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 4 Apr 2017 10:51:32 -0400
+Subject: Re: [PATCH] [media] cec: Handle RC capability more elegantly
+To: Lee Jones <lee.jones@linaro.org>, hans.verkuil@cisco.com,
+        mchehab@kernel.org
+References: <20170404144309.31357-1-lee.jones@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        kernel@stlinux.com, patrice.chotard@st.com,
+        linux-media@vger.kernel.org, benjamin.gaignard@st.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9fdac3c1-b249-839e-c2bc-f4661994eb3a@xs4all.nl>
+Date: Tue, 4 Apr 2017 16:51:21 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20170404144309.31357-1-lee.jones@linaro.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+On 04/04/2017 04:43 PM, Lee Jones wrote:
+> If a user specifies the use of RC as a capability, they should
+> really be enabling RC Core code.  If they do not we WARN() them
+> of this and disable the capability for them.
+> 
+> Once we know RC Core code has not been enabled, we can update
+> the user's capabilities and use them as a term of reference for
+> other RC-only calls.  This is preferable to having ugly #ifery
+> scattered throughout C code.
+> 
+> Most of the functions are actually safe to call, since they
+> sensibly check for a NULL RC pointer before they attempt to
+> deference it.
+> 
+> Signed-off-by: Lee Jones <lee.jones@linaro.org>
+> ---
+>  drivers/media/cec/cec-core.c | 19 +++++++------------
+>  1 file changed, 7 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+> index cfe414a..51be8d6 100644
+> --- a/drivers/media/cec/cec-core.c
+> +++ b/drivers/media/cec/cec-core.c
+> @@ -208,9 +208,13 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+>  		return ERR_PTR(-EINVAL);
+>  	if (WARN_ON(!available_las || available_las > CEC_MAX_LOG_ADDRS))
+>  		return ERR_PTR(-EINVAL);
+> +	if (WARN_ON(caps & CEC_CAP_RC && !IS_REACHABLE(CONFIG_RC_CORE)))
+> +		caps &= ~CEC_CAP_RC;
 
-This is the Kconfig files of driver for
-the Sony CXD2880 DVB-T2/T tuner + demodulator driver.
+Don't use WARN_ON, this is not an error of any kind. Neither do you need to add the
+'caps & CEC_CAP_RC' test. Really, it's just simpler to do what I suggested before
+with an #if.
 
-Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
-Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
-Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
-Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
-Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
----
- drivers/media/dvb-frontends/Kconfig         |  2 ++
- drivers/media/dvb-frontends/cxd2880/Kconfig |  6 ++++++
- drivers/media/spi/Kconfig                   | 14 ++++++++++++++
- 3 files changed, 22 insertions(+)
- create mode 100644 drivers/media/dvb-frontends/cxd2880/Kconfig
+> +
+>  	adap = kzalloc(sizeof(*adap), GFP_KERNEL);
+>  	if (!adap)
+>  		return ERR_PTR(-ENOMEM);
+> +
+>  	strlcpy(adap->name, name, sizeof(adap->name));
+>  	adap->phys_addr = CEC_PHYS_ADDR_INVALID;
+>  	adap->log_addrs.cec_version = CEC_OP_CEC_VERSION_2_0;
+> @@ -237,7 +241,6 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+>  	if (!(caps & CEC_CAP_RC))
+>  		return adap;
+>  
+> -#if IS_REACHABLE(CONFIG_RC_CORE)
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index e8c6554a47aa..3a3a7129a150 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -518,6 +518,8 @@ config DVB_GP8PSK_FE
- 	depends on DVB_CORE
- 	default DVB_USB_GP8PSK
- 
-+source "drivers/media/dvb-frontends/cxd2880/Kconfig"
-+
- comment "DVB-C (cable) frontends"
- 	depends on DVB_CORE
- 
-diff --git a/drivers/media/dvb-frontends/cxd2880/Kconfig b/drivers/media/dvb-frontends/cxd2880/Kconfig
-new file mode 100644
-index 000000000000..36b8b6f7c4f7
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/Kconfig
-@@ -0,0 +1,6 @@
-+config DVB_CXD2880
-+	tristate "Sony CXD2880 DVB-T2/T tuner + demodulator"
-+	depends on DVB_CORE && SPI
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
-+	help
-+	  Say Y when you want to support this frontend.
-\ No newline at end of file
-diff --git a/drivers/media/spi/Kconfig b/drivers/media/spi/Kconfig
-index a21f5a39a440..b07ac86fc53c 100644
---- a/drivers/media/spi/Kconfig
-+++ b/drivers/media/spi/Kconfig
-@@ -12,3 +12,17 @@ config VIDEO_GS1662
- endmenu
- 
- endif
-+
-+if SPI
-+menu "Media SPI Adapters"
-+
-+config CXD2880_SPI_DRV
-+	tristate "Sony CXD2880 SPI support"
-+	depends on DVB_CORE && SPI
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
-+	help
-+	  Choose if you would like to have SPI interface support for Sony CXD2880.
-+
-+endmenu
-+
-+endif
--- 
-2.11.0
+Huh? If CONFIG_RC_CORE is undefined, all these rc_ calls will fail when linking!
+
+Regards,
+
+	Hans
+
+>  	/* Prepare the RC input device */
+>  	adap->rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+>  	if (!adap->rc) {
+> @@ -264,9 +267,7 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+>  	adap->rc->priv = adap;
+>  	adap->rc->map_name = RC_MAP_CEC;
+>  	adap->rc->timeout = MS_TO_NS(100);
+> -#else
+> -	adap->capabilities &= ~CEC_CAP_RC;
+> -#endif
+> +
+>  	return adap;
+>  }
+>  EXPORT_SYMBOL_GPL(cec_allocate_adapter);
+> @@ -285,7 +286,6 @@ int cec_register_adapter(struct cec_adapter *adap,
+>  	adap->owner = parent->driver->owner;
+>  	adap->devnode.dev.parent = parent;
+>  
+> -#if IS_REACHABLE(CONFIG_RC_CORE)
+>  	if (adap->capabilities & CEC_CAP_RC) {
+>  		adap->rc->dev.parent = parent;
+>  		res = rc_register_device(adap->rc);
+> @@ -298,15 +298,13 @@ int cec_register_adapter(struct cec_adapter *adap,
+>  			return res;
+>  		}
+>  	}
+> -#endif
+>  
+>  	res = cec_devnode_register(&adap->devnode, adap->owner);
+>  	if (res) {
+> -#if IS_REACHABLE(CONFIG_RC_CORE)
+>  		/* Note: rc_unregister also calls rc_free */
+>  		rc_unregister_device(adap->rc);
+>  		adap->rc = NULL;
+> -#endif
+> +
+>  		return res;
+>  	}
+>  
+> @@ -337,11 +335,10 @@ void cec_unregister_adapter(struct cec_adapter *adap)
+>  	if (IS_ERR_OR_NULL(adap))
+>  		return;
+>  
+> -#if IS_REACHABLE(CONFIG_RC_CORE)
+>  	/* Note: rc_unregister also calls rc_free */
+>  	rc_unregister_device(adap->rc);
+>  	adap->rc = NULL;
+> -#endif
+> +
+>  	debugfs_remove_recursive(adap->cec_dir);
+>  	cec_devnode_unregister(&adap->devnode);
+>  }
+> @@ -357,9 +354,7 @@ void cec_delete_adapter(struct cec_adapter *adap)
+>  	kthread_stop(adap->kthread);
+>  	if (adap->kthread_config)
+>  		kthread_stop(adap->kthread_config);
+> -#if IS_REACHABLE(CONFIG_RC_CORE)
+>  	rc_free_device(adap->rc);
+> -#endif
+>  	kfree(adap);
+>  }
+>  EXPORT_SYMBOL_GPL(cec_delete_adapter);
+> 
