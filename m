@@ -1,77 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:49971 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1952457AbdDYSVd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 14:21:33 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com
-Cc: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Sascha Sommer <saschasommer@freenet.de>,
-        Ulf Hansson <ulf.hansson@linaro.org>
-Date: Tue, 25 Apr 2017 12:21:06 -0600
-Message-Id: <1493144468-22493-20-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 19/21] mmc: sdricoh_cs: Make use of the new sg_map helper function
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:38065 "EHLO
+        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932187AbdDDQKN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 12:10:13 -0400
+Received: by mail-wm0-f41.google.com with SMTP id t189so32429200wmt.1
+        for <linux-media@vger.kernel.org>; Tue, 04 Apr 2017 09:10:12 -0700 (PDT)
+From: Lee Jones <lee.jones@linaro.org>
+To: hans.verkuil@cisco.com, mchehab@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        kernel@stlinux.com, patrice.chotard@st.com,
+        linux-media@vger.kernel.org, benjamin.gaignard@st.com,
+        Lee Jones <lee.jones@linaro.org>
+Subject: [PATCH 2/2] [media] cec: Handle RC capability more elegantly
+Date: Tue,  4 Apr 2017 17:10:05 +0100
+Message-Id: <20170404161005.20884-2-lee.jones@linaro.org>
+In-Reply-To: <20170404161005.20884-1-lee.jones@linaro.org>
+References: <20170404161005.20884-1-lee.jones@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a straightforward conversion to the new function.
+If a user specifies the use of RC as a capability, they should
+really be enabling RC Core code.  If they do not we WARN() them
+of this and disable the capability for them.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Sascha Sommer <saschasommer@freenet.de>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>
+Once we know RC Core code has not been enabled, we can update
+the user's capabilities and use them as a term of reference for
+other RC-only calls.  This is preferable to having ugly #ifery
+scattered throughout C code.
+
+Most of the functions are actually safe to call, since they
+sensibly check for a NULL RC pointer before they attempt to
+deference it.
+
+Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/mmc/host/sdricoh_cs.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/media/cec/cec-core.c | 19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/mmc/host/sdricoh_cs.c b/drivers/mmc/host/sdricoh_cs.c
-index 5ff26ab..03225c3 100644
---- a/drivers/mmc/host/sdricoh_cs.c
-+++ b/drivers/mmc/host/sdricoh_cs.c
-@@ -319,16 +319,20 @@ static void sdricoh_request(struct mmc_host *mmc, struct mmc_request *mrq)
- 		for (i = 0; i < data->blocks; i++) {
- 			size_t len = data->blksz;
- 			u8 *buf;
--			struct page *page;
- 			int result;
--			page = sg_page(data->sg);
+diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+index cfe414a..51be8d6 100644
+--- a/drivers/media/cec/cec-core.c
++++ b/drivers/media/cec/cec-core.c
+@@ -208,9 +208,13 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 		return ERR_PTR(-EINVAL);
+ 	if (WARN_ON(!available_las || available_las > CEC_MAX_LOG_ADDRS))
+ 		return ERR_PTR(-EINVAL);
++	if (WARN_ON(caps & CEC_CAP_RC && !IS_REACHABLE(CONFIG_RC_CORE)))
++		caps &= ~CEC_CAP_RC;
++
+ 	adap = kzalloc(sizeof(*adap), GFP_KERNEL);
+ 	if (!adap)
+ 		return ERR_PTR(-ENOMEM);
++
+ 	strlcpy(adap->name, name, sizeof(adap->name));
+ 	adap->phys_addr = CEC_PHYS_ADDR_INVALID;
+ 	adap->log_addrs.cec_version = CEC_OP_CEC_VERSION_2_0;
+@@ -237,7 +241,6 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 	if (!(caps & CEC_CAP_RC))
+ 		return adap;
  
--			buf = kmap(page) + data->sg->offset + (len * i);
-+			buf = sg_map(data->sg, (len * i), SG_KMAP);
-+			if (IS_ERR(buf)) {
-+				cmd->error = PTR_ERR(buf);
-+				break;
-+			}
+-#if IS_REACHABLE(CONFIG_RC_CORE)
+ 	/* Prepare the RC input device */
+ 	adap->rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!adap->rc) {
+@@ -264,9 +267,7 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 	adap->rc->priv = adap;
+ 	adap->rc->map_name = RC_MAP_CEC;
+ 	adap->rc->timeout = MS_TO_NS(100);
+-#else
+-	adap->capabilities &= ~CEC_CAP_RC;
+-#endif
 +
- 			result =
- 				sdricoh_blockio(host,
- 					data->flags & MMC_DATA_READ, buf, len);
--			kunmap(page);
--			flush_dcache_page(page);
-+			sg_unmap(data->sg, buf, (len * i), SG_KMAP);
+ 	return adap;
+ }
+ EXPORT_SYMBOL_GPL(cec_allocate_adapter);
+@@ -285,7 +286,6 @@ int cec_register_adapter(struct cec_adapter *adap,
+ 	adap->owner = parent->driver->owner;
+ 	adap->devnode.dev.parent = parent;
+ 
+-#if IS_REACHABLE(CONFIG_RC_CORE)
+ 	if (adap->capabilities & CEC_CAP_RC) {
+ 		adap->rc->dev.parent = parent;
+ 		res = rc_register_device(adap->rc);
+@@ -298,15 +298,13 @@ int cec_register_adapter(struct cec_adapter *adap,
+ 			return res;
+ 		}
+ 	}
+-#endif
+ 
+ 	res = cec_devnode_register(&adap->devnode, adap->owner);
+ 	if (res) {
+-#if IS_REACHABLE(CONFIG_RC_CORE)
+ 		/* Note: rc_unregister also calls rc_free */
+ 		rc_unregister_device(adap->rc);
+ 		adap->rc = NULL;
+-#endif
 +
-+			flush_dcache_page(sg_page(data->sg));
- 			if (result) {
- 				dev_err(dev, "sdricoh_request: cmd %i "
- 					"block transfer failed\n", cmd->opcode);
+ 		return res;
+ 	}
+ 
+@@ -337,11 +335,10 @@ void cec_unregister_adapter(struct cec_adapter *adap)
+ 	if (IS_ERR_OR_NULL(adap))
+ 		return;
+ 
+-#if IS_REACHABLE(CONFIG_RC_CORE)
+ 	/* Note: rc_unregister also calls rc_free */
+ 	rc_unregister_device(adap->rc);
+ 	adap->rc = NULL;
+-#endif
++
+ 	debugfs_remove_recursive(adap->cec_dir);
+ 	cec_devnode_unregister(&adap->devnode);
+ }
+@@ -357,9 +354,7 @@ void cec_delete_adapter(struct cec_adapter *adap)
+ 	kthread_stop(adap->kthread);
+ 	if (adap->kthread_config)
+ 		kthread_stop(adap->kthread_config);
+-#if IS_REACHABLE(CONFIG_RC_CORE)
+ 	rc_free_device(adap->rc);
+-#endif
+ 	kfree(adap);
+ }
+ EXPORT_SYMBOL_GPL(cec_delete_adapter);
 -- 
-2.1.4
+2.9.3
