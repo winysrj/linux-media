@@ -1,189 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:12322 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754595AbdDDPpa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 4 Apr 2017 11:45:30 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34787
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753852AbdDDMet (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 08:34:49 -0400
+Date: Tue, 4 Apr 2017 09:34:25 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Noam Camus <noamca@mellanox.com>,
+        James Morris <james.l.morris@oracle.com>,
+        zijun_hu <zijun_hu@htc.com>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        linux-clk@vger.kernel.org, Jani Nikula <jani.nikula@intel.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Jens Axboe <axboe@kernel.dk>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        linux-block@vger.kernel.org,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v3 0/8] Add support for DCMI camera interface of STMicroelectronics STM32 SoC series
-Date: Tue, 4 Apr 2017 17:44:30 +0200
-Message-ID: <1491320678-17246-1-git-send-email-hugues.fruchet@st.com>
+        Joonsoo Kim <iamjoonsoo.kim@lge.com>,
+        Ingo Molnar <mingo@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        "Serge E. Hallyn" <serge@hallyn.com>,
+        Michal Hocko <mhocko@suse.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Chris Wilson <chris@chris-wilson.co.uk>, linux-mm@kvack.org,
+        linux-security-module@vger.kernel.org,
+        Silvio Fricke <silvio.fricke@gmail.com>,
+        Takashi Iwai <tiwai@suse.de>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Jan Kara <jack@suse.cz>, Vlastimil Babka <vbabka@suse.cz>,
+        linux-pci@vger.kernel.org, Matt Fleming <matt@codeblueprint.co.uk>,
+        Johannes Weiner <hannes@cmpxchg.org>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Andy Lutomirski <luto@kernel.org>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        Hillf Danton <hillf.zj@alibaba-inc.com>
+Subject: Re: [PATCH 0/9] convert genericirq.tmpl and kernel-api.tmpl to
+ DocBook
+Message-ID: <20170404093425.54da2050@vento.lan>
+In-Reply-To: <20170402143418.3de75239@lwn.net>
+References: <cover.1490904090.git.mchehab@s-opensource.com>
+        <20170402143418.3de75239@lwn.net>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset introduces a basic support for Digital Camera Memory Interface
-(DCMI) of STMicroelectronics STM32 SoC series.
+Em Sun, 2 Apr 2017 14:34:18 -0600
+Jonathan Corbet <corbet@lwn.net> escreveu:
 
-This first basic support implements RGB565 & YUV frame grabbing.
-Cropping and JPEG support will be added later on.
+> On Thu, 30 Mar 2017 17:11:27 -0300
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> 
+> > This series converts just two documents, adding them to the
+> > core-api.rst book. It addresses the errors/warnings that popup
+> > after the conversion.
+> > 
+> > I had to add two fixes to scripts/kernel-doc, in order to solve
+> > some of the issues.  
+> 
+> I've applied the set, including the add-on to move some stuff to
+> driver-api - thanks.
 
-This has been tested on STM324x9I-EVAL evaluation board embedding
-an OV2640 camera sensor.
+Thanks!
 
-This driver depends on:
-  - [PATCHv6 00/14] atmel-isi/ov7670/ov2640: convert to standalone drivers http://www.spinics.net/lists/linux-media/msg113480.html
+> For whatever reason, I had a hard time applying a few of these; "git am"
+> would tell me this:
+> 
+> > Applying: docs-rst: core_api: move driver-specific stuff to drivers_api
+> > fatal: sha1 information is lacking or useless (Documentation/driver-api/index.rst).
+> > Patch failed at 0001 docs-rst: core_api: move driver-specific stuff to drivers_api
+> > The copy of the patch that failed is found in: .git/rebase-apply/patch  
+> 
+> I was able to get around this, but it took some hand work.  How are you
+> generating these?
 
-===========
-= history =
-===========
-version 3:
-  - stm32-dcmi: Add "Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>"
-  - dt-bindings: Fix remarks from Rob Herring:
-    http://www.mail-archive.com/linux-media@vger.kernel.org/msg110956.html
+That's weird. I'm using this to generate the patches:
 
-version 2:
-  - Fix a Kbuild warning in probe:
-    http://www.mail-archive.com/linux-media@vger.kernel.org/msg110678.html
-  - Fix a warning in dcmi_queue_setup()
-  - dt-bindings: warn on sensor signals level inversion in board example
-  - Typos fixing
+	git format-patch -o $tmp_dir --stat --summary --patience --signoff --thread=shallow
 
-version 1:
-  - Initial submission
+plus some scripting that runs scripts/get_maintainers.
 
-===================
-= v4l2-compliance =
-===================
-Below is the v4l2-compliance report for this current version of the DCMI camera interface.
-v4l2-compliance has been built from v4l-utils-1.12.3.
+After that, I run:
 
-v4l2-compliance SHA   : f5f45e17ee98a0ebad7836ade2b34ceec909d751
+	git send-email $tmp_dir
 
-Driver Info:
-        Driver name   : stm32-dcmi
-        Card type     : STM32 Digital Camera Memory Int
-        Bus info      : platform:dcmi
-        Driver version: 4.11.0
-        Capabilities  : 0x85200001
-                Video Capture
-                Read/Write
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x05200001
-                Video Capture
-                Read/Write
-                Streaming
-                Extended Pix Format
+Then, exim sends the patches to a smart SMTP server (currently,
+infradead.org, but I'm switching to s-opensource.org, as I'm getting
+some troubles because the IP doesn't match the From: line).
 
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-                test VIDIOC_QUERYCTRL: OK
-                test VIDIOC_G/S_CTRL: OK
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 3 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK (Not Supported)
-                test Composing: OK (Not Supported)
-                test Scaling: OK
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-Streaming ioctls:
-        test read/write: OK
-        test MMAP: OK
-        test USERPTR: OK (Not Supported)
-        test DMABUF: Cannot test, specify --expbuf-device
-
-
-Total: 46, Succeeded: 46, Failed: 0, Warnings: 0
-
-Hugues Fruchet (8):
-  dt-bindings: Document STM32 DCMI bindings
-  [media] stm32-dcmi: STM32 DCMI camera interface driver
-  ARM: dts: stm32: Enable DCMI support on STM32F429 MCU
-  ARM: dts: stm32: Enable DCMI camera interface on STM32F429-EVAL board
-  ARM: dts: stm32: Enable STMPE1600 gpio expander of STM32F429-EVAL
-    board
-  ARM: dts: stm32: Enable OV2640 camera support of STM32F429-EVAL board
-  ARM: configs: stm32: STMPE1600 GPIO expander
-  ARM: configs: stm32: DCMI + OV2640 camera support
-
- .../devicetree/bindings/media/st,stm32-dcmi.txt    |   46 +
- arch/arm/boot/dts/stm32429i-eval.dts               |   56 +
- arch/arm/boot/dts/stm32f429.dtsi                   |   37 +
- arch/arm/configs/stm32_defconfig                   |    9 +
- drivers/media/platform/Kconfig                     |   12 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/stm32/Makefile              |    1 +
- drivers/media/platform/stm32/stm32-dcmi.c          | 1419 ++++++++++++++++++++
- 8 files changed, 1582 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
- create mode 100644 drivers/media/platform/stm32/Makefile
- create mode 100644 drivers/media/platform/stm32/stm32-dcmi.c
-
--- 
-1.9.1
+Thanks,
+Mauro
