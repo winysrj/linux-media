@@ -1,67 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:17173 "EHLO
-        aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752010AbdDKIjL (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:48608 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751094AbdDDMlZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Apr 2017 04:39:11 -0400
-Subject: Re: [git:media_tree/master] [media] ARM: dts: exynos: add HDMI
- controller phandle to exynos4.dtsi
-To: Krzysztof Kozlowski <krzk@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <E1cxc0o-0003RE-PP@www.linuxtv.org>
- <CAJKOXPfbJpFu6r9rS8oCqxTH+s7y2wYKx9+TzGrv4Cd8DYaKew@mail.gmail.com>
-Cc: linuxtv-commits@linuxtv.org,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <0c8fef60-a99d-c5ed-67e4-3769105fa211@cisco.com>
-Date: Tue, 11 Apr 2017 10:39:08 +0200
+        Tue, 4 Apr 2017 08:41:25 -0400
+Subject: Re: [PATCH 2/2] [media] cec: Fix runtime BUG when (CONFIG_RC_CORE &&
+ !CEC_CAP_RC)
+To: Lee Jones <lee.jones@linaro.org>, hans.verkuil@cisco.com,
+        mchehab@kernel.org
+References: <20170404123219.22040-1-lee.jones@linaro.org>
+ <20170404123219.22040-2-lee.jones@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        kernel@stlinux.com, patrice.chotard@st.com,
+        linux-media@vger.kernel.org, benjamin.gaignard@st.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <998c967a-6cac-8d01-6339-2b58f7651c54@xs4all.nl>
+Date: Tue, 4 Apr 2017 14:41:19 +0200
 MIME-Version: 1.0
-In-Reply-To: <CAJKOXPfbJpFu6r9rS8oCqxTH+s7y2wYKx9+TzGrv4Cd8DYaKew@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20170404123219.22040-2-lee.jones@linaro.org>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/11/17 10:36, Krzysztof Kozlowski wrote:
-> On Mon, Apr 10, 2017 at 6:12 PM, Mauro Carvalho Chehab
-> <mchehab@s-opensource.com> wrote:
->> This is an automatic generated email to let you know that the following patch were queued:
->>
->> Subject: [media] ARM: dts: exynos: add HDMI controller phandle to exynos4.dtsi
->> Author:  Hans Verkuil <hans.verkuil@cisco.com>
->> Date:    Tue Dec 13 12:37:16 2016 -0200
->>
->> Add the new hdmi phandle to exynos4.dtsi. This phandle is needed by the
->> s5p-cec driver to initialize the CEC notifier framework.
->>
->> Tested with my Odroid U3.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
->> CC: linux-samsung-soc@vger.kernel.org
->> CC: devicetree@vger.kernel.org
->> CC: Krzysztof Kozlowski <krzk@kernel.org>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
->>
->>  arch/arm/boot/dts/exynos4.dtsi | 1 +
->>  1 file changed, 1 insertion(+)
->>
+On 04/04/2017 02:32 PM, Lee Jones wrote:
+> Currently when the RC Core is enabled (reachable) core code located
+> in cec_register_adapter() attempts to populate the RC structure with
+> a pointer to the 'parent' passed in by the caller.
 > 
-> Mauro, you should not apply it. It is already going through samsung-soc [1].
-> if you need this patch for bisectability or any other reasons, I
-> provided a tag with it here:
-> https://www.spinics.net/lists/devicetree/msg171182.html
+> Unfortunately if the caller did not specify RC capibility when calling
+> cec_allocate_adapter(), then there will be no RC structure to populate.
 > 
-> Please drop the patch because now it will get duplicated.
+> This causes a "NULL pointer dereference" error.
+> 
+> Fixes: f51e80804f0 ("[media] cec: pass parent device in register(), not allocate()")
+> Signed-off-by: Lee Jones <lee.jones@linaro.org>
 
-I apologize for that. I realized that I shouldn't have included this in
-my pull request when it was already merged.
-
-My fault completely.
+Oops! Thanks for the report. I'll take this for 4.12.
 
 Regards,
 
 	Hans
+
+> ---
+>  drivers/media/cec/cec-core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+> index 06a312c..d64937b 100644
+> --- a/drivers/media/cec/cec-core.c
+> +++ b/drivers/media/cec/cec-core.c
+> @@ -286,8 +286,8 @@ int cec_register_adapter(struct cec_adapter *adap,
+>  	adap->devnode.dev.parent = parent;
+>  
+>  #if IS_REACHABLE(CONFIG_RC_CORE)
+> -	adap->rc->dev.parent = parent;
+>  	if (adap->capabilities & CEC_CAP_RC) {
+> +		adap->rc->dev.parent = parent;
+>  		res = rc_register_device(adap->rc);
+>  
+>  		if (res) {
+> 
