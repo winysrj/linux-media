@@ -1,67 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39508 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753585AbdDDKfO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 06:35:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Raikhel, Evgeni" <evgeni.raikhel@intel.com>
-Cc: "Liakhovetski, Guennadi" <guennadi.liakhovetski@intel.com>,
-        "Tamir, Eliezer" <eliezer.tamir@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v4 0/2]  Intel Depth Formats for SR300 Camera
-Date: Tue, 04 Apr 2017 13:35:59 +0300
-Message-ID: <36384142.ViHC5ut9LT@avalon>
-In-Reply-To: <AA09C8071EEEFC44A7852ADCECA86673020CE09B@hasmsx108.ger.corp.intel.com>
-References: <AA09C8071EEEFC44A7852ADCECA86673A1E6E7@hasmsx108.ger.corp.intel.com> <1488498200-8014-1-git-send-email-evgeni.raikhel@intel.com> <AA09C8071EEEFC44A7852ADCECA86673020CE09B@hasmsx108.ger.corp.intel.com>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:51846 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754820AbdDDPpd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 4 Apr 2017 11:45:33 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v3 8/8] ARM: configs: stm32: DCMI + OV2640 camera support
+Date: Tue, 4 Apr 2017 17:44:38 +0200
+Message-ID: <1491320678-17246-9-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1491320678-17246-1-git-send-email-hugues.fruchet@st.com>
+References: <1491320678-17246-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Evgeni,
+Enable DCMI camera interface and OV2640 camera sensor drivers.
 
-On Monday 03 Apr 2017 08:53:44 Raikhel, Evgeni wrote:
-> Hi Laurent,
-> Can you please update on the status of the submission?
-> The last version has been reviewed a month ago.
-> Is there any estimate on when it is going to be staged/triaged/merged into
-> media tree?
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ arch/arm/configs/stm32_defconfig | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-I've just sent a pull request to Mauro (and CC'ed you). The patches should get 
-merged in v4.12.
-
-> -----Original Message-----
-> From: Raikhel, Evgeni
-> Sent: Friday, March 03, 2017 01:43
-> To: linux-media@vger.kernel.org
-> Cc: laurent.pinchart@ideasonboard.com; Liakhovetski, Guennadi
-> <guennadi.liakhovetski@intel.com>; Tamir, Eliezer
-> <eliezer.tamir@intel.com>; Raikhel, Evgeni <evgeni.raikhel@intel.com>
-> Subject: [PATCH v4 0/2] Intel Depth Formats for SR300 Camera
-> 
-> From: Evgeni Raikhel <evgeni.raikhel@intel.com>
-> 
-> Change Log:
->  - Fixing FourCC description in v4l2_ioctl.c to be less than 32 bytes
->  - Reorder INZI format entry in Documentation chapter
-> 
-> Daniel Patrick Johnson (1):
->   uvcvideo: Add support for Intel SR300 depth camera
-> 
-> eraikhel (1):
->   Documentation: Intel SR300 Depth camera INZI format
-> 
->  Documentation/media/uapi/v4l/depth-formats.rst |  1 +
->  Documentation/media/uapi/v4l/pixfmt-inzi.rst   | 81 ++++++++++++++++++++++
->  drivers/media/usb/uvc/uvc_driver.c             | 15 +++++
->  drivers/media/usb/uvc/uvcvideo.h               |  9 +++
->  drivers/media/v4l2-core/v4l2-ioctl.c           |  1 +
->  include/uapi/linux/videodev2.h                 |  1 +
->  6 files changed, 108 insertions(+)
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-inzi.rst
-
+diff --git a/arch/arm/configs/stm32_defconfig b/arch/arm/configs/stm32_defconfig
+index 84adc88..3f2e4ce 100644
+--- a/arch/arm/configs/stm32_defconfig
++++ b/arch/arm/configs/stm32_defconfig
+@@ -53,6 +53,13 @@ CONFIG_GPIO_STMPE=y
+ CONFIG_MFD_STMPE=y
+ CONFIG_REGULATOR_FIXED_VOLTAGE=y
+ # CONFIG_USB_SUPPORT is not set
++CONFIG_VIDEO_V4L2=y
++CONFIG_MEDIA_SUBDRV_AUTOSELECT=n
++CONFIG_V4L_PLATFORM_DRIVERS=y
++CONFIG_MEDIA_SUPPORT=y
++CONFIG_MEDIA_CAMERA_SUPPORT=y
++CONFIG_VIDEO_STM32_DCMI=y
++CONFIG_VIDEO_OV2640=y
+ CONFIG_NEW_LEDS=y
+ CONFIG_LEDS_CLASS=y
+ CONFIG_LEDS_GPIO=y
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
