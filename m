@@ -1,53 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:48890 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754097AbdDGK0l (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Apr 2017 06:26:41 -0400
-Subject: Re: [Patch v4 12/12] Documention: v4l: Documentation for HEVC CIDs
-To: Smitha T Murthy <smitha.t@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <b26d966f-5acd-5d1e-0cb6-0232f84c2b31@samsung.com>
-Date: Fri, 07 Apr 2017 12:26:31 +0200
-MIME-version: 1.0
-In-reply-to: <1491559409.15698.1237.camel@smitha-fedora>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
-References: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
- <CGME20170406061027epcas5p2628e0a8e0fd76e2e267fad3ea1209f65@epcas5p2.samsung.com>
- <1491459105-16641-13-git-send-email-smitha.t@samsung.com>
- <f68d8bd2-a2b4-7253-0a48-6c3f509e66cd@samsung.com>
- <1491559409.15698.1237.camel@smitha-fedora>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:51999 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755139AbdDENJ5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Apr 2017 09:09:57 -0400
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, kernel@pengutronix.de,
+        patchwork-lst@pengutronix.de
+Subject: [PATCH 3/3] [media] coda/imx-vdoa: always wait for job completion
+Date: Wed,  5 Apr 2017 15:09:55 +0200
+Message-Id: <20170405130955.30513-3-l.stach@pengutronix.de>
+In-Reply-To: <20170405130955.30513-1-l.stach@pengutronix.de>
+References: <20170405130955.30513-1-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/07/2017 12:03 PM, Smitha T Murthy wrote:
->>> +``V4L2_CID_MPEG_VIDEO_HEVC_LF``
->>> +    Indicates loop filtering. Control ID 0 indicates loop filtering
->>> +    is enabled and when set to 1 indicates no filter.
- >>
->> "Setting this control to 0 enables loop filtering, setting this control
->> to 1 disables loop filtering." ?
->>
->> Couldn't the meaning be inverted, so setting the control to 0 disables
->> the loop filtering?
->>
->>From register point of view, this control value needs be 0 to enable
-> loop filtering.
+As long as only one CODA context is running we get alternating device_run()
+and wait_for_completion() calls, but when more then one CODA context is
+active, other VDOA slots can be inserted between those calls for one context.
 
-OK, this is true for our specific hardware/firmware implementation.
+Make sure to wait on job completion before running a different context and
+before destroying the currently active context.
 
-In general, for this user space interface I would rather define that
-boolean control so value 1 enables LF and value 0 disables LF.
-The driver could simply negate the value when writing registers.
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+---
+ drivers/media/platform/coda/imx-vdoa.c | 49 +++++++++++++++++++++++-----------
+ 1 file changed, 33 insertions(+), 16 deletions(-)
 
-BTW we might need to specify type of the control here as Hans suggested
-commenting on other control.
-
---
-Regards,
-Sylwester
+diff --git a/drivers/media/platform/coda/imx-vdoa.c b/drivers/media/platform/coda/imx-vdoa.c
+index 67fd8ffa60a4..ab69a0a9d38b 100644
+--- a/drivers/media/platform/coda/imx-vdoa.c
++++ b/drivers/media/platform/coda/imx-vdoa.c
+@@ -101,6 +101,8 @@ struct vdoa_ctx {
+ 	struct vdoa_data	*vdoa;
+ 	struct completion	completion;
+ 	struct vdoa_q_data	q_data[2];
++	unsigned int		submitted_job;
++	unsigned int		completed_job;
+ };
+ 
+ static irqreturn_t vdoa_irq_handler(int irq, void *data)
+@@ -114,7 +116,7 @@ static irqreturn_t vdoa_irq_handler(int irq, void *data)
+ 
+ 	curr_ctx = vdoa->curr_ctx;
+ 	if (!curr_ctx) {
+-		dev_dbg(vdoa->dev,
++		dev_warn(vdoa->dev,
+ 			"Instance released before the end of transaction\n");
+ 		return IRQ_HANDLED;
+ 	}
+@@ -127,19 +129,44 @@ static irqreturn_t vdoa_irq_handler(int irq, void *data)
+ 	} else if (!(val & VDOAIST_EOT)) {
+ 		dev_warn(vdoa->dev, "Spurious interrupt\n");
+ 	}
++	curr_ctx->completed_job++;
+ 	complete(&curr_ctx->completion);
+ 
+ 	return IRQ_HANDLED;
+ }
+ 
++int vdoa_wait_for_completion(struct vdoa_ctx *ctx)
++{
++	struct vdoa_data *vdoa = ctx->vdoa;
++
++	if (ctx->submitted_job == ctx->completed_job)
++		return 0;
++
++	if (!wait_for_completion_timeout(&ctx->completion,
++					 msecs_to_jiffies(300))) {
++		dev_err(vdoa->dev,
++			"Timeout waiting for transfer result\n");
++		return -ETIMEDOUT;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL(vdoa_wait_for_completion);
++
+ void vdoa_device_run(struct vdoa_ctx *ctx, dma_addr_t dst, dma_addr_t src)
+ {
+ 	struct vdoa_q_data *src_q_data, *dst_q_data;
+ 	struct vdoa_data *vdoa = ctx->vdoa;
+ 	u32 val;
+ 
++	if (vdoa->curr_ctx)
++		vdoa_wait_for_completion(vdoa->curr_ctx);
++
+ 	vdoa->curr_ctx = ctx;
+ 
++	reinit_completion(&ctx->completion);
++	ctx->submitted_job++;
++
+ 	src_q_data = &ctx->q_data[V4L2_M2M_SRC];
+ 	dst_q_data = &ctx->q_data[V4L2_M2M_DST];
+ 
+@@ -177,21 +204,6 @@ void vdoa_device_run(struct vdoa_ctx *ctx, dma_addr_t dst, dma_addr_t src)
+ }
+ EXPORT_SYMBOL(vdoa_device_run);
+ 
+-int vdoa_wait_for_completion(struct vdoa_ctx *ctx)
+-{
+-	struct vdoa_data *vdoa = ctx->vdoa;
+-
+-	if (!wait_for_completion_timeout(&ctx->completion,
+-					 msecs_to_jiffies(300))) {
+-		dev_err(vdoa->dev,
+-			"Timeout waiting for transfer result\n");
+-		return -ETIMEDOUT;
+-	}
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(vdoa_wait_for_completion);
+-
+ struct vdoa_ctx *vdoa_context_create(struct vdoa_data *vdoa)
+ {
+ 	struct vdoa_ctx *ctx;
+@@ -218,6 +230,11 @@ void vdoa_context_destroy(struct vdoa_ctx *ctx)
+ {
+ 	struct vdoa_data *vdoa = ctx->vdoa;
+ 
++	if (vdoa->curr_ctx == ctx) {
++		vdoa_wait_for_completion(vdoa->curr_ctx);
++		vdoa->curr_ctx = NULL;
++	}
++
+ 	clk_disable_unprepare(vdoa->vdoa_clk);
+ 	kfree(ctx);
+ }
+-- 
+2.11.0
