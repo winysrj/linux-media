@@ -1,104 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f178.google.com ([209.85.128.178]:36139 "EHLO
-        mail-wr0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752750AbdDDNac (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 09:30:32 -0400
-Received: by mail-wr0-f178.google.com with SMTP id w11so213333392wrc.3
-        for <linux-media@vger.kernel.org>; Tue, 04 Apr 2017 06:30:32 -0700 (PDT)
-Date: Tue, 4 Apr 2017 14:30:27 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: hans.verkuil@cisco.com, mchehab@kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        kernel@stlinux.com, patrice.chotard@st.com,
-        linux-media@vger.kernel.org, benjamin.gaignard@st.com
-Subject: Re: [PATCH 1/2] [media] cec: Move capability check inside #if
-Message-ID: <20170404133027.p3c4nxouhi3h4mdw@dell>
-References: <20170404123219.22040-1-lee.jones@linaro.org>
- <4920d83a-8983-36cc-936d-9e0989e833ce@xs4all.nl>
- <20170404125409.ay5yszwdkdxb6nvx@dell>
- <20170404130157.cgzmuym5yixvcy22@dell>
- <26aedd99-1005-3b20-f67c-296aad61b1fc@xs4all.nl>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44956 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755214AbdDENOW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Apr 2017 09:14:22 -0400
+Date: Wed, 5 Apr 2017 16:13:46 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Ricky Liang <jcliang@chromium.org>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Rob Clark <robdclark@gmail.com>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Laura Abbott <labbott@redhat.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [RFC, v2, 10/11] vb2: dma-contig: Let drivers decide DMA attrs
+ of MMAP and USERPTR bufs
+Message-ID: <20170405131345.GA3265@valkosipuli.retiisi.org.uk>
+References: <20161216012425.11179-11-laurent.pinchart+renesas@ideasonboard.com>
+ <CAAJzSMep+qccM+UV+T-wgpqTNPYD3yHWqpjJbhH5v4NLxjqZ=w@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <26aedd99-1005-3b20-f67c-296aad61b1fc@xs4all.nl>
+In-Reply-To: <CAAJzSMep+qccM+UV+T-wgpqTNPYD3yHWqpjJbhH5v4NLxjqZ=w@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 04 Apr 2017, Hans Verkuil wrote:
+Hi Ricky,
 
-> On 04/04/2017 03:01 PM, Lee Jones wrote:
-> > On Tue, 04 Apr 2017, Lee Jones wrote:
-> > 
-> >> On Tue, 04 Apr 2017, Hans Verkuil wrote:
-> >>
-> >>> On 04/04/2017 02:32 PM, Lee Jones wrote:
-> >>>> If CONFIG_RC_CORE is not enabled then none of the RC code will be
-> >>>> executed anyway, so we're placing the capability check inside the
-> >>>>
-> >>>> Signed-off-by: Lee Jones <lee.jones@linaro.org>
-> >>>> ---
-> >>>>  drivers/media/cec/cec-core.c | 2 +-
-> >>>>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >>>>
-> >>>> diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-> >>>> index 37217e2..06a312c 100644
-> >>>> --- a/drivers/media/cec/cec-core.c
-> >>>> +++ b/drivers/media/cec/cec-core.c
-> >>>> @@ -234,10 +234,10 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
-> >>>>  		return ERR_PTR(res);
-> >>>>  	}
-> >>>>  
-> >>>> +#if IS_REACHABLE(CONFIG_RC_CORE)
-> >>>>  	if (!(caps & CEC_CAP_RC))
-> >>>>  		return adap;
-> >>>>  
-> >>>> -#if IS_REACHABLE(CONFIG_RC_CORE)
-> >>>>  	/* Prepare the RC input device */
-> >>>>  	adap->rc = rc_allocate_device(RC_DRIVER_SCANCODE);
-> >>>>  	if (!adap->rc) {
-> >>>>
-> >>>
-> >>> Not true, there is an #else further down.
-> >>
-> >> I saw the #else.  It's inert code that becomes function-less.
-> >>
-> >>> That said, this code is clearly a bit confusing.
-> >>>
-> >>> It would be better if at the beginning of the function we'd have this:
-> >>>
-> >>> #if !IS_REACHABLE(CONFIG_RC_CORE)
-> >>> 	caps &= ~CEC_CAP_RC;
-> >>> #endif
-> >>>
-> >>> and then drop the #else bit and (as you do in this patch) move the #if up.
-> >>>
-> >>> Can you make a new patch for this?
-> >>
-> >> Sure.
-> > 
-> > No wait, sorry!  This patch is the correct fix.
-> > 
-> > 'caps' is already indicating !CEC_CAP_RC, which is right.
-> > 
-> > What we're trying to do here is only consider looking at the
-> > capabilities if the RC Core is enabled.  If it is not enabled, the #if
-> > still does the right thing and makes sure that the caps are updated.
-> > 
-> > Please take another look at the semantics.
+On Mon, Dec 26, 2016 at 03:58:07PM +0800, Ricky Liang wrote:
+> Hi Laurent,
 > 
-> Ah, yes. You are right. But so am I: the code is just unnecessarily confusing
-> as is seen by this discussion.
+> On Fri, Dec 16, 2016 at 9:24 AM, Laurent Pinchart
+> <laurent.pinchart+renesas@ideasonboard.com> wrote:
+> > From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >
+> > The desirable DMA attributes are not generic for all devices using
+> > Videobuf2 contiguous DMA ops. Let the drivers decide.
+> >
+> > This change also results in MMAP buffers always having an sg_table
+> > (dma_sgt field).
+> >
+> > Also arrange the header files alphabetically.
+> >
+> > As a result, also the DMA-BUF exporter must provide ops for synchronising
+> > the cache. This adds begin_cpu_access and end_cpu_access ops to
+> > vb2_dc_dmabuf_ops.
+> >
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  drivers/media/v4l2-core/videobuf2-dma-contig.c | 66 ++++++++++++++++++++++----
+> >  1 file changed, 56 insertions(+), 10 deletions(-)
+> >
+> > diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> > index d503647ea522..a0e88ad93f07 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> > @@ -11,11 +11,11 @@
+> >   */
+> >
+> >  #include <linux/dma-buf.h>
+> > +#include <linux/dma-mapping.h>
+> >  #include <linux/module.h>
+> >  #include <linux/scatterlist.h>
+> >  #include <linux/sched.h>
+> >  #include <linux/slab.h>
+> > -#include <linux/dma-mapping.h>
+> >
+> >  #include <media/videobuf2-v4l2.h>
+> >  #include <media/videobuf2-dma-contig.h>
+> > @@ -115,8 +115,11 @@ static void vb2_dc_prepare(void *buf_priv)
+> >         struct vb2_dc_buf *buf = buf_priv;
+> >         struct sg_table *sgt = buf->dma_sgt;
+> >
+> > -       /* DMABUF exporter will flush the cache for us */
+> > -       if (!buf->vec)
+> > +       /*
+> > +        * DMABUF exporter will flush the cache for us; only USERPTR
+> > +        * and MMAP buffers with non-coherent memory will be flushed.
+> > +        */
+> > +       if (!(buf->attrs & DMA_ATTR_NON_CONSISTENT))
 > 
-> I still would like to see a patch with my proposed solution. The control flow
-> is much easier to understand that way.
+> Should here be "if (!buf->vec || !(buf->attrs & DMA_ATTR_NON_CONSISTENT))" ?
 
-I have an idea.  Please bear with me.
+The patch was originally using struct dma_attrs and I believe rebasing
+changed how it it works. Thank you for pointing that out.
+
+Using buf->vec for the purpose alone is not enough since also MMAP buffers
+may require cache synchronisation from this patch onwards.
 
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
