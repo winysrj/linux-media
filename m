@@ -1,126 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:49880 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1952438AbdDYSV3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 14:21:29 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com
-Cc: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
+Received: from mail-qt0-f173.google.com ([209.85.216.173]:33281 "EHLO
+        mail-qt0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755710AbdDERC4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 13:02:56 -0400
+Received: by mail-qt0-f173.google.com with SMTP id i34so16091700qtc.0
+        for <linux-media@vger.kernel.org>; Wed, 05 Apr 2017 10:02:55 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170405131725.22c13a1d@vento.lan>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+ <1490661656-10318-20-git-send-email-steve_longerbeam@mentor.com>
+ <1490894749.2404.33.camel@pengutronix.de> <20170404231053.GE7909@n2100.armlinux.org.uk>
+ <19f0ce92-cad6-8950-8018-e3224e2bf266@gmail.com> <7235285c-f39a-64bc-195a-11cfde9e67c5@gmail.com>
+ <20170405082134.GF7909@n2100.armlinux.org.uk> <1491384859.2381.51.camel@pengutronix.de>
+ <20170405115336.7135e542@vento.lan> <CAGoCfizXdDV_Eo1NSOAb+-wrC7F47iFQKyP8-wiJMpb-nsYArA@mail.gmail.com>
+ <20170405131725.22c13a1d@vento.lan>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Wed, 5 Apr 2017 13:02:52 -0400
+Message-ID: <CAGoCfiyfXc2bcTR72XwL3Vv8ny-dQUjEUk2OUuy_s4nedNJqxA@mail.gmail.com>
+Subject: Re: [RFC] [media] imx: assume MEDIA_ENT_F_ATV_DECODER entities output
+ video on pad 1
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        nick@shmanahar.org, markus.heiser@darmarit.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, Arnd Bergmann <arnd@arndb.de>,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>
-Date: Tue, 25 Apr 2017 12:21:04 -0600
-Message-Id: <1493144468-22493-18-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 17/21] mmc: spi: Make use of the new sg_map helper function
+        shuah@kernel.org,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        Pavel Machek <pavel@ucw.cz>, devicetree@vger.kernel.org,
+        Linux Kernel <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We use the sg_map helper but it's slightly more complicated
-as we only check for the error when the mapping actually gets used.
-Such that if the mapping failed but wasn't needed then no
-error occurs.
+>> For what it's worth, I doubt most of the em28xx designs have the
+>> tvp5150 interrupt request line connected in any way.
+>
+> True. But, on embedded hardware, such line may be connected into the
+> SoC. Actually, from the IGEPv3 expansion diagram:
+>
+>         https://www.isee.biz/support/downloads/item/igepv2-expansion-rc-schematics
+>
+> The INT line is connected to CAM_IRQ. That's connected to GPIO_154 pin
+> at OMAP3.
+>
+> So, on a first glance, it seems possible to use it, instead of polling.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>
----
- drivers/mmc/host/mmc_spi.c | 26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+To be clear, I wasn't suggesting that the IRQ request line on the
+tvp5150 couldn't be supported in general (for example, for those
+embedded targets which have it wired up to a host processor).  I'm
+just saying you shouldn't expect it to work on most (perhaps all)
+em28xx designs which have the tvp5150.  In fact on some em28xx designs
+the pin is used as a GPIO output tied to a mux to control input
+selection.  Hence blindly enabling the interrupt request line by
+default would do all sorts of bad things.
 
-diff --git a/drivers/mmc/host/mmc_spi.c b/drivers/mmc/host/mmc_spi.c
-index 476e53d..d614f36 100644
---- a/drivers/mmc/host/mmc_spi.c
-+++ b/drivers/mmc/host/mmc_spi.c
-@@ -676,9 +676,15 @@ mmc_spi_writeblock(struct mmc_spi_host *host, struct spi_transfer *t,
- 	struct scratch		*scratch = host->data;
- 	u32			pattern;
- 
--	if (host->mmc->use_spi_crc)
-+	if (host->mmc->use_spi_crc) {
-+		if (IS_ERR(t->tx_buf))
-+			return PTR_ERR(t->tx_buf);
-+
- 		scratch->crc_val = cpu_to_be16(
- 				crc_itu_t(0, t->tx_buf, t->len));
-+		t->tx_buf += t->len;
-+	}
-+
- 	if (host->dma_dev)
- 		dma_sync_single_for_device(host->dma_dev,
- 				host->data_dma, sizeof(*scratch),
-@@ -743,7 +749,6 @@ mmc_spi_writeblock(struct mmc_spi_host *host, struct spi_transfer *t,
- 		return status;
- 	}
- 
--	t->tx_buf += t->len;
- 	if (host->dma_dev)
- 		t->tx_dma += t->len;
- 
-@@ -809,6 +814,11 @@ mmc_spi_readblock(struct mmc_spi_host *host, struct spi_transfer *t,
- 	}
- 	leftover = status << 1;
- 
-+	if (bitshift || host->mmc->use_spi_crc) {
-+		if (IS_ERR(t->rx_buf))
-+			return PTR_ERR(t->rx_buf);
-+	}
-+
- 	if (host->dma_dev) {
- 		dma_sync_single_for_device(host->dma_dev,
- 				host->data_dma, sizeof(*scratch),
-@@ -860,9 +870,10 @@ mmc_spi_readblock(struct mmc_spi_host *host, struct spi_transfer *t,
- 					scratch->crc_val, crc, t->len);
- 			return -EILSEQ;
- 		}
-+
-+		t->rx_buf += t->len;
- 	}
- 
--	t->rx_buf += t->len;
- 	if (host->dma_dev)
- 		t->rx_dma += t->len;
- 
-@@ -933,11 +944,11 @@ mmc_spi_data_do(struct mmc_spi_host *host, struct mmc_command *cmd,
- 		}
- 
- 		/* allow pio too; we don't allow highmem */
--		kmap_addr = kmap(sg_page(sg));
-+		kmap_addr = sg_map(sg, 0, SG_KMAP);
- 		if (direction == DMA_TO_DEVICE)
--			t->tx_buf = kmap_addr + sg->offset;
-+			t->tx_buf = kmap_addr;
- 		else
--			t->rx_buf = kmap_addr + sg->offset;
-+			t->rx_buf = kmap_addr;
- 
- 		/* transfer each block, and update request status */
- 		while (length) {
-@@ -967,7 +978,8 @@ mmc_spi_data_do(struct mmc_spi_host *host, struct mmc_command *cmd,
- 		/* discard mappings */
- 		if (direction == DMA_FROM_DEVICE)
- 			flush_kernel_dcache_page(sg_page(sg));
--		kunmap(sg_page(sg));
-+		if (!IS_ERR(kmap_addr))
-+			sg_unmap(sg, kmap_addr, 0, SG_KMAP);
- 		if (dma_dev)
- 			dma_unmap_page(dma_dev, dma_addr, PAGE_SIZE, dir);
- 
+>> You would likely
+>> have to poll the FIFO status register via I2C,
+>
+> Yes, I considered this option when I wrote the driver. It could work,
+> although it would likely have some performance drawback, as the driver
+> would need to poll it at least 60 times per second.
+>
+>> or use the feature to
+>> embed the sliced data into as VANC data in the 656 output (as
+>> described in sec 3.9 of the tvp5150am1 spec).
+>
+> True, but the bridge driver would need to handle such data.
+
+Correct.
+
+> I remember I looked on this when I wrote the driver, but I was
+> unable to find a way for em28xx to parse (or forward) such
+> data packets.
+
+I'm pretty sure it's possible, but I haven't looked at the datasheets
+in a number of years and don't recall the details.
+
+Hardware VBI splicing is supported by a number of decoders but it's
+rarely used on commodity PCs (the Conexant and NXP decoders support it
+as well).  That said, I won't argue there might be some value on
+really low end platforms.  All I would ask is that if you do introduce
+any such functionality into the tvp5150 driver for some embedded
+application that you please not break support for devices such as the
+em28xx.
+
+Thanks,
+
+Devin
+
 -- 
-2.1.4
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
