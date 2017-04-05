@@ -1,157 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:57573 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S939212AbdD0WnA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:43:00 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v4 25/27] rcar-vin: extend {start,stop}_streaming to work with media controller
-Date: Fri, 28 Apr 2017 00:42:01 +0200
-Message-Id: <20170427224203.14611-26-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-wr0-f170.google.com ([209.85.128.170]:36639 "EHLO
+        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932833AbdDEJLd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 05:11:33 -0400
+Received: by mail-wr0-f170.google.com with SMTP id w11so4966625wrc.3
+        for <linux-media@vger.kernel.org>; Wed, 05 Apr 2017 02:11:32 -0700 (PDT)
+Date: Wed, 5 Apr 2017 10:11:29 +0100
+From: Lee Jones <lee.jones@linaro.org>
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, benjamin.gaignard@st.com,
+        kernel@stlinux.com, patrice.chotard@st.com,
+        linux-kernel@vger.kernel.org, hans.verkuil@cisco.com,
+        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] cec: Handle RC capability more elegantly
+Message-ID: <20170405091129.fcxblw3ydqilxrlg@dell>
+References: <20170404144309.31357-1-lee.jones@linaro.org>
+ <9fdac3c1-b249-839e-c2bc-f4661994eb3a@xs4all.nl>
+ <20170404151939.bvd252nprj6kjmdu@dell>
+ <20170404153659.GC7909@n2100.armlinux.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170404153659.GC7909@n2100.armlinux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The procedure to start or stop streaming using the none MC single
-subdevice and the MC graph and multiple subdevices are quiet different.
-Create a new function to abstract which method is used based on which
-mode the driver is running in and add logic to start the MC graph.
+On Tue, 04 Apr 2017, Russell King - ARM Linux wrote:
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 79 +++++++++++++++++++++++++++---
- 1 file changed, 72 insertions(+), 7 deletions(-)
+> On Tue, Apr 04, 2017 at 04:19:39PM +0100, Lee Jones wrote:
+> > On Tue, 04 Apr 2017, Hans Verkuil wrote:
+> > 
+> > > On 04/04/2017 04:43 PM, Lee Jones wrote:
+> > > > If a user specifies the use of RC as a capability, they should
+> > > > really be enabling RC Core code.  If they do not we WARN() them
+> > > > of this and disable the capability for them.
+> > > > 
+> > > > Once we know RC Core code has not been enabled, we can update
+> > > > the user's capabilities and use them as a term of reference for
+> > > > other RC-only calls.  This is preferable to having ugly #ifery
+> > > > scattered throughout C code.
+> > > > 
+> > > > Most of the functions are actually safe to call, since they
+> > > > sensibly check for a NULL RC pointer before they attempt to
+> > > > deference it.
+> > > > 
+> > > > Signed-off-by: Lee Jones <lee.jones@linaro.org>
+> > > > ---
+> > > >  drivers/media/cec/cec-core.c | 19 +++++++------------
+> > > >  1 file changed, 7 insertions(+), 12 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+> > > > index cfe414a..51be8d6 100644
+> > > > --- a/drivers/media/cec/cec-core.c
+> > > > +++ b/drivers/media/cec/cec-core.c
+> > > > @@ -208,9 +208,13 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+> > > >  		return ERR_PTR(-EINVAL);
+> > > >  	if (WARN_ON(!available_las || available_las > CEC_MAX_LOG_ADDRS))
+> > > >  		return ERR_PTR(-EINVAL);
+> > > > +	if (WARN_ON(caps & CEC_CAP_RC && !IS_REACHABLE(CONFIG_RC_CORE)))
+> > > > +		caps &= ~CEC_CAP_RC;
+> > > 
+> > > Don't use WARN_ON, this is not an error of any kind.
+> > 
+> > Right, this is not an error.
+> > 
+> > That's why we are warning the user instead of bombing out.
+> 
+> Please print warning using pr_warn() or dev_warn().  Using WARN_ON()
+> because something is not configured is _really_ not nice behaviour.
+> Consider how useful a stack trace is to the user for this situation -
+> it's completely meaningless.
+> 
+> A message that prompts the user to enable RC_CORE would make more sense,
+> and be much more informative to the user.  Maybe something like this:
+> 
+> +	if (caps & CEC_CAP_RC && !IS_REACHABLE(CONFIG_RC_CORE)) {
+> +		pr_warn("CEC: driver %pf requests RC, please enable CONFIG_RC_CORE\n",
+> +			__builtin_return_address(0));
+> +		caps &= ~CEC_CAP_RC;
+> +	}
+> 
+> It could be much more informative by using dev_warn() if we had the
+> 'struct device' passed in to this function, and then we wouldn't need
+> to use __builtin_return_address().
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 34f01f32bab7bd32..46491a6b63ed0397 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -1099,15 +1099,82 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&vin->qlock, flags);
- }
- 
-+static int rvin_set_stream(struct rvin_dev *vin, int on)
-+{
-+	struct v4l2_subdev_format fmt = {
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+	struct media_pipeline *pipe;
-+	struct  v4l2_subdev *sd;
-+	struct media_pad *pad;
-+	int ret;
-+
-+	/* Not media controller used, simply pass operation to subdevice */
-+	if (!vin->info->use_mc) {
-+		ret = v4l2_subdev_call(vin->digital.subdev, video, s_stream,
-+				       on);
-+
-+		return ret == -ENOIOCTLCMD ? 0 : ret;
-+	}
-+
-+	pad = media_entity_remote_pad(&vin->pad);
-+	if (!pad)
-+		return -EPIPE;
-+
-+	sd = media_entity_to_v4l2_subdev(pad->entity);
-+	if (!sd)
-+		return -EPIPE;
-+
-+	if (on) {
-+		fmt.pad = pad->index;
-+		if (v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt))
-+			return -EPIPE;
-+
-+		switch (fmt.format.code) {
-+		case MEDIA_BUS_FMT_YUYV8_1X16:
-+		case MEDIA_BUS_FMT_UYVY8_2X8:
-+		case MEDIA_BUS_FMT_UYVY10_2X10:
-+		case MEDIA_BUS_FMT_RGB888_1X24:
-+			vin->code = fmt.format.code;
-+			break;
-+		default:
-+			return -EPIPE;
-+		}
-+
-+		if (fmt.format.width != vin->format.width ||
-+		    fmt.format.height != vin->format.height)
-+			return -EPIPE;
-+
-+		pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev->pipe;
-+		if (media_pipeline_start(&vin->vdev->entity, pipe))
-+			return -EPIPE;
-+
-+		ret = v4l2_subdev_call(sd, video, s_stream, 1);
-+		if (ret == -ENOIOCTLCMD)
-+			ret = 0;
-+		if (ret)
-+			media_pipeline_stop(&vin->vdev->entity);
-+	} else {
-+		media_pipeline_stop(&vin->vdev->entity);
-+		ret = v4l2_subdev_call(sd, video, s_stream, 0);
-+	}
-+
-+	return ret;
-+}
-+
- static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int ret;
- 
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 1);
-+	ret = rvin_set_stream(vin, 1);
-+	if (ret) {
-+		spin_lock_irqsave(&vin->qlock, flags);
-+		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
-+		spin_unlock_irqrestore(&vin->qlock, flags);
-+		return ret;
-+	}
- 
- 	spin_lock_irqsave(&vin->qlock, flags);
- 
-@@ -1116,7 +1183,7 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	ret = rvin_capture_start(vin);
- 	if (ret) {
- 		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
--		v4l2_subdev_call(sd, video, s_stream, 0);
-+		rvin_set_stream(vin, 0);
- 	}
- 
- 	spin_unlock_irqrestore(&vin->qlock, flags);
-@@ -1127,7 +1194,6 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- static void rvin_stop_streaming(struct vb2_queue *vq)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int retries = 0;
- 
-@@ -1166,8 +1232,7 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
- 
- 	spin_unlock_irqrestore(&vin->qlock, flags);
- 
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 0);
-+	rvin_set_stream(vin, 0);
- 
- 	/* disable interrupts */
- 	rvin_disable_interrupts(vin);
+Understood.
+
+I *would* fix, but Hans has made it pretty clear that this is not the
+way he wants to go.  I still think a warning is the correct solution,
+but for some reason we are to support out-of-tree drivers which might
+be doing weird stuff.
+
 -- 
-2.12.2
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
