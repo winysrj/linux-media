@@ -1,63 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-he1eur01on0104.outbound.protection.outlook.com ([104.47.0.104]:28716
-        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752177AbdDCIhT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Apr 2017 04:37:19 -0400
-From: Peter Rosin <peda@axentia.se>
-To: <linux-kernel@vger.kernel.org>
-CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-        Peter Korsgaard <peter.korsgaard@barco.com>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        <linux-i2c@vger.kernel.org>, <linux-iio@vger.kernel.org>,
-        <linux-media@vger.kernel.org>
-Subject: [PATCH 1/9] i2c: mux: provide more info on failure in i2c_mux_add_adapter
-Date: Mon, 3 Apr 2017 10:38:30 +0200
-Message-ID: <1491208718-32068-2-git-send-email-peda@axentia.se>
-In-Reply-To: <1491208718-32068-1-git-send-email-peda@axentia.se>
-References: <1491208718-32068-1-git-send-email-peda@axentia.se>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:60079 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755077AbdDENJ5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Apr 2017 09:09:57 -0400
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, kernel@pengutronix.de,
+        patchwork-lst@pengutronix.de
+Subject: [PATCH 2/3] [media] coda: first step at error recovery
+Date: Wed,  5 Apr 2017 15:09:54 +0200
+Message-Id: <20170405130955.30513-2-l.stach@pengutronix.de>
+In-Reply-To: <20170405130955.30513-1-l.stach@pengutronix.de>
+References: <20170405130955.30513-1-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No callers then need to report any further info, thus reducing both the
-amount of code and the log noise.
+This implements a simple handler for the case where decode did not finish
+sucessfully. This might be helpful during normal streaming, but for now it
+only handles the case where the context would deadlock with userspace,
+i.e. userspace issued DEC_CMD_STOP and waits for EOS, but after the failed
+decode run we would hold the context and wait for userspace to queue more
+buffers.
 
-Signed-off-by: Peter Rosin <peda@axentia.se>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 ---
- drivers/i2c/i2c-mux.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/media/platform/coda/coda-bit.c    | 20 ++++++++++++++++++++
+ drivers/media/platform/coda/coda-common.c |  3 +++
+ drivers/media/platform/coda/coda.h        |  1 +
+ 3 files changed, 24 insertions(+)
 
-diff --git a/drivers/i2c/i2c-mux.c b/drivers/i2c/i2c-mux.c
-index 2178266bca79..26f7237558ba 100644
---- a/drivers/i2c/i2c-mux.c
-+++ b/drivers/i2c/i2c-mux.c
-@@ -395,13 +395,16 @@ int i2c_mux_add_adapter(struct i2c_mux_core *muxc,
- 	if (force_nr) {
- 		priv->adap.nr = force_nr;
- 		ret = i2c_add_numbered_adapter(&priv->adap);
-+		dev_err(&parent->dev,
-+			"failed to add mux-adapter %u as bus %u (error=%d)\n",
-+			chan_id, force_nr, ret);
- 	} else {
- 		ret = i2c_add_adapter(&priv->adap);
-+		dev_err(&parent->dev,
-+			"failed to add mux-adapter %u (error=%d)\n",
-+			chan_id, ret);
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 36062fc494e3..6a088f9343bb 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -2113,12 +2113,32 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 	ctx->display_idx = display_idx;
+ }
+ 
++static void coda_error_decode(struct coda_ctx *ctx)
++{
++	struct vb2_v4l2_buffer *dst_buf;
++
++	/*
++	 * For now this only handles the case where we would deadlock with
++	 * userspace, i.e. userspace issued DEC_CMD_STOP and waits for EOS,
++	 * but after a failed decode run we would hold the context and wait for
++	 * userspace to queue more buffers.
++	 */
++	if (!(ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG))
++		return;
++
++	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
++	dst_buf->sequence = ctx->qsequence - 1;
++
++	coda_m2m_buf_done(ctx, dst_buf, VB2_BUF_STATE_ERROR);
++}
++
+ const struct coda_context_ops coda_bit_decode_ops = {
+ 	.queue_init = coda_decoder_queue_init,
+ 	.reqbufs = coda_decoder_reqbufs,
+ 	.start_streaming = coda_start_decoding,
+ 	.prepare_run = coda_prepare_decode,
+ 	.finish_run = coda_finish_decode,
++	.error_run = coda_error_decode,
+ 	.seq_end_work = coda_seq_end_work,
+ 	.release = coda_bit_release,
+ };
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index eb6548f46cba..0bbf155f9783 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1100,6 +1100,9 @@ static void coda_pic_run_work(struct work_struct *work)
+ 		ctx->hold = true;
+ 
+ 		coda_hw_reset(ctx);
++
++		if (ctx->ops->error_run)
++			ctx->ops->error_run(ctx);
+ 	} else if (!ctx->aborting) {
+ 		ctx->ops->finish_run(ctx);
  	}
- 	if (ret < 0) {
--		dev_err(&parent->dev,
--			"failed to add mux-adapter (error=%d)\n",
--			ret);
- 		kfree(priv);
- 		return ret;
- 	}
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index 4b831c91ae4a..799ffca72203 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -180,6 +180,7 @@ struct coda_context_ops {
+ 	int (*start_streaming)(struct coda_ctx *ctx);
+ 	int (*prepare_run)(struct coda_ctx *ctx);
+ 	void (*finish_run)(struct coda_ctx *ctx);
++	void (*error_run)(struct coda_ctx *ctx);
+ 	void (*seq_end_work)(struct work_struct *work);
+ 	void (*release)(struct coda_ctx *ctx);
+ };
 -- 
-2.1.4
+2.11.0
