@@ -1,102 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:35302 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751648AbdDJPU1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 11:20:27 -0400
-Date: Mon, 10 Apr 2017 10:20:25 -0500
-From: Rob Herring <robh@kernel.org>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>
-Subject: Re: [PATCH v3 1/8] dt-bindings: Document STM32 DCMI bindings
-Message-ID: <20170410152025.nx4zrnbth6wgamro@rob-hp-laptop>
-References: <1491320678-17246-1-git-send-email-hugues.fruchet@st.com>
- <1491320678-17246-2-git-send-email-hugues.fruchet@st.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:52229 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755336AbdDEPZB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 11:25:01 -0400
+Date: Wed, 5 Apr 2017 17:24:57 +0200
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-kernel@vger.kernel.org
+Subject: Re: [RFC 00/10] V4L2 explicit synchronization support
+Message-ID: <20170405152457.GD32294@joana>
+References: <20170313192035.29859-1-gustavo@padovan.org>
+ <20170404113449.GC3288@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1491320678-17246-2-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <20170404113449.GC3288@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 04, 2017 at 05:44:31PM +0200, Hugues Fruchet wrote:
-> This adds documentation of device tree bindings for the STM32 DCMI
-> (Digital Camera Memory Interface).
+Hi Sakari,
+
+2017-04-04 Sakari Ailus <sakari.ailus@iki.fi>:
+
+> Hi Gustavo,
 > 
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
-> ---
->  .../devicetree/bindings/media/st,stm32-dcmi.txt    | 46 ++++++++++++++++++++++
->  1 file changed, 46 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
+> Thank you for the patchset. Please see my comments below.
+> 
+> On Mon, Mar 13, 2017 at 04:20:25PM -0300, Gustavo Padovan wrote:
+> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > 
+> > Hi,
+> > 
+> > This RFC adds support for Explicit Synchronization of shared buffers in V4L2.
+> > It uses the Sync File Framework[1] as vector to communicate the fences
+> > between kernel and userspace.
+> > 
+> > I'm sending this to start the discussion on the best approach to implement
+> > Explicit Synchronization, please check the TODO/OPEN section below.
+> > 
+> > Explicit Synchronization allows us to control the synchronization of
+> > shared buffers from userspace by passing fences to the kernel and/or 
+> > receiving them from the the kernel.
+> > 
+> > Fences passed to the kernel are named in-fences and the kernel should wait
+> > them to signal before using the buffer. On the other side, the kernel creates
+> > out-fences for every buffer it receives from userspace. This fence is sent back
+> > to userspace and it will signal when the capture, for example, has finished.
+> > 
+> > Signalling an out-fence in V4L2 would mean that the job on the buffer is done
+> > and the buffer can be used by other drivers.
+> 
+> Shouldn't you be able to add two fences to the buffer, one in and one out?
+> I.e. you'd have the buffer passed from another device to a V4L2 device and
+> on to a third device.
+> 
+> (Or, two fences per a plane, as you elaborated below.)
 
-One nit below, otherwise:
+The out one should be created by V4L2 in this case, sent to userspace
+and then sent to third device. Another options is what we've been
+calling future fences in DRM. Where we may have a syscall to create this
+out-fence for us and then we could pass both in and out fence to the
+device. But that can be supported later along with what this RFC
+proposes.
 
-Acked-by: Rob Herring <robh@kernel.org>
 
 > 
-> diff --git a/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
-> new file mode 100644
-> index 0000000..c0f6f4b
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
-> @@ -0,0 +1,46 @@
-> +STMicroelectronics STM32 Digital Camera Memory Interface (DCMI)
-> +
-> +Required properties:
-> +- compatible: "st,stm32-dcmi"
-> +- reg: physical base address and length of the registers set for the device
-> +- interrupts: should contain IRQ line for the DCMI
-> +- resets: reference to a reset controller,
-> +          see Documentation/devicetree/bindings/reset/st,stm32-rcc.txt
-> +- clocks: list of clock specifiers, corresponding to entries in
-> +          the clock-names property
-> +- clock-names: must contain "mclk", which is the DCMI peripherial clock
-> +- pinctrl: the pincontrol settings to configure muxing properly
-> +           for pins that connect to DCMI device.
-> +           See Documentation/devicetree/bindings/pinctrl/st,stm32-pinctrl.txt.
-> +- dmas: phandle to DMA controller node,
-> +        see Documentation/devicetree/bindings/dma/stm32-dma.txt
-> +- dma-names: must contain "tx", which is the transmit channel from DCMI to DMA
-> +
-> +DCMI supports a single port node with parallel bus. It should contain one
-> +'port' child node with child 'endpoint' node. Please refer to the bindings
-> +defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Example:
-> +
-> +	dcmi: dcmi@50050000 {
-> +		compatible = "st,stm32-dcmi";
-> +		reg = <0x50050000 0x400>;
-> +		interrupts = <78>;
-> +		resets = <&rcc STM32F4_AHB2_RESET(DCMI)>;
-> +		clocks = <&rcc 0 STM32F4_AHB2_CLOCK(DCMI)>;
-> +		clock-names = "mclk";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&dcmi_pins>;
-> +		dmas = <&dma2 1 1 0x414 0x3>;
-> +		dma-names = "tx";
-> +		port {
-> +			dcmi_0: endpoint@0 {
-
-Unit address in not valid without a reg prop, so drop it.
-
-> +				remote-endpoint = <...>;
-> +				bus-width = <8>;
-> +				hsync-active = <0>;
-> +				vsync-active = <0>;
-> +				pclk-sample = <1>;
-> +			};
-> +		};
-> +	};
-> +
-> -- 
-> 1.9.1
+> > 
+> > Current RFC implementation
+> > --------------------------
+> > 
+> > The current implementation is not intended to be more than a PoC to start
+> > the discussion on how Explicit Synchronization should be supported in V4L2.
+> > 
+> > The first patch proposes an userspace API for fences, then on patch 2
+> > we prepare to the addition of in-fences in patch 3, by introducing the
+> > infrastructure on vb2 to wait on an in-fence signal before queueing the buffer
+> > in the driver.
+> > 
+> > Patch 4 fix uvc v4l2 event handling and patch 5 configure q->dev for vivid
+> > drivers to enable to subscribe and dequeue events on it.
+> > 
+> > Patches 6-7 enables support to notify BUF_QUEUED events, i.e., let userspace
+> > know that particular buffer was enqueued in the driver. This is needed,
+> > because we return the out-fence fd as an out argument in QBUF, but at the time
+> > it returns we don't know to which buffer the fence will be attached thus
+> > the BUF_QUEUED event tells which buffer is associated to the fence received in
+> > QBUF by userspace.
+> > 
+> > Patches 8 and 9 add more fence infrastructure to support out-fences and finally
+> > patch 10 adds support to out-fences.
+> > 
+> > TODO/OPEN:
+> > ----------
+> > 
+> > * For this first implementation we will keep the ordering of the buffers queued
+> > in videobuf2, that means we will only enqueue buffer whose fence was signalled
+> > if that buffer is the first one in the queue. Otherwise it has to wait until it
+> > is the first one. This is not implmented yet. Later we could create a flag to
+> > allow unordered queing in the drivers from vb2 if needed.
+> > 
+> > * Should we have out-fences per-buffer or per-plane? or both? In this RFC, for
+> > simplicity they are per-buffer, but Mauro and Javier raised the option of
+> > doing per-plane fences. That could benefit mem2mem and V4L2 <-> GPU operation
+> > at least on cases when we have Capture hw that releases the Y frame before the
+> > other frames for example. When using V4L2 per-plane out-fences to communicate
+> > with KMS they would need to be merged together as currently the DRM Plane
+> > interface only supports one fence per DRM Plane.
+> > 
+> > In-fences should be per-buffer as the DRM only has per-buffer fences, but
+> > in case of mem2mem operations per-plane fences might be useful?
+> > 
+> > So should we have both ways, per-plane and per-buffer, or just one of them
+> > for now?
 > 
+> The data_offset field is only present in struct v4l2_plane, i.e. it is only
+> available through using the multi-planar API even if you just have a single
+> plane.
+
+I didn't get why you mentioned the data_offset field. :)
+
+Gustavo
