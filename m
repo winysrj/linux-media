@@ -1,66 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:57803 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754636AbdD1PCt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 11:02:49 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v2 0/3] Add a libv4l plugin for video bitstream parsing
-Date: Fri, 28 Apr 2017 17:02:29 +0200
-Message-ID: <1493391752-22429-1-git-send-email-hugues.fruchet@st.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:64335 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754635AbdDELKE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 07:10:04 -0400
+Message-ID: <1491390599.32502.1.camel@mtksdaap41>
+Subject: Re: [PATCH] media: mtk-vcodec: remove informative log
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
+Date: Wed, 5 Apr 2017 19:09:59 +0800
+In-Reply-To: <1491389669-32737-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1491389669-32737-1-git-send-email-minghsiu.tsai@mediatek.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stateless video decoders require explicit codec specific metadata
-derived from video bitstream parsing.
-This plugin aims to silently convert the user provided video bitstream
-to a parsed video bitstream, ie the video bitstream itself + additional
-parsing metadata which are given to the driver through the V4L2 extended
-control framework.
-This plugin can support several codec dependent parser backends, enabling
-of the right parser is done by intercepting the pixel format information
-negotiated between user and driver (enum_fmt/try_fmt/get_fmt/s_fmt).
-This patchset provides a MPEG-2 parser backend using GStreamer
-codecparsers library.
-It has been tested with STMicroelectronics st-delta kernel driver.
+On Wed, 2017-04-05 at 18:54 +0800, Minghsiu Tsai wrote:
+> Driver is stable. Remove DEBUG definition from driver.
+> 
+> There are debug message in /var/log/messages if DEBUG is defined,
+> such as:
+> [MTK_V4L2] level=0 fops_vcodec_open(),170: decoder capability 0
+> [MTK_V4L2] level=0 fops_vcodec_open(),177: 16000000.vcodec decoder [0]
+> [MTK_V4L2] level=0 fops_vcodec_release(),200: [0] decoder
+> 
+> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Acked-by:Tiffany Lin <Tiffany.lin@mediatek.com>
 
-===========
-= history =
-===========
-version 2:
-  - rebase linux headers based on st-delta mpeg2 v6 patchset:
-    http://www.mail-archive.com/linux-media@vger.kernel.org/msg112067.html
-
-version 1:
-  - initial submission
-
-
-Hugues Fruchet (3):
-  v4l-utils: sync with kernel (parsed MPEG-2 support)
-  add libv4l-codecparsers plugin for video bitstream parsing
-  libv4l-codecparsers: add GStreamer mpeg2 parser
-
- configure.ac                                      |  23 ++
- include/linux/v4l2-controls.h                     |  93 +++++
- include/linux/videodev2.h                         |   8 +
- lib/Makefile.am                                   |   3 +-
- lib/libv4l-codecparsers/Makefile.am               |  21 +
- lib/libv4l-codecparsers/libv4l-codecparsers.pc.in |  12 +
- lib/libv4l-codecparsers/libv4l-cparsers-mpeg2.c   | 375 +++++++++++++++++
- lib/libv4l-codecparsers/libv4l-cparsers.c         | 465 ++++++++++++++++++++++
- lib/libv4l-codecparsers/libv4l-cparsers.h         | 101 +++++
- 9 files changed, 1100 insertions(+), 1 deletion(-)
- create mode 100644 lib/libv4l-codecparsers/Makefile.am
- create mode 100644 lib/libv4l-codecparsers/libv4l-codecparsers.pc.in
- create mode 100644 lib/libv4l-codecparsers/libv4l-cparsers-mpeg2.c
- create mode 100644 lib/libv4l-codecparsers/libv4l-cparsers.c
- create mode 100644 lib/libv4l-codecparsers/libv4l-cparsers.h
-
--- 
-1.9.1
+> ---
+>  drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+> index 7d55975..1248083 100644
+> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+> @@ -31,7 +31,6 @@ struct mtk_vcodec_mem {
+>  extern int mtk_v4l2_dbg_level;
+>  extern bool mtk_vcodec_dbg;
+>  
+> -#define DEBUG	1
+>  
+>  #if defined(DEBUG)
+>  
