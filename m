@@ -1,67 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:57402 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937713AbdD0Wmw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:42:52 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Michal Simek <michal.simek@xilinx.com>
-Subject: [PATCH v4 02/27] media: entity: Add has_route entity operation
-Date: Fri, 28 Apr 2017 00:41:38 +0200
-Message-Id: <20170427224203.14611-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40006
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755267AbdDENX2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 09:23:28 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-usb@vger.kernel.org, Jani Nikula <jani.nikula@intel.com>
+Subject: [PATCH v2 01/21] tmplcvt: make the tool more robust
+Date: Wed,  5 Apr 2017 10:22:55 -0300
+Message-Id: <0dff47eebce7ab16a5a292c682a7b143b97a93a9.1491398120.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
+References: <cover.1491398120.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
+References: <cover.1491398120.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Currently, the script just assumes to be called at
+Documentation/sphinx/. Change it to work on any directory,
+and make it abort if something gets wrong.
 
-The optional operation can be used by entities to report whether two
-pads are internally connected.
+Also, be sure that both parameters are specified.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+That should avoid troubles like this:
+
+$ Documentation/sphinx/tmplcvt Documentation/DocBook/writing_usb_driver.tmpl
+sed: couldn't open file convert_template.sed: No such file or directory
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- include/media/media-entity.h | 5 +++++
- 1 file changed, 5 insertions(+)
+ Documentation/sphinx/tmplcvt | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index c7c254c5bca1761b..bcb08c1f8c6265e8 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -177,6 +177,9 @@ struct media_pad {
-  * @link_validate:	Return whether a link is valid from the entity point of
-  *			view. The media_pipeline_start() function
-  *			validates all links by calling this operation. Optional.
-+ * @has_route:		Return whether a route exists inside the entity between
-+ *			two given pads. Optional. If the operation isn't
-+ *			implemented all pads will be considered as connected.
-  *
-  * .. note::
-  *
-@@ -188,6 +191,8 @@ struct media_entity_operations {
- 			  const struct media_pad *local,
- 			  const struct media_pad *remote, u32 flags);
- 	int (*link_validate)(struct media_link *link);
-+	bool (*has_route)(struct media_entity *entity, unsigned int pad0,
-+			  unsigned int pad1);
- };
+diff --git a/Documentation/sphinx/tmplcvt b/Documentation/sphinx/tmplcvt
+index 909a73065e0a..6848f0a26fa5 100755
+--- a/Documentation/sphinx/tmplcvt
++++ b/Documentation/sphinx/tmplcvt
+@@ -7,13 +7,22 @@
+ # fix \_
+ # title line?
+ #
++set -eu
++
++if [ "$#" != "2" ]; then
++	echo "$0 <docbook file> <rst file>"
++	exit
++fi
++
++DIR=$(dirname $0)
  
- /**
+ in=$1
+ rst=$2
+ tmp=$rst.tmp
+ 
+ cp $in $tmp
+-sed --in-place -f convert_template.sed $tmp
++sed --in-place -f $DIR/convert_template.sed $tmp
+ pandoc -s -S -f docbook -t rst -o $rst $tmp
+-sed --in-place -f post_convert.sed $rst
++sed --in-place -f $DIR/post_convert.sed $rst
+ rm $tmp
++echo "book writen to $rst"
 -- 
-2.12.2
+2.9.3
