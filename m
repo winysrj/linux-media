@@ -1,40 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:37728 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S638285AbdD1Qq2 (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:44737 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755218AbdDENLR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 12:46:28 -0400
-Received: by mail-wm0-f48.google.com with SMTP id m123so52102333wma.0
-        for <linux-media@vger.kernel.org>; Fri, 28 Apr 2017 09:46:28 -0700 (PDT)
-Subject: Re: em28xx module: misidentified card
-To: Giuseppe Toscano <giuseppe.toscano@unina.it>,
-        linux-media@vger.kernel.org
-References: <5b093b1a-6251-b35e-190c-431fb00eb771@unina.it>
-From: =?UTF-8?Q?Frank_Sch=c3=a4fer?= <fschaefer.oss@googlemail.com>
-Message-ID: <834a80ca-1dde-b3ca-dbee-eca1759f4668@googlemail.com>
-Date: Fri, 28 Apr 2017 18:46:34 +0200
-MIME-Version: 1.0
-In-Reply-To: <5b093b1a-6251-b35e-190c-431fb00eb771@unina.it>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Wed, 5 Apr 2017 09:11:17 -0400
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, kernel@pengutronix.de,
+        patchwork-lst@pengutronix.de
+Subject: [PATCH] [media] coda: bump maximum number of internal framebuffers to 17
+Date: Wed,  5 Apr 2017 15:11:15 +0200
+Message-Id: <20170405131115.31769-1-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The h.264 standard allows up to 16 reference frame for the high profile
+and we need one additional internal framebuffer when the VDOA is in use.
 
-Am 28.04.2017 um 13:22 schrieb Giuseppe Toscano:
-> I am trying to use eMPIA Technology, Inc. GrabBeeX+ Video Encoder
-> (card=21) but the em28xx driver erroneously identifies it as
-> EM2860/SAA711X Reference Design (card = 19).
-> Attached the output of lsusb and dmesg.
->
-Card 21 is an em2800 device, while your device uses an em2710/em2820
-(see log).
-Card 19 should work. Did you test it ?
+Lift the current maximum of 8 internal framebuffers to allow playback
+of those video streams.
 
-Regards,
-Frank
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+---
+ drivers/media/platform/coda/coda.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-> Best regards,
->
-> Giuseppe Toscano
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index 799ffca72203..2a5bbe0050bb 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -28,7 +28,7 @@
+ 
+ #include "coda_regs.h"
+ 
+-#define CODA_MAX_FRAMEBUFFERS	8
++#define CODA_MAX_FRAMEBUFFERS	17
+ #define FMO_SLICE_SAVE_BUF_SIZE	(32)
+ 
+ enum {
+-- 
+2.11.0
