@@ -1,49 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:60598 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751457AbdDCMJj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 08:09:39 -0400
-Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0ONU02W891S1TRB0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 03 Apr 2017 21:09:37 +0900 (KST)
-Subject: Re: [Patch v3 04/11] [media] s5p-mfc: Support MFCv10.10 buffer
- requirements
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, mchehab@kernel.org,
-        pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com
-In-reply-to: <598903bd-d798-ecc2-a1cf-4c104a091c2c@samsung.com>
-Date: Mon, 03 Apr 2017 17:41:41 +0530
-Message-id: <1491221501.8493.97.camel@smitha-fedora>
-MIME-version: 1.0
-Content-transfer-encoding: 7bit
-Content-type: text/plain; charset=utf-8
-References: <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
- <CGME20170331090435epcas5p4a17ab56c983cea2bc4754ceafe3e1362@epcas5p4.samsung.com>
- <1490951200-32070-5-git-send-email-smitha.t@samsung.com>
- <598903bd-d798-ecc2-a1cf-4c104a091c2c@samsung.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40003
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755254AbdDENX1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 09:23:27 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-usb@vger.kernel.org
+Subject: [PATCH v2 14/21] usb/hotplug.txt: convert to ReST and add to driver-api book
+Date: Wed,  5 Apr 2017 10:23:08 -0300
+Message-Id: <5aec7b8e37bef32dbc7a6d1ddfd83abe5fcb6386.1491398120.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
+References: <cover.1491398120.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
+References: <cover.1491398120.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2017-04-03 at 09:41 +0200, Andrzej Hajda wrote:
-> On 31.03.2017 11:06, Smitha T Murthy wrote:
-> > Aligning the luma_dpb_size, chroma_dpb_size, mv_size and me_buffer_size
-> > for MFCv10.10.
-> >
-> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> 
-> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-> --
-> Regards
-> Andrzej
-> 
-> 
-Thank you for the review.
+This document describe some USB core features. Add it to the
+driver-api book.
 
-Regards,
-Smitha
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ .../hotplug.txt => driver-api/usb/hotplug.rst}     | 66 ++++++++++++----------
+ Documentation/driver-api/usb/index.rst             |  1 +
+ 2 files changed, 37 insertions(+), 30 deletions(-)
+ rename Documentation/{usb/hotplug.txt => driver-api/usb/hotplug.rst} (76%)
+
+diff --git a/Documentation/usb/hotplug.txt b/Documentation/driver-api/usb/hotplug.rst
+similarity index 76%
+rename from Documentation/usb/hotplug.txt
+rename to Documentation/driver-api/usb/hotplug.rst
+index 5b243f315b2c..79663e653ca1 100644
+--- a/Documentation/usb/hotplug.txt
++++ b/Documentation/driver-api/usb/hotplug.rst
+@@ -1,4 +1,9 @@
+-LINUX HOTPLUGGING
++USB hotplugging
++~~~~~~~~~~~~~~~
++
++Linux Hotplugging
++=================
++
+ 
+ In hotpluggable busses like USB (and Cardbus PCI), end-users plug devices
+ into the bus with power on.  In most cases, users expect the devices to become
+@@ -30,11 +35,11 @@ Because some of those actions rely on information about drivers (metadata)
+ that is currently available only when the drivers are dynamically linked,
+ you get the best hotplugging when you configure a highly modular system.
+ 
++Kernel Hotplug Helper (``/sbin/hotplug``)
++=========================================
+ 
+-KERNEL HOTPLUG HELPER (/sbin/hotplug)
+-
+-There is a kernel parameter: /proc/sys/kernel/hotplug, which normally
+-holds the pathname "/sbin/hotplug".  That parameter names a program
++There is a kernel parameter: ``/proc/sys/kernel/hotplug``, which normally
++holds the pathname ``/sbin/hotplug``.  That parameter names a program
+ which the kernel may invoke at various times.
+ 
+ The /sbin/hotplug program can be invoked by any subsystem as part of its
+@@ -51,26 +56,26 @@ Hotplug software and other resources is available at:
+ Mailing list information is also available at that site.
+ 
+ 
+---------------------------------------------------------------------------
++USB Policy Agent
++================
+ 
+-
+-USB POLICY AGENT
+-
+-The USB subsystem currently invokes /sbin/hotplug when USB devices
++The USB subsystem currently invokes ``/sbin/hotplug`` when USB devices
+ are added or removed from system.  The invocation is done by the kernel
+ hub workqueue [hub_wq], or else as part of root hub initialization
+ (done by init, modprobe, kapmd, etc).  Its single command line parameter
+ is the string "usb", and it passes these environment variables:
+ 
+-    ACTION ... "add", "remove"
+-    PRODUCT ... USB vendor, product, and version codes (hex)
+-    TYPE ... device class codes (decimal)
+-    INTERFACE ... interface 0 class codes (decimal)
++========== ============================================
++ACTION     ``add``, ``remove``
++PRODUCT    USB vendor, product, and version codes (hex)
++TYPE       device class codes (decimal)
++INTERFACE  interface 0 class codes (decimal)
++========== ============================================
+ 
+ If "usbdevfs" is configured, DEVICE and DEVFS are also passed.  DEVICE is
+ the pathname of the device, and is useful for devices with multiple and/or
+ alternate interfaces that complicate driver selection.  By design, USB
+-hotplugging is independent of "usbdevfs":  you can do most essential parts
++hotplugging is independent of ``usbdevfs``:  you can do most essential parts
+ of USB device setup without using that filesystem, and without running a
+ user mode daemon to detect changes in system configuration.
+ 
+@@ -79,19 +84,20 @@ modules, and can invoke driver-specific setup scripts.  The newest ones
+ leverage USB module-init-tools support.  Later agents might unload drivers.
+ 
+ 
+-USB MODUTILS SUPPORT
++USB Modutils Support
++====================
+ 
+-Current versions of module-init-tools will create a "modules.usbmap" file
+-which contains the entries from each driver's MODULE_DEVICE_TABLE.  Such
++Current versions of module-init-tools will create a ``modules.usbmap`` file
++which contains the entries from each driver's ``MODULE_DEVICE_TABLE``.  Such
+ files can be used by various user mode policy agents to make sure all the
+ right driver modules get loaded, either at boot time or later.
+ 
+-See <linux/usb.h> for full information about such table entries; or look
++See ``linux/usb.h`` for full information about such table entries; or look
+ at existing drivers.  Each table entry describes one or more criteria to
+ be used when matching a driver to a device or class of devices.  The
+ specific criteria are identified by bits set in "match_flags", paired
+ with field values.  You can construct the criteria directly, or with
+-macros such as these, and use driver_info to store more information.
++macros such as these, and use driver_info to store more information::
+ 
+     USB_DEVICE (vendorId, productId)
+ 	... matching devices with specified vendor and product ids
+@@ -103,7 +109,7 @@ macros such as these, and use driver_info to store more information.
+ 	... matching specified device class info
+ 
+ A short example, for a driver that supports several specific USB devices
+-and their quirks, might have a MODULE_DEVICE_TABLE like this:
++and their quirks, might have a MODULE_DEVICE_TABLE like this::
+ 
+     static const struct usb_device_id mydriver_id_table[] = {
+ 	{ USB_DEVICE (0x9999, 0xaaaa), driver_info: QUIRK_X },
+@@ -116,10 +122,10 @@ and their quirks, might have a MODULE_DEVICE_TABLE like this:
+ Most USB device drivers should pass these tables to the USB subsystem as
+ well as to the module management subsystem.  Not all, though: some driver
+ frameworks connect using interfaces layered over USB, and so they won't
+-need such a "struct usb_driver".
++need such a struct :c:type:`usb_driver`.
+ 
+ Drivers that connect directly to the USB subsystem should be declared
+-something like this:
++something like this::
+ 
+     static struct usb_driver mydriver = {
+ 	.name		= "mydriver",
+@@ -138,11 +144,11 @@ something like this:
+ 
+ When the USB subsystem knows about a driver's device ID table, it's used when
+ choosing drivers to probe().  The thread doing new device processing checks
+-drivers' device ID entries from the MODULE_DEVICE_TABLE against interface and
+-device descriptors for the device.  It will only call probe() if there is a
+-match, and the third argument to probe() will be the entry that matched.
+-
+-If you don't provide an id_table for your driver, then your driver may get
+-probed for each new device; the third parameter to probe() will be null.
+-
++drivers' device ID entries from the ``MODULE_DEVICE_TABLE`` against interface
++and device descriptors for the device.  It will only call ``probe()`` if there
++is a match, and the third argument to ``probe()`` will be the entry that
++matched.
+ 
++If you don't provide an ``id_table`` for your driver, then your driver may get
++probed for each new device; the third parameter to ``probe()`` will be
++``NULL``.
+diff --git a/Documentation/driver-api/usb/index.rst b/Documentation/driver-api/usb/index.rst
+index 1e2a0c54eb3d..43f0a8b72b11 100644
+--- a/Documentation/driver-api/usb/index.rst
++++ b/Documentation/driver-api/usb/index.rst
+@@ -11,6 +11,7 @@ Linux USB API
+    callbacks
+    dma
+    power-management
++   hotplug
+    error-codes
+    writing_usb_driver
+    writing_musb_glue_layer
+-- 
+2.9.3
