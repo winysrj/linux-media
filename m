@@ -1,64 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-he1eur01on0124.outbound.protection.outlook.com ([104.47.0.124]:19181
-        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752351AbdDCIhu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Apr 2017 04:37:50 -0400
-From: Peter Rosin <peda@axentia.se>
-To: <linux-kernel@vger.kernel.org>
-CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-        Peter Korsgaard <peter.korsgaard@barco.com>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        <linux-i2c@vger.kernel.org>, <linux-iio@vger.kernel.org>,
-        <linux-media@vger.kernel.org>
-Subject: [PATCH 9/9] [media] cx231xx: stop double error reporting
-Date: Mon, 3 Apr 2017 10:38:38 +0200
-Message-ID: <1491208718-32068-10-git-send-email-peda@axentia.se>
-In-Reply-To: <1491208718-32068-1-git-send-email-peda@axentia.se>
-References: <1491208718-32068-1-git-send-email-peda@axentia.se>
+Received: from mail-qt0-f182.google.com ([209.85.216.182]:33747 "EHLO
+        mail-qt0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755315AbdDEPjI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 11:39:08 -0400
+Received: by mail-qt0-f182.google.com with SMTP id i34so13943757qtc.0
+        for <linux-media@vger.kernel.org>; Wed, 05 Apr 2017 08:39:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20170405115336.7135e542@vento.lan>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+ <1490661656-10318-20-git-send-email-steve_longerbeam@mentor.com>
+ <1490894749.2404.33.camel@pengutronix.de> <20170404231053.GE7909@n2100.armlinux.org.uk>
+ <19f0ce92-cad6-8950-8018-e3224e2bf266@gmail.com> <7235285c-f39a-64bc-195a-11cfde9e67c5@gmail.com>
+ <20170405082134.GF7909@n2100.armlinux.org.uk> <1491384859.2381.51.camel@pengutronix.de>
+ <20170405115336.7135e542@vento.lan>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Wed, 5 Apr 2017 11:39:06 -0400
+Message-ID: <CAGoCfizXdDV_Eo1NSOAb+-wrC7F47iFQKyP8-wiJMpb-nsYArA@mail.gmail.com>
+Subject: Re: [RFC] [media] imx: assume MEDIA_ENT_F_ATV_DECODER entities output
+ video on pad 1
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        nick@shmanahar.org, markus.heiser@darmarit.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, Arnd Bergmann <arnd@arndb.de>,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        shuah@kernel.org,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        Pavel Machek <pavel@ucw.cz>, devicetree@vger.kernel.org,
+        Linux Kernel <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i2c_mux_add_adapter already logs a message on failure.
+> Currently, the driver doesn't support (2), because, at the time
+> I wrote the driver, I didn't find a way to read the interrupts generated
+> by tvp5150 at em28xx[1], due to the lack of em28xx documentation,
+> but adding support for it shoudn't be hard. I may eventually do it
+> when I have some time to play with my ISEE hardware.
 
-Signed-off-by: Peter Rosin <peda@axentia.se>
----
- drivers/media/usb/cx231xx/cx231xx-i2c.c | 15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+For what it's worth, I doubt most of the em28xx designs have the
+tvp5150 interrupt request line connected in any way.  You would likely
+have to poll the FIFO status register via I2C, or use the feature to
+embed the sliced data into as VANC data in the 656 output (as
+described in sec 3.9 of the tvp5150am1 spec).
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index 35e9acfe63d3..dff514e147da 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -576,17 +576,10 @@ int cx231xx_i2c_mux_create(struct cx231xx *dev)
- 
- int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no)
- {
--	int rc;
--
--	rc = i2c_mux_add_adapter(dev->muxc,
--				 0,
--				 mux_no /* chan_id */,
--				 0 /* class */);
--	if (rc)
--		dev_warn(dev->dev,
--			 "i2c mux %d register FAILED\n", mux_no);
--
--	return rc;
-+	return i2c_mux_add_adapter(dev->muxc,
-+				   0,
-+				   mux_no /* chan_id */,
-+				   0 /* class */);
- }
- 
- void cx231xx_i2c_mux_unregister(struct cx231xx *dev)
+Devin
+
 -- 
-2.1.4
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
