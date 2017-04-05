@@ -1,153 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:38226 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753284AbdDMWGa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 18:06:30 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Steve Wise <swise@opengridcomputing.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:35 -0600
-Message-Id: <1492121135-4437-23-git-send-email-logang@deltatee.com>
-In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 22/22] memstick: Make use of the new sg_map helper function
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:59102 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751098AbdDEXQ1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 19:16:27 -0400
+Date: Thu, 6 Apr 2017 00:14:52 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: gregkh@linuxfoundation.org, pawel@osciak.com,
+        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+        mchehab@kernel.org, will.deacon@arm.com, Robin.Murphy@arm.com,
+        jroedel@suse.de, bart.vanassche@sandisk.com,
+        gregory.clement@free-electrons.com, acourbot@nvidia.com,
+        festevam@gmail.com, krzk@kernel.org,
+        niklas.soderlund+renesas@ragnatech.se, sricharan@codeaurora.org,
+        dledford@redhat.com, vinod.koul@intel.com,
+        andrew.smirnov@gmail.com, mauricfo@linux.vnet.ibm.com,
+        alexander.h.duyck@intel.com, sagi@grimberg.me,
+        ming.l@ssi.samsung.com, martin.petersen@oracle.com,
+        javier@dowhile0.org, javier@osg.samsung.com,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] arm: dma: fix sharing of coherent DMA memory without
+ struct page
+Message-ID: <20170405231451.GB17774@n2100.armlinux.org.uk>
+References: <20170405160242.14195-1-shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170405160242.14195-1-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Straightforward conversion, but we have to WARN if unmappable
-memory finds its way into the sgl.
+On Wed, Apr 05, 2017 at 10:02:42AM -0600, Shuah Khan wrote:
+> When coherent DMA memory without struct page is shared, importer
+> fails to find the page and runs into kernel page fault when it
+> tries to dmabuf_ops_attach/map_sg/map_page the invalid page found
+> in the sg_table. Please see www.spinics.net/lists/stable/msg164204.html
+> for more information on this problem.
+> 
+> This solution allows coherent DMA memory without struct page to be
+> shared by providing a way for the exporter to tag the DMA buffer as
+> a special buffer without struct page association and passing the
+> information in sg_table to the importer. This information is used
+> in attach/map_sg to avoid cleaning D-cache and mapping.
+> 
+> The details of the change are:
+> 
+> Framework:
+> - Add a new dma_attrs field to struct scatterlist.
+> - Add a new DMA_ATTR_DEV_COHERENT_NOPAGE attribute to clearly identify
+>   Coherent memory without struct page.
+> - Add a new dma_check_dev_coherent() interface to check if memory is
+>   the device coherent area. There is no way to tell where the memory
+>   returned by dma_alloc_attrs() came from.
+> 
+> Exporter logic:
+> - Add logic to vb2_dc_alloc() to call dma_check_dev_coherent() and set
+>   DMA_ATTR_DEV_COHERENT_NOPAGE based the results of the check. This is
+>   done in the exporter context.
+> - Add logic to arm_dma_get_sgtable() to identify memory without struct
+>   page using DMA_ATTR_DEV_COHERENT_NOPAGE attribute. If this attr is
+>   set, arm_dma_get_sgtable() will set page as the cpu_addr and update
+>   dma_address and dma_attrs fields in struct scatterlist for this sgl.
+>   This is done in exporter context when buffer is exported. With this
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- drivers/memstick/host/jmb38x_ms.c | 23 ++++++++++++++++++-----
- drivers/memstick/host/tifm_ms.c   | 22 +++++++++++++++++-----
- 2 files changed, 35 insertions(+), 10 deletions(-)
+This sentence appears to just end...
 
-diff --git a/drivers/memstick/host/jmb38x_ms.c b/drivers/memstick/host/jmb38x_ms.c
-index 48db922..256cf41 100644
---- a/drivers/memstick/host/jmb38x_ms.c
-+++ b/drivers/memstick/host/jmb38x_ms.c
-@@ -303,7 +303,6 @@ static int jmb38x_ms_transfer_data(struct jmb38x_ms_host *host)
- 	unsigned int off;
- 	unsigned int t_size, p_cnt;
- 	unsigned char *buf;
--	struct page *pg;
- 	unsigned long flags = 0;
- 
- 	if (host->req->long_data) {
-@@ -318,14 +317,26 @@ static int jmb38x_ms_transfer_data(struct jmb38x_ms_host *host)
- 		unsigned int uninitialized_var(p_off);
- 
- 		if (host->req->long_data) {
--			pg = nth_page(sg_page(&host->req->sg),
--				      off >> PAGE_SHIFT);
- 			p_off = offset_in_page(off);
- 			p_cnt = PAGE_SIZE - p_off;
- 			p_cnt = min(p_cnt, length);
- 
- 			local_irq_save(flags);
--			buf = kmap_atomic(pg) + p_off;
-+			buf = sg_map_offset(&host->req->sg,
-+					     off - host->req->sg.offset,
-+					     SG_KMAP_ATOMIC);
-+			if (IS_ERR(buf)) {
-+				/*
-+				 * This should really never happen unless
-+				 * the code is changed to use memory that is
-+				 * not mappable in the sg. Seeing there doesn't
-+				 * seem to be any error path out of here,
-+				 * we can only WARN.
-+				 */
-+				WARN(1, "Non-mappable memory used in sg!");
-+				break;
-+			}
-+
- 		} else {
- 			buf = host->req->data + host->block_pos;
- 			p_cnt = host->req->data_len - host->block_pos;
-@@ -341,7 +352,9 @@ static int jmb38x_ms_transfer_data(struct jmb38x_ms_host *host)
- 				 : jmb38x_ms_read_reg_data(host, buf, p_cnt);
- 
- 		if (host->req->long_data) {
--			kunmap_atomic(buf - p_off);
-+			sg_unmap_offset(&host->req->sg, buf,
-+					 off - host->req->sg.offset,
-+					 SG_KMAP_ATOMIC);
- 			local_irq_restore(flags);
- 		}
- 
-diff --git a/drivers/memstick/host/tifm_ms.c b/drivers/memstick/host/tifm_ms.c
-index 7bafa72..c0bc40e 100644
---- a/drivers/memstick/host/tifm_ms.c
-+++ b/drivers/memstick/host/tifm_ms.c
-@@ -186,7 +186,6 @@ static unsigned int tifm_ms_transfer_data(struct tifm_ms *host)
- 	unsigned int off;
- 	unsigned int t_size, p_cnt;
- 	unsigned char *buf;
--	struct page *pg;
- 	unsigned long flags = 0;
- 
- 	if (host->req->long_data) {
-@@ -203,14 +202,25 @@ static unsigned int tifm_ms_transfer_data(struct tifm_ms *host)
- 		unsigned int uninitialized_var(p_off);
- 
- 		if (host->req->long_data) {
--			pg = nth_page(sg_page(&host->req->sg),
--				      off >> PAGE_SHIFT);
- 			p_off = offset_in_page(off);
- 			p_cnt = PAGE_SIZE - p_off;
- 			p_cnt = min(p_cnt, length);
- 
- 			local_irq_save(flags);
--			buf = kmap_atomic(pg) + p_off;
-+			buf = sg_map_offset(&host->req->sg,
-+					     off - host->req->sg.offset,
-+					     SG_KMAP_ATOMIC);
-+			if (IS_ERR(buf)) {
-+				/*
-+				 * This should really never happen unless
-+				 * the code is changed to use memory that is
-+				 * not mappable in the sg. Seeing there doesn't
-+				 * seem to be any error path out of here,
-+				 * we can only WARN.
-+				 */
-+				WARN(1, "Non-mappable memory used in sg!");
-+				break;
-+			}
- 		} else {
- 			buf = host->req->data + host->block_pos;
- 			p_cnt = host->req->data_len - host->block_pos;
-@@ -221,7 +231,9 @@ static unsigned int tifm_ms_transfer_data(struct tifm_ms *host)
- 			 : tifm_ms_read_data(host, buf, p_cnt);
- 
- 		if (host->req->long_data) {
--			kunmap_atomic(buf - p_off);
-+			sg_unmap_offset(&host->req->sg, buf,
-+					 off - host->req->sg.offset,
-+					 SG_KMAP_ATOMIC);
- 			local_irq_restore(flags);
- 		}
- 
+I'm not convinced that coherent allocations should be setting the "page"
+of a scatterlist to anything that isn't a real struct page or NULL.  It
+is, after all, an error to look up the virtual address etc of the
+scatterlist entry or kmap it when it isn't backed by a struct page.
+
+I'm actually already passing non-page backed memory through the DMA API
+in armada-drm, although not entirely correctly, and etnaviv handles it
+fine:
+
+        } else if (dobj->linear) {
+                /* Single contiguous physical region - no struct page */
+                if (sg_alloc_table(sgt, 1, GFP_KERNEL))
+                        goto free_sgt;
+                sg_dma_address(sgt->sgl) = dobj->dev_addr;
+                sg_dma_len(sgt->sgl) = dobj->obj.size;
+
+This is not quite correct, as it assumes (which is safe for it currently)
+that the DMA address is the same on all devices.  On Dove, which is where
+this is used, that is the case, but it's not true elsewhere.  Also note
+that I'm avoid calling dma_map_sg() and dma_unmap_sg() - there's no iommus
+to be considered.
+
+I'd suggest that this follows the same pattern - setting the DMA address
+(more appropriately for generic code) and the DMA length, while leaving
+the virtual address members NULL/0.  However, there's also the
+complication of setting up any IOMMUs that would be necessary.  I haven't
+looked at that, or how it could work.
+
+I also think this should be documented in the dmabuf API that it can
+pass such scatterlists that are DMA-parameter only.
+
+Lastly, I'd recommend that anything using this does _not_ provide
+functional kmap/kmap_atomic support for these - kmap and kmap_atomic
+are both out because there's no struct page anyway (and their use would
+probably oops the kernel in this scenario.)  I avoided mmap support in
+armada drm, but if there's a pressing reason and real use case for the
+importer to mmap() the buffers in userspace, it's something I could be
+convinced of.
+
+What I'm quite certain of is that we do _not_ want to be passing
+coherent memory allocations into the streaming DMA API, not even with
+a special attribute.  The DMA API is about gaining coherent memory
+(shared ownership of the buffer), or mapping system memory to a
+specified device (which can imply unique ownership.)  Trying to mix
+the two together muddies the separation that we have there, and makes
+it harder to explain.  As can be seen from this patch, we'd end up
+needing to add this special DMA_ATTR_DEV_COHERENT_NOPAGE everywhere,
+which is added complexity on top of stuff that is not required for
+this circumstance.
+
+I can see why you're doing it, to avoid having to duplicate more of
+the generic code in drm_prime, but I don't think plasting over this
+problem in arch code by adding this special flag is a particularly
+good way forward.
+
 -- 
-2.1.4
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
