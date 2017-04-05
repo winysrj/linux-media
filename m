@@ -1,162 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:2697 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754951AbdDLSWD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Apr 2017 14:22:03 -0400
-Subject: [PATCH 10/14] atomisp: remove contiguous handling
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Wed, 12 Apr 2017 19:21:59 +0100
-Message-ID: <149202131191.16615.13699388826603926824.stgit@acox1-desk1.ger.corp.intel.com>
-In-Reply-To: <149202119790.16615.4841216953457109397.stgit@acox1-desk1.ger.corp.intel.com>
-References: <149202119790.16615.4841216953457109397.stgit@acox1-desk1.ger.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40274
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754594AbdDENwq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 09:52:46 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        David Mosberger <davidm@egauge.net>,
+        Jaejoong Kim <climbbb.kim@gmail.com>,
+        Oliver Neukum <oneukum@suse.com>,
+        Roger Quadros <rogerq@ti.com>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        linux-usb@vger.kernel.org
+Subject: [PATCH v3] usb: document that URB transfer_buffer should be aligned
+Date: Wed,  5 Apr 2017 10:52:40 -0300
+Message-Id: <2ed1abe0e72e0e19ea8b1478f5438f2e24480731.1491399808.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The base hmm MMU code doesn't support contiguous allocations (they BUG), so
-remove support from them from the higher levels of the heirarchy.
+Several host controllers, commonly found on ARM, like dwc2,
+require buffers that are CPU-word aligned for they to work.
 
-We still need to unwind all these layers but it turns out that some of the init
-order stuff is rather sensitive and the simple cleanup breaks everything
+Failing to do that will cause buffer overflows at the caller
+drivers, with could cause data corruption.
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
+Such data corruption was found, in practice, with the uvcdriver.
+
+Document it.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- .../pci/atomisp2/css2400/ia_css_memory_access.c    |   31 ++++++--------------
- .../atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c |   11 -------
- .../atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.h |    3 --
- .../media/atomisp/pci/atomisp2/hrt/memory_access.c |   31 ++++----------------
- 4 files changed, 15 insertions(+), 61 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_memory_access.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_memory_access.c
-index 8d559aa..1f6ae20 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_memory_access.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_memory_access.c
-@@ -31,31 +31,18 @@ mmgr_malloc(const size_t size)
- hrt_vaddress mmgr_alloc_attr(const size_t size, const uint16_t attrs)
- {
- 	uint16_t masked_attrs = attrs & MMGR_ATTRIBUTE_MASK;
-+	WARN_ON(attrs & MMGR_ATTRIBUTE_CONTIGUOUS);
+Note: this patch is based on my previous patch series with
+converts URB.txt to ReST:
+
+    Subject: [PATCH v2 00/21] Convert USB documentation to ReST format
+    Date: Wed,  5 Apr 2017 10:22:54 -0300
+    https://marc.info/?l=linux-doc&m=149139868231095&w=2
+
+This patch, together with the ones above can be found on this tree:
  
- 	if (masked_attrs & MMGR_ATTRIBUTE_CLEARED) {
--		if (masked_attrs & MMGR_ATTRIBUTE_CACHED) {
--			if (masked_attrs & MMGR_ATTRIBUTE_CONTIGUOUS)
--				return (ia_css_ptr) hrt_isp_css_mm_calloc_contiguous(size);
--			else
--				return (ia_css_ptr) hrt_isp_css_mm_calloc_cached(size);
--		} else {
--			if (masked_attrs & MMGR_ATTRIBUTE_CONTIGUOUS)
--				return (ia_css_ptr) hrt_isp_css_mm_calloc_contiguous(size);
--			else
--				return (ia_css_ptr) hrt_isp_css_mm_calloc(size);
--		}
-+		if (masked_attrs & MMGR_ATTRIBUTE_CACHED)
-+			return (ia_css_ptr) hrt_isp_css_mm_calloc_cached(size);
-+		else
-+			return (ia_css_ptr) hrt_isp_css_mm_calloc(size);
- 	} else {
--		if (masked_attrs & MMGR_ATTRIBUTE_CACHED) {
--			if (masked_attrs & MMGR_ATTRIBUTE_CONTIGUOUS)
--				return (ia_css_ptr) hrt_isp_css_mm_alloc_contiguous(size);
--			else
--				return (ia_css_ptr) hrt_isp_css_mm_alloc_cached(size);
--		} else {
--			if (masked_attrs & MMGR_ATTRIBUTE_CONTIGUOUS)
--				return (ia_css_ptr) hrt_isp_css_mm_alloc_contiguous(size);
--			else
--				return (ia_css_ptr) hrt_isp_css_mm_alloc(size);
--		}
-+		if (masked_attrs & MMGR_ATTRIBUTE_CACHED)
-+			return (ia_css_ptr) hrt_isp_css_mm_alloc_cached(size);
-+		else
-+			return (ia_css_ptr) hrt_isp_css_mm_alloc(size);
- 	}
- }
+   https://git.linuxtv.org/mchehab/experimental.git/log/?h=usb-docs-v2
+
+ Documentation/driver-api/usb/URB.rst | 12 ++++++++++++
+ drivers/usb/core/message.c           | 15 +++++++++++++++
+ include/linux/usb.h                  | 12 ++++++++++++
+ 3 files changed, 39 insertions(+)
+
+diff --git a/Documentation/driver-api/usb/URB.rst b/Documentation/driver-api/usb/URB.rst
+index 61a54da9fce9..8d3f362fbe82 100644
+--- a/Documentation/driver-api/usb/URB.rst
++++ b/Documentation/driver-api/usb/URB.rst
+@@ -271,6 +271,18 @@ If you specify your own start frame, make sure it's several frames in advance
+ of the current frame.  You might want this model if you're synchronizing
+ ISO data with some other event stream.
  
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c b/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c
-index 9f8267a..78b4709 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c
-@@ -180,14 +180,3 @@ phys_addr_t hrt_isp_css_virt_to_phys(ia_css_ptr virt_addr)
- 	return hmm_virt_to_phys(virt_addr);
- }
++ .. warning::
++
++   Several host drivers have a 32-bits or 64-bits DMA transfer word size,
++   with usually matches the CPU word. Due to such restriction, you should
++   warrant that the @transfer_buffer is DWORD aligned, on 32 bits system, or
++   QDWORD aligned, on 64 bits system. You should also ensure that the
++   buffer has enough space for PAD bits.
++
++   This condition is satisfied if you pass a buffer directly allocated by
++   kmalloc(), but this may not be the case if the driver allocates a bigger
++   buffer and point to a random place inside it.
++
  
--ia_css_ptr hrt_isp_css_mm_alloc_contiguous(size_t bytes)
--{
--	BUG_ON(false);
--	return 0;
--}
--ia_css_ptr hrt_isp_css_mm_calloc_contiguous(size_t bytes)
--{
--	BUG_ON(false);
--	return 0;
--}
--
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.h b/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.h
-index 41c6d14..4783206 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.h
-@@ -81,8 +81,5 @@ int hrt_isp_css_mm_store_int(ia_css_ptr virt_addr, int data);
-    the display driver on  the FPGA system */
- phys_addr_t hrt_isp_css_virt_to_phys(ia_css_ptr virt_addr);
- 
--ia_css_ptr hrt_isp_css_mm_alloc_contiguous(size_t bytes);
--ia_css_ptr hrt_isp_css_mm_calloc_contiguous(size_t bytes);
--
- void hrt_isp_css_mm_clear(void);
- #endif /* _hive_isp_css_mm_hrt_h_ */
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hrt/memory_access.c b/drivers/staging/media/atomisp/pci/atomisp2/hrt/memory_access.c
-index dcc4c91..7694ee4 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/hrt/memory_access.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/hrt/memory_access.c
-@@ -60,42 +60,23 @@ ia_css_ptr mmgr_alloc_attr(const size_t	size, const uint16_t attribute)
- 
- 	assert(page_table_base_address != (sys_address)-1);
- 	assert((attribute & MMGR_ATTRIBUTE_UNUSED) == 0);
-+	WARN_ON(attribute & MMGR_ATTRIBUTE_CONTIGUOUS);
- 
- 	if (attribute & MMGR_ATTRIBUTE_CLEARED) {
- 		if (attribute & MMGR_ATTRIBUTE_CACHED) {
--			if (attribute & MMGR_ATTRIBUTE_CONTIGUOUS) /* { */
--				ptr = hrt_isp_css_mm_calloc_contiguous(
-+			ptr = hrt_isp_css_mm_calloc_cached(
- 						aligned_size + extra_space);
--			/* } */ else /* { */
--				ptr = hrt_isp_css_mm_calloc_cached(
--						aligned_size + extra_space);
--			/* } */
- 		} else { /* !MMGR_ATTRIBUTE_CACHED */
--			if (attribute & MMGR_ATTRIBUTE_CONTIGUOUS) /* { */
--				ptr = hrt_isp_css_mm_calloc_contiguous(
--						aligned_size + extra_space);
--			/* } */ else /* { */
--				ptr = hrt_isp_css_mm_calloc(
-+			ptr = hrt_isp_css_mm_calloc(
- 						aligned_size + extra_space);
--			/* } */
- 		}
- 	} else { /* MMGR_ATTRIBUTE_CLEARED */
- 		if (attribute & MMGR_ATTRIBUTE_CACHED) {
--			if (attribute & MMGR_ATTRIBUTE_CONTIGUOUS) /* { */
--				ptr = hrt_isp_css_mm_alloc_contiguous(
--						aligned_size + extra_space);
--			/* } */ else /* { */
--				ptr = hrt_isp_css_mm_alloc_cached(
-+			ptr = hrt_isp_css_mm_alloc_cached(
- 						aligned_size + extra_space);
--			/* } */
- 		} else { /* !MMGR_ATTRIBUTE_CACHED */
--			if (attribute & MMGR_ATTRIBUTE_CONTIGUOUS) /* { */
--				ptr = hrt_isp_css_mm_alloc_contiguous(
--						aligned_size + extra_space);
--			/* } */ else /* { */
--				ptr = hrt_isp_css_mm_alloc(
--						aligned_size + extra_space);
--			/* } */
-+			ptr = hrt_isp_css_mm_alloc(
-+					aligned_size + extra_space);
- 		}
- 	}
- 	return ptr;
+ How to start interrupt (INT) transfers?
+ =======================================
+diff --git a/drivers/usb/core/message.c b/drivers/usb/core/message.c
+index 4c38ea41ae96..1662a4446475 100644
+--- a/drivers/usb/core/message.c
++++ b/drivers/usb/core/message.c
+@@ -128,6 +128,21 @@ static int usb_internal_control_msg(struct usb_device *usb_dev,
+  * make sure your disconnect() method can wait for it to complete. Since you
+  * don't have a handle on the URB used, you can't cancel the request.
+  *
++ * .. note::
++ *
++ *   Several host drivers require that the @data buffer to be aligned
++ *   with the CPU word size (e. g. DWORD for 32 bits, QDWORD for 64 bits).
++ *   It is up to USB drivers should ensure that they'll only pass buffers
++ *   with such alignments.
++ *
++ *   Please also notice that, due to such restriction, the host driver
++ *   may also override PAD bytes at the end of the @data buffer, up to the
++ *   size of the CPU word.
++ *
++ *   Such word alignment condition is normally ensured if the buffer is
++ *   allocated with kmalloc(), but this may not be the case if the driver
++ *   allocates a bigger buffer and point to a random place inside it.
++ *
+  * Return: If successful, the number of bytes transferred. Otherwise, a negative
+  * error number.
+  */
+diff --git a/include/linux/usb.h b/include/linux/usb.h
+index 7e68259360de..5739d4422343 100644
+--- a/include/linux/usb.h
++++ b/include/linux/usb.h
+@@ -1373,6 +1373,18 @@ typedef void (*usb_complete_t)(struct urb *);
+  * capable, assign NULL to it, so that usbmon knows not to use the value.
+  * The setup_packet must always be set, so it cannot be located in highmem.
+  *
++ * .. warning::
++ *
++ *   Several host drivers have a 32-bits or 64-bits DMA transfer word size,
++ *   with usually matches the CPU word. Due to such restriction, you should
++ *   warrant that the @transfer_buffer is DWORD aligned, on 32 bits system, or
++ *   QDWORD aligned, on 64 bits system. You should also ensure that the
++ *   buffer has enough space for PAD bits.
++ *
++ *   This condition is satisfied if you pass a buffer directly allocated by
++ *   kmalloc(), but this may not be the case if the driver allocates a bigger
++ *   buffer and point to a random place inside it.
++ *
+  * Initialization:
+  *
+  * All URBs submitted must initialize the dev, pipe, transfer_flags (may be
+-- 
+2.9.3
