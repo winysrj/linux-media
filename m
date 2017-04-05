@@ -1,75 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr30090.outbound.protection.outlook.com ([40.107.3.90]:26592
-        "EHLO EUR03-AM5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752010AbdDKII2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Apr 2017 04:08:28 -0400
-Subject: Re: [PATCH 0/9] Unify i2c_mux_add_adapter error reporting
-To: <linux-kernel@vger.kernel.org>
-References: <1491208718-32068-1-git-send-email-peda@axentia.se>
-CC: Wolfram Sang <wsa@the-dreams.de>,
-        Peter Korsgaard <peter.korsgaard@barco.com>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+Received: from mx1.redhat.com ([209.132.183.28]:42684 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754051AbdDEQ6o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Apr 2017 12:58:44 -0400
+Subject: [PATCH 13/38] Annotate hardware config module parameters in
+ drivers/media/
+From: David Howells <dhowells@redhat.com>
+To: linux-kernel@vger.kernel.org
+Cc: gnomes@lxorguk.ukuu.org.uk, gregkh@linuxfoundation.org,
+        dhowells@redhat.com, linux-security-module@vger.kernel.org,
+        mjpeg-users@lists.sourceforge.net, keyrings@vger.kernel.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        <linux-i2c@vger.kernel.org>, <linux-iio@vger.kernel.org>,
-        <linux-media@vger.kernel.org>
-From: Peter Rosin <peda@axentia.se>
-Message-ID: <5f70e59b-f832-f123-6901-ab89b45e7d70@axentia.se>
-Date: Tue, 11 Apr 2017 10:08:21 +0200
+        linux-media@vger.kernel.org
+Date: Wed, 05 Apr 2017 17:58:41 +0100
+Message-ID: <149141152121.29162.4230904949695480240.stgit@warthog.procyon.org.uk>
+In-Reply-To: <149141141298.29162.5612793122429261720.stgit@warthog.procyon.org.uk>
+References: <149141141298.29162.5612793122429261720.stgit@warthog.procyon.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <1491208718-32068-1-git-send-email-peda@axentia.se>
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2017-04-03 10:38, Peter Rosin wrote:
-> Hi!
-> 
-> Many users of the i2c_mux_add_adapter interface log a message
-> on failure, but the function already logs such a message. One
-> or two of those users actually add more information than already
-> provided by the central failure message.
-> 
-> So, first fix the central error reporting to provide as much
-> information as any current user, and then remove the surplus
-> error reporting at the call sites.
+When the kernel is running in secure boot mode, we lock down the kernel to
+prevent userspace from modifying the running kernel image.  Whilst this
+includes prohibiting access to things like /dev/mem, it must also prevent
+access by means of configuring driver modules in such a way as to cause a
+device to access or modify the kernel image.
 
-I have now pushed patches 1-7 to i2c-mux/for-next.
-Jonathan grabbed patch 8 and it's going through the iio tree.
-Still waiting on patch 9 and the media maintainers.
+To this end, annotate module_param* statements that refer to hardware
+configuration and indicate for future reference what type of parameter they
+specify.  The parameter parser in the core sees this information and can
+skip such parameters with an error message if the kernel is locked down.
+The module initialisation then runs as normal, but just sees whatever the
+default values for those parameters is.
 
-Cheers,
-Peter
+Note that we do still need to do the module initialisation because some
+drivers have viable defaults set in case parameters aren't specified and
+some drivers support automatic configuration (e.g. PNP or PCI) in addition
+to manually coded parameters.
 
-> 
-> Cheers,
-> peda
-> 
-> Peter Rosin (9):
->   i2c: mux: provide more info on failure in i2c_mux_add_adapter
->   i2c: arb: gpio-challenge: stop double error reporting
->   i2c: mux: gpio: stop double error reporting
->   i2c: mux: pca9541: stop double error reporting
->   i2c: mux: pca954x: stop double error reporting
->   i2c: mux: pinctrl: stop double error reporting
->   i2c: mux: reg: stop double error reporting
->   iio: gyro: mpu3050: stop double error reporting
->   [media] cx231xx: stop double error reporting
-> 
->  drivers/i2c/i2c-mux.c                      |  9 ++++++---
->  drivers/i2c/muxes/i2c-arb-gpio-challenge.c |  4 +---
->  drivers/i2c/muxes/i2c-mux-gpio.c           |  4 +---
->  drivers/i2c/muxes/i2c-mux-pca9541.c        |  4 +---
->  drivers/i2c/muxes/i2c-mux-pca954x.c        |  7 +------
->  drivers/i2c/muxes/i2c-mux-pinctrl.c        |  4 +---
->  drivers/i2c/muxes/i2c-mux-reg.c            |  4 +---
->  drivers/iio/gyro/mpu3050-i2c.c             |  5 ++---
->  drivers/media/usb/cx231xx/cx231xx-i2c.c    | 15 ++++-----------
->  9 files changed, 18 insertions(+), 38 deletions(-)
-> 
+This patch annotates drivers in drivers/media/.
+
+Suggested-by: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
+Signed-off-by: David Howells <dhowells@redhat.com>
+cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+cc: mjpeg-users@lists.sourceforge.net
+cc: linux-media@vger.kernel.org
+---
+
+ drivers/media/pci/zoran/zoran_card.c |    2 +-
+ drivers/media/rc/serial_ir.c         |   10 +++++-----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/pci/zoran/zoran_card.c b/drivers/media/pci/zoran/zoran_card.c
+index 5266755add63..4680f001653a 100644
+--- a/drivers/media/pci/zoran/zoran_card.c
++++ b/drivers/media/pci/zoran/zoran_card.c
+@@ -69,7 +69,7 @@ MODULE_PARM_DESC(card, "Card type");
+  */
+ 
+ static unsigned long vidmem;	/* default = 0 - Video memory base address */
+-module_param(vidmem, ulong, 0444);
++module_param_hw(vidmem, ulong, iomem, 0444);
+ MODULE_PARM_DESC(vidmem, "Default video memory base address");
+ 
+ /*
+diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
+index 41b54e40176c..40d305842a9b 100644
+--- a/drivers/media/rc/serial_ir.c
++++ b/drivers/media/rc/serial_ir.c
+@@ -833,11 +833,11 @@ MODULE_LICENSE("GPL");
+ module_param(type, int, 0444);
+ MODULE_PARM_DESC(type, "Hardware type (0 = home-brew, 1 = IRdeo, 2 = IRdeo Remote, 3 = AnimaX, 4 = IgorPlug");
+ 
+-module_param(io, int, 0444);
++module_param_hw(io, int, ioport, 0444);
+ MODULE_PARM_DESC(io, "I/O address base (0x3f8 or 0x2f8)");
+ 
+ /* some architectures (e.g. intel xscale) have memory mapped registers */
+-module_param(iommap, bool, 0444);
++module_param_hw(iommap, bool, other, 0444);
+ MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O (0 = no memory mapped io)");
+ 
+ /*
+@@ -845,13 +845,13 @@ MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O (0 = no memory map
+  * on 32bit word boundaries.
+  * See linux-kernel/drivers/tty/serial/8250/8250.c serial_in()/out()
+  */
+-module_param(ioshift, int, 0444);
++module_param_hw(ioshift, int, other, 0444);
+ MODULE_PARM_DESC(ioshift, "shift I/O register offset (0 = no shift)");
+ 
+-module_param(irq, int, 0444);
++module_param_hw(irq, int, irq, 0444);
+ MODULE_PARM_DESC(irq, "Interrupt (4 or 3)");
+ 
+-module_param(share_irq, bool, 0444);
++module_param_hw(share_irq, bool, other, 0444);
+ MODULE_PARM_DESC(share_irq, "Share interrupts (0 = off, 1 = on)");
+ 
+ module_param(sense, int, 0444);
