@@ -1,416 +1,382 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36081 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S943226AbdDTHve (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Apr 2017 03:51:34 -0400
-Received: by mail-wm0-f67.google.com with SMTP id u65so1399438wmu.3
-        for <linux-media@vger.kernel.org>; Thu, 20 Apr 2017 00:51:33 -0700 (PDT)
-Date: Thu, 20 Apr 2017 09:51:25 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: linux-kernel@vger.kernel.org, intel-gfx@lists.freedesktop.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-tegra@vger.kernel.org, devel@driverdev.osuosl.org,
-        David Airlie <airlied@linux.ie>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Alexandre Courbot <gnurou@gmail.com>,
-        Thomas Hellstrom <thellstrom@vmware.com>,
-        Sinclair Yeh <syeh@vmware.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Christoph Hellwig <hch@lst.de>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        VMware Graphics <linux-graphics-maintainer@vmware.com>,
-        Laura Abbott <labbott@redhat.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Stephen Warren <swarren@wwwdotorg.org>,
-        Riley Andrews <riandrews@android.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40053
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755301AbdDENXe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 09:23:34 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [Intel-gfx] [PATCH v2] dma-buf: Rename dma-ops to prevent
- conflict with kunmap_atomic macro
-Message-ID: <20170420075054.yvsjzvuwb4yrzfuc@phenom.ffwll.local>
-References: <1492630570-879-1-git-send-email-logang@deltatee.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1492630570-879-1-git-send-email-logang@deltatee.com>
+        linux-usb@vger.kernel.org
+Subject: [PATCH v2 06/21] writing_usb_driver.rst: Enrich its ReST representation
+Date: Wed,  5 Apr 2017 10:23:00 -0300
+Message-Id: <846901e831347ca6ce278da4d3ff6a2fb3c7238f.1491398120.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
+References: <cover.1491398120.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
+References: <cover.1491398120.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 19, 2017 at 01:36:10PM -0600, Logan Gunthorpe wrote:
-> Seeing the kunmap_atomic dma_buf_ops share the same name with a macro
-> in highmem.h, the former can be aliased if any dma-buf user includes
-> that header.
-> 
-> I'm personally trying to include highmem.h inside scatterlist.h and this
-> breaks the dma-buf code proper.
-> 
-> Christoph Hellwig suggested [1] renaming it and pushing this patch ASAP.
-> 
-> To maintain consistency I've renamed all four of kmap* and kunmap* to be
-> map* and unmap*. (Even though only kmap_atomic presently conflicts.)
-> 
-> [1] https://www.spinics.net/lists/target-devel/msg15070.html
-> 
-> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-> Reviewed-by: Sinclair Yeh <syeh@vmware.com>
+The pandoc conversion is not perfect. Do handwork in order to:
 
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+- add a title to this chapter;
+- adjust function and struct references;
+- use monospaced fonts for C code names;
+- some other minor adjustments to make it better to read in
+  text mode and in html.
 
-Probably simplest if we pull this in through the drm-misc tree for 4.12.
-Can we have an ack for the v4l side for that pls?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ .../driver-api/usb/writing_usb_driver.rst          | 182 ++++++++++-----------
+ 1 file changed, 82 insertions(+), 100 deletions(-)
 
-Thanks, Daniel
-
-> ---
-> 
-> Changes since v1:
-> 
-> - Added the missing tegra driver (noticed by kbuild robot)
-> - Rebased off of drm-intel-next to get the i915 selftest that is new
-> - Fixed nits Sinclair pointed out.
-> 
->  drivers/dma-buf/dma-buf.c                      | 16 ++++++++--------
->  drivers/gpu/drm/armada/armada_gem.c            |  8 ++++----
->  drivers/gpu/drm/drm_prime.c                    |  8 ++++----
->  drivers/gpu/drm/i915/i915_gem_dmabuf.c         |  8 ++++----
->  drivers/gpu/drm/i915/selftests/mock_dmabuf.c   |  8 ++++----
->  drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c      |  8 ++++----
->  drivers/gpu/drm/tegra/gem.c                    |  8 ++++----
->  drivers/gpu/drm/udl/udl_dmabuf.c               |  8 ++++----
->  drivers/gpu/drm/vmwgfx/vmwgfx_prime.c          |  8 ++++----
->  drivers/media/v4l2-core/videobuf2-dma-contig.c |  4 ++--
->  drivers/media/v4l2-core/videobuf2-dma-sg.c     |  4 ++--
->  drivers/media/v4l2-core/videobuf2-vmalloc.c    |  4 ++--
->  drivers/staging/android/ion/ion.c              |  8 ++++----
->  include/linux/dma-buf.h                        | 22 +++++++++++-----------
->  14 files changed, 61 insertions(+), 61 deletions(-)
-> 
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index f72aaac..512bdbc 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -405,8 +405,8 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
->  			  || !exp_info->ops->map_dma_buf
->  			  || !exp_info->ops->unmap_dma_buf
->  			  || !exp_info->ops->release
-> -			  || !exp_info->ops->kmap_atomic
-> -			  || !exp_info->ops->kmap
-> +			  || !exp_info->ops->map_atomic
-> +			  || !exp_info->ops->map
->  			  || !exp_info->ops->mmap)) {
->  		return ERR_PTR(-EINVAL);
->  	}
-> @@ -872,7 +872,7 @@ void *dma_buf_kmap_atomic(struct dma_buf *dmabuf, unsigned long page_num)
->  {
->  	WARN_ON(!dmabuf);
-> 
-> -	return dmabuf->ops->kmap_atomic(dmabuf, page_num);
-> +	return dmabuf->ops->map_atomic(dmabuf, page_num);
->  }
->  EXPORT_SYMBOL_GPL(dma_buf_kmap_atomic);
-> 
-> @@ -889,8 +889,8 @@ void dma_buf_kunmap_atomic(struct dma_buf *dmabuf, unsigned long page_num,
->  {
->  	WARN_ON(!dmabuf);
-> 
-> -	if (dmabuf->ops->kunmap_atomic)
-> -		dmabuf->ops->kunmap_atomic(dmabuf, page_num, vaddr);
-> +	if (dmabuf->ops->unmap_atomic)
-> +		dmabuf->ops->unmap_atomic(dmabuf, page_num, vaddr);
->  }
->  EXPORT_SYMBOL_GPL(dma_buf_kunmap_atomic);
-> 
-> @@ -907,7 +907,7 @@ void *dma_buf_kmap(struct dma_buf *dmabuf, unsigned long page_num)
->  {
->  	WARN_ON(!dmabuf);
-> 
-> -	return dmabuf->ops->kmap(dmabuf, page_num);
-> +	return dmabuf->ops->map(dmabuf, page_num);
->  }
->  EXPORT_SYMBOL_GPL(dma_buf_kmap);
-> 
-> @@ -924,8 +924,8 @@ void dma_buf_kunmap(struct dma_buf *dmabuf, unsigned long page_num,
->  {
->  	WARN_ON(!dmabuf);
-> 
-> -	if (dmabuf->ops->kunmap)
-> -		dmabuf->ops->kunmap(dmabuf, page_num, vaddr);
-> +	if (dmabuf->ops->unmap)
-> +		dmabuf->ops->unmap(dmabuf, page_num, vaddr);
->  }
->  EXPORT_SYMBOL_GPL(dma_buf_kunmap);
-> 
-> diff --git a/drivers/gpu/drm/armada/armada_gem.c b/drivers/gpu/drm/armada/armada_gem.c
-> index 1597458..d6c2a5d 100644
-> --- a/drivers/gpu/drm/armada/armada_gem.c
-> +++ b/drivers/gpu/drm/armada/armada_gem.c
-> @@ -529,10 +529,10 @@ static const struct dma_buf_ops armada_gem_prime_dmabuf_ops = {
->  	.map_dma_buf	= armada_gem_prime_map_dma_buf,
->  	.unmap_dma_buf	= armada_gem_prime_unmap_dma_buf,
->  	.release	= drm_gem_dmabuf_release,
-> -	.kmap_atomic	= armada_gem_dmabuf_no_kmap,
-> -	.kunmap_atomic	= armada_gem_dmabuf_no_kunmap,
-> -	.kmap		= armada_gem_dmabuf_no_kmap,
-> -	.kunmap		= armada_gem_dmabuf_no_kunmap,
-> +	.map_atomic	= armada_gem_dmabuf_no_kmap,
-> +	.unmap_atomic	= armada_gem_dmabuf_no_kunmap,
-> +	.map		= armada_gem_dmabuf_no_kmap,
-> +	.unmap		= armada_gem_dmabuf_no_kunmap,
->  	.mmap		= armada_gem_dmabuf_mmap,
->  };
-> 
-> diff --git a/drivers/gpu/drm/drm_prime.c b/drivers/gpu/drm/drm_prime.c
-> index 9fb65b7..954eb84 100644
-> --- a/drivers/gpu/drm/drm_prime.c
-> +++ b/drivers/gpu/drm/drm_prime.c
-> @@ -403,10 +403,10 @@ static const struct dma_buf_ops drm_gem_prime_dmabuf_ops =  {
->  	.map_dma_buf = drm_gem_map_dma_buf,
->  	.unmap_dma_buf = drm_gem_unmap_dma_buf,
->  	.release = drm_gem_dmabuf_release,
-> -	.kmap = drm_gem_dmabuf_kmap,
-> -	.kmap_atomic = drm_gem_dmabuf_kmap_atomic,
-> -	.kunmap = drm_gem_dmabuf_kunmap,
-> -	.kunmap_atomic = drm_gem_dmabuf_kunmap_atomic,
-> +	.map = drm_gem_dmabuf_kmap,
-> +	.map_atomic = drm_gem_dmabuf_kmap_atomic,
-> +	.unmap = drm_gem_dmabuf_kunmap,
-> +	.unmap_atomic = drm_gem_dmabuf_kunmap_atomic,
->  	.mmap = drm_gem_dmabuf_mmap,
->  	.vmap = drm_gem_dmabuf_vmap,
->  	.vunmap = drm_gem_dmabuf_vunmap,
-> diff --git a/drivers/gpu/drm/i915/i915_gem_dmabuf.c b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-> index 11898cd..f225bf6 100644
-> --- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-> +++ b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-> @@ -200,10 +200,10 @@ static const struct dma_buf_ops i915_dmabuf_ops =  {
->  	.map_dma_buf = i915_gem_map_dma_buf,
->  	.unmap_dma_buf = i915_gem_unmap_dma_buf,
->  	.release = drm_gem_dmabuf_release,
-> -	.kmap = i915_gem_dmabuf_kmap,
-> -	.kmap_atomic = i915_gem_dmabuf_kmap_atomic,
-> -	.kunmap = i915_gem_dmabuf_kunmap,
-> -	.kunmap_atomic = i915_gem_dmabuf_kunmap_atomic,
-> +	.map = i915_gem_dmabuf_kmap,
-> +	.map_atomic = i915_gem_dmabuf_kmap_atomic,
-> +	.unmap = i915_gem_dmabuf_kunmap,
-> +	.unmap_atomic = i915_gem_dmabuf_kunmap_atomic,
->  	.mmap = i915_gem_dmabuf_mmap,
->  	.vmap = i915_gem_dmabuf_vmap,
->  	.vunmap = i915_gem_dmabuf_vunmap,
-> diff --git a/drivers/gpu/drm/i915/selftests/mock_dmabuf.c b/drivers/gpu/drm/i915/selftests/mock_dmabuf.c
-> index 99da8f4..302f7d1 100644
-> --- a/drivers/gpu/drm/i915/selftests/mock_dmabuf.c
-> +++ b/drivers/gpu/drm/i915/selftests/mock_dmabuf.c
-> @@ -129,10 +129,10 @@ static const struct dma_buf_ops mock_dmabuf_ops =  {
->  	.map_dma_buf = mock_map_dma_buf,
->  	.unmap_dma_buf = mock_unmap_dma_buf,
->  	.release = mock_dmabuf_release,
-> -	.kmap = mock_dmabuf_kmap,
-> -	.kmap_atomic = mock_dmabuf_kmap_atomic,
-> -	.kunmap = mock_dmabuf_kunmap,
-> -	.kunmap_atomic = mock_dmabuf_kunmap_atomic,
-> +	.map = mock_dmabuf_kmap,
-> +	.map_atomic = mock_dmabuf_kmap_atomic,
-> +	.unmap = mock_dmabuf_kunmap,
-> +	.unmap_atomic = mock_dmabuf_kunmap_atomic,
->  	.mmap = mock_dmabuf_mmap,
->  	.vmap = mock_dmabuf_vmap,
->  	.vunmap = mock_dmabuf_vunmap,
-> diff --git a/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c b/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
-> index ee5883f..0dbe030 100644
-> --- a/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
-> +++ b/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
-> @@ -160,10 +160,10 @@ static struct dma_buf_ops omap_dmabuf_ops = {
->  	.release = omap_gem_dmabuf_release,
->  	.begin_cpu_access = omap_gem_dmabuf_begin_cpu_access,
->  	.end_cpu_access = omap_gem_dmabuf_end_cpu_access,
-> -	.kmap_atomic = omap_gem_dmabuf_kmap_atomic,
-> -	.kunmap_atomic = omap_gem_dmabuf_kunmap_atomic,
-> -	.kmap = omap_gem_dmabuf_kmap,
-> -	.kunmap = omap_gem_dmabuf_kunmap,
-> +	.map_atomic = omap_gem_dmabuf_kmap_atomic,
-> +	.unmap_atomic = omap_gem_dmabuf_kunmap_atomic,
-> +	.map = omap_gem_dmabuf_kmap,
-> +	.unmap = omap_gem_dmabuf_kunmap,
->  	.mmap = omap_gem_dmabuf_mmap,
->  };
-> 
-> diff --git a/drivers/gpu/drm/tegra/gem.c b/drivers/gpu/drm/tegra/gem.c
-> index 17e62ec..8672f5d 100644
-> --- a/drivers/gpu/drm/tegra/gem.c
-> +++ b/drivers/gpu/drm/tegra/gem.c
-> @@ -619,10 +619,10 @@ static const struct dma_buf_ops tegra_gem_prime_dmabuf_ops = {
->  	.map_dma_buf = tegra_gem_prime_map_dma_buf,
->  	.unmap_dma_buf = tegra_gem_prime_unmap_dma_buf,
->  	.release = tegra_gem_prime_release,
-> -	.kmap_atomic = tegra_gem_prime_kmap_atomic,
-> -	.kunmap_atomic = tegra_gem_prime_kunmap_atomic,
-> -	.kmap = tegra_gem_prime_kmap,
-> -	.kunmap = tegra_gem_prime_kunmap,
-> +	.map_atomic = tegra_gem_prime_kmap_atomic,
-> +	.unmap_atomic = tegra_gem_prime_kunmap_atomic,
-> +	.map = tegra_gem_prime_kmap,
-> +	.unmap = tegra_gem_prime_kunmap,
->  	.mmap = tegra_gem_prime_mmap,
->  	.vmap = tegra_gem_prime_vmap,
->  	.vunmap = tegra_gem_prime_vunmap,
-> diff --git a/drivers/gpu/drm/udl/udl_dmabuf.c b/drivers/gpu/drm/udl/udl_dmabuf.c
-> index ac90ffd..ed0e636 100644
-> --- a/drivers/gpu/drm/udl/udl_dmabuf.c
-> +++ b/drivers/gpu/drm/udl/udl_dmabuf.c
-> @@ -191,10 +191,10 @@ static struct dma_buf_ops udl_dmabuf_ops = {
->  	.detach			= udl_detach_dma_buf,
->  	.map_dma_buf		= udl_map_dma_buf,
->  	.unmap_dma_buf		= udl_unmap_dma_buf,
-> -	.kmap			= udl_dmabuf_kmap,
-> -	.kmap_atomic		= udl_dmabuf_kmap_atomic,
-> -	.kunmap			= udl_dmabuf_kunmap,
-> -	.kunmap_atomic		= udl_dmabuf_kunmap_atomic,
-> +	.map			= udl_dmabuf_kmap,
-> +	.map_atomic		= udl_dmabuf_kmap_atomic,
-> +	.unmap			= udl_dmabuf_kunmap,
-> +	.unmap_atomic		= udl_dmabuf_kunmap_atomic,
->  	.mmap			= udl_dmabuf_mmap,
->  	.release		= drm_gem_dmabuf_release,
->  };
-> diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c b/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c
-> index 31fe32d..0d42a46 100644
-> --- a/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c
-> +++ b/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c
-> @@ -108,10 +108,10 @@ const struct dma_buf_ops vmw_prime_dmabuf_ops =  {
->  	.map_dma_buf = vmw_prime_map_dma_buf,
->  	.unmap_dma_buf = vmw_prime_unmap_dma_buf,
->  	.release = NULL,
-> -	.kmap = vmw_prime_dmabuf_kmap,
-> -	.kmap_atomic = vmw_prime_dmabuf_kmap_atomic,
-> -	.kunmap = vmw_prime_dmabuf_kunmap,
-> -	.kunmap_atomic = vmw_prime_dmabuf_kunmap_atomic,
-> +	.map = vmw_prime_dmabuf_kmap,
-> +	.map_atomic = vmw_prime_dmabuf_kmap_atomic,
-> +	.unmap = vmw_prime_dmabuf_kunmap,
-> +	.unmap_atomic = vmw_prime_dmabuf_kunmap_atomic,
->  	.mmap = vmw_prime_dmabuf_mmap,
->  	.vmap = vmw_prime_dmabuf_vmap,
->  	.vunmap = vmw_prime_dmabuf_vunmap,
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> index fb6a177..2db0413 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -356,8 +356,8 @@ static struct dma_buf_ops vb2_dc_dmabuf_ops = {
->  	.detach = vb2_dc_dmabuf_ops_detach,
->  	.map_dma_buf = vb2_dc_dmabuf_ops_map,
->  	.unmap_dma_buf = vb2_dc_dmabuf_ops_unmap,
-> -	.kmap = vb2_dc_dmabuf_ops_kmap,
-> -	.kmap_atomic = vb2_dc_dmabuf_ops_kmap,
-> +	.map = vb2_dc_dmabuf_ops_kmap,
-> +	.map_atomic = vb2_dc_dmabuf_ops_kmap,
->  	.vmap = vb2_dc_dmabuf_ops_vmap,
->  	.mmap = vb2_dc_dmabuf_ops_mmap,
->  	.release = vb2_dc_dmabuf_ops_release,
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> index ecff8f4..6fd1343 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> @@ -504,8 +504,8 @@ static struct dma_buf_ops vb2_dma_sg_dmabuf_ops = {
->  	.detach = vb2_dma_sg_dmabuf_ops_detach,
->  	.map_dma_buf = vb2_dma_sg_dmabuf_ops_map,
->  	.unmap_dma_buf = vb2_dma_sg_dmabuf_ops_unmap,
-> -	.kmap = vb2_dma_sg_dmabuf_ops_kmap,
-> -	.kmap_atomic = vb2_dma_sg_dmabuf_ops_kmap,
-> +	.map = vb2_dma_sg_dmabuf_ops_kmap,
-> +	.map_atomic = vb2_dma_sg_dmabuf_ops_kmap,
->  	.vmap = vb2_dma_sg_dmabuf_ops_vmap,
->  	.mmap = vb2_dma_sg_dmabuf_ops_mmap,
->  	.release = vb2_dma_sg_dmabuf_ops_release,
-> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> index 3f77814..27d1db3 100644
-> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> @@ -342,8 +342,8 @@ static struct dma_buf_ops vb2_vmalloc_dmabuf_ops = {
->  	.detach = vb2_vmalloc_dmabuf_ops_detach,
->  	.map_dma_buf = vb2_vmalloc_dmabuf_ops_map,
->  	.unmap_dma_buf = vb2_vmalloc_dmabuf_ops_unmap,
-> -	.kmap = vb2_vmalloc_dmabuf_ops_kmap,
-> -	.kmap_atomic = vb2_vmalloc_dmabuf_ops_kmap,
-> +	.map = vb2_vmalloc_dmabuf_ops_kmap,
-> +	.map_atomic = vb2_vmalloc_dmabuf_ops_kmap,
->  	.vmap = vb2_vmalloc_dmabuf_ops_vmap,
->  	.mmap = vb2_vmalloc_dmabuf_ops_mmap,
->  	.release = vb2_vmalloc_dmabuf_ops_release,
-> diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-> index f45115f..95a7f16 100644
-> --- a/drivers/staging/android/ion/ion.c
-> +++ b/drivers/staging/android/ion/ion.c
-> @@ -1020,10 +1020,10 @@ static const struct dma_buf_ops dma_buf_ops = {
->  	.release = ion_dma_buf_release,
->  	.begin_cpu_access = ion_dma_buf_begin_cpu_access,
->  	.end_cpu_access = ion_dma_buf_end_cpu_access,
-> -	.kmap_atomic = ion_dma_buf_kmap,
-> -	.kunmap_atomic = ion_dma_buf_kunmap,
-> -	.kmap = ion_dma_buf_kmap,
-> -	.kunmap = ion_dma_buf_kunmap,
-> +	.map_atomic = ion_dma_buf_kmap,
-> +	.unmap_atomic = ion_dma_buf_kunmap,
-> +	.map = ion_dma_buf_kmap,
-> +	.unmap = ion_dma_buf_kunmap,
->  };
-> 
->  struct dma_buf *ion_share_dma_buf(struct ion_client *client,
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index bfb3704..79f27d6 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -39,13 +39,13 @@ struct dma_buf_attachment;
-> 
->  /**
->   * struct dma_buf_ops - operations possible on struct dma_buf
-> - * @kmap_atomic: maps a page from the buffer into kernel address
-> - * 		 space, users may not block until the subsequent unmap call.
-> - * 		 This callback must not sleep.
-> - * @kunmap_atomic: [optional] unmaps a atomically mapped page from the buffer.
-> - * 		   This Callback must not sleep.
-> - * @kmap: maps a page from the buffer into kernel address space.
-> - * @kunmap: [optional] unmaps a page from the buffer.
-> + * @map_atomic: maps a page from the buffer into kernel address
-> + *		space, users may not block until the subsequent unmap call.
-> + *		This callback must not sleep.
-> + * @unmap_atomic: [optional] unmaps a atomically mapped page from the buffer.
-> + *		  This Callback must not sleep.
-> + * @map: maps a page from the buffer into kernel address space.
-> + * @unmap: [optional] unmaps a page from the buffer.
->   * @vmap: [optional] creates a virtual mapping for the buffer into kernel
->   *	  address space. Same restrictions as for vmap and friends apply.
->   * @vunmap: [optional] unmaps a vmap from the buffer
-> @@ -206,10 +206,10 @@ struct dma_buf_ops {
->  	 * to be restarted.
->  	 */
->  	int (*end_cpu_access)(struct dma_buf *, enum dma_data_direction);
-> -	void *(*kmap_atomic)(struct dma_buf *, unsigned long);
-> -	void (*kunmap_atomic)(struct dma_buf *, unsigned long, void *);
-> -	void *(*kmap)(struct dma_buf *, unsigned long);
-> -	void (*kunmap)(struct dma_buf *, unsigned long, void *);
-> +	void *(*map_atomic)(struct dma_buf *, unsigned long);
-> +	void (*unmap_atomic)(struct dma_buf *, unsigned long, void *);
-> +	void *(*map)(struct dma_buf *, unsigned long);
-> +	void (*unmap)(struct dma_buf *, unsigned long, void *);
-> 
->  	/**
->  	 * @mmap:
-> --
-> 2.1.4
-> _______________________________________________
-> Intel-gfx mailing list
-> Intel-gfx@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/intel-gfx
-
+diff --git a/Documentation/driver-api/usb/writing_usb_driver.rst b/Documentation/driver-api/usb/writing_usb_driver.rst
+index c18dbd74152b..69f077dcdb78 100644
+--- a/Documentation/driver-api/usb/writing_usb_driver.rst
++++ b/Documentation/driver-api/usb/writing_usb_driver.rst
+@@ -1,3 +1,5 @@
++.. _writing-usb-driver:
++
+ ==========================
+ Writing USB Device Drivers
+ ==========================
+@@ -48,25 +50,23 @@ The first thing a Linux USB driver needs to do is register itself with
+ the Linux USB subsystem, giving it some information about which devices
+ the driver supports and which functions to call when a device supported
+ by the driver is inserted or removed from the system. All of this
+-information is passed to the USB subsystem in the usb_driver structure.
+-The skeleton driver declares a usb_driver as:
+-
+-::
++information is passed to the USB subsystem in the :c:type:`usb_driver`
++structure. The skeleton driver declares a :c:type:`usb_driver` as::
+ 
+     static struct usb_driver skel_driver = {
+-            .name        = "skeleton",
+-            .probe       = skel_probe,
+-            .disconnect  = skel_disconnect,
+-            .fops        = &skel_fops,
+-            .minor       = USB_SKEL_MINOR_BASE,
+-            .id_table    = skel_table,
++	    .name        = "skeleton",
++	    .probe       = skel_probe,
++	    .disconnect  = skel_disconnect,
++	    .fops        = &skel_fops,
++	    .minor       = USB_SKEL_MINOR_BASE,
++	    .id_table    = skel_table,
+     };
+ 
+ 
+ The variable name is a string that describes the driver. It is used in
+ informational messages printed to the system log. The probe and
+ disconnect function pointers are called when a device that matches the
+-information provided in the id_table variable is either seen or
++information provided in the ``id_table`` variable is either seen or
+ removed.
+ 
+ The fops and minor variables are optional. Most USB drivers hook into
+@@ -76,78 +76,70 @@ subsystem, and any user-space interactions are provided through that
+ interface. But for drivers that do not have a matching kernel subsystem,
+ such as MP3 players or scanners, a method of interacting with user space
+ is needed. The USB subsystem provides a way to register a minor device
+-number and a set of file_operations function pointers that enable this
+-user-space interaction. The skeleton driver needs this kind of
++number and a set of :c:type:`file_operations` function pointers that enable
++this user-space interaction. The skeleton driver needs this kind of
+ interface, so it provides a minor starting number and a pointer to its
+-file_operations functions.
++:c:type:`file_operations` functions.
+ 
+-The USB driver is then registered with a call to usb_register, usually
+-in the driver's init function, as shown here:
+-
+-::
++The USB driver is then registered with a call to :c:func:`usb_register`,
++usually in the driver's init function, as shown here::
+ 
+     static int __init usb_skel_init(void)
+     {
+-            int result;
++	    int result;
+ 
+-            /* register this driver with the USB subsystem */
+-            result = usb_register(&skel_driver);
+-            if (result < 0) {
+-                    err("usb_register failed for the "__FILE__ "driver."
+-                        "Error number %d", result);
+-                    return -1;
+-            }
++	    /* register this driver with the USB subsystem */
++	    result = usb_register(&skel_driver);
++	    if (result < 0) {
++		    err("usb_register failed for the "__FILE__ "driver."
++			"Error number %d", result);
++		    return -1;
++	    }
+ 
+-            return 0;
++	    return 0;
+     }
+     module_init(usb_skel_init);
+ 
+ 
+ When the driver is unloaded from the system, it needs to deregister
+-itself with the USB subsystem. This is done with the usb_deregister
+-function:
+-
+-::
++itself with the USB subsystem. This is done with the :c:func:`usb_deregister`
++function::
+ 
+     static void __exit usb_skel_exit(void)
+     {
+-            /* deregister this driver with the USB subsystem */
+-            usb_deregister(&skel_driver);
++	    /* deregister this driver with the USB subsystem */
++	    usb_deregister(&skel_driver);
+     }
+     module_exit(usb_skel_exit);
+ 
+ 
+ To enable the linux-hotplug system to load the driver automatically when
+-the device is plugged in, you need to create a MODULE_DEVICE_TABLE.
++the device is plugged in, you need to create a ``MODULE_DEVICE_TABLE``.
+ The following code tells the hotplug scripts that this module supports a
+-single device with a specific vendor and product ID:
+-
+-::
++single device with a specific vendor and product ID::
+ 
+     /* table of devices that work with this driver */
+     static struct usb_device_id skel_table [] = {
+-            { USB_DEVICE(USB_SKEL_VENDOR_ID, USB_SKEL_PRODUCT_ID) },
+-            { }                      /* Terminating entry */
++	    { USB_DEVICE(USB_SKEL_VENDOR_ID, USB_SKEL_PRODUCT_ID) },
++	    { }                      /* Terminating entry */
+     };
+     MODULE_DEVICE_TABLE (usb, skel_table);
+ 
+ 
+-There are other macros that can be used in describing a usb_device_id
+-for drivers that support a whole class of USB drivers. See usb.h for
+-more information on this.
++There are other macros that can be used in describing a struct
++:c:type:`usb_device_id` for drivers that support a whole class of USB
++drivers. See :ref:`usb.h <usb_header>` for more information on this.
+ 
+ Device operation
+ ================
+ 
+ When a device is plugged into the USB bus that matches the device ID
+ pattern that your driver registered with the USB core, the probe
+-function is called. The usb_device structure, interface number and the
+-interface ID are passed to the function:
+-
+-::
++function is called. The :c:type:`usb_device` structure, interface number and
++the interface ID are passed to the function::
+ 
+     static int skel_probe(struct usb_interface *interface,
+-        const struct usb_device_id *id)
++	const struct usb_device_id *id)
+ 
+ 
+ The driver now needs to verify that this device is actually one that it
+@@ -166,16 +158,14 @@ any private data that has been allocated at this time and to shut down
+ any pending urbs that are in the USB system.
+ 
+ Now that the device is plugged into the system and the driver is bound
+-to the device, any of the functions in the file_operations structure
++to the device, any of the functions in the :c:type:`file_operations` structure
+ that were passed to the USB subsystem will be called from a user program
+ trying to talk to the device. The first function called will be open, as
+ the program tries to open the device for I/O. We increment our private
+ usage count and save a pointer to our internal structure in the file
+ structure. This is done so that future calls to file operations will
+ enable the driver to determine which device the user is addressing. All
+-of this is done with the following code:
+-
+-::
++of this is done with the following code::
+ 
+     /* increment our usage count for the module */
+     ++skel->open_count;
+@@ -185,16 +175,14 @@ of this is done with the following code:
+ 
+ 
+ After the open function is called, the read and write functions are
+-called to receive and send data to the device. In the skel_write
++called to receive and send data to the device. In the ``skel_write``
+ function, we receive a pointer to some data that the user wants to send
+ to the device and the size of the data. The function determines how much
+ data it can send to the device based on the size of the write urb it has
+ created (this size depends on the size of the bulk out end point that
+ the device has). Then it copies the data from user space to kernel
+ space, points the urb to the data and submits the urb to the USB
+-subsystem. This can be seen in the following code:
+-
+-::
++subsystem. This can be seen in the following code::
+ 
+     /* we can only write as much as 1 urb will hold */
+     bytes_written = (count > skel->bulk_out_size) ? skel->bulk_out_size : count;
+@@ -204,68 +192,64 @@ subsystem. This can be seen in the following code:
+ 
+     /* set up our urb */
+     usb_fill_bulk_urb(skel->write_urb,
+-                      skel->dev,
+-                      usb_sndbulkpipe(skel->dev, skel->bulk_out_endpointAddr),
+-                      skel->write_urb->transfer_buffer,
+-                      bytes_written,
+-                      skel_write_bulk_callback,
+-                      skel);
++		      skel->dev,
++		      usb_sndbulkpipe(skel->dev, skel->bulk_out_endpointAddr),
++		      skel->write_urb->transfer_buffer,
++		      bytes_written,
++		      skel_write_bulk_callback,
++		      skel);
+ 
+     /* send the data out the bulk port */
+     result = usb_submit_urb(skel->write_urb);
+     if (result) {
+-            err("Failed submitting write urb, error %d", result);
++	    err("Failed submitting write urb, error %d", result);
+     }
+ 
+ 
+ When the write urb is filled up with the proper information using the
+-usb_fill_bulk_urb function, we point the urb's completion callback to
+-call our own skel_write_bulk_callback function. This function is
++:c:func:`usb_fill_bulk_urb` function, we point the urb's completion callback
++to call our own ``skel_write_bulk_callback`` function. This function is
+ called when the urb is finished by the USB subsystem. The callback
+ function is called in interrupt context, so caution must be taken not to
+ do very much processing at that time. Our implementation of
+-skel_write_bulk_callback merely reports if the urb was completed
++``skel_write_bulk_callback`` merely reports if the urb was completed
+ successfully or not and then returns.
+ 
+ The read function works a bit differently from the write function in
+ that we do not use an urb to transfer data from the device to the
+-driver. Instead we call the usb_bulk_msg function, which can be used
++driver. Instead we call the :c:func:`usb_bulk_msg` function, which can be used
+ to send or receive data from a device without having to create urbs and
+-handle urb completion callback functions. We call the usb_bulk_msg
++handle urb completion callback functions. We call the :c:func:`usb_bulk_msg`
+ function, giving it a buffer into which to place any data received from
+ the device and a timeout value. If the timeout period expires without
+ receiving any data from the device, the function will fail and return an
+-error message. This can be shown with the following code:
+-
+-::
++error message. This can be shown with the following code::
+ 
+     /* do an immediate bulk read to get data from the device */
+     retval = usb_bulk_msg (skel->dev,
+-                           usb_rcvbulkpipe (skel->dev,
+-                           skel->bulk_in_endpointAddr),
+-                           skel->bulk_in_buffer,
+-                           skel->bulk_in_size,
+-                           &count, HZ*10);
++			   usb_rcvbulkpipe (skel->dev,
++			   skel->bulk_in_endpointAddr),
++			   skel->bulk_in_buffer,
++			   skel->bulk_in_size,
++			   &count, HZ*10);
+     /* if the read was successful, copy the data to user space */
+     if (!retval) {
+-            if (copy_to_user (buffer, skel->bulk_in_buffer, count))
+-                    retval = -EFAULT;
+-            else
+-                    retval = count;
++	    if (copy_to_user (buffer, skel->bulk_in_buffer, count))
++		    retval = -EFAULT;
++	    else
++		    retval = count;
+     }
+ 
+ 
+-The usb_bulk_msg function can be very useful for doing single reads or
+-writes to a device; however, if you need to read or write constantly to
++The :c:func:`usb_bulk_msg` function can be very useful for doing single reads
++or writes to a device; however, if you need to read or write constantly to
+ a device, it is recommended to set up your own urbs and submit them to
+ the USB subsystem.
+ 
+ When the user program releases the file handle that it has been using to
+ talk to the device, the release function in the driver is called. In
+ this function we decrement our private usage count and wait for possible
+-pending writes:
+-
+-::
++pending writes::
+ 
+     /* decrement our usage count for the device */
+     --skel->open_count;
+@@ -276,20 +260,18 @@ handle smoothly is the fact that the USB device may be removed from the
+ system at any point in time, even if a program is currently talking to
+ it. It needs to be able to shut down any current reads and writes and
+ notify the user-space programs that the device is no longer there. The
+-following code (function :c:func:`skel_delete()`) is an example of
+-how to do this:
+-
+-::
++following code (function ``skel_delete``) is an example of how to do
++this::
+ 
+     static inline void skel_delete (struct usb_skel *dev)
+     {
+-        kfree (dev->bulk_in_buffer);
+-        if (dev->bulk_out_buffer != NULL)
+-            usb_free_coherent (dev->udev, dev->bulk_out_size,
+-                dev->bulk_out_buffer,
+-                dev->write_urb->transfer_dma);
+-        usb_free_urb (dev->write_urb);
+-        kfree (dev);
++	kfree (dev->bulk_in_buffer);
++	if (dev->bulk_out_buffer != NULL)
++	    usb_free_coherent (dev->udev, dev->bulk_out_size,
++		dev->bulk_out_buffer,
++		dev->write_urb->transfer_dma);
++	usb_free_urb (dev->write_urb);
++	kfree (dev);
+     }
+ 
+ 
+@@ -297,10 +279,10 @@ If a program currently has an open handle to the device, we reset the
+ flag ``device_present``. For every read, write, release and other
+ functions that expect a device to be present, the driver first checks
+ this flag to see if the device is still present. If not, it releases
+-that the device has disappeared, and a -ENODEV error is returned to the
++that the device has disappeared, and a ``-ENODEV`` error is returned to the
+ user-space program. When the release function is eventually called, it
+ determines if there is no device and if not, it does the cleanup that
+-the skel_disconnect function normally does if there are no open files
++the ``skel_disconnect`` function normally does if there are no open files
+ on the device (see Listing 5).
+ 
+ Isochronous Data
+@@ -327,13 +309,13 @@ Resources
+ =========
+ 
+ The Linux USB Project:
+-`http://www.linux-usb.org/ <http://www.linux-usb.org>`__
++http://www.linux-usb.org/
+ 
+ Linux Hotplug Project:
+-`http://linux-hotplug.sourceforge.net/ <http://linux-hotplug.sourceforge.net>`__
++http://linux-hotplug.sourceforge.net/
+ 
+ Linux USB Working Devices List:
+-`http://www.qbik.ch/usb/devices/ <http://www.qbik.ch/usb/devices>`__
++http://www.qbik.ch/usb/devices/
+ 
+ linux-usb-devel Mailing List Archives:
+ http://marc.theaimsgroup.com/?l=linux-usb-devel
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.9.3
