@@ -1,551 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-co1nam03on0103.outbound.protection.outlook.com ([104.47.40.103]:62053
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751438AbdDNCO3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 22:14:29 -0400
-From: <Yasunari.Takiguchi@sony.com>
-To: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-media@vger.kernel.org>
-CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
-        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
-        Hideki Nozawa <Hideki.Nozawa@sony.com>,
-        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
-        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
-        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
-Subject: [PATCH v2 03/15] [media] cxd2880: Add common files for the driver
-Date: Fri, 14 Apr 2017 11:17:01 +0900
-Message-ID: <20170414021701.17133-1-Yasunari.Takiguchi@sony.com>
-In-Reply-To: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
-References: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:33208 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752934AbdDEAoJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 20:44:09 -0400
+Subject: Re: [RFC] [media] imx: assume MEDIA_ENT_F_ATV_DECODER entities output
+ video on pad 1
+To: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+ <1490661656-10318-20-git-send-email-steve_longerbeam@mentor.com>
+ <1490894749.2404.33.camel@pengutronix.de>
+ <20170404231053.GE7909@n2100.armlinux.org.uk>
+ <19f0ce92-cad6-8950-8018-e3224e2bf266@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <7235285c-f39a-64bc-195a-11cfde9e67c5@gmail.com>
+Date: Tue, 4 Apr 2017 17:44:05 -0700
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <19f0ce92-cad6-8950-8018-e3224e2bf266@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-These are common files for the driver for the
-Sony CXD2880 DVB-T2/T tuner + demodulator.
-These contains helper functions for the driver.
 
-Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
-Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
-Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
-Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
-Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
----
- drivers/media/dvb-frontends/cxd2880/cxd2880.h      | 46 ++++++++++++
- .../media/dvb-frontends/cxd2880/cxd2880_common.c   | 84 +++++++++++++++++++++
- .../media/dvb-frontends/cxd2880/cxd2880_common.h   | 86 ++++++++++++++++++++++
- drivers/media/dvb-frontends/cxd2880/cxd2880_io.c   | 68 +++++++++++++++++
- drivers/media/dvb-frontends/cxd2880/cxd2880_io.h   | 62 ++++++++++++++++
- .../media/dvb-frontends/cxd2880/cxd2880_stdlib.h   | 35 +++++++++
- .../dvb-frontends/cxd2880/cxd2880_stopwatch_port.c | 71 ++++++++++++++++++
- 7 files changed, 452 insertions(+)
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_common.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_common.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_io.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_io.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_stdlib.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_stopwatch_port.c
+On 04/04/2017 05:40 PM, Steve Longerbeam wrote:
+>
+>
+> On 04/04/2017 04:10 PM, Russell King - ARM Linux wrote:
+>> On Thu, Mar 30, 2017 at 07:25:49PM +0200, Philipp Zabel wrote:
+>>> The TVP5150 DT bindings specify a single output port (port 0) that
+>>> corresponds to the video output pad (pad 1, DEMOD_PAD_VID_OUT).
+>>>
+>>> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+>>> ---
+>>> I'm trying to get this to work with a TVP5150 analog TV decoder, and the
+>>> first problem is that this device doesn't have pad 0 as its single
+>>> output pad. Instead, as a MEDIA_ENT_F_ATV_DECODER entity, it has for
+>>> pads (input, video out, vbi out, audio out), and video out is pad 1,
+>>> whereas the device tree only defines a single port (0).
+>>
+>> Looking at the patch, it's highlighted another review point with
+>> Steve's driver.
+>>
+>>> diff --git a/drivers/staging/media/imx/imx-media-dev.c
+>>> b/drivers/staging/media/imx/imx-media-dev.c
+>>> index 17e2386a3ca3a..c52d6ca797965 100644
+>>> --- a/drivers/staging/media/imx/imx-media-dev.c
+>>> +++ b/drivers/staging/media/imx/imx-media-dev.c
+>>> @@ -267,6 +267,15 @@ static int imx_media_create_link(struct
+>>> imx_media_dev *imxmd,
+>>>      source_pad = link->local_pad;
+>>>      sink_pad = link->remote_pad;
+>>>
+>>> +    /*
+>>> +     * If the source subdev is an analog video decoder with a single
+>>> source
+>>> +     * port, assume that this port 0 corresponds to the
+>>> DEMOD_PAD_VID_OUT
+>>> +     * entity pad.
+>>> +     */
+>>> +    if (source->entity.function == MEDIA_ENT_F_ATV_DECODER &&
+>>> +        local_sd->num_sink_pads == 0 && local_sd->num_src_pads == 1)
+>>> +        source_pad = DEMOD_PAD_VID_OUT;
+>>> +
+>>>      v4l2_info(&imxmd->v4l2_dev, "%s: %s:%d -> %s:%d\n", __func__,
+>>>            source->name, source_pad, sink->name, sink_pad);
+>>
+>> What is "local" and what is "remote" here?  It seems that, in the case of
+>> a link being created with the sensor(etc), it's all back to front.
+>>
+>> Eg, I see locally:
+>>
+>> imx-media: imx_media_create_link: imx219 0-0010:0 -> imx6-mipi-csi2:0
+>>
+>> So here, "source" is the imx219 (the sensor), and sink is
+>> "imx6-mipi-csi2"
+>> (part of the iMX6 capture.)  However, this makes "local_sd" the subdev of
+>> the sensor, and "remote_sd" the subdev of the CSI2 interface - which is
+>> totally back to front - this code is part of the iMX6 capture system,
+>> so "local" implies that it should be part of that, and the "remote" thing
+>> would be the sensor.
+>>
+>> Hence, this seems completely confused.  I'd suggest that:
+>>
+>> (a) the "pad->pad.flags & MEDIA_PAD_FL_SINK" test in
+>> imx_media_create_link()
+>>     is moved into imx_media_create_links(), and placed here instead:
+>>
+>>         for (j = 0; j < num_pads; j++) {
+>>             pad = &local_sd->pad[j];
+>>
+>>             if (pad->pad.flags & MEDIA_PAD_FL_SINK)
+>>                 continue;
+>>
+>>             ...
+>>         }
+>>
+>>     as the pad isn't going to spontaneously change this flag while we
+>>     consider each individual link.
+>
+>
+> Sure, I can do that. It would avoid iterating unnecessarily through the
+> pad's links if the pad is a sink.
+>
+>
+>>  However, maybe the test should be:
+>>
+>>             if (!(pad->pad.flags & MEDIA_PAD_FL_SOURCE))
+>>
+>>     ?
+>>
+>
+> maybe that is more intuitive.
+>
+>
+>> (b) the terms "local" and "remote" in imx_media_create_link() are
+>>     replaced with "source" and "sink" respectively, since this will
+>>     now be called with a guaranteed source pad.
+>
+> Agreed. I'll change the arg and local var names.
+>
+>>
+>> As for Philipp's solution, I'm not sure what the correct solution for
+>> something like this is.  It depends how you view "hardware interface"
+>> as defined by video-interfaces.txt, and whether the pads on the TVP5150
+>> represent the hardware interfaces.  If we take the view that the pads
+>> do represent hardware interfaces, then using the reg= property on the
+>> port node will solve this problem.
+>
+> And the missing port nodes would have to actually be defined first.
+> According to Philipp they aren't, only a single output port 0.
+>
+>
+>>
+>> If not, it would mean that we would have to have the iMX capture code
+>> scan the pads on the source device, looking for outputs - but that
+>> runs into a problem - if the source device has multiple outputs, does
+>> the reg= property specify the output pad index or the pad number,
+>
+> And how do we even know the data direction of a DT port. Is it an input,
+> an output, bidirectional? The OF graph parsing in imx-media-of.c can't
+> determine a port's direction if it encounters a device it doesn't
+> recognize that has multiple ports. For now that is not really a problem
+> because upstream from the video mux and csi-2 receiver it's expected
+> there will only be original sources of video with only one source port.
+> But it can become a limitation later. For example a device that has
+> multiple output bus interfaces, which would require multiple output
+> ports.
+>
 
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880.h b/drivers/media/dvb-frontends/cxd2880/cxd2880.h
-new file mode 100644
-index 000000000000..281f9a784eb5
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880.h
-@@ -0,0 +1,46 @@
-+/*
-+ * cxd2880.h
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver public definitions
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef CXD2880_H
-+#define CXD2880_H
-+
-+struct cxd2880_config {
-+	struct spi_device *spi;
-+	struct mutex *spi_mutex; /* For SPI access exclusive control */
-+};
-+
-+#if IS_REACHABLE(CONFIG_DVB_CXD2880)
-+extern struct dvb_frontend *cxd2880_attach(struct dvb_frontend *fe,
-+					struct cxd2880_config *cfg);
-+#else
-+static inline struct dvb_frontend *cxd2880_attach(struct dvb_frontend *fe,
-+					struct cxd2880_config *cfg)
-+{
-+	pr_warn("%s: driver disabled by Kconfig\n", __func__);
-+	return NULL;
-+}
-+#endif /* CONFIG_DVB_CXD2880 */
-+
-+#endif /* CXD2880_H */
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_common.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_common.c
-new file mode 100644
-index 000000000000..850f3a76b2c7
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_common.c
-@@ -0,0 +1,84 @@
-+/*
-+ * cxd2880_common.c
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * common functions
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include "cxd2880_common.h"
-+
-+#define MASKUPPER(n) (((n) == 0) ? 0 : (0xFFFFFFFFU << (32 - (n))))
-+#define MASKLOWER(n) (((n) == 0) ? 0 : (0xFFFFFFFFU >> (32 - (n))))
-+
-+int cxd2880_convert2s_complement(u32 value, u32 bitlen)
-+{
-+	if ((bitlen == 0) || (bitlen >= 32))
-+		return (int)value;
-+
-+	if (value & (u32)(1 << (bitlen - 1)))
-+		return (int)(MASKUPPER(32 - bitlen) | value);
-+	else
-+		return (int)(MASKLOWER(bitlen) & value);
-+}
-+
-+u32 cxd2880_bit_split_from_byte_array(u8 *array, u32 start_bit, u32 bit_num)
-+{
-+	u32 value = 0;
-+	u8 *array_read;
-+	u8 bit_read;
-+	u32 len_remain;
-+
-+	if (!array)
-+		return 0;
-+	if ((bit_num == 0) || (bit_num > 32))
-+		return 0;
-+
-+	array_read = array + (start_bit / 8);
-+	bit_read = (u8)(start_bit % 8);
-+	len_remain = bit_num;
-+
-+	if (bit_read != 0) {
-+		if (((int)len_remain) <= 8 - bit_read) {
-+			value = (*array_read) >> ((8 - bit_read) - len_remain);
-+			len_remain = 0;
-+		} else {
-+			value = *array_read++;
-+			len_remain -= 8 - bit_read;
-+		}
-+	}
-+
-+	while (len_remain > 0) {
-+		if (len_remain < 8) {
-+			value <<= len_remain;
-+			value |= (*array_read++ >> (8 - len_remain));
-+			len_remain = 0;
-+		} else {
-+			value <<= 8;
-+			value |= (u32)(*array_read++);
-+			len_remain -= 8;
-+		}
-+	}
-+
-+	value &= MASKLOWER(bit_num);
-+
-+	return value;
-+}
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_common.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_common.h
-new file mode 100644
-index 000000000000..b1ecb44bca10
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_common.h
-@@ -0,0 +1,86 @@
-+/*
-+ * cxd2880_common.h
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver common definitions
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef CXD2880_COMMON_H
-+#define CXD2880_COMMON_H
-+
-+#include <linux/types.h>
-+
-+#ifndef NULL
-+#ifdef __cplusplus
-+#define NULL 0
-+#else
-+#define NULL ((void *)0)
-+#endif
-+#endif
-+
-+#include <linux/delay.h>
-+#define CXD2880_SLEEP(n) msleep(n)
-+#ifndef CXD2880_SLEEP_IN_MON
-+#define CXD2880_SLEEP_IN_MON(n, obj) CXD2880_SLEEP(n)
-+#endif
-+
-+#define CXD2880_ARG_UNUSED(arg) ((void)(arg))
-+
-+enum cxd2880_ret {
-+	CXD2880_RESULT_OK,
-+	CXD2880_RESULT_ERROR_ARG,
-+	CXD2880_RESULT_ERROR_IO,
-+	CXD2880_RESULT_ERROR_SW_STATE,
-+	CXD2880_RESULT_ERROR_HW_STATE,
-+	CXD2880_RESULT_ERROR_TIMEOUT,
-+	CXD2880_RESULT_ERROR_UNLOCK,
-+	CXD2880_RESULT_ERROR_RANGE,
-+	CXD2880_RESULT_ERROR_NOSUPPORT,
-+	CXD2880_RESULT_ERROR_CANCEL,
-+	CXD2880_RESULT_ERROR_OTHER,
-+	CXD2880_RESULT_ERROR_OVERFLOW,
-+	CXD2880_RESULT_OK_CONFIRM
-+};
-+
-+int cxd2880_convert2s_complement(u32 value, u32 bitlen);
-+
-+u32 cxd2880_bit_split_from_byte_array(u8 *array, u32 start_bit, u32 bit_num);
-+
-+struct cxd2880_atomic {
-+	int counter;
-+};
-+
-+#define cxd2880_atomic_set(a, i) ((a)->counter = i)
-+#define cxd2880_atomic_read(a) ((a)->counter)
-+
-+struct cxd2880_stopwatch {
-+	u32 start_time;
-+};
-+
-+enum cxd2880_ret cxd2880_stopwatch_start(struct cxd2880_stopwatch *stopwatch);
-+
-+enum cxd2880_ret cxd2880_stopwatch_sleep(struct cxd2880_stopwatch *stopwatch,
-+					 u32 ms);
-+
-+enum cxd2880_ret cxd2880_stopwatch_elapsed(struct cxd2880_stopwatch *stopwatch,
-+					   u32 *elapsed);
-+
-+#endif
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_io.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_io.c
-new file mode 100644
-index 000000000000..f0f82055a953
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_io.c
-@@ -0,0 +1,68 @@
-+/*
-+ * cxd2880_io.c
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * register I/O interface functions
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include "cxd2880_io.h"
-+
-+enum cxd2880_ret cxd2880_io_common_write_one_reg(struct cxd2880_io *io,
-+						 enum cxd2880_io_tgt tgt,
-+						 u8 sub_address, u8 data)
-+{
-+	enum cxd2880_ret ret = CXD2880_RESULT_OK;
-+
-+	if (!io)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	ret = io->write_regs(io, tgt, sub_address, &data, 1);
-+
-+	return ret;
-+}
-+
-+enum cxd2880_ret cxd2880_io_set_reg_bits(struct cxd2880_io *io,
-+					 enum cxd2880_io_tgt tgt,
-+					 u8 sub_address, u8 data, u8 mask)
-+{
-+	enum cxd2880_ret ret = CXD2880_RESULT_OK;
-+
-+	if (!io)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if (mask == 0x00)
-+		return CXD2880_RESULT_OK;
-+
-+	if (mask != 0xFF) {
-+		u8 rdata = 0x00;
-+
-+		ret = io->read_regs(io, tgt, sub_address, &rdata, 1);
-+		if (ret != CXD2880_RESULT_OK)
-+			return ret;
-+
-+		data = (u8)((data & mask) | (rdata & (mask ^ 0xFF)));
-+	}
-+
-+	ret = io->write_reg(io, tgt, sub_address, data);
-+
-+	return ret;
-+}
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_io.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_io.h
-new file mode 100644
-index 000000000000..4d6db13cf910
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_io.h
-@@ -0,0 +1,62 @@
-+/*
-+ * cxd2880_io.h
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * register I/O interface definitions
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef CXD2880_IO_H
-+#define CXD2880_IO_H
-+
-+#include "cxd2880_common.h"
-+
-+enum cxd2880_io_tgt {
-+	CXD2880_IO_TGT_SYS,
-+	CXD2880_IO_TGT_DMD
-+};
-+
-+struct cxd2880_io {
-+	enum cxd2880_ret (*read_regs)(struct cxd2880_io *io,
-+				       enum cxd2880_io_tgt tgt, u8 sub_address,
-+				       u8 *data, u32 size);
-+	enum cxd2880_ret (*write_regs)(struct cxd2880_io *io,
-+					enum cxd2880_io_tgt tgt, u8 sub_address,
-+					const u8 *data, u32 size);
-+	enum cxd2880_ret (*write_reg)(struct cxd2880_io *io,
-+				       enum cxd2880_io_tgt tgt, u8 sub_address,
-+				       u8 data);
-+	void *if_object;
-+	u8 i2c_address_sys;
-+	u8 i2c_address_demod;
-+	u8 slave_select;
-+	void *user;
-+};
-+
-+enum cxd2880_ret cxd2880_io_common_write_one_reg(struct cxd2880_io *io,
-+						 enum cxd2880_io_tgt tgt,
-+						 u8 sub_address, u8 data);
-+
-+enum cxd2880_ret cxd2880_io_set_reg_bits(struct cxd2880_io *io,
-+					 enum cxd2880_io_tgt tgt,
-+					 u8 sub_address, u8 data, u8 mask);
-+
-+#endif
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_stdlib.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_stdlib.h
-new file mode 100644
-index 000000000000..b9ca1b9df110
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_stdlib.h
-@@ -0,0 +1,35 @@
-+/*
-+ * cxd2880_stdlib.h
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * standard lib function aliases
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef CXD2880_STDLIB_H
-+#define CXD2880_STDLIB_H
-+
-+#include <linux/string.h>
-+
-+#define cxd2880_memcpy  memcpy
-+#define cxd2880_memset  memset
-+
-+#endif
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_stopwatch_port.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_stopwatch_port.c
-new file mode 100644
-index 000000000000..14ad6aa6c4c0
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_stopwatch_port.c
-@@ -0,0 +1,71 @@
-+/*
-+ * cxd2880_stopwatch_port.c
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * time measurement functions
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include "cxd2880_common.h"
-+
-+#include <linux/ktime.h>
-+#include <linux/time.h>
-+#include <linux/timekeeping.h>
-+
-+static u32 get_time_count(void)
-+{
-+	struct timespec tp;
-+
-+	getnstimeofday(&tp);
-+
-+	return (u32)((tp.tv_sec * 1000) + (tp.tv_nsec / 1000000));
-+}
-+
-+enum cxd2880_ret cxd2880_stopwatch_start(struct cxd2880_stopwatch *stopwatch)
-+{
-+	if (!stopwatch)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	stopwatch->start_time = get_time_count();
-+
-+	return CXD2880_RESULT_OK;
-+}
-+
-+enum cxd2880_ret cxd2880_stopwatch_sleep(struct cxd2880_stopwatch *stopwatch,
-+					 u32 ms)
-+{
-+	if (!stopwatch)
-+		return CXD2880_RESULT_ERROR_ARG;
-+	CXD2880_ARG_UNUSED(*stopwatch);
-+	CXD2880_SLEEP(ms);
-+
-+	return CXD2880_RESULT_OK;
-+}
-+
-+enum cxd2880_ret cxd2880_stopwatch_elapsed(struct cxd2880_stopwatch *stopwatch,
-+					   u32 *elapsed)
-+{
-+	if (!stopwatch || !elapsed)
-+		return CXD2880_RESULT_ERROR_ARG;
-+	*elapsed = get_time_count() - stopwatch->start_time;
-+
-+	return CXD2880_RESULT_OK;
-+}
--- 
-2.11.0
+Actually what was I thinking, the TVP5150 is already an example of
+such a device.
+
+All of this could be solved if there was some direction information
+in port nodes.
+
+Steve
