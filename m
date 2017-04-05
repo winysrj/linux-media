@@ -1,64 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f49.google.com ([74.125.83.49]:33007 "EHLO
-        mail-pg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1431518AbdDYOPH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 10:15:07 -0400
-Received: by mail-pg0-f49.google.com with SMTP id 63so29312835pgh.0
-        for <linux-media@vger.kernel.org>; Tue, 25 Apr 2017 07:15:07 -0700 (PDT)
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41383
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755229AbdDESC4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 14:02:56 -0400
+Date: Wed, 5 Apr 2017 15:02:50 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [GIT PULL for v4.12] Staging lirc cleanup
+Message-ID: <20170405150104.3243d1c0@vento.lan>
+In-Reply-To: <20170325213146.GA28237@gofer.mess.org>
+References: <20170325213146.GA28237@gofer.mess.org>
 MIME-Version: 1.0
-In-Reply-To: <CAKXQXwKeA6YCaepmjJJBf+Nc3bOO9aEnGmnHfnb2aDX3f6YXzw@mail.gmail.com>
-References: <CAOxqCCT6MOCLG+HHsuOU0zoq1zxRRJNFn0DYz9tOj-ez7+BNRA@mail.gmail.com>
- <CAAEAJfC0MdO2Uy8P0OajRHEc3seUiwLv0qqxLzM3b9eFFfuk8g@mail.gmail.com>
- <1493030334.2891.7.camel@pengutronix.de> <CAKXQXwLuG1A37NTPrE0abPWhMDGd=10Ud+xNa-4+k+8qMhD8tA@mail.gmail.com>
- <CAKXQXwKeA6YCaepmjJJBf+Nc3bOO9aEnGmnHfnb2aDX3f6YXzw@mail.gmail.com>
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Date: Tue, 25 Apr 2017 11:15:06 -0300
-Message-ID: <CAAEAJfBEqFYtKLHuNBBbc8+RteM8rhRNs3PFvAnGsVWRpxEGNw@mail.gmail.com>
-Subject: Re: TW686x Linux Main Line Driver Issue
-To: Krishan Nilanga <krishan@tengriaero.com>
-Cc: Lucas Stach <l.stach@pengutronix.de>,
-        Anuradha Ranasinghe <anuradha@tengriaero.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        Lakshitha Dayasena <lakshitha@tengriaero.com>,
-        linux-pci@vger.kernel.org, Richard.Zhu@freescale.com
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Krishan,
+Hi Sean,
 
-On 25 April 2017 at 03:46, Krishan Nilanga <krishan@tengriaero.com> wrote:
-> Hi All,
->
-> gst-launch-1.0 --gst-debug=3D3 v4l2src device=3D/dev/video0 !
-> video/x-raw,width=3D640,height=3D480,pixelformat=3DUYVY ! imxeglvivsink
->
-> I have tried to run the above gstreamer pipeline and I'm getting
->
-> [   97.392807] tw686x 0000:01:00.0: DMA timeout. Resetting DMA for all
-> channels
-> [   97.392827] tw686x 0000:01:00.0: reset: stopping DMA
->
-> for most IRQ calls of tw686x driver.
->
-> for some other IRQ calls I'm getting
->
-> [   99.592901] tw686x 0000:01:00.0: video0: unexpected p-b buffer!
-> [   99.592924] tw686x 0000:01:00.0: reset: stopping DMA
->
-> in dmesg.
->
-> I hope above details will help to understand the problem.
->
+Em Sat, 25 Mar 2017 21:31:46 +0000
+Sean Young <sean@mess.org> escreveu:
 
-This does not provide much info. It merely says there is some hardware
-problem or the signal is being problematic. FWIW, when we get those
-messages on our platform it's always correlated to a bad cable
-or poor signal.
+> Hi Mauro,
+> 
+> This pull promotes lirc_sir out of staging and removes lirc_sasem; 
 
-What is your dma-mode configuration?
---=20
-Ezequiel Garc=C3=ADa, VanguardiaSur
-www.vanguardiasur.com.ar
+Applied, thanks!
+
+> this 
+> only leaves lirc_zilog in staging. I'm attempting to write a new driver for this, 
+> maybe we should keep lirc_zilog until that work completes.
+
+Yeah, let's keep it there until you finish your work.
+
+Could you please update the TODO files there? Currently, there are
+two TODO files on it, for just one driver :-)
+
+So, it would be better if you could move the contents from:
+	drivers/staging/media/lirc/TODO.lirc_zilog
+into:
+	drivers/staging/media/lirc/TODO
+
+And remove the contents there that don't apply anymore.
+
+> 
+> Thanks
+> Sean
+> 
+> 
+> The following changes since commit c3d4fb0fb41f4b5eafeee51173c14e50be12f839:
+> 
+>   [media] rc: sunxi-cir: simplify optional reset handling (2017-03-24 08:30:03 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/syoung/media_tree.git for-v4.12c
+> 
+> for you to fetch changes up to d682dd284ab3d005f110742d1d4f288b87cc7d53:
+> 
+>   [media] staging: lirc_sasem: remove (2017-03-25 14:33:02 +0000)
+> 
+> ----------------------------------------------------------------
+> Sean Young (8):
+>       [media] staging: sir: fill in missing fields and fix probe
+>       [media] staging: sir: remove unselectable Tekram and Actisys
+>       [media] staging: sir: fix checkpatch strict warnings
+>       [media] staging: sir: use usleep_range() rather than busy looping
+>       [media] staging: sir: remove unnecessary messages
+>       [media] staging: sir: make sure we are ready to receive interrupts
+>       [media] rc: promote lirc_sir out of staging
+>       [media] staging: lirc_sasem: remove
+> 
+>  drivers/media/rc/Kconfig                |   9 +
+>  drivers/media/rc/Makefile               |   1 +
+>  drivers/media/rc/sir_ir.c               | 438 ++++++++++++++++
+>  drivers/staging/media/lirc/Kconfig      |  12 -
+>  drivers/staging/media/lirc/Makefile     |   2 -
+>  drivers/staging/media/lirc/lirc_sasem.c | 899 --------------------------------
+>  drivers/staging/media/lirc/lirc_sir.c   | 839 -----------------------------
+>  7 files changed, 448 insertions(+), 1752 deletions(-)
+>  create mode 100644 drivers/media/rc/sir_ir.c
+>  delete mode 100644 drivers/staging/media/lirc/lirc_sasem.c
+>  delete mode 100644 drivers/staging/media/lirc/lirc_sir.c
+
+
+
+Thanks,
+Mauro
