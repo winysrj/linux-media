@@ -1,106 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:23729 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753052AbdDRO3u (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Apr 2017 10:29:50 -0400
-Date: Tue, 18 Apr 2017 10:27:23 -0400
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-To: David Laight <David.Laight@ACULAB.COM>,
-        xen-devel@lists.xensource.com
-Cc: "'Logan Gunthorpe'" <logang@deltatee.com>,
-        Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>,
-        "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
-        "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>,
-        "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
-        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
-        "fcoe-devel@open-fcoe.org" <fcoe-devel@open-fcoe.org>,
-        "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>,
-        "megaraidlinux.pdl@broadcom.com" <megaraidlinux.pdl@broadcom.com>,
-        "sparmaintainer@unisys.com" <sparmaintainer@unisys.com>,
-        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
-        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>,
-        Steve Wise <swise@opengridcomputing.com>
-Subject: Re: [PATCH 16/22] xen-blkfront: Make use of the new sg_map helper
- function
-Message-ID: <20170418142723.GA27133@char.us.oracle.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
- <1492121135-4437-17-git-send-email-logang@deltatee.com>
- <063D6719AE5E284EB5DD2968C1650D6DCFFD3CD7@AcuExch.aculab.com>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:34992 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753476AbdDEAkV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 20:40:21 -0400
+Subject: Re: [RFC] [media] imx: assume MEDIA_ENT_F_ATV_DECODER entities output
+ video on pad 1
+To: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+ <1490661656-10318-20-git-send-email-steve_longerbeam@mentor.com>
+ <1490894749.2404.33.camel@pengutronix.de>
+ <20170404231053.GE7909@n2100.armlinux.org.uk>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <19f0ce92-cad6-8950-8018-e3224e2bf266@gmail.com>
+Date: Tue, 4 Apr 2017 17:40:16 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6DCFFD3CD7@AcuExch.aculab.com>
+In-Reply-To: <20170404231053.GE7909@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 18, 2017 at 02:13:59PM +0000, David Laight wrote:
-> From: Logan Gunthorpe
-> > Sent: 13 April 2017 23:05
-> > Straightforward conversion to the new helper, except due to
-> > the lack of error path, we have to warn if unmapable memory
-> > is ever present in the sgl.
 
-Interesting that you didn't CC any of the maintainers. Could you 
-do that in the future please?
 
-> > 
-> > Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-> > ---
-> >  drivers/block/xen-blkfront.c | 33 +++++++++++++++++++++++++++------
-> >  1 file changed, 27 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
-> > index 5067a0a..7dcf41d 100644
-> > --- a/drivers/block/xen-blkfront.c
-> > +++ b/drivers/block/xen-blkfront.c
-> > @@ -807,8 +807,19 @@ static int blkif_queue_rw_req(struct request *req, struct blkfront_ring_info *ri
-> >  		BUG_ON(sg->offset + sg->length > PAGE_SIZE);
-> > 
-> >  		if (setup.need_copy) {
-> > -			setup.bvec_off = sg->offset;
-> > -			setup.bvec_data = kmap_atomic(sg_page(sg));
-> > +			setup.bvec_off = 0;
-> > +			setup.bvec_data = sg_map(sg, SG_KMAP_ATOMIC);
-> > +			if (IS_ERR(setup.bvec_data)) {
-> > +				/*
-> > +				 * This should really never happen unless
-> > +				 * the code is changed to use memory that is
-> > +				 * not mappable in the sg. Seeing there is a
-> > +				 * questionable error path out of here,
-> > +				 * we WARN.
-> > +				 */
-> > +				WARN(1, "Non-mappable memory used in sg!");
-> > +				return 1;
-> > +			}
-> ...
-> 
-> Perhaps add a flag to mark failure as 'unexpected' and trace (and panic?)
-> inside sg_map().
-> 
-> 	David
-> 
-> 
-> _______________________________________________
-> Linux-nvdimm mailing list
-> Linux-nvdimm@lists.01.org
-> https://lists.01.org/mailman/listinfo/linux-nvdimm
+On 04/04/2017 04:10 PM, Russell King - ARM Linux wrote:
+> On Thu, Mar 30, 2017 at 07:25:49PM +0200, Philipp Zabel wrote:
+>> The TVP5150 DT bindings specify a single output port (port 0) that
+>> corresponds to the video output pad (pad 1, DEMOD_PAD_VID_OUT).
+>>
+>> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+>> ---
+>> I'm trying to get this to work with a TVP5150 analog TV decoder, and the
+>> first problem is that this device doesn't have pad 0 as its single
+>> output pad. Instead, as a MEDIA_ENT_F_ATV_DECODER entity, it has for
+>> pads (input, video out, vbi out, audio out), and video out is pad 1,
+>> whereas the device tree only defines a single port (0).
+>
+> Looking at the patch, it's highlighted another review point with
+> Steve's driver.
+>
+>> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+>> index 17e2386a3ca3a..c52d6ca797965 100644
+>> --- a/drivers/staging/media/imx/imx-media-dev.c
+>> +++ b/drivers/staging/media/imx/imx-media-dev.c
+>> @@ -267,6 +267,15 @@ static int imx_media_create_link(struct imx_media_dev *imxmd,
+>>  	source_pad = link->local_pad;
+>>  	sink_pad = link->remote_pad;
+>>
+>> +	/*
+>> +	 * If the source subdev is an analog video decoder with a single source
+>> +	 * port, assume that this port 0 corresponds to the DEMOD_PAD_VID_OUT
+>> +	 * entity pad.
+>> +	 */
+>> +	if (source->entity.function == MEDIA_ENT_F_ATV_DECODER &&
+>> +	    local_sd->num_sink_pads == 0 && local_sd->num_src_pads == 1)
+>> +		source_pad = DEMOD_PAD_VID_OUT;
+>> +
+>>  	v4l2_info(&imxmd->v4l2_dev, "%s: %s:%d -> %s:%d\n", __func__,
+>>  		  source->name, source_pad, sink->name, sink_pad);
+>
+> What is "local" and what is "remote" here?  It seems that, in the case of
+> a link being created with the sensor(etc), it's all back to front.
+>
+> Eg, I see locally:
+>
+> imx-media: imx_media_create_link: imx219 0-0010:0 -> imx6-mipi-csi2:0
+>
+> So here, "source" is the imx219 (the sensor), and sink is "imx6-mipi-csi2"
+> (part of the iMX6 capture.)  However, this makes "local_sd" the subdev of
+> the sensor, and "remote_sd" the subdev of the CSI2 interface - which is
+> totally back to front - this code is part of the iMX6 capture system,
+> so "local" implies that it should be part of that, and the "remote" thing
+> would be the sensor.
+>
+> Hence, this seems completely confused.  I'd suggest that:
+>
+> (a) the "pad->pad.flags & MEDIA_PAD_FL_SINK" test in imx_media_create_link()
+>     is moved into imx_media_create_links(), and placed here instead:
+>
+> 		for (j = 0; j < num_pads; j++) {
+> 			pad = &local_sd->pad[j];
+>
+> 			if (pad->pad.flags & MEDIA_PAD_FL_SINK)
+> 				continue;
+>
+> 			...
+> 		}
+>
+>     as the pad isn't going to spontaneously change this flag while we
+>     consider each individual link.
+
+
+Sure, I can do that. It would avoid iterating unnecessarily through the
+pad's links if the pad is a sink.
+
+
+>  However, maybe the test should be:
+>
+> 			if (!(pad->pad.flags & MEDIA_PAD_FL_SOURCE))
+>
+>     ?
+>
+
+maybe that is more intuitive.
+
+
+> (b) the terms "local" and "remote" in imx_media_create_link() are
+>     replaced with "source" and "sink" respectively, since this will
+>     now be called with a guaranteed source pad.
+
+Agreed. I'll change the arg and local var names.
+
+>
+> As for Philipp's solution, I'm not sure what the correct solution for
+> something like this is.  It depends how you view "hardware interface"
+> as defined by video-interfaces.txt, and whether the pads on the TVP5150
+> represent the hardware interfaces.  If we take the view that the pads
+> do represent hardware interfaces, then using the reg= property on the
+> port node will solve this problem.
+
+And the missing port nodes would have to actually be defined first.
+According to Philipp they aren't, only a single output port 0.
+
+
+>
+> If not, it would mean that we would have to have the iMX capture code
+> scan the pads on the source device, looking for outputs - but that
+> runs into a problem - if the source device has multiple outputs, does
+> the reg= property specify the output pad index or the pad number,
+
+And how do we even know the data direction of a DT port. Is it an input,
+an output, bidirectional? The OF graph parsing in imx-media-of.c can't
+determine a port's direction if it encounters a device it doesn't
+recognize that has multiple ports. For now that is not really a problem
+because upstream from the video mux and csi-2 receiver it's expected
+there will only be original sources of video with only one source port.
+But it can become a limitation later. For example a device that has
+multiple output bus interfaces, which would require multiple output
+ports.
+
+
+Steve
+
+
+
+> and what if one binding for a device specifies it one way and another
+> device's binding specifies it a different way.
+>
+> There's lots of scope for making things really painful here, and
+> ending up with needing sensor-specific code in capture drivers to
+> work around different decisions on this.
+>
+> I think someone needs to nail this down, if it's not already too late.
+>
