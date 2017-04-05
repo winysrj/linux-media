@@ -1,115 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f182.google.com ([209.85.220.182]:36659 "EHLO
-        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S940326AbdDSXOh (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59414 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S934075AbdDEUnY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Apr 2017 19:14:37 -0400
-Received: by mail-qk0-f182.google.com with SMTP id d131so33190521qkc.3
-        for <linux-media@vger.kernel.org>; Wed, 19 Apr 2017 16:14:37 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 12/12] au0828: Add timer to restart TS stream if no data arrives on bulk endpoint
-Date: Wed, 19 Apr 2017 19:13:55 -0400
-Message-Id: <1492643635-30823-13-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1492643635-30823-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1492643635-30823-1-git-send-email-dheitmueller@kernellabs.com>
+        Wed, 5 Apr 2017 16:43:24 -0400
+Date: Wed, 5 Apr 2017 23:43:06 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-kernel@vger.kernel.org
+Subject: Re: [RFC 00/10] V4L2 explicit synchronization support
+Message-ID: <20170405204306.GB3265@valkosipuli.retiisi.org.uk>
+References: <20170313192035.29859-1-gustavo@padovan.org>
+ <20170404113449.GC3288@valkosipuli.retiisi.org.uk>
+ <20170405152457.GD32294@joana>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170405152457.GD32294@joana>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For reasons unclear, we intermittently see a case where the tune
-is successful but the bulk stream fails to deliver any packets.
+Hi Gustavo,
 
-Add a timer to automatically stop/start the data pump if we
-encounter such a case.
+On Wed, Apr 05, 2017 at 05:24:57PM +0200, Gustavo Padovan wrote:
+> Hi Sakari,
+> 
+> 2017-04-04 Sakari Ailus <sakari.ailus@iki.fi>:
+> 
+> > Hi Gustavo,
+> > 
+> > Thank you for the patchset. Please see my comments below.
+> > 
+> > On Mon, Mar 13, 2017 at 04:20:25PM -0300, Gustavo Padovan wrote:
+> > > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > > 
+> > > Hi,
+> > > 
+> > > This RFC adds support for Explicit Synchronization of shared buffers in V4L2.
+> > > It uses the Sync File Framework[1] as vector to communicate the fences
+> > > between kernel and userspace.
+> > > 
+> > > I'm sending this to start the discussion on the best approach to implement
+> > > Explicit Synchronization, please check the TODO/OPEN section below.
+> > > 
+> > > Explicit Synchronization allows us to control the synchronization of
+> > > shared buffers from userspace by passing fences to the kernel and/or 
+> > > receiving them from the the kernel.
+> > > 
+> > > Fences passed to the kernel are named in-fences and the kernel should wait
+> > > them to signal before using the buffer. On the other side, the kernel creates
+> > > out-fences for every buffer it receives from userspace. This fence is sent back
+> > > to userspace and it will signal when the capture, for example, has finished.
+> > > 
+> > > Signalling an out-fence in V4L2 would mean that the job on the buffer is done
+> > > and the buffer can be used by other drivers.
+> > 
+> > Shouldn't you be able to add two fences to the buffer, one in and one out?
+> > I.e. you'd have the buffer passed from another device to a V4L2 device and
+> > on to a third device.
+> > 
+> > (Or, two fences per a plane, as you elaborated below.)
+> 
+> The out one should be created by V4L2 in this case, sent to userspace
+> and then sent to third device. Another options is what we've been
+> calling future fences in DRM. Where we may have a syscall to create this
+> out-fence for us and then we could pass both in and out fence to the
+> device. But that can be supported later along with what this RFC
+> proposes.
 
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
----
- drivers/media/usb/au0828/au0828-dvb.c | 30 ++++++++++++++++++++++++++++++
- drivers/media/usb/au0828/au0828.h     |  2 ++
- 2 files changed, 32 insertions(+)
+Please excuse my ignorance on fences.
 
-diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
-index 7e0c9b7..34dc7e0 100644
---- a/drivers/media/usb/au0828/au0828-dvb.c
-+++ b/drivers/media/usb/au0828/au0828-dvb.c
-@@ -105,6 +105,15 @@
- 
- static void au0828_restart_dvb_streaming(struct work_struct *work);
- 
-+static void au0828_bulk_timeout(unsigned long data)
-+{
-+	struct au0828_dev *dev = (struct au0828_dev *) data;
-+
-+	dprintk(1, "%s called\n", __func__);
-+	dev->bulk_timeout_running = 0;
-+	schedule_work(&dev->restart_streaming);
-+}
-+
- /*-------------------------------------------------------------------*/
- static void urb_completion(struct urb *purb)
- {
-@@ -138,6 +147,13 @@ static void urb_completion(struct urb *purb)
- 			ptr[0], purb->actual_length);
- 		schedule_work(&dev->restart_streaming);
- 		return;
-+	} else if (dev->bulk_timeout_running == 1) {
-+		/* The URB handler has fired, so cancel timer which would
-+		 * restart endpoint if we hadn't
-+		 */
-+		dprintk(1, "%s cancelling bulk timeout\n", __func__);
-+		dev->bulk_timeout_running = 0;
-+		del_timer(&dev->bulk_timeout);
- 	}
- 
- 	/* Feed the transport payload into the kernel demux */
-@@ -160,6 +176,11 @@ static int stop_urb_transfer(struct au0828_dev *dev)
- 	if (!dev->urb_streaming)
- 		return 0;
- 
-+	if (dev->bulk_timeout_running == 1) {
-+		dev->bulk_timeout_running = 0;
-+		del_timer(&dev->bulk_timeout);
-+	}
-+
- 	dev->urb_streaming = false;
- 	for (i = 0; i < URB_COUNT; i++) {
- 		if (dev->urbs[i]) {
-@@ -232,6 +253,11 @@ static int start_urb_transfer(struct au0828_dev *dev)
- 	}
- 
- 	dev->urb_streaming = true;
-+
-+	/* If we don't valid data within 1 second, restart stream */
-+	mod_timer(&dev->bulk_timeout, jiffies + (HZ));
-+	dev->bulk_timeout_running = 1;
-+
- 	return 0;
- }
- 
-@@ -622,6 +648,10 @@ int au0828_dvb_register(struct au0828_dev *dev)
- 		return ret;
- 	}
- 
-+	dev->bulk_timeout.function = au0828_bulk_timeout;
-+	dev->bulk_timeout.data = (unsigned long) dev;
-+	init_timer(&dev->bulk_timeout);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index 88e5974..05e445f 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -195,6 +195,8 @@ struct au0828_dev {
- 	/* Digital */
- 	struct au0828_dvb		dvb;
- 	struct work_struct              restart_streaming;
-+	struct timer_list               bulk_timeout;
-+	int                             bulk_timeout_running;
- 
- #ifdef CONFIG_VIDEO_AU0828_V4L2
- 	/* Analog */
+I just wanted to make sure that case was also considered. struct v4l2_buffer
+will run out of space soon so we'll need a replacement anyway. The timecode
+field is still available for re-use...
+
+> 
+> 
+> > 
+> > > 
+> > > Current RFC implementation
+> > > --------------------------
+> > > 
+> > > The current implementation is not intended to be more than a PoC to start
+> > > the discussion on how Explicit Synchronization should be supported in V4L2.
+> > > 
+> > > The first patch proposes an userspace API for fences, then on patch 2
+> > > we prepare to the addition of in-fences in patch 3, by introducing the
+> > > infrastructure on vb2 to wait on an in-fence signal before queueing the buffer
+> > > in the driver.
+> > > 
+> > > Patch 4 fix uvc v4l2 event handling and patch 5 configure q->dev for vivid
+> > > drivers to enable to subscribe and dequeue events on it.
+> > > 
+> > > Patches 6-7 enables support to notify BUF_QUEUED events, i.e., let userspace
+> > > know that particular buffer was enqueued in the driver. This is needed,
+> > > because we return the out-fence fd as an out argument in QBUF, but at the time
+> > > it returns we don't know to which buffer the fence will be attached thus
+> > > the BUF_QUEUED event tells which buffer is associated to the fence received in
+> > > QBUF by userspace.
+> > > 
+> > > Patches 8 and 9 add more fence infrastructure to support out-fences and finally
+> > > patch 10 adds support to out-fences.
+> > > 
+> > > TODO/OPEN:
+> > > ----------
+> > > 
+> > > * For this first implementation we will keep the ordering of the buffers queued
+> > > in videobuf2, that means we will only enqueue buffer whose fence was signalled
+> > > if that buffer is the first one in the queue. Otherwise it has to wait until it
+> > > is the first one. This is not implmented yet. Later we could create a flag to
+> > > allow unordered queing in the drivers from vb2 if needed.
+> > > 
+> > > * Should we have out-fences per-buffer or per-plane? or both? In this RFC, for
+> > > simplicity they are per-buffer, but Mauro and Javier raised the option of
+> > > doing per-plane fences. That could benefit mem2mem and V4L2 <-> GPU operation
+> > > at least on cases when we have Capture hw that releases the Y frame before the
+> > > other frames for example. When using V4L2 per-plane out-fences to communicate
+> > > with KMS they would need to be merged together as currently the DRM Plane
+> > > interface only supports one fence per DRM Plane.
+> > > 
+> > > In-fences should be per-buffer as the DRM only has per-buffer fences, but
+> > > in case of mem2mem operations per-plane fences might be useful?
+> > > 
+> > > So should we have both ways, per-plane and per-buffer, or just one of them
+> > > for now?
+> > 
+> > The data_offset field is only present in struct v4l2_plane, i.e. it is only
+> > available through using the multi-planar API even if you just have a single
+> > plane.
+> 
+> I didn't get why you mentioned the data_offset field. :)
+
+I think I meant to continue this but didn't end up writing it down. :-)
+
+What I wanted to say that the multi-plane API is a super-set of the
+single-plane API and there's already a case for not all the functionality
+being available through the single-plane API. At least I'm ok with adding
+the per-plane fences to the multi-plane API only.
+
+The framework could possibly do more to support the single-plane API as an
+application interface so that the applications using single-plane API only
+would get that as a bonus. (Just thinking out loud. Out of scope of this
+patchset definitely.)
+
 -- 
-1.9.1
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
