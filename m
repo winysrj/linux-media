@@ -1,91 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:5947 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754469AbdDDPpa (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:49865 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752304AbdDENtu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 4 Apr 2017 11:45:30 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v3 3/8] ARM: dts: stm32: Enable DCMI support on STM32F429 MCU
-Date: Tue, 4 Apr 2017 17:44:33 +0200
-Message-ID: <1491320678-17246-4-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1491320678-17246-1-git-send-email-hugues.fruchet@st.com>
-References: <1491320678-17246-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Wed, 5 Apr 2017 09:49:50 -0400
+Message-ID: <1491400188.2381.95.camel@pengutronix.de>
+Subject: Re: [PATCH 2/3] [media] coda: first step at error recovery
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Lucas Stach <l.stach@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, kernel@pengutronix.de,
+        patchwork-lst@pengutronix.de
+Date: Wed, 05 Apr 2017 15:49:48 +0200
+In-Reply-To: <20170405130955.30513-2-l.stach@pengutronix.de>
+References: <20170405130955.30513-1-l.stach@pengutronix.de>
+         <20170405130955.30513-2-l.stach@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- arch/arm/boot/dts/stm32f429.dtsi | 37 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+Hi Lucas,
 
-diff --git a/arch/arm/boot/dts/stm32f429.dtsi b/arch/arm/boot/dts/stm32f429.dtsi
-index ee0da97..e1ff978 100644
---- a/arch/arm/boot/dts/stm32f429.dtsi
-+++ b/arch/arm/boot/dts/stm32f429.dtsi
-@@ -736,6 +736,29 @@
- 					slew-rate = <3>;
- 				};
- 			};
-+
-+			dcmi_pins: dcmi_pins@0 {
-+				pins {
-+					pinmux = <STM32F429_PA4_FUNC_DCMI_HSYNC>,
-+						 <STM32F429_PB7_FUNC_DCMI_VSYNC>,
-+						 <STM32F429_PA6_FUNC_DCMI_PIXCLK>,
-+						 <STM32F429_PC6_FUNC_DCMI_D0>,
-+						 <STM32F429_PC7_FUNC_DCMI_D1>,
-+						 <STM32F429_PC8_FUNC_DCMI_D2>,
-+						 <STM32F429_PC9_FUNC_DCMI_D3>,
-+						 <STM32F429_PC11_FUNC_DCMI_D4>,
-+						 <STM32F429_PD3_FUNC_DCMI_D5>,
-+						 <STM32F429_PB8_FUNC_DCMI_D6>,
-+						 <STM32F429_PE6_FUNC_DCMI_D7>,
-+						 <STM32F429_PC10_FUNC_DCMI_D8>,
-+						 <STM32F429_PC12_FUNC_DCMI_D9>,
-+						 <STM32F429_PD6_FUNC_DCMI_D10>,
-+						 <STM32F429_PD2_FUNC_DCMI_D11>;
-+					bias-disable;
-+					drive-push-pull;
-+					slew-rate = <3>;
-+				};
-+			};
- 		};
- 
- 		rcc: rcc@40023810 {
-@@ -805,6 +828,20 @@
- 			status = "disabled";
- 		};
- 
-+		dcmi: dcmi@50050000 {
-+			compatible = "st,stm32-dcmi";
-+			reg = <0x50050000 0x400>;
-+			interrupts = <78>;
-+			resets = <&rcc STM32F4_AHB2_RESET(DCMI)>;
-+			clocks = <&rcc 0 STM32F4_AHB2_CLOCK(DCMI)>;
-+			clock-names = "mclk";
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&dcmi_pins>;
-+			dmas = <&dma2 1 1 0x414 0x3>;
-+			dma-names = "tx";
-+			status = "disabled";
-+		};
-+
- 		rng: rng@50060800 {
- 			compatible = "st,stm32-rng";
- 			reg = <0x50060800 0x400>;
--- 
-1.9.1
+On Wed, 2017-04-05 at 15:09 +0200, Lucas Stach wrote:
+> This implements a simple handler for the case where decode did not finish
+> sucessfully. This might be helpful during normal streaming, but for now it
+> only handles the case where the context would deadlock with userspace,
+> i.e. userspace issued DEC_CMD_STOP and waits for EOS, but after the failed
+> decode run we would hold the context and wait for userspace to queue more
+> buffers.
+> 
+> Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+
+Just a naming nitpick below.
+
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+> ---
+>  drivers/media/platform/coda/coda-bit.c    | 20 ++++++++++++++++++++
+>  drivers/media/platform/coda/coda-common.c |  3 +++
+>  drivers/media/platform/coda/coda.h        |  1 +
+>  3 files changed, 24 insertions(+)
+> 
+> diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+> index 36062fc494e3..6a088f9343bb 100644
+> --- a/drivers/media/platform/coda/coda-bit.c
+> +++ b/drivers/media/platform/coda/coda-bit.c
+> @@ -2113,12 +2113,32 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+>  	ctx->display_idx = display_idx;
+>  }
+>  
+> +static void coda_error_decode(struct coda_ctx *ctx)
+
+This sounds a bit like we are decoding an error code. Could we maybe
+rename this any of coda_fail_decode or coda_decode_error/failure  or
+similar?
+
+> +{
+> +	struct vb2_v4l2_buffer *dst_buf;
+> +
+> +	/*
+> +	 * For now this only handles the case where we would deadlock with
+> +	 * userspace, i.e. userspace issued DEC_CMD_STOP and waits for EOS,
+> +	 * but after a failed decode run we would hold the context and wait for
+> +	 * userspace to queue more buffers.
+> +	 */
+> +	if (!(ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG))
+> +		return;
+> +
+> +	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+> +	dst_buf->sequence = ctx->qsequence - 1;
+> +
+> +	coda_m2m_buf_done(ctx, dst_buf, VB2_BUF_STATE_ERROR);
+> +}
+> +
+>  const struct coda_context_ops coda_bit_decode_ops = {
+>  	.queue_init = coda_decoder_queue_init,
+>  	.reqbufs = coda_decoder_reqbufs,
+>  	.start_streaming = coda_start_decoding,
+>  	.prepare_run = coda_prepare_decode,
+>  	.finish_run = coda_finish_decode,
+> +	.error_run = coda_error_decode,
+
+How about .fail_run to follow the <verb>_run pattern, or
+.run_error/failure to break it?
+
+>  	.seq_end_work = coda_seq_end_work,
+>  	.release = coda_bit_release,
+>  };
+> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+> index eb6548f46cba..0bbf155f9783 100644
+> --- a/drivers/media/platform/coda/coda-common.c
+> +++ b/drivers/media/platform/coda/coda-common.c
+> @@ -1100,6 +1100,9 @@ static void coda_pic_run_work(struct work_struct *work)
+>  		ctx->hold = true;
+>  
+>  		coda_hw_reset(ctx);
+> +
+> +		if (ctx->ops->error_run)
+> +			ctx->ops->error_run(ctx);
+>  	} else if (!ctx->aborting) {
+>  		ctx->ops->finish_run(ctx);
+>  	}
+> diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+> index 4b831c91ae4a..799ffca72203 100644
+> --- a/drivers/media/platform/coda/coda.h
+> +++ b/drivers/media/platform/coda/coda.h
+> @@ -180,6 +180,7 @@ struct coda_context_ops {
+>  	int (*start_streaming)(struct coda_ctx *ctx);
+>  	int (*prepare_run)(struct coda_ctx *ctx);
+>  	void (*finish_run)(struct coda_ctx *ctx);
+> +	void (*error_run)(struct coda_ctx *ctx);
+>  	void (*seq_end_work)(struct work_struct *work);
+>  	void (*release)(struct coda_ctx *ctx);
+>  };
+
+regards
+Philipp
