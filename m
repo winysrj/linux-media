@@ -1,47 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:33406 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937220AbdD0V1w (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 17:27:52 -0400
-Received: by mail-qk0-f196.google.com with SMTP id o85so6568754qkh.0
-        for <linux-media@vger.kernel.org>; Thu, 27 Apr 2017 14:27:52 -0700 (PDT)
-Date: Thu, 27 Apr 2017 18:27:48 -0300
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Christian =?iso-8859-1?Q?K=F6nig?= <deathsimple@vodafone.de>
-Cc: Andres Rodriguez <andresx7@gmail.com>,
-        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] dma-buf: avoid scheduling on fence status query v2
-Message-ID: <20170427212748.GD2568@joana>
-References: <20170426144620.3560-1-andresx7@gmail.com>
- <92c9bc96-cf60-f246-a82e-47653472521e@vodafone.de>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:39922
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755206AbdDENIH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 09:08:07 -0400
+Date: Wed, 5 Apr 2017 10:07:52 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jani Nikula <jani.nikula@intel.com>
+Subject: Re: [PATCH v2 01/22] tmplcvt: make the tool more robust
+Message-ID: <20170405100752.70e56373@vento.lan>
+In-Reply-To: <20170402153231.4eccfedf@lwn.net>
+References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+        <20170402153231.4eccfedf@lwn.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <92c9bc96-cf60-f246-a82e-47653472521e@vodafone.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-04-26 Christian König <deathsimple@vodafone.de>:
+Em Sun, 2 Apr 2017 15:32:31 -0600
+Jonathan Corbet <corbet@lwn.net> escreveu:
 
-> Am 26.04.2017 um 16:46 schrieb Andres Rodriguez:
-> > When a timeout of zero is specified, the caller is only interested in
-> > the fence status.
-> > 
-> > In the current implementation, dma_fence_default_wait will always call
-> > schedule_timeout() at least once for an unsignaled fence. This adds a
-> > significant overhead to a fence status query.
-> > 
-> > Avoid this overhead by returning early if a zero timeout is specified.
-> > 
-> > v2: move early return after enable_signaling
-> > 
-> > Signed-off-by: Andres Rodriguez <andresx7@gmail.com>
+> On Thu, 30 Mar 2017 07:45:35 -0300
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
 > 
-> Reviewed-by: Christian König <christian.koenig@amd.com>
+> > Currently, the script just assumes to be called at
+> > Documentation/sphinx/. Change it to work on any directory,
+> > and make it abort if something gets wrong.
+> > 
+> > Also, be sure that both parameters are specified.
+> > 
+> > That should avoid troubles like this:
+> > 
+> > $ Documentation/sphinx/tmplcvt Documentation/DocBook/writing_usb_driver.tmpl
+> > sed: couldn't open file convert_template.sed: No such file or directory  
+> 
+> What's the status of this patch set?  I saw that Jani had one comment
+> that, I think, hasn't been addressed?
 
-pushed to drm-misc-next. Thanks all.
+I'm resending it today, rebased on the top of docs-next.
 
-Gustavo
+I'll send the last patch in separate, as it is unrelated to the
+doc conversion.
+
+Regards,
+Mauro
