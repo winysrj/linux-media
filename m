@@ -1,117 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:57495 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032524AbdD0Wm4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:42:56 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v4 16/27] rcar-vin: add functions to manipulate Gen3 CHSEL value
-Date: Fri, 28 Apr 2017 00:41:52 +0200
-Message-Id: <20170427224203.14611-17-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40004
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755265AbdDENX2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 09:23:28 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-usb@vger.kernel.org
+Subject: [PATCH v2 10/21] usb/callbacks.txt: convert to ReST and add to driver-api book
+Date: Wed,  5 Apr 2017 10:23:04 -0300
+Message-Id: <020f2c077f926c1622f748c90c3b6bcec59bf854.1491398120.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
+References: <cover.1491398120.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
+References: <cover.1491398120.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. One
-feature of this register is that it's only present in the VIN0 and VIN4
-instances. The register in VIN0 controls the routing for VIN0-3 and the
-register in VIN4 controls routing for VIN4-7.
+This document describe some USB core functions. Add it to the
+driver-api book.
 
-To be able to control routing from a media device these functions need
-to control runtime PM for the subgroup master (VIN0 and VIN4). The
-subgroup master must be switched on before the register is manipulated,
-once the operation is complete it's safe to switch the master off and
-the new routing will still be in effect.
-
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/rcar-vin/rcar-dma.c | 43 ++++++++++++++++++++++++++++++
- drivers/media/platform/rcar-vin/rcar-vin.h |  3 +++
- 2 files changed, 46 insertions(+)
+ .../callbacks.txt => driver-api/usb/callbacks.rst} | 61 +++++++++++++++-------
+ Documentation/driver-api/usb/index.rst             |  1 +
+ 2 files changed, 43 insertions(+), 19 deletions(-)
+ rename Documentation/{usb/callbacks.txt => driver-api/usb/callbacks.rst} (78%)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 7fecb616b6c45a32..fef31aac0ed40979 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -16,6 +16,7 @@
+diff --git a/Documentation/usb/callbacks.txt b/Documentation/driver-api/usb/callbacks.rst
+similarity index 78%
+rename from Documentation/usb/callbacks.txt
+rename to Documentation/driver-api/usb/callbacks.rst
+index 9e85846bdb98..93a8d53e27e7 100644
+--- a/Documentation/usb/callbacks.txt
++++ b/Documentation/driver-api/usb/callbacks.rst
+@@ -1,3 +1,6 @@
++USB core callbacks
++~~~~~~~~~~~~~~~~~~
++
+ What callbacks will usbcore do?
+ ===============================
  
- #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/pm_runtime.h>
+@@ -11,30 +14,42 @@ The callbacks defined in the driver structure are:
  
- #include <media/videobuf2-dma-contig.h>
+ 1. Hotplugging callbacks:
  
-@@ -1240,3 +1241,45 @@ int rvin_dma_probe(struct rvin_dev *vin, int irq)
+- * @probe: Called to see if the driver is willing to manage a particular
+- *	interface on a device.
+- * @disconnect: Called when the interface is no longer accessible, usually
+- *	because its device has been (or is being) disconnected or the
+- *	driver module is being unloaded.
++ - @probe:
++	Called to see if the driver is willing to manage a particular
++	interface on a device.
++
++ - @disconnect:
++	Called when the interface is no longer accessible, usually
++	because its device has been (or is being) disconnected or the
++	driver module is being unloaded.
  
- 	return ret;
- }
-+
-+/* -----------------------------------------------------------------------------
-+ * Gen3 CHSEL manipulation
-+ */
-+
-+int rvin_set_chsel(struct rvin_dev *vin, u8 chsel)
-+{
-+	u32 ifmd;
-+
-+	pm_runtime_get_sync(vin->dev);
-+
-+	/*
-+	 * Undocumented feature: Writing to VNCSI_IFMD_REG will go
-+	 * through and on read back look correct but won't have
-+	 * any effect if VNMC_REG is not first set to 0.
-+	 */
-+	rvin_write(vin, 0, VNMC_REG);
-+
-+	ifmd = VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
-+		VNCSI_IFMD_CSI_CHSEL(chsel);
-+
-+	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
-+
-+	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
-+
-+	pm_runtime_put(vin->dev);
-+
-+	return 0;
-+}
-+
-+int rvin_get_chsel(struct rvin_dev *vin)
-+{
-+	int chsel;
-+
-+	pm_runtime_get_sync(vin->dev);
-+
-+	chsel = rvin_read(vin, VNCSI_IFMD_REG) & VNCSI_IFMD_CSI_CHSEL_MASK;
-+
-+	pm_runtime_put(vin->dev);
-+
-+	return chsel;
-+}
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 09fc70e192699f35..b1cd0abba9ca9c94 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -163,4 +163,7 @@ void rvin_v4l2_remove(struct rvin_dev *vin);
+ 2. Odd backdoor through usbfs:
  
- const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+- * @ioctl: Used for drivers that want to talk to userspace through
+- *	the "usbfs" filesystem.  This lets devices provide ways to
+- *	expose information to user space regardless of where they
+- *	do (or don't) show up otherwise in the filesystem.
++ - @ioctl:
++	Used for drivers that want to talk to userspace through
++	the "usbfs" filesystem.  This lets devices provide ways to
++	expose information to user space regardless of where they
++	do (or don't) show up otherwise in the filesystem.
  
-+int rvin_set_chsel(struct rvin_dev *vin, u8 chsel);
-+int rvin_get_chsel(struct rvin_dev *vin);
+ 3. Power management (PM) callbacks:
+ 
+- * @suspend: Called when the device is going to be suspended.
+- * @resume: Called when the device is being resumed.
+- * @reset_resume: Called when the suspended device has been reset instead
+- *	of being resumed.
++ - @suspend:
++	Called when the device is going to be suspended.
 +
- #endif
++ - @resume:
++	Called when the device is being resumed.
++
++ - @reset_resume:
++	Called when the suspended device has been reset instead
++	of being resumed.
+ 
+ 4. Device level operations:
+ 
+- * @pre_reset: Called when the device is about to be reset.
+- * @post_reset: Called after the device has been reset
++ - @pre_reset:
++	Called when the device is about to be reset.
++
++ - @post_reset:
++	Called after the device has been reset
+ 
+ The ioctl interface (2) should be used only if you have a very good
+ reason. Sysfs is preferred these days. The PM callbacks are covered
+@@ -58,7 +73,9 @@ an interface. A driver's bond to an interface is exclusive.
+ The probe() callback
+ --------------------
+ 
+-int (*probe) (struct usb_interface *intf,
++::
++
++  int (*probe) (struct usb_interface *intf,
+ 		const struct usb_device_id *id);
+ 
+ Accept or decline an interface. If you accept the device return 0,
+@@ -75,7 +92,9 @@ initialisation that doesn't take too long is a good idea here.
+ The disconnect() callback
+ -------------------------
+ 
+-void (*disconnect) (struct usb_interface *intf);
++::
++
++  void (*disconnect) (struct usb_interface *intf);
+ 
+ This callback is a signal to break any connection with an interface.
+ You are not allowed any IO to a device after returning from this
+@@ -93,7 +112,9 @@ Device level callbacks
+ pre_reset
+ ---------
+ 
+-int (*pre_reset)(struct usb_interface *intf);
++::
++
++  int (*pre_reset)(struct usb_interface *intf);
+ 
+ A driver or user space is triggering a reset on the device which
+ contains the interface passed as an argument. Cease IO, wait for all
+@@ -107,7 +128,9 @@ are in atomic context.
+ post_reset
+ ----------
+ 
+-int (*post_reset)(struct usb_interface *intf);
++::
++
++  int (*post_reset)(struct usb_interface *intf);
+ 
+ The reset has completed.  Restore any saved device state and begin
+ using the device again.
+diff --git a/Documentation/driver-api/usb/index.rst b/Documentation/driver-api/usb/index.rst
+index 6fe7611f7332..441c5dacdf27 100644
+--- a/Documentation/driver-api/usb/index.rst
++++ b/Documentation/driver-api/usb/index.rst
+@@ -8,6 +8,7 @@ Linux USB API
+    gadget
+    anchors
+    bulk-streams
++   callbacks
+    writing_usb_driver
+    writing_musb_glue_layer
+ 
 -- 
-2.12.2
+2.9.3
