@@ -1,430 +1,441 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:34980 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751352AbdDMH6G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 03:58:06 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com,
-        Samu Onkalo <samu.onkalo@intel.com>
-Subject: [RFC v3 13/14] vb2: Don't sync cache for a buffer if so requested
-Date: Thu, 13 Apr 2017 10:57:18 +0300
-Message-Id: <1492070239-21532-14-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1492070239-21532-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1492070239-21532-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40060
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755317AbdDENXf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 09:23:35 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-usb@vger.kernel.org
+Subject: [PATCH v2 13/21] error-codes.rst: convert to ReST and add to driver-api book
+Date: Wed,  5 Apr 2017 10:23:07 -0300
+Message-Id: <2755d50d43a21daf6a8f565d1a964a8a4c920e42.1491398120.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
+References: <cover.1491398120.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
+References: <cover.1491398120.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Samu Onkalo <samu.onkalo@intel.com>
+This document describe some USB core features. Add it to the
+driver-api book.
 
-The user may request to the driver (vb2) to skip the cache maintenance
-operations in case the buffer does not need cache synchronisation, e.g. in
-cases where the buffer is passed between hardware blocks without it being
-touched by the CPU.
-
-Also document that the prepare and finish vb2_mem_ops might not get called
-every time the buffer ownership changes between the kernel and the user
-space.
-
-Signed-off-by: Samu Onkalo <samu.onkalo@intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 101 +++++++++++++++++++++----------
- drivers/media/v4l2-core/videobuf2-v4l2.c |  14 ++++-
- include/media/videobuf2-core.h           |  23 ++++---
- 3 files changed, 97 insertions(+), 41 deletions(-)
+ Documentation/driver-api/usb/error-codes.rst | 205 +++++++++++++++++++++++++++
+ Documentation/driver-api/usb/index.rst       |   1 +
+ Documentation/usb/error-codes.txt            | 175 -----------------------
+ 3 files changed, 206 insertions(+), 175 deletions(-)
+ create mode 100644 Documentation/driver-api/usb/error-codes.rst
+ delete mode 100644 Documentation/usb/error-codes.txt
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index e866115..7f21acd 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -189,6 +189,28 @@ static void __vb2_queue_cancel(struct vb2_queue *q);
- static void __enqueue_in_driver(struct vb2_buffer *vb);
- 
- /**
-+ * __mem_prepare_planes() - call finish mem op for all planes of the buffer
-+ */
-+static void __mem_prepare_planes(struct vb2_buffer *vb)
-+{
-+	unsigned int plane;
+diff --git a/Documentation/driver-api/usb/error-codes.rst b/Documentation/driver-api/usb/error-codes.rst
+new file mode 100644
+index 000000000000..9c11a0fd16cb
+--- /dev/null
++++ b/Documentation/driver-api/usb/error-codes.rst
+@@ -0,0 +1,205 @@
++USB Error codes
++~~~~~~~~~~~~~~~
 +
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
-+}
++:Revised: 2004-Oct-21
 +
-+/**
-+ * __mem_finish_planes() - call finish mem op for all planes of the buffer
-+ */
-+static void __mem_finish_planes(struct vb2_buffer *vb)
-+{
-+	unsigned int plane;
++This is the documentation of (hopefully) all possible error codes (and
++their interpretation) that can be returned from usbcore.
 +
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
-+}
++Some of them are returned by the Host Controller Drivers (HCDs), which
++device drivers only see through usbcore.  As a rule, all the HCDs should
++behave the same except for transfer speed dependent behaviors and the
++way certain faults are reported.
 +
-+/**
-  * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
-  */
- static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
-@@ -953,20 +975,29 @@ EXPORT_SYMBOL_GPL(vb2_discard_done);
- /**
-  * __prepare_mmap() - prepare an MMAP buffer
-  */
--static int __prepare_mmap(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_mmap(struct vb2_buffer *vb, const void *pb,
-+			  bool no_cache_sync)
- {
--	int ret = 0;
-+	int ret;
- 
--	if (pb)
-+	if (pb) {
- 		ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
- 				 vb, pb, vb->planes);
--	return ret ? ret : call_vb_qop(vb, buf_prepare, vb);
-+		if (ret)
-+			return ret;
-+	}
 +
-+	if (!no_cache_sync)
-+		__mem_prepare_planes(vb);
++Error codes returned by :c:func:`usb_submit_urb`
++================================================
 +
-+	return call_vb_qop(vb, buf_prepare, vb);
- }
- 
- /**
-  * __prepare_userptr() - prepare a USERPTR buffer
-  */
--static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_userptr(struct vb2_buffer *vb, const void *pb,
-+			     bool no_cache_sync)
- {
- 	struct vb2_plane planes[VB2_MAX_PLANES];
- 	struct vb2_queue *q = vb->vb2_queue;
-@@ -1057,6 +1088,11 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
- 			dprintk(1, "buffer initialization failed\n");
- 			goto err;
- 		}
++Non-USB-specific:
 +
-+		/* This is new buffer memory --- always synchronise cache. */
-+		__mem_prepare_planes(vb);
-+	} else if (!no_cache_sync) {
-+		__mem_prepare_planes(vb);
- 	}
- 
- 	ret = call_vb_qop(vb, buf_prepare, vb);
-@@ -1084,7 +1120,8 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
- /**
-  * __prepare_dmabuf() - prepare a DMABUF buffer
-  */
--static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb,
-+			    bool no_cache_sync)
- {
- 	struct vb2_plane planes[VB2_MAX_PLANES];
- 	struct vb2_queue *q = vb->vb2_queue;
-@@ -1199,6 +1236,11 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
- 			dprintk(1, "buffer initialization failed\n");
- 			goto err;
- 		}
 +
-+		/* This is new buffer memory --- always synchronise cache. */
-+		__mem_prepare_planes(vb);
-+	} else if (!no_cache_sync) {
-+		__mem_prepare_planes(vb);
- 	}
++=============== ===============================================
++0		URB submission went fine
++
++``-ENOMEM``	no memory for allocation of internal structures
++=============== ===============================================
++
++USB-specific:
++
++=======================	=======================================================
++``-EBUSY``		The URB is already active.
++
++``-ENODEV``		specified USB-device or bus doesn't exist
++
++``-ENOENT``		specified interface or endpoint does not exist or
++			is not enabled
++
++``-ENXIO``		host controller driver does not support queuing of
++			this type of urb.  (treat as a host controller bug.)
++
++``-EINVAL``		a) Invalid transfer type specified (or not supported)
++			b) Invalid or unsupported periodic transfer interval
++			c) ISO: attempted to change transfer interval
++			d) ISO: ``number_of_packets`` is < 0
++			e) various other cases
++
++``-EXDEV``		ISO: ``URB_ISO_ASAP`` wasn't specified and all the
++			frames the URB would be scheduled in have already
++			expired.
++
++``-EFBIG``		Host controller driver can't schedule that many ISO
++			frames.
++
++``-EPIPE``		The pipe type specified in the URB doesn't match the
++			endpoint's actual type.
++
++``-EMSGSIZE``		(a) endpoint maxpacket size is zero; it is not usable
++			    in the current interface altsetting.
++			(b) ISO packet is larger than the endpoint maxpacket.
++			(c) requested data transfer length is invalid: negative
++			    or too large for the host controller.
++
++``-ENOSPC``		This request would overcommit the usb bandwidth reserved
++			for periodic transfers (interrupt, isochronous).
++
++``-ESHUTDOWN``		The device or host controller has been disabled due to
++			some problem that could not be worked around.
++
++``-EPERM``		Submission failed because ``urb->reject`` was set.
++
++``-EHOSTUNREACH``	URB was rejected because the device is suspended.
++
++``-ENOEXEC``		A control URB doesn't contain a Setup packet.
++=======================	=======================================================
++
++Error codes returned by ``in urb->status`` or in ``iso_frame_desc[n].status`` (for ISO)
++=======================================================================================
++
++USB device drivers may only test urb status values in completion handlers.
++This is because otherwise there would be a race between HCDs updating
++these values on one CPU, and device drivers testing them on another CPU.
++
++A transfer's actual_length may be positive even when an error has been
++reported.  That's because transfers often involve several packets, so that
++one or more packets could finish before an error stops further endpoint I/O.
++
++For isochronous URBs, the urb status value is non-zero only if the URB is
++unlinked, the device is removed, the host controller is disabled, or the total
++transferred length is less than the requested length and the
++``URB_SHORT_NOT_OK`` flag is set.  Completion handlers for isochronous URBs
++should only see ``urb->status`` set to zero, ``-ENOENT``, ``-ECONNRESET``,
++``-ESHUTDOWN``, or ``-EREMOTEIO``. Individual frame descriptor status fields
++may report more status codes.
++
++
++===============================	===============================================
++0				Transfer completed successfully
++
++``-ENOENT``			URB was synchronously unlinked by
++				:c:func:`usb_unlink_urb`
++
++``-EINPROGRESS``		URB still pending, no results yet
++				(That is, if drivers see this it's a bug.)
++
++``-EPROTO`` [#f1]_, [#f2]_	a) bitstuff error
++				b) no response packet received within the
++				   prescribed bus turn-around time
++				c) unknown USB error
++
++``-EILSEQ`` [#f1]_, [#f2]_	a) CRC mismatch
++				b) no response packet received within the
++				   prescribed bus turn-around time
++				c) unknown USB error
++
++				Note that often the controller hardware does
++				not distinguish among cases a), b), and c), so
++				a driver cannot tell whether there was a
++				protocol error, a failure to respond (often
++				caused by device disconnect), or some other
++				fault.
++
++``-ETIME`` [#f2]_		No response packet received within the
++				prescribed bus turn-around time.  This error
++				may instead be reported as
++				``-EPROTO`` or ``-EILSEQ``.
++
++``-ETIMEDOUT``			Synchronous USB message functions use this code
++				to indicate timeout expired before the transfer
++				completed, and no other error was reported
++				by HC.
++
++``-EPIPE`` [#f2]_		Endpoint stalled.  For non-control endpoints,
++				reset this status with
++				:c:func:`usb_clear_halt`.
++
++``-ECOMM``			During an IN transfer, the host controller
++				received data from an endpoint faster than it
++				could be written to system memory
++
++``-ENOSR``			During an OUT transfer, the host controller
++				could not retrieve data from system memory fast
++				enough to keep up with the USB data rate
++
++``-EOVERFLOW`` [#f1]_		The amount of data returned by the endpoint was
++				greater than either the max packet size of the
++				endpoint or the remaining buffer size.
++				"Babble".
++
++``-EREMOTEIO``			The data read from the endpoint did not fill
++				the specified buffer, and ``URB_SHORT_NOT_OK``
++				was set in ``urb->transfer_flags``.
++
++``-ENODEV``			Device was removed.  Often preceded by a burst
++				of other errors, since the hub driver doesn't
++				detect device removal events immediately.
++
++``-EXDEV``			ISO transfer only partially completed
++				(only set in ``iso_frame_desc[n].status``,
++				not ``urb->status``)
++
++``-EINVAL``			ISO madness, if this happens: Log off and
++				go home
++
++``-ECONNRESET``			URB was asynchronously unlinked by
++				:c:func:`usb_unlink_urb`
++
++``-ESHUTDOWN``			The device or host controller has been
++				disabled due to some problem that could not
++				be worked around, such as a physical
++				disconnect.
++===============================	===============================================
++
++
++.. [#f1]
++
++   Error codes like ``-EPROTO``, ``-EILSEQ`` and ``-EOVERFLOW`` normally
++   indicate hardware problems such as bad devices (including firmware)
++   or cables.
++
++.. [#f2]
++
++   This is also one of several codes that different kinds of host
++   controller use to indicate a transfer has failed because of device
++   disconnect.  In the interval before the hub driver starts disconnect
++   processing, devices may receive such fault reports for every request.
++
++
++
++Error codes returned by usbcore-functions
++=========================================
++
++.. note:: expect also other submit and transfer status codes
++
++:c:func:`usb_register`:
++
++======================= ===================================
++``-EINVAL``		error during registering new driver
++======================= ===================================
++
++``usb_get_*/usb_set_*()``,
++:c:func:`usb_control_msg`,
++:c:func:`usb_bulk_msg()`:
++
++======================= ==============================================
++``-ETIMEDOUT``		Timeout expired before the transfer completed.
++======================= ==============================================
+diff --git a/Documentation/driver-api/usb/index.rst b/Documentation/driver-api/usb/index.rst
+index d7610777784b..1e2a0c54eb3d 100644
+--- a/Documentation/driver-api/usb/index.rst
++++ b/Documentation/driver-api/usb/index.rst
+@@ -11,6 +11,7 @@ Linux USB API
+    callbacks
+    dma
+    power-management
++   error-codes
+    writing_usb_driver
+    writing_musb_glue_layer
  
- 	ret = call_vb_qop(vb, buf_prepare, vb);
-@@ -1231,10 +1273,10 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- 	call_void_vb_qop(vb, buf_queue, vb);
- }
- 
--static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
-+static int __buf_prepare(struct vb2_buffer *vb, const void *pb,
-+			 bool no_cache_sync)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
--	unsigned int plane;
- 	int ret;
- 
- 	if (q->error) {
-@@ -1246,13 +1288,13 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
- 
- 	switch (q->memory) {
- 	case VB2_MEMORY_MMAP:
--		ret = __prepare_mmap(vb, pb);
-+		ret = __prepare_mmap(vb, pb, no_cache_sync);
- 		break;
- 	case VB2_MEMORY_USERPTR:
--		ret = __prepare_userptr(vb, pb);
-+		ret = __prepare_userptr(vb, pb, no_cache_sync);
- 		break;
- 	case VB2_MEMORY_DMABUF:
--		ret = __prepare_dmabuf(vb, pb);
-+		ret = __prepare_dmabuf(vb, pb, no_cache_sync);
- 		break;
- 	default:
- 		WARN(1, "Invalid queue type\n");
-@@ -1265,16 +1307,13 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
- 		return ret;
- 	}
- 
--	/* sync buffers */
--	for (plane = 0; plane < vb->num_planes; ++plane)
--		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
+diff --git a/Documentation/usb/error-codes.txt b/Documentation/usb/error-codes.txt
+deleted file mode 100644
+index 9c3eb845ebe5..000000000000
+--- a/Documentation/usb/error-codes.txt
++++ /dev/null
+@@ -1,175 +0,0 @@
+-Revised: 2004-Oct-21
 -
- 	vb->state = VB2_BUF_STATE_PREPARED;
- 
- 	return 0;
- }
- 
--int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
-+int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb,
-+			 bool no_cache_sync)
- {
- 	struct vb2_buffer *vb;
- 	int ret;
-@@ -1286,7 +1325,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
- 		return -EINVAL;
- 	}
- 
--	ret = __buf_prepare(vb, pb);
-+	ret = __buf_prepare(vb, pb, no_cache_sync);
- 	if (ret)
- 		return ret;
- 
-@@ -1362,7 +1401,8 @@ static int vb2_start_streaming(struct vb2_queue *q)
- 	return ret;
- }
- 
--int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
-+int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-+		  bool no_cache_sync)
- {
- 	struct vb2_buffer *vb;
- 	int ret;
-@@ -1371,7 +1411,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DEQUEUED:
--		ret = __buf_prepare(vb, pb);
-+		ret = __buf_prepare(vb, pb, no_cache_sync);
- 		if (ret)
- 			return ret;
- 		break;
-@@ -1557,7 +1597,7 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
- /**
-  * __vb2_dqbuf() - bring back the buffer to the DEQUEUED state
-  */
--static void __vb2_dqbuf(struct vb2_buffer *vb)
-+static void __vb2_dqbuf(struct vb2_buffer *vb, bool no_cache_sync)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
- 	unsigned int i;
-@@ -1568,9 +1608,8 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
- 
- 	vb->state = VB2_BUF_STATE_DEQUEUED;
- 
--	/* sync buffers */
--	for (i = 0; i < vb->num_planes; ++i)
--		call_void_memop(vb, finish, vb->planes[i].mem_priv);
-+	if (!no_cache_sync)
-+		__mem_finish_planes(vb);
- 
- 	/* unmap DMABUF buffer */
- 	if (q->memory == VB2_MEMORY_DMABUF)
-@@ -1583,7 +1622,7 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
- }
- 
- int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
--		   bool nonblocking)
-+		   bool nonblocking, bool no_cache_sync)
- {
- 	struct vb2_buffer *vb = NULL;
- 	int ret;
-@@ -1620,7 +1659,7 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
- 	trace_vb2_dqbuf(q, vb);
- 
- 	/* go back to dequeued state */
--	__vb2_dqbuf(vb);
-+	__vb2_dqbuf(vb, no_cache_sync);
- 
- 	dprintk(1, "dqbuf of buffer %d, with state %d\n",
- 			vb->index, vb->state);
-@@ -1694,7 +1733,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 			vb->state = VB2_BUF_STATE_PREPARED;
- 			call_void_vb_qop(vb, buf_finish, vb);
- 		}
--		__vb2_dqbuf(vb);
-+		__vb2_dqbuf(vb, false);
- 	}
- }
- 
-@@ -2242,7 +2281,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 		 * Queue all buffers.
- 		 */
- 		for (i = 0; i < q->num_buffers; i++) {
--			ret = vb2_core_qbuf(q, i, NULL);
-+			ret = vb2_core_qbuf(q, i, NULL, false);
- 			if (ret)
- 				goto err_reqbufs;
- 			fileio->bufs[i].queued = 1;
-@@ -2345,7 +2384,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 		/*
- 		 * Call vb2_dqbuf to get buffer back.
- 		 */
--		ret = vb2_core_dqbuf(q, &index, NULL, nonblock);
-+		ret = vb2_core_dqbuf(q, &index, NULL, nonblock, false);
- 		dprintk(5, "vb2_dqbuf result: %d\n", ret);
- 		if (ret)
- 			return ret;
-@@ -2421,7 +2460,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 
- 		if (copy_timestamp)
- 			b->timestamp = ktime_get_ns();
--		ret = vb2_core_qbuf(q, index, NULL);
-+		ret = vb2_core_qbuf(q, index, NULL, false);
- 		dprintk(5, "vb2_dbuf result: %d\n", ret);
- 		if (ret)
- 			return ret;
-@@ -2507,7 +2546,7 @@ static int vb2_thread(void *data)
- 		} else {
- 			call_void_qop(q, wait_finish, q);
- 			if (!threadio->stop)
--				ret = vb2_core_dqbuf(q, &index, NULL, 0);
-+				ret = vb2_core_dqbuf(q, &index, NULL, 0, false);
- 			call_void_qop(q, wait_prepare, q);
- 			dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
- 			if (!ret)
-@@ -2524,7 +2563,7 @@ static int vb2_thread(void *data)
- 		if (copy_timestamp)
- 			vb->timestamp = ktime_get_ns();;
- 		if (!threadio->stop)
--			ret = vb2_core_qbuf(q, vb->index, NULL);
-+			ret = vb2_core_qbuf(q, vb->index, NULL, false);
- 		call_void_qop(q, wait_prepare, q);
- 		if (ret || threadio->stop)
- 			break;
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 3529849..7e327ad 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -499,8 +499,11 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	}
- 
- 	ret = vb2_queue_or_prepare_buf(q, b, "prepare_buf");
-+	if (ret)
-+		return ret;
- 
--	return ret ? ret : vb2_core_prepare_buf(q, b->index, b);
-+	return vb2_core_prepare_buf(q, b->index, b,
-+				    b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC);
- }
- EXPORT_SYMBOL_GPL(vb2_prepare_buf);
- 
-@@ -565,7 +568,11 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	}
- 
- 	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
--	return ret ? ret : vb2_core_qbuf(q, b->index, b);
-+	if (ret)
-+		return ret;
-+
-+	return vb2_core_qbuf(q, b->index, b,
-+			     b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC);
- }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
- 
-@@ -583,7 +590,8 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
- 		return -EINVAL;
- 	}
- 
--	ret = vb2_core_dqbuf(q, NULL, b, nonblocking);
-+	ret = vb2_core_dqbuf(q, NULL, b, nonblocking,
-+			     b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC);
- 
- 	/*
- 	 *  After calling the VIDIOC_DQBUF V4L2_BUF_FLAG_DONE must be
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 4172f6e..08f1d0e 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -83,10 +83,14 @@ struct vb2_threadio_data;
-  *		dmabuf.
-  * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
-  *		  that this driver is done using the dmabuf for now.
-- * @prepare:	called every time the buffer is passed from userspace to the
-- *		driver, useful for cache synchronisation, optional.
-- * @finish:	called every time the buffer is passed back from the driver
-- *		to the userspace, also optional.
-+ * @prepare:	Called on the plane when the buffer ownership is passed from
-+ *		the user space to the kernel and the plane must be cache
-+ *		syncronised. The V4L2_BUF_FLAG_NO_CACHE_SYNC buffer flag may
-+ *		be used to skip this call. Optional.
-+ * @finish:	Called on the plane when the buffer ownership is passed from
-+ *		the kernel to the user space and the plane must be cache
-+ *		syncronised. The V4L2_BUF_FLAG_NO_CACHE_SYNC buffer flag may
-+ *		be used to skip this call. Optional.
-  * @vaddr:	return a kernel virtual address to a given memory buffer
-  *		associated with the passed private structure or NULL if no
-  *		such mapping exists.
-@@ -696,6 +700,7 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
-  * @index:	id number of the buffer
-  * @pb:		buffer structure passed from userspace to vidioc_prepare_buf
-  *		handler in driver
-+ * @no_cache_sync if true, skip cache synchronization
-  *
-  * Should be called from vidioc_prepare_buf ioctl handler of a driver.
-  * The passed buffer should have been verified.
-@@ -705,7 +710,8 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
-  * The return values from this function are intended to be directly returned
-  * from vidioc_prepare_buf handler in driver.
-  */
--int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-+int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb,
-+			 bool no_cache_sync);
- 
- /**
-  * vb2_core_qbuf() - Queue a buffer from userspace
-@@ -714,6 +720,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-  * @index:	id number of the buffer
-  * @pb:		buffer structure passed from userspace to vidioc_qbuf handler
-  *		in driver
-+ * @no_cache_sync if true, skip cache synchronization
-  *
-  * Should be called from vidioc_qbuf ioctl handler of a driver.
-  * The passed buffer should have been verified.
-@@ -728,7 +735,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-  * The return values from this function are intended to be directly returned
-  * from vidioc_qbuf handler in driver.
-  */
--int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
-+int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-+		  bool no_cache_sync);
- 
- /**
-  * vb2_core_dqbuf() - Dequeue a buffer to the userspace
-@@ -739,6 +747,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
-  * @nonblocking: if true, this call will not sleep waiting for a buffer if no
-  *		 buffers ready for dequeuing are present. Normally the driver
-  *		 would be passing (file->f_flags & O_NONBLOCK) here
-+ * @no_cache_sync if true, skip cache synchronization
-  *
-  * Should be called from vidioc_dqbuf ioctl handler of a driver.
-  * The passed buffer should have been verified.
-@@ -755,7 +764,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
-  * from vidioc_dqbuf handler in driver.
-  */
- int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
--		   bool nonblocking);
-+		   bool nonblocking, bool no_cache_sync);
- 
- int vb2_core_streamon(struct vb2_queue *q, unsigned int type);
- int vb2_core_streamoff(struct vb2_queue *q, unsigned int type);
+-This is the documentation of (hopefully) all possible error codes (and
+-their interpretation) that can be returned from usbcore.
+-
+-Some of them are returned by the Host Controller Drivers (HCDs), which
+-device drivers only see through usbcore.  As a rule, all the HCDs should
+-behave the same except for transfer speed dependent behaviors and the
+-way certain faults are reported.
+-
+-
+-**************************************************************************
+-*                   Error codes returned by usb_submit_urb               *
+-**************************************************************************
+-
+-Non-USB-specific:
+-
+-0		URB submission went fine
+-
+--ENOMEM		no memory for allocation of internal structures	
+-
+-USB-specific:
+-
+--EBUSY		The URB is already active.
+-
+--ENODEV		specified USB-device or bus doesn't exist
+-
+--ENOENT		specified interface or endpoint does not exist or
+-		is not enabled
+-
+--ENXIO		host controller driver does not support queuing of this type
+-		of urb.  (treat as a host controller bug.)
+-
+--EINVAL		a) Invalid transfer type specified (or not supported)
+-		b) Invalid or unsupported periodic transfer interval
+-		c) ISO: attempted to change transfer interval
+-		d) ISO: number_of_packets is < 0
+-		e) various other cases
+-
+--EXDEV		ISO: URB_ISO_ASAP wasn't specified and all the frames
+-		the URB would be scheduled in have already expired.
+-
+--EFBIG		Host controller driver can't schedule that many ISO frames.
+-
+--EPIPE		The pipe type specified in the URB doesn't match the
+-		endpoint's actual type.
+-
+--EMSGSIZE	(a) endpoint maxpacket size is zero; it is not usable
+-		    in the current interface altsetting.
+-		(b) ISO packet is larger than the endpoint maxpacket.
+-		(c) requested data transfer length is invalid: negative
+-		    or too large for the host controller.
+-
+--ENOSPC		This request would overcommit the usb bandwidth reserved
+-		for periodic transfers (interrupt, isochronous).
+-
+--ESHUTDOWN	The device or host controller has been disabled due to some
+-		problem that could not be worked around.
+-
+--EPERM		Submission failed because urb->reject was set.
+-
+--EHOSTUNREACH	URB was rejected because the device is suspended.
+-
+--ENOEXEC	A control URB doesn't contain a Setup packet.
+-
+-
+-**************************************************************************
+-*                   Error codes returned by in urb->status               *
+-*                   or in iso_frame_desc[n].status (for ISO)             *
+-**************************************************************************
+-
+-USB device drivers may only test urb status values in completion handlers.
+-This is because otherwise there would be a race between HCDs updating
+-these values on one CPU, and device drivers testing them on another CPU.
+-
+-A transfer's actual_length may be positive even when an error has been
+-reported.  That's because transfers often involve several packets, so that
+-one or more packets could finish before an error stops further endpoint I/O.
+-
+-For isochronous URBs, the urb status value is non-zero only if the URB is
+-unlinked, the device is removed, the host controller is disabled, or the total
+-transferred length is less than the requested length and the URB_SHORT_NOT_OK
+-flag is set.  Completion handlers for isochronous URBs should only see
+-urb->status set to zero, -ENOENT, -ECONNRESET, -ESHUTDOWN, or -EREMOTEIO.
+-Individual frame descriptor status fields may report more status codes.
+-
+-
+-0			Transfer completed successfully
+-
+--ENOENT			URB was synchronously unlinked by usb_unlink_urb
+-
+--EINPROGRESS		URB still pending, no results yet
+-			(That is, if drivers see this it's a bug.)
+-
+--EPROTO (*, **)		a) bitstuff error
+-			b) no response packet received within the
+-			   prescribed bus turn-around time
+-			c) unknown USB error 
+-
+--EILSEQ (*, **)		a) CRC mismatch
+-			b) no response packet received within the
+-			   prescribed bus turn-around time
+-			c) unknown USB error 
+-
+-			Note that often the controller hardware does not
+-			distinguish among cases a), b), and c), so a
+-			driver cannot tell whether there was a protocol
+-			error, a failure to respond (often caused by
+-			device disconnect), or some other fault.
+-
+--ETIME (**)		No response packet received within the prescribed
+-			bus turn-around time.  This error may instead be
+-			reported as -EPROTO or -EILSEQ.
+-
+--ETIMEDOUT		Synchronous USB message functions use this code
+-			to indicate timeout expired before the transfer
+-			completed, and no other error was reported by HC.
+-
+--EPIPE (**)		Endpoint stalled.  For non-control endpoints,
+-			reset this status with usb_clear_halt().
+-
+--ECOMM			During an IN transfer, the host controller
+-			received data from an endpoint faster than it
+-			could be written to system memory
+-
+--ENOSR			During an OUT transfer, the host controller
+-			could not retrieve data from system memory fast
+-			enough to keep up with the USB data rate
+-
+--EOVERFLOW (*)		The amount of data returned by the endpoint was
+-			greater than either the max packet size of the
+-			endpoint or the remaining buffer size.  "Babble".
+-
+--EREMOTEIO		The data read from the endpoint did not fill the
+-			specified buffer, and URB_SHORT_NOT_OK was set in
+-			urb->transfer_flags.
+-
+--ENODEV			Device was removed.  Often preceded by a burst of
+-			other errors, since the hub driver doesn't detect
+-			device removal events immediately.
+-
+--EXDEV			ISO transfer only partially completed
+-			(only set in iso_frame_desc[n].status, not urb->status)
+-
+--EINVAL			ISO madness, if this happens: Log off and go home
+-
+--ECONNRESET		URB was asynchronously unlinked by usb_unlink_urb
+-
+--ESHUTDOWN		The device or host controller has been disabled due
+-			to some problem that could not be worked around,
+-			such as a physical disconnect.
+-
+-
+-(*) Error codes like -EPROTO, -EILSEQ and -EOVERFLOW normally indicate
+-hardware problems such as bad devices (including firmware) or cables.
+-
+-(**) This is also one of several codes that different kinds of host
+-controller use to indicate a transfer has failed because of device
+-disconnect.  In the interval before the hub driver starts disconnect
+-processing, devices may receive such fault reports for every request.
+-
+-
+-
+-**************************************************************************
+-*              Error codes returned by usbcore-functions                 *
+-*           (expect also other submit and transfer status codes)         *
+-**************************************************************************
+-
+-usb_register():
+--EINVAL			error during registering new driver
+-
+-usb_get_*/usb_set_*():
+-usb_control_msg():
+-usb_bulk_msg():
+--ETIMEDOUT		Timeout expired before the transfer completed.
 -- 
-2.7.4
+2.9.3
