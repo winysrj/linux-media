@@ -1,110 +1,247 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:56472 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752623AbdDJT1K (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 15:27:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCHv4 00/15] R-Car VSP1 Histogram Support
-Date: Mon, 10 Apr 2017 21:26:36 +0200
-Message-Id: <20170410192651.18486-1-hverkuil@xs4all.nl>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:52205 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754236AbdDEPJ4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 11:09:56 -0400
+Date: Wed, 5 Apr 2017 17:09:51 +0200
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-kernel@vger.kernel.org
+Subject: Re: [RFC 00/10] V4L2 explicit synchronization support
+Message-ID: <20170405150951.GC32294@joana>
+References: <20170313192035.29859-1-gustavo@padovan.org>
+ <20170403081610.16a2a3fc@vento.lan>
+ <bafe3f9d-cdf4-bb22-b9c8-fe3f677d289c@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <bafe3f9d-cdf4-bb22-b9c8-fe3f677d289c@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+2017-04-03 Javier Martinez Canillas <javier@osg.samsung.com>:
 
-This patch series is the rebased version of this pull request:
+> Hello Mauro and Gustavo,
+> 
+> On 04/03/2017 07:16 AM, Mauro Carvalho Chehab wrote:
+> > Hi Gustavo,
+> > 
+> > Em Mon, 13 Mar 2017 16:20:25 -0300
+> > Gustavo Padovan <gustavo@padovan.org> escreveu:
+> > 
+> >> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> >>
+> >> Hi,
+> >>
+> >> This RFC adds support for Explicit Synchronization of shared buffers in V4L2.
+> >> It uses the Sync File Framework[1] as vector to communicate the fences
+> >> between kernel and userspace.
+> > 
+> > Thanks for your work!
+> > 
+> > I looked on your patchset, and I didn't notice anything really weird
+> > there. So, instead on reviewing patch per patch, I prefer to discuss
+> > about the requirements and API, as depending on it, the code base will
+> > change a lot.
+> >
+> 
+> Agree that's better to first set on an uAPI and then implement based on that.
+>  
+> > I'd like to do some tests with it on devices with mem2mem drivers.
+> > My plan is to use an Exynos board for such thing, but I guess that
+> > the DRM driver for it currently doesn't. I'm seeing internally if someone
+> > could be sure that Exynos driver upstream will become ready for such
+> > tests.
+> >
+> 
+> Not sure if you should try to do testing before agreeing on an uAPI and
+> implementation.
+> 
+> > Javier wrote some patches last year meant to implement implicit
+> > fences support. What we noticed is that, while his mechanism worked
+> > fine for pure capture and pure output devices, when we added a mem2mem
+> > device, on a DMABUF+fences pipeline, e. g.:
+> > 
+> > 	sensor -> [m2m] -> DRM
+> > 
+> > End everything using fences/DMABUF, the fences mechanism caused dead
+> > locks on existing userspace apps.
+> >
+> > A m2m device has both capture and output devnodes. Both should be
+> > queued/dequeued. The capture queue is synchronized internally at the
+> > driver with the output buffer[1].
+> > 
+> > [1] The names here are counter-intuitive: "capture" is a devnode
+> > where userspace receives a video stream; "output" is a devnode where
+> > userspace feeds a video stream.
+> > 
+> > The problem is that adding implicit fences changed the behavior of
+> > the ioctls, causing gstreamer to wait forever for buffers to be ready.
+> >
+> 
+> The problem was related to trying to make user-space unaware of the implicit
+> fences support, and so it tried to QBUF a buffer that had already a pending
+> fence. A workaround was to block the second QBUF ioctl if the buffer had a
+> pending fence, but this caused the mentioned deadlock since GStreamer wasn't
+> expecting the QBUF ioctl to block.
+> 
+> > I suspect that, even with explicit fences, the behavior of Q/DQ
+> > will be incompatible with the current behavior (or will require some
+> > dirty hacks to make it identical). 
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg111025.html
+For QBUF the only difference is that we set flags for fences and pass
+and receives in and out fences. For DQBUF the behavior is exactly the
+same. What incompatibles or hacks do you see?
 
-It slightly modifies 'Add metadata buffer type and format' (remove
-experimental note and add newline after label) and it adds support
-for V4L2_CTRL_FLAG_MODIFY_LAYOUT, as requested by Mauro.
+I had the expectation that the flags would be for userspace to learn
+about any different behavior.
 
-No other changes were made.
+> >
+> > So, IMHO, the best would be to use a new set of ioctls, when fences are
+> > used (like VIDIOC_QFENCE/DQFENCE).
+> > 
+> 
+> For explicit you can check if there's an input-fence so is different than
+> implicit, but still I agree that it would be better to have specific ioctls.
 
-Regards,
+I'm pretty new to v4l2 so I don't know all use cases yet, but what I
+thought was to just add extra flags to QBUF to mark when using fences
+instead of having userspace  to setup completely new ioctls for fences.
+The burden for userspace should be smaller with flags.
 
-	Hans
+> 
+> >>
+> >> I'm sending this to start the discussion on the best approach to implement
+> >> Explicit Synchronization, please check the TODO/OPEN section below.
+> >>
+> >> Explicit Synchronization allows us to control the synchronization of
+> >> shared buffers from userspace by passing fences to the kernel and/or 
+> >> receiving them from the the kernel.
+> >>
+> >> Fences passed to the kernel are named in-fences and the kernel should wait
+> >> them to signal before using the buffer. On the other side, the kernel creates
+> >> out-fences for every buffer it receives from userspace. This fence is sent back
+> >> to userspace and it will signal when the capture, for example, has finished.
+> >>
+> >> Signalling an out-fence in V4L2 would mean that the job on the buffer is done
+> >> and the buffer can be used by other drivers.
+> >>
+> >> Current RFC implementation
+> >> --------------------------
+> >>
+> >> The current implementation is not intended to be more than a PoC to start
+> >> the discussion on how Explicit Synchronization should be supported in V4L2.
+> >>
+> >> The first patch proposes an userspace API for fences, then on patch 2
+> >> we prepare to the addition of in-fences in patch 3, by introducing the
+> >> infrastructure on vb2 to wait on an in-fence signal before queueing the buffer
+> >> in the driver.
+> >>
+> >> Patch 4 fix uvc v4l2 event handling and patch 5 configure q->dev for vivid
+> >> drivers to enable to subscribe and dequeue events on it.
+> >>
+> >> Patches 6-7 enables support to notify BUF_QUEUED events, i.e., let userspace
+> >> know that particular buffer was enqueued in the driver. This is needed,
+> >> because we return the out-fence fd as an out argument in QBUF, but at the time
+> >> it returns we don't know to which buffer the fence will be attached thus
+> >> the BUF_QUEUED event tells which buffer is associated to the fence received in
+> >> QBUF by userspace.
+> >>
+> >> Patches 8 and 9 add more fence infrastructure to support out-fences and finally
+> >> patch 10 adds support to out-fences.
+> >>
+> >> TODO/OPEN:
+> >> ----------
+> >>
+> >> * For this first implementation we will keep the ordering of the buffers queued
+> >> in videobuf2, that means we will only enqueue buffer whose fence was signalled
+> >> if that buffer is the first one in the queue. Otherwise it has to wait until it
+> >> is the first one. This is not implmented yet. Later we could create a flag to
+> >> allow unordered queing in the drivers from vb2 if needed.
+> > 
+> > The V4L2 spec doesn't warrant that the buffers will be dequeued at the
+> > queue order.
+> > 
+> > In practice, however, most drivers will not reorder. Yet, mem2mem codec 
+> > drivers may reorder the buffers at the output, as the luminance information
+> > (Y) usually comes first on JPEG/MPEG-like formats.
+> > 
+> >> * Should we have out-fences per-buffer or per-plane? or both? In this RFC, for
+> >> simplicity they are per-buffer, but Mauro and Javier raised the option of
+> >> doing per-plane fences. That could benefit mem2mem and V4L2 <-> GPU operation
+> >> at least on cases when we have Capture hw that releases the Y frame before the
+> >> other frames for example. When using V4L2 per-plane out-fences to communicate
+> >> with KMS they would need to be merged together as currently the DRM Plane
+> >> interface only supports one fence per DRM Plane.
+> > 
+> > That's another advantage of using a new set of ioctls for queues: with that,
+> > queuing/dequeing per plane will be easier. On codec drivers, doing it per
+> > plane could bring performance improvements.
+> >
+> 
+> You don't really need to Q/DQ on a per plane basis AFAICT. Since on QBUF you
+> can get a set of out-fences that can be passed to the other driver and so it
+> should be able to wait per fence.
+> 
+> >> In-fences should be per-buffer as the DRM only has per-buffer fences, but
+> 
+> I'm not that familiar with DRM, but I thought DRM fences was also per plane
+> and not per buffer.
 
-Hans Verkuil (5):
-  vidioc-queryctrl.rst: document V4L2_CTRL_FLAG_MODIFY_LAYOUT
-  videodev.h: add V4L2_CTRL_FLAG_MODIFY_LAYOUT
-  v4l2-ctrls.c: set V4L2_CTRL_FLAG_MODIFY_LAYOUT for ROTATE
-  buffer.rst: clarify how V4L2_CTRL_FLAG_MODIFY_LAYOUT/GRABBER are used
-  vsp1: set V4L2_CTRL_FLAG_MODIFY_LAYOUT for histogram controls
+DRM plane is a different thing, its a representation of a region on the
+screen and there is only one buffer for each DRM plane. 
 
-Laurent Pinchart (8):
-  v4l: Clearly document interactions between formats, controls and
-    buffers
-  v4l: vsp1: wpf: Implement rotation support
-  v4l: Add metadata buffer type and format
-  v4l: vsp1: Add histogram support
-  v4l: vsp1: Support histogram generators in pipeline configuration
-  v4l: vsp1: Fix HGO and HGT routing register addresses
-  v4l: Define a pixel format for the R-Car VSP1 1-D histogram engine
-  v4l: vsp1: Add HGO support
+One of the questions I raised was: how to match V4L2 per-plane fences to
+DRM per-buffer fences?
 
-Niklas Söderlund (2):
-  v4l: Define a pixel format for the R-Car VSP1 2-D histogram engine
-  v4l: vsp1: Add HGT support
+> 
+> How this works without fences? For V4L2 there's a dma-buf fd per plane and
+> so I was expecting the DRM API to also import a dma-buf fd per DRM plane.
 
- Documentation/media/uapi/v4l/buffer.rst            | 122 ++++
- Documentation/media/uapi/v4l/dev-meta.rst          |  58 ++
- Documentation/media/uapi/v4l/devices.rst           |   1 +
- Documentation/media/uapi/v4l/meta-formats.rst      |  16 +
- .../media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst        | 168 ++++++
- .../media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst        | 120 ++++
- Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
- Documentation/media/uapi/v4l/vidioc-querycap.rst   |   3 +
- Documentation/media/uapi/v4l/vidioc-queryctrl.rst  |  13 +
- Documentation/media/videodev2.h.rst.exceptions     |   3 +
- drivers/media/platform/Kconfig                     |   1 +
- drivers/media/platform/vsp1/Makefile               |   1 +
- drivers/media/platform/vsp1/vsp1.h                 |   6 +
- drivers/media/platform/vsp1/vsp1_drm.c             |   2 +-
- drivers/media/platform/vsp1/vsp1_drv.c             |  70 ++-
- drivers/media/platform/vsp1/vsp1_entity.c          | 154 ++++-
- drivers/media/platform/vsp1/vsp1_entity.h          |   8 +-
- drivers/media/platform/vsp1/vsp1_hgo.c             | 230 ++++++++
- drivers/media/platform/vsp1/vsp1_hgo.h             |  45 ++
- drivers/media/platform/vsp1/vsp1_hgt.c             | 222 +++++++
- drivers/media/platform/vsp1/vsp1_hgt.h             |  42 ++
- drivers/media/platform/vsp1/vsp1_histo.c           | 646 +++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_histo.h           |  84 +++
- drivers/media/platform/vsp1/vsp1_pipe.c            |  38 +-
- drivers/media/platform/vsp1/vsp1_pipe.h            |   4 +
- drivers/media/platform/vsp1/vsp1_regs.h            |  33 +-
- drivers/media/platform/vsp1/vsp1_rpf.c             |   2 +-
- drivers/media/platform/vsp1/vsp1_rwpf.c            |   5 +
- drivers/media/platform/vsp1/vsp1_rwpf.h            |   7 +-
- drivers/media/platform/vsp1/vsp1_video.c           |  42 +-
- drivers/media/platform/vsp1/vsp1_wpf.c             | 205 +++++--
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  19 +
- drivers/media/v4l2-core/v4l2-ctrls.c               |   4 +
- drivers/media/v4l2-core/v4l2-dev.c                 |  16 +-
- drivers/media/v4l2-core/v4l2-ioctl.c               |  36 ++
- drivers/media/v4l2-core/videobuf2-v4l2.c           |   3 +
- include/media/v4l2-ioctl.h                         |  17 +
- include/trace/events/v4l2.h                        |   1 +
- include/uapi/linux/videodev2.h                     |  18 +
- 39 files changed, 2364 insertions(+), 102 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/dev-meta.rst
- create mode 100644 Documentation/media/uapi/v4l/meta-formats.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
- create mode 100644 drivers/media/platform/vsp1/vsp1_hgo.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_hgo.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_histo.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_histo.h
+Yes. It should do something similar behind the Framebuffer abstraction.
 
--- 
-2.11.0
+> 
+> I only have access to an Exynos board whose display controller supports
+> single plane formats, so I don't know how this works for multi planar.
+> 
+> >> in case of mem2mem operations per-plane fences might be useful?
+> >>
+> >> So should we have both ways, per-plane and per-buffer, or just one of them
+> >> for now?
+> >
+> > The API should be flexible enough to support both usecases. We could
+> > implement just per-buffer in the beginning, but, on such case, we
+> > should deploy an API that will allow to later add per-plane fences
+> > without breaking userspace.
+
+I believe we can just extend the per-plane parts of QBUF for their
+fences. We could even use plane[0] for the per-buffer case.
+
+> >
+> > So, I prefer that, on multiplane fences, we have one fence per plane,
+> > even if, at the first implementation, all fences will be released
+> > at the same time, when the buffer is fully filled. That would allow
+> > us to later improve it, without changing userspace.
+> 
+> It's true that vb2 can't currently signal fences per plane since the interface
+> between vb2 and drivers is per vb2_buffer. But the uAPI shouldn't be restricted
+> by this implementation detail (that can be changed) and should support per plane
+> fences IMHO.
+> 
+> That's for example the case with the V4L2 dma-buf API. There is a dma-buf fd per
+> plane, and internally for vb2 single planar buffers use the dma-buf associated
+> with plane 0.
+> 
+> Now when mentioning this, I noticed that in your implementation the fences are
+> not associated with a dma-buf. I thought the idea was for the fences to be
+> associated with a dma-buf's reservation object. If we do that, then fences will
+> be per fence since the dma-buf/reservation objet are also per fence in v4l2/vb2.
+
+Can you explain what you were thinking on the relation between fences
+and reservation objects? Not sure I follow.
+
+Gustavo
