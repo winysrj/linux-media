@@ -1,142 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:49844 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1952436AbdDYSVa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 14:21:30 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com
-Cc: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Adaptec OEM Raid Solutions <aacraid@adaptec.com>,
-        Kashyap Desai <kashyap.desai@broadcom.com>,
-        Sumit Saxena <sumit.saxena@broadcom.com>,
-        Shivasharan S <shivasharan.srikanteshwara@broadcom.com>
-Date: Tue, 25 Apr 2017 12:21:00 -0600
-Message-Id: <1493144468-22493-14-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 13/21] scsi: arcmsr, ips, megaraid: Make use of the new sg_map helper function
+Received: from mailout4.samsung.com ([203.254.224.34]:35692 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932461AbdDFGKO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Apr 2017 02:10:14 -0400
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v4 04/12] [media] s5p-mfc: Support MFCv10.10 buffer requirements
+Date: Thu, 06 Apr 2017 11:41:37 +0530
+Message-id: <1491459105-16641-5-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
+References: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170406061007epcas5p2e1dccf4e2e13ac002ac0b6bfa9d9695c@epcas5p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Very straightforward conversion of three scsi drivers
+Aligning the luma_dpb_size, chroma_dpb_size, mv_size and me_buffer_size
+for MFCv10.10.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Adaptec OEM Raid Solutions <aacraid@adaptec.com>
-Cc: Kashyap Desai <kashyap.desai@broadcom.com>
-Cc: Sumit Saxena <sumit.saxena@broadcom.com>
-Cc: Shivasharan S <shivasharan.srikanteshwara@broadcom.com>
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
 ---
- drivers/scsi/arcmsr/arcmsr_hba.c | 16 ++++++++++++----
- drivers/scsi/ips.c               |  8 ++++----
- drivers/scsi/megaraid.c          |  9 +++++++--
- 3 files changed, 23 insertions(+), 10 deletions(-)
+ drivers/media/platform/s5p-mfc/regs-mfc-v10.h   | 19 +++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 95 +++++++++++++++++++------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |  2 +
+ 3 files changed, 95 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/scsi/arcmsr/arcmsr_hba.c b/drivers/scsi/arcmsr/arcmsr_hba.c
-index af032c4..8c2de17 100644
---- a/drivers/scsi/arcmsr/arcmsr_hba.c
-+++ b/drivers/scsi/arcmsr/arcmsr_hba.c
-@@ -2306,7 +2306,10 @@ static int arcmsr_iop_message_xfer(struct AdapterControlBlock *acb,
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+index 1ca09d6..3f0dab3 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+@@ -32,5 +32,24 @@
+ #define MFC_VERSION_V10		0xA0
+ #define MFC_NUM_PORTS_V10	1
  
- 	use_sg = scsi_sg_count(cmd);
- 	sg = scsi_sglist(cmd);
--	buffer = kmap_atomic(sg_page(sg)) + sg->offset;
-+	buffer = sg_map(sg, 0, SG_KMAP_ATOMIC);
-+	if (IS_ERR(buffer))
-+		return ARCMSR_MESSAGE_FAIL;
++/* MFCv10 codec defines*/
++#define S5P_FIMV_CODEC_HEVC_ENC         26
 +
- 	if (use_sg > 1) {
- 		retvalue = ARCMSR_MESSAGE_FAIL;
- 		goto message_out;
-@@ -2539,7 +2542,7 @@ static int arcmsr_iop_message_xfer(struct AdapterControlBlock *acb,
- message_out:
- 	if (use_sg) {
- 		struct scatterlist *sg = scsi_sglist(cmd);
--		kunmap_atomic(buffer - sg->offset);
-+		sg_unmap(sg, buffer, 0, SG_KMAP_ATOMIC);
- 	}
- 	return retvalue;
- }
-@@ -2590,11 +2593,16 @@ static void arcmsr_handle_virtual_command(struct AdapterControlBlock *acb,
- 		strncpy(&inqdata[32], "R001", 4); /* Product Revision */
++/* Encoder buffer size for MFC v10.0 */
++#define ENC_V100_BASE_SIZE(x, y) \
++	(((x + 3) * (y + 3) * 8) \
++	+  ((y * 64) + 1280) * DIV_ROUND_UP(x, 8))
++
++#define ENC_V100_H264_ME_SIZE(x, y) \
++	(ENC_V100_BASE_SIZE(x, y) \
++	+ (DIV_ROUND_UP(x * y, 64) * 32))
++
++#define ENC_V100_MPEG4_ME_SIZE(x, y) \
++	(ENC_V100_BASE_SIZE(x, y) \
++	+ (DIV_ROUND_UP(x * y, 128) * 16))
++
++#define ENC_V100_VP8_ME_SIZE(x, y) \
++	ENC_V100_BASE_SIZE(x, y)
++
+ #endif /*_REGS_MFC_V10_H*/
  
- 		sg = scsi_sglist(cmd);
--		buffer = kmap_atomic(sg_page(sg)) + sg->offset;
-+		buffer = sg_map(sg, 0, SG_KMAP_ATOMIC);
-+		if (IS_ERR(buffer)) {
-+			cmd->result = (DID_ERROR << 16);
-+			cmd->scsi_done(cmd);
-+			return;
-+		}
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 0030b6f..2d26b1b 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -64,6 +64,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	unsigned int mb_width, mb_height;
++	unsigned int lcu_width = 0, lcu_height = 0;
+ 	int ret;
  
- 		memcpy(buffer, inqdata, sizeof(inqdata));
- 		sg = scsi_sglist(cmd);
--		kunmap_atomic(buffer - sg->offset);
-+		sg_unmap(sg, buffer, 0, SG_KMAP_ATOMIC);
- 
- 		cmd->scsi_done(cmd);
- 	}
-diff --git a/drivers/scsi/ips.c b/drivers/scsi/ips.c
-index 3419e1b..6e91729 100644
---- a/drivers/scsi/ips.c
-+++ b/drivers/scsi/ips.c
-@@ -1506,14 +1506,14 @@ static int ips_is_passthru(struct scsi_cmnd *SC)
-                 /* kmap_atomic() ensures addressability of the user buffer.*/
-                 /* local_irq_save() protects the KM_IRQ0 address slot.     */
-                 local_irq_save(flags);
--                buffer = kmap_atomic(sg_page(sg)) + sg->offset;
--                if (buffer && buffer[0] == 'C' && buffer[1] == 'O' &&
-+                buffer = sg_map(sg, 0, SG_KMAP_ATOMIC);
-+                if (!IS_ERR(buffer) && buffer[0] == 'C' && buffer[1] == 'O' &&
-                     buffer[2] == 'P' && buffer[3] == 'P') {
--                        kunmap_atomic(buffer - sg->offset);
-+                        sg_unmap(sg, buffer, 0, SG_KMAP_ATOMIC);
-                         local_irq_restore(flags);
-                         return 1;
-                 }
--                kunmap_atomic(buffer - sg->offset);
-+                sg_unmap(sg, buffer, 0, SG_KMAP_ATOMIC);
-                 local_irq_restore(flags);
- 	}
- 	return 0;
-diff --git a/drivers/scsi/megaraid.c b/drivers/scsi/megaraid.c
-index 3c63c29..f8aee59 100644
---- a/drivers/scsi/megaraid.c
-+++ b/drivers/scsi/megaraid.c
-@@ -663,10 +663,15 @@ mega_build_cmd(adapter_t *adapter, Scsi_Cmnd *cmd, int *busy)
- 			struct scatterlist *sg;
- 
- 			sg = scsi_sglist(cmd);
--			buf = kmap_atomic(sg_page(sg)) + sg->offset;
-+			buf = sg_map(sg, 0, SG_KMAP_ATOMIC);
-+			if (IS_ERR(buf)) {
-+                                cmd->result = (DID_ERROR << 16);
-+				cmd->scsi_done(cmd);
-+				return NULL;
+ 	mb_width = MB_WIDTH(ctx->img_width);
+@@ -74,7 +75,9 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 			  ctx->luma_size, ctx->chroma_size, ctx->mv_size);
+ 		mfc_debug(2, "Totals bufs: %d\n", ctx->total_dpb_count);
+ 	} else if (ctx->type == MFCINST_ENCODER) {
+-		if (IS_MFCV8_PLUS(dev))
++		if (IS_MFCV10(dev)) {
++			ctx->tmv_buffer_size = 0;
++		} else if (IS_MFCV8_PLUS(dev))
+ 			ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
+ 			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V8(mb_width, mb_height),
+ 			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
+@@ -82,13 +85,36 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 			ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
+ 			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V6(mb_width, mb_height),
+ 			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
+-
+-		ctx->luma_dpb_size = ALIGN((mb_width * mb_height) *
+-				S5P_FIMV_LUMA_MB_TO_PIXEL_V6,
+-				S5P_FIMV_LUMA_DPB_BUFFER_ALIGN_V6);
+-		ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) *
+-				S5P_FIMV_CHROMA_MB_TO_PIXEL_V6,
+-				S5P_FIMV_CHROMA_DPB_BUFFER_ALIGN_V6);
++		if (IS_MFCV10(dev)) {
++			lcu_width = enc_lcu_width(ctx->img_width);
++			lcu_height = enc_lcu_height(ctx->img_height);
++			if (ctx->codec_mode != S5P_FIMV_CODEC_HEVC_ENC) {
++				ctx->luma_dpb_size =
++					ALIGN((mb_width * 16), 64)
++					* ALIGN((mb_height * 16), 32)
++						+ 64;
++				ctx->chroma_dpb_size =
++					ALIGN((mb_width * 16), 64)
++							* (mb_height * 8)
++							+ 64;
++			} else {
++				ctx->luma_dpb_size =
++					ALIGN((lcu_width * 32), 64)
++					* ALIGN((lcu_height * 32), 32)
++						+ 64;
++				ctx->chroma_dpb_size =
++					ALIGN((lcu_width * 32), 64)
++							* (lcu_height * 16)
++							+ 64;
 +			}
++		} else {
++			ctx->luma_dpb_size = ALIGN((mb_width * mb_height) *
++					S5P_FIMV_LUMA_MB_TO_PIXEL_V6,
++					S5P_FIMV_LUMA_DPB_BUFFER_ALIGN_V6);
++			ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) *
++					S5P_FIMV_CHROMA_MB_TO_PIXEL_V6,
++					S5P_FIMV_CHROMA_DPB_BUFFER_ALIGN_V6);
++		}
+ 		if (IS_MFCV8_PLUS(dev))
+ 			ctx->me_buffer_size = ALIGN(S5P_FIMV_ME_BUFFER_SIZE_V8(
+ 						ctx->img_width, ctx->img_height,
+@@ -197,6 +223,8 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		if (IS_MFCV10(dev)) {
+ 			mfc_debug(2, "Use min scratch buffer size\n");
++			ctx->me_buffer_size =
++			ALIGN(ENC_V100_H264_ME_SIZE(mb_width, mb_height), 16);
+ 		} else if (IS_MFCV8_PLUS(dev))
+ 			ctx->scratch_buf_size =
+ 				S5P_FIMV_SCRATCH_BUF_SIZE_H264_ENC_V8(
+@@ -219,6 +247,9 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_H263_ENC:
+ 		if (IS_MFCV10(dev)) {
+ 			mfc_debug(2, "Use min scratch buffer size\n");
++			ctx->me_buffer_size =
++				ALIGN(ENC_V100_MPEG4_ME_SIZE(mb_width,
++							mb_height), 16);
+ 		} else
+ 			ctx->scratch_buf_size =
+ 				S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_ENC_V6(
+@@ -235,7 +266,10 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_VP8_ENC:
+ 		if (IS_MFCV10(dev)) {
+ 			mfc_debug(2, "Use min scratch buffer size\n");
+-			} else if (IS_MFCV8_PLUS(dev))
++			ctx->me_buffer_size =
++				ALIGN(ENC_V100_VP8_ME_SIZE(mb_width, mb_height),
++						16);
++		} else if (IS_MFCV8_PLUS(dev))
+ 			ctx->scratch_buf_size =
+ 				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V8(
+ 					mb_width,
+@@ -393,13 +427,13 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
  
- 			memset(buf, 0, cmd->cmnd[4]);
--			kunmap_atomic(buf - sg->offset);
-+			sg_unmap(sg, buf, 0, SG_KMAP_ATOMIC);
+ 	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
+ 			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC) {
+-		if (IS_MFCV10(dev))
++		if (IS_MFCV10(dev)) {
+ 			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V10(ctx->img_width,
+ 					ctx->img_height);
+-		else
++		} else {
+ 			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
+ 					ctx->img_height);
+-		ctx->mv_size = ALIGN(ctx->mv_size, 16);
++		}
+ 	} else {
+ 		ctx->mv_size = 0;
+ 	}
+@@ -596,15 +630,34 @@ static int s5p_mfc_set_enc_ref_buffer_v6(struct s5p_mfc_ctx *ctx)
  
- 			cmd->result = (DID_OK << 16);
- 			cmd->scsi_done(cmd);
+ 	mfc_debug(2, "Buf1: %p (%d)\n", (void *)buf_addr1, buf_size1);
+ 
+-	for (i = 0; i < ctx->pb_count; i++) {
+-		writel(buf_addr1, mfc_regs->e_luma_dpb + (4 * i));
+-		buf_addr1 += ctx->luma_dpb_size;
+-		writel(buf_addr1, mfc_regs->e_chroma_dpb + (4 * i));
+-		buf_addr1 += ctx->chroma_dpb_size;
+-		writel(buf_addr1, mfc_regs->e_me_buffer + (4 * i));
+-		buf_addr1 += ctx->me_buffer_size;
+-		buf_size1 -= (ctx->luma_dpb_size + ctx->chroma_dpb_size +
+-			ctx->me_buffer_size);
++	if (IS_MFCV10(dev)) {
++		/* start address of per buffer is aligned */
++		for (i = 0; i < ctx->pb_count; i++) {
++			writel(buf_addr1, mfc_regs->e_luma_dpb + (4 * i));
++			buf_addr1 += ctx->luma_dpb_size;
++			buf_size1 -= ctx->luma_dpb_size;
++		}
++		for (i = 0; i < ctx->pb_count; i++) {
++			writel(buf_addr1, mfc_regs->e_chroma_dpb + (4 * i));
++			buf_addr1 += ctx->chroma_dpb_size;
++			buf_size1 -= ctx->chroma_dpb_size;
++		}
++		for (i = 0; i < ctx->pb_count; i++) {
++			writel(buf_addr1, mfc_regs->e_me_buffer + (4 * i));
++			buf_addr1 += ctx->me_buffer_size;
++			buf_size1 -= ctx->me_buffer_size;
++		}
++	} else {
++		for (i = 0; i < ctx->pb_count; i++) {
++			writel(buf_addr1, mfc_regs->e_luma_dpb + (4 * i));
++			buf_addr1 += ctx->luma_dpb_size;
++			writel(buf_addr1, mfc_regs->e_chroma_dpb + (4 * i));
++			buf_addr1 += ctx->chroma_dpb_size;
++			writel(buf_addr1, mfc_regs->e_me_buffer + (4 * i));
++			buf_addr1 += ctx->me_buffer_size;
++			buf_size1 -= (ctx->luma_dpb_size + ctx->chroma_dpb_size
++					+ ctx->me_buffer_size);
++		}
+ 	}
+ 
+ 	writel(buf_addr1, mfc_regs->e_scratch_buffer_addr);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+index 021b8db..975bbc5 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+@@ -26,6 +26,8 @@
+ 					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 128)
+ #define S5P_MFC_DEC_MV_SIZE_V10(x, y)	(MB_WIDTH(x) * \
+ 					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 512)
++#define enc_lcu_width(x_size)		DIV_ROUND_UP(x_size, 32)
++#define enc_lcu_height(y_size)		DIV_ROUND_UP(y_size, 32)
+ 
+ /* Definition */
+ #define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
 -- 
-2.1.4
+2.7.4
