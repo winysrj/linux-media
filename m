@@ -1,169 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f47.google.com ([209.85.213.47]:36487 "EHLO
-        mail-vk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750862AbdDFS2l (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Apr 2017 14:28:41 -0400
-Received: by mail-vk0-f47.google.com with SMTP id s68so50697363vke.3
-        for <linux-media@vger.kernel.org>; Thu, 06 Apr 2017 11:28:41 -0700 (PDT)
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:35103 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754220AbdDFPnS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Apr 2017 11:43:18 -0400
+Subject: Re: [PATCH] [media] imx: csi: retain current field order and
+ colorimetry setting as default
+To: Philipp Zabel <p.zabel@pengutronix.de>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+ <1490661656-10318-22-git-send-email-steve_longerbeam@mentor.com>
+ <1491486929.2392.29.camel@pengutronix.de>
+ <0f9690f8-c7f6-59ff-9e3e-123af9972d4b@xs4all.nl>
+ <1491490451.2392.70.camel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <59e72974-bfb0-6061-8b13-5f13f8723ba6@xs4all.nl>
+Date: Thu, 6 Apr 2017 17:43:00 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170406175825.90406-1-pbos@google.com>
-References: <20170406175825.90406-1-pbos@google.com>
-From: =?UTF-8?Q?Peter_Bostr=C3=B6m?= <pbos@google.com>
-Date: Thu, 6 Apr 2017 14:28:39 -0400
-Message-ID: <CAGFX3sHzt6jF_gG65sfDGFGBg6D1F==27tqGAOZq==Bt_SsOtQ@mail.gmail.com>
-Subject: Re: [PATCH] [media] uvcvideo: Add iFunction or iInterface to device names.
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <1491490451.2392.70.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'll put some more info/discussion points inline. Very happy for
-feedback/input here, thanks!
+On 04/06/2017 04:54 PM, Philipp Zabel wrote:
+> On Thu, 2017-04-06 at 16:20 +0200, Hans Verkuil wrote:
+>> On 04/06/2017 03:55 PM, Philipp Zabel wrote:
+>>> If the the field order is set to ANY in set_fmt, choose the currently
+>>> set field order. If the colorspace is set to DEFAULT, choose the current
+>>> colorspace.  If any of xfer_func, ycbcr_enc or quantization are set to
+>>> DEFAULT, either choose the current setting, or the default setting for the
+>>> new colorspace, if non-DEFAULT colorspace was given.
+>>>
+>>> This allows to let field order and colorimetry settings be propagated
+>>> from upstream by calling media-ctl on the upstream entity source pad,
+>>> and then call media-ctl on the sink pad to manually set the input frame
+>>> interval, without changing the already set field order and colorimetry
+>>> information.
+>>>
+>>> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+>>> ---
+>>> This is based on imx-media-staging-md-v14, and it is supposed to allow
+>>> configuring the pipeline with media-ctl like this:
+>>>
+>>> 1) media-ctl --set-v4l2 "'tc358743 1-000f':0[fmt:UYVY8_1X16/1920x1080]"
+>>> 2) media-ctl --set-v4l2 "'imx6-mipi-csi2':1[fmt:UYVY8_1X16/1920x108]"
+>>> 3) media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY8_1X16/1920x1080]"
+>>> 4) media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY8_1X16/1920x1080@1/60]"
+>>> 5) media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/1920x1080@1/30]"
+>>>
+>>> Without having step 4) overwrite the colorspace and field order set on
+>>> 'ipu1_csi0':0 by the propagation in step 3).
+>>> ---
+>>>  drivers/staging/media/imx/imx-media-csi.c | 34 +++++++++++++++++++++++++++++++
+>>>  1 file changed, 34 insertions(+)
+>>>
+>>> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+>>> index 64dc454f6b371..d94ce1de2bf05 100644
+>>> --- a/drivers/staging/media/imx/imx-media-csi.c
+>>> +++ b/drivers/staging/media/imx/imx-media-csi.c
+>>> @@ -1325,6 +1325,40 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
+>>>  	csi_try_fmt(priv, sensor, cfg, sdformat, crop, compose, &cc);
+>>>  
+>>>  	fmt = __csi_get_fmt(priv, cfg, sdformat->pad, sdformat->which);
+>>> +
+>>> +	/* Retain current field setting as default */
+>>> +	if (sdformat->format.field == V4L2_FIELD_ANY)
+>>> +		sdformat->format.field = fmt->field;
+>>
+>> sdformat->format.field should never be FIELD_ANY. If it is, then that's a
+>> subdev bug and I'm pretty sure FIELD_NONE was intended.
+> 
+> This is the subdev. sdformat is passed in from userspace, so we have to
+> deal with it being set to ANY. I'm trying hard right now not to return
+> ANY though. The values in sdformat->format are applied to fmt down
+> below.
 
-On Thu, Apr 6, 2017 at 1:58 PM Peter Bostr=C3=B6m <pbos@google.com> wrote:
->
-> Permits distinguishing between two /dev/videoX entries from the same
-> physical UVC device (that naturally share the same iProduct name).
+Do you have a git tree with this patch? It is really hard to review without
+having the full imx-media-csi.c source.
 
-The device under test has interface associations (and has iFunction
-present, but not iInterface present). This device is enumerated as
-"Camera Name: Interface Function" after this patch, instead of two
-/dev/videoX entries showing up as "Camera Name" with different
-functions not user visible (apart from lsusb). My tested "Logitech
-Webcam C930e" shows no additional string (has only iProduct out of
-these). I haven't tested any other devices (none with iInterface
-present), and this device is still under development, so any
-experience or input from interpretating the USB standard is
-appreciated here.
+I think one problem is that it is not clearly defined how subdevs and colorspace
+information should work.
 
-> This change matches current Windows behavior by prioritizing iFunction
-> over iInterface, but unlike Windows it displays both iProduct and
-> iFunction/iInterface strings when both are available.
+Regards,
 
-Windows only displays one of them, but I thought removing iProduct
-from the string was scary. Do we want to match Windows for
-consistency/keeping names short here, or is displaying both (which I
-personally thinks make more sense) a good strategy here? "Should"
-iFunction be expected to include the product name? Otherwise I think
-it's fair to display both since something generic like "main video
-feed" doesn't tie back to a specific device.
+	Hans
 
--------------------------------------------------------------------------
-String descriptors present              |    Device function name used
--------------------------------------------------------------------------
-iProduct                                |    iProduct
-iProduct + iFunction                    |    iFunction
-iProduct + iFunction + iInterface       |    iFunction
-iProduct + iInterface                   |    iInterface
--------------------------------------------------------------------------
-
-
-> Signed-off-by: Peter Bostr=C3=B6m <pbos@google.com>
-> ---
->  drivers/media/usb/uvc/uvc_driver.c | 43 +++++++++++++++++++++++++++++++-=
-------
->  drivers/media/usb/uvc/uvcvideo.h   |  4 +++-
->  2 files changed, 39 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/u=
-vc_driver.c
-> index 04bf35063c4c..66adf8a77e56 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -1998,6 +1998,8 @@ static int uvc_probe(struct usb_interface *intf,
->  {
->         struct usb_device *udev =3D interface_to_usbdev(intf);
->         struct uvc_device *dev;
-> +       char additional_name_buf[UVC_DEVICE_NAME_SIZE];
-> +       const char *additional_name =3D NULL;
->         int ret;
->
->         if (id->idVendor && id->idProduct)
-> @@ -2025,13 +2027,40 @@ static int uvc_probe(struct usb_interface *intf,
->         dev->quirks =3D (uvc_quirks_param =3D=3D -1)
->                     ? id->driver_info : uvc_quirks_param;
->
-> -       if (udev->product !=3D NULL)
-> -               strlcpy(dev->name, udev->product, sizeof dev->name);
-> -       else
-> -               snprintf(dev->name, sizeof dev->name,
-> -                       "UVC Camera (%04x:%04x)",
-> -                       le16_to_cpu(udev->descriptor.idVendor),
-> -                       le16_to_cpu(udev->descriptor.idProduct));
-> +       /*
-> +        * Add iFunction or iInterface to names when available as additio=
-nal
-> +        * distinguishers between interfaces. iFunction is prioritized ov=
-er
-> +        * iInterface which matches Windows behavior at the point of writ=
-ing.
-> +        */
-> +       if (intf->intf_assoc && intf->intf_assoc->iFunction !=3D 0) {
-> +               usb_string(udev, intf->intf_assoc->iFunction,
-> +                          additional_name_buf, sizeof(additional_name_bu=
-f));
-> +               additional_name =3D additional_name_buf;
-> +       } else if (intf->cur_altsetting->desc.iInterface !=3D 0) {
-> +               usb_string(udev, intf->cur_altsetting->desc.iInterface,
-> +                          additional_name_buf, sizeof(additional_name_bu=
-f));
-> +               additional_name =3D additional_name_buf;
-> +       }
-> +
-> +       if (additional_name) {
-> +               if (udev->product) {
-> +                       snprintf(dev->name, sizeof(dev->name), "%s: %s",
-> +                                udev->product, additional_name);
-> +               } else {
-> +                       snprintf(dev->name, sizeof(dev->name),
-> +                                "UVC Camera: %s (%04x:%04x)",
-> +                                additional_name,
-> +                                le16_to_cpu(udev->descriptor.idVendor),
-> +                                le16_to_cpu(udev->descriptor.idProduct))=
-;
-> +               }
-> +       } else if (udev->product) {
-> +               strlcpy(dev->name, udev->product, sizeof(dev->name));
-> +       } else {
-> +               snprintf(dev->name, sizeof(dev->name),
-> +                        "UVC Camera (%04x:%04x)",
-> +                        le16_to_cpu(udev->descriptor.idVendor),
-> +                        le16_to_cpu(udev->descriptor.idProduct));
-> +       }
->
->         /* Parse the Video Class control descriptor. */
->         if (uvc_parse_control(dev) < 0) {
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvc=
-video.h
-> index 4205e7a423f0..0cbedaee6e19 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -541,13 +541,15 @@ struct uvc_streaming {
->         } clock;
->  };
->
-> +#define UVC_DEVICE_NAME_SIZE   64
-
-Note that this expands the device name, and is used because I believe
-iProduct + iFunction strings can reasonably extend the previous 32
-character max.
-
-> +
->  struct uvc_device {
->         struct usb_device *udev;
->         struct usb_interface *intf;
->         unsigned long warnings;
->         __u32 quirks;
->         int intfnum;
-> -       char name[32];
-> +       char name[UVC_DEVICE_NAME_SIZE];
->
->         struct mutex lock;              /* Protects users */
->         unsigned int users;
-> --
-> 2.12.2.715.g7642488e1d-goog
->
-
-Best,
-- Peter
+> 
+>>> +
+>>> +	/* Retain current colorspace setting as default */
+>>> +	if (sdformat->format.colorspace == V4L2_COLORSPACE_DEFAULT) {
+>>> +		sdformat->format.colorspace = fmt->colorspace;
+>>
+>> No! Subdevs should never return COLORSPACE_DEFAULT. If they do, then fix
+>> them. If this happens a lot (I'm not sure how reliably subdevs fill this
+>> in) you could set it to COLORSPACE_RAW. Perhaps with a WARN_ON_ONCE.
+> 
+> Same here, if userspace calls VIDIOC_SUBDEV_S_FMT with DEFAULT
+> colorspace, I don't want to return that unchanged, but overwrite it with
+> the currently set value.
+> 
+>>> +		if (sdformat->format.xfer_func == V4L2_XFER_FUNC_DEFAULT)
+>>> +			sdformat->format.xfer_func = fmt->xfer_func;
+>>> +		if (sdformat->format.ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT)
+>>> +			sdformat->format.ycbcr_enc = fmt->ycbcr_enc;
+>>> +		if (sdformat->format.quantization == V4L2_QUANTIZATION_DEFAULT)
+>>> +			sdformat->format.quantization = fmt->quantization;
+>>
+>> Nack. This is meaningless.
+> 
+> It isn't. It may be wrong, but it is not without effect. If the
+> colorimetry info (in fmt) is currently set to something that is
+> non-standard, calling VIDIOC_SUBDEV_S_FMT with DEFAULT in xfer_func,
+> ycbcr_enc or quantization will cause those old values to be retained,
+> instead of overwriting them to DEFAULT.
+> 
+>>> +	} else {
+>>> +		if (sdformat->format.xfer_func == V4L2_XFER_FUNC_DEFAULT) {
+>>> +			sdformat->format.xfer_func =
+>>> +				V4L2_MAP_XFER_FUNC_DEFAULT(
+>>> +						sdformat->format.colorspace);
+>>> +		}
+>>> +		if (sdformat->format.ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT) {
+>>> +			sdformat->format.ycbcr_enc =
+>>> +				V4L2_MAP_YCBCR_ENC_DEFAULT(
+>>> +						sdformat->format.colorspace);
+>>> +		}
+>>> +		if (sdformat->format.quantization == V4L2_QUANTIZATION_DEFAULT) {
+>>> +			sdformat->format.quantization =
+>>> +				V4L2_MAP_QUANTIZATION_DEFAULT(
+>>> +						cc->cs != IPUV3_COLORSPACE_YUV,
+>>> +						sdformat->format.colorspace,
+>>> +						sdformat->format.ycbcr_enc);
+>>> +		}
+>>
+>> This isn't wrong, but it is perfectly fine to keep the DEFAULT here and let
+>> the application call V4L2_MAP_.
+>>
+>> I get the feeling this patch is a workaround for subdev errors. Either that,
+>> or the commit log doesn't give me enough information to really understand the
+>> problem that's being addressed here.
+> 
+> It's the latter. I should have written VIDIOC_SUBDEV_S_FMT instead of
+> just set_fmt in the comment.
+> 
+>> Regards,
+>>
+>> 	Hans
+>>
+>>> +	}
+>>> +
+>>>  	*fmt = sdformat->format;
+> 
+> Here sdformat is applied to the subdev pad.
+> 
+> regards
+> Philipp
+> 
