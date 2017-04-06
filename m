@@ -1,106 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34146 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751770AbdDKM5w (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Apr 2017 08:57:52 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Cc: "robh+dt@kernel.org" <robh+dt@kernel.org>,
-        "mark.rutland@arm.com" <mark.rutland@arm.com>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "crope@iki.fi" <crope@iki.fi>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        "geert+renesas@glider.be" <geert+renesas@glider.be>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-renesas-soc@vger.kernel.org"
-        <linux-renesas-soc@vger.kernel.org>
-Subject: Re: [PATCH v3 2/7] dt-bindings: media: Add MAX2175 binding description
-Date: Tue, 11 Apr 2017 15:58:43 +0300
-Message-ID: <3047384.gnbYERV3WE@avalon>
-In-Reply-To: <HK2PR06MB0545F9FBB1B27E91D80F906EC3000@HK2PR06MB0545.apcprd06.prod.outlook.com>
-References: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com> <6297638.5S79beP3Jj@avalon> <HK2PR06MB0545F9FBB1B27E91D80F906EC3000@HK2PR06MB0545.apcprd06.prod.outlook.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout1.samsung.com ([203.254.224.24]:13019 "EHLO
+        epoutp01.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754270AbdDFGKC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Apr 2017 02:10:02 -0400
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v4 01/12] [media] s5p-mfc: Rename IS_MFCV8 macro
+Date: Thu, 06 Apr 2017 11:41:34 +0530
+Message-id: <1491459105-16641-2-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
+References: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
+        <CGME20170406060959epcas1p3dbc6a99eca8f84dfc16da8e288615faa@epcas1p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ramesh,
+This patch renames macro IS_MFCV8 to IS_MFCV8_PLUS so that the MFCv8
+code can be resued for MFCv10.10 support. Since the MFCv8 specific code
+holds good for MFC v10.10 also.
 
-On Tuesday 11 Apr 2017 12:19:54 Ramesh Shanmugasundaram wrote:
-> > On Tuesday 11 Apr 2017 09:57:45 Ramesh Shanmugasundaram wrote:
-> >>> On Tuesday 07 Feb 2017 15:02:32 Ramesh Shanmugasundaram wrote:
-> >>>> Add device tree binding documentation for MAX2175 Rf to bits tuner
-> >>>> device.
-> >>>> 
-> >>>> Signed-off-by: Ramesh Shanmugasundaram
-> >>>> <ramesh.shanmugasundaram@bp.renesas.com>
-> >>>> ---
-> >>>>  .../devicetree/bindings/media/i2c/max2175.txt      | 61 +++++++++++++
-> >>>>  .../devicetree/bindings/property-units.txt         |  1 +
-> >>>>  2 files changed, 62 insertions(+)
-> >>>>  create mode 100644
-> >>>> 
-> >>>> Documentation/devicetree/bindings/media/i2c/max2175.txt
-> >>>> diff --git
-> >>>> a/Documentation/devicetree/bindings/media/i2c/max2175.txt
-> >>>> b/Documentation/devicetree/bindings/media/i2c/max2175.txt new file
-> >>>> mode 100644 index 0000000..f591ab4
-> >>>> --- /dev/null
-> >>>> +++ b/Documentation/devicetree/bindings/media/i2c/max2175.txt
-> > 
-> > [snip]
-> > 
-> >>>> +- maxim,am-hiz	      : empty property indicates AM Hi-Z filter
-> >>>> path is
-> >>>> +			selected for AM antenna input. By default this
-> >>>> +			filter path is not used.
-> >>> 
-> >>> Isn't this something that should be selected at runtime through a
-> >>> control ? Or does the hardware design dictate whether the filter has
-> >>> to be used or must not be used ?
-> >> 
-> >> This is dictated by the h/w design and not selectable at run-time.
-> >> I will update these changes in the next patchset.
-> > 
-> > In that case I'm fine with a property, but could we name it in such a way
-> > that it describes the hardware instead of instructing the software on how
-> > to configure the device ? For instance (and this is a made-up example as I
-> > don't know exactly how this works), if the AM Hi-Z filter is required when
-> > dealing with AM frequencies and forbidden when dealing with other
-> > frequency bands, and *if* boards have to be designed specifically for one
-> > frequency band (AM, FM, VHF, L, ...) without any way to accept different
-> > bands, then you could instead use
-> > 
-> > 	maxim,frequency-band = "AM";
-> > 
-> > and enable the filter accordingly in the driver. This would be in my
-> > opinion a better system hardware description.
-> 
-> I am not sure. The AM antenna input path has a default filter and AM Hi-Z
-> filter. H/W dictates the path to be used for AM input only and this is
-> fixed. The device can be configured to use different bands at runtime & not
-> AM only. I could edit the description as below:
-> 
-> - maxim,am-hiz	      : empty property indicates AM Hi-Z filter path
-> usage for AM antenna input as dictated by hardware design. By default this
-> filter path is not used.
-> 
-> Is it any better? Do you still think the property name should be changed
-> please?
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+Acked-by: Andrzej Hajda <a.hajda@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |  2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 18 +++++++++---------
+ 4 files changed, 12 insertions(+), 12 deletions(-)
 
-I still think this should be renamed, but possibly because I don't understand 
-all the details of this particular feature :-). The property, as named and 
-documented above, describes a software features. It requests the driver to 
-enable the AM Hi-Z filter. DT properties should instead describe the hardware. 
-You should use a property that describes the hardware design, and use that to 
-infer, in the driver, whether to enable or disable the filter.
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 4220914..5fb2684 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -711,7 +711,7 @@ void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq);
+ #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
+ #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
+ #define IS_MFCV7_PLUS(dev)	(dev->variant->version >= 0x70 ? 1 : 0)
+-#define IS_MFCV8(dev)		(dev->variant->version >= 0x80 ? 1 : 0)
++#define IS_MFCV8_PLUS(dev)	(dev->variant->version >= 0x80 ? 1 : 0)
+ 
+ #define MFC_V5_BIT	BIT(0)
+ #define MFC_V6_BIT	BIT(1)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index 69ef9c2..3769d22 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -399,7 +399,7 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
+ 	s5p_mfc_clear_cmds(dev);
+ 	s5p_mfc_clean_dev_int_flags(dev);
+ 	/* 3. Send MFC wakeup command and wait for completion*/
+-	if (IS_MFCV8(dev))
++	if (IS_MFCV8_PLUS(dev))
+ 		ret = s5p_mfc_v8_wait_wakeup(dev);
+ 	else
+ 		ret = s5p_mfc_wait_wakeup(dev);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 8937b0a..42e9351 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -1177,7 +1177,7 @@ void s5p_mfc_dec_init(struct s5p_mfc_ctx *ctx)
+ 	struct v4l2_format f;
+ 	f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_H264;
+ 	ctx->src_fmt = find_format(&f, MFC_FMT_DEC);
+-	if (IS_MFCV8(ctx->dev))
++	if (IS_MFCV8_PLUS(ctx->dev))
+ 		f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12M;
+ 	else if (IS_MFCV6_PLUS(ctx->dev))
+ 		f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12MT_16X16;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 85880e9..d52f23c 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -74,7 +74,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 			  ctx->luma_size, ctx->chroma_size, ctx->mv_size);
+ 		mfc_debug(2, "Totals bufs: %d\n", ctx->total_dpb_count);
+ 	} else if (ctx->type == MFCINST_ENCODER) {
+-		if (IS_MFCV8(dev))
++		if (IS_MFCV8_PLUS(dev))
+ 			ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
+ 			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V8(mb_width, mb_height),
+ 			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
+@@ -89,7 +89,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 		ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) *
+ 				S5P_FIMV_CHROMA_MB_TO_PIXEL_V6,
+ 				S5P_FIMV_CHROMA_DPB_BUFFER_ALIGN_V6);
+-		if (IS_MFCV8(dev))
++		if (IS_MFCV8_PLUS(dev))
+ 			ctx->me_buffer_size = ALIGN(S5P_FIMV_ME_BUFFER_SIZE_V8(
+ 						ctx->img_width, ctx->img_height,
+ 						mb_width, mb_height),
+@@ -110,7 +110,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 	switch (ctx->codec_mode) {
+ 	case S5P_MFC_CODEC_H264_DEC:
+ 	case S5P_MFC_CODEC_H264_MVC_DEC:
+-		if (IS_MFCV8(dev))
++		if (IS_MFCV8_PLUS(dev))
+ 			ctx->scratch_buf_size =
+ 				S5P_FIMV_SCRATCH_BUF_SIZE_H264_DEC_V8(
+ 					mb_width,
+@@ -167,7 +167,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 		ctx->bank1.size = ctx->scratch_buf_size;
+ 		break;
+ 	case S5P_MFC_CODEC_VP8_DEC:
+-		if (IS_MFCV8(dev))
++		if (IS_MFCV8_PLUS(dev))
+ 			ctx->scratch_buf_size =
+ 				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_DEC_V8(
+ 						mb_width,
+@@ -182,7 +182,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 		ctx->bank1.size = ctx->scratch_buf_size;
+ 		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+-		if (IS_MFCV8(dev))
++		if (IS_MFCV8_PLUS(dev))
+ 			ctx->scratch_buf_size =
+ 				S5P_FIMV_SCRATCH_BUF_SIZE_H264_ENC_V8(
+ 					mb_width,
+@@ -215,7 +215,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 		ctx->bank2.size = 0;
+ 		break;
+ 	case S5P_MFC_CODEC_VP8_ENC:
+-		if (IS_MFCV8(dev))
++		if (IS_MFCV8_PLUS(dev))
+ 			ctx->scratch_buf_size =
+ 				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V8(
+ 					mb_width,
+@@ -364,7 +364,7 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
+ 
+ 	ctx->luma_size = calc_plane(ctx->img_width, ctx->img_height);
+ 	ctx->chroma_size = calc_plane(ctx->img_width, (ctx->img_height >> 1));
+-	if (IS_MFCV8(ctx->dev)) {
++	if (IS_MFCV8_PLUS(ctx->dev)) {
+ 		/* MFCv8 needs additional 64 bytes for luma,chroma dpb*/
+ 		ctx->luma_size += S5P_FIMV_D_ALIGN_PLANE_SIZE_V8;
+ 		ctx->chroma_size += S5P_FIMV_D_ALIGN_PLANE_SIZE_V8;
+@@ -445,7 +445,7 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 	writel(buf_addr1, mfc_regs->d_scratch_buffer_addr);
+ 	writel(ctx->scratch_buf_size, mfc_regs->d_scratch_buffer_size);
+ 
+-	if (IS_MFCV8(dev)) {
++	if (IS_MFCV8_PLUS(dev)) {
+ 		writel(ctx->img_width,
+ 			mfc_regs->d_first_plane_dpb_stride_size);
+ 		writel(ctx->img_width,
+@@ -2109,7 +2109,7 @@ const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev)
+ 			S5P_FIMV_E_ENCODED_SOURCE_SECOND_ADDR_V7);
+ 	R(e_vp8_options, S5P_FIMV_E_VP8_OPTIONS_V7);
+ 
+-	if (!IS_MFCV8(dev))
++	if (!IS_MFCV8_PLUS(dev))
+ 		goto done;
+ 
+ 	/* Initialize registers used in MFC v8 only.
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
