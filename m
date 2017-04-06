@@ -1,39 +1,356 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:33212 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933883AbdDSLLf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Apr 2017 07:11:35 -0400
-Subject: Re: [PATCH] [media] pixfmt-meta-vsp1-hgo.rst: remove spurious '-'
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-References: <242b0c4cc96f97d0a3b96343acd21613b63fa4a6.1492599862.git.mchehab@s-opensource.com>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <be8e2b69-8ec1-bab0-f934-5b201c1cd2fc@linux.intel.com>
-Date: Wed, 19 Apr 2017 14:11:31 +0300
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:53017 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751475AbdDFIRl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Apr 2017 04:17:41 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCHv6.1] media: add CEC notifier support
+Message-ID: <2039ff29-cb22-919b-0dc8-d0f773beaa07@xs4all.nl>
+Date: Thu, 6 Apr 2017 10:17:35 +0200
 MIME-Version: 1.0
-In-Reply-To: <242b0c4cc96f97d0a3b96343acd21613b63fa4a6.1492599862.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/19/17 14:04, Mauro Carvalho Chehab wrote:
-> Remove spurious '-' in the VSP1 hgo table.
-> 
-> This resulted in a weird dot character that also caused
-> the row to be double-height.
-> 
-> We used to have it on other tables, but we got rid of them
-> on changeset 8ed29e302dd1 ("[media] subdev-formats.rst: remove
-> spurious '-'").
-> 
-> Fixes: 14d665387165 ("[media] v4l: Define a pixel format for the R-Car VSP1 1-D histogram engine")
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Add support for CEC notifiers, which is used to convey CEC physical address
+information from video drivers to their CEC counterpart driver(s).
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Based on an earlier version from Russell King:
 
+https://patchwork.kernel.org/patch/9277043/
+
+The cec_notifier is a reference counted object containing the CEC physical address
+state of a video device.
+
+When a new notifier is registered the current state will be reported to
+that notifier at registration time.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+Changes since v6:
+- fix locking issue in cec_notifier_get(): mutex_unlock was called before kref_get instead of after.
+---
+ MAINTAINERS                  |   4 +-
+ drivers/media/Kconfig        |   4 ++
+ drivers/media/Makefile       |   4 ++
+ drivers/media/cec-notifier.c | 129 +++++++++++++++++++++++++++++++++++++++++++
+ include/media/cec-notifier.h | 111 +++++++++++++++++++++++++++++++++++++
+ 5 files changed, 251 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/cec-notifier.c
+ create mode 100644 include/media/cec-notifier.h
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 1f1d1038047a..55c0473f3081 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3066,7 +3066,7 @@ F:	drivers/net/ieee802154/cc2520.c
+ F:	include/linux/spi/cc2520.h
+ F:	Documentation/devicetree/bindings/net/ieee802154/cc2520.txt
+
+-CEC DRIVER
++CEC FRAMEWORK
+ M:	Hans Verkuil <hans.verkuil@cisco.com>
+ L:	linux-media@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+@@ -3076,9 +3076,11 @@ F:	Documentation/media/kapi/cec-core.rst
+ F:	Documentation/media/uapi/cec
+ F:	drivers/media/cec/
+ F:	drivers/media/cec-edid.c
++F:	drivers/media/cec-notifier.c
+ F:	drivers/media/rc/keymaps/rc-cec.c
+ F:	include/media/cec.h
+ F:	include/media/cec-edid.h
++F:	include/media/cec-notifier.h
+ F:	include/uapi/linux/cec.h
+ F:	include/uapi/linux/cec-funcs.h
+
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 3512316e7a46..9e9ded44e8a8 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -99,6 +99,10 @@ config MEDIA_CEC_DEBUG
+ config MEDIA_CEC_EDID
+ 	bool
+
++config MEDIA_CEC_NOTIFIER
++	bool
++	select MEDIA_CEC_EDID
++
+ #
+ # Media controller
+ #	Selectable only for webcam/grabbers, as other drivers don't use it
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index d87ccb8eeabe..8b36a571d443 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -6,6 +6,10 @@ ifeq ($(CONFIG_MEDIA_CEC_EDID),y)
+   obj-$(CONFIG_MEDIA_SUPPORT) += cec-edid.o
+ endif
+
++ifeq ($(CONFIG_MEDIA_CEC_NOTIFIER),y)
++  obj-$(CONFIG_MEDIA_SUPPORT) += cec-notifier.o
++endif
++
+ ifeq ($(CONFIG_MEDIA_CEC_SUPPORT),y)
+   obj-$(CONFIG_MEDIA_SUPPORT) += cec/
+ endif
+diff --git a/drivers/media/cec-notifier.c b/drivers/media/cec-notifier.c
+new file mode 100644
+index 000000000000..5f5209a73665
+--- /dev/null
++++ b/drivers/media/cec-notifier.c
+@@ -0,0 +1,129 @@
++/*
++ * cec-notifier.c - notify CEC drivers of physical address changes
++ *
++ * Copyright 2016 Russell King <rmk+kernel@arm.linux.org.uk>
++ * Copyright 2016-2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include <linux/export.h>
++#include <linux/string.h>
++#include <linux/slab.h>
++#include <linux/list.h>
++#include <linux/kref.h>
++
++#include <media/cec-notifier.h>
++#include <drm/drm_edid.h>
++
++struct cec_notifier {
++	struct mutex lock;
++	struct list_head head;
++	struct kref kref;
++	struct device *dev;
++	struct cec_adapter *cec_adap;
++	void (*callback)(struct cec_adapter *adap, u16 pa);
++
++	u16 phys_addr;
++};
++
++static LIST_HEAD(cec_notifiers);
++static DEFINE_MUTEX(cec_notifiers_lock);
++
++struct cec_notifier *cec_notifier_get(struct device *dev)
++{
++	struct cec_notifier *n;
++
++	mutex_lock(&cec_notifiers_lock);
++	list_for_each_entry(n, &cec_notifiers, head) {
++		if (n->dev == dev) {
++			kref_get(&n->kref);
++			mutex_unlock(&cec_notifiers_lock);
++			return n;
++		}
++	}
++	n = kzalloc(sizeof(*n), GFP_KERNEL);
++	if (!n)
++		goto unlock;
++	n->dev = dev;
++	n->phys_addr = CEC_PHYS_ADDR_INVALID;
++	mutex_init(&n->lock);
++	kref_init(&n->kref);
++	list_add_tail(&n->head, &cec_notifiers);
++unlock:
++	mutex_unlock(&cec_notifiers_lock);
++	return n;
++}
++EXPORT_SYMBOL_GPL(cec_notifier_get);
++
++static void cec_notifier_release(struct kref *kref)
++{
++	struct cec_notifier *n =
++		container_of(kref, struct cec_notifier, kref);
++
++	list_del(&n->head);
++	kfree(n);
++}
++
++void cec_notifier_put(struct cec_notifier *n)
++{
++	mutex_lock(&cec_notifiers_lock);
++	kref_put(&n->kref, cec_notifier_release);
++	mutex_unlock(&cec_notifiers_lock);
++}
++EXPORT_SYMBOL_GPL(cec_notifier_put);
++
++void cec_notifier_set_phys_addr(struct cec_notifier *n, u16 pa)
++{
++	mutex_lock(&n->lock);
++	n->phys_addr = pa;
++	if (n->callback)
++		n->callback(n->cec_adap, n->phys_addr);
++	mutex_unlock(&n->lock);
++}
++EXPORT_SYMBOL_GPL(cec_notifier_set_phys_addr);
++
++void cec_notifier_set_phys_addr_from_edid(struct cec_notifier *n,
++					  const struct edid *edid)
++{
++	u16 pa = CEC_PHYS_ADDR_INVALID;
++
++	if (edid && edid->extensions)
++		pa = cec_get_edid_phys_addr((const u8 *)edid,
++				EDID_LENGTH * (edid->extensions + 1), NULL);
++	cec_notifier_set_phys_addr(n, pa);
++}
++EXPORT_SYMBOL_GPL(cec_notifier_set_phys_addr_from_edid);
++
++void cec_notifier_register(struct cec_notifier *n,
++			   struct cec_adapter *adap,
++			   void (*callback)(struct cec_adapter *adap, u16 pa))
++{
++	kref_get(&n->kref);
++	mutex_lock(&n->lock);
++	n->cec_adap = adap;
++	n->callback = callback;
++	n->callback(adap, n->phys_addr);
++	mutex_unlock(&n->lock);
++}
++EXPORT_SYMBOL_GPL(cec_notifier_register);
++
++void cec_notifier_unregister(struct cec_notifier *n)
++{
++	mutex_lock(&n->lock);
++	n->callback = NULL;
++	mutex_unlock(&n->lock);
++	cec_notifier_put(n);
++}
++EXPORT_SYMBOL_GPL(cec_notifier_unregister);
+diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
+new file mode 100644
+index 000000000000..035712e0993d
+--- /dev/null
++++ b/include/media/cec-notifier.h
+@@ -0,0 +1,111 @@
++/*
++ * cec-notifier.h - notify CEC drivers of physical address changes
++ *
++ * Copyright 2016 Russell King <rmk+kernel@arm.linux.org.uk>
++ * Copyright 2016-2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef LINUX_CEC_NOTIFIER_H
++#define LINUX_CEC_NOTIFIER_H
++
++#include <linux/types.h>
++#include <media/cec-edid.h>
++
++struct device;
++struct edid;
++struct cec_adapter;
++struct cec_notifier;
++
++#ifdef CONFIG_MEDIA_CEC_NOTIFIER
++
++/**
++ * cec_notifier_get - find or create a new cec_notifier for the given device.
++ * @dev: device that sends the events.
++ *
++ * If a notifier for device @dev already exists, then increase the refcount
++ * and return that notifier.
++ *
++ * If it doesn't exist, then allocate a new notifier struct and return a
++ * pointer to that new struct.
++ *
++ * Return NULL if the memory could not be allocated.
++ */
++struct cec_notifier *cec_notifier_get(struct device *dev);
++
++/**
++ * cec_notifier_put - decrease refcount and delete when the refcount reaches 0.
++ * @n: notifier
++ */
++void cec_notifier_put(struct cec_notifier *n);
++
++/**
++ * cec_notifier_set_phys_addr - set a new physical address.
++ * @n: the CEC notifier
++ * @pa: the CEC physical address
++ *
++ * Set a new CEC physical address.
++ */
++void cec_notifier_set_phys_addr(struct cec_notifier *n, u16 pa);
++
++/**
++ * cec_notifier_set_phys_addr_from_edid - set parse the PA from the EDID.
++ * @n: the CEC notifier
++ * @edid: the struct edid pointer
++ *
++ * Parses the EDID to obtain the new CEC physical address and set it.
++ */
++void cec_notifier_set_phys_addr_from_edid(struct cec_notifier *n,
++					  const struct edid *edid);
++
++/**
++ * cec_notifier_register - register a callback with the notifier
++ * @n: the CEC notifier
++ * @adap: the CEC adapter, passed as argument to the callback function
++ * @callback: the callback function
++ */
++void cec_notifier_register(struct cec_notifier *n,
++			   struct cec_adapter *adap,
++			   void (*callback)(struct cec_adapter *adap, u16 pa));
++
++/**
++ * cec_notifier_unregister - unregister the callback from the notifier.
++ * @n: the CEC notifier
++ */
++void cec_notifier_unregister(struct cec_notifier *n);
++
++#else
++static inline struct cec_notifier *cec_notifier_get(struct device *dev)
++{
++	/* A non-NULL pointer is expected on success */
++	return (struct cec_notifier *)0xdeadfeed;
++}
++
++static inline void cec_notifier_put(struct cec_notifier *n)
++{
++}
++
++static inline void cec_notifier_set_phys_addr(struct cec_notifier *n, u16 pa)
++{
++}
++
++static inline void cec_notifier_set_phys_addr_from_edid(struct cec_notifier *n,
++							const struct edid *edid)
++{
++}
++
++#endif
++
++#endif
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.11.0
