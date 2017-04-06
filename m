@@ -1,196 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34744 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752552AbdDITih (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Apr 2017 15:38:37 -0400
-Received: by mail-wm0-f65.google.com with SMTP id x75so6393384wma.1
-        for <linux-media@vger.kernel.org>; Sun, 09 Apr 2017 12:38:36 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: aospan@netup.ru, serjk@netup.ru, mchehab@kernel.org,
-        linux-media@vger.kernel.org
-Cc: rjkm@metzlerbros.de
-Subject: [PATCH 05/19] [media] dvb-frontends/cxd2841er: replace IFFREQ calc macros into functions
-Date: Sun,  9 Apr 2017 21:38:14 +0200
-Message-Id: <20170409193828.18458-6-d.scheller.oss@gmail.com>
-In-Reply-To: <20170409193828.18458-1-d.scheller.oss@gmail.com>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:49121 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934111AbdDFNNe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Apr 2017 09:13:34 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 3/8] v4l: async: Add fwnode match support
+Date: Thu,  6 Apr 2017 16:12:05 +0300
+Message-Id: <1491484330-12040-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Add fwnode matching to complement OF node matching. And fwnode may also be
+an OF node.
 
-The way the MAKE_IFFREQ_CONFIG macros are written make it impossible to
-pass regular integers for iffreq calculation, since this will cause "SSE
-register return with SSE disabled" compile errors. This changes the
-calculation into C functions which also might help when debugging. Also,
-expand all passed frequencies from MHz to Hz scale.
-
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/dvb-frontends/cxd2841er.c | 48 ++++++++++++++++++++-------------
- 1 file changed, 29 insertions(+), 19 deletions(-)
+ drivers/media/v4l2-core/v4l2-async.c | 12 ++++++++++++
+ include/media/v4l2-async.h           |  5 +++++
+ include/media/v4l2-subdev.h          |  3 +++
+ 3 files changed, 20 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-index 72a27cc..6648bd1 100644
---- a/drivers/media/dvb-frontends/cxd2841er.c
-+++ b/drivers/media/dvb-frontends/cxd2841er.c
-@@ -201,11 +201,6 @@ static const struct cxd2841er_cnr_data s2_cn_data[] = {
- 	{ 0x0016, 19700 }, { 0x0015, 19900 }, { 0x0014, 20000 },
- };
- 
--#define MAKE_IFFREQ_CONFIG(iffreq) ((u32)(((iffreq)/41.0)*16777216.0 + 0.5))
--#define MAKE_IFFREQ_CONFIG_XTAL(xtal, iffreq) ((xtal == SONY_XTAL_24000) ? \
--		(u32)(((iffreq)/48.0)*16777216.0 + 0.5) : \
--		(u32)(((iffreq)/41.0)*16777216.0 + 0.5))
--
- static int cxd2841er_freeze_regs(struct cxd2841er_priv *priv);
- static int cxd2841er_unfreeze_regs(struct cxd2841er_priv *priv);
- 
-@@ -316,6 +311,21 @@ static int cxd2841er_set_reg_bits(struct cxd2841er_priv *priv,
- 	return cxd2841er_write_reg(priv, addr, reg, data);
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 96cc733..384ad5e 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -46,6 +46,11 @@ static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ 			    of_node_full_name(asd->match.of.node));
  }
  
-+static u32 cxd2841er_calc_iffreq_xtal(enum cxd2841er_xtal xtal, u32 ifhz)
++static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
 +{
-+	u64 tmp;
-+
-+	tmp = (u64) ifhz * 16777216;
-+	do_div(tmp, ((xtal == SONY_XTAL_24000) ? 48000000 : 41000000));
-+
-+	return (u32) tmp;
++	return sd->fwnode == asd->match.fwnode.fwn;
 +}
 +
-+static u32 cxd2841er_calc_iffreq(u32 ifhz)
-+{
-+	return cxd2841er_calc_iffreq_xtal(SONY_XTAL_20500, ifhz);
-+}
-+
- static int cxd2841er_dvbs2_set_symbol_rate(struct cxd2841er_priv *priv,
- 					   u32 symbol_rate)
+ static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
  {
-@@ -2228,7 +2238,7 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef8bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.80);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4800000);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2256,7 +2266,7 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef7bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.20);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4200000);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2284,7 +2294,7 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef6bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.60);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2312,7 +2322,7 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef5bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.60);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2340,7 +2350,7 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef17bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.50);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3500000);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2439,7 +2449,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef8bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.80);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4800000);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2474,7 +2484,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef7bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.20);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4200000);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2509,7 +2519,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef6bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.60);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2544,7 +2554,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef5bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.60);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2646,7 +2656,7 @@ static int cxd2841er_sleep_tc_to_active_i_band(
- 				0xA6, itbCoef8bw[priv->xtal], 14);
+ 	if (!asd->match.custom.match)
+@@ -80,6 +85,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
+ 		case V4L2_ASYNC_MATCH_OF:
+ 			match = match_of;
+ 			break;
++		case V4L2_ASYNC_MATCH_FWNODE:
++			match = match_fwnode;
++			break;
+ 		default:
+ 			/* Cannot happen, unless someone breaks us */
+ 			WARN_ON(true);
+@@ -158,6 +166,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 		case V4L2_ASYNC_MATCH_DEVNAME:
+ 		case V4L2_ASYNC_MATCH_I2C:
+ 		case V4L2_ASYNC_MATCH_OF:
++		case V4L2_ASYNC_MATCH_FWNODE:
+ 			break;
+ 		default:
+ 			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+@@ -282,6 +291,9 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 	 */
+ 	if (!sd->of_node && sd->dev)
+ 		sd->of_node = sd->dev->of_node;
++	if (!sd->fwnode && sd->dev)
++		sd->fwnode = sd->dev->of_node ?
++			&sd->dev->of_node->fwnode : sd->dev->fwnode;
  
- 		/* IF freq setting */
--		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.75);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4750000);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2675,7 +2685,7 @@ static int cxd2841er_sleep_tc_to_active_i_band(
- 				0xA6, itbCoef7bw[priv->xtal], 14);
+ 	mutex_lock(&list_lock);
  
- 		/* IF freq setting */
--		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.15);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4150000);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2704,7 +2714,7 @@ static int cxd2841er_sleep_tc_to_active_i_band(
- 				0xA6, itbCoef6bw[priv->xtal], 14);
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 8e2a236..8f552d2 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -32,6 +32,7 @@ struct v4l2_async_notifier;
+  * @V4L2_ASYNC_MATCH_DEVNAME: Match will use the device name
+  * @V4L2_ASYNC_MATCH_I2C: Match will check for I2C adapter ID and address
+  * @V4L2_ASYNC_MATCH_OF: Match will use OF node
++ * @V4L2_ASYNC_MATCH_FWNODE: Match will use firmware node
+  *
+  * This enum is used by the asyncrhronous sub-device logic to define the
+  * algorithm that will be used to match an asynchronous device.
+@@ -41,6 +42,7 @@ enum v4l2_async_match_type {
+ 	V4L2_ASYNC_MATCH_DEVNAME,
+ 	V4L2_ASYNC_MATCH_I2C,
+ 	V4L2_ASYNC_MATCH_OF,
++	V4L2_ASYNC_MATCH_FWNODE,
+ };
  
- 		/* IF freq setting */
--		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.55);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3550000);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2765,13 +2775,13 @@ static int cxd2841er_sleep_tc_to_active_c_band(struct cxd2841er_priv *priv,
- 		cxd2841er_write_regs(
- 			priv, I2C_SLVT, 0xa6,
- 			bw7_8mhz_b10_a6, sizeof(bw7_8mhz_b10_a6));
--		iffreq = MAKE_IFFREQ_CONFIG(4.9);
-+		iffreq = cxd2841er_calc_iffreq(4900000);
- 		break;
- 	case 6000000:
- 		cxd2841er_write_regs(
- 			priv, I2C_SLVT, 0xa6,
- 			bw6mhz_b10_a6, sizeof(bw6mhz_b10_a6));
--		iffreq = MAKE_IFFREQ_CONFIG(3.7);
-+		iffreq = cxd2841er_calc_iffreq(3700000);
- 		break;
- 	default:
- 		dev_err(&priv->i2c->dev, "%s(): unsupported bandwidth %d\n",
+ /**
+@@ -58,6 +60,9 @@ struct v4l2_async_subdev {
+ 			const struct device_node *node;
+ 		} of;
+ 		struct {
++			struct fwnode_handle *fwn;
++		} fwnode;
++		struct {
+ 			const char *name;
+ 		} device_name;
+ 		struct {
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 0ab1c5d..5f1669c 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -788,6 +788,8 @@ struct v4l2_subdev_platform_data {
+  * @devnode: subdev device node
+  * @dev: pointer to the physical device, if any
+  * @of_node: The device_node of the subdev, usually the same as dev->of_node.
++ * @fwnode: The fwnode_handle of the subdev, usually the same as
++ *	    either dev->of_node->fwnode or dev->fwnode (whichever is non-NULL).
+  * @async_list: Links this subdev to a global subdev_list or @notifier->done
+  *	list.
+  * @asd: Pointer to respective &struct v4l2_async_subdev.
+@@ -819,6 +821,7 @@ struct v4l2_subdev {
+ 	struct video_device *devnode;
+ 	struct device *dev;
+ 	struct device_node *of_node;
++	struct fwnode_handle *fwnode;
+ 	struct list_head async_list;
+ 	struct v4l2_async_subdev *asd;
+ 	struct v4l2_async_notifier *notifier;
 -- 
-2.10.2
+2.7.4
