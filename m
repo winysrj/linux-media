@@ -1,482 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:52866 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934704AbdDFNeD (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:46259 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934377AbdDFPTG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Apr 2017 09:34:03 -0400
-Subject: Re: [Patch v4 12/12] Documention: v4l: Documentation for HEVC CIDs
-To: Smitha T Murthy <smitha.t@samsung.com>,
+        Thu, 6 Apr 2017 11:19:06 -0400
+Message-ID: <1491491907.2392.82.camel@pengutronix.de>
+Subject: Re: [PATCH] [media] imx: csi: retain current field order and
+ colorimetry setting as default
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
- <CGME20170406061027epcas5p2628e0a8e0fd76e2e267fad3ea1209f65@epcas5p2.samsung.com>
- <1491459105-16641-13-git-send-email-smitha.t@samsung.com>
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <fd79a716-8acb-f119-5c78-89c02ce14cfb@xs4all.nl>
-Date: Thu, 6 Apr 2017 15:33:50 +0200
-MIME-Version: 1.0
-In-Reply-To: <1491459105-16641-13-git-send-email-smitha.t@samsung.com>
-Content-Type: text/plain; charset=windows-1252
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Thu, 06 Apr 2017 17:18:27 +0200
+In-Reply-To: <0f9690f8-c7f6-59ff-9e3e-123af9972d4b@xs4all.nl>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+         <1490661656-10318-22-git-send-email-steve_longerbeam@mentor.com>
+         <1491486929.2392.29.camel@pengutronix.de>
+         <0f9690f8-c7f6-59ff-9e3e-123af9972d4b@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/06/2017 08:11 AM, Smitha T Murthy wrote:
-> Added V4l2 controls for HEVC encoder
+On Thu, 2017-04-06 at 16:20 +0200, Hans Verkuil wrote:
+> On 04/06/2017 03:55 PM, Philipp Zabel wrote:
+> > If the the field order is set to ANY in set_fmt, choose the currently
+> > set field order. If the colorspace is set to DEFAULT, choose the current
+> > colorspace.  If any of xfer_func, ycbcr_enc or quantization are set to
+> > DEFAULT, either choose the current setting, or the default setting for the
+> > new colorspace, if non-DEFAULT colorspace was given.
+> > 
+> > This allows to let field order and colorimetry settings be propagated
+> > from upstream by calling media-ctl on the upstream entity source pad,
+> > and then call media-ctl on the sink pad to manually set the input frame
+> > interval, without changing the already set field order and colorimetry
+> > information.
+> > 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> > This is based on imx-media-staging-md-v14, and it is supposed to allow
+> > configuring the pipeline with media-ctl like this:
+> > 
+> > 1) media-ctl --set-v4l2 "'tc358743 1-000f':0[fmt:UYVY8_1X16/1920x1080]"
+> > 2) media-ctl --set-v4l2 "'imx6-mipi-csi2':1[fmt:UYVY8_1X16/1920x108]"
+> > 3) media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY8_1X16/1920x1080]"
+
+To be more clear, this media-ctl command will call VIDIOC_SUBDEV_S_FMT
+on the 'ipu1_csi0':0 sink pad during the propagation phase, with field
+and colorspace set to whatever was propagated from the
+'tc358743 1-000f':0 pad in the previous steps (as returned by
+VIDIOC_SUBDEV_G_FMT on the 'ipu1_csi0_mux':2 source pad).
+
+> > 4) media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY8_1X16/1920x1080@1/60]"
+
+And this media-ctl command will call VIDIOC_SUBDEV_S_FMT on the
+'ipu1_csi0':0 sink pad with V4L2_FIELD_ANY (since there is no "field:"
+set), and with V4L2_COLORSPACE_DEFAULT (since there is no colorspace:"
+set) and so on. I don't want the correct values from step 3) to be
+replaced with DEFAULT here.
+
+> > 5) media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/1920x1080@1/30]"
+> > 
+> > Without having step 4) overwrite the colorspace and field order set on
+> > 'ipu1_csi0':0 by the propagation in step 3).
+> > ---
+> >  drivers/staging/media/imx/imx-media-csi.c | 34 +++++++++++++++++++++++++++++++
+> >  1 file changed, 34 insertions(+)
+> > 
+> > diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> > index 64dc454f6b371..d94ce1de2bf05 100644
+> > --- a/drivers/staging/media/imx/imx-media-csi.c
+> > +++ b/drivers/staging/media/imx/imx-media-csi.c
+> > @@ -1325,6 +1325,40 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
+
+So the VIDIOC_SUBDEV_S_FMT callback has to check for DEFAULT values and
+do something about them.
+
+> >  	csi_try_fmt(priv, sensor, cfg, sdformat, crop, compose, &cc);
+> >  
+> >  	fmt = __csi_get_fmt(priv, cfg, sdformat->pad, sdformat->which);
+> > +
+> > +	/* Retain current field setting as default */
+> > +	if (sdformat->format.field == V4L2_FIELD_ANY)
+> > +		sdformat->format.field = fmt->field;
+>
+> sdformat->format.field should never be FIELD_ANY. If it is, then that's a
+> subdev bug and I'm pretty sure FIELD_NONE was intended.
 > 
-> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-
-General comment: don't forget to build the pdf and check that as well.
-
-> ---
->  Documentation/media/uapi/v4l/extended-controls.rst | 391 +++++++++++++++++++++
->  1 file changed, 391 insertions(+)
+> > +
+> > +	/* Retain current colorspace setting as default */
+> > +	if (sdformat->format.colorspace == V4L2_COLORSPACE_DEFAULT) {
+> > +		sdformat->format.colorspace = fmt->colorspace;
 > 
-> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-> index abb1057..85a668d 100644
-> --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> @@ -1960,6 +1960,397 @@ enum v4l2_vp8_golden_frame_sel -
->      1, 2 and 3 corresponding to encoder profiles 0, 1, 2 and 3.
->  
->  
-> +HEVC Control Reference
-> +---------------------
-> +
-> +The HEVC controls include controls for encoding parameters of HEVC video
-> +codec.
-> +
-> +
-> +.. _hevc-control-id:
-> +
-> +HEVC Control IDs
-> +^^^^^^^^^^^^^^^
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP``
-
-You need to add the type of the control in parenthesis. It is probably '(integer)'
-for this one. Just follow what is done for other controls.
-
-> +    Minimum quantization parameter for HEVC.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP``
-> +    Maximum quantization parameter for HEVC.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP``
-> +    Quantization parameter for an I frame for HEVC.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP``
-> +    Quantization parameter for a P frame for HEVC.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP``
-> +    Quantization parameter for a B frame for HEVC.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_QP``
-> +    HIERARCHICAL_QP allows host to specify the quantization parameter values
-> +    for each temporal layer through HIERARCHICAL_QP_LAYER. This is valid only
-> +    if HIERARCHICAL_CODING_LAYER is greater than 1.
-> +
-> +.. _v4l2-hevc-hierarchical-coding-type:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_hier_coding_type -
-> +    Selects the hierarchical coding type for encoding. Possible values are:
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B``
-> +      - Use the B frame for hierarchical coding.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P``
-> +      - Use the P frame for hierarchical coding.
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER``
-> +    Selects the hierarchical coding layer. In normal encoding
-> +    (non-hierarchial coding), it should be zero. Possible values are 0 ~ 6.
-> +    0 indicates HIERARCHICAL CODING LAYER 0, 1 indicates HIERARCHICAL CODING
-> +    LAYER 1 and so on.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_QP``
-> +    Indicates the hierarchical coding layer quantization parameter.
-> +    For HEVC it can have a value of 0-51. Hence in the control value passed
-> +    the LSB 16 bits will indicate the quantization parameter. The MSB 16 bit
-> +    will pass the layer(0-6) it is meant for.
-> +
-> +.. _v4l2-hevc-profile:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_PROFILE``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_profile -
-> +    Select the desired profile for HEVC encoder.
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN``
-> +      - Main profile.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE``
-> +      - Main still picture profile.
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-> +.. _v4l2-hevc-level:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LEVEL``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_level -
-> +    Select the desired level for HEVC encoder.
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +       :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_1``
-> +      - Level 1.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_2``
-> +      - Level 2.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_2_1``
-> +      - Level 2.1
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_3``
-> +      - Level 3.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_3_1``
-> +      - Level 3.1
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_4``
-> +      - Level 4.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1``
-> +      - Level 4.1
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5``
-> +      - Level 5.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1``
-> +      - Level 5.1
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5_2``
-> +      - Level 5.2
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6``
-> +      - Level 6.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6_1``
-> +      - Level 6.1
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2``
-> +      - Level 6.2
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION``
-> +    Indicates the number of evenly spaced subintervals, called ticks, within
-> +    one modulo time. One modulo time represents the fixed interval of one
-> +    second. This is a 16bit unsigned integer and has a maximum value upto
-
-s/upto/up to/
-
-So "one modulo time" == "one second"? Perhaps just say that instead?
-
-> +    0xffff.
-> +
-> +.. _v4l2-hevc-profile:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_tier_flag -
-> +    TIER_FLAG specifies tier information of the HEVC encoded picture. Tier were
-
-s/Tier/Tiers/
-
-> +    made to deal with applications that differ in terms of maximum bit rate.
-> +    Setting the flag to 0 selects HEVC tier_flag as Main tier and setting this
-> +    flag to 1 indicates High tier. High tier is for very demanding applications
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_TIER_MAIN``
-> +      - Main tier.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_TIER_HIGH``
-> +      - High tier.
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH``
-> +    Selects HEVC maximum coding unit depth.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LF``
-> +    Indicates loop filtering. Control ID 0 indicates loop filtering
-
-s/ID/value/
-
-> +    is enabled and when set to 1 indicates no filter.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY``
-> +    Selects whether to apply the loop filter across the slice boundary or not.
-> +    If the value is 0, loop filter will not be applied across the slice boundary.
-> +    If the value is 1, loop filter will be applied across the slice boundary.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2``
-> +    Selects HEVC loop filter beta offset. The valid range is [-6, +6].
-> +    This could be a negative value in the 2's complement expression.
-
-I'd drop this last line. The range you specify already indicates that it can
-be negative.
-
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2``
-> +    Selects HEVC loop filter tc offset. The valid range is [-6, +6].
-> +    This could be a negative value in the 2's complement expression.
-
-Ditto.
-
-> +
-> +.. _v4l2-hevc-refresh-type:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_hier_refresh_type -
-> +    Selects refresh type for HEVC encoder.
-> +    Host has to specify the period into
-> +    HEVC_REFRESH_PERIOD.
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_NONE``
-> +      - Use the B frame for hierarchical coding.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_CRA``
-> +      - Use CRA(Clean Random Access Unit) picture encoding.
-
-Add space after CRA.
-
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_IDR``
-> +      - Use IDR picture encoding.
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD``
-> +    Selects the refresh period for HEVC encoder.
-> +    This specifies the number of I picture between two CRA/IDR pictures.
-
-s/I picture/I pictures/
-
-> +    This is valid only if REFRESH_TYPE is not 0.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU``
-> +    Indicates HEVC lossless encoding. Setting it to 0 disables lossless
-> +    encoding. Setting it to 1 enables lossless encoding.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED``
-> +    Indicates constant intra prediction for HEVC encoder. Specifies the
-> +    constrained intra prediction in which intra largest coding unit(LCU)
-
-Space before (LCU)
-
-> +    prediction is performed by using residual data and decoded samples of
-> +    neighboring intra LCU only. Setting it to 1 enables this control ID and
-> +    setting it to 0 disables the control ID.
-
-s/control ID/feature/
-
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT``
-> +    Indicates wavefront parallel processing for HEVC encoder. Setting it to 0
-> +    disables the control ID and setting it to 1 enables the wavefront parallel
-> +    processing.
-
-Ditto. Please check this document for more mis-use of the term "control ID", I won't
-comment on this anymore.
-
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_SIGN_DATA_HIDING``
-> +    Setting it to 1 indicates sign data hiding for HEVC encoder. Setting it to
-> +    0 disables the control ID.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB``
-> +    Setting the control ID to 1 enables general picture buffers for HEVC
-> +    encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID``
-> +    Indicates temporal identifier specified as temporal_id in
-> +    nal_unit_header_svc_extension() for HEVC encoder which is enabled by
-> +    setting the control ID to 1.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING``
-> +    Indicates bi-linear interpolation is conditionally used in the intra
-> +    prediction filtering process in the CVS when set to 1. Indicates bi-linear
-> +    interpolation is not used in the CVS when set to 0.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1``
-> +    Indicates max number of merge candidate motion vectors.
-> +    Values are from zero to four.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT``
-> +    Indicates intra prediction unit split for HEVC Encoder. Setting it to 1
-> +    disables the feature. Setting it to 1 enables the feature.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION``
-> +    Indicates temporal motion vector prediction for HEVC encoder. Setting it to
-> +    0 enables the prediction. Setting it to 1 disables the prediction.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE``
-> +    Specifies if HEVC generates a stream with a size of length field instead of
-> +    start code pattern. The size of the length field is configurable among 1,2
-> +    or 4 thorugh the SIZE_OF_LENGTH_FIELD. It is not applied at SEQ_START.
-> +    Setting it to 0 disables the control ID. Setting it to 1 will enables
-> +    the control ID.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CR``
-> +    Indicates the quantization parameter CR index.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CB``
-> +    Indicates the quantization parameter CB index.
-> +
-> +.. _v4l2-hevc-size-of-length-field:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD``
-> +(enum)
-> +
-> +enum v4l2_mpeg_video_hevc_size_of_length_field -
-> +    Indicates the size of length field.
-> +    This is valid when encoding WITHOUT_STARTCODE_ENABLE is enabled.
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +       :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_0``
-> +      - Generate start code pattern (Normal).
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_1``
-> +      - Generate size of length field instead of start code pattern and length is 1.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_2``
-> +      - Generate size of length field instead of start code pattern and length is 2.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_4``
-> +      - Generate size of length field instead of start code pattern and length is 4.
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER0_BITRATE``
-> +    Indicates bit rate for hierarchical coding layer 0 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER1_BITRATE``
-> +    Indicates bit rate for hierarchical coding layer 1 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER2_BITRATE``
-> +    Indicates bit rate for hierarchical coding layer 2 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER3_BITRATE``
-> +    Indicates bit rate for hierarchical coding layer 3 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER4_BITRATE``
-> +    Indicates bit rate for hierarchical coding layer 4 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER5_BITRATE``
-> +    Indicates bit rate for hierarchical coding layer 5 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER6_BITRATE``
-> +    Indicates bit rate for hierarchical coding layer 6 for HEVC encoder.
-> +
-> +
-> +MFC 10.10 MPEG Controls
-> +-----------------------
-> +
-> +The following MPEG class controls deal with MPEG decoding and encoding
-> +settings that are specific to the Multi Format Codec 10.10 device present
-> +in the S5P family of SoCs by Samsung.
-> +
-> +
-> +.. _mfc1010-control-id:
-> +
-> +MFC 10.10 Control IDs
-> +^^^^^^^^^^^^^^^^^^^^^
-> +
-> +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES``
-> +    Selects number of P reference picture required for HEVC encoder.
-> +    P-Frame can use 1 or 2 frames for reference.
-> +
-> +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_ADAPTIVE_RC_DARK``
-> +    Indicates HEVC dark region adaptive rate control.
-> +
-> +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_ADAPTIVE_RC_SMOOTH``
-> +    Indicates HEVC smooth region adaptive rate control.
-> +
-> +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_ADAPTIVE_RC_STATIC``
-> +    Indicates HEVC static region adaptive rate control.
-> +
-> +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_ADAPTIVE_RC_ACTIVITY``
-> +    Indicates HEVC activity region adaptive rate control.
-> +
-> +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR``
-> +    Indicates whether to generate SPS and PPS at every IDR. Setting it to 0
-> +    disables it and setting it to one enables the feature.
-> +
-> +
->  .. _camera-controls:
->  
->  Camera Control Reference
+> No! Subdevs should never return COLORSPACE_DEFAULT. If they do, then fix
+> them. If this happens a lot (I'm not sure how reliably subdevs fill this
+> in) you could set it to COLORSPACE_RAW. Perhaps with a WARN_ON_ONCE.
 > 
+> > +		if (sdformat->format.xfer_func == V4L2_XFER_FUNC_DEFAULT)
+> > +			sdformat->format.xfer_func = fmt->xfer_func;
+> > +		if (sdformat->format.ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT)
+> > +			sdformat->format.ycbcr_enc = fmt->ycbcr_enc;
+> > +		if (sdformat->format.quantization == V4L2_QUANTIZATION_DEFAULT)
+> > +			sdformat->format.quantization = fmt->quantization;
+> 
+> Nack. This is meaningless.
+> 
+> > +	} else {
+> > +		if (sdformat->format.xfer_func == V4L2_XFER_FUNC_DEFAULT) {
+> > +			sdformat->format.xfer_func =
+> > +				V4L2_MAP_XFER_FUNC_DEFAULT(
+> > +						sdformat->format.colorspace);
+> > +		}
+> > +		if (sdformat->format.ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT) {
+> > +			sdformat->format.ycbcr_enc =
+> > +				V4L2_MAP_YCBCR_ENC_DEFAULT(
+> > +						sdformat->format.colorspace);
+> > +		}
+> > +		if (sdformat->format.quantization == V4L2_QUANTIZATION_DEFAULT) {
+> > +			sdformat->format.quantization =
+> > +				V4L2_MAP_QUANTIZATION_DEFAULT(
+> > +						cc->cs != IPUV3_COLORSPACE_YUV,
+> > +						sdformat->format.colorspace,
+> > +						sdformat->format.ycbcr_enc);
+> > +		}
+> 
+> This isn't wrong, but it is perfectly fine to keep the DEFAULT here and let
+> the application call V4L2_MAP_.
+> 
+> I get the feeling this patch is a workaround for subdev errors. Either that,
+> or the commit log doesn't give me enough information to really understand the
+> problem that's being addressed here.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > +	}
+> > +
+> >  	*fmt = sdformat->format;
+> >  
+> >  	if (sdformat->pad == CSI_SINK_PAD) {
+> > 
 
-Regards,
-
-	Hans
+regards
+Philipp
