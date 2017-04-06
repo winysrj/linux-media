@@ -1,35 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:37363 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755009AbdDGNss (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Apr 2017 09:48:48 -0400
-Message-ID: <1491572923.3704.84.camel@linux.intel.com>
-Subject: Re: [PATCH 1/3] staging: atomisp: remove enable_isp_irq function
- and add disable_isp_irq
-From: Alan Cox <alan@linux.intel.com>
-To: Daeseok Youn <daeseok.youn@gmail.com>, mchehab@kernel.org
-Cc: gregkh@linuxfoundation.org, dan.carpenter@oracle.com,
-        singhalsimran0@gmail.com, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Date: Fri, 07 Apr 2017 14:48:43 +0100
-In-Reply-To: <20170407055604.GA32049@SEL-JYOUN-D1>
-References: <20170407055604.GA32049@SEL-JYOUN-D1>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-by2nam01on0115.outbound.protection.outlook.com ([104.47.34.115]:45620
+        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1756689AbdDFHwN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Apr 2017 03:52:13 -0400
+From: <Yasunari.Takiguchi@sony.com>
+To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <devicetree@vger.kernel.org>
+CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
+        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
+        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
+        Hideki Nozawa <Hideki.Nozawa@sony.com>,
+        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
+        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
+        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+Subject: [PATCH 1/5] dt-bindings: media: Add document file for CXD2880 SPI I/F
+Date: Thu, 6 Apr 2017 16:54:33 +0900
+Message-ID: <1491465273-9338-1-git-send-email-Yasunari.Takiguchi@sony.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2017-04-07 at 14:56 +0900, Daeseok Youn wrote:
-> Enable/Disable ISP irq is switched with "enable" parameter of
-> enable_isp_irq(). It would be better splited to two such as
-> enable_isp_irq()/disable_isp_irq().
-> 
-> But the enable_isp_irq() is no use in atomisp_cmd.c file.
-> So remove the enable_isp_irq() function and add
-> disable_isp_irq function only.
+From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-All 3 added to my tree - thanks
+This is the document file for Sony CXD2880 DVB-T2/T tuner + demodulator.
+It contains the description of the SPI adapter binding.
 
-Alan
+Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+---
+ .../devicetree/bindings/media/spi/sony-cxd2880.txt |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+
+diff --git a/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt b/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+new file mode 100644
+index 0000000..fc5aa26
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+@@ -0,0 +1,14 @@
++Sony CXD2880 DVB-T2/T tuner + demodulator driver SPI adapter
++
++Required properties:
++- compatible: Should be "sony,cxd2880".
++- reg: SPI chip select number for the device.
++- spi-max-frequency: Maximum bus speed, should be set to <55000000> (55MHz).
++
++Example:
++
++cxd2880@0 {
++	compatible = "sony,cxd2880";
++	reg = <0>; /* CE0 */
++	spi-max-frequency = <55000000>; /* 55MHz */
++};
+-- 
+1.7.9.5
