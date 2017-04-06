@@ -1,45 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41553
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S933498AbdDESjO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 14:39:14 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 2/2] [media] tveeprom: get rid of documentation of an unused parameter
-Date: Wed,  5 Apr 2017 15:38:53 -0300
-Message-Id: <0fad6e2372074e69b7c2048fec86f5a4bcbb3edb.1491417529.git.mchehab@s-opensource.com>
-In-Reply-To: <f8da4aad552ec9423ca723404472cc3db0c125d7.1491417529.git.mchehab@s-opensource.com>
-References: <f8da4aad552ec9423ca723404472cc3db0c125d7.1491417529.git.mchehab@s-opensource.com>
-In-Reply-To: <f8da4aad552ec9423ca723404472cc3db0c125d7.1491417529.git.mchehab@s-opensource.com>
-References: <f8da4aad552ec9423ca723404472cc3db0c125d7.1491417529.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mout.kundenserver.de ([212.227.126.133]:55901 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932797AbdDFIr6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Apr 2017 04:47:58 -0400
+Received: from aragorn2 ([84.150.11.152]) by mrelayeu.kundenserver.de
+ (mreue004 [212.227.15.130]) with ESMTPA (Nemesis) id 0MaG3Y-1cgj8y3AHQ-00Jqlt
+ for <linux-media@vger.kernel.org>; Thu, 06 Apr 2017 10:47:20 +0200
+Reply-To: <klaus@eicheler.de>
+From: "Klaus Eicheler" <klaus@eicheler.de>
+To: <linux-media@vger.kernel.org>
+Subject: Unknown symbol problem; em28xx (WinTV-soloHD)
+Date: Thu, 6 Apr 2017 10:47:20 +0200
+Message-ID: <GCEIIGDJBAPBFIDFCCMBIEAICNAA.klaus@eicheler.de>
+MIME-Version: 1.0
+Content-Type: text/plain;
+        charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changeset 446aba663b82 ("[media] tveeprom: get rid of unused arg
-on tveeprom_hauppauge_analog()") removed the now unused I2C adapter
-struct from struct tveeprom. Remove the corresponding kernel-doc
-tag.
+Hi all,
 
-Fixes: 446aba663b82 ("[media] tveeprom: get rid of unused arg on tveeprom_hauppauge_analog()")
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- include/media/tveeprom.h | 1 -
- 1 file changed, 1 deletion(-)
+compiling media_build on my openSUSE 13.1 machine worked without errors, but
+issued some warnings, finally leading to (dmesg):
 
-diff --git a/include/media/tveeprom.h b/include/media/tveeprom.h
-index 5324c82fc810..630bcf3d8885 100644
---- a/include/media/tveeprom.h
-+++ b/include/media/tveeprom.h
-@@ -94,7 +94,6 @@ struct tveeprom {
-  *			       of the eeprom previously filled at
-  *			       @eeprom_data field.
-  *
-- * @c:			I2C client struct
-  * @tvee:		Struct to where the eeprom parsed data will be filled;
-  * @eeprom_data:	Array with the contents of the eeprom_data. It should
-  *			contain 256 bytes filled with the contents of the
--- 
-2.9.3
+[97792.189678] usb 2-1.6: new high-speed USB device number 10 using ehci-pci
+[97792.276140] usb 2-1.6: New USB device found, idVendor=2040,
+idProduct=0264
+[97792.276147] usb 2-1.6: New USB device strings: Mfr=3, Product=1,
+SerialNumber=2
+[97792.276151] usb 2-1.6: Product: soloHD
+[97792.276154] usb 2-1.6: Manufacturer: HCW
+[97792.276157] usb 2-1.6: SerialNumber: 0013813833
+[97792.445273] em28xx: Unknown symbol v4l2_clk_unregister_fixed (err 0)
+[97792.445319] em28xx: Unknown symbol __v4l2_clk_register_fixed (err 0)
+
+The DVB stick seems to be well recognized (-> em28xx). The only reference to
+v4l2_clk_unregister_fixed I could find was inside em28xx-camera.c.
+
+modprobe em28xx yields the same results.
+
+Do you have any hints how to solve the problem?
+
+Cheers
+Mit freundlichen Grüßen
+Klaus Eicheler
