@@ -1,143 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:38317 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754480AbdDMWGs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 18:06:48 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Steve Wise <swise@opengridcomputing.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:13 -0600
-Message-Id: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 00/22] Introduce common scatterlist map function
+Received: from mailout2.samsung.com ([203.254.224.25]:15084 "EHLO
+        epoutp02.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932750AbdDFGK3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Apr 2017 02:10:29 -0400
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v4 09/12] [media] s5p-mfc: Add VP9 decoder support
+Date: Thu, 06 Apr 2017 11:41:42 +0530
+Message-id: <1491459105-16641-10-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
+References: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
+        <CGME20170406061021epcas5p25af9b201e7e990bd7c2ade8ec765655a@epcas5p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Everyone,
+Add support for codec definition and corresponding buffer
+requirements for VP9 decoder.
 
-As part of my effort to enable P2P DMA transactions with PCI cards,
-we've identified the need to be able to safely put IO memory into
-scatterlists (and eventually other spots). This probably involves a
-conversion from struct page to pfn_t but that migration is a ways off
-and those decisions are yet to be made.
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |  6 ++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |  3 +++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  7 +++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |  2 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 26 +++++++++++++++++++++++++
+ 6 files changed, 45 insertions(+)
 
-As an initial step in that direction, I've started cleaning up some of the
-scatterlist code by trying to carve out a better defined layer between it
-and it's users. The longer term goal would be to remove sg_page or replace
-it with something that can potentially fail.
-
-This patchset is the first step in that effort. I've introduced
-a common function to map scatterlist memory and converted all the common
-kmap(sg_page()) cases. This removes about 66 sg_page calls (of ~331).
-
-Seeing this is a fairly large cleanup set that touches a wide swath of
-the kernel I have limited the people I've sent this to. I'd suggest we look
-toward merging the first patch and then I can send the individual subsystem
-patches on to their respective maintainers and get them merged
-independantly. (This is to avoid the conflicts I created with my last
-cleanup set... Sorry) Though, I'm certainly open to other suggestions to get
-it merged.
-
-The patchset is based on v4.11-rc6 and can be found in the sg_map
-branch from this git tree:
-
-https://github.com/sbates130272/linux-p2pmem.git
-
-Thanks,
-
-Logan
-
-
-Logan Gunthorpe (22):
-  scatterlist: Introduce sg_map helper functions
-  nvmet: Make use of the new sg_map helper function
-  libiscsi: Make use of new the sg_map helper function
-  target: Make use of the new sg_map function at 16 call sites
-  drm/i915: Make use of the new sg_map helper function
-  crypto: hifn_795x: Make use of the new sg_map helper function
-  crypto: shash, caam: Make use of the new sg_map helper function
-  crypto: chcr: Make use of the new sg_map helper function
-  dm-crypt: Make use of the new sg_map helper in 4 call sites
-  staging: unisys: visorbus: Make use of the new sg_map helper function
-  RDS: Make use of the new sg_map helper function
-  scsi: ipr, pmcraid, isci: Make use of the new sg_map helper in 4 call
-    sites
-  scsi: hisi_sas, mvsas, gdth: Make use of the new sg_map helper
-    function
-  scsi: arcmsr, ips, megaraid: Make use of the new sg_map helper
-    function
-  scsi: libfc, csiostor: Change to sg_copy_buffer in two drivers
-  xen-blkfront: Make use of the new sg_map helper function
-  mmc: sdhci: Make use of the new sg_map helper function
-  mmc: spi: Make use of the new sg_map helper function
-  mmc: tmio: Make use of the new sg_map helper function
-  mmc: sdricoh_cs: Make use of the new sg_map helper function
-  mmc: tifm_sd: Make use of the new sg_map helper function
-  memstick: Make use of the new sg_map helper function
-
- crypto/shash.c                                  |   9 +-
- drivers/block/xen-blkfront.c                    |  33 +++++--
- drivers/crypto/caam/caamalg.c                   |   8 +-
- drivers/crypto/chelsio/chcr_algo.c              |  28 +++---
- drivers/crypto/hifn_795x.c                      |  32 ++++---
- drivers/dma-buf/dma-buf.c                       |   3 +
- drivers/gpu/drm/i915/i915_gem.c                 |  27 +++---
- drivers/md/dm-crypt.c                           |  38 +++++---
- drivers/memstick/host/jmb38x_ms.c               |  23 ++++-
- drivers/memstick/host/tifm_ms.c                 |  22 ++++-
- drivers/mmc/host/mmc_spi.c                      |  26 +++--
- drivers/mmc/host/sdhci.c                        |  35 ++++++-
- drivers/mmc/host/sdricoh_cs.c                   |  14 ++-
- drivers/mmc/host/tifm_sd.c                      |  88 +++++++++++++----
- drivers/mmc/host/tmio_mmc.h                     |  12 ++-
- drivers/mmc/host/tmio_mmc_dma.c                 |   5 +
- drivers/mmc/host/tmio_mmc_pio.c                 |  24 +++++
- drivers/nvme/target/fabrics-cmd.c               |  16 +++-
- drivers/scsi/arcmsr/arcmsr_hba.c                |  16 +++-
- drivers/scsi/csiostor/csio_scsi.c               |  54 +----------
- drivers/scsi/cxgbi/libcxgbi.c                   |   5 +
- drivers/scsi/gdth.c                             |   9 +-
- drivers/scsi/hisi_sas/hisi_sas_v1_hw.c          |  14 ++-
- drivers/scsi/hisi_sas/hisi_sas_v2_hw.c          |  13 ++-
- drivers/scsi/ipr.c                              |  27 +++---
- drivers/scsi/ips.c                              |   8 +-
- drivers/scsi/isci/request.c                     |  42 ++++----
- drivers/scsi/libfc/fc_libfc.c                   |  49 ++--------
- drivers/scsi/libiscsi_tcp.c                     |  32 ++++---
- drivers/scsi/megaraid.c                         |   9 +-
- drivers/scsi/mvsas/mv_sas.c                     |  10 +-
- drivers/scsi/pmcraid.c                          |  19 ++--
- drivers/staging/unisys/visorhba/visorhba_main.c |  12 ++-
- drivers/target/iscsi/iscsi_target.c             |  27 ++++--
- drivers/target/target_core_rd.c                 |   3 +-
- drivers/target/target_core_sbc.c                | 122 +++++++++++++++++-------
- drivers/target/target_core_transport.c          |  18 ++--
- drivers/target/target_core_user.c               |  43 ++++++---
- include/linux/scatterlist.h                     |  97 +++++++++++++++++++
- include/scsi/libiscsi_tcp.h                     |   3 +-
- include/target/target_core_backend.h            |   4 +-
- net/rds/ib_recv.c                               |  17 +++-
- 42 files changed, 739 insertions(+), 357 deletions(-)
-
---
-2.1.4
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+index 953a073..6754477 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+@@ -18,6 +18,8 @@
+ /* MFCv10 register definitions*/
+ #define S5P_FIMV_MFC_CLOCK_OFF_V10			0x7120
+ #define S5P_FIMV_MFC_STATE_V10				0x7124
++#define S5P_FIMV_D_STATIC_BUFFER_ADDR_V10		0xF570
++#define S5P_FIMV_D_STATIC_BUFFER_SIZE_V10		0xF574
+ 
+ /* MFCv10 Context buffer sizes */
+ #define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)
+@@ -34,8 +36,12 @@
+ 
+ /* MFCv10 codec defines*/
+ #define S5P_FIMV_CODEC_HEVC_DEC		17
++#define S5P_FIMV_CODEC_VP9_DEC		18
+ #define S5P_FIMV_CODEC_HEVC_ENC         26
+ 
++/* Decoder buffer size for MFC v10 */
++#define DEC_VP9_STATIC_BUFFER_SIZE	20480
++
+ /* Encoder buffer size for MFC v10.0 */
+ #define ENC_V100_BASE_SIZE(x, y) \
+ 	(((x + 3) * (y + 3) * 8) \
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+index 76eca67..102b47e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+@@ -104,6 +104,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_HEVC_DEC:
+ 		codec_type = S5P_FIMV_CODEC_HEVC_DEC;
+ 		break;
++	case S5P_MFC_CODEC_VP9_DEC:
++		codec_type = S5P_FIMV_CODEC_VP9_DEC;
++		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		codec_type = S5P_FIMV_CODEC_H264_ENC_V6;
+ 		break;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 828e07e..b49f220 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -73,6 +73,7 @@
+ #define S5P_MFC_CODEC_VC1RCV_DEC	6
+ #define S5P_MFC_CODEC_VP8_DEC		7
+ #define S5P_MFC_CODEC_HEVC_DEC		17
++#define S5P_MFC_CODEC_VP9_DEC		18
+ 
+ #define S5P_MFC_CODEC_H264_ENC		20
+ #define S5P_MFC_CODEC_H264_MVC_ENC	21
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 4749355..5cf4d99 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -151,6 +151,13 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.num_planes	= 1,
+ 		.versions	= MFC_V10_BIT,
+ 	},
++	{
++		.fourcc		= V4L2_PIX_FMT_VP9,
++		.codec_mode	= S5P_FIMV_CODEC_VP9_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
++		.versions	= MFC_V10_BIT,
++	},
+ };
+ 
+ #define NUM_FORMATS ARRAY_SIZE(formats)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+index e7a2d46..57f4560 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+@@ -170,6 +170,8 @@ struct s5p_mfc_regs {
+ 	void __iomem *d_used_dpb_flag_upper;/* v7 and v8 */
+ 	void __iomem *d_used_dpb_flag_lower;/* v7 and v8 */
+ 	void __iomem *d_min_scratch_buffer_size; /* v10 */
++	void __iomem *d_static_buffer_addr; /* v10 */
++	void __iomem *d_static_buffer_size; /* v10 */
+ 
+ 	/* encoder registers */
+ 	void __iomem *e_frame_width;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 979c4ce..cb0380b 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -226,6 +226,12 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 			ctx->scratch_buf_size +
+ 			(ctx->mv_count * ctx->mv_size);
+ 		break;
++	case S5P_MFC_CODEC_VP9_DEC:
++		mfc_debug(2, "Use min scratch buffer size\n");
++		ctx->bank1.size =
++			ctx->scratch_buf_size +
++			DEC_VP9_STATIC_BUFFER_SIZE;
++		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		if (IS_MFCV10(dev)) {
+ 			mfc_debug(2, "Use min scratch buffer size\n");
+@@ -336,6 +342,7 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_VC1_DEC:
+ 	case S5P_MFC_CODEC_MPEG2_DEC:
+ 	case S5P_MFC_CODEC_VP8_DEC:
++	case S5P_MFC_CODEC_VP9_DEC:
+ 		ctx->ctx.size = buf_size->other_dec_ctx;
+ 		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+@@ -566,6 +573,13 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 			buf_size1 -= frame_size_mv;
+ 		}
+ 	}
++	if (ctx->codec_mode == S5P_FIMV_CODEC_VP9_DEC) {
++		writel(buf_addr1, mfc_regs->d_static_buffer_addr);
++		writel(DEC_VP9_STATIC_BUFFER_SIZE,
++				mfc_regs->d_static_buffer_size);
++		buf_addr1 += DEC_VP9_STATIC_BUFFER_SIZE;
++		buf_size1 -= DEC_VP9_STATIC_BUFFER_SIZE;
++	}
+ 
+ 	mfc_debug(2, "Buf1: %zx, buf_size1: %d (frames %d)\n",
+ 			buf_addr1, buf_size1, ctx->total_dpb_count);
+@@ -2272,6 +2286,18 @@ const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev)
+ 	R(e_h264_options, S5P_FIMV_E_H264_OPTIONS_V8);
+ 	R(e_min_scratch_buffer_size, S5P_FIMV_E_MIN_SCRATCH_BUFFER_SIZE_V8);
+ 
++	if (!IS_MFCV10(dev))
++		goto done;
++
++	/* Initialize registers used in MFC v10 only.
++	 * Also, over-write the registers which have
++	 * a different offset for MFC v10.
++	 */
++
++	/* decoder registers */
++	R(d_static_buffer_addr, S5P_FIMV_D_STATIC_BUFFER_ADDR_V10);
++	R(d_static_buffer_size, S5P_FIMV_D_STATIC_BUFFER_SIZE_V10);
++
+ done:
+ 	return &mfc_regs;
+ #undef S5P_MFC_REG_ADDR
+-- 
+2.7.4
