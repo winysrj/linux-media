@@ -1,135 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:40676 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752225AbdDDXL7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 19:11:59 -0400
-Date: Wed, 5 Apr 2017 00:10:53 +0100
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [RFC] [media] imx: assume MEDIA_ENT_F_ATV_DECODER entities
- output video on pad 1
-Message-ID: <20170404231053.GE7909@n2100.armlinux.org.uk>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
- <1490661656-10318-20-git-send-email-steve_longerbeam@mentor.com>
- <1490894749.2404.33.camel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:47734 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753996AbdDFNuV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Apr 2017 09:50:21 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>,
+        Evgeny Plehov <EvgenyPlehov@ukr.net>,
+        Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/2] si2157: Add support for Si2141-A10
+Date: Thu,  6 Apr 2017 16:49:11 +0300
+Message-Id: <20170406134911.1922-2-crope@iki.fi>
+In-Reply-To: <20170406134911.1922-1-crope@iki.fi>
+References: <20170406134911.1922-1-crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1490894749.2404.33.camel@pengutronix.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 30, 2017 at 07:25:49PM +0200, Philipp Zabel wrote:
-> The TVP5150 DT bindings specify a single output port (port 0) that
-> corresponds to the video output pad (pad 1, DEMOD_PAD_VID_OUT).
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
-> I'm trying to get this to work with a TVP5150 analog TV decoder, and the
-> first problem is that this device doesn't have pad 0 as its single
-> output pad. Instead, as a MEDIA_ENT_F_ATV_DECODER entity, it has for
-> pads (input, video out, vbi out, audio out), and video out is pad 1,
-> whereas the device tree only defines a single port (0).
+From: Stefan Brüns <stefan.bruens@rwth-aachen.de>
 
-Looking at the patch, it's highlighted another review point with
-Steve's driver.
+The Si2141 needs two distinct commands for powerup/reset, otherwise it
+will not respond to chip revision requests. It also needs a firmware
+to run properly.
 
-> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-> index 17e2386a3ca3a..c52d6ca797965 100644
-> --- a/drivers/staging/media/imx/imx-media-dev.c
-> +++ b/drivers/staging/media/imx/imx-media-dev.c
-> @@ -267,6 +267,15 @@ static int imx_media_create_link(struct imx_media_dev *imxmd,
->  	source_pad = link->local_pad;
->  	sink_pad = link->remote_pad;
->  
-> +	/*
-> +	 * If the source subdev is an analog video decoder with a single source
-> +	 * port, assume that this port 0 corresponds to the DEMOD_PAD_VID_OUT
-> +	 * entity pad.
-> +	 */
-> +	if (source->entity.function == MEDIA_ENT_F_ATV_DECODER &&
-> +	    local_sd->num_sink_pads == 0 && local_sd->num_src_pads == 1)
-> +		source_pad = DEMOD_PAD_VID_OUT;
-> +
->  	v4l2_info(&imxmd->v4l2_dev, "%s: %s:%d -> %s:%d\n", __func__,
->  		  source->name, source_pad, sink->name, sink_pad);
+Cc: Evgeny Plehov <EvgenyPlehov@ukr.net>
+Signed-off-by: Stefan Brüns <stefan.bruens@rwth-aachen.de>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/si2157.c      | 23 +++++++++++++++++++++--
+ drivers/media/tuners/si2157_priv.h |  2 ++
+ 2 files changed, 23 insertions(+), 2 deletions(-)
 
-What is "local" and what is "remote" here?  It seems that, in the case of
-a link being created with the sensor(etc), it's all back to front.
-
-Eg, I see locally:
-
-imx-media: imx_media_create_link: imx219 0-0010:0 -> imx6-mipi-csi2:0
-
-So here, "source" is the imx219 (the sensor), and sink is "imx6-mipi-csi2"
-(part of the iMX6 capture.)  However, this makes "local_sd" the subdev of
-the sensor, and "remote_sd" the subdev of the CSI2 interface - which is
-totally back to front - this code is part of the iMX6 capture system,
-so "local" implies that it should be part of that, and the "remote" thing
-would be the sensor.
-
-Hence, this seems completely confused.  I'd suggest that:
-
-(a) the "pad->pad.flags & MEDIA_PAD_FL_SINK" test in imx_media_create_link()
-    is moved into imx_media_create_links(), and placed here instead:
-
-		for (j = 0; j < num_pads; j++) {
-			pad = &local_sd->pad[j];
-
-			if (pad->pad.flags & MEDIA_PAD_FL_SINK)
-				continue;
-
-			...
-		}
-
-    as the pad isn't going to spontaneously change this flag while we
-    consider each individual link.  However, maybe the test should be:
-
-			if (!(pad->pad.flags & MEDIA_PAD_FL_SOURCE))
-
-    ?
-
-(b) the terms "local" and "remote" in imx_media_create_link() are
-    replaced with "source" and "sink" respectively, since this will
-    now be called with a guaranteed source pad.
-
-As for Philipp's solution, I'm not sure what the correct solution for
-something like this is.  It depends how you view "hardware interface"
-as defined by video-interfaces.txt, and whether the pads on the TVP5150
-represent the hardware interfaces.  If we take the view that the pads
-do represent hardware interfaces, then using the reg= property on the
-port node will solve this problem.
-
-If not, it would mean that we would have to have the iMX capture code
-scan the pads on the source device, looking for outputs - but that
-runs into a problem - if the source device has multiple outputs, does
-the reg= property specify the output pad index or the pad number, and
-what if one binding for a device specifies it one way and another
-device's binding specifies it a different way.
-
-There's lots of scope for making things really painful here, and
-ending up with needing sensor-specific code in capture drivers to
-work around different decisions on this.
-
-I think someone needs to nail this down, if it's not already too late.
-
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index 57b2508..e35b1fa 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -106,6 +106,9 @@ static int si2157_init(struct dvb_frontend *fe)
+ 	if (dev->chiptype == SI2157_CHIPTYPE_SI2146) {
+ 		memcpy(cmd.args, "\xc0\x05\x01\x00\x00\x0b\x00\x00\x01", 9);
+ 		cmd.wlen = 9;
++	} else if (dev->chiptype == SI2157_CHIPTYPE_SI2141) {
++		memcpy(cmd.args, "\xc0\x00\x0d\x0e\x00\x01\x01\x01\x01\x03", 10);
++		cmd.wlen = 10;
+ 	} else {
+ 		memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
+ 		cmd.wlen = 15;
+@@ -115,6 +118,15 @@ static int si2157_init(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
++	/* Si2141 needs a second command before it answers the revision query */
++	if (dev->chiptype == SI2157_CHIPTYPE_SI2141) {
++		memcpy(cmd.args, "\xc0\x08\x01\x02\x00\x00\x01", 7);
++		cmd.wlen = 7;
++		ret = si2157_cmd_execute(client, &cmd);
++		if (ret)
++			goto err;
++	}
++
+ 	/* query chip revision */
+ 	memcpy(cmd.args, "\x02", 1);
+ 	cmd.wlen = 1;
+@@ -131,12 +143,16 @@ static int si2157_init(struct dvb_frontend *fe)
+ 	#define SI2157_A30 ('A' << 24 | 57 << 16 | '3' << 8 | '0' << 0)
+ 	#define SI2147_A30 ('A' << 24 | 47 << 16 | '3' << 8 | '0' << 0)
+ 	#define SI2146_A10 ('A' << 24 | 46 << 16 | '1' << 8 | '0' << 0)
++	#define SI2141_A10 ('A' << 24 | 41 << 16 | '1' << 8 | '0' << 0)
+ 
+ 	switch (chip_id) {
+ 	case SI2158_A20:
+ 	case SI2148_A20:
+ 		fw_name = SI2158_A20_FIRMWARE;
+ 		break;
++	case SI2141_A10:
++		fw_name = SI2141_A10_FIRMWARE;
++		break;
+ 	case SI2157_A30:
+ 	case SI2147_A30:
+ 	case SI2146_A10:
+@@ -371,7 +387,7 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 
+ static const struct dvb_tuner_ops si2157_ops = {
+ 	.info = {
+-		.name           = "Silicon Labs Si2146/2147/2148/2157/2158",
++		.name           = "Silicon Labs Si2141/Si2146/2147/2148/2157/2158",
+ 		.frequency_min  = 42000000,
+ 		.frequency_max  = 870000000,
+ 	},
+@@ -471,6 +487,7 @@ static int si2157_probe(struct i2c_client *client,
+ #endif
+ 
+ 	dev_info(&client->dev, "Silicon Labs %s successfully attached\n",
++			dev->chiptype == SI2157_CHIPTYPE_SI2141 ?  "Si2141" :
+ 			dev->chiptype == SI2157_CHIPTYPE_SI2146 ?
+ 			"Si2146" : "Si2147/2148/2157/2158");
+ 
+@@ -508,6 +525,7 @@ static int si2157_remove(struct i2c_client *client)
+ static const struct i2c_device_id si2157_id_table[] = {
+ 	{"si2157", SI2157_CHIPTYPE_SI2157},
+ 	{"si2146", SI2157_CHIPTYPE_SI2146},
++	{"si2141", SI2157_CHIPTYPE_SI2141},
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(i2c, si2157_id_table);
+@@ -524,7 +542,8 @@ static struct i2c_driver si2157_driver = {
+ 
+ module_i2c_driver(si2157_driver);
+ 
+-MODULE_DESCRIPTION("Silicon Labs Si2146/2147/2148/2157/2158 silicon tuner driver");
++MODULE_DESCRIPTION("Silicon Labs Si2141/Si2146/2147/2148/2157/2158 silicon tuner driver");
+ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+ MODULE_LICENSE("GPL");
+ MODULE_FIRMWARE(SI2158_A20_FIRMWARE);
++MODULE_FIRMWARE(SI2141_A10_FIRMWARE);
+diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
+index d6b2c7b..e6436f7 100644
+--- a/drivers/media/tuners/si2157_priv.h
++++ b/drivers/media/tuners/si2157_priv.h
+@@ -42,6 +42,7 @@ struct si2157_dev {
+ 
+ #define SI2157_CHIPTYPE_SI2157 0
+ #define SI2157_CHIPTYPE_SI2146 1
++#define SI2157_CHIPTYPE_SI2141 2
+ 
+ /* firmware command struct */
+ #define SI2157_ARGLEN      30
+@@ -52,5 +53,6 @@ struct si2157_cmd {
+ };
+ 
+ #define SI2158_A20_FIRMWARE "dvb-tuner-si2158-a20-01.fw"
++#define SI2141_A10_FIRMWARE "dvb-tuner-si2141-a10-01.fw"
+ 
+ #endif
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+http://palosaari.fi/
