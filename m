@@ -1,95 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from quartz.orcorp.ca ([184.70.90.242]:52619 "EHLO quartz.orcorp.ca"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S968478AbdD0UyK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 16:54:10 -0400
-Date: Thu, 27 Apr 2017 14:53:39 -0600
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Roger Pau =?iso-8859-1?Q?Monn=E9?= <roger.pau@citrix.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@ml01.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-        Julien Grall <julien.grall@arm.com>
-Subject: Re: [PATCH v2 15/21] xen-blkfront: Make use of the new sg_map helper
- function
-Message-ID: <20170427205339.GB26330@obsidianresearch.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
- <1493144468-22493-16-git-send-email-logang@deltatee.com>
- <20170426073720.okv33ly2ldepilti@dhcp-3-128.uk.xensource.com>
- <df6586e2-7d45-6b0b-facb-4dea882df06e@deltatee.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <df6586e2-7d45-6b0b-facb-4dea882df06e@deltatee.com>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:54695 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753843AbdDFJ6z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Apr 2017 05:58:55 -0400
+Message-ID: <1491472646.2392.23.camel@pengutronix.de>
+Subject: Re: [RFC] [media] imx: assume MEDIA_ENT_F_ATV_DECODER entities
+ output video on pad 1
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        mchehab@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Thu, 06 Apr 2017 11:57:26 +0200
+In-Reply-To: <20170405115336.7135e542@vento.lan>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+         <1490661656-10318-20-git-send-email-steve_longerbeam@mentor.com>
+         <1490894749.2404.33.camel@pengutronix.de>
+         <20170404231053.GE7909@n2100.armlinux.org.uk>
+         <19f0ce92-cad6-8950-8018-e3224e2bf266@gmail.com>
+         <7235285c-f39a-64bc-195a-11cfde9e67c5@gmail.com>
+         <20170405082134.GF7909@n2100.armlinux.org.uk>
+         <1491384859.2381.51.camel@pengutronix.de>
+         <20170405115336.7135e542@vento.lan>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 27, 2017 at 02:19:24PM -0600, Logan Gunthorpe wrote:
+On Wed, 2017-04-05 at 11:53 -0300, Mauro Carvalho Chehab wrote:
+[...]
+> There are a number of drivers that can work with different
+> types of TV demodulators. Typical examples of such hardware can be
+> found at em28xx, saa7134, cx88 drivers (among lots of other drivers).
+> Those drivers don't use the subdev API. Instead, they use a generic
+> helper function with sets the pipelines, based on the pad number.
 > 
+> The problem here is that, currently, both MC API and MC core
+> lacks a way to identify PAD ports per type, as the only information
+> that a bridge driver has is a pad number. So, in order for a
+> generic helper function to work, we had to hardcode pad numbers,
+> in a way that it would work for all possible types of demods.
 > 
-> On 26/04/17 01:37 AM, Roger Pau Monné wrote:
-> > On Tue, Apr 25, 2017 at 12:21:02PM -0600, Logan Gunthorpe wrote:
-> >> Straightforward conversion to the new helper, except due to the lack
-> >> of error path, we have to use SG_MAP_MUST_NOT_FAIL which may BUG_ON in
-> >> certain cases in the future.
-> >>
-> >> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-> >> Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-> >> Cc: Juergen Gross <jgross@suse.com>
-> >> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> >> Cc: "Roger Pau Monné" <roger.pau@citrix.com>
-> >>  drivers/block/xen-blkfront.c | 20 +++++++++++---------
-> >>  1 file changed, 11 insertions(+), 9 deletions(-)
-> >>
-> >> diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
-> >> index 3945963..ed62175 100644
-> >> +++ b/drivers/block/xen-blkfront.c
-> >> @@ -816,8 +816,9 @@ static int blkif_queue_rw_req(struct request *req, struct blkfront_ring_info *ri
-> >>  		BUG_ON(sg->offset + sg->length > PAGE_SIZE);
-> >>  
-> >>  		if (setup.need_copy) {
-> >> -			setup.bvec_off = sg->offset;
-> >> -			setup.bvec_data = kmap_atomic(sg_page(sg));
-> >> +			setup.bvec_off = 0;
-> >> +			setup.bvec_data = sg_map(sg, 0, SG_KMAP_ATOMIC |
-> >> +						 SG_MAP_MUST_NOT_FAIL);
+> It shouldn't be hard to add a "pad_type" information at media_pad
+> struct, but passing such info to userspace requires a new API
+> (we're calling it as "properties API"). Sakari was meant to send
+> us an updated RFC for it[1] with a patchset, back in 2015, but
+> this never happened.
+> 
+> [1] https://linuxtv.org/news.php?entry=2015-08-17.mchehab
+[...]
+
+That would be most useful.
+
+> So, in short, the tvp5150 demod doesn't decode audio, but there
+> are other demods that do it.
+> 
+> In the case of VBI, tvp5150 has actually two ways of reporting
+> it:
+> 
+> 1) via YOUT[7:0] pins. VBI information is transmitted as a
+>    set of raw samples, via an ancillary data block, during
+>    vertical/horizontal blanking intervals. So, yes, it shares
+>    the same hardware output, although the VBI contents are
+>    actually multiplexed there. Please notice that not all
+>    video out PADS encapsulate raw VBI the same way as tvp5150
+>    (and some devices even don't support raw VBI, like saa7110 and
+>    some models supported by saa7115 driver).
+
+This is the physical interface that corresponds to the output port
+(should be port@1) in the device tree. It should correspond to the video
+output media entity pad.
+What is unclear to is me whether the VBI media entity pad also should
+correspond to the same physical interface / DT port.
+
+> 2) via an interrupt that indicates that it decoded VBI data. The
+>    VBI information itself is there on FIFO, accessible via a set of
+>    registers (see "VBI Data processor" chapter at the datasheet).
+>
+> Currently, the driver doesn't support (2), because, at the time
+> I wrote the driver, I didn't find a way to read the interrupts generated
+> by tvp5150 at em28xx[1], due to the lack of em28xx documentation,
+> but adding support for it shoudn't be hard. I may eventually do it
+> when I have some time to play with my ISEE hardware.
+> 
+> So, in the case of tvp5150 hardware, have those PADS:
+> 
+> - Input baseband;
+> - Video + raw VBI output;
+> - sliced VBI output.
+
+This DEMOD_PAD_VBI_OUT, does it correspond to 1) or 2) above?
+
+> Yet, we need an always unconnected audio output, in order to support
+> different demods out there.
+
+Are you saying we have to keep pad[DEMOD_PAD_AUDIO_OUT] in tvp5150 even
+though it doesn't exist because the framework can't cope with an
+audio-less ATV_DECODER that only has three pads?
+
+> [1] tvp5150 was written to support some em28xx-based devices
+> 
 > > 
-> > I assume that sg_map already adds sg->offset to the address?
+> > > So, it has one input and three outputs.  How does marking the direction
+> > > in the port node (which would indicate that there was a data flow out of
+> > > TVP5150 into the iMX6 capture) help identify which of those pads should
+> > > be used?
+> > >
+> > > It would eliminate the input pad, but you still have three output pads
+> > > to choose from.
+> > > 
+> > > So no, your idea can't work.  
+> > 
+> > In this case, removal of the VBI and audio pads might make this work,
+> > but in general this is true. In my opinion, to make this truly generic,
+> > we need an interface to ask the driver which media entity pad a given
+> > device tree port corresponds to, as there might not even be a single
+> > media entity corresponding to all ports for more complex devices.
 > 
-> Correct.
-> 
-> > Also wondering whether we can get rid of bvec_off and just increment bvec_data,
-> > adding Julien who IIRC added this code.
-> 
-> bvec_off is used to keep track of the offset within the current mapping
-> so it's not a great idea given that you'd want to kunmap_atomic the
-> original address and not something with an offset. It would be nice if
-> this could be converted to use the sg_miter interface but that's a much
-> more invasive change that would require someone who knows this code and
-> can properly test it. I'd be very grateful if someone actually took that on.
+> Yes. We also need something like that at the userspace API.
 
-blkfront is one of the drivers I looked at, and it appears to only be
-memcpying with the bvec_data pointer, so I wonder why it does not use
-sg_copy_X_buffer instead..
-
-Jason
+thanks
+Philipp
