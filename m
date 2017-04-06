@@ -1,271 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:55225 "EHLO hardeman.nu"
+Received: from mga01.intel.com ([192.55.52.88]:30207 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755330AbdD0UeF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 16:34:05 -0400
-Subject: [PATCH 2/6] rc-core: cleanup rc_register_device
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+        id S933187AbdDFNMm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Apr 2017 09:12:42 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, sean@mess.org
-Date: Thu, 27 Apr 2017 22:34:03 +0200
-Message-ID: <149332524306.32431.8964878481747905258.stgit@zeus.hardeman.nu>
-In-Reply-To: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
-References: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 1/8] v4l: flash led class: Use fwnode_handle instead of device_node in init
+Date: Thu,  6 Apr 2017 16:12:03 +0300
+Message-Id: <1491484330-12040-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The device core infrastructure is based on the presumption that
-once a driver calls device_add(), it must be ready to accept
-userspace interaction.
+Pass the more generic fwnode_handle to the init function than the
+device_node.
 
-This requires splitting rc_setup_rx_device() into two functions
-and reorganizing rc_register_device() so that as much work
-as possible is performed before calling device_add().
-
-Signed-off-by: David Härdeman <david@hardeman.nu>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/rc/rc-core-priv.h |    2 +
- drivers/media/rc/rc-ir-raw.c    |   34 ++++++++++++------
- drivers/media/rc/rc-main.c      |   75 +++++++++++++++++++++++++--------------
- 3 files changed, 73 insertions(+), 38 deletions(-)
+ drivers/leds/leds-aat1290.c                    |  5 +++--
+ drivers/leds/leds-max77693.c                   |  5 +++--
+ drivers/media/v4l2-core/v4l2-flash-led-class.c | 11 ++++++-----
+ include/media/v4l2-flash-led-class.h           |  4 ++--
+ 4 files changed, 14 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 0455b273c2fc..b3e7cac2c3ee 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -263,7 +263,9 @@ int ir_raw_gen_pl(struct ir_raw_event **ev, unsigned int max,
-  * Routines from rc-raw.c to be used internally and by decoders
+diff --git a/drivers/leds/leds-aat1290.c b/drivers/leds/leds-aat1290.c
+index def3cf9..a21e192 100644
+--- a/drivers/leds/leds-aat1290.c
++++ b/drivers/leds/leds-aat1290.c
+@@ -503,8 +503,9 @@ static int aat1290_led_probe(struct platform_device *pdev)
+ 	aat1290_init_v4l2_flash_config(led, &led_cfg, &v4l2_sd_cfg);
+ 
+ 	/* Create V4L2 Flash subdev. */
+-	led->v4l2_flash = v4l2_flash_init(dev, sub_node, fled_cdev, NULL,
+-					  &v4l2_flash_ops, &v4l2_sd_cfg);
++	led->v4l2_flash = v4l2_flash_init(dev, of_fwnode_handle(sub_node),
++					  fled_cdev, NULL, &v4l2_flash_ops,
++					  &v4l2_sd_cfg);
+ 	if (IS_ERR(led->v4l2_flash)) {
+ 		ret = PTR_ERR(led->v4l2_flash);
+ 		goto error_v4l2_flash_init;
+diff --git a/drivers/leds/leds-max77693.c b/drivers/leds/leds-max77693.c
+index 1eb58ef..2d3062d 100644
+--- a/drivers/leds/leds-max77693.c
++++ b/drivers/leds/leds-max77693.c
+@@ -930,8 +930,9 @@ static int max77693_register_led(struct max77693_sub_led *sub_led,
+ 	max77693_init_v4l2_flash_config(sub_led, led_cfg, &v4l2_sd_cfg);
+ 
+ 	/* Register in the V4L2 subsystem. */
+-	sub_led->v4l2_flash = v4l2_flash_init(dev, sub_node, fled_cdev, NULL,
+-					      &v4l2_flash_ops, &v4l2_sd_cfg);
++	sub_led->v4l2_flash = v4l2_flash_init(dev, of_fwnode_handle(sub_node),
++					      fled_cdev, NULL, &v4l2_flash_ops,
++					      &v4l2_sd_cfg);
+ 	if (IS_ERR(sub_led->v4l2_flash)) {
+ 		ret = PTR_ERR(sub_led->v4l2_flash);
+ 		goto err_v4l2_flash_init;
+diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+index 794e563..f430c89 100644
+--- a/drivers/media/v4l2-core/v4l2-flash-led-class.c
++++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+ #include <linux/of.h>
++#include <linux/property.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <media/v4l2-flash-led-class.h>
+@@ -612,7 +613,7 @@ static const struct v4l2_subdev_internal_ops v4l2_flash_subdev_internal_ops = {
+ static const struct v4l2_subdev_ops v4l2_flash_subdev_ops;
+ 
+ struct v4l2_flash *v4l2_flash_init(
+-	struct device *dev, struct device_node *of_node,
++	struct device *dev, struct fwnode_handle *fwn,
+ 	struct led_classdev_flash *fled_cdev,
+ 	struct led_classdev_flash *iled_cdev,
+ 	const struct v4l2_flash_ops *ops,
+@@ -638,7 +639,7 @@ struct v4l2_flash *v4l2_flash_init(
+ 	v4l2_flash->iled_cdev = iled_cdev;
+ 	v4l2_flash->ops = ops;
+ 	sd->dev = dev;
+-	sd->of_node = of_node ? of_node : led_cdev->dev->of_node;
++	sd->fwnode = fwn ? fwn : dev_fwnode(led_cdev->dev);
+ 	v4l2_subdev_init(sd, &v4l2_flash_subdev_ops);
+ 	sd->internal_ops = &v4l2_flash_subdev_internal_ops;
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+@@ -654,7 +655,7 @@ struct v4l2_flash *v4l2_flash_init(
+ 	if (ret < 0)
+ 		goto err_init_controls;
+ 
+-	of_node_get(sd->of_node);
++	fwnode_handle_get(sd->fwnode);
+ 
+ 	ret = v4l2_async_register_subdev(sd);
+ 	if (ret < 0)
+@@ -663,7 +664,7 @@ struct v4l2_flash *v4l2_flash_init(
+ 	return v4l2_flash;
+ 
+ err_async_register_sd:
+-	of_node_put(sd->of_node);
++	fwnode_handle_put(sd->fwnode);
+ 	v4l2_ctrl_handler_free(sd->ctrl_handler);
+ err_init_controls:
+ 	media_entity_cleanup(&sd->entity);
+@@ -683,7 +684,7 @@ void v4l2_flash_release(struct v4l2_flash *v4l2_flash)
+ 
+ 	v4l2_async_unregister_subdev(sd);
+ 
+-	of_node_put(sd->of_node);
++	fwnode_handle_put(sd->fwnode);
+ 
+ 	v4l2_ctrl_handler_free(sd->ctrl_handler);
+ 	media_entity_cleanup(&sd->entity);
+diff --git a/include/media/v4l2-flash-led-class.h b/include/media/v4l2-flash-led-class.h
+index b0fe4d6..5695853 100644
+--- a/include/media/v4l2-flash-led-class.h
++++ b/include/media/v4l2-flash-led-class.h
+@@ -108,7 +108,7 @@ static inline struct v4l2_flash *v4l2_ctrl_to_v4l2_flash(struct v4l2_ctrl *c)
+ /**
+  * v4l2_flash_init - initialize V4L2 flash led sub-device
+  * @dev:	flash device, e.g. an I2C device
+- * @of_node:	of_node of the LED, may be NULL if the same as device's
++ * @fwn:	fwnode_handle of the LED, may be NULL if the same as device's
+  * @fled_cdev:	LED flash class device to wrap
+  * @iled_cdev:	LED flash class device representing indicator LED associated
+  *		with fled_cdev, may be NULL
+@@ -122,7 +122,7 @@ static inline struct v4l2_flash *v4l2_ctrl_to_v4l2_flash(struct v4l2_ctrl *c)
+  * PTR_ERR() to obtain the numeric return value.
   */
- u64 ir_raw_get_allowed_protocols(void);
-+int ir_raw_event_prepare(struct rc_dev *dev);
- int ir_raw_event_register(struct rc_dev *dev);
-+void ir_raw_event_free(struct rc_dev *dev);
- void ir_raw_event_unregister(struct rc_dev *dev);
- int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
- void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 90f66dc7c0d7..ae7785c4fbe7 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -486,14 +486,18 @@ EXPORT_SYMBOL(ir_raw_encode_scancode);
- /*
-  * Used to (un)register raw event clients
-  */
--int ir_raw_event_register(struct rc_dev *dev)
-+int ir_raw_event_prepare(struct rc_dev *dev)
- {
--	int rc;
--	struct ir_raw_handler *handler;
-+	static bool raw_init; /* 'false' default value, raw decoders loaded? */
- 
- 	if (!dev)
- 		return -EINVAL;
- 
-+	if (!raw_init) {
-+		request_module("ir-lirc-codec");
-+		raw_init = true;
-+	}
-+
- 	dev->raw = kzalloc(sizeof(*dev->raw), GFP_KERNEL);
- 	if (!dev->raw)
- 		return -ENOMEM;
-@@ -502,6 +506,13 @@ int ir_raw_event_register(struct rc_dev *dev)
- 	dev->change_protocol = change_protocol;
- 	INIT_KFIFO(dev->raw->kfifo);
- 
-+	return 0;
-+}
-+
-+int ir_raw_event_register(struct rc_dev *dev)
-+{
-+	struct ir_raw_handler *handler;
-+
- 	/*
- 	 * raw transmitters do not need any event registration
- 	 * because the event is coming from userspace
-@@ -510,10 +521,8 @@ int ir_raw_event_register(struct rc_dev *dev)
- 		dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
- 					       "rc%u", dev->minor);
- 
--		if (IS_ERR(dev->raw->thread)) {
--			rc = PTR_ERR(dev->raw->thread);
--			goto out;
--		}
-+		if (IS_ERR(dev->raw->thread))
-+			return PTR_ERR(dev->raw->thread);
- 	}
- 
- 	mutex_lock(&ir_raw_handler_lock);
-@@ -524,11 +533,15 @@ int ir_raw_event_register(struct rc_dev *dev)
- 	mutex_unlock(&ir_raw_handler_lock);
- 
- 	return 0;
-+}
-+
-+void ir_raw_event_free(struct rc_dev *dev)
-+{
-+	if (!dev)
-+		return;
- 
--out:
- 	kfree(dev->raw);
- 	dev->raw = NULL;
--	return rc;
- }
- 
- void ir_raw_event_unregister(struct rc_dev *dev)
-@@ -547,8 +560,7 @@ void ir_raw_event_unregister(struct rc_dev *dev)
- 			handler->raw_unregister(dev);
- 	mutex_unlock(&ir_raw_handler_lock);
- 
--	kfree(dev->raw);
--	dev->raw = NULL;
-+	ir_raw_event_free(dev);
- }
- 
- /*
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 802e559cc30e..44189366f232 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1663,7 +1663,7 @@ struct rc_dev *devm_rc_allocate_device(struct device *dev,
- }
- EXPORT_SYMBOL_GPL(devm_rc_allocate_device);
- 
--static int rc_setup_rx_device(struct rc_dev *dev)
-+static int rc_prepare_rx_device(struct rc_dev *dev)
- {
- 	int rc;
- 	struct rc_map *rc_map;
-@@ -1708,10 +1708,22 @@ static int rc_setup_rx_device(struct rc_dev *dev)
- 	dev->input_dev->phys = dev->input_phys;
- 	dev->input_dev->name = dev->input_name;
- 
-+	return 0;
-+
-+out_table:
-+	ir_free_table(&dev->rc_map);
-+
-+	return rc;
-+}
-+
-+static int rc_setup_rx_device(struct rc_dev *dev)
-+{
-+	int rc;
-+
- 	/* rc_open will be called here */
- 	rc = input_register_device(dev->input_dev);
- 	if (rc)
--		goto out_table;
-+		return rc;
- 
- 	/*
- 	 * Default delay of 250ms is too short for some protocols, especially
-@@ -1729,27 +1741,23 @@ static int rc_setup_rx_device(struct rc_dev *dev)
- 	dev->input_dev->rep[REP_PERIOD] = 125;
- 
- 	return 0;
--
--out_table:
--	ir_free_table(&dev->rc_map);
--
--	return rc;
- }
- 
- static void rc_free_rx_device(struct rc_dev *dev)
- {
--	if (!dev || dev->driver_type == RC_DRIVER_IR_RAW_TX)
-+	if (!dev)
- 		return;
- 
--	ir_free_table(&dev->rc_map);
-+	if (dev->input_dev) {
-+		input_unregister_device(dev->input_dev);
-+		dev->input_dev = NULL;
-+	}
- 
--	input_unregister_device(dev->input_dev);
--	dev->input_dev = NULL;
-+	ir_free_table(&dev->rc_map);
- }
- 
- int rc_register_device(struct rc_dev *dev)
- {
--	static bool raw_init; /* 'false' default value, raw decoders loaded? */
- 	const char *path;
- 	int attr = 0;
- 	int minor;
-@@ -1776,30 +1784,39 @@ int rc_register_device(struct rc_dev *dev)
- 		dev->sysfs_groups[attr++] = &rc_dev_wakeup_filter_attr_grp;
- 	dev->sysfs_groups[attr++] = NULL;
- 
-+	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
-+		rc = rc_prepare_rx_device(dev);
-+		if (rc)
-+			goto out_minor;
-+	}
-+
-+	if (dev->driver_type == RC_DRIVER_IR_RAW ||
-+	    dev->driver_type == RC_DRIVER_IR_RAW_TX) {
-+		rc = ir_raw_event_prepare(dev);
-+		if (rc < 0)
-+			goto out_rx_free;
-+	}
-+
- 	rc = device_add(&dev->dev);
- 	if (rc)
--		goto out_unlock;
-+		goto out_raw;
- 
- 	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
- 	dev_info(&dev->dev, "%s as %s\n",
- 		dev->input_name ?: "Unspecified device", path ?: "N/A");
- 	kfree(path);
- 
-+	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
-+		rc = rc_setup_rx_device(dev);
-+		if (rc)
-+			goto out_dev;
-+	}
-+
- 	if (dev->driver_type == RC_DRIVER_IR_RAW ||
- 	    dev->driver_type == RC_DRIVER_IR_RAW_TX) {
--		if (!raw_init) {
--			request_module_nowait("ir-lirc-codec");
--			raw_init = true;
--		}
- 		rc = ir_raw_event_register(dev);
- 		if (rc < 0)
--			goto out_dev;
--	}
--
--	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
--		rc = rc_setup_rx_device(dev);
--		if (rc)
--			goto out_raw;
-+			goto out_rx;
- 	}
- 
- 	/* Allow the RC sysfs nodes to be accessible */
-@@ -1811,11 +1828,15 @@ int rc_register_device(struct rc_dev *dev)
- 
- 	return 0;
- 
--out_raw:
--	ir_raw_event_unregister(dev);
-+out_rx:
-+	rc_free_rx_device(dev);
- out_dev:
- 	device_del(&dev->dev);
--out_unlock:
-+out_raw:
-+	ir_raw_event_free(dev);
-+out_rx_free:
-+	ir_free_table(&dev->rc_map);
-+out_minor:
- 	ida_simple_remove(&rc_ida, minor);
- 	return rc;
- }
+ struct v4l2_flash *v4l2_flash_init(
+-	struct device *dev, struct device_node *of_node,
++	struct device *dev, struct fwnode_handle *fwn,
+ 	struct led_classdev_flash *fled_cdev,
+ 	struct led_classdev_flash *iled_cdev,
+ 	const struct v4l2_flash_ops *ops,
+-- 
+2.7.4
