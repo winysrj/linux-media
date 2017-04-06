@@ -1,160 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46934 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754710AbdDGNDY (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:58177 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752932AbdDFIfX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Apr 2017 09:03:24 -0400
-Date: Fri, 7 Apr 2017 16:03:20 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 2/8] v4l: fwnode: Support generic fwnode for parsing
- standardised properties
-Message-ID: <20170407130320.GI4192@valkosipuli.retiisi.org.uk>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
- <2366571.B7YdK6QUO2@avalon>
- <20170407103633.GD4192@valkosipuli.retiisi.org.uk>
- <1761689.CzVR5YAybi@avalon>
+        Thu, 6 Apr 2017 04:35:23 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.12] video/sti/cec: add CEC notifier & use in sti
+ driver + 2 fixes
+Message-ID: <e40af084-219f-3320-ecf7-56443fcf0fa4@xs4all.nl>
+Date: Thu, 6 Apr 2017 10:35:17 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1761689.CzVR5YAybi@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This patch series adds the CEC physical address notifier code, based on
+Russell's code:
 
-On Fri, Apr 07, 2017 at 01:54:58PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Friday 07 Apr 2017 13:36:34 Sakari Ailus wrote:
-> > On Fri, Apr 07, 2017 at 12:44:27PM +0300, Laurent Pinchart wrote:
-> > > On Thursday 06 Apr 2017 16:12:04 Sakari Ailus wrote:
-> > > > The fwnode_handle is a more generic way than OF device_node to describe
-> > > > firmware nodes. Instead of the OF API, use more generic fwnode API to
-> > > > obtain the same information.
-> > > 
-> > > I would mention that this is a copy of v4l2-of.c with the OF API replaced
-> > > with the fwnode API.
-> > 
-> > I'll add that to the description.
-> > 
-> > > > As the V4L2 fwnode support will be required by a small minority of e.g.
-> > > > ACPI based systems (the same might actually go for OF), make this a
-> > > > module instead of embedding it in the videodev module.
-> > > > 
-> > > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > > ---
-> > > > 
-> > > >  drivers/media/v4l2-core/Kconfig       |   3 +
-> > > >  drivers/media/v4l2-core/Makefile      |   1 +
-> > > >  drivers/media/v4l2-core/v4l2-fwnode.c | 353 +++++++++++++++++++++++++++
-> > > >  include/media/v4l2-fwnode.h           | 104 ++++++++++
-> > > >  4 files changed, 461 insertions(+)
-> > > >  create mode 100644 drivers/media/v4l2-core/v4l2-fwnode.c
-> > > >  create mode 100644 include/media/v4l2-fwnode.h
-> 
-> [snip]
-> 
-> > > > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c
-> > > > b/drivers/media/v4l2-core/v4l2-fwnode.c new file mode 100644
-> > > > index 0000000..4f69b11
-> > > > --- /dev/null
-> > > > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > > > @@ -0,0 +1,353 @@
-> > > > +/*
-> > > > + * V4L2 fwnode binding parsing library
-> > > > + *
-> > > > + * Copyright (c) 2016 Intel Corporation.
-> > > > + * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > > + *
-> > > > + * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
-> > > > + * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > > > + *
-> > > > + * Copyright (C) 2012 Renesas Electronics Corp.
-> > > > + * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > > + *
-> > > > + * This program is free software; you can redistribute it and/or modify
-> > > > + * it under the terms of version 2 of the GNU General Public License as
-> > > > + * published by the Free Software Foundation.
-> > > > + */
-> > > > +#include <linux/acpi.h>
-> > > > +#include <linux/kernel.h>
-> > > > +#include <linux/module.h>
-> > > > +#include <linux/of.h>
-> > > > +#include <linux/property.h>
-> > > > +#include <linux/slab.h>
-> > > > +#include <linux/string.h>
-> > > > +#include <linux/types.h>
-> > > > +
-> > > > +#include <media/v4l2-fwnode.h>
-> > > > +
-> > > > +static int v4l2_fwnode_endpoint_parse_csi_bus(struct fwnode_handle
-> > > > *fwn,
-> > > > +					      struct v4l2_fwnode_endpoint
-> > > > *vfwn)
-> > > > +{
-> > > > +	struct v4l2_fwnode_bus_mipi_csi2 *bus = &vfwn->bus.mipi_csi2;
-> > > > +	bool have_clk_lane = false;
-> > > > +	unsigned int flags = 0, lanes_used = 0;
-> > > > +	unsigned int i;
-> > > > +	u32 v;
-> > > > +	int rval;
-> > > 
-> > > I would have used "ret" instead of "rval" ;-)
-> > 
-> > I know. But
-> > 
-> > 1) there's no established convention in the file and
-> > 
-> > 2) "rval" has the benefit is easier to look up; one doesn't find a plethora
-> > of "return something". Therefore it is better than "ret" for the purpose.
-> 
-> The solution to that is
-> 
-> /ret\>
-> 
-> (and, of course, switching to vim :-D)
+https://patchwork.kernel.org/patch/9277043/
 
-What's "\>" for?
+It adds support for it to the sti drm driver, adds support for
+it to the CEC framework and finally adds support to the stih-cec driver,
+which now can be moved out of staging.
 
-I don't think you can convince people to switch to vim this way. :-)
+Here is Daniel's email to allow this to be pulled through the media subsystem:
 
-> 
-> [snip]
-> 
-> > > > +/*
-> > > > + * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-> > > > + * v4l2_fwnode_endpoint_alloc_parse()
-> > > > + * @fwn - the V4L2 fwnode the resources of which are to be released
-> > > 
-> > > Mayeb "the V4L2 fwnode whose resources are to be released" ?
-> > > 
-> > > > + *
-> > > > + * It is safe to call this function with NULL argument or on an
-> > > 
-> > > s/on an/on a/
-> > 
-> > Yes.
-> > 
-> > > > + * V4L2 fwnode the parsing of which failed.
-> > > 
-> > > "whose parsing failed" ?
-> > 
-> > Any particular reason? Do you like "whose"? :-)
-> 
-> "of which" sounds dubious in this context, but please consult a native English 
-> speaker in case of doubt.
+http://www.spinics.net/lists/dri-devel/msg137128.html
 
-"Whose" is the possessive form of "who". Albeit nowadays it could probably
-be used for other purposes as well.
+Note: the v6 patch series included exynos support as well. But I am still
+waiting for an Ack from the exynos4 drm maintainer so I decided to get this
+in first and handle the exynos4 patch series later.
 
-In my opinion "of which" is perfectly appropriate language here.
+This pull request contains the v6 patch series:
 
--- 
+http://www.spinics.net/lists/dri-devel/msg137320.html
+
+and the v6.1 patch for "media: add CEC notifier support":
+
+https://patchwork.linuxtv.org/patch/40654/
+
+And two CEC fixes:
+
+https://patchwork.linuxtv.org/patch/40599/
+https://patchwork.linuxtv.org/patch/40582/
+
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Hans
+
+The following changes since commit 2f65ec0567f77b75f459c98426053a3787af356a:
+
+  [media] s5p-g2d: Fix error handling (2017-04-05 16:37:15 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git cec-not
+
+for you to fetch changes up to 5e2ed407a549b6ec349d3581653835782785dfcb:
+
+  cec: fix confusing CEC_CAP_RC and IS_REACHABLE(CONFIG_RC_CORE) code (2017-04-06 10:32:49 +0200)
+
+----------------------------------------------------------------
+Benjamin Gaignard (4):
+      sti: hdmi: add CEC notifier support
+      stih-cec.txt: document new hdmi phandle
+      stih-cec: add CEC notifier support
+      ARM: dts: STiH410: update sti-cec for CEC notifier support
+
+Hans Verkuil (3):
+      media: add CEC notifier support
+      cec: integrate CEC notifier support
+      cec: fix confusing CEC_CAP_RC and IS_REACHABLE(CONFIG_RC_CORE) code
+
+Lee Jones (1):
+      cec: Fix runtime BUG when (CONFIG_RC_CORE && !CEC_CAP_RC)
+
+ Documentation/devicetree/bindings/media/stih-cec.txt                |   2 +
+ MAINTAINERS                                                         |   4 +-
+ arch/arm/boot/dts/stih407-family.dtsi                               |  12 ---
+ arch/arm/boot/dts/stih410.dtsi                                      |  13 ++++
+ drivers/gpu/drm/sti/sti_hdmi.c                                      |  11 +++
+ drivers/gpu/drm/sti/sti_hdmi.h                                      |   3 +
+ drivers/media/Kconfig                                               |   4 +
+ drivers/media/Makefile                                              |   4 +
+ drivers/media/cec-notifier.c                                        | 129 ++++++++++++++++++++++++++++++++
+ drivers/media/cec/cec-core.c                                        |  32 +++++++-
+ drivers/media/platform/Kconfig                                      |  18 +++++
+ drivers/media/platform/Makefile                                     |   1 +
+ drivers/{staging/media/st-cec => media/platform/sti/cec}/Makefile   |   0
+ drivers/{staging/media/st-cec => media/platform/sti/cec}/stih-cec.c |  31 +++++++-
+ drivers/staging/media/Kconfig                                       |   2 -
+ drivers/staging/media/Makefile                                      |   1 -
+ drivers/staging/media/st-cec/Kconfig                                |   8 --
+ drivers/staging/media/st-cec/TODO                                   |   7 --
+ include/media/cec-notifier.h                                        | 111 +++++++++++++++++++++++++++
+ include/media/cec.h                                                 |  10 +++
+ 20 files changed, 365 insertions(+), 38 deletions(-)
+ create mode 100644 drivers/media/cec-notifier.c
+ rename drivers/{staging/media/st-cec => media/platform/sti/cec}/Makefile (100%)
+ rename drivers/{staging/media/st-cec => media/platform/sti/cec}/stih-cec.c (93%)
+ delete mode 100644 drivers/staging/media/st-cec/Kconfig
+ delete mode 100644 drivers/staging/media/st-cec/TODO
+ create mode 100644 include/media/cec-notifier.h
