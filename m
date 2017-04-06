@@ -1,258 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f179.google.com ([209.85.216.179]:33936 "EHLO
-        mail-qt0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S940330AbdDSXOb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Apr 2017 19:14:31 -0400
-Received: by mail-qt0-f179.google.com with SMTP id c45so32512296qtb.1
-        for <linux-media@vger.kernel.org>; Wed, 19 Apr 2017 16:14:30 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Received: from mga09.intel.com ([134.134.136.24]:49121 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757108AbdDFNNe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Apr 2017 09:13:34 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 05/12] au8522: remove leading bit for register writes
-Date: Wed, 19 Apr 2017 19:13:48 -0400
-Message-Id: <1492643635-30823-6-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1492643635-30823-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1492643635-30823-1-git-send-email-dheitmueller@kernellabs.com>
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 0/9] V4L2 fwnode support
+Date: Thu,  6 Apr 2017 16:12:02 +0300
+Message-Id: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The leading bit in register values is actually an indicator as to
-whether to perform a read or write, so remove the bit from the
-register values, since the au8522_writereg() is now responsible
-for adding this bit automatically.
+(Resending, got one list address wrong. Apologies for the noise...)
 
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
----
- drivers/media/dvb-frontends/au8522_dig.c | 200 +++++++++++++++----------------
- 1 file changed, 100 insertions(+), 100 deletions(-)
+Hello everyone, 
 
-diff --git a/drivers/media/dvb-frontends/au8522_dig.c b/drivers/media/dvb-frontends/au8522_dig.c
-index 7ed326e..d117ddb 100644
---- a/drivers/media/dvb-frontends/au8522_dig.c
-+++ b/drivers/media/dvb-frontends/au8522_dig.c
-@@ -271,9 +271,9 @@ static int au8522_set_if(struct dvb_frontend *fe, enum au8522_if_freq if_freq)
- 		return -EINVAL;
- 	}
- 	dprintk("%s() %s MHz\n", __func__, ifmhz);
--	au8522_writereg(state, 0x80b5, r0b5);
--	au8522_writereg(state, 0x80b6, r0b6);
--	au8522_writereg(state, 0x80b7, r0b7);
-+	au8522_writereg(state, 0x00b5, r0b5);
-+	au8522_writereg(state, 0x00b6, r0b6);
-+	au8522_writereg(state, 0x00b7, r0b7);
- 
- 	return 0;
- }
-@@ -283,33 +283,33 @@ static int au8522_set_if(struct dvb_frontend *fe, enum au8522_if_freq if_freq)
- 	u16 reg;
- 	u16 data;
- } VSB_mod_tab[] = {
--	{ 0x8090, 0x84 },
-+	{ 0x0090, 0x84 },
- 	{ 0x4092, 0x11 },
- 	{ 0x2005, 0x00 },
--	{ 0x8091, 0x80 },
--	{ 0x80a3, 0x0c },
--	{ 0x80a4, 0xe8 },
--	{ 0x8081, 0xc4 },
--	{ 0x80a5, 0x40 },
--	{ 0x80a7, 0x40 },
--	{ 0x80a6, 0x67 },
--	{ 0x8262, 0x20 },
--	{ 0x821c, 0x30 },
--	{ 0x80d8, 0x1a },
--	{ 0x8227, 0xa0 },
--	{ 0x8121, 0xff },
--	{ 0x80a8, 0xf0 },
--	{ 0x80a9, 0x05 },
--	{ 0x80aa, 0x77 },
--	{ 0x80ab, 0xf0 },
--	{ 0x80ac, 0x05 },
--	{ 0x80ad, 0x77 },
--	{ 0x80ae, 0x41 },
--	{ 0x80af, 0x66 },
--	{ 0x821b, 0xcc },
--	{ 0x821d, 0x80 },
--	{ 0x80a4, 0xe8 },
--	{ 0x8231, 0x13 },
-+	{ 0x0091, 0x80 },
-+	{ 0x00a3, 0x0c },
-+	{ 0x00a4, 0xe8 },
-+	{ 0x0081, 0xc4 },
-+	{ 0x00a5, 0x40 },
-+	{ 0x00a7, 0x40 },
-+	{ 0x00a6, 0x67 },
-+	{ 0x0262, 0x20 },
-+	{ 0x021c, 0x30 },
-+	{ 0x00d8, 0x1a },
-+	{ 0x0227, 0xa0 },
-+	{ 0x0121, 0xff },
-+	{ 0x00a8, 0xf0 },
-+	{ 0x00a9, 0x05 },
-+	{ 0x00aa, 0x77 },
-+	{ 0x00ab, 0xf0 },
-+	{ 0x00ac, 0x05 },
-+	{ 0x00ad, 0x77 },
-+	{ 0x00ae, 0x41 },
-+	{ 0x00af, 0x66 },
-+	{ 0x021b, 0xcc },
-+	{ 0x021d, 0x80 },
-+	{ 0x00a4, 0xe8 },
-+	{ 0x0231, 0x13 },
- };
- 
- /* QAM64 Modulation table */
-@@ -396,78 +396,78 @@ static int au8522_set_if(struct dvb_frontend *fe, enum au8522_if_freq if_freq)
- 	u16 reg;
- 	u16 data;
- } QAM256_mod_tab[] = {
--	{ 0x80a3, 0x09 },
--	{ 0x80a4, 0x00 },
--	{ 0x8081, 0xc4 },
--	{ 0x80a5, 0x40 },
--	{ 0x80aa, 0x77 },
--	{ 0x80ad, 0x77 },
--	{ 0x80a6, 0x67 },
--	{ 0x8262, 0x20 },
--	{ 0x821c, 0x30 },
--	{ 0x80b8, 0x3e },
--	{ 0x80b9, 0xf0 },
--	{ 0x80ba, 0x01 },
--	{ 0x80bb, 0x18 },
--	{ 0x80bc, 0x50 },
--	{ 0x80bd, 0x00 },
--	{ 0x80be, 0xea },
--	{ 0x80bf, 0xef },
--	{ 0x80c0, 0xfc },
--	{ 0x80c1, 0xbd },
--	{ 0x80c2, 0x1f },
--	{ 0x80c3, 0xfc },
--	{ 0x80c4, 0xdd },
--	{ 0x80c5, 0xaf },
--	{ 0x80c6, 0x00 },
--	{ 0x80c7, 0x38 },
--	{ 0x80c8, 0x30 },
--	{ 0x80c9, 0x05 },
--	{ 0x80ca, 0x4a },
--	{ 0x80cb, 0xd0 },
--	{ 0x80cc, 0x01 },
--	{ 0x80cd, 0xd9 },
--	{ 0x80ce, 0x6f },
--	{ 0x80cf, 0xf9 },
--	{ 0x80d0, 0x70 },
--	{ 0x80d1, 0xdf },
--	{ 0x80d2, 0xf7 },
--	{ 0x80d3, 0xc2 },
--	{ 0x80d4, 0xdf },
--	{ 0x80d5, 0x02 },
--	{ 0x80d6, 0x9a },
--	{ 0x80d7, 0xd0 },
--	{ 0x8250, 0x0d },
--	{ 0x8251, 0xcd },
--	{ 0x8252, 0xe0 },
--	{ 0x8253, 0x05 },
--	{ 0x8254, 0xa7 },
--	{ 0x8255, 0xff },
--	{ 0x8256, 0xed },
--	{ 0x8257, 0x5b },
--	{ 0x8258, 0xae },
--	{ 0x8259, 0xe6 },
--	{ 0x825a, 0x3d },
--	{ 0x825b, 0x0f },
--	{ 0x825c, 0x0d },
--	{ 0x825d, 0xea },
--	{ 0x825e, 0xf2 },
--	{ 0x825f, 0x51 },
--	{ 0x8260, 0xf5 },
--	{ 0x8261, 0x06 },
--	{ 0x821a, 0x00 },
--	{ 0x8546, 0x40 },
--	{ 0x8210, 0x26 },
--	{ 0x8211, 0xf6 },
--	{ 0x8212, 0x84 },
--	{ 0x8213, 0x02 },
--	{ 0x8502, 0x01 },
--	{ 0x8121, 0x04 },
--	{ 0x8122, 0x04 },
--	{ 0x852e, 0x10 },
--	{ 0x80a4, 0xca },
--	{ 0x80a7, 0x40 },
--	{ 0x8526, 0x01 },
-+	{ 0x00a3, 0x09 },
-+	{ 0x00a4, 0x00 },
-+	{ 0x0081, 0xc4 },
-+	{ 0x00a5, 0x40 },
-+	{ 0x00aa, 0x77 },
-+	{ 0x00ad, 0x77 },
-+	{ 0x00a6, 0x67 },
-+	{ 0x0262, 0x20 },
-+	{ 0x021c, 0x30 },
-+	{ 0x00b8, 0x3e },
-+	{ 0x00b9, 0xf0 },
-+	{ 0x00ba, 0x01 },
-+	{ 0x00bb, 0x18 },
-+	{ 0x00bc, 0x50 },
-+	{ 0x00bd, 0x00 },
-+	{ 0x00be, 0xea },
-+	{ 0x00bf, 0xef },
-+	{ 0x00c0, 0xfc },
-+	{ 0x00c1, 0xbd },
-+	{ 0x00c2, 0x1f },
-+	{ 0x00c3, 0xfc },
-+	{ 0x00c4, 0xdd },
-+	{ 0x00c5, 0xaf },
-+	{ 0x00c6, 0x00 },
-+	{ 0x00c7, 0x38 },
-+	{ 0x00c8, 0x30 },
-+	{ 0x00c9, 0x05 },
-+	{ 0x00ca, 0x4a },
-+	{ 0x00cb, 0xd0 },
-+	{ 0x00cc, 0x01 },
-+	{ 0x00cd, 0xd9 },
-+	{ 0x00ce, 0x6f },
-+	{ 0x00cf, 0xf9 },
-+	{ 0x00d0, 0x70 },
-+	{ 0x00d1, 0xdf },
-+	{ 0x00d2, 0xf7 },
-+	{ 0x00d3, 0xc2 },
-+	{ 0x00d4, 0xdf },
-+	{ 0x00d5, 0x02 },
-+	{ 0x00d6, 0x9a },
-+	{ 0x00d7, 0xd0 },
-+	{ 0x0250, 0x0d },
-+	{ 0x0251, 0xcd },
-+	{ 0x0252, 0xe0 },
-+	{ 0x0253, 0x05 },
-+	{ 0x0254, 0xa7 },
-+	{ 0x0255, 0xff },
-+	{ 0x0256, 0xed },
-+	{ 0x0257, 0x5b },
-+	{ 0x0258, 0xae },
-+	{ 0x0259, 0xe6 },
-+	{ 0x025a, 0x3d },
-+	{ 0x025b, 0x0f },
-+	{ 0x025c, 0x0d },
-+	{ 0x025d, 0xea },
-+	{ 0x025e, 0xf2 },
-+	{ 0x025f, 0x51 },
-+	{ 0x0260, 0xf5 },
-+	{ 0x0261, 0x06 },
-+	{ 0x021a, 0x00 },
-+	{ 0x0546, 0x40 },
-+	{ 0x0210, 0x26 },
-+	{ 0x0211, 0xf6 },
-+	{ 0x0212, 0x84 },
-+	{ 0x0213, 0x02 },
-+	{ 0x0502, 0x01 },
-+	{ 0x0121, 0x04 },
-+	{ 0x0122, 0x04 },
-+	{ 0x052e, 0x10 },
-+	{ 0x00a4, 0xca },
-+	{ 0x00a7, 0x40 },
-+	{ 0x0526, 0x01 },
- };
- 
- static struct {
+This patchset adds support for fwnode to V4L2. Besides OF, also ACPI based
+systems can be supported this way. By using V4L2 fwnode, the individual 
+drivers do not need to be aware of the underlying firmware implementation.
+The patchset also removes specific V4L2 OF support and converts the 
+affected drivers to use V4L2 fwnode.
+
+The patchset depends on another patchset here:
+
+<URL:http://www.spinics.net/lists/linux-acpi/msg72973.html>
+
+v1 of the set can be found here:
+
+<URL:http://www.spinics.net/lists/linux-media/msg111073.html>
+
+changes since v1:
+
+- Use existing dev_fwnode() instead of device_fwnode_handle() added by the
+  ACPI graph patchset,
+
+- Fix too long line of ^'s in ReST documentation and
+
+- Drop the patch rearranging the header files. It'd better go in
+  separately, if at all.
+
+Sakari Ailus (8):
+  v4l: flash led class: Use fwnode_handle instead of device_node in init
+  v4l: fwnode: Support generic fwnode for parsing standardised
+    properties
+  v4l: async: Add fwnode match support
+  v4l: async: Provide interoperability between OF and fwnode matching
+  v4l: Switch from V4L2 OF not V4L2 fwnode API
+  v4l: media/drv-intf/soc_mediabus.h: include dependent header file
+  docs-rst: media: Switch documentation to V4L2 fwnode API
+  v4l: Remove V4L2 OF framework in favour of V4L2 fwnode framework
+
+ Documentation/media/kapi/v4l2-core.rst         |   2 +-
+ Documentation/media/kapi/v4l2-fwnode.rst       |   3 +
+ Documentation/media/kapi/v4l2-of.rst           |   3 -
+ drivers/leds/leds-aat1290.c                    |   5 +-
+ drivers/leds/leds-max77693.c                   |   5 +-
+ drivers/media/i2c/Kconfig                      |   9 +
+ drivers/media/i2c/adv7604.c                    |   7 +-
+ drivers/media/i2c/mt9v032.c                    |   7 +-
+ drivers/media/i2c/ov2659.c                     |   8 +-
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c       |   7 +-
+ drivers/media/i2c/s5k5baf.c                    |   6 +-
+ drivers/media/i2c/smiapp/Kconfig               |   1 +
+ drivers/media/i2c/smiapp/smiapp-core.c         |  29 +-
+ drivers/media/i2c/tc358743.c                   |  11 +-
+ drivers/media/i2c/tvp514x.c                    |   6 +-
+ drivers/media/i2c/tvp5150.c                    |   7 +-
+ drivers/media/i2c/tvp7002.c                    |   6 +-
+ drivers/media/platform/Kconfig                 |   3 +
+ drivers/media/platform/am437x/Kconfig          |   1 +
+ drivers/media/platform/am437x/am437x-vpfe.c    |   8 +-
+ drivers/media/platform/atmel/Kconfig           |   1 +
+ drivers/media/platform/atmel/atmel-isc.c       |   8 +-
+ drivers/media/platform/exynos4-is/Kconfig      |   2 +
+ drivers/media/platform/exynos4-is/media-dev.c  |   6 +-
+ drivers/media/platform/exynos4-is/mipi-csis.c  |   6 +-
+ drivers/media/platform/omap3isp/isp.c          |  71 ++---
+ drivers/media/platform/pxa_camera.c            |   7 +-
+ drivers/media/platform/rcar-vin/Kconfig        |   1 +
+ drivers/media/platform/rcar-vin/rcar-core.c    |   6 +-
+ drivers/media/platform/soc_camera/Kconfig      |   1 +
+ drivers/media/platform/soc_camera/atmel-isi.c  |   7 +-
+ drivers/media/platform/soc_camera/soc_camera.c |   3 +-
+ drivers/media/platform/ti-vpe/cal.c            |  11 +-
+ drivers/media/platform/xilinx/Kconfig          |   1 +
+ drivers/media/platform/xilinx/xilinx-vipp.c    |  59 +++--
+ drivers/media/v4l2-core/Kconfig                |   3 +
+ drivers/media/v4l2-core/Makefile               |   4 +-
+ drivers/media/v4l2-core/v4l2-async.c           |  36 ++-
+ drivers/media/v4l2-core/v4l2-flash-led-class.c |  11 +-
+ drivers/media/v4l2-core/v4l2-fwnode.c          | 353 +++++++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-of.c              | 327 -----------------------
+ include/media/drv-intf/soc_mediabus.h          |   2 +
+ include/media/v4l2-async.h                     |   7 +-
+ include/media/v4l2-flash-led-class.h           |   4 +-
+ include/media/v4l2-fwnode.h                    | 104 ++++++++
+ include/media/v4l2-of.h                        | 128 ---------
+ include/media/v4l2-subdev.h                    |   3 +
+ 47 files changed, 698 insertions(+), 608 deletions(-)
+ create mode 100644 Documentation/media/kapi/v4l2-fwnode.rst
+ delete mode 100644 Documentation/media/kapi/v4l2-of.rst
+ create mode 100644 drivers/media/v4l2-core/v4l2-fwnode.c
+ delete mode 100644 drivers/media/v4l2-core/v4l2-of.c
+ create mode 100644 include/media/v4l2-fwnode.h
+ delete mode 100644 include/media/v4l2-of.h
+
 -- 
-1.9.1
+2.7.4
