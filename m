@@ -1,201 +1,515 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:36432 "EHLO
-        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1425397AbdD1JPB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 05:15:01 -0400
-Received: by mail-wm0-f44.google.com with SMTP id u65so36851284wmu.1
-        for <linux-media@vger.kernel.org>; Fri, 28 Apr 2017 02:15:00 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v8 01/10] firmware: qcom_scm: Fix to allow COMPILE_TEST-ing
-Date: Fri, 28 Apr 2017 12:13:48 +0300
-Message-Id: <1493370837-19793-2-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from mailout1.samsung.com ([203.254.224.24]:35580 "EHLO
+        epoutp01.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755388AbdDGIfV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Apr 2017 04:35:21 -0400
+Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
+        by epoutp01.samsung.com (KnoxPortal) with ESMTP id 20170407083519epoutp012d4f564c66b50bfca0a2107114aec123~zEJG8vmVO1427714277epoutp01C
+        for <linux-media@vger.kernel.org>; Fri,  7 Apr 2017 08:35:19 +0000 (GMT)
+Subject: Re: [Patch v4 12/12] Documention: v4l: Documentation for HEVC CIDs
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
+        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
+        m.szyprowski@samsung.com, s.nawrocki@samsung.com
+In-Reply-To: <fd79a716-8acb-f119-5c78-89c02ce14cfb@xs4all.nl>
+Date: Fri, 07 Apr 2017 14:07:08 +0530
+Message-ID: <1491554228.15698.1148.camel@smitha-fedora>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+References: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
+        <CGME20170406061027epcas5p2628e0a8e0fd76e2e267fad3ea1209f65@epcas5p2.samsung.com>
+        <1491459105-16641-13-git-send-email-smitha.t@samsung.com>
+        <fd79a716-8acb-f119-5c78-89c02ce14cfb@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Unfortunatly previous attempt to allow consumer drivers to
-use COMPILE_TEST option in Kconfig is not enough, because in the
-past the consumer drivers used 'depends on' Kconfig option but
-now they are using 'select' Kconfig option which means on non ARM
-arch'es compilation is triggered. Thus we need to move the ifdefery
-one level below by touching the private qcom_scm.h header.
+On Thu, 2017-04-06 at 15:33 +0200, Hans Verkuil wrote:
+> On 04/06/2017 08:11 AM, Smitha T Murthy wrote:
+> > Added V4l2 controls for HEVC encoder
+> > 
+> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+> 
+> General comment: don't forget to build the pdf and check that as well.
+> 
+Yes I will build it and check before pushing the next version.
 
-To: Andy Gross <andy.gross@linaro.org>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Bjorn Andersson <bjorn.andersson@linaro.org>
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/firmware/Kconfig    |  2 +-
- drivers/firmware/qcom_scm.h | 72 ++++++++++++++++++++++++++++++++++++++-------
- include/linux/qcom_scm.h    | 32 --------------------
- 3 files changed, 62 insertions(+), 44 deletions(-)
+> > ---
+> >  Documentation/media/uapi/v4l/extended-controls.rst | 391 +++++++++++++++++++++
+> >  1 file changed, 391 insertions(+)
+> > 
+> > diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+> > index abb1057..85a668d 100644
+> > --- a/Documentation/media/uapi/v4l/extended-controls.rst
+> > +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+> > @@ -1960,6 +1960,397 @@ enum v4l2_vp8_golden_frame_sel -
+> >      1, 2 and 3 corresponding to encoder profiles 0, 1, 2 and 3.
+> >  
+> >  
+> > +HEVC Control Reference
+> > +---------------------
+> > +
+> > +The HEVC controls include controls for encoding parameters of HEVC video
+> > +codec.
+> > +
+> > +
+> > +.. _hevc-control-id:
+> > +
+> > +HEVC Control IDs
+> > +^^^^^^^^^^^^^^^
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP``
+> 
+> You need to add the type of the control in parenthesis. It is probably '(integer)'
+> for this one. Just follow what is done for other controls.
+> 
+I had missed it. I will add them in next version.
 
-diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
-index 6e4ed5a9c6fd..480578c3691a 100644
---- a/drivers/firmware/Kconfig
-+++ b/drivers/firmware/Kconfig
-@@ -204,7 +204,7 @@ config FW_CFG_SYSFS_CMDLINE
- 
- config QCOM_SCM
- 	bool
--	depends on ARM || ARM64
-+	depends on ARM || ARM64 || COMPILE_TEST
- 	select RESET_CONTROLLER
- 
- config QCOM_SCM_32
-diff --git a/drivers/firmware/qcom_scm.h b/drivers/firmware/qcom_scm.h
-index 9bea691f30fb..d2b5723afb3f 100644
---- a/drivers/firmware/qcom_scm.h
-+++ b/drivers/firmware/qcom_scm.h
-@@ -12,6 +12,7 @@
- #ifndef __QCOM_SCM_INT_H
- #define __QCOM_SCM_INT_H
- 
-+#if IS_ENABLED(CONFIG_ARM) || IS_ENABLED(CONFIG_ARM64)
- #define QCOM_SCM_SVC_BOOT		0x1
- #define QCOM_SCM_BOOT_ADDR		0x1
- #define QCOM_SCM_BOOT_ADDR_MC		0x11
-@@ -58,6 +59,66 @@ extern int  __qcom_scm_pas_auth_and_reset(struct device *dev, u32 peripheral);
- extern int  __qcom_scm_pas_shutdown(struct device *dev, u32 peripheral);
- extern int  __qcom_scm_pas_mss_reset(struct device *dev, bool reset);
- 
-+#define QCOM_SCM_SVC_MP			0xc
-+#define QCOM_SCM_RESTORE_SEC_CFG	2
-+extern int __qcom_scm_restore_sec_cfg(struct device *dev, u32 device_id,
-+				      u32 spare);
-+#define QCOM_SCM_IOMMU_SECURE_PTBL_SIZE	3
-+#define QCOM_SCM_IOMMU_SECURE_PTBL_INIT	4
-+extern int __qcom_scm_iommu_secure_ptbl_size(struct device *dev, u32 spare,
-+					     size_t *size);
-+extern int __qcom_scm_iommu_secure_ptbl_init(struct device *dev, u64 addr,
-+					     u32 size, u32 spare);
-+#else
-+static inline int __qcom_scm_set_remote_state(struct device *dev, u32 state,
-+					      u32 id)
-+{ return -ENODEV; }
-+static inline int __qcom_scm_set_warm_boot_addr(struct device *dev, void *entry,
-+						const cpumask_t *cpus)
-+{ return -ENODEV; }
-+static inline int __qcom_scm_set_cold_boot_addr(void *entry,
-+						const cpumask_t *cpus)
-+{ return -ENODEV; }
-+static inline void __qcom_scm_cpu_power_down(u32 flags) {}
-+static inline int __qcom_scm_is_call_available(struct device *dev, u32 svc_id,
-+					       u32 cmd_id)
-+{ return -ENODEV; }
-+#define QCOM_SCM_SVC_HDCP		0x11
-+#define QCOM_SCM_CMD_HDCP		0x01
-+static inline int __qcom_scm_hdcp_req(struct device *dev,
-+				      struct qcom_scm_hdcp_req *req,
-+				      u32 req_cnt, u32 *resp)
-+{ return -ENODEV; }
-+static inline void __qcom_scm_init(void) {}
-+#define QCOM_SCM_SVC_PIL		0x2
-+#define QCOM_SCM_PAS_IS_SUPPORTED_CMD	0x7
-+static inline bool __qcom_scm_pas_supported(struct device *dev, u32 peripheral)
-+{ return false; }
-+static inline int  __qcom_scm_pas_init_image(struct device *dev, u32 peripheral,
-+					     dma_addr_t metadata_phys)
-+{ return -ENODEV; }
-+static inline int  __qcom_scm_pas_mem_setup(struct device *dev, u32 peripheral,
-+					    phys_addr_t addr, phys_addr_t size)
-+{ return -ENODEV; }
-+static inline int  __qcom_scm_pas_auth_and_reset(struct device *dev,
-+						 u32 peripheral)
-+{ return -ENODEV; }
-+static inline int  __qcom_scm_pas_shutdown(struct device *dev, u32 peripheral)
-+{ return -ENODEV; }
-+static inline int  __qcom_scm_pas_mss_reset(struct device *dev, bool reset)
-+{ return -ENODEV; }
-+static inline int __qcom_scm_restore_sec_cfg(struct device *dev, u32 device_id,
-+					     u32 spare)
-+{ return -ENODEV; }
-+extern int __qcom_scm_iommu_secure_ptbl_size(struct device *dev, u32 spare,
-+					     size_t *size)
-+{ return -ENODEV; }
-+static inline int __qcom_scm_iommu_secure_ptbl_init(struct device *dev,
-+						    u64 addr, u32 size,
-+						    u32 spare)
-+{ return -ENODEV; }
-+#endif
-+
- /* common error codes */
- #define QCOM_SCM_V2_EBUSY	-12
- #define QCOM_SCM_ENOMEM		-5
-@@ -85,15 +146,4 @@ static inline int qcom_scm_remap_error(int err)
- 	return -EINVAL;
- }
- 
--#define QCOM_SCM_SVC_MP			0xc
--#define QCOM_SCM_RESTORE_SEC_CFG	2
--extern int __qcom_scm_restore_sec_cfg(struct device *dev, u32 device_id,
--				      u32 spare);
--#define QCOM_SCM_IOMMU_SECURE_PTBL_SIZE	3
--#define QCOM_SCM_IOMMU_SECURE_PTBL_INIT	4
--extern int __qcom_scm_iommu_secure_ptbl_size(struct device *dev, u32 spare,
--					     size_t *size);
--extern int __qcom_scm_iommu_secure_ptbl_init(struct device *dev, u64 addr,
--					     u32 size, u32 spare);
--
- #endif
-diff --git a/include/linux/qcom_scm.h b/include/linux/qcom_scm.h
-index e5380471c2cd..b628f735f355 100644
---- a/include/linux/qcom_scm.h
-+++ b/include/linux/qcom_scm.h
-@@ -23,7 +23,6 @@ struct qcom_scm_hdcp_req {
- 	u32 val;
- };
- 
--#if IS_ENABLED(CONFIG_QCOM_SCM)
- extern int qcom_scm_set_cold_boot_addr(void *entry, const cpumask_t *cpus);
- extern int qcom_scm_set_warm_boot_addr(void *entry, const cpumask_t *cpus);
- extern bool qcom_scm_is_available(void);
-@@ -43,35 +42,4 @@ extern int qcom_scm_set_remote_state(u32 state, u32 id);
- extern int qcom_scm_restore_sec_cfg(u32 device_id, u32 spare);
- extern int qcom_scm_iommu_secure_ptbl_size(u32 spare, size_t *size);
- extern int qcom_scm_iommu_secure_ptbl_init(u64 addr, u32 size, u32 spare);
--#else
--static inline
--int qcom_scm_set_cold_boot_addr(void *entry, const cpumask_t *cpus)
--{
--	return -ENODEV;
--}
--static inline
--int qcom_scm_set_warm_boot_addr(void *entry, const cpumask_t *cpus)
--{
--	return -ENODEV;
--}
--static inline bool qcom_scm_is_available(void) { return false; }
--static inline bool qcom_scm_hdcp_available(void) { return false; }
--static inline int qcom_scm_hdcp_req(struct qcom_scm_hdcp_req *req, u32 req_cnt,
--				    u32 *resp) { return -ENODEV; }
--static inline bool qcom_scm_pas_supported(u32 peripheral) { return false; }
--static inline int qcom_scm_pas_init_image(u32 peripheral, const void *metadata,
--					  size_t size) { return -ENODEV; }
--static inline int qcom_scm_pas_mem_setup(u32 peripheral, phys_addr_t addr,
--					 phys_addr_t size) { return -ENODEV; }
--static inline int
--qcom_scm_pas_auth_and_reset(u32 peripheral) { return -ENODEV; }
--static inline int qcom_scm_pas_shutdown(u32 peripheral) { return -ENODEV; }
--static inline void qcom_scm_cpu_power_down(u32 flags) {}
--static inline u32 qcom_scm_get_version(void) { return 0; }
--static inline u32
--qcom_scm_set_remote_state(u32 state,u32 id) { return -ENODEV; }
--static inline int qcom_scm_restore_sec_cfg(u32 device_id, u32 spare) { return -ENODEV; }
--static inline int qcom_scm_iommu_secure_ptbl_size(u32 spare, size_t *size) { return -ENODEV; }
--static inline int qcom_scm_iommu_secure_ptbl_init(u64 addr, u32 size, u32 spare) { return -ENODEV; }
--#endif
- #endif
--- 
-2.7.4
+> > +    Minimum quantization parameter for HEVC.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP``
+> > +    Maximum quantization parameter for HEVC.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP``
+> > +    Quantization parameter for an I frame for HEVC.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP``
+> > +    Quantization parameter for a P frame for HEVC.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP``
+> > +    Quantization parameter for a B frame for HEVC.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_QP``
+> > +    HIERARCHICAL_QP allows host to specify the quantization parameter values
+> > +    for each temporal layer through HIERARCHICAL_QP_LAYER. This is valid only
+> > +    if HIERARCHICAL_CODING_LAYER is greater than 1.
+> > +
+> > +.. _v4l2-hevc-hierarchical-coding-type:
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE``
+> > +    (enum)
+> > +
+> > +enum v4l2_mpeg_video_hevc_hier_coding_type -
+> > +    Selects the hierarchical coding type for encoding. Possible values are:
+> > +
+> > +.. raw:: latex
+> > +
+> > +    \begin{adjustbox}{width=\columnwidth}
+> > +
+> > +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
+> > +
+> > +.. flat-table::
+> > +    :header-rows:  0
+> > +    :stub-columns: 0
+> > +
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B``
+> > +      - Use the B frame for hierarchical coding.
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P``
+> > +      - Use the P frame for hierarchical coding.
+> > +
+> > +.. raw:: latex
+> > +
+> > +    \end{adjustbox}
+> > +
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER``
+> > +    Selects the hierarchical coding layer. In normal encoding
+> > +    (non-hierarchial coding), it should be zero. Possible values are 0 ~ 6.
+> > +    0 indicates HIERARCHICAL CODING LAYER 0, 1 indicates HIERARCHICAL CODING
+> > +    LAYER 1 and so on.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_QP``
+> > +    Indicates the hierarchical coding layer quantization parameter.
+> > +    For HEVC it can have a value of 0-51. Hence in the control value passed
+> > +    the LSB 16 bits will indicate the quantization parameter. The MSB 16 bit
+> > +    will pass the layer(0-6) it is meant for.
+> > +
+> > +.. _v4l2-hevc-profile:
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_PROFILE``
+> > +    (enum)
+> > +
+> > +enum v4l2_mpeg_video_hevc_profile -
+> > +    Select the desired profile for HEVC encoder.
+> > +
+> > +.. raw:: latex
+> > +
+> > +    \begin{adjustbox}{width=\columnwidth}
+> > +
+> > +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
+> > +
+> > +.. flat-table::
+> > +    :header-rows:  0
+> > +    :stub-columns: 0
+> > +
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN``
+> > +      - Main profile.
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE``
+> > +      - Main still picture profile.
+> > +
+> > +.. raw:: latex
+> > +
+> > +    \end{adjustbox}
+> > +
+> > +
+> > +.. _v4l2-hevc-level:
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_LEVEL``
+> > +    (enum)
+> > +
+> > +enum v4l2_mpeg_video_hevc_level -
+> > +    Select the desired level for HEVC encoder.
+> > +
+> > +.. raw:: latex
+> > +
+> > +    \begin{adjustbox}{width=\columnwidth}
+> > +
+> > +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
+> > +
+> > +.. flat-table::
+> > +       :header-rows:  0
+> > +    :stub-columns: 0
+> > +
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_1``
+> > +      - Level 1.0
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_2``
+> > +      - Level 2.0
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_2_1``
+> > +      - Level 2.1
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_3``
+> > +      - Level 3.0
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_3_1``
+> > +      - Level 3.1
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_4``
+> > +      - Level 4.0
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1``
+> > +      - Level 4.1
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5``
+> > +      - Level 5.0
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1``
+> > +      - Level 5.1
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5_2``
+> > +      - Level 5.2
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6``
+> > +      - Level 6.0
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6_1``
+> > +      - Level 6.1
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2``
+> > +      - Level 6.2
+> > +
+> > +.. raw:: latex
+> > +
+> > +    \end{adjustbox}
+> > +
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION``
+> > +    Indicates the number of evenly spaced subintervals, called ticks, within
+> > +    one modulo time. One modulo time represents the fixed interval of one
+> > +    second. This is a 16bit unsigned integer and has a maximum value upto
+> 
+> s/upto/up to/
+> 
+> So "one modulo time" == "one second"? Perhaps just say that instead?
+> 
+I will change it to one second.
+
+> > +    0xffff.
+> > +
+> > +.. _v4l2-hevc-profile:
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG``
+> > +    (enum)
+> > +
+> > +enum v4l2_mpeg_video_hevc_tier_flag -
+> > +    TIER_FLAG specifies tier information of the HEVC encoded picture. Tier were
+> 
+> s/Tier/Tiers/
+> 
+I will correct it.
+
+> > +    made to deal with applications that differ in terms of maximum bit rate.
+> > +    Setting the flag to 0 selects HEVC tier_flag as Main tier and setting this
+> > +    flag to 1 indicates High tier. High tier is for very demanding applications
+> > +
+> > +.. raw:: latex
+> > +
+> > +    \begin{adjustbox}{width=\columnwidth}
+> > +
+> > +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
+> > +
+> > +.. flat-table::
+> > +    :header-rows:  0
+> > +    :stub-columns: 0
+> > +
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_TIER_MAIN``
+> > +      - Main tier.
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_TIER_HIGH``
+> > +      - High tier.
+> > +
+> > +.. raw:: latex
+> > +
+> > +    \end{adjustbox}
+> > +
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH``
+> > +    Selects HEVC maximum coding unit depth.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_LF``
+> > +    Indicates loop filtering. Control ID 0 indicates loop filtering
+> 
+> s/ID/value/
+> 
+I will correct it.
+
+> > +    is enabled and when set to 1 indicates no filter.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY``
+> > +    Selects whether to apply the loop filter across the slice boundary or not.
+> > +    If the value is 0, loop filter will not be applied across the slice boundary.
+> > +    If the value is 1, loop filter will be applied across the slice boundary.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2``
+> > +    Selects HEVC loop filter beta offset. The valid range is [-6, +6].
+> > +    This could be a negative value in the 2's complement expression.
+> 
+> I'd drop this last line. The range you specify already indicates that it can
+> be negative.
+> 
+I will remove this.
+
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2``
+> > +    Selects HEVC loop filter tc offset. The valid range is [-6, +6].
+> > +    This could be a negative value in the 2's complement expression.
+> 
+> Ditto.
+> 
+I will remove this.
+
+> > +
+> > +.. _v4l2-hevc-refresh-type:
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE``
+> > +    (enum)
+> > +
+> > +enum v4l2_mpeg_video_hevc_hier_refresh_type -
+> > +    Selects refresh type for HEVC encoder.
+> > +    Host has to specify the period into
+> > +    HEVC_REFRESH_PERIOD.
+> > +
+> > +.. raw:: latex
+> > +
+> > +    \begin{adjustbox}{width=\columnwidth}
+> > +
+> > +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
+> > +
+> > +.. flat-table::
+> > +    :header-rows:  0
+> > +    :stub-columns: 0
+> > +
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_NONE``
+> > +      - Use the B frame for hierarchical coding.
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_CRA``
+> > +      - Use CRA(Clean Random Access Unit) picture encoding.
+> 
+> Add space after CRA.
+> 
+I will add it.
+
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_IDR``
+> > +      - Use IDR picture encoding.
+> > +
+> > +.. raw:: latex
+> > +
+> > +    \end{adjustbox}
+> > +
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD``
+> > +    Selects the refresh period for HEVC encoder.
+> > +    This specifies the number of I picture between two CRA/IDR pictures.
+> 
+> s/I picture/I pictures/
+> 
+I will correct this.
+
+> > +    This is valid only if REFRESH_TYPE is not 0.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU``
+> > +    Indicates HEVC lossless encoding. Setting it to 0 disables lossless
+> > +    encoding. Setting it to 1 enables lossless encoding.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED``
+> > +    Indicates constant intra prediction for HEVC encoder. Specifies the
+> > +    constrained intra prediction in which intra largest coding unit(LCU)
+> 
+> Space before (LCU)
+> 
+I will add this.
+
+> > +    prediction is performed by using residual data and decoded samples of
+> > +    neighboring intra LCU only. Setting it to 1 enables this control ID and
+> > +    setting it to 0 disables the control ID.
+> 
+> s/control ID/feature/
+> 
+I will change all the control IDs to feature.
+
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT``
+> > +    Indicates wavefront parallel processing for HEVC encoder. Setting it to 0
+> > +    disables the control ID and setting it to 1 enables the wavefront parallel
+> > +    processing.
+> 
+> Ditto. Please check this document for more mis-use of the term "control ID", I won't
+> comment on this anymore.
+> 
+Yes I will correct it in rest of the file.
+
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_SIGN_DATA_HIDING``
+> > +    Setting it to 1 indicates sign data hiding for HEVC encoder. Setting it to
+> > +    0 disables the control ID.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB``
+> > +    Setting the control ID to 1 enables general picture buffers for HEVC
+> > +    encoder.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID``
+> > +    Indicates temporal identifier specified as temporal_id in
+> > +    nal_unit_header_svc_extension() for HEVC encoder which is enabled by
+> > +    setting the control ID to 1.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING``
+> > +    Indicates bi-linear interpolation is conditionally used in the intra
+> > +    prediction filtering process in the CVS when set to 1. Indicates bi-linear
+> > +    interpolation is not used in the CVS when set to 0.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1``
+> > +    Indicates max number of merge candidate motion vectors.
+> > +    Values are from zero to four.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT``
+> > +    Indicates intra prediction unit split for HEVC Encoder. Setting it to 1
+> > +    disables the feature. Setting it to 1 enables the feature.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION``
+> > +    Indicates temporal motion vector prediction for HEVC encoder. Setting it to
+> > +    0 enables the prediction. Setting it to 1 disables the prediction.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE``
+> > +    Specifies if HEVC generates a stream with a size of length field instead of
+> > +    start code pattern. The size of the length field is configurable among 1,2
+> > +    or 4 thorugh the SIZE_OF_LENGTH_FIELD. It is not applied at SEQ_START.
+> > +    Setting it to 0 disables the control ID. Setting it to 1 will enables
+> > +    the control ID.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CR``
+> > +    Indicates the quantization parameter CR index.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CB``
+> > +    Indicates the quantization parameter CB index.
+> > +
+> > +.. _v4l2-hevc-size-of-length-field:
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD``
+> > +(enum)
+> > +
+> > +enum v4l2_mpeg_video_hevc_size_of_length_field -
+> > +    Indicates the size of length field.
+> > +    This is valid when encoding WITHOUT_STARTCODE_ENABLE is enabled.
+> > +
+> > +.. raw:: latex
+> > +
+> > +    \begin{adjustbox}{width=\columnwidth}
+> > +
+> > +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
+> > +
+> > +.. flat-table::
+> > +       :header-rows:  0
+> > +    :stub-columns: 0
+> > +
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_0``
+> > +      - Generate start code pattern (Normal).
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_1``
+> > +      - Generate size of length field instead of start code pattern and length is 1.
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_2``
+> > +      - Generate size of length field instead of start code pattern and length is 2.
+> > +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_4``
+> > +      - Generate size of length field instead of start code pattern and length is 4.
+> > +
+> > +.. raw:: latex
+> > +
+> > +    \end{adjustbox}
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER0_BITRATE``
+> > +    Indicates bit rate for hierarchical coding layer 0 for HEVC encoder.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER1_BITRATE``
+> > +    Indicates bit rate for hierarchical coding layer 1 for HEVC encoder.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER2_BITRATE``
+> > +    Indicates bit rate for hierarchical coding layer 2 for HEVC encoder.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER3_BITRATE``
+> > +    Indicates bit rate for hierarchical coding layer 3 for HEVC encoder.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER4_BITRATE``
+> > +    Indicates bit rate for hierarchical coding layer 4 for HEVC encoder.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER5_BITRATE``
+> > +    Indicates bit rate for hierarchical coding layer 5 for HEVC encoder.
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER6_BITRATE``
+> > +    Indicates bit rate for hierarchical coding layer 6 for HEVC encoder.
+> > +
+> > +
+> > +MFC 10.10 MPEG Controls
+> > +-----------------------
+> > +
+> > +The following MPEG class controls deal with MPEG decoding and encoding
+> > +settings that are specific to the Multi Format Codec 10.10 device present
+> > +in the S5P family of SoCs by Samsung.
+> > +
+> > +
+> > +.. _mfc1010-control-id:
+> > +
+> > +MFC 10.10 Control IDs
+> > +^^^^^^^^^^^^^^^^^^^^^
+> > +
+> > +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES``
+> > +    Selects number of P reference picture required for HEVC encoder.
+> > +    P-Frame can use 1 or 2 frames for reference.
+> > +
+> > +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_ADAPTIVE_RC_DARK``
+> > +    Indicates HEVC dark region adaptive rate control.
+> > +
+> > +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_ADAPTIVE_RC_SMOOTH``
+> > +    Indicates HEVC smooth region adaptive rate control.
+> > +
+> > +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_ADAPTIVE_RC_STATIC``
+> > +    Indicates HEVC static region adaptive rate control.
+> > +
+> > +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_ADAPTIVE_RC_ACTIVITY``
+> > +    Indicates HEVC activity region adaptive rate control.
+> > +
+> > +``V4L2_CID_MPEG_MFC1010_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR``
+> > +    Indicates whether to generate SPS and PPS at every IDR. Setting it to 0
+> > +    disables it and setting it to one enables the feature.
+> > +
+> > +
+> >  .. _camera-controls:
+> >  
+> >  Camera Control Reference
+> > 
+> 
+> Regards,
+> 
+> 	Hans
+> 
+Thank you for the review.
+
+Regards,
+Smitha
