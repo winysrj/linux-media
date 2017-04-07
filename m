@@ -1,145 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55340
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752955AbdDJMFZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 08:05:25 -0400
-Date: Mon, 10 Apr 2017 09:05:19 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2.3] v4l: Clearly document interactions between
- formats, controls and buffers
-Message-ID: <20170410090519.5c38e219@vento.lan>
-In-Reply-To: <20170306141441.13497-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20170305213610.3893-1-laurent.pinchart+renesas@ideasonboard.com>
-        <20170306141441.13497-1-laurent.pinchart+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:58008 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752375AbdDGWhm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Apr 2017 18:37:42 -0400
+From: Helen Koike <helen.koike@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
+        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 3/7] [media] vimc: Add vimc_pipeline_s_stream in the core
+Date: Fri,  7 Apr 2017 19:37:08 -0300
+Message-Id: <1491604632-23544-4-git-send-email-helen.koike@collabora.com>
+In-Reply-To: <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
+References: <cover.1438891530.git.helen.fornazier@gmail.com>
+ <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon,  6 Mar 2017 16:14:41 +0200
-Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com> escreveu:
+Move the vimc_cap_pipeline_s_stream from the vimc-cap.c to vimc-core.c
+as this core will be reused by other subdevices to activate the stream
+in their directly connected nodes
 
-> V4L2 exposes parameters that influence buffers sizes through the format
-> ioctls (VIDIOC_G_FMT, VIDIOC_TRY_FMT, VIDIOC_S_FMT, and possibly
-> VIDIOC_G_SELECTION and VIDIOC_S_SELECTION). Other parameters not part of
-> the format structure may also influence buffer sizes or buffer layout in
-> general. One existing such parameter is rotation, which is implemented
-> by the V4L2_CID_ROTATE control and thus exposed through the V4L2 control
-> ioctls.
-> 
-> The interaction between those parameters and buffers is currently only
-> partially specified by the V4L2 API. In particular interactions between
-> controls and buffers isn't specified at all. The behaviour of the
-> VIDIOC_S_FMT and VIDIOC_S_SELECTION ioctls when buffers are allocated is
-> also not fully specified.
-> 
-> This patch clearly defines and documents the interactions between
-> formats, selections, controls and buffers.
-> 
-> The preparatory discussions for the documentation change considered
-> completely disallowing controls that change the buffer size or layout,
-> in favour of extending the format API with a new ioctl that would bundle
-> those controls with format information. The idea has been rejected, as
-> this would essentially be a restricted version of the upcoming request
-> API that wouldn't bring any additional value.
-> 
-> Another option we have considered was to mandate the use of the request
-> API to modify controls that influence buffer size or layout. This has
-> also been rejected on the grounds that requiring the request API to
-> change rotation even when streaming is stopped would significantly
-> complicate implementation of drivers and usage of the V4L2 API for
-> applications.
-> 
-> Applications will however be required to use the upcoming request API to
-> change at runtime formats or controls that influence the buffer size or
-> layout, because of the need to synchronize buffers with the formats and
-> controls. Otherwise there would be no way to interpret the content of a
-> buffer correctly.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> Changes since v2.2:
-> 
-> - Describe the simple option first
-> - Fix error codes
-> 
-> Changes since v2.1:
-> 
-> - Fixed small issues in commit message
-> - Simplified wording of one sentence in the documentation
-> 
-> Changes since v2:
-> 
-> - Document the interaction with ioctls that can affect formats
->   (VIDIOC_S_SELECTION, VIDIOC_S_INPUT, VIDIOC_S_OUTPUT, VIDIOC_S_STD and
->   VIDIOC_S_DV_TIMINGS)
-> - Clarify the format/control change order
-> ---
->  Documentation/media/uapi/v4l/buffer.rst | 110 ++++++++++++++++++++++++++++++++
->  1 file changed, 110 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-> index ac58966ccb9b..d1e0d55dc219 100644
-> --- a/Documentation/media/uapi/v4l/buffer.rst
-> +++ b/Documentation/media/uapi/v4l/buffer.rst
+Signed-off-by: Helen Koike <helen.koike@collabora.com>
 
-...
+---
 
-> +.. note::
-> +
-> +   The API doesn't mandate the above order for control (3.) and format (4.)
-> +   changes. Format and controls can be set in a different order, or even
-> +   interleaved, depending on the device and use case. For instance some
-> +   controls might behave differently for different pixel formats, in which
-> +   case the format might need to be set first.
-> +
-> +When reallocation is required, any attempt to modify format or controls that
-> +influences the buffer size while buffers are allocated shall cause the format
-> +or control set ioctl to return the ``EBUSY`` error. Any attempt to queue a
-> +buffer too small for the current format or controls shall cause the
-> +:c:func:`VIDIOC_QBUF` ioctl to return a ``EINVAL`` error.
-
-This can be problematic. As I just implemented support for controls
-this weekend at Zbar, I'm now talking as an userspace app developer's
-hat.
-
-The real problem here is that applications must be aware of what
-controls change the buffer layout. Blindly changing controls without
-such check would cause the stream to fail with -EINVAL errors at
-QBUF.
-
-So, applications will need to to have a "black list" of controls that may
-influence the buffer size  (like V4L2_CID_ROTATE), in order to know
-if, for such particular control, the stream should be stopped, in
-order to reallocate buffers.
-
-If such "black list" is not updated as newer controls are added, the
-final result is that, if the user changes such control, the 
-application will receive EINVAL, causing it to fail streaming.
-
-Instead of that, the best is to add control flag to be returned via
-VIDIOC_QUERY_CTRL/VIDIOC_QUERY_EXT_CTRL indicating when a control modifies 
-the buffer layout, e. g., something like:
-
-#define V4L2_CTRL_FLAG_MODIFY_BUF_LAYOUT	0x0400
-
-Such flag shall be set for V4L2_CID_ROTATE (and other controls) if,
-for a particular driver, the buffer layout is modified.
-
-This way, userspace can recognize such controls in runtime and
-reallocate the buffers if required by such controls.
+Changes in v2:
+[media] vimc: Add vimc_pipeline_s_stream in the core
+	- Use is_media_entity_v4l2_subdev instead of comparing with the old
+	entity->type
+	- Fix comments style
+	- add kernel-docs
+	- call s_stream across all sink pads
 
 
-Regards
+---
+ drivers/media/platform/vimc/vimc-capture.c | 29 ++-------------------------
+ drivers/media/platform/vimc/vimc-core.c    | 32 ++++++++++++++++++++++++++++++
+ drivers/media/platform/vimc/vimc-core.h    | 11 ++++++++++
+ 3 files changed, 45 insertions(+), 27 deletions(-)
 
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
+index 9adb06d..93f6a09 100644
+--- a/drivers/media/platform/vimc/vimc-capture.c
++++ b/drivers/media/platform/vimc/vimc-capture.c
+@@ -132,31 +132,6 @@ static void vimc_cap_return_all_buffers(struct vimc_cap_device *vcap,
+ 	spin_unlock(&vcap->qlock);
+ }
+ 
+-static int vimc_cap_pipeline_s_stream(struct vimc_cap_device *vcap, int enable)
+-{
+-	struct v4l2_subdev *sd;
+-	struct media_pad *pad;
+-	int ret;
+-
+-	/* Start the stream in the subdevice direct connected */
+-	pad = media_entity_remote_pad(&vcap->vdev.entity.pads[0]);
+-
+-	/*
+-	 * if it is a raw node from vimc-core, there is nothing to activate
+-	 * TODO: remove this when there are no more raw nodes in the
+-	 * core and return error instead
+-	 */
+-	if (pad->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
+-		return 0;
+-
+-	sd = media_entity_to_v4l2_subdev(pad->entity);
+-	ret = v4l2_subdev_call(sd, video, s_stream, enable);
+-	if (ret && ret != -ENOIOCTLCMD)
+-		return ret;
+-
+-	return 0;
+-}
+-
+ static int vimc_cap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct vimc_cap_device *vcap = vb2_get_drv_priv(vq);
+@@ -173,7 +148,7 @@ static int vimc_cap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	}
+ 
+ 	/* Enable streaming from the pipe */
+-	ret = vimc_cap_pipeline_s_stream(vcap, 1);
++	ret = vimc_pipeline_s_stream(&vcap->vdev.entity, 1);
+ 	if (ret) {
+ 		media_pipeline_stop(entity);
+ 		vimc_cap_return_all_buffers(vcap, VB2_BUF_STATE_QUEUED);
+@@ -192,7 +167,7 @@ static void vimc_cap_stop_streaming(struct vb2_queue *vq)
+ 	struct vimc_cap_device *vcap = vb2_get_drv_priv(vq);
+ 
+ 	/* Disable streaming from the pipe */
+-	vimc_cap_pipeline_s_stream(vcap, 0);
++	vimc_pipeline_s_stream(&vcap->vdev.entity, 0);
+ 
+ 	/* Stop the media pipeline */
+ 	media_pipeline_stop(&vcap->vdev.entity);
+diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
+index 15fa311..7c23735 100644
+--- a/drivers/media/platform/vimc/vimc-core.c
++++ b/drivers/media/platform/vimc/vimc-core.c
+@@ -396,6 +396,38 @@ static void vimc_device_unregister(struct vimc_device *vimc)
+ 	media_device_cleanup(&vimc->mdev);
+ }
+ 
++int vimc_pipeline_s_stream(struct media_entity *ent, int enable)
++{
++	struct v4l2_subdev *sd;
++	struct media_pad *pad;
++	unsigned int i;
++	int ret;
++
++	for (i = 0; i < ent->num_pads; i++) {
++		if (ent->pads[i].flags & MEDIA_PAD_FL_SOURCE)
++			continue;
++
++		/* Start the stream in the subdevice direct connected */
++		pad = media_entity_remote_pad(&ent->pads[i]);
++
++		/*
++		 * if this is a raw node from vimc-core, then there is
++		 * nothing to activate
++		 * TODO: remove this when there are no more raw nodes in the
++		 * core and return error instead
++		 */
++		if (pad->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
++			continue;
++
++		sd = media_entity_to_v4l2_subdev(pad->entity);
++		ret = v4l2_subdev_call(sd, video, s_stream, enable);
++		if (ret && ret != -ENOIOCTLCMD)
++			return ret;
++	}
++
++	return 0;
++}
++
+ /* Helper function to allocate and initialize pads */
+ struct media_pad *vimc_pads_init(u16 num_pads, const unsigned long *pads_flag)
+ {
+diff --git a/drivers/media/platform/vimc/vimc-core.h b/drivers/media/platform/vimc/vimc-core.h
+index 92c4729..8c3d401 100644
+--- a/drivers/media/platform/vimc/vimc-core.h
++++ b/drivers/media/platform/vimc/vimc-core.h
+@@ -96,6 +96,17 @@ static inline void vimc_pads_cleanup(struct media_pad *pads)
+ }
+ 
+ /**
++ * vimc_pipeline_s_stream - start stream through the pipeline
++ *
++ * @ent:		the pointer to struct media_entity for the node
++ * @enable:		1 to start the stream and 0 to stop
++ *
++ * Helper function to call the s_stream of the subdevices connected
++ * in all the sink pads of the entity
++ */
++int vimc_pipeline_s_stream(struct media_entity *ent, int enable);
++
++/**
+  * vimc_pix_map_by_code - get vimc_pix_map struct by media bus code
+  *
+  * @code:		media bus format code defined by MEDIA_BUS_FMT_* macros
+-- 
+2.7.4
