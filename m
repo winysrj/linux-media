@@ -1,269 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:57457 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1031511AbdD0Wmz (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60658 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752766AbdDGXCZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:42:55 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v4 12/27] rcar-vin: read subdevice format for crop only when needed
-Date: Fri, 28 Apr 2017 00:41:48 +0200
-Message-Id: <20170427224203.14611-13-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 7 Apr 2017 19:02:25 -0400
+Date: Sat, 8 Apr 2017 02:02:21 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 7/8] docs-rst: media: Switch documentation to V4L2
+ fwnode API
+Message-ID: <20170407230220.GO4192@valkosipuli.retiisi.org.uk>
+References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1491484330-12040-8-git-send-email-sakari.ailus@linux.intel.com>
+ <1640047.4eZCzTnCCW@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1640047.4eZCzTnCCW@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of caching the subdevice format each time the video device
-format is set read it directly when its needed. As it turns out the
-format is only needed when figuring out the max rectangle for cropping.
+Hi Laurent,
 
-This simplify the code and makes it clearer what the source format is
-used for.
+On Fri, Apr 07, 2017 at 12:59:01PM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thank you for the patch.
+> 
+> On Thursday 06 Apr 2017 16:12:09 Sakari Ailus wrote:
+> > Instead of including the V4L2 OF header in ReST documentation, use the
+> > V4L2 fwnode header instead.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  Documentation/media/kapi/v4l2-core.rst   | 2 +-
+> >  Documentation/media/kapi/v4l2-fwnode.rst | 3 +++
+> >  Documentation/media/kapi/v4l2-of.rst     | 3 ---
+> >  3 files changed, 4 insertions(+), 4 deletions(-)
+> >  create mode 100644 Documentation/media/kapi/v4l2-fwnode.rst
+> >  delete mode 100644 Documentation/media/kapi/v4l2-of.rst
+> > 
+> > diff --git a/Documentation/media/kapi/v4l2-core.rst
+> > b/Documentation/media/kapi/v4l2-core.rst index e967715..1bc8a14 100644
+> > --- a/Documentation/media/kapi/v4l2-core.rst
+> > +++ b/Documentation/media/kapi/v4l2-core.rst
+> > @@ -19,7 +19,7 @@ Video2Linux devices
+> >      v4l2-mc
+> >      v4l2-mediabus
+> >      v4l2-mem2mem
+> > -    v4l2-of
+> > +    v4l2-fwnode
+> 
+> I wonder whether we should keep this alphabetically sorted.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 76 ++++++++++++++++-------------
- drivers/media/platform/rcar-vin/rcar-vin.h  | 12 -----
- 2 files changed, 42 insertions(+), 46 deletions(-)
+It's not fully sorted at the moment --- see tuner / common below. It'd be
+good if it was though. I'll add a patch for that.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 919040e40aec60f6..80421421625e6f6f 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -90,6 +90,24 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
-  * V4L2
-  */
- 
-+static int rvin_get_sd_format(struct rvin_dev *vin, struct v4l2_pix_format *pix)
-+{
-+	struct v4l2_subdev_format fmt = {
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+	int ret;
-+
-+	fmt.pad = vin->digital.source_pad;
-+
-+	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
-+	if (ret)
-+		return ret;
-+
-+	v4l2_fill_pix_format(pix, &fmt.format);
-+
-+	return 0;
-+}
-+
- static int rvin_reset_format(struct rvin_dev *vin)
- {
- 	struct v4l2_subdev_format fmt = {
-@@ -151,9 +169,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
- }
- 
- static int __rvin_try_format_source(struct rvin_dev *vin,
--				    u32 which,
--				    struct v4l2_pix_format *pix,
--				    struct rvin_source_fmt *source)
-+				    u32 which, struct v4l2_pix_format *pix)
- {
- 	struct v4l2_subdev *sd;
- 	struct v4l2_subdev_pad_config *pad_cfg;
-@@ -186,25 +202,15 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 	v4l2_fill_pix_format(pix, &format.format);
- 
- 	pix->field = field;
--
--	source->width = pix->width;
--	source->height = pix->height;
--
- 	pix->width = width;
- 	pix->height = height;
--
--	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
--		source->height);
--
- done:
- 	v4l2_subdev_free_pad_config(pad_cfg);
- 	return ret;
- }
- 
- static int __rvin_try_format(struct rvin_dev *vin,
--			     u32 which,
--			     struct v4l2_pix_format *pix,
--			     struct rvin_source_fmt *source)
-+			     u32 which, struct v4l2_pix_format *pix)
- {
- 	const struct rvin_video_format *info;
- 	u32 walign;
-@@ -231,7 +237,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	pix->sizeimage = 0;
- 
- 	/* Limit to source capabilities */
--	ret = __rvin_try_format_source(vin, which, pix, source);
-+	ret = __rvin_try_format_source(vin, which, pix);
- 	if (ret)
- 		return ret;
- 
-@@ -240,7 +246,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	case V4L2_FIELD_BOTTOM:
- 	case V4L2_FIELD_ALTERNATE:
- 		pix->height /= 2;
--		source->height /= 2;
- 		break;
- 	case V4L2_FIELD_NONE:
- 	case V4L2_FIELD_INTERLACED_TB:
-@@ -292,30 +297,23 @@ static int rvin_try_fmt_vid_cap(struct file *file, void *priv,
- 				struct v4l2_format *f)
- {
- 	struct rvin_dev *vin = video_drvdata(file);
--	struct rvin_source_fmt source;
- 
--	return __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_TRY, &f->fmt.pix,
--				 &source);
-+	return __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_TRY, &f->fmt.pix);
- }
- 
- static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
- 			      struct v4l2_format *f)
- {
- 	struct rvin_dev *vin = video_drvdata(file);
--	struct rvin_source_fmt source;
- 	int ret;
- 
- 	if (vb2_is_busy(&vin->queue))
- 		return -EBUSY;
- 
--	ret = __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_ACTIVE, &f->fmt.pix,
--				&source);
-+	ret = __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_ACTIVE, &f->fmt.pix);
- 	if (ret)
- 		return ret;
- 
--	vin->source.width = source.width;
--	vin->source.height = source.height;
--
- 	vin->format = f->fmt.pix;
- 
- 	return 0;
-@@ -346,6 +344,8 @@ static int rvin_g_selection(struct file *file, void *fh,
- 			    struct v4l2_selection *s)
- {
- 	struct rvin_dev *vin = video_drvdata(file);
-+	struct v4l2_pix_format pix;
-+	int ret;
- 
- 	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
-@@ -353,9 +353,12 @@ static int rvin_g_selection(struct file *file, void *fh,
- 	switch (s->target) {
- 	case V4L2_SEL_TGT_CROP_BOUNDS:
- 	case V4L2_SEL_TGT_CROP_DEFAULT:
-+		ret = rvin_get_sd_format(vin, &pix);
-+		if (ret)
-+			return ret;
- 		s->r.left = s->r.top = 0;
--		s->r.width = vin->source.width;
--		s->r.height = vin->source.height;
-+		s->r.width = pix.width;
-+		s->r.height = pix.height;
- 		break;
- 	case V4L2_SEL_TGT_CROP:
- 		s->r = vin->crop;
-@@ -381,12 +384,14 @@ static int rvin_s_selection(struct file *file, void *fh,
- {
- 	struct rvin_dev *vin = video_drvdata(file);
- 	const struct rvin_video_format *fmt;
-+	struct v4l2_pix_format pix;
- 	struct v4l2_rect r = s->r;
- 	struct v4l2_rect max_rect;
- 	struct v4l2_rect min_rect = {
- 		.width = 6,
- 		.height = 2,
- 	};
-+	int ret;
- 
- 	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
-@@ -396,22 +401,25 @@ static int rvin_s_selection(struct file *file, void *fh,
- 	switch (s->target) {
- 	case V4L2_SEL_TGT_CROP:
- 		/* Can't crop outside of source input */
-+		ret = rvin_get_sd_format(vin, &pix);
-+		if (ret)
-+			return ret;
- 		max_rect.top = max_rect.left = 0;
--		max_rect.width = vin->source.width;
--		max_rect.height = vin->source.height;
-+		max_rect.width = pix.width;
-+		max_rect.height = pix.height;
- 		v4l2_rect_map_inside(&r, &max_rect);
- 
--		v4l_bound_align_image(&r.width, 2, vin->source.width, 1,
--				      &r.height, 4, vin->source.height, 2, 0);
-+		v4l_bound_align_image(&r.width, 2, pix.width, 1,
-+				      &r.height, 4, pix.height, 2, 0);
- 
--		r.top  = clamp_t(s32, r.top, 0, vin->source.height - r.height);
--		r.left = clamp_t(s32, r.left, 0, vin->source.width - r.width);
-+		r.top  = clamp_t(s32, r.top, 0, pix.height - r.height);
-+		r.left = clamp_t(s32, r.left, 0, pix.width - r.width);
- 
- 		vin->crop = s->r = r;
- 
- 		vin_dbg(vin, "Cropped %dx%d@%d:%d of %dx%d\n",
- 			r.width, r.height, r.left, r.top,
--			vin->source.width, vin->source.height);
-+			pix.width, pix.height);
- 		break;
- 	case V4L2_SEL_TGT_COMPOSE:
- 		/* Make sure compose rect fits inside output format */
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index f1251c013d1d2d80..4805127b7af879a3 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -49,16 +49,6 @@ enum rvin_dma_state {
- };
- 
- /**
-- * struct rvin_source_fmt - Source information
-- * @width:	Width from source
-- * @height:	Height from source
-- */
--struct rvin_source_fmt {
--	u32 width;
--	u32 height;
--};
--
--/**
-  * struct rvin_video_format - Data format stored in memory
-  * @fourcc:	Pixelformat
-  * @bpp:	Bytes per pixel
-@@ -125,7 +115,6 @@ struct rvin_info {
-  * @sequence:		V4L2 buffers sequence number
-  * @state:		keeps track of operation state
-  *
-- * @source:		active format from the video source
-  * @format:		active V4L2 pixel format
-  *
-  * @crop:		active cropping
-@@ -152,7 +141,6 @@ struct rvin_dev {
- 	unsigned int sequence;
- 	enum rvin_dma_state state;
- 
--	struct rvin_source_fmt source;
- 	struct v4l2_pix_format format;
- 
- 	struct v4l2_rect crop;
+> 
+> Apart from that,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Thanks!
+
+> 
+> >      v4l2-rect
+> >      v4l2-tuner
+> >      v4l2-common
+> > diff --git a/Documentation/media/kapi/v4l2-fwnode.rst
+> > b/Documentation/media/kapi/v4l2-fwnode.rst new file mode 100644
+> > index 0000000..6c8bccd
+> > --- /dev/null
+> > +++ b/Documentation/media/kapi/v4l2-fwnode.rst
+> > @@ -0,0 +1,3 @@
+> > +V4L2 fwnode kAPI
+> > +^^^^^^^^^^^^^^^^
+> > +.. kernel-doc:: include/media/v4l2-fwnode.h
+> > diff --git a/Documentation/media/kapi/v4l2-of.rst
+> > b/Documentation/media/kapi/v4l2-of.rst deleted file mode 100644
+> > index 1ddf76b..0000000
+> > --- a/Documentation/media/kapi/v4l2-of.rst
+> > +++ /dev/null
+> > @@ -1,3 +0,0 @@
+> > -V4L2 Open Firmware kAPI
+> > -^^^^^^^^^^^^^^^^^^^^^^^
+> > -.. kernel-doc:: include/media/v4l2-of.h
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+
 -- 
-2.12.2
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
