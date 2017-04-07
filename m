@@ -1,204 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36259 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1953712AbdDZNXl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Apr 2017 09:23:41 -0400
-Date: Wed, 26 Apr 2017 15:23:37 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: [patch] autogain support for bayer10 format (was Re: [patch]
- propagating controls in libv4l2)
-Message-ID: <20170426132337.GA6482@amd>
-References: <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170414232332.63850d7b@vento.lan>
- <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan>
- <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan>
- <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan>
- <20170426105300.GA857@amd>
- <20170426081330.6ca10e42@vento.lan>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35599 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753792AbdDGKcI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Apr 2017 06:32:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 5/8] v4l: Switch from V4L2 OF not V4L2 fwnode API
+Date: Fri, 07 Apr 2017 13:32:54 +0300
+Message-ID: <14918382.izlyCngq8n@avalon>
+In-Reply-To: <1491484330-12040-6-git-send-email-sakari.ailus@linux.intel.com>
+References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com> <1491484330-12040-6-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="0F1p//8PRICkK4MW"
-Content-Disposition: inline
-In-Reply-To: <20170426081330.6ca10e42@vento.lan>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sakari,
 
---0F1p//8PRICkK4MW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thank you for the patch.
 
-Hi!
+On Thursday 06 Apr 2017 16:12:07 Sakari Ailus wrote:
+> Switch users of the v4l2_of_ APIs to the more generic v4l2_fwnode_ APIs.
+> 
+> Existing OF matching continues to be supported. omap3isp and smiapp
+> drivers are converted to fwnode matching as well.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Benoit Parrot <bparrot@ti.com> # i2c/ov2569.c,
+> am437x/am437x-vpfe.c and ti-vpe/cal.c ---
+>  drivers/media/i2c/Kconfig                      |  9 ++++
+>  drivers/media/i2c/adv7604.c                    |  7 +--
+>  drivers/media/i2c/mt9v032.c                    |  7 +--
+>  drivers/media/i2c/ov2659.c                     |  8 +--
+>  drivers/media/i2c/s5c73m3/s5c73m3-core.c       |  7 +--
+>  drivers/media/i2c/s5k5baf.c                    |  6 +--
+>  drivers/media/i2c/smiapp/Kconfig               |  1 +
+>  drivers/media/i2c/smiapp/smiapp-core.c         | 29 ++++++-----
+>  drivers/media/i2c/tc358743.c                   | 11 ++--
+>  drivers/media/i2c/tvp514x.c                    |  6 +--
+>  drivers/media/i2c/tvp5150.c                    |  7 +--
+>  drivers/media/i2c/tvp7002.c                    |  6 +--
+>  drivers/media/platform/Kconfig                 |  3 ++
+>  drivers/media/platform/am437x/Kconfig          |  1 +
+>  drivers/media/platform/am437x/am437x-vpfe.c    |  8 +--
+>  drivers/media/platform/atmel/Kconfig           |  1 +
+>  drivers/media/platform/atmel/atmel-isc.c       |  8 +--
+>  drivers/media/platform/exynos4-is/Kconfig      |  2 +
+>  drivers/media/platform/exynos4-is/media-dev.c  |  6 +--
+>  drivers/media/platform/exynos4-is/mipi-csis.c  |  6 +--
+>  drivers/media/platform/omap3isp/isp.c          | 71 +++++++++++-----------
+>  drivers/media/platform/pxa_camera.c            |  7 +--
+>  drivers/media/platform/rcar-vin/Kconfig        |  1 +
+>  drivers/media/platform/rcar-vin/rcar-core.c    |  6 +--
+>  drivers/media/platform/soc_camera/Kconfig      |  1 +
+>  drivers/media/platform/soc_camera/atmel-isi.c  |  7 +--
+>  drivers/media/platform/soc_camera/soc_camera.c |  3 +-
+>  drivers/media/platform/ti-vpe/cal.c            | 11 ++--
+>  drivers/media/platform/xilinx/Kconfig          |  1 +
+>  drivers/media/platform/xilinx/xilinx-vipp.c    | 59 +++++++++++----------
+>  include/media/v4l2-fwnode.h                    |  4 +-
+>  31 files changed, 176 insertions(+), 134 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index cee1dae..6b2423a 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -210,6 +210,7 @@ config VIDEO_ADV7604
+>  	depends on GPIOLIB || COMPILE_TEST
+>  	select HDMI
+>  	select MEDIA_CEC_EDID
+> +	select V4L2_FWNODE
 
-> > > I don't see why it would be hard to open files or have threads inside
-> > > a library. There are several libraries that do that already, specially
-> > > the ones designed to be used on multimidia apps. =20
-> >=20
-> > Well, This is what the libv4l2 says:
-> >=20
-> >    This file implements libv4l2, which offers v4l2_ prefixed versions
-> >    of
-> >       open/close/etc. The API is 100% the same as directly opening
-> >    /dev/videoX
-> >       using regular open/close/etc, the big difference is that format
-> >    conversion
-> >   =20
-> > but if I open additional files in v4l2_open(), API is no longer the
-> > same, as unix open() is defined to open just one file descriptor.
-> >=20
-> > Now. There is autogain support in libv4lconvert, but it expects to use
-> > same fd for camera and for the gain... which does not work with
-> > subdevs.
-> >=20
-> > Of course, opening subdevs by name like this is not really
-> > acceptable. But can you suggest a method that is?
->=20
-> There are two separate things here:
->=20
-> 1) Autofoucs for a device that doesn't use subdev API
-> 2) libv4l2 support for devices that require MC and subdev API
+What happens when building the driver on a platform that includes neither OF 
+nor ACPI support ?
 
-Actually there are three: 0) autogain. Unfortunately, I need autogain
-first before autofocus has a chance...
+>  	---help---
+>  	  Support for the Analog Devices ADV7604 video decoder.
+> 
 
-And that means... bayer10 support for autogain.
+[snip]
 
-Plus, I changed avg_lum to long long. Quick calculation tells me int
-could overflow with few megapixel sensor.
+How have you checked that you haven't missed any entry in the Kconfig files ?
 
-Oh, btw http://ytse.tricolour.net/docs/LowLightOptimization.html no
-longer works.
+[snip]
 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 084ecf4a..95850b9 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+
+[snip]
+
+> @@ -2024,43 +2025,42 @@ enum isp_of_phy {
+>  	ISP_OF_PHY_CSIPHY2,
+>  };
+> 
+> -static int isp_of_parse_node(struct device *dev, struct device_node *node,
+> -			     struct isp_async_subdev *isd)
+> +static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwn,
+> +			    struct isp_async_subdev *isd)
+>  {
+>  	struct isp_bus_cfg *buscfg = &isd->bus;
+> -	struct v4l2_of_endpoint vep;
+> +	struct v4l2_fwnode_endpoint vfwn;
+
+vfwn is confusing to me, I think the variable name should show that it refers 
+to an endpoint.
+
+>  	unsigned int i;
+>  	int ret;
+> 
+> -	ret = v4l2_of_parse_endpoint(node, &vep);
+> +	ret = v4l2_fwnode_endpoint_parse(fwn, &vfwn);
+>  	if (ret)
+>  		return ret;
+> 
+> -	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
+> -		vep.base.port);
+> +	dev_dbg(dev, "interface %u\n", vfwn.base.port);
+
+Is there no way to keep the node name in the error message ?
+
+
+[snip]
+
+> @@ -2094,18 +2094,17 @@ static int isp_of_parse_node(struct device *dev,
+> struct device_node *node, break;
+> 
+>  	default:
+> -		dev_warn(dev, "%s: invalid interface %u\n", node->full_name,
+> -			 vep.base.port);
+> +		dev_warn(dev, "invalid interface %u\n", vfwn.base.port);
+
+Ditto.
+
+>  		break;
+>  	}
+> 
+>  	return 0;
+>  }
+> 
+> -static int isp_of_parse_nodes(struct device *dev,
+> -			      struct v4l2_async_notifier *notifier)
+> +static int isp_fwnodes_parse(struct device *dev,
+> +			     struct v4l2_async_notifier *notifier)
+>  {
+> -	struct device_node *node = NULL;
+> +	struct fwnode_handle *fwn = NULL;
+
+As explained in the review of another patch from the same series, I wouldn't 
+rename the variable.
+
+>  	notifier->subdevs = devm_kcalloc(
+>  		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+
+[snip]
+
+> @@ -2219,12 +2220,12 @@ static int isp_probe(struct platform_device *pdev)
+>  	if (IS_ERR(isp->syscon))
+>  		return PTR_ERR(isp->syscon);
+> 
+> -	ret = of_property_read_u32_index(pdev->dev.of_node, "syscon", 1,
+> -					 &isp->syscon_offset);
+> +	ret = of_property_read_u32_index(pdev->dev.of_node,
+> +					 "syscon", 1, &isp->syscon_offset);
+
+This change doesn't seem to be needed.
+
+>  	if (ret)
+>  		return ret;
+> 
+> -	ret = isp_of_parse_nodes(&pdev->dev, &isp->notifier);
+> +	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
+>  	if (ret < 0)
+>  		return ret;
+> 
+
+[snip]
+
+> diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c
+> b/drivers/media/platform/xilinx/xilinx-vipp.c index feb3b2f..6a2721b 100644
+> --- a/drivers/media/platform/xilinx/xilinx-vipp.c
+> +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
+
+[snip]
+
+> @@ -103,9 +103,10 @@ static int xvip_graph_build_one(struct
+> xvip_composite_device *xdev, * the link.
+>  		 */
+>  		if (link.local_port >= local->num_pads) {
+> -			dev_err(xdev->dev, "invalid port number %u on %s\n",
+> -				link.local_port, link.local_node->full_name);
+> -			v4l2_of_put_link(&link);
+> +			dev_err(xdev->dev, "invalid port number %u for %s\n",
+> +				link.local_port,
+> +				to_of_node(link.local_node)->full_name);
+
+This makes me believe that we're missing a fwnode_full_name() function.
+
+> +			v4l2_fwnode_put_link(&link);
+>  			ret = -EINVAL;
+>  			break;
+>  		}
+
+[snip]
+
+> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+> index a675d8a..bc9cf51 100644
+> --- a/include/media/v4l2-fwnode.h
+> +++ b/include/media/v4l2-fwnode.h
+> @@ -17,10 +17,10 @@
+>  #ifndef _V4L2_FWNODE_H
+>  #define _V4L2_FWNODE_H
+> 
+> +#include <linux/errno.h>
+> +#include <linux/fwnode.h>
+>  #include <linux/list.h>
+>  #include <linux/types.h>
+> -#include <linux/errno.h>
+> -#include <linux/of_graph.h>
+> 
+>  #include <media/v4l2-mediabus.h>
+
+This probably belongs to another patch (at least the alphabetical sorting 
+does).
+
+-- 
 Regards,
-								Pavel
 
-diff --git a/lib/libv4lconvert/processing/autogain.c b/lib/libv4lconvert/pr=
-ocessing/autogain.c
-index c6866d6..0b52d0f 100644
---- a/lib/libv4lconvert/processing/autogain.c
-+++ b/lib/libv4lconvert/processing/autogain.c
-@@ -68,6 +71,41 @@ static void autogain_adjust(struct v4l2_queryctrl *ctrl,=
- int *value,
- 	}
- }
-=20
-+static int get_luminosity_bayer10(uint16_t *buf, const struct v4l2_format =
-*fmt)
-+{
-+	long long avg_lum =3D 0;
-+	int x, y;
-+=09
-+	buf +=3D fmt->fmt.pix.height * fmt->fmt.pix.bytesperline / 4 +
-+		fmt->fmt.pix.width / 4;
-+
-+	for (y =3D 0; y < fmt->fmt.pix.height / 2; y++) {
-+		for (x =3D 0; x < fmt->fmt.pix.width / 2; x++)
-+			avg_lum +=3D *buf++;
-+		buf +=3D fmt->fmt.pix.bytesperline - fmt->fmt.pix.width / 2;
-+	}
-+	avg_lum /=3D fmt->fmt.pix.height * fmt->fmt.pix.width / 4;
-+	avg_lum /=3D 4;
-+	return avg_lum;
-+}
-+
-+static int get_luminosity_bayer8(unsigned char *buf, const struct v4l2_for=
-mat *fmt)
-+{
-+	long long avg_lum =3D 0;
-+	int x, y;
-+=09
-+	buf +=3D fmt->fmt.pix.height * fmt->fmt.pix.bytesperline / 4 +
-+		fmt->fmt.pix.width / 4;
-+
-+	for (y =3D 0; y < fmt->fmt.pix.height / 2; y++) {
-+		for (x =3D 0; x < fmt->fmt.pix.width / 2; x++)
-+			avg_lum +=3D *buf++;
-+		buf +=3D fmt->fmt.pix.bytesperline - fmt->fmt.pix.width / 2;
-+	}
-+	avg_lum /=3D fmt->fmt.pix.height * fmt->fmt.pix.width / 4;
-+	return avg_lum;
-+}
-+
- /* auto gain and exposure algorithm based on the knee algorithm described =
-here:
- http://ytse.tricolour.net/docs/LowLightOptimization.html */
- static int autogain_calculate_lookup_tables(
-@@ -100,17 +142,16 @@ static int autogain_calculate_lookup_tables(
- 	switch (fmt->fmt.pix.pixelformat) {
-+	case V4L2_PIX_FMT_SGBRG10:
-+	case V4L2_PIX_FMT_SGRBG10:
-+	case V4L2_PIX_FMT_SBGGR10:
-+	case V4L2_PIX_FMT_SRGGB10:
-+		avg_lum =3D get_luminosity_bayer10((void *) buf, fmt);
-+		break;
-+
- 	case V4L2_PIX_FMT_SGBRG8:
- 	case V4L2_PIX_FMT_SGRBG8:
- 	case V4L2_PIX_FMT_SBGGR8:
- 	case V4L2_PIX_FMT_SRGGB8:
--		buf +=3D fmt->fmt.pix.height * fmt->fmt.pix.bytesperline / 4 +
--			fmt->fmt.pix.width / 4;
--
--		for (y =3D 0; y < fmt->fmt.pix.height / 2; y++) {
--			for (x =3D 0; x < fmt->fmt.pix.width / 2; x++)
--				avg_lum +=3D *buf++;
--			buf +=3D fmt->fmt.pix.bytesperline - fmt->fmt.pix.width / 2;
--		}
--		avg_lum /=3D fmt->fmt.pix.height * fmt->fmt.pix.width / 4;
-+		avg_lum =3D get_luminosity_bayer8(buf, fmt);
- 		break;
-=20
- 	case V4L2_PIX_FMT_RGB24:
-diff --git a/lib/libv4lconvert/processing/libv4lprocessing.c b/lib/libv4lco=
-nvert/processing/libv4lprocessing.c
-index b061f50..b98d024 100644
---- a/lib/libv4lconvert/processing/libv4lprocessing.c
-+++ b/lib/libv4lconvert/processing/libv4lprocessing.c
-@@ -164,6 +165,10 @@ void v4lprocessing_processing(struct v4lprocessing_dat=
-a *data,
- 	case V4L2_PIX_FMT_SGRBG8:
- 	case V4L2_PIX_FMT_SBGGR8:
- 	case V4L2_PIX_FMT_SRGGB8:
-+	case V4L2_PIX_FMT_SGBRG10:
-+	case V4L2_PIX_FMT_SGRBG10:
-+	case V4L2_PIX_FMT_SBGGR10:
-+	case V4L2_PIX_FMT_SRGGB10:
- 	case V4L2_PIX_FMT_RGB24:
- 	case V4L2_PIX_FMT_BGR24:
- 		break;
-
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---0F1p//8PRICkK4MW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlkAn1kACgkQMOfwapXb+vLIZQCeOoZPl9euVMkjt6GQyDRG6ZWN
-q2wAn1/WUxMfa2HxXKT8PjFgQD1RVnGX
-=/3b7
------END PGP SIGNATURE-----
-
---0F1p//8PRICkK4MW--
+Laurent Pinchart
