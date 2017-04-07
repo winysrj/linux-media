@@ -1,93 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:35439 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750746AbdDMETC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 00:19:02 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Houlong Wei <houlong.wei@mediatek.com>
-CC: <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        Wu-Cheng Li <wuchengli@google.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH] [media] mtk-mdp: Fix g_/s_selection capture/compose logic
-Date: Thu, 13 Apr 2017 12:18:50 +0800
-Message-ID: <1492057130-1194-1-git-send-email-minghsiu.tsai@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout3.samsung.com ([203.254.224.33]:53342 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932563AbdDGJZw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Apr 2017 05:25:52 -0400
+Subject: Re: [Patch v4 10/12] [media] v4l2: Add v4l2 control IDs for HEVC
+ encoder
+To: Smitha T Murthy <smitha.t@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, a.hajda@samsung.com,
+        pankaj.dubey@samsung.com, kamil@wypas.org, krzk@kernel.org,
+        jtp.park@samsung.com, kyungmin.park@samsung.com,
+        mchehab@kernel.org, m.szyprowski@samsung.com
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <9f81ed3a-4adb-7827-6094-88847bc0787a@samsung.com>
+Date: Fri, 07 Apr 2017 11:25:43 +0200
+MIME-version: 1.0
+In-reply-to: <1491553894.15698.1142.camel@smitha-fedora>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
+References: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170406061023epcas5p2a3fa65c4254e17a58f71c68d413e6bfd@epcas5p2.samsung.com>
+ <1491459105-16641-11-git-send-email-smitha.t@samsung.com>
+ <374939c7-241a-fcca-c87e-5c4290bdb6aa@samsung.com>
+ <1491553894.15698.1142.camel@smitha-fedora>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Kurtz <djkurtz@chromium.org>
+On 04/07/2017 10:31 AM, Smitha T Murthy wrote:
+> On Thu, 2017-04-06 at 15:14 +0200, Sylwester Nawrocki wrote:
+>> On 04/06/2017 08:11 AM, Smitha T Murthy wrote:
+>>> @@ -775,6 +832,47 @@ const char *v4l2_ctrl_get_name(u32 id)
+>>>  	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
+>>>  	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
+>>>
+>>> +	/* HEVC controls */
+>> [...]
+>>> +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY:	return "HEVC LF Across Slice Boundary or Not";
+>> Please make sure the names are no longer than 31 characters to avoid
+>> truncation during control enumeration in user space.
+>> Data structures like struct v4l2_queryctrl, struct v4l2_query_ext_ctrl
+>> have only 32 bytes long array dedicated for the control name.
+ >
+> I will try to make the names less than 31 characters long without losing
+> the context. But there are many control names in this file which are
+> longer than 31 characters like
+> V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP,
+> V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD etc so I assumed it was
+> alright to have such long names. But I will shorten them as per your
+> suggestion.
 
-Experiments show that the:
- (1) mtk-mdp uses the _MPLANE form of CAPTURE/OUTPUT
- (2) CAPTURE types use CROP targets, and OUTPUT types use COMPOSE targets
+Apologies if it wasn't clean enough but my comment referred to the
+length of the character string being returned (e.g. "HEVC LF Across
+Slice Boundary or Not") and not to the name of the enum.
 
-Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-
----
- drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-index 13afe48..8ab7ca0 100644
---- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-+++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-@@ -837,12 +837,12 @@ static int mtk_mdp_m2m_g_selection(struct file *file, void *fh,
- 	struct mtk_mdp_ctx *ctx = fh_to_ctx(fh);
- 	bool valid = false;
- 
--	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
--		if (mtk_mdp_is_target_compose(s->target))
--			valid = true;
--	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-+	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
- 		if (mtk_mdp_is_target_crop(s->target))
- 			valid = true;
-+	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		if (mtk_mdp_is_target_compose(s->target))
-+			valid = true;
- 	}
- 	if (!valid) {
- 		mtk_mdp_dbg(1, "[%d] invalid type:%d,%u", ctx->id, s->type,
-@@ -907,12 +907,12 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
- 	int ret;
- 	bool valid = false;
- 
--	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
--		if (s->target == V4L2_SEL_TGT_COMPOSE)
--			valid = true;
--	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-+	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
- 		if (s->target == V4L2_SEL_TGT_CROP)
- 			valid = true;
-+	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		if (s->target == V4L2_SEL_TGT_COMPOSE)
-+			valid = true;
- 	}
- 	if (!valid) {
- 		mtk_mdp_dbg(1, "[%d] invalid type:%d,%u", ctx->id, s->type,
-@@ -925,7 +925,7 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
- 	if (ret)
- 		return ret;
- 
--	if (mtk_mdp_is_target_crop(s->target))
-+	if (mtk_mdp_is_target_compose(s->target))
- 		frame = &ctx->s_frame;
- 	else
- 		frame = &ctx->d_frame;
--- 
-1.9.1
+--
+Regards,
+Sylwester
