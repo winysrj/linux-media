@@ -1,122 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:49713 "EHLO ale.deltatee.com"
+Received: from mail.ispras.ru ([83.149.199.45]:37876 "EHLO mail.ispras.ru"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1951844AbdDYSVV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 14:21:21 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com
-Cc: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Alasdair Kergon <agk@redhat.com>,
-        Mike Snitzer <snitzer@redhat.com>
-Date: Tue, 25 Apr 2017 12:20:55 -0600
-Message-Id: <1493144468-22493-9-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 08/21] dm-crypt: Make use of the new sg_map helper in 4 call sites
+        id S1751981AbdDGXJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Apr 2017 19:09:27 -0400
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        ldv-project@linuxtesting.org
+Subject: [PATCH] m2m-deinterlace: don't return zero on failure paths in deinterlace_probe()
+Date: Sat,  8 Apr 2017 02:09:17 +0300
+Message-Id: <1491606557-18988-1-git-send-email-khoroshilov@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Very straightforward conversion to the new function in all four spots.
+If DMA does not support INTERLEAVE, deinterlace_probe() breaks off
+initialization, releases dma channel, but returns zero.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: Mike Snitzer <snitzer@redhat.com>
+Found by Linux Driver Verification project (linuxtesting.org).
+
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
 ---
- drivers/md/dm-crypt.c | 39 ++++++++++++++++++++++++++-------------
- 1 file changed, 26 insertions(+), 13 deletions(-)
+ drivers/media/platform/m2m-deinterlace.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/md/dm-crypt.c b/drivers/md/dm-crypt.c
-index 8dbecf1..841f1fc 100644
---- a/drivers/md/dm-crypt.c
-+++ b/drivers/md/dm-crypt.c
-@@ -635,9 +635,12 @@ static int crypt_iv_lmk_gen(struct crypt_config *cc, u8 *iv,
+diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
+index bedc7cc4c7d6..980066b8d32a 100644
+--- a/drivers/media/platform/m2m-deinterlace.c
++++ b/drivers/media/platform/m2m-deinterlace.c
+@@ -1017,6 +1017,7 @@ static int deinterlace_probe(struct platform_device *pdev)
  
- 	if (bio_data_dir(dmreq->ctx->bio_in) == WRITE) {
- 		sg = crypt_get_sg_data(cc, dmreq->sg_in);
--		src = kmap_atomic(sg_page(sg));
--		r = crypt_iv_lmk_one(cc, iv, dmreq, src + sg->offset);
--		kunmap_atomic(src);
-+		src = sg_map(sg, 0, SG_KMAP_ATOMIC);
-+		if (IS_ERR(src))
-+			return PTR_ERR(src);
-+
-+		r = crypt_iv_lmk_one(cc, iv, dmreq, src);
-+		sg_unmap(sg, src, 0, SG_KMAP_ATOMIC);
- 	} else
- 		memset(iv, 0, cc->iv_size);
- 
-@@ -655,14 +658,18 @@ static int crypt_iv_lmk_post(struct crypt_config *cc, u8 *iv,
- 		return 0;
- 
- 	sg = crypt_get_sg_data(cc, dmreq->sg_out);
--	dst = kmap_atomic(sg_page(sg));
--	r = crypt_iv_lmk_one(cc, iv, dmreq, dst + sg->offset);
-+	dst = sg_map(sg, 0, SG_KMAP_ATOMIC);
-+	if (IS_ERR(dst))
-+		return PTR_ERR(dst);
-+
-+	r = crypt_iv_lmk_one(cc, iv, dmreq, dst);
- 
- 	/* Tweak the first block of plaintext sector */
- 	if (!r)
--		crypto_xor(dst + sg->offset, iv, cc->iv_size);
-+		crypto_xor(dst, iv, cc->iv_size);
-+
-+	sg_unmap(sg, dst, 0, SG_KMAP_ATOMIC);
- 
--	kunmap_atomic(dst);
- 	return r;
- }
- 
-@@ -786,9 +793,12 @@ static int crypt_iv_tcw_gen(struct crypt_config *cc, u8 *iv,
- 	/* Remove whitening from ciphertext */
- 	if (bio_data_dir(dmreq->ctx->bio_in) != WRITE) {
- 		sg = crypt_get_sg_data(cc, dmreq->sg_in);
--		src = kmap_atomic(sg_page(sg));
--		r = crypt_iv_tcw_whitening(cc, dmreq, src + sg->offset);
--		kunmap_atomic(src);
-+		src = sg_map(sg, 0, SG_KMAP_ATOMIC);
-+		if (IS_ERR(src))
-+			return PTR_ERR(src);
-+
-+		r = crypt_iv_tcw_whitening(cc, dmreq, src);
-+		sg_unmap(sg, src, 0, SG_KMAP_ATOMIC);
+ 	if (!dma_has_cap(DMA_INTERLEAVE, pcdev->dma_chan->device->cap_mask)) {
+ 		dev_err(&pdev->dev, "DMA does not support INTERLEAVE\n");
++		ret = -ENODEV;
+ 		goto rel_dma;
  	}
  
- 	/* Calculate IV */
-@@ -812,9 +822,12 @@ static int crypt_iv_tcw_post(struct crypt_config *cc, u8 *iv,
- 
- 	/* Apply whitening on ciphertext */
- 	sg = crypt_get_sg_data(cc, dmreq->sg_out);
--	dst = kmap_atomic(sg_page(sg));
--	r = crypt_iv_tcw_whitening(cc, dmreq, dst + sg->offset);
--	kunmap_atomic(dst);
-+	dst = sg_map(sg, 0, SG_KMAP_ATOMIC);
-+	if (IS_ERR(dst))
-+		return PTR_ERR(dst);
-+
-+	r = crypt_iv_tcw_whitening(cc, dmreq, dst);
-+	sg_unmap(sg, dst, 0, SG_KMAP_ATOMIC);
- 
- 	return r;
- }
 -- 
-2.1.4
+2.7.4
