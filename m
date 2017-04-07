@@ -1,59 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:64335 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754635AbdDELKE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 07:10:04 -0400
-Message-ID: <1491390599.32502.1.camel@mtksdaap41>
-Subject: Re: [PATCH] media: mtk-vcodec: remove informative log
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        Wu-Cheng Li <wuchengli@google.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
-Date: Wed, 5 Apr 2017 19:09:59 +0800
-In-Reply-To: <1491389669-32737-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1491389669-32737-1-git-send-email-minghsiu.tsai@mediatek.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:33824 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753248AbdDGGBi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Apr 2017 02:01:38 -0400
+Date: Fri, 7 Apr 2017 14:57:23 +0900
+From: Daeseok Youn <daeseok.youn@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, daeseok.youn@gmail.com,
+        alan@linux.intel.com, dan.carpenter@oracle.com,
+        singhalsimran0@gmail.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH 3/3] staging: atomisp: move mipi_info assignment to next line
+ in __get_asd_from_port()
+Message-ID: <20170407055702.GA32406@SEL-JYOUN-D1>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2017-04-05 at 18:54 +0800, Minghsiu Tsai wrote:
-> Driver is stable. Remove DEBUG definition from driver.
-> 
-> There are debug message in /var/log/messages if DEBUG is defined,
-> such as:
-> [MTK_V4L2] level=0 fops_vcodec_open(),170: decoder capability 0
-> [MTK_V4L2] level=0 fops_vcodec_open(),177: 16000000.vcodec decoder [0]
-> [MTK_V4L2] level=0 fops_vcodec_release(),200: [0] decoder
-> 
-> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Acked-by:Tiffany Lin <Tiffany.lin@mediatek.com>
+The line which is initializing mipi_info variable is too long
+to read. It would be placed in next line.
 
-> ---
->  drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
-> index 7d55975..1248083 100644
-> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
-> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
-> @@ -31,7 +31,6 @@ struct mtk_vcodec_mem {
->  extern int mtk_v4l2_dbg_level;
->  extern bool mtk_vcodec_dbg;
->  
-> -#define DEBUG	1
->  
->  #if defined(DEBUG)
->  
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+---
+This series of patches are related to previous patches:
+[1] https://lkml.org/lkml/2017/3/27/159
+[2] https://lkml.org/lkml/2017/3/30/1068
+[3] https://lkml.org/lkml/2017/3/30/1069
+
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index 4af76b5..2208477 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -532,9 +532,11 @@ static void clear_irq_reg(struct atomisp_device *isp)
+ 	/* Check which isp subdev to send eof */
+ 	for (i = 0; i < isp->num_of_streams; i++) {
+ 		struct atomisp_sub_device *asd = &isp->asd[i];
+-		struct camera_mipi_info *mipi_info =
+-				atomisp_to_sensor_mipi_info(
+-					isp->inputs[asd->input_curr].camera);
++		struct camera_mipi_info *mipi_info;
++
++		mipi_info = atomisp_to_sensor_mipi_info(
++				isp->inputs[asd->input_curr].camera);
++
+ 		if (asd->streaming == ATOMISP_DEVICE_STREAMING_ENABLED &&
+ 		    __get_mipi_port(isp, mipi_info->port) == port) {
+ 			return asd;
+-- 
+1.9.1
