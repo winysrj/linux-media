@@ -1,74 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:33042 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1422808AbdD1Q7N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 12:59:13 -0400
-Date: Fri, 28 Apr 2017 18:59:11 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org, sean@mess.org
-Subject: Re: [PATCH 6/6] rc-core: add protocol to EVIOC[GS]KEYCODE_V2 ioctl
-Message-ID: <20170428165911.axrlw6aic3cqabas@hardeman.nu>
-References: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
- <149332526341.32431.11307248841385136294.stgit@zeus.hardeman.nu>
- <20170428083133.2e6621bd@vento.lan>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:35122 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752245AbdDGGAU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Apr 2017 02:00:20 -0400
+Date: Fri, 7 Apr 2017 14:56:04 +0900
+From: Daeseok Youn <daeseok.youn@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, daeseok.youn@gmail.com,
+        alan@linux.intel.com, dan.carpenter@oracle.com,
+        singhalsimran0@gmail.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH 1/3] staging: atomisp: remove enable_isp_irq function and add
+ disable_isp_irq
+Message-ID: <20170407055604.GA32049@SEL-JYOUN-D1>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170428083133.2e6621bd@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 28, 2017 at 08:31:33AM -0300, Mauro Carvalho Chehab wrote:
->Em Thu, 27 Apr 2017 22:34:23 +0200
->David Härdeman <david@hardeman.nu> escreveu:
-...
->> This patch changes how the "input_keymap_entry" struct is interpreted
->> by rc-core by casting it to "rc_keymap_entry":
->> 
->> struct rc_scancode {
->> 	__u16 protocol;
->> 	__u16 reserved[3];
->> 	__u64 scancode;
->> }
->> 
->> struct rc_keymap_entry {
->> 	__u8  flags;
->> 	__u8  len;
->> 	__u16 index;
->> 	__u32 keycode;
->> 	union {
->> 		struct rc_scancode rc;
->> 		__u8 raw[32];
->> 	};
->> };
->> 
-...
->
->Nack.
+Enable/Disable ISP irq is switched with "enable" parameter of
+enable_isp_irq(). It would be better splited to two such as
+enable_isp_irq()/disable_isp_irq().
 
-That's not a very constructive approach. If you have a better approach
-in mind I'm all ears. Because you're surely not suggesting that we stay
-with the current protocol-less approach forever?
+But the enable_isp_irq() is no use in atomisp_cmd.c file.
+So remove the enable_isp_irq() function and add
+disable_isp_irq function only.
 
->No userspace breakages are allowed.
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+---
+This series of patches are related to previous patches:
+[1] https://lkml.org/lkml/2017/3/27/159
+[2] https://lkml.org/lkml/2017/3/30/1068
+[3] https://lkml.org/lkml/2017/3/30/1069
 
-That's a gross oversimplification. A cursory glance at the linux-api
-mailing list shows plenty of examples of changes that might not be 100%
-backwards-compatible. Here's an example:
-http://marc.info/?l=linux-fsdevel&m=149089166918069
+ .../media/atomisp/pci/atomisp2/atomisp_cmd.c       | 36 ++++++----------------
+ 1 file changed, 9 insertions(+), 27 deletions(-)
 
-That's the kind of discussion we need to have - i.e. the best way to go
-about this and to minimize the damage to userspace. In that vein, I'll
-post an alternative approach shortly as the basis for further
-discussion.
-
->There's no way to warrant that
->ir-keytable version is compatible with a certain Kernel version.
-
-I know. But we know when an ioctl() is made whether it is a
-protocol-aware one or not.
-
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index 0ba5d8b..c3d0596 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -375,34 +375,16 @@ int atomisp_reset(struct atomisp_device *isp)
+ }
+ 
+ /*
+- * interrupt enable/disable functions
++ * interrupt disable functions
+  */
+-static void enable_isp_irq(enum hrt_isp_css_irq irq, bool enable)
+-{
+-	if (enable) {
+-		irq_enable_channel(IRQ0_ID, irq);
+-		/*sh_css_hrt_irq_enable(irq, true, false);*/
+-		switch (irq) { /*We only have sp interrupt right now*/
+-		case hrt_isp_css_irq_sp:
+-			/*sh_css_hrt_irq_enable_sp(true);*/
+-			cnd_sp_irq_enable(SP0_ID, true);
+-			break;
+-		default:
+-			break;
+-		}
++static void disable_isp_irq(enum hrt_isp_css_irq irq)
++{
++	irq_disable_channel(IRQ0_ID, irq);
+ 
+-	} else {
+-		/*sh_css_hrt_irq_disable(irq);*/
+-		irq_disable_channel(IRQ0_ID, irq);
+-		switch (irq) {
+-		case hrt_isp_css_irq_sp:
+-			/*sh_css_hrt_irq_enable_sp(false);*/
+-			cnd_sp_irq_enable(SP0_ID, false);
+-			break;
+-		default:
+-			break;
+-		}
+-	}
++	if (irq != hrt_isp_css_irq_sp)
++		return;
++
++	cnd_sp_irq_enable(SP0_ID, false);
+ }
+ 
+ /*
+@@ -1415,7 +1397,7 @@ static void __atomisp_css_recover(struct atomisp_device *isp, bool isp_timeout)
+ 	}
+ 
+ 	/* clear irq */
+-	enable_isp_irq(hrt_isp_css_irq_sp, false);
++	disable_isp_irq(hrt_isp_css_irq_sp);
+ 	clear_isp_irq(hrt_isp_css_irq_sp);
+ 
+ 	/* Set the SRSE to 3 before resetting */
 -- 
-David Härdeman
+1.9.1
