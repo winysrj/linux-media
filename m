@@ -1,59 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:41503 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751852AbdDNKZX (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60554 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752470AbdDGW42 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Apr 2017 06:25:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
-Date: Fri, 14 Apr 2017 12:25:05 +0200
-Message-Id: <20170414102512.48834-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170414102512.48834-1-hverkuil@xs4all.nl>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
+        Fri, 7 Apr 2017 18:56:28 -0400
+Date: Sat, 8 Apr 2017 01:56:25 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 6/8] v4l: media/drv-intf/soc_mediabus.h: include
+ dependent header file
+Message-ID: <20170407225624.GN4192@valkosipuli.retiisi.org.uk>
+References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1491484330-12040-7-git-send-email-sakari.ailus@linux.intel.com>
+ <2155093.Y2052RbRLf@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2155093.Y2052RbRLf@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent,
 
-The CEC pin was always pulled up, making it impossible to use it.
+On Fri, Apr 07, 2017 at 01:01:29PM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thank you for the patch.
+> 
+> On Thursday 06 Apr 2017 16:12:08 Sakari Ailus wrote:
+> > media/drv-intf/soc_mediabus.h does depend on struct v4l2_mbus_config which
+> > is defined in media/v4l2-mediabus.h. Include it.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> Was this provided indirectly before, through v4l2-of.h perhaps ? If so, 
+> shouldn't this patch be moved before 5/8 ? Apart from that,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Change to PIN_INPUT so it can be used by the new CEC support.
+I tried compiling with and without this patch and see no difference. I could
+miss something but the more likely case is that the reason why I wrote this
+patch has ceased to exist. I'll drop it from the set, at least for now.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- arch/arm/boot/dts/omap4-panda-a4.dts | 2 +-
- arch/arm/boot/dts/omap4-panda-es.dts | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap4-panda-a4.dts b/arch/arm/boot/dts/omap4-panda-a4.dts
-index 78d363177762..f1a6476af371 100644
---- a/arch/arm/boot/dts/omap4-panda-a4.dts
-+++ b/arch/arm/boot/dts/omap4-panda-a4.dts
-@@ -13,7 +13,7 @@
- /* Pandaboard Rev A4+ have external pullups on SCL & SDA */
- &dss_hdmi_pins {
- 	pinctrl-single,pins = <
--		OMAP4_IOPAD(0x09a, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
-+		OMAP4_IOPAD(0x09a, PIN_INPUT | MUX_MODE0)		/* hdmi_cec.hdmi_cec */
- 		OMAP4_IOPAD(0x09c, PIN_INPUT | MUX_MODE0)		/* hdmi_scl.hdmi_scl */
- 		OMAP4_IOPAD(0x09e, PIN_INPUT | MUX_MODE0)		/* hdmi_sda.hdmi_sda */
- 		>;
-diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
-index 119f8e657edc..940fe4f7c5f6 100644
---- a/arch/arm/boot/dts/omap4-panda-es.dts
-+++ b/arch/arm/boot/dts/omap4-panda-es.dts
-@@ -34,7 +34,7 @@
- /* PandaboardES has external pullups on SCL & SDA */
- &dss_hdmi_pins {
- 	pinctrl-single,pins = <
--		OMAP4_IOPAD(0x09a, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
-+		OMAP4_IOPAD(0x09a, PIN_INPUT | MUX_MODE0)		/* hdmi_cec.hdmi_cec */
- 		OMAP4_IOPAD(0x09c, PIN_INPUT | MUX_MODE0)		/* hdmi_scl.hdmi_scl */
- 		OMAP4_IOPAD(0x09e, PIN_INPUT | MUX_MODE0)		/* hdmi_sda.hdmi_sda */
- 		>;
 -- 
-2.11.0
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
