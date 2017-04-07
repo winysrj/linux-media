@@ -1,54 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:60341 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755291AbdD1L6d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 07:58:33 -0400
-Date: Fri, 28 Apr 2017 12:58:32 +0100
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH 5/6] rc-core: use the full 32 bits for NEC scancodes
-Message-ID: <20170428115832.GB21792@gofer.mess.org>
-References: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
- <149332525833.32431.1765495360604915898.stgit@zeus.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <149332525833.32431.1765495360604915898.stgit@zeus.hardeman.nu>
+Received: from mailout4.samsung.com ([203.254.224.34]:48890 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754097AbdDGK0l (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Apr 2017 06:26:41 -0400
+Subject: Re: [Patch v4 12/12] Documention: v4l: Documentation for HEVC CIDs
+To: Smitha T Murthy <smitha.t@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
+        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
+        m.szyprowski@samsung.com
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <b26d966f-5acd-5d1e-0cb6-0232f84c2b31@samsung.com>
+Date: Fri, 07 Apr 2017 12:26:31 +0200
+MIME-version: 1.0
+In-reply-to: <1491559409.15698.1237.camel@smitha-fedora>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
+References: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170406061027epcas5p2628e0a8e0fd76e2e267fad3ea1209f65@epcas5p2.samsung.com>
+ <1491459105-16641-13-git-send-email-smitha.t@samsung.com>
+ <f68d8bd2-a2b4-7253-0a48-6c3f509e66cd@samsung.com>
+ <1491559409.15698.1237.camel@smitha-fedora>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 27, 2017 at 10:34:18PM +0200, David Härdeman wrote:
-> Using the full 32 bits for all kinds of NEC scancodes simplifies rc-core
-> and the nec decoder without any loss of functionality. At the same time
-> it ensures that scancodes for NEC16/NEC24/NEC32 do not overlap and
-> removes lots of duplication (as you can see from the patch, the same NEC
-> disambiguation logic is contained in several different drivers).
-> 
-> Using NEC32 also removes ambiguity. For example, consider these two NEC
-> messages:
-> NEC16 message to address 0x05, command 0x03
-> NEC24 message to address 0x0005, command 0x03
-> 
-> They'll both have scancode 0x00000503, and there's no way to tell which
-> message was received.
+On 04/07/2017 12:03 PM, Smitha T Murthy wrote:
+>>> +``V4L2_CID_MPEG_VIDEO_HEVC_LF``
+>>> +    Indicates loop filtering. Control ID 0 indicates loop filtering
+>>> +    is enabled and when set to 1 indicates no filter.
+ >>
+>> "Setting this control to 0 enables loop filtering, setting this control
+>> to 1 disables loop filtering." ?
+>>
+>> Couldn't the meaning be inverted, so setting the control to 0 disables
+>> the loop filtering?
+>>
+>>From register point of view, this control value needs be 0 to enable
+> loop filtering.
 
-It's not ambiguous, the protocol is different (RC_TYPE_NEC vs RC_TYPE_NECX).
+OK, this is true for our specific hardware/firmware implementation.
 
-> In order to maintain backwards compatibility, some heuristics are added
-> in rc-main.c to convert scancodes to NEC32 as necessary when userspace
-> adds entries to the keytable using the regular input ioctls. These
-> heuristics are essentially the same as the ones that are currently in
-> drivers/media/rc/img-ir/img-ir-nec.c (which are rendered unecessary
-> with this patch).
+In general, for this user space interface I would rather define that
+boolean control so value 1 enables LF and value 0 disables LF.
+The driver could simply negate the value when writing registers.
 
-There are issues with the patch which breaks userspace, as discussed
-in the previous patch. None of those issues have been addressed.
+BTW we might need to specify type of the control here as Hans suggested
+commenting on other control.
 
-In addition, I've read https://david.hardeman.nu/rccore/#problems-nec
-There is nothing there what you have not stated before about nec being
-"ambiguous", even though the protocol variant is different.
-
-
-Sean
+--
+Regards,
+Sylwester
