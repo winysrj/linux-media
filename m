@@ -1,61 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:44437 "EHLO ale.deltatee.com"
+Received: from mga09.intel.com ([134.134.136.24]:37363 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751582AbdDORr0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Apr 2017 13:47:26 -0400
-To: Milan Broz <gmazyland@gmail.com>, Christoph Hellwig <hch@lst.de>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
- <1492121135-4437-10-git-send-email-logang@deltatee.com>
- <20170414083921.GC25471@lst.de>
- <302ae5ab-d515-5427-2e54-d58a9cdb8241@deltatee.com>
- <22703638-27a9-7dc5-5180-536f61661592@gmail.com>
-Cc: Steve Wise <swise@opengridcomputing.com>,
-        linux-nvme@lists.infradead.org,
-        Stephen Bates <sbates@raithlin.com>,
-        target-devel@vger.kernel.org,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        devel@driverdev.osuosl.org, rds-devel@oss.oracle.com,
-        Sagi Grimberg <sagi@grimberg.me>, linux-scsi@vger.kernel.org,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        linux-rdma@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        open-iscsi@googlegroups.com, linux-media@vger.kernel.org,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        intel-gfx@lists.freedesktop.org, sparmaintainer@unisys.com,
-        linux-raid@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Dan Williams <dan.j.williams@intel.com>,
-        megaraidlinux.pdl@broadcom.com, Jens Axboe <axboe@kernel.dk>,
-        linaro-mm-sig@lists.linaro.org,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        device-mapper development <dm-devel@redhat.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <19b18d76-57fa-0a4f-252d-5d735105a159@deltatee.com>
-Date: Sat, 15 Apr 2017 11:47:00 -0600
-MIME-Version: 1.0
-In-Reply-To: <22703638-27a9-7dc5-5180-536f61661592@gmail.com>
-Content-Type: text/plain; charset=windows-1252
+        id S1755009AbdDGNss (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Apr 2017 09:48:48 -0400
+Message-ID: <1491572923.3704.84.camel@linux.intel.com>
+Subject: Re: [PATCH 1/3] staging: atomisp: remove enable_isp_irq function
+ and add disable_isp_irq
+From: Alan Cox <alan@linux.intel.com>
+To: Daeseok Youn <daeseok.youn@gmail.com>, mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, dan.carpenter@oracle.com,
+        singhalsimran0@gmail.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Date: Fri, 07 Apr 2017 14:48:43 +0100
+In-Reply-To: <20170407055604.GA32049@SEL-JYOUN-D1>
+References: <20170407055604.GA32049@SEL-JYOUN-D1>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH 09/22] dm-crypt: Make use of the new sg_map helper in 4
- call sites
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for the information Milan.
+On Fri, 2017-04-07 at 14:56 +0900, Daeseok Youn wrote:
+> Enable/Disable ISP irq is switched with "enable" parameter of
+> enable_isp_irq(). It would be better splited to two such as
+> enable_isp_irq()/disable_isp_irq().
+> 
+> But the enable_isp_irq() is no use in atomisp_cmd.c file.
+> So remove the enable_isp_irq() function and add
+> disable_isp_irq function only.
 
-On 15/04/17 06:10 AM, Milan Broz wrote:
-> I think your patch is ok (if it is just plain conversion), if it is
-> really needed, we can switch to ahash later in follow-up patch.
+All 3 added to my tree - thanks
 
-Sounds good to me.
-
-> p.s.
-> there is a lot of lists on cc, but for this patch is missing dm-devel, dmcrypt changes
-> need to go through Mike's tree (I added dm-devel to cc:)
-
-Oh, sorry, I thought I had included all the lists. My hope however would
-be to get the first patch merged and then re-send the remaining patches
-to their respective maintainers. So that would have happened later. It's
-hard to manage patches otherwise with such large distribution lists.
-
-Logan
+Alan
