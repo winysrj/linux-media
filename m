@@ -1,52 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f174.google.com ([209.85.128.174]:35227 "EHLO
-        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753799AbdDDMcm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 08:32:42 -0400
-Received: by mail-wr0-f174.google.com with SMTP id k6so208594373wre.2
-        for <linux-media@vger.kernel.org>; Tue, 04 Apr 2017 05:32:32 -0700 (PDT)
-From: Lee Jones <lee.jones@linaro.org>
-To: hans.verkuil@cisco.com, mchehab@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        kernel@stlinux.com, patrice.chotard@st.com,
-        linux-media@vger.kernel.org, benjamin.gaignard@st.com,
-        Lee Jones <lee.jones@linaro.org>
-Subject: [PATCH 2/2] [media] cec: Fix runtime BUG when (CONFIG_RC_CORE && !CEC_CAP_RC)
-Date: Tue,  4 Apr 2017 13:32:19 +0100
-Message-Id: <20170404123219.22040-2-lee.jones@linaro.org>
-In-Reply-To: <20170404123219.22040-1-lee.jones@linaro.org>
-References: <20170404123219.22040-1-lee.jones@linaro.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43142 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752971AbdDGKpM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Apr 2017 06:45:12 -0400
+Date: Fri, 7 Apr 2017 13:45:09 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 3/8] v4l: async: Add fwnode match support
+Message-ID: <20170407104508.GF4192@valkosipuli.retiisi.org.uk>
+References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1491484330-12040-4-git-send-email-sakari.ailus@linux.intel.com>
+ <2374089.j4OXu9zDtc@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2374089.j4OXu9zDtc@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently when the RC Core is enabled (reachable) core code located
-in cec_register_adapter() attempts to populate the RC structure with
-a pointer to the 'parent' passed in by the caller.
+Hi Laurent,
 
-Unfortunately if the caller did not specify RC capibility when calling
-cec_allocate_adapter(), then there will be no RC structure to populate.
+On Fri, Apr 07, 2017 at 01:04:47PM +0300, Laurent Pinchart wrote:
+> > @@ -58,6 +60,9 @@ struct v4l2_async_subdev {
+> >  			const struct device_node *node;
+> >  		} of;
+> >  		struct {
+> > +			struct fwnode_handle *fwn;
+> 
+> Shouldn't this be const ?
 
-This causes a "NULL pointer dereference" error.
+I thought the same, but a lot of functions that operate on fwnode_handle
+take a non-const argument. I attempted changing that, but it starts a
+cascade of unavoidable changes elsewhere. That's not very well suitable for
+this patchset.
 
-Fixes: f51e80804f0 ("[media] cec: pass parent device in register(), not allocate()")
-Signed-off-by: Lee Jones <lee.jones@linaro.org>
----
- drivers/media/cec/cec-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index 06a312c..d64937b 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -286,8 +286,8 @@ int cec_register_adapter(struct cec_adapter *adap,
- 	adap->devnode.dev.parent = parent;
- 
- #if IS_REACHABLE(CONFIG_RC_CORE)
--	adap->rc->dev.parent = parent;
- 	if (adap->capabilities & CEC_CAP_RC) {
-+		adap->rc->dev.parent = parent;
- 		res = rc_register_device(adap->rc);
- 
- 		if (res) {
 -- 
-2.9.3
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
