@@ -1,86 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:21049 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1425861AbdD1Mww (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 08:52:52 -0400
-Date: Fri, 28 Apr 2017 15:52:07 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sean Young <sean@mess.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        Kees Cook <keescook@chromium.org>,
-        Johan Hovold <johan@kernel.org>, linux-media@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Subject: [PATCH 1/2] [media] dib0700: fix locking in dib0700_i2c_xfer_new()
-Message-ID: <20170428125207.skjv7ak2nmwltxik@mwanda>
+Received: from mail-wr0-f169.google.com ([209.85.128.169]:34690 "EHLO
+        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751626AbdDHSM1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 8 Apr 2017 14:12:27 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <1491245884-15852-18-git-send-email-labbott@redhat.com>
+References: <1491245884-15852-1-git-send-email-labbott@redhat.com> <1491245884-15852-18-git-send-email-labbott@redhat.com>
+From: Emil Velikov <emil.l.velikov@gmail.com>
+Date: Sat, 8 Apr 2017 19:12:25 +0100
+Message-ID: <CACvgo52qr=oBoiMnrww3cgoKozEMi3DwBV55c_GMi0mR_p0GcA@mail.gmail.com>
+Subject: Re: [PATCHv3 17/22] staging: android: ion: Collapse internal header files
+To: Laura Abbott <labbott@redhat.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>,
+        =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>,
+        devel@driverdev.osuosl.org, Rom Lemarchand <romlem@google.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>,
+        ML dri-devel <dri-devel@lists.freedesktop.org>,
+        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+        Mark Brown <broonie@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        LAKML <linux-arm-kernel@lists.infradead.org>,
+        linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch mostly adds unlocks to error paths.  But one additional small
-change is that I made the first "break;" a "goto unlock;" which means
-that now we return failure instead of success on that path.
+Hi Laura,
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Couple of trivial nitpicks below.
 
-diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
-index 08acdd32e412..4dea79718827 100644
---- a/drivers/media/usb/dvb-usb/dib0700_core.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_core.c
-@@ -215,13 +215,14 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
- 						 USB_CTRL_GET_TIMEOUT);
- 			if (result < 0) {
- 				deb_info("i2c read error (status = %d)\n", result);
--				break;
-+				goto unlock;
- 			}
- 
- 			if (msg[i].len > sizeof(st->buf)) {
- 				deb_info("buffer too small to fit %d bytes\n",
- 					 msg[i].len);
--				return -EIO;
-+				result = -EIO;
-+				goto unlock;
- 			}
- 
- 			memcpy(msg[i].buf, st->buf, msg[i].len);
-@@ -233,8 +234,8 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
- 			/* Write request */
- 			if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
- 				err("could not acquire lock");
--				mutex_unlock(&d->i2c_mutex);
--				return -EINTR;
-+				result = -EINTR;
-+				goto unlock;
- 			}
- 			st->buf[0] = REQUEST_NEW_I2C_WRITE;
- 			st->buf[1] = msg[i].addr << 1;
-@@ -247,7 +248,9 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
- 			if (msg[i].len > sizeof(st->buf) - 4) {
- 				deb_info("i2c message to big: %d\n",
- 					 msg[i].len);
--				return -EIO;
-+				mutex_unlock(&d->usb_mutex);
-+				result = -EIO;
-+				goto unlock;
- 			}
- 
- 			/* The Actual i2c payload */
-@@ -269,8 +272,11 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
- 			}
- 		}
- 	}
-+	result = i;
-+
-+unlock:
- 	mutex_unlock(&d->i2c_mutex);
--	return i;
-+	return result;
- }
- 
- /*
+On 3 April 2017 at 19:57, Laura Abbott <labbott@redhat.com> wrote:
+
+> --- a/drivers/staging/android/ion/ion.h
+> +++ b/drivers/staging/android/ion/ion.h
+> @@ -1,5 +1,5 @@
+>  /*
+> - * drivers/staging/android/ion/ion.h
+> + * drivers/staging/android/ion/ion_priv.h
+Does not match the actual filename.
+
+>   *
+>   * Copyright (C) 2011 Google, Inc.
+>   *
+> @@ -14,24 +14,26 @@
+>   *
+>   */
+>
+> -#ifndef _LINUX_ION_H
+> -#define _LINUX_ION_H
+> +#ifndef _ION_PRIV_H
+> +#define _ION_PRIV_H
+>
+Ditto.
+
+> +#include <linux/device.h>
+> +#include <linux/dma-direction.h>
+> +#include <linux/kref.h>
+> +#include <linux/mm_types.h>
+> +#include <linux/mutex.h>
+> +#include <linux/rbtree.h>
+> +#include <linux/sched.h>
+> +#include <linux/shrinker.h>
+>  #include <linux/types.h>
+> +#include <linux/miscdevice.h>
+>
+>  #include "../uapi/ion.h"
+>
+You don't want to use "../" in includes. Perhaps address with another
+patch, if you haven't already ?
+
+Regards,
+Emil
