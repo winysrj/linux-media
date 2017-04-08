@@ -1,83 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from quartz.orcorp.ca ([184.70.90.242]:36715 "EHLO quartz.orcorp.ca"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S938586AbdD0P1x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 11:27:53 -0400
-Date: Thu, 27 Apr 2017 09:27:20 -0600
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Logan Gunthorpe <logang@deltatee.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@ml01.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>
-Subject: Re: [PATCH v2 01/21] scatterlist: Introduce sg_map helper functions
-Message-ID: <20170427152720.GA7662@obsidianresearch.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
- <1493144468-22493-2-git-send-email-logang@deltatee.com>
- <20170426074416.GA7936@lst.de>
- <4736d44e-bbcf-5d59-a1a9-317d0f4da847@deltatee.com>
- <20170427065338.GA20677@lst.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170427065338.GA20677@lst.de>
+Received: from sypressi3.dnainternet.net ([83.102.40.158]:54592 "EHLO
+        sypressi2.dnainternet.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752329AbdDHLOP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 8 Apr 2017 07:14:15 -0400
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH] dvb-scan-tables: updated Digita frequencies for Finland
+Date: Sat,  8 Apr 2017 14:08:00 +0300
+Message-Id: <1491649680-13078-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 27, 2017 at 08:53:38AM +0200, Christoph Hellwig wrote:
+In summer 2016 some DVB-T/DVB-T2 frequencies were changed by the broadcaster Digita. Here are some that have already changed.
 
-> > The main difficulty we
-> > have now is that neither of those functions are expected to fail and we
-> > need them to be able to in cases where the page doesn't map to system
-> > RAM. This patch series is trying to address it for users of scatterlist.
-> > I'm certainly open to other suggestions.
-> 
-> I think you'll need to follow the existing kmap semantics and never
-> fail the iomem version either.  Otherwise you'll have a special case
-> that's almost never used that has a different error path.
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ dvb-t/fi-Espoo              |  6 +++---
+ dvb-t/fi-Fiskars            |  4 ++--
+ dvb-t/fi-Kustavi_Viherlahti |  8 ++++----
+ dvb-t/fi-Lahti              |  8 ++++----
+ dvb-t/fi-Salo_Isokyla       |  6 +++---
+ dvb-t/fi-Tampere            |  8 ++++----
+ dvb-t/fi-Tampere_Pyynikki   |  6 +++---
+ dvb-t/fi-Turku              | 12 ++++++------
+ 8 files changed, 29 insertions(+), 29 deletions(-)
 
-How about first switching as many call sites as possible to use
-sg_copy_X_buffer instead of kmap?
-
-A random audit of Logan's series suggests this is actually a fairly
-common thing.
-
-eg drivers/mmc/host/sdhci.c is only doing this:
-
-                                        buffer = sdhci_kmap_atomic(sg, &flags);
-                                        memcpy(buffer, align, size);
-                                        sdhci_kunmap_atomic(buffer, &flags);
-
-drivers/scsi/mvsas/mv_sas.c is this:
-
-+			to = sg_map(sg_resp, 0, SG_KMAP_ATOMIC);
-+			memcpy(to,
-+			       slot->response + sizeof(struct mvs_err_info),
-+			       sg_dma_len(sg_resp));
-+			sg_unmap(sg_resp, to, 0, SG_KMAP_ATOMIC);
-
-etc.
-
-Lots of other places seem similar, if not sometimes a little bit more
-convoluted..
-
-Switching all the trivial cases to use copy might bring more clarity
-as to what is actually required for the remaining few users? If there
-are only a few then it may no longer matter if the API is not idyllic.
-
-Jason
+diff --git a/dvb-t/fi-Espoo b/dvb-t/fi-Espoo
+index ceb906d..6fb0ff2 100644
+--- a/dvb-t/fi-Espoo
++++ b/dvb-t/fi-Espoo
+@@ -18,16 +18,16 @@
+ 
+ [Espoo-E]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 730000000
++	FREQUENCY = 514000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Espoo-D]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 586000000
++	FREQUENCY = 650000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Espoo-H]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 514000000
++	FREQUENCY = 618000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Fiskars b/dvb-t/fi-Fiskars
+index 0f84bb7..2b6b791 100644
+--- a/dvb-t/fi-Fiskars
++++ b/dvb-t/fi-Fiskars
+@@ -8,7 +8,7 @@
+ 
+ [Fiskars]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 658000000
++	FREQUENCY = 498000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Fiskars]
+@@ -18,6 +18,6 @@
+ 
+ [Fiskars]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 770000000
++	FREQUENCY = 490000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Kustavi_Viherlahti b/dvb-t/fi-Kustavi_Viherlahti
+index ecef74d..9840401 100644
+--- a/dvb-t/fi-Kustavi_Viherlahti
++++ b/dvb-t/fi-Kustavi_Viherlahti
+@@ -3,21 +3,21 @@
+ 
+ [Kustavi_Viherlahti]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 714000000
++	FREQUENCY = 538000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Kustavi_Viherlahti]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 738000000
++	FREQUENCY = 658000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Kustavi_Viherlahti]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 762000000
++	FREQUENCY = 682000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Kustavi_Viherlahti]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 786000000
++	FREQUENCY = 634000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Lahti b/dvb-t/fi-Lahti
+index f4c89b8..ea4163c 100644
+--- a/dvb-t/fi-Lahti
++++ b/dvb-t/fi-Lahti
+@@ -13,21 +13,21 @@
+ 
+ [Lahti-C]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 762000000
++	FREQUENCY = 626000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Lahti-E]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 714000000
++	FREQUENCY = 690000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Lahti-D]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 626000000
++	FREQUENCY = 602000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Lahti-H]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 690000000
++	FREQUENCY = 642000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Salo_Isokyla b/dvb-t/fi-Salo_Isokyla
+index 42df3b4..0cf08b8 100644
+--- a/dvb-t/fi-Salo_Isokyla
++++ b/dvb-t/fi-Salo_Isokyla
+@@ -3,7 +3,7 @@
+ 
+ [Salo_Isokyla]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 514000000
++	FREQUENCY = 610000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Salo_Isokyla]
+@@ -13,11 +13,11 @@
+ 
+ [Salo_Isokyla]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 682000000
++	FREQUENCY = 530000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Salo_Isokyla]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 570000000
++	FREQUENCY = 690000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Tampere b/dvb-t/fi-Tampere
+index 27cf3a7..33d40c4 100644
+--- a/dvb-t/fi-Tampere
++++ b/dvb-t/fi-Tampere
+@@ -13,21 +13,21 @@
+ 
+ [Tampere-C]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 770000000
++	FREQUENCY = 658000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Tampere-E]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 778000000
++	FREQUENCY = 674000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Tampere-D]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 642000000
++	FREQUENCY = 650000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Tampere-H]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 674000000
++	FREQUENCY = 498000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Tampere_Pyynikki b/dvb-t/fi-Tampere_Pyynikki
+index 03e8ecc..1da6662 100644
+--- a/dvb-t/fi-Tampere_Pyynikki
++++ b/dvb-t/fi-Tampere_Pyynikki
+@@ -8,7 +8,7 @@
+ 
+ [Tampere_Pyynikki]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 658000000
++	FREQUENCY = 514000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Tampere_Pyynikki]
+@@ -18,11 +18,11 @@
+ 
+ [Tampere_Pyynikki]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 586000000
++	FREQUENCY = 610000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Tampere_Pyynikki]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 642000000
++	FREQUENCY = 562000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Turku b/dvb-t/fi-Turku
+index e3907a6..dd29eb5 100644
+--- a/dvb-t/fi-Turku
++++ b/dvb-t/fi-Turku
+@@ -3,31 +3,31 @@
+ 
+ [Turku-A]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 714000000
++	FREQUENCY = 538000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Turku-B]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 738000000
++	FREQUENCY = 658000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Turku-C]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 762000000
++	FREQUENCY = 682000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Turku-E]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 786000000
++	FREQUENCY = 634000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Turku-D]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 538000000
++	FREQUENCY = 594000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Turku-H]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 698000000
++	FREQUENCY = 570000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-- 
+2.7.4
