@@ -1,77 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from quartz.orcorp.ca ([184.70.90.242]:53360 "EHLO quartz.orcorp.ca"
+Received: from smtp.220.in.ua ([89.184.67.205]:57376 "EHLO smtp.220.in.ua"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1423300AbdD0WLx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:11:53 -0400
-Date: Thu, 27 Apr 2017 16:11:32 -0600
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Roger Pau =?iso-8859-1?Q?Monn=E9?= <roger.pau@citrix.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@ml01.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-        Julien Grall <julien.grall@arm.com>
-Subject: Re: [PATCH v2 15/21] xen-blkfront: Make use of the new sg_map helper
- function
-Message-ID: <20170427221132.GA30036@obsidianresearch.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
- <1493144468-22493-16-git-send-email-logang@deltatee.com>
- <20170426073720.okv33ly2ldepilti@dhcp-3-128.uk.xensource.com>
- <df6586e2-7d45-6b0b-facb-4dea882df06e@deltatee.com>
- <20170427205339.GB26330@obsidianresearch.com>
- <02ba3c7b-5fab-a06c-fbbf-c3be1c0fae1b@deltatee.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <02ba3c7b-5fab-a06c-fbbf-c3be1c0fae1b@deltatee.com>
+        id S1751426AbdDHGLz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 8 Apr 2017 02:11:55 -0400
+From: Oleh Kravchenko <oleg@kaa.org.ua>
+To: linux-media@vger.kernel.org
+Cc: Oleh Kravchenko <oleg@kaa.org.ua>
+Subject: [PATCH 2/2] Update dvb-t/ua-Kyiv with new transponders and corrections
+Date: Sat,  8 Apr 2017 09:04:16 +0300
+Message-Id: <20170408060416.7327-2-oleg@kaa.org.ua>
+In-Reply-To: <20170408060416.7327-1-oleg@kaa.org.ua>
+References: <20170408060416.7327-1-oleg@kaa.org.ua>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 27, 2017 at 03:53:37PM -0600, Logan Gunthorpe wrote:
-> On 27/04/17 02:53 PM, Jason Gunthorpe wrote:
-> > blkfront is one of the drivers I looked at, and it appears to only be
-> > memcpying with the bvec_data pointer, so I wonder why it does not use
-> > sg_copy_X_buffer instead..
-> 
-> But you'd potentially end up calling sg_copy_to_buffer multiple times
-> per page within the sg (given that gnttab_foreach_grant_in_range might
-> call blkif_copy_from_grant/blkif_setup_rw_req_grant multiple times).
-> Even calling sg_copy_to_buffer once per page seems rather inefficient as
-> it uses sg_miter internally.
+Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
+---
+ dvb-t/ua-Kyiv | 47 ++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 30 insertions(+), 17 deletions(-)
 
-Well, that is in the current form, with more users it would make sense
-to optimize for the single page case, eg by providing the existing
-call, providing a faster single-page-only variant of the copy, perhaps
-even one that is inlined.
-
-> Switching the for_each_sg to sg_miter is probably the nicer solution as
-> it takes care of the mapping and the offset/length accounting for you
-> and will have similar performance.
-
-sg_miter will still fail when the sg contains __iomem, however I would
-expect that the sg_copy will work with iomem, by using the __iomem
-memcpy variant.
-
-So, sg_copy should always be preferred in this new world with mixed
-__iomem since it is the only primitive that can transparently handle
-it.
-
-Jason
+diff --git a/dvb-t/ua-Kyiv b/dvb-t/ua-Kyiv
+index 2e45d59..52dd12b 100644
+--- a/dvb-t/ua-Kyiv
++++ b/dvb-t/ua-Kyiv
+@@ -1,25 +1,25 @@
+ # Ukraine, Kyiv
+ [CHANNEL]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 526000000
++	FREQUENCY = 514000000
+ 	BANDWIDTH_HZ = 8000000
+-	CODE_RATE_HP = 3/5
++	CODE_RATE_HP = AUTO
+ 	CODE_RATE_LP = NONE
+-	MODULATION = QAM/256
+-	TRANSMISSION_MODE = 32K
+-	GUARD_INTERVAL = 1/16
++	MODULATION = QAM/AUTO
++	TRANSMISSION_MODE = AUTO
++	GUARD_INTERVAL = AUTO
+ 	HIERARCHY = NONE
+ 	INVERSION = AUTO
+ 
+ [CHANNEL]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 538000000
++	FREQUENCY = 538167000
+ 	BANDWIDTH_HZ = 8000000
+-	CODE_RATE_HP = 3/5
++	CODE_RATE_HP = 2/3
+ 	CODE_RATE_LP = NONE
+ 	MODULATION = QAM/256
+ 	TRANSMISSION_MODE = 32K
+-	GUARD_INTERVAL = 1/16
++	GUARD_INTERVAL = 1/128
+ 	HIERARCHY = NONE
+ 	INVERSION = AUTO
+ 
+@@ -27,23 +27,36 @@
+ 	DELIVERY_SYSTEM = DVBT2
+ 	FREQUENCY = 554000000
+ 	BANDWIDTH_HZ = 8000000
+-	CODE_RATE_HP = 3/5
++	CODE_RATE_HP = AUTO
+ 	CODE_RATE_LP = NONE
+-	MODULATION = QAM/256
+-	TRANSMISSION_MODE = 32K
+-	GUARD_INTERVAL = 1/16
++	MODULATION = QAM/AUTO
++	TRANSMISSION_MODE = AUTO
++	GUARD_INTERVAL = AUTO
+ 	HIERARCHY = NONE
+ 	INVERSION = AUTO
+ 
+ [CHANNEL]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 634167000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_LP = NONE
++	HIERARCHY = NONE
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 650167000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_LP = NONE
++	HIERARCHY = NONE
++
++[CHANNEL]
+ 	DELIVERY_SYSTEM = DVBT2
+ 	FREQUENCY = 698000000
+ 	BANDWIDTH_HZ = 8000000
+-	CODE_RATE_HP = 3/5
++	CODE_RATE_HP = AUTO
+ 	CODE_RATE_LP = NONE
+-	MODULATION = QAM/256
+-	TRANSMISSION_MODE = 32K
+-	GUARD_INTERVAL = 1/16
++	MODULATION = QAM/AUTO
++	TRANSMISSION_MODE = AUTO
++	GUARD_INTERVAL = AUTO
+ 	HIERARCHY = NONE
+ 	INVERSION = AUTO
+-
+-- 
+2.10.2
