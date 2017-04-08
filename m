@@ -1,187 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f173.google.com ([209.85.220.173]:34615 "EHLO
-        mail-qk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751694AbdDCS6O (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 14:58:14 -0400
-Received: by mail-qk0-f173.google.com with SMTP id d10so123459802qke.1
-        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 11:58:13 -0700 (PDT)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCHv3 01/22] cma: Store a name in the cma structure
-Date: Mon,  3 Apr 2017 11:57:43 -0700
-Message-Id: <1491245884-15852-2-git-send-email-labbott@redhat.com>
-In-Reply-To: <1491245884-15852-1-git-send-email-labbott@redhat.com>
-References: <1491245884-15852-1-git-send-email-labbott@redhat.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:58015 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751579AbdDHKLL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 8 Apr 2017 06:11:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC PATCH 3/3] encoder-tpd12s015: keep the ls_oe_gpio on while
+ the phys_addr is valid
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-media@vger.kernel.org
+References: <1461922746-17521-1-git-send-email-hverkuil@xs4all.nl>
+ <1461922746-17521-4-git-send-email-hverkuil@xs4all.nl>
+ <5731C7D2.4090807@ti.com>
+Cc: dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Message-ID: <5b6f679c-69dd-78be-a398-30aa4b4da1db@xs4all.nl>
+Date: Sat, 8 Apr 2017 12:11:05 +0200
+MIME-Version: 1.0
+In-Reply-To: <5731C7D2.4090807@ti.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Frameworks that may want to enumerate CMA heaps (e.g. Ion) will find it
-useful to have an explicit name attached to each region. Store the name
-in each CMA structure.
+Hi Tomi,
 
-Signed-off-by: Laura Abbott <labbott@redhat.com>
----
-v3: Added default name suggestion per Sumit. Fixup powerpc call site.
----
- arch/powerpc/kvm/book3s_hv_builtin.c |  3 ++-
- drivers/base/dma-contiguous.c        |  5 +++--
- include/linux/cma.h                  |  4 +++-
- mm/cma.c                             | 17 +++++++++++++++--
- mm/cma.h                             |  1 +
- mm/cma_debug.c                       |  2 +-
- 6 files changed, 25 insertions(+), 7 deletions(-)
+On 05/10/2016 01:36 PM, Tomi Valkeinen wrote:
+> Hi Hans,
+> 
+> On 29/04/16 12:39, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> As long as there is a valid physical address in the EDID and the omap
+>> CEC support is enabled, then we keep ls_oe_gpio on to ensure the CEC
+>> signal is passed through the tpd12s015.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Suggested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> ---
+>>  drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c | 13 ++++++++++++-
+>>  1 file changed, 12 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
+>> index 916a899..efbba23 100644
+>> --- a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
+>> +++ b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
+>> @@ -16,6 +16,7 @@
+>>  #include <linux/platform_device.h>
+>>  #include <linux/gpio/consumer.h>
+>>  
+>> +#include <media/cec-edid.h>
+>>  #include <video/omapdss.h>
+>>  #include <video/omap-panel-data.h>
+>>  
+>> @@ -65,6 +66,7 @@ static void tpd_disconnect(struct omap_dss_device *dssdev,
+>>  		return;
+>>  
+>>  	gpiod_set_value_cansleep(ddata->ct_cp_hpd_gpio, 0);
+>> +	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 0);
+>>  
+>>  	dst->src = NULL;
+>>  	dssdev->dst = NULL;
+>> @@ -142,6 +144,7 @@ static int tpd_read_edid(struct omap_dss_device *dssdev,
+>>  {
+>>  	struct panel_drv_data *ddata = to_panel_data(dssdev);
+>>  	struct omap_dss_device *in = ddata->in;
+>> +	bool valid_phys_addr = 0;
+>>  	int r;
+>>  
+>>  	if (!gpiod_get_value_cansleep(ddata->hpd_gpio))
+>> @@ -151,7 +154,15 @@ static int tpd_read_edid(struct omap_dss_device *dssdev,
+>>  
+>>  	r = in->ops.hdmi->read_edid(in, edid, len);
+>>  
+>> -	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 0);
+>> +#ifdef CONFIG_OMAP2_DSS_HDMI_CEC
+>> +	/*
+>> +	 * In order to support CEC this pin should remain high
+>> +	 * as long as the EDID has a valid physical address.
+>> +	 */
+>> +	valid_phys_addr =
+>> +		cec_get_edid_phys_addr(edid, r, NULL) != CEC_PHYS_ADDR_INVALID;
+>> +#endif
+>> +	gpiod_set_value_cansleep(ddata->ls_oe_gpio, valid_phys_addr);
+>>  
+>>  	return r;
+>>  }
+> 
+> I think this works, but... Maybe it would be cleaner to have the LS_OE
+> enabled if a cable is connected. That's actually what we had earlier,
+> but I removed that due to a race issue:
+> 
+> a87a6d6b09de3118e5679c2057b99b7791b7673b ("OMAPDSS: encoder-tpd12s015:
+> Fix race issue with LS_OE"). Now, with CEC, there's need to have LS_OE
+> enabled even after reading the EDID, so I think it's better to go back
+> to the old model (after fixing the race issue, of course =).
 
-diff --git a/arch/powerpc/kvm/book3s_hv_builtin.c b/arch/powerpc/kvm/book3s_hv_builtin.c
-index 4d6c64b..b739ff8 100644
---- a/arch/powerpc/kvm/book3s_hv_builtin.c
-+++ b/arch/powerpc/kvm/book3s_hv_builtin.c
-@@ -100,7 +100,8 @@ void __init kvm_cma_reserve(void)
- 			 (unsigned long)selected_size / SZ_1M);
- 		align_size = HPT_ALIGN_PAGES << PAGE_SHIFT;
- 		cma_declare_contiguous(0, selected_size, 0, align_size,
--			KVM_CMA_CHUNK_ORDER - PAGE_SHIFT, false, &kvm_cma);
-+			KVM_CMA_CHUNK_ORDER - PAGE_SHIFT, false, "kvm_cma",
-+			&kvm_cma);
- 	}
- }
- 
-diff --git a/drivers/base/dma-contiguous.c b/drivers/base/dma-contiguous.c
-index b55804c..ea9726e 100644
---- a/drivers/base/dma-contiguous.c
-+++ b/drivers/base/dma-contiguous.c
-@@ -165,7 +165,8 @@ int __init dma_contiguous_reserve_area(phys_addr_t size, phys_addr_t base,
- {
- 	int ret;
- 
--	ret = cma_declare_contiguous(base, size, limit, 0, 0, fixed, res_cma);
-+	ret = cma_declare_contiguous(base, size, limit, 0, 0, fixed,
-+					"reserved", res_cma);
- 	if (ret)
- 		return ret;
- 
-@@ -258,7 +259,7 @@ static int __init rmem_cma_setup(struct reserved_mem *rmem)
- 		return -EINVAL;
- 	}
- 
--	err = cma_init_reserved_mem(rmem->base, rmem->size, 0, &cma);
-+	err = cma_init_reserved_mem(rmem->base, rmem->size, 0, rmem->name, &cma);
- 	if (err) {
- 		pr_err("Reserved memory: unable to setup CMA region\n");
- 		return err;
-diff --git a/include/linux/cma.h b/include/linux/cma.h
-index 03f32d0..d41d1f8 100644
---- a/include/linux/cma.h
-+++ b/include/linux/cma.h
-@@ -21,13 +21,15 @@ struct cma;
- extern unsigned long totalcma_pages;
- extern phys_addr_t cma_get_base(const struct cma *cma);
- extern unsigned long cma_get_size(const struct cma *cma);
-+extern const char *cma_get_name(const struct cma *cma);
- 
- extern int __init cma_declare_contiguous(phys_addr_t base,
- 			phys_addr_t size, phys_addr_t limit,
- 			phys_addr_t alignment, unsigned int order_per_bit,
--			bool fixed, struct cma **res_cma);
-+			bool fixed, const char *name, struct cma **res_cma);
- extern int cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
- 					unsigned int order_per_bit,
-+					const char *name,
- 					struct cma **res_cma);
- extern struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
- 			      gfp_t gfp_mask);
-diff --git a/mm/cma.c b/mm/cma.c
-index a6033e3..43c1b2c 100644
---- a/mm/cma.c
-+++ b/mm/cma.c
-@@ -53,6 +53,11 @@ unsigned long cma_get_size(const struct cma *cma)
- 	return cma->count << PAGE_SHIFT;
- }
- 
-+const char *cma_get_name(const struct cma *cma)
-+{
-+	return cma->name ? cma->name : "(undefined)";
-+}
-+
- static unsigned long cma_bitmap_aligned_mask(const struct cma *cma,
- 					     int align_order)
- {
-@@ -168,6 +173,7 @@ core_initcall(cma_init_reserved_areas);
-  */
- int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
- 				 unsigned int order_per_bit,
-+				 const char *name,
- 				 struct cma **res_cma)
- {
- 	struct cma *cma;
-@@ -198,6 +204,13 @@ int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
- 	 * subsystems (like slab allocator) are available.
- 	 */
- 	cma = &cma_areas[cma_area_count];
-+	if (name) {
-+		cma->name = name;
-+	} else {
-+		cma->name = kasprintf(GFP_KERNEL, "cma%d\n", cma_area_count);
-+		if (!cma->name)
-+			return -ENOMEM;
-+	}
- 	cma->base_pfn = PFN_DOWN(base);
- 	cma->count = size >> PAGE_SHIFT;
- 	cma->order_per_bit = order_per_bit;
-@@ -229,7 +242,7 @@ int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
- int __init cma_declare_contiguous(phys_addr_t base,
- 			phys_addr_t size, phys_addr_t limit,
- 			phys_addr_t alignment, unsigned int order_per_bit,
--			bool fixed, struct cma **res_cma)
-+			bool fixed, const char *name, struct cma **res_cma)
- {
- 	phys_addr_t memblock_end = memblock_end_of_DRAM();
- 	phys_addr_t highmem_start;
-@@ -335,7 +348,7 @@ int __init cma_declare_contiguous(phys_addr_t base,
- 		base = addr;
- 	}
- 
--	ret = cma_init_reserved_mem(base, size, order_per_bit, res_cma);
-+	ret = cma_init_reserved_mem(base, size, order_per_bit, name, res_cma);
- 	if (ret)
- 		goto err;
- 
-diff --git a/mm/cma.h b/mm/cma.h
-index 17c75a4..4986128 100644
---- a/mm/cma.h
-+++ b/mm/cma.h
-@@ -11,6 +11,7 @@ struct cma {
- 	struct hlist_head mem_head;
- 	spinlock_t mem_head_lock;
- #endif
-+	const char *name;
- };
- 
- extern struct cma cma_areas[MAX_CMA_AREAS];
-diff --git a/mm/cma_debug.c b/mm/cma_debug.c
-index ffc0c3d..595b757 100644
---- a/mm/cma_debug.c
-+++ b/mm/cma_debug.c
-@@ -167,7 +167,7 @@ static void cma_debugfs_add_one(struct cma *cma, int idx)
- 	char name[16];
- 	int u32s;
- 
--	sprintf(name, "cma-%d", idx);
-+	sprintf(name, "cma-%s", cma->name);
- 
- 	tmp = debugfs_create_dir(name, cma_debugfs_root);
- 
--- 
-2.7.4
+So, this is a bit of a blast from the past since the omap4 CEC development
+has been on hold for almost a year. But I am about to resume my work on this
+now that the CEC framework was merged.
+
+The latest code is here, if you are interested:
+
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=panda-cec
+
+It's pretty much unchanged from the version I posted a year ago, just rebased.
+
+But before I continue with this I have one question for you. First some
+background:
+
+There is a special corner case (and I wasn't aware of that a year ago!) where
+it is allowed to send a CEC message when there is *no HPD*.
+
+The reason is that some displays turn off the hotplug detect pin when they go
+into standby or when another input is active. The only way to communicate with
+such displays is via CEC.
+
+The problem is that without a HPD there is no EDID and basically no way for an
+HDMI transmitter to detect that something is connected at all, unless you are
+using CEC.
+
+What this means is that if we want to implement this on the omap4 the CEC support
+has to be on all the time.
+
+We have seen modern displays that behave like this, so this is a real issue. And
+this corner case is specifically allowed by the CEC specification: the Poll,
+Image/Text View On and the Active Source messages can be sent to a TV even when
+there is no HPD in order to turn on the display if it was in standby and to make
+us the active input.
+
+The CEC framework in the kernel supports this starting with 4.12 (this code is
+in the panda-cec branch above).
+
+If this *can't* be supported by the omap4, then I will likely have to add a CEC
+capability to signal to the application that this specific corner case is not
+supported.
+
+I just did some tests with omap4 and I my impression is that this can't be
+supported: when the HPD goes away it seems like most/all of the HDMI blocks are
+all powered off and any attempt to even access the CEC registers will fail.
+
+Changing this looks to be non-trivial if not impossible.
+
+Can you confirm that that isn't possible? If you think this can be done, then
+I'd appreciate if you can give me a few pointers.
+
+Regards,
+
+	Hans
