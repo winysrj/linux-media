@@ -1,77 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:57258 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756732AbdDGOgh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Apr 2017 10:36:37 -0400
-Subject: Re: [PATCH] [media] media-entity: only call dev_dbg_obj if mdev is
- not NULL
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <1491507120-28112-1-git-send-email-helen.koike@collabora.com>
- <20170407074015.GB4192@valkosipuli.retiisi.org.uk>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        linux-kernel@vger.kernel.org
-From: Helen Koike <helen.koike@collabora.com>
-Message-ID: <f3f83e8f-41e3-3567-8ec6-c4e693e7297e@collabora.com>
-Date: Fri, 7 Apr 2017 11:36:29 -0300
-MIME-Version: 1.0
-In-Reply-To: <20170407074015.GB4192@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34784 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752322AbdDITiq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Apr 2017 15:38:46 -0400
+Received: by mail-wm0-f67.google.com with SMTP id x75so6393781wma.1
+        for <linux-media@vger.kernel.org>; Sun, 09 Apr 2017 12:38:46 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: aospan@netup.ru, serjk@netup.ru, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+Cc: rjkm@metzlerbros.de
+Subject: [PATCH 15/19] [media] dvb-frontends/cxd2841er: improved snr reporting
+Date: Sun,  9 Apr 2017 21:38:24 +0200
+Message-Id: <20170409193828.18458-16-d.scheller.oss@gmail.com>
+In-Reply-To: <20170409193828.18458-1-d.scheller.oss@gmail.com>
+References: <20170409193828.18458-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-On 2017-04-07 04:40 AM, Sakari Ailus wrote:
-> Hi Helen,
->
-> On Thu, Apr 06, 2017 at 04:32:00PM -0300, Helen Koike wrote:
->> Fix kernel Oops NULL pointer deference
->> Call dev_dbg_obj only after checking if gobj->mdev is not NULL
->>
->> Signed-off-by: Helen Koike <helen.koike@collabora.com>
->> ---
->>  drivers/media/media-entity.c | 4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
->> index 5640ca2..bc44193 100644
->> --- a/drivers/media/media-entity.c
->> +++ b/drivers/media/media-entity.c
->> @@ -199,12 +199,12 @@ void media_gobj_create(struct media_device *mdev,
->>
->>  void media_gobj_destroy(struct media_gobj *gobj)
->>  {
->> -	dev_dbg_obj(__func__, gobj);
->> -
->>  	/* Do nothing if the object is not linked. */
->>  	if (gobj->mdev == NULL)
->>  		return;
->>
->> +	dev_dbg_obj(__func__, gobj);
->> +
->>  	gobj->mdev->topology_version++;
->>
->>  	/* Remove the object from mdev list */
->
-> Where is media_gobj_destroy() called with an object with NULL mdev?
->
-> I do not object to the change, but would like to know because I don't think
-> it's supposed to happen.
+On DVB-T/T2 at least, SNR might be reported as >2500dB, which not only is
+just wrong but also ridiculous, so fix this by improving the conversion
+of the register value.
 
+The INTLOG10X100 function/macro and the way the values are converted were
+both taken from DD's cxd2843 driver.
 
-This happens when media_device_unregister(mdev) is called before 
-unregistering the subdevices v4l2_device_unregister_subdev(sd) (which 
-should be possible).
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/cxd2841er.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-v4l2_device_unregister_subdev(sd) ends up calling v4l2_device_release() 
-that calls media_device_unregister_entity() again (previously called by 
-media_device_unregister(mdev)
-
-Helen
-
->
-> There are issues though, until the patches fixing object referencing are
-> finished and merged. Unfortunately I haven't been able to work on those
-> recently, will pick them up again soon...
->
+diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+index efb2795..a01ac58 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.c
++++ b/drivers/media/dvb-frontends/cxd2841er.c
+@@ -38,6 +38,8 @@
+ #define MAX_WRITE_REGSIZE	16
+ #define LOG2_E_100X 144
+ 
++#define INTLOG10X100(x) ((u32) (((u64) intlog10(x) * 100) >> 24))
++
+ /* DVB-C constellation */
+ enum sony_dvbc_constellation_t {
+ 	SONY_DVBC_CONSTELLATION_16QAM,
+@@ -1817,7 +1819,7 @@ static int cxd2841er_read_snr_t(struct cxd2841er_priv *priv, u32 *snr)
+ 	}
+ 	if (reg > 4996)
+ 		reg = 4996;
+-	*snr = 10000 * ((intlog10(reg) - intlog10(5350 - reg)) >> 24) + 28500;
++	*snr = 100 * ((INTLOG10X100(reg) - INTLOG10X100(5350 - reg)) + 285);
+ 	return 0;
+ }
+ 
+@@ -1846,8 +1848,7 @@ static int cxd2841er_read_snr_t2(struct cxd2841er_priv *priv, u32 *snr)
+ 	}
+ 	if (reg > 10876)
+ 		reg = 10876;
+-	*snr = 10000 * ((intlog10(reg) -
+-		intlog10(12600 - reg)) >> 24) + 32000;
++	*snr = 100 * ((INTLOG10X100(reg) - INTLOG10X100(12600 - reg)) + 320);
+ 	return 0;
+ }
+ 
+-- 
+2.10.2
