@@ -1,108 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48324
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1757049AbdDQBKd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Apr 2017 21:10:33 -0400
-Subject: Re: [PATCH] arm: dma: fix sharing of coherent DMA memory without
- struct page
-To: Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Marek Szyprowski <m.szyprowski@samsung.com>
-References: <CGME20170405160251epcas4p14cc5d5f6064c84b133b9e280ac987a93@epcas4p1.samsung.com>
- <20170405160242.14195-1-shuahkh@osg.samsung.com>
- <e49715a3-b925-79ad-7d1d-ce2cb5673a97@samsung.com>
- <3afd77e5-2a98-42fd-b5c9-cbf4c32baa4f@osg.samsung.com>
- <6d0c3e3c-8d1b-89bb-1392-6ffc7d8073c1@samsung.com>
- <20170414094643.GG17774@n2100.armlinux.org.uk>
-Cc: gregkh@linuxfoundation.org, pawel@osciak.com,
-        kyungmin.park@samsung.com, mchehab@kernel.org, will.deacon@arm.com,
-        Robin.Murphy@arm.com, jroedel@suse.de, bart.vanassche@sandisk.com,
-        gregory.clement@free-electrons.com, acourbot@nvidia.com,
-        festevam@gmail.com, krzk@kernel.org,
-        niklas.soderlund+renesas@ragnatech.se, sricharan@codeaurora.org,
-        dledford@redhat.com, vinod.koul@intel.com,
-        andrew.smirnov@gmail.com, mauricfo@linux.vnet.ibm.com,
-        alexander.h.duyck@intel.com, sagi@grimberg.me,
-        ming.l@ssi.samsung.com, martin.petersen@oracle.com,
-        javier@dowhile0.org, javier@osg.samsung.com,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <4c51bf1a-00cb-84bb-f661-6bb6c83d8134@osg.samsung.com>
-Date: Sun, 16 Apr 2017 19:10:21 -0600
-MIME-Version: 1.0
-In-Reply-To: <20170414094643.GG17774@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:34888 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752427AbdDITij (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Apr 2017 15:38:39 -0400
+Received: by mail-wr0-f196.google.com with SMTP id t20so26640453wra.2
+        for <linux-media@vger.kernel.org>; Sun, 09 Apr 2017 12:38:38 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: aospan@netup.ru, serjk@netup.ru, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+Cc: rjkm@metzlerbros.de
+Subject: [PATCH 07/19] [media] dvb-frontends/cxd2841er: make call to i2c_gate_ctrl optional
+Date: Sun,  9 Apr 2017 21:38:16 +0200
+Message-Id: <20170409193828.18458-8-d.scheller.oss@gmail.com>
+In-Reply-To: <20170409193828.18458-1-d.scheller.oss@gmail.com>
+References: <20170409193828.18458-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/14/2017 03:46 AM, Russell King - ARM Linux wrote:
-> On Fri, Apr 14, 2017 at 09:56:07AM +0200, Marek Szyprowski wrote:
->>>> This would be however quite large task, especially taking into account
->>>> all current users of DMA-buf framework...
->>> Yeah it will be a large task.
->>
->> Maybe once scatterlist are switched to pfns, changing dmabuf internal
->> memory representation to pfn array might be much easier.
-> 
-> Switching to a PFN array won't work either as we have no cross-arch
-> way to translate PFNs to a DMA address and vice versa.  Yes, we have
-> them in ARM, but they are an _implementation detail_ of ARM's
-> DMA API support, they are not for use by drivers.
-> 
-> So, the very first problem that needs solving is this:
-> 
->   How do we go from a coherent DMA allocation for device X to a set
->   of DMA addresses for device Y.
-> 
-> Essentially, we need a way of remapping the DMA buffer for use with
-> another device, and returning a DMA address suitable for that device.
-> This could well mean that we need to deal with setting up an IOMMU
-> mapping.  My guess is that this needs to happen at the DMA coherent
-> API level - the DMA coherent API needs to be augmented with support
-> for this.  I'll call this "DMA coherent remap".
-> 
-> We then need to think about how to pass this through the dma-buf API.
-> dma_map_sg() is done by the exporter, who should know what kind of
-> memory is being exported.  The exporter can avoid calling dma_map_sg()
-> if it knows in advance that it is exporting DMA coherent memory.
-> Instead, the exporter can simply create a scatterlist with the DMA
-> address and DMA length prepopulated with the results of the DMA
-> coherent remap operation above.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-The only way to conclusively say that it is coming from coherent area
-is at the time it is getting allocated in dma_alloc_from_coherent().
-Since dma_alloc_attrs() will go on to find memory from other areas if
-dma_alloc_from_coherent() doesn't allocate memory.
+Some cards/bridges wrap i2c_gate_ctrl handling with a mutex_lock(). This is
+e.g. done in ddbridge to protect against concurrent tuner access with
+regards to the dual tuner HW, where concurrent tuner reconfiguration can
+result in tuning fails or bad reception quality. When the tuner driver
+additionally tries to open the I2C gate (which e.g. the tda18212 driver
+does) when the demod already did this, this will lead to a deadlock. This
+makes the calls to i2c_gatectrl from the demod driver optional when the
+flag is set, leaving this to the tuner driver. For readability reasons and
+to not have the check duplicated multiple times, the setup is factored
+into cxd2841er_tuner_set().
 
-dma_get_sgtable_attrs() is what is used by the exporter to create the
-sg_table. One way to do this cleanly without needing to check buffer
-type flags would be to add a set of sg_table ops: get_sgtable,
-map_sg, and unmap_sg. Sounds like sg_table interfaces need to be in
-dma_buf_ops level. More below.
+This commit also updates the netup card driver (which seems to be the only
+consumer of the cxd2841er as of now).
 
-> 
-> What the scatterlist can't carry in this case is a set of valid
-> struct page pointers, and an importer must not walk the scatterlist
-> expecting to get at the virtual address parameters or struct page
-> pointers.
-> 
-> On the mmap() side of things, remember that DMA coherent allocations
-> may require special mapping into userspace, and which can only be
-> mapped by the DMA coherent mmap support.  kmap etc will also need to
-> be different.  So it probably makes sense for DMA coherent dma-buf
-> exports to use a completely separate set of dma_buf_ops from the
-> streaming version.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/cxd2841er.c            | 32 ++++++++++++++--------
+ drivers/media/dvb-frontends/cxd2841er.h            |  2 ++
+ drivers/media/pci/netup_unidvb/netup_unidvb_core.c |  3 +-
+ 3 files changed, 24 insertions(+), 13 deletions(-)
 
-How about adding get_sgtable, map_sg, unmap_sg to dma_buf_ops. The right
-ops need to be installed based on buffer type. As I mentioned before, we
-don't know which memory we got until dma_alloc_from_coherent() finds
-memory in dev->mem area. So how about using the dma_check_dev_coherent()
-to determine which ops we need. These could be set based on buffer type.
-vb2_dc_get_dmabuf() can do that.
-
-I think this will work.
-
-thanks,
--- Shuah
+diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+index f49a09b..162a0f5 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.c
++++ b/drivers/media/dvb-frontends/cxd2841er.c
+@@ -327,6 +327,20 @@ static u32 cxd2841er_calc_iffreq(u32 ifhz)
+ 	return cxd2841er_calc_iffreq_xtal(SONY_XTAL_20500, ifhz);
+ }
+ 
++static int cxd2841er_tuner_set(struct dvb_frontend *fe)
++{
++	struct cxd2841er_priv *priv = fe->demodulator_priv;
++
++	if ((priv->flags & CXD2841ER_USE_GATECTRL) && fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++	if (fe->ops.tuner_ops.set_params)
++		fe->ops.tuner_ops.set_params(fe);
++	if ((priv->flags & CXD2841ER_USE_GATECTRL) && fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	return 0;
++}
++
+ static int cxd2841er_dvbs2_set_symbol_rate(struct cxd2841er_priv *priv,
+ 					   u32 symbol_rate)
+ {
+@@ -3251,12 +3265,9 @@ static int cxd2841er_set_frontend_s(struct dvb_frontend *fe)
+ 		dev_dbg(&priv->i2c->dev, "%s(): tune failed\n", __func__);
+ 		goto done;
+ 	}
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-	if (fe->ops.tuner_ops.set_params)
+-		fe->ops.tuner_ops.set_params(fe);
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	cxd2841er_tuner_set(fe);
++
+ 	cxd2841er_tune_done(priv);
+ 	timeout = ((3000000 + (symbol_rate - 1)) / symbol_rate) + 150;
+ 	for (i = 0; i < timeout / CXD2841ER_DVBS_POLLING_INVL; i++) {
+@@ -3376,12 +3387,9 @@ static int cxd2841er_set_frontend_tc(struct dvb_frontend *fe)
+ 	}
+ 	if (ret)
+ 		goto done;
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-	if (fe->ops.tuner_ops.set_params)
+-		fe->ops.tuner_ops.set_params(fe);
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	cxd2841er_tuner_set(fe);
++
+ 	cxd2841er_tune_done(priv);
+ 	timeout = 2500;
+ 	while (timeout > 0) {
+diff --git a/drivers/media/dvb-frontends/cxd2841er.h b/drivers/media/dvb-frontends/cxd2841er.h
+index 2fb8b38..15564af 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.h
++++ b/drivers/media/dvb-frontends/cxd2841er.h
+@@ -24,6 +24,8 @@
+ 
+ #include <linux/dvb/frontend.h>
+ 
++#define CXD2841ER_USE_GATECTRL	1
++
+ enum cxd2841er_xtal {
+ 	SONY_XTAL_20500, /* 20.5 MHz */
+ 	SONY_XTAL_24000, /* 24 MHz */
+diff --git a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
+index 191bd82..5e6553f 100644
+--- a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
++++ b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
+@@ -122,7 +122,8 @@ static void netup_unidvb_queue_cleanup(struct netup_dma *dma);
+ 
+ static struct cxd2841er_config demod_config = {
+ 	.i2c_addr = 0xc8,
+-	.xtal = SONY_XTAL_24000
++	.xtal = SONY_XTAL_24000,
++	.flags = CXD2841ER_USE_GATECTRL
+ };
+ 
+ static struct horus3a_config horus3a_conf = {
+-- 
+2.10.2
