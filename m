@@ -1,148 +1,246 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:34526 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752504AbdDCOLm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 10:11:42 -0400
-Date: Mon, 3 Apr 2017 09:11:35 -0500
-From: Rob Herring <robh@kernel.org>
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        "kernel@pengutronix.de" <kernel@pengutronix.de>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Nick Dyer <nick@shmanahar.org>, markus.heiser@darmarit.de,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Benoit Parrot <bparrot@ti.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        tiffany lin <tiffany.lin@mediatek.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Simon Horman <horms+renesas@verge.net.au>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Andrew-CT Chen =?utf-8?B?KOmZs+aZuui/qik=?=
-        <andrew-ct.chen@mediatek.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        shuah@kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v6 02/39] [media] dt-bindings: Add bindings for i.MX
- media driver
-Message-ID: <20170403141135.6rwwftkiqqicmn6a@rob-hp-laptop>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
- <1490661656-10318-3-git-send-email-steve_longerbeam@mentor.com>
- <CAL_JsqJm_JjuVPcOBERCqsnjTDdNoKr9xRE9MXMO4ivxGath2Q@mail.gmail.com>
- <20170329083904.GZ7909@n2100.armlinux.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170329083904.GZ7909@n2100.armlinux.org.uk>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35876 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752619AbdDITiu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Apr 2017 15:38:50 -0400
+Received: by mail-wm0-f65.google.com with SMTP id q125so6399625wmd.3
+        for <linux-media@vger.kernel.org>; Sun, 09 Apr 2017 12:38:44 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: aospan@netup.ru, serjk@netup.ru, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+Cc: rjkm@metzlerbros.de
+Subject: [PATCH 08/19] [media] dvb-frontends/cxd2841er: support IF speed calc from tuner values
+Date: Sun,  9 Apr 2017 21:38:17 +0200
+Message-Id: <20170409193828.18458-9-d.scheller.oss@gmail.com>
+In-Reply-To: <20170409193828.18458-1-d.scheller.oss@gmail.com>
+References: <20170409193828.18458-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 29, 2017 at 09:39:05AM +0100, Russell King - ARM Linux wrote:
-> On Tue, Mar 28, 2017 at 07:21:34PM -0500, Rob Herring wrote:
-> > On Mon, Mar 27, 2017 at 7:40 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
-> > > Add bindings documentation for the i.MX media driver.
-> > >
-> > > Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> > > ---
-> > >  Documentation/devicetree/bindings/media/imx.txt | 74 +++++++++++++++++++++++++
-> > >  1 file changed, 74 insertions(+)
-> > >  create mode 100644 Documentation/devicetree/bindings/media/imx.txt
-> > >
-> > > diff --git a/Documentation/devicetree/bindings/media/imx.txt b/Documentation/devicetree/bindings/media/imx.txt
-> > > new file mode 100644
-> > > index 0000000..3059c06
-> > > --- /dev/null
-> > > +++ b/Documentation/devicetree/bindings/media/imx.txt
-> > > @@ -0,0 +1,74 @@
-> > > +Freescale i.MX Media Video Device
-> > > +=================================
-> > > +
-> > > +Video Media Controller node
-> > > +---------------------------
-> > > +
-> > > +This is the media controller node for video capture support. It is a
-> > > +virtual device that lists the camera serial interface nodes that the
-> > > +media device will control.
-> > > +
-> > > +Required properties:
-> > > +- compatible : "fsl,imx-capture-subsystem";
-> > > +- ports      : Should contain a list of phandles pointing to camera
-> > > +               sensor interface ports of IPU devices
-> > > +
-> > > +example:
-> > > +
-> > > +capture-subsystem {
-> > > +       compatible = "fsl,imx-capture-subsystem";
-> > > +       ports = <&ipu1_csi0>, <&ipu1_csi1>;
-> > > +};
-> > > +
-> > > +fim child node
-> > > +--------------
-> > > +
-> > > +This is an optional child node of the ipu_csi port nodes. If present and
-> > > +available, it enables the Frame Interval Monitor. Its properties can be
-> > > +used to modify the method in which the FIM measures frame intervals.
-> > > +Refer to Documentation/media/v4l-drivers/imx.rst for more info on the
-> > > +Frame Interval Monitor.
-> > > +
-> > > +Optional properties:
-> > > +- fsl,input-capture-channel: an input capture channel and channel flags,
-> > > +                            specified as <chan flags>. The channel number
-> > > +                            must be 0 or 1. The flags can be
-> > > +                            IRQ_TYPE_EDGE_RISING, IRQ_TYPE_EDGE_FALLING, or
-> > > +                            IRQ_TYPE_EDGE_BOTH, and specify which input
-> > > +                            capture signal edge will trigger the input
-> > > +                            capture event. If an input capture channel is
-> > > +                            specified, the FIM will use this method to
-> > > +                            measure frame intervals instead of via the EOF
-> > > +                            interrupt. The input capture method is much
-> > > +                            preferred over EOF as it is not subject to
-> > > +                            interrupt latency errors. However it requires
-> > > +                            routing the VSYNC or FIELD output signals of
-> > > +                            the camera sensor to one of the i.MX input
-> > > +                            capture pads (SD1_DAT0, SD1_DAT1), which also
-> > > +                            gives up support for SD1.
-> > > +
-> > > +
-> > > +mipi_csi2 node
-> > > +--------------
-> > > +
-> > > +This is the device node for the MIPI CSI-2 Receiver, required for MIPI
-> > > +CSI-2 sensors.
-> > > +
-> > > +Required properties:
-> > > +- compatible   : "fsl,imx6-mipi-csi2", "snps,dw-mipi-csi2";
-> > 
-> > As I mentioned in v5, there's a DW CSI2 binding in progress. This
-> > needs to be based on that.
-> 
-> Maybe someone can provide some kind of reference to it, and it's
-> associated driver?
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Let me Google that for you (TM). The reference is in my comments on v5. 
-Here's a reference to it [1].
+Add a AUTO_IFHZ flag and a function that will read IF speed values from any
+attached tuner if the tuner supports this and if AUTO_IFHZ is enabled, and
+else the passed default value (which probably matches Sony ASCOT tuners)
+will be passed back. The returned value is then used to calculate the iffeq
+which the demod will be programmed with.
 
-[1] https://lkml.org/lkml/2017/3/20/524
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/cxd2841er.c | 64 +++++++++++++++++++++++----------
+ drivers/media/dvb-frontends/cxd2841er.h |  1 +
+ 2 files changed, 47 insertions(+), 18 deletions(-)
 
-> 
-> -- 
-> RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-> FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-> according to speedtest.net.
+diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+index 162a0f5..fa6a963 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.c
++++ b/drivers/media/dvb-frontends/cxd2841er.c
+@@ -327,6 +327,20 @@ static u32 cxd2841er_calc_iffreq(u32 ifhz)
+ 	return cxd2841er_calc_iffreq_xtal(SONY_XTAL_20500, ifhz);
+ }
+ 
++static int cxd2841er_get_if_hz(struct cxd2841er_priv *priv, u32 def_hz)
++{
++	u32 hz;
++
++	if (priv->frontend.ops.tuner_ops.get_if_frequency
++			&& (priv->flags & CXD2841ER_AUTO_IFHZ))
++		priv->frontend.ops.tuner_ops.get_if_frequency(
++			&priv->frontend, &hz);
++	else
++		hz = def_hz;
++
++	return hz;
++}
++
+ static int cxd2841er_tuner_set(struct dvb_frontend *fe)
+ {
+ 	struct cxd2841er_priv *priv = fe->demodulator_priv;
+@@ -2147,7 +2161,7 @@ static int cxd2841er_dvbt2_set_plp_config(struct cxd2841er_priv *priv,
+ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
+ 						u32 bandwidth)
+ {
+-	u32 iffreq;
++	u32 iffreq, ifhz;
+ 	u8 data[MAX_WRITE_REGSIZE];
+ 
+ 	const uint8_t nominalRate8bw[3][5] = {
+@@ -2253,7 +2267,8 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef8bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4800000);
++		ifhz = cxd2841er_get_if_hz(priv, 4800000);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2281,7 +2296,8 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef7bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4200000);
++		ifhz = cxd2841er_get_if_hz(priv, 4200000);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2309,7 +2325,8 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef6bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
++		ifhz = cxd2841er_get_if_hz(priv, 3600000);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2337,7 +2354,8 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef5bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
++		ifhz = cxd2841er_get_if_hz(priv, 3600000);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2365,7 +2383,8 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef17bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3500000);
++		ifhz = cxd2841er_get_if_hz(priv, 3500000);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2384,7 +2403,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
+ 		struct cxd2841er_priv *priv, u32 bandwidth)
+ {
+ 	u8 data[MAX_WRITE_REGSIZE];
+-	u32 iffreq;
++	u32 iffreq, ifhz;
+ 	u8 nominalRate8bw[3][5] = {
+ 		/* TRCG Nominal Rate [37:0] */
+ 		{0x11, 0xF0, 0x00, 0x00, 0x00}, /* 20.5MHz XTal */
+@@ -2464,7 +2483,8 @@ static int cxd2841er_sleep_tc_to_active_t_band(
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef8bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4800000);
++		ifhz = cxd2841er_get_if_hz(priv, 4800000);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2499,7 +2519,8 @@ static int cxd2841er_sleep_tc_to_active_t_band(
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef7bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4200000);
++		ifhz = cxd2841er_get_if_hz(priv, 4200000);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2534,7 +2555,8 @@ static int cxd2841er_sleep_tc_to_active_t_band(
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef6bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
++		ifhz = cxd2841er_get_if_hz(priv, 3600000);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2569,7 +2591,8 @@ static int cxd2841er_sleep_tc_to_active_t_band(
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef5bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
++		ifhz = cxd2841er_get_if_hz(priv, 3600000);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2602,7 +2625,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
+ static int cxd2841er_sleep_tc_to_active_i_band(
+ 		struct cxd2841er_priv *priv, u32 bandwidth)
+ {
+-	u32 iffreq;
++	u32 iffreq, ifhz;
+ 	u8 data[3];
+ 
+ 	/* TRCG Nominal Rate */
+@@ -2671,7 +2694,8 @@ static int cxd2841er_sleep_tc_to_active_i_band(
+ 				0xA6, itbCoef8bw[priv->xtal], 14);
+ 
+ 		/* IF freq setting */
+-		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4750000);
++		ifhz = cxd2841er_get_if_hz(priv, 4750000);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2700,7 +2724,8 @@ static int cxd2841er_sleep_tc_to_active_i_band(
+ 				0xA6, itbCoef7bw[priv->xtal], 14);
+ 
+ 		/* IF freq setting */
+-		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4150000);
++		ifhz = cxd2841er_get_if_hz(priv, 4150000);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2729,7 +2754,8 @@ static int cxd2841er_sleep_tc_to_active_i_band(
+ 				0xA6, itbCoef6bw[priv->xtal], 14);
+ 
+ 		/* IF freq setting */
+-		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3550000);
++		ifhz = cxd2841er_get_if_hz(priv, 3550000);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2772,7 +2798,7 @@ static int cxd2841er_sleep_tc_to_active_c_band(struct cxd2841er_priv *priv,
+ 		0x27, 0xA7, 0x28, 0xB3, 0x02, 0xF0, 0x01, 0xE8,
+ 		0x00, 0xCF, 0x00, 0xE6, 0x23, 0xA4 };
+ 	u8 b10_b6[3];
+-	u32 iffreq;
++	u32 iffreq, ifhz;
+ 
+ 	if (bandwidth != 6000000 &&
+ 			bandwidth != 7000000 &&
+@@ -2790,13 +2816,15 @@ static int cxd2841er_sleep_tc_to_active_c_band(struct cxd2841er_priv *priv,
+ 		cxd2841er_write_regs(
+ 			priv, I2C_SLVT, 0xa6,
+ 			bw7_8mhz_b10_a6, sizeof(bw7_8mhz_b10_a6));
+-		iffreq = cxd2841er_calc_iffreq(4900000);
++		ifhz = cxd2841er_get_if_hz(priv, 4900000);
++		iffreq = cxd2841er_calc_iffreq(ifhz);
+ 		break;
+ 	case 6000000:
+ 		cxd2841er_write_regs(
+ 			priv, I2C_SLVT, 0xa6,
+ 			bw6mhz_b10_a6, sizeof(bw6mhz_b10_a6));
+-		iffreq = cxd2841er_calc_iffreq(3700000);
++		ifhz = cxd2841er_get_if_hz(priv, 3700000);
++		iffreq = cxd2841er_calc_iffreq(ifhz);
+ 		break;
+ 	default:
+ 		dev_err(&priv->i2c->dev, "%s(): unsupported bandwidth %d\n",
+diff --git a/drivers/media/dvb-frontends/cxd2841er.h b/drivers/media/dvb-frontends/cxd2841er.h
+index 15564af..38d7f9f 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.h
++++ b/drivers/media/dvb-frontends/cxd2841er.h
+@@ -25,6 +25,7 @@
+ #include <linux/dvb/frontend.h>
+ 
+ #define CXD2841ER_USE_GATECTRL	1
++#define CXD2841ER_AUTO_IFHZ	2
+ 
+ enum cxd2841er_xtal {
+ 	SONY_XTAL_20500, /* 20.5 MHz */
+-- 
+2.10.2
