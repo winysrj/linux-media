@@ -1,58 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:53342 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932563AbdDGJZw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Apr 2017 05:25:52 -0400
-Subject: Re: [Patch v4 10/12] [media] v4l2: Add v4l2 control IDs for HEVC
- encoder
-To: Smitha T Murthy <smitha.t@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, a.hajda@samsung.com,
-        pankaj.dubey@samsung.com, kamil@wypas.org, krzk@kernel.org,
-        jtp.park@samsung.com, kyungmin.park@samsung.com,
-        mchehab@kernel.org, m.szyprowski@samsung.com
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <9f81ed3a-4adb-7827-6094-88847bc0787a@samsung.com>
-Date: Fri, 07 Apr 2017 11:25:43 +0200
-MIME-version: 1.0
-In-reply-to: <1491553894.15698.1142.camel@smitha-fedora>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
-References: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
- <CGME20170406061023epcas5p2a3fa65c4254e17a58f71c68d413e6bfd@epcas5p2.samsung.com>
- <1491459105-16641-11-git-send-email-smitha.t@samsung.com>
- <374939c7-241a-fcca-c87e-5c4290bdb6aa@samsung.com>
- <1491553894.15698.1142.camel@smitha-fedora>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35470 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752627AbdDITiw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Apr 2017 15:38:52 -0400
+Received: by mail-wm0-f68.google.com with SMTP id d79so6410945wmi.2
+        for <linux-media@vger.kernel.org>; Sun, 09 Apr 2017 12:38:51 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: aospan@netup.ru, serjk@netup.ru, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+Cc: rjkm@metzlerbros.de
+Subject: [PATCH 16/19] [media] ddbridge: board control setup, ts quirk flags
+Date: Sun,  9 Apr 2017 21:38:25 +0200
+Message-Id: <20170409193828.18458-17-d.scheller.oss@gmail.com>
+In-Reply-To: <20170409193828.18458-1-d.scheller.oss@gmail.com>
+References: <20170409193828.18458-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/07/2017 10:31 AM, Smitha T Murthy wrote:
-> On Thu, 2017-04-06 at 15:14 +0200, Sylwester Nawrocki wrote:
->> On 04/06/2017 08:11 AM, Smitha T Murthy wrote:
->>> @@ -775,6 +832,47 @@ const char *v4l2_ctrl_get_name(u32 id)
->>>  	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
->>>  	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
->>>
->>> +	/* HEVC controls */
->> [...]
->>> +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY:	return "HEVC LF Across Slice Boundary or Not";
->> Please make sure the names are no longer than 31 characters to avoid
->> truncation during control enumeration in user space.
->> Data structures like struct v4l2_queryctrl, struct v4l2_query_ext_ctrl
->> have only 32 bytes long array dedicated for the control name.
- >
-> I will try to make the names less than 31 characters long without losing
-> the context. But there are many control names in this file which are
-> longer than 31 characters like
-> V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP,
-> V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD etc so I assumed it was
-> alright to have such long names. But I will shorten them as per your
-> suggestion.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Apologies if it wasn't clean enough but my comment referred to the
-length of the character string being returned (e.g. "HEVC LF Across
-Slice Boundary or Not") and not to the name of the enum.
+This is a backport of the board control setup from the vendor provided
+dddvb driver package, which does additional device initialisation based
+on the board_control device info values. Also backports the TS quirk
+flags which is used to control setup and usage of the tuner modules
+soldered on the bridge cards (e.g. CineCTv7, CineS2 V7, MaxA8 and the
+likes).
 
---
-Regards,
-Sylwester
+Functionality originates from ddbridge vendor driver. Permission for
+reuse and kernel inclusion was formally granted by Ralph Metzler
+<rjkm@metzlerbros.de>.
+
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 13 +++++++++++++
+ drivers/media/pci/ddbridge/ddbridge-regs.h |  4 ++++
+ drivers/media/pci/ddbridge/ddbridge.h      | 10 ++++++++++
+ 3 files changed, 27 insertions(+)
+
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 12f5aa3..6b49fa9 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -1763,6 +1763,19 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	ddbwritel(0xfff0f, INTERRUPT_ENABLE);
+ 	ddbwritel(0, MSI1_ENABLE);
+ 
++	/* board control */
++	if (dev->info->board_control) {
++		ddbwritel(0, DDB_LINK_TAG(0) | BOARD_CONTROL);
++		msleep(100);
++		ddbwritel(dev->info->board_control_2,
++			DDB_LINK_TAG(0) | BOARD_CONTROL);
++		usleep_range(2000, 3000);
++		ddbwritel(dev->info->board_control_2
++			| dev->info->board_control,
++			DDB_LINK_TAG(0) | BOARD_CONTROL);
++		usleep_range(2000, 3000);
++	}
++
+ 	if (ddb_i2c_init(dev) < 0)
+ 		goto fail1;
+ 	ddb_ports_init(dev);
+diff --git a/drivers/media/pci/ddbridge/ddbridge-regs.h b/drivers/media/pci/ddbridge/ddbridge-regs.h
+index 6ae8103..98cebb9 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-regs.h
++++ b/drivers/media/pci/ddbridge/ddbridge-regs.h
+@@ -34,6 +34,10 @@
+ 
+ /* ------------------------------------------------------------------------- */
+ 
++#define BOARD_CONTROL    0x30
++
++/* ------------------------------------------------------------------------- */
++
+ /* Interrupt controller                                     */
+ /* How many MSI's are available depends on HW (Min 2 max 8) */
+ /* How many are usable also depends on Host platform        */
+diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
+index 0898f60..734e18e 100644
+--- a/drivers/media/pci/ddbridge/ddbridge.h
++++ b/drivers/media/pci/ddbridge/ddbridge.h
+@@ -43,6 +43,10 @@
+ #define DDB_MAX_PORT    4
+ #define DDB_MAX_INPUT   8
+ #define DDB_MAX_OUTPUT  4
++#define DDB_MAX_LINK    4
++#define DDB_LINK_SHIFT 28
++
++#define DDB_LINK_TAG(_x) (_x << DDB_LINK_SHIFT)
+ 
+ struct ddb_info {
+ 	int   type;
+@@ -51,6 +55,12 @@ struct ddb_info {
+ 	char *name;
+ 	int   port_num;
+ 	u32   port_type[DDB_MAX_PORT];
++	u32   board_control;
++	u32   board_control_2;
++	u8    ts_quirks;
++#define TS_QUIRK_SERIAL   1
++#define TS_QUIRK_REVERSED 2
++#define TS_QUIRK_ALT_OSC  8
+ };
+ 
+ /* DMA_SIZE MUST be divisible by 188 and 128 !!! */
+-- 
+2.10.2
