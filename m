@@ -1,77 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:36454 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1165849AbdD1S0R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 14:26:17 -0400
-Date: Fri, 28 Apr 2017 20:26:11 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
-Message-ID: <20170428182611.t77hv3ufstlrntmf@earth>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
- <20170414102512.48834-2-hverkuil@xs4all.nl>
- <4355dab4-9c70-77f7-f89b-9a1cf24976cf@ti.com>
- <20170428150859.GI3780@atomide.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="unjhfg6llgi42tc2"
-Content-Disposition: inline
-In-Reply-To: <20170428150859.GI3780@atomide.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34744 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752552AbdDITih (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Apr 2017 15:38:37 -0400
+Received: by mail-wm0-f65.google.com with SMTP id x75so6393384wma.1
+        for <linux-media@vger.kernel.org>; Sun, 09 Apr 2017 12:38:36 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: aospan@netup.ru, serjk@netup.ru, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+Cc: rjkm@metzlerbros.de
+Subject: [PATCH 05/19] [media] dvb-frontends/cxd2841er: replace IFFREQ calc macros into functions
+Date: Sun,  9 Apr 2017 21:38:14 +0200
+Message-Id: <20170409193828.18458-6-d.scheller.oss@gmail.com>
+In-Reply-To: <20170409193828.18458-1-d.scheller.oss@gmail.com>
+References: <20170409193828.18458-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Daniel Scheller <d.scheller@gmx.net>
 
---unjhfg6llgi42tc2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The way the MAKE_IFFREQ_CONFIG macros are written make it impossible to
+pass regular integers for iffreq calculation, since this will cause "SSE
+register return with SSE disabled" compile errors. This changes the
+calculation into C functions which also might help when debugging. Also,
+expand all passed frequencies from MHz to Hz scale.
 
-Hi,
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/cxd2841er.c | 48 ++++++++++++++++++++-------------
+ 1 file changed, 29 insertions(+), 19 deletions(-)
 
-On Fri, Apr 28, 2017 at 08:08:59AM -0700, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [170428 04:15]:
-> > On 14/04/17 13:25, Hans Verkuil wrote:
-> > > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > >=20
-> > > The CEC pin was always pulled up, making it impossible to use it.
-> > >=20
-> > > Change to PIN_INPUT so it can be used by the new CEC support.
-> ...
->=20
-> > Reviewed-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> >=20
-> > Tony, can you queue this? It's safe to apply separately from the rest of
-> > the HDMI CEC work.
->=20
-> Sure will do.
-
-I guess the same patch should be applied to Droid 4?
-
--- Sebastian
-
---unjhfg6llgi42tc2
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlkDiUEACgkQ2O7X88g7
-+pp44xAAniaDvSTIAwPZmu/zjflyeSIbzC4je90amggXGafCpIbnq1A33VY1JmcE
-vOeB4Z9GmUi7eUS4UsnRsZzz8fAzjJSkrsEeh1cVRK7L/yRtvPb7bJ4reHQr3WWs
-R7ewN8KdEJPzuNi9TGyUfPwUG2Y95Il60FFFqMYHZog/tqyAG1GDrDt9MRd4mvVO
-cZiYskFc2Xf4Lyq0CXbUcrsPNapWmS3u73lXNzTqovEEkOuMz0ke7jX7UbXNGOOn
-fA0t0J0/2nnfyDWTpyYK0PRW0IoMD8o86lLv0aY+d7T0YJf50ueRuirzqCMv1sD7
-iT60PHUOny4nGh4wR1GXaFhrZTGz79Wjill5Zb/vWnrLRe9YF4KjsAnjKotlIPhI
-Adf5BtWKiNFF5LZK8lG211NhAkEjVcBFJZMaGPTvjNxkhgP8xXOJpDuDvA9z51L2
-JQEwqmawSmtYWznsIHFDTM/8VulcfqC3y4slDZfqu2+4sU4ThY2KIZz82nln3A5R
-/UKS3rTerN2CpTkSkpKNa/uHIrGR/+7rq2WA2R1vu/zyf28nhTI+cFnyUg34re8+
-lXVmDLGYxRsarAn81rBBFuw9K4ldcBusUKZ31IIbaDL5gG6veX3PY+k7zXtz3DU/
-4a2iH9wUwfrgkUTnnm8Qksoi+e6+2SdUNaKXmwk0eMd22YXJ7VI=
-=vt/+
------END PGP SIGNATURE-----
-
---unjhfg6llgi42tc2--
+diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+index 72a27cc..6648bd1 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.c
++++ b/drivers/media/dvb-frontends/cxd2841er.c
+@@ -201,11 +201,6 @@ static const struct cxd2841er_cnr_data s2_cn_data[] = {
+ 	{ 0x0016, 19700 }, { 0x0015, 19900 }, { 0x0014, 20000 },
+ };
+ 
+-#define MAKE_IFFREQ_CONFIG(iffreq) ((u32)(((iffreq)/41.0)*16777216.0 + 0.5))
+-#define MAKE_IFFREQ_CONFIG_XTAL(xtal, iffreq) ((xtal == SONY_XTAL_24000) ? \
+-		(u32)(((iffreq)/48.0)*16777216.0 + 0.5) : \
+-		(u32)(((iffreq)/41.0)*16777216.0 + 0.5))
+-
+ static int cxd2841er_freeze_regs(struct cxd2841er_priv *priv);
+ static int cxd2841er_unfreeze_regs(struct cxd2841er_priv *priv);
+ 
+@@ -316,6 +311,21 @@ static int cxd2841er_set_reg_bits(struct cxd2841er_priv *priv,
+ 	return cxd2841er_write_reg(priv, addr, reg, data);
+ }
+ 
++static u32 cxd2841er_calc_iffreq_xtal(enum cxd2841er_xtal xtal, u32 ifhz)
++{
++	u64 tmp;
++
++	tmp = (u64) ifhz * 16777216;
++	do_div(tmp, ((xtal == SONY_XTAL_24000) ? 48000000 : 41000000));
++
++	return (u32) tmp;
++}
++
++static u32 cxd2841er_calc_iffreq(u32 ifhz)
++{
++	return cxd2841er_calc_iffreq_xtal(SONY_XTAL_20500, ifhz);
++}
++
+ static int cxd2841er_dvbs2_set_symbol_rate(struct cxd2841er_priv *priv,
+ 					   u32 symbol_rate)
+ {
+@@ -2228,7 +2238,7 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef8bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.80);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4800000);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2256,7 +2266,7 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef7bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.20);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4200000);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2284,7 +2294,7 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef6bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.60);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2312,7 +2322,7 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef5bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.60);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2340,7 +2350,7 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef17bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.50);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3500000);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2439,7 +2449,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef8bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.80);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4800000);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2474,7 +2484,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef7bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.20);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4200000);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2509,7 +2519,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef6bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.60);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2544,7 +2554,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
+ 		cxd2841er_write_regs(priv, I2C_SLVT,
+ 				0xA6, itbCoef5bw[priv->xtal], 14);
+ 		/* <IF freq setting> */
+-		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.60);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2646,7 +2656,7 @@ static int cxd2841er_sleep_tc_to_active_i_band(
+ 				0xA6, itbCoef8bw[priv->xtal], 14);
+ 
+ 		/* IF freq setting */
+-		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.75);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4750000);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2675,7 +2685,7 @@ static int cxd2841er_sleep_tc_to_active_i_band(
+ 				0xA6, itbCoef7bw[priv->xtal], 14);
+ 
+ 		/* IF freq setting */
+-		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.15);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4150000);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2704,7 +2714,7 @@ static int cxd2841er_sleep_tc_to_active_i_band(
+ 				0xA6, itbCoef6bw[priv->xtal], 14);
+ 
+ 		/* IF freq setting */
+-		iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.55);
++		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3550000);
+ 		data[0] = (u8) ((iffreq >> 16) & 0xff);
+ 		data[1] = (u8)((iffreq >> 8) & 0xff);
+ 		data[2] = (u8)(iffreq & 0xff);
+@@ -2765,13 +2775,13 @@ static int cxd2841er_sleep_tc_to_active_c_band(struct cxd2841er_priv *priv,
+ 		cxd2841er_write_regs(
+ 			priv, I2C_SLVT, 0xa6,
+ 			bw7_8mhz_b10_a6, sizeof(bw7_8mhz_b10_a6));
+-		iffreq = MAKE_IFFREQ_CONFIG(4.9);
++		iffreq = cxd2841er_calc_iffreq(4900000);
+ 		break;
+ 	case 6000000:
+ 		cxd2841er_write_regs(
+ 			priv, I2C_SLVT, 0xa6,
+ 			bw6mhz_b10_a6, sizeof(bw6mhz_b10_a6));
+-		iffreq = MAKE_IFFREQ_CONFIG(3.7);
++		iffreq = cxd2841er_calc_iffreq(3700000);
+ 		break;
+ 	default:
+ 		dev_err(&priv->i2c->dev, "%s(): unsupported bandwidth %d\n",
+-- 
+2.10.2
