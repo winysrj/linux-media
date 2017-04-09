@@ -1,82 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:36277 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753771AbdDLTfL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Apr 2017 15:35:11 -0400
-Received: by mail-wr0-f195.google.com with SMTP id o21so5718894wrb.3
-        for <linux-media@vger.kernel.org>; Wed, 12 Apr 2017 12:35:11 -0700 (PDT)
-Subject: [PATCH v2 1/5] media: rc: meson-ir: remove irq from struct meson_ir
-From: Heiner Kallweit <hkallweit1@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sean Young <sean@mess.org>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Neil Armstrong <narmstrong@baylibre.com>
-Cc: linux-media@vger.kernel.org, linux-amlogic@lists.infradead.org
-References: <d5c18dbb-e86a-6b1c-1410-d6cc92dce711@gmail.com>
-Message-ID: <bf1c9544-8b58-6861-2ae9-00f59551c9dd@gmail.com>
-Date: Wed, 12 Apr 2017 21:28:42 +0200
-MIME-Version: 1.0
-In-Reply-To: <d5c18dbb-e86a-6b1c-1410-d6cc92dce711@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34740 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752524AbdDITig (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Apr 2017 15:38:36 -0400
+Received: by mail-wm0-f66.google.com with SMTP id x75so6393334wma.1
+        for <linux-media@vger.kernel.org>; Sun, 09 Apr 2017 12:38:35 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: aospan@netup.ru, serjk@netup.ru, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+Cc: rjkm@metzlerbros.de
+Subject: [PATCH 04/19] [media] dvb-frontends/cxd2841er: support CXD2837/38/43ER demods/Chip IDs
+Date: Sun,  9 Apr 2017 21:38:13 +0200
+Message-Id: <20170409193828.18458-5-d.scheller.oss@gmail.com>
+In-Reply-To: <20170409193828.18458-1-d.scheller.oss@gmail.com>
+References: <20170409193828.18458-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The irq number is used in the probe function only, therefore just use
-a local variable.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
-v2:
-- no changes
----
- drivers/media/rc/meson-ir.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+Those demods are programmed in the same way as the CXD2841ER/54ER and can
+be handled by this driver. Support added in a way matching the existing
+code, supported delivery systems are set according to what each demod
+supports.
 
-diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
-index 5576dbd6..a4128d7c 100644
---- a/drivers/media/rc/meson-ir.c
-+++ b/drivers/media/rc/meson-ir.c
-@@ -68,7 +68,6 @@
- struct meson_ir {
- 	void __iomem	*reg;
- 	struct rc_dev	*rc;
--	int		irq;
- 	spinlock_t	lock;
- };
- 
-@@ -112,7 +111,7 @@ static int meson_ir_probe(struct platform_device *pdev)
- 	struct resource *res;
- 	const char *map_name;
- 	struct meson_ir *ir;
--	int ret;
-+	int irq, ret;
- 
- 	ir = devm_kzalloc(dev, sizeof(struct meson_ir), GFP_KERNEL);
- 	if (!ir)
-@@ -125,10 +124,10 @@ static int meson_ir_probe(struct platform_device *pdev)
- 		return PTR_ERR(ir->reg);
+Updates the type string setting used for printing the "attaching..." log
+line aswell.
+
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/cxd2841er.c      | 24 +++++++++++++++++++++++-
+ drivers/media/dvb-frontends/cxd2841er_priv.h |  3 +++
+ 2 files changed, 26 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+index 09c25d7..72a27cc 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.c
++++ b/drivers/media/dvb-frontends/cxd2841er.c
+@@ -3733,16 +3733,39 @@ static struct dvb_frontend *cxd2841er_attach(struct cxd2841er_config *cfg,
+ 		priv->i2c_addr_slvx, priv->i2c_addr_slvt);
+ 	chip_id = cxd2841er_chip_id(priv);
+ 	switch (chip_id) {
++	case CXD2837ER_CHIP_ID:
++		snprintf(cxd2841er_t_c_ops.info.name, 128,
++				"Sony CXD2837ER DVB-T/T2/C demodulator");
++		name = "CXD2837ER";
++		type = "C/T/T2";
++		break;
++	case CXD2838ER_CHIP_ID:
++		snprintf(cxd2841er_t_c_ops.info.name, 128,
++				"Sony CXD2838ER ISDB-T demodulator");
++		cxd2841er_t_c_ops.delsys[0] = SYS_ISDBT;
++		cxd2841er_t_c_ops.delsys[1] = SYS_UNDEFINED;
++		cxd2841er_t_c_ops.delsys[2] = SYS_UNDEFINED;
++		name = "CXD2838ER";
++		type = "ISDB-T";
++		break;
+ 	case CXD2841ER_CHIP_ID:
+ 		snprintf(cxd2841er_t_c_ops.info.name, 128,
+ 				"Sony CXD2841ER DVB-T/T2/C demodulator");
+ 		name = "CXD2841ER";
++		type = "T/T2/C/ISDB-T";
++		break;
++	case CXD2843ER_CHIP_ID:
++		snprintf(cxd2841er_t_c_ops.info.name, 128,
++				"Sony CXD2843ER DVB-T/T2/C/C2 demodulator");
++		name = "CXD2843ER";
++		type = "C/C2/T/T2";
+ 		break;
+ 	case CXD2854ER_CHIP_ID:
+ 		snprintf(cxd2841er_t_c_ops.info.name, 128,
+ 				"Sony CXD2854ER DVB-T/T2/C and ISDB-T demodulator");
+ 		cxd2841er_t_c_ops.delsys[3] = SYS_ISDBT;
+ 		name = "CXD2854ER";
++		type = "C/C2/T/T2/ISDB-T";
+ 		break;
+ 	default:
+ 		dev_err(&priv->i2c->dev, "%s(): invalid chip ID 0x%02x\n",
+@@ -3762,7 +3785,6 @@ static struct dvb_frontend *cxd2841er_attach(struct cxd2841er_config *cfg,
+ 		memcpy(&priv->frontend.ops,
+ 			&cxd2841er_t_c_ops,
+ 			sizeof(struct dvb_frontend_ops));
+-		type = "T/T2/C/ISDB-T";
  	}
  
--	ir->irq = platform_get_irq(pdev, 0);
--	if (ir->irq < 0) {
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq < 0) {
- 		dev_err(dev, "no irq resource\n");
--		return ir->irq;
-+		return irq;
- 	}
+ 	dev_info(&priv->i2c->dev,
+diff --git a/drivers/media/dvb-frontends/cxd2841er_priv.h b/drivers/media/dvb-frontends/cxd2841er_priv.h
+index 0bbce45..6a71264 100644
+--- a/drivers/media/dvb-frontends/cxd2841er_priv.h
++++ b/drivers/media/dvb-frontends/cxd2841er_priv.h
+@@ -25,7 +25,10 @@
+ #define I2C_SLVX			0
+ #define I2C_SLVT			1
  
- 	ir->rc = rc_allocate_device(RC_DRIVER_IR_RAW);
-@@ -158,7 +157,7 @@ static int meson_ir_probe(struct platform_device *pdev)
- 		goto out_free;
- 	}
++#define CXD2837ER_CHIP_ID		0xb1
++#define CXD2838ER_CHIP_ID		0xb0
+ #define CXD2841ER_CHIP_ID		0xa7
++#define CXD2843ER_CHIP_ID		0xa4
+ #define CXD2854ER_CHIP_ID		0xc1
  
--	ret = devm_request_irq(dev, ir->irq, meson_ir_irq, 0, "ir-meson", ir);
-+	ret = devm_request_irq(dev, irq, meson_ir_irq, 0, "ir-meson", ir);
- 	if (ret) {
- 		dev_err(dev, "failed to request irq\n");
- 		goto out_unreg;
+ #define CXD2841ER_DVBS_POLLING_INVL	10
 -- 
-2.12.2
+2.10.2
