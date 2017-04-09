@@ -1,83 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:38245 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753505AbdDMWGe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 18:06:34 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Steve Wise <swise@opengridcomputing.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:24 -0600
-Message-Id: <1492121135-4437-12-git-send-email-logang@deltatee.com>
-In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 11/22] RDS: Make use of the new sg_map helper function
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35880 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752440AbdDITil (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Apr 2017 15:38:41 -0400
+Received: by mail-wm0-f68.google.com with SMTP id q125so6399675wmd.3
+        for <linux-media@vger.kernel.org>; Sun, 09 Apr 2017 12:38:40 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: aospan@netup.ru, serjk@netup.ru, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+Cc: rjkm@metzlerbros.de
+Subject: [PATCH 09/19] [media] dvb-frontends/cxd2841er: TS_SERIAL config flag
+Date: Sun,  9 Apr 2017 21:38:18 +0200
+Message-Id: <20170409193828.18458-10-d.scheller.oss@gmail.com>
+In-Reply-To: <20170409193828.18458-1-d.scheller.oss@gmail.com>
+References: <20170409193828.18458-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Straightforward conversion except there's no error path, so we WARN if
-the sg_map fails.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Some constellations work/need a serial TS transport mode. This adds a flag
+that will toggle set up of such mode.
+
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- net/rds/ib_recv.c | 17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ drivers/media/dvb-frontends/cxd2841er.c | 18 ++++++++++++++++--
+ drivers/media/dvb-frontends/cxd2841er.h |  5 +++--
+ 2 files changed, 19 insertions(+), 4 deletions(-)
 
-diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
-index e10624a..7f8fa99 100644
---- a/net/rds/ib_recv.c
-+++ b/net/rds/ib_recv.c
-@@ -801,9 +801,20 @@ static void rds_ib_cong_recv(struct rds_connection *conn,
- 		to_copy = min(RDS_FRAG_SIZE - frag_off, PAGE_SIZE - map_off);
- 		BUG_ON(to_copy & 7); /* Must be 64bit aligned. */
+diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+index fa6a963..1df95c4 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.c
++++ b/drivers/media/dvb-frontends/cxd2841er.c
+@@ -912,6 +912,18 @@ static void cxd2841er_set_ts_clock_mode(struct cxd2841er_priv *priv,
  
--		addr = kmap_atomic(sg_page(&frag->f_sg));
-+		addr = sg_map(&frag->f_sg, SG_KMAP_ATOMIC);
-+		if (IS_ERR(addr)) {
-+			/*
-+			 * This should really never happen unless
-+			 * the code is changed to use memory that is
-+			 * not mappable in the sg. Seeing there doesn't
-+			 * seem to be any error path out of here,
-+			 * we can only WARN.
-+			 */
-+			WARN(1, "Non-mappable memory used in sg!");
-+			return;
-+		}
+ 	/*
+ 	 * slave    Bank    Addr    Bit    default    Name
++	 * <SLV-T>  00h     C4h     [1:0]  2'b??      OSERCKMODE
++	 */
++	cxd2841er_set_reg_bits(priv, I2C_SLVT, 0xc4,
++		((priv->flags & CXD2841ER_TS_SERIAL) ? 0x01 : 0x00), 0x03);
++	/*
++	 * slave    Bank    Addr    Bit    default    Name
++	 * <SLV-T>  00h     D1h     [1:0]  2'b??      OSERDUTYMODE
++	 */
++	cxd2841er_set_reg_bits(priv, I2C_SLVT, 0xd1,
++		((priv->flags & CXD2841ER_TS_SERIAL) ? 0x01 : 0x00), 0x03);
++	/*
++	 * slave    Bank    Addr    Bit    default    Name
+ 	 * <SLV-T>  00h     D9h     [7:0]  8'h08      OTSCKPERIOD
+ 	 */
+ 	cxd2841er_write_reg(priv, I2C_SLVT, 0xd9, 0x08);
+@@ -925,7 +937,8 @@ static void cxd2841er_set_ts_clock_mode(struct cxd2841er_priv *priv,
+ 	 * slave    Bank    Addr    Bit    default    Name
+ 	 * <SLV-T>  00h     33h     [1:0]  2'b01      OREG_CKSEL_TSIF
+ 	 */
+-	cxd2841er_set_reg_bits(priv, I2C_SLVT, 0x33, 0x00, 0x03);
++	cxd2841er_set_reg_bits(priv, I2C_SLVT, 0x33,
++		((priv->flags & CXD2841ER_TS_SERIAL) ? 0x01 : 0x00), 0x03);
+ 	/*
+ 	 * Enable TS IF Clock
+ 	 * slave    Bank    Addr    Bit    default    Name
+@@ -3745,7 +3758,8 @@ static int cxd2841er_init_tc(struct dvb_frontend *fe)
+ 	cxd2841er_write_reg(priv, I2C_SLVT, 0xcd, 0x50);
+ 	/* SONY_DEMOD_CONFIG_PARALLEL_SEL = 1 */
+ 	cxd2841er_write_reg(priv, I2C_SLVT, 0x00, 0x00);
+-	cxd2841er_set_reg_bits(priv, I2C_SLVT, 0xc4, 0x00, 0x80);
++	cxd2841er_set_reg_bits(priv, I2C_SLVT, 0xc4,
++		((priv->flags & CXD2841ER_TS_SERIAL) ? 0x80 : 0x00), 0x80);
  
--		src = addr + frag->f_sg.offset + frag_off;
-+		src = addr + frag_off;
- 		dst = (void *)map->m_page_addrs[map_page] + map_off;
- 		for (k = 0; k < to_copy; k += 8) {
- 			/* Record ports that became uncongested, ie
-@@ -811,7 +822,7 @@ static void rds_ib_cong_recv(struct rds_connection *conn,
- 			uncongested |= ~(*src) & *dst;
- 			*dst++ = *src++;
- 		}
--		kunmap_atomic(addr);
-+		sg_unmap(&frag->f_sg, addr, SG_KMAP_ATOMIC);
+ 	cxd2841er_init_stats(fe);
  
- 		copied += to_copy;
+diff --git a/drivers/media/dvb-frontends/cxd2841er.h b/drivers/media/dvb-frontends/cxd2841er.h
+index 38d7f9f..58fbd98 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.h
++++ b/drivers/media/dvb-frontends/cxd2841er.h
+@@ -24,8 +24,9 @@
  
+ #include <linux/dvb/frontend.h>
+ 
+-#define CXD2841ER_USE_GATECTRL	1
+-#define CXD2841ER_AUTO_IFHZ	2
++#define CXD2841ER_USE_GATECTRL	1	/* bit 0 */
++#define CXD2841ER_AUTO_IFHZ	2	/* bit 1 */
++#define CXD2841ER_TS_SERIAL	4	/* bit 2 */
+ 
+ enum cxd2841er_xtal {
+ 	SONY_XTAL_20500, /* 20.5 MHz */
 -- 
-2.1.4
+2.10.2
