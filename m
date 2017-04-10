@@ -1,526 +1,605 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:14729 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753205AbdDJNDd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 09:03:33 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:52172 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752776AbdDJT1Q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Apr 2017 15:27:16 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [PATCH v3 1/7] v4l: fwnode: Support generic fwnode for parsing standardised properties
-Date: Mon, 10 Apr 2017 16:02:50 +0300
-Message-Id: <1491829376-14791-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCHv4 10/15] v4l: vsp1: Add HGT support
+Date: Mon, 10 Apr 2017 21:26:46 +0200
+Message-Id: <20170410192651.18486-11-hverkuil@xs4all.nl>
+In-Reply-To: <20170410192651.18486-1-hverkuil@xs4all.nl>
+References: <20170410192651.18486-1-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The fwnode_handle is a more generic way than OF device_node to describe
-firmware nodes. Instead of the OF API, use more generic fwnode API to
-obtain the same information.
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-As the V4L2 fwnode support will be required by a small minority of e.g.
-ACPI based systems (the same might actually go for OF), make this a module
-instead of embedding it in the videodev module.
+The HGT is a Histogram Generator Two-Dimensions. It computes a weighted
+frequency histograms for hue and saturation areas over a configurable
+region of the image with optional subsampling.
 
-The origins of the V4L2 fwnode framework is in the V4L2 OF framework.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/v4l2-core/Kconfig       |   3 +
- drivers/media/v4l2-core/Makefile      |   1 +
- drivers/media/v4l2-core/v4l2-fwnode.c | 345 ++++++++++++++++++++++++++++++++++
- include/media/v4l2-fwnode.h           | 104 ++++++++++
- 4 files changed, 453 insertions(+)
- create mode 100644 drivers/media/v4l2-core/v4l2-fwnode.c
- create mode 100644 include/media/v4l2-fwnode.h
+ drivers/media/platform/vsp1/Makefile      |   2 +-
+ drivers/media/platform/vsp1/vsp1.h        |   3 +
+ drivers/media/platform/vsp1/vsp1_drv.c    |  32 ++++-
+ drivers/media/platform/vsp1/vsp1_entity.c |  14 ++
+ drivers/media/platform/vsp1/vsp1_hgt.c    | 222 ++++++++++++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_hgt.h    |  42 ++++++
+ drivers/media/platform/vsp1/vsp1_pipe.c   |  16 +++
+ drivers/media/platform/vsp1/vsp1_pipe.h   |   2 +
+ drivers/media/platform/vsp1/vsp1_regs.h   |   9 ++
+ drivers/media/platform/vsp1/vsp1_video.c  |   6 +
+ 10 files changed, 343 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.h
 
-diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-index 6b1b78f..a35c336 100644
---- a/drivers/media/v4l2-core/Kconfig
-+++ b/drivers/media/v4l2-core/Kconfig
-@@ -55,6 +55,9 @@ config V4L2_FLASH_LED_CLASS
+diff --git a/drivers/media/platform/vsp1/Makefile b/drivers/media/platform/vsp1/Makefile
+index 8ab6a063569e..a33afc385a48 100644
+--- a/drivers/media/platform/vsp1/Makefile
++++ b/drivers/media/platform/vsp1/Makefile
+@@ -3,7 +3,7 @@ vsp1-y					+= vsp1_dl.o vsp1_drm.o vsp1_video.o
+ vsp1-y					+= vsp1_rpf.o vsp1_rwpf.o vsp1_wpf.o
+ vsp1-y					+= vsp1_clu.o vsp1_hsit.o vsp1_lut.o
+ vsp1-y					+= vsp1_bru.o vsp1_sru.o vsp1_uds.o
+-vsp1-y					+= vsp1_hgo.o vsp1_histo.o
++vsp1-y					+= vsp1_hgo.o vsp1_hgt.o vsp1_histo.o
+ vsp1-y					+= vsp1_lif.o
  
- 	  When in doubt, say N.
+ obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1.o
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index 0ba7521c01b4..85387a64179a 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -33,6 +33,7 @@ struct vsp1_platform_data;
+ struct vsp1_bru;
+ struct vsp1_clu;
+ struct vsp1_hgo;
++struct vsp1_hgt;
+ struct vsp1_hsit;
+ struct vsp1_lif;
+ struct vsp1_lut;
+@@ -52,6 +53,7 @@ struct vsp1_uds;
+ #define VSP1_HAS_WPF_VFLIP	(1 << 5)
+ #define VSP1_HAS_WPF_HFLIP	(1 << 6)
+ #define VSP1_HAS_HGO		(1 << 7)
++#define VSP1_HAS_HGT		(1 << 8)
  
-+config V4L2_FWNODE
-+	tristate
+ struct vsp1_device_info {
+ 	u32 version;
+@@ -76,6 +78,7 @@ struct vsp1_device {
+ 	struct vsp1_bru *bru;
+ 	struct vsp1_clu *clu;
+ 	struct vsp1_hgo *hgo;
++	struct vsp1_hgt *hgt;
+ 	struct vsp1_hsit *hsi;
+ 	struct vsp1_hsit *hst;
+ 	struct vsp1_lif *lif;
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 0acc8ed6ac59..048446af5ae7 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -31,6 +31,7 @@
+ #include "vsp1_dl.h"
+ #include "vsp1_drm.h"
+ #include "vsp1_hgo.h"
++#include "vsp1_hgt.h"
+ #include "vsp1_hsit.h"
+ #include "vsp1_lif.h"
+ #include "vsp1_lut.h"
+@@ -161,6 +162,16 @@ static int vsp1_uapi_create_links(struct vsp1_device *vsp1)
+ 			return ret;
+ 	}
+ 
++	if (vsp1->hgt) {
++		ret = media_create_pad_link(&vsp1->hgt->histo.entity.subdev.entity,
++					    HISTO_PAD_SOURCE,
++					    &vsp1->hgt->histo.video.entity, 0,
++					    MEDIA_LNK_FL_ENABLED |
++					    MEDIA_LNK_FL_IMMUTABLE);
++		if (ret < 0)
++			return ret;
++	}
 +
- # Used by drivers that need Videobuf modules
- config VIDEOBUF_GEN
- 	tristate
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index 795a535..cf77a63 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -13,6 +13,7 @@ endif
- ifeq ($(CONFIG_OF),y)
-   videodev-objs += v4l2-of.o
- endif
-+obj-$(CONFIG_V4L2_FWNODE) += v4l2-fwnode.o
- ifeq ($(CONFIG_TRACEPOINTS),y)
-   videodev-objs += vb2-trace.o v4l2-trace.o
- endif
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+ 	if (vsp1->lif) {
+ 		ret = media_create_pad_link(&vsp1->wpf[0]->entity.subdev.entity,
+ 					    RWPF_PAD_SOURCE,
+@@ -305,6 +316,17 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 			      &vsp1->entities);
+ 	}
+ 
++	if (vsp1->info->features & VSP1_HAS_HGT && vsp1->info->uapi) {
++		vsp1->hgt = vsp1_hgt_create(vsp1);
++		if (IS_ERR(vsp1->hgt)) {
++			ret = PTR_ERR(vsp1->hgt);
++			goto done;
++		}
++
++		list_add_tail(&vsp1->hgt->histo.entity.list_dev,
++			      &vsp1->entities);
++	}
++
+ 	/*
+ 	 * The LIF is only supported when used in conjunction with the DU, in
+ 	 * which case the userspace API is disabled. If the userspace API is
+@@ -591,7 +613,8 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ 		.model = "VSP1-S",
+ 		.gen = 2,
+ 		.features = VSP1_HAS_BRU | VSP1_HAS_CLU | VSP1_HAS_HGO
+-			  | VSP1_HAS_LUT | VSP1_HAS_SRU | VSP1_HAS_WPF_VFLIP,
++			  | VSP1_HAS_HGT | VSP1_HAS_LUT | VSP1_HAS_SRU
++			  | VSP1_HAS_WPF_VFLIP,
+ 		.rpf_count = 5,
+ 		.uds_count = 3,
+ 		.wpf_count = 4,
+@@ -623,7 +646,8 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ 		.model = "VSP1-S",
+ 		.gen = 2,
+ 		.features = VSP1_HAS_BRU | VSP1_HAS_CLU | VSP1_HAS_HGO
+-			  | VSP1_HAS_LUT | VSP1_HAS_SRU | VSP1_HAS_WPF_VFLIP,
++			  | VSP1_HAS_HGT | VSP1_HAS_LUT | VSP1_HAS_SRU
++			  | VSP1_HAS_WPF_VFLIP,
+ 		.rpf_count = 5,
+ 		.uds_count = 1,
+ 		.wpf_count = 4,
+@@ -655,8 +679,8 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ 		.version = VI6_IP_VERSION_MODEL_VSPI_GEN3,
+ 		.model = "VSP2-I",
+ 		.gen = 3,
+-		.features = VSP1_HAS_CLU | VSP1_HAS_HGO | VSP1_HAS_LUT
+-			  | VSP1_HAS_SRU | VSP1_HAS_WPF_HFLIP
++		.features = VSP1_HAS_CLU | VSP1_HAS_HGO | VSP1_HAS_HGT
++			  | VSP1_HAS_LUT | VSP1_HAS_SRU | VSP1_HAS_WPF_HFLIP
+ 			  | VSP1_HAS_WPF_VFLIP,
+ 		.rpf_count = 1,
+ 		.uds_count = 1,
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index c1587e3f01cb..4bdb3b141611 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -50,6 +50,19 @@ void vsp1_entity_route_setup(struct vsp1_entity *entity,
+ 
+ 		vsp1_dl_list_write(dl, VI6_DPR_HGO_SMPPT, smppt);
+ 		return;
++	} else if (entity->type == VSP1_ENTITY_HGT) {
++		u32 smppt;
++
++		/*
++		 * The HGT is a special case, its routing is configured on the
++		 * sink pad.
++		 */
++		source = media_entity_to_vsp1_entity(entity->sources[0]);
++		smppt = (pipe->output->entity.index << VI6_DPR_SMPPT_TGW_SHIFT)
++		      | (source->route->output << VI6_DPR_SMPPT_PT_SHIFT);
++
++		vsp1_dl_list_write(dl, VI6_DPR_HGT_SMPPT, smppt);
++		return;
+ 	}
+ 
+ 	source = entity;
+@@ -443,6 +456,7 @@ static const struct vsp1_route vsp1_routes[] = {
+ 	    VI6_DPR_NODE_BRU_IN(4) }, VI6_DPR_NODE_BRU_OUT },
+ 	VSP1_ENTITY_ROUTE(CLU),
+ 	{ VSP1_ENTITY_HGO, 0, 0, { 0, }, 0 },
++	{ VSP1_ENTITY_HGT, 0, 0, { 0, }, 0 },
+ 	VSP1_ENTITY_ROUTE(HSI),
+ 	VSP1_ENTITY_ROUTE(HST),
+ 	{ VSP1_ENTITY_LIF, 0, 0, { VI6_DPR_NODE_LIF, }, VI6_DPR_NODE_LIF },
+diff --git a/drivers/media/platform/vsp1/vsp1_hgt.c b/drivers/media/platform/vsp1/vsp1_hgt.c
 new file mode 100644
-index 0000000..153c53c
+index 000000000000..b5ce305e3e6f
 --- /dev/null
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -0,0 +1,345 @@
++++ b/drivers/media/platform/vsp1/vsp1_hgt.c
+@@ -0,0 +1,222 @@
 +/*
-+ * V4L2 fwnode binding parsing library
++ * vsp1_hgt.c  --  R-Car VSP1 Histogram Generator 2D
 + *
-+ * The origins of the V4L2 fwnode library are in V4L2 OF library that
-+ * formerly was located in v4l2-of.c.
++ * Copyright (C) 2016 Renesas Electronics Corporation
 + *
-+ * Copyright (c) 2016 Intel Corporation.
-+ * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-+ *
-+ * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
-+ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-+ *
-+ * Copyright (C) 2012 Renesas Electronics Corp.
-+ * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ * Contact: Niklas Söderlund (niklas.soderlund@ragnatech.se)
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + */
-+#include <linux/acpi.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/property.h>
-+#include <linux/slab.h>
-+#include <linux/string.h>
-+#include <linux/types.h>
 +
-+#include <media/v4l2-fwnode.h>
++#include <linux/device.h>
++#include <linux/gfp.h>
 +
-+static int v4l2_fwnode_endpoint_parse_csi_bus(struct fwnode_handle *fwnode,
-+					      struct v4l2_fwnode_endpoint *vep)
++#include <media/v4l2-subdev.h>
++#include <media/videobuf2-vmalloc.h>
++
++#include "vsp1.h"
++#include "vsp1_dl.h"
++#include "vsp1_hgt.h"
++
++#define HGT_DATA_SIZE				((2 +  6 * 32) * 4)
++
++/* -----------------------------------------------------------------------------
++ * Device Access
++ */
++
++static inline u32 vsp1_hgt_read(struct vsp1_hgt *hgt, u32 reg)
 +{
-+	struct v4l2_fwnode_bus_mipi_csi2 *bus = &vep->bus.mipi_csi2;
-+	bool have_clk_lane = false;
-+	unsigned int flags = 0, lanes_used = 0;
-+	unsigned int i;
-+	u32 v;
-+	int rval;
-+
-+	rval = fwnode_property_read_u32_array(fwnode, "data-lanes", NULL, 0);
-+	if (rval > 0) {
-+		u32 array[ARRAY_SIZE(bus->data_lanes)];
-+
-+		bus->num_data_lanes =
-+			min_t(int, ARRAY_SIZE(bus->data_lanes), rval);
-+
-+		fwnode_property_read_u32_array(fwnode, "data-lanes", array,
-+					       bus->num_data_lanes);
-+
-+		for (i = 0; i < bus->num_data_lanes; i++) {
-+			if (lanes_used & BIT(array[i]))
-+				pr_warn("duplicated lane %u in data-lanes\n",
-+					array[i]);
-+			lanes_used |= BIT(array[i]);
-+
-+			bus->data_lanes[i] = array[i];
-+		}
-+	}
-+
-+	rval = fwnode_property_read_u32_array(fwnode, "lane-polarities", NULL,
-+					      0);
-+	if (rval > 0) {
-+		u32 array[ARRAY_SIZE(bus->lane_polarities)];
-+
-+		if (rval < 1 + bus->num_data_lanes /* clock + data */) {
-+			pr_warn("too few lane-polarities entries (need %u, got %u)\n",
-+				1 + bus->num_data_lanes, rval);
-+			return -EINVAL;
-+		}
-+
-+		fwnode_property_read_u32_array(fwnode, "lane-polarities", array,
-+					       1 + bus->num_data_lanes);
-+
-+		for (i = 0; i < 1 + bus->num_data_lanes; i++)
-+			bus->lane_polarities[i] = array[i];
-+	}
-+
-+	if (!fwnode_property_read_u32(fwnode, "clock-lanes", &v)) {
-+		if (lanes_used & BIT(v))
-+			pr_warn("duplicated lane %u in clock-lanes\n", v);
-+		lanes_used |= BIT(v);
-+
-+		bus->clock_lane = v;
-+		have_clk_lane = true;
-+	}
-+
-+	if (fwnode_property_present(fwnode, "clock-noncontinuous"))
-+		flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
-+	else if (have_clk_lane || bus->num_data_lanes > 0)
-+		flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-+
-+	bus->flags = flags;
-+	vep->bus_type = V4L2_MBUS_CSI2;
-+
-+	return 0;
++	return vsp1_read(hgt->histo.entity.vsp1, reg);
 +}
 +
-+static void v4l2_fwnode_endpoint_parse_parallel_bus(
-+	struct fwnode_handle *fwnode, struct v4l2_fwnode_endpoint *vep)
++static inline void vsp1_hgt_write(struct vsp1_hgt *hgt, struct vsp1_dl_list *dl,
++				  u32 reg, u32 data)
 +{
-+	struct v4l2_fwnode_bus_parallel *bus = &vep->bus.parallel;
-+	unsigned int flags = 0;
-+	u32 v;
-+
-+	if (!fwnode_property_read_u32(fwnode, "hsync-active", &v))
-+		flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
-+			V4L2_MBUS_HSYNC_ACTIVE_LOW;
-+
-+	if (!fwnode_property_read_u32(fwnode, "vsync-active", &v))
-+		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
-+			V4L2_MBUS_VSYNC_ACTIVE_LOW;
-+
-+	if (!fwnode_property_read_u32(fwnode, "field-even-active", &v))
-+		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
-+			V4L2_MBUS_FIELD_EVEN_LOW;
-+	if (flags)
-+		vep->bus_type = V4L2_MBUS_PARALLEL;
-+	else
-+		vep->bus_type = V4L2_MBUS_BT656;
-+
-+	if (!fwnode_property_read_u32(fwnode, "pclk-sample", &v))
-+		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
-+			V4L2_MBUS_PCLK_SAMPLE_FALLING;
-+
-+	if (!fwnode_property_read_u32(fwnode, "data-active", &v))
-+		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
-+			V4L2_MBUS_DATA_ACTIVE_LOW;
-+
-+	if (fwnode_property_present(fwnode, "slave-mode"))
-+		flags |= V4L2_MBUS_SLAVE;
-+	else
-+		flags |= V4L2_MBUS_MASTER;
-+
-+	if (!fwnode_property_read_u32(fwnode, "bus-width", &v))
-+		bus->bus_width = v;
-+
-+	if (!fwnode_property_read_u32(fwnode, "data-shift", &v))
-+		bus->data_shift = v;
-+
-+	if (!fwnode_property_read_u32(fwnode, "sync-on-green-active", &v))
-+		flags |= v ? V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH :
-+			V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW;
-+
-+	bus->flags = flags;
-+
++	vsp1_dl_list_write(dl, reg, data);
 +}
 +
-+/**
-+ * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
-+ * @fwnode: pointer to the endpoint's fwnode handle
-+ * @vep: pointer to the V4L2 fwnode data structure
-+ *
-+ * All properties are optional. If none are found, we don't set any flags. This
-+ * means the port has a static configuration and no properties have to be
-+ * specified explicitly. If any properties that identify the bus as parallel
-+ * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-+ * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-+ * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-+ * reference to @fwnode.
-+ *
-+ * NOTE: This function does not parse properties the size of which is variable
-+ * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in
-+ * new drivers instead.
-+ *
-+ * Return: 0 on success or a negative error code on failure.
++/* -----------------------------------------------------------------------------
++ * Frame End Handler
 + */
-+int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
-+			       struct v4l2_fwnode_endpoint *vep)
++
++void vsp1_hgt_frame_end(struct vsp1_entity *entity)
 +{
-+	int rval;
++	struct vsp1_hgt *hgt = to_hgt(&entity->subdev);
++	struct vsp1_histogram_buffer *buf;
++	unsigned int m;
++	unsigned int n;
++	u32 *data;
 +
-+	fwnode_graph_parse_endpoint(fwnode, &vep->base);
-+
-+	/* Zero fields from bus_type to until the end */
-+	memset(&vep->bus_type, 0, sizeof(*vep) -
-+	       offsetof(typeof(*vep), bus_type));
-+
-+	rval = v4l2_fwnode_endpoint_parse_csi_bus(fwnode, vep);
-+	if (rval)
-+		return rval;
-+	/*
-+	 * Parse the parallel video bus properties only if none
-+	 * of the MIPI CSI-2 specific properties were found.
-+	 */
-+	if (vep->bus.mipi_csi2.flags == 0)
-+		v4l2_fwnode_endpoint_parse_parallel_bus(fwnode, vep);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_parse);
-+
-+/*
-+ * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-+ * v4l2_fwnode_endpoint_alloc_parse()
-+ * @vep - the V4L2 fwnode the resources of which are to be released
-+ *
-+ * It is safe to call this function with NULL argument or on a V4L2 fwnode the
-+ * parsing of which failed.
-+ */
-+void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
-+{
-+	if (IS_ERR_OR_NULL(vep))
++	buf = vsp1_histogram_buffer_get(&hgt->histo);
++	if (!buf)
 +		return;
 +
-+	kfree(vep->link_frequencies);
-+	kfree(vep);
++	data = buf->addr;
++
++	*data++ = vsp1_hgt_read(hgt, VI6_HGT_MAXMIN);
++	*data++ = vsp1_hgt_read(hgt, VI6_HGT_SUM);
++
++	for (m = 0; m < 6; ++m)
++		for (n = 0; n < 32; ++n)
++			*data++ = vsp1_hgt_read(hgt, VI6_HGT_HISTO(m, n));
++
++	vsp1_histogram_buffer_complete(&hgt->histo, buf, HGT_DATA_SIZE);
 +}
-+EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_free);
 +
-+/**
-+ * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
-+ * @fwnode: pointer to the endpoint's fwnode handle
-+ *
-+ * All properties are optional. If none are found, we don't set any flags. This
-+ * means the port has a static configuration and no properties have to be
-+ * specified explicitly. If any properties that identify the bus as parallel
-+ * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-+ * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-+ * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-+ * reference to @fwnode.
-+ *
-+ * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
-+ * v4l2_fwnode_endpoint_parse():
-+ *
-+ * 1. It also parses variable size data.
-+ *
-+ * 2. The memory it has allocated to store the variable size data must be freed
-+ *    using v4l2_fwnode_endpoint_free() when no longer needed.
-+ *
-+ * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error pointer
-+ * on error.
++/* -----------------------------------------------------------------------------
++ * Controls
 + */
-+struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
-+	struct fwnode_handle *fwnode)
++
++#define V4L2_CID_VSP1_HGT_HUE_AREAS	(V4L2_CID_USER_BASE | 0x1001)
++
++static int hgt_hue_areas_try_ctrl(struct v4l2_ctrl *ctrl)
 +{
-+	struct v4l2_fwnode_endpoint *vep;
-+	int rval;
++	const u8 *values = ctrl->p_new.p_u8;
++	unsigned int i;
 +
-+	vep = kzalloc(sizeof(*vep), GFP_KERNEL);
-+	if (!vep)
-+		return ERR_PTR(-ENOMEM);
-+
-+	rval = v4l2_fwnode_endpoint_parse(fwnode, vep);
-+	if (rval < 0)
-+		goto out_err;
-+
-+	rval = fwnode_property_read_u64_array(fwnode, "link-frequencies",
-+					      NULL, 0);
-+	if (rval < 0)
-+		goto out_err;
-+
-+	vep->link_frequencies =
-+		kmalloc_array(rval, sizeof(*vep->link_frequencies), GFP_KERNEL);
-+	if (!vep->link_frequencies) {
-+		rval = -ENOMEM;
-+		goto out_err;
++	/*
++	 * The hardware has constraints on the hue area boundaries beyond the
++	 * control min, max and step. The values must match one of the following
++	 * expressions.
++	 *
++	 * 0L <= 0U <= 1L <= 1U <= 2L <= 2U <= 3L <= 3U <= 4L <= 4U <= 5L <= 5U
++	 * 0U <= 1L <= 1U <= 2L <= 2U <= 3L <= 3U <= 4L <= 4U <= 5L <= 5U <= 0L
++	 *
++	 * Start by verifying the common part...
++	 */
++	for (i = 1; i < (HGT_NUM_HUE_AREAS * 2) - 1; ++i) {
++		if (values[i] > values[i+1])
++			return -EINVAL;
 +	}
 +
-+	vep->nr_of_link_frequencies = rval;
-+
-+	rval = fwnode_property_read_u64_array(fwnode, "link-frequencies",
-+					      vep->link_frequencies,
-+					      vep->nr_of_link_frequencies);
-+	if (rval < 0)
-+		goto out_err;
-+
-+	return vep;
-+
-+out_err:
-+	v4l2_fwnode_endpoint_free(vep);
-+	return ERR_PTR(rval);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_alloc_parse);
-+
-+/**
-+ * v4l2_fwnode_endpoint_parse_link() - parse a link between two endpoints
-+ * @__fwnode: pointer to the endpoint's fwnode at the local end of the link
-+ * @link: pointer to the V4L2 fwnode link data structure
-+ *
-+ * Fill the link structure with the local and remote nodes and port numbers.
-+ * The local_node and remote_node fields are set to point to the local and
-+ * remote port's parent nodes respectively (the port parent node being the
-+ * parent node of the port node if that node isn't a 'ports' node, or the
-+ * grand-parent node of the port node otherwise).
-+ *
-+ * A reference is taken to both the local and remote nodes, the caller must use
-+ * v4l2_fwnode_endpoint_put_link() to drop the references when done with the
-+ * link.
-+ *
-+ * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't be
-+ * found.
-+ */
-+int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
-+			   struct v4l2_fwnode_link *link)
-+{
-+	const char *port_prop = is_of_node(__fwnode) ? "reg" : "port";
-+	struct fwnode_handle *fwnode;
-+
-+	memset(link, 0, sizeof(*link));
-+
-+	fwnode = fwnode_get_parent(__fwnode);
-+	fwnode_property_read_u32(fwnode, port_prop, &link->local_port);
-+	fwnode = fwnode_get_next_parent(fwnode);
-+	if (is_of_node(fwnode) &&
-+	    of_node_cmp(to_of_node(fwnode)->name, "ports") == 0)
-+		fwnode = fwnode_get_next_parent(fwnode);
-+	link->local_node = fwnode;
-+
-+	fwnode = fwnode_graph_get_remote_endpoint(__fwnode);
-+	if (!fwnode) {
-+		fwnode_handle_put(fwnode);
-+		return -ENOLINK;
-+	}
-+
-+	fwnode = fwnode_get_parent(fwnode);
-+	fwnode_property_read_u32(fwnode, port_prop, &link->remote_port);
-+	fwnode = fwnode_get_next_parent(fwnode);
-+	if (is_of_node(fwnode) &&
-+	    of_node_cmp(to_of_node(fwnode)->name, "ports") == 0)
-+		fwnode = fwnode_get_next_parent(fwnode);
-+	link->remote_node = fwnode;
++	/* ... and handle 0L separately. */
++	if (values[0] > values[1] && values[11] > values[0])
++		return -EINVAL;
 +
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(v4l2_fwnode_parse_link);
 +
-+/**
-+ * v4l2_fwnode_put_link() - drop references to nodes in a link
-+ * @link: pointer to the V4L2 fwnode link data structure
-+ *
-+ * Drop references to the local and remote nodes in the link. This function
-+ * must be called on every link parsed with v4l2_fwnode_parse_link().
-+ */
-+void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
++static int hgt_hue_areas_s_ctrl(struct v4l2_ctrl *ctrl)
 +{
-+	fwnode_handle_put(link->local_node);
-+	fwnode_handle_put(link->remote_node);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_fwnode_put_link);
++	struct vsp1_hgt *hgt = container_of(ctrl->handler, struct vsp1_hgt,
++					    ctrls);
 +
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
-+MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-+MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
++	memcpy(hgt->hue_areas, ctrl->p_new.p_u8, sizeof(hgt->hue_areas));
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops hgt_hue_areas_ctrl_ops = {
++	.try_ctrl = hgt_hue_areas_try_ctrl,
++	.s_ctrl = hgt_hue_areas_s_ctrl,
++};
++
++static const struct v4l2_ctrl_config hgt_hue_areas = {
++	.ops = &hgt_hue_areas_ctrl_ops,
++	.id = V4L2_CID_VSP1_HGT_HUE_AREAS,
++	.name = "Boundary Values for Hue Area",
++	.type = V4L2_CTRL_TYPE_U8,
++	.min = 0,
++	.max = 255,
++	.def = 0,
++	.step = 1,
++	.dims = { 12 },
++};
++
++/* -----------------------------------------------------------------------------
++ * VSP1 Entity Operations
++ */
++
++static void hgt_configure(struct vsp1_entity *entity,
++			  struct vsp1_pipeline *pipe,
++			  struct vsp1_dl_list *dl,
++			  enum vsp1_entity_params params)
++{
++	struct vsp1_hgt *hgt = to_hgt(&entity->subdev);
++	struct v4l2_rect *compose;
++	struct v4l2_rect *crop;
++	unsigned int hratio;
++	unsigned int vratio;
++	u8 lower;
++	u8 upper;
++	unsigned int i;
++
++	if (params != VSP1_ENTITY_PARAMS_INIT)
++		return;
++
++	crop = vsp1_entity_get_pad_selection(entity, entity->config,
++					     HISTO_PAD_SINK, V4L2_SEL_TGT_CROP);
++	compose = vsp1_entity_get_pad_selection(entity, entity->config,
++						HISTO_PAD_SINK,
++						V4L2_SEL_TGT_COMPOSE);
++
++	vsp1_hgt_write(hgt, dl, VI6_HGT_REGRST, VI6_HGT_REGRST_RCLEA);
++
++	vsp1_hgt_write(hgt, dl, VI6_HGT_OFFSET,
++		       (crop->left << VI6_HGT_OFFSET_HOFFSET_SHIFT) |
++		       (crop->top << VI6_HGT_OFFSET_VOFFSET_SHIFT));
++	vsp1_hgt_write(hgt, dl, VI6_HGT_SIZE,
++		       (crop->width << VI6_HGT_SIZE_HSIZE_SHIFT) |
++		       (crop->height << VI6_HGT_SIZE_VSIZE_SHIFT));
++
++	mutex_lock(hgt->ctrls.lock);
++	for (i = 0; i < HGT_NUM_HUE_AREAS; ++i) {
++		lower = hgt->hue_areas[i*2 + 0];
++		upper = hgt->hue_areas[i*2 + 1];
++		vsp1_hgt_write(hgt, dl, VI6_HGT_HUE_AREA(i),
++			       (lower << VI6_HGT_HUE_AREA_LOWER_SHIFT) |
++			       (upper << VI6_HGT_HUE_AREA_UPPER_SHIFT));
++	}
++	mutex_unlock(hgt->ctrls.lock);
++
++	hratio = crop->width * 2 / compose->width / 3;
++	vratio = crop->height * 2 / compose->height / 3;
++	vsp1_hgt_write(hgt, dl, VI6_HGT_MODE,
++		       (hratio << VI6_HGT_MODE_HRATIO_SHIFT) |
++		       (vratio << VI6_HGT_MODE_VRATIO_SHIFT));
++}
++
++static const struct vsp1_entity_operations hgt_entity_ops = {
++	.configure = hgt_configure,
++	.destroy = vsp1_histogram_destroy,
++};
++
++/* -----------------------------------------------------------------------------
++ * Initialization and Cleanup
++ */
++
++static const unsigned int hgt_mbus_formats[] = {
++	MEDIA_BUS_FMT_AHSV8888_1X32,
++};
++
++struct vsp1_hgt *vsp1_hgt_create(struct vsp1_device *vsp1)
++{
++	struct vsp1_hgt *hgt;
++	int ret;
++
++	hgt = devm_kzalloc(vsp1->dev, sizeof(*hgt), GFP_KERNEL);
++	if (hgt == NULL)
++		return ERR_PTR(-ENOMEM);
++
++	/* Initialize the control handler. */
++	v4l2_ctrl_handler_init(&hgt->ctrls, 1);
++	v4l2_ctrl_new_custom(&hgt->ctrls, &hgt_hue_areas, NULL);
++
++	hgt->histo.entity.subdev.ctrl_handler = &hgt->ctrls;
++
++	/* Initialize the video device and queue for statistics data. */
++	ret = vsp1_histogram_init(vsp1, &hgt->histo, VSP1_ENTITY_HGT, "hgt",
++				  &hgt_entity_ops, hgt_mbus_formats,
++				  ARRAY_SIZE(hgt_mbus_formats),
++				  HGT_DATA_SIZE, V4L2_META_FMT_VSP1_HGT);
++	if (ret < 0) {
++		vsp1_entity_destroy(&hgt->histo.entity);
++		return ERR_PTR(ret);
++	}
++
++	v4l2_ctrl_handler_setup(&hgt->ctrls);
++
++	return hgt;
++}
+diff --git a/drivers/media/platform/vsp1/vsp1_hgt.h b/drivers/media/platform/vsp1/vsp1_hgt.h
 new file mode 100644
-index 0000000..ecc1233
+index 000000000000..83f2e130942a
 --- /dev/null
-+++ b/include/media/v4l2-fwnode.h
-@@ -0,0 +1,104 @@
++++ b/drivers/media/platform/vsp1/vsp1_hgt.h
+@@ -0,0 +1,42 @@
 +/*
-+ * V4L2 fwnode binding parsing library
++ * vsp1_hgt.h  --  R-Car VSP1 Histogram Generator 2D
 + *
-+ * Copyright (c) 2016 Intel Corporation.
-+ * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
++ * Copyright (C) 2016 Renesas Electronics Corporation
 + *
-+ * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
-+ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-+ *
-+ * Copyright (C) 2012 Renesas Electronics Corp.
-+ * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ * Contact: Niklas Söderlund (niklas.soderlund@ragnatech.se)
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + */
-+#ifndef _V4L2_FWNODE_H
-+#define _V4L2_FWNODE_H
++#ifndef __VSP1_HGT_H__
++#define __VSP1_HGT_H__
 +
-+#include <linux/errno.h>
-+#include <linux/fwnode.h>
-+#include <linux/list.h>
-+#include <linux/types.h>
++#include <media/media-entity.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-subdev.h>
 +
-+#include <media/v4l2-mediabus.h>
++#include "vsp1_histo.h"
 +
-+struct fwnode_handle;
++struct vsp1_device;
 +
-+/**
-+ * struct v4l2_fwnode_bus_mipi_csi2 - MIPI CSI-2 bus data structure
-+ * @flags: media bus (V4L2_MBUS_*) flags
-+ * @data_lanes: an array of physical data lane indexes
-+ * @clock_lane: physical lane index of the clock lane
-+ * @num_data_lanes: number of data lanes
-+ * @lane_polarities: polarity of the lanes. The order is the same of
-+ *		   the physical lanes.
-+ */
-+struct v4l2_fwnode_bus_mipi_csi2 {
-+	unsigned int flags;
-+	unsigned char data_lanes[4];
-+	unsigned char clock_lane;
-+	unsigned short num_data_lanes;
-+	bool lane_polarities[5];
++#define HGT_NUM_HUE_AREAS			6
++
++struct vsp1_hgt {
++	struct vsp1_histogram histo;
++
++	struct v4l2_ctrl_handler ctrls;
++
++	u8 hue_areas[HGT_NUM_HUE_AREAS * 2];
 +};
 +
-+/**
-+ * struct v4l2_fwnode_bus_parallel - parallel data bus data structure
-+ * @flags: media bus (V4L2_MBUS_*) flags
-+ * @bus_width: bus width in bits
-+ * @data_shift: data shift in bits
-+ */
-+struct v4l2_fwnode_bus_parallel {
-+	unsigned int flags;
-+	unsigned char bus_width;
-+	unsigned char data_shift;
-+};
++static inline struct vsp1_hgt *to_hgt(struct v4l2_subdev *subdev)
++{
++	return container_of(subdev, struct vsp1_hgt, histo.entity.subdev);
++}
 +
-+/**
-+ * struct v4l2_fwnode_endpoint - the endpoint data structure
-+ * @base: fwnode endpoint of the v4l2_fwnode
-+ * @bus_type: bus type
-+ * @bus: bus configuration data structure
-+ * @link_frequencies: array of supported link frequencies
-+ * @nr_of_link_frequencies: number of elements in link_frequenccies array
-+ */
-+struct v4l2_fwnode_endpoint {
-+	struct fwnode_endpoint base;
-+	/*
-+	 * Fields below this line will be zeroed by
-+	 * v4l2_fwnode_parse_endpoint()
-+	 */
-+	enum v4l2_mbus_type bus_type;
-+	union {
-+		struct v4l2_fwnode_bus_parallel parallel;
-+		struct v4l2_fwnode_bus_mipi_csi2 mipi_csi2;
-+	} bus;
-+	u64 *link_frequencies;
-+	unsigned int nr_of_link_frequencies;
-+};
++struct vsp1_hgt *vsp1_hgt_create(struct vsp1_device *vsp1);
++void vsp1_hgt_frame_end(struct vsp1_entity *hgt);
 +
-+/**
-+ * struct v4l2_fwnode_link - a link between two endpoints
-+ * @local_node: pointer to device_node of this endpoint
-+ * @local_port: identifier of the port this endpoint belongs to
-+ * @remote_node: pointer to device_node of the remote endpoint
-+ * @remote_port: identifier of the port the remote endpoint belongs to
-+ */
-+struct v4l2_fwnode_link {
-+	struct fwnode_handle *local_node;
-+	unsigned int local_port;
-+	struct fwnode_handle *remote_node;
-+	unsigned int remote_port;
-+};
++#endif /* __VSP1_HGT_H__ */
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index bc0460c24397..edebf3fa926f 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -24,6 +24,7 @@
+ #include "vsp1_dl.h"
+ #include "vsp1_entity.h"
+ #include "vsp1_hgo.h"
++#include "vsp1_hgt.h"
+ #include "vsp1_pipe.h"
+ #include "vsp1_rwpf.h"
+ #include "vsp1_uds.h"
+@@ -211,12 +212,19 @@ void vsp1_pipeline_reset(struct vsp1_pipeline *pipe)
+ 		hgo->histo.pipe = NULL;
+ 	}
+ 
++	if (pipe->hgt) {
++		struct vsp1_hgt *hgt = to_hgt(&pipe->hgt->subdev);
 +
-+int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
-+			       struct v4l2_fwnode_endpoint *vep);
-+struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
-+	struct fwnode_handle *fwnode);
-+void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
-+int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
-+			   struct v4l2_fwnode_link *link);
-+void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
++		hgt->histo.pipe = NULL;
++	}
 +
-+#endif /* _V4L2_FWNODE_H */
+ 	INIT_LIST_HEAD(&pipe->entities);
+ 	pipe->state = VSP1_PIPELINE_STOPPED;
+ 	pipe->buffers_ready = 0;
+ 	pipe->num_inputs = 0;
+ 	pipe->bru = NULL;
+ 	pipe->hgo = NULL;
++	pipe->hgt = NULL;
+ 	pipe->lif = NULL;
+ 	pipe->uds = NULL;
+ }
+@@ -299,6 +307,11 @@ int vsp1_pipeline_stop(struct vsp1_pipeline *pipe)
+ 			   (7 << VI6_DPR_SMPPT_TGW_SHIFT) |
+ 			   (VI6_DPR_NODE_UNUSED << VI6_DPR_SMPPT_PT_SHIFT));
+ 
++	if (pipe->hgt)
++		vsp1_write(vsp1, VI6_DPR_HGT_SMPPT,
++			   (7 << VI6_DPR_SMPPT_TGW_SHIFT) |
++			   (VI6_DPR_NODE_UNUSED << VI6_DPR_SMPPT_PT_SHIFT));
++
+ 	v4l2_subdev_call(&pipe->output->entity.subdev, video, s_stream, 0);
+ 
+ 	return ret;
+@@ -325,6 +338,9 @@ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
+ 	if (pipe->hgo)
+ 		vsp1_hgo_frame_end(pipe->hgo);
+ 
++	if (pipe->hgt)
++		vsp1_hgt_frame_end(pipe->hgt);
++
+ 	if (pipe->frame_end)
+ 		pipe->frame_end(pipe);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+index 4d91088c386b..91a784a13422 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.h
++++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+@@ -74,6 +74,7 @@ enum vsp1_pipeline_state {
+  * @output: WPF at the output of the pipeline
+  * @bru: BRU entity, if present
+  * @hgo: HGO entity, if present
++ * @hgt: HGT entity, if present
+  * @lif: LIF entity, if present
+  * @uds: UDS entity, if present
+  * @uds_input: entity at the input of the UDS, if the UDS is present
+@@ -103,6 +104,7 @@ struct vsp1_pipeline {
+ 	struct vsp1_rwpf *output;
+ 	struct vsp1_entity *bru;
+ 	struct vsp1_entity *hgo;
++	struct vsp1_entity *hgt;
+ 	struct vsp1_entity *lif;
+ 	struct vsp1_entity *uds;
+ 	struct vsp1_entity *uds_input;
+diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+index 5414e519f7d8..cd3e32af6e3b 100644
+--- a/drivers/media/platform/vsp1/vsp1_regs.h
++++ b/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -628,9 +628,17 @@
+  */
+ 
+ #define VI6_HGT_OFFSET			0x3400
++#define VI6_HGT_OFFSET_HOFFSET_SHIFT	16
++#define VI6_HGT_OFFSET_VOFFSET_SHIFT	0
+ #define VI6_HGT_SIZE			0x3404
++#define VI6_HGT_SIZE_HSIZE_SHIFT	16
++#define VI6_HGT_SIZE_VSIZE_SHIFT	0
+ #define VI6_HGT_MODE			0x3408
++#define VI6_HGT_MODE_HRATIO_SHIFT	2
++#define VI6_HGT_MODE_VRATIO_SHIFT	0
+ #define VI6_HGT_HUE_AREA(n)		(0x340c + (n) * 4)
++#define VI6_HGT_HUE_AREA_LOWER_SHIFT	16
++#define VI6_HGT_HUE_AREA_UPPER_SHIFT	0
+ #define VI6_HGT_LB_TH			0x3424
+ #define VI6_HGT_LBn_H(n)		(0x3438 + (n) * 8)
+ #define VI6_HGT_LBn_V(n)		(0x342c + (n) * 8)
+@@ -639,6 +647,7 @@
+ #define VI6_HGT_SUM			0x3754
+ #define VI6_HGT_LB_DET			0x3758
+ #define VI6_HGT_REGRST			0x37fc
++#define VI6_HGT_REGRST_RCLEA		(1 << 0)
+ 
+ /* -----------------------------------------------------------------------------
+  * LIF Control Registers
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 7bc07d438367..eab3c3ea85d7 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -32,6 +32,7 @@
+ #include "vsp1_dl.h"
+ #include "vsp1_entity.h"
+ #include "vsp1_hgo.h"
++#include "vsp1_hgt.h"
+ #include "vsp1_pipe.h"
+ #include "vsp1_rwpf.h"
+ #include "vsp1_uds.h"
+@@ -607,6 +608,11 @@ static int vsp1_video_pipeline_build(struct vsp1_pipeline *pipe,
+ 
+ 			pipe->hgo = e;
+ 			hgo->histo.pipe = pipe;
++		} else if (e->type == VSP1_ENTITY_HGT) {
++			struct vsp1_hgt *hgt = to_hgt(subdev);
++
++			pipe->hgt = e;
++			hgt->histo.pipe = pipe;
+ 		}
+ 	}
+ 
 -- 
-2.7.4
+2.11.0
