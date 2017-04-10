@@ -1,86 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f179.google.com ([209.85.216.179]:33920 "EHLO
-        mail-qt0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S940326AbdDSXO1 (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:56472 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752623AbdDJT1K (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Apr 2017 19:14:27 -0400
-Received: by mail-qt0-f179.google.com with SMTP id c45so32511624qtb.1
-        for <linux-media@vger.kernel.org>; Wed, 19 Apr 2017 16:14:27 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+        Mon, 10 Apr 2017 15:27:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 03/12] au8522: rework setup of audio routing
-Date: Wed, 19 Apr 2017 19:13:46 -0400
-Message-Id: <1492643635-30823-4-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1492643635-30823-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1492643635-30823-1-git-send-email-dheitmueller@kernellabs.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCHv4 00/15] R-Car VSP1 Histogram Support
+Date: Mon, 10 Apr 2017 21:26:36 +0200
+Message-Id: <20170410192651.18486-1-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The original code was based on my reverse engineering of an I2C trace
-of the Windows driver.  Now that I know what the registers actually do,
-restructure the code a bit, removing some unneeded register programming
-and fixing the sequencing of operations.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This reduces the time it takes to change inputs from 1300ms down to
-600ms (as measured by "time v4l2-ctl -i 0")
+This patch series is the rebased version of this pull request:
 
-Note this does not address outstanding issues related to the management
-of the module clocks and power control for the various blocks, which
-will be done in a separate patch.
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg111025.html
 
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
----
- drivers/media/dvb-frontends/au8522_decoder.c | 29 ++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+It slightly modifies 'Add metadata buffer type and format' (remove
+experimental note and add newline after label) and it adds support
+for V4L2_CTRL_FLAG_MODIFY_LAYOUT, as requested by Mauro.
 
-diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
-index 7811717..281b5ac 100644
---- a/drivers/media/dvb-frontends/au8522_decoder.c
-+++ b/drivers/media/dvb-frontends/au8522_decoder.c
-@@ -418,28 +418,29 @@ static void set_audio_input(struct au8522_state *state)
- 				lpfilter_coef[i].reg_val[0]);
- 	}
- 
--	/* Setup audio */
--	au8522_writereg(state, AU8522_AUDIO_VOLUME_L_REG0F2H, 0x00);
--	au8522_writereg(state, AU8522_AUDIO_VOLUME_R_REG0F3H, 0x00);
--	au8522_writereg(state, AU8522_AUDIO_VOLUME_REG0F4H, 0x00);
--	msleep(150);
--	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H, 0x00);
--	msleep(10);
--	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
--			AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
--	msleep(50);
-+	/* Set the volume */
- 	au8522_writereg(state, AU8522_AUDIO_VOLUME_L_REG0F2H, 0x7F);
- 	au8522_writereg(state, AU8522_AUDIO_VOLUME_R_REG0F3H, 0x7F);
- 	au8522_writereg(state, AU8522_AUDIO_VOLUME_REG0F4H, 0xff);
--	msleep(80);
--	au8522_writereg(state, AU8522_AUDIO_VOLUME_L_REG0F2H, 0x7F);
--	au8522_writereg(state, AU8522_AUDIO_VOLUME_R_REG0F3H, 0x7F);
-+
-+	/* Not sure what this does */
- 	au8522_writereg(state, AU8522_REG0F9H, AU8522_REG0F9H_AUDIO);
-+
-+	/* Setup the audio mode to stereo DBX */
- 	au8522_writereg(state, AU8522_AUDIO_MODE_REG0F1H, 0x82);
- 	msleep(70);
--	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_1_REG0A5H, 0x09);
-+
-+	/* Start the audio processing module */
-+	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H, 0x9d);
-+
-+	/* Set the audio frequency to 48 KHz */
- 	au8522_writereg(state, AU8522_AUDIOFREQ_REG606H, 0x03);
-+
-+	/* Set the I2S parameters (WS, LSB, mode, sample rate */
- 	au8522_writereg(state, AU8522_I2S_CTRL_2_REG112H, 0xc2);
-+
-+	/* Enable the I2S output */
-+	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_1_REG0A5H, 0x09);
- }
- 
- /* ----------------------------------------------------------------------- */
+No other changes were made.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (5):
+  vidioc-queryctrl.rst: document V4L2_CTRL_FLAG_MODIFY_LAYOUT
+  videodev.h: add V4L2_CTRL_FLAG_MODIFY_LAYOUT
+  v4l2-ctrls.c: set V4L2_CTRL_FLAG_MODIFY_LAYOUT for ROTATE
+  buffer.rst: clarify how V4L2_CTRL_FLAG_MODIFY_LAYOUT/GRABBER are used
+  vsp1: set V4L2_CTRL_FLAG_MODIFY_LAYOUT for histogram controls
+
+Laurent Pinchart (8):
+  v4l: Clearly document interactions between formats, controls and
+    buffers
+  v4l: vsp1: wpf: Implement rotation support
+  v4l: Add metadata buffer type and format
+  v4l: vsp1: Add histogram support
+  v4l: vsp1: Support histogram generators in pipeline configuration
+  v4l: vsp1: Fix HGO and HGT routing register addresses
+  v4l: Define a pixel format for the R-Car VSP1 1-D histogram engine
+  v4l: vsp1: Add HGO support
+
+Niklas Söderlund (2):
+  v4l: Define a pixel format for the R-Car VSP1 2-D histogram engine
+  v4l: vsp1: Add HGT support
+
+ Documentation/media/uapi/v4l/buffer.rst            | 122 ++++
+ Documentation/media/uapi/v4l/dev-meta.rst          |  58 ++
+ Documentation/media/uapi/v4l/devices.rst           |   1 +
+ Documentation/media/uapi/v4l/meta-formats.rst      |  16 +
+ .../media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst        | 168 ++++++
+ .../media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst        | 120 ++++
+ Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
+ Documentation/media/uapi/v4l/vidioc-querycap.rst   |   3 +
+ Documentation/media/uapi/v4l/vidioc-queryctrl.rst  |  13 +
+ Documentation/media/videodev2.h.rst.exceptions     |   3 +
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/vsp1/Makefile               |   1 +
+ drivers/media/platform/vsp1/vsp1.h                 |   6 +
+ drivers/media/platform/vsp1/vsp1_drm.c             |   2 +-
+ drivers/media/platform/vsp1/vsp1_drv.c             |  70 ++-
+ drivers/media/platform/vsp1/vsp1_entity.c          | 154 ++++-
+ drivers/media/platform/vsp1/vsp1_entity.h          |   8 +-
+ drivers/media/platform/vsp1/vsp1_hgo.c             | 230 ++++++++
+ drivers/media/platform/vsp1/vsp1_hgo.h             |  45 ++
+ drivers/media/platform/vsp1/vsp1_hgt.c             | 222 +++++++
+ drivers/media/platform/vsp1/vsp1_hgt.h             |  42 ++
+ drivers/media/platform/vsp1/vsp1_histo.c           | 646 +++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_histo.h           |  84 +++
+ drivers/media/platform/vsp1/vsp1_pipe.c            |  38 +-
+ drivers/media/platform/vsp1/vsp1_pipe.h            |   4 +
+ drivers/media/platform/vsp1/vsp1_regs.h            |  33 +-
+ drivers/media/platform/vsp1/vsp1_rpf.c             |   2 +-
+ drivers/media/platform/vsp1/vsp1_rwpf.c            |   5 +
+ drivers/media/platform/vsp1/vsp1_rwpf.h            |   7 +-
+ drivers/media/platform/vsp1/vsp1_video.c           |  42 +-
+ drivers/media/platform/vsp1/vsp1_wpf.c             | 205 +++++--
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  19 +
+ drivers/media/v4l2-core/v4l2-ctrls.c               |   4 +
+ drivers/media/v4l2-core/v4l2-dev.c                 |  16 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c               |  36 ++
+ drivers/media/v4l2-core/videobuf2-v4l2.c           |   3 +
+ include/media/v4l2-ioctl.h                         |  17 +
+ include/trace/events/v4l2.h                        |   1 +
+ include/uapi/linux/videodev2.h                     |  18 +
+ 39 files changed, 2364 insertions(+), 102 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/dev-meta.rst
+ create mode 100644 Documentation/media/uapi/v4l/meta-formats.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
+ create mode 100644 drivers/media/platform/vsp1/vsp1_hgo.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_hgo.h
+ create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.h
+ create mode 100644 drivers/media/platform/vsp1/vsp1_histo.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_histo.h
+
 -- 
-1.9.1
+2.11.0
