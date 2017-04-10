@@ -1,40 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:32906 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753013AbdDCO2H (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 10:28:07 -0400
-Date: Mon, 3 Apr 2017 09:28:05 -0500
-From: Rob Herring <robh@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv6 06/14] atmel-isi: update device tree bindings
- documentation
-Message-ID: <20170403142805.tybemhb2xe5jvhwx@rob-hp-laptop>
-References: <20170328082347.11159-1-hverkuil@xs4all.nl>
- <20170328082347.11159-7-hverkuil@xs4all.nl>
+Received: from mail-qt0-f181.google.com ([209.85.216.181]:35290 "EHLO
+        mail-qt0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752537AbdDJQUc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Apr 2017 12:20:32 -0400
+Received: by mail-qt0-f181.google.com with SMTP id n46so35620794qta.2
+        for <linux-media@vger.kernel.org>; Mon, 10 Apr 2017 09:20:32 -0700 (PDT)
+Subject: Re: [PATCHv3 00/22] Ion clean up in preparation in moving out of
+ staging
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+References: <1491245884-15852-1-git-send-email-labbott@redhat.com>
+ <20170408103821.GA12084@kroah.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com,
+        devel@driverdev.osuosl.org, romlem@google.com,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+        Mark Brown <broonie@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+From: Laura Abbott <labbott@redhat.com>
+Message-ID: <b1a52f74-a089-96c1-a6b9-5f4eb3d28f8b@redhat.com>
+Date: Mon, 10 Apr 2017 09:20:27 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170328082347.11159-7-hverkuil@xs4all.nl>
+In-Reply-To: <20170408103821.GA12084@kroah.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 28, 2017 at 10:23:39AM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 04/08/2017 03:38 AM, Greg Kroah-Hartman wrote:
+> On Mon, Apr 03, 2017 at 11:57:42AM -0700, Laura Abbott wrote:
+>> Hi,
+>>
+>> This is v3 of the series to do some serious Ion cleanup in preparation for
+>> moving out of staging. I didn't hear much on v2 so I'm going to assume
+>> people are okay with the series as is. I know there were still some open
+>> questions about moving away from /dev/ion but in the interest of small
+>> steps I'd like to go ahead and merge this series assuming there are no more
+>> major objections. More work can happen on top of this.
 > 
-> The original bindings documentation was incomplete (missing pinctrl-names,
-> missing endpoint node properties) and the example was out of date.
+> I've applied patches 3-11 as those were independant of the CMA changes.
+> I'd like to take the rest, including the CMA changes, but I need an ack
+> from someone dealing with the -mm tree before I can do that.
 > 
-> Add the missing information and tidy up the text.
+> Or, if they just keep ignoring it, I guess I can take them :)
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  .../devicetree/bindings/media/atmel-isi.txt        | 91 +++++++++++++---------
->  1 file changed, 53 insertions(+), 38 deletions(-)
+> thanks,
+> 
+> greg k-h
+> 
 
-Acked-by: Rob Herring <robh@kernel.org>
+Thanks. I'll send out some nag e-mails asking for Acks. If I don't get
+any, I'll resend the rest of the series after the 4.12 merge window.
+
+Thanks,
+Laura
