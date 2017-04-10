@@ -1,62 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:57259 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753952AbdDLLT0 (ORCPT
+Received: from mail-qt0-f174.google.com ([209.85.216.174]:33062 "EHLO
+        mail-qt0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751662AbdDJRUr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Apr 2017 07:19:26 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Todor Tomov <todor.tomov@linaro.org>,
-        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.12] New ov5645 and ov5647 drivers
-Message-ID: <47e51deb-b3e0-9137-2c64-4fdee5645792@xs4all.nl>
-Date: Wed, 12 Apr 2017 13:19:19 +0200
+        Mon, 10 Apr 2017 13:20:47 -0400
+Received: by mail-qt0-f174.google.com with SMTP id m36so9343537qtb.0
+        for <linux-media@vger.kernel.org>; Mon, 10 Apr 2017 10:20:46 -0700 (PDT)
+Subject: Re: [PATCHv3 00/22] Ion clean up in preparation in moving out of
+ staging
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+References: <1491245884-15852-1-git-send-email-labbott@redhat.com>
+ <20170408103821.GA12084@kroah.com>
+ <b1a52f74-a089-96c1-a6b9-5f4eb3d28f8b@redhat.com>
+ <20170410162555.GA9534@kroah.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com,
+        devel@driverdev.osuosl.org, romlem@google.com,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+        Mark Brown <broonie@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+From: Laura Abbott <labbott@redhat.com>
+Message-ID: <6d03f9e8-0e02-384f-69e3-66217ae95850@redhat.com>
+Date: Mon, 10 Apr 2017 10:20:41 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170410162555.GA9534@kroah.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the ov5645 and ov5647 drivers.
+On 04/10/2017 09:25 AM, Greg Kroah-Hartman wrote:
+> On Mon, Apr 10, 2017 at 09:20:27AM -0700, Laura Abbott wrote:
+>> On 04/08/2017 03:38 AM, Greg Kroah-Hartman wrote:
+>>> On Mon, Apr 03, 2017 at 11:57:42AM -0700, Laura Abbott wrote:
+>>>> Hi,
+>>>>
+>>>> This is v3 of the series to do some serious Ion cleanup in preparation for
+>>>> moving out of staging. I didn't hear much on v2 so I'm going to assume
+>>>> people are okay with the series as is. I know there were still some open
+>>>> questions about moving away from /dev/ion but in the interest of small
+>>>> steps I'd like to go ahead and merge this series assuming there are no more
+>>>> major objections. More work can happen on top of this.
+>>>
+>>> I've applied patches 3-11 as those were independant of the CMA changes.
+>>> I'd like to take the rest, including the CMA changes, but I need an ack
+>>> from someone dealing with the -mm tree before I can do that.
+>>>
+>>> Or, if they just keep ignoring it, I guess I can take them :)
+>>>
+>>> thanks,
+>>>
+>>> greg k-h
+>>>
+>>
+>> Thanks. I'll send out some nag e-mails asking for Acks. If I don't get
+>> any, I'll resend the rest of the series after the 4.12 merge window.
+> 
+> Why so long?  This series has been sent a bunch, if no one responds in a
+> week, I'll be glad to take them all in my tree :)
+> 
+> thanks,
+> 
+> greg k-h
+> 
 
-This supersedes an earlier ov5645-only pull request. Having separate pull requests
-for these drivers would create a Kconfig conflict, so I've combined them in one
-pull request.
+Ideally I'd like some confirmation that at least someone other than
+myself thinks it's a good idea but I know mm review bandwidth has
+been a topic of discussion so maybe silence is the best I can get.
+If you pick it up and nobody objects, I guess I won't object either :)
 
-Regards,
-
-	Hans
-
-The following changes since commit 4aed35ca73f6d9cfd5f7089ba5d04f5fb8623080:
-
-  [media] v4l2-tpg: don't clamp XV601/709 to lim range (2017-04-10 14:58:06 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git ov5645
-
-for you to fetch changes up to c95be7ca24262d62107b645f08653168afe9c3c3:
-
-  media: i2c: Add support for OV5647 sensor. (2017-04-12 13:16:05 +0200)
-
-----------------------------------------------------------------
-Ramiro Oliveira (2):
-      Documentation: DT: Add OV5647 bindings
-      media: i2c: Add support for OV5647 sensor.
-
-Todor Tomov (2):
-      media: i2c/ov5645: add the device tree binding document
-      media: Add a driver for the ov5645 camera sensor.
-
- Documentation/devicetree/bindings/media/i2c/ov5645.txt |   54 ++
- Documentation/devicetree/bindings/media/i2c/ov5647.txt |   35 ++
- MAINTAINERS                                            |    7 +
- drivers/media/i2c/Kconfig                              |   23 +
- drivers/media/i2c/Makefile                             |    2 +
- drivers/media/i2c/ov5645.c                             | 1345 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/i2c/ov5647.c                             |  634 +++++++++++++++++++++
- 7 files changed, 2100 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
- create mode 100644 drivers/media/i2c/ov5645.c
- create mode 100644 drivers/media/i2c/ov5647.c
+Thanks,
+Laura
