@@ -1,107 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:58536 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1425865AbdD1WCt (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:43216 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752623AbdDJT1P (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 18:02:49 -0400
-Date: Fri, 28 Apr 2017 16:02:45 -0600
-From: Jordan Crouse <jcrouse@codeaurora.org>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Subject: Re: [PATCH v8 05/10] media: venus: adding core part and helper
- functions
-Message-ID: <20170428220245.GA3283@jcrouse-lnx.qualcomm.com>
-References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
- <1493370837-19793-6-git-send-email-stanimir.varbanov@linaro.org>
+        Mon, 10 Apr 2017 15:27:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCHv4 09/15] v4l: Define a pixel format for the R-Car VSP1 2-D histogram engine
+Date: Mon, 10 Apr 2017 21:26:45 +0200
+Message-Id: <20170410192651.18486-10-hverkuil@xs4all.nl>
+In-Reply-To: <20170410192651.18486-1-hverkuil@xs4all.nl>
+References: <20170410192651.18486-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1493370837-19793-6-git-send-email-stanimir.varbanov@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 28, 2017 at 12:13:52PM +0300, Stanimir Varbanov wrote:
-> +int venus_boot(struct device *parent, struct device *fw_dev)
-> +{
-> +	const struct firmware *mdt;
-> +	phys_addr_t mem_phys;
-> +	ssize_t fw_size;
-> +	size_t mem_size;
-> +	void *mem_va;
-> +	int ret;
-> +
-> +	if (!qcom_scm_is_available())
-> +		return -EPROBE_DEFER;
-> +
-> +	fw_dev->parent = parent;
-> +	fw_dev->release = device_release_dummy;
-> +
-> +	ret = dev_set_name(fw_dev, "%s:%s", dev_name(parent), "firmware");
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = device_register(fw_dev);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = of_reserved_mem_device_init_by_idx(fw_dev, parent->of_node, 0);
-> +	if (ret)
-> +		goto err_unreg_device;
-> +
-> +	mem_size = VENUS_FW_MEM_SIZE;
-> +
-> +	mem_va = dmam_alloc_coherent(fw_dev, mem_size, &mem_phys, GFP_KERNEL);
-> +	if (!mem_va) {
-> +		ret = -ENOMEM;
-> +		goto err_unreg_device;
-> +	}
-> +
-> +	ret = request_firmware(&mdt, VENUS_FIRMWARE_NAME, fw_dev);
-> +	if (ret < 0)
-> +		goto err_unreg_device;
-> +
-> +	fw_size = qcom_mdt_get_size(mdt);
-> +	if (fw_size < 0) {
-> +		ret = fw_size;
-> +		release_firmware(mdt);
-> +		goto err_unreg_device;
-> +	}
-> +
-> +	ret = qcom_mdt_load(fw_dev, mdt, VENUS_FIRMWARE_NAME, VENUS_PAS_ID,
-> +			    mem_va, mem_phys, mem_size);
-> +
-> +	release_firmware(mdt);
-> +
-> +	if (ret)
-> +		goto err_unreg_device;
-> +
-> +	ret = qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
-> +	if (ret)
-> +		goto err_unreg_device;
-> +
-> +	return 0;
-> +
-> +err_unreg_device:
-> +	device_unregister(fw_dev);
-> +	return ret;
-> +}
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Hey, this looks familiar - almost line for line identical to what we'll need to
-do for GPU.
+The format is used on the R-Car VSP1 video queues that carry
+2-D histogram statistics data.
 
-Bjorn - Is this enough to qualify for generic status in the mdt_loader code?
-I know its just two consumers, but it would save 50 or 60 lines of code between
-the two drivers and be easier to maintain.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ Documentation/media/uapi/v4l/meta-formats.rst      |   1 +
+ .../media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst        | 120 +++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
+ include/uapi/linux/videodev2.h                     |   3 +-
+ 4 files changed, 124 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
 
-Jordan
-
+diff --git a/Documentation/media/uapi/v4l/meta-formats.rst b/Documentation/media/uapi/v4l/meta-formats.rst
+index 05ab91e12f10..01e24e3df571 100644
+--- a/Documentation/media/uapi/v4l/meta-formats.rst
++++ b/Documentation/media/uapi/v4l/meta-formats.rst
+@@ -13,3 +13,4 @@ These formats are used for the :ref:`metadata` interface only.
+     :maxdepth: 1
+ 
+     pixfmt-meta-vsp1-hgo
++    pixfmt-meta-vsp1-hgt
+diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
+new file mode 100644
+index 000000000000..fb9f79466319
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
+@@ -0,0 +1,120 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _v4l2-meta-fmt-vsp1-hgt:
++
++*******************************
++V4L2_META_FMT_VSP1_HGT ('VSPT')
++*******************************
++
++Renesas R-Car VSP1 2-D Histogram Data
++
++
++Description
++===========
++
++This format describes histogram data generated by the Renesas R-Car VSP1
++2-D Histogram (HGT) engine.
++
++The VSP1 HGT is a histogram computation engine that operates on HSV
++data. It operates on a possibly cropped and subsampled input image and
++computes the sum, maximum and minimum of the S component as well as a
++weighted frequency histogram based on the H and S components.
++
++The histogram is a matrix of 6 Hue and 32 Saturation buckets, 192 in
++total. Each HSV value is added to one or more buckets with a weight
++between 1 and 16 depending on the Hue areas configuration. Finding the
++corresponding buckets is done by inspecting the H and S value independently.
++
++The Saturation position **n** (0 - 31) of the bucket in the matrix is
++found by the expression:
++
++    n = S / 8
++
++The Hue position **m** (0 - 5) of the bucket in the matrix depends on
++how the HGT Hue areas are configured. There are 6 user configurable Hue
++Areas which can be configured to cover overlapping Hue values:
++
++::
++
++         Area 0       Area 1       Area 2       Area 3       Area 4       Area 5
++        ________     ________     ________     ________     ________     ________
++   \   /|      |\   /|      |\   /|      |\   /|      |\   /|      |\   /|      |\   /
++    \ / |      | \ / |      | \ / |      | \ / |      | \ / |      | \ / |      | \ /
++     X  |      |  X  |      |  X  |      |  X  |      |  X  |      |  X  |      |  X
++    / \ |      | / \ |      | / \ |      | / \ |      | / \ |      | / \ |      | / \
++   /   \|      |/   \|      |/   \|      |/   \|      |/   \|      |/   \|      |/   \
++  5U   0L      0U   1L      1U   2L      2U   3L      3U   4L      4U   5L      5U   0L
++        <0..............................Hue Value............................255>
++
++When two consecutive areas don't overlap (n+1L is equal to nU) the boundary
++value is considered as part of the lower area.
++
++Pixels with a hue value included in the centre of an area (between nL and nU
++included) are attributed to that single area and given a weight of 16. Pixels
++with a hue value included in the overlapping region between two areas (between
++n+1L and nU excluded) are attributed to both areas and given a weight for each
++of these areas proportional to their position along the diagonal lines
++(rounded down).
++
++The Hue area setup must match one of the following constrains:
++
++::
++
++    0L <= 0U <= 1L <= 1U <= 2L <= 2U <= 3L <= 3U <= 4L <= 4U <= 5L <= 5U
++
++::
++
++    0U <= 1L <= 1U <= 2L <= 2U <= 3L <= 3U <= 4L <= 4U <= 5L <= 5U <= 0L
++
++**Byte Order.**
++All data is stored in memory in little endian format. Each cell in the tables
++contains one byte.
++
++.. flat-table:: VSP1 HGT Data - (776 bytes)
++    :header-rows:  2
++    :stub-columns: 0
++
++    * - Offset
++      - :cspan:`4` Memory
++    * -
++      - [31:24]
++      - [23:16]
++      - [15:8]
++      - [7:0]
++    * - 0
++      - -
++      - S max [7:0]
++      - -
++      - S min [7:0]
++    * - 4
++      - :cspan:`4` S sum [31:0]
++    * - 8
++      - :cspan:`4` Histogram bucket (m=0, n=0) [31:0]
++    * - 12
++      - :cspan:`4` Histogram bucket (m=0, n=1) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 132
++      - :cspan:`4` Histogram bucket (m=0, n=31) [31:0]
++    * - 136
++      - :cspan:`4` Histogram bucket (m=1, n=0) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 264
++      - :cspan:`4` Histogram bucket (m=2, n=0) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 392
++      - :cspan:`4` Histogram bucket (m=3, n=0) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 520
++      - :cspan:`4` Histogram bucket (m=4, n=0) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 648
++      - :cspan:`4` Histogram bucket (m=5, n=0) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 772
++      - :cspan:`4` Histogram bucket (m=5, n=31) [31:0]
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index a7c50241594e..e5a2187381db 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1234,6 +1234,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
+ 	case V4L2_TCH_FMT_TU08:		descr = "8-bit unsigned touch data"; break;
+ 	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
++	case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
+ 
+ 	default:
+ 		/* Compressed formats */
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 09cf3a32faf4..75f032448ae5 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -677,7 +677,8 @@ struct v4l2_pix_format {
+ #define V4L2_TCH_FMT_TU08	v4l2_fourcc('T', 'U', '0', '8') /* 8-bit unsigned touch data */
+ 
+ /* Meta-data formats */
+-#define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 Histogram */
++#define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 1-D Histogram */
++#define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */
+ 
+ /* priv field value to indicates that subsequent fields are valid. */
+ #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
 -- 
-The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+2.11.0
