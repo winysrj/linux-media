@@ -1,129 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f47.google.com ([209.85.215.47]:33005 "EHLO
-        mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756567AbdDPRmX (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56493
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753366AbdDJSN4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Apr 2017 13:42:23 -0400
-Received: by mail-lf0-f47.google.com with SMTP id 88so10594404lfr.0
-        for <linux-media@vger.kernel.org>; Sun, 16 Apr 2017 10:42:23 -0700 (PDT)
-Date: Sun, 16 Apr 2017 19:42:20 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        Mon, 10 Apr 2017 14:13:56 -0400
+Date: Mon, 10 Apr 2017 15:13:45 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Niklas =?UTF-8?B?U8O2ZGVybHVuZA==?=
         <niklas.soderlund@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Patrick Doyle <wpdster@gmail.com>, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: Looking for device driver advice
-Message-ID: <20170416174220.GC28868@bigcity.dyn.berto.se>
-References: <CAF_dkJAwwj0mpOztkTNTrDC1YQkgh=HvZGh=tv3SYsuvUzTb+g@mail.gmail.com>
- <2ea495f2-022d-a9ee-11a0-28fbcba5db57@xs4all.nl>
- <20170416105121.GC7456@valkosipuli.retiisi.org.uk>
+Subject: Re: [PATCH v3 1/8] v4l: Add metadata buffer type and format
+Message-ID: <20170410151345.5744cbb6@vento.lan>
+In-Reply-To: <9012f4cc-f13f-b3b2-3599-c4f693acf70c@xs4all.nl>
+References: <20170228155648.12051-1-laurent.pinchart+renesas@ideasonboard.com>
+        <20170228155648.12051-2-laurent.pinchart+renesas@ideasonboard.com>
+        <20170410142355.196d4eb4@vento.lan>
+        <9012f4cc-f13f-b3b2-3599-c4f693acf70c@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170416105121.GC7456@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Mon, 10 Apr 2017 19:58:46 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On 2017-04-16 13:51:21 +0300, Sakari Ailus wrote:
-> Hi Hans and Patrick,
-> 
-> On Wed, Apr 12, 2017 at 01:37:33PM +0200, Hans Verkuil wrote:
-> > Hi Patrick,
+> On 04/10/2017 07:23 PM, Mauro Carvalho Chehab wrote:
+> > Em Tue, 28 Feb 2017 17:56:41 +0200
+> > Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com> escreveu:
+> >   
+> >> The metadata buffer type is used to transfer metadata between userspace
+> >> and kernelspace through a V4L2 buffers queue. It comes with a new
+> >> metadata capture capability and format description.
+> >>
+> >> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> >> Tested-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> >> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >>  Documentation/media/uapi/v4l/buffer.rst          |  3 ++
+> >>  Documentation/media/uapi/v4l/dev-meta.rst        | 62 ++++++++++++++++++++++++
+> >>  Documentation/media/uapi/v4l/devices.rst         |  1 +
+> >>  Documentation/media/uapi/v4l/vidioc-querycap.rst |  3 ++
+> >>  Documentation/media/videodev2.h.rst.exceptions   |  2 +
+> >>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c    | 19 ++++++++
+> >>  drivers/media/v4l2-core/v4l2-dev.c               | 16 +++---
+> >>  drivers/media/v4l2-core/v4l2-ioctl.c             | 34 +++++++++++++
+> >>  drivers/media/v4l2-core/videobuf2-v4l2.c         |  3 ++
+> >>  include/media/v4l2-ioctl.h                       | 17 +++++++
+> >>  include/trace/events/v4l2.h                      |  1 +
+> >>  include/uapi/linux/videodev2.h                   | 13 +++++
+> >>  12 files changed, 168 insertions(+), 6 deletions(-)
+> >>  create mode 100644 Documentation/media/uapi/v4l/dev-meta.rst
+> >>
+> >> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+> >> index 5c58db98ab7a..02834ce7fa4d 100644
+> >> --- a/Documentation/media/uapi/v4l/buffer.rst
+> >> +++ b/Documentation/media/uapi/v4l/buffer.rst
+> >> @@ -418,6 +418,9 @@ enum v4l2_buf_type
+> >>        - 12
+> >>        - Buffer for Software Defined Radio (SDR) output stream, see
+> >>  	:ref:`sdr`.
+> >> +    * - ``V4L2_BUF_TYPE_META_CAPTURE``
+> >> +      - 13
+> >> +      - Buffer for metadata capture, see :ref:`metadata`.
+> >>  
+> >>  
+> >>  
+> >> diff --git a/Documentation/media/uapi/v4l/dev-meta.rst b/Documentation/media/uapi/v4l/dev-meta.rst
+> >> new file mode 100644
+> >> index 000000000000..b6044c54082a
+> >> --- /dev/null
+> >> +++ b/Documentation/media/uapi/v4l/dev-meta.rst
+> >> @@ -0,0 +1,62 @@
+> >> +.. -*- coding: utf-8; mode: rst -*-
+> >> +
+> >> +.. _metadata:
+> >> +
+> >> +******************
+> >> +Metadata Interface
+> >> +******************
+> >> +
+> >> +Metadata refers to any non-image data that supplements video frames with
+> >> +additional information. This may include statistics computed over the image
+> >> +or frame capture parameters supplied by the image source. This interface is
+> >> +intended for transfer of metadata to userspace and control of that operation.
+> >> +
+> >> +The metadata interface is implemented on video capture device nodes. The device
+> >> +can be dedicated to metadata or can implement both video and metadata capture
+> >> +as specified in its reported capabilities.
+> >> +
+> >> +.. note::
+> >> +
+> >> +    This is an :ref:`experimental` interface and may
+> >> +    change in the future.  
 > > 
-> > On 04/10/2017 10:13 PM, Patrick Doyle wrote:
-> > > I am looking for advice regarding the construction of a device driver
-> > > for a MIPI CSI2 imager (a Sony IMX241) that is connected to a
-> > > MIPI<->Parallel converter (Toshiba TC358748) wired into a parallel
-> > > interface on a Soc (a Microchip/Atmel SAMAD2x device.)
-> > > 
-> > > The Sony imager is controlled and configured via I2C, as is the
-> > > Toshiba converter.  I could write a single driver that configures both
-> > > devices and treats them as a single device that just happens to use 2
-> > > i2c addresses.  I could use the i2c_new_dummy() API to construct the
-> > > device abstraction for the second physical device at probe time for
-> > > the first physical device.
-> > > 
-> > > Or I could do something smarter (or at least different), specifying
-> > > the two devices independently via my device tree file, perhaps linking
-> > > them together via "port" nodes.  Currently, I use the "port" node
-> > > concept to link an i2c imager to the Image System Controller (isc)
-> > > node in the SAMA5 device.  Perhaps that generalizes to a chain of
-> > > nodes linked together... I don't know.
+> > While I'm ok with this comment, in practice, this comment is bogus. Once we
+> > merge it, it is unlikely that we'll be able to change it.
 > > 
-> > That would be the right solution. Unfortunately the atmel-isc.c driver
-> > (at least the version in the mainline kernel) only supports a single
-> > subdev device. At least, as far as I can see.
+> > That would just add a task on our TODO list that we'll need to remove this
+> > comment some day.  
+> 
+> I'll remove this. These notes were all removed some time ago. This patch was most
+> likely made when these notes were still in use.
+> 
+> >   
+> >> +
+> >> +Querying Capabilities
+> >> +=====================
+> >> +
+> >> +Device nodes supporting the metadata interface set the ``V4L2_CAP_META_CAPTURE``
+> >> +flag in the ``device_caps`` field of the
+> >> +:c:type:`v4l2_capability` structure returned by the :c:func:`VIDIOC_QUERYCAP`
+> >> +ioctl. That flag means the device can capture metadata to memory.
+> >> +
+> >> +At least one of the read/write or streaming I/O methods must be supported.
+> >> +
+> >> +
+> >> +Data Format Negotiation
+> >> +=======================
+> >> +
+> >> +The metadata device uses the :ref:`format` ioctls to select the capture format.
+> >> +The metadata buffer content format is bound to that selected format. In addition
+> >> +to the basic :ref:`format` ioctls, the :c:func:`VIDIOC_ENUM_FMT` ioctl must be
+> >> +supported as well.
+> >> +
+> >> +To use the :ref:`format` ioctls applications set the ``type`` field of the
+> >> +:c:type:`v4l2_format` structure to ``V4L2_BUF_TYPE_META_CAPTURE`` and use the
+> >> +:c:type:`v4l2_meta_format` ``meta`` member of the ``fmt`` union as needed per
+> >> +the desired operation. Both drivers and applications must set the remainder of
+> >> +the :c:type:`v4l2_format` structure to 0.
+> >> +
+> >> +.. _v4l2-meta-format:  
+> > 
+> > Better to add an space after the label. My experience with random versions
+> > of Sphinx is that it doesn't like to have different types of paragraph
+> > without at least one blank line between them.  
+> 
+> You mean 'Better to add a newline after the label'? It's a bit confusing.
 
-I also think that two subdevices implemented in two separate drivers is 
-the way to go. As it really is two different pieces of hardware,
-right?
+Yes, that's what I meant.
 
 > 
-> There have been multiple cases recently where the media pipeline can have
-> sub-devices controlled by more than two drivers. We need to have a common
-> approach on how we do handle such cases.
-
-I agree that a common approach to the problem of when one subdevices can 
-be controlled by more then one driver is needed. In this case however I 
-think something else also needs to be defined. If I understand Hans and 
-Patrick the issues is not that the hardware can be controlled by more 
-then one driver. Instead it is that the atmel-isc.c driver only probes 
-DT for one subdevice, so implementing it as more then one subdevices is 
-problematic. If I misunderstand the problem please let me know.
-
-If I understand the problem correctly it could be solved by modifying 
-the atmel-isc.c driver to look for more then one subdevice in DT. But a 
-common approach for drivers to find and bind arbitrary number of 
-subdevices would be better, finding an approach that also solves the 
-case where one subdevice can be used by more then one driver would be 
-better still. If this common case also could cover the case where one DT 
-node represents a driver which registers more then one subdevice which 
-then can be used by different other drivers I would be very happy and a 
-lot of my headaches would go away :-)
-
+> Regards,
 > 
-> For instance, how is the entire DT graph parsed or when and how are the
-> device nodes created?
-> 
-> Parsing the graph should probably be initiated by the master driver but
-> instead implemented in the framework as it's a non-trivial task and common
-> to all such drivers. Another equestion is how do we best support this also
-> on existing drivers.
+> 	Hans
 
-I agree that the master device probably should initiate the DT graph 
-parsing and if possible there should be as much support as possible in 
-the framework. One extra consideration here is that there might be more 
-then one master device which uses the same subdevices. I have such cases 
-today where different instances of the same driver use the same set of 
-subdevices.
 
-> 
-> I actually have a small documentation patch on handling streaming control in
-> such cases as there are choices now to be made not thought about when the
-> sub-device ops were originally addeed. I'll cc you to that.
-> 
-> We do have a similar case currently in i.MX6, Nokia N9 (OMAP3) and on some
-> Renesas hardware unless I'm mistaken.
 
-Yes there are similar use-cases with Renesas Gen3, adding Kieran Bingham 
-to CC as he hopefully will look into some of them.
-
-> 
-> Cc Niklas.
-
-Thanks !
-
-> 
-> -- 
-> Kind regards,
-> 
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
-
--- 
-Regards,
-Niklas Söderlund
+Thanks,
+Mauro
