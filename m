@@ -1,82 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:49336 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751442AbdDJKRn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 06:17:43 -0400
-Subject: Re: [PATCH v2 5/8] v4l: Switch from V4L2 OF not V4L2 fwnode API
-To: Mika Westerberg <mika.westerberg@intel.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
- <14918382.izlyCngq8n@avalon>
- <20170407105805.GG4192@valkosipuli.retiisi.org.uk>
- <1895617.xparv3opoe@avalon>
- <20170407225515.GM4192@valkosipuli.retiisi.org.uk>
- <20170410092147.GE2957@lahna.fi.intel.com>
- <3e78d983-86da-3ac8-6c77-0720d8e0f534@linux.intel.com>
- <20170410101128.GF2957@lahna.fi.intel.com>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <5ac43628-da90-4a0d-dd3a-0ecc9693567b@linux.intel.com>
-Date: Mon, 10 Apr 2017 13:17:39 +0300
-MIME-Version: 1.0
-In-Reply-To: <20170410101128.GF2957@lahna.fi.intel.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:52172 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752692AbdDJT1O (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Apr 2017 15:27:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCHv4 01/15] v4l: Clearly document interactions between formats, controls and buffers
+Date: Mon, 10 Apr 2017 21:26:37 +0200
+Message-Id: <20170410192651.18486-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170410192651.18486-1-hverkuil@xs4all.nl>
+References: <20170410192651.18486-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moi,
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-On 04/10/17 13:11, Mika Westerberg wrote:
-> On Mon, Apr 10, 2017 at 12:59:36PM +0300, Sakari Ailus wrote:
->> Hi Mika and Laurent,
->>
->> On 04/10/17 12:21, Mika Westerberg wrote:
->>> On Sat, Apr 08, 2017 at 01:55:15AM +0300, Sakari Ailus wrote:
->>>>> My ACPI knowledge is limited, but don't ACPI nodes have 4 character names that 
->>>>> can be combined in a string to create a full path ?
->>>>
->>>> There is something, yes, but the ACPI framework currently has no such
->>>> functionality. I believe it could be implemented though. Cc Mika.
->>>
->>> All ACPI node names are 32-bit integers and those are combined to form a
->>> path, like \_SB.PCI0.I2C0 and so on. A single ACPI node name cannot be
->>> larger than 4 chars, though.
->>
->> On OF, each node has a full_node string attached to it. You could
->> produce a similar string on ACPI, it is not currently done. Adding such
->> a string to each fwnode would require some extra memory as well. I
->> wonder if that could be a Kconfig option.
->>
->> It would help debugging though.
->>
->> Providing this information to the user space has been proposed as well:
->> Devicetree spec defines the syntax for such strings. The user can use
->> that information for recognising a particular device in the system.
->>
->> The ACPI spec does, too, but it is limited to ACPI nodes and does not
->> address hierarchical data extensions. We'd define the syntax for those
->> ourselves.
->>
->> Mika: what do you think?
-> 
-> There is a function acpi_get_name() which you can use to extract the
-> full name of the node. Why not investigate how to use that instead of
-> duplicating the name in an ACPI node.
-> 
+V4L2 exposes parameters that influence buffers sizes through the format
+ioctls (VIDIOC_G_FMT, VIDIOC_TRY_FMT, VIDIOC_S_FMT, and possibly
+VIDIOC_G_SELECTION and VIDIOC_S_SELECTION). Other parameters not part of
+the format structure may also influence buffer sizes or buffer layout in
+general. One existing such parameter is rotation, which is implemented
+by the V4L2_CID_ROTATE control and thus exposed through the V4L2 control
+ioctls.
 
-acpi_get_name() would obviously be needed to produce such a string in
-the first place.
+The interaction between those parameters and buffers is currently only
+partially specified by the V4L2 API. In particular interactions between
+controls and buffers isn't specified at all. The behaviour of the
+VIDIOC_S_FMT and VIDIOC_S_SELECTION ioctls when buffers are allocated is
+also not fully specified.
 
-acpi_get_name() puts the string to an existing buffer so it cannot be
-used as such to return a pointer to a string (e.g. to be used for
-snprintf()). Also, it only contains the device path of the device. The
-data extension path matters here, too.
+This patch clearly defines and documents the interactions between
+formats, selections, controls and buffers.
 
+The preparatory discussions for the documentation change considered
+completely disallowing controls that change the buffer size or layout,
+in favour of extending the format API with a new ioctl that would bundle
+those controls with format information. The idea has been rejected, as
+this would essentially be a restricted version of the upcoming request
+API that wouldn't bring any additional value.
+
+Another option we have considered was to mandate the use of the request
+API to modify controls that influence buffer size or layout. This has
+also been rejected on the grounds that requiring the request API to
+change rotation even when streaming is stopped would significantly
+complicate implementation of drivers and usage of the V4L2 API for
+applications.
+
+Applications will however be required to use the upcoming request API to
+change at runtime formats or controls that influence the buffer size or
+layout, because of the need to synchronize buffers with the formats and
+controls. Otherwise there would be no way to interpret the content of a
+buffer correctly.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/uapi/v4l/buffer.rst | 110 ++++++++++++++++++++++++++++++++
+ 1 file changed, 110 insertions(+)
+
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index ac58966ccb9b..d1e0d55dc219 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -34,6 +34,116 @@ flags are copied from the OUTPUT video buffer to the CAPTURE video
+ buffer.
+ 
+ 
++Interactions between formats, controls and buffers
++==================================================
++
++V4L2 exposes parameters that influence the buffer size, or the way data is
++laid out in the buffer. Those parameters are exposed through both formats and
++controls. One example of such a control is the ``V4L2_CID_ROTATE`` control
++that modifies the direction in which pixels are stored in the buffer, as well
++as the buffer size when the selected format includes padding at the end of
++lines.
++
++The set of information needed to interpret the content of a buffer (e.g. the
++pixel format, the line stride, the tiling orientation or the rotation) is
++collectively referred to in the rest of this section as the buffer layout.
++
++Modifying formats or controls that influence the buffer size or layout require
++the stream to be stopped. Any attempt at such a modification while the stream
++is active shall cause the ioctl setting the format or the control to return
++the ``EBUSY`` error code.
++
++.. note::
++
++   The :c:func:`VIDIOC_S_SELECTION` ioctl can, depending on the hardware (for
++   instance if the device doesn't include a scaler), modify the format in
++   addition to the selection rectangle. Similarly, the
++   :c:func:`VIDIOC_S_INPUT`, :c:func:`VIDIOC_S_OUTPUT`, :c:func:`VIDIOC_S_STD`
++   and :c:func:`VIDIOC_S_DV_TIMINGS` ioctls can also modify the format and
++   selection rectangles. When those ioctls result in a buffer size or layout
++   change, drivers shall handle that condition as they would handle it in the
++   :c:func:`VIDIOC_S_FMT` ioctl in all cases described in this section.
++
++Controls that only influence the buffer layout can be modified at any time
++when the stream is stopped. As they don't influence the buffer size, no
++special handling is needed to synchronize those controls with buffer
++allocation.
++
++Formats and controls that influence the buffer size interact with buffer
++allocation. The simplest way to handle this is for drivers to always require
++buffers to be reallocated in order to change those formats or controls. In
++that case, to perform such changes, userspace applications shall first stop
++the video stream with the :c:func:`VIDIOC_STREAMOFF` ioctl if it is running
++and free all buffers with the :c:func:`VIDIOC_REQBUFS` ioctl if they are
++allocated. The format or controls can then be modified, and buffers shall then
++be reallocated and the stream restarted. A typical ioctl sequence is
++
++ #. VIDIOC_STREAMOFF
++ #. VIDIOC_REQBUFS(0)
++ #. VIDIOC_S_EXT_CTRLS
++ #. VIDIOC_S_FMT
++ #. VIDIOC_REQBUFS(n)
++ #. VIDIOC_QBUF
++ #. VIDIOC_STREAMON
++
++The second :c:func:`VIDIOC_REQBUFS` call will take the new format and control
++value into account to compute the buffer size to allocate. Applications can
++also retrieve the size by calling the :c:func:`VIDIOC_G_FMT` ioctl if needed.
++
++.. note::
++
++   The API doesn't mandate the above order for control (3.) and format (4.)
++   changes. Format and controls can be set in a different order, or even
++   interleaved, depending on the device and use case. For instance some
++   controls might behave differently for different pixel formats, in which
++   case the format might need to be set first.
++
++When reallocation is required, any attempt to modify format or controls that
++influences the buffer size while buffers are allocated shall cause the format
++or control set ioctl to return the ``EBUSY`` error. Any attempt to queue a
++buffer too small for the current format or controls shall cause the
++:c:func:`VIDIOC_QBUF` ioctl to return a ``EINVAL`` error.
++
++Buffer reallocation is an expensive operation. To avoid that cost, drivers can
++(and are encouraged to) allow format or controls that influence the buffer
++size to be changed with buffers allocated. In that case, a typical ioctl
++sequence to modify format and controls is
++
++ #. VIDIOC_STREAMOFF
++ #. VIDIOC_S_EXT_CTRLS
++ #. VIDIOC_S_FMT
++ #. VIDIOC_QBUF
++ #. VIDIOC_STREAMON
++
++For this sequence to operate correctly, queued buffers need to be large enough
++for the new format or controls. Drivers shall return a ``ENOSPC`` error in
++response to format change (:c:func:`VIDIOC_S_FMT`) or control changes
++(:c:func:`VIDIOC_S_CTRL` or :c:func:`VIDIOC_S_EXT_CTRLS`) if buffers too small
++for the new format are currently queued. As a simplification, drivers are
++allowed to return a ``EBUSY`` error from these ioctls if any buffer is
++currently queued, without checking the queued buffers sizes.
++
++Additionally, drivers shall return a ``EINVAL`` error from the
++:c:func:`VIDIOC_QBUF` ioctl if the buffer being queued is too small for the
++current format or controls. Together, these requirements ensure that queued
++buffers will always be large enough for the configured format and controls.
++
++Userspace applications can query the buffer size required for a given format
++and controls by first setting the desired control values and then trying the
++desired format. The :c:func:`VIDIOC_TRY_FMT` ioctl will return the required
++buffer size.
++
++ #. VIDIOC_S_EXT_CTRLS(x)
++ #. VIDIOC_TRY_FMT()
++ #. VIDIOC_S_EXT_CTRLS(y)
++ #. VIDIOC_TRY_FMT()
++
++The :c:func:`VIDIOC_CREATE_BUFS` ioctl can then be used to allocate buffers
++based on the queried sizes (for instance by allocating a set of buffers large
++enough for all the desired formats and controls, or by allocating separate set
++of appropriately sized buffers for each use case).
++
++
+ .. c:type:: v4l2_buffer
+ 
+ struct v4l2_buffer
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.11.0
