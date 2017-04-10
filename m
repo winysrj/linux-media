@@ -1,81 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33861 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965780AbdDYMvr (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:43216 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752692AbdDJT1H (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 08:51:47 -0400
-Date: Tue, 25 Apr 2017 14:51:43 +0200
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
-        Sakari Ailus <sakari.ailus@iki.fi>,
+        Mon, 10 Apr 2017 15:27:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: support autofocus / autogain in libv4l2
-Message-ID: <20170425125143.GJ30553@pali>
-References: <20170419105118.72b8e284@vento.lan>
- <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan>
- <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan>
- <20170425080538.GA30380@amd>
- <20170425080815.GD30553@pali>
- <20170425112330.GB7926@amd>
- <20170425113009.GH30553@pali>
- <20170425122820.GD7926@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170425122820.GD7926@amd>
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCHv4 06/15] v4l: vsp1: Fix HGO and HGT routing register addresses
+Date: Mon, 10 Apr 2017 21:26:42 +0200
+Message-Id: <20170410192651.18486-7-hverkuil@xs4all.nl>
+In-Reply-To: <20170410192651.18486-1-hverkuil@xs4all.nl>
+References: <20170410192651.18486-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 25 April 2017 14:28:20 Pavel Machek wrote:
-> On Tue 2017-04-25 13:30:09, Pali Rohár wrote:
-> > On Tuesday 25 April 2017 13:23:30 Pavel Machek wrote:
-> > > Hi!
-> > > On Tue 2017-04-25 10:08:15, Pali Rohár wrote:
-> > > > On Tuesday 25 April 2017 10:05:38 Pavel Machek wrote:
-> > > > > > > It would be nice if more than one application could be accessing the
-> > > > > > > camera at the same time... (I.e. something graphical running preview
-> > > > > > > then using command line tool to grab a picture.) This one is
-> > > > > > > definitely not solveable inside a library...
-> > > > > > 
-> > > > > > Someone once suggested to have something like pulseaudio for V4L.
-> > > > > > For such usage, a server would be interesting. Yet, I would code it
-> > > > > > in a way that applications using libv4l will talk with such daemon
-> > > > > > in a transparent way.
-> > > > > 
-> > > > > Yes, we need something like pulseaudio for V4L. And yes, we should
-> > > > > make it transparent for applications using libv4l.
-> > > > 
-> > > > IIRC there is already some effort in writing such "video" server which
-> > > > would support accessing more application into webcam video, like
-> > > > pulseaudio server for accessing more applications to microphone input.
-> > > 
-> > > Do you have project name / url / something?
-> > 
-> > Pinos (renamed from PulseVideo)
-> > 
-> > https://blogs.gnome.org/uraeus/2015/06/30/introducing-pulse-video/
-> > https://cgit.freedesktop.org/~wtay/pinos/
-> > 
-> > But from git history it looks like it is probably dead now...
-> 
-> Actually, last commit is an hour ago on "work" branch. Seems alive to
-> me ;-).
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Great! I just (blindly) looked at master branch and it is old...
+The addresses are incorrect, fix them.
 
-> Thanks for pointer...
-> 									Pavel
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_regs.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+index 47b1dee044fb..61369e267667 100644
+--- a/drivers/media/platform/vsp1/vsp1_regs.h
++++ b/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -328,8 +328,8 @@
+ #define VI6_DPR_ROUTE_RT_MASK		(0x3f << 0)
+ #define VI6_DPR_ROUTE_RT_SHIFT		0
+ 
+-#define VI6_DPR_HGO_SMPPT		0x2050
+-#define VI6_DPR_HGT_SMPPT		0x2054
++#define VI6_DPR_HGO_SMPPT		0x2054
++#define VI6_DPR_HGT_SMPPT		0x2058
+ #define VI6_DPR_SMPPT_TGW_MASK		(7 << 8)
+ #define VI6_DPR_SMPPT_TGW_SHIFT		8
+ #define VI6_DPR_SMPPT_PT_MASK		(0x3f << 0)
 -- 
-Pali Rohár
-pali.rohar@gmail.com
+2.11.0
