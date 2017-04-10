@@ -1,47 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.211]:41180 "EHLO newverein.lst.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752616AbdDNFSv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Apr 2017 01:18:51 -0400
-Date: Fri, 14 Apr 2017 07:18:43 +0200
-From: Christoph Hellwig <hch@lst.de>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
-        Steve Wise <swise@opengridcomputing.com>,
-        Stephen Bates <sbates@raithlin.com>
-Subject: Re: [PATCH 02/22] nvmet: Make use of the new sg_map helper function
-Message-ID: <20170414051843.GA22537@lst.de>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com> <1492121135-4437-3-git-send-email-logang@deltatee.com> <20170414045951.GA22206@lst.de> <4df3e41b-591e-a500-a428-4bc529224030@deltatee.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:44608 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751968AbdDJHvt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Apr 2017 03:51:49 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH for v4.12] videodev2.h: fix outdated comment
+Message-ID: <baec3430-9b4e-ba54-ee9c-1450958ac2eb@xs4all.nl>
+Date: Mon, 10 Apr 2017 09:51:44 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4df3e41b-591e-a500-a428-4bc529224030@deltatee.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 13, 2017 at 11:06:16PM -0600, Logan Gunthorpe wrote:
-> Or maybe I'll just send a patch for that
-> separately seeing it doesn't depend on anything and is pretty simple. I
-> can do that next week.
+The XV601/709 Y'CbCr encoding was changed to limited range, but the comment
+still indicates full range.
 
-Yes, please just send that patch linux-nvme, we should be able to get
-it into 4.12.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 316be62f3a45..5d842a61d94a 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -362,8 +362,7 @@ enum v4l2_quantization {
+ 	/*
+ 	 * The default for R'G'B' quantization is always full range, except
+ 	 * for the BT2020 colorspace. For Y'CbCr the quantization is always
+-	 * limited range, except for COLORSPACE_JPEG, XV601 or XV709: those
+-	 * are full range.
++	 * limited range, except for COLORSPACE_JPEG: this is full range.
+ 	 */
+ 	V4L2_QUANTIZATION_DEFAULT     = 0,
+ 	V4L2_QUANTIZATION_FULL_RANGE  = 1,
