@@ -1,113 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:60593 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1758294AbdDYJ7F (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53683 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751285AbdDJETK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 05:59:05 -0400
-Subject: Re: [PATCH] ov2640: print error if devm_*_optional*() fails
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <20df5459b3f27a642151703501f2bf803cc79c5a.1493113538.git.mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Frank Schaefer <fschaefer.oss@googlemail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Bhumika Goyal <bhumirks@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <522bdf8d-3808-6ede-99bc-577051daaa24@xs4all.nl>
-Date: Tue, 25 Apr 2017 11:59:00 +0200
-MIME-Version: 1.0
-In-Reply-To: <20df5459b3f27a642151703501f2bf803cc79c5a.1493113538.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Mon, 10 Apr 2017 00:19:10 -0400
+Message-ID: <9efc7520321539f24c8897f029addbcc@smtp-cloud2.xs4all.net>
+Date: Mon, 10 Apr 2017 06:19:08 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25/04/17 11:45, Mauro Carvalho Chehab wrote:
-> devm_gpiod_get_optional() can return -ENOSYS if GPIOLIB is
-> disabled, causing probe to fail. Warn the user if this
-> happens.
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Results of the daily build of media_tree:
 
-Thanks!
+date:			Mon Apr 10 05:00:14 CEST 2017
+media-tree git hash:	2f65ec0567f77b75f459c98426053a3787af356a
+media_build git hash:	d49f7b2d9934c96a3d2c04021e4da1e12ec97995
+v4l-utils git hash:	08572e7db2120bc45db732d02409dfd3346b8e51
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-Regards,
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10.1-i686: OK
+linux-4.11-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-x86_64: WARNINGS
+linux-4.10.1-x86_64: WARNINGS
+linux-4.11-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-	Hans
+Detailed results are available here:
 
-> ---
->  drivers/media/i2c/ov2640.c | 30 ++++++++++++++++++++++--------
->  1 file changed, 22 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-> index 4a2ae24f8722..e6d0c1f64f0b 100644
-> --- a/drivers/media/i2c/ov2640.c
-> +++ b/drivers/media/i2c/ov2640.c
-> @@ -765,17 +765,17 @@ static int ov2640_s_register(struct v4l2_subdev *sd,
->  
->  static int ov2640_s_power(struct v4l2_subdev *sd, int on)
->  {
-> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> -	struct ov2640_priv *priv = to_ov2640(client);
-> -
->  #ifdef CONFIG_GPIOLIB
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	struct ov2640_priv *priv = to_ov2640(client);
-> +
->  	if (priv->pwdn_gpio)
->  		gpiod_direction_output(priv->pwdn_gpio, !on);
->  	if (on && priv->resetb_gpio) {
->  		/* Active the resetb pin to perform a reset pulse */
->  		gpiod_direction_output(priv->resetb_gpio, 1);
->  		usleep_range(3000, 5000);
-> -		gpiod_direction_output(priv->resetb_gpio, 0);
-> +		gpiod_set_value(priv->resetb_gpio, 0);
->  	}
->  #endif
->  	return 0;
-> @@ -1048,21 +1048,35 @@ static const struct v4l2_subdev_ops ov2640_subdev_ops = {
->  static int ov2640_probe_dt(struct i2c_client *client,
->  		struct ov2640_priv *priv)
->  {
-> +	int ret;
-> +
->  	/* Request the reset GPIO deasserted */
->  	priv->resetb_gpio = devm_gpiod_get_optional(&client->dev, "resetb",
->  			GPIOD_OUT_LOW);
-> +
->  	if (!priv->resetb_gpio)
->  		dev_dbg(&client->dev, "resetb gpio is not assigned!\n");
-> -	else if (IS_ERR(priv->resetb_gpio))
-> -		return PTR_ERR(priv->resetb_gpio);
-> +
-> +	ret = PTR_ERR_OR_ZERO(priv->resetb_gpio);
-> +	if (ret && ret != -ENOSYS) {
-> +		dev_dbg(&client->dev,
-> +			"Error %d while getting resetb gpio\n", ret);
-> +		return ret;
-> +	}
->  
->  	/* Request the power down GPIO asserted */
->  	priv->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "pwdn",
->  			GPIOD_OUT_HIGH);
-> +
->  	if (!priv->pwdn_gpio)
->  		dev_dbg(&client->dev, "pwdn gpio is not assigned!\n");
-> -	else if (IS_ERR(priv->pwdn_gpio))
-> -		return PTR_ERR(priv->pwdn_gpio);
-> +
-> +	ret = PTR_ERR_OR_ZERO(priv->pwdn_gpio);
-> +	if (ret && ret != -ENOSYS) {
-> +		dev_dbg(&client->dev,
-> +			"Error %d while getting pwdn gpio\n", ret);
-> +		return ret;
-> +	}
->  
->  	return 0;
->  }
-> 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
