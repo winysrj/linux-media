@@ -1,89 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:49212 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751672AbdDCOL2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Apr 2017 10:11:28 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        robh+dt@kernel.org, mark.rutland@arm.com,
-        devicetree@vger.kernel.org
-Cc: Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v8 1/2] media: i2c/ov5645: add the device tree binding document
-Date: Mon,  3 Apr 2017 17:02:28 +0300
-Message-Id: <1491228148-28505-1-git-send-email-todor.tomov@linaro.org>
+Received: from mail-oi0-f49.google.com ([209.85.218.49]:33497 "EHLO
+        mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752099AbdDJUNn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Apr 2017 16:13:43 -0400
+Received: by mail-oi0-f49.google.com with SMTP id b187so161555199oif.0
+        for <linux-media@vger.kernel.org>; Mon, 10 Apr 2017 13:13:43 -0700 (PDT)
+MIME-Version: 1.0
+From: Patrick Doyle <wpdster@gmail.com>
+Date: Mon, 10 Apr 2017 16:13:07 -0400
+Message-ID: <CAF_dkJAwwj0mpOztkTNTrDC1YQkgh=HvZGh=tv3SYsuvUzTb+g@mail.gmail.com>
+Subject: Looking for device driver advice
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the document for ov5645 device tree binding.
+I am looking for advice regarding the construction of a device driver
+for a MIPI CSI2 imager (a Sony IMX241) that is connected to a
+MIPI<->Parallel converter (Toshiba TC358748) wired into a parallel
+interface on a Soc (a Microchip/Atmel SAMAD2x device.)
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- .../devicetree/bindings/media/i2c/ov5645.txt       | 54 ++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
+The Sony imager is controlled and configured via I2C, as is the
+Toshiba converter.  I could write a single driver that configures both
+devices and treats them as a single device that just happens to use 2
+i2c addresses.  I could use the i2c_new_dummy() API to construct the
+device abstraction for the second physical device at probe time for
+the first physical device.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov5645.txt b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
-new file mode 100644
-index 0000000..fd7aec9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
-@@ -0,0 +1,54 @@
-+* Omnivision 1/4-Inch 5Mp CMOS Digital Image Sensor
-+
-+The Omnivision OV5645 is a 1/4-Inch CMOS active pixel digital image sensor with
-+an active array size of 2592H x 1944V. It is programmable through a serial I2C
-+interface.
-+
-+Required Properties:
-+- compatible: Value should be "ovti,ov5645".
-+- clocks: Reference to the xclk clock.
-+- clock-names: Should be "xclk".
-+- clock-frequency: Frequency of the xclk clock.
-+- enable-gpios: Chip enable GPIO. Polarity is GPIO_ACTIVE_HIGH. This corresponds
-+  to the hardware pin PWDNB which is physically active low.
-+- reset-gpios: Chip reset GPIO. Polarity is GPIO_ACTIVE_LOW. This corresponds to
-+  the hardware pin RESETB.
-+- vdddo-supply: Chip digital IO regulator.
-+- vdda-supply: Chip analog regulator.
-+- vddd-supply: Chip digital core regulator.
-+
-+The device node must contain one 'port' child node for its digital output
-+video port, in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+
-+	&i2c1 {
-+		...
-+
-+		ov5645: ov5645@78 {
-+			compatible = "ovti,ov5645";
-+			reg = <0x78>;
-+
-+			enable-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
-+			reset-gpios = <&gpio5 20 GPIO_ACTIVE_LOW>;
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&camera_rear_default>;
-+
-+			clocks = <&clks 200>;
-+			clock-names = "xclk";
-+			clock-frequency = <23880000>;
-+
-+			vdddo-supply = <&camera_dovdd_1v8>;
-+			vdda-supply = <&camera_avdd_2v8>;
-+			vddd-supply = <&camera_dvdd_1v2>;
-+
-+			port {
-+				ov5645_ep: endpoint {
-+					clock-lanes = <1>;
-+					data-lanes = <0 2>;
-+					remote-endpoint = <&csi0_ep>;
-+				};
-+			};
-+		};
-+	};
--- 
-1.9.1
+Or I could do something smarter (or at least different), specifying
+the two devices independently via my device tree file, perhaps linking
+them together via "port" nodes.  Currently, I use the "port" node
+concept to link an i2c imager to the Image System Controller (isc)
+node in the SAMA5 device.  Perhaps that generalizes to a chain of
+nodes linked together... I don't know.
+
+I'm also not sure how these two devices might play into V4L2's
+"subdev" concept.  Are they separate, independent sub devices of the
+ISC, or are they a single sub device.
+
+Any thoughts, intuition, pointers to existing code that addresses
+questions such as these, would be welcome.
+
+Thanks.
+
+--wpd
