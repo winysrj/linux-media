@@ -1,262 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sypressi3.dnainternet.net ([83.102.40.158]:54592 "EHLO
-        sypressi2.dnainternet.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752329AbdDHLOP (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:35302 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751648AbdDJPU1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 8 Apr 2017 07:14:15 -0400
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH] dvb-scan-tables: updated Digita frequencies for Finland
-Date: Sat,  8 Apr 2017 14:08:00 +0300
-Message-Id: <1491649680-13078-1-git-send-email-olli.salonen@iki.fi>
+        Mon, 10 Apr 2017 11:20:27 -0400
+Date: Mon, 10 Apr 2017 10:20:25 -0500
+From: Rob Herring <robh@kernel.org>
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>
+Subject: Re: [PATCH v3 1/8] dt-bindings: Document STM32 DCMI bindings
+Message-ID: <20170410152025.nx4zrnbth6wgamro@rob-hp-laptop>
+References: <1491320678-17246-1-git-send-email-hugues.fruchet@st.com>
+ <1491320678-17246-2-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1491320678-17246-2-git-send-email-hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In summer 2016 some DVB-T/DVB-T2 frequencies were changed by the broadcaster Digita. Here are some that have already changed.
+On Tue, Apr 04, 2017 at 05:44:31PM +0200, Hugues Fruchet wrote:
+> This adds documentation of device tree bindings for the STM32 DCMI
+> (Digital Camera Memory Interface).
+> 
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>  .../devicetree/bindings/media/st,stm32-dcmi.txt    | 46 ++++++++++++++++++++++
+>  1 file changed, 46 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- dvb-t/fi-Espoo              |  6 +++---
- dvb-t/fi-Fiskars            |  4 ++--
- dvb-t/fi-Kustavi_Viherlahti |  8 ++++----
- dvb-t/fi-Lahti              |  8 ++++----
- dvb-t/fi-Salo_Isokyla       |  6 +++---
- dvb-t/fi-Tampere            |  8 ++++----
- dvb-t/fi-Tampere_Pyynikki   |  6 +++---
- dvb-t/fi-Turku              | 12 ++++++------
- 8 files changed, 29 insertions(+), 29 deletions(-)
+One nit below, otherwise:
 
-diff --git a/dvb-t/fi-Espoo b/dvb-t/fi-Espoo
-index ceb906d..6fb0ff2 100644
---- a/dvb-t/fi-Espoo
-+++ b/dvb-t/fi-Espoo
-@@ -18,16 +18,16 @@
- 
- [Espoo-E]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 730000000
-+	FREQUENCY = 514000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Espoo-D]
- 	DELIVERY_SYSTEM = DVBT2
--	FREQUENCY = 586000000
-+	FREQUENCY = 650000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Espoo-H]
- 	DELIVERY_SYSTEM = DVBT2
--	FREQUENCY = 514000000
-+	FREQUENCY = 618000000
- 	BANDWIDTH_HZ = 8000000
- 
-diff --git a/dvb-t/fi-Fiskars b/dvb-t/fi-Fiskars
-index 0f84bb7..2b6b791 100644
---- a/dvb-t/fi-Fiskars
-+++ b/dvb-t/fi-Fiskars
-@@ -8,7 +8,7 @@
- 
- [Fiskars]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 658000000
-+	FREQUENCY = 498000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Fiskars]
-@@ -18,6 +18,6 @@
- 
- [Fiskars]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 770000000
-+	FREQUENCY = 490000000
- 	BANDWIDTH_HZ = 8000000
- 
-diff --git a/dvb-t/fi-Kustavi_Viherlahti b/dvb-t/fi-Kustavi_Viherlahti
-index ecef74d..9840401 100644
---- a/dvb-t/fi-Kustavi_Viherlahti
-+++ b/dvb-t/fi-Kustavi_Viherlahti
-@@ -3,21 +3,21 @@
- 
- [Kustavi_Viherlahti]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 714000000
-+	FREQUENCY = 538000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Kustavi_Viherlahti]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 738000000
-+	FREQUENCY = 658000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Kustavi_Viherlahti]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 762000000
-+	FREQUENCY = 682000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Kustavi_Viherlahti]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 786000000
-+	FREQUENCY = 634000000
- 	BANDWIDTH_HZ = 8000000
- 
-diff --git a/dvb-t/fi-Lahti b/dvb-t/fi-Lahti
-index f4c89b8..ea4163c 100644
---- a/dvb-t/fi-Lahti
-+++ b/dvb-t/fi-Lahti
-@@ -13,21 +13,21 @@
- 
- [Lahti-C]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 762000000
-+	FREQUENCY = 626000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Lahti-E]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 714000000
-+	FREQUENCY = 690000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Lahti-D]
- 	DELIVERY_SYSTEM = DVBT2
--	FREQUENCY = 626000000
-+	FREQUENCY = 602000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Lahti-H]
- 	DELIVERY_SYSTEM = DVBT2
--	FREQUENCY = 690000000
-+	FREQUENCY = 642000000
- 	BANDWIDTH_HZ = 8000000
- 
-diff --git a/dvb-t/fi-Salo_Isokyla b/dvb-t/fi-Salo_Isokyla
-index 42df3b4..0cf08b8 100644
---- a/dvb-t/fi-Salo_Isokyla
-+++ b/dvb-t/fi-Salo_Isokyla
-@@ -3,7 +3,7 @@
- 
- [Salo_Isokyla]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 514000000
-+	FREQUENCY = 610000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Salo_Isokyla]
-@@ -13,11 +13,11 @@
- 
- [Salo_Isokyla]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 682000000
-+	FREQUENCY = 530000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Salo_Isokyla]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 570000000
-+	FREQUENCY = 690000000
- 	BANDWIDTH_HZ = 8000000
- 
-diff --git a/dvb-t/fi-Tampere b/dvb-t/fi-Tampere
-index 27cf3a7..33d40c4 100644
---- a/dvb-t/fi-Tampere
-+++ b/dvb-t/fi-Tampere
-@@ -13,21 +13,21 @@
- 
- [Tampere-C]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 770000000
-+	FREQUENCY = 658000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Tampere-E]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 778000000
-+	FREQUENCY = 674000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Tampere-D]
- 	DELIVERY_SYSTEM = DVBT2
--	FREQUENCY = 642000000
-+	FREQUENCY = 650000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Tampere-H]
- 	DELIVERY_SYSTEM = DVBT2
--	FREQUENCY = 674000000
-+	FREQUENCY = 498000000
- 	BANDWIDTH_HZ = 8000000
- 
-diff --git a/dvb-t/fi-Tampere_Pyynikki b/dvb-t/fi-Tampere_Pyynikki
-index 03e8ecc..1da6662 100644
---- a/dvb-t/fi-Tampere_Pyynikki
-+++ b/dvb-t/fi-Tampere_Pyynikki
-@@ -8,7 +8,7 @@
- 
- [Tampere_Pyynikki]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 658000000
-+	FREQUENCY = 514000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Tampere_Pyynikki]
-@@ -18,11 +18,11 @@
- 
- [Tampere_Pyynikki]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 586000000
-+	FREQUENCY = 610000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Tampere_Pyynikki]
- 	DELIVERY_SYSTEM = DVBT2
--	FREQUENCY = 642000000
-+	FREQUENCY = 562000000
- 	BANDWIDTH_HZ = 8000000
- 
-diff --git a/dvb-t/fi-Turku b/dvb-t/fi-Turku
-index e3907a6..dd29eb5 100644
---- a/dvb-t/fi-Turku
-+++ b/dvb-t/fi-Turku
-@@ -3,31 +3,31 @@
- 
- [Turku-A]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 714000000
-+	FREQUENCY = 538000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Turku-B]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 738000000
-+	FREQUENCY = 658000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Turku-C]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 762000000
-+	FREQUENCY = 682000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Turku-E]
- 	DELIVERY_SYSTEM = DVBT
--	FREQUENCY = 786000000
-+	FREQUENCY = 634000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Turku-D]
- 	DELIVERY_SYSTEM = DVBT2
--	FREQUENCY = 538000000
-+	FREQUENCY = 594000000
- 	BANDWIDTH_HZ = 8000000
- 
- [Turku-H]
- 	DELIVERY_SYSTEM = DVBT2
--	FREQUENCY = 698000000
-+	FREQUENCY = 570000000
- 	BANDWIDTH_HZ = 8000000
- 
--- 
-2.7.4
+Acked-by: Rob Herring <robh@kernel.org>
+
+> 
+> diff --git a/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
+> new file mode 100644
+> index 0000000..c0f6f4b
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
+> @@ -0,0 +1,46 @@
+> +STMicroelectronics STM32 Digital Camera Memory Interface (DCMI)
+> +
+> +Required properties:
+> +- compatible: "st,stm32-dcmi"
+> +- reg: physical base address and length of the registers set for the device
+> +- interrupts: should contain IRQ line for the DCMI
+> +- resets: reference to a reset controller,
+> +          see Documentation/devicetree/bindings/reset/st,stm32-rcc.txt
+> +- clocks: list of clock specifiers, corresponding to entries in
+> +          the clock-names property
+> +- clock-names: must contain "mclk", which is the DCMI peripherial clock
+> +- pinctrl: the pincontrol settings to configure muxing properly
+> +           for pins that connect to DCMI device.
+> +           See Documentation/devicetree/bindings/pinctrl/st,stm32-pinctrl.txt.
+> +- dmas: phandle to DMA controller node,
+> +        see Documentation/devicetree/bindings/dma/stm32-dma.txt
+> +- dma-names: must contain "tx", which is the transmit channel from DCMI to DMA
+> +
+> +DCMI supports a single port node with parallel bus. It should contain one
+> +'port' child node with child 'endpoint' node. Please refer to the bindings
+> +defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +Example:
+> +
+> +	dcmi: dcmi@50050000 {
+> +		compatible = "st,stm32-dcmi";
+> +		reg = <0x50050000 0x400>;
+> +		interrupts = <78>;
+> +		resets = <&rcc STM32F4_AHB2_RESET(DCMI)>;
+> +		clocks = <&rcc 0 STM32F4_AHB2_CLOCK(DCMI)>;
+> +		clock-names = "mclk";
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&dcmi_pins>;
+> +		dmas = <&dma2 1 1 0x414 0x3>;
+> +		dma-names = "tx";
+> +		port {
+> +			dcmi_0: endpoint@0 {
+
+Unit address in not valid without a reg prop, so drop it.
+
+> +				remote-endpoint = <...>;
+> +				bus-width = <8>;
+> +				hsync-active = <0>;
+> +				vsync-active = <0>;
+> +				pclk-sample = <1>;
+> +			};
+> +		};
+> +	};
+> +
+> -- 
+> 1.9.1
+> 
