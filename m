@@ -1,100 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:54978 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756064AbdDFOjw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Apr 2017 10:39:52 -0400
-Date: Thu, 6 Apr 2017 15:38:56 +0100
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH] [media] imx: csi: retain current field order and
- colorimetry setting as default
-Message-ID: <20170406143856.GG17774@n2100.armlinux.org.uk>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
- <1490661656-10318-22-git-send-email-steve_longerbeam@mentor.com>
- <1491486929.2392.29.camel@pengutronix.de>
- <0f9690f8-c7f6-59ff-9e3e-123af9972d4b@xs4all.nl>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52783 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754989AbdDJQtC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Apr 2017 12:49:02 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [RFC PATCH] Document new V4L2_CTRL_FLAG_MODIFY_LAYOUT flag
+Message-ID: <463ae2c1-9ee2-9b50-2939-cafae0365dec@xs4all.nl>
+Date: Mon, 10 Apr 2017 18:48:57 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0f9690f8-c7f6-59ff-9e3e-123af9972d4b@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 06, 2017 at 04:20:21PM +0200, Hans Verkuil wrote:
-> On 04/06/2017 03:55 PM, Philipp Zabel wrote:
-> > If the the field order is set to ANY in set_fmt, choose the currently
-> > set field order. If the colorspace is set to DEFAULT, choose the current
-> > colorspace.  If any of xfer_func, ycbcr_enc or quantization are set to
-> > DEFAULT, either choose the current setting, or the default setting for the
-> > new colorspace, if non-DEFAULT colorspace was given.
-> > 
-> > This allows to let field order and colorimetry settings be propagated
-> > from upstream by calling media-ctl on the upstream entity source pad,
-> > and then call media-ctl on the sink pad to manually set the input frame
-> > interval, without changing the already set field order and colorimetry
-> > information.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> > This is based on imx-media-staging-md-v14, and it is supposed to allow
-> > configuring the pipeline with media-ctl like this:
-> > 
-> > 1) media-ctl --set-v4l2 "'tc358743 1-000f':0[fmt:UYVY8_1X16/1920x1080]"
-> > 2) media-ctl --set-v4l2 "'imx6-mipi-csi2':1[fmt:UYVY8_1X16/1920x108]"
-> > 3) media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY8_1X16/1920x1080]"
-> > 4) media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY8_1X16/1920x1080@1/60]"
-> > 5) media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/1920x1080@1/30]"
-> > 
-> > Without having step 4) overwrite the colorspace and field order set on
-> > 'ipu1_csi0':0 by the propagation in step 3).
-> > ---
-> >  drivers/staging/media/imx/imx-media-csi.c | 34 +++++++++++++++++++++++++++++++
-> >  1 file changed, 34 insertions(+)
-> > 
-> > diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> > index 64dc454f6b371..d94ce1de2bf05 100644
-> > --- a/drivers/staging/media/imx/imx-media-csi.c
-> > +++ b/drivers/staging/media/imx/imx-media-csi.c
-> > @@ -1325,6 +1325,40 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
-> >  	csi_try_fmt(priv, sensor, cfg, sdformat, crop, compose, &cc);
-> >  
-> >  	fmt = __csi_get_fmt(priv, cfg, sdformat->pad, sdformat->which);
-> > +
-> > +	/* Retain current field setting as default */
-> > +	if (sdformat->format.field == V4L2_FIELD_ANY)
-> > +		sdformat->format.field = fmt->field;
-> 
-> sdformat->format.field should never be FIELD_ANY. If it is, then that's a
-> subdev bug and I'm pretty sure FIELD_NONE was intended.
+This RFC patch adds documentation for the V4L2_CTRL_FLAG_MODIFY_LAYOUT flag and
+how this and the GRABBED flag should be used.
 
-Please explain further - sdformat->format.field is the field passed _in_
-from userspace, and from what I can see, userspace is free to pass in
-any value through the ioctl as check_format() does nothing to validate
-that the various format.* fields are sane.
+When approved I'll post a proper patch series introducing this flag.
 
-This patch is detecting that the user is requesting FIELD_ANY, and
-fixing it up.  Surely that's the right thing to do, and is way more
-preferable than just accepting the FIELD_ANY from userspace and
-storing that value?
+This patch sits on top of Laurent's vsp1/next branch.
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Also available here:
+
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=vsp1
+
+Regards,
+
+	Hans
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index 64613d935edd..ae6ee73f151c 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -48,10 +48,16 @@ The set of information needed to interpret the content of a buffer (e.g. the
+ pixel format, the line stride, the tiling orientation or the rotation) is
+ collectively referred to in the rest of this section as the buffer layout.
+
++Controls that can modify the buffer layout shall set the
++``V4L2_CTRL_FLAG_MODIFY_LAYOUT`` flag.
++
+ Modifying formats or controls that influence the buffer size or layout require
+ the stream to be stopped. Any attempt at such a modification while the stream
+ is active shall cause the ioctl setting the format or the control to return
+-the ``EBUSY`` error code.
++the ``EBUSY`` error code. In that case drivers shall also set the
++``V4L2_CTRL_FLAG_GRABBED`` flag when calling
++:c:func:`VIDIOC_QUERYCTRL` or :c:func:`VIDIOC_QUERY_EXT_CTRL` for such a
++control while the stream is active.
+
+ .. note::
+
+@@ -67,7 +73,8 @@ the ``EBUSY`` error code.
+ Controls that only influence the buffer layout can be modified at any time
+ when the stream is stopped. As they don't influence the buffer size, no
+ special handling is needed to synchronize those controls with buffer
+-allocation.
++allocation and the ``V4L2_CTRL_FLAG_GRABBED`` flag is cleared once the
++stream is stopped.
+
+ Formats and controls that influence the buffer size interact with buffer
+ allocation. The simplest way to handle this is for drivers to always require
+@@ -75,8 +82,10 @@ buffers to be reallocated in order to change those formats or controls. In
+ that case, to perform such changes, userspace applications shall first stop
+ the video stream with the :c:func:`VIDIOC_STREAMOFF` ioctl if it is running
+ and free all buffers with the :c:func:`VIDIOC_REQBUFS` ioctl if they are
+-allocated. The format or controls can then be modified, and buffers shall then
+-be reallocated and the stream restarted. A typical ioctl sequence is
++allocated. After freeing all buffers the ``V4L2_CTRL_FLAG_GRABBED`` flag
++for controls is cleared. The format or controls can then be modified, and
++buffers shall then be reallocated and the stream restarted. A typical ioctl
++sequence is
+
+  #. VIDIOC_STREAMOFF
+  #. VIDIOC_REQBUFS(0)
+diff --git a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
+index 82769de801b1..1ffdc3f3c614 100644
+--- a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
++++ b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
+@@ -507,6 +507,19 @@ See also the examples in :ref:`control`.
+ 	represents an action on the hardware. For example: clearing an
+ 	error flag or triggering the flash. All the controls of the type
+ 	``V4L2_CTRL_TYPE_BUTTON`` have this flag set.
++    * .. _FLAG_MODIFY_LAYOUT:
++
++      - ``V4L2_CTRL_FLAG_MODIFY_LAYOUT``
++      - 0x0400
++      - Changing this control value may modify the layout of the
++        buffer (for video devices) or the media bus format (for sub-devices).
++
++	A typical example would be the ``V4L2_CID_ROTATE`` control.
++
++	Note that typically controls with this flag will also set the
++	``V4L2_CTRL_FLAG_GRABBED`` flag when buffers are allocated or
++	streaming is in progress since most drivers do not support changing
++	the format in that case.
+
+
+ Return Value
+diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+index c9c611b18ba1..a5cb0a8686ac 100644
+--- a/Documentation/media/videodev2.h.rst.exceptions
++++ b/Documentation/media/videodev2.h.rst.exceptions
+@@ -341,6 +341,7 @@ replace define V4L2_CTRL_FLAG_WRITE_ONLY control-flags
+ replace define V4L2_CTRL_FLAG_VOLATILE control-flags
+ replace define V4L2_CTRL_FLAG_HAS_PAYLOAD control-flags
+ replace define V4L2_CTRL_FLAG_EXECUTE_ON_WRITE control-flags
++replace define V4L2_CTRL_FLAG_MODIFY_LAYOUT control-flags
+
+ replace define V4L2_CTRL_FLAG_NEXT_CTRL control
+ replace define V4L2_CTRL_FLAG_NEXT_COMPOUND control
