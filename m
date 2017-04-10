@@ -1,87 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:56991 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1030419AbdD0PqO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 11:46:14 -0400
-To: Herbert Xu <herbert@gondor.apana.org.au>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
- <1493144468-22493-8-git-send-email-logang@deltatee.com>
- <20170427035603.GA32212@gondor.apana.org.au>
-Cc: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        "David S. Miller" <davem@davemloft.net>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <94123cbf-3287-f05e-7267-0bcf08ab0a8b@deltatee.com>
-Date: Thu, 27 Apr 2017 09:45:57 -0600
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:36165 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751615AbdDJLpv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Apr 2017 07:45:51 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.12] Various fixes
+Message-ID: <135445f3-a728-3eef-43fb-24643cd92f51@xs4all.nl>
+Date: Mon, 10 Apr 2017 13:45:45 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170427035603.GA32212@gondor.apana.org.au>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH v2 07/21] crypto: shash, caam: Make use of the new sg_map
- helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Various fixes for 4.12.
 
+Regards,
 
-On 26/04/17 09:56 PM, Herbert Xu wrote:
-> On Tue, Apr 25, 2017 at 12:20:54PM -0600, Logan Gunthorpe wrote:
->> Very straightforward conversion to the new function in the caam driver
->> and shash library.
->>
->> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
->> Cc: Herbert Xu <herbert@gondor.apana.org.au>
->> Cc: "David S. Miller" <davem@davemloft.net>
->> ---
->>  crypto/shash.c                | 9 ++++++---
->>  drivers/crypto/caam/caamalg.c | 8 +++-----
->>  2 files changed, 9 insertions(+), 8 deletions(-)
->>
->> diff --git a/crypto/shash.c b/crypto/shash.c
->> index 5e31c8d..5914881 100644
->> --- a/crypto/shash.c
->> +++ b/crypto/shash.c
->> @@ -283,10 +283,13 @@ int shash_ahash_digest(struct ahash_request *req, struct shash_desc *desc)
->>  	if (nbytes < min(sg->length, ((unsigned int)(PAGE_SIZE)) - offset)) {
->>  		void *data;
->>  
->> -		data = kmap_atomic(sg_page(sg));
->> -		err = crypto_shash_digest(desc, data + offset, nbytes,
->> +		data = sg_map(sg, 0, SG_KMAP_ATOMIC);
->> +		if (IS_ERR(data))
->> +			return PTR_ERR(data);
->> +
->> +		err = crypto_shash_digest(desc, data, nbytes,
->>  					  req->result);
->> -		kunmap_atomic(data);
->> +		sg_unmap(sg, data, 0, SG_KMAP_ATOMIC);
->>  		crypto_yield(desc->flags);
->>  	} else
->>  		err = crypto_shash_init(desc) ?:
-> 
-> Nack.  This is an optimisation for the special case of a single
-> SG list entry.  In fact in the common case the kmap_atomic should
-> disappear altogether in the no-highmem case.  So replacing it
-> with sg_map is not acceptable.
+	Hans
 
-What you seem to have missed is that sg_map is just a thin wrapper
-around kmap_atomic. Perhaps with a future check for a mappable page.
-This change should have zero impact on performance.
+The following changes since commit 0538bee6fdec9b79910c1c9835e79be75d0e1bdf:
 
-Logan
+  [media] MAINTAINERS: update atmel-isi.c path (2017-04-10 08:13:08 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.12f
+
+for you to fetch changes up to 2c3d089c30302bf17953176e37ccfb344b53186e:
+
+  v4l2-tpg: don't clamp XV601/709 to lim range (2017-04-10 13:32:32 +0200)
+
+----------------------------------------------------------------
+Alexey Khoroshilov (1):
+      m2m-deinterlace: don't return zero on failure paths in deinterlace_probe()
+
+Colin Ian King (1):
+      coda: remove redundant call to v4l2_m2m_get_vq
+
+Geliang Tang (11):
+      saa7134: use setup_timer
+      saa7146: use setup_timer
+      bt8xx: use setup_timer
+      cx18: use setup_timer
+      ivtv: use setup_timer
+      netup_unidvb: use setup_timer
+      av7110: use setup_timer
+      fsl-viu: use setup_timer
+      c8sectpfe: use setup_timer
+      wl128x: use setup_timer
+      imon: use setup_timer
+
+Hans Verkuil (2):
+      videodev2.h: fix outdated comment
+      v4l2-tpg: don't clamp XV601/709 to lim range
+
+Nikola Jelic (1):
+      media: bcm2048: fix several macros
+
+Philipp Zabel (3):
+      tvp5150: allow get/set_fmt on the video source pad
+      tvp5150: fix pad format frame height
+      coda: do not enumerate YUYV if VDOA is not available
+
+ drivers/media/common/saa7146/saa7146_vbi.c            |  5 ++---
+ drivers/media/common/saa7146/saa7146_video.c          |  5 ++---
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c         |  9 ++++++++-
+ drivers/media/i2c/tvp5150.c                           |  4 ++--
+ drivers/media/pci/bt8xx/bttv-driver.c                 |  4 +---
+ drivers/media/pci/cx18/cx18-streams.c                 |  4 +---
+ drivers/media/pci/ivtv/ivtv-driver.c                  |  5 ++---
+ drivers/media/pci/netup_unidvb/netup_unidvb_core.c    |  5 ++---
+ drivers/media/pci/saa7134/saa7134-ts.c                |  5 ++---
+ drivers/media/pci/saa7134/saa7134-vbi.c               |  5 ++---
+ drivers/media/pci/saa7134/saa7134-video.c             |  5 ++---
+ drivers/media/pci/ttpci/av7110_ir.c                   |  5 ++---
+ drivers/media/platform/coda/coda-common.c             |  8 ++++++--
+ drivers/media/platform/fsl-viu.c                      |  5 ++---
+ drivers/media/platform/m2m-deinterlace.c              |  1 +
+ drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c |  5 ++---
+ drivers/media/radio/wl128x/fmdrv_common.c             |  5 ++---
+ drivers/media/rc/imon.c                               |  5 ++---
+ drivers/staging/media/bcm2048/radio-bcm2048.c         | 12 ++++++------
+ include/uapi/linux/videodev2.h                        |  3 +--
+ 20 files changed, 50 insertions(+), 55 deletions(-)
