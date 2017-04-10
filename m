@@ -1,89 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:57939 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S968359AbdD0UTp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 16:19:45 -0400
-To: =?UTF-8?Q?Roger_Pau_Monn=c3=a9?= <roger.pau@citrix.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
- <1493144468-22493-16-git-send-email-logang@deltatee.com>
- <20170426073720.okv33ly2ldepilti@dhcp-3-128.uk.xensource.com>
-Cc: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-        Julien Grall <julien.grall@arm.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <df6586e2-7d45-6b0b-facb-4dea882df06e@deltatee.com>
-Date: Thu, 27 Apr 2017 14:19:24 -0600
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:39391 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753206AbdDJKgI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Apr 2017 06:36:08 -0400
+Subject: Re: [PATCH] dev-capture.rst/dev-output.rst: video standards ioctls
+ are optional
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <8e21fc74-64a8-8767-8bcf-4b954d4e22c1@xs4all.nl>
+ <20170410070940.7f55c1b1@vento.lan>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <19667636-a0a2-1793-4638-af0a25a9198a@xs4all.nl>
+Date: Mon, 10 Apr 2017 12:36:03 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170426073720.okv33ly2ldepilti@dhcp-3-128.uk.xensource.com>
+In-Reply-To: <20170410070940.7f55c1b1@vento.lan>
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH v2 15/21] xen-blkfront: Make use of the new sg_map helper
- function
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 26/04/17 01:37 AM, Roger Pau Monné wrote:
-> On Tue, Apr 25, 2017 at 12:21:02PM -0600, Logan Gunthorpe wrote:
->> Straightforward conversion to the new helper, except due to the lack
->> of error path, we have to use SG_MAP_MUST_NOT_FAIL which may BUG_ON in
->> certain cases in the future.
->>
->> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
->> Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
->> Cc: Juergen Gross <jgross@suse.com>
->> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
->> Cc: "Roger Pau Monné" <roger.pau@citrix.com>
->> ---
->>  drivers/block/xen-blkfront.c | 20 +++++++++++---------
->>  1 file changed, 11 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
->> index 3945963..ed62175 100644
->> --- a/drivers/block/xen-blkfront.c
->> +++ b/drivers/block/xen-blkfront.c
->> @@ -816,8 +816,9 @@ static int blkif_queue_rw_req(struct request *req, struct blkfront_ring_info *ri
->>  		BUG_ON(sg->offset + sg->length > PAGE_SIZE);
->>  
->>  		if (setup.need_copy) {
->> -			setup.bvec_off = sg->offset;
->> -			setup.bvec_data = kmap_atomic(sg_page(sg));
->> +			setup.bvec_off = 0;
->> +			setup.bvec_data = sg_map(sg, 0, SG_KMAP_ATOMIC |
->> +						 SG_MAP_MUST_NOT_FAIL);
+On 04/10/2017 12:21 PM, Mauro Carvalho Chehab wrote:
+> Em Wed, 29 Mar 2017 09:56:47 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
-> I assume that sg_map already adds sg->offset to the address?
+>> The documentation for video capture and output devices claims that the video standard
+>> ioctls are required. This is not the case, they are only required for PAL/NTSC/SECAM
+>> type inputs and outputs. Sensors do not implement this at all and e.g. HDMI inputs
+>> implement the DV Timings ioctls.
+>>
+>> Just drop the mention of 'video standard' ioctls.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This is an API change that has the potential of breaking userspace.
+> 
+> In the past, several applications were failing if VIDIOC_ENUMSTD ioctl is
+> not implemented. So, I remember we had this discussion before, but I don't
+> remember the dirty details anymore.
+> 
+> Yet, looking at the code, it seems that we ended by making VIDIOC_ENUMSTD
+> mandatory and implemented at the core. So, V4L2 core will make this
+> ioctl available for all drivers. The core implementattion will, however, 
+> return -ENODATA  if the driver doesn't set video_device.tvnorms, indicating
+> that standard video timings are not supported.
+> 
+> So, instead of the enclosed patch, the documentation should mention the
+> standard ioctls, saying that G_STD/S_STD are optional, and ENUMSTD is
+> mandatory. 
 
-Correct.
+I don't think so. In v4l2-dev.c ENUMSTD is only enabled if the driver supports
+the s_std ioctl:
 
-> Also wondering whether we can get rid of bvec_off and just increment bvec_data,
-> adding Julien who IIRC added this code.
+        if (is_vid || is_vbi || is_tch) {
+                /* ioctls valid for video or vbi */
+                if (ops->vidioc_s_std)
+                        set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
 
-bvec_off is used to keep track of the offset within the current mapping
-so it's not a great idea given that you'd want to kunmap_atomic the
-original address and not something with an offset. It would be nice if
-this could be converted to use the sg_miter interface but that's a much
-more invasive change that would require someone who knows this code and
-can properly test it. I'd be very grateful if someone actually took that on.
+And in case you are wondering: if you have two inputs, one SDTV and one HDTV, then
+you have both s_std and s_dv_timings ioctls and if you switch to the HDTV input,
+then tvnorms is set to 0, causing ENUMSTD to return -ENODATA. If you switch back,
+then the driver will fill in tvnorms to something non-0.
 
-Logan
+Regards,
+
+	Hans
+
+> 
+> We could include a note about it may return -ENODATA, although the ENUMSTD
+> documentation already states that it returns -ENODATA:
+> 	https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/vidioc-enumstd.html
+> 
+> Regards,
+> Mauro
+> 
+>> ---
+>> diff --git a/Documentation/media/uapi/v4l/dev-capture.rst b/Documentation/media/uapi/v4l/dev-capture.rst
+>> index 32b32055d070..4218742ab5d9 100644
+>> --- a/Documentation/media/uapi/v4l/dev-capture.rst
+>> +++ b/Documentation/media/uapi/v4l/dev-capture.rst
+>> @@ -42,8 +42,8 @@ Video capture devices shall support :ref:`audio input <audio>`,
+>>  :ref:`tuner`, :ref:`controls <control>`,
+>>  :ref:`cropping and scaling <crop>` and
+>>  :ref:`streaming parameter <streaming-par>` ioctls as needed. The
+>> -:ref:`video input <video>` and :ref:`video standard <standard>`
+>> -ioctls must be supported by all video capture devices.
+>> +:ref:`video input <video>` ioctls must be supported by all video
+>> +capture devices.
+>>
+>>
+>>  Image Format Negotiation
+>> diff --git a/Documentation/media/uapi/v4l/dev-output.rst b/Documentation/media/uapi/v4l/dev-output.rst
+>> index 25ae8ec96fdf..342eb4931f5c 100644
+>> --- a/Documentation/media/uapi/v4l/dev-output.rst
+>> +++ b/Documentation/media/uapi/v4l/dev-output.rst
+>> @@ -40,8 +40,8 @@ Video output devices shall support :ref:`audio output <audio>`,
+>>  :ref:`modulator <tuner>`, :ref:`controls <control>`,
+>>  :ref:`cropping and scaling <crop>` and
+>>  :ref:`streaming parameter <streaming-par>` ioctls as needed. The
+>> -:ref:`video output <video>` and :ref:`video standard <standard>`
+>> -ioctls must be supported by all video output devices.
+>> +:ref:`video output <video>` ioctls must be supported by all video
+>> +output devices.
+>>
+>>
+>>  Image Format Negotiation
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
