@@ -1,105 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:38247 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753940AbdDMWGj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 18:06:39 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Steve Wise <swise@opengridcomputing.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:18 -0600
-Message-Id: <1492121135-4437-6-git-send-email-logang@deltatee.com>
-In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 05/22] drm/i915: Make use of the new sg_map helper function
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:60030 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752144AbdDJKuF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Apr 2017 06:50:05 -0400
+Subject: Re: [PATCH] dev-capture.rst/dev-output.rst: video standards ioctls
+ are optional
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <8e21fc74-64a8-8767-8bcf-4b954d4e22c1@xs4all.nl>
+ <20170410070940.7f55c1b1@vento.lan>
+ <19667636-a0a2-1793-4638-af0a25a9198a@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <afd257e0-4b42-8eb4-cd0d-1458e2b5c8f2@xs4all.nl>
+Date: Mon, 10 Apr 2017 12:49:57 +0200
+MIME-Version: 1.0
+In-Reply-To: <19667636-a0a2-1793-4638-af0a25a9198a@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a single straightforward conversion from kmap to sg_map.
+On 04/10/2017 12:36 PM, Hans Verkuil wrote:
+> On 04/10/2017 12:21 PM, Mauro Carvalho Chehab wrote:
+>> Em Wed, 29 Mar 2017 09:56:47 +0200
+>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>
+>>> The documentation for video capture and output devices claims that the video standard
+>>> ioctls are required. This is not the case, they are only required for PAL/NTSC/SECAM
+>>> type inputs and outputs. Sensors do not implement this at all and e.g. HDMI inputs
+>>> implement the DV Timings ioctls.
+>>>
+>>> Just drop the mention of 'video standard' ioctls.
+>>>
+>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> This is an API change that has the potential of breaking userspace.
+>>
+>> In the past, several applications were failing if VIDIOC_ENUMSTD ioctl is
+>> not implemented. So, I remember we had this discussion before, but I don't
+>> remember the dirty details anymore.
+>>
+>> Yet, looking at the code, it seems that we ended by making VIDIOC_ENUMSTD
+>> mandatory and implemented at the core. So, V4L2 core will make this
+>> ioctl available for all drivers. The core implementattion will, however, 
+>> return -ENODATA  if the driver doesn't set video_device.tvnorms, indicating
+>> that standard video timings are not supported.
+>>
+>> So, instead of the enclosed patch, the documentation should mention the
+>> standard ioctls, saying that G_STD/S_STD are optional, and ENUMSTD is
+>> mandatory. 
+> 
+> I don't think so. In v4l2-dev.c ENUMSTD is only enabled if the driver supports
+> the s_std ioctl:
+> 
+>         if (is_vid || is_vbi || is_tch) {
+>                 /* ioctls valid for video or vbi */
+>                 if (ops->vidioc_s_std)
+>                         set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
+> 
+> And in case you are wondering: if you have two inputs, one SDTV and one HDTV, then
+> you have both s_std and s_dv_timings ioctls and if you switch to the HDTV input,
+> then tvnorms is set to 0, causing ENUMSTD to return -ENODATA. If you switch back,
+> then the driver will fill in tvnorms to something non-0.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- drivers/gpu/drm/i915/i915_gem.c | 27 ++++++++++++++++-----------
- 1 file changed, 16 insertions(+), 11 deletions(-)
+Note that v4l2-compliance will verify that you can't enumerate standards if the
+input/output doesn't indicate STD support. So this patch is really correct.
 
-diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
-index 67b1fc5..1b1b91a 100644
---- a/drivers/gpu/drm/i915/i915_gem.c
-+++ b/drivers/gpu/drm/i915/i915_gem.c
-@@ -2188,6 +2188,15 @@ static void __i915_gem_object_reset_page_iter(struct drm_i915_gem_object *obj)
- 		radix_tree_delete(&obj->mm.get_page.radix, iter.index);
- }
- 
-+static void i915_gem_object_unmap(const struct drm_i915_gem_object *obj,
-+				  void *ptr)
-+{
-+	if (is_vmalloc_addr(ptr))
-+		vunmap(ptr);
-+	else
-+		sg_unmap(obj->mm.pages->sgl, ptr, SG_KMAP);
-+}
-+
- void __i915_gem_object_put_pages(struct drm_i915_gem_object *obj,
- 				 enum i915_mm_subclass subclass)
- {
-@@ -2215,10 +2224,7 @@ void __i915_gem_object_put_pages(struct drm_i915_gem_object *obj,
- 		void *ptr;
- 
- 		ptr = ptr_mask_bits(obj->mm.mapping);
--		if (is_vmalloc_addr(ptr))
--			vunmap(ptr);
--		else
--			kunmap(kmap_to_page(ptr));
-+		i915_gem_object_unmap(obj, ptr);
- 
- 		obj->mm.mapping = NULL;
- 	}
-@@ -2475,8 +2481,11 @@ static void *i915_gem_object_map(const struct drm_i915_gem_object *obj,
- 	void *addr;
- 
- 	/* A single page can always be kmapped */
--	if (n_pages == 1 && type == I915_MAP_WB)
--		return kmap(sg_page(sgt->sgl));
-+	if (n_pages == 1 && type == I915_MAP_WB) {
-+		addr = sg_map(sgt->sgl, SG_KMAP);
-+		if (IS_ERR(addr))
-+			return NULL;
-+	}
- 
- 	if (n_pages > ARRAY_SIZE(stack_pages)) {
- 		/* Too big for stack -- allocate temporary array instead */
-@@ -2543,11 +2552,7 @@ void *i915_gem_object_pin_map(struct drm_i915_gem_object *obj,
- 			goto err_unpin;
- 		}
- 
--		if (is_vmalloc_addr(ptr))
--			vunmap(ptr);
--		else
--			kunmap(kmap_to_page(ptr));
--
-+		i915_gem_object_unmap(obj, ptr);
- 		ptr = obj->mm.mapping = NULL;
- 	}
- 
--- 
-2.1.4
+Regards,
+
+	Hans
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>>
+>> We could include a note about it may return -ENODATA, although the ENUMSTD
+>> documentation already states that it returns -ENODATA:
+>> 	https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/vidioc-enumstd.html
+>>
+>> Regards,
+>> Mauro
+>>
+>>> ---
+>>> diff --git a/Documentation/media/uapi/v4l/dev-capture.rst b/Documentation/media/uapi/v4l/dev-capture.rst
+>>> index 32b32055d070..4218742ab5d9 100644
+>>> --- a/Documentation/media/uapi/v4l/dev-capture.rst
+>>> +++ b/Documentation/media/uapi/v4l/dev-capture.rst
+>>> @@ -42,8 +42,8 @@ Video capture devices shall support :ref:`audio input <audio>`,
+>>>  :ref:`tuner`, :ref:`controls <control>`,
+>>>  :ref:`cropping and scaling <crop>` and
+>>>  :ref:`streaming parameter <streaming-par>` ioctls as needed. The
+>>> -:ref:`video input <video>` and :ref:`video standard <standard>`
+>>> -ioctls must be supported by all video capture devices.
+>>> +:ref:`video input <video>` ioctls must be supported by all video
+>>> +capture devices.
+>>>
+>>>
+>>>  Image Format Negotiation
+>>> diff --git a/Documentation/media/uapi/v4l/dev-output.rst b/Documentation/media/uapi/v4l/dev-output.rst
+>>> index 25ae8ec96fdf..342eb4931f5c 100644
+>>> --- a/Documentation/media/uapi/v4l/dev-output.rst
+>>> +++ b/Documentation/media/uapi/v4l/dev-output.rst
+>>> @@ -40,8 +40,8 @@ Video output devices shall support :ref:`audio output <audio>`,
+>>>  :ref:`modulator <tuner>`, :ref:`controls <control>`,
+>>>  :ref:`cropping and scaling <crop>` and
+>>>  :ref:`streaming parameter <streaming-par>` ioctls as needed. The
+>>> -:ref:`video output <video>` and :ref:`video standard <standard>`
+>>> -ioctls must be supported by all video output devices.
+>>> +:ref:`video output <video>` ioctls must be supported by all video
+>>> +output devices.
+>>>
+>>>
+>>>  Image Format Negotiation
+>>
+>>
+>>
+>> Thanks,
+>> Mauro
+>>
+> 
