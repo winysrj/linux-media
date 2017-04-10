@@ -1,165 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56212
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57127
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S2999346AbdDZL0a (ORCPT
+        with ESMTP id S1752597AbdDJWuU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Apr 2017 07:26:30 -0400
-Date: Wed, 26 Apr 2017 08:26:18 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [patch] propagating controls in libv4l2 was Re: support
- autofocus / autogain in libv4l2
-Message-ID: <20170426082608.7dd52fbf@vento.lan>
-In-Reply-To: <20170426105300.GA857@amd>
-References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
-        <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
-        <20170414232332.63850d7b@vento.lan>
-        <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
-        <20170419105118.72b8e284@vento.lan>
-        <20170424093059.GA20427@amd>
-        <20170424103802.00d3b554@vento.lan>
-        <20170424212914.GA20780@amd>
-        <20170424224724.5bb52382@vento.lan>
-        <20170426105300.GA857@amd>
+        Mon, 10 Apr 2017 18:50:20 -0400
+Subject: Re: [PATCH] arm: dma: fix sharing of coherent DMA memory without
+ struct page
+To: Marek Szyprowski <m.szyprowski@samsung.com>, linux@armlinux.org.uk,
+        gregkh@linuxfoundation.org, pawel@osciak.com,
+        kyungmin.park@samsung.com, mchehab@kernel.org
+References: <CGME20170405160251epcas4p14cc5d5f6064c84b133b9e280ac987a93@epcas4p1.samsung.com>
+ <20170405160242.14195-1-shuahkh@osg.samsung.com>
+ <e49715a3-b925-79ad-7d1d-ce2cb5673a97@samsung.com>
+Cc: will.deacon@arm.com, Robin.Murphy@arm.com, jroedel@suse.de,
+        bart.vanassche@sandisk.com, gregory.clement@free-electrons.com,
+        acourbot@nvidia.com, festevam@gmail.com, krzk@kernel.org,
+        niklas.soderlund+renesas@ragnatech.se, sricharan@codeaurora.org,
+        dledford@redhat.com, vinod.koul@intel.com,
+        andrew.smirnov@gmail.com, mauricfo@linux.vnet.ibm.com,
+        alexander.h.duyck@intel.com, sagi@grimberg.me,
+        ming.l@ssi.samsung.com, martin.petersen@oracle.com,
+        javier@dowhile0.org, javier@osg.samsung.com,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <3afd77e5-2a98-42fd-b5c9-cbf4c32baa4f@osg.samsung.com>
+Date: Mon, 10 Apr 2017 16:50:16 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <e49715a3-b925-79ad-7d1d-ce2cb5673a97@samsung.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 26 Apr 2017 12:53:00 +0200
-Pavel Machek <pavel@ucw.cz> escreveu:
-
-> Hi!
+On 04/06/2017 06:01 AM, Marek Szyprowski wrote:
+> Hi Shuah,
 > 
-> > > > IMO, the best place for autofocus is at libv4l2. Putting it on a
-> > > > separate "video server" application looks really weird for me.    
-> > > 
-> > > Well... let me see. libraries are quite limited -- it is hard to open
-> > > files, or use threads/have custom main loop. It may be useful to
-> > > switch resolutions -- do autofocus/autogain at lower resolution, then
-> > > switch to high one for taking picture. It would be good to have that
-> > > in "system" code, but I'm not at all sure libv4l2 design will allow
-> > > that.  
-> > 
-> > I don't see why it would be hard to open files or have threads inside
-> > a library. There are several libraries that do that already, specially
-> > the ones designed to be used on multimidia apps.  
+> On 2017-04-05 18:02, Shuah Khan wrote:
+>> When coherent DMA memory without struct page is shared, importer
+>> fails to find the page and runs into kernel page fault when it
+>> tries to dmabuf_ops_attach/map_sg/map_page the invalid page found
+>> in the sg_table. Please see www.spinics.net/lists/stable/msg164204.html
+>> for more information on this problem.
+>>
+>> This solution allows coherent DMA memory without struct page to be
+>> shared by providing a way for the exporter to tag the DMA buffer as
+>> a special buffer without struct page association and passing the
+>> information in sg_table to the importer. This information is used
+>> in attach/map_sg to avoid cleaning D-cache and mapping.
+>>
+>> The details of the change are:
+>>
+>> Framework:
+>> - Add a new dma_attrs field to struct scatterlist.
+>> - Add a new DMA_ATTR_DEV_COHERENT_NOPAGE attribute to clearly identify
+>>    Coherent memory without struct page.
+>> - Add a new dma_check_dev_coherent() interface to check if memory is
+>>    the device coherent area. There is no way to tell where the memory
+>>    returned by dma_alloc_attrs() came from.
+>>
+>> Exporter logic:
+>> - Add logic to vb2_dc_alloc() to call dma_check_dev_coherent() and set
+>>    DMA_ATTR_DEV_COHERENT_NOPAGE based the results of the check. This is
+>>    done in the exporter context.
+>> - Add logic to arm_dma_get_sgtable() to identify memory without struct
+>>    page using DMA_ATTR_DEV_COHERENT_NOPAGE attribute. If this attr is
+>>    set, arm_dma_get_sgtable() will set page as the cpu_addr and update
+>>    dma_address and dma_attrs fields in struct scatterlist for this sgl.
+>>    This is done in exporter context when buffer is exported. With this
+>>    Note: This change is made on top of Russell King's patch that added
+>>    !pfn_valid(pfn) check to arm_dma_get_sgtable() to error out on invalid
+>>    pages. Coherent memory without struct page will trigger this error.
+>>
+>> Importer logic:
+>> - Add logic to vb2_dc_dmabuf_ops_attach() to identify memory without
+>>    struct page using DMA_ATTR_DEV_COHERENT_NOPAGE attribute when it copies
+>>    the sg_table from the exporter. It will copy dma_attrs and dma_address
+>>    fields. With this logic, dmabuf_ops_attach will no longer trip on an
+>>    invalid page.
+>> - Add logic to arm_dma_map_sg() to avoid mapping the page when sg_table
+>>    has DMA_ATTR_DEV_COHERENT_NOPAGE buffer.
+>> - Add logic to arm_dma_unmap_sg() to do nothing for sg entries with
+>>    DMA_ATTR_DEV_COHERENT_NOPAGE attribute.
+>>
+>> Without this change the following use-case that runs into kernel
+>> pagefault when importer tries to attach the exported buffer.
+>>
+>> With this change it works: (what a relief after watching pagefaults for
+>> weeks!!)
+>>
+>> gst-launch-1.0 filesrc location=~/GH3_MOV_HD.mp4 ! qtdemux ! h264parse ! v4l2video4dec capture-io-mode=dmabuf ! v4l2video7convert output-io-mode=dmabuf-import ! kmssink force-modesetting=true
+>>
+>> I am sending RFC patch to get feedback on the approach and see if I missed
+>> anything.
 > 
-> Well, This is what the libv4l2 says:
+> Frankly, once You decided to hack around dma-buf and issues with coherent,
+> carved out memory, it might be a bit better to find the ultimate solution
+> instead of the another hack. Please note that it will still not allow to
+> share a buffer allocated from carved-out memory and a device, which is
+> behind IOMMU.
+
+With your patch s5p-mfc patch series does address the problem for this
+use-case for 4.12 onwards. However I am still concerned about prior
+release and this pagefault is bad.
+
+Invalid page test partially solves the problem. Would it helpful to
+at least prevent the pagfault with a definitive test. Please see my
+response to Russell. Let me know your thoughts on that.
+
 > 
->    This file implements libv4l2, which offers v4l2_ prefixed versions
->    of
->       open/close/etc. The API is 100% the same as directly opening
->    /dev/videoX
->       using regular open/close/etc, the big difference is that format
->    conversion
->    
-> but if I open additional files in v4l2_open(), API is no longer the
-> same, as unix open() is defined to open just one file descriptor.
+> I thought a bit about this and the current shape of dma-buf code.
 > 
-> Now. There is autogain support in libv4lconvert, but it expects to use
-> same fd for camera and for the gain... which does not work with
-> subdevs.
+> IMHO the proper way of solving all those issues would be to replace
+> dma-buf internal representation of the memory from struct scatter_list
+> to pfn array. This would really solve the problem of buffers which
+> cannot be properly represented by scatter lists/struct pages and would
+> even allow sharing buffers between all kinds of devices. Scatter-lists
+> are also quite over-engineered structures to represent a single buffer
+> (pfn array is a bit more compact representation). Also there is a lots
+> of buggy code which use scatter-list in a bit creative way (like
+> assuming that each page maps to a single scatter list entry for
+> example). The only missing piece, required for such change would be
+> extending DMA-mapping with dma_map_pfn() interface.
+
+I agree with you on scatterlists being clumsy. Changing over to pfn array
+could simplify things. I am exploring a slightly different option that
+might not require too many changes. I will respond with concrete ideas
+later on this week.
+
 > 
-> Of course, opening subdevs by name like this is not really
-> acceptable. But can you suggest a method that is?
+> This would be however quite large task, especially taking into account
+> all current users of DMA-buf framework...
+
+Yeah it will be a large task.
+
+thanks,
+-- Shuah
+
 > 
-> Thanks,
-> 								Pavel
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>   arch/arm/mm/dma-mapping.c                      | 34 ++++++++++++++++++++++----
+>>   drivers/base/dma-coherent.c                    | 25 +++++++++++++++++++
+>>   drivers/media/v4l2-core/videobuf2-dma-contig.c |  6 +++++
+>>   include/linux/dma-mapping.h                    |  8 ++++++
+>>   include/linux/scatterlist.h                    |  1 +
+>>   5 files changed, 69 insertions(+), 5 deletions(-)
+>> [...]
 > 
-> commit 4cf9d10ead014c0db25452e4bb9cd144632407c3
-> Author: Pavel <pavel@ucw.cz>
-> Date:   Wed Apr 26 11:38:04 2017 +0200
-> 
->     Add subdevices.
-> 
-> diff --git a/lib/libv4l2/libv4l2-priv.h b/lib/libv4l2/libv4l2-priv.h
-> index 343db5e..a6bc48e 100644
-> --- a/lib/libv4l2/libv4l2-priv.h
-> +++ b/lib/libv4l2/libv4l2-priv.h
-> @@ -26,6 +26,7 @@
->  #include "../libv4lconvert/libv4lsyscall-priv.h"
->  
->  #define V4L2_MAX_DEVICES 16
-> +#define V4L2_MAX_SUBDEVS 8
-
-Isn't it a short number?
-
->  /* Warning when making this larger the frame_queued and frame_mapped members of
->     the v4l2_dev_info struct can no longer be a bitfield, so the code needs to
->     be adjusted! */
-> @@ -104,6 +105,7 @@ struct v4l2_dev_info {
->  	void *plugin_library;
->  	void *dev_ops_priv;
->  	const struct libv4l_dev_ops *dev_ops;
-> +        int subdev_fds[V4L2_MAX_SUBDEVS];
->  };
->  
->  /* From v4l2-plugin.c */
-> diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
-> index 0ba0a88..edc9642 100644
-> --- a/lib/libv4l2/libv4l2.c
-> +++ b/lib/libv4l2/libv4l2.c
-> @@ -1,3 +1,4 @@
-> +/* -*- c-file-style: "linux" -*- */
-
-No emacs comments, please.
-
->  /*
->  #             (C) 2008 Hans de Goede <hdegoede@redhat.com>
->  
-> @@ -789,18 +790,25 @@ no_capture:
->  
->  	/* Note we always tell v4lconvert to optimize src fmt selection for
->  	   our default fps, the only exception is the app explicitly selecting
-> -	   a fram erate using the S_PARM ioctl after a S_FMT */
-> +	   a frame rate using the S_PARM ioctl after a S_FMT */
->  	if (devices[index].convert)
->  		v4lconvert_set_fps(devices[index].convert, V4L2_DEFAULT_FPS);
->  	v4l2_update_fps(index, &parm);
->  
-> +	devices[index].subdev_fds[0] = SYS_OPEN("/dev/video_sensor", O_RDWR, 0);
-> +	devices[index].subdev_fds[1] = SYS_OPEN("/dev/video_focus", O_RDWR, 0);
-> +	devices[index].subdev_fds[2] = -1;
-
-Hardcoding names here is not a good idea. Ideally, it should open
-the MC, using the newgen API, and parse the media graph.
-
-The problem is that, even with newgen API, without the properties API
-you likely won't be able to write a generic parser. So, we need a
-plugin specific for OMAP3 (or at least some database that would teach
-a generic plugin about OMAP3 specifics).
-
-I guess that the approach that Jacek was taken were very close to what
-a generic plugin would need:
-	https://lwn.net/Articles/619449/
-
-The last version of his patch set is here:
-	https://patchwork.linuxtv.org/patch/37496/
-
-I didn't review his patchset, but from what I saw, Sakari is the one
-that found some issues on v7.1 patchset.
-
-Sakari,
-
-Could you shed us a light about why this patchset was not merged?
-
-Are there anything really bad at the code, or just minor issues that
-could be fixed later?
-
-If it is the last case, perhaps we could merge the code, if this
-would make easier for Pavel to work on a N9 solution using the
-same approach.
-
-
-Thanks,
-Mauro
+> Best regards
