@@ -1,61 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:40942 "EHLO ale.deltatee.com"
+Received: from mga11.intel.com ([192.55.52.93]:45749 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751242AbdDNQEA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Apr 2017 12:04:00 -0400
-To: Christoph Hellwig <hch@lst.de>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
- <1492121135-4437-10-git-send-email-logang@deltatee.com>
- <20170414083921.GC25471@lst.de>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
-        Steve Wise <swise@opengridcomputing.com>,
-        Stephen Bates <sbates@raithlin.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <302ae5ab-d515-5427-2e54-d58a9cdb8241@deltatee.com>
-Date: Fri, 14 Apr 2017 10:03:43 -0600
-MIME-Version: 1.0
-In-Reply-To: <20170414083921.GC25471@lst.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH 09/22] dm-crypt: Make use of the new sg_map helper in 4
- call sites
+        id S1753205AbdDJNEd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Apr 2017 09:04:33 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [PATCH v3 2/7] v4l: async: Add fwnode match support
+Date: Mon, 10 Apr 2017 16:02:51 +0300
+Message-Id: <1491829376-14791-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add fwnode matching to complement OF node matching. And fwnode may also be
+an OF node.
 
+Do not enable fwnode matching yet. It will replace OF matching soon.
 
-On 14/04/17 02:39 AM, Christoph Hellwig wrote:
-> On Thu, Apr 13, 2017 at 04:05:22PM -0600, Logan Gunthorpe wrote:
->> Very straightforward conversion to the new function in all four spots.
-> 
-> I think the right fix here is to switch dm-crypt to the ahash API
-> that takes a scatterlist.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 15 +++++++++++++++
+ include/media/v4l2-async.h           |  5 +++++
+ include/media/v4l2-subdev.h          |  3 +++
+ 3 files changed, 23 insertions(+)
 
-Hmm, well I'm not sure I understand the code enough to make that
-conversion. But I was looking at it. One tricky bit seems to be that
-crypt_iv_lmk_one adds a seed, skips the first 16 bytes in the page and
-then hashes another 16 bytes from other data. What would you do
-construct a new sgl for it and pass it to the ahash api?
-
-The other thing is crypt_iv_lmk_post also seems to modify the page after
-the hash with a  crypto_xor so you'd still need at least one kmap in there.
-
-Logan
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 96cc733..ff32f95 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -14,6 +14,7 @@
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+@@ -46,6 +47,16 @@ static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ 			    of_node_full_name(asd->match.of.node));
+ }
+ 
++static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
++{
++	if (!is_of_node(sd->fwnode) || !is_of_node(asd->match.fwnode.fwnode))
++		return sd->fwnode == asd->match.fwnode.fwnode;
++
++	return !of_node_cmp(of_node_full_name(to_of_node(sd->fwnode)),
++			    of_node_full_name(
++				    to_of_node(asd->match.fwnode.fwnode)));
++}
++
+ static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+ 	if (!asd->match.custom.match)
+@@ -80,6 +91,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
+ 		case V4L2_ASYNC_MATCH_OF:
+ 			match = match_of;
+ 			break;
++		case V4L2_ASYNC_MATCH_FWNODE:
++			match = match_fwnode;
++			break;
+ 		default:
+ 			/* Cannot happen, unless someone breaks us */
+ 			WARN_ON(true);
+@@ -158,6 +172,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 		case V4L2_ASYNC_MATCH_DEVNAME:
+ 		case V4L2_ASYNC_MATCH_I2C:
+ 		case V4L2_ASYNC_MATCH_OF:
++		case V4L2_ASYNC_MATCH_FWNODE:
+ 			break;
+ 		default:
+ 			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 8e2a236..c3695fa 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -32,6 +32,7 @@ struct v4l2_async_notifier;
+  * @V4L2_ASYNC_MATCH_DEVNAME: Match will use the device name
+  * @V4L2_ASYNC_MATCH_I2C: Match will check for I2C adapter ID and address
+  * @V4L2_ASYNC_MATCH_OF: Match will use OF node
++ * @V4L2_ASYNC_MATCH_FWNODE: Match will use firmware node
+  *
+  * This enum is used by the asyncrhronous sub-device logic to define the
+  * algorithm that will be used to match an asynchronous device.
+@@ -41,6 +42,7 @@ enum v4l2_async_match_type {
+ 	V4L2_ASYNC_MATCH_DEVNAME,
+ 	V4L2_ASYNC_MATCH_I2C,
+ 	V4L2_ASYNC_MATCH_OF,
++	V4L2_ASYNC_MATCH_FWNODE,
+ };
+ 
+ /**
+@@ -58,6 +60,9 @@ struct v4l2_async_subdev {
+ 			const struct device_node *node;
+ 		} of;
+ 		struct {
++			struct fwnode_handle *fwnode;
++		} fwnode;
++		struct {
+ 			const char *name;
+ 		} device_name;
+ 		struct {
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 0ab1c5d..5f1669c 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -788,6 +788,8 @@ struct v4l2_subdev_platform_data {
+  * @devnode: subdev device node
+  * @dev: pointer to the physical device, if any
+  * @of_node: The device_node of the subdev, usually the same as dev->of_node.
++ * @fwnode: The fwnode_handle of the subdev, usually the same as
++ *	    either dev->of_node->fwnode or dev->fwnode (whichever is non-NULL).
+  * @async_list: Links this subdev to a global subdev_list or @notifier->done
+  *	list.
+  * @asd: Pointer to respective &struct v4l2_async_subdev.
+@@ -819,6 +821,7 @@ struct v4l2_subdev {
+ 	struct video_device *devnode;
+ 	struct device *dev;
+ 	struct device_node *of_node;
++	struct fwnode_handle *fwnode;
+ 	struct list_head async_list;
+ 	struct v4l2_async_subdev *asd;
+ 	struct v4l2_async_notifier *notifier;
+-- 
+2.7.4
