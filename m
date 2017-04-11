@@ -1,512 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:56560 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934605AbdDFNNf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Apr 2017 09:13:35 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 8/8] v4l: Remove V4L2 OF framework in favour of V4L2 fwnode framework
-Date: Thu,  6 Apr 2017 16:12:10 +0300
-Message-Id: <1491484330-12040-9-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:17173 "EHLO
+        aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752010AbdDKIjL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Apr 2017 04:39:11 -0400
+Subject: Re: [git:media_tree/master] [media] ARM: dts: exynos: add HDMI
+ controller phandle to exynos4.dtsi
+To: Krzysztof Kozlowski <krzk@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <E1cxc0o-0003RE-PP@www.linuxtv.org>
+ <CAJKOXPfbJpFu6r9rS8oCqxTH+s7y2wYKx9+TzGrv4Cd8DYaKew@mail.gmail.com>
+Cc: linuxtv-commits@linuxtv.org,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <0c8fef60-a99d-c5ed-67e4-3769105fa211@cisco.com>
+Date: Tue, 11 Apr 2017 10:39:08 +0200
+MIME-Version: 1.0
+In-Reply-To: <CAJKOXPfbJpFu6r9rS8oCqxTH+s7y2wYKx9+TzGrv4Cd8DYaKew@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All drivers have been converted from V4L2 OF to V4L2 fwnode. The V4L2 OF
-framework is now unused. Remove it.
+On 04/11/17 10:36, Krzysztof Kozlowski wrote:
+> On Mon, Apr 10, 2017 at 6:12 PM, Mauro Carvalho Chehab
+> <mchehab@s-opensource.com> wrote:
+>> This is an automatic generated email to let you know that the following patch were queued:
+>>
+>> Subject: [media] ARM: dts: exynos: add HDMI controller phandle to exynos4.dtsi
+>> Author:  Hans Verkuil <hans.verkuil@cisco.com>
+>> Date:    Tue Dec 13 12:37:16 2016 -0200
+>>
+>> Add the new hdmi phandle to exynos4.dtsi. This phandle is needed by the
+>> s5p-cec driver to initialize the CEC notifier framework.
+>>
+>> Tested with my Odroid U3.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> CC: linux-samsung-soc@vger.kernel.org
+>> CC: devicetree@vger.kernel.org
+>> CC: Krzysztof Kozlowski <krzk@kernel.org>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>>
+>>  arch/arm/boot/dts/exynos4.dtsi | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+> 
+> Mauro, you should not apply it. It is already going through samsung-soc [1].
+> if you need this patch for bisectability or any other reasons, I
+> provided a tag with it here:
+> https://www.spinics.net/lists/devicetree/msg171182.html
+> 
+> Please drop the patch because now it will get duplicated.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/Makefile  |   3 -
- drivers/media/v4l2-core/v4l2-of.c | 327 --------------------------------------
- include/media/v4l2-of.h           | 128 ---------------
- 3 files changed, 458 deletions(-)
- delete mode 100644 drivers/media/v4l2-core/v4l2-of.c
- delete mode 100644 include/media/v4l2-of.h
+I apologize for that. I realized that I shouldn't have included this in
+my pull request when it was already merged.
 
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index cf77a63..098ad5f 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -10,9 +10,6 @@ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
- ifeq ($(CONFIG_COMPAT),y)
-   videodev-objs += v4l2-compat-ioctl32.o
- endif
--ifeq ($(CONFIG_OF),y)
--  videodev-objs += v4l2-of.o
--endif
- obj-$(CONFIG_V4L2_FWNODE) += v4l2-fwnode.o
- ifeq ($(CONFIG_TRACEPOINTS),y)
-   videodev-objs += vb2-trace.o v4l2-trace.o
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-deleted file mode 100644
-index 4f59f44..0000000
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ /dev/null
-@@ -1,327 +0,0 @@
--/*
-- * V4L2 OF binding parsing library
-- *
-- * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
-- * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-- *
-- * Copyright (C) 2012 Renesas Electronics Corp.
-- * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of version 2 of the GNU General Public License as
-- * published by the Free Software Foundation.
-- */
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <linux/of.h>
--#include <linux/slab.h>
--#include <linux/string.h>
--#include <linux/types.h>
--
--#include <media/v4l2-of.h>
--
--static int v4l2_of_parse_csi_bus(const struct device_node *node,
--				 struct v4l2_of_endpoint *endpoint)
--{
--	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
--	struct property *prop;
--	bool have_clk_lane = false;
--	unsigned int flags = 0, lanes_used = 0;
--	u32 v;
--
--	prop = of_find_property(node, "data-lanes", NULL);
--	if (prop) {
--		const __be32 *lane = NULL;
--		unsigned int i;
--
--		for (i = 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
--			lane = of_prop_next_u32(prop, lane, &v);
--			if (!lane)
--				break;
--
--			if (lanes_used & BIT(v))
--				pr_warn("%s: duplicated lane %u in data-lanes\n",
--					node->full_name, v);
--			lanes_used |= BIT(v);
--
--			bus->data_lanes[i] = v;
--		}
--		bus->num_data_lanes = i;
--	}
--
--	prop = of_find_property(node, "lane-polarities", NULL);
--	if (prop) {
--		const __be32 *polarity = NULL;
--		unsigned int i;
--
--		for (i = 0; i < ARRAY_SIZE(bus->lane_polarities); i++) {
--			polarity = of_prop_next_u32(prop, polarity, &v);
--			if (!polarity)
--				break;
--			bus->lane_polarities[i] = v;
--		}
--
--		if (i < 1 + bus->num_data_lanes /* clock + data */) {
--			pr_warn("%s: too few lane-polarities entries (need %u, got %u)\n",
--				node->full_name, 1 + bus->num_data_lanes, i);
--			return -EINVAL;
--		}
--	}
--
--	if (!of_property_read_u32(node, "clock-lanes", &v)) {
--		if (lanes_used & BIT(v))
--			pr_warn("%s: duplicated lane %u in clock-lanes\n",
--				node->full_name, v);
--		lanes_used |= BIT(v);
--
--		bus->clock_lane = v;
--		have_clk_lane = true;
--	}
--
--	if (of_get_property(node, "clock-noncontinuous", &v))
--		flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
--	else if (have_clk_lane || bus->num_data_lanes > 0)
--		flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
--
--	bus->flags = flags;
--	endpoint->bus_type = V4L2_MBUS_CSI2;
--
--	return 0;
--}
--
--static void v4l2_of_parse_parallel_bus(const struct device_node *node,
--				       struct v4l2_of_endpoint *endpoint)
--{
--	struct v4l2_of_bus_parallel *bus = &endpoint->bus.parallel;
--	unsigned int flags = 0;
--	u32 v;
--
--	if (!of_property_read_u32(node, "hsync-active", &v))
--		flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
--			V4L2_MBUS_HSYNC_ACTIVE_LOW;
--
--	if (!of_property_read_u32(node, "vsync-active", &v))
--		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
--			V4L2_MBUS_VSYNC_ACTIVE_LOW;
--
--	if (!of_property_read_u32(node, "field-even-active", &v))
--		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
--			V4L2_MBUS_FIELD_EVEN_LOW;
--	if (flags)
--		endpoint->bus_type = V4L2_MBUS_PARALLEL;
--	else
--		endpoint->bus_type = V4L2_MBUS_BT656;
--
--	if (!of_property_read_u32(node, "pclk-sample", &v))
--		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
--			V4L2_MBUS_PCLK_SAMPLE_FALLING;
--
--	if (!of_property_read_u32(node, "data-active", &v))
--		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
--			V4L2_MBUS_DATA_ACTIVE_LOW;
--
--	if (of_get_property(node, "slave-mode", &v))
--		flags |= V4L2_MBUS_SLAVE;
--	else
--		flags |= V4L2_MBUS_MASTER;
--
--	if (!of_property_read_u32(node, "bus-width", &v))
--		bus->bus_width = v;
--
--	if (!of_property_read_u32(node, "data-shift", &v))
--		bus->data_shift = v;
--
--	if (!of_property_read_u32(node, "sync-on-green-active", &v))
--		flags |= v ? V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH :
--			V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW;
--
--	bus->flags = flags;
--
--}
--
--/**
-- * v4l2_of_parse_endpoint() - parse all endpoint node properties
-- * @node: pointer to endpoint device_node
-- * @endpoint: pointer to the V4L2 OF endpoint data structure
-- *
-- * All properties are optional. If none are found, we don't set any flags.
-- * This means the port has a static configuration and no properties have
-- * to be specified explicitly.
-- * If any properties that identify the bus as parallel are found and
-- * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise
-- * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
-- * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
-- * The caller should hold a reference to @node.
-- *
-- * NOTE: This function does not parse properties the size of which is
-- * variable without a low fixed limit. Please use
-- * v4l2_of_alloc_parse_endpoint() in new drivers instead.
-- *
-- * Return: 0 on success or a negative error code on failure.
-- */
--int v4l2_of_parse_endpoint(const struct device_node *node,
--			   struct v4l2_of_endpoint *endpoint)
--{
--	int rval;
--
--	of_graph_parse_endpoint(node, &endpoint->base);
--	/* Zero fields from bus_type to until the end */
--	memset(&endpoint->bus_type, 0, sizeof(*endpoint) -
--	       offsetof(typeof(*endpoint), bus_type));
--
--	rval = v4l2_of_parse_csi_bus(node, endpoint);
--	if (rval)
--		return rval;
--	/*
--	 * Parse the parallel video bus properties only if none
--	 * of the MIPI CSI-2 specific properties were found.
--	 */
--	if (endpoint->bus.mipi_csi2.flags == 0)
--		v4l2_of_parse_parallel_bus(node, endpoint);
--
--	return 0;
--}
--EXPORT_SYMBOL(v4l2_of_parse_endpoint);
--
--/*
-- * v4l2_of_free_endpoint() - free the endpoint acquired by
-- * v4l2_of_alloc_parse_endpoint()
-- * @endpoint - the endpoint the resources of which are to be released
-- *
-- * It is safe to call this function with NULL argument or on an
-- * endpoint the parsing of which failed.
-- */
--void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
--{
--	if (IS_ERR_OR_NULL(endpoint))
--		return;
--
--	kfree(endpoint->link_frequencies);
--	kfree(endpoint);
--}
--EXPORT_SYMBOL(v4l2_of_free_endpoint);
--
--/**
-- * v4l2_of_alloc_parse_endpoint() - parse all endpoint node properties
-- * @node: pointer to endpoint device_node
-- *
-- * All properties are optional. If none are found, we don't set any flags.
-- * This means the port has a static configuration and no properties have
-- * to be specified explicitly.
-- * If any properties that identify the bus as parallel are found and
-- * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise
-- * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
-- * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
-- * The caller should hold a reference to @node.
-- *
-- * v4l2_of_alloc_parse_endpoint() has two important differences to
-- * v4l2_of_parse_endpoint():
-- *
-- * 1. It also parses variable size data and
-- *
-- * 2. The memory it has allocated to store the variable size data must
-- *    be freed using v4l2_of_free_endpoint() when no longer needed.
-- *
-- * Return: Pointer to v4l2_of_endpoint if successful, on error a
-- * negative error code.
-- */
--struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
--	const struct device_node *node)
--{
--	struct v4l2_of_endpoint *endpoint;
--	int len;
--	int rval;
--
--	endpoint = kzalloc(sizeof(*endpoint), GFP_KERNEL);
--	if (!endpoint)
--		return ERR_PTR(-ENOMEM);
--
--	rval = v4l2_of_parse_endpoint(node, endpoint);
--	if (rval < 0)
--		goto out_err;
--
--	if (of_get_property(node, "link-frequencies", &len)) {
--		endpoint->link_frequencies = kmalloc(len, GFP_KERNEL);
--		if (!endpoint->link_frequencies) {
--			rval = -ENOMEM;
--			goto out_err;
--		}
--
--		endpoint->nr_of_link_frequencies =
--			len / sizeof(*endpoint->link_frequencies);
--
--		rval = of_property_read_u64_array(
--			node, "link-frequencies", endpoint->link_frequencies,
--			endpoint->nr_of_link_frequencies);
--		if (rval < 0)
--			goto out_err;
--	}
--
--	return endpoint;
--
--out_err:
--	v4l2_of_free_endpoint(endpoint);
--	return ERR_PTR(rval);
--}
--EXPORT_SYMBOL(v4l2_of_alloc_parse_endpoint);
--
--/**
-- * v4l2_of_parse_link() - parse a link between two endpoints
-- * @node: pointer to the endpoint at the local end of the link
-- * @link: pointer to the V4L2 OF link data structure
-- *
-- * Fill the link structure with the local and remote nodes and port numbers.
-- * The local_node and remote_node fields are set to point to the local and
-- * remote port's parent nodes respectively (the port parent node being the
-- * parent node of the port node if that node isn't a 'ports' node, or the
-- * grand-parent node of the port node otherwise).
-- *
-- * A reference is taken to both the local and remote nodes, the caller must use
-- * v4l2_of_put_link() to drop the references when done with the link.
-- *
-- * Return: 0 on success, or -ENOLINK if the remote endpoint can't be found.
-- */
--int v4l2_of_parse_link(const struct device_node *node,
--		       struct v4l2_of_link *link)
--{
--	struct device_node *np;
--
--	memset(link, 0, sizeof(*link));
--
--	np = of_get_parent(node);
--	of_property_read_u32(np, "reg", &link->local_port);
--	np = of_get_next_parent(np);
--	if (of_node_cmp(np->name, "ports") == 0)
--		np = of_get_next_parent(np);
--	link->local_node = np;
--
--	np = of_parse_phandle(node, "remote-endpoint", 0);
--	if (!np) {
--		of_node_put(link->local_node);
--		return -ENOLINK;
--	}
--
--	np = of_get_parent(np);
--	of_property_read_u32(np, "reg", &link->remote_port);
--	np = of_get_next_parent(np);
--	if (of_node_cmp(np->name, "ports") == 0)
--		np = of_get_next_parent(np);
--	link->remote_node = np;
--
--	return 0;
--}
--EXPORT_SYMBOL(v4l2_of_parse_link);
--
--/**
-- * v4l2_of_put_link() - drop references to nodes in a link
-- * @link: pointer to the V4L2 OF link data structure
-- *
-- * Drop references to the local and remote nodes in the link. This function must
-- * be called on every link parsed with v4l2_of_parse_link().
-- */
--void v4l2_of_put_link(struct v4l2_of_link *link)
--{
--	of_node_put(link->local_node);
--	of_node_put(link->remote_node);
--}
--EXPORT_SYMBOL(v4l2_of_put_link);
-diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-deleted file mode 100644
-index 4dc34b2..0000000
---- a/include/media/v4l2-of.h
-+++ /dev/null
-@@ -1,128 +0,0 @@
--/*
-- * V4L2 OF binding parsing library
-- *
-- * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
-- * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-- *
-- * Copyright (C) 2012 Renesas Electronics Corp.
-- * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of version 2 of the GNU General Public License as
-- * published by the Free Software Foundation.
-- */
--#ifndef _V4L2_OF_H
--#define _V4L2_OF_H
--
--#include <linux/list.h>
--#include <linux/types.h>
--#include <linux/errno.h>
--#include <linux/of_graph.h>
--
--#include <media/v4l2-mediabus.h>
--
--struct device_node;
--
--/**
-- * struct v4l2_of_bus_mipi_csi2 - MIPI CSI-2 bus data structure
-- * @flags: media bus (V4L2_MBUS_*) flags
-- * @data_lanes: an array of physical data lane indexes
-- * @clock_lane: physical lane index of the clock lane
-- * @num_data_lanes: number of data lanes
-- * @lane_polarities: polarity of the lanes. The order is the same of
-- *		   the physical lanes.
-- */
--struct v4l2_of_bus_mipi_csi2 {
--	unsigned int flags;
--	unsigned char data_lanes[4];
--	unsigned char clock_lane;
--	unsigned short num_data_lanes;
--	bool lane_polarities[5];
--};
--
--/**
-- * struct v4l2_of_bus_parallel - parallel data bus data structure
-- * @flags: media bus (V4L2_MBUS_*) flags
-- * @bus_width: bus width in bits
-- * @data_shift: data shift in bits
-- */
--struct v4l2_of_bus_parallel {
--	unsigned int flags;
--	unsigned char bus_width;
--	unsigned char data_shift;
--};
--
--/**
-- * struct v4l2_of_endpoint - the endpoint data structure
-- * @base: struct of_endpoint containing port, id, and local of_node
-- * @bus_type: bus type
-- * @bus: bus configuration data structure
-- * @link_frequencies: array of supported link frequencies
-- * @nr_of_link_frequencies: number of elements in link_frequenccies array
-- */
--struct v4l2_of_endpoint {
--	struct of_endpoint base;
--	/* Fields below this line will be zeroed by v4l2_of_parse_endpoint() */
--	enum v4l2_mbus_type bus_type;
--	union {
--		struct v4l2_of_bus_parallel parallel;
--		struct v4l2_of_bus_mipi_csi2 mipi_csi2;
--	} bus;
--	u64 *link_frequencies;
--	unsigned int nr_of_link_frequencies;
--};
--
--/**
-- * struct v4l2_of_link - a link between two endpoints
-- * @local_node: pointer to device_node of this endpoint
-- * @local_port: identifier of the port this endpoint belongs to
-- * @remote_node: pointer to device_node of the remote endpoint
-- * @remote_port: identifier of the port the remote endpoint belongs to
-- */
--struct v4l2_of_link {
--	struct device_node *local_node;
--	unsigned int local_port;
--	struct device_node *remote_node;
--	unsigned int remote_port;
--};
--
--#ifdef CONFIG_OF
--int v4l2_of_parse_endpoint(const struct device_node *node,
--			   struct v4l2_of_endpoint *endpoint);
--struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
--	const struct device_node *node);
--void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint);
--int v4l2_of_parse_link(const struct device_node *node,
--		       struct v4l2_of_link *link);
--void v4l2_of_put_link(struct v4l2_of_link *link);
--#else /* CONFIG_OF */
--
--static inline int v4l2_of_parse_endpoint(const struct device_node *node,
--					struct v4l2_of_endpoint *link)
--{
--	return -ENOSYS;
--}
--
--static inline struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
--	const struct device_node *node)
--{
--	return NULL;
--}
--
--static inline void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
--{
--}
--
--static inline int v4l2_of_parse_link(const struct device_node *node,
--				     struct v4l2_of_link *link)
--{
--	return -ENOSYS;
--}
--
--static inline void v4l2_of_put_link(struct v4l2_of_link *link)
--{
--}
--
--#endif /* CONFIG_OF */
--
--#endif /* _V4L2_OF_H */
--- 
-2.7.4
+My fault completely.
+
+Regards,
+
+	Hans
