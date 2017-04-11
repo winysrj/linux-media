@@ -1,47 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam01on0104.outbound.protection.outlook.com ([104.47.34.104]:19808
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752954AbdDGIUF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Apr 2017 04:20:05 -0400
-From: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
-To: kbuild test robot <lkp@intel.com>,
-        "kbuild-all@01.org" <kbuild-all@01.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-CC: "tbird20d@gmail.com" <tbird20d@gmail.com>,
-        "frowand.list@gmail.com" <frowand.list@gmail.com>,
-        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
-        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
-        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
-        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
-        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
-        "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
-Subject: RE: [PATCH 2/5] media: Add support for CXD2880 SPI I/F
-Date: Fri, 7 Apr 2017 08:19:58 +0000
-Message-ID: <02699364973B424C83A42A84B04FDA8533BC79@JPYOKXMS113.jp.sony.com>
-References: <1491465339-9483-1-git-send-email-Yasunari.Takiguchi@sony.com>
- <201704071447.DmxQl53a%fengguang.wu@intel.com>
-In-Reply-To: <201704071447.DmxQl53a%fengguang.wu@intel.com>
-Content-Language: ja-JP
-Content-Type: text/plain; charset="us-ascii"
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59148
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751921AbdDKLkF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Apr 2017 07:40:05 -0400
+Date: Tue, 11 Apr 2017 08:39:58 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCHv4 00/15] R-Car VSP1 Histogram Support
+Message-ID: <20170411083958.2b738595@vento.lan>
+In-Reply-To: <20170410192651.18486-1-hverkuil@xs4all.nl>
+References: <20170410192651.18486-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear All
+Hi Hans,
 
-Our patches consists of the following items.
-  [PATCH 1/5] dt-bindings: media: Add document file for CXD2880 SPI I/F
-  [PATCH 2/5] media: Add support for CXD2880 SPI I/F
-  [PATCH 3/5] media: Add suppurt for CXD2880
-  [PATCH 4/5] media: Add suppurt for CXD2880 DVB-T2/T functions
-  [PATCH 5/5] media: Update MAINTAINERS file for CXD2880
+Em Mon, 10 Apr 2017 21:26:36 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-It is necessary to apply all patches before compiling kernel with our code.
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This patch series is the rebased version of this pull request:
+> 
+> https://www.mail-archive.com/linux-media@vger.kernel.org/msg111025.html
+> 
+> It slightly modifies 'Add metadata buffer type and format' (remove
+> experimental note and add newline after label) and it adds support
+> for V4L2_CTRL_FLAG_MODIFY_LAYOUT, as requested by Mauro.
+> 
+> No other changes were made.
 
-Could you re-compile after applying above the patches.
+Patch series look ok. I found just one typo on one of the patches.
 
-Best Regards,
-Takiguchci
+What seems to be missing here is to set the GRABBED flag for controls
+that modify layout but don't allow control update while streaming.
+
+While it is OK to do such change for the existing drivers later
+(as this is actually a bug fix), I would be expecting such change
+for the controls used at the vsp1 driver, as, from what I'm seeing
+at the code, vsp1_wpf_s_ctrl() will block changing any controls in
+runtime. So, wpf_init_controls() should mark all such controls with
+V4L2_CTRL_FLAG_GRABBED[1].
+
+Could you please add such patch at the end of this patchset?
+
+Thanks!
+Mauro
+
+[1] I don't see any reason why not allowing HFLIP/VFLIP controls
+to be handled in realtime (except if the hardware itself doesn't
+allow), but the current code doesn't allow such changes in
+realtime anymore. Perhaps the code could be less pick in the
+future.
+
+Thanks,
+Mauro
