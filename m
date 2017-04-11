@@ -1,105 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:59286 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757370AbdDRRfh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Apr 2017 13:35:37 -0400
-Date: Tue, 18 Apr 2017 18:35:29 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        liviu.dudau@arm.com, laurent.pinchart@ideasonboard.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 6/6] drm: mali-dp: Add writeback connector
-Message-ID: <20170418173529.GC325@e106950-lin.cambridge.arm.com>
-References: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
- <1480092544-1725-7-git-send-email-brian.starkey@arm.com>
- <20170414114700.552acc82@bbrezillon>
+Received: from relmlor1.renesas.com ([210.160.252.171]:18614 "EHLO
+        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751255AbdDKJ5w (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Apr 2017 05:57:52 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "robh+dt@kernel.org" <robh+dt@kernel.org>,
+        "mark.rutland@arm.com" <mark.rutland@arm.com>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "crope@iki.fi" <crope@iki.fi>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        "geert+renesas@glider.be" <geert+renesas@glider.be>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-renesas-soc@vger.kernel.org"
+        <linux-renesas-soc@vger.kernel.org>
+Subject: RE: [PATCH v3 2/7] dt-bindings: media: Add MAX2175 binding
+ description
+Date: Tue, 11 Apr 2017 09:57:45 +0000
+Message-ID: <HK2PR06MB0545282102FBC0472D9831AEC3000@HK2PR06MB0545.apcprd06.prod.outlook.com>
+References: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+ <1486479757-32128-3-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+ <14921696.qIuO4easis@avalon>
+In-Reply-To: <14921696.qIuO4easis@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <20170414114700.552acc82@bbrezillon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 14, 2017 at 11:47:00AM +0200, Boris Brezillon wrote:
->On Fri, 25 Nov 2016 16:49:04 +0000
->Brian Starkey <brian.starkey@arm.com> wrote:
->
->> +static int
->> +malidp_mw_encoder_atomic_check(struct drm_encoder *encoder,
->> +			       struct drm_crtc_state *crtc_state,
->> +			       struct drm_connector_state *conn_state)
->> +{
->> +	struct malidp_mw_connector_state *mw_state = to_mw_state(conn_state);
->> +	struct malidp_drm *malidp = encoder->dev->dev_private;
->> +	struct drm_framebuffer *fb;
->> +	int i, n_planes;
->> +
->> +	if (!conn_state->writeback_job || !conn_state->writeback_job->fb)
->> +		return 0;
->> +
->> +	fb = conn_state->writeback_job->fb;
->> +	if ((fb->width != crtc_state->mode.hdisplay) ||
->> +	    (fb->height != crtc_state->mode.vdisplay)) {
->> +		DRM_DEBUG_KMS("Invalid framebuffer size %ux%u\n",
->> +				fb->width, fb->height);
->> +		return -EINVAL;
->> +	}
->
->These checks look pretty generic to me. Shouldn't we have a default
->helper doing that?
->
+Hi Laurent,
 
-Yeah makes sense. These should be common to everyone until
-cropping/scaling support is added.
+Thanks for the review comments.
 
->> +
->> +	mw_state->format =
->> +		malidp_hw_get_format_id(&malidp->dev->map, SE_MEMWRITE,
->> +					fb->pixel_format);
->> +	if (mw_state->format == MALIDP_INVALID_FORMAT_ID) {
->
->Same goes here. By adding a format_types table similar to what is
->exposed in drm_plane [1], we could do this check in the core. The only
->thing left to the driver is the 4CC -> driver-specific-id conversion.
->
+>=20
+> On Tuesday 07 Feb 2017 15:02:32 Ramesh Shanmugasundaram wrote:
+> > Add device tree binding documentation for MAX2175 Rf to bits tuner
+> > device.
+> >
+> > Signed-off-by: Ramesh Shanmugasundaram
+> > <ramesh.shanmugasundaram@bp.renesas.com> ---
+> >  .../devicetree/bindings/media/i2c/max2175.txt      | 61
+> +++++++++++++++++++
+> >  .../devicetree/bindings/property-units.txt         |  1 +
+> >  2 files changed, 62 insertions(+)
+> >  create mode 100644
+> > Documentation/devicetree/bindings/media/i2c/max2175.txt
+> >
+> > diff --git a/Documentation/devicetree/bindings/media/i2c/max2175.txt
+> > b/Documentation/devicetree/bindings/media/i2c/max2175.txt new file
+> > mode
+> > 100644
+> > index 0000000..f591ab4
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/i2c/max2175.txt
+> > @@ -0,0 +1,61 @@
+> > +Maxim Integrated MAX2175 RF to Bits tuner
+> > +-----------------------------------------
+> > +
+> > +The MAX2175 IC is an advanced analog/digital hybrid-radio receiver
+> > +with RF to Bits(r) front-end designed for software-defined radio
+> solutions.
+> > +
+> > +Required properties:
+> > +--------------------
+> > +- compatible: "maxim,max2175" for MAX2175 RF-to-bits tuner.
+> > +- clocks: phandle to the fixed xtal clock.
+> > +- clock-names: name of the fixed xtal clock.
+>=20
+> I would mention that the name has to be "xtal". Maybe something like
+>=20
+> - clock-names: name of the fixed xtal clock, shall be "xtal".
 
-Yeah could do, but given our driver requires us to run through the
-whole table to get the HW ID anyway it seemed like totally wasted
-effort to do the same thing in the core.
+Agreed.
 
-It's probably a negligible overhead, but it's also unnecessary for
-100% of the current writeback implementations ;-)
+>=20
+> > +- port: child port node of a tuner that defines the local and remote
+> > +  endpoints. The remote endpoint is assumed to be an SDR device
+> > +  that is capable of receiving the digital samples from the tuner.
+>=20
+> You should refer to the OF graphs bindings here. How about the following
+> to document the port node ?
+>=20
+> - port: child port node corresponding to the I2S output, in accordance
+> with the video interface bindings defined in
+> Documentation/devicetree/bindings/media/video-interfaces.txt. The port
+> node must contain at least one endpoint.
 
-If a different driver is implemented such that the HW ID lookup isn't
-an exhaustive list search then we could add a helper for them to use
-which checks the blob.
+Agreed.
 
-Cheers,
--Brian
+>=20
+> > +Optional properties:
+> > +--------------------
+> > +- maxim,slave	      : phandle to the master tuner if it is a slave.
+> This
+> > +			is used to define two tuners in diversity mode
+> > +			(1 master, 1 slave). By default each tuner is an
+> > +			individual master.
+>=20
+> It seems weird to me to name a property "slave" when it points to the
+> master tuner. Shouldn't it be named "maxim,master" ?
 
->> +		struct drm_format_name_buf format_name;
->> +
->> +		DRM_DEBUG_KMS("Invalid pixel format %s\n",
->> +			      drm_get_format_name(fb->pixel_format, &format_name));
->> +		return -EINVAL;
->> +	}
->> +
->> +	n_planes = drm_format_num_planes(fb->pixel_format);
->> +	for (i = 0; i < n_planes; i++) {
->> +		struct drm_gem_cma_object *obj = drm_fb_cma_get_gem_obj(fb, i);
->> +		if (!malidp_hw_pitch_valid(malidp->dev, fb->pitches[i])) {
->> +			DRM_DEBUG_KMS("Invalid pitch %u for plane %d\n",
->> +				      fb->pitches[i], i);
->> +			return -EINVAL;
->> +		}
->> +		mw_state->pitches[i] = fb->pitches[i];
->> +		mw_state->addrs[i] = obj->paddr + fb->offsets[i];
->> +	}
->> +	mw_state->n_planes = n_planes;
->> +
->> +	return 0;
->> +}
->
->
->[1]http://lxr.free-electrons.com/source/include/drm/drm_plane.h#L482
+Agreed.
+
+>=20
+> > +- maxim,refout-load-pF: load capacitance value (in pF) on reference
+> > +			output drive level. The possible load values are
+> > +			 0 (default - refout disabled)
+> > +			10
+> > +			20
+> > +			30
+> > +			40
+> > +			60
+> > +			70
+> > +- maxim,am-hiz	      : empty property indicates AM Hi-Z filter path
+> is
+> > +			selected for AM antenna input. By default this
+> > +			filter path is not used.
+>=20
+> Isn't this something that should be selected at runtime through a control
+> ? Or does the hardware design dictate whether the filter has to be used o=
+r
+> must not be used ?
+
+This is dictated by the h/w design and not selectable at run-time.=20
+I will update these changes in the next patchset.
+
+Thanks,
+Ramesh
