@@ -1,76 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f169.google.com ([209.85.128.169]:34690 "EHLO
-        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751626AbdDHSM1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 8 Apr 2017 14:12:27 -0400
-MIME-Version: 1.0
-In-Reply-To: <1491245884-15852-18-git-send-email-labbott@redhat.com>
-References: <1491245884-15852-1-git-send-email-labbott@redhat.com> <1491245884-15852-18-git-send-email-labbott@redhat.com>
-From: Emil Velikov <emil.l.velikov@gmail.com>
-Date: Sat, 8 Apr 2017 19:12:25 +0100
-Message-ID: <CACvgo52qr=oBoiMnrww3cgoKozEMi3DwBV55c_GMi0mR_p0GcA@mail.gmail.com>
-Subject: Re: [PATCHv3 17/22] staging: android: ion: Collapse internal header files
-To: Laura Abbott <labbott@redhat.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>,
-        =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>,
-        devel@driverdev.osuosl.org, Rom Lemarchand <romlem@google.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>,
-        ML dri-devel <dri-devel@lists.freedesktop.org>,
-        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-        Mark Brown <broonie@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        LAKML <linux-arm-kernel@lists.infradead.org>,
-        linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from ns.mm-sol.com ([37.157.136.199]:54938 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752002AbdDKL2D (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Apr 2017 07:28:03 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
+        hans.verkuil@cisco.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v9 0/2] OV5645 camera sensor driver
+Date: Tue, 11 Apr 2017 14:27:48 +0300
+Message-Id: <1491910068-15537-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laura,
+Resending once again to remove an unused empty struct in second patch.
+I have kept the received tags because the change is rather trivial.
 
-Couple of trivial nitpicks below.
+Changes since version 8:
+- removed unused empty struct ov5645_subdev_internal_ops;
+- removed two redundant new lines above and under ov5645_remove().
 
-On 3 April 2017 at 19:57, Laura Abbott <labbott@redhat.com> wrote:
+Changes since version 7:
+- "unsigned int i" changed to "int i" in ov5645_find_nearest_mode();
+- unused varialbe removed from ov5645_entity_init_cfg().
 
-> --- a/drivers/staging/android/ion/ion.h
-> +++ b/drivers/staging/android/ion/ion.h
-> @@ -1,5 +1,5 @@
->  /*
-> - * drivers/staging/android/ion/ion.h
-> + * drivers/staging/android/ion/ion_priv.h
-Does not match the actual filename.
+Changes since version 6 include:
+- keep a pointer to the current sensor mode and remove enum ov5645_mode;
+- do not keep v4l2 control values and xclk frequency in the main data struct;
+- add caching variables in then main data struct for some of the register values
+  to avoid i2c read commands;
+- use reference counting for power state;
+- enable xclk only after regulators are enabled;
+- add check for xclk rate that it is supported;
+- register v4l2 subdev only at the end of probe when the rest is succeeded;
+- add hardware pin names in gpio descriptions in the dt binding document;
+- other minor changes: uppercase to lowercase, add const modifier, remove
+  unnecessary local variables, fix return values.
 
->   *
->   * Copyright (C) 2011 Google, Inc.
->   *
-> @@ -14,24 +14,26 @@
->   *
->   */
->
-> -#ifndef _LINUX_ION_H
-> -#define _LINUX_ION_H
-> +#ifndef _ION_PRIV_H
-> +#define _ION_PRIV_H
->
-Ditto.
+Changes since version 5 include:
+- external clock frequency set in DT;
+- added v4l2_subdev_pad_ops.init_cfg function to initialize formats;
+- current sensor mode not updated if set_fmt is TRY (not ACTIVE);
+- other small changes - debug messages removed, register addresses defines
+  renamed, redundant safety checks removed, unnecessary labels removed,
+  mutex_destroy added.
 
-> +#include <linux/device.h>
-> +#include <linux/dma-direction.h>
-> +#include <linux/kref.h>
-> +#include <linux/mm_types.h>
-> +#include <linux/mutex.h>
-> +#include <linux/rbtree.h>
-> +#include <linux/sched.h>
-> +#include <linux/shrinker.h>
->  #include <linux/types.h>
-> +#include <linux/miscdevice.h>
->
->  #include "../uapi/ion.h"
->
-You don't want to use "../" in includes. Perhaps address with another
-patch, if you haven't already ?
+Two one-line changes since version 4:
+- return current format on set_format;
+- return all frame sizes when enumerating them.
 
-Regards,
-Emil
+Only one change since version 3:
+- build failure on kernel v4.7-rc1 fixed:
+  s/media_entity_init/media_entity_pads_init/
+
+Changes from version 2 include:
+- external camera clock configuration is moved from DT to driver;
+- pwdn-gpios renamed to enable-gpios;
+- switched polarity of reset-gpios to the more intuitive active low;
+- added Kconfig dependency to OF;
+- return values checks;
+- regulators and gpios are now required (not optional);
+- regulators names renamed;
+- power counter variable changed to a bool power state;
+- ov5645_registered() is removed and sensor id reading moved to probe().
+
+Changes from version 1 include:
+- patch split to dt binding doc patch and driver patch;
+- changes in power on/off logic - s_power is now not called on
+  open/close;
+- using assigned-clock-rates in dt for setting camera external
+  clock rate;
+- correct api for gpio handling;
+- return values checks;
+- style fixes.
+
+Todor Tomov (2):
+  media: i2c/ov5645: add the device tree binding document
+  media: Add a driver for the ov5645 camera sensor.
+
+ .../devicetree/bindings/media/i2c/ov5645.txt       |   54 +
+ drivers/media/i2c/Kconfig                          |   12 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/ov5645.c                         | 1345 ++++++++++++++++++++
+ 4 files changed, 1412 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
+ create mode 100644 drivers/media/i2c/ov5645.c
+
+-- 
+1.9.1
