@@ -1,78 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37175 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756023AbdD1KGC (ORCPT
+Received: from relmlor1.renesas.com ([210.160.252.171]:13396 "EHLO
+        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752596AbdDKMUA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 06:06:02 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH 4/5] arm64: dts: r8a7795: salvator-x: enable VIN, CSI and
- ADV7482
-References: <1493317564-18026-1-git-send-email-kbingham@kernel.org>
- <1493317564-18026-5-git-send-email-kbingham@kernel.org>
- <05b07c91-c41a-a3ae-d660-06eff84cd453@cogentembedded.com>
- <CAMuHMdUWzXvYJsB02kqebrqzkoQs+NSM_Xo3tsFX=DOfst=m0w@mail.gmail.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Kieran Bingham <kbingham@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <6b133106-a590-c286-135e-031214340910@ideasonboard.com>
-Date: Fri, 28 Apr 2017 11:05:56 +0100
+        Tue, 11 Apr 2017 08:20:00 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "robh+dt@kernel.org" <robh+dt@kernel.org>,
+        "mark.rutland@arm.com" <mark.rutland@arm.com>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "crope@iki.fi" <crope@iki.fi>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        "geert+renesas@glider.be" <geert+renesas@glider.be>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-renesas-soc@vger.kernel.org"
+        <linux-renesas-soc@vger.kernel.org>
+Subject: RE: [PATCH v3 2/7] dt-bindings: media: Add MAX2175 binding
+ description
+Date: Tue, 11 Apr 2017 12:19:54 +0000
+Message-ID: <HK2PR06MB0545F9FBB1B27E91D80F906EC3000@HK2PR06MB0545.apcprd06.prod.outlook.com>
+References: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+ <14921696.qIuO4easis@avalon>
+ <HK2PR06MB0545282102FBC0472D9831AEC3000@HK2PR06MB0545.apcprd06.prod.outlook.com>
+ <6297638.5S79beP3Jj@avalon>
+In-Reply-To: <6297638.5S79beP3Jj@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-In-Reply-To: <CAMuHMdUWzXvYJsB02kqebrqzkoQs+NSM_Xo3tsFX=DOfst=m0w@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28/04/17 11:04, Geert Uytterhoeven wrote:
-> On Fri, Apr 28, 2017 at 10:52 AM, Sergei Shtylyov
-> <sergei.shtylyov@cogentembedded.com> wrote:
->> On 4/27/2017 9:26 PM, Kieran Bingham wrote:
->>> --- a/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts
->>> +++ b/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts
->>
->> [...]
->>>
->>> @@ -387,6 +403,50 @@
->>>         };
->>>  };
->>>
->>> +&i2c4 {
->>> +       status = "okay";
->>> +
->>> +       clock-frequency = <100000>;
->>> +
->>> +       video_receiver@70 {
->>
->>
->>    Hyphens are preferred in the node names.
-> 
-> Definitely: make W=1 dtbs
+Hi Laurent,
 
+> On Tuesday 11 Apr 2017 09:57:45 Ramesh Shanmugasundaram wrote:
+> > > On Tuesday 07 Feb 2017 15:02:32 Ramesh Shanmugasundaram wrote:
+> > >> Add device tree binding documentation for MAX2175 Rf to bits tuner
+> > >> device.
+> > >>
+> > >> Signed-off-by: Ramesh Shanmugasundaram
+> > >> <ramesh.shanmugasundaram@bp.renesas.com> ---
+> > >>
+> > >>  .../devicetree/bindings/media/i2c/max2175.txt      | 61
+> +++++++++++++++
+> > >>  .../devicetree/bindings/property-units.txt         |  1 +
+> > >>  2 files changed, 62 insertions(+)
+> > >>  create mode 100644
+> > >>
+> > >> Documentation/devicetree/bindings/media/i2c/max2175.txt
+> > >>
+> > >> diff --git
+> > >> a/Documentation/devicetree/bindings/media/i2c/max2175.txt
+> > >> b/Documentation/devicetree/bindings/media/i2c/max2175.txt new file
+> > >> mode 100644 index 0000000..f591ab4
+> > >> --- /dev/null
+> > >> +++ b/Documentation/devicetree/bindings/media/i2c/max2175.txt
+>=20
+> [snip]
+>=20
+> > >> +- maxim,am-hiz	      : empty property indicates AM Hi-Z filter
+> path
+> > >> is
+> > >> +			selected for AM antenna input. By default this
+> > >> +			filter path is not used.
+> > >
+> > > Isn't this something that should be selected at runtime through a
+> > > control ? Or does the hardware design dictate whether the filter has
+> > > to be used or must not be used ?
+> >
+> > This is dictated by the h/w design and not selectable at run-time.
+> > I will update these changes in the next patchset.
+>=20
+> In that case I'm fine with a property, but could we name it in such a way
+> that it describes the hardware instead of instructing the software on how
+> to configure the device ? For instance (and this is a made-up example as =
+I
+> don't know exactly how this works), if the AM Hi-Z filter is required whe=
+n
+> dealing with AM frequencies and forbidden when dealing with other
+> frequency bands, and
+> *if* boards have to be designed specifically for one frequency band (AM,
+> FM, VHF, L, ...) without any way to accept different bands, then you coul=
+d
+> instead use
+>=20
+> 	maxim,frequency-band =3D "AM";
+>=20
+> and enable the filter accordingly in the driver. This would be in my
+> opinion a better system hardware description.
 
-Thanks guys, - I didn't know about that one.
-I'll update my build script so it's always in place :)
+I am not sure. The AM antenna input path has a default filter and AM Hi-Z f=
+ilter. H/W dictates the path to be used for AM input only and this is fixed=
+. The device can be configured to use different bands at runtime & not AM o=
+nly. I could edit the description as below:
 
---
-Regards
+- maxim,am-hiz	      : empty property indicates AM Hi-Z filter path usage f=
+or AM antenna
+			input as dictated by hardware design. By default this filter path is not=
+ used.
 
-Kieran
+Is it any better? Do you still think the property name should be changed pl=
+ease?
 
-
-> Gr{oetje,eeting}s,
-> 
->                         Geert
-> 
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-> 
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
-> 
+Thanks,
+Ramesh
