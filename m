@@ -1,76 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f173.google.com ([209.85.216.173]:33907 "EHLO
-        mail-qt0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932617AbdDRS2C (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58659
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752633AbdDKIyW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Apr 2017 14:28:02 -0400
-Received: by mail-qt0-f173.google.com with SMTP id c45so1153497qtb.1
-        for <linux-media@vger.kernel.org>; Tue, 18 Apr 2017 11:28:02 -0700 (PDT)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCHv4 12/12] staging/android: Update Ion TODO list
-Date: Tue, 18 Apr 2017 11:27:14 -0700
-Message-Id: <1492540034-5466-13-git-send-email-labbott@redhat.com>
-In-Reply-To: <1492540034-5466-1-git-send-email-labbott@redhat.com>
-References: <1492540034-5466-1-git-send-email-labbott@redhat.com>
+        Tue, 11 Apr 2017 04:54:22 -0400
+Date: Tue, 11 Apr 2017 05:54:13 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: linuxtv-commits@linuxtv.org,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [git:media_tree/master] [media] ARM: dts: exynos: add HDMI
+ controller phandle to exynos4.dtsi
+Message-ID: <20170411055413.07957d91@vento.lan>
+In-Reply-To: <CAJKOXPfbJpFu6r9rS8oCqxTH+s7y2wYKx9+TzGrv4Cd8DYaKew@mail.gmail.com>
+References: <E1cxc0o-0003RE-PP@www.linuxtv.org>
+        <CAJKOXPfbJpFu6r9rS8oCqxTH+s7y2wYKx9+TzGrv4Cd8DYaKew@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Most of the items have been taken care of by a clean up series. Remove
-the completed items and add a few new ones.
+Em Tue, 11 Apr 2017 10:36:58 +0200
+Krzysztof Kozlowski <krzk@kernel.org> escreveu:
 
-Signed-off-by: Laura Abbott <labbott@redhat.com>
----
- drivers/staging/android/TODO | 21 ++++-----------------
- 1 file changed, 4 insertions(+), 17 deletions(-)
+> On Mon, Apr 10, 2017 at 6:12 PM, Mauro Carvalho Chehab
+> <mchehab@s-opensource.com> wrote:
+> > This is an automatic generated email to let you know that the following patch were queued:
+> >
+> > Subject: [media] ARM: dts: exynos: add HDMI controller phandle to exynos4.dtsi
+> > Author:  Hans Verkuil <hans.verkuil@cisco.com>
+> > Date:    Tue Dec 13 12:37:16 2016 -0200
+> >
+> > Add the new hdmi phandle to exynos4.dtsi. This phandle is needed by the
+> > s5p-cec driver to initialize the CEC notifier framework.
+> >
+> > Tested with my Odroid U3.
+> >
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> > CC: linux-samsung-soc@vger.kernel.org
+> > CC: devicetree@vger.kernel.org
+> > CC: Krzysztof Kozlowski <krzk@kernel.org>
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> >
+> >  arch/arm/boot/dts/exynos4.dtsi | 1 +
+> >  1 file changed, 1 insertion(+)
+> >  
+> 
+> Mauro, you should not apply it. It is already going through samsung-soc [1].
+> if you need this patch for bisectability or any other reasons, I
+> provided a tag with it here:
+> https://www.spinics.net/lists/devicetree/msg171182.html
+> 
+> Please drop the patch because now it will get duplicated.
 
-diff --git a/drivers/staging/android/TODO b/drivers/staging/android/TODO
-index 8f3ac37..5f14247 100644
---- a/drivers/staging/android/TODO
-+++ b/drivers/staging/android/TODO
-@@ -7,23 +7,10 @@ TODO:
- 
- 
- ion/
-- - Remove ION_IOC_SYNC: Flushing for devices should be purely a kernel internal
--   interface on top of dma-buf. flush_for_device needs to be added to dma-buf
--   first.
-- - Remove ION_IOC_CUSTOM: Atm used for cache flushing for cpu access in some
--   vendor trees. Should be replaced with an ioctl on the dma-buf to expose the
--   begin/end_cpu_access hooks to userspace.
-- - Clarify the tricks ion plays with explicitly managing coherency behind the
--   dma api's back (this is absolutely needed for high-perf gpu drivers): Add an
--   explicit coherency management mode to flush_for_device to be used by drivers
--   which want to manage caches themselves and which indicates whether cpu caches
--   need flushing.
-- - With those removed there's probably no use for ION_IOC_IMPORT anymore either
--   since ion would just be the central allocator for shared buffers.
-- - Add dt-binding to expose cma regions as ion heaps, with the rule that any
--   such cma regions must already be used by some device for dma. I.e. ion only
--   exposes existing cma regions and doesn't reserve unecessarily memory when
--   booting a system which doesn't use ion.
-+ - Add dt-bindings for remaining heaps (chunk and carveout heaps). This would
-+   involve putting appropriate bindings in a memory node for Ion to find.
-+ - Split /dev/ion up into multiple nodes (e.g. /dev/ion/heap0)
-+ - Better test framework (integration with VGEM was suggested)
- 
- Please send patches to Greg Kroah-Hartman <greg@kroah.com> and Cc:
- Arve Hjønnevåg <arve@android.com> and Riley Andrews <riandrews@android.com>
--- 
-2.7.4
+Having exactly the same patch applied on multiple trees usually is
+not a problem, provided that it doesn't rise a non-trivial
+conflict.
+
+I avoid rebase the tree where this patch is applied, as rebasing it
+affect the workflow of other developers.
+
+I'm afraid that, if I revert this patch, it will cause more harm than
+good. 
+
+So, I guess the best solution to fix the issue would be to pull from 
+a stable branch on your tree with has this patch and solve conflicts,
+if any. This way, nothing will popup when merging upstream.
+
+Regards,
+Mauro
+
+> 
+> Best regards,
+> Krzysztof
+> 
+> [1] https://www.spinics.net/lists/arm-kernel/msg575229.html
+
+
+
+Thanks,
+Mauro
