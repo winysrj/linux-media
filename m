@@ -1,99 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [198.176.57.175] ([198.176.57.175]:50382 "EHLO
-        deadmen.hmeau.com" rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1164100AbdD1Gcl (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:59665 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751890AbdDKN1R (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 02:32:41 -0400
-Date: Fri, 28 Apr 2017 14:30:39 +0800
-From: Herbert Xu <herbert@gondor.apana.org.au>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH v2 07/21] crypto: shash, caam: Make use of the new sg_map
- helper function
-Message-ID: <20170428063039.GB6817@gondor.apana.org.au>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
- <1493144468-22493-8-git-send-email-logang@deltatee.com>
- <20170427035603.GA32212@gondor.apana.org.au>
- <94123cbf-3287-f05e-7267-0bcf08ab0a8b@deltatee.com>
+        Tue, 11 Apr 2017 09:27:17 -0400
+Subject: Re: [PATCHv4 04/15] v4l: vsp1: Add histogram support
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <20170410192651.18486-1-hverkuil@xs4all.nl>
+ <20170410192651.18486-5-hverkuil@xs4all.nl>
+ <20170411081728.4df93852@vento.lan>
+Cc: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <a95e3ae3-de87-5ce4-cc68-4cda449d2fe3@xs4all.nl>
+Date: Tue, 11 Apr 2017 15:27:12 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <94123cbf-3287-f05e-7267-0bcf08ab0a8b@deltatee.com>
+In-Reply-To: <20170411081728.4df93852@vento.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 27, 2017 at 09:45:57AM -0600, Logan Gunthorpe wrote:
+On 04/11/17 13:17, Mauro Carvalho Chehab wrote:
+> Em Mon, 10 Apr 2017 21:26:40 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
+>> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+>>
+>> The histogram common code will be used to implement support for both the
+>> HGO and HGT histogram computation engines.
+>>
+>> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+>> ---
+>>  drivers/media/platform/Kconfig           |   1 +
+>>  drivers/media/platform/vsp1/Makefile     |   1 +
+>>  drivers/media/platform/vsp1/vsp1_histo.c | 646 +++++++++++++++++++++++++++++++
+>>  drivers/media/platform/vsp1/vsp1_histo.h |  84 ++++
+>>  4 files changed, 732 insertions(+)
+>>  create mode 100644 drivers/media/platform/vsp1/vsp1_histo.c
+>>  create mode 100644 drivers/media/platform/vsp1/vsp1_histo.h
 > 
-> On 26/04/17 09:56 PM, Herbert Xu wrote:
-> > On Tue, Apr 25, 2017 at 12:20:54PM -0600, Logan Gunthorpe wrote:
-> >> Very straightforward conversion to the new function in the caam driver
-> >> and shash library.
-> >>
-> >> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-> >> Cc: Herbert Xu <herbert@gondor.apana.org.au>
-> >> Cc: "David S. Miller" <davem@davemloft.net>
-> >> ---
-> >>  crypto/shash.c                | 9 ++++++---
-> >>  drivers/crypto/caam/caamalg.c | 8 +++-----
-> >>  2 files changed, 9 insertions(+), 8 deletions(-)
-> >>
-> >> diff --git a/crypto/shash.c b/crypto/shash.c
-> >> index 5e31c8d..5914881 100644
-> >> --- a/crypto/shash.c
-> >> +++ b/crypto/shash.c
-> >> @@ -283,10 +283,13 @@ int shash_ahash_digest(struct ahash_request *req, struct shash_desc *desc)
-> >>  	if (nbytes < min(sg->length, ((unsigned int)(PAGE_SIZE)) - offset)) {
-> >>  		void *data;
-> >>  
-> >> -		data = kmap_atomic(sg_page(sg));
-> >> -		err = crypto_shash_digest(desc, data + offset, nbytes,
-> >> +		data = sg_map(sg, 0, SG_KMAP_ATOMIC);
-> >> +		if (IS_ERR(data))
-> >> +			return PTR_ERR(data);
-> >> +
-> >> +		err = crypto_shash_digest(desc, data, nbytes,
-> >>  					  req->result);
-> >> -		kunmap_atomic(data);
-> >> +		sg_unmap(sg, data, 0, SG_KMAP_ATOMIC);
-> >>  		crypto_yield(desc->flags);
-> >>  	} else
-> >>  		err = crypto_shash_init(desc) ?:
-> > 
-> > Nack.  This is an optimisation for the special case of a single
-> > SG list entry.  In fact in the common case the kmap_atomic should
-> > disappear altogether in the no-highmem case.  So replacing it
-> > with sg_map is not acceptable.
+>> diff --git a/drivers/media/platform/vsp1/vsp1_histo.c b/drivers/media/platform/vsp1/vsp1_histo.c
+>> new file mode 100644
+>> index 000000000000..afab77cf4fa5
+>> --- /dev/null
+>> +++ b/drivers/media/platform/vsp1/vsp1_histo.c
 > 
-> What you seem to have missed is that sg_map is just a thin wrapper
-> around kmap_atomic. Perhaps with a future check for a mappable page.
-> This change should have zero impact on performance.
+> ...
+> 
+>> +	crop = vsp1_entity_get_pad_selection(&histo->entity, config, sel->pad,
+>> +					     V4L2_SEL_TGT_CROP);
+>> +
+>> +	/*
+>> +	 * Clamp the width and height to acceptable values first and then
+>> +	 * compute the closest rounded dividing ratio.
+>> +	 *
+>> +	 * Ratio	Rounded ratio
+>> +	 * --------------------------
+>> +	 * [1.0 1.5[	1
+> 
+> Nitpick:
+> 
+> 	1.0 1.5]	1
 
-You are right.  Indeed the existing code looks buggy as they
-don't take sg->offset into account when doing the kmap.  Could
-you send me some patches that fix these problems first so that
-they can be easily backported?
+No, the notation [a b[ means the range 'a to, but not including, b'.
 
-Thanks,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+So this is correct.
+
+I'm used to writing this as [a b), but according to wikipedia both notations
+are allowed.
+
+Regards,
+
+	Hans
+
+> 
+> Thanks,
+> Mauro
+> 
