@@ -1,162 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36444
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1424931AbdD1L0H (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:54470 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752291AbdDKGAd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 07:26:07 -0400
-Date: Fri, 28 Apr 2017 08:26:00 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Niklas =?UTF-8?B?U8O2ZGVybHVuZA==?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
+        Tue, 11 Apr 2017 02:00:33 -0400
+Subject: Re: [PATCHv3 07/22] staging: android: ion: Remove page faulting
+ support
+To: Laura Abbott <labbott@redhat.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+References: <1491245884-15852-1-git-send-email-labbott@redhat.com>
+ <1491245884-15852-8-git-send-email-labbott@redhat.com>
+Cc: romlem@google.com, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/2] media: entity: add operation to help map DT node to
- media pad
-Message-ID: <20170428082600.0193f26f@vento.lan>
-In-Reply-To: <20170427223323.13861-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170427223323.13861-1-niklas.soderlund+renesas@ragnatech.se>
+From: Archit Taneja <architt@codeaurora.org>
+Message-ID: <d6336b76-e1a8-d05a-3f1c-9425e4b92498@codeaurora.org>
+Date: Tue, 11 Apr 2017 11:30:24 +0530
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <1491245884-15852-8-git-send-email-labbott@redhat.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hi,
 
-Em Fri, 28 Apr 2017 00:33:21 +0200
-Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se> escreveu:
+On 04/04/2017 12:27 AM, Laura Abbott wrote:
+> The new method of syncing with dma_map means that the page faulting sync
+> implementation is no longer applicable. Remove it.
+>
+> Signed-off-by: Laura Abbott <labbott@redhat.com>
+> ---
+>  drivers/staging/android/ion/ion.c | 117 --------------------------------------
+>  1 file changed, 117 deletions(-)
+>
+> diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+> index 6aac935..226ea1f 100644
+> --- a/drivers/staging/android/ion/ion.c
+> +++ b/drivers/staging/android/ion/ion.c
+> @@ -42,37 +42,11 @@
+>  #include "ion_priv.h"
+>  #include "compat_ion.h"
+>
+> -bool ion_buffer_fault_user_mappings(struct ion_buffer *buffer)
+> -{
+> -	return (buffer->flags & ION_FLAG_CACHED) &&
+> -		!(buffer->flags & ION_FLAG_CACHED_NEEDS_SYNC);
+> -}
+> -
+>  bool ion_buffer_cached(struct ion_buffer *buffer)
+>  {
+>  	return !!(buffer->flags & ION_FLAG_CACHED);
+>  }
+>
+> -static inline struct page *ion_buffer_page(struct page *page)
+> -{
+> -	return (struct page *)((unsigned long)page & ~(1UL));
+> -}
+> -
+> -static inline bool ion_buffer_page_is_dirty(struct page *page)
+> -{
+> -	return !!((unsigned long)page & 1UL);
+> -}
+> -
+> -static inline void ion_buffer_page_dirty(struct page **page)
+> -{
+> -	*page = (struct page *)((unsigned long)(*page) | 1UL);
+> -}
+> -
+> -static inline void ion_buffer_page_clean(struct page **page)
+> -{
+> -	*page = (struct page *)((unsigned long)(*page) & ~(1UL));
+> -}
+> -
+>  /* this function should only be called while dev->lock is held */
+>  static void ion_buffer_add(struct ion_device *dev,
+>  			   struct ion_buffer *buffer)
+> @@ -140,25 +114,6 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
+>  	buffer->dev = dev;
+>  	buffer->size = len;
+>
+> -	if (ion_buffer_fault_user_mappings(buffer)) {
+> -		int num_pages = PAGE_ALIGN(buffer->size) / PAGE_SIZE;
+> -		struct scatterlist *sg;
+> -		int i, j, k = 0;
+> -
+> -		buffer->pages = vmalloc(sizeof(struct page *) * num_pages);
 
-> Hi,
-> 
-> This small series add a new entity operation which will aid capture 
-> drivers to map a port/endpoint in DT to a media graph pad. I looked 
-> around and in my experience most drivers assume the DT port number is 
-> the same as the media pad number.
-> 
-> This might be true for most devices but there are cases where this 
-> mapping do not hold true. This series is implemented support to the 
-> ongoing ADV748x work by Kieran Bingham, [1]. In his work he have a 
-> driver which registers more then one subdevice. So when a driver finds 
-> this subdevice it must be able to ask the subdevice itself which pad 
-> number correspond to the DT endpoint the driver used to bind subdevice 
-> in the first place.
-> 
-> I have updated my R-Car CSI-2 patch series to use this new function to 
-> ask it's subdevice to resolve the media pad.
-
-The problem of finding a PAD is not specific for DT-based devices.
-So, what we need is a generic way to find a pad.
-
-The non-DT based drivers usually don't implement subdev API. So, they
-need to build the pipelines themselves. On such devices, there are
-hundreds of different combinations of devices, and the main driver
-needs to seek the hardware connected into it. Based on such
-runtime knowledge, setup the pipelines.
-
-One such example is em28xx with can use a wide range of different 
-tuners, analog TV decoders and digital TV frontends.
-
-The I2C devices like tuners and decoders have pads with different
-signals:
-	- RF 
-	- digital video (encoded with ITU-R BT.656 or similar)
-	- audio IF signal
-	- chroma IF signal
-	- baseband signal
-	- luminance IF signal
-	- digital audio (using I2S)
-	- composite video
-	- ...
-
-Right now, this is "solved" by using enums at include/media/v4l2-mc.h,
-like this one:
-
-enum tuner_pad_index {
-	TUNER_PAD_RF_INPUT,
-	TUNER_PAD_OUTPUT,
-	TUNER_PAD_AUD_OUT,
-	TUNER_NUM_PADS
-};
-
-That's not optimal, as even tuners that don't provide, for example,
-an audio output pad need to have an unconnected TUNER_PAD_AUD_OUT
-pad [1].
-
-[1] With the current model, we're using TUNER_PAD_AUD_OUT for both
-IF and digital audio - as currently - drivers don't need to distinguish
-and we didn't want to have an excessive number of unconnected PADs.
-
-So, what we really need is a way to represent a set of properties
-associated with pads, and a function that would seek for a PAD that
-matches a property set.
-
-There is a proposal from Sakari to have a properties API that would
-allow such kind of association (among others) and would even let
-export such properties to userspace, but he never had time to send
-us patches adding such functionality.
-
-- 
-
-IMHO, what we should do, instead of the approach you took, would be
-to create a list of properties associated with each PAD (or, actually,
-to any graph object, as we may want later to have properties also for
-entities, interfaces and links). Something like:
-
-enum media_property_type {
-	MEDIA_PROP_PAD_DT_PORT_REG,	// not sure if this is the best name
-	MEDIA_PROP_PAD_DT_REG,	// not sure if this is the best name
-	MEDIA_PROP_PAD_SIGNAL_TYPE,	// that's for the above example of identifying a pad based on the signal it carries: I2S, RF, IF, ...
-	...
-};
-
-struct media_properties {
-	enum media_property_type type;
-	int value;
-
-	struct list_head *list;
-};
-
-struct media_graph {
-	struct {
-		struct media_entity *entity;
-		struct list_head *link;
-	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
-
-	struct media_entity_enum ent_enum;
-	int top;
-
-	struct list_head *props; /* head for struct media_properties */
-};
-
-and a generic media_find_property() function that would allow a
-driver to seek for an specific set of properties, e. g.:
-
-int find_find_property(struct media_properties *props, struct media_graph *gobj);
-
-This way, if someone would need to seek for an specific set of
-properties (like on your DT case), he could use a helper function like
-(untested):
-
-find_dt_reg(int _port_reg, int _reg, struct media_graph *gobj)
-{
-	struct media_properties port_reg, reg;
-
-	port_reg.type =	MEDIA_PROP_DT_PORT_REG;
-	port_reg.value = _port_reg;
-
-	reg.type = MEDIA_PROP_DT_REG;
-	reg.value = _reg;
-
-	INIT_LIST_HEAD(&port_reg->list);
-	list_add_tail(&port->list, &reg);
-
-	find_find_property(&port_reg, gobj);
-}
-
+We should also remove the vfree(buffer->pages) call in ion_buffer_destroy. In fact, we
+could removes 'pages' member from ion_buffer altogether.
 
 Thanks,
-Mauro
+Archit
+
+> -		if (!buffer->pages) {
+> -			ret = -ENOMEM;
+> -			goto err1;
+> -		}
+> -
+> -		for_each_sg(table->sgl, sg, table->nents, i) {
+> -			struct page *page = sg_page(sg);
+> -
+> -			for (j = 0; j < sg->length / PAGE_SIZE; j++)
+> -				buffer->pages[k++] = page++;
+> -		}
+> -	}
+> -
+>  	buffer->dev = dev;
+>  	buffer->size = len;
+>  	INIT_LIST_HEAD(&buffer->vmas);
+> @@ -924,69 +879,6 @@ void ion_pages_sync_for_device(struct device *dev, struct page *page,
+>  	dma_sync_sg_for_device(dev, &sg, 1, dir);
+>  }
+>
+> -struct ion_vma_list {
+> -	struct list_head list;
+> -	struct vm_area_struct *vma;
+> -};
+> -
+> -static int ion_vm_fault(struct vm_fault *vmf)
+> -{
+> -	struct ion_buffer *buffer = vmf->vma->vm_private_data;
+> -	unsigned long pfn;
+> -	int ret;
+> -
+> -	mutex_lock(&buffer->lock);
+> -	ion_buffer_page_dirty(buffer->pages + vmf->pgoff);
+> -	BUG_ON(!buffer->pages || !buffer->pages[vmf->pgoff]);
+> -
+> -	pfn = page_to_pfn(ion_buffer_page(buffer->pages[vmf->pgoff]));
+> -	ret = vm_insert_pfn(vmf->vma, vmf->address, pfn);
+> -	mutex_unlock(&buffer->lock);
+> -	if (ret)
+> -		return VM_FAULT_ERROR;
+> -
+> -	return VM_FAULT_NOPAGE;
+> -}
+> -
+> -static void ion_vm_open(struct vm_area_struct *vma)
+> -{
+> -	struct ion_buffer *buffer = vma->vm_private_data;
+> -	struct ion_vma_list *vma_list;
+> -
+> -	vma_list = kmalloc(sizeof(*vma_list), GFP_KERNEL);
+> -	if (!vma_list)
+> -		return;
+> -	vma_list->vma = vma;
+> -	mutex_lock(&buffer->lock);
+> -	list_add(&vma_list->list, &buffer->vmas);
+> -	mutex_unlock(&buffer->lock);
+> -	pr_debug("%s: adding %p\n", __func__, vma);
+> -}
+> -
+> -static void ion_vm_close(struct vm_area_struct *vma)
+> -{
+> -	struct ion_buffer *buffer = vma->vm_private_data;
+> -	struct ion_vma_list *vma_list, *tmp;
+> -
+> -	pr_debug("%s\n", __func__);
+> -	mutex_lock(&buffer->lock);
+> -	list_for_each_entry_safe(vma_list, tmp, &buffer->vmas, list) {
+> -		if (vma_list->vma != vma)
+> -			continue;
+> -		list_del(&vma_list->list);
+> -		kfree(vma_list);
+> -		pr_debug("%s: deleting %p\n", __func__, vma);
+> -		break;
+> -	}
+> -	mutex_unlock(&buffer->lock);
+> -}
+> -
+> -static const struct vm_operations_struct ion_vma_ops = {
+> -	.open = ion_vm_open,
+> -	.close = ion_vm_close,
+> -	.fault = ion_vm_fault,
+> -};
+> -
+>  static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
+>  {
+>  	struct ion_buffer *buffer = dmabuf->priv;
+> @@ -998,15 +890,6 @@ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
+>  		return -EINVAL;
+>  	}
+>
+> -	if (ion_buffer_fault_user_mappings(buffer)) {
+> -		vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND |
+> -							VM_DONTDUMP;
+> -		vma->vm_private_data = buffer;
+> -		vma->vm_ops = &ion_vma_ops;
+> -		ion_vm_open(vma);
+> -		return 0;
+> -	}
+> -
+>  	if (!(buffer->flags & ION_FLAG_CACHED))
+>  		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
+>
+>
+
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
