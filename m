@@ -1,71 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pegasos-out.vodafone.de ([80.84.1.38]:42766 "EHLO
-        pegasos-out.vodafone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1041178AbdDZOuL (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59079
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754533AbdDKLRj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Apr 2017 10:50:11 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-        by pegasos-out.vodafone.de (Rohrpostix1  Daemon) with ESMTP id C74C4261F70
-        for <linux-media@vger.kernel.org>; Wed, 26 Apr 2017 16:50:09 +0200 (CEST)
-Received: from pegasos-out.vodafone.de ([127.0.0.1])
-        by localhost (rohrpostix1.prod.vfnet.de [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id H7IhrpSTiQnp for <linux-media@vger.kernel.org>;
-        Wed, 26 Apr 2017 16:50:07 +0200 (CEST)
-Subject: Re: [PATCH] dma-buf: avoid scheduling on fence status query v2
-To: Andres Rodriguez <andresx7@gmail.com>,
-        dri-devel@lists.freedesktop.org
-References: <20170426144620.3560-1-andresx7@gmail.com>
-Cc: sumit.semwal@linaro.org, linux-media@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <deathsimple@vodafone.de>
-Message-ID: <92c9bc96-cf60-f246-a82e-47653472521e@vodafone.de>
-Date: Wed, 26 Apr 2017 16:49:38 +0200
+        Tue, 11 Apr 2017 07:17:39 -0400
+Date: Tue, 11 Apr 2017 08:17:28 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: Re: [PATCHv4 04/15] v4l: vsp1: Add histogram support
+Message-ID: <20170411081728.4df93852@vento.lan>
+In-Reply-To: <20170410192651.18486-5-hverkuil@xs4all.nl>
+References: <20170410192651.18486-1-hverkuil@xs4all.nl>
+        <20170410192651.18486-5-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20170426144620.3560-1-andresx7@gmail.com>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 26.04.2017 um 16:46 schrieb Andres Rodriguez:
-> When a timeout of zero is specified, the caller is only interested in
-> the fence status.
->
-> In the current implementation, dma_fence_default_wait will always call
-> schedule_timeout() at least once for an unsignaled fence. This adds a
-> significant overhead to a fence status query.
->
-> Avoid this overhead by returning early if a zero timeout is specified.
->
-> v2: move early return after enable_signaling
->
-> Signed-off-by: Andres Rodriguez <andresx7@gmail.com>
+Em Mon, 10 Apr 2017 21:26:40 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Reviewed-by: Christian König <christian.koenig@amd.com>
-
+> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> 
+> The histogram common code will be used to implement support for both the
+> HGO and HGT histogram computation engines.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 > ---
->
->   If I'm understanding correctly, I don't think we need to register the
->   default wait callback. But if that isn't the case please let me know.
->
->   This patch has the same perf improvements as v1.
->
->   drivers/dma-buf/dma-fence.c | 5 +++++
->   1 file changed, 5 insertions(+)
->
-> diff --git a/drivers/dma-buf/dma-fence.c b/drivers/dma-buf/dma-fence.c
-> index 0918d3f..57da14c 100644
-> --- a/drivers/dma-buf/dma-fence.c
-> +++ b/drivers/dma-buf/dma-fence.c
-> @@ -402,6 +402,11 @@ dma_fence_default_wait(struct dma_fence *fence, bool intr, signed long timeout)
->   		}
->   	}
->   
-> +	if (!timeout) {
-> +		ret = 0;
-> +		goto out;
-> +	}
+>  drivers/media/platform/Kconfig           |   1 +
+>  drivers/media/platform/vsp1/Makefile     |   1 +
+>  drivers/media/platform/vsp1/vsp1_histo.c | 646 +++++++++++++++++++++++++++++++
+>  drivers/media/platform/vsp1/vsp1_histo.h |  84 ++++
+>  4 files changed, 732 insertions(+)
+>  create mode 100644 drivers/media/platform/vsp1/vsp1_histo.c
+>  create mode 100644 drivers/media/platform/vsp1/vsp1_histo.h
+
+> diff --git a/drivers/media/platform/vsp1/vsp1_histo.c b/drivers/media/platform/vsp1/vsp1_histo.c
+> new file mode 100644
+> index 000000000000..afab77cf4fa5
+> --- /dev/null
+> +++ b/drivers/media/platform/vsp1/vsp1_histo.c
+
+...
+
+> +	crop = vsp1_entity_get_pad_selection(&histo->entity, config, sel->pad,
+> +					     V4L2_SEL_TGT_CROP);
 > +
->   	cb.base.func = dma_fence_default_wait_cb;
->   	cb.task = current;
->   	list_add(&cb.base.node, &fence->cb_list);
+> +	/*
+> +	 * Clamp the width and height to acceptable values first and then
+> +	 * compute the closest rounded dividing ratio.
+> +	 *
+> +	 * Ratio	Rounded ratio
+> +	 * --------------------------
+> +	 * [1.0 1.5[	1
+
+Nitpick:
+
+	1.0 1.5]	1
+
+Thanks,
+Mauro
