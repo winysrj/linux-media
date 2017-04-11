@@ -1,483 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:41503 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752265AbdDNKZb (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34126 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752761AbdDKGHf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Apr 2017 06:25:31 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 7/8] omapdrm: hdmi4_cec: add OMAP4 HDMI CEC support
-Date: Fri, 14 Apr 2017 12:25:11 +0200
-Message-Id: <20170414102512.48834-8-hverkuil@xs4all.nl>
-In-Reply-To: <20170414102512.48834-1-hverkuil@xs4all.nl>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
+        Tue, 11 Apr 2017 02:07:35 -0400
+Received: by mail-wm0-f65.google.com with SMTP id x75so13009455wma.1
+        for <linux-media@vger.kernel.org>; Mon, 10 Apr 2017 23:07:34 -0700 (PDT)
+Subject: [PATCH 2/5] media: rc: meson-ir: make use of the bitfield macros
+From: Heiner Kallweit <hkallweit1@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sean Young <sean@mess.org>, Kevin Hilman <khilman@baylibre.com>
+Cc: linux-media@vger.kernel.org, linux-amlogic@lists.infradead.org
+References: <f65a1465-14ba-8db2-7726-454dcfbee69d@gmail.com>
+Message-ID: <ae27a582-5822-8cb6-30d6-0badaae6f014@gmail.com>
+Date: Tue, 11 Apr 2017 08:00:07 +0200
+MIME-Version: 1.0
+In-Reply-To: <f65a1465-14ba-8db2-7726-454dcfbee69d@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Make use of the bitfield macros thus partially hiding the complexity
+of dealing with bitfields.
 
-Add the source and header for the OMAP4 HDMI CEC support.
+The patch also includes a minor fix to REG0_RATE_MASK, so far it was
+set to bit 0..10, but according to the spec it's bit 0..11.
 
-This code is not yet hooked up, that will happen in the next patch.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 ---
- drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c | 381 ++++++++++++++++++++++++++++++++
- drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h |  55 +++++
- 2 files changed, 436 insertions(+)
- create mode 100644 drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
- create mode 100644 drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h
+ drivers/media/rc/meson-ir.c | 28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
-new file mode 100644
-index 000000000000..d86873f2abe6
---- /dev/null
-+++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
-@@ -0,0 +1,381 @@
-+/*
-+ * HDMI CEC
-+ *
-+ * Based on the CEC code from hdmi_ti_4xxx_ip.c from Android.
-+ *
-+ * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com/
-+ * Authors: Yong Zhi
-+ *	Mythri pk <mythripk@ti.com>
-+ *
-+ * Heavily modified to use the linux CEC framework:
-+ *
-+ * Copyright 2016-2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you may redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+
-+#include "dss.h"
-+#include "hdmi.h"
-+#include "hdmi4_core.h"
-+#include "hdmi4_cec.h"
-+
-+/* HDMI CEC */
-+#define HDMI_CEC_DEV_ID                         0x900
-+#define HDMI_CEC_SPEC                           0x904
-+
-+/* Not really a debug register, more a low-level control register */
-+#define HDMI_CEC_DBG_3                          0x91C
-+#define HDMI_CEC_TX_INIT                        0x920
-+#define HDMI_CEC_TX_DEST                        0x924
-+#define HDMI_CEC_SETUP                          0x938
-+#define HDMI_CEC_TX_COMMAND                     0x93C
-+#define HDMI_CEC_TX_OPERAND                     0x940
-+#define HDMI_CEC_TRANSMIT_DATA                  0x97C
-+#define HDMI_CEC_CA_7_0                         0x988
-+#define HDMI_CEC_CA_15_8                        0x98C
-+#define HDMI_CEC_INT_STATUS_0                   0x998
-+#define HDMI_CEC_INT_STATUS_1                   0x99C
-+#define HDMI_CEC_INT_ENABLE_0                   0x990
-+#define HDMI_CEC_INT_ENABLE_1                   0x994
-+#define HDMI_CEC_RX_CONTROL                     0x9B0
-+#define HDMI_CEC_RX_COUNT                       0x9B4
-+#define HDMI_CEC_RX_CMD_HEADER                  0x9B8
-+#define HDMI_CEC_RX_COMMAND                     0x9BC
-+#define HDMI_CEC_RX_OPERAND                     0x9C0
-+
-+#define HDMI_CEC_TX_FIFO_INT_MASK		0x64
-+#define HDMI_CEC_RETRANSMIT_CNT_INT_MASK	0x2
-+
-+#define HDMI_CORE_CEC_RETRY    200
-+
-+static void hdmi_cec_received_msg(struct hdmi_core_data *core)
-+{
-+	u32 cnt = hdmi_read_reg(core->base, HDMI_CEC_RX_COUNT) & 0xff;
-+
-+	/* While there are CEC frames in the FIFO */
-+	while (cnt & 0x70) {
-+		/* and the frame doesn't have an error */
-+		if (!(cnt & 0x80)) {
-+			struct cec_msg msg = {};
-+			unsigned int i;
-+
-+			/* then read the message */
-+			msg.len = cnt & 0xf;
-+			msg.msg[0] = hdmi_read_reg(core->base,
-+						   HDMI_CEC_RX_CMD_HEADER);
-+			msg.msg[1] = hdmi_read_reg(core->base,
-+						   HDMI_CEC_RX_COMMAND);
-+			for (i = 0; i < msg.len; i++) {
-+				unsigned int reg = HDMI_CEC_RX_OPERAND + i * 4;
-+
-+				msg.msg[2 + i] =
-+					hdmi_read_reg(core->base, reg);
-+			}
-+			msg.len += 2;
-+			cec_received_msg(core->adap, &msg);
-+		}
-+		/* Clear the current frame from the FIFO */
-+		hdmi_write_reg(core->base, HDMI_CEC_RX_CONTROL, 1);
-+		/* Wait until the current frame is cleared */
-+		while (hdmi_read_reg(core->base, HDMI_CEC_RX_CONTROL) & 1)
-+			udelay(1);
-+		/*
-+		 * Re-read the count register and loop to see if there are
-+		 * more messages in the FIFO.
-+		 */
-+		cnt = hdmi_read_reg(core->base, HDMI_CEC_RX_COUNT) & 0xff;
-+	}
-+}
-+
-+static void hdmi_cec_transmit_fifo_empty(struct hdmi_core_data *core, u32 stat1)
-+{
-+	if (stat1 & 2) {
-+		u32 dbg3 = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
-+
-+		cec_transmit_done(core->adap,
-+				  CEC_TX_STATUS_NACK |
-+				  CEC_TX_STATUS_MAX_RETRIES,
-+				  0, (dbg3 >> 4) & 7, 0, 0);
-+	} else if (stat1 & 1) {
-+		cec_transmit_done(core->adap,
-+				  CEC_TX_STATUS_ARB_LOST |
-+				  CEC_TX_STATUS_MAX_RETRIES,
-+				  0, 0, 0, 0);
-+	} else if (stat1 == 0) {
-+		cec_transmit_done(core->adap, CEC_TX_STATUS_OK,
-+				  0, 0, 0, 0);
-+	}
-+}
-+
-+void hdmi4_cec_irq(struct hdmi_core_data *core)
-+{
-+	u32 stat0 = hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_0);
-+	u32 stat1 = hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_1);
-+
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_0, stat0);
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_1, stat1);
-+
-+	if (stat0 & 0x40)
-+		REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
-+	else if (stat0 & 0x24)
-+		hdmi_cec_transmit_fifo_empty(core, stat1);
-+	if (stat1 & 2) {
-+		u32 dbg3 = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
-+
-+		cec_transmit_done(core->adap,
-+				  CEC_TX_STATUS_NACK |
-+				  CEC_TX_STATUS_MAX_RETRIES,
-+				  0, (dbg3 >> 4) & 7, 0, 0);
-+	} else if (stat1 & 1) {
-+		cec_transmit_done(core->adap,
-+				  CEC_TX_STATUS_ARB_LOST |
-+				  CEC_TX_STATUS_MAX_RETRIES,
-+				  0, 0, 0, 0);
-+	}
-+	if (stat0 & 0x02)
-+		hdmi_cec_received_msg(core);
-+	if (stat1 & 0x3)
-+		REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
-+}
-+
-+static bool hdmi_cec_clear_tx_fifo(struct cec_adapter *adap)
-+{
-+	struct hdmi_core_data *core = cec_get_drvdata(adap);
-+	int retry = HDMI_CORE_CEC_RETRY;
-+	int temp;
-+
-+	REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
-+	while (retry) {
-+		temp = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
-+		if (FLD_GET(temp, 7, 7) == 0)
-+			break;
-+		retry--;
-+	}
-+	return retry != 0;
-+}
-+
-+static bool hdmi_cec_clear_rx_fifo(struct cec_adapter *adap)
-+{
-+	struct hdmi_core_data *core = cec_get_drvdata(adap);
-+	int retry = HDMI_CORE_CEC_RETRY;
-+	int temp;
-+
-+	hdmi_write_reg(core->base, HDMI_CEC_RX_CONTROL, 0x3);
-+	retry = HDMI_CORE_CEC_RETRY;
-+	while (retry) {
-+		temp = hdmi_read_reg(core->base, HDMI_CEC_RX_CONTROL);
-+		if (FLD_GET(temp, 1, 0) == 0)
-+			break;
-+		retry--;
-+	}
-+	return retry != 0;
-+}
-+
-+static int hdmi_cec_adap_enable(struct cec_adapter *adap, bool enable)
-+{
-+	struct hdmi_core_data *core = cec_get_drvdata(adap);
-+	int temp, err;
-+
-+	if (!enable) {
-+		hdmi_write_reg(core->base, HDMI_CEC_INT_ENABLE_0, 0);
-+		hdmi_write_reg(core->base, HDMI_CEC_INT_ENABLE_1, 0);
-+		REG_FLD_MOD(core->base, HDMI_CORE_SYS_INTR_UNMASK4, 0, 3, 3);
-+		hdmi_wp_clear_irqenable(core->wp, HDMI_IRQ_CORE);
-+		hdmi_wp_set_irqstatus(core->wp, HDMI_IRQ_CORE);
-+		hdmi4_core_disable(NULL);
-+		return 0;
-+	}
-+	err = hdmi4_core_enable(NULL);
-+	if (err)
-+		return err;
-+
-+	/* Clear TX FIFO */
-+	if (!hdmi_cec_clear_tx_fifo(adap)) {
-+		pr_err("cec-%s: could not clear TX FIFO\n", adap->name);
-+		return -EIO;
-+	}
-+
-+	/* Clear RX FIFO */
-+	if (!hdmi_cec_clear_rx_fifo(adap)) {
-+		pr_err("cec-%s: could not clear RX FIFO\n", adap->name);
-+		return -EIO;
-+	}
-+
-+	/* Clear CEC interrupts */
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_1,
-+		hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_1));
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_0,
-+		hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_0));
-+
-+	/* Enable HDMI core interrupts */
-+	hdmi_wp_set_irqenable(core->wp, HDMI_IRQ_CORE);
-+	/* Unmask CEC interrupt */
-+	REG_FLD_MOD(core->base, HDMI_CORE_SYS_INTR_UNMASK4, 0x1, 3, 3);
-+	/*
-+	 * Enable CEC interrupts:
-+	 * Transmit Buffer Full/Empty Change event
-+	 * Transmitter FIFO Empty event
-+	 * Receiver FIFO Not Empty event
-+	 */
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_ENABLE_0, 0x26);
-+	/*
-+	 * Enable CEC interrupts:
-+	 * RX FIFO Overrun Error event
-+	 * Short Pulse Detected event
-+	 * Frame Retransmit Count Exceeded event
-+	 * Start Bit Irregularity event
-+	 */
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_ENABLE_1, 0x0f);
-+
-+	/* cec calibration enable (self clearing) */
-+	hdmi_write_reg(core->base, HDMI_CEC_SETUP, 0x03);
-+	msleep(20);
-+	hdmi_write_reg(core->base, HDMI_CEC_SETUP, 0x04);
-+
-+	temp = hdmi_read_reg(core->base, HDMI_CEC_SETUP);
-+	if (FLD_GET(temp, 4, 4) != 0) {
-+		temp = FLD_MOD(temp, 0, 4, 4);
-+		hdmi_write_reg(core->base, HDMI_CEC_SETUP, temp);
-+
-+		/*
-+		 * If we enabled CEC in middle of a CEC message on the bus,
-+		 * we could have start bit irregularity and/or short
-+		 * pulse event. Clear them now.
-+		 */
-+		temp = hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_1);
-+		temp = FLD_MOD(0x0, 0x5, 2, 0);
-+		hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_1, temp);
-+	}
-+	return 0;
-+}
-+
-+static int hdmi_cec_adap_log_addr(struct cec_adapter *adap, u8 log_addr)
-+{
-+	struct hdmi_core_data *core = cec_get_drvdata(adap);
-+	u32 v;
-+
-+	if (log_addr == CEC_LOG_ADDR_INVALID) {
-+		hdmi_write_reg(core->base, HDMI_CEC_CA_7_0, 0);
-+		hdmi_write_reg(core->base, HDMI_CEC_CA_15_8, 0);
-+		return 0;
-+	}
-+	if (log_addr <= 7) {
-+		v = hdmi_read_reg(core->base, HDMI_CEC_CA_7_0);
-+		v |= 1 << log_addr;
-+		hdmi_write_reg(core->base, HDMI_CEC_CA_7_0, v);
-+	} else {
-+		v = hdmi_read_reg(core->base, HDMI_CEC_CA_15_8);
-+		v |= 1 << (log_addr - 8);
-+		hdmi_write_reg(core->base, HDMI_CEC_CA_15_8, v);
-+	}
-+	return 0;
-+}
-+
-+static int hdmi_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
-+				   u32 signal_free_time, struct cec_msg *msg)
-+{
-+	struct hdmi_core_data *core = cec_get_drvdata(adap);
-+	int temp;
-+	u32 i;
-+
-+	/* Clear TX FIFO */
-+	if (!hdmi_cec_clear_tx_fifo(adap)) {
-+		pr_err("cec-%s: could not clear TX FIFO for transmit\n",
-+		       adap->name);
-+		return -EIO;
-+	}
-+
-+	/* Clear TX interrupts */
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_0,
-+		       HDMI_CEC_TX_FIFO_INT_MASK);
-+
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_1,
-+		       HDMI_CEC_RETRANSMIT_CNT_INT_MASK);
-+
-+	/* Set the retry count */
-+	REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, attempts - 1, 6, 4);
-+
-+	/* Set the initiator addresses */
-+	hdmi_write_reg(core->base, HDMI_CEC_TX_INIT, cec_msg_initiator(msg));
-+
-+	/* Set destination id */
-+	temp = cec_msg_destination(msg);
-+	if (msg->len == 1)
-+		temp |= 0x80;
-+	hdmi_write_reg(core->base, HDMI_CEC_TX_DEST, temp);
-+	if (msg->len == 1)
-+		return 0;
-+
-+	/* Setup command and arguments for the command */
-+	hdmi_write_reg(core->base, HDMI_CEC_TX_COMMAND, msg->msg[1]);
-+
-+	for (i = 0; i < msg->len - 2; i++)
-+		hdmi_write_reg(core->base, HDMI_CEC_TX_OPERAND + i * 4,
-+			       msg->msg[2 + i]);
-+
-+	/* Operand count */
-+	hdmi_write_reg(core->base, HDMI_CEC_TRANSMIT_DATA,
-+		       (msg->len - 2) | 0x10);
-+	return 0;
-+}
-+
-+static const struct cec_adap_ops hdmi_cec_adap_ops = {
-+	.adap_enable = hdmi_cec_adap_enable,
-+	.adap_log_addr = hdmi_cec_adap_log_addr,
-+	.adap_transmit = hdmi_cec_adap_transmit,
-+};
-+
-+void hdmi4_cec_set_phys_addr(struct hdmi_core_data *core, u16 pa)
-+{
-+	cec_s_phys_addr(core->adap, pa, false);
-+}
-+
-+int hdmi4_cec_init(struct platform_device *pdev, struct hdmi_core_data *core,
-+		  struct hdmi_wp_data *wp)
-+{
-+	const u32 caps = CEC_CAP_TRANSMIT | CEC_CAP_LOG_ADDRS |
-+			 CEC_CAP_PASSTHROUGH | CEC_CAP_RC;
-+	unsigned int ret;
-+
-+	core->adap = cec_allocate_adapter(&hdmi_cec_adap_ops, core,
-+		"omap4", caps, CEC_MAX_LOG_ADDRS);
-+	ret = PTR_ERR_OR_ZERO(core->adap);
-+	if (ret < 0)
-+		return ret;
-+	core->wp = wp;
-+
-+	/*
-+	 * Initialize CEC clock divider: CEC needs 2MHz clock hence
-+	 * set the devider to 24 to get 48/24=2MHz clock
-+	 */
-+	REG_FLD_MOD(core->wp->base, HDMI_WP_CLK, 0x18, 5, 0);
-+
-+	ret = cec_register_adapter(core->adap, &pdev->dev);
-+	if (ret < 0) {
-+		cec_delete_adapter(core->adap);
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+void hdmi4_cec_uninit(struct hdmi_core_data *core)
-+{
-+	cec_unregister_adapter(core->adap);
-+}
-diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h
-new file mode 100644
-index 000000000000..0292337c97cc
---- /dev/null
-+++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h
-@@ -0,0 +1,55 @@
-+/*
-+ * HDMI header definition for OMAP4 HDMI CEC IP
-+ *
-+ * Copyright 2016-2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you may redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef _HDMI4_CEC_H_
-+#define _HDMI4_CEC_H_
-+
-+struct hdmi_core_data;
-+struct hdmi_wp_data;
-+struct platform_device;
-+
-+/* HDMI CEC funcs */
-+#ifdef CONFIG_OMAP4_DSS_HDMI_CEC
-+void hdmi4_cec_set_phys_addr(struct hdmi_core_data *core, u16 pa);
-+void hdmi4_cec_irq(struct hdmi_core_data *core);
-+int hdmi4_cec_init(struct platform_device *pdev, struct hdmi_core_data *core,
-+		  struct hdmi_wp_data *wp);
-+void hdmi4_cec_uninit(struct hdmi_core_data *core);
-+#else
-+static inline void hdmi4_cec_set_phys_addr(struct hdmi_core_data *core, u16 pa)
-+{
-+}
-+
-+static inline void hdmi4_cec_irq(struct hdmi_core_data *core)
-+{
-+}
-+
-+static inline int hdmi4_cec_init(struct platform_device *pdev,
-+				struct hdmi_core_data *core,
-+				struct hdmi_wp_data *wp)
-+{
-+	return 0;
-+}
-+
-+static inline void hdmi4_cec_uninit(struct hdmi_core_data *core)
-+{
-+}
-+#endif
-+
-+#endif
+diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
+index a4128d7c..a52036c5 100644
+--- a/drivers/media/rc/meson-ir.c
++++ b/drivers/media/rc/meson-ir.c
+@@ -19,6 +19,7 @@
+ #include <linux/of_platform.h>
+ #include <linux/platform_device.h>
+ #include <linux/spinlock.h>
++#include <linux/bitfield.h>
+ 
+ #include <media/rc-core.h>
+ 
+@@ -36,27 +37,24 @@
+ /* only available on Meson 8b and newer */
+ #define IR_DEC_REG2		0x20
+ 
+-#define REG0_RATE_MASK		(BIT(11) - 1)
++#define REG0_RATE_MASK		GENMASK(11, 0)
+ 
+ #define DECODE_MODE_NEC		0x0
+ #define DECODE_MODE_RAW		0x2
+ 
+ /* Meson 6b uses REG1 to configure the mode */
+ #define REG1_MODE_MASK		GENMASK(8, 7)
+-#define REG1_MODE_SHIFT		7
+ 
+ /* Meson 8b / GXBB use REG2 to configure the mode */
+ #define REG2_MODE_MASK		GENMASK(3, 0)
+-#define REG2_MODE_SHIFT		0
+ 
+-#define REG1_TIME_IV_SHIFT	16
+-#define REG1_TIME_IV_MASK	((BIT(13) - 1) << REG1_TIME_IV_SHIFT)
++#define REG1_TIME_IV_MASK	GENMASK(28, 16)
+ 
+-#define REG1_IRQSEL_MASK	(BIT(2) | BIT(3))
+-#define REG1_IRQSEL_NEC_MODE	(0 << 2)
+-#define REG1_IRQSEL_RISE_FALL	(1 << 2)
+-#define REG1_IRQSEL_FALL	(2 << 2)
+-#define REG1_IRQSEL_RISE	(3 << 2)
++#define REG1_IRQSEL_MASK	GENMASK(3, 2)
++#define REG1_IRQSEL_NEC_MODE	0
++#define REG1_IRQSEL_RISE_FALL	1
++#define REG1_IRQSEL_FALL	2
++#define REG1_IRQSEL_RISE	3
+ 
+ #define REG1_RESET		BIT(0)
+ #define REG1_ENABLE		BIT(15)
+@@ -78,7 +76,7 @@ static void meson_ir_set_mask(struct meson_ir *ir, unsigned int reg,
+ 
+ 	data = readl(ir->reg + reg);
+ 	data &= ~mask;
+-	data |= (value & mask);
++	data |= value;
+ 	writel(data, ir->reg + reg);
+ }
+ 
+@@ -91,7 +89,7 @@ static irqreturn_t meson_ir_irq(int irqno, void *dev_id)
+ 	spin_lock(&ir->lock);
+ 
+ 	duration = readl(ir->reg + IR_DEC_REG1);
+-	duration = (duration & REG1_TIME_IV_MASK) >> REG1_TIME_IV_SHIFT;
++	duration = FIELD_GET(REG1_TIME_IV_MASK, duration);
+ 	rawir.duration = US_TO_NS(duration * MESON_TRATE);
+ 
+ 	rawir.pulse = !!(readl(ir->reg + IR_DEC_STATUS) & STATUS_IR_DEC_IN);
+@@ -170,16 +168,16 @@ static int meson_ir_probe(struct platform_device *pdev)
+ 	/* Set general operation mode (= raw/software decoding) */
+ 	if (of_device_is_compatible(node, "amlogic,meson6-ir"))
+ 		meson_ir_set_mask(ir, IR_DEC_REG1, REG1_MODE_MASK,
+-				  DECODE_MODE_RAW << REG1_MODE_SHIFT);
++				  FIELD_PREP(REG1_MODE_MASK, DECODE_MODE_RAW));
+ 	else
+ 		meson_ir_set_mask(ir, IR_DEC_REG2, REG2_MODE_MASK,
+-				  DECODE_MODE_RAW << REG2_MODE_SHIFT);
++				  FIELD_PREP(REG2_MODE_MASK, DECODE_MODE_RAW));
+ 
+ 	/* Set rate */
+ 	meson_ir_set_mask(ir, IR_DEC_REG0, REG0_RATE_MASK, MESON_TRATE - 1);
+ 	/* IRQ on rising and falling edges */
+ 	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_IRQSEL_MASK,
+-			  REG1_IRQSEL_RISE_FALL);
++			  FIELD_PREP(REG1_IRQSEL_MASK, REG1_IRQSEL_RISE_FALL));
+ 	/* Enable the decoder */
+ 	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, REG1_ENABLE);
+ 
 -- 
-2.11.0
+2.12.2
