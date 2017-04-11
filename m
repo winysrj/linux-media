@@ -1,128 +1,247 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:34888 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752427AbdDITij (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Apr 2017 15:38:39 -0400
-Received: by mail-wr0-f196.google.com with SMTP id t20so26640453wra.2
-        for <linux-media@vger.kernel.org>; Sun, 09 Apr 2017 12:38:38 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: aospan@netup.ru, serjk@netup.ru, mchehab@kernel.org,
-        linux-media@vger.kernel.org
-Cc: rjkm@metzlerbros.de
-Subject: [PATCH 07/19] [media] dvb-frontends/cxd2841er: make call to i2c_gate_ctrl optional
-Date: Sun,  9 Apr 2017 21:38:16 +0200
-Message-Id: <20170409193828.18458-8-d.scheller.oss@gmail.com>
-In-Reply-To: <20170409193828.18458-1-d.scheller.oss@gmail.com>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60729 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752144AbdDKGqW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Apr 2017 02:46:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Laura Abbott <labbott@redhat.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com,
+        romlem@google.com, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org
+Subject: Re: [PATCHv3 13/22] staging: android: ion: Use CMA APIs directly
+Date: Tue, 11 Apr 2017 09:47:13 +0300
+Message-ID: <20163378.oNfPtYlzx6@avalon>
+In-Reply-To: <1491245884-15852-14-git-send-email-labbott@redhat.com>
+References: <1491245884-15852-1-git-send-email-labbott@redhat.com> <1491245884-15852-14-git-send-email-labbott@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Hi Laura,
 
-Some cards/bridges wrap i2c_gate_ctrl handling with a mutex_lock(). This is
-e.g. done in ddbridge to protect against concurrent tuner access with
-regards to the dual tuner HW, where concurrent tuner reconfiguration can
-result in tuning fails or bad reception quality. When the tuner driver
-additionally tries to open the I2C gate (which e.g. the tda18212 driver
-does) when the demod already did this, this will lead to a deadlock. This
-makes the calls to i2c_gatectrl from the demod driver optional when the
-flag is set, leaving this to the tuner driver. For readability reasons and
-to not have the check duplicated multiple times, the setup is factored
-into cxd2841er_tuner_set().
+Thank you for the patch.
 
-This commit also updates the netup card driver (which seems to be the only
-consumer of the cxd2841er as of now).
+On Monday 03 Apr 2017 11:57:55 Laura Abbott wrote:
+> When CMA was first introduced, its primary use was for DMA allocation
+> and the only way to get CMA memory was to call dma_alloc_coherent. This
+> put Ion in an awkward position since there was no device structure
+> readily available and setting one up messed up the coherency model.
+> These days, CMA can be allocated directly from the APIs. Switch to using
+> this model to avoid needing a dummy device. This also mitigates some of
+> the caching problems (e.g. dma_alloc_coherent only returning uncached
+> memory).
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/cxd2841er.c            | 32 ++++++++++++++--------
- drivers/media/dvb-frontends/cxd2841er.h            |  2 ++
- drivers/media/pci/netup_unidvb/netup_unidvb_core.c |  3 +-
- 3 files changed, 24 insertions(+), 13 deletions(-)
+Do we have a guarantee that the DMA mapping API, which we have to use for 
+cache handling, will always support memory we allocate directly from CMA 
+behind its back ?
 
-diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-index f49a09b..162a0f5 100644
---- a/drivers/media/dvb-frontends/cxd2841er.c
-+++ b/drivers/media/dvb-frontends/cxd2841er.c
-@@ -327,6 +327,20 @@ static u32 cxd2841er_calc_iffreq(u32 ifhz)
- 	return cxd2841er_calc_iffreq_xtal(SONY_XTAL_20500, ifhz);
- }
- 
-+static int cxd2841er_tuner_set(struct dvb_frontend *fe)
-+{
-+	struct cxd2841er_priv *priv = fe->demodulator_priv;
-+
-+	if ((priv->flags & CXD2841ER_USE_GATECTRL) && fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+	if (fe->ops.tuner_ops.set_params)
-+		fe->ops.tuner_ops.set_params(fe);
-+	if ((priv->flags & CXD2841ER_USE_GATECTRL) && fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	return 0;
-+}
-+
- static int cxd2841er_dvbs2_set_symbol_rate(struct cxd2841er_priv *priv,
- 					   u32 symbol_rate)
- {
-@@ -3251,12 +3265,9 @@ static int cxd2841er_set_frontend_s(struct dvb_frontend *fe)
- 		dev_dbg(&priv->i2c->dev, "%s(): tune failed\n", __func__);
- 		goto done;
- 	}
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--	if (fe->ops.tuner_ops.set_params)
--		fe->ops.tuner_ops.set_params(fe);
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	cxd2841er_tuner_set(fe);
-+
- 	cxd2841er_tune_done(priv);
- 	timeout = ((3000000 + (symbol_rate - 1)) / symbol_rate) + 150;
- 	for (i = 0; i < timeout / CXD2841ER_DVBS_POLLING_INVL; i++) {
-@@ -3376,12 +3387,9 @@ static int cxd2841er_set_frontend_tc(struct dvb_frontend *fe)
- 	}
- 	if (ret)
- 		goto done;
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--	if (fe->ops.tuner_ops.set_params)
--		fe->ops.tuner_ops.set_params(fe);
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	cxd2841er_tuner_set(fe);
-+
- 	cxd2841er_tune_done(priv);
- 	timeout = 2500;
- 	while (timeout > 0) {
-diff --git a/drivers/media/dvb-frontends/cxd2841er.h b/drivers/media/dvb-frontends/cxd2841er.h
-index 2fb8b38..15564af 100644
---- a/drivers/media/dvb-frontends/cxd2841er.h
-+++ b/drivers/media/dvb-frontends/cxd2841er.h
-@@ -24,6 +24,8 @@
- 
- #include <linux/dvb/frontend.h>
- 
-+#define CXD2841ER_USE_GATECTRL	1
-+
- enum cxd2841er_xtal {
- 	SONY_XTAL_20500, /* 20.5 MHz */
- 	SONY_XTAL_24000, /* 24 MHz */
-diff --git a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-index 191bd82..5e6553f 100644
---- a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-+++ b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-@@ -122,7 +122,8 @@ static void netup_unidvb_queue_cleanup(struct netup_dma *dma);
- 
- static struct cxd2841er_config demod_config = {
- 	.i2c_addr = 0xc8,
--	.xtal = SONY_XTAL_24000
-+	.xtal = SONY_XTAL_24000,
-+	.flags = CXD2841ER_USE_GATECTRL
- };
- 
- static struct horus3a_config horus3a_conf = {
+> Signed-off-by: Laura Abbott <labbott@redhat.com>
+> ---
+>  drivers/staging/android/ion/Kconfig        |  7 +++
+>  drivers/staging/android/ion/Makefile       |  3 +-
+>  drivers/staging/android/ion/ion_cma_heap.c | 97 +++++++--------------------
+>  3 files changed, 35 insertions(+), 72 deletions(-)
+> 
+> diff --git a/drivers/staging/android/ion/Kconfig
+> b/drivers/staging/android/ion/Kconfig index 206c4de..15108c4 100644
+> --- a/drivers/staging/android/ion/Kconfig
+> +++ b/drivers/staging/android/ion/Kconfig
+> @@ -10,3 +10,10 @@ menuconfig ION
+>  	  If you're not using Android its probably safe to
+>  	  say N here.
+> 
+> +config ION_CMA_HEAP
+> +	bool "Ion CMA heap support"
+> +	depends on ION && CMA
+> +	help
+> +	  Choose this option to enable CMA heaps with Ion. This heap is backed
+> +	  by the Contiguous Memory Allocator (CMA). If your system has these
+> +	  regions, you should say Y here.
+> diff --git a/drivers/staging/android/ion/Makefile
+> b/drivers/staging/android/ion/Makefile index 26672a0..66d0c4a 100644
+> --- a/drivers/staging/android/ion/Makefile
+> +++ b/drivers/staging/android/ion/Makefile
+> @@ -1,6 +1,7 @@
+>  obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o \
+>  			ion_page_pool.o ion_system_heap.o \
+> -			ion_carveout_heap.o ion_chunk_heap.o ion_cma_heap.o
+> +			ion_carveout_heap.o ion_chunk_heap.o
+> +obj-$(CONFIG_ION_CMA_HEAP) += ion_cma_heap.o
+>  ifdef CONFIG_COMPAT
+>  obj-$(CONFIG_ION) += compat_ion.o
+>  endif
+> diff --git a/drivers/staging/android/ion/ion_cma_heap.c
+> b/drivers/staging/android/ion/ion_cma_heap.c index d562fd7..f3e0f59 100644
+> --- a/drivers/staging/android/ion/ion_cma_heap.c
+> +++ b/drivers/staging/android/ion/ion_cma_heap.c
+> @@ -19,24 +19,19 @@
+>  #include <linux/slab.h>
+>  #include <linux/errno.h>
+>  #include <linux/err.h>
+> -#include <linux/dma-mapping.h>
+> +#include <linux/cma.h>
+> +#include <linux/scatterlist.h>
+> 
+>  #include "ion.h"
+>  #include "ion_priv.h"
+> 
+>  struct ion_cma_heap {
+>  	struct ion_heap heap;
+> -	struct device *dev;
+> +	struct cma *cma;
+>  };
+> 
+>  #define to_cma_heap(x) container_of(x, struct ion_cma_heap, heap)
+> 
+> -struct ion_cma_buffer_info {
+> -	void *cpu_addr;
+> -	dma_addr_t handle;
+> -	struct sg_table *table;
+> -};
+> -
+> 
+>  /* ION CMA heap operations functions */
+>  static int ion_cma_allocate(struct ion_heap *heap, struct ion_buffer
+> *buffer, @@ -44,93 +39,53 @@ static int ion_cma_allocate(struct ion_heap
+> *heap, struct ion_buffer *buffer, unsigned long flags)
+>  {
+>  	struct ion_cma_heap *cma_heap = to_cma_heap(heap);
+> -	struct device *dev = cma_heap->dev;
+> -	struct ion_cma_buffer_info *info;
+> -
+> -	dev_dbg(dev, "Request buffer allocation len %ld\n", len);
+> -
+> -	if (buffer->flags & ION_FLAG_CACHED)
+> -		return -EINVAL;
+> +	struct sg_table *table;
+> +	struct page *pages;
+> +	int ret;
+> 
+> -	info = kzalloc(sizeof(*info), GFP_KERNEL);
+> -	if (!info)
+> +	pages = cma_alloc(cma_heap->cma, len, 0, GFP_KERNEL);
+> +	if (!pages)
+>  		return -ENOMEM;
+> 
+> -	info->cpu_addr = dma_alloc_coherent(dev, len, &(info->handle),
+> -						GFP_HIGHUSER | __GFP_ZERO);
+> -
+> -	if (!info->cpu_addr) {
+> -		dev_err(dev, "Fail to allocate buffer\n");
+> +	table = kmalloc(sizeof(struct sg_table), GFP_KERNEL);
+> +	if (!table)
+>  		goto err;
+> -	}
+> 
+> -	info->table = kmalloc(sizeof(*info->table), GFP_KERNEL);
+> -	if (!info->table)
+> +	ret = sg_alloc_table(table, 1, GFP_KERNEL);
+> +	if (ret)
+>  		goto free_mem;
+> 
+> -	if (dma_get_sgtable(dev, info->table, info->cpu_addr, info->handle,
+> -			    len))
+> -		goto free_table;
+> -	/* keep this for memory release */
+> -	buffer->priv_virt = info;
+> -	buffer->sg_table = info->table;
+> -	dev_dbg(dev, "Allocate buffer %p\n", buffer);
+> +	sg_set_page(table->sgl, pages, len, 0);
+> +
+> +	buffer->priv_virt = pages;
+> +	buffer->sg_table = table;
+>  	return 0;
+> 
+> -free_table:
+> -	kfree(info->table);
+>  free_mem:
+> -	dma_free_coherent(dev, len, info->cpu_addr, info->handle);
+> +	kfree(table);
+>  err:
+> -	kfree(info);
+> +	cma_release(cma_heap->cma, pages, buffer->size);
+>  	return -ENOMEM;
+>  }
+> 
+>  static void ion_cma_free(struct ion_buffer *buffer)
+>  {
+>  	struct ion_cma_heap *cma_heap = to_cma_heap(buffer->heap);
+> -	struct device *dev = cma_heap->dev;
+> -	struct ion_cma_buffer_info *info = buffer->priv_virt;
+> +	struct page *pages = buffer->priv_virt;
+> 
+> -	dev_dbg(dev, "Release buffer %p\n", buffer);
+>  	/* release memory */
+> -	dma_free_coherent(dev, buffer->size, info->cpu_addr, info->handle);
+> +	cma_release(cma_heap->cma, pages, buffer->size);
+>  	/* release sg table */
+> -	sg_free_table(info->table);
+> -	kfree(info->table);
+> -	kfree(info);
+> -}
+> -
+> -static int ion_cma_mmap(struct ion_heap *mapper, struct ion_buffer *buffer,
+> -			struct vm_area_struct *vma)
+> -{
+> -	struct ion_cma_heap *cma_heap = to_cma_heap(buffer->heap);
+> -	struct device *dev = cma_heap->dev;
+> -	struct ion_cma_buffer_info *info = buffer->priv_virt;
+> -
+> -	return dma_mmap_coherent(dev, vma, info->cpu_addr, info->handle,
+> -				 buffer->size);
+> -}
+> -
+> -static void *ion_cma_map_kernel(struct ion_heap *heap,
+> -				struct ion_buffer *buffer)
+> -{
+> -	struct ion_cma_buffer_info *info = buffer->priv_virt;
+> -	/* kernel memory mapping has been done at allocation time */
+> -	return info->cpu_addr;
+> -}
+> -
+> -static void ion_cma_unmap_kernel(struct ion_heap *heap,
+> -				 struct ion_buffer *buffer)
+> -{
+> +	sg_free_table(buffer->sg_table);
+> +	kfree(buffer->sg_table);
+>  }
+> 
+>  static struct ion_heap_ops ion_cma_ops = {
+>  	.allocate = ion_cma_allocate,
+>  	.free = ion_cma_free,
+> -	.map_user = ion_cma_mmap,
+> -	.map_kernel = ion_cma_map_kernel,
+> -	.unmap_kernel = ion_cma_unmap_kernel,
+> +	.map_user = ion_heap_map_user,
+> +	.map_kernel = ion_heap_map_kernel,
+> +	.unmap_kernel = ion_heap_unmap_kernel,
+>  };
+> 
+>  struct ion_heap *ion_cma_heap_create(struct ion_platform_heap *data)
+> @@ -147,7 +102,7 @@ struct ion_heap *ion_cma_heap_create(struct
+> ion_platform_heap *data) * get device from private heaps data, later it
+> will be
+>  	 * used to make the link with reserved CMA memory
+>  	 */
+> -	cma_heap->dev = data->priv;
+> +	cma_heap->cma = data->priv;
+>  	cma_heap->heap.type = ION_HEAP_TYPE_DMA;
+>  	return &cma_heap->heap;
+>  }
+
 -- 
-2.10.2
+Regards,
+
+Laurent Pinchart
