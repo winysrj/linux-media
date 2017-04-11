@@ -1,141 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59991 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753560AbdDNKZc (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:58410 "EHLO
+        epoutp02.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753386AbdDKJvg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Apr 2017 06:25:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 8/8] omapdrm: hdmi4: hook up the HDMI CEC support
-Date: Fri, 14 Apr 2017 12:25:12 +0200
-Message-Id: <20170414102512.48834-9-hverkuil@xs4all.nl>
-In-Reply-To: <20170414102512.48834-1-hverkuil@xs4all.nl>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
+        Tue, 11 Apr 2017 05:51:36 -0400
+Subject: Re: [Patch v3 10/11] [media] s5p-mfc: Add support for HEVC encoder
+ (fwd)
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Smitha T Murthy <smitha.t@samsung.com>, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
+        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
+        m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kbuild-all@01.org
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <f02dd788-af84-b64e-0ebc-fe9fd6f5e671@samsung.com>
+Date: Tue, 11 Apr 2017 11:51:24 +0200
+MIME-version: 1.0
+In-reply-to: <alpine.DEB.2.20.1704111121510.3384@hadrien>
+Content-type: text/plain; charset="windows-1252"; format="flowed"
+Content-transfer-encoding: 7bit
+References: <CGME20170403060045epcas2p215a1d85248b47cc389e20ff877505b09@epcas2p2.samsung.com>
+        <alpine.DEB.2.20.1704030758540.2170@hadrien>
+        <1491200242.24095.23.camel@smitha-fedora>
+        <8fc9940e-3cb5-3ca7-f15d-0bf6284433a5@samsung.com>
+        <alpine.DEB.2.20.1704111121510.3384@hadrien>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 04/11/2017 11:23 AM, Julia Lawall wrote:
+> On Tue, 11 Apr 2017, Sylwester Nawrocki wrote:
+>> Hi,
+>>
+>> On 04/03/2017 08:17 AM, Smitha T Murthy wrote:
+>>> On Mon, 2017-04-03 at 08:00 +0200, Julia Lawall wrote:
+>>>> See line 2101
+>>>>
+>>>> julia
+>>>>
+>>> Thank you for bringing it to my notice, I had not checked on this git.
+>>> I will upload the next version of patches soon corresponding to this
+>>> git.
+>> In general please use the media master branch as a base for your patches
+>> (git://linuxtv.org/media_tree.git master). Or latest branch in my
+>> git repository, currently it's "for-v4.12/media/next-2" as can be seen
+>> here: https://git.linuxtv.org/snawrocki/samsung.git
+ >
+> I'm not making the patch.  It comes to me from kbuild.  If you would
+> prefer some tree not to be included, you can notify Fengguang about this:
 
-Hook up the HDMI CEC support in the hdmi4 driver.
+Oops, my message was addressed to Smitha only, apologies for the confusion.
+kbuild works fine. Thank you for your efforts.
 
-It add the CEC irq handler, the CEC (un)init calls and tells the CEC
-implementation when the physical address changes.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/gpu/drm/omapdrm/dss/Kconfig  |  9 +++++++++
- drivers/gpu/drm/omapdrm/dss/Makefile |  1 +
- drivers/gpu/drm/omapdrm/dss/hdmi4.c  | 23 ++++++++++++++++++++++-
- 3 files changed, 32 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/gpu/drm/omapdrm/dss/Kconfig b/drivers/gpu/drm/omapdrm/dss/Kconfig
-index d1fa730c7d54..d18e83902b74 100644
---- a/drivers/gpu/drm/omapdrm/dss/Kconfig
-+++ b/drivers/gpu/drm/omapdrm/dss/Kconfig
-@@ -71,9 +71,18 @@ config OMAP4_DSS_HDMI
- 	bool "HDMI support for OMAP4"
-         default y
- 	select OMAP2_DSS_HDMI_COMMON
-+	select MEDIA_CEC_EDID
- 	help
- 	  HDMI support for OMAP4 based SoCs.
- 
-+config OMAP4_DSS_HDMI_CEC
-+	bool "Enable HDMI CEC support for OMAP4"
-+	depends on OMAP4_DSS_HDMI
-+	select MEDIA_CEC_SUPPORT
-+	default y
-+	---help---
-+	  When selected the HDMI transmitter will support the CEC feature.
-+
- config OMAP5_DSS_HDMI
- 	bool "HDMI support for OMAP5"
- 	default n
-diff --git a/drivers/gpu/drm/omapdrm/dss/Makefile b/drivers/gpu/drm/omapdrm/dss/Makefile
-index b651ec9751e6..d1c6acfbd134 100644
---- a/drivers/gpu/drm/omapdrm/dss/Makefile
-+++ b/drivers/gpu/drm/omapdrm/dss/Makefile
-@@ -11,5 +11,6 @@ omapdss-$(CONFIG_OMAP2_DSS_DSI) += dsi.o
- omapdss-$(CONFIG_OMAP2_DSS_HDMI_COMMON) += hdmi_common.o hdmi_wp.o hdmi_pll.o \
- 	hdmi_phy.o
- omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi4.o hdmi4_core.o
-+omapdss-$(CONFIG_OMAP4_DSS_HDMI_CEC) += hdmi4_cec.o
- omapdss-$(CONFIG_OMAP5_DSS_HDMI) += hdmi5.o hdmi5_core.o
- ccflags-$(CONFIG_OMAP2_DSS_DEBUG) += -DDEBUG
-diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-index e371b47ff6ff..ebe5b27cee6f 100644
---- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-+++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-@@ -35,9 +35,11 @@
- #include <linux/component.h>
- #include <linux/of.h>
- #include <sound/omap-hdmi-audio.h>
-+#include <media/cec-edid.h>
- 
- #include "omapdss.h"
- #include "hdmi4_core.h"
-+#include "hdmi4_cec.h"
- #include "dss.h"
- #include "dss_features.h"
- #include "hdmi.h"
-@@ -96,6 +98,13 @@ static irqreturn_t hdmi_irq_handler(int irq, void *data)
- 	} else if (irqstatus & HDMI_IRQ_LINK_DISCONNECT) {
- 		hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_LDOON);
- 	}
-+	if (irqstatus & HDMI_IRQ_CORE) {
-+		u32 intr4 = hdmi_read_reg(hdmi->core.base, HDMI_CORE_SYS_INTR4);
-+
-+		hdmi_write_reg(hdmi->core.base, HDMI_CORE_SYS_INTR4, intr4);
-+		if (intr4 & 8)
-+			hdmi4_cec_irq(&hdmi->core);
-+	}
- 
- 	return IRQ_HANDLED;
- }
-@@ -392,6 +401,8 @@ static void hdmi_display_disable(struct omap_dss_device *dssdev)
- 
- 	DSSDBG("Enter hdmi_display_disable\n");
- 
-+	hdmi4_cec_set_phys_addr(&hdmi.core, CEC_PHYS_ADDR_INVALID);
-+
- 	mutex_lock(&hdmi.lock);
- 
- 	spin_lock_irqsave(&hdmi.audio_playing_lock, flags);
-@@ -492,7 +503,11 @@ static int hdmi_read_edid(struct omap_dss_device *dssdev,
- 	}
- 
- 	r = read_edid(edid, len);
--
-+	if (r >= 256)
-+		hdmi4_cec_set_phys_addr(&hdmi.core,
-+					cec_get_edid_phys_addr(edid, r, NULL));
-+	else
-+		hdmi4_cec_set_phys_addr(&hdmi.core, CEC_PHYS_ADDR_INVALID);
- 	if (need_enable)
- 		hdmi4_core_disable(dssdev);
- 
-@@ -728,6 +743,10 @@ static int hdmi4_bind(struct device *dev, struct device *master, void *data)
- 	if (r)
- 		goto err;
- 
-+	r = hdmi4_cec_init(pdev, &hdmi.core, &hdmi.wp);
-+	if (r)
-+		goto err;
-+
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
- 		DSSERR("platform_get_irq failed\n");
-@@ -772,6 +791,8 @@ static void hdmi4_unbind(struct device *dev, struct device *master, void *data)
- 
- 	hdmi_uninit_output(pdev);
- 
-+	hdmi4_cec_uninit(&hdmi.core);
-+
- 	hdmi_pll_uninit(&hdmi.pll);
- 
- 	pm_runtime_disable(&pdev->dev);
 -- 
-2.11.0
+Regards,
+Sylwester
