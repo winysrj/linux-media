@@ -1,76 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33707 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752840AbdDOMKW (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:37526 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751921AbdDKLYz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Apr 2017 08:10:22 -0400
-Subject: Re: [PATCH 09/22] dm-crypt: Make use of the new sg_map helper in 4
- call sites
-To: Logan Gunthorpe <logang@deltatee.com>,
-        Christoph Hellwig <hch@lst.de>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
- <1492121135-4437-10-git-send-email-logang@deltatee.com>
- <20170414083921.GC25471@lst.de>
- <302ae5ab-d515-5427-2e54-d58a9cdb8241@deltatee.com>
-Cc: Steve Wise <swise@opengridcomputing.com>,
-        linux-nvme@lists.infradead.org,
-        Stephen Bates <sbates@raithlin.com>,
-        target-devel@vger.kernel.org,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        devel@driverdev.osuosl.org, rds-devel@oss.oracle.com,
-        Sagi Grimberg <sagi@grimberg.me>, linux-scsi@vger.kernel.org,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        linux-rdma@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        open-iscsi@googlegroups.com, linux-media@vger.kernel.org,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        intel-gfx@lists.freedesktop.org, sparmaintainer@unisys.com,
-        linux-raid@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Dan Williams <dan.j.williams@intel.com>,
-        megaraidlinux.pdl@broadcom.com, Jens Axboe <axboe@kernel.dk>,
-        linaro-mm-sig@lists.linaro.org,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        device-mapper development <dm-devel@redhat.com>
-From: Milan Broz <gmazyland@gmail.com>
-Message-ID: <22703638-27a9-7dc5-5180-536f61661592@gmail.com>
-Date: Sat, 15 Apr 2017 14:10:17 +0200
-MIME-Version: 1.0
-In-Reply-To: <302ae5ab-d515-5427-2e54-d58a9cdb8241@deltatee.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Tue, 11 Apr 2017 07:24:55 -0400
+Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OO800V3AT1H2ZC0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 11 Apr 2017 20:24:53 +0900 (KST)
+Subject: Re: [Patch v3 10/11] [media] s5p-mfc: Add support for HEVC encoder
+ (fwd)
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
+        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
+        m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kbuild-all@01.org
+In-reply-to: <8fc9940e-3cb5-3ca7-f15d-0bf6284433a5@samsung.com>
+Date: Tue, 11 Apr 2017 16:56:14 +0530
+Message-id: <1491909974.11549.5.camel@smitha-fedora>
+MIME-version: 1.0
+Content-transfer-encoding: 7bit
+Content-type: text/plain; charset=utf-8
+References: <CGME20170403060045epcas2p215a1d85248b47cc389e20ff877505b09@epcas2p2.samsung.com>
+ <alpine.DEB.2.20.1704030758540.2170@hadrien>
+ <1491200242.24095.23.camel@smitha-fedora>
+ <8fc9940e-3cb5-3ca7-f15d-0bf6284433a5@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/14/2017 06:03 PM, Logan Gunthorpe wrote:
+On Tue, 2017-04-11 at 11:00 +0200, Sylwester Nawrocki wrote:
+> Hi,
 > 
+> On 04/03/2017 08:17 AM, Smitha T Murthy wrote:
+> > On Mon, 2017-04-03 at 08:00 +0200, Julia Lawall wrote:
+> >> See line 2101
+> >>
+> >> julia
+> >>
+> > Thank you for bringing it to my notice, I had not checked on this git.
+> > I will upload the next version of patches soon corresponding to this
+> > git.
 > 
-> On 14/04/17 02:39 AM, Christoph Hellwig wrote:
->> On Thu, Apr 13, 2017 at 04:05:22PM -0600, Logan Gunthorpe wrote:
->>> Very straightforward conversion to the new function in all four spots.
->>
->> I think the right fix here is to switch dm-crypt to the ahash API
->> that takes a scatterlist.
+> In general please use the media master branch as a base for your patches
+> (git://linuxtv.org/media_tree.git master). Or latest branch in my
+> git repository, currently it's "for-v4.12/media/next-2" as can be seen
+> here: https://git.linuxtv.org/snawrocki/samsung.git
 > 
-> Hmm, well I'm not sure I understand the code enough to make that
-> conversion. But I was looking at it. One tricky bit seems to be that
-> crypt_iv_lmk_one adds a seed, skips the first 16 bytes in the page and
-> then hashes another 16 bytes from other data. What would you do
-> construct a new sgl for it and pass it to the ahash api?
-> 
-> The other thing is crypt_iv_lmk_post also seems to modify the page after
-> the hash with a  crypto_xor so you'd still need at least one kmap in there.
+I have submitted the next version(v4) of mfcv10.10 patches based on
+git://linuxtv.org/snawrocki/samsung.git for-v4.12/media/next. But I will
+keep this in mind next time I submit fresh patches. Thank you for the
+information :)
 
-yes, it is in fact modification of CBC mode implemented this hacky way.
-These IVs are only for compatibility with loopaes and very old trueCrypt formats.
-
-I think your patch is ok (if it is just plain conversion), if it is
-really needed, we can switch to ahash later in follow-up patch.
-
-All common code in dmcrypt uses async API already.
-
-p.s.
-there is a lot of lists on cc, but for this patch is missing dm-devel, dmcrypt changes
-need to go through Mike's tree (I added dm-devel to cc:)
-
-Milan
+Regards,
+Smitha
