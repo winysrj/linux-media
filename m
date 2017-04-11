@@ -1,124 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelnx193.ext.ti.com ([198.47.27.77]:33831 "EHLO
-        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934260AbdD1LaL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 07:30:11 -0400
-Subject: Re: [PATCH 6/8] omapdrm: hdmi4: refcount hdmi_power_on/off_core
-To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
- <20170414102512.48834-7-hverkuil@xs4all.nl>
-CC: <dri-devel@lists.freedesktop.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Message-ID: <15b0996c-5756-19ac-7393-11c245417ce4@ti.com>
-Date: Fri, 28 Apr 2017 14:30:00 +0300
+Received: from mga11.intel.com ([192.55.52.93]:24047 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752596AbdDKMTo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Apr 2017 08:19:44 -0400
+Subject: Re: [PATCHv4 00/15] R-Car VSP1 Histogram Support
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170410192651.18486-1-hverkuil@xs4all.nl>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <339dde77-0b24-ad46-4008-3aa64fd9efc1@linux.intel.com>
+Date: Tue, 11 Apr 2017 15:19:41 +0300
 MIME-Version: 1.0
-In-Reply-To: <20170414102512.48834-7-hverkuil@xs4all.nl>
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature";
-        boundary="SiGNW58EET3J2KngjaQktkxuruxfIPvAO"
+In-Reply-To: <20170410192651.18486-1-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---SiGNW58EET3J2KngjaQktkxuruxfIPvAO
-Content-Type: multipart/mixed; boundary="GcPXQaARv75rChGi8Q8rNTrRtUHqMRQVB";
- protected-headers="v1"
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, Hans Verkuil <hans.verkuil@cisco.com>
-Message-ID: <15b0996c-5756-19ac-7393-11c245417ce4@ti.com>
-Subject: Re: [PATCH 6/8] omapdrm: hdmi4: refcount hdmi_power_on/off_core
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
- <20170414102512.48834-7-hverkuil@xs4all.nl>
-In-Reply-To: <20170414102512.48834-7-hverkuil@xs4all.nl>
-
---GcPXQaARv75rChGi8Q8rNTrRtUHqMRQVB
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-On 14/04/17 13:25, Hans Verkuil wrote:
+On 04/10/17 22:26, Hans Verkuil wrote:
 > From: Hans Verkuil <hans.verkuil@cisco.com>
->=20
-> The hdmi_power_on/off_core functions can be called multiple times:
-> when the HPD changes and when the HDMI CEC support needs to power
-> the HDMI core.
->=20
-> So use a counter to know when to really power on or off the HDMI core.
->=20
-> Also call hdmi4_core_powerdown_disable() in hdmi_power_on_core() to
-> power up the HDMI core (needed for CEC).
->=20
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/gpu/drm/omapdrm/dss/hdmi4.c | 12 +++++++++++-
->  1 file changed, 11 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omap=
-drm/dss/hdmi4.c
-> index 4a164dc01f15..e371b47ff6ff 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-> @@ -124,14 +124,19 @@ static int hdmi_power_on_core(struct omap_dss_dev=
-ice *dssdev)
->  {
->  	int r;
-> =20
-> +	if (hdmi.core.core_pwr_cnt++)
-> +		return 0;
-> +
+> 
+> This patch series is the rebased version of this pull request:
+> 
+> https://www.mail-archive.com/linux-media@vger.kernel.org/msg111025.html
+> 
+> It slightly modifies 'Add metadata buffer type and format' (remove
+> experimental note and add newline after label) and it adds support
+> for V4L2_CTRL_FLAG_MODIFY_LAYOUT, as requested by Mauro.
+> 
+> No other changes were made.
 
-How's the locking between the CEC side and the DRM side? Normally these
-functions are protected with the DRM modesetting locks, but CEC doesn't
-come from there. We have the hdmi.lock, did you check that it's held
-when CEC side calls shared functions?
+For patches 11--15:
 
->  	r =3D regulator_enable(hdmi.vdda_reg);
->  	if (r)
-> -		return r;
-> +		goto err_reg_enable;
-> =20
->  	r =3D hdmi_runtime_get();
->  	if (r)
->  		goto err_runtime_get;
-> =20
-> +	hdmi4_core_powerdown_disable(&hdmi.core);
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-I'd like to have the powerdown_disable as a separate patch. Also, now
-that you call it here, I believe it can be dropped from hdmi4_configure()=
-=2E
-
-Hmm, but in hdmi4_configure we call hdmi_core_swreset_assert() before
-hdmi4_core_powerdown_disable(). I wonder what exactly that does, and
-whether we end up resetting also the CEC parts when we change the videomo=
-de.
-
- Tomi
-
-
---GcPXQaARv75rChGi8Q8rNTrRtUHqMRQVB--
-
---SiGNW58EET3J2KngjaQktkxuruxfIPvAO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJZAye4AAoJEPo9qoy8lh71Ef4P/iO9nd7SjyH9ds5BJ4hq8WAX
-ll7SjIJ6Sx3y5HA1yh1FnSd6q51jzbrIrQYPJTbqGg74QgPo2rnYLWYLgBvmif8K
-UPhhSXtE7tugFesNDTpDkHeF25ZpQ6Yoez26Oa6ZJjnMUlgiOJjVeUfmeuhCs3Mz
-QRkB/+o5tsquYtjeNOai0ughGgVR9z615m0gZ6VEgRCySQ7Pw70i2O5LlpJHQbDh
-pAcJywXPxbwwze9zVLW2nC08fpxz4EdxCs+kW1s80karrJ77GIDhAsObTiTIqPqR
-/kRVQOcQ1whkxhHEGihOaNucC1uWbgw6fNlYZdyQqJvtb+FBYZUEfbT8nVh3fBs2
-g71EnJkpbTB+vnumefd1ZGBBrciB5NbpXsVpDtyE8pvQz+CdIE/iyAFRa2lXHhqk
-W3YVZUNITpK6fqnc1YAgo270Bicr7AOMu36yADJYc7Qb6YGzHCntQRIOYx+HQUDs
-nNnZ0Bi7sOqYJ3B5AarSgoHqMoBeUmXjb2uNeZCkGJpc0hrZRVb3z0pSjkmibozf
-5zYG9MF951qUxALsvKhZ2BGJyiSvxu/Qx4auTg5ZPSIlDcDArbPRi7UaNXDOrZ4v
-q06nrO+cOka1bIdxpO9yuu6jxkZ6WhBbc1HU9mSsEMcc5oUfzHCII/w5wjrMruUR
-NcprmKff+ypA5ymLlhEr
-=BZz2
------END PGP SIGNATURE-----
-
---SiGNW58EET3J2KngjaQktkxuruxfIPvAO--
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
