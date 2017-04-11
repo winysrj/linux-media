@@ -1,94 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f179.google.com ([209.85.220.179]:34752 "EHLO
-        mail-qk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752109AbdDCS61 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 14:58:27 -0400
-Received: by mail-qk0-f179.google.com with SMTP id d10so123465632qke.1
-        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 11:58:27 -0700 (PDT)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCHv3 05/22] staging: android: ion: Duplicate sg_table
-Date: Mon,  3 Apr 2017 11:57:47 -0700
-Message-Id: <1491245884-15852-6-git-send-email-labbott@redhat.com>
-In-Reply-To: <1491245884-15852-1-git-send-email-labbott@redhat.com>
-References: <1491245884-15852-1-git-send-email-labbott@redhat.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40483 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752413AbdDKSPC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Apr 2017 14:15:02 -0400
+Date: Tue, 11 Apr 2017 20:15:00 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [RFC] omap3isp: add support for CSI1 bus
+Message-ID: <20170411181500.GA20947@amd>
+References: <10545906.Gxg3yScdu4@avalon>
+ <20170215094228.GA8586@amd>
+ <2414221.XNA4JCFMRx@avalon>
+ <20170302090143.GB27818@amd>
+ <20170302101603.GE27818@amd>
+ <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
+ <20170302123848.GA28230@amd>
+ <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
+ <20170306075659.GB23509@amd>
+ <20170310134131.GD11875@amd>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="ZGiS0Q5IWpPtfppv"
+Content-Disposition: inline
+In-Reply-To: <20170310134131.GD11875@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ion currently returns a single sg_table on each dma_map call. This is
-incorrect for later usage.
 
-Signed-off-by: Laura Abbott <labbott@redhat.com>
----
- drivers/staging/android/ion/ion.c | 30 +++++++++++++++++++++++++++++-
- 1 file changed, 29 insertions(+), 1 deletion(-)
+--ZGiS0Q5IWpPtfppv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index c2adfe1..7dcb8a9 100644
---- a/drivers/staging/android/ion/ion.c
-+++ b/drivers/staging/android/ion/ion.c
-@@ -800,6 +800,32 @@ static void ion_buffer_sync_for_device(struct ion_buffer *buffer,
- 				       struct device *dev,
- 				       enum dma_data_direction direction);
- 
-+static struct sg_table *dup_sg_table(struct sg_table *table)
-+{
-+	struct sg_table *new_table;
-+	int ret, i;
-+	struct scatterlist *sg, *new_sg;
-+
-+	new_table = kzalloc(sizeof(*new_table), GFP_KERNEL);
-+	if (!new_table)
-+		return ERR_PTR(-ENOMEM);
-+
-+	ret = sg_alloc_table(new_table, table->nents, GFP_KERNEL);
-+	if (ret) {
-+		kfree(new_table);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	new_sg = new_table->sgl;
-+	for_each_sg(table->sgl, sg, table->nents, i) {
-+		memcpy(new_sg, sg, sizeof(*sg));
-+		sg->dma_address = 0;
-+		new_sg = sg_next(new_sg);
-+	}
-+
-+	return new_table;
-+}
-+
- static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment *attachment,
- 					enum dma_data_direction direction)
- {
-@@ -807,13 +833,15 @@ static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment *attachment,
- 	struct ion_buffer *buffer = dmabuf->priv;
- 
- 	ion_buffer_sync_for_device(buffer, attachment->dev, direction);
--	return buffer->sg_table;
-+	return dup_sg_table(buffer->sg_table);
- }
- 
- static void ion_unmap_dma_buf(struct dma_buf_attachment *attachment,
- 			      struct sg_table *table,
- 			      enum dma_data_direction direction)
- {
-+	sg_free_table(table);
-+	kfree(table);
- }
- 
- void ion_pages_sync_for_device(struct device *dev, struct page *page,
--- 
-2.7.4
+On Fri 2017-03-10 14:41:31, Pavel Machek wrote:
+> On Mon 2017-03-06 08:56:59, Pavel Machek wrote:
+> > omap3isp: add rest of CSI1 support
+> >=20
+> > CSI1 needs one more bit to be set up. Do just that.
+> >=20
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> >=20
+> > ---
+> >=20
+> > Hmm. Looking at that... num_data_lanes probably should be modified in
+> > local variable, not globally like this. Should I do that?
+> >=20
+> > Anything else that needs fixing?
+>=20
+> Ping? Feedback here would be nice. This is last "interesting" piece of
+> the hardware support...
+
+Any news here? You complained that I was not pushy enough in the past
+;-).
+
+								Pavel
+							=09
+> > index 24a9fc5..6feba36 100644
+> > --- a/drivers/media/platform/omap3isp/ispccp2.c
+> > +++ b/drivers/media/platform/omap3isp/ispccp2.c
+> > @@ -21,6 +23,7 @@
+> >  #include <linux/mutex.h>
+> >  #include <linux/uaccess.h>
+> >  #include <linux/regulator/consumer.h>
+> > +#include <linux/regmap.h>
+> > =20
+> >  #include "isp.h"
+> >  #include "ispreg.h"
+> > @@ -1149,6 +1152,7 @@ int omap3isp_ccp2_init(struct isp_device *isp)
+> >  				"Could not get regulator vdds_csib\n");
+> >  			ccp2->vdds_csib =3D NULL;
+> >  		}
+> > +		ccp2->phy =3D &isp->isp_csiphy2;
+> >  	} else if (isp->revision =3D=3D ISP_REVISION_15_0) {
+> >  		ccp2->phy =3D &isp->isp_csiphy1;
+> >  	}
+> > diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/medi=
+a/platform/omap3isp/ispcsiphy.c
+> > index 50c0f64..cd6351b 100644
+> > --- a/drivers/media/platform/omap3isp/ispcsiphy.c
+> > +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+> > @@ -197,9 +200,10 @@ static int omap3isp_csiphy_config(struct isp_csiph=
+y *phy)
+> >  	}
+> > =20
+> >  	if (buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY1
+> > -	    || buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY2)
+> > +	    || buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY2) {
+> >  		lanes =3D &buscfg->bus.ccp2.lanecfg;
+> > -	else
+> > +		phy->num_data_lanes =3D 1;
+> > +	} else
+> >  		lanes =3D &buscfg->bus.csi2.lanecfg;
+> > =20
+> >  	/* Clock and data lanes verification */
+> > @@ -302,13 +306,16 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *ph=
+y)
+> >  	if (rval < 0)
+> >  		goto done;
+> > =20
+> > -	rval =3D csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
+> > -	if (rval) {
+> > -		regulator_disable(phy->vdd);
+> > -		goto done;
+> > +	if (phy->isp->revision =3D=3D ISP_REVISION_15_0) {
+> > +		rval =3D csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
+> > +		if (rval) {
+> > +			regulator_disable(phy->vdd);
+> > +			goto done;
+> > +		}
+> > +	=09
+> > +		csiphy_power_autoswitch_enable(phy, true);	=09
+> >  	}
+> > =20
+> > -	csiphy_power_autoswitch_enable(phy, true);
+> >  	phy->phy_in_use =3D 1;
+> > =20
+> >  done:
+> >=20
+>=20
+>=20
+>=20
+
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--ZGiS0Q5IWpPtfppv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAljtHSQACgkQMOfwapXb+vLKswCaAw3Jrh3ck2DbU80Xy6O214M/
+/4cAn3/9bOZrkMFg+6KID/2ELiROPCX6
+=mU04
+-----END PGP SIGNATURE-----
+
+--ZGiS0Q5IWpPtfppv--
