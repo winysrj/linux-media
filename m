@@ -1,101 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:38152 "EHLO ale.deltatee.com"
+Received: from mail.kernel.org ([198.145.29.136]:44538 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751808AbdDMWGZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 18:06:25 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Steve Wise <swise@opengridcomputing.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:21 -0600
-Message-Id: <1492121135-4437-9-git-send-email-logang@deltatee.com>
-In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 08/22] crypto: chcr: Make use of the new sg_map helper function
+        id S1754161AbdDKJCP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Apr 2017 05:02:15 -0400
+MIME-Version: 1.0
+In-Reply-To: <20170411055413.07957d91@vento.lan>
+References: <E1cxc0o-0003RE-PP@www.linuxtv.org> <CAJKOXPfbJpFu6r9rS8oCqxTH+s7y2wYKx9+TzGrv4Cd8DYaKew@mail.gmail.com>
+ <20170411055413.07957d91@vento.lan>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Date: Tue, 11 Apr 2017 11:02:09 +0200
+Message-ID: <CAJKOXPe7fKz=ivoW3BTdk0TqANwJaZWMamQsKSXFRS4b4ywG9w@mail.gmail.com>
+Subject: Re: [git:media_tree/master] [media] ARM: dts: exynos: add HDMI
+ controller phandle to exynos4.dtsi
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linuxtv-commits@linuxtv.org,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The get_page in this area looks *highly* suspect due to there being no
-corresponding put_page. However, I've left that as is to avoid breaking
-things.
+On Tue, Apr 11, 2017 at 10:54 AM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+> Em Tue, 11 Apr 2017 10:36:58 +0200
+> Krzysztof Kozlowski <krzk@kernel.org> escreveu:
+>
+>> On Mon, Apr 10, 2017 at 6:12 PM, Mauro Carvalho Chehab
+>> <mchehab@s-opensource.com> wrote:
+>> > This is an automatic generated email to let you know that the following patch were queued:
+>> >
+>> > Subject: [media] ARM: dts: exynos: add HDMI controller phandle to exynos4.dtsi
+>> > Author:  Hans Verkuil <hans.verkuil@cisco.com>
+>> > Date:    Tue Dec 13 12:37:16 2016 -0200
+>> >
+>> > Add the new hdmi phandle to exynos4.dtsi. This phandle is needed by the
+>> > s5p-cec driver to initialize the CEC notifier framework.
+>> >
+>> > Tested with my Odroid U3.
+>> >
+>> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> > Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> > CC: linux-samsung-soc@vger.kernel.org
+>> > CC: devicetree@vger.kernel.org
+>> > CC: Krzysztof Kozlowski <krzk@kernel.org>
+>> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>> >
+>> >  arch/arm/boot/dts/exynos4.dtsi | 1 +
+>> >  1 file changed, 1 insertion(+)
+>> >
+>>
+>> Mauro, you should not apply it. It is already going through samsung-soc [1].
+>> if you need this patch for bisectability or any other reasons, I
+>> provided a tag with it here:
+>> https://www.spinics.net/lists/devicetree/msg171182.html
+>>
+>> Please drop the patch because now it will get duplicated.
+>
+> Having exactly the same patch applied on multiple trees usually is
+> not a problem, provided that it doesn't rise a non-trivial
+> conflict.
+>
+> I avoid rebase the tree where this patch is applied, as rebasing it
+> affect the workflow of other developers.
+>
+> I'm afraid that, if I revert this patch, it will cause more harm than
+> good.
 
-I've also removed the KMAP_ATOMIC_ARGS check as it appears to be dead
-code that dates back to when it was first committed...
+Of course, revert is wrong. The patch should be dropped with rebase,
+assuming that you accept the rebase itself. But if you do not
+rebase... then it has to  stay.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- drivers/crypto/chelsio/chcr_algo.c | 28 +++++++++++++++-------------
- 1 file changed, 15 insertions(+), 13 deletions(-)
+> So, I guess the best solution to fix the issue would be to pull from
+> a stable branch on your tree with has this patch and solve conflicts,
+> if any. This way, nothing will popup when merging upstream.
 
-diff --git a/drivers/crypto/chelsio/chcr_algo.c b/drivers/crypto/chelsio/chcr_algo.c
-index 41bc7f4..a993d1d 100644
---- a/drivers/crypto/chelsio/chcr_algo.c
-+++ b/drivers/crypto/chelsio/chcr_algo.c
-@@ -1489,22 +1489,21 @@ static struct sk_buff *create_authenc_wr(struct aead_request *req,
- 	return ERR_PTR(-EINVAL);
- }
- 
--static void aes_gcm_empty_pld_pad(struct scatterlist *sg,
--				  unsigned short offset)
-+static int aes_gcm_empty_pld_pad(struct scatterlist *sg,
-+				 unsigned short offset)
- {
--	struct page *spage;
- 	unsigned char *addr;
- 
--	spage = sg_page(sg);
--	get_page(spage); /* so that it is not freed by NIC */
--#ifdef KMAP_ATOMIC_ARGS
--	addr = kmap_atomic(spage, KM_SOFTIRQ0);
--#else
--	addr = kmap_atomic(spage);
--#endif
--	memset(addr + sg->offset, 0, offset + 1);
-+	get_page(sg_page(sg)); /* so that it is not freed by NIC */
-+
-+	addr = sg_map(sg, SG_KMAP_ATOMIC);
-+	if (IS_ERR(addr))
-+		return PTR_ERR(addr);
-+
-+	memset(addr, 0, offset + 1);
-+	sg_unmap(sg, addr, SG_KMAP_ATOMIC);
- 
--	kunmap_atomic(addr);
-+	return 0;
- }
- 
- static int set_msg_len(u8 *block, unsigned int msglen, int csize)
-@@ -1940,7 +1939,10 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
- 	if (req->cryptlen) {
- 		write_sg_to_skb(skb, &frags, src, req->cryptlen);
- 	} else {
--		aes_gcm_empty_pld_pad(req->dst, authsize - 1);
-+		err = aes_gcm_empty_pld_pad(req->dst, authsize - 1);
-+		if (err)
-+			goto dstmap_fail;
-+
- 		write_sg_to_skb(skb, &frags, reqctx->dst, crypt_len);
- 
- 	}
--- 
-2.1.4
+This is why I provided it in separate tag, in first place!
+That is a proper solution for avoiding any patch duplication and
+conflicts. Indeed you are right that duplication of commits should not
+do any harm... but it is not a proper way of development, right?
+
+Anyway, it is up to you. I provided you a tag with it so you can merge
+it if needed (which would require rebasing). If not, then of course
+please do not revert it.
+
+Best regards,
+Krzysztof
