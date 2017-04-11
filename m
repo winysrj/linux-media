@@ -1,120 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:38305 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752422AbdDMWHC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 18:07:02 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Steve Wise <swise@opengridcomputing.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:22 -0600
-Message-Id: <1492121135-4437-10-git-send-email-logang@deltatee.com>
-In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 09/22] dm-crypt: Make use of the new sg_map helper in 4 call sites
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33531 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751255AbdDKI2B (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Apr 2017 04:28:01 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi,
+        chris.paterson2@renesas.com, geert+renesas@glider.be,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v3 1/7] media: v4l2-ctrls: Reserve controls for MAX217X
+Date: Tue, 11 Apr 2017 11:28:52 +0300
+Message-ID: <7073271.ns6LVO0PF7@avalon>
+In-Reply-To: <1486479757-32128-2-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+References: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com> <1486479757-32128-2-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Very straightforward conversion to the new function in all four spots.
+Hi Ramesh,
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- drivers/md/dm-crypt.c | 38 +++++++++++++++++++++++++-------------
- 1 file changed, 25 insertions(+), 13 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/md/dm-crypt.c b/drivers/md/dm-crypt.c
-index 389a363..6bd0ffc 100644
---- a/drivers/md/dm-crypt.c
-+++ b/drivers/md/dm-crypt.c
-@@ -589,9 +589,12 @@ static int crypt_iv_lmk_gen(struct crypt_config *cc, u8 *iv,
- 	int r = 0;
- 
- 	if (bio_data_dir(dmreq->ctx->bio_in) == WRITE) {
--		src = kmap_atomic(sg_page(&dmreq->sg_in));
--		r = crypt_iv_lmk_one(cc, iv, dmreq, src + dmreq->sg_in.offset);
--		kunmap_atomic(src);
-+		src = sg_map(&dmreq->sg_in, SG_KMAP_ATOMIC);
-+		if (IS_ERR(src))
-+			return PTR_ERR(src);
-+
-+		r = crypt_iv_lmk_one(cc, iv, dmreq, src);
-+		sg_unmap(&dmreq->sg_in, src, SG_KMAP_ATOMIC);
- 	} else
- 		memset(iv, 0, cc->iv_size);
- 
-@@ -607,14 +610,17 @@ static int crypt_iv_lmk_post(struct crypt_config *cc, u8 *iv,
- 	if (bio_data_dir(dmreq->ctx->bio_in) == WRITE)
- 		return 0;
- 
--	dst = kmap_atomic(sg_page(&dmreq->sg_out));
--	r = crypt_iv_lmk_one(cc, iv, dmreq, dst + dmreq->sg_out.offset);
-+	dst = sg_map(&dmreq->sg_out, SG_KMAP_ATOMIC);
-+	if (IS_ERR(dst))
-+		return PTR_ERR(dst);
-+
-+	r = crypt_iv_lmk_one(cc, iv, dmreq, dst);
- 
- 	/* Tweak the first block of plaintext sector */
- 	if (!r)
--		crypto_xor(dst + dmreq->sg_out.offset, iv, cc->iv_size);
-+		crypto_xor(dst, iv, cc->iv_size);
- 
--	kunmap_atomic(dst);
-+	sg_unmap(&dmreq->sg_out, dst, SG_KMAP_ATOMIC);
- 	return r;
- }
- 
-@@ -731,9 +737,12 @@ static int crypt_iv_tcw_gen(struct crypt_config *cc, u8 *iv,
- 
- 	/* Remove whitening from ciphertext */
- 	if (bio_data_dir(dmreq->ctx->bio_in) != WRITE) {
--		src = kmap_atomic(sg_page(&dmreq->sg_in));
--		r = crypt_iv_tcw_whitening(cc, dmreq, src + dmreq->sg_in.offset);
--		kunmap_atomic(src);
-+		src = sg_map(&dmreq->sg_in, SG_KMAP_ATOMIC);
-+		if (IS_ERR(src))
-+			return PTR_ERR(src);
-+
-+		r = crypt_iv_tcw_whitening(cc, dmreq, src);
-+		sg_unmap(&dmreq->sg_in, src, SG_KMAP_ATOMIC);
- 	}
- 
- 	/* Calculate IV */
-@@ -755,9 +764,12 @@ static int crypt_iv_tcw_post(struct crypt_config *cc, u8 *iv,
- 		return 0;
- 
- 	/* Apply whitening on ciphertext */
--	dst = kmap_atomic(sg_page(&dmreq->sg_out));
--	r = crypt_iv_tcw_whitening(cc, dmreq, dst + dmreq->sg_out.offset);
--	kunmap_atomic(dst);
-+	dst = sg_map(&dmreq->sg_out, SG_KMAP_ATOMIC);
-+	if (IS_ERR(dst))
-+		return PTR_ERR(dst);
-+
-+	r = crypt_iv_tcw_whitening(cc, dmreq, dst);
-+	sg_unmap(&dmreq->sg_out, dst, SG_KMAP_ATOMIC);
- 
- 	return r;
- }
+On Tuesday 07 Feb 2017 15:02:31 Ramesh Shanmugasundaram wrote:
+> Reserve controls for MAX217X RF to Bits tuner family. These hybrid
+> radio receiver chips are highly programmable and hence reserving 32
+> controls.
+> 
+> Signed-off-by: Ramesh Shanmugasundaram
+> <ramesh.shanmugasundaram@bp.renesas.com>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  include/uapi/linux/v4l2-controls.h | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/include/uapi/linux/v4l2-controls.h
+> b/include/uapi/linux/v4l2-controls.h index 0d2e1e0..83b28b4 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -180,6 +180,11 @@ enum v4l2_colorfx {
+>   * We reserve 16 controls for this driver. */
+>  #define V4L2_CID_USER_TC358743_BASE		(V4L2_CID_USER_BASE + 0x1080)
+> 
+> +/* The base for the max217x driver controls.
+> + * We reserve 32 controls for this driver
+> + */
+> +#define V4L2_CID_USER_MAX217X_BASE		(V4L2_CID_USER_BASE + 0x1090)
+> +
+>  /* MPEG-class control IDs */
+>  /* The MPEG controls are applicable to all codec controls
+>   * and the 'MPEG' part of the define is historical */
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
