@@ -1,120 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:49865 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752304AbdDENtu (ORCPT
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:7988 "EHLO
+        mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754387AbdDKJXo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Apr 2017 09:49:50 -0400
-Message-ID: <1491400188.2381.95.camel@pengutronix.de>
-Subject: Re: [PATCH 2/3] [media] coda: first step at error recovery
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Lucas Stach <l.stach@pengutronix.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel@pengutronix.de,
-        patchwork-lst@pengutronix.de
-Date: Wed, 05 Apr 2017 15:49:48 +0200
-In-Reply-To: <20170405130955.30513-2-l.stach@pengutronix.de>
-References: <20170405130955.30513-1-l.stach@pengutronix.de>
-         <20170405130955.30513-2-l.stach@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Tue, 11 Apr 2017 05:23:44 -0400
+Date: Tue, 11 Apr 2017 11:23:35 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+cc: Smitha T Murthy <smitha.t@samsung.com>,
+        Julia Lawall <julia.lawall@lip6.fr>, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
+        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
+        m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kbuild-all@01.org
+Subject: Re: [Patch v3 10/11] [media] s5p-mfc: Add support for HEVC encoder
+ (fwd)
+In-Reply-To: <8fc9940e-3cb5-3ca7-f15d-0bf6284433a5@samsung.com>
+Message-ID: <alpine.DEB.2.20.1704111121510.3384@hadrien>
+References: <CGME20170403060045epcas2p215a1d85248b47cc389e20ff877505b09@epcas2p2.samsung.com> <alpine.DEB.2.20.1704030758540.2170@hadrien> <1491200242.24095.23.camel@smitha-fedora> <8fc9940e-3cb5-3ca7-f15d-0bf6284433a5@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Lucas,
 
-On Wed, 2017-04-05 at 15:09 +0200, Lucas Stach wrote:
-> This implements a simple handler for the case where decode did not finish
-> sucessfully. This might be helpful during normal streaming, but for now it
-> only handles the case where the context would deadlock with userspace,
-> i.e. userspace issued DEC_CMD_STOP and waits for EOS, but after the failed
-> decode run we would hold the context and wait for userspace to queue more
-> buffers.
-> 
-> Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 
-Just a naming nitpick below.
+On Tue, 11 Apr 2017, Sylwester Nawrocki wrote:
 
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Hi,
+>
+> On 04/03/2017 08:17 AM, Smitha T Murthy wrote:
+> > On Mon, 2017-04-03 at 08:00 +0200, Julia Lawall wrote:
+> > > See line 2101
+> > >
+> > > julia
+> > >
+> > Thank you for bringing it to my notice, I had not checked on this git.
+> > I will upload the next version of patches soon corresponding to this
+> > git.
+>
+> In general please use the media master branch as a base for your patches
+> (git://linuxtv.org/media_tree.git master). Or latest branch in my
+> git repository, currently it's "for-v4.12/media/next-2" as can be seen
+> here: https://git.linuxtv.org/snawrocki/samsung.git
 
-> ---
->  drivers/media/platform/coda/coda-bit.c    | 20 ++++++++++++++++++++
->  drivers/media/platform/coda/coda-common.c |  3 +++
->  drivers/media/platform/coda/coda.h        |  1 +
->  3 files changed, 24 insertions(+)
-> 
-> diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-> index 36062fc494e3..6a088f9343bb 100644
-> --- a/drivers/media/platform/coda/coda-bit.c
-> +++ b/drivers/media/platform/coda/coda-bit.c
-> @@ -2113,12 +2113,32 @@ static void coda_finish_decode(struct coda_ctx *ctx)
->  	ctx->display_idx = display_idx;
->  }
->  
-> +static void coda_error_decode(struct coda_ctx *ctx)
+I'm not making the patch.  It comes to me from kbuild.  If you would
+prefer some tree not to be included, you can notify Fengguang about this:
 
-This sounds a bit like we are decoding an error code. Could we maybe
-rename this any of coda_fail_decode or coda_decode_error/failure  or
-similar?
+fengguang.wu@intel.com
 
-> +{
-> +	struct vb2_v4l2_buffer *dst_buf;
-> +
-> +	/*
-> +	 * For now this only handles the case where we would deadlock with
-> +	 * userspace, i.e. userspace issued DEC_CMD_STOP and waits for EOS,
-> +	 * but after a failed decode run we would hold the context and wait for
-> +	 * userspace to queue more buffers.
-> +	 */
-> +	if (!(ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG))
-> +		return;
-> +
-> +	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
-> +	dst_buf->sequence = ctx->qsequence - 1;
-> +
-> +	coda_m2m_buf_done(ctx, dst_buf, VB2_BUF_STATE_ERROR);
-> +}
-> +
->  const struct coda_context_ops coda_bit_decode_ops = {
->  	.queue_init = coda_decoder_queue_init,
->  	.reqbufs = coda_decoder_reqbufs,
->  	.start_streaming = coda_start_decoding,
->  	.prepare_run = coda_prepare_decode,
->  	.finish_run = coda_finish_decode,
-> +	.error_run = coda_error_decode,
+julia
 
-How about .fail_run to follow the <verb>_run pattern, or
-.run_error/failure to break it?
-
->  	.seq_end_work = coda_seq_end_work,
->  	.release = coda_bit_release,
->  };
-> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-> index eb6548f46cba..0bbf155f9783 100644
-> --- a/drivers/media/platform/coda/coda-common.c
-> +++ b/drivers/media/platform/coda/coda-common.c
-> @@ -1100,6 +1100,9 @@ static void coda_pic_run_work(struct work_struct *work)
->  		ctx->hold = true;
->  
->  		coda_hw_reset(ctx);
-> +
-> +		if (ctx->ops->error_run)
-> +			ctx->ops->error_run(ctx);
->  	} else if (!ctx->aborting) {
->  		ctx->ops->finish_run(ctx);
->  	}
-> diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-> index 4b831c91ae4a..799ffca72203 100644
-> --- a/drivers/media/platform/coda/coda.h
-> +++ b/drivers/media/platform/coda/coda.h
-> @@ -180,6 +180,7 @@ struct coda_context_ops {
->  	int (*start_streaming)(struct coda_ctx *ctx);
->  	int (*prepare_run)(struct coda_ctx *ctx);
->  	void (*finish_run)(struct coda_ctx *ctx);
-> +	void (*error_run)(struct coda_ctx *ctx);
->  	void (*seq_end_work)(struct work_struct *work);
->  	void (*release)(struct coda_ctx *ctx);
->  };
-
-regards
-Philipp
+>
+> --
+> Thanks,
+> Sylwester
+>
