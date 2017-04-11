@@ -1,86 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f169.google.com ([209.85.220.169]:35020 "EHLO
-        mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S940326AbdDSXOp (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57412 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752224AbdDKSlu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Apr 2017 19:14:45 -0400
-Received: by mail-qk0-f169.google.com with SMTP id f133so33324063qke.2
-        for <linux-media@vger.kernel.org>; Wed, 19 Apr 2017 16:14:40 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 09/12] xc5000: Don't spin waiting for analog lock
-Date: Wed, 19 Apr 2017 19:13:52 -0400
-Message-Id: <1492643635-30823-10-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1492643635-30823-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1492643635-30823-1-git-send-email-dheitmueller@kernellabs.com>
+        Tue, 11 Apr 2017 14:41:50 -0400
+Date: Tue, 11 Apr 2017 20:41:40 +0200
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-usb@vger.kernel.org
+Subject: Re: [PATCH v2 00/21] Convert USB documentation to ReST format
+Message-ID: <20170411184140.GA26792@kroah.com>
+References: <cover.1491398120.git.mchehab@s-opensource.com>
+ <20170408112328.7cc07f53@lwn.net>
+ <20170408200433.GA28427@kroah.com>
+ <20170411145840.GA10692@kroah.com>
+ <20170411153639.65e52a6c@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170411153639.65e52a6c@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The xc5000 driver should not be spinning waiting for an analog lock.
-The ioctl() should be returning immediately and the application is
-responsible for polling for lock status.
+On Tue, Apr 11, 2017 at 03:36:39PM -0300, Mauro Carvalho Chehab wrote:
+> Em Tue, 11 Apr 2017 16:58:40 +0200
+> Greg Kroah-Hartman <gregkh@linuxfoundation.org> escreveu:
+> 
+> > On Sat, Apr 08, 2017 at 10:04:33PM +0200, Greg Kroah-Hartman wrote:
+> > > On Sat, Apr 08, 2017 at 11:23:28AM -0600, Jonathan Corbet wrote:  
+> > > > On Wed,  5 Apr 2017 10:22:54 -0300
+> > > > Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> > > >   
+> > > > > Currently, there are several USB core documents that are at either
+> > > > > written in plain text or in DocBook format. Convert them to ReST
+> > > > > and add to the driver-api book.  
+> > > > 
+> > > > Greg, do you see any reason not to apply these for 4.12?  A few of them
+> > > > touch comments outside of Documentation/; I'm happy to carry those or
+> > > > leave them to you, as you prefer.  
+> > > 
+> > > I'll queue them up in the next few days, thanks!  
+> > 
+> > Nope, they don't apply to my tree, it was probably based on yours.  And
+> > the first two are ones I shouldn't be taking.
+> 
+> Yeah, I based it at the docs-next tree. If you prefer, I can rebase
+> on your tree, but I guess that the docbook conversion patches
+> would likely conflict with some patches at docs-next, because of
+> the Makefile changes.
 
-This behavior isn't very visible in cases where you tune to a valid
-channel, since lock is usually achieved much faster than 400ms.
-However it is highly visible where doing things like changing video
-standards, which sends tuning request for a frequency that is
-almost never going to have an actual channel on it.
+Doesn't bother me, it can go through the Documentation tree as-is.
 
-Also fixup the return values to treat zero as success and an actual
-error code on error (to be consistent with other functions).  Note
-this change has no practical effect at this time as none of the
-callers inspect the return value.
+thanks,
 
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
----
- drivers/media/tuners/xc5000.c | 26 ++------------------------
- 1 file changed, 2 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
-index e823aaf..e144627 100644
---- a/drivers/media/tuners/xc5000.c
-+++ b/drivers/media/tuners/xc5000.c
-@@ -565,38 +565,16 @@ static int xc_get_totalgain(struct xc5000_priv *priv, u16 *totalgain)
- 	return xc5000_readreg(priv, XREG_TOTALGAIN, totalgain);
- }
- 
--static u16 wait_for_lock(struct xc5000_priv *priv)
--{
--	u16 lock_state = 0;
--	int watch_dog_count = 40;
--
--	while ((lock_state == 0) && (watch_dog_count > 0)) {
--		xc_get_lock_status(priv, &lock_state);
--		if (lock_state != 1) {
--			msleep(5);
--			watch_dog_count--;
--		}
--	}
--	return lock_state;
--}
--
- #define XC_TUNE_ANALOG  0
- #define XC_TUNE_DIGITAL 1
- static int xc_tune_channel(struct xc5000_priv *priv, u32 freq_hz, int mode)
- {
--	int found = 0;
--
- 	dprintk(1, "%s(%u)\n", __func__, freq_hz);
- 
- 	if (xc_set_rf_frequency(priv, freq_hz) != 0)
--		return 0;
--
--	if (mode == XC_TUNE_ANALOG) {
--		if (wait_for_lock(priv) == 1)
--			found = 1;
--	}
-+		return -EREMOTEIO;
- 
--	return found;
-+	return 0;
- }
- 
- static int xc_set_xtal(struct dvb_frontend *fe)
--- 
-1.9.1
+greg k-h
