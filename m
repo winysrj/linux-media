@@ -1,80 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:46145 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751898AbdDNKZ3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Apr 2017 06:25:29 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 6/8] omapdrm: hdmi4: refcount hdmi_power_on/off_core
-Date: Fri, 14 Apr 2017 12:25:10 +0200
-Message-Id: <20170414102512.48834-7-hverkuil@xs4all.nl>
-In-Reply-To: <20170414102512.48834-1-hverkuil@xs4all.nl>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
+Received: from mga14.intel.com ([192.55.52.115]:43789 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754659AbdDLSUy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Apr 2017 14:20:54 -0400
+Subject: [PATCH 05/14] staging: atomisp: move mipi_info assignment to next
+ line in __get_asd_from_port()
+From: Alan Cox <alan@linux.intel.com>
+To: greg@kroah.com, linux-media@vger.kernel.org
+Date: Wed, 12 Apr 2017 19:20:49 +0100
+Message-ID: <149202124311.16615.12039964731095677270.stgit@acox1-desk1.ger.corp.intel.com>
+In-Reply-To: <149202119790.16615.4841216953457109397.stgit@acox1-desk1.ger.corp.intel.com>
+References: <149202119790.16615.4841216953457109397.stgit@acox1-desk1.ger.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Daeseok Youn <daeseok.youn@gmail.com>
 
-The hdmi_power_on/off_core functions can be called multiple times:
-when the HPD changes and when the HDMI CEC support needs to power
-the HDMI core.
+The line which is initializing mipi_info variable is too long
+to read. It would be placed in next line.
 
-So use a counter to know when to really power on or off the HDMI core.
-
-Also call hdmi4_core_powerdown_disable() in hdmi_power_on_core() to
-power up the HDMI core (needed for CEC).
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
 ---
- drivers/gpu/drm/omapdrm/dss/hdmi4.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ .../media/atomisp/pci/atomisp2/atomisp_cmd.c       |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-index 4a164dc01f15..e371b47ff6ff 100644
---- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-+++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-@@ -124,14 +124,19 @@ static int hdmi_power_on_core(struct omap_dss_device *dssdev)
- {
- 	int r;
- 
-+	if (hdmi.core.core_pwr_cnt++)
-+		return 0;
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index d98a6ea..a8614a9 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -533,9 +533,11 @@ __get_asd_from_port(struct atomisp_device *isp, mipi_port_ID_t port)
+ 	/* Check which isp subdev to send eof */
+ 	for (i = 0; i < isp->num_of_streams; i++) {
+ 		struct atomisp_sub_device *asd = &isp->asd[i];
+-		struct camera_mipi_info *mipi_info =
+-				atomisp_to_sensor_mipi_info(
+-					isp->inputs[asd->input_curr].camera);
++		struct camera_mipi_info *mipi_info;
 +
- 	r = regulator_enable(hdmi.vdda_reg);
- 	if (r)
--		return r;
-+		goto err_reg_enable;
- 
- 	r = hdmi_runtime_get();
- 	if (r)
- 		goto err_runtime_get;
- 
-+	hdmi4_core_powerdown_disable(&hdmi.core);
++		mipi_info = atomisp_to_sensor_mipi_info(
++				isp->inputs[asd->input_curr].camera);
 +
- 	/* Make selection of HDMI in DSS */
- 	dss_select_hdmi_venc_clk_source(DSS_HDMI_M_PCLK);
- 
-@@ -141,12 +146,17 @@ static int hdmi_power_on_core(struct omap_dss_device *dssdev)
- 
- err_runtime_get:
- 	regulator_disable(hdmi.vdda_reg);
-+err_reg_enable:
-+	hdmi.core.core_pwr_cnt--;
- 
- 	return r;
- }
- 
- static void hdmi_power_off_core(struct omap_dss_device *dssdev)
- {
-+	if (--hdmi.core.core_pwr_cnt)
-+		return;
-+
- 	hdmi.core_enabled = false;
- 
- 	hdmi_runtime_put();
--- 
-2.11.0
+ 		if (asd->streaming == ATOMISP_DEVICE_STREAMING_ENABLED &&
+ 		    __get_mipi_port(isp, mipi_info->port) == port) {
+ 			return asd;
