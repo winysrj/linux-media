@@ -1,73 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:58237 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936373AbdD0VyC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 17:54:02 -0400
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
- <1493144468-22493-16-git-send-email-logang@deltatee.com>
- <20170426073720.okv33ly2ldepilti@dhcp-3-128.uk.xensource.com>
- <df6586e2-7d45-6b0b-facb-4dea882df06e@deltatee.com>
- <20170427205339.GB26330@obsidianresearch.com>
-Cc: =?UTF-8?Q?Roger_Pau_Monn=c3=a9?= <roger.pau@citrix.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@ml01.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-        Julien Grall <julien.grall@arm.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <02ba3c7b-5fab-a06c-fbbf-c3be1c0fae1b@deltatee.com>
-Date: Thu, 27 Apr 2017 15:53:37 -0600
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:35928 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752671AbdDLOER (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Apr 2017 10:04:17 -0400
+Subject: Re: [RFC PATCH 3/3] encoder-tpd12s015: keep the ls_oe_gpio on while
+ the phys_addr is valid
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-media@vger.kernel.org
+References: <1461922746-17521-1-git-send-email-hverkuil@xs4all.nl>
+ <1461922746-17521-4-git-send-email-hverkuil@xs4all.nl>
+ <5731C7D2.4090807@ti.com> <5b6f679c-69dd-78be-a398-30aa4b4da1db@xs4all.nl>
+ <1d801302-388b-1d00-f0be-18aaef8cf80f@ti.com>
+ <5d47b07d-1866-f832-0d06-e834e7e2aebb@xs4all.nl>
+ <fc682c3d-3ab3-0d0f-3bb7-f6dc62f477f6@ti.com>
+Cc: dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <54a864cd-00b8-3e5f-94d6-ceee1248cd53@xs4all.nl>
+Date: Wed, 12 Apr 2017 16:04:09 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170427205339.GB26330@obsidianresearch.com>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <fc682c3d-3ab3-0d0f-3bb7-f6dc62f477f6@ti.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH v2 15/21] xen-blkfront: Make use of the new sg_map helper
- function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 04/12/2017 03:21 PM, Tomi Valkeinen wrote:
+> On 12/04/17 16:03, Hans Verkuil wrote:
+> 
+>> I noticed while experimenting with this that tpd_disconnect() in
+>> drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c isn't called when
+>> I disconnect the HDMI cable. Is that a bug somewhere?
+>>
+>> I would expect that tpd_connect and tpd_disconnect are balanced. The tpd_enable
+>> and tpd_disable calls are properly balanced and I see the tpd_disable when I
+>> disconnect the HDMI cable.
+> 
+> The connect/disconnect naming there is legacy... It's not about cable
+> connect, it's about the initial "connect" of the drivers in the video
+> pipeline. It's done just once when starting omapdrm.
 
+Ah, good to know.
 
-On 27/04/17 02:53 PM, Jason Gunthorpe wrote:
-> blkfront is one of the drivers I looked at, and it appears to only be
-> memcpying with the bvec_data pointer, so I wonder why it does not use
-> sg_copy_X_buffer instead..
+>> The key to keeping CEC up and running, even when there is no HPD is to keep
+>> the hdmi.vdda_reg regulator enabled. Also the HDMI_IRQ_CORE should always be
+>> on, otherwise I won't get any CEC interrupts.
+> 
+> At the moment there's no way to enable the pipeline without enabling the
+> video.
+> 
+>> So if the omap4 CEC support is enabled in the kernel config, then always enable
+>> this regulator and irq, and otherwise keep the current code.
+> 
+> Well, I have no clue about how CEC is used, but don't we have some
+> userspace components using it? I presume there's an open() or something
+> similar that signals that the userspace is interested in CEC. That
+> should be the trigger to enable the HW required for CEC.
 
-Yes, sort of...
+Why didn't I think of that. I did a quick implementation to test this and it
+works.
 
-But you'd potentially end up calling sg_copy_to_buffer multiple times
-per page within the sg (given that gnttab_foreach_grant_in_range might
-call blkif_copy_from_grant/blkif_setup_rw_req_grant multiple times).
-Even calling sg_copy_to_buffer once per page seems rather inefficient as
-it uses sg_miter internally.
+> So is some other driver supporting this already? Or is the omap4 the
+> first platform you're trying this on?
 
-Switching the for_each_sg to sg_miter is probably the nicer solution as
-it takes care of the mapping and the offset/length accounting for you
-and will have similar performance.
+No, there are quite a few CEC drivers by now, but typically the CEC block is
+a totally independent IP block with its own power, irq, etc. The omap4 is by far
+the most complex one to set up with various GPIO pins, interrupts, regulators,
+etc. to deal with.
 
-But, yes, if performance is not an issue, switching it to
-sg_copy_to_buffer would be a less invasive change than sg_miter. Which
-the same might be said about a lot of these cases.
+Normally it takes about 2 days to make a new CEC driver, but the omap4 is much
+more work :-(
 
-Unfortunately, changing from kmap_atomic (which is a null operation in a
-lot of cases) to sg_copy_X_buffer is a pretty big performance hit.
+Regards,
 
-Logan
+	Hans
