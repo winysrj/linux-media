@@ -1,133 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36156 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755717AbdDRHqp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Apr 2017 03:46:45 -0400
-Date: Tue, 18 Apr 2017 10:46:36 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Patrick Doyle <wpdster@gmail.com>, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: Looking for device driver advice
-Message-ID: <20170418074635.GE7456@valkosipuli.retiisi.org.uk>
-References: <CAF_dkJAwwj0mpOztkTNTrDC1YQkgh=HvZGh=tv3SYsuvUzTb+g@mail.gmail.com>
- <2ea495f2-022d-a9ee-11a0-28fbcba5db57@xs4all.nl>
- <20170416105121.GC7456@valkosipuli.retiisi.org.uk>
- <20170416174220.GC28868@bigcity.dyn.berto.se>
+Received: from mga14.intel.com ([192.55.52.115]:43789 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754659AbdDLSU6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Apr 2017 14:20:58 -0400
+Subject: [PATCH 03/14] staging: atomisp: remove enable_isp_irq function and
+ add disable_isp_irq
+From: Alan Cox <alan@linux.intel.com>
+To: greg@kroah.com, linux-media@vger.kernel.org
+Date: Wed, 12 Apr 2017 19:20:22 +0100
+Message-ID: <149202121717.16615.8267343060617686506.stgit@acox1-desk1.ger.corp.intel.com>
+In-Reply-To: <149202119790.16615.4841216953457109397.stgit@acox1-desk1.ger.corp.intel.com>
+References: <149202119790.16615.4841216953457109397.stgit@acox1-desk1.ger.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170416174220.GC28868@bigcity.dyn.berto.se>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+From: Daeseok Youn <daeseok.youn@gmail.com>
 
-On Sun, Apr 16, 2017 at 07:42:20PM +0200, Niklas Söderlund wrote:
-> Hi,
-> 
-> On 2017-04-16 13:51:21 +0300, Sakari Ailus wrote:
-> > Hi Hans and Patrick,
-> > 
-> > On Wed, Apr 12, 2017 at 01:37:33PM +0200, Hans Verkuil wrote:
-> > > Hi Patrick,
-> > > 
-> > > On 04/10/2017 10:13 PM, Patrick Doyle wrote:
-> > > > I am looking for advice regarding the construction of a device driver
-> > > > for a MIPI CSI2 imager (a Sony IMX241) that is connected to a
-> > > > MIPI<->Parallel converter (Toshiba TC358748) wired into a parallel
-> > > > interface on a Soc (a Microchip/Atmel SAMAD2x device.)
-> > > > 
-> > > > The Sony imager is controlled and configured via I2C, as is the
-> > > > Toshiba converter.  I could write a single driver that configures both
-> > > > devices and treats them as a single device that just happens to use 2
-> > > > i2c addresses.  I could use the i2c_new_dummy() API to construct the
-> > > > device abstraction for the second physical device at probe time for
-> > > > the first physical device.
-> > > > 
-> > > > Or I could do something smarter (or at least different), specifying
-> > > > the two devices independently via my device tree file, perhaps linking
-> > > > them together via "port" nodes.  Currently, I use the "port" node
-> > > > concept to link an i2c imager to the Image System Controller (isc)
-> > > > node in the SAMA5 device.  Perhaps that generalizes to a chain of
-> > > > nodes linked together... I don't know.
-> > > 
-> > > That would be the right solution. Unfortunately the atmel-isc.c driver
-> > > (at least the version in the mainline kernel) only supports a single
-> > > subdev device. At least, as far as I can see.
-> 
-> I also think that two subdevices implemented in two separate drivers is 
-> the way to go. As it really is two different pieces of hardware,
-> right?
-> 
-> > 
-> > There have been multiple cases recently where the media pipeline can have
-> > sub-devices controlled by more than two drivers. We need to have a common
-> > approach on how we do handle such cases.
-> 
-> I agree that a common approach to the problem of when one subdevices can 
-> be controlled by more then one driver is needed. In this case however I 
-> think something else also needs to be defined. If I understand Hans and 
-> Patrick the issues is not that the hardware can be controlled by more 
-> then one driver. Instead it is that the atmel-isc.c driver only probes 
-> DT for one subdevice, so implementing it as more then one subdevices is 
-> problematic. If I misunderstand the problem please let me know.
+Enable/Disable ISP irq is switched with "enable" parameter of
+enable_isp_irq(). It would be better splited to two such as
+enable_isp_irq()/disable_isp_irq().
 
-The pipeline is (again, unless I'm mistaken):
+But the enable_isp_irq() is no use in atomisp_cmd.c file.
+So remove the enable_isp_irq() function and add
+disable_isp_irq function only.
 
-sensor -> csi2-parallel converter -> SoC
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
+ .../media/atomisp/pci/atomisp2/atomisp_cmd.c       |   36 +++++---------------
+ 1 file changed, 9 insertions(+), 27 deletions(-)
 
-So not very much unlike it's elsewhere.
-
-> 
-> If I understand the problem correctly it could be solved by modifying 
-> the atmel-isc.c driver to look for more then one subdevice in DT. But a 
-> common approach for drivers to find and bind arbitrary number of 
-> subdevices would be better, finding an approach that also solves the 
-> case where one subdevice can be used by more then one driver would be 
-> better still. If this common case also could cover the case where one DT 
-> node represents a driver which registers more then one subdevice which 
-> then can be used by different other drivers I would be very happy and a 
-> lot of my headaches would go away :-)
-> 
-> > 
-> > For instance, how is the entire DT graph parsed or when and how are the
-> > device nodes created?
-> > 
-> > Parsing the graph should probably be initiated by the master driver but
-> > instead implemented in the framework as it's a non-trivial task and common
-> > to all such drivers. Another equestion is how do we best support this also
-> > on existing drivers.
-> 
-> I agree that the master device probably should initiate the DT graph 
-> parsing and if possible there should be as much support as possible in 
-> the framework. One extra consideration here is that there might be more 
-> then one master device which uses the same subdevices. I have such cases 
-
-Good point. I.e. you have two source pads that are connected to two
-different master devices?
-
-> today where different instances of the same driver use the same set of 
-> subdevices.
-
-Is this the intended state of matters? Or do I miss something? :-)
-
-> 
-> > 
-> > I actually have a small documentation patch on handling streaming control in
-> > such cases as there are choices now to be made not thought about when the
-> > sub-device ops were originally addeed. I'll cc you to that.
-> > 
-> > We do have a similar case currently in i.MX6, Nokia N9 (OMAP3) and on some
-
-I meant to say Nokia N900, not N9.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index 9ad5146..08606cb 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -376,34 +376,16 @@ int atomisp_reset(struct atomisp_device *isp)
+ }
+ 
+ /*
+- * interrupt enable/disable functions
++ * interrupt disable functions
+  */
+-static void enable_isp_irq(enum hrt_isp_css_irq irq, bool enable)
+-{
+-	if (enable) {
+-		irq_enable_channel(IRQ0_ID, irq);
+-		/*sh_css_hrt_irq_enable(irq, true, false);*/
+-		switch (irq) { /*We only have sp interrupt right now*/
+-		case hrt_isp_css_irq_sp:
+-			/*sh_css_hrt_irq_enable_sp(true);*/
+-			cnd_sp_irq_enable(SP0_ID, true);
+-			break;
+-		default:
+-			break;
+-		}
++static void disable_isp_irq(enum hrt_isp_css_irq irq)
++{
++	irq_disable_channel(IRQ0_ID, irq);
+ 
+-	} else {
+-		/*sh_css_hrt_irq_disable(irq);*/
+-		irq_disable_channel(IRQ0_ID, irq);
+-		switch (irq) {
+-		case hrt_isp_css_irq_sp:
+-			/*sh_css_hrt_irq_enable_sp(false);*/
+-			cnd_sp_irq_enable(SP0_ID, false);
+-			break;
+-		default:
+-			break;
+-		}
+-	}
++	if (irq != hrt_isp_css_irq_sp)
++		return;
++
++	cnd_sp_irq_enable(SP0_ID, false);
+ }
+ 
+ /*
+@@ -1416,7 +1398,7 @@ static void __atomisp_css_recover(struct atomisp_device *isp, bool isp_timeout)
+ 	}
+ 
+ 	/* clear irq */
+-	enable_isp_irq(hrt_isp_css_irq_sp, false);
++	disable_isp_irq(hrt_isp_css_irq_sp);
+ 	clear_isp_irq(hrt_isp_css_irq_sp);
+ 
+ 	/* Set the SRSE to 3 before resetting */
