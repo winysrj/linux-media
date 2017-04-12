@@ -1,144 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35520 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751738AbdDGKEB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Apr 2017 06:04:01 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 3/8] v4l: async: Add fwnode match support
-Date: Fri, 07 Apr 2017 13:04:47 +0300
-Message-ID: <2374089.j4OXu9zDtc@avalon>
-In-Reply-To: <1491484330-12040-4-git-send-email-sakari.ailus@linux.intel.com>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com> <1491484330-12040-4-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35204 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753771AbdDLTfO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Apr 2017 15:35:14 -0400
+Received: by mail-wm0-f66.google.com with SMTP id d79so8569544wmi.2
+        for <linux-media@vger.kernel.org>; Wed, 12 Apr 2017 12:35:13 -0700 (PDT)
+Subject: [PATCH v2 3/5] media: rc: meson-ir: switch to managed rc device
+ allocation / registration
+From: Heiner Kallweit <hkallweit1@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sean Young <sean@mess.org>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Neil Armstrong <narmstrong@baylibre.com>
+Cc: linux-media@vger.kernel.org, linux-amlogic@lists.infradead.org
+References: <d5c18dbb-e86a-6b1c-1410-d6cc92dce711@gmail.com>
+Message-ID: <6e38bc01-e865-0a26-649e-950021e0eef7@gmail.com>
+Date: Wed, 12 Apr 2017 21:32:35 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <d5c18dbb-e86a-6b1c-1410-d6cc92dce711@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Switch to the managed versions of rc_allocate_device/rc_register_device,
+thus simplifying the code.
 
-Thank you for the patch.
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+Reviewed-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+v2:
+- added R-b
+---
+ drivers/media/rc/meson-ir.c | 18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
 
-One more small comment below.
-
-On Thursday 06 Apr 2017 16:12:05 Sakari Ailus wrote:
-> Add fwnode matching to complement OF node matching. And fwnode may also be
-> an OF node.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 12 ++++++++++++
->  include/media/v4l2-async.h           |  5 +++++
->  include/media/v4l2-subdev.h          |  3 +++
->  3 files changed, 20 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> b/drivers/media/v4l2-core/v4l2-async.c index 96cc733..384ad5e 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -46,6 +46,11 @@ static bool match_of(struct v4l2_subdev *sd, struct
-> v4l2_async_subdev *asd) of_node_full_name(asd->match.of.node));
->  }
-> 
-> +static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev
-> *asd)
-> +{
-> +	return sd->fwnode == asd->match.fwnode.fwn;
-> +}
-> +
->  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev
-> *asd) {
->  	if (!asd->match.custom.match)
-> @@ -80,6 +85,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct
-> v4l2_async_notifier * case V4L2_ASYNC_MATCH_OF:
->  			match = match_of;
->  			break;
-> +		case V4L2_ASYNC_MATCH_FWNODE:
-> +			match = match_fwnode;
-> +			break;
->  		default:
->  			/* Cannot happen, unless someone breaks us */
->  			WARN_ON(true);
-> @@ -158,6 +166,7 @@ int v4l2_async_notifier_register(struct v4l2_device
-> *v4l2_dev, case V4L2_ASYNC_MATCH_DEVNAME:
->  		case V4L2_ASYNC_MATCH_I2C:
->  		case V4L2_ASYNC_MATCH_OF:
-> +		case V4L2_ASYNC_MATCH_FWNODE:
->  			break;
->  		default:
->  			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : 
-NULL,
-> @@ -282,6 +291,9 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  	 */
->  	if (!sd->of_node && sd->dev)
->  		sd->of_node = sd->dev->of_node;
-> +	if (!sd->fwnode && sd->dev)
-> +		sd->fwnode = sd->dev->of_node ?
-> +			&sd->dev->of_node->fwnode : sd->dev->fwnode;
-> 
->  	mutex_lock(&list_lock);
-> 
-> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> index 8e2a236..8f552d2 100644
-> --- a/include/media/v4l2-async.h
-> +++ b/include/media/v4l2-async.h
-> @@ -32,6 +32,7 @@ struct v4l2_async_notifier;
->   * @V4L2_ASYNC_MATCH_DEVNAME: Match will use the device name
->   * @V4L2_ASYNC_MATCH_I2C: Match will check for I2C adapter ID and address
->   * @V4L2_ASYNC_MATCH_OF: Match will use OF node
-> + * @V4L2_ASYNC_MATCH_FWNODE: Match will use firmware node
->   *
->   * This enum is used by the asyncrhronous sub-device logic to define the
->   * algorithm that will be used to match an asynchronous device.
-> @@ -41,6 +42,7 @@ enum v4l2_async_match_type {
->  	V4L2_ASYNC_MATCH_DEVNAME,
->  	V4L2_ASYNC_MATCH_I2C,
->  	V4L2_ASYNC_MATCH_OF,
-> +	V4L2_ASYNC_MATCH_FWNODE,
->  };
-> 
->  /**
-> @@ -58,6 +60,9 @@ struct v4l2_async_subdev {
->  			const struct device_node *node;
->  		} of;
->  		struct {
-> +			struct fwnode_handle *fwn;
-
-Shouldn't this be const ?
-
-> +		} fwnode;
-> +		struct {
->  			const char *name;
->  		} device_name;
->  		struct {
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 0ab1c5d..5f1669c 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -788,6 +788,8 @@ struct v4l2_subdev_platform_data {
->   * @devnode: subdev device node
->   * @dev: pointer to the physical device, if any
->   * @of_node: The device_node of the subdev, usually the same as
-> dev->of_node.
-> + * @fwnode: The fwnode_handle of the subdev, usually the same as
-> + *	    either dev->of_node->fwnode or dev->fwnode (whichever is non-
-NULL).
->   * @async_list: Links this subdev to a global subdev_list or
-> @notifier->done *	list.
->   * @asd: Pointer to respective &struct v4l2_async_subdev.
-> @@ -819,6 +821,7 @@ struct v4l2_subdev {
->  	struct video_device *devnode;
->  	struct device *dev;
->  	struct device_node *of_node;
-> +	struct fwnode_handle *fwnode;
->  	struct list_head async_list;
->  	struct v4l2_async_subdev *asd;
->  	struct v4l2_async_notifier *notifier;
-
+diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
+index 3864ebe3..cf8943d2 100644
+--- a/drivers/media/rc/meson-ir.c
++++ b/drivers/media/rc/meson-ir.c
+@@ -128,7 +128,7 @@ static int meson_ir_probe(struct platform_device *pdev)
+ 		return irq;
+ 	}
+ 
+-	ir->rc = rc_allocate_device(RC_DRIVER_IR_RAW);
++	ir->rc = devm_rc_allocate_device(dev, RC_DRIVER_IR_RAW);
+ 	if (!ir->rc) {
+ 		dev_err(dev, "failed to allocate rc device\n");
+ 		return -ENOMEM;
+@@ -140,7 +140,6 @@ static int meson_ir_probe(struct platform_device *pdev)
+ 	ir->rc->input_id.bustype = BUS_HOST;
+ 	map_name = of_get_property(node, "linux,rc-map-name", NULL);
+ 	ir->rc->map_name = map_name ? map_name : RC_MAP_EMPTY;
+-	ir->rc->dev.parent = dev;
+ 	ir->rc->allowed_protocols = RC_BIT_ALL_IR_DECODER;
+ 	ir->rc->rx_resolution = US_TO_NS(MESON_TRATE);
+ 	ir->rc->timeout = MS_TO_NS(200);
+@@ -149,16 +148,16 @@ static int meson_ir_probe(struct platform_device *pdev)
+ 	spin_lock_init(&ir->lock);
+ 	platform_set_drvdata(pdev, ir);
+ 
+-	ret = rc_register_device(ir->rc);
++	ret = devm_rc_register_device(dev, ir->rc);
+ 	if (ret) {
+ 		dev_err(dev, "failed to register rc device\n");
+-		goto out_free;
++		return ret;
+ 	}
+ 
+ 	ret = devm_request_irq(dev, irq, meson_ir_irq, 0, "ir-meson", ir);
+ 	if (ret) {
+ 		dev_err(dev, "failed to request irq\n");
+-		goto out_unreg;
++		return ret;
+ 	}
+ 
+ 	/* Reset the decoder */
+@@ -184,13 +183,6 @@ static int meson_ir_probe(struct platform_device *pdev)
+ 	dev_info(dev, "receiver initialized\n");
+ 
+ 	return 0;
+-out_unreg:
+-	rc_unregister_device(ir->rc);
+-	ir->rc = NULL;
+-out_free:
+-	rc_free_device(ir->rc);
+-
+-	return ret;
+ }
+ 
+ static int meson_ir_remove(struct platform_device *pdev)
+@@ -203,8 +195,6 @@ static int meson_ir_remove(struct platform_device *pdev)
+ 	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, 0);
+ 	spin_unlock_irqrestore(&ir->lock, flags);
+ 
+-	rc_unregister_device(ir->rc);
+-
+ 	return 0;
+ }
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.12.2
