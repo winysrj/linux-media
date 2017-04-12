@@ -1,127 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50098 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751076AbdDHETK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 8 Apr 2017 00:19:10 -0400
-Message-ID: <dae3671baf6411b0c77300e671ed2f9d@smtp-cloud2.xs4all.net>
-Date: Sat, 08 Apr 2017 06:19:07 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from mga01.intel.com ([192.55.52.88]:60281 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754684AbdDLSVp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Apr 2017 14:21:45 -0400
+Subject: [PATCH 08/14] atomisp: remove indirection from sh_css_malloc
+From: Alan Cox <alan@linux.intel.com>
+To: greg@kroah.com, linux-media@vger.kernel.org
+Date: Wed, 12 Apr 2017 19:21:33 +0100
+Message-ID: <149202128908.16615.8884323049461863996.stgit@acox1-desk1.ger.corp.intel.com>
+In-Reply-To: <149202119790.16615.4841216953457109397.stgit@acox1-desk1.ger.corp.intel.com>
+References: <149202119790.16615.4841216953457109397.stgit@acox1-desk1.ger.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+We have one hard coded set of behaviour so unpick the indirection and function
+pointers. This isn't the whole story. A lot of the callers are known sizes and
+use cases so we can switch them directly to kmalloc later on.
 
-Results of the daily build of media_tree:
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
+ .../atomisp/pci/atomisp2/atomisp_compat_css20.c    |    3 -
+ .../atomisp/pci/atomisp2/css2400/ia_css_env.h      |   19 -------
+ .../media/atomisp/pci/atomisp2/css2400/sh_css.c    |   52 +++++++++-----------
+ 3 files changed, 25 insertions(+), 49 deletions(-)
 
-date:			Sat Apr  8 05:00:18 CEST 2017
-media-tree git hash:	2f65ec0567f77b75f459c98426053a3787af356a
-media_build git hash:	0d47a8527df46dc53923513c4055d76060ec2aaa
-v4l-utils git hash:	08572e7db2120bc45db732d02409dfd3346b8e51
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
+index 6586842..b830b24 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
+@@ -923,9 +923,6 @@ int atomisp_css_load_firmware(struct atomisp_device *isp)
+ 	isp->css_env.isp_css_fw.data = (void *)isp->firmware->data;
+ 	isp->css_env.isp_css_fw.bytes = isp->firmware->size;
+ 
+-	isp->css_env.isp_css_env.cpu_mem_env.alloc = atomisp_kernel_zalloc;
+-	isp->css_env.isp_css_env.cpu_mem_env.free = atomisp_kernel_free;
+-
+ 	isp->css_env.isp_css_env.hw_access_env.store_8 =
+ 							atomisp_css2_hw_store_8;
+ 	isp->css_env.isp_css_env.hw_access_env.store_16 =
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_env.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_env.h
+index 4d54aea..1ae9daf 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_env.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_env.h
+@@ -39,25 +39,8 @@ enum ia_css_mem_attr {
+  *  This is never expected to allocate more than one page of memory (4K bytes).
+  */
+ struct ia_css_cpu_mem_env {
+-	void * (*alloc)(size_t bytes, bool zero_mem);
+-	/**< Allocation function with boolean argument to indicate whether
+-	     the allocated memory should be zeroed out or not, true (or 1)
+-	     meaning the memory given to CSS must be zeroed */
+-	void (*free)(void *ptr);
+-	/**< Corresponding free function. The function must also accept
+-	     a NULL argument, similar to C89 free(). */
+ 	void (*flush)(struct ia_css_acc_fw *fw);
+ 	/**< Flush function to flush the cache for given accelerator. */
+-#ifdef ISP2401
+-
+-	#if !defined(__SVOS__)
+-	/* a set of matching functions with additional debug params */
+-	void * (*alloc_ex)(size_t bytes, bool zero_mem, const char *caller_func, int caller_line);
+-	/**< same as alloc above, only with additional debug parameters */
+-	void (*free_ex)(void *ptr, const char *caller_func, int caller_line);
+-	/**< same as free above, only with additional debug parameters */
+-	#endif
+-#endif
+ };
+ 
+ /** Environment with function pointers to access the CSS hardware. This includes
+@@ -103,7 +86,7 @@ struct ia_css_print_env {
+  *  Windows and several simulation environments.
+  */
+ struct ia_css_env {
+-	struct ia_css_cpu_mem_env   cpu_mem_env;   /**< local malloc and free. */
++	struct ia_css_cpu_mem_env   cpu_mem_env;   /**< local flush. */
+ 	struct ia_css_hw_access_env hw_access_env; /**< CSS HW access functions */
+ 	struct ia_css_print_env     print_env;     /**< Message printing env. */
+ };
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+index aa19419..30f7196 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+@@ -13,6 +13,10 @@
+  */
+ 
+ /*! \file */
++#include <linux/mm.h>
++#include <linux/slab.h>
++#include <linux/vmalloc.h>
++
+ #include "ia_css.h"
+ #include "sh_css_hrt.h"		/* only for file 2 MIPI */
+ #include "ia_css_buffer.h"
+@@ -1679,15 +1683,8 @@ ia_css_load_firmware(const struct ia_css_env *env,
+ 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "ia_css_load_firmware() enter\n");
+ 
+ 	/* make sure we initialize my_css */
+-	if ((my_css.malloc != env->cpu_mem_env.alloc) ||
+-		(my_css.free != env->cpu_mem_env.free) ||
+-		(my_css.flush != env->cpu_mem_env.flush)
+-		)
+-	{
++	if (my_css.flush != env->cpu_mem_env.flush) {
+ 		ia_css_reset_defaults(&my_css);
+-
+-		my_css.malloc = env->cpu_mem_env.alloc;
+-		my_css.free = env->cpu_mem_env.free;
+ 		my_css.flush = env->cpu_mem_env.flush;
+ 	}
+ 
+@@ -1715,8 +1712,6 @@ ia_css_init(const struct ia_css_env *env,
+ 	ia_css_blctrl_cfg blctrl_cfg;
+ #endif
+ 
+-	void *(*malloc_func)(size_t size, bool zero_mem);
+-	void (*free_func)(void *ptr);
+ 	void (*flush_func)(struct ia_css_acc_fw *fw);
+ 	hrt_data select, enable;
+ 
+@@ -1765,8 +1760,6 @@ ia_css_init(const struct ia_css_env *env,
+ 
+ 	IA_CSS_ENTER("void");
+ 
+-	malloc_func    = env->cpu_mem_env.alloc;
+-	free_func      = env->cpu_mem_env.free;
+ 	flush_func     = env->cpu_mem_env.flush;
+ 
+ 	pipe_global_init();
+@@ -1786,16 +1779,9 @@ ia_css_init(const struct ia_css_env *env,
+ 	ia_css_save_mmu_base_addr(mmu_l1_base);
+ #endif
+ 
+-	if (malloc_func == NULL || free_func == NULL) {
+-		IA_CSS_LEAVE_ERR(IA_CSS_ERR_INVALID_ARGUMENTS);
+-		return IA_CSS_ERR_INVALID_ARGUMENTS;
+-	}
+-
+ 	ia_css_reset_defaults(&my_css);
+ 
+ 	my_css_save.driver_env = *env;
+-	my_css.malloc    = malloc_func;
+-	my_css.free      = free_func;
+ 	my_css.flush     = flush_func;
+ 
+ 	err = ia_css_rmgr_init();
+@@ -2018,25 +2004,35 @@ ia_css_enable_isys_event_queue(bool enable)
+ void *sh_css_malloc(size_t size)
+ {
+ 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "sh_css_malloc() enter: size=%d\n",size);
+-	if (size > 0 && my_css.malloc)
+-		return my_css.malloc(size, false);
+-	return NULL;
++	/* FIXME: This first test can probably go away */
++	if (size == 0)
++		return NULL;
++	if (size > PAGE_SIZE)
++		return vmalloc(size);
++	return kmalloc(size, GFP_KERNEL);
+ }
+ 
+ void *sh_css_calloc(size_t N, size_t size)
+ {
++	void *p;
++
+ 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "sh_css_calloc() enter: N=%d, size=%d\n",N,size);
+-	if (size > 0 && my_css.malloc)
+-		return my_css.malloc(N*size, true);		
++
++	/* FIXME: this test can probably go away */
++	if (size > 0) {
++		p = sh_css_malloc(N*size);
++		if (p)
++			memset(p, 0, size);
++	}
+ 	return NULL;
+ }
+ 
+ void sh_css_free(void *ptr)
+ {
+-	IA_CSS_ENTER_PRIVATE("ptr = %p", ptr);
+-	if (ptr && my_css.free)
+-		my_css.free(ptr);
+-	IA_CSS_LEAVE_PRIVATE("void");
++	if (is_vmalloc_addr(ptr))
++		vfree(ptr);
++	else
++		kfree(ptr);
+ }
+ 
+ /* For Acceleration API: Flush FW (shared buffer pointer) arguments */
