@@ -1,93 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:55422 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756843AbdDFPLf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Apr 2017 11:11:35 -0400
-Date: Thu, 6 Apr 2017 16:10:33 +0100
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH] [media] imx: csi: retain current field order and
- colorimetry setting as default
-Message-ID: <20170406151032.GH17774@n2100.armlinux.org.uk>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
- <1490661656-10318-22-git-send-email-steve_longerbeam@mentor.com>
- <1491486929.2392.29.camel@pengutronix.de>
- <20170406140533.GF17774@n2100.armlinux.org.uk>
- <1491490912.2392.74.camel@pengutronix.de>
+Received: from mga01.intel.com ([192.55.52.88]:58763 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754745AbdDLSUG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Apr 2017 14:20:06 -0400
+Subject: [PATCH 01/14] staging: atomisp: use local variable to reduce number
+ of references
+From: Alan Cox <alan@linux.intel.com>
+To: greg@kroah.com, linux-media@vger.kernel.org
+Date: Wed, 12 Apr 2017 19:20:01 +0100
+Message-ID: <149202119790.16615.4841216953457109397.stgit@acox1-desk1.ger.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1491490912.2392.74.camel@pengutronix.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 06, 2017 at 05:01:52PM +0200, Philipp Zabel wrote:
-> On Thu, 2017-04-06 at 15:05 +0100, Russell King - ARM Linux wrote:
-> > On Thu, Apr 06, 2017 at 03:55:29PM +0200, Philipp Zabel wrote:
-> > > +
-> > > +	/* Retain current field setting as default */
-> > > +	if (sdformat->format.field == V4L2_FIELD_ANY)
-> > > +		sdformat->format.field = fmt->field;
-> > > +
-> > > +	/* Retain current colorspace setting as default */
-> > > +	if (sdformat->format.colorspace == V4L2_COLORSPACE_DEFAULT) {
-> > > +		sdformat->format.colorspace = fmt->colorspace;
-> > > +		if (sdformat->format.xfer_func == V4L2_XFER_FUNC_DEFAULT)
-> > > +			sdformat->format.xfer_func = fmt->xfer_func;
-> > > +		if (sdformat->format.ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT)
-> > > +			sdformat->format.ycbcr_enc = fmt->ycbcr_enc;
-> > > +		if (sdformat->format.quantization == V4L2_QUANTIZATION_DEFAULT)
-> > > +			sdformat->format.quantization = fmt->quantization;
-> > > +	} else {
-> > > +		if (sdformat->format.xfer_func == V4L2_XFER_FUNC_DEFAULT) {
-> > > +			sdformat->format.xfer_func =
-> > > +				V4L2_MAP_XFER_FUNC_DEFAULT(
-> > > +						sdformat->format.colorspace);
-> > > +		}
-> > > +		if (sdformat->format.ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT) {
-> > > +			sdformat->format.ycbcr_enc =
-> > > +				V4L2_MAP_YCBCR_ENC_DEFAULT(
-> > > +						sdformat->format.colorspace);
-> > > +		}
-> > > +		if (sdformat->format.quantization == V4L2_QUANTIZATION_DEFAULT) {
-> > > +			sdformat->format.quantization =
-> > > +				V4L2_MAP_QUANTIZATION_DEFAULT(
-> > > +						cc->cs != IPUV3_COLORSPACE_YUV,
-> > > +						sdformat->format.colorspace,
-> > > +						sdformat->format.ycbcr_enc);
-> > > +		}
-> > > +	}
-> > 
-> > Would it make sense for this to be a helper function?
-> 
-> Quite possible, the next subdev that has to set frame_interval on both
-> pads manually because its upstream source pad doesn't suport
-> frame_interval might want to do the same.
+From: Daeseok Youn <daeseok.youn@gmail.com>
 
-Hmm.  I'm not sure I agree with this approach.  If a subdev hardware
-does not support any modification of the colourspace or field, then
-it should not be modifyable at the source pad - it should retain the
-propagated settings from the sink pad.
+Define new local variable to reduce the number of reference.
+The new local variable is added to save the addess of dfs
+and used in atomisp_freq_scaling() function.
 
-I thought I had already sent a patch doing exactly that.
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
+ .../media/atomisp/pci/atomisp2/atomisp_cmd.c       |   37 +++++++++++---------
+ 1 file changed, 20 insertions(+), 17 deletions(-)
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index 94bc793..9ad5146 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -251,6 +251,7 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
+ {
+ 	/* FIXME! Only use subdev[0] status yet */
+ 	struct atomisp_sub_device *asd = &isp->asd[0];
++	const struct atomisp_dfs_config *dfs;
+ 	unsigned int new_freq;
+ 	struct atomisp_freq_scaling_rule curr_rules;
+ 	int i, ret;
+@@ -265,20 +266,22 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
+ 		ATOMISP_PCI_DEVICE_SOC_CHT && ATOMISP_USE_YUVPP(asd))
+ 		isp->dfs = &dfs_config_cht_soc;
+ 
+-	if (isp->dfs->lowest_freq == 0 || isp->dfs->max_freq_at_vmin == 0 ||
+-	    isp->dfs->highest_freq == 0 || isp->dfs->dfs_table_size == 0 ||
+-	    !isp->dfs->dfs_table) {
++	dfs = isp->dfs;
++
++	if (dfs->lowest_freq == 0 || dfs->max_freq_at_vmin == 0 ||
++	    dfs->highest_freq == 0 || dfs->dfs_table_size == 0 ||
++	    !dfs->dfs_table) {
+ 		dev_err(isp->dev, "DFS configuration is invalid.\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (mode == ATOMISP_DFS_MODE_LOW) {
+-		new_freq = isp->dfs->lowest_freq;
++		new_freq = dfs->lowest_freq;
+ 		goto done;
+ 	}
+ 
+ 	if (mode == ATOMISP_DFS_MODE_MAX) {
+-		new_freq = isp->dfs->highest_freq;
++		new_freq = dfs->highest_freq;
+ 		goto done;
+ 	}
+ 
+@@ -304,26 +307,26 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
+ 	}
+ 
+ 	/* search for the target frequency by looping freq rules*/
+-	for (i = 0; i < isp->dfs->dfs_table_size; i++) {
+-		if (curr_rules.width != isp->dfs->dfs_table[i].width &&
+-		    isp->dfs->dfs_table[i].width != ISP_FREQ_RULE_ANY)
++	for (i = 0; i < dfs->dfs_table_size; i++) {
++		if (curr_rules.width != dfs->dfs_table[i].width &&
++		    dfs->dfs_table[i].width != ISP_FREQ_RULE_ANY)
+ 			continue;
+-		if (curr_rules.height != isp->dfs->dfs_table[i].height &&
+-		    isp->dfs->dfs_table[i].height != ISP_FREQ_RULE_ANY)
++		if (curr_rules.height != dfs->dfs_table[i].height &&
++		    dfs->dfs_table[i].height != ISP_FREQ_RULE_ANY)
+ 			continue;
+-		if (curr_rules.fps != isp->dfs->dfs_table[i].fps &&
+-		    isp->dfs->dfs_table[i].fps != ISP_FREQ_RULE_ANY)
++		if (curr_rules.fps != dfs->dfs_table[i].fps &&
++		    dfs->dfs_table[i].fps != ISP_FREQ_RULE_ANY)
+ 			continue;
+-		if (curr_rules.run_mode != isp->dfs->dfs_table[i].run_mode &&
+-		    isp->dfs->dfs_table[i].run_mode != ISP_FREQ_RULE_ANY)
++		if (curr_rules.run_mode != dfs->dfs_table[i].run_mode &&
++		    dfs->dfs_table[i].run_mode != ISP_FREQ_RULE_ANY)
+ 			continue;
+ 		break;
+ 	}
+ 
+-	if (i == isp->dfs->dfs_table_size)
+-		new_freq = isp->dfs->max_freq_at_vmin;
++	if (i == dfs->dfs_table_size)
++		new_freq = dfs->max_freq_at_vmin;
+ 	else
+-		new_freq = isp->dfs->dfs_table[i].isp_freq;
++		new_freq = dfs->dfs_table[i].isp_freq;
+ 
+ done:
+ 	dev_dbg(isp->dev, "DFS target frequency=%d.\n", new_freq);
