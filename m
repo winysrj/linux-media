@@ -1,113 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:39391 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753206AbdDJKgI (ORCPT
+Received: from mail-oi0-f48.google.com ([209.85.218.48]:33189 "EHLO
+        mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752286AbdDLNNk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 06:36:08 -0400
-Subject: Re: [PATCH] dev-capture.rst/dev-output.rst: video standards ioctls
- are optional
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <8e21fc74-64a8-8767-8bcf-4b954d4e22c1@xs4all.nl>
- <20170410070940.7f55c1b1@vento.lan>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <19667636-a0a2-1793-4638-af0a25a9198a@xs4all.nl>
-Date: Mon, 10 Apr 2017 12:36:03 +0200
+        Wed, 12 Apr 2017 09:13:40 -0400
+Received: by mail-oi0-f48.google.com with SMTP id b187so30705309oif.0
+        for <linux-media@vger.kernel.org>; Wed, 12 Apr 2017 06:13:39 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20170410070940.7f55c1b1@vento.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <2ea495f2-022d-a9ee-11a0-28fbcba5db57@xs4all.nl>
+References: <CAF_dkJAwwj0mpOztkTNTrDC1YQkgh=HvZGh=tv3SYsuvUzTb+g@mail.gmail.com>
+ <2ea495f2-022d-a9ee-11a0-28fbcba5db57@xs4all.nl>
+From: Patrick Doyle <wpdster@gmail.com>
+Date: Wed, 12 Apr 2017 09:13:08 -0400
+Message-ID: <CAF_dkJCqcVuSsey697OkA6-E563qEr=fYFWM26V1ZOSdnu4RGQ@mail.gmail.com>
+Subject: Re: Looking for device driver advice
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/10/2017 12:21 PM, Mauro Carvalho Chehab wrote:
-> Em Wed, 29 Mar 2017 09:56:47 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> The documentation for video capture and output devices claims that the video standard
->> ioctls are required. This is not the case, they are only required for PAL/NTSC/SECAM
->> type inputs and outputs. Sensors do not implement this at all and e.g. HDMI inputs
->> implement the DV Timings ioctls.
+Thank you Hans,
+I can modify (or work with Atmel/Microchip to have modified) the
+atmel-isc driver, so I that's not an issue.
+
+With your feedback, I now have a target implementation to which I can aim.
+
+For now, I'll be happy when I can get any image at all through my
+pipeline... wish me luck! :-)
+
+On a similar vein... the image is much higher resolution than I need
+at the moment, so I will need to downsample it.
+
+The SAMA5 has a downsampler built into its LCD engine.  Suppose I
+wanted to treat that downsampler as an independent device and pass
+image buffers through that downsampler (the LCD display output is
+disabled in hardware when the device is configured in this mode)....
+do you have any recommendations as to how I might structure a device
+driver to do that.  At it's core, it would DMA a buffer from memory,
+through the downsampler, and back into memory.  Is that something I
+might also wire in as a pseudo-subdev of the ISC?  Or is there a
+better abstraction for arbitrary image processing pipeline elements?
+
+Oh yeah, and speaking about arbitrary image processing pipeline
+elements, the Atmel ISC has a number of elements that could be enabled
+(but are not currently supported by the driver).  Is there a model to
+follow to enable features such as demosaicing, color space conversion,
+gamma correction, 4:2:2 to 4:2:0 downsampling, etc...
+
+All of this is on the list of things that I need to get working... by
+next Tuesday ideally :-)
+(No, it's not really "next Tuesday", but you get the idea.)
+
+--wpd
+
+
+On Wed, Apr 12, 2017 at 7:37 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Patrick,
+>
+> On 04/10/2017 10:13 PM, Patrick Doyle wrote:
+>> I am looking for advice regarding the construction of a device driver
+>> for a MIPI CSI2 imager (a Sony IMX241) that is connected to a
+>> MIPI<->Parallel converter (Toshiba TC358748) wired into a parallel
+>> interface on a Soc (a Microchip/Atmel SAMAD2x device.)
 >>
->> Just drop the mention of 'video standard' ioctls.
+>> The Sony imager is controlled and configured via I2C, as is the
+>> Toshiba converter.  I could write a single driver that configures both
+>> devices and treats them as a single device that just happens to use 2
+>> i2c addresses.  I could use the i2c_new_dummy() API to construct the
+>> device abstraction for the second physical device at probe time for
+>> the first physical device.
 >>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This is an API change that has the potential of breaking userspace.
-> 
-> In the past, several applications were failing if VIDIOC_ENUMSTD ioctl is
-> not implemented. So, I remember we had this discussion before, but I don't
-> remember the dirty details anymore.
-> 
-> Yet, looking at the code, it seems that we ended by making VIDIOC_ENUMSTD
-> mandatory and implemented at the core. So, V4L2 core will make this
-> ioctl available for all drivers. The core implementattion will, however, 
-> return -ENODATA  if the driver doesn't set video_device.tvnorms, indicating
-> that standard video timings are not supported.
-> 
-> So, instead of the enclosed patch, the documentation should mention the
-> standard ioctls, saying that G_STD/S_STD are optional, and ENUMSTD is
-> mandatory. 
-
-I don't think so. In v4l2-dev.c ENUMSTD is only enabled if the driver supports
-the s_std ioctl:
-
-        if (is_vid || is_vbi || is_tch) {
-                /* ioctls valid for video or vbi */
-                if (ops->vidioc_s_std)
-                        set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
-
-And in case you are wondering: if you have two inputs, one SDTV and one HDTV, then
-you have both s_std and s_dv_timings ioctls and if you switch to the HDTV input,
-then tvnorms is set to 0, causing ENUMSTD to return -ENODATA. If you switch back,
-then the driver will fill in tvnorms to something non-0.
-
-Regards,
-
-	Hans
-
-> 
-> We could include a note about it may return -ENODATA, although the ENUMSTD
-> documentation already states that it returns -ENODATA:
-> 	https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/vidioc-enumstd.html
-> 
+>> Or I could do something smarter (or at least different), specifying
+>> the two devices independently via my device tree file, perhaps linking
+>> them together via "port" nodes.  Currently, I use the "port" node
+>> concept to link an i2c imager to the Image System Controller (isc)
+>> node in the SAMA5 device.  Perhaps that generalizes to a chain of
+>> nodes linked together... I don't know.
+>
+> That would be the right solution. Unfortunately the atmel-isc.c driver
+> (at least the version in the mainline kernel) only supports a single
+> subdev device. At least, as far as I can see.
+>
+> What you have is a video pipeline of 2 subdevs and the atmel-isc as DMA
+> engine:
+>
+> imx241 -> tc358748 -> atmel-isc
+>
+> connected in the device tree by ports.
+>
+> Looking at the code I think both subdev drivers would be loaded, but
+> the atmel-isc driver would only call ops from the tc358748.
+>
+> The v4l2_subdev_call functions in atmel-isc should most likely be replaced
+> by v4l2_device_call_all().
+>
+> But I don't have the tc358748 datasheet with the register information, so
+> I am not sure if this is sufficient.
+>
+>> I'm also not sure how these two devices might play into V4L2's
+>> "subdev" concept.  Are they separate, independent sub devices of the
+>> ISC, or are they a single sub device.
+>
+> subdev drivers are standalone drivers for, among others, i2c devices. The
+> top-level driver (atmel-isc + the device tree) is what pulls everything together.
+>
+> This allows us to reuse such subdev drivers on other devices.
+>
 > Regards,
-> Mauro
-> 
->> ---
->> diff --git a/Documentation/media/uapi/v4l/dev-capture.rst b/Documentation/media/uapi/v4l/dev-capture.rst
->> index 32b32055d070..4218742ab5d9 100644
->> --- a/Documentation/media/uapi/v4l/dev-capture.rst
->> +++ b/Documentation/media/uapi/v4l/dev-capture.rst
->> @@ -42,8 +42,8 @@ Video capture devices shall support :ref:`audio input <audio>`,
->>  :ref:`tuner`, :ref:`controls <control>`,
->>  :ref:`cropping and scaling <crop>` and
->>  :ref:`streaming parameter <streaming-par>` ioctls as needed. The
->> -:ref:`video input <video>` and :ref:`video standard <standard>`
->> -ioctls must be supported by all video capture devices.
->> +:ref:`video input <video>` ioctls must be supported by all video
->> +capture devices.
+>
+>         Hans
+>
 >>
+>> Any thoughts, intuition, pointers to existing code that addresses
+>> questions such as these, would be welcome.
 >>
->>  Image Format Negotiation
->> diff --git a/Documentation/media/uapi/v4l/dev-output.rst b/Documentation/media/uapi/v4l/dev-output.rst
->> index 25ae8ec96fdf..342eb4931f5c 100644
->> --- a/Documentation/media/uapi/v4l/dev-output.rst
->> +++ b/Documentation/media/uapi/v4l/dev-output.rst
->> @@ -40,8 +40,8 @@ Video output devices shall support :ref:`audio output <audio>`,
->>  :ref:`modulator <tuner>`, :ref:`controls <control>`,
->>  :ref:`cropping and scaling <crop>` and
->>  :ref:`streaming parameter <streaming-par>` ioctls as needed. The
->> -:ref:`video output <video>` and :ref:`video standard <standard>`
->> -ioctls must be supported by all video output devices.
->> +:ref:`video output <video>` ioctls must be supported by all video
->> +output devices.
+>> Thanks.
 >>
+>> --wpd
 >>
->>  Image Format Negotiation
-> 
-> 
-> 
-> Thanks,
-> Mauro
-> 
+>
