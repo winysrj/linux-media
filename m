@@ -1,310 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-ch2-08v.sys.comcast.net ([69.252.207.40]:41194 "EHLO
-        resqmta-ch2-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932073AbdDMAKW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Apr 2017 20:10:22 -0400
-From: A Sun <as1033x@comcast.net>
-Subject: [PATCH] [media] mceusb: TX -EPIPE (urb status = -32) lockup fix
-To: linux-media@vger.kernel.org
-Cc: Sean Young <sean@mess.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Message-ID: <58EEC1CB.7030806@comcast.net>
-Date: Wed, 12 Apr 2017 20:09:47 -0400
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from ale.deltatee.com ([207.54.116.67]:38139 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751528AbdDMWGZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 18:06:25 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
+        Tejun Heo <tj@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Ming Lin <ming.l@ssi.samsung.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
+        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
+        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
+        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Cc: Steve Wise <swise@opengridcomputing.com>,
+        Stephen Bates <sbates@raithlin.com>,
+        Logan Gunthorpe <logang@deltatee.com>
+Date: Thu, 13 Apr 2017 16:05:19 -0600
+Message-Id: <1492121135-4437-7-git-send-email-logang@deltatee.com>
+In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH 06/22] crypto: hifn_795x: Make use of the new sg_map helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Conversion of a couple kmap_atomic instances to the sg_map helper
+function.
 
-Bug:
+However, it looks like there was a bug in the original code: the source
+scatter lists offset (t->offset) was passed to ablkcipher_get which
+added it to the destination address. This doesn't make a lot of
+sense, but t->offset is likely always zero anyway. So, this patch cleans
+that brokeness up.
 
-Once IR blasting or mceusb device commands fail with mce_async_callback() TX -EPIPE error, all subsequent TX to device then fail with the same error.
-...
-[  249.986174] mceusb 1-1.2:1.0: requesting 38000 HZ carrier
-[  249.986210] mceusb 1-1.2:1.0: send request called (size=0x4)
-[  249.986256] mceusb 1-1.2:1.0: send request complete (res=0)
-[  249.986403] mceusb 1-1.2:1.0: Error: request urb status = -32 (TX HALT)
-[  249.999885] mceusb 1-1.2:1.0: send request called (size=0x3)
-[  249.999929] mceusb 1-1.2:1.0: send request complete (res=0)
-[  250.000013] mceusb 1-1.2:1.0: Error: request urb status = -32 (TX HALT)
-[  250.019830] mceusb 1-1.2:1.0: send request called (size=0x21)
-[  250.019868] mceusb 1-1.2:1.0: send request complete (res=0)
-[  250.020007] mceusb 1-1.2:1.0: Error: request urb status = -32 (TX HALT)
-...
+Also, a change to the error path: if ablkcipher_get failed, everything
+seemed to proceed as if it hadn't. Setting 'error' should hopefully
+clear that up.
 
-Fix:
-
-Message pertains to TX usb halt (stall) condition requiring usb_clear_halt() call in non-interrupt context to recover.
-Add USB TX halt error handling similar to the RX halt handling case from an earlier patch proposal.
-Reorder some mceusb code to accommodate TX halt error handling.
-
-This patch depends on the earlier proposed patch set:
-  [PATCH 1/3] [media] mceusb: RX -EPIPE (urb status = -32) lockup failure fix
-  [PATCH 2/3] [media] mceusb: sporadic RX truncation corruption fix
-  [PATCH 3/3] [media] mceusb: fix inaccurate debug buffer dumps and misleading
-
-Tested with:
-
-Linux raspberrypi 4.4.50-v7+ #970 SMP Mon Feb 20 19:18:29 GMT 2017 armv7l GNU/Linux
-mceusb 1-1.2:1.0: Registered SMK eHome Infrared Transceiver with mce emulator interface version 1
-mceusb 1-1.2:1.0: 2 tx ports (0x1 cabled) and 2 rx sensors (0x1 active)
-
-Fault simulation/injection is by executing the following USB operation in a mceusb instrumented driver, prior to TX I/O.
-    retval = usb_control_msg(ir->usbdev, usb_sndctrlpipe(ir->usbdev, 0),
-	USB_REQ_SET_FEATURE, USB_RECIP_ENDPOINT,
-	USB_ENDPOINT_HALT, usb_pipeendpoint(ir->pipe_out),
-	NULL, 0, USB_CTRL_SET_TIMEOUT);
-    dev_dbg(ir->dev, "set halt retval, %d", retval);
-
-After setting halt state for the TX endpoint, perform an lirc "irsend" to generate TX traffic to device.
-After the TX HALT, the patch restores subsequent TX to working state.
-...
-[  508.009638] mceusb 1-1.2:1.0: send request called (size=0x3)
-[  508.009697] mceusb 1-1.2:1.0: send request complete (res=0)
-[  508.009847] mce_async_callback()
-[  508.009864] mceusb 1-1.2:1.0: Error: request urb status = -32 (TX HALT)
-[  508.009890] mceusb 1-1.2:1.0: kevent 0 scheduled
-[  508.021552] mceusb 1-1.2:1.0: send request called (size=0x21)
-[  508.021598] mceusb 1-1.2:1.0: send request complete (res=0)
-[  508.021963] mce_async_callback()
-[  508.021981] mceusb 1-1.2:1.0: tx data: 84 b0 0c 8c 0c 84 8c 0c 8c 0c 84 8c 0c 8c 0c 84 98 0c 98 0c 84 98 0c 8c 0c 84 8c 0c 8c 0c 81 8c 80 (length=33)
-[  508.021997] mceusb 1-1.2:1.0: Raw IR data, 0 pulse/space samples
-[  508.066627] mceusb 1-1.2:1.0: send request called (size=0x3)
-[  508.066669] mceusb 1-1.2:1.0: send request complete (res=0)
-[  508.066841] mce_async_callback()
-[  508.066858] mceusb 1-1.2:1.0: tx data: 9f 08 03 (length=3)
-...
-
-Open issue(s):
-
-Testing with Pinnacle mceusb device reveals device specific (non USB 2.0 standard) misbehavior with respect to USB TX halt.
-
-Linux raspberrypi 4.4.50-v7+ #970 SMP Mon Feb 20 19:18:29 GMT 2017 armv7l GNU/Linux
-mceusb 1-1.2:1.0: Registered Pinnacle Systems PCTV Remote USB with mce emulator interface version 1
-mceusb 1-1.2:1.0: 2 tx ports (0x1 cabled) and 2 rx sensors (0x1 active)
-
-The Pinnacle device failed Linux usbtest module (modded to bind to the Pinnacle) test 13 with bogus halt status and -110 (-ETIMEDOUT) errors.
-
-[ 4558.114664] usbcore: deregistering interface driver mceusb
-[14956.572207] usbtest 1-1.2:1.0: mce ir device
-[14956.572234] usbtest 1-1.2:1.0: full-speed {control bulk-out} tests
-[14956.572363] usbcore: registered new interface driver usbtest
-[15241.341143] usbtest 1-1.2:1.0: TEST 1:  write 512 bytes 1000 times
-[15456.690845] usbtest 1-1.2:1.0: TEST 13:  set/clear 1000 halts
-[15456.691362] usbtest 1-1.2:1.0: ep 02 bogus status: 0001 != 0
-[15456.691381] usbtest 1-1.2:1.0: halts failed, iterations left 999
-
-[37432.646344] usbcore: deregistering interface driver mceusb
-[37468.447929] usbtest 1-1.2:1.0: mce ir device
-[37468.447956] usbtest 1-1.2:1.0: full-speed {control bulk-out} tests
-[37468.448079] usbcore: registered new interface driver usbtest
-[37519.150810] usbtest 1-1.2:1.0: TEST 1:  write 512 bytes 1000 times
-[37537.853493] usbtest 1-1.2:1.0: TEST 13:  set/clear 1000 halts
-[37547.866871] usb 1-1.2: verify_not_halted failed, iterations left 0, status -110 (not 0)
-[37547.866901] usbtest 1-1.2:1.0: halts failed, iterations left 999
-
-With mceusb, upon executing usb_clear_halt() on this Pinnacle mceusb USB TX end-point, regardless of its halt/stall state, TX functionality silently ceases.
-mce_async_callback() invocations cease, and there are no other error indications from usb_submit_urb() or anywhere else.
-An escalating USB reset was necessary to restore this device to working state.
-Certain mceusb devices may require device specific recovery procedure for TX halt conditions, which this patch does not address.
-
-Signed-off-by: A Sun <as1033x@comcast.net>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- drivers/media/rc/mceusb.c | 89 +++++++++++++++++++++++++++++------------------
- 1 file changed, 56 insertions(+), 33 deletions(-)
+ drivers/crypto/hifn_795x.c | 32 +++++++++++++++++++++-----------
+ 1 file changed, 21 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index a9a9a85..d1d7246 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -419,6 +419,7 @@ struct mceusb_dev {
- 	struct urb *urb_in;
- 	unsigned int pipe_in;
- 	struct usb_endpoint_descriptor *usb_ep_out;
-+	unsigned int pipe_out;
- 
- 	/* buffers and dma */
- 	unsigned char *buf_in;
-@@ -456,7 +457,8 @@ struct mceusb_dev {
- 	u8 txports_cabled;	/* bitmask of transmitters with cable */
- 	u8 rxports_active;	/* bitmask of active receive sensors */
- 
--	/* kevent support */
-+	/* async error handler mceusb_deferred_kevent() support
-+	 * via workqueue kworker (previously keventd) */
- 	struct work_struct kevent;
- 	unsigned long kevent_flags;
- #		define EVENT_TX_HALT	0
-@@ -694,6 +696,22 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
- #endif
+diff --git a/drivers/crypto/hifn_795x.c b/drivers/crypto/hifn_795x.c
+index e09d405..8e2c6a9 100644
+--- a/drivers/crypto/hifn_795x.c
++++ b/drivers/crypto/hifn_795x.c
+@@ -1619,7 +1619,7 @@ static int hifn_start_device(struct hifn_device *dev)
+ 	return 0;
  }
  
-+/*
-+ * Schedule work that can't be done in interrupt handlers
-+ * (mceusb_dev_recv() and mce_async_callback()) nor tasklets.
-+ * Invokes mceusb_deferred_kevent() for recovering from
-+ * error events specified by the kevent bit field.
-+ */
-+static void mceusb_defer_kevent(struct mceusb_dev *ir, int kevent)
-+{
-+	set_bit(kevent, &ir->kevent_flags);
-+	if (!schedule_work(&ir->kevent)) {
-+		dev_err(ir->dev, "kevent %d may have been dropped", kevent);
-+	} else {
-+		dev_dbg(ir->dev, "kevent %d scheduled", kevent);
-+	}
-+}
+-static int ablkcipher_get(void *saddr, unsigned int *srestp, unsigned int offset,
++static int ablkcipher_get(void *saddr, unsigned int *srestp,
+ 		struct scatterlist *dst, unsigned int size, unsigned int *nbytesp)
+ {
+ 	unsigned int srest = *srestp, nbytes = *nbytesp, copy;
+@@ -1632,15 +1632,17 @@ static int ablkcipher_get(void *saddr, unsigned int *srestp, unsigned int offset
+ 	while (size) {
+ 		copy = min3(srest, dst->length, size);
+ 
+-		daddr = kmap_atomic(sg_page(dst));
+-		memcpy(daddr + dst->offset + offset, saddr, copy);
+-		kunmap_atomic(daddr);
++		daddr = sg_map(dst, SG_KMAP_ATOMIC);
++		if (IS_ERR(daddr))
++			return PTR_ERR(daddr);
 +
- static void mce_async_callback(struct urb *urb)
- {
- 	struct mceusb_dev *ir;
-@@ -720,6 +738,11 @@ static void mce_async_callback(struct urb *urb)
- 		break;
++		memcpy(daddr, saddr, copy);
++		sg_unmap(dst, daddr, SG_KMAP_ATOMIC);
  
- 	case -EPIPE:
-+		dev_err(ir->dev, "Error: request urb status = %d (TX HALT)",
-+			urb->status);
-+		mceusb_defer_kevent(ir, EVENT_TX_HALT);
-+		break;
+ 		nbytes -= copy;
+ 		size -= copy;
+ 		srest -= copy;
+ 		saddr += copy;
+-		offset = 0;
+ 
+ 		pr_debug("%s: copy: %u, size: %u, srest: %u, nbytes: %u.\n",
+ 			 __func__, copy, size, srest, nbytes);
+@@ -1671,11 +1673,12 @@ static inline void hifn_complete_sa(struct hifn_device *dev, int i)
+ 
+ static void hifn_process_ready(struct ablkcipher_request *req, int error)
+ {
++	int err;
+ 	struct hifn_request_context *rctx = ablkcipher_request_ctx(req);
+ 
+ 	if (rctx->walk.flags & ASYNC_FLAGS_MISALIGNED) {
+ 		unsigned int nbytes = req->nbytes;
+-		int idx = 0, err;
++		int idx = 0;
+ 		struct scatterlist *dst, *t;
+ 		void *saddr;
+ 
+@@ -1695,17 +1698,24 @@ static void hifn_process_ready(struct ablkcipher_request *req, int error)
+ 				continue;
+ 			}
+ 
+-			saddr = kmap_atomic(sg_page(t));
++			saddr = sg_map(t, SG_KMAP_ATOMIC);
++			if (IS_ERR(saddr)) {
++				if (!error)
++					error = PTR_ERR(saddr);
++				break;
++			}
 +
- 	default:
- 		dev_err(ir->dev, "Error: request urb status = %d", urb->status);
- 		break;
-@@ -734,7 +757,7 @@ static void mce_async_callback(struct urb *urb)
- static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
- 								int size)
- {
--	int res, pipe;
-+	int res;
- 	struct urb *async_urb;
- 	struct device *dev = ir->dev;
- 	unsigned char *async_buf;
-@@ -753,17 +776,12 @@ static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
++			err = ablkcipher_get(saddr, &t->length,
++					     dst, nbytes, &nbytes);
++			sg_unmap(t, saddr, SG_KMAP_ATOMIC);
  
- 	/* outbound data */
- 	if (usb_endpoint_xfer_int(ir->usb_ep_out)) {
--		pipe = usb_sndintpipe(ir->usbdev,
--				 ir->usb_ep_out->bEndpointAddress);
--		usb_fill_int_urb(async_urb, ir->usbdev, pipe, async_buf,
--				 size, mce_async_callback, ir,
-+		usb_fill_int_urb(async_urb, ir->usbdev, ir->pipe_out,
-+				 async_buf, size, mce_async_callback, ir,
- 				 ir->usb_ep_out->bInterval);
- 	} else {
--		pipe = usb_sndbulkpipe(ir->usbdev,
--				 ir->usb_ep_out->bEndpointAddress);
--		usb_fill_bulk_urb(async_urb, ir->usbdev, pipe,
--				 async_buf, size, mce_async_callback,
--				 ir);
-+		usb_fill_bulk_urb(async_urb, ir->usbdev, ir->pipe_out,
-+				 async_buf, size, mce_async_callback, ir);
- 	}
- 	memcpy(async_buf, data, size);
+-			err = ablkcipher_get(saddr, &t->length, t->offset,
+-					dst, nbytes, &nbytes);
+ 			if (err < 0) {
+-				kunmap_atomic(saddr);
++				if (!error)
++					error = err;
+ 				break;
+ 			}
  
-@@ -1034,23 +1052,6 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
- 	}
- }
- 
--/*
-- * Workqueue task dispatcher
-- * for work that can't be done in interrupt handlers
-- * (mceusb_dev_recv() and mce_async_callback()) nor tasklets.
-- * Invokes mceusb_deferred_kevent() for recovering from
-- * error events specified by the kevent bit field.
-- */
--static void mceusb_defer_kevent(struct mceusb_dev *ir, int kevent)
--{
--	set_bit(kevent, &ir->kevent_flags);
--	if (!schedule_work(&ir->kevent)) {
--		dev_err(ir->dev, "kevent %d may have been dropped", kevent);
--	} else {
--		dev_dbg(ir->dev, "kevent %d scheduled", kevent);
--	}
--}
--
- static void mceusb_dev_recv(struct urb *urb)
- {
- 	struct mceusb_dev *ir;
-@@ -1220,16 +1221,28 @@ static void mceusb_deferred_kevent(struct work_struct *work)
- 		if (status < 0) {
- 			dev_err(ir->dev, "rx clear halt error %d",
- 				status);
--			return;
-+			goto done_rx_halt;
+ 			idx += err;
+-			kunmap_atomic(saddr);
  		}
- 		clear_bit(EVENT_RX_HALT, &ir->kevent_flags);
- 		status = usb_submit_urb(ir->urb_in, GFP_KERNEL);
- 		if (status < 0) {
- 			dev_err(ir->dev, "rx unhalt submit urb error %d",
- 				status);
--			return;
-+			goto done_rx_halt;
- 		}
- 	}
-+done_rx_halt:
-+	if (test_bit(EVENT_TX_HALT, &ir->kevent_flags)) {
-+		status = usb_clear_halt(ir->usbdev, ir->pipe_out);
-+		if (status < 0) {
-+			dev_err(ir->dev, "tx clear halt error %d",
-+				  status);
-+			goto done_tx_halt;
-+		}
-+		clear_bit(EVENT_TX_HALT, &ir->kevent_flags);
-+	}
-+done_tx_halt:
-+	return;
- }
  
- static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
-@@ -1359,6 +1372,7 @@ static int mceusb_dev_probe(struct usb_interface *intf,
- 		pipe = usb_rcvintpipe(dev, ep_in->bEndpointAddress);
- 	else
- 		pipe = usb_rcvbulkpipe(dev, ep_in->bEndpointAddress);
-+	ir->pipe_in = pipe;
- 	maxp = usb_maxpacket(dev, pipe, usb_pipeout(pipe));
- 
- 	ir = kzalloc(sizeof(struct mceusb_dev), GFP_KERNEL);
-@@ -1383,6 +1397,13 @@ static int mceusb_dev_probe(struct usb_interface *intf,
- 
- 	/* Saving usb interface data for use by the transmitter routine */
- 	ir->usb_ep_out = ep_out;
-+	if (usb_endpoint_xfer_int(ir->usb_ep_out)) {
-+		ir->pipe_out = usb_sndintpipe(ir->usbdev,
-+					ir->usb_ep_out->bEndpointAddress);
-+	} else {
-+		ir->pipe_out = usb_sndbulkpipe(ir->usbdev,
-+					ir->usb_ep_out->bEndpointAddress);
-+	}
- 
- 	if (dev->descriptor.iManufacturer
- 	    && usb_string(dev, dev->descriptor.iManufacturer,
-@@ -1394,13 +1415,14 @@ static int mceusb_dev_probe(struct usb_interface *intf,
- 		snprintf(name + strlen(name), sizeof(name) - strlen(name),
- 			 " %s", buf);
- 
-+	/* initialize async USB error handler before registering
-+	 * or activating any mceusb RX and TX functions */
-+	INIT_WORK(&ir->kevent, mceusb_deferred_kevent);
-+
- 	ir->rc = mceusb_init_rc_dev(ir);
- 	if (!ir->rc)
- 		goto rc_dev_fail;
- 
--	ir->pipe_in = pipe;
--	INIT_WORK(&ir->kevent, mceusb_deferred_kevent);
--
- 	/* wire up inbound data handler */
- 	if (usb_endpoint_xfer_int(ep_in)) {
- 		usb_fill_int_urb(ir->urb_in, dev, pipe, ir->buf_in, maxp,
-@@ -1450,6 +1472,7 @@ static int mceusb_dev_probe(struct usb_interface *intf,
- 
- 	/* Error-handling path */
- rc_dev_fail:
-+	cancel_work_sync(&ir->kevent);
- 	usb_put_dev(ir->usbdev);
- 	usb_kill_urb(ir->urb_in);
- 	usb_free_urb(ir->urb_in);
+ 		hifn_cipher_walk_exit(&rctx->walk);
 -- 
 2.1.4
