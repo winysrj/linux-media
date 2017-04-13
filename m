@@ -1,64 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:43999 "EHLO mga07.intel.com"
+Received: from ale.deltatee.com ([207.54.116.67]:38226 "EHLO ale.deltatee.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936774AbdD2XfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Apr 2017 19:35:06 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
-        hyungwoo.yang@intel.com, Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH 1/3] [media] videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
-Date: Sat, 29 Apr 2017 18:34:34 -0500
-Message-Id: <2c2cbc1df3f81dba37e7bd31c3d23fd2df2295af.1493479141.git.yong.zhi@intel.com>
-In-Reply-To: <cover.1493479141.git.yong.zhi@intel.com>
-References: <cover.1493479141.git.yong.zhi@intel.com>
-In-Reply-To: <cover.1493479141.git.yong.zhi@intel.com>
-References: <cover.1493479141.git.yong.zhi@intel.com>
+        id S1753284AbdDMWGa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 18:06:30 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
+        Tejun Heo <tj@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Ming Lin <ming.l@ssi.samsung.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
+        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
+        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
+        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Cc: Steve Wise <swise@opengridcomputing.com>,
+        Stephen Bates <sbates@raithlin.com>,
+        Logan Gunthorpe <logang@deltatee.com>
+Date: Thu, 13 Apr 2017 16:05:35 -0600
+Message-Id: <1492121135-4437-23-git-send-email-logang@deltatee.com>
+In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH 22/22] memstick: Make use of the new sg_map helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add IPU3 specific formats:
+Straightforward conversion, but we have to WARN if unmappable
+memory finds its way into the sgl.
 
-    V4L2_PIX_FMT_IPU3_SBGGR10
-    V4L2_PIX_FMT_IPU3_SGBRG10
-    V4L2_PIX_FMT_IPU3_SGRBG10
-    V4L2_PIX_FMT_IPU3_SRGGB10
-
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
- include/uapi/linux/videodev2.h       | 4 ++++
- 2 files changed, 8 insertions(+)
+ drivers/memstick/host/jmb38x_ms.c | 23 ++++++++++++++++++-----
+ drivers/memstick/host/tifm_ms.c   | 22 +++++++++++++++++-----
+ 2 files changed, 35 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index e5a2187..fb1387f 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1202,6 +1202,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_PIX_FMT_SGBRG10P:	descr = "10-bit Bayer GBGB/RGRG Packed"; break;
- 	case V4L2_PIX_FMT_SGRBG10P:	descr = "10-bit Bayer GRGR/BGBG Packed"; break;
- 	case V4L2_PIX_FMT_SRGGB10P:	descr = "10-bit Bayer RGRG/GBGB Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SBGGR10: descr = "10-bit bayer BGGR IPU3 Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SGBRG10: descr = "10-bit bayer GBRG IPU3 Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SGRBG10: descr = "10-bit bayer GRBG IPU3 Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SRGGB10: descr = "10-bit bayer RGGB IPU3 Packed"; break;
- 	case V4L2_PIX_FMT_SBGGR10ALAW8:	descr = "8-bit Bayer BGBG/GRGR (A-law)"; break;
- 	case V4L2_PIX_FMT_SGBRG10ALAW8:	descr = "8-bit Bayer GBGB/RGRG (A-law)"; break;
- 	case V4L2_PIX_FMT_SGRBG10ALAW8:	descr = "8-bit Bayer GRGR/BGBG (A-law)"; break;
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 2b8feb8..7dddbc9 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -662,6 +662,10 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
- #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
- #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
-+#define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
-+#define V4L2_PIX_FMT_IPU3_SGBRG10	v4l2_fourcc('i', 'p', '3', 'g') /* IPU3 packed 10-bit GBRG bayer */
-+#define V4L2_PIX_FMT_IPU3_SGRBG10	v4l2_fourcc('i', 'p', '3', 'G') /* IPU3 packed 10-bit GRBG bayer */
-+#define V4L2_PIX_FMT_IPU3_SRGGB10	v4l2_fourcc('i', 'p', '3', 'r') /* IPU3 packed 10-bit RGGB bayer */
+diff --git a/drivers/memstick/host/jmb38x_ms.c b/drivers/memstick/host/jmb38x_ms.c
+index 48db922..256cf41 100644
+--- a/drivers/memstick/host/jmb38x_ms.c
++++ b/drivers/memstick/host/jmb38x_ms.c
+@@ -303,7 +303,6 @@ static int jmb38x_ms_transfer_data(struct jmb38x_ms_host *host)
+ 	unsigned int off;
+ 	unsigned int t_size, p_cnt;
+ 	unsigned char *buf;
+-	struct page *pg;
+ 	unsigned long flags = 0;
  
- /* SDR formats - used only for Software Defined Radio devices */
- #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+ 	if (host->req->long_data) {
+@@ -318,14 +317,26 @@ static int jmb38x_ms_transfer_data(struct jmb38x_ms_host *host)
+ 		unsigned int uninitialized_var(p_off);
+ 
+ 		if (host->req->long_data) {
+-			pg = nth_page(sg_page(&host->req->sg),
+-				      off >> PAGE_SHIFT);
+ 			p_off = offset_in_page(off);
+ 			p_cnt = PAGE_SIZE - p_off;
+ 			p_cnt = min(p_cnt, length);
+ 
+ 			local_irq_save(flags);
+-			buf = kmap_atomic(pg) + p_off;
++			buf = sg_map_offset(&host->req->sg,
++					     off - host->req->sg.offset,
++					     SG_KMAP_ATOMIC);
++			if (IS_ERR(buf)) {
++				/*
++				 * This should really never happen unless
++				 * the code is changed to use memory that is
++				 * not mappable in the sg. Seeing there doesn't
++				 * seem to be any error path out of here,
++				 * we can only WARN.
++				 */
++				WARN(1, "Non-mappable memory used in sg!");
++				break;
++			}
++
+ 		} else {
+ 			buf = host->req->data + host->block_pos;
+ 			p_cnt = host->req->data_len - host->block_pos;
+@@ -341,7 +352,9 @@ static int jmb38x_ms_transfer_data(struct jmb38x_ms_host *host)
+ 				 : jmb38x_ms_read_reg_data(host, buf, p_cnt);
+ 
+ 		if (host->req->long_data) {
+-			kunmap_atomic(buf - p_off);
++			sg_unmap_offset(&host->req->sg, buf,
++					 off - host->req->sg.offset,
++					 SG_KMAP_ATOMIC);
+ 			local_irq_restore(flags);
+ 		}
+ 
+diff --git a/drivers/memstick/host/tifm_ms.c b/drivers/memstick/host/tifm_ms.c
+index 7bafa72..c0bc40e 100644
+--- a/drivers/memstick/host/tifm_ms.c
++++ b/drivers/memstick/host/tifm_ms.c
+@@ -186,7 +186,6 @@ static unsigned int tifm_ms_transfer_data(struct tifm_ms *host)
+ 	unsigned int off;
+ 	unsigned int t_size, p_cnt;
+ 	unsigned char *buf;
+-	struct page *pg;
+ 	unsigned long flags = 0;
+ 
+ 	if (host->req->long_data) {
+@@ -203,14 +202,25 @@ static unsigned int tifm_ms_transfer_data(struct tifm_ms *host)
+ 		unsigned int uninitialized_var(p_off);
+ 
+ 		if (host->req->long_data) {
+-			pg = nth_page(sg_page(&host->req->sg),
+-				      off >> PAGE_SHIFT);
+ 			p_off = offset_in_page(off);
+ 			p_cnt = PAGE_SIZE - p_off;
+ 			p_cnt = min(p_cnt, length);
+ 
+ 			local_irq_save(flags);
+-			buf = kmap_atomic(pg) + p_off;
++			buf = sg_map_offset(&host->req->sg,
++					     off - host->req->sg.offset,
++					     SG_KMAP_ATOMIC);
++			if (IS_ERR(buf)) {
++				/*
++				 * This should really never happen unless
++				 * the code is changed to use memory that is
++				 * not mappable in the sg. Seeing there doesn't
++				 * seem to be any error path out of here,
++				 * we can only WARN.
++				 */
++				WARN(1, "Non-mappable memory used in sg!");
++				break;
++			}
+ 		} else {
+ 			buf = host->req->data + host->block_pos;
+ 			p_cnt = host->req->data_len - host->block_pos;
+@@ -221,7 +231,9 @@ static unsigned int tifm_ms_transfer_data(struct tifm_ms *host)
+ 			 : tifm_ms_read_data(host, buf, p_cnt);
+ 
+ 		if (host->req->long_data) {
+-			kunmap_atomic(buf - p_off);
++			sg_unmap_offset(&host->req->sg, buf,
++					 off - host->req->sg.offset,
++					 SG_KMAP_ATOMIC);
+ 			local_irq_restore(flags);
+ 		}
+ 
 -- 
-2.7.4
+2.1.4
