@@ -1,129 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:49921 "EHLO ale.deltatee.com"
+Received: from ale.deltatee.com ([207.54.116.67]:38180 "EHLO ale.deltatee.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1952446AbdDYSVb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 14:21:31 -0400
+        id S1752639AbdDMWG1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 18:06:27 -0400
 From: Logan Gunthorpe <logang@deltatee.com>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com
-Cc: Christoph Hellwig <hch@lst.de>,
+To: Christoph Hellwig <hch@lst.de>,
         "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
+        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
+        Tejun Heo <tj@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Dan Williams <dan.j.williams@intel.com>,
         Ross Zwisler <ross.zwisler@linux.intel.com>,
         Matthew Wilcox <mawilcox@microsoft.com>,
         Sumit Semwal <sumit.semwal@linaro.org>,
+        Ming Lin <ming.l@ssi.samsung.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
+        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
+        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
+        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Cc: Steve Wise <swise@opengridcomputing.com>,
         Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-        =?UTF-8?q?Roger=20Pau=20Monn=C3=A9?= <roger.pau@citrix.com>
-Date: Tue, 25 Apr 2017 12:21:02 -0600
-Message-Id: <1493144468-22493-16-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: [PATCH v2 15/21] xen-blkfront: Make use of the new sg_map helper function
+        Logan Gunthorpe <logang@deltatee.com>
+Date: Thu, 13 Apr 2017 16:05:25 -0600
+Message-Id: <1492121135-4437-13-git-send-email-logang@deltatee.com>
+In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH 12/22] scsi: ipr, pmcraid, isci: Make use of the new sg_map helper in 4 call sites
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Straightforward conversion to the new helper, except due to the lack
-of error path, we have to use SG_MAP_MUST_NOT_FAIL which may BUG_ON in
-certain cases in the future.
+Very straightforward conversion of three scsi drivers.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: "Roger Pau Monné" <roger.pau@citrix.com>
 ---
- drivers/block/xen-blkfront.c | 20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ drivers/scsi/ipr.c          | 27 ++++++++++++++-------------
+ drivers/scsi/isci/request.c | 42 +++++++++++++++++++++++++-----------------
+ drivers/scsi/pmcraid.c      | 19 ++++++++++++-------
+ 3 files changed, 51 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
-index 3945963..ed62175 100644
---- a/drivers/block/xen-blkfront.c
-+++ b/drivers/block/xen-blkfront.c
-@@ -816,8 +816,9 @@ static int blkif_queue_rw_req(struct request *req, struct blkfront_ring_info *ri
- 		BUG_ON(sg->offset + sg->length > PAGE_SIZE);
+diff --git a/drivers/scsi/ipr.c b/drivers/scsi/ipr.c
+index b29afaf..f98f251 100644
+--- a/drivers/scsi/ipr.c
++++ b/drivers/scsi/ipr.c
+@@ -3853,7 +3853,7 @@ static void ipr_free_ucode_buffer(struct ipr_sglist *sglist)
+ static int ipr_copy_ucode_buffer(struct ipr_sglist *sglist,
+ 				 u8 *buffer, u32 len)
+ {
+-	int bsize_elem, i, result = 0;
++	int bsize_elem, i;
+ 	struct scatterlist *scatterlist;
+ 	void *kaddr;
  
- 		if (setup.need_copy) {
--			setup.bvec_off = sg->offset;
--			setup.bvec_data = kmap_atomic(sg_page(sg));
-+			setup.bvec_off = 0;
-+			setup.bvec_data = sg_map(sg, 0, SG_KMAP_ATOMIC |
-+						 SG_MAP_MUST_NOT_FAIL);
- 		}
+@@ -3863,32 +3863,33 @@ static int ipr_copy_ucode_buffer(struct ipr_sglist *sglist,
+ 	scatterlist = sglist->scatterlist;
  
- 		gnttab_foreach_grant_in_range(sg_page(sg),
-@@ -827,7 +828,7 @@ static int blkif_queue_rw_req(struct request *req, struct blkfront_ring_info *ri
- 					      &setup);
+ 	for (i = 0; i < (len / bsize_elem); i++, buffer += bsize_elem) {
+-		struct page *page = sg_page(&scatterlist[i]);
++		kaddr = sg_map(&scatterlist[i], SG_KMAP);
++		if (IS_ERR(kaddr)) {
++			ipr_trace;
++			return PTR_ERR(kaddr);
++		}
  
- 		if (setup.need_copy)
--			kunmap_atomic(setup.bvec_data);
-+			sg_unmap(sg, setup.bvec_data, 0, SG_KMAP_ATOMIC);
+-		kaddr = kmap(page);
+ 		memcpy(kaddr, buffer, bsize_elem);
+-		kunmap(page);
++		sg_unmap(&scatterlist[i], kaddr, SG_KMAP);
+ 
+ 		scatterlist[i].length = bsize_elem;
+-
+-		if (result != 0) {
+-			ipr_trace;
+-			return result;
+-		}
  	}
- 	if (setup.segments)
- 		kunmap_atomic(setup.segments);
-@@ -1053,7 +1054,7 @@ static int xen_translate_vdev(int vdevice, int *minor, unsigned int *offset)
- 		case XEN_SCSI_DISK5_MAJOR:
- 		case XEN_SCSI_DISK6_MAJOR:
- 		case XEN_SCSI_DISK7_MAJOR:
--			*offset = (*minor / PARTS_PER_DISK) + 
-+			*offset = (*minor / PARTS_PER_DISK) +
- 				((major - XEN_SCSI_DISK1_MAJOR + 1) * 16) +
- 				EMULATED_SD_DISK_NAME_OFFSET;
- 			*minor = *minor +
-@@ -1068,7 +1069,7 @@ static int xen_translate_vdev(int vdevice, int *minor, unsigned int *offset)
- 		case XEN_SCSI_DISK13_MAJOR:
- 		case XEN_SCSI_DISK14_MAJOR:
- 		case XEN_SCSI_DISK15_MAJOR:
--			*offset = (*minor / PARTS_PER_DISK) + 
-+			*offset = (*minor / PARTS_PER_DISK) +
- 				((major - XEN_SCSI_DISK8_MAJOR + 8) * 16) +
- 				EMULATED_SD_DISK_NAME_OFFSET;
- 			*minor = *minor +
-@@ -1119,7 +1120,7 @@ static int xlvbd_alloc_gendisk(blkif_sector_t capacity,
- 	if (!VDEV_IS_EXTENDED(info->vdevice)) {
- 		err = xen_translate_vdev(info->vdevice, &minor, &offset);
- 		if (err)
--			return err;		
-+			return err;
-  		nr_parts = PARTS_PER_DISK;
- 	} else {
- 		minor = BLKIF_MINOR_EXT(info->vdevice);
-@@ -1483,8 +1484,9 @@ static bool blkif_completion(unsigned long *id,
- 		for_each_sg(s->sg, sg, num_sg, i) {
- 			BUG_ON(sg->offset + sg->length > PAGE_SIZE);
  
--			data.bvec_offset = sg->offset;
--			data.bvec_data = kmap_atomic(sg_page(sg));
-+			data.bvec_offset = 0;
-+			data.bvec_data = sg_map(sg, 0, SG_KMAP_ATOMIC |
-+						SG_MAP_MUST_NOT_FAIL);
+ 	if (len % bsize_elem) {
+-		struct page *page = sg_page(&scatterlist[i]);
++		kaddr = sg_map(&scatterlist[i], SG_KMAP);
++		if (IS_ERR(kaddr)) {
++			ipr_trace;
++			return PTR_ERR(kaddr);
++		}
  
- 			gnttab_foreach_grant_in_range(sg_page(sg),
- 						      sg->offset,
-@@ -1492,7 +1494,7 @@ static bool blkif_completion(unsigned long *id,
- 						      blkif_copy_from_grant,
- 						      &data);
+-		kaddr = kmap(page);
+ 		memcpy(kaddr, buffer, len % bsize_elem);
+-		kunmap(page);
++		sg_unmap(&scatterlist[i], kaddr, SG_KMAP);
  
--			kunmap_atomic(data.bvec_data);
-+			sg_unmap(sg, data.bvec_data, 0, SG_KMAP_ATOMIC);
- 		}
+ 		scatterlist[i].length = len % bsize_elem;
  	}
- 	/* Add the persistent grant into the list of free grants */
+ 
+ 	sglist->buffer_len = len;
+-	return result;
++	return 0;
+ }
+ 
+ /**
+diff --git a/drivers/scsi/isci/request.c b/drivers/scsi/isci/request.c
+index 47f66e9..66d6596 100644
+--- a/drivers/scsi/isci/request.c
++++ b/drivers/scsi/isci/request.c
+@@ -1424,12 +1424,14 @@ sci_stp_request_pio_data_in_copy_data_buffer(struct isci_stp_request *stp_req,
+ 		sg = task->scatter;
+ 
+ 		while (total_len > 0) {
+-			struct page *page = sg_page(sg);
+-
+ 			copy_len = min_t(int, total_len, sg_dma_len(sg));
+-			kaddr = kmap_atomic(page);
+-			memcpy(kaddr + sg->offset, src_addr, copy_len);
+-			kunmap_atomic(kaddr);
++			kaddr = sg_map(sg, SG_KMAP_ATOMIC);
++			if (IS_ERR(kaddr))
++				return SCI_FAILURE;
++
++			memcpy(kaddr, src_addr, copy_len);
++			sg_unmap(sg, kaddr, SG_KMAP_ATOMIC);
++
+ 			total_len -= copy_len;
+ 			src_addr += copy_len;
+ 			sg = sg_next(sg);
+@@ -1771,14 +1773,16 @@ sci_io_request_frame_handler(struct isci_request *ireq,
+ 	case SCI_REQ_SMP_WAIT_RESP: {
+ 		struct sas_task *task = isci_request_access_task(ireq);
+ 		struct scatterlist *sg = &task->smp_task.smp_resp;
+-		void *frame_header, *kaddr;
++		void *frame_header;
+ 		u8 *rsp;
+ 
+ 		sci_unsolicited_frame_control_get_header(&ihost->uf_control,
+ 							 frame_index,
+ 							 &frame_header);
+-		kaddr = kmap_atomic(sg_page(sg));
+-		rsp = kaddr + sg->offset;
++		rsp = sg_map(sg, SG_KMAP_ATOMIC);
++		if (IS_ERR(rsp))
++			return SCI_FAILURE;
++
+ 		sci_swab32_cpy(rsp, frame_header, 1);
+ 
+ 		if (rsp[0] == SMP_RESPONSE) {
+@@ -1814,7 +1818,7 @@ sci_io_request_frame_handler(struct isci_request *ireq,
+ 			ireq->sci_status = SCI_FAILURE_CONTROLLER_SPECIFIC_IO_ERR;
+ 			sci_change_state(&ireq->sm, SCI_REQ_COMPLETED);
+ 		}
+-		kunmap_atomic(kaddr);
++		sg_unmap(sg, rsp, SG_KMAP_ATOMIC);
+ 
+ 		sci_controller_release_frame(ihost, frame_index);
+ 
+@@ -2919,15 +2923,18 @@ static void isci_request_io_request_complete(struct isci_host *ihost,
+ 	case SAS_PROTOCOL_SMP: {
+ 		struct scatterlist *sg = &task->smp_task.smp_req;
+ 		struct smp_req *smp_req;
+-		void *kaddr;
+ 
+ 		dma_unmap_sg(&ihost->pdev->dev, sg, 1, DMA_TO_DEVICE);
+ 
+ 		/* need to swab it back in case the command buffer is re-used */
+-		kaddr = kmap_atomic(sg_page(sg));
+-		smp_req = kaddr + sg->offset;
++		smp_req = sg_map(sg, SG_KMAP_ATOMIC);
++		if (IS_ERR(smp_req)) {
++			status = SAS_ABORTED_TASK;
++			break;
++		}
++
+ 		sci_swab32_cpy(smp_req, smp_req, sg->length / sizeof(u32));
+-		kunmap_atomic(kaddr);
++		sg_unmap(sg, smp_req, SG_KMAP_ATOMIC);
+ 		break;
+ 	}
+ 	default:
+@@ -3190,12 +3197,13 @@ sci_io_request_construct_smp(struct device *dev,
+ 	struct scu_task_context *task_context;
+ 	struct isci_port *iport;
+ 	struct smp_req *smp_req;
+-	void *kaddr;
+ 	u8 req_len;
+ 	u32 cmd;
+ 
+-	kaddr = kmap_atomic(sg_page(sg));
+-	smp_req = kaddr + sg->offset;
++	smp_req = sg_map(sg, SG_KMAP_ATOMIC);
++	if (IS_ERR(smp_req))
++		return SCI_FAILURE;
++
+ 	/*
+ 	 * Look at the SMP requests' header fields; for certain SAS 1.x SMP
+ 	 * functions under SAS 2.0, a zero request length really indicates
+@@ -3220,7 +3228,7 @@ sci_io_request_construct_smp(struct device *dev,
+ 	req_len = smp_req->req_len;
+ 	sci_swab32_cpy(smp_req, smp_req, sg->length / sizeof(u32));
+ 	cmd = *(u32 *) smp_req;
+-	kunmap_atomic(kaddr);
++	sg_unmap(sg, smp_req, SG_KMAP_ATOMIC);
+ 
+ 	if (!dma_map_sg(dev, sg, 1, DMA_TO_DEVICE))
+ 		return SCI_FAILURE;
+diff --git a/drivers/scsi/pmcraid.c b/drivers/scsi/pmcraid.c
+index 49e70a3..af1903e 100644
+--- a/drivers/scsi/pmcraid.c
++++ b/drivers/scsi/pmcraid.c
+@@ -3342,9 +3342,12 @@ static int pmcraid_copy_sglist(
+ 	scatterlist = sglist->scatterlist;
+ 
+ 	for (i = 0; i < (len / bsize_elem); i++, buffer += bsize_elem) {
+-		struct page *page = sg_page(&scatterlist[i]);
++		kaddr = sg_map(&scatterlist[i], SG_KMAP);
++		if (IS_ERR(kaddr)) {
++			pmcraid_err("failed to copy user data into sg list\n");
++			return PTR_ERR(kaddr);
++		}
+ 
+-		kaddr = kmap(page);
+ 		if (direction == DMA_TO_DEVICE)
+ 			rc = __copy_from_user(kaddr,
+ 					      (void *)buffer,
+@@ -3352,7 +3355,7 @@ static int pmcraid_copy_sglist(
+ 		else
+ 			rc = __copy_to_user((void *)buffer, kaddr, bsize_elem);
+ 
+-		kunmap(page);
++		sg_unmap(&scatterlist[i], kaddr, SG_KMAP);
+ 
+ 		if (rc) {
+ 			pmcraid_err("failed to copy user data into sg list\n");
+@@ -3363,9 +3366,11 @@ static int pmcraid_copy_sglist(
+ 	}
+ 
+ 	if (len % bsize_elem) {
+-		struct page *page = sg_page(&scatterlist[i]);
+-
+-		kaddr = kmap(page);
++		kaddr = sg_map(&scatterlist[i], SG_KMAP);
++		if (IS_ERR(kaddr)) {
++			pmcraid_err("failed to copy user data into sg list\n");
++			return PTR_ERR(kaddr);
++		}
+ 
+ 		if (direction == DMA_TO_DEVICE)
+ 			rc = __copy_from_user(kaddr,
+@@ -3376,7 +3381,7 @@ static int pmcraid_copy_sglist(
+ 					    kaddr,
+ 					    len % bsize_elem);
+ 
+-		kunmap(page);
++		sg_unmap(&scatterlist[i], kaddr, SG_KMAP);
+ 
+ 		scatterlist[i].length = len % bsize_elem;
+ 	}
 -- 
 2.1.4
