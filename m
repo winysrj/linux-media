@@ -1,52 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:35774 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753859AbdDEAVA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 20:21:00 -0400
-Date: Tue, 4 Apr 2017 17:20:56 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        linux-input <linux-input@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 1/2] serio.h: add SERIO_RAINSHADOW_CEC ID
-Message-ID: <20170405002056.GB19744@dtor-ws>
-References: <20170203152633.33323-1-hverkuil@xs4all.nl>
- <20170203152633.33323-2-hverkuil@xs4all.nl>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:35439 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750746AbdDMETC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 00:19:02 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>
+CC: <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: [PATCH] [media] mtk-mdp: Fix g_/s_selection capture/compose logic
+Date: Thu, 13 Apr 2017 12:18:50 +0800
+Message-ID: <1492057130-1194-1-git-send-email-minghsiu.tsai@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170203152633.33323-2-hverkuil@xs4all.nl>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 03, 2017 at 04:26:32PM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Add a new serio ID for the RainShadow Tech USB HDMI CEC adapter.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+From: Daniel Kurtz <djkurtz@chromium.org>
 
-Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Experiments show that the:
+ (1) mtk-mdp uses the _MPLANE form of CAPTURE/OUTPUT
+ (2) CAPTURE types use CROP targets, and OUTPUT types use COMPOSE targets
 
-> ---
->  include/uapi/linux/serio.h | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/include/uapi/linux/serio.h b/include/uapi/linux/serio.h
-> index f2447a8..f42e919 100644
-> --- a/include/uapi/linux/serio.h
-> +++ b/include/uapi/linux/serio.h
-> @@ -79,5 +79,6 @@
->  #define SERIO_WACOM_IV	0x3e
->  #define SERIO_EGALAX	0x3f
->  #define SERIO_PULSE8_CEC	0x40
-> +#define SERIO_RAINSHADOW_CEC	0x41
->  
->  #endif /* _UAPI_SERIO_H */
-> -- 
-> 2.10.2
-> 
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
 
+---
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+index 13afe48..8ab7ca0 100644
+--- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
++++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+@@ -837,12 +837,12 @@ static int mtk_mdp_m2m_g_selection(struct file *file, void *fh,
+ 	struct mtk_mdp_ctx *ctx = fh_to_ctx(fh);
+ 	bool valid = false;
+ 
+-	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		if (mtk_mdp_is_target_compose(s->target))
+-			valid = true;
+-	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
++	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+ 		if (mtk_mdp_is_target_crop(s->target))
+ 			valid = true;
++	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		if (mtk_mdp_is_target_compose(s->target))
++			valid = true;
+ 	}
+ 	if (!valid) {
+ 		mtk_mdp_dbg(1, "[%d] invalid type:%d,%u", ctx->id, s->type,
+@@ -907,12 +907,12 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
+ 	int ret;
+ 	bool valid = false;
+ 
+-	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		if (s->target == V4L2_SEL_TGT_COMPOSE)
+-			valid = true;
+-	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
++	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+ 		if (s->target == V4L2_SEL_TGT_CROP)
+ 			valid = true;
++	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		if (s->target == V4L2_SEL_TGT_COMPOSE)
++			valid = true;
+ 	}
+ 	if (!valid) {
+ 		mtk_mdp_dbg(1, "[%d] invalid type:%d,%u", ctx->id, s->type,
+@@ -925,7 +925,7 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
+ 	if (ret)
+ 		return ret;
+ 
+-	if (mtk_mdp_is_target_crop(s->target))
++	if (mtk_mdp_is_target_compose(s->target))
+ 		frame = &ctx->s_frame;
+ 	else
+ 		frame = &ctx->d_frame;
 -- 
-Dmitry
+1.9.1
