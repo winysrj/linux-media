@@ -1,63 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn3nam01on0113.outbound.protection.outlook.com ([104.47.33.113]:45285
-        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752077AbdDNCqM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 22:46:12 -0400
-From: <Yasunari.Takiguchi@sony.com>
-To: <akpm@linux-foundation.org>, <linux-kernel@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>
-CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
-        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
-        Hideki Nozawa <Hideki.Nozawa@sony.com>,
-        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
-        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
-        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
-Subject: [PATCH v2 15/15] [media] cxd2880 : Update MAINTAINERS file for CXD2880 driver
-Date: Fri, 14 Apr 2017 11:48:42 +0900
-Message-ID: <20170414024842.18477-1-Yasunari.Takiguchi@sony.com>
-In-Reply-To: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
-References: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:62231 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1756304AbdDMHdR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 03:33:17 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>
+CC: <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: [PATCH 2/3] arm64: dts: mt8173: Fix mdp device tree
+Date: Thu, 13 Apr 2017 15:33:06 +0800
+Message-ID: <1492068787-17838-3-git-send-email-minghsiu.tsai@mediatek.com>
+In-Reply-To: <1492068787-17838-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1492068787-17838-1-git-send-email-minghsiu.tsai@mediatek.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+From: Daniel Kurtz <djkurtz@chromium.org>
 
-This is MAINTAINERS file update about the driver for
-the Sony CXD2880 DVB-T2/T tuner + demodulator.
+If the mdp_* nodes are under an mdp sub-node, their corresponding
+platform device does not automatically get its iommu assigned properly.
 
-Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
-Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
-Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
-Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
-Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+Fix this by moving the mdp component nodes up a level such that they are
+siblings of mdp and all other SoC subsystems.  This also simplifies the
+device tree.
+
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+
 ---
- MAINTAINERS | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi | 126 +++++++++++++++----------------
+ 1 file changed, 60 insertions(+), 66 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index fdd5350fe261..62543a76d6bf 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8042,6 +8042,15 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Supported
- F:	drivers/media/dvb-frontends/cxd2841er*
+diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+index 6922252..d28a363 100644
+--- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
++++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+@@ -792,80 +792,74 @@
+ 			#clock-cells = <1>;
+ 		};
  
-+MEDIA DRIVERS FOR CXD2880
-+M:	Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Supported
-+F:	drivers/media/dvb-frontends/cxd2880/*
-+F:	drivers/media/spi/cxd2880*
-+
- MEDIA DRIVERS FOR HORUS3A
- M:	Sergey Kozlov <serjk@netup.ru>
- M:	Abylay Ospan <aospan@netup.ru>
+-		mdp {
+-			compatible = "mediatek,mt8173-mdp";
+-			#address-cells = <2>;
+-			#size-cells = <2>;
+-			ranges;
++		mdp_rdma0: rdma@14001000 {
++			compatible = "mediatek,mt8173-mdp-rdma",
++				     "mediatek,mt8173-mdp";
++			reg = <0 0x14001000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_RDMA0>,
++				 <&mmsys CLK_MM_MUTEX_32K>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++			iommus = <&iommu M4U_PORT_MDP_RDMA0>;
++			mediatek,larb = <&larb0>;
+ 			mediatek,vpu = <&vpu>;
++		};
+ 
+-			mdp_rdma0: rdma@14001000 {
+-				compatible = "mediatek,mt8173-mdp-rdma";
+-				reg = <0 0x14001000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_RDMA0>,
+-					 <&mmsys CLK_MM_MUTEX_32K>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-				iommus = <&iommu M4U_PORT_MDP_RDMA0>;
+-				mediatek,larb = <&larb0>;
+-			};
+-
+-			mdp_rdma1: rdma@14002000 {
+-				compatible = "mediatek,mt8173-mdp-rdma";
+-				reg = <0 0x14002000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_RDMA1>,
+-					 <&mmsys CLK_MM_MUTEX_32K>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-				iommus = <&iommu M4U_PORT_MDP_RDMA1>;
+-				mediatek,larb = <&larb4>;
+-			};
++		mdp_rdma1: rdma@14002000 {
++			compatible = "mediatek,mt8173-mdp-rdma";
++			reg = <0 0x14002000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_RDMA1>,
++				 <&mmsys CLK_MM_MUTEX_32K>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++			iommus = <&iommu M4U_PORT_MDP_RDMA1>;
++			mediatek,larb = <&larb4>;
++		};
+ 
+-			mdp_rsz0: rsz@14003000 {
+-				compatible = "mediatek,mt8173-mdp-rsz";
+-				reg = <0 0x14003000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_RSZ0>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-			};
++		mdp_rsz0: rsz@14003000 {
++			compatible = "mediatek,mt8173-mdp-rsz";
++			reg = <0 0x14003000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_RSZ0>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++		};
+ 
+-			mdp_rsz1: rsz@14004000 {
+-				compatible = "mediatek,mt8173-mdp-rsz";
+-				reg = <0 0x14004000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_RSZ1>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-			};
++		mdp_rsz1: rsz@14004000 {
++			compatible = "mediatek,mt8173-mdp-rsz";
++			reg = <0 0x14004000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_RSZ1>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++		};
+ 
+-			mdp_rsz2: rsz@14005000 {
+-				compatible = "mediatek,mt8173-mdp-rsz";
+-				reg = <0 0x14005000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_RSZ2>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-			};
++		mdp_rsz2: rsz@14005000 {
++			compatible = "mediatek,mt8173-mdp-rsz";
++			reg = <0 0x14005000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_RSZ2>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++		};
+ 
+-			mdp_wdma0: wdma@14006000 {
+-				compatible = "mediatek,mt8173-mdp-wdma";
+-				reg = <0 0x14006000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_WDMA>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-				iommus = <&iommu M4U_PORT_MDP_WDMA>;
+-				mediatek,larb = <&larb0>;
+-			};
++		mdp_wdma0: wdma@14006000 {
++			compatible = "mediatek,mt8173-mdp-wdma";
++			reg = <0 0x14006000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_WDMA>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++			iommus = <&iommu M4U_PORT_MDP_WDMA>;
++			mediatek,larb = <&larb0>;
++		};
+ 
+-			mdp_wrot0: wrot@14007000 {
+-				compatible = "mediatek,mt8173-mdp-wrot";
+-				reg = <0 0x14007000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_WROT0>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-				iommus = <&iommu M4U_PORT_MDP_WROT0>;
+-				mediatek,larb = <&larb0>;
+-			};
++		mdp_wrot0: wrot@14007000 {
++			compatible = "mediatek,mt8173-mdp-wrot";
++			reg = <0 0x14007000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_WROT0>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++			iommus = <&iommu M4U_PORT_MDP_WROT0>;
++			mediatek,larb = <&larb0>;
++		};
+ 
+-			mdp_wrot1: wrot@14008000 {
+-				compatible = "mediatek,mt8173-mdp-wrot";
+-				reg = <0 0x14008000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_WROT1>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-				iommus = <&iommu M4U_PORT_MDP_WROT1>;
+-				mediatek,larb = <&larb4>;
+-			};
++		mdp_wrot1: wrot@14008000 {
++			compatible = "mediatek,mt8173-mdp-wrot";
++			reg = <0 0x14008000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_WROT1>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++			iommus = <&iommu M4U_PORT_MDP_WROT1>;
++			mediatek,larb = <&larb4>;
+ 		};
+ 
+ 		ovl0: ovl@1400c000 {
 -- 
-2.11.0
+1.9.1
