@@ -1,59 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:35384 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752862AbdDLOuU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Apr 2017 10:50:20 -0400
-Subject: Re: Looking for device driver advice
-To: Patrick Doyle <wpdster@gmail.com>
-References: <CAF_dkJAwwj0mpOztkTNTrDC1YQkgh=HvZGh=tv3SYsuvUzTb+g@mail.gmail.com>
- <2ea495f2-022d-a9ee-11a0-28fbcba5db57@xs4all.nl>
- <CAF_dkJCqcVuSsey697OkA6-E563qEr=fYFWM26V1ZOSdnu4RGQ@mail.gmail.com>
- <7f1ddce2-e3b9-97d2-d816-55f47c76d087@xs4all.nl>
- <CAF_dkJCm3mqj5koZ-yWsmmJ9gJxMFsdzPEJBNztOxcng6swB9A@mail.gmail.com>
-Cc: linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <71bbb960-cd78-dee8-9dd9-4bc0d986f6e3@xs4all.nl>
-Date: Wed, 12 Apr 2017 16:50:15 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAF_dkJCm3mqj5koZ-yWsmmJ9gJxMFsdzPEJBNztOxcng6swB9A@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from ale.deltatee.com ([207.54.116.67]:38203 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752890AbdDMWG2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 18:06:28 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
+        Tejun Heo <tj@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Ming Lin <ming.l@ssi.samsung.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
+        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
+        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
+        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Cc: Steve Wise <swise@opengridcomputing.com>,
+        Stephen Bates <sbates@raithlin.com>,
+        Logan Gunthorpe <logang@deltatee.com>
+Date: Thu, 13 Apr 2017 16:05:23 -0600
+Message-Id: <1492121135-4437-11-git-send-email-logang@deltatee.com>
+In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH 10/22] staging: unisys: visorbus: Make use of the new sg_map helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/12/2017 04:29 PM, Patrick Doyle wrote:
-> Thank you again Hans.
-> 
-> On Wed, Apr 12, 2017 at 9:58 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 04/12/2017 03:13 PM, Patrick Doyle wrote:
->>> The SAMA5 has a downsampler built into its LCD engine.  Suppose I
->>> wanted to treat that downsampler as an independent device and pass
->>> image buffers through that downsampler (the LCD display output is
->>> disabled in hardware when the device is configured in this mode)....
->>> do you have any recommendations as to how I might structure a device
->>> driver to do that.  At it's core, it would DMA a buffer from memory,
->>> through the downsampler, and back into memory.  Is that something I
->>> might also wire in as a pseudo-subdev of the ISC?  Or is there a
->>> better abstraction for arbitrary image processing pipeline elements?
->>
->> I think this is out of scope of V4L2. Check with Atmel/Microchip.
-> 
-> The V4L2 tie-in is in answering the question: Is there a standard V4L2
-> way to perform arbitrary video processing functions (such as
-> downsampling) with an arbitrary device.  If the answer is "no", that's
-> fine.  If the answer is, "yes, here is how Xilinx does it for their IP
-> modules", then I'll go look at some Xilinx stuff (which I'm going to
-> do anyway).
+Straightforward conversion to the new function.
 
-VIDIOC_S_FMT: the pixelformat you specify in the v4l2_pix_format struct
-determines Bayer vs YUV 4:2:2 vs YUV 4:2:0 vs RGB.
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+---
+ drivers/staging/unisys/visorhba/visorhba_main.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-So that triggers whatever conversion is needed to arrive at the desired
-memory format.
-
-https://www.linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/vidioc-g-fmt.html
-
-Regards,
-
-	Hans
+diff --git a/drivers/staging/unisys/visorhba/visorhba_main.c b/drivers/staging/unisys/visorhba/visorhba_main.c
+index 0ce92c8..2d8c8bc 100644
+--- a/drivers/staging/unisys/visorhba/visorhba_main.c
++++ b/drivers/staging/unisys/visorhba/visorhba_main.c
+@@ -842,7 +842,6 @@ do_scsi_nolinuxstat(struct uiscmdrsp *cmdrsp, struct scsi_cmnd *scsicmd)
+ 	struct scatterlist *sg;
+ 	unsigned int i;
+ 	char *this_page;
+-	char *this_page_orig;
+ 	int bufind = 0;
+ 	struct visordisk_info *vdisk;
+ 	struct visorhba_devdata *devdata;
+@@ -869,11 +868,14 @@ do_scsi_nolinuxstat(struct uiscmdrsp *cmdrsp, struct scsi_cmnd *scsicmd)
+ 
+ 		sg = scsi_sglist(scsicmd);
+ 		for (i = 0; i < scsi_sg_count(scsicmd); i++) {
+-			this_page_orig = kmap_atomic(sg_page(sg + i));
+-			this_page = (void *)((unsigned long)this_page_orig |
+-					     sg[i].offset);
++			this_page = sg_map(sg + i, SG_KMAP_ATOMIC);
++			if (IS_ERR(this_page)) {
++				scsicmd->result = DID_ERROR << 16;
++				return;
++			}
++
+ 			memcpy(this_page, buf + bufind, sg[i].length);
+-			kunmap_atomic(this_page_orig);
++			sg_unmap(sg + i, this_page, SG_KMAP_ATOMIC);
+ 		}
+ 	} else {
+ 		devdata = (struct visorhba_devdata *)scsidev->host->hostdata;
+-- 
+2.1.4
