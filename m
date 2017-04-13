@@ -1,134 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:43743 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750737AbdDOEPe (ORCPT
+Received: from mail-io0-f181.google.com ([209.85.223.181]:35949 "EHLO
+        mail-io0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756072AbdDMGua (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Apr 2017 00:15:34 -0400
-Message-ID: <b5ba0e06540814b81d7da0845c8ae30c@smtp-cloud3.xs4all.net>
-Date: Sat, 15 Apr 2017 06:15:31 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 13 Apr 2017 02:50:30 -0400
+Received: by mail-io0-f181.google.com with SMTP id l7so67985480ioe.3
+        for <linux-media@vger.kernel.org>; Wed, 12 Apr 2017 23:50:30 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1492057130-1194-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1492057130-1194-1-git-send-email-minghsiu.tsai@mediatek.com>
+From: =?UTF-8?B?V3UtQ2hlbmcgTGkgKOadjuWLmeiqoCk=?= <wuchengli@google.com>
+Date: Thu, 13 Apr 2017 14:50:08 +0800
+Message-ID: <CAOMLVLiLkZsBfezx6b9Xq=kyPjUZOXwHC4LfHh1=wy6Ynt=zSQ@mail.gmail.com>
+Subject: Re: [PATCH] [media] mtk-mdp: Fix g_/s_selection capture/compose logic
+To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Daniel Thompson <daniel.thompson@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>,
+        srv_heupstream@mediatek.com,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-mediatek@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Reviewed-by: Wu-Cheng Li <wuchengli@chromium.org>
 
-Results of the daily build of media_tree:
-
-date:			Sat Apr 15 05:00:16 CEST 2017
-media-tree git hash:	f2fe89061d79706eca5c47e4efdc09bbc171e74a
-media_build git hash:	8a44f033b9899e3193da85b1d3369a9dbfcc9eab
-v4l-utils git hash:	e748123b973e899cd6f0c08272a165661bd8386f
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
-
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: OK
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+On Thu, Apr 13, 2017 at 12:18 PM, Minghsiu Tsai
+<minghsiu.tsai@mediatek.com> wrote:
+> From: Daniel Kurtz <djkurtz@chromium.org>
+>
+> Experiments show that the:
+>  (1) mtk-mdp uses the _MPLANE form of CAPTURE/OUTPUT
+>  (2) CAPTURE types use CROP targets, and OUTPUT types use COMPOSE targets
+>
+> Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+>
+> ---
+>  drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c | 18 +++++++++---------
+>  1 file changed, 9 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> index 13afe48..8ab7ca0 100644
+> --- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> @@ -837,12 +837,12 @@ static int mtk_mdp_m2m_g_selection(struct file *file, void *fh,
+>         struct mtk_mdp_ctx *ctx = fh_to_ctx(fh);
+>         bool valid = false;
+>
+> -       if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+> -               if (mtk_mdp_is_target_compose(s->target))
+> -                       valid = true;
+> -       } else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> +       if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+>                 if (mtk_mdp_is_target_crop(s->target))
+>                         valid = true;
+> +       } else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> +               if (mtk_mdp_is_target_compose(s->target))
+> +                       valid = true;
+>         }
+>         if (!valid) {
+>                 mtk_mdp_dbg(1, "[%d] invalid type:%d,%u", ctx->id, s->type,
+> @@ -907,12 +907,12 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
+>         int ret;
+>         bool valid = false;
+>
+> -       if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+> -               if (s->target == V4L2_SEL_TGT_COMPOSE)
+> -                       valid = true;
+> -       } else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> +       if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+>                 if (s->target == V4L2_SEL_TGT_CROP)
+>                         valid = true;
+> +       } else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> +               if (s->target == V4L2_SEL_TGT_COMPOSE)
+> +                       valid = true;
+>         }
+>         if (!valid) {
+>                 mtk_mdp_dbg(1, "[%d] invalid type:%d,%u", ctx->id, s->type,
+> @@ -925,7 +925,7 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
+>         if (ret)
+>                 return ret;
+>
+> -       if (mtk_mdp_is_target_crop(s->target))
+> +       if (mtk_mdp_is_target_compose(s->target))
+>                 frame = &ctx->s_frame;
+>         else
+>                 frame = &ctx->d_frame;
+> --
+> 1.9.1
+>
