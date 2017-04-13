@@ -1,133 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50231 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932166AbdDRIqN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Apr 2017 04:46:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mga06.intel.com ([134.134.136.31]:36194 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754007AbdDMPKB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 11:10:01 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH for v4.12 3/3] cec: add MEDIA_CEC_RC config option
-Date: Tue, 18 Apr 2017 10:46:01 +0200
-Message-Id: <20170418084601.1590-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170418084601.1590-1-hverkuil@xs4all.nl>
-References: <20170418084601.1590-1-hverkuil@xs4all.nl>
+Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
+        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
+        daniel.vetter@ffwll.ch, labbott@redhat.com
+Subject: [RFC v3.1 05/14] vb2: Anticipate queue specific DMA attributes for USERPTR buffers
+Date: Thu, 13 Apr 2017 18:09:21 +0300
+Message-Id: <1492096161-18018-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1492070239-21532-6-git-send-email-sakari.ailus@linux.intel.com>
+References: <1492070239-21532-6-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The DMA attributes were available for the memop implementation for MMAP
+buffers but not for USERPTR buffers. Do the same for USERPTR. This patch
+makes no functional changes.
 
-Add an explicit config option to select whether the CEC remote control
-messages are to be passed on to the RC subsystem or not.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/cec/Kconfig    |  8 +++++++-
- drivers/media/cec/cec-adap.c |  4 ++--
- drivers/media/cec/cec-core.c | 12 ++++++------
- 3 files changed, 15 insertions(+), 9 deletions(-)
+since RFC v1:
 
-diff --git a/drivers/media/cec/Kconfig b/drivers/media/cec/Kconfig
-index 24b53187ee52..f944d93e3167 100644
---- a/drivers/media/cec/Kconfig
-+++ b/drivers/media/cec/Kconfig
-@@ -6,8 +6,14 @@ config CEC_CORE
- config MEDIA_CEC_NOTIFIER
- 	bool
- 
-+config MEDIA_CEC_RC
-+	bool "HDMI CEC RC integration"
-+	depends on CEC_CORE && RC_CORE
-+	---help---
-+	  Pass on CEC remote control messages to the RC framework.
-+
- config MEDIA_CEC_DEBUG
- 	bool "HDMI CEC debugfs interface"
--	depends on MEDIA_CEC_SUPPORT && DEBUG_FS
-+	depends on CEC_CORE && DEBUG_FS
- 	---help---
- 	  Turns on the DebugFS interface for CEC devices.
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index 25d0a835921f..f5fe01c9da8a 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -1732,7 +1732,7 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 		    !(adap->log_addrs.flags & CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU))
- 			break;
- 
--#if IS_REACHABLE(CONFIG_RC_CORE)
-+#ifdef CONFIG_MEDIA_CEC_RC
- 		switch (msg->msg[2]) {
- 		/*
- 		 * Play function, this message can have variable length
-@@ -1769,7 +1769,7 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 		if (!(adap->capabilities & CEC_CAP_RC) ||
- 		    !(adap->log_addrs.flags & CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU))
- 			break;
--#if IS_REACHABLE(CONFIG_RC_CORE)
-+#ifdef CONFIG_MEDIA_CEC_RC
- 		rc_keyup(adap->rc);
- #endif
- 		break;
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index 430f5e052ab3..a21fca7f7883 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -220,7 +220,7 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 	struct cec_adapter *adap;
- 	int res;
- 
--#if !IS_REACHABLE(CONFIG_RC_CORE)
-+#ifndef CONFIG_MEDIA_CEC_RC
- 	caps &= ~CEC_CAP_RC;
+- Add missing q->dma_attrs argument to call_ptr_memop(vb, get_userptr...
+
+ drivers/media/v4l2-core/videobuf2-core.c       | 2 +-
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 3 ++-
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     | 3 ++-
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    | 3 ++-
+ include/media/videobuf2-core.h                 | 3 ++-
+ 5 files changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index e866115..c659b64 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1025,7 +1025,7 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
+ 		mem_priv = call_ptr_memop(vb, get_userptr,
+ 				q->alloc_devs[plane] ? : q->dev,
+ 				planes[plane].m.userptr,
+-				planes[plane].length, dma_dir);
++				planes[plane].length, dma_dir, q->dma_attrs);
+ 		if (IS_ERR(mem_priv)) {
+ 			dprintk(1, "failed acquiring userspace memory for plane %d\n",
+ 				plane);
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index d29a07f..30082a4 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -475,7 +475,8 @@ static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn
  #endif
  
-@@ -256,7 +256,7 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 		return ERR_PTR(res);
- 	}
+ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+-	unsigned long size, enum dma_data_direction dma_dir)
++	unsigned long size, enum dma_data_direction dma_dir,
++	unsigned long attrs)
+ {
+ 	struct vb2_dc_buf *buf;
+ 	struct frame_vector *vec;
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 29fde1a..102ddb2 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -220,7 +220,8 @@ static void vb2_dma_sg_finish(void *buf_priv)
  
--#if IS_REACHABLE(CONFIG_RC_CORE)
-+#ifdef CONFIG_MEDIA_CEC_RC
- 	if (!(caps & CEC_CAP_RC))
- 		return adap;
+ static void *vb2_dma_sg_get_userptr(struct device *dev, unsigned long vaddr,
+ 				    unsigned long size,
+-				    enum dma_data_direction dma_dir)
++				    enum dma_data_direction dma_dir,
++				    unsigned long dma_attrs)
+ {
+ 	struct vb2_dma_sg_buf *buf;
+ 	struct sg_table *sgt;
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index f83253a..a4914fc 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -73,7 +73,8 @@ static void vb2_vmalloc_put(void *buf_priv)
  
-@@ -305,7 +305,7 @@ int cec_register_adapter(struct cec_adapter *adap,
- 	adap->owner = parent->driver->owner;
- 	adap->devnode.dev.parent = parent;
+ static void *vb2_vmalloc_get_userptr(struct device *dev, unsigned long vaddr,
+ 				     unsigned long size,
+-				     enum dma_data_direction dma_dir)
++				     enum dma_data_direction dma_dir,
++				     unsigned long dma_attrs)
+ {
+ 	struct vb2_vmalloc_buf *buf;
+ 	struct frame_vector *vec;
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index cb97c22..4172f6e 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -122,7 +122,8 @@ struct vb2_mem_ops {
  
--#if IS_REACHABLE(CONFIG_RC_CORE)
-+#ifdef CONFIG_MEDIA_CEC_RC
- 	if (adap->capabilities & CEC_CAP_RC) {
- 		adap->rc->dev.parent = parent;
- 		res = rc_register_device(adap->rc);
-@@ -322,7 +322,7 @@ int cec_register_adapter(struct cec_adapter *adap,
+ 	void		*(*get_userptr)(struct device *dev, unsigned long vaddr,
+ 					unsigned long size,
+-					enum dma_data_direction dma_dir);
++					enum dma_data_direction dma_dir,
++					unsigned long dma_attrs);
+ 	void		(*put_userptr)(void *buf_priv);
  
- 	res = cec_devnode_register(&adap->devnode, adap->owner);
- 	if (res) {
--#if IS_REACHABLE(CONFIG_RC_CORE)
-+#ifdef CONFIG_MEDIA_CEC_RC
- 		/* Note: rc_unregister also calls rc_free */
- 		rc_unregister_device(adap->rc);
- 		adap->rc = NULL;
-@@ -357,7 +357,7 @@ void cec_unregister_adapter(struct cec_adapter *adap)
- 	if (IS_ERR_OR_NULL(adap))
- 		return;
- 
--#if IS_REACHABLE(CONFIG_RC_CORE)
-+#ifdef CONFIG_MEDIA_CEC_RC
- 	/* Note: rc_unregister also calls rc_free */
- 	rc_unregister_device(adap->rc);
- 	adap->rc = NULL;
-@@ -381,7 +381,7 @@ void cec_delete_adapter(struct cec_adapter *adap)
- 	kthread_stop(adap->kthread);
- 	if (adap->kthread_config)
- 		kthread_stop(adap->kthread_config);
--#if IS_REACHABLE(CONFIG_RC_CORE)
-+#ifdef CONFIG_MEDIA_CEC_RC
- 	rc_free_device(adap->rc);
- #endif
- 	kfree(adap);
+ 	void		(*prepare)(void *buf_priv);
 -- 
-2.11.0
+2.7.4
