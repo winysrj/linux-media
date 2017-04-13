@@ -1,40 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:53091 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932933AbdDFHTH (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:59427 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1756299AbdDMHdP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Apr 2017 03:19:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 1/2] serio.h: add SERIO_RAINSHADOW_CEC ID
-Date: Thu,  6 Apr 2017 09:18:55 +0200
-Message-Id: <20170406071856.17404-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170406071856.17404-1-hverkuil@xs4all.nl>
-References: <20170406071856.17404-1-hverkuil@xs4all.nl>
+        Thu, 13 Apr 2017 03:33:15 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>
+CC: <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
+Subject: [PATCH 0/3] Fix mdp device tree
+Date: Thu, 13 Apr 2017 15:33:04 +0800
+Message-ID: <1492068787-17838-1-git-send-email-minghsiu.tsai@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Fix this by moving the mdp component nodes up a level such that they are
+siblings of mdp and all other SoC subsystems.  This also simplifies the
+device tree.
 
-Add a new serio ID for the RainShadow Tech USB HDMI CEC adapter.
+Daniel Kurtz (2):
+  arm64: dts: mt8173: Fix mdp device tree
+  media: mtk-mdp: Fix mdp device tree
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
----
- include/uapi/linux/serio.h | 1 +
- 1 file changed, 1 insertion(+)
+Minghsiu Tsai (1):
+  dt-bindings: mt8173: Fix mdp device tree
 
-diff --git a/include/uapi/linux/serio.h b/include/uapi/linux/serio.h
-index ccd0ccd00f47..ac217c6f0151 100644
---- a/include/uapi/linux/serio.h
-+++ b/include/uapi/linux/serio.h
-@@ -80,5 +80,6 @@
- #define SERIO_WACOM_IV	0x3e
- #define SERIO_EGALAX	0x3f
- #define SERIO_PULSE8_CEC	0x40
-+#define SERIO_RAINSHADOW_CEC	0x41
- 
- #endif /* _UAPI_SERIO_H */
+ .../devicetree/bindings/media/mediatek-mdp.txt     |  12 +-
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi           | 126 ++++++++++-----------
+ drivers/media/platform/mtk-mdp/mtk_mdp_core.c      |   2 +-
+ 3 files changed, 64 insertions(+), 76 deletions(-)
+
 -- 
-2.11.0
+1.9.1
