@@ -1,127 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:39728 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751124AbdDSESG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Apr 2017 00:18:06 -0400
-Message-ID: <0dbbb6cf00639a11ec742dd8ecf4a701@smtp-cloud2.xs4all.net>
-Date: Wed, 19 Apr 2017 06:18:03 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from ale.deltatee.com ([207.54.116.67]:38319 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755048AbdDMWHD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 18:07:03 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
+        Tejun Heo <tj@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Ming Lin <ming.l@ssi.samsung.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
+        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
+        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
+        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Cc: Steve Wise <swise@opengridcomputing.com>,
+        Stephen Bates <sbates@raithlin.com>,
+        Logan Gunthorpe <logang@deltatee.com>
+Date: Thu, 13 Apr 2017 16:05:26 -0600
+Message-Id: <1492121135-4437-14-git-send-email-logang@deltatee.com>
+In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH 13/22] scsi: hisi_sas, mvsas, gdth: Make use of the new sg_map helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Very straightforward conversion of three scsi drivers.
 
-Results of the daily build of media_tree:
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+---
+ drivers/scsi/gdth.c                    |  9 +++++++--
+ drivers/scsi/hisi_sas/hisi_sas_v1_hw.c | 14 +++++++++-----
+ drivers/scsi/hisi_sas/hisi_sas_v2_hw.c | 13 +++++++++----
+ drivers/scsi/mvsas/mv_sas.c            | 10 +++++-----
+ 4 files changed, 30 insertions(+), 16 deletions(-)
 
-date:			Wed Apr 19 05:00:16 CEST 2017
-media-tree git hash:	ee0fe833d96793853335844b6d99fb76bd12cbeb
-media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
-v4l-utils git hash:	b514d615166bdc0901a4c71261b87db31e89f464
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/scsi/gdth.c b/drivers/scsi/gdth.c
+index d020a13..82c9fba 100644
+--- a/drivers/scsi/gdth.c
++++ b/drivers/scsi/gdth.c
+@@ -2301,10 +2301,15 @@ static void gdth_copy_internal_data(gdth_ha_str *ha, Scsi_Cmnd *scp,
+                 return;
+             }
+             local_irq_save(flags);
+-            address = kmap_atomic(sg_page(sl)) + sl->offset;
++            address = sg_map(sl, SG_KMAP_ATOMIC);
++            if (IS_ERR(address)) {
++                scp->result = DID_ERROR << 16;
++                return;
++	    }
++
+             memcpy(address, buffer, cpnow);
+             flush_dcache_page(sg_page(sl));
+-            kunmap_atomic(address);
++            sg_unmap(sl, address, SG_KMAP_ATOMIC);
+             local_irq_restore(flags);
+             if (cpsum == cpcount)
+                 break;
+diff --git a/drivers/scsi/hisi_sas/hisi_sas_v1_hw.c b/drivers/scsi/hisi_sas/hisi_sas_v1_hw.c
+index 854fbea..30408f8 100644
+--- a/drivers/scsi/hisi_sas/hisi_sas_v1_hw.c
++++ b/drivers/scsi/hisi_sas/hisi_sas_v1_hw.c
+@@ -1377,18 +1377,22 @@ static int slot_complete_v1_hw(struct hisi_hba *hisi_hba,
+ 		void *to;
+ 		struct scatterlist *sg_resp = &task->smp_task.smp_resp;
+ 
+-		ts->stat = SAM_STAT_GOOD;
+-		to = kmap_atomic(sg_page(sg_resp));
++		to = sg_map(sg_resp, SG_KMAP_ATOMIC);
++		if (IS_ERR(to)) {
++			dev_err(dev, "slot complete: error mapping memory");
++			ts->stat = SAS_SG_ERR;
++			break;
++		}
+ 
++		ts->stat = SAM_STAT_GOOD;
+ 		dma_unmap_sg(dev, &task->smp_task.smp_resp, 1,
+ 			     DMA_FROM_DEVICE);
+ 		dma_unmap_sg(dev, &task->smp_task.smp_req, 1,
+ 			     DMA_TO_DEVICE);
+-		memcpy(to + sg_resp->offset,
+-		       slot->status_buffer +
++		memcpy(to, slot->status_buffer +
+ 		       sizeof(struct hisi_sas_err_record),
+ 		       sg_dma_len(sg_resp));
+-		kunmap_atomic(to);
++		sg_unmap(sg_resp, to, SG_KMAP_ATOMIC);
+ 		break;
+ 	}
+ 	case SAS_PROTOCOL_SATA:
+diff --git a/drivers/scsi/hisi_sas/hisi_sas_v2_hw.c b/drivers/scsi/hisi_sas/hisi_sas_v2_hw.c
+index 1b21445..0907947 100644
+--- a/drivers/scsi/hisi_sas/hisi_sas_v2_hw.c
++++ b/drivers/scsi/hisi_sas/hisi_sas_v2_hw.c
+@@ -1796,18 +1796,23 @@ slot_complete_v2_hw(struct hisi_hba *hisi_hba, struct hisi_sas_slot *slot,
+ 		struct scatterlist *sg_resp = &task->smp_task.smp_resp;
+ 		void *to;
+ 
++		to = sg_map(sg_resp, SG_KMAP_ATOMIC);
++		if (IS_ERR(to)) {
++			dev_err(dev, "slot complete: error mapping memory");
++			ts->stat = SAS_SG_ERR;
++			break;
++		}
++
+ 		ts->stat = SAM_STAT_GOOD;
+-		to = kmap_atomic(sg_page(sg_resp));
+ 
+ 		dma_unmap_sg(dev, &task->smp_task.smp_resp, 1,
+ 			     DMA_FROM_DEVICE);
+ 		dma_unmap_sg(dev, &task->smp_task.smp_req, 1,
+ 			     DMA_TO_DEVICE);
+-		memcpy(to + sg_resp->offset,
+-		       slot->status_buffer +
++		memcpy(to, slot->status_buffer +
+ 		       sizeof(struct hisi_sas_err_record),
+ 		       sg_dma_len(sg_resp));
+-		kunmap_atomic(to);
++		sg_unmap(sg_resp, to, SG_KMAP_ATOMIC);
+ 		break;
+ 	}
+ 	case SAS_PROTOCOL_SATA:
+diff --git a/drivers/scsi/mvsas/mv_sas.c b/drivers/scsi/mvsas/mv_sas.c
+index c7cc803..374d0e0 100644
+--- a/drivers/scsi/mvsas/mv_sas.c
++++ b/drivers/scsi/mvsas/mv_sas.c
+@@ -1798,11 +1798,11 @@ int mvs_slot_complete(struct mvs_info *mvi, u32 rx_desc, u32 flags)
+ 	case SAS_PROTOCOL_SMP: {
+ 			struct scatterlist *sg_resp = &task->smp_task.smp_resp;
+ 			tstat->stat = SAM_STAT_GOOD;
+-			to = kmap_atomic(sg_page(sg_resp));
+-			memcpy(to + sg_resp->offset,
+-				slot->response + sizeof(struct mvs_err_info),
+-				sg_dma_len(sg_resp));
+-			kunmap_atomic(to);
++			to = sg_map(sg_resp, SG_KMAP_ATOMIC);
++			memcpy(to,
++			       slot->response + sizeof(struct mvs_err_info),
++			       sg_dma_len(sg_resp));
++			sg_unmap(sg_resp, to, SG_KMAP_ATOMIC);
+ 			break;
+ 		}
+ 
+-- 
+2.1.4
