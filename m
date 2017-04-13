@@ -1,62 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam01on0115.outbound.protection.outlook.com ([104.47.34.115]:45620
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1756689AbdDFHwN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Apr 2017 03:52:13 -0400
-From: <Yasunari.Takiguchi@sony.com>
-To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <devicetree@vger.kernel.org>
-CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
-        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
-        Hideki Nozawa <Hideki.Nozawa@sony.com>,
-        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
-        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
-        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
-Subject: [PATCH 1/5] dt-bindings: media: Add document file for CXD2880 SPI I/F
-Date: Thu, 6 Apr 2017 16:54:33 +0900
-Message-ID: <1491465273-9338-1-git-send-email-Yasunari.Takiguchi@sony.com>
+Received: from aserp1040.oracle.com ([141.146.126.69]:41243 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750765AbdDMJri (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 05:47:38 -0400
+Date: Thu, 13 Apr 2017 12:47:19 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: mchehab@kernel.org
+Cc: linux-media@vger.kernel.org
+Subject: [bug report] [media] vp702x: comment dead code
+Message-ID: <20170413094719.GA26666@mwanda>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Hello Mauro Carvalho Chehab,
 
-This is the document file for Sony CXD2880 DVB-T2/T tuner + demodulator.
-It contains the description of the SPI adapter binding.
+The patch 269d91f53fe3: "[media] vp702x: comment dead code" from Apr
+29, 2015, leads to the following static checker warning:
 
-Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
-Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
-Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
-Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
-Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
----
- .../devicetree/bindings/media/spi/sony-cxd2880.txt |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+	drivers/media/usb/dvb-usb/dvb-usb-remote.c:128 legacy_dvb_usb_read_remote_control()
+	error: uninitialized symbol 'state'.
 
-diff --git a/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt b/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
-new file mode 100644
-index 0000000..fc5aa26
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
-@@ -0,0 +1,14 @@
-+Sony CXD2880 DVB-T2/T tuner + demodulator driver SPI adapter
-+
-+Required properties:
-+- compatible: Should be "sony,cxd2880".
-+- reg: SPI chip select number for the device.
-+- spi-max-frequency: Maximum bus speed, should be set to <55000000> (55MHz).
-+
-+Example:
-+
-+cxd2880@0 {
-+	compatible = "sony,cxd2880";
-+	reg = <0>; /* CE0 */
-+	spi-max-frequency = <55000000>; /* 55MHz */
-+};
--- 
-1.7.9.5
+drivers/media/usb/dvb-usb/dvb-usb-remote.c
+   108  static void legacy_dvb_usb_read_remote_control(struct work_struct *work)
+   109  {
+   110          struct dvb_usb_device *d =
+   111                  container_of(work, struct dvb_usb_device, rc_query_work.work);
+   112          u32 event;
+   113          int state;
+   114  
+   115          /* TODO: need a lock here.  We can simply skip checking for the remote control
+   116             if we're busy. */
+   117  
+   118          /* when the parameter has been set to 1 via sysfs while the driver was running */
+   119          if (dvb_usb_disable_rc_polling)
+   120                  return;
+   121  
+   122          if (d->props.rc.legacy.rc_query(d,&event,&state)) {
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^
+This sometimes returns zero without doing anything like in
+vp702x_rc_query().
+
+   123                  err("error while querying for an remote control event.");
+   124                  goto schedule;
+   125          }
+   126  
+   127  
+   128          switch (state) {
+   129                  case REMOTE_NO_KEY_PRESSED:
+   130                          break;
+   131                  case REMOTE_KEY_PRESSED:
+   132                          deb_rc("key pressed\n");
+   133                          d->last_event = event;
+   134                  case REMOTE_KEY_REPEAT:
+   135                          deb_rc("key repeated\n");
+   136                          input_event(d->input_dev, EV_KEY, event, 1);
+   137                          input_sync(d->input_dev);
+   138                          input_event(d->input_dev, EV_KEY, d->last_event, 0);
+   139                          input_sync(d->input_dev);
+   140                          break;
+   141                  default:
+   142                          break;
+   143          }
+
+regards,
+dan carpenter
