@@ -1,70 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:53084 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751963AbdDCJod (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Apr 2017 05:44:33 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.12] Various fixes
-Message-ID: <46cdb2fc-0271-de5f-858e-ea701c60a76f@xs4all.nl>
-Date: Mon, 3 Apr 2017 11:44:23 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mga07.intel.com ([134.134.136.100]:30258 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751054AbdDMH6C (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 03:58:02 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
+        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
+        daniel.vetter@ffwll.ch, labbott@redhat.com
+Subject: [RFC v3 06/14] vb2: dma-contig: Assign DMA attrs for a buffer unconditionally
+Date: Thu, 13 Apr 2017 10:57:11 +0300
+Message-Id: <1492070239-21532-7-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1492070239-21532-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1492070239-21532-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes, documentation clarifications.
+attrs used to be a pointer and the caller of vb2_dc_alloc() could
+optionally provide it, or NULL. This was when struct dma_attrs was used
+to describe DMA attributes rather than an unsigned long value. There is no
+longer a need to maintain the condition, assign the value unconditionally.
+There is no functional difference because the memory was initialised to
+zero anyway.
 
-Regards,
+Fixes: 00085f1e ("dma-mapping: use unsigned long for dma_attrs")
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-	Hans
-
-The following changes since commit c3d4fb0fb41f4b5eafeee51173c14e50be12f839:
-
-  [media] rc: sunxi-cir: simplify optional reset handling (2017-03-24 08:30:03 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.12e
-
-for you to fetch changes up to 47b1810e23c9d88136402c496351bf0d8b30aa71:
-
-  atmel-isc: fix off-by-one comparison and out of bounds read issue (2017-04-03 11:41:08 +0200)
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      vcodec: mediatek: mark pm functions as __maybe_unused
-
-Colin Ian King (1):
-      atmel-isc: fix off-by-one comparison and out of bounds read issue
-
-Hans Verkuil (5):
-      dev-capture.rst/dev-output.rst: video standards ioctls are optional
-      video.rst: a sensor is also considered to be a physical input
-      v4l2-compat-ioctl32: VIDIOC_S_EDID should return all fields on error.
-      vidioc-enumin/output.rst: improve documentation
-      v4l2-ctrls.c: fix RGB quantization range control menu
-
-Johan Hovold (5):
-      dib0700: fix NULL-deref at probe
-      usbvision: fix NULL-deref at probe
-      cx231xx-cards: fix NULL-deref at probe
-      cx231xx-audio: fix init error path
-      cx231xx-audio: fix NULL-deref at probe
-
- Documentation/media/uapi/v4l/dev-capture.rst       |  4 ++--
- Documentation/media/uapi/v4l/dev-output.rst        |  4 ++--
- Documentation/media/uapi/v4l/video.rst             |  7 ++++---
- Documentation/media/uapi/v4l/vidioc-enuminput.rst  | 11 ++++++-----
- Documentation/media/uapi/v4l/vidioc-enumoutput.rst | 15 ++++++++-------
- drivers/media/platform/atmel/atmel-isc.c           |  2 +-
- drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c    | 12 ++++--------
- drivers/media/usb/cx231xx/cx231xx-audio.c          | 42 +++++++++++++++++++++++++++++-------------
- drivers/media/usb/cx231xx/cx231xx-cards.c          | 45 ++++++++++++++++++++++++++++++++++++++++-----
- drivers/media/usb/dvb-usb/dib0700_core.c           |  3 +++
- drivers/media/usb/usbvision/usbvision-video.c      |  9 ++++++++-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  5 ++++-
- drivers/media/v4l2-core/v4l2-ctrls.c               |  4 ++--
- 13 files changed, 113 insertions(+), 50 deletions(-)
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 30082a4..a8a46a8 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -149,8 +149,7 @@ static void *vb2_dc_alloc(struct device *dev, unsigned long attrs,
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	if (attrs)
+-		buf->attrs = attrs;
++	buf->attrs = attrs;
+ 	buf->cookie = dma_alloc_attrs(dev, size, &buf->dma_addr,
+ 					GFP_KERNEL | gfp_flags, buf->attrs);
+ 	if (!buf->cookie) {
+-- 
+2.7.4
