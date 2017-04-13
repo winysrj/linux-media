@@ -1,62 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f47.google.com ([209.85.214.47]:37794 "EHLO
-        mail-it0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S3001159AbdDZO2w (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Apr 2017 10:28:52 -0400
-Received: by mail-it0-f47.google.com with SMTP id x188so3661501itb.0
-        for <linux-media@vger.kernel.org>; Wed, 26 Apr 2017 07:28:52 -0700 (PDT)
-Subject: Re: [PATCH] dma-buf: avoid scheduling on fence status query
-To: =?UTF-8?Q?Christian_K=c3=b6nig?= <deathsimple@vodafone.de>,
-        Dave Airlie <airlied@gmail.com>
-References: <20170426013632.4716-1-andresx7@gmail.com>
- <d555eb6a-e975-b025-6ed0-c458b1c71f34@gmail.com>
- <6a3b44f0-bc9f-462c-9b0f-96ae15712b8b@vodafone.de>
- <CAPM=9tzmBifbmh8zdMAZwv+vxT5WNLQAHqzACe1Sx63F-LUWLQ@mail.gmail.com>
- <a280488c-8bf0-f0c8-fff4-9f89462ebe34@vodafone.de>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Andres Rodriguez <andresx7@gmail.com>
-Message-ID: <5c38fa6a-7be1-d2d3-13fd-ec3d527cf021@gmail.com>
-Date: Wed, 26 Apr 2017 10:28:49 -0400
-MIME-Version: 1.0
-In-Reply-To: <a280488c-8bf0-f0c8-fff4-9f89462ebe34@vodafone.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mga07.intel.com ([134.134.136.100]:60075 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751352AbdDMH6c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 03:58:32 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
+        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
+        daniel.vetter@ffwll.ch, labbott@redhat.com
+Subject: [RFC v3 02/14] vb2: Move buffer cache synchronisation to prepare from queue
+Date: Thu, 13 Apr 2017 10:57:07 +0300
+Message-Id: <1492070239-21532-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1492070239-21532-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1492070239-21532-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The buffer cache should be synchronised in buffer preparation, not when
+the buffer is queued to the device. Fix this.
 
+Mmap buffers do not need cache synchronisation since they are always
+coherent.
 
-On 2017-04-26 06:13 AM, Christian König wrote:
-> Am 26.04.2017 um 11:59 schrieb Dave Airlie:
->> On 26 April 2017 at 17:20, Christian König <deathsimple@vodafone.de>
->> wrote:
->>> NAK, I'm wondering how often I have to reject that change. We should
->>> probably add a comment here.
->>>
->>> Even with a zero timeout we still need to enable signaling, otherwise
->>> some
->>> fence will never signal if userspace just polls on them.
->>>
->>> If a caller is only interested in the fence status without enabling the
->>> signaling it should call dma_fence_is_signaled() instead.
->> Can we not move the return 0 (with spin unlock) down after we enabling
->> signalling, but before
->> we enter the schedule_timeout(1)?
->
-> Yes, that would be an option.
->
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-I was actually arguing with Dave about this on IRC yesterday. Seems like 
-I owe him a beer now.
-
--Andres
-
-> Christian.
->
->>
->> Dave.
->
->
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 8df680d..8bf3369 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1227,23 +1227,19 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
+ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+-	unsigned int plane;
+ 
+ 	vb->state = VB2_BUF_STATE_ACTIVE;
+ 	atomic_inc(&q->owned_by_drv_count);
+ 
+ 	trace_vb2_buf_queue(q, vb);
+ 
+-	/* sync buffers */
+-	for (plane = 0; plane < vb->num_planes; ++plane)
+-		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
+-
+ 	call_void_vb_qop(vb, buf_queue, vb);
+ }
+ 
+ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
++	unsigned int plane;
+ 	int ret;
+ 
+ 	if (q->error) {
+@@ -1268,11 +1264,19 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+ 		ret = -EINVAL;
+ 	}
+ 
+-	if (ret)
++	if (ret) {
+ 		dprintk(1, "buffer preparation failed: %d\n", ret);
+-	vb->state = ret ? VB2_BUF_STATE_DEQUEUED : VB2_BUF_STATE_PREPARED;
++		vb->state = VB2_BUF_STATE_DEQUEUED;
++		return ret;
++	}
+ 
+-	return ret;
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
++
++	vb->state = VB2_BUF_STATE_PREPARED;
++
++	return 0;
+ }
+ 
+ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
+-- 
+2.7.4
