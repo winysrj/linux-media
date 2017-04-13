@@ -1,39 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:34829 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752014AbdDCIar (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 04:30:47 -0400
-Date: Mon, 3 Apr 2017 10:30:42 +0200
-From: Johan Hovold <johan@kernel.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH 0/6] [media] fix missing endpoint sanity checks
-Message-ID: <20170403083042.GC25742@localhost>
-References: <20170313125359.29394-1-johan@kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170313125359.29394-1-johan@kernel.org>
+Received: from mga07.intel.com ([134.134.136.100]:11521 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750811AbdDMH6C (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 03:58:02 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
+        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
+        daniel.vetter@ffwll.ch, labbott@redhat.com
+Subject: [RFC v3 09/14] vb2: dma-contig: Move vb2_dc_get_base_sgt() up
+Date: Thu, 13 Apr 2017 10:57:14 +0300
+Message-Id: <1492070239-21532-10-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1492070239-21532-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1492070239-21532-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 13, 2017 at 01:53:53PM +0100, Johan Hovold wrote:
-> This series fixes a number of NULL-pointer dereferences (and related
-> issues) due to missing endpoint sanity checks that can be triggered by a
-> malicious USB device.
+Just move the function up. It'll be soon needed earlier than previously.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 40 +++++++++++++-------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 22636cd..8ea9ab9 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -63,6 +63,26 @@ static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
+ 	return size;
+ }
  
-> Johan Hovold (6):
->   [media] dib0700: fix NULL-deref at probe
->   [media] usbvision: fix NULL-deref at probe
->   [media] cx231xx-cards: fix NULL-deref at probe
->   [media] cx231xx-audio: fix init error path
->   [media] cx231xx-audio: fix NULL-deref at probe
->   [media] gspca: konica: add missing endpoint sanity check
-
-I noticed these had been assigned to you, Hans. Anything more you need
-to get them merged?
-
-Thanks,
-Johan
++static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
++{
++	int ret;
++	struct sg_table *sgt;
++
++	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
++	if (!sgt)
++		return NULL;
++
++	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->cookie, buf->dma_addr,
++		buf->size, buf->attrs);
++	if (ret < 0) {
++		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
++		kfree(sgt);
++		return NULL;
++	}
++
++	return sgt;
++}
++
+ /*********************************************/
+ /*         callbacks for all buffers         */
+ /*********************************************/
+@@ -364,26 +384,6 @@ static struct dma_buf_ops vb2_dc_dmabuf_ops = {
+ 	.release = vb2_dc_dmabuf_ops_release,
+ };
+ 
+-static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
+-{
+-	int ret;
+-	struct sg_table *sgt;
+-
+-	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
+-	if (!sgt)
+-		return NULL;
+-
+-	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->cookie, buf->dma_addr,
+-		buf->size, buf->attrs);
+-	if (ret < 0) {
+-		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
+-		kfree(sgt);
+-		return NULL;
+-	}
+-
+-	return sgt;
+-}
+-
+ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+-- 
+2.7.4
