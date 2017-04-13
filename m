@@ -1,170 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42924 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754526AbdDGKjr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Apr 2017 06:39:47 -0400
-Date: Fri, 7 Apr 2017 13:39:13 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 3/8] v4l: async: Add fwnode match support
-Message-ID: <20170407103913.GE4192@valkosipuli.retiisi.org.uk>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
- <1491484330-12040-4-git-send-email-sakari.ailus@linux.intel.com>
- <3722368.bfpMvP62Mi@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3722368.bfpMvP62Mi@avalon>
+Received: from ale.deltatee.com ([207.54.116.67]:38317 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754480AbdDMWGs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 18:06:48 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
+        Tejun Heo <tj@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Ming Lin <ming.l@ssi.samsung.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
+        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
+        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
+        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Cc: Steve Wise <swise@opengridcomputing.com>,
+        Stephen Bates <sbates@raithlin.com>,
+        Logan Gunthorpe <logang@deltatee.com>
+Date: Thu, 13 Apr 2017 16:05:13 -0600
+Message-Id: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH 00/22] Introduce common scatterlist map function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Everyone,
 
-On Fri, Apr 07, 2017 at 12:49:02PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> On Thursday 06 Apr 2017 16:12:05 Sakari Ailus wrote:
-> > Add fwnode matching to complement OF node matching. And fwnode may also be
-> > an OF node.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-async.c | 12 ++++++++++++
-> >  include/media/v4l2-async.h           |  5 +++++
-> >  include/media/v4l2-subdev.h          |  3 +++
-> >  3 files changed, 20 insertions(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> > b/drivers/media/v4l2-core/v4l2-async.c index 96cc733..384ad5e 100644
-> > --- a/drivers/media/v4l2-core/v4l2-async.c
-> > +++ b/drivers/media/v4l2-core/v4l2-async.c
-> > @@ -46,6 +46,11 @@ static bool match_of(struct v4l2_subdev *sd, struct
-> > v4l2_async_subdev *asd) of_node_full_name(asd->match.of.node));
-> >  }
-> > 
-> > +static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev
-> > *asd)
-> > +{
-> > +	return sd->fwnode == asd->match.fwnode.fwn;
-> > +}
-> > +
-> >  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev
-> > *asd) {
-> >  	if (!asd->match.custom.match)
-> > @@ -80,6 +85,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct
-> > v4l2_async_notifier * case V4L2_ASYNC_MATCH_OF:
-> >  			match = match_of;
-> >  			break;
-> > +		case V4L2_ASYNC_MATCH_FWNODE:
-> > +			match = match_fwnode;
-> > +			break;
-> >  		default:
-> >  			/* Cannot happen, unless someone breaks us */
-> >  			WARN_ON(true);
-> > @@ -158,6 +166,7 @@ int v4l2_async_notifier_register(struct v4l2_device
-> > *v4l2_dev, case V4L2_ASYNC_MATCH_DEVNAME:
-> >  		case V4L2_ASYNC_MATCH_I2C:
-> >  		case V4L2_ASYNC_MATCH_OF:
-> > +		case V4L2_ASYNC_MATCH_FWNODE:
-> >  			break;
-> >  		default:
-> >  			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : 
-> NULL,
-> > @@ -282,6 +291,9 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
-> >  	 */
-> >  	if (!sd->of_node && sd->dev)
-> >  		sd->of_node = sd->dev->of_node;
-> > +	if (!sd->fwnode && sd->dev)
-> > +		sd->fwnode = sd->dev->of_node ?
-> > +			&sd->dev->of_node->fwnode : sd->dev->fwnode;
-> > 
-> >  	mutex_lock(&list_lock);
-> > 
-> > diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> > index 8e2a236..8f552d2 100644
-> > --- a/include/media/v4l2-async.h
-> > +++ b/include/media/v4l2-async.h
-> > @@ -32,6 +32,7 @@ struct v4l2_async_notifier;
-> >   * @V4L2_ASYNC_MATCH_DEVNAME: Match will use the device name
-> >   * @V4L2_ASYNC_MATCH_I2C: Match will check for I2C adapter ID and address
-> >   * @V4L2_ASYNC_MATCH_OF: Match will use OF node
-> > + * @V4L2_ASYNC_MATCH_FWNODE: Match will use firmware node
-> >   *
-> >   * This enum is used by the asyncrhronous sub-device logic to define the
-> >   * algorithm that will be used to match an asynchronous device.
-> > @@ -41,6 +42,7 @@ enum v4l2_async_match_type {
-> >  	V4L2_ASYNC_MATCH_DEVNAME,
-> >  	V4L2_ASYNC_MATCH_I2C,
-> >  	V4L2_ASYNC_MATCH_OF,
-> > +	V4L2_ASYNC_MATCH_FWNODE,
-> >  };
-> > 
-> >  /**
-> > @@ -58,6 +60,9 @@ struct v4l2_async_subdev {
-> >  			const struct device_node *node;
-> >  		} of;
-> >  		struct {
-> > +			struct fwnode_handle *fwn;
-> 
-> I'd name this "node". The rationale is that code should be as independent as 
-> possible of whether we use device_node or fwnode_handle. Naming both variable 
-> "node" helps in that regard, and is in my opinion easier to read. This applies 
-> to the other patches in the series too.
+As part of my effort to enable P2P DMA transactions with PCI cards,
+we've identified the need to be able to safely put IO memory into
+scatterlists (and eventually other spots). This probably involves a
+conversion from struct page to pfn_t but that migration is a ways off
+and those decisions are yet to be made.
 
-What you're proposing doesn't really change that: you'll have to be aware of
-which one you have anyway. Variables pointing to fwnode_handle are often
-called fwn as well --- as node is used for struct device_node.
+As an initial step in that direction, I've started cleaning up some of the
+scatterlist code by trying to carve out a better defined layer between it
+and it's users. The longer term goal would be to remove sg_page or replace
+it with something that can potentially fail.
 
-In other words, I prefer to keep it as it is.
+This patchset is the first step in that effort. I've introduced
+a common function to map scatterlist memory and converted all the common
+kmap(sg_page()) cases. This removes about 66 sg_page calls (of ~331).
 
-> 
-> Apart from that,
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> > +		} fwnode;
-> > +		struct {
-> >  			const char *name;
-> >  		} device_name;
-> >  		struct {
-> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> > index 0ab1c5d..5f1669c 100644
-> > --- a/include/media/v4l2-subdev.h
-> > +++ b/include/media/v4l2-subdev.h
-> > @@ -788,6 +788,8 @@ struct v4l2_subdev_platform_data {
-> >   * @devnode: subdev device node
-> >   * @dev: pointer to the physical device, if any
-> >   * @of_node: The device_node of the subdev, usually the same as
-> > dev->of_node. + * @fwnode: The fwnode_handle of the subdev, usually the
-> > same as
-> > + *	    either dev->of_node->fwnode or dev->fwnode (whichever is non-
-> NULL).
-> >   * @async_list: Links this subdev to a global subdev_list or
-> > @notifier->done *	list.
-> >   * @asd: Pointer to respective &struct v4l2_async_subdev.
-> > @@ -819,6 +821,7 @@ struct v4l2_subdev {
-> >  	struct video_device *devnode;
-> >  	struct device *dev;
-> >  	struct device_node *of_node;
-> > +	struct fwnode_handle *fwnode;
-> >  	struct list_head async_list;
-> >  	struct v4l2_async_subdev *asd;
-> >  	struct v4l2_async_notifier *notifier;
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+Seeing this is a fairly large cleanup set that touches a wide swath of
+the kernel I have limited the people I've sent this to. I'd suggest we look
+toward merging the first patch and then I can send the individual subsystem
+patches on to their respective maintainers and get them merged
+independantly. (This is to avoid the conflicts I created with my last
+cleanup set... Sorry) Though, I'm certainly open to other suggestions to get
+it merged.
 
--- 
-Regards,
+The patchset is based on v4.11-rc6 and can be found in the sg_map
+branch from this git tree:
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+https://github.com/sbates130272/linux-p2pmem.git
+
+Thanks,
+
+Logan
+
+
+Logan Gunthorpe (22):
+  scatterlist: Introduce sg_map helper functions
+  nvmet: Make use of the new sg_map helper function
+  libiscsi: Make use of new the sg_map helper function
+  target: Make use of the new sg_map function at 16 call sites
+  drm/i915: Make use of the new sg_map helper function
+  crypto: hifn_795x: Make use of the new sg_map helper function
+  crypto: shash, caam: Make use of the new sg_map helper function
+  crypto: chcr: Make use of the new sg_map helper function
+  dm-crypt: Make use of the new sg_map helper in 4 call sites
+  staging: unisys: visorbus: Make use of the new sg_map helper function
+  RDS: Make use of the new sg_map helper function
+  scsi: ipr, pmcraid, isci: Make use of the new sg_map helper in 4 call
+    sites
+  scsi: hisi_sas, mvsas, gdth: Make use of the new sg_map helper
+    function
+  scsi: arcmsr, ips, megaraid: Make use of the new sg_map helper
+    function
+  scsi: libfc, csiostor: Change to sg_copy_buffer in two drivers
+  xen-blkfront: Make use of the new sg_map helper function
+  mmc: sdhci: Make use of the new sg_map helper function
+  mmc: spi: Make use of the new sg_map helper function
+  mmc: tmio: Make use of the new sg_map helper function
+  mmc: sdricoh_cs: Make use of the new sg_map helper function
+  mmc: tifm_sd: Make use of the new sg_map helper function
+  memstick: Make use of the new sg_map helper function
+
+ crypto/shash.c                                  |   9 +-
+ drivers/block/xen-blkfront.c                    |  33 +++++--
+ drivers/crypto/caam/caamalg.c                   |   8 +-
+ drivers/crypto/chelsio/chcr_algo.c              |  28 +++---
+ drivers/crypto/hifn_795x.c                      |  32 ++++---
+ drivers/dma-buf/dma-buf.c                       |   3 +
+ drivers/gpu/drm/i915/i915_gem.c                 |  27 +++---
+ drivers/md/dm-crypt.c                           |  38 +++++---
+ drivers/memstick/host/jmb38x_ms.c               |  23 ++++-
+ drivers/memstick/host/tifm_ms.c                 |  22 ++++-
+ drivers/mmc/host/mmc_spi.c                      |  26 +++--
+ drivers/mmc/host/sdhci.c                        |  35 ++++++-
+ drivers/mmc/host/sdricoh_cs.c                   |  14 ++-
+ drivers/mmc/host/tifm_sd.c                      |  88 +++++++++++++----
+ drivers/mmc/host/tmio_mmc.h                     |  12 ++-
+ drivers/mmc/host/tmio_mmc_dma.c                 |   5 +
+ drivers/mmc/host/tmio_mmc_pio.c                 |  24 +++++
+ drivers/nvme/target/fabrics-cmd.c               |  16 +++-
+ drivers/scsi/arcmsr/arcmsr_hba.c                |  16 +++-
+ drivers/scsi/csiostor/csio_scsi.c               |  54 +----------
+ drivers/scsi/cxgbi/libcxgbi.c                   |   5 +
+ drivers/scsi/gdth.c                             |   9 +-
+ drivers/scsi/hisi_sas/hisi_sas_v1_hw.c          |  14 ++-
+ drivers/scsi/hisi_sas/hisi_sas_v2_hw.c          |  13 ++-
+ drivers/scsi/ipr.c                              |  27 +++---
+ drivers/scsi/ips.c                              |   8 +-
+ drivers/scsi/isci/request.c                     |  42 ++++----
+ drivers/scsi/libfc/fc_libfc.c                   |  49 ++--------
+ drivers/scsi/libiscsi_tcp.c                     |  32 ++++---
+ drivers/scsi/megaraid.c                         |   9 +-
+ drivers/scsi/mvsas/mv_sas.c                     |  10 +-
+ drivers/scsi/pmcraid.c                          |  19 ++--
+ drivers/staging/unisys/visorhba/visorhba_main.c |  12 ++-
+ drivers/target/iscsi/iscsi_target.c             |  27 ++++--
+ drivers/target/target_core_rd.c                 |   3 +-
+ drivers/target/target_core_sbc.c                | 122 +++++++++++++++++-------
+ drivers/target/target_core_transport.c          |  18 ++--
+ drivers/target/target_core_user.c               |  43 ++++++---
+ include/linux/scatterlist.h                     |  97 +++++++++++++++++++
+ include/scsi/libiscsi_tcp.h                     |   3 +-
+ include/target/target_core_backend.h            |   4 +-
+ net/rds/ib_recv.c                               |  17 +++-
+ 42 files changed, 739 insertions(+), 357 deletions(-)
+
+--
+2.1.4
