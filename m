@@ -1,94 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:49778 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1952423AbdDYSVZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 14:21:25 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com
-Cc: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Adrian Hunter <adrian.hunter@intel.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>
-Date: Tue, 25 Apr 2017 12:21:03 -0600
-Message-Id: <1493144468-22493-17-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 16/21] mmc: sdhci: Make use of the new sg_map helper function
+Received: from lelnx194.ext.ti.com ([198.47.27.80]:15706 "EHLO
+        lelnx194.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756213AbdDMJ0V (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 05:26:21 -0400
+Subject: Re: [RFC PATCH 3/3] encoder-tpd12s015: keep the ls_oe_gpio on while
+ the phys_addr is valid
+To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>
+References: <1461922746-17521-1-git-send-email-hverkuil@xs4all.nl>
+ <1461922746-17521-4-git-send-email-hverkuil@xs4all.nl>
+ <5731C7D2.4090807@ti.com> <5b6f679c-69dd-78be-a398-30aa4b4da1db@xs4all.nl>
+ <1d801302-388b-1d00-f0be-18aaef8cf80f@ti.com>
+ <5d47b07d-1866-f832-0d06-e834e7e2aebb@xs4all.nl>
+ <fc682c3d-3ab3-0d0f-3bb7-f6dc62f477f6@ti.com>
+ <54a864cd-00b8-3e5f-94d6-ceee1248cd53@xs4all.nl>
+ <d4b49cb9-7147-c2f4-7e14-99dce1a05708@ti.com>
+ <f139d50e-c186-5f00-2a84-a09bf32ab5f6@xs4all.nl>
+CC: <dri-devel@lists.freedesktop.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Message-ID: <4bd89a0a-6505-f7b7-1d86-c83a3cf37e01@ti.com>
+Date: Thu, 13 Apr 2017 12:26:17 +0300
+MIME-Version: 1.0
+In-Reply-To: <f139d50e-c186-5f00-2a84-a09bf32ab5f6@xs4all.nl>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature";
+        boundary="OqWQPhj6OnualJJHqqQrgaqgBhnd6eFD8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Straightforward conversion, except due to the lack of an error path we
-have to use SG_MAP_MUST_NOT_FAIL which may BUG_ON in certain cases
-in the future.
+--OqWQPhj6OnualJJHqqQrgaqgBhnd6eFD8
+Content-Type: multipart/mixed; boundary="GkQ4wE4vj9ur14GJCO8k3k4TvakMcXppS";
+ protected-headers="v1"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, Hans Verkuil <hans.verkuil@cisco.com>
+Message-ID: <4bd89a0a-6505-f7b7-1d86-c83a3cf37e01@ti.com>
+Subject: Re: [RFC PATCH 3/3] encoder-tpd12s015: keep the ls_oe_gpio on while
+ the phys_addr is valid
+References: <1461922746-17521-1-git-send-email-hverkuil@xs4all.nl>
+ <1461922746-17521-4-git-send-email-hverkuil@xs4all.nl>
+ <5731C7D2.4090807@ti.com> <5b6f679c-69dd-78be-a398-30aa4b4da1db@xs4all.nl>
+ <1d801302-388b-1d00-f0be-18aaef8cf80f@ti.com>
+ <5d47b07d-1866-f832-0d06-e834e7e2aebb@xs4all.nl>
+ <fc682c3d-3ab3-0d0f-3bb7-f6dc62f477f6@ti.com>
+ <54a864cd-00b8-3e5f-94d6-ceee1248cd53@xs4all.nl>
+ <d4b49cb9-7147-c2f4-7e14-99dce1a05708@ti.com>
+ <f139d50e-c186-5f00-2a84-a09bf32ab5f6@xs4all.nl>
+In-Reply-To: <f139d50e-c186-5f00-2a84-a09bf32ab5f6@xs4all.nl>
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>
----
- drivers/mmc/host/sdhci.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+--GkQ4wE4vj9ur14GJCO8k3k4TvakMcXppS
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
-index ecd0d43..239507f 100644
---- a/drivers/mmc/host/sdhci.c
-+++ b/drivers/mmc/host/sdhci.c
-@@ -513,15 +513,19 @@ static int sdhci_pre_dma_transfer(struct sdhci_host *host,
- 	return sg_count;
- }
- 
-+/*
-+ * Note this function may return PTR_ERR and must be checked.
-+ */
- static char *sdhci_kmap_atomic(struct scatterlist *sg, unsigned long *flags)
- {
- 	local_irq_save(*flags);
--	return kmap_atomic(sg_page(sg)) + sg->offset;
-+	return sg_map(sg, 0, SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
- }
- 
--static void sdhci_kunmap_atomic(void *buffer, unsigned long *flags)
-+static void sdhci_kunmap_atomic(struct scatterlist *sg, void *buffer,
-+				unsigned long *flags)
- {
--	kunmap_atomic(buffer);
-+	sg_unmap(sg, buffer, 0, SG_KMAP_ATOMIC);
- 	local_irq_restore(*flags);
- }
- 
-@@ -585,7 +589,7 @@ static void sdhci_adma_table_pre(struct sdhci_host *host,
- 			if (data->flags & MMC_DATA_WRITE) {
- 				buffer = sdhci_kmap_atomic(sg, &flags);
- 				memcpy(align, buffer, offset);
--				sdhci_kunmap_atomic(buffer, &flags);
-+				sdhci_kunmap_atomic(sg, buffer, &flags);
- 			}
- 
- 			/* tran, valid */
-@@ -663,7 +667,7 @@ static void sdhci_adma_table_post(struct sdhci_host *host,
- 
- 					buffer = sdhci_kmap_atomic(sg, &flags);
- 					memcpy(buffer, align, size);
--					sdhci_kunmap_atomic(buffer, &flags);
-+					sdhci_kunmap_atomic(sg, buffer, &flags);
- 
- 					align += SDHCI_ADMA2_ALIGN;
- 				}
--- 
-2.1.4
+On 13/04/17 12:12, Hans Verkuil wrote:
+
+>> Is there anything else CEC needs to access or control (besides the CEC=
+
+>> IP itself)?
+>=20
+> The CEC framework needs to be informed about the physical address conta=
+ined
+> in the EDID (part of the CEA-861 block). And when the HPD goes down it =
+needs
+> to be informed as well (same call, but with CEC_PHYS_ADDR_INVALID as ar=
+gument).
+
+Ah, hmm... And currently that's (kind of) handled in
+hdmi_power_off_full() by setting CEC_PHYS_ADDR_INVALID? That's not the
+same thing as HPD off, though, but maybe it's enough (for now).
+
+ Tomi
+
+
+--GkQ4wE4vj9ur14GJCO8k3k4TvakMcXppS--
+
+--OqWQPhj6OnualJJHqqQrgaqgBhnd6eFD8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJY70Q5AAoJEPo9qoy8lh71vZYP/1InYg6Ku6aU+5tvwcRubi5b
+P8Uxinu528mQQqRV8XfeqU/oH6RAJT0Syw0fKF+aApEqAw/gvR513OgwBqoN5353
+36mwahf/uYfCHZ7NfhKhsz2OSuxTNZis77DJc4HQN+udeLmzW/dDa5o6dnB/SdSH
+YzLl5I+1MA+YdqKKC4d8G8Gk+WH+IJmHrk0Ckd100ULrJPxkCU/X1QL8xOYsUtZA
+earv9HoPtUirZaCBbcR8i9zya3qHz5vaTMiEzneLa/P1Yet8PPtmwA5mZNz+lhbD
+7pRV9nGwm2TwRYlRHg5wSfRVCiXOdsUy6B5iP5b+B/254Me/HDX9i2gQ11GjGj20
+doD3aopRj4y5MQG4WYb6n9lPyQBJ7oYXVloJhpfqJgh6wf51MTCuIX2iJ2dI3YxA
+VMdg+sAobjgkhCAwJzi0lekHexVFUdf8xc1YOETUMX/TgEA8afI8PlWgpncK0gcp
+lB+mVWshsVmJdm87pdJe1OATh45/392moPMLZ+g5ePTLPBxTrscF9LzVlzTG+lRr
+/czBeZEeuyD1CD3KxrrgcAnZiTAiA3yGGBsL5noZ5vZSErqmtMuB9ZguPxH2wZXZ
+ETgaIlo/03mbSFIQBPrXsw5JEWlyAyb2HvwoPo3j/1GGfAAPGPEe0NH0/WKWQLy6
+6pB416k5jzaSa+/yauMW
+=fGvu
+-----END PGP SIGNATURE-----
+
+--OqWQPhj6OnualJJHqqQrgaqgBhnd6eFD8--
