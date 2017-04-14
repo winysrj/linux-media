@@ -1,37 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms.lwn.net ([45.79.88.28]:39292 "EHLO ms.lwn.net"
+Received: from verein.lst.de ([213.95.11.211]:41180 "EHLO newverein.lst.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752406AbdDHRXa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 8 Apr 2017 13:23:30 -0400
-Date: Sat, 8 Apr 2017 11:23:28 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        id S1752616AbdDNFSv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Apr 2017 01:18:51 -0400
+Date: Fri, 14 Apr 2017 07:18:43 +0200
+From: Christoph Hellwig <hch@lst.de>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
+        Tejun Heo <tj@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org
-Subject: Re: [PATCH v2 00/21] Convert USB documentation to ReST format
-Message-ID: <20170408112328.7cc07f53@lwn.net>
-In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
-References: <cover.1491398120.git.mchehab@s-opensource.com>
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Ming Lin <ming.l@ssi.samsung.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
+        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
+        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
+        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
+        Steve Wise <swise@opengridcomputing.com>,
+        Stephen Bates <sbates@raithlin.com>
+Subject: Re: [PATCH 02/22] nvmet: Make use of the new sg_map helper function
+Message-ID: <20170414051843.GA22537@lst.de>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com> <1492121135-4437-3-git-send-email-logang@deltatee.com> <20170414045951.GA22206@lst.de> <4df3e41b-591e-a500-a428-4bc529224030@deltatee.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4df3e41b-591e-a500-a428-4bc529224030@deltatee.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed,  5 Apr 2017 10:22:54 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+On Thu, Apr 13, 2017 at 11:06:16PM -0600, Logan Gunthorpe wrote:
+> Or maybe I'll just send a patch for that
+> separately seeing it doesn't depend on anything and is pretty simple. I
+> can do that next week.
 
-> Currently, there are several USB core documents that are at either
-> written in plain text or in DocBook format. Convert them to ReST
-> and add to the driver-api book.
-
-Greg, do you see any reason not to apply these for 4.12?  A few of them
-touch comments outside of Documentation/; I'm happy to carry those or
-leave them to you, as you prefer.
-
-Thanks,
-
-jon
+Yes, please just send that patch linux-nvme, we should be able to get
+it into 4.12.
