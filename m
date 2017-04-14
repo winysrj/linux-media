@@ -1,148 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:36800 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751620AbdDKWRG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Apr 2017 18:17:06 -0400
-Received: by mail-qt0-f194.google.com with SMTP id v3so1592342qtd.3
-        for <linux-media@vger.kernel.org>; Tue, 11 Apr 2017 15:17:05 -0700 (PDT)
-Date: Tue, 11 Apr 2017 18:17:02 -0400
-From: Kevin Wern <kevin.m.wern@gmail.com>
-To: mchehab@kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Stephen Warren <swarren@wwwdotorg.org>,
-        Lee Jones <lee@kernel.org>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Ray Jui <rjui@broadcom.com>,
-        Scott Branden <sbranden@broadcom.com>,
-        Eric Anholt <eric@anholt.net>,
-        bcm-kernel-feedback-list@broadcom.com, linux-media@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH v2] staging: media/platform/bcm2835: remove gstreamer
- workaround
-Message-ID: <20170411221702.GA10800@kwern-HP-Pavilion-dv5-Notebook-PC>
+Received: from ale.deltatee.com ([207.54.116.67]:39314 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750750AbdDNFGh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Apr 2017 01:06:37 -0400
+To: Christoph Hellwig <hch@lst.de>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+ <1492121135-4437-3-git-send-email-logang@deltatee.com>
+ <20170414045951.GA22206@lst.de>
+Cc: "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
+        Tejun Heo <tj@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Ming Lin <ming.l@ssi.samsung.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
+        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
+        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
+        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
+        Steve Wise <swise@opengridcomputing.com>,
+        Stephen Bates <sbates@raithlin.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <4df3e41b-591e-a500-a428-4bc529224030@deltatee.com>
+Date: Thu, 13 Apr 2017 23:06:16 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20170414045951.GA22206@lst.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH 02/22] nvmet: Make use of the new sg_map helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Gstreamer's v4l2src reacted poorly to certain outputs from the bcm2835
-video driver's ioctl ops function vidioc_enum_framesizes, so a
-workaround was created that could be activated by user input. This
-workaround would replace the driver's ioctl ops struct with another,
-similar struct--only with no function pointed to by
-vidioc_enum_framesizes. With no response, gstreamer would attempt to
-continue with some default settings that happened to work better.
 
-However, this bug has been fixed in gstreamer since 2014, so we
-shouldn't include this workaround in the stable version of the driver.
 
-Signed-off-by: Kevin Wern <kevin.m.wern@gmail.com>
----
-V2: patch against staging-next instead of torvalds/master
+On 13/04/17 10:59 PM, Christoph Hellwig wrote:
+> On Thu, Apr 13, 2017 at 04:05:15PM -0600, Logan Gunthorpe wrote:
+>> This is a straight forward conversion in two places. Should kmap fail,
+>> the code will return an INVALD_DATA error in the completion.
+> 
+> It really should be using nvmet_copy_from_sgl to make things safer,
+> as we don't want to rely on any particular SG list layout.  In fact
+> I'm pretty sure I did the conversion at some point, but it must never
+> have made it upstream.
 
- drivers/staging/vc04_services/bcm2835-camera/TODO  |  5 --
- .../vc04_services/bcm2835-camera/bcm2835-camera.c  | 60 ----------------------
- 2 files changed, 65 deletions(-)
+Ha, I did the conversion too a couple times for my RFC series. I can
+change this patch to do that. Or maybe I'll just send a patch for that
+separately seeing it doesn't depend on anything and is pretty simple. I
+can do that next week.
 
-diff --git a/drivers/staging/vc04_services/bcm2835-camera/TODO b/drivers/staging/vc04_services/bcm2835-camera/TODO
-index 61a5099..0ab9e88 100644
---- a/drivers/staging/vc04_services/bcm2835-camera/TODO
-+++ b/drivers/staging/vc04_services/bcm2835-camera/TODO
-@@ -32,8 +32,3 @@ We should have VCHI create a platform device once it's initialized,
- and have this driver bind to it, so that we automatically load the
- v4l2 module after VCHI loads.
- 
--5) Drop the gstreamer workaround.
--
--This was a temporary workaround for a bug that was fixed mid-2014, and
--we should remove it before stabilizing the driver.
--
-diff --git a/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c b/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
-index 86bbd6e..a11e047 100644
---- a/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
-+++ b/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
-@@ -66,19 +66,6 @@ MODULE_PARM_DESC(max_video_width, "Threshold for video mode");
- module_param(max_video_height, int, 0644);
- MODULE_PARM_DESC(max_video_height, "Threshold for video mode");
- 
--/* Gstreamer bug https://bugzilla.gnome.org/show_bug.cgi?id=726521
-- * v4l2src does bad (and actually wrong) things when the vidioc_enum_framesizes
-- * function says type V4L2_FRMSIZE_TYPE_STEPWISE, which we do by default.
-- * It's happier if we just don't say anything at all, when it then
-- * sets up a load of defaults that it thinks might work.
-- * If gst_v4l2src_is_broken is non-zero, then we remove the function from
-- * our function table list (actually switch to an alternate set, but same
-- * result).
-- */
--static int gst_v4l2src_is_broken;
--module_param(gst_v4l2src_is_broken, int, 0644);
--MODULE_PARM_DESC(gst_v4l2src_is_broken, "If non-zero, enable workaround for Gstreamer");
--
- /* global device data array */
- static struct bm2835_mmal_dev *gdev[MAX_BCM2835_CAMERAS];
- 
-@@ -1454,48 +1441,6 @@ static const struct v4l2_ioctl_ops camera0_ioctl_ops = {
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
--static const struct v4l2_ioctl_ops camera0_ioctl_ops_gstreamer = {
--	/* overlay */
--	.vidioc_enum_fmt_vid_overlay = vidioc_enum_fmt_vid_overlay,
--	.vidioc_g_fmt_vid_overlay = vidioc_g_fmt_vid_overlay,
--	.vidioc_try_fmt_vid_overlay = vidioc_try_fmt_vid_overlay,
--	.vidioc_s_fmt_vid_overlay = vidioc_s_fmt_vid_overlay,
--	.vidioc_overlay = vidioc_overlay,
--	.vidioc_g_fbuf = vidioc_g_fbuf,
--
--	/* inputs */
--	.vidioc_enum_input = vidioc_enum_input,
--	.vidioc_g_input = vidioc_g_input,
--	.vidioc_s_input = vidioc_s_input,
--
--	/* capture */
--	.vidioc_querycap = vidioc_querycap,
--	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
--	.vidioc_g_fmt_vid_cap = vidioc_g_fmt_vid_cap,
--	.vidioc_try_fmt_vid_cap = vidioc_try_fmt_vid_cap,
--	.vidioc_s_fmt_vid_cap = vidioc_s_fmt_vid_cap,
--
--	/* buffer management */
--	.vidioc_reqbufs = vb2_ioctl_reqbufs,
--	.vidioc_create_bufs = vb2_ioctl_create_bufs,
--	.vidioc_prepare_buf = vb2_ioctl_prepare_buf,
--	.vidioc_querybuf = vb2_ioctl_querybuf,
--	.vidioc_qbuf = vb2_ioctl_qbuf,
--	.vidioc_dqbuf = vb2_ioctl_dqbuf,
--	/* Remove this function ptr to fix gstreamer bug
--	 * .vidioc_enum_framesizes = vidioc_enum_framesizes,
--	 */
--	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
--	.vidioc_g_parm        = vidioc_g_parm,
--	.vidioc_s_parm        = vidioc_s_parm,
--	.vidioc_streamon = vb2_ioctl_streamon,
--	.vidioc_streamoff = vb2_ioctl_streamoff,
--
--	.vidioc_log_status = v4l2_ctrl_log_status,
--	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
--	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
--};
--
- /* ------------------------------------------------------------------
-  *	Driver init/finalise
-  * ------------------------------------------------------------------
-@@ -1811,11 +1756,6 @@ static int __init bm2835_mmal_init_device(struct bm2835_mmal_dev *dev,
- 	int ret;
- 
- 	*vfd = vdev_template;
--	if (gst_v4l2src_is_broken) {
--		v4l2_info(&dev->v4l2_dev,
--			  "Work-around for gstreamer issue is active.\n");
--		vfd->ioctl_ops = &camera0_ioctl_ops_gstreamer;
--	}
- 
- 	vfd->v4l2_dev = &dev->v4l2_dev;
- 
--- 
-2.7.4
+Thanks,
+
+Logan
