@@ -1,97 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39184 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751101AbdDDJLM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 05:11:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Neil Armstrong <narmstrong@baylibre.com>
-Cc: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
-        mchehab@kernel.org, Jose.Abreu@synopsys.com,
-        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com
-Subject: Re: [PATCH v6 2/6] media: uapi: Add RGB and YUV bus formats for Synopsys HDMI TX Controller
-Date: Tue, 04 Apr 2017 12:11:56 +0300
-Message-ID: <1605889.jBdfeePLMM@avalon>
-In-Reply-To: <1491230558-10804-3-git-send-email-narmstrong@baylibre.com>
-References: <1491230558-10804-1-git-send-email-narmstrong@baylibre.com> <1491230558-10804-3-git-send-email-narmstrong@baylibre.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:41503 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751852AbdDNKZX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Apr 2017 06:25:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
+Date: Fri, 14 Apr 2017 12:25:05 +0200
+Message-Id: <20170414102512.48834-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170414102512.48834-1-hverkuil@xs4all.nl>
+References: <20170414102512.48834-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Neil,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you for the patch.
+The CEC pin was always pulled up, making it impossible to use it.
 
-On Monday 03 Apr 2017 16:42:34 Neil Armstrong wrote:
-> In order to describe the RGB and YUV bus formats used to feed the
-> Synopsys DesignWare HDMI TX Controller, add missing formats to the
-> list of Bus Formats.
-> 
-> Documentation for these formats is added in a separate patch.
-> 
-> Reviewed-by: Archit Taneja <architt@codeaurora.org>
-> Reviewed-by: Jose Abreu <joabreu@synopsys.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Change to PIN_INPUT so it can be used by the new CEC support.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ arch/arm/boot/dts/omap4-panda-a4.dts | 2 +-
+ arch/arm/boot/dts/omap4-panda-es.dts | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-> ---
->  include/uapi/linux/media-bus-format.h | 13 +++++++++++--
->  1 file changed, 11 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/uapi/linux/media-bus-format.h
-> b/include/uapi/linux/media-bus-format.h index 2168759..ef6fb30 100644
-> --- a/include/uapi/linux/media-bus-format.h
-> +++ b/include/uapi/linux/media-bus-format.h
-> @@ -33,7 +33,7 @@
-> 
->  #define MEDIA_BUS_FMT_FIXED			0x0001
-> 
-> -/* RGB - next is	0x1018 */
-> +/* RGB - next is	0x101b */
->  #define MEDIA_BUS_FMT_RGB444_1X12		0x1016
->  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
->  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
-> @@ -57,8 +57,11 @@
->  #define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
->  #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
->  #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
-> +#define MEDIA_BUS_FMT_RGB101010_1X30		0x1018
-> +#define MEDIA_BUS_FMT_RGB121212_1X36		0x1019
-> +#define MEDIA_BUS_FMT_RGB161616_1X48		0x101a
-> 
-> -/* YUV (including grey) - next is	0x2026 */
-> +/* YUV (including grey) - next is	0x202c */
->  #define MEDIA_BUS_FMT_Y8_1X8			0x2001
->  #define MEDIA_BUS_FMT_UV8_1X8			0x2015
->  #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
-> @@ -90,12 +93,18 @@
->  #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
->  #define MEDIA_BUS_FMT_VUY8_1X24			0x2024
->  #define MEDIA_BUS_FMT_YUV8_1X24			0x2025
-> +#define MEDIA_BUS_FMT_UYYVYY8_0_5X24		0x2026
->  #define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
->  #define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
->  #define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
->  #define MEDIA_BUS_FMT_YVYU12_1X24		0x2023
->  #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
-> +#define MEDIA_BUS_FMT_UYYVYY10_0_5X30		0x2027
->  #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
-> +#define MEDIA_BUS_FMT_UYYVYY12_0_5X36		0x2028
-> +#define MEDIA_BUS_FMT_YUV12_1X36		0x2029
-> +#define MEDIA_BUS_FMT_YUV16_1X48		0x202a
-> +#define MEDIA_BUS_FMT_UYYVYY16_0_5X48		0x202b
-> 
->  /* Bayer - next is	0x3021 */
->  #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
-
+diff --git a/arch/arm/boot/dts/omap4-panda-a4.dts b/arch/arm/boot/dts/omap4-panda-a4.dts
+index 78d363177762..f1a6476af371 100644
+--- a/arch/arm/boot/dts/omap4-panda-a4.dts
++++ b/arch/arm/boot/dts/omap4-panda-a4.dts
+@@ -13,7 +13,7 @@
+ /* Pandaboard Rev A4+ have external pullups on SCL & SDA */
+ &dss_hdmi_pins {
+ 	pinctrl-single,pins = <
+-		OMAP4_IOPAD(0x09a, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++		OMAP4_IOPAD(0x09a, PIN_INPUT | MUX_MODE0)		/* hdmi_cec.hdmi_cec */
+ 		OMAP4_IOPAD(0x09c, PIN_INPUT | MUX_MODE0)		/* hdmi_scl.hdmi_scl */
+ 		OMAP4_IOPAD(0x09e, PIN_INPUT | MUX_MODE0)		/* hdmi_sda.hdmi_sda */
+ 		>;
+diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+index 119f8e657edc..940fe4f7c5f6 100644
+--- a/arch/arm/boot/dts/omap4-panda-es.dts
++++ b/arch/arm/boot/dts/omap4-panda-es.dts
+@@ -34,7 +34,7 @@
+ /* PandaboardES has external pullups on SCL & SDA */
+ &dss_hdmi_pins {
+ 	pinctrl-single,pins = <
+-		OMAP4_IOPAD(0x09a, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++		OMAP4_IOPAD(0x09a, PIN_INPUT | MUX_MODE0)		/* hdmi_cec.hdmi_cec */
+ 		OMAP4_IOPAD(0x09c, PIN_INPUT | MUX_MODE0)		/* hdmi_scl.hdmi_scl */
+ 		OMAP4_IOPAD(0x09e, PIN_INPUT | MUX_MODE0)		/* hdmi_sda.hdmi_sda */
+ 		>;
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
