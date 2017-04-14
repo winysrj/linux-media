@@ -1,302 +1,483 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f181.google.com ([209.85.216.181]:36716 "EHLO
-        mail-qt0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752256AbdDCS63 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 14:58:29 -0400
-Received: by mail-qt0-f181.google.com with SMTP id r45so120556209qte.3
-        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 11:58:24 -0700 (PDT)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:41503 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752265AbdDNKZb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Apr 2017 06:25:31 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
         dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCHv3 04/22] staging: android: ion: Remove alignment from allocation field
-Date: Mon,  3 Apr 2017 11:57:46 -0700
-Message-Id: <1491245884-15852-5-git-send-email-labbott@redhat.com>
-In-Reply-To: <1491245884-15852-1-git-send-email-labbott@redhat.com>
-References: <1491245884-15852-1-git-send-email-labbott@redhat.com>
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 7/8] omapdrm: hdmi4_cec: add OMAP4 HDMI CEC support
+Date: Fri, 14 Apr 2017 12:25:11 +0200
+Message-Id: <20170414102512.48834-8-hverkuil@xs4all.nl>
+In-Reply-To: <20170414102512.48834-1-hverkuil@xs4all.nl>
+References: <20170414102512.48834-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The align field was supposed to be used to specify the alignment of
-the allocation. Nobody actually does anything with it except to check
-if the alignment specified is out of bounds. Since this has no effect
-on the actual allocation, just remove it.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Laura Abbott <labbott@redhat.com>
+Add the source and header for the OMAP4 HDMI CEC support.
+
+This code is not yet hooked up, that will happen in the next patch.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/android/ion/ion-ioctl.c         |  1 -
- drivers/staging/android/ion/ion.c               | 14 ++++++--------
- drivers/staging/android/ion/ion.h               |  5 +----
- drivers/staging/android/ion/ion_carveout_heap.c | 10 +++-------
- drivers/staging/android/ion/ion_chunk_heap.c    |  9 +++------
- drivers/staging/android/ion/ion_cma_heap.c      |  5 +----
- drivers/staging/android/ion/ion_priv.h          |  2 +-
- drivers/staging/android/ion/ion_system_heap.c   |  9 +--------
- 8 files changed, 16 insertions(+), 39 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c | 381 ++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h |  55 +++++
+ 2 files changed, 436 insertions(+)
+ create mode 100644 drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
+ create mode 100644 drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h
 
-diff --git a/drivers/staging/android/ion/ion-ioctl.c b/drivers/staging/android/ion/ion-ioctl.c
-index 9ff815a..5b2e93f 100644
---- a/drivers/staging/android/ion/ion-ioctl.c
-+++ b/drivers/staging/android/ion/ion-ioctl.c
-@@ -95,7 +95,6 @@ long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 		struct ion_handle *handle;
- 
- 		handle = ion_alloc(client, data.allocation.len,
--						data.allocation.align,
- 						data.allocation.heap_id_mask,
- 						data.allocation.flags);
- 		if (IS_ERR(handle))
-diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index f45115f..c2adfe1 100644
---- a/drivers/staging/android/ion/ion.c
-+++ b/drivers/staging/android/ion/ion.c
-@@ -103,7 +103,6 @@ static void ion_buffer_add(struct ion_device *dev,
- static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
- 					    struct ion_device *dev,
- 					    unsigned long len,
--					    unsigned long align,
- 					    unsigned long flags)
- {
- 	struct ion_buffer *buffer;
-@@ -119,15 +118,14 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
- 	buffer->flags = flags;
- 	kref_init(&buffer->ref);
- 
--	ret = heap->ops->allocate(heap, buffer, len, align, flags);
-+	ret = heap->ops->allocate(heap, buffer, len, flags);
- 
- 	if (ret) {
- 		if (!(heap->flags & ION_HEAP_FLAG_DEFER_FREE))
- 			goto err2;
- 
- 		ion_heap_freelist_drain(heap, 0);
--		ret = heap->ops->allocate(heap, buffer, len, align,
--					  flags);
-+		ret = heap->ops->allocate(heap, buffer, len, flags);
- 		if (ret)
- 			goto err2;
- 	}
-@@ -401,7 +399,7 @@ static int ion_handle_add(struct ion_client *client, struct ion_handle *handle)
- }
- 
- struct ion_handle *ion_alloc(struct ion_client *client, size_t len,
--			     size_t align, unsigned int heap_id_mask,
-+			     unsigned int heap_id_mask,
- 			     unsigned int flags)
- {
- 	struct ion_handle *handle;
-@@ -410,8 +408,8 @@ struct ion_handle *ion_alloc(struct ion_client *client, size_t len,
- 	struct ion_heap *heap;
- 	int ret;
- 
--	pr_debug("%s: len %zu align %zu heap_id_mask %u flags %x\n", __func__,
--		 len, align, heap_id_mask, flags);
-+	pr_debug("%s: len %zu heap_id_mask %u flags %x\n", __func__,
-+		 len, heap_id_mask, flags);
- 	/*
- 	 * traverse the list of heaps available in this system in priority
- 	 * order.  If the heap type is supported by the client, and matches the
-@@ -428,7 +426,7 @@ struct ion_handle *ion_alloc(struct ion_client *client, size_t len,
- 		/* if the caller didn't specify this heap id */
- 		if (!((1 << heap->id) & heap_id_mask))
- 			continue;
--		buffer = ion_buffer_create(heap, dev, len, align, flags);
-+		buffer = ion_buffer_create(heap, dev, len, flags);
- 		if (!IS_ERR(buffer))
- 			break;
- 	}
-diff --git a/drivers/staging/android/ion/ion.h b/drivers/staging/android/ion/ion.h
-index 93dafb4..3b4bff5 100644
---- a/drivers/staging/android/ion/ion.h
-+++ b/drivers/staging/android/ion/ion.h
-@@ -45,7 +45,6 @@ struct ion_buffer;
-  * @name:	used for debug purposes
-  * @base:	base address of heap in physical memory if applicable
-  * @size:	size of the heap in bytes if applicable
-- * @align:	required alignment in physical memory if applicable
-  * @priv:	private info passed from the board file
-  *
-  * Provided by the board file.
-@@ -93,8 +92,6 @@ void ion_client_destroy(struct ion_client *client);
-  * ion_alloc - allocate ion memory
-  * @client:		the client
-  * @len:		size of the allocation
-- * @align:		requested allocation alignment, lots of hardware blocks
-- *			have alignment requirements of some kind
-  * @heap_id_mask:	mask of heaps to allocate from, if multiple bits are set
-  *			heaps will be tried in order from highest to lowest
-  *			id
-@@ -106,7 +103,7 @@ void ion_client_destroy(struct ion_client *client);
-  * an opaque handle to it.
-  */
- struct ion_handle *ion_alloc(struct ion_client *client, size_t len,
--			     size_t align, unsigned int heap_id_mask,
-+			     unsigned int heap_id_mask,
- 			     unsigned int flags);
- 
- /**
-diff --git a/drivers/staging/android/ion/ion_carveout_heap.c b/drivers/staging/android/ion/ion_carveout_heap.c
-index a8ea973..9bf8e98 100644
---- a/drivers/staging/android/ion/ion_carveout_heap.c
-+++ b/drivers/staging/android/ion/ion_carveout_heap.c
-@@ -34,8 +34,7 @@ struct ion_carveout_heap {
- };
- 
- static ion_phys_addr_t ion_carveout_allocate(struct ion_heap *heap,
--					     unsigned long size,
--					     unsigned long align)
-+					     unsigned long size)
- {
- 	struct ion_carveout_heap *carveout_heap =
- 		container_of(heap, struct ion_carveout_heap, heap);
-@@ -60,16 +59,13 @@ static void ion_carveout_free(struct ion_heap *heap, ion_phys_addr_t addr,
- 
- static int ion_carveout_heap_allocate(struct ion_heap *heap,
- 				      struct ion_buffer *buffer,
--				      unsigned long size, unsigned long align,
-+				      unsigned long size,
- 				      unsigned long flags)
- {
- 	struct sg_table *table;
- 	ion_phys_addr_t paddr;
- 	int ret;
- 
--	if (align > PAGE_SIZE)
--		return -EINVAL;
--
- 	table = kmalloc(sizeof(*table), GFP_KERNEL);
- 	if (!table)
- 		return -ENOMEM;
-@@ -77,7 +73,7 @@ static int ion_carveout_heap_allocate(struct ion_heap *heap,
- 	if (ret)
- 		goto err_free;
- 
--	paddr = ion_carveout_allocate(heap, size, align);
-+	paddr = ion_carveout_allocate(heap, size);
- 	if (paddr == ION_CARVEOUT_ALLOCATE_FAIL) {
- 		ret = -ENOMEM;
- 		goto err_free_table;
-diff --git a/drivers/staging/android/ion/ion_chunk_heap.c b/drivers/staging/android/ion/ion_chunk_heap.c
-index 70495dc..8c41889 100644
---- a/drivers/staging/android/ion/ion_chunk_heap.c
-+++ b/drivers/staging/android/ion/ion_chunk_heap.c
-@@ -35,7 +35,7 @@ struct ion_chunk_heap {
- 
- static int ion_chunk_heap_allocate(struct ion_heap *heap,
- 				   struct ion_buffer *buffer,
--				   unsigned long size, unsigned long align,
-+				   unsigned long size,
- 				   unsigned long flags)
- {
- 	struct ion_chunk_heap *chunk_heap =
-@@ -46,9 +46,6 @@ static int ion_chunk_heap_allocate(struct ion_heap *heap,
- 	unsigned long num_chunks;
- 	unsigned long allocated_size;
- 
--	if (align > chunk_heap->chunk_size)
--		return -EINVAL;
--
- 	allocated_size = ALIGN(size, chunk_heap->chunk_size);
- 	num_chunks = allocated_size / chunk_heap->chunk_size;
- 
-@@ -160,8 +157,8 @@ struct ion_heap *ion_chunk_heap_create(struct ion_platform_heap *heap_data)
- 	chunk_heap->heap.ops = &chunk_heap_ops;
- 	chunk_heap->heap.type = ION_HEAP_TYPE_CHUNK;
- 	chunk_heap->heap.flags = ION_HEAP_FLAG_DEFER_FREE;
--	pr_debug("%s: base %lu size %zu align %ld\n", __func__,
--		 chunk_heap->base, heap_data->size, heap_data->align);
-+	pr_debug("%s: base %lu size %zu \n", __func__,
-+		 chunk_heap->base, heap_data->size);
- 
- 	return &chunk_heap->heap;
- 
-diff --git a/drivers/staging/android/ion/ion_cma_heap.c b/drivers/staging/android/ion/ion_cma_heap.c
-index 6c40685..d562fd7 100644
---- a/drivers/staging/android/ion/ion_cma_heap.c
-+++ b/drivers/staging/android/ion/ion_cma_heap.c
-@@ -40,7 +40,7 @@ struct ion_cma_buffer_info {
- 
- /* ION CMA heap operations functions */
- static int ion_cma_allocate(struct ion_heap *heap, struct ion_buffer *buffer,
--			    unsigned long len, unsigned long align,
-+			    unsigned long len,
- 			    unsigned long flags)
- {
- 	struct ion_cma_heap *cma_heap = to_cma_heap(heap);
-@@ -52,9 +52,6 @@ static int ion_cma_allocate(struct ion_heap *heap, struct ion_buffer *buffer,
- 	if (buffer->flags & ION_FLAG_CACHED)
- 		return -EINVAL;
- 
--	if (align > PAGE_SIZE)
--		return -EINVAL;
--
- 	info = kzalloc(sizeof(*info), GFP_KERNEL);
- 	if (!info)
- 		return -ENOMEM;
-diff --git a/drivers/staging/android/ion/ion_priv.h b/drivers/staging/android/ion/ion_priv.h
-index 46d3ff5..b09bc7c 100644
---- a/drivers/staging/android/ion/ion_priv.h
-+++ b/drivers/staging/android/ion/ion_priv.h
-@@ -172,7 +172,7 @@ struct ion_handle {
- struct ion_heap_ops {
- 	int (*allocate)(struct ion_heap *heap,
- 			struct ion_buffer *buffer, unsigned long len,
--			unsigned long align, unsigned long flags);
-+			unsigned long flags);
- 	void (*free)(struct ion_buffer *buffer);
- 	void * (*map_kernel)(struct ion_heap *heap, struct ion_buffer *buffer);
- 	void (*unmap_kernel)(struct ion_heap *heap, struct ion_buffer *buffer);
-diff --git a/drivers/staging/android/ion/ion_system_heap.c b/drivers/staging/android/ion/ion_system_heap.c
-index 3ebbb75..6cb2fe7 100644
---- a/drivers/staging/android/ion/ion_system_heap.c
-+++ b/drivers/staging/android/ion/ion_system_heap.c
-@@ -129,7 +129,7 @@ static struct page *alloc_largest_available(struct ion_system_heap *heap,
- 
- static int ion_system_heap_allocate(struct ion_heap *heap,
- 				    struct ion_buffer *buffer,
--				    unsigned long size, unsigned long align,
-+				    unsigned long size,
- 				    unsigned long flags)
- {
- 	struct ion_system_heap *sys_heap = container_of(heap,
-@@ -143,9 +143,6 @@ static int ion_system_heap_allocate(struct ion_heap *heap,
- 	unsigned long size_remaining = PAGE_ALIGN(size);
- 	unsigned int max_order = orders[0];
- 
--	if (align > PAGE_SIZE)
--		return -EINVAL;
--
- 	if (size / PAGE_SIZE > totalram_pages / 2)
- 		return -ENOMEM;
- 
-@@ -372,7 +369,6 @@ void ion_system_heap_destroy(struct ion_heap *heap)
- static int ion_system_contig_heap_allocate(struct ion_heap *heap,
- 					   struct ion_buffer *buffer,
- 					   unsigned long len,
--					   unsigned long align,
- 					   unsigned long flags)
- {
- 	int order = get_order(len);
-@@ -381,9 +377,6 @@ static int ion_system_contig_heap_allocate(struct ion_heap *heap,
- 	unsigned long i;
- 	int ret;
- 
--	if (align > (PAGE_SIZE << order))
--		return -EINVAL;
--
- 	page = alloc_pages(low_order_gfp_flags, order);
- 	if (!page)
- 		return -ENOMEM;
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
+new file mode 100644
+index 000000000000..d86873f2abe6
+--- /dev/null
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
+@@ -0,0 +1,381 @@
++/*
++ * HDMI CEC
++ *
++ * Based on the CEC code from hdmi_ti_4xxx_ip.c from Android.
++ *
++ * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com/
++ * Authors: Yong Zhi
++ *	Mythri pk <mythripk@ti.com>
++ *
++ * Heavily modified to use the linux CEC framework:
++ *
++ * Copyright 2016-2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include <linux/kernel.h>
++#include <linux/err.h>
++#include <linux/io.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++
++#include "dss.h"
++#include "hdmi.h"
++#include "hdmi4_core.h"
++#include "hdmi4_cec.h"
++
++/* HDMI CEC */
++#define HDMI_CEC_DEV_ID                         0x900
++#define HDMI_CEC_SPEC                           0x904
++
++/* Not really a debug register, more a low-level control register */
++#define HDMI_CEC_DBG_3                          0x91C
++#define HDMI_CEC_TX_INIT                        0x920
++#define HDMI_CEC_TX_DEST                        0x924
++#define HDMI_CEC_SETUP                          0x938
++#define HDMI_CEC_TX_COMMAND                     0x93C
++#define HDMI_CEC_TX_OPERAND                     0x940
++#define HDMI_CEC_TRANSMIT_DATA                  0x97C
++#define HDMI_CEC_CA_7_0                         0x988
++#define HDMI_CEC_CA_15_8                        0x98C
++#define HDMI_CEC_INT_STATUS_0                   0x998
++#define HDMI_CEC_INT_STATUS_1                   0x99C
++#define HDMI_CEC_INT_ENABLE_0                   0x990
++#define HDMI_CEC_INT_ENABLE_1                   0x994
++#define HDMI_CEC_RX_CONTROL                     0x9B0
++#define HDMI_CEC_RX_COUNT                       0x9B4
++#define HDMI_CEC_RX_CMD_HEADER                  0x9B8
++#define HDMI_CEC_RX_COMMAND                     0x9BC
++#define HDMI_CEC_RX_OPERAND                     0x9C0
++
++#define HDMI_CEC_TX_FIFO_INT_MASK		0x64
++#define HDMI_CEC_RETRANSMIT_CNT_INT_MASK	0x2
++
++#define HDMI_CORE_CEC_RETRY    200
++
++static void hdmi_cec_received_msg(struct hdmi_core_data *core)
++{
++	u32 cnt = hdmi_read_reg(core->base, HDMI_CEC_RX_COUNT) & 0xff;
++
++	/* While there are CEC frames in the FIFO */
++	while (cnt & 0x70) {
++		/* and the frame doesn't have an error */
++		if (!(cnt & 0x80)) {
++			struct cec_msg msg = {};
++			unsigned int i;
++
++			/* then read the message */
++			msg.len = cnt & 0xf;
++			msg.msg[0] = hdmi_read_reg(core->base,
++						   HDMI_CEC_RX_CMD_HEADER);
++			msg.msg[1] = hdmi_read_reg(core->base,
++						   HDMI_CEC_RX_COMMAND);
++			for (i = 0; i < msg.len; i++) {
++				unsigned int reg = HDMI_CEC_RX_OPERAND + i * 4;
++
++				msg.msg[2 + i] =
++					hdmi_read_reg(core->base, reg);
++			}
++			msg.len += 2;
++			cec_received_msg(core->adap, &msg);
++		}
++		/* Clear the current frame from the FIFO */
++		hdmi_write_reg(core->base, HDMI_CEC_RX_CONTROL, 1);
++		/* Wait until the current frame is cleared */
++		while (hdmi_read_reg(core->base, HDMI_CEC_RX_CONTROL) & 1)
++			udelay(1);
++		/*
++		 * Re-read the count register and loop to see if there are
++		 * more messages in the FIFO.
++		 */
++		cnt = hdmi_read_reg(core->base, HDMI_CEC_RX_COUNT) & 0xff;
++	}
++}
++
++static void hdmi_cec_transmit_fifo_empty(struct hdmi_core_data *core, u32 stat1)
++{
++	if (stat1 & 2) {
++		u32 dbg3 = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
++
++		cec_transmit_done(core->adap,
++				  CEC_TX_STATUS_NACK |
++				  CEC_TX_STATUS_MAX_RETRIES,
++				  0, (dbg3 >> 4) & 7, 0, 0);
++	} else if (stat1 & 1) {
++		cec_transmit_done(core->adap,
++				  CEC_TX_STATUS_ARB_LOST |
++				  CEC_TX_STATUS_MAX_RETRIES,
++				  0, 0, 0, 0);
++	} else if (stat1 == 0) {
++		cec_transmit_done(core->adap, CEC_TX_STATUS_OK,
++				  0, 0, 0, 0);
++	}
++}
++
++void hdmi4_cec_irq(struct hdmi_core_data *core)
++{
++	u32 stat0 = hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_0);
++	u32 stat1 = hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_1);
++
++	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_0, stat0);
++	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_1, stat1);
++
++	if (stat0 & 0x40)
++		REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
++	else if (stat0 & 0x24)
++		hdmi_cec_transmit_fifo_empty(core, stat1);
++	if (stat1 & 2) {
++		u32 dbg3 = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
++
++		cec_transmit_done(core->adap,
++				  CEC_TX_STATUS_NACK |
++				  CEC_TX_STATUS_MAX_RETRIES,
++				  0, (dbg3 >> 4) & 7, 0, 0);
++	} else if (stat1 & 1) {
++		cec_transmit_done(core->adap,
++				  CEC_TX_STATUS_ARB_LOST |
++				  CEC_TX_STATUS_MAX_RETRIES,
++				  0, 0, 0, 0);
++	}
++	if (stat0 & 0x02)
++		hdmi_cec_received_msg(core);
++	if (stat1 & 0x3)
++		REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
++}
++
++static bool hdmi_cec_clear_tx_fifo(struct cec_adapter *adap)
++{
++	struct hdmi_core_data *core = cec_get_drvdata(adap);
++	int retry = HDMI_CORE_CEC_RETRY;
++	int temp;
++
++	REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
++	while (retry) {
++		temp = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
++		if (FLD_GET(temp, 7, 7) == 0)
++			break;
++		retry--;
++	}
++	return retry != 0;
++}
++
++static bool hdmi_cec_clear_rx_fifo(struct cec_adapter *adap)
++{
++	struct hdmi_core_data *core = cec_get_drvdata(adap);
++	int retry = HDMI_CORE_CEC_RETRY;
++	int temp;
++
++	hdmi_write_reg(core->base, HDMI_CEC_RX_CONTROL, 0x3);
++	retry = HDMI_CORE_CEC_RETRY;
++	while (retry) {
++		temp = hdmi_read_reg(core->base, HDMI_CEC_RX_CONTROL);
++		if (FLD_GET(temp, 1, 0) == 0)
++			break;
++		retry--;
++	}
++	return retry != 0;
++}
++
++static int hdmi_cec_adap_enable(struct cec_adapter *adap, bool enable)
++{
++	struct hdmi_core_data *core = cec_get_drvdata(adap);
++	int temp, err;
++
++	if (!enable) {
++		hdmi_write_reg(core->base, HDMI_CEC_INT_ENABLE_0, 0);
++		hdmi_write_reg(core->base, HDMI_CEC_INT_ENABLE_1, 0);
++		REG_FLD_MOD(core->base, HDMI_CORE_SYS_INTR_UNMASK4, 0, 3, 3);
++		hdmi_wp_clear_irqenable(core->wp, HDMI_IRQ_CORE);
++		hdmi_wp_set_irqstatus(core->wp, HDMI_IRQ_CORE);
++		hdmi4_core_disable(NULL);
++		return 0;
++	}
++	err = hdmi4_core_enable(NULL);
++	if (err)
++		return err;
++
++	/* Clear TX FIFO */
++	if (!hdmi_cec_clear_tx_fifo(adap)) {
++		pr_err("cec-%s: could not clear TX FIFO\n", adap->name);
++		return -EIO;
++	}
++
++	/* Clear RX FIFO */
++	if (!hdmi_cec_clear_rx_fifo(adap)) {
++		pr_err("cec-%s: could not clear RX FIFO\n", adap->name);
++		return -EIO;
++	}
++
++	/* Clear CEC interrupts */
++	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_1,
++		hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_1));
++	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_0,
++		hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_0));
++
++	/* Enable HDMI core interrupts */
++	hdmi_wp_set_irqenable(core->wp, HDMI_IRQ_CORE);
++	/* Unmask CEC interrupt */
++	REG_FLD_MOD(core->base, HDMI_CORE_SYS_INTR_UNMASK4, 0x1, 3, 3);
++	/*
++	 * Enable CEC interrupts:
++	 * Transmit Buffer Full/Empty Change event
++	 * Transmitter FIFO Empty event
++	 * Receiver FIFO Not Empty event
++	 */
++	hdmi_write_reg(core->base, HDMI_CEC_INT_ENABLE_0, 0x26);
++	/*
++	 * Enable CEC interrupts:
++	 * RX FIFO Overrun Error event
++	 * Short Pulse Detected event
++	 * Frame Retransmit Count Exceeded event
++	 * Start Bit Irregularity event
++	 */
++	hdmi_write_reg(core->base, HDMI_CEC_INT_ENABLE_1, 0x0f);
++
++	/* cec calibration enable (self clearing) */
++	hdmi_write_reg(core->base, HDMI_CEC_SETUP, 0x03);
++	msleep(20);
++	hdmi_write_reg(core->base, HDMI_CEC_SETUP, 0x04);
++
++	temp = hdmi_read_reg(core->base, HDMI_CEC_SETUP);
++	if (FLD_GET(temp, 4, 4) != 0) {
++		temp = FLD_MOD(temp, 0, 4, 4);
++		hdmi_write_reg(core->base, HDMI_CEC_SETUP, temp);
++
++		/*
++		 * If we enabled CEC in middle of a CEC message on the bus,
++		 * we could have start bit irregularity and/or short
++		 * pulse event. Clear them now.
++		 */
++		temp = hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_1);
++		temp = FLD_MOD(0x0, 0x5, 2, 0);
++		hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_1, temp);
++	}
++	return 0;
++}
++
++static int hdmi_cec_adap_log_addr(struct cec_adapter *adap, u8 log_addr)
++{
++	struct hdmi_core_data *core = cec_get_drvdata(adap);
++	u32 v;
++
++	if (log_addr == CEC_LOG_ADDR_INVALID) {
++		hdmi_write_reg(core->base, HDMI_CEC_CA_7_0, 0);
++		hdmi_write_reg(core->base, HDMI_CEC_CA_15_8, 0);
++		return 0;
++	}
++	if (log_addr <= 7) {
++		v = hdmi_read_reg(core->base, HDMI_CEC_CA_7_0);
++		v |= 1 << log_addr;
++		hdmi_write_reg(core->base, HDMI_CEC_CA_7_0, v);
++	} else {
++		v = hdmi_read_reg(core->base, HDMI_CEC_CA_15_8);
++		v |= 1 << (log_addr - 8);
++		hdmi_write_reg(core->base, HDMI_CEC_CA_15_8, v);
++	}
++	return 0;
++}
++
++static int hdmi_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
++				   u32 signal_free_time, struct cec_msg *msg)
++{
++	struct hdmi_core_data *core = cec_get_drvdata(adap);
++	int temp;
++	u32 i;
++
++	/* Clear TX FIFO */
++	if (!hdmi_cec_clear_tx_fifo(adap)) {
++		pr_err("cec-%s: could not clear TX FIFO for transmit\n",
++		       adap->name);
++		return -EIO;
++	}
++
++	/* Clear TX interrupts */
++	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_0,
++		       HDMI_CEC_TX_FIFO_INT_MASK);
++
++	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_1,
++		       HDMI_CEC_RETRANSMIT_CNT_INT_MASK);
++
++	/* Set the retry count */
++	REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, attempts - 1, 6, 4);
++
++	/* Set the initiator addresses */
++	hdmi_write_reg(core->base, HDMI_CEC_TX_INIT, cec_msg_initiator(msg));
++
++	/* Set destination id */
++	temp = cec_msg_destination(msg);
++	if (msg->len == 1)
++		temp |= 0x80;
++	hdmi_write_reg(core->base, HDMI_CEC_TX_DEST, temp);
++	if (msg->len == 1)
++		return 0;
++
++	/* Setup command and arguments for the command */
++	hdmi_write_reg(core->base, HDMI_CEC_TX_COMMAND, msg->msg[1]);
++
++	for (i = 0; i < msg->len - 2; i++)
++		hdmi_write_reg(core->base, HDMI_CEC_TX_OPERAND + i * 4,
++			       msg->msg[2 + i]);
++
++	/* Operand count */
++	hdmi_write_reg(core->base, HDMI_CEC_TRANSMIT_DATA,
++		       (msg->len - 2) | 0x10);
++	return 0;
++}
++
++static const struct cec_adap_ops hdmi_cec_adap_ops = {
++	.adap_enable = hdmi_cec_adap_enable,
++	.adap_log_addr = hdmi_cec_adap_log_addr,
++	.adap_transmit = hdmi_cec_adap_transmit,
++};
++
++void hdmi4_cec_set_phys_addr(struct hdmi_core_data *core, u16 pa)
++{
++	cec_s_phys_addr(core->adap, pa, false);
++}
++
++int hdmi4_cec_init(struct platform_device *pdev, struct hdmi_core_data *core,
++		  struct hdmi_wp_data *wp)
++{
++	const u32 caps = CEC_CAP_TRANSMIT | CEC_CAP_LOG_ADDRS |
++			 CEC_CAP_PASSTHROUGH | CEC_CAP_RC;
++	unsigned int ret;
++
++	core->adap = cec_allocate_adapter(&hdmi_cec_adap_ops, core,
++		"omap4", caps, CEC_MAX_LOG_ADDRS);
++	ret = PTR_ERR_OR_ZERO(core->adap);
++	if (ret < 0)
++		return ret;
++	core->wp = wp;
++
++	/*
++	 * Initialize CEC clock divider: CEC needs 2MHz clock hence
++	 * set the devider to 24 to get 48/24=2MHz clock
++	 */
++	REG_FLD_MOD(core->wp->base, HDMI_WP_CLK, 0x18, 5, 0);
++
++	ret = cec_register_adapter(core->adap, &pdev->dev);
++	if (ret < 0) {
++		cec_delete_adapter(core->adap);
++		return ret;
++	}
++	return 0;
++}
++
++void hdmi4_cec_uninit(struct hdmi_core_data *core)
++{
++	cec_unregister_adapter(core->adap);
++}
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h
+new file mode 100644
+index 000000000000..0292337c97cc
+--- /dev/null
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h
+@@ -0,0 +1,55 @@
++/*
++ * HDMI header definition for OMAP4 HDMI CEC IP
++ *
++ * Copyright 2016-2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef _HDMI4_CEC_H_
++#define _HDMI4_CEC_H_
++
++struct hdmi_core_data;
++struct hdmi_wp_data;
++struct platform_device;
++
++/* HDMI CEC funcs */
++#ifdef CONFIG_OMAP4_DSS_HDMI_CEC
++void hdmi4_cec_set_phys_addr(struct hdmi_core_data *core, u16 pa);
++void hdmi4_cec_irq(struct hdmi_core_data *core);
++int hdmi4_cec_init(struct platform_device *pdev, struct hdmi_core_data *core,
++		  struct hdmi_wp_data *wp);
++void hdmi4_cec_uninit(struct hdmi_core_data *core);
++#else
++static inline void hdmi4_cec_set_phys_addr(struct hdmi_core_data *core, u16 pa)
++{
++}
++
++static inline void hdmi4_cec_irq(struct hdmi_core_data *core)
++{
++}
++
++static inline int hdmi4_cec_init(struct platform_device *pdev,
++				struct hdmi_core_data *core,
++				struct hdmi_wp_data *wp)
++{
++	return 0;
++}
++
++static inline void hdmi4_cec_uninit(struct hdmi_core_data *core)
++{
++}
++#endif
++
++#endif
 -- 
-2.7.4
+2.11.0
