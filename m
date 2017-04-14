@@ -1,55 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:34764 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1428406AbdDXSNy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Apr 2017 14:13:54 -0400
-From: Kieran Bingham <kbingham@kernel.org>
-To: niklas.soderlund@ragnatech.se
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH 1/2] rcar-vin: Verify pads on linkage
-Date: Mon, 24 Apr 2017 19:13:47 +0100
-Message-Id: <1493057627-27881-1-git-send-email-kbingham@kernel.org>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59991 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752265AbdDNKZ2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Apr 2017 06:25:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 5/8] omapdrm: hdmi4: prepare irq handling for HDMI CEC support
+Date: Fri, 14 Apr 2017 12:25:09 +0200
+Message-Id: <20170414102512.48834-6-hverkuil@xs4all.nl>
+In-Reply-To: <20170414102512.48834-1-hverkuil@xs4all.nl>
+References: <20170414102512.48834-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The current code determines the pad from the identifiers in the DTB.
-This is accepted without bounds in the driver.
+Pass struct omap_hdmi to the irq handler since it will need access
+to hdmi.core.
 
-Invalid port/reg addresses defined in the DTB will cause a kernel panic
-when dereferencing non-existing pads.
+Do not clear the IRQ_HDMI_CORE bit: that will be controlled by the
+HDMI CEC code.
 
-Protect the linkage with a check that the pad numbers are valid.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/gpu/drm/omapdrm/dss/hdmi4.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 893018963847..48557628e76d 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -613,6 +613,18 @@ static int rvin_group_add_link(struct rvin_dev *vin,
- 	struct media_pad *source_pad, *sink_pad;
- 	int ret = 0;
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+index bd6075e34c94..4a164dc01f15 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+@@ -70,7 +70,8 @@ static void hdmi_runtime_put(void)
  
-+	if (source_idx >= source->num_pads) {
-+		vin_err(vin, "Source pad idx %d is greater than pad count %d\n",
-+			source_idx, source->num_pads);
-+		return -EINVAL;
-+	}
-+
-+	if (sink_idx >= sink->num_pads) {
-+		vin_err(vin, "Sink pad idx %d is greater than pad count %d\n",
-+			source_idx, source->num_pads);
-+		return -EINVAL;
-+	}
-+
- 	source_pad = &source->pads[source_idx];
- 	sink_pad = &sink->pads[sink_idx];
+ static irqreturn_t hdmi_irq_handler(int irq, void *data)
+ {
+-	struct hdmi_wp_data *wp = data;
++	struct omap_hdmi *hdmi = data;
++	struct hdmi_wp_data *wp = &hdmi->wp;
+ 	u32 irqstatus;
  
+ 	irqstatus = hdmi_wp_get_irqstatus(wp);
+@@ -166,8 +167,8 @@ static int hdmi_power_on_full(struct omap_dss_device *dssdev)
+ 		return r;
+ 
+ 	/* disable and clear irqs */
+-	hdmi_wp_clear_irqenable(wp, 0xffffffff);
+-	hdmi_wp_set_irqstatus(wp, 0xffffffff);
++	hdmi_wp_clear_irqenable(wp, ~HDMI_IRQ_CORE);
++	hdmi_wp_set_irqstatus(wp, ~HDMI_IRQ_CORE);
+ 
+ 	vm = &hdmi.cfg.vm;
+ 
+@@ -242,7 +243,7 @@ static void hdmi_power_off_full(struct omap_dss_device *dssdev)
+ {
+ 	enum omap_channel channel = dssdev->dispc_channel;
+ 
+-	hdmi_wp_clear_irqenable(&hdmi.wp, 0xffffffff);
++	hdmi_wp_clear_irqenable(&hdmi.wp, ~HDMI_IRQ_CORE);
+ 
+ 	hdmi_wp_video_stop(&hdmi.wp);
+ 
+@@ -726,7 +727,7 @@ static int hdmi4_bind(struct device *dev, struct device *master, void *data)
+ 
+ 	r = devm_request_threaded_irq(&pdev->dev, irq,
+ 			NULL, hdmi_irq_handler,
+-			IRQF_ONESHOT, "OMAP HDMI", &hdmi.wp);
++			IRQF_ONESHOT, "OMAP HDMI", &hdmi);
+ 	if (r) {
+ 		DSSERR("HDMI IRQ request failed\n");
+ 		goto err;
 -- 
-2.7.4
+2.11.0
