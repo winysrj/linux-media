@@ -1,205 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38364 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1423461AbdD0WuY (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59991 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751350AbdDNKZT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:50:24 -0400
-Date: Fri, 28 Apr 2017 01:49:41 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: Kieran Bingham <kbingham@kernel.org>,
-        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/5] v4l2-subdev: Provide a port mapping for asynchronous
- subdevs
-Message-ID: <20170427224940.GC7456@valkosipuli.retiisi.org.uk>
-References: <1493317564-18026-1-git-send-email-kbingham@kernel.org>
- <1493317564-18026-2-git-send-email-kbingham@kernel.org>
- <20170427214346.GB7456@valkosipuli.retiisi.org.uk>
- <d6295abe-5f04-5896-a582-e79d65f0a2ad@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d6295abe-5f04-5896-a582-e79d65f0a2ad@ideasonboard.com>
+        Fri, 14 Apr 2017 06:25:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        dri-devel@lists.freedesktop.org
+Subject: [PATCH 0/8] omapdrm: add OMAP4 CEC support
+Date: Fri, 14 Apr 2017 12:25:04 +0200
+Message-Id: <20170414102512.48834-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Thu, Apr 27, 2017 at 11:13:50PM +0100, Kieran Bingham wrote:
-> Hi Sakari,
-> 
-> Thanks for taking a look
+This patch series adds support for the OMAP4 HDMI CEC IP core.
 
-Sure! :-)
+Most of the patches leading up to the actual CEC implementation
+make changes to the HDMI core support. The reason for this is
+that CEC has to be enabled even if the HPD is low: some displays will
+set the HPD low when they go into standby or when they switch to another
+input, but CEC is still available and able to wake up/change input for
+such a display.
+ 
+This corner case is explicitly allowed by the CEC standard, and such
+displays really exist, even in modern displays.
 
-> 
-> On 27/04/17 22:43, Sakari Ailus wrote:
-> > Hi Kieran,
-> > 
-> > Could I ask you to rebase your patches on top of my V4L2 fwnode patches
-> > here?
-> > 
-> > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi>
-> > 
-> > It depends on the fwnode graph patches, merged here:
-> > 
-> > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi-merge>
-> > 
-> > I expect the fwnode graph patches in v4.12 so we'll have them in media-tree
-> > master soon.
-> > 
-> > (I'm pushing these branches right now, it may take a while until it's really
-> > there.)
-> 
-> Sure, I'll merge those into my base.
-> 
-> > On Thu, Apr 27, 2017 at 07:26:00PM +0100, Kieran Bingham wrote:
-> >> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> >>
-> >> Devices such as the the ADV748x support multiple parallel stream routes
-> >> through a single chip. This leads towards needing to provide multiple
-> >> distinct entities and subdevs from a single device-tree node.
-> >>
-> >> To distinguish these separate outputs, the device-tree binding must
-> >> specify each endpoint link with a unique (to the device) non-zero port
-> >> number.
-> >>
-> >> This number allows async subdev registrations to identify the correct
-> >> subdevice to bind and link.
-> >>
-> >> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> >> ---
-> >>  drivers/media/v4l2-core/v4l2-async.c  | 7 +++++++
-> >>  drivers/media/v4l2-core/v4l2-subdev.c | 1 +
-> >>  include/media/v4l2-async.h            | 1 +
-> >>  include/media/v4l2-subdev.h           | 2 ++
-> >>  4 files changed, 11 insertions(+)
-> >>
-> >> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> >> index 1815e54e8a38..875e6ce646ec 100644
-> >> --- a/drivers/media/v4l2-core/v4l2-async.c
-> >> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> >> @@ -42,6 +42,13 @@ static bool match_devname(struct v4l2_subdev *sd,
-> >>  
-> >>  static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
-> >>  {
-> >> +	/*
-> >> +	 * If set, we must match the device tree port, with the subdev port.
-> >> +	 * This is a fast match, so do this first
-> >> +	 */
-> >> +	if (sd->port && sd->port != asd->match.of.port)
-> > 
-> > Zero is an entirely valid value for a port. I think it'd be good not to
-> > depend on non-zero port values for port matching.
-> 
-> Well then that pretty much dashes my chances on not parsing the DT in the ADV
-> driver.
+So CEC has to be able to wake up the HDMI core, even when there is no
+HPD.
 
-Hmm. I guess there's no really a way to avoid it. But we could make it
-easier 
+I also looked at implementing CEC monitoring (i.e. 'snooping' the CEC
+bus for messages between other CEC devices), but I couldn't figure
+that out. The omap4 datasheet does not give sufficient information
+on how it is supposed to work. There is a CEC_SN bit in CEC_DBG_3 and
+a 'CEC Snoop Initiator' field in CEC_DBG_2, but no information on
+how to use those registers. Trying to enable CEC_SN gave me weird
+results, so I decided to leave that feature out.
 
-> 
-> 
-> 
-> >> +		return -1;
-> > 
-> > Any particular reason to return -1 from a function with bool return type?
-> 
-> Ahem, I clearly can't read ;-)
-> I think my mindset was thinking strcmp or something...
+Links to CEC documentation and utilities:
 
-But -1 is perfectly valid. If you wanted to make it look really interesting,
-you could return -!false and still have exactly the same functionality. ;-)
+Public API:
 
-> 
-> 
-> >> +
-> >>  	return !of_node_cmp(of_node_full_name(sd->of_node),
-> >>  			    of_node_full_name(asd->match.of.node));
-> >>  }
-> >> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> >> index da78497ae5ed..67f816f90ac3 100644
-> >> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> >> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> >> @@ -607,6 +607,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
-> >>  	sd->flags = 0;
-> >>  	sd->name[0] = '\0';
-> >>  	sd->grp_id = 0;
-> >> +	sd->port = 0;
-> >>  	sd->dev_priv = NULL;
-> >>  	sd->host_priv = NULL;
-> >>  #if defined(CONFIG_MEDIA_CONTROLLER)
-> >> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> >> index 5b501309b6a7..2988960613ec 100644
-> >> --- a/include/media/v4l2-async.h
-> >> +++ b/include/media/v4l2-async.h
-> >> @@ -56,6 +56,7 @@ struct v4l2_async_subdev {
-> >>  	union {
-> >>  		struct {
-> >>  			const struct device_node *node;
-> >> +			u32 port;
-> > 
-> > What if instead of storing the device's OF node, you'd store the port node
-> > and used that for matching?
-> > 
-> > Would that also solve the problem or do I miss something?
-> 
-> Actually - I was 'trying' to prevent having to parse the DT in the adv748x
-> driver if I didn't need to.
-> 
-> Once I have to parse the DT, then yes, I think storing the endpoint node is
-> probably the best thing to compare against.
-> 
-> And actually - you might have just solved my open question in the cover letter ...
-> 
-> I had got stuck in my mindset that if I were to use the endpoint 'leaf' node as
-> a comparator - that it would be 'instead' of the root node.
-> 
-> But actually - it could just be root-node + leaf-node to compare, which then
-> allows us the fallback of comparing just the root nodes if the leaf isn't set.
-> 
-> I'll respin with this either tomorrow or early next week.
+https://www.linuxtv.org/downloads/v4l-dvb-apis-new/uapi/cec/cec-api.html
 
-Endpoints are indeed another option.
+Kernel API:
 
-Is there something that would prevent switching from device node matching to
-port / endpoint matching altogether? I don't think the driver changes should
-be difficult to make.
+https://www.linuxtv.org/downloads/v4l-dvb-apis-new/kapi/cec-core.html
 
-Supporting different options there will be painful as it will likely require
-help from the driver to implement both --- separately.
+CEC utilities (esp. cec-ctl):
 
-> 
-> > 
-> >>  		} of;
-> >>  		struct {
-> >>  			const char *name;
-> >> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> >> index 0ab1c5df6fac..1c1731b491e5 100644
-> >> --- a/include/media/v4l2-subdev.h
-> >> +++ b/include/media/v4l2-subdev.h
-> >> @@ -782,6 +782,7 @@ struct v4l2_subdev_platform_data {
-> >>   * @ctrl_handler: The control handler of this subdev. May be NULL.
-> >>   * @name: Name of the sub-device. Please notice that the name must be unique.
-> >>   * @grp_id: can be used to group similar subdevs. Value is driver-specific
-> >> + * @port: driver-specific value to bind multiple subdevs with a single DT node.
-> >>   * @dev_priv: pointer to private data
-> >>   * @host_priv: pointer to private data used by the device where the subdev
-> >>   *	is attached.
-> >> @@ -814,6 +815,7 @@ struct v4l2_subdev {
-> >>  	struct v4l2_ctrl_handler *ctrl_handler;
-> >>  	char name[V4L2_SUBDEV_NAME_SIZE];
-> >>  	u32 grp_id;
-> >> +	u32 port;
-> >>  	void *dev_priv;
-> >>  	void *host_priv;
-> >>  	struct video_device *devnode;
-> > 
+https://git.linuxtv.org/v4l-utils.git/ (master branch)
+
+To test:
+
+First configure the CEC adapter as a playback device:
+
+cec-ctl --playback
+
+Then detect and query any other CEC devices, such as a CEC-enabled display:
+
+cec-ctl -S
+
+Regards,
+
+	Hans
+
+Hans Verkuil (8):
+  arm: omap4: enable CEC pin for Pandaboard A4 and ES
+  omapdrm: encoder-tpd12s015: keep ls_oe_gpio high if CEC is enabled
+  omapdrm: hdmi.h: extend hdmi_core_data with CEC fields
+  omapdrm: hdmi4: make low-level functions available
+  omapdrm: hdmi4: prepare irq handling for HDMI CEC support
+  omapdrm: hdmi4: refcount hdmi_power_on/off_core
+  omapdrm: hdmi4_cec: add OMAP4 HDMI CEC support
+  omapdrm: hdmi4: hook up the HDMI CEC support
+
+ arch/arm/boot/dts/omap4-panda-a4.dts               |   2 +-
+ arch/arm/boot/dts/omap4-panda-es.dts               |   2 +-
+ .../gpu/drm/omapdrm/displays/encoder-tpd12s015.c   |   8 +
+ drivers/gpu/drm/omapdrm/dss/Kconfig                |   9 +
+ drivers/gpu/drm/omapdrm/dss/Makefile               |   1 +
+ drivers/gpu/drm/omapdrm/dss/hdmi.h                 |   6 +-
+ drivers/gpu/drm/omapdrm/dss/hdmi4.c                |  58 +++-
+ drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c            | 381 +++++++++++++++++++++
+ drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h            |  55 +++
+ drivers/gpu/drm/omapdrm/dss/hdmi4_core.c           |   6 +-
+ drivers/gpu/drm/omapdrm/dss/hdmi4_core.h           |   4 +
+ 11 files changed, 513 insertions(+), 19 deletions(-)
+ create mode 100644 drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
+ create mode 100644 drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.11.0
