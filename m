@@ -1,77 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33543 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1425860AbdD1WAI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 18:00:08 -0400
-Date: Sat, 29 Apr 2017 00:00:05 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 1/2] v4l: Add camera voice coil lens control class,
- current control
-Message-ID: <20170428220004.GA23906@amd>
-References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
- <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170414232332.63850d7b@vento.lan>
- <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan>
+Received: from ale.deltatee.com ([207.54.116.67]:40802 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751677AbdDNPex (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Apr 2017 11:34:53 -0400
+To: Christoph Hellwig <hch@lst.de>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+ <1492121135-4437-2-git-send-email-logang@deltatee.com>
+ <20170414083518.GA25471@lst.de>
+Cc: "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
+        Tejun Heo <tj@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Ming Lin <ming.l@ssi.samsung.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
+        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
+        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
+        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
+        Steve Wise <swise@opengridcomputing.com>,
+        Stephen Bates <sbates@raithlin.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <18f05078-5b2c-2e9b-c8ad-e23c02942b58@deltatee.com>
+Date: Fri, 14 Apr 2017 09:34:28 -0600
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
-Content-Disposition: inline
-In-Reply-To: <20170419105118.72b8e284@vento.lan>
+In-Reply-To: <20170414083518.GA25471@lst.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH 01/22] scatterlist: Introduce sg_map helper functions
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---a8Wt8u1KmwUX3Y2C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi!
+On 14/04/17 02:35 AM, Christoph Hellwig wrote:
+>> +
+>>  static inline int is_dma_buf_file(struct file *);
+>>  
+>>  struct dma_buf_list {
+> 
+> I think the right fix here is to rename the operation to unmap_atomic
+> and send out a little patch for that ASAP.
 
-> Hmm... if the idea is to have a control that doesn't do ringing
-> compensation, then it should be clear at the control's descriptions
-> that:
->=20
-> - V4L2_CID_FOCUS_ABSOLUTE should be used if the VCM has ringing
->   compensation;
-> - V4L2_CID_VOICE_COIL_CURRENT and V4L2_CID_VOICE_COIL_RING_COMPENSATION
->   should be used otherwise.
->=20
-> Btw, if the rationale for this patch is to support devices without
-> ring compensation, so, both controls and their descriptions should
-> be added at the same time, together with a patchset that would be
-> using both.
->=20
-> > How about adding such an explanation added to the commit message?
->=20
-> It is not enough. Documentation should be clear that VCM devices
-> with ring compensation should use V4L2_CID_FOCUS_ABSOLUTE.
+Ok, I can do that next week.
 
-Is ring compensation actually a big deal? We do not publish enough
-information to userland about how fast the autofocus system is,
-anyway, so it looks like userland can't depend on such details...
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+> I'd rather have separate functions for kmap vs kmap_atomic instead of
+> the flags parameter.  And while you're at it just always pass the 0
+> offset parameter instead of adding a wrapper..
+> 
+> Otherwise this looks good to me.
 
---a8Wt8u1KmwUX3Y2C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I settled on the flags because I thought the interface could be expanded
+to do more things like automatically copy iomem to a bounce buffer (with
+a flag). It'd also be possible to add things like vmap and
+physical_address to the interface which would cover even more sg_page
+users. All the implementations would then share the common offset
+calculations, and switching between them becomes a matter of changing a
+couple flags.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+If you're still not convinced by the above arguments  then I'll change
+it but I did have reasons for choosing to do it this way.
 
-iEYEARECAAYFAlkDu2QACgkQMOfwapXb+vLqYgCeNpXlRMeTg+9UQtMPv6mHHrH6
-pO0An1dDK5AoJDtBf5ZC6RckgiQt8cto
-=o4H3
------END PGP SIGNATURE-----
+I am fine with removing the offset versions. I will make that change.
 
---a8Wt8u1KmwUX3Y2C--
+Thanks,
+
+Logan
