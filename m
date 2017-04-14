@@ -1,86 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:57479 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1031951AbdD0Wmz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:42:55 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v4 10/27] rcar-vin: do not reset crop and compose when setting format
-Date: Fri, 28 Apr 2017 00:41:46 +0200
-Message-Id: <20170427224203.14611-11-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-co1nam03on0105.outbound.protection.outlook.com ([104.47.40.105]:34400
+        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751260AbdDNB6g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 21:58:36 -0400
+From: <Yasunari.Takiguchi@sony.com>
+To: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-media@vger.kernel.org>
+CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
+        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
+        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
+        Hideki Nozawa <Hideki.Nozawa@sony.com>,
+        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
+        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
+        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+Subject: [PATCH v2 01/15] [dt-bindings] [media] Add document file for CXD2880 SPI I/F
+Date: Fri, 14 Apr 2017 11:00:41 +0900
+Message-ID: <20170414020041.16897-1-Yasunari.Takiguchi@sony.com>
+In-Reply-To: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
+References: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It was a bad idea to reset the crop and compose settings when a new
-format is set. This would overwrite any crop/compose set by s_select and
-cause unexpected behaviors, remove it. Also fold the reset helper in to
-the only remaining caller.
+From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+This is the document file for Sony CXD2880 DVB-T2/T tuner + demodulator.
+It contains the description of the SPI adapter binding.
+
+Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ .../devicetree/bindings/media/spi/sony-cxd2880.txt         | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 40bb3d7e73131d3b..e14f0aff8ceecc68 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -90,17 +90,6 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
-  * V4L2
-  */
- 
--static void rvin_reset_crop_compose(struct rvin_dev *vin)
--{
--	vin->crop.top = vin->crop.left = 0;
--	vin->crop.width = vin->source.width;
--	vin->crop.height = vin->source.height;
--
--	vin->compose.top = vin->compose.left = 0;
--	vin->compose.width = vin->format.width;
--	vin->compose.height = vin->format.height;
--}
--
- static int rvin_reset_format(struct rvin_dev *vin)
- {
- 	struct v4l2_subdev_format fmt = {
-@@ -147,7 +136,13 @@ static int rvin_reset_format(struct rvin_dev *vin)
- 		break;
- 	}
- 
--	rvin_reset_crop_compose(vin);
-+	vin->crop.top = vin->crop.left = 0;
-+	vin->crop.width = mf->width;
-+	vin->crop.height = mf->height;
+diff --git a/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt b/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+new file mode 100644
+index 000000000000..fc5aa263abe5
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+@@ -0,0 +1,14 @@
++Sony CXD2880 DVB-T2/T tuner + demodulator driver SPI adapter
 +
-+	vin->compose.top = vin->compose.left = 0;
-+	vin->compose.width = mf->width;
-+	vin->compose.height = mf->height;
- 
- 	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
- 	vin->format.sizeimage = rvin_format_sizeimage(&vin->format);
-@@ -323,8 +318,6 @@ static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
- 
- 	vin->format = f->fmt.pix;
- 
--	rvin_reset_crop_compose(vin);
--
- 	return 0;
- }
- 
++Required properties:
++- compatible: Should be "sony,cxd2880".
++- reg: SPI chip select number for the device.
++- spi-max-frequency: Maximum bus speed, should be set to <55000000> (55MHz).
++
++Example:
++
++cxd2880@0 {
++	compatible = "sony,cxd2880";
++	reg = <0>; /* CE0 */
++	spi-max-frequency = <55000000>; /* 55MHz */
++};
 -- 
-2.12.2
+2.11.0
