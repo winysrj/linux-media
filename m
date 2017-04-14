@@ -1,61 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f181.google.com ([209.85.216.181]:35290 "EHLO
-        mail-qt0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752537AbdDJQUc (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59991 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753560AbdDNKZc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 12:20:32 -0400
-Received: by mail-qt0-f181.google.com with SMTP id n46so35620794qta.2
-        for <linux-media@vger.kernel.org>; Mon, 10 Apr 2017 09:20:32 -0700 (PDT)
-Subject: Re: [PATCHv3 00/22] Ion clean up in preparation in moving out of
- staging
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-References: <1491245884-15852-1-git-send-email-labbott@redhat.com>
- <20170408103821.GA12084@kroah.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        devel@driverdev.osuosl.org, romlem@google.com,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-        Mark Brown <broonie@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-From: Laura Abbott <labbott@redhat.com>
-Message-ID: <b1a52f74-a089-96c1-a6b9-5f4eb3d28f8b@redhat.com>
-Date: Mon, 10 Apr 2017 09:20:27 -0700
-MIME-Version: 1.0
-In-Reply-To: <20170408103821.GA12084@kroah.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+        Fri, 14 Apr 2017 06:25:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 8/8] omapdrm: hdmi4: hook up the HDMI CEC support
+Date: Fri, 14 Apr 2017 12:25:12 +0200
+Message-Id: <20170414102512.48834-9-hverkuil@xs4all.nl>
+In-Reply-To: <20170414102512.48834-1-hverkuil@xs4all.nl>
+References: <20170414102512.48834-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/08/2017 03:38 AM, Greg Kroah-Hartman wrote:
-> On Mon, Apr 03, 2017 at 11:57:42AM -0700, Laura Abbott wrote:
->> Hi,
->>
->> This is v3 of the series to do some serious Ion cleanup in preparation for
->> moving out of staging. I didn't hear much on v2 so I'm going to assume
->> people are okay with the series as is. I know there were still some open
->> questions about moving away from /dev/ion but in the interest of small
->> steps I'd like to go ahead and merge this series assuming there are no more
->> major objections. More work can happen on top of this.
-> 
-> I've applied patches 3-11 as those were independant of the CMA changes.
-> I'd like to take the rest, including the CMA changes, but I need an ack
-> from someone dealing with the -mm tree before I can do that.
-> 
-> Or, if they just keep ignoring it, I guess I can take them :)
-> 
-> thanks,
-> 
-> greg k-h
-> 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks. I'll send out some nag e-mails asking for Acks. If I don't get
-any, I'll resend the rest of the series after the 4.12 merge window.
+Hook up the HDMI CEC support in the hdmi4 driver.
 
-Thanks,
-Laura
+It add the CEC irq handler, the CEC (un)init calls and tells the CEC
+implementation when the physical address changes.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/gpu/drm/omapdrm/dss/Kconfig  |  9 +++++++++
+ drivers/gpu/drm/omapdrm/dss/Makefile |  1 +
+ drivers/gpu/drm/omapdrm/dss/hdmi4.c  | 23 ++++++++++++++++++++++-
+ 3 files changed, 32 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/omapdrm/dss/Kconfig b/drivers/gpu/drm/omapdrm/dss/Kconfig
+index d1fa730c7d54..d18e83902b74 100644
+--- a/drivers/gpu/drm/omapdrm/dss/Kconfig
++++ b/drivers/gpu/drm/omapdrm/dss/Kconfig
+@@ -71,9 +71,18 @@ config OMAP4_DSS_HDMI
+ 	bool "HDMI support for OMAP4"
+         default y
+ 	select OMAP2_DSS_HDMI_COMMON
++	select MEDIA_CEC_EDID
+ 	help
+ 	  HDMI support for OMAP4 based SoCs.
+ 
++config OMAP4_DSS_HDMI_CEC
++	bool "Enable HDMI CEC support for OMAP4"
++	depends on OMAP4_DSS_HDMI
++	select MEDIA_CEC_SUPPORT
++	default y
++	---help---
++	  When selected the HDMI transmitter will support the CEC feature.
++
+ config OMAP5_DSS_HDMI
+ 	bool "HDMI support for OMAP5"
+ 	default n
+diff --git a/drivers/gpu/drm/omapdrm/dss/Makefile b/drivers/gpu/drm/omapdrm/dss/Makefile
+index b651ec9751e6..d1c6acfbd134 100644
+--- a/drivers/gpu/drm/omapdrm/dss/Makefile
++++ b/drivers/gpu/drm/omapdrm/dss/Makefile
+@@ -11,5 +11,6 @@ omapdss-$(CONFIG_OMAP2_DSS_DSI) += dsi.o
+ omapdss-$(CONFIG_OMAP2_DSS_HDMI_COMMON) += hdmi_common.o hdmi_wp.o hdmi_pll.o \
+ 	hdmi_phy.o
+ omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi4.o hdmi4_core.o
++omapdss-$(CONFIG_OMAP4_DSS_HDMI_CEC) += hdmi4_cec.o
+ omapdss-$(CONFIG_OMAP5_DSS_HDMI) += hdmi5.o hdmi5_core.o
+ ccflags-$(CONFIG_OMAP2_DSS_DEBUG) += -DDEBUG
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+index e371b47ff6ff..ebe5b27cee6f 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+@@ -35,9 +35,11 @@
+ #include <linux/component.h>
+ #include <linux/of.h>
+ #include <sound/omap-hdmi-audio.h>
++#include <media/cec-edid.h>
+ 
+ #include "omapdss.h"
+ #include "hdmi4_core.h"
++#include "hdmi4_cec.h"
+ #include "dss.h"
+ #include "dss_features.h"
+ #include "hdmi.h"
+@@ -96,6 +98,13 @@ static irqreturn_t hdmi_irq_handler(int irq, void *data)
+ 	} else if (irqstatus & HDMI_IRQ_LINK_DISCONNECT) {
+ 		hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_LDOON);
+ 	}
++	if (irqstatus & HDMI_IRQ_CORE) {
++		u32 intr4 = hdmi_read_reg(hdmi->core.base, HDMI_CORE_SYS_INTR4);
++
++		hdmi_write_reg(hdmi->core.base, HDMI_CORE_SYS_INTR4, intr4);
++		if (intr4 & 8)
++			hdmi4_cec_irq(&hdmi->core);
++	}
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -392,6 +401,8 @@ static void hdmi_display_disable(struct omap_dss_device *dssdev)
+ 
+ 	DSSDBG("Enter hdmi_display_disable\n");
+ 
++	hdmi4_cec_set_phys_addr(&hdmi.core, CEC_PHYS_ADDR_INVALID);
++
+ 	mutex_lock(&hdmi.lock);
+ 
+ 	spin_lock_irqsave(&hdmi.audio_playing_lock, flags);
+@@ -492,7 +503,11 @@ static int hdmi_read_edid(struct omap_dss_device *dssdev,
+ 	}
+ 
+ 	r = read_edid(edid, len);
+-
++	if (r >= 256)
++		hdmi4_cec_set_phys_addr(&hdmi.core,
++					cec_get_edid_phys_addr(edid, r, NULL));
++	else
++		hdmi4_cec_set_phys_addr(&hdmi.core, CEC_PHYS_ADDR_INVALID);
+ 	if (need_enable)
+ 		hdmi4_core_disable(dssdev);
+ 
+@@ -728,6 +743,10 @@ static int hdmi4_bind(struct device *dev, struct device *master, void *data)
+ 	if (r)
+ 		goto err;
+ 
++	r = hdmi4_cec_init(pdev, &hdmi.core, &hdmi.wp);
++	if (r)
++		goto err;
++
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0) {
+ 		DSSERR("platform_get_irq failed\n");
+@@ -772,6 +791,8 @@ static void hdmi4_unbind(struct device *dev, struct device *master, void *data)
+ 
+ 	hdmi_uninit_output(pdev);
+ 
++	hdmi4_cec_uninit(&hdmi.core);
++
+ 	hdmi_pll_uninit(&hdmi.pll);
+ 
+ 	pm_runtime_disable(&pdev->dev);
+-- 
+2.11.0
