@@ -1,175 +1,778 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f182.google.com ([209.85.216.182]:35985 "EHLO
-        mail-qt0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752985AbdDOO6d (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Apr 2017 10:58:33 -0400
+Received: from mail-co1nam03on0139.outbound.protection.outlook.com ([104.47.40.139]:40864
+        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751260AbdDNCGl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 22:06:41 -0400
+From: <Yasunari.Takiguchi@sony.com>
+To: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-media@vger.kernel.org>
+CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
+        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
+        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
+        Hideki Nozawa <Hideki.Nozawa@sony.com>,
+        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
+        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
+        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+Subject: [PATCH v2 02/15] [media] cxd2880-spi: Add support for CXD2008 SPI interface
+Date: Fri, 14 Apr 2017 11:08:23 +0900
+Message-ID: <20170414020823.17034-1-Yasunari.Takiguchi@sony.com>
+In-Reply-To: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
+References: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
 MIME-Version: 1.0
-In-Reply-To: <CAJs94EYkgXtr7P+HLsBnu6=j==g=wWRVFy91vofcdDziSfw60w@mail.gmail.com>
-References: <CAJs94EYkgXtr7P+HLsBnu6=j==g=wWRVFy91vofcdDziSfw60w@mail.gmail.com>
-From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Date: Sat, 15 Apr 2017 17:58:12 +0300
-Message-ID: <CAJs94EbFyv=b3mX2g7zG6XzJZHmre+1mECdtXsEpOqMms-Vfxg@mail.gmail.com>
-Subject: Re: musb: isoc pkt loss with pwc
-To: Alan Stern <stern@rowland.harvard.edu>, Bin Liu <b-liu@ti.com>,
-        hdegoede@redhat.com, linux-media@vger.kernel.org,
-        linux-usb@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-I've managed to build OpenVizsla USB tool.
-So, here is how the things look like from hardware USB sniffer  point of view:
+This is the SPI adapter part of the driver for the
+Sony CXD2880 DVB-T2/T tuner + demodulator.
 
-[        ]   7.219456 d=  0.000997 [181.0 +  3.667] [  3] IN   : 4.5
-[    T   ]   7.219459 d=  0.000003 [181.0 +  7.083] [800] DATA0: 53 da
-50 f9 c1 a5 4a d5 14 2c 55 4c 03 96 33 98 92 e5 07 45 e0 52 25 0b 32
-d9 d0 66 1d a2 dc d9 1e 4c 42 9f 9a 4a 28 94 4a 8b a2 2a 2d 87 1e 86
-6e 08 55 d3 14 3e 1f 6c b0 2d 61 3e d8 d0 04 27 1f ca 74 71 24 b5 31
-c2 57 0e f9 90 17 7b 39 d8 43 2e 8d ee a1 3d 8f 7e f4 02 d2 8f 9e 81
-f4 83 83 a4 1f 4c a5 f5 d0 0b 4b e7 e0 a5 d2 8f de 54 6a 2e 95 8a 6d
-a8 74 c7 16 49 0f f5 30 4a 25 c5 d2 f6 60 29 9a 7e d0 a2 53 2a 61 d3
-c3 40 a4 8c 34 3c aa e1 51 8e 46 a5 4d 20 f4 d0 15 08 65 b5 85 51 8a
-24 90 4a b2 68 94 ac 20 e9 b1 33 9b 7a 8c 4c 9d 42 a6 9a 2c 2c 7d 28
-d9 05 51 59 0b 44 b9 70 a8 68 36 84 da 41 51 b6 2c ca 10 e9 83 a7 78
-6a 79 3c 65 e3 30 55 d3 14 52 4d 3b a4 2a 1f 03 aa 53 20 55 b3 8b a7
-c4 85 50 59 45 55 b5 2d aa 4a 9b 52 aa 6a 4b a9 5a 07 ab b4 09 ad 4a
-53 4e 25 9a 94 4f 49 3d 95 32 9f f0 a8 34 09 90 6a 76 88 94 91 6c 3e
-73 d0 82 ac 1a 4f ac 52 64 d5 85 ac 87 6c e5 d2 87 5b 0b 45 65 35 34
-4a b5 e1 51 1b 46 a5 a9 00 ea c3 77 d1 ea 07 37 ac fa d1 1a 56 9d b1
-0d a6 ce a1 57 28 f5 c3 03 a9 73 f0 72 ea 1e 7c 51 6a 39 b4 23 d4 19
-d9 b4 1c dc 91 e9 c7 93 e9 87 07 4b 3f 3a 50 fa d1 59 58 fa e1 d9 50
-fa e1 8b 48 f7 e0 a9 c0 e9 43 37 2d 9e 12 a5 d4 e3 26 56 ba 37 a2 39
-28 4b a1 a4 17 41 28 69 53 04 b5 36 83 4a 56 d1 93 59 d8 a9 1b 3a 45
-36 76 ea de e0 c9 26 0b c8 1c b4 41 54 d9 29 9e 4a d8 d4 e6 4f 8b 5c
-95 40 72 55 04 c9 55 31 54 e2 31 cd 61 ad 05 a1 14 4d 6d 0c 55 25 13
-43 32 55 08 f1 a4 50 ad 87 53 81 51 9a 4d a6 02 a4 b4 0b 4e 95 4a 45
-f8 94 52 e9 83 a7 d5 f5 09 93 39 a8 2c 71 bb 0c 7a 30 c9 e0 48 f5 e1
-ad f6 d0 1e 43 15 56 6d 12 d5 d0 aa 99 46 b5 a4 2a 71 44 6a 93 2a 31
-34 ea 14 a7 5a 28 2a 75 a0 aa 20 2a b8 ca 92 a8 86 55 19 18 a5 82 a9
-12 14 95 e2 2a cb a2 2c b0 32 38 b2 aa d2 c8 ab 14 49 f5 33 a9 32 9f
-78 f4 b0 a2 a8 7a 6c 2b 20 22 2b c1 91 53 15 43 99 40 2b fd 8c a1 2a
-c8 2a 96 43 25 c4 2a ca a1 12 5e 35 73 28 13 5a d5 42 a8 4f c4 4a ea
-39 54 4b aa a4 28 4a 42 a9 36 86 0a ad b2 f1 00 00 00 00 00 00 00 00
-00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00 00 00 00 00 00 00 3c 60 24 bf 31 d2 a2 48 75 a1 08
-23 6d cf 91 36 46 da 20 a9 9f 62 a4 38 8c f4 29 47 72 01 49 a7 92 a4
-4f 48 d2 bc 42 92 52 90 14 2d 49 52 5d 28 29 1a 94 34 cb 46 49 3b 45
-49 2b 41 49 4d 0a 93 da 45 93 36 4d 9a 37 4d 4a 17 4e 6a 37 52 2a 53
-da a5 4a 73 99 d2 86 4a 2d 56 6a 17 58 aa b2   Unexpected ERR CRC
-[        ]   7.220456 d=  0.000997 [182   +  3.667] [  3] IN   : 4.5
-[    T   ]   7.220459 d=  0.000003 [182   +  7.000] [800] DATA0: 13 36
-65 6d 00 75 0e dd cd a7 3b 02 aa d8 cd a5 0f d5 6c 1a a5 9a 05 a4 1e
-77 3c 3a 23 8a ce 98 e2 68 1d b3 81 94 34 29 90 b2 2a 25 53 9d d0 54
-9b 06 51 a9 2c 40 b5 2e c2 54 91 46 f1 54 f7 62 54 cd 26 54 d9 a1 54
-5a 5a a5 dd b4 aa 69 83 a9 24 3b 8c aa b2 83 ab ac 03 56 d2 c0 aa bd
-cb a7 0f 96 94 48 25 0e 49 7d 52 1c 15 cf a2 92 6c 3a 73 d8 c8 ea 54
-64 b5 89 d5 dc 20 2b a3 17 93 e9 c3 d5 a1 28 59 09 8b 2a 91 aa a7 51
-49 42 68 0e ba d0 aa 76 15 5a c5 16 59 3d 1e 60 f5 78 16 b1 8a 0d b0
-7a 9c 58 ed 14 58 ed d2 aa a0 2a d1 62 aa 9d 52 aa 4d a9 a2 85 54 f3
-0e a7 da 2d a5 aa ae 50 2a 63 bb 11 95 b6 a5 54 d9 9b 53 d9 10 2b 0d
-a8 39 20 f5 28 7a e8 45 40 d4 5e 18 2a dd 0c aa bb f4 79 e8 82 4e c9
-0e 75 6a a1 53 36 78 d2 cd a1 0f 2e d1 f0 29 9b 49 01 55 76 0b a7 fa
-09 81 e8 12 a8 85 ae 5a 00 b5 d8 45 50 22 9b d3 1c 54 33 39 06 65 8b
-a6 0c 88 2a 98 1c 6a 26 53 9b 41 3e 15 0a a5 80 2a 85 51 9b 4e b5 34
-4a c3 a7 66 1c 95 b8 0d a8 e4 33 96 3e d8 b2 07 f7 44 fa d0 7b 38 9c
-a3 4f a7 98 95 ed 2e 81 aa 38 66 95 a2 28 fd cc ab 82 a3 54 48 95 29
-93 92 50 aa c2 a8 7c 2a a6 0a 8c 92 90 2a 05 51 06 57 29 84 6a 79 95
-29 88 a8 2a 25 51 0d ae 2a 8d b2 bc 4a 4a a3 4a ab 5a 1a b5 70 05 52
-89 67 55 52 1a 95 7e 42 55 f6 13 83 fa 04 ad 12 14 b5 51 05 51 2d b2
-52 a1 50 1b 5a 2d 08 65 a8 55 0b 21 b4 10 aa 61 56 29 85 2a b2 3a 8d
-a1 12 56 b5 49 94 50 ca 21 ad 1e f7 06 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 3e 60 24 b7 39 d2 e6 48 2d 48 da e5 48 09 48 20 29 59
-1c 71 a4 26 1c 91 04 92 4e 81 49 fa 29 50 6a 3d 4f da 38 29 8a 94 ed
-b8 e0 b2 1e ba 70 79 38 78 5b a4 14 8b 93 aa 59 3c 69 ee e2 49 e9 26
-4a 2d 51 4a 81 52 3f 41 4a 9b 29 7d 8a 95 da 82 a5 6c ac e4 c9 d2 46
-4b 8a 97 ba 82 98 5a c8 34 77 23 a6 79 05 33 a9 a6 01 4e 6a 3d 74 aa
-ee 80 a7 90 a7 7e 82 9f 1c 7d 4a 36 79 9a d2 20 e7 e1 50 8c d9 1c 2c
-0b 2d 9b 43 c1 e4 e1 50 21 c9 a3 c6 10 96 43 3e 60 fc 7c f8 83 6b 0b
-a4 ac b6 c5 52 9d 4b a6 2a ba e0 d4 d2 e2 a9 ce 7c aa 6d 09 55 53 46
-d5 76 51 aa b4 94 6a 2e a4 9a 0b a9 aa 8e 52 a5 2b 6c fa 50 ca a4 76
-a0 54 b4 9b 47 ad 1d 22 b5 12 1c 95 4d a2 84 43 b9 0d a2 74 15 45 05
-41 49 b2 28 94 66 d1 a8 46 a0 94 6a a4 6c da 1e ba 94 4a b5 01 55 6d
-8a aa 1c ab d2 96 55 c5 36 41 d4 87 1a 5b 3c   Unexpected ERR CRC
-[        ]   7.222456 d=  0.001997 [184   +  3.667] [  3] IN   : 4.5
-[        ]   7.222459 d=  0.000003 [184   +  7.000] [  3] DATA0: 00 00
-[        ]   7.223456 d=  0.000997 [185.0 +  3.667] [  3] IN   : 4.5
-[        ]   7.223459 d=  0.000003 [185.0 +  7.000] [  3] DATA0: 00 00
-[        ]   7.224456 d=  0.000997 [186   +  3.583] [  3] IN   : 4.5
-[        ]   7.224459 d=  0.000003 [186   +  6.917] [  3] DATA0: 00 00
-[        ]   7.225456 d=  0.000997 [187.0 +  3.667] [  3] IN   : 4.5
-[        ]   7.225459 d=  0.000003 [187.0 +  7.000] [  3] DATA0: 00 00
+Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+---
+ drivers/media/spi/cxd2880-spi.c | 728 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 728 insertions(+)
+ create mode 100644 drivers/media/spi/cxd2880-spi.c
 
-Here, I believe that IN request is missed at 7.221 and this leads to
-the issues with missed data.
-
-
-2016-08-28 13:13 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
-> Hello Bin,
->
-> I would like to start new thread on my issue. Let me recall where the issue is:
-> There is 100% frame lost in pwc webcam driver due to lots of
-> zero-length packages coming from musb driver.
-> The issue is present in all kernels (including 4.8) starting from the commit:
->
-> f551e13529833e052f75ec628a8af7b034af20f9 ("Revert "usb: musb:
-> musb_host: Enable HCD_BH flag to handle urb return in bottom half"")
->
-> The issue is here both when DMA enabled and DMA disabled.
->
-> Attached here is a plot. The vertical axis designates the value of
-> rx_count variable from function musb_host_packet_rx(). One may see
-> that there are only two possibilities: 0 bytes and 956 bytes.
-> The horizontal axis is the last three digits of the timestamp when
-> musb_host_packet_rx() invoked. I.e for [   38.115379] it is 379. Given
-> that my webcam is USB 1.1 and base time is 1 ms, then all frames
-> should be grouped close to some single value. (Repeating package
-> receive event every 1 ms won't change last tree digits considerably)
-> One may see that it is not true, in practice there are two groups. And
-> receive time strongly correlates with the package size. Packages
-> received near round ms are 956 bytes long, packages received near 400
-> us are 0 bytes long.
->
-> I don't know how exactly SOF and IN are synchronized in musb, could
-> someone give a hint? But from what I see the time difference between
-> subsequent IN package requests is sometimes more than 1 ms due to
-> heavy urb->complete() callback. After such events only zero length
-> packages are received. Surprisingly, that `synchronization' is
-> recovered sometimes in the middle of URB like the following:
->
-> [  163.207363] musb int
-> [  163.207380] rx_count 0
-> [  163.207393] req pkt c9c76200 // Expected musb int at 163.208393
-> [  163.207403] int end
-> // No interrupt at 163.208393
-> [  163.209001] musb int
-> [  163.209017] rx_count 956
-> [  163.209108] req pkt c9c76200
-> [  163.209118] int end
->
-> And then the series of 956 bytes long packages are received until URB
-> giveback will occasionally break it again.
-> Do I understand correctly, that SOF is generated every 1 ms by
-> hardware and should be followed by IN immediately?
-> If so, it is not clear to me how they should be aligned when the time
-> difference between to subsequent INs is greater than 1ms.
->
-> --
-> With best regards,
-> Matwey V. Kornilov.
-> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
-> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
-
-
-
+diff --git a/drivers/media/spi/cxd2880-spi.c b/drivers/media/spi/cxd2880-spi.c
+new file mode 100644
+index 000000000000..82e122349055
+--- /dev/null
++++ b/drivers/media/spi/cxd2880-spi.c
+@@ -0,0 +1,728 @@
++/*
++ * cxd2880-spi.c
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * SPI adapter
++ *
++ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; version 2 of the License.
++ *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/spi/spi.h>
++
++#include "dvb_demux.h"
++#include "dmxdev.h"
++#include "dvb_frontend.h"
++#include "cxd2880.h"
++
++#define CXD2880_MAX_FILTER_SIZE 32
++#define BURST_WRITE_MAX 128
++#define MAX_TRANS_PACKET 300
++
++struct cxd2880_ts_buf_info {
++	u8 read_ready;
++	u8 almost_full;
++	u8 almost_empty;
++	u8 overflow;
++	u8 underflow;
++	u16 packet_num;
++};
++
++struct cxd2880_pid_config {
++	u8 is_enable;
++	u16 pid;
++};
++
++struct cxd2880_pid_filter_config {
++	u8 is_negative;
++	struct cxd2880_pid_config pid_config[CXD2880_MAX_FILTER_SIZE];
++};
++
++struct cxd2880_dvb_spi {
++	struct dvb_frontend dvb_fe;
++	struct dvb_adapter adapter;
++	struct dvb_demux demux;
++	struct dmxdev dmxdev;
++	struct dmx_frontend dmx_fe;
++	struct task_struct *cxd2880_ts_read_thread;
++	struct spi_device *spi;
++	struct mutex spi_mutex; /* For SPI access exclusive control */
++	int feed_count;
++	int all_pid_feed_count;
++	u8 *ts_buf;
++	struct cxd2880_pid_filter_config filter_config;
++};
++
++DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
++
++static int cxd2880_write_spi(struct spi_device *spi, u8 *data, u32 size)
++{
++	struct spi_message msg;
++	struct spi_transfer tx;
++	int ret = 0;
++
++	if ((!spi) || (!data)) {
++		pr_err("%s: invalid arg\n", __func__);
++		return -EINVAL;
++	}
++
++	memset(&tx, 0, sizeof(tx));
++	tx.tx_buf = data;
++	tx.len = size;
++
++	spi_message_init(&msg);
++	spi_message_add_tail(&tx, &msg);
++	ret = spi_sync(spi, &msg);
++
++	return ret;
++}
++
++static int cxd2880_write_reg(struct spi_device *spi,
++				u8 subAddress, const u8 *data, u32 size)
++{
++	u8 send_data[BURST_WRITE_MAX + 4];
++	const u8 *write_data_top = NULL;
++	int ret = 0;
++
++	if ((!spi) || (!data)) {
++		pr_err("%s: invalid arg\n", __func__);
++		return -EINVAL;
++	}
++	if (size > BURST_WRITE_MAX) {
++		pr_err("%s: data size > WRITE_MAX\n", __func__);
++		return -EINVAL;
++	}
++
++	if (subAddress + size > 0x100) {
++		pr_err("%s: out of range\n", __func__);
++		return -EINVAL;
++	}
++
++	send_data[0] = 0x0E;
++	write_data_top = data;
++
++	while (size > 0) {
++		send_data[1] = subAddress;
++		if (size > 255)
++			send_data[2] = 255;
++		else
++			send_data[2] = (u8)size;
++
++		memcpy(&send_data[3], write_data_top, send_data[2]);
++
++		ret = cxd2880_write_spi(spi, send_data, send_data[2] + 3);
++		if (ret) {
++			dev_err(&spi->dev, "%s: write spi failed %d\n",
++				__func__, ret);
++			break;
++		}
++		subAddress += send_data[2];
++		write_data_top += send_data[2];
++		size -= send_data[2];
++	}
++
++	return ret;
++}
++
++static int cxd2880_spi_read_ts(struct spi_device *spi,
++					u8 *read_data,
++					u32 packet_num)
++{
++	int ret = 0;
++	u8 data[3];
++	struct spi_message message;
++	struct spi_transfer transfer[2];
++
++	if ((!spi) || (!read_data) || (!packet_num)) {
++		pr_err("%s: invalid arg\n", __func__);
++		return -EINVAL;
++	}
++	if (packet_num > 0xFFFF) {
++		dev_err(&spi->dev, "%s: packet num > 0xFFFF\n", __func__);
++		return -EINVAL;
++	}
++
++	data[0] = 0x10;
++	data[1] = (u8)((packet_num >> 8) & 0xFF);
++	data[2] = (u8)(packet_num & 0xFF);
++
++	spi_message_init(&message);
++	memset(transfer, 0, sizeof(transfer));
++
++	transfer[0].len = 3;
++	transfer[0].tx_buf = data;
++	spi_message_add_tail(&transfer[0], &message);
++	transfer[1].len = packet_num * 188;
++	transfer[1].rx_buf = read_data;
++	spi_message_add_tail(&transfer[1], &message);
++
++	ret = spi_sync(spi, &message);
++	if (ret)
++		dev_err(&spi->dev, "%s: spi_write_then_read failed\n",
++			__func__);
++
++	return ret;
++}
++
++static int cxd2880_spi_read_ts_buffer_info(struct spi_device *spi,
++					struct cxd2880_ts_buf_info *info)
++{
++	u8 send_data = 0x20;
++	u8 recv_data[2];
++	int ret = 0;
++
++	if ((!spi) || (!info)) {
++		pr_err("%s: invalid arg\n", __func__);
++		return -EINVAL;
++	}
++
++	ret = spi_write_then_read(spi, &send_data, 1,
++			recv_data, sizeof(recv_data));
++	if (ret)
++		dev_err(&spi->dev,
++			"%s: spi_write_then_read failed\n", __func__);
++
++	info->read_ready = (u8)((recv_data[0] & 0x80) ? 1 : 0);
++	info->almost_full = (u8)((recv_data[0] & 0x40) ? 1 : 0);
++	info->almost_empty = (u8)((recv_data[0] & 0x20) ? 1 : 0);
++	info->overflow = (u8)((recv_data[0] & 0x10) ? 1 : 0);
++	info->underflow = (u8)((recv_data[0] & 0x08) ? 1 : 0);
++	info->packet_num = (u16)(((recv_data[0] & 0x07) << 8) | recv_data[1]);
++
++	return ret;
++}
++
++static int cxd2880_spi_clear_ts_buffer(struct spi_device *spi)
++{
++	u8 data = 0x03;
++	int ret = 0;
++
++	ret = cxd2880_write_spi(spi, &data, 1);
++
++	if (ret)
++		pr_err("%s: write spi failed\n", __func__);
++
++	return ret;
++}
++
++static int cxd2880_set_pid_filter(struct spi_device *spi,
++				struct cxd2880_pid_filter_config *cfg)
++{
++	u8 data[65];
++
++	if (!spi) {
++		pr_err("%s: ivnalid arg\n", __func__);
++		return -EINVAL;
++	}
++
++	data[0] = 0x00;
++	if (cxd2880_write_reg(spi, 0x00, &data[0], 1) != 0)
++		return -EIO;
++	if (!cfg) {
++		data[0] = 0x02;
++		if (cxd2880_write_reg(spi, 0x50, &data[0], 1) != 0)
++			return -EIO;
++	} else {
++		data[0] = (u8)(cfg->is_negative ? 0x01 : 0x00);
++		{
++			int i = 0;
++			u16 pid = 0;
++
++			for (i = 0; i < CXD2880_MAX_FILTER_SIZE; i++) {
++				pid = cfg->pid_config[i].pid;
++				if (cfg->pid_config[i].is_enable) {
++					data[1 + (i * 2)] =
++					    (u8)((u8)(pid >> 8) | 0x20);
++					data[2 + (i * 2)] =
++					    (u8)(pid & 0xFF);
++				} else {
++					data[1 + (i * 2)] = 0x00;
++					data[2 + (i * 2)] = 0x00;
++				}
++			}
++		}
++		if (cxd2880_write_reg(spi, 0x50, data, 65) != 0)
++			return -EIO;
++	}
++
++	return 0;
++}
++
++static int cxd2880_update_pid_filter(struct cxd2880_dvb_spi *dvb_spi,
++				struct cxd2880_pid_filter_config *cfg,
++				bool is_all_pid_filter)
++{
++	int ret = 0;
++
++	if ((!dvb_spi) || (!cfg)) {
++		pr_err("%s: invalid arg.\n", __func__);
++		return -EINVAL;
++	}
++
++	mutex_lock(&dvb_spi->spi_mutex);
++	if (is_all_pid_filter) {
++		struct cxd2880_pid_filter_config tmpcfg;
++
++		memset(&tmpcfg, 0, sizeof(tmpcfg));
++		tmpcfg.is_negative = 1;
++		tmpcfg.pid_config[0].is_enable = 1;
++		tmpcfg.pid_config[0].pid = 0x1FFF;
++
++		ret = cxd2880_set_pid_filter(dvb_spi->spi, &tmpcfg);
++	} else {
++		ret = cxd2880_set_pid_filter(dvb_spi->spi, cfg);
++	}
++	mutex_unlock(&dvb_spi->spi_mutex);
++
++	if (ret) {
++		dev_err(&dvb_spi->spi->dev,
++			"%s: set_pid_filter failed\n", __func__);
++	}
++
++	return ret;
++}
++
++static int cxd2880_ts_read(void *arg)
++{
++	struct cxd2880_dvb_spi *dvb_spi = NULL;
++	struct cxd2880_ts_buf_info info;
++	struct timespec ts;
++	long elapsed = 0;
++	long starttime = 0;
++	u32 i;
++	int ret;
++
++	dvb_spi = (struct cxd2880_dvb_spi *)arg;
++	if (!dvb_spi) {
++		pr_err("%s: invalid arg\n", __func__);
++		return -EINVAL;
++	}
++
++	ret = cxd2880_spi_clear_ts_buffer(dvb_spi->spi);
++	if (ret) {
++		dev_err(&dvb_spi->spi->dev,
++			"%s: set_clear_ts_buffer failed\n", __func__);
++		return ret;
++	}
++
++	getnstimeofday(&ts);
++	starttime = (ts.tv_sec * 1000) + (ts.tv_nsec / 1000000);
++	while (!kthread_should_stop()) {
++		getnstimeofday(&ts);
++		elapsed =
++			((ts.tv_sec * 1000) + (ts.tv_nsec / 1000000))
++			- starttime;
++		ret = cxd2880_spi_read_ts_buffer_info(dvb_spi->spi,
++							&info);
++		if (ret) {
++			pr_err("%s: spi_read_ts_buffer_info error\n",
++				__func__);
++			return ret;
++		}
++
++		if (info.packet_num > MAX_TRANS_PACKET) {
++			for (i = 0; i < info.packet_num / MAX_TRANS_PACKET;
++				i++) {
++				cxd2880_spi_read_ts(dvb_spi->spi,
++							dvb_spi->ts_buf,
++							MAX_TRANS_PACKET);
++				dvb_dmx_swfilter(&dvb_spi->demux,
++						dvb_spi->ts_buf,
++						MAX_TRANS_PACKET * 188);
++			}
++			starttime = (ts.tv_sec * 1000) + (ts.tv_nsec / 1000000);
++		} else if ((info.packet_num > 0) && (elapsed >= 500)) {
++			cxd2880_spi_read_ts(dvb_spi->spi,
++						dvb_spi->ts_buf,
++						info.packet_num);
++			dvb_dmx_swfilter(&dvb_spi->demux,
++					dvb_spi->ts_buf,
++					info.packet_num * 188);
++			starttime = (ts.tv_sec * 1000) + (ts.tv_nsec / 1000000);
++		} else {
++			usleep_range(10000, 11000);
++		}
++	}
++
++	return 0;
++}
++
++static int cxd2880_start_feed(struct dvb_demux_feed *feed)
++{
++	int ret = 0;
++	int i = 0;
++	struct dvb_demux *demux = NULL;
++	struct cxd2880_dvb_spi *dvb_spi = NULL;
++
++	if (!feed) {
++		pr_err("%s: invalid arg\n", __func__);
++		return -EINVAL;
++	}
++
++	demux = feed->demux;
++	if (!demux) {
++		pr_err("%s: feed->demux is NULL\n", __func__);
++		return -EINVAL;
++	}
++	dvb_spi = (struct cxd2880_dvb_spi *)demux->priv;
++
++	if (dvb_spi->feed_count == CXD2880_MAX_FILTER_SIZE) {
++		dev_err(&dvb_spi->spi->dev,
++			"%s: Exceeded maximum PID count (32).", __func__);
++		dev_err(&dvb_spi->spi->dev,
++			"Selected PID cannot be enabled.\n");
++		return -EBUSY;
++	}
++
++	if (feed->pid == 0x2000) {
++		if (dvb_spi->all_pid_feed_count == 0) {
++			ret = cxd2880_update_pid_filter(dvb_spi,
++							&dvb_spi->filter_config,
++							true);
++			if (ret) {
++				dev_err(&dvb_spi->spi->dev,
++					"%s: update pid filter failed\n",
++					__func__);
++				return ret;
++			}
++		}
++		dvb_spi->all_pid_feed_count++;
++
++		dev_dbg(&dvb_spi->spi->dev,
++			"%s: all PID feed (count = %d)\n",
++			__func__, dvb_spi->all_pid_feed_count);
++	} else {
++		struct cxd2880_pid_filter_config cfgtmp;
++
++		cfgtmp = dvb_spi->filter_config;
++
++		for (i = 0; i < CXD2880_MAX_FILTER_SIZE; i++) {
++			if (cfgtmp.pid_config[i].is_enable == 0) {
++				cfgtmp.pid_config[i].is_enable = 1;
++				cfgtmp.pid_config[i].pid = feed->pid;
++				dev_dbg(&dvb_spi->spi->dev,
++				"%s: store PID %d to #%d\n",
++				__func__, feed->pid, i);
++				break;
++			}
++		}
++		if (i == CXD2880_MAX_FILTER_SIZE) {
++			dev_err(&dvb_spi->spi->dev,
++				"%s: PID filter is full. Assumed bug.\n",
++				__func__);
++			return -EBUSY;
++		}
++		if (!dvb_spi->all_pid_feed_count)
++			ret = cxd2880_update_pid_filter(dvb_spi,
++							&cfgtmp,
++							false);
++		if (ret)
++			return ret;
++
++		dvb_spi->filter_config = cfgtmp;
++	}
++
++	if (dvb_spi->feed_count == 0) {
++		dvb_spi->ts_buf =
++			kmalloc(sizeof(u8) * MAX_TRANS_PACKET * 188,
++				GFP_KERNEL | GFP_DMA);
++		if (!dvb_spi->ts_buf) {
++			dev_err(&dvb_spi->spi->dev,
++			"%s: ts buffer allocate failed\n", __func__);
++			memset(&dvb_spi->filter_config, 0,
++				sizeof(dvb_spi->filter_config));
++			dvb_spi->all_pid_feed_count = 0;
++			return -ENOMEM;
++		}
++		dvb_spi->cxd2880_ts_read_thread = kthread_run(cxd2880_ts_read,
++								dvb_spi,
++								"cxd2880_ts_read");
++		if (IS_ERR(dvb_spi->cxd2880_ts_read_thread)) {
++			dev_err(&dvb_spi->spi->dev,
++				"%s: kthread_run failed/\n",
++				__func__);
++			kfree(dvb_spi->ts_buf);
++			dvb_spi->ts_buf = NULL;
++			memset(&dvb_spi->filter_config, 0,
++				sizeof(dvb_spi->filter_config));
++			dvb_spi->all_pid_feed_count = 0;
++			return PTR_ERR(dvb_spi->cxd2880_ts_read_thread);
++		}
++	}
++
++	dvb_spi->feed_count++;
++
++	dev_dbg(&dvb_spi->spi->dev, "%s: start feed (count %d)\n",
++		__func__, dvb_spi->feed_count);
++	return 0;
++}
++
++static int cxd2880_stop_feed(struct dvb_demux_feed *feed)
++{
++	int i = 0;
++	int ret = 0;
++	struct dvb_demux *demux = NULL;
++	struct cxd2880_dvb_spi *dvb_spi = NULL;
++
++	if (!feed) {
++		pr_err("%s: invalid arg\n", __func__);
++		return -EINVAL;
++	}
++
++	demux = feed->demux;
++	if (!demux) {
++		pr_err("%s: feed->demux is NULL\n", __func__);
++		return -EINVAL;
++	}
++	dvb_spi = (struct cxd2880_dvb_spi *)demux->priv;
++
++	if (!dvb_spi->feed_count) {
++		dev_warn(&dvb_spi->spi->dev,
++			"%s: no feed is started\n", __func__);
++		return -EINVAL;
++	}
++
++	if (feed->pid == 0x2000) {
++		/*
++		 * Special PID case.
++		 * Number of 0x2000 feed request was stored
++		 * in dvb_spi->all_pid_feed_count.
++		 */
++		if (dvb_spi->all_pid_feed_count <= 0) {
++			dev_warn(&dvb_spi->spi->dev,
++				"%s: PID %d not found.\n",
++				__func__, feed->pid);
++			return -EINVAL;
++		}
++		dvb_spi->all_pid_feed_count--;
++	} else {
++		struct cxd2880_pid_filter_config cfgtmp;
++
++		cfgtmp = dvb_spi->filter_config;
++
++		for (i = 0; i < CXD2880_MAX_FILTER_SIZE; i++) {
++			if (feed->pid == cfgtmp.pid_config[i].pid &&
++				cfgtmp.pid_config[i].is_enable != 0) {
++				cfgtmp.pid_config[i].is_enable = 0;
++				cfgtmp.pid_config[i].pid = 0;
++				dev_dbg(&dvb_spi->spi->dev,
++					"%s: removed PID %d from #%d\n",
++					__func__, feed->pid, i);
++				break;
++			}
++		}
++		dvb_spi->filter_config = cfgtmp;
++
++		if (i == CXD2880_MAX_FILTER_SIZE) {
++			dev_warn(&dvb_spi->spi->dev, "%s: PID %d not found\n",
++				__func__, feed->pid);
++			return -EINVAL;
++		}
++	}
++
++	ret = cxd2880_update_pid_filter(dvb_spi,
++					&dvb_spi->filter_config,
++					dvb_spi->all_pid_feed_count > 0);
++	dvb_spi->feed_count--;
++
++	if (dvb_spi->feed_count == 0) {
++		int ret_stop = 0;
++
++		ret_stop = kthread_stop(dvb_spi->cxd2880_ts_read_thread);
++		if (ret_stop) {
++			dev_err(&dvb_spi->spi->dev,
++			"%s: cxd2880_ts_read thread didn't terminate normally\n",
++			__func__);
++			ret = ret_stop;
++		}
++		kfree(dvb_spi->ts_buf);
++		dvb_spi->ts_buf = NULL;
++	}
++
++	dev_dbg(&dvb_spi->spi->dev, "%s: stop feed ok.(count %d)\n",
++		__func__, dvb_spi->feed_count);
++
++	return ret;
++}
++
++static const struct of_device_id cxd2880_spi_of_match[] = {
++	{ .compatible = "sony,cxd2880" },
++	{ /* sentinel */ }
++};
++
++MODULE_DEVICE_TABLE(of, cxd2880_spi_of_match);
++
++static int
++cxd2880_spi_probe(struct spi_device *spi)
++{
++	int ret = 0;
++	struct cxd2880_dvb_spi *dvb_spi = NULL;
++	struct cxd2880_config config;
++
++	if (!spi) {
++		pr_err("%s: invalid arg.\n", __func__);
++		return -EINVAL;
++	}
++
++	dvb_spi = kzalloc(sizeof(struct cxd2880_dvb_spi), GFP_KERNEL);
++	if (!dvb_spi)
++		return -ENOMEM;
++
++	dvb_spi->spi = spi;
++	mutex_init(&dvb_spi->spi_mutex);
++	dev_set_drvdata(&spi->dev, dvb_spi);
++	config.spi = spi;
++	config.spi_mutex = &dvb_spi->spi_mutex;
++
++	ret = dvb_register_adapter(&dvb_spi->adapter,
++					"CXD2880",
++					THIS_MODULE,
++					&spi->dev,
++					adapter_nr);
++	if (ret < 0) {
++		dev_err(&spi->dev, "%s: dvb_register_adapter() failed\n",
++			__func__);
++		goto fail_adapter;
++	}
++
++	if (!dvb_attach(cxd2880_attach, &dvb_spi->dvb_fe, &config)) {
++		dev_err(&spi->dev, "%s: cxd2880_attach failed\n", __func__);
++		goto fail_attach;
++	}
++
++	ret = dvb_register_frontend(&dvb_spi->adapter,
++					&dvb_spi->dvb_fe);
++	if (ret < 0) {
++		dev_err(&spi->dev, "%s: dvb_register_frontend() failed\n",
++			__func__);
++		goto fail_frontend;
++	}
++
++	dvb_spi->demux.dmx.capabilities = DMX_TS_FILTERING;
++	dvb_spi->demux.priv = dvb_spi;
++	dvb_spi->demux.filternum = CXD2880_MAX_FILTER_SIZE;
++	dvb_spi->demux.feednum = CXD2880_MAX_FILTER_SIZE;
++	dvb_spi->demux.start_feed = cxd2880_start_feed;
++	dvb_spi->demux.stop_feed = cxd2880_stop_feed;
++
++	ret = dvb_dmx_init(&dvb_spi->demux);
++	if (ret < 0) {
++		dev_err(&spi->dev, "%s: dvb_dmx_init() failed\n", __func__);
++		goto fail_dmx;
++	}
++
++	dvb_spi->dmxdev.filternum = CXD2880_MAX_FILTER_SIZE;
++	dvb_spi->dmxdev.demux = &dvb_spi->demux.dmx;
++	dvb_spi->dmxdev.capabilities = 0;
++	ret = dvb_dmxdev_init(&dvb_spi->dmxdev,
++				&dvb_spi->adapter);
++	if (ret < 0) {
++		dev_err(&spi->dev, "%s: dvb_dmxdev_init() failed\n", __func__);
++		goto fail_dmxdev;
++	}
++
++	dvb_spi->dmx_fe.source = DMX_FRONTEND_0;
++	ret = dvb_spi->demux.dmx.add_frontend(&dvb_spi->demux.dmx,
++						&dvb_spi->dmx_fe);
++	if (ret < 0) {
++		dev_err(&spi->dev, "%s: add_frontend() failed\n", __func__);
++		goto fail_dmx_fe;
++	}
++
++	ret = dvb_spi->demux.dmx.connect_frontend(&dvb_spi->demux.dmx,
++						&dvb_spi->dmx_fe);
++	if (ret < 0) {
++		dev_err(&spi->dev, "%s: dvb_register_frontend() failed\n",
++			__func__);
++		goto fail_fe_conn;
++	}
++
++	dev_info(&spi->dev, "Sony CXD2880 has successfully attached.\n");
++
++	return 0;
++
++fail_fe_conn:
++	dvb_spi->demux.dmx.remove_frontend(&dvb_spi->demux.dmx,
++			&dvb_spi->dmx_fe);
++fail_dmx_fe:
++	dvb_dmxdev_release(&dvb_spi->dmxdev);
++fail_dmxdev:
++	dvb_dmx_release(&dvb_spi->demux);
++fail_dmx:
++	dvb_unregister_frontend(&dvb_spi->dvb_fe);
++fail_frontend:
++	dvb_frontend_detach(&dvb_spi->dvb_fe);
++fail_attach:
++	dvb_unregister_adapter(&dvb_spi->adapter);
++fail_adapter:
++	kfree(dvb_spi);
++	return ret;
++}
++
++static int
++cxd2880_spi_remove(struct spi_device *spi)
++{
++	struct cxd2880_dvb_spi *dvb_spi;
++
++	if (!spi) {
++		pr_err("%s: invalid arg\n", __func__);
++		return -EINVAL;
++	}
++
++	dvb_spi = (struct cxd2880_dvb_spi *)dev_get_drvdata(&spi->dev);
++
++	if (!dvb_spi) {
++		pr_err("%s: failed\n", __func__);
++		return -EINVAL;
++	}
++	dvb_spi->demux.dmx.remove_frontend(&dvb_spi->demux.dmx,
++					&dvb_spi->dmx_fe);
++	dvb_dmxdev_release(&dvb_spi->dmxdev);
++	dvb_dmx_release(&dvb_spi->demux);
++	dvb_unregister_frontend(&dvb_spi->dvb_fe);
++	dvb_frontend_detach(&dvb_spi->dvb_fe);
++	dvb_unregister_adapter(&dvb_spi->adapter);
++
++	kfree(dvb_spi);
++	dev_info(&spi->dev, "%s: cxd2880_spi remove ok.\n", __func__);
++
++	return 0;
++}
++
++static const struct spi_device_id cxd2880_spi_id[] = {
++	{ "cxd2880", 0 },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(spi, cxd2880_spi_id);
++
++static struct spi_driver cxd2880_spi_driver = {
++	.driver	= {
++		.name	= "cxd2880",
++		.of_match_table = cxd2880_spi_of_match,
++	},
++	.id_table = cxd2880_spi_id,
++	.probe    = cxd2880_spi_probe,
++	.remove   = cxd2880_spi_remove,
++};
++module_spi_driver(cxd2880_spi_driver);
++
++MODULE_DESCRIPTION(
++"Sony CXD2880 DVB-T2/T tuner + demodulator drvier SPI adapter");
++MODULE_AUTHOR("Sony Semiconductor Solutions Corporation");
++MODULE_LICENSE("GPL v2");
 -- 
-With best regards,
-Matwey V. Kornilov.
-Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
-119234, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+2.11.0
