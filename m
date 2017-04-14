@@ -1,661 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:50484 "EHLO
-        kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1038128AbdDULGD (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:34023 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751518AbdDNUcV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Apr 2017 07:06:03 -0400
-Subject: Re: [PATCH v6 2/3] v4l: Add 10/16-bits per channel YUV pixel formats
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <1488708033-5691-1-git-send-email-ayaka@soulik.info>
- <1488708033-5691-3-git-send-email-ayaka@soulik.info>
- <20170417163354.335884ca@vento.lan>
-Cc: dri-devel@lists.freedesktop.org, clinton.a.taylor@intel.com,
-        daniel@fooishbar.org, ville.syrjala@linux.intel.com,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        linux-kernel@vger.kernel.org
-From: ayaka <ayaka@soulik.info>
-Message-ID: <4e52dc01-4d0d-fe07-ff91-7de77197b253@soulik.info>
-Date: Fri, 21 Apr 2017 19:05:57 +0800
+        Fri, 14 Apr 2017 16:32:21 -0400
+Date: Fri, 14 Apr 2017 22:32:16 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v6 17/39] platform: add video-multiplexer subdevice driver
+Message-ID: <20170414203216.GA10920@amd>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+ <1490661656-10318-18-git-send-email-steve_longerbeam@mentor.com>
+ <20170404124732.GD3288@valkosipuli.retiisi.org.uk>
+ <1492091578.2383.39.camel@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <20170417163354.335884ca@vento.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
+Content-Disposition: inline
+In-Reply-To: <1492091578.2383.39.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+--cWoXeonUoKmBZSoM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 04/18/2017 03:33 AM, Mauro Carvalho Chehab wrote:
-> Em Sun,  5 Mar 2017 18:00:32 +0800
-> Randy Li <ayaka@soulik.info> escreveu:
->
->> The formats added by this patch are:
->> 	V4L2_PIX_FMT_P010
->> 	V4L2_PIX_FMT_P010M
->> 	V4L2_PIX_FMT_P016
->> 	V4L2_PIX_FMT_P016M
->> Currently, none of driver uses those format.
->>
->> Also a variant of V4L2_PIX_FMT_P010M pixel format is added.
->> The V4L2_PIX_FMT_P010CM is a compat variant of the V4L2_PIX_FMT_P010,
-Some developers from Gstreamer think it should be renamed as CM10 for 
-the P010CM, I don't have much idea about that.
->> which uses the unused 6 bits to store the next pixel. And with
->> the alignment requirement of the hardware, it usually would be
->> some extra space left at the end of a stride.
-> You should check your patches with checkpatch... I'm getting
-> this:
->
->
-> WARNING: 'simliar' may be misspelled - perhaps 'similar'?
-> #61: FILE: Documentation/media/uapi/v4l/pixfmt-p010.rst:13:
-> +chroma samples as simliar to ``V4L2_PIX_FMT_NV12``
-I am sorry about that
->
->
-> WARNING: 'simliar' may be misspelled - perhaps 'similar'?
-> #334: FILE: Documentation/media/uapi/v4l/pixfmt-p016.rst:13:
-> +chroma samples as simliar to ``V4L2_PIX_FMT_NV12``
->
->
->> Signed-off-by: Randy Li <ayaka@soulik.info>
->> ---
->>   Documentation/media/uapi/v4l/pixfmt-p010.rst  | 126 ++++++++++++++++++++++++
->>   Documentation/media/uapi/v4l/pixfmt-p010m.rst | 135 ++++++++++++++++++++++++++
->>   Documentation/media/uapi/v4l/pixfmt-p016.rst  | 125 ++++++++++++++++++++++++
->>   Documentation/media/uapi/v4l/pixfmt-p016m.rst | 134 +++++++++++++++++++++++++
->>   Documentation/media/uapi/v4l/yuv-formats.rst  |   4 +
->>   include/uapi/linux/videodev2.h                |   5 +
->>   6 files changed, 529 insertions(+)
->>   create mode 100644 Documentation/media/uapi/v4l/pixfmt-p010.rst
->>   create mode 100644 Documentation/media/uapi/v4l/pixfmt-p010m.rst
->>   create mode 100644 Documentation/media/uapi/v4l/pixfmt-p016.rst
->>   create mode 100644 Documentation/media/uapi/v4l/pixfmt-p016m.rst
->>
->> diff --git a/Documentation/media/uapi/v4l/pixfmt-p010.rst b/Documentation/media/uapi/v4l/pixfmt-p010.rst
->> new file mode 100644
->> index 0000000..59ed118
->> --- /dev/null
->> +++ b/Documentation/media/uapi/v4l/pixfmt-p010.rst
->> @@ -0,0 +1,126 @@
->> +.. -*- coding: utf-8; mode: rst -*-
->> +
->> +.. _V4L2-PIX-FMT-P010:
->> +
->> +******************************************************
->> +V4L2_PIX_FMT_P010 ('P010')
->> +******************************************************
->> +
->> +
->> +V4L2_PIX_FMT_P010
->> +Formats with ½ horizontal and vertical chroma resolution. One luminance and
->> +one chrominance plane with alternating
->> +chroma samples as simliar to ``V4L2_PIX_FMT_NV12``
-> It is probably ok to use the UTF symbol for 1/2, but you should check
-> if both PDF and HTML outputs will be ok.
-I see, I would upload a new version later
->
->> +
->> +
->> +Description
->> +===========
->> +
->> +It is a two-plane versions of the YUV 4:2:0 format. The three
->> +components are separated into two sub-images or planes. The Y plane is
->> +first. The Y plane has 16 bits per pixel, but only 10 bits are used with the
->> +rest 6 bits set to zero. For ``V4L2_PIX_FMT_P010``, a combined CbCr plane
->> +immediately follows the Y plane in memory. The CbCr
->> +plane is the same width, in bytes, as the Y plane (and of the image),
->> +but is half as tall in pixels. Each CbCr pair belongs to four pixels.
->> +For example, Cb\ :sub:`0`/Cr\ :sub:`0` belongs to Y'\ :sub:`00`,
->> +Y'\ :sub:`01`, Y'\ :sub:`10`, Y'\ :sub:`11`.
->> +If the Y plane has pad bytes after each row, then the CbCr plane has as
->> +many pad bytes after its rows.
->> +
->> +**Byte Order.**
->> +Each cell is two bytes.
->> +
->> +
->> +.. flat-table::
->> +    :header-rows:  0
->> +    :stub-columns: 0
->> +
->> +    * - start + 0:
->> +      - Y'\ :sub:`00`
->> +      - Y'\ :sub:`01`
->> +      - Y'\ :sub:`02`
->> +      - Y'\ :sub:`03`
->> +    * - start + 4:
->> +      - Y'\ :sub:`10`
->> +      - Y'\ :sub:`11`
->> +      - Y'\ :sub:`12`
->> +      - Y'\ :sub:`13`
->> +    * - start + 8:
->> +      - Y'\ :sub:`20`
->> +      - Y'\ :sub:`21`
->> +      - Y'\ :sub:`22`
->> +      - Y'\ :sub:`23`
->> +    * - start + 12:
->> +      - Y'\ :sub:`30`
->> +      - Y'\ :sub:`31`
->> +      - Y'\ :sub:`32`
->> +      - Y'\ :sub:`33`
->> +    * - start + 16:
->> +      - Cb\ :sub:`00`
->> +      - Cr\ :sub:`00`
->> +      - Cb\ :sub:`01`
->> +      - Cr\ :sub:`01`
->> +    * - start + 20:
->> +      - Cb\ :sub:`10`
->> +      - Cr\ :sub:`10`
->> +      - Cb\ :sub:`11`
->> +      - Cr\ :sub:`11`
->> +
->> +
->> +**Color Sample Location..**
->> +
->> +.. flat-table::
->> +    :header-rows:  0
->> +    :stub-columns: 0
->> +
->> +    * -
->> +      - 0
->> +      -
->> +      - 1
->> +      - 2
->> +      -
->> +      - 3
->> +    * - 0
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> +    * -
->> +      -
->> +      - C
->> +      -
->> +      -
->> +      - C
->> +      -
->> +    * - 1
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> +    * -
->> +    * - 2
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> +    * -
->> +      -
->> +      - C
->> +      -
->> +      -
->> +      - C
->> +      -
->> +    * - 3
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> diff --git a/Documentation/media/uapi/v4l/pixfmt-p010m.rst b/Documentation/media/uapi/v4l/pixfmt-p010m.rst
->> new file mode 100644
->> index 0000000..6697d15
->> --- /dev/null
->> +++ b/Documentation/media/uapi/v4l/pixfmt-p010m.rst
->> @@ -0,0 +1,135 @@
->> +.. -*- coding: utf-8; mode: rst -*-
->> +
->> +.. _V4L2-PIX-FMT-P010M:
->> +
->> +***********************************************************************************
->> +V4L2_PIX_FMT_P010M ('PM10')
->> +***********************************************************************************
->> +
->> +
->> +V4L2_PIX_FMT_P010M
->> +Variation of ``V4L2_PIX_FMT_P010`` with planes non contiguous in memory.
->> +
->> +
->> +Description
->> +===========
->> +
->> +This is a multi-planar, two-plane version of the YUV 4:2:0 format. The
->> +three components are separated into two sub-images or planes.
->> +``V4L2_PIX_FMT_P010M`` differs from ``V4L2_PIX_FMT_P010`` in that the
->> +two planes are non-contiguous in memory, i.e. the chroma plane do not
->> +necessarily immediately follows the luma plane. The luminance data
->> +occupies the first plane. The Y plane has 16 bits per pixel, but only
->> +10 bits are used with the rest 6 bits set to zero. In the
->> +second plane there is a chrominance data with alternating chroma
->> +samples. The CbCr plane is the same width, in bytes, as the Y plane (and
->> +of the image), but is half as tall in pixels. Each CbCr pair belongs to
->> +four pixels. For example, Cb\ :sub:`0`/Cr\ :sub:`0` belongs to
->> +Y'\ :sub:`00`, Y'\ :sub:`01`, Y'\ :sub:`10`, Y'\ :sub:`11`.
->> +
->> +``V4L2_PIX_FMT_P010M`` is intended to be used only in drivers and
->> +applications that support the multi-planar API, described in
->> +:ref:`planar-apis`.
->> +
->> +If the Y plane has pad bytes after each row, then the CbCr plane has as
->> +many pad bytes after its rows.
->> +
->> +**Byte Order.**
->> +Each cell is two bytes.
->> +
->> +.. flat-table::
->> +    :header-rows:  0
->> +    :stub-columns: 0
->> +
->> +    * - start0 + 0:
->> +      - Y'\ :sub:`00`
->> +      - Y'\ :sub:`01`
->> +      - Y'\ :sub:`02`
->> +      - Y'\ :sub:`03`
->> +    * - start0 + 4:
->> +      - Y'\ :sub:`10`
->> +      - Y'\ :sub:`11`
->> +      - Y'\ :sub:`12`
->> +      - Y'\ :sub:`13`
->> +    * - start0 + 8:
->> +      - Y'\ :sub:`20`
->> +      - Y'\ :sub:`21`
->> +      - Y'\ :sub:`22`
->> +      - Y'\ :sub:`23`
->> +    * - start0 + 12:
->> +      - Y'\ :sub:`30`
->> +      - Y'\ :sub:`31`
->> +      - Y'\ :sub:`32`
->> +      - Y'\ :sub:`33`
->> +    * -
->> +    * - start1 + 0:
->> +      - Cb\ :sub:`00`
->> +      - Cr\ :sub:`00`
->> +      - Cb\ :sub:`01`
->> +      - Cr\ :sub:`01`
->> +    * - start1 + 4:
->> +      - Cb\ :sub:`10`
->> +      - Cr\ :sub:`10`
->> +      - Cb\ :sub:`11`
->> +      - Cr\ :sub:`11`
->> +
->> +
->> +**Color Sample Location..**
->> +
->> +
->> +
->> +.. flat-table::
->> +    :header-rows:  0
->> +    :stub-columns: 0
->> +
->> +    * -
->> +      - 0
->> +      -
->> +      - 1
->> +      - 2
->> +      -
->> +      - 3
->> +    * - 0
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> +    * -
->> +      -
->> +      - C
->> +      -
->> +      -
->> +      - C
->> +      -
->> +    * - 1
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> +    * -
->> +    * - 2
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> +    * -
->> +      -
->> +      - C
->> +      -
->> +      -
->> +      -
->> +      - C
->> +      -
->> +    * - 3
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> diff --git a/Documentation/media/uapi/v4l/pixfmt-p016.rst b/Documentation/media/uapi/v4l/pixfmt-p016.rst
->> new file mode 100644
->> index 0000000..a6d60b3
->> --- /dev/null
->> +++ b/Documentation/media/uapi/v4l/pixfmt-p016.rst
->> @@ -0,0 +1,125 @@
->> +.. -*- coding: utf-8; mode: rst -*-
->> +
->> +.. _V4L2-PIX-FMT-P016:
->> +
->> +******************************************************
->> +V4L2_PIX_FMT_P016 ('P016')
->> +******************************************************
->> +
->> +
->> +V4L2_PIX_FMT_P016
->> +Formats with ½ horizontal and vertical chroma resolution. One luminance and
->> +one chrominance plane with alternating
->> +chroma samples as simliar to ``V4L2_PIX_FMT_NV12``
->> +
->> +
->> +Description
->> +===========
->> +
->> +It is a two-plane versions of the YUV 4:2:0 format. The three
->> +components are separated into two sub-images or planes. The Y plane is
->> +first. The Y plane has 16 bits per pixel. For ``V4L2_PIX_FMT_P016``, a
->> +combined CbCr plane immediately follows the Y plane in memory. The CbCr
->> +plane is the same width, in bytes, as the Y plane (and of the image),
->> +but is half as tall in pixels. Each CbCr pair belongs to four pixels.
->> +For example, Cb\ :sub:`0`/Cr\ :sub:`0` belongs to Y'\ :sub:`00`,
->> +Y'\ :sub:`01`, Y'\ :sub:`10`, Y'\ :sub:`11`.
->> +If the Y plane has pad bytes after each row, then the CbCr plane has as
->> +many pad bytes after its rows.
->> +
->> +**Byte Order.**
->> +Each cell is two bytes.
->> +
->> +
->> +.. flat-table::
->> +    :header-rows:  0
->> +    :stub-columns: 0
->> +
->> +    * - start + 0:
->> +      - Y'\ :sub:`00`
->> +      - Y'\ :sub:`01`
->> +      - Y'\ :sub:`02`
->> +      - Y'\ :sub:`03`
->> +    * - start + 4:
->> +      - Y'\ :sub:`10`
->> +      - Y'\ :sub:`11`
->> +      - Y'\ :sub:`12`
->> +      - Y'\ :sub:`13`
->> +    * - start + 8:
->> +      - Y'\ :sub:`20`
->> +      - Y'\ :sub:`21`
->> +      - Y'\ :sub:`22`
->> +      - Y'\ :sub:`23`
->> +    * - start + 12:
->> +      - Y'\ :sub:`30`
->> +      - Y'\ :sub:`31`
->> +      - Y'\ :sub:`32`
->> +      - Y'\ :sub:`33`
->> +    * - start + 16:
->> +      - Cb\ :sub:`00`
->> +      - Cr\ :sub:`00`
->> +      - Cb\ :sub:`01`
->> +      - Cr\ :sub:`01`
->> +    * - start + 20:
->> +      - Cb\ :sub:`10`
->> +      - Cr\ :sub:`10`
->> +      - Cb\ :sub:`11`
->> +      - Cr\ :sub:`11`
->> +
->> +
->> +**Color Sample Location..**
->> +
->> +.. flat-table::
->> +    :header-rows:  0
->> +    :stub-columns: 0
->> +
->> +    * -
->> +      - 0
->> +      -
->> +      - 1
->> +      - 2
->> +      -
->> +      - 3
->> +    * - 0
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> +    * -
->> +      -
->> +      - C
->> +      -
->> +      -
->> +      - C
->> +      -
->> +    * - 1
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> +    * -
->> +    * - 2
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> +    * -
->> +      -
->> +      - C
->> +      -
->> +      -
->> +      - C
->> +      -
->> +    * - 3
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> diff --git a/Documentation/media/uapi/v4l/pixfmt-p016m.rst b/Documentation/media/uapi/v4l/pixfmt-p016m.rst
->> new file mode 100644
->> index 0000000..14c434d
->> --- /dev/null
->> +++ b/Documentation/media/uapi/v4l/pixfmt-p016m.rst
->> @@ -0,0 +1,134 @@
->> +.. -*- coding: utf-8; mode: rst -*-
->> +
->> +.. _V4L2-PIX-FMT-P016M:
->> +
->> +***********************************************************************************
->> +V4L2_PIX_FMT_P016M ('PM16')
->> +***********************************************************************************
->> +
->> +
->> +V4L2_PIX_FMT_P016M
->> +Variation of ``V4L2_PIX_FMT_P016`` with planes non contiguous in memory.
->> +
->> +
->> +Description
->> +===========
->> +
->> +This is a multi-planar, two-plane version of the YUV 4:2:0 format. The
->> +three components are separated into two sub-images or planes.
->> +``V4L2_PIX_FMT_P016M`` differs from ``V4L2_PIX_FMT_P016`` in that the
->> +two planes are non-contiguous in memory, i.e. the chroma plane do not
->> +necessarily immediately follows the luma plane. The luminance data
->> +occupies the first plane. The Y plane has 16 bits per pixel. In the
->> +second plane there is a chrominance data with alternating chroma
->> +samples. The CbCr plane is the same width, in bytes, as the Y plane (and
->> +of the image), but is half as tall in pixels. Each CbCr pair belongs to
->> +four pixels. For example, Cb\ :sub:`0`/Cr\ :sub:`0` belongs to
->> +Y'\ :sub:`00`, Y'\ :sub:`01`, Y'\ :sub:`10`, Y'\ :sub:`11`.
->> +
->> +``V4L2_PIX_FMT_P016M`` is intended to be used only in drivers and
->> +applications that support the multi-planar API, described in
->> +:ref:`planar-apis`.
->> +
->> +If the Y plane has pad bytes after each row, then the CbCr plane has as
->> +many pad bytes after its rows.
->> +
->> +**Byte Order.**
->> +Each cell is two bytes.
->> +
->> +.. flat-table::
->> +    :header-rows:  0
->> +    :stub-columns: 0
->> +
->> +    * - start0 + 0:
->> +      - Y'\ :sub:`00`
->> +      - Y'\ :sub:`01`
->> +      - Y'\ :sub:`02`
->> +      - Y'\ :sub:`03`
->> +    * - start0 + 4:
->> +      - Y'\ :sub:`10`
->> +      - Y'\ :sub:`11`
->> +      - Y'\ :sub:`12`
->> +      - Y'\ :sub:`13`
->> +    * - start0 + 8:
->> +      - Y'\ :sub:`20`
->> +      - Y'\ :sub:`21`
->> +      - Y'\ :sub:`22`
->> +      - Y'\ :sub:`23`
->> +    * - start0 + 12:
->> +      - Y'\ :sub:`30`
->> +      - Y'\ :sub:`31`
->> +      - Y'\ :sub:`32`
->> +      - Y'\ :sub:`33`
->> +    * -
->> +    * - start1 + 0:
->> +      - Cb\ :sub:`00`
->> +      - Cr\ :sub:`00`
->> +      - Cb\ :sub:`01`
->> +      - Cr\ :sub:`01`
->> +    * - start1 + 4:
->> +      - Cb\ :sub:`10`
->> +      - Cr\ :sub:`10`
->> +      - Cb\ :sub:`11`
->> +      - Cr\ :sub:`11`
->> +
->> +
->> +**Color Sample Location..**
->> +
->> +
->> +
->> +.. flat-table::
->> +    :header-rows:  0
->> +    :stub-columns: 0
->> +
->> +    * -
->> +      - 0
->> +      -
->> +      - 1
->> +      - 2
->> +      -
->> +      - 3
->> +    * - 0
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> +    * -
->> +      -
->> +      - C
->> +      -
->> +      -
->> +      - C
->> +      -
->> +    * - 1
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> +    * -
->> +    * - 2
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> +    * -
->> +      -
->> +      - C
->> +      -
->> +      -
->> +      -
->> +      - C
->> +      -
->> +    * - 3
->> +      - Y
->> +      -
->> +      - Y
->> +      - Y
->> +      -
->> +      - Y
->> diff --git a/Documentation/media/uapi/v4l/yuv-formats.rst b/Documentation/media/uapi/v4l/yuv-formats.rst
->> index 3334ea4..1474192 100644
->> --- a/Documentation/media/uapi/v4l/yuv-formats.rst
->> +++ b/Documentation/media/uapi/v4l/yuv-formats.rst
->> @@ -53,3 +53,7 @@ to brightness information.
->>       pixfmt-nv16m
->>       pixfmt-nv24
->>       pixfmt-m420
->> +    pixfmt-p010
->> +    pixfmt-p010m
->> +    pixfmt-p016
->> +    pixfmt-p016m
->> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
->> index 45184a2..d2f2013 100644
->> --- a/include/uapi/linux/videodev2.h
->> +++ b/include/uapi/linux/videodev2.h
->> @@ -550,6 +550,8 @@ struct v4l2_pix_format {
->>   #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
->>   #define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr 4:4:4  */
->>   #define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb 4:4:4  */
->> +#define V4L2_PIX_FMT_P010    v4l2_fourcc('P', '0', '1', '0') /* 20  Y/CbCr 4:2:0, 10 bits per channel */
->> +#define V4L2_PIX_FMT_P016    v4l2_fourcc('P', '0', '1', '6') /* 32  Y/CbCr 4:2:0, 16 bits per channel */
->>   
->>   /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
->>   #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
->> @@ -558,6 +560,9 @@ struct v4l2_pix_format {
->>   #define V4L2_PIX_FMT_NV61M   v4l2_fourcc('N', 'M', '6', '1') /* 16  Y/CrCb 4:2:2  */
->>   #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
->>   #define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 16x16 macroblocks */
->> +#define V4L2_PIX_FMT_P010M   v4l2_fourcc('P', 'M', '1', '0') /* 32  Y/CbCr 4:2:0, 10 bits per channel */
->> +#define V4L2_PIX_FMT_P016M   v4l2_fourcc('P', 'M', '1', '6') /* 32  Y/CbCr 4:2:0, 16 bits per channel */
->> +#define V4L2_PIX_FMT_P010CM  v4l2_fourcc('C', 'M', '1', '0') /* 20  Y/CbCr 4:2:0, 10 bits per channel, compact format  */
->>   
->>   /* three planes - Y Cb, Cr */
->>   #define V4L2_PIX_FMT_YUV410  v4l2_fourcc('Y', 'U', 'V', '9') /*  9  YUV 4:1:0     */
->
->
-> Thanks,
-> Mauro
+Hi!
+
+> > The MUX framework is already in linux-next. Could you use that instead =
+of
+> > adding new driver + bindings that are not compliant with the MUX framew=
+ork?
+> > I don't think it'd be much of a change in terms of code, using the MUX
+> > framework appears quite simple.
+>=20
+> It is not quite clear to me how to design the DT bindings for this. Just
+> splitting the video-multiplexer driver from the mux-mmio / mux-gpio
+> would make it necessary to keep the video-multiplexer node to describe
+> the of-graph bindings. But then we have two different nodes in the DT
+> that describe the same hardware:
+>=20
+> 	mux: mux {
+> 		compatible =3D "mux-gpio";
+> 		mux-gpios =3D <&gpio 0>, <&gpio 1>;
+> 		#mux-control-cells =3D <0>;
+> 	}
+>=20
+> 	video-multiplexer {
+> 		compatible =3D "video-multiplexer"
+> 		mux-controls =3D <&mux>;
+>=20
+> 		ports {
+> 			/* ... */
+> 		}
+> 	}
+>=20
+> It would feel more natural to have the ports in the mux node, but then
+> how would the video-multiplexer driver be instanciated, and how would it
+> get to the of-graph nodes?
+
+Device tree representation and code used to implement the muxing
+driver should be pretty independend, no? Yes, one piece of hardware
+should have one entry in the device tree, so it should be something
+like:
+
+
+ 	video-multiplexer {
+ 		compatible =3D "video-multiplexer-gpio"=09
+ 		mux-gpios =3D <&gpio 0>, <&gpio 1>;
+ 		#mux-control-cells =3D <0>;
+
+ 		mux-controls =3D <&mux>;
+=20
+ 		ports {
+ 			/* ... */
+ 		}
+ 	}
+
+You should be able to use code in drivers/mux as a library...
+
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--cWoXeonUoKmBZSoM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAljxMdAACgkQMOfwapXb+vLEHQCfWVAmS+aFu+FrMuB4vnHxF+Hg
+RJ8AoJBhFp27Yf8CDq79Nr5TQe7qd1C2
+=zNjt
+-----END PGP SIGNATURE-----
+
+--cWoXeonUoKmBZSoM--
