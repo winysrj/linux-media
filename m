@@ -1,127 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40186 "EHLO
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:46145 "EHLO
         lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750855AbdDCI6v (ORCPT
+        by vger.kernel.org with ESMTP id S1752265AbdDNKZ0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Apr 2017 04:58:51 -0400
-Message-ID: <2b3221c2305e888e5f0104532fc10f8b@smtp-cloud2.xs4all.net>
-Date: Mon, 03 Apr 2017 10:58:49 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Fri, 14 Apr 2017 06:25:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/8] omapdrm: hdmi.h: extend hdmi_core_data with CEC fields
+Date: Fri, 14 Apr 2017 12:25:07 +0200
+Message-Id: <20170414102512.48834-4-hverkuil@xs4all.nl>
+In-Reply-To: <20170414102512.48834-1-hverkuil@xs4all.nl>
+References: <20170414102512.48834-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Extend the hdmi_core_data struct with the additional fields needed
+for CEC.
 
-date:			Mon Apr  3 09:43:35 CEST 2017
-media-tree git hash:	c3d4fb0fb41f4b5eafeee51173c14e50be12f839
-media_build git hash:	479cd7e5371ee685969e1fd20274813de8ae6c9a
-v4l-utils git hash:	984caeac9a41f8d4f636b933dfba4f29c5257f96
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Also fix a simple typo in a comment.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/gpu/drm/omapdrm/dss/hdmi.h | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi.h b/drivers/gpu/drm/omapdrm/dss/hdmi.h
+index fb6cccd02374..3913859146b9 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi.h
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi.h
+@@ -24,6 +24,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/hdmi.h>
+ #include <sound/omap-hdmi-audio.h>
++#include <media/cec.h>
+ 
+ #include "omapdss.h"
+ #include "dss.h"
+@@ -254,6 +255,9 @@ struct hdmi_phy_data {
+ 
+ struct hdmi_core_data {
+ 	void __iomem *base;
++	struct hdmi_wp_data *wp;
++	unsigned int core_pwr_cnt;
++	struct cec_adapter *adap;
+ };
+ 
+ static inline void hdmi_write_reg(void __iomem *base_addr, const u32 idx,
+@@ -361,7 +365,7 @@ struct omap_hdmi {
+ 	bool audio_configured;
+ 	struct omap_dss_audio audio_config;
+ 
+-	/* This lock should be taken when booleans bellow are touched. */
++	/* This lock should be taken when booleans below are touched. */
+ 	spinlock_t audio_playing_lock;
+ 	bool audio_playing;
+ 	bool display_enabled;
+-- 
+2.11.0
