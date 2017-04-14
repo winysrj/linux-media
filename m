@@ -1,181 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:43150 "EHLO mail.kernel.org"
+Received: from verein.lst.de ([213.95.11.211]:41770 "EHLO newverein.lst.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1162346AbdD0S0r (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 14:26:47 -0400
-From: Kieran Bingham <kbingham@kernel.org>
-To: laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
-        sakari.ailus@iki.fi
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH 4/5] arm64: dts: r8a7795: salvator-x: enable VIN, CSI and ADV7482
-Date: Thu, 27 Apr 2017 19:26:03 +0100
-Message-Id: <1493317564-18026-5-git-send-email-kbingham@kernel.org>
-In-Reply-To: <1493317564-18026-1-git-send-email-kbingham@kernel.org>
-References: <1493317564-18026-1-git-send-email-kbingham@kernel.org>
+        id S1753229AbdDNIgK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Apr 2017 04:36:10 -0400
+Date: Fri, 14 Apr 2017 10:36:07 +0200
+From: Christoph Hellwig <hch@lst.de>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
+        Tejun Heo <tj@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Ming Lin <ming.l@ssi.samsung.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
+        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
+        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
+        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
+        Steve Wise <swise@opengridcomputing.com>,
+        Stephen Bates <sbates@raithlin.com>
+Subject: Re: [PATCH 03/22] libiscsi: Make use of new the sg_map helper
+        function
+Message-ID: <20170414083607.GB25471@lst.de>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com> <1492121135-4437-4-git-send-email-logang@deltatee.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1492121135-4437-4-git-send-email-logang@deltatee.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+On Thu, Apr 13, 2017 at 04:05:16PM -0600, Logan Gunthorpe wrote:
+> Convert the kmap and kmap_atomic uses to the sg_map function. We now
+> store the flags for the kmap instead of a boolean to indicate
+> atomicitiy. We also propogate a possible kmap error down and create
+> a new ISCSI_TCP_INTERNAL_ERR error type for this.
 
-Provide bindings between the VIN, CSI and the ADV7482 on the r8a7795.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts | 129 +++++++++++++++++++++
- 1 file changed, 129 insertions(+)
-
-diff --git a/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts b/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts
-index 27b9bae60dc0..a20623faa9d2 100644
---- a/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts
-+++ b/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts
-@@ -196,6 +196,22 @@
- 			};
- 		};
- 	};
-+
-+	hdmi {
-+		port {
-+			hdmi_in: endpoint {
-+				remote-endpoint = <&adv7482_hdmi>;
-+			};
-+		};
-+	};
-+
-+	cvbs {
-+		port {
-+			cvbs_in: endpoint {
-+				remote-endpoint = <&adv7482_ain8>;
-+			};
-+		};
-+	};
- };
- 
- &du {
-@@ -387,6 +403,50 @@
- 	};
- };
- 
-+&i2c4 {
-+	status = "okay";
-+
-+	clock-frequency = <100000>;
-+
-+	video_receiver@70 {
-+		compatible = "adi,adv7482";
-+		reg = <0x70>;
-+
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@8 {
-+			adv7482_ain8: endpoint@1 {
-+				remote-endpoint = <&cvbs_in>;
-+			};
-+		};
-+
-+		port@9 {
-+			adv7482_hdmi: endpoint@1 {
-+				remote-endpoint = <&hdmi_in>;
-+			};
-+		};
-+
-+		port@11 {
-+			reg = <11>;
-+			adv7482_txa: endpoint@1 {
-+				clock-lanes = <0>;
-+				data-lanes = <1 2 3 4>;
-+				remote-endpoint = <&csi40_in>;
-+			};
-+		};
-+
-+		port@12 {
-+			reg = <12>;
-+			adv7482_txb: endpoint@1 {
-+				clock-lanes = <0>;
-+				data-lanes = <1>;
-+				remote-endpoint = <&csi20_in>;
-+			};
-+		};
-+	};
-+};
-+
- &rcar_sound {
- 	pinctrl-0 = <&sound_pins &sound_clk_pins>;
- 	pinctrl-names = "default";
-@@ -577,3 +637,72 @@
- &pciec1 {
- 	status = "okay";
- };
-+
-+&vin0 {
-+	status = "okay";
-+};
-+
-+&vin1 {
-+	status = "okay";
-+};
-+
-+&vin2 {
-+	status = "okay";
-+};
-+
-+&vin3 {
-+	status = "okay";
-+};
-+
-+&vin4 {
-+	status = "okay";
-+};
-+
-+&vin5 {
-+	status = "okay";
-+};
-+
-+&vin6 {
-+	status = "okay";
-+};
-+
-+&vin7 {
-+	status = "okay";
-+};
-+
-+&csi20 {
-+	status = "okay";
-+
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+			csi20_in: endpoint@0 {
-+				clock-lanes = <0>;
-+				data-lanes = <1>;
-+				remote-endpoint = <&adv7482_txb>;
-+			};
-+		};
-+	};
-+};
-+
-+&csi40 {
-+	status = "okay";
-+
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			csi40_in: endpoint@0 {
-+				clock-lanes = <0>;
-+				data-lanes = <1 2 3 4>;
-+				remote-endpoint = <&adv7482_txa>;
-+			};
-+		};
-+	};
-+};
--- 
-2.7.4
+Can you split out the new error handling into a separate prep patch
+which should go to the iscsi maintainers ASAP?
