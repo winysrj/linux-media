@@ -1,47 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f49.google.com ([209.85.218.49]:33497 "EHLO
-        mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752099AbdDJUNn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 16:13:43 -0400
-Received: by mail-oi0-f49.google.com with SMTP id b187so161555199oif.0
-        for <linux-media@vger.kernel.org>; Mon, 10 Apr 2017 13:13:43 -0700 (PDT)
+Received: from mail-bn3nam01on0061.outbound.protection.outlook.com ([104.47.33.61]:59193
+        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751147AbdDNQHW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Apr 2017 12:07:22 -0400
+From: "Kershner, David A" <David.Kershner@unisys.com>
+To: Logan Gunthorpe <logang@deltatee.com>,
+        Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
+        Tejun Heo <tj@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Ming Lin <ming.l@ssi.samsung.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>,
+        "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
+        "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>,
+        "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
+        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
+        "fcoe-devel@open-fcoe.org" <fcoe-devel@open-fcoe.org>,
+        "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>,
+        "megaraidlinux.pdl@broadcom.com" <megaraidlinux.pdl@broadcom.com>,
+        *S-Par-Maintainer <SParMaintainer@unisys.com>,
+        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>
+CC: Steve Wise <swise@opengridcomputing.com>,
+        Stephen Bates <sbates@raithlin.com>
+Subject: RE: [PATCH 10/22] staging: unisys: visorbus: Make use of the new
+ sg_map helper function
+Date: Fri, 14 Apr 2017 16:07:14 +0000
+Message-ID: <CY4PR07MB317691139A5B2F902CDA9B0EF0050@CY4PR07MB3176.namprd07.prod.outlook.com>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+ <1492121135-4437-11-git-send-email-logang@deltatee.com>
+In-Reply-To: <1492121135-4437-11-git-send-email-logang@deltatee.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-From: Patrick Doyle <wpdster@gmail.com>
-Date: Mon, 10 Apr 2017 16:13:07 -0400
-Message-ID: <CAF_dkJAwwj0mpOztkTNTrDC1YQkgh=HvZGh=tv3SYsuvUzTb+g@mail.gmail.com>
-Subject: Looking for device driver advice
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am looking for advice regarding the construction of a device driver
-for a MIPI CSI2 imager (a Sony IMX241) that is connected to a
-MIPI<->Parallel converter (Toshiba TC358748) wired into a parallel
-interface on a Soc (a Microchip/Atmel SAMAD2x device.)
+> -----Original Message-----
+> From: Logan Gunthorpe [mailto:logang@deltatee.com]
+...
+> Subject: [PATCH 10/22] staging: unisys: visorbus: Make use of the new
+> sg_map helper function
+>=20
+> Straightforward conversion to the new function.
+>=20
+> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 
-The Sony imager is controlled and configured via I2C, as is the
-Toshiba converter.  I could write a single driver that configures both
-devices and treats them as a single device that just happens to use 2
-i2c addresses.  I could use the i2c_new_dummy() API to construct the
-device abstraction for the second physical device at probe time for
-the first physical device.
+Can you add Acked-by for this patch?=20
 
-Or I could do something smarter (or at least different), specifying
-the two devices independently via my device tree file, perhaps linking
-them together via "port" nodes.  Currently, I use the "port" node
-concept to link an i2c imager to the Image System Controller (isc)
-node in the SAMA5 device.  Perhaps that generalizes to a chain of
-nodes linked together... I don't know.
+Acked-by: David Kershner <david.kershner@unisys.com>
 
-I'm also not sure how these two devices might play into V4L2's
-"subdev" concept.  Are they separate, independent sub devices of the
-ISC, or are they a single sub device.
+Tested on s-Par and no problems.=20
 
-Any thoughts, intuition, pointers to existing code that addresses
-questions such as these, would be welcome.
+Thanks,
+David Kershner
 
-Thanks.
-
---wpd
+> ---
+>  drivers/staging/unisys/visorhba/visorhba_main.c | 12 +++++++-----
+>  1 file changed, 7 insertions(+), 5 deletions(-)
+>=20
+> diff --git a/drivers/staging/unisys/visorhba/visorhba_main.c
+> b/drivers/staging/unisys/visorhba/visorhba_main.c
+> index 0ce92c8..2d8c8bc 100644
+> --- a/drivers/staging/unisys/visorhba/visorhba_main.c
+> +++ b/drivers/staging/unisys/visorhba/visorhba_main.c
+> @@ -842,7 +842,6 @@ do_scsi_nolinuxstat(struct uiscmdrsp *cmdrsp, struct
+> scsi_cmnd *scsicmd)
+>  	struct scatterlist *sg;
+>  	unsigned int i;
+>  	char *this_page;
+> -	char *this_page_orig;
+>  	int bufind =3D 0;
+>  	struct visordisk_info *vdisk;
+>  	struct visorhba_devdata *devdata;
+> @@ -869,11 +868,14 @@ do_scsi_nolinuxstat(struct uiscmdrsp *cmdrsp,
+> struct scsi_cmnd *scsicmd)
+>=20
+>  		sg =3D scsi_sglist(scsicmd);
+>  		for (i =3D 0; i < scsi_sg_count(scsicmd); i++) {
+> -			this_page_orig =3D kmap_atomic(sg_page(sg + i));
+> -			this_page =3D (void *)((unsigned long)this_page_orig |
+> -					     sg[i].offset);
+> +			this_page =3D sg_map(sg + i, SG_KMAP_ATOMIC);
+> +			if (IS_ERR(this_page)) {
+> +				scsicmd->result =3D DID_ERROR << 16;
+> +				return;
+> +			}
+> +
+>  			memcpy(this_page, buf + bufind, sg[i].length);
+> -			kunmap_atomic(this_page_orig);
+> +			sg_unmap(sg + i, this_page, SG_KMAP_ATOMIC);
+>  		}
+>  	} else {
+>  		devdata =3D (struct visorhba_devdata *)scsidev->host-
+> >hostdata;
+> --
+> 2.1.4
