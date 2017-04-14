@@ -1,83 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38751
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1946890AbdD2BqK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 21:46:10 -0400
-Date: Fri, 28 Apr 2017 22:46:01 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 1/2] v4l: Add camera voice coil lens control class,
- current control
-Message-ID: <20170428224106.44e0fdbd@vento.lan>
-In-Reply-To: <20170428220004.GA23906@amd>
-References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
-        <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
-        <20170414232332.63850d7b@vento.lan>
-        <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
-        <20170419105118.72b8e284@vento.lan>
-        <20170428220004.GA23906@amd>
+Received: from mail-bn3nam01on0137.outbound.protection.outlook.com ([104.47.33.137]:15926
+        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750915AbdDNBsI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Apr 2017 21:48:08 -0400
+From: <Yasunari.Takiguchi@sony.com>
+To: <akpm@linux-foundation.org>, <linux-kernel@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>
+CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
+        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Subject: [PATCH v2 0/15] [dt-bindings] [media] Add document file and driver for Sony CXD2880 DVB-T2/T tuner + demodulator
+Date: Fri, 14 Apr 2017 10:50:43 +0900
+Message-ID: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 29 Apr 2017 00:00:05 +0200
-Pavel Machek <pavel@ucw.cz> escreveu:
+From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-> Hi!
-> 
-> > Hmm... if the idea is to have a control that doesn't do ringing
-> > compensation, then it should be clear at the control's descriptions
-> > that:
-> > 
-> > - V4L2_CID_FOCUS_ABSOLUTE should be used if the VCM has ringing
-> >   compensation;
-> > - V4L2_CID_VOICE_COIL_CURRENT and V4L2_CID_VOICE_COIL_RING_COMPENSATION
-> >   should be used otherwise.
-> > 
-> > Btw, if the rationale for this patch is to support devices without
-> > ring compensation, so, both controls and their descriptions should
-> > be added at the same time, together with a patchset that would be
-> > using both.
-> >   
-> > > How about adding such an explanation added to the commit message?  
-> > 
-> > It is not enough. Documentation should be clear that VCM devices
-> > with ring compensation should use V4L2_CID_FOCUS_ABSOLUTE.  
-> 
-> Is ring compensation actually a big deal? We do not publish enough
-> information to userland about how fast the autofocus system is,
-> anyway, so it looks like userland can't depend on such details...
+Hi,
 
-Well, I guess a V4L2 event could be used to identify the VCM's
-current position and/or notify when the movement finished.
+This is the patch series (version 2) of Sony CXD2880 DVB-T2/T tuner + demodulator driver.
+The driver supports DVB-API and interfaces through SPI.
 
-Anyway, the point is:
-
-If V4L2_CID_VOICE_COIL_CURRENT would do the same as:
-	V4L2_CID_FOCUS_ABSOLUTE
-or:
-	max - V4L2_CID_FOCUS_ABSOLUTE
-
-there's no reason to create a new control, as the existing control
-was already created to control the VCM current [1].
-
-[1] Ok, we need to better document it, but that's a separate issue
-
-We should create a new control only if it is doing something
-different than the "standard" way of controlling a Voice Coil Motor.
-
-On such case, the difference between controlling VCM via
-V4L2_CID_VOICE_COIL_CURRENT or via V4L2_CID_FOCUS_ABSOLUTE should be 
-clearly stated, as we expect that the other devices with the same need 
-will implement the same control set and the same max/min convention
-(e. g. max integer value meaning closest focus, min integer value
-meaning infinite).
+We have tested the driver on Raspberry Pi 3 and got picture and sound from a media player.
 
 Thanks,
-Mauro
+Takiguchi
+---
+ Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt        |   14 ++++++++++++++
+ drivers/media/spi/cxd2880-spi.c                                     | 728 ++++++++++++++++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/cxd2880/cxd2880.h                       |   46 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_common.c                |   84 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_common.h                |   86 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_io.c                    |   68 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_io.h                    |   62 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_stdlib.h                |   35 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_stopwatch_port.c        |   71 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_math.c                  |   89 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_math.h                  |   40 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c             |  147 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h             |   40 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h                   |   51 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c            |  130 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h            |   45 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_dtv.h                   |   50 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c                | 3925 ++++++++++++++++++++
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.h                |  395 ++
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_driver_version.h |   29 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.c            |  207 ++
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.h            |   52 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c                 |   99 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h                 |   44 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_top.c                   | 1550 ++++++++
+ drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt.h                  |   91 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c           | 1072 +++++++++
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.h           |   62 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.c            |  197 ++
+ drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.h            |   58 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c       | 1190 +++++++++
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.h       |  106 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h                 |  402 ++++
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c          | 1309 ++++++++++
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h          |   82 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.c           |  311 +++
+ drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.h           |   64 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c      | 2523 ++++++++++++++++++++
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.h      |  170 ++
+ drivers/media/dvb-frontends/Makefile                                |    1 +
+ drivers/media/dvb-frontends/cxd2880/Makefile                        |   21 +++++++++++++++++++++
+ drivers/media/spi/Makefile                                          |    5 +++++
+ drivers/media/dvb-frontends/Kconfig                                 |    2 ++
+ drivers/media/dvb-frontends/cxd2880/Kconfig                         |    6 ++++++
+ drivers/media/spi/Kconfig                                           |   14 ++++++++++++++
+ MAINTAINERS                                                         |    9 +++++++++
+
+ 46 files changed, 15782 insertions(+)
+
+ create mode 100644 Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+ create mode 100644 drivers/media/spi/cxd2880-spi.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_common.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_common.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_io.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_io.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_stdlib.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_stopwatch_port.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_math.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_math.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_dtv.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_driver_version.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_top.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/Makefile
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/Kconfig
+-- 
+2.11.0
