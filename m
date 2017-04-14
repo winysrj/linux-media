@@ -1,87 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:35179 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751854AbdDQKWn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Apr 2017 06:22:43 -0400
-From: Vincent Legoll <vincent.legoll@gmail.com>
-To: linux-kernel@vger.kernel.org, sumit.semwal@linaro.org,
-        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
-        seanpaul@chromium.org, airlied@linux.ie, robdclark@gmail.com,
+Received: from verein.lst.de ([213.95.11.211]:41737 "EHLO newverein.lst.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752070AbdDNIfV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Apr 2017 04:35:21 -0400
+Date: Fri, 14 Apr 2017 10:35:18 +0200
+From: Christoph Hellwig <hch@lst.de>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
+        Tejun Heo <tj@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Ming Lin <ming.l@ssi.samsung.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
         linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, linux-arm-msm@vger.kernel.org,
-        freedreno@lists.freedesktop.org
-Cc: Vincent Legoll <vincent.legoll@gmail.com>
-Subject: [PATCH] Make DMABUF a menuconfig to ease disabling it all
-Date: Mon, 17 Apr 2017 12:22:21 +0200
-Message-Id: <20170417102221.5096-1-vincent.legoll@gmail.com>
+        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
+        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
+        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
+        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
+        Steve Wise <swise@opengridcomputing.com>,
+        Stephen Bates <sbates@raithlin.com>
+Subject: Re: [PATCH 01/22] scatterlist: Introduce sg_map helper functions
+Message-ID: <20170414083518.GA25471@lst.de>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com> <1492121135-4437-2-git-send-email-logang@deltatee.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1492121135-4437-2-git-send-email-logang@deltatee.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No need to get into the submenu to disable all DMABUF-related config entries
+> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> index 0007b79..b95934b 100644
+> --- a/drivers/dma-buf/dma-buf.c
+> +++ b/drivers/dma-buf/dma-buf.c
+> @@ -37,6 +37,9 @@
+>  
+>  #include <uapi/linux/dma-buf.h>
+>  
+> +/* Prevent the highmem.h macro from aliasing ops->kunmap_atomic */
+> +#undef kunmap_atomic
+> +
+>  static inline int is_dma_buf_file(struct file *);
+>  
+>  struct dma_buf_list {
 
-Make the selecters also select the new DMABUF menuconfig
+I think the right fix here is to rename the operation to unmap_atomic
+and send out a little patch for that ASAP.
 
-Signed-off-by: Vincent Legoll <vincent.legoll@gmail.com>
----
- drivers/dma-buf/Kconfig     | 7 ++++---
- drivers/gpu/drm/Kconfig     | 1 +
- drivers/gpu/drm/msm/Kconfig | 1 +
- 3 files changed, 6 insertions(+), 3 deletions(-)
+> + *   Flags can be any of:
+> + *	* SG_KMAP	 - Use kmap to create the mapping
+> + *	* SG_KMAP_ATOMIC - Use kmap_atomic to map the page atommically.
+> + *			   Thus, the rules of that function apply: the cpu
+> + *			   may not sleep until it is unmaped.
+> + *
+> + *   Also, consider carefully whether this function is appropriate. It is
+> + *   largely not recommended for new code and if the sgl came from another
+> + *   subsystem and you don't know what kind of memory might be in the list
+> + *   then you definitely should not call it. Non-mappable memory may be in
+> + *   the sgl and thus this function may fail unexpectedly.
+> + **/
+> +static inline void *sg_map_offset(struct scatterlist *sg, size_t offset,
+> +				   int flags)
 
-diff --git a/drivers/dma-buf/Kconfig b/drivers/dma-buf/Kconfig
-index ed3b785..ad5075f 100644
---- a/drivers/dma-buf/Kconfig
-+++ b/drivers/dma-buf/Kconfig
-@@ -1,8 +1,10 @@
--menu "DMABUF options"
-+menuconfig DMABUF
-+	bool "DMABUF options"
- 
- config SYNC_FILE
- 	bool "Explicit Synchronization Framework"
- 	default n
-+	depends on DMABUF
- 	select ANON_INODES
- 	select DMA_SHARED_BUFFER
- 	---help---
-@@ -20,6 +22,7 @@ config SYNC_FILE
- config SW_SYNC
- 	bool "Sync File Validation Framework"
- 	default n
-+	depends on DMABUF
- 	depends on SYNC_FILE
- 	depends on DEBUG_FS
- 	---help---
-@@ -29,5 +32,3 @@ config SW_SYNC
- 
- 	  WARNING: improper use of this can result in deadlocking kernel
- 	  drivers from userspace. Intended for test and debug only.
--
--endmenu
-diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
-index 88e01e08e..c9c21c8 100644
---- a/drivers/gpu/drm/Kconfig
-+++ b/drivers/gpu/drm/Kconfig
-@@ -12,6 +12,7 @@ menuconfig DRM
- 	select I2C
- 	select I2C_ALGOBIT
- 	select DMA_SHARED_BUFFER
-+	select DMABUF
- 	select SYNC_FILE
- 	help
- 	  Kernel-level support for the Direct Rendering Infrastructure (DRI)
-diff --git a/drivers/gpu/drm/msm/Kconfig b/drivers/gpu/drm/msm/Kconfig
-index 5b8e23d..fdc621b 100644
---- a/drivers/gpu/drm/msm/Kconfig
-+++ b/drivers/gpu/drm/msm/Kconfig
-@@ -12,6 +12,7 @@ config DRM_MSM
- 	select TMPFS
- 	select QCOM_SCM
- 	select SND_SOC_HDMI_CODEC if SND_SOC
-+	select DMABUF
- 	select SYNC_FILE
- 	default y
- 	help
--- 
-2.9.3
+I'd rather have separate functions for kmap vs kmap_atomic instead of
+the flags parameter.  And while you're at it just always pass the 0
+offset parameter instead of adding a wrapper..
+
+Otherwise this looks good to me.
