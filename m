@@ -1,83 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:32878 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752320AbdDITic (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Apr 2017 15:38:32 -0400
-Received: by mail-wr0-f195.google.com with SMTP id l28so1779890wre.0
-        for <linux-media@vger.kernel.org>; Sun, 09 Apr 2017 12:38:32 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: aospan@netup.ru, serjk@netup.ru, mchehab@kernel.org,
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:52065 "EHLO
+        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750784AbdDNILU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Apr 2017 04:11:20 -0400
+Date: Fri, 14 Apr 2017 10:11:10 +0200
+From: Greg KH <greg@kroah.com>
+To: kbuild test robot <lkp@intel.com>
+Cc: Alan Cox <alan@linux.intel.com>, kbuild-all@01.org,
         linux-media@vger.kernel.org
-Cc: rjkm@metzlerbros.de
-Subject: [PATCH 00/19] cxd2841er/ddbridge: support Sony CXD28xx hardware
-Date: Sun,  9 Apr 2017 21:38:09 +0200
-Message-Id: <20170409193828.18458-1-d.scheller.oss@gmail.com>
+Subject: Re: [PATCH 14/14] atomisp: remove UDS kernel code
+Message-ID: <20170414081110.GA3262@kroah.com>
+References: <149202136244.16615.14834078586870499181.stgit@acox1-desk1.ger.corp.intel.com>
+ <201704140306.UQAIWQYj%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201704140306.UQAIWQYj%fengguang.wu@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On Fri, Apr 14, 2017 at 03:27:08AM +0800, kbuild test robot wrote:
+> Hi Alan,
+> 
+> [auto build test ERROR on next-20170412]
+> [cannot apply to linuxtv-media/master v4.9-rc8 v4.9-rc7 v4.9-rc6 v4.11-rc6]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> 
+> url:    https://github.com/0day-ci/linux/commits/Alan-Cox/staging-atomisp-use-local-variable-to-reduce-number-of-references/20170413-112312
+> config: i386-allmodconfig (attached as .config)
+> compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
+> reproduce:
+>         # save the attached .config to linux build tree
+>         make ARCH=i386 
+> 
+> All errors (new ones prefixed by >>):
+> 
+> >> make[7]: *** No rule to make target 'drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/uds/uds_1.0/ia_css_uds.host.o', needed by 'drivers/staging/media/atomisp/pci/atomisp2/atomisp.o'.
+>    make[7]: *** No rule to make target 'drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/fixedbds/fixedbds_1.0/ia_css_fixedbds.host.o', needed by 'drivers/staging/media/atomisp/pci/atomisp2/atomisp.o'.
+>    make[7]: Target '__build' not remade because of errors.
 
-Important note: This series depends on the stv0367/ddbridge series posted
-earlier (patches 12 [1] and 13 [2], depending on the I2C functions and the
-TDA18212 attach function).
+This too is odd, are you not rebuilding everything properly when a file
+is removed?  This works for me here.
 
-This series improves the cxd2841er demodulator driver and adds some bits
-to make it more versatile to be used in more scenarios. Also, the ddbridge
-code is updated to recognize all hardware (PCIe cards/bridges and DuoFlex
-modules) with Sony CXD28xx tuners, including the newly introduced MaxA8
-eight-tuner C2T2 cards.
+thanks,
 
-The series has been tested (together with the STV0367 series) on a wide
-variety of cards, including CineCTv7, DuoFlex C(2)T2 modules and MaxA8
-cards without any issues. Testing was done with TVHeadend, VDR and MythTV.
-
-Note that the i2c_gate_ctrl() flag is needed in this series aswell since
-the i2c_gate_ctrl function needs to be remapped and mutex_lock protected
-for the same reasons as in the STV0367 series.
-
-Besides printk() warnings, checkpatch.pl doesn't complain.
-
-Comments and reviews appreciated.
-
-[1] https://patchwork.linuxtv.org/patch/40398/
-[2] https://patchwork.linuxtv.org/patch/40399/
-
-Daniel Scheller (19):
-  [media] dvb-frontends/cxd2841er: remove kernel log spam in non-debug
-    levels
-  [media] dvb-frontends/cxd2841er: do I2C reads in one go
-  [media] dvb-frontends/cxd2841er: immediately unfreeze regs when done
-  [media] dvb-frontends/cxd2841er: support CXD2837/38/43ER demods/Chip
-    IDs
-  [media] dvb-frontends/cxd2841er: replace IFFREQ calc macros into
-    functions
-  [media] dvb-frontends/cxd2841er: add variable for configuration flags
-  [media] dvb-frontends/cxd2841er: make call to i2c_gate_ctrl optional
-  [media] dvb-frontends/cxd2841er: support IF speed calc from tuner
-    values
-  [media] dvb-frontends/cxd2841er: TS_SERIAL config flag
-  [media] dvb-frontends/cxd2841er: make ASCOT use optional
-  [media] dvb-frontends/cxd2841er: optionally tune earlier in
-    set_frontend()
-  [media] dvb-frontends/cxd2841er: make lock wait in set_fe_tc()
-    optional
-  [media] dvb-frontends/cxd2841er: configurable IFAGCNEG
-  [media] dvb-frontends/cxd2841er: more configurable TSBITS
-  [media] dvb-frontends/cxd2841er: improved snr reporting
-  [media] ddbridge: board control setup, ts quirk flags
-  [media] ddbridge: add I2C functions, add XO2 module support
-  [media] ddbridge: support for Sony CXD28xx C/C2/T/T2 tuner modules
-  [media] ddbridge: hardware IDs for new C2T2 cards and other devices
-
- drivers/media/dvb-frontends/cxd2841er.c            | 302 +++++++++++------
- drivers/media/dvb-frontends/cxd2841er.h            |  10 +
- drivers/media/dvb-frontends/cxd2841er_priv.h       |   3 +
- drivers/media/pci/ddbridge/Kconfig                 |   3 +
- drivers/media/pci/ddbridge/ddbridge-core.c         | 356 ++++++++++++++++++++-
- drivers/media/pci/ddbridge/ddbridge-regs.h         |   4 +
- drivers/media/pci/ddbridge/ddbridge.h              |  40 ++-
- drivers/media/pci/netup_unidvb/netup_unidvb_core.c |   3 +-
- 8 files changed, 615 insertions(+), 106 deletions(-)
-
--- 
-2.10.2
+greg k-h
