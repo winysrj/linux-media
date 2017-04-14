@@ -1,127 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:46876 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752654AbdD1EJ3 (ORCPT
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:35933 "EHLO
+        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751235AbdDNIJZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 00:09:29 -0400
-Message-ID: <1804e5dbec7facd168f8501059e27d01@smtp-cloud6.xs4all.net>
-Date: Fri, 28 Apr 2017 06:09:27 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 14 Apr 2017 04:09:25 -0400
+Date: Fri, 14 Apr 2017 10:09:15 +0200
+From: Greg KH <greg@kroah.com>
+To: kbuild test robot <lkp@intel.com>
+Cc: Alan Cox <alan@linux.intel.com>, kbuild-all@01.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 12/14] atomisp: remove fixedbds kernel code
+Message-ID: <20170414080915.GA21311@kroah.com>
+References: <149202134077.16615.9955869109062515751.stgit@acox1-desk1.ger.corp.intel.com>
+ <201704131901.O8h0sjJH%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201704131901.O8h0sjJH%fengguang.wu@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Thu, Apr 13, 2017 at 07:53:58PM +0800, kbuild test robot wrote:
+> Hi Alan,
+> 
+> [auto build test ERROR on next-20170412]
+> [cannot apply to linuxtv-media/master v4.9-rc8 v4.9-rc7 v4.9-rc6 v4.11-rc6]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> 
+> url:    https://github.com/0day-ci/linux/commits/Alan-Cox/staging-atomisp-use-local-variable-to-reduce-number-of-references/20170413-112312
+> config: i386-allmodconfig (attached as .config)
+> compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
+> reproduce:
+>         # save the attached .config to linux build tree
+>         make ARCH=i386 
+> 
+> All errors (new ones prefixed by >>):
+> 
+> >> make[7]: *** No rule to make target 'drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/fixedbds/fixedbds_1.0/ia_css_fixedbds.host.o', needed by 'drivers/staging/media/atomisp/pci/atomisp2/atomisp.o'.
+>    make[7]: Target '__build' not remade because of errors.
 
-Results of the daily build of media_tree:
+That's an odd error, this works fine for me here.
 
-date:			Fri Apr 28 05:00:13 CEST 2017
-media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
-media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
-v4l-utils git hash:	847bf8d62cd6b11defc1e4c3b30b68d3c66876e0
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+greg k-h
