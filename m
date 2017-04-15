@@ -1,67 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:55214 "EHLO hardeman.nu"
+Received: from ale.deltatee.com ([207.54.116.67]:44437 "EHLO ale.deltatee.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755330AbdD0UeA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 16:34:00 -0400
-Subject: [PATCH 1/6] rc-core: fix input repeat handling
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, sean@mess.org
-Date: Thu, 27 Apr 2017 22:33:58 +0200
-Message-ID: <149332523796.32431.14044805351907177736.stgit@zeus.hardeman.nu>
-In-Reply-To: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
-References: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
+        id S1751582AbdDORr0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 15 Apr 2017 13:47:26 -0400
+To: Milan Broz <gmazyland@gmail.com>, Christoph Hellwig <hch@lst.de>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+ <1492121135-4437-10-git-send-email-logang@deltatee.com>
+ <20170414083921.GC25471@lst.de>
+ <302ae5ab-d515-5427-2e54-d58a9cdb8241@deltatee.com>
+ <22703638-27a9-7dc5-5180-536f61661592@gmail.com>
+Cc: Steve Wise <swise@opengridcomputing.com>,
+        linux-nvme@lists.infradead.org,
+        Stephen Bates <sbates@raithlin.com>,
+        target-devel@vger.kernel.org,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        devel@driverdev.osuosl.org, rds-devel@oss.oracle.com,
+        Sagi Grimberg <sagi@grimberg.me>, linux-scsi@vger.kernel.org,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        linux-rdma@vger.kernel.org, fcoe-devel@open-fcoe.org,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        open-iscsi@googlegroups.com, linux-media@vger.kernel.org,
+        Ming Lin <ming.l@ssi.samsung.com>,
+        intel-gfx@lists.freedesktop.org, sparmaintainer@unisys.com,
+        linux-raid@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Dan Williams <dan.j.williams@intel.com>,
+        megaraidlinux.pdl@broadcom.com, Jens Axboe <axboe@kernel.dk>,
+        linaro-mm-sig@lists.linaro.org,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        device-mapper development <dm-devel@redhat.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <19b18d76-57fa-0a4f-252d-5d735105a159@deltatee.com>
+Date: Sat, 15 Apr 2017 11:47:00 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <22703638-27a9-7dc5-5180-536f61661592@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH 09/22] dm-crypt: Make use of the new sg_map helper in 4
+ call sites
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The call to input_register_device() needs to take place
-before the repeat parameters are set or the input subsystem
-repeat handling will be disabled (as was already noted in
-the comments in that function).
+Thanks for the information Milan.
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/rc-main.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+On 15/04/17 06:10 AM, Milan Broz wrote:
+> I think your patch is ok (if it is just plain conversion), if it is
+> really needed, we can switch to ahash later in follow-up patch.
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 6ec73357fa47..802e559cc30e 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1703,6 +1703,16 @@ static int rc_setup_rx_device(struct rc_dev *dev)
- 	if (dev->close)
- 		dev->input_dev->close = ir_close;
- 
-+	dev->input_dev->dev.parent = &dev->dev;
-+	memcpy(&dev->input_dev->id, &dev->input_id, sizeof(dev->input_id));
-+	dev->input_dev->phys = dev->input_phys;
-+	dev->input_dev->name = dev->input_name;
-+
-+	/* rc_open will be called here */
-+	rc = input_register_device(dev->input_dev);
-+	if (rc)
-+		goto out_table;
-+
- 	/*
- 	 * Default delay of 250ms is too short for some protocols, especially
- 	 * since the timeout is currently set to 250ms. Increase it to 500ms,
-@@ -1718,16 +1728,6 @@ static int rc_setup_rx_device(struct rc_dev *dev)
- 	 */
- 	dev->input_dev->rep[REP_PERIOD] = 125;
- 
--	dev->input_dev->dev.parent = &dev->dev;
--	memcpy(&dev->input_dev->id, &dev->input_id, sizeof(dev->input_id));
--	dev->input_dev->phys = dev->input_phys;
--	dev->input_dev->name = dev->input_name;
--
--	/* rc_open will be called here */
--	rc = input_register_device(dev->input_dev);
--	if (rc)
--		goto out_table;
--
- 	return 0;
- 
- out_table:
+Sounds good to me.
+
+> p.s.
+> there is a lot of lists on cc, but for this patch is missing dm-devel, dmcrypt changes
+> need to go through Mike's tree (I added dm-devel to cc:)
+
+Oh, sorry, I thought I had included all the lists. My hope however would
+be to get the first patch merged and then re-send the remaining patches
+to their respective maintainers. So that would have happened later. It's
+hard to manage patches otherwise with such large distribution lists.
+
+Logan
