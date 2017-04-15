@@ -1,91 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:59427 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1756303AbdDMHdQ (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34947 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753437AbdDOKFp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 03:33:16 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Houlong Wei <houlong.wei@mediatek.com>
-CC: <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        Wu-Cheng Li <wuchengli@google.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH 1/3] dt-bindings: mt8173: Fix mdp device tree
-Date: Thu, 13 Apr 2017 15:33:05 +0800
-Message-ID: <1492068787-17838-2-git-send-email-minghsiu.tsai@mediatek.com>
-In-Reply-To: <1492068787-17838-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1492068787-17838-1-git-send-email-minghsiu.tsai@mediatek.com>
+        Sat, 15 Apr 2017 06:05:45 -0400
+Received: by mail-wm0-f68.google.com with SMTP id d79so1921390wmi.2
+        for <linux-media@vger.kernel.org>; Sat, 15 Apr 2017 03:05:44 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@kernel.org,
+        =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 5/5] em28xx: add support for V4L2_PIX_FMT_SRGGB8
+Date: Sat, 15 Apr 2017 12:05:04 +0200
+Message-Id: <20170415100504.3076-5-fschaefer.oss@googlemail.com>
+In-Reply-To: <20170415100504.3076-1-fschaefer.oss@googlemail.com>
+References: <20170415100504.3076-1-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the mdp_* nodes are under an mdp sub-node, their corresponding
-platform device does not automatically get its iommu assigned properly.
-
-Fix this by moving the mdp component nodes up a level such that they are
-siblings of mdp and all other SoC subsystems.  This also simplifies the
-device tree.
-
-Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- Documentation/devicetree/bindings/media/mediatek-mdp.txt | 12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ drivers/media/usb/em28xx/em28xx-video.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/mediatek-mdp.txt b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
-index 4182063..0d03e3a 100644
---- a/Documentation/devicetree/bindings/media/mediatek-mdp.txt
-+++ b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
-@@ -2,7 +2,7 @@
- 
- Media Data Path is used for scaling and color space conversion.
- 
--Required properties (controller (parent) node):
-+Required properties (controller node):
- - compatible: "mediatek,mt8173-mdp"
- - mediatek,vpu: the node of video processor unit, see
-   Documentation/devicetree/bindings/media/mediatek-vpu.txt for details.
-@@ -32,21 +32,16 @@ Required properties (DMA function blocks, child node):
-   for details.
- 
- Example:
--mdp {
--	compatible = "mediatek,mt8173-mdp";
--	#address-cells = <2>;
--	#size-cells = <2>;
--	ranges;
--	mediatek,vpu = <&vpu>;
--
- 	mdp_rdma0: rdma@14001000 {
- 		compatible = "mediatek,mt8173-mdp-rdma";
-+			     "mediatek,mt8173-mdp";
- 		reg = <0 0x14001000 0 0x1000>;
- 		clocks = <&mmsys CLK_MM_MDP_RDMA0>,
- 			 <&mmsys CLK_MM_MUTEX_32K>;
- 		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
- 		iommus = <&iommu M4U_PORT_MDP_RDMA0>;
- 		mediatek,larb = <&larb0>;
-+		mediatek,vpu = <&vpu>;
- 	};
- 
- 	mdp_rdma1: rdma@14002000 {
-@@ -106,4 +101,3 @@ mdp {
- 		iommus = <&iommu M4U_PORT_MDP_WROT1>;
- 		mediatek,larb = <&larb4>;
- 	};
--};
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index aaa83f9e5c1a..8d253a5df0a9 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -116,6 +116,11 @@ static struct em28xx_fmt format[] = {
+ 		.depth    = 16,
+ 		.reg      = EM28XX_OUTFMT_RGB_16_656,
+ 	}, {
++		.name     = "8 bpp Bayer RGRG..GBGB",
++		.fourcc   = V4L2_PIX_FMT_SRGGB8,
++		.depth    = 8,
++		.reg      = EM28XX_OUTFMT_RGB_8_RGRG,
++	}, {
+ 		.name     = "8 bpp Bayer BGBG..GRGR",
+ 		.fourcc   = V4L2_PIX_FMT_SBGGR8,
+ 		.depth    = 8,
 -- 
-1.9.1
+2.12.2
