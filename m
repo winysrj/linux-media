@@ -1,124 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:37271 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932182AbdDDQKM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 12:10:12 -0400
-Received: by mail-wm0-f48.google.com with SMTP id x124so32533375wmf.0
-        for <linux-media@vger.kernel.org>; Tue, 04 Apr 2017 09:10:11 -0700 (PDT)
-From: Lee Jones <lee.jones@linaro.org>
-To: hans.verkuil@cisco.com, mchehab@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        kernel@stlinux.com, patrice.chotard@st.com,
-        linux-media@vger.kernel.org, benjamin.gaignard@st.com,
-        Lee Jones <lee.jones@linaro.org>
-Subject: [PATCH 1/2] [media] rc-core: Add inlined stubs for core rc_* functions
-Date: Tue,  4 Apr 2017 17:10:04 +0100
-Message-Id: <20170404161005.20884-1-lee.jones@linaro.org>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:33546 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752840AbdDOKFm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 15 Apr 2017 06:05:42 -0400
+Received: by mail-wr0-f196.google.com with SMTP id l28so14869846wre.0
+        for <linux-media@vger.kernel.org>; Sat, 15 Apr 2017 03:05:42 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@kernel.org,
+        =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 3/5] em28xx: don't treat device as webcam if an unknown sensor is detected
+Date: Sat, 15 Apr 2017 12:05:02 +0200
+Message-Id: <20170415100504.3076-3-fschaefer.oss@googlemail.com>
+In-Reply-To: <20170415100504.3076-1-fschaefer.oss@googlemail.com>
+References: <20170415100504.3076-1-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently users have to use all sorts of ugly #ifery within
-their drivers in order to avoid linking issues at build time.
-This patch allows users to safely call these functions when
-!CONFIG_RC_CORE and make decisions based on the return value
-instead.  This is a much more common and clean way of doing
-things within the Linux kernel.
+With an unknown sensor, norm_maxw() and norm_maxh() return 0 as max.
+height and width values, which causes a devide by zero in size_to_scale().
+Of course we could use speculative default values for unknown sensors,
+but the chance that the device works at this resolution without any
+driver/setup is very low and therefore not worth the efforts.
+Instead, just don't treat the device as camera.
+A message will then be printed to the log that the device isn't supported.
 
-Signed-off-by: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- include/media/rc-core.h | 42 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ drivers/media/usb/em28xx/em28xx-cards.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 73ddd721..1f2043d 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -209,7 +209,14 @@ struct rc_dev {
-  * @rc_driver_type: specifies the type of the RC output to be allocated
-  * returns a pointer to struct rc_dev.
-  */
-+#ifdef CONFIG_RC_CORE
- struct rc_dev *rc_allocate_device(enum rc_driver_type);
-+#else
-+static inline struct rc_dev *rc_allocate_device(int unused)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+#endif
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 5f80a1b2fb8c..48c7fec47509 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2917,7 +2917,9 @@ static void em28xx_card_setup(struct em28xx *dev)
+ 	 * If sensor is not found, then it isn't a webcam.
+ 	 */
+ 	if (dev->board.is_webcam) {
+-		if (em28xx_detect_sensor(dev) < 0)
++		em28xx_detect_sensor(dev);
++		if (dev->em28xx_sensor == EM28XX_NOSENSOR)
++			/* NOTE: error/unknown sensor/no sensor */
+ 			dev->board.is_webcam = 0;
+ 	}
  
- /**
-  * devm_rc_allocate_device - Managed RC device allocation
-@@ -218,21 +225,42 @@ struct rc_dev *rc_allocate_device(enum rc_driver_type);
-  * @rc_driver_type: specifies the type of the RC output to be allocated
-  * returns a pointer to struct rc_dev.
-  */
-+#ifdef CONFIG_RC_CORE
- struct rc_dev *devm_rc_allocate_device(struct device *dev, enum rc_driver_type);
-+#else
-+static inline struct rc_dev *devm_rc_allocate_device(struct device *dev, int unused)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+#endif
+@@ -3665,9 +3667,11 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 		try_bulk = usb_xfer_mode > 0;
+ 	}
  
- /**
-  * rc_free_device - Frees a RC device
-  *
-  * @dev: pointer to struct rc_dev.
-  */
-+#ifdef CONFIG_RC_CORE
- void rc_free_device(struct rc_dev *dev);
-+#else
-+static inline void rc_free_device(struct rc_dev *dev)
-+{
-+	return;
-+}
-+#endif
- 
- /**
-  * rc_register_device - Registers a RC device
-  *
-  * @dev: pointer to struct rc_dev.
-  */
-+#ifdef CONFIG_RC_CORE
- int rc_register_device(struct rc_dev *dev);
-+#else
-+static inline int rc_register_device(struct rc_dev *dev)
-+{
-+	return -EOPNOTSUPP;
-+}
-+#endif
- 
- /**
-  * devm_rc_register_device - Manageded registering of a RC device
-@@ -240,14 +268,28 @@ int rc_register_device(struct rc_dev *dev);
-  * @parent: pointer to struct device.
-  * @dev: pointer to struct rc_dev.
-  */
-+#ifdef CONFIG_RC_CORE
- int devm_rc_register_device(struct device *parent, struct rc_dev *dev);
-+#else
-+static inline int devm_rc_register_device(struct device *parent, struct rc_dev *dev)
-+{
-+	return -EOPNOTSUPP;
-+}
-+#endif
- 
- /**
-  * rc_unregister_device - Unregisters a RC device
-  *
-  * @dev: pointer to struct rc_dev.
-  */
-+#ifdef CONFIG_RC_CORE
- void rc_unregister_device(struct rc_dev *dev);
-+#else
-+static inline void rc_unregister_device(struct rc_dev *dev)
-+{
-+	return;
-+}
-+#endif
- 
- /**
-  * rc_open - Opens a RC device
+-	/* Disable V4L2 if the device doesn't have a decoder */
++	/* Disable V4L2 if the device doesn't have a decoder or image sensor */
+ 	if (has_video &&
+-	    dev->board.decoder == EM28XX_NODECODER && !dev->board.is_webcam) {
++	    dev->board.decoder == EM28XX_NODECODER &&
++	    dev->em28xx_sensor == EM28XX_NOSENSOR) {
++
+ 		dev_err(&interface->dev,
+ 			"Currently, V4L2 is not supported on this model\n");
+ 		has_video = false;
 -- 
-2.9.3
+2.12.2
