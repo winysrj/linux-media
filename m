@@ -1,64 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:46145 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752265AbdDNKZ0 (ORCPT
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:51192 "EHLO
+        mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754729AbdDOSuy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Apr 2017 06:25:26 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Sat, 15 Apr 2017 14:50:54 -0400
+Received: from mail-in-03-z2.arcor-online.net (mail-in-03-z2.arcor-online.net [151.189.8.15])
+        by mx.arcor.de (Postfix) with ESMTP id 3w53Wd0pwdzGVks
+        for <linux-media@vger.kernel.org>; Sat, 15 Apr 2017 20:50:53 +0200 (CEST)
+Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net [151.189.21.54])
+        by mail-in-03-z2.arcor-online.net (Postfix) with ESMTP id 1966B1F6ACB
+        for <linux-media@vger.kernel.org>; Sat, 15 Apr 2017 20:50:53 +0200 (CEST)
+Date: Sat, 15 Apr 2017 20:50:43 +0200
+From: Reinhard Speyerer <rspmn@arcor.de>
 To: linux-media@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/8] omapdrm: hdmi.h: extend hdmi_core_data with CEC fields
-Date: Fri, 14 Apr 2017 12:25:07 +0200
-Message-Id: <20170414102512.48834-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170414102512.48834-1-hverkuil@xs4all.nl>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
+Cc: rspmn@arcor.de
+Subject: [PATCH] dtv-scan-tables: add new channels to dvb-t/de-Bayern
+Message-ID: <20170415185042.GA1590@arcor.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Several channels used at Bamberg and Hesselberg have been changed at the
+start of 2017 to avoid potential interference with the new DVB-T2 service
+started at the end of March. EinsPlus has been replaced with One in
+October 2016.
 
-Extend the hdmi_core_data struct with the additional fields needed
-for CEC.
+Full details are available (in german) at http://dvb-t-bayern.de/ .
 
-Also fix a simple typo in a comment.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Reinhard Speyerer <rspmn@arcor.de>
 ---
- drivers/gpu/drm/omapdrm/dss/hdmi.h | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi.h b/drivers/gpu/drm/omapdrm/dss/hdmi.h
-index fb6cccd02374..3913859146b9 100644
---- a/drivers/gpu/drm/omapdrm/dss/hdmi.h
-+++ b/drivers/gpu/drm/omapdrm/dss/hdmi.h
-@@ -24,6 +24,7 @@
- #include <linux/platform_device.h>
- #include <linux/hdmi.h>
- #include <sound/omap-hdmi-audio.h>
-+#include <media/cec.h>
+diff --git a/dvb-t/de-Bayern b/dvb-t/de-Bayern
+index 0d4182f..a71cbca 100644
+--- a/dvb-t/de-Bayern
++++ b/dvb-t/de-Bayern
+@@ -50,7 +50,7 @@
+ 	INVERSION = AUTO
  
- #include "omapdss.h"
- #include "dss.h"
-@@ -254,6 +255,9 @@ struct hdmi_phy_data {
+                                             # CH28: ZDF, 3sat, KiKa / ZDFneo, ZDFinfo
+-[CH29: Das Erste, arte, Phoenix, EinsPlus]
++[CH29: Das Erste, arte, Phoenix, One]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 538000000
+ 	BANDWIDTH_HZ = 8000000
+@@ -62,7 +62,7 @@
+ 	HIERARCHY = NONE
+ 	INVERSION = AUTO
  
- struct hdmi_core_data {
- 	void __iomem *base;
-+	struct hdmi_wp_data *wp;
-+	unsigned int core_pwr_cnt;
-+	struct cec_adapter *adap;
- };
+-[CH30: Das Erste, arte, Phoenix, EinsPlus]
++[CH30: Das Erste, arte, Phoenix, One]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 546000000
+ 	BANDWIDTH_HZ = 8000000
+@@ -74,6 +74,18 @@
+ 	HIERARCHY = NONE
+ 	INVERSION = AUTO
  
- static inline void hdmi_write_reg(void __iomem *base_addr, const u32 idx,
-@@ -361,7 +365,7 @@ struct omap_hdmi {
- 	bool audio_configured;
- 	struct omap_dss_audio audio_config;
++[CH31: ZDF, 3sat, KiKa / ZDFneo, ZDFinfo]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 554000000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_HP = 2/3
++	CODE_RATE_LP = NONE
++	MODULATION = QAM/16
++	TRANSMISSION_MODE = 8K
++	GUARD_INTERVAL = 1/4
++	HIERARCHY = NONE
++	INVERSION = AUTO
++
+ [CH33: ZDF, 3sat, KiKa / ZDFneo, ZDFinfo]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 570000000
+@@ -98,7 +110,7 @@
+ 	HIERARCHY = NONE
+ 	INVERSION = AUTO
  
--	/* This lock should be taken when booleans bellow are touched. */
-+	/* This lock should be taken when booleans below are touched. */
- 	spinlock_t audio_playing_lock;
- 	bool audio_playing;
- 	bool display_enabled;
--- 
-2.11.0
+-[CH36: Das Erste, arte, Phoenix, EinsPlus]
++[CH36: Das Erste, arte, Phoenix, One]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 594000000
+ 	BANDWIDTH_HZ = 8000000
+@@ -135,7 +147,19 @@
+ 	INVERSION = AUTO
+ 
+                                             # CH40: Das Erste, arte, Phoenix, EinsPlus
+-[CH42: Das Erste, arte, Phoenix, EinsPlus]
++[CH41: Das Erste, arte, Phoenix, One]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 634000000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_HP = 2/3
++	CODE_RATE_LP = NONE
++	MODULATION = QAM/16
++	TRANSMISSION_MODE = 8K
++	GUARD_INTERVAL = 1/4
++	HIERARCHY = NONE
++	INVERSION = AUTO
++
++[CH42: Das Erste, arte, Phoenix, One]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 642000000
+ 	BANDWIDTH_HZ = 8000000
+@@ -160,7 +184,7 @@
+ 	HIERARCHY = NONE
+ 	INVERSION = AUTO
+ 
+-[CH45: Das Erste, arte, Phoenix, EinsPlus]
++[CH45: Das Erste, arte, Phoenix, One]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 666000000
+ 	BANDWIDTH_HZ = 8000000
+@@ -198,7 +222,7 @@
+ 	INVERSION = AUTO
+ 
+                                             # CH47: Das Erste, arte, Phoenix, EinsPlus
+-[CH49: Das Erste, arte, Phoenix, EinsPlus]
++[CH49: Das Erste, arte, Phoenix, One]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 698000000
+ 	BANDWIDTH_HZ = 8000000
+@@ -223,7 +247,7 @@
+ 	INVERSION = AUTO
+ 
+                                             # CH53: ZDF, 3sat, KiKa / ZDFneo, ZDFinfo
+-[CH55: Das Erste, arte, Phoenix, EinsPlus]
++[CH55: Das Erste, arte, Phoenix, One]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 746000000
+ 	BANDWIDTH_HZ = 8000000
+@@ -235,3 +259,15 @@
+ 	HIERARCHY = NONE
+ 	INVERSION = AUTO
+ 
++[CH58: Bayerisches Fernsehen, BR-alpha, MDR, hr]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 770000000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_HP = 2/3
++	CODE_RATE_LP = NONE
++	MODULATION = QAM/16
++	TRANSMISSION_MODE = 8K
++	GUARD_INTERVAL = 1/4
++	HIERARCHY = NONE
++	INVERSION = AUTO
++
