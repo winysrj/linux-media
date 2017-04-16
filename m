@@ -1,103 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42684 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754051AbdDEQ6o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Apr 2017 12:58:44 -0400
-Subject: [PATCH 13/38] Annotate hardware config module parameters in
- drivers/media/
-From: David Howells <dhowells@redhat.com>
-To: linux-kernel@vger.kernel.org
-Cc: gnomes@lxorguk.ukuu.org.uk, gregkh@linuxfoundation.org,
-        dhowells@redhat.com, linux-security-module@vger.kernel.org,
-        mjpeg-users@lists.sourceforge.net, keyrings@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Date: Wed, 05 Apr 2017 17:58:41 +0100
-Message-ID: <149141152121.29162.4230904949695480240.stgit@warthog.procyon.org.uk>
-In-Reply-To: <149141141298.29162.5612793122429261720.stgit@warthog.procyon.org.uk>
-References: <149141141298.29162.5612793122429261720.stgit@warthog.procyon.org.uk>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:32782 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756293AbdDPRf6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 16 Apr 2017 13:35:58 -0400
+Received: by mail-wm0-f67.google.com with SMTP id o81so5886338wmb.0
+        for <linux-media@vger.kernel.org>; Sun, 16 Apr 2017 10:35:57 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: linux-media@vger.kernel.org
+Cc: guennadi.liakhovetski@intel.com, hans.verkuil@cisco.com,
+        =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 1/7] ov2640: fix init sequence alignment
+Date: Sun, 16 Apr 2017 19:35:40 +0200
+Message-Id: <20170416173546.4317-2-fschaefer.oss@googlemail.com>
+In-Reply-To: <20170416173546.4317-1-fschaefer.oss@googlemail.com>
+References: <20170416173546.4317-1-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the kernel is running in secure boot mode, we lock down the kernel to
-prevent userspace from modifying the running kernel image.  Whilst this
-includes prohibiting access to things like /dev/mem, it must also prevent
-access by means of configuring driver modules in such a way as to cause a
-device to access or modify the kernel image.
+While we are at it, remove a misleading comment (copy/paste mistake)
 
-To this end, annotate module_param* statements that refer to hardware
-configuration and indicate for future reference what type of parameter they
-specify.  The parameter parser in the core sees this information and can
-skip such parameters with an error message if the kernel is locked down.
-The module initialisation then runs as normal, but just sees whatever the
-default values for those parameters is.
-
-Note that we do still need to do the module initialisation because some
-drivers have viable defaults set in case parameters aren't specified and
-some drivers support automatic configuration (e.g. PNP or PCI) in addition
-to manually coded parameters.
-
-This patch annotates drivers in drivers/media/.
-
-Suggested-by: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
-Signed-off-by: David Howells <dhowells@redhat.com>
-cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-cc: mjpeg-users@lists.sourceforge.net
-cc: linux-media@vger.kernel.org
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
+ drivers/media/i2c/ov2640.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
- drivers/media/pci/zoran/zoran_card.c |    2 +-
- drivers/media/rc/serial_ir.c         |   10 +++++-----
- 2 files changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/pci/zoran/zoran_card.c b/drivers/media/pci/zoran/zoran_card.c
-index 5266755add63..4680f001653a 100644
---- a/drivers/media/pci/zoran/zoran_card.c
-+++ b/drivers/media/pci/zoran/zoran_card.c
-@@ -69,7 +69,7 @@ MODULE_PARM_DESC(card, "Card type");
-  */
- 
- static unsigned long vidmem;	/* default = 0 - Video memory base address */
--module_param(vidmem, ulong, 0444);
-+module_param_hw(vidmem, ulong, iomem, 0444);
- MODULE_PARM_DESC(vidmem, "Default video memory base address");
- 
- /*
-diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
-index 41b54e40176c..40d305842a9b 100644
---- a/drivers/media/rc/serial_ir.c
-+++ b/drivers/media/rc/serial_ir.c
-@@ -833,11 +833,11 @@ MODULE_LICENSE("GPL");
- module_param(type, int, 0444);
- MODULE_PARM_DESC(type, "Hardware type (0 = home-brew, 1 = IRdeo, 2 = IRdeo Remote, 3 = AnimaX, 4 = IgorPlug");
- 
--module_param(io, int, 0444);
-+module_param_hw(io, int, ioport, 0444);
- MODULE_PARM_DESC(io, "I/O address base (0x3f8 or 0x2f8)");
- 
- /* some architectures (e.g. intel xscale) have memory mapped registers */
--module_param(iommap, bool, 0444);
-+module_param_hw(iommap, bool, other, 0444);
- MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O (0 = no memory mapped io)");
- 
- /*
-@@ -845,13 +845,13 @@ MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O (0 = no memory map
-  * on 32bit word boundaries.
-  * See linux-kernel/drivers/tty/serial/8250/8250.c serial_in()/out()
-  */
--module_param(ioshift, int, 0444);
-+module_param_hw(ioshift, int, other, 0444);
- MODULE_PARM_DESC(ioshift, "shift I/O register offset (0 = no shift)");
- 
--module_param(irq, int, 0444);
-+module_param_hw(irq, int, irq, 0444);
- MODULE_PARM_DESC(irq, "Interrupt (4 or 3)");
- 
--module_param(share_irq, bool, 0444);
-+module_param_hw(share_irq, bool, other, 0444);
- MODULE_PARM_DESC(share_irq, "Share interrupts (0 = off, 1 = on)");
- 
- module_param(sense, int, 0444);
+diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
+index d55ca37dc12f..df9f6c7a929c 100644
+--- a/drivers/media/i2c/ov2640.c
++++ b/drivers/media/i2c/ov2640.c
+@@ -199,7 +199,7 @@
+ #define   COM7_ZOOM_EN         0x04 /* Enable Zoom mode */
+ #define   COM7_COLOR_BAR_TEST  0x02 /* Enable Color Bar Test Pattern */
+ #define COM8        0x13 /* Common control 8 */
+-#define   COM8_DEF             0xC0 /* Banding filter ON/OFF */
++#define   COM8_DEF             0xC0
+ #define   COM8_BNDF_EN         0x20 /* Banding filter ON/OFF */
+ #define   COM8_AGC_EN          0x04 /* AGC Auto/Manual control selection */
+ #define   COM8_AEC_EN          0x01 /* Auto/Manual Exposure control */
+@@ -306,11 +306,11 @@ static const struct regval_list ov2640_init_regs[] = {
+ 	{ 0x2e,   0xdf },
+ 	{ BANK_SEL, BANK_SEL_SENS },
+ 	{ 0x3c,   0x32 },
+-	{ CLKRC, CLKRC_DIV_SET(1) },
+-	{ COM2, COM2_OCAP_Nx_SET(3) },
+-	{ REG04, REG04_DEF | REG04_HREF_EN },
+-	{ COM8,  COM8_DEF | COM8_BNDF_EN | COM8_AGC_EN | COM8_AEC_EN },
+-	{ COM9, COM9_AGC_GAIN_8x | 0x08},
++	{ CLKRC,  CLKRC_DIV_SET(1) },
++	{ COM2,   COM2_OCAP_Nx_SET(3) },
++	{ REG04,  REG04_DEF | REG04_HREF_EN },
++	{ COM8,   COM8_DEF | COM8_BNDF_EN | COM8_AGC_EN | COM8_AEC_EN },
++	{ COM9,   COM9_AGC_GAIN_8x | 0x08},
+ 	{ 0x2c,   0x0c },
+ 	{ 0x33,   0x78 },
+ 	{ 0x3a,   0x33 },
+@@ -355,25 +355,25 @@ static const struct regval_list ov2640_init_regs[] = {
+ 	{ 0x71,   0x94 },
+ 	{ 0x73,   0xc1 },
+ 	{ 0x3d,   0x34 },
+-	{ COM7, COM7_RES_UXGA | COM7_ZOOM_EN },
++	{ COM7,   COM7_RES_UXGA | COM7_ZOOM_EN },
+ 	{ 0x5a,   0x57 },
+ 	{ BD50,   0xbb },
+ 	{ BD60,   0x9c },
+-	{ BANK_SEL, BANK_SEL_DSP },
++	{ BANK_SEL,  BANK_SEL_DSP },
+ 	{ 0xe5,   0x7f },
+-	{ MC_BIST, MC_BIST_RESET | MC_BIST_BOOT_ROM_SEL },
++	{ MC_BIST,  MC_BIST_RESET | MC_BIST_BOOT_ROM_SEL },
+ 	{ 0x41,   0x24 },
+-	{ RESET, RESET_JPEG | RESET_DVP },
++	{ RESET,  RESET_JPEG | RESET_DVP },
+ 	{ 0x76,   0xff },
+ 	{ 0x33,   0xa0 },
+ 	{ 0x42,   0x20 },
+ 	{ 0x43,   0x18 },
+ 	{ 0x4c,   0x00 },
+-	{ CTRL3, CTRL3_BPC_EN | CTRL3_WPC_EN | 0x10 },
++	{ CTRL3,  CTRL3_BPC_EN | CTRL3_WPC_EN | 0x10 },
+ 	{ 0x88,   0x3f },
+ 	{ 0xd7,   0x03 },
+ 	{ 0xd9,   0x10 },
+-	{ R_DVP_SP , R_DVP_SP_AUTO_MODE | 0x2 },
++	{ R_DVP_SP,  R_DVP_SP_AUTO_MODE | 0x2 },
+ 	{ 0xc8,   0x08 },
+ 	{ 0xc9,   0x80 },
+ 	{ BPADDR, 0x00 },
+-- 
+2.12.2
