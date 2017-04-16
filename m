@@ -1,155 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-ch2-06v.sys.comcast.net ([69.252.207.38]:43724 "EHLO
-        resqmta-ch2-06v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1426098AbdD2QFy (ORCPT
+Received: from mail-lf0-f47.google.com ([209.85.215.47]:33005 "EHLO
+        mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756567AbdDPRmX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Apr 2017 12:05:54 -0400
-From: A Sun <as1033x@comcast.net>
-Subject: [PATCH 1/1] [media] mceusb: coding style & comments update for -EPIPE
- error patches
-To: Sean Young <sean@mess.org>
-References: <58EEC1CB.7030806@comcast.net> <58EF3197.9060707@comcast.net>
- <20170427205424.GA18688@gofer.mess.org>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Message-ID: <5904B9C2.4000404@comcast.net>
-Date: Sat, 29 Apr 2017 12:05:22 -0400
+        Sun, 16 Apr 2017 13:42:23 -0400
+Received: by mail-lf0-f47.google.com with SMTP id 88so10594404lfr.0
+        for <linux-media@vger.kernel.org>; Sun, 16 Apr 2017 10:42:23 -0700 (PDT)
+Date: Sun, 16 Apr 2017 19:42:20 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Patrick Doyle <wpdster@gmail.com>, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: Looking for device driver advice
+Message-ID: <20170416174220.GC28868@bigcity.dyn.berto.se>
+References: <CAF_dkJAwwj0mpOztkTNTrDC1YQkgh=HvZGh=tv3SYsuvUzTb+g@mail.gmail.com>
+ <2ea495f2-022d-a9ee-11a0-28fbcba5db57@xs4all.nl>
+ <20170416105121.GC7456@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <20170427205424.GA18688@gofer.mess.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170416105121.GC7456@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
-Cosmetic updates to recent code revisions for better compliance with
-https://www.kernel.org/doc/html/latest/process/coding-style.html
+On 2017-04-16 13:51:21 +0300, Sakari Ailus wrote:
+> Hi Hans and Patrick,
+> 
+> On Wed, Apr 12, 2017 at 01:37:33PM +0200, Hans Verkuil wrote:
+> > Hi Patrick,
+> > 
+> > On 04/10/2017 10:13 PM, Patrick Doyle wrote:
+> > > I am looking for advice regarding the construction of a device driver
+> > > for a MIPI CSI2 imager (a Sony IMX241) that is connected to a
+> > > MIPI<->Parallel converter (Toshiba TC358748) wired into a parallel
+> > > interface on a Soc (a Microchip/Atmel SAMAD2x device.)
+> > > 
+> > > The Sony imager is controlled and configured via I2C, as is the
+> > > Toshiba converter.  I could write a single driver that configures both
+> > > devices and treats them as a single device that just happens to use 2
+> > > i2c addresses.  I could use the i2c_new_dummy() API to construct the
+> > > device abstraction for the second physical device at probe time for
+> > > the first physical device.
+> > > 
+> > > Or I could do something smarter (or at least different), specifying
+> > > the two devices independently via my device tree file, perhaps linking
+> > > them together via "port" nodes.  Currently, I use the "port" node
+> > > concept to link an i2c imager to the Image System Controller (isc)
+> > > node in the SAMA5 device.  Perhaps that generalizes to a chain of
+> > > nodes linked together... I don't know.
+> > 
+> > That would be the right solution. Unfortunately the atmel-isc.c driver
+> > (at least the version in the mainline kernel) only supports a single
+> > subdev device. At least, as far as I can see.
 
-This patch depends on an earlier (marked accepted) patch:
-  [PATCH v2] [media] mceusb: TX -EPIPE (urb status = -32) lockup fix
+I also think that two subdevices implemented in two separate drivers is 
+the way to go. As it really is two different pieces of hardware,
+right?
 
-Signed-off-by: A Sun <as1033x@comcast.net>
----
- drivers/media/rc/mceusb.c | 39 ++++++++++++++++++++-------------------
- 1 file changed, 20 insertions(+), 19 deletions(-)
+> 
+> There have been multiple cases recently where the media pipeline can have
+> sub-devices controlled by more than two drivers. We need to have a common
+> approach on how we do handle such cases.
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index af46860..66d0be5 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -457,8 +457,11 @@ struct mceusb_dev {
- 	u8 txports_cabled;	/* bitmask of transmitters with cable */
- 	u8 rxports_active;	/* bitmask of active receive sensors */
- 
--	/* async error handler mceusb_deferred_kevent() support
--	 * via workqueue kworker (previously keventd) threads */
-+	/*
-+	 * support for async error handler mceusb_deferred_kevent()
-+	 * where usb_clear_halt(), usb_reset_configuration(),
-+	 * usb_reset_device(), etc. must be done in process context
-+	 */
- 	struct work_struct kevent;
- 	unsigned long kevent_flags;
- #		define EVENT_TX_HALT	0
-@@ -705,11 +708,10 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
- static void mceusb_defer_kevent(struct mceusb_dev *ir, int kevent)
- {
- 	set_bit(kevent, &ir->kevent_flags);
--	if (!schedule_work(&ir->kevent)) {
-+	if (!schedule_work(&ir->kevent))
- 		dev_err(ir->dev, "kevent %d may have been dropped", kevent);
--	} else {
-+	else
- 		dev_dbg(ir->dev, "kevent %d scheduled", kevent);
--	}
- }
- 
- static void mce_async_callback(struct urb *urb)
-@@ -775,14 +777,13 @@ static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
- 	}
- 
- 	/* outbound data */
--	if (usb_endpoint_xfer_int(ir->usb_ep_out)) {
-+	if (usb_endpoint_xfer_int(ir->usb_ep_out))
- 		usb_fill_int_urb(async_urb, ir->usbdev, ir->pipe_out,
- 				 async_buf, size, mce_async_callback, ir,
- 				 ir->usb_ep_out->bInterval);
--	} else {
-+	else
- 		usb_fill_bulk_urb(async_urb, ir->usbdev, ir->pipe_out,
- 				 async_buf, size, mce_async_callback, ir);
--	}
- 	memcpy(async_buf, data, size);
- 
- 	dev_dbg(dev, "send request called (size=%#x)", size);
-@@ -1225,13 +1226,12 @@ static void mceusb_deferred_kevent(struct work_struct *work)
- 		}
- 		clear_bit(EVENT_RX_HALT, &ir->kevent_flags);
- 		status = usb_submit_urb(ir->urb_in, GFP_KERNEL);
--		if (status < 0) {
-+		if (status < 0)
- 			dev_err(ir->dev, "rx unhalt submit urb error %d",
- 				status);
--			goto done_rx_halt;
--		}
- 	}
- done_rx_halt:
-+
- 	if (test_bit(EVENT_TX_HALT, &ir->kevent_flags)) {
- 		status = usb_clear_halt(ir->usbdev, ir->pipe_out);
- 		if (status < 0) {
-@@ -1242,6 +1242,7 @@ static void mceusb_deferred_kevent(struct work_struct *work)
- 		clear_bit(EVENT_TX_HALT, &ir->kevent_flags);
- 	}
- done_tx_halt:
-+
- 	return;
- }
- 
-@@ -1397,13 +1398,12 @@ static int mceusb_dev_probe(struct usb_interface *intf,
- 
- 	/* Saving usb interface data for use by the transmitter routine */
- 	ir->usb_ep_out = ep_out;
--	if (usb_endpoint_xfer_int(ir->usb_ep_out)) {
-+	if (usb_endpoint_xfer_int(ir->usb_ep_out))
- 		ir->pipe_out = usb_sndintpipe(ir->usbdev,
- 					ir->usb_ep_out->bEndpointAddress);
--	} else {
-+	else
- 		ir->pipe_out = usb_sndbulkpipe(ir->usbdev,
- 					ir->usb_ep_out->bEndpointAddress);
--	}
- 
- 	if (dev->descriptor.iManufacturer
- 	    && usb_string(dev, dev->descriptor.iManufacturer,
-@@ -1415,8 +1415,10 @@ static int mceusb_dev_probe(struct usb_interface *intf,
- 		snprintf(name + strlen(name), sizeof(name) - strlen(name),
- 			 " %s", buf);
- 
--	/* initialize async USB error handler before registering
--	 * or activating any mceusb RX and TX functions */
-+	/*
-+	 * async USB error handler must initialize before registering
-+	 * or activating any mceusb RX or TX functions
-+	 */
- 	INIT_WORK(&ir->kevent, mceusb_deferred_kevent);
- 
- 	ir->rc = mceusb_init_rc_dev(ir);
-@@ -1424,13 +1426,12 @@ static int mceusb_dev_probe(struct usb_interface *intf,
- 		goto rc_dev_fail;
- 
- 	/* wire up inbound data handler */
--	if (usb_endpoint_xfer_int(ep_in)) {
-+	if (usb_endpoint_xfer_int(ep_in))
- 		usb_fill_int_urb(ir->urb_in, dev, pipe, ir->buf_in, maxp,
- 				mceusb_dev_recv, ir, ep_in->bInterval);
--	} else {
-+	else
- 		usb_fill_bulk_urb(ir->urb_in, dev, pipe, ir->buf_in, maxp,
- 				mceusb_dev_recv, ir);
--	}
- 	ir->urb_in->transfer_dma = ir->dma_in;
- 	ir->urb_in->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
- 
+I agree that a common approach to the problem of when one subdevices can 
+be controlled by more then one driver is needed. In this case however I 
+think something else also needs to be defined. If I understand Hans and 
+Patrick the issues is not that the hardware can be controlled by more 
+then one driver. Instead it is that the atmel-isc.c driver only probes 
+DT for one subdevice, so implementing it as more then one subdevices is 
+problematic. If I misunderstand the problem please let me know.
+
+If I understand the problem correctly it could be solved by modifying 
+the atmel-isc.c driver to look for more then one subdevice in DT. But a 
+common approach for drivers to find and bind arbitrary number of 
+subdevices would be better, finding an approach that also solves the 
+case where one subdevice can be used by more then one driver would be 
+better still. If this common case also could cover the case where one DT 
+node represents a driver which registers more then one subdevice which 
+then can be used by different other drivers I would be very happy and a 
+lot of my headaches would go away :-)
+
+> 
+> For instance, how is the entire DT graph parsed or when and how are the
+> device nodes created?
+> 
+> Parsing the graph should probably be initiated by the master driver but
+> instead implemented in the framework as it's a non-trivial task and common
+> to all such drivers. Another equestion is how do we best support this also
+> on existing drivers.
+
+I agree that the master device probably should initiate the DT graph 
+parsing and if possible there should be as much support as possible in 
+the framework. One extra consideration here is that there might be more 
+then one master device which uses the same subdevices. I have such cases 
+today where different instances of the same driver use the same set of 
+subdevices.
+
+> 
+> I actually have a small documentation patch on handling streaming control in
+> such cases as there are choices now to be made not thought about when the
+> sub-device ops were originally addeed. I'll cc you to that.
+> 
+> We do have a similar case currently in i.MX6, Nokia N9 (OMAP3) and on some
+> Renesas hardware unless I'm mistaken.
+
+Yes there are similar use-cases with Renesas Gen3, adding Kieran Bingham 
+to CC as he hopefully will look into some of them.
+
+> 
+> Cc Niklas.
+
+Thanks !
+
+> 
+> -- 
+> Kind regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+
 -- 
-2.1.4
+Regards,
+Niklas Söderlund
