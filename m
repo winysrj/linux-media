@@ -1,153 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa4.microchip.iphmx.com ([68.232.154.123]:2808 "EHLO
-        esa4.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752604AbdDDOAP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 10:00:15 -0400
-Subject: Re: [PATCHv6 00/14] atmel-isi/ov7670/ov2640: convert to standalone
- drivers
-To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>
-References: <20170328082347.11159-1-hverkuil@xs4all.nl>
-CC: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        <devicetree@vger.kernel.org>,
-        "Wu, Songjun" <Songjun.Wu@microchip.com>
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
-Message-ID: <58432e90-e5db-9825-8b2d-7f08ca6d716b@atmel.com>
-Date: Tue, 4 Apr 2017 16:00:23 +0200
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38954 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932249AbdDPLKj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 16 Apr 2017 07:10:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Greg KH <greg@kroah.com>
+Cc: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: uvcvideo logging kernel warnings on device disconnect
+Date: Sun, 16 Apr 2017 14:11:31 +0300
+Message-ID: <8113252.R6OEHK1FMB@avalon>
+In-Reply-To: <20161221095954.GG27395@kroah.com>
+References: <ab3241e7-c525-d855-ecb6-ba04dbdb030f@destevenson.freeserve.co.uk> <01726e81-bbc2-b9a0-b2f0-045e3208f7b2@destevenson.freeserve.co.uk> <20161221095954.GG27395@kroah.com>
 MIME-Version: 1.0
-In-Reply-To: <20170328082347.11159-1-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 28/03/2017 à 10:23, Hans Verkuil a écrit :
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This patch series converts the soc-camera atmel-isi to a standalone V4L2
-> driver.
-> 
-> The same is done for the ov7670 and ov2640 sensor drivers: the ov7670 was
-> used to test the atmel-isi driver. The ov2640 is needed because the em28xx
-> driver has a soc_camera include dependency. Both ov7670 and ov2640 sensors
-> have been tested with the atmel-isi driver.
-> 
-> The first 5 patches improve the ov7670 sensor driver, mostly adding modern
-> features such as DT support.
-> 
-> The next three convert the atmel-isi and move it out of soc_camera.
-> 
-> The following 6 patches convert ov2640 and drop the soc_camera dependency
-> in em28xx. I have tested that this works with my 'SpeedLink Vicious And
-> Divine Laplace webcam'.
-> 
-> Tested with my sama5d3-Xplained board, the ov2640 sensor and two ov7670
-> sensors: one with and one without reset/pwdn pins. Also tested with my
-> em28xx-based webcam.
-> 
-> I'd like to get this in for 4.12. Fingers crossed.
-> 
-> Regards,
-> 
->         Hans
-> 
-> Changes since v5:
-> - Dropped the last two dts patches as these were for demonstration purposes
->   only.
-> - Simplified isi_graph_init() return handling as suggested by Sakari.
-> - Simplified atmel-isi format handling as suggested by Guennadi. Thanks for
->   the suggestion, this improves the code nicely!
-> - Improved RGB handling in atmel-isi, allowing for all YUV ordering and not
->   just YUYV. Tested with YUYV and UYVY (the only two I can test with my
->   hardware).
-> - Improved commit message of the "atmel-isi: document device tree bindings"
->   patch and dropped unnecessary properties from the example as per Rob's
->   comments.
-> 
-> Changes since v4:
-> - the ov2640 colorspace fixes were inexplicably part of an atmel-isi patch.
->   Split it off as a separate patch.
-> - add V4L2_SUBDEV_FL_HAS_DEVNODE to ov2640.
-> - drop #if defined(CONFIG_MEDIA_CONTROLLER) guard around media_entity_cleanup
->   in ov2640.
-> 
-> Changes since v3:
-> - ov2640/ov7670: call clk_disable_unprepare where needed. I assumed this was
->   done by the devm_clk_get cleanup, but that wasn't the case.
-> - bindings: be even more explicit about which properties are mandatory.
-> - ov2640/ov7670: drop unused bus-width from the dts binding examples and from
->   the actual dts patches.
-> 
-> Changes since v2:
-> - Incorporated Sakari's and Rob's device tree bindings comments.
-> - ov2640: dropped the reset/power changes. These actually broke the em28xx
->   and there was really nothing wrong with it.
-> - merged the "ov2640: allow use inside em28xx" into patches 10 and 11.
->   It really shouldn't have been a separate patch in the first place.
-> - rebased on top of 4.11-rc1.
-> 
-> Changes since v1:
-> 
-> - Dropped MC support from atmel-isi and ov7670: not needed to make this
->   work. Only for the ov2640 was it kept since the em28xx driver requires it.
-> - Use devm_clk_get instead of clk_get.
-> - The ov7670 lower limit of the clock speed is 10 MHz instead of 12. Adjust
->   accordingly.
-> 
-> 
-> Hans Verkuil (14):
->   ov7670: document device tree bindings
->   ov7670: call v4l2_async_register_subdev
->   ov7670: fix g/s_parm
->   ov7670: get xclk
->   ov7670: add devicetree support
->   atmel-isi: update device tree bindings documentation
->   atmel-isi: remove dependency of the soc-camera framework
->   atmel-isi: move out of soc_camera to atmel
->   ov2640: fix colorspace handling
->   ov2640: update bindings
->   ov2640: convert from soc-camera to a standard subdev sensor driver.
->   ov2640: use standard clk and enable it.
->   ov2640: add MC support
->   em28xx: drop last soc_camera link
+Hi Greg,
 
-For the record, here is my test tag:
-Tested-by: Nicolas Ferre <nicolas.ferre@microchip.com>
-
-On a Microchip/Atmel SAMA5D4-EK with OV2640 and the per-existing OV7740.
-Thanks a lot Hans for this valuable work!
-
-Best regards,
-
-
->  .../devicetree/bindings/media/atmel-isi.txt        |   91 +-
->  .../devicetree/bindings/media/i2c/ov2640.txt       |   23 +-
->  .../devicetree/bindings/media/i2c/ov7670.txt       |   43 +
->  MAINTAINERS                                        |    1 +
->  drivers/media/i2c/Kconfig                          |   11 +
->  drivers/media/i2c/Makefile                         |    1 +
->  drivers/media/i2c/{soc_camera => }/ov2640.c        |  153 +--
->  drivers/media/i2c/ov7670.c                         |   75 +-
->  drivers/media/i2c/soc_camera/Kconfig               |    6 -
->  drivers/media/i2c/soc_camera/Makefile              |    1 -
->  drivers/media/platform/Makefile                    |    1 +
->  drivers/media/platform/atmel/Kconfig               |   11 +-
->  drivers/media/platform/atmel/Makefile              |    1 +
->  drivers/media/platform/atmel/atmel-isi.c           | 1368 ++++++++++++++++++++
->  .../platform/{soc_camera => atmel}/atmel-isi.h     |    0
->  drivers/media/platform/soc_camera/Kconfig          |   11 -
->  drivers/media/platform/soc_camera/Makefile         |    1 -
->  drivers/media/platform/soc_camera/atmel-isi.c      | 1167 -----------------
->  drivers/media/usb/em28xx/em28xx-camera.c           |    9 -
->  19 files changed, 1614 insertions(+), 1360 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
->  rename drivers/media/i2c/{soc_camera => }/ov2640.c (92%)
->  create mode 100644 drivers/media/platform/atmel/atmel-isi.c
->  rename drivers/media/platform/{soc_camera => atmel}/atmel-isi.h (100%)
->  delete mode 100644 drivers/media/platform/soc_camera/atmel-isi.c
+On Wednesday 21 Dec 2016 10:59:54 Greg KH wrote:
+> On Tue, Dec 20, 2016 at 11:19:23AM +0000, Dave Stevenson wrote:
+> > On 09/12/16 09:43, Greg KH wrote:
+> >> On Fri, Dec 09, 2016 at 11:14:41AM +0200, Laurent Pinchart wrote:
+> >>> On Friday 09 Dec 2016 10:11:13 Greg KH wrote:
+> >>>> On Fri, Dec 09, 2016 at 10:59:24AM +0200, Laurent Pinchart wrote:
+> >>>>> On Friday 09 Dec 2016 08:25:52 Greg KH wrote:
+> >>>>>> On Fri, Dec 09, 2016 at 01:09:21AM +0200, Laurent Pinchart wrote:
+> >>>>>>> On Thursday 08 Dec 2016 12:31:55 Dave Stevenson wrote:
+> >>>>>>>> Hi All.
+> >>>>>>>> 
+> >>>>>>>> I'm working with a USB webcam which has been seen to
+> >>>>>>>> spontaneously disconnect when in use. That's a separate
+> >>>>>>>> issue, but when it does it throws a load of warnings into
+> >>>>>>>> the kernel log if there is a file handle on the device open
+> >>>>>>>> at the time, even if not streaming.
+> >>>>>>>> 
+> >>>>>>>> I've reproduced this with a generic Logitech C270 webcam on:
+> >>>>>>>> - Ubuntu 16.04 (kernel 4.4.0-51) vanilla, and with the
+> >>>>>>>> latest media tree from linuxtv.org
+> >>>>>>>> - Ubuntu 14.04 (kernel 4.4.0-42) vanilla
+> >>>>>>>> - an old 3.10.x tree on an embedded device.
+> >>>>>>>> 
+> >>>>>>>> To reproduce:
+> >>>>>>>> - connect USB webcam.
+> >>>>>>>> - run a simple app that opens /dev/videoX, sleeps for a
+> >>>>>>>> while, and then closes the handle.
+> >>>>>>>> - disconnect the webcam whilst the app is running.
+> >>>>>>>> - read kernel logs - observe warnings. We get the disconnect
+> >>>>>>>> logged as it occurs, but the warnings all occur when the
+> >>>>>>>> file descriptor is closed. (A copy of the logs from my
+> >>>>>>>> Ubuntu 14.04 machine are below).
+> >>>>>>>> 
+> >>>>>>>> I can fully appreciate that the open file descriptor is
+> >>>>>>>> holding references to a now invalid device, but is there a
+> >>>>>>>> way to avoid them? Or do we really not care and have to put
+> >>>>>>>> up with the log noise when doing such silly things?
+> >>>>>>> 
+> >>>>>>> This is a known problem, caused by the driver core trying to
+> >>>>>>> remove the same sysfs attributes group twice.
+> >>>>>> 
+> >>>>>> Ick, not good.
+> >>>>>> 
+> >>>>>>> The group is first removed when the USB device is
+> >>>>>>> disconnected. The input device and media device created by the
+> >>>>>>> uvcvideo driver are children of the USB interface device,
+> >>>>>>> which is deleted from the system when the camera is unplugged.
+> >>>>>>> Due to the parent-child relationship, all sysfs attribute
+> >>>>>>> groups of the children are removed.
+> >>>>>> 
+> >>>>>> Wait, why is the USB device being removed from sysfs at this
+> >>>>>> point, didn't the input and media subsystems grab a reference to
+> >>>>>> it so that it does not disappear just yet?
+> >>>>> 
+> >>>>> References are taken in uvc_prove():
+> >>>>>         dev->udev = usb_get_dev(udev);
+> >>>>>         dev->intf = usb_get_intf(intf);
+> >>>> 
+> >>>> s/uvc_prove/uvc_probe/ ?  :)
+> >>> 
+> >>> Oops :-)
+> >>> 
+> >>>>> and released in uvc_delete(), called when the last video device
+> >>>>> node is closed. This prevents the device from being released
+> >>>>> (freed), but device_del() is synchronous to device unplug as far
+> >>>>> as I understand.
+> >>>> 
+> >>>> Ok, good, that means the UVC driver is doing the right thing here.
+> >>>> 
+> >>>> But the sysfs files should only be attempted to be removed by the
+> >>>> driver core once, when the device is removed from sysfs, not twice,
+> >>>> which is really odd.
+> >>>> 
+> >>>> Is there a copy of the "simple app that grabs the device node"
+> >>>> anywhere so that I can test it out here with my USB camera device to
+> >>>> try to track down where the problem is?
+> >>> 
+> >>> Sure. The easiest way is to grab http://git.ideasonboard.org/yavta.git
+> >>> and run
+> >>> 
+> >>> yavta -c /dev/video0
+> >>> 
+> >>> (your mileage may vary if you have other video devices)
+> >> 
+> >> I'll point it at the correct device, /dev/video0 is built into this
+> >> laptop and can't be physically removed :)
+> >> 
+> >>> While the application is running, unplug the webcam, and then
+> >>> terminate the application with ctrl-C.
+> >> 
+> >> Ok, will try this out this afternoon and let you know how it goes.
+> > 
+> > I hate to pester, but wondered if you had found anything obvious.
+> > I really do appreciate you taking the time to look.
 > 
+> Sorry, I haven't had the chance and now will not be able to until
+> January....
 
+Did you mean January 2017 or 2018 ? :-)
 
 -- 
-Nicolas Ferre
+Regards,
+
+Laurent Pinchart
