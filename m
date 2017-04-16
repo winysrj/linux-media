@@ -1,44 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35492 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754622AbdDGJ5Q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Apr 2017 05:57:16 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 8/8] v4l: Remove V4L2 OF framework in favour of V4L2 fwnode framework
-Date: Fri, 07 Apr 2017 12:58:01 +0300
-Message-ID: <2097657.y1FbEyaKry@avalon>
-In-Reply-To: <1491484330-12040-9-git-send-email-sakari.ailus@linux.intel.com>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com> <1491484330-12040-9-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from hermes.aosc.io ([199.195.250.187]:49374 "EHLO hermes.aosc.io"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752264AbdDPHAI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 16 Apr 2017 03:00:08 -0400
+From: Icenowy Zheng <icenowy@aosc.io>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Lubomir Rintel <lkundrak@v3.sk>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Icenowy Zheng <icenowy@aosc.io>
+Subject: [PATCH RESEND2] [media] usbtv: add a new usbid
+Date: Sun, 16 Apr 2017 14:51:16 +0800
+Message-Id: <20170416065116.61662-1-icenowy@aosc.io>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+A new usbid of UTV007 is found in a newly bought device.
 
-Thank you for the patch.
+The usbid is 1f71:3301.
 
-On Thursday 06 Apr 2017 16:12:10 Sakari Ailus wrote:
-> All drivers have been converted from V4L2 OF to V4L2 fwnode. The V4L2 OF
-> framework is now unused. Remove it.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+The ID on the chip is:
+UTV007
+A89029.1
+1520L18K1
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Both video and audio is tested with the modified usbtv driver.
 
-> ---
->  drivers/media/v4l2-core/Makefile  |   3 -
->  drivers/media/v4l2-core/v4l2-of.c | 327 -----------------------------------
->  include/media/v4l2-of.h           | 128 ---------------
->  3 files changed, 458 deletions(-)
->  delete mode 100644 drivers/media/v4l2-core/v4l2-of.c
->  delete mode 100644 include/media/v4l2-of.h
+Signed-off-by: Icenowy Zheng <icenowy@aosc.io>
+Acked-by: Lubomir Rintel <lkundrak@v3.sk>
+---
 
+Added Lubomir's ACK in the second time of resend.
+
+The old patch may be lost because the old aosc.xyz mail is using Yandex's
+service -- which is rejected by many mail providers. As part of AOSC mailing
+system refactor, we got a new mailing system, so that the patch is now
+resent.
+
+ drivers/media/usb/usbtv/usbtv-core.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/usb/usbtv/usbtv-core.c b/drivers/media/usb/usbtv/usbtv-core.c
+index ceb953be0770..cae637845876 100644
+--- a/drivers/media/usb/usbtv/usbtv-core.c
++++ b/drivers/media/usb/usbtv/usbtv-core.c
+@@ -144,6 +144,7 @@ static void usbtv_disconnect(struct usb_interface *intf)
+ 
+ static struct usb_device_id usbtv_id_table[] = {
+ 	{ USB_DEVICE(0x1b71, 0x3002) },
++	{ USB_DEVICE(0x1f71, 0x3301) },
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(usb, usbtv_id_table);
 -- 
-Regards,
-
-Laurent Pinchart
+2.12.2
