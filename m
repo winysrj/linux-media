@@ -1,49 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60018 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751397AbdDHKie (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 8 Apr 2017 06:38:34 -0400
-Date: Sat, 8 Apr 2017 12:38:21 +0200
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Laura Abbott <labbott@redhat.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        devel@driverdev.osuosl.org, romlem@google.com,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-        Mark Brown <broonie@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCHv3 00/22] Ion clean up in preparation in moving out of
- staging
-Message-ID: <20170408103821.GA12084@kroah.com>
-References: <1491245884-15852-1-git-send-email-labbott@redhat.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34418 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1756497AbdDPKwC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 16 Apr 2017 06:52:02 -0400
+Date: Sun, 16 Apr 2017 13:51:21 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Patrick Doyle <wpdster@gmail.com>, linux-media@vger.kernel.org,
+        niklas.soderlund@ragnatech.se
+Subject: Re: Looking for device driver advice
+Message-ID: <20170416105121.GC7456@valkosipuli.retiisi.org.uk>
+References: <CAF_dkJAwwj0mpOztkTNTrDC1YQkgh=HvZGh=tv3SYsuvUzTb+g@mail.gmail.com>
+ <2ea495f2-022d-a9ee-11a0-28fbcba5db57@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1491245884-15852-1-git-send-email-labbott@redhat.com>
+In-Reply-To: <2ea495f2-022d-a9ee-11a0-28fbcba5db57@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 03, 2017 at 11:57:42AM -0700, Laura Abbott wrote:
-> Hi,
+Hi Hans and Patrick,
+
+On Wed, Apr 12, 2017 at 01:37:33PM +0200, Hans Verkuil wrote:
+> Hi Patrick,
 > 
-> This is v3 of the series to do some serious Ion cleanup in preparation for
-> moving out of staging. I didn't hear much on v2 so I'm going to assume
-> people are okay with the series as is. I know there were still some open
-> questions about moving away from /dev/ion but in the interest of small
-> steps I'd like to go ahead and merge this series assuming there are no more
-> major objections. More work can happen on top of this.
+> On 04/10/2017 10:13 PM, Patrick Doyle wrote:
+> > I am looking for advice regarding the construction of a device driver
+> > for a MIPI CSI2 imager (a Sony IMX241) that is connected to a
+> > MIPI<->Parallel converter (Toshiba TC358748) wired into a parallel
+> > interface on a Soc (a Microchip/Atmel SAMAD2x device.)
+> > 
+> > The Sony imager is controlled and configured via I2C, as is the
+> > Toshiba converter.  I could write a single driver that configures both
+> > devices and treats them as a single device that just happens to use 2
+> > i2c addresses.  I could use the i2c_new_dummy() API to construct the
+> > device abstraction for the second physical device at probe time for
+> > the first physical device.
+> > 
+> > Or I could do something smarter (or at least different), specifying
+> > the two devices independently via my device tree file, perhaps linking
+> > them together via "port" nodes.  Currently, I use the "port" node
+> > concept to link an i2c imager to the Image System Controller (isc)
+> > node in the SAMA5 device.  Perhaps that generalizes to a chain of
+> > nodes linked together... I don't know.
+> 
+> That would be the right solution. Unfortunately the atmel-isc.c driver
+> (at least the version in the mainline kernel) only supports a single
+> subdev device. At least, as far as I can see.
 
-I've applied patches 3-11 as those were independant of the CMA changes.
-I'd like to take the rest, including the CMA changes, but I need an ack
-from someone dealing with the -mm tree before I can do that.
+There have been multiple cases recently where the media pipeline can have
+sub-devices controlled by more than two drivers. We need to have a common
+approach on how we do handle such cases.
 
-Or, if they just keep ignoring it, I guess I can take them :)
+For instance, how is the entire DT graph parsed or when and how are the
+device nodes created?
 
-thanks,
+Parsing the graph should probably be initiated by the master driver but
+instead implemented in the framework as it's a non-trivial task and common
+to all such drivers. Another equestion is how do we best support this also
+on existing drivers.
 
-greg k-h
+I actually have a small documentation patch on handling streaming control in
+such cases as there are choices now to be made not thought about when the
+sub-device ops were originally addeed. I'll cc you to that.
+
+We do have a similar case currently in i.MX6, Nokia N9 (OMAP3) and on some
+Renesas hardware unless I'm mistaken.
+
+Cc Niklas.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
