@@ -1,127 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:37769 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750783AbdDBD7r (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35179 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751854AbdDQKWn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 1 Apr 2017 23:59:47 -0400
-Message-ID: <5339a0be9278ce2778a6cdf84c766421@smtp-cloud6.xs4all.net>
-Date: Sun, 02 Apr 2017 05:59:45 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Mon, 17 Apr 2017 06:22:43 -0400
+From: Vincent Legoll <vincent.legoll@gmail.com>
+To: linux-kernel@vger.kernel.org, sumit.semwal@linaro.org,
+        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
+        seanpaul@chromium.org, airlied@linux.ie, robdclark@gmail.com,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, linux-arm-msm@vger.kernel.org,
+        freedreno@lists.freedesktop.org
+Cc: Vincent Legoll <vincent.legoll@gmail.com>
+Subject: [PATCH] Make DMABUF a menuconfig to ease disabling it all
+Date: Mon, 17 Apr 2017 12:22:21 +0200
+Message-Id: <20170417102221.5096-1-vincent.legoll@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+No need to get into the submenu to disable all DMABUF-related config entries
 
-Results of the daily build of media_tree:
+Make the selecters also select the new DMABUF menuconfig
 
-date:			Sun Apr  2 05:00:15 CEST 2017
-media-tree git hash:	c3d4fb0fb41f4b5eafeee51173c14e50be12f839
-media_build git hash:	bc4c2a205c087c8deff3cd14ed663c4767dd2016
-v4l-utils git hash:	984caeac9a41f8d4f636b933dfba4f29c5257f96
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Signed-off-by: Vincent Legoll <vincent.legoll@gmail.com>
+---
+ drivers/dma-buf/Kconfig     | 7 ++++---
+ drivers/gpu/drm/Kconfig     | 1 +
+ drivers/gpu/drm/msm/Kconfig | 1 +
+ 3 files changed, 6 insertions(+), 3 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/dma-buf/Kconfig b/drivers/dma-buf/Kconfig
+index ed3b785..ad5075f 100644
+--- a/drivers/dma-buf/Kconfig
++++ b/drivers/dma-buf/Kconfig
+@@ -1,8 +1,10 @@
+-menu "DMABUF options"
++menuconfig DMABUF
++	bool "DMABUF options"
+ 
+ config SYNC_FILE
+ 	bool "Explicit Synchronization Framework"
+ 	default n
++	depends on DMABUF
+ 	select ANON_INODES
+ 	select DMA_SHARED_BUFFER
+ 	---help---
+@@ -20,6 +22,7 @@ config SYNC_FILE
+ config SW_SYNC
+ 	bool "Sync File Validation Framework"
+ 	default n
++	depends on DMABUF
+ 	depends on SYNC_FILE
+ 	depends on DEBUG_FS
+ 	---help---
+@@ -29,5 +32,3 @@ config SW_SYNC
+ 
+ 	  WARNING: improper use of this can result in deadlocking kernel
+ 	  drivers from userspace. Intended for test and debug only.
+-
+-endmenu
+diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+index 88e01e08e..c9c21c8 100644
+--- a/drivers/gpu/drm/Kconfig
++++ b/drivers/gpu/drm/Kconfig
+@@ -12,6 +12,7 @@ menuconfig DRM
+ 	select I2C
+ 	select I2C_ALGOBIT
+ 	select DMA_SHARED_BUFFER
++	select DMABUF
+ 	select SYNC_FILE
+ 	help
+ 	  Kernel-level support for the Direct Rendering Infrastructure (DRI)
+diff --git a/drivers/gpu/drm/msm/Kconfig b/drivers/gpu/drm/msm/Kconfig
+index 5b8e23d..fdc621b 100644
+--- a/drivers/gpu/drm/msm/Kconfig
++++ b/drivers/gpu/drm/msm/Kconfig
+@@ -12,6 +12,7 @@ config DRM_MSM
+ 	select TMPFS
+ 	select QCOM_SCM
+ 	select SND_SOC_HDMI_CODEC if SND_SOC
++	select DMABUF
+ 	select SYNC_FILE
+ 	default y
+ 	help
+-- 
+2.9.3
