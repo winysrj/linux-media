@@ -1,43 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43142 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752971AbdDGKpM (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45863 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751522AbdDQM4g (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Apr 2017 06:45:12 -0400
-Date: Fri, 7 Apr 2017 13:45:09 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 3/8] v4l: async: Add fwnode match support
-Message-ID: <20170407104508.GF4192@valkosipuli.retiisi.org.uk>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
- <1491484330-12040-4-git-send-email-sakari.ailus@linux.intel.com>
- <2374089.j4OXu9zDtc@avalon>
+        Mon, 17 Apr 2017 08:56:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Daniel Axtens <dja@axtens.net>
+Cc: Greg KH <greg@kroah.com>,
+        Dave Stevenson <linux-media@destevenson.freeserve.co.uk>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: uvcvideo logging kernel warnings on device disconnect
+Date: Mon, 17 Apr 2017 15:57:35 +0300
+Message-ID: <1742096.L6mokpMOAb@avalon>
+In-Reply-To: <87r30rv2ay.fsf@possimpible.ozlabs.ibm.com>
+References: <ab3241e7-c525-d855-ecb6-ba04dbdb030f@destevenson.freeserve.co.uk> <8113252.R6OEHK1FMB@avalon> <87r30rv2ay.fsf@possimpible.ozlabs.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2374089.j4OXu9zDtc@avalon>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Daniel,
 
-On Fri, Apr 07, 2017 at 01:04:47PM +0300, Laurent Pinchart wrote:
-> > @@ -58,6 +60,9 @@ struct v4l2_async_subdev {
-> >  			const struct device_node *node;
-> >  		} of;
-> >  		struct {
-> > +			struct fwnode_handle *fwn;
+On Monday 17 Apr 2017 18:57:57 Daniel Axtens wrote:
+> Hi,
 > 
-> Shouldn't this be const ?
+> >> > I hate to pester, but wondered if you had found anything obvious.
+> >> > I really do appreciate you taking the time to look.
+> >> 
+> >> Sorry, I haven't had the chance and now will not be able to until
+> >> January....
+> > 
+> > Did you mean January 2017 or 2018 ? :-)
+> 
+> I stumbled across this problem independently, and with the help of some
+> of the info on this thread (especially yavta), I have what I think is a
+> solution: https://patchwork.kernel.org/patch/9683663/
 
-I thought the same, but a lot of functions that operate on fwnode_handle
-take a non-const argument. I attempted changing that, but it starts a
-cascade of unavoidable changes elsewhere. That's not very well suitable for
-this patchset.
+Thank you for that !
+
+I've reviewed your patch. Greg, there's a question for you in my reply, could 
+you have a look when you'll have time ?
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Regards,
+
+Laurent Pinchart
