@@ -1,271 +1,260 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:59258 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752817AbdDRRew (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Apr 2017 13:34:52 -0400
-Date: Tue, 18 Apr 2017 18:34:43 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        liviu.dudau@arm.com, laurent.pinchart@ideasonboard.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/6] drm: Add writeback connector type
-Message-ID: <20170418173443.GA325@e106950-lin.cambridge.arm.com>
-References: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
- <1480092544-1725-2-git-send-email-brian.starkey@arm.com>
- <20170414120823.2cafc748@bbrezillon>
+Received: from mail-cys01nam02on0130.outbound.protection.outlook.com ([104.47.37.130]:5531
+        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S932201AbdDQFKO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Apr 2017 01:10:14 -0400
+Subject: Re: [PATCH v2 0/15] [dt-bindings] [media] Add document file and
+ driver for Sony CXD2880 DVB-T2/T tuner + demodulator
+To: "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
+CC: "tbird20d@gmail.com" <tbird20d@gmail.com>,
+        "frowand.list@gmail.com" <frowand.list@gmail.com>,
+        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
+        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
+        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
+        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
+        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
+        <yasunari.takiguchi@sony.com>
+From: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
+Message-ID: <5188b958-9a34-4519-5845-a318273592e0@sony.com>
+Date: Mon, 17 Apr 2017 14:09:53 +0900
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <20170414120823.2cafc748@bbrezillon>
+In-Reply-To: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Boris,
+On 2017/04/14 10:50, Takiguchi, Yasunari wrote:
+> From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+> 
+> Hi,
+> 
+> This is the patch series (version 2) of Sony CXD2880 DVB-T2/T tuner + demodulator driver.
+> The driver supports DVB-API and interfaces through SPI.
+> 
+> We have tested the driver on Raspberry Pi 3 and got picture and sound from a media player.
+> 
+> Thanks,
+> Takiguchi
+> ---
+>  Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt        |   14 ++++++++++++++
+>  drivers/media/spi/cxd2880-spi.c                                     | 728 ++++++++++++++++++++++++++++++++++++++++
+>  drivers/media/dvb-frontends/cxd2880/cxd2880.h                       |   46 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_common.c                |   84 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_common.h                |   86 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_io.c                    |   68 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_io.h                    |   62 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_stdlib.h                |   35 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_stopwatch_port.c        |   71 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_math.c                  |   89 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_math.h                  |   40 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c             |  147 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h             |   40 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h                   |   51 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c            |  130 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h            |   45 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_dtv.h                   |   50 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c                | 3925 ++++++++++++++++++++
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.h                |  395 ++
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_driver_version.h |   29 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.c            |  207 ++
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.h            |   52 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c                 |   99 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h                 |   44 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_top.c                   | 1550 ++++++++
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt.h                  |   91 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c           | 1072 +++++++++
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.h           |   62 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.c            |  197 ++
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.h            |   58 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c       | 1190 +++++++++
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.h       |  106 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h                 |  402 ++++
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c          | 1309 ++++++++++
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h          |   82 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.c           |  311 +++
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.h           |   64 +
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c      | 2523 ++++++++++++++++++++
+>  drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.h      |  170 ++
+>  drivers/media/dvb-frontends/Makefile                                |    1 +
+>  drivers/media/dvb-frontends/cxd2880/Makefile                        |   21 +++++++++++++++++++++
+>  drivers/media/spi/Makefile                                          |    5 +++++
+>  drivers/media/dvb-frontends/Kconfig                                 |    2 ++
+>  drivers/media/dvb-frontends/cxd2880/Kconfig                         |    6 ++++++
+>  drivers/media/spi/Kconfig                                           |   14 ++++++++++++++
+>  MAINTAINERS                                                         |    9 +++++++++
+> 
+>  46 files changed, 15782 insertions(+)
+> 
+>  create mode 100644 Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+>  create mode 100644 drivers/media/spi/cxd2880-spi.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_common.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_common.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_io.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_io.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_stdlib.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_stopwatch_port.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_math.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_math.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_dtv.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_driver_version.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_top.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.h
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/Makefile
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/Kconfig
 
-On Fri, Apr 14, 2017 at 12:08:23PM +0200, Boris Brezillon wrote:
->On Fri, 25 Nov 2016 16:48:59 +0000
->Brian Starkey <brian.starkey@arm.com> wrote:
->
->
->>
->> diff --git a/drivers/gpu/drm/drm_connector.c b/drivers/gpu/drm/drm_connector.c
->> index b5c6a8e..6bbd93f 100644
->> --- a/drivers/gpu/drm/drm_connector.c
->> +++ b/drivers/gpu/drm/drm_connector.c
->> @@ -86,6 +86,7 @@ struct drm_conn_prop_enum_list {
->>  	{ DRM_MODE_CONNECTOR_VIRTUAL, "Virtual" },
->>  	{ DRM_MODE_CONNECTOR_DSI, "DSI" },
->>  	{ DRM_MODE_CONNECTOR_DPI, "DPI" },
->> +	{ DRM_MODE_CONNECTOR_WRITEBACK, "Writeback" },
->
->Is there a reason we have a Writeback connector, but keep using a
->Virtual encoder to connect it to the CRTC? Wouldn't it make more sense
->to also add a Writeback encoder?
->
+I added change patches information from Version 1 to Version 2.
 
-Only that a writeback connector is functionally and conceptually quite
-different from the existing connector types, whereas the "encoder"
-(which realistically only exists because the framework forces it to)
-acts pretty much like any other.
+[Change list]
+<V1->V2>
+(1)[PATCH 2/5], [PATCH 3/5] and [PATCH 4/5] of version 1 were divided to change order and be small size patch.
+    Total patch number was changed from 5 to 15
 
->>  };
->>
->>  void drm_connector_ida_init(void)
->> @@ -235,7 +236,8 @@ int drm_connector_init(struct drm_device *dev,
->>  	list_add_tail(&connector->head, &config->connector_list);
->>  	config->num_connector++;
->>
->> -	if (connector_type != DRM_MODE_CONNECTOR_VIRTUAL)
->> +	if ((connector_type != DRM_MODE_CONNECTOR_VIRTUAL) &&
->> +	    (connector_type != DRM_MODE_CONNECTOR_WRITEBACK))
->
->Nitpick: you don't need the extra parenthesis:
->
->	if (connector_type != DRM_MODE_CONNECTOR_VIRTUAL &&
->	    connector_type != DRM_MODE_CONNECTOR_WRITEBACK)
->
+   <Previous>
+   The changed or created files of version 1 [PATCH 2/5], [PATCH 3/5] and [PATCH 4/5]:
+　　[PATCH 2/5]
+      drivers/media/spi/Kconfig
+      drivers/media/spi/Makefile
+      drivers/media/spi/cxd2880-spi.c
+　　[PATCH 3/5]
+  　  drivers/media/dvb-frontends/Kconfig
+      drivers/media/dvb-frontends/Makefile
+      drivers/media/dvb-frontends/cxd2880/Kconfig
+      drivers/media/dvb-frontends/cxd2880/Makefile
+      drivers/media/dvb-frontends/cxd2880/cxd2880.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_common.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_common.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_dtv.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_io.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_io.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_math.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_math.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_stdlib.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_stopwatch_port.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_driver_version.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_top.c
+    [PATCH 4/5]
+      drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.h
 
-Yeah fair enough, I can drop them.
+   <New>
+   The changed or created files of version 2 from [PATCH v2 02/15] to [PATCH v2 14/15]:
+    [PATCH v2 02/15]
+      drivers/media/spi/cxd2880-spi.c
+    [PATCH v2 03/15]
+      drivers/media/dvb-frontends/cxd2880/cxd2880.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_common.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_common.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_io.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_io.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_stdlib.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_stopwatch_port.c
+    [PATCH v2 04/15]
+      drivers/media/dvb-frontends/cxd2880/cxd2880_math.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_math.h
+    [PATCH v2 05/15]
+      drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
+    [PATCH v2 06/15]
+      drivers/media/dvb-frontends/cxd2880/cxd2880_dtv.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_driver_version.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.h
+    [PATCH v2 07/15]
+      drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+    [PATCH v2 08/15]
+      drivers/media/dvb-frontends/cxd2880/cxd2880_top.c
+    [PATCH v2 09/15]
+      drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.h
+    [PATCH v2 10/15]
+      drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.h
+    [PATCH v2 11/15]
+      drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h
+    [PATCH v2 12/15]
+      drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.h
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c
+      drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.h
+    [PATCH v2 13/15]
+      drivers/media/dvb-frontends/Makefile
+      drivers/media/dvb-frontends/cxd2880/Makefile
+      drivers/media/spi/Makefile
+    [PATCH v2 14/15]
+      drivers/media/dvb-frontends/Kconfig
+      drivers/media/dvb-frontends/cxd2880/Kconfig
+      drivers/media/spi/Kconfig
 
->>  		drm_object_attach_property(&connector->base,
->>  					      config->edid_property,
->>  					      0);
->
->
->
->> diff --git a/include/drm/drm_connector.h b/include/drm/drm_connector.h
->> index 34f9741..dc4910d6 100644
->> --- a/include/drm/drm_connector.h
->> +++ b/include/drm/drm_connector.h
->> @@ -214,6 +214,19 @@ struct drm_connector_state {
->>  	struct drm_encoder *best_encoder;
->>
->>  	struct drm_atomic_state *state;
->> +
->> +	/**
->> +	 * @writeback_job: Writeback job for writeback connectors
->> +	 *
->> +	 * Holds the framebuffer for a writeback connector. As the writeback
->> +	 * completion may be asynchronous to the normal commit cycle, the
->> +	 * writeback job lifetime is managed separately from the normal atomic
->> +	 * state by this object.
->> +	 *
->> +	 * See also: drm_writeback_queue_job() and
->> +	 * drm_writeback_signal_completion()
->> +	 */
->> +	struct drm_writeback_job *writeback_job;
->
->Maybe I'm wrong, but is feels weird to have the writeback_job field
->directly embedded in drm_connector_state, while drm_writeback_connector
->inherits from drm_connector.
->
->IMO, either you decide to directly put the drm_writeback_connector's
->job_xxx fields in drm_connector and keep the drm_connector_state as is,
->or you create a drm_writeback_connector_state which inherits from
->drm_connector_state and embeds the writeback_job field.
+(2)Modified PID filter setting.
+    drivers/media/spi/cxd2880-spi.c in [PATCH v2 02/15]
 
-I did spend a decent amount of time looking at tracking the writeback
-state along with the normal connector state. I couldn't come up with
-anything I liked.
+(3)Driver version up
+    drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_driver_version.h in [PATCH v2 06/15]
 
-As the comment mentions, one of the problems is that you have to make
-sure the relevant parts of the connector_state stay around until the
-writeback is finished. That means you've got to block before
-"swap_state()" until the previous writeback is done, and that
-effectively limits your frame rate to refresh/2.
-
-The Mali-DP HW doesn't have that limitation - we can queue up a new
-commit while the current writeback is ongoing. For that reason I
-didn't want to impose such a limitation in the framework.
-
-In v1 I allowed that by making the Mali-DP driver hold its own
-references to the relevant bits of the state for as long as it needed
-them. In v3 I moved most of that code back to the core (in part
-because Gustavo didn't like me signalling the DRM-"owned" fence from
-my driver code directly). I think the new approach of "queue_job()"
-and "signal_job()" reduces the amount of tricky code in drivers, and
-is generally more clear (also familiar, when compared to vsync
-events).
-
-I'm certain there's other ways to do it (refcount atomic states?), but
-it seemed like a biggish overhaul to achieve what would basically be
-the same thing.
-
-I was expecting each driver supporting writeback to have its own
-different requirements around writeback lifetime/duration. For example
-I think VC4 specifically came up, in that its writeback could take
-several frames, whereas on Mali-DP we either finish within the frame
-or we fail.
-
-Letting the driver manage its writeback_job lifetime seemed like a
-reasonable way to handle all that, with the documentation stating the
-only behaviour which is guaranteed to work on all drivers:
-
-   *     Userspace should wait for this fence to signal before making another
-   *     commit affecting any of the same CRTCs, Planes or Connectors.
-   *     **Failure to do so will result in undefined behaviour.**
-   *     For this reason it is strongly recommended that all userspace
-   *     applications making use of writeback connectors *always* retrieve an
-   *     out-fence for the commit and use it appropriately.
-
-
-
-... so all of that is why the _job fields don't live in a *_state
-structure directly, and instead have to live in the separately-managed
-structure pointed to by ->writeback_job.
-
-Now, I did look at creating drm_writeback_connector_state, but as it
-would only be holding the job pointer (see above) it didn't seem worth
-scattering around the
-
-    if (conn_state->connector->connector_type ==
-        DRM_MODE_CONNECTOR_WRITEBACK)
-
-checks everywhere before up-casting - {clear,reset,duplicate}_state(),
-prepare_signalling(), complete_signalling(), etc. It just touched a
-lot of code for the sake of an extra pointer field in each connector
-state.
-
-I can easily revisit that part if you like.
-
->
->Anyway, wait for Daniel's feedback before doing this change.
->
-
-Am I expecting some more feedback from Daniel?
-
->>  };
->>
->>  /**
->> diff --git a/include/drm/drm_mode_config.h b/include/drm/drm_mode_config.h
->> index bf9991b2..3d3d07f 100644
->> --- a/include/drm/drm_mode_config.h
->> +++ b/include/drm/drm_mode_config.h
->> @@ -634,6 +634,20 @@ struct drm_mode_config {
->>  	 */
->>  	struct drm_property *suggested_y_property;
->>
->> +	/**
->> +	 * @writeback_fb_id_property: Property for writeback connectors, storing
->> +	 * the ID of the output framebuffer.
->> +	 * See also: drm_writeback_connector_init()
->> +	 */
->> +	struct drm_property *writeback_fb_id_property;
->> +	/**
->> +	 * @writeback_pixel_formats_property: Property for writeback connectors,
->> +	 * storing an array of the supported pixel formats for the writeback
->> +	 * engine (read-only).
->> +	 * See also: drm_writeback_connector_init()
->> +	 */
->> +	struct drm_property *writeback_pixel_formats_property;
->> +
->>  	/* dumb ioctl parameters */
->>  	uint32_t preferred_depth, prefer_shadow;
->>
->> diff --git a/include/drm/drm_writeback.h b/include/drm/drm_writeback.h
->> new file mode 100644
->> index 0000000..6b2ac45
->> --- /dev/null
->> +++ b/include/drm/drm_writeback.h
->> @@ -0,0 +1,78 @@
->> +/*
->> + * (C) COPYRIGHT 2016 ARM Limited. All rights reserved.
->> + * Author: Brian Starkey <brian.starkey@arm.com>
->> + *
->> + * This program is free software and is provided to you under the terms of the
->> + * GNU General Public License version 2 as published by the Free Software
->> + * Foundation, and any use by you of this program is subject to the terms
->> + * of such GNU licence.
->> + */
->> +
->> +#ifndef __DRM_WRITEBACK_H__
->> +#define __DRM_WRITEBACK_H__
->> +#include <drm/drm_connector.h>
->> +#include <linux/workqueue.h>
->> +
->> +struct drm_writeback_connector {
->> +	struct drm_connector base;
->
->AFAIU, a writeback connector will always require an 'dummy' encoder to
->make the DRM framework happy (AFAIK, a connector is always connected to
->a CRTC through an encoder).
->
->Wouldn't it make more sense to have a drm_encoder object embedded in
->drm_writeback_connector so that people don't have to declare an extra
->structure containing both the drm_writeback_connector connector and a
->drm_encoder? Is there a good reason to keep them separate?
->
-
-Yeah that's not a bad idea. The encoder funcs could be passed in to
-drm_writeback_connector_init() (in which case adding a writeback
-encoder type would also make sense).
-
-Thanks for the review,
-
--Brian
-
->> +
->> +	/**
->> +	 * @pixel_formats_blob_ptr:
->> +	 *
->> +	 * DRM blob property data for the pixel formats list on writeback
->> +	 * connectors
->> +	 * See also drm_writeback_connector_init()
->> +	 */
->> +	struct drm_property_blob *pixel_formats_blob_ptr;
->> +
->> +	/** @job_lock: Protects job_queue */
->> +	spinlock_t job_lock;
->> +	/**
->> +	 * @job_queue:
->> +	 *
->> +	 * Holds a list of a connector's writeback jobs; the last item is the
->> +	 * most recent. The first item may be either waiting for the hardware
->> +	 * to begin writing, or currently being written.
->> +	 *
->> +	 * See also: drm_writeback_queue_job() and
->> +	 * drm_writeback_signal_completion()
->> +	 */
->> +	struct list_head job_queue;
->> +};
+Thanks,
+Takiguchi
