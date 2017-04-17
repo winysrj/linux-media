@@ -1,84 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:34516 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756550AbdDPRgD (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48409
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932404AbdDQBzk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Apr 2017 13:36:03 -0400
-Received: by mail-wr0-f195.google.com with SMTP id u18so18048475wrc.1
-        for <linux-media@vger.kernel.org>; Sun, 16 Apr 2017 10:36:02 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: guennadi.liakhovetski@intel.com, hans.verkuil@cisco.com,
-        =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 5/7] ov2640: fix duplicate width+height returning from ov2640_select_win()
-Date: Sun, 16 Apr 2017 19:35:44 +0200
-Message-Id: <20170416173546.4317-6-fschaefer.oss@googlemail.com>
-In-Reply-To: <20170416173546.4317-1-fschaefer.oss@googlemail.com>
-References: <20170416173546.4317-1-fschaefer.oss@googlemail.com>
+        Sun, 16 Apr 2017 21:55:40 -0400
+Date: Sun, 16 Apr 2017 22:55:33 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Anders Eriksson <aeriksson2@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: em28xx i2c writing error
+Message-ID: <20170416225533.6d83fc6c@vento.lan>
+In-Reply-To: <CAGncdOYtM3PkJWDcBdSdONY8VbP5gDccBO777=j+ARQFXQMJBw@mail.gmail.com>
+References: <CAGncdOYtM3PkJWDcBdSdONY8VbP5gDccBO777=j+ARQFXQMJBw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ov2640_select_win() returns height and width values as part of struct
-ov2640_win_size, so there is no point in modifying the passed height and
-width parameters, too.
+Em Sat, 15 Apr 2017 20:28:20 +0200
+Anders Eriksson <aeriksson2@gmail.com> escreveu:
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/i2c/ov2640.c | 18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+> Hi Mauro,
+> 
+> I've two devices using this driver, and whenever I have them both in
+> use I eventually (between 10K and 100K secs uptime) i2c write errors
+> such as in the log below. If only have one of the devices in use, the
+> machine is stable.
+> 
+> The machine never recovers from the error.
+> 
+> All help apreciated.
+> -Anders
+> 
+> 
+> 
+> [    0.000000] Booting Linux on physical CPU 0xf00
+> [    0.000000] Initializing cgroup subsys cpuset
+> [    0.000000] Initializing cgroup subsys cpu
+> [    0.000000] Initializing cgroup subsys cpuacct
+> [    0.000000] Linux version 4.4.15-v7+ (dc4@dc4-XPS13-9333) (gcc
+> version 4.9.3 (crosstool-NG crosstool-ng-1.22.0-88-g8460611) ) #897
+> SMP Tue Jul 12 18:42:55 BST 2016
+> [    0.000000] CPU: ARMv7 Processor [410fc075] revision 5 (ARMv7), cr=10c5387d
+> [    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing
+> instruction cache
+> [    0.000000] Machine model: Raspberry Pi 2 Model B Rev 1.1
 
-diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-index 6f0cc722477d..123767c58e83 100644
---- a/drivers/media/i2c/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -775,21 +775,16 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int on)
- }
- 
- /* Select the nearest higher resolution for capture */
--static const struct ov2640_win_size *ov2640_select_win(u32 *width, u32 *height)
-+static const struct ov2640_win_size *ov2640_select_win(u32 width, u32 height)
- {
- 	int i, default_size = ARRAY_SIZE(ov2640_supported_win_sizes) - 1;
- 
- 	for (i = 0; i < ARRAY_SIZE(ov2640_supported_win_sizes); i++) {
--		if (ov2640_supported_win_sizes[i].width  >= *width &&
--		    ov2640_supported_win_sizes[i].height >= *height) {
--			*width = ov2640_supported_win_sizes[i].width;
--			*height = ov2640_supported_win_sizes[i].height;
-+		if (ov2640_supported_win_sizes[i].width  >= width &&
-+		    ov2640_supported_win_sizes[i].height >= height)
- 			return &ov2640_supported_win_sizes[i];
--		}
- 	}
- 
--	*width = ov2640_supported_win_sizes[default_size].width;
--	*height = ov2640_supported_win_sizes[default_size].height;
- 	return &ov2640_supported_win_sizes[default_size];
- }
- 
-@@ -880,8 +875,7 @@ static int ov2640_get_fmt(struct v4l2_subdev *sd,
- 		return -EINVAL;
- 
- 	if (!priv->win) {
--		u32 width = SVGA_WIDTH, height = SVGA_HEIGHT;
--		priv->win = ov2640_select_win(&width, &height);
-+		priv->win = ov2640_select_win(SVGA_WIDTH, SVGA_HEIGHT);
- 		priv->cfmt_code = MEDIA_BUS_FMT_UYVY8_2X8;
- 	}
- 
-@@ -906,7 +900,9 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
- 		return -EINVAL;
- 
- 	/* select suitable win */
--	win = ov2640_select_win(&mf->width, &mf->height);
-+	win = ov2640_select_win(mf->width, mf->height);
-+	mf->width	= win->width;
-+	mf->height	= win->height;
- 
- 	mf->field	= V4L2_FIELD_NONE;
- 	mf->colorspace	= V4L2_COLORSPACE_SRGB;
--- 
-2.12.2
+Hmm.. RPi2... that explains a lot ;)
+
+I've seen similar behaviors on some arm devices with just one device.
+
+That's likely due to some problem with isochronous transfers at the
+USB host driver.
+
+The thing is that ISOC transfers are heavily used by USB cameras:
+they require that the USB chip would provide a steady throughput
+that can eat up to 60% of the USB maximum bitrate, with just one
+video stream.
+
+My experience says that several USB drivers can't sustain such
+bit rates for a long time.
+
+The RPi tree uses an out-of-tree driver for the USB host driver
+(otgdwc - I guess). Upstream uses a different driver (dwc2).
+My recent experiences with upstream(dwc2) and USB cameras
+is even worse: it doesn't work, if the camera supports only
+ISOC frames.
+
+I'll eventually try to fix the upstream driver if I find
+spare time for it, but I won't touch at the proprietary
+driver that is shipped with the downstream Kernel.
+
+Thanks,
+Mauro
