@@ -1,184 +1,658 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40004
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51704
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755292AbdDENXa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 09:23:30 -0400
+        with ESMTP id S1754919AbdDQTeD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Apr 2017 15:34:03 -0400
+Date: Mon, 17 Apr 2017 16:33:54 -0300
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>,
-        Masanari Iida <standby24x7@gmail.com>,
-        Oliver Neukum <oneukum@suse.com>,
-        Christian Gromm <christian.gromm@microchip.com>,
-        Andrey Shvetsov <andrey.shvetsov@k2l.de>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Peter Chen <peter.chen@nxp.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        =?UTF-8?q?Rafa=C5=82=20Mi=C5=82ecki?= <rafal@milecki.pl>,
-        linux-pm@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH v2 21/21] docs-rst: fix usb cross-references
-Date: Wed,  5 Apr 2017 10:23:15 -0300
-Message-Id: <f8c01e61355cf70cbd9f2c6cd010d1af7af2652d.1491398120.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
-References: <cover.1491398120.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
-References: <cover.1491398120.git.mchehab@s-opensource.com>
+To: Randy Li <ayaka@soulik.info>
+Cc: dri-devel@lists.freedesktop.org, clinton.a.taylor@intel.com,
+        daniel@fooishbar.org, ville.syrjala@linux.intel.com,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v6 2/3] v4l: Add 10/16-bits per channel YUV pixel
+ formats
+Message-ID: <20170417163354.335884ca@vento.lan>
+In-Reply-To: <1488708033-5691-3-git-send-email-ayaka@soulik.info>
+References: <1488708033-5691-1-git-send-email-ayaka@soulik.info>
+        <1488708033-5691-3-git-send-email-ayaka@soulik.info>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As some USB documentation files got moved, adjust their
-cross-references to their new place.
+Em Sun,  5 Mar 2017 18:00:32 +0800
+Randy Li <ayaka@soulik.info> escreveu:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/ABI/stable/sysfs-bus-usb            | 2 +-
- Documentation/driver-api/usb/URB.rst              | 2 ++
- Documentation/driver-api/usb/callbacks.rst        | 4 ++--
- Documentation/driver-api/usb/error-codes.rst      | 2 ++
- Documentation/driver-api/usb/persist.rst          | 2 ++
- Documentation/driver-api/usb/power-management.rst | 2 +-
- Documentation/driver-api/usb/usb.rst              | 4 ++--
- Documentation/power/swsusp.txt                    | 2 +-
- drivers/staging/most/hdm-usb/hdm_usb.c            | 2 +-
- drivers/usb/core/Kconfig                          | 2 +-
- 10 files changed, 15 insertions(+), 9 deletions(-)
+> The formats added by this patch are:
+> 	V4L2_PIX_FMT_P010
+> 	V4L2_PIX_FMT_P010M
+> 	V4L2_PIX_FMT_P016
+> 	V4L2_PIX_FMT_P016M
+> Currently, none of driver uses those format.
+> 
+> Also a variant of V4L2_PIX_FMT_P010M pixel format is added.
+> The V4L2_PIX_FMT_P010CM is a compat variant of the V4L2_PIX_FMT_P010,
+> which uses the unused 6 bits to store the next pixel. And with
+> the alignment requirement of the hardware, it usually would be
+> some extra space left at the end of a stride.
 
-diff --git a/Documentation/ABI/stable/sysfs-bus-usb b/Documentation/ABI/stable/sysfs-bus-usb
-index 831f15d9672f..b832eeff9999 100644
---- a/Documentation/ABI/stable/sysfs-bus-usb
-+++ b/Documentation/ABI/stable/sysfs-bus-usb
-@@ -9,7 +9,7 @@ Description:
- 		hubs this facility is always enabled and their device
- 		directories will not contain this file.
- 
--		For more information, see Documentation/usb/persist.txt.
-+		For more information, see Documentation/driver-api/usb/persist.rst.
- 
- What:		/sys/bus/usb/devices/.../power/autosuspend
- Date:		March 2007
-diff --git a/Documentation/driver-api/usb/URB.rst b/Documentation/driver-api/usb/URB.rst
-index c4a141f29477..61a54da9fce9 100644
---- a/Documentation/driver-api/usb/URB.rst
-+++ b/Documentation/driver-api/usb/URB.rst
-@@ -1,3 +1,5 @@
-+.. _usb-urb:
-+
- USB Request Block (URB)
- ~~~~~~~~~~~~~~~~~~~~~~~
- 
-diff --git a/Documentation/driver-api/usb/callbacks.rst b/Documentation/driver-api/usb/callbacks.rst
-index 93a8d53e27e7..2b80cf54bcc3 100644
---- a/Documentation/driver-api/usb/callbacks.rst
-+++ b/Documentation/driver-api/usb/callbacks.rst
-@@ -8,7 +8,7 @@ Usbcore will call into a driver through callbacks defined in the driver
- structure and through the completion handler of URBs a driver submits.
- Only the former are in the scope of this document. These two kinds of
- callbacks are completely independent of each other. Information on the
--completion callback can be found in Documentation/usb/URB.txt.
-+completion callback can be found in :ref:`usb-urb`.
- 
- The callbacks defined in the driver structure are:
- 
-@@ -53,7 +53,7 @@ The callbacks defined in the driver structure are:
- 
- The ioctl interface (2) should be used only if you have a very good
- reason. Sysfs is preferred these days. The PM callbacks are covered
--separately in Documentation/usb/power-management.txt.
-+separately in :ref:`usb-power-management`.
- 
- Calling conventions
- ===================
-diff --git a/Documentation/driver-api/usb/error-codes.rst b/Documentation/driver-api/usb/error-codes.rst
-index 9c11a0fd16cb..a3e84bfac776 100644
---- a/Documentation/driver-api/usb/error-codes.rst
-+++ b/Documentation/driver-api/usb/error-codes.rst
-@@ -1,3 +1,5 @@
-+.. _usb-error-codes:
-+
- USB Error codes
- ~~~~~~~~~~~~~~~
- 
-diff --git a/Documentation/driver-api/usb/persist.rst b/Documentation/driver-api/usb/persist.rst
-index ea1b43f0559e..08cafc6292c1 100644
---- a/Documentation/driver-api/usb/persist.rst
-+++ b/Documentation/driver-api/usb/persist.rst
-@@ -1,3 +1,5 @@
-+.. _usb-persist:
-+
- USB device persistence during system suspend
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
-diff --git a/Documentation/driver-api/usb/power-management.rst b/Documentation/driver-api/usb/power-management.rst
-index c068257f6d27..79beb807996b 100644
---- a/Documentation/driver-api/usb/power-management.rst
-+++ b/Documentation/driver-api/usb/power-management.rst
-@@ -328,7 +328,7 @@ possible to work around the hibernation-forces-disconnect problem by
- using the USB Persist facility.)
- 
- The ``reset_resume`` method is used by the USB Persist facility (see
--``Documentation/usb/persist.txt``) and it can also be used under certain
-+:ref:`usb-persist`) and it can also be used under certain
- circumstances when ``CONFIG_USB_PERSIST`` is not enabled.  Currently, if a
- device is reset during a resume and the driver does not have a
- ``reset_resume`` method, the driver won't receive any notification about
-diff --git a/Documentation/driver-api/usb/usb.rst b/Documentation/driver-api/usb/usb.rst
-index 5ebaf669704c..6824089ef4c8 100644
---- a/Documentation/driver-api/usb/usb.rst
-+++ b/Documentation/driver-api/usb/usb.rst
-@@ -424,8 +424,8 @@ header.
- Unless noted otherwise, the ioctl requests described here will update
- the modification time on the usbfs file to which they are applied
- (unless they fail). A return of zero indicates success; otherwise, a
--standard USB error code is returned. (These are documented in
--``Documentation/usb/error-codes.txt`` in your kernel sources.)
-+standard USB error code is returned (These are documented in
-+:ref:`usb-error-codes`).
- 
- Each of these files multiplexes access to several I/O streams, one per
- endpoint. Each device has one control endpoint (endpoint zero) which
-diff --git a/Documentation/power/swsusp.txt b/Documentation/power/swsusp.txt
-index 8cc17ca71813..9f2f942a01cf 100644
---- a/Documentation/power/swsusp.txt
-+++ b/Documentation/power/swsusp.txt
-@@ -406,7 +406,7 @@ Firewire, CompactFlash, MMC, external SATA, or even IDE hotplug bays)
- before suspending; then remount them after resuming.
- 
- There is a work-around for this problem.  For more information, see
--Documentation/usb/persist.txt.
-+Documentation/driver-api/usb/persist.rst.
- 
- Q: Can I suspend-to-disk using a swap partition under LVM?
- 
-diff --git a/drivers/staging/most/hdm-usb/hdm_usb.c b/drivers/staging/most/hdm-usb/hdm_usb.c
-index 65211d1824b7..2bfea9b48366 100644
---- a/drivers/staging/most/hdm-usb/hdm_usb.c
-+++ b/drivers/staging/most/hdm-usb/hdm_usb.c
-@@ -490,7 +490,7 @@ static void hdm_write_completion(struct urb *urb)
-  * disconnect.  In the interval before the hub driver starts disconnect
-  * processing, devices may receive such fault reports for every request.
-  *
-- * See <https://www.kernel.org/doc/Documentation/usb/error-codes.txt>
-+ * See <https://www.kernel.org/doc/Documentation/driver-api/usb/error-codes.rst>
-  */
- static void hdm_read_completion(struct urb *urb)
- {
-diff --git a/drivers/usb/core/Kconfig b/drivers/usb/core/Kconfig
-index 0e5a889742b3..4d75d9a80001 100644
---- a/drivers/usb/core/Kconfig
-+++ b/drivers/usb/core/Kconfig
-@@ -26,7 +26,7 @@ config USB_DEFAULT_PERSIST
- 	  unplugged, causing any mounted filesystems to be lost.  The
- 	  persist feature can still be enabled for individual devices
- 	  through the power/persist sysfs node. See
--	  Documentation/usb/persist.txt for more info.
-+	  Documentation/driver-api/usb/persist.rst for more info.
- 
- 	  If you have any questions about this, say Y here, only say N
- 	  if you know exactly what you are doing.
--- 
-2.9.3
+You should check your patches with checkpatch... I'm getting
+this:
+
+
+WARNING: 'simliar' may be misspelled - perhaps 'similar'?
+#61: FILE: Documentation/media/uapi/v4l/pixfmt-p010.rst:13:
++chroma samples as simliar to ``V4L2_PIX_FMT_NV12``
+
+
+WARNING: 'simliar' may be misspelled - perhaps 'similar'?
+#334: FILE: Documentation/media/uapi/v4l/pixfmt-p016.rst:13:
++chroma samples as simliar to ``V4L2_PIX_FMT_NV12``
+
+
+> 
+> Signed-off-by: Randy Li <ayaka@soulik.info>
+> ---
+>  Documentation/media/uapi/v4l/pixfmt-p010.rst  | 126 ++++++++++++++++++++++++
+>  Documentation/media/uapi/v4l/pixfmt-p010m.rst | 135 ++++++++++++++++++++++++++
+>  Documentation/media/uapi/v4l/pixfmt-p016.rst  | 125 ++++++++++++++++++++++++
+>  Documentation/media/uapi/v4l/pixfmt-p016m.rst | 134 +++++++++++++++++++++++++
+>  Documentation/media/uapi/v4l/yuv-formats.rst  |   4 +
+>  include/uapi/linux/videodev2.h                |   5 +
+>  6 files changed, 529 insertions(+)
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-p010.rst
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-p010m.rst
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-p016.rst
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-p016m.rst
+> 
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-p010.rst b/Documentation/media/uapi/v4l/pixfmt-p010.rst
+> new file mode 100644
+> index 0000000..59ed118
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/pixfmt-p010.rst
+> @@ -0,0 +1,126 @@
+> +.. -*- coding: utf-8; mode: rst -*-
+> +
+> +.. _V4L2-PIX-FMT-P010:
+> +
+> +******************************************************
+> +V4L2_PIX_FMT_P010 ('P010')
+> +******************************************************
+> +
+> +
+> +V4L2_PIX_FMT_P010
+> +Formats with ½ horizontal and vertical chroma resolution. One luminance and
+> +one chrominance plane with alternating
+> +chroma samples as simliar to ``V4L2_PIX_FMT_NV12``
+
+It is probably ok to use the UTF symbol for 1/2, but you should check
+if both PDF and HTML outputs will be ok.
+
+> +
+> +
+> +Description
+> +===========
+> +
+> +It is a two-plane versions of the YUV 4:2:0 format. The three
+> +components are separated into two sub-images or planes. The Y plane is
+> +first. The Y plane has 16 bits per pixel, but only 10 bits are used with the
+> +rest 6 bits set to zero. For ``V4L2_PIX_FMT_P010``, a combined CbCr plane
+> +immediately follows the Y plane in memory. The CbCr
+> +plane is the same width, in bytes, as the Y plane (and of the image),
+> +but is half as tall in pixels. Each CbCr pair belongs to four pixels.
+> +For example, Cb\ :sub:`0`/Cr\ :sub:`0` belongs to Y'\ :sub:`00`,
+> +Y'\ :sub:`01`, Y'\ :sub:`10`, Y'\ :sub:`11`.
+> +If the Y plane has pad bytes after each row, then the CbCr plane has as
+> +many pad bytes after its rows.
+> +
+> +**Byte Order.**
+> +Each cell is two bytes.
+> +
+> +
+> +.. flat-table::
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +
+> +    * - start + 0:
+> +      - Y'\ :sub:`00`
+> +      - Y'\ :sub:`01`
+> +      - Y'\ :sub:`02`
+> +      - Y'\ :sub:`03`
+> +    * - start + 4:
+> +      - Y'\ :sub:`10`
+> +      - Y'\ :sub:`11`
+> +      - Y'\ :sub:`12`
+> +      - Y'\ :sub:`13`
+> +    * - start + 8:
+> +      - Y'\ :sub:`20`
+> +      - Y'\ :sub:`21`
+> +      - Y'\ :sub:`22`
+> +      - Y'\ :sub:`23`
+> +    * - start + 12:
+> +      - Y'\ :sub:`30`
+> +      - Y'\ :sub:`31`
+> +      - Y'\ :sub:`32`
+> +      - Y'\ :sub:`33`
+> +    * - start + 16:
+> +      - Cb\ :sub:`00`
+> +      - Cr\ :sub:`00`
+> +      - Cb\ :sub:`01`
+> +      - Cr\ :sub:`01`
+> +    * - start + 20:
+> +      - Cb\ :sub:`10`
+> +      - Cr\ :sub:`10`
+> +      - Cb\ :sub:`11`
+> +      - Cr\ :sub:`11`
+> +
+> +
+> +**Color Sample Location..**
+> +
+> +.. flat-table::
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +
+> +    * -
+> +      - 0
+> +      -
+> +      - 1
+> +      - 2
+> +      -
+> +      - 3
+> +    * - 0
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> +    * -
+> +      -
+> +      - C
+> +      -
+> +      -
+> +      - C
+> +      -
+> +    * - 1
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> +    * -
+> +    * - 2
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> +    * -
+> +      -
+> +      - C
+> +      -
+> +      -
+> +      - C
+> +      -
+> +    * - 3
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-p010m.rst b/Documentation/media/uapi/v4l/pixfmt-p010m.rst
+> new file mode 100644
+> index 0000000..6697d15
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/pixfmt-p010m.rst
+> @@ -0,0 +1,135 @@
+> +.. -*- coding: utf-8; mode: rst -*-
+> +
+> +.. _V4L2-PIX-FMT-P010M:
+> +
+> +***********************************************************************************
+> +V4L2_PIX_FMT_P010M ('PM10')
+> +***********************************************************************************
+> +
+> +
+> +V4L2_PIX_FMT_P010M
+> +Variation of ``V4L2_PIX_FMT_P010`` with planes non contiguous in memory.
+> +
+> +
+> +Description
+> +===========
+> +
+> +This is a multi-planar, two-plane version of the YUV 4:2:0 format. The
+> +three components are separated into two sub-images or planes.
+> +``V4L2_PIX_FMT_P010M`` differs from ``V4L2_PIX_FMT_P010`` in that the
+> +two planes are non-contiguous in memory, i.e. the chroma plane do not
+> +necessarily immediately follows the luma plane. The luminance data
+> +occupies the first plane. The Y plane has 16 bits per pixel, but only
+> +10 bits are used with the rest 6 bits set to zero. In the
+> +second plane there is a chrominance data with alternating chroma
+> +samples. The CbCr plane is the same width, in bytes, as the Y plane (and
+> +of the image), but is half as tall in pixels. Each CbCr pair belongs to
+> +four pixels. For example, Cb\ :sub:`0`/Cr\ :sub:`0` belongs to
+> +Y'\ :sub:`00`, Y'\ :sub:`01`, Y'\ :sub:`10`, Y'\ :sub:`11`.
+> +
+> +``V4L2_PIX_FMT_P010M`` is intended to be used only in drivers and
+> +applications that support the multi-planar API, described in
+> +:ref:`planar-apis`.
+> +
+> +If the Y plane has pad bytes after each row, then the CbCr plane has as
+> +many pad bytes after its rows.
+> +
+> +**Byte Order.**
+> +Each cell is two bytes.
+> +
+> +.. flat-table::
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +
+> +    * - start0 + 0:
+> +      - Y'\ :sub:`00`
+> +      - Y'\ :sub:`01`
+> +      - Y'\ :sub:`02`
+> +      - Y'\ :sub:`03`
+> +    * - start0 + 4:
+> +      - Y'\ :sub:`10`
+> +      - Y'\ :sub:`11`
+> +      - Y'\ :sub:`12`
+> +      - Y'\ :sub:`13`
+> +    * - start0 + 8:
+> +      - Y'\ :sub:`20`
+> +      - Y'\ :sub:`21`
+> +      - Y'\ :sub:`22`
+> +      - Y'\ :sub:`23`
+> +    * - start0 + 12:
+> +      - Y'\ :sub:`30`
+> +      - Y'\ :sub:`31`
+> +      - Y'\ :sub:`32`
+> +      - Y'\ :sub:`33`
+> +    * -
+> +    * - start1 + 0:
+> +      - Cb\ :sub:`00`
+> +      - Cr\ :sub:`00`
+> +      - Cb\ :sub:`01`
+> +      - Cr\ :sub:`01`
+> +    * - start1 + 4:
+> +      - Cb\ :sub:`10`
+> +      - Cr\ :sub:`10`
+> +      - Cb\ :sub:`11`
+> +      - Cr\ :sub:`11`
+> +
+> +
+> +**Color Sample Location..**
+> +
+> +
+> +
+> +.. flat-table::
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +
+> +    * -
+> +      - 0
+> +      -
+> +      - 1
+> +      - 2
+> +      -
+> +      - 3
+> +    * - 0
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> +    * -
+> +      -
+> +      - C
+> +      -
+> +      -
+> +      - C
+> +      -
+> +    * - 1
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> +    * -
+> +    * - 2
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> +    * -
+> +      -
+> +      - C
+> +      -
+> +      -
+> +      -
+> +      - C
+> +      -
+> +    * - 3
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-p016.rst b/Documentation/media/uapi/v4l/pixfmt-p016.rst
+> new file mode 100644
+> index 0000000..a6d60b3
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/pixfmt-p016.rst
+> @@ -0,0 +1,125 @@
+> +.. -*- coding: utf-8; mode: rst -*-
+> +
+> +.. _V4L2-PIX-FMT-P016:
+> +
+> +******************************************************
+> +V4L2_PIX_FMT_P016 ('P016')
+> +******************************************************
+> +
+> +
+> +V4L2_PIX_FMT_P016
+> +Formats with ½ horizontal and vertical chroma resolution. One luminance and
+> +one chrominance plane with alternating
+> +chroma samples as simliar to ``V4L2_PIX_FMT_NV12``
+> +
+> +
+> +Description
+> +===========
+> +
+> +It is a two-plane versions of the YUV 4:2:0 format. The three
+> +components are separated into two sub-images or planes. The Y plane is
+> +first. The Y plane has 16 bits per pixel. For ``V4L2_PIX_FMT_P016``, a
+> +combined CbCr plane immediately follows the Y plane in memory. The CbCr
+> +plane is the same width, in bytes, as the Y plane (and of the image),
+> +but is half as tall in pixels. Each CbCr pair belongs to four pixels.
+> +For example, Cb\ :sub:`0`/Cr\ :sub:`0` belongs to Y'\ :sub:`00`,
+> +Y'\ :sub:`01`, Y'\ :sub:`10`, Y'\ :sub:`11`.
+> +If the Y plane has pad bytes after each row, then the CbCr plane has as
+> +many pad bytes after its rows.
+> +
+> +**Byte Order.**
+> +Each cell is two bytes.
+> +
+> +
+> +.. flat-table::
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +
+> +    * - start + 0:
+> +      - Y'\ :sub:`00`
+> +      - Y'\ :sub:`01`
+> +      - Y'\ :sub:`02`
+> +      - Y'\ :sub:`03`
+> +    * - start + 4:
+> +      - Y'\ :sub:`10`
+> +      - Y'\ :sub:`11`
+> +      - Y'\ :sub:`12`
+> +      - Y'\ :sub:`13`
+> +    * - start + 8:
+> +      - Y'\ :sub:`20`
+> +      - Y'\ :sub:`21`
+> +      - Y'\ :sub:`22`
+> +      - Y'\ :sub:`23`
+> +    * - start + 12:
+> +      - Y'\ :sub:`30`
+> +      - Y'\ :sub:`31`
+> +      - Y'\ :sub:`32`
+> +      - Y'\ :sub:`33`
+> +    * - start + 16:
+> +      - Cb\ :sub:`00`
+> +      - Cr\ :sub:`00`
+> +      - Cb\ :sub:`01`
+> +      - Cr\ :sub:`01`
+> +    * - start + 20:
+> +      - Cb\ :sub:`10`
+> +      - Cr\ :sub:`10`
+> +      - Cb\ :sub:`11`
+> +      - Cr\ :sub:`11`
+> +
+> +
+> +**Color Sample Location..**
+> +
+> +.. flat-table::
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +
+> +    * -
+> +      - 0
+> +      -
+> +      - 1
+> +      - 2
+> +      -
+> +      - 3
+> +    * - 0
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> +    * -
+> +      -
+> +      - C
+> +      -
+> +      -
+> +      - C
+> +      -
+> +    * - 1
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> +    * -
+> +    * - 2
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> +    * -
+> +      -
+> +      - C
+> +      -
+> +      -
+> +      - C
+> +      -
+> +    * - 3
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-p016m.rst b/Documentation/media/uapi/v4l/pixfmt-p016m.rst
+> new file mode 100644
+> index 0000000..14c434d
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/pixfmt-p016m.rst
+> @@ -0,0 +1,134 @@
+> +.. -*- coding: utf-8; mode: rst -*-
+> +
+> +.. _V4L2-PIX-FMT-P016M:
+> +
+> +***********************************************************************************
+> +V4L2_PIX_FMT_P016M ('PM16')
+> +***********************************************************************************
+> +
+> +
+> +V4L2_PIX_FMT_P016M
+> +Variation of ``V4L2_PIX_FMT_P016`` with planes non contiguous in memory.
+> +
+> +
+> +Description
+> +===========
+> +
+> +This is a multi-planar, two-plane version of the YUV 4:2:0 format. The
+> +three components are separated into two sub-images or planes.
+> +``V4L2_PIX_FMT_P016M`` differs from ``V4L2_PIX_FMT_P016`` in that the
+> +two planes are non-contiguous in memory, i.e. the chroma plane do not
+> +necessarily immediately follows the luma plane. The luminance data
+> +occupies the first plane. The Y plane has 16 bits per pixel. In the
+> +second plane there is a chrominance data with alternating chroma
+> +samples. The CbCr plane is the same width, in bytes, as the Y plane (and
+> +of the image), but is half as tall in pixels. Each CbCr pair belongs to
+> +four pixels. For example, Cb\ :sub:`0`/Cr\ :sub:`0` belongs to
+> +Y'\ :sub:`00`, Y'\ :sub:`01`, Y'\ :sub:`10`, Y'\ :sub:`11`.
+> +
+> +``V4L2_PIX_FMT_P016M`` is intended to be used only in drivers and
+> +applications that support the multi-planar API, described in
+> +:ref:`planar-apis`.
+> +
+> +If the Y plane has pad bytes after each row, then the CbCr plane has as
+> +many pad bytes after its rows.
+> +
+> +**Byte Order.**
+> +Each cell is two bytes.
+> +
+> +.. flat-table::
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +
+> +    * - start0 + 0:
+> +      - Y'\ :sub:`00`
+> +      - Y'\ :sub:`01`
+> +      - Y'\ :sub:`02`
+> +      - Y'\ :sub:`03`
+> +    * - start0 + 4:
+> +      - Y'\ :sub:`10`
+> +      - Y'\ :sub:`11`
+> +      - Y'\ :sub:`12`
+> +      - Y'\ :sub:`13`
+> +    * - start0 + 8:
+> +      - Y'\ :sub:`20`
+> +      - Y'\ :sub:`21`
+> +      - Y'\ :sub:`22`
+> +      - Y'\ :sub:`23`
+> +    * - start0 + 12:
+> +      - Y'\ :sub:`30`
+> +      - Y'\ :sub:`31`
+> +      - Y'\ :sub:`32`
+> +      - Y'\ :sub:`33`
+> +    * -
+> +    * - start1 + 0:
+> +      - Cb\ :sub:`00`
+> +      - Cr\ :sub:`00`
+> +      - Cb\ :sub:`01`
+> +      - Cr\ :sub:`01`
+> +    * - start1 + 4:
+> +      - Cb\ :sub:`10`
+> +      - Cr\ :sub:`10`
+> +      - Cb\ :sub:`11`
+> +      - Cr\ :sub:`11`
+> +
+> +
+> +**Color Sample Location..**
+> +
+> +
+> +
+> +.. flat-table::
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +
+> +    * -
+> +      - 0
+> +      -
+> +      - 1
+> +      - 2
+> +      -
+> +      - 3
+> +    * - 0
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> +    * -
+> +      -
+> +      - C
+> +      -
+> +      -
+> +      - C
+> +      -
+> +    * - 1
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> +    * -
+> +    * - 2
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> +    * -
+> +      -
+> +      - C
+> +      -
+> +      -
+> +      -
+> +      - C
+> +      -
+> +    * - 3
+> +      - Y
+> +      -
+> +      - Y
+> +      - Y
+> +      -
+> +      - Y
+> diff --git a/Documentation/media/uapi/v4l/yuv-formats.rst b/Documentation/media/uapi/v4l/yuv-formats.rst
+> index 3334ea4..1474192 100644
+> --- a/Documentation/media/uapi/v4l/yuv-formats.rst
+> +++ b/Documentation/media/uapi/v4l/yuv-formats.rst
+> @@ -53,3 +53,7 @@ to brightness information.
+>      pixfmt-nv16m
+>      pixfmt-nv24
+>      pixfmt-m420
+> +    pixfmt-p010
+> +    pixfmt-p010m
+> +    pixfmt-p016
+> +    pixfmt-p016m
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 45184a2..d2f2013 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -550,6 +550,8 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
+>  #define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr 4:4:4  */
+>  #define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb 4:4:4  */
+> +#define V4L2_PIX_FMT_P010    v4l2_fourcc('P', '0', '1', '0') /* 20  Y/CbCr 4:2:0, 10 bits per channel */
+> +#define V4L2_PIX_FMT_P016    v4l2_fourcc('P', '0', '1', '6') /* 32  Y/CbCr 4:2:0, 16 bits per channel */
+>  
+>  /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
+>  #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
+> @@ -558,6 +560,9 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_NV61M   v4l2_fourcc('N', 'M', '6', '1') /* 16  Y/CrCb 4:2:2  */
+>  #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
+>  #define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 16x16 macroblocks */
+> +#define V4L2_PIX_FMT_P010M   v4l2_fourcc('P', 'M', '1', '0') /* 32  Y/CbCr 4:2:0, 10 bits per channel */
+> +#define V4L2_PIX_FMT_P016M   v4l2_fourcc('P', 'M', '1', '6') /* 32  Y/CbCr 4:2:0, 16 bits per channel */
+> +#define V4L2_PIX_FMT_P010CM  v4l2_fourcc('C', 'M', '1', '0') /* 20  Y/CbCr 4:2:0, 10 bits per channel, compact format  */
+>  
+>  /* three planes - Y Cb, Cr */
+>  #define V4L2_PIX_FMT_YUV410  v4l2_fourcc('Y', 'U', 'V', '9') /*  9  YUV 4:1:0     */
+
+
+
+Thanks,
+Mauro
