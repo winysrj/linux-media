@@ -1,98 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:57391 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935255AbdD0Wmw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:42:52 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Michal Simek <michal.simek@xilinx.com>
-Subject: [PATCH v4 03/27] media: entity: Add media_entity_has_route() function
-Date: Fri, 28 Apr 2017 00:41:39 +0200
-Message-Id: <20170427224203.14611-4-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-sn1nam01on0109.outbound.protection.outlook.com ([104.47.32.109]:45121
+        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S932157AbdDQE7B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Apr 2017 00:59:01 -0400
+From: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
+Subject: Re: [PATCH v2 01/15] [dt-bindings] [media] Add document file for
+ CXD2880 SPI I/F
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
+ <20170414020041.16897-1-Yasunari.Takiguchi@sony.com>
+CC: "tbird20d@gmail.com" <tbird20d@gmail.com>,
+        "frowand.list@gmail.com" <frowand.list@gmail.com>,
+        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
+        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
+        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
+        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
+        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
+        <yasunari.takiguchi@sony.com>
+Message-ID: <c669e485-41b5-71fe-5ef6-f1a181c168e6@sony.com>
+Date: Mon, 17 Apr 2017 13:58:56 +0900
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170414020041.16897-1-Yasunari.Takiguchi@sony.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+> 
+> This is the document file for Sony CXD2880 DVB-T2/T tuner + demodulator.
+> It contains the description of the SPI adapter binding.
+> 
+> Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+> Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+> Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+> Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+> Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+> Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+No changes since version 1, I should have carried the ack forward:
 
-This is a wrapper around the media entity has_route operation.
+Acked-by: Rob Herring <robh@kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/media-entity.c | 16 ++++++++++++++++
- include/media/media-entity.h | 16 ++++++++++++++++
- 2 files changed, 32 insertions(+)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 5640ca29da8c9bbc..ccd991d2d3450ab3 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -244,6 +244,22 @@ EXPORT_SYMBOL_GPL(media_entity_pads_init);
-  * Graph traversal
-  */
- 
-+bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
-+			    unsigned int pad1)
-+{
-+	if (pad0 >= entity->num_pads || pad1 >= entity->num_pads)
-+		return false;
-+
-+	if (pad0 == pad1)
-+		return true;
-+
-+	if (!entity->ops || !entity->ops->has_route)
-+		return true;
-+
-+	return entity->ops->has_route(entity, pad0, pad1);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_has_route);
-+
- static struct media_entity *
- media_entity_other(struct media_entity *entity, struct media_link *link)
- {
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index bcb08c1f8c6265e8..b896827b4ebdfaa6 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -830,6 +830,22 @@ __must_check int media_graph_walk_init(
- 	struct media_graph *graph, struct media_device *mdev);
- 
- /**
-+ * media_entity_has_route - Check if two entity pads are connected internally
-+ *
-+ * @entity: The entity
-+ * @pad0: The first pad index
-+ * @pad1: The second pad index
-+ *
-+ * This function can be used to check whether two pads of an entity are
-+ * connected internally in the entity.
-+ *
-+ * The caller must hold entity->graph_obj.mdev->mutex.
-+ *
-+ * Return: true if the pads are connected internally and false otherwise.
-+ */
-+bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
-+			    unsigned int pad1);
-+/**
-  * media_graph_walk_cleanup - Release resources used by graph walk.
-  *
-  * @graph: Media graph structure that will be used to walk the graph
--- 
-2.12.2
+> ---
+>  .../devicetree/bindings/media/spi/sony-cxd2880.txt         | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt b/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+> new file mode 100644
+> index 000000000000..fc5aa263abe5
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+> @@ -0,0 +1,14 @@
+> +Sony CXD2880 DVB-T2/T tuner + demodulator driver SPI adapter
+> +
+> +Required properties:
+> +- compatible: Should be "sony,cxd2880".
+> +- reg: SPI chip select number for the device.
+> +- spi-max-frequency: Maximum bus speed, should be set to <55000000> (55MHz).
+> +
+> +Example:
+> +
+> +cxd2880@0 {
+> +	compatible = "sony,cxd2880";
+> +	reg = <0>; /* CE0 */
+> +	spi-max-frequency = <55000000>; /* 55MHz */
+> +};
+> 
+
+Takiguchi
