@@ -1,75 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.zeus03.de ([194.117.254.33]:48498 "EHLO mail.zeus03.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752270AbdDCK1Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Apr 2017 06:27:25 -0400
-Date: Mon, 3 Apr 2017 12:27:23 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Peter Rosin <peda@axentia.se>
-Cc: linux-kernel@vger.kernel.org,
-        Peter Korsgaard <peter.korsgaard@barco.com>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/9] Unify i2c_mux_add_adapter error reporting
-Message-ID: <20170403102722.GB2750@katana>
-References: <1491208718-32068-1-git-send-email-peda@axentia.se>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51751
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753810AbdDQTvi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Apr 2017 15:51:38 -0400
+Date: Mon, 17 Apr 2017 16:51:32 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] v4l: Document the practice of symmetrically calling
+ s_power(dev, 0/1)
+Message-ID: <20170417165132.18ab9fc5@vento.lan>
+In-Reply-To: <1489060485-15618-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1489060485-15618-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="CUfgB8w4ZwR/yMy5"
-Content-Disposition: inline
-In-Reply-To: <1491208718-32068-1-git-send-email-peda@axentia.se>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Thu,  9 Mar 2017 13:54:45 +0200
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
---CUfgB8w4ZwR/yMy5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> The caller must always call the s_power() op symmetrically powering the
+> device on and off. This is the practice albeit it was not documented. A
+> lot of sub-device drivers rely on it, so document it accordingly.
 
-On Mon, Apr 03, 2017 at 10:38:29AM +0200, Peter Rosin wrote:
-> Hi!
->=20
-> Many users of the i2c_mux_add_adapter interface log a message
-> on failure, but the function already logs such a message. One
-> or two of those users actually add more information than already
-> provided by the central failure message.
->=20
-> So, first fix the central error reporting to provide as much
-> information as any current user, and then remove the surplus
-> error reporting at the call sites.
+Actually, there are several non-embedded drivers that don't call s_power()
+symmetrically, as they use it just put a sub-device in standby mode.
+I remember some widely used tuners that has this behavior. Such subdevs
+automatically awaken when a command is issued to them (for example,
+requesting the tuner to tune into a channel).
 
-Yes, I like.
+If you're willing to change the kABI, you need first to patch such
+drivers.
 
-Reviewed-by: Wolfram Sang <wsa@the-dreams.de>
+Regards,
+Mauro
+
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  include/media/v4l2-subdev.h | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 0ab1c5d..b4e521d 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -172,8 +172,10 @@ struct v4l2_subdev_io_pin_config {
+>   *
+>   * @s_register: callback for %VIDIOC_G_REGISTER ioctl handler code.
+>   *
+> - * @s_power: puts subdevice in power saving mode (on == 0) or normal operation
+> - *	mode (on == 1).
+> + * @s_power: Puts subdevice in power saving mode (on == 0) or normal operation
+> + *	mode (on == 1). The caller is responsible for calling the op
+> + *	symmetrically, i.e. calling s_power(dev, 1) once requires later calling
+> + *	s_power(dev, 0) once.
+>   *
+>   * @interrupt_service_routine: Called by the bridge chip's interrupt service
+>   *	handler, when an interrupt status has be raised due to this subdev,
 
 
---CUfgB8w4ZwR/yMy5
-Content-Type: application/pgp-signature; name="signature.asc"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJY4iOKAAoJEBQN5MwUoCm2wg0P/3JCuM7Z98JlCLi1IsO64z+z
-mR+FRXYt+yHhH+RRNxJyCSD8O4nf/EietPa0WofCtLJ3c2ARZ0CWKqGcn1qngdY6
-sbIW4C0L4Q7xiPp0UblgiUDCMCtCRe+FXEMVyLR6577uTGA4LkK4JoIhjgO4KGTF
-4hwXyzBmQb/jgU4oQ6PrVFy5WqM1Xe4hFUoO0FyAvdNDcbsa4F9Ro7MreZjGXa8I
-fsrATdx+Mlgp4gB9iN5JTKP1dOMmv5a3HeM+KuG6bHuP40Li3RwCZUNlK52S/oDQ
-hvMshqK43PJPlvpq/GperEe8m0N1j6WfeGfPzwmEvhXsmAsYGS2kl8fcplcryG4t
-A+Q0ivfRD2D/x9ElHI9VUnqXi+RrtXJeJd7o9sVKTbQz5xowwIRwHyF9YmA7BE0U
-7PzazArDZBxDLK+jxCBq5NchLSf6E1OETBy+tlE0dk/wwUf84hiF/fXkbAEceNlI
-i2KM27EOilE4Mt4nScUycw92vEZN9h0uVrcvIAjyzle1GxDNe8rVTowf7YFPVRkN
-rVVhJrfdOhB43FBgvPaY5TZXTrFQhcPlgjMLSI8ZurU9CGcLrcEK8EYnUIFDLVuQ
-KX+ybgdJo1/LybV7dWKYB6fd0PqVB7S+7zynXP5l+ukAXRmgCDcwuaziQJgcrmF9
-M+9wQ6P9OnJG+Qd/VBW6
-=/LhN
------END PGP SIGNATURE-----
-
---CUfgB8w4ZwR/yMy5--
+Thanks,
+Mauro
