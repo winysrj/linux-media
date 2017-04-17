@@ -1,103 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.zeus03.de ([194.117.254.33]:48250 "EHLO mail.zeus03.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752328AbdDCK0u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Apr 2017 06:26:50 -0400
-Date: Mon, 3 Apr 2017 12:26:46 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Peter Rosin <peda@axentia.se>
-Cc: linux-kernel@vger.kernel.org,
-        Peter Korsgaard <peter.korsgaard@barco.com>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 9/9] [media] cx231xx: stop double error reporting
-Message-ID: <20170403102646.GA2750@katana>
-References: <1491208718-32068-1-git-send-email-peda@axentia.se>
- <1491208718-32068-10-git-send-email-peda@axentia.se>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45826 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752051AbdDQMsr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Apr 2017 08:48:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Daniel Axtens <dja@axtens.net>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/2] [media] uvcvideo: Kill video URBs on disconnect
+Date: Mon, 17 Apr 2017 15:49:46 +0300
+Message-ID: <9757129.ouSjzrobER@avalon>
+In-Reply-To: <20170417085240.12930-2-dja@axtens.net>
+References: <20170417085240.12930-1-dja@axtens.net> <20170417085240.12930-2-dja@axtens.net>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="tThc/1wpZn/ma/RB"
-Content-Disposition: inline
-In-Reply-To: <1491208718-32068-10-git-send-email-peda@axentia.se>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Daniel,
 
---tThc/1wpZn/ma/RB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thank you for the patch.
 
-On Mon, Apr 03, 2017 at 10:38:38AM +0200, Peter Rosin wrote:
-> i2c_mux_add_adapter already logs a message on failure.
->=20
-> Signed-off-by: Peter Rosin <peda@axentia.se>
+On Monday 17 Apr 2017 18:52:40 Daniel Axtens wrote:
+> When an in-use webcam is disconnected, I noticed the following
+> messages:
+> 
+>   uvcvideo: Failed to resubmit video URB (-19).
+> 
+> -19 is -ENODEV, which does make sense given that the device has
+> disappeared.
+> 
+> We could put a case for -ENODEV like we have with -ENOENT, -ECONNRESET
+> and -ESHUTDOWN, but the usb_unlink_urb() API documentation says that
+> 'The disconnect function should synchronize with a driver's I/O
+> routines to insure that all URB-related activity has completed before
+> it returns.' So we should make an effort to proactively kill URBs in
+> the disconnect path instead.
+> 
+> Call uvc_enable_video() (specifying 0 to disable) in the disconnect
+> path, which kills and frees URBs.
+> 
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Daniel Axtens <dja@axtens.net>
+> 
 > ---
->  drivers/media/usb/cx231xx/cx231xx-i2c.c | 15 ++++-----------
->  1 file changed, 4 insertions(+), 11 deletions(-)
->=20
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/=
-cx231xx/cx231xx-i2c.c
-> index 35e9acfe63d3..dff514e147da 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> @@ -576,17 +576,10 @@ int cx231xx_i2c_mux_create(struct cx231xx *dev)
-> =20
->  int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no)
->  {
-> -	int rc;
-> -
-> -	rc =3D i2c_mux_add_adapter(dev->muxc,
-> -				 0,
-> -				 mux_no /* chan_id */,
-> -				 0 /* class */);
-> -	if (rc)
-> -		dev_warn(dev->dev,
-> -			 "i2c mux %d register FAILED\n", mux_no);
-> -
-> -	return rc;
-> +	return i2c_mux_add_adapter(dev->muxc,
-> +				   0,
-> +				   mux_no /* chan_id */,
-> +				   0 /* class */);
+> 
+> Before this patch, yavta -c hangs when a camera is disconnected, but
+> with this patch it exits immediately after the camera is
+> disconnected. I'm not sure if this is acceptable - Laurent?
 
-Could be argued that the whole function is obsolete now and the
-c231xx-core can call i2c_mux_add_adapter() directly. But maybe this is a
-seperate patch.
+I assume that the error message is caused by a race between disconnection and 
+URB handling. When the device is disconnected I believe the USB core will 
+cancel all in-progress URBs (I'm not very familiar with that part of the USB 
+core anymore, so please don't consider this or any further related statement 
+as true without double-checking), resulting in the URB completion handler 
+being called with an error status. The completion handler should then avoid 
+resubmitting the URB. However, if the completion handler is in progress when 
+the device is disconnected, it won't notice that the device got disconnected, 
+and will try to resubmit the URB.
 
->  }
-> =20
->  void cx231xx_i2c_mux_unregister(struct cx231xx *dev)
-> --=20
-> 2.1.4
->=20
+I'm not sure to see how this patch will fix the problem. If the URB completion 
+handler is in progress when the device is being disconnected, won't it call 
+usb_submit_urb() regardless of whether you call usb_kill_urb() in the 
+disconnect handler, resulting in an error message being printed ?
 
---tThc/1wpZn/ma/RB
-Content-Type: application/pgp-signature; name="signature.asc"
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> b/drivers/media/usb/uvc/uvc_driver.c index 2390592f78e0..647e3d8a1256
+> 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -1877,6 +1877,8 @@ static void uvc_unregister_video(struct uvc_device
+> *dev) if (!video_is_registered(&stream->vdev))
+>  			continue;
+> 
+> +		uvc_video_enable(stream, 0);
+> +
+>  		video_unregister_device(&stream->vdev);
+> 
+>  		uvc_debugfs_cleanup_stream(stream);
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+-- 
+Regards,
 
-iQIcBAEBAgAGBQJY4iNlAAoJEBQN5MwUoCm2sbMP/R+uUIWP56gcLxJglfrRrEOT
-vI1ZGJhxSTNKmX8wllynWF+y+cVMH3wh4pR/lX6nvx1SWhAYrvoXWPSJyDWlb5wn
-mckYHav1xCHe3lTEDcyPqH5Er8ffpDjaNxmRZmmmot2jH9ett2LLwCTGdOoMc2xd
-IN9n2hiNiSRZIfHz/kVBcXldeFVMpwdF4XmtwL4VuW8X2sAhiU3aFFypJWCN57xM
-6Nj6MPJcNBlX0catYl22OzAyxQK10vWU+vpGgS5czxOW81dCYRBFHkLXVH40GEme
-mFfhSQEimRggBo5HZlKEHXI8+mUQdXWLueLGJNiLaLbF+gByNHKbkIPQKujqUk0A
-6z4gclhO7KSGGwk4XvziwVNCeYNi6dwmbZJ/TBVGi6anUKIWWO9U5DqM8dGbQQYD
-gbFzLH+ntAp3W2QzQ2/ws0h0tH6K5RLvw/FGmfdKUFYu8S8EUYHGkSvFqXr6zjcB
-p3wlx9t9eDICKhJGqgVaCorU9zAUZUxKFEh3TNpYaK/1M4AHIgAZdAZhqU6SHcty
-eAAHbSukO/POS3nt38FW/17N/0K5hJFqgAgMk0NrgzeboORnJaDUGBprlLB/JydD
-96qIQ2NhVrRj1oBMVSSzlmDYjC7Irp/KZOwybbYrQe3M4qVeCJ5hVzF1Y+pVTeCO
-UOj3YW3tZ9kTvRGBJ0zO
-=gZBA
------END PGP SIGNATURE-----
-
---tThc/1wpZn/ma/RB--
+Laurent Pinchart
