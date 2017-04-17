@@ -1,175 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:49938 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1952488AbdDYSVn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 14:21:43 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com
-Cc: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Apr 2017 12:20:48 -0600
-Message-Id: <1493144468-22493-2-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 01/21] scatterlist: Introduce sg_map helper functions
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:55324 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751030AbdDQETo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Apr 2017 00:19:44 -0400
+Message-ID: <2637aeeef8e1990e3abded83312f3f36@smtp-cloud3.xs4all.net>
+Date: Mon, 17 Apr 2017 06:19:42 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch introduces functions which kmap the pages inside an sgl.
-These functions replace a common pattern of kmap(sg_page(sg)) that is
-used in more than 50 places within the kernel.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The motivation for this work is to eventually safely support sgls that
-contain io memory. In order for that to work, any access to the contents
-of an iomem SGL will need to be done with iomemcpy or hit some warning.
-(The exact details of how this will work have yet to be worked out.)
-Having all the kmaps in one place is just a first step in that
-direction. Additionally, seeing this helps cut down the users of sg_page,
-it should make any effort to go to struct-page-less DMAs a little
-easier (should that idea ever swing back into favour again).
+Results of the daily build of media_tree:
 
-A flags option is added to select between a regular or atomic mapping so
-these functions can replace kmap(sg_page or kmap_atomic(sg_page.
-Future work may expand this to have flags for using page_address or
-vmap. We include a flag to require the function not to fail to
-support legacy code that has no easy error path. Much further in the
-future, there may be a flag to allocate memory and copy the data
-from/to iomem.
+date:			Mon Apr 17 05:00:17 CEST 2017
+media-tree git hash:	f2fe89061d79706eca5c47e4efdc09bbc171e74a
+media_build git hash:	868e526f855e7541884e713b8230e33bcdc0f4a5
+v4l-utils git hash:	b3f1cf6b85198e9da3029dcc20654ab7bb85c577
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-We also add the semantic that sg_map can fail to create a mapping,
-despite the fact that the current code this is replacing is assumed to
-never fail and the current version of these functions cannot fail. This
-is to support iomem which may either have to fail to create the mapping or
-allocate memory as a bounce buffer which itself can fail.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10.1-i686: OK
+linux-4.11-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-x86_64: WARNINGS
+linux-4.10.1-x86_64: WARNINGS
+linux-4.11-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-Also, in terms of cleanup, a few of the existing kmap(sg_page) users
-play things a bit loose in terms of whether they apply sg->offset
-so using these helper functions should help avoid such issues.
+Detailed results are available here:
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- include/linux/scatterlist.h | 85 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 85 insertions(+)
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index cb3c8fe..fad170b 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -5,6 +5,7 @@
- #include <linux/types.h>
- #include <linux/bug.h>
- #include <linux/mm.h>
-+#include <linux/highmem.h>
- #include <asm/io.h>
- 
- struct scatterlist {
-@@ -126,6 +127,90 @@ static inline struct page *sg_page(struct scatterlist *sg)
- 	return (struct page *)((sg)->page_link & ~0x3);
- }
- 
-+#define SG_KMAP		     (1 << 0)	/* create a mapping with kmap */
-+#define SG_KMAP_ATOMIC	     (1 << 1)	/* create a mapping with kmap_atomic */
-+#define SG_MAP_MUST_NOT_FAIL (1 << 2)	/* indicate sg_map should not fail */
-+
-+/**
-+ * sg_map - kmap a page inside an sgl
-+ * @sg:		SG entry
-+ * @offset:	Offset into entry
-+ * @flags:	Flags for creating the mapping
-+ *
-+ * Description:
-+ *   Use this function to map a page in the scatterlist at the specified
-+ *   offset. sg->offset is already added for you. Note: the semantics of
-+ *   this function are that it may fail. Thus, its output should be checked
-+ *   with IS_ERR and PTR_ERR. Otherwise, a pointer to the specified offset
-+ *   in the mapped page is returned.
-+ *
-+ *   Flags can be any of:
-+ *	* SG_KMAP		- Use kmap to create the mapping
-+ *	* SG_KMAP_ATOMIC	- Use kmap_atomic to map the page atommically.
-+ *				  Thus, the rules of that function apply: the
-+ *				  cpu may not sleep until it is unmaped.
-+ *	* SG_MAP_MUST_NOT_FAIL	- Indicate that sg_map must not fail.
-+ *				  If it does, it will issue a BUG_ON instead.
-+ *				  This is intended for legacy code only, it
-+ *				  is not to be used in new code.
-+ *
-+ *   Also, consider carefully whether this function is appropriate. It is
-+ *   largely not recommended for new code and if the sgl came from another
-+ *   subsystem and you don't know what kind of memory might be in the list
-+ *   then you definitely should not call it. Non-mappable memory may be in
-+ *   the sgl and thus this function may fail unexpectedly. Consider using
-+ *   sg_copy_to_buffer instead.
-+ **/
-+static inline void *sg_map(struct scatterlist *sg, size_t offset, int flags)
-+{
-+	struct page *pg;
-+	unsigned int pg_off;
-+	void *ret;
-+
-+	offset += sg->offset;
-+	pg = nth_page(sg_page(sg), offset >> PAGE_SHIFT);
-+	pg_off = offset_in_page(offset);
-+
-+	if (flags & SG_KMAP_ATOMIC)
-+		ret = kmap_atomic(pg) + pg_off;
-+	else if (flags & SG_KMAP)
-+		ret = kmap(pg) + pg_off;
-+	else
-+		ret = ERR_PTR(-EINVAL);
-+
-+	/*
-+	 * In theory, this can't happen yet. Once we start adding
-+	 * unmapable memory, it also shouldn't happen unless developers
-+	 * start putting unmappable struct pages in sgls and passing
-+	 * it to code that doesn't support it.
-+	 */
-+	BUG_ON(flags & SG_MAP_MUST_NOT_FAIL && IS_ERR(ret));
-+
-+	return ret;
-+}
-+
-+/**
-+ * sg_unmap - unmap a page that was mapped with sg_map_offset
-+ * @sg:		SG entry
-+ * @addr:	address returned by sg_map_offset
-+ * @offset:	Offset into entry (same as specified for sg_map)
-+ * @flags:	Flags, which are the same specified for sg_map
-+ *
-+ * Description:
-+ *   Unmap the page that was mapped with sg_map_offset
-+ **/
-+static inline void sg_unmap(struct scatterlist *sg, void *addr,
-+			    size_t offset, int flags)
-+{
-+	struct page *pg = nth_page(sg_page(sg), offset >> PAGE_SHIFT);
-+	unsigned int pg_off = offset_in_page(offset);
-+
-+	if (flags & SG_KMAP_ATOMIC)
-+		kunmap_atomic(addr - sg->offset - pg_off);
-+	else if (flags & SG_KMAP)
-+		kunmap(pg);
-+}
-+
- /**
-  * sg_set_buf - Set sg entry to point at given data
-  * @sg:		 SG entry
--- 
-2.1.4
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
