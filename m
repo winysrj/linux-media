@@ -1,134 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:36484 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753733AbdDRGoe (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:32998 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757065AbdDQI6C (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Apr 2017 02:44:34 -0400
-Received: by mail-wm0-f65.google.com with SMTP id q125so12721821wmd.3
-        for <linux-media@vger.kernel.org>; Mon, 17 Apr 2017 23:44:33 -0700 (PDT)
-Date: Tue, 18 Apr 2017 08:44:27 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
-        Steve Wise <swise@opengridcomputing.com>,
-        Stephen Bates <sbates@raithlin.com>
-Subject: Re: [PATCH 05/22] drm/i915: Make use of the new sg_map helper
- function
-Message-ID: <20170418064427.r5ewu3p66p2zwdru@phenom.ffwll.local>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
- <1492121135-4437-6-git-send-email-logang@deltatee.com>
+        Mon, 17 Apr 2017 04:58:02 -0400
+Received: by mail-pg0-f65.google.com with SMTP id 63so12621275pgh.0
+        for <linux-media@vger.kernel.org>; Mon, 17 Apr 2017 01:58:02 -0700 (PDT)
+From: Daniel Axtens <dja@axtens.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Greg KH <greg@kroah.com>
+Cc: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: uvcvideo logging kernel warnings on device disconnect
+In-Reply-To: <8113252.R6OEHK1FMB@avalon>
+References: <ab3241e7-c525-d855-ecb6-ba04dbdb030f@destevenson.freeserve.co.uk> <01726e81-bbc2-b9a0-b2f0-045e3208f7b2@destevenson.freeserve.co.uk> <20161221095954.GG27395@kroah.com> <8113252.R6OEHK1FMB@avalon>
+Date: Mon, 17 Apr 2017 18:57:57 +1000
+Message-ID: <87r30rv2ay.fsf@possimpible.ozlabs.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1492121135-4437-6-git-send-email-logang@deltatee.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 13, 2017 at 04:05:18PM -0600, Logan Gunthorpe wrote:
-> This is a single straightforward conversion from kmap to sg_map.
-> 
-> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Hi,
 
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+>> > I hate to pester, but wondered if you had found anything obvious.
+>> > I really do appreciate you taking the time to look.
+>> 
+>> Sorry, I haven't had the chance and now will not be able to until
+>> January....
+>
+> Did you mean January 2017 or 2018 ? :-)
 
-Probably makes sense to merge through some other tree, but please be aware
-of the considerable churn rate in i915 (i.e. make sure your tree is in
-linux-next before you send a pull request for this). Plane B would be to
-get the prep patch in first and then merge the i915 conversion one kernel
-release later.
--Daniel
+I stumbled across this problem independently, and with the help of some
+of the info on this thread (especially yavta), I have what I think is a
+solution: https://patchwork.kernel.org/patch/9683663/
 
-> ---
->  drivers/gpu/drm/i915/i915_gem.c | 27 ++++++++++++++++-----------
->  1 file changed, 16 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
-> index 67b1fc5..1b1b91a 100644
-> --- a/drivers/gpu/drm/i915/i915_gem.c
-> +++ b/drivers/gpu/drm/i915/i915_gem.c
-> @@ -2188,6 +2188,15 @@ static void __i915_gem_object_reset_page_iter(struct drm_i915_gem_object *obj)
->  		radix_tree_delete(&obj->mm.get_page.radix, iter.index);
->  }
->  
-> +static void i915_gem_object_unmap(const struct drm_i915_gem_object *obj,
-> +				  void *ptr)
-> +{
-> +	if (is_vmalloc_addr(ptr))
-> +		vunmap(ptr);
-> +	else
-> +		sg_unmap(obj->mm.pages->sgl, ptr, SG_KMAP);
-> +}
-> +
->  void __i915_gem_object_put_pages(struct drm_i915_gem_object *obj,
->  				 enum i915_mm_subclass subclass)
->  {
-> @@ -2215,10 +2224,7 @@ void __i915_gem_object_put_pages(struct drm_i915_gem_object *obj,
->  		void *ptr;
->  
->  		ptr = ptr_mask_bits(obj->mm.mapping);
-> -		if (is_vmalloc_addr(ptr))
-> -			vunmap(ptr);
-> -		else
-> -			kunmap(kmap_to_page(ptr));
-> +		i915_gem_object_unmap(obj, ptr);
->  
->  		obj->mm.mapping = NULL;
->  	}
-> @@ -2475,8 +2481,11 @@ static void *i915_gem_object_map(const struct drm_i915_gem_object *obj,
->  	void *addr;
->  
->  	/* A single page can always be kmapped */
-> -	if (n_pages == 1 && type == I915_MAP_WB)
-> -		return kmap(sg_page(sgt->sgl));
-> +	if (n_pages == 1 && type == I915_MAP_WB) {
-> +		addr = sg_map(sgt->sgl, SG_KMAP);
-> +		if (IS_ERR(addr))
-> +			return NULL;
-> +	}
->  
->  	if (n_pages > ARRAY_SIZE(stack_pages)) {
->  		/* Too big for stack -- allocate temporary array instead */
-> @@ -2543,11 +2552,7 @@ void *i915_gem_object_pin_map(struct drm_i915_gem_object *obj,
->  			goto err_unpin;
->  		}
->  
-> -		if (is_vmalloc_addr(ptr))
-> -			vunmap(ptr);
-> -		else
-> -			kunmap(kmap_to_page(ptr));
-> -
-> +		i915_gem_object_unmap(obj, ptr);
->  		ptr = obj->mm.mapping = NULL;
->  	}
->  
-> -- 
-> 2.1.4
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
-
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+Regards,
+Daniel
