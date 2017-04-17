@@ -1,117 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f44.google.com ([74.125.83.44]:33857 "EHLO
-        mail-pg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1423929AbdD2UWv (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48324
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1757049AbdDQBKd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Apr 2017 16:22:51 -0400
-Received: by mail-pg0-f44.google.com with SMTP id v1so29759364pgv.1
-        for <linux-media@vger.kernel.org>; Sat, 29 Apr 2017 13:22:51 -0700 (PDT)
-Date: Sat, 29 Apr 2017 13:22:47 -0700
-From: Bjorn Andersson <bjorn.andersson@linaro.org>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andy Gross <andy.gross@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Subject: Re: [PATCH v8 05/10] media: venus: adding core part and helper
- functions
-Message-ID: <20170429202247.GV15143@minitux>
-References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
- <1493370837-19793-6-git-send-email-stanimir.varbanov@linaro.org>
- <20170428220245.GA3283@jcrouse-lnx.qualcomm.com>
+        Sun, 16 Apr 2017 21:10:33 -0400
+Subject: Re: [PATCH] arm: dma: fix sharing of coherent DMA memory without
+ struct page
+To: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Marek Szyprowski <m.szyprowski@samsung.com>
+References: <CGME20170405160251epcas4p14cc5d5f6064c84b133b9e280ac987a93@epcas4p1.samsung.com>
+ <20170405160242.14195-1-shuahkh@osg.samsung.com>
+ <e49715a3-b925-79ad-7d1d-ce2cb5673a97@samsung.com>
+ <3afd77e5-2a98-42fd-b5c9-cbf4c32baa4f@osg.samsung.com>
+ <6d0c3e3c-8d1b-89bb-1392-6ffc7d8073c1@samsung.com>
+ <20170414094643.GG17774@n2100.armlinux.org.uk>
+Cc: gregkh@linuxfoundation.org, pawel@osciak.com,
+        kyungmin.park@samsung.com, mchehab@kernel.org, will.deacon@arm.com,
+        Robin.Murphy@arm.com, jroedel@suse.de, bart.vanassche@sandisk.com,
+        gregory.clement@free-electrons.com, acourbot@nvidia.com,
+        festevam@gmail.com, krzk@kernel.org,
+        niklas.soderlund+renesas@ragnatech.se, sricharan@codeaurora.org,
+        dledford@redhat.com, vinod.koul@intel.com,
+        andrew.smirnov@gmail.com, mauricfo@linux.vnet.ibm.com,
+        alexander.h.duyck@intel.com, sagi@grimberg.me,
+        ming.l@ssi.samsung.com, martin.petersen@oracle.com,
+        javier@dowhile0.org, javier@osg.samsung.com,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <4c51bf1a-00cb-84bb-f661-6bb6c83d8134@osg.samsung.com>
+Date: Sun, 16 Apr 2017 19:10:21 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170428220245.GA3283@jcrouse-lnx.qualcomm.com>
+In-Reply-To: <20170414094643.GG17774@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 28 Apr 15:02 PDT 2017, Jordan Crouse wrote:
-
-> On Fri, Apr 28, 2017 at 12:13:52PM +0300, Stanimir Varbanov wrote:
-> > +int venus_boot(struct device *parent, struct device *fw_dev)
-> > +{
-> > +	const struct firmware *mdt;
-> > +	phys_addr_t mem_phys;
-> > +	ssize_t fw_size;
-> > +	size_t mem_size;
-> > +	void *mem_va;
-> > +	int ret;
-> > +
-> > +	if (!qcom_scm_is_available())
-> > +		return -EPROBE_DEFER;
-> > +
-> > +	fw_dev->parent = parent;
-> > +	fw_dev->release = device_release_dummy;
-> > +
-> > +	ret = dev_set_name(fw_dev, "%s:%s", dev_name(parent), "firmware");
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	ret = device_register(fw_dev);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	ret = of_reserved_mem_device_init_by_idx(fw_dev, parent->of_node, 0);
-> > +	if (ret)
-> > +		goto err_unreg_device;
-> > +
-> > +	mem_size = VENUS_FW_MEM_SIZE;
-> > +
-> > +	mem_va = dmam_alloc_coherent(fw_dev, mem_size, &mem_phys, GFP_KERNEL);
-> > +	if (!mem_va) {
-> > +		ret = -ENOMEM;
-> > +		goto err_unreg_device;
-> > +	}
-> > +
-> > +	ret = request_firmware(&mdt, VENUS_FIRMWARE_NAME, fw_dev);
-> > +	if (ret < 0)
-> > +		goto err_unreg_device;
-> > +
-> > +	fw_size = qcom_mdt_get_size(mdt);
-> > +	if (fw_size < 0) {
-> > +		ret = fw_size;
-> > +		release_firmware(mdt);
-> > +		goto err_unreg_device;
-> > +	}
-> > +
-> > +	ret = qcom_mdt_load(fw_dev, mdt, VENUS_FIRMWARE_NAME, VENUS_PAS_ID,
-> > +			    mem_va, mem_phys, mem_size);
-> > +
-> > +	release_firmware(mdt);
-> > +
-> > +	if (ret)
-> > +		goto err_unreg_device;
-> > +
-> > +	ret = qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
-> > +	if (ret)
-> > +		goto err_unreg_device;
-> > +
-> > +	return 0;
-> > +
-> > +err_unreg_device:
-> > +	device_unregister(fw_dev);
-> > +	return ret;
-> > +}
+On 04/14/2017 03:46 AM, Russell King - ARM Linux wrote:
+> On Fri, Apr 14, 2017 at 09:56:07AM +0200, Marek Szyprowski wrote:
+>>>> This would be however quite large task, especially taking into account
+>>>> all current users of DMA-buf framework...
+>>> Yeah it will be a large task.
+>>
+>> Maybe once scatterlist are switched to pfns, changing dmabuf internal
+>> memory representation to pfn array might be much easier.
 > 
-> Hey, this looks familiar - almost line for line identical to what we'll need to
-> do for GPU.
+> Switching to a PFN array won't work either as we have no cross-arch
+> way to translate PFNs to a DMA address and vice versa.  Yes, we have
+> them in ARM, but they are an _implementation detail_ of ARM's
+> DMA API support, they are not for use by drivers.
 > 
-> Bjorn - Is this enough to qualify for generic status in the mdt_loader code?
-> I know its just two consumers, but it would save 50 or 60 lines of code between
-> the two drivers and be easier to maintain.
+> So, the very first problem that needs solving is this:
 > 
+>   How do we go from a coherent DMA allocation for device X to a set
+>   of DMA addresses for device Y.
+> 
+> Essentially, we need a way of remapping the DMA buffer for use with
+> another device, and returning a DMA address suitable for that device.
+> This could well mean that we need to deal with setting up an IOMMU
+> mapping.  My guess is that this needs to happen at the DMA coherent
+> API level - the DMA coherent API needs to be augmented with support
+> for this.  I'll call this "DMA coherent remap".
+> 
+> We then need to think about how to pass this through the dma-buf API.
+> dma_map_sg() is done by the exporter, who should know what kind of
+> memory is being exported.  The exporter can avoid calling dma_map_sg()
+> if it knows in advance that it is exporting DMA coherent memory.
+> Instead, the exporter can simply create a scatterlist with the DMA
+> address and DMA length prepopulated with the results of the DMA
+> coherent remap operation above.
 
-I think the code setting up the struct device for memory allocation
-should be done during probe of the parent, so that I don't think should
-be shared.
+The only way to conclusively say that it is coming from coherent area
+is at the time it is getting allocated in dma_alloc_from_coherent().
+Since dma_alloc_attrs() will go on to find memory from other areas if
+dma_alloc_from_coherent() doesn't allocate memory.
 
-The part that allocates memory from a device, loads the mdt into that
-memory and calls auth_and_reset() sounds like a useful thing to move to
-the mdt_loader.c
+dma_get_sgtable_attrs() is what is used by the exporter to create the
+sg_table. One way to do this cleanly without needing to check buffer
+type flags would be to add a set of sg_table ops: get_sgtable,
+map_sg, and unmap_sg. Sounds like sg_table interfaces need to be in
+dma_buf_ops level. More below.
 
-Regards,
-Bjorn
+> 
+> What the scatterlist can't carry in this case is a set of valid
+> struct page pointers, and an importer must not walk the scatterlist
+> expecting to get at the virtual address parameters or struct page
+> pointers.
+> 
+> On the mmap() side of things, remember that DMA coherent allocations
+> may require special mapping into userspace, and which can only be
+> mapped by the DMA coherent mmap support.  kmap etc will also need to
+> be different.  So it probably makes sense for DMA coherent dma-buf
+> exports to use a completely separate set of dma_buf_ops from the
+> streaming version.
+
+How about adding get_sgtable, map_sg, unmap_sg to dma_buf_ops. The right
+ops need to be installed based on buffer type. As I mentioned before, we
+don't know which memory we got until dma_alloc_from_coherent() finds
+memory in dev->mem area. So how about using the dma_check_dev_coherent()
+to determine which ops we need. These could be set based on buffer type.
+vb2_dc_get_dmabuf() can do that.
+
+I think this will work.
+
+thanks,
+-- Shuah
