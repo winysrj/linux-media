@@ -1,63 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55803 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752144AbdDJKvb (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52214 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756376AbdDRJFJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 06:51:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Daniel Roschka <danielroschka@phoenitydawn.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Quirk for webcam in MacBook Pro 2016
-Date: Mon, 10 Apr 2017 13:52:21 +0300
-Message-ID: <9504811.tIhrXQ8rYn@avalon>
-In-Reply-To: <2780663.rcqhCkWply@buzzard>
-References: <4643839.ui0SUBUoba@buzzard> <2780663.rcqhCkWply@buzzard>
+        Tue, 18 Apr 2017 05:05:09 -0400
+Date: Tue, 18 Apr 2017 11:05:05 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v6 17/39] platform: add video-multiplexer subdevice driver
+Message-ID: <20170418090505.GA25414@amd>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+ <1490661656-10318-18-git-send-email-steve_longerbeam@mentor.com>
+ <20170404124732.GD3288@valkosipuli.retiisi.org.uk>
+ <1492091578.2383.39.camel@pengutronix.de>
+ <20170414203216.GA10920@amd>
+ <1492502989.2432.23.camel@pengutronix.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="FL5UXtIhxfXey3p5"
+Content-Disposition: inline
+In-Reply-To: <1492502989.2432.23.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
 
-On Sunday 09 Apr 2017 19:43:22 Daniel Roschka wrote:
-> Hi Laurent,
-> 
-> I don't want to sound impatient, but I as I don't know what your usual
-> reaction times to patches are and already waited three weeks without any
-> reaction, I kindly want to ask, if you already had a chance to look into
-> this patch and consider it for inclusion into your tree?
+--FL5UXtIhxfXey3p5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thank you for pinging me, the patch was indeed buried under a pile of other e-
-mails :-)
+Hi!
 
-Your mail client (or server, I don't know) mangled the patch by replacing tabs 
-with spaces. As the patch is short I've fixed this manually, but next time 
-please try to fix the issue on your side.
+> That self-referencing mux-controls property looks a bit superfluous:
+>=20
+> 	mux: video-multiplexer {
+> 		mux-controls =3D <&mux>;
+> 	};
+>=20
+> Other than that, I'm completely fine with splitting the compatible into
+> something like video-mux-gpio and video-mux-mmio and reusing the
+> mux-gpios property for video-mux-gpio.
 
-Another small issue is that the commit message should be wrapped at 72 
-columns. Depending on the text editor you use, git commit usually does that 
-automatically for you.
+Agreed, I overseen that.
 
-I've also added a "uvcvideo: " prefix to the subject line, otherwise short git 
-logs wouldn't be very clear. As a rule of thumb, your subject line should 
-contain enough information to understand which driver the patch relates to, 
-and what it does.
+> > You should be able to use code in drivers/mux as a library...
+>=20
+> This is a good idea in principle, but this requires some rework of the
+> mux subsystem, and that subsystem hasn't even landed yet. For now I'd
+> like to focus on getting the DT bindings right.
+>=20
+> I'd honestly prefer to not add this rework as a requirement for the i.MX
+> media drivers to get into staging.
 
-Your patch is now in my git tree, and I will push it upstream for v4.13 (v4.11 
-will be released very soon, and given the pending pull requests for v4.12 in 
-the Linux media tree I don't think I can add another one).
+Hmm. staging/ normally accepts code with bigger design problems than
+that.
 
-I collect USB descriptors for UVC devices. Could you please send me the output 
-of
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-lsusb -d 05ac:8600
+--FL5UXtIhxfXey3p5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-if possible running as root ?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Thank you for your contribution !
+iEYEARECAAYFAlj11sEACgkQMOfwapXb+vJbDwCgopEMFgzPpbEIC0BHU9TwyS1c
+NWYAnjd4KGUl40C8oLHre+PEbMM25sc+
+=pmAS
+-----END PGP SIGNATURE-----
 
--- 
-Regards,
-
-Laurent Pinchart
+--FL5UXtIhxfXey3p5--
