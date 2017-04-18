@@ -1,82 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48906 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937789AbdD0M1N (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 08:27:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] uvcvideo: Add iFunction or iInterface to device names.
-Date: Thu, 27 Apr 2017 15:28:18 +0300
-Message-Id: <20170427122818.13146-3-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <20170427122818.13146-1-laurent.pinchart@ideasonboard.com>
-References: <20170427122818.13146-1-laurent.pinchart@ideasonboard.com>
+Received: from ale.deltatee.com ([207.54.116.67]:53585 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753138AbdDRP73 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Apr 2017 11:59:29 -0400
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+ <1492121135-4437-17-git-send-email-logang@deltatee.com>
+ <063D6719AE5E284EB5DD2968C1650D6DCFFD3CD7@AcuExch.aculab.com>
+ <20170418142723.GA27133@char.us.oracle.com>
+ <7930aa93-6106-e12f-ba76-e2771d4ec2dc@deltatee.com>
+ <20170418155020.GF12001@char.us.oracle.com>
+Cc: David Laight <David.Laight@ACULAB.COM>,
+        xen-devel@lists.xensource.com, Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
+        Tejun Heo <tj@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>,
+        "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
+        "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>,
+        "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
+        "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>,
+        "megaraidlinux.pdl@broadcom.com" <megaraidlinux.pdl@broadcom.com>,
+        "sparmaintainer@unisys.com" <sparmaintainer@unisys.com>,
+        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>,
+        Steve Wise <swise@opengridcomputing.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <bed54c06-eb00-e682-8a50-236ebb9c1db4@deltatee.com>
+Date: Tue, 18 Apr 2017 09:59:09 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170418155020.GF12001@char.us.oracle.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH 16/22] xen-blkfront: Make use of the new sg_map helper
+ function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Boström <pbos@google.com>
 
-Permits distinguishing between two /dev/videoX entries from the same
-physical UVC device (that naturally share the same iProduct name).
 
-This change matches current Windows behavior by prioritizing iFunction
-over iInterface, but unlike Windows it displays both iProduct and
-iFunction/iInterface strings when both are available.
+On 18/04/17 09:50 AM, Konrad Rzeszutek Wilk wrote:
+> I am not sure if you know, but you can add on each patch the respective
+> maintainer via 'CC'. That way you can have certain maintainers CCed only
+> on the subsystems they cover. You put it after (or before) your SoB and
+> git send-email happilly picks it up.
 
-Signed-off-by: Peter Boström <pbos@google.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_driver.c | 25 ++++++++++++++++++++++---
- 1 file changed, 22 insertions(+), 3 deletions(-)
+Yes, but I've seen some maintainers complain when they receive a patch
+with no context (ie. cover letter and first patch). So I chose to do it
+this way. I expect in this situation, no matter what you do, someone is
+going to complain about the approach chosen.
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 602256ffe14d..70842c5af05b 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -2013,6 +2013,7 @@ static int uvc_probe(struct usb_interface *intf,
- {
- 	struct usb_device *udev = interface_to_usbdev(intf);
- 	struct uvc_device *dev;
-+	int function;
- 	int ret;
- 
- 	if (id->idVendor && id->idProduct)
-@@ -2044,9 +2045,27 @@ static int uvc_probe(struct usb_interface *intf,
- 		strlcpy(dev->name, udev->product, sizeof dev->name);
- 	else
- 		snprintf(dev->name, sizeof dev->name,
--			"UVC Camera (%04x:%04x)",
--			le16_to_cpu(udev->descriptor.idVendor),
--			le16_to_cpu(udev->descriptor.idProduct));
-+			 "UVC Camera (%04x:%04x)",
-+			 le16_to_cpu(udev->descriptor.idVendor),
-+			 le16_to_cpu(udev->descriptor.idProduct));
-+
-+	/*
-+	 * Add iFunction or iInterface to names when available as additional
-+	 * distinguishers between interfaces. iFunction is prioritized over
-+	 * iInterface which matches Windows behavior at the point of writing.
-+	 */
-+	if (intf->intf_assoc && intf->intf_assoc->iFunction != 0)
-+		function = intf->intf_assoc->iFunction;
-+	else
-+		function = intf->cur_altsetting->desc.iInterface;
-+	if (function != 0) {
-+		size_t len;
-+
-+		strlcat(dev->name, ": ", sizeof(dev->name));
-+		len = strlen(dev->name);
-+		usb_string(udev, function, dev->name + len,
-+			   sizeof(dev->name) - len);
-+	}
- 
- 	/* Parse the Video Class control descriptor. */
- 	if (uvc_parse_control(dev) < 0) {
--- 
-Regards,
+Thanks anyway for the tip.
 
-Laurent Pinchart
+Logan
