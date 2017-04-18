@@ -1,81 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38538 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1172870AbdDXOrz (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:23729 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753052AbdDRO3u (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Apr 2017 10:47:55 -0400
-Date: Mon, 24 Apr 2017 17:47:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] Order the Makefile alphabetically
-Message-ID: <20170424144721.GT7456@valkosipuli.retiisi.org.uk>
-References: <20170406144051.13008-1-maxime.ripard@free-electrons.com>
- <20170419081538.38272ae6@vento.lan>
- <20170421144125.dnahmsnsjj2h6drv@lukather>
- <20170421121055.3c2b3f70@vento.lan>
+        Tue, 18 Apr 2017 10:29:50 -0400
+Date: Tue, 18 Apr 2017 10:27:23 -0400
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+To: David Laight <David.Laight@ACULAB.COM>,
+        xen-devel@lists.xensource.com
+Cc: "'Logan Gunthorpe'" <logang@deltatee.com>,
+        Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
+        Tejun Heo <tj@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Ming Lin <ming.l@ssi.samsung.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>,
+        "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
+        "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>,
+        "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
+        "fcoe-devel@open-fcoe.org" <fcoe-devel@open-fcoe.org>,
+        "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>,
+        "megaraidlinux.pdl@broadcom.com" <megaraidlinux.pdl@broadcom.com>,
+        "sparmaintainer@unisys.com" <sparmaintainer@unisys.com>,
+        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>,
+        Steve Wise <swise@opengridcomputing.com>
+Subject: Re: [PATCH 16/22] xen-blkfront: Make use of the new sg_map helper
+ function
+Message-ID: <20170418142723.GA27133@char.us.oracle.com>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+ <1492121135-4437-17-git-send-email-logang@deltatee.com>
+ <063D6719AE5E284EB5DD2968C1650D6DCFFD3CD7@AcuExch.aculab.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170421121055.3c2b3f70@vento.lan>
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6DCFFD3CD7@AcuExch.aculab.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro and Maxime,
+On Tue, Apr 18, 2017 at 02:13:59PM +0000, David Laight wrote:
+> From: Logan Gunthorpe
+> > Sent: 13 April 2017 23:05
+> > Straightforward conversion to the new helper, except due to
+> > the lack of error path, we have to warn if unmapable memory
+> > is ever present in the sgl.
 
-On Fri, Apr 21, 2017 at 12:11:05PM -0300, Mauro Carvalho Chehab wrote:
-> Em Fri, 21 Apr 2017 16:41:25 +0200
-> Maxime Ripard <maxime.ripard@free-electrons.com> escreveu:
-> 
-> > On Wed, Apr 19, 2017 at 08:15:45AM -0300, Mauro Carvalho Chehab wrote:
-> > > Em Thu,  6 Apr 2017 16:40:51 +0200
-> > > Maxime Ripard <maxime.ripard@free-electrons.com> escreveu:
-> > >   
-> > > > The Makefiles were a free for all without a clear order defined. Sort all the
-> > > > options based on the Kconfig symbol.
-> > > > 
-> > > > Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
-> > > > 
-> > > > ---
-> > > > 
-> > > > Hi Mauro,
-> > > > 
-> > > > Here is my makefile ordering patch again, this time with all the Makefiles
-> > > > in drivers/media that needed ordering.
-> > > > 
-> > > > Since we're already pretty late in the release period, I guess there won't
-> > > > be any major conflicts between now and the merge window.
-> > > >   
-> > > 
-> > > The thing with patches like that is that they almost never apply fine.
-> > > By the time I review such patches, it was already broken. Also,
-> > > once applied, it breaks for everybody that have pending work to merge.
-> > > 
-> > > This patch is broken (see attached).
-> > > 
-> > > So, I prefer not applying stuff like that.  
+Interesting that you didn't CC any of the maintainers. Could you 
+do that in the future please?
+
 > > 
-> > I had the feeling that now would have been a good time to merge it,
-> > since all the PR should be merged I guess. But ok.
+> > Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+> > ---
+> >  drivers/block/xen-blkfront.c | 33 +++++++++++++++++++++++++++------
+> >  1 file changed, 27 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+> > index 5067a0a..7dcf41d 100644
+> > --- a/drivers/block/xen-blkfront.c
+> > +++ b/drivers/block/xen-blkfront.c
+> > @@ -807,8 +807,19 @@ static int blkif_queue_rw_req(struct request *req, struct blkfront_ring_info *ri
+> >  		BUG_ON(sg->offset + sg->length > PAGE_SIZE);
+> > 
+> >  		if (setup.need_copy) {
+> > -			setup.bvec_off = sg->offset;
+> > -			setup.bvec_data = kmap_atomic(sg_page(sg));
+> > +			setup.bvec_off = 0;
+> > +			setup.bvec_data = sg_map(sg, SG_KMAP_ATOMIC);
+> > +			if (IS_ERR(setup.bvec_data)) {
+> > +				/*
+> > +				 * This should really never happen unless
+> > +				 * the code is changed to use memory that is
+> > +				 * not mappable in the sg. Seeing there is a
+> > +				 * questionable error path out of here,
+> > +				 * we WARN.
+> > +				 */
+> > +				WARN(1, "Non-mappable memory used in sg!");
+> > +				return 1;
+> > +			}
+> ...
 > 
-> No, there are drivers that were late-submitted, and whose commit
-> (if driver gets accepted) will be after -rc1. If this patch gets 
-> applied, those drivers will have merge conflicts. There are also
-> the cases where people have drivers under development. If they pull
-> from my tree after a change like that, the developer will get
-> conflicts.
-
-Resolving a single conflict in a Makefile is certainly not unfeasible.
-Generally it'd be good to prioritise cleanups.
-
-When would it be a good time to get such changes in? Right in the beginning
-of the next merge window in media tree?
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> Perhaps add a flag to mark failure as 'unexpected' and trace (and panic?)
+> inside sg_map().
+> 
+> 	David
+> 
+> 
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
