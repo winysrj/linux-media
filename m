@@ -1,86 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:32967 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1033886AbdD1QqF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 12:46:05 -0400
-Date: Fri, 28 Apr 2017 18:46:02 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH 6/6] rc-core: add protocol to EVIOC[GS]KEYCODE_V2 ioctl
-Message-ID: <20170428164602.gdq7vw47soxfw3wl@hardeman.nu>
-References: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
- <149332526341.32431.11307248841385136294.stgit@zeus.hardeman.nu>
- <20170428114053.GA21792@gofer.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170428114053.GA21792@gofer.mess.org>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:34535 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756651AbdDRJa3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Apr 2017 05:30:29 -0400
+Message-ID: <1492507819.2432.53.camel@pengutronix.de>
+Subject: Re: [PATCH 40/40] media: imx: set and propagate empty field,
+ colorimetry params
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: gregkh@linuxfoundation.org, mchehab@kernel.org,
+        rmk+kernel@armlinux.org.uk, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Tue, 18 Apr 2017 11:30:19 +0200
+In-Reply-To: <3dc391ff-685e-8d76-1e9c-9725c397bee2@gmail.com>
+References: <7d836723-dc01-2cea-f794-901b632ce46e@gmail.com>
+         <1492044337-11324-1-git-send-email-steve_longerbeam@mentor.com>
+         <1492078154.2383.21.camel@pengutronix.de>
+         <3dc391ff-685e-8d76-1e9c-9725c397bee2@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 28, 2017 at 12:40:53PM +0100, Sean Young wrote:
->On Thu, Apr 27, 2017 at 10:34:23PM +0200, David Härdeman wrote:
-...
->> This patch changes how the "input_keymap_entry" struct is interpreted
->> by rc-core by casting it to "rc_keymap_entry":
->> 
->> struct rc_scancode {
->> 	__u16 protocol;
->> 	__u16 reserved[3];
->> 	__u64 scancode;
->> }
->> 
->> struct rc_keymap_entry {
->> 	__u8  flags;
->> 	__u8  len;
->> 	__u16 index;
->> 	__u32 keycode;
->> 	union {
->> 		struct rc_scancode rc;
->> 		__u8 raw[32];
->> 	};
->> };
->> 
->> The u64 scancode member is large enough for all current protocols and it
->> would be possible to extend it in the future should it be necessary for
->> some exotic protocol.
->> 
->> The main advantage with this change is that the protocol is made explicit,
->> which means that we're not throwing away data (the protocol type).
->> 
->> This also means that struct rc_map no longer hardcodes the protocol, meaning
->> that keytables with mixed entries are possible.
->> 
->> Heuristics are also added to hopefully do the right thing with older
->> ioctls in order to preserve backwards compatibility.
->
->The current ioctls do not provide any protocol information, so they should
->continue to match any protocol. Those heuristics aren't good enough.
->
->Another way of doing is to have a bitmask of protocols, and default to
->RC_BIT_ALL for current ioctls.
+On Thu, 2017-04-13 at 09:40 -0700, Steve Longerbeam wrote:
+[...]
+> >> @@ -804,12 +804,29 @@ static void prp_try_fmt(struct prp_priv *priv,
+> >>  					      &sdformat->format.height,
+> >>  					      infmt->height / 4, MAX_H_SRC,
+> >>  					      H_ALIGN_SRC, S_ALIGN);
+> >> +
+> >> +		/*
+> >> +		 * The Image Converter produces fixed quantization
+> >> +		 * (full range for RGB, limited range for YUV), and
+> >> +		 * uses a fixed Y`CbCr encoding (V4L2_YCBCR_ENC_601).
+> >> +		 * For colorspace and transfer func, just propagate
+> >> +		 * from the sink.
+> >> +		 */
+> >> +		sdformat->format.quantization =
+> >> +			((*cc)->cs != IPUV3_COLORSPACE_YUV) ?
+> >> +			V4L2_QUANTIZATION_FULL_RANGE :
+> >> +			V4L2_QUANTIZATION_LIM_RANGE;
+> >> +		sdformat->format.ycbcr_enc = V4L2_YCBCR_ENC_601;
+> >
+> > Support for V4L2_YCBCR_ENC_709 and quantization options could be added
+> > to the IPUv3 core code, so this limitation could be relaxed later.
+> 
+> Yes, I was going to mention that too. We can add coefficient tables
+> to ipu-ic for all the encodings enumerated in enum v4l2_ycbcr_encoding.
 
-I've been mulling that approach as well, but slightly different. My
-alternative approach is based on repurposing RC_TYPE_UNKNOWN as a kind
-of catch-all which will match any scancode. I'll post a patch showing
-the alternative approach straight away.
+Exactly.
 
->> Note that the heuristics are not 100% guaranteed to get things right.
->> That is unavoidable since the protocol information simply isn't there
->> when userspace calls the previous ioctl() types.
->> 
->> However, that is somewhat mitigated by the fact that the "only"
->> userspace binary which might need to change is ir-keytable. Userspace
->> programs which simply consume input events (i.e. the vast majority)
->> won't have to change.
->
->For this to be accepted we would need ir-keytable changes too so it can
->be tested.
+> I know that quantization is programmable in the DP, but is it in the
+> IC? AFAICT there is none.
 
-I know. But I'll postpone those patches until we have more of a
-consensus on the right approach to take.
+We have a freely programmable 4x3 matrix multiplication both before and
+after processing in each task, and there is a saturation mode switch
+that can limit the first component to (16...235) and the other two to
+(16...240). That should be enough for at least full/limited range YCbCr
+quantizations. So we apparently can't saturate to limited range RGB, but
+for example full-range -> limited-range RGB conversions should be
+perfectly possible.
 
--- 
-David Härdeman
+regards
+Philipp
