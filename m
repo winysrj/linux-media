@@ -1,119 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:32859 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754634AbdDLTfN (ORCPT
+Received: from mail-qt0-f173.google.com ([209.85.216.173]:33907 "EHLO
+        mail-qt0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932617AbdDRS2C (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Apr 2017 15:35:13 -0400
-Received: by mail-wm0-f65.google.com with SMTP id o81so8553190wmb.0
-        for <linux-media@vger.kernel.org>; Wed, 12 Apr 2017 12:35:12 -0700 (PDT)
-Subject: [PATCH v2 2/5] media: rc: meson-ir: make use of the bitfield macros
-From: Heiner Kallweit <hkallweit1@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sean Young <sean@mess.org>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Neil Armstrong <narmstrong@baylibre.com>
-Cc: linux-media@vger.kernel.org, linux-amlogic@lists.infradead.org
-References: <d5c18dbb-e86a-6b1c-1410-d6cc92dce711@gmail.com>
-Message-ID: <db9bf493-ae70-e4e0-68c6-d825a7bd939c@gmail.com>
-Date: Wed, 12 Apr 2017 21:30:48 +0200
+        Tue, 18 Apr 2017 14:28:02 -0400
+Received: by mail-qt0-f173.google.com with SMTP id c45so1153497qtb.1
+        for <linux-media@vger.kernel.org>; Tue, 18 Apr 2017 11:28:02 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCHv4 12/12] staging/android: Update Ion TODO list
+Date: Tue, 18 Apr 2017 11:27:14 -0700
+Message-Id: <1492540034-5466-13-git-send-email-labbott@redhat.com>
+In-Reply-To: <1492540034-5466-1-git-send-email-labbott@redhat.com>
+References: <1492540034-5466-1-git-send-email-labbott@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <d5c18dbb-e86a-6b1c-1410-d6cc92dce711@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make use of the bitfield macros thus partially hiding the complexity
-of dealing with bitfields.
+Most of the items have been taken care of by a clean up series. Remove
+the completed items and add a few new ones.
 
-The patch also includes a minor fix to REG0_RATE_MASK, so far it was
-set to bit 0..10, but according to the spec it's bit 0..11.
-
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
-Reviewed-by: Neil Armstrong <narmstrong@baylibre.com>
+Signed-off-by: Laura Abbott <labbott@redhat.com>
 ---
-v2:
-- revert change in meson_ir_set_mask
-- add R-b
----
- drivers/media/rc/meson-ir.c | 26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
+ drivers/staging/android/TODO | 21 ++++-----------------
+ 1 file changed, 4 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
-index a4128d7c..3864ebe3 100644
---- a/drivers/media/rc/meson-ir.c
-+++ b/drivers/media/rc/meson-ir.c
-@@ -19,6 +19,7 @@
- #include <linux/of_platform.h>
- #include <linux/platform_device.h>
- #include <linux/spinlock.h>
-+#include <linux/bitfield.h>
+diff --git a/drivers/staging/android/TODO b/drivers/staging/android/TODO
+index 8f3ac37..5f14247 100644
+--- a/drivers/staging/android/TODO
++++ b/drivers/staging/android/TODO
+@@ -7,23 +7,10 @@ TODO:
  
- #include <media/rc-core.h>
  
-@@ -36,27 +37,24 @@
- /* only available on Meson 8b and newer */
- #define IR_DEC_REG2		0x20
+ ion/
+- - Remove ION_IOC_SYNC: Flushing for devices should be purely a kernel internal
+-   interface on top of dma-buf. flush_for_device needs to be added to dma-buf
+-   first.
+- - Remove ION_IOC_CUSTOM: Atm used for cache flushing for cpu access in some
+-   vendor trees. Should be replaced with an ioctl on the dma-buf to expose the
+-   begin/end_cpu_access hooks to userspace.
+- - Clarify the tricks ion plays with explicitly managing coherency behind the
+-   dma api's back (this is absolutely needed for high-perf gpu drivers): Add an
+-   explicit coherency management mode to flush_for_device to be used by drivers
+-   which want to manage caches themselves and which indicates whether cpu caches
+-   need flushing.
+- - With those removed there's probably no use for ION_IOC_IMPORT anymore either
+-   since ion would just be the central allocator for shared buffers.
+- - Add dt-binding to expose cma regions as ion heaps, with the rule that any
+-   such cma regions must already be used by some device for dma. I.e. ion only
+-   exposes existing cma regions and doesn't reserve unecessarily memory when
+-   booting a system which doesn't use ion.
++ - Add dt-bindings for remaining heaps (chunk and carveout heaps). This would
++   involve putting appropriate bindings in a memory node for Ion to find.
++ - Split /dev/ion up into multiple nodes (e.g. /dev/ion/heap0)
++ - Better test framework (integration with VGEM was suggested)
  
--#define REG0_RATE_MASK		(BIT(11) - 1)
-+#define REG0_RATE_MASK		GENMASK(11, 0)
- 
- #define DECODE_MODE_NEC		0x0
- #define DECODE_MODE_RAW		0x2
- 
- /* Meson 6b uses REG1 to configure the mode */
- #define REG1_MODE_MASK		GENMASK(8, 7)
--#define REG1_MODE_SHIFT		7
- 
- /* Meson 8b / GXBB use REG2 to configure the mode */
- #define REG2_MODE_MASK		GENMASK(3, 0)
--#define REG2_MODE_SHIFT		0
- 
--#define REG1_TIME_IV_SHIFT	16
--#define REG1_TIME_IV_MASK	((BIT(13) - 1) << REG1_TIME_IV_SHIFT)
-+#define REG1_TIME_IV_MASK	GENMASK(28, 16)
- 
--#define REG1_IRQSEL_MASK	(BIT(2) | BIT(3))
--#define REG1_IRQSEL_NEC_MODE	(0 << 2)
--#define REG1_IRQSEL_RISE_FALL	(1 << 2)
--#define REG1_IRQSEL_FALL	(2 << 2)
--#define REG1_IRQSEL_RISE	(3 << 2)
-+#define REG1_IRQSEL_MASK	GENMASK(3, 2)
-+#define REG1_IRQSEL_NEC_MODE	0
-+#define REG1_IRQSEL_RISE_FALL	1
-+#define REG1_IRQSEL_FALL	2
-+#define REG1_IRQSEL_RISE	3
- 
- #define REG1_RESET		BIT(0)
- #define REG1_ENABLE		BIT(15)
-@@ -91,7 +89,7 @@ static irqreturn_t meson_ir_irq(int irqno, void *dev_id)
- 	spin_lock(&ir->lock);
- 
- 	duration = readl(ir->reg + IR_DEC_REG1);
--	duration = (duration & REG1_TIME_IV_MASK) >> REG1_TIME_IV_SHIFT;
-+	duration = FIELD_GET(REG1_TIME_IV_MASK, duration);
- 	rawir.duration = US_TO_NS(duration * MESON_TRATE);
- 
- 	rawir.pulse = !!(readl(ir->reg + IR_DEC_STATUS) & STATUS_IR_DEC_IN);
-@@ -170,16 +168,16 @@ static int meson_ir_probe(struct platform_device *pdev)
- 	/* Set general operation mode (= raw/software decoding) */
- 	if (of_device_is_compatible(node, "amlogic,meson6-ir"))
- 		meson_ir_set_mask(ir, IR_DEC_REG1, REG1_MODE_MASK,
--				  DECODE_MODE_RAW << REG1_MODE_SHIFT);
-+				  FIELD_PREP(REG1_MODE_MASK, DECODE_MODE_RAW));
- 	else
- 		meson_ir_set_mask(ir, IR_DEC_REG2, REG2_MODE_MASK,
--				  DECODE_MODE_RAW << REG2_MODE_SHIFT);
-+				  FIELD_PREP(REG2_MODE_MASK, DECODE_MODE_RAW));
- 
- 	/* Set rate */
- 	meson_ir_set_mask(ir, IR_DEC_REG0, REG0_RATE_MASK, MESON_TRATE - 1);
- 	/* IRQ on rising and falling edges */
- 	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_IRQSEL_MASK,
--			  REG1_IRQSEL_RISE_FALL);
-+			  FIELD_PREP(REG1_IRQSEL_MASK, REG1_IRQSEL_RISE_FALL));
- 	/* Enable the decoder */
- 	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, REG1_ENABLE);
- 
+ Please send patches to Greg Kroah-Hartman <greg@kroah.com> and Cc:
+ Arve Hjønnevåg <arve@android.com> and Riley Andrews <riandrews@android.com>
 -- 
-2.12.2
+2.7.4
