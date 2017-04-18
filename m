@@ -1,89 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:57506 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032581AbdD0Wm4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:42:56 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v4 18/27] rcar-vin: add flag to switch to media controller mode
-Date: Fri, 28 Apr 2017 00:41:54 +0200
-Message-Id: <20170427224203.14611-19-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from foss.arm.com ([217.140.101.70]:59272 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757488AbdDRRfP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Apr 2017 13:35:15 -0400
+Date: Tue, 18 Apr 2017 18:35:07 +0100
+From: Brian Starkey <brian.starkey@arm.com>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        liviu.dudau@arm.com, laurent.pinchart@ideasonboard.com,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/6] drm: writeback: Add out-fences for writeback
+ connectors
+Message-ID: <20170418173507.GB325@e106950-lin.cambridge.arm.com>
+References: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
+ <1480092544-1725-3-git-send-email-brian.starkey@arm.com>
+ <20170414121114.6e6eee7a@bbrezillon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <20170414121114.6e6eee7a@bbrezillon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 a media controller API needs to be used to allow userspace to
-configure the subdevices in the pipeline instead of directly controlling
-a single source subdevice, which is and will continue to be the mode of
-operation on Gen2.
+On Fri, Apr 14, 2017 at 12:11:14PM +0200, Boris Brezillon wrote:
+>On Fri, 25 Nov 2016 16:49:00 +0000
+>Brian Starkey <brian.starkey@arm.com> wrote:
+>
+>> Add the OUT_FENCE_PTR property to writeback connectors, to enable
+>> userspace to get a fence which will signal once the writeback is
+>> complete. It is not allowed to request an out-fence without a
+>> framebuffer attached to the connector.
+>>
+>> A timeline is added to drm_writeback_connector for use by the writeback
+>> out-fences.
+>>
+>> In the case of a commit failure or DRM_MODE_ATOMIC_TEST_ONLY, the fence
+>> is set to -1.
+>>
+>> Changes from v2:
+>>  - Rebase onto Gustavo Padovan's v9 explicit sync series
+>>  - Change out_fence_ptr type to s32 __user *
+>
+>Don't know what happened, but I still see s32 __user * types in this
+>patch (I had to patch it to make in work on top of 4.11-rc1).
 
-Prepare for these two modes of operation by adding a flag to struct
-rvin_graph_entity which will control which mode to use.
+Yeah this really confused me too when rebasing. Given that this patch
+predates Gustavo's change to s32 I can only assume I typo'd and meant
+s64 in this commit message.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 3 +++
- drivers/media/platform/rcar-vin/rcar-vin.h  | 2 ++
- 2 files changed, 5 insertions(+)
-
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index adc38696a0ba70b9..8b30d8d3ec7d9c04 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -261,18 +261,21 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
- 
- static const struct rvin_info rcar_info_h1 = {
- 	.chip = RCAR_H1,
-+	.use_mc = false,
- 	.max_width = 2048,
- 	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_m1 = {
- 	.chip = RCAR_M1,
-+	.use_mc = false,
- 	.max_width = 2048,
- 	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_gen2 = {
- 	.chip = RCAR_GEN2,
-+	.use_mc = false,
- 	.max_width = 2048,
- 	.max_height = 2048,
- };
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index b1cd0abba9ca9c94..512e67fdefd15015 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -77,12 +77,14 @@ struct rvin_graph_entity {
- /**
-  * struct rvin_info- Information about the particular VIN implementation
-  * @chip:		type of VIN chip
-+ * @use_mc:		use media controller instead of controlling subdevice
-  *
-  * max_width:		max input width the VIN supports
-  * max_height:		max input height the VIN supports
-  */
- struct rvin_info {
- 	enum chip_id chip;
-+	bool use_mc;
- 
- 	unsigned int max_width;
- 	unsigned int max_height;
--- 
-2.12.2
+-Brian
