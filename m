@@ -1,60 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40692 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752286AbdDLMq7 (ORCPT
+Received: from mail-qt0-f182.google.com ([209.85.216.182]:34682 "EHLO
+        mail-qt0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753042AbdDRRZG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Apr 2017 08:46:59 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Helen Koike <helen.koike@collabora.co.uk>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.12] Add vimc virtual test driver
-Message-ID: <80c7b873-e8fe-c3e5-d414-4ef2a5257405@xs4all.nl>
-Date: Wed, 12 Apr 2017 14:46:54 +0200
+        Tue, 18 Apr 2017 13:25:06 -0400
+Received: by mail-qt0-f182.google.com with SMTP id c45so131059039qtb.1
+        for <linux-media@vger.kernel.org>; Tue, 18 Apr 2017 10:25:06 -0700 (PDT)
+From: =?UTF-8?q?Peter=20Bostr=C3=B6m?= <pbos@google.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+        =?UTF-8?q?Peter=20Bostr=C3=B6m?= <pbos@google.com>
+Subject: [PATCH v3] [media] uvcvideo: Add iFunction or iInterface to device names.
+Date: Tue, 18 Apr 2017 13:24:54 -0400
+Message-Id: <20170418172454.24465-1-pbos@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Finally merge this for 4.12.
+Permits distinguishing between two /dev/videoX entries from the same
+physical UVC device (that naturally share the same iProduct name).
 
-Regards,
+This change matches current Windows behavior by prioritizing iFunction
+over iInterface, but unlike Windows it displays both iProduct and
+iFunction/iInterface strings when both are available.
 
-	Hans
+Signed-off-by: Peter Boström <pbos@google.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
-The following changes since commit 4aed35ca73f6d9cfd5f7089ba5d04f5fb8623080:
-
-  [media] v4l2-tpg: don't clamp XV601/709 to lim range (2017-04-10 14:58:06 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git vimc
-
-for you to fetch changes up to 32d8d75a9af8c1169a33f8e1231f871459d1e4f0:
-
-  vimc: Virtual Media Controller core, capture and sensor (2017-04-12 14:43:13 +0200)
-
-----------------------------------------------------------------
-Helen Koike (1):
-      vimc: Virtual Media Controller core, capture and sensor
-
- MAINTAINERS                                |   8 +
- drivers/media/platform/Kconfig             |   2 +
- drivers/media/platform/Makefile            |   1 +
- drivers/media/platform/vimc/Kconfig        |  14 ++
- drivers/media/platform/vimc/Makefile       |   3 +
- drivers/media/platform/vimc/vimc-capture.c | 498 +++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/vimc/vimc-capture.h |  28 +++
- drivers/media/platform/vimc/vimc-core.c    | 695 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/vimc/vimc-core.h    | 112 ++++++++++
- drivers/media/platform/vimc/vimc-sensor.c  | 276 +++++++++++++++++++++++
- drivers/media/platform/vimc/vimc-sensor.h  |  28 +++
- 11 files changed, 1665 insertions(+)
- create mode 100644 drivers/media/platform/vimc/Kconfig
- create mode 100644 drivers/media/platform/vimc/Makefile
- create mode 100644 drivers/media/platform/vimc/vimc-capture.c
- create mode 100644 drivers/media/platform/vimc/vimc-capture.h
- create mode 100644 drivers/media/platform/vimc/vimc-core.c
- create mode 100644 drivers/media/platform/vimc/vimc-core.h
- create mode 100644 drivers/media/platform/vimc/vimc-sensor.c
- create mode 100644 drivers/media/platform/vimc/vimc-sensor.h
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 04bf35063c4c..5676d916933d 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1998,6 +1998,7 @@ static int uvc_probe(struct usb_interface *intf,
+ {
+ 	struct usb_device *udev = interface_to_usbdev(intf);
+ 	struct uvc_device *dev;
++	int additional_name;
+ 	int ret;
+ 
+ 	if (id->idVendor && id->idProduct)
+@@ -2029,9 +2030,26 @@ static int uvc_probe(struct usb_interface *intf,
+ 		strlcpy(dev->name, udev->product, sizeof dev->name);
+ 	else
+ 		snprintf(dev->name, sizeof dev->name,
+-			"UVC Camera (%04x:%04x)",
+-			le16_to_cpu(udev->descriptor.idVendor),
+-			le16_to_cpu(udev->descriptor.idProduct));
++			 "UVC Camera (%04x:%04x)",
++			 le16_to_cpu(udev->descriptor.idVendor),
++			 le16_to_cpu(udev->descriptor.idProduct));
++
++	/*
++	 * Add iFunction or iInterface to names when available as additional
++	 * distinguishers between interfaces. iFunction is prioritized over
++	 * iInterface which matches Windows behavior at the point of writing.
++	 */
++	additional_name = intf->cur_altsetting->desc.iInterface;
++	if (intf->intf_assoc && intf->intf_assoc->iFunction != 0)
++		additional_name = intf->intf_assoc->iFunction;
++	if (additional_name != 0) {
++		size_t len;
++
++		strlcat(dev->name, ": ", sizeof(dev->name));
++		len = strlen(dev->name);
++		usb_string(udev, additional_name, dev->name + len,
++			   sizeof(dev->name) - len);
++	}
+ 
+ 	/* Parse the Video Class control descriptor. */
+ 	if (uvc_parse_control(dev) < 0) {
+-- 
+2.12.2.816.g2cccc81164-goog
