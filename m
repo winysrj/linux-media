@@ -1,67 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:51227 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752623AbdDJT1S (ORCPT
+Received: from mail-qt0-f174.google.com ([209.85.216.174]:34926 "EHLO
+        mail-qt0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756622AbdDRS1r (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 15:27:18 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 11/15] vidioc-queryctrl.rst: document V4L2_CTRL_FLAG_MODIFY_LAYOUT
-Date: Mon, 10 Apr 2017 21:26:47 +0200
-Message-Id: <20170410192651.18486-12-hverkuil@xs4all.nl>
-In-Reply-To: <20170410192651.18486-1-hverkuil@xs4all.nl>
-References: <20170410192651.18486-1-hverkuil@xs4all.nl>
+        Tue, 18 Apr 2017 14:27:47 -0400
+Received: by mail-qt0-f174.google.com with SMTP id y33so1110186qta.2
+        for <linux-media@vger.kernel.org>; Tue, 18 Apr 2017 11:27:46 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCHv4 06/12] staging: android: ion: Get rid of ion_phys_addr_t
+Date: Tue, 18 Apr 2017 11:27:08 -0700
+Message-Id: <1492540034-5466-7-git-send-email-labbott@redhat.com>
+In-Reply-To: <1492540034-5466-1-git-send-email-labbott@redhat.com>
+References: <1492540034-5466-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Once upon a time, phys_addr_t was not everywhere in the kernel. These
+days it is used enough places that having a separate Ion type doesn't
+make sense. Remove the extra type and just use phys_addr_t directly.
 
-Document this new control flag.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laura Abbott <labbott@redhat.com>
 ---
- Documentation/media/uapi/v4l/vidioc-queryctrl.rst | 13 +++++++++++++
- Documentation/media/videodev2.h.rst.exceptions    |  1 +
- 2 files changed, 14 insertions(+)
+ drivers/staging/android/ion/ion.h               | 12 ++----------
+ drivers/staging/android/ion/ion_carveout_heap.c | 10 +++++-----
+ drivers/staging/android/ion/ion_chunk_heap.c    |  6 +++---
+ drivers/staging/android/ion/ion_heap.c          |  4 ++--
+ 4 files changed, 12 insertions(+), 20 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-index 82769de801b1..1ffdc3f3c614 100644
---- a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-@@ -507,6 +507,19 @@ See also the examples in :ref:`control`.
- 	represents an action on the hardware. For example: clearing an
- 	error flag or triggering the flash. All the controls of the type
- 	``V4L2_CTRL_TYPE_BUTTON`` have this flag set.
-+    * .. _FLAG_MODIFY_LAYOUT:
-+
-+      - ``V4L2_CTRL_FLAG_MODIFY_LAYOUT``
-+      - 0x0400
-+      - Changing this control value may modify the layout of the
-+        buffer (for video devices) or the media bus format (for sub-devices).
-+
-+	A typical example would be the ``V4L2_CID_ROTATE`` control.
-+
-+	Note that typically controls with this flag will also set the
-+	``V4L2_CTRL_FLAG_GRABBED`` flag when buffers are allocated or
-+	streaming is in progress since most drivers do not support changing
-+	the format in that case.
+diff --git a/drivers/staging/android/ion/ion.h b/drivers/staging/android/ion/ion.h
+index 3b4bff5..e8a6ffe 100644
+--- a/drivers/staging/android/ion/ion.h
++++ b/drivers/staging/android/ion/ion.h
+@@ -28,14 +28,6 @@ struct ion_mapper;
+ struct ion_client;
+ struct ion_buffer;
  
+-/*
+- * This should be removed some day when phys_addr_t's are fully
+- * plumbed in the kernel, and all instances of ion_phys_addr_t should
+- * be converted to phys_addr_t.  For the time being many kernel interfaces
+- * do not accept phys_addr_t's that would have to
+- */
+-#define ion_phys_addr_t unsigned long
+-
+ /**
+  * struct ion_platform_heap - defines a heap in the given platform
+  * @type:	type of the heap from ion_heap_type enum
+@@ -53,9 +45,9 @@ struct ion_platform_heap {
+ 	enum ion_heap_type type;
+ 	unsigned int id;
+ 	const char *name;
+-	ion_phys_addr_t base;
++	phys_addr_t base;
+ 	size_t size;
+-	ion_phys_addr_t align;
++	phys_addr_t align;
+ 	void *priv;
+ };
  
- Return Value
-diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-index c9c611b18ba1..a5cb0a8686ac 100644
---- a/Documentation/media/videodev2.h.rst.exceptions
-+++ b/Documentation/media/videodev2.h.rst.exceptions
-@@ -341,6 +341,7 @@ replace define V4L2_CTRL_FLAG_WRITE_ONLY control-flags
- replace define V4L2_CTRL_FLAG_VOLATILE control-flags
- replace define V4L2_CTRL_FLAG_HAS_PAYLOAD control-flags
- replace define V4L2_CTRL_FLAG_EXECUTE_ON_WRITE control-flags
-+replace define V4L2_CTRL_FLAG_MODIFY_LAYOUT control-flags
+diff --git a/drivers/staging/android/ion/ion_carveout_heap.c b/drivers/staging/android/ion/ion_carveout_heap.c
+index e0e360f..1419a89 100644
+--- a/drivers/staging/android/ion/ion_carveout_heap.c
++++ b/drivers/staging/android/ion/ion_carveout_heap.c
+@@ -30,10 +30,10 @@
+ struct ion_carveout_heap {
+ 	struct ion_heap heap;
+ 	struct gen_pool *pool;
+-	ion_phys_addr_t base;
++	phys_addr_t base;
+ };
  
- replace define V4L2_CTRL_FLAG_NEXT_CTRL control
- replace define V4L2_CTRL_FLAG_NEXT_COMPOUND control
+-static ion_phys_addr_t ion_carveout_allocate(struct ion_heap *heap,
++static phys_addr_t ion_carveout_allocate(struct ion_heap *heap,
+ 					     unsigned long size)
+ {
+ 	struct ion_carveout_heap *carveout_heap =
+@@ -46,7 +46,7 @@ static ion_phys_addr_t ion_carveout_allocate(struct ion_heap *heap,
+ 	return offset;
+ }
+ 
+-static void ion_carveout_free(struct ion_heap *heap, ion_phys_addr_t addr,
++static void ion_carveout_free(struct ion_heap *heap, phys_addr_t addr,
+ 			      unsigned long size)
+ {
+ 	struct ion_carveout_heap *carveout_heap =
+@@ -63,7 +63,7 @@ static int ion_carveout_heap_allocate(struct ion_heap *heap,
+ 				      unsigned long flags)
+ {
+ 	struct sg_table *table;
+-	ion_phys_addr_t paddr;
++	phys_addr_t paddr;
+ 	int ret;
+ 
+ 	table = kmalloc(sizeof(*table), GFP_KERNEL);
+@@ -96,7 +96,7 @@ static void ion_carveout_heap_free(struct ion_buffer *buffer)
+ 	struct ion_heap *heap = buffer->heap;
+ 	struct sg_table *table = buffer->sg_table;
+ 	struct page *page = sg_page(table->sgl);
+-	ion_phys_addr_t paddr = PFN_PHYS(page_to_pfn(page));
++	phys_addr_t paddr = PFN_PHYS(page_to_pfn(page));
+ 
+ 	ion_heap_buffer_zero(buffer);
+ 
+diff --git a/drivers/staging/android/ion/ion_chunk_heap.c b/drivers/staging/android/ion/ion_chunk_heap.c
+index 46e13f6..606f25f 100644
+--- a/drivers/staging/android/ion/ion_chunk_heap.c
++++ b/drivers/staging/android/ion/ion_chunk_heap.c
+@@ -27,7 +27,7 @@
+ struct ion_chunk_heap {
+ 	struct ion_heap heap;
+ 	struct gen_pool *pool;
+-	ion_phys_addr_t base;
++	phys_addr_t base;
+ 	unsigned long chunk_size;
+ 	unsigned long size;
+ 	unsigned long allocated;
+@@ -151,8 +151,8 @@ struct ion_heap *ion_chunk_heap_create(struct ion_platform_heap *heap_data)
+ 	chunk_heap->heap.ops = &chunk_heap_ops;
+ 	chunk_heap->heap.type = ION_HEAP_TYPE_CHUNK;
+ 	chunk_heap->heap.flags = ION_HEAP_FLAG_DEFER_FREE;
+-	pr_debug("%s: base %lu size %zu \n", __func__,
+-		 chunk_heap->base, heap_data->size);
++	pr_debug("%s: base %pa size %zu \n", __func__,
++		 &chunk_heap->base, heap_data->size);
+ 
+ 	return &chunk_heap->heap;
+ 
+diff --git a/drivers/staging/android/ion/ion_heap.c b/drivers/staging/android/ion/ion_heap.c
+index 66f8fc5..c974623 100644
+--- a/drivers/staging/android/ion/ion_heap.c
++++ b/drivers/staging/android/ion/ion_heap.c
+@@ -345,9 +345,9 @@ struct ion_heap *ion_heap_create(struct ion_platform_heap *heap_data)
+ 	}
+ 
+ 	if (IS_ERR_OR_NULL(heap)) {
+-		pr_err("%s: error creating heap %s type %d base %lu size %zu\n",
++		pr_err("%s: error creating heap %s type %d base %pa size %zu\n",
+ 		       __func__, heap_data->name, heap_data->type,
+-		       heap_data->base, heap_data->size);
++		       &heap_data->base, heap_data->size);
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 
 -- 
-2.11.0
+2.7.4
