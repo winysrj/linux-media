@@ -1,78 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f174.google.com ([209.85.216.174]:33062 "EHLO
-        mail-qt0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751662AbdDJRUr (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:36747 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755494AbdDRIL1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 13:20:47 -0400
-Received: by mail-qt0-f174.google.com with SMTP id m36so9343537qtb.0
-        for <linux-media@vger.kernel.org>; Mon, 10 Apr 2017 10:20:46 -0700 (PDT)
-Subject: Re: [PATCHv3 00/22] Ion clean up in preparation in moving out of
- staging
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-References: <1491245884-15852-1-git-send-email-labbott@redhat.com>
- <20170408103821.GA12084@kroah.com>
- <b1a52f74-a089-96c1-a6b9-5f4eb3d28f8b@redhat.com>
- <20170410162555.GA9534@kroah.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        devel@driverdev.osuosl.org, romlem@google.com,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-        Mark Brown <broonie@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-From: Laura Abbott <labbott@redhat.com>
-Message-ID: <6d03f9e8-0e02-384f-69e3-66217ae95850@redhat.com>
-Date: Mon, 10 Apr 2017 10:20:41 -0700
-MIME-Version: 1.0
-In-Reply-To: <20170410162555.GA9534@kroah.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+        Tue, 18 Apr 2017 04:11:27 -0400
+Message-ID: <1492502989.2432.23.camel@pengutronix.de>
+Subject: Re: [PATCH v6 17/39] platform: add video-multiplexer subdevice
+ driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Tue, 18 Apr 2017 10:09:49 +0200
+In-Reply-To: <20170414203216.GA10920@amd>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+         <1490661656-10318-18-git-send-email-steve_longerbeam@mentor.com>
+         <20170404124732.GD3288@valkosipuli.retiisi.org.uk>
+         <1492091578.2383.39.camel@pengutronix.de> <20170414203216.GA10920@amd>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/10/2017 09:25 AM, Greg Kroah-Hartman wrote:
-> On Mon, Apr 10, 2017 at 09:20:27AM -0700, Laura Abbott wrote:
->> On 04/08/2017 03:38 AM, Greg Kroah-Hartman wrote:
->>> On Mon, Apr 03, 2017 at 11:57:42AM -0700, Laura Abbott wrote:
->>>> Hi,
->>>>
->>>> This is v3 of the series to do some serious Ion cleanup in preparation for
->>>> moving out of staging. I didn't hear much on v2 so I'm going to assume
->>>> people are okay with the series as is. I know there were still some open
->>>> questions about moving away from /dev/ion but in the interest of small
->>>> steps I'd like to go ahead and merge this series assuming there are no more
->>>> major objections. More work can happen on top of this.
->>>
->>> I've applied patches 3-11 as those were independant of the CMA changes.
->>> I'd like to take the rest, including the CMA changes, but I need an ack
->>> from someone dealing with the -mm tree before I can do that.
->>>
->>> Or, if they just keep ignoring it, I guess I can take them :)
->>>
->>> thanks,
->>>
->>> greg k-h
->>>
->>
->> Thanks. I'll send out some nag e-mails asking for Acks. If I don't get
->> any, I'll resend the rest of the series after the 4.12 merge window.
-> 
-> Why so long?  This series has been sent a bunch, if no one responds in a
-> week, I'll be glad to take them all in my tree :)
-> 
-> thanks,
-> 
-> greg k-h
-> 
+Hi Pavel,
 
-Ideally I'd like some confirmation that at least someone other than
-myself thinks it's a good idea but I know mm review bandwidth has
-been a topic of discussion so maybe silence is the best I can get.
-If you pick it up and nobody objects, I guess I won't object either :)
+On Fri, 2017-04-14 at 22:32 +0200, Pavel Machek wrote:
+> Hi!
+> 
+> > > The MUX framework is already in linux-next. Could you use that instead of
+> > > adding new driver + bindings that are not compliant with the MUX framework?
+> > > I don't think it'd be much of a change in terms of code, using the MUX
+> > > framework appears quite simple.
+> > 
+> > It is not quite clear to me how to design the DT bindings for this. Just
+> > splitting the video-multiplexer driver from the mux-mmio / mux-gpio
+> > would make it necessary to keep the video-multiplexer node to describe
+> > the of-graph bindings. But then we have two different nodes in the DT
+> > that describe the same hardware:
+> > 
+> > 	mux: mux {
+> > 		compatible = "mux-gpio";
+> > 		mux-gpios = <&gpio 0>, <&gpio 1>;
+> > 		#mux-control-cells = <0>;
+> > 	}
+> > 
+> > 	video-multiplexer {
+> > 		compatible = "video-multiplexer"
+> > 		mux-controls = <&mux>;
+> > 
+> > 		ports {
+> > 			/* ... */
+> > 		}
+> > 	}
+> > 
+> > It would feel more natural to have the ports in the mux node, but then
+> > how would the video-multiplexer driver be instanciated, and how would it
+> > get to the of-graph nodes?
+> 
+> Device tree representation and code used to implement the muxing
+> driver should be pretty independend, no? Yes, one piece of hardware
+> should have one entry in the device tree,
 
-Thanks,
-Laura
+I agree.
+
+>  so it should be something like:
+> 
+>  	video-multiplexer {
+>  		compatible = "video-multiplexer-gpio"	
+>  		mux-gpios = <&gpio 0>, <&gpio 1>;
+>  		#mux-control-cells = <0>;
+> 
+>  		mux-controls = <&mux>;
+>  
+>  		ports {
+>  			/* ... */
+>  		}
+>  	}
+
+That self-referencing mux-controls property looks a bit superfluous:
+
+	mux: video-multiplexer {
+		mux-controls = <&mux>;
+	};
+
+Other than that, I'm completely fine with splitting the compatible into
+something like video-mux-gpio and video-mux-mmio and reusing the
+mux-gpios property for video-mux-gpio.
+
+> You should be able to use code in drivers/mux as a library...
+
+This is a good idea in principle, but this requires some rework of the
+mux subsystem, and that subsystem hasn't even landed yet. For now I'd
+like to focus on getting the DT bindings right.
+
+I'd honestly prefer to not add this rework as a requirement for the i.MX
+media drivers to get into staging.
+
+regards
+Philipp
