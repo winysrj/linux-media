@@ -1,253 +1,349 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56180
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S970713AbdDZLNs (ORCPT
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:36751 "EHLO
+        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757297AbdDRS1i (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Apr 2017 07:13:48 -0400
-Date: Wed, 26 Apr 2017 08:13:38 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [patch] propagating controls in libv4l2 was Re: support
- autofocus / autogain in libv4l2
-Message-ID: <20170426081330.6ca10e42@vento.lan>
-In-Reply-To: <20170426105300.GA857@amd>
-References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
-        <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
-        <20170414232332.63850d7b@vento.lan>
-        <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
-        <20170419105118.72b8e284@vento.lan>
-        <20170424093059.GA20427@amd>
-        <20170424103802.00d3b554@vento.lan>
-        <20170424212914.GA20780@amd>
-        <20170424224724.5bb52382@vento.lan>
-        <20170426105300.GA857@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Tue, 18 Apr 2017 14:27:38 -0400
+Received: by mail-qk0-f174.google.com with SMTP id d131so1123296qkc.3
+        for <linux-media@vger.kernel.org>; Tue, 18 Apr 2017 11:27:38 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCHv4 05/12] staging: android: ion: Break the ABI in the name of forward progress
+Date: Tue, 18 Apr 2017 11:27:07 -0700
+Message-Id: <1492540034-5466-6-git-send-email-labbott@redhat.com>
+In-Reply-To: <1492540034-5466-1-git-send-email-labbott@redhat.com>
+References: <1492540034-5466-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Several of the Ion ioctls were designed in such a way that they
+necessitate compat ioctls. We're breaking a bunch of other ABIs and
+cleaning stuff up anyway so let's follow the ioctl guidelines and clean
+things up while everyone is busy converting things over anyway. As part
+of this, also remove the useless alignment field from the allocation
+structure.
 
-Em Wed, 26 Apr 2017 12:53:00 +0200
-Pavel Machek <pavel@ucw.cz> escreveu:
+Signed-off-by: Laura Abbott <labbott@redhat.com>
+---
+ drivers/staging/android/ion/Makefile     |   3 -
+ drivers/staging/android/ion/compat_ion.c | 152 -------------------------------
+ drivers/staging/android/ion/compat_ion.h |  29 ------
+ drivers/staging/android/ion/ion-ioctl.c  |   1 -
+ drivers/staging/android/ion/ion.c        |   5 +-
+ drivers/staging/android/uapi/ion.h       |  19 ++--
+ 6 files changed, 11 insertions(+), 198 deletions(-)
+ delete mode 100644 drivers/staging/android/ion/compat_ion.c
+ delete mode 100644 drivers/staging/android/ion/compat_ion.h
 
-> Hi!
-> 
-> > > > IMO, the best place for autofocus is at libv4l2. Putting it on a
-> > > > separate "video server" application looks really weird for me.    
-> > > 
-> > > Well... let me see. libraries are quite limited -- it is hard to open
-> > > files, or use threads/have custom main loop. It may be useful to
-> > > switch resolutions -- do autofocus/autogain at lower resolution, then
-> > > switch to high one for taking picture. It would be good to have that
-> > > in "system" code, but I'm not at all sure libv4l2 design will allow
-> > > that.  
-> > 
-> > I don't see why it would be hard to open files or have threads inside
-> > a library. There are several libraries that do that already, specially
-> > the ones designed to be used on multimidia apps.  
-> 
-> Well, This is what the libv4l2 says:
-> 
->    This file implements libv4l2, which offers v4l2_ prefixed versions
->    of
->       open/close/etc. The API is 100% the same as directly opening
->    /dev/videoX
->       using regular open/close/etc, the big difference is that format
->    conversion
->    
-> but if I open additional files in v4l2_open(), API is no longer the
-> same, as unix open() is defined to open just one file descriptor.
-> 
-> Now. There is autogain support in libv4lconvert, but it expects to use
-> same fd for camera and for the gain... which does not work with
-> subdevs.
-> 
-> Of course, opening subdevs by name like this is not really
-> acceptable. But can you suggest a method that is?
-
-There are two separate things here:
-
-1) Autofoucs for a device that doesn't use subdev API
-2) libv4l2 support for devices that require MC and subdev API
-
-for (1), it should use the /dev/videoX device that was opened with
-v4l2_open().
-
-For (2), libv4l2 should be aware of MC and subdev APIs. Sakari
-once tried to write a libv4l2 plugin for OMAP3, but never finished it.
-A more recent trial were to add a libv4l2 plugin for Exynos.
-Unfortunately, none of those code got merged. Last time I checked,
-the Exynos plugin was almost ready to be merged, but Sakari asked
-some changes on it. The developer that was working on it got job on
-some other company. Last time I heard from him, he was still interested
-on finishing his work, but in the need to setup a test environment
-using his own devices.
-
-So, currently, there's no code at all adding MC/subdev API
-support merged at libv4l2.
-
+diff --git a/drivers/staging/android/ion/Makefile b/drivers/staging/android/ion/Makefile
+index 66d0c4a..a892afa 100644
+--- a/drivers/staging/android/ion/Makefile
++++ b/drivers/staging/android/ion/Makefile
+@@ -2,6 +2,3 @@ obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o \
+ 			ion_page_pool.o ion_system_heap.o \
+ 			ion_carveout_heap.o ion_chunk_heap.o
+ obj-$(CONFIG_ION_CMA_HEAP) += ion_cma_heap.o
+-ifdef CONFIG_COMPAT
+-obj-$(CONFIG_ION) += compat_ion.o
+-endif
+diff --git a/drivers/staging/android/ion/compat_ion.c b/drivers/staging/android/ion/compat_ion.c
+deleted file mode 100644
+index 5037ddd..0000000
+--- a/drivers/staging/android/ion/compat_ion.c
++++ /dev/null
+@@ -1,152 +0,0 @@
+-/*
+- * drivers/staging/android/ion/compat_ion.c
+- *
+- * Copyright (C) 2013 Google, Inc.
+- *
+- * This software is licensed under the terms of the GNU General Public
+- * License version 2, as published by the Free Software Foundation, and
+- * may be copied, distributed, and modified under those terms.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- */
 -
-
-IMHO, the right thing to do with regards to autofocus is to
-implement it via a processing module, assuming that just one
-video device is opened.
-
-Then, add a N900 plugin to make libv4l2 aware of OMAP3 specifics.
-
-After that, rework at the processing module to let it use a 
-different file descriptor if such plugin is in usage.
-
+-#include <linux/compat.h>
+-#include <linux/fs.h>
+-#include <linux/uaccess.h>
 -
-
-The hole idea is that a libv4l2 client, running on a N900 device
-would just open a fake /dev/video0. Internally, libv4l2 will
-open whatever video nodes it needs to control the device, exporting
-all hardware capabilities (video formats, controls, resolutions,
-etc) as if it was a normal V4L2 camera, hiding all dirty details
-about MC and subdev APIs from userspace application.
-
-This way, a normal application, like xawtv, tvtime, camorama,
-zbar, mplayer, vlc, ... will work without any changes.
-
-
-> 
-> Thanks,
-> 								Pavel
-> 
-> commit 4cf9d10ead014c0db25452e4bb9cd144632407c3
-> Author: Pavel <pavel@ucw.cz>
-> Date:   Wed Apr 26 11:38:04 2017 +0200
-> 
->     Add subdevices.
-> 
-> diff --git a/lib/libv4l2/libv4l2-priv.h b/lib/libv4l2/libv4l2-priv.h
-> index 343db5e..a6bc48e 100644
-> --- a/lib/libv4l2/libv4l2-priv.h
-> +++ b/lib/libv4l2/libv4l2-priv.h
-> @@ -26,6 +26,7 @@
->  #include "../libv4lconvert/libv4lsyscall-priv.h"
->  
->  #define V4L2_MAX_DEVICES 16
-> +#define V4L2_MAX_SUBDEVS 8
->  /* Warning when making this larger the frame_queued and frame_mapped members of
->     the v4l2_dev_info struct can no longer be a bitfield, so the code needs to
->     be adjusted! */
-> @@ -104,6 +105,7 @@ struct v4l2_dev_info {
->  	void *plugin_library;
->  	void *dev_ops_priv;
->  	const struct libv4l_dev_ops *dev_ops;
-> +        int subdev_fds[V4L2_MAX_SUBDEVS];
->  };
->  
->  /* From v4l2-plugin.c */
-> diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
-> index 0ba0a88..edc9642 100644
-> --- a/lib/libv4l2/libv4l2.c
-> +++ b/lib/libv4l2/libv4l2.c
-> @@ -1,3 +1,4 @@
-> +/* -*- c-file-style: "linux" -*- */
->  /*
->  #             (C) 2008 Hans de Goede <hdegoede@redhat.com>
->  
-> @@ -789,18 +790,25 @@ no_capture:
->  
->  	/* Note we always tell v4lconvert to optimize src fmt selection for
->  	   our default fps, the only exception is the app explicitly selecting
-> -	   a fram erate using the S_PARM ioctl after a S_FMT */
-> +	   a frame rate using the S_PARM ioctl after a S_FMT */
->  	if (devices[index].convert)
->  		v4lconvert_set_fps(devices[index].convert, V4L2_DEFAULT_FPS);
->  	v4l2_update_fps(index, &parm);
->  
-> +	devices[index].subdev_fds[0] = SYS_OPEN("/dev/video_sensor", O_RDWR, 0);
-> +	devices[index].subdev_fds[1] = SYS_OPEN("/dev/video_focus", O_RDWR, 0);
-> +	devices[index].subdev_fds[2] = -1;
-> +
-> +	printf("Sensor: %d, focus: %d\n", devices[index].subdev_fds[0], 
-> +	       devices[index].subdev_fds[1]);
-> +
->  	V4L2_LOG("open: %d\n", fd);
->  
->  	return fd;
->  }
->  
->  /* Is this an fd for which we are emulating v4l1 ? */
-> -static int v4l2_get_index(int fd)
-> +int v4l2_get_index(int fd)
->  {
->  	int index;
->  
-> 
-> commit 1d6a9ce121f53e8f2e38549eed597a3c3dea5233
-> Author: Pavel <pavel@ucw.cz>
-> Date:   Wed Apr 26 12:34:04 2017 +0200
-> 
->     Enable ioctl propagation.
-> 
-> diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
-> index edc9642..6dab661 100644
-> --- a/lib/libv4l2/libv4l2.c
-> +++ b/lib/libv4l2/libv4l2.c
-> @@ -1064,6 +1064,23 @@ static int v4l2_s_fmt(int index, struct v4l2_format *dest_fmt)
->  	return 0;
->  }
->  
-> +static int v4l2_propagate_ioctl(int index, unsigned long request, void *arg)
-> +{
-> +	int i = 0;
-> +	int result;
-> +	while (1) {
-> +		if (devices[index].subdev_fds[i] == -1)
-> +			return -1;
-> +		printf("g_ctrl failed, trying...\n");
-> +		result = SYS_IOCTL(devices[index].subdev_fds[i], request, arg);
-> +		printf("subdev %d result %d\n", i, result);
-> +		if (result == 0)
-> +			return 0;
-> +		i++;
-> +	}
-> +	return -1;
-> +}
-> +
->  int v4l2_ioctl(int fd, unsigned long int request, ...)
->  {
->  	void *arg;
-> @@ -1193,14 +1210,20 @@ no_capture_request:
->  	switch (request) {
->  	case VIDIOC_QUERYCTRL:
->  		result = v4lconvert_vidioc_queryctrl(devices[index].convert, arg);
-> +		if (result == -1)
-> +			result = v4l2_propagate_ioctl(index, request, arg);
->  		break;
->  
->  	case VIDIOC_G_CTRL:
->  		result = v4lconvert_vidioc_g_ctrl(devices[index].convert, arg);
-> +		if (result == -1)
-> +			result = v4l2_propagate_ioctl(index, request, arg);
->  		break;
->  
->  	case VIDIOC_S_CTRL:
->  		result = v4lconvert_vidioc_s_ctrl(devices[index].convert, arg);
-> +		if (result == -1)
-> +			result = v4l2_propagate_ioctl(index, request, arg);
->  		break;
->  
->  	case VIDIOC_G_EXT_CTRLS:
-> 
-> 
-
-
-
-Thanks,
-Mauro
+-#include "ion.h"
+-#include "compat_ion.h"
+-
+-/* See drivers/staging/android/uapi/ion.h for the definition of these structs */
+-struct compat_ion_allocation_data {
+-	compat_size_t len;
+-	compat_size_t align;
+-	compat_uint_t heap_id_mask;
+-	compat_uint_t flags;
+-	compat_int_t handle;
+-};
+-
+-struct compat_ion_handle_data {
+-	compat_int_t handle;
+-};
+-
+-#define COMPAT_ION_IOC_ALLOC	_IOWR(ION_IOC_MAGIC, 0, \
+-				      struct compat_ion_allocation_data)
+-#define COMPAT_ION_IOC_FREE	_IOWR(ION_IOC_MAGIC, 1, \
+-				      struct compat_ion_handle_data)
+-
+-static int compat_get_ion_allocation_data(
+-			struct compat_ion_allocation_data __user *data32,
+-			struct ion_allocation_data __user *data)
+-{
+-	compat_size_t s;
+-	compat_uint_t u;
+-	compat_int_t i;
+-	int err;
+-
+-	err = get_user(s, &data32->len);
+-	err |= put_user(s, &data->len);
+-	err |= get_user(s, &data32->align);
+-	err |= put_user(s, &data->align);
+-	err |= get_user(u, &data32->heap_id_mask);
+-	err |= put_user(u, &data->heap_id_mask);
+-	err |= get_user(u, &data32->flags);
+-	err |= put_user(u, &data->flags);
+-	err |= get_user(i, &data32->handle);
+-	err |= put_user(i, &data->handle);
+-
+-	return err;
+-}
+-
+-static int compat_get_ion_handle_data(
+-			struct compat_ion_handle_data __user *data32,
+-			struct ion_handle_data __user *data)
+-{
+-	compat_int_t i;
+-	int err;
+-
+-	err = get_user(i, &data32->handle);
+-	err |= put_user(i, &data->handle);
+-
+-	return err;
+-}
+-
+-static int compat_put_ion_allocation_data(
+-			struct compat_ion_allocation_data __user *data32,
+-			struct ion_allocation_data __user *data)
+-{
+-	compat_size_t s;
+-	compat_uint_t u;
+-	compat_int_t i;
+-	int err;
+-
+-	err = get_user(s, &data->len);
+-	err |= put_user(s, &data32->len);
+-	err |= get_user(s, &data->align);
+-	err |= put_user(s, &data32->align);
+-	err |= get_user(u, &data->heap_id_mask);
+-	err |= put_user(u, &data32->heap_id_mask);
+-	err |= get_user(u, &data->flags);
+-	err |= put_user(u, &data32->flags);
+-	err |= get_user(i, &data->handle);
+-	err |= put_user(i, &data32->handle);
+-
+-	return err;
+-}
+-
+-long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+-{
+-	long ret;
+-
+-	if (!filp->f_op->unlocked_ioctl)
+-		return -ENOTTY;
+-
+-	switch (cmd) {
+-	case COMPAT_ION_IOC_ALLOC:
+-	{
+-		struct compat_ion_allocation_data __user *data32;
+-		struct ion_allocation_data __user *data;
+-		int err;
+-
+-		data32 = compat_ptr(arg);
+-		data = compat_alloc_user_space(sizeof(*data));
+-		if (!data)
+-			return -EFAULT;
+-
+-		err = compat_get_ion_allocation_data(data32, data);
+-		if (err)
+-			return err;
+-		ret = filp->f_op->unlocked_ioctl(filp, ION_IOC_ALLOC,
+-							(unsigned long)data);
+-		err = compat_put_ion_allocation_data(data32, data);
+-		return ret ? ret : err;
+-	}
+-	case COMPAT_ION_IOC_FREE:
+-	{
+-		struct compat_ion_handle_data __user *data32;
+-		struct ion_handle_data __user *data;
+-		int err;
+-
+-		data32 = compat_ptr(arg);
+-		data = compat_alloc_user_space(sizeof(*data));
+-		if (!data)
+-			return -EFAULT;
+-
+-		err = compat_get_ion_handle_data(data32, data);
+-		if (err)
+-			return err;
+-
+-		return filp->f_op->unlocked_ioctl(filp, ION_IOC_FREE,
+-							(unsigned long)data);
+-	}
+-	case ION_IOC_SHARE:
+-		return filp->f_op->unlocked_ioctl(filp, cmd,
+-						(unsigned long)compat_ptr(arg));
+-	default:
+-		return -ENOIOCTLCMD;
+-	}
+-}
+diff --git a/drivers/staging/android/ion/compat_ion.h b/drivers/staging/android/ion/compat_ion.h
+deleted file mode 100644
+index 9da8f91..0000000
+--- a/drivers/staging/android/ion/compat_ion.h
++++ /dev/null
+@@ -1,29 +0,0 @@
+-/*
+- * drivers/staging/android/ion/compat_ion.h
+- *
+- * Copyright (C) 2013 Google, Inc.
+- *
+- * This software is licensed under the terms of the GNU General Public
+- * License version 2, as published by the Free Software Foundation, and
+- * may be copied, distributed, and modified under those terms.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- */
+-
+-#ifndef _LINUX_COMPAT_ION_H
+-#define _LINUX_COMPAT_ION_H
+-
+-#if IS_ENABLED(CONFIG_COMPAT)
+-
+-long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+-
+-#else
+-
+-#define compat_ion_ioctl  NULL
+-
+-#endif /* CONFIG_COMPAT */
+-#endif /* _LINUX_COMPAT_ION_H */
+diff --git a/drivers/staging/android/ion/ion-ioctl.c b/drivers/staging/android/ion/ion-ioctl.c
+index a361724..91b5c2b 100644
+--- a/drivers/staging/android/ion/ion-ioctl.c
++++ b/drivers/staging/android/ion/ion-ioctl.c
+@@ -20,7 +20,6 @@
+ 
+ #include "ion.h"
+ #include "ion_priv.h"
+-#include "compat_ion.h"
+ 
+ union ion_ioctl_arg {
+ 	struct ion_fd_data fd;
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index 65638f5..fbab1e3 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -40,7 +40,6 @@
+ 
+ #include "ion.h"
+ #include "ion_priv.h"
+-#include "compat_ion.h"
+ 
+ bool ion_buffer_cached(struct ion_buffer *buffer)
+ {
+@@ -1065,7 +1064,9 @@ static const struct file_operations ion_fops = {
+ 	.open           = ion_open,
+ 	.release        = ion_release,
+ 	.unlocked_ioctl = ion_ioctl,
+-	.compat_ioctl   = compat_ion_ioctl,
++#ifdef CONFIG_COMPAT
++	.compat_ioctl	= ion_ioctl,
++#endif
+ };
+ 
+ static size_t ion_debug_heap_total(struct ion_client *client,
+diff --git a/drivers/staging/android/uapi/ion.h b/drivers/staging/android/uapi/ion.h
+index abd72fd..bba1c47 100644
+--- a/drivers/staging/android/uapi/ion.h
++++ b/drivers/staging/android/uapi/ion.h
+@@ -20,8 +20,6 @@
+ #include <linux/ioctl.h>
+ #include <linux/types.h>
+ 
+-typedef int ion_user_handle_t;
+-
+ /**
+  * enum ion_heap_types - list of all possible types of heaps
+  * @ION_HEAP_TYPE_SYSTEM:	 memory allocated via vmalloc
+@@ -76,7 +74,6 @@ enum ion_heap_type {
+ /**
+  * struct ion_allocation_data - metadata passed from userspace for allocations
+  * @len:		size of the allocation
+- * @align:		required alignment of the allocation
+  * @heap_id_mask:	mask of heap ids to allocate from
+  * @flags:		flags passed to heap
+  * @handle:		pointer that will be populated with a cookie to use to
+@@ -85,11 +82,11 @@ enum ion_heap_type {
+  * Provided by userspace as an argument to the ioctl
+  */
+ struct ion_allocation_data {
+-	size_t len;
+-	size_t align;
+-	unsigned int heap_id_mask;
+-	unsigned int flags;
+-	ion_user_handle_t handle;
++	__u64 len;
++	__u32 heap_id_mask;
++	__u32 flags;
++	__u32 handle;
++	__u32 unused;
+ };
+ 
+ /**
+@@ -103,8 +100,8 @@ struct ion_allocation_data {
+  * provides the file descriptor and the kernel returns the handle.
+  */
+ struct ion_fd_data {
+-	ion_user_handle_t handle;
+-	int fd;
++	__u32 handle;
++	__u32 fd;
+ };
+ 
+ /**
+@@ -112,7 +109,7 @@ struct ion_fd_data {
+  * @handle:	a handle
+  */
+ struct ion_handle_data {
+-	ion_user_handle_t handle;
++	__u32 handle;
+ };
+ 
+ #define MAX_HEAP_NAME			32
+-- 
+2.7.4
