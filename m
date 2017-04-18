@@ -1,142 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fllnx210.ext.ti.com ([198.47.19.17]:11949 "EHLO
-        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1165191AbdD1LeD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 07:34:03 -0400
-Subject: Re: [PATCH 2/8] omapdrm: encoder-tpd12s015: keep ls_oe_gpio high if
- CEC is enabled
-To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
- <20170414102512.48834-3-hverkuil@xs4all.nl>
-CC: <dri-devel@lists.freedesktop.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Message-ID: <8981bcbc-9aa0-d031-9a93-c69999059fdd@ti.com>
-Date: Fri, 28 Apr 2017 14:33:50 +0300
+Received: from foss.arm.com ([217.140.101.70]:59198 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754129AbdDRRcE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Apr 2017 13:32:04 -0400
+Date: Tue, 18 Apr 2017 18:31:56 +0100
+From: Brian Starkey <brian.starkey@arm.com>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        liviu.dudau@arm.com, laurent.pinchart@ideasonboard.com,
+        linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH v3 0/6] Introduce writeback connectors
+Message-ID: <20170418173156.GA30544@e106950-lin.cambridge.arm.com>
+References: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
+ <20170414113517.323ab297@bbrezillon>
 MIME-Version: 1.0
-In-Reply-To: <20170414102512.48834-3-hverkuil@xs4all.nl>
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature";
-        boundary="h1Ia1kV36Qj9rn4jkkAKKko0D3dRteklq"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <20170414113517.323ab297@bbrezillon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---h1Ia1kV36Qj9rn4jkkAKKko0D3dRteklq
-Content-Type: multipart/mixed; boundary="e8e6rjVmSJbXfOeAKohwXJAvs41RFgrxi";
- protected-headers="v1"
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, Hans Verkuil <hans.verkuil@cisco.com>
-Message-ID: <8981bcbc-9aa0-d031-9a93-c69999059fdd@ti.com>
-Subject: Re: [PATCH 2/8] omapdrm: encoder-tpd12s015: keep ls_oe_gpio high if
- CEC is enabled
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
- <20170414102512.48834-3-hverkuil@xs4all.nl>
-In-Reply-To: <20170414102512.48834-3-hverkuil@xs4all.nl>
+Hi Boris,
 
---e8e6rjVmSJbXfOeAKohwXJAvs41RFgrxi
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On Fri, Apr 14, 2017 at 11:35:17AM +0200, Boris Brezillon wrote:
+>Hi Brian,
+>
+>On Fri, 25 Nov 2016 16:48:58 +0000
+>Brian Starkey <brian.starkey@arm.com> wrote:
+>
+>> Hi,
+>>
+>> This is v3 of my series introducing a new connector type:
+>>  DRM_MODE_CONNECTOR_WRITEBACK
+>> See v1 and v2 here: [1] [2]
+>>
+>> Writeback connectors are used to expose the memory writeback engines
+>> found in some display controllers, which can write a CRTC's
+>> composition result to a memory buffer.
+>> This is useful e.g. for testing, screen-recording, screenshots,
+>> wireless display, display cloning, memory-to-memory composition.
+>>
+>> Writeback connectors are given a WRITEBACK_FB_ID property (which acts
+>> slightly differently to FB_ID, so gets a new name), as well as
+>> a PIXEL_FORMATS blob to list the supported writeback formats, and
+>> OUT_FENCE_PTR to be used for out-fences.
+>>
+>> The changes since v2 are in the commit messages of each commit.
+>>
+>> The main differences are:
+>>  - Subclass drm_connector as drm_writeback_connector
+>>  - Slight relaxation of core checks, to allow
+>>    (connector->crtc && !connector->fb)
+>>  - Dropped PIXEL_FORMATS_SIZE, which was redundant
+>>  - Reworked the event interface, drivers don't need to deal with the
+>>    fence directly
+>>  - Re-ordered the commits to introduce writeback out-fences up-front.
+>>
+>> I've kept RFC on this series because the event reporting (introduction
+>> of drm_writeback_job) is probably up for debate.
+>>
+>> v4 will be accompanied by igt tests.
+>
+>I plan to add writeback support to the VC4 driver and wanted to know if
+>anything has changed since this v3 (IOW, do you have a v4 + igt tests
+>ready)?
+>
 
-On 14/04/17 13:25, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->=20
-> When the OMAP4 CEC support is enabled the CEC pin should always
-> be on. So keep ls_oe_gpio high when CONFIG_OMAP4_DSS_HDMI_CEC
-> is set.
->=20
-> Background: even if the HPD is low it should still be possible
-> to use CEC. Some displays will set the HPD low when they go into standb=
-y or
-> when they switch to another input, but CEC is still available and able
-> to wake up/change input for such a display.
->=20
-> This is explicitly allowed by the CEC standard.
->=20
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
->=20
-> diff --git a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c b/dri=
-vers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
-> index 58276a48112e..757554e6d62f 100644
-> --- a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
-> +++ b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
-> @@ -46,6 +46,9 @@ static int tpd_connect(struct omap_dss_device *dssdev=
-,
->  	dssdev->dst =3D dst;
-> =20
->  	gpiod_set_value_cansleep(ddata->ct_cp_hpd_gpio, 1);
-> +#ifdef CONFIG_OMAP4_DSS_HDMI_CEC
-> +	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 1);
-> +#endif
->  	/* DC-DC converter needs at max 300us to get to 90% of 5V */
->  	udelay(300);
-> =20
-> @@ -64,6 +67,7 @@ static void tpd_disconnect(struct omap_dss_device *ds=
-sdev,
->  		return;
-> =20
->  	gpiod_set_value_cansleep(ddata->ct_cp_hpd_gpio, 0);
-> +	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 0);
-> =20
->  	dst->src =3D NULL;
->  	dssdev->dst =3D NULL;
-> @@ -146,11 +150,15 @@ static int tpd_read_edid(struct omap_dss_device *=
-dssdev,
->  	if (!gpiod_get_value_cansleep(ddata->hpd_gpio))
->  		return -ENODEV;
-> =20
-> +#ifndef CONFIG_OMAP4_DSS_HDMI_CEC
->  	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 1);
-> +#endif
-> =20
->  	r =3D in->ops.hdmi->read_edid(in, edid, len);
-> =20
-> +#ifndef CONFIG_OMAP4_DSS_HDMI_CEC
->  	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 0);
-> +#endif
-> =20
->  	return r;
->  }
->=20
+Oh that's good to hear. I've got a v4 (just rebased for the most
+part), but was holding off sending it until having some "proper"
+userspace to support it. Unfortunately in the meantime we've had some
+team changes which mean I'm not really able to work on it to move
+things forward - Liviu might be able to pick this up.
 
-Optimally, we want to enable LS_OE only when needed, which would be when
-reading EDID, using HDCP, or using CEC. But we don't have good means to
-convey that information at the moment, and I'd rather leave it for later
-when we have done the bigger restructuring of omapdrm.
+I'll collect together what I have and send it out anyway. It includes
+some functional tests in igt, but I'm not sure if that meets the "new
+uapi needs userspace" bar.
 
-For now, instead of the ifdef-confusion, I think we should just enable
-the LS_OE in tpd_connect and be done with it.
+>>
+>> As always, I look forward to any comments.
+>
+>I'll try to review these patches. Keep in mind that I didn't follow the
+>initial discussions and might suggest things or ask questions that have
+>already been answered in previous versions of this series or on IRC.
 
- Tomi
+Thanks,
 
+-Brian
 
---e8e6rjVmSJbXfOeAKohwXJAvs41RFgrxi--
-
---h1Ia1kV36Qj9rn4jkkAKKko0D3dRteklq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJZAyieAAoJEPo9qoy8lh71Y4gP/3GUY33xvqcBr6RHaEiU6Qi5
-oESqA4THQj46JCEDJzQxI06+w9/MMfQl6IwmhIse4XeaOxGnoSjz+NGfjoBgkkUn
-9C3qgWpM0jXtI/+29gI49UbZfbNzq5hi20SmNNVtmmsJCH6LhIA33m+5z2MLQ+By
-mBEeSyMjoxue8P3XVv7pcznkPa/od+YronPOAhypWpXegOrPZDuqpoSBaMx/m1pU
-0k6v0cQSx3Zz104pNcWuu+1/GmIzHUArIdy68+/E0ukks7AptNkK/bzMWhUFoLeR
-dneIm58LMBgW/lSRzEQwf7qVVKYweNE9xB9FM5gS63qhZWUBAXUxOnPiW9OVhEfZ
-ZNKtIg2nJSKSN/t5lVgiXL4wxUuVbY+0o/Lb/0zd1guoTXPRc37kJ8FCAXb0zkLX
-LIPW9aQ8ogJu1//iZmf2gtqbqRpomfAtEliVavwCUHOiU+e8Pq4rc64pROtmHZDR
-JcghosDj8e6F2F4Cz6FfaIusJEqO8NG2ET6MA1uXWoFMe9eUyJQtXje9c1zjPGxZ
-kPJsDwf0W8tbADv2dqtijwHeH6OoVBkmjs3GbtiuxjhdZdf7GogSzjg5ETknUdr/
-imribFFlhioHXyv0r42JDYwCnOQzRVqRwt8eV8OGwxdpyGFwOIZaiyZRz/dOq64w
-gf9XwjLd843AF079HPEx
-=cZRz
------END PGP SIGNATURE-----
-
---h1Ia1kV36Qj9rn4jkkAKKko0D3dRteklq--
+>
+>Regards,
+>
+>Boris
