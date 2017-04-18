@@ -1,36 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:44608 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751968AbdDJHvt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 03:51:49 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH for v4.12] videodev2.h: fix outdated comment
-Message-ID: <baec3430-9b4e-ba54-ee9c-1450958ac2eb@xs4all.nl>
-Date: Mon, 10 Apr 2017 09:51:44 +0200
+Received: from eazy.amigager.de ([5.9.28.234]:47306 "EHLO eazy.amigager.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751639AbdDRLEQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Apr 2017 07:04:16 -0400
+Date: Tue, 18 Apr 2017 12:54:52 +0200
+From: Tino Mettler <tino.mettler+debbugs@tikei.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Gregor Jasny <gjasny@googlemail.com>, 859008@bugs.debian.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: dvb-tools: dvbv5-scan segfaults with DVB-T2 HD service that just
+ started in Germany
+Message-ID: <20170418105452.GA10975@eazy.amigager.de>
+References: <149079515540.3615.11876491556658692986.reportbug@mac>
+ <06f151f3-0037-dcd0-fc5a-522533f70a3e@googlemail.com>
+ <20170329144227.zwrdtnnl4iuhgbkw@mac.home>
+ <6bc7b007-cc0e-767d-5e2e-30e8d5bdff05@googlemail.com>
+ <20170330171334.06c6135d@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170330171334.06c6135d@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The XV601/709 Y'CbCr encoding was changed to limited range, but the comment
-still indicates full range.
+On Thu, Mar 30, 2017 at 17:13:34 -0300, Mauro Carvalho Chehab wrote:
+> Hi Gregor,
+> 
+> Em Wed, 29 Mar 2017 20:45:06 +0200
+> Gregor Jasny <gjasny@googlemail.com> escreveu:
+> 
+> > Hello Mauro & list,
+> > 
+> > could you please have a look at the dvbv5-scan crash report below?
+> > https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=859008
+> > 
+> > Is there anything else you need to debug this?
+> 
+> I'm able to reproduce it on a Debian machine here too, but so far,
+> I was unable to discover what's causing it. I'll try to find some time
+> to take a better look on it.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 316be62f3a45..5d842a61d94a 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -362,8 +362,7 @@ enum v4l2_quantization {
- 	/*
- 	 * The default for R'G'B' quantization is always full range, except
- 	 * for the BT2020 colorspace. For Y'CbCr the quantization is always
--	 * limited range, except for COLORSPACE_JPEG, XV601 or XV709: those
--	 * are full range.
-+	 * limited range, except for COLORSPACE_JPEG: this is full range.
- 	 */
- 	V4L2_QUANTIZATION_DEFAULT     = 0,
- 	V4L2_QUANTIZATION_FULL_RANGE  = 1,
+Hi,
+
+can I help in some way to find the cause of crash?
+
+Regards,
+Tino
