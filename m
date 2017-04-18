@@ -1,127 +1,428 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:54745 "EHLO
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50231 "EHLO
         lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750838AbdDWEJP (ORCPT
+        by vger.kernel.org with ESMTP id S932142AbdDRIqL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Apr 2017 00:09:15 -0400
-Message-ID: <bd839f596d134be6c7f3db795e9d816f@smtp-cloud2.xs4all.net>
-Date: Sun, 23 Apr 2017 06:09:12 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Tue, 18 Apr 2017 04:46:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH for v4.12 1/3] cec: Kconfig cleanup
+Date: Tue, 18 Apr 2017 10:45:59 +0200
+Message-Id: <20170418084601.1590-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170418084601.1590-1-hverkuil@xs4all.nl>
+References: <20170418084601.1590-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+The Kconfig options for the CEC subsystem were a bit messy. In
+addition there were two cec sources (cec-edid.c and cec-notifier.c)
+that were outside of the media/cec directory, which was weird.
 
-date:			Sun Apr 23 05:00:14 CEST 2017
-media-tree git hash:	9eb9db3a0f92b75ec710066202e0b2accb45afa9
-media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
-v4l-utils git hash:	b514d615166bdc0901a4c71261b87db31e89f464
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Move those sources to media/cec as well.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+The cec-edid and cec-notifier functionality is now part of the cec
+module and these are no longer separate modules.
 
-Detailed results are available here:
+Also remove the MEDIA_CEC_EDID config option and include it with the
+main CEC config option (which defined CEC_EDID anyway).
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Added static inlines to cec-edid.h for dummy functions when CEC_CORE
+isn't defined.
 
-Full logs are available here:
+CEC drivers should now depend on CEC_CORE.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+CEC drivers that need the cec-notifier functionality must explicitly
+select CEC_NOTIFIER.
 
-The Media Infrastructure API from this daily build is here:
+The s5p-cec and stih-cec drivers depended on VIDEO_DEV instead of
+CEC_CORE, fix that as well.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ MAINTAINERS                              |  2 --
+ drivers/media/Kconfig                    | 26 ++++-----------
+ drivers/media/Makefile                   | 14 ++------
+ drivers/media/cec/Kconfig                | 13 ++++++++
+ drivers/media/cec/Makefile               |  8 +++--
+ drivers/media/{ => cec}/cec-edid.c       |  4 ---
+ drivers/media/{ => cec}/cec-notifier.c   |  0
+ drivers/media/i2c/Kconfig                |  9 ++---
+ drivers/media/platform/Kconfig           | 56 ++++++++++++++++----------------
+ drivers/media/platform/vivid/Kconfig     |  3 +-
+ drivers/media/usb/pulse8-cec/Kconfig     |  2 +-
+ drivers/media/usb/rainshadow-cec/Kconfig |  2 +-
+ include/media/cec-edid.h                 | 29 +++++++++++++++++
+ include/media/cec.h                      |  2 +-
+ 14 files changed, 91 insertions(+), 79 deletions(-)
+ create mode 100644 drivers/media/cec/Kconfig
+ rename drivers/media/{ => cec}/cec-edid.c (97%)
+ rename drivers/media/{ => cec}/cec-notifier.c (100%)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 7d3b9993e4ba..1b0049934cf9 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3075,8 +3075,6 @@ S:	Supported
+ F:	Documentation/media/kapi/cec-core.rst
+ F:	Documentation/media/uapi/cec
+ F:	drivers/media/cec/
+-F:	drivers/media/cec-edid.c
+-F:	drivers/media/cec-notifier.c
+ F:	drivers/media/rc/keymaps/rc-cec.c
+ F:	include/media/cec.h
+ F:	include/media/cec-edid.h
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 9e9ded44e8a8..b72edd27f880 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -81,27 +81,15 @@ config MEDIA_RC_SUPPORT
+ 	  Say Y when you have a TV or an IR device.
+ 
+ config MEDIA_CEC_SUPPORT
+-	bool "HDMI CEC support"
+-	select MEDIA_CEC_EDID
+-	---help---
+-	  Enable support for HDMI CEC (Consumer Electronics Control),
+-	  which is an optional HDMI feature.
+-
+-	  Say Y when you have an HDMI receiver, transmitter or a USB CEC
+-	  adapter that supports HDMI CEC.
+-
+-config MEDIA_CEC_DEBUG
+-	bool "HDMI CEC debugfs interface"
+-	depends on MEDIA_CEC_SUPPORT && DEBUG_FS
+-	---help---
+-	  Turns on the DebugFS interface for CEC devices.
++       bool "HDMI CEC support"
++       ---help---
++         Enable support for HDMI CEC (Consumer Electronics Control),
++         which is an optional HDMI feature.
+ 
+-config MEDIA_CEC_EDID
+-	bool
++         Say Y when you have an HDMI receiver, transmitter or a USB CEC
++         adapter that supports HDMI CEC.
+ 
+-config MEDIA_CEC_NOTIFIER
+-	bool
+-	select MEDIA_CEC_EDID
++source "drivers/media/cec/Kconfig"
+ 
+ #
+ # Media controller
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index 8b36a571d443..523fea3648ad 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -2,20 +2,10 @@
+ # Makefile for the kernel multimedia device drivers.
+ #
+ 
+-ifeq ($(CONFIG_MEDIA_CEC_EDID),y)
+-  obj-$(CONFIG_MEDIA_SUPPORT) += cec-edid.o
+-endif
+-
+-ifeq ($(CONFIG_MEDIA_CEC_NOTIFIER),y)
+-  obj-$(CONFIG_MEDIA_SUPPORT) += cec-notifier.o
+-endif
+-
+-ifeq ($(CONFIG_MEDIA_CEC_SUPPORT),y)
+-  obj-$(CONFIG_MEDIA_SUPPORT) += cec/
+-endif
+-
+ media-objs	:= media-device.o media-devnode.o media-entity.o
+ 
++obj-$(CONFIG_CEC_CORE) += cec/
++
+ #
+ # I2C drivers should come before other drivers, otherwise they'll fail
+ # when compiled as builtin drivers
+diff --git a/drivers/media/cec/Kconfig b/drivers/media/cec/Kconfig
+new file mode 100644
+index 000000000000..24b53187ee52
+--- /dev/null
++++ b/drivers/media/cec/Kconfig
+@@ -0,0 +1,13 @@
++config CEC_CORE
++	tristate
++	depends on MEDIA_CEC_SUPPORT
++	default y
++
++config MEDIA_CEC_NOTIFIER
++	bool
++
++config MEDIA_CEC_DEBUG
++	bool "HDMI CEC debugfs interface"
++	depends on MEDIA_CEC_SUPPORT && DEBUG_FS
++	---help---
++	  Turns on the DebugFS interface for CEC devices.
+diff --git a/drivers/media/cec/Makefile b/drivers/media/cec/Makefile
+index d6686337275f..402a6c62a3e8 100644
+--- a/drivers/media/cec/Makefile
++++ b/drivers/media/cec/Makefile
+@@ -1,5 +1,7 @@
+-cec-objs := cec-core.o cec-adap.o cec-api.o
++cec-objs := cec-core.o cec-adap.o cec-api.o cec-edid.o
+ 
+-ifeq ($(CONFIG_MEDIA_CEC_SUPPORT),y)
+-  obj-$(CONFIG_MEDIA_SUPPORT) += cec.o
++ifeq ($(CONFIG_MEDIA_CEC_NOTIFIER),y)
++  cec-objs += cec-notifier.o
+ endif
++
++obj-$(CONFIG_CEC_CORE) += cec.o
+diff --git a/drivers/media/cec-edid.c b/drivers/media/cec/cec-edid.c
+similarity index 97%
+rename from drivers/media/cec-edid.c
+rename to drivers/media/cec/cec-edid.c
+index 5719b991e340..c63dc81d2a29 100644
+--- a/drivers/media/cec-edid.c
++++ b/drivers/media/cec/cec-edid.c
+@@ -165,7 +165,3 @@ int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port)
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(cec_phys_addr_validate);
+-
+-MODULE_AUTHOR("Hans Verkuil <hans.verkuil@cisco.com>");
+-MODULE_DESCRIPTION("CEC EDID helper functions");
+-MODULE_LICENSE("GPL");
+diff --git a/drivers/media/cec-notifier.c b/drivers/media/cec/cec-notifier.c
+similarity index 100%
+rename from drivers/media/cec-notifier.c
+rename to drivers/media/cec/cec-notifier.c
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index b358d1a40688..40bb4bdc51da 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -209,7 +209,6 @@ config VIDEO_ADV7604
+ 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+ 	depends on GPIOLIB || COMPILE_TEST
+ 	select HDMI
+-	select MEDIA_CEC_EDID
+ 	---help---
+ 	  Support for the Analog Devices ADV7604 video decoder.
+ 
+@@ -221,7 +220,7 @@ config VIDEO_ADV7604
+ 
+ config VIDEO_ADV7604_CEC
+ 	bool "Enable Analog Devices ADV7604 CEC support"
+-	depends on VIDEO_ADV7604 && MEDIA_CEC_SUPPORT
++	depends on VIDEO_ADV7604 && CEC_CORE
+ 	---help---
+ 	  When selected the adv7604 will support the optional
+ 	  HDMI CEC feature.
+@@ -230,7 +229,6 @@ config VIDEO_ADV7842
+ 	tristate "Analog Devices ADV7842 decoder"
+ 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+ 	select HDMI
+-	select MEDIA_CEC_EDID
+ 	---help---
+ 	  Support for the Analog Devices ADV7842 video decoder.
+ 
+@@ -242,7 +240,7 @@ config VIDEO_ADV7842
+ 
+ config VIDEO_ADV7842_CEC
+ 	bool "Enable Analog Devices ADV7842 CEC support"
+-	depends on VIDEO_ADV7842 && MEDIA_CEC_SUPPORT
++	depends on VIDEO_ADV7842 && CEC_CORE
+ 	---help---
+ 	  When selected the adv7842 will support the optional
+ 	  HDMI CEC feature.
+@@ -470,7 +468,6 @@ config VIDEO_ADV7511
+ 	tristate "Analog Devices ADV7511 encoder"
+ 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+ 	select HDMI
+-	select MEDIA_CEC_EDID
+ 	---help---
+ 	  Support for the Analog Devices ADV7511 video encoder.
+ 
+@@ -481,7 +478,7 @@ config VIDEO_ADV7511
+ 
+ config VIDEO_ADV7511_CEC
+ 	bool "Enable Analog Devices ADV7511 CEC support"
+-	depends on VIDEO_ADV7511 && MEDIA_CEC_SUPPORT
++	depends on VIDEO_ADV7511 && CEC_CORE
+ 	---help---
+ 	  When selected the adv7511 will support the optional
+ 	  HDMI CEC feature.
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 73c3bc5deadf..ac026ee1ca07 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -461,34 +461,6 @@ config VIDEO_TI_SC
+ config VIDEO_TI_CSC
+ 	tristate
+ 
+-menuconfig V4L_CEC_DRIVERS
+-	bool "Platform HDMI CEC drivers"
+-	depends on MEDIA_CEC_SUPPORT
+-
+-if V4L_CEC_DRIVERS
+-
+-config VIDEO_SAMSUNG_S5P_CEC
+-       tristate "Samsung S5P CEC driver"
+-       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
+-       select MEDIA_CEC_NOTIFIER
+-       ---help---
+-         This is a driver for Samsung S5P HDMI CEC interface. It uses the
+-         generic CEC framework interface.
+-         CEC bus is present in the HDMI connector and enables communication
+-         between compatible devices.
+-
+-config VIDEO_STI_HDMI_CEC
+-       tristate "STMicroelectronics STiH4xx HDMI CEC driver"
+-       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (ARCH_STI || COMPILE_TEST)
+-       select MEDIA_CEC_NOTIFIER
+-       ---help---
+-         This is a driver for STIH4xx HDMI CEC interface. It uses the
+-         generic CEC framework interface.
+-         CEC bus is present in the HDMI connector and enables communication
+-         between compatible devices.
+-
+-endif #V4L_CEC_DRIVERS
+-
+ menuconfig V4L_TEST_DRIVERS
+ 	bool "Media test drivers"
+ 	depends on MEDIA_CAMERA_SUPPORT
+@@ -520,3 +492,31 @@ menuconfig DVB_PLATFORM_DRIVERS
+ if DVB_PLATFORM_DRIVERS
+ source "drivers/media/platform/sti/c8sectpfe/Kconfig"
+ endif #DVB_PLATFORM_DRIVERS
++
++menuconfig CEC_PLATFORM_DRIVERS
++	bool "CEC platform devices"
++	depends on MEDIA_CEC_SUPPORT
++
++if CEC_PLATFORM_DRIVERS
++
++config VIDEO_SAMSUNG_S5P_CEC
++       tristate "Samsung S5P CEC driver"
++       depends on CEC_CORE && (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
++       select MEDIA_CEC_NOTIFIER
++       ---help---
++         This is a driver for Samsung S5P HDMI CEC interface. It uses the
++         generic CEC framework interface.
++         CEC bus is present in the HDMI connector and enables communication
++         between compatible devices.
++
++config VIDEO_STI_HDMI_CEC
++       tristate "STMicroelectronics STiH4xx HDMI CEC driver"
++       depends on CEC_CORE && (ARCH_STI || COMPILE_TEST)
++       select MEDIA_CEC_NOTIFIER
++       ---help---
++         This is a driver for STIH4xx HDMI CEC interface. It uses the
++         generic CEC framework interface.
++         CEC bus is present in the HDMI connector and enables communication
++         between compatible devices.
++
++endif #CEC_PLATFORM_DRIVERS
+diff --git a/drivers/media/platform/vivid/Kconfig b/drivers/media/platform/vivid/Kconfig
+index 94ab1364a792..b36ac19dc6e4 100644
+--- a/drivers/media/platform/vivid/Kconfig
++++ b/drivers/media/platform/vivid/Kconfig
+@@ -7,7 +7,6 @@ config VIDEO_VIVID
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+-	select MEDIA_CEC_EDID
+ 	select VIDEOBUF2_VMALLOC
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select VIDEO_V4L2_TPG
+@@ -27,7 +26,7 @@ config VIDEO_VIVID
+ 
+ config VIDEO_VIVID_CEC
+ 	bool "Enable CEC emulation support"
+-	depends on VIDEO_VIVID && MEDIA_CEC_SUPPORT
++	depends on VIDEO_VIVID && CEC_CORE
+ 	---help---
+ 	  When selected the vivid module will emulate the optional
+ 	  HDMI CEC feature.
+diff --git a/drivers/media/usb/pulse8-cec/Kconfig b/drivers/media/usb/pulse8-cec/Kconfig
+index 6ffc407de62f..8937f3986a01 100644
+--- a/drivers/media/usb/pulse8-cec/Kconfig
++++ b/drivers/media/usb/pulse8-cec/Kconfig
+@@ -1,6 +1,6 @@
+ config USB_PULSE8_CEC
+ 	tristate "Pulse Eight HDMI CEC"
+-	depends on USB_ACM && MEDIA_CEC_SUPPORT
++	depends on USB_ACM && CEC_CORE
+ 	select SERIO
+ 	select SERIO_SERPORT
+ 	---help---
+diff --git a/drivers/media/usb/rainshadow-cec/Kconfig b/drivers/media/usb/rainshadow-cec/Kconfig
+index 447291b3cca3..3eb86607efb8 100644
+--- a/drivers/media/usb/rainshadow-cec/Kconfig
++++ b/drivers/media/usb/rainshadow-cec/Kconfig
+@@ -1,6 +1,6 @@
+ config USB_RAINSHADOW_CEC
+ 	tristate "RainShadow Tech HDMI CEC"
+-	depends on USB_ACM && MEDIA_CEC_SUPPORT
++	depends on USB_ACM && CEC_CORE
+ 	select SERIO
+ 	select SERIO_SERPORT
+ 	---help---
+diff --git a/include/media/cec-edid.h b/include/media/cec-edid.h
+index bdf731ecba1a..242781fd377f 100644
+--- a/include/media/cec-edid.h
++++ b/include/media/cec-edid.h
+@@ -26,6 +26,8 @@
+ #define cec_phys_addr_exp(pa) \
+ 	((pa) >> 12), ((pa) >> 8) & 0xf, ((pa) >> 4) & 0xf, (pa) & 0xf
+ 
++#if IS_ENABLED(CONFIG_CEC_CORE)
++
+ /**
+  * cec_get_edid_phys_addr() - find and return the physical address
+  *
+@@ -101,4 +103,31 @@ u16 cec_phys_addr_for_input(u16 phys_addr, u8 input);
+  */
+ int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port);
+ 
++#else
++
++static inline u16 cec_get_edid_phys_addr(const u8 *edid, unsigned int size,
++					 unsigned int *offset)
++{
++	if (offset)
++		*offset = 0;
++	return CEC_PHYS_ADDR_INVALID;
++}
++
++static inline void cec_set_edid_phys_addr(u8 *edid, unsigned int size,
++					  u16 phys_addr)
++{
++}
++
++static inline u16 cec_phys_addr_for_input(u16 phys_addr, u8 input)
++{
++	return CEC_PHYS_ADDR_INVALID;
++}
++
++static inline int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port)
++{
++	return 0;
++}
++
++#endif
++
+ #endif /* _MEDIA_CEC_EDID_H */
+diff --git a/include/media/cec.h b/include/media/cec.h
+index b313e3ecab70..bae8d0153de7 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -204,7 +204,7 @@ static inline bool cec_is_sink(const struct cec_adapter *adap)
+ 	return adap->phys_addr == 0;
+ }
+ 
+-#if IS_ENABLED(CONFIG_MEDIA_CEC_SUPPORT)
++#if IS_ENABLED(CONFIG_CEC_CORE)
+ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 		void *priv, const char *name, u32 caps, u8 available_las);
+ int cec_register_adapter(struct cec_adapter *adap, struct device *parent);
+-- 
+2.11.0
