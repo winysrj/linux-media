@@ -1,84 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:35276 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932159AbdDDWLv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 18:11:51 -0400
-Subject: Re: [RFC] [media] imx: assume MEDIA_ENT_F_ATV_DECODER entities output
- video on pad 1
-To: Philipp Zabel <p.zabel@pengutronix.de>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
- <1490661656-10318-20-git-send-email-steve_longerbeam@mentor.com>
- <1490894749.2404.33.camel@pengutronix.de>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <9bfabc5c-d90f-6487-537d-20515ec61f9c@gmail.com>
-Date: Tue, 4 Apr 2017 15:11:46 -0700
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34964 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1761138AbdDSIhC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Apr 2017 04:37:02 -0400
+Received: by mail-wm0-f65.google.com with SMTP id d79so3617759wmi.2
+        for <linux-media@vger.kernel.org>; Wed, 19 Apr 2017 01:37:01 -0700 (PDT)
+Date: Wed, 19 Apr 2017 10:36:55 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Laura Abbott <labbott@redhat.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, romlem@google.com,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+        Mark Brown <broonie@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [Linaro-mm-sig] [PATCHv4 12/12] staging/android: Update Ion TODO
+ list
+Message-ID: <20170419083655.egqgf34dxdwpyomx@phenom.ffwll.local>
+References: <1492540034-5466-1-git-send-email-labbott@redhat.com>
+ <1492540034-5466-13-git-send-email-labbott@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1490894749.2404.33.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1492540034-5466-13-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 03/30/2017 10:25 AM, Philipp Zabel wrote:
-> The TVP5150 DT bindings specify a single output port (port 0) that
-> corresponds to the video output pad (pad 1, DEMOD_PAD_VID_OUT).
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+On Tue, Apr 18, 2017 at 11:27:14AM -0700, Laura Abbott wrote:
+> Most of the items have been taken care of by a clean up series. Remove
+> the completed items and add a few new ones.
+> 
+> Signed-off-by: Laura Abbott <labbott@redhat.com>
 > ---
-> I'm trying to get this to work with a TVP5150 analog TV decoder, and the
-> first problem is that this device doesn't have pad 0 as its single
-> output pad. Instead, as a MEDIA_ENT_F_ATV_DECODER entity, it has for
-> pads (input, video out, vbi out, audio out), and video out is pad 1,
-> whereas the device tree only defines a single port (0).
+>  drivers/staging/android/TODO | 21 ++++-----------------
+>  1 file changed, 4 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/staging/android/TODO b/drivers/staging/android/TODO
+> index 8f3ac37..5f14247 100644
+> --- a/drivers/staging/android/TODO
+> +++ b/drivers/staging/android/TODO
+> @@ -7,23 +7,10 @@ TODO:
+>  
+>  
+>  ion/
+> - - Remove ION_IOC_SYNC: Flushing for devices should be purely a kernel internal
+> -   interface on top of dma-buf. flush_for_device needs to be added to dma-buf
+> -   first.
+> - - Remove ION_IOC_CUSTOM: Atm used for cache flushing for cpu access in some
+> -   vendor trees. Should be replaced with an ioctl on the dma-buf to expose the
+> -   begin/end_cpu_access hooks to userspace.
+> - - Clarify the tricks ion plays with explicitly managing coherency behind the
+> -   dma api's back (this is absolutely needed for high-perf gpu drivers): Add an
+> -   explicit coherency management mode to flush_for_device to be used by drivers
+> -   which want to manage caches themselves and which indicates whether cpu caches
+> -   need flushing.
+> - - With those removed there's probably no use for ION_IOC_IMPORT anymore either
+> -   since ion would just be the central allocator for shared buffers.
+> - - Add dt-binding to expose cma regions as ion heaps, with the rule that any
+> -   such cma regions must already be used by some device for dma. I.e. ion only
+> -   exposes existing cma regions and doesn't reserve unecessarily memory when
+> -   booting a system which doesn't use ion.
+> + - Add dt-bindings for remaining heaps (chunk and carveout heaps). This would
+> +   involve putting appropriate bindings in a memory node for Ion to find.
+> + - Split /dev/ion up into multiple nodes (e.g. /dev/ion/heap0)
+> + - Better test framework (integration with VGEM was suggested)
 
-Shouldn't the DT bindings define ports for these other pads?
-I haven't seen this documented anywhere, but shouldn't there
-be a 1:1 correspondence between DT ports and media pads?
+Found another one: Integrate the ion kernel-doc into
+Documenation/gpu/ion.rst and link it up within Documenation/gpu/index.rst.
+There's a lot of api and overview stuff already around, would be great to
+make this more accessible.
 
-Steve
+But I wouldn't put this as a de-staging blocker, just an idea.
 
+On the series: Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 
-> ---
->
->  drivers/staging/media/imx/imx-media-dev.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
->
-> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-> index 17e2386a3ca3a..c52d6ca797965 100644
-> --- a/drivers/staging/media/imx/imx-media-dev.c
-> +++ b/drivers/staging/media/imx/imx-media-dev.c
-> @@ -267,6 +267,15 @@ static int imx_media_create_link(struct imx_media_dev *imxmd,
->  	source_pad = link->local_pad;
->  	sink_pad = link->remote_pad;
->
-> +	/*
-> +	 * If the source subdev is an analog video decoder with a single source
-> +	 * port, assume that this port 0 corresponds to the DEMOD_PAD_VID_OUT
-> +	 * entity pad.
-> +	 */
-> +	if (source->entity.function == MEDIA_ENT_F_ATV_DECODER &&
-> +	    local_sd->num_sink_pads == 0 && local_sd->num_src_pads == 1)
-> +		source_pad = DEMOD_PAD_VID_OUT;
-> +
->  	v4l2_info(&imxmd->v4l2_dev, "%s: %s:%d -> %s:%d\n", __func__,
->  		  source->name, source_pad, sink->name, sink_pad);
->
->
+No full review since a bunch of stuff I'm not too familiar with, but I
+like where this is going.
+-Daniel
+
+>  
+>  Please send patches to Greg Kroah-Hartman <greg@kroah.com> and Cc:
+>  Arve Hjønnevåg <arve@android.com> and Riley Andrews <riandrews@android.com>
+> -- 
+> 2.7.4
+> 
+> _______________________________________________
+> Linaro-mm-sig mailing list
+> Linaro-mm-sig@lists.linaro.org
+> https://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
