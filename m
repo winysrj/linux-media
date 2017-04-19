@@ -1,101 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:55318 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932632AbdDFHcD (ORCPT
+Received: from mail-qk0-f173.google.com ([209.85.220.173]:33408 "EHLO
+        mail-qk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S940326AbdDSXOc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Apr 2017 03:32:03 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.12] Add support for the RainShadow Tech HDMI CEC
- adapter
-Message-ID: <261937c8-eac1-fce3-3f1c-b189b03e912e@xs4all.nl>
-Date: Thu, 6 Apr 2017 09:31:58 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Wed, 19 Apr 2017 19:14:32 -0400
+Received: by mail-qk0-f173.google.com with SMTP id h67so33360910qke.0
+        for <linux-media@vger.kernel.org>; Wed, 19 Apr 2017 16:14:32 -0700 (PDT)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH 06/12] au8522 Remove 0x4 bit for register reads
+Date: Wed, 19 Apr 2017 19:13:49 -0400
+Message-Id: <1492643635-30823-7-git-send-email-dheitmueller@kernellabs.com>
+In-Reply-To: <1492643635-30823-1-git-send-email-dheitmueller@kernellabs.com>
+References: <1492643635-30823-1-git-send-email-dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Identical to the v3 patch series.
+The second highest bit in the register value is an indicator to do
+a register read, so remove it since now au8522_regread() inserts
+the bit automatically.
 
-To use add this to /etc/udev/rules.d/70-cec.rules:
+Also remove a stray instance where we were actually trying to write
+to the I2C status register, which was actually a read.
 
-SUBSYSTEM=="tty", KERNEL=="ttyACM[0-9]*", ATTRS{idVendor}=="04d8", ATTRS{idProduct}=="ff59", ACTION=="add", TAG+="systemd",
-ENV{SYSTEMD_WANTS}+="rainshadow-cec-inputattach@%k.service"
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+---
+ drivers/media/dvb-frontends/au8522_dig.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-Use this as the systemd service:
-
-$ cat /lib/systemd/system/rainshadow-cec-inputattach@.service
-[Unit]
-Description=inputattach for rainshadow-cec device on %I
-
-[Service]
-Type=simple
-ExecStart=/usr/bin/inputattach --rainshadow-cec /dev/%I
-KillMode=process
-
-
-And this is the diff for inputattach:
-
-diff -ur linuxconsoletools-1.6.0/utils/inputattach.c linuxconsoletools-1.6.0.new/utils/inputattach.c
---- linuxconsoletools-1.6.0/utils/inputattach.c	2016-08-09 13:04:05.000000000 +0200
-+++ linuxconsoletools-1.6.0.new/utils/inputattach.c	2016-10-31 15:59:38.767639502 +0100
-@@ -867,6 +867,9 @@
- { "--pulse8-cec",		"-pulse8-cec",	"Pulse Eight HDMI CEC dongle",
- 	B9600, CS8,
- 	SERIO_PULSE8_CEC,		0x00,	0x00,	0,	NULL },
-+{ "--rainshadow-cec",		"-rainshadow-cec",	"RainShadow Tech HDMI CEC dongle",
-+	B9600, CS8,
-+	SERIO_RAINSHADOW_CEC,		0x00,	0x00,	0,	NULL },
- { NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, NULL }
- };
-
-diff -ur linuxconsoletools-1.6.0/utils/serio-ids.h linuxconsoletools-1.6.0.new/utils/serio-ids.h
---- linuxconsoletools-1.6.0/utils/serio-ids.h	2016-08-09 13:04:05.000000000 +0200
-+++ linuxconsoletools-1.6.0.new/utils/serio-ids.h	2016-10-31 16:00:10.098639502 +0100
-@@ -134,5 +134,8 @@
- #ifndef SERIO_PULSE8_CEC
- # define SERIO_PULSE8_CEC	0x40
- #endif
-+#ifndef SERIO_RAINSHADOW_CEC
-+# define SERIO_RAINSHADOW_CEC	0x41
-+#endif
-
- #endif
-
-
-Once this driver is merged in the mainline kernel I will mail this patch to the
-inputattach maintainer.
-
-Regards,
-
-	Hans
-
-The following changes since commit 2f65ec0567f77b75f459c98426053a3787af356a:
-
-  [media] s5p-g2d: Fix error handling (2017-04-05 16:37:15 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git rain
-
-for you to fetch changes up to 4d7ef7d4915e7dba0d9dee0d45d441b248988827:
-
-  rainshadow-cec: new RainShadow Tech HDMI CEC driver (2017-04-06 08:51:52 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (2):
-      serio.h: add SERIO_RAINSHADOW_CEC ID
-      rainshadow-cec: new RainShadow Tech HDMI CEC driver
-
- MAINTAINERS                                       |   7 +
- drivers/media/usb/Kconfig                         |   1 +
- drivers/media/usb/Makefile                        |   1 +
- drivers/media/usb/rainshadow-cec/Kconfig          |  10 ++
- drivers/media/usb/rainshadow-cec/Makefile         |   1 +
- drivers/media/usb/rainshadow-cec/rainshadow-cec.c | 388 ++++++++++++++++++++++++++++++++++++++++++++++++++
- include/uapi/linux/serio.h                        |   1 +
- 7 files changed, 409 insertions(+)
- create mode 100644 drivers/media/usb/rainshadow-cec/Kconfig
- create mode 100644 drivers/media/usb/rainshadow-cec/Makefile
- create mode 100644 drivers/media/usb/rainshadow-cec/rainshadow-cec.c
+diff --git a/drivers/media/dvb-frontends/au8522_dig.c b/drivers/media/dvb-frontends/au8522_dig.c
+index d117ddb..3f3635f 100644
+--- a/drivers/media/dvb-frontends/au8522_dig.c
++++ b/drivers/media/dvb-frontends/au8522_dig.c
+@@ -284,7 +284,6 @@ static int au8522_set_if(struct dvb_frontend *fe, enum au8522_if_freq if_freq)
+ 	u16 data;
+ } VSB_mod_tab[] = {
+ 	{ 0x0090, 0x84 },
+-	{ 0x4092, 0x11 },
+ 	{ 0x2005, 0x00 },
+ 	{ 0x0091, 0x80 },
+ 	{ 0x00a3, 0x0c },
+@@ -654,12 +653,12 @@ static int au8522_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ 
+ 	if (state->current_modulation == VSB_8) {
+ 		dprintk("%s() Checking VSB_8\n", __func__);
+-		reg = au8522_readreg(state, 0x4088);
++		reg = au8522_readreg(state, 0x0088);
+ 		if ((reg & 0x03) == 0x03)
+ 			*status |= FE_HAS_LOCK | FE_HAS_SYNC | FE_HAS_VITERBI;
+ 	} else {
+ 		dprintk("%s() Checking QAM\n", __func__);
+-		reg = au8522_readreg(state, 0x4541);
++		reg = au8522_readreg(state, 0x0541);
+ 		if (reg & 0x80)
+ 			*status |= FE_HAS_VITERBI;
+ 		if (reg & 0x20)
+@@ -745,17 +744,17 @@ static int au8522_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 	if (state->current_modulation == QAM_256)
+ 		ret = au8522_mse2snr_lookup(qam256_mse2snr_tab,
+ 					    ARRAY_SIZE(qam256_mse2snr_tab),
+-					    au8522_readreg(state, 0x4522),
++					    au8522_readreg(state, 0x0522),
+ 					    snr);
+ 	else if (state->current_modulation == QAM_64)
+ 		ret = au8522_mse2snr_lookup(qam64_mse2snr_tab,
+ 					    ARRAY_SIZE(qam64_mse2snr_tab),
+-					    au8522_readreg(state, 0x4522),
++					    au8522_readreg(state, 0x0522),
+ 					    snr);
+ 	else /* VSB_8 */
+ 		ret = au8522_mse2snr_lookup(vsb_mse2snr_tab,
+ 					    ARRAY_SIZE(vsb_mse2snr_tab),
+-					    au8522_readreg(state, 0x4311),
++					    au8522_readreg(state, 0x0311),
+ 					    snr);
+ 
+ 	if (state->config.led_cfg)
+@@ -804,9 +803,9 @@ static int au8522_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ 	struct au8522_state *state = fe->demodulator_priv;
+ 
+ 	if (state->current_modulation == VSB_8)
+-		*ucblocks = au8522_readreg(state, 0x4087);
++		*ucblocks = au8522_readreg(state, 0x0087);
+ 	else
+-		*ucblocks = au8522_readreg(state, 0x4543);
++		*ucblocks = au8522_readreg(state, 0x0543);
+ 
+ 	return 0;
+ }
+-- 
+1.9.1
