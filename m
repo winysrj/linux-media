@@ -1,78 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:51016 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753497AbdDFNPL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Apr 2017 09:15:11 -0400
-Subject: Re: [Patch v4 10/12] [media] v4l2: Add v4l2 control IDs for HEVC
- encoder
-To: Smitha T Murthy <smitha.t@samsung.com>, linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        a.hajda@samsung.com, pankaj.dubey@samsung.com, kamil@wypas.org,
-        krzk@kernel.org, jtp.park@samsung.com, kyungmin.park@samsung.com,
-        mchehab@kernel.org, m.szyprowski@samsung.com
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <374939c7-241a-fcca-c87e-5c4290bdb6aa@samsung.com>
-Date: Thu, 06 Apr 2017 15:14:51 +0200
-MIME-version: 1.0
-In-reply-to: <1491459105-16641-11-git-send-email-smitha.t@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
-References: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
- <CGME20170406061023epcas5p2a3fa65c4254e17a58f71c68d413e6bfd@epcas5p2.samsung.com>
- <1491459105-16641-11-git-send-email-smitha.t@samsung.com>
+Received: from mail-qt0-f175.google.com ([209.85.216.175]:34412 "EHLO
+        mail-qt0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S937689AbdDSUrG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Apr 2017 16:47:06 -0400
+Received: by mail-qt0-f175.google.com with SMTP id c45so30140558qtb.1
+        for <linux-media@vger.kernel.org>; Wed, 19 Apr 2017 13:47:06 -0700 (PDT)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH]  cx88: Fix regression in initial video standard setting
+Date: Wed, 19 Apr 2017 16:46:51 -0400
+Message-Id: <1492634811-4435-1-git-send-email-dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/06/2017 08:11 AM, Smitha T Murthy wrote:
-> @@ -775,6 +832,47 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
->  	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
->  
-> +	/* HEVC controls */
-[...]
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY:	return "HEVC LF Across Slice Boundary or Not";
+Setting initial standard at the top of cx8800_initdev would cause the
+first call to cx88_set_tvnorm() to return without programming any
+registers (leaving the driver saying it's set to NTSC but the hardware
+isn't programmed).  Even worse, any subsequent attempt to explicitly
+set it to NTSC-M will return success but actually fail to program the
+underlying registers unless first changing the standard to something
+other than NTSC-M.
 
-Please make sure the names are no longer than 31 characters to avoid
-truncation during control enumeration in user space.
-Data structures like struct v4l2_queryctrl, struct v4l2_query_ext_ctrl
-have only 32 bytes long array dedicated for the control name.
+Set the initial standard later in the process, and make sure the field
+is zero at the beginning to ensure that the call always goes through.
 
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_QP:		return "HEVC QP Values";
+This regression was introduced in the following commit:
 
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE:	return "HEVC Hierarchical Coding Type";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER:return "HEVC Hierarchical Coding Layer";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_QP:return "HEVC Hierarchical Layer QP";
+commit ccd6f1d488e7 ("[media] cx88: move width, height and field to core
+struct")
 
-How about s/HIERARCHICAL_/HIER_ for the above 3 control IDs?
+Author: Hans Verkuil <hans.verkuil@cisco.com>
+Date:   Sat Sep 20 09:23:44 2014 -0300
 
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER0_BITRATE:return "HEVC Hierarchical Lay 0 Bit Rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER1_BITRATE:return "HEVC Hierarchical Lay 1 Bit Rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER2_BITRATE:return "HEVC Hierarchical Lay 2 Bit Rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER3_BITRATE:return "HEVC Hierarchical Lay 3 Bit Rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER4_BITRATE:return "HEVC Hierarchical Lay 4 Bit Rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER5_BITRATE:return "HEVC Hierarchical Lay 5 Bit Rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER6_BITRATE:return "HEVC Hierarchical Lay 6 Bit Rate";
+[media] cx88: move width, height and field to core struct
 
-Using single letter L instead of LAYER would make the control ID shorter
-and more consistent with existing controls, e.g. 
-V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BITRATE.
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+---
+ drivers/media/pci/cx88/cx88-cards.c | 9 ++++++++-
+ drivers/media/pci/cx88/cx88-video.c | 2 +-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_SIGN_DATA_HIDING:		return "HEVC Sign Data Hiding";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB:		return "HEVC General PB";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID:		return "HEVC Temporal ID";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING:		return "HEVC Strong Intra Smoothing";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT:		return "HEVC Intra PU Split";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION:		return "HEVC TMV Prediction";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1:	return "HEVC Max Number of Candidate MVs";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE:	return "HEVC ENC Without Startcode";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD:		return "HEVC Num of I Frame b/w 2 IDR";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2:	return "HEVC Loop Filter Beta Offset";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2:	return "HEVC Loop Filter tc Offset";
-
-s/tc/Tc or s/tc/TC ?
-
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:	return "HEVC Size of Length Field";
-
---
-Thanks,
-Sylwester
+diff --git a/drivers/media/pci/cx88/cx88-cards.c b/drivers/media/pci/cx88/cx88-cards.c
+index 73cc7a6..b7a8c8c 100644
+--- a/drivers/media/pci/cx88/cx88-cards.c
++++ b/drivers/media/pci/cx88/cx88-cards.c
+@@ -3681,7 +3681,14 @@ struct cx88_core *cx88_core_create(struct pci_dev *pci, int nr)
+ 	core->nr = nr;
+ 	sprintf(core->name, "cx88[%d]", core->nr);
+ 
+-	core->tvnorm = V4L2_STD_NTSC_M;
++	/*
++	 * Note: Setting initial standard here would cause first call to
++	 * cx88_set_tvnorm() to return without programming any registers.  Leave
++	 * it blank for at this point and it will get set later in
++	 * cx8800_inittdev()
++	 */
++	core->tvnorm  = 0;
++
+ 	core->width   = 320;
+ 	core->height  = 240;
+ 	core->field   = V4L2_FIELD_INTERLACED;
+diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+index c7d4e87..3c529dd 100644
+--- a/drivers/media/pci/cx88/cx88-video.c
++++ b/drivers/media/pci/cx88/cx88-video.c
+@@ -1435,7 +1435,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
+ 
+ 	/* initial device configuration */
+ 	mutex_lock(&core->lock);
+-	cx88_set_tvnorm(core, core->tvnorm);
++	cx88_set_tvnorm(core, V4L2_STD_NTSC_M);
+ 	v4l2_ctrl_handler_setup(&core->video_hdl);
+ 	v4l2_ctrl_handler_setup(&core->audio_hdl);
+ 	cx88_video_mux(core, 0);
+-- 
+1.9.1
