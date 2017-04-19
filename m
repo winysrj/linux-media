@@ -1,47 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:34511 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756546AbdDPRgC (ORCPT
+Received: from smtprelay.synopsys.com ([198.182.60.111]:41503 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933784AbdDSKdD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Apr 2017 13:36:02 -0400
-Received: by mail-wr0-f196.google.com with SMTP id u18so18048446wrc.1
-        for <linux-media@vger.kernel.org>; Sun, 16 Apr 2017 10:36:01 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: guennadi.liakhovetski@intel.com, hans.verkuil@cisco.com,
-        =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 4/7] ov2640: add missing write to size change preamble
-Date: Sun, 16 Apr 2017 19:35:43 +0200
-Message-Id: <20170416173546.4317-5-fschaefer.oss@googlemail.com>
-In-Reply-To: <20170416173546.4317-1-fschaefer.oss@googlemail.com>
-References: <20170416173546.4317-1-fschaefer.oss@googlemail.com>
+        Wed, 19 Apr 2017 06:33:03 -0400
+Subject: Re: [PATCH 3/3] [media] cobalt: Use v4l2_calc_timeperframe helper
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Jose Abreu <Jose.Abreu@synopsys.com>,
+        <linux-media@vger.kernel.org>
+References: <cover.1490095965.git.joabreu@synopsys.com>
+ <070c9e71b359c0f6da7410b5ab9207210925549a.1490095965.git.joabreu@synopsys.com>
+ <bdd49167-298e-b4e9-5e3c-422524291d26@xs4all.nl>
+ <eab1bff3-e2bd-947a-6220-59c04376edac@synopsys.com>
+CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        <linux-kernel@vger.kernel.org>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <96361b5d-39e1-225b-7d40-c2b66585b019@synopsys.com>
+Date: Wed, 19 Apr 2017 11:32:57 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <eab1bff3-e2bd-947a-6220-59c04376edac@synopsys.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HSIZE and VSIZE bits 0 to 2 and HSIZE bit 11 are encoded in DSP register
-SIZEL.
+Hi Hans,
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/i2c/ov2640.c | 3 +++
- 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-index 11f1b807c292..6f0cc722477d 100644
---- a/drivers/media/i2c/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -500,6 +500,9 @@ static const struct regval_list ov2640_init_regs[] = {
- static const struct regval_list ov2640_size_change_preamble_regs[] = {
- 	{ BANK_SEL, BANK_SEL_DSP },
- 	{ RESET, RESET_DVP },
-+	{ SIZEL, SIZEL_HSIZE8_11_SET(UXGA_WIDTH) |
-+		 SIZEL_HSIZE8_SET(UXGA_WIDTH) |
-+		 SIZEL_VSIZE8_SET(UXGA_HEIGHT) },
- 	{ HSIZE8, HSIZE8_SET(UXGA_WIDTH) },
- 	{ VSIZE8, VSIZE8_SET(UXGA_HEIGHT) },
- 	{ CTRL2, CTRL2_DCW_EN | CTRL2_SDE_EN |
--- 
-2.12.2
+On 31-03-2017 09:59, Jose Abreu wrote:
+> Hi Hans,
+>
+>
+> On 30-03-2017 14:42, Hans Verkuil wrote:
+>> Hi Jose,
+>>
+>> On 21/03/17 12:49, Jose Abreu wrote:
+>>> Currently, cobalt driver always returns 60fps in g_parm.
+>>> This patch uses the new v4l2_calc_timeperframe helper to
+>>> calculate the time per frame value.
+>> I can verify that g_parm works, so:
+>>
+>> Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> However, the adv7604 pixelclock detection resolution is only 0.25 MHz, so it
+>> can't tell the difference between 24 and 23.97 Hz. I can't set the new
+>> V4L2_DV_FL_CAN_DETECT_REDUCED_FPS flag there.
+>>
+>> It might be possible to implement this for the adv7842 receiver, I think that
+>> that hardware is much more precise.
+>>
+>> I would have to try this, but that will have to wait until Friday next week.
+> Thanks! Yes, maybe its better to test with a different receiver,
+> if it has more precision then its great. Let me know if you need
+> any help :)
+
+Any news regarding this?
+
+Best regards,
+Jose Miguel Abreu
+
+>
+> Best regards,
+> Jose Miguel Abreu
+>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+>>> Cc: Carlos Palminha <palminha@synopsys.com>
+>>> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+>>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>>> Cc: linux-media@vger.kernel.org
+>>> Cc: linux-kernel@vger.kernel.org
+>>> ---
+>>>  drivers/media/pci/cobalt/cobalt-v4l2.c | 9 +++++++--
+>>>  1 file changed, 7 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.c b/drivers/media/pci/cobalt/cobalt-v4l2.c
+>>> index def4a3b..25532ae 100644
+>>> --- a/drivers/media/pci/cobalt/cobalt-v4l2.c
+>>> +++ b/drivers/media/pci/cobalt/cobalt-v4l2.c
+>>> @@ -1076,10 +1076,15 @@ static int cobalt_subscribe_event(struct v4l2_fh *fh,
+>>>  
+>>>  static int cobalt_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
+>>>  {
+>>> +	struct cobalt_stream *s = video_drvdata(file);
+>>> +	struct v4l2_fract fps;
+>>> +
+>>>  	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>>>  		return -EINVAL;
+>>> -	a->parm.capture.timeperframe.numerator = 1;
+>>> -	a->parm.capture.timeperframe.denominator = 60;
+>>> +
+>>> +	fps = v4l2_calc_timeperframe(&s->timings);
+>>> +	a->parm.capture.timeperframe.numerator = fps.numerator;
+>>> +	a->parm.capture.timeperframe.denominator = fps.denominator;
+>>>  	a->parm.capture.readbuffers = 3;
+>>>  	return 0;
+>>>  }
+>>>
