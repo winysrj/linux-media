@@ -1,60 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:64672 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966966AbdDSRAY (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59140
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933938AbdDSLPv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Apr 2017 13:00:24 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Vincent Abriou <vincent.abriou@st.com>,
-        David Airlie <airlied@linux.ie>,
-        Arnaud Pouliquen <arnaud.pouliquen@st.com>,
-        Peter Griffin <peter.griffin@linaro.org>,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] sti: hdmi: improve MEDIA_CEC_NOTIFIER dependency
-Date: Wed, 19 Apr 2017 18:59:23 +0200
-Message-Id: <20170419165936.2836426-1-arnd@arndb.de>
+        Wed, 19 Apr 2017 07:15:51 -0400
+Date: Wed, 19 Apr 2017 08:15:45 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] Order the Makefile alphabetically
+Message-ID: <20170419081538.38272ae6@vento.lan>
+In-Reply-To: <20170406144051.13008-1-maxime.ripard@free-electrons.com>
+References: <20170406144051.13008-1-maxime.ripard@free-electrons.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the media subsystem is built as a loadable module, a built-in
-DRM driver cannot use the cec notifiers:
+Em Thu,  6 Apr 2017 16:40:51 +0200
+Maxime Ripard <maxime.ripard@free-electrons.com> escreveu:
 
-drivers/gpu/drm/sti/sti_hdmi.o: In function `sti_hdmi_remove':
-sti_hdmi.c:(.text.sti_hdmi_remove+0x28): undefined reference to `cec_notifier_set_phys_addr'
-sti_hdmi.c:(.text.sti_hdmi_remove+0x50): undefined reference to `cec_notifier_put'
-drivers/gpu/drm/sti/sti_hdmi.o: In function `sti_hdmi_connector_get_modes':
-sti_hdmi.c:(.text.sti_hdmi_connector_get_modes+0x84): undefined reference to `cec_notifier_set_phys_addr_from_edid'
-drivers/gpu/drm/sti/sti_hdmi.o: In function `sti_hdmi_probe':
-sti_hdmi.c:(.text.sti_hdmi_probe+0x1a8): undefined reference to `cec_notifier_get'
-drivers/gpu/drm/sti/sti_hdmi.o: In function `sti_hdmi_connector_detect':
-sti_hdmi.c:(.text.sti_hdmi_connector_detect+0x68): undefined reference to `cec_notifier_set_phys_addr'
-drivers/gpu/drm/sti/sti_hdmi.o: In function `sti_hdmi_disable':
-sti_hdmi.c:(.text.sti_hdmi_disable+0xec): undefined reference to `cec_notifier_set_phys_addr'
+> The Makefiles were a free for all without a clear order defined. Sort all the
+> options based on the Kconfig symbol.
+> 
+> Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+> 
+> ---
+> 
+> Hi Mauro,
+> 
+> Here is my makefile ordering patch again, this time with all the Makefiles
+> in drivers/media that needed ordering.
+> 
+> Since we're already pretty late in the release period, I guess there won't
+> be any major conflicts between now and the merge window.
+> 
 
-This adds a Kconfig dependency to enforce the HDMI driver to also
-be a loadable module in this case.
+The thing with patches like that is that they almost never apply fine.
+By the time I review such patches, it was already broken. Also,
+once applied, it breaks for everybody that have pending work to merge.
 
-Fixes: bca55958ea87 ("[media] sti: hdmi: add CEC notifier support")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/gpu/drm/sti/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+This patch is broken (see attached).
 
-diff --git a/drivers/gpu/drm/sti/Kconfig b/drivers/gpu/drm/sti/Kconfig
-index acd72865feac..adac4c3e142e 100644
---- a/drivers/gpu/drm/sti/Kconfig
-+++ b/drivers/gpu/drm/sti/Kconfig
-@@ -1,6 +1,7 @@
- config DRM_STI
- 	tristate "DRM Support for STMicroelectronics SoC stiH4xx Series"
- 	depends on DRM && (ARCH_STI || ARCH_MULTIPLATFORM)
-+	depends on (MEDIA_SUPPORT && MEDIA_CEC_NOTIFIER) || !MEDIA_CEC_NOTIFIER
- 	select RESET_CONTROLLER
- 	select DRM_KMS_HELPER
- 	select DRM_GEM_CMA_HELPER
--- 
-2.9.0
+So, I prefer not applying stuff like that.
+
+Regards,
+Mauro
+
+
+testing if patches/lmml_40670_media_order_the_makefile_alphabetically.patch applies
+patch -p1 -i patches/lmml_40670_media_order_the_makefile_alphabetically.patch --dry-run -t -N
+checking file drivers/media/common/Makefile
+checking file drivers/media/dvb-frontends/Makefile
+checking file drivers/media/i2c/Makefile
+Hunk #1 FAILED at 1.
+1 out of 1 hunk FAILED
+checking file drivers/media/pci/Makefile
+checking file drivers/media/platform/Makefile
+Hunk #1 FAILED at 1.
+1 out of 1 hunk FAILED
+checking file drivers/media/radio/Makefile
+checking file drivers/media/rc/Makefile
+checking file drivers/media/tuners/Makefile
+checking file drivers/media/usb/Makefile
+Hunk #1 FAILED at 6.
+1 out of 1 hunk FAILED
+checking file drivers/media/v4l2-core/Makefile
+ drivers/media/common/Makefile        |    2 
+ drivers/media/dvb-frontends/Makefile |  220 +++++++++++++++++------------------
+ drivers/media/i2c/Makefile           |  162 ++++++++++++-------------
+ drivers/media/pci/Makefile           |   34 ++---
+ drivers/media/platform/Makefile      |   92 +++++---------
+ drivers/media/radio/Makefile         |   62 ++++-----
+ drivers/media/rc/Makefile            |   74 +++++------
+ drivers/media/tuners/Makefile        |   73 +++++------
+ drivers/media/usb/Makefile           |   34 ++---
+ drivers/media/v4l2-core/Makefile     |   36 ++---
+ 10 files changed, 381 insertions(+), 408 deletions(-)
+
+Thanks,
+Mauro
