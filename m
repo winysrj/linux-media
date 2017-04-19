@@ -1,106 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:49727 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1951885AbdDYSVW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 14:21:22 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com
-Cc: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Apr 2017 12:20:52 -0600
-Message-Id: <1493144468-22493-6-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 05/21] drm/i915: Make use of the new sg_map helper function
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40004 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S968108AbdDSVll (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Apr 2017 17:41:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Peter =?ISO-8859-1?Q?Bostr=F6m?= <pbos@google.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v4] [media] uvcvideo: Add iFunction or iInterface to device names.
+Date: Thu, 20 Apr 2017 00:42:42 +0300
+Message-ID: <4928224.bcUm3SHKWn@avalon>
+In-Reply-To: <20170419204527.113504-1-pbos@google.com>
+References: <20170419204527.113504-1-pbos@google.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a single straightforward conversion from kmap to sg_map.
+Hi Peter,
 
-We also create the i915_gem_object_unmap function to common up the
-unmap code.
+Thank you for the patch.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
----
- drivers/gpu/drm/i915/i915_gem.c | 27 ++++++++++++++++-----------
- 1 file changed, 16 insertions(+), 11 deletions(-)
+On Wednesday 19 Apr 2017 16:45:27 Peter Bostr=F6m wrote:
+> Permits distinguishing between two /dev/videoX entries from the same
+> physical UVC device (that naturally share the same iProduct name).
+>=20
+> This change matches current Windows behavior by prioritizing iFunctio=
+n
+> over iInterface, but unlike Windows it displays both iProduct and
+> iFunction/iInterface strings when both are available.
+>=20
+> Signed-off-by: Peter Bostr=F6m <pbos@google.com>
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c | 24 +++++++++++++++++++++---
+>  1 file changed, 21 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> b/drivers/media/usb/uvc/uvc_driver.c index 04bf35063c4c..ae22fcf0a529=
 
-diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
-index 07e9b27..2c33000 100644
---- a/drivers/gpu/drm/i915/i915_gem.c
-+++ b/drivers/gpu/drm/i915/i915_gem.c
-@@ -2202,6 +2202,15 @@ static void __i915_gem_object_reset_page_iter(struct drm_i915_gem_object *obj)
- 		radix_tree_delete(&obj->mm.get_page.radix, iter.index);
- }
- 
-+static void i915_gem_object_unmap(const struct drm_i915_gem_object *obj,
-+				  void *ptr)
-+{
-+	if (is_vmalloc_addr(ptr))
-+		vunmap(ptr);
-+	else
-+		sg_unmap(obj->mm.pages->sgl, ptr, 0, SG_KMAP);
-+}
-+
- void __i915_gem_object_put_pages(struct drm_i915_gem_object *obj,
- 				 enum i915_mm_subclass subclass)
- {
-@@ -2229,10 +2238,7 @@ void __i915_gem_object_put_pages(struct drm_i915_gem_object *obj,
- 		void *ptr;
- 
- 		ptr = ptr_mask_bits(obj->mm.mapping);
--		if (is_vmalloc_addr(ptr))
--			vunmap(ptr);
--		else
--			kunmap(kmap_to_page(ptr));
-+		i915_gem_object_unmap(obj, ptr);
- 
- 		obj->mm.mapping = NULL;
- 	}
-@@ -2499,8 +2505,11 @@ static void *i915_gem_object_map(const struct drm_i915_gem_object *obj,
- 	void *addr;
- 
- 	/* A single page can always be kmapped */
--	if (n_pages == 1 && type == I915_MAP_WB)
--		return kmap(sg_page(sgt->sgl));
-+	if (n_pages == 1 && type == I915_MAP_WB) {
-+		addr = sg_map(sgt->sgl, 0, SG_KMAP);
-+		if (IS_ERR(addr))
-+			return NULL;
-+	}
- 
- 	if (n_pages > ARRAY_SIZE(stack_pages)) {
- 		/* Too big for stack -- allocate temporary array instead */
-@@ -2567,11 +2576,7 @@ void *i915_gem_object_pin_map(struct drm_i915_gem_object *obj,
- 			goto err_unpin;
- 		}
- 
--		if (is_vmalloc_addr(ptr))
--			vunmap(ptr);
--		else
--			kunmap(kmap_to_page(ptr));
--
-+		i915_gem_object_unmap(obj, ptr);
- 		ptr = obj->mm.mapping = NULL;
- 	}
- 
--- 
-2.1.4
+> 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -1998,6 +1998,7 @@ static int uvc_probe(struct usb_interface *intf=
+,
+>  {
+>  =09struct usb_device *udev =3D interface_to_usbdev(intf);
+>  =09struct uvc_device *dev;
+> +=09int function;
+>  =09int ret;
+>=20
+>  =09if (id->idVendor && id->idProduct)
+> @@ -2029,9 +2030,26 @@ static int uvc_probe(struct usb_interface *int=
+f,
+>  =09=09strlcpy(dev->name, udev->product, sizeof dev->name);
+>  =09else
+>  =09=09snprintf(dev->name, sizeof dev->name,
+> -=09=09=09"UVC Camera (%04x:%04x)",
+> -=09=09=09le16_to_cpu(udev->descriptor.idVendor),
+> -=09=09=09le16_to_cpu(udev->descriptor.idProduct));
+> +=09=09=09 "UVC Camera (%04x:%04x)",
+> +=09=09=09 le16_to_cpu(udev->descriptor.idVendor),
+> +=09=09=09 le16_to_cpu(udev->descriptor.idProduct));
+> +
+> +=09/*
+> +=09 * Add iFunction or iInterface to names when available as additio=
+nal
+> +=09 * distinguishers between interfaces. iFunction is prioritized ov=
+er
+> +=09 * iInterface which matches Windows behavior at the point of writ=
+ing.
+> +=09 */
+> +=09function =3D intf->cur_altsetting->desc.iInterface;
+> +=09if (intf->intf_assoc && intf->intf_assoc->iFunction !=3D 0)
+> +=09=09function =3D intf->intf_assoc->iFunction;
+
+Nitpicking, I'd prefer writing this as
+
+=09if (intf->intf_assoc && intf->intf_assoc->iFunction !=3D 0)
+=09=09function =3D intf->intf_assoc->iFunction;
+=09else
+=09=09function =3D intf->cur_altsetting->desc.iInterface;
+
+to clearly show what is the preferred case and what is the fallback. I'=
+ll fix=20
+that when applying, no need to resubmit the patch.
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> +=09if (function !=3D 0) {
+> +=09=09size_t len;
+> +
+> +=09=09strlcat(dev->name, ": ", sizeof(dev->name));
+> +=09=09len =3D strlen(dev->name);
+> +=09=09usb_string(udev, function, dev->name + len,
+> +=09=09=09   sizeof(dev->name) - len);
+> +=09}
+>=20
+>  =09/* Parse the Video Class control descriptor. */
+>  =09if (uvc_parse_control(dev) < 0) {
+
+--=20
+Regards,
+
+Laurent Pinchart
