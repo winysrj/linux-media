@@ -1,95 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:45636 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752962AbdDCPQK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 11:16:10 -0400
-Date: Mon, 3 Apr 2017 16:15:11 +0100
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Rob Herring <robh@kernel.org>
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        "kernel@pengutronix.de" <kernel@pengutronix.de>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Nick Dyer <nick@shmanahar.org>, markus.heiser@darmarit.de,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Benoit Parrot <bparrot@ti.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        tiffany lin <tiffany.lin@mediatek.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Simon Horman <horms+renesas@verge.net.au>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Andrew-CT Chen =?utf-8?B?KOmZs+aZuui/qik=?=
-        <andrew-ct.chen@mediatek.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        shuah@kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH v6 02/39] [media] dt-bindings: Add bindings for i.MX
- media driver
-Message-ID: <20170403151511.GA7909@n2100.armlinux.org.uk>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
- <1490661656-10318-3-git-send-email-steve_longerbeam@mentor.com>
- <CAL_JsqJm_JjuVPcOBERCqsnjTDdNoKr9xRE9MXMO4ivxGath2Q@mail.gmail.com>
- <70bacfb5-aef1-76d1-37d2-23a524903d45@mentor.com>
- <20170403140743.trxep36s4z4piyl3@rob-hp-laptop>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170403140743.trxep36s4z4piyl3@rob-hp-laptop>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:39728 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751124AbdDSESG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Apr 2017 00:18:06 -0400
+Message-ID: <0dbbb6cf00639a11ec742dd8ecf4a701@smtp-cloud2.xs4all.net>
+Date: Wed, 19 Apr 2017 06:18:03 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 03, 2017 at 09:07:43AM -0500, Rob Herring wrote:
-> On Tue, Mar 28, 2017 at 05:35:52PM -0700, Steve Longerbeam wrote:
-> > I assume if there's another binding doc in progress, it means
-> > someone is working on another Synopsys DW CSI-2 subdevice driver.
-> 
-> Yes. see http://patchwork.ozlabs.org/patch/736177/
-> 
-> > Unfortunately I don't have the time to contribute and switch to
-> > this other subdevice, and do test/debug.
-> 
-> >From a DT perspective, I'm not asking that you share the subdevice 
-> driver, only the binding. Simply put, there's 1 h/w block here, so there 
-> should only be 1 binding. The binding is an ABI, so you can't just merge 
-> it and change it later.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I think it would be nice to have some kind of standard base binding
-for CSI2 interfaces, but beyond the standard compatible/reg/interrupts
-and graph properties, I'm not sure what it would look like.
+Results of the daily build of media_tree:
 
-As far as those properties go, the iMX6 version does better than the
-DW version, because we specify the full graph, whereas the DW version
-only specifies the downstream link.  Once that's done, there's some
-properties (like those specifying the output configuration) which
-probably ought to be moved to the graph links instead, once they exist.
+date:			Wed Apr 19 05:00:16 CEST 2017
+media-tree git hash:	ee0fe833d96793853335844b6d99fb76bd12cbeb
+media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
+v4l-utils git hash:	b514d615166bdc0901a4c71261b87db31e89f464
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-So, if anything, I think it's the DW version needs to be augmented with
-fuller information, and some of the properties moved.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10.1-i686: OK
+linux-4.11-rc1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-x86_64: WARNINGS
+linux-4.10.1-x86_64: WARNINGS
+linux-4.11-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-Also, as I've mentioned in my other reply, while they may both appear
-to be called "Synopsys DW CSI-2" devices, they appear to be quite
-different from the hardware perspective.
+Detailed results are available here:
 
-The rest 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
