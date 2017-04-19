@@ -1,109 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:36082 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933027AbdDEJNM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 05:13:12 -0400
-Received: by mail-wm0-f48.google.com with SMTP id o81so44658519wmb.1
-        for <linux-media@vger.kernel.org>; Wed, 05 Apr 2017 02:13:06 -0700 (PDT)
-Date: Wed, 5 Apr 2017 10:12:58 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
-        benjamin.gaignard@st.com, kernel@stlinux.com,
-        patrice.chotard@st.com, linux-kernel@vger.kernel.org,
-        hans.verkuil@cisco.com, mchehab@kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] cec: Handle RC capability more elegantly
-Message-ID: <20170405091258.zujipcybjeh37amq@dell>
-References: <20170404144309.31357-1-lee.jones@linaro.org>
- <9fdac3c1-b249-839e-c2bc-f4661994eb3a@xs4all.nl>
- <20170404151939.bvd252nprj6kjmdu@dell>
- <20170404153659.GC7909@n2100.armlinux.org.uk>
- <fb4bce41-69ef-227f-e177-7a6db536ff64@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <fb4bce41-69ef-227f-e177-7a6db536ff64@xs4all.nl>
+Received: from mail-qt0-f180.google.com ([209.85.216.180]:36361 "EHLO
+        mail-qt0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S940326AbdDSXOl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Apr 2017 19:14:41 -0400
+Received: by mail-qt0-f180.google.com with SMTP id g60so32567923qtd.3
+        for <linux-media@vger.kernel.org>; Wed, 19 Apr 2017 16:14:36 -0700 (PDT)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH 11/12] Fix breakage in "make menuconfig" for media_build
+Date: Wed, 19 Apr 2017 19:13:54 -0400
+Message-Id: <1492643635-30823-12-git-send-email-dheitmueller@kernellabs.com>
+In-Reply-To: <1492643635-30823-1-git-send-email-dheitmueller@kernellabs.com>
+References: <1492643635-30823-1-git-send-email-dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 04 Apr 2017, Hans Verkuil wrote:
+The Kconfig format is strict enough where if the indentation isn't
+correct then the "make menuconfig" will break.
 
-> On 04/04/2017 05:36 PM, Russell King - ARM Linux wrote:
-> > On Tue, Apr 04, 2017 at 04:19:39PM +0100, Lee Jones wrote:
-> >> On Tue, 04 Apr 2017, Hans Verkuil wrote:
-> >>
-> >>> On 04/04/2017 04:43 PM, Lee Jones wrote:
-> >>>> If a user specifies the use of RC as a capability, they should
-> >>>> really be enabling RC Core code.  If they do not we WARN() them
-> >>>> of this and disable the capability for them.
-> >>>>
-> >>>> Once we know RC Core code has not been enabled, we can update
-> >>>> the user's capabilities and use them as a term of reference for
-> >>>> other RC-only calls.  This is preferable to having ugly #ifery
-> >>>> scattered throughout C code.
-> >>>>
-> >>>> Most of the functions are actually safe to call, since they
-> >>>> sensibly check for a NULL RC pointer before they attempt to
-> >>>> deference it.
-> >>>>
-> >>>> Signed-off-by: Lee Jones <lee.jones@linaro.org>
-> >>>> ---
-> >>>>  drivers/media/cec/cec-core.c | 19 +++++++------------
-> >>>>  1 file changed, 7 insertions(+), 12 deletions(-)
-> >>>>
-> >>>> diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-> >>>> index cfe414a..51be8d6 100644
-> >>>> --- a/drivers/media/cec/cec-core.c
-> >>>> +++ b/drivers/media/cec/cec-core.c
-> >>>> @@ -208,9 +208,13 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
-> >>>>  		return ERR_PTR(-EINVAL);
-> >>>>  	if (WARN_ON(!available_las || available_las > CEC_MAX_LOG_ADDRS))
-> >>>>  		return ERR_PTR(-EINVAL);
-> >>>> +	if (WARN_ON(caps & CEC_CAP_RC && !IS_REACHABLE(CONFIG_RC_CORE)))
-> >>>> +		caps &= ~CEC_CAP_RC;
-> >>>
-> >>> Don't use WARN_ON, this is not an error of any kind.
-> >>
-> >> Right, this is not an error.
-> >>
-> >> That's why we are warning the user instead of bombing out.
-> > 
-> > Please print warning using pr_warn() or dev_warn().  Using WARN_ON()
-> > because something is not configured is _really_ not nice behaviour.
-> > Consider how useful a stack trace is to the user for this situation -
-> > it's completely meaningless.
-> > 
-> > A message that prompts the user to enable RC_CORE would make more sense,
-> > and be much more informative to the user.  Maybe something like this:
-> > 
-> > +	if (caps & CEC_CAP_RC && !IS_REACHABLE(CONFIG_RC_CORE)) {
-> > +		pr_warn("CEC: driver %pf requests RC, please enable CONFIG_RC_CORE\n",
-> > +			__builtin_return_address(0));
-> > +		caps &= ~CEC_CAP_RC;
-> > +	}
-> > 
-> > It could be much more informative by using dev_warn() if we had the
-> > 'struct device' passed in to this function, and then we wouldn't need
-> > to use __builtin_return_address().
-> > 
-> 
-> I don't want to see a message logged because of this. In the current design it
-> is perfectly valid to compile without RC_CORE.
-> 
-> I think eventually this should be redesigned a bit (a separate CEC config option
-> that enables or disables RC support), but for now I prefer to leave this as-is
-> until I have a bit more experience with this.
-> 
-> After the CEC notifier work is in I will take another look at this.
+Fix the indentation to match all the other entries.
 
-Well at least I bought it to your attention.  I guess that's a 50% win.
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+---
+ drivers/media/rc/Kconfig | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-I'll rework the patch accordingly.
-
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index e422f3d..5e83b76 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -169,11 +169,11 @@ config IR_HIX5HD2
+ 	tristate "Hisilicon hix5hd2 IR remote control"
+ 	depends on RC_CORE
+ 	help
+-	 Say Y here if you want to use hisilicon hix5hd2 remote control.
+-	 To compile this driver as a module, choose M here: the module will be
+-	 called ir-hix5hd2.
++	   Say Y here if you want to use hisilicon hix5hd2 remote control.
++	   To compile this driver as a module, choose M here: the module will be
++	   called ir-hix5hd2.
+ 
+-	 If you're not sure, select N here
++	   If you're not sure, select N here
+ 
+ config IR_IMON
+ 	tristate "SoundGraph iMON Receiver and Display"
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+1.9.1
