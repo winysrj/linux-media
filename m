@@ -1,65 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:60785
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59041
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752291AbdDKSgq (ORCPT
+        with ESMTP id S1762350AbdDSK4x (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Apr 2017 14:36:46 -0400
-Date: Tue, 11 Apr 2017 15:36:39 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-usb@vger.kernel.org
-Subject: Re: [PATCH v2 00/21] Convert USB documentation to ReST format
-Message-ID: <20170411153639.65e52a6c@vento.lan>
-In-Reply-To: <20170411145840.GA10692@kroah.com>
-References: <cover.1491398120.git.mchehab@s-opensource.com>
-        <20170408112328.7cc07f53@lwn.net>
-        <20170408200433.GA28427@kroah.com>
-        <20170411145840.GA10692@kroah.com>
+        Wed, 19 Apr 2017 06:56:53 -0400
+Date: Wed, 19 Apr 2017 07:56:43 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Tiffany Lin <tiffany.lin@mediatek.com>
+Cc: Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
+Subject: Re: [PATCH] media: mtk-vcodec: remove informative log
+Message-ID: <20170419075643.0a04af21@vento.lan>
+In-Reply-To: <1491390599.32502.1.camel@mtksdaap41>
+References: <1491389669-32737-1-git-send-email-minghsiu.tsai@mediatek.com>
+        <1491390599.32502.1.camel@mtksdaap41>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 11 Apr 2017 16:58:40 +0200
-Greg Kroah-Hartman <gregkh@linuxfoundation.org> escreveu:
+Em Wed, 5 Apr 2017 19:09:59 +0800
+Tiffany Lin <tiffany.lin@mediatek.com> escreveu:
 
-> On Sat, Apr 08, 2017 at 10:04:33PM +0200, Greg Kroah-Hartman wrote:
-> > On Sat, Apr 08, 2017 at 11:23:28AM -0600, Jonathan Corbet wrote:  
-> > > On Wed,  5 Apr 2017 10:22:54 -0300
-> > > Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
-> > >   
-> > > > Currently, there are several USB core documents that are at either
-> > > > written in plain text or in DocBook format. Convert them to ReST
-> > > > and add to the driver-api book.  
-> > > 
-> > > Greg, do you see any reason not to apply these for 4.12?  A few of them
-> > > touch comments outside of Documentation/; I'm happy to carry those or
-> > > leave them to you, as you prefer.  
+> On Wed, 2017-04-05 at 18:54 +0800, Minghsiu Tsai wrote:
+> > Driver is stable. Remove DEBUG definition from driver.
 > > 
-> > I'll queue them up in the next few days, thanks!  
+> > There are debug message in /var/log/messages if DEBUG is defined,
+> > such as:
+> > [MTK_V4L2] level=0 fops_vcodec_open(),170: decoder capability 0
+> > [MTK_V4L2] level=0 fops_vcodec_open(),177: 16000000.vcodec decoder [0]
+> > [MTK_V4L2] level=0 fops_vcodec_release(),200: [0] decoder
+> > 
+> > Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>  
+> Acked-by:Tiffany Lin <Tiffany.lin@mediatek.com>
 > 
-> Nope, they don't apply to my tree, it was probably based on yours.  And
-> the first two are ones I shouldn't be taking.
+> > ---
+> >  drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h | 1 -
+> >  1 file changed, 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+> > index 7d55975..1248083 100644
+> > --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+> > +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+> > @@ -31,7 +31,6 @@ struct mtk_vcodec_mem {
+> >  extern int mtk_v4l2_dbg_level;
+> >  extern bool mtk_vcodec_dbg;
+> >  
+> > -#define DEBUG	1
+> >  
+> >  #if defined(DEBUG)
+> >    
 
-Yeah, I based it at the docs-next tree. If you prefer, I can rebase
-on your tree, but I guess that the docbook conversion patches
-would likely conflict with some patches at docs-next, because of
-the Makefile changes.
+After this patch, building the Kernel with W=1 now shows warnings:
 
-> So, feel free to take all of these with a:
-> 	Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> for the USB-related patches (2-21).
-> 
-> thanks,
-> 
-> greg k-h
+drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c: In function 'mtk_vcodec_dec_pw_on':
+drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c:114:51: warning: suggest braces around empty body in an 'if' statement [-Wempty-body]
+   mtk_v4l2_err("pm_runtime_get_sync fail %d", ret);
+                                                   ^
+
+I wrote a patch fixing it, as this is really a trivial issue.
+
+Yet, after that, this one still remains:
 
 
+drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c: In function 'mtk_vdec_pic_info_update':
+drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c:284:6: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
+  int ret;
+      ^~~
+
+
+Shouldn't be mtk_vdec_pic_info_update() returning an error code?
+
+
+Also, IMHO, at least errors should be shown at dmesg.
 
 Thanks,
 Mauro
