@@ -1,128 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f171.google.com ([209.85.128.171]:36577 "EHLO
-        mail-wr0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754041AbdDDMcG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 08:32:06 -0400
-Received: by mail-wr0-f171.google.com with SMTP id w11so211122708wrc.3
-        for <linux-media@vger.kernel.org>; Tue, 04 Apr 2017 05:32:05 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org
-Cc: Jose.Abreu@synopsys.com, kieran.bingham@ideasonboard.com,
-        linux-amlogic@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        Neil Armstrong <narmstrong@baylibre.com>
-Subject: [PATCH v6.1 1/4] drm: bridge: dw-hdmi: Extract PHY interrupt setup to a function
-Date: Tue,  4 Apr 2017 14:31:56 +0200
-Message-Id: <1491309119-24220-2-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1491309119-24220-1-git-send-email-narmstrong@baylibre.com>
-References: <1491309119-24220-1-git-send-email-narmstrong@baylibre.com>
+Received: from mail-qk0-f179.google.com ([209.85.220.179]:34990 "EHLO
+        mail-qk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S940326AbdDSXOa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Apr 2017 19:14:30 -0400
+Received: by mail-qk0-f179.google.com with SMTP id f133so33322782qke.2
+        for <linux-media@vger.kernel.org>; Wed, 19 Apr 2017 16:14:30 -0700 (PDT)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH 04/12] au8522: remove note about VBI not being implemented
+Date: Wed, 19 Apr 2017 19:13:47 -0400
+Message-Id: <1492643635-30823-5-git-send-email-dheitmueller@kernellabs.com>
+In-Reply-To: <1492643635-30823-1-git-send-email-dheitmueller@kernellabs.com>
+References: <1492643635-30823-1-git-send-email-dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+I got this working a couple of years ago.  Remove it from the
+list of known issues.
 
-In preparation for adding PHY operations to handle RX SENSE and HPD,
-group all the PHY interrupt setup code in a single location and extract
-it to a separate function.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Jose Abreu <joabreu@synopsys.com>
-[narmstrong: renamed dw_hdmi_fb_registered to dw_hdmi_setup_i2c]
-Reviewed-by: Archit Taneja <architt@codeaurora.org>
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
 ---
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 51 ++++++++++++++-----------------
- 1 file changed, 23 insertions(+), 28 deletions(-)
+ drivers/media/dvb-frontends/au8522_decoder.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-index 32f02e9..ff1fae3 100644
---- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-+++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-@@ -1558,8 +1558,7 @@ static int dw_hdmi_setup(struct dw_hdmi *hdmi, struct drm_display_mode *mode)
- 	return 0;
- }
+diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
+index 281b5ac..5e21640 100644
+--- a/drivers/media/dvb-frontends/au8522_decoder.c
++++ b/drivers/media/dvb-frontends/au8522_decoder.c
+@@ -17,7 +17,6 @@
  
--/* Wait until we are registered to enable interrupts */
--static int dw_hdmi_fb_registered(struct dw_hdmi *hdmi)
-+static void dw_hdmi_setup_i2c(struct dw_hdmi *hdmi)
- {
- 	hdmi_writeb(hdmi, HDMI_PHY_I2CM_INT_ADDR_DONE_POL,
- 		    HDMI_PHY_I2CM_INT_ADDR);
-@@ -1567,15 +1566,6 @@ static int dw_hdmi_fb_registered(struct dw_hdmi *hdmi)
- 	hdmi_writeb(hdmi, HDMI_PHY_I2CM_CTLINT_ADDR_NAC_POL |
- 		    HDMI_PHY_I2CM_CTLINT_ADDR_ARBITRATION_POL,
- 		    HDMI_PHY_I2CM_CTLINT_ADDR);
--
--	/* enable cable hot plug irq */
--	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
--
--	/* Clear Hotplug interrupts */
--	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
--		    HDMI_IH_PHY_STAT0);
--
--	return 0;
- }
- 
- static void initialize_hdmi_ih_mutes(struct dw_hdmi *hdmi)
-@@ -1693,6 +1683,26 @@ static void dw_hdmi_update_phy_mask(struct dw_hdmi *hdmi)
- 		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
- }
- 
-+static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi)
-+{
-+	/*
-+	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
-+	 * any pending interrupt.
-+	 */
-+	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
-+	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
-+		    HDMI_IH_PHY_STAT0);
-+
-+	/* Enable cable hot plug irq. */
-+	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
-+
-+	/* Clear and unmute interrupts. */
-+	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
-+		    HDMI_IH_PHY_STAT0);
-+	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
-+		    HDMI_IH_MUTE_PHY_STAT0);
-+}
-+
- static enum drm_connector_status
- dw_hdmi_connector_detect(struct drm_connector *connector, bool force)
- {
-@@ -2204,29 +2214,14 @@ static int dw_hdmi_detect_phy(struct dw_hdmi *hdmi)
- 			hdmi->ddc = NULL;
- 	}
- 
--	/*
--	 * Configure registers related to HDMI interrupt
--	 * generation before registering IRQ.
--	 */
--	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
--
--	/* Clear Hotplug interrupts */
--	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
--		    HDMI_IH_PHY_STAT0);
--
- 	hdmi->bridge.driver_private = hdmi;
- 	hdmi->bridge.funcs = &dw_hdmi_bridge_funcs;
- #ifdef CONFIG_OF
- 	hdmi->bridge.of_node = pdev->dev.of_node;
- #endif
- 
--	ret = dw_hdmi_fb_registered(hdmi);
--	if (ret)
--		goto err_iahb;
--
--	/* Unmute interrupts */
--	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
--		    HDMI_IH_MUTE_PHY_STAT0);
-+	dw_hdmi_setup_i2c(hdmi);
-+	dw_hdmi_phy_setup_hpd(hdmi);
- 
- 	memset(&pdevinfo, 0, sizeof(pdevinfo));
- 	pdevinfo.parent = dev;
+ /* Developer notes:
+  *
+- * VBI support is not yet working
+  * Enough is implemented here for CVBS and S-Video inputs, but the actual
+  *  analog demodulator code isn't implemented (not needed for xc5000 since it
+  *  has its own demodulator and outputs CVBS)
 -- 
 1.9.1
