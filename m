@@ -1,104 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.60.111]:41503 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933784AbdDSKdD (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59100
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933842AbdDSLJB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Apr 2017 06:33:03 -0400
-Subject: Re: [PATCH 3/3] [media] cobalt: Use v4l2_calc_timeperframe helper
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Jose Abreu <Jose.Abreu@synopsys.com>,
-        <linux-media@vger.kernel.org>
-References: <cover.1490095965.git.joabreu@synopsys.com>
- <070c9e71b359c0f6da7410b5ab9207210925549a.1490095965.git.joabreu@synopsys.com>
- <bdd49167-298e-b4e9-5e3c-422524291d26@xs4all.nl>
- <eab1bff3-e2bd-947a-6220-59c04376edac@synopsys.com>
-CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Wed, 19 Apr 2017 07:09:01 -0400
+Date: Wed, 19 Apr 2017 08:08:54 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: David Howells <dhowells@redhat.com>
+Cc: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+        gnomes@lxorguk.ukuu.org.uk, gregkh@linuxfoundation.org,
+        linux-security-module@vger.kernel.org, keyrings@vger.kernel.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        <linux-kernel@vger.kernel.org>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <96361b5d-39e1-225b-7d40-c2b66585b019@synopsys.com>
-Date: Wed, 19 Apr 2017 11:32:57 +0100
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 28/38] Annotate hardware config module parameters in
+ drivers/staging/media/
+Message-ID: <20170419080854.3ecddbbe@vento.lan>
+In-Reply-To: <149141166119.29162.8331512785853788823.stgit@warthog.procyon.org.uk>
+References: <149141141298.29162.5612793122429261720.stgit@warthog.procyon.org.uk>
+        <149141166119.29162.8331512785853788823.stgit@warthog.procyon.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <eab1bff3-e2bd-947a-6220-59c04376edac@synopsys.com>
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Wed, 05 Apr 2017 18:01:01 +0100
+David Howells <dhowells@redhat.com> escreveu:
+
+> When the kernel is running in secure boot mode, we lock down the kernel to
+> prevent userspace from modifying the running kernel image.  Whilst this
+> includes prohibiting access to things like /dev/mem, it must also prevent
+> access by means of configuring driver modules in such a way as to cause a
+> device to access or modify the kernel image.
+> 
+> To this end, annotate module_param* statements that refer to hardware
+> configuration and indicate for future reference what type of parameter they
+> specify.  The parameter parser in the core sees this information and can
+> skip such parameters with an error message if the kernel is locked down.
+> The module initialisation then runs as normal, but just sees whatever the
+> default values for those parameters is.
+> 
+> Note that we do still need to do the module initialisation because some
+> drivers have viable defaults set in case parameters aren't specified and
+> some drivers support automatic configuration (e.g. PNP or PCI) in addition
+> to manually coded parameters.
+> 
+> This patch annotates drivers in drivers/staging/media/.
+> 
+> Suggested-by: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
+> Signed-off-by: David Howells <dhowells@redhat.com>
+> cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+
+Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+> cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> cc: linux-media@vger.kernel.org
+> cc: devel@driverdev.osuosl.org
+> ---
+> 
+>  drivers/staging/media/lirc/lirc_sir.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/staging/media/lirc/lirc_sir.c b/drivers/staging/media/lirc/lirc_sir.c
+> index c6c3de94adaa..dde46dd8cabb 100644
+> --- a/drivers/staging/media/lirc/lirc_sir.c
+> +++ b/drivers/staging/media/lirc/lirc_sir.c
+> @@ -826,10 +826,10 @@ MODULE_AUTHOR("Milan Pikula");
+>  #endif
+>  MODULE_LICENSE("GPL");
+>  
+> -module_param(io, int, S_IRUGO);
+> +module_param_hw(io, int, ioport, S_IRUGO);
+>  MODULE_PARM_DESC(io, "I/O address base (0x3f8 or 0x2f8)");
+>  
+> -module_param(irq, int, S_IRUGO);
+> +module_param_hw(irq, int, irq, S_IRUGO);
+>  MODULE_PARM_DESC(irq, "Interrupt (4 or 3)");
+>  
+>  module_param(threshold, int, S_IRUGO);
+> 
 
 
-On 31-03-2017 09:59, Jose Abreu wrote:
-> Hi Hans,
->
->
-> On 30-03-2017 14:42, Hans Verkuil wrote:
->> Hi Jose,
->>
->> On 21/03/17 12:49, Jose Abreu wrote:
->>> Currently, cobalt driver always returns 60fps in g_parm.
->>> This patch uses the new v4l2_calc_timeperframe helper to
->>> calculate the time per frame value.
->> I can verify that g_parm works, so:
->>
->> Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> However, the adv7604 pixelclock detection resolution is only 0.25 MHz, so it
->> can't tell the difference between 24 and 23.97 Hz. I can't set the new
->> V4L2_DV_FL_CAN_DETECT_REDUCED_FPS flag there.
->>
->> It might be possible to implement this for the adv7842 receiver, I think that
->> that hardware is much more precise.
->>
->> I would have to try this, but that will have to wait until Friday next week.
-> Thanks! Yes, maybe its better to test with a different receiver,
-> if it has more precision then its great. Let me know if you need
-> any help :)
 
-Any news regarding this?
-
-Best regards,
-Jose Miguel Abreu
-
->
-> Best regards,
-> Jose Miguel Abreu
->
->> Regards,
->>
->> 	Hans
->>
->>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
->>> Cc: Carlos Palminha <palminha@synopsys.com>
->>> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
->>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->>> Cc: linux-media@vger.kernel.org
->>> Cc: linux-kernel@vger.kernel.org
->>> ---
->>>  drivers/media/pci/cobalt/cobalt-v4l2.c | 9 +++++++--
->>>  1 file changed, 7 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.c b/drivers/media/pci/cobalt/cobalt-v4l2.c
->>> index def4a3b..25532ae 100644
->>> --- a/drivers/media/pci/cobalt/cobalt-v4l2.c
->>> +++ b/drivers/media/pci/cobalt/cobalt-v4l2.c
->>> @@ -1076,10 +1076,15 @@ static int cobalt_subscribe_event(struct v4l2_fh *fh,
->>>  
->>>  static int cobalt_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
->>>  {
->>> +	struct cobalt_stream *s = video_drvdata(file);
->>> +	struct v4l2_fract fps;
->>> +
->>>  	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->>>  		return -EINVAL;
->>> -	a->parm.capture.timeperframe.numerator = 1;
->>> -	a->parm.capture.timeperframe.denominator = 60;
->>> +
->>> +	fps = v4l2_calc_timeperframe(&s->timings);
->>> +	a->parm.capture.timeperframe.numerator = fps.numerator;
->>> +	a->parm.capture.timeperframe.denominator = fps.denominator;
->>>  	a->parm.capture.readbuffers = 3;
->>>  	return 0;
->>>  }
->>>
+Thanks,
+Mauro
