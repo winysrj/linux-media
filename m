@@ -1,46 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:52172 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752803AbdDJT1U (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58928
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1762199AbdDSK3s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 15:27:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 13/15] v4l2-ctrls.c: set V4L2_CTRL_FLAG_MODIFY_LAYOUT for ROTATE
-Date: Mon, 10 Apr 2017 21:26:49 +0200
-Message-Id: <20170410192651.18486-14-hverkuil@xs4all.nl>
-In-Reply-To: <20170410192651.18486-1-hverkuil@xs4all.nl>
-References: <20170410192651.18486-1-hverkuil@xs4all.nl>
+        Wed, 19 Apr 2017 06:29:48 -0400
+Date: Wed, 19 Apr 2017 07:29:39 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Peter Rosin <peda@axentia.se>
+Cc: Wolfram Sang <wsa@the-dreams.de>, <linux-kernel@vger.kernel.org>,
+        Peter Korsgaard <peter.korsgaard@barco.com>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        <linux-i2c@vger.kernel.org>, <linux-iio@vger.kernel.org>,
+        <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/9] Unify i2c_mux_add_adapter error reporting
+Message-ID: <20170419072939.3724397f@vento.lan>
+In-Reply-To: <8022ae03-c8cc-181f-ae16-c9e6584f43b2@axentia.se>
+References: <1491208718-32068-1-git-send-email-peda@axentia.se>
+        <20170403102722.GB2750@katana>
+        <8022ae03-c8cc-181f-ae16-c9e6584f43b2@axentia.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Mon, 3 Apr 2017 13:27:48 +0200
+Peter Rosin <peda@axentia.se> escreveu:
 
-The rotate control will modify the layout by definition. Always
-set this flag.
+> On 2017-04-03 12:27, Wolfram Sang wrote:
+> > On Mon, Apr 03, 2017 at 10:38:29AM +0200, Peter Rosin wrote:  
+> >> Hi!
+> >>
+> >> Many users of the i2c_mux_add_adapter interface log a message
+> >> on failure, but the function already logs such a message. One
+> >> or two of those users actually add more information than already
+> >> provided by the central failure message.
+> >>
+> >> So, first fix the central error reporting to provide as much
+> >> information as any current user, and then remove the surplus
+> >> error reporting at the call sites.  
+> > 
+> > Yes, I like.
+> > 
+> > Reviewed-by: Wolfram Sang <wsa@the-dreams.de>  
+> 
+> Thanks!
+> 
+> BTW, the improved error reporting in patch 1/9 is not needed for
+> patches 8/9 and 9/9 to make sense, the existing central error
+> message is already good enough. So, iio and media maintainers,
+> feel free to just grab those two patches. Or, they can go via
+> Wolfram and the i2c tree with the rest of the series. Either way
+> is fine with me, just let me know.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Feel free to submit via I2C tree, together with the patch series:
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b4b364f68695..ec42872d11cf 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -997,6 +997,10 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 		*min = 0;
- 		*max = *step = 1;
- 		break;
-+	case V4L2_CID_ROTATE:
-+		*type = V4L2_CTRL_TYPE_INTEGER;
-+		*flags |= V4L2_CTRL_FLAG_MODIFY_LAYOUT;
-+		break;
- 	case V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE:
- 	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:
- 		*type = V4L2_CTRL_TYPE_INTEGER;
--- 
-2.11.0
+Reviewed-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+> 
+> Cheers,
+> peda
+
+
+
+Thanks,
+Mauro
