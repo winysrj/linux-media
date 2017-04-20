@@ -1,110 +1,416 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f174.google.com ([209.85.128.174]:36800 "EHLO
-        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1041430AbdDUQkr (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36081 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S943226AbdDTHve (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Apr 2017 12:40:47 -0400
-Received: by mail-wr0-f174.google.com with SMTP id c55so58126733wrc.3
-        for <linux-media@vger.kernel.org>; Fri, 21 Apr 2017 09:40:46 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1492540034-5466-1-git-send-email-labbott@redhat.com>
-References: <1492540034-5466-1-git-send-email-labbott@redhat.com>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Fri, 21 Apr 2017 21:01:03 +0530
-Message-ID: <CAO_48GGoyD++0GgRbP8HXXDwEX8cwNvWRh+61WZg03vhEetCPQ@mail.gmail.com>
-Subject: Re: [PATCHv4 00/12] Ion cleanup in preparation for moving out of staging
-To: Laura Abbott <labbott@redhat.com>
-Cc: Riley Andrews <riandrews@android.com>,
-        =?UTF-8?B?QXJ2ZSBIau+/vW5uZXbvv71n?= <arve@android.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rom Lemarchand <romlem@google.com>, devel@driverdev.osuosl.org,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        DRI mailing list <dri-devel@lists.freedesktop.org>,
-        Brian Starkey <brian.starkey@arm.com>,
+        Thu, 20 Apr 2017 03:51:34 -0400
+Received: by mail-wm0-f67.google.com with SMTP id u65so1399438wmu.3
+        for <linux-media@vger.kernel.org>; Thu, 20 Apr 2017 00:51:33 -0700 (PDT)
+Date: Thu, 20 Apr 2017 09:51:25 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: linux-kernel@vger.kernel.org, intel-gfx@lists.freedesktop.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-tegra@vger.kernel.org, devel@driverdev.osuosl.org,
+        David Airlie <airlied@linux.ie>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>,
         Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        "linux-mm@kvack.org" <linux-mm@kvack.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Alexandre Courbot <gnurou@gmail.com>,
+        Thomas Hellstrom <thellstrom@vmware.com>,
+        Sinclair Yeh <syeh@vmware.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Christoph Hellwig <hch@lst.de>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        VMware Graphics <linux-graphics-maintainer@vmware.com>,
+        Laura Abbott <labbott@redhat.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Stephen Warren <swarren@wwwdotorg.org>,
+        Riley Andrews <riandrews@android.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [Intel-gfx] [PATCH v2] dma-buf: Rename dma-ops to prevent
+ conflict with kunmap_atomic macro
+Message-ID: <20170420075054.yvsjzvuwb4yrzfuc@phenom.ffwll.local>
+References: <1492630570-879-1-git-send-email-logang@deltatee.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1492630570-879-1-git-send-email-logang@deltatee.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laura,
+On Wed, Apr 19, 2017 at 01:36:10PM -0600, Logan Gunthorpe wrote:
+> Seeing the kunmap_atomic dma_buf_ops share the same name with a macro
+> in highmem.h, the former can be aliased if any dma-buf user includes
+> that header.
+> 
+> I'm personally trying to include highmem.h inside scatterlist.h and this
+> breaks the dma-buf code proper.
+> 
+> Christoph Hellwig suggested [1] renaming it and pushing this patch ASAP.
+> 
+> To maintain consistency I've renamed all four of kmap* and kunmap* to be
+> map* and unmap*. (Even though only kmap_atomic presently conflicts.)
+> 
+> [1] https://www.spinics.net/lists/target-devel/msg15070.html
+> 
+> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+> Reviewed-by: Sinclair Yeh <syeh@vmware.com>
 
-Thanks much for this series!
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 
-On 18 April 2017 at 23:57, Laura Abbott <labbott@redhat.com> wrote:
-> Hi,
->
-> This is v4 of the series to cleanup to Ion. Greg took some of the patches
-> that weren't CMA related already. There was a minor bisectability problem
-> with the CMA APIs so this is a new version to address that. I also
-> addressed some minor comments on the patch to collapse header files.
+Probably simplest if we pull this in through the drm-misc tree for 4.12.
+Can we have an ack for the v4l side for that pls?
 
-For the series, please feel free to apply my
-Acked-by: Sumit Semwal <sumit.semwal@linaro.org>
+Thanks, Daniel
 
->
-> Thanks,
-> Laura
->
-> Laura Abbott (12):
->   cma: Store a name in the cma structure
->   cma: Introduce cma_for_each_area
->   staging: android: ion: Use CMA APIs directly
->   staging: android: ion: Stop butchering the DMA address
->   staging: android: ion: Break the ABI in the name of forward progress
->   staging: android: ion: Get rid of ion_phys_addr_t
->   staging: android: ion: Collapse internal header files
->   staging: android: ion: Rework heap registration/enumeration
->   staging: android: ion: Drop ion_map_kernel interface
->   staging: android: ion: Remove ion_handle and ion_client
->   staging: android: ion: Set query return value
->   staging/android: Update Ion TODO list
->
->  arch/powerpc/kvm/book3s_hv_builtin.c            |   3 +-
->  drivers/base/dma-contiguous.c                   |   5 +-
->  drivers/staging/android/TODO                    |  21 +-
->  drivers/staging/android/ion/Kconfig             |  32 +
->  drivers/staging/android/ion/Makefile            |  11 +-
->  drivers/staging/android/ion/compat_ion.c        | 152 -----
->  drivers/staging/android/ion/compat_ion.h        |  29 -
->  drivers/staging/android/ion/ion-ioctl.c         |  55 +-
->  drivers/staging/android/ion/ion.c               | 812 ++----------------=
-------
->  drivers/staging/android/ion/ion.h               | 386 ++++++++---
->  drivers/staging/android/ion/ion_carveout_heap.c |  21 +-
->  drivers/staging/android/ion/ion_chunk_heap.c    |  16 +-
->  drivers/staging/android/ion/ion_cma_heap.c      | 120 ++--
->  drivers/staging/android/ion/ion_heap.c          |  68 --
->  drivers/staging/android/ion/ion_page_pool.c     |   3 +-
->  drivers/staging/android/ion/ion_priv.h          | 453 -------------
->  drivers/staging/android/ion/ion_system_heap.c   |  39 +-
->  drivers/staging/android/uapi/ion.h              |  36 +-
->  include/linux/cma.h                             |   6 +-
->  mm/cma.c                                        |  31 +-
->  mm/cma.h                                        |   1 +
->  mm/cma_debug.c                                  |   2 +-
->  22 files changed, 524 insertions(+), 1778 deletions(-)
->  delete mode 100644 drivers/staging/android/ion/compat_ion.c
->  delete mode 100644 drivers/staging/android/ion/compat_ion.h
->  delete mode 100644 drivers/staging/android/ion/ion_priv.h
->
+> ---
+> 
+> Changes since v1:
+> 
+> - Added the missing tegra driver (noticed by kbuild robot)
+> - Rebased off of drm-intel-next to get the i915 selftest that is new
+> - Fixed nits Sinclair pointed out.
+> 
+>  drivers/dma-buf/dma-buf.c                      | 16 ++++++++--------
+>  drivers/gpu/drm/armada/armada_gem.c            |  8 ++++----
+>  drivers/gpu/drm/drm_prime.c                    |  8 ++++----
+>  drivers/gpu/drm/i915/i915_gem_dmabuf.c         |  8 ++++----
+>  drivers/gpu/drm/i915/selftests/mock_dmabuf.c   |  8 ++++----
+>  drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c      |  8 ++++----
+>  drivers/gpu/drm/tegra/gem.c                    |  8 ++++----
+>  drivers/gpu/drm/udl/udl_dmabuf.c               |  8 ++++----
+>  drivers/gpu/drm/vmwgfx/vmwgfx_prime.c          |  8 ++++----
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c |  4 ++--
+>  drivers/media/v4l2-core/videobuf2-dma-sg.c     |  4 ++--
+>  drivers/media/v4l2-core/videobuf2-vmalloc.c    |  4 ++--
+>  drivers/staging/android/ion/ion.c              |  8 ++++----
+>  include/linux/dma-buf.h                        | 22 +++++++++++-----------
+>  14 files changed, 61 insertions(+), 61 deletions(-)
+> 
+> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> index f72aaac..512bdbc 100644
+> --- a/drivers/dma-buf/dma-buf.c
+> +++ b/drivers/dma-buf/dma-buf.c
+> @@ -405,8 +405,8 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
+>  			  || !exp_info->ops->map_dma_buf
+>  			  || !exp_info->ops->unmap_dma_buf
+>  			  || !exp_info->ops->release
+> -			  || !exp_info->ops->kmap_atomic
+> -			  || !exp_info->ops->kmap
+> +			  || !exp_info->ops->map_atomic
+> +			  || !exp_info->ops->map
+>  			  || !exp_info->ops->mmap)) {
+>  		return ERR_PTR(-EINVAL);
+>  	}
+> @@ -872,7 +872,7 @@ void *dma_buf_kmap_atomic(struct dma_buf *dmabuf, unsigned long page_num)
+>  {
+>  	WARN_ON(!dmabuf);
+> 
+> -	return dmabuf->ops->kmap_atomic(dmabuf, page_num);
+> +	return dmabuf->ops->map_atomic(dmabuf, page_num);
+>  }
+>  EXPORT_SYMBOL_GPL(dma_buf_kmap_atomic);
+> 
+> @@ -889,8 +889,8 @@ void dma_buf_kunmap_atomic(struct dma_buf *dmabuf, unsigned long page_num,
+>  {
+>  	WARN_ON(!dmabuf);
+> 
+> -	if (dmabuf->ops->kunmap_atomic)
+> -		dmabuf->ops->kunmap_atomic(dmabuf, page_num, vaddr);
+> +	if (dmabuf->ops->unmap_atomic)
+> +		dmabuf->ops->unmap_atomic(dmabuf, page_num, vaddr);
+>  }
+>  EXPORT_SYMBOL_GPL(dma_buf_kunmap_atomic);
+> 
+> @@ -907,7 +907,7 @@ void *dma_buf_kmap(struct dma_buf *dmabuf, unsigned long page_num)
+>  {
+>  	WARN_ON(!dmabuf);
+> 
+> -	return dmabuf->ops->kmap(dmabuf, page_num);
+> +	return dmabuf->ops->map(dmabuf, page_num);
+>  }
+>  EXPORT_SYMBOL_GPL(dma_buf_kmap);
+> 
+> @@ -924,8 +924,8 @@ void dma_buf_kunmap(struct dma_buf *dmabuf, unsigned long page_num,
+>  {
+>  	WARN_ON(!dmabuf);
+> 
+> -	if (dmabuf->ops->kunmap)
+> -		dmabuf->ops->kunmap(dmabuf, page_num, vaddr);
+> +	if (dmabuf->ops->unmap)
+> +		dmabuf->ops->unmap(dmabuf, page_num, vaddr);
+>  }
+>  EXPORT_SYMBOL_GPL(dma_buf_kunmap);
+> 
+> diff --git a/drivers/gpu/drm/armada/armada_gem.c b/drivers/gpu/drm/armada/armada_gem.c
+> index 1597458..d6c2a5d 100644
+> --- a/drivers/gpu/drm/armada/armada_gem.c
+> +++ b/drivers/gpu/drm/armada/armada_gem.c
+> @@ -529,10 +529,10 @@ static const struct dma_buf_ops armada_gem_prime_dmabuf_ops = {
+>  	.map_dma_buf	= armada_gem_prime_map_dma_buf,
+>  	.unmap_dma_buf	= armada_gem_prime_unmap_dma_buf,
+>  	.release	= drm_gem_dmabuf_release,
+> -	.kmap_atomic	= armada_gem_dmabuf_no_kmap,
+> -	.kunmap_atomic	= armada_gem_dmabuf_no_kunmap,
+> -	.kmap		= armada_gem_dmabuf_no_kmap,
+> -	.kunmap		= armada_gem_dmabuf_no_kunmap,
+> +	.map_atomic	= armada_gem_dmabuf_no_kmap,
+> +	.unmap_atomic	= armada_gem_dmabuf_no_kunmap,
+> +	.map		= armada_gem_dmabuf_no_kmap,
+> +	.unmap		= armada_gem_dmabuf_no_kunmap,
+>  	.mmap		= armada_gem_dmabuf_mmap,
+>  };
+> 
+> diff --git a/drivers/gpu/drm/drm_prime.c b/drivers/gpu/drm/drm_prime.c
+> index 9fb65b7..954eb84 100644
+> --- a/drivers/gpu/drm/drm_prime.c
+> +++ b/drivers/gpu/drm/drm_prime.c
+> @@ -403,10 +403,10 @@ static const struct dma_buf_ops drm_gem_prime_dmabuf_ops =  {
+>  	.map_dma_buf = drm_gem_map_dma_buf,
+>  	.unmap_dma_buf = drm_gem_unmap_dma_buf,
+>  	.release = drm_gem_dmabuf_release,
+> -	.kmap = drm_gem_dmabuf_kmap,
+> -	.kmap_atomic = drm_gem_dmabuf_kmap_atomic,
+> -	.kunmap = drm_gem_dmabuf_kunmap,
+> -	.kunmap_atomic = drm_gem_dmabuf_kunmap_atomic,
+> +	.map = drm_gem_dmabuf_kmap,
+> +	.map_atomic = drm_gem_dmabuf_kmap_atomic,
+> +	.unmap = drm_gem_dmabuf_kunmap,
+> +	.unmap_atomic = drm_gem_dmabuf_kunmap_atomic,
+>  	.mmap = drm_gem_dmabuf_mmap,
+>  	.vmap = drm_gem_dmabuf_vmap,
+>  	.vunmap = drm_gem_dmabuf_vunmap,
+> diff --git a/drivers/gpu/drm/i915/i915_gem_dmabuf.c b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
+> index 11898cd..f225bf6 100644
+> --- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
+> +++ b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
+> @@ -200,10 +200,10 @@ static const struct dma_buf_ops i915_dmabuf_ops =  {
+>  	.map_dma_buf = i915_gem_map_dma_buf,
+>  	.unmap_dma_buf = i915_gem_unmap_dma_buf,
+>  	.release = drm_gem_dmabuf_release,
+> -	.kmap = i915_gem_dmabuf_kmap,
+> -	.kmap_atomic = i915_gem_dmabuf_kmap_atomic,
+> -	.kunmap = i915_gem_dmabuf_kunmap,
+> -	.kunmap_atomic = i915_gem_dmabuf_kunmap_atomic,
+> +	.map = i915_gem_dmabuf_kmap,
+> +	.map_atomic = i915_gem_dmabuf_kmap_atomic,
+> +	.unmap = i915_gem_dmabuf_kunmap,
+> +	.unmap_atomic = i915_gem_dmabuf_kunmap_atomic,
+>  	.mmap = i915_gem_dmabuf_mmap,
+>  	.vmap = i915_gem_dmabuf_vmap,
+>  	.vunmap = i915_gem_dmabuf_vunmap,
+> diff --git a/drivers/gpu/drm/i915/selftests/mock_dmabuf.c b/drivers/gpu/drm/i915/selftests/mock_dmabuf.c
+> index 99da8f4..302f7d1 100644
+> --- a/drivers/gpu/drm/i915/selftests/mock_dmabuf.c
+> +++ b/drivers/gpu/drm/i915/selftests/mock_dmabuf.c
+> @@ -129,10 +129,10 @@ static const struct dma_buf_ops mock_dmabuf_ops =  {
+>  	.map_dma_buf = mock_map_dma_buf,
+>  	.unmap_dma_buf = mock_unmap_dma_buf,
+>  	.release = mock_dmabuf_release,
+> -	.kmap = mock_dmabuf_kmap,
+> -	.kmap_atomic = mock_dmabuf_kmap_atomic,
+> -	.kunmap = mock_dmabuf_kunmap,
+> -	.kunmap_atomic = mock_dmabuf_kunmap_atomic,
+> +	.map = mock_dmabuf_kmap,
+> +	.map_atomic = mock_dmabuf_kmap_atomic,
+> +	.unmap = mock_dmabuf_kunmap,
+> +	.unmap_atomic = mock_dmabuf_kunmap_atomic,
+>  	.mmap = mock_dmabuf_mmap,
+>  	.vmap = mock_dmabuf_vmap,
+>  	.vunmap = mock_dmabuf_vunmap,
+> diff --git a/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c b/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
+> index ee5883f..0dbe030 100644
+> --- a/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
+> +++ b/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
+> @@ -160,10 +160,10 @@ static struct dma_buf_ops omap_dmabuf_ops = {
+>  	.release = omap_gem_dmabuf_release,
+>  	.begin_cpu_access = omap_gem_dmabuf_begin_cpu_access,
+>  	.end_cpu_access = omap_gem_dmabuf_end_cpu_access,
+> -	.kmap_atomic = omap_gem_dmabuf_kmap_atomic,
+> -	.kunmap_atomic = omap_gem_dmabuf_kunmap_atomic,
+> -	.kmap = omap_gem_dmabuf_kmap,
+> -	.kunmap = omap_gem_dmabuf_kunmap,
+> +	.map_atomic = omap_gem_dmabuf_kmap_atomic,
+> +	.unmap_atomic = omap_gem_dmabuf_kunmap_atomic,
+> +	.map = omap_gem_dmabuf_kmap,
+> +	.unmap = omap_gem_dmabuf_kunmap,
+>  	.mmap = omap_gem_dmabuf_mmap,
+>  };
+> 
+> diff --git a/drivers/gpu/drm/tegra/gem.c b/drivers/gpu/drm/tegra/gem.c
+> index 17e62ec..8672f5d 100644
+> --- a/drivers/gpu/drm/tegra/gem.c
+> +++ b/drivers/gpu/drm/tegra/gem.c
+> @@ -619,10 +619,10 @@ static const struct dma_buf_ops tegra_gem_prime_dmabuf_ops = {
+>  	.map_dma_buf = tegra_gem_prime_map_dma_buf,
+>  	.unmap_dma_buf = tegra_gem_prime_unmap_dma_buf,
+>  	.release = tegra_gem_prime_release,
+> -	.kmap_atomic = tegra_gem_prime_kmap_atomic,
+> -	.kunmap_atomic = tegra_gem_prime_kunmap_atomic,
+> -	.kmap = tegra_gem_prime_kmap,
+> -	.kunmap = tegra_gem_prime_kunmap,
+> +	.map_atomic = tegra_gem_prime_kmap_atomic,
+> +	.unmap_atomic = tegra_gem_prime_kunmap_atomic,
+> +	.map = tegra_gem_prime_kmap,
+> +	.unmap = tegra_gem_prime_kunmap,
+>  	.mmap = tegra_gem_prime_mmap,
+>  	.vmap = tegra_gem_prime_vmap,
+>  	.vunmap = tegra_gem_prime_vunmap,
+> diff --git a/drivers/gpu/drm/udl/udl_dmabuf.c b/drivers/gpu/drm/udl/udl_dmabuf.c
+> index ac90ffd..ed0e636 100644
+> --- a/drivers/gpu/drm/udl/udl_dmabuf.c
+> +++ b/drivers/gpu/drm/udl/udl_dmabuf.c
+> @@ -191,10 +191,10 @@ static struct dma_buf_ops udl_dmabuf_ops = {
+>  	.detach			= udl_detach_dma_buf,
+>  	.map_dma_buf		= udl_map_dma_buf,
+>  	.unmap_dma_buf		= udl_unmap_dma_buf,
+> -	.kmap			= udl_dmabuf_kmap,
+> -	.kmap_atomic		= udl_dmabuf_kmap_atomic,
+> -	.kunmap			= udl_dmabuf_kunmap,
+> -	.kunmap_atomic		= udl_dmabuf_kunmap_atomic,
+> +	.map			= udl_dmabuf_kmap,
+> +	.map_atomic		= udl_dmabuf_kmap_atomic,
+> +	.unmap			= udl_dmabuf_kunmap,
+> +	.unmap_atomic		= udl_dmabuf_kunmap_atomic,
+>  	.mmap			= udl_dmabuf_mmap,
+>  	.release		= drm_gem_dmabuf_release,
+>  };
+> diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c b/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c
+> index 31fe32d..0d42a46 100644
+> --- a/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c
+> +++ b/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c
+> @@ -108,10 +108,10 @@ const struct dma_buf_ops vmw_prime_dmabuf_ops =  {
+>  	.map_dma_buf = vmw_prime_map_dma_buf,
+>  	.unmap_dma_buf = vmw_prime_unmap_dma_buf,
+>  	.release = NULL,
+> -	.kmap = vmw_prime_dmabuf_kmap,
+> -	.kmap_atomic = vmw_prime_dmabuf_kmap_atomic,
+> -	.kunmap = vmw_prime_dmabuf_kunmap,
+> -	.kunmap_atomic = vmw_prime_dmabuf_kunmap_atomic,
+> +	.map = vmw_prime_dmabuf_kmap,
+> +	.map_atomic = vmw_prime_dmabuf_kmap_atomic,
+> +	.unmap = vmw_prime_dmabuf_kunmap,
+> +	.unmap_atomic = vmw_prime_dmabuf_kunmap_atomic,
+>  	.mmap = vmw_prime_dmabuf_mmap,
+>  	.vmap = vmw_prime_dmabuf_vmap,
+>  	.vunmap = vmw_prime_dmabuf_vunmap,
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index fb6a177..2db0413 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -356,8 +356,8 @@ static struct dma_buf_ops vb2_dc_dmabuf_ops = {
+>  	.detach = vb2_dc_dmabuf_ops_detach,
+>  	.map_dma_buf = vb2_dc_dmabuf_ops_map,
+>  	.unmap_dma_buf = vb2_dc_dmabuf_ops_unmap,
+> -	.kmap = vb2_dc_dmabuf_ops_kmap,
+> -	.kmap_atomic = vb2_dc_dmabuf_ops_kmap,
+> +	.map = vb2_dc_dmabuf_ops_kmap,
+> +	.map_atomic = vb2_dc_dmabuf_ops_kmap,
+>  	.vmap = vb2_dc_dmabuf_ops_vmap,
+>  	.mmap = vb2_dc_dmabuf_ops_mmap,
+>  	.release = vb2_dc_dmabuf_ops_release,
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> index ecff8f4..6fd1343 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -504,8 +504,8 @@ static struct dma_buf_ops vb2_dma_sg_dmabuf_ops = {
+>  	.detach = vb2_dma_sg_dmabuf_ops_detach,
+>  	.map_dma_buf = vb2_dma_sg_dmabuf_ops_map,
+>  	.unmap_dma_buf = vb2_dma_sg_dmabuf_ops_unmap,
+> -	.kmap = vb2_dma_sg_dmabuf_ops_kmap,
+> -	.kmap_atomic = vb2_dma_sg_dmabuf_ops_kmap,
+> +	.map = vb2_dma_sg_dmabuf_ops_kmap,
+> +	.map_atomic = vb2_dma_sg_dmabuf_ops_kmap,
+>  	.vmap = vb2_dma_sg_dmabuf_ops_vmap,
+>  	.mmap = vb2_dma_sg_dmabuf_ops_mmap,
+>  	.release = vb2_dma_sg_dmabuf_ops_release,
+> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> index 3f77814..27d1db3 100644
+> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> @@ -342,8 +342,8 @@ static struct dma_buf_ops vb2_vmalloc_dmabuf_ops = {
+>  	.detach = vb2_vmalloc_dmabuf_ops_detach,
+>  	.map_dma_buf = vb2_vmalloc_dmabuf_ops_map,
+>  	.unmap_dma_buf = vb2_vmalloc_dmabuf_ops_unmap,
+> -	.kmap = vb2_vmalloc_dmabuf_ops_kmap,
+> -	.kmap_atomic = vb2_vmalloc_dmabuf_ops_kmap,
+> +	.map = vb2_vmalloc_dmabuf_ops_kmap,
+> +	.map_atomic = vb2_vmalloc_dmabuf_ops_kmap,
+>  	.vmap = vb2_vmalloc_dmabuf_ops_vmap,
+>  	.mmap = vb2_vmalloc_dmabuf_ops_mmap,
+>  	.release = vb2_vmalloc_dmabuf_ops_release,
+> diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+> index f45115f..95a7f16 100644
+> --- a/drivers/staging/android/ion/ion.c
+> +++ b/drivers/staging/android/ion/ion.c
+> @@ -1020,10 +1020,10 @@ static const struct dma_buf_ops dma_buf_ops = {
+>  	.release = ion_dma_buf_release,
+>  	.begin_cpu_access = ion_dma_buf_begin_cpu_access,
+>  	.end_cpu_access = ion_dma_buf_end_cpu_access,
+> -	.kmap_atomic = ion_dma_buf_kmap,
+> -	.kunmap_atomic = ion_dma_buf_kunmap,
+> -	.kmap = ion_dma_buf_kmap,
+> -	.kunmap = ion_dma_buf_kunmap,
+> +	.map_atomic = ion_dma_buf_kmap,
+> +	.unmap_atomic = ion_dma_buf_kunmap,
+> +	.map = ion_dma_buf_kmap,
+> +	.unmap = ion_dma_buf_kunmap,
+>  };
+> 
+>  struct dma_buf *ion_share_dma_buf(struct ion_client *client,
+> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+> index bfb3704..79f27d6 100644
+> --- a/include/linux/dma-buf.h
+> +++ b/include/linux/dma-buf.h
+> @@ -39,13 +39,13 @@ struct dma_buf_attachment;
+> 
+>  /**
+>   * struct dma_buf_ops - operations possible on struct dma_buf
+> - * @kmap_atomic: maps a page from the buffer into kernel address
+> - * 		 space, users may not block until the subsequent unmap call.
+> - * 		 This callback must not sleep.
+> - * @kunmap_atomic: [optional] unmaps a atomically mapped page from the buffer.
+> - * 		   This Callback must not sleep.
+> - * @kmap: maps a page from the buffer into kernel address space.
+> - * @kunmap: [optional] unmaps a page from the buffer.
+> + * @map_atomic: maps a page from the buffer into kernel address
+> + *		space, users may not block until the subsequent unmap call.
+> + *		This callback must not sleep.
+> + * @unmap_atomic: [optional] unmaps a atomically mapped page from the buffer.
+> + *		  This Callback must not sleep.
+> + * @map: maps a page from the buffer into kernel address space.
+> + * @unmap: [optional] unmaps a page from the buffer.
+>   * @vmap: [optional] creates a virtual mapping for the buffer into kernel
+>   *	  address space. Same restrictions as for vmap and friends apply.
+>   * @vunmap: [optional] unmaps a vmap from the buffer
+> @@ -206,10 +206,10 @@ struct dma_buf_ops {
+>  	 * to be restarted.
+>  	 */
+>  	int (*end_cpu_access)(struct dma_buf *, enum dma_data_direction);
+> -	void *(*kmap_atomic)(struct dma_buf *, unsigned long);
+> -	void (*kunmap_atomic)(struct dma_buf *, unsigned long, void *);
+> -	void *(*kmap)(struct dma_buf *, unsigned long);
+> -	void (*kunmap)(struct dma_buf *, unsigned long, void *);
+> +	void *(*map_atomic)(struct dma_buf *, unsigned long);
+> +	void (*unmap_atomic)(struct dma_buf *, unsigned long, void *);
+> +	void *(*map)(struct dma_buf *, unsigned long);
+> +	void (*unmap)(struct dma_buf *, unsigned long, void *);
+> 
+>  	/**
+>  	 * @mmap:
 > --
-> 2.7.4
->
+> 2.1.4
+> _______________________________________________
+> Intel-gfx mailing list
+> Intel-gfx@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/intel-gfx
 
-
-
---=20
-Thanks and regards,
-
-Sumit Semwal
-Linaro Mobile Group - Kernel Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
