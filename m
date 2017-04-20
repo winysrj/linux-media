@@ -1,63 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33531 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751255AbdDKI2B (ORCPT
+Received: from mail-wr0-f182.google.com ([209.85.128.182]:34446 "EHLO
+        mail-wr0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S943308AbdDTLW4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Apr 2017 04:28:01 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi,
-        chris.paterson2@renesas.com, geert+renesas@glider.be,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v3 1/7] media: v4l2-ctrls: Reserve controls for MAX217X
-Date: Tue, 11 Apr 2017 11:28:52 +0300
-Message-ID: <7073271.ns6LVO0PF7@avalon>
-In-Reply-To: <1486479757-32128-2-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-References: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com> <1486479757-32128-2-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+        Thu, 20 Apr 2017 07:22:56 -0400
+Received: by mail-wr0-f182.google.com with SMTP id z109so33456375wrb.1
+        for <linux-media@vger.kernel.org>; Thu, 20 Apr 2017 04:22:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+From: Paulo Assis <pj.assis@gmail.com>
+Date: Thu, 20 Apr 2017 12:22:34 +0100
+Message-ID: <CAPueXH6ZBpjwa8REXSuynPPDv=k83z49h8v_rd=crOtfggGpPw@mail.gmail.com>
+Subject: Fwd: uvcvideo extension controls
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ramesh,
+---------- Forwarded message ----------
+From: Paulo Assis <pj.assis@gmail.com>
+Date: 2017-04-20 12:04 GMT+01:00
+Subject: uvcvideo extension controls
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>, aUDIo
+<djaudio101@gmail.com>
 
-Thank you for the patch.
 
-On Tuesday 07 Feb 2017 15:02:31 Ramesh Shanmugasundaram wrote:
-> Reserve controls for MAX217X RF to Bits tuner family. These hybrid
-> radio receiver chips are highly programmable and hence reserving 32
-> controls.
-> 
-> Signed-off-by: Ramesh Shanmugasundaram
-> <ramesh.shanmugasundaram@bp.renesas.com>
+Laurent Hi,
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> ---
->  include/uapi/linux/v4l2-controls.h | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/include/uapi/linux/v4l2-controls.h
-> b/include/uapi/linux/v4l2-controls.h index 0d2e1e0..83b28b4 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -180,6 +180,11 @@ enum v4l2_colorfx {
->   * We reserve 16 controls for this driver. */
->  #define V4L2_CID_USER_TC358743_BASE		(V4L2_CID_USER_BASE + 0x1080)
-> 
-> +/* The base for the max217x driver controls.
-> + * We reserve 32 controls for this driver
-> + */
-> +#define V4L2_CID_USER_MAX217X_BASE		(V4L2_CID_USER_BASE + 0x1090)
-> +
->  /* MPEG-class control IDs */
->  /* The MPEG controls are applicable to all codec controls
->   * and the 'MPEG' part of the define is historical */
+I've just noticed that uvcvideo extension controls no longer work
+properly, for instance for a logitech c930e I have the
+'UVC_GUID_LOGITECH_PERIPHERAL':
 
--- 
+VideoControl Interface Descriptor:
+       bLength                28
+       bDescriptorType        36
+       bDescriptorSubtype      6 (EXTENSION_UNIT)
+       bUnitID                11
+       guidExtensionCode         {212de5ff-3080-2c4e-82d9-f587d00540bd}
+       bNumControl             3
+       bNrPins                 1
+       baSourceID( 0)         10
+       bControlSize            3
+       bmControls( 0)       0x00
+       bmControls( 1)       0x41
+       bmControls( 2)       0x01
+       iExtension              0
+
+
+when I try to map or query the controls associated with this GUID
+(like the LED control) I get a ENOENT error, the same applies for
+other GUID, although some, like the h264 extension, will work just
+fine:
+
+VideoControl Interface Descriptor:
+       bLength                27
+       bDescriptorType        36
+       bDescriptorSubtype      6 (EXTENSION_UNIT)
+       bUnitID                12
+       guidExtensionCode         {41769ea2-04de-e347-8b2b-f4341aff003b}
+       bNumControl            11
+       bNrPins                 1
+       baSourceID( 0)          3
+       bControlSize            2
+       bmControls( 0)       0x07
+       bmControls( 1)       0x7f
+       iExtension              0
+
+'uvcdynctrl --device=/dev/video1 --get_raw=12:1' returns without error:
+
+query control size of : 46
+query control flags of: 0x3
+----
+
+ These mappings were working just fine in previous kernels, did
+something changed in the uvc extension control API, or do you think
+this is just a bug in the driver?
+
 Regards,
-
-Laurent Pinchart
+Paulo
