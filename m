@@ -1,1529 +1,1514 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:14729 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752880AbdDJNDf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 09:03:35 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [PATCH v3 4/7] v4l: Switch from V4L2 OF not V4L2 fwnode API
-Date: Mon, 10 Apr 2017 16:02:53 +0300
-Message-Id: <1491829376-14791-5-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:38731 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S971011AbdDTQIQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 20 Apr 2017 12:08:16 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v4 2/8] [media] stm32-dcmi: STM32 DCMI camera interface driver
+Date: Thu, 20 Apr 2017 18:07:19 +0200
+Message-ID: <1492704445-22186-3-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1492704445-22186-1-git-send-email-hugues.fruchet@st.com>
+References: <1492704445-22186-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch users of the v4l2_of_ APIs to the more generic v4l2_fwnode_ APIs.
-Async OF matching is replaced by fwnode matching and OF matching support
-is removed.
+This V4L2 subdev driver enables Digital Camera Memory Interface (DCMI)
+of STMicroelectronics STM32 SoC series.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Benoit Parrot <bparrot@ti.com> # i2c/ov2569.c, am437x/am437x-vpfe.c and ti-vpe/cal.c
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Yannick Fertre <yannick.fertre@st.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/i2c/Kconfig                      |  9 ++++
- drivers/media/i2c/adv7604.c                    |  7 +--
- drivers/media/i2c/mt9v032.c                    |  7 +--
- drivers/media/i2c/ov2659.c                     |  8 ++--
- drivers/media/i2c/s5c73m3/s5c73m3-core.c       |  7 +--
- drivers/media/i2c/s5k5baf.c                    |  6 +--
- drivers/media/i2c/smiapp/Kconfig               |  1 +
- drivers/media/i2c/smiapp/smiapp-core.c         | 29 ++++++------
- drivers/media/i2c/tc358743.c                   | 11 +++--
- drivers/media/i2c/tvp514x.c                    |  6 +--
- drivers/media/i2c/tvp5150.c                    |  7 +--
- drivers/media/i2c/tvp7002.c                    |  6 +--
- drivers/media/platform/Kconfig                 |  3 ++
- drivers/media/platform/am437x/Kconfig          |  1 +
- drivers/media/platform/am437x/am437x-vpfe.c    | 15 +++---
- drivers/media/platform/atmel/Kconfig           |  2 +
- drivers/media/platform/atmel/atmel-isc.c       | 13 ++++--
- drivers/media/platform/atmel/atmel-isi.c       | 11 +++--
- drivers/media/platform/exynos4-is/Kconfig      |  2 +
- drivers/media/platform/exynos4-is/media-dev.c  | 13 +++---
- drivers/media/platform/exynos4-is/mipi-csis.c  |  6 +--
- drivers/media/platform/omap3isp/isp.c          | 49 ++++++++++----------
- drivers/media/platform/pxa_camera.c            | 11 +++--
- drivers/media/platform/rcar-vin/Kconfig        |  1 +
- drivers/media/platform/rcar-vin/rcar-core.c    | 19 ++++----
- drivers/media/platform/soc_camera/soc_camera.c |  7 +--
- drivers/media/platform/ti-vpe/cal.c            | 15 +++---
- drivers/media/platform/xilinx/Kconfig          |  1 +
- drivers/media/platform/xilinx/xilinx-vipp.c    | 63 ++++++++++++++------------
- drivers/media/v4l2-core/v4l2-async.c           | 14 +-----
- include/media/v4l2-async.h                     |  5 --
- 31 files changed, 194 insertions(+), 161 deletions(-)
+ drivers/media/platform/Kconfig            |   12 +
+ drivers/media/platform/Makefile           |    2 +
+ drivers/media/platform/stm32/Makefile     |    1 +
+ drivers/media/platform/stm32/stm32-dcmi.c | 1419 +++++++++++++++++++++++++++++
+ 4 files changed, 1434 insertions(+)
+ create mode 100644 drivers/media/platform/stm32/Makefile
+ create mode 100644 drivers/media/platform/stm32/stm32-dcmi.c
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index cee1dae..6b2423a 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -210,6 +210,7 @@ config VIDEO_ADV7604
- 	depends on GPIOLIB || COMPILE_TEST
- 	select HDMI
- 	select MEDIA_CEC_EDID
-+	select V4L2_FWNODE
- 	---help---
- 	  Support for the Analog Devices ADV7604 video decoder.
- 
-@@ -324,6 +325,7 @@ config VIDEO_TC358743
- 	tristate "Toshiba TC358743 decoder"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
- 	select HDMI
-+	select V4L2_FWNODE
- 	---help---
- 	  Support for the Toshiba TC358743 HDMI to MIPI CSI-2 bridge.
- 
-@@ -333,6 +335,7 @@ config VIDEO_TC358743
- config VIDEO_TVP514X
- 	tristate "Texas Instruments TVP514x video decoder"
- 	depends on VIDEO_V4L2 && I2C
-+	select V4L2_FWNODE
- 	---help---
- 	  This is a Video4Linux2 sensor-level driver for the TI TVP5146/47
- 	  decoder. It is currently working with the TI OMAP3 camera
-@@ -344,6 +347,7 @@ config VIDEO_TVP514X
- config VIDEO_TVP5150
- 	tristate "Texas Instruments TVP5150 video decoder"
- 	depends on VIDEO_V4L2 && I2C
-+	select V4L2_FWNODE
- 	---help---
- 	  Support for the Texas Instruments TVP5150 video decoder.
- 
-@@ -353,6 +357,7 @@ config VIDEO_TVP5150
- config VIDEO_TVP7002
- 	tristate "Texas Instruments TVP7002 video decoder"
- 	depends on VIDEO_V4L2 && I2C
-+	select V4L2_FWNODE
- 	---help---
- 	  Support for the Texas Instruments TVP7002 video decoder.
- 
-@@ -524,6 +529,7 @@ config VIDEO_OV2659
- 	tristate "OmniVision OV2659 sensor support"
- 	depends on VIDEO_V4L2 && I2C
- 	depends on MEDIA_CAMERA_SUPPORT
-+	select V4L2_FWNODE
- 	---help---
- 	  This is a Video4Linux2 sensor-level driver for the OmniVision
- 	  OV2659 camera.
-@@ -616,6 +622,7 @@ config VIDEO_MT9V032
- 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
- 	depends on MEDIA_CAMERA_SUPPORT
- 	select REGMAP_I2C
-+	select V4L2_FWNODE
- 	---help---
- 	  This is a Video4Linux2 sensor-level driver for the Micron
- 	  MT9V032 752x480 CMOS sensor.
-@@ -663,6 +670,7 @@ config VIDEO_S5K4ECGX
- config VIDEO_S5K5BAF
- 	tristate "Samsung S5K5BAF sensor support"
- 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-+	select V4L2_FWNODE
- 	---help---
- 	  This is a V4L2 sensor-level driver for Samsung S5K5BAF 2M
- 	  camera sensor with an embedded SoC image signal processor.
-@@ -673,6 +681,7 @@ source "drivers/media/i2c/et8ek8/Kconfig"
- config VIDEO_S5C73M3
- 	tristate "Samsung S5C73M3 sensor support"
- 	depends on I2C && SPI && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-+	select V4L2_FWNODE
- 	---help---
- 	  This is a V4L2 sensor-level driver for Samsung S5C73M3
- 	  8 Mpixel camera.
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index f1fa9ce..660bacb 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -33,6 +33,7 @@
- #include <linux/i2c.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/of_graph.h>
- #include <linux/slab.h>
- #include <linux/v4l2-dv-timings.h>
- #include <linux/videodev2.h>
-@@ -45,7 +46,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-event.h>
- #include <media/v4l2-dv-timings.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- 
- static int debug;
- module_param(debug, int, 0644);
-@@ -3069,7 +3070,7 @@ MODULE_DEVICE_TABLE(of, adv76xx_of_id);
- 
- static int adv76xx_parse_dt(struct adv76xx_state *state)
- {
--	struct v4l2_of_endpoint bus_cfg;
-+	struct v4l2_fwnode_endpoint bus_cfg;
- 	struct device_node *endpoint;
- 	struct device_node *np;
- 	unsigned int flags;
-@@ -3083,7 +3084,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	if (!endpoint)
- 		return -EINVAL;
- 
--	ret = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(endpoint), &bus_cfg);
- 	if (ret) {
- 		of_node_put(endpoint);
- 		return ret;
-diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-index 2e7a6e6..8a43064 100644
---- a/drivers/media/i2c/mt9v032.c
-+++ b/drivers/media/i2c/mt9v032.c
-@@ -19,6 +19,7 @@
- #include <linux/log2.h>
- #include <linux/mutex.h>
- #include <linux/of.h>
-+#include <linux/of_graph.h>
- #include <linux/regmap.h>
- #include <linux/slab.h>
- #include <linux/videodev2.h>
-@@ -28,7 +29,7 @@
- #include <media/i2c/mt9v032.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
- 
- /* The first four rows are black rows. The active area spans 753x481 pixels. */
-@@ -979,7 +980,7 @@ static struct mt9v032_platform_data *
- mt9v032_get_pdata(struct i2c_client *client)
- {
- 	struct mt9v032_platform_data *pdata = NULL;
--	struct v4l2_of_endpoint endpoint;
-+	struct v4l2_fwnode_endpoint endpoint;
- 	struct device_node *np;
- 	struct property *prop;
- 
-@@ -990,7 +991,7 @@ mt9v032_get_pdata(struct i2c_client *client)
- 	if (!np)
- 		return NULL;
- 
--	if (v4l2_of_parse_endpoint(np, &endpoint) < 0)
-+	if (v4l2_fwnode_endpoint_parse(of_fwnode_handle(np), &endpoint) < 0)
- 		goto done;
- 
- 	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
-index 6e63672..545ca3f 100644
---- a/drivers/media/i2c/ov2659.c
-+++ b/drivers/media/i2c/ov2659.c
-@@ -42,9 +42,9 @@
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-event.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-image-sizes.h>
- #include <media/v4l2-mediabus.h>
--#include <media/v4l2-of.h>
- #include <media/v4l2-subdev.h>
- 
- #define DRIVER_NAME "ov2659"
-@@ -1346,7 +1346,7 @@ static struct ov2659_platform_data *
- ov2659_get_pdata(struct i2c_client *client)
- {
- 	struct ov2659_platform_data *pdata;
--	struct v4l2_of_endpoint *bus_cfg;
-+	struct v4l2_fwnode_endpoint *bus_cfg;
- 	struct device_node *endpoint;
- 
- 	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
-@@ -1356,7 +1356,7 @@ ov2659_get_pdata(struct i2c_client *client)
- 	if (!endpoint)
- 		return NULL;
- 
--	bus_cfg = v4l2_of_alloc_parse_endpoint(endpoint);
-+	bus_cfg = v4l2_fwnode_endpoint_alloc_parse(of_fwnode_handle(endpoint));
- 	if (IS_ERR(bus_cfg)) {
- 		pdata = NULL;
- 		goto done;
-@@ -1376,7 +1376,7 @@ ov2659_get_pdata(struct i2c_client *client)
- 	pdata->link_frequency = bus_cfg->link_frequencies[0];
- 
- done:
--	v4l2_of_free_endpoint(bus_cfg);
-+	v4l2_fwnode_endpoint_free(bus_cfg);
- 	of_node_put(endpoint);
- 	return pdata;
- }
-diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-index 3844853..f434fb2 100644
---- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-+++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-@@ -24,6 +24,7 @@
- #include <linux/media.h>
- #include <linux/module.h>
- #include <linux/of_gpio.h>
-+#include <linux/of_graph.h>
- #include <linux/regulator/consumer.h>
- #include <linux/sizes.h>
- #include <linux/slab.h>
-@@ -35,7 +36,7 @@
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-mediabus.h>
- #include <media/i2c/s5c73m3.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- 
- #include "s5c73m3.h"
- 
-@@ -1602,7 +1603,7 @@ static int s5c73m3_get_platform_data(struct s5c73m3 *state)
- 	const struct s5c73m3_platform_data *pdata = dev->platform_data;
- 	struct device_node *node = dev->of_node;
- 	struct device_node *node_ep;
--	struct v4l2_of_endpoint ep;
-+	struct v4l2_fwnode_endpoint ep;
- 	int ret;
- 
- 	if (!node) {
-@@ -1639,7 +1640,7 @@ static int s5c73m3_get_platform_data(struct s5c73m3 *state)
- 		return 0;
- 	}
- 
--	ret = v4l2_of_parse_endpoint(node_ep, &ep);
-+	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(node_ep), &ep);
- 	of_node_put(node_ep);
- 	if (ret)
- 		return ret;
-diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
-index db82ed0..962051b 100644
---- a/drivers/media/i2c/s5k5baf.c
-+++ b/drivers/media/i2c/s5k5baf.c
-@@ -30,7 +30,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-mediabus.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- 
- static int debug;
- module_param(debug, int, 0644);
-@@ -1841,7 +1841,7 @@ static int s5k5baf_parse_device_node(struct s5k5baf *state, struct device *dev)
- {
- 	struct device_node *node = dev->of_node;
- 	struct device_node *node_ep;
--	struct v4l2_of_endpoint ep;
-+	struct v4l2_fwnode_endpoint ep;
- 	int ret;
- 
- 	if (!node) {
-@@ -1868,7 +1868,7 @@ static int s5k5baf_parse_device_node(struct s5k5baf *state, struct device *dev)
- 		return -EINVAL;
- 	}
- 
--	ret = v4l2_of_parse_endpoint(node_ep, &ep);
-+	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(node_ep), &ep);
- 	of_node_put(node_ep);
- 	if (ret)
- 		return ret;
-diff --git a/drivers/media/i2c/smiapp/Kconfig b/drivers/media/i2c/smiapp/Kconfig
-index 3149cda..f59718d 100644
---- a/drivers/media/i2c/smiapp/Kconfig
-+++ b/drivers/media/i2c/smiapp/Kconfig
-@@ -3,5 +3,6 @@ config VIDEO_SMIAPP
- 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAVE_CLK
- 	depends on MEDIA_CAMERA_SUPPORT
- 	select VIDEO_SMIAPP_PLL
-+	select V4L2_FWNODE
- 	---help---
- 	  This is a generic driver for SMIA++/SMIA camera modules.
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index f4e92bd..e0b0c03 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -27,12 +27,13 @@
- #include <linux/gpio/consumer.h>
- #include <linux/module.h>
- #include <linux/pm_runtime.h>
-+#include <linux/property.h>
- #include <linux/regulator/consumer.h>
- #include <linux/slab.h>
- #include <linux/smiapp.h>
- #include <linux/v4l2-mediabus.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-device.h>
--#include <media/v4l2-of.h>
- 
- #include "smiapp.h"
- 
-@@ -2784,19 +2785,20 @@ static int __maybe_unused smiapp_resume(struct device *dev)
- static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
- {
- 	struct smiapp_hwconfig *hwcfg;
--	struct v4l2_of_endpoint *bus_cfg;
--	struct device_node *ep;
-+	struct v4l2_fwnode_endpoint *bus_cfg;
-+	struct fwnode_handle *ep;
-+	struct fwnode_handle *fwnode = dev_fwnode(dev);
- 	int i;
- 	int rval;
- 
--	if (!dev->of_node)
-+	if (!fwnode)
- 		return dev->platform_data;
- 
--	ep = of_graph_get_next_endpoint(dev->of_node, NULL);
-+	ep = fwnode_graph_get_next_endpoint(fwnode, NULL);
- 	if (!ep)
- 		return NULL;
- 
--	bus_cfg = v4l2_of_alloc_parse_endpoint(ep);
-+	bus_cfg = v4l2_fwnode_endpoint_alloc_parse(ep);
- 	if (IS_ERR(bus_cfg))
- 		goto out_err;
- 
-@@ -2817,11 +2819,10 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
- 	dev_dbg(dev, "lanes %u\n", hwcfg->lanes);
- 
- 	/* NVM size is not mandatory */
--	of_property_read_u32(dev->of_node, "nokia,nvm-size",
--				    &hwcfg->nvm_size);
-+	fwnode_property_read_u32(fwnode, "nokia,nvm-size", &hwcfg->nvm_size);
- 
--	rval = of_property_read_u32(dev->of_node, "clock-frequency",
--				    &hwcfg->ext_clk);
-+	rval = fwnode_property_read_u32(fwnode, "clock-frequency",
-+					&hwcfg->ext_clk);
- 	if (rval) {
- 		dev_warn(dev, "can't get clock-frequency\n");
- 		goto out_err;
-@@ -2846,13 +2847,13 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
- 		dev_dbg(dev, "freq %d: %lld\n", i, hwcfg->op_sys_clock[i]);
- 	}
- 
--	v4l2_of_free_endpoint(bus_cfg);
--	of_node_put(ep);
-+	v4l2_fwnode_endpoint_free(bus_cfg);
-+	fwnode_handle_put(ep);
- 	return hwcfg;
- 
- out_err:
--	v4l2_of_free_endpoint(bus_cfg);
--	of_node_put(ep);
-+	v4l2_fwnode_endpoint_free(bus_cfg);
-+	fwnode_handle_put(ep);
- 	return NULL;
- }
- 
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index bf9d925..c4c894b 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -33,6 +33,7 @@
- #include <linux/delay.h>
- #include <linux/gpio/consumer.h>
- #include <linux/interrupt.h>
-+#include <linux/of_graph.h>
- #include <linux/videodev2.h>
- #include <linux/workqueue.h>
- #include <linux/v4l2-dv-timings.h>
-@@ -41,7 +42,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-event.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/i2c/tc358743.h>
- 
- #include "tc358743_regs.h"
-@@ -76,7 +77,7 @@ static const struct v4l2_dv_timings_cap tc358743_timings_cap = {
- 
- struct tc358743_state {
- 	struct tc358743_platform_data pdata;
--	struct v4l2_of_bus_mipi_csi2 bus;
-+	struct v4l2_fwnode_bus_mipi_csi2 bus;
- 	struct v4l2_subdev sd;
- 	struct media_pad pad;
- 	struct v4l2_ctrl_handler hdl;
-@@ -1695,7 +1696,7 @@ static void tc358743_gpio_reset(struct tc358743_state *state)
- static int tc358743_probe_of(struct tc358743_state *state)
- {
- 	struct device *dev = &state->i2c_client->dev;
--	struct v4l2_of_endpoint *endpoint;
-+	struct v4l2_fwnode_endpoint *endpoint;
- 	struct device_node *ep;
- 	struct clk *refclk;
- 	u32 bps_pr_lane;
-@@ -1715,7 +1716,7 @@ static int tc358743_probe_of(struct tc358743_state *state)
- 		return -EINVAL;
- 	}
- 
--	endpoint = v4l2_of_alloc_parse_endpoint(ep);
-+	endpoint = v4l2_fwnode_endpoint_alloc_parse(of_fwnode_handle(ep));
- 	if (IS_ERR(endpoint)) {
- 		dev_err(dev, "failed to parse endpoint\n");
- 		return PTR_ERR(endpoint);
-@@ -1803,7 +1804,7 @@ static int tc358743_probe_of(struct tc358743_state *state)
- disable_clk:
- 	clk_disable_unprepare(refclk);
- free_endpoint:
--	v4l2_of_free_endpoint(endpoint);
-+	v4l2_fwnode_endpoint_free(endpoint);
- 	return ret;
- }
- #else
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index 07853d2..ad2df99 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -38,7 +38,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-mediabus.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-ctrls.h>
- #include <media/i2c/tvp514x.h>
- #include <media/media-entity.h>
-@@ -998,7 +998,7 @@ static struct tvp514x_platform_data *
- tvp514x_get_pdata(struct i2c_client *client)
- {
- 	struct tvp514x_platform_data *pdata = NULL;
--	struct v4l2_of_endpoint bus_cfg;
-+	struct v4l2_fwnode_endpoint bus_cfg;
- 	struct device_node *endpoint;
- 	unsigned int flags;
- 
-@@ -1009,7 +1009,7 @@ tvp514x_get_pdata(struct i2c_client *client)
- 	if (!endpoint)
- 		return NULL;
- 
--	if (v4l2_of_parse_endpoint(endpoint, &bus_cfg))
-+	if (v4l2_fwnode_endpoint_parse(of_fwnode_handle(endpoint), &bus_cfg))
- 		goto done;
- 
- 	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 48646a7..dff30a0 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -12,10 +12,11 @@
- #include <linux/delay.h>
- #include <linux/gpio/consumer.h>
- #include <linux/module.h>
-+#include <linux/of_graph.h>
- #include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-mc.h>
- 
- #include "tvp5150_reg.h"
-@@ -1358,7 +1359,7 @@ static int tvp5150_init(struct i2c_client *c)
- 
- static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
- {
--	struct v4l2_of_endpoint bus_cfg;
-+	struct v4l2_fwnode_endpoint bus_cfg;
- 	struct device_node *ep;
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	struct device_node *connectors, *child;
-@@ -1373,7 +1374,7 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
- 	if (!ep)
- 		return -EINVAL;
- 
--	ret = v4l2_of_parse_endpoint(ep, &bus_cfg);
-+	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &bus_cfg);
- 	if (ret)
- 		goto err;
- 
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index 4c11901..a26c1a3 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -33,7 +33,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ctrls.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- 
- #include "tvp7002_reg.h"
- 
-@@ -889,7 +889,7 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
- static struct tvp7002_config *
- tvp7002_get_pdata(struct i2c_client *client)
- {
--	struct v4l2_of_endpoint bus_cfg;
-+	struct v4l2_fwnode_endpoint bus_cfg;
- 	struct tvp7002_config *pdata = NULL;
- 	struct device_node *endpoint;
- 	unsigned int flags;
-@@ -901,7 +901,7 @@ tvp7002_get_pdata(struct i2c_client *client)
- 	if (!endpoint)
- 		return NULL;
- 
--	if (v4l2_of_parse_endpoint(endpoint, &bus_cfg))
-+	if (v4l2_fwnode_endpoint_parse(of_fwnode_handle(endpoint), &bus_cfg))
- 		goto done;
- 
- 	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
 diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index ab0bb48..10862f0 100644
+index ac026ee..de6e18b 100644
 --- a/drivers/media/platform/Kconfig
 +++ b/drivers/media/platform/Kconfig
-@@ -82,6 +82,7 @@ config VIDEO_OMAP3
- 	select ARM_DMA_USE_IOMMU
- 	select VIDEOBUF2_DMA_CONTIG
- 	select MFD_SYSCON
-+	select V4L2_FWNODE
- 	---help---
- 	  Driver for an OMAP 3 camera controller.
- 
-@@ -97,6 +98,7 @@ config VIDEO_PXA27x
- 	depends on PXA27x || COMPILE_TEST
- 	select VIDEOBUF2_DMA_SG
- 	select SG_SPLIT
-+	select V4L2_FWNODE
- 	---help---
- 	  This is a v4l2 driver for the PXA27x Quick Capture Interface
- 
-@@ -127,6 +129,7 @@ config VIDEO_TI_CAL
- 	depends on SOC_DRA7XX || COMPILE_TEST
- 	depends on HAS_DMA
- 	select VIDEOBUF2_DMA_CONTIG
-+	select V4L2_FWNODE
- 	default n
- 	---help---
- 	  Support for the TI CAL (Camera Adaptation Layer) block
-diff --git a/drivers/media/platform/am437x/Kconfig b/drivers/media/platform/am437x/Kconfig
-index 42d9c18..160e77e 100644
---- a/drivers/media/platform/am437x/Kconfig
-+++ b/drivers/media/platform/am437x/Kconfig
-@@ -3,6 +3,7 @@ config VIDEO_AM437X_VPFE
- 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
- 	depends on SOC_AM43XX || COMPILE_TEST
- 	select VIDEOBUF2_DMA_CONTIG
-+	select V4L2_FWNODE
- 	help
- 	   Support for AM437x Video Processing Front End based Video
- 	   Capture Driver.
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index 05489a4..466aba8 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -26,6 +26,7 @@
- #include <linux/interrupt.h>
- #include <linux/io.h>
- #include <linux/module.h>
-+#include <linux/of_graph.h>
- #include <linux/pinctrl/consumer.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
-@@ -36,7 +37,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-event.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- 
- #include "am437x-vpfe.h"
- 
-@@ -2303,7 +2304,8 @@ vpfe_async_bound(struct v4l2_async_notifier *notifier,
- 	vpfe_dbg(1, vpfe, "vpfe_async_bound\n");
- 
- 	for (i = 0; i < ARRAY_SIZE(vpfe->cfg->asd); i++) {
--		if (vpfe->cfg->asd[i]->match.of.node == asd[i].match.of.node) {
-+		if (vpfe->cfg->asd[i]->match.fwnode.fwnode ==
-+		    asd[i].match.fwnode.fwnode) {
- 			sdinfo = &vpfe->cfg->sub_devs[i];
- 			vpfe->sd[i] = subdev;
- 			vpfe->sd[i]->grp_id = sdinfo->grp_id;
-@@ -2419,7 +2421,7 @@ static struct vpfe_config *
- vpfe_get_pdata(struct platform_device *pdev)
- {
- 	struct device_node *endpoint = NULL;
--	struct v4l2_of_endpoint bus_cfg;
-+	struct v4l2_fwnode_endpoint bus_cfg;
- 	struct vpfe_subdev_info *sdinfo;
- 	struct vpfe_config *pdata;
- 	unsigned int flags;
-@@ -2463,7 +2465,8 @@ vpfe_get_pdata(struct platform_device *pdev)
- 			sdinfo->vpfe_param.if_type = VPFE_RAW_BAYER;
- 		}
- 
--		err = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+		err = v4l2_fwnode_endpoint_parse(of_fwnode_handle(endpoint),
-+						 &bus_cfg);
- 		if (err) {
- 			dev_err(&pdev->dev, "Could not parse the endpoint\n");
- 			goto done;
-@@ -2501,8 +2504,8 @@ vpfe_get_pdata(struct platform_device *pdev)
- 			goto done;
- 		}
- 
--		pdata->asd[i]->match_type = V4L2_ASYNC_MATCH_OF;
--		pdata->asd[i]->match.of.node = rem;
-+		pdata->asd[i]->match_type = V4L2_ASYNC_MATCH_FWNODE;
-+		pdata->asd[i]->match.fwnode.fwnode = of_fwnode_handle(rem);
- 		of_node_put(rem);
- 	}
- 
-diff --git a/drivers/media/platform/atmel/Kconfig b/drivers/media/platform/atmel/Kconfig
-index 9bd0f19..55de751 100644
---- a/drivers/media/platform/atmel/Kconfig
-+++ b/drivers/media/platform/atmel/Kconfig
-@@ -4,6 +4,7 @@ config VIDEO_ATMEL_ISC
- 	depends on ARCH_AT91 || COMPILE_TEST
- 	select VIDEOBUF2_DMA_CONTIG
- 	select REGMAP_MMIO
-+	select V4L2_FWNODE
- 	help
- 	   This module makes the ATMEL Image Sensor Controller available
- 	   as a v4l2 device.
-@@ -13,6 +14,7 @@ config VIDEO_ATMEL_ISI
- 	depends on VIDEO_V4L2 && OF && HAS_DMA
- 	depends on ARCH_AT91 || COMPILE_TEST
- 	select VIDEOBUF2_DMA_CONTIG
-+	select V4L2_FWNODE
- 	---help---
- 	  This module makes the ATMEL Image Sensor Interface available
- 	  as a v4l2 device.
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-index 7dacf8c..380a95e 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -32,6 +32,7 @@
- #include <linux/math64.h>
- #include <linux/module.h>
- #include <linux/of.h>
-+#include <linux/of_graph.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/regmap.h>
-@@ -42,7 +43,7 @@
- #include <media/v4l2-event.h>
- #include <media/v4l2-image-sizes.h>
- #include <media/v4l2-ioctl.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
- #include <media/videobuf2-dma-contig.h>
- 
-@@ -1683,7 +1684,7 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
- {
- 	struct device_node *np = dev->of_node;
- 	struct device_node *epn = NULL, *rem;
--	struct v4l2_of_endpoint v4l2_epn;
-+	struct v4l2_fwnode_endpoint v4l2_epn;
- 	struct isc_subdev_entity *subdev_entity;
- 	unsigned int flags;
- 	int ret;
-@@ -1702,7 +1703,8 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
- 			continue;
- 		}
- 
--		ret = v4l2_of_parse_endpoint(epn, &v4l2_epn);
-+		ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(epn),
-+						 &v4l2_epn);
- 		if (ret) {
- 			of_node_put(rem);
- 			ret = -EINVAL;
-@@ -1737,8 +1739,9 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
- 		if (flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
- 			subdev_entity->pfe_cfg0 |= ISC_PFE_CFG0_PPOL_LOW;
- 
--		subdev_entity->asd->match_type = V4L2_ASYNC_MATCH_OF;
--		subdev_entity->asd->match.of.node = rem;
-+		subdev_entity->asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-+		subdev_entity->asd->match.fwnode.fwnode =
-+			of_fwnode_handle(rem);
- 		list_add_tail(&subdev_entity->list, &isc->subdev_entities);
- 	}
- 
-diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
-index e4867f8..ef482cc 100644
---- a/drivers/media/platform/atmel/atmel-isi.c
-+++ b/drivers/media/platform/atmel/atmel-isi.c
-@@ -19,6 +19,7 @@
- #include <linux/interrupt.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/of_graph.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/slab.h>
-@@ -30,7 +31,7 @@
- #include <media/v4l2-dev.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-event.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/videobuf2-dma-contig.h>
- #include <media/v4l2-image-sizes.h>
- 
-@@ -801,7 +802,7 @@ static int atmel_isi_parse_dt(struct atmel_isi *isi,
- 			struct platform_device *pdev)
- {
- 	struct device_node *np = pdev->dev.of_node;
--	struct v4l2_of_endpoint ep;
-+	struct v4l2_fwnode_endpoint ep;
- 	int err;
- 
- 	/* Default settings for ISI */
-@@ -814,7 +815,7 @@ static int atmel_isi_parse_dt(struct atmel_isi *isi,
- 		return -EINVAL;
- 	}
- 
--	err = v4l2_of_parse_endpoint(np, &ep);
-+	err = v4l2_fwnode_endpoint_parse(of_fwnode_handle(np), &ep);
- 	of_node_put(np);
- 	if (err) {
- 		dev_err(&pdev->dev, "Could not parse the endpoint\n");
-@@ -1126,8 +1127,8 @@ static int isi_graph_parse(struct atmel_isi *isi, struct device_node *node)
- 
- 		/* Remote node to connect */
- 		isi->entity.node = remote;
--		isi->entity.asd.match_type = V4L2_ASYNC_MATCH_OF;
--		isi->entity.asd.match.of.node = remote;
-+		isi->entity.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-+		isi->entity.asd.match.fwnode.fwnode = of_fwnode_handle(remote);
- 		return 0;
- 	}
- }
-diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
-index 57d42c6..c480efb 100644
---- a/drivers/media/platform/exynos4-is/Kconfig
-+++ b/drivers/media/platform/exynos4-is/Kconfig
-@@ -4,6 +4,7 @@ config VIDEO_SAMSUNG_EXYNOS4_IS
- 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
- 	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
- 	depends on OF && COMMON_CLK
-+	select V4L2_FWNODE
- 	help
- 	  Say Y here to enable camera host interface devices for
- 	  Samsung S5P and EXYNOS SoC series.
-@@ -32,6 +33,7 @@ config VIDEO_S5P_MIPI_CSIS
- 	tristate "S5P/EXYNOS MIPI-CSI2 receiver (MIPI-CSIS) driver"
- 	depends on REGULATOR
- 	select GENERIC_PHY
-+	select V4L2_FWNODE
- 	help
- 	  This is a V4L2 driver for Samsung S5P and EXYNOS4 SoC MIPI-CSI2
- 	  receiver (MIPI-CSIS) devices.
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index e82450e9..7d1cf78 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -29,7 +29,7 @@
- #include <linux/slab.h>
- #include <media/v4l2-async.h>
- #include <media/v4l2-ctrls.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/media-device.h>
- #include <media/drv-intf/exynos-fimc.h>
- 
-@@ -388,7 +388,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
- {
- 	struct fimc_source_info *pd = &fmd->sensor[index].pdata;
- 	struct device_node *rem, *ep, *np;
--	struct v4l2_of_endpoint endpoint;
-+	struct v4l2_fwnode_endpoint endpoint;
- 	int ret;
- 
- 	/* Assume here a port node can have only one endpoint node. */
-@@ -396,7 +396,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
- 	if (!ep)
- 		return 0;
- 
--	ret = v4l2_of_parse_endpoint(ep, &endpoint);
-+	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &endpoint);
- 	if (ret) {
- 		of_node_put(ep);
- 		return ret;
-@@ -453,8 +453,8 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
- 		return -EINVAL;
- 	}
- 
--	fmd->sensor[index].asd.match_type = V4L2_ASYNC_MATCH_OF;
--	fmd->sensor[index].asd.match.of.node = rem;
-+	fmd->sensor[index].asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-+	fmd->sensor[index].asd.match.fwnode.fwnode = of_fwnode_handle(rem);
- 	fmd->async_subdevs[index] = &fmd->sensor[index].asd;
- 
- 	fmd->num_sensors++;
-@@ -1361,7 +1361,8 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
- 
- 	/* Find platform data for this sensor subdev */
- 	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++)
--		if (fmd->sensor[i].asd.match.of.node == subdev->dev->of_node)
-+		if (fmd->sensor[i].asd.match.fwnode.fwnode ==
-+		    of_fwnode_handle(subdev->dev->of_node))
- 			si = &fmd->sensor[i];
- 
- 	if (si == NULL)
-diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-index f819b29..98c8987 100644
---- a/drivers/media/platform/exynos4-is/mipi-csis.c
-+++ b/drivers/media/platform/exynos4-is/mipi-csis.c
-@@ -30,7 +30,7 @@
- #include <linux/spinlock.h>
- #include <linux/videodev2.h>
- #include <media/drv-intf/exynos-fimc.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
- 
- #include "mipi-csis.h"
-@@ -718,7 +718,7 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
- 			    struct csis_state *state)
- {
- 	struct device_node *node = pdev->dev.of_node;
--	struct v4l2_of_endpoint endpoint;
-+	struct v4l2_fwnode_endpoint endpoint;
- 	int ret;
- 
- 	if (of_property_read_u32(node, "clock-frequency",
-@@ -735,7 +735,7 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
- 		return -EINVAL;
- 	}
- 	/* Get port node and validate MIPI-CSI channel id. */
--	ret = v4l2_of_parse_endpoint(node, &endpoint);
-+	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(node), &endpoint);
- 	if (ret)
- 		goto err;
- 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 084ecf4a..d8fba9c 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -55,6 +55,7 @@
- #include <linux/module.h>
- #include <linux/omap-iommu.h>
- #include <linux/platform_device.h>
-+#include <linux/property.h>
- #include <linux/regulator/consumer.h>
- #include <linux/slab.h>
- #include <linux/sched.h>
-@@ -63,9 +64,9 @@
- #include <asm/dma-iommu.h>
- 
- #include <media/v4l2-common.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-mc.h>
--#include <media/v4l2-of.h>
- 
- #include "isp.h"
- #include "ispreg.h"
-@@ -2024,20 +2025,20 @@ enum isp_of_phy {
- 	ISP_OF_PHY_CSIPHY2,
- };
- 
--static int isp_of_parse_node(struct device *dev, struct device_node *node,
--			     struct isp_async_subdev *isd)
-+static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
-+			    struct isp_async_subdev *isd)
- {
- 	struct isp_bus_cfg *buscfg = &isd->bus;
--	struct v4l2_of_endpoint vep;
-+	struct v4l2_fwnode_endpoint vep;
- 	unsigned int i;
- 	int ret;
- 
--	ret = v4l2_of_parse_endpoint(node, &vep);
-+	ret = v4l2_fwnode_endpoint_parse(fwnode, &vep);
- 	if (ret)
- 		return ret;
- 
--	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
--		vep.base.port);
-+	dev_dbg(dev, "parsing endpoint %s, interface %u\n",
-+		to_of_node(fwnode)->full_name, vep.base.port);
- 
- 	switch (vep.base.port) {
- 	case ISP_OF_PHY_PARALLEL:
-@@ -2094,18 +2095,18 @@ static int isp_of_parse_node(struct device *dev, struct device_node *node,
- 		break;
- 
- 	default:
--		dev_warn(dev, "%s: invalid interface %u\n", node->full_name,
--			 vep.base.port);
-+		dev_warn(dev, "%s: invalid interface %u\n",
-+			 to_of_node(fwnode)->full_name, vep.base.port);
- 		break;
- 	}
- 
- 	return 0;
- }
- 
--static int isp_of_parse_nodes(struct device *dev,
--			      struct v4l2_async_notifier *notifier)
-+static int isp_fwnodes_parse(struct device *dev,
-+			     struct v4l2_async_notifier *notifier)
- {
--	struct device_node *node = NULL;
-+	struct fwnode_handle *fwnode = NULL;
- 
- 	notifier->subdevs = devm_kcalloc(
- 		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
-@@ -2113,7 +2114,8 @@ static int isp_of_parse_nodes(struct device *dev,
- 		return -ENOMEM;
- 
- 	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
--	       (node = of_graph_get_next_endpoint(dev->of_node, node))) {
-+	       (fwnode = fwnode_graph_get_next_endpoint(
-+			of_fwnode_handle(dev->of_node), fwnode))) {
- 		struct isp_async_subdev *isd;
- 
- 		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
-@@ -2122,23 +2124,24 @@ static int isp_of_parse_nodes(struct device *dev,
- 
- 		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
- 
--		if (isp_of_parse_node(dev, node, isd))
-+		if (isp_fwnode_parse(dev, fwnode, isd))
- 			goto error;
- 
--		isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
--		if (!isd->asd.match.of.node) {
-+		isd->asd.match.fwnode.fwnode =
-+			fwnode_graph_get_remote_port_parent(fwnode);
-+		if (!isd->asd.match.fwnode.fwnode) {
- 			dev_warn(dev, "bad remote port parent\n");
- 			goto error;
- 		}
- 
--		isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
-+		isd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
- 		notifier->num_subdevs++;
- 	}
- 
- 	return notifier->num_subdevs;
- 
- error:
--	of_node_put(node);
-+	fwnode_handle_put(fwnode);
- 	return -EINVAL;
- }
- 
-@@ -2209,8 +2212,8 @@ static int isp_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 	}
- 
--	ret = of_property_read_u32(pdev->dev.of_node, "ti,phy-type",
--				   &isp->phy_type);
-+	ret = fwnode_property_read_u32(of_fwnode_handle(pdev->dev.of_node),
-+				       "ti,phy-type", &isp->phy_type);
- 	if (ret)
- 		return ret;
- 
-@@ -2219,12 +2222,12 @@ static int isp_probe(struct platform_device *pdev)
- 	if (IS_ERR(isp->syscon))
- 		return PTR_ERR(isp->syscon);
- 
--	ret = of_property_read_u32_index(pdev->dev.of_node, "syscon", 1,
--					 &isp->syscon_offset);
-+	ret = of_property_read_u32_index(pdev->dev.of_node,
-+					 "syscon", 1, &isp->syscon_offset);
- 	if (ret)
- 		return ret;
- 
--	ret = isp_of_parse_nodes(&pdev->dev, &isp->notifier);
-+	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
- 	if (ret < 0)
- 		return ret;
- 
-diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-index 929006f..ebf9ea9 100644
---- a/drivers/media/platform/pxa_camera.c
-+++ b/drivers/media/platform/pxa_camera.c
-@@ -25,6 +25,7 @@
- #include <linux/mm.h>
- #include <linux/moduleparam.h>
- #include <linux/of.h>
-+#include <linux/of_graph.h>
- #include <linux/time.h>
- #include <linux/platform_device.h>
- #include <linux/clk.h>
-@@ -39,7 +40,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- 
- #include <media/videobuf2-dma-sg.h>
- 
-@@ -2236,7 +2237,7 @@ static int pxa_camera_pdata_from_dt(struct device *dev,
- {
- 	u32 mclk_rate;
- 	struct device_node *remote, *np = dev->of_node;
--	struct v4l2_of_endpoint ep;
-+	struct v4l2_fwnode_endpoint ep;
- 	int err = of_property_read_u32(np, "clock-frequency",
- 				       &mclk_rate);
- 	if (!err) {
-@@ -2250,7 +2251,7 @@ static int pxa_camera_pdata_from_dt(struct device *dev,
- 		return -EINVAL;
- 	}
- 
--	err = v4l2_of_parse_endpoint(np, &ep);
-+	err = v4l2_fwnode_endpoint_parse(of_fwnode_handle(np), &ep);
- 	if (err) {
- 		dev_err(dev, "could not parse endpoint\n");
- 		goto out;
-@@ -2287,10 +2288,10 @@ static int pxa_camera_pdata_from_dt(struct device *dev,
- 	if (ep.bus.parallel.flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
- 		pcdev->platform_flags |= PXA_CAMERA_PCLK_EN;
- 
--	asd->match_type = V4L2_ASYNC_MATCH_OF;
-+	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
- 	remote = of_graph_get_remote_port(np);
- 	if (remote) {
--		asd->match.of.node = remote;
-+		asd->match.fwnode.fwnode = of_fwnode_handle(remote);
- 		of_node_put(remote);
- 	} else {
- 		dev_notice(dev, "no remote for %s\n", of_node_full_name(np));
-diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
-index 111d2a1..af4c98b 100644
---- a/drivers/media/platform/rcar-vin/Kconfig
-+++ b/drivers/media/platform/rcar-vin/Kconfig
-@@ -3,6 +3,7 @@ config VIDEO_RCAR_VIN
- 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF && HAS_DMA && MEDIA_CONTROLLER
- 	depends on ARCH_RENESAS || COMPILE_TEST
- 	select VIDEOBUF2_DMA_CONTIG
-+	select V4L2_FWNODE
- 	---help---
- 	  Support for Renesas R-Car Video Input (VIN) driver.
- 	  Supports R-Car Gen2 SoCs.
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 098a0b1..264604a 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -21,7 +21,7 @@
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- 
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- 
- #include "rcar-vin.h"
- 
-@@ -104,7 +104,8 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
- 
- 	v4l2_set_subdev_hostdata(subdev, vin);
- 
--	if (vin->digital.asd.match.of.node == subdev->dev->of_node) {
-+	if (vin->digital.asd.match.fwnode.fwnode ==
-+	    of_fwnode_handle(subdev->dev->of_node)) {
- 		vin_dbg(vin, "bound digital subdev %s\n", subdev->name);
- 		vin->digital.subdev = subdev;
- 		return 0;
-@@ -118,10 +119,10 @@ static int rvin_digitial_parse_v4l2(struct rvin_dev *vin,
- 				    struct device_node *ep,
- 				    struct v4l2_mbus_config *mbus_cfg)
- {
--	struct v4l2_of_endpoint v4l2_ep;
-+	struct v4l2_fwnode_endpoint v4l2_ep;
- 	int ret;
- 
--	ret = v4l2_of_parse_endpoint(ep, &v4l2_ep);
-+	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
- 	if (ret) {
- 		vin_err(vin, "Could not parse v4l2 endpoint\n");
- 		return -EINVAL;
-@@ -151,7 +152,7 @@ static int rvin_digital_graph_parse(struct rvin_dev *vin)
- 	struct device_node *ep, *np;
- 	int ret;
- 
--	vin->digital.asd.match.of.node = NULL;
-+	vin->digital.asd.match.fwnode.fwnode = NULL;
- 	vin->digital.subdev = NULL;
- 
- 	/*
-@@ -175,8 +176,8 @@ static int rvin_digital_graph_parse(struct rvin_dev *vin)
- 	if (ret)
- 		return ret;
- 
--	vin->digital.asd.match.of.node = np;
--	vin->digital.asd.match_type = V4L2_ASYNC_MATCH_OF;
-+	vin->digital.asd.match.fwnode.fwnode = of_fwnode_handle(np);
-+	vin->digital.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
- 
- 	return 0;
- }
-@@ -190,7 +191,7 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
- 	if (ret)
- 		return ret;
- 
--	if (!vin->digital.asd.match.of.node) {
-+	if (!vin->digital.asd.match.fwnode.fwnode) {
- 		vin_dbg(vin, "No digital subdevice found\n");
- 		return -ENODEV;
- 	}
-@@ -203,7 +204,7 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
- 	subdevs[0] = &vin->digital.asd;
- 
- 	vin_dbg(vin, "Found digital subdevice %s\n",
--		of_node_full_name(subdevs[0]->match.of.node));
-+		of_node_full_name(to_of_node(subdevs[0]->match.fwnode.fwnode)));
- 
- 	vin->notifier.num_subdevs = 1;
- 	vin->notifier.subdevs = subdevs;
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index 3c9421f..45a0429 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -23,6 +23,7 @@
- #include <linux/list.h>
- #include <linux/module.h>
- #include <linux/mutex.h>
-+#include <linux/of_graph.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/regulator/consumer.h>
-@@ -36,7 +37,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-dev.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/videobuf2-v4l2.h>
- 
- /* Default to VGA resolution */
-@@ -1512,8 +1513,8 @@ static int soc_of_bind(struct soc_camera_host *ici,
- 	if (!info)
- 		return -ENOMEM;
- 
--	info->sasd.asd.match.of.node = remote;
--	info->sasd.asd.match_type = V4L2_ASYNC_MATCH_OF;
-+	info->sasd.asd.match.fwnode.fwnode = of_fwnode_handle(remote);
-+	info->sasd.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
- 	info->subdev = &info->sasd.asd;
- 
- 	/* Or shall this be managed by the soc-camera device? */
-diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
-index 7a058b6..177faa3 100644
---- a/drivers/media/platform/ti-vpe/cal.c
-+++ b/drivers/media/platform/ti-vpe/cal.c
-@@ -21,7 +21,7 @@
- #include <linux/of_device.h>
- #include <linux/of_graph.h>
- 
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-async.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ctrls.h>
-@@ -270,7 +270,7 @@ struct cal_ctx {
- 	struct video_device	vdev;
- 	struct v4l2_async_notifier notifier;
- 	struct v4l2_subdev	*sensor;
--	struct v4l2_of_endpoint	endpoint;
-+	struct v4l2_fwnode_endpoint	endpoint;
- 
- 	struct v4l2_async_subdev asd;
- 	struct v4l2_async_subdev *asd_list[1];
-@@ -608,7 +608,8 @@ static void csi2_lane_config(struct cal_ctx *ctx)
- 	u32 val = reg_read(ctx->dev, CAL_CSI2_COMPLEXIO_CFG(ctx->csi2_port));
- 	u32 lane_mask = CAL_CSI2_COMPLEXIO_CFG_CLOCK_POSITION_MASK;
- 	u32 polarity_mask = CAL_CSI2_COMPLEXIO_CFG_CLOCK_POL_MASK;
--	struct v4l2_of_bus_mipi_csi2 *mipi_csi2 = &ctx->endpoint.bus.mipi_csi2;
-+	struct v4l2_fwnode_bus_mipi_csi2 *mipi_csi2 =
-+		&ctx->endpoint.bus.mipi_csi2;
- 	int lane;
- 
- 	set_field(&val, mipi_csi2->clock_lane + 1, lane_mask);
-@@ -1643,7 +1644,7 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
- 	struct platform_device *pdev = ctx->dev->pdev;
- 	struct device_node *ep_node, *port, *remote_ep,
- 			*sensor_node, *parent;
--	struct v4l2_of_endpoint *endpoint;
-+	struct v4l2_fwnode_endpoint *endpoint;
- 	struct v4l2_async_subdev *asd;
- 	u32 regval = 0;
- 	int ret, index, found_port = 0, lane;
-@@ -1698,15 +1699,15 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
- 		ctx_dbg(3, ctx, "can't get remote parent\n");
- 		goto cleanup_exit;
- 	}
--	asd->match_type = V4L2_ASYNC_MATCH_OF;
--	asd->match.of.node = sensor_node;
-+	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-+	asd->match.fwnode.fwnode = of_fwnode_handle(sensor_node);
- 
- 	remote_ep = of_parse_phandle(ep_node, "remote-endpoint", 0);
- 	if (!remote_ep) {
- 		ctx_dbg(3, ctx, "can't get remote-endpoint\n");
- 		goto cleanup_exit;
- 	}
--	v4l2_of_parse_endpoint(remote_ep, endpoint);
-+	v4l2_fwnode_endpoint_parse(of_fwnode_handle(remote_ep), endpoint);
- 
- 	if (endpoint->bus_type != V4L2_MBUS_CSI2) {
- 		ctx_err(ctx, "Port:%d sub-device %s is not a CSI2 device\n",
-diff --git a/drivers/media/platform/xilinx/Kconfig b/drivers/media/platform/xilinx/Kconfig
-index 84bae79..a5d21b7 100644
---- a/drivers/media/platform/xilinx/Kconfig
-+++ b/drivers/media/platform/xilinx/Kconfig
-@@ -2,6 +2,7 @@ config VIDEO_XILINX
- 	tristate "Xilinx Video IP (EXPERIMENTAL)"
- 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF && HAS_DMA
- 	select VIDEOBUF2_DMA_CONTIG
-+	select V4L2_FWNODE
- 	---help---
- 	  Driver for Xilinx Video IP Pipelines
- 
-diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
-index feb3b2f..ac47043 100644
---- a/drivers/media/platform/xilinx/xilinx-vipp.c
-+++ b/drivers/media/platform/xilinx/xilinx-vipp.c
-@@ -22,7 +22,7 @@
- #include <media/v4l2-async.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-device.h>
--#include <media/v4l2-of.h>
-+#include <media/v4l2-fwnode.h>
- 
- #include "xilinx-dma.h"
- #include "xilinx-vipp.h"
-@@ -74,7 +74,7 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
- 	struct media_pad *local_pad;
- 	struct media_pad *remote_pad;
- 	struct xvip_graph_entity *ent;
--	struct v4l2_of_link link;
-+	struct v4l2_fwnode_link link;
- 	struct device_node *ep = NULL;
- 	struct device_node *next;
- 	int ret = 0;
-@@ -92,7 +92,7 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
- 
- 		dev_dbg(xdev->dev, "processing endpoint %s\n", ep->full_name);
- 
--		ret = v4l2_of_parse_link(ep, &link);
-+		ret = v4l2_fwnode_parse_link(of_fwnode_handle(ep), &link);
- 		if (ret < 0) {
- 			dev_err(xdev->dev, "failed to parse link for %s\n",
- 				ep->full_name);
-@@ -103,9 +103,10 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
- 		 * the link.
- 		 */
- 		if (link.local_port >= local->num_pads) {
--			dev_err(xdev->dev, "invalid port number %u on %s\n",
--				link.local_port, link.local_node->full_name);
--			v4l2_of_put_link(&link);
-+			dev_err(xdev->dev, "invalid port number %u for %s\n",
-+				link.local_port,
-+				to_of_node(link.local_node)->full_name);
-+			v4l2_fwnode_put_link(&link);
- 			ret = -EINVAL;
- 			break;
- 		}
-@@ -114,25 +115,28 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
- 
- 		if (local_pad->flags & MEDIA_PAD_FL_SINK) {
- 			dev_dbg(xdev->dev, "skipping sink port %s:%u\n",
--				link.local_node->full_name, link.local_port);
--			v4l2_of_put_link(&link);
-+				to_of_node(link.local_node)->full_name,
-+				link.local_port);
-+			v4l2_fwnode_put_link(&link);
- 			continue;
- 		}
- 
- 		/* Skip DMA engines, they will be processed separately. */
--		if (link.remote_node == xdev->dev->of_node) {
-+		if (link.remote_node == of_fwnode_handle(xdev->dev->of_node)) {
- 			dev_dbg(xdev->dev, "skipping DMA port %s:%u\n",
--				link.local_node->full_name, link.local_port);
--			v4l2_of_put_link(&link);
-+				to_of_node(link.local_node)->full_name,
-+				link.local_port);
-+			v4l2_fwnode_put_link(&link);
- 			continue;
- 		}
- 
- 		/* Find the remote entity. */
--		ent = xvip_graph_find_entity(xdev, link.remote_node);
-+		ent = xvip_graph_find_entity(xdev,
-+					     to_of_node(link.remote_node));
- 		if (ent == NULL) {
- 			dev_err(xdev->dev, "no entity found for %s\n",
--				link.remote_node->full_name);
--			v4l2_of_put_link(&link);
-+				to_of_node(link.remote_node)->full_name);
-+			v4l2_fwnode_put_link(&link);
- 			ret = -ENODEV;
- 			break;
- 		}
-@@ -141,15 +145,16 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
- 
- 		if (link.remote_port >= remote->num_pads) {
- 			dev_err(xdev->dev, "invalid port number %u on %s\n",
--				link.remote_port, link.remote_node->full_name);
--			v4l2_of_put_link(&link);
-+				link.remote_port,
-+				to_of_node(link.remote_node)->full_name);
-+			v4l2_fwnode_put_link(&link);
- 			ret = -EINVAL;
- 			break;
- 		}
- 
- 		remote_pad = &remote->pads[link.remote_port];
- 
--		v4l2_of_put_link(&link);
-+		v4l2_fwnode_put_link(&link);
- 
- 		/* Create the media link. */
- 		dev_dbg(xdev->dev, "creating %s:%u -> %s:%u link\n",
-@@ -194,7 +199,7 @@ static int xvip_graph_build_dma(struct xvip_composite_device *xdev)
- 	struct media_pad *source_pad;
- 	struct media_pad *sink_pad;
- 	struct xvip_graph_entity *ent;
--	struct v4l2_of_link link;
-+	struct v4l2_fwnode_link link;
- 	struct device_node *ep = NULL;
- 	struct device_node *next;
- 	struct xvip_dma *dma;
-@@ -213,7 +218,7 @@ static int xvip_graph_build_dma(struct xvip_composite_device *xdev)
- 
- 		dev_dbg(xdev->dev, "processing endpoint %s\n", ep->full_name);
- 
--		ret = v4l2_of_parse_link(ep, &link);
-+		ret = v4l2_fwnode_parse_link(of_fwnode_handle(ep), &link);
- 		if (ret < 0) {
- 			dev_err(xdev->dev, "failed to parse link for %s\n",
- 				ep->full_name);
-@@ -225,7 +230,7 @@ static int xvip_graph_build_dma(struct xvip_composite_device *xdev)
- 		if (dma == NULL) {
- 			dev_err(xdev->dev, "no DMA engine found for port %u\n",
- 				link.local_port);
--			v4l2_of_put_link(&link);
-+			v4l2_fwnode_put_link(&link);
- 			ret = -EINVAL;
- 			break;
- 		}
-@@ -234,19 +239,21 @@ static int xvip_graph_build_dma(struct xvip_composite_device *xdev)
- 			dma->video.name);
- 
- 		/* Find the remote entity. */
--		ent = xvip_graph_find_entity(xdev, link.remote_node);
-+		ent = xvip_graph_find_entity(xdev,
-+					     to_of_node(link.remote_node));
- 		if (ent == NULL) {
- 			dev_err(xdev->dev, "no entity found for %s\n",
--				link.remote_node->full_name);
--			v4l2_of_put_link(&link);
-+				to_of_node(link.remote_node)->full_name);
-+			v4l2_fwnode_put_link(&link);
- 			ret = -ENODEV;
- 			break;
- 		}
- 
- 		if (link.remote_port >= ent->entity->num_pads) {
- 			dev_err(xdev->dev, "invalid port number %u on %s\n",
--				link.remote_port, link.remote_node->full_name);
--			v4l2_of_put_link(&link);
-+				link.remote_port,
-+				to_of_node(link.remote_node)->full_name);
-+			v4l2_fwnode_put_link(&link);
- 			ret = -EINVAL;
- 			break;
- 		}
-@@ -263,7 +270,7 @@ static int xvip_graph_build_dma(struct xvip_composite_device *xdev)
- 			sink_pad = &dma->pad;
- 		}
- 
--		v4l2_of_put_link(&link);
-+		v4l2_fwnode_put_link(&link);
- 
- 		/* Create the media link. */
- 		dev_dbg(xdev->dev, "creating %s:%u -> %s:%u link\n",
-@@ -383,8 +390,8 @@ static int xvip_graph_parse_one(struct xvip_composite_device *xdev,
- 		}
- 
- 		entity->node = remote;
--		entity->asd.match_type = V4L2_ASYNC_MATCH_OF;
--		entity->asd.match.of.node = remote;
-+		entity->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-+		entity->asd.match.fwnode.fwnode = of_fwnode_handle(remote);
- 		list_add_tail(&entity->list, &xdev->entities);
- 		xdev->num_subdevs++;
- 	}
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index ff32f95..cbd919d 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -41,12 +41,6 @@ static bool match_devname(struct v4l2_subdev *sd,
- 	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
- }
- 
--static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
--{
--	return !of_node_cmp(of_node_full_name(sd->of_node),
--			    of_node_full_name(asd->match.of.node));
--}
--
- static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
- 	if (!is_of_node(sd->fwnode) || !is_of_node(asd->match.fwnode.fwnode))
-@@ -88,9 +82,6 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
- 		case V4L2_ASYNC_MATCH_I2C:
- 			match = match_i2c;
- 			break;
--		case V4L2_ASYNC_MATCH_OF:
--			match = match_of;
--			break;
- 		case V4L2_ASYNC_MATCH_FWNODE:
- 			match = match_fwnode;
- 			break;
-@@ -171,7 +162,6 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 		case V4L2_ASYNC_MATCH_CUSTOM:
- 		case V4L2_ASYNC_MATCH_DEVNAME:
- 		case V4L2_ASYNC_MATCH_I2C:
--		case V4L2_ASYNC_MATCH_OF:
- 		case V4L2_ASYNC_MATCH_FWNODE:
- 			break;
- 		default:
-@@ -295,8 +285,8 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 	 * (struct v4l2_subdev.dev), and async sub-device does not
- 	 * exist independently of the device at any point of time.
- 	 */
--	if (!sd->of_node && sd->dev)
--		sd->of_node = sd->dev->of_node;
-+	if (!sd->fwnode && sd->dev)
-+		sd->fwnode = dev_fwnode(sd->dev);
- 
- 	mutex_lock(&list_lock);
- 
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index c3695fa..c69d8c8 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -31,7 +31,6 @@ struct v4l2_async_notifier;
-  * 	v4l2_async_subdev.match ops
-  * @V4L2_ASYNC_MATCH_DEVNAME: Match will use the device name
-  * @V4L2_ASYNC_MATCH_I2C: Match will check for I2C adapter ID and address
-- * @V4L2_ASYNC_MATCH_OF: Match will use OF node
-  * @V4L2_ASYNC_MATCH_FWNODE: Match will use firmware node
-  *
-  * This enum is used by the asyncrhronous sub-device logic to define the
-@@ -41,7 +40,6 @@ enum v4l2_async_match_type {
- 	V4L2_ASYNC_MATCH_CUSTOM,
- 	V4L2_ASYNC_MATCH_DEVNAME,
- 	V4L2_ASYNC_MATCH_I2C,
--	V4L2_ASYNC_MATCH_OF,
- 	V4L2_ASYNC_MATCH_FWNODE,
- };
- 
-@@ -57,9 +55,6 @@ struct v4l2_async_subdev {
- 	enum v4l2_async_match_type match_type;
- 	union {
- 		struct {
--			const struct device_node *node;
--		} of;
--		struct {
- 			struct fwnode_handle *fwnode;
- 		} fwnode;
- 		struct {
+@@ -114,6 +114,18 @@ config VIDEO_S3C_CAMIF
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called s3c-camif.
+ 
++config VIDEO_STM32_DCMI
++	tristate "Digital Camera Memory Interface (DCMI) support"
++	depends on VIDEO_V4L2 && OF && HAS_DMA
++	depends on ARCH_STM32 || COMPILE_TEST
++	select VIDEOBUF2_DMA_CONTIG
++	---help---
++	  This module makes the STM32 Digital Camera Memory Interface (DCMI)
++	  available as a v4l2 device.
++
++	  To compile this driver as a module, choose M here: the module
++	  will be called stm32-dcmi.
++
+ source "drivers/media/platform/soc_camera/Kconfig"
+ source "drivers/media/platform/exynos4-is/Kconfig"
+ source "drivers/media/platform/am437x/Kconfig"
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 63303d6..231f3c2 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -68,6 +68,8 @@ obj-$(CONFIG_VIDEO_RCAR_VIN)		+= rcar-vin/
+ obj-$(CONFIG_VIDEO_ATMEL_ISC)		+= atmel/
+ obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel/
+ 
++obj-$(CONFIG_VIDEO_STM32_DCMI)		+= stm32/
++
+ ccflags-y += -I$(srctree)/drivers/media/i2c
+ 
+ obj-$(CONFIG_VIDEO_MEDIATEK_VPU)	+= mtk-vpu/
+diff --git a/drivers/media/platform/stm32/Makefile b/drivers/media/platform/stm32/Makefile
+new file mode 100644
+index 0000000..9b606a7
+--- /dev/null
++++ b/drivers/media/platform/stm32/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_VIDEO_STM32_DCMI) += stm32-dcmi.o
+diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+new file mode 100644
+index 0000000..0ed3bd9
+--- /dev/null
++++ b/drivers/media/platform/stm32/stm32-dcmi.c
+@@ -0,0 +1,1419 @@
++/*
++ * Driver for STM32 Digital Camera Memory Interface
++ *
++ * Copyright (C) STMicroelectronics SA 2017
++ * Authors: Yannick Fertre <yannick.fertre@st.com>
++ *          Hugues Fruchet <hugues.fruchet@st.com>
++ *          for STMicroelectronics.
++ * License terms:  GNU General Public License (GPL), version 2
++ *
++ * This driver is based on atmel_isi.c
++ *
++ */
++
++#include <linux/clk.h>
++#include <linux/completion.h>
++#include <linux/delay.h>
++#include <linux/dmaengine.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/platform_device.h>
++#include <linux/reset.h>
++#include <linux/videodev2.h>
++
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-event.h>
++#include <media/v4l2-image-sizes.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-of.h>
++#include <media/videobuf2-dma-contig.h>
++
++#define DRV_NAME "stm32-dcmi"
++
++/* Registers offset for DCMI */
++#define DCMI_CR		0x00 /* Control Register */
++#define DCMI_SR		0x04 /* Status Register */
++#define DCMI_RIS	0x08 /* Raw Interrupt Status register */
++#define DCMI_IER	0x0C /* Interrupt Enable Register */
++#define DCMI_MIS	0x10 /* Masked Interrupt Status register */
++#define DCMI_ICR	0x14 /* Interrupt Clear Register */
++#define DCMI_ESCR	0x18 /* Embedded Synchronization Code Register */
++#define DCMI_ESUR	0x1C /* Embedded Synchronization Unmask Register */
++#define DCMI_CWSTRT	0x20 /* Crop Window STaRT */
++#define DCMI_CWSIZE	0x24 /* Crop Window SIZE */
++#define DCMI_DR		0x28 /* Data Register */
++#define DCMI_IDR	0x2C /* IDentifier Register */
++
++/* Bits definition for control register (DCMI_CR) */
++#define CR_CAPTURE	BIT(0)
++#define CR_CM		BIT(1)
++#define CR_CROP		BIT(2)
++#define CR_JPEG		BIT(3)
++#define CR_ESS		BIT(4)
++#define CR_PCKPOL	BIT(5)
++#define CR_HSPOL	BIT(6)
++#define CR_VSPOL	BIT(7)
++#define CR_FCRC_0	BIT(8)
++#define CR_FCRC_1	BIT(9)
++#define CR_EDM_0	BIT(10)
++#define CR_EDM_1	BIT(11)
++#define CR_ENABLE	BIT(14)
++
++/* Bits definition for status register (DCMI_SR) */
++#define SR_HSYNC	BIT(0)
++#define SR_VSYNC	BIT(1)
++#define SR_FNE		BIT(2)
++
++/*
++ * Bits definition for interrupt registers
++ * (DCMI_RIS, DCMI_IER, DCMI_MIS, DCMI_ICR)
++ */
++#define IT_FRAME	BIT(0)
++#define IT_OVR		BIT(1)
++#define IT_ERR		BIT(2)
++#define IT_VSYNC	BIT(3)
++#define IT_LINE		BIT(4)
++
++enum state {
++	STOPPED = 0,
++	RUNNING,
++	STOPPING,
++};
++
++#define MAX_BUS_WIDTH		14
++#define MAX_SUPPORT_WIDTH	2048
++#define MAX_SUPPORT_HEIGHT	2048
++#define MIN_SUPPORT_WIDTH	16
++#define MIN_SUPPORT_HEIGHT	16
++#define TIMEOUT_MS		1000
++
++struct dcmi_graph_entity {
++	struct device_node *node;
++
++	struct v4l2_async_subdev asd;
++	struct v4l2_subdev *subdev;
++};
++
++struct dcmi_format {
++	u32	fourcc;
++	u32	mbus_code;
++	u8	bpp;
++};
++
++struct dcmi_buf {
++	struct vb2_v4l2_buffer	vb;
++	bool			prepared;
++	dma_addr_t		paddr;
++	size_t			size;
++	struct list_head	list;
++};
++
++struct stm32_dcmi {
++	/* Protects the access of variables shared within the interrupt */
++	spinlock_t			irqlock;
++	struct device			*dev;
++	void __iomem			*regs;
++	struct resource			*res;
++	struct reset_control		*rstc;
++	int				sequence;
++	struct list_head		buffers;
++	struct dcmi_buf			*active;
++
++	struct v4l2_device		v4l2_dev;
++	struct video_device		*vdev;
++	struct v4l2_async_notifier	notifier;
++	struct dcmi_graph_entity	entity;
++	struct v4l2_format		fmt;
++
++	const struct dcmi_format	**user_formats;
++	unsigned int			num_user_formats;
++	const struct dcmi_format	*current_fmt;
++
++	/* Protect this data structure */
++	struct mutex			lock;
++	struct vb2_queue		queue;
++
++	struct v4l2_of_bus_parallel	bus;
++	struct completion		complete;
++	struct clk			*mclk;
++	enum state			state;
++	struct dma_chan			*dma_chan;
++	dma_cookie_t			dma_cookie;
++	u32				misr;
++	int				errors_count;
++	int				buffers_count;
++};
++
++static inline struct stm32_dcmi *notifier_to_dcmi(struct v4l2_async_notifier *n)
++{
++	return container_of(n, struct stm32_dcmi, notifier);
++}
++
++static inline u32 reg_read(void __iomem *base, u32 reg)
++{
++	return readl_relaxed(base + reg);
++}
++
++static inline void reg_write(void __iomem *base, u32 reg, u32 val)
++{
++	writel_relaxed(val, base + reg);
++}
++
++static inline void reg_set(void __iomem *base, u32 reg, u32 mask)
++{
++	reg_write(base, reg, reg_read(base, reg) | mask);
++}
++
++static inline void reg_clear(void __iomem *base, u32 reg, u32 mask)
++{
++	reg_write(base, reg, reg_read(base, reg) & ~mask);
++}
++
++static int dcmi_start_capture(struct stm32_dcmi *dcmi);
++
++static void dcmi_dma_callback(void *param)
++{
++	struct stm32_dcmi *dcmi = (struct stm32_dcmi *)param;
++	struct dma_chan *chan = dcmi->dma_chan;
++	struct dma_tx_state state;
++	enum dma_status status;
++
++	spin_lock(&dcmi->irqlock);
++
++	/* Check DMA status */
++	status = dmaengine_tx_status(chan, dcmi->dma_cookie, &state);
++
++	switch (status) {
++	case DMA_IN_PROGRESS:
++		dev_dbg(dcmi->dev, "%s: Received DMA_IN_PROGRESS\n", __func__);
++		break;
++	case DMA_PAUSED:
++		dev_err(dcmi->dev, "%s: Received DMA_PAUSED\n", __func__);
++		break;
++	case DMA_ERROR:
++		dev_err(dcmi->dev, "%s: Received DMA_ERROR\n", __func__);
++		break;
++	case DMA_COMPLETE:
++		dev_dbg(dcmi->dev, "%s: Received DMA_COMPLETE\n", __func__);
++
++		if (dcmi->active) {
++			struct dcmi_buf *buf = dcmi->active;
++			struct vb2_v4l2_buffer *vbuf = &dcmi->active->vb;
++
++			vbuf->sequence = dcmi->sequence++;
++			vbuf->field = V4L2_FIELD_NONE;
++			vbuf->vb2_buf.timestamp = ktime_get_ns();
++			vb2_set_plane_payload(&vbuf->vb2_buf, 0, buf->size);
++			vb2_buffer_done(&vbuf->vb2_buf, VB2_BUF_STATE_DONE);
++			dev_dbg(dcmi->dev, "buffer[%d] done seq=%d\n",
++				vbuf->vb2_buf.index, vbuf->sequence);
++
++			dcmi->buffers_count++;
++			dcmi->active = NULL;
++		}
++
++		/* Restart a new DMA transfer with next buffer */
++		if (dcmi->state == RUNNING) {
++			int ret;
++
++			if (list_empty(&dcmi->buffers)) {
++				dev_err(dcmi->dev, "%s: No more buffer queued, cannot capture buffer",
++					__func__);
++				dcmi->errors_count++;
++				dcmi->active = NULL;
++
++				spin_unlock(&dcmi->irqlock);
++				return;
++			}
++
++			dcmi->active = list_entry(dcmi->buffers.next,
++						  struct dcmi_buf, list);
++
++			list_del_init(&dcmi->active->list);
++
++			ret = dcmi_start_capture(dcmi);
++			if (ret) {
++				dev_err(dcmi->dev, "%s: Cannot restart capture on DMA complete",
++					__func__);
++
++				spin_unlock(&dcmi->irqlock);
++				return;
++			}
++
++			/* Enable capture */
++			reg_set(dcmi->regs, DCMI_CR, CR_CAPTURE);
++		}
++
++		break;
++	default:
++		dev_err(dcmi->dev, "%s: Received unknown status\n", __func__);
++		break;
++	}
++
++	spin_unlock(&dcmi->irqlock);
++}
++
++static int dcmi_start_dma(struct stm32_dcmi *dcmi,
++			  struct dcmi_buf *buf)
++{
++	struct dma_async_tx_descriptor *desc = NULL;
++	struct dma_slave_config config;
++	int ret;
++
++	memset(&config, 0, sizeof(config));
++
++	config.src_addr = (dma_addr_t)dcmi->res->start + DCMI_DR;
++	config.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
++	config.dst_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
++	config.dst_maxburst = 4;
++
++	/* Configure DMA channel */
++	ret = dmaengine_slave_config(dcmi->dma_chan, &config);
++	if (ret < 0) {
++		dev_err(dcmi->dev, "%s: DMA channel config failed (%d)\n",
++			__func__, ret);
++		return ret;
++	}
++
++	/* Prepare a DMA transaction */
++	desc = dmaengine_prep_slave_single(dcmi->dma_chan, buf->paddr,
++					   buf->size,
++					   DMA_DEV_TO_MEM, DMA_PREP_INTERRUPT);
++	if (!desc) {
++		dev_err(dcmi->dev, "%s: DMA dmaengine_prep_slave_single failed for buffer size %zu\n",
++			__func__, buf->size);
++		return -EINVAL;
++	}
++
++	/* Set completion callback routine for notification */
++	desc->callback = dcmi_dma_callback;
++	desc->callback_param = dcmi;
++
++	/* Push current DMA transaction in the pending queue */
++	dcmi->dma_cookie = dmaengine_submit(desc);
++
++	dma_async_issue_pending(dcmi->dma_chan);
++
++	return 0;
++}
++
++static int dcmi_start_capture(struct stm32_dcmi *dcmi)
++{
++	int ret;
++	struct dcmi_buf *buf = dcmi->active;
++
++	if (!buf)
++		return -EINVAL;
++
++	ret = dcmi_start_dma(dcmi, buf);
++	if (ret) {
++		dcmi->errors_count++;
++		return ret;
++	}
++
++	/* Enable capture */
++	reg_set(dcmi->regs, DCMI_CR, CR_CAPTURE);
++
++	return 0;
++}
++
++static irqreturn_t dcmi_irq_thread(int irq, void *arg)
++{
++	struct stm32_dcmi *dcmi = arg;
++	int ret;
++
++	spin_lock(&dcmi->irqlock);
++
++	/* Stop capture is required */
++	if (dcmi->state == STOPPING) {
++		reg_clear(dcmi->regs, DCMI_IER, IT_FRAME | IT_OVR | IT_ERR);
++
++		dcmi->state = STOPPED;
++
++		complete(&dcmi->complete);
++
++		spin_unlock(&dcmi->irqlock);
++		return IRQ_HANDLED;
++	}
++
++	if ((dcmi->misr & IT_OVR) || (dcmi->misr & IT_ERR)) {
++		/*
++		 * An overflow or an error has been detected,
++		 * stop current DMA transfert & restart it
++		 */
++		dev_warn(dcmi->dev, "%s: Overflow or error detected\n",
++			 __func__);
++
++		dcmi->errors_count++;
++		dmaengine_terminate_all(dcmi->dma_chan);
++
++		reg_set(dcmi->regs, DCMI_ICR, IT_FRAME | IT_OVR | IT_ERR);
++
++		dev_dbg(dcmi->dev, "Restarting capture after DCMI error\n");
++
++		ret = dcmi_start_capture(dcmi);
++		if (ret) {
++			dev_err(dcmi->dev, "%s: Cannot restart capture on overflow or error\n",
++				__func__);
++
++			spin_unlock(&dcmi->irqlock);
++			return IRQ_HANDLED;
++		}
++	}
++
++	spin_unlock(&dcmi->irqlock);
++	return IRQ_HANDLED;
++}
++
++static irqreturn_t dcmi_irq_callback(int irq, void *arg)
++{
++	struct stm32_dcmi *dcmi = arg;
++
++	spin_lock(&dcmi->irqlock);
++
++	dcmi->misr = reg_read(dcmi->regs, DCMI_MIS);
++
++	/* Clear interrupt */
++	reg_set(dcmi->regs, DCMI_ICR, IT_FRAME | IT_OVR | IT_ERR);
++
++	spin_unlock(&dcmi->irqlock);
++
++	return IRQ_WAKE_THREAD;
++}
++
++static int dcmi_queue_setup(struct vb2_queue *vq,
++			    unsigned int *nbuffers,
++			    unsigned int *nplanes,
++			    unsigned int sizes[],
++			    struct device *alloc_devs[])
++{
++	struct stm32_dcmi *dcmi = vb2_get_drv_priv(vq);
++	unsigned int size;
++
++	size = dcmi->fmt.fmt.pix.sizeimage;
++
++	/* Make sure the image size is large enough */
++	if (*nplanes)
++		return sizes[0] < size ? -EINVAL : 0;
++
++	*nplanes = 1;
++	sizes[0] = size;
++
++	dcmi->active = NULL;
++
++	dev_dbg(dcmi->dev, "Setup queue, count=%d, size=%d\n",
++		*nbuffers, size);
++
++	return 0;
++}
++
++static int dcmi_buf_init(struct vb2_buffer *vb)
++{
++	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
++	struct dcmi_buf *buf = container_of(vbuf, struct dcmi_buf, vb);
++
++	INIT_LIST_HEAD(&buf->list);
++
++	return 0;
++}
++
++static int dcmi_buf_prepare(struct vb2_buffer *vb)
++{
++	struct stm32_dcmi *dcmi =  vb2_get_drv_priv(vb->vb2_queue);
++	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
++	struct dcmi_buf *buf = container_of(vbuf, struct dcmi_buf, vb);
++	unsigned long size;
++
++	size = dcmi->fmt.fmt.pix.sizeimage;
++
++	if (vb2_plane_size(vb, 0) < size) {
++		dev_err(dcmi->dev, "%s data will not fit into plane (%lu < %lu)\n",
++			__func__, vb2_plane_size(vb, 0), size);
++		return -EINVAL;
++	}
++
++	vb2_set_plane_payload(vb, 0, size);
++
++	if (!buf->prepared) {
++		/* Get memory addresses */
++		buf->paddr =
++			vb2_dma_contig_plane_dma_addr(&buf->vb.vb2_buf, 0);
++		buf->size = vb2_plane_size(&buf->vb.vb2_buf, 0);
++		buf->prepared = true;
++
++		vb2_set_plane_payload(&buf->vb.vb2_buf, 0, buf->size);
++
++		dev_dbg(dcmi->dev, "buffer[%d] phy=0x%pad size=%zu\n",
++			vb->index, &buf->paddr, buf->size);
++	}
++
++	return 0;
++}
++
++static void dcmi_buf_queue(struct vb2_buffer *vb)
++{
++	struct stm32_dcmi *dcmi =  vb2_get_drv_priv(vb->vb2_queue);
++	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
++	struct dcmi_buf *buf = container_of(vbuf, struct dcmi_buf, vb);
++	unsigned long flags = 0;
++
++	spin_lock_irqsave(&dcmi->irqlock, flags);
++
++	if ((dcmi->state == RUNNING) && (!dcmi->active)) {
++		int ret;
++
++		dcmi->active = buf;
++
++		dev_dbg(dcmi->dev, "Starting capture on buffer[%d] queued\n",
++			buf->vb.vb2_buf.index);
++
++		ret = dcmi_start_capture(dcmi);
++		if (ret) {
++			dev_err(dcmi->dev, "%s: Cannot restart capture on overflow or error\n",
++				__func__);
++
++			spin_unlock_irqrestore(&dcmi->irqlock, flags);
++			return;
++		}
++	} else {
++		/* Enqueue to video buffers list */
++		list_add_tail(&buf->list, &dcmi->buffers);
++	}
++
++	spin_unlock_irqrestore(&dcmi->irqlock, flags);
++}
++
++static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
++{
++	struct stm32_dcmi *dcmi = vb2_get_drv_priv(vq);
++	struct dcmi_buf *buf, *node;
++	u32 val;
++	int ret;
++
++	/* Enable stream on the sub device */
++	ret = v4l2_subdev_call(dcmi->entity.subdev, video, s_stream, 1);
++	if (ret && ret != -ENOIOCTLCMD) {
++		dev_err(dcmi->dev, "%s: Failed to start streaming, subdev streamon error",
++			__func__);
++		goto err_release_buffers;
++	}
++
++	if (clk_enable(dcmi->mclk)) {
++		dev_err(dcmi->dev, "%s: Failed to start streaming, cannot enable clock",
++			__func__);
++		goto err_subdev_streamoff;
++	}
++
++	spin_lock_irq(&dcmi->irqlock);
++
++	val = reg_read(dcmi->regs, DCMI_CR);
++
++	val &= ~(CR_PCKPOL | CR_HSPOL | CR_VSPOL |
++		 CR_EDM_0 | CR_EDM_1 | CR_FCRC_0 |
++		 CR_FCRC_1 | CR_JPEG | CR_ESS);
++
++	/* Set bus width */
++	switch (dcmi->bus.bus_width) {
++	case 14:
++		val &= CR_EDM_0 + CR_EDM_1;
++		break;
++	case 12:
++		val &= CR_EDM_1;
++		break;
++	case 10:
++		val &= CR_EDM_0;
++		break;
++	default:
++		/* Set bus width to 8 bits by default */
++		break;
++	}
++
++	/* Set vertical synchronization polarity */
++	if (dcmi->bus.flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
++		val |= CR_VSPOL;
++
++	/* Set horizontal synchronization polarity */
++	if (dcmi->bus.flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
++		val |= CR_HSPOL;
++
++	/* Set pixel clock polarity */
++	if (dcmi->bus.flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
++		val |= CR_PCKPOL;
++
++	reg_write(dcmi->regs, DCMI_CR, val);
++
++	/* Enable dcmi */
++	reg_set(dcmi->regs, DCMI_CR, CR_ENABLE);
++
++	dcmi->state = RUNNING;
++
++	dcmi->sequence = 0;
++	dcmi->errors_count = 0;
++	dcmi->buffers_count = 0;
++	dcmi->active = NULL;
++
++	/*
++	 * Start transfer if at least one buffer has been queued,
++	 * otherwise transfer is defered at buffer queueing
++	 */
++	if (list_empty(&dcmi->buffers)) {
++		dev_dbg(dcmi->dev, "Start streaming is defered to next buffer queueing\n");
++		spin_unlock_irq(&dcmi->irqlock);
++		return 0;
++	}
++
++	dcmi->active = list_entry(dcmi->buffers.next, struct dcmi_buf, list);
++	list_del_init(&dcmi->active->list);
++
++	dev_dbg(dcmi->dev, "Start streaming, starting capture\n");
++
++	ret = dcmi_start_capture(dcmi);
++	if (ret) {
++		dev_err(dcmi->dev, "%s: Start streaming failed, cannot start capture",
++			__func__);
++
++		spin_unlock_irq(&dcmi->irqlock);
++		goto err_subdev_streamoff;
++	}
++
++	/* Enable interruptions */
++	reg_set(dcmi->regs, DCMI_IER, IT_FRAME | IT_OVR | IT_ERR);
++
++	spin_unlock_irq(&dcmi->irqlock);
++
++	return 0;
++
++err_subdev_streamoff:
++	v4l2_subdev_call(dcmi->entity.subdev, video, s_stream, 0);
++
++err_release_buffers:
++	spin_lock_irq(&dcmi->irqlock);
++	/*
++	 * Return all buffers to vb2 in QUEUED state.
++	 * This will give ownership back to userspace
++	 */
++	if (dcmi->active) {
++		buf = dcmi->active;
++		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_QUEUED);
++		dcmi->active = NULL;
++	}
++	list_for_each_entry_safe(buf, node, &dcmi->buffers, list) {
++		list_del_init(&buf->list);
++		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_QUEUED);
++	}
++	spin_unlock_irq(&dcmi->irqlock);
++
++	return ret;
++}
++
++static void dcmi_stop_streaming(struct vb2_queue *vq)
++{
++	struct stm32_dcmi *dcmi = vb2_get_drv_priv(vq);
++	struct dcmi_buf *buf, *node;
++	unsigned long time_ms = msecs_to_jiffies(TIMEOUT_MS);
++	long timeout;
++	int ret;
++
++	/* Disable stream on the sub device */
++	ret = v4l2_subdev_call(dcmi->entity.subdev, video, s_stream, 0);
++	if (ret && ret != -ENOIOCTLCMD)
++		dev_err(dcmi->dev, "stream off failed in subdev\n");
++
++	dcmi->state = STOPPING;
++
++	timeout = wait_for_completion_interruptible_timeout(&dcmi->complete,
++							    time_ms);
++
++	spin_lock_irq(&dcmi->irqlock);
++
++	/* Disable interruptions */
++	reg_clear(dcmi->regs, DCMI_IER, IT_FRAME | IT_OVR | IT_ERR);
++
++	/* Disable DCMI */
++	reg_clear(dcmi->regs, DCMI_CR, CR_ENABLE);
++
++	if (!timeout) {
++		dev_err(dcmi->dev, "Timeout during stop streaming\n");
++		dcmi->state = STOPPED;
++	}
++
++	/* Return all queued buffers to vb2 in ERROR state */
++	if (dcmi->active) {
++		buf = dcmi->active;
++		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
++		dcmi->active = NULL;
++	}
++	list_for_each_entry_safe(buf, node, &dcmi->buffers, list) {
++		list_del_init(&buf->list);
++		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
++	}
++
++	spin_unlock_irq(&dcmi->irqlock);
++
++	/* Stop all pending DMA operations */
++	dmaengine_terminate_all(dcmi->dma_chan);
++
++	clk_disable(dcmi->mclk);
++
++	dev_dbg(dcmi->dev, "Stop streaming, errors=%d buffers=%d\n",
++		dcmi->errors_count, dcmi->buffers_count);
++}
++
++static struct vb2_ops dcmi_video_qops = {
++	.queue_setup		= dcmi_queue_setup,
++	.buf_init		= dcmi_buf_init,
++	.buf_prepare		= dcmi_buf_prepare,
++	.buf_queue		= dcmi_buf_queue,
++	.start_streaming	= dcmi_start_streaming,
++	.stop_streaming		= dcmi_stop_streaming,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
++};
++
++static int dcmi_g_fmt_vid_cap(struct file *file, void *priv,
++			      struct v4l2_format *fmt)
++{
++	struct stm32_dcmi *dcmi = video_drvdata(file);
++
++	*fmt = dcmi->fmt;
++
++	return 0;
++}
++
++static const struct dcmi_format *find_format_by_fourcc(struct stm32_dcmi *dcmi,
++						       unsigned int fourcc)
++{
++	unsigned int num_formats = dcmi->num_user_formats;
++	const struct dcmi_format *fmt;
++	unsigned int i;
++
++	for (i = 0; i < num_formats; i++) {
++		fmt = dcmi->user_formats[i];
++		if (fmt->fourcc == fourcc)
++			return fmt;
++	}
++
++	return NULL;
++}
++
++static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
++			const struct dcmi_format **current_fmt)
++{
++	const struct dcmi_format *dcmi_fmt;
++	struct v4l2_pix_format *pixfmt = &f->fmt.pix;
++	struct v4l2_subdev_pad_config pad_cfg;
++	struct v4l2_subdev_format format = {
++		.which = V4L2_SUBDEV_FORMAT_TRY,
++	};
++	int ret;
++
++	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	dcmi_fmt = find_format_by_fourcc(dcmi, pixfmt->pixelformat);
++	if (!dcmi_fmt) {
++		dcmi_fmt = dcmi->user_formats[dcmi->num_user_formats - 1];
++		pixfmt->pixelformat = dcmi_fmt->fourcc;
++	}
++
++	/* Limit to hardware capabilities */
++	if (pixfmt->width > MAX_SUPPORT_WIDTH)
++		pixfmt->width = MAX_SUPPORT_WIDTH;
++	if (pixfmt->height > MAX_SUPPORT_HEIGHT)
++		pixfmt->height = MAX_SUPPORT_HEIGHT;
++	if (pixfmt->width < MIN_SUPPORT_WIDTH)
++		pixfmt->width = MIN_SUPPORT_WIDTH;
++	if (pixfmt->height < MIN_SUPPORT_HEIGHT)
++		pixfmt->height = MIN_SUPPORT_HEIGHT;
++
++	v4l2_fill_mbus_format(&format.format, pixfmt, dcmi_fmt->mbus_code);
++	ret = v4l2_subdev_call(dcmi->entity.subdev, pad, set_fmt,
++			       &pad_cfg, &format);
++	if (ret < 0)
++		return ret;
++
++	v4l2_fill_pix_format(pixfmt, &format.format);
++
++	pixfmt->field = V4L2_FIELD_NONE;
++	pixfmt->bytesperline = pixfmt->width * dcmi_fmt->bpp;
++	pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height;
++
++	if (current_fmt)
++		*current_fmt = dcmi_fmt;
++
++	return 0;
++}
++
++static int dcmi_set_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f)
++{
++	struct v4l2_subdev_format format = {
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
++	const struct dcmi_format *current_fmt;
++	int ret;
++
++	ret = dcmi_try_fmt(dcmi, f, &current_fmt);
++	if (ret)
++		return ret;
++
++	v4l2_fill_mbus_format(&format.format, &f->fmt.pix,
++			      current_fmt->mbus_code);
++	ret = v4l2_subdev_call(dcmi->entity.subdev, pad,
++			       set_fmt, NULL, &format);
++	if (ret < 0)
++		return ret;
++
++	dcmi->fmt = *f;
++	dcmi->current_fmt = current_fmt;
++
++	return 0;
++}
++
++static int dcmi_s_fmt_vid_cap(struct file *file, void *priv,
++			      struct v4l2_format *f)
++{
++	struct stm32_dcmi *dcmi = video_drvdata(file);
++
++	if (vb2_is_streaming(&dcmi->queue))
++		return -EBUSY;
++
++	return dcmi_set_fmt(dcmi, f);
++}
++
++static int dcmi_try_fmt_vid_cap(struct file *file, void *priv,
++				struct v4l2_format *f)
++{
++	struct stm32_dcmi *dcmi = video_drvdata(file);
++
++	return dcmi_try_fmt(dcmi, f, NULL);
++}
++
++static int dcmi_enum_fmt_vid_cap(struct file *file, void  *priv,
++				 struct v4l2_fmtdesc *f)
++{
++	struct stm32_dcmi *dcmi = video_drvdata(file);
++
++	if (f->index >= dcmi->num_user_formats)
++		return -EINVAL;
++
++	f->pixelformat = dcmi->user_formats[f->index]->fourcc;
++	return 0;
++}
++
++static int dcmi_querycap(struct file *file, void *priv,
++			 struct v4l2_capability *cap)
++{
++	strlcpy(cap->driver, DRV_NAME, sizeof(cap->driver));
++	strlcpy(cap->card, "STM32 Digital Camera Memory Interface",
++		sizeof(cap->card));
++	strlcpy(cap->bus_info, "platform:dcmi", sizeof(cap->bus_info));
++	return 0;
++}
++
++static int dcmi_enum_input(struct file *file, void *priv,
++			   struct v4l2_input *i)
++{
++	if (i->index != 0)
++		return -EINVAL;
++
++	i->type = V4L2_INPUT_TYPE_CAMERA;
++	strlcpy(i->name, "Camera", sizeof(i->name));
++	return 0;
++}
++
++static int dcmi_g_input(struct file *file, void *priv, unsigned int *i)
++{
++	*i = 0;
++	return 0;
++}
++
++static int dcmi_s_input(struct file *file, void *priv, unsigned int i)
++{
++	if (i > 0)
++		return -EINVAL;
++	return 0;
++}
++
++static int dcmi_enum_framesizes(struct file *file, void *fh,
++				struct v4l2_frmsizeenum *fsize)
++{
++	struct stm32_dcmi *dcmi = video_drvdata(file);
++	const struct dcmi_format *dcmi_fmt;
++	struct v4l2_subdev_frame_size_enum fse = {
++		.index = fsize->index,
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
++	int ret;
++
++	dcmi_fmt = find_format_by_fourcc(dcmi, fsize->pixel_format);
++	if (!dcmi_fmt)
++		return -EINVAL;
++
++	fse.code = dcmi_fmt->mbus_code;
++
++	ret = v4l2_subdev_call(dcmi->entity.subdev, pad, enum_frame_size,
++			       NULL, &fse);
++	if (ret)
++		return ret;
++
++	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++	fsize->discrete.width = fse.max_width;
++	fsize->discrete.height = fse.max_height;
++
++	return 0;
++}
++
++static int dcmi_enum_frameintervals(struct file *file, void *fh,
++				    struct v4l2_frmivalenum *fival)
++{
++	struct stm32_dcmi *dcmi = video_drvdata(file);
++	const struct dcmi_format *dcmi_fmt;
++	struct v4l2_subdev_frame_interval_enum fie = {
++		.index = fival->index,
++		.width = fival->width,
++		.height = fival->height,
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
++	int ret;
++
++	dcmi_fmt = find_format_by_fourcc(dcmi, fival->pixel_format);
++	if (!dcmi_fmt)
++		return -EINVAL;
++
++	fie.code = dcmi_fmt->mbus_code;
++
++	ret = v4l2_subdev_call(dcmi->entity.subdev, pad,
++			       enum_frame_interval, NULL, &fie);
++	if (ret)
++		return ret;
++
++	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++	fival->discrete = fie.interval;
++
++	return 0;
++}
++
++static const struct of_device_id stm32_dcmi_of_match[] = {
++	{ .compatible = "st,stm32-dcmi"},
++	{ /* end node */ },
++};
++MODULE_DEVICE_TABLE(of, stm32_dcmi_of_match);
++
++static int dcmi_open(struct file *file)
++{
++	struct stm32_dcmi *dcmi = video_drvdata(file);
++	struct v4l2_subdev *sd = dcmi->entity.subdev;
++	int ret;
++
++	if (mutex_lock_interruptible(&dcmi->lock))
++		return -ERESTARTSYS;
++
++	ret = v4l2_fh_open(file);
++	if (ret < 0)
++		goto unlock;
++
++	if (!v4l2_fh_is_singular_file(file))
++		goto fh_rel;
++
++	ret = v4l2_subdev_call(sd, core, s_power, 1);
++	if (ret < 0 && ret != -ENOIOCTLCMD)
++		goto fh_rel;
++
++	ret = dcmi_set_fmt(dcmi, &dcmi->fmt);
++	if (ret)
++		v4l2_subdev_call(sd, core, s_power, 0);
++fh_rel:
++	if (ret)
++		v4l2_fh_release(file);
++unlock:
++	mutex_unlock(&dcmi->lock);
++	return ret;
++}
++
++static int dcmi_release(struct file *file)
++{
++	struct stm32_dcmi *dcmi = video_drvdata(file);
++	struct v4l2_subdev *sd = dcmi->entity.subdev;
++	bool fh_singular;
++	int ret;
++
++	mutex_lock(&dcmi->lock);
++
++	fh_singular = v4l2_fh_is_singular_file(file);
++
++	ret = _vb2_fop_release(file, NULL);
++
++	if (fh_singular)
++		v4l2_subdev_call(sd, core, s_power, 0);
++
++	mutex_unlock(&dcmi->lock);
++
++	return ret;
++}
++
++static const struct v4l2_ioctl_ops dcmi_ioctl_ops = {
++	.vidioc_querycap		= dcmi_querycap,
++
++	.vidioc_try_fmt_vid_cap		= dcmi_try_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap		= dcmi_g_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap		= dcmi_s_fmt_vid_cap,
++	.vidioc_enum_fmt_vid_cap	= dcmi_enum_fmt_vid_cap,
++
++	.vidioc_enum_input		= dcmi_enum_input,
++	.vidioc_g_input			= dcmi_g_input,
++	.vidioc_s_input			= dcmi_s_input,
++
++	.vidioc_enum_framesizes		= dcmi_enum_framesizes,
++	.vidioc_enum_frameintervals	= dcmi_enum_frameintervals,
++
++	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
++	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_expbuf			= vb2_ioctl_expbuf,
++	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++
++	.vidioc_log_status		= v4l2_ctrl_log_status,
++	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
++};
++
++static const struct v4l2_file_operations dcmi_fops = {
++	.owner		= THIS_MODULE,
++	.unlocked_ioctl	= video_ioctl2,
++	.open		= dcmi_open,
++	.release	= dcmi_release,
++	.poll		= vb2_fop_poll,
++	.mmap		= vb2_fop_mmap,
++#ifndef CONFIG_MMU
++	.get_unmapped_area = vb2_fop_get_unmapped_area,
++#endif
++	.read		= vb2_fop_read,
++};
++
++static int dcmi_set_default_fmt(struct stm32_dcmi *dcmi)
++{
++	struct v4l2_format f = {
++		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
++		.fmt.pix = {
++			.width		= CIF_WIDTH,
++			.height		= CIF_HEIGHT,
++			.field		= V4L2_FIELD_NONE,
++			.pixelformat	= dcmi->user_formats[0]->fourcc,
++		},
++	};
++	int ret;
++
++	ret = dcmi_try_fmt(dcmi, &f, NULL);
++	if (ret)
++		return ret;
++	dcmi->current_fmt = dcmi->user_formats[0];
++	dcmi->fmt = f;
++	return 0;
++}
++
++static const struct dcmi_format dcmi_formats[] = {
++	{
++		.fourcc = V4L2_PIX_FMT_RGB565,
++		.mbus_code = MEDIA_BUS_FMT_RGB565_2X8_LE,
++		.bpp = 2,
++	}, {
++		.fourcc = V4L2_PIX_FMT_YUYV,
++		.mbus_code = MEDIA_BUS_FMT_YUYV8_2X8,
++		.bpp = 2,
++	}, {
++		.fourcc = V4L2_PIX_FMT_UYVY,
++		.mbus_code = MEDIA_BUS_FMT_UYVY8_2X8,
++		.bpp = 2,
++	},
++};
++
++static int dcmi_formats_init(struct stm32_dcmi *dcmi)
++{
++	const struct dcmi_format *dcmi_fmts[ARRAY_SIZE(dcmi_formats)];
++	unsigned int num_fmts = 0, i, j;
++	struct v4l2_subdev *subdev = dcmi->entity.subdev;
++	struct v4l2_subdev_mbus_code_enum mbus_code = {
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
++
++	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code,
++				 NULL, &mbus_code)) {
++		for (i = 0; i < ARRAY_SIZE(dcmi_formats); i++) {
++			if (dcmi_formats[i].mbus_code != mbus_code.code)
++				continue;
++
++			/* Code supported, have we got this fourcc yet? */
++			for (j = 0; j < num_fmts; j++)
++				if (dcmi_fmts[j]->fourcc ==
++						dcmi_formats[i].fourcc)
++					/* Already available */
++					break;
++			if (j == num_fmts)
++				/* New */
++				dcmi_fmts[num_fmts++] = dcmi_formats + i;
++		}
++		mbus_code.index++;
++	}
++
++	if (!num_fmts)
++		return -ENXIO;
++
++	dcmi->num_user_formats = num_fmts;
++	dcmi->user_formats = devm_kcalloc(dcmi->dev,
++					 num_fmts, sizeof(struct dcmi_format *),
++					 GFP_KERNEL);
++	if (!dcmi->user_formats) {
++		dev_err(dcmi->dev, "could not allocate memory\n");
++		return -ENOMEM;
++	}
++
++	memcpy(dcmi->user_formats, dcmi_fmts,
++	       num_fmts * sizeof(struct dcmi_format *));
++	dcmi->current_fmt = dcmi->user_formats[0];
++
++	return 0;
++}
++
++static int dcmi_graph_notify_complete(struct v4l2_async_notifier *notifier)
++{
++	struct stm32_dcmi *dcmi = notifier_to_dcmi(notifier);
++	int ret;
++
++	dcmi->vdev->ctrl_handler	= dcmi->entity.subdev->ctrl_handler;
++	ret = dcmi_formats_init(dcmi);
++	if (ret) {
++		dev_err(dcmi->dev, "No supported mediabus format found\n");
++		return ret;
++	}
++
++	ret = dcmi_set_default_fmt(dcmi);
++	if (ret) {
++		dev_err(dcmi->dev, "Could not set default format\n");
++		return ret;
++	}
++
++	ret = video_register_device(dcmi->vdev, VFL_TYPE_GRABBER, -1);
++	if (ret) {
++		dev_err(dcmi->dev, "Failed to register video device\n");
++		return ret;
++	}
++
++	dev_dbg(dcmi->dev, "Device registered as %s\n",
++		video_device_node_name(dcmi->vdev));
++	return 0;
++}
++
++static void dcmi_graph_notify_unbind(struct v4l2_async_notifier *notifier,
++				     struct v4l2_subdev *sd,
++				     struct v4l2_async_subdev *asd)
++{
++	struct stm32_dcmi *dcmi = notifier_to_dcmi(notifier);
++
++	dev_dbg(dcmi->dev, "Removing %s\n", video_device_node_name(dcmi->vdev));
++
++	/* Checks internaly if vdev has been init or not */
++	video_unregister_device(dcmi->vdev);
++}
++
++static int dcmi_graph_notify_bound(struct v4l2_async_notifier *notifier,
++				   struct v4l2_subdev *subdev,
++				   struct v4l2_async_subdev *asd)
++{
++	struct stm32_dcmi *dcmi = notifier_to_dcmi(notifier);
++
++	dev_dbg(dcmi->dev, "Subdev %s bound\n", subdev->name);
++
++	dcmi->entity.subdev = subdev;
++
++	return 0;
++}
++
++static int dcmi_graph_parse(struct stm32_dcmi *dcmi, struct device_node *node)
++{
++	struct device_node *ep = NULL;
++	struct device_node *remote;
++
++	while (1) {
++		ep = of_graph_get_next_endpoint(node, ep);
++		if (!ep)
++			return -EINVAL;
++
++		remote = of_graph_get_remote_port_parent(ep);
++		if (!remote) {
++			of_node_put(ep);
++			return -EINVAL;
++		}
++
++		/* Remote node to connect */
++		dcmi->entity.node = remote;
++		dcmi->entity.asd.match_type = V4L2_ASYNC_MATCH_OF;
++		dcmi->entity.asd.match.of.node = remote;
++		return 0;
++	}
++}
++
++static int dcmi_graph_init(struct stm32_dcmi *dcmi)
++{
++	struct v4l2_async_subdev **subdevs = NULL;
++	int ret;
++
++	/* Parse the graph to extract a list of subdevice DT nodes. */
++	ret = dcmi_graph_parse(dcmi, dcmi->dev->of_node);
++	if (ret < 0) {
++		dev_err(dcmi->dev, "Graph parsing failed\n");
++		return ret;
++	}
++
++	/* Register the subdevices notifier. */
++	subdevs = devm_kzalloc(dcmi->dev, sizeof(*subdevs), GFP_KERNEL);
++	if (!subdevs) {
++		of_node_put(dcmi->entity.node);
++		return -ENOMEM;
++	}
++
++	subdevs[0] = &dcmi->entity.asd;
++
++	dcmi->notifier.subdevs = subdevs;
++	dcmi->notifier.num_subdevs = 1;
++	dcmi->notifier.bound = dcmi_graph_notify_bound;
++	dcmi->notifier.unbind = dcmi_graph_notify_unbind;
++	dcmi->notifier.complete = dcmi_graph_notify_complete;
++
++	ret = v4l2_async_notifier_register(&dcmi->v4l2_dev, &dcmi->notifier);
++	if (ret < 0) {
++		dev_err(dcmi->dev, "Notifier registration failed\n");
++		of_node_put(dcmi->entity.node);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int dcmi_probe(struct platform_device *pdev)
++{
++	struct device_node *np = pdev->dev.of_node;
++	const struct of_device_id *match = NULL;
++	struct v4l2_of_endpoint ep;
++	struct stm32_dcmi *dcmi;
++	struct vb2_queue *q;
++	struct dma_chan *chan;
++	struct clk *mclk;
++	int irq;
++	int ret = 0;
++
++	match = of_match_device(of_match_ptr(stm32_dcmi_of_match), &pdev->dev);
++	if (!match) {
++		dev_err(&pdev->dev, "Could not find a match in devicetree\n");
++		return -ENODEV;
++	}
++
++	dcmi = devm_kzalloc(&pdev->dev, sizeof(struct stm32_dcmi), GFP_KERNEL);
++	if (!dcmi)
++		return -ENOMEM;
++
++	dcmi->rstc = of_reset_control_get(np, NULL);
++	if (IS_ERR(dcmi->rstc)) {
++		dev_err(&pdev->dev, "Could not get reset control\n");
++		return -ENODEV;
++	}
++
++	/* Get bus characteristics from devicetree */
++	np = of_graph_get_next_endpoint(np, NULL);
++	if (!np) {
++		dev_err(&pdev->dev, "Could not find the endpoint\n");
++		of_node_put(np);
++		goto err_reset_control_put;
++	}
++
++	ret = v4l2_of_parse_endpoint(np, &ep);
++	if (ret) {
++		dev_err(&pdev->dev, "Could not parse the endpoint\n");
++		of_node_put(np);
++		goto err_reset_control_put;
++	}
++
++	if (ep.bus_type == V4L2_MBUS_CSI2) {
++		dev_err(&pdev->dev, "CSI bus not supported\n");
++		of_node_put(np);
++		goto err_reset_control_put;
++	}
++	dcmi->bus.flags = ep.bus.parallel.flags;
++	dcmi->bus.bus_width = ep.bus.parallel.bus_width;
++	dcmi->bus.data_shift = ep.bus.parallel.data_shift;
++
++	of_node_put(np);
++
++	irq = platform_get_irq(pdev, 0);
++	if (irq <= 0) {
++		dev_err(&pdev->dev, "Could not get irq\n");
++		return -ENODEV;
++	}
++
++	dcmi->res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!dcmi->res) {
++		dev_err(&pdev->dev, "Could not get resource\n");
++		return -ENODEV;
++	}
++
++	dcmi->regs = devm_ioremap_resource(&pdev->dev, dcmi->res);
++	if (IS_ERR(dcmi->regs)) {
++		dev_err(&pdev->dev, "Could not map registers\n");
++		return PTR_ERR(dcmi->regs);
++	}
++
++	ret = devm_request_threaded_irq(&pdev->dev, irq, dcmi_irq_callback,
++					dcmi_irq_thread, IRQF_ONESHOT,
++					dev_name(&pdev->dev), dcmi);
++	if (ret) {
++		dev_err(&pdev->dev, "Unable to request irq %d\n", irq);
++		return -ENODEV;
++	}
++
++	mclk = devm_clk_get(&pdev->dev, "mclk");
++	if (IS_ERR(mclk)) {
++		dev_err(&pdev->dev, "Unable to get mclk\n");
++		return PTR_ERR(mclk);
++	}
++
++	chan = dma_request_slave_channel(&pdev->dev, "tx");
++	if (!chan) {
++		dev_info(&pdev->dev, "Unable to request DMA channel, defer probing\n");
++		return -EPROBE_DEFER;
++	}
++
++	ret = clk_prepare(mclk);
++	if (ret) {
++		dev_err(&pdev->dev, "Unable to prepare mclk %p\n", mclk);
++		goto err_dma_release;
++	}
++
++	spin_lock_init(&dcmi->irqlock);
++	mutex_init(&dcmi->lock);
++	init_completion(&dcmi->complete);
++	INIT_LIST_HEAD(&dcmi->buffers);
++
++	dcmi->dev = &pdev->dev;
++	dcmi->mclk = mclk;
++	dcmi->state = STOPPED;
++	dcmi->dma_chan = chan;
++
++	q = &dcmi->queue;
++
++	/* Initialize the top-level structure */
++	ret = v4l2_device_register(&pdev->dev, &dcmi->v4l2_dev);
++	if (ret)
++		goto err_clk_unprepare;
++
++	dcmi->vdev = video_device_alloc();
++	if (!dcmi->vdev) {
++		ret = -ENOMEM;
++		goto err_device_unregister;
++	}
++
++	/* Video node */
++	dcmi->vdev->fops = &dcmi_fops;
++	dcmi->vdev->v4l2_dev = &dcmi->v4l2_dev;
++	dcmi->vdev->queue = &dcmi->queue;
++	strlcpy(dcmi->vdev->name, KBUILD_MODNAME, sizeof(dcmi->vdev->name));
++	dcmi->vdev->release = video_device_release;
++	dcmi->vdev->ioctl_ops = &dcmi_ioctl_ops;
++	dcmi->vdev->lock = &dcmi->lock;
++	dcmi->vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
++				  V4L2_CAP_READWRITE;
++	video_set_drvdata(dcmi->vdev, dcmi);
++
++	/* Buffer queue */
++	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	q->io_modes = VB2_MMAP | VB2_READ | VB2_DMABUF;
++	q->lock = &dcmi->lock;
++	q->drv_priv = dcmi;
++	q->buf_struct_size = sizeof(struct dcmi_buf);
++	q->ops = &dcmi_video_qops;
++	q->mem_ops = &vb2_dma_contig_memops;
++	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	q->min_buffers_needed = 2;
++	q->dev = &pdev->dev;
++
++	ret = vb2_queue_init(q);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to initialize vb2 queue\n");
++		goto err_device_release;
++	}
++
++	ret = dcmi_graph_init(dcmi);
++	if (ret < 0)
++		goto err_device_release;
++
++	/* Reset device */
++	ret = reset_control_assert(dcmi->rstc);
++	if (ret) {
++		dev_err(&pdev->dev, "Failed to assert the reset line\n");
++		goto err_device_release;
++	}
++
++	usleep_range(3000, 5000);
++
++	ret = reset_control_deassert(dcmi->rstc);
++	if (ret) {
++		dev_err(&pdev->dev, "Failed to deassert the reset line\n");
++		goto err_device_release;
++	}
++
++	dev_info(&pdev->dev, "Probe done\n");
++
++	platform_set_drvdata(pdev, dcmi);
++	return 0;
++
++err_reset_control_put:
++	reset_control_put(dcmi->rstc);
++err_device_release:
++	video_device_release(dcmi->vdev);
++err_device_unregister:
++	v4l2_device_unregister(&dcmi->v4l2_dev);
++err_clk_unprepare:
++	clk_unprepare(dcmi->mclk);
++err_dma_release:
++	dma_release_channel(dcmi->dma_chan);
++
++	return ret;
++}
++
++static int dcmi_remove(struct platform_device *pdev)
++{
++	struct stm32_dcmi *dcmi = platform_get_drvdata(pdev);
++
++	v4l2_async_notifier_unregister(&dcmi->notifier);
++	v4l2_device_unregister(&dcmi->v4l2_dev);
++	clk_unprepare(dcmi->mclk);
++	dma_release_channel(dcmi->dma_chan);
++	reset_control_put(dcmi->rstc);
++
++	return 0;
++}
++
++static struct platform_driver stm32_dcmi_driver = {
++	.probe		= dcmi_probe,
++	.remove		= dcmi_remove,
++	.driver		= {
++		.name = DRV_NAME,
++		.of_match_table = of_match_ptr(stm32_dcmi_of_match),
++	},
++};
++
++module_platform_driver(stm32_dcmi_driver);
++
++MODULE_AUTHOR("Yannick Fertre <yannick.fertre@st.com>");
++MODULE_AUTHOR("Hugues Fruchet <hugues.fruchet@st.com>");
++MODULE_DESCRIPTION("STMicroelectronics STM32 Digital Camera Memory Interface driver");
++MODULE_LICENSE("GPL");
++MODULE_SUPPORTED_DEVICE("video");
 -- 
-2.7.4
+1.9.1
