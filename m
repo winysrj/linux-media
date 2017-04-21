@@ -1,95 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:38158 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752422AbdDMWG0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 18:06:26 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Steve Wise <swise@opengridcomputing.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:15 -0600
-Message-Id: <1492121135-4437-3-git-send-email-logang@deltatee.com>
-In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 02/22] nvmet: Make use of the new sg_map helper function
+Received: from mout.kundenserver.de ([212.227.17.13]:49921 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1038048AbdDUKwW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Apr 2017 06:52:22 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] cec: improve MEDIA_CEC_RC dependencies
+Date: Fri, 21 Apr 2017 12:52:17 +0200
+Message-Id: <20170421105224.899350-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a straight forward conversion in two places. Should kmap fail,
-the code will return an INVALD_DATA error in the completion.
+Changing the IS_REACHABLE() into a plain #ifdef broke the case of
+CONFIG_MEDIA_RC=m && CONFIG_MEDIA_CEC=y:
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+drivers/media/cec/cec-core.o: In function `cec_unregister_adapter':
+cec-core.c:(.text.cec_unregister_adapter+0x18): undefined reference to `rc_unregister_device'
+drivers/media/cec/cec-core.o: In function `cec_delete_adapter':
+cec-core.c:(.text.cec_delete_adapter+0x54): undefined reference to `rc_free_device'
+drivers/media/cec/cec-core.o: In function `cec_register_adapter':
+cec-core.c:(.text.cec_register_adapter+0x94): undefined reference to `rc_register_device'
+cec-core.c:(.text.cec_register_adapter+0xa4): undefined reference to `rc_free_device'
+cec-core.c:(.text.cec_register_adapter+0x110): undefined reference to `rc_unregister_device'
+drivers/media/cec/cec-core.o: In function `cec_allocate_adapter':
+cec-core.c:(.text.cec_allocate_adapter+0x234): undefined reference to `rc_allocate_device'
+drivers/media/cec/cec-adap.o: In function `cec_received_msg':
+cec-adap.c:(.text.cec_received_msg+0x734): undefined reference to `rc_keydown'
+cec-adap.c:(.text.cec_received_msg+0x768): undefined reference to `rc_keyup'
+
+This adds an additional dependency to explicitly forbid this combination.
+
+Fixes: 5f2c467c54f5 ("[media] cec: add MEDIA_CEC_RC config option")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/nvme/target/fabrics-cmd.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ drivers/media/cec/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/nvme/target/fabrics-cmd.c b/drivers/nvme/target/fabrics-cmd.c
-index 8bd022af..f62a634 100644
---- a/drivers/nvme/target/fabrics-cmd.c
-+++ b/drivers/nvme/target/fabrics-cmd.c
-@@ -122,7 +122,11 @@ static void nvmet_execute_admin_connect(struct nvmet_req *req)
- 	struct nvmet_ctrl *ctrl = NULL;
- 	u16 status = 0;
- 
--	d = kmap(sg_page(req->sg)) + req->sg->offset;
-+	d = sg_map(req->sg, SG_KMAP);
-+	if (IS_ERR(d)) {
-+		status = NVME_SC_SGL_INVALID_DATA;
-+		goto out;
-+	}
- 
- 	/* zero out initial completion result, assign values as needed */
- 	req->rsp->result.u32 = 0;
-@@ -158,7 +162,7 @@ static void nvmet_execute_admin_connect(struct nvmet_req *req)
- 	req->rsp->result.u16 = cpu_to_le16(ctrl->cntlid);
- 
- out:
--	kunmap(sg_page(req->sg));
-+	sg_unmap(req->sg, d, SG_KMAP);
- 	nvmet_req_complete(req, status);
- }
- 
-@@ -170,7 +174,11 @@ static void nvmet_execute_io_connect(struct nvmet_req *req)
- 	u16 qid = le16_to_cpu(c->qid);
- 	u16 status = 0;
- 
--	d = kmap(sg_page(req->sg)) + req->sg->offset;
-+	d = sg_map(req->sg, SG_KMAP);
-+	if (IS_ERR(d)) {
-+		status = NVME_SC_SGL_INVALID_DATA;
-+		goto out;
-+	}
- 
- 	/* zero out initial completion result, assign values as needed */
- 	req->rsp->result.u32 = 0;
-@@ -205,7 +213,7 @@ static void nvmet_execute_io_connect(struct nvmet_req *req)
- 	pr_info("adding queue %d to ctrl %d.\n", qid, ctrl->cntlid);
- 
- out:
--	kunmap(sg_page(req->sg));
-+	sg_unmap(req->sg, d, SG_KMAP);
- 	nvmet_req_complete(req, status);
- 	return;
+diff --git a/drivers/media/cec/Kconfig b/drivers/media/cec/Kconfig
+index f944d93e3167..488fb908244d 100644
+--- a/drivers/media/cec/Kconfig
++++ b/drivers/media/cec/Kconfig
+@@ -9,6 +9,7 @@ config MEDIA_CEC_NOTIFIER
+ config MEDIA_CEC_RC
+ 	bool "HDMI CEC RC integration"
+ 	depends on CEC_CORE && RC_CORE
++	depends on CEC_CORE=m || RC_CORE=y
+ 	---help---
+ 	  Pass on CEC remote control messages to the RC framework.
  
 -- 
-2.1.4
+2.9.0
