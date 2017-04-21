@@ -1,391 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:58194 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1764618AbdDSTgU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Apr 2017 15:36:20 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: linux-kernel@vger.kernel.org, intel-gfx@lists.freedesktop.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-tegra@vger.kernel.org, devel@driverdev.osuosl.org
-Cc: Christoph Hellwig <hch@lst.de>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Russell King <linux@armlinux.org.uk>,
-        David Airlie <airlied@linux.ie>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Sean Paul <seanpaul@chromium.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Stephen Warren <swarren@wwwdotorg.org>,
-        Alexandre Courbot <gnurou@gmail.com>,
-        VMware Graphics <linux-graphics-maintainer@vmware.com>,
-        Sinclair Yeh <syeh@vmware.com>,
-        Thomas Hellstrom <thellstrom@vmware.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laura Abbott <labbott@redhat.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        =?UTF-8?q?Arve=20Hj=C3=B8nnev=C3=A5g?= <arve@android.com>,
-        Riley Andrews <riandrews@android.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Wed, 19 Apr 2017 13:36:10 -0600
-Message-Id: <1492630570-879-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2] dma-buf: Rename dma-ops to prevent conflict with kunmap_atomic macro
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:27150 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1041313AbdDUP4N (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Apr 2017 11:56:13 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v5 0/3] Add support for MPEG-2 in DELTA video decoder
+Date: Fri, 21 Apr 2017 17:52:10 +0200
+Message-ID: <1492789933-17090-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Seeing the kunmap_atomic dma_buf_ops share the same name with a macro
-in highmem.h, the former can be aliased if any dma-buf user includes
-that header.
+The patchset implements the MPEG-2 part of V4L2 unified low-level decoder
+API RFC [0] needed by stateless video decoders, ie decoders which requires
+specific parsing metadata in addition to video bitstream chunk in order
+to complete decoding.
+A reference implementation using STMicroelectronics DELTA video decoder
+is provided as initial support in this patchset.
+In addition to this patchset, a libv4l plugin is also provided which convert
+MPEG-2 video bitstream to "parsed MPEG-2" by parsing the user video bitstream
+and filling accordingly the dedicated controls, doing so user code remains
+unchanged whatever decoder is: stateless or not.
 
-I'm personally trying to include highmem.h inside scatterlist.h and this
-breaks the dma-buf code proper.
+The first patch implements the MPEG-2 part of V4L2 unified low-level decoder
+API RFC [0]. A dedicated "parsed MPEG-2" pixel format has been introduced with
+its related extended controls in order that user provides both video bitstream
+chunk and the associated extra data resulting from this video bitstream chunk
+parsing.
 
-Christoph Hellwig suggested [1] renaming it and pushing this patch ASAP.
+The second patch adds the support of "parsed" pixel format inside DELTA video
+decoder including handling of the dedicated controls and setting of parsing
+metadata required by decoder layer.
+Please note that the current implementation has a restriction regarding
+the atomicity of S_EXT_CTRL/QBUF that must be guaranteed by user.
+This restriction will be removed when V4L2 request API will be implemented [1].
+Please also note the failure in v4l2-compliance in controls section, related
+to complex compound controls handling, to be discussed to find the right way
+to fix it in v4l2-compliance.
 
-To maintain consistency I've renamed all four of kmap* and kunmap* to be
-map* and unmap*. (Even though only kmap_atomic presently conflicts.)
+The third patch adds the support of DELTA MPEG-2 stateless video decoder back-end.
 
-[1] https://www.spinics.net/lists/target-devel/msg15070.html
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Sinclair Yeh <syeh@vmware.com>
----
+This driver depends on:
+  [PATCH v7 00/10] Add support for DELTA video decoder of STMicroelectronics STiH4xx SoC series https://patchwork.linuxtv.org/patch/39186/
 
-Changes since v1:
+References:
+  [0] [RFC] V4L2 unified low-level decoder API https://www.spinics.net/lists/linux-media/msg107150.html
+  [1] [ANN] Report of the V4L2 Request API brainstorm meeting https://www.spinics.net/lists/linux-media/msg106699.html
 
-- Added the missing tegra driver (noticed by kbuild robot)
-- Rebased off of drm-intel-next to get the i915 selftest that is new
-- Fixed nits Sinclair pointed out.
+===========
+= history =
+===========
+version 5:
+  - patchset 4 review from Hans:
+    - fix 32/64 bit compat in mpeg2 controls struct (using pahole utility)
+    - fix upper case at begining of words in v4l2_ctrl_get_name()
 
- drivers/dma-buf/dma-buf.c                      | 16 ++++++++--------
- drivers/gpu/drm/armada/armada_gem.c            |  8 ++++----
- drivers/gpu/drm/drm_prime.c                    |  8 ++++----
- drivers/gpu/drm/i915/i915_gem_dmabuf.c         |  8 ++++----
- drivers/gpu/drm/i915/selftests/mock_dmabuf.c   |  8 ++++----
- drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c      |  8 ++++----
- drivers/gpu/drm/tegra/gem.c                    |  8 ++++----
- drivers/gpu/drm/udl/udl_dmabuf.c               |  8 ++++----
- drivers/gpu/drm/vmwgfx/vmwgfx_prime.c          |  8 ++++----
- drivers/media/v4l2-core/videobuf2-dma-contig.c |  4 ++--
- drivers/media/v4l2-core/videobuf2-dma-sg.c     |  4 ++--
- drivers/media/v4l2-core/videobuf2-vmalloc.c    |  4 ++--
- drivers/staging/android/ion/ion.c              |  8 ++++----
- include/linux/dma-buf.h                        | 22 +++++++++++-----------
- 14 files changed, 61 insertions(+), 61 deletions(-)
+version 4:
+  - patchset 3 review from Nicolas Dufresne
+    - one attribute per line in structure
+  - fix some multilines comments
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index f72aaac..512bdbc 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -405,8 +405,8 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
- 			  || !exp_info->ops->map_dma_buf
- 			  || !exp_info->ops->unmap_dma_buf
- 			  || !exp_info->ops->release
--			  || !exp_info->ops->kmap_atomic
--			  || !exp_info->ops->kmap
-+			  || !exp_info->ops->map_atomic
-+			  || !exp_info->ops->map
- 			  || !exp_info->ops->mmap)) {
- 		return ERR_PTR(-EINVAL);
- 	}
-@@ -872,7 +872,7 @@ void *dma_buf_kmap_atomic(struct dma_buf *dmabuf, unsigned long page_num)
- {
- 	WARN_ON(!dmabuf);
+version 3:
+  - fix warning on parisc architecture
 
--	return dmabuf->ops->kmap_atomic(dmabuf, page_num);
-+	return dmabuf->ops->map_atomic(dmabuf, page_num);
- }
- EXPORT_SYMBOL_GPL(dma_buf_kmap_atomic);
+version 2:
+  - rebase on top of DELTA v7, refer to [0]
+  - change VIDEO_STI_DELTA_DRIVER to default=y as per Mauro recommendations
 
-@@ -889,8 +889,8 @@ void dma_buf_kunmap_atomic(struct dma_buf *dmabuf, unsigned long page_num,
- {
- 	WARN_ON(!dmabuf);
+version 1:
+  - Initial submission
 
--	if (dmabuf->ops->kunmap_atomic)
--		dmabuf->ops->kunmap_atomic(dmabuf, page_num, vaddr);
-+	if (dmabuf->ops->unmap_atomic)
-+		dmabuf->ops->unmap_atomic(dmabuf, page_num, vaddr);
- }
- EXPORT_SYMBOL_GPL(dma_buf_kunmap_atomic);
+===================
+= v4l2-compliance =
+===================
+Below is the v4l2-compliance report, v4l2-compliance has been build from SHA1:
+003f31e59f353b4aecc82e8fb1c7555964da7efa (v4l2-compliance: allow S_SELECTION to return ENOTTY)
 
-@@ -907,7 +907,7 @@ void *dma_buf_kmap(struct dma_buf *dmabuf, unsigned long page_num)
- {
- 	WARN_ON(!dmabuf);
+root@sti-4:~# v4l2-compliance -d /dev/video3
+v4l2-compliance SHA   : 003f31e59f353b4aecc82e8fb1c7555964da7efa
 
--	return dmabuf->ops->kmap(dmabuf, page_num);
-+	return dmabuf->ops->map(dmabuf, page_num);
- }
- EXPORT_SYMBOL_GPL(dma_buf_kmap);
 
-@@ -924,8 +924,8 @@ void dma_buf_kunmap(struct dma_buf *dmabuf, unsigned long page_num,
- {
- 	WARN_ON(!dmabuf);
+root@sti-lts:~# v4l2-compliance -d /dev/video3 
+v4l2-compliance SHA   : not available
 
--	if (dmabuf->ops->kunmap)
--		dmabuf->ops->kunmap(dmabuf, page_num, vaddr);
-+	if (dmabuf->ops->unmap)
-+		dmabuf->ops->unmap(dmabuf, page_num, vaddr);
- }
- EXPORT_SYMBOL_GPL(dma_buf_kunmap);
+Driver Info:
+	Driver name   : st-delta
+	Card type     : st-delta-21.1-3
+	Bus info      : platform:soc:delta0
+	Driver version: 4.9.0
+	Capabilities  : 0x84208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x04208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
 
-diff --git a/drivers/gpu/drm/armada/armada_gem.c b/drivers/gpu/drm/armada/armada_gem.c
-index 1597458..d6c2a5d 100644
---- a/drivers/gpu/drm/armada/armada_gem.c
-+++ b/drivers/gpu/drm/armada/armada_gem.c
-@@ -529,10 +529,10 @@ static const struct dma_buf_ops armada_gem_prime_dmabuf_ops = {
- 	.map_dma_buf	= armada_gem_prime_map_dma_buf,
- 	.unmap_dma_buf	= armada_gem_prime_unmap_dma_buf,
- 	.release	= drm_gem_dmabuf_release,
--	.kmap_atomic	= armada_gem_dmabuf_no_kmap,
--	.kunmap_atomic	= armada_gem_dmabuf_no_kunmap,
--	.kmap		= armada_gem_dmabuf_no_kmap,
--	.kunmap		= armada_gem_dmabuf_no_kunmap,
-+	.map_atomic	= armada_gem_dmabuf_no_kmap,
-+	.unmap_atomic	= armada_gem_dmabuf_no_kunmap,
-+	.map		= armada_gem_dmabuf_no_kmap,
-+	.unmap		= armada_gem_dmabuf_no_kunmap,
- 	.mmap		= armada_gem_dmabuf_mmap,
- };
+Compliance test for device /dev/video3 (not using libv4l2):
 
-diff --git a/drivers/gpu/drm/drm_prime.c b/drivers/gpu/drm/drm_prime.c
-index 9fb65b7..954eb84 100644
---- a/drivers/gpu/drm/drm_prime.c
-+++ b/drivers/gpu/drm/drm_prime.c
-@@ -403,10 +403,10 @@ static const struct dma_buf_ops drm_gem_prime_dmabuf_ops =  {
- 	.map_dma_buf = drm_gem_map_dma_buf,
- 	.unmap_dma_buf = drm_gem_unmap_dma_buf,
- 	.release = drm_gem_dmabuf_release,
--	.kmap = drm_gem_dmabuf_kmap,
--	.kmap_atomic = drm_gem_dmabuf_kmap_atomic,
--	.kunmap = drm_gem_dmabuf_kunmap,
--	.kunmap_atomic = drm_gem_dmabuf_kunmap_atomic,
-+	.map = drm_gem_dmabuf_kmap,
-+	.map_atomic = drm_gem_dmabuf_kmap_atomic,
-+	.unmap = drm_gem_dmabuf_kunmap,
-+	.unmap_atomic = drm_gem_dmabuf_kunmap_atomic,
- 	.mmap = drm_gem_dmabuf_mmap,
- 	.vmap = drm_gem_dmabuf_vmap,
- 	.vunmap = drm_gem_dmabuf_vunmap,
-diff --git a/drivers/gpu/drm/i915/i915_gem_dmabuf.c b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-index 11898cd..f225bf6 100644
---- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-+++ b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-@@ -200,10 +200,10 @@ static const struct dma_buf_ops i915_dmabuf_ops =  {
- 	.map_dma_buf = i915_gem_map_dma_buf,
- 	.unmap_dma_buf = i915_gem_unmap_dma_buf,
- 	.release = drm_gem_dmabuf_release,
--	.kmap = i915_gem_dmabuf_kmap,
--	.kmap_atomic = i915_gem_dmabuf_kmap_atomic,
--	.kunmap = i915_gem_dmabuf_kunmap,
--	.kunmap_atomic = i915_gem_dmabuf_kunmap_atomic,
-+	.map = i915_gem_dmabuf_kmap,
-+	.map_atomic = i915_gem_dmabuf_kmap_atomic,
-+	.unmap = i915_gem_dmabuf_kunmap,
-+	.unmap_atomic = i915_gem_dmabuf_kunmap_atomic,
- 	.mmap = i915_gem_dmabuf_mmap,
- 	.vmap = i915_gem_dmabuf_vmap,
- 	.vunmap = i915_gem_dmabuf_vunmap,
-diff --git a/drivers/gpu/drm/i915/selftests/mock_dmabuf.c b/drivers/gpu/drm/i915/selftests/mock_dmabuf.c
-index 99da8f4..302f7d1 100644
---- a/drivers/gpu/drm/i915/selftests/mock_dmabuf.c
-+++ b/drivers/gpu/drm/i915/selftests/mock_dmabuf.c
-@@ -129,10 +129,10 @@ static const struct dma_buf_ops mock_dmabuf_ops =  {
- 	.map_dma_buf = mock_map_dma_buf,
- 	.unmap_dma_buf = mock_unmap_dma_buf,
- 	.release = mock_dmabuf_release,
--	.kmap = mock_dmabuf_kmap,
--	.kmap_atomic = mock_dmabuf_kmap_atomic,
--	.kunmap = mock_dmabuf_kunmap,
--	.kunmap_atomic = mock_dmabuf_kunmap_atomic,
-+	.map = mock_dmabuf_kmap,
-+	.map_atomic = mock_dmabuf_kmap_atomic,
-+	.unmap = mock_dmabuf_kunmap,
-+	.unmap_atomic = mock_dmabuf_kunmap_atomic,
- 	.mmap = mock_dmabuf_mmap,
- 	.vmap = mock_dmabuf_vmap,
- 	.vunmap = mock_dmabuf_vunmap,
-diff --git a/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c b/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
-index ee5883f..0dbe030 100644
---- a/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
-+++ b/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
-@@ -160,10 +160,10 @@ static struct dma_buf_ops omap_dmabuf_ops = {
- 	.release = omap_gem_dmabuf_release,
- 	.begin_cpu_access = omap_gem_dmabuf_begin_cpu_access,
- 	.end_cpu_access = omap_gem_dmabuf_end_cpu_access,
--	.kmap_atomic = omap_gem_dmabuf_kmap_atomic,
--	.kunmap_atomic = omap_gem_dmabuf_kunmap_atomic,
--	.kmap = omap_gem_dmabuf_kmap,
--	.kunmap = omap_gem_dmabuf_kunmap,
-+	.map_atomic = omap_gem_dmabuf_kmap_atomic,
-+	.unmap_atomic = omap_gem_dmabuf_kunmap_atomic,
-+	.map = omap_gem_dmabuf_kmap,
-+	.unmap = omap_gem_dmabuf_kunmap,
- 	.mmap = omap_gem_dmabuf_mmap,
- };
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
 
-diff --git a/drivers/gpu/drm/tegra/gem.c b/drivers/gpu/drm/tegra/gem.c
-index 17e62ec..8672f5d 100644
---- a/drivers/gpu/drm/tegra/gem.c
-+++ b/drivers/gpu/drm/tegra/gem.c
-@@ -619,10 +619,10 @@ static const struct dma_buf_ops tegra_gem_prime_dmabuf_ops = {
- 	.map_dma_buf = tegra_gem_prime_map_dma_buf,
- 	.unmap_dma_buf = tegra_gem_prime_unmap_dma_buf,
- 	.release = tegra_gem_prime_release,
--	.kmap_atomic = tegra_gem_prime_kmap_atomic,
--	.kunmap_atomic = tegra_gem_prime_kunmap_atomic,
--	.kmap = tegra_gem_prime_kmap,
--	.kunmap = tegra_gem_prime_kunmap,
-+	.map_atomic = tegra_gem_prime_kmap_atomic,
-+	.unmap_atomic = tegra_gem_prime_kunmap_atomic,
-+	.map = tegra_gem_prime_kmap,
-+	.unmap = tegra_gem_prime_kunmap,
- 	.mmap = tegra_gem_prime_mmap,
- 	.vmap = tegra_gem_prime_vmap,
- 	.vunmap = tegra_gem_prime_vunmap,
-diff --git a/drivers/gpu/drm/udl/udl_dmabuf.c b/drivers/gpu/drm/udl/udl_dmabuf.c
-index ac90ffd..ed0e636 100644
---- a/drivers/gpu/drm/udl/udl_dmabuf.c
-+++ b/drivers/gpu/drm/udl/udl_dmabuf.c
-@@ -191,10 +191,10 @@ static struct dma_buf_ops udl_dmabuf_ops = {
- 	.detach			= udl_detach_dma_buf,
- 	.map_dma_buf		= udl_map_dma_buf,
- 	.unmap_dma_buf		= udl_unmap_dma_buf,
--	.kmap			= udl_dmabuf_kmap,
--	.kmap_atomic		= udl_dmabuf_kmap_atomic,
--	.kunmap			= udl_dmabuf_kunmap,
--	.kunmap_atomic		= udl_dmabuf_kunmap_atomic,
-+	.map			= udl_dmabuf_kmap,
-+	.map_atomic		= udl_dmabuf_kmap_atomic,
-+	.unmap			= udl_dmabuf_kunmap,
-+	.unmap_atomic		= udl_dmabuf_kunmap_atomic,
- 	.mmap			= udl_dmabuf_mmap,
- 	.release		= drm_gem_dmabuf_release,
- };
-diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c b/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c
-index 31fe32d..0d42a46 100644
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c
-+++ b/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c
-@@ -108,10 +108,10 @@ const struct dma_buf_ops vmw_prime_dmabuf_ops =  {
- 	.map_dma_buf = vmw_prime_map_dma_buf,
- 	.unmap_dma_buf = vmw_prime_unmap_dma_buf,
- 	.release = NULL,
--	.kmap = vmw_prime_dmabuf_kmap,
--	.kmap_atomic = vmw_prime_dmabuf_kmap_atomic,
--	.kunmap = vmw_prime_dmabuf_kunmap,
--	.kunmap_atomic = vmw_prime_dmabuf_kunmap_atomic,
-+	.map = vmw_prime_dmabuf_kmap,
-+	.map_atomic = vmw_prime_dmabuf_kmap_atomic,
-+	.unmap = vmw_prime_dmabuf_kunmap,
-+	.unmap_atomic = vmw_prime_dmabuf_kunmap_atomic,
- 	.mmap = vmw_prime_dmabuf_mmap,
- 	.vmap = vmw_prime_dmabuf_vmap,
- 	.vunmap = vmw_prime_dmabuf_vunmap,
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index fb6a177..2db0413 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -356,8 +356,8 @@ static struct dma_buf_ops vb2_dc_dmabuf_ops = {
- 	.detach = vb2_dc_dmabuf_ops_detach,
- 	.map_dma_buf = vb2_dc_dmabuf_ops_map,
- 	.unmap_dma_buf = vb2_dc_dmabuf_ops_unmap,
--	.kmap = vb2_dc_dmabuf_ops_kmap,
--	.kmap_atomic = vb2_dc_dmabuf_ops_kmap,
-+	.map = vb2_dc_dmabuf_ops_kmap,
-+	.map_atomic = vb2_dc_dmabuf_ops_kmap,
- 	.vmap = vb2_dc_dmabuf_ops_vmap,
- 	.mmap = vb2_dc_dmabuf_ops_mmap,
- 	.release = vb2_dc_dmabuf_ops_release,
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index ecff8f4..6fd1343 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -504,8 +504,8 @@ static struct dma_buf_ops vb2_dma_sg_dmabuf_ops = {
- 	.detach = vb2_dma_sg_dmabuf_ops_detach,
- 	.map_dma_buf = vb2_dma_sg_dmabuf_ops_map,
- 	.unmap_dma_buf = vb2_dma_sg_dmabuf_ops_unmap,
--	.kmap = vb2_dma_sg_dmabuf_ops_kmap,
--	.kmap_atomic = vb2_dma_sg_dmabuf_ops_kmap,
-+	.map = vb2_dma_sg_dmabuf_ops_kmap,
-+	.map_atomic = vb2_dma_sg_dmabuf_ops_kmap,
- 	.vmap = vb2_dma_sg_dmabuf_ops_vmap,
- 	.mmap = vb2_dma_sg_dmabuf_ops_mmap,
- 	.release = vb2_dma_sg_dmabuf_ops_release,
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 3f77814..27d1db3 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -342,8 +342,8 @@ static struct dma_buf_ops vb2_vmalloc_dmabuf_ops = {
- 	.detach = vb2_vmalloc_dmabuf_ops_detach,
- 	.map_dma_buf = vb2_vmalloc_dmabuf_ops_map,
- 	.unmap_dma_buf = vb2_vmalloc_dmabuf_ops_unmap,
--	.kmap = vb2_vmalloc_dmabuf_ops_kmap,
--	.kmap_atomic = vb2_vmalloc_dmabuf_ops_kmap,
-+	.map = vb2_vmalloc_dmabuf_ops_kmap,
-+	.map_atomic = vb2_vmalloc_dmabuf_ops_kmap,
- 	.vmap = vb2_vmalloc_dmabuf_ops_vmap,
- 	.mmap = vb2_vmalloc_dmabuf_ops_mmap,
- 	.release = vb2_vmalloc_dmabuf_ops_release,
-diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index f45115f..95a7f16 100644
---- a/drivers/staging/android/ion/ion.c
-+++ b/drivers/staging/android/ion/ion.c
-@@ -1020,10 +1020,10 @@ static const struct dma_buf_ops dma_buf_ops = {
- 	.release = ion_dma_buf_release,
- 	.begin_cpu_access = ion_dma_buf_begin_cpu_access,
- 	.end_cpu_access = ion_dma_buf_end_cpu_access,
--	.kmap_atomic = ion_dma_buf_kmap,
--	.kunmap_atomic = ion_dma_buf_kunmap,
--	.kmap = ion_dma_buf_kmap,
--	.kunmap = ion_dma_buf_kunmap,
-+	.map_atomic = ion_dma_buf_kmap,
-+	.unmap_atomic = ion_dma_buf_kunmap,
-+	.map = ion_dma_buf_kmap,
-+	.unmap = ion_dma_buf_kunmap,
- };
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
 
- struct dma_buf *ion_share_dma_buf(struct ion_client *client,
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index bfb3704..79f27d6 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -39,13 +39,13 @@ struct dma_buf_attachment;
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
 
- /**
-  * struct dma_buf_ops - operations possible on struct dma_buf
-- * @kmap_atomic: maps a page from the buffer into kernel address
-- * 		 space, users may not block until the subsequent unmap call.
-- * 		 This callback must not sleep.
-- * @kunmap_atomic: [optional] unmaps a atomically mapped page from the buffer.
-- * 		   This Callback must not sleep.
-- * @kmap: maps a page from the buffer into kernel address space.
-- * @kunmap: [optional] unmaps a page from the buffer.
-+ * @map_atomic: maps a page from the buffer into kernel address
-+ *		space, users may not block until the subsequent unmap call.
-+ *		This callback must not sleep.
-+ * @unmap_atomic: [optional] unmaps a atomically mapped page from the buffer.
-+ *		  This Callback must not sleep.
-+ * @map: maps a page from the buffer into kernel address space.
-+ * @unmap: [optional] unmaps a page from the buffer.
-  * @vmap: [optional] creates a virtual mapping for the buffer into kernel
-  *	  address space. Same restrictions as for vmap and friends apply.
-  * @vunmap: [optional] unmaps a vmap from the buffer
-@@ -206,10 +206,10 @@ struct dma_buf_ops {
- 	 * to be restarted.
- 	 */
- 	int (*end_cpu_access)(struct dma_buf *, enum dma_data_direction);
--	void *(*kmap_atomic)(struct dma_buf *, unsigned long);
--	void (*kunmap_atomic)(struct dma_buf *, unsigned long, void *);
--	void *(*kmap)(struct dma_buf *, unsigned long);
--	void (*kunmap)(struct dma_buf *, unsigned long, void *);
-+	void *(*map_atomic)(struct dma_buf *, unsigned long);
-+	void (*unmap_atomic)(struct dma_buf *, unsigned long, void *);
-+	void *(*map)(struct dma_buf *, unsigned long);
-+	void (*unmap)(struct dma_buf *, unsigned long, void *);
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
 
- 	/**
- 	 * @mmap:
---
-2.1.4
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+		test VIDIOC_QUERYCTRL: OK
+		test VIDIOC_G/S_CTRL: OK
+		fail: ../../../../../../../../../sources/v4l-utils/utils/v4l2-compliance/v4l2-test-controls.cpp(585): g_ext_ctrls worked even when no controls are present
+		test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 0 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK (Not Supported)
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		warn: ../../../../../../../../../sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(717): TRY_FMT cannot handle an invalid pixelformat.
+		warn: ../../../../../../../../../sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(718): This may or may not be a problem. For more information see:
+		warn: ../../../../../../../../../sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(719): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_TRY_FMT: OK
+		warn: ../../../../../../../../../sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(977): S_FMT cannot handle an invalid pixelformat.
+		warn: ../../../../../../../../../sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(978): This may or may not be a problem. For more information see:
+		warn: ../../../../../../../../../sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(979): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK (Not Supported)
+		test Composing: OK
+		test Scaling: OK
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 43, Succeeded: 42, Failed: 1, Warnings: 6
+
+Hugues Fruchet (3):
+  [media] v4l: add parsed MPEG-2 support
+  [media] st-delta: add parsing metadata controls support
+  [media] st-delta: add mpeg2 support
+
+ Documentation/media/uapi/v4l/extended-controls.rst |  363 +++++
+ Documentation/media/uapi/v4l/pixfmt-013.rst        |   10 +
+ drivers/media/platform/Kconfig                     |   11 +-
+ drivers/media/platform/sti/delta/Makefile          |    3 +
+ drivers/media/platform/sti/delta/delta-cfg.h       |    5 +
+ drivers/media/platform/sti/delta/delta-mpeg2-dec.c | 1401 ++++++++++++++++++++
+ drivers/media/platform/sti/delta/delta-mpeg2-fw.h  |  423 ++++++
+ drivers/media/platform/sti/delta/delta-v4l2.c      |  129 +-
+ drivers/media/platform/sti/delta/delta.h           |   34 +
+ drivers/media/v4l2-core/v4l2-ctrls.c               |   53 +
+ drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +
+ include/uapi/linux/v4l2-controls.h                 |   98 ++
+ include/uapi/linux/videodev2.h                     |    8 +
+ 13 files changed, 2537 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/media/platform/sti/delta/delta-mpeg2-dec.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-mpeg2-fw.h
+
+-- 
+1.9.1
