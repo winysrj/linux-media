@@ -1,86 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f176.google.com ([209.85.128.176]:36309 "EHLO
-        mail-wr0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751619AbdDKJuu (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:9487 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751422AbdDUEGS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Apr 2017 05:50:50 -0400
-Received: by mail-wr0-f176.google.com with SMTP id c55so91561085wrc.3
-        for <linux-media@vger.kernel.org>; Tue, 11 Apr 2017 02:50:49 -0700 (PDT)
-Subject: Re: [PATCH 1/5] media: rc: meson-ir: remove irq from struct meson_ir
-To: Heiner Kallweit <hkallweit1@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sean Young <sean@mess.org>, Kevin Hilman <khilman@baylibre.com>
-References: <f65a1465-14ba-8db2-7726-454dcfbee69d@gmail.com>
- <b550b154-400e-2aea-b863-c217bcb730ad@gmail.com>
-Cc: linux-amlogic@lists.infradead.org, linux-media@vger.kernel.org
-From: Neil Armstrong <narmstrong@baylibre.com>
-Message-ID: <0ef141e3-0eec-fb2f-c575-e236c5dfc9ae@baylibre.com>
-Date: Tue, 11 Apr 2017 11:50:45 +0200
-MIME-Version: 1.0
-In-Reply-To: <b550b154-400e-2aea-b863-c217bcb730ad@gmail.com>
-Content-Type: text/plain; charset=windows-1252
+        Fri, 21 Apr 2017 00:06:18 -0400
+Message-ID: <1492747570.25908.36.camel@mtksdaap41>
+Subject: Re: [PATCH 1/3] dt-bindings: mt8173: Fix mdp device tree
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Rob Herring <robh@kernel.org>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>,
+        "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>,
+        <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
+Date: Fri, 21 Apr 2017 12:06:10 +0800
+In-Reply-To: <20170419213540.4vigeed3mx24ie4e@rob-hp-laptop>
+References: <1492068787-17838-1-git-send-email-minghsiu.tsai@mediatek.com>
+         <1492068787-17838-2-git-send-email-minghsiu.tsai@mediatek.com>
+         <20170419213540.4vigeed3mx24ie4e@rob-hp-laptop>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/11/2017 07:53 AM, Heiner Kallweit wrote:
-> The irq number is used in the probe function only, therefore just use
-> a local variable.
+On Wed, 2017-04-19 at 16:35 -0500, Rob Herring wrote:
+> On Thu, Apr 13, 2017 at 03:33:05PM +0800, Minghsiu Tsai wrote:
+> > If the mdp_* nodes are under an mdp sub-node, their corresponding
+> > platform device does not automatically get its iommu assigned properly.
+> > 
+> > Fix this by moving the mdp component nodes up a level such that they are
+> > siblings of mdp and all other SoC subsystems.  This also simplifies the
+> > device tree.
 > 
-> Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
-> ---
->  drivers/media/rc/meson-ir.c | 11 +++++------
->  1 file changed, 5 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
-> index 5576dbd6..a4128d7c 100644
-> --- a/drivers/media/rc/meson-ir.c
-> +++ b/drivers/media/rc/meson-ir.c
-> @@ -68,7 +68,6 @@
->  struct meson_ir {
->  	void __iomem	*reg;
->  	struct rc_dev	*rc;
-> -	int		irq;
->  	spinlock_t	lock;
->  };
->  
-> @@ -112,7 +111,7 @@ static int meson_ir_probe(struct platform_device *pdev)
->  	struct resource *res;
->  	const char *map_name;
->  	struct meson_ir *ir;
-> -	int ret;
-> +	int irq, ret;
->  
->  	ir = devm_kzalloc(dev, sizeof(struct meson_ir), GFP_KERNEL);
->  	if (!ir)
-> @@ -125,10 +124,10 @@ static int meson_ir_probe(struct platform_device *pdev)
->  		return PTR_ERR(ir->reg);
->  	}
->  
-> -	ir->irq = platform_get_irq(pdev, 0);
-> -	if (ir->irq < 0) {
-> +	irq = platform_get_irq(pdev, 0);
-> +	if (irq < 0) {
->  		dev_err(dev, "no irq resource\n");
-> -		return ir->irq;
-> +		return irq;
->  	}
->  
->  	ir->rc = rc_allocate_device(RC_DRIVER_IR_RAW);
-> @@ -158,7 +157,7 @@ static int meson_ir_probe(struct platform_device *pdev)
->  		goto out_free;
->  	}
->  
-> -	ret = devm_request_irq(dev, ir->irq, meson_ir_irq, 0, "ir-meson", ir);
-> +	ret = devm_request_irq(dev, irq, meson_ir_irq, 0, "ir-meson", ir);
->  	if (ret) {
->  		dev_err(dev, "failed to request irq\n");
->  		goto out_unreg;
+> It may simplify the DT, but it also breaks compatibility with old DT. 
+> Not sure if that's a problem on Mediatek platforms, but please be 
+> explicit here that you are breaking compatibility and why that is okay.
 > 
 
-Hi Heiner,
+I will add the following description for more information.
+"
+Although it fixes iommu assignment issue, it also break compatibility
+with old device tree, so driver patch[1] is needed to iterate over
+sibling mdp device nodes, not child ones, to keep driver work properly.
+In mtk_mdp_probe()
+Old: for_each_child_of_node(dev->of_node, node)
+New: for_each_child_of_node(dev->of_node->parent, node)
 
-I'm not really convinced this is useful, if somehow for future enhancements we need the IRQ
-number, this will need to be reverted...
+[1]https://patchwork.kernel.org/patch/9678833/
+"
 
-Neil
+> > 
+> > Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+> > Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+> 
+> Should this have Daniel as the author?
+
+This patch is provided by Daniel, so I keep he is the author.
+I just split his patch into two parts. One is dts only, and the other is
+for driver. I also provide another patch to modify dts bindings
+according to this patch.
+
+
+> 
+> > 
+> > ---
+> >  Documentation/devicetree/bindings/media/mediatek-mdp.txt | 12 +++---------
+> >  1 file changed, 3 insertions(+), 9 deletions(-)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/mediatek-mdp.txt b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
+> > index 4182063..0d03e3a 100644
+> > --- a/Documentation/devicetree/bindings/media/mediatek-mdp.txt
+> > +++ b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
+> > @@ -2,7 +2,7 @@
+> >  
+> >  Media Data Path is used for scaling and color space conversion.
+> >  
+> > -Required properties (controller (parent) node):
+> > +Required properties (controller node):
+> >  - compatible: "mediatek,mt8173-mdp"
+> >  - mediatek,vpu: the node of video processor unit, see
+> >    Documentation/devicetree/bindings/media/mediatek-vpu.txt for details.
+> > @@ -32,21 +32,16 @@ Required properties (DMA function blocks, child node):
+> >    for details.
+> >  
+> >  Example:
+> > -mdp {
+> > -	compatible = "mediatek,mt8173-mdp";
+> > -	#address-cells = <2>;
+> > -	#size-cells = <2>;
+> > -	ranges;
+> > -	mediatek,vpu = <&vpu>;
+> > -
+> >  	mdp_rdma0: rdma@14001000 {
+> >  		compatible = "mediatek,mt8173-mdp-rdma";
+> > +			     "mediatek,mt8173-mdp";
+> >  		reg = <0 0x14001000 0 0x1000>;
+> >  		clocks = <&mmsys CLK_MM_MDP_RDMA0>,
+> >  			 <&mmsys CLK_MM_MUTEX_32K>;
+> >  		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+> >  		iommus = <&iommu M4U_PORT_MDP_RDMA0>;
+> >  		mediatek,larb = <&larb0>;
+> > +		mediatek,vpu = <&vpu>;
+> >  	};
+> >  
+> >  	mdp_rdma1: rdma@14002000 {
+> > @@ -106,4 +101,3 @@ mdp {
+> >  		iommus = <&iommu M4U_PORT_MDP_WROT1>;
+> >  		mediatek,larb = <&larb4>;
+> >  	};
+> > -};
+> > -- 
+> > 1.9.1
+> > 
