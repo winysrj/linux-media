@@ -1,127 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:52229 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755336AbdDEPZB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 11:25:01 -0400
-Date: Wed, 5 Apr 2017 17:24:57 +0200
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
+Received: from mout.kundenserver.de ([217.72.192.75]:64232 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1037965AbdDUKte (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Apr 2017 06:49:34 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Alan Cox <alan@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
         linux-kernel@vger.kernel.org
-Subject: Re: [RFC 00/10] V4L2 explicit synchronization support
-Message-ID: <20170405152457.GD32294@joana>
-References: <20170313192035.29859-1-gustavo@padovan.org>
- <20170404113449.GC3288@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170404113449.GC3288@valkosipuli.retiisi.org.uk>
+Subject: [PATCH 2/2] staging: atomisp: remove #ifdef for runtime PM functions
+Date: Fri, 21 Apr 2017 12:48:35 +0200
+Message-Id: <20170421104903.815637-2-arnd@arndb.de>
+In-Reply-To: <20170421104903.815637-1-arnd@arndb.de>
+References: <20170421104903.815637-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+The runtime power management functions are called from the reset handler even
+if CONFIG_PM is disabled, leading to a link error:
 
-2017-04-04 Sakari Ailus <sakari.ailus@iki.fi>:
+drivers/staging/built-in.o: In function `atomisp_reset':
+(.text+0x4cd1c): undefined reference to `atomisp_runtime_suspend'
+drivers/staging/built-in.o: In function `atomisp_reset':
+(.text+0x4cd3a): undefined reference to `atomisp_mrfld_power_down'
+drivers/staging/built-in.o: In function `atomisp_reset':
+(.text+0x4cd58): undefined reference to `atomisp_mrfld_power_up'
+drivers/staging/built-in.o: In function `atomisp_reset':
+(.text+0x4cd77): undefined reference to `atomisp_runtime_resume'
 
-> Hi Gustavo,
-> 
-> Thank you for the patchset. Please see my comments below.
-> 
-> On Mon, Mar 13, 2017 at 04:20:25PM -0300, Gustavo Padovan wrote:
-> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > 
-> > Hi,
-> > 
-> > This RFC adds support for Explicit Synchronization of shared buffers in V4L2.
-> > It uses the Sync File Framework[1] as vector to communicate the fences
-> > between kernel and userspace.
-> > 
-> > I'm sending this to start the discussion on the best approach to implement
-> > Explicit Synchronization, please check the TODO/OPEN section below.
-> > 
-> > Explicit Synchronization allows us to control the synchronization of
-> > shared buffers from userspace by passing fences to the kernel and/or 
-> > receiving them from the the kernel.
-> > 
-> > Fences passed to the kernel are named in-fences and the kernel should wait
-> > them to signal before using the buffer. On the other side, the kernel creates
-> > out-fences for every buffer it receives from userspace. This fence is sent back
-> > to userspace and it will signal when the capture, for example, has finished.
-> > 
-> > Signalling an out-fence in V4L2 would mean that the job on the buffer is done
-> > and the buffer can be used by other drivers.
-> 
-> Shouldn't you be able to add two fences to the buffer, one in and one out?
-> I.e. you'd have the buffer passed from another device to a V4L2 device and
-> on to a third device.
-> 
-> (Or, two fences per a plane, as you elaborated below.)
+Removing the #ifdef around the PM functions avoids the problem, and
+lets us simplify it further. The __maybe_unused annotation is needed
+to ensure the compiler can silently drop the unused callbacks.
 
-The out one should be created by V4L2 in this case, sent to userspace
-and then sent to third device. Another options is what we've been
-calling future fences in DRM. Where we may have a syscall to create this
-out-fence for us and then we could pass both in and out fence to the
-device. But that can be supported later along with what this RFC
-proposes.
+Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c | 14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
-
-> 
-> > 
-> > Current RFC implementation
-> > --------------------------
-> > 
-> > The current implementation is not intended to be more than a PoC to start
-> > the discussion on how Explicit Synchronization should be supported in V4L2.
-> > 
-> > The first patch proposes an userspace API for fences, then on patch 2
-> > we prepare to the addition of in-fences in patch 3, by introducing the
-> > infrastructure on vb2 to wait on an in-fence signal before queueing the buffer
-> > in the driver.
-> > 
-> > Patch 4 fix uvc v4l2 event handling and patch 5 configure q->dev for vivid
-> > drivers to enable to subscribe and dequeue events on it.
-> > 
-> > Patches 6-7 enables support to notify BUF_QUEUED events, i.e., let userspace
-> > know that particular buffer was enqueued in the driver. This is needed,
-> > because we return the out-fence fd as an out argument in QBUF, but at the time
-> > it returns we don't know to which buffer the fence will be attached thus
-> > the BUF_QUEUED event tells which buffer is associated to the fence received in
-> > QBUF by userspace.
-> > 
-> > Patches 8 and 9 add more fence infrastructure to support out-fences and finally
-> > patch 10 adds support to out-fences.
-> > 
-> > TODO/OPEN:
-> > ----------
-> > 
-> > * For this first implementation we will keep the ordering of the buffers queued
-> > in videobuf2, that means we will only enqueue buffer whose fence was signalled
-> > if that buffer is the first one in the queue. Otherwise it has to wait until it
-> > is the first one. This is not implmented yet. Later we could create a flag to
-> > allow unordered queing in the drivers from vb2 if needed.
-> > 
-> > * Should we have out-fences per-buffer or per-plane? or both? In this RFC, for
-> > simplicity they are per-buffer, but Mauro and Javier raised the option of
-> > doing per-plane fences. That could benefit mem2mem and V4L2 <-> GPU operation
-> > at least on cases when we have Capture hw that releases the Y frame before the
-> > other frames for example. When using V4L2 per-plane out-fences to communicate
-> > with KMS they would need to be merged together as currently the DRM Plane
-> > interface only supports one fence per DRM Plane.
-> > 
-> > In-fences should be per-buffer as the DRM only has per-buffer fences, but
-> > in case of mem2mem operations per-plane fences might be useful?
-> > 
-> > So should we have both ways, per-plane and per-buffer, or just one of them
-> > for now?
-> 
-> The data_offset field is only present in struct v4l2_plane, i.e. it is only
-> available through using the multi-planar API even if you just have a single
-> plane.
-
-I didn't get why you mentioned the data_offset field. :)
-
-Gustavo
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+index 9bd186bad1bd..9b4508e731f3 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+@@ -310,7 +310,6 @@ static int __maybe_unused atomisp_restore_iunit_reg(struct atomisp_device *isp)
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_PM
+ static int atomisp_mrfld_pre_power_down(struct atomisp_device *isp)
+ {
+ 	struct pci_dev *dev = isp->pdev;
+@@ -550,7 +549,7 @@ int atomisp_runtime_resume(struct device *dev)
+ 	return 0;
+ }
+ 
+-static int atomisp_suspend(struct device *dev)
++static int __maybe_unused atomisp_suspend(struct device *dev)
+ {
+ 	struct atomisp_device *isp = (struct atomisp_device *)
+ 		dev_get_drvdata(dev);
+@@ -588,7 +587,7 @@ static int atomisp_suspend(struct device *dev)
+ 	return atomisp_mrfld_power_down(isp);
+ }
+ 
+-static int atomisp_resume(struct device *dev)
++static int __maybe_unused atomisp_resume(struct device *dev)
+ {
+ 	struct atomisp_device *isp = (struct atomisp_device *)
+ 		dev_get_drvdata(dev);
+@@ -614,7 +613,6 @@ static int atomisp_resume(struct device *dev)
+ 	atomisp_freq_scaling(isp, ATOMISP_DFS_MODE_LOW, true);
+ 	return 0;
+ }
+-#endif
+ 
+ int atomisp_csi_lane_config(struct atomisp_device *isp)
+ {
+@@ -1576,7 +1574,6 @@ static const struct pci_device_id atomisp_pci_tbl[] = {
+ 
+ MODULE_DEVICE_TABLE(pci, atomisp_pci_tbl);
+ 
+-#ifdef CONFIG_PM
+ static const struct dev_pm_ops atomisp_pm_ops = {
+ 	.runtime_suspend = atomisp_runtime_suspend,
+ 	.runtime_resume = atomisp_runtime_resume,
+@@ -1584,14 +1581,9 @@ static const struct dev_pm_ops atomisp_pm_ops = {
+ 	.resume = atomisp_resume,
+ };
+ 
+-#define DEV_PM_OPS (&atomisp_pm_ops)
+-#else
+-#define DEV_PM_OPS NULL
+-#endif
+-
+ static struct pci_driver atomisp_pci_driver = {
+ 	.driver = {
+-		.pm = DEV_PM_OPS,
++		.pm = &atomisp_pm_ops,
+ 	},
+ 	.name = "atomisp-isp2",
+ 	.id_table = atomisp_pci_tbl,
+-- 
+2.9.0
