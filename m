@@ -1,116 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f176.google.com ([209.85.216.176]:36829 "EHLO
-        mail-qt0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753506AbdDFR6n (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Apr 2017 13:58:43 -0400
-Received: by mail-qt0-f176.google.com with SMTP id r45so42768850qte.3
-        for <linux-media@vger.kernel.org>; Thu, 06 Apr 2017 10:58:41 -0700 (PDT)
-From: =?UTF-8?q?Peter=20Bostr=C3=B6m?= <pbos@google.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:60248 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751194AbdDUEKQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Apr 2017 00:10:16 -0400
+Message-ID: <8ee7f12cc397f2d635b9919cb9c0cf66@smtp-cloud6.xs4all.net>
+Date: Fri, 21 Apr 2017 06:10:13 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Peter=20Bostr=C3=B6m?= <pbos@google.com>
-Subject: [PATCH] [media] uvcvideo: Add iFunction or iInterface to device names.
-Date: Thu,  6 Apr 2017 13:58:25 -0400
-Message-Id: <20170406175825.90406-1-pbos@google.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Permits distinguishing between two /dev/videoX entries from the same
-physical UVC device (that naturally share the same iProduct name).
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This change matches current Windows behavior by prioritizing iFunction
-over iInterface, but unlike Windows it displays both iProduct and
-iFunction/iInterface strings when both are available.
+Results of the daily build of media_tree:
 
-Signed-off-by: Peter Boström <pbos@google.com>
----
- drivers/media/usb/uvc/uvc_driver.c | 43 +++++++++++++++++++++++++++++++-------
- drivers/media/usb/uvc/uvcvideo.h   |  4 +++-
- 2 files changed, 39 insertions(+), 8 deletions(-)
+date:			Fri Apr 21 05:00:15 CEST 2017
+media-tree git hash:	9eb9db3a0f92b75ec710066202e0b2accb45afa9
+media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
+v4l-utils git hash:	b514d615166bdc0901a4c71261b87db31e89f464
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 04bf35063c4c..66adf8a77e56 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1998,6 +1998,8 @@ static int uvc_probe(struct usb_interface *intf,
- {
- 	struct usb_device *udev = interface_to_usbdev(intf);
- 	struct uvc_device *dev;
-+	char additional_name_buf[UVC_DEVICE_NAME_SIZE];
-+	const char *additional_name = NULL;
- 	int ret;
- 
- 	if (id->idVendor && id->idProduct)
-@@ -2025,13 +2027,40 @@ static int uvc_probe(struct usb_interface *intf,
- 	dev->quirks = (uvc_quirks_param == -1)
- 		    ? id->driver_info : uvc_quirks_param;
- 
--	if (udev->product != NULL)
--		strlcpy(dev->name, udev->product, sizeof dev->name);
--	else
--		snprintf(dev->name, sizeof dev->name,
--			"UVC Camera (%04x:%04x)",
--			le16_to_cpu(udev->descriptor.idVendor),
--			le16_to_cpu(udev->descriptor.idProduct));
-+	/*
-+	 * Add iFunction or iInterface to names when available as additional
-+	 * distinguishers between interfaces. iFunction is prioritized over
-+	 * iInterface which matches Windows behavior at the point of writing.
-+	 */
-+	if (intf->intf_assoc && intf->intf_assoc->iFunction != 0) {
-+		usb_string(udev, intf->intf_assoc->iFunction,
-+			   additional_name_buf, sizeof(additional_name_buf));
-+		additional_name = additional_name_buf;
-+	} else if (intf->cur_altsetting->desc.iInterface != 0) {
-+		usb_string(udev, intf->cur_altsetting->desc.iInterface,
-+			   additional_name_buf, sizeof(additional_name_buf));
-+		additional_name = additional_name_buf;
-+	}
-+
-+	if (additional_name) {
-+		if (udev->product) {
-+			snprintf(dev->name, sizeof(dev->name), "%s: %s",
-+				 udev->product, additional_name);
-+		} else {
-+			snprintf(dev->name, sizeof(dev->name),
-+				 "UVC Camera: %s (%04x:%04x)",
-+				 additional_name,
-+				 le16_to_cpu(udev->descriptor.idVendor),
-+				 le16_to_cpu(udev->descriptor.idProduct));
-+		}
-+	} else if (udev->product) {
-+		strlcpy(dev->name, udev->product, sizeof(dev->name));
-+	} else {
-+		snprintf(dev->name, sizeof(dev->name),
-+			 "UVC Camera (%04x:%04x)",
-+			 le16_to_cpu(udev->descriptor.idVendor),
-+			 le16_to_cpu(udev->descriptor.idProduct));
-+	}
- 
- 	/* Parse the Video Class control descriptor. */
- 	if (uvc_parse_control(dev) < 0) {
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 4205e7a423f0..0cbedaee6e19 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -541,13 +541,15 @@ struct uvc_streaming {
- 	} clock;
- };
- 
-+#define UVC_DEVICE_NAME_SIZE	64
-+
- struct uvc_device {
- 	struct usb_device *udev;
- 	struct usb_interface *intf;
- 	unsigned long warnings;
- 	__u32 quirks;
- 	int intfnum;
--	char name[32];
-+	char name[UVC_DEVICE_NAME_SIZE];
- 
- 	struct mutex lock;		/* Protects users */
- 	unsigned int users;
--- 
-2.12.2.715.g7642488e1d-goog
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10.1-i686: OK
+linux-4.11-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-x86_64: WARNINGS
+linux-4.10.1-x86_64: WARNINGS
+linux-4.11-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
