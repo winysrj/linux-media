@@ -1,42 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:19689 "EHLO
-        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S945410AbdDYM5x (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.13]:54821 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1037649AbdDUKtH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 08:57:53 -0400
-Date: Tue, 25 Apr 2017 15:57:23 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, pawel@osciak.com,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 1/2] [media] vb2: Fix an off by one error in
- 'vb2_plane_vaddr'
-Message-ID: <20170425125723.6otfxmhkh3igtaqm@mwanda>
-References: <20170423213257.14773-1-christophe.jaillet@wanadoo.fr>
- <20170424141655.GQ7456@valkosipuli.retiisi.org.uk>
- <9aab41eb-5543-58d2-211f-95fb00f5176c@wanadoo.fr>
- <20170424202906.GW7456@valkosipuli.retiisi.org.uk>
- <09a88460-39fc-7d80-e213-15e47499319d@wanadoo.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <09a88460-39fc-7d80-e213-15e47499319d@wanadoo.fr>
+        Fri, 21 Apr 2017 06:49:07 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Alan Cox <alan@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 1/2] staging: atomisp: satm include directory is gone
+Date: Fri, 21 Apr 2017 12:48:34 +0200
+Message-Id: <20170421104903.815637-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Gar... No.  The 3.6+ from a9ae4692eda4 ("[media] vb2: fix plane index
-sanity check in vb2_plane_cookie()") feels totally arbitrary to me.  No
-need to be consistent.
+After the satm kernel was removed, we should no longer add the directory
+to the search path. This was found with a 'make W=1' warning:
 
-Just do:
+cc1: error: drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/: No such file or directory [-Werror=missing-include-dirs]
 
-Cc: stable@vger.kernel.org
-Fixes: e23ccc0ad925 ("[media] v4l: add videobuf2 Video for Linux 2 driver framework")
+Fixes: 184f8e0981ef ("atomisp: remove satm kernel")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/staging/media/atomisp/pci/atomisp2/Makefile | 1 -
+ 1 file changed, 1 deletion(-)
 
-Fixes tags are always good too have btw.  You should be adding them
-by default to everything even if it doesn't get backported to stable.
-
-regards,
-dan carpenter
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/Makefile b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+index 96a7bd0fa96e..5e8646c976a6 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/Makefile
++++ b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+@@ -301,7 +301,6 @@ INCLUDES += \
+ 	-I$(atomisp)/css2400/isp/kernels/s3a/ \
+ 	-I$(atomisp)/css2400/isp/kernels/s3a/s3a_1.0/ \
+ 	-I$(atomisp)/css2400/isp/kernels/s3a_stat_ls/ \
+-	-I$(atomisp)/css2400/isp/kernels/satm/ \
+ 	-I$(atomisp)/css2400/isp/kernels/scale/ \
+ 	-I$(atomisp)/css2400/isp/kernels/scale/scale_1.0/ \
+ 	-I$(atomisp)/css2400/isp/kernels/sc/ \
+-- 
+2.9.0
