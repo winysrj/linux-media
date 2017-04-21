@@ -1,84 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [198.176.57.175] ([198.176.57.175]:50162 "EHLO
-        deadmen.hmeau.com" rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932764AbdD0Eib (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41225
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1422796AbdDURIk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 00:38:31 -0400
-Date: Thu, 27 Apr 2017 11:56:03 +0800
-From: Herbert Xu <herbert@gondor.apana.org.au>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH v2 07/21] crypto: shash, caam: Make use of the new sg_map
- helper function
-Message-ID: <20170427035603.GA32212@gondor.apana.org.au>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
- <1493144468-22493-8-git-send-email-logang@deltatee.com>
+        Fri, 21 Apr 2017 13:08:40 -0400
+Date: Fri, 21 Apr 2017 12:11:05 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] Order the Makefile alphabetically
+Message-ID: <20170421121055.3c2b3f70@vento.lan>
+In-Reply-To: <20170421144125.dnahmsnsjj2h6drv@lukather>
+References: <20170406144051.13008-1-maxime.ripard@free-electrons.com>
+        <20170419081538.38272ae6@vento.lan>
+        <20170421144125.dnahmsnsjj2h6drv@lukather>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1493144468-22493-8-git-send-email-logang@deltatee.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 25, 2017 at 12:20:54PM -0600, Logan Gunthorpe wrote:
-> Very straightforward conversion to the new function in the caam driver
-> and shash library.
-> 
-> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-> Cc: Herbert Xu <herbert@gondor.apana.org.au>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> ---
->  crypto/shash.c                | 9 ++++++---
->  drivers/crypto/caam/caamalg.c | 8 +++-----
->  2 files changed, 9 insertions(+), 8 deletions(-)
-> 
-> diff --git a/crypto/shash.c b/crypto/shash.c
-> index 5e31c8d..5914881 100644
-> --- a/crypto/shash.c
-> +++ b/crypto/shash.c
-> @@ -283,10 +283,13 @@ int shash_ahash_digest(struct ahash_request *req, struct shash_desc *desc)
->  	if (nbytes < min(sg->length, ((unsigned int)(PAGE_SIZE)) - offset)) {
->  		void *data;
->  
-> -		data = kmap_atomic(sg_page(sg));
-> -		err = crypto_shash_digest(desc, data + offset, nbytes,
-> +		data = sg_map(sg, 0, SG_KMAP_ATOMIC);
-> +		if (IS_ERR(data))
-> +			return PTR_ERR(data);
-> +
-> +		err = crypto_shash_digest(desc, data, nbytes,
->  					  req->result);
-> -		kunmap_atomic(data);
-> +		sg_unmap(sg, data, 0, SG_KMAP_ATOMIC);
->  		crypto_yield(desc->flags);
->  	} else
->  		err = crypto_shash_init(desc) ?:
+Em Fri, 21 Apr 2017 16:41:25 +0200
+Maxime Ripard <maxime.ripard@free-electrons.com> escreveu:
 
-Nack.  This is an optimisation for the special case of a single
-SG list entry.  In fact in the common case the kmap_atomic should
-disappear altogether in the no-highmem case.  So replacing it
-with sg_map is not acceptable.
+> On Wed, Apr 19, 2017 at 08:15:45AM -0300, Mauro Carvalho Chehab wrote:
+> > Em Thu,  6 Apr 2017 16:40:51 +0200
+> > Maxime Ripard <maxime.ripard@free-electrons.com> escreveu:
+> >   
+> > > The Makefiles were a free for all without a clear order defined. Sort all the
+> > > options based on the Kconfig symbol.
+> > > 
+> > > Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+> > > 
+> > > ---
+> > > 
+> > > Hi Mauro,
+> > > 
+> > > Here is my makefile ordering patch again, this time with all the Makefiles
+> > > in drivers/media that needed ordering.
+> > > 
+> > > Since we're already pretty late in the release period, I guess there won't
+> > > be any major conflicts between now and the merge window.
+> > >   
+> > 
+> > The thing with patches like that is that they almost never apply fine.
+> > By the time I review such patches, it was already broken. Also,
+> > once applied, it breaks for everybody that have pending work to merge.
+> > 
+> > This patch is broken (see attached).
+> > 
+> > So, I prefer not applying stuff like that.  
+> 
+> I had the feeling that now would have been a good time to merge it,
+> since all the PR should be merged I guess. But ok.
 
-Cheers,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+No, there are drivers that were late-submitted, and whose commit
+(if driver gets accepted) will be after -rc1. If this patch gets 
+applied, those drivers will have merge conflicts. There are also
+the cases where people have drivers under development. If they pull
+from my tree after a change like that, the developer will get
+conflicts.
+
+
+Thanks,
+Mauro
