@@ -1,70 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:32852 "EHLO ale.deltatee.com"
+Received: from smtp.220.in.ua ([89.184.67.205]:55031 "EHLO smtp.220.in.ua"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1163345AbdD1TB6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 15:01:58 -0400
-To: Herbert Xu <herbert@gondor.apana.org.au>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
- <1493144468-22493-8-git-send-email-logang@deltatee.com>
- <20170427035603.GA32212@gondor.apana.org.au>
- <94123cbf-3287-f05e-7267-0bcf08ab0a8b@deltatee.com>
- <20170428063039.GB6817@gondor.apana.org.au>
- <5a08708b-c3b8-41fe-96de-607a109eacbd@deltatee.com>
- <20170428175147.GA9596@gondor.apana.org.au>
-Cc: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        "David S. Miller" <davem@davemloft.net>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <d5242ef0-2670-63e4-02ce-a6d2368b7292@deltatee.com>
-Date: Fri, 28 Apr 2017 13:01:39 -0600
-MIME-Version: 1.0
-In-Reply-To: <20170428175147.GA9596@gondor.apana.org.au>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH v2 07/21] crypto: shash, caam: Make use of the new sg_map
- helper function
+        id S1424943AbdDVPlv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 22 Apr 2017 11:41:51 -0400
+From: Oleh Kravchenko <oleg@kaa.org.ua>
+To: benjamin.larsson@inteno.se, linux-media@vger.kernel.org
+Cc: Oleh Kravchenko <oleg@kaa.org.ua>
+Subject: [PATCH] [media] cx231xx: Initial support Astrometa T2hybrid
+Date: Sat, 22 Apr 2017 18:47:13 +0300
+Message-Id: <20170422154713.16807-1-oleg@kaa.org.ua>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch provide only digital support;
+The device is based on 24C02N EEPROM, Panasonic MN88473 demodulator,
+Rafael Micro R828D tuner and CX23102-11Z chipset;
+USB id: 15f4:0135.
 
+Status:
+- DVB-T/T2 works fine;
+- Composite works fine;
+- Analog not implemented.
 
-On 28/04/17 11:51 AM, Herbert Xu wrote:
-> On Fri, Apr 28, 2017 at 10:53:45AM -0600, Logan Gunthorpe wrote:
->>
->>
->> On 28/04/17 12:30 AM, Herbert Xu wrote:
->>> You are right.  Indeed the existing code looks buggy as they
->>> don't take sg->offset into account when doing the kmap.  Could
->>> you send me some patches that fix these problems first so that
->>> they can be easily backported?
->>
->> Ok, I think the only buggy one in crypto is hifn_795x. Shash and caam
->> both do have the sg->offset accounted for. I'll send a patch for the
->> buggy one shortly.
-> 
-> I think they're all buggy when sg->offset is greater than PAGE_SIZE.
+Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
+---
+ drivers/media/usb/cx231xx/Kconfig         |  2 ++
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 34 +++++++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx-dvb.c   | 49 +++++++++++++++++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx.h       |  1 +
+ 4 files changed, 86 insertions(+)
 
-Yes, technically. But that's a _very_ common mistake. Pretty nearly
-every case I looked at did not take that into account. I don't think
-sg's that point to more than one continuous page are all that common.
-
-Fixing all those cases without making a common function is a waste of
-time IMO.
-
-Logan
+diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
+index 58de80b..6276d9b 100644
+--- a/drivers/media/usb/cx231xx/Kconfig
++++ b/drivers/media/usb/cx231xx/Kconfig
+@@ -52,6 +52,8 @@ config VIDEO_CX231XX_DVB
+ 	select DVB_SI2165 if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_MN88473 if MEDIA_SUBDRV_AUTOSELECT
++	select MEDIA_TUNER_R820T if MEDIA_SUBDRV_AUTOSELECT
+ 
+ 	---help---
+ 	  This adds support for DVB cards based on the
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index f730fdb..48f4c80 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -868,6 +868,33 @@ struct cx231xx_board cx231xx_boards[] = {
+ 			.amux = CX231XX_AMUX_LINE_IN,
+ 		} },
+ 	},
++	[CX231XX_BOARD_ASTROMETA_T2HYBRID] = {
++		.name = "Astrometa T2hybrid",
++		.tuner_type = TUNER_ABSENT,
++		.has_dvb = 1,
++		.output_mode = OUT_MODE_VIP11,
++		.agc_analog_digital_select_gpio = 0x01,
++		.ctl_pin_status_mask = 0xffffffc4,
++		.demod_addr = 0x18, /* 0x30 >> 1 */
++		.demod_i2c_master = I2C_1_MUX_1,
++		.gpio_pin_status_mask = 0xa,
++		.norm = V4L2_STD_NTSC,
++		.tuner_addr = 0x3a, /* 0x74 >> 1 */
++		.tuner_i2c_master = I2C_1_MUX_3,
++		.tuner_scl_gpio = 0x1a,
++		.tuner_sda_gpio = 0x1b,
++		.tuner_sif_gpio = 0x05,
++		.input = {{
++				.type = CX231XX_VMUX_TELEVISION,
++				.vmux = CX231XX_VIN_1_1,
++				.amux = CX231XX_AMUX_VIDEO,
++			}, {
++				.type = CX231XX_VMUX_COMPOSITE1,
++				.vmux = CX231XX_VIN_2_1,
++				.amux = CX231XX_AMUX_LINE_IN,
++			},
++		},
++	},
+ };
+ const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+ 
+@@ -937,6 +964,8 @@ struct usb_device_id cx231xx_id_table[] = {
+ 	 .driver_info = CX231XX_BOARD_TERRATEC_GRABBY},
+ 	{USB_DEVICE(0x1b80, 0xd3b2),
+ 	.driver_info = CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD},
++	{USB_DEVICE(0x15f4, 0x0135),
++	.driver_info = CX231XX_BOARD_ASTROMETA_T2HYBRID},
+ 	{},
+ };
+ 
+@@ -1013,6 +1042,11 @@ void cx231xx_pre_card_setup(struct cx231xx *dev)
+ 	dev_info(dev->dev, "Identified as %s (card=%d)\n",
+ 		dev->board.name, dev->model);
+ 
++	if (CX231XX_BOARD_ASTROMETA_T2HYBRID == dev->model) {
++		/* turn on demodulator chip */
++		cx231xx_set_gpio_value(dev, 0x03, 0x01);
++	}
++
+ 	/* set the direction for GPIO pins */
+ 	if (dev->board.tuner_gpio) {
+ 		cx231xx_set_gpio_direction(dev, dev->board.tuner_gpio->bit, 1);
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index 46427fd..ee3eeeb 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -37,6 +37,8 @@
+ #include "mb86a20s.h"
+ #include "si2157.h"
+ #include "lgdt3306a.h"
++#include "r820t.h"
++#include "mn88473.h"
+ 
+ MODULE_DESCRIPTION("driver for cx231xx based DVB cards");
+ MODULE_AUTHOR("Srinivasa Deevi <srinivasa.deevi@conexant.com>");
+@@ -164,6 +166,13 @@ static struct lgdt3306a_config hauppauge_955q_lgdt3306a_config = {
+ 	.xtalMHz            = 25,
+ };
+ 
++static struct r820t_config astrometa_t2hybrid_r820t_config = {
++	.i2c_addr		= 0x3a, /* 0x74 >> 1 */
++	.xtal			= 16000000,
++	.rafael_chip		= CHIP_R828D,
++	.max_i2c_msg_len	= 2,
++};
++
+ static inline void print_err_status(struct cx231xx *dev, int packet, int status)
+ {
+ 	char *errmsg = "Unknown";
+@@ -1019,6 +1028,46 @@ static int dvb_init(struct cx231xx *dev)
+ 		dev->dvb->i2c_client_tuner = client;
+ 		break;
+ 	}
++	case CX231XX_BOARD_ASTROMETA_T2HYBRID:
++	{
++		struct i2c_client *client;
++		struct i2c_board_info info = {};
++		struct mn88473_config mn88473_config = {};
++
++		/* attach demodulator chip */
++		mn88473_config.i2c_wr_max = 16;
++		mn88473_config.xtal = 25000000;
++		mn88473_config.fe = &dev->dvb->frontend;
++
++		strlcpy(info.type, "mn88473", sizeof(info.type));
++		info.addr = dev->board.demod_addr;
++		info.platform_data = &mn88473_config;
++
++		request_module(info.type);
++		client = i2c_new_device(demod_i2c, &info);
++
++		if (client == NULL || client->dev.driver == NULL) {
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dvb->i2c_client_demod = client;
++
++		/* define general-purpose callback pointer */
++		dvb->frontend->callback = cx231xx_tuner_callback;
++
++		/* attach tuner chip */
++		dvb_attach(r820t_attach, dev->dvb->frontend,
++			   tuner_i2c,
++			   &astrometa_t2hybrid_r820t_config);
++		break;
++	}
+ 	default:
+ 		dev_err(dev->dev,
+ 			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index d9792ea..986c64b 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -79,6 +79,7 @@
+ #define CX231XX_BOARD_HAUPPAUGE_955Q 21
+ #define CX231XX_BOARD_TERRATEC_GRABBY 22
+ #define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
++#define CX231XX_BOARD_ASTROMETA_T2HYBRID 24
+ 
+ /* Limits minimum and default number of buffers */
+ #define CX231XX_MIN_BUF                 4
+-- 
+2.10.2
