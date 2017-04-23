@@ -1,101 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:19384 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755181AbdDLSV1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Apr 2017 14:21:27 -0400
-Subject: [PATCH 07/14] atomisp: unwrap the _ex malloc/free functions
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Wed, 12 Apr 2017 19:21:22 +0100
-Message-ID: <149202127255.16615.7881549692960927512.stgit@acox1-desk1.ger.corp.intel.com>
-In-Reply-To: <149202119790.16615.4841216953457109397.stgit@acox1-desk1.ger.corp.intel.com>
-References: <149202119790.16615.4841216953457109397.stgit@acox1-desk1.ger.corp.intel.com>
+Received: from nereida.gnuservers.com.ar ([207.192.69.134]:49834 "EHLO
+        nereida.gnuservers.com.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1044697AbdDWJtN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 23 Apr 2017 05:49:13 -0400
+Date: Sun, 23 Apr 2017 11:39:29 +0200
+From: Maximiliano Curia <maxy@debian.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org, David Fries <David@Fries.net>
+Subject: [David@Fries.net: [PATCH] xawtv allow ./configure --disable-alsa to
+ compile when alsa is available]
+Message-ID: <20170423093929.5bvnf4zjhsg3rfub@gnuservers.com.ar>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="hvbobtahjamgifbf"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We are not using these for debugging or debug logging so remove the defines,
-trim and rename the functions.
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
+--hvbobtahjamgifbf
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+I've received a patch for xawtv made by David Fries (I maintain xawtv in=20
+Debian) that I think it would be nice to include in the xawtv3 [1] git repo=
+sitory and in=20
+the next bug fix release. Currently I don't have commit access and I'm=20
+not subscribed to the linux-media mailing list because I haven't received a=
+ reply=20
+about my subscription request.
+
+I'm contacting you (Mauro) as you committed the latest patches in=20
+the git repository, could you please review and/or push the=20
+patch below?
+
+I'm also CCing the mailing list but I don't expect it to reach it. If the m=
+ail=20
+reaches the list, please cc me in the reply.
+
+Please let me know if there is an easier way to contact the linux-media gro=
+up.
+
+Happy hacking,
+
+[1]: https://git.linuxtv.org/xawtv3.git
+
+----- Forwarded message from David Fries <David@Fries.net> -----
+
+Date: Sat, 25 Mar 2017 13:25:54 -0500
+=46rom: David Fries <David@Fries.net>
+To: Maximiliano Curia <maxy@gnuservers.com.ar>
+User-Agent: Mutt/1.5.23 (2014-03-12)
+Subject: [PATCH] xawtv allow ./configure --disable-alsa to compile when als=
+a is available
+
+alsa_loopback is used outside of the HAVE_ALSA check, always define
+it.  Disable alsa_stream.c or the alsa functions are missing symbols.
 ---
- .../media/atomisp/pci/atomisp2/css2400/sh_css.c    |   15 +++------------
- .../atomisp/pci/atomisp2/css2400/sh_css_internal.h |   17 ++++-------------
- 2 files changed, 7 insertions(+), 25 deletions(-)
+I'm debugging a webcam problem, the 'motion' program works once, then
+fails, xawtv unwedges the camera so it can run again.  In trying to
+figure out what xawtv is doing that motion isn't, I went to compile
+without audio to cut down on the ioctls to look at and turns out
+xawtv using audio IS what is unwedging the camera.  That's no good for
+the uvc USB camera driver, or camera, to require audio be setup for it
+to work properly.  Here's a patch to fixup xawtv to compile without
+alsa.  Thanks for supporting this small little program, I would have
+never thought to look at audio otherwise.
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-index 7e337e0..aa19419 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-@@ -2015,34 +2015,25 @@ ia_css_enable_isys_event_queue(bool enable)
- 	return IA_CSS_SUCCESS;
- }
- 
--void *
--sh_css_malloc_ex(size_t size, const char *caller_func, int caller_line)
-+void *sh_css_malloc(size_t size)
- {
- 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "sh_css_malloc() enter: size=%d\n",size);
--	(void)caller_func;
--	(void)caller_line;
- 	if (size > 0 && my_css.malloc)
- 		return my_css.malloc(size, false);
- 	return NULL;
- }
- 
--void *
--sh_css_calloc_ex(size_t N, size_t size, const char *caller_func, int caller_line)
-+void *sh_css_calloc(size_t N, size_t size)
- {
- 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "sh_css_calloc() enter: N=%d, size=%d\n",N,size);
--	(void)caller_func;
--	(void)caller_line;
- 	if (size > 0 && my_css.malloc)
- 		return my_css.malloc(N*size, true);		
- 	return NULL;
- }
- 
--void
--sh_css_free_ex(void *ptr, const char *caller_func, int caller_line)
-+void sh_css_free(void *ptr)
- {
- 	IA_CSS_ENTER_PRIVATE("ptr = %p", ptr);
--	(void)caller_func;
--	(void)caller_line;
- 	if (ptr && my_css.free)
- 		my_css.free(ptr);
- 	IA_CSS_LEAVE_PRIVATE("void");
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_internal.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_internal.h
-index a108923..e2b6f06 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_internal.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_internal.h
-@@ -1002,23 +1002,14 @@ sh_css_params_init(void);
- void
- sh_css_params_uninit(void);
- 
--#define sh_css_malloc(size) sh_css_malloc_ex(size, __func__, __LINE__)
--#define sh_css_calloc(N, size) sh_css_calloc_ex(N, size, __func__, __LINE__)
--#define sh_css_free(ptr) sh_css_free_ex(ptr, __func__, __LINE__)
-+void *sh_css_malloc(size_t size);
- 
-+void *sh_css_calloc(size_t N, size_t size);
- 
--void *
--sh_css_malloc_ex(size_t size, const char *caller_func, int caller_line);
--
--void *
--sh_css_calloc_ex(size_t N, size_t size, const char *caller_func, int caller_lin);
--
--void
--sh_css_free_ex(void *ptr, const char *caller_func, int caller_line);
-+void sh_css_free(void *ptr);
- 
- /* For Acceleration API: Flush FW (shared buffer pointer) arguments */
--void
--sh_css_flush(struct ia_css_acc_fw *fw);
-+void sh_css_flush(struct ia_css_acc_fw *fw);
- 
- 
- void
+ common/alsa_stream.c | 2 +-
+ console/radio.c      | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/common/alsa_stream.c b/common/alsa_stream.c
+index 3e33b5e..85e10b4 100644
+--- a/common/alsa_stream.c
++++ b/common/alsa_stream.c
+@@ -28,7 +28,7 @@
+
+ #include "config.h"
+
+-#ifdef HAVE_ALSA_ASOUNDLIB_H
++#if defined(HAVE_ALSA_ASOUNDLIB_H) && defined(HAVE_ALSA)
+
+ #include <stdio.h>
+ #include <stdlib.h>
+diff --git a/console/radio.c b/console/radio.c
+index 186fd3c..d4f7d57 100644
+--- a/console/radio.c
++++ b/console/radio.c
+@@ -62,8 +62,8 @@
+    USB radio devices benefit from a larger default latency */
+ #define DEFAULT_LATENCY 500
+
+-#if defined(HAVE_ALSA)
+ int alsa_loopback =3D 1;
++#if defined(HAVE_ALSA)
+ char *alsa_playback =3D NULL;
+ char *alsa_capture =3D NULL;
+ int alsa_latency =3D DEFAULT_LATENCY;
+--=20
+2.11.0
+
+----- End forwarded message -----
+
+--=20
+"C makes it easy to shoot yourself in the foot; C++ makes it harder,
+but when you do it blows your whole leg off."
+-- Bjarne Stroustrup
+ Saludos /\/\ /\ >< `/
+
+--hvbobtahjamgifbf
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE+JIdOnQEyG4RNSIVxxl2mbKbIyoFAlj8dksACgkQxxl2mbKb
+IyqGog//SU+emnF5S8tUflo11ohk/a9UqG0q2wgn9Cl78xl2GRA5b6VZ4kYE/9Xr
+BIOBf6ANuCKI1EnWGnACqZPis/Gpjitq//+YVNT/inYUsxqHiv6jDDEqNjjJvpYM
+Mo35Yqf215oH/Nl8tOYRuv45LNoZ3XpSXbSjddCW4j5W8vJuVhc7tR+2Zl33QbgY
+LCqHWKn7B9hBerYyNjGHLXqZJGlU4EF3KJQHvOHKovFdeVqxCs8C6H5oiERXObLN
+Xe9yoDsSnhj48+r5/sD4IZUepTBwfc/UXc4IUxVAaycu1vPdEMh+Up547PEEW8RX
+sAK/4hQWGVAuuBaws2Zwhaulkk8FX186n/9XYBs1egyhKzBS0YZH09jj7c+DJcGD
++cE8WHHXNf13J8Tjsfqwzz3bFIXDQHuCuDTaaHMy2+wwISRu+F4rG9poCxg1SAFr
+Vx55XI7hU5mI25rdeq73xBNkvuxJb+0PjZUcYWxahXfRzvA9j67aizzChPz7pm18
+ruicWO/ho2+hVgwYKJUr3FZopnJatlOCWO6NzmV0nip9bVgxgvGNcfP6wUDuERL7
+hZIyuZtnJwfu14raiN3fC4qGMV/z/ObAKhNxm8Elyft2XL7DnXhhYplkHinWd/r1
+bbCPQegQeQXj+6MGRRxsbDn2kWHGR1t4Bm3M5G2Tfqq7jx//gHY=
+=t+aG
+-----END PGP SIGNATURE-----
+
+--hvbobtahjamgifbf--
