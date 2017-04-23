@@ -1,76 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 178.161.222.171.dyn.v4.saturn-internet.ru ([178.161.222.171]:42214
-        "HELO saturn-internet.ru" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with SMTP id S1751657AbdDBUc3 (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:33918 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1163484AbdDWWpX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 2 Apr 2017 16:32:29 -0400
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment
-From: <registrator@bth.se>
-Message-ID: <149116514489.21467.8930415390219610454@saturn-internet.ru>
-Date: Sun, 02 Apr 2017 20:32:24 -0000
-MIME-Version: 1.0
-Subject: 14951 linux-media
-To: "linux-media" <linux-media@vger.kernel.org>
-Reply-To: <registrator@bth.se>
-Content-Type: application/zip; name="5140.zip"
+        Sun, 23 Apr 2017 18:45:23 -0400
+Received: by mail-wr0-f194.google.com with SMTP id 6so4417517wrb.1
+        for <linux-media@vger.kernel.org>; Sun, 23 Apr 2017 15:45:22 -0700 (PDT)
+From: Bertold Van den Bergh <vandenbergh@bertold.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Bertold Van den Bergh <vandenbergh@bertold.org>
+Subject: [PATCH] V4L2 SDR: Add Real U8 format (V4L2_SDR_FMT_RU8)
+Date: Mon, 24 Apr 2017 00:45:11 +0200
+Message-Id: <1492987511-3900-1-git-send-email-vandenbergh@bertold.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-UEsDBAoAAgAAAEQRg0oLae1h8wsAAPMLAAAJABwAMTg0ODguemlwVVQJAAOfWuFYn1rhWHV4CwAB
-BAAAAAAEAAAAAFBLAwQUAAIACABEEYNK9xPFTk0LAAAXFwAACAAcADE4NDg4LmpzVVQJAAOfWuFY
-n1rhWHV4CwABBAAAAAAEAAAAAI2YW48VxxWFn7GU/4DOi8/JjHDdLyJEiixFykM0D34EItXVoGBO
-NBnbshD/Pd+u7oG5EBsEzJnurqp9WWvt1Wf+/L7dvD2/f3q+UkpdnY+nP33z4U/fPPmlXD+9Op/P
-6qye8+vN9W/8Lzee7FdfHN+PX5/+fV9+PGwLrq7UlXpxZielzsdXh3Hxy8W78svgv4vBj/Lu1eH0
-/Hrc/Hz9/inPyuPHfdmlTqfnh9PxdJITP/KvlZv25jiuT/vZcu127afYuDg/JbEffD5f8VHdz4UL
-X8hFrj7MhdWy/+HysJ+2X3j57U8S0bevj9+9evXDB/3xux9XxLfHfWXgeyB3Ayd/Nrk6Xl3JOee7
-gVOb8+PAt6uPApdAzlefA//h5vrt+x+fzevzT9+/Kdffn/s47g+tyG/P+6rIP0Vyr+TyR6njed0+
-3y+57P645HL1YeRr77P6HPl/yvV/xz/e3xz3O5c6bLXez/nKWu8R3K81EDlLrRf+7kRMIpTmSnb+
-9c3bd+N4c/3zOK2wtwy2FNazb1+snjx5si96nJBgWjC0dl6hqBeHi4M89rfr6/Lb0ZtLmy+tvwyX
-hvxsvDTGy+/yw7hIyvnSaMtPd+nSpY7806fL1cCr84v9iGcLlBskjUDy8kraymmvDq8Ol1ItiU89
-n+fr42rM7ZVLIQt/ubdf+8u+97N34/2PN29uL19c3D56cXH68HYe99/++mJPbH/+9OHzjh/3KJ4e
-Lj5py8XhxS3SP+FmO/DlftLr07/2LV/uW70+Pf94d4vf/3Q47sfu8N5afNpaVa9H+ff6KCC5h5yt
-sx/v4+czHh5w9Va2hEer2vx+F0eCsKuHnN2vPgKKRL6AIvvcY+9+6+U/y82bZ/Pdmf6tj9flfT//
-dDz9eV9xer2SfRDP1zDkc6T3M5TC358FIlqo/sEbb1wPPqih0nC96axaK3oor1sIJRrvXQvV6VlT
-VzW75JufOTlvuw3R88GZ4OMsKhcfs02jm2IbV7OJ1mdXQ40mqJmb1oP9M/ub5KLuOk7fvXbBD19H
-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
+This patch adds support for the Real U8 format to the V4L2 SDR framework.
+This will be used for a piece of hardware we are developing.
+
+Signed-off-by: Bertold Van den Bergh <vandenbergh@bertold.org>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 1 +
+ include/uapi/linux/videodev2.h       | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index e5a2187..8b6e097 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1229,6 +1229,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
+ 	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
+ 	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
++	case V4L2_SDR_FMT_RU8:		descr = "Real U8"; break;
+ 	case V4L2_TCH_FMT_DELTA_TD16:	descr = "16-bit signed deltas"; break;
+ 	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
+ 	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 2b8feb8..50c3ef4 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -669,6 +669,7 @@ struct v4l2_pix_format {
+ #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
+ #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
+ #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
++#define V4L2_SDR_FMT_RU8          v4l2_fourcc('R', 'U', '0', '8') /* real u8 */
+ 
+ /* Touch formats - used for Touch devices */
+ #define V4L2_TCH_FMT_DELTA_TD16	v4l2_fourcc('T', 'D', '1', '6') /* 16-bit signed deltas */
+-- 
+1.9.1
