@@ -1,58 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:38593 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752227AbdDDCak (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 22:30:40 -0400
-Date: Tue, 04 Apr 2017 11:30:38 +0900
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Alexey Ignatov <lexszero@gmail.com>
+Received: from smtp09.smtpout.orange.fr ([80.12.242.131]:24893 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1046091AbdDWVk5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 23 Apr 2017 17:40:57 -0400
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To: pawel@osciak.com, m.szyprowski@samsung.com,
+        kyungmin.park@samsung.com, mchehab@kernel.org
 Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>
-Subject: Re: [PATCH] [media] lirc_dev: fix regression in feature check logic in
- ioctl
-Message-id: <20170404022951.6sjwgobn3jl6bwxr@gangnam.samsung>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-disposition: inline
-In-reply-to: <20170403231916.22881-1-lexszero@gmail.com>
-References: <CGME20170403232013epcas5p29f40704fb57de62bf45369d5b6442a88@epcas5p2.samsung.com>
- <20170403231916.22881-1-lexszero@gmail.com>
+        kernel-janitors@vger.kernel.org,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: [PATCH 1/2] [media] vb2: Fix an off by one error in 'vb2_plane_vaddr'
+Date: Sun, 23 Apr 2017 23:32:57 +0200
+Message-Id: <20170423213257.14773-1-christophe.jaillet@wanadoo.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alexey,
+We should ensure that 'plane_no' is '< vb->num_planes' as done in
+'vb2_plane_cookie' just a few lines below.
 
-this has been already fixed in commit bd291208d7f5 ("[media]
-lirc_dev: LIRC_{G,S}ET_REC_MODE do not work") by Sean.
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-You need to update your kernel or cherry-pick this patch.
-
-In any case, for future patches of this kind, some notes through
-the lines:
-
-On Tue, Apr 04, 2017 at 02:19:16AM +0300, Alexey Ignatov wrote:
-> Commit 273b902a5b1bfd6977a73c4de3eb96db3cb103cb removed inversion in
-
-References to commit should be of the kind:
-
-Commit 273b902a5b1b ("[media] lirc_dev: use LIRC_CAN_REC() define
-to check if the device can receive")
-
-Please run checkpatch.pl before sending the patch.
-
-> features check conditionals (by accident, perhaps). That change resulted
-> in erroneous reporting that device can't receive while actually it can.
-> Fix this.
-> 
-> Signed-off-by: Alexey Ignatov <lexszero@gmail.com>
-
-Here goes:
-
-Fixes: 273b902a5b1b ("[media] lirc_dev: use LIRC_CAN_REC() define to check if the device can receive")
-Cc: <stable@vger.kernel.org>
-
-because it fixes a bug (check Sean's patch).
-
-Thanks,
-Andi
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 94afbbf92807..c0175ea7e7ad 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -868,7 +868,7 @@ EXPORT_SYMBOL_GPL(vb2_core_create_bufs);
+ 
+ void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no)
+ {
+-	if (plane_no > vb->num_planes || !vb->planes[plane_no].mem_priv)
++	if (plane_no >= vb->num_planes || !vb->planes[plane_no].mem_priv)
+ 		return NULL;
+ 
+ 	return call_ptr_memop(vb, vaddr, vb->planes[plane_no].mem_priv);
+-- 
+2.11.0
