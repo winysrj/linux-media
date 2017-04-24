@@ -1,66 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36352 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756293AbdDPRgB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44004 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S976332AbdDXRvA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Apr 2017 13:36:01 -0400
-Received: by mail-wm0-f68.google.com with SMTP id q125so5870508wmd.3
-        for <linux-media@vger.kernel.org>; Sun, 16 Apr 2017 10:36:00 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: guennadi.liakhovetski@intel.com, hans.verkuil@cisco.com,
-        =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 3/7] ov2640: add information about DSP register 0xc7
-Date: Sun, 16 Apr 2017 19:35:42 +0200
-Message-Id: <20170416173546.4317-4-fschaefer.oss@googlemail.com>
-In-Reply-To: <20170416173546.4317-1-fschaefer.oss@googlemail.com>
-References: <20170416173546.4317-1-fschaefer.oss@googlemail.com>
+        Mon, 24 Apr 2017 13:51:00 -0400
+Date: Mon, 24 Apr 2017 20:50:23 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Pavel Machek <pavel@ucw.cz>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
+        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Bhumika Goyal <bhumirks@gmail.com>
+Subject: Re: [PATCH] [media] ov2640: make GPIOLIB an optional dependency
+Message-ID: <20170424175023.GV7456@valkosipuli.retiisi.org.uk>
+References: <a463ea990d2138ca93027b006be96a0324b77fe4.1492602584.git.mchehab@s-opensource.com>
+ <20170419132339.GA31747@amd>
+ <20170419110300.2dbbf784@vento.lan>
+ <20170421063312.GA21434@amd>
+ <20170421113934.55158d51@vento.lan>
+ <20170424144402.GS7456@valkosipuli.retiisi.org.uk>
+ <20170424125036.0d17e213@vento.lan>
+ <20170424173847.GU7456@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170424173847.GU7456@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-According to ov2640 software application notes, there are two Automatic
-White Balance (AWB) modes, which are selected by DSP register 0xc7:
+On Mon, Apr 24, 2017 at 08:38:47PM +0300, Sakari Ailus wrote:
+...
+> ret won't be zero here, that was checked above. You could check for just ret
+> though, it'd be easier to read that way.
 
-1) Simple AWB: assumes the average color is gray
-   + independent from lens
-   - doesn't work well if captured area contains unbalanced colors
-     (e.g. large blue background)
+I missed ret would have to have type long instead. How about:
 
-2) Advanced AWB: uses color temperature information
-   + more accurate, works with all image contents
-   - lens specific, requires calibration
+ret = PTR_ERR(priv->reset_gpio);
+if (!priv->reset_gpio) {
+	dev_dbg("reset gpio is not assigned\n");
+} else if (IS_ERR(priv->reset_gpio) && ret != -ENOSYS) {
+	dev_dbg("error %d while getting reset gpio", ret);
+	return ret;
+}
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/i2c/ov2640.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-index fd1b215b6dec..11f1b807c292 100644
---- a/drivers/media/i2c/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -106,6 +106,10 @@
- #define   CTRL1_AWB_GAIN     0x04
- #define   CTRL1_LENC         0x02
- #define   CTRL1_PRE          0x01
-+/*      REG 0xC7 (unknown name): affects Auto White Balance (AWB)
-+ *	  AWB_OFF            0x40
-+ *	  AWB_SIMPLE         0x10
-+ *	  AWB_ON             0x00	(Advanced AWB ?) */
- #define R_DVP_SP    0xD3 /* DVP output speed control */
- #define   R_DVP_SP_AUTO_MODE 0x80
- #define   R_DVP_SP_DVP_MASK  0x3F /* DVP PCLK = sysclk (48)/[6:0] (YUV0);
-@@ -449,7 +453,7 @@ static const struct regval_list ov2640_init_regs[] = {
- 	{ 0xc5,   0x11 },
- 	{ 0xc6,   0x51 },
- 	{ 0xbf,   0x80 },
--	{ 0xc7,   0x10 },
-+	{ 0xc7,   0x10 },	/* simple AWB */
- 	{ 0xb6,   0x66 },
- 	{ 0xb8,   0xA5 },
- 	{ 0xb7,   0x64 },
 -- 
-2.12.2
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
