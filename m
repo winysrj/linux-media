@@ -1,101 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54097 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1430214AbdDYM2X (ORCPT
+Received: from smtp13.smtpout.orange.fr ([80.12.242.135]:21118 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1174057AbdDXUBG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 08:28:23 -0400
-Date: Tue, 25 Apr 2017 14:28:20 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: support autofocus / autogain in libv4l2
-Message-ID: <20170425122820.GD7926@amd>
-References: <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan>
- <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan>
- <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan>
- <20170425080538.GA30380@amd>
- <20170425080815.GD30553@pali>
- <20170425112330.GB7926@amd>
- <20170425113009.GH30553@pali>
+        Mon, 24 Apr 2017 16:01:06 -0400
+Subject: Re: [PATCH 1/2] [media] vb2: Fix an off by one error in
+ 'vb2_plane_vaddr'
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <20170423213257.14773-1-christophe.jaillet@wanadoo.fr>
+ <20170424141655.GQ7456@valkosipuli.retiisi.org.uk>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+        kyungmin.park@samsung.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Message-ID: <9aab41eb-5543-58d2-211f-95fb00f5176c@wanadoo.fr>
+Date: Mon, 24 Apr 2017 22:00:24 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="VV4b6MQE+OnNyhkM"
-Content-Disposition: inline
-In-Reply-To: <20170425113009.GH30553@pali>
+In-Reply-To: <20170424141655.GQ7456@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Le 24/04/2017 à 16:16, Sakari Ailus a écrit :
+> On Sun, Apr 23, 2017 at 11:32:57PM +0200, Christophe JAILLET wrote:
+>> We should ensure that 'plane_no' is '< vb->num_planes' as done in
+>> 'vb2_plane_cookie' just a few lines below.
+>>
+>> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+>> ---
+>>   drivers/media/v4l2-core/videobuf2-core.c | 2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>> index 94afbbf92807..c0175ea7e7ad 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -868,7 +868,7 @@ EXPORT_SYMBOL_GPL(vb2_core_create_bufs);
+>>   
+>>   void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no)
+>>   {
+>> -	if (plane_no > vb->num_planes || !vb->planes[plane_no].mem_priv)
+>> +	if (plane_no >= vb->num_planes || !vb->planes[plane_no].mem_priv)
+>>   		return NULL;
+>>   
+>>   	return call_ptr_memop(vb, vaddr, vb->planes[plane_no].mem_priv);
+> Oh my. How could this happen?
+>
+> This should go to stable as well.
+Should I resubmit with "Cc: stable@vger.kernel.org" or will you add it 
+yourself?
 
---VV4b6MQE+OnNyhkM
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+CJ
 
-On Tue 2017-04-25 13:30:09, Pali Roh=E1r wrote:
-> On Tuesday 25 April 2017 13:23:30 Pavel Machek wrote:
-> > Hi!
-> > On Tue 2017-04-25 10:08:15, Pali Roh=E1r wrote:
-> > > On Tuesday 25 April 2017 10:05:38 Pavel Machek wrote:
-> > > > > > It would be nice if more than one application could be accessin=
-g the
-> > > > > > camera at the same time... (I.e. something graphical running pr=
-eview
-> > > > > > then using command line tool to grab a picture.) This one is
-> > > > > > definitely not solveable inside a library...
-> > > > >=20
-> > > > > Someone once suggested to have something like pulseaudio for V4L.
-> > > > > For such usage, a server would be interesting. Yet, I would code =
-it
-> > > > > in a way that applications using libv4l will talk with such daemon
-> > > > > in a transparent way.
-> > > >=20
-> > > > Yes, we need something like pulseaudio for V4L. And yes, we should
-> > > > make it transparent for applications using libv4l.
-> > >=20
-> > > IIRC there is already some effort in writing such "video" server which
-> > > would support accessing more application into webcam video, like
-> > > pulseaudio server for accessing more applications to microphone input.
-> >=20
-> > Do you have project name / url / something?
->=20
-> Pinos (renamed from PulseVideo)
->=20
-> https://blogs.gnome.org/uraeus/2015/06/30/introducing-pulse-video/
-> https://cgit.freedesktop.org/~wtay/pinos/
->=20
-> But from git history it looks like it is probably dead now...
-
-Actually, last commit is an hour ago on "work" branch. Seems alive to
-me ;-).
-
-Thanks for pointer...
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---VV4b6MQE+OnNyhkM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlj/QOQACgkQMOfwapXb+vLofgCbBkdPWyCO189iWJQH52URbxCP
-V0MAn3ll1IdttAg0cFZWuuSSRNGbvFB0
-=OJ60
------END PGP SIGNATURE-----
-
---VV4b6MQE+OnNyhkM--
+> Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
