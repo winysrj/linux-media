@@ -1,152 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:38199 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752879AbdDMWG2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 18:06:28 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Steve Wise <swise@opengridcomputing.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:16 -0600
-Message-Id: <1492121135-4437-4-git-send-email-logang@deltatee.com>
-In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 03/22] libiscsi: Make use of new the sg_map helper function
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:51548 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932790AbdDXEJk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Apr 2017 00:09:40 -0400
+Message-ID: <d3cf71a664a81827ab6a891f7f97396e@smtp-cloud2.xs4all.net>
+Date: Mon, 24 Apr 2017 06:09:37 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert the kmap and kmap_atomic uses to the sg_map function. We now
-store the flags for the kmap instead of a boolean to indicate
-atomicitiy. We also propogate a possible kmap error down and create
-a new ISCSI_TCP_INTERNAL_ERR error type for this.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- drivers/scsi/cxgbi/libcxgbi.c |  5 +++++
- drivers/scsi/libiscsi_tcp.c   | 32 ++++++++++++++++++++------------
- include/scsi/libiscsi_tcp.h   |  3 ++-
- 3 files changed, 27 insertions(+), 13 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/scsi/cxgbi/libcxgbi.c b/drivers/scsi/cxgbi/libcxgbi.c
-index bd7d39e..e38d0c1 100644
---- a/drivers/scsi/cxgbi/libcxgbi.c
-+++ b/drivers/scsi/cxgbi/libcxgbi.c
-@@ -1556,6 +1556,11 @@ static inline int read_pdu_skb(struct iscsi_conn *conn,
- 		 */
- 		iscsi_conn_printk(KERN_ERR, conn, "Invalid pdu or skb.");
- 		return -EFAULT;
-+	case ISCSI_TCP_INTERNAL_ERR:
-+		pr_info("skb 0x%p, off %u, %d, TCP_INTERNAL_ERR.\n",
-+			skb, offset, offloaded);
-+		iscsi_conn_printk(KERN_ERR, conn, "Internal error.");
-+		return -EFAULT;
- 	case ISCSI_TCP_SEGMENT_DONE:
- 		log_debug(1 << CXGBI_DBG_PDU_RX,
- 			"skb 0x%p, off %u, %d, TCP_SEG_DONE, rc %d.\n",
-diff --git a/drivers/scsi/libiscsi_tcp.c b/drivers/scsi/libiscsi_tcp.c
-index 63a1d69..a2427699 100644
---- a/drivers/scsi/libiscsi_tcp.c
-+++ b/drivers/scsi/libiscsi_tcp.c
-@@ -133,25 +133,23 @@ static void iscsi_tcp_segment_map(struct iscsi_segment *segment, int recv)
- 	if (page_count(sg_page(sg)) >= 1 && !recv)
- 		return;
- 
--	if (recv) {
--		segment->atomic_mapped = true;
--		segment->sg_mapped = kmap_atomic(sg_page(sg));
--	} else {
--		segment->atomic_mapped = false;
--		/* the xmit path can sleep with the page mapped so use kmap */
--		segment->sg_mapped = kmap(sg_page(sg));
-+	/* the xmit path can sleep with the page mapped so don't use atomic */
-+	segment->sg_map_flags = recv ? SG_KMAP_ATOMIC : SG_KMAP;
-+	segment->sg_mapped = sg_map(sg, segment->sg_map_flags);
-+
-+	if (IS_ERR(segment->sg_mapped)) {
-+		segment->sg_mapped = NULL;
-+		return;
- 	}
- 
--	segment->data = segment->sg_mapped + sg->offset + segment->sg_offset;
-+	segment->data = segment->sg_mapped + segment->sg_offset;
- }
- 
- void iscsi_tcp_segment_unmap(struct iscsi_segment *segment)
- {
- 	if (segment->sg_mapped) {
--		if (segment->atomic_mapped)
--			kunmap_atomic(segment->sg_mapped);
--		else
--			kunmap(sg_page(segment->sg));
-+		sg_unmap(segment->sg, segment->sg_mapped,
-+			  segment->sg_map_flags);
- 		segment->sg_mapped = NULL;
- 		segment->data = NULL;
- 	}
-@@ -304,6 +302,9 @@ iscsi_tcp_segment_recv(struct iscsi_tcp_conn *tcp_conn,
- 			break;
- 		}
- 
-+		if (segment->data)
-+			return -EFAULT;
-+
- 		copy = min(len - copied, segment->size - segment->copied);
- 		ISCSI_DBG_TCP(tcp_conn->iscsi_conn, "copying %d\n", copy);
- 		memcpy(segment->data + segment->copied, ptr + copied, copy);
-@@ -927,6 +928,13 @@ int iscsi_tcp_recv_skb(struct iscsi_conn *conn, struct sk_buff *skb,
- 			      avail);
- 		rc = iscsi_tcp_segment_recv(tcp_conn, segment, ptr, avail);
- 		BUG_ON(rc == 0);
-+		if (rc < 0) {
-+			ISCSI_DBG_TCP(conn, "memory fault. Consumed %d\n",
-+				      consumed);
-+			*status = ISCSI_TCP_INTERNAL_ERR;
-+			goto skb_done;
-+		}
-+
- 		consumed += rc;
- 
- 		if (segment->total_copied >= segment->total_size) {
-diff --git a/include/scsi/libiscsi_tcp.h b/include/scsi/libiscsi_tcp.h
-index 30520d5..58c79af 100644
---- a/include/scsi/libiscsi_tcp.h
-+++ b/include/scsi/libiscsi_tcp.h
-@@ -47,7 +47,7 @@ struct iscsi_segment {
- 	struct scatterlist	*sg;
- 	void			*sg_mapped;
- 	unsigned int		sg_offset;
--	bool			atomic_mapped;
-+	int			sg_map_flags;
- 
- 	iscsi_segment_done_fn_t	*done;
- };
-@@ -92,6 +92,7 @@ enum {
- 	ISCSI_TCP_SKB_DONE,		/* skb is out of data */
- 	ISCSI_TCP_CONN_ERR,		/* iscsi layer has fired a conn err */
- 	ISCSI_TCP_SUSPENDED,		/* conn is suspended */
-+	ISCSI_TCP_INTERNAL_ERR,         /* an internal error occurred */
- };
- 
- extern void iscsi_tcp_hdr_recv_prep(struct iscsi_tcp_conn *tcp_conn);
--- 
-2.1.4
+date:			Mon Apr 24 05:00:16 CEST 2017
+media-tree git hash:	9eb9db3a0f92b75ec710066202e0b2accb45afa9
+media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
+v4l-utils git hash:	b514d615166bdc0901a4c71261b87db31e89f464
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10.1-i686: OK
+linux-4.11-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-x86_64: WARNINGS
+linux-4.10.1-x86_64: WARNINGS
+linux-4.11-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
