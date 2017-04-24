@@ -1,125 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-co1nam03on0109.outbound.protection.outlook.com ([104.47.40.109]:52148
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753930AbdDFHjp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Apr 2017 03:39:45 -0400
-From: <Yasunari.Takiguchi@sony.com>
-To: <akpm@linux-foundation.org>, <linux-kernel@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>
-CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
-        <Masayuki.Yamamoto@sony.com>, <Hideki.Nozawa@sony.com>,
-        <Kota.Yonezawa@sony.com>, <Toshihiko.Matsumoto@sony.com>,
-        <Satoshi.C.Watanabe@sony.com>, <Yasunari.Takiguchi@jp.sony.com>,
-        "Yasunari Takiguchi" <Yasunari.Takiguchi@sony.com>
-Subject: [PATCH 0/5] dt-bindings: media: Add document file and driver 
-Date: Thu, 6 Apr 2017 16:42:18 +0900
-Message-ID: <1491464538-7651-1-git-send-email-Yasunari.Takiguchi@sony.com>
+Received: from smtp13.smtpout.orange.fr ([80.12.242.135]:54816 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1174384AbdDXUZW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Apr 2017 16:25:22 -0400
+Subject: Re: [PATCH 2/2] [media] vb2: Fix error handling in
+ '__vb2_buf_mem_alloc'
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <20170423214030.14854-1-christophe.jaillet@wanadoo.fr>
+ <20170424142335.GR7456@valkosipuli.retiisi.org.uk>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+        kyungmin.park@samsung.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Message-ID: <030bab0d-0c5d-b65e-a7aa-54662bf42eb1@wanadoo.fr>
+Date: Mon, 24 Apr 2017 22:25:18 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20170424142335.GR7456@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Le 24/04/2017 à 16:23, Sakari Ailus a écrit :
+> Hi Christophe,
+>
+> On Sun, Apr 23, 2017 at 11:40:30PM +0200, Christophe JAILLET wrote:
+>> 'call_ptr_memop' can return NULL, so we must test its return value with
+>> 'IS_ERR_OR_NULL'. Otherwise, the test 'if (mem_priv)' is meaningless.
+>>
+>> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+>> ---
+>> Note that error checking after 'call_ptr_memop' calls is not consistent
+>> in this file. I guess that 'IS_ERR_OR_NULL' should be used everywhere
+>> and that the corresponding error handling code should be tweaked just as
+>> the code in this function.
+>> ---
+>>   drivers/media/v4l2-core/videobuf2-core.c | 2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>> index c0175ea7e7ad..d1d3f5dd57b9 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -210,7 +210,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>>   		mem_priv = call_ptr_memop(vb, alloc,
+>>   				q->alloc_devs[plane] ? : q->dev,
+>>   				q->dma_attrs, size, dma_dir, q->gfp_flags);
+>> -		if (IS_ERR(mem_priv)) {
+>> +		if (IS_ERR_OR_NULL(mem_priv)) {
+>>   			if (mem_priv)
+>>   				ret = PTR_ERR(mem_priv);
+>>   			goto free;
+> If NULL will always equate -ENOMEM, shouldn't call_ptr_memop() be changed
+> instead to convert NULL to ERR_PTR(-ENOMEM)?
+>
+I agree with you, but in fact, I don't know if "NULL will always equate 
+-ENOMEM"
 
-Hi,
+The return value of 'call_ptr_memop' is likely the result of a function 
+called via a function pointer. I don't know if this function can return 
+NULL or not.
+I don't know the code enough to see if it would be safe and if this 
+assertion is correct.
 
-This is the patch series of Sony CXD2880 DVB-T2/T tuner + demodulator driver.
-The driver supports DVB-API and interfaces through SPI.
+So the easiest for me is to just propose a fix to accept NULL.
 
-We have tested the driver on Raspberry Pi 3 and got picture and sound from a media player.
+
+*** Digging deeper ***
+
+In 'videobuf2-core.h', there is:
+
+/**
+  * struct vb2_mem_ops - memory handling/memory allocator operations
+  * @alloc:      allocate video memory and, optionally, allocator 
+private data,
+  *              return ERR_PTR() on failure or a pointer to allocator 
+private,
+  *              per-buffer data on success; the returned private structure
+  *              will then be passed as @buf_priv argument to other ops 
+in this
+  *              structure. Additional gfp_flags to use when allocating the
+  *              are also passed to this operation. These flags are from the
+  *              gfp_flags field of vb2_queue.
+
+So the 'alloc' function should return an ERR_PTR in case of error.
+'vb2_vmalloc_alloc', 'vb2_dc_alloc' and 'vb2_dma_sg_alloc' does. 
+(confirmed by code inspection, based on the 'standard' list of alloc 
+functions found in see https://lwn.net/Articles/447435/)
+
+But what if a module implements its own set of functions and returns 
+NULL in such a case?
+
+Anyway, I will propose a patch that returns ERR_PTR(-ENOMEM) instead of 
+NULL, but I won't be able to test it on my own.
 
 Thanks,
-Takiguchi
----
- Documentation//devicetree/bindings/media/spi/sony-cxd2880.txt        |   14 ++++++++++++++
- drivers/media/spi/Kconfig                                            |   14 +
- drivers/media/spi/Makefile                                           |    5 +
- drivers/media/spi/cxd2880-spi.c                                      |  727 +++++++++++++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/Kconfig                                  |    2 +
- drivers/media/dvb-frontends/Makefile                                 |    1 +
- drivers/media/dvb-frontends/cxd2880/Kconfig                          |    6 +
- drivers/media/dvb-frontends/cxd2880/Makefile                         |   22 +
- drivers/media/dvb-frontends/cxd2880/cxd2880.h                        |   46 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_common.c                 |   84 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_common.h                 |   86 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c              |  147 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h              |   40 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_dtv.h                    |   50 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c                  |   99 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h                  |   44 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_io.c                     |   68 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_io.h                     |   62 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_math.c                   |   89 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_math.h                   |   40 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h                    |   51 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c             |  130 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h             |   45 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_stdlib.h                 |   35 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_stopwatch_port.c         |   71 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c                 | 3925 ++++++++++++++++++++
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.h                 |  395 ++
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_driver_version.h  |   29 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.c             |  207 ++
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.h             |   52 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_top.c                    | 1550 ++++++++
- drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt.h                   |   91 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h                  |  402 ++++
- drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.c             |  197 ++
- drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.h             |   58 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.c            |  311 +++
- drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.h            |   64 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c            | 1072 +++++++++
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.h            |   62 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c           | 1309 ++++++++++
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h           |   82 +
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c       | 2523 ++++++++++++++++++++
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.h       |  170 ++
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c        | 1190 +++++++++
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.h        |  106 +
- MAINTAINERS                                                          |    9 +++++++++
- 46 files changed, 15782 insertions(+)
 
- create mode 100644 Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
- create mode 100644 drivers/media/spi/cxd2880-spi.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/Kconfig
- create mode 100644 drivers/media/dvb-frontends/cxd2880/Makefile
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_common.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_common.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_dtv.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_io.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_io.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_math.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_math.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_stdlib.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_stopwatch_port.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_driver_version.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_mon.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_top.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt2.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.h
--- 
-1.7.9.5
+CJ
