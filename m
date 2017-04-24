@@ -1,128 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59932 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751968AbdDGWKu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Apr 2017 18:10:50 -0400
-Date: Sat, 8 Apr 2017 01:10:47 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 4/8] v4l: async: Provide interoperability between OF
- and fwnode matching
-Message-ID: <20170407221047.GL4192@valkosipuli.retiisi.org.uk>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
- <1491484330-12040-5-git-send-email-sakari.ailus@linux.intel.com>
- <4169138.83VydnvH0Q@avalon>
+Received: from gofer.mess.org ([88.97.38.141]:37863 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S972573AbdDXQBz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Apr 2017 12:01:55 -0400
+Date: Mon, 24 Apr 2017 17:01:53 +0100
+From: Sean Young <sean@mess.org>
+To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: [PATCH] rc-core: use the full 32 bits for NEC scancodes in
+ wakefilters
+Message-ID: <20170424160153.GB12437@gofer.mess.org>
+References: <149254746451.9595.15629164506779251309.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <4169138.83VydnvH0Q@avalon>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <149254746451.9595.15629164506779251309.stgit@zeus.hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Tue, Apr 18, 2017 at 10:31:04PM +0200, David Härdeman wrote:
+> The new sysfs wakefilter API will expose the difference between the NEC
+> protocols to userspace for no good reason and once exposed, it will be much
+> more difficult to change the logic.
+> 
+> By only allowing full NEC32 scancodes to be set, any heuristics in the kernel
+> can be avoided.
 
-On Fri, Apr 07, 2017 at 01:07:48PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> On Thursday 06 Apr 2017 16:12:06 Sakari Ailus wrote:
-> > OF and fwnode support are separated in V4L2 and individual drivers may
-> > implement one of them. Sub-devices do not match with a notifier
-> > expecting sub-devices with fwnodes, nor the other way around.
-> 
-> Shouldn't we instead convert all drivers to fwnode matching ? What's missing 
-> after the mass conversion in patch 5/8 ?
+No heuristics are being removed in this patch or the other patch for nec32,
+if anything it gets worse.
 
-A lot of drivers use the OF frame work and thus do not deal with fwnodes
-directly. I haven't entirely converted them to use the fwnode API since
-making additional, unnecessary changes increases the likelihood of errors.
+This patch depends on the other patch, which needs work.
 
 > 
-> > Fix this by checking for sub-device's of_node field in fwnode match and
-> > fwnode field in OF match.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-async.c | 26 +++++++++++++++++++++++---
-> >  include/media/v4l2-async.h           |  2 +-
-> >  2 files changed, 24 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> > b/drivers/media/v4l2-core/v4l2-async.c index 384ad5e..7f5d804 100644
-> > --- a/drivers/media/v4l2-core/v4l2-async.c
-> > +++ b/drivers/media/v4l2-core/v4l2-async.c
-> > @@ -14,6 +14,7 @@
-> >  #include <linux/list.h>
-> >  #include <linux/module.h>
-> >  #include <linux/mutex.h>
-> > +#include <linux/of.h>
-> >  #include <linux/platform_device.h>
-> >  #include <linux/slab.h>
-> >  #include <linux/types.h>
-> > @@ -40,15 +41,34 @@ static bool match_devname(struct v4l2_subdev *sd,
-> >  	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
-> >  }
-> > 
-> > +static bool fwnode_cmp(struct fwnode_handle *one,
-> > +		       struct fwnode_handle *theother)
-> > +{
-> > +	if (!one || !theother)
-> > +		return false;
-> > +
-> > +	if (one->type != theother->type)
-> > +		return false;
-> > +
-> > +	if (is_of_node(one))
-> > +		return !of_node_cmp(of_node_full_name(to_of_node(one)),
-> > +				    of_node_full_name(to_of_node(theother)));
-> > +	else
-> > +		return one == theother;
-> > +}
-> > +
-> >  static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
-> > {
-> > -	return !of_node_cmp(of_node_full_name(sd->of_node),
-> > -			    of_node_full_name(asd->match.of.node));
-> > +	return fwnode_cmp(sd->of_node ?
-> > +			  of_fwnode_handle(sd->of_node) : sd->fwnode,
-> > +			  of_fwnode_handle(asd->match.of.node));
-> >  }
-> > 
-> >  static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev
-> > *asd)
-> >  {
-> > -	return sd->fwnode == asd->match.fwnode.fwn;
-> > +	return fwnode_cmp(sd->of_node ?
-> > +			  of_fwnode_handle(sd->of_node) : sd->fwnode,
-> > +					   asd->match.fwnode.fwn);
-> >  }
-> > 
-> >  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev
-> > *asd) diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> > index 8f552d2..df8b682 100644
-> > --- a/include/media/v4l2-async.h
-> > +++ b/include/media/v4l2-async.h
-> > @@ -57,7 +57,7 @@ struct v4l2_async_subdev {
-> >  	enum v4l2_async_match_type match_type;
-> >  	union {
-> >  		struct {
-> > -			const struct device_node *node;
-> > +			struct device_node *node;
+> This is the minimalistic version of the full NEC32 patch posted here:
+> http://www.spinics.net/lists/linux-media/msg114603.html
 > 
-> That seems to be a bit of a hack :-( I'd rather make everything const and cast 
-> to non-const pointers explicitly where the API requires us to. Or, better, add 
-> a to_of_node_const() function.
-
-I'll see what I can do to the matter, but if you don't mind, I'll base it on
-this patchset.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> Signed-off-by: David Härdeman <david@hardeman.nu>
+> ---
+>  drivers/media/rc/rc-main.c     |   17 ++++-------------
+>  drivers/media/rc/winbond-cir.c |   32 ++------------------------------
+>  2 files changed, 6 insertions(+), 43 deletions(-)
+> 
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 6ec73357fa47..8a2a2973e718 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -742,8 +742,6 @@ static int rc_validate_filter(struct rc_dev *dev,
+>  		[RC_TYPE_SONY15] = 0xff007f,
+>  		[RC_TYPE_SONY20] = 0x1fff7f,
+>  		[RC_TYPE_JVC] = 0xffff,
+> -		[RC_TYPE_NEC] = 0xffff,
+> -		[RC_TYPE_NECX] = 0xffffff,
+>  		[RC_TYPE_NEC32] = 0xffffffff,
+>  		[RC_TYPE_SANYO] = 0x1fffff,
+>  		[RC_TYPE_MCIR2_KBD] = 0xffff,
+> @@ -759,14 +757,9 @@ static int rc_validate_filter(struct rc_dev *dev,
+>  	enum rc_type protocol = dev->wakeup_protocol;
+>  
+>  	switch (protocol) {
+> +	case RC_TYPE_NEC:
+>  	case RC_TYPE_NECX:
+> -		if ((((s >> 16) ^ ~(s >> 8)) & 0xff) == 0)
+> -			return -EINVAL;
+> -		break;
+> -	case RC_TYPE_NEC32:
+> -		if ((((s >> 24) ^ ~(s >> 16)) & 0xff) == 0)
+> -			return -EINVAL;
+> -		break;
+> +		return -EINVAL;
+>  	case RC_TYPE_RC6_MCE:
+>  		if ((s & 0xffff0000) != 0x800f0000)
+>  			return -EINVAL;
+> @@ -1330,7 +1323,7 @@ static ssize_t store_filter(struct device *device,
+>  /*
+>   * This is the list of all variants of all protocols, which is used by
+>   * the wakeup_protocols sysfs entry. In the protocols sysfs entry some
+> - * some protocols are grouped together (e.g. nec = nec + necx + nec32).
+> + * some protocols are grouped together.
+>   *
+>   * For wakeup we need to know the exact protocol variant so the hardware
+>   * can be programmed exactly what to expect.
+> @@ -1345,9 +1338,7 @@ static const char * const proto_variant_names[] = {
+>  	[RC_TYPE_SONY12] = "sony-12",
+>  	[RC_TYPE_SONY15] = "sony-15",
+>  	[RC_TYPE_SONY20] = "sony-20",
+> -	[RC_TYPE_NEC] = "nec",
+> -	[RC_TYPE_NECX] = "nec-x",
+> -	[RC_TYPE_NEC32] = "nec-32",
+> +	[RC_TYPE_NEC32] = "nec",
+>  	[RC_TYPE_SANYO] = "sanyo",
+>  	[RC_TYPE_MCIR2_KBD] = "mcir2-kbd",
+>  	[RC_TYPE_MCIR2_MSE] = "mcir2-mse",
+> diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+> index 5a4d4a611197..6ef0e7232356 100644
+> --- a/drivers/media/rc/winbond-cir.c
+> +++ b/drivers/media/rc/winbond-cir.c
+> @@ -714,34 +714,6 @@ wbcir_shutdown(struct pnp_dev *device)
+>  		proto = IR_PROTOCOL_RC5;
+>  		break;
+>  
+> -	case RC_TYPE_NEC:
+> -		mask[1] = bitrev8(mask_sc);
+> -		mask[0] = mask[1];
+> -		mask[3] = bitrev8(mask_sc >> 8);
+> -		mask[2] = mask[3];
+> -
+> -		match[1] = bitrev8(wake_sc);
+> -		match[0] = ~match[1];
+> -		match[3] = bitrev8(wake_sc >> 8);
+> -		match[2] = ~match[3];
+> -
+> -		proto = IR_PROTOCOL_NEC;
+> -		break;
+> -
+> -	case RC_TYPE_NECX:
+> -		mask[1] = bitrev8(mask_sc);
+> -		mask[0] = mask[1];
+> -		mask[2] = bitrev8(mask_sc >> 8);
+> -		mask[3] = bitrev8(mask_sc >> 16);
+> -
+> -		match[1] = bitrev8(wake_sc);
+> -		match[0] = ~match[1];
+> -		match[2] = bitrev8(wake_sc >> 8);
+> -		match[3] = bitrev8(wake_sc >> 16);
+> -
+> -		proto = IR_PROTOCOL_NEC;
+> -		break;
+> -
+>  	case RC_TYPE_NEC32:
+>  		mask[0] = bitrev8(mask_sc);
+>  		mask[1] = bitrev8(mask_sc >> 8);
+> @@ -1087,8 +1059,8 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
+>  	data->dev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
+>  	data->dev->rx_resolution = US_TO_NS(2);
+>  	data->dev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
+> -	data->dev->allowed_wakeup_protocols = RC_BIT_NEC | RC_BIT_NECX |
+> -			RC_BIT_NEC32 | RC_BIT_RC5 | RC_BIT_RC6_0 |
+> +	data->dev->allowed_wakeup_protocols =
+> +			RC_BIT_NEC | RC_BIT_RC5 | RC_BIT_RC6_0 |
+>  			RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 |
+>  			RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE;
+>  	data->dev->wakeup_protocol = RC_TYPE_RC6_MCE;
