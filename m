@@ -1,127 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49169 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750734AbdDNETV (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58364 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1176720AbdDYLy6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Apr 2017 00:19:21 -0400
-Message-ID: <8bfff45a48e227376df5ac5fcc7f6547@smtp-cloud3.xs4all.net>
-Date: Fri, 14 Apr 2017 06:19:18 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Tue, 25 Apr 2017 07:54:58 -0400
+Subject: Re: [git:media_tree/master] [media] uvcvideo: Don't record
+ timespec_sub
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <E1cxWsU-0008R8-DB@www.linuxtv.org>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <df8b9c7b-d1b8-93b5-d9e9-a7933d024c19@ideasonboard.com>
+Date: Tue, 25 Apr 2017 12:54:54 +0100
+MIME-Version: 1.0
+In-Reply-To: <E1cxWsU-0008R8-DB@www.linuxtv.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mauro
 
-Results of the daily build of media_tree:
+On 10/04/17 11:42, Mauro Carvalho Chehab wrote:
+> This is an automatic generated email to let you know that the following patch were queued:
+> 
+> Subject: [media] uvcvideo: Don't record timespec_sub
 
-date:			Fri Apr 14 05:00:15 CEST 2017
-media-tree git hash:	4aed35ca73f6d9cfd5f7089ba5d04f5fb8623080
-media_build git hash:	8a44f033b9899e3193da85b1d3369a9dbfcc9eab
-v4l-utils git hash:	e748123b973e899cd6f0c08272a165661bd8386f
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+In my submission, this subject line was "uvcvideo: Don't recode timespec_sub"
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+I don't believe we are 'recording' timespec_sub.
 
-Detailed results are available here:
+I suspect it is too late to fix now.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+--
+Regards
 
-Full logs are available here:
+Kieran
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-The Media Infrastructure API from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> Author:  Kieran Bingham <kieran.bingham@ideasonboard.com>
+> Date:    Mon Apr 3 08:25:31 2017 -0300
+> 
+> The statistics function subtracts two timespecs manually. A helper is
+> provided by the kernel to do this.
+> 
+> Replace the implementation, using the helper.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> 
+>  drivers/media/usb/uvc/uvc_video.c | 10 ++--------
+>  1 file changed, 2 insertions(+), 8 deletions(-)
+> 
+> ---
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+> index 128c0a7826ce..47d93a938dde 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -868,14 +868,8 @@ size_t uvc_video_stats_dump(struct uvc_streaming *stream, char *buf,
+>  	struct timespec ts;
+>  	size_t count = 0;
+>  
+> -	ts.tv_sec = stream->stats.stream.stop_ts.tv_sec
+> -		  - stream->stats.stream.start_ts.tv_sec;
+> -	ts.tv_nsec = stream->stats.stream.stop_ts.tv_nsec
+> -		   - stream->stats.stream.start_ts.tv_nsec;
+> -	if (ts.tv_nsec < 0) {
+> -		ts.tv_sec--;
+> -		ts.tv_nsec += 1000000000;
+> -	}
+> +	ts = timespec_sub(stream->stats.stream.stop_ts,
+> +			  stream->stats.stream.start_ts);
+>  
+>  	/* Compute the SCR.SOF frequency estimate. At the nominal 1kHz SOF
+>  	 * frequency this will not overflow before more than 1h.
+> 
