@@ -1,118 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f178.google.com ([209.85.128.178]:36563 "EHLO
-        mail-wr0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754026AbdDDMcF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 08:32:05 -0400
-Received: by mail-wr0-f178.google.com with SMTP id w11so211122088wrc.3
-        for <linux-media@vger.kernel.org>; Tue, 04 Apr 2017 05:32:04 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
-        mchehab@kernel.org
-Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
-        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-        sakari.ailus@linux.intel.com
-Subject: [PATCH v6.1 0/4] drm: bridge: dw-hdmi: Add support for Custom PHYs
-Date: Tue,  4 Apr 2017 14:31:55 +0200
-Message-Id: <1491309119-24220-1-git-send-email-narmstrong@baylibre.com>
+Received: from mail-it0-f51.google.com ([209.85.214.51]:36169 "EHLO
+        mail-it0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1432000AbdDYQzb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 25 Apr 2017 12:55:31 -0400
+Received: by mail-it0-f51.google.com with SMTP id g66so22902861ite.1
+        for <linux-media@vger.kernel.org>; Tue, 25 Apr 2017 09:55:30 -0700 (PDT)
+Message-ID: <1493139327.19105.18.camel@ndufresne.ca>
+Subject: Re: support autofocus / autogain in libv4l2
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Date: Tue, 25 Apr 2017 12:55:27 -0400
+In-Reply-To: <20170425113009.GH30553@pali>
+References: <20170414232332.63850d7b@vento.lan>
+         <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+         <20170419105118.72b8e284@vento.lan> <20170424093059.GA20427@amd>
+         <20170424103802.00d3b554@vento.lan> <20170424212914.GA20780@amd>
+         <20170424224724.5bb52382@vento.lan> <20170425080538.GA30380@amd>
+         <20170425080815.GD30553@pali> <20170425112330.GB7926@amd>
+         <20170425113009.GH30553@pali>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-qEu/nOczlZh9av2AKbph"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Amlogic GX SoCs implements a Synopsys DesignWare HDMI TX Controller
-in combination with a very custom PHY.
 
-Thanks to Laurent Pinchart's changes, the HW report the following :
- Detected HDMI TX controller v2.01a with HDCP (meson_dw_hdmi_phy)
+--=-qEu/nOczlZh9av2AKbph
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The following differs from common PHY integration as managed in the current
-driver :
- - Amlogic PHY is not configured through the internal I2C link
- - Amlogic PHY do not use the ENTMDS, SVSRET, PDDQ, ... signals from the controller
- - Amlogic PHY do not export HPD ands RxSense signals to the controller
+Le mardi 25 avril 2017 =C3=A0 13:30 +0200, Pali Roh=C3=A1r a =C3=A9crit=C2=
+=A0:
+> Pinos (renamed from PulseVideo)
+>=20
+> https://blogs.gnome.org/uraeus/2015/06/30/introducing-pulse-video/
+> https://cgit.freedesktop.org/~wtay/pinos/
+>=20
+> But from git history it looks like it is probably dead now...
 
-And finally, concerning the controller integration :
- - the Controller registers are not flat memory-mapped, and uses an
-    addr+read/write register pair to write all registers.
- - Inputs only YUV444 pixel data
+This is also incorrect. See "work" branch. It is still a one man show,
+code being aggressively re-factored. I suspect this will be the case
+until the "form" is considered acceptable.
 
-Most of these uses case are implemented in Laurent Pinchart v5.1 patchset merged
-in drm-misc-next branch.
+Nicolas
+--=-qEu/nOczlZh9av2AKbph
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-This is why the following patchset implements :
- - Configure the Input format from the plat_data
- - Add PHY callback to handle HPD and RxSense out of the dw-hdmi driver
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-To implement the input format handling, the Synopsys HDMIT TX Controller input
-V4L bus formats are used and missing formats + documentation are added.
+iEYEABECAAYFAlj/f38ACgkQcVMCLawGqBwVAQCfS6qEWMNHWTaU8NMZbz8uXZgY
+pHAAoK/yCBvUtG3newOaIry9Z3YP8RF/
+=TFSG
+-----END PGP SIGNATURE-----
 
-This patchset makes the Amlogic GX SoCs HDMI output successfully work, and is
-also tested on the RK3288 ACT8846 EVB Board.
-
-Changes since v6 at [8] :
- - Dropped already merged media patches in topic/synopsys-media-formats-2017-04-03 tag
- - Reword the patch "Switch to V4L bus format and encodings" commit message
- - Fix typo in patch "Switch to V4L bus format and encodings"
- - Add Laurent Pinchart reviewed/acked-by's
- - Rebased on drm-misc-next at 9c4ad466d1dd
-
-Changes since v5.1 at [7] :
- - Rework of the 48bit tables in V4L bus formats documentation
- - Add Archit reviewed-by's
-
-Changes since v5 at [6] :
- - Small addition in V4L YUV bus formats documentation
-
-Changes since v4 at [5] :
- - Rebased on drm-misc-next at bd283d2f66c2
- - Fix 4:2:0 bus formats naming
- - Renamed function fd_registered to i2c_init in dw-hdmi.c
-
-Changes since v3 at [4] :
- - Fix 4:2:0 bus formats naming
- - Add separate 36bit and 48bit tables for bus formats documentation
- - Added 4:2:0 bus config in hdmi_video_sample
- - Moved dw_hdmi documentation in a "bridge" subdir
- - Rebase on drm-misc-next at 62c58af32c93
-
-Changes since v2 at [3] :
- - Rebase on laurent patch "Extract PHY interrupt setup to a function"
- - Reduce phy operations
- - Switch the V4L bus formats and encodings instead of custom enum
-
-Changes since v1 at [2] :
- - Drop patches submitted by laurent
-
-Changes since RFC at [1] :
- - Regmap fixup for 4bytes register access, tested on RK3288 SoC
- - Move phy callbacks to phy_ops and move Synopsys PHY calls into default ops
- - Move HDMI link data into shared header
- - Move Pixel Encoding enum to shared header
-
-[1] http://lkml.kernel.org/r/1484656294-6140-1-git-send-email-narmstrong@baylibre.com
-[2] http://lkml.kernel.org/r/1485774318-21916-1-git-send-email-narmstrong@baylibre.com
-[3] http://lkml.kernel.org/r/1488468572-31971-1-git-send-email-narmstrong@baylibre.com
-[4] http://lkml.kernel.org/r/1488904944-14285-1-git-send-email-narmstrong@baylibre.com
-[5] http://lkml.kernel.org/r/1490109161-20529-1-git-send-email-narmstrong@baylibre.com
-[6] http://lkml.kernel.org/r/1490864675-17336-1-git-send-email-narmstrong@baylibre.com
-[7] http://lkml.kernel.org/r/1490970319-24981-1-git-send-email-narmstrong@baylibre.com
-[8] http://lkml.kernel.org/r/1491230558-10804-1-git-send-email-narmstrong@baylibre.com
-
-Laurent Pinchart (1):
-  drm: bridge: dw-hdmi: Extract PHY interrupt setup to a function
-
-Neil Armstrong (3):
-  drm: bridge: dw-hdmi: Switch to V4L bus format and encodings
-  drm: bridge: dw-hdmi: Add Documentation on supported input formats
-  drm: bridge: dw-hdmi: Move HPD handling to PHY operations
-
- Documentation/gpu/bridge/dw-hdmi.rst      |  15 +
- Documentation/gpu/index.rst               |   1 +
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 470 ++++++++++++++++++++----------
- include/drm/bridge/dw_hdmi.h              |  68 +++++
- 4 files changed, 398 insertions(+), 156 deletions(-)
- create mode 100644 Documentation/gpu/bridge/dw-hdmi.rst
-
--- 
-1.9.1
+--=-qEu/nOczlZh9av2AKbph--
