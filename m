@@ -1,93 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40004
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755284AbdDENX3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 09:23:29 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org
-Subject: [PATCH v2 09/21] usb/bulk-streams.txt: convert to ReST and add to driver-api book
-Date: Wed,  5 Apr 2017 10:23:03 -0300
-Message-Id: <37f3cc41156d8dd7b3af06ca5f75ded7bb17dbc7.1491398120.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
-References: <cover.1491398120.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
-References: <cover.1491398120.git.mchehab@s-opensource.com>
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:36825 "EHLO
+        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1176039AbdDYHlP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 25 Apr 2017 03:41:15 -0400
+Received: by mail-wm0-f52.google.com with SMTP id u65so15035488wmu.1
+        for <linux-media@vger.kernel.org>; Tue, 25 Apr 2017 00:41:14 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: khilman@baylibre.com, carlo@caione.org, mchehab@kernel.org
+Cc: Alex Deryskyba <alex@codesnake.com>,
+        linux-amlogic@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Neil Armstrong <narmstrong@baylibre.com>
+Subject: [PATCH] media: rc: meson-ir: switch config to NEC decoding on shutdown
+Date: Tue, 25 Apr 2017 09:41:09 +0200
+Message-Id: <1493106069-19922-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This document describe some USB core functions. Add it to the
-driver-api book.
+From: Alex Deryskyba <alex@codesnake.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+On the Amlogic SoCs, the bootloader firmware can handle the IR hardware in
+order to Wake up or Power back the system when in suspend on shutdown mode.
+
+This patch switches the hardware configuration in a state usable by the
+firmware to permit powering the system back.
+
+Some vendor bootloader firmware were modified to switch to this configuration
+but it may not be the case for all available products.
+
+This patch was originally posted at [1].
+
+[1] https://github.com/LibreELEC/linux-amlogic/pull/27
+
+Signed-off-by: Alex Deryskyba <alex@codesnake.com>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 ---
- .../bulk-streams.txt => driver-api/usb/bulk-streams.rst}    | 13 +++++++++----
- Documentation/driver-api/usb/index.rst                      |  1 +
- 2 files changed, 10 insertions(+), 4 deletions(-)
- rename Documentation/{usb/bulk-streams.txt => driver-api/usb/bulk-streams.rst} (94%)
+ drivers/media/rc/meson-ir.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff --git a/Documentation/usb/bulk-streams.txt b/Documentation/driver-api/usb/bulk-streams.rst
-similarity index 94%
-rename from Documentation/usb/bulk-streams.txt
-rename to Documentation/driver-api/usb/bulk-streams.rst
-index ffc02021863e..99b515babdeb 100644
---- a/Documentation/usb/bulk-streams.txt
-+++ b/Documentation/driver-api/usb/bulk-streams.rst
-@@ -1,3 +1,6 @@
-+USB bulk streams
-+~~~~~~~~~~~~~~~~
+diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
+index 42ae2ec..0632f6a 100644
+--- a/drivers/media/rc/meson-ir.c
++++ b/drivers/media/rc/meson-ir.c
+@@ -211,6 +211,32 @@ static int meson_ir_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static void meson_ir_shutdown(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct device_node *node = dev->of_node;
++	struct meson_ir *ir = platform_get_drvdata(pdev);
++	unsigned long flags;
 +
- Background
- ==========
- 
-@@ -25,7 +28,9 @@ time.
- Driver implications
- ===================
- 
--int usb_alloc_streams(struct usb_interface *interface,
-+::
++	spin_lock_irqsave(&ir->lock, flags);
 +
-+  int usb_alloc_streams(struct usb_interface *interface,
- 		struct usb_host_endpoint **eps, unsigned int num_eps,
- 		unsigned int num_streams, gfp_t mem_flags);
- 
-@@ -53,7 +58,7 @@ controller driver, and may change in the future.
- 
- 
- Picking new Stream IDs to use
--============================
-+=============================
- 
- Stream ID 0 is reserved, and should not be used to communicate with devices.  If
- usb_alloc_streams() returns with a value of N, you may use streams 1 though N.
-@@ -68,9 +73,9 @@ Clean up
- ========
- 
- If a driver wishes to stop using streams to communicate with the device, it
--should call
-+should call::
- 
--void usb_free_streams(struct usb_interface *interface,
-+  void usb_free_streams(struct usb_interface *interface,
- 		struct usb_host_endpoint **eps, unsigned int num_eps,
- 		gfp_t mem_flags);
- 
-diff --git a/Documentation/driver-api/usb/index.rst b/Documentation/driver-api/usb/index.rst
-index 5dfb04b2d730..6fe7611f7332 100644
---- a/Documentation/driver-api/usb/index.rst
-+++ b/Documentation/driver-api/usb/index.rst
-@@ -7,6 +7,7 @@ Linux USB API
-    usb
-    gadget
-    anchors
-+   bulk-streams
-    writing_usb_driver
-    writing_musb_glue_layer
- 
++	/*
++	 * Set operation mode to NEC/hardware decoding to give
++	 * bootloader a chance to power the system back on
++	 */
++	if (of_device_is_compatible(node, "amlogic,meson6-ir"))
++		meson_ir_set_mask(ir, IR_DEC_REG1, REG1_MODE_MASK,
++				DECODE_MODE_NEC << REG1_MODE_SHIFT);
++	else
++		meson_ir_set_mask(ir, IR_DEC_REG2, REG2_MODE_MASK,
++				DECODE_MODE_NEC << REG2_MODE_SHIFT);
++
++	/* Set rate to default value */
++	meson_ir_set_mask(ir, IR_DEC_REG0, REG0_RATE_MASK, 0x13);
++
++	spin_unlock_irqrestore(&ir->lock, flags);
++}
++
+ static const struct of_device_id meson_ir_match[] = {
+ 	{ .compatible = "amlogic,meson6-ir" },
+ 	{ .compatible = "amlogic,meson8b-ir" },
+@@ -222,6 +248,7 @@ static int meson_ir_remove(struct platform_device *pdev)
+ static struct platform_driver meson_ir_driver = {
+ 	.probe		= meson_ir_probe,
+ 	.remove		= meson_ir_remove,
++	.shutdown	= meson_ir_shutdown,
+ 	.driver = {
+ 		.name		= DRIVER_NAME,
+ 		.of_match_table	= meson_ir_match,
 -- 
-2.9.3
+1.9.1
