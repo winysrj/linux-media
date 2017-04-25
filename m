@@ -1,102 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f47.google.com ([209.85.215.47]:33553 "EHLO
-        mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755291AbdD1L5z (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52620 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1946671AbdDYLXc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 07:57:55 -0400
-Received: by mail-lf0-f47.google.com with SMTP id 88so32639842lfr.0
-        for <linux-media@vger.kernel.org>; Fri, 28 Apr 2017 04:57:54 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Fri, 28 Apr 2017 13:57:52 +0200
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Tue, 25 Apr 2017 07:23:32 -0400
+Date: Tue, 25 Apr 2017 13:23:30 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
+        Sakari Ailus <sakari.ailus@iki.fi>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 1/2] media: entity: Add pad_from_dt_regs entity operation
-Message-ID: <20170428115752.GD1532@bigcity.dyn.berto.se>
-References: <20170427223323.13861-1-niklas.soderlund+renesas@ragnatech.se>
- <20170427223323.13861-2-niklas.soderlund+renesas@ragnatech.se>
- <20170428103256.GG7456@valkosipuli.retiisi.org.uk>
+        linux-media@vger.kernel.org
+Subject: Re: support autofocus / autogain in libv4l2
+Message-ID: <20170425112330.GB7926@amd>
+References: <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20170414232332.63850d7b@vento.lan>
+ <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+ <20170419105118.72b8e284@vento.lan>
+ <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+ <20170425080538.GA30380@amd>
+ <20170425080815.GD30553@pali>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="9zSXsLTf0vkW971A"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170428103256.GG7456@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20170425080815.GD30553@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
 
-Thanks for your feedback.
+--9zSXsLTf0vkW971A
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 2017-04-28 13:32:57 +0300, Sakari Ailus wrote:
-> Hi Niklas,
-> 
-> On Fri, Apr 28, 2017 at 12:33:22AM +0200, Niklas Söderlund wrote:
-> > The optional operation can be used by entities to report how it maps its
-> > DT node ports and endpoints to media pad numbers. This is useful for
-> > devices which require more advanced mappings of pads then DT port
-> > number is equivalent with media port number.
-> > 
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> >  include/media/media-entity.h | 4 ++++
-> >  1 file changed, 4 insertions(+)
-> > 
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index c7c254c5bca1761b..47efaf4d825e671b 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -171,6 +171,9 @@ struct media_pad {
-> >  
-> >  /**
-> >   * struct media_entity_operations - Media entity operations
-> > + * @pad_from_dt_regs:	Return the pad number based on DT port and reg
-> > + *			properties. This operation can be used to map a
-> > + *			DT port and reg to a media pad number. Optional.
-> 
-> Don't you need to provide entity as an argument as well? The driver will be
-> a little bit loss due to lack of context. :-)
+Hi!
+On Tue 2017-04-25 10:08:15, Pali Roh=E1r wrote:
+> On Tuesday 25 April 2017 10:05:38 Pavel Machek wrote:
+> > > > It would be nice if more than one application could be accessing the
+> > > > camera at the same time... (I.e. something graphical running preview
+> > > > then using command line tool to grab a picture.) This one is
+> > > > definitely not solveable inside a library...
+> > >=20
+> > > Someone once suggested to have something like pulseaudio for V4L.
+> > > For such usage, a server would be interesting. Yet, I would code it
+> > > in a way that applications using libv4l will talk with such daemon
+> > > in a transparent way.
+> >=20
+> > Yes, we need something like pulseaudio for V4L. And yes, we should
+> > make it transparent for applications using libv4l.
+>=20
+> IIRC there is already some effort in writing such "video" server which
+> would support accessing more application into webcam video, like
+> pulseaudio server for accessing more applications to microphone input.
 
-I'm not sure I understand you, this is a entity operation so the driver 
-will know for which entity the request is mad on. Or am I missing 
-something?
+Do you have project name / url / something?
 
-> 
-> How about using the endpoint's device node (or fwnode; you can get it using
-> of_fwnode_handle() soon) instead? You can always obtain the port node by
-> just getting the parent.
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-I did think about that but opted for port_reg and reg since it seemed 
-more simple.
+--9zSXsLTf0vkW971A
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-But it might be better to base this work on top of your fwnode work,
-s/from_dt_regs/from_fwnode/ and use the of_fwnode_handle() as you 
-suggest here. Do you think this would be valuable and make this new 
-operation more useful?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-> 
-> >   * @link_setup:		Notify the entity of link changes. The operation can
-> >   *			return an error, in which case link setup will be
-> >   *			cancelled. Optional.
-> > @@ -184,6 +187,7 @@ struct media_pad {
-> >   *    mutex held.
-> >   */
-> >  struct media_entity_operations {
-> > +	int (*pad_from_dt_regs)(int port_reg, int reg, unsigned int *pad);
-> >  	int (*link_setup)(struct media_entity *entity,
-> >  			  const struct media_pad *local,
-> >  			  const struct media_pad *remote, u32 flags);
-> 
-> -- 
-> Kind regards,
-> 
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+iEYEARECAAYFAlj/MbIACgkQMOfwapXb+vI3DwCgiKESVKbAQiNndlyNRKCL0hQx
+puoAoJQajW9Bn1upml+pD933C3Vu39be
+=BHyl
+-----END PGP SIGNATURE-----
 
--- 
-Regards,
-Niklas Söderlund
+--9zSXsLTf0vkW971A--
