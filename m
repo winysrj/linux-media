@@ -1,76 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f176.google.com ([209.85.220.176]:35629 "EHLO
-        mail-qk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757216AbdDRS1f (ORCPT
+Received: from mail-pg0-f49.google.com ([74.125.83.49]:33007 "EHLO
+        mail-pg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1431518AbdDYOPH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Apr 2017 14:27:35 -0400
-Received: by mail-qk0-f176.google.com with SMTP id f133so1186378qke.2
-        for <linux-media@vger.kernel.org>; Tue, 18 Apr 2017 11:27:34 -0700 (PDT)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCHv4 04/12] staging: android: ion: Stop butchering the DMA address
-Date: Tue, 18 Apr 2017 11:27:06 -0700
-Message-Id: <1492540034-5466-5-git-send-email-labbott@redhat.com>
-In-Reply-To: <1492540034-5466-1-git-send-email-labbott@redhat.com>
-References: <1492540034-5466-1-git-send-email-labbott@redhat.com>
+        Tue, 25 Apr 2017 10:15:07 -0400
+Received: by mail-pg0-f49.google.com with SMTP id 63so29312835pgh.0
+        for <linux-media@vger.kernel.org>; Tue, 25 Apr 2017 07:15:07 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAKXQXwKeA6YCaepmjJJBf+Nc3bOO9aEnGmnHfnb2aDX3f6YXzw@mail.gmail.com>
+References: <CAOxqCCT6MOCLG+HHsuOU0zoq1zxRRJNFn0DYz9tOj-ez7+BNRA@mail.gmail.com>
+ <CAAEAJfC0MdO2Uy8P0OajRHEc3seUiwLv0qqxLzM3b9eFFfuk8g@mail.gmail.com>
+ <1493030334.2891.7.camel@pengutronix.de> <CAKXQXwLuG1A37NTPrE0abPWhMDGd=10Ud+xNa-4+k+8qMhD8tA@mail.gmail.com>
+ <CAKXQXwKeA6YCaepmjJJBf+Nc3bOO9aEnGmnHfnb2aDX3f6YXzw@mail.gmail.com>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Date: Tue, 25 Apr 2017 11:15:06 -0300
+Message-ID: <CAAEAJfBEqFYtKLHuNBBbc8+RteM8rhRNs3PFvAnGsVWRpxEGNw@mail.gmail.com>
+Subject: Re: TW686x Linux Main Line Driver Issue
+To: Krishan Nilanga <krishan@tengriaero.com>
+Cc: Lucas Stach <l.stach@pengutronix.de>,
+        Anuradha Ranasinghe <anuradha@tengriaero.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        Lakshitha Dayasena <lakshitha@tengriaero.com>,
+        linux-pci@vger.kernel.org, Richard.Zhu@freescale.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we have proper caching, stop setting the DMA address manually.
-It should be set after properly calling dma_map.
+Hi Krishan,
 
-Signed-off-by: Laura Abbott <labbott@redhat.com>
----
- drivers/staging/android/ion/ion.c | 17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+On 25 April 2017 at 03:46, Krishan Nilanga <krishan@tengriaero.com> wrote:
+> Hi All,
+>
+> gst-launch-1.0 --gst-debug=3D3 v4l2src device=3D/dev/video0 !
+> video/x-raw,width=3D640,height=3D480,pixelformat=3DUYVY ! imxeglvivsink
+>
+> I have tried to run the above gstreamer pipeline and I'm getting
+>
+> [   97.392807] tw686x 0000:01:00.0: DMA timeout. Resetting DMA for all
+> channels
+> [   97.392827] tw686x 0000:01:00.0: reset: stopping DMA
+>
+> for most IRQ calls of tw686x driver.
+>
+> for some other IRQ calls I'm getting
+>
+> [   99.592901] tw686x 0000:01:00.0: video0: unexpected p-b buffer!
+> [   99.592924] tw686x 0000:01:00.0: reset: stopping DMA
+>
+> in dmesg.
+>
+> I hope above details will help to understand the problem.
+>
 
-diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index 3d979ef5..65638f5 100644
---- a/drivers/staging/android/ion/ion.c
-+++ b/drivers/staging/android/ion/ion.c
-@@ -81,8 +81,7 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
- {
- 	struct ion_buffer *buffer;
- 	struct sg_table *table;
--	struct scatterlist *sg;
--	int i, ret;
-+	int ret;
- 
- 	buffer = kzalloc(sizeof(*buffer), GFP_KERNEL);
- 	if (!buffer)
-@@ -119,20 +118,6 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
- 	INIT_LIST_HEAD(&buffer->vmas);
- 	INIT_LIST_HEAD(&buffer->attachments);
- 	mutex_init(&buffer->lock);
--	/*
--	 * this will set up dma addresses for the sglist -- it is not
--	 * technically correct as per the dma api -- a specific
--	 * device isn't really taking ownership here.  However, in practice on
--	 * our systems the only dma_address space is physical addresses.
--	 * Additionally, we can't afford the overhead of invalidating every
--	 * allocation via dma_map_sg. The implicit contract here is that
--	 * memory coming from the heaps is ready for dma, ie if it has a
--	 * cached mapping that mapping has been invalidated
--	 */
--	for_each_sg(buffer->sg_table->sgl, sg, buffer->sg_table->nents, i) {
--		sg_dma_address(sg) = sg_phys(sg);
--		sg_dma_len(sg) = sg->length;
--	}
- 	mutex_lock(&dev->buffer_lock);
- 	ion_buffer_add(dev, buffer);
- 	mutex_unlock(&dev->buffer_lock);
--- 
-2.7.4
+This does not provide much info. It merely says there is some hardware
+problem or the signal is being problematic. FWIW, when we get those
+messages on our platform it's always correlated to a bad cable
+or poor signal.
+
+What is your dma-mode configuration?
+--=20
+Ezequiel Garc=C3=ADa, VanguardiaSur
+www.vanguardiasur.com.ar
