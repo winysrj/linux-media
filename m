@@ -1,48 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:60784 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754299AbdDKJAh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Apr 2017 05:00:37 -0400
-Subject: Re: [Patch v3 10/11] [media] s5p-mfc: Add support for HEVC encoder
- (fwd)
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        Julia Lawall <julia.lawall@lip6.fr>
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kbuild-all@01.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <8fc9940e-3cb5-3ca7-f15d-0bf6284433a5@samsung.com>
-Date: Tue, 11 Apr 2017 11:00:28 +0200
-MIME-version: 1.0
-In-reply-to: <1491200242.24095.23.camel@smitha-fedora>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
-References: <CGME20170403060045epcas2p215a1d85248b47cc389e20ff877505b09@epcas2p2.samsung.com>
- <alpine.DEB.2.20.1704030758540.2170@hadrien>
- <1491200242.24095.23.camel@smitha-fedora>
+Received: from ale.deltatee.com ([207.54.116.67]:49745 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1952025AbdDYSVX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 25 Apr 2017 14:21:23 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
+        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        dm-devel@redhat.com
+Cc: Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Stephen Bates <sbates@raithlin.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Lee Duncan <lduncan@suse.com>, Chris Leech <cleech@redhat.com>
+Date: Tue, 25 Apr 2017 12:20:50 -0600
+Message-Id: <1493144468-22493-4-git-send-email-logang@deltatee.com>
+In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v2 03/21] libiscsi: Make use of new the sg_map helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Convert the kmap and kmap_atomic uses to the sg_map function. We now
+store the flags for the kmap instead of a boolean to indicate
+atomicitiy. We use ISCSI_TCP_INTERNAL_ERR error type that was prepared
+earlier for this.
 
-On 04/03/2017 08:17 AM, Smitha T Murthy wrote:
-> On Mon, 2017-04-03 at 08:00 +0200, Julia Lawall wrote:
->> See line 2101
->>
->> julia
->>
-> Thank you for bringing it to my notice, I had not checked on this git.
-> I will upload the next version of patches soon corresponding to this
-> git.
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Lee Duncan <lduncan@suse.com>
+Cc: Chris Leech <cleech@redhat.com>
+---
+ drivers/scsi/libiscsi_tcp.c | 32 ++++++++++++++++++++------------
+ include/scsi/libiscsi_tcp.h |  2 +-
+ 2 files changed, 21 insertions(+), 13 deletions(-)
 
-In general please use the media master branch as a base for your patches
-(git://linuxtv.org/media_tree.git master). Or latest branch in my
-git repository, currently it's "for-v4.12/media/next-2" as can be seen
-here: https://git.linuxtv.org/snawrocki/samsung.git
-
+diff --git a/drivers/scsi/libiscsi_tcp.c b/drivers/scsi/libiscsi_tcp.c
+index 63a1d69..a34e25c 100644
+--- a/drivers/scsi/libiscsi_tcp.c
++++ b/drivers/scsi/libiscsi_tcp.c
+@@ -133,25 +133,23 @@ static void iscsi_tcp_segment_map(struct iscsi_segment *segment, int recv)
+ 	if (page_count(sg_page(sg)) >= 1 && !recv)
+ 		return;
+ 
+-	if (recv) {
+-		segment->atomic_mapped = true;
+-		segment->sg_mapped = kmap_atomic(sg_page(sg));
+-	} else {
+-		segment->atomic_mapped = false;
+-		/* the xmit path can sleep with the page mapped so use kmap */
+-		segment->sg_mapped = kmap(sg_page(sg));
++	/* the xmit path can sleep with the page mapped so don't use atomic */
++	segment->sg_map_flags = recv ? SG_KMAP_ATOMIC : SG_KMAP;
++	segment->sg_mapped = sg_map(sg, 0, segment->sg_map_flags);
++
++	if (IS_ERR(segment->sg_mapped)) {
++		segment->sg_mapped = NULL;
++		return;
+ 	}
+ 
+-	segment->data = segment->sg_mapped + sg->offset + segment->sg_offset;
++	segment->data = segment->sg_mapped + segment->sg_offset;
+ }
+ 
+ void iscsi_tcp_segment_unmap(struct iscsi_segment *segment)
+ {
+ 	if (segment->sg_mapped) {
+-		if (segment->atomic_mapped)
+-			kunmap_atomic(segment->sg_mapped);
+-		else
+-			kunmap(sg_page(segment->sg));
++		sg_unmap(segment->sg, segment->sg_mapped, 0,
++			 segment->sg_map_flags);
+ 		segment->sg_mapped = NULL;
+ 		segment->data = NULL;
+ 	}
+@@ -304,6 +302,9 @@ iscsi_tcp_segment_recv(struct iscsi_tcp_conn *tcp_conn,
+ 			break;
+ 		}
+ 
++		if (segment->data)
++			return -EFAULT;
++
+ 		copy = min(len - copied, segment->size - segment->copied);
+ 		ISCSI_DBG_TCP(tcp_conn->iscsi_conn, "copying %d\n", copy);
+ 		memcpy(segment->data + segment->copied, ptr + copied, copy);
+@@ -927,6 +928,13 @@ int iscsi_tcp_recv_skb(struct iscsi_conn *conn, struct sk_buff *skb,
+ 			      avail);
+ 		rc = iscsi_tcp_segment_recv(tcp_conn, segment, ptr, avail);
+ 		BUG_ON(rc == 0);
++		if (rc < 0) {
++			ISCSI_DBG_TCP(conn, "memory fault. Consumed %d\n",
++				      consumed);
++			*status = ISCSI_TCP_INTERNAL_ERR;
++			goto skb_done;
++		}
++
+ 		consumed += rc;
+ 
+ 		if (segment->total_copied >= segment->total_size) {
+diff --git a/include/scsi/libiscsi_tcp.h b/include/scsi/libiscsi_tcp.h
+index 90691ad..58c79af 100644
+--- a/include/scsi/libiscsi_tcp.h
++++ b/include/scsi/libiscsi_tcp.h
+@@ -47,7 +47,7 @@ struct iscsi_segment {
+ 	struct scatterlist	*sg;
+ 	void			*sg_mapped;
+ 	unsigned int		sg_offset;
+-	bool			atomic_mapped;
++	int			sg_map_flags;
+ 
+ 	iscsi_segment_done_fn_t	*done;
+ };
 -- 
-Thanks,
-Sylwester
+2.1.4
