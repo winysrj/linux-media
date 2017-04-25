@@ -1,93 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:57543 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1033145AbdD0Wm7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:42:59 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v4 22/27] rcar-vin: add chsel information to rvin_info
-Date: Fri, 28 Apr 2017 00:41:58 +0200
-Message-Id: <20170427224203.14611-23-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from ale.deltatee.com ([207.54.116.67]:49741 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1952004AbdDYSVX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 25 Apr 2017 14:21:23 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
+        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        dm-devel@redhat.com
+Cc: Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Stephen Bates <sbates@raithlin.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Johannes Thumshirn <jth@kernel.org>
+Date: Tue, 25 Apr 2017 12:21:01 -0600
+Message-Id: <1493144468-22493-15-git-send-email-logang@deltatee.com>
+In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v2 14/21] scsi: libfc, csiostor: Change to sg_copy_buffer in two drivers
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each Gen3 SoC has a limited set of predefined routing possibilities for
-which CSI-2 device and virtual channel can be routed to which VIN
-instance. Prepare to store this information in the struct rvin_info.
+These two drivers appear to duplicate the functionality of
+sg_copy_buffer. So we clean them up to use the common code.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+This helps us remove a couple of instances that would otherwise be
+slightly tricky sg_map usages.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Johannes Thumshirn <jth@kernel.org>
 ---
- drivers/media/platform/rcar-vin/rcar-vin.h | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/scsi/csiostor/csio_scsi.c | 54 +++------------------------------------
+ drivers/scsi/libfc/fc_libfc.c     | 49 ++++++++---------------------------
+ 2 files changed, 14 insertions(+), 89 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 21b6c9292686e41a..1a5f9594460ab57b 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -35,6 +35,9 @@
- /* Max number on VIN instances that can be in a system */
- #define RCAR_VIN_NUM 8
+diff --git a/drivers/scsi/csiostor/csio_scsi.c b/drivers/scsi/csiostor/csio_scsi.c
+index a1ff75f..bd9d062 100644
+--- a/drivers/scsi/csiostor/csio_scsi.c
++++ b/drivers/scsi/csiostor/csio_scsi.c
+@@ -1489,60 +1489,14 @@ static inline uint32_t
+ csio_scsi_copy_to_sgl(struct csio_hw *hw, struct csio_ioreq *req)
+ {
+ 	struct scsi_cmnd *scmnd  = (struct scsi_cmnd *)csio_scsi_cmnd(req);
+-	struct scatterlist *sg;
+-	uint32_t bytes_left;
+-	uint32_t bytes_copy;
+-	uint32_t buf_off = 0;
+-	uint32_t start_off = 0;
+-	uint32_t sg_off = 0;
+-	void *sg_addr;
+-	void *buf_addr;
+ 	struct csio_dma_buf *dma_buf;
++	size_t copied;
  
-+/* Max number of CHSEL values for any Gen3 SoC */
-+#define RCAR_CHSEL_MAX 6
-+
- enum chip_id {
- 	RCAR_H1,
- 	RCAR_M1,
-@@ -91,6 +94,19 @@ struct rvin_graph_entity {
+-	bytes_left = scsi_bufflen(scmnd);
+-	sg = scsi_sglist(scmnd);
+ 	dma_buf = (struct csio_dma_buf *)csio_list_next(&req->gen_list);
++	copied = sg_copy_from_buffer(scsi_sglist(scmnd), scsi_sg_count(scmnd),
++				     dma_buf->vaddr, scsi_bufflen(scmnd));
  
- struct rvin_group;
- 
+-	/* Copy data from driver buffer to SGs of SCSI CMD */
+-	while (bytes_left > 0 && sg && dma_buf) {
+-		if (buf_off >= dma_buf->len) {
+-			buf_off = 0;
+-			dma_buf = (struct csio_dma_buf *)
+-					csio_list_next(dma_buf);
+-			continue;
+-		}
+-
+-		if (start_off >= sg->length) {
+-			start_off -= sg->length;
+-			sg = sg_next(sg);
+-			continue;
+-		}
+-
+-		buf_addr = dma_buf->vaddr + buf_off;
+-		sg_off = sg->offset + start_off;
+-		bytes_copy = min((dma_buf->len - buf_off),
+-				sg->length - start_off);
+-		bytes_copy = min((uint32_t)(PAGE_SIZE - (sg_off & ~PAGE_MASK)),
+-				 bytes_copy);
+-
+-		sg_addr = kmap_atomic(sg_page(sg) + (sg_off >> PAGE_SHIFT));
+-		if (!sg_addr) {
+-			csio_err(hw, "failed to kmap sg:%p of ioreq:%p\n",
+-				sg, req);
+-			break;
+-		}
+-
+-		csio_dbg(hw, "copy_to_sgl:sg_addr %p sg_off %d buf %p len %d\n",
+-				sg_addr, sg_off, buf_addr, bytes_copy);
+-		memcpy(sg_addr + (sg_off & ~PAGE_MASK), buf_addr, bytes_copy);
+-		kunmap_atomic(sg_addr);
+-
+-		start_off +=  bytes_copy;
+-		buf_off += bytes_copy;
+-		bytes_left -= bytes_copy;
+-	}
+-
+-	if (bytes_left > 0)
++	if (copied != scsi_bufflen(scmnd))
+ 		return DID_ERROR;
+ 	else
+ 		return DID_OK;
+diff --git a/drivers/scsi/libfc/fc_libfc.c b/drivers/scsi/libfc/fc_libfc.c
+index d623d08..ce0805a 100644
+--- a/drivers/scsi/libfc/fc_libfc.c
++++ b/drivers/scsi/libfc/fc_libfc.c
+@@ -113,45 +113,16 @@ u32 fc_copy_buffer_to_sglist(void *buf, size_t len,
+ 			     u32 *nents, size_t *offset,
+ 			     u32 *crc)
+ {
+-	size_t remaining = len;
+-	u32 copy_len = 0;
+-
+-	while (remaining > 0 && sg) {
+-		size_t off, sg_bytes;
+-		void *page_addr;
+-
+-		if (*offset >= sg->length) {
+-			/*
+-			 * Check for end and drop resources
+-			 * from the last iteration.
+-			 */
+-			if (!(*nents))
+-				break;
+-			--(*nents);
+-			*offset -= sg->length;
+-			sg = sg_next(sg);
+-			continue;
+-		}
+-		sg_bytes = min(remaining, sg->length - *offset);
+-
+-		/*
+-		 * The scatterlist item may be bigger than PAGE_SIZE,
+-		 * but we are limited to mapping PAGE_SIZE at a time.
+-		 */
+-		off = *offset + sg->offset;
+-		sg_bytes = min(sg_bytes,
+-			       (size_t)(PAGE_SIZE - (off & ~PAGE_MASK)));
+-		page_addr = kmap_atomic(sg_page(sg) + (off >> PAGE_SHIFT));
+-		if (crc)
+-			*crc = crc32(*crc, buf, sg_bytes);
+-		memcpy((char *)page_addr + (off & ~PAGE_MASK), buf, sg_bytes);
+-		kunmap_atomic(page_addr);
+-		buf += sg_bytes;
+-		*offset += sg_bytes;
+-		remaining -= sg_bytes;
+-		copy_len += sg_bytes;
+-	}
+-	return copy_len;
++	size_t copied;
 +
-+/** struct rvin_group_chsel - Map a CSI2 device and channel for a CHSEL value
-+ * @csi:		VIN internal number for CSI2 device
-+ * @chan:		CSI-2 channel number on remote. Note that channel
-+ *			is not the same as VC. The CSI-2 hardware have 4
-+ *			channels it can output on but which VC is outputted
-+ *			on which channel is configurable inside the CSI-2.
-+ */
-+struct rvin_group_chsel {
-+	enum rvin_csi_id csi;
-+	unsigned int chan;
-+};
++	copied = sg_pcopy_from_buffer(sg, sg_nents(sg),
++				      buf, len, *offset);
 +
- /**
-  * struct rvin_info- Information about the particular VIN implementation
-  * @chip:		type of VIN chip
-@@ -98,6 +114,9 @@ struct rvin_group;
-  *
-  * max_width:		max input width the VIN supports
-  * max_height:		max input height the VIN supports
-+ *
-+ * num_chsels:		number of possible chsel values for this VIN
-+ * chsels:		routing table VIN <-> CSI-2 for the chsel values
-  */
- struct rvin_info {
- 	enum chip_id chip;
-@@ -105,6 +124,9 @@ struct rvin_info {
- 
- 	unsigned int max_width;
- 	unsigned int max_height;
++	*offset += copied;
++	if (crc)
++		*crc = crc32(*crc, buf, copied);
 +
-+	unsigned int num_chsels;
-+	struct rvin_group_chsel chsels[RCAR_VIN_NUM][RCAR_CHSEL_MAX];
- };
++	return copied;
+ }
  
  /**
 -- 
-2.12.2
+2.1.4
