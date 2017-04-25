@@ -1,124 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:33074 "EHLO hardeman.nu"
+Received: from ale.deltatee.com ([207.54.116.67]:49971 "EHLO ale.deltatee.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756202AbdD1REL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 13:04:11 -0400
-Subject: [PATCH] ir-lirc-codec: let lirc_dev handle the lirc_buffer
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, sean@mess.org
-Date: Fri, 28 Apr 2017 19:04:09 +0200
-Message-ID: <149339904926.12280.15877468271781678130.stgit@zeus.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+        id S1952457AbdDYSVd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 25 Apr 2017 14:21:33 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
+        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        dm-devel@redhat.com
+Cc: Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Stephen Bates <sbates@raithlin.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Sascha Sommer <saschasommer@freenet.de>,
+        Ulf Hansson <ulf.hansson@linaro.org>
+Date: Tue, 25 Apr 2017 12:21:06 -0600
+Message-Id: <1493144468-22493-20-git-send-email-logang@deltatee.com>
+In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v2 19/21] mmc: sdricoh_cs: Make use of the new sg_map helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ir_lirc_register() currently creates its own lirc_buffer before
-passing the lirc_driver to lirc_register_driver().
+This is a straightforward conversion to the new function.
 
-When a module is later unloaded, ir_lirc_unregister() gets called
-which performs a call to lirc_unregister_driver() and then free():s
-the lirc_buffer.
-
-The problem is that:
-
-a) there can still be a userspace app holding an open lirc fd
-   when lirc_unregister_driver() returns; and
-
-b) the lirc_buffer contains "wait_queue_head_t wait_poll" which
-   is potentially used as long as any userspace app is still around.
-
-The result is an oops which can be triggered quite easily by a
-userspace app monitoring its lirc fd using epoll() and not closing
-the fd promptly on device removal.
-
-The minimalistic fix is to let lirc_dev create the lirc_buffer since
-lirc_dev will then also free the buffer once it believes it is safe to
-do so.
-
-I'm pretty certain that any driver which creates its own lirc_buffer
-is quite likely to be buggy as well, but that seems to only concern
-staging.
-
-Signed-off-by: David Härdeman <david@hardeman.nu>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Sascha Sommer <saschasommer@freenet.de>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>
 ---
- drivers/media/rc/ir-lirc-codec.c |   23 +++++------------------
- 1 file changed, 5 insertions(+), 18 deletions(-)
+ drivers/mmc/host/sdricoh_cs.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index de85f1d7ce43..7b961357d333 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -354,7 +354,6 @@ static const struct file_operations lirc_fops = {
- static int ir_lirc_register(struct rc_dev *dev)
- {
- 	struct lirc_driver *drv;
--	struct lirc_buffer *rbuf;
- 	int rc = -ENOMEM;
- 	unsigned long features = 0;
+diff --git a/drivers/mmc/host/sdricoh_cs.c b/drivers/mmc/host/sdricoh_cs.c
+index 5ff26ab..03225c3 100644
+--- a/drivers/mmc/host/sdricoh_cs.c
++++ b/drivers/mmc/host/sdricoh_cs.c
+@@ -319,16 +319,20 @@ static void sdricoh_request(struct mmc_host *mmc, struct mmc_request *mrq)
+ 		for (i = 0; i < data->blocks; i++) {
+ 			size_t len = data->blksz;
+ 			u8 *buf;
+-			struct page *page;
+ 			int result;
+-			page = sg_page(data->sg);
  
-@@ -362,19 +361,12 @@ static int ir_lirc_register(struct rc_dev *dev)
- 	if (!drv)
- 		return rc;
- 
--	rbuf = kzalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
--	if (!rbuf)
--		goto rbuf_alloc_failed;
--
--	rc = lirc_buffer_init(rbuf, sizeof(int), LIRCBUF_SIZE);
--	if (rc)
--		goto rbuf_init_failed;
--
- 	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
- 		features |= LIRC_CAN_REC_MODE2;
- 		if (dev->rx_resolution)
- 			features |= LIRC_CAN_GET_REC_RESOLUTION;
- 	}
+-			buf = kmap(page) + data->sg->offset + (len * i);
++			buf = sg_map(data->sg, (len * i), SG_KMAP);
++			if (IS_ERR(buf)) {
++				cmd->error = PTR_ERR(buf);
++				break;
++			}
 +
- 	if (dev->tx_ir) {
- 		features |= LIRC_CAN_SEND_PULSE;
- 		if (dev->s_tx_mask)
-@@ -403,7 +395,7 @@ static int ir_lirc_register(struct rc_dev *dev)
- 	drv->minor = -1;
- 	drv->features = features;
- 	drv->data = &dev->raw->lirc;
--	drv->rbuf = rbuf;
-+	drv->rbuf = NULL;
- 	drv->set_use_inc = &ir_lirc_open;
- 	drv->set_use_dec = &ir_lirc_close;
- 	drv->code_length = sizeof(struct ir_raw_event) * 8;
-@@ -415,19 +407,15 @@ static int ir_lirc_register(struct rc_dev *dev)
- 	drv->minor = lirc_register_driver(drv);
- 	if (drv->minor < 0) {
- 		rc = -ENODEV;
--		goto lirc_register_failed;
-+		goto out;
- 	}
- 
- 	dev->raw->lirc.drv = drv;
- 	dev->raw->lirc.dev = dev;
- 	return 0;
- 
--lirc_register_failed:
--rbuf_init_failed:
--	kfree(rbuf);
--rbuf_alloc_failed:
-+out:
- 	kfree(drv);
--
- 	return rc;
- }
- 
-@@ -436,9 +424,8 @@ static int ir_lirc_unregister(struct rc_dev *dev)
- 	struct lirc_codec *lirc = &dev->raw->lirc;
- 
- 	lirc_unregister_driver(lirc->drv->minor);
--	lirc_buffer_free(lirc->drv->rbuf);
--	kfree(lirc->drv->rbuf);
- 	kfree(lirc->drv);
-+	lirc->drv = NULL;
- 
- 	return 0;
- }
+ 			result =
+ 				sdricoh_blockio(host,
+ 					data->flags & MMC_DATA_READ, buf, len);
+-			kunmap(page);
+-			flush_dcache_page(page);
++			sg_unmap(data->sg, buf, (len * i), SG_KMAP);
++
++			flush_dcache_page(sg_page(data->sg));
+ 			if (result) {
+ 				dev_err(dev, "sdricoh_request: cmd %i "
+ 					"block transfer failed\n", cmd->opcode);
+-- 
+2.1.4
