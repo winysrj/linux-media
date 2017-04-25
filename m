@@ -1,159 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f177.google.com ([209.85.220.177]:34081 "EHLO
-        mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752280AbdDCS7O (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 14:59:14 -0400
-Received: by mail-qk0-f177.google.com with SMTP id d10so123481299qke.1
-        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 11:59:14 -0700 (PDT)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCHv3 16/22] staging: android: ion: Get rid of ion_phys_addr_t
-Date: Mon,  3 Apr 2017 11:57:58 -0700
-Message-Id: <1491245884-15852-17-git-send-email-labbott@redhat.com>
-In-Reply-To: <1491245884-15852-1-git-send-email-labbott@redhat.com>
-References: <1491245884-15852-1-git-send-email-labbott@redhat.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50119
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S938935AbdDYB5t (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Apr 2017 21:57:49 -0400
+Date: Mon, 24 Apr 2017 22:57:38 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hdegoede@redhat.com
+Subject: Re: support autofocus / autogain in libv4l2
+Message-ID: <20170424225731.7532e368@vento.lan>
+In-Reply-To: <20170424220701.GA27846@amd>
+References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
+        <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
+        <20170414232332.63850d7b@vento.lan>
+        <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+        <20170419105118.72b8e284@vento.lan>
+        <20170424093059.GA20427@amd>
+        <20170424103802.00d3b554@vento.lan>
+        <20170424220701.GA27846@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Once upon a time, phys_addr_t was not everywhere in the kernel. These
-days it is used enough places that having a separate Ion type doesn't
-make sense. Remove the extra type and just use phys_addr_t directly.
+Em Tue, 25 Apr 2017 00:07:01 +0200
+Pavel Machek <pavel@ucw.cz> escreveu:
 
-Signed-off-by: Laura Abbott <labbott@redhat.com>
----
- drivers/staging/android/ion/ion.h               | 12 ++----------
- drivers/staging/android/ion/ion_carveout_heap.c | 10 +++++-----
- drivers/staging/android/ion/ion_chunk_heap.c    |  6 +++---
- drivers/staging/android/ion/ion_heap.c          |  4 ++--
- 4 files changed, 12 insertions(+), 20 deletions(-)
+> Hi!
+> 
+> > Please don't add a new application under lib/. It is fine if you want
+> > some testing application, if the ones there aren't enough, but please
+> > place it under contrib/test/.
+> > 
+> > You should likely take a look at v4l2grab first, as it could have
+> > almost everything you would need.  
+> 
+> I really need some kind of video output. v4l2grab is not useful
+> there. v4l2gl might be, but I don't think I have enough dependencies.
 
-diff --git a/drivers/staging/android/ion/ion.h b/drivers/staging/android/ion/ion.h
-index 3b4bff5..e8a6ffe 100644
---- a/drivers/staging/android/ion/ion.h
-+++ b/drivers/staging/android/ion/ion.h
-@@ -28,14 +28,6 @@ struct ion_mapper;
- struct ion_client;
- struct ion_buffer;
- 
--/*
-- * This should be removed some day when phys_addr_t's are fully
-- * plumbed in the kernel, and all instances of ion_phys_addr_t should
-- * be converted to phys_addr_t.  For the time being many kernel interfaces
-- * do not accept phys_addr_t's that would have to
-- */
--#define ion_phys_addr_t unsigned long
--
- /**
-  * struct ion_platform_heap - defines a heap in the given platform
-  * @type:	type of the heap from ion_heap_type enum
-@@ -53,9 +45,9 @@ struct ion_platform_heap {
- 	enum ion_heap_type type;
- 	unsigned int id;
- 	const char *name;
--	ion_phys_addr_t base;
-+	phys_addr_t base;
- 	size_t size;
--	ion_phys_addr_t align;
-+	phys_addr_t align;
- 	void *priv;
- };
- 
-diff --git a/drivers/staging/android/ion/ion_carveout_heap.c b/drivers/staging/android/ion/ion_carveout_heap.c
-index e0e360f..1419a89 100644
---- a/drivers/staging/android/ion/ion_carveout_heap.c
-+++ b/drivers/staging/android/ion/ion_carveout_heap.c
-@@ -30,10 +30,10 @@
- struct ion_carveout_heap {
- 	struct ion_heap heap;
- 	struct gen_pool *pool;
--	ion_phys_addr_t base;
-+	phys_addr_t base;
- };
- 
--static ion_phys_addr_t ion_carveout_allocate(struct ion_heap *heap,
-+static phys_addr_t ion_carveout_allocate(struct ion_heap *heap,
- 					     unsigned long size)
- {
- 	struct ion_carveout_heap *carveout_heap =
-@@ -46,7 +46,7 @@ static ion_phys_addr_t ion_carveout_allocate(struct ion_heap *heap,
- 	return offset;
- }
- 
--static void ion_carveout_free(struct ion_heap *heap, ion_phys_addr_t addr,
-+static void ion_carveout_free(struct ion_heap *heap, phys_addr_t addr,
- 			      unsigned long size)
- {
- 	struct ion_carveout_heap *carveout_heap =
-@@ -63,7 +63,7 @@ static int ion_carveout_heap_allocate(struct ion_heap *heap,
- 				      unsigned long flags)
- {
- 	struct sg_table *table;
--	ion_phys_addr_t paddr;
-+	phys_addr_t paddr;
- 	int ret;
- 
- 	table = kmalloc(sizeof(*table), GFP_KERNEL);
-@@ -96,7 +96,7 @@ static void ion_carveout_heap_free(struct ion_buffer *buffer)
- 	struct ion_heap *heap = buffer->heap;
- 	struct sg_table *table = buffer->sg_table;
- 	struct page *page = sg_page(table->sgl);
--	ion_phys_addr_t paddr = PFN_PHYS(page_to_pfn(page));
-+	phys_addr_t paddr = PFN_PHYS(page_to_pfn(page));
- 
- 	ion_heap_buffer_zero(buffer);
- 
-diff --git a/drivers/staging/android/ion/ion_chunk_heap.c b/drivers/staging/android/ion/ion_chunk_heap.c
-index 46e13f6..606f25f 100644
---- a/drivers/staging/android/ion/ion_chunk_heap.c
-+++ b/drivers/staging/android/ion/ion_chunk_heap.c
-@@ -27,7 +27,7 @@
- struct ion_chunk_heap {
- 	struct ion_heap heap;
- 	struct gen_pool *pool;
--	ion_phys_addr_t base;
-+	phys_addr_t base;
- 	unsigned long chunk_size;
- 	unsigned long size;
- 	unsigned long allocated;
-@@ -151,8 +151,8 @@ struct ion_heap *ion_chunk_heap_create(struct ion_platform_heap *heap_data)
- 	chunk_heap->heap.ops = &chunk_heap_ops;
- 	chunk_heap->heap.type = ION_HEAP_TYPE_CHUNK;
- 	chunk_heap->heap.flags = ION_HEAP_FLAG_DEFER_FREE;
--	pr_debug("%s: base %lu size %zu \n", __func__,
--		 chunk_heap->base, heap_data->size);
-+	pr_debug("%s: base %pa size %zu \n", __func__,
-+		 &chunk_heap->base, heap_data->size);
- 
- 	return &chunk_heap->heap;
- 
-diff --git a/drivers/staging/android/ion/ion_heap.c b/drivers/staging/android/ion/ion_heap.c
-index c69d0bd..03b554f 100644
---- a/drivers/staging/android/ion/ion_heap.c
-+++ b/drivers/staging/android/ion/ion_heap.c
-@@ -343,9 +343,9 @@ struct ion_heap *ion_heap_create(struct ion_platform_heap *heap_data)
- 	}
- 
- 	if (IS_ERR_OR_NULL(heap)) {
--		pr_err("%s: error creating heap %s type %d base %lu size %zu\n",
-+		pr_err("%s: error creating heap %s type %d base %pa size %zu\n",
- 		       __func__, heap_data->name, heap_data->type,
--		       heap_data->base, heap_data->size);
-+		       &heap_data->base, heap_data->size);
- 		return ERR_PTR(-EINVAL);
- 	}
- 
--- 
-2.7.4
+Well, you could use some app to show the snaps that v4l2grab takes.
+
+Yeah, compiling v4l2gl on N9 can indeed be complex. I suspect that it 
+shouldn't hard to compile xawtv there (probably disabling some optional
+features).
+
+> Umm, and it looks like libv4l can not automatically convert from
+> GRBG10.. and if it could, going through RGB24 would probably be too
+> slow on this device :-(.
+
+I suspect it shouldn't be hard to add support for GRBG10. It already
+supports 8 and 16 bits Bayer formats, at lib/libv4lconvert/bayer.c
+(to both RGB and YUV formats).
+
+How it would preform is another question ;)
+
+> > IMO, the above belongs to a separate processing module under
+> > 	lib/libv4lconvert/processing/  
+> 
+> Is there an example using autogain/autowhitebalance from
+> libv4lconvert?
+
+Well, if you plug a USB camera without those controls, it should
+automatically expose controls for it, as if the device had such
+controls.
+
+Thanks,
+Mauro
