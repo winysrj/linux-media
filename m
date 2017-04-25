@@ -1,162 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37026 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1425303AbdD1JKe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 05:10:34 -0400
-Subject: Re: [PATCH v4 05/27] rcar-vin: move chip information to own struct
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
- <20170427224203.14611-6-niklas.soderlund+renesas@ragnatech.se>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <aa96b62f-1615-ca1a-5101-b0f021f4cb24@ideasonboard.com>
-Date: Fri, 28 Apr 2017 10:10:29 +0100
-MIME-Version: 1.0
-In-Reply-To: <20170427224203.14611-6-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Received: from ale.deltatee.com ([207.54.116.67]:49705 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1948288AbdDYSVV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 25 Apr 2017 14:21:21 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
+        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        dm-devel@redhat.com
+Cc: Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Stephen Bates <sbates@raithlin.com>,
+        Logan Gunthorpe <logang@deltatee.com>
+Date: Tue, 25 Apr 2017 12:20:49 -0600
+Message-Id: <1493144468-22493-3-git-send-email-logang@deltatee.com>
+In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v2 02/21] libiscsi: Add an internal error code
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+This is a prep patch to add a new error code to libiscsi. We want to
+rework some kmap calls to be able to fail. When we do, we'd like to
+use this error code.
 
-On 27/04/17 23:41, Niklas Söderlund wrote:
-> When Gen3 support is added to the driver more then chip id will be
-> different for the different Soc. To avoid a lot of if statements in the
-> code create a struct chip_info to contain this information.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+This patch simply introduces ISCSI_TCP_INTERNAL_ERR and prints
+"Internal Error." when it gets hit.
 
-This looks good to me
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+---
+ drivers/scsi/cxgbi/libcxgbi.c | 5 +++++
+ include/scsi/libiscsi_tcp.h   | 1 +
+ 2 files changed, 6 insertions(+)
 
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 49 ++++++++++++++++++++++++-----
->  drivers/media/platform/rcar-vin/rcar-v4l2.c |  3 +-
->  drivers/media/platform/rcar-vin/rcar-vin.h  | 12 +++++--
->  3 files changed, 53 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index c4d4f112da0c9d45..ec1eb723d401fda2 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -255,14 +255,47 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
->   * Platform Device Driver
->   */
->  
-> +static const struct rvin_info rcar_info_h1 = {
-> +	.chip = RCAR_H1,
-> +};
-> +
-> +static const struct rvin_info rcar_info_m1 = {
-> +	.chip = RCAR_M1,
-> +};
-> +
-> +static const struct rvin_info rcar_info_gen2 = {
-> +	.chip = RCAR_GEN2,
-> +};
-> +
->  static const struct of_device_id rvin_of_id_table[] = {
-> -	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
-> -	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
-> -	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
-> -	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
-> -	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
-> -	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
-> -	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
-> +	{
-> +		.compatible = "renesas,vin-r8a7794",
-> +		.data = &rcar_info_gen2,
-> +	},
-> +	{
-> +		.compatible = "renesas,vin-r8a7793",
-> +		.data = &rcar_info_gen2,
-> +	},
-> +	{
-> +		.compatible = "renesas,vin-r8a7791",
-> +		.data = &rcar_info_gen2,
-> +	},
-> +	{
-> +		.compatible = "renesas,vin-r8a7790",
-> +		.data = &rcar_info_gen2,
-> +	},
-> +	{
-> +		.compatible = "renesas,vin-r8a7779",
-> +		.data = &rcar_info_h1,
-> +	},
-> +	{
-> +		.compatible = "renesas,vin-r8a7778",
-> +		.data = &rcar_info_m1,
-> +	},
-> +	{
-> +		.compatible = "renesas,rcar-gen2-vin",
-> +		.data = &rcar_info_gen2,
-> +	},
->  	{ },
->  };
->  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
-> @@ -283,7 +316,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
->  		return -ENODEV;
->  
->  	vin->dev = &pdev->dev;
-> -	vin->chip = (enum chip_id)match->data;
-> +	vin->info = match->data;
->  
->  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	if (mem == NULL)
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index 27b7733e96afe3e9..7deca15d22b4d6e3 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -272,7 +272,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
->  	pix->sizeimage = max_t(u32, pix->sizeimage,
->  			       rvin_format_sizeimage(pix));
->  
-> -	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-> +	if (vin->info->chip == RCAR_M1 &&
-> +	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
->  		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
->  		return -EINVAL;
->  	}
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-> index 9454ef80bc2b3961..c07b4a6893440a6a 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -89,10 +89,18 @@ struct rvin_graph_entity {
->  };
->  
->  /**
-> + * struct rvin_info- Information about the particular VIN implementation
-> + * @chip:		type of VIN chip
-> + */
-> +struct rvin_info {
-> +	enum chip_id chip;
-> +};
-> +
-> +/**
->   * struct rvin_dev - Renesas VIN device structure
->   * @dev:		(OF) device
->   * @base:		device I/O register space remapped to virtual memory
-> - * @chip:		type of VIN chip
-> + * @info:		info about VIN instance
->   *
->   * @vdev:		V4L2 video device associated with VIN
->   * @v4l2_dev:		V4L2 device
-> @@ -120,7 +128,7 @@ struct rvin_graph_entity {
->  struct rvin_dev {
->  	struct device *dev;
->  	void __iomem *base;
-> -	enum chip_id chip;
-> +	const struct rvin_info *info;
->  
->  	struct video_device *vdev;
->  	struct v4l2_device v4l2_dev;
-> 
+diff --git a/drivers/scsi/cxgbi/libcxgbi.c b/drivers/scsi/cxgbi/libcxgbi.c
+index bd7d39e..e38d0c1 100644
+--- a/drivers/scsi/cxgbi/libcxgbi.c
++++ b/drivers/scsi/cxgbi/libcxgbi.c
+@@ -1556,6 +1556,11 @@ static inline int read_pdu_skb(struct iscsi_conn *conn,
+ 		 */
+ 		iscsi_conn_printk(KERN_ERR, conn, "Invalid pdu or skb.");
+ 		return -EFAULT;
++	case ISCSI_TCP_INTERNAL_ERR:
++		pr_info("skb 0x%p, off %u, %d, TCP_INTERNAL_ERR.\n",
++			skb, offset, offloaded);
++		iscsi_conn_printk(KERN_ERR, conn, "Internal error.");
++		return -EFAULT;
+ 	case ISCSI_TCP_SEGMENT_DONE:
+ 		log_debug(1 << CXGBI_DBG_PDU_RX,
+ 			"skb 0x%p, off %u, %d, TCP_SEG_DONE, rc %d.\n",
+diff --git a/include/scsi/libiscsi_tcp.h b/include/scsi/libiscsi_tcp.h
+index 30520d5..90691ad 100644
+--- a/include/scsi/libiscsi_tcp.h
++++ b/include/scsi/libiscsi_tcp.h
+@@ -92,6 +92,7 @@ enum {
+ 	ISCSI_TCP_SKB_DONE,		/* skb is out of data */
+ 	ISCSI_TCP_CONN_ERR,		/* iscsi layer has fired a conn err */
+ 	ISCSI_TCP_SUSPENDED,		/* conn is suspended */
++	ISCSI_TCP_INTERNAL_ERR,         /* an internal error occurred */
+ };
+ 
+ extern void iscsi_tcp_hdr_recv_prep(struct iscsi_tcp_conn *tcp_conn);
+-- 
+2.1.4
