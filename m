@@ -1,138 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40514 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752459AbdDDOVs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Apr 2017 10:21:48 -0400
-Received: from avalon.localnet (unknown [109.134.82.53])
-        by galahad.ideasonboard.com (Postfix) with ESMTPSA id 2F9DE20046
-        for <linux-media@vger.kernel.org>; Tue,  4 Apr 2017 16:21:21 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.12] Renesas R-Car VSP1 changes
-Date: Tue, 04 Apr 2017 17:22:31 +0300
-Message-ID: <2693141.llBgeEXWgs@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from ale.deltatee.com ([207.54.116.67]:49787 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1952424AbdDYSV0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 25 Apr 2017 14:21:26 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
+        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        dm-devel@redhat.com
+Cc: Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Stephen Bates <sbates@raithlin.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        Ulf Hansson <ulf.hansson@linaro.org>
+Date: Tue, 25 Apr 2017 12:21:05 -0600
+Message-Id: <1493144468-22493-19-git-send-email-logang@deltatee.com>
+In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v2 18/21] mmc: tmio: Make use of the new sg_map helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Straightforward conversion to sg_map helper. Seeing there is no
+cleare error path, SG_MAP_MUST_NOT_FAIL which may BUG_ON in certain
+cases in the future.
 
-The following changes since commit 7ca0ef3da09888b303991edb80cd0283ee64=
-1c9e:
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>
+---
+ drivers/mmc/host/tmio_mmc.h     |  7 +++++--
+ drivers/mmc/host/tmio_mmc_pio.c | 12 ++++++++++++
+ 2 files changed, 17 insertions(+), 2 deletions(-)
 
-  Merge tag 'v4.11-rc5' into patchwork (2017-04-04 11:11:43 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git vsp1/next
-
-for you to fetch changes up to b116ebc56310945bde34f49380ca5501f723769d=
-:
-
-  v4l: vsp1: Add HGT support (2017-04-04 17:19:51 +0300)
-
-
-The pull request contains assorted cleanup and fixes, followed by rotat=
-ion and=20
-histogram support including the corresponding V4L2 API documentation=20=
-
-enhancements.
-
-----------------------------------------------------------------
-Kieran Bingham (5):
-      v4l: vsp1: Fix format-info documentation
-      v4l: vsp1: Prevent multiple streamon race commencing pipeline ear=
-ly
-      v4l: vsp1: Remove redundant pipe->dl usage from drm
-      v4l: vsp1: Fix struct vsp1_drm documentation
-      v4l: vsp1: Register pipe with output WPF
-
-Laurent Pinchart (11):
-      v4l: vsp1: Fix RPF/WPF U/V order in 3-planar formats on Gen3
-      v4l: vsp1: Fix multi-line comment style
-      v4l: vsp1: Disable HSV formats on Gen3 hardware
-      v4l: Clearly document interactions between formats, controls and =
-buffers
-      v4l: vsp1: wpf: Implement rotation support
-      v4l: Add metadata buffer type and format
-      v4l: vsp1: Add histogram support
-      v4l: vsp1: Support histogram generators in pipeline configuration=
-
-      v4l: vsp1: Fix HGO and HGT routing register addresses
-      v4l: Define a pixel format for the R-Car VSP1 1-D histogram engin=
-e
-      v4l: vsp1: Add HGO support
-
-Niklas S=F6derlund (2):
-      v4l: Define a pixel format for the R-Car VSP1 2-D histogram engin=
-e
-      v4l: vsp1: Add HGT support
-
-Shailendra Verma (1):
-      v4l: vsp1: Clean up file handle in open() error path
-
- Documentation/media/uapi/v4l/buffer.rst               | 113 +++++
- Documentation/media/uapi/v4l/dev-meta.rst             |  62 +++
- Documentation/media/uapi/v4l/devices.rst              |   1 +
- Documentation/media/uapi/v4l/meta-formats.rst         |  16 +
- Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst | 168 +++++++
- Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst | 120 +++++
- Documentation/media/uapi/v4l/pixfmt.rst               |   1 +
- Documentation/media/uapi/v4l/vidioc-querycap.rst      |   3 +
- Documentation/media/videodev2.h.rst.exceptions        |   2 +
- drivers/media/platform/Kconfig                        |   1 +
- drivers/media/platform/vsp1/Makefile                  |   1 +
- drivers/media/platform/vsp1/vsp1.h                    |   6 +
- drivers/media/platform/vsp1/vsp1_bru.c                |  27 +-
- drivers/media/platform/vsp1/vsp1_dl.c                 |  27 +-
- drivers/media/platform/vsp1/vsp1_drm.c                |  42 +-
- drivers/media/platform/vsp1/vsp1_drm.h                |   2 +-
- drivers/media/platform/vsp1/vsp1_drv.c                |  82 +++-
- drivers/media/platform/vsp1/vsp1_entity.c             | 163 ++++++-
- drivers/media/platform/vsp1/vsp1_entity.h             |   8 +-
- drivers/media/platform/vsp1/vsp1_hgo.c                | 228 +++++++++
- drivers/media/platform/vsp1/vsp1_hgo.h                |  45 ++
- drivers/media/platform/vsp1/vsp1_hgt.c                | 222 +++++++++
- drivers/media/platform/vsp1/vsp1_hgt.h                |  42 ++
- drivers/media/platform/vsp1/vsp1_histo.c              | 646 ++++++++++=
-+++++++
- drivers/media/platform/vsp1/vsp1_histo.h              |  84 ++++
- drivers/media/platform/vsp1/vsp1_hsit.c               |   3 +-
- drivers/media/platform/vsp1/vsp1_lif.c                |   6 +-
- drivers/media/platform/vsp1/vsp1_pipe.c               |  59 ++-
- drivers/media/platform/vsp1/vsp1_pipe.h               |   9 +-
- drivers/media/platform/vsp1/vsp1_regs.h               |  33 +-
- drivers/media/platform/vsp1/vsp1_rpf.c                |  54 ++-
- drivers/media/platform/vsp1/vsp1_rwpf.c               |  11 +-
- drivers/media/platform/vsp1/vsp1_rwpf.h               |   7 +-
- drivers/media/platform/vsp1/vsp1_sru.c                |   3 +-
- drivers/media/platform/vsp1/vsp1_uds.c                |   3 +-
- drivers/media/platform/vsp1/vsp1_video.c              |  85 +++-
- drivers/media/platform/vsp1/vsp1_wpf.c                | 224 ++++++---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c         |  19 +
- drivers/media/v4l2-core/v4l2-dev.c                    |  16 +-
- drivers/media/v4l2-core/v4l2-ioctl.c                  |  36 ++
- drivers/media/v4l2-core/videobuf2-v4l2.c              |   3 +
- include/media/v4l2-ioctl.h                            |  17 +
- include/trace/events/v4l2.h                           |   1 +
- include/uapi/linux/videodev2.h                        |  17 +
- 44 files changed, 2527 insertions(+), 191 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/dev-meta.rst
- create mode 100644 Documentation/media/uapi/v4l/meta-formats.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.r=
-st
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.r=
-st
- create mode 100644 drivers/media/platform/vsp1/vsp1_hgo.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_hgo.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_histo.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_histo.h
-
---=20
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/mmc/host/tmio_mmc.h b/drivers/mmc/host/tmio_mmc.h
+index d0edb57..bc43eb0 100644
+--- a/drivers/mmc/host/tmio_mmc.h
++++ b/drivers/mmc/host/tmio_mmc.h
+@@ -202,17 +202,20 @@ void tmio_mmc_enable_mmc_irqs(struct tmio_mmc_host *host, u32 i);
+ void tmio_mmc_disable_mmc_irqs(struct tmio_mmc_host *host, u32 i);
+ irqreturn_t tmio_mmc_irq(int irq, void *devid);
+ 
++/* Note: this function may return PTR_ERR and must be checked! */
+ static inline char *tmio_mmc_kmap_atomic(struct scatterlist *sg,
+ 					 unsigned long *flags)
+ {
++	void *ret;
++
+ 	local_irq_save(*flags);
+-	return kmap_atomic(sg_page(sg)) + sg->offset;
++	return sg_map(sg, 0, SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
+ }
+ 
+ static inline void tmio_mmc_kunmap_atomic(struct scatterlist *sg,
+ 					  unsigned long *flags, void *virt)
+ {
+-	kunmap_atomic(virt - sg->offset);
++	sg_unmap(sg, virt, 0, SG_KMAP_ATOMIC);
+ 	local_irq_restore(*flags);
+ }
+ 
+diff --git a/drivers/mmc/host/tmio_mmc_pio.c b/drivers/mmc/host/tmio_mmc_pio.c
+index a2d92f1..bbb4f19 100644
+--- a/drivers/mmc/host/tmio_mmc_pio.c
++++ b/drivers/mmc/host/tmio_mmc_pio.c
+@@ -506,6 +506,18 @@ static void tmio_mmc_check_bounce_buffer(struct tmio_mmc_host *host)
+ 	if (host->sg_ptr == &host->bounce_sg) {
+ 		unsigned long flags;
+ 		void *sg_vaddr = tmio_mmc_kmap_atomic(host->sg_orig, &flags);
++		if (IS_ERR(sg_vaddr)) {
++			/*
++			 * This should really never happen unless
++			 * the code is changed to use memory that is
++			 * not mappable in the sg. Seeing there doesn't
++			 * seem to be any error path out of here,
++			 * we can only WARN.
++			 */
++			WARN(1, "Non-mappable memory used in sg!");
++			return;
++		}
++
+ 		memcpy(sg_vaddr, host->bounce_buf, host->bounce_sg.length);
+ 		tmio_mmc_kunmap_atomic(host->sg_orig, &flags, sg_vaddr);
+ 	}
+-- 
+2.1.4
