@@ -1,158 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53210 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1425880AbdD1NKo (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50085
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S979752AbdDYBrm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 09:10:44 -0400
-Date: Fri, 28 Apr 2017 16:10:10 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mon, 24 Apr 2017 21:47:42 -0400
+Date: Mon, 24 Apr 2017 22:47:31 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
+        Sakari Ailus <sakari.ailus@iki.fi>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 2/2] media: entity: Add media_entity_pad_from_dt_regs()
- function
-Message-ID: <20170428131010.GJ7456@valkosipuli.retiisi.org.uk>
-References: <20170427223323.13861-1-niklas.soderlund+renesas@ragnatech.se>
- <20170427223323.13861-3-niklas.soderlund+renesas@ragnatech.se>
- <20170428104339.GH7456@valkosipuli.retiisi.org.uk>
- <20170428120414.GE1532@bigcity.dyn.berto.se>
+        linux-media@vger.kernel.org
+Subject: Re: support autofocus / autogain in libv4l2
+Message-ID: <20170424224724.5bb52382@vento.lan>
+In-Reply-To: <20170424212914.GA20780@amd>
+References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
+        <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
+        <20170414232332.63850d7b@vento.lan>
+        <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+        <20170419105118.72b8e284@vento.lan>
+        <20170424093059.GA20427@amd>
+        <20170424103802.00d3b554@vento.lan>
+        <20170424212914.GA20780@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170428120414.GE1532@bigcity.dyn.berto.se>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hej, Niklas!
+Em Mon, 24 Apr 2017 23:29:14 +0200
+Pavel Machek <pavel@ucw.cz> escreveu:
 
-On Fri, Apr 28, 2017 at 02:04:15PM +0200, Niklas Söderlund wrote:
-> Hej,
+> Hi!
 > 
-> Thanks for your feedback.
-> 
-> On 2017-04-28 13:43:39 +0300, Sakari Ailus wrote:
-> > Hejssan!!!
-> > 
-> > On Fri, Apr 28, 2017 at 12:33:23AM +0200, Niklas Söderlund wrote:
-> > > This is a wrapper around the media entity pad_from_dt_regs operation.
+> > > For focus to be useful, we need autofocus implmented
+> > > somewhere. Unfortunately, v4l framework does not seem to provide good
+> > > place where to put autofocus. I believe, long-term, we'll need some
+> > > kind of "video server" providing this kind of services.
 > > > 
-> > > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > > ---
-> > >  drivers/media/media-entity.c | 21 +++++++++++++++++++++
-> > >  include/media/media-entity.h | 22 ++++++++++++++++++++++
-> > >  2 files changed, 43 insertions(+)
+> > > Anyway, we probably don't want autofocus in kernel (even through some
+> > > cameras do it in hardware), and we probably don't want autofocus in
+> > > each and every user application.
 > > > 
-> > > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> > > index 5640ca29da8c9bbc..6ef76186d552724e 100644
-> > > --- a/drivers/media/media-entity.c
-> > > +++ b/drivers/media/media-entity.c
-> > > @@ -386,6 +386,27 @@ struct media_entity *media_graph_walk_next(struct media_graph *graph)
-> > >  }
-> > >  EXPORT_SYMBOL_GPL(media_graph_walk_next);
-> > >  
-> > > +int media_entity_pad_from_dt_regs(struct media_entity *entity,
-> > > +				  int port_reg, int reg, unsigned int *pad)
-> > > +{
-> > > +	int ret;
-> > > +
-> > > +	if (!entity->ops || !entity->ops->pad_from_dt_regs) {
-> > > +		*pad = port_reg;
+> > > So what remains is libv4l2.   
 > > 
-> > I don't think we should bind the port number in firmware to a pad in V4L2
-> > sub-device interface.
+> > IMO, the best place for autofocus is at libv4l2. Putting it on a
+> > separate "video server" application looks really weird for me.  
+> 
+> Well... let me see. libraries are quite limited -- it is hard to open
+> files, or use threads/have custom main loop. It may be useful to
+> switch resolutions -- do autofocus/autogain at lower resolution, then
+> switch to high one for taking picture. It would be good to have that
+> in "system" code, but I'm not at all sure libv4l2 design will allow
+> that.
+
+I don't see why it would be hard to open files or have threads inside
+a library. There are several libraries that do that already, specially
+the ones designed to be used on multimidia apps.
+
+Resolution switch can indeed be a problem on devices that use MC
+and subdev API, as a plugin would be required to teach the library
+about N9 specifics (or the Kernel API should be improved to let
+a generic application to better detect the hardware capabilities).
+
+> It would be good if application could say "render live camera into
+> this window" and only care about user interface, then say "give me a
+> high resolution jpeg". But that would require main loop in the
+> library...
+
+Nothing prevents writing an upper layer on the top of libv4l in
+order to provide such kind of functions.
+
+> It would be nice if more than one application could be accessing the
+> camera at the same time... (I.e. something graphical running preview
+> then using command line tool to grab a picture.) This one is
+> definitely not solveable inside a library...
+
+Someone once suggested to have something like pulseaudio for V4L.
+For such usage, a server would be interesting. Yet, I would code it
+in a way that applications using libv4l will talk with such daemon
+in a transparent way.
+
+> > The above looks really odd. Why do you want to make libv4l2 dependent
+> > on sdl?  
+> 
+> I don't, but I had some nasty problems with linker; this should really
+> go into application but it refused to link. Scary libtool.
+
+That's weird. 
+
+
+> > If you're adding a SDL-specific application, you'll need to add the 
+> > needed autoconf bits to detect if SDL devel package is installed,
+> > auto-disabling it if not.
 > > 
-> > How about looking for a source pad in the entity instead? That's what some
-> > drivers do.
+> > Yet, I don't think that SDL should be part of the library, but,
+> > instead, part of some application.  
 > 
-> Sure that sounds like a nice approach, will do this for next version.
-> 
-> Would it make sens to extend this operation with a 'direction' parameter 
-> which could take either MEDIA_PAD_FL_SOURCE or MEDIA_PAD_FL_SINK and if 
-> !entity->ops->pad_from_dt_regs find the first pad that matches this 
-> 'direction' and if it do exist add a check to make sure the pad that is 
-> return matches that 'direction'?
+> Agreed. libtool prevented me from doing the right thing.
 
-If you had a transmitter in the graph it'd obviously be needed. I'm not sure
-if we have any now. I'm fine with direction though, it's logical to have it.
+if you add libSDL detection at configure.ac, you likely won't need to
+deal with libtool.
 
-> 
-> > 
-> > > +		return 0;
-> > > +	}
-> > > +
-> > > +	ret = entity->ops->pad_from_dt_regs(port_reg, reg, pad);
-> > > +	if (ret)
-> > > +		return ret;
-> > > +
-> > > +	if (*pad >= entity->num_pads)
-> > > +		return -EINVAL;
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +EXPORT_SYMBOL_GPL(media_entity_pad_from_dt_regs);
-> > > +
-> > >  /* -----------------------------------------------------------------------------
-> > >   * Pipeline management
-> > >   */
-> > > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > > index 47efaf4d825e671b..c60a3713d0a21baf 100644
-> > > --- a/include/media/media-entity.h
-> > > +++ b/include/media/media-entity.h
-> > > @@ -820,6 +820,28 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
-> > >  struct media_entity *media_entity_get(struct media_entity *entity);
-> > >  
-> > >  /**
-> > > + * media_entity_pad_from_dt_regs - Get pad number from DT regs
-> > > + *
-> > > + * @entity: The entity
-> > > + * @port_reg: DT port
-> > > + * @reg: DT reg
-> > > + * @pad: Pointer to pad which will be filled in
-> > > + *
-> > > + * This function can be used to resolve the media pad number from
-> > > + * DT port and reg numbers. This is useful for devices which
-> > > + * uses more complex mappings of media pads then that the
-> > > + * DT port number is equivalent to the media pad number.
-> > > + *
-> > > + * If the entity do not implement the pad_from_dt_regs() operation
-> > > + * this function assumes DT port is equivalent to media pad number
-> > > + * and sets @pad to @port_reg.
-> > > + *
-> > > + * Return: 0 on success else -EINVAL.
-> > 
-> > -EINVAL suggests the user provided bad parameters, but this isn't the case
-> > here. How about e.g. -ENXIO?
-> 
-> 
-> I reasoned that if a port_reg and reg supplied did result in a  pad 
-> match the user would have given pad parameters. But sure there might be 
-> cases where that assumtion might not be true. So I see no problem of 
-> changing this to -ENXIO in next version.
+On a quick look at web, it seems that there's a m4 module that does
+the right thing, according with:
+	https://wiki.libsdl.org/FAQLinux
 
-The only case -EINVAL is returned is when the driver specific function
-returns a non-existent pad number. That's a driver bug, isn't it? We don't
-have a specific error code for that though. :-)
 
-> 
-> > 
-> > > + */
-> > > +int media_entity_pad_from_dt_regs(struct media_entity *entity,
-> > > +				  int port_reg, int reg, unsigned int *pad);
-> > > +
-> > > +/**
-> > >   * media_graph_walk_init - Allocate resources used by graph walk.
-> > >   *
-> > >   * @graph: Media graph structure that will be used to walk the graph
-> > 
-
--- 
-Terveisin,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks,
+Mauro
