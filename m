@@ -1,213 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45783 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751254AbdDQMW6 (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46430 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S980593AbdDYIFn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Apr 2017 08:22:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Daniel Axtens <dja@axtens.net>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Dave Stevenson <linux-media@destevenson.freeserve.co.uk>,
-        Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 1/2] [media] uvcvideo: Refactor teardown of uvc on USB disconnect
-Date: Mon, 17 Apr 2017 15:23:55 +0300
-Message-ID: <2540812.MKbs17NyWb@avalon>
-In-Reply-To: <20170417085240.12930-1-dja@axtens.net>
-References: <20170417085240.12930-1-dja@axtens.net>
+        Tue, 25 Apr 2017 04:05:43 -0400
+Date: Tue, 25 Apr 2017 10:05:38 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Subject: Re: support autofocus / autogain in libv4l2
+Message-ID: <20170425080538.GA30380@amd>
+References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20170414232332.63850d7b@vento.lan>
+ <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+ <20170419105118.72b8e284@vento.lan>
+ <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="PEIAKu/WMn1b1Hv9"
+Content-Disposition: inline
+In-Reply-To: <20170424224724.5bb52382@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
 
-Thank you for the patch (and the investigation).
+--PEIAKu/WMn1b1Hv9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Monday 17 Apr 2017 18:52:39 Daniel Axtens wrote:
-> Currently, disconnecting a USB webcam while it is in use prints out a
-> number of warnings, such as:
-> 
-> WARNING: CPU: 2 PID: 3118 at
-> /build/linux-ezBi1T/linux-4.8.0/fs/sysfs/group.c:237
-> sysfs_remove_group+0x8b/0x90 sysfs group ffffffffa7cd0780 not found for
-> kobject 'event13'
-> 
-> This has been noticed before. [0]
-> 
-> This is because of the order in which things are torn down.
-> 
-> If there are no streams active during a USB disconnect:
-> 
->  - uvc_disconnect() is invoked via device_del() through the bus
->    notifier mechanism.
-> 
->  - this calls uvc_unregister_video().
-> 
->  - uvc_unregister_video() unregisters the video device for each
->    stream,
-> 
->  - because there are no streams open, it calls uvc_delete()
-> 
->  - uvc_delete() calls uvc_status_cleanup(), which cleans up the status
->    input device.
-> 
->  - uvc_delete() calls media_device_unregister(), which cleans up the
->    media device
-> 
->  - uvc_delete(), uvc_unregister_video() and uvc_disconnect() all
->    return, and we end up back in device_del().
-> 
->  - device_del() then cleans up the sysfs folder for the camera with
->    dpm_sysfs_remove(). Because uvc_status_cleanup() and
->    media_device_unregister() have already been called, this all works
->    nicely.
-> 
-> If, on the other hand, there *are* streams active during a USB disconnect:
-> 
->  - uvc_disconnect() is invoked
-> 
->  - this calls uvc_unregister_video()
-> 
->  - uvc_unregister_video() unregisters the video device for each
->    stream,
-> 
->  - uvc_unregister_video() and uvc_disconnect() return, and we end up
->    back in device_del().
-> 
->  - device_del() then cleans up the sysfs folder for the camera with
->    dpm_sysfs_remove(). Because the status input device and the media
->    device are children of the USB device, this also deletes their
->    sysfs folders.
-> 
->  - Sometime later, the final stream is closed, invoking uvc_release().
-> 
->  - uvc_release() calls uvc_delete()
-> 
->  - uvc_delete() calls uvc_status_cleanup(), which cleans up the status
->    input device. Because the sysfs directory has already been removed,
->    this causes a WARNing.
-> 
->  - uvc_delete() calls media_device_unregister(), which cleans up the
->    media device. Because the sysfs directory has already been removed,
->    this causes another WARNing.
-> 
-> To fix this, we need to make sure the devices are always unregistered
-> before the end of uvc_disconnect(). To this, move the unregistration
-> into the disconnect path:
->
->  - split uvc_status_cleanup() into two parts, one on disconnect that
->    unregisters and one on delete that frees.
-> 
->  - move media_device_unregister() into the disconnect path.
+Hi!
 
-While the patch looks reasonable to me (with one comment below though), isn't 
-this an issue with the USB core, or possibly the device core ? It's a common 
-practice to create device nodes as children of physical devices. Does the 
-device core really require all device nodes to be unregistered synchronously 
-with physical device hot-unplug ? If so, shouldn't it warn somehow when a 
-device is deleted and still has children, instead of accepting that silently 
-and later complaining due to sysfs issues ?
+> > > > For focus to be useful, we need autofocus implmented
+> > > > somewhere. Unfortunately, v4l framework does not seem to provide go=
+od
+> > > > place where to put autofocus. I believe, long-term, we'll need some
+> > > > kind of "video server" providing this kind of services.
+> > > >=20
+> > > > Anyway, we probably don't want autofocus in kernel (even through so=
+me
+> > > > cameras do it in hardware), and we probably don't want autofocus in
+> > > > each and every user application.
+> > > >=20
+> > > > So what remains is libv4l2.  =20
+> > >=20
+> > > IMO, the best place for autofocus is at libv4l2. Putting it on a
+> > > separate "video server" application looks really weird for me. =20
+> >=20
+> > Well... let me see. libraries are quite limited -- it is hard to open
+> > files, or use threads/have custom main loop. It may be useful to
+> > switch resolutions -- do autofocus/autogain at lower resolution, then
+> > switch to high one for taking picture. It would be good to have that
+> > in "system" code, but I'm not at all sure libv4l2 design will allow
+> > that.
+>=20
+> I don't see why it would be hard to open files or have threads inside
+> a library. There are several libraries that do that already, specially
+> the ones designed to be used on multimidia apps.
 
-> [0]: https://lkml.org/lkml/2016/12/8/657
-> 
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>
-> Cc: Greg KH <greg@kroah.com>
-> Signed-off-by: Daniel Axtens <dja@axtens.net>
-> 
-> ---
-> 
-> Tested with cheese and yavta.
-> ---
->  drivers/media/usb/uvc/uvc_driver.c | 8 ++++++--
->  drivers/media/usb/uvc/uvc_status.c | 8 ++++++--
->  drivers/media/usb/uvc/uvcvideo.h   | 1 +
->  3 files changed, 13 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index 46d6be0bb316..2390592f78e0
-> 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -1815,8 +1815,6 @@ static void uvc_delete(struct uvc_device *dev)
->  	if (dev->vdev.dev)
->  		v4l2_device_unregister(&dev->vdev);
->  #ifdef CONFIG_MEDIA_CONTROLLER
-> -	if (media_devnode_is_registered(dev->mdev.devnode))
-> -		media_device_unregister(&dev->mdev);
+Well, fd's are hard, because application can do fork() and now
+interesting stuff happens. Threads are tricky, because now you have
+locking etc.
 
-media_device_unregister() will now be called before v4l2_device_unregister() 
-which, unless I'm mistaken, will now result in 
-media_device_unregister_entity() being called twice for every entity, the 
-first time by media_device_unregister(), and the second time by 
-v4l2_device_unregister_subdev() through v4l2_device_unregister(). Looking at 
-media_device_unregister() I don't think that's safe.
+libv4l2 is designed to be LD_PRELOADED. That is not really feasible
+with "complex" library.
 
-We could move to v4l2_device_unregister() call to uvc_unregister_video(), but 
-that worries me (perhaps unnecessarily though) due to the race conditions it 
-could introduce. Would you still be able to give it a try ?
+> > It would be good if application could say "render live camera into
+> > this window" and only care about user interface, then say "give me a
+> > high resolution jpeg". But that would require main loop in the
+> > library...
+>=20
+> Nothing prevents writing an upper layer on the top of libv4l in
+> order to provide such kind of functions.
 
-Note that your patch isn't really at fault here, the media controller and V4L2 
-core code have been broken for a long time when it comes to entity lifetime 
-management. That might be fixed some day, but I won't hold my breath given the 
-bad track record of the previous year and a half.
+Agreed.
 
->  	media_device_cleanup(&dev->mdev);
->  #endif
-> 
-> @@ -1884,6 +1882,12 @@ static void uvc_unregister_video(struct uvc_device
-> *dev) uvc_debugfs_cleanup_stream(stream);
->  	}
-> 
-> +	uvc_status_unregister(dev);
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	if (media_devnode_is_registered(dev->mdev.devnode))
-> +		media_device_unregister(&dev->mdev);
-> +#endif
-> +
->  	/* Decrement the stream count and call uvc_delete explicitly if there
->  	 * are no stream left.
->  	 */
-> diff --git a/drivers/media/usb/uvc/uvc_status.c
-> b/drivers/media/usb/uvc/uvc_status.c index f552ab997956..95709b23d3b4
-> 100644
-> --- a/drivers/media/usb/uvc/uvc_status.c
-> +++ b/drivers/media/usb/uvc/uvc_status.c
-> @@ -198,12 +198,16 @@ int uvc_status_init(struct uvc_device *dev)
->  	return 0;
->  }
-> 
-> -void uvc_status_cleanup(struct uvc_device *dev)
-> +void uvc_status_unregister(struct uvc_device *dev)
->  {
->  	usb_kill_urb(dev->int_urb);
-> +	uvc_input_cleanup(dev);
-> +}
-> +
-> +void uvc_status_cleanup(struct uvc_device *dev)
-> +{
->  	usb_free_urb(dev->int_urb);
->  	kfree(dev->status);
-> -	uvc_input_cleanup(dev);
->  }
-> 
->  int uvc_status_start(struct uvc_device *dev, gfp_t flags)
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index 15e415e32c7f..4b4814df35cd 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -712,6 +712,7 @@ void uvc_video_clock_update(struct uvc_streaming
-> *stream,
-> 
->  /* Status */
->  extern int uvc_status_init(struct uvc_device *dev);
-> +extern void uvc_status_unregister(struct uvc_device *dev);
->  extern void uvc_status_cleanup(struct uvc_device *dev);
->  extern int uvc_status_start(struct uvc_device *dev, gfp_t flags);
->  extern void uvc_status_stop(struct uvc_device *dev);
+> > It would be nice if more than one application could be accessing the
+> > camera at the same time... (I.e. something graphical running preview
+> > then using command line tool to grab a picture.) This one is
+> > definitely not solveable inside a library...
+>=20
+> Someone once suggested to have something like pulseaudio for V4L.
+> For such usage, a server would be interesting. Yet, I would code it
+> in a way that applications using libv4l will talk with such daemon
+> in a transparent way.
 
--- 
+Yes, we need something like pulseaudio for V4L. And yes, we should
+make it transparent for applications using libv4l.
+
 Regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Laurent Pinchart
+--PEIAKu/WMn1b1Hv9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlj/A1IACgkQMOfwapXb+vKxkACfVZFP9+yJj8SDX0pX96kwraRU
+CtYAnj2U3aiuzXzgqfDHfnCB+3naGgg7
+=cyxx
+-----END PGP SIGNATURE-----
+
+--PEIAKu/WMn1b1Hv9--
