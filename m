@@ -1,63 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:31037 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753362AbdDJNDi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 09:03:38 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [PATCH v3 5/7] docs-rst: media: Sort topic list alphabetically
-Date: Mon, 10 Apr 2017 16:02:54 +0300
-Message-Id: <1491829376-14791-6-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35066 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1428665AbdDYL66 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 25 Apr 2017 07:58:58 -0400
+Date: Tue, 25 Apr 2017 14:58:22 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        hverkuil@xs4all.nl
+Subject: Re: [PATCH v3 4/7] v4l: Switch from V4L2 OF not V4L2 fwnode API
+Message-ID: <20170425115822.GZ7456@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1493121374-13298-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bring some order by alphabetically ordering the list of topics.
+Changes since v3:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/media/kapi/v4l2-core.rst | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+- Convert recently merged ov5645 and ov5647 to V4L2 fwnode
 
-diff --git a/Documentation/media/kapi/v4l2-core.rst b/Documentation/media/kapi/v4l2-core.rst
-index d8f6c46..2fbf532 100644
---- a/Documentation/media/kapi/v4l2-core.rst
-+++ b/Documentation/media/kapi/v4l2-core.rst
-@@ -4,23 +4,23 @@ Video4Linux devices
- .. toctree::
-     :maxdepth: 1
- 
--    v4l2-intro
-+    v4l2-clocks
-+    v4l2-common
-+    v4l2-controls
-     v4l2-dev
-     v4l2-device
--    v4l2-fh
--    v4l2-subdev
--    v4l2-event
--    v4l2-controls
--    v4l2-videobuf
--    v4l2-videobuf2
--    v4l2-clocks
-     v4l2-dv-timings
-+    v4l2-event
-+    v4l2-fh
-     v4l2-flash-led-class
-+    v4l2-intro
-     v4l2-mc
-     v4l2-mediabus
-     v4l2-mem2mem
-     v4l2-of
-     v4l2-rect
-+    v4l2-subdev
-     v4l2-tuner
--    v4l2-common
-     v4l2-tveeprom
-+    v4l2-videobuf
-+    v4l2-videobuf2
 -- 
-2.7.4
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
