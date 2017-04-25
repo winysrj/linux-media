@@ -1,43 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:35692 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932507AbdDFGKR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Apr 2017 02:10:17 -0400
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v4 05/12] [media] videodev2.h: Add v4l2 definition for HEVC
-Date: Thu, 06 Apr 2017 11:41:38 +0530
-Message-id: <1491459105-16641-6-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
-References: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
- <CGME20170406061010epcas5p22e8100bbd1456007fb4fff327d1f81c8@epcas5p2.samsung.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:49171 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1176917AbdDYIwC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 25 Apr 2017 04:52:02 -0400
+Subject: Re: [PATCH v3 0/7] V4L2 fwnode support
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <7d0e3f86-2dcf-77d4-9411-5d98d1956586@xs4all.nl>
+Date: Tue, 25 Apr 2017 10:51:58 +0200
+MIME-Version: 1.0
+In-Reply-To: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add V4L2 definition for HEVC compressed format
+On 10/04/17 15:02, Sakari Ailus wrote:
+> Hello everyone,
+> 
+> This patchset adds support for fwnode to V4L2. Besides OF, also ACPI based
+> systems can be supported this way. By using V4L2 fwnode, the individual
+> drivers do not need to be aware of the underlying firmware implementation.
+> The patchset also removes specific V4L2 OF support and converts the
+> affected drivers to use V4L2 fwnode.
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
----
- include/uapi/linux/videodev2.h | 1 +
- 1 file changed, 1 insertion(+)
+Successfully tested with my Atmel sama5d3 board + ov2640 sensor.
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 316be62..03d4765 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -628,6 +628,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
- #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
- #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
-+#define V4L2_PIX_FMT_HEVC     v4l2_fourcc('H', 'E', 'V', 'C') /* HEVC */
- 
- /*  Vendor-specific formats   */
- #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
--- 
-2.7.4
+Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+> 
+> The patchset depends on another patchset here:
+> 
+> <URL:http://www.spinics.net/lists/linux-acpi/msg72973.html> 
+> 
+> A git tree with the dependencies can be found here:
+> 
+> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi-merge>
+> 
+> v1 of the set can be found here:
+> 
+> <URL:http://www.spinics.net/lists/linux-media/msg111073.html> 
+> 
+> and v2 here:
+> 
+> <URL:http://www.spinics.net/lists/linux-media/msg114110.html>
+> 
+> changes since v2:
+> 
+> - Use EXPORT_SYMBOL_GPL() instead of EXPORT_SYMBOL().
+> 
+> - Alphabetically order the topics under V4L2 core kAPI documentation.
+> 
+> - Prefer "fwnode" variable name for struct fwnode_handle pointers instead
+>   of "fwn". Similarly, use "vep" for struct v4l2_fwnode_endpoint instead
+>   of "vfwn".
+> 
+> - Convert existing users of OF matching to fwnode matching.
+> 
+> - Remove OF matching support as well as compatibility between OF and
+>   fwnode matching.
+> 
+> - Use of_node_cmp() to determine whether two nodes match in case both of
+>   them are OF nodes. There is thus no functional difference between
+>   existing OF matching in v1.
+> 
+> - Continue to use struct device_node.full_name on fwnodes that are known
+>   to be OF nodes instead of omitting such debug information. Drivers that
+>   can actually use fwnode need a new interface to provide this in fwnode
+>   framework. This is out of scope of the patchset.
+> 
+> - Remove linux/of.h header inclusion in
+>   drivers/media/v4l2-core/v4l2-flash-led-class.c.
+> 
+> - Improved line wrapping primarily in
+>   drivers/media/v4l2-core/v4l2-fwnode.c.
+> 
+> - Rewrap KernelDoc documentation for V4L2 fwnode API up to 80 characters
+>   per line (new patch).
+> 
+> - Fix KernelDoc documentation, there were a few locations where the
+>   argument had been changed but the documentation was not updated
+>   accordingly. 
+> 
+> - Fix punctuation and wording in V4L2 fwnode documentation.
+> 
+> - Drop patch "v4l: media/drv-intf/soc_mediabus.h: include dependent header
+>   file". It is no longer needed.
+> 
+> - Fix obtaining port parent in v4l2_fwnode_parse_link() on ACPI.
+> 
+> - Include newly OF-supported atmel-isi to V4L2 OF -> fwnode conversion.
+> 
+> - Add that the v4l2-fwnode.c has origins in v4l2-of.c to the commit
+>   message and the file header.
+> 
+> changes since v1:
+> 
+> - Use existing dev_fwnode() instead of device_fwnode_handle() added by the
+>   ACPI graph patchset,
+> 
+> - Fix too long line of ^'s in ReST documentation and
+> 
+> - Drop the patch rearranging the header files. It'd better go in
+>   separately, if at all.
+> 
+> Sakari Ailus (7):
+>   v4l: fwnode: Support generic fwnode for parsing standardised
+>     properties
+>   v4l: async: Add fwnode match support
+>   v4l: flash led class: Use fwnode_handle instead of device_node in init
+>   v4l: Switch from V4L2 OF not V4L2 fwnode API
+>   docs-rst: media: Sort topic list alphabetically
+>   docs-rst: media: Switch documentation to V4L2 fwnode API
+>   v4l: Remove V4L2 OF framework in favour of V4L2 fwnode framework
+> 
+>  Documentation/media/kapi/v4l2-core.rst         |  20 +-
+>  Documentation/media/kapi/v4l2-fwnode.rst       |   3 +
+>  Documentation/media/kapi/v4l2-of.rst           |   3 -
+>  drivers/leds/leds-aat1290.c                    |   5 +-
+>  drivers/leds/leds-max77693.c                   |   5 +-
+>  drivers/media/i2c/Kconfig                      |   9 +
+>  drivers/media/i2c/adv7604.c                    |   7 +-
+>  drivers/media/i2c/mt9v032.c                    |   7 +-
+>  drivers/media/i2c/ov2659.c                     |   8 +-
+>  drivers/media/i2c/s5c73m3/s5c73m3-core.c       |   7 +-
+>  drivers/media/i2c/s5k5baf.c                    |   6 +-
+>  drivers/media/i2c/smiapp/Kconfig               |   1 +
+>  drivers/media/i2c/smiapp/smiapp-core.c         |  29 ++-
+>  drivers/media/i2c/tc358743.c                   |  11 +-
+>  drivers/media/i2c/tvp514x.c                    |   6 +-
+>  drivers/media/i2c/tvp5150.c                    |   7 +-
+>  drivers/media/i2c/tvp7002.c                    |   6 +-
+>  drivers/media/platform/Kconfig                 |   3 +
+>  drivers/media/platform/am437x/Kconfig          |   1 +
+>  drivers/media/platform/am437x/am437x-vpfe.c    |  15 +-
+>  drivers/media/platform/atmel/Kconfig           |   1 +
+>  drivers/media/platform/atmel/atmel-isc.c       |  13 +-
+>  drivers/media/platform/exynos4-is/Kconfig      |   2 +
+>  drivers/media/platform/exynos4-is/media-dev.c  |  13 +-
+>  drivers/media/platform/exynos4-is/mipi-csis.c  |   6 +-
+>  drivers/media/platform/omap3isp/isp.c          |  49 ++--
+>  drivers/media/platform/pxa_camera.c            |  11 +-
+>  drivers/media/platform/rcar-vin/Kconfig        |   1 +
+>  drivers/media/platform/rcar-vin/rcar-core.c    |  23 +-
+>  drivers/media/platform/soc_camera/Kconfig      |   1 +
+>  drivers/media/platform/soc_camera/atmel-isi.c  |   7 +-
+>  drivers/media/platform/soc_camera/soc_camera.c |   7 +-
+>  drivers/media/platform/ti-vpe/cal.c            |  15 +-
+>  drivers/media/platform/xilinx/Kconfig          |   1 +
+>  drivers/media/platform/xilinx/xilinx-vipp.c    |  63 +++--
+>  drivers/media/v4l2-core/Kconfig                |   3 +
+>  drivers/media/v4l2-core/Makefile               |   4 +-
+>  drivers/media/v4l2-core/v4l2-async.c           |  21 +-
+>  drivers/media/v4l2-core/v4l2-flash-led-class.c |  12 +-
+>  drivers/media/v4l2-core/v4l2-fwnode.c          | 342 +++++++++++++++++++++++++
+>  drivers/media/v4l2-core/v4l2-of.c              | 327 -----------------------
+>  include/media/v4l2-async.h                     |   8 +-
+>  include/media/v4l2-flash-led-class.h           |   4 +-
+>  include/media/v4l2-fwnode.h                    | 104 ++++++++
+>  include/media/v4l2-of.h                        | 128 ---------
+>  include/media/v4l2-subdev.h                    |   3 +
+>  46 files changed, 690 insertions(+), 638 deletions(-)
+>  create mode 100644 Documentation/media/kapi/v4l2-fwnode.rst
+>  delete mode 100644 Documentation/media/kapi/v4l2-of.rst
+>  create mode 100644 drivers/media/v4l2-core/v4l2-fwnode.c
+>  delete mode 100644 drivers/media/v4l2-core/v4l2-of.c
+>  create mode 100644 include/media/v4l2-fwnode.h
+>  delete mode 100644 include/media/v4l2-of.h
+> 
