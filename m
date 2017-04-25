@@ -1,51 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:37128 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S968584AbdD1OMP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 10:12:15 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.12] Various fixes/regressions for 4.12.
-Message-ID: <2ffca2c4-4b13-4148-1282-cf059fd2b6cc@xs4all.nl>
-Date: Fri, 28 Apr 2017 16:12:12 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from ale.deltatee.com ([207.54.116.67]:49972 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1952458AbdDYSVe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 25 Apr 2017 14:21:34 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
+        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        dm-devel@redhat.com
+Cc: Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Stephen Bates <sbates@raithlin.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Alex Dubov <oakad@yahoo.com>,
+        Ulf Hansson <ulf.hansson@linaro.org>
+Date: Tue, 25 Apr 2017 12:21:07 -0600
+Message-Id: <1493144468-22493-21-git-send-email-logang@deltatee.com>
+In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v2 20/21] mmc: tifm_sd: Make use of the new sg_map helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 9eb9db3a0f92b75ec710066202e0b2accb45afa9:
+This conversion is a bit complicated. We modiy the read_fifo,
+write_fifo and copy_page functions to take a scatterlist instead of a
+page. Thus we can use sg_map instead of kmap_atomic. There's a bit of
+accounting that needed to be done for the offset for this to work.
+(Seeing sg_map takes care of the offset but it's already added and
+used earlier in the code.)
 
-  [media] atmel-isc: Fix the static checker warning (2017-04-19 09:02:47 -0300)
+There's also no error path, so we use SG_MAP_MUST_NOT_FAIL which may
+BUG_ON in certain cases in the future.
 
-are available in the git repository at:
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>
+---
+ drivers/mmc/host/tifm_sd.c | 50 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 29 insertions(+), 21 deletions(-)
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.12h
-
-for you to fetch changes up to 82fd29fb6372a9d15c39e2bcf87768cb52aa9cba:
-
-  vb2: Fix an off by one error in 'vb2_plane_vaddr' (2017-04-28 11:42:54 +0200)
-
-----------------------------------------------------------------
-Arnd Bergmann (3):
-      rainshadow-cec: use strlcat instead of strncat
-      rainshadow-cec: avoid -Wmaybe-uninitialized warning
-      cec: improve MEDIA_CEC_RC dependencies
-
-Christophe JAILLET (1):
-      vb2: Fix an off by one error in 'vb2_plane_vaddr'
-
-Petr Cvek (1):
-      pxa_camera: fix module remove codepath for v4l2 clock
-
-Wei Yongjun (2):
-      rainshadow-cec: Fix missing spin_lock_init()
-      s5p-cec: remove unused including <linux/version.h>
-
- drivers/media/cec/Kconfig                         |  1 +
- drivers/media/platform/pxa_camera.c               | 14 +++++++++++++-
- drivers/media/platform/s5p-cec/s5p_cec.h          |  1 -
- drivers/media/usb/rainshadow-cec/rainshadow-cec.c |  6 ++++--
- drivers/media/v4l2-core/videobuf2-core.c          |  2 +-
- 5 files changed, 19 insertions(+), 5 deletions(-)
+diff --git a/drivers/mmc/host/tifm_sd.c b/drivers/mmc/host/tifm_sd.c
+index 93c4b40..e64345a 100644
+--- a/drivers/mmc/host/tifm_sd.c
++++ b/drivers/mmc/host/tifm_sd.c
+@@ -111,14 +111,16 @@ struct tifm_sd {
+ };
+ 
+ /* for some reason, host won't respond correctly to readw/writew */
+-static void tifm_sd_read_fifo(struct tifm_sd *host, struct page *pg,
++static void tifm_sd_read_fifo(struct tifm_sd *host, struct scatterlist *sg,
+ 			      unsigned int off, unsigned int cnt)
+ {
+ 	struct tifm_dev *sock = host->dev;
+ 	unsigned char *buf;
+ 	unsigned int pos = 0, val;
+ 
+-	buf = kmap_atomic(pg) + off;
++	buf = sg_map(sg, off - sg->offset,
++		     SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
++
+ 	if (host->cmd_flags & DATA_CARRY) {
+ 		buf[pos++] = host->bounce_buf_data[0];
+ 		host->cmd_flags &= ~DATA_CARRY;
+@@ -134,17 +136,19 @@ static void tifm_sd_read_fifo(struct tifm_sd *host, struct page *pg,
+ 		}
+ 		buf[pos++] = (val >> 8) & 0xff;
+ 	}
+-	kunmap_atomic(buf - off);
++	sg_unmap(sg, buf, off - sg->offset, SG_KMAP_ATOMIC);
+ }
+ 
+-static void tifm_sd_write_fifo(struct tifm_sd *host, struct page *pg,
++static void tifm_sd_write_fifo(struct tifm_sd *host, struct scatterlist *sg,
+ 			       unsigned int off, unsigned int cnt)
+ {
+ 	struct tifm_dev *sock = host->dev;
+ 	unsigned char *buf;
+ 	unsigned int pos = 0, val;
+ 
+-	buf = kmap_atomic(pg) + off;
++	buf = sg_map(sg, off - sg->offset,
++		     SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
++
+ 	if (host->cmd_flags & DATA_CARRY) {
+ 		val = host->bounce_buf_data[0] | ((buf[pos++] << 8) & 0xff00);
+ 		writel(val, sock->addr + SOCK_MMCSD_DATA);
+@@ -161,7 +165,7 @@ static void tifm_sd_write_fifo(struct tifm_sd *host, struct page *pg,
+ 		val |= (buf[pos++] << 8) & 0xff00;
+ 		writel(val, sock->addr + SOCK_MMCSD_DATA);
+ 	}
+-	kunmap_atomic(buf - off);
++	sg_unmap(sg, buf, off - sg->offset, SG_KMAP_ATOMIC);
+ }
+ 
+ static void tifm_sd_transfer_data(struct tifm_sd *host)
+@@ -170,7 +174,6 @@ static void tifm_sd_transfer_data(struct tifm_sd *host)
+ 	struct scatterlist *sg = r_data->sg;
+ 	unsigned int off, cnt, t_size = TIFM_MMCSD_FIFO_SIZE * 2;
+ 	unsigned int p_off, p_cnt;
+-	struct page *pg;
+ 
+ 	if (host->sg_pos == host->sg_len)
+ 		return;
+@@ -192,33 +195,39 @@ static void tifm_sd_transfer_data(struct tifm_sd *host)
+ 		}
+ 		off = sg[host->sg_pos].offset + host->block_pos;
+ 
+-		pg = nth_page(sg_page(&sg[host->sg_pos]), off >> PAGE_SHIFT);
+ 		p_off = offset_in_page(off);
+ 		p_cnt = PAGE_SIZE - p_off;
+ 		p_cnt = min(p_cnt, cnt);
+ 		p_cnt = min(p_cnt, t_size);
+ 
+ 		if (r_data->flags & MMC_DATA_READ)
+-			tifm_sd_read_fifo(host, pg, p_off, p_cnt);
++			tifm_sd_read_fifo(host, &sg[host->sg_pos], p_off,
++					  p_cnt);
+ 		else if (r_data->flags & MMC_DATA_WRITE)
+-			tifm_sd_write_fifo(host, pg, p_off, p_cnt);
++			tifm_sd_write_fifo(host, &sg[host->sg_pos], p_off,
++					   p_cnt);
+ 
+ 		t_size -= p_cnt;
+ 		host->block_pos += p_cnt;
+ 	}
+ }
+ 
+-static void tifm_sd_copy_page(struct page *dst, unsigned int dst_off,
+-			      struct page *src, unsigned int src_off,
++static void tifm_sd_copy_page(struct scatterlist *dst, unsigned int dst_off,
++			      struct scatterlist *src, unsigned int src_off,
+ 			      unsigned int count)
+ {
+-	unsigned char *src_buf = kmap_atomic(src) + src_off;
+-	unsigned char *dst_buf = kmap_atomic(dst) + dst_off;
++	unsigned char *src_buf, *dst_buf;
++
++	src_off -= src->offset;
++	dst_off -= dst->offset;
++
++	src_buf = sg_map(src, src_off, SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
++	dst_buf = sg_map(dst, dst_off, SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
+ 
+ 	memcpy(dst_buf, src_buf, count);
+ 
+-	kunmap_atomic(dst_buf - dst_off);
+-	kunmap_atomic(src_buf - src_off);
++	sg_unmap(dst, dst_buf, dst_off, SG_KMAP_ATOMIC);
++	sg_unmap(src, src_buf, src_off, SG_KMAP_ATOMIC);
+ }
+ 
+ static void tifm_sd_bounce_block(struct tifm_sd *host, struct mmc_data *r_data)
+@@ -227,7 +236,6 @@ static void tifm_sd_bounce_block(struct tifm_sd *host, struct mmc_data *r_data)
+ 	unsigned int t_size = r_data->blksz;
+ 	unsigned int off, cnt;
+ 	unsigned int p_off, p_cnt;
+-	struct page *pg;
+ 
+ 	dev_dbg(&host->dev->dev, "bouncing block\n");
+ 	while (t_size) {
+@@ -241,18 +249,18 @@ static void tifm_sd_bounce_block(struct tifm_sd *host, struct mmc_data *r_data)
+ 		}
+ 		off = sg[host->sg_pos].offset + host->block_pos;
+ 
+-		pg = nth_page(sg_page(&sg[host->sg_pos]), off >> PAGE_SHIFT);
+ 		p_off = offset_in_page(off);
+ 		p_cnt = PAGE_SIZE - p_off;
+ 		p_cnt = min(p_cnt, cnt);
+ 		p_cnt = min(p_cnt, t_size);
+ 
+ 		if (r_data->flags & MMC_DATA_WRITE)
+-			tifm_sd_copy_page(sg_page(&host->bounce_buf),
++			tifm_sd_copy_page(&host->bounce_buf,
+ 					  r_data->blksz - t_size,
+-					  pg, p_off, p_cnt);
++					  &sg[host->sg_pos], p_off, p_cnt);
+ 		else if (r_data->flags & MMC_DATA_READ)
+-			tifm_sd_copy_page(pg, p_off, sg_page(&host->bounce_buf),
++			tifm_sd_copy_page(&sg[host->sg_pos], p_off,
++					  &host->bounce_buf,
+ 					  r_data->blksz - t_size, p_cnt);
+ 
+ 		t_size -= p_cnt;
+-- 
+2.1.4
