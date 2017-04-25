@@ -1,109 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35470 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752627AbdDITiw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Apr 2017 15:38:52 -0400
-Received: by mail-wm0-f68.google.com with SMTP id d79so6410945wmi.2
-        for <linux-media@vger.kernel.org>; Sun, 09 Apr 2017 12:38:51 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: aospan@netup.ru, serjk@netup.ru, mchehab@kernel.org,
-        linux-media@vger.kernel.org
-Cc: rjkm@metzlerbros.de
-Subject: [PATCH 16/19] [media] ddbridge: board control setup, ts quirk flags
-Date: Sun,  9 Apr 2017 21:38:25 +0200
-Message-Id: <20170409193828.18458-17-d.scheller.oss@gmail.com>
-In-Reply-To: <20170409193828.18458-1-d.scheller.oss@gmail.com>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com>
+Received: from ale.deltatee.com ([207.54.116.67]:49921 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1952446AbdDYSVb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 25 Apr 2017 14:21:31 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
+        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        dm-devel@redhat.com
+Cc: Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Stephen Bates <sbates@raithlin.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>,
+        Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+        =?UTF-8?q?Roger=20Pau=20Monn=C3=A9?= <roger.pau@citrix.com>
+Date: Tue, 25 Apr 2017 12:21:02 -0600
+Message-Id: <1493144468-22493-16-git-send-email-logang@deltatee.com>
+In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: [PATCH v2 15/21] xen-blkfront: Make use of the new sg_map helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Straightforward conversion to the new helper, except due to the lack
+of error path, we have to use SG_MAP_MUST_NOT_FAIL which may BUG_ON in
+certain cases in the future.
 
-This is a backport of the board control setup from the vendor provided
-dddvb driver package, which does additional device initialisation based
-on the board_control device info values. Also backports the TS quirk
-flags which is used to control setup and usage of the tuner modules
-soldered on the bridge cards (e.g. CineCTv7, CineS2 V7, MaxA8 and the
-likes).
-
-Functionality originates from ddbridge vendor driver. Permission for
-reuse and kernel inclusion was formally granted by Ralph Metzler
-<rjkm@metzlerbros.de>.
-
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: "Roger Pau Monné" <roger.pau@citrix.com>
 ---
- drivers/media/pci/ddbridge/ddbridge-core.c | 13 +++++++++++++
- drivers/media/pci/ddbridge/ddbridge-regs.h |  4 ++++
- drivers/media/pci/ddbridge/ddbridge.h      | 10 ++++++++++
- 3 files changed, 27 insertions(+)
+ drivers/block/xen-blkfront.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 12f5aa3..6b49fa9 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -1763,6 +1763,19 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 	ddbwritel(0xfff0f, INTERRUPT_ENABLE);
- 	ddbwritel(0, MSI1_ENABLE);
+diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+index 3945963..ed62175 100644
+--- a/drivers/block/xen-blkfront.c
++++ b/drivers/block/xen-blkfront.c
+@@ -816,8 +816,9 @@ static int blkif_queue_rw_req(struct request *req, struct blkfront_ring_info *ri
+ 		BUG_ON(sg->offset + sg->length > PAGE_SIZE);
  
-+	/* board control */
-+	if (dev->info->board_control) {
-+		ddbwritel(0, DDB_LINK_TAG(0) | BOARD_CONTROL);
-+		msleep(100);
-+		ddbwritel(dev->info->board_control_2,
-+			DDB_LINK_TAG(0) | BOARD_CONTROL);
-+		usleep_range(2000, 3000);
-+		ddbwritel(dev->info->board_control_2
-+			| dev->info->board_control,
-+			DDB_LINK_TAG(0) | BOARD_CONTROL);
-+		usleep_range(2000, 3000);
-+	}
-+
- 	if (ddb_i2c_init(dev) < 0)
- 		goto fail1;
- 	ddb_ports_init(dev);
-diff --git a/drivers/media/pci/ddbridge/ddbridge-regs.h b/drivers/media/pci/ddbridge/ddbridge-regs.h
-index 6ae8103..98cebb9 100644
---- a/drivers/media/pci/ddbridge/ddbridge-regs.h
-+++ b/drivers/media/pci/ddbridge/ddbridge-regs.h
-@@ -34,6 +34,10 @@
+ 		if (setup.need_copy) {
+-			setup.bvec_off = sg->offset;
+-			setup.bvec_data = kmap_atomic(sg_page(sg));
++			setup.bvec_off = 0;
++			setup.bvec_data = sg_map(sg, 0, SG_KMAP_ATOMIC |
++						 SG_MAP_MUST_NOT_FAIL);
+ 		}
  
- /* ------------------------------------------------------------------------- */
+ 		gnttab_foreach_grant_in_range(sg_page(sg),
+@@ -827,7 +828,7 @@ static int blkif_queue_rw_req(struct request *req, struct blkfront_ring_info *ri
+ 					      &setup);
  
-+#define BOARD_CONTROL    0x30
-+
-+/* ------------------------------------------------------------------------- */
-+
- /* Interrupt controller                                     */
- /* How many MSI's are available depends on HW (Min 2 max 8) */
- /* How many are usable also depends on Host platform        */
-diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
-index 0898f60..734e18e 100644
---- a/drivers/media/pci/ddbridge/ddbridge.h
-+++ b/drivers/media/pci/ddbridge/ddbridge.h
-@@ -43,6 +43,10 @@
- #define DDB_MAX_PORT    4
- #define DDB_MAX_INPUT   8
- #define DDB_MAX_OUTPUT  4
-+#define DDB_MAX_LINK    4
-+#define DDB_LINK_SHIFT 28
-+
-+#define DDB_LINK_TAG(_x) (_x << DDB_LINK_SHIFT)
+ 		if (setup.need_copy)
+-			kunmap_atomic(setup.bvec_data);
++			sg_unmap(sg, setup.bvec_data, 0, SG_KMAP_ATOMIC);
+ 	}
+ 	if (setup.segments)
+ 		kunmap_atomic(setup.segments);
+@@ -1053,7 +1054,7 @@ static int xen_translate_vdev(int vdevice, int *minor, unsigned int *offset)
+ 		case XEN_SCSI_DISK5_MAJOR:
+ 		case XEN_SCSI_DISK6_MAJOR:
+ 		case XEN_SCSI_DISK7_MAJOR:
+-			*offset = (*minor / PARTS_PER_DISK) + 
++			*offset = (*minor / PARTS_PER_DISK) +
+ 				((major - XEN_SCSI_DISK1_MAJOR + 1) * 16) +
+ 				EMULATED_SD_DISK_NAME_OFFSET;
+ 			*minor = *minor +
+@@ -1068,7 +1069,7 @@ static int xen_translate_vdev(int vdevice, int *minor, unsigned int *offset)
+ 		case XEN_SCSI_DISK13_MAJOR:
+ 		case XEN_SCSI_DISK14_MAJOR:
+ 		case XEN_SCSI_DISK15_MAJOR:
+-			*offset = (*minor / PARTS_PER_DISK) + 
++			*offset = (*minor / PARTS_PER_DISK) +
+ 				((major - XEN_SCSI_DISK8_MAJOR + 8) * 16) +
+ 				EMULATED_SD_DISK_NAME_OFFSET;
+ 			*minor = *minor +
+@@ -1119,7 +1120,7 @@ static int xlvbd_alloc_gendisk(blkif_sector_t capacity,
+ 	if (!VDEV_IS_EXTENDED(info->vdevice)) {
+ 		err = xen_translate_vdev(info->vdevice, &minor, &offset);
+ 		if (err)
+-			return err;		
++			return err;
+  		nr_parts = PARTS_PER_DISK;
+ 	} else {
+ 		minor = BLKIF_MINOR_EXT(info->vdevice);
+@@ -1483,8 +1484,9 @@ static bool blkif_completion(unsigned long *id,
+ 		for_each_sg(s->sg, sg, num_sg, i) {
+ 			BUG_ON(sg->offset + sg->length > PAGE_SIZE);
  
- struct ddb_info {
- 	int   type;
-@@ -51,6 +55,12 @@ struct ddb_info {
- 	char *name;
- 	int   port_num;
- 	u32   port_type[DDB_MAX_PORT];
-+	u32   board_control;
-+	u32   board_control_2;
-+	u8    ts_quirks;
-+#define TS_QUIRK_SERIAL   1
-+#define TS_QUIRK_REVERSED 2
-+#define TS_QUIRK_ALT_OSC  8
- };
+-			data.bvec_offset = sg->offset;
+-			data.bvec_data = kmap_atomic(sg_page(sg));
++			data.bvec_offset = 0;
++			data.bvec_data = sg_map(sg, 0, SG_KMAP_ATOMIC |
++						SG_MAP_MUST_NOT_FAIL);
  
- /* DMA_SIZE MUST be divisible by 188 and 128 !!! */
+ 			gnttab_foreach_grant_in_range(sg_page(sg),
+ 						      sg->offset,
+@@ -1492,7 +1494,7 @@ static bool blkif_completion(unsigned long *id,
+ 						      blkif_copy_from_grant,
+ 						      &data);
+ 
+-			kunmap_atomic(data.bvec_data);
++			sg_unmap(sg, data.bvec_data, 0, SG_KMAP_ATOMIC);
+ 		}
+ 	}
+ 	/* Add the persistent grant into the list of free grants */
 -- 
-2.10.2
+2.1.4
