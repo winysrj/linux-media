@@ -1,70 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:55209 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755330AbdD0Ud4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 16:33:56 -0400
-Subject: [PATCH 0/6] rc-core - protocol in keytables
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, sean@mess.org
-Date: Thu, 27 Apr 2017 22:33:52 +0200
-Message-ID: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
+Received: from pegasos-out.vodafone.de ([80.84.1.38]:41758 "EHLO
+        pegasos-out.vodafone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1950603AbdDZHUm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Apr 2017 03:20:42 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+        by pegasos-out.vodafone.de (Rohrpostix2  Daemon) with ESMTP id 8A55756461A
+        for <linux-media@vger.kernel.org>; Wed, 26 Apr 2017 09:20:40 +0200 (CEST)
+Received: from pegasos-out.vodafone.de ([127.0.0.1])
+        by localhost (rohrpostix2.prod.vfnet.de [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id W5-e+OqgFt9Z for <linux-media@vger.kernel.org>;
+        Wed, 26 Apr 2017 09:20:34 +0200 (CEST)
+Subject: Re: [PATCH] dma-buf: avoid scheduling on fence status query
+To: Andres Rodriguez <andresx7@gmail.com>,
+        dri-devel@lists.freedesktop.org
+References: <20170426013632.4716-1-andresx7@gmail.com>
+ <d555eb6a-e975-b025-6ed0-c458b1c71f34@gmail.com>
+Cc: linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
+        linux-media@vger.kernel.org
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <deathsimple@vodafone.de>
+Message-ID: <6a3b44f0-bc9f-462c-9b0f-96ae15712b8b@vodafone.de>
+Date: Wed, 26 Apr 2017 09:20:31 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <d555eb6a-e975-b025-6ed0-c458b1c71f34@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The first three patches are just some cleanups that I noticed
-while working on the other patches.
+NAK, I'm wondering how often I have to reject that change. We should 
+probably add a comment here.
 
-The fourth and fifth patch change rc-core over to use NEC32
-scancodes everywhere. That might seem like a recipe for
-breaking userspace...but, as you'll see with the sixth patch,
-we can't really avoid it if we want to improve the
-EVIOC[GS]KEYCODE_V2 ioctl():s to support protocols.
+Even with a zero timeout we still need to enable signaling, otherwise 
+some fence will never signal if userspace just polls on them.
 
-And since it was requested last time around, I have written
-a much longer explanation of the NEC32/ioctl patches and
-posted here (with pretty pictures):
-https://david.hardeman.nu/rccore/
+If a caller is only interested in the fence status without enabling the 
+signaling it should call dma_fence_is_signaled() instead.
 
-Most of you might want to skip the introduction part :)
+Regards,
+Christian.
 
----
-
-David Härdeman (6):
-      rc-core: fix input repeat handling
-      rc-core: cleanup rc_register_device
-      rc-core: cleanup rc_register_device pt2
-      rc-core: use the full 32 bits for NEC scancodes in wakefilters
-      rc-core: use the full 32 bits for NEC scancodes
-      rc-core: add protocol to EVIOC[GS]KEYCODE_V2 ioctl
-
-
- drivers/media/pci/cx88/cx88-input.c       |    4 
- drivers/media/pci/saa7134/saa7134-input.c |    4 
- drivers/media/rc/ati_remote.c             |    1 
- drivers/media/rc/igorplugusb.c            |    4 
- drivers/media/rc/img-ir/img-ir-nec.c      |   92 +------
- drivers/media/rc/imon.c                   |    7 -
- drivers/media/rc/ir-nec-decoder.c         |   63 +----
- drivers/media/rc/rc-core-priv.h           |    2 
- drivers/media/rc/rc-ir-raw.c              |   34 ++
- drivers/media/rc/rc-main.c                |  406 ++++++++++++++++++-----------
- drivers/media/rc/winbond-cir.c            |   32 --
- drivers/media/usb/au0828/au0828-input.c   |    3 
- drivers/media/usb/dvb-usb-v2/af9015.c     |   30 --
- drivers/media/usb/dvb-usb-v2/af9035.c     |   27 --
- drivers/media/usb/dvb-usb-v2/az6007.c     |   25 --
- drivers/media/usb/dvb-usb-v2/lmedm04.c    |    5 
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c   |   29 +-
- drivers/media/usb/dvb-usb/dib0700_core.c  |   25 --
- drivers/media/usb/dvb-usb/dtt200u.c       |   25 +-
- drivers/media/usb/em28xx/em28xx-input.c   |   22 --
- include/media/rc-core.h                   |   28 ++
- include/media/rc-map.h                    |   53 ++--
- 22 files changed, 412 insertions(+), 509 deletions(-)
-
---
-David Härdeman
+Am 26.04.2017 um 04:50 schrieb Andres Rodriguez:
+> CC a few extra lists I missed.
+>
+> Regards,
+> Andres
+>
+> On 2017-04-25 09:36 PM, Andres Rodriguez wrote:
+>> When a timeout of zero is specified, the caller is only interested in
+>> the fence status.
+>>
+>> In the current implementation, dma_fence_default_wait will always call
+>> schedule_timeout() at least once for an unsignaled fence. This adds a
+>> significant overhead to a fence status query.
+>>
+>> Avoid this overhead by returning early if a zero timeout is specified.
+>>
+>> Signed-off-by: Andres Rodriguez <andresx7@gmail.com>
+>> ---
+>>
+>> This heavily affects the performance of the Source2 engine running on
+>> radv.
+>>
+>> This patch improves dota2(radv) perf on a i7-6700k+RX480 system from
+>> 72fps->81fps.
+>>
+>>  drivers/dma-buf/dma-fence.c | 3 +++
+>>  1 file changed, 3 insertions(+)
+>>
+>> diff --git a/drivers/dma-buf/dma-fence.c b/drivers/dma-buf/dma-fence.c
+>> index 0918d3f..348e9e2 100644
+>> --- a/drivers/dma-buf/dma-fence.c
+>> +++ b/drivers/dma-buf/dma-fence.c
+>> @@ -380,6 +380,9 @@ dma_fence_default_wait(struct dma_fence *fence, 
+>> bool intr, signed long timeout)
+>>      if (test_bit(DMA_FENCE_FLAG_SIGNALED_BIT, &fence->flags))
+>>          return ret;
+>>
+>> +    if (!timeout)
+>> +        return 0;
+>> +
+>>      spin_lock_irqsave(fence->lock, flags);
+>>
+>>      if (intr && signal_pending(current)) {
+>>
