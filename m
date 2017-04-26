@@ -1,127 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:49745 "EHLO ale.deltatee.com"
+Received: from gofer.mess.org ([88.97.38.141]:51389 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1952025AbdDYSVX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 14:21:23 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com
-Cc: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Lee Duncan <lduncan@suse.com>, Chris Leech <cleech@redhat.com>
-Date: Tue, 25 Apr 2017 12:20:50 -0600
-Message-Id: <1493144468-22493-4-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 03/21] libiscsi: Make use of new the sg_map helper function
+        id S1949645AbdDZLjM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Apr 2017 07:39:12 -0400
+Date: Wed, 26 Apr 2017 12:39:10 +0100
+From: Sean Young <sean@mess.org>
+To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: [PATCH] rc-core: use the full 32 bits for NEC scancodes
+Message-ID: <20170426113910.GA7924@gofer.mess.org>
+References: <20170424155746.GA12437@gofer.mess.org>
+ <149253062750.8732.14617348605110322157.stgit@zeus.hardeman.nu>
+ <b5d0d7993ee9c705783e63ab228425d3@hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <b5d0d7993ee9c705783e63ab228425d3@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert the kmap and kmap_atomic uses to the sg_map function. We now
-store the flags for the kmap instead of a boolean to indicate
-atomicitiy. We use ISCSI_TCP_INTERNAL_ERR error type that was prepared
-earlier for this.
+On Tue, Apr 25, 2017 at 07:58:09AM +0000, David Härdeman wrote:
+> April 24, 2017 5:58 PM, "Sean Young" <sean@mess.org> wrote:
+> > On Tue, Apr 18, 2017 at 05:50:27PM +0200, David Härdeman wrote:
+> >> Using the full 32 bits for all kinds of NEC scancodes simplifies rc-core
+> >> and the nec decoder without any loss of functionality. At the same time
+> >> it ensures that scancodes for NEC16/NEC24/NEC32 do not overlap and
+> >> removes lots of duplication (as you can see from the patch, the same NEC
+> >> disambiguation logic is contained in several different drivers).
+> >> 
+> >> Using NEC32 also removes ambiguity. For example, consider these two NEC
+> >> messages:
+> >> NEC16 message to address 0x05, command 0x03
+> >> NEC24 message to address 0x0005, command 0x03
+> >> 
+> >> They'll both have scancode 0x00000503, and there's no way to tell which
+> >> message was received.
+> > 
+> > More precisely, there is no way to tell which protocol variant it was sent
+> > with.
+> 
+> Oh, but there is. The driver/rc-core will know. It's just that userspace cannot ever know.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Lee Duncan <lduncan@suse.com>
-Cc: Chris Leech <cleech@redhat.com>
----
- drivers/scsi/libiscsi_tcp.c | 32 ++++++++++++++++++++------------
- include/scsi/libiscsi_tcp.h |  2 +-
- 2 files changed, 21 insertions(+), 13 deletions(-)
+Agreed.
 
-diff --git a/drivers/scsi/libiscsi_tcp.c b/drivers/scsi/libiscsi_tcp.c
-index 63a1d69..a34e25c 100644
---- a/drivers/scsi/libiscsi_tcp.c
-+++ b/drivers/scsi/libiscsi_tcp.c
-@@ -133,25 +133,23 @@ static void iscsi_tcp_segment_map(struct iscsi_segment *segment, int recv)
- 	if (page_count(sg_page(sg)) >= 1 && !recv)
- 		return;
- 
--	if (recv) {
--		segment->atomic_mapped = true;
--		segment->sg_mapped = kmap_atomic(sg_page(sg));
--	} else {
--		segment->atomic_mapped = false;
--		/* the xmit path can sleep with the page mapped so use kmap */
--		segment->sg_mapped = kmap(sg_page(sg));
-+	/* the xmit path can sleep with the page mapped so don't use atomic */
-+	segment->sg_map_flags = recv ? SG_KMAP_ATOMIC : SG_KMAP;
-+	segment->sg_mapped = sg_map(sg, 0, segment->sg_map_flags);
-+
-+	if (IS_ERR(segment->sg_mapped)) {
-+		segment->sg_mapped = NULL;
-+		return;
- 	}
- 
--	segment->data = segment->sg_mapped + sg->offset + segment->sg_offset;
-+	segment->data = segment->sg_mapped + segment->sg_offset;
- }
- 
- void iscsi_tcp_segment_unmap(struct iscsi_segment *segment)
- {
- 	if (segment->sg_mapped) {
--		if (segment->atomic_mapped)
--			kunmap_atomic(segment->sg_mapped);
--		else
--			kunmap(sg_page(segment->sg));
-+		sg_unmap(segment->sg, segment->sg_mapped, 0,
-+			 segment->sg_map_flags);
- 		segment->sg_mapped = NULL;
- 		segment->data = NULL;
- 	}
-@@ -304,6 +302,9 @@ iscsi_tcp_segment_recv(struct iscsi_tcp_conn *tcp_conn,
- 			break;
- 		}
- 
-+		if (segment->data)
-+			return -EFAULT;
-+
- 		copy = min(len - copied, segment->size - segment->copied);
- 		ISCSI_DBG_TCP(tcp_conn->iscsi_conn, "copying %d\n", copy);
- 		memcpy(segment->data + segment->copied, ptr + copied, copy);
-@@ -927,6 +928,13 @@ int iscsi_tcp_recv_skb(struct iscsi_conn *conn, struct sk_buff *skb,
- 			      avail);
- 		rc = iscsi_tcp_segment_recv(tcp_conn, segment, ptr, avail);
- 		BUG_ON(rc == 0);
-+		if (rc < 0) {
-+			ISCSI_DBG_TCP(conn, "memory fault. Consumed %d\n",
-+				      consumed);
-+			*status = ISCSI_TCP_INTERNAL_ERR;
-+			goto skb_done;
-+		}
-+
- 		consumed += rc;
- 
- 		if (segment->total_copied >= segment->total_size) {
-diff --git a/include/scsi/libiscsi_tcp.h b/include/scsi/libiscsi_tcp.h
-index 90691ad..58c79af 100644
---- a/include/scsi/libiscsi_tcp.h
-+++ b/include/scsi/libiscsi_tcp.h
-@@ -47,7 +47,7 @@ struct iscsi_segment {
- 	struct scatterlist	*sg;
- 	void			*sg_mapped;
- 	unsigned int		sg_offset;
--	bool			atomic_mapped;
-+	int			sg_map_flags;
- 
- 	iscsi_segment_done_fn_t	*done;
- };
--- 
-2.1.4
+> > With the Sony and rc6 protocols, you can also get the same scancode from
+> > different protocol variants. I think the right solution is to pass the protocol
+> > variant to user space (and the keymap mapper).
+> 
+> Yes, I'm working on refreshing my patches to add a new EVIOCGKEYCODE_V2/EVIOCSKEYCODE_V2 ioctl which includes the protocol.
+
+That's a good idea and I look forward to those patches.
+
+>  And actually, those patches are greatly simplified by only using NEC32.
+
+At the moment your patches break userspace and I see no advantage in
+representing a nec16 scancode as something like 0xe71824db rather than
+0xe1724. It might reduce some code by a few lines/instructions.
+
+Also note that having different nec variants makes a lot of sense, since
+some hardware that decodes nec can only only handle specific variants,
+e.g. nec16 only. By folding it all into nec32 you can longer specify
+the specific variant(s) that some hardware can handle.
+
+> > This also solves some other problems, e.g. rc6_6a_20:0x75460 is also decoded
+> > by the sony protocol decoder (as scancode 0).
+> 
+> I know. And it also makes it possible to make /sys/class/rc/rc0/protocols fully automatic. And we could theoretically also refuse to set unsupported protocols in the keytable (not sure yet if that's something we should do).
+
+Let's discuss that when we have the patches.
+
+> >> In order to maintain backwards compatibility, some heuristics are added
+> >> in rc-main.c to convert scancodes to NEC32 as necessary when userspace
+> >> adds entries to the keytable using the regular input ioctls.
+> > 
+> > This is where it falls apart. In the patch below, you guess the protocol
+> > variant from the scancode value. By your own example above, nec24 with
+> > an address of 0x0005 would be not be possible in a keymap since it would
+> > guessed as nec16 (see to_nec32() below) and expanded to 0x05fb03fc. An
+> > actual nec24 would be 0x000503fc.
+> 
+> It's not 100% bulletproof. There's no way to fix this issue in a 100% backwards compatible manner. But the future EVIOCGKEYCODE_V2/EVIOCSKEYCODE_V2 ioctl would make the heuristics unnecessary.
+
+There must be a very good reason to break this and at the moment I can't
+see any advantage (at all).
+
+
+Sean
