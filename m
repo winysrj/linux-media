@@ -1,190 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:26917 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752413AbdDLSW0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Apr 2017 14:22:26 -0400
-Subject: [PATCH 11/14] atomisp: remove satm kernel
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Wed, 12 Apr 2017 19:22:13 +0100
-Message-ID: <149202132616.16615.10431476367740144807.stgit@acox1-desk1.ger.corp.intel.com>
-In-Reply-To: <149202119790.16615.4841216953457109397.stgit@acox1-desk1.ger.corp.intel.com>
-References: <149202119790.16615.4841216953457109397.stgit@acox1-desk1.ger.corp.intel.com>
+Received: from mail-lf0-f49.google.com ([209.85.215.49]:34105 "EHLO
+        mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1434906AbdDZJAd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Apr 2017 05:00:33 -0400
+Received: by mail-lf0-f49.google.com with SMTP id t144so104221530lff.1
+        for <linux-media@vger.kernel.org>; Wed, 26 Apr 2017 02:00:32 -0700 (PDT)
+Date: Wed, 26 Apr 2017 11:00:30 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Simon Horman <horms@verge.net.au>
+Cc: Kieran Bingham <kbingham@kernel.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH] rcar-vin: Use of_nodes as specified by the subdev
+Message-ID: <20170426090030.GF4676@bigcity.dyn.berto.se>
+References: <1493132100-31901-1-git-send-email-kbingham@kernel.org>
+ <20170426072320.GD25517@verge.net.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170426072320.GD25517@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This isn't used so it can go in the bitbucket.
+Hi Simon,
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
- .../staging/media/atomisp/pci/atomisp2/Makefile    |    1 -
- .../css2400/isp/kernels/satm/ia_css_satm.host.c    |   27 ---------------
- .../css2400/isp/kernels/satm/ia_css_satm.host.h    |   29 -----------------
- .../css2400/isp/kernels/satm/ia_css_satm_param.h   |   30 -----------------
- .../css2400/isp/kernels/satm/ia_css_satm_types.h   |   35 --------------------
- 5 files changed, 122 deletions(-)
- delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm.host.c
- delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm.host.h
- delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm_param.h
- delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm_types.h
+Thanks for your feedback.
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/Makefile b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-index ab10fc0..8780914 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-@@ -80,7 +80,6 @@ atomisp-objs += \
- 	css2400/isp/kernels/sdis/sdis_2/ia_css_sdis2.host.o \
- 	css2400/isp/kernels/cnr/cnr_2/ia_css_cnr2.host.o \
- 	css2400/isp/kernels/cnr/cnr_1.0/ia_css_cnr.host.o \
--	css2400/isp/kernels/satm/ia_css_satm.host.o \
- 	css2400/isp/kernels/xnr/xnr_1.0/ia_css_xnr.host.o \
- 	css2400/isp/kernels/xnr/xnr_1.0/ia_css_xnr_table.host.o \
- 	css2400/isp/kernels/xnr/xnr3_0_5/ia_css_xnr3_0_5.host.o \
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm.host.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm.host.c
-deleted file mode 100644
-index d35194b..0000000
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm.host.c
-+++ /dev/null
-@@ -1,27 +0,0 @@
--/*
-- * Support for Intel Camera Imaging ISP subsystem.
-- * Copyright (c) 2015, Intel Corporation.
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms and conditions of the GNU General Public License,
-- * version 2, as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope it will be useful, but WITHOUT
-- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-- * more details.
-- */
--
--#include "ia_css_satm.host.h"
--
--
--void
--ia_css_satm_init_config(
--	struct sh_css_isp_satm_params *to,
--	const struct ia_css_satm_config *from,
--	unsigned size)
--{
--	(void) size;
--
--	to->params.test_satm = from->params.test_satm;
--}
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm.host.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm.host.h
-deleted file mode 100644
-index 807b716..0000000
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm.host.h
-+++ /dev/null
-@@ -1,29 +0,0 @@
--/*
-- * Support for Intel Camera Imaging ISP subsystem.
-- * Copyright (c) 2015, Intel Corporation.
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms and conditions of the GNU General Public License,
-- * version 2, as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope it will be useful, but WITHOUT
-- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-- * more details.
-- */
--
--#ifndef __IA_CSS_SATM_HOST_H
--#define __IA_CSS_SATM_HOST_H
--
--#include "ia_css_satm_param.h"
--#include "ia_css_satm_types.h"
--
--extern const struct ia_css_satm_config default_satm_config;
--
--void
--ia_css_satm_init_config(
--	struct sh_css_isp_satm_params *to,
--	const struct ia_css_satm_config *from,
--	unsigned size);
--
--#endif /* __IA_CSS_SATM_HOST_H */
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm_param.h
-deleted file mode 100644
-index 062f79aa4..0000000
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm_param.h
-+++ /dev/null
-@@ -1,30 +0,0 @@
--/*
-- * Support for Intel Camera Imaging ISP subsystem.
-- * Copyright (c) 2015, Intel Corporation.
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms and conditions of the GNU General Public License,
-- * version 2, as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope it will be useful, but WITHOUT
-- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-- * more details.
-- */
--
--#ifndef __IA_CSS_SATM_PARAMS_H
--#define __IA_CSS_SATM_PARAMS_H
--
--#include "type_support.h"
--
--/* SATM parameters on ISP. */
--struct sh_css_satm_params {
--	int32_t test_satm;
--};
--
--/* SATM ISP parameters */
--struct sh_css_isp_satm_params {
--	struct sh_css_satm_params params;
--};
--
--#endif /* __IA_CSS_SATM_PARAMS_H */
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm_types.h
-deleted file mode 100644
-index 94f10e3..0000000
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/satm/ia_css_satm_types.h
-+++ /dev/null
-@@ -1,35 +0,0 @@
--/*
-- * Support for Intel Camera Imaging ISP subsystem.
-- * Copyright (c) 2015, Intel Corporation.
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms and conditions of the GNU General Public License,
-- * version 2, as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope it will be useful, but WITHOUT
-- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-- * more details.
-- */
--
--#ifndef __IA_CSS_SATM_TYPES_H
--#define __IA_CSS_SATM_TYPES_H
--
--/**
-- * \brief SATM Parameters
-- * \detail Currently SATM paramters are used only for testing purposes
-- */
--struct ia_css_satm_params {
--	int test_satm; /**< Test parameter */
--};
--
--/**
-- * \brief SATM public paramterers.
-- * \details Struct with all paramters for SATM that can be seet from
-- * the CSS API. Currenly, only test paramters are defined.
-- */
--struct ia_css_satm_config {
--	struct ia_css_satm_params params; /**< SATM paramaters */
--};
--
--#endif /* __IA_CSS_SATM_TYPES_H */
+On 2017-04-26 09:23:20 +0200, Simon Horman wrote:
+> Hi Kieran,
+> 
+> On Tue, Apr 25, 2017 at 03:55:00PM +0100, Kieran Bingham wrote:
+> > From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> > 
+> > The rvin_digital_notify_bound() call dereferences the subdev->dev
+> > pointer to obtain the of_node. On some error paths, this dev node can be
+> > set as NULL. The of_node is mapped into the subdevice structure on
+> > initialisation, so this is a safer source to compare the nodes.
+> > 
+> > Dereference the of_node from the subdev structure instead of the dev
+> > structure.
+> > 
+> > Fixes: 83fba2c06f19 ("rcar-vin: rework how subdevice is found and
+> > 	bound")
+> > Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> > ---
+> >  drivers/media/platform/rcar-vin/rcar-core.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> > index 5861ab281150..a530dc388b95 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> > @@ -469,7 +469,7 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+> >  
+> >  	v4l2_set_subdev_hostdata(subdev, vin);
+> >  
+> > -	if (vin->digital.asd.match.of.node == subdev->dev->of_node) {
+> > +	if (vin->digital.asd.match.of.node == subdev->of_node) {
+> >  		/* Find surce and sink pad of remote subdevice */
+> >  
+> >  		ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
+> 
+> I see two different accesses to subdev->dev->of_node in the version of
+> rcar-core.c in linux-next. So I'm unsure if the following comment makes
+> sense in the context of the version you are working on. It is that
+> I wonder if all accesses to subdev->dev->of_node should be updated.
+
+Are you sure you checked linux-next and not renesas-drivers? I checked 
+next-20170424.
+
+$ git grep "dev->of_node" -- drivers/media/platform/rcar-vin/
+drivers/media/platform/rcar-vin/rcar-core.c:107:        if (vin->digital.asd.match.of.node == subdev->dev->of_node) {
+drivers/media/platform/rcar-vin/rcar-core.c:161:        ep = of_graph_get_endpoint_by_regs(vin->dev->of_node, 0, 0);
+
+Here vin->dev->of_node is correct and subdev->dev->of_node should be 
+fixed by Kieran patch. I'm only asking to be sure I did not miss 
+anything. In renesas-drivers the Gen3 patches are included and more 
+references to subdev->dev->of_node exists, but as Kieran sates these 
+fixes will be squashed into those patches since they are not yet picked 
+up.
+
+-- 
+Regards,
+Niklas Söderlund
