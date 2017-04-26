@@ -1,47 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:45787 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754659AbdDLSUl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Apr 2017 14:20:41 -0400
-Subject: [PATCH 04/14] staging: atomisp: replace "&isp->asd[i]" with "asd"
- in __get_asd_from_port()
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Wed, 12 Apr 2017 19:20:36 +0100
-Message-ID: <149202123050.16615.10422203645444637150.stgit@acox1-desk1.ger.corp.intel.com>
-In-Reply-To: <149202119790.16615.4841216953457109397.stgit@acox1-desk1.ger.corp.intel.com>
-References: <149202119790.16615.4841216953457109397.stgit@acox1-desk1.ger.corp.intel.com>
+Received: from kirsty.vergenet.net ([202.4.237.240]:40979 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1953170AbdDZHX1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Apr 2017 03:23:27 -0400
+Date: Wed, 26 Apr 2017 09:23:20 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: niklas.soderlund@ragnatech.se, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH] rcar-vin: Use of_nodes as specified by the subdev
+Message-ID: <20170426072320.GD25517@verge.net.au>
+References: <1493132100-31901-1-git-send-email-kbingham@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1493132100-31901-1-git-send-email-kbingham@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daeseok Youn <daeseok.youn@gmail.com>
+Hi Kieran,
 
-The address of isp->asd[i] is already assigned to
-local "asd" variable. "&isp->asd[i]" would be replaced with
-just "asd".
+On Tue, Apr 25, 2017 at 03:55:00PM +0100, Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> The rvin_digital_notify_bound() call dereferences the subdev->dev
+> pointer to obtain the of_node. On some error paths, this dev node can be
+> set as NULL. The of_node is mapped into the subdevice structure on
+> initialisation, so this is a safer source to compare the nodes.
+> 
+> Dereference the of_node from the subdev structure instead of the dev
+> structure.
+> 
+> Fixes: 83fba2c06f19 ("rcar-vin: rework how subdevice is found and
+> 	bound")
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index 5861ab281150..a530dc388b95 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -469,7 +469,7 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+>  
+>  	v4l2_set_subdev_hostdata(subdev, vin);
+>  
+> -	if (vin->digital.asd.match.of.node == subdev->dev->of_node) {
+> +	if (vin->digital.asd.match.of.node == subdev->of_node) {
+>  		/* Find surce and sink pad of remote subdevice */
+>  
+>  		ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
 
-Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
- .../media/atomisp/pci/atomisp2/atomisp_cmd.c       |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-index 08606cb..d98a6ea 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-@@ -536,9 +536,9 @@ __get_asd_from_port(struct atomisp_device *isp, mipi_port_ID_t port)
- 		struct camera_mipi_info *mipi_info =
- 				atomisp_to_sensor_mipi_info(
- 					isp->inputs[asd->input_curr].camera);
--		if (isp->asd[i].streaming == ATOMISP_DEVICE_STREAMING_ENABLED &&
-+		if (asd->streaming == ATOMISP_DEVICE_STREAMING_ENABLED &&
- 		    __get_mipi_port(isp, mipi_info->port) == port) {
--			return &isp->asd[i];
-+			return asd;
- 		}
- 	}
- 
+I see two different accesses to subdev->dev->of_node in the version of
+rcar-core.c in linux-next. So I'm unsure if the following comment makes
+sense in the context of the version you are working on. It is that
+I wonder if all accesses to subdev->dev->of_node should be updated.
