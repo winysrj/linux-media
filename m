@@ -1,65 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58741 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755664AbdDFOoJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Apr 2017 10:44:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from kirsty.vergenet.net ([202.4.237.240]:43787 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2993903AbdDZIL5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Apr 2017 04:11:57 -0400
+Date: Wed, 26 Apr 2017 10:11:51 +0200
+From: Simon Horman <horms@verge.net.au>
+To: kieran.bingham@ideasonboard.com
+Cc: Kieran Bingham <kbingham@kernel.org>,
+        niklas.soderlund@ragnatech.se, linux-renesas-soc@vger.kernel.org,
         linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] Order the Makefile alphabetically
-Date: Thu, 06 Apr 2017 17:44:54 +0300
-Message-ID: <49731556.CDPzbN8maI@avalon>
-In-Reply-To: <20170406144051.13008-1-maxime.ripard@free-electrons.com>
-References: <20170406144051.13008-1-maxime.ripard@free-electrons.com>
+Subject: Re: [PATCH] rcar-vin: Use of_nodes as specified by the subdev
+Message-ID: <20170426081151.GL25517@verge.net.au>
+References: <1493132100-31901-1-git-send-email-kbingham@kernel.org>
+ <20170426072320.GD25517@verge.net.au>
+ <16f8afab-95c1-cc52-9b79-d04ef862a89d@ideasonboard.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <16f8afab-95c1-cc52-9b79-d04ef862a89d@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
-
-Thank you for the patch.
-
-On Thursday 06 Apr 2017 16:40:51 Maxime Ripard wrote:
-> The Makefiles were a free for all without a clear order defined. Sort all
-> the options based on the Kconfig symbol.
+On Wed, Apr 26, 2017 at 08:48:25AM +0100, Kieran Bingham wrote:
+> Hi Simon,
 > 
-> Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
-
-I like the approach.
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-(I haven't reviewed the changes in detail though, I trust that you have 
-double-checked through automated means that no Kconfig symbol was lost.)
-
-> ---
+> On 26/04/17 08:23, Simon Horman wrote:
+> > Hi Kieran,
+> > 
+> > On Tue, Apr 25, 2017 at 03:55:00PM +0100, Kieran Bingham wrote:
+> >> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >>
+> >> The rvin_digital_notify_bound() call dereferences the subdev->dev
+> >> pointer to obtain the of_node. On some error paths, this dev node can be
+> >> set as NULL. The of_node is mapped into the subdevice structure on
+> >> initialisation, so this is a safer source to compare the nodes.
+> >>
+> >> Dereference the of_node from the subdev structure instead of the dev
+> >> structure.
+> >>
+> >> Fixes: 83fba2c06f19 ("rcar-vin: rework how subdevice is found and
+> >> 	bound")
+> >> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >> ---
+> >>  drivers/media/platform/rcar-vin/rcar-core.c | 2 +-
+> >>  1 file changed, 1 insertion(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> >> index 5861ab281150..a530dc388b95 100644
+> >> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> >> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> >> @@ -469,7 +469,7 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+> >>  
+> >>  	v4l2_set_subdev_hostdata(subdev, vin);
+> >>  
+> >> -	if (vin->digital.asd.match.of.node == subdev->dev->of_node) {
+> >> +	if (vin->digital.asd.match.of.node == subdev->of_node) {
+> >>  		/* Find surce and sink pad of remote subdevice */
+> >>  
+> >>  		ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
+> > 
+> > I see two different accesses to subdev->dev->of_node in the version of
+> > rcar-core.c in linux-next. So I'm unsure if the following comment makes
+> > sense in the context of the version you are working on. It is that
+> > I wonder if all accesses to subdev->dev->of_node should be updated.
 > 
-> Hi Mauro,
+> Yes, all uses in rcar-core should be updated, This patch is targeted directly at
+> mainline, in which only one reference occurs.
 > 
-> Here is my makefile ordering patch again, this time with all the Makefiles
-> in drivers/media that needed ordering.
+> I presume(?) the references in linux-next, relate to the previous version of
+> this patch which I posted as a reply to Niklas' patch series:
+>  "[PATCH v3 00/27] rcar-vin: Add Gen3 with media controller support"
 > 
-> Since we're already pretty late in the release period, I guess there won't
-> be any major conflicts between now and the merge window.
+> The first version of this patch (which was titled differently) covered three
+> uses, but two of them were not yet in mainline.
 > 
-> Maxime
-> ---
->  drivers/media/common/Makefile        |   2 +-
->  drivers/media/dvb-frontends/Makefile | 220 +++++++++++++++----------------
->  drivers/media/i2c/Makefile           | 162 +++++++++++++-------------
->  drivers/media/pci/Makefile           |  34 +++---
->  drivers/media/platform/Makefile      |  92 +++++----------
->  drivers/media/radio/Makefile         |  62 +++++-----
->  drivers/media/rc/Makefile            |  74 ++++++------
->  drivers/media/tuners/Makefile        |  73 ++++++------
->  drivers/media/usb/Makefile           |  34 +++---
->  drivers/media/v4l2-core/Makefile     |  36 +++---
->  10 files changed, 381 insertions(+), 408 deletions(-)
+> The 'fixes' for those references are going to be squashed in to Niklas' next
+> version of his patchset.
 
--- 
-Regards,
-
-Laurent Pinchart
+Understood, sounds good to me.
