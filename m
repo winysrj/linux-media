@@ -1,261 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:38180 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752639AbdDMWG1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 18:06:27 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Steve Wise <swise@opengridcomputing.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:25 -0600
-Message-Id: <1492121135-4437-13-git-send-email-logang@deltatee.com>
-In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 12/22] scsi: ipr, pmcraid, isci: Make use of the new sg_map helper in 4 call sites
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59375 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2998672AbdDZKxD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Apr 2017 06:53:03 -0400
+Date: Wed, 26 Apr 2017 12:53:00 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Subject: [patch] propagating controls in libv4l2 was Re: support autofocus /
+ autogain in libv4l2
+Message-ID: <20170426105300.GA857@amd>
+References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20170414232332.63850d7b@vento.lan>
+ <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+ <20170419105118.72b8e284@vento.lan>
+ <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="0F1p//8PRICkK4MW"
+Content-Disposition: inline
+In-Reply-To: <20170424224724.5bb52382@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Very straightforward conversion of three scsi drivers.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- drivers/scsi/ipr.c          | 27 ++++++++++++++-------------
- drivers/scsi/isci/request.c | 42 +++++++++++++++++++++++++-----------------
- drivers/scsi/pmcraid.c      | 19 ++++++++++++-------
- 3 files changed, 51 insertions(+), 37 deletions(-)
+--0F1p//8PRICkK4MW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/scsi/ipr.c b/drivers/scsi/ipr.c
-index b29afaf..f98f251 100644
---- a/drivers/scsi/ipr.c
-+++ b/drivers/scsi/ipr.c
-@@ -3853,7 +3853,7 @@ static void ipr_free_ucode_buffer(struct ipr_sglist *sglist)
- static int ipr_copy_ucode_buffer(struct ipr_sglist *sglist,
- 				 u8 *buffer, u32 len)
- {
--	int bsize_elem, i, result = 0;
-+	int bsize_elem, i;
- 	struct scatterlist *scatterlist;
- 	void *kaddr;
- 
-@@ -3863,32 +3863,33 @@ static int ipr_copy_ucode_buffer(struct ipr_sglist *sglist,
- 	scatterlist = sglist->scatterlist;
- 
- 	for (i = 0; i < (len / bsize_elem); i++, buffer += bsize_elem) {
--		struct page *page = sg_page(&scatterlist[i]);
-+		kaddr = sg_map(&scatterlist[i], SG_KMAP);
-+		if (IS_ERR(kaddr)) {
-+			ipr_trace;
-+			return PTR_ERR(kaddr);
-+		}
- 
--		kaddr = kmap(page);
- 		memcpy(kaddr, buffer, bsize_elem);
--		kunmap(page);
-+		sg_unmap(&scatterlist[i], kaddr, SG_KMAP);
- 
- 		scatterlist[i].length = bsize_elem;
--
--		if (result != 0) {
--			ipr_trace;
--			return result;
--		}
- 	}
- 
- 	if (len % bsize_elem) {
--		struct page *page = sg_page(&scatterlist[i]);
-+		kaddr = sg_map(&scatterlist[i], SG_KMAP);
-+		if (IS_ERR(kaddr)) {
-+			ipr_trace;
-+			return PTR_ERR(kaddr);
-+		}
- 
--		kaddr = kmap(page);
- 		memcpy(kaddr, buffer, len % bsize_elem);
--		kunmap(page);
-+		sg_unmap(&scatterlist[i], kaddr, SG_KMAP);
- 
- 		scatterlist[i].length = len % bsize_elem;
- 	}
- 
- 	sglist->buffer_len = len;
--	return result;
-+	return 0;
+Hi!
+
+> > > IMO, the best place for autofocus is at libv4l2. Putting it on a
+> > > separate "video server" application looks really weird for me. =20
+> >=20
+> > Well... let me see. libraries are quite limited -- it is hard to open
+> > files, or use threads/have custom main loop. It may be useful to
+> > switch resolutions -- do autofocus/autogain at lower resolution, then
+> > switch to high one for taking picture. It would be good to have that
+> > in "system" code, but I'm not at all sure libv4l2 design will allow
+> > that.
+>=20
+> I don't see why it would be hard to open files or have threads inside
+> a library. There are several libraries that do that already, specially
+> the ones designed to be used on multimidia apps.
+
+Well, This is what the libv4l2 says:
+
+   This file implements libv4l2, which offers v4l2_ prefixed versions
+   of
+      open/close/etc. The API is 100% the same as directly opening
+   /dev/videoX
+      using regular open/close/etc, the big difference is that format
+   conversion
+  =20
+but if I open additional files in v4l2_open(), API is no longer the
+same, as unix open() is defined to open just one file descriptor.
+
+Now. There is autogain support in libv4lconvert, but it expects to use
+same fd for camera and for the gain... which does not work with
+subdevs.
+
+Of course, opening subdevs by name like this is not really
+acceptable. But can you suggest a method that is?
+
+Thanks,
+								Pavel
+
+commit 4cf9d10ead014c0db25452e4bb9cd144632407c3
+Author: Pavel <pavel@ucw.cz>
+Date:   Wed Apr 26 11:38:04 2017 +0200
+
+    Add subdevices.
+
+diff --git a/lib/libv4l2/libv4l2-priv.h b/lib/libv4l2/libv4l2-priv.h
+index 343db5e..a6bc48e 100644
+--- a/lib/libv4l2/libv4l2-priv.h
++++ b/lib/libv4l2/libv4l2-priv.h
+@@ -26,6 +26,7 @@
+ #include "../libv4lconvert/libv4lsyscall-priv.h"
+=20
+ #define V4L2_MAX_DEVICES 16
++#define V4L2_MAX_SUBDEVS 8
+ /* Warning when making this larger the frame_queued and frame_mapped membe=
+rs of
+    the v4l2_dev_info struct can no longer be a bitfield, so the code needs=
+ to
+    be adjusted! */
+@@ -104,6 +105,7 @@ struct v4l2_dev_info {
+ 	void *plugin_library;
+ 	void *dev_ops_priv;
+ 	const struct libv4l_dev_ops *dev_ops;
++        int subdev_fds[V4L2_MAX_SUBDEVS];
+ };
+=20
+ /* From v4l2-plugin.c */
+diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
+index 0ba0a88..edc9642 100644
+--- a/lib/libv4l2/libv4l2.c
++++ b/lib/libv4l2/libv4l2.c
+@@ -1,3 +1,4 @@
++/* -*- c-file-style: "linux" -*- */
+ /*
+ #             (C) 2008 Hans de Goede <hdegoede@redhat.com>
+=20
+@@ -789,18 +790,25 @@ no_capture:
+=20
+ 	/* Note we always tell v4lconvert to optimize src fmt selection for
+ 	   our default fps, the only exception is the app explicitly selecting
+-	   a fram erate using the S_PARM ioctl after a S_FMT */
++	   a frame rate using the S_PARM ioctl after a S_FMT */
+ 	if (devices[index].convert)
+ 		v4lconvert_set_fps(devices[index].convert, V4L2_DEFAULT_FPS);
+ 	v4l2_update_fps(index, &parm);
+=20
++	devices[index].subdev_fds[0] =3D SYS_OPEN("/dev/video_sensor", O_RDWR, 0);
++	devices[index].subdev_fds[1] =3D SYS_OPEN("/dev/video_focus", O_RDWR, 0);
++	devices[index].subdev_fds[2] =3D -1;
++
++	printf("Sensor: %d, focus: %d\n", devices[index].subdev_fds[0],=20
++	       devices[index].subdev_fds[1]);
++
+ 	V4L2_LOG("open: %d\n", fd);
+=20
+ 	return fd;
  }
- 
- /**
-diff --git a/drivers/scsi/isci/request.c b/drivers/scsi/isci/request.c
-index 47f66e9..66d6596 100644
---- a/drivers/scsi/isci/request.c
-+++ b/drivers/scsi/isci/request.c
-@@ -1424,12 +1424,14 @@ sci_stp_request_pio_data_in_copy_data_buffer(struct isci_stp_request *stp_req,
- 		sg = task->scatter;
- 
- 		while (total_len > 0) {
--			struct page *page = sg_page(sg);
--
- 			copy_len = min_t(int, total_len, sg_dma_len(sg));
--			kaddr = kmap_atomic(page);
--			memcpy(kaddr + sg->offset, src_addr, copy_len);
--			kunmap_atomic(kaddr);
-+			kaddr = sg_map(sg, SG_KMAP_ATOMIC);
-+			if (IS_ERR(kaddr))
-+				return SCI_FAILURE;
+=20
+ /* Is this an fd for which we are emulating v4l1 ? */
+-static int v4l2_get_index(int fd)
++int v4l2_get_index(int fd)
+ {
+ 	int index;
+=20
+
+commit 1d6a9ce121f53e8f2e38549eed597a3c3dea5233
+Author: Pavel <pavel@ucw.cz>
+Date:   Wed Apr 26 12:34:04 2017 +0200
+
+    Enable ioctl propagation.
+
+diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
+index edc9642..6dab661 100644
+--- a/lib/libv4l2/libv4l2.c
++++ b/lib/libv4l2/libv4l2.c
+@@ -1064,6 +1064,23 @@ static int v4l2_s_fmt(int index, struct v4l2_format =
+*dest_fmt)
+ 	return 0;
+ }
+=20
++static int v4l2_propagate_ioctl(int index, unsigned long request, void *ar=
+g)
++{
++	int i =3D 0;
++	int result;
++	while (1) {
++		if (devices[index].subdev_fds[i] =3D=3D -1)
++			return -1;
++		printf("g_ctrl failed, trying...\n");
++		result =3D SYS_IOCTL(devices[index].subdev_fds[i], request, arg);
++		printf("subdev %d result %d\n", i, result);
++		if (result =3D=3D 0)
++			return 0;
++		i++;
++	}
++	return -1;
++}
 +
-+			memcpy(kaddr, src_addr, copy_len);
-+			sg_unmap(sg, kaddr, SG_KMAP_ATOMIC);
-+
- 			total_len -= copy_len;
- 			src_addr += copy_len;
- 			sg = sg_next(sg);
-@@ -1771,14 +1773,16 @@ sci_io_request_frame_handler(struct isci_request *ireq,
- 	case SCI_REQ_SMP_WAIT_RESP: {
- 		struct sas_task *task = isci_request_access_task(ireq);
- 		struct scatterlist *sg = &task->smp_task.smp_resp;
--		void *frame_header, *kaddr;
-+		void *frame_header;
- 		u8 *rsp;
- 
- 		sci_unsolicited_frame_control_get_header(&ihost->uf_control,
- 							 frame_index,
- 							 &frame_header);
--		kaddr = kmap_atomic(sg_page(sg));
--		rsp = kaddr + sg->offset;
-+		rsp = sg_map(sg, SG_KMAP_ATOMIC);
-+		if (IS_ERR(rsp))
-+			return SCI_FAILURE;
-+
- 		sci_swab32_cpy(rsp, frame_header, 1);
- 
- 		if (rsp[0] == SMP_RESPONSE) {
-@@ -1814,7 +1818,7 @@ sci_io_request_frame_handler(struct isci_request *ireq,
- 			ireq->sci_status = SCI_FAILURE_CONTROLLER_SPECIFIC_IO_ERR;
- 			sci_change_state(&ireq->sm, SCI_REQ_COMPLETED);
- 		}
--		kunmap_atomic(kaddr);
-+		sg_unmap(sg, rsp, SG_KMAP_ATOMIC);
- 
- 		sci_controller_release_frame(ihost, frame_index);
- 
-@@ -2919,15 +2923,18 @@ static void isci_request_io_request_complete(struct isci_host *ihost,
- 	case SAS_PROTOCOL_SMP: {
- 		struct scatterlist *sg = &task->smp_task.smp_req;
- 		struct smp_req *smp_req;
--		void *kaddr;
- 
- 		dma_unmap_sg(&ihost->pdev->dev, sg, 1, DMA_TO_DEVICE);
- 
- 		/* need to swab it back in case the command buffer is re-used */
--		kaddr = kmap_atomic(sg_page(sg));
--		smp_req = kaddr + sg->offset;
-+		smp_req = sg_map(sg, SG_KMAP_ATOMIC);
-+		if (IS_ERR(smp_req)) {
-+			status = SAS_ABORTED_TASK;
-+			break;
-+		}
-+
- 		sci_swab32_cpy(smp_req, smp_req, sg->length / sizeof(u32));
--		kunmap_atomic(kaddr);
-+		sg_unmap(sg, smp_req, SG_KMAP_ATOMIC);
+ int v4l2_ioctl(int fd, unsigned long int request, ...)
+ {
+ 	void *arg;
+@@ -1193,14 +1210,20 @@ no_capture_request:
+ 	switch (request) {
+ 	case VIDIOC_QUERYCTRL:
+ 		result =3D v4lconvert_vidioc_queryctrl(devices[index].convert, arg);
++		if (result =3D=3D -1)
++			result =3D v4l2_propagate_ioctl(index, request, arg);
  		break;
- 	}
- 	default:
-@@ -3190,12 +3197,13 @@ sci_io_request_construct_smp(struct device *dev,
- 	struct scu_task_context *task_context;
- 	struct isci_port *iport;
- 	struct smp_req *smp_req;
--	void *kaddr;
- 	u8 req_len;
- 	u32 cmd;
- 
--	kaddr = kmap_atomic(sg_page(sg));
--	smp_req = kaddr + sg->offset;
-+	smp_req = sg_map(sg, SG_KMAP_ATOMIC);
-+	if (IS_ERR(smp_req))
-+		return SCI_FAILURE;
-+
- 	/*
- 	 * Look at the SMP requests' header fields; for certain SAS 1.x SMP
- 	 * functions under SAS 2.0, a zero request length really indicates
-@@ -3220,7 +3228,7 @@ sci_io_request_construct_smp(struct device *dev,
- 	req_len = smp_req->req_len;
- 	sci_swab32_cpy(smp_req, smp_req, sg->length / sizeof(u32));
- 	cmd = *(u32 *) smp_req;
--	kunmap_atomic(kaddr);
-+	sg_unmap(sg, smp_req, SG_KMAP_ATOMIC);
- 
- 	if (!dma_map_sg(dev, sg, 1, DMA_TO_DEVICE))
- 		return SCI_FAILURE;
-diff --git a/drivers/scsi/pmcraid.c b/drivers/scsi/pmcraid.c
-index 49e70a3..af1903e 100644
---- a/drivers/scsi/pmcraid.c
-+++ b/drivers/scsi/pmcraid.c
-@@ -3342,9 +3342,12 @@ static int pmcraid_copy_sglist(
- 	scatterlist = sglist->scatterlist;
- 
- 	for (i = 0; i < (len / bsize_elem); i++, buffer += bsize_elem) {
--		struct page *page = sg_page(&scatterlist[i]);
-+		kaddr = sg_map(&scatterlist[i], SG_KMAP);
-+		if (IS_ERR(kaddr)) {
-+			pmcraid_err("failed to copy user data into sg list\n");
-+			return PTR_ERR(kaddr);
-+		}
- 
--		kaddr = kmap(page);
- 		if (direction == DMA_TO_DEVICE)
- 			rc = __copy_from_user(kaddr,
- 					      (void *)buffer,
-@@ -3352,7 +3355,7 @@ static int pmcraid_copy_sglist(
- 		else
- 			rc = __copy_to_user((void *)buffer, kaddr, bsize_elem);
- 
--		kunmap(page);
-+		sg_unmap(&scatterlist[i], kaddr, SG_KMAP);
- 
- 		if (rc) {
- 			pmcraid_err("failed to copy user data into sg list\n");
-@@ -3363,9 +3366,11 @@ static int pmcraid_copy_sglist(
- 	}
- 
- 	if (len % bsize_elem) {
--		struct page *page = sg_page(&scatterlist[i]);
--
--		kaddr = kmap(page);
-+		kaddr = sg_map(&scatterlist[i], SG_KMAP);
-+		if (IS_ERR(kaddr)) {
-+			pmcraid_err("failed to copy user data into sg list\n");
-+			return PTR_ERR(kaddr);
-+		}
- 
- 		if (direction == DMA_TO_DEVICE)
- 			rc = __copy_from_user(kaddr,
-@@ -3376,7 +3381,7 @@ static int pmcraid_copy_sglist(
- 					    kaddr,
- 					    len % bsize_elem);
- 
--		kunmap(page);
-+		sg_unmap(&scatterlist[i], kaddr, SG_KMAP);
- 
- 		scatterlist[i].length = len % bsize_elem;
- 	}
--- 
-2.1.4
+=20
+ 	case VIDIOC_G_CTRL:
+ 		result =3D v4lconvert_vidioc_g_ctrl(devices[index].convert, arg);
++		if (result =3D=3D -1)
++			result =3D v4l2_propagate_ioctl(index, request, arg);
+ 		break;
+=20
+ 	case VIDIOC_S_CTRL:
+ 		result =3D v4lconvert_vidioc_s_ctrl(devices[index].convert, arg);
++		if (result =3D=3D -1)
++			result =3D v4l2_propagate_ioctl(index, request, arg);
+ 		break;
+=20
+ 	case VIDIOC_G_EXT_CTRLS:
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--0F1p//8PRICkK4MW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlkAfAsACgkQMOfwapXb+vLcAwCggy+h9fRmvN4qvADN/nqoZCvX
+69MAmwXHnF8cRmpb+r0sOxNesWQUqbRJ
+=4juX
+-----END PGP SIGNATURE-----
+
+--0F1p//8PRICkK4MW--
