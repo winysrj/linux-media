@@ -1,42 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41551
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932658AbdDESjN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 14:39:13 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>
-Subject: [PATCH 1/2] [media] dvb_frontend: add kernel-doc tag for a missing parameter
-Date: Wed,  5 Apr 2017 15:38:52 -0300
-Message-Id: <f8da4aad552ec9423ca723404472cc3db0c125d7.1491417529.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mailgw02.mediatek.com ([210.61.82.184]:38817 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932866AbdD0GMG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 02:12:06 -0400
+Message-ID: <1493273512.8340.4.camel@mhfsdcap03>
+Subject: Re: [PATCH] [media] mtk-mdp: Fix g_/s_selection capture/compose
+ logic
+From: houlong wei <houlong.wei@mediatek.com>
+To: Wu-Cheng Li =?UTF-8?Q?=28=E6=9D=8E=E5=8B=99=E8=AA=A0=29?=
+        <wuchengli@google.com>
+CC: Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Daniel Thompson <daniel.thompson@linaro.org>,
+        "Rob Herring" <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
+Date: Thu, 27 Apr 2017 14:11:52 +0800
+In-Reply-To: <CAOMLVLiLkZsBfezx6b9Xq=kyPjUZOXwHC4LfHh1=wy6Ynt=zSQ@mail.gmail.com>
+References: <1492057130-1194-1-git-send-email-minghsiu.tsai@mediatek.com>
+         <CAOMLVLiLkZsBfezx6b9Xq=kyPjUZOXwHC4LfHh1=wy6Ynt=zSQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changeset 1f862a68df24 ("[media] dvb_frontend: move kref to struct
-dvb_frontend") added a kref to the struct dvb_frontend, but it
-didn't document it.
-
-Fixes: 1f862a68df24 ("[media] dvb_frontend: move kref to struct dvb_frontend")
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_frontend.h | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 482912d3b77a..fd916c693947 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -643,6 +643,7 @@ struct dtv_frontend_properties {
- /**
-  * struct dvb_frontend - Frontend structure to be used on drivers.
-  *
-+ * @refcount:		pointer to struct kref
-  * @ops:		embedded struct dvb_frontend_ops
-  * @dvb:		pointer to struct dvb_adapter
-  * @demodulator_priv:	demod private data
--- 
-2.9.3
+On Thu, 2017-04-13 at 14:50 +0800, Wu-Cheng Li (李務誠) wrote:
+> Reviewed-by: Wu-Cheng Li <wuchengli@chromium.org>
+> 
+> On Thu, Apr 13, 2017 at 12:18 PM, Minghsiu Tsai
+> <minghsiu.tsai@mediatek.com> wrote:
+> > From: Daniel Kurtz <djkurtz@chromium.org>
+> >
+> > Experiments show that the:
+> >  (1) mtk-mdp uses the _MPLANE form of CAPTURE/OUTPUT
+> >  (2) CAPTURE types use CROP targets, and OUTPUT types use COMPOSE targets
+> >
+> > Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+> > Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Acked-by:Houlong Wei <houlong.wei@mediatek.com>
+> >
+> > ---
+> >  drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c | 18 +++++++++---------
+> >  1 file changed, 9 insertions(+), 9 deletions(-)
+> >
+> > diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> > index 13afe48..8ab7ca0 100644
+> > --- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> > +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> > @@ -837,12 +837,12 @@ static int mtk_mdp_m2m_g_selection(struct file *file, void *fh,
+> >         struct mtk_mdp_ctx *ctx = fh_to_ctx(fh);
+> >         bool valid = false;
+> >
+> > -       if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+> > -               if (mtk_mdp_is_target_compose(s->target))
+> > -                       valid = true;
+> > -       } else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> > +       if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> >                 if (mtk_mdp_is_target_crop(s->target))
+> >                         valid = true;
+> > +       } else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> > +               if (mtk_mdp_is_target_compose(s->target))
+> > +                       valid = true;
+> >         }
+> >         if (!valid) {
+> >                 mtk_mdp_dbg(1, "[%d] invalid type:%d,%u", ctx->id, s->type,
+> > @@ -907,12 +907,12 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
+> >         int ret;
+> >         bool valid = false;
+> >
+> > -       if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+> > -               if (s->target == V4L2_SEL_TGT_COMPOSE)
+> > -                       valid = true;
+> > -       } else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> > +       if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> >                 if (s->target == V4L2_SEL_TGT_CROP)
+> >                         valid = true;
+> > +       } else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> > +               if (s->target == V4L2_SEL_TGT_COMPOSE)
+> > +                       valid = true;
+> >         }
+> >         if (!valid) {
+> >                 mtk_mdp_dbg(1, "[%d] invalid type:%d,%u", ctx->id, s->type,
+> > @@ -925,7 +925,7 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
+> >         if (ret)
+> >                 return ret;
+> >
+> > -       if (mtk_mdp_is_target_crop(s->target))
+> > +       if (mtk_mdp_is_target_compose(s->target))
+> >                 frame = &ctx->s_frame;
+> >         else
+> >                 frame = &ctx->d_frame;
+> > --
+> > 1.9.1
+> >
