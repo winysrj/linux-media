@@ -1,100 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f170.google.com ([209.85.128.170]:36639 "EHLO
-        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932833AbdDEJLd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 05:11:33 -0400
-Received: by mail-wr0-f170.google.com with SMTP id w11so4966625wrc.3
-        for <linux-media@vger.kernel.org>; Wed, 05 Apr 2017 02:11:32 -0700 (PDT)
-Date: Wed, 5 Apr 2017 10:11:29 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, benjamin.gaignard@st.com,
-        kernel@stlinux.com, patrice.chotard@st.com,
-        linux-kernel@vger.kernel.org, hans.verkuil@cisco.com,
-        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] cec: Handle RC capability more elegantly
-Message-ID: <20170405091129.fcxblw3ydqilxrlg@dell>
-References: <20170404144309.31357-1-lee.jones@linaro.org>
- <9fdac3c1-b249-839e-c2bc-f4661994eb3a@xs4all.nl>
- <20170404151939.bvd252nprj6kjmdu@dell>
- <20170404153659.GC7909@n2100.armlinux.org.uk>
+Received: from mail.kernel.org ([198.145.29.136]:43018 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1164040AbdD0S0M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 14:26:12 -0400
+From: Kieran Bingham <kbingham@kernel.org>
+To: laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
+        sakari.ailus@iki.fi
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH 0/5] RFC: ADV748x HDMI/Analog video receiver
+Date: Thu, 27 Apr 2017 19:25:59 +0100
+Message-Id: <1493317564-18026-1-git-send-email-kbingham@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170404153659.GC7909@n2100.armlinux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 04 Apr 2017, Russell King - ARM Linux wrote:
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-> On Tue, Apr 04, 2017 at 04:19:39PM +0100, Lee Jones wrote:
-> > On Tue, 04 Apr 2017, Hans Verkuil wrote:
-> > 
-> > > On 04/04/2017 04:43 PM, Lee Jones wrote:
-> > > > If a user specifies the use of RC as a capability, they should
-> > > > really be enabling RC Core code.  If they do not we WARN() them
-> > > > of this and disable the capability for them.
-> > > > 
-> > > > Once we know RC Core code has not been enabled, we can update
-> > > > the user's capabilities and use them as a term of reference for
-> > > > other RC-only calls.  This is preferable to having ugly #ifery
-> > > > scattered throughout C code.
-> > > > 
-> > > > Most of the functions are actually safe to call, since they
-> > > > sensibly check for a NULL RC pointer before they attempt to
-> > > > deference it.
-> > > > 
-> > > > Signed-off-by: Lee Jones <lee.jones@linaro.org>
-> > > > ---
-> > > >  drivers/media/cec/cec-core.c | 19 +++++++------------
-> > > >  1 file changed, 7 insertions(+), 12 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-> > > > index cfe414a..51be8d6 100644
-> > > > --- a/drivers/media/cec/cec-core.c
-> > > > +++ b/drivers/media/cec/cec-core.c
-> > > > @@ -208,9 +208,13 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
-> > > >  		return ERR_PTR(-EINVAL);
-> > > >  	if (WARN_ON(!available_las || available_las > CEC_MAX_LOG_ADDRS))
-> > > >  		return ERR_PTR(-EINVAL);
-> > > > +	if (WARN_ON(caps & CEC_CAP_RC && !IS_REACHABLE(CONFIG_RC_CORE)))
-> > > > +		caps &= ~CEC_CAP_RC;
-> > > 
-> > > Don't use WARN_ON, this is not an error of any kind.
-> > 
-> > Right, this is not an error.
-> > 
-> > That's why we are warning the user instead of bombing out.
-> 
-> Please print warning using pr_warn() or dev_warn().  Using WARN_ON()
-> because something is not configured is _really_ not nice behaviour.
-> Consider how useful a stack trace is to the user for this situation -
-> it's completely meaningless.
-> 
-> A message that prompts the user to enable RC_CORE would make more sense,
-> and be much more informative to the user.  Maybe something like this:
-> 
-> +	if (caps & CEC_CAP_RC && !IS_REACHABLE(CONFIG_RC_CORE)) {
-> +		pr_warn("CEC: driver %pf requests RC, please enable CONFIG_RC_CORE\n",
-> +			__builtin_return_address(0));
-> +		caps &= ~CEC_CAP_RC;
-> +	}
-> 
-> It could be much more informative by using dev_warn() if we had the
-> 'struct device' passed in to this function, and then we wouldn't need
-> to use __builtin_return_address().
+This is an RFC for the Analog Devices ADV748x driver, and follows on from a
+previous posting by Niklas Söderlund [0] of an earlier incarnation of this
+driver.
 
-Understood.
+This is an early posting of the driver following the release early, release
+often method after quite a bit of refactoring in an attempt to bring it
+closer to mainline.
 
-I *would* fix, but Hans has made it pretty clear that this is not the
-way he wants to go.  I still think a warning is the correct solution,
-but for some reason we are to support out-of-tree drivers which might
-be doing weird stuff.
+Aside from a few bug fixes, and considerable refactoring this driver:
+ - is refactored to multiple object files
+ - defines multiple sub devices for the output paths.
+ - has independant controls for both HDMI and Analog video paths
+ - extends V4L2 async matching to support 'ports' on V4L2_ASYNC_MATCH_OF
+
+The ADV7481 and ADV7482 support two video pipelines which can run independently
+of each other, with each pipeline terminating in a CSI-2 output: TXA (4-Lane)
+and TXB (1-Lane)
+
+The ADV7480 (Not yet included here), ADV7481, and ADV7482 are all derivatives,
+with the following features
+
+            Analog   HDMI  MHL  4-Lane  1-Lane
+              In      In         CSI     CSI
+ ADV7480               X    X     X
+ ADV7481      X        X    X     X       X
+ ADV7482      X        X          X       X
+
+This RFC statically routes the HDMI in through the TXA and the CVBS through the
+TXB for early development, though I anticipate splitting the TXA/HDMI and 
+TXB/AFE (Analog Front End) into distinct sub devices, allowing configurable
+routing. This split is dependant upon on-going 'incremental binding' work being
+done and thus is not yet included in this RFC.
+
+Further potential development areas include:
+ - ADV7480 Support (No AFE)
+ - MHL support (Not present on ADV7482)
+ - EDID support
+ - CEC Support
+ - Configurable I2C addressing
+ - Interrupt handling for format changes and hotplug detect.
+
+However, this driver and series is functional without the above, though if
+there are mandatory areas which block mainline integration please let me know
+and I will prioritise that in development.
+
+Particular topics for discussion and review requested here include:
+
+ - Device tree bindings specification and port listings review
+
+ - Async Subdev port matching on V4L2_ASYNC_MATCH_OF
+
+There are two implementations possible for the subdevice matching:
+   A) Matching on a root dev-node, with a port specification
+   B) Creating a new V4L2_ASYNC_MATCH_OF_ENDPOINT
+
+This series posts an initial version utilising Method A.
+
+Here we extend the subdevice and allow the drivers to assign defined 'port'
+numbers to subdevices so that they can be distinguised against a common root
+of_node.
+
+This method involves the least change overall, and doesn't require the ADV7482
+to parse it's device tree in advance.
+
+
+Method B) is an option I have also considered, but requires as stated that the
+driver must parse it's device tree, and instead of passing a root of_node, would
+pass the endpoint for matching.
+
+The difficulty here will be in communicating to the consumer / async-notifier
+that instead of the V4L2_ASYNC_MATCH_OF, a V4L2_ASYNC_MATCH_OF_ENDPOINT should
+be used. Thoughts on this would be appreciated.
+
+
+This series presents the following patches:
+
+ [PATCH 1/5] v4l2-subdev: Provide a port mapping for asynchronous
+ [PATCH 2/5] rcar-vin: Match sources against ports if specified.
+ [PATCH 3/5] media: i2c: adv748x: add adv748x driver
+ [PATCH 4/5] arm64: dts: r8a7795: salvator-x: enable VIN, CSI and ADV7482
+ [PATCH 5/5] arm64: dts: r8a7796: salvator-x: enable VIN, CSI and ADV7482
+
+Patch 1 provides V4L2 support for the 'Method A' mentioned above.
+Patch 2 is dependant upon Niklas' rcar-vin series [1], and adds support to the
+ binding multiple subdevices from a single DT node.
+Patch 3 is the new driver
+Patch 4 and 5 add support to the Salvator-X platforms where this code has been
+ tested
+
+I appreciate that there are still some 'rough edges' in the driver, which is
+still under development, but all comments are welcome.
+
+
+[0] http://www.mail-archive.com/linux-renesas-soc@vger.kernel.org/msg05196.html
+[1] https://git.ragnatech.se/linux rcar-vin-elinux-v7 
+
+
+Kieran Bingham (5):
+  v4l2-subdev: Provide a port mapping for asynchronous subdevs
+  rcar-vin: Match sources against ports if specified.
+  media: i2c: adv748x: add adv748x driver
+  arm64: dts: r8a7795: salvator-x: enable VIN, CSI and ADV7482
+  arm64: dts: r8a7796: salvator-x: enable VIN, CSI and ADV7482
+
+ .../devicetree/bindings/media/i2c/adv748x.txt      |  63 ++
+ MAINTAINERS                                        |   6 +
+ arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts | 129 ++++
+ arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts | 129 ++++
+ drivers/media/i2c/Kconfig                          |  10 +
+ drivers/media/i2c/Makefile                         |   1 +
+ drivers/media/i2c/adv748x/Makefile                 |   6 +
+ drivers/media/i2c/adv748x/adv748x-afe.c            | 614 ++++++++++++++++++
+ drivers/media/i2c/adv748x/adv748x-core.c           | 573 +++++++++++++++++
+ drivers/media/i2c/adv748x/adv748x-hdmi.c           | 690 +++++++++++++++++++++
+ drivers/media/i2c/adv748x/adv748x.h                | 157 +++++
+ drivers/media/platform/rcar-vin/rcar-core.c        |  15 +-
+ drivers/media/v4l2-core/v4l2-async.c               |   7 +
+ drivers/media/v4l2-core/v4l2-subdev.c              |   1 +
+ include/media/v4l2-async.h                         |   1 +
+ include/media/v4l2-subdev.h                        |   2 +
+ 16 files changed, 2397 insertions(+), 7 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/adv748x.txt
+ create mode 100644 drivers/media/i2c/adv748x/Makefile
+ create mode 100644 drivers/media/i2c/adv748x/adv748x-afe.c
+ create mode 100644 drivers/media/i2c/adv748x/adv748x-core.c
+ create mode 100644 drivers/media/i2c/adv748x/adv748x-hdmi.c
+ create mode 100644 drivers/media/i2c/adv748x/adv748x.h
 
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+2.7.4
