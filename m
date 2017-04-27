@@ -1,327 +1,630 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:50380 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750777AbdDCIXE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Apr 2017 04:23:04 -0400
-Subject: Re: [Patch v3 09/11] [media] v4l2: Add v4l2 control IDs for HEVC
- encoder
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
- <CGME20170331090449epcas1p423d72119a1301e478e4b1b23d14cbac6@epcas1p4.samsung.com>
- <1490951200-32070-10-git-send-email-smitha.t@samsung.com>
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <a664a1d2-6690-c9df-a1f8-c60dee1bbf90@xs4all.nl>
-Date: Mon, 3 Apr 2017 10:22:58 +0200
+Received: from vader.hardeman.nu ([95.142.160.32]:55264 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965212AbdD0UeZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 16:34:25 -0400
+Subject: [PATCH 6/6] rc-core: add protocol to EVIOC[GS]KEYCODE_V2 ioctl
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Thu, 27 Apr 2017 22:34:23 +0200
+Message-ID: <149332526341.32431.11307248841385136294.stgit@zeus.hardeman.nu>
+In-Reply-To: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
+References: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-In-Reply-To: <1490951200-32070-10-git-send-email-smitha.t@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/31/2017 11:06 AM, Smitha T Murthy wrote:
-> Add v4l2 controls for HEVC encoder
-> 
-> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-> ---
->  drivers/media/v4l2-core/v4l2-ctrls.c | 103 +++++++++++++++++++++++++++
->  include/uapi/linux/v4l2-controls.h   | 133 +++++++++++++++++++++++++++++++++++
->  2 files changed, 236 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index b9e08e3..5fa763b 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -479,6 +479,46 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		NULL,
->  	};
->  
-> +	static const char * const hevc_profile[] = {
-> +		"Main",
-> +		"Main still picture",
+It is currently impossible to distinguish between scancodes which have
+been generated using different protocols (and scancodes can, and will,
+overlap).
 
-All control and control menu names should follow the english capitalization rules for
-titles. So this should become "Main Still Picture".
+For example:
+RC5 message to address 0x00, command 0x03 has scancode 0x00000503
+JVC message to address 0x00, command 0x03 has scancode 0x00000503
 
-Please adjust this in this patch.
+It is only possible to distinguish (and parse) scancodes by known the
+scancode *and* the protocol.
 
-Regards,
+Setting and getting keycodes in the input subsystem used to be done via
+the EVIOC[GS]KEYCODE ioctl and "unsigned int[2]" (one int for scancode
+and one for the keycode).
 
-	Hans
+The interface has now been extended to use the EVIOC[GS]KEYCODE_V2 ioctl
+which uses the following struct:
 
-> +		NULL,
-> +	};
-> +	static const char * const hevc_level[] = {
-> +		"1",
-> +		"2",
-> +		"2.1",
-> +		"3",
-> +		"3.1",
-> +		"4",
-> +		"4.1",
-> +		"5",
-> +		"5.1",
-> +		"5.2",
-> +		"6",
-> +		"6.1",
-> +		"6.2",
-> +		NULL,
-> +	};
-> +	static const char * const hevc_hierarchial_coding_type[] = {
-> +		"B",
-> +		"P",
-> +		NULL,
-> +	};
-> +	static const char * const hevc_refresh_type[] = {
-> +		"None",
-> +		"CRA",
-> +		"IDR",
-> +		NULL,
-> +	};
-> +	static const char * const hevc_size_of_length_field[] = {
-> +		"0",
-> +		"1",
-> +		"2",
-> +		"4",
-> +		NULL,
-> +	};
-> +
->  
->  	switch (id) {
->  	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-> @@ -574,6 +614,16 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		return dv_it_content_type;
->  	case V4L2_CID_DETECT_MD_MODE:
->  		return detect_md_mode;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
-> +		return hevc_profile;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
-> +		return hevc_level;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE:
-> +		return hevc_hierarchial_coding_type;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:
-> +		return hevc_refresh_type;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:
-> +		return hevc_size_of_length_field;
->  
->  	default:
->  		return NULL;
-> @@ -775,6 +825,54 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
->  	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
->  
-> +	/* HEVC controls */
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP:		return "HEVC I frame QP value";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP:		return "HEVC P frame QP value";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP:		return "HEVC B frame QP value";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP:			return "HEVC Minimum QP value";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP:			return "HEVC Maximum QP value";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_DARK:		return "HEVC Dark reg adaptive rc";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_SMOOTH:	return "HEVC Smooth reg adaptive rc";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_STATIC:	return "HEVC Static reg adaptive rc";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_ACTIVITY:	return "HEVC activity reg adaptive rc";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:			return "HEVC Profile";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:			return "HEVC Level";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:		return "HEVC tier_flag";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION:	return "HEVC Frame rate resolution";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH:	return "HEVC Maximum coding unit depth";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES:	return "HEVC Number of reference frames";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:		return "HEVC Refresh type";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED:		return "HEVC Constant intra prediction";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU:		return "HEVC Lossless encoding";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT:		return "HEVC Wavefront";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LF:			return "HEVC Loop filter";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY:	return "HEVC LF across slice boundary or not";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_QP:		return "HEVC QP values";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE:	return "HEVC Hierarchical Coding Type";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER:return "HEVC Hierarchical Coding Layer";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_QP:return "HEVC Hierarchical Layer QP";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER0_BITRATE:return "HEVC Hierarchical Lay 0 bit rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER1_BITRATE:return "HEVC Hierarchical Lay 1 bit rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER2_BITRATE:return "HEVC Hierarchical Lay 2 bit rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER3_BITRATE:return "HEVC Hierarchical Lay 3 bit rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER4_BITRATE:return "HEVC Hierarchical Lay 4 bit rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER5_BITRATE:return "HEVC Hierarchical Lay 5 bit rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER6_BITRATE:return "HEVC Hierarchical Lay 6 bit rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_CH:return "HEVC Hierarchical Coding Layer Change";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_SIGN_DATA_HIDING:		return "HEVC Sign data hiding";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB:		return "HEVC General pb";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID:		return "HEVC Temporal id";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING:		return "HEVC Strong intra smoothing";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT:		return "HEVC intra pu split";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION:		return "HEVC tmv prediction";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1:	return "HEVC Max number of candidate MVs";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE:	return "HEVC ENC without startcode";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD:		return "HEVC num of I frame b/w 2 IDR";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2:	return "HEVC Loop filter beta offset";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2:	return "HEVC Loop filter tc offset";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:	return "HEVC Size of length field";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR:	return "HEVC Prepend SPS/PPS to IDR";
-> +
->  	/* CAMERA controls */
->  	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
->  	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
-> @@ -1063,6 +1161,11 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_TUNE_DEEMPHASIS:
->  	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
->  	case V4L2_CID_DETECT_MD_MODE:
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE:
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:
->  		*type = V4L2_CTRL_TYPE_MENU;
->  		break;
->  	case V4L2_CID_LINK_FREQ:
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index 0d2e1e0..1f6502a 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -579,6 +579,139 @@ enum v4l2_vp8_golden_frame_sel {
->  #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
->  #define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
->  
-> +/* CIDs for HEVC encoding. Number gaps are for compatibility */
-> +
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP                         \
-> +					(V4L2_CID_MPEG_BASE + 512)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP                         \
-> +					(V4L2_CID_MPEG_BASE + 513)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP                     \
-> +					(V4L2_CID_MPEG_BASE + 514)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP                     \
-> +					(V4L2_CID_MPEG_BASE + 515)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP                     \
-> +					(V4L2_CID_MPEG_BASE + 516)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_QP \
-> +					(V4L2_CID_MPEG_BASE + 517)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE       \
-> +					(V4L2_CID_MPEG_BASE + 518)
-> +enum v4l2_mpeg_video_hevc_hier_coding_type {
-> +	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B	= 0,
-> +	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P	= 1,
-> +};
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER      \
-> +					(V4L2_CID_MPEG_BASE + 519)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_QP   \
-> +					(V4L2_CID_MPEG_BASE + 520)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_PROFILE                        \
-> +					(V4L2_CID_MPEG_BASE + 521)
-> +enum v4l2_mpeg_video_hevc_profile {
-> +	V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN = 0,
-> +	V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE = 1,
-> +};
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_LEVEL                          \
-> +					(V4L2_CID_MPEG_BASE + 522)
-> +enum v4l2_mpeg_video_hevc_level {
-> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_1	= 0,
-> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_2	= 1,
-> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_2_1	= 2,
-> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_3	= 3,
-> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_3_1	= 4,
-> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_4	= 5,
-> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1	= 6,
-> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_5	= 7,
-> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1	= 8,
-> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_5_2	= 9,
-> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_6	= 10,
-> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_6_1	= 11,
-> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2	= 12,
-> +};
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION    \
-> +					(V4L2_CID_MPEG_BASE + 523)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG                \
-> +					(V4L2_CID_MPEG_BASE + 524)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH      \
-> +					(V4L2_CID_MPEG_BASE + 525)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES   \
-> +					(V4L2_CID_MPEG_BASE + 526)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_LF		          \
-> +					(V4L2_CID_MPEG_BASE + 527)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY        \
-> +					(V4L2_CID_MPEG_BASE + 528)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2      \
-> +					(V4L2_CID_MPEG_BASE + 529)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2        \
-> +					(V4L2_CID_MPEG_BASE + 530)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE             \
-> +					(V4L2_CID_MPEG_BASE + 531)
-> +enum v4l2_cid_mpeg_video_hevc_refresh_type {
-> +	V4L2_MPEG_VIDEO_HEVC_REFRESH_NONE		= 0,
-> +	V4L2_MPEG_VIDEO_HEVC_REFRESH_CRA		= 1,
-> +	V4L2_MPEG_VIDEO_HEVC_REFRESH_IDR		= 2,
-> +};
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD           \
-> +					(V4L2_CID_MPEG_BASE + 532)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU		  \
-> +					(V4L2_CID_MPEG_BASE + 533)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED	  \
-> +					(V4L2_CID_MPEG_BASE + 534)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT	          \
-> +					(V4L2_CID_MPEG_BASE + 535)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_SIGN_DATA_HIDING         \
-> +					(V4L2_CID_MPEG_BASE + 536)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB	          \
-> +					(V4L2_CID_MPEG_BASE + 537)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID	          \
-> +					(V4L2_CID_MPEG_BASE + 538)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING	  \
-> +					(V4L2_CID_MPEG_BASE + 539)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1  \
-> +					(V4L2_CID_MPEG_BASE + 540)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_DARK         \
-> +					(V4L2_CID_MPEG_BASE + 541)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_SMOOTH       \
-> +					(V4L2_CID_MPEG_BASE + 542)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_STATIC       \
-> +					(V4L2_CID_MPEG_BASE + 543)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_ACTIVITY     \
-> +					(V4L2_CID_MPEG_BASE + 544)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT		  \
-> +					(V4L2_CID_MPEG_BASE + 545)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION		  \
-> +					(V4L2_CID_MPEG_BASE + 546)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE	  \
-> +					(V4L2_CID_MPEG_BASE + 547)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CR              \
-> +					(V4L2_CID_MPEG_BASE + 548)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CB              \
-> +					(V4L2_CID_MPEG_BASE + 549)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD     \
-> +					(V4L2_CID_MPEG_BASE + 550)
-> +enum v4l2_cid_mpeg_video_hevc_size_of_length_field {
-> +	V4L2_MPEG_VIDEO_HEVC_SIZE_0		= 0,
-> +	V4L2_MPEG_VIDEO_HEVC_SIZE_1		= 1,
-> +	V4L2_MPEG_VIDEO_HEVC_SIZE_2		= 2,
-> +	V4L2_MPEG_VIDEO_HEVC_SIZE_4		= 3,
-> +};
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR          \
-> +					(V4L2_CID_MPEG_BASE + 551)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_CH   \
-> +					(V4L2_CID_MPEG_BASE + 552)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER0_BITRATE \
-> +					(V4L2_CID_MPEG_BASE + 553)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER1_BITRATE \
-> +					(V4L2_CID_MPEG_BASE + 554)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER2_BITRATE \
-> +					(V4L2_CID_MPEG_BASE + 555)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER3_BITRATE \
-> +					(V4L2_CID_MPEG_BASE + 556)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER4_BITRATE \
-> +					(V4L2_CID_MPEG_BASE + 557)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER5_BITRATE \
-> +					(V4L2_CID_MPEG_BASE + 558)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER6_BITRATE \
-> +					(V4L2_CID_MPEG_BASE + 559)
-> +
->  /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
->  #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
->  #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
-> 
+struct input_keymap_entry {
+	__u8  flags;
+	__u8  len;
+	__u16 index;
+	__u32 keycode;
+	__u8  scancode[32];
+};
+
+(scancode can of course be even bigger, thanks to the len member).
+
+This patch changes how the "input_keymap_entry" struct is interpreted
+by rc-core by casting it to "rc_keymap_entry":
+
+struct rc_scancode {
+	__u16 protocol;
+	__u16 reserved[3];
+	__u64 scancode;
+}
+
+struct rc_keymap_entry {
+	__u8  flags;
+	__u8  len;
+	__u16 index;
+	__u32 keycode;
+	union {
+		struct rc_scancode rc;
+		__u8 raw[32];
+	};
+};
+
+The u64 scancode member is large enough for all current protocols and it
+would be possible to extend it in the future should it be necessary for
+some exotic protocol.
+
+The main advantage with this change is that the protocol is made explicit,
+which means that we're not throwing away data (the protocol type).
+
+This also means that struct rc_map no longer hardcodes the protocol, meaning
+that keytables with mixed entries are possible.
+
+Heuristics are also added to hopefully do the right thing with older
+ioctls in order to preserve backwards compatibility.
+
+Note that the heuristics are not 100% guaranteed to get things right.
+That is unavoidable since the protocol information simply isn't there
+when userspace calls the previous ioctl() types.
+
+However, that is somewhat mitigated by the fact that the "only"
+userspace binary which might need to change is ir-keytable. Userspace
+programs which simply consume input events (i.e. the vast majority)
+won't have to change.
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/ati_remote.c |    1 
+ drivers/media/rc/imon.c       |    7 +-
+ drivers/media/rc/rc-main.c    |  188 +++++++++++++++++++++++++++++------------
+ include/media/rc-core.h       |   26 +++++-
+ include/media/rc-map.h        |    5 +
+ 5 files changed, 165 insertions(+), 62 deletions(-)
+
+diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
+index 9cf3e69de16a..cc81b938471f 100644
+--- a/drivers/media/rc/ati_remote.c
++++ b/drivers/media/rc/ati_remote.c
+@@ -546,6 +546,7 @@ static void ati_remote_input_report(struct urb *urb)
+ 		 * set, assume this is a scrollwheel up/down event.
+ 		 */
+ 		wheel_keycode = rc_g_keycode_from_table(ati_remote->rdev,
++							RC_TYPE_OTHER,
+ 							scancode & 0x78);
+ 
+ 		if (wheel_keycode == KEY_RESERVED) {
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 3489010601b5..c724a1a5e9cd 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -1274,14 +1274,15 @@ static u32 imon_remote_key_lookup(struct imon_context *ictx, u32 scancode)
+ 	bool is_release_code = false;
+ 
+ 	/* Look for the initial press of a button */
+-	keycode = rc_g_keycode_from_table(ictx->rdev, scancode);
++	keycode = rc_g_keycode_from_table(ictx->rdev, ictx->rc_type, scancode);
+ 	ictx->rc_toggle = 0x0;
+ 	ictx->rc_scancode = scancode;
+ 
+ 	/* Look for the release of a button */
+ 	if (keycode == KEY_RESERVED) {
+ 		release = scancode & ~0x4000;
+-		keycode = rc_g_keycode_from_table(ictx->rdev, release);
++		keycode = rc_g_keycode_from_table(ictx->rdev, ictx->rc_type,
++						  release);
+ 		if (keycode != KEY_RESERVED)
+ 			is_release_code = true;
+ 	}
+@@ -1310,7 +1311,7 @@ static u32 imon_mce_key_lookup(struct imon_context *ictx, u32 scancode)
+ 		scancode = scancode | MCE_KEY_MASK | MCE_TOGGLE_BIT;
+ 
+ 	ictx->rc_scancode = scancode;
+-	keycode = rc_g_keycode_from_table(ictx->rdev, scancode);
++	keycode = rc_g_keycode_from_table(ictx->rdev, ictx->rc_type, scancode);
+ 
+ 	/* not used in mce mode, but make sure we know its false */
+ 	ictx->release_code = false;
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 881af208a19a..ad5545301588 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -105,7 +105,7 @@ EXPORT_SYMBOL_GPL(rc_map_unregister);
+ 
+ 
+ static struct rc_map_table empty[] = {
+-	{ 0x2a, KEY_COFFEE },
++	{ RC_TYPE_OTHER, 0x2a, KEY_COFFEE },
+ };
+ 
+ static struct rc_map_list empty_map = {
+@@ -121,7 +121,6 @@ static struct rc_map_list empty_map = {
+  * ir_create_table() - initializes a scancode table
+  * @rc_map:	the rc_map to initialize
+  * @name:	name to assign to the table
+- * @rc_type:	ir type to assign to the new table
+  * @size:	initial size of the table
+  * @return:	zero on success or a negative error code
+  *
+@@ -129,12 +128,11 @@ static struct rc_map_list empty_map = {
+  * memory to hold at least the specified number of elements.
+  */
+ static int ir_create_table(struct rc_map *rc_map,
+-			   const char *name, u64 rc_type, size_t size)
++			   const char *name, size_t size)
+ {
+ 	rc_map->name = kstrdup(name, GFP_KERNEL);
+ 	if (!rc_map->name)
+ 		return -ENOMEM;
+-	rc_map->rc_type = rc_type;
+ 	rc_map->alloc = roundup_pow_of_two(size * sizeof(struct rc_map_table));
+ 	rc_map->size = rc_map->alloc / sizeof(struct rc_map_table);
+ 	rc_map->scan = kmalloc(rc_map->alloc, GFP_KERNEL);
+@@ -234,16 +232,20 @@ static unsigned int ir_update_mapping(struct rc_dev *dev,
+ 
+ 	/* Did the user wish to remove the mapping? */
+ 	if (new_keycode == KEY_RESERVED || new_keycode == KEY_UNKNOWN) {
+-		IR_dprintk(1, "#%d: Deleting scan 0x%04x\n",
+-			   index, rc_map->scan[index].scancode);
++		IR_dprintk(1, "#%d: Deleting proto 0x%04x, scan 0x%08llx\n",
++			   index, rc_map->scan[index].protocol,
++			   (unsigned long long)rc_map->scan[index].scancode);
+ 		rc_map->len--;
+ 		memmove(&rc_map->scan[index], &rc_map->scan[index+ 1],
+ 			(rc_map->len - index) * sizeof(struct rc_map_table));
+ 	} else {
+-		IR_dprintk(1, "#%d: %s scan 0x%04x with key 0x%04x\n",
++		IR_dprintk(1, "#%d: %s proto 0x%04x, scan 0x%08llx "
++			   "with key 0x%04x\n",
+ 			   index,
+ 			   old_keycode == KEY_RESERVED ? "New" : "Replacing",
+-			   rc_map->scan[index].scancode, new_keycode);
++			   rc_map->scan[index].protocol,
++			   (unsigned long long)rc_map->scan[index].scancode,
++			   new_keycode);
+ 		rc_map->scan[index].keycode = new_keycode;
+ 		__set_bit(new_keycode, dev->input_dev->keybit);
+ 	}
+@@ -270,9 +272,9 @@ static unsigned int ir_update_mapping(struct rc_dev *dev,
+  * ir_establish_scancode() - set a keycode in the scancode->keycode table
+  * @dev:	the struct rc_dev device descriptor
+  * @rc_map:	scancode table to be searched
+- * @scancode:	the desired scancode
+- * @resize:	controls whether we allowed to resize the table to
+- *		accommodate not yet present scancodes
++ * @entry:	the entry to be added to the table
++ * @resize:	controls whether we are allowed to resize the table to
++ *		accomodate not yet present scancodes
+  * @return:	index of the mapping containing scancode in question
+  *		or -1U in case of failure.
+  *
+@@ -282,7 +284,7 @@ static unsigned int ir_update_mapping(struct rc_dev *dev,
+  */
+ static unsigned int ir_establish_scancode(struct rc_dev *dev,
+ 					  struct rc_map *rc_map,
+-					  unsigned int scancode,
++					  struct rc_map_table *entry,
+ 					  bool resize)
+ {
+ 	unsigned int i;
+@@ -296,16 +298,27 @@ static unsigned int ir_establish_scancode(struct rc_dev *dev,
+ 	 * indicate the valid bits of the scancodes.
+ 	 */
+ 	if (dev->scancode_mask)
+-		scancode &= dev->scancode_mask;
++		entry->scancode &= dev->scancode_mask;
+ 
+-	/* First check if we already have a mapping for this ir command */
++	/*
++	 * First check if we already have a mapping for this command.
++	 * Note that the keytable is sorted first on protocol and second
++	 * on scancode (lowest to highest).
++	 */
+ 	for (i = 0; i < rc_map->len; i++) {
+-		if (rc_map->scan[i].scancode == scancode)
+-			return i;
++		if (rc_map->scan[i].protocol < entry->protocol)
++			continue;
++
++		if (rc_map->scan[i].protocol > entry->protocol)
++			break;
+ 
+-		/* Keytable is sorted from lowest to highest scancode */
+-		if (rc_map->scan[i].scancode >= scancode)
++		if (rc_map->scan[i].scancode < entry->scancode)
++			continue;
++
++		if (rc_map->scan[i].scancode > entry->scancode)
+ 			break;
++
++		return i;
+ 	}
+ 
+ 	/* No previous mapping found, we might need to grow the table */
+@@ -318,7 +331,8 @@ static unsigned int ir_establish_scancode(struct rc_dev *dev,
+ 	if (i < rc_map->len)
+ 		memmove(&rc_map->scan[i + 1], &rc_map->scan[i],
+ 			(rc_map->len - i) * sizeof(struct rc_map_table));
+-	rc_map->scan[i].scancode = scancode;
++	rc_map->scan[i].scancode = entry->scancode;
++	rc_map->scan[i].protocol = entry->protocol;
+ 	rc_map->scan[i].keycode = KEY_RESERVED;
+ 	rc_map->len++;
+ 
+@@ -340,8 +354,10 @@ static inline enum rc_type guess_protocol(struct rc_dev *rdev)
+ 		return rc_bitmap_to_type(rdev->enabled_protocols);
+ 	else if (hweight64(rdev->allowed_protocols) == 1)
+ 		return rc_bitmap_to_type(rdev->allowed_protocols);
++	else if (rc_map->len > 0)
++		return rc_map->scan[0].protocol;
+ 	else
+-		return rc_map->rc_type;
++		return RC_TYPE_OTHER;
+ }
+ 
+ /**
+@@ -384,10 +400,12 @@ static int ir_setkeycode(struct input_dev *idev,
+ 	struct rc_dev *rdev = input_get_drvdata(idev);
+ 	struct rc_map *rc_map = &rdev->rc_map;
+ 	unsigned int index;
+-	unsigned int scancode;
++	struct rc_map_table entry;
+ 	int retval = 0;
+ 	unsigned long flags;
+ 
++	entry.keycode = ke->keycode;
++
+ 	spin_lock_irqsave(&rc_map->lock, flags);
+ 
+ 	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
+@@ -396,19 +414,42 @@ static int ir_setkeycode(struct input_dev *idev,
+ 			retval = -EINVAL;
+ 			goto out;
+ 		}
+-	} else {
++	} else if (ke->len == sizeof(int)) {
++		/* Old EVIOCSKEYCODE[_V2] ioctl */
++		u32 scancode;
+ 		retval = input_scancode_to_scalar(ke, &scancode);
+ 		if (retval)
+ 			goto out;
+ 
+-		if (guess_protocol(rdev) == RC_TYPE_NEC)
+-			scancode = to_nec32(scancode);
++		entry.scancode = scancode;
++		entry.protocol = guess_protocol(rdev);
++		if (entry.protocol == RC_TYPE_NEC)
++			entry.scancode = to_nec32(scancode);
+ 
+-		index = ir_establish_scancode(rdev, rc_map, scancode, true);
++		index = ir_establish_scancode(rdev, rc_map, &entry, true);
+ 		if (index >= rc_map->len) {
+ 			retval = -ENOMEM;
+ 			goto out;
+ 		}
++	} else if (ke->len == sizeof(struct rc_scancode)) {
++		/* New EVIOCSKEYCODE_V2 ioctl */
++		const struct rc_keymap_entry *rke = (struct rc_keymap_entry *)ke;
++		entry.protocol = rke->rc.protocol;
++		entry.scancode = rke->rc.scancode;
++
++		if (rke->rc.reserved[0] || rke->rc.reserved[1] || rke->rc.reserved[2]) {
++			retval = -EINVAL;
++			goto out;
++		}
++
++		index = ir_establish_scancode(rdev, rc_map, &entry, true);
++		if (index >= rc_map->len) {
++			retval = -ENOMEM;
++			goto out;
++		}
++	} else {
++		retval = -EINVAL;
++		goto out;
+ 	}
+ 
+ 	*old_keycode = ir_update_mapping(rdev, rc_map, index, ke->keycode);
+@@ -431,11 +472,11 @@ static int ir_setkeytable(struct rc_dev *dev,
+ 			  const struct rc_map *from)
+ {
+ 	struct rc_map *rc_map = &dev->rc_map;
++	struct rc_map_table entry;
+ 	unsigned int i, index;
+ 	int rc;
+ 
+-	rc = ir_create_table(rc_map, from->name,
+-			     from->rc_type, from->size);
++	rc = ir_create_table(rc_map, from->name, from->size);
+ 	if (rc)
+ 		return rc;
+ 
+@@ -443,18 +484,19 @@ static int ir_setkeytable(struct rc_dev *dev,
+ 		   rc_map->size, rc_map->alloc);
+ 
+ 	for (i = 0; i < from->size; i++) {
+-		index = ir_establish_scancode(dev, rc_map,
+-					      from->rc_type == RC_TYPE_NEC ?
+-					      to_nec32(from->scan[i].scancode) :
+-					      from->scan[i].scancode,
+-					      false);
++		if (from->rc_type == RC_TYPE_NEC)
++			entry.scancode = to_nec32(from->scan[i].scancode);
++		else
++			entry.scancode = from->scan[i].scancode;
++
++		entry.protocol = from->rc_type;
++		index = ir_establish_scancode(dev, rc_map, &entry, false);
+ 		if (index >= rc_map->len) {
+ 			rc = -ENOMEM;
+ 			break;
+ 		}
+ 
+-		ir_update_mapping(dev, rc_map, index,
+-				  from->scan[i].keycode);
++		ir_update_mapping(dev, rc_map, index, from->scan[i].keycode);
+ 	}
+ 
+ 	if (rc)
+@@ -466,6 +508,7 @@ static int ir_setkeytable(struct rc_dev *dev,
+ /**
+  * ir_lookup_by_scancode() - locate mapping by scancode
+  * @rc_map:	the struct rc_map to search
++ * @protocol:	protocol to look for in the table
+  * @scancode:	scancode to look for in the table
+  * @return:	index in the table, -1U if not found
+  *
+@@ -473,17 +516,24 @@ static int ir_setkeytable(struct rc_dev *dev,
+  * given scancode.
+  */
+ static unsigned int ir_lookup_by_scancode(const struct rc_map *rc_map,
+-					  unsigned int scancode)
++					  u16 protocol, u64 scancode)
+ {
+ 	int start = 0;
+ 	int end = rc_map->len - 1;
+ 	int mid;
++	struct rc_map_table *m;
+ 
+ 	while (start <= end) {
+ 		mid = (start + end) / 2;
+-		if (rc_map->scan[mid].scancode < scancode)
++		m = &rc_map->scan[mid];
++
++		if (m->protocol < protocol)
++			start = mid + 1;
++		else if (m->protocol > protocol)
++			end = mid - 1;
++		else if (m->scancode < scancode)
+ 			start = mid + 1;
+-		else if (rc_map->scan[mid].scancode > scancode)
++		else if (m->scancode > scancode)
+ 			end = mid - 1;
+ 		else
+ 			return mid;
+@@ -504,35 +554,60 @@ static unsigned int ir_lookup_by_scancode(const struct rc_map *rc_map,
+ static int ir_getkeycode(struct input_dev *idev,
+ 			 struct input_keymap_entry *ke)
+ {
++	struct rc_keymap_entry *rke = (struct rc_keymap_entry *)ke;
+ 	struct rc_dev *rdev = input_get_drvdata(idev);
+ 	struct rc_map *rc_map = &rdev->rc_map;
+ 	struct rc_map_table *entry;
+ 	unsigned long flags;
+ 	unsigned int index;
+-	unsigned int scancode;
+ 	int retval;
+ 
+ 	spin_lock_irqsave(&rc_map->lock, flags);
+ 
+ 	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
+ 		index = ke->index;
+-	} else {
++	} else if (ke->len == sizeof(int)) {
++		/* Legacy EVIOCGKEYCODE ioctl */
++		u32 scancode;
++		u16 protocol;
++
+ 		retval = input_scancode_to_scalar(ke, &scancode);
+ 		if (retval)
+ 			goto out;
+ 
+-		if (guess_protocol(rdev) == RC_TYPE_NEC)
++		protocol = guess_protocol(rdev);
++		if (protocol == RC_TYPE_NEC)
+ 			scancode = to_nec32(scancode);
+-		index = ir_lookup_by_scancode(rc_map, scancode);
++
++		index = ir_lookup_by_scancode(rc_map, protocol, scancode);
++
++	} else if (ke->len == sizeof(struct rc_scancode)) {
++		/* New EVIOCGKEYCODE_V2 ioctl */
++		if (rke->rc.reserved[0] || rke->rc.reserved[1] || rke->rc.reserved[2]) {
++			retval = -EINVAL;
++			goto out;
++		}
++
++		index = ir_lookup_by_scancode(rc_map,
++					      rke->rc.protocol, rke->rc.scancode);
++
++	} else {
++		retval = -EINVAL;
++		goto out;
+ 	}
+ 
+ 	if (index < rc_map->len) {
+ 		entry = &rc_map->scan[index];
+-
+ 		ke->index = index;
+ 		ke->keycode = entry->keycode;
+-		ke->len = sizeof(entry->scancode);
+-		memcpy(ke->scancode, &entry->scancode, sizeof(entry->scancode));
++		if (ke->len == sizeof(int)) {
++			u32 scancode = entry->scancode;
++			memcpy(ke->scancode, &scancode, sizeof(scancode));
++		} else {
++			ke->len = sizeof(struct rc_scancode);
++			rke->rc.protocol = entry->protocol;
++			rke->rc.scancode = entry->scancode;
++		}
+ 
+ 	} else if (!(ke->flags & INPUT_KEYMAP_BY_INDEX)) {
+ 		/*
+@@ -557,6 +632,7 @@ static int ir_getkeycode(struct input_dev *idev,
+ /**
+  * rc_g_keycode_from_table() - gets the keycode that corresponds to a scancode
+  * @dev:	the struct rc_dev descriptor of the device
++ * @protocol:	the protocol to look for
+  * @scancode:	the scancode to look for
+  * @return:	the corresponding keycode, or KEY_RESERVED
+  *
+@@ -564,7 +640,8 @@ static int ir_getkeycode(struct input_dev *idev,
+  * keycode. Normally it should not be used since drivers should have no
+  * interest in keycodes.
+  */
+-u32 rc_g_keycode_from_table(struct rc_dev *dev, u32 scancode)
++u32 rc_g_keycode_from_table(struct rc_dev *dev,
++			    enum rc_type protocol, u64 scancode)
+ {
+ 	struct rc_map *rc_map = &dev->rc_map;
+ 	unsigned int keycode;
+@@ -573,15 +650,16 @@ u32 rc_g_keycode_from_table(struct rc_dev *dev, u32 scancode)
+ 
+ 	spin_lock_irqsave(&rc_map->lock, flags);
+ 
+-	index = ir_lookup_by_scancode(rc_map, scancode);
++	index = ir_lookup_by_scancode(rc_map, protocol, scancode);
+ 	keycode = index < rc_map->len ?
+ 			rc_map->scan[index].keycode : KEY_RESERVED;
+ 
+ 	spin_unlock_irqrestore(&rc_map->lock, flags);
+ 
+ 	if (keycode != KEY_RESERVED)
+-		IR_dprintk(1, "%s: scancode 0x%04x keycode 0x%02x\n",
+-			   dev->input_name, scancode, keycode);
++		IR_dprintk(1, "%s: protocol 0x%04x scancode 0x%08llx keycode 0x%02x\n",
++			   dev->input_name, protocol,
++			   (unsigned long long)scancode, keycode);
+ 
+ 	return keycode;
+ }
+@@ -733,10 +811,11 @@ static void ir_do_keydown(struct rc_dev *dev, enum rc_type protocol,
+  * This routine is used to signal that a key has been pressed on the
+  * remote control.
+  */
+-void rc_keydown(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 toggle)
++void rc_keydown(struct rc_dev *dev, enum rc_type protocol,
++		u64 scancode, u8 toggle)
+ {
+ 	unsigned long flags;
+-	u32 keycode = rc_g_keycode_from_table(dev, scancode);
++	u32 keycode = rc_g_keycode_from_table(dev, protocol, scancode);
+ 
+ 	spin_lock_irqsave(&dev->keylock, flags);
+ 	ir_do_keydown(dev, protocol, scancode, keycode, toggle);
+@@ -762,10 +841,10 @@ EXPORT_SYMBOL_GPL(rc_keydown);
+  * remote control. The driver must manually call rc_keyup() at a later stage.
+  */
+ void rc_keydown_notimeout(struct rc_dev *dev, enum rc_type protocol,
+-			  u32 scancode, u8 toggle)
++			  u64 scancode, u8 toggle)
+ {
+ 	unsigned long flags;
+-	u32 keycode = rc_g_keycode_from_table(dev, scancode);
++	u32 keycode = rc_g_keycode_from_table(dev, protocol, scancode);
+ 
+ 	spin_lock_irqsave(&dev->keylock, flags);
+ 	ir_do_keydown(dev, protocol, scancode, keycode, toggle);
+@@ -1675,7 +1754,10 @@ static int rc_prepare_rx_device(struct rc_dev *dev)
+ 	if (rc)
+ 		return rc;
+ 
+-	rc_type = BIT_ULL(rc_map->rc_type);
++	if (rc_map->len > 0)
++		rc_type = BIT_ULL(rc_map->scan[0].protocol);
++	else
++		rc_type = RC_TYPE_UNKNOWN;
+ 
+ 	if (dev->change_protocol) {
+ 		rc = dev->change_protocol(dev, &rc_type);
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 78dea39a9b39..ad0ed23a9194 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -44,6 +44,24 @@ enum rc_driver_type {
+ 	RC_DRIVER_IR_RAW_TX,
+ };
+ 
++/* This is used for the input EVIOC[SG]KEYCODE_V2 ioctls */
++struct rc_scancode {
++	__u16 protocol;
++	__u16 reserved[3];
++	__u64 scancode;
++};
++
++struct rc_keymap_entry {
++	__u8  flags;
++	__u8  len;
++	__u16 index;
++	__u32 keycode;
++	union {
++		struct rc_scancode rc;
++		__u8 raw[32];
++	};
++};
++
+ /**
+  * struct rc_scancode_filter - Filter scan codes.
+  * @data:	Scancode data to match.
+@@ -166,7 +184,7 @@ struct rc_dev {
+ 	struct timer_list		timer_keyup;
+ 	u32				last_keycode;
+ 	enum rc_type			last_protocol;
+-	u32				last_scancode;
++	u64				last_scancode;
+ 	u8				last_toggle;
+ 	u32				timeout;
+ 	u32				min_timeout;
+@@ -262,10 +280,10 @@ int rc_open(struct rc_dev *rdev);
+ void rc_close(struct rc_dev *rdev);
+ 
+ void rc_repeat(struct rc_dev *dev);
+-void rc_keydown(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 toggle);
+-void rc_keydown_notimeout(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 toggle);
++void rc_keydown(struct rc_dev *dev, enum rc_type protocol, u64 scancode, u8 toggle);
++void rc_keydown_notimeout(struct rc_dev *dev, enum rc_type protocol, u64 scancode, u8 toggle);
+ void rc_keyup(struct rc_dev *dev);
+-u32 rc_g_keycode_from_table(struct rc_dev *dev, u32 scancode);
++u32 rc_g_keycode_from_table(struct rc_dev *dev, enum rc_type protocol, u64 scancode);
+ 
+ /*
+  * From rc-raw.c
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index e5d0559dc523..02f53ed25493 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -139,8 +139,9 @@ enum rc_type {
+  * @keycode: Linux input keycode
+  */
+ struct rc_map_table {
+-	u32	scancode;
+-	u32	keycode;
++	u64		scancode;
++	u32		keycode;
++	enum rc_type	protocol;
+ };
+ 
+ /**
