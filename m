@@ -1,201 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam03on0116.outbound.protection.outlook.com ([104.47.42.116]:40939
-        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751445AbdDNC1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 22:27:32 -0400
-From: <Yasunari.Takiguchi@sony.com>
-To: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-media@vger.kernel.org>
-CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
-        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
-        Hideki Nozawa <Hideki.Nozawa@sony.com>,
-        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
-        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
-        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
-Subject: [PATCH v2 07/15] [media] cxd2880: Add integration layer for the driver
-Date: Fri, 14 Apr 2017 11:29:59 +0900
-Message-ID: <20170414022959.17596-1-Yasunari.Takiguchi@sony.com>
-In-Reply-To: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
-References: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:57391 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935255AbdD0Wmw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 18:42:52 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Michal Simek <michal.simek@xilinx.com>
+Subject: [PATCH v4 03/27] media: entity: Add media_entity_has_route() function
+Date: Fri, 28 Apr 2017 00:41:39 +0200
+Message-Id: <20170427224203.14611-4-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-These functions monitor the driver and watch for task completion.
-This is part of the Sony CXD2880 DVB-T2/T tuner + demodulator driver.
+This is a wrapper around the media entity has_route operation.
 
-Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
-Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
-Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
-Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
-Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- .../media/dvb-frontends/cxd2880/cxd2880_integ.c    | 99 ++++++++++++++++++++++
- .../media/dvb-frontends/cxd2880/cxd2880_integ.h    | 44 ++++++++++
- 2 files changed, 143 insertions(+)
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+ drivers/media/media-entity.c | 16 ++++++++++++++++
+ include/media/media-entity.h | 16 ++++++++++++++++
+ 2 files changed, 32 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
-new file mode 100644
-index 000000000000..5ad6685e2a1d
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
-@@ -0,0 +1,99 @@
-+/*
-+ * cxd2880_integ.c
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * integration layer common functions
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 5640ca29da8c9bbc..ccd991d2d3450ab3 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -244,6 +244,22 @@ EXPORT_SYMBOL_GPL(media_entity_pads_init);
+  * Graph traversal
+  */
+ 
++bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
++			    unsigned int pad1)
++{
++	if (pad0 >= entity->num_pads || pad1 >= entity->num_pads)
++		return false;
++
++	if (pad0 == pad1)
++		return true;
++
++	if (!entity->ops || !entity->ops->has_route)
++		return true;
++
++	return entity->ops->has_route(entity, pad0, pad1);
++}
++EXPORT_SYMBOL_GPL(media_entity_has_route);
++
+ static struct media_entity *
+ media_entity_other(struct media_entity *entity, struct media_link *link)
+ {
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index bcb08c1f8c6265e8..b896827b4ebdfaa6 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -830,6 +830,22 @@ __must_check int media_graph_walk_init(
+ 	struct media_graph *graph, struct media_device *mdev);
+ 
+ /**
++ * media_entity_has_route - Check if two entity pads are connected internally
 + *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
++ * @entity: The entity
++ * @pad0: The first pad index
++ * @pad1: The second pad index
 + *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
++ * This function can be used to check whether two pads of an entity are
++ * connected internally in the entity.
 + *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ * The caller must hold entity->graph_obj.mdev->mutex.
 + *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
++ * Return: true if the pads are connected internally and false otherwise.
 + */
-+
-+#include "cxd2880_tnrdmd.h"
-+#include "cxd2880_tnrdmd_mon.h"
-+#include "cxd2880_integ.h"
-+
-+enum cxd2880_ret cxd2880_integ_init(struct cxd2880_tnrdmd *tnr_dmd)
-+{
-+	enum cxd2880_ret ret = CXD2880_RESULT_OK;
-+	struct cxd2880_stopwatch timer;
-+	u32 elapsed_time = 0;
-+	u8 cpu_task_completed = 0;
-+
-+	if (!tnr_dmd)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	ret = cxd2880_tnrdmd_init1(tnr_dmd);
-+	if (ret != CXD2880_RESULT_OK)
-+		return ret;
-+
-+	ret = cxd2880_stopwatch_start(&timer);
-+	if (ret != CXD2880_RESULT_OK)
-+		return ret;
-+
-+	while (1) {
-+		ret = cxd2880_stopwatch_elapsed(&timer, &elapsed_time);
-+		if (ret != CXD2880_RESULT_OK)
-+			return ret;
-+
-+		ret =
-+		    cxd2880_tnrdmd_check_internal_cpu_status(tnr_dmd,
-+						     &cpu_task_completed);
-+		if (ret != CXD2880_RESULT_OK)
-+			return ret;
-+
-+		if (cpu_task_completed)
-+			break;
-+
-+		if (elapsed_time > CXD2880_TNRDMD_WAIT_INIT_TIMEOUT)
-+			return CXD2880_RESULT_ERROR_TIMEOUT;
-+		ret =
-+		    cxd2880_stopwatch_sleep(&timer,
-+					    CXD2880_TNRDMD_WAIT_INIT_INTVL);
-+		if (ret != CXD2880_RESULT_OK)
-+			return ret;
-+	}
-+
-+	ret = cxd2880_tnrdmd_init2(tnr_dmd);
-+	if (ret != CXD2880_RESULT_OK)
-+		return ret;
-+
-+	return CXD2880_RESULT_OK;
-+}
-+
-+enum cxd2880_ret cxd2880_integ_cancel(struct cxd2880_tnrdmd *tnr_dmd)
-+{
-+	if (!tnr_dmd)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	cxd2880_atomic_set(&tnr_dmd->cancel, 1);
-+
-+	return CXD2880_RESULT_OK;
-+}
-+
-+enum cxd2880_ret cxd2880_integ_check_cancellation(struct cxd2880_tnrdmd
-+						  *tnr_dmd)
-+{
-+	if (!tnr_dmd)
-+		return CXD2880_RESULT_ERROR_ARG;
-+
-+	if (cxd2880_atomic_read(&tnr_dmd->cancel) != 0)
-+		return CXD2880_RESULT_ERROR_CANCEL;
-+
-+	return CXD2880_RESULT_OK;
-+}
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
-new file mode 100644
-index 000000000000..9cfc52dbf9d4
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
-@@ -0,0 +1,44 @@
-+/*
-+ * cxd2880_integ.h
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * integration layer common interface
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef CXD2880_INTEG_H
-+#define CXD2880_INTEG_H
-+
-+#include "cxd2880_tnrdmd.h"
-+
-+#define CXD2880_TNRDMD_WAIT_INIT_TIMEOUT	500
-+#define CXD2880_TNRDMD_WAIT_INIT_INTVL	10
-+
-+#define CXD2880_TNRDMD_WAIT_AGC_STABLE		100
-+
-+enum cxd2880_ret cxd2880_integ_init(struct cxd2880_tnrdmd *tnr_dmd);
-+
-+enum cxd2880_ret cxd2880_integ_cancel(struct cxd2880_tnrdmd *tnr_dmd);
-+
-+enum cxd2880_ret cxd2880_integ_check_cancellation(struct cxd2880_tnrdmd
-+						  *tnr_dmd);
-+
-+#endif
++bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
++			    unsigned int pad1);
++/**
+  * media_graph_walk_cleanup - Release resources used by graph walk.
+  *
+  * @graph: Media graph structure that will be used to walk the graph
 -- 
-2.11.0
+2.12.2
