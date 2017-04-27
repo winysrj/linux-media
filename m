@@ -1,37 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f49.google.com ([209.85.215.49]:34131 "EHLO
-        mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752419AbdDJISj (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:57379 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756448AbdD0Wmv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 04:18:39 -0400
-Date: Mon, 10 Apr 2017 10:18:31 +0200
-From: Johan Hovold <johan@kernel.org>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linuxtv-commits@linuxtv.org, Hans de Goede <hdegoede@redhat.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        stable <stable@vger.kernel.org>, Johan Hovold <johan@kernel.org>
-Subject: Re: [git:media_tree/master] [media] gspca: konica: add missing
- endpoint sanity check
-Message-ID: <20170410081831.GJ3119@localhost>
-References: <E1cvpaN-00031L-AL@www.linuxtv.org>
+        Thu, 27 Apr 2017 18:42:51 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v4 07/27] rcar-vin: change name of video device
+Date: Fri, 28 Apr 2017 00:41:43 +0200
+Message-Id: <20170427224203.14611-8-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <E1cvpaN-00031L-AL@www.linuxtv.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 05, 2017 at 06:07:31PM +0000, Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the
-> following patch were queued:
-> 
-> Subject: [media] gspca: konica: add missing endpoint sanity check
-> Author:  Johan Hovold <johan@kernel.org>
-> Date:    Mon Mar 13 09:53:59 2017 -0300
+The rcar-vin driver needs to be part of a media controller to support
+Gen3. Give each VIN instance a unique name so it can be referenced from
+userspace.
 
-This was the sixth and final patch in a series; are you picking up the
-first five as well?
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Thanks,
-Johan
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 1b364f359ff4b5ed..709ee828f2ac2173 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -915,7 +915,8 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	vdev->fops = &rvin_fops;
+ 	vdev->v4l2_dev = &vin->v4l2_dev;
+ 	vdev->queue = &vin->queue;
+-	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
++	snprintf(vdev->name, sizeof(vdev->name), "%s %s", KBUILD_MODNAME,
++		 dev_name(vin->dev));
+ 	vdev->release = video_device_release;
+ 	vdev->ioctl_ops = &rvin_ioctl_ops;
+ 	vdev->lock = &vin->lock;
+-- 
+2.12.2
