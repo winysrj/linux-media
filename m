@@ -1,120 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:34023 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751518AbdDNUcV (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:57482 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1032441AbdD0Wmz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Apr 2017 16:32:21 -0400
-Date: Fri, 14 Apr 2017 22:32:16 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v6 17/39] platform: add video-multiplexer subdevice driver
-Message-ID: <20170414203216.GA10920@amd>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
- <1490661656-10318-18-git-send-email-steve_longerbeam@mentor.com>
- <20170404124732.GD3288@valkosipuli.retiisi.org.uk>
- <1492091578.2383.39.camel@pengutronix.de>
+        Thu, 27 Apr 2017 18:42:55 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v4 05/27] rcar-vin: move chip information to own struct
+Date: Fri, 28 Apr 2017 00:41:41 +0200
+Message-Id: <20170427224203.14611-6-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
-Content-Disposition: inline
-In-Reply-To: <1492091578.2383.39.camel@pengutronix.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+When Gen3 support is added to the driver more then chip id will be
+different for the different Soc. To avoid a lot of if statements in the
+code create a struct chip_info to contain this information.
 
---cWoXeonUoKmBZSoM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 49 ++++++++++++++++++++++++-----
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  3 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h  | 12 +++++--
+ 3 files changed, 53 insertions(+), 11 deletions(-)
 
-Hi!
-
-> > The MUX framework is already in linux-next. Could you use that instead =
-of
-> > adding new driver + bindings that are not compliant with the MUX framew=
-ork?
-> > I don't think it'd be much of a change in terms of code, using the MUX
-> > framework appears quite simple.
->=20
-> It is not quite clear to me how to design the DT bindings for this. Just
-> splitting the video-multiplexer driver from the mux-mmio / mux-gpio
-> would make it necessary to keep the video-multiplexer node to describe
-> the of-graph bindings. But then we have two different nodes in the DT
-> that describe the same hardware:
->=20
-> 	mux: mux {
-> 		compatible =3D "mux-gpio";
-> 		mux-gpios =3D <&gpio 0>, <&gpio 1>;
-> 		#mux-control-cells =3D <0>;
-> 	}
->=20
-> 	video-multiplexer {
-> 		compatible =3D "video-multiplexer"
-> 		mux-controls =3D <&mux>;
->=20
-> 		ports {
-> 			/* ... */
-> 		}
-> 	}
->=20
-> It would feel more natural to have the ports in the mux node, but then
-> how would the video-multiplexer driver be instanciated, and how would it
-> get to the of-graph nodes?
-
-Device tree representation and code used to implement the muxing
-driver should be pretty independend, no? Yes, one piece of hardware
-should have one entry in the device tree, so it should be something
-like:
-
-
- 	video-multiplexer {
- 		compatible =3D "video-multiplexer-gpio"=09
- 		mux-gpios =3D <&gpio 0>, <&gpio 1>;
- 		#mux-control-cells =3D <0>;
-
- 		mux-controls =3D <&mux>;
-=20
- 		ports {
- 			/* ... */
- 		}
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index c4d4f112da0c9d45..ec1eb723d401fda2 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -255,14 +255,47 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+  * Platform Device Driver
+  */
+ 
++static const struct rvin_info rcar_info_h1 = {
++	.chip = RCAR_H1,
++};
++
++static const struct rvin_info rcar_info_m1 = {
++	.chip = RCAR_M1,
++};
++
++static const struct rvin_info rcar_info_gen2 = {
++	.chip = RCAR_GEN2,
++};
++
+ static const struct of_device_id rvin_of_id_table[] = {
+-	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
+-	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
+-	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
++	{
++		.compatible = "renesas,vin-r8a7794",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7793",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7791",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7790",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7779",
++		.data = &rcar_info_h1,
++	},
++	{
++		.compatible = "renesas,vin-r8a7778",
++		.data = &rcar_info_m1,
++	},
++	{
++		.compatible = "renesas,rcar-gen2-vin",
++		.data = &rcar_info_gen2,
++	},
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+@@ -283,7 +316,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 
+ 	vin->dev = &pdev->dev;
+-	vin->chip = (enum chip_id)match->data;
++	vin->info = match->data;
+ 
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (mem == NULL)
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 27b7733e96afe3e9..7deca15d22b4d6e3 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -272,7 +272,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	pix->sizeimage = max_t(u32, pix->sizeimage,
+ 			       rvin_format_sizeimage(pix));
+ 
+-	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
++	if (vin->info->chip == RCAR_M1 &&
++	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+ 		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
+ 		return -EINVAL;
  	}
-
-You should be able to use code in drivers/mux as a library...
-
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---cWoXeonUoKmBZSoM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAljxMdAACgkQMOfwapXb+vLEHQCfWVAmS+aFu+FrMuB4vnHxF+Hg
-RJ8AoJBhFp27Yf8CDq79Nr5TQe7qd1C2
-=zNjt
------END PGP SIGNATURE-----
-
---cWoXeonUoKmBZSoM--
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 9454ef80bc2b3961..c07b4a6893440a6a 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -89,10 +89,18 @@ struct rvin_graph_entity {
+ };
+ 
+ /**
++ * struct rvin_info- Information about the particular VIN implementation
++ * @chip:		type of VIN chip
++ */
++struct rvin_info {
++	enum chip_id chip;
++};
++
++/**
+  * struct rvin_dev - Renesas VIN device structure
+  * @dev:		(OF) device
+  * @base:		device I/O register space remapped to virtual memory
+- * @chip:		type of VIN chip
++ * @info:		info about VIN instance
+  *
+  * @vdev:		V4L2 video device associated with VIN
+  * @v4l2_dev:		V4L2 device
+@@ -120,7 +128,7 @@ struct rvin_graph_entity {
+ struct rvin_dev {
+ 	struct device *dev;
+ 	void __iomem *base;
+-	enum chip_id chip;
++	const struct rvin_info *info;
+ 
+ 	struct video_device *vdev;
+ 	struct v4l2_device v4l2_dev;
+-- 
+2.12.2
