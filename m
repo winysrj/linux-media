@@ -1,104 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35204 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753771AbdDLTfO (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:57457 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1031511AbdD0Wmz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Apr 2017 15:35:14 -0400
-Received: by mail-wm0-f66.google.com with SMTP id d79so8569544wmi.2
-        for <linux-media@vger.kernel.org>; Wed, 12 Apr 2017 12:35:13 -0700 (PDT)
-Subject: [PATCH v2 3/5] media: rc: meson-ir: switch to managed rc device
- allocation / registration
-From: Heiner Kallweit <hkallweit1@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sean Young <sean@mess.org>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Neil Armstrong <narmstrong@baylibre.com>
-Cc: linux-media@vger.kernel.org, linux-amlogic@lists.infradead.org
-References: <d5c18dbb-e86a-6b1c-1410-d6cc92dce711@gmail.com>
-Message-ID: <6e38bc01-e865-0a26-649e-950021e0eef7@gmail.com>
-Date: Wed, 12 Apr 2017 21:32:35 +0200
+        Thu, 27 Apr 2017 18:42:55 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v4 12/27] rcar-vin: read subdevice format for crop only when needed
+Date: Fri, 28 Apr 2017 00:41:48 +0200
+Message-Id: <20170427224203.14611-13-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <d5c18dbb-e86a-6b1c-1410-d6cc92dce711@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch to the managed versions of rc_allocate_device/rc_register_device,
-thus simplifying the code.
+Instead of caching the subdevice format each time the video device
+format is set read it directly when its needed. As it turns out the
+format is only needed when figuring out the max rectangle for cropping.
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
-Reviewed-by: Neil Armstrong <narmstrong@baylibre.com>
----
-v2:
-- added R-b
----
- drivers/media/rc/meson-ir.c | 18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+This simplify the code and makes it clearer what the source format is
+used for.
 
-diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
-index 3864ebe3..cf8943d2 100644
---- a/drivers/media/rc/meson-ir.c
-+++ b/drivers/media/rc/meson-ir.c
-@@ -128,7 +128,7 @@ static int meson_ir_probe(struct platform_device *pdev)
- 		return irq;
- 	}
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 76 ++++++++++++++++-------------
+ drivers/media/platform/rcar-vin/rcar-vin.h  | 12 -----
+ 2 files changed, 42 insertions(+), 46 deletions(-)
+
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 919040e40aec60f6..80421421625e6f6f 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -90,6 +90,24 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
+  * V4L2
+  */
  
--	ir->rc = rc_allocate_device(RC_DRIVER_IR_RAW);
-+	ir->rc = devm_rc_allocate_device(dev, RC_DRIVER_IR_RAW);
- 	if (!ir->rc) {
- 		dev_err(dev, "failed to allocate rc device\n");
- 		return -ENOMEM;
-@@ -140,7 +140,6 @@ static int meson_ir_probe(struct platform_device *pdev)
- 	ir->rc->input_id.bustype = BUS_HOST;
- 	map_name = of_get_property(node, "linux,rc-map-name", NULL);
- 	ir->rc->map_name = map_name ? map_name : RC_MAP_EMPTY;
--	ir->rc->dev.parent = dev;
- 	ir->rc->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	ir->rc->rx_resolution = US_TO_NS(MESON_TRATE);
- 	ir->rc->timeout = MS_TO_NS(200);
-@@ -149,16 +148,16 @@ static int meson_ir_probe(struct platform_device *pdev)
- 	spin_lock_init(&ir->lock);
- 	platform_set_drvdata(pdev, ir);
- 
--	ret = rc_register_device(ir->rc);
-+	ret = devm_rc_register_device(dev, ir->rc);
- 	if (ret) {
- 		dev_err(dev, "failed to register rc device\n");
--		goto out_free;
++static int rvin_get_sd_format(struct rvin_dev *vin, struct v4l2_pix_format *pix)
++{
++	struct v4l2_subdev_format fmt = {
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
++	int ret;
++
++	fmt.pad = vin->digital.source_pad;
++
++	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
++	if (ret)
 +		return ret;
- 	}
- 
- 	ret = devm_request_irq(dev, irq, meson_ir_irq, 0, "ir-meson", ir);
- 	if (ret) {
- 		dev_err(dev, "failed to request irq\n");
--		goto out_unreg;
-+		return ret;
- 	}
- 
- 	/* Reset the decoder */
-@@ -184,13 +183,6 @@ static int meson_ir_probe(struct platform_device *pdev)
- 	dev_info(dev, "receiver initialized\n");
- 
- 	return 0;
--out_unreg:
--	rc_unregister_device(ir->rc);
--	ir->rc = NULL;
--out_free:
--	rc_free_device(ir->rc);
--
--	return ret;
++
++	v4l2_fill_pix_format(pix, &fmt.format);
++
++	return 0;
++}
++
+ static int rvin_reset_format(struct rvin_dev *vin)
+ {
+ 	struct v4l2_subdev_format fmt = {
+@@ -151,9 +169,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
  }
  
- static int meson_ir_remove(struct platform_device *pdev)
-@@ -203,8 +195,6 @@ static int meson_ir_remove(struct platform_device *pdev)
- 	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, 0);
- 	spin_unlock_irqrestore(&ir->lock, flags);
+ static int __rvin_try_format_source(struct rvin_dev *vin,
+-				    u32 which,
+-				    struct v4l2_pix_format *pix,
+-				    struct rvin_source_fmt *source)
++				    u32 which, struct v4l2_pix_format *pix)
+ {
+ 	struct v4l2_subdev *sd;
+ 	struct v4l2_subdev_pad_config *pad_cfg;
+@@ -186,25 +202,15 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 	v4l2_fill_pix_format(pix, &format.format);
  
--	rc_unregister_device(ir->rc);
+ 	pix->field = field;
 -
- 	return 0;
+-	source->width = pix->width;
+-	source->height = pix->height;
+-
+ 	pix->width = width;
+ 	pix->height = height;
+-
+-	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
+-		source->height);
+-
+ done:
+ 	v4l2_subdev_free_pad_config(pad_cfg);
+ 	return ret;
  }
  
+ static int __rvin_try_format(struct rvin_dev *vin,
+-			     u32 which,
+-			     struct v4l2_pix_format *pix,
+-			     struct rvin_source_fmt *source)
++			     u32 which, struct v4l2_pix_format *pix)
+ {
+ 	const struct rvin_video_format *info;
+ 	u32 walign;
+@@ -231,7 +237,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	pix->sizeimage = 0;
+ 
+ 	/* Limit to source capabilities */
+-	ret = __rvin_try_format_source(vin, which, pix, source);
++	ret = __rvin_try_format_source(vin, which, pix);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -240,7 +246,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	case V4L2_FIELD_BOTTOM:
+ 	case V4L2_FIELD_ALTERNATE:
+ 		pix->height /= 2;
+-		source->height /= 2;
+ 		break;
+ 	case V4L2_FIELD_NONE:
+ 	case V4L2_FIELD_INTERLACED_TB:
+@@ -292,30 +297,23 @@ static int rvin_try_fmt_vid_cap(struct file *file, void *priv,
+ 				struct v4l2_format *f)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct rvin_source_fmt source;
+ 
+-	return __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_TRY, &f->fmt.pix,
+-				 &source);
++	return __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_TRY, &f->fmt.pix);
+ }
+ 
+ static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
+ 			      struct v4l2_format *f)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct rvin_source_fmt source;
+ 	int ret;
+ 
+ 	if (vb2_is_busy(&vin->queue))
+ 		return -EBUSY;
+ 
+-	ret = __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_ACTIVE, &f->fmt.pix,
+-				&source);
++	ret = __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_ACTIVE, &f->fmt.pix);
+ 	if (ret)
+ 		return ret;
+ 
+-	vin->source.width = source.width;
+-	vin->source.height = source.height;
+-
+ 	vin->format = f->fmt.pix;
+ 
+ 	return 0;
+@@ -346,6 +344,8 @@ static int rvin_g_selection(struct file *file, void *fh,
+ 			    struct v4l2_selection *s)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
++	struct v4l2_pix_format pix;
++	int ret;
+ 
+ 	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+@@ -353,9 +353,12 @@ static int rvin_g_selection(struct file *file, void *fh,
+ 	switch (s->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 	case V4L2_SEL_TGT_CROP_DEFAULT:
++		ret = rvin_get_sd_format(vin, &pix);
++		if (ret)
++			return ret;
+ 		s->r.left = s->r.top = 0;
+-		s->r.width = vin->source.width;
+-		s->r.height = vin->source.height;
++		s->r.width = pix.width;
++		s->r.height = pix.height;
+ 		break;
+ 	case V4L2_SEL_TGT_CROP:
+ 		s->r = vin->crop;
+@@ -381,12 +384,14 @@ static int rvin_s_selection(struct file *file, void *fh,
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+ 	const struct rvin_video_format *fmt;
++	struct v4l2_pix_format pix;
+ 	struct v4l2_rect r = s->r;
+ 	struct v4l2_rect max_rect;
+ 	struct v4l2_rect min_rect = {
+ 		.width = 6,
+ 		.height = 2,
+ 	};
++	int ret;
+ 
+ 	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+@@ -396,22 +401,25 @@ static int rvin_s_selection(struct file *file, void *fh,
+ 	switch (s->target) {
+ 	case V4L2_SEL_TGT_CROP:
+ 		/* Can't crop outside of source input */
++		ret = rvin_get_sd_format(vin, &pix);
++		if (ret)
++			return ret;
+ 		max_rect.top = max_rect.left = 0;
+-		max_rect.width = vin->source.width;
+-		max_rect.height = vin->source.height;
++		max_rect.width = pix.width;
++		max_rect.height = pix.height;
+ 		v4l2_rect_map_inside(&r, &max_rect);
+ 
+-		v4l_bound_align_image(&r.width, 2, vin->source.width, 1,
+-				      &r.height, 4, vin->source.height, 2, 0);
++		v4l_bound_align_image(&r.width, 2, pix.width, 1,
++				      &r.height, 4, pix.height, 2, 0);
+ 
+-		r.top  = clamp_t(s32, r.top, 0, vin->source.height - r.height);
+-		r.left = clamp_t(s32, r.left, 0, vin->source.width - r.width);
++		r.top  = clamp_t(s32, r.top, 0, pix.height - r.height);
++		r.left = clamp_t(s32, r.left, 0, pix.width - r.width);
+ 
+ 		vin->crop = s->r = r;
+ 
+ 		vin_dbg(vin, "Cropped %dx%d@%d:%d of %dx%d\n",
+ 			r.width, r.height, r.left, r.top,
+-			vin->source.width, vin->source.height);
++			pix.width, pix.height);
+ 		break;
+ 	case V4L2_SEL_TGT_COMPOSE:
+ 		/* Make sure compose rect fits inside output format */
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index f1251c013d1d2d80..4805127b7af879a3 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -49,16 +49,6 @@ enum rvin_dma_state {
+ };
+ 
+ /**
+- * struct rvin_source_fmt - Source information
+- * @width:	Width from source
+- * @height:	Height from source
+- */
+-struct rvin_source_fmt {
+-	u32 width;
+-	u32 height;
+-};
+-
+-/**
+  * struct rvin_video_format - Data format stored in memory
+  * @fourcc:	Pixelformat
+  * @bpp:	Bytes per pixel
+@@ -125,7 +115,6 @@ struct rvin_info {
+  * @sequence:		V4L2 buffers sequence number
+  * @state:		keeps track of operation state
+  *
+- * @source:		active format from the video source
+  * @format:		active V4L2 pixel format
+  *
+  * @crop:		active cropping
+@@ -152,7 +141,6 @@ struct rvin_dev {
+ 	unsigned int sequence;
+ 	enum rvin_dma_state state;
+ 
+-	struct rvin_source_fmt source;
+ 	struct v4l2_pix_format format;
+ 
+ 	struct v4l2_rect crop;
 -- 
 2.12.2
