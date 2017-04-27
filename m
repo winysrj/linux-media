@@ -1,200 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:52736 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753269AbdDMH7A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 03:59:00 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com
-Subject: [RFC v3 00/14] vb2: Handle user cache hints, allow drivers to choose cache coherency
-Date: Thu, 13 Apr 2017 10:57:05 +0300
-Message-Id: <1492070239-21532-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-wr0-f176.google.com ([209.85.128.176]:36530 "EHLO
+        mail-wr0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1162752AbdD0OmP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 10:42:15 -0400
+Received: by mail-wr0-f176.google.com with SMTP id l50so18453633wrc.3
+        for <linux-media@vger.kernel.org>; Thu, 27 Apr 2017 07:42:14 -0700 (PDT)
+Subject: Re: [PATCH] [media] mtk-mdp: Fix g_/s_selection capture/compose logic
+To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>
+References: <1492057130-1194-1-git-send-email-minghsiu.tsai@mediatek.com>
+Cc: srv_heupstream@mediatek.com,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <a8c1da24-d812-7c4d-a05d-34cb90edddf5@linaro.org>
+Date: Thu, 27 Apr 2017 17:42:10 +0300
+MIME-Version: 1.0
+In-Reply-To: <1492057130-1194-1-git-send-email-minghsiu.tsai@mediatek.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi,
 
-This is a rebased and partially reworked version of the vb2 cache hints
-support patch series posted by Laurent more three months ago. The patches
-have been modified as needed by the upstream changes. There are a number
-of other changes as well. Since then, patch ccc66e73 ("ARM: 8508/2:
-videobuf2-dc: Let drivers specify DMA attrs") that supposedly added DMA
-attribute support for videobuf2-dma-contig has been merged. For dma-contig
-memory type, this patchset addresses issues in that patch instead of
-providing support for the feature from scratch. It also adds support for
-USERPTR buffer type and makes necessary changes to dma-sg memory type as
-well. Details below.
+On 04/13/2017 07:18 AM, Minghsiu Tsai wrote:
+> From: Daniel Kurtz <djkurtz@chromium.org>
+> 
+> Experiments show that the:
+>  (1) mtk-mdp uses the _MPLANE form of CAPTURE/OUTPUT
+>  (2) CAPTURE types use CROP targets, and OUTPUT types use COMPOSE targets
+> 
+> Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+> 
+> ---
+>  drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c | 18 +++++++++---------
+>  1 file changed, 9 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> index 13afe48..8ab7ca0 100644
+> --- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> @@ -837,12 +837,12 @@ static int mtk_mdp_m2m_g_selection(struct file *file, void *fh,
+>  	struct mtk_mdp_ctx *ctx = fh_to_ctx(fh);
+>  	bool valid = false;
+>  
+> -	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+> -		if (mtk_mdp_is_target_compose(s->target))
+> -			valid = true;
+> -	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> +	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+>  		if (mtk_mdp_is_target_crop(s->target))
+>  			valid = true;
+> +	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> +		if (mtk_mdp_is_target_compose(s->target))
+> +			valid = true;
+>  	}
 
-I'm still posting this patchset as RFC as the dma-sg patch hasn't been
-tested apart from compiling it. Otherwise the subject line would have
-PATCH instead of RFC. Testing especially on a device using dma-sg would be
-beneficial.
+Using MPLANE formats in g/s_selection violates the v4l2 spec. See [1].
 
-
-The videobuf2 memory managers use the DMA mapping API to handle cache
-synchronization on systems that require them transparently for drivers. As
-cache operations are expensive, system performances can be impacted. Cache
-synchronization can't be skipped altogether if we want to retain correct
-behaviour, but optimizations are possible in cases related to buffer sharing
-between multiple devices without CPU access to the memory.
-
-The first optimization covers cases where the memory never needs to be
-accessed by the CPU (neither in kernelspace nor in userspace). In those cases,
-as no CPU memory mappings exist, cache synchronization can be skipped. The
-situation could be detected in the kernel as we have enough information to
-determine whether CPU mappings for kernelspace or userspace exist (in the
-first case because drivers should request them explicitly, in the second case
-because the mmap() handler hasn't been invoked). This optimization is not
-implemented currently but should at least be prototyped as it could improve
-performances automatically in a large number of cases.
-
-The second class of optimizations cover cases where the memory sometimes needs
-to be accessed by the CPU. In those cases memory mapping must be created and
-cache handled, but cache synchronization could be skipped for buffer that are
-not touched by the CPU.
-
-By default the following cache synchronization operations need to be performed
-related to the buffer management ioctls. For simplicity means of QBUF below
-apply to buf VIDIOC_QBUF and VIDIOC_PREPARE_BUF.
-
-		| QBUF		| DQBUF
-	----------------------------------------
-	CAPTURE	| Invalidate	| Invalidate (*)
-	OUTPUT	| Clean		| -
-
-(*) for systems using speculative pre-fetching only
-
-The following cases can be optimized.
-
-1. CAPTURE, the CPU has not written to the buffer before QBUF
-
-   Cache invalidation can be skipped at QBUF time, but becomes required at
-   DQBUF time on all systems, regardless of whether they use speculative
-   prefetching.
-
-2. CAPTURE, the CPU will not read from the buffer after DQBUF
-
-   Cache invalidation can be skipped at DQBUF time.
-
-3. CAPTURE, combination of (1) and (2)
-
-   Cache invalidation can be skipped at both QBUF and DQBUF time.
-
-4. OUTPUT, the CPU has not written to the buffer before QBUF
-
-   Cache clean can be skipped at QBUF time.
-
-
-The kernel can't detect thoses situations automatically and thus requires
-hints from userspace to decide whether cache synchronization can be skipped.
-It should be noted that those hints might not be honoured. In particular, if
-userspace hints that it hasn't touched the buffer with the CPU, drivers might
-need to perform memory accesses themselves (adding JPEG or MPEG headers to
-buffers is a common case where CPU access could be needed in the kernel), in
-which case the userspace hints will be ignored.
-
-Getting the hints wrong will result in data corruption. Userspace applications
-are allowed to shoot themselves in the foot, but driver are responsible for
-deciding whether data corruption can pose a risk to the system in general. For
-instance if the device could be made to crash, or behave in a way that would
-jeopardize system security, reliability or performances, when fed with invalid
-data, cache synchronization shall not be skipped solely due to possibly
-incorrect userspace hints.
-
-The V4L2 API defines two flags, V4L2_BUF_FLAG_NO_CACHE_INVALIDATE and
-V4L2_BUF_FLAG_NO_CACHE_SYNC, that can be used to provide cache-related hints
-to the kernel. However, no kernel has ever implemented support for those flags
-that are thus most likely unused.
-
-A single flag is enough to cover all the optimization cases described above,
-provided we keep track of the flag being set at QBUF time to force cache
-invalidation at DQBUF time for case (1) if the  flag isn't set at DQBUF time.
-This patch series thus cleans up the userspace API and merges both flags into
-a single one.
-
-One potential issue with case (1) is that cache invalidation at DQBUF time for
-CAPTURE buffers isn't fully under the control of videobuf2. We can instruct
-the DMA mapping API to skip cache handling, but we can't force it to
-invalidate the cache in the sync_for_cpu operation for non speculative
-prefetching systems. Luckily, on ARM32 the current implementation always
-invalidates the cache in __dma_page_dev_to_cpu() for CAPTURE buffers so we are
-safe fot now. However, this is documented by a FIXME comment that might lead
-to someone fixing the implementation in the future. I believe we will have to
-the problem at the DMA mapping level, the userspace hint API shouldn't be
-affected.
-
-This RFC patch set achieves two main objectives:
-
-1. Respect cache flags passed from the user space. As no driver nor videobuf2
-has (ever?) implemented them, the two flags are replaced by a single one
-(V4L2_BUF_FLAG_NO_CACHE_SYNC) and the two old flags are deprecated. This is
-done since a single flag provides the driver with enough information on what
-to do.
-
-2. Allow a driver using videobuf2 to choose whether it prefers coherent or
-non-coherent CPU access to buffer memory for MMAP and USERPTR buffers.
-This could be later extended to be specified by the user, and per buffer
-if needed. (Patches 06/11 and 11/11).
-
-Note should be taken that DMABUF imported buffers have their cache
-synchronization handled by the exported through the
-dma_buf_map_attachment() and dma_buf_unmap_attachment() functions, and
-dma-buf lacks an API to perform memory synchronization without unmapping
-and remapping the buffers. This is not a blocker as far as this patch
-series is concerned, but importing buffers (usually exported by the CPU)
-is such an important use case that we can't considered the cache
-optimization problem anywhere close to being solved if we don't address
-this case.
-
-changes since RFC v2:
-
-- Nicer looking tests for the need for syncing.
-
-- Also set DMA attributes for USERPTR buffers.
-
-- Unconditionally assign buf->attrs for MMAP buffers.
-
-- Don't call vb2_dc_get_base_sgt() until buf->dev is set.
-
-- Provide {begin,end}_cpu_access() dmabuf ops for cache management.
-
-- Make similar changes to dma-sg memops to support DMA attributes.
-
-
-Sakari Ailus (13):
-  vb2: Rename confusingly named internal buffer preparation functions
-  vb2: Move buffer cache synchronisation to prepare from queue
-  vb2: Move cache synchronisation from buffer done to dqbuf handler
-  v4l: Unify cache management hint buffer flags
-  vb2: Anticipate queue specific DMA attributes for USERPTR buffers
-  vb2: dma-contig: Assign DMA attrs for a buffer unconditionally
-  vb2: dma-contig: Remove redundant sgt_base field
-  vb2: dma-contig: Don't warn on failure in obtaining scatterlist
-  vb2: dma-contig: Move vb2_dc_get_base_sgt() up
-  vb2: dma-contig: Fix DMA attribute and cache management
-  vb2: dma-contig: Add WARN_ON_ONCE() to check for potential bugs
-  vb2: dma-sg: Let drivers decide DMA attrs of MMAP and USERPTR bufs
-  vb2: Improve struct vb2_mem_ops documentation; alloc and put are for
-    MMAP
-
-Samu Onkalo (1):
-  vb2: Don't sync cache for a buffer if so requested
-
- Documentation/media/uapi/v4l/buffer.rst            |  24 ++--
- .../media/uapi/v4l/vidioc-prepare-buf.rst          |   5 +-
- drivers/media/v4l2-core/videobuf2-core.c           | 129 ++++++++++++++-------
- drivers/media/v4l2-core/videobuf2-dma-contig.c     | 120 ++++++++++++-------
- drivers/media/v4l2-core/videobuf2-dma-sg.c         |  47 ++++++--
- drivers/media/v4l2-core/videobuf2-v4l2.c           |  14 ++-
- drivers/media/v4l2-core/videobuf2-vmalloc.c        |   3 +-
- include/media/videobuf2-core.h                     |  46 +++++---
- include/trace/events/v4l2.h                        |   3 +-
- include/uapi/linux/videodev2.h                     |   7 +-
- 10 files changed, 263 insertions(+), 135 deletions(-)
+<snip>
 
 -- 
-Regards,
-Sakari
+regards,
+Stan
+
+[1]
+https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/vidioc-g-selection.html
