@@ -1,76 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:34962 "EHLO mail.kernel.org"
+Received: from quartz.orcorp.ca ([184.70.90.242]:36715 "EHLO quartz.orcorp.ca"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S975695AbdDXSOg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Apr 2017 14:14:36 -0400
-From: Kieran Bingham <kbingham@kernel.org>
-To: niklas.soderlund@ragnatech.se
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH 2/2] rcar-vin: group: use correct of_node
-Date: Mon, 24 Apr 2017 19:14:26 +0100
-Message-Id: <1493057666-27961-1-git-send-email-kbingham@kernel.org>
-In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+        id S938586AbdD0P1x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 11:27:53 -0400
+Date: Thu, 27 Apr 2017 09:27:20 -0600
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Logan Gunthorpe <logang@deltatee.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-nvdimm@ml01.01.org,
+        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
+        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        dm-devel@redhat.com,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Stephen Bates <sbates@raithlin.com>
+Subject: Re: [PATCH v2 01/21] scatterlist: Introduce sg_map helper functions
+Message-ID: <20170427152720.GA7662@obsidianresearch.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+ <1493144468-22493-2-git-send-email-logang@deltatee.com>
+ <20170426074416.GA7936@lst.de>
+ <4736d44e-bbcf-5d59-a1a9-317d0f4da847@deltatee.com>
+ <20170427065338.GA20677@lst.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170427065338.GA20677@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+On Thu, Apr 27, 2017 at 08:53:38AM +0200, Christoph Hellwig wrote:
 
-The unbind function dereferences the subdev->dev node to obtain the
-of_node. In error paths, the subdev->dev can be set to NULL, whilst the
-correct reference to the of_node is available as subdev->of_node.
+> > The main difficulty we
+> > have now is that neither of those functions are expected to fail and we
+> > need them to be able to in cases where the page doesn't map to system
+> > RAM. This patch series is trying to address it for users of scatterlist.
+> > I'm certainly open to other suggestions.
+> 
+> I think you'll need to follow the existing kmap semantics and never
+> fail the iomem version either.  Otherwise you'll have a special case
+> that's almost never used that has a different error path.
 
-Correct the dereferencing, and move the variable outside of the loop as
-it is constant against the subdev, and not initialised per CSI, for both
-the bind and unbind functions
+How about first switching as many call sites as possible to use
+sg_copy_X_buffer instead of kmap?
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+A random audit of Logan's series suggests this is actually a fairly
+common thing.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 48557628e76d..a530dc388b95 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -469,7 +469,7 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
- 
- 	v4l2_set_subdev_hostdata(subdev, vin);
- 
--	if (vin->digital.asd.match.of.node == subdev->dev->of_node) {
-+	if (vin->digital.asd.match.of.node == subdev->of_node) {
- 		/* Find surce and sink pad of remote subdevice */
- 
- 		ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
-@@ -738,12 +738,11 @@ static void rvin_group_notify_unbind(struct v4l2_async_notifier *notifier,
- 				     struct v4l2_async_subdev *asd)
- {
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	struct device_node *del = subdev->of_node;
- 	unsigned int i;
- 
- 	mutex_lock(&vin->group->lock);
- 	for (i = 0; i < RVIN_CSI_MAX; i++) {
--		struct device_node *del = subdev->dev->of_node;
--
- 		if (vin->group->bridge[i].asd.match.of.node == del) {
- 			vin_dbg(vin, "Unbind bridge %s\n", subdev->name);
- 			vin->group->bridge[i].subdev = NULL;
-@@ -768,13 +767,13 @@ static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
- 				   struct v4l2_async_subdev *asd)
- {
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	struct device_node *new = subdev->of_node;
- 	unsigned int i;
- 
- 	v4l2_set_subdev_hostdata(subdev, vin);
- 
- 	mutex_lock(&vin->group->lock);
- 	for (i = 0; i < RVIN_CSI_MAX; i++) {
--		struct device_node *new = subdev->dev->of_node;
- 
- 		if (vin->group->bridge[i].asd.match.of.node == new) {
- 			vin_dbg(vin, "Bound bridge %s\n", subdev->name);
--- 
-2.7.4
+eg drivers/mmc/host/sdhci.c is only doing this:
+
+                                        buffer = sdhci_kmap_atomic(sg, &flags);
+                                        memcpy(buffer, align, size);
+                                        sdhci_kunmap_atomic(buffer, &flags);
+
+drivers/scsi/mvsas/mv_sas.c is this:
+
++			to = sg_map(sg_resp, 0, SG_KMAP_ATOMIC);
++			memcpy(to,
++			       slot->response + sizeof(struct mvs_err_info),
++			       sg_dma_len(sg_resp));
++			sg_unmap(sg_resp, to, 0, SG_KMAP_ATOMIC);
+
+etc.
+
+Lots of other places seem similar, if not sometimes a little bit more
+convoluted..
+
+Switching all the trivial cases to use copy might bring more clarity
+as to what is actually required for the remaining few users? If there
+are only a few then it may no longer matter if the API is not idyllic.
+
+Jason
