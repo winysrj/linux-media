@@ -1,117 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:57654 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750745AbdDMH6C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 03:58:02 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com
-Subject: [RFC v3 07/14] vb2: dma-contig: Remove redundant sgt_base field
-Date: Thu, 13 Apr 2017 10:57:12 +0300
-Message-Id: <1492070239-21532-8-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1492070239-21532-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1492070239-21532-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:57495 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1032524AbdD0Wm4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 18:42:56 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v4 16/27] rcar-vin: add functions to manipulate Gen3 CHSEL value
+Date: Fri, 28 Apr 2017 00:41:52 +0200
+Message-Id: <20170427224203.14611-17-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The struct vb2_dc_buf contains two struct sg_table fields: sgt_base and
-dma_sgt. The former is used by DMA-BUF buffers whereas the latter is used
-by USERPTR.
+On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. One
+feature of this register is that it's only present in the VIN0 and VIN4
+instances. The register in VIN0 controls the routing for VIN0-3 and the
+register in VIN4 controls routing for VIN4-7.
 
-Unify the two, leaving dma_sgt.
+To be able to control routing from a media device these functions need
+to control runtime PM for the subgroup master (VIN0 and VIN4). The
+subgroup master must be switched on before the register is manipulated,
+once the operation is complete it's safe to switch the master off and
+the new routing will still be in effect.
 
-MMAP buffers do not need cache flushing since they have been allocated
-using dma_alloc_coherent().
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-dma.c | 43 ++++++++++++++++++++++++++++++
+ drivers/media/platform/rcar-vin/rcar-vin.h |  3 +++
+ 2 files changed, 46 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index a8a46a8..ddbbcf0 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -31,12 +31,13 @@ struct vb2_dc_buf {
- 	unsigned long			attrs;
- 	enum dma_data_direction		dma_dir;
- 	struct sg_table			*dma_sgt;
--	struct frame_vector		*vec;
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 7fecb616b6c45a32..fef31aac0ed40979 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -16,6 +16,7 @@
  
- 	/* MMAP related */
- 	struct vb2_vmarea_handler	handler;
- 	refcount_t			refcount;
--	struct sg_table			*sgt_base;
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
++#include <linux/pm_runtime.h>
+ 
+ #include <media/videobuf2-dma-contig.h>
+ 
+@@ -1240,3 +1241,45 @@ int rvin_dma_probe(struct rvin_dev *vin, int irq)
+ 
+ 	return ret;
+ }
 +
-+	/* USERPTR related */
-+	struct frame_vector		*vec;
++/* -----------------------------------------------------------------------------
++ * Gen3 CHSEL manipulation
++ */
++
++int rvin_set_chsel(struct rvin_dev *vin, u8 chsel)
++{
++	u32 ifmd;
++
++	pm_runtime_get_sync(vin->dev);
++
++	/*
++	 * Undocumented feature: Writing to VNCSI_IFMD_REG will go
++	 * through and on read back look correct but won't have
++	 * any effect if VNMC_REG is not first set to 0.
++	 */
++	rvin_write(vin, 0, VNMC_REG);
++
++	ifmd = VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
++		VNCSI_IFMD_CSI_CHSEL(chsel);
++
++	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
++
++	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
++
++	pm_runtime_put(vin->dev);
++
++	return 0;
++}
++
++int rvin_get_chsel(struct rvin_dev *vin)
++{
++	int chsel;
++
++	pm_runtime_get_sync(vin->dev);
++
++	chsel = rvin_read(vin, VNCSI_IFMD_REG) & VNCSI_IFMD_CSI_CHSEL_MASK;
++
++	pm_runtime_put(vin->dev);
++
++	return chsel;
++}
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 09fc70e192699f35..b1cd0abba9ca9c94 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -163,4 +163,7 @@ void rvin_v4l2_remove(struct rvin_dev *vin);
  
- 	/* DMABUF related */
- 	struct dma_buf_attachment	*db_attach;
-@@ -96,7 +97,7 @@ static void vb2_dc_prepare(void *buf_priv)
- 	struct sg_table *sgt = buf->dma_sgt;
+ const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
  
- 	/* DMABUF exporter will flush the cache for us */
--	if (!sgt || buf->db_attach)
-+	if (!buf->vec)
- 		return;
- 
- 	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents,
-@@ -109,7 +110,7 @@ static void vb2_dc_finish(void *buf_priv)
- 	struct sg_table *sgt = buf->dma_sgt;
- 
- 	/* DMABUF exporter will flush the cache for us */
--	if (!sgt || buf->db_attach)
-+	if (!buf->vec)
- 		return;
- 
- 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
-@@ -126,9 +127,9 @@ static void vb2_dc_put(void *buf_priv)
- 	if (!refcount_dec_and_test(&buf->refcount))
- 		return;
- 
--	if (buf->sgt_base) {
--		sg_free_table(buf->sgt_base);
--		kfree(buf->sgt_base);
-+	if (buf->dma_sgt) {
-+		sg_free_table(buf->dma_sgt);
-+		kfree(buf->dma_sgt);
- 	}
- 	dma_free_attrs(buf->dev, buf->size, buf->cookie, buf->dma_addr,
- 		       buf->attrs);
-@@ -239,13 +240,13 @@ static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
- 	/* Copy the buf->base_sgt scatter list to the attachment, as we can't
- 	 * map the same scatter list to multiple attachments at the same time.
- 	 */
--	ret = sg_alloc_table(sgt, buf->sgt_base->orig_nents, GFP_KERNEL);
-+	ret = sg_alloc_table(sgt, buf->dma_sgt->orig_nents, GFP_KERNEL);
- 	if (ret) {
- 		kfree(attach);
- 		return -ENOMEM;
- 	}
- 
--	rd = buf->sgt_base->sgl;
-+	rd = buf->dma_sgt->sgl;
- 	wr = sgt->sgl;
- 	for (i = 0; i < sgt->orig_nents; ++i) {
- 		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
-@@ -396,10 +397,10 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
- 	exp_info.flags = flags;
- 	exp_info.priv = buf;
- 
--	if (!buf->sgt_base)
--		buf->sgt_base = vb2_dc_get_base_sgt(buf);
-+	if (!buf->dma_sgt)
-+		buf->dma_sgt = vb2_dc_get_base_sgt(buf);
- 
--	if (WARN_ON(!buf->sgt_base))
-+	if (WARN_ON(!buf->dma_sgt))
- 		return NULL;
- 
- 	dbuf = dma_buf_export(&exp_info);
++int rvin_set_chsel(struct rvin_dev *vin, u8 chsel);
++int rvin_get_chsel(struct rvin_dev *vin);
++
+ #endif
 -- 
-2.7.4
+2.12.2
