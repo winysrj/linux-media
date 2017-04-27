@@ -1,117 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f173.google.com ([209.85.216.173]:35020 "EHLO
-        mail-qt0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932237AbdDRS1x (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:57543 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1033145AbdD0Wm7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Apr 2017 14:27:53 -0400
-Received: by mail-qt0-f173.google.com with SMTP id y33so1114378qta.2
-        for <linux-media@vger.kernel.org>; Tue, 18 Apr 2017 11:27:52 -0700 (PDT)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCHv4 09/12] staging: android: ion: Drop ion_map_kernel interface
-Date: Tue, 18 Apr 2017 11:27:11 -0700
-Message-Id: <1492540034-5466-10-git-send-email-labbott@redhat.com>
-In-Reply-To: <1492540034-5466-1-git-send-email-labbott@redhat.com>
-References: <1492540034-5466-1-git-send-email-labbott@redhat.com>
+        Thu, 27 Apr 2017 18:42:59 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v4 22/27] rcar-vin: add chsel information to rvin_info
+Date: Fri, 28 Apr 2017 00:41:58 +0200
+Message-Id: <20170427224203.14611-23-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Nobody uses this interface externally. Drop it.
+Each Gen3 SoC has a limited set of predefined routing possibilities for
+which CSI-2 device and virtual channel can be routed to which VIN
+instance. Prepare to store this information in the struct rvin_info.
 
-Signed-off-by: Laura Abbott <labbott@redhat.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/staging/android/ion/ion.c | 59 ---------------------------------------
- 1 file changed, 59 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-vin.h | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index 7d40233..5a82bea 100644
---- a/drivers/staging/android/ion/ion.c
-+++ b/drivers/staging/android/ion/ion.c
-@@ -424,22 +424,6 @@ static void *ion_buffer_kmap_get(struct ion_buffer *buffer)
- 	return vaddr;
- }
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 21b6c9292686e41a..1a5f9594460ab57b 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -35,6 +35,9 @@
+ /* Max number on VIN instances that can be in a system */
+ #define RCAR_VIN_NUM 8
  
--static void *ion_handle_kmap_get(struct ion_handle *handle)
--{
--	struct ion_buffer *buffer = handle->buffer;
--	void *vaddr;
--
--	if (handle->kmap_cnt) {
--		handle->kmap_cnt++;
--		return buffer->vaddr;
--	}
--	vaddr = ion_buffer_kmap_get(buffer);
--	if (IS_ERR(vaddr))
--		return vaddr;
--	handle->kmap_cnt++;
--	return vaddr;
--}
--
- static void ion_buffer_kmap_put(struct ion_buffer *buffer)
- {
- 	buffer->kmap_cnt--;
-@@ -462,49 +446,6 @@ static void ion_handle_kmap_put(struct ion_handle *handle)
- 		ion_buffer_kmap_put(buffer);
- }
++/* Max number of CHSEL values for any Gen3 SoC */
++#define RCAR_CHSEL_MAX 6
++
+ enum chip_id {
+ 	RCAR_H1,
+ 	RCAR_M1,
+@@ -91,6 +94,19 @@ struct rvin_graph_entity {
  
--void *ion_map_kernel(struct ion_client *client, struct ion_handle *handle)
--{
--	struct ion_buffer *buffer;
--	void *vaddr;
--
--	mutex_lock(&client->lock);
--	if (!ion_handle_validate(client, handle)) {
--		pr_err("%s: invalid handle passed to map_kernel.\n",
--		       __func__);
--		mutex_unlock(&client->lock);
--		return ERR_PTR(-EINVAL);
--	}
--
--	buffer = handle->buffer;
--
--	if (!handle->buffer->heap->ops->map_kernel) {
--		pr_err("%s: map_kernel is not implemented by this heap.\n",
--		       __func__);
--		mutex_unlock(&client->lock);
--		return ERR_PTR(-ENODEV);
--	}
--
--	mutex_lock(&buffer->lock);
--	vaddr = ion_handle_kmap_get(handle);
--	mutex_unlock(&buffer->lock);
--	mutex_unlock(&client->lock);
--	return vaddr;
--}
--EXPORT_SYMBOL(ion_map_kernel);
--
--void ion_unmap_kernel(struct ion_client *client, struct ion_handle *handle)
--{
--	struct ion_buffer *buffer;
--
--	mutex_lock(&client->lock);
--	buffer = handle->buffer;
--	mutex_lock(&buffer->lock);
--	ion_handle_kmap_put(handle);
--	mutex_unlock(&buffer->lock);
--	mutex_unlock(&client->lock);
--}
--EXPORT_SYMBOL(ion_unmap_kernel);
--
- static struct mutex debugfs_mutex;
- static struct rb_root *ion_root_client;
- static int is_client_alive(struct ion_client *client)
+ struct rvin_group;
+ 
++
++/** struct rvin_group_chsel - Map a CSI2 device and channel for a CHSEL value
++ * @csi:		VIN internal number for CSI2 device
++ * @chan:		CSI-2 channel number on remote. Note that channel
++ *			is not the same as VC. The CSI-2 hardware have 4
++ *			channels it can output on but which VC is outputted
++ *			on which channel is configurable inside the CSI-2.
++ */
++struct rvin_group_chsel {
++	enum rvin_csi_id csi;
++	unsigned int chan;
++};
++
+ /**
+  * struct rvin_info- Information about the particular VIN implementation
+  * @chip:		type of VIN chip
+@@ -98,6 +114,9 @@ struct rvin_group;
+  *
+  * max_width:		max input width the VIN supports
+  * max_height:		max input height the VIN supports
++ *
++ * num_chsels:		number of possible chsel values for this VIN
++ * chsels:		routing table VIN <-> CSI-2 for the chsel values
+  */
+ struct rvin_info {
+ 	enum chip_id chip;
+@@ -105,6 +124,9 @@ struct rvin_info {
+ 
+ 	unsigned int max_width;
+ 	unsigned int max_height;
++
++	unsigned int num_chsels;
++	struct rvin_group_chsel chsels[RCAR_VIN_NUM][RCAR_CHSEL_MAX];
+ };
+ 
+ /**
 -- 
-2.7.4
+2.12.2
