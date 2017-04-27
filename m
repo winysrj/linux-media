@@ -1,193 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:39962
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755232AbdDENX0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 09:23:26 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org, Oliver Neukum <oneukum@suse.com>
-Subject: [PATCH v2 04/21] usb.rst: Enrich its ReST representation
-Date: Wed,  5 Apr 2017 10:22:58 -0300
-Message-Id: <8e051559764b8d545d099312eed66898a29e947b.1491398120.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
-References: <cover.1491398120.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
-References: <cover.1491398120.git.mchehab@s-opensource.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51937 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1034353AbdD0WN4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 18:13:56 -0400
+Subject: Re: [PATCH 1/5] v4l2-subdev: Provide a port mapping for asynchronous
+ subdevs
+References: <1493317564-18026-1-git-send-email-kbingham@kernel.org>
+ <1493317564-18026-2-git-send-email-kbingham@kernel.org>
+ <20170427214346.GB7456@valkosipuli.retiisi.org.uk>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Kieran Bingham <kbingham@kernel.org>
+Cc: laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <d6295abe-5f04-5896-a582-e79d65f0a2ad@ideasonboard.com>
+Date: Thu, 27 Apr 2017 23:13:50 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170427214346.GB7456@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- use the proper warning and note markups;
-- add references for parts of the document that will be
-  cross-referenced on other USB docs;
-- some minor adjustments to make it better to read in
-  text mode and in html.
+Hi Sakari,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/driver-api/usb/usb.rst | 48 +++++++++++++-----------------------
- 1 file changed, 17 insertions(+), 31 deletions(-)
+Thanks for taking a look
 
-diff --git a/Documentation/driver-api/usb/usb.rst b/Documentation/driver-api/usb/usb.rst
-index b856abb3200e..7e820768ee4f 100644
---- a/Documentation/driver-api/usb/usb.rst
-+++ b/Documentation/driver-api/usb/usb.rst
-@@ -102,6 +102,8 @@ disconnect testing (while the device is active) with each different host
- controller driver, to make sure drivers don't have bugs of their own as
- well as to make sure they aren't relying on some HCD-specific behavior.
- 
-+.. _usb_chapter9:
-+
- USB-Standard Types
- ==================
- 
-@@ -112,6 +114,8 @@ USB, and in APIs including this host side API, gadget APIs, and usbfs.
- .. kernel-doc:: include/linux/usb/ch9.h
-    :internal:
- 
-+.. _usb_header:
-+
- Host-Side Data Types and Macros
- ===============================
- 
-@@ -209,7 +213,7 @@ library that wraps it. Such libraries include
- `libusb <http://libusb.sourceforge.net>`__ for C/C++, and
- `jUSB <http://jUSB.sourceforge.net>`__ for Java.
- 
--    **Note**
-+.. note::
- 
-     This particular documentation is incomplete, especially with respect
-     to the asynchronous mode. As of kernel 2.5.66 the code and this
-@@ -319,9 +323,7 @@ files. For information about the current format of this file, see the
- sources.
- 
- This file, in combination with the poll() system call, can also be used
--to detect when devices are added or removed:
--
--::
-+to detect when devices are added or removed::
- 
-     int fd;
-     struct pollfd pfd;
-@@ -407,9 +409,7 @@ The ioctl() Requests
- --------------------
- 
- To use these ioctls, you need to include the following headers in your
--userspace program:
--
--::
-+userspace program::
- 
-     #include <linux/usb.h>
-     #include <linux/usbdevice_fs.h>
-@@ -458,9 +458,7 @@ USBDEVFS_CLAIMINTERFACE
- 
- USBDEVFS_CONNECTINFO
-     Says whether the device is lowspeed. The ioctl parameter points to a
--    structure like this:
--
--    ::
-+    structure like this::
- 
- 	struct usbdevfs_connectinfo {
- 		unsigned int   devnum;
-@@ -477,9 +475,7 @@ USBDEVFS_CONNECTINFO
- USBDEVFS_GETDRIVER
-     Returns the name of the kernel driver bound to a given interface (a
-     string). Parameter is a pointer to this structure, which is
--    modified:
--
--    ::
-+    modified::
- 
- 	struct usbdevfs_getdriver {
- 		unsigned int  interface;
-@@ -490,9 +486,7 @@ USBDEVFS_GETDRIVER
- 
- USBDEVFS_IOCTL
-     Passes a request from userspace through to a kernel driver that has
--    an ioctl entry in the *struct usb_driver* it registered.
--
--    ::
-+    an ioctl entry in the *struct usb_driver* it registered::
- 
- 	struct usbdevfs_ioctl {
- 		int     ifno;
-@@ -534,7 +528,7 @@ USBDEVFS_RELEASEINTERFACE
-     the number of the interface (bInterfaceNumber from descriptor); File
-     modification time is not updated by this request.
- 
--	**Warning**
-+.. warning::
- 
- 	*No security check is made to ensure that the task which made
- 	the claim is the one which is releasing it. This means that user
-@@ -574,9 +568,7 @@ a time.
- 
- USBDEVFS_BULK
-     Issues a bulk read or write request to the device. The ioctl
--    parameter is a pointer to this structure:
--
--    ::
-+    parameter is a pointer to this structure::
- 
- 	struct usbdevfs_bulktransfer {
- 		unsigned int  ep;
-@@ -606,9 +598,7 @@ USBDEVFS_CLEAR_HALT
- 
- USBDEVFS_CONTROL
-     Issues a control request to the device. The ioctl parameter points
--    to a structure like this:
--
--    ::
-+    to a structure like this::
- 
- 	struct usbdevfs_ctrltransfer {
- 		__u8   bRequestType;
-@@ -638,7 +628,7 @@ USBDEVFS_RESET
-     the reset, this rebinds all device interfaces. File modification
-     time is not updated by this request.
- 
--	**Warning**
-+.. warning::
- 
- 	*Avoid using this call* until some usbcore bugs get fixed, since
- 	it does not fully synchronize device, interface, and driver (not
-@@ -646,9 +636,7 @@ USBDEVFS_RESET
- 
- USBDEVFS_SETINTERFACE
-     Sets the alternate setting for an interface. The ioctl parameter is
--    a pointer to a structure like this:
--
--    ::
-+    a pointer to a structure like this::
- 
- 	struct usbdevfs_setinterface {
- 		unsigned int  interface;
-@@ -669,7 +657,7 @@ USBDEVFS_SETCONFIGURATION
-     configuration (bConfigurationValue from descriptor). File
-     modification time is not updated by this request.
- 
--	**Warning**
-+.. warning::
- 
- 	*Avoid using this call* until some usbcore bugs get fixed, since
- 	it does not fully synchronize device, interface, and driver (not
-@@ -702,9 +690,7 @@ When usbfs returns these urbs, the status value is updated, and the
- buffer may have been modified. Except for isochronous transfers, the
- actual_length is updated to say how many bytes were transferred; if the
- USBDEVFS_URB_DISABLE_SPD flag is set ("short packets are not OK"), if
--fewer bytes were read than were requested then you get an error report.
--
--::
-+fewer bytes were read than were requested then you get an error report::
- 
-     struct usbdevfs_iso_packet_desc {
- 	    unsigned int                     length;
--- 
-2.9.3
+On 27/04/17 22:43, Sakari Ailus wrote:
+> Hi Kieran,
+> 
+> Could I ask you to rebase your patches on top of my V4L2 fwnode patches
+> here?
+> 
+> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi>
+> 
+> It depends on the fwnode graph patches, merged here:
+> 
+> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi-merge>
+> 
+> I expect the fwnode graph patches in v4.12 so we'll have them in media-tree
+> master soon.
+> 
+> (I'm pushing these branches right now, it may take a while until it's really
+> there.)
+
+Sure, I'll merge those into my base.
+
+> On Thu, Apr 27, 2017 at 07:26:00PM +0100, Kieran Bingham wrote:
+>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>
+>> Devices such as the the ADV748x support multiple parallel stream routes
+>> through a single chip. This leads towards needing to provide multiple
+>> distinct entities and subdevs from a single device-tree node.
+>>
+>> To distinguish these separate outputs, the device-tree binding must
+>> specify each endpoint link with a unique (to the device) non-zero port
+>> number.
+>>
+>> This number allows async subdev registrations to identify the correct
+>> subdevice to bind and link.
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-async.c  | 7 +++++++
+>>  drivers/media/v4l2-core/v4l2-subdev.c | 1 +
+>>  include/media/v4l2-async.h            | 1 +
+>>  include/media/v4l2-subdev.h           | 2 ++
+>>  4 files changed, 11 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+>> index 1815e54e8a38..875e6ce646ec 100644
+>> --- a/drivers/media/v4l2-core/v4l2-async.c
+>> +++ b/drivers/media/v4l2-core/v4l2-async.c
+>> @@ -42,6 +42,13 @@ static bool match_devname(struct v4l2_subdev *sd,
+>>  
+>>  static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+>>  {
+>> +	/*
+>> +	 * If set, we must match the device tree port, with the subdev port.
+>> +	 * This is a fast match, so do this first
+>> +	 */
+>> +	if (sd->port && sd->port != asd->match.of.port)
+> 
+> Zero is an entirely valid value for a port. I think it'd be good not to
+> depend on non-zero port values for port matching.
+
+Well then that pretty much dashes my chances on not parsing the DT in the ADV
+driver.
+
+
+
+>> +		return -1;
+> 
+> Any particular reason to return -1 from a function with bool return type?
+
+Ahem, I clearly can't read ;-)
+I think my mindset was thinking strcmp or something...
+
+
+>> +
+>>  	return !of_node_cmp(of_node_full_name(sd->of_node),
+>>  			    of_node_full_name(asd->match.of.node));
+>>  }
+>> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+>> index da78497ae5ed..67f816f90ac3 100644
+>> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+>> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+>> @@ -607,6 +607,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+>>  	sd->flags = 0;
+>>  	sd->name[0] = '\0';
+>>  	sd->grp_id = 0;
+>> +	sd->port = 0;
+>>  	sd->dev_priv = NULL;
+>>  	sd->host_priv = NULL;
+>>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+>> index 5b501309b6a7..2988960613ec 100644
+>> --- a/include/media/v4l2-async.h
+>> +++ b/include/media/v4l2-async.h
+>> @@ -56,6 +56,7 @@ struct v4l2_async_subdev {
+>>  	union {
+>>  		struct {
+>>  			const struct device_node *node;
+>> +			u32 port;
+> 
+> What if instead of storing the device's OF node, you'd store the port node
+> and used that for matching?
+> 
+> Would that also solve the problem or do I miss something?
+
+Actually - I was 'trying' to prevent having to parse the DT in the adv748x
+driver if I didn't need to.
+
+Once I have to parse the DT, then yes, I think storing the endpoint node is
+probably the best thing to compare against.
+
+And actually - you might have just solved my open question in the cover letter ...
+
+I had got stuck in my mindset that if I were to use the endpoint 'leaf' node as
+a comparator - that it would be 'instead' of the root node.
+
+But actually - it could just be root-node + leaf-node to compare, which then
+allows us the fallback of comparing just the root nodes if the leaf isn't set.
+
+I'll respin with this either tomorrow or early next week.
+
+> 
+>>  		} of;
+>>  		struct {
+>>  			const char *name;
+>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>> index 0ab1c5df6fac..1c1731b491e5 100644
+>> --- a/include/media/v4l2-subdev.h
+>> +++ b/include/media/v4l2-subdev.h
+>> @@ -782,6 +782,7 @@ struct v4l2_subdev_platform_data {
+>>   * @ctrl_handler: The control handler of this subdev. May be NULL.
+>>   * @name: Name of the sub-device. Please notice that the name must be unique.
+>>   * @grp_id: can be used to group similar subdevs. Value is driver-specific
+>> + * @port: driver-specific value to bind multiple subdevs with a single DT node.
+>>   * @dev_priv: pointer to private data
+>>   * @host_priv: pointer to private data used by the device where the subdev
+>>   *	is attached.
+>> @@ -814,6 +815,7 @@ struct v4l2_subdev {
+>>  	struct v4l2_ctrl_handler *ctrl_handler;
+>>  	char name[V4L2_SUBDEV_NAME_SIZE];
+>>  	u32 grp_id;
+>> +	u32 port;
+>>  	void *dev_priv;
+>>  	void *host_priv;
+>>  	struct video_device *devnode;
+> 
+
+Regards
+
+Kieran
