@@ -1,163 +1,399 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:34541 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1427091AbdDWA5W (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:57458 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1032757AbdD0Wm5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Apr 2017 20:57:22 -0400
-Received: by mail-it0-f67.google.com with SMTP id 193so7253621itm.1
-        for <linux-media@vger.kernel.org>; Sat, 22 Apr 2017 17:57:22 -0700 (PDT)
-From: Daniel Axtens <dja@axtens.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Dave Stevenson <linux-media@destevenson.freeserve.co.uk>,
-        Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 1/2] [media] uvcvideo: Refactor teardown of uvc on USB disconnect
-In-Reply-To: <2540812.MKbs17NyWb@avalon>
-References: <20170417085240.12930-1-dja@axtens.net> <2540812.MKbs17NyWb@avalon>
-Date: Sun, 23 Apr 2017 10:57:17 +1000
-Message-ID: <87o9vo7xg2.fsf@possimpible.ozlabs.ibm.com>
+        Thu, 27 Apr 2017 18:42:57 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v4 19/27] rcar-vin: use different v4l2 operations in media controller mode
+Date: Fri, 28 Apr 2017 00:41:55 +0200
+Message-Id: <20170427224203.14611-20-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+When the driver runs in media controller mode it should not directly
+control the subdevice instead userspace will be responsible for
+configuring the pipeline. To be able to run in this mode a different set
+of v4l2 operations needs to be used.
 
->> To fix this, we need to make sure the devices are always unregistered
->> before the end of uvc_disconnect(). To this, move the unregistration
->> into the disconnect path:
->>
->>  - split uvc_status_cleanup() into two parts, one on disconnect that
->>    unregisters and one on delete that frees.
->> 
->>  - move media_device_unregister() into the disconnect path.
->
-> While the patch looks reasonable to me (with one comment below though), isn't 
-> this an issue with the USB core, or possibly the device core ? It's a common 
-> practice to create device nodes as children of physical devices. Does the 
-> device core really require all device nodes to be unregistered synchronously 
-> with physical device hot-unplug ? If so, shouldn't it warn somehow when a 
-> device is deleted and still has children, instead of accepting that silently 
-> and later complaining due to sysfs issues ?
+Add a new set of v4l2 operations to support the running without directly
+interacting with the source subdevice.
 
-Probably! I might have a look at this in a bit - I was initially drawn
-into this area because of a misbehaving USB3 dock + webcam combo; once I
-sort out my more pressing issues there I will have a look at putting
-that extra sanity checking in the device core.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c |  25 ++-
+ drivers/media/platform/rcar-vin/rcar-dma.c  |   3 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 239 ++++++++++++++++++++++++++++
+ drivers/media/platform/rcar-vin/rcar-vin.h  |   3 +
+ 4 files changed, 268 insertions(+), 2 deletions(-)
 
->
->> [0]: https://lkml.org/lkml/2016/12/8/657
->> 
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>
->> Cc: Greg KH <greg@kroah.com>
->> Signed-off-by: Daniel Axtens <dja@axtens.net>
->> 
->> ---
->> 
->> Tested with cheese and yavta.
->> ---
->>  drivers/media/usb/uvc/uvc_driver.c | 8 ++++++--
->>  drivers/media/usb/uvc/uvc_status.c | 8 ++++++--
->>  drivers/media/usb/uvc/uvcvideo.h   | 1 +
->>  3 files changed, 13 insertions(+), 4 deletions(-)
->> 
->> diff --git a/drivers/media/usb/uvc/uvc_driver.c
->> b/drivers/media/usb/uvc/uvc_driver.c index 46d6be0bb316..2390592f78e0
->> 100644
->> --- a/drivers/media/usb/uvc/uvc_driver.c
->> +++ b/drivers/media/usb/uvc/uvc_driver.c
->> @@ -1815,8 +1815,6 @@ static void uvc_delete(struct uvc_device *dev)
->>  	if (dev->vdev.dev)
->>  		v4l2_device_unregister(&dev->vdev);
->>  #ifdef CONFIG_MEDIA_CONTROLLER
->> -	if (media_devnode_is_registered(dev->mdev.devnode))
->> -		media_device_unregister(&dev->mdev);
->
-> media_device_unregister() will now be called before v4l2_device_unregister() 
-> which, unless I'm mistaken, will now result in 
-> media_device_unregister_entity() being called twice for every entity, the 
-> first time by media_device_unregister(), and the second time by 
-> v4l2_device_unregister_subdev() through v4l2_device_unregister(). Looking at 
-> media_device_unregister() I don't think that's safe.
->
-> We could move to v4l2_device_unregister() call to uvc_unregister_video(), but 
-> that worries me (perhaps unnecessarily though) due to the race conditions it 
-> could introduce. Would you still be able to give it a try ?
->
-
-That's a good catch. I have moved v4l2_device_unregister() into the
-unregister path, and turned on a bunch of debugging, including KASan. It
-looks good so far, but I will plug and unplug the webcam a few more
-times before sending v2 :)
-
-> Note that your patch isn't really at fault here, the media controller and V4L2 
-> core code have been broken for a long time when it comes to entity lifetime 
-> management. That might be fixed some day, but I won't hold my breath given the 
-> bad track record of the previous year and a half.
-
-This is my first real foray into lifecycle managment in Linux. I've
-found it quite confusing, so it's comforting to know that it's not just me!
-
-Regards,
-Daniel
-
->
->>  	media_device_cleanup(&dev->mdev);
->>  #endif
->> 
->> @@ -1884,6 +1882,12 @@ static void uvc_unregister_video(struct uvc_device
->> *dev) uvc_debugfs_cleanup_stream(stream);
->>  	}
->> 
->> +	uvc_status_unregister(dev);
->> +#ifdef CONFIG_MEDIA_CONTROLLER
->> +	if (media_devnode_is_registered(dev->mdev.devnode))
->> +		media_device_unregister(&dev->mdev);
->> +#endif
->> +
->>  	/* Decrement the stream count and call uvc_delete explicitly if there
->>  	 * are no stream left.
->>  	 */
->> diff --git a/drivers/media/usb/uvc/uvc_status.c
->> b/drivers/media/usb/uvc/uvc_status.c index f552ab997956..95709b23d3b4
->> 100644
->> --- a/drivers/media/usb/uvc/uvc_status.c
->> +++ b/drivers/media/usb/uvc/uvc_status.c
->> @@ -198,12 +198,16 @@ int uvc_status_init(struct uvc_device *dev)
->>  	return 0;
->>  }
->> 
->> -void uvc_status_cleanup(struct uvc_device *dev)
->> +void uvc_status_unregister(struct uvc_device *dev)
->>  {
->>  	usb_kill_urb(dev->int_urb);
->> +	uvc_input_cleanup(dev);
->> +}
->> +
->> +void uvc_status_cleanup(struct uvc_device *dev)
->> +{
->>  	usb_free_urb(dev->int_urb);
->>  	kfree(dev->status);
->> -	uvc_input_cleanup(dev);
->>  }
->> 
->>  int uvc_status_start(struct uvc_device *dev, gfp_t flags)
->> diff --git a/drivers/media/usb/uvc/uvcvideo.h
->> b/drivers/media/usb/uvc/uvcvideo.h index 15e415e32c7f..4b4814df35cd 100644
->> --- a/drivers/media/usb/uvc/uvcvideo.h
->> +++ b/drivers/media/usb/uvc/uvcvideo.h
->> @@ -712,6 +712,7 @@ void uvc_video_clock_update(struct uvc_streaming
->> *stream,
->> 
->>  /* Status */
->>  extern int uvc_status_init(struct uvc_device *dev);
->> +extern void uvc_status_unregister(struct uvc_device *dev);
->>  extern void uvc_status_cleanup(struct uvc_device *dev);
->>  extern int uvc_status_start(struct uvc_device *dev, gfp_t flags);
->>  extern void uvc_status_stop(struct uvc_device *dev);
->
-> -- 
-> Regards,
->
-> Laurent Pinchart
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 8b30d8d3ec7d9c04..7aaa01dee014d64b 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -256,6 +256,21 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+ }
+ 
+ /* -----------------------------------------------------------------------------
++ * Group async notifier
++ */
++
++static int rvin_group_init(struct rvin_dev *vin)
++{
++	int ret;
++
++	ret = rvin_v4l2_mc_probe(vin);
++	if (ret)
++		return ret;
++
++	return 0;
++}
++
++/* -----------------------------------------------------------------------------
+  * Platform Device Driver
+  */
+ 
+@@ -347,7 +362,10 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = rvin_digital_graph_init(vin);
++	if (vin->info->use_mc)
++		ret = rvin_group_init(vin);
++	else
++		ret = rvin_digital_graph_init(vin);
+ 	if (ret < 0)
+ 		goto error;
+ 
+@@ -371,6 +389,11 @@ static int rcar_vin_remove(struct platform_device *pdev)
+ 
+ 	v4l2_async_notifier_unregister(&vin->notifier);
+ 
++	if (vin->info->use_mc)
++		rvin_v4l2_mc_remove(vin);
++	else
++		rvin_v4l2_remove(vin);
++
+ 	rvin_dma_remove(vin);
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index fef31aac0ed40979..34f01f32bab7bd32 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -628,7 +628,8 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		/* Default to TB */
+ 		vnmc = VNMC_IM_FULL;
+ 		/* Use BT if video standard can be read and is 60 Hz format */
+-		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
++		if (!vin->info->use_mc &&
++		    !v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+ 			if (std & V4L2_STD_525_60)
+ 				vnmc = VNMC_IM_FULL | VNMC_FOC;
+ 		}
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 1ee9dcb621350f77..ae6910ac87ec7f6a 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -23,6 +23,9 @@
+ #include "rcar-vin.h"
+ 
+ #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
++#define RVIN_DEFAULT_WIDTH	800
++#define RVIN_DEFAULT_HEIGHT	600
++#define RVIN_DEFAULT_COLORSPACE	V4L2_COLORSPACE_SRGB
+ 
+ /* -----------------------------------------------------------------------------
+  * Format Conversions
+@@ -694,6 +697,126 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+ };
+ 
+ /* -----------------------------------------------------------------------------
++ * V4L2 Media Controller
++ */
++
++static int __rvin_mc_try_format(struct rvin_dev *vin,
++				struct v4l2_pix_format *pix)
++{
++	const struct rvin_video_format *info;
++	u32 walign;
++
++	/* Keep current field if no specific one is asked for */
++	if (pix->field == V4L2_FIELD_ANY)
++		pix->field = vin->format.field;
++
++	switch (pix->field) {
++	case V4L2_FIELD_TOP:
++	case V4L2_FIELD_BOTTOM:
++	case V4L2_FIELD_ALTERNATE:
++	case V4L2_FIELD_NONE:
++	case V4L2_FIELD_INTERLACED_TB:
++	case V4L2_FIELD_INTERLACED_BT:
++	case V4L2_FIELD_INTERLACED:
++		break;
++	default:
++		pix->field = V4L2_FIELD_NONE;
++		break;
++	}
++
++	/* Check that colorspace is resonable, if not keep current */
++	if (!pix->colorspace || pix->colorspace >= 0xff)
++		pix->colorspace = vin->format.colorspace;
++
++	info = rvin_format_from_pixel(pix->pixelformat);
++	if (!info) {
++		vin_dbg(vin, "Format %x not found, keeping %x\n",
++			pix->pixelformat, vin->format.pixelformat);
++		pix->pixelformat = vin->format.pixelformat;
++		info = rvin_format_from_pixel(pix->pixelformat);
++	}
++
++	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
++	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
++
++	/* Limit to VIN capabilities */
++	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
++			      &pix->height, 4, vin->info->max_height, 2, 0);
++
++	pix->bytesperline = rvin_format_bytesperline(pix);
++	pix->sizeimage = rvin_format_sizeimage(pix);
++
++	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
++		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
++
++	return 0;
++}
++
++static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
++				   struct v4l2_format *f)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++
++	return __rvin_mc_try_format(vin, &f->fmt.pix);
++}
++
++static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
++				 struct v4l2_format *f)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	if (vb2_is_busy(&vin->queue))
++		return -EBUSY;
++
++	ret = __rvin_mc_try_format(vin, &f->fmt.pix);
++	if (ret)
++		return ret;
++
++	vin->format = f->fmt.pix;
++
++	return 0;
++}
++
++static int rvin_mc_enum_input(struct file *file, void *priv,
++			      struct v4l2_input *i)
++{
++	if (i->index != 0)
++		return -EINVAL;
++
++	i->type = V4L2_INPUT_TYPE_CAMERA;
++	strlcpy(i->name, "Camera", sizeof(i->name));
++
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops rvin_mc_ioctl_ops = {
++	.vidioc_querycap		= rvin_querycap,
++	.vidioc_try_fmt_vid_cap		= rvin_mc_try_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap		= rvin_g_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap		= rvin_mc_s_fmt_vid_cap,
++	.vidioc_enum_fmt_vid_cap	= rvin_enum_fmt_vid_cap,
++
++	.vidioc_enum_input		= rvin_mc_enum_input,
++	.vidioc_g_input			= rvin_g_input,
++	.vidioc_s_input			= rvin_s_input,
++
++	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
++	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_expbuf			= vb2_ioctl_expbuf,
++	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++
++	.vidioc_log_status		= v4l2_ctrl_log_status,
++	.vidioc_subscribe_event		= rvin_subscribe_event,
++	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
++};
++
++/* -----------------------------------------------------------------------------
+  * File Operations
+  */
+ 
+@@ -836,6 +959,68 @@ static const struct v4l2_file_operations rvin_fops = {
+ 	.read		= vb2_fop_read,
+ };
+ 
++/* -----------------------------------------------------------------------------
++ * Media controller file Operations
++ */
++
++static int rvin_mc_open(struct file *file)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	mutex_lock(&vin->lock);
++
++	file->private_data = vin;
++
++	ret = v4l2_fh_open(file);
++	if (ret)
++		goto unlock;
++
++	if (v4l2_fh_is_singular_file(file)) {
++		pm_runtime_get_sync(vin->dev);
++		v4l2_pipeline_pm_use(&vin->vdev->entity, 1);
++	}
++
++unlock:
++	mutex_unlock(&vin->lock);
++
++	return ret;
++}
++
++static int rvin_mc_release(struct file *file)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	bool fh_singular;
++	int ret;
++
++	mutex_lock(&vin->lock);
++
++	/* Save the singular status before we call the clean-up helper */
++	fh_singular = v4l2_fh_is_singular_file(file);
++
++	/* the release helper will cleanup any on-going streaming */
++	ret = _vb2_fop_release(file, NULL);
++
++	if (fh_singular) {
++		v4l2_pipeline_pm_use(&vin->vdev->entity, 0);
++		pm_runtime_put(vin->dev);
++	}
++
++	mutex_unlock(&vin->lock);
++
++	return ret;
++}
++
++static const struct v4l2_file_operations rvin_mc_fops = {
++	.owner		= THIS_MODULE,
++	.unlocked_ioctl	= video_ioctl2,
++	.open		= rvin_mc_open,
++	.release	= rvin_mc_release,
++	.poll		= vb2_fop_poll,
++	.mmap		= vb2_fop_mmap,
++	.read		= vb2_fop_read,
++};
++
+ void rvin_v4l2_remove(struct rvin_dev *vin)
+ {
+ 	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
+@@ -934,3 +1119,57 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 
+ 	return ret;
+ }
++
++void rvin_v4l2_mc_remove(struct rvin_dev *vin)
++{
++	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
++		  video_device_node_name(vin->vdev));
++
++	/* Checks internaly if vdev have been init or not */
++	video_unregister_device(vin->vdev);
++}
++
++int rvin_v4l2_mc_probe(struct rvin_dev *vin)
++{
++	struct video_device *vdev;
++	int ret;
++
++	vin->v4l2_dev.notify = rvin_notify;
++
++	vdev = video_device_alloc();
++
++	vdev->fops = &rvin_mc_fops;
++	vdev->v4l2_dev = &vin->v4l2_dev;
++	vdev->queue = &vin->queue;
++	snprintf(vdev->name, sizeof(vdev->name), "%s %s", KBUILD_MODNAME,
++		 dev_name(vin->dev));
++	vdev->release = video_device_release;
++	vdev->ioctl_ops = &rvin_mc_ioctl_ops;
++	vdev->lock = &vin->lock;
++	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
++		V4L2_CAP_READWRITE;
++
++	/* Set some form of default format */
++	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
++	vin->format.width = RVIN_DEFAULT_WIDTH;
++	vin->format.height = RVIN_DEFAULT_HEIGHT;
++	vin->format.colorspace = RVIN_DEFAULT_COLORSPACE;
++	ret = __rvin_mc_try_format(vin, &vin->format);
++	if (ret)
++		return ret;
++
++	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
++	if (ret) {
++		vin_err(vin, "Failed to register video device\n");
++		return ret;
++	}
++
++	video_set_drvdata(vdev, vin);
++
++	v4l2_info(&vin->v4l2_dev, "Device registered as %s\n",
++		  video_device_node_name(vdev));
++
++	vin->vdev = vdev;
++
++	return ret;
++}
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 512e67fdefd15015..6f2b1e28381678a9 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -21,6 +21,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-mc.h>
+ #include <media/videobuf2-v4l2.h>
+ 
+ /* Number of HW buffers */
+@@ -162,6 +163,8 @@ void rvin_dma_remove(struct rvin_dev *vin);
+ 
+ int rvin_v4l2_probe(struct rvin_dev *vin);
+ void rvin_v4l2_remove(struct rvin_dev *vin);
++int rvin_v4l2_mc_probe(struct rvin_dev *vin);
++void rvin_v4l2_mc_remove(struct rvin_dev *vin);
+ 
+ const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+ 
+-- 
+2.12.2
