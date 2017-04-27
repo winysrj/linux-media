@@ -1,156 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:57482 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032441AbdD0Wmz (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38364 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1423461AbdD0WuY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:42:55 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v4 05/27] rcar-vin: move chip information to own struct
-Date: Fri, 28 Apr 2017 00:41:41 +0200
-Message-Id: <20170427224203.14611-6-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+        Thu, 27 Apr 2017 18:50:24 -0400
+Date: Fri, 28 Apr 2017 01:49:41 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Kieran Bingham <kbingham@kernel.org>,
+        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/5] v4l2-subdev: Provide a port mapping for asynchronous
+ subdevs
+Message-ID: <20170427224940.GC7456@valkosipuli.retiisi.org.uk>
+References: <1493317564-18026-1-git-send-email-kbingham@kernel.org>
+ <1493317564-18026-2-git-send-email-kbingham@kernel.org>
+ <20170427214346.GB7456@valkosipuli.retiisi.org.uk>
+ <d6295abe-5f04-5896-a582-e79d65f0a2ad@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <d6295abe-5f04-5896-a582-e79d65f0a2ad@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When Gen3 support is added to the driver more then chip id will be
-different for the different Soc. To avoid a lot of if statements in the
-code create a struct chip_info to contain this information.
+Hi Kieran,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 49 ++++++++++++++++++++++++-----
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  3 +-
- drivers/media/platform/rcar-vin/rcar-vin.h  | 12 +++++--
- 3 files changed, 53 insertions(+), 11 deletions(-)
+On Thu, Apr 27, 2017 at 11:13:50PM +0100, Kieran Bingham wrote:
+> Hi Sakari,
+> 
+> Thanks for taking a look
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index c4d4f112da0c9d45..ec1eb723d401fda2 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -255,14 +255,47 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
-  * Platform Device Driver
-  */
- 
-+static const struct rvin_info rcar_info_h1 = {
-+	.chip = RCAR_H1,
-+};
-+
-+static const struct rvin_info rcar_info_m1 = {
-+	.chip = RCAR_M1,
-+};
-+
-+static const struct rvin_info rcar_info_gen2 = {
-+	.chip = RCAR_GEN2,
-+};
-+
- static const struct of_device_id rvin_of_id_table[] = {
--	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
--	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
--	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
-+	{
-+		.compatible = "renesas,vin-r8a7794",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7793",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7791",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7790",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7779",
-+		.data = &rcar_info_h1,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7778",
-+		.data = &rcar_info_m1,
-+	},
-+	{
-+		.compatible = "renesas,rcar-gen2-vin",
-+		.data = &rcar_info_gen2,
-+	},
- 	{ },
- };
- MODULE_DEVICE_TABLE(of, rvin_of_id_table);
-@@ -283,7 +316,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 
- 	vin->dev = &pdev->dev;
--	vin->chip = (enum chip_id)match->data;
-+	vin->info = match->data;
- 
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (mem == NULL)
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 27b7733e96afe3e9..7deca15d22b4d6e3 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -272,7 +272,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	pix->sizeimage = max_t(u32, pix->sizeimage,
- 			       rvin_format_sizeimage(pix));
- 
--	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-+	if (vin->info->chip == RCAR_M1 &&
-+	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
- 		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 9454ef80bc2b3961..c07b4a6893440a6a 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -89,10 +89,18 @@ struct rvin_graph_entity {
- };
- 
- /**
-+ * struct rvin_info- Information about the particular VIN implementation
-+ * @chip:		type of VIN chip
-+ */
-+struct rvin_info {
-+	enum chip_id chip;
-+};
-+
-+/**
-  * struct rvin_dev - Renesas VIN device structure
-  * @dev:		(OF) device
-  * @base:		device I/O register space remapped to virtual memory
-- * @chip:		type of VIN chip
-+ * @info:		info about VIN instance
-  *
-  * @vdev:		V4L2 video device associated with VIN
-  * @v4l2_dev:		V4L2 device
-@@ -120,7 +128,7 @@ struct rvin_graph_entity {
- struct rvin_dev {
- 	struct device *dev;
- 	void __iomem *base;
--	enum chip_id chip;
-+	const struct rvin_info *info;
- 
- 	struct video_device *vdev;
- 	struct v4l2_device v4l2_dev;
+Sure! :-)
+
+> 
+> On 27/04/17 22:43, Sakari Ailus wrote:
+> > Hi Kieran,
+> > 
+> > Could I ask you to rebase your patches on top of my V4L2 fwnode patches
+> > here?
+> > 
+> > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi>
+> > 
+> > It depends on the fwnode graph patches, merged here:
+> > 
+> > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi-merge>
+> > 
+> > I expect the fwnode graph patches in v4.12 so we'll have them in media-tree
+> > master soon.
+> > 
+> > (I'm pushing these branches right now, it may take a while until it's really
+> > there.)
+> 
+> Sure, I'll merge those into my base.
+> 
+> > On Thu, Apr 27, 2017 at 07:26:00PM +0100, Kieran Bingham wrote:
+> >> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >>
+> >> Devices such as the the ADV748x support multiple parallel stream routes
+> >> through a single chip. This leads towards needing to provide multiple
+> >> distinct entities and subdevs from a single device-tree node.
+> >>
+> >> To distinguish these separate outputs, the device-tree binding must
+> >> specify each endpoint link with a unique (to the device) non-zero port
+> >> number.
+> >>
+> >> This number allows async subdev registrations to identify the correct
+> >> subdevice to bind and link.
+> >>
+> >> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >> ---
+> >>  drivers/media/v4l2-core/v4l2-async.c  | 7 +++++++
+> >>  drivers/media/v4l2-core/v4l2-subdev.c | 1 +
+> >>  include/media/v4l2-async.h            | 1 +
+> >>  include/media/v4l2-subdev.h           | 2 ++
+> >>  4 files changed, 11 insertions(+)
+> >>
+> >> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> >> index 1815e54e8a38..875e6ce646ec 100644
+> >> --- a/drivers/media/v4l2-core/v4l2-async.c
+> >> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> >> @@ -42,6 +42,13 @@ static bool match_devname(struct v4l2_subdev *sd,
+> >>  
+> >>  static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+> >>  {
+> >> +	/*
+> >> +	 * If set, we must match the device tree port, with the subdev port.
+> >> +	 * This is a fast match, so do this first
+> >> +	 */
+> >> +	if (sd->port && sd->port != asd->match.of.port)
+> > 
+> > Zero is an entirely valid value for a port. I think it'd be good not to
+> > depend on non-zero port values for port matching.
+> 
+> Well then that pretty much dashes my chances on not parsing the DT in the ADV
+> driver.
+
+Hmm. I guess there's no really a way to avoid it. But we could make it
+easier 
+
+> 
+> 
+> 
+> >> +		return -1;
+> > 
+> > Any particular reason to return -1 from a function with bool return type?
+> 
+> Ahem, I clearly can't read ;-)
+> I think my mindset was thinking strcmp or something...
+
+But -1 is perfectly valid. If you wanted to make it look really interesting,
+you could return -!false and still have exactly the same functionality. ;-)
+
+> 
+> 
+> >> +
+> >>  	return !of_node_cmp(of_node_full_name(sd->of_node),
+> >>  			    of_node_full_name(asd->match.of.node));
+> >>  }
+> >> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+> >> index da78497ae5ed..67f816f90ac3 100644
+> >> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> >> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> >> @@ -607,6 +607,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+> >>  	sd->flags = 0;
+> >>  	sd->name[0] = '\0';
+> >>  	sd->grp_id = 0;
+> >> +	sd->port = 0;
+> >>  	sd->dev_priv = NULL;
+> >>  	sd->host_priv = NULL;
+> >>  #if defined(CONFIG_MEDIA_CONTROLLER)
+> >> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> >> index 5b501309b6a7..2988960613ec 100644
+> >> --- a/include/media/v4l2-async.h
+> >> +++ b/include/media/v4l2-async.h
+> >> @@ -56,6 +56,7 @@ struct v4l2_async_subdev {
+> >>  	union {
+> >>  		struct {
+> >>  			const struct device_node *node;
+> >> +			u32 port;
+> > 
+> > What if instead of storing the device's OF node, you'd store the port node
+> > and used that for matching?
+> > 
+> > Would that also solve the problem or do I miss something?
+> 
+> Actually - I was 'trying' to prevent having to parse the DT in the adv748x
+> driver if I didn't need to.
+> 
+> Once I have to parse the DT, then yes, I think storing the endpoint node is
+> probably the best thing to compare against.
+> 
+> And actually - you might have just solved my open question in the cover letter ...
+> 
+> I had got stuck in my mindset that if I were to use the endpoint 'leaf' node as
+> a comparator - that it would be 'instead' of the root node.
+> 
+> But actually - it could just be root-node + leaf-node to compare, which then
+> allows us the fallback of comparing just the root nodes if the leaf isn't set.
+> 
+> I'll respin with this either tomorrow or early next week.
+
+Endpoints are indeed another option.
+
+Is there something that would prevent switching from device node matching to
+port / endpoint matching altogether? I don't think the driver changes should
+be difficult to make.
+
+Supporting different options there will be painful as it will likely require
+help from the driver to implement both --- separately.
+
+> 
+> > 
+> >>  		} of;
+> >>  		struct {
+> >>  			const char *name;
+> >> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> >> index 0ab1c5df6fac..1c1731b491e5 100644
+> >> --- a/include/media/v4l2-subdev.h
+> >> +++ b/include/media/v4l2-subdev.h
+> >> @@ -782,6 +782,7 @@ struct v4l2_subdev_platform_data {
+> >>   * @ctrl_handler: The control handler of this subdev. May be NULL.
+> >>   * @name: Name of the sub-device. Please notice that the name must be unique.
+> >>   * @grp_id: can be used to group similar subdevs. Value is driver-specific
+> >> + * @port: driver-specific value to bind multiple subdevs with a single DT node.
+> >>   * @dev_priv: pointer to private data
+> >>   * @host_priv: pointer to private data used by the device where the subdev
+> >>   *	is attached.
+> >> @@ -814,6 +815,7 @@ struct v4l2_subdev {
+> >>  	struct v4l2_ctrl_handler *ctrl_handler;
+> >>  	char name[V4L2_SUBDEV_NAME_SIZE];
+> >>  	u32 grp_id;
+> >> +	u32 port;
+> >>  	void *dev_priv;
+> >>  	void *host_priv;
+> >>  	struct video_device *devnode;
+> > 
+
 -- 
-2.12.2
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
