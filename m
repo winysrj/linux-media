@@ -1,246 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35876 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752619AbdDITiu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Apr 2017 15:38:50 -0400
-Received: by mail-wm0-f65.google.com with SMTP id q125so6399625wmd.3
-        for <linux-media@vger.kernel.org>; Sun, 09 Apr 2017 12:38:44 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: aospan@netup.ru, serjk@netup.ru, mchehab@kernel.org,
-        linux-media@vger.kernel.org
-Cc: rjkm@metzlerbros.de
-Subject: [PATCH 08/19] [media] dvb-frontends/cxd2841er: support IF speed calc from tuner values
-Date: Sun,  9 Apr 2017 21:38:17 +0200
-Message-Id: <20170409193828.18458-9-d.scheller.oss@gmail.com>
-In-Reply-To: <20170409193828.18458-1-d.scheller.oss@gmail.com>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com>
+Received: from vader.hardeman.nu ([95.142.160.32]:55244 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S935951AbdD0UeP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 16:34:15 -0400
+Subject: [PATCH 4/6] rc-core: use the full 32 bits for NEC scancodes in
+ wakefilters
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Thu, 27 Apr 2017 22:34:13 +0200
+Message-ID: <149332525323.32431.14186133466616956249.stgit@zeus.hardeman.nu>
+In-Reply-To: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
+References: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+The new sysfs wakefilter API will expose the difference between the NEC
+protocols to userspace for no good reason and once exposed, it will be much
+more difficult to change the logic.
 
-Add a AUTO_IFHZ flag and a function that will read IF speed values from any
-attached tuner if the tuner supports this and if AUTO_IFHZ is enabled, and
-else the passed default value (which probably matches Sony ASCOT tuners)
-will be passed back. The returned value is then used to calculate the iffeq
-which the demod will be programmed with.
+By only allowing full NEC32 scancodes to be set, any heuristics in the kernel
+can be avoided.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+This is a minor preparation for the next patch which moves the rest of
+rc-core over to only using NEC32.
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- drivers/media/dvb-frontends/cxd2841er.c | 64 +++++++++++++++++++++++----------
- drivers/media/dvb-frontends/cxd2841er.h |  1 +
- 2 files changed, 47 insertions(+), 18 deletions(-)
+ drivers/media/rc/rc-main.c     |   17 ++++-------------
+ drivers/media/rc/winbond-cir.c |   32 ++------------------------------
+ 2 files changed, 6 insertions(+), 43 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-index 162a0f5..fa6a963 100644
---- a/drivers/media/dvb-frontends/cxd2841er.c
-+++ b/drivers/media/dvb-frontends/cxd2841er.c
-@@ -327,6 +327,20 @@ static u32 cxd2841er_calc_iffreq(u32 ifhz)
- 	return cxd2841er_calc_iffreq_xtal(SONY_XTAL_20500, ifhz);
- }
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 0acc8f27abeb..8355f86a460b 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -741,8 +741,6 @@ static int rc_validate_filter(struct rc_dev *dev,
+ 		[RC_TYPE_SONY15] = 0xff007f,
+ 		[RC_TYPE_SONY20] = 0x1fff7f,
+ 		[RC_TYPE_JVC] = 0xffff,
+-		[RC_TYPE_NEC] = 0xffff,
+-		[RC_TYPE_NECX] = 0xffffff,
+ 		[RC_TYPE_NEC32] = 0xffffffff,
+ 		[RC_TYPE_SANYO] = 0x1fffff,
+ 		[RC_TYPE_MCIR2_KBD] = 0xffff,
+@@ -758,14 +756,9 @@ static int rc_validate_filter(struct rc_dev *dev,
+ 	enum rc_type protocol = dev->wakeup_protocol;
  
-+static int cxd2841er_get_if_hz(struct cxd2841er_priv *priv, u32 def_hz)
-+{
-+	u32 hz;
-+
-+	if (priv->frontend.ops.tuner_ops.get_if_frequency
-+			&& (priv->flags & CXD2841ER_AUTO_IFHZ))
-+		priv->frontend.ops.tuner_ops.get_if_frequency(
-+			&priv->frontend, &hz);
-+	else
-+		hz = def_hz;
-+
-+	return hz;
-+}
-+
- static int cxd2841er_tuner_set(struct dvb_frontend *fe)
- {
- 	struct cxd2841er_priv *priv = fe->demodulator_priv;
-@@ -2147,7 +2161,7 @@ static int cxd2841er_dvbt2_set_plp_config(struct cxd2841er_priv *priv,
- static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
- 						u32 bandwidth)
- {
--	u32 iffreq;
-+	u32 iffreq, ifhz;
- 	u8 data[MAX_WRITE_REGSIZE];
- 
- 	const uint8_t nominalRate8bw[3][5] = {
-@@ -2253,7 +2267,8 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef8bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4800000);
-+		ifhz = cxd2841er_get_if_hz(priv, 4800000);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2281,7 +2296,8 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef7bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4200000);
-+		ifhz = cxd2841er_get_if_hz(priv, 4200000);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2309,7 +2325,8 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef6bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
-+		ifhz = cxd2841er_get_if_hz(priv, 3600000);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2337,7 +2354,8 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef5bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
-+		ifhz = cxd2841er_get_if_hz(priv, 3600000);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2365,7 +2383,8 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef17bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3500000);
-+		ifhz = cxd2841er_get_if_hz(priv, 3500000);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2384,7 +2403,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
- 		struct cxd2841er_priv *priv, u32 bandwidth)
- {
- 	u8 data[MAX_WRITE_REGSIZE];
--	u32 iffreq;
-+	u32 iffreq, ifhz;
- 	u8 nominalRate8bw[3][5] = {
- 		/* TRCG Nominal Rate [37:0] */
- 		{0x11, 0xF0, 0x00, 0x00, 0x00}, /* 20.5MHz XTal */
-@@ -2464,7 +2483,8 @@ static int cxd2841er_sleep_tc_to_active_t_band(
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef8bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4800000);
-+		ifhz = cxd2841er_get_if_hz(priv, 4800000);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2499,7 +2519,8 @@ static int cxd2841er_sleep_tc_to_active_t_band(
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef7bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4200000);
-+		ifhz = cxd2841er_get_if_hz(priv, 4200000);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2534,7 +2555,8 @@ static int cxd2841er_sleep_tc_to_active_t_band(
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef6bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
-+		ifhz = cxd2841er_get_if_hz(priv, 3600000);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2569,7 +2591,8 @@ static int cxd2841er_sleep_tc_to_active_t_band(
- 		cxd2841er_write_regs(priv, I2C_SLVT,
- 				0xA6, itbCoef5bw[priv->xtal], 14);
- 		/* <IF freq setting> */
--		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
-+		ifhz = cxd2841er_get_if_hz(priv, 3600000);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2602,7 +2625,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
- static int cxd2841er_sleep_tc_to_active_i_band(
- 		struct cxd2841er_priv *priv, u32 bandwidth)
- {
--	u32 iffreq;
-+	u32 iffreq, ifhz;
- 	u8 data[3];
- 
- 	/* TRCG Nominal Rate */
-@@ -2671,7 +2694,8 @@ static int cxd2841er_sleep_tc_to_active_i_band(
- 				0xA6, itbCoef8bw[priv->xtal], 14);
- 
- 		/* IF freq setting */
--		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4750000);
-+		ifhz = cxd2841er_get_if_hz(priv, 4750000);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2700,7 +2724,8 @@ static int cxd2841er_sleep_tc_to_active_i_band(
- 				0xA6, itbCoef7bw[priv->xtal], 14);
- 
- 		/* IF freq setting */
--		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4150000);
-+		ifhz = cxd2841er_get_if_hz(priv, 4150000);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2729,7 +2754,8 @@ static int cxd2841er_sleep_tc_to_active_i_band(
- 				0xA6, itbCoef6bw[priv->xtal], 14);
- 
- 		/* IF freq setting */
--		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3550000);
-+		ifhz = cxd2841er_get_if_hz(priv, 3550000);
-+		iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
- 		data[0] = (u8) ((iffreq >> 16) & 0xff);
- 		data[1] = (u8)((iffreq >> 8) & 0xff);
- 		data[2] = (u8)(iffreq & 0xff);
-@@ -2772,7 +2798,7 @@ static int cxd2841er_sleep_tc_to_active_c_band(struct cxd2841er_priv *priv,
- 		0x27, 0xA7, 0x28, 0xB3, 0x02, 0xF0, 0x01, 0xE8,
- 		0x00, 0xCF, 0x00, 0xE6, 0x23, 0xA4 };
- 	u8 b10_b6[3];
--	u32 iffreq;
-+	u32 iffreq, ifhz;
- 
- 	if (bandwidth != 6000000 &&
- 			bandwidth != 7000000 &&
-@@ -2790,13 +2816,15 @@ static int cxd2841er_sleep_tc_to_active_c_band(struct cxd2841er_priv *priv,
- 		cxd2841er_write_regs(
- 			priv, I2C_SLVT, 0xa6,
- 			bw7_8mhz_b10_a6, sizeof(bw7_8mhz_b10_a6));
--		iffreq = cxd2841er_calc_iffreq(4900000);
-+		ifhz = cxd2841er_get_if_hz(priv, 4900000);
-+		iffreq = cxd2841er_calc_iffreq(ifhz);
+ 	switch (protocol) {
++	case RC_TYPE_NEC:
+ 	case RC_TYPE_NECX:
+-		if ((((s >> 16) ^ ~(s >> 8)) & 0xff) == 0)
+-			return -EINVAL;
+-		break;
+-	case RC_TYPE_NEC32:
+-		if ((((s >> 24) ^ ~(s >> 16)) & 0xff) == 0)
+-			return -EINVAL;
+-		break;
++		return -EINVAL;
+ 	case RC_TYPE_RC6_MCE:
+ 		if ((s & 0xffff0000) != 0x800f0000)
+ 			return -EINVAL;
+@@ -1301,7 +1294,7 @@ static ssize_t store_filter(struct device *device,
+ /*
+  * This is the list of all variants of all protocols, which is used by
+  * the wakeup_protocols sysfs entry. In the protocols sysfs entry some
+- * some protocols are grouped together (e.g. nec = nec + necx + nec32).
++ * some protocols are grouped together.
+  *
+  * For wakeup we need to know the exact protocol variant so the hardware
+  * can be programmed exactly what to expect.
+@@ -1316,9 +1309,7 @@ static const char * const proto_variant_names[] = {
+ 	[RC_TYPE_SONY12] = "sony-12",
+ 	[RC_TYPE_SONY15] = "sony-15",
+ 	[RC_TYPE_SONY20] = "sony-20",
+-	[RC_TYPE_NEC] = "nec",
+-	[RC_TYPE_NECX] = "nec-x",
+-	[RC_TYPE_NEC32] = "nec-32",
++	[RC_TYPE_NEC32] = "nec",
+ 	[RC_TYPE_SANYO] = "sanyo",
+ 	[RC_TYPE_MCIR2_KBD] = "mcir2-kbd",
+ 	[RC_TYPE_MCIR2_MSE] = "mcir2-mse",
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index 5a4d4a611197..6ef0e7232356 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -714,34 +714,6 @@ wbcir_shutdown(struct pnp_dev *device)
+ 		proto = IR_PROTOCOL_RC5;
  		break;
- 	case 6000000:
- 		cxd2841er_write_regs(
- 			priv, I2C_SLVT, 0xa6,
- 			bw6mhz_b10_a6, sizeof(bw6mhz_b10_a6));
--		iffreq = cxd2841er_calc_iffreq(3700000);
-+		ifhz = cxd2841er_get_if_hz(priv, 3700000);
-+		iffreq = cxd2841er_calc_iffreq(ifhz);
- 		break;
- 	default:
- 		dev_err(&priv->i2c->dev, "%s(): unsupported bandwidth %d\n",
-diff --git a/drivers/media/dvb-frontends/cxd2841er.h b/drivers/media/dvb-frontends/cxd2841er.h
-index 15564af..38d7f9f 100644
---- a/drivers/media/dvb-frontends/cxd2841er.h
-+++ b/drivers/media/dvb-frontends/cxd2841er.h
-@@ -25,6 +25,7 @@
- #include <linux/dvb/frontend.h>
  
- #define CXD2841ER_USE_GATECTRL	1
-+#define CXD2841ER_AUTO_IFHZ	2
- 
- enum cxd2841er_xtal {
- 	SONY_XTAL_20500, /* 20.5 MHz */
--- 
-2.10.2
+-	case RC_TYPE_NEC:
+-		mask[1] = bitrev8(mask_sc);
+-		mask[0] = mask[1];
+-		mask[3] = bitrev8(mask_sc >> 8);
+-		mask[2] = mask[3];
+-
+-		match[1] = bitrev8(wake_sc);
+-		match[0] = ~match[1];
+-		match[3] = bitrev8(wake_sc >> 8);
+-		match[2] = ~match[3];
+-
+-		proto = IR_PROTOCOL_NEC;
+-		break;
+-
+-	case RC_TYPE_NECX:
+-		mask[1] = bitrev8(mask_sc);
+-		mask[0] = mask[1];
+-		mask[2] = bitrev8(mask_sc >> 8);
+-		mask[3] = bitrev8(mask_sc >> 16);
+-
+-		match[1] = bitrev8(wake_sc);
+-		match[0] = ~match[1];
+-		match[2] = bitrev8(wake_sc >> 8);
+-		match[3] = bitrev8(wake_sc >> 16);
+-
+-		proto = IR_PROTOCOL_NEC;
+-		break;
+-
+ 	case RC_TYPE_NEC32:
+ 		mask[0] = bitrev8(mask_sc);
+ 		mask[1] = bitrev8(mask_sc >> 8);
+@@ -1087,8 +1059,8 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
+ 	data->dev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
+ 	data->dev->rx_resolution = US_TO_NS(2);
+ 	data->dev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
+-	data->dev->allowed_wakeup_protocols = RC_BIT_NEC | RC_BIT_NECX |
+-			RC_BIT_NEC32 | RC_BIT_RC5 | RC_BIT_RC6_0 |
++	data->dev->allowed_wakeup_protocols =
++			RC_BIT_NEC | RC_BIT_RC5 | RC_BIT_RC6_0 |
+ 			RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 |
+ 			RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE;
+ 	data->dev->wakeup_protocol = RC_TYPE_RC6_MCE;
