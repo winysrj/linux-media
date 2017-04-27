@@ -1,203 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:47369 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751496AbdDCPMD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 11:12:03 -0400
-Subject: Re: [PATCH RFC 1/2] [media] v4l2: add V4L2_INPUT_TYPE_DEFAULT
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:57470 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1032764AbdD0Wm5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 18:42:57 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Hans Verkuil <hverkuil@xs4all.nl>
-References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
- <edfc014d-3b5e-53f9-04f0-95ae4fd4017e@xs4all.nl>
- <20170331065714.228634d1@vento.lan>
-From: Helen Koike <helen.koike@collabora.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-        jgebben@codeaurora.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Message-ID: <7922bf67-33cc-a377-02c3-45603f1c0ebc@collabora.com>
-Date: Mon, 3 Apr 2017 12:11:54 -0300
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v4 20/27] rcar-vin: register a media pad if running in media controller mode
+Date: Fri, 28 Apr 2017 00:41:56 +0200
+Message-Id: <20170427224203.14611-21-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20170331065714.228634d1@vento.lan>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+When running in media controller mode a media pad is needed, register
+one.
 
-On 2017-03-31 06:57 AM, Mauro Carvalho Chehab wrote:
-> Em Fri, 31 Mar 2017 10:29:04 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->
->> On 30/03/17 18:02, Helen Koike wrote:
->>> Add V4L2_INPUT_TYPE_DEFAULT and helpers functions for input ioctls to be
->>> used when no inputs are available in the device
->>>
->>> Signed-off-by: Helen Koike <helen.koike@collabora.com>
->>> ---
->>>  drivers/media/v4l2-core/v4l2-ioctl.c | 27 +++++++++++++++++++++++++++
->>>  include/media/v4l2-ioctl.h           | 26 ++++++++++++++++++++++++++
->>>  include/uapi/linux/videodev2.h       |  1 +
->>>  3 files changed, 54 insertions(+)
->>>
->>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
->>> index 0c3f238..ccaf04b 100644
->>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
->>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
->>> @@ -2573,6 +2573,33 @@ struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
->>>  	return vdev->lock;
->>>  }
->>>
->>> +int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
->>> +				  struct v4l2_input *i)
->>> +{
->>> +	if (i->index > 0)
->>> +		return -EINVAL;
->>> +
->>> +	memset(i, 0, sizeof(*i));
->>> +	i->type = V4L2_INPUT_TYPE_DEFAULT;
->>> +	strlcpy(i->name, "Default", sizeof(i->name));
->>> +
->>> +	return 0;
->>> +}
->>> +EXPORT_SYMBOL(v4l2_ioctl_enum_input_default);
->>> +
->>> +int v4l2_ioctl_g_input_default(struct file *file, void *priv, unsigned int *i)
->>> +{
->>> +	*i = 0;
->>> +	return 0;
->>> +}
->>> +EXPORT_SYMBOL(v4l2_ioctl_g_input_default);
->>> +
->>> +int v4l2_ioctl_s_input_default(struct file *file, void *priv, unsigned int i)
->>> +{
->>> +	return i ? -EINVAL : 0;
->>> +}
->>> +EXPORT_SYMBOL(v4l2_ioctl_s_input_default);
->>> +
->>>  /* Common ioctl debug function. This function can be used by
->>>     external ioctl messages as well as internal V4L ioctl */
->>>  void v4l_printk_ioctl(const char *prefix, unsigned int cmd)
->>> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
->>> index 6cd94e5..accc470 100644
->>> --- a/include/media/v4l2-ioctl.h
->>> +++ b/include/media/v4l2-ioctl.h
->>> @@ -652,6 +652,32 @@ struct video_device;
->>>   */
->>>  struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned int cmd);
->>>
->>> +
->>> +/**
->>> + * v4l2_ioctl_enum_input_default - v4l2 ioctl helper for VIDIOC_ENUM_INPUT ioctl
->>> + *
->>> + * Plug this function in vidioc_enum_input field of the struct v4l2_ioctl_ops to
->>> + * enumerate a single input as V4L2_INPUT_TYPE_DEFAULT
->>> + */
->>> +int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
->>> +				  struct v4l2_input *i);
->>> +
->>> +/**
->>> + * v4l2_ioctl_g_input_default - v4l2 ioctl helper for VIDIOC_G_INPUT ioctl
->>> + *
->>> + * Plug this function in vidioc_g_input field of the struct v4l2_ioctl_ops
->>> + * when using v4l2_ioctl_enum_input_default
->>> + */
->>> +int v4l2_ioctl_g_input_default(struct file *file, void *priv, unsigned int *i);
->>> +
->>> +/**
->>> + * v4l2_ioctl_s_input_default - v4l2 ioctl helper for VIDIOC_S_INPUT ioctl
->>> + *
->>> + * Plug this function in vidioc_s_input field of the struct v4l2_ioctl_ops
->>> + * when using v4l2_ioctl_enum_input_default
->>> + */
->>> +int v4l2_ioctl_s_input_default(struct file *file, void *priv, unsigned int i);
->>> +
->>>  /* names for fancy debug output */
->>>  extern const char *v4l2_field_names[];
->>>  extern const char *v4l2_type_names[];
->>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
->>> index 316be62..c10bbde 100644
->>> --- a/include/uapi/linux/videodev2.h
->>> +++ b/include/uapi/linux/videodev2.h
->>> @@ -1477,6 +1477,7 @@ struct v4l2_input {
->>>  };
->>>
->>>  /*  Values for the 'type' field */
->>> +#define V4L2_INPUT_TYPE_DEFAULT		0
->>
->> I don't think we should add a new type here.
->
-> I second that. Just replied the same thing on a comment from Sakari to
-> patch 2/2.
->
->> The whole point of this exercise is to
->> allow existing apps to work, and existing apps expect a TYPE_CAMERA.
->>
->> BTW, don't read to much in the term 'CAMERA': it's really a catch all for any video
->> stream, whether it is from a sensor, composite input, HDMI, etc.
->>
->> The description for V4L2_INPUT_TYPE_CAMERA in the spec is hopelessly out of date :-(
->
-> Yeah, we always used "CAMERA" to mean NOT_TUNER.
->
->> Rather than creating a new type I would add a new V4L2_IN_CAP_MC capability that
->> indicates that this input is controlled via the media controller. That makes much
->> more sense and it wouldn't potentially break applications.
->>
->> Exactly the same can be done for outputs as well: add V4L2_OUT_CAP_MC and use
->> V4L2_OUTPUT_TYPE_ANALOG as the output type (again, a horrible outdated name and the
->> spec is again out of date).
->
-> I don't see any sense on distinguishing IN and OUT for MC. I mean: should
-> we ever allow that any driver to have their inputs controlled via V4L2 API,
-> and their outputs controlled via MC (or vice-versa)? I don't think so.
->
-> Either all device inputs/outputs are controlled via V4L2 or via MC. So,
-> let's call it just V4L2_CAP_MC.
->
->> Regarding the name: should we use the name stored in struct video_device instead?
->> That might be more descriptive.
->
-> Makes sense to me.
->
->> Alternatively use something like "Media Controller Input".
->
-> Yeah, we could do that, if V4L2_CAP_MC. if not, we can use the name
-> stored at video_device.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 9 +++++++++
+ drivers/media/platform/rcar-vin/rcar-vin.h  | 4 ++++
+ 2 files changed, 13 insertions(+)
 
-Just to clarify: the V4L2_CAP_MC would indicated that the media 
-controller is enabled in general? Or just for inputs and outputs?
-If it is the first case, not necessarily the inputs/outputs are 
-controlled via MC (we can still have a MC capable driver, but 
-inputs/outputs controlled via V4L2 no? When the driver doesn't offer the 
-necessary link controls via MC), then checking if V4L2_CAP_MC then use 
-the name "Media Controller Input" is not enough.
-If it is the second case, then wouldn't it be better to name it 
-V4L2_CAP_MC_IO ?
-
-Thanks
-
-Helen
-
->
->> More helpful (perhaps) than just "Default" or "Unknown".
->>
->> I'll make a patch to update the input/output type description in the spec.
->
-> Thanks!
->
->>
->> Regards,
->>
->> 	Hans
->>
->>>  #define V4L2_INPUT_TYPE_TUNER		1
->>>  #define V4L2_INPUT_TYPE_CAMERA		2
->>>  #define V4L2_INPUT_TYPE_TOUCH		3
->>>
->>
->
->
->
-> Thanks,
-> Mauro
->
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 7aaa01dee014d64b..f560d27449b84882 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -267,7 +267,16 @@ static int rvin_group_init(struct rvin_dev *vin)
+ 	if (ret)
+ 		return ret;
+ 
++	vin->pad.flags = MEDIA_PAD_FL_SINK;
++	ret = media_entity_pads_init(&vin->vdev->entity, 1, &vin->pad);
++	if (ret)
++		goto error_v4l2;
++
+ 	return 0;
++error_v4l2:
++	rvin_v4l2_mc_remove(vin);
++
++	return ret;
+ }
+ 
+ /* -----------------------------------------------------------------------------
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 6f2b1e28381678a9..06934313950253f4 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -103,6 +103,8 @@ struct rvin_info {
+  * @notifier:		V4L2 asynchronous subdevs notifier
+  * @digital:		entity in the DT for local digital subdevice
+  *
++ * @pad:		pad for media controller
++ *
+  * @lock:		protects @queue
+  * @queue:		vb2 buffers queue
+  *
+@@ -132,6 +134,8 @@ struct rvin_dev {
+ 	struct v4l2_async_notifier notifier;
+ 	struct rvin_graph_entity digital;
+ 
++	struct media_pad pad;
++
+ 	struct mutex lock;
+ 	struct vb2_queue queue;
+ 
+-- 
+2.12.2
