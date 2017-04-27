@@ -1,62 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35183 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753585AbdDCQJd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 12:09:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kbingham@kernel.org>
-Cc: linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH] uvcvideo: Fix empty packet statistic
-Date: Mon, 03 Apr 2017 19:10:13 +0300
-Message-ID: <2233324.kYs3IlRQ2o@avalon>
-In-Reply-To: <1491218732-12068-2-git-send-email-kbingham@kernel.org>
-References: <1491218732-12068-2-git-send-email-kbingham@kernel.org>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:57607 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1034085AbdD0WnF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 18:43:05 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 2/2] media: entity: Add media_entity_pad_from_dt_regs() function
+Date: Fri, 28 Apr 2017 00:33:23 +0200
+Message-Id: <20170427223323.13861-3-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170427223323.13861-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170427223323.13861-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+This is a wrapper around the media entity pad_from_dt_regs operation.
 
-Thank you for the patch.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/media-entity.c | 21 +++++++++++++++++++++
+ include/media/media-entity.h | 22 ++++++++++++++++++++++
+ 2 files changed, 43 insertions(+)
 
-On Monday 03 Apr 2017 12:25:32 Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-> 
-> The frame counters are inadvertently counting packets with content as
-> empty.
-> 
-> Fix it by correcting the logic expression
-> 
-> Fixes: 7bc5edb00bbd [media] uvcvideo: Extract video stream statistics
-> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree.
-
-> ---
->  drivers/media/usb/uvc/uvc_video.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index 075a0fe77485..7777ed24908b 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -818,7 +818,7 @@ static void uvc_video_stats_decode(struct uvc_streaming
-> *stream,
-> 
->  	/* Update the packets counters. */
->  	stream->stats.frame.nb_packets++;
-> -	if (len > header_size)
-> +	if (len <= header_size)
->  		stream->stats.frame.nb_empty++;
-> 
->  	if (data[1] & UVC_STREAM_ERR)
-
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 5640ca29da8c9bbc..6ef76186d552724e 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -386,6 +386,27 @@ struct media_entity *media_graph_walk_next(struct media_graph *graph)
+ }
+ EXPORT_SYMBOL_GPL(media_graph_walk_next);
+ 
++int media_entity_pad_from_dt_regs(struct media_entity *entity,
++				  int port_reg, int reg, unsigned int *pad)
++{
++	int ret;
++
++	if (!entity->ops || !entity->ops->pad_from_dt_regs) {
++		*pad = port_reg;
++		return 0;
++	}
++
++	ret = entity->ops->pad_from_dt_regs(port_reg, reg, pad);
++	if (ret)
++		return ret;
++
++	if (*pad >= entity->num_pads)
++		return -EINVAL;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(media_entity_pad_from_dt_regs);
++
+ /* -----------------------------------------------------------------------------
+  * Pipeline management
+  */
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 47efaf4d825e671b..c60a3713d0a21baf 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -820,6 +820,28 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
+ struct media_entity *media_entity_get(struct media_entity *entity);
+ 
+ /**
++ * media_entity_pad_from_dt_regs - Get pad number from DT regs
++ *
++ * @entity: The entity
++ * @port_reg: DT port
++ * @reg: DT reg
++ * @pad: Pointer to pad which will be filled in
++ *
++ * This function can be used to resolve the media pad number from
++ * DT port and reg numbers. This is useful for devices which
++ * uses more complex mappings of media pads then that the
++ * DT port number is equivalent to the media pad number.
++ *
++ * If the entity do not implement the pad_from_dt_regs() operation
++ * this function assumes DT port is equivalent to media pad number
++ * and sets @pad to @port_reg.
++ *
++ * Return: 0 on success else -EINVAL.
++ */
++int media_entity_pad_from_dt_regs(struct media_entity *entity,
++				  int port_reg, int reg, unsigned int *pad);
++
++/**
+  * media_graph_walk_init - Allocate resources used by graph walk.
+  *
+  * @graph: Media graph structure that will be used to walk the graph
 -- 
-Regards,
-
-Laurent Pinchart
+2.12.2
