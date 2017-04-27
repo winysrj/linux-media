@@ -1,66 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:35209 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1166455AbdD2IpB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Apr 2017 04:45:01 -0400
-Date: Sat, 29 Apr 2017 10:44:58 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 6/6] rc-core: add protocol to EVIOC[GS]KEYCODE_V2 ioctl
-Message-ID: <20170429084458.rwoty4bdce6iqftr@hardeman.nu>
-References: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
- <149332526341.32431.11307248841385136294.stgit@zeus.hardeman.nu>
- <20170428083133.2e6621bd@vento.lan>
- <20170428165911.axrlw6aic3cqabas@hardeman.nu>
- <20170428194212.GA7376@gofer.mess.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48906 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S937789AbdD0M1N (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 08:27:13 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 2/2] uvcvideo: Add iFunction or iInterface to device names.
+Date: Thu, 27 Apr 2017 15:28:18 +0300
+Message-Id: <20170427122818.13146-3-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <20170427122818.13146-1-laurent.pinchart@ideasonboard.com>
+References: <20170427122818.13146-1-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170428194212.GA7376@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 28, 2017 at 08:42:13PM +0100, Sean Young wrote:
->On Fri, Apr 28, 2017 at 06:59:11PM +0200, David H‰rdeman wrote:
->> On Fri, Apr 28, 2017 at 08:31:33AM -0300, Mauro Carvalho Chehab wrote:
->> >Em Thu, 27 Apr 2017 22:34:23 +0200
->> >David H‰rdeman <david@hardeman.nu> escreveu:
->> ...
->> >> This patch changes how the "input_keymap_entry" struct is interpreted
->> >> by rc-core by casting it to "rc_keymap_entry":
->> >> 
->> ...
->> >
->> >Nack.
->> 
->> That's not a very constructive approach. If you have a better approach
->> in mind I'm all ears. Because you're surely not suggesting that we stay
->> with the current protocol-less approach forever?
->
->Well, what problem are we trying to solve actually?
+From: Peter Bostr√∂m <pbos@google.com>
 
-I'm not sure what the confusion is? Last time around we discussed this
-there seemed to be general agreement that protocol information is
-useful?
+Permits distinguishing between two /dev/videoX entries from the same
+physical UVC device (that naturally share the same iProduct name).
 
->Looking at the keymaps we have already, there are many scancodes which
->overlap and only a few of them use a different protocol. So having this
->feature will not suddenly make it possible to load all our keymaps, it
->will just make it possible to simultaneously load a few more.
+This change matches current Windows behavior by prioritizing iFunction
+over iInterface, but unlike Windows it displays both iProduct and
+iFunction/iInterface strings when both are available.
 
-That's not really the point, overlaps in scancode && protocol cannot be
-distinguished. But overlaps in scancode can be. I have remotes which
-overlap in scancode even though they have different protocols.
+Signed-off-by: Peter Bostr√∂m <pbos@google.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 25 ++++++++++++++++++++++---
+ 1 file changed, 22 insertions(+), 3 deletions(-)
 
->> 
->> That's a gross oversimplification.
->
->This can be implemented without breaking userspace.
-
-How?
-
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 602256ffe14d..70842c5af05b 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -2013,6 +2013,7 @@ static int uvc_probe(struct usb_interface *intf,
+ {
+ 	struct usb_device *udev = interface_to_usbdev(intf);
+ 	struct uvc_device *dev;
++	int function;
+ 	int ret;
+ 
+ 	if (id->idVendor && id->idProduct)
+@@ -2044,9 +2045,27 @@ static int uvc_probe(struct usb_interface *intf,
+ 		strlcpy(dev->name, udev->product, sizeof dev->name);
+ 	else
+ 		snprintf(dev->name, sizeof dev->name,
+-			"UVC Camera (%04x:%04x)",
+-			le16_to_cpu(udev->descriptor.idVendor),
+-			le16_to_cpu(udev->descriptor.idProduct));
++			 "UVC Camera (%04x:%04x)",
++			 le16_to_cpu(udev->descriptor.idVendor),
++			 le16_to_cpu(udev->descriptor.idProduct));
++
++	/*
++	 * Add iFunction or iInterface to names when available as additional
++	 * distinguishers between interfaces. iFunction is prioritized over
++	 * iInterface which matches Windows behavior at the point of writing.
++	 */
++	if (intf->intf_assoc && intf->intf_assoc->iFunction != 0)
++		function = intf->intf_assoc->iFunction;
++	else
++		function = intf->cur_altsetting->desc.iInterface;
++	if (function != 0) {
++		size_t len;
++
++		strlcat(dev->name, ": ", sizeof(dev->name));
++		len = strlen(dev->name);
++		usb_string(udev, function, dev->name + len,
++			   sizeof(dev->name) - len);
++	}
+ 
+ 	/* Parse the Video Class control descriptor. */
+ 	if (uvc_parse_control(dev) < 0) {
 -- 
-David H‰rdeman
+Regards,
+
+Laurent Pinchart
