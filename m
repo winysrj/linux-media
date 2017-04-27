@@ -1,136 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:38139 "EHLO ale.deltatee.com"
+Received: from mail.kernel.org ([198.145.29.136]:43044 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751528AbdDMWGZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 18:06:25 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Steve Wise <swise@opengridcomputing.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:19 -0600
-Message-Id: <1492121135-4437-7-git-send-email-logang@deltatee.com>
-In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 06/22] crypto: hifn_795x: Make use of the new sg_map helper function
+        id S1164087AbdD0S0P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 14:26:15 -0400
+From: Kieran Bingham <kbingham@kernel.org>
+To: laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
+        sakari.ailus@iki.fi
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH 1/5] v4l2-subdev: Provide a port mapping for asynchronous subdevs
+Date: Thu, 27 Apr 2017 19:26:00 +0100
+Message-Id: <1493317564-18026-2-git-send-email-kbingham@kernel.org>
+In-Reply-To: <1493317564-18026-1-git-send-email-kbingham@kernel.org>
+References: <1493317564-18026-1-git-send-email-kbingham@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Conversion of a couple kmap_atomic instances to the sg_map helper
-function.
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-However, it looks like there was a bug in the original code: the source
-scatter lists offset (t->offset) was passed to ablkcipher_get which
-added it to the destination address. This doesn't make a lot of
-sense, but t->offset is likely always zero anyway. So, this patch cleans
-that brokeness up.
+Devices such as the the ADV748x support multiple parallel stream routes
+through a single chip. This leads towards needing to provide multiple
+distinct entities and subdevs from a single device-tree node.
 
-Also, a change to the error path: if ablkcipher_get failed, everything
-seemed to proceed as if it hadn't. Setting 'error' should hopefully
-clear that up.
+To distinguish these separate outputs, the device-tree binding must
+specify each endpoint link with a unique (to the device) non-zero port
+number.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+This number allows async subdev registrations to identify the correct
+subdevice to bind and link.
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
- drivers/crypto/hifn_795x.c | 32 +++++++++++++++++++++-----------
- 1 file changed, 21 insertions(+), 11 deletions(-)
+ drivers/media/v4l2-core/v4l2-async.c  | 7 +++++++
+ drivers/media/v4l2-core/v4l2-subdev.c | 1 +
+ include/media/v4l2-async.h            | 1 +
+ include/media/v4l2-subdev.h           | 2 ++
+ 4 files changed, 11 insertions(+)
 
-diff --git a/drivers/crypto/hifn_795x.c b/drivers/crypto/hifn_795x.c
-index e09d405..8e2c6a9 100644
---- a/drivers/crypto/hifn_795x.c
-+++ b/drivers/crypto/hifn_795x.c
-@@ -1619,7 +1619,7 @@ static int hifn_start_device(struct hifn_device *dev)
- 	return 0;
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 1815e54e8a38..875e6ce646ec 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -42,6 +42,13 @@ static bool match_devname(struct v4l2_subdev *sd,
+ 
+ static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
++	/*
++	 * If set, we must match the device tree port, with the subdev port.
++	 * This is a fast match, so do this first
++	 */
++	if (sd->port && sd->port != asd->match.of.port)
++		return -1;
++
+ 	return !of_node_cmp(of_node_full_name(sd->of_node),
+ 			    of_node_full_name(asd->match.of.node));
  }
- 
--static int ablkcipher_get(void *saddr, unsigned int *srestp, unsigned int offset,
-+static int ablkcipher_get(void *saddr, unsigned int *srestp,
- 		struct scatterlist *dst, unsigned int size, unsigned int *nbytesp)
- {
- 	unsigned int srest = *srestp, nbytes = *nbytesp, copy;
-@@ -1632,15 +1632,17 @@ static int ablkcipher_get(void *saddr, unsigned int *srestp, unsigned int offset
- 	while (size) {
- 		copy = min3(srest, dst->length, size);
- 
--		daddr = kmap_atomic(sg_page(dst));
--		memcpy(daddr + dst->offset + offset, saddr, copy);
--		kunmap_atomic(daddr);
-+		daddr = sg_map(dst, SG_KMAP_ATOMIC);
-+		if (IS_ERR(daddr))
-+			return PTR_ERR(daddr);
-+
-+		memcpy(daddr, saddr, copy);
-+		sg_unmap(dst, daddr, SG_KMAP_ATOMIC);
- 
- 		nbytes -= copy;
- 		size -= copy;
- 		srest -= copy;
- 		saddr += copy;
--		offset = 0;
- 
- 		pr_debug("%s: copy: %u, size: %u, srest: %u, nbytes: %u.\n",
- 			 __func__, copy, size, srest, nbytes);
-@@ -1671,11 +1673,12 @@ static inline void hifn_complete_sa(struct hifn_device *dev, int i)
- 
- static void hifn_process_ready(struct ablkcipher_request *req, int error)
- {
-+	int err;
- 	struct hifn_request_context *rctx = ablkcipher_request_ctx(req);
- 
- 	if (rctx->walk.flags & ASYNC_FLAGS_MISALIGNED) {
- 		unsigned int nbytes = req->nbytes;
--		int idx = 0, err;
-+		int idx = 0;
- 		struct scatterlist *dst, *t;
- 		void *saddr;
- 
-@@ -1695,17 +1698,24 @@ static void hifn_process_ready(struct ablkcipher_request *req, int error)
- 				continue;
- 			}
- 
--			saddr = kmap_atomic(sg_page(t));
-+			saddr = sg_map(t, SG_KMAP_ATOMIC);
-+			if (IS_ERR(saddr)) {
-+				if (!error)
-+					error = PTR_ERR(saddr);
-+				break;
-+			}
-+
-+			err = ablkcipher_get(saddr, &t->length,
-+					     dst, nbytes, &nbytes);
-+			sg_unmap(t, saddr, SG_KMAP_ATOMIC);
- 
--			err = ablkcipher_get(saddr, &t->length, t->offset,
--					dst, nbytes, &nbytes);
- 			if (err < 0) {
--				kunmap_atomic(saddr);
-+				if (!error)
-+					error = err;
- 				break;
- 			}
- 
- 			idx += err;
--			kunmap_atomic(saddr);
- 		}
- 
- 		hifn_cipher_walk_exit(&rctx->walk);
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index da78497ae5ed..67f816f90ac3 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -607,6 +607,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+ 	sd->flags = 0;
+ 	sd->name[0] = '\0';
+ 	sd->grp_id = 0;
++	sd->port = 0;
+ 	sd->dev_priv = NULL;
+ 	sd->host_priv = NULL;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 5b501309b6a7..2988960613ec 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -56,6 +56,7 @@ struct v4l2_async_subdev {
+ 	union {
+ 		struct {
+ 			const struct device_node *node;
++			u32 port;
+ 		} of;
+ 		struct {
+ 			const char *name;
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 0ab1c5df6fac..1c1731b491e5 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -782,6 +782,7 @@ struct v4l2_subdev_platform_data {
+  * @ctrl_handler: The control handler of this subdev. May be NULL.
+  * @name: Name of the sub-device. Please notice that the name must be unique.
+  * @grp_id: can be used to group similar subdevs. Value is driver-specific
++ * @port: driver-specific value to bind multiple subdevs with a single DT node.
+  * @dev_priv: pointer to private data
+  * @host_priv: pointer to private data used by the device where the subdev
+  *	is attached.
+@@ -814,6 +815,7 @@ struct v4l2_subdev {
+ 	struct v4l2_ctrl_handler *ctrl_handler;
+ 	char name[V4L2_SUBDEV_NAME_SIZE];
+ 	u32 grp_id;
++	u32 port;
+ 	void *dev_priv;
+ 	void *host_priv;
+ 	struct video_device *devnode;
 -- 
-2.1.4
+2.7.4
