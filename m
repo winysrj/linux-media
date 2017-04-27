@@ -1,59 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:37526 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751921AbdDKLYz (ORCPT
+Received: from [198.176.57.175] ([198.176.57.175]:50162 "EHLO
+        deadmen.hmeau.com" rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932764AbdD0Eib (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Apr 2017 07:24:55 -0400
-Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0OO800V3AT1H2ZC0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 11 Apr 2017 20:24:53 +0900 (KST)
-Subject: Re: [Patch v3 10/11] [media] s5p-mfc: Add support for HEVC encoder
- (fwd)
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        kbuild-all@01.org
-In-reply-to: <8fc9940e-3cb5-3ca7-f15d-0bf6284433a5@samsung.com>
-Date: Tue, 11 Apr 2017 16:56:14 +0530
-Message-id: <1491909974.11549.5.camel@smitha-fedora>
-MIME-version: 1.0
-Content-transfer-encoding: 7bit
-Content-type: text/plain; charset=utf-8
-References: <CGME20170403060045epcas2p215a1d85248b47cc389e20ff877505b09@epcas2p2.samsung.com>
- <alpine.DEB.2.20.1704030758540.2170@hadrien>
- <1491200242.24095.23.camel@smitha-fedora>
- <8fc9940e-3cb5-3ca7-f15d-0bf6284433a5@samsung.com>
+        Thu, 27 Apr 2017 00:38:31 -0400
+Date: Thu, 27 Apr 2017 11:56:03 +0800
+From: Herbert Xu <herbert@gondor.apana.org.au>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
+        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Stephen Bates <sbates@raithlin.com>,
+        "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH v2 07/21] crypto: shash, caam: Make use of the new sg_map
+ helper function
+Message-ID: <20170427035603.GA32212@gondor.apana.org.au>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+ <1493144468-22493-8-git-send-email-logang@deltatee.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1493144468-22493-8-git-send-email-logang@deltatee.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-04-11 at 11:00 +0200, Sylwester Nawrocki wrote:
-> Hi,
+On Tue, Apr 25, 2017 at 12:20:54PM -0600, Logan Gunthorpe wrote:
+> Very straightforward conversion to the new function in the caam driver
+> and shash library.
 > 
-> On 04/03/2017 08:17 AM, Smitha T Murthy wrote:
-> > On Mon, 2017-04-03 at 08:00 +0200, Julia Lawall wrote:
-> >> See line 2101
-> >>
-> >> julia
-> >>
-> > Thank you for bringing it to my notice, I had not checked on this git.
-> > I will upload the next version of patches soon corresponding to this
-> > git.
+> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+> Cc: Herbert Xu <herbert@gondor.apana.org.au>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> ---
+>  crypto/shash.c                | 9 ++++++---
+>  drivers/crypto/caam/caamalg.c | 8 +++-----
+>  2 files changed, 9 insertions(+), 8 deletions(-)
 > 
-> In general please use the media master branch as a base for your patches
-> (git://linuxtv.org/media_tree.git master). Or latest branch in my
-> git repository, currently it's "for-v4.12/media/next-2" as can be seen
-> here: https://git.linuxtv.org/snawrocki/samsung.git
-> 
-I have submitted the next version(v4) of mfcv10.10 patches based on
-git://linuxtv.org/snawrocki/samsung.git for-v4.12/media/next. But I will
-keep this in mind next time I submit fresh patches. Thank you for the
-information :)
+> diff --git a/crypto/shash.c b/crypto/shash.c
+> index 5e31c8d..5914881 100644
+> --- a/crypto/shash.c
+> +++ b/crypto/shash.c
+> @@ -283,10 +283,13 @@ int shash_ahash_digest(struct ahash_request *req, struct shash_desc *desc)
+>  	if (nbytes < min(sg->length, ((unsigned int)(PAGE_SIZE)) - offset)) {
+>  		void *data;
+>  
+> -		data = kmap_atomic(sg_page(sg));
+> -		err = crypto_shash_digest(desc, data + offset, nbytes,
+> +		data = sg_map(sg, 0, SG_KMAP_ATOMIC);
+> +		if (IS_ERR(data))
+> +			return PTR_ERR(data);
+> +
+> +		err = crypto_shash_digest(desc, data, nbytes,
+>  					  req->result);
+> -		kunmap_atomic(data);
+> +		sg_unmap(sg, data, 0, SG_KMAP_ATOMIC);
+>  		crypto_yield(desc->flags);
+>  	} else
+>  		err = crypto_shash_init(desc) ?:
 
-Regards,
-Smitha
+Nack.  This is an optimisation for the special case of a single
+SG list entry.  In fact in the common case the kmap_atomic should
+disappear altogether in the no-highmem case.  So replacing it
+with sg_map is not acceptable.
+
+Cheers,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
