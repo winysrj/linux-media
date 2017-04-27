@@ -1,225 +1,256 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59375 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2998672AbdDZKxD (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:56400 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1164345AbdD0WiJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Apr 2017 06:53:03 -0400
-Date: Wed, 26 Apr 2017 12:53:00 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
-        Sakari Ailus <sakari.ailus@iki.fi>,
+        Thu, 27 Apr 2017 18:38:09 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         linux-media@vger.kernel.org
-Subject: [patch] propagating controls in libv4l2 was Re: support autofocus /
- autogain in libv4l2
-Message-ID: <20170426105300.GA857@amd>
-References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
- <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170414232332.63850d7b@vento.lan>
- <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan>
- <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan>
- <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH] v4l2-async: add subnotifier registration for subdevices
+Date: Fri, 28 Apr 2017 00:30:35 +0200
+Message-Id: <20170427223035.13164-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="0F1p//8PRICkK4MW"
-Content-Disposition: inline
-In-Reply-To: <20170424224724.5bb52382@vento.lan>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+When registered() of v4l2_subdev_internal_ops is called the subdevice
+have access to the master devices v4l2_dev and it's called with the
+async frameworks list_lock held. In this context the subdevice can
+register its own notifiers to allow for incremental discovery of
+subdevices.
 
---0F1p//8PRICkK4MW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The master device registers the subdevices closest to itself in its
+notifier while the subdevice(s) themself register notifiers for there
+closest neighboring devices when they are registered. Using this
+incremental approach two problems can be solved.
 
-Hi!
+1. The master device no longer have to care how many subdevices exist in
+   the pipeline. It only needs to care about its closest subdevice and
+   arbitrary long pipelines can be created without having to adapt the
+   master device for each case.
 
-> > > IMO, the best place for autofocus is at libv4l2. Putting it on a
-> > > separate "video server" application looks really weird for me. =20
-> >=20
-> > Well... let me see. libraries are quite limited -- it is hard to open
-> > files, or use threads/have custom main loop. It may be useful to
-> > switch resolutions -- do autofocus/autogain at lower resolution, then
-> > switch to high one for taking picture. It would be good to have that
-> > in "system" code, but I'm not at all sure libv4l2 design will allow
-> > that.
->=20
-> I don't see why it would be hard to open files or have threads inside
-> a library. There are several libraries that do that already, specially
-> the ones designed to be used on multimidia apps.
+2. Subdevices which are represented as a single DT node but register
+   more then one subdevice can use this to further the pipeline
+   discovery. Since the subdevice driver is the only one who knows which
+   of its subdevices is linked with which subdevice of a neighboring DT
+   node.
 
-Well, This is what the libv4l2 says:
+To enable subdevices to register/unregister notifiers from the
+registered()/unregistered() callback v4l2_async_subnotifier_register()
+and v4l2_async_subnotifier_unregister() are added. These new notifier
+register functions are similar to the master device equivalent functions
+but run without taking the v4l2-async list_lock which already are held
+when he registered()/unregistered() callbacks are called.
 
-   This file implements libv4l2, which offers v4l2_ prefixed versions
-   of
-      open/close/etc. The API is 100% the same as directly opening
-   /dev/videoX
-      using regular open/close/etc, the big difference is that format
-   conversion
-  =20
-but if I open additional files in v4l2_open(), API is no longer the
-same, as unix open() is defined to open just one file descriptor.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 91 +++++++++++++++++++++++++++++-------
+ include/media/v4l2-async.h           | 22 +++++++++
+ 2 files changed, 95 insertions(+), 18 deletions(-)
 
-Now. There is autogain support in libv4lconvert, but it expects to use
-same fd for camera and for the gain... which does not work with
-subdevs.
-
-Of course, opening subdevs by name like this is not really
-acceptable. But can you suggest a method that is?
-
-Thanks,
-								Pavel
-
-commit 4cf9d10ead014c0db25452e4bb9cd144632407c3
-Author: Pavel <pavel@ucw.cz>
-Date:   Wed Apr 26 11:38:04 2017 +0200
-
-    Add subdevices.
-
-diff --git a/lib/libv4l2/libv4l2-priv.h b/lib/libv4l2/libv4l2-priv.h
-index 343db5e..a6bc48e 100644
---- a/lib/libv4l2/libv4l2-priv.h
-+++ b/lib/libv4l2/libv4l2-priv.h
-@@ -26,6 +26,7 @@
- #include "../libv4lconvert/libv4lsyscall-priv.h"
-=20
- #define V4L2_MAX_DEVICES 16
-+#define V4L2_MAX_SUBDEVS 8
- /* Warning when making this larger the frame_queued and frame_mapped membe=
-rs of
-    the v4l2_dev_info struct can no longer be a bitfield, so the code needs=
- to
-    be adjusted! */
-@@ -104,6 +105,7 @@ struct v4l2_dev_info {
- 	void *plugin_library;
- 	void *dev_ops_priv;
- 	const struct libv4l_dev_ops *dev_ops;
-+        int subdev_fds[V4L2_MAX_SUBDEVS];
- };
-=20
- /* From v4l2-plugin.c */
-diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
-index 0ba0a88..edc9642 100644
---- a/lib/libv4l2/libv4l2.c
-+++ b/lib/libv4l2/libv4l2.c
-@@ -1,3 +1,4 @@
-+/* -*- c-file-style: "linux" -*- */
- /*
- #             (C) 2008 Hans de Goede <hdegoede@redhat.com>
-=20
-@@ -789,18 +790,25 @@ no_capture:
-=20
- 	/* Note we always tell v4lconvert to optimize src fmt selection for
- 	   our default fps, the only exception is the app explicitly selecting
--	   a fram erate using the S_PARM ioctl after a S_FMT */
-+	   a frame rate using the S_PARM ioctl after a S_FMT */
- 	if (devices[index].convert)
- 		v4lconvert_set_fps(devices[index].convert, V4L2_DEFAULT_FPS);
- 	v4l2_update_fps(index, &parm);
-=20
-+	devices[index].subdev_fds[0] =3D SYS_OPEN("/dev/video_sensor", O_RDWR, 0);
-+	devices[index].subdev_fds[1] =3D SYS_OPEN("/dev/video_focus", O_RDWR, 0);
-+	devices[index].subdev_fds[2] =3D -1;
-+
-+	printf("Sensor: %d, focus: %d\n", devices[index].subdev_fds[0],=20
-+	       devices[index].subdev_fds[1]);
-+
- 	V4L2_LOG("open: %d\n", fd);
-=20
- 	return fd;
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 96cc733f35ef72b0..d4a676a2935eb058 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -136,12 +136,13 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+ 	sd->dev = NULL;
  }
-=20
- /* Is this an fd for which we are emulating v4l1 ? */
--static int v4l2_get_index(int fd)
-+int v4l2_get_index(int fd)
+ 
+-int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+-				 struct v4l2_async_notifier *notifier)
++static int v4l2_async_do_notifier_register(struct v4l2_device *v4l2_dev,
++					   struct v4l2_async_notifier *notifier,
++					   bool subnotifier)
  {
- 	int index;
-=20
-
-commit 1d6a9ce121f53e8f2e38549eed597a3c3dea5233
-Author: Pavel <pavel@ucw.cz>
-Date:   Wed Apr 26 12:34:04 2017 +0200
-
-    Enable ioctl propagation.
-
-diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
-index edc9642..6dab661 100644
---- a/lib/libv4l2/libv4l2.c
-+++ b/lib/libv4l2/libv4l2.c
-@@ -1064,6 +1064,23 @@ static int v4l2_s_fmt(int index, struct v4l2_format =
-*dest_fmt)
+ 	struct v4l2_subdev *sd, *tmp;
+ 	struct v4l2_async_subdev *asd;
+-	int i;
++	int found, i;
+ 
+ 	if (!notifier->num_subdevs || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+ 		return -EINVAL;
+@@ -168,32 +169,69 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 		list_add_tail(&asd->list, &notifier->waiting);
+ 	}
+ 
+-	mutex_lock(&list_lock);
++	if (!subnotifier)
++		mutex_lock(&list_lock);
++
++	/*
++	 * This function can be called recursively so the list
++	 * might be modified in a recursive call. Start from the
++	 * top of the list each iteration.
++	 */
++	found = 1;
++	while (found) {
++		found = 0;
+ 
+-	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+-		int ret;
++		list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
++			int ret;
+ 
+-		asd = v4l2_async_belongs(notifier, sd);
+-		if (!asd)
+-			continue;
++			asd = v4l2_async_belongs(notifier, sd);
++			if (!asd)
++				continue;
+ 
+-		ret = v4l2_async_test_notify(notifier, sd, asd);
+-		if (ret < 0) {
+-			mutex_unlock(&list_lock);
+-			return ret;
++			ret = v4l2_async_test_notify(notifier, sd, asd);
++			if (ret < 0) {
++				if (!subnotifier)
++					mutex_unlock(&list_lock);
++				return ret;
++			}
++
++			found = 1;
++			break;
+ 		}
+ 	}
+ 
+ 	/* Keep also completed notifiers on the list */
+ 	list_add(&notifier->list, &notifier_list);
+ 
+-	mutex_unlock(&list_lock);
++	if (!subnotifier)
++		mutex_unlock(&list_lock);
+ 
  	return 0;
  }
-=20
-+static int v4l2_propagate_ioctl(int index, unsigned long request, void *ar=
-g)
-+{
-+	int i =3D 0;
-+	int result;
-+	while (1) {
-+		if (devices[index].subdev_fds[i] =3D=3D -1)
-+			return -1;
-+		printf("g_ctrl failed, trying...\n");
-+		result =3D SYS_IOCTL(devices[index].subdev_fds[i], request, arg);
-+		printf("subdev %d result %d\n", i, result);
-+		if (result =3D=3D 0)
-+			return 0;
-+		i++;
-+	}
-+	return -1;
-+}
 +
- int v4l2_ioctl(int fd, unsigned long int request, ...)
++int v4l2_async_subnotifier_register(struct v4l2_subdev *sd,
++				    struct v4l2_async_notifier *notifier)
++{
++	if (!sd->v4l2_dev) {
++		dev_err(sd->dev ? sd->dev : NULL,
++			"Can't register subnotifier for without v4l2_dev\n");
++		return -EINVAL;
++	}
++
++	return v4l2_async_do_notifier_register(sd->v4l2_dev, notifier, true);
++}
++EXPORT_SYMBOL(v4l2_async_subnotifier_register);
++
++int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
++				 struct v4l2_async_notifier *notifier)
++{
++	return v4l2_async_do_notifier_register(v4l2_dev, notifier, false);
++}
+ EXPORT_SYMBOL(v4l2_async_notifier_register);
+ 
+-void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
++static void
++v4l2_async_do_notifier_unregister(struct v4l2_async_notifier *notifier,
++				  bool subnotifier)
  {
- 	void *arg;
-@@ -1193,14 +1210,20 @@ no_capture_request:
- 	switch (request) {
- 	case VIDIOC_QUERYCTRL:
- 		result =3D v4lconvert_vidioc_queryctrl(devices[index].convert, arg);
-+		if (result =3D=3D -1)
-+			result =3D v4l2_propagate_ioctl(index, request, arg);
- 		break;
-=20
- 	case VIDIOC_G_CTRL:
- 		result =3D v4lconvert_vidioc_g_ctrl(devices[index].convert, arg);
-+		if (result =3D=3D -1)
-+			result =3D v4l2_propagate_ioctl(index, request, arg);
- 		break;
-=20
- 	case VIDIOC_S_CTRL:
- 		result =3D v4lconvert_vidioc_s_ctrl(devices[index].convert, arg);
-+		if (result =3D=3D -1)
-+			result =3D v4l2_propagate_ioctl(index, request, arg);
- 		break;
-=20
- 	case VIDIOC_G_EXT_CTRLS:
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---0F1p//8PRICkK4MW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlkAfAsACgkQMOfwapXb+vLcAwCggy+h9fRmvN4qvADN/nqoZCvX
-69MAmwXHnF8cRmpb+r0sOxNesWQUqbRJ
-=4juX
------END PGP SIGNATURE-----
-
---0F1p//8PRICkK4MW--
+ 	struct v4l2_subdev *sd, *tmp;
+ 	unsigned int notif_n_subdev = notifier->num_subdevs;
+@@ -210,7 +248,8 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 			"Failed to allocate device cache!\n");
+ 	}
+ 
+-	mutex_lock(&list_lock);
++	if (!subnotifier)
++		mutex_lock(&list_lock);
+ 
+ 	list_del(&notifier->list);
+ 
+@@ -237,15 +276,20 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 			put_device(d);
+ 	}
+ 
+-	mutex_unlock(&list_lock);
++	if (!subnotifier)
++		mutex_unlock(&list_lock);
+ 
+ 	/*
+ 	 * Call device_attach() to reprobe devices
+ 	 *
+ 	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
+ 	 * executed.
++	 * TODO: If we are unregistering a subdevice notifier we can't reprobe
++	 * since the lock_list is held by the master device and attaching that
++	 * device would call v4l2_async_register_subdev() and end in a deadlock
++	 * on list_lock.
+ 	 */
+-	while (i--) {
++	while (i-- && !subnotifier) {
+ 		struct device *d = dev[i];
+ 
+ 		if (d && device_attach(d) < 0) {
+@@ -269,6 +313,17 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 	 * upon notifier registration.
+ 	 */
+ }
++
++void v4l2_async_subnotifier_unregister(struct v4l2_async_notifier *notifier)
++{
++	v4l2_async_do_notifier_unregister(notifier, true);
++}
++EXPORT_SYMBOL(v4l2_async_subnotifier_unregister);
++
++void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
++{
++	v4l2_async_do_notifier_unregister(notifier, false);
++}
+ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+ 
+ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 8e2a236a4d039df6..dee070be59f211bd 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -105,6 +105,18 @@ struct v4l2_async_notifier {
+ };
+ 
+ /**
++ * v4l2_async_notifier_register - registers a subdevice asynchronous subnotifier
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ * @notifier: pointer to &struct v4l2_async_notifier
++ *
++ * This function assumes the async list_lock is already locked, allowing
++ * it to be used from struct v4l2_subdev_internal_ops registered() callback.
++ */
++int v4l2_async_subnotifier_register(struct v4l2_subdev *sd,
++				    struct v4l2_async_notifier *notifier);
++
++/**
+  * v4l2_async_notifier_register - registers a subdevice asynchronous notifier
+  *
+  * @v4l2_dev: pointer to &struct v4l2_device
+@@ -114,6 +126,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 				 struct v4l2_async_notifier *notifier);
+ 
+ /**
++ * v4l2_async_subnotifier_unregister - unregisters a asynchronous subnotifier
++ *
++ * @notifier: pointer to &struct v4l2_async_notifier
++ *
++ * This function assumes the async list_lock is already locked, allowing
++ * it to be used from struct v4l2_subdev_internal_ops unregistered() callback.
++ */
++void v4l2_async_subnotifier_unregister(struct v4l2_async_notifier *notifier);
++
++/**
+  * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
+  *
+  * @notifier: pointer to &struct v4l2_async_notifier
+-- 
+2.12.2
