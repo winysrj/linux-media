@@ -1,191 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:39957
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755229AbdDENX0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 09:23:26 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org
-Subject: [PATCH v2 12/21] usb/dma.txt: convert to ReST and add to driver-api book
-Date: Wed,  5 Apr 2017 10:23:06 -0300
-Message-Id: <57b0087343387e4aa207c3e8af314c8eb22a67a4.1491398120.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
-References: <cover.1491398120.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1491398120.git.mchehab@s-opensource.com>
-References: <cover.1491398120.git.mchehab@s-opensource.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:57479 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1031951AbdD0Wmz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 18:42:55 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v4 10/27] rcar-vin: do not reset crop and compose when setting format
+Date: Fri, 28 Apr 2017 00:41:46 +0200
+Message-Id: <20170427224203.14611-11-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This document describe some USB core features. Add it to the
-driver-api book.
+It was a bad idea to reset the crop and compose settings when a new
+format is set. This would overwrite any crop/compose set by s_select and
+cause unexpected behaviors, remove it. Also fold the reset helper in to
+the only remaining caller.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- .../{usb/dma.txt => driver-api/usb/dma.rst}        | 51 ++++++++++++----------
- Documentation/driver-api/usb/index.rst             |  1 +
- 2 files changed, 28 insertions(+), 24 deletions(-)
- rename Documentation/{usb/dma.txt => driver-api/usb/dma.rst} (79%)
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff --git a/Documentation/usb/dma.txt b/Documentation/driver-api/usb/dma.rst
-similarity index 79%
-rename from Documentation/usb/dma.txt
-rename to Documentation/driver-api/usb/dma.rst
-index 444651e70d95..59d5aee89e37 100644
---- a/Documentation/usb/dma.txt
-+++ b/Documentation/driver-api/usb/dma.rst
-@@ -1,16 +1,19 @@
-+USB DMA
-+~~~~~~~
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 40bb3d7e73131d3b..e14f0aff8ceecc68 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -90,17 +90,6 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
+  * V4L2
+  */
+ 
+-static void rvin_reset_crop_compose(struct rvin_dev *vin)
+-{
+-	vin->crop.top = vin->crop.left = 0;
+-	vin->crop.width = vin->source.width;
+-	vin->crop.height = vin->source.height;
+-
+-	vin->compose.top = vin->compose.left = 0;
+-	vin->compose.width = vin->format.width;
+-	vin->compose.height = vin->format.height;
+-}
+-
+ static int rvin_reset_format(struct rvin_dev *vin)
+ {
+ 	struct v4l2_subdev_format fmt = {
+@@ -147,7 +136,13 @@ static int rvin_reset_format(struct rvin_dev *vin)
+ 		break;
+ 	}
+ 
+-	rvin_reset_crop_compose(vin);
++	vin->crop.top = vin->crop.left = 0;
++	vin->crop.width = mf->width;
++	vin->crop.height = mf->height;
 +
- In Linux 2.5 kernels (and later), USB device drivers have additional control
- over how DMA may be used to perform I/O operations.  The APIs are detailed
- in the kernel usb programming guide (kerneldoc, from the source code).
++	vin->compose.top = vin->compose.left = 0;
++	vin->compose.width = mf->width;
++	vin->compose.height = mf->height;
  
+ 	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
+ 	vin->format.sizeimage = rvin_format_sizeimage(&vin->format);
+@@ -323,8 +318,6 @@ static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	vin->format = f->fmt.pix;
+ 
+-	rvin_reset_crop_compose(vin);
 -
--API OVERVIEW
-+API overview
-+============
+ 	return 0;
+ }
  
- The big picture is that USB drivers can continue to ignore most DMA issues,
- though they still must provide DMA-ready buffers (see
--Documentation/DMA-API-HOWTO.txt).  That's how they've worked through
--the 2.4 (and earlier) kernels.
-+``Documentation/DMA-API-HOWTO.txt``).  That's how they've worked through
-+the 2.4 (and earlier) kernels, or they can now be DMA-aware.
- 
--OR:  they can now be DMA-aware.
-+DMA-aware usb drivers:
- 
- - New calls enable DMA-aware drivers, letting them allocate dma buffers and
-   manage dma mappings for existing dma-ready buffers (see below).
-@@ -20,15 +23,15 @@ OR:  they can now be DMA-aware.
-   drivers must not use it.)
- 
- - "usbcore" will map this DMA address, if a DMA-aware driver didn't do
--  it first and set URB_NO_TRANSFER_DMA_MAP.  HCDs
-+  it first and set ``URB_NO_TRANSFER_DMA_MAP``.  HCDs
-   don't manage dma mappings for URBs.
- 
- - There's a new "generic DMA API", parts of which are usable by USB device
-   drivers.  Never use dma_set_mask() on any USB interface or device; that
-   would potentially break all devices sharing that bus.
- 
--
--ELIMINATING COPIES
-+Eliminating copies
-+==================
- 
- It's good to avoid making CPUs copy data needlessly.  The costs can add up,
- and effects like cache-trashing can impose subtle penalties.
-@@ -41,7 +44,7 @@ and effects like cache-trashing can impose subtle penalties.
-   For those specific cases, USB has primitives to allocate less expensive
-   memory.  They work like kmalloc and kfree versions that give you the right
-   kind of addresses to store in urb->transfer_buffer and urb->transfer_dma.
--  You'd also set URB_NO_TRANSFER_DMA_MAP in urb->transfer_flags:
-+  You'd also set ``URB_NO_TRANSFER_DMA_MAP`` in urb->transfer_flags::
- 
- 	void *usb_alloc_coherent (struct usb_device *dev, size_t size,
- 		int mem_flags, dma_addr_t *dma);
-@@ -49,15 +52,15 @@ and effects like cache-trashing can impose subtle penalties.
- 	void usb_free_coherent (struct usb_device *dev, size_t size,
- 		void *addr, dma_addr_t dma);
- 
--  Most drivers should *NOT* be using these primitives; they don't need
-+  Most drivers should **NOT** be using these primitives; they don't need
-   to use this type of memory ("dma-coherent"), and memory returned from
--  kmalloc() will work just fine.
-+  :c:func:`kmalloc` will work just fine.
- 
-   The memory buffer returned is "dma-coherent"; sometimes you might need to
-   force a consistent memory access ordering by using memory barriers.  It's
-   not using a streaming DMA mapping, so it's good for small transfers on
-   systems where the I/O would otherwise thrash an IOMMU mapping.  (See
--  Documentation/DMA-API-HOWTO.txt for definitions of "coherent" and
-+  ``Documentation/DMA-API-HOWTO.txt`` for definitions of "coherent" and
-   "streaming" DMA mappings.)
- 
-   Asking for 1/Nth of a page (as well as asking for N pages) is reasonably
-@@ -75,15 +78,15 @@ and effects like cache-trashing can impose subtle penalties.
-   way to expose these capabilities ... and in any case, HIGHMEM is mostly a
-   design wart specific to x86_32.  So your best bet is to ensure you never
-   pass a highmem buffer into a USB driver.  That's easy; it's the default
--  behavior.  Just don't override it; e.g. with NETIF_F_HIGHDMA.
-+  behavior.  Just don't override it; e.g. with ``NETIF_F_HIGHDMA``.
- 
-   This may force your callers to do some bounce buffering, copying from
-   high memory to "normal" DMA memory.  If you can come up with a good way
-   to fix this issue (for x86_32 machines with over 1 GByte of memory),
-   feel free to submit patches.
- 
--
--WORKING WITH EXISTING BUFFERS
-+Working with existing buffers
-+=============================
- 
- Existing buffers aren't usable for DMA without first being mapped into the
- DMA address space of the device.  However, most buffers passed to your
-@@ -92,7 +95,7 @@ of Documentation/DMA-API-HOWTO.txt, titled "What memory is DMA-able?")
- 
- - When you're using scatterlists, you can map everything at once.  On some
-   systems, this kicks in an IOMMU and turns the scatterlists into single
--  DMA transactions:
-+  DMA transactions::
- 
- 	int usb_buffer_map_sg (struct usb_device *dev, unsigned pipe,
- 		struct scatterlist *sg, int nents);
-@@ -103,7 +106,7 @@ of Documentation/DMA-API-HOWTO.txt, titled "What memory is DMA-able?")
- 	void usb_buffer_unmap_sg (struct usb_device *dev, unsigned pipe,
- 		struct scatterlist *sg, int n_hw_ents);
- 
--  It's probably easier to use the new usb_sg_*() calls, which do the DMA
-+  It's probably easier to use the new ``usb_sg_*()`` calls, which do the DMA
-   mapping and apply other tweaks to make scatterlist i/o be fast.
- 
- - Some drivers may prefer to work with the model that they're mapping large
-@@ -112,10 +115,10 @@ of Documentation/DMA-API-HOWTO.txt, titled "What memory is DMA-able?")
-   here, since it's cheaper to just synchronize the buffer than to unmap it
-   each time an urb completes and then re-map it on during resubmission.
- 
--  These calls all work with initialized urbs:  urb->dev, urb->pipe,
--  urb->transfer_buffer, and urb->transfer_buffer_length must all be
--  valid when these calls are used (urb->setup_packet must be valid too
--  if urb is a control request):
-+  These calls all work with initialized urbs:  ``urb->dev``, ``urb->pipe``,
-+  ``urb->transfer_buffer``, and ``urb->transfer_buffer_length`` must all be
-+  valid when these calls are used (``urb->setup_packet`` must be valid too
-+  if urb is a control request)::
- 
- 	struct urb *usb_buffer_map (struct urb *urb);
- 
-@@ -123,9 +126,9 @@ of Documentation/DMA-API-HOWTO.txt, titled "What memory is DMA-able?")
- 
- 	void usb_buffer_unmap (struct urb *urb);
- 
--  The calls manage urb->transfer_dma for you, and set URB_NO_TRANSFER_DMA_MAP
--  so that usbcore won't map or unmap the buffer.  They cannot be used for
--  setup_packet buffers in control requests.
-+  The calls manage ``urb->transfer_dma`` for you, and set
-+  ``URB_NO_TRANSFER_DMA_MAP`` so that usbcore won't map or unmap the buffer.
-+  They cannot be used for setup_packet buffers in control requests.
- 
- Note that several of those interfaces are currently commented out, since
- they don't have current users.  See the source code.  Other than the dmasync
-diff --git a/Documentation/driver-api/usb/index.rst b/Documentation/driver-api/usb/index.rst
-index 23c76c17fc19..d7610777784b 100644
---- a/Documentation/driver-api/usb/index.rst
-+++ b/Documentation/driver-api/usb/index.rst
-@@ -9,6 +9,7 @@ Linux USB API
-    anchors
-    bulk-streams
-    callbacks
-+   dma
-    power-management
-    writing_usb_driver
-    writing_musb_glue_layer
 -- 
-2.9.3
+2.12.2
