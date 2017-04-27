@@ -1,58 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:48924 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752587AbdDJSJL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Apr 2017 14:09:11 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.12] ov2640 & soc_camera sensor cleanups
-Message-ID: <7bafbaa8-120c-76db-7a78-14eae38d0baa@xs4all.nl>
-Date: Mon, 10 Apr 2017 20:09:06 +0200
+Received: from verein.lst.de ([213.95.11.211]:45070 "EHLO newverein.lst.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751950AbdD0Gxl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 02:53:41 -0400
+Date: Thu, 27 Apr 2017 08:53:38 +0200
+From: Christoph Hellwig <hch@lst.de>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org,
+        linux-crypto@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
+        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, dm-devel@redhat.com,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Stephen Bates <sbates@raithlin.com>
+Subject: Re: [PATCH v2 01/21] scatterlist: Introduce sg_map helper functions
+Message-ID: <20170427065338.GA20677@lst.de>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com> <1493144468-22493-2-git-send-email-logang@deltatee.com> <20170426074416.GA7936@lst.de> <4736d44e-bbcf-5d59-a1a9-317d0f4da847@deltatee.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4736d44e-bbcf-5d59-a1a9-317d0f4da847@deltatee.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These are old patches (2015!) that have been lying around in my todo list
-ever since. Since I plan to work a bit on soc-camera sensors (at least
-those that I have) and since ov2640 was just moved out of soc-camera, it is
-time I kick these out.
+On Wed, Apr 26, 2017 at 12:11:33PM -0600, Logan Gunthorpe wrote:
+> Ok, well for starters I think you are mistaken about kmap being able to
+> fail. I'm having a hard time finding many users of that function that
+> bother to check for an error when calling it.
 
-Regards,
+A quick audit of the arch code shows you're right - kmap can't fail
+anywhere anymore.
 
-	Hans
+> The main difficulty we
+> have now is that neither of those functions are expected to fail and we
+> need them to be able to in cases where the page doesn't map to system
+> RAM. This patch series is trying to address it for users of scatterlist.
+> I'm certainly open to other suggestions.
 
-The following changes since commit a9b99bbedae6f861de3be635bdc9382e1e29a4f9:
+I think you'll need to follow the existing kmap semantics and never
+fail the iomem version either.  Otherwise you'll have a special case
+that's almost never used that has a different error path.
 
-  [media] em28xx: drop last soc_camera link (2017-04-10 14:28:39 -0300)
+> There are a fair number of cases in the kernel that do something like:
+> 
+> if (something)
+>     x = kmap(page);
+> else
+>     x = kmap_atomic(page);
+> ...
+> if (something)
+>     kunmap(page)
+> else
+>     kunmap_atomic(x)
+> 
+> Which just seems cumbersome to me.
 
-are available in the git repository at:
+Passing a different flag based on something isn't really much better.
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.12g
+> In any case, if you can accept an sg_kmap and sg_kmap_atomic api just
+> say so and I'll make the change. But I'll still need a flags variable
+> for SG_MAP_MUST_NOT_FAIL to support legacy cases that have no fail path
+> and both of those functions will need to be pretty nearly replicas of
+> each other.
 
-for you to fetch changes up to 738777dd732e97ac664fe5152660d6e9ce6c033c:
-
-  ov2640: avoid calling ov2640_select_win() twice (2017-04-10 20:02:17 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (8):
-      imx074: avoid calling imx074_find_datafmt() twice
-      mt9m001: avoid calling mt9m001_find_datafmt() twice
-      mt9v022: avoid calling mt9v022_find_datafmt() twice
-      ov5642: avoid calling ov5642_find_datafmt() twice
-      ov772x: avoid calling ov772x_select_params() twice
-      ov9640: avoid calling ov9640_res_roundup() twice
-      ov9740: avoid calling ov9740_res_roundup() twice
-      ov2640: avoid calling ov2640_select_win() twice
-
- drivers/media/i2c/ov2640.c             | 18 +++++++-----------
- drivers/media/i2c/soc_camera/imx074.c  |  2 +-
- drivers/media/i2c/soc_camera/mt9m001.c |  8 ++++----
- drivers/media/i2c/soc_camera/mt9v022.c |  8 ++++----
- drivers/media/i2c/soc_camera/ov5642.c  |  2 +-
- drivers/media/i2c/soc_camera/ov772x.c  | 41 +++++++++++++----------------------------
- drivers/media/i2c/soc_camera/ov9640.c  | 24 +++---------------------
- drivers/media/i2c/soc_camera/ov9740.c  | 18 +-----------------
- 8 files changed, 34 insertions(+), 87 deletions(-)
+Again, wrong way.  Suddenly making things fail for your special case
+that normally don't fail is a receipe for bugs.
