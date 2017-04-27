@@ -1,366 +1,347 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34696 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1760698AbdDSIc6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Apr 2017 04:32:58 -0400
-Received: by mail-wm0-f65.google.com with SMTP id z129so3606654wmb.1
-        for <linux-media@vger.kernel.org>; Wed, 19 Apr 2017 01:32:57 -0700 (PDT)
-Date: Wed, 19 Apr 2017 10:32:48 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Laura Abbott <labbott@redhat.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org, romlem@google.com,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-        Mark Brown <broonie@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [PATCHv4 05/12] staging: android: ion: Break the
- ABI in the name of forward progress
-Message-ID: <20170419083248.mwkr5dn3tife2axy@phenom.ffwll.local>
-References: <1492540034-5466-1-git-send-email-labbott@redhat.com>
- <1492540034-5466-6-git-send-email-labbott@redhat.com>
+Received: from gofer.mess.org ([88.97.38.141]:46411 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S968478AbdD0Uyb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 16:54:31 -0400
+Date: Thu, 27 Apr 2017 21:54:24 +0100
+From: Sean Young <sean@mess.org>
+To: A Sun <as1033x@comcast.net>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH v2] [media] mceusb: TX -EPIPE (urb status = -32) lockup
+ fix
+Message-ID: <20170427205424.GA18688@gofer.mess.org>
+References: <58EEC1CB.7030806@comcast.net>
+ <58EF3197.9060707@comcast.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1492540034-5466-6-git-send-email-labbott@redhat.com>
+In-Reply-To: <58EF3197.9060707@comcast.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 18, 2017 at 11:27:07AM -0700, Laura Abbott wrote:
-> Several of the Ion ioctls were designed in such a way that they
-> necessitate compat ioctls. We're breaking a bunch of other ABIs and
-> cleaning stuff up anyway so let's follow the ioctl guidelines and clean
-> things up while everyone is busy converting things over anyway. As part
-> of this, also remove the useless alignment field from the allocation
-> structure.
+On Thu, Apr 13, 2017 at 04:06:47AM -0400, A Sun wrote:
 > 
-> Signed-off-by: Laura Abbott <labbott@redhat.com>
-
-Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-
+> fix previous v1 patch error; incorrect location of "ir->pipe_in = pipe;"
+> caused null pointer dereference
+> 
+> Bug:
+> 
+> Once IR blasting or mceusb device commands fail with mce_async_callback() TX -EPIPE error, all subsequent TX to device then fail with the same error.
+> ...
+> [  249.986174] mceusb 1-1.2:1.0: requesting 38000 HZ carrier
+> [  249.986210] mceusb 1-1.2:1.0: send request called (size=0x4)
+> [  249.986256] mceusb 1-1.2:1.0: send request complete (res=0)
+> [  249.986403] mceusb 1-1.2:1.0: Error: request urb status = -32 (TX HALT)
+> [  249.999885] mceusb 1-1.2:1.0: send request called (size=0x3)
+> [  249.999929] mceusb 1-1.2:1.0: send request complete (res=0)
+> [  250.000013] mceusb 1-1.2:1.0: Error: request urb status = -32 (TX HALT)
+> [  250.019830] mceusb 1-1.2:1.0: send request called (size=0x21)
+> [  250.019868] mceusb 1-1.2:1.0: send request complete (res=0)
+> [  250.020007] mceusb 1-1.2:1.0: Error: request urb status = -32 (TX HALT)
+> ...
+> 
+> Fix:
+> 
+> Message pertains to TX usb halt (stall) condition requiring usb_clear_halt() call in non-interrupt context to recover.
+> Add USB TX halt error handling similar to the RX halt handling case from an earlier patch proposal.
+> Reorder some mceusb code to accommodate TX halt error handling.
+> 
+> This patch depends on the earlier proposed patch set:
+>   [PATCH 1/3] [media] mceusb: RX -EPIPE (urb status = -32) lockup failure fix
+>   [PATCH 2/3] [media] mceusb: sporadic RX truncation corruption fix
+>   [PATCH 3/3] [media] mceusb: fix inaccurate debug buffer dumps and misleading
+> 
+> Tested with:
+> 
+> Linux raspberrypi 4.4.50-v7+ #970 SMP Mon Feb 20 19:18:29 GMT 2017 armv7l GNU/Linux
+> mceusb 1-1.2:1.0: Registered SMK eHome Infrared Transceiver with mce emulator interface version 1
+> mceusb 1-1.2:1.0: 2 tx ports (0x1 cabled) and 2 rx sensors (0x1 active)
+> 
+> Fault simulation/injection is by executing the following USB operation in a mceusb instrumented driver, prior to TX I/O.
+>     retval = usb_control_msg(ir->usbdev, usb_sndctrlpipe(ir->usbdev, 0),
+> 	USB_REQ_SET_FEATURE, USB_RECIP_ENDPOINT,
+> 	USB_ENDPOINT_HALT, usb_pipeendpoint(ir->pipe_out),
+> 	NULL, 0, USB_CTRL_SET_TIMEOUT);
+>     dev_dbg(ir->dev, "set halt retval, %d", retval);
+> 
+> After setting halt state for the TX endpoint, perform an lirc "irsend" to generate TX traffic to device.
+> After the TX HALT, the patch restores subsequent TX to working state.
+> ...
+> [  508.009638] mceusb 1-1.2:1.0: send request called (size=0x3)
+> [  508.009697] mceusb 1-1.2:1.0: send request complete (res=0)
+> [  508.009847] mce_async_callback()
+> [  508.009864] mceusb 1-1.2:1.0: Error: request urb status = -32 (TX HALT)
+> [  508.009890] mceusb 1-1.2:1.0: kevent 0 scheduled
+> [  508.021552] mceusb 1-1.2:1.0: send request called (size=0x21)
+> [  508.021598] mceusb 1-1.2:1.0: send request complete (res=0)
+> [  508.021963] mce_async_callback()
+> [  508.021981] mceusb 1-1.2:1.0: tx data: 84 b0 0c 8c 0c 84 8c 0c 8c 0c 84 8c 0c 8c 0c 84 98 0c 98 0c 84 98 0c 8c 0c 84 8c 0c 8c 0c 81 8c 80 (length=33)
+> [  508.021997] mceusb 1-1.2:1.0: Raw IR data, 0 pulse/space samples
+> [  508.066627] mceusb 1-1.2:1.0: send request called (size=0x3)
+> [  508.066669] mceusb 1-1.2:1.0: send request complete (res=0)
+> [  508.066841] mce_async_callback()
+> [  508.066858] mceusb 1-1.2:1.0: tx data: 9f 08 03 (length=3)
+> ...
+> 
+> Open issue(s):
+> 
+> Testing with Pinnacle mceusb device reveals device specific (non USB 2.0 standard) misbehavior with respect to USB TX halt.
+> 
+> Linux raspberrypi 4.4.50-v7+ #970 SMP Mon Feb 20 19:18:29 GMT 2017 armv7l GNU/Linux
+> mceusb 1-1.2:1.0: Registered Pinnacle Systems PCTV Remote USB with mce emulator interface version 1
+> mceusb 1-1.2:1.0: 2 tx ports (0x1 cabled) and 2 rx sensors (0x1 active)
+> 
+> The Pinnacle device failed Linux usbtest module (modded to bind to the Pinnacle) test 13 with bogus halt status and -110 (-ETIMEDOUT) errors.
+> 
+> [ 4558.114664] usbcore: deregistering interface driver mceusb
+> [14956.572207] usbtest 1-1.2:1.0: mce ir device
+> [14956.572234] usbtest 1-1.2:1.0: full-speed {control bulk-out} tests
+> [14956.572363] usbcore: registered new interface driver usbtest
+> [15241.341143] usbtest 1-1.2:1.0: TEST 1:  write 512 bytes 1000 times
+> [15456.690845] usbtest 1-1.2:1.0: TEST 13:  set/clear 1000 halts
+> [15456.691362] usbtest 1-1.2:1.0: ep 02 bogus status: 0001 != 0
+> [15456.691381] usbtest 1-1.2:1.0: halts failed, iterations left 999
+> 
+> [37432.646344] usbcore: deregistering interface driver mceusb
+> [37468.447929] usbtest 1-1.2:1.0: mce ir device
+> [37468.447956] usbtest 1-1.2:1.0: full-speed {control bulk-out} tests
+> [37468.448079] usbcore: registered new interface driver usbtest
+> [37519.150810] usbtest 1-1.2:1.0: TEST 1:  write 512 bytes 1000 times
+> [37537.853493] usbtest 1-1.2:1.0: TEST 13:  set/clear 1000 halts
+> [37547.866871] usb 1-1.2: verify_not_halted failed, iterations left 0, status -110 (not 0)
+> [37547.866901] usbtest 1-1.2:1.0: halts failed, iterations left 999
+> 
+> With mceusb, upon executing usb_clear_halt() on this Pinnacle mceusb USB TX end-point, regardless of its halt/stall state, TX functionality silently ceases.
+> mce_async_callback() invocations cease, and there are no other error indications from usb_submit_urb() or anywhere else.
+> An escalating USB reset was necessary to restore this device to working state.
+> Certain mceusb devices may require device specific recovery procedure for TX halt conditions, which this patch does not address.
+> 
+> Signed-off-by: A Sun <as1033x@comcast.net>
 > ---
->  drivers/staging/android/ion/Makefile     |   3 -
->  drivers/staging/android/ion/compat_ion.c | 152 -------------------------------
->  drivers/staging/android/ion/compat_ion.h |  29 ------
->  drivers/staging/android/ion/ion-ioctl.c  |   1 -
->  drivers/staging/android/ion/ion.c        |   5 +-
->  drivers/staging/android/uapi/ion.h       |  19 ++--
->  6 files changed, 11 insertions(+), 198 deletions(-)
->  delete mode 100644 drivers/staging/android/ion/compat_ion.c
->  delete mode 100644 drivers/staging/android/ion/compat_ion.h
+>  drivers/media/rc/mceusb.c | 89 +++++++++++++++++++++++++++++------------------
+>  1 file changed, 56 insertions(+), 33 deletions(-)
 > 
-> diff --git a/drivers/staging/android/ion/Makefile b/drivers/staging/android/ion/Makefile
-> index 66d0c4a..a892afa 100644
-> --- a/drivers/staging/android/ion/Makefile
-> +++ b/drivers/staging/android/ion/Makefile
-> @@ -2,6 +2,3 @@ obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o \
->  			ion_page_pool.o ion_system_heap.o \
->  			ion_carveout_heap.o ion_chunk_heap.o
->  obj-$(CONFIG_ION_CMA_HEAP) += ion_cma_heap.o
-> -ifdef CONFIG_COMPAT
-> -obj-$(CONFIG_ION) += compat_ion.o
-> -endif
-> diff --git a/drivers/staging/android/ion/compat_ion.c b/drivers/staging/android/ion/compat_ion.c
-> deleted file mode 100644
-> index 5037ddd..0000000
-> --- a/drivers/staging/android/ion/compat_ion.c
-> +++ /dev/null
-> @@ -1,152 +0,0 @@
-> -/*
-> - * drivers/staging/android/ion/compat_ion.c
-> - *
-> - * Copyright (C) 2013 Google, Inc.
-> - *
-> - * This software is licensed under the terms of the GNU General Public
-> - * License version 2, as published by the Free Software Foundation, and
-> - * may be copied, distributed, and modified under those terms.
-> - *
-> - * This program is distributed in the hope that it will be useful,
-> - * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> - * GNU General Public License for more details.
-> - *
-> - */
-> -
-> -#include <linux/compat.h>
-> -#include <linux/fs.h>
-> -#include <linux/uaccess.h>
-> -
-> -#include "ion.h"
-> -#include "compat_ion.h"
-> -
-> -/* See drivers/staging/android/uapi/ion.h for the definition of these structs */
-> -struct compat_ion_allocation_data {
-> -	compat_size_t len;
-> -	compat_size_t align;
-> -	compat_uint_t heap_id_mask;
-> -	compat_uint_t flags;
-> -	compat_int_t handle;
-> -};
-> -
-> -struct compat_ion_handle_data {
-> -	compat_int_t handle;
-> -};
-> -
-> -#define COMPAT_ION_IOC_ALLOC	_IOWR(ION_IOC_MAGIC, 0, \
-> -				      struct compat_ion_allocation_data)
-> -#define COMPAT_ION_IOC_FREE	_IOWR(ION_IOC_MAGIC, 1, \
-> -				      struct compat_ion_handle_data)
-> -
-> -static int compat_get_ion_allocation_data(
-> -			struct compat_ion_allocation_data __user *data32,
-> -			struct ion_allocation_data __user *data)
-> -{
-> -	compat_size_t s;
-> -	compat_uint_t u;
-> -	compat_int_t i;
-> -	int err;
-> -
-> -	err = get_user(s, &data32->len);
-> -	err |= put_user(s, &data->len);
-> -	err |= get_user(s, &data32->align);
-> -	err |= put_user(s, &data->align);
-> -	err |= get_user(u, &data32->heap_id_mask);
-> -	err |= put_user(u, &data->heap_id_mask);
-> -	err |= get_user(u, &data32->flags);
-> -	err |= put_user(u, &data->flags);
-> -	err |= get_user(i, &data32->handle);
-> -	err |= put_user(i, &data->handle);
-> -
-> -	return err;
-> -}
-> -
-> -static int compat_get_ion_handle_data(
-> -			struct compat_ion_handle_data __user *data32,
-> -			struct ion_handle_data __user *data)
-> -{
-> -	compat_int_t i;
-> -	int err;
-> -
-> -	err = get_user(i, &data32->handle);
-> -	err |= put_user(i, &data->handle);
-> -
-> -	return err;
-> -}
-> -
-> -static int compat_put_ion_allocation_data(
-> -			struct compat_ion_allocation_data __user *data32,
-> -			struct ion_allocation_data __user *data)
-> -{
-> -	compat_size_t s;
-> -	compat_uint_t u;
-> -	compat_int_t i;
-> -	int err;
-> -
-> -	err = get_user(s, &data->len);
-> -	err |= put_user(s, &data32->len);
-> -	err |= get_user(s, &data->align);
-> -	err |= put_user(s, &data32->align);
-> -	err |= get_user(u, &data->heap_id_mask);
-> -	err |= put_user(u, &data32->heap_id_mask);
-> -	err |= get_user(u, &data->flags);
-> -	err |= put_user(u, &data32->flags);
-> -	err |= get_user(i, &data->handle);
-> -	err |= put_user(i, &data32->handle);
-> -
-> -	return err;
-> -}
-> -
-> -long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
-> -{
-> -	long ret;
-> -
-> -	if (!filp->f_op->unlocked_ioctl)
-> -		return -ENOTTY;
-> -
-> -	switch (cmd) {
-> -	case COMPAT_ION_IOC_ALLOC:
-> -	{
-> -		struct compat_ion_allocation_data __user *data32;
-> -		struct ion_allocation_data __user *data;
-> -		int err;
-> -
-> -		data32 = compat_ptr(arg);
-> -		data = compat_alloc_user_space(sizeof(*data));
-> -		if (!data)
-> -			return -EFAULT;
-> -
-> -		err = compat_get_ion_allocation_data(data32, data);
-> -		if (err)
-> -			return err;
-> -		ret = filp->f_op->unlocked_ioctl(filp, ION_IOC_ALLOC,
-> -							(unsigned long)data);
-> -		err = compat_put_ion_allocation_data(data32, data);
-> -		return ret ? ret : err;
-> -	}
-> -	case COMPAT_ION_IOC_FREE:
-> -	{
-> -		struct compat_ion_handle_data __user *data32;
-> -		struct ion_handle_data __user *data;
-> -		int err;
-> -
-> -		data32 = compat_ptr(arg);
-> -		data = compat_alloc_user_space(sizeof(*data));
-> -		if (!data)
-> -			return -EFAULT;
-> -
-> -		err = compat_get_ion_handle_data(data32, data);
-> -		if (err)
-> -			return err;
-> -
-> -		return filp->f_op->unlocked_ioctl(filp, ION_IOC_FREE,
-> -							(unsigned long)data);
-> -	}
-> -	case ION_IOC_SHARE:
-> -		return filp->f_op->unlocked_ioctl(filp, cmd,
-> -						(unsigned long)compat_ptr(arg));
-> -	default:
-> -		return -ENOIOCTLCMD;
-> -	}
-> -}
-> diff --git a/drivers/staging/android/ion/compat_ion.h b/drivers/staging/android/ion/compat_ion.h
-> deleted file mode 100644
-> index 9da8f91..0000000
-> --- a/drivers/staging/android/ion/compat_ion.h
-> +++ /dev/null
-> @@ -1,29 +0,0 @@
-> -/*
-> - * drivers/staging/android/ion/compat_ion.h
-> - *
-> - * Copyright (C) 2013 Google, Inc.
-> - *
-> - * This software is licensed under the terms of the GNU General Public
-> - * License version 2, as published by the Free Software Foundation, and
-> - * may be copied, distributed, and modified under those terms.
-> - *
-> - * This program is distributed in the hope that it will be useful,
-> - * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> - * GNU General Public License for more details.
-> - *
-> - */
-> -
-> -#ifndef _LINUX_COMPAT_ION_H
-> -#define _LINUX_COMPAT_ION_H
-> -
-> -#if IS_ENABLED(CONFIG_COMPAT)
-> -
-> -long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
-> -
-> -#else
-> -
-> -#define compat_ion_ioctl  NULL
-> -
-> -#endif /* CONFIG_COMPAT */
-> -#endif /* _LINUX_COMPAT_ION_H */
-> diff --git a/drivers/staging/android/ion/ion-ioctl.c b/drivers/staging/android/ion/ion-ioctl.c
-> index a361724..91b5c2b 100644
-> --- a/drivers/staging/android/ion/ion-ioctl.c
-> +++ b/drivers/staging/android/ion/ion-ioctl.c
-> @@ -20,7 +20,6 @@
+> diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+> index a9a9a85..af46860 100644
+> --- a/drivers/media/rc/mceusb.c
+> +++ b/drivers/media/rc/mceusb.c
+> @@ -419,6 +419,7 @@ struct mceusb_dev {
+>  	struct urb *urb_in;
+>  	unsigned int pipe_in;
+>  	struct usb_endpoint_descriptor *usb_ep_out;
+> +	unsigned int pipe_out;
 >  
->  #include "ion.h"
->  #include "ion_priv.h"
-> -#include "compat_ion.h"
+>  	/* buffers and dma */
+>  	unsigned char *buf_in;
+> @@ -456,7 +457,8 @@ struct mceusb_dev {
+>  	u8 txports_cabled;	/* bitmask of transmitters with cable */
+>  	u8 rxports_active;	/* bitmask of active receive sensors */
 >  
->  union ion_ioctl_arg {
->  	struct ion_fd_data fd;
-> diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-> index 65638f5..fbab1e3 100644
-> --- a/drivers/staging/android/ion/ion.c
-> +++ b/drivers/staging/android/ion/ion.c
-> @@ -40,7 +40,6 @@
->  
->  #include "ion.h"
->  #include "ion_priv.h"
-> -#include "compat_ion.h"
->  
->  bool ion_buffer_cached(struct ion_buffer *buffer)
->  {
-> @@ -1065,7 +1064,9 @@ static const struct file_operations ion_fops = {
->  	.open           = ion_open,
->  	.release        = ion_release,
->  	.unlocked_ioctl = ion_ioctl,
-> -	.compat_ioctl   = compat_ion_ioctl,
-> +#ifdef CONFIG_COMPAT
-> +	.compat_ioctl	= ion_ioctl,
-> +#endif
->  };
->  
->  static size_t ion_debug_heap_total(struct ion_client *client,
-> diff --git a/drivers/staging/android/uapi/ion.h b/drivers/staging/android/uapi/ion.h
-> index abd72fd..bba1c47 100644
-> --- a/drivers/staging/android/uapi/ion.h
-> +++ b/drivers/staging/android/uapi/ion.h
-> @@ -20,8 +20,6 @@
->  #include <linux/ioctl.h>
->  #include <linux/types.h>
->  
-> -typedef int ion_user_handle_t;
-> -
->  /**
->   * enum ion_heap_types - list of all possible types of heaps
->   * @ION_HEAP_TYPE_SYSTEM:	 memory allocated via vmalloc
-> @@ -76,7 +74,6 @@ enum ion_heap_type {
->  /**
->   * struct ion_allocation_data - metadata passed from userspace for allocations
->   * @len:		size of the allocation
-> - * @align:		required alignment of the allocation
->   * @heap_id_mask:	mask of heap ids to allocate from
->   * @flags:		flags passed to heap
->   * @handle:		pointer that will be populated with a cookie to use to
-> @@ -85,11 +82,11 @@ enum ion_heap_type {
->   * Provided by userspace as an argument to the ioctl
->   */
->  struct ion_allocation_data {
-> -	size_t len;
-> -	size_t align;
-> -	unsigned int heap_id_mask;
-> -	unsigned int flags;
-> -	ion_user_handle_t handle;
-> +	__u64 len;
-> +	__u32 heap_id_mask;
-> +	__u32 flags;
-> +	__u32 handle;
-> +	__u32 unused;
->  };
->  
->  /**
-> @@ -103,8 +100,8 @@ struct ion_allocation_data {
->   * provides the file descriptor and the kernel returns the handle.
->   */
->  struct ion_fd_data {
-> -	ion_user_handle_t handle;
-> -	int fd;
-> +	__u32 handle;
-> +	__u32 fd;
->  };
->  
->  /**
-> @@ -112,7 +109,7 @@ struct ion_fd_data {
->   * @handle:	a handle
->   */
->  struct ion_handle_data {
-> -	ion_user_handle_t handle;
-> +	__u32 handle;
->  };
->  
->  #define MAX_HEAP_NAME			32
-> -- 
-> 2.7.4
-> 
-> _______________________________________________
-> Linaro-mm-sig mailing list
-> Linaro-mm-sig@lists.linaro.org
-> https://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+> -	/* kevent support */
+> +	/* async error handler mceusb_deferred_kevent() support
+> +	 * via workqueue kworker (previously keventd) threads */
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+Multi-line comments should be like:
+
+	/*
+	 * async error handler mceusb_deferred_kevent() support
+	 * via workqueue kworker (previously keventd) threads
+	 */
+
+Then again the comment says no more than what you can read in the source
+code, so I would rephrase it
+
+	/* clear halt should be done in process context */
+
+>  	struct work_struct kevent;
+>  	unsigned long kevent_flags;
+>  #		define EVENT_TX_HALT	0
+> @@ -694,6 +696,22 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
+>  #endif
+>  }
+>  
+> +/*
+> + * Schedule work that can't be done in interrupt handlers
+> + * (mceusb_dev_recv() and mce_async_callback()) nor tasklets.
+> + * Invokes mceusb_deferred_kevent() for recovering from
+> + * error events specified by the kevent bit field.
+> + */
+> +static void mceusb_defer_kevent(struct mceusb_dev *ir, int kevent)
+> +{
+> +	set_bit(kevent, &ir->kevent_flags);
+> +	if (!schedule_work(&ir->kevent)) {
+> +		dev_err(ir->dev, "kevent %d may have been dropped", kevent);
+> +	} else {
+> +		dev_dbg(ir->dev, "kevent %d scheduled", kevent);
+> +	}
+
+You don't need curly braces when there is only one statement on an if/else
+branch.
+
+> +}
+> +
+>  static void mce_async_callback(struct urb *urb)
+>  {
+>  	struct mceusb_dev *ir;
+> @@ -720,6 +738,11 @@ static void mce_async_callback(struct urb *urb)
+>  		break;
+>  
+>  	case -EPIPE:
+> +		dev_err(ir->dev, "Error: request urb status = %d (TX HALT)",
+> +			urb->status);
+> +		mceusb_defer_kevent(ir, EVENT_TX_HALT);
+> +		break;
+> +
+>  	default:
+>  		dev_err(ir->dev, "Error: request urb status = %d", urb->status);
+>  		break;
+> @@ -734,7 +757,7 @@ static void mce_async_callback(struct urb *urb)
+>  static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
+>  								int size)
+>  {
+> -	int res, pipe;
+> +	int res;
+>  	struct urb *async_urb;
+>  	struct device *dev = ir->dev;
+>  	unsigned char *async_buf;
+> @@ -753,17 +776,12 @@ static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
+>  
+>  	/* outbound data */
+>  	if (usb_endpoint_xfer_int(ir->usb_ep_out)) {
+> -		pipe = usb_sndintpipe(ir->usbdev,
+> -				 ir->usb_ep_out->bEndpointAddress);
+> -		usb_fill_int_urb(async_urb, ir->usbdev, pipe, async_buf,
+> -				 size, mce_async_callback, ir,
+> +		usb_fill_int_urb(async_urb, ir->usbdev, ir->pipe_out,
+> +				 async_buf, size, mce_async_callback, ir,
+>  				 ir->usb_ep_out->bInterval);
+>  	} else {
+> -		pipe = usb_sndbulkpipe(ir->usbdev,
+> -				 ir->usb_ep_out->bEndpointAddress);
+> -		usb_fill_bulk_urb(async_urb, ir->usbdev, pipe,
+> -				 async_buf, size, mce_async_callback,
+> -				 ir);
+> +		usb_fill_bulk_urb(async_urb, ir->usbdev, ir->pipe_out,
+> +				 async_buf, size, mce_async_callback, ir);
+>  	}
+
+No curly braces needed now that there is one statement left in each
+branch.
+
+>  	memcpy(async_buf, data, size);
+>  
+> @@ -1034,23 +1052,6 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+>  	}
+>  }
+>  
+> -/*
+> - * Workqueue task dispatcher
+> - * for work that can't be done in interrupt handlers
+> - * (mceusb_dev_recv() and mce_async_callback()) nor tasklets.
+> - * Invokes mceusb_deferred_kevent() for recovering from
+> - * error events specified by the kevent bit field.
+> - */
+> -static void mceusb_defer_kevent(struct mceusb_dev *ir, int kevent)
+> -{
+> -	set_bit(kevent, &ir->kevent_flags);
+> -	if (!schedule_work(&ir->kevent)) {
+> -		dev_err(ir->dev, "kevent %d may have been dropped", kevent);
+> -	} else {
+> -		dev_dbg(ir->dev, "kevent %d scheduled", kevent);
+> -	}
+> -}
+> -
+>  static void mceusb_dev_recv(struct urb *urb)
+>  {
+>  	struct mceusb_dev *ir;
+> @@ -1220,16 +1221,28 @@ static void mceusb_deferred_kevent(struct work_struct *work)
+>  		if (status < 0) {
+>  			dev_err(ir->dev, "rx clear halt error %d",
+>  				status);
+> -			return;
+> +			goto done_rx_halt;
+
+This function can easily be re-written without gotos and it will be
+much more readible.
+
+>  		}
+>  		clear_bit(EVENT_RX_HALT, &ir->kevent_flags);
+>  		status = usb_submit_urb(ir->urb_in, GFP_KERNEL);
+>  		if (status < 0) {
+>  			dev_err(ir->dev, "rx unhalt submit urb error %d",
+>  				status);
+> -			return;
+> +			goto done_rx_halt;
+>  		}
+>  	}
+> +done_rx_halt:
+> +	if (test_bit(EVENT_TX_HALT, &ir->kevent_flags)) {
+> +		status = usb_clear_halt(ir->usbdev, ir->pipe_out);
+> +		if (status < 0) {
+> +			dev_err(ir->dev, "tx clear halt error %d",
+> +				  status);
+> +			goto done_tx_halt;
+> +		}
+> +		clear_bit(EVENT_TX_HALT, &ir->kevent_flags);
+> +	}
+> +done_tx_halt:
+> +	return;
+>  }
+>  
+>  static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
+> @@ -1373,6 +1386,7 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+>  	if (!ir->urb_in)
+>  		goto urb_in_alloc_fail;
+>  
+> +	ir->pipe_in = pipe;
+>  	ir->usbdev = usb_get_dev(dev);
+>  	ir->dev = &intf->dev;
+>  	ir->len_in = maxp;
+> @@ -1383,6 +1397,13 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+>  
+>  	/* Saving usb interface data for use by the transmitter routine */
+>  	ir->usb_ep_out = ep_out;
+> +	if (usb_endpoint_xfer_int(ir->usb_ep_out)) {
+> +		ir->pipe_out = usb_sndintpipe(ir->usbdev,
+> +					ir->usb_ep_out->bEndpointAddress);
+> +	} else {
+> +		ir->pipe_out = usb_sndbulkpipe(ir->usbdev,
+> +					ir->usb_ep_out->bEndpointAddress);
+> +	}
+
+Unnecessary braces.
+
+>  	if (dev->descriptor.iManufacturer
+>  	    && usb_string(dev, dev->descriptor.iManufacturer,
+> @@ -1394,13 +1415,14 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+>  		snprintf(name + strlen(name), sizeof(name) - strlen(name),
+>  			 " %s", buf);
+>  
+> +	/* initialize async USB error handler before registering
+> +	 * or activating any mceusb RX and TX functions */
+
+Bad multiline comment.
+
+> +	INIT_WORK(&ir->kevent, mceusb_deferred_kevent);
+> +
+>  	ir->rc = mceusb_init_rc_dev(ir);
+>  	if (!ir->rc)
+>  		goto rc_dev_fail;
+>  
+> -	ir->pipe_in = pipe;
+> -	INIT_WORK(&ir->kevent, mceusb_deferred_kevent);
+> -
+>  	/* wire up inbound data handler */
+>  	if (usb_endpoint_xfer_int(ep_in)) {
+>  		usb_fill_int_urb(ir->urb_in, dev, pipe, ir->buf_in, maxp,
+> @@ -1450,6 +1472,7 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+>  
+>  	/* Error-handling path */
+>  rc_dev_fail:
+> +	cancel_work_sync(&ir->kevent);
+>  	usb_put_dev(ir->usbdev);
+>  	usb_kill_urb(ir->urb_in);
+>  	usb_free_urb(ir->urb_in);
+> -- 
+> 2.1.4
