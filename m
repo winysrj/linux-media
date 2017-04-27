@@ -1,68 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:34535 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756651AbdDRJa3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Apr 2017 05:30:29 -0400
-Message-ID: <1492507819.2432.53.camel@pengutronix.de>
-Subject: Re: [PATCH 40/40] media: imx: set and propagate empty field,
- colorimetry params
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: gregkh@linuxfoundation.org, mchehab@kernel.org,
-        rmk+kernel@armlinux.org.uk, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Tue, 18 Apr 2017 11:30:19 +0200
-In-Reply-To: <3dc391ff-685e-8d76-1e9c-9725c397bee2@gmail.com>
-References: <7d836723-dc01-2cea-f794-901b632ce46e@gmail.com>
-         <1492044337-11324-1-git-send-email-steve_longerbeam@mentor.com>
-         <1492078154.2383.21.camel@pengutronix.de>
-         <3dc391ff-685e-8d76-1e9c-9725c397bee2@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from quartz.orcorp.ca ([184.70.90.242]:53360 "EHLO quartz.orcorp.ca"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1423300AbdD0WLx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 18:11:53 -0400
+Date: Thu, 27 Apr 2017 16:11:32 -0600
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Roger Pau =?iso-8859-1?Q?Monn=E9?= <roger.pau@citrix.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-nvdimm@ml01.01.org,
+        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
+        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Stephen Bates <sbates@raithlin.com>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>,
+        Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+        Julien Grall <julien.grall@arm.com>
+Subject: Re: [PATCH v2 15/21] xen-blkfront: Make use of the new sg_map helper
+ function
+Message-ID: <20170427221132.GA30036@obsidianresearch.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+ <1493144468-22493-16-git-send-email-logang@deltatee.com>
+ <20170426073720.okv33ly2ldepilti@dhcp-3-128.uk.xensource.com>
+ <df6586e2-7d45-6b0b-facb-4dea882df06e@deltatee.com>
+ <20170427205339.GB26330@obsidianresearch.com>
+ <02ba3c7b-5fab-a06c-fbbf-c3be1c0fae1b@deltatee.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <02ba3c7b-5fab-a06c-fbbf-c3be1c0fae1b@deltatee.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2017-04-13 at 09:40 -0700, Steve Longerbeam wrote:
-[...]
-> >> @@ -804,12 +804,29 @@ static void prp_try_fmt(struct prp_priv *priv,
-> >>  					      &sdformat->format.height,
-> >>  					      infmt->height / 4, MAX_H_SRC,
-> >>  					      H_ALIGN_SRC, S_ALIGN);
-> >> +
-> >> +		/*
-> >> +		 * The Image Converter produces fixed quantization
-> >> +		 * (full range for RGB, limited range for YUV), and
-> >> +		 * uses a fixed Y`CbCr encoding (V4L2_YCBCR_ENC_601).
-> >> +		 * For colorspace and transfer func, just propagate
-> >> +		 * from the sink.
-> >> +		 */
-> >> +		sdformat->format.quantization =
-> >> +			((*cc)->cs != IPUV3_COLORSPACE_YUV) ?
-> >> +			V4L2_QUANTIZATION_FULL_RANGE :
-> >> +			V4L2_QUANTIZATION_LIM_RANGE;
-> >> +		sdformat->format.ycbcr_enc = V4L2_YCBCR_ENC_601;
-> >
-> > Support for V4L2_YCBCR_ENC_709 and quantization options could be added
-> > to the IPUv3 core code, so this limitation could be relaxed later.
+On Thu, Apr 27, 2017 at 03:53:37PM -0600, Logan Gunthorpe wrote:
+> On 27/04/17 02:53 PM, Jason Gunthorpe wrote:
+> > blkfront is one of the drivers I looked at, and it appears to only be
+> > memcpying with the bvec_data pointer, so I wonder why it does not use
+> > sg_copy_X_buffer instead..
 > 
-> Yes, I was going to mention that too. We can add coefficient tables
-> to ipu-ic for all the encodings enumerated in enum v4l2_ycbcr_encoding.
+> But you'd potentially end up calling sg_copy_to_buffer multiple times
+> per page within the sg (given that gnttab_foreach_grant_in_range might
+> call blkif_copy_from_grant/blkif_setup_rw_req_grant multiple times).
+> Even calling sg_copy_to_buffer once per page seems rather inefficient as
+> it uses sg_miter internally.
 
-Exactly.
+Well, that is in the current form, with more users it would make sense
+to optimize for the single page case, eg by providing the existing
+call, providing a faster single-page-only variant of the copy, perhaps
+even one that is inlined.
 
-> I know that quantization is programmable in the DP, but is it in the
-> IC? AFAICT there is none.
+> Switching the for_each_sg to sg_miter is probably the nicer solution as
+> it takes care of the mapping and the offset/length accounting for you
+> and will have similar performance.
 
-We have a freely programmable 4x3 matrix multiplication both before and
-after processing in each task, and there is a saturation mode switch
-that can limit the first component to (16...235) and the other two to
-(16...240). That should be enough for at least full/limited range YCbCr
-quantizations. So we apparently can't saturate to limited range RGB, but
-for example full-range -> limited-range RGB conversions should be
-perfectly possible.
+sg_miter will still fail when the sg contains __iomem, however I would
+expect that the sg_copy will work with iomem, by using the __iomem
+memcpy variant.
 
-regards
-Philipp
+So, sg_copy should always be preferred in this new world with mixed
+__iomem since it is the only primitive that can transparently handle
+it.
+
+Jason
