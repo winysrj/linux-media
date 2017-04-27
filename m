@@ -1,207 +1,288 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:11646 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1422747AbdD1MKE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Apr 2017 08:10:04 -0400
-Subject: [PATCH 4/8] atomisp: remove hmm_load/store/clear indirections
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Fri, 28 Apr 2017 13:10:01 +0100
-Message-ID: <149338139398.2556.14080556234914874106.stgit@acox1-desk1.ger.corp.intel.com>
-In-Reply-To: <149338135275.2556.7708531564733886566.stgit@acox1-desk1.ger.corp.intel.com>
-References: <149338135275.2556.7708531564733886566.stgit@acox1-desk1.ger.corp.intel.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:57457 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1032849AbdD0Wm6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 18:42:58 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v4 21/27] rcar-vin: add group allocator functions
+Date: Fri, 28 Apr 2017 00:41:57 +0200
+Message-Id: <20170427224203.14611-22-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We have a layer of un-needed wrapping here that can go. In addition there are
-some functions that don't exist and one that isn't used which can also go.
+In media controller mode all VIN instances needs to be part of the same
+media graph. There is also a need to each VIN instance to know and in
+some cases be able to communicate with other VIN instances.
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
+Add a allocator framework where the first VIN instance to be probed
+creates a shared data structure and creates a media device.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- .../media/atomisp/pci/atomisp2/atomisp_cmd.c       |    4 +--
- .../media/atomisp/pci/atomisp2/atomisp_fops.c      |    4 +--
- .../pci/atomisp2/css2400/ia_css_memory_access.c    |   15 ++++++-----
- .../atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c |   27 --------------------
- .../atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.h |   20 ---------------
- .../media/atomisp/pci/atomisp2/hrt/memory_access.c |    6 ++--
- 6 files changed, 15 insertions(+), 61 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-core.c | 112 +++++++++++++++++++++++++++-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  38 ++++++++++
+ 2 files changed, 147 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-index a8614a9..97093ba 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-@@ -2922,7 +2922,7 @@ int atomisp_get_metadata(struct atomisp_sub_device *asd, int flag,
- 				   md_buf->md_vptr,
- 				   stream_info->metadata_info.size);
- 	} else {
--		hrt_isp_css_mm_load(md_buf->metadata->address,
-+		hmm_load(md_buf->metadata->address,
- 				    asd->params.metadata_user[md_type],
- 				    stream_info->metadata_info.size);
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index f560d27449b84882..c10770d5ec37816c 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -20,12 +20,110 @@
+ #include <linux/of_graph.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
++#include <linux/slab.h>
  
-@@ -3005,7 +3005,7 @@ int atomisp_get_metadata_by_type(struct atomisp_sub_device *asd, int flag,
- 				   md_buf->md_vptr,
- 				   stream_info->metadata_info.size);
- 	} else {
--		hrt_isp_css_mm_load(md_buf->metadata->address,
-+		hmm_load(md_buf->metadata->address,
- 				    asd->params.metadata_user[md_type],
- 				    stream_info->metadata_info.size);
+ #include <media/v4l2-of.h>
  
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
-index e5a7407..7ce8803 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
-@@ -1144,11 +1144,11 @@ static int remove_pad_from_frame(struct atomisp_device *isp,
+ #include "rcar-vin.h"
  
- 	load += ISP_LEFT_PAD;
- 	for (i = 0; i < height; i++) {
--		ret = hrt_isp_css_mm_load(load, buffer, width*sizeof(load));
-+		ret = hmm_load(load, buffer, width*sizeof(load));
- 		if (ret < 0)
- 			goto remove_pad_error;
+ /* -----------------------------------------------------------------------------
++ * Gen3 CSI2 Group Allocator
++ */
++
++static DEFINE_MUTEX(rvin_group_lock);
++static struct rvin_group *rvin_group_data;
++
++static void rvin_group_release(struct kref *kref)
++{
++	struct rvin_group *group =
++		container_of(kref, struct rvin_group, refcount);
++
++	mutex_lock(&rvin_group_lock);
++
++	media_device_unregister(&group->mdev);
++	media_device_cleanup(&group->mdev);
++
++	rvin_group_data = NULL;
++
++	mutex_unlock(&rvin_group_lock);
++
++	kfree(group);
++}
++
++static struct rvin_group *__rvin_group_allocate(struct rvin_dev *vin)
++{
++	struct rvin_group *group;
++
++	if (rvin_group_data) {
++		group = rvin_group_data;
++		kref_get(&group->refcount);
++		vin_dbg(vin, "%s: get group=%p\n", __func__, group);
++		return group;
++	}
++
++	group = kzalloc(sizeof(*group), GFP_KERNEL);
++	if (!group)
++		return NULL;
++
++	kref_init(&group->refcount);
++	rvin_group_data = group;
++
++	vin_dbg(vin, "%s: alloc group=%p\n", __func__, group);
++	return group;
++}
++
++static struct rvin_group *rvin_group_allocate(struct rvin_dev *vin)
++{
++	struct rvin_group *group;
++	struct media_device *mdev;
++	int ret;
++
++	mutex_lock(&rvin_group_lock);
++
++	group = __rvin_group_allocate(vin);
++	if (!group) {
++		mutex_unlock(&rvin_group_lock);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	/* Init group data if its not already initialized */
++	mdev = &group->mdev;
++	if (!mdev->dev) {
++		mutex_init(&group->lock);
++		mdev->dev = vin->dev;
++
++		strlcpy(mdev->driver_name, "Renesas VIN",
++			sizeof(mdev->driver_name));
++		strlcpy(mdev->model, vin->dev->of_node->name,
++			sizeof(mdev->model));
++		strlcpy(mdev->bus_info, of_node_full_name(vin->dev->of_node),
++			sizeof(mdev->bus_info));
++		mdev->driver_version = LINUX_VERSION_CODE;
++		media_device_init(mdev);
++
++		ret = media_device_register(mdev);
++		if (ret) {
++			vin_err(vin, "Failed to register media device\n");
++			kref_put(&group->refcount, rvin_group_release);
++			mutex_unlock(&rvin_group_lock);
++			return ERR_PTR(ret);
++		}
++	}
++
++	vin->v4l2_dev.mdev = mdev;
++
++	mutex_unlock(&rvin_group_lock);
++
++	return group;
++}
++
++static void rvin_group_delete(struct rvin_dev *vin)
++{
++	vin_dbg(vin, "%s: group=%p\n", __func__, &vin->group);
++	kref_put(&vin->group->refcount, rvin_group_release);
++}
++
++/* -----------------------------------------------------------------------------
+  * Async notifier
+  */
  
--		ret = hrt_isp_css_mm_store(store, buffer, width*sizeof(store));
-+		ret = hmm_store(store, buffer, width*sizeof(store));
- 		if (ret < 0)
- 			goto remove_pad_error;
- 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_memory_access.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_memory_access.c
-index f8fc14c..2820759 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_memory_access.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_memory_access.c
-@@ -52,22 +52,23 @@ mmgr_calloc(const size_t N, const size_t size)
- 	return mmgr_alloc_attr(size * N, MMGR_ATTRIBUTE_CLEARED);
- }
- 
--void
--mmgr_clear(hrt_vaddress vaddr, const size_t size)
-+void mmgr_clear(hrt_vaddress vaddr, const size_t size)
+@@ -263,9 +361,13 @@ static int rvin_group_init(struct rvin_dev *vin)
  {
--	hrt_isp_css_mm_set(vaddr, 0, size);
-+	if (vaddr)
-+		hmm_set(vaddr, 0, size);
+ 	int ret;
+ 
++	vin->group = rvin_group_allocate(vin);
++	if (IS_ERR(vin->group))
++		return PTR_ERR(vin->group);
++
+ 	ret = rvin_v4l2_mc_probe(vin);
+ 	if (ret)
+-		return ret;
++		goto error_group;
+ 
+ 	vin->pad.flags = MEDIA_PAD_FL_SINK;
+ 	ret = media_entity_pads_init(&vin->vdev->entity, 1, &vin->pad);
+@@ -275,6 +377,8 @@ static int rvin_group_init(struct rvin_dev *vin)
+ 	return 0;
+ error_v4l2:
+ 	rvin_v4l2_mc_remove(vin);
++error_group:
++	rvin_group_delete(vin);
+ 
+ 	return ret;
  }
+@@ -398,10 +502,12 @@ static int rcar_vin_remove(struct platform_device *pdev)
  
--void
--mmgr_load(const hrt_vaddress vaddr, void *data, const size_t size)
-+void mmgr_load(const hrt_vaddress vaddr, void *data, const size_t size)
- {
--	hrt_isp_css_mm_load(vaddr, data, size);
-+	if (vaddr && data)
-+		hmm_load(vaddr, data, size);
- }
+ 	v4l2_async_notifier_unregister(&vin->notifier);
  
- void
- mmgr_store(const hrt_vaddress vaddr, const void *data, const size_t size)
- {
--	hrt_isp_css_mm_store(vaddr, data, size);
-+	if (vaddr && data)
-+		hmm_store(vaddr, data, size);
- }
+-	if (vin->info->use_mc)
++	if (vin->info->use_mc) {
+ 		rvin_v4l2_mc_remove(vin);
+-	else
++		rvin_group_delete(vin);
++	} else {
+ 		rvin_v4l2_remove(vin);
++	}
  
- hrt_vaddress
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c b/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c
-index 63904bc..7dff22f 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c
-@@ -28,28 +28,6 @@
+ 	rvin_dma_remove(vin);
  
- #define __page_align(size)	(((size) + (PAGE_SIZE-1)) & (~(PAGE_SIZE-1)))
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 06934313950253f4..21b6c9292686e41a 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -17,6 +17,8 @@
+ #ifndef __RCAR_VIN__
+ #define __RCAR_VIN__
  
--int hrt_isp_css_mm_set(ia_css_ptr virt_addr, int c, size_t bytes)
--{
--	if (virt_addr)
--		return hmm_set(virt_addr, c, bytes);
--
--	return -EFAULT;
--}
--
--int hrt_isp_css_mm_load(ia_css_ptr virt_addr, void *data, size_t bytes)
--{
--	if (virt_addr && data)
--		return hmm_load(virt_addr, data, bytes);
--	return -EFAULT;
--}
--
--int hrt_isp_css_mm_store(ia_css_ptr virt_addr, const void *data, size_t bytes)
--{
--	if (virt_addr && data)
--		return hmm_store(virt_addr, data, bytes);
--	return -EFAULT;
--}
--
- static void *my_userptr;
- static unsigned my_num_pages;
- static enum hrt_userptr_type my_usr_type;
-@@ -149,8 +127,3 @@ ia_css_ptr hrt_isp_css_mm_calloc_cached(size_t bytes)
- 	return ptr;
- }
++#include <linux/kref.h>
++
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-dev.h>
+@@ -30,6 +32,9 @@
+ /* Address alignment mask for HW buffers */
+ #define HW_BUFFER_MASK 0x7f
  
--phys_addr_t hrt_isp_css_virt_to_phys(ia_css_ptr virt_addr)
--{
--	return hmm_virt_to_phys(virt_addr);
--}
--
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.h b/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.h
-index 3fe9247..1328944 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.h
-@@ -44,8 +44,6 @@ struct hrt_userbuffer_attr {
- void hrt_isp_css_mm_set_user_ptr(void *userptr,
- 				unsigned int num_pages, enum hrt_userptr_type);
++/* Max number on VIN instances that can be in a system */
++#define RCAR_VIN_NUM 8
++
+ enum chip_id {
+ 	RCAR_H1,
+ 	RCAR_M1,
+@@ -37,6 +42,15 @@ enum chip_id {
+ 	RCAR_GEN3,
+ };
  
--int hrt_isp_css_mm_set(ia_css_ptr virt_addr, int c, size_t bytes);
--
- /* Allocate memory, returns a virtual address */
- ia_css_ptr hrt_isp_css_mm_alloc(size_t bytes);
- ia_css_ptr hrt_isp_css_mm_alloc_user_ptr(size_t bytes, void *userptr,
-@@ -59,22 +57,4 @@ ia_css_ptr hrt_isp_css_mm_alloc_cached(size_t bytes);
- ia_css_ptr hrt_isp_css_mm_calloc(size_t bytes);
- ia_css_ptr hrt_isp_css_mm_calloc_cached(size_t bytes);
++enum rvin_csi_id {
++	RVIN_CSI20,
++	RVIN_CSI21,
++	RVIN_CSI40,
++	RVIN_CSI41,
++	RVIN_CSI_MAX,
++	RVIN_NC, /* Not Connected */
++};
++
+ /**
+  * STOPPED  - No operation in progress
+  * RUNNING  - Operation in progress have buffers
+@@ -75,6 +89,8 @@ struct rvin_graph_entity {
+ 	unsigned int sink_pad;
+ };
  
--/* Store data to a virtual address */
--int hrt_isp_css_mm_load(ia_css_ptr virt_addr, void *data, size_t bytes);
--
--/* Load data from a virtual address */
--int hrt_isp_css_mm_store(ia_css_ptr virt_addr, const void *data, size_t bytes);
--
--int hrt_isp_css_mm_load_int(ia_css_ptr virt_addr, int *data);
--int hrt_isp_css_mm_load_short(ia_css_ptr virt_addr, short *data);
--int hrt_isp_css_mm_load_char(ia_css_ptr virt_addr, char *data);
--
--int hrt_isp_css_mm_store_char(ia_css_ptr virt_addr, char data);
--int hrt_isp_css_mm_store_short(ia_css_ptr virt_addr, short data);
--int hrt_isp_css_mm_store_int(ia_css_ptr virt_addr, int data);
--
--/* translate a virtual to a physical address, used to program
--   the display driver on  the FPGA system */
--phys_addr_t hrt_isp_css_virt_to_phys(ia_css_ptr virt_addr);
--
- #endif /* _hive_isp_css_mm_hrt_h_ */
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hrt/memory_access.c b/drivers/staging/media/atomisp/pci/atomisp2/hrt/memory_access.c
-index 6c7f38d..60e70cb 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/hrt/memory_access.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/hrt/memory_access.c
-@@ -89,15 +89,15 @@ void mmgr_clear(
- 	ia_css_ptr			vaddr,
- 	const size_t			size)
- {
--	hrt_isp_css_mm_set(vaddr, 0, size);
-+	hmm_set(vaddr, 0, size);
- }
++struct rvin_group;
++
+ /**
+  * struct rvin_info- Information about the particular VIN implementation
+  * @chip:		type of VIN chip
+@@ -103,6 +119,7 @@ struct rvin_info {
+  * @notifier:		V4L2 asynchronous subdevs notifier
+  * @digital:		entity in the DT for local digital subdevice
+  *
++ * @group:		Gen3 CSI group
+  * @pad:		pad for media controller
+  *
+  * @lock:		protects @queue
+@@ -134,6 +151,7 @@ struct rvin_dev {
+ 	struct v4l2_async_notifier notifier;
+ 	struct rvin_graph_entity digital;
  
- void mmgr_load(const ia_css_ptr	vaddr, void *data, const size_t size)
- {
--	hrt_isp_css_mm_load(vaddr, data, size);
-+	hmm_load(vaddr, data, size);
- }
++	struct rvin_group *group;
+ 	struct media_pad pad;
  
- void mmgr_store(const ia_css_ptr vaddr,	const void *data, const size_t size)
- {
--	hrt_isp_css_mm_store(vaddr, data, size);
-+	hmm_store(vaddr, data, size);
- }
+ 	struct mutex lock;
+@@ -162,6 +180,26 @@ struct rvin_dev {
+ #define vin_warn(d, fmt, arg...)	dev_warn(d->dev, fmt, ##arg)
+ #define vin_err(d, fmt, arg...)		dev_err(d->dev, fmt, ##arg)
+ 
++/**
++ * struct rvin_group - VIN CSI2 group information
++ * @refcount:		number of VIN instances using the group
++ *
++ * @mdev:		media device which represents the group
++ *
++ * @lock:		protects the vin and csi members
++ * @vin:		VIN instances which are part of the group
++ * @csi:		CSI-2 entities that are part of the group
++ */
++struct rvin_group {
++	struct kref refcount;
++
++	struct media_device mdev;
++
++	struct mutex lock;
++	struct rvin_dev *vin[RCAR_VIN_NUM];
++	struct rvin_graph_entity csi[RVIN_CSI_MAX];
++};
++
+ int rvin_dma_probe(struct rvin_dev *vin, int irq);
+ void rvin_dma_remove(struct rvin_dev *vin);
+ 
+-- 
+2.12.2
