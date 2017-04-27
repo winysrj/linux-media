@@ -1,78 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.211]:41737 "EHLO newverein.lst.de"
+Received: from vader.hardeman.nu ([95.142.160.32]:55235 "EHLO hardeman.nu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752070AbdDNIfV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Apr 2017 04:35:21 -0400
-Date: Fri, 14 Apr 2017 10:35:18 +0200
-From: Christoph Hellwig <hch@lst.de>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
-        Steve Wise <swise@opengridcomputing.com>,
-        Stephen Bates <sbates@raithlin.com>
-Subject: Re: [PATCH 01/22] scatterlist: Introduce sg_map helper functions
-Message-ID: <20170414083518.GA25471@lst.de>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com> <1492121135-4437-2-git-send-email-logang@deltatee.com>
+        id S1755330AbdD0UeK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 16:34:10 -0400
+Subject: [PATCH 3/6] rc-core: cleanup rc_register_device pt2
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Thu, 27 Apr 2017 22:34:08 +0200
+Message-ID: <149332524815.32431.5170785656122222096.stgit@zeus.hardeman.nu>
+In-Reply-To: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
+References: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1492121135-4437-2-git-send-email-logang@deltatee.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index 0007b79..b95934b 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -37,6 +37,9 @@
->  
->  #include <uapi/linux/dma-buf.h>
->  
-> +/* Prevent the highmem.h macro from aliasing ops->kunmap_atomic */
-> +#undef kunmap_atomic
-> +
->  static inline int is_dma_buf_file(struct file *);
->  
->  struct dma_buf_list {
+Now that rc_register_device() is reorganised, the dev->initialized
+hack can be removed. Any driver which calls rc_register_device()
+must be prepared for the device to go live immediately.
 
-I think the right fix here is to rename the operation to unmap_atomic
-and send out a little patch for that ASAP.
+The dev->initialized commits that are relevant are:
+c73bbaa4ec3eb225ffe468f80d45724d0496bf03
+08aeb7c9a42ab7aa8b53c8f7779ec58f860a565c
 
-> + *   Flags can be any of:
-> + *	* SG_KMAP	 - Use kmap to create the mapping
-> + *	* SG_KMAP_ATOMIC - Use kmap_atomic to map the page atommically.
-> + *			   Thus, the rules of that function apply: the cpu
-> + *			   may not sleep until it is unmaped.
-> + *
-> + *   Also, consider carefully whether this function is appropriate. It is
-> + *   largely not recommended for new code and if the sgl came from another
-> + *   subsystem and you don't know what kind of memory might be in the list
-> + *   then you definitely should not call it. Non-mappable memory may be in
-> + *   the sgl and thus this function may fail unexpectedly.
-> + **/
-> +static inline void *sg_map_offset(struct scatterlist *sg, size_t offset,
-> +				   int flags)
+The original problem was that show_protocols() would access
+dev->rc_map.* and various other bits which are now properly
+initialized before device_add() is called.
 
-I'd rather have separate functions for kmap vs kmap_atomic instead of
-the flags parameter.  And while you're at it just always pass the 0
-offset parameter instead of adding a wrapper..
+At the same time, remove  the bogus "device is being removed"
+check (quiz: when would container_of give a NULL value???).
 
-Otherwise this looks good to me.
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-main.c |   67 +++++++-------------------------------------
+ include/media/rc-core.h    |    2 -
+ 2 files changed, 10 insertions(+), 59 deletions(-)
+
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 44189366f232..0acc8f27abeb 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -15,7 +15,6 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <media/rc-core.h>
+-#include <linux/atomic.h>
+ #include <linux/spinlock.h>
+ #include <linux/delay.h>
+ #include <linux/input.h>
+@@ -934,8 +933,8 @@ static bool lirc_is_present(void)
+  * It returns the protocol names of supported protocols.
+  * Enabled protocols are printed in brackets.
+  *
+- * dev->lock is taken to guard against races between device
+- * registration, store_protocols and show_protocols.
++ * dev->lock is taken to guard against races between
++ * store_protocols and show_protocols.
+  */
+ static ssize_t show_protocols(struct device *device,
+ 			      struct device_attribute *mattr, char *buf)
+@@ -945,13 +944,6 @@ static ssize_t show_protocols(struct device *device,
+ 	char *tmp = buf;
+ 	int i;
+ 
+-	/* Device is being removed */
+-	if (!dev)
+-		return -EINVAL;
+-
+-	if (!atomic_read(&dev->initialized))
+-		return -ERESTARTSYS;
+-
+ 	mutex_lock(&dev->lock);
+ 
+ 	enabled = dev->enabled_protocols;
+@@ -1106,8 +1098,8 @@ static void ir_raw_load_modules(u64 *protocols)
+  * See parse_protocol_change() for the valid commands.
+  * Returns @len on success or a negative error code.
+  *
+- * dev->lock is taken to guard against races between device
+- * registration, store_protocols and show_protocols.
++ * dev->lock is taken to guard against races between
++ * store_protocols and show_protocols.
+  */
+ static ssize_t store_protocols(struct device *device,
+ 			       struct device_attribute *mattr,
+@@ -1119,13 +1111,6 @@ static ssize_t store_protocols(struct device *device,
+ 	u64 old_protocols, new_protocols;
+ 	ssize_t rc;
+ 
+-	/* Device is being removed */
+-	if (!dev)
+-		return -EINVAL;
+-
+-	if (!atomic_read(&dev->initialized))
+-		return -ERESTARTSYS;
+-
+ 	IR_dprintk(1, "Normal protocol change requested\n");
+ 	current_protocols = &dev->enabled_protocols;
+ 	filter = &dev->scancode_filter;
+@@ -1200,7 +1185,7 @@ static ssize_t store_protocols(struct device *device,
+  * Bits of the filter value corresponding to set bits in the filter mask are
+  * compared against input scancodes and non-matching scancodes are discarded.
+  *
+- * dev->lock is taken to guard against races between device registration,
++ * dev->lock is taken to guard against races between
+  * store_filter and show_filter.
+  */
+ static ssize_t show_filter(struct device *device,
+@@ -1212,13 +1197,6 @@ static ssize_t show_filter(struct device *device,
+ 	struct rc_scancode_filter *filter;
+ 	u32 val;
+ 
+-	/* Device is being removed */
+-	if (!dev)
+-		return -EINVAL;
+-
+-	if (!atomic_read(&dev->initialized))
+-		return -ERESTARTSYS;
+-
+ 	mutex_lock(&dev->lock);
+ 
+ 	if (fattr->type == RC_FILTER_NORMAL)
+@@ -1251,7 +1229,7 @@ static ssize_t show_filter(struct device *device,
+  * Bits of the filter value corresponding to set bits in the filter mask are
+  * compared against input scancodes and non-matching scancodes are discarded.
+  *
+- * dev->lock is taken to guard against races between device registration,
++ * dev->lock is taken to guard against races between
+  * store_filter and show_filter.
+  */
+ static ssize_t store_filter(struct device *device,
+@@ -1265,13 +1243,6 @@ static ssize_t store_filter(struct device *device,
+ 	unsigned long val;
+ 	int (*set_filter)(struct rc_dev *dev, struct rc_scancode_filter *filter);
+ 
+-	/* Device is being removed */
+-	if (!dev)
+-		return -EINVAL;
+-
+-	if (!atomic_read(&dev->initialized))
+-		return -ERESTARTSYS;
+-
+ 	ret = kstrtoul(buf, 0, &val);
+ 	if (ret < 0)
+ 		return ret;
+@@ -1372,8 +1343,8 @@ static const char * const proto_variant_names[] = {
+  * It returns the protocol names of supported protocols.
+  * The enabled protocols are printed in brackets.
+  *
+- * dev->lock is taken to guard against races between device
+- * registration, store_protocols and show_protocols.
++ * dev->lock is taken to guard against races between
++ * store_wakeup_protocols and show_wakeup_protocols.
+  */
+ static ssize_t show_wakeup_protocols(struct device *device,
+ 				     struct device_attribute *mattr,
+@@ -1385,13 +1356,6 @@ static ssize_t show_wakeup_protocols(struct device *device,
+ 	char *tmp = buf;
+ 	int i;
+ 
+-	/* Device is being removed */
+-	if (!dev)
+-		return -EINVAL;
+-
+-	if (!atomic_read(&dev->initialized))
+-		return -ERESTARTSYS;
+-
+ 	mutex_lock(&dev->lock);
+ 
+ 	allowed = dev->allowed_wakeup_protocols;
+@@ -1431,8 +1395,8 @@ static ssize_t show_wakeup_protocols(struct device *device,
+  * It is trigged by writing to /sys/class/rc/rc?/wakeup_protocols.
+  * Returns @len on success or a negative error code.
+  *
+- * dev->lock is taken to guard against races between device
+- * registration, store_protocols and show_protocols.
++ * dev->lock is taken to guard against races between
++ * store_wakeup_protocols and show_wakeup_protocols.
+  */
+ static ssize_t store_wakeup_protocols(struct device *device,
+ 				      struct device_attribute *mattr,
+@@ -1444,13 +1408,6 @@ static ssize_t store_wakeup_protocols(struct device *device,
+ 	u64 allowed;
+ 	int i;
+ 
+-	/* Device is being removed */
+-	if (!dev)
+-		return -EINVAL;
+-
+-	if (!atomic_read(&dev->initialized))
+-		return -ERESTARTSYS;
+-
+ 	mutex_lock(&dev->lock);
+ 
+ 	allowed = dev->allowed_wakeup_protocols;
+@@ -1773,7 +1730,6 @@ int rc_register_device(struct rc_dev *dev)
+ 	dev->minor = minor;
+ 	dev_set_name(&dev->dev, "rc%u", dev->minor);
+ 	dev_set_drvdata(&dev->dev, dev);
+-	atomic_set(&dev->initialized, 0);
+ 
+ 	dev->dev.groups = dev->sysfs_groups;
+ 	if (dev->driver_type != RC_DRIVER_IR_RAW_TX)
+@@ -1819,9 +1775,6 @@ int rc_register_device(struct rc_dev *dev)
+ 			goto out_rx;
+ 	}
+ 
+-	/* Allow the RC sysfs nodes to be accessible */
+-	atomic_set(&dev->initialized, 1);
+-
+ 	IR_dprintk(1, "Registered rc%u (driver: %s)\n",
+ 		   dev->minor,
+ 		   dev->driver_name ? dev->driver_name : "unknown");
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 73ddd721d7ba..78dea39a9b39 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -70,7 +70,6 @@ enum rc_filter_type {
+ /**
+  * struct rc_dev - represents a remote control device
+  * @dev: driver model's view of this device
+- * @initialized: 1 if the device init has completed, 0 otherwise
+  * @managed_alloc: devm_rc_allocate_device was used to create rc_dev
+  * @sysfs_groups: sysfs attribute groups
+  * @input_name: name of the input child device
+@@ -137,7 +136,6 @@ enum rc_filter_type {
+  */
+ struct rc_dev {
+ 	struct device			dev;
+-	atomic_t			initialized;
+ 	bool				managed_alloc;
+ 	const struct attribute_group	*sysfs_groups[5];
+ 	const char			*input_name;
