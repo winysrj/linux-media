@@ -1,82 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59426 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2998510AbdDZKyD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Apr 2017 06:54:03 -0400
-Date: Wed, 26 Apr 2017 12:53:56 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Nicolas Dufresne <nicolas@ndufresne.ca>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        pali.rohar@gmail.com, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: support autofocus / autogain in libv4l2
-Message-ID: <20170426105356.GB857@amd>
-References: <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170414232332.63850d7b@vento.lan>
- <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan>
- <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan>
- <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan>
- <20170425080538.GA30380@amd>
- <1493139207.19105.16.camel@ndufresne.ca>
+Received: from ale.deltatee.com ([207.54.116.67]:58545 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932644AbdD0X3f (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Apr 2017 19:29:35 -0400
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+ <1493144468-22493-16-git-send-email-logang@deltatee.com>
+ <20170426073720.okv33ly2ldepilti@dhcp-3-128.uk.xensource.com>
+ <df6586e2-7d45-6b0b-facb-4dea882df06e@deltatee.com>
+ <20170427205339.GB26330@obsidianresearch.com>
+ <02ba3c7b-5fab-a06c-fbbf-c3be1c0fae1b@deltatee.com>
+ <20170427221132.GA30036@obsidianresearch.com>
+ <3a7c0d27-0744-4e91-b37f-3885c50455e8@deltatee.com>
+ <20170427232022.GA30398@obsidianresearch.com>
+Cc: =?UTF-8?Q?Roger_Pau_Monn=c3=a9?= <roger.pau@citrix.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-nvdimm@ml01.01.org,
+        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
+        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Stephen Bates <sbates@raithlin.com>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>,
+        Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+        Julien Grall <julien.grall@arm.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <eb33e0ce-987f-a345-ca95-71e4c0a4d1ea@deltatee.com>
+Date: Thu, 27 Apr 2017 17:29:08 -0600
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="qlTNgmc+xy1dBmNv"
-Content-Disposition: inline
-In-Reply-To: <1493139207.19105.16.camel@ndufresne.ca>
+In-Reply-To: <20170427232022.GA30398@obsidianresearch.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH v2 15/21] xen-blkfront: Make use of the new sg_map helper
+ function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---qlTNgmc+xy1dBmNv
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Tue 2017-04-25 12:53:27, Nicolas Dufresne wrote:
-> Le mardi 25 avril 2017 =E0 10:05 +0200, Pavel Machek a =E9crit=A0:
-> > Well, fd's are hard, because application can do fork() and now
-> > interesting stuff happens. Threads are tricky, because now you have
-> > locking etc.
-> >=20
-> > libv4l2 is designed to be LD_PRELOADED. That is not really feasible
-> > with "complex" library.
->=20
-> That is incorrect. The library propose an API where you simply replace
-> certain low level calls, like ioctl -> v4l2_ioctl, open -> v4l2_open().
-> You have to do that explicitly in your existing code. It does not
-> abstract the API itself unlike libdrm.
+On 27/04/17 05:20 PM, Jason Gunthorpe wrote:
+> It seems the most robust: test for iomem, and jump to a slow path
+> copy, otherwise inline the kmap and memcpy
+> 
+> Every place doing memcpy from sgl will need that pattern to be
+> correct.
 
-You are right, no LD_PRELOAD. But same API as kernel, which is really
-limiting -- see my other mail.
+Ok, sounds like a good place to start to me. I'll see what I can do for
+a v3 of this set. Though, I probably won't send anything until after the
+merge window.
 
-									Pavel
+>>> sg_miter will still fail when the sg contains __iomem, however I would
+>>> expect that the sg_copy will work with iomem, by using the __iomem
+>>> memcpy variant.
+>>
+>> Yes, that's true. Any sg_miters that ever see iomem will need to be
+>> converted to support it. This isn't much different than the other
+>> kmap(sg_page()) users I was converting that will also fail if they see
+>> iomem. Though, I suspect an sg_miter user would be easier to convert to
+>> iomem than a random kmap user.
+> 
+> How? sg_miter seems like the next nightmare down this path, what is
+> sg_miter_next supposed to do when something hits an iomem sgl?
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+My proposal is roughly included in the draft I sent upthread. We add an
+sg_miter flag indicating the iteratee supports iomem and if miter finds
+iomem (with the support flag set) it sets ioaddr which is __iomem. The
+iteratee then just needs to null check addr and ioaddr and perform the
+appropriate action.
 
---qlTNgmc+xy1dBmNv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlkAfEQACgkQMOfwapXb+vKIAACghQ/X/Q5sbmaQlYnPL6nkpmvu
-IGQAn2SmMkHl9FuK8w8Evg7xTAkkl2yt
-=OK34
------END PGP SIGNATURE-----
-
---qlTNgmc+xy1dBmNv--
+Logan
