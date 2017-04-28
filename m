@@ -1,77 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59991 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751898AbdDNKZY (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:46876 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752654AbdD1EJ3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Apr 2017 06:25:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Fri, 28 Apr 2017 00:09:29 -0400
+Message-ID: <1804e5dbec7facd168f8501059e27d01@smtp-cloud6.xs4all.net>
+Date: Fri, 28 Apr 2017 06:09:27 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/8] omapdrm: encoder-tpd12s015: keep ls_oe_gpio high if CEC is enabled
-Date: Fri, 14 Apr 2017 12:25:06 +0200
-Message-Id: <20170414102512.48834-3-hverkuil@xs4all.nl>
-In-Reply-To: <20170414102512.48834-1-hverkuil@xs4all.nl>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-When the OMAP4 CEC support is enabled the CEC pin should always
-be on. So keep ls_oe_gpio high when CONFIG_OMAP4_DSS_HDMI_CEC
-is set.
+Results of the daily build of media_tree:
 
-Background: even if the HPD is low it should still be possible
-to use CEC. Some displays will set the HPD low when they go into standby or
-when they switch to another input, but CEC is still available and able
-to wake up/change input for such a display.
+date:			Fri Apr 28 05:00:13 CEST 2017
+media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
+media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
+v4l-utils git hash:	847bf8d62cd6b11defc1e4c3b30b68d3c66876e0
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-This is explicitly allowed by the CEC standard.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10.1-i686: OK
+linux-4.11-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-x86_64: WARNINGS
+linux-4.10.1-x86_64: WARNINGS
+linux-4.11-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Detailed results are available here:
 
-diff --git a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
-index 58276a48112e..757554e6d62f 100644
---- a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
-+++ b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
-@@ -46,6 +46,9 @@ static int tpd_connect(struct omap_dss_device *dssdev,
- 	dssdev->dst = dst;
- 
- 	gpiod_set_value_cansleep(ddata->ct_cp_hpd_gpio, 1);
-+#ifdef CONFIG_OMAP4_DSS_HDMI_CEC
-+	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 1);
-+#endif
- 	/* DC-DC converter needs at max 300us to get to 90% of 5V */
- 	udelay(300);
- 
-@@ -64,6 +67,7 @@ static void tpd_disconnect(struct omap_dss_device *dssdev,
- 		return;
- 
- 	gpiod_set_value_cansleep(ddata->ct_cp_hpd_gpio, 0);
-+	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 0);
- 
- 	dst->src = NULL;
- 	dssdev->dst = NULL;
-@@ -146,11 +150,15 @@ static int tpd_read_edid(struct omap_dss_device *dssdev,
- 	if (!gpiod_get_value_cansleep(ddata->hpd_gpio))
- 		return -ENODEV;
- 
-+#ifndef CONFIG_OMAP4_DSS_HDMI_CEC
- 	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 1);
-+#endif
- 
- 	r = in->ops.hdmi->read_edid(in, edid, len);
- 
-+#ifndef CONFIG_OMAP4_DSS_HDMI_CEC
- 	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 0);
-+#endif
- 
- 	return r;
- }
--- 
-2.11.0
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
