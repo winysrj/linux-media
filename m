@@ -1,127 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:51548 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932790AbdDXEJk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Apr 2017 00:09:40 -0400
-Message-ID: <d3cf71a664a81827ab6a891f7f97396e@smtp-cloud2.xs4all.net>
-Date: Mon, 24 Apr 2017 06:09:37 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from gofer.mess.org ([88.97.38.141]:48697 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1164750AbdD1TmO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 15:42:14 -0400
+Date: Fri, 28 Apr 2017 20:42:13 +0100
+From: Sean Young <sean@mess.org>
+To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 6/6] rc-core: add protocol to EVIOC[GS]KEYCODE_V2 ioctl
+Message-ID: <20170428194212.GA7376@gofer.mess.org>
+References: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
+ <149332526341.32431.11307248841385136294.stgit@zeus.hardeman.nu>
+ <20170428083133.2e6621bd@vento.lan>
+ <20170428165911.axrlw6aic3cqabas@hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170428165911.axrlw6aic3cqabas@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Fri, Apr 28, 2017 at 06:59:11PM +0200, David Härdeman wrote:
+> On Fri, Apr 28, 2017 at 08:31:33AM -0300, Mauro Carvalho Chehab wrote:
+> >Em Thu, 27 Apr 2017 22:34:23 +0200
+> >David Härdeman <david@hardeman.nu> escreveu:
+> ...
+> >> This patch changes how the "input_keymap_entry" struct is interpreted
+> >> by rc-core by casting it to "rc_keymap_entry":
+> >> 
+> >> struct rc_scancode {
+> >> 	__u16 protocol;
+> >> 	__u16 reserved[3];
+> >> 	__u64 scancode;
+> >> }
+> >> 
+> >> struct rc_keymap_entry {
+> >> 	__u8  flags;
+> >> 	__u8  len;
+> >> 	__u16 index;
+> >> 	__u32 keycode;
+> >> 	union {
+> >> 		struct rc_scancode rc;
+> >> 		__u8 raw[32];
+> >> 	};
+> >> };
+> >> 
+> ...
+> >
+> >Nack.
+> 
+> That's not a very constructive approach. If you have a better approach
+> in mind I'm all ears. Because you're surely not suggesting that we stay
+> with the current protocol-less approach forever?
 
-Results of the daily build of media_tree:
+Well, what problem are we trying to solve actually?
 
-date:			Mon Apr 24 05:00:16 CEST 2017
-media-tree git hash:	9eb9db3a0f92b75ec710066202e0b2accb45afa9
-media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
-v4l-utils git hash:	b514d615166bdc0901a4c71261b87db31e89f464
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Looking at the keymaps we have already, there are many scancodes which
+overlap and only a few of them use a different protocol. So having this
+feature will not suddenly make it possible to load all our keymaps, it
+will just make it possible to simultaneously load a few more.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+> >No userspace breakages are allowed.
+> 
+> That's a gross oversimplification.
 
-Detailed results are available here:
+This can be implemented without breaking userspace.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Sean
