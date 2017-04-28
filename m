@@ -1,109 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:60647 "EHLO
-        epoutp01.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751215AbdDCGOA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 02:14:00 -0400
-Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
-        by epoutp01.samsung.com (KnoxPortal) with ESMTP id 20170403061358epoutp01661b378db26f289e6ea39cff936bc524~xzoi7Yshs1392113921epoutp01q
-        for <linux-media@vger.kernel.org>; Mon,  3 Apr 2017 06:13:58 +0000 (GMT)
-Subject: Re: [Patch v3 00/11] Add MFC v10.10 support
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, mchehab@kernel.org,
-        pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com
-In-Reply-To: <6a5fa537-0977-b18b-70be-56ad771a0c03@samsung.com>
-Date: Mon, 03 Apr 2017 11:45:47 +0530
-Message-ID: <1491200147.24095.21.camel@smitha-fedora>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="utf-8"
-References: <CGME20170331090425epcas1p4de8762ee73be91312a76a73638bac253@epcas1p4.samsung.com>
-        <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
-        <6a5fa537-0977-b18b-70be-56ad771a0c03@samsung.com>
+Received: from fllnx210.ext.ti.com ([198.47.19.17]:11949 "EHLO
+        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1165191AbdD1LeD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 07:34:03 -0400
+Subject: Re: [PATCH 2/8] omapdrm: encoder-tpd12s015: keep ls_oe_gpio high if
+ CEC is enabled
+To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>
+References: <20170414102512.48834-1-hverkuil@xs4all.nl>
+ <20170414102512.48834-3-hverkuil@xs4all.nl>
+CC: <dri-devel@lists.freedesktop.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Message-ID: <8981bcbc-9aa0-d031-9a93-c69999059fdd@ti.com>
+Date: Fri, 28 Apr 2017 14:33:50 +0300
+MIME-Version: 1.0
+In-Reply-To: <20170414102512.48834-3-hverkuil@xs4all.nl>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature";
+        boundary="h1Ia1kV36Qj9rn4jkkAKKko0D3dRteklq"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2017-03-31 at 15:29 +0200, Andrzej Hajda wrote:
-> Hi Smitha,
-> 
-> On 31.03.2017 11:06, Smitha T Murthy wrote:
-> > This patch series adds MFC v10.10 support. MFC v10.10 is used in some
-> > of Exynos7 variants.
-> 
-> Patch does not apply, please rebase on top of:
->    
-> 
-> git://linuxtv.org/snawrocki/samsung.git for-v4.12/media/next
-> 
-> 
-I had not checked on this git. Thank you for pointing it out. I am
-downloading the code from github, will rebase on top of it and check the
-patches and push the next version correspondingly.
+--h1Ia1kV36Qj9rn4jkkAKKko0D3dRteklq
+Content-Type: multipart/mixed; boundary="e8e6rjVmSJbXfOeAKohwXJAvs41RFgrxi";
+ protected-headers="v1"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, Hans Verkuil <hans.verkuil@cisco.com>
+Message-ID: <8981bcbc-9aa0-d031-9a93-c69999059fdd@ti.com>
+Subject: Re: [PATCH 2/8] omapdrm: encoder-tpd12s015: keep ls_oe_gpio high if
+ CEC is enabled
+References: <20170414102512.48834-1-hverkuil@xs4all.nl>
+ <20170414102512.48834-3-hverkuil@xs4all.nl>
+In-Reply-To: <20170414102512.48834-3-hverkuil@xs4all.nl>
 
-> Additionally quick test shows you do not handle V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_CH in s5p_mfc_enc_s_ctrl.
-> Regards
-> Andrzej
-> 
+--e8e6rjVmSJbXfOeAKohwXJAvs41RFgrxi
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-I could not sufficient details on
-V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_CH in the User Manual
-to implement this CID. Hence I wanted to remove it in v3 itself, I will
-take care of this in next version.
+On 14/04/17 13:25, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>=20
+> When the OMAP4 CEC support is enabled the CEC pin should always
+> be on. So keep ls_oe_gpio high when CONFIG_OMAP4_DSS_HDMI_CEC
+> is set.
+>=20
+> Background: even if the HPD is low it should still be possible
+> to use CEC. Some displays will set the HPD low when they go into standb=
+y or
+> when they switch to another input, but CEC is still available and able
+> to wake up/change input for such a display.
+>=20
+> This is explicitly allowed by the CEC standard.
+>=20
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+>=20
+> diff --git a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c b/dri=
+vers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
+> index 58276a48112e..757554e6d62f 100644
+> --- a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
+> +++ b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
+> @@ -46,6 +46,9 @@ static int tpd_connect(struct omap_dss_device *dssdev=
+,
+>  	dssdev->dst =3D dst;
+> =20
+>  	gpiod_set_value_cansleep(ddata->ct_cp_hpd_gpio, 1);
+> +#ifdef CONFIG_OMAP4_DSS_HDMI_CEC
+> +	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 1);
+> +#endif
+>  	/* DC-DC converter needs at max 300us to get to 90% of 5V */
+>  	udelay(300);
+> =20
+> @@ -64,6 +67,7 @@ static void tpd_disconnect(struct omap_dss_device *ds=
+sdev,
+>  		return;
+> =20
+>  	gpiod_set_value_cansleep(ddata->ct_cp_hpd_gpio, 0);
+> +	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 0);
+> =20
+>  	dst->src =3D NULL;
+>  	dssdev->dst =3D NULL;
+> @@ -146,11 +150,15 @@ static int tpd_read_edid(struct omap_dss_device *=
+dssdev,
+>  	if (!gpiod_get_value_cansleep(ddata->hpd_gpio))
+>  		return -ENODEV;
+> =20
+> +#ifndef CONFIG_OMAP4_DSS_HDMI_CEC
+>  	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 1);
+> +#endif
+> =20
+>  	r =3D in->ops.hdmi->read_edid(in, edid, len);
+> =20
+> +#ifndef CONFIG_OMAP4_DSS_HDMI_CEC
+>  	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 0);
+> +#endif
+> =20
+>  	return r;
+>  }
+>=20
 
-Regards,
-Smitha T Murthy
-> >
-> > This adds support for following:
-> >
-> > * Add support for HEVC encoder and decoder
-> > * Add support for VP9 decoder
-> > * Update Documentation for control id definitions
-> > * Update computation of min scratch buffer size requirement for V8 onwards
-> >
-> > Changes since v2:
-> >  - Addressed review comments by Andrzej Hajda.
-> >  - Rebased on latest krzk/for-next tree.
-> >  - This patches are tested on top of Marek's patch v2 [1]
-> >  - Applied acked-by and r-o-b from Andrzej on respective patches.
-> >  - Applied acked-by from Rob Herring on respective patch.
-> >
-> > [1]: http://www.mail-archive.com/linux-media@vger.kernel.org/msg108520.html
-> >
-> > Smitha T Murthy (11):
-> >   [media] s5p-mfc: Rename IS_MFCV8 macro
-> >   [media] s5p-mfc: Adding initial support for MFC v10.10
-> >   [media] s5p-mfc: Use min scratch buffer size as provided by F/W
-> >   [media] s5p-mfc: Support MFCv10.10 buffer requirements
-> >   [media] videodev2.h: Add v4l2 definition for HEVC
-> >   [media] s5p-mfc: Add support for HEVC decoder
-> >   Documentation: v4l: Documentation for HEVC v4l2 definition
-> >   [media] s5p-mfc: Add VP9 decoder support
-> >   [media] v4l2: Add v4l2 control IDs for HEVC encoder
-> >   [media] s5p-mfc: Add support for HEVC encoder
-> >   Documention: v4l: Documentation for HEVC CIDs
-> >
-> >  .../devicetree/bindings/media/s5p-mfc.txt          |   1 +
-> >  Documentation/media/uapi/v4l/extended-controls.rst | 355 ++++++++++++
-> >  Documentation/media/uapi/v4l/pixfmt-013.rst        |   5 +
-> >  drivers/media/platform/s5p-mfc/regs-mfc-v10.h      |  88 +++
-> >  drivers/media/platform/s5p-mfc/regs-mfc-v8.h       |   2 +
-> >  drivers/media/platform/s5p-mfc/s5p_mfc.c           |  33 ++
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c    |   9 +
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  71 ++-
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |   6 +-
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  50 +-
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 616 ++++++++++++++++++++-
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr.h       |  14 +
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    | 410 ++++++++++++--
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |  15 +
-> >  drivers/media/v4l2-core/v4l2-ctrls.c               | 103 ++++
-> >  include/uapi/linux/v4l2-controls.h                 | 133 +++++
-> >  include/uapi/linux/videodev2.h                     |   1 +
-> >  17 files changed, 1835 insertions(+), 77 deletions(-)
-> >  create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-> >
-> 
-> 
+Optimally, we want to enable LS_OE only when needed, which would be when
+reading EDID, using HDCP, or using CEC. But we don't have good means to
+convey that information at the moment, and I'd rather leave it for later
+when we have done the bigger restructuring of omapdrm.
+
+For now, instead of the ifdef-confusion, I think we should just enable
+the LS_OE in tpd_connect and be done with it.
+
+ Tomi
+
+
+--e8e6rjVmSJbXfOeAKohwXJAvs41RFgrxi--
+
+--h1Ia1kV36Qj9rn4jkkAKKko0D3dRteklq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJZAyieAAoJEPo9qoy8lh71Y4gP/3GUY33xvqcBr6RHaEiU6Qi5
+oESqA4THQj46JCEDJzQxI06+w9/MMfQl6IwmhIse4XeaOxGnoSjz+NGfjoBgkkUn
+9C3qgWpM0jXtI/+29gI49UbZfbNzq5hi20SmNNVtmmsJCH6LhIA33m+5z2MLQ+By
+mBEeSyMjoxue8P3XVv7pcznkPa/od+YronPOAhypWpXegOrPZDuqpoSBaMx/m1pU
+0k6v0cQSx3Zz104pNcWuu+1/GmIzHUArIdy68+/E0ukks7AptNkK/bzMWhUFoLeR
+dneIm58LMBgW/lSRzEQwf7qVVKYweNE9xB9FM5gS63qhZWUBAXUxOnPiW9OVhEfZ
+ZNKtIg2nJSKSN/t5lVgiXL4wxUuVbY+0o/Lb/0zd1guoTXPRc37kJ8FCAXb0zkLX
+LIPW9aQ8ogJu1//iZmf2gtqbqRpomfAtEliVavwCUHOiU+e8Pq4rc64pROtmHZDR
+JcghosDj8e6F2F4Cz6FfaIusJEqO8NG2ET6MA1uXWoFMe9eUyJQtXje9c1zjPGxZ
+kPJsDwf0W8tbADv2dqtijwHeH6OoVBkmjs3GbtiuxjhdZdf7GogSzjg5ETknUdr/
+imribFFlhioHXyv0r42JDYwCnOQzRVqRwt8eV8OGwxdpyGFwOIZaiyZRz/dOq64w
+gf9XwjLd843AF079HPEx
+=cZRz
+-----END PGP SIGNATURE-----
+
+--h1Ia1kV36Qj9rn4jkkAKKko0D3dRteklq--
