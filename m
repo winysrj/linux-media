@@ -1,77 +1,624 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:38203 "EHLO ale.deltatee.com"
+Received: from mga05.intel.com ([192.55.52.43]:10970 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752890AbdDMWG2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 18:06:28 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>,
-        Tejun Heo <tj@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Ming Lin <ming.l@ssi.samsung.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Steve Wise <swise@opengridcomputing.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:23 -0600
-Message-Id: <1492121135-4437-11-git-send-email-logang@deltatee.com>
-In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 10/22] staging: unisys: visorbus: Make use of the new sg_map helper function
+        id S1422747AbdD1MKR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 08:10:17 -0400
+Subject: [PATCH 5/8] atomisp: remove some more unused files
+From: Alan Cox <alan@linux.intel.com>
+To: greg@kroah.com, linux-media@vger.kernel.org
+Date: Fri, 28 Apr 2017 13:10:13 +0100
+Message-ID: <149338140817.2556.10335083764684760793.stgit@acox1-desk1.ger.corp.intel.com>
+In-Reply-To: <149338135275.2556.7708531564733886566.stgit@acox1-desk1.ger.corp.intel.com>
+References: <149338135275.2556.7708531564733886566.stgit@acox1-desk1.ger.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Straightforward conversion to the new function.
+The extra list contains some which are used and some which are not. At this
+point I think we can safely remove those that are simply not used.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
 ---
- drivers/staging/unisys/visorhba/visorhba_main.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ .../staging/media/atomisp/pci/atomisp2/Makefile    |   11 -
+ .../media/atomisp/pci/atomisp2/hmm/hmm_bo_dev.c    |  333 --------------------
+ .../media/atomisp/pci/atomisp2/hrt/device_access.c |  116 -------
+ .../media/atomisp/pci/atomisp2/hrt/memory_access.c |  103 ------
+ 4 files changed, 563 deletions(-)
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo_dev.c
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/hrt/device_access.c
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/hrt/memory_access.c
 
-diff --git a/drivers/staging/unisys/visorhba/visorhba_main.c b/drivers/staging/unisys/visorhba/visorhba_main.c
-index 0ce92c8..2d8c8bc 100644
---- a/drivers/staging/unisys/visorhba/visorhba_main.c
-+++ b/drivers/staging/unisys/visorhba/visorhba_main.c
-@@ -842,7 +842,6 @@ do_scsi_nolinuxstat(struct uiscmdrsp *cmdrsp, struct scsi_cmnd *scsicmd)
- 	struct scatterlist *sg;
- 	unsigned int i;
- 	char *this_page;
--	char *this_page_orig;
- 	int bufind = 0;
- 	struct visordisk_info *vdisk;
- 	struct visorhba_devdata *devdata;
-@@ -869,11 +868,14 @@ do_scsi_nolinuxstat(struct uiscmdrsp *cmdrsp, struct scsi_cmnd *scsicmd)
- 
- 		sg = scsi_sglist(scsicmd);
- 		for (i = 0; i < scsi_sg_count(scsicmd); i++) {
--			this_page_orig = kmap_atomic(sg_page(sg + i));
--			this_page = (void *)((unsigned long)this_page_orig |
--					     sg[i].offset);
-+			this_page = sg_map(sg + i, SG_KMAP_ATOMIC);
-+			if (IS_ERR(this_page)) {
-+				scsicmd->result = DID_ERROR << 16;
-+				return;
-+			}
-+
- 			memcpy(this_page, buf + bufind, sg[i].length);
--			kunmap_atomic(this_page_orig);
-+			sg_unmap(sg + i, this_page, SG_KMAP_ATOMIC);
- 		}
- 	} else {
- 		devdata = (struct visorhba_devdata *)scsidev->host->hostdata;
--- 
-2.1.4
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/Makefile b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+index 96a7bd0..7417dbd 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/Makefile
++++ b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+@@ -157,17 +157,6 @@ atomisp-objs += \
+ 	hrt/hive_isp_css_mm_hrt.o \
+ 	atomisp_v4l2.o
+ 	
+-extra= \
+-	hrt/hive_isp_css_mm_hrt.o \
+-	hrt/memory_access.o \
+-	hrt/device_access.o \
+-	hmm/hmm_dynamic_pool.o \
+-	hmm/hmm_vm.o \
+-	hmm/hmm_reserved_pool.o \
+-	hmm/hmm_bo_dev.o \
+-	hmm/hmm.o \
+-	hmm/hmm_bo.o
+-
+ # These will be needed when clean merge CHT support nicely into the driver
+ # Keep them here handy for when we get to that point
+ #
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo_dev.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo_dev.c
+deleted file mode 100644
+index d22a2d2..0000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo_dev.c
++++ /dev/null
+@@ -1,333 +0,0 @@
+-/*
+- * Support for Medifield PNW Camera Imaging ISP subsystem.
+- *
+- * Copyright (c) 2010 Intel Corporation. All Rights Reserved.
+- *
+- * Copyright (c) 2010 Silicon Hive www.siliconhive.com.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License version
+- * 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+- * 02110-1301, USA.
+- *
+- */
+-#include <linux/kernel.h>
+-#include <linux/types.h>
+-#include <linux/gfp.h>
+-#include <linux/mm.h>		/* for GFP_ATOMIC */
+-#include <linux/slab.h>		/* for kmalloc */
+-#include <linux/module.h>
+-#include <linux/moduleparam.h>
+-#include <linux/string.h>
+-#include <linux/list.h>
+-#include <linux/errno.h>
+-
+-#ifdef CONFIG_ION
+-#include <linux/ion.h>
+-#endif
+-
+-#include "atomisp_internal.h"
+-#include "hmm/hmm_common.h"
+-#include "hmm/hmm_bo_dev.h"
+-#include "hmm/hmm_bo.h"
+-
+-/*
+- * hmm_bo_device functions.
+- */
+-int hmm_bo_device_init(struct hmm_bo_device *bdev,
+-		       struct isp_mmu_client *mmu_driver,
+-		       unsigned int vaddr_start, unsigned int size)
+-{
+-	int ret;
+-
+-	check_bodev_null_return(bdev, -EINVAL);
+-
+-	ret = isp_mmu_init(&bdev->mmu, mmu_driver);
+-	if (ret) {
+-		dev_err(atomisp_dev, "isp_mmu_init failed.\n");
+-		goto isp_mmu_init_err;
+-	}
+-
+-	ret = hmm_vm_init(&bdev->vaddr_space, vaddr_start, size);
+-	if (ret) {
+-		dev_err(atomisp_dev, "hmm_vm_init failed. vaddr_start = 0x%x, size = %d\n",
+-			vaddr_start, size);
+-		goto vm_init_err;
+-	}
+-
+-	INIT_LIST_HEAD(&bdev->free_bo_list);
+-	INIT_LIST_HEAD(&bdev->active_bo_list);
+-
+-	spin_lock_init(&bdev->list_lock);
+-#ifdef CONFIG_ION
+-	/*
+-	 * TODO:
+-	 * The ion_dev should be defined by ION driver. But ION driver does
+-	 * not implement it yet, will fix it when it is ready.
+-	 */
+-	if (!ion_dev)
+-		goto vm_init_err;
+-
+-	bdev->iclient = ion_client_create(ion_dev, "atomisp");
+-	if (IS_ERR_OR_NULL(bdev->iclient)) {
+-		ret = PTR_ERR(bdev->iclient);
+-		if (!bdev->iclient)
+-			ret = -EINVAL;
+-		goto vm_init_err;
+-	}
+-#endif
+-	bdev->flag = HMM_BO_DEVICE_INITED;
+-
+-	return 0;
+-
+-vm_init_err:
+-	isp_mmu_exit(&bdev->mmu);
+-isp_mmu_init_err:
+-	return ret;
+-}
+-
+-void hmm_bo_device_exit(struct hmm_bo_device *bdev)
+-{
+-	check_bodev_null_return_void(bdev);
+-
+-	/*
+-	 * destroy all bos in the bo list, even they are in use.
+-	 */
+-	if (!list_empty(&bdev->active_bo_list))
+-		dev_warn(atomisp_dev,
+-			     "there're still activated bo in use. "
+-			     "force to free them.\n");
+-
+-	while (!list_empty(&bdev->active_bo_list))
+-		hmm_bo_unref(list_to_hmm_bo(bdev->active_bo_list.next));
+-
+-	if (!list_empty(&bdev->free_bo_list))
+-		dev_warn(atomisp_dev,
+-				"there're still bo in free_bo_list. "
+-				"force to free them.\n");
+-
+-	while (!list_empty(&bdev->free_bo_list))
+-		hmm_bo_unref(list_to_hmm_bo(bdev->free_bo_list.next));
+-
+-	isp_mmu_exit(&bdev->mmu);
+-	hmm_vm_clean(&bdev->vaddr_space);
+-#ifdef CONFIG_ION
+-	if (bdev->iclient != NULL)
+-		ion_client_destroy(bdev->iclient);
+-#endif
+-}
+-
+-int hmm_bo_device_inited(struct hmm_bo_device *bdev)
+-{
+-	check_bodev_null_return(bdev, -EINVAL);
+-
+-	return bdev->flag == HMM_BO_DEVICE_INITED;
+-}
+-
+-/*
+- * find the buffer object with virtual address vaddr.
+- * return NULL if no such buffer object found.
+- */
+-struct hmm_buffer_object *hmm_bo_device_search_start(struct hmm_bo_device *bdev,
+-						     ia_css_ptr vaddr)
+-{
+-	struct list_head *pos;
+-	struct hmm_buffer_object *bo;
+-	unsigned long flags;
+-
+-	check_bodev_null_return(bdev, NULL);
+-
+-	spin_lock_irqsave(&bdev->list_lock, flags);
+-	list_for_each(pos, &bdev->active_bo_list) {
+-		bo = list_to_hmm_bo(pos);
+-		/* pass bo which has no vm_node allocated */
+-		if (!hmm_bo_vm_allocated(bo))
+-			continue;
+-		if (bo->vm_node->start == vaddr)
+-			goto found;
+-	}
+-	spin_unlock_irqrestore(&bdev->list_lock, flags);
+-	return NULL;
+-found:
+-	spin_unlock_irqrestore(&bdev->list_lock, flags);
+-	return bo;
+-}
+-
+-static int in_range(unsigned int start, unsigned int size, unsigned int addr)
+-{
+-	return (start <= addr) && (start + size > addr);
+-}
+-
+-struct hmm_buffer_object *hmm_bo_device_search_in_range(struct hmm_bo_device
+-							*bdev,
+-							unsigned int vaddr)
+-{
+-	struct list_head *pos;
+-	struct hmm_buffer_object *bo;
+-	unsigned long flags;
+-	int cnt = 0;
+-
+-	check_bodev_null_return(bdev, NULL);
+-
+-	spin_lock_irqsave(&bdev->list_lock, flags);
+-	list_for_each(pos, &bdev->active_bo_list) {
+-		cnt++;
+-		bo = list_to_hmm_bo(pos);
+-		/* pass bo which has no vm_node allocated */
+-		if (!hmm_bo_vm_allocated(bo))
+-			continue;
+-		if (in_range(bo->vm_node->start, bo->vm_node->size, vaddr))
+-			goto found;
+-	}
+-	spin_unlock_irqrestore(&bdev->list_lock, flags);
+-	return NULL;
+-found:
+-	if (cnt > HMM_BO_CACHE_SIZE)
+-		list_move(pos, &bdev->active_bo_list);
+-	spin_unlock_irqrestore(&bdev->list_lock, flags);
+-	return bo;
+-}
+-
+-struct hmm_buffer_object *
+-hmm_bo_device_search_vmap_start(struct hmm_bo_device *bdev, const void *vaddr)
+-{
+-	struct list_head *pos;
+-	struct hmm_buffer_object *bo;
+-	unsigned long flags;
+-
+-	check_bodev_null_return(bdev, NULL);
+-
+-	spin_lock_irqsave(&bdev->list_lock, flags);
+-	list_for_each(pos, &bdev->active_bo_list) {
+-		bo = list_to_hmm_bo(pos);
+-		/* pass bo which has no vm_node allocated */
+-		if (!hmm_bo_vm_allocated(bo))
+-			continue;
+-		if (bo->vmap_addr == vaddr)
+-			goto found;
+-	}
+-	spin_unlock_irqrestore(&bdev->list_lock, flags);
+-	return NULL;
+-found:
+-	spin_unlock_irqrestore(&bdev->list_lock, flags);
+-	return bo;
+-}
+-
+-/*
+- * find a buffer object with pgnr pages from free_bo_list and
+- * activate it (remove from free_bo_list and add to
+- * active_bo_list)
+- *
+- * return NULL if no such buffer object found.
+- */
+-struct hmm_buffer_object *hmm_bo_device_get_bo(struct hmm_bo_device *bdev,
+-					       unsigned int pgnr)
+-{
+-	struct list_head *pos;
+-	struct hmm_buffer_object *bo;
+-	unsigned long flags;
+-
+-	check_bodev_null_return(bdev, NULL);
+-
+-	spin_lock_irqsave(&bdev->list_lock, flags);
+-	list_for_each(pos, &bdev->free_bo_list) {
+-		bo = list_to_hmm_bo(pos);
+-		if (bo->pgnr == pgnr)
+-			goto found;
+-	}
+-	spin_unlock_irqrestore(&bdev->list_lock, flags);
+-	return NULL;
+-found:
+-	list_del(&bo->list);
+-	list_add(&bo->list, &bdev->active_bo_list);
+-	spin_unlock_irqrestore(&bdev->list_lock, flags);
+-
+-	return bo;
+-}
+-
+-/*
+- * destroy all buffer objects in the free_bo_list.
+- */
+-void hmm_bo_device_destroy_free_bo_list(struct hmm_bo_device *bdev)
+-{
+-	struct hmm_buffer_object *bo, *tmp;
+-	unsigned long flags;
+-	struct list_head new_head;
+-
+-	check_bodev_null_return_void(bdev);
+-
+-	spin_lock_irqsave(&bdev->list_lock, flags);
+-	list_replace_init(&bdev->free_bo_list, &new_head);
+-	spin_unlock_irqrestore(&bdev->list_lock, flags);
+-
+-	list_for_each_entry_safe(bo, tmp, &new_head, list) {
+-		list_del(&bo->list);
+-		hmm_bo_unref(bo);
+-	}
+-}
+-
+-/*
+- * destroy buffer object with start virtual address vaddr.
+- */
+-void hmm_bo_device_destroy_free_bo_addr(struct hmm_bo_device *bdev,
+-					unsigned int vaddr)
+-{
+-	struct list_head *pos;
+-	struct hmm_buffer_object *bo;
+-	unsigned long flags;
+-
+-	check_bodev_null_return_void(bdev);
+-
+-	spin_lock_irqsave(&bdev->list_lock, flags);
+-	list_for_each(pos, &bdev->free_bo_list) {
+-		bo = list_to_hmm_bo(pos);
+-		/* pass bo which has no vm_node allocated */
+-		if (!hmm_bo_vm_allocated(bo))
+-			continue;
+-		if (bo->vm_node->start == vaddr)
+-			goto found;
+-	}
+-	spin_unlock_irqrestore(&bdev->list_lock, flags);
+-	return;
+-found:
+-	list_del(&bo->list);
+-	spin_unlock_irqrestore(&bdev->list_lock, flags);
+-	hmm_bo_unref(bo);
+-}
+-
+-/*
+- * destroy all buffer objects with pgnr pages.
+- */
+-void hmm_bo_device_destroy_free_bo_size(struct hmm_bo_device *bdev,
+-					unsigned int pgnr)
+-{
+-	struct list_head *pos;
+-	struct hmm_buffer_object *bo;
+-	unsigned long flags;
+-
+-	check_bodev_null_return_void(bdev);
+-
+-retry:
+-	spin_lock_irqsave(&bdev->list_lock, flags);
+-	list_for_each(pos, &bdev->free_bo_list) {
+-		bo = list_to_hmm_bo(pos);
+-		if (bo->pgnr == pgnr)
+-			goto found;
+-	}
+-	spin_unlock_irqrestore(&bdev->list_lock, flags);
+-	return;
+-found:
+-	list_del(&bo->list);
+-	spin_unlock_irqrestore(&bdev->list_lock, flags);
+-	hmm_bo_unref(bo);
+-	goto retry;
+-}
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hrt/device_access.c b/drivers/staging/media/atomisp/pci/atomisp2/hrt/device_access.c
+deleted file mode 100644
+index c870266..0000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hrt/device_access.c
++++ /dev/null
+@@ -1,116 +0,0 @@
+-
+-#include "device_access.h"
+-
+-#include "assert_support.h"
+-
+-#include <hrt/master_port.h>	/* hrt_master_port_load() */
+-
+-/*
+- * This is an HRT backend implementation for CSIM
+- */
+-
+-static sys_address		base_address = (sys_address)-1;
+-
+-void device_set_base_address(
+-	const sys_address		base_addr)
+-{
+-	base_address = base_addr;
+-return;
+-}
+-
+-
+-sys_address device_get_base_address(void)
+-{
+-return base_address;
+-}
+-
+-uint8_t device_load_uint8(
+-	const hrt_address		addr)
+-{
+-assert(base_address != (sys_address)-1);
+-return hrt_master_port_uload_8(base_address + addr);
+-}
+-
+-uint16_t device_load_uint16(
+-	const hrt_address		addr)
+-{
+-assert(base_address != (sys_address)-1);
+-assert((addr & 0x01) == 0);
+-return hrt_master_port_uload_16(base_address + addr);
+-}
+-
+-uint32_t device_load_uint32(
+-	const hrt_address		addr)
+-{
+-assert(base_address != (sys_address)-1);
+-assert((addr & 0x03) == 0);
+-return hrt_master_port_uload_32(base_address + addr);
+-}
+-
+-uint64_t device_load_uint64(
+-	const hrt_address		addr)
+-{
+-assert(base_address != (sys_address)-1);
+-assert((addr & 0x07) == 0);
+-assert(0);
+-return 0;
+-}
+-
+-void device_store_uint8(
+-	const hrt_address		addr,
+-	const uint8_t			data)
+-{
+-assert(base_address != (sys_address)-1);
+-hrt_master_port_store_8(base_address + addr, data);
+-return;
+-}
+-
+-void device_store_uint16(
+-	const hrt_address		addr,
+-	const uint16_t			data)
+-{
+-assert(base_address != (sys_address)-1);
+-assert((addr & 0x01) == 0);
+-hrt_master_port_store_16(base_address + addr, data);
+-return;
+-}
+-
+-void device_store_uint32(
+-	const hrt_address		addr,
+-	const uint32_t			data)
+-{
+-assert(base_address != (sys_address)-1);
+-assert((addr & 0x03) == 0);
+-hrt_master_port_store_32(base_address + addr, data);
+-return;
+-}
+-
+-void device_store_uint64(
+-	const hrt_address		addr,
+-	const uint64_t			data)
+-{
+-assert(base_address != (sys_address)-1);
+-assert((addr & 0x07) == 0);
+-assert(0);
+-(void)data;
+-return;
+-}
+-
+-void device_load(
+-	const hrt_address		addr,
+-	void					*data,
+-	const size_t			size)
+-{
+-assert(base_address != (sys_address)-1);
+-	hrt_master_port_load((uint32_t)(base_address + addr), data, size);
+-}
+-
+-void device_store(
+-	const hrt_address		addr,
+-	const void				*data,
+-	const size_t			size)
+-{
+-assert(base_address != (sys_address)-1);
+-	hrt_master_port_store((uint32_t)(base_address + addr), data, size);
+-return;
+-}
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hrt/memory_access.c b/drivers/staging/media/atomisp/pci/atomisp2/hrt/memory_access.c
+deleted file mode 100644
+index 60e70cb..0000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hrt/memory_access.c
++++ /dev/null
+@@ -1,103 +0,0 @@
+-
+-#include "memory_access.h"
+-
+-#include <stddef.h>		/* NULL */
+-#include <stdbool.h>
+-
+-#include "device_access.h"
+-
+-#include "mmu_device.h"
+-
+-#include "assert_support.h"
+-
+-/* Presently system specific */
+-#include <hmm/hmm.h>
+-/* Presently system specific */
+-#include "hive_isp_css_mm_hrt.h"
+-
+-/*
+- * This is an HRT backend implementation for CSIM
+- * 31 July 2012, rvanimme: this implementation is also used in Android context
+- */
+-
+-static sys_address	page_table_base_address = (sys_address)-1;
+-
+-void mmgr_set_base_address(const sys_address base_addr)
+-{
+-	page_table_base_address = base_addr;
+-
+-/*
+- * This is part of "device_access.h", but it may be
+- * that "hive_isp_css_mm_hrt.h" requires it
+- */
+-/* hrt_isp_css_mm_set_ddr_address_offset(offset); */
+-/*	mmu_set_page_table_base_index(MMU0_ID, page_table_base_address); */
+-}
+-
+-ia_css_ptr mmgr_malloc(const size_t size)
+-{
+-	return mmgr_alloc_attr(size, MMGR_ATTRIBUTE_CACHED);
+-}
+-
+-ia_css_ptr mmgr_calloc(const size_t N, const size_t size)
+-{
+-	return mmgr_alloc_attr(N * size,
+-		MMGR_ATTRIBUTE_CLEARED|MMGR_ATTRIBUTE_CACHED);
+-}
+-
+-ia_css_ptr mmgr_alloc_attr(const size_t	size, const uint16_t attribute)
+-{
+-	ia_css_ptr	ptr;
+-	size_t	extra_space = 0;
+-	size_t	aligned_size = size;
+-
+-	assert(page_table_base_address != (sys_address)-1);
+-	assert((attribute & MMGR_ATTRIBUTE_UNUSED) == 0);
+-	WARN_ON(attribute & MMGR_ATTRIBUTE_CONTIGUOUS);
+-
+-	if (attribute & MMGR_ATTRIBUTE_CLEARED) {
+-		if (attribute & MMGR_ATTRIBUTE_CACHED) {
+-			ptr = hrt_isp_css_mm_calloc_cached(
+-						aligned_size + extra_space);
+-		} else { /* !MMGR_ATTRIBUTE_CACHED */
+-			ptr = hrt_isp_css_mm_calloc(
+-						aligned_size + extra_space);
+-		}
+-	} else { /* MMGR_ATTRIBUTE_CLEARED */
+-		if (attribute & MMGR_ATTRIBUTE_CACHED) {
+-			ptr = hrt_isp_css_mm_alloc_cached(
+-						aligned_size + extra_space);
+-		} else { /* !MMGR_ATTRIBUTE_CACHED */
+-			ptr = hrt_isp_css_mm_alloc(
+-					aligned_size + extra_space);
+-		}
+-	}
+-	return ptr;
+-}
+-
+-ia_css_ptr mmgr_mmap(const void *ptr, const size_t size, uint16_t attribute,
+-		void *context)
+-{
+-	struct hrt_userbuffer_attr *userbuffer_attr = context;
+-	return hrt_isp_css_mm_alloc_user_ptr(size, (void *)ptr,
+-					userbuffer_attr->pgnr,
+-					userbuffer_attr->type,
+-					attribute & HRT_BUF_FLAG_CACHED);
+-}
+-
+-void mmgr_clear(
+-	ia_css_ptr			vaddr,
+-	const size_t			size)
+-{
+-	hmm_set(vaddr, 0, size);
+-}
+-
+-void mmgr_load(const ia_css_ptr	vaddr, void *data, const size_t size)
+-{
+-	hmm_load(vaddr, data, size);
+-}
+-
+-void mmgr_store(const ia_css_ptr vaddr,	const void *data, const size_t size)
+-{
+-	hmm_store(vaddr, data, size);
+-}
