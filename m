@@ -1,71 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:19302 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751256AbdDMH6E (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Apr 2017 03:58:04 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:60407 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756463AbdD1ONg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 10:13:36 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com
-Subject: [RFC v3 11/14] vb2: dma-contig: Add WARN_ON_ONCE() to check for potential bugs
-Date: Thu, 13 Apr 2017 10:57:16 +0300
-Message-Id: <1492070239-21532-12-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1492070239-21532-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1492070239-21532-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: devicetree@vger.kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Peter Rosin <peda@axentia.se>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 1/2] [media] dt-bindings: Add bindings for video-multiplexer device
+Date: Fri, 28 Apr 2017 16:13:29 +0200
+Message-Id: <20170428141330.16187-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The scatterlist should always be present when the cache would need to be
-flushed. Each buffer type has its own means to provide that. Add
-WARN_ON_ONCE() to check the scatterist exists.
+Add bindings documentation for the video multiplexer device.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+This has been last sent as part of Steve's i.MX media series. Since the binding
+changed, I've dropped Rob's ack.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 6a707d3..2847fbf 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -120,7 +120,7 @@ static void vb2_dc_prepare(void *buf_priv)
- 	 * DMABUF exporter will flush the cache for us; only USERPTR
- 	 * and MMAP buffers with non-coherent memory will be flushed.
- 	 */
--	if (buf->attrs & DMA_ATTR_NON_CONSISTENT)
-+	if (buf->attrs & DMA_ATTR_NON_CONSISTENT && !WARN_ON_ONCE(!sgt))
- 		dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents,
- 				       buf->dma_dir);
- }
-@@ -134,7 +134,7 @@ static void vb2_dc_finish(void *buf_priv)
- 	 * DMABUF exporter will flush the cache for us; only USERPTR
- 	 * and MMAP buffers with non-coherent memory will be flushed.
- 	 */
--	if (buf->attrs & DMA_ATTR_NON_CONSISTENT)
-+	if (buf->attrs & DMA_ATTR_NON_CONSISTENT && !WARN_ON_ONCE(!sgt))
- 		dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents,
- 				    buf->dma_dir);
- }
-@@ -380,7 +380,7 @@ static int vb2_dc_dmabuf_ops_begin_cpu_access(struct dma_buf *dbuf,
- 	 * DMABUF exporter will flush the cache for us; only USERPTR
- 	 * and MMAP buffers with non-coherent memory will be flushed.
- 	 */
--	if (buf->attrs & DMA_ATTR_NON_CONSISTENT)
-+	if (buf->attrs & DMA_ATTR_NON_CONSISTENT && !WARN_ON_ONCE(!sgt))
- 		dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents,
- 				    buf->dma_dir);
- 
-@@ -397,7 +397,7 @@ static int vb2_dc_dmabuf_ops_end_cpu_access(struct dma_buf *dbuf,
- 	 * DMABUF exporter will flush the cache for us; only USERPTR
- 	 * and MMAP buffers with non-coherent memory will be flushed.
- 	 */
--	if (buf->attrs & DMA_ATTR_NON_CONSISTENT)
-+	if (buf->attrs & DMA_ATTR_NON_CONSISTENT && !WARN_ON_ONCE(!sgt))
- 		dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents,
- 				       buf->dma_dir);
- 
+Changes since https://patchwork.kernel.org/patch/9647951/:
+ - Replaced re, bit-mask/shift, and gpios properties with a single mux-controls
+   property, leaving the actual operation of the mux to a separate mux
+   controller, as described by Peter's mux-controller bindings:
+   https://patchwork.kernel.org/patch/9695835/
+ - Shortened 'video-multiplexer' compatible to 'video-mux', aligning with the
+   other mux bindings.
+ - Added a comment about the optional ports node and a link to the OF graph
+   bindings document.
+---
+ .../devicetree/bindings/media/video-mux.txt        | 60 ++++++++++++++++++++++
+ 1 file changed, 60 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/video-mux.txt
+
+diff --git a/Documentation/devicetree/bindings/media/video-mux.txt b/Documentation/devicetree/bindings/media/video-mux.txt
+new file mode 100644
+index 0000000000000..63b9dc913e456
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/video-mux.txt
+@@ -0,0 +1,60 @@
++Video Multiplexer
++=================
++
++Video multiplexers allow to select between multiple input ports. Video received
++on the active input port is passed through to the output port. Muxes described
++by this binding are controlled by a multiplexer controller that is described by
++the bindings in Documentation/devicetree/bindings/mux/mux-controller.txt
++
++Required properties:
++- compatible : should be "video-mux"
++- mux-controls : mux controller node to use for operating the mux
++- #address-cells: should be <1>
++- #size-cells: should be <0>
++- port@*: at least three port nodes containing endpoints connecting to the
++  source and sink devices according to of_graph bindings. The last port is
++  the output port, all others are inputs.
++
++Optionally, #address-cells, #size-cells, and port nodes can be grouped under a
++ports node as described in Documentation/devicetree/bindings/graph.txt.
++
++Example:
++
++	mux: mux-controller {
++		compatible = "gpio-mux";
++		#mux-control-cells = <0>;
++
++		mux-gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
++	};
++
++	video-mux {
++		compatible = "video-mux";
++		mux-controls = <&mux>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			mux_in0: endpoint {
++				remote-endpoint = <&video_source0_out>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			mux_in1: endpoint {
++				remote-endpoint = <&video_source1_out>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			mux_out: endpoint {
++				remote-endpoint = <&capture_interface_in>;
++			};
++		};
++	};
++};
 -- 
-2.7.4
+2.11.0
