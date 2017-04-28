@@ -1,411 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37709 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752040AbdDCI2o (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52691 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1030532AbdD1AAx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Apr 2017 04:28:44 -0400
-Subject: Re: [Patch v3 11/11] Documention: v4l: Documentation for HEVC CIDs
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        Thu, 27 Apr 2017 20:00:53 -0400
+Subject: Re: [PATCH 1/5] v4l2-subdev: Provide a port mapping for asynchronous
+ subdevs
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <1493317564-18026-1-git-send-email-kbingham@kernel.org>
+ <1493317564-18026-2-git-send-email-kbingham@kernel.org>
+ <20170427214346.GB7456@valkosipuli.retiisi.org.uk>
+ <d6295abe-5f04-5896-a582-e79d65f0a2ad@ideasonboard.com>
+ <20170427224940.GC7456@valkosipuli.retiisi.org.uk>
+Cc: Kieran Bingham <kbingham@kernel.org>,
+        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         linux-kernel@vger.kernel.org
-References: <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
- <CGME20170331090455epcas5p4fef42ffa06d0050130c6e13b91da3a6f@epcas5p4.samsung.com>
- <1490951200-32070-12-git-send-email-smitha.t@samsung.com>
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e697586c-4fc2-0134-f3e3-f61234eb4d1d@xs4all.nl>
-Date: Mon, 3 Apr 2017 10:28:38 +0200
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <74b2997d-cada-a486-737d-fc21f34a9570@ideasonboard.com>
+Date: Fri, 28 Apr 2017 01:00:46 +0100
 MIME-Version: 1.0
-In-Reply-To: <1490951200-32070-12-git-send-email-smitha.t@samsung.com>
+In-Reply-To: <20170427224940.GC7456@valkosipuli.retiisi.org.uk>
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/31/2017 11:06 AM, Smitha T Murthy wrote:
-> Added V4l2 controls for HEVC encoder
+On 27/04/17 23:49, Sakari Ailus wrote:
+> Hi Kieran,
 > 
-> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> ---
->  Documentation/media/uapi/v4l/extended-controls.rst | 355 +++++++++++++++++++++
->  1 file changed, 355 insertions(+)
+> On Thu, Apr 27, 2017 at 11:13:50PM +0100, Kieran Bingham wrote:
+>> Hi Sakari,
+>>
+>> Thanks for taking a look
 > 
-> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-> index abb1057..c2f3c5e 100644
-> --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> @@ -1960,6 +1960,361 @@ enum v4l2_vp8_golden_frame_sel -
->      1, 2 and 3 corresponding to encoder profiles 0, 1, 2 and 3.
->  
->  
-> +HEVC Control Reference
-> +---------------------
-> +
-> +The HEVC controls include controls for encoding parameters of HEVC video
-> +codec.
+> Sure! :-)
+> 
+>>
+>> On 27/04/17 22:43, Sakari Ailus wrote:
+>>> Hi Kieran,
+>>>
+>>> Could I ask you to rebase your patches on top of my V4L2 fwnode patches
+>>> here?
+>>>
+>>> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi>
+>>>
+>>> It depends on the fwnode graph patches, merged here:
+>>>
+>>> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi-merge>
+>>>
+>>> I expect the fwnode graph patches in v4.12 so we'll have them in media-tree
+>>> master soon.
+>>>
+>>> (I'm pushing these branches right now, it may take a while until it's really
+>>> there.)
+>>
+>> Sure, I'll merge those into my base.
+>>
+>>> On Thu, Apr 27, 2017 at 07:26:00PM +0100, Kieran Bingham wrote:
+>>>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>>>
+>>>> Devices such as the the ADV748x support multiple parallel stream routes
+>>>> through a single chip. This leads towards needing to provide multiple
+>>>> distinct entities and subdevs from a single device-tree node.
+>>>>
+>>>> To distinguish these separate outputs, the device-tree binding must
+>>>> specify each endpoint link with a unique (to the device) non-zero port
+>>>> number.
+>>>>
+>>>> This number allows async subdev registrations to identify the correct
+>>>> subdevice to bind and link.
+>>>>
+>>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>>> ---
+>>>>  drivers/media/v4l2-core/v4l2-async.c  | 7 +++++++
+>>>>  drivers/media/v4l2-core/v4l2-subdev.c | 1 +
+>>>>  include/media/v4l2-async.h            | 1 +
+>>>>  include/media/v4l2-subdev.h           | 2 ++
+>>>>  4 files changed, 11 insertions(+)
+>>>>
+>>>> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+>>>> index 1815e54e8a38..875e6ce646ec 100644
+>>>> --- a/drivers/media/v4l2-core/v4l2-async.c
+>>>> +++ b/drivers/media/v4l2-core/v4l2-async.c
+>>>> @@ -42,6 +42,13 @@ static bool match_devname(struct v4l2_subdev *sd,
+>>>>  
+>>>>  static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+>>>>  {
+>>>> +	/*
+>>>> +	 * If set, we must match the device tree port, with the subdev port.
+>>>> +	 * This is a fast match, so do this first
+>>>> +	 */
+>>>> +	if (sd->port && sd->port != asd->match.of.port)
+>>>
+>>> Zero is an entirely valid value for a port. I think it'd be good not to
+>>> depend on non-zero port values for port matching.
+>>
+>> Well then that pretty much dashes my chances on not parsing the DT in the ADV
+>> driver.
+> 
+> Hmm. I guess there's no really a way to avoid it. But we could make it
+> easier 
+> 
+>>
+>>
+>>
+>>>> +		return -1;
+>>>
+>>> Any particular reason to return -1 from a function with bool return type?
+>>
+>> Ahem, I clearly can't read ;-)
+>> I think my mindset was thinking strcmp or something...
+> 
+> But -1 is perfectly valid. If you wanted to make it look really interesting,
+> you could return -!false and still have exactly the same functionality. ;-)
 
-A general question: are all these controls directly related to the HEVC specification,
-or are there controls that are specific to the exynos HW implementation?
+I'll consider -!false a recommendation for my next patch :D
 
-Any exynos specific controls should be split off from the standard controls.
 
-Regards,
 
-	Hans
+>>>> +
+>>>>  	return !of_node_cmp(of_node_full_name(sd->of_node),
+>>>>  			    of_node_full_name(asd->match.of.node));
+>>>>  }
+>>>> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+>>>> index da78497ae5ed..67f816f90ac3 100644
+>>>> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+>>>> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+>>>> @@ -607,6 +607,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+>>>>  	sd->flags = 0;
+>>>>  	sd->name[0] = '\0';
+>>>>  	sd->grp_id = 0;
+>>>> +	sd->port = 0;
+>>>>  	sd->dev_priv = NULL;
+>>>>  	sd->host_priv = NULL;
+>>>>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>>>> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+>>>> index 5b501309b6a7..2988960613ec 100644
+>>>> --- a/include/media/v4l2-async.h
+>>>> +++ b/include/media/v4l2-async.h
+>>>> @@ -56,6 +56,7 @@ struct v4l2_async_subdev {
+>>>>  	union {
+>>>>  		struct {
+>>>>  			const struct device_node *node;
+>>>> +			u32 port;
+>>>
+>>> What if instead of storing the device's OF node, you'd store the port node
+>>> and used that for matching?
+>>>
+>>> Would that also solve the problem or do I miss something?
+>>
+>> Actually - I was 'trying' to prevent having to parse the DT in the adv748x
+>> driver if I didn't need to.
+>>
+>> Once I have to parse the DT, then yes, I think storing the endpoint node is
+>> probably the best thing to compare against.
+>>
+>> And actually - you might have just solved my open question in the cover letter ...
+>>
+>> I had got stuck in my mindset that if I were to use the endpoint 'leaf' node as
+>> a comparator - that it would be 'instead' of the root node.
+>>
+>> But actually - it could just be root-node + leaf-node to compare, which then
+>> allows us the fallback of comparing just the root nodes if the leaf isn't set.
+>>
+>> I'll respin with this either tomorrow or early next week.
+> 
+> Endpoints are indeed another option.
+> 
+> Is there something that would prevent switching from device node matching to
+> port / endpoint matching altogether? I don't think the driver changes should
+> be difficult to make.
+> 
+> Supporting different options there will be painful as it will likely require
+> help from the driver to implement both --- separately.
 
-> +
-> +
-> +.. _hevc-control-id:
-> +
-> +HEVC Control IDs
-> +^^^^^^^^^^^^^^^
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP``
-> +    Minimum quantization parameter for HEVC.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP``
-> +    Maximum quantization parameter for HEVC.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP``
-> +    Quantization parameter for an I frame for HEVC.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP``
-> +    Quantization parameter for a P frame for HEVC.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP``
-> +    Quantization parameter for a B frame for HEVC.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_QP``
-> +    HIERARCHICAL_QP allows host to specify the quantization parameter values
-> +    for each temporal layer through HIERARCHICAL_QP_LAYER. This is valid only
-> +    if HIERARCHICAL_CODING_LAYER is greater than 1.
-> +
-> +.. _v4l2-hevc-hierarchical-coding-type:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_hier_coding_type -
-> +    Selects the hierarchical coding type for encoding. Possible values are:
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B``
-> +      - Use the B frame for hierarchical coding.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P``
-> +      - Use the P frame for hierarchical coding.
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER``
-> +    Selects the hierarchical coding layer. In normal encoding
-> +    (non-hierarchial coding), it should be zero. Possible values are 0 ~ 6.
-> +    0 indicates HIERARCHICAL CODING LAYER 0, 1 indicates HIERARCHICAL CODING
-> +    LAYER 1 and so on.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_QP``
-> +    Indicates the hierarchical coding layer quantization parameter.
-> +    For HEVC it can have a value of 0-51. Hence in the control value passed
-> +    the LSB 16 bits will indicate the quantization parameter. The MSB 16 bit
-> +    will pass the layer(0-6) it is meant for.
-> +
-> +.. _v4l2-hevc-profile:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_PROFILE``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_profile -
-> +    Select the desired profile for HEVC encoder.
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN``
-> +      - Main profile.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE``
-> +      - Main still picture profile.
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-> +.. _v4l2-hevc-level:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LEVEL``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_level -
-> +    Select the desired level for HEVC encoder.
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +       :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_1``
-> +      - Level 1.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_2``
-> +      - Level 2.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_2_1``
-> +      - Level 2.1
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_3``
-> +      - Level 3.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_3_1``
-> +      - Level 3.1
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_4``
-> +      - Level 4.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1``
-> +      - Level 4.1
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5``
-> +      - Level 5.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1``
-> +      - Level 5.1
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5_2``
-> +      - Level 5.2
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6``
-> +      - Level 6.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6_1``
-> +      - Level 6.1
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2``
-> +      - Level 6.2
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION``
-> +    Indicates the number of evenly spaced subintervals, called ticks, within
-> +    one modulo time. One modulo time represents the fixed interval of one
-> +    second. This is a 16bit unsigned integer and has a maximum value upto
-> +    0xffff.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG``
-> +    TIER_FLAG specifies tier information of the HEVC encoded picture. Tier were
-> +    made to deal with applications that differ in terms of maximum bit rate.
-> +    Setting the flag to 0 selects HEVC tier_flag as Main tier and setting this
-> +    flag to 1 indicates High tier. High tier is for very demanding applications
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH``
-> +    Selects HEVC maximum coding unit depth.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES``
-> +    Selects number of P reference picture required for HEVC encoder.
-> +    P-Frame can use 1 or 2 frames for reference.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LF``
-> +    Indicates loop filtering. Control ID 0 indicates loop filtering
-> +    is enabled and when set to 1 indicates no filter.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY``
-> +    Selects whether to apply the loop filter across the slice boundary or not.
-> +    If the value is 0, loop filter will not be applied across the slice boundary.
-> +    If the value is 1, loop filter will be applied across the slice boundary.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2``
-> +    Selects HEVC loop filter beta offset. The valid range is [-6, +6].
-> +    This could be a negative value in the 2's complement expression.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2``
-> +    Selects HEVC loop filter tc offset. The valid range is [-6, +6].
-> +    This could be a negative value in the 2's complement expression.
-> +
-> +.. _v4l2-hevc-refresh-type:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_hier_refresh_type -
-> +    Selects refresh type for HEVC encoder.
-> +    Host has to specify the period into
-> +    HEVC_REFRESH_PERIOD.
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_NONE``
-> +      - Use the B frame for hierarchical coding.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_CRA``
-> +      - Use CRA(Clean Random Access Unit) picture encoding.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_IDR``
-> +      - Use IDR picture encoding.
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD``
-> +    Selects the refresh period for HEVC encoder.
-> +    This specifies the number of I picture between two CRA/IDR pictures.
-> +    This is valid only if REFRESH_TYPE is not 0.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU``
-> +    Indicates HEVC lossless encoding. Setting it to 0 disables lossless
-> +    encoding. Setting it to 1 enables lossless encoding.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED``
-> +    Indicates constant intra prediction for HEVC encoder. Specifies the
-> +    constrained intra prediction in which intra largest coding unit(LCU)
-> +    prediction is performed by using residual data and decoded samples of
-> +    neighboring intra LCU only. Setting it to 1 enables this control ID and
-> +    setting it to 0 disables the control ID.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT``
-> +    Indicates wavefront parallel processing for HEVC encoder. Setting it to 0
-> +    disables the control ID and setting it to 1 enables the wavefront parallel
-> +    processing.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_SIGN_DATA_HIDING``
-> +    Setting it to 1 indicates sign data hiding for HEVC encoder. Setting it to
-> +    0 disables the control ID.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB``
-> +    Setting the control ID to 1 enables general picture buffers for HEVC
-> +    encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID``
-> +    Indicates temporal identifier specified as temporal_id in
-> +    nal_unit_header_svc_extension() for HEVC encoder which is enabled by
-> +    setting the control ID to 1.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING``
-> +    Indicates bi-linear interpolation is conditionally used in the intra
-> +    prediction filtering process in the CVS when set to 1. Indicates bi-linear
-> +    interpolation is not used in the CVS when set to 0.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1``
-> +    Indicates max number of merge candidate motion vectors.
-> +    Values are from zero to four.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_DARK``
-> +    Indicates HEVC dark region adaptive rate control.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_SMOOTH``
-> +    Indicates HEVC smooth region adaptive rate control.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_STATIC``
-> +    Indicates HEVC static region adaptive rate control.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_ACTIVITY``
-> +    Indicates HEVC activity region adaptive rate control.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT``
-> +    Indicates intra prediction unit split for HEVC Encoder. Setting it to 1
-> +    disables the feature. Setting it to 1 enables the feature.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION``
-> +    Indicates temporal motion vector prediction for HEVC encoder. Setting it to
-> +    0 enables the prediction. Setting it to 1 disables the prediction.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE``
-> +    Specifies if HEVC generates a stream with a size of length field instead of
-> +    start code pattern. The size of the length field is configurable among 1,2
-> +    or 4 thorugh the SIZE_OF_LENGTH_FIELD. It is not applied at SEQ_START.
-> +    Setting it to 0 disables the control ID. Setting it to 1 will enables
-> +    the control ID.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CR``
-> +    Indicates the quantization parameter CR index.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CB``
-> +    Indicates the quantization parameter CB index.
-> +
-> +.. _v4l2-hevc-size-of-length-field:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD``
-> +(enum)
-> +
-> +enum v4l2_mpeg_video_hevc_size_of_length_field -
-> +    Indicates the size of length field.
-> +    This is valid when encoding WITHOUT_STARTCODE_ENABLE is enabled.
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +       :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_0``
-> +      - Generate start code pattern (Normal).
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_1``
-> +      - Generate size of length field instead of start code pattern and length is 1.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_2``
-> +      - Generate size of length field instead of start code pattern and length is 2.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_4``
-> +      - Generate size of length field instead of start code pattern and length is 4.
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR``
-> +    Indicates whether to generate SPS and PPS at every IDR. Setting it to 0
-> +    disables it and setting it to one enables the feature.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_CH``
-> +    Indicates hierarchical coding layer change for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER0_BITRATE``
-> +    Indicates bit rate for hierarchical coding layer 0 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER1_BITRATE``
-> +    Indicates bit rate for hierarchical coding layer 1 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER2_BITRATE``
-> +    Indicates bit rate for hierarchical coding layer 2 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER3_BITRATE``
-> +    Indicates bit rate for hierarchical coding layer 3 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER4_BITRATE``
-> +    Indicates bit rate for hierarchical coding layer 4 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER5_BITRATE``
-> +    Indicates bit rate for hierarchical coding layer 5 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER6_BITRATE``
-> +    Indicates bit rate for hierarchical coding layer 6 for HEVC encoder.
-> +
-> +
->  .. _camera-controls:
->  
->  Camera Control Reference
+Ok - so a bit of pain either way...
+
+IMO - 'endpoint' matching is 'more correct' as then we are tying the subdev with
+precisely the object that it is linking to.
+
+It looks like there are 11 users of v4l2_async_notifier_register(), so yes,
+hopefully it might not actually be so much effort to go through and adapt each
+to match to the endpoint of_node instead!
+
+I'll have a go at this and see how far I get down the rabbit hole.
+
+>>>>  		} of;
+>>>>  		struct {
+>>>>  			const char *name;
+>>>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>>>> index 0ab1c5df6fac..1c1731b491e5 100644
+>>>> --- a/include/media/v4l2-subdev.h
+>>>> +++ b/include/media/v4l2-subdev.h
+>>>> @@ -782,6 +782,7 @@ struct v4l2_subdev_platform_data {
+>>>>   * @ctrl_handler: The control handler of this subdev. May be NULL.
+>>>>   * @name: Name of the sub-device. Please notice that the name must be unique.
+>>>>   * @grp_id: can be used to group similar subdevs. Value is driver-specific
+>>>> + * @port: driver-specific value to bind multiple subdevs with a single DT node.
+>>>>   * @dev_priv: pointer to private data
+>>>>   * @host_priv: pointer to private data used by the device where the subdev
+>>>>   *	is attached.
+>>>> @@ -814,6 +815,7 @@ struct v4l2_subdev {
+>>>>  	struct v4l2_ctrl_handler *ctrl_handler;
+>>>>  	char name[V4L2_SUBDEV_NAME_SIZE];
+>>>>  	u32 grp_id;
+>>>> +	u32 port;
+>>>>  	void *dev_priv;
+>>>>  	void *host_priv;
+>>>>  	struct video_device *devnode;
+>>>
 > 
