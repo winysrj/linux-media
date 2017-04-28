@@ -1,136 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:57409 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935255AbdD0WnA (ORCPT
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:36432 "EHLO
+        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1425397AbdD1JPB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:43:00 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Fri, 28 Apr 2017 05:15:01 -0400
+Received: by mail-wm0-f44.google.com with SMTP id u65so36851284wmu.1
+        for <linux-media@vger.kernel.org>; Fri, 28 Apr 2017 02:15:00 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v4 26/27] rcar-vin: enable support for r8a7795
-Date: Fri, 28 Apr 2017 00:42:02 +0200
-Message-Id: <20170427224203.14611-27-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v8 01/10] firmware: qcom_scm: Fix to allow COMPILE_TEST-ing
+Date: Fri, 28 Apr 2017 12:13:48 +0300
+Message-Id: <1493370837-19793-2-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the SoC specific information for Renesas r8a7795.
+Unfortunatly previous attempt to allow consumer drivers to
+use COMPILE_TEST option in Kconfig is not enough, because in the
+past the consumer drivers used 'depends on' Kconfig option but
+now they are using 'select' Kconfig option which means on non ARM
+arch'es compilation is triggered. Thus we need to move the ifdefery
+one level below by touching the private qcom_scm.h header.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+To: Andy Gross <andy.gross@linaro.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Bjorn Andersson <bjorn.andersson@linaro.org>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/media/platform/rcar-vin/Kconfig     |  2 +-
- drivers/media/platform/rcar-vin/rcar-core.c | 72 +++++++++++++++++++++++++++++
- 2 files changed, 73 insertions(+), 1 deletion(-)
+ drivers/firmware/Kconfig    |  2 +-
+ drivers/firmware/qcom_scm.h | 72 ++++++++++++++++++++++++++++++++++++++-------
+ include/linux/qcom_scm.h    | 32 --------------------
+ 3 files changed, 62 insertions(+), 44 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
-index 111d2a151f6a4d44..e0e981c14b081bc6 100644
---- a/drivers/media/platform/rcar-vin/Kconfig
-+++ b/drivers/media/platform/rcar-vin/Kconfig
-@@ -5,7 +5,7 @@ config VIDEO_RCAR_VIN
- 	select VIDEOBUF2_DMA_CONTIG
- 	---help---
- 	  Support for Renesas R-Car Video Input (VIN) driver.
--	  Supports R-Car Gen2 SoCs.
-+	  Supports R-Car Gen2 and Gen3 SoCs.
+diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
+index 6e4ed5a9c6fd..480578c3691a 100644
+--- a/drivers/firmware/Kconfig
++++ b/drivers/firmware/Kconfig
+@@ -204,7 +204,7 @@ config FW_CFG_SYSFS_CMDLINE
  
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called rcar-vin.
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 7b9ff5e8f771c87e..2f46cdbb7ad9ed80 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -926,8 +926,80 @@ static const struct rvin_info rcar_info_gen2 = {
- 	.max_height = 2048,
+ config QCOM_SCM
+ 	bool
+-	depends on ARM || ARM64
++	depends on ARM || ARM64 || COMPILE_TEST
+ 	select RESET_CONTROLLER
+ 
+ config QCOM_SCM_32
+diff --git a/drivers/firmware/qcom_scm.h b/drivers/firmware/qcom_scm.h
+index 9bea691f30fb..d2b5723afb3f 100644
+--- a/drivers/firmware/qcom_scm.h
++++ b/drivers/firmware/qcom_scm.h
+@@ -12,6 +12,7 @@
+ #ifndef __QCOM_SCM_INT_H
+ #define __QCOM_SCM_INT_H
+ 
++#if IS_ENABLED(CONFIG_ARM) || IS_ENABLED(CONFIG_ARM64)
+ #define QCOM_SCM_SVC_BOOT		0x1
+ #define QCOM_SCM_BOOT_ADDR		0x1
+ #define QCOM_SCM_BOOT_ADDR_MC		0x11
+@@ -58,6 +59,66 @@ extern int  __qcom_scm_pas_auth_and_reset(struct device *dev, u32 peripheral);
+ extern int  __qcom_scm_pas_shutdown(struct device *dev, u32 peripheral);
+ extern int  __qcom_scm_pas_mss_reset(struct device *dev, bool reset);
+ 
++#define QCOM_SCM_SVC_MP			0xc
++#define QCOM_SCM_RESTORE_SEC_CFG	2
++extern int __qcom_scm_restore_sec_cfg(struct device *dev, u32 device_id,
++				      u32 spare);
++#define QCOM_SCM_IOMMU_SECURE_PTBL_SIZE	3
++#define QCOM_SCM_IOMMU_SECURE_PTBL_INIT	4
++extern int __qcom_scm_iommu_secure_ptbl_size(struct device *dev, u32 spare,
++					     size_t *size);
++extern int __qcom_scm_iommu_secure_ptbl_init(struct device *dev, u64 addr,
++					     u32 size, u32 spare);
++#else
++static inline int __qcom_scm_set_remote_state(struct device *dev, u32 state,
++					      u32 id)
++{ return -ENODEV; }
++static inline int __qcom_scm_set_warm_boot_addr(struct device *dev, void *entry,
++						const cpumask_t *cpus)
++{ return -ENODEV; }
++static inline int __qcom_scm_set_cold_boot_addr(void *entry,
++						const cpumask_t *cpus)
++{ return -ENODEV; }
++static inline void __qcom_scm_cpu_power_down(u32 flags) {}
++static inline int __qcom_scm_is_call_available(struct device *dev, u32 svc_id,
++					       u32 cmd_id)
++{ return -ENODEV; }
++#define QCOM_SCM_SVC_HDCP		0x11
++#define QCOM_SCM_CMD_HDCP		0x01
++static inline int __qcom_scm_hdcp_req(struct device *dev,
++				      struct qcom_scm_hdcp_req *req,
++				      u32 req_cnt, u32 *resp)
++{ return -ENODEV; }
++static inline void __qcom_scm_init(void) {}
++#define QCOM_SCM_SVC_PIL		0x2
++#define QCOM_SCM_PAS_IS_SUPPORTED_CMD	0x7
++static inline bool __qcom_scm_pas_supported(struct device *dev, u32 peripheral)
++{ return false; }
++static inline int  __qcom_scm_pas_init_image(struct device *dev, u32 peripheral,
++					     dma_addr_t metadata_phys)
++{ return -ENODEV; }
++static inline int  __qcom_scm_pas_mem_setup(struct device *dev, u32 peripheral,
++					    phys_addr_t addr, phys_addr_t size)
++{ return -ENODEV; }
++static inline int  __qcom_scm_pas_auth_and_reset(struct device *dev,
++						 u32 peripheral)
++{ return -ENODEV; }
++static inline int  __qcom_scm_pas_shutdown(struct device *dev, u32 peripheral)
++{ return -ENODEV; }
++static inline int  __qcom_scm_pas_mss_reset(struct device *dev, bool reset)
++{ return -ENODEV; }
++static inline int __qcom_scm_restore_sec_cfg(struct device *dev, u32 device_id,
++					     u32 spare)
++{ return -ENODEV; }
++extern int __qcom_scm_iommu_secure_ptbl_size(struct device *dev, u32 spare,
++					     size_t *size)
++{ return -ENODEV; }
++static inline int __qcom_scm_iommu_secure_ptbl_init(struct device *dev,
++						    u64 addr, u32 size,
++						    u32 spare)
++{ return -ENODEV; }
++#endif
++
+ /* common error codes */
+ #define QCOM_SCM_V2_EBUSY	-12
+ #define QCOM_SCM_ENOMEM		-5
+@@ -85,15 +146,4 @@ static inline int qcom_scm_remap_error(int err)
+ 	return -EINVAL;
+ }
+ 
+-#define QCOM_SCM_SVC_MP			0xc
+-#define QCOM_SCM_RESTORE_SEC_CFG	2
+-extern int __qcom_scm_restore_sec_cfg(struct device *dev, u32 device_id,
+-				      u32 spare);
+-#define QCOM_SCM_IOMMU_SECURE_PTBL_SIZE	3
+-#define QCOM_SCM_IOMMU_SECURE_PTBL_INIT	4
+-extern int __qcom_scm_iommu_secure_ptbl_size(struct device *dev, u32 spare,
+-					     size_t *size);
+-extern int __qcom_scm_iommu_secure_ptbl_init(struct device *dev, u64 addr,
+-					     u32 size, u32 spare);
+-
+ #endif
+diff --git a/include/linux/qcom_scm.h b/include/linux/qcom_scm.h
+index e5380471c2cd..b628f735f355 100644
+--- a/include/linux/qcom_scm.h
++++ b/include/linux/qcom_scm.h
+@@ -23,7 +23,6 @@ struct qcom_scm_hdcp_req {
+ 	u32 val;
  };
  
-+static const struct rvin_info rcar_info_r8a7795 = {
-+	.chip = RCAR_GEN3,
-+	.use_mc = true,
-+	.max_width = 4096,
-+	.max_height = 4096,
-+
-+	.num_chsels = 6,
-+	.chsels = {
-+		{
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+			{ .csi = RVIN_CSI21, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+			{ .csi = RVIN_CSI40, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+			{ .csi = RVIN_CSI21, .chan = 3 },
-+		}, {
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+			{ .csi = RVIN_CSI21, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+			{ .csi = RVIN_CSI41, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+			{ .csi = RVIN_CSI21, .chan = 3 },
-+		},
-+	},
-+};
-+
- static const struct of_device_id rvin_of_id_table[] = {
- 	{
-+		.compatible = "renesas,vin-r8a7795",
-+		.data = &rcar_info_r8a7795,
-+	},
-+	{
- 		.compatible = "renesas,vin-r8a7794",
- 		.data = &rcar_info_gen2,
- 	},
+-#if IS_ENABLED(CONFIG_QCOM_SCM)
+ extern int qcom_scm_set_cold_boot_addr(void *entry, const cpumask_t *cpus);
+ extern int qcom_scm_set_warm_boot_addr(void *entry, const cpumask_t *cpus);
+ extern bool qcom_scm_is_available(void);
+@@ -43,35 +42,4 @@ extern int qcom_scm_set_remote_state(u32 state, u32 id);
+ extern int qcom_scm_restore_sec_cfg(u32 device_id, u32 spare);
+ extern int qcom_scm_iommu_secure_ptbl_size(u32 spare, size_t *size);
+ extern int qcom_scm_iommu_secure_ptbl_init(u64 addr, u32 size, u32 spare);
+-#else
+-static inline
+-int qcom_scm_set_cold_boot_addr(void *entry, const cpumask_t *cpus)
+-{
+-	return -ENODEV;
+-}
+-static inline
+-int qcom_scm_set_warm_boot_addr(void *entry, const cpumask_t *cpus)
+-{
+-	return -ENODEV;
+-}
+-static inline bool qcom_scm_is_available(void) { return false; }
+-static inline bool qcom_scm_hdcp_available(void) { return false; }
+-static inline int qcom_scm_hdcp_req(struct qcom_scm_hdcp_req *req, u32 req_cnt,
+-				    u32 *resp) { return -ENODEV; }
+-static inline bool qcom_scm_pas_supported(u32 peripheral) { return false; }
+-static inline int qcom_scm_pas_init_image(u32 peripheral, const void *metadata,
+-					  size_t size) { return -ENODEV; }
+-static inline int qcom_scm_pas_mem_setup(u32 peripheral, phys_addr_t addr,
+-					 phys_addr_t size) { return -ENODEV; }
+-static inline int
+-qcom_scm_pas_auth_and_reset(u32 peripheral) { return -ENODEV; }
+-static inline int qcom_scm_pas_shutdown(u32 peripheral) { return -ENODEV; }
+-static inline void qcom_scm_cpu_power_down(u32 flags) {}
+-static inline u32 qcom_scm_get_version(void) { return 0; }
+-static inline u32
+-qcom_scm_set_remote_state(u32 state,u32 id) { return -ENODEV; }
+-static inline int qcom_scm_restore_sec_cfg(u32 device_id, u32 spare) { return -ENODEV; }
+-static inline int qcom_scm_iommu_secure_ptbl_size(u32 spare, size_t *size) { return -ENODEV; }
+-static inline int qcom_scm_iommu_secure_ptbl_init(u64 addr, u32 size, u32 spare) { return -ENODEV; }
+-#endif
+ #endif
 -- 
-2.12.2
+2.7.4
