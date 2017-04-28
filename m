@@ -1,105 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:49751 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1952040AbdDYSVX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 14:21:23 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com
-Cc: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        "David S. Miller" <davem@davemloft.net>
-Date: Tue, 25 Apr 2017 12:20:54 -0600
-Message-Id: <1493144468-22493-8-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 07/21] crypto: shash, caam: Make use of the new sg_map helper function
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:37128 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S968584AbdD1OMP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 10:12:15 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.12] Various fixes/regressions for 4.12.
+Message-ID: <2ffca2c4-4b13-4148-1282-cf059fd2b6cc@xs4all.nl>
+Date: Fri, 28 Apr 2017 16:12:12 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Very straightforward conversion to the new function in the caam driver
-and shash library.
+The following changes since commit 9eb9db3a0f92b75ec710066202e0b2accb45afa9:
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: "David S. Miller" <davem@davemloft.net>
----
- crypto/shash.c                | 9 ++++++---
- drivers/crypto/caam/caamalg.c | 8 +++-----
- 2 files changed, 9 insertions(+), 8 deletions(-)
+  [media] atmel-isc: Fix the static checker warning (2017-04-19 09:02:47 -0300)
 
-diff --git a/crypto/shash.c b/crypto/shash.c
-index 5e31c8d..5914881 100644
---- a/crypto/shash.c
-+++ b/crypto/shash.c
-@@ -283,10 +283,13 @@ int shash_ahash_digest(struct ahash_request *req, struct shash_desc *desc)
- 	if (nbytes < min(sg->length, ((unsigned int)(PAGE_SIZE)) - offset)) {
- 		void *data;
- 
--		data = kmap_atomic(sg_page(sg));
--		err = crypto_shash_digest(desc, data + offset, nbytes,
-+		data = sg_map(sg, 0, SG_KMAP_ATOMIC);
-+		if (IS_ERR(data))
-+			return PTR_ERR(data);
-+
-+		err = crypto_shash_digest(desc, data, nbytes,
- 					  req->result);
--		kunmap_atomic(data);
-+		sg_unmap(sg, data, 0, SG_KMAP_ATOMIC);
- 		crypto_yield(desc->flags);
- 	} else
- 		err = crypto_shash_init(desc) ?:
-diff --git a/drivers/crypto/caam/caamalg.c b/drivers/crypto/caam/caamalg.c
-index 398807d..62d2f5d 100644
---- a/drivers/crypto/caam/caamalg.c
-+++ b/drivers/crypto/caam/caamalg.c
-@@ -89,7 +89,6 @@ static void dbg_dump_sg(const char *level, const char *prefix_str,
- 			struct scatterlist *sg, size_t tlen, bool ascii)
- {
- 	struct scatterlist *it;
--	void *it_page;
- 	size_t len;
- 	void *buf;
- 
-@@ -98,19 +97,18 @@ static void dbg_dump_sg(const char *level, const char *prefix_str,
- 		 * make sure the scatterlist's page
- 		 * has a valid virtual memory mapping
- 		 */
--		it_page = kmap_atomic(sg_page(it));
--		if (unlikely(!it_page)) {
-+		buf = sg_map(it, 0, SG_KMAP_ATOMIC);
-+		if (IS_ERR(buf)) {
- 			printk(KERN_ERR "dbg_dump_sg: kmap failed\n");
- 			return;
- 		}
- 
--		buf = it_page + it->offset;
- 		len = min_t(size_t, tlen, it->length);
- 		print_hex_dump(level, prefix_str, prefix_type, rowsize,
- 			       groupsize, buf, len, ascii);
- 		tlen -= len;
- 
--		kunmap_atomic(it_page);
-+		sg_unmap(it, buf, 0, SG_KMAP_ATOMIC);
- 	}
- }
- #endif
--- 
-2.1.4
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.12h
+
+for you to fetch changes up to 82fd29fb6372a9d15c39e2bcf87768cb52aa9cba:
+
+  vb2: Fix an off by one error in 'vb2_plane_vaddr' (2017-04-28 11:42:54 +0200)
+
+----------------------------------------------------------------
+Arnd Bergmann (3):
+      rainshadow-cec: use strlcat instead of strncat
+      rainshadow-cec: avoid -Wmaybe-uninitialized warning
+      cec: improve MEDIA_CEC_RC dependencies
+
+Christophe JAILLET (1):
+      vb2: Fix an off by one error in 'vb2_plane_vaddr'
+
+Petr Cvek (1):
+      pxa_camera: fix module remove codepath for v4l2 clock
+
+Wei Yongjun (2):
+      rainshadow-cec: Fix missing spin_lock_init()
+      s5p-cec: remove unused including <linux/version.h>
+
+ drivers/media/cec/Kconfig                         |  1 +
+ drivers/media/platform/pxa_camera.c               | 14 +++++++++++++-
+ drivers/media/platform/s5p-cec/s5p_cec.h          |  1 -
+ drivers/media/usb/rainshadow-cec/rainshadow-cec.c |  6 ++++--
+ drivers/media/v4l2-core/videobuf2-core.c          |  2 +-
+ 5 files changed, 19 insertions(+), 5 deletions(-)
