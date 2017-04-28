@@ -1,109 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:57368 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756447AbdD0Wmv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:42:51 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v4 06/27] rcar-vin: move max width and height information to chip information
-Date: Fri, 28 Apr 2017 00:41:42 +0200
-Message-Id: <20170427224203.14611-7-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mga02.intel.com ([134.134.136.20]:38879 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1425804AbdD1MKe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 08:10:34 -0400
+Subject: [PATCH 7/8] staging: atomisp: remove #ifdef for runtime PM functions
+From: Alan Cox <alan@linux.intel.com>
+To: greg@kroah.com, linux-media@vger.kernel.org
+Date: Fri, 28 Apr 2017 13:10:31 +0100
+Message-ID: <149338142997.2556.11440015221647658745.stgit@acox1-desk1.ger.corp.intel.com>
+In-Reply-To: <149338135275.2556.7708531564733886566.stgit@acox1-desk1.ger.corp.intel.com>
+References: <149338135275.2556.7708531564733886566.stgit@acox1-desk1.ger.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 the max supported width and height will be different from Gen2.
-Move the limits to the struct rvin_info to prepare for Gen3 support.
+From: Arnd Bergmann <arnd@arndb.de>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+The runtime power management functions are called from the reset handler even
+if CONFIG_PM is disabled, leading to a link error:
+
+drivers/staging/built-in.o: In function `atomisp_reset':
+(.text+0x4cd1c): undefined reference to `atomisp_runtime_suspend'
+drivers/staging/built-in.o: In function `atomisp_reset':
+(.text+0x4cd3a): undefined reference to `atomisp_mrfld_power_down'
+drivers/staging/built-in.o: In function `atomisp_reset':
+(.text+0x4cd58): undefined reference to `atomisp_mrfld_power_up'
+drivers/staging/built-in.o: In function `atomisp_reset':
+(.text+0x4cd77): undefined reference to `atomisp_runtime_resume'
+
+Removing the #ifdef around the PM functions avoids the problem, and
+lets us simplify it further. The __maybe_unused annotation is needed
+to ensure the compiler can silently drop the unused callbacks.
+
+Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 6 ++++++
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 6 ++----
- drivers/media/platform/rcar-vin/rcar-vin.h  | 6 ++++++
- 3 files changed, 14 insertions(+), 4 deletions(-)
+ .../media/atomisp/pci/atomisp2/atomisp_v4l2.c      |   14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index ec1eb723d401fda2..998617711f1ad045 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -257,14 +257,20 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+index 35414c9..e3fdbdb 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+@@ -310,7 +310,6 @@ static int __maybe_unused atomisp_restore_iunit_reg(struct atomisp_device *isp)
+ 	return 0;
+ }
  
- static const struct rvin_info rcar_info_h1 = {
- 	.chip = RCAR_H1,
-+	.max_width = 2048,
-+	.max_height = 2048,
+-#ifdef CONFIG_PM
+ static int atomisp_mrfld_pre_power_down(struct atomisp_device *isp)
+ {
+ 	struct pci_dev *dev = isp->pdev;
+@@ -550,7 +549,7 @@ int atomisp_runtime_resume(struct device *dev)
+ 	return 0;
+ }
+ 
+-static int atomisp_suspend(struct device *dev)
++static int __maybe_unused atomisp_suspend(struct device *dev)
+ {
+ 	struct atomisp_device *isp = (struct atomisp_device *)
+ 		dev_get_drvdata(dev);
+@@ -588,7 +587,7 @@ static int atomisp_suspend(struct device *dev)
+ 	return atomisp_mrfld_power_down(isp);
+ }
+ 
+-static int atomisp_resume(struct device *dev)
++static int __maybe_unused atomisp_resume(struct device *dev)
+ {
+ 	struct atomisp_device *isp = (struct atomisp_device *)
+ 		dev_get_drvdata(dev);
+@@ -614,7 +613,6 @@ static int atomisp_resume(struct device *dev)
+ 	atomisp_freq_scaling(isp, ATOMISP_DFS_MODE_LOW, true);
+ 	return 0;
+ }
+-#endif
+ 
+ int atomisp_csi_lane_config(struct atomisp_device *isp)
+ {
+@@ -1576,7 +1574,6 @@ static const struct pci_device_id atomisp_pci_tbl[] = {
+ 
+ MODULE_DEVICE_TABLE(pci, atomisp_pci_tbl);
+ 
+-#ifdef CONFIG_PM
+ static const struct dev_pm_ops atomisp_pm_ops = {
+ 	.runtime_suspend = atomisp_runtime_suspend,
+ 	.runtime_resume = atomisp_runtime_resume,
+@@ -1584,14 +1581,9 @@ static const struct dev_pm_ops atomisp_pm_ops = {
+ 	.resume = atomisp_resume,
  };
  
- static const struct rvin_info rcar_info_m1 = {
- 	.chip = RCAR_M1,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_gen2 = {
- 	.chip = RCAR_GEN2,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
- 
- static const struct of_device_id rvin_of_id_table[] = {
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 7deca15d22b4d6e3..1b364f359ff4b5ed 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -23,8 +23,6 @@
- #include "rcar-vin.h"
- 
- #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
--#define RVIN_MAX_WIDTH		2048
--#define RVIN_MAX_HEIGHT		2048
- 
- /* -----------------------------------------------------------------------------
-  * Format Conversions
-@@ -264,8 +262,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
- 
- 	/* Limit to VIN capabilities */
--	v4l_bound_align_image(&pix->width, 2, RVIN_MAX_WIDTH, walign,
--			      &pix->height, 4, RVIN_MAX_HEIGHT, 2, 0);
-+	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-+			      &pix->height, 4, vin->info->max_height, 2, 0);
- 
- 	pix->bytesperline = max_t(u32, pix->bytesperline,
- 				  rvin_format_bytesperline(pix));
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index c07b4a6893440a6a..32d9d130dd6e2e44 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -91,9 +91,15 @@ struct rvin_graph_entity {
- /**
-  * struct rvin_info- Information about the particular VIN implementation
-  * @chip:		type of VIN chip
-+ *
-+ * max_width:		max input width the VIN supports
-+ * max_height:		max input height the VIN supports
-  */
- struct rvin_info {
- 	enum chip_id chip;
-+
-+	unsigned int max_width;
-+	unsigned int max_height;
- };
- 
- /**
--- 
-2.12.2
+-#define DEV_PM_OPS (&atomisp_pm_ops)
+-#else
+-#define DEV_PM_OPS NULL
+-#endif
+-
+ static struct pci_driver atomisp_pci_driver = {
+ 	.driver = {
+-		.pm = DEV_PM_OPS,
++		.pm = &atomisp_pm_ops,
+ 	},
+ 	.name = "atomisp-isp2",
+ 	.id_table = atomisp_pci_tbl,
