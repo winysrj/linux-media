@@ -1,42 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:37733 "EHLO
-        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752765AbdDLTXf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Apr 2017 15:23:35 -0400
-Received: by mail-wm0-f44.google.com with SMTP id u2so31469782wmu.0
-        for <linux-media@vger.kernel.org>; Wed, 12 Apr 2017 12:23:34 -0700 (PDT)
-Date: Wed, 12 Apr 2017 21:23:27 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org
-Cc: liplianin@netup.ru, rjkm@metzlerbros.de, crope@iki.fi
-Subject: Re: [PATCH v3 00/13] stv0367/ddbridge: support CTv6/FlexCT hardware
-Message-ID: <20170412212327.5b75be19@macbox>
-In-Reply-To: <20170329164313.14636-1-d.scheller.oss@gmail.com>
-References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
+Received: from [128.1.224.119] ([128.1.224.119]:57060 "EHLO deadmen.hmeau.com"
+        rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S2999335AbdD1SiJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 14:38:09 -0400
+Date: Sat, 29 Apr 2017 01:51:47 +0800
+From: Herbert Xu <herbert@gondor.apana.org.au>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
+        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Stephen Bates <sbates@raithlin.com>,
+        "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH v2 07/21] crypto: shash, caam: Make use of the new sg_map
+ helper function
+Message-ID: <20170428175147.GA9596@gondor.apana.org.au>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+ <1493144468-22493-8-git-send-email-logang@deltatee.com>
+ <20170427035603.GA32212@gondor.apana.org.au>
+ <94123cbf-3287-f05e-7267-0bcf08ab0a8b@deltatee.com>
+ <20170428063039.GB6817@gondor.apana.org.au>
+ <5a08708b-c3b8-41fe-96de-607a109eacbd@deltatee.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5a08708b-c3b8-41fe-96de-607a109eacbd@deltatee.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Wed, 29 Mar 2017 18:43:00 +0200
-schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
-
-> From: Daniel Scheller <d.scheller@gmx.net>
+On Fri, Apr 28, 2017 at 10:53:45AM -0600, Logan Gunthorpe wrote:
 > 
-> Third iteration of the DD CineCTv6/FlexCT support patches with mostly
-> all things cleaned up that popped up so far. Obsoletes V1 and V2
-> series.
 > 
-> These patches enhance the functionality of dvb-frontends/stv0367 to
-> work with Digital Devices hardware driven by the ST STV0367
-> demodulator chip and adds probe & attach bits to ddbridge to make use
-> of them, effectively enabling full support for CineCTv6 PCIe bridges
-> and (older) DuoFlex CT addon modules.
+> On 28/04/17 12:30 AM, Herbert Xu wrote:
+> > You are right.  Indeed the existing code looks buggy as they
+> > don't take sg->offset into account when doing the kmap.  Could
+> > you send me some patches that fix these problems first so that
+> > they can be easily backported?
+> 
+> Ok, I think the only buggy one in crypto is hifn_795x. Shash and caam
+> both do have the sg->offset accounted for. I'll send a patch for the
+> buggy one shortly.
 
-Since V1 was sent over five weeks ago: Ping? Anyone? I'd really like to
-get this upstreamed.
+I think they're all buggy when sg->offset is greater than PAGE_SIZE.
 
-Regards,
-Daniel
+Thanks,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
