@@ -1,174 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:43184 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1164087AbdD0S03 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 14:26:29 -0400
-From: Kieran Bingham <kbingham@kernel.org>
-To: laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
-        sakari.ailus@iki.fi
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH 5/5] arm64: dts: r8a7796: salvator-x: enable VIN, CSI and ADV7482
-Date: Thu, 27 Apr 2017 19:26:04 +0100
-Message-Id: <1493317564-18026-6-git-send-email-kbingham@kernel.org>
-In-Reply-To: <1493317564-18026-1-git-send-email-kbingham@kernel.org>
-References: <1493317564-18026-1-git-send-email-kbingham@kernel.org>
+Received: from userp1040.oracle.com ([156.151.31.81]:21568 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2993681AbdD1Mxx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 08:53:53 -0400
+Date: Fri, 28 Apr 2017 15:53:31 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        Sean Young <sean@mess.org>, Johan Hovold <johan@kernel.org>,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH 2/2] [media] dib0700: fix error handling in
+ dib0700_i2c_xfer_legacy()
+Message-ID: <20170428125331.hjosazb5hs5nzynl@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Mostly this adds some unlocks to error paths.  But, if you see where
+there were "break;" statements before, I changed those paths to return
+error codes instead of returning success.
 
-Provide bindings between the VIN, CSI and the ADV7482 on the r8a7796.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts | 129 +++++++++++++++++++++
- 1 file changed, 129 insertions(+)
-
-diff --git a/arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts b/arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts
-index 2637e4042705..d6f25e1ab455 100644
---- a/arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts
-+++ b/arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts
-@@ -102,6 +102,22 @@
- 		states = <3300000 1
- 			  1800000 0>;
- 	};
-+
-+	hdmi {
-+		port {
-+			hdmi_in: endpoint {
-+				remote-endpoint = <&adv7482_hdmi>;
-+			};
-+		};
-+	};
-+
-+	cvbs {
-+		port {
-+			cvbs_in: endpoint {
-+				remote-endpoint = <&adv7482_ain8>;
-+			};
-+		};
-+	};
- };
+diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+index 4dea79718827..bea1b4764a66 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_core.c
++++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+@@ -287,7 +287,7 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
+ {
+ 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
+ 	struct dib0700_state *st = d->priv;
+-	int i,len;
++	int i, len, result;
  
- &pfc {
-@@ -261,3 +277,116 @@
- 	timeout-sec = <60>;
- 	status = "okay";
- };
-+
-+&i2c4 {
-+	status = "okay";
-+
-+	clock-frequency = <100000>;
-+
-+	video_receiver@70 {
-+		compatible = "adi,adv7482";
-+		reg = <0x70>;
-+
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@8 {
-+			adv7482_ain8: endpoint@1 {
-+				remote-endpoint = <&cvbs_in>;
-+			};
-+		};
-+
-+		port@9 {
-+			adv7482_hdmi: endpoint@1 {
-+				remote-endpoint = <&hdmi_in>;
-+			};
-+		};
-+
-+		port@11 {
-+			reg = <11>;
-+			adv7482_txa: endpoint@1 {
-+				clock-lanes = <0>;
-+				data-lanes = <1 2 3 4>;
-+				remote-endpoint = <&csi40_in>;
-+			};
-+		};
-+
-+		port@12 {
-+			reg = <12>;
-+			adv7482_txb: endpoint@1 {
-+				clock-lanes = <0>;
-+				data-lanes = <1>;
-+				remote-endpoint = <&csi20_in>;
-+			};
-+		};
-+	};
-+};
-+
-+&vin0 {
-+	status = "okay";
-+};
-+
-+&vin1 {
-+	status = "okay";
-+};
-+
-+&vin2 {
-+	status = "okay";
-+};
-+
-+&vin3 {
-+	status = "okay";
-+};
-+
-+&vin4 {
-+	status = "okay";
-+};
-+
-+&vin5 {
-+	status = "okay";
-+};
-+
-+&vin6 {
-+	status = "okay";
-+};
-+
-+&vin7 {
-+	status = "okay";
-+};
-+
-+&csi20 {
-+	status = "okay";
-+
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+			csi20_in: endpoint@0 {
-+				clock-lanes = <0>;
-+				data-lanes = <1>;
-+				remote-endpoint = <&adv7482_txb>;
-+			};
-+		};
-+	};
-+};
-+
-+&csi40 {
-+	status = "okay";
-+
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			csi40_in: endpoint@0 {
-+				clock-lanes = <0>;
-+				data-lanes = <1 2 3 4>;
-+				remote-endpoint = <&adv7482_txa>;
-+			};
-+		};
-+	};
-+};
--- 
-2.7.4
+ 	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+ 		return -EINTR;
+@@ -304,7 +304,8 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
+ 		if (msg[i].len > sizeof(st->buf) - 2) {
+ 			deb_info("i2c xfer to big: %d\n",
+ 				msg[i].len);
+-			return -EIO;
++			result = -EIO;
++			goto unlock;
+ 		}
+ 		memcpy(&st->buf[2], msg[i].buf, msg[i].len);
+ 
+@@ -319,13 +320,15 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
+ 			if (len <= 0) {
+ 				deb_info("I2C read failed on address 0x%02x\n",
+ 						msg[i].addr);
+-				break;
++				result = -EIO;
++				goto unlock;
+ 			}
+ 
+ 			if (msg[i + 1].len > sizeof(st->buf)) {
+ 				deb_info("i2c xfer buffer to small for %d\n",
+ 					msg[i].len);
+-				return -EIO;
++				result = -EIO;
++				goto unlock;
+ 			}
+ 			memcpy(msg[i + 1].buf, st->buf, msg[i + 1].len);
+ 
+@@ -334,14 +337,17 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
+ 			i++;
+ 		} else {
+ 			st->buf[0] = REQUEST_I2C_WRITE;
+-			if (dib0700_ctrl_wr(d, st->buf, msg[i].len + 2) < 0)
+-				break;
++			result = dib0700_ctrl_wr(d, st->buf, msg[i].len + 2);
++			if (result < 0)
++				goto unlock;
+ 		}
+ 	}
++	result = i;
++unlock:
+ 	mutex_unlock(&d->usb_mutex);
+ 	mutex_unlock(&d->i2c_mutex);
+ 
+-	return i;
++	return result;
+ }
+ 
+ static int dib0700_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msg,
