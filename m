@@ -1,127 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:59102 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751098AbdDEXQ1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 19:16:27 -0400
-Date: Thu, 6 Apr 2017 00:14:52 +0100
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: gregkh@linuxfoundation.org, pawel@osciak.com,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        mchehab@kernel.org, will.deacon@arm.com, Robin.Murphy@arm.com,
-        jroedel@suse.de, bart.vanassche@sandisk.com,
-        gregory.clement@free-electrons.com, acourbot@nvidia.com,
-        festevam@gmail.com, krzk@kernel.org,
-        niklas.soderlund+renesas@ragnatech.se, sricharan@codeaurora.org,
-        dledford@redhat.com, vinod.koul@intel.com,
-        andrew.smirnov@gmail.com, mauricfo@linux.vnet.ibm.com,
-        alexander.h.duyck@intel.com, sagi@grimberg.me,
-        ming.l@ssi.samsung.com, martin.petersen@oracle.com,
-        javier@dowhile0.org, javier@osg.samsung.com,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] arm: dma: fix sharing of coherent DMA memory without
- struct page
-Message-ID: <20170405231451.GB17774@n2100.armlinux.org.uk>
-References: <20170405160242.14195-1-shuahkh@osg.samsung.com>
+Received: from mail-lf0-f48.google.com ([209.85.215.48]:36297 "EHLO
+        mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2993071AbdD1MET (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 08:04:19 -0400
+Received: by mail-lf0-f48.google.com with SMTP id c80so32669892lfh.3
+        for <linux-media@vger.kernel.org>; Fri, 28 Apr 2017 05:04:18 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Fri, 28 Apr 2017 14:04:15 +0200
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 2/2] media: entity: Add media_entity_pad_from_dt_regs()
+ function
+Message-ID: <20170428120414.GE1532@bigcity.dyn.berto.se>
+References: <20170427223323.13861-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170427223323.13861-3-niklas.soderlund+renesas@ragnatech.se>
+ <20170428104339.GH7456@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20170405160242.14195-1-shuahkh@osg.samsung.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170428104339.GH7456@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 05, 2017 at 10:02:42AM -0600, Shuah Khan wrote:
-> When coherent DMA memory without struct page is shared, importer
-> fails to find the page and runs into kernel page fault when it
-> tries to dmabuf_ops_attach/map_sg/map_page the invalid page found
-> in the sg_table. Please see www.spinics.net/lists/stable/msg164204.html
-> for more information on this problem.
+Hej,
+
+Thanks for your feedback.
+
+On 2017-04-28 13:43:39 +0300, Sakari Ailus wrote:
+> Hejssan!!!
 > 
-> This solution allows coherent DMA memory without struct page to be
-> shared by providing a way for the exporter to tag the DMA buffer as
-> a special buffer without struct page association and passing the
-> information in sg_table to the importer. This information is used
-> in attach/map_sg to avoid cleaning D-cache and mapping.
+> On Fri, Apr 28, 2017 at 12:33:23AM +0200, Niklas Söderlund wrote:
+> > This is a wrapper around the media entity pad_from_dt_regs operation.
+> > 
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  drivers/media/media-entity.c | 21 +++++++++++++++++++++
+> >  include/media/media-entity.h | 22 ++++++++++++++++++++++
+> >  2 files changed, 43 insertions(+)
+> > 
+> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > index 5640ca29da8c9bbc..6ef76186d552724e 100644
+> > --- a/drivers/media/media-entity.c
+> > +++ b/drivers/media/media-entity.c
+> > @@ -386,6 +386,27 @@ struct media_entity *media_graph_walk_next(struct media_graph *graph)
+> >  }
+> >  EXPORT_SYMBOL_GPL(media_graph_walk_next);
+> >  
+> > +int media_entity_pad_from_dt_regs(struct media_entity *entity,
+> > +				  int port_reg, int reg, unsigned int *pad)
+> > +{
+> > +	int ret;
+> > +
+> > +	if (!entity->ops || !entity->ops->pad_from_dt_regs) {
+> > +		*pad = port_reg;
 > 
-> The details of the change are:
+> I don't think we should bind the port number in firmware to a pad in V4L2
+> sub-device interface.
 > 
-> Framework:
-> - Add a new dma_attrs field to struct scatterlist.
-> - Add a new DMA_ATTR_DEV_COHERENT_NOPAGE attribute to clearly identify
->   Coherent memory without struct page.
-> - Add a new dma_check_dev_coherent() interface to check if memory is
->   the device coherent area. There is no way to tell where the memory
->   returned by dma_alloc_attrs() came from.
+> How about looking for a source pad in the entity instead? That's what some
+> drivers do.
+
+Sure that sounds like a nice approach, will do this for next version.
+
+Would it make sens to extend this operation with a 'direction' parameter 
+which could take either MEDIA_PAD_FL_SOURCE or MEDIA_PAD_FL_SINK and if 
+!entity->ops->pad_from_dt_regs find the first pad that matches this 
+'direction' and if it do exist add a check to make sure the pad that is 
+return matches that 'direction'?
+
 > 
-> Exporter logic:
-> - Add logic to vb2_dc_alloc() to call dma_check_dev_coherent() and set
->   DMA_ATTR_DEV_COHERENT_NOPAGE based the results of the check. This is
->   done in the exporter context.
-> - Add logic to arm_dma_get_sgtable() to identify memory without struct
->   page using DMA_ATTR_DEV_COHERENT_NOPAGE attribute. If this attr is
->   set, arm_dma_get_sgtable() will set page as the cpu_addr and update
->   dma_address and dma_attrs fields in struct scatterlist for this sgl.
->   This is done in exporter context when buffer is exported. With this
+> > +		return 0;
+> > +	}
+> > +
+> > +	ret = entity->ops->pad_from_dt_regs(port_reg, reg, pad);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	if (*pad >= entity->num_pads)
+> > +		return -EINVAL;
+> > +
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL_GPL(media_entity_pad_from_dt_regs);
+> > +
+> >  /* -----------------------------------------------------------------------------
+> >   * Pipeline management
+> >   */
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > index 47efaf4d825e671b..c60a3713d0a21baf 100644
+> > --- a/include/media/media-entity.h
+> > +++ b/include/media/media-entity.h
+> > @@ -820,6 +820,28 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
+> >  struct media_entity *media_entity_get(struct media_entity *entity);
+> >  
+> >  /**
+> > + * media_entity_pad_from_dt_regs - Get pad number from DT regs
+> > + *
+> > + * @entity: The entity
+> > + * @port_reg: DT port
+> > + * @reg: DT reg
+> > + * @pad: Pointer to pad which will be filled in
+> > + *
+> > + * This function can be used to resolve the media pad number from
+> > + * DT port and reg numbers. This is useful for devices which
+> > + * uses more complex mappings of media pads then that the
+> > + * DT port number is equivalent to the media pad number.
+> > + *
+> > + * If the entity do not implement the pad_from_dt_regs() operation
+> > + * this function assumes DT port is equivalent to media pad number
+> > + * and sets @pad to @port_reg.
+> > + *
+> > + * Return: 0 on success else -EINVAL.
+> 
+> -EINVAL suggests the user provided bad parameters, but this isn't the case
+> here. How about e.g. -ENXIO?
 
-This sentence appears to just end...
 
-I'm not convinced that coherent allocations should be setting the "page"
-of a scatterlist to anything that isn't a real struct page or NULL.  It
-is, after all, an error to look up the virtual address etc of the
-scatterlist entry or kmap it when it isn't backed by a struct page.
+I reasoned that if a port_reg and reg supplied did result in a  pad 
+match the user would have given pad parameters. But sure there might be 
+cases where that assumtion might not be true. So I see no problem of 
+changing this to -ENXIO in next version.
 
-I'm actually already passing non-page backed memory through the DMA API
-in armada-drm, although not entirely correctly, and etnaviv handles it
-fine:
-
-        } else if (dobj->linear) {
-                /* Single contiguous physical region - no struct page */
-                if (sg_alloc_table(sgt, 1, GFP_KERNEL))
-                        goto free_sgt;
-                sg_dma_address(sgt->sgl) = dobj->dev_addr;
-                sg_dma_len(sgt->sgl) = dobj->obj.size;
-
-This is not quite correct, as it assumes (which is safe for it currently)
-that the DMA address is the same on all devices.  On Dove, which is where
-this is used, that is the case, but it's not true elsewhere.  Also note
-that I'm avoid calling dma_map_sg() and dma_unmap_sg() - there's no iommus
-to be considered.
-
-I'd suggest that this follows the same pattern - setting the DMA address
-(more appropriately for generic code) and the DMA length, while leaving
-the virtual address members NULL/0.  However, there's also the
-complication of setting up any IOMMUs that would be necessary.  I haven't
-looked at that, or how it could work.
-
-I also think this should be documented in the dmabuf API that it can
-pass such scatterlists that are DMA-parameter only.
-
-Lastly, I'd recommend that anything using this does _not_ provide
-functional kmap/kmap_atomic support for these - kmap and kmap_atomic
-are both out because there's no struct page anyway (and their use would
-probably oops the kernel in this scenario.)  I avoided mmap support in
-armada drm, but if there's a pressing reason and real use case for the
-importer to mmap() the buffers in userspace, it's something I could be
-convinced of.
-
-What I'm quite certain of is that we do _not_ want to be passing
-coherent memory allocations into the streaming DMA API, not even with
-a special attribute.  The DMA API is about gaining coherent memory
-(shared ownership of the buffer), or mapping system memory to a
-specified device (which can imply unique ownership.)  Trying to mix
-the two together muddies the separation that we have there, and makes
-it harder to explain.  As can be seen from this patch, we'd end up
-needing to add this special DMA_ATTR_DEV_COHERENT_NOPAGE everywhere,
-which is added complexity on top of stuff that is not required for
-this circumstance.
-
-I can see why you're doing it, to avoid having to duplicate more of
-the generic code in drm_prime, but I don't think plasting over this
-problem in arch code by adding this special flag is a particularly
-good way forward.
+> 
+> > + */
+> > +int media_entity_pad_from_dt_regs(struct media_entity *entity,
+> > +				  int port_reg, int reg, unsigned int *pad);
+> > +
+> > +/**
+> >   * media_graph_walk_init - Allocate resources used by graph walk.
+> >   *
+> >   * @graph: Media graph structure that will be used to walk the graph
+> 
+> -- 
+> Hälsningar,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Regards,
+Niklas Söderlund
