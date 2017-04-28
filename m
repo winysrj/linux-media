@@ -1,87 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58659
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752633AbdDKIyW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Apr 2017 04:54:22 -0400
-Date: Tue, 11 Apr 2017 05:54:13 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: linuxtv-commits@linuxtv.org,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [git:media_tree/master] [media] ARM: dts: exynos: add HDMI
- controller phandle to exynos4.dtsi
-Message-ID: <20170411055413.07957d91@vento.lan>
-In-Reply-To: <CAJKOXPfbJpFu6r9rS8oCqxTH+s7y2wYKx9+TzGrv4Cd8DYaKew@mail.gmail.com>
-References: <E1cxc0o-0003RE-PP@www.linuxtv.org>
-        <CAJKOXPfbJpFu6r9rS8oCqxTH+s7y2wYKx9+TzGrv4Cd8DYaKew@mail.gmail.com>
+Received: from ale.deltatee.com ([207.54.116.67]:32852 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1163345AbdD1TB6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 15:01:58 -0400
+To: Herbert Xu <herbert@gondor.apana.org.au>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+ <1493144468-22493-8-git-send-email-logang@deltatee.com>
+ <20170427035603.GA32212@gondor.apana.org.au>
+ <94123cbf-3287-f05e-7267-0bcf08ab0a8b@deltatee.com>
+ <20170428063039.GB6817@gondor.apana.org.au>
+ <5a08708b-c3b8-41fe-96de-607a109eacbd@deltatee.com>
+ <20170428175147.GA9596@gondor.apana.org.au>
+Cc: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
+        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Stephen Bates <sbates@raithlin.com>,
+        "David S. Miller" <davem@davemloft.net>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <d5242ef0-2670-63e4-02ce-a6d2368b7292@deltatee.com>
+Date: Fri, 28 Apr 2017 13:01:39 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20170428175147.GA9596@gondor.apana.org.au>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH v2 07/21] crypto: shash, caam: Make use of the new sg_map
+ helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 11 Apr 2017 10:36:58 +0200
-Krzysztof Kozlowski <krzk@kernel.org> escreveu:
 
-> On Mon, Apr 10, 2017 at 6:12 PM, Mauro Carvalho Chehab
-> <mchehab@s-opensource.com> wrote:
-> > This is an automatic generated email to let you know that the following patch were queued:
-> >
-> > Subject: [media] ARM: dts: exynos: add HDMI controller phandle to exynos4.dtsi
-> > Author:  Hans Verkuil <hans.verkuil@cisco.com>
-> > Date:    Tue Dec 13 12:37:16 2016 -0200
-> >
-> > Add the new hdmi phandle to exynos4.dtsi. This phandle is needed by the
-> > s5p-cec driver to initialize the CEC notifier framework.
-> >
-> > Tested with my Odroid U3.
-> >
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> > CC: linux-samsung-soc@vger.kernel.org
-> > CC: devicetree@vger.kernel.org
-> > CC: Krzysztof Kozlowski <krzk@kernel.org>
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> >
-> >  arch/arm/boot/dts/exynos4.dtsi | 1 +
-> >  1 file changed, 1 insertion(+)
-> >  
+
+On 28/04/17 11:51 AM, Herbert Xu wrote:
+> On Fri, Apr 28, 2017 at 10:53:45AM -0600, Logan Gunthorpe wrote:
+>>
+>>
+>> On 28/04/17 12:30 AM, Herbert Xu wrote:
+>>> You are right.  Indeed the existing code looks buggy as they
+>>> don't take sg->offset into account when doing the kmap.  Could
+>>> you send me some patches that fix these problems first so that
+>>> they can be easily backported?
+>>
+>> Ok, I think the only buggy one in crypto is hifn_795x. Shash and caam
+>> both do have the sg->offset accounted for. I'll send a patch for the
+>> buggy one shortly.
 > 
-> Mauro, you should not apply it. It is already going through samsung-soc [1].
-> if you need this patch for bisectability or any other reasons, I
-> provided a tag with it here:
-> https://www.spinics.net/lists/devicetree/msg171182.html
-> 
-> Please drop the patch because now it will get duplicated.
+> I think they're all buggy when sg->offset is greater than PAGE_SIZE.
 
-Having exactly the same patch applied on multiple trees usually is
-not a problem, provided that it doesn't rise a non-trivial
-conflict.
+Yes, technically. But that's a _very_ common mistake. Pretty nearly
+every case I looked at did not take that into account. I don't think
+sg's that point to more than one continuous page are all that common.
 
-I avoid rebase the tree where this patch is applied, as rebasing it
-affect the workflow of other developers.
+Fixing all those cases without making a common function is a waste of
+time IMO.
 
-I'm afraid that, if I revert this patch, it will cause more harm than
-good. 
-
-So, I guess the best solution to fix the issue would be to pull from 
-a stable branch on your tree with has this patch and solve conflicts,
-if any. This way, nothing will popup when merging upstream.
-
-Regards,
-Mauro
-
-> 
-> Best regards,
-> Krzysztof
-> 
-> [1] https://www.spinics.net/lists/arm-kernel/msg575229.html
-
-
-
-Thanks,
-Mauro
+Logan
