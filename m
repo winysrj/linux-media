@@ -1,195 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44876 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752518AbdDDNWK (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:58536 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1425865AbdD1WCt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 4 Apr 2017 09:22:10 -0400
-Date: Tue, 4 Apr 2017 16:22:04 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Helen Koike <helen.koike@collabora.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        jgebben@codeaurora.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH RFC 1/2] [media] v4l2: add V4L2_INPUT_TYPE_DEFAULT
-Message-ID: <20170404132203.GE3288@valkosipuli.retiisi.org.uk>
-References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
- <edfc014d-3b5e-53f9-04f0-95ae4fd4017e@xs4all.nl>
- <20170331065714.228634d1@vento.lan>
- <7922bf67-33cc-a377-02c3-45603f1c0ebc@collabora.com>
+        Fri, 28 Apr 2017 18:02:49 -0400
+Date: Fri, 28 Apr 2017 16:02:45 -0600
+From: Jordan Crouse <jcrouse@codeaurora.org>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Subject: Re: [PATCH v8 05/10] media: venus: adding core part and helper
+ functions
+Message-ID: <20170428220245.GA3283@jcrouse-lnx.qualcomm.com>
+References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1493370837-19793-6-git-send-email-stanimir.varbanov@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <7922bf67-33cc-a377-02c3-45603f1c0ebc@collabora.com>
+In-Reply-To: <1493370837-19793-6-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Helen,
+On Fri, Apr 28, 2017 at 12:13:52PM +0300, Stanimir Varbanov wrote:
+> +int venus_boot(struct device *parent, struct device *fw_dev)
+> +{
+> +	const struct firmware *mdt;
+> +	phys_addr_t mem_phys;
+> +	ssize_t fw_size;
+> +	size_t mem_size;
+> +	void *mem_va;
+> +	int ret;
+> +
+> +	if (!qcom_scm_is_available())
+> +		return -EPROBE_DEFER;
+> +
+> +	fw_dev->parent = parent;
+> +	fw_dev->release = device_release_dummy;
+> +
+> +	ret = dev_set_name(fw_dev, "%s:%s", dev_name(parent), "firmware");
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = device_register(fw_dev);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = of_reserved_mem_device_init_by_idx(fw_dev, parent->of_node, 0);
+> +	if (ret)
+> +		goto err_unreg_device;
+> +
+> +	mem_size = VENUS_FW_MEM_SIZE;
+> +
+> +	mem_va = dmam_alloc_coherent(fw_dev, mem_size, &mem_phys, GFP_KERNEL);
+> +	if (!mem_va) {
+> +		ret = -ENOMEM;
+> +		goto err_unreg_device;
+> +	}
+> +
+> +	ret = request_firmware(&mdt, VENUS_FIRMWARE_NAME, fw_dev);
+> +	if (ret < 0)
+> +		goto err_unreg_device;
+> +
+> +	fw_size = qcom_mdt_get_size(mdt);
+> +	if (fw_size < 0) {
+> +		ret = fw_size;
+> +		release_firmware(mdt);
+> +		goto err_unreg_device;
+> +	}
+> +
+> +	ret = qcom_mdt_load(fw_dev, mdt, VENUS_FIRMWARE_NAME, VENUS_PAS_ID,
+> +			    mem_va, mem_phys, mem_size);
+> +
+> +	release_firmware(mdt);
+> +
+> +	if (ret)
+> +		goto err_unreg_device;
+> +
+> +	ret = qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
+> +	if (ret)
+> +		goto err_unreg_device;
+> +
+> +	return 0;
+> +
+> +err_unreg_device:
+> +	device_unregister(fw_dev);
+> +	return ret;
+> +}
 
-On Mon, Apr 03, 2017 at 12:11:54PM -0300, Helen Koike wrote:
-> Hi,
-> 
-> On 2017-03-31 06:57 AM, Mauro Carvalho Chehab wrote:
-> >Em Fri, 31 Mar 2017 10:29:04 +0200
-> >Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >
-> >>On 30/03/17 18:02, Helen Koike wrote:
-> >>>Add V4L2_INPUT_TYPE_DEFAULT and helpers functions for input ioctls to be
-> >>>used when no inputs are available in the device
-> >>>
-> >>>Signed-off-by: Helen Koike <helen.koike@collabora.com>
-> >>>---
-> >>> drivers/media/v4l2-core/v4l2-ioctl.c | 27 +++++++++++++++++++++++++++
-> >>> include/media/v4l2-ioctl.h           | 26 ++++++++++++++++++++++++++
-> >>> include/uapi/linux/videodev2.h       |  1 +
-> >>> 3 files changed, 54 insertions(+)
-> >>>
-> >>>diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> >>>index 0c3f238..ccaf04b 100644
-> >>>--- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> >>>+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> >>>@@ -2573,6 +2573,33 @@ struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
-> >>> 	return vdev->lock;
-> >>> }
-> >>>
-> >>>+int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
-> >>>+				  struct v4l2_input *i)
-> >>>+{
-> >>>+	if (i->index > 0)
-> >>>+		return -EINVAL;
-> >>>+
-> >>>+	memset(i, 0, sizeof(*i));
-> >>>+	i->type = V4L2_INPUT_TYPE_DEFAULT;
-> >>>+	strlcpy(i->name, "Default", sizeof(i->name));
-> >>>+
-> >>>+	return 0;
-> >>>+}
-> >>>+EXPORT_SYMBOL(v4l2_ioctl_enum_input_default);
-> >>>+
-> >>>+int v4l2_ioctl_g_input_default(struct file *file, void *priv, unsigned int *i)
-> >>>+{
-> >>>+	*i = 0;
-> >>>+	return 0;
-> >>>+}
-> >>>+EXPORT_SYMBOL(v4l2_ioctl_g_input_default);
-> >>>+
-> >>>+int v4l2_ioctl_s_input_default(struct file *file, void *priv, unsigned int i)
-> >>>+{
-> >>>+	return i ? -EINVAL : 0;
-> >>>+}
-> >>>+EXPORT_SYMBOL(v4l2_ioctl_s_input_default);
-> >>>+
-> >>> /* Common ioctl debug function. This function can be used by
-> >>>    external ioctl messages as well as internal V4L ioctl */
-> >>> void v4l_printk_ioctl(const char *prefix, unsigned int cmd)
-> >>>diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> >>>index 6cd94e5..accc470 100644
-> >>>--- a/include/media/v4l2-ioctl.h
-> >>>+++ b/include/media/v4l2-ioctl.h
-> >>>@@ -652,6 +652,32 @@ struct video_device;
-> >>>  */
-> >>> struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned int cmd);
-> >>>
-> >>>+
-> >>>+/**
-> >>>+ * v4l2_ioctl_enum_input_default - v4l2 ioctl helper for VIDIOC_ENUM_INPUT ioctl
-> >>>+ *
-> >>>+ * Plug this function in vidioc_enum_input field of the struct v4l2_ioctl_ops to
-> >>>+ * enumerate a single input as V4L2_INPUT_TYPE_DEFAULT
-> >>>+ */
-> >>>+int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
-> >>>+				  struct v4l2_input *i);
-> >>>+
-> >>>+/**
-> >>>+ * v4l2_ioctl_g_input_default - v4l2 ioctl helper for VIDIOC_G_INPUT ioctl
-> >>>+ *
-> >>>+ * Plug this function in vidioc_g_input field of the struct v4l2_ioctl_ops
-> >>>+ * when using v4l2_ioctl_enum_input_default
-> >>>+ */
-> >>>+int v4l2_ioctl_g_input_default(struct file *file, void *priv, unsigned int *i);
-> >>>+
-> >>>+/**
-> >>>+ * v4l2_ioctl_s_input_default - v4l2 ioctl helper for VIDIOC_S_INPUT ioctl
-> >>>+ *
-> >>>+ * Plug this function in vidioc_s_input field of the struct v4l2_ioctl_ops
-> >>>+ * when using v4l2_ioctl_enum_input_default
-> >>>+ */
-> >>>+int v4l2_ioctl_s_input_default(struct file *file, void *priv, unsigned int i);
-> >>>+
-> >>> /* names for fancy debug output */
-> >>> extern const char *v4l2_field_names[];
-> >>> extern const char *v4l2_type_names[];
-> >>>diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> >>>index 316be62..c10bbde 100644
-> >>>--- a/include/uapi/linux/videodev2.h
-> >>>+++ b/include/uapi/linux/videodev2.h
-> >>>@@ -1477,6 +1477,7 @@ struct v4l2_input {
-> >>> };
-> >>>
-> >>> /*  Values for the 'type' field */
-> >>>+#define V4L2_INPUT_TYPE_DEFAULT		0
-> >>
-> >>I don't think we should add a new type here.
-> >
-> >I second that. Just replied the same thing on a comment from Sakari to
-> >patch 2/2.
-> >
-> >>The whole point of this exercise is to
-> >>allow existing apps to work, and existing apps expect a TYPE_CAMERA.
-> >>
-> >>BTW, don't read to much in the term 'CAMERA': it's really a catch all for any video
-> >>stream, whether it is from a sensor, composite input, HDMI, etc.
-> >>
-> >>The description for V4L2_INPUT_TYPE_CAMERA in the spec is hopelessly out of date :-(
-> >
-> >Yeah, we always used "CAMERA" to mean NOT_TUNER.
-> >
-> >>Rather than creating a new type I would add a new V4L2_IN_CAP_MC capability that
-> >>indicates that this input is controlled via the media controller. That makes much
-> >>more sense and it wouldn't potentially break applications.
-> >>
-> >>Exactly the same can be done for outputs as well: add V4L2_OUT_CAP_MC and use
-> >>V4L2_OUTPUT_TYPE_ANALOG as the output type (again, a horrible outdated name and the
-> >>spec is again out of date).
-> >
-> >I don't see any sense on distinguishing IN and OUT for MC. I mean: should
-> >we ever allow that any driver to have their inputs controlled via V4L2 API,
-> >and their outputs controlled via MC (or vice-versa)? I don't think so.
-> >
-> >Either all device inputs/outputs are controlled via V4L2 or via MC. So,
-> >let's call it just V4L2_CAP_MC.
-> >
-> >>Regarding the name: should we use the name stored in struct video_device instead?
-> >>That might be more descriptive.
-> >
-> >Makes sense to me.
-> >
-> >>Alternatively use something like "Media Controller Input".
-> >
-> >Yeah, we could do that, if V4L2_CAP_MC. if not, we can use the name
-> >stored at video_device.
-> 
-> Just to clarify: the V4L2_CAP_MC would indicated that the media controller
-> is enabled in general? Or just for inputs and outputs?
+Hey, this looks familiar - almost line for line identical to what we'll need to
+do for GPU.
 
-I let Mauro and Hans to comment on their own behalf, but I think whatever is
-communicated through the input IOCTLs should be applicable to inputs only.
+Bjorn - Is this enough to qualify for generic status in the mdt_loader code?
+I know its just two consumers, but it would save 50 or 60 lines of code between
+the two drivers and be easier to maintain.
 
-The fact that the video device is a part of an MC graph could be conveyed
-using a capability flag. Or by providing information on the media device
-node, something that has been proposed earlier on. Either is out of the
-scope of this patchset IMO, but should be addressed separately.
-
-> If it is the first case, not necessarily the inputs/outputs are controlled
-> via MC (we can still have a MC capable driver, but inputs/outputs controlled
-> via V4L2 no? When the driver doesn't offer the necessary link controls via
-> MC), then checking if V4L2_CAP_MC then use the name "Media Controller Input"
-> is not enough.
-> If it is the second case, then wouldn't it be better to name it
-> V4L2_CAP_MC_IO ?
+Jordan
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
