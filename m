@@ -1,204 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:59507 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756155AbdDGJqx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Apr 2017 05:46:53 -0400
-Subject: Re: [PATCH RFC 1/2] [media] v4l2: add V4L2_INPUT_TYPE_DEFAULT
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Helen Koike <helen.koike@collabora.com>
-References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
- <edfc014d-3b5e-53f9-04f0-95ae4fd4017e@xs4all.nl>
- <20170331065714.228634d1@vento.lan>
- <7922bf67-33cc-a377-02c3-45603f1c0ebc@collabora.com>
- <20170404132203.GE3288@valkosipuli.retiisi.org.uk>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        linux-media@vger.kernel.org, jgebben@codeaurora.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <551ccb38-80d1-6c7d-9c17-448ca39ac192@xs4all.nl>
-Date: Fri, 7 Apr 2017 11:46:48 +0200
+Received: from vader.hardeman.nu ([95.142.160.32]:32946 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1164824AbdD1Qmy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 12:42:54 -0400
+Date: Fri, 28 Apr 2017 18:42:50 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: [PATCH 5/6] rc-core: use the full 32 bits for NEC scancodes
+Message-ID: <20170428164250.pgl466yray4md2cp@hardeman.nu>
+References: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
+ <149332525833.32431.1765495360604915898.stgit@zeus.hardeman.nu>
+ <20170428115832.GB21792@gofer.mess.org>
 MIME-Version: 1.0
-In-Reply-To: <20170404132203.GE3288@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170428115832.GB21792@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/04/2017 03:22 PM, Sakari Ailus wrote:
-> Hi Helen,
-> 
-> On Mon, Apr 03, 2017 at 12:11:54PM -0300, Helen Koike wrote:
->> Hi,
->>
->> On 2017-03-31 06:57 AM, Mauro Carvalho Chehab wrote:
->>> Em Fri, 31 Mar 2017 10:29:04 +0200
->>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>
->>>> On 30/03/17 18:02, Helen Koike wrote:
->>>>> Add V4L2_INPUT_TYPE_DEFAULT and helpers functions for input ioctls to be
->>>>> used when no inputs are available in the device
->>>>>
->>>>> Signed-off-by: Helen Koike <helen.koike@collabora.com>
->>>>> ---
->>>>> drivers/media/v4l2-core/v4l2-ioctl.c | 27 +++++++++++++++++++++++++++
->>>>> include/media/v4l2-ioctl.h           | 26 ++++++++++++++++++++++++++
->>>>> include/uapi/linux/videodev2.h       |  1 +
->>>>> 3 files changed, 54 insertions(+)
->>>>>
->>>>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
->>>>> index 0c3f238..ccaf04b 100644
->>>>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
->>>>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
->>>>> @@ -2573,6 +2573,33 @@ struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
->>>>> 	return vdev->lock;
->>>>> }
->>>>>
->>>>> +int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
->>>>> +				  struct v4l2_input *i)
->>>>> +{
->>>>> +	if (i->index > 0)
->>>>> +		return -EINVAL;
->>>>> +
->>>>> +	memset(i, 0, sizeof(*i));
->>>>> +	i->type = V4L2_INPUT_TYPE_DEFAULT;
->>>>> +	strlcpy(i->name, "Default", sizeof(i->name));
->>>>> +
->>>>> +	return 0;
->>>>> +}
->>>>> +EXPORT_SYMBOL(v4l2_ioctl_enum_input_default);
->>>>> +
->>>>> +int v4l2_ioctl_g_input_default(struct file *file, void *priv, unsigned int *i)
->>>>> +{
->>>>> +	*i = 0;
->>>>> +	return 0;
->>>>> +}
->>>>> +EXPORT_SYMBOL(v4l2_ioctl_g_input_default);
->>>>> +
->>>>> +int v4l2_ioctl_s_input_default(struct file *file, void *priv, unsigned int i)
->>>>> +{
->>>>> +	return i ? -EINVAL : 0;
->>>>> +}
->>>>> +EXPORT_SYMBOL(v4l2_ioctl_s_input_default);
->>>>> +
->>>>> /* Common ioctl debug function. This function can be used by
->>>>>    external ioctl messages as well as internal V4L ioctl */
->>>>> void v4l_printk_ioctl(const char *prefix, unsigned int cmd)
->>>>> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
->>>>> index 6cd94e5..accc470 100644
->>>>> --- a/include/media/v4l2-ioctl.h
->>>>> +++ b/include/media/v4l2-ioctl.h
->>>>> @@ -652,6 +652,32 @@ struct video_device;
->>>>>  */
->>>>> struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned int cmd);
->>>>>
->>>>> +
->>>>> +/**
->>>>> + * v4l2_ioctl_enum_input_default - v4l2 ioctl helper for VIDIOC_ENUM_INPUT ioctl
->>>>> + *
->>>>> + * Plug this function in vidioc_enum_input field of the struct v4l2_ioctl_ops to
->>>>> + * enumerate a single input as V4L2_INPUT_TYPE_DEFAULT
->>>>> + */
->>>>> +int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
->>>>> +				  struct v4l2_input *i);
->>>>> +
->>>>> +/**
->>>>> + * v4l2_ioctl_g_input_default - v4l2 ioctl helper for VIDIOC_G_INPUT ioctl
->>>>> + *
->>>>> + * Plug this function in vidioc_g_input field of the struct v4l2_ioctl_ops
->>>>> + * when using v4l2_ioctl_enum_input_default
->>>>> + */
->>>>> +int v4l2_ioctl_g_input_default(struct file *file, void *priv, unsigned int *i);
->>>>> +
->>>>> +/**
->>>>> + * v4l2_ioctl_s_input_default - v4l2 ioctl helper for VIDIOC_S_INPUT ioctl
->>>>> + *
->>>>> + * Plug this function in vidioc_s_input field of the struct v4l2_ioctl_ops
->>>>> + * when using v4l2_ioctl_enum_input_default
->>>>> + */
->>>>> +int v4l2_ioctl_s_input_default(struct file *file, void *priv, unsigned int i);
->>>>> +
->>>>> /* names for fancy debug output */
->>>>> extern const char *v4l2_field_names[];
->>>>> extern const char *v4l2_type_names[];
->>>>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
->>>>> index 316be62..c10bbde 100644
->>>>> --- a/include/uapi/linux/videodev2.h
->>>>> +++ b/include/uapi/linux/videodev2.h
->>>>> @@ -1477,6 +1477,7 @@ struct v4l2_input {
->>>>> };
->>>>>
->>>>> /*  Values for the 'type' field */
->>>>> +#define V4L2_INPUT_TYPE_DEFAULT		0
->>>>
->>>> I don't think we should add a new type here.
->>>
->>> I second that. Just replied the same thing on a comment from Sakari to
->>> patch 2/2.
->>>
->>>> The whole point of this exercise is to
->>>> allow existing apps to work, and existing apps expect a TYPE_CAMERA.
->>>>
->>>> BTW, don't read to much in the term 'CAMERA': it's really a catch all for any video
->>>> stream, whether it is from a sensor, composite input, HDMI, etc.
->>>>
->>>> The description for V4L2_INPUT_TYPE_CAMERA in the spec is hopelessly out of date :-(
->>>
->>> Yeah, we always used "CAMERA" to mean NOT_TUNER.
->>>
->>>> Rather than creating a new type I would add a new V4L2_IN_CAP_MC capability that
->>>> indicates that this input is controlled via the media controller. That makes much
->>>> more sense and it wouldn't potentially break applications.
->>>>
->>>> Exactly the same can be done for outputs as well: add V4L2_OUT_CAP_MC and use
->>>> V4L2_OUTPUT_TYPE_ANALOG as the output type (again, a horrible outdated name and the
->>>> spec is again out of date).
->>>
->>> I don't see any sense on distinguishing IN and OUT for MC. I mean: should
->>> we ever allow that any driver to have their inputs controlled via V4L2 API,
->>> and their outputs controlled via MC (or vice-versa)? I don't think so.
->>>
->>> Either all device inputs/outputs are controlled via V4L2 or via MC. So,
->>> let's call it just V4L2_CAP_MC.
->>>
->>>> Regarding the name: should we use the name stored in struct video_device instead?
->>>> That might be more descriptive.
->>>
->>> Makes sense to me.
->>>
->>>> Alternatively use something like "Media Controller Input".
->>>
->>> Yeah, we could do that, if V4L2_CAP_MC. if not, we can use the name
->>> stored at video_device.
->>
->> Just to clarify: the V4L2_CAP_MC would indicated that the media controller
->> is enabled in general? Or just for inputs and outputs?
-> 
-> I let Mauro and Hans to comment on their own behalf, but I think whatever is
-> communicated through the input IOCTLs should be applicable to inputs only.
-> 
-> The fact that the video device is a part of an MC graph could be conveyed
-> using a capability flag. Or by providing information on the media device
-> node, something that has been proposed earlier on. Either is out of the
-> scope of this patchset IMO, but should be addressed separately.
-> 
->> If it is the first case, not necessarily the inputs/outputs are controlled
->> via MC (we can still have a MC capable driver, but inputs/outputs controlled
->> via V4L2 no? When the driver doesn't offer the necessary link controls via
->> MC), then checking if V4L2_CAP_MC then use the name "Media Controller Input"
->> is not enough.
->> If it is the second case, then wouldn't it be better to name it
->> V4L2_CAP_MC_IO ?
-> 
+On Fri, Apr 28, 2017 at 12:58:32PM +0100, Sean Young wrote:
+>On Thu, Apr 27, 2017 at 10:34:18PM +0200, David Härdeman wrote:
+>> Using the full 32 bits for all kinds of NEC scancodes simplifies rc-core
+>> and the nec decoder without any loss of functionality. At the same time
+>> it ensures that scancodes for NEC16/NEC24/NEC32 do not overlap and
+>> removes lots of duplication (as you can see from the patch, the same NEC
+>> disambiguation logic is contained in several different drivers).
+>> 
+>> Using NEC32 also removes ambiguity. For example, consider these two NEC
+>> messages:
+>> NEC16 message to address 0x05, command 0x03
+>> NEC24 message to address 0x0005, command 0x03
+>> 
+>> They'll both have scancode 0x00000503, and there's no way to tell which
+>> message was received.
+>
+>It's not ambiguous, the protocol is different (RC_TYPE_NEC vs RC_TYPE_NECX).
 
-It's the second case. I would probably name it V4L2_CAP_IO_MC. But I also feel
-that we need a V4L2_IN/OUT_CAP_MC as well. Because the existing V4L2_IN/OUT_CAP
-flags make no sense in this case.
+It's ambigous in any context where the protocol is not known (e.g. when
+old-style ioctl():s are performed) or in contexts where protocols are
+bundled (i.e. when the only information about protocols come from the
+sysfs file).
 
-In v4l2-ioctl.c we can just check V4L2_CAP_IO_MC in video_device->device_caps,
-and, if present, implement dummy s/g/enum_in/output ioctls. The enum ioctl would
-set V4L2_IN/OUT_CAP_MC and use video_device->name as the description.
+Anyway, I'm very open to leaving NEC well alone if that means we can
+make some progress on the more important issue of protocol-enabled
+keytables. :)
 
-Regards,
+>> In order to maintain backwards compatibility, some heuristics are added
+>> in rc-main.c to convert scancodes to NEC32 as necessary when userspace
+>> adds entries to the keytable using the regular input ioctls. These
+>> heuristics are essentially the same as the ones that are currently in
+>> drivers/media/rc/img-ir/img-ir-nec.c (which are rendered unecessary
+>> with this patch).
+>
+>There are issues with the patch which breaks userspace, as discussed
+>in the previous patch. None of those issues have been addressed.
 
-	Hans
+It is impossible to add protocol information without affecting
+userspace, what we should be focusing on is the best way to ameliorate
+the effects.
+
+As a simple example, consider new-style ioctls doing:
+
+EVIOCSKEYCODE_V2 (SONY, 0x001f) = KEY_NUMERIC_2
+EVIOCSKEYCODE_V2 (SANYO, 0x001f) = KEY_NUMERIC_1
+
+After that, what should these two ioctl():s perform/return?:
+
+EVIOCGKEYCODE (0x001f) -> ?
+EVIOCSKEYCODE (0x001f) = KEY_*
+
+-- 
+David Härdeman
