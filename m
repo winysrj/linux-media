@@ -1,134 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:39380 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1762713AbdDSMuV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Apr 2017 08:50:21 -0400
-Date: Wed, 19 Apr 2017 13:50:17 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        liviu.dudau@arm.com, laurent.pinchart@ideasonboard.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/6] drm: Add writeback connector type
-Message-ID: <20170419125017.GB6314@e106950-lin.cambridge.arm.com>
-References: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
- <1480092544-1725-2-git-send-email-brian.starkey@arm.com>
- <20170414120823.2cafc748@bbrezillon>
- <20170418173443.GA325@e106950-lin.cambridge.arm.com>
- <20170418215717.4381dd6e@bbrezillon>
- <20170419095122.GA6314@e106950-lin.cambridge.arm.com>
- <20170419133434.229593a1@bbrezillon>
+Received: from mail-lf0-f47.google.com ([209.85.215.47]:33553 "EHLO
+        mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755291AbdD1L5z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 07:57:55 -0400
+Received: by mail-lf0-f47.google.com with SMTP id 88so32639842lfr.0
+        for <linux-media@vger.kernel.org>; Fri, 28 Apr 2017 04:57:54 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Fri, 28 Apr 2017 13:57:52 +0200
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/2] media: entity: Add pad_from_dt_regs entity operation
+Message-ID: <20170428115752.GD1532@bigcity.dyn.berto.se>
+References: <20170427223323.13861-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170427223323.13861-2-niklas.soderlund+renesas@ragnatech.se>
+ <20170428103256.GG7456@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20170419133434.229593a1@bbrezillon>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170428103256.GG7456@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 19, 2017 at 01:34:34PM +0200, Boris Brezillon wrote:
->On Wed, 19 Apr 2017 10:51:23 +0100
->Brian Starkey <brian.starkey@arm.com> wrote:
+Hi Sakari,
 
-[snip]
+Thanks for your feedback.
 
->> Could you expand a bit on how you think planes fit better?
->
->Just had the impression that the writeback feature was conceptually
->closer to a plane object (which is attached buffers and expose ways to
->specify which portion of the buffer should be used, provides way to
->atomically switch 2 buffers, ...).
+On 2017-04-28 13:32:57 +0300, Sakari Ailus wrote:
+> Hi Niklas,
+> 
+> On Fri, Apr 28, 2017 at 12:33:22AM +0200, Niklas Söderlund wrote:
+> > The optional operation can be used by entities to report how it maps its
+> > DT node ports and endpoints to media pad numbers. This is useful for
+> > devices which require more advanced mappings of pads then DT port
+> > number is equivalent with media port number.
+> > 
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  include/media/media-entity.h | 4 ++++
+> >  1 file changed, 4 insertions(+)
+> > 
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > index c7c254c5bca1761b..47efaf4d825e671b 100644
+> > --- a/include/media/media-entity.h
+> > +++ b/include/media/media-entity.h
+> > @@ -171,6 +171,9 @@ struct media_pad {
+> >  
+> >  /**
+> >   * struct media_entity_operations - Media entity operations
+> > + * @pad_from_dt_regs:	Return the pad number based on DT port and reg
+> > + *			properties. This operation can be used to map a
+> > + *			DT port and reg to a media pad number. Optional.
+> 
+> Don't you need to provide entity as an argument as well? The driver will be
+> a little bit loss due to lack of context. :-)
 
-Yeah sort-of, except that SRC_X/Y/W/H doesn't mean the same for an
-"output" plane as an "input" plane (and CRTC_X/Y/W/H similarly,
-probably other properties too).
+I'm not sure I understand you, this is a entity operation so the driver 
+will know for which entity the request is mad on. Or am I missing 
+something?
 
-In atomic land, the swapping of buffers is really just the swapping of
-object IDs via properties - I don't think planes actually have
-anything special in terms of buffer handling, except for all the
-legacy state handling cruft.
+> 
+> How about using the endpoint's device node (or fwnode; you can get it using
+> of_fwnode_handle() soon) instead? You can always obtain the port node by
+> just getting the parent.
 
->
->> It is
->> something we've previously talked about internally, but so far I'm not
->> convinced :-)
->
->Okay, as I said, I don't know all the history, hence my questions ;-).
->
+I did think about that but opted for port_reg and reg since it seemed 
+more simple.
 
-I think that history was here in our office rather than on the list
-anyway.
+But it might be better to base this work on top of your fwnode work,
+s/from_dt_regs/from_fwnode/ and use the of_fwnode_handle() as you 
+suggest here. Do you think this would be valuable and make this new 
+operation more useful?
 
->>
->> >By doing that, we would also get rid of these fake connector/encoder
->> >objects as well as the fake modes we are returning in
->> >connector->get_modes().
->>
->> What makes the connector/encoder fake? They represent a real piece of
->> hardware just the same as a drm_plane would.
->
->Well, that's probably subject to interpretation, but I don't consider
->these writeback encoders/connectors as real encoders/connectors. They
->are definitely real HW blocks, but not what we usually consider as an
->encoder/connector.
->
+> 
+> >   * @link_setup:		Notify the entity of link changes. The operation can
+> >   *			return an error, in which case link setup will be
+> >   *			cancelled. Optional.
+> > @@ -184,6 +187,7 @@ struct media_pad {
+> >   *    mutex held.
+> >   */
+> >  struct media_entity_operations {
+> > +	int (*pad_from_dt_regs)(int port_reg, int reg, unsigned int *pad);
+> >  	int (*link_setup)(struct media_entity *entity,
+> >  			  const struct media_pad *local,
+> >  			  const struct media_pad *remote, u32 flags);
+> 
+> -- 
+> Kind regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
 
-This is true
-
->>
->> I don't mind dropping the mode list and letting userspace just make
->> up whatever timing it wants - it'd need to do the same if writeback
->> was a plane - but in some respects giving it a list of modes the same
->> way we normally do seems nicer for userspace.
->>
->> >
->> >As far as I can tell, the VC4 and Atmel HLCDC IP should fit pretty well
->> >in this model, not sure about the mali-dp though.
->> >
->> >Brian, did you consider this approach, and if you did, can you detail
->> >why you decided to expose this feature as a connector?
->> >
->> >Daniel (or anyone else), please step in if you think this is a stupid
->> >idea :-).
->>
->> Ville originally suggested using a connector, which Eric followed up
->> by saying that's what he was thinking of for VC4 writeback too[1].
->
->Thanks for the pointer.
->
->> That was my initial reason for focussing on a connector-based
->> approach.
->>
->> I prefer connector over plane conceptually because it keeps with the
->> established data flow: planes are sources, connectors are sinks.
->
->Okay, it's a valid point.
->
->>
->> In some respects the plane _object_ looks like it would fit - it has a
->> pixel format list and an FB_ID. But everything else would be acting
->> the exact opposite to a normal plane, and I think there's a bunch of
->> baked-in assumptions in the kernel and userspace around CRTCs always
->> having at least one connector.
->
->Yep, but writeback connectors are already different enough to not be
->considered as regular connectors, so userspace programs will have to
->handle them differently anyway (pass a framebuffer and pixel format to
->it before adding them to the display pipeline).
->
->Anyway, I see this approach has already been suggested in [1], and you
->all agreed that the writeback feature should be exposed as a connector,
->so I'll just stop here :-).
->
->Thanks for taking the time to explain the rationale behind this
->decision.
->
-
-No problem, now is the right time to be discussing the decision before
-we merge something wrong.
-
-Are you happy enough with the connector approach then? Any concerns
-with going ahead with it?
-
-Cheers,
--Brian
+-- 
+Regards,
+Niklas Söderlund
