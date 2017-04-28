@@ -1,248 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34098 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37175 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752504AbdDKMit (ORCPT
+        with ESMTP id S1756023AbdD1KGC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Apr 2017 08:38:49 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi,
-        chris.paterson2@renesas.com, geert+renesas@glider.be,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v3 5/7] doc_rst: media: New SDR formats PC16, PC18 & PC20
-Date: Tue, 11 Apr 2017 15:39:40 +0300
-Message-ID: <213133284.36Jzg1zrIM@avalon>
-In-Reply-To: <1486479757-32128-6-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-References: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com> <1486479757-32128-6-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+        Fri, 28 Apr 2017 06:06:02 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH 4/5] arm64: dts: r8a7795: salvator-x: enable VIN, CSI and
+ ADV7482
+References: <1493317564-18026-1-git-send-email-kbingham@kernel.org>
+ <1493317564-18026-5-git-send-email-kbingham@kernel.org>
+ <05b07c91-c41a-a3ae-d660-06eff84cd453@cogentembedded.com>
+ <CAMuHMdUWzXvYJsB02kqebrqzkoQs+NSM_Xo3tsFX=DOfst=m0w@mail.gmail.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Kieran Bingham <kbingham@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <6b133106-a590-c286-135e-031214340910@ideasonboard.com>
+Date: Fri, 28 Apr 2017 11:05:56 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAMuHMdUWzXvYJsB02kqebrqzkoQs+NSM_Xo3tsFX=DOfst=m0w@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ramesh,
-
-Thank you for the patch.
-
-On Tuesday 07 Feb 2017 15:02:35 Ramesh Shanmugasundaram wrote:
-> This patch adds documentation for the three new SDR formats
+On 28/04/17 11:04, Geert Uytterhoeven wrote:
+> On Fri, Apr 28, 2017 at 10:52 AM, Sergei Shtylyov
+> <sergei.shtylyov@cogentembedded.com> wrote:
+>> On 4/27/2017 9:26 PM, Kieran Bingham wrote:
+>>> --- a/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts
+>>> +++ b/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts
+>>
+>> [...]
+>>>
+>>> @@ -387,6 +403,50 @@
+>>>         };
+>>>  };
+>>>
+>>> +&i2c4 {
+>>> +       status = "okay";
+>>> +
+>>> +       clock-frequency = <100000>;
+>>> +
+>>> +       video_receiver@70 {
+>>
+>>
+>>    Hyphens are preferred in the node names.
 > 
-> V4L2_SDR_FMT_PCU16BE
-> V4L2_SDR_FMT_PCU18BE
-> V4L2_SDR_FMT_PCU20BE
+> Definitely: make W=1 dtbs
+
+
+Thanks guys, - I didn't know about that one.
+I'll update my build script so it's always in place :)
+
+--
+Regards
+
+Kieran
+
+
+> Gr{oetje,eeting}s,
 > 
-> Signed-off-by: Ramesh Shanmugasundaram
-> <ramesh.shanmugasundaram@bp.renesas.com> ---
->  .../media/uapi/v4l/pixfmt-sdr-pcu16be.rst          | 55 +++++++++++++++++++
->  .../media/uapi/v4l/pixfmt-sdr-pcu18be.rst          | 55 +++++++++++++++++++
->  .../media/uapi/v4l/pixfmt-sdr-pcu20be.rst          | 54 +++++++++++++++++++
->  Documentation/media/uapi/v4l/sdr-formats.rst       |  3 ++
->  4 files changed, 167 insertions(+)
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
+>                         Geert
 > 
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
-> b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst new file mode 100644
-> index 0000000..2de1b1a
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
-> @@ -0,0 +1,55 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _V4L2-SDR-FMT-PCU16BE:
-> +
-> +******************************
-> +V4L2_SDR_FMT_PCU16BE ('PC16')
-> +******************************
-> +
-> +Planar complex unsigned 16-bit big endian IQ sample
-> +
-> +Description
-> +===========
-> +
-> +This format contains a sequence of complex number samples. Each complex
-> +number consist of two parts called In-phase and Quadrature (IQ). Both I
-> +and Q are represented as a 16 bit unsigned big endian number stored in
-> +32 bit space. The remaining unused bits within the 32 bit space will be
-> +padded with 0. I value starts first and Q value starts at an offset
-> +equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
-> +the 16 bits, bit 15:2 (14 bit) is data and bit 1:0 (2 bit) can be any
-> +value.
-
-This sounds very strange to me. Are the two lower bits always random ? What is 
-that used for ?
-
-> +**Byte Order.**
-> +Each cell is one byte.
-> +
-> +.. flat-table::
-> +    :header-rows:  1
-> +    :stub-columns: 0
-> +
-> +    * -  Offset:
-> +      -  Byte B0
-> +      -  Byte B1
-> +      -  Byte B2
-> +      -  Byte B3
-> +    * -  start + 0:
-> +      -  I'\ :sub:`0[13:6]`
-> +      -  I'\ :sub:`0[5:0]; B1[1:0]=pad`
-> +      -  pad
-> +      -  pad
-> +    * -  start + 4:
-> +      -  I'\ :sub:`1[13:6]`
-> +      -  I'\ :sub:`1[5:0]; B1[1:0]=pad`
-> +      -  pad
-> +      -  pad
-> +    * -  ...
-> +    * - start + offset:
-> +      -  Q'\ :sub:`0[13:6]`
-> +      -  Q'\ :sub:`0[5:0]; B1[1:0]=pad`
-> +      -  pad
-> +      -  pad
-> +    * - start + offset + 4:
-> +      -  Q'\ :sub:`1[13:6]`
-> +      -  Q'\ :sub:`1[5:0]; B1[1:0]=pad`
-> +      -  pad
-> +      -  pad
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
-> b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst new file mode 100644
-> index 0000000..da8b26b
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
-> @@ -0,0 +1,55 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _V4L2-SDR-FMT-PCU18BE:
-> +
-> +******************************
-> +V4L2_SDR_FMT_PCU18BE ('PC18')
-> +******************************
-> +
-> +Planar complex unsigned 18-bit big endian IQ sample
-> +
-> +Description
-> +===========
-> +
-> +This format contains a sequence of complex number samples. Each complex
-> +number consist of two parts called In-phase and Quadrature (IQ). Both I
-> +and Q are represented as a 18 bit unsigned big endian number stored in
-> +32 bit space. The remaining unused bits within the 32 bit space will be
-> +padded with 0. I value starts first and Q value starts at an offset
-> +equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
-> +the 18 bits, bit 17:2 (16 bit) is data and bit 1:0 (2 bit) can be any
-> +value.
-> +
-> +**Byte Order.**
-> +Each cell is one byte.
-> +
-> +.. flat-table::
-> +    :header-rows:  1
-> +    :stub-columns: 0
-> +
-> +    * -  Offset:
-> +      -  Byte B0
-> +      -  Byte B1
-> +      -  Byte B2
-> +      -  Byte B3
-> +    * -  start + 0:
-> +      -  I'\ :sub:`0[17:10]`
-> +      -  I'\ :sub:`0[9:2]`
-> +      -  I'\ :sub:`0[1:0]; B2[5:0]=pad`
-> +      -  pad
-> +    * -  start + 4:
-> +      -  I'\ :sub:`1[17:10]`
-> +      -  I'\ :sub:`1[9:2]`
-> +      -  I'\ :sub:`1[1:0]; B2[5:0]=pad`
-> +      -  pad
-> +    * -  ...
-> +    * - start + offset:
-> +      -  Q'\ :sub:`0[17:10]`
-> +      -  Q'\ :sub:`0[9:2]`
-> +      -  Q'\ :sub:`0[1:0]; B2[5:0]=pad`
-> +      -  pad
-> +    * - start + offset + 4:
-> +      -  Q'\ :sub:`1[17:10]`
-> +      -  Q'\ :sub:`1[9:2]`
-> +      -  Q'\ :sub:`1[1:0]; B2[5:0]=pad`
-> +      -  pad
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
-> b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst new file mode 100644
-> index 0000000..5499eed
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
-> @@ -0,0 +1,54 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +.. _V4L2-SDR-FMT-PCU20BE:
-> +
-> +******************************
-> +V4L2_SDR_FMT_PCU20BE ('PC20')
-> +******************************
-> +
-> +Planar complex unsigned 20-bit big endian IQ sample
-> +
-> +Description
-> +===========
-> +
-> +This format contains a sequence of complex number samples. Each complex
-> +number consist of two parts called In-phase and Quadrature (IQ). Both I
-> +and Q are represented as a 20 bit unsigned big endian number stored in
-> +32 bit space. The remaining unused bits within the 32 bit space will be
-> +padded with 0. I value starts first and Q value starts at an offset
-> +equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
-> +the 20 bits, bit 19:2 (18 bit) is data and bit 1:0 (2 bit) can be any
-> +value.
-> +
-> +**Byte Order.**
-> +Each cell is one byte.
-> +
-> +.. flat-table::
-> +    :header-rows:  1
-> +    :stub-columns: 0
-> +
-> +    * -  Offset:
-> +      -  Byte B0
-> +      -  Byte B1
-> +      -  Byte B2
-> +      -  Byte B3
-> +    * -  start + 0:
-> +      -  I'\ :sub:`0[19:12]`
-> +      -  I'\ :sub:`0[11:4]`
-> +      -  I'\ :sub:`0[3:0]; B2[3:0]=pad`
-> +      -  pad
-> +    * -  start + 4:
-> +      -  I'\ :sub:`1[19:12]`
-> +      -  I'\ :sub:`1[11:4]`
-> +      -  I'\ :sub:`1[3:0]; B2[3:0]=pad`
-> +      -  pad
-> +    * -  ...
-> +    * - start + offset:
-> +      -  Q'\ :sub:`0[19:12]`
-> +      -  Q'\ :sub:`0[11:4]`
-> +      -  Q'\ :sub:`0[3:0]; B2[3:0]=pad`
-> +      -  pad
-> +    * - start + offset + 4:
-> +      -  Q'\ :sub:`1[19:12]`
-> +      -  Q'\ :sub:`1[11:4]`
-> +      -  Q'\ :sub:`1[3:0]; B2[3:0]=pad`
-> +      -  pad
-> diff --git a/Documentation/media/uapi/v4l/sdr-formats.rst
-> b/Documentation/media/uapi/v4l/sdr-formats.rst index f863c08..2037f5b
-> 100644
-> --- a/Documentation/media/uapi/v4l/sdr-formats.rst
-> +++ b/Documentation/media/uapi/v4l/sdr-formats.rst
-> @@ -17,3 +17,6 @@ These formats are used for :ref:`SDR <sdr>` interface
-> only. pixfmt-sdr-cs08
->      pixfmt-sdr-cs14le
->      pixfmt-sdr-ru12le
-> +    pixfmt-sdr-pcu16be
-> +    pixfmt-sdr-pcu18be
-> +    pixfmt-sdr-pcu20be
-
--- 
-Regards,
-
-Laurent Pinchart
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> 
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
+> 
