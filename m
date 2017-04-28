@@ -1,187 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-dm3nam03on0069.outbound.protection.outlook.com ([104.47.41.69]:17566
-        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1434645AbdDZI7k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Apr 2017 04:59:40 -0400
-Subject: Re: [PATCH v2 01/21] scatterlist: Introduce sg_map helper functions
-To: Logan Gunthorpe <logang@deltatee.com>,
-        <linux-kernel@vger.kernel.org>, <linux-crypto@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
-        <intel-gfx@lists.freedesktop.org>, <linux-raid@vger.kernel.org>,
-        <linux-mmc@vger.kernel.org>, <linux-nvdimm@lists.01.org>,
-        <linux-scsi@vger.kernel.org>, <open-iscsi@googlegroups.com>,
-        <megaraidlinux.pdl@broadcom.com>, <sparmaintainer@unisys.com>,
-        <devel@driverdev.osuosl.org>, <target-devel@vger.kernel.org>,
-        <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <dm-devel@redhat.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
- <1493144468-22493-2-git-send-email-logang@deltatee.com>
-CC: Jens Axboe <axboe@kernel.dk>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Christoph Hellwig <hch@lst.de>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
-Message-ID: <5dfc5bf5-482c-b5bb-029c-7cee80925f37@amd.com>
-Date: Wed, 26 Apr 2017 10:59:17 +0200
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53210 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1425880AbdD1NKo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 09:10:44 -0400
+Date: Fri, 28 Apr 2017 16:10:10 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 2/2] media: entity: Add media_entity_pad_from_dt_regs()
+ function
+Message-ID: <20170428131010.GJ7456@valkosipuli.retiisi.org.uk>
+References: <20170427223323.13861-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170427223323.13861-3-niklas.soderlund+renesas@ragnatech.se>
+ <20170428104339.GH7456@valkosipuli.retiisi.org.uk>
+ <20170428120414.GE1532@bigcity.dyn.berto.se>
 MIME-Version: 1.0
-In-Reply-To: <1493144468-22493-2-git-send-email-logang@deltatee.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170428120414.GE1532@bigcity.dyn.berto.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 25.04.2017 um 20:20 schrieb Logan Gunthorpe:
-> This patch introduces functions which kmap the pages inside an sgl.
-> These functions replace a common pattern of kmap(sg_page(sg)) that is
-> used in more than 50 places within the kernel.
->
-> The motivation for this work is to eventually safely support sgls that
-> contain io memory. In order for that to work, any access to the contents
-> of an iomem SGL will need to be done with iomemcpy or hit some warning.
-> (The exact details of how this will work have yet to be worked out.)
-> Having all the kmaps in one place is just a first step in that
-> direction. Additionally, seeing this helps cut down the users of sg_page,
-> it should make any effort to go to struct-page-less DMAs a little
-> easier (should that idea ever swing back into favour again).
->
-> A flags option is added to select between a regular or atomic mapping so
-> these functions can replace kmap(sg_page or kmap_atomic(sg_page.
-> Future work may expand this to have flags for using page_address or
-> vmap. We include a flag to require the function not to fail to
-> support legacy code that has no easy error path. Much further in the
-> future, there may be a flag to allocate memory and copy the data
-> from/to iomem.
->
-> We also add the semantic that sg_map can fail to create a mapping,
-> despite the fact that the current code this is replacing is assumed to
-> never fail and the current version of these functions cannot fail. This
-> is to support iomem which may either have to fail to create the mapping or
-> allocate memory as a bounce buffer which itself can fail.
->
-> Also, in terms of cleanup, a few of the existing kmap(sg_page) users
-> play things a bit loose in terms of whether they apply sg->offset
-> so using these helper functions should help avoid such issues.
->
-> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-> ---
+Hej, Niklas!
 
-Good to know that somebody is working on this. Those problems troubled 
-us as well.
+On Fri, Apr 28, 2017 at 02:04:15PM +0200, Niklas Söderlund wrote:
+> Hej,
+> 
+> Thanks for your feedback.
+> 
+> On 2017-04-28 13:43:39 +0300, Sakari Ailus wrote:
+> > Hejssan!!!
+> > 
+> > On Fri, Apr 28, 2017 at 12:33:23AM +0200, Niklas Söderlund wrote:
+> > > This is a wrapper around the media entity pad_from_dt_regs operation.
+> > > 
+> > > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > > ---
+> > >  drivers/media/media-entity.c | 21 +++++++++++++++++++++
+> > >  include/media/media-entity.h | 22 ++++++++++++++++++++++
+> > >  2 files changed, 43 insertions(+)
+> > > 
+> > > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > > index 5640ca29da8c9bbc..6ef76186d552724e 100644
+> > > --- a/drivers/media/media-entity.c
+> > > +++ b/drivers/media/media-entity.c
+> > > @@ -386,6 +386,27 @@ struct media_entity *media_graph_walk_next(struct media_graph *graph)
+> > >  }
+> > >  EXPORT_SYMBOL_GPL(media_graph_walk_next);
+> > >  
+> > > +int media_entity_pad_from_dt_regs(struct media_entity *entity,
+> > > +				  int port_reg, int reg, unsigned int *pad)
+> > > +{
+> > > +	int ret;
+> > > +
+> > > +	if (!entity->ops || !entity->ops->pad_from_dt_regs) {
+> > > +		*pad = port_reg;
+> > 
+> > I don't think we should bind the port number in firmware to a pad in V4L2
+> > sub-device interface.
+> > 
+> > How about looking for a source pad in the entity instead? That's what some
+> > drivers do.
+> 
+> Sure that sounds like a nice approach, will do this for next version.
+> 
+> Would it make sens to extend this operation with a 'direction' parameter 
+> which could take either MEDIA_PAD_FL_SOURCE or MEDIA_PAD_FL_SINK and if 
+> !entity->ops->pad_from_dt_regs find the first pad that matches this 
+> 'direction' and if it do exist add a check to make sure the pad that is 
+> return matches that 'direction'?
 
-Patch is Acked-by: Christian KÃ¶nig <christian.koenig@amd.com>.
+If you had a transmitter in the graph it'd obviously be needed. I'm not sure
+if we have any now. I'm fine with direction though, it's logical to have it.
 
-Regards,
-Christian.
+> 
+> > 
+> > > +		return 0;
+> > > +	}
+> > > +
+> > > +	ret = entity->ops->pad_from_dt_regs(port_reg, reg, pad);
+> > > +	if (ret)
+> > > +		return ret;
+> > > +
+> > > +	if (*pad >= entity->num_pads)
+> > > +		return -EINVAL;
+> > > +
+> > > +	return 0;
+> > > +}
+> > > +EXPORT_SYMBOL_GPL(media_entity_pad_from_dt_regs);
+> > > +
+> > >  /* -----------------------------------------------------------------------------
+> > >   * Pipeline management
+> > >   */
+> > > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > > index 47efaf4d825e671b..c60a3713d0a21baf 100644
+> > > --- a/include/media/media-entity.h
+> > > +++ b/include/media/media-entity.h
+> > > @@ -820,6 +820,28 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
+> > >  struct media_entity *media_entity_get(struct media_entity *entity);
+> > >  
+> > >  /**
+> > > + * media_entity_pad_from_dt_regs - Get pad number from DT regs
+> > > + *
+> > > + * @entity: The entity
+> > > + * @port_reg: DT port
+> > > + * @reg: DT reg
+> > > + * @pad: Pointer to pad which will be filled in
+> > > + *
+> > > + * This function can be used to resolve the media pad number from
+> > > + * DT port and reg numbers. This is useful for devices which
+> > > + * uses more complex mappings of media pads then that the
+> > > + * DT port number is equivalent to the media pad number.
+> > > + *
+> > > + * If the entity do not implement the pad_from_dt_regs() operation
+> > > + * this function assumes DT port is equivalent to media pad number
+> > > + * and sets @pad to @port_reg.
+> > > + *
+> > > + * Return: 0 on success else -EINVAL.
+> > 
+> > -EINVAL suggests the user provided bad parameters, but this isn't the case
+> > here. How about e.g. -ENXIO?
+> 
+> 
+> I reasoned that if a port_reg and reg supplied did result in a  pad 
+> match the user would have given pad parameters. But sure there might be 
+> cases where that assumtion might not be true. So I see no problem of 
+> changing this to -ENXIO in next version.
 
->   include/linux/scatterlist.h | 85 +++++++++++++++++++++++++++++++++++++++++++++
->   1 file changed, 85 insertions(+)
->
-> diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-> index cb3c8fe..fad170b 100644
-> --- a/include/linux/scatterlist.h
-> +++ b/include/linux/scatterlist.h
-> @@ -5,6 +5,7 @@
->   #include <linux/types.h>
->   #include <linux/bug.h>
->   #include <linux/mm.h>
-> +#include <linux/highmem.h>
->   #include <asm/io.h>
->   
->   struct scatterlist {
-> @@ -126,6 +127,90 @@ static inline struct page *sg_page(struct scatterlist *sg)
->   	return (struct page *)((sg)->page_link & ~0x3);
->   }
->   
-> +#define SG_KMAP		     (1 << 0)	/* create a mapping with kmap */
-> +#define SG_KMAP_ATOMIC	     (1 << 1)	/* create a mapping with kmap_atomic */
-> +#define SG_MAP_MUST_NOT_FAIL (1 << 2)	/* indicate sg_map should not fail */
-> +
-> +/**
-> + * sg_map - kmap a page inside an sgl
-> + * @sg:		SG entry
-> + * @offset:	Offset into entry
-> + * @flags:	Flags for creating the mapping
-> + *
-> + * Description:
-> + *   Use this function to map a page in the scatterlist at the specified
-> + *   offset. sg->offset is already added for you. Note: the semantics of
-> + *   this function are that it may fail. Thus, its output should be checked
-> + *   with IS_ERR and PTR_ERR. Otherwise, a pointer to the specified offset
-> + *   in the mapped page is returned.
-> + *
-> + *   Flags can be any of:
-> + *	* SG_KMAP		- Use kmap to create the mapping
-> + *	* SG_KMAP_ATOMIC	- Use kmap_atomic to map the page atommically.
-> + *				  Thus, the rules of that function apply: the
-> + *				  cpu may not sleep until it is unmaped.
-> + *	* SG_MAP_MUST_NOT_FAIL	- Indicate that sg_map must not fail.
-> + *				  If it does, it will issue a BUG_ON instead.
-> + *				  This is intended for legacy code only, it
-> + *				  is not to be used in new code.
-> + *
-> + *   Also, consider carefully whether this function is appropriate. It is
-> + *   largely not recommended for new code and if the sgl came from another
-> + *   subsystem and you don't know what kind of memory might be in the list
-> + *   then you definitely should not call it. Non-mappable memory may be in
-> + *   the sgl and thus this function may fail unexpectedly. Consider using
-> + *   sg_copy_to_buffer instead.
-> + **/
-> +static inline void *sg_map(struct scatterlist *sg, size_t offset, int flags)
-> +{
-> +	struct page *pg;
-> +	unsigned int pg_off;
-> +	void *ret;
-> +
-> +	offset += sg->offset;
-> +	pg = nth_page(sg_page(sg), offset >> PAGE_SHIFT);
-> +	pg_off = offset_in_page(offset);
-> +
-> +	if (flags & SG_KMAP_ATOMIC)
-> +		ret = kmap_atomic(pg) + pg_off;
-> +	else if (flags & SG_KMAP)
-> +		ret = kmap(pg) + pg_off;
-> +	else
-> +		ret = ERR_PTR(-EINVAL);
-> +
-> +	/*
-> +	 * In theory, this can't happen yet. Once we start adding
-> +	 * unmapable memory, it also shouldn't happen unless developers
-> +	 * start putting unmappable struct pages in sgls and passing
-> +	 * it to code that doesn't support it.
-> +	 */
-> +	BUG_ON(flags & SG_MAP_MUST_NOT_FAIL && IS_ERR(ret));
-> +
-> +	return ret;
-> +}
-> +
-> +/**
-> + * sg_unmap - unmap a page that was mapped with sg_map_offset
-> + * @sg:		SG entry
-> + * @addr:	address returned by sg_map_offset
-> + * @offset:	Offset into entry (same as specified for sg_map)
-> + * @flags:	Flags, which are the same specified for sg_map
-> + *
-> + * Description:
-> + *   Unmap the page that was mapped with sg_map_offset
-> + **/
-> +static inline void sg_unmap(struct scatterlist *sg, void *addr,
-> +			    size_t offset, int flags)
-> +{
-> +	struct page *pg = nth_page(sg_page(sg), offset >> PAGE_SHIFT);
-> +	unsigned int pg_off = offset_in_page(offset);
-> +
-> +	if (flags & SG_KMAP_ATOMIC)
-> +		kunmap_atomic(addr - sg->offset - pg_off);
-> +	else if (flags & SG_KMAP)
-> +		kunmap(pg);
-> +}
-> +
->   /**
->    * sg_set_buf - Set sg entry to point at given data
->    * @sg:		 SG entry
+The only case -EINVAL is returned is when the driver specific function
+returns a non-existent pad number. That's a driver bug, isn't it? We don't
+have a specific error code for that though. :-)
+
+> 
+> > 
+> > > + */
+> > > +int media_entity_pad_from_dt_regs(struct media_entity *entity,
+> > > +				  int port_reg, int reg, unsigned int *pad);
+> > > +
+> > > +/**
+> > >   * media_graph_walk_init - Allocate resources used by graph walk.
+> > >   *
+> > >   * @graph: Media graph structure that will be used to walk the graph
+> > 
+
+-- 
+Terveisin,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
