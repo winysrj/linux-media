@@ -1,97 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40003
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755290AbdDENX3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Apr 2017 09:23:29 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org
-Subject: [PATCH v2 00/21] Convert USB documentation to ReST format
-Date: Wed,  5 Apr 2017 10:22:54 -0300
-Message-Id: <cover.1491398120.git.mchehab@s-opensource.com>
+Received: from smtp08.smtpout.orange.fr ([80.12.242.130]:44237 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1162860AbdD1Exh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 00:53:37 -0400
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To: pawel@osciak.com, m.szyprowski@samsung.com,
+        kyungmin.park@samsung.com, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        stable@vger.kernel.org
+Subject: [PATCH v2] [media] vb2: Fix an off by one error in 'vb2_plane_vaddr'
+Date: Fri, 28 Apr 2017 06:51:40 +0200
+Message-Id: <20170428045140.20870-1-christophe.jaillet@wanadoo.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, there are several USB core documents that are at either
-written in plain text or in DocBook format. Convert them to ReST
-and add to the driver-api book.
+We should ensure that 'plane_no' is '< vb->num_planes' as done in
+'vb2_plane_cookie' just a few lines below.
 
-Mauro Carvalho Chehab (21):
-  tmplcvt: make the tool more robust
-  driver-api/basics.rst: add device table header
-  docs-rst: convert usb docbooks to ReST
-  usb.rst: Enrich its ReST representation
-  gadget.rst: Enrich its ReST representation and add kernel-doc tag
-  writing_usb_driver.rst: Enrich its ReST representation
-  writing_musb_glue_layer.rst: Enrich its ReST representation
-  usb/anchors.txt: convert to ReST and add to driver-api book
-  usb/bulk-streams.txt: convert to ReST and add to driver-api book
-  usb/callbacks.txt: convert to ReST and add to driver-api book
-  usb/power-management.txt: convert to ReST and add to driver-api book
-  usb/dma.txt: convert to ReST and add to driver-api book
-  error-codes.rst: convert to ReST and add to driver-api book
-  usb/hotplug.txt: convert to ReST and add to driver-api book
-  usb/persist.txt: convert to ReST and add to driver-api book
-  usb/URB.txt: convert to ReST and update it
-  usb.rst: get rid of some Sphinx errors
-  usb: get rid of some ReST doc build errors
-  usb: composite.h: fix two warnings when building docs
-  usb: gadget.h: be consistent at kernel doc macros
-  docs-rst: fix usb cross-references
+Cc: stable@vger.kernel.org
+Fixes: e23ccc0ad925 ("[media] v4l: add videobuf2 Video for Linux 2 driver framework")
 
- Documentation/ABI/stable/sysfs-bus-usb             |   2 +-
- Documentation/DocBook/Makefile                     |   7 +-
- Documentation/DocBook/gadget.tmpl                  | 793 -------------------
- Documentation/DocBook/writing_musb_glue_layer.tmpl | 873 ---------------------
- Documentation/DocBook/writing_usb_driver.tmpl      | 412 ----------
- Documentation/driver-api/basics.rst                |   6 +
- Documentation/driver-api/index.rst                 |   2 +-
- .../{usb/URB.txt => driver-api/usb/URB.rst}        | 223 +++---
- .../anchors.txt => driver-api/usb/anchors.rst}     |  36 +-
- .../usb/bulk-streams.rst}                          |  13 +-
- .../callbacks.txt => driver-api/usb/callbacks.rst} |  65 +-
- .../{usb/dma.txt => driver-api/usb/dma.rst}        |  51 +-
- Documentation/driver-api/usb/error-codes.rst       | 207 +++++
- Documentation/driver-api/usb/gadget.rst            | 510 ++++++++++++
- .../hotplug.txt => driver-api/usb/hotplug.rst}     |  66 +-
- Documentation/driver-api/usb/index.rst             |  26 +
- .../persist.txt => driver-api/usb/persist.rst}     |  22 +-
- .../usb/power-management.rst}                      | 404 +++++-----
- Documentation/driver-api/{ => usb}/usb.rst         | 222 +++---
- .../driver-api/usb/writing_musb_glue_layer.rst     | 723 +++++++++++++++++
- .../driver-api/usb/writing_usb_driver.rst          | 326 ++++++++
- Documentation/power/swsusp.txt                     |   2 +-
- Documentation/sphinx/tmplcvt                       |  13 +-
- Documentation/usb/error-codes.txt                  | 175 -----
- drivers/staging/most/hdm-usb/hdm_usb.c             |   2 +-
- drivers/usb/core/Kconfig                           |   2 +-
- drivers/usb/core/message.c                         |   1 +
- include/linux/usb/composite.h                      |   6 +-
- include/linux/usb/gadget.h                         |   2 +-
- 29 files changed, 2417 insertions(+), 2775 deletions(-)
- delete mode 100644 Documentation/DocBook/gadget.tmpl
- delete mode 100644 Documentation/DocBook/writing_musb_glue_layer.tmpl
- delete mode 100644 Documentation/DocBook/writing_usb_driver.tmpl
- rename Documentation/{usb/URB.txt => driver-api/usb/URB.rst} (50%)
- rename Documentation/{usb/anchors.txt => driver-api/usb/anchors.rst} (75%)
- rename Documentation/{usb/bulk-streams.txt => driver-api/usb/bulk-streams.rst} (94%)
- rename Documentation/{usb/callbacks.txt => driver-api/usb/callbacks.rst} (76%)
- rename Documentation/{usb/dma.txt => driver-api/usb/dma.rst} (79%)
- create mode 100644 Documentation/driver-api/usb/error-codes.rst
- create mode 100644 Documentation/driver-api/usb/gadget.rst
- rename Documentation/{usb/hotplug.txt => driver-api/usb/hotplug.rst} (76%)
- create mode 100644 Documentation/driver-api/usb/index.rst
- rename Documentation/{usb/persist.txt => driver-api/usb/persist.rst} (94%)
- rename Documentation/{usb/power-management.txt => driver-api/usb/power-management.rst} (69%)
- rename Documentation/driver-api/{ => usb}/usb.rst (85%)
- create mode 100644 Documentation/driver-api/usb/writing_musb_glue_layer.rst
- create mode 100644 Documentation/driver-api/usb/writing_usb_driver.rst
- delete mode 100644 Documentation/usb/error-codes.txt
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+---
+v2: add CC and Fixes tags
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 94afbbf92807..c0175ea7e7ad 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -868,7 +868,7 @@ EXPORT_SYMBOL_GPL(vb2_core_create_bufs);
+ 
+ void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no)
+ {
+-	if (plane_no > vb->num_planes || !vb->planes[plane_no].mem_priv)
++	if (plane_no >= vb->num_planes || !vb->planes[plane_no].mem_priv)
+ 		return NULL;
+ 
+ 	return call_ptr_memop(vb, vaddr, vb->planes[plane_no].mem_priv);
 -- 
-2.9.3
+2.11.0
