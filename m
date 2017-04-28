@@ -1,149 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35465 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37061 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756118AbdDGJsQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Apr 2017 05:48:16 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 3/8] v4l: async: Add fwnode match support
-Date: Fri, 07 Apr 2017 12:49:02 +0300
-Message-ID: <3722368.bfpMvP62Mi@avalon>
-In-Reply-To: <1491484330-12040-4-git-send-email-sakari.ailus@linux.intel.com>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com> <1491484330-12040-4-git-send-email-sakari.ailus@linux.intel.com>
+        with ESMTP id S1425404AbdD1JRV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 05:17:21 -0400
+Subject: Re: [PATCH v4 06/27] rcar-vin: move max width and height information
+ to chip information
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170427224203.14611-7-niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <cd08bb64-3c3a-9b2a-56c7-da4b6612ff94@ideasonboard.com>
+Date: Fri, 28 Apr 2017 10:17:17 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20170427224203.14611-7-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Niklas,
 
-Thank you for the patch.
+Another easy one.
 
-On Thursday 06 Apr 2017 16:12:05 Sakari Ailus wrote:
-> Add fwnode matching to complement OF node matching. And fwnode may also be
-> an OF node.
+On 27/04/17 23:41, Niklas Söderlund wrote:
+> On Gen3 the max supported width and height will be different from Gen2.
+> Move the limits to the struct rvin_info to prepare for Gen3 support.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
 > ---
->  drivers/media/v4l2-core/v4l2-async.c | 12 ++++++++++++
->  include/media/v4l2-async.h           |  5 +++++
->  include/media/v4l2-subdev.h          |  3 +++
->  3 files changed, 20 insertions(+)
+>  drivers/media/platform/rcar-vin/rcar-core.c | 6 ++++++
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 6 ++----
+>  drivers/media/platform/rcar-vin/rcar-vin.h  | 6 ++++++
+>  3 files changed, 14 insertions(+), 4 deletions(-)
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> b/drivers/media/v4l2-core/v4l2-async.c index 96cc733..384ad5e 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -46,6 +46,11 @@ static bool match_of(struct v4l2_subdev *sd, struct
-> v4l2_async_subdev *asd) of_node_full_name(asd->match.of.node));
->  }
-> 
-> +static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev
-> *asd)
-> +{
-> +	return sd->fwnode == asd->match.fwnode.fwn;
-> +}
-> +
->  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev
-> *asd) {
->  	if (!asd->match.custom.match)
-> @@ -80,6 +85,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct
-> v4l2_async_notifier * case V4L2_ASYNC_MATCH_OF:
->  			match = match_of;
->  			break;
-> +		case V4L2_ASYNC_MATCH_FWNODE:
-> +			match = match_fwnode;
-> +			break;
->  		default:
->  			/* Cannot happen, unless someone breaks us */
->  			WARN_ON(true);
-> @@ -158,6 +166,7 @@ int v4l2_async_notifier_register(struct v4l2_device
-> *v4l2_dev, case V4L2_ASYNC_MATCH_DEVNAME:
->  		case V4L2_ASYNC_MATCH_I2C:
->  		case V4L2_ASYNC_MATCH_OF:
-> +		case V4L2_ASYNC_MATCH_FWNODE:
->  			break;
->  		default:
->  			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : 
-NULL,
-> @@ -282,6 +291,9 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  	 */
->  	if (!sd->of_node && sd->dev)
->  		sd->of_node = sd->dev->of_node;
-> +	if (!sd->fwnode && sd->dev)
-> +		sd->fwnode = sd->dev->of_node ?
-> +			&sd->dev->of_node->fwnode : sd->dev->fwnode;
-> 
->  	mutex_lock(&list_lock);
-> 
-> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> index 8e2a236..8f552d2 100644
-> --- a/include/media/v4l2-async.h
-> +++ b/include/media/v4l2-async.h
-> @@ -32,6 +32,7 @@ struct v4l2_async_notifier;
->   * @V4L2_ASYNC_MATCH_DEVNAME: Match will use the device name
->   * @V4L2_ASYNC_MATCH_I2C: Match will check for I2C adapter ID and address
->   * @V4L2_ASYNC_MATCH_OF: Match will use OF node
-> + * @V4L2_ASYNC_MATCH_FWNODE: Match will use firmware node
->   *
->   * This enum is used by the asyncrhronous sub-device logic to define the
->   * algorithm that will be used to match an asynchronous device.
-> @@ -41,6 +42,7 @@ enum v4l2_async_match_type {
->  	V4L2_ASYNC_MATCH_DEVNAME,
->  	V4L2_ASYNC_MATCH_I2C,
->  	V4L2_ASYNC_MATCH_OF,
-> +	V4L2_ASYNC_MATCH_FWNODE,
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index ec1eb723d401fda2..998617711f1ad045 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -257,14 +257,20 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+>  
+>  static const struct rvin_info rcar_info_h1 = {
+>  	.chip = RCAR_H1,
+> +	.max_width = 2048,
+> +	.max_height = 2048,
 >  };
-> 
+>  
+>  static const struct rvin_info rcar_info_m1 = {
+>  	.chip = RCAR_M1,
+> +	.max_width = 2048,
+> +	.max_height = 2048,
+>  };
+>  
+>  static const struct rvin_info rcar_info_gen2 = {
+>  	.chip = RCAR_GEN2,
+> +	.max_width = 2048,
+> +	.max_height = 2048,
+>  };
+>  
+>  static const struct of_device_id rvin_of_id_table[] = {
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> index 7deca15d22b4d6e3..1b364f359ff4b5ed 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -23,8 +23,6 @@
+>  #include "rcar-vin.h"
+>  
+>  #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
+> -#define RVIN_MAX_WIDTH		2048
+> -#define RVIN_MAX_HEIGHT		2048
+>  
+>  /* -----------------------------------------------------------------------------
+>   * Format Conversions
+> @@ -264,8 +262,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
+>  
+>  	/* Limit to VIN capabilities */
+> -	v4l_bound_align_image(&pix->width, 2, RVIN_MAX_WIDTH, walign,
+> -			      &pix->height, 4, RVIN_MAX_HEIGHT, 2, 0);
+> +	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
+> +			      &pix->height, 4, vin->info->max_height, 2, 0);
+>  
+>  	pix->bytesperline = max_t(u32, pix->bytesperline,
+>  				  rvin_format_bytesperline(pix));
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index c07b4a6893440a6a..32d9d130dd6e2e44 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -91,9 +91,15 @@ struct rvin_graph_entity {
 >  /**
-> @@ -58,6 +60,9 @@ struct v4l2_async_subdev {
->  			const struct device_node *node;
->  		} of;
->  		struct {
-> +			struct fwnode_handle *fwn;
-
-I'd name this "node". The rationale is that code should be as independent as 
-possible of whether we use device_node or fwnode_handle. Naming both variable 
-"node" helps in that regard, and is in my opinion easier to read. This applies 
-to the other patches in the series too.
-
-Apart from that,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> +		} fwnode;
-> +		struct {
->  			const char *name;
->  		} device_name;
->  		struct {
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 0ab1c5d..5f1669c 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -788,6 +788,8 @@ struct v4l2_subdev_platform_data {
->   * @devnode: subdev device node
->   * @dev: pointer to the physical device, if any
->   * @of_node: The device_node of the subdev, usually the same as
-> dev->of_node. + * @fwnode: The fwnode_handle of the subdev, usually the
-> same as
-> + *	    either dev->of_node->fwnode or dev->fwnode (whichever is non-
-NULL).
->   * @async_list: Links this subdev to a global subdev_list or
-> @notifier->done *	list.
->   * @asd: Pointer to respective &struct v4l2_async_subdev.
-> @@ -819,6 +821,7 @@ struct v4l2_subdev {
->  	struct video_device *devnode;
->  	struct device *dev;
->  	struct device_node *of_node;
-> +	struct fwnode_handle *fwnode;
->  	struct list_head async_list;
->  	struct v4l2_async_subdev *asd;
->  	struct v4l2_async_notifier *notifier;
-
--- 
-Regards,
-
-Laurent Pinchart
+>   * struct rvin_info- Information about the particular VIN implementation
+>   * @chip:		type of VIN chip
+> + *
+> + * max_width:		max input width the VIN supports
+> + * max_height:		max input height the VIN supports
+>   */
+>  struct rvin_info {
+>  	enum chip_id chip;
+> +
+> +	unsigned int max_width;
+> +	unsigned int max_height;
+>  };
+>  
+>  /**
+> 
