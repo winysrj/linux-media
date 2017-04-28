@@ -1,59 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35657 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1176422AbdDYIIT (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:21049 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1425861AbdD1Mww (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 04:08:19 -0400
-Date: Tue, 25 Apr 2017 10:08:15 +0200
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: support autofocus / autogain in libv4l2
-Message-ID: <20170425080815.GD30553@pali>
-References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
- <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170414232332.63850d7b@vento.lan>
- <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan>
- <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan>
- <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan>
- <20170425080538.GA30380@amd>
+        Fri, 28 Apr 2017 08:52:52 -0400
+Date: Fri, 28 Apr 2017 15:52:07 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sean Young <sean@mess.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        Kees Cook <keescook@chromium.org>,
+        Johan Hovold <johan@kernel.org>, linux-media@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH 1/2] [media] dib0700: fix locking in dib0700_i2c_xfer_new()
+Message-ID: <20170428125207.skjv7ak2nmwltxik@mwanda>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170425080538.GA30380@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 25 April 2017 10:05:38 Pavel Machek wrote:
-> > > It would be nice if more than one application could be accessing the
-> > > camera at the same time... (I.e. something graphical running preview
-> > > then using command line tool to grab a picture.) This one is
-> > > definitely not solveable inside a library...
-> > 
-> > Someone once suggested to have something like pulseaudio for V4L.
-> > For such usage, a server would be interesting. Yet, I would code it
-> > in a way that applications using libv4l will talk with such daemon
-> > in a transparent way.
-> 
-> Yes, we need something like pulseaudio for V4L. And yes, we should
-> make it transparent for applications using libv4l.
+This patch mostly adds unlocks to error paths.  But one additional small
+change is that I made the first "break;" a "goto unlock;" which means
+that now we return failure instead of success on that path.
 
-IIRC there is already some effort in writing such "video" server which
-would support accessing more application into webcam video, like
-pulseaudio server for accessing more applications to microphone input.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
--- 
-Pali Rohár
-pali.rohar@gmail.com
+diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+index 08acdd32e412..4dea79718827 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_core.c
++++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+@@ -215,13 +215,14 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
+ 						 USB_CTRL_GET_TIMEOUT);
+ 			if (result < 0) {
+ 				deb_info("i2c read error (status = %d)\n", result);
+-				break;
++				goto unlock;
+ 			}
+ 
+ 			if (msg[i].len > sizeof(st->buf)) {
+ 				deb_info("buffer too small to fit %d bytes\n",
+ 					 msg[i].len);
+-				return -EIO;
++				result = -EIO;
++				goto unlock;
+ 			}
+ 
+ 			memcpy(msg[i].buf, st->buf, msg[i].len);
+@@ -233,8 +234,8 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
+ 			/* Write request */
+ 			if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+ 				err("could not acquire lock");
+-				mutex_unlock(&d->i2c_mutex);
+-				return -EINTR;
++				result = -EINTR;
++				goto unlock;
+ 			}
+ 			st->buf[0] = REQUEST_NEW_I2C_WRITE;
+ 			st->buf[1] = msg[i].addr << 1;
+@@ -247,7 +248,9 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
+ 			if (msg[i].len > sizeof(st->buf) - 4) {
+ 				deb_info("i2c message to big: %d\n",
+ 					 msg[i].len);
+-				return -EIO;
++				mutex_unlock(&d->usb_mutex);
++				result = -EIO;
++				goto unlock;
+ 			}
+ 
+ 			/* The Actual i2c payload */
+@@ -269,8 +272,11 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
+ 			}
+ 		}
+ 	}
++	result = i;
++
++unlock:
+ 	mutex_unlock(&d->i2c_mutex);
+-	return i;
++	return result;
+ }
+ 
+ /*
