@@ -1,85 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f169.google.com ([209.85.128.169]:35815 "EHLO
-        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752962AbdDCOms (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 10:42:48 -0400
-Received: by mail-wr0-f169.google.com with SMTP id k6so167322298wre.2
-        for <linux-media@vger.kernel.org>; Mon, 03 Apr 2017 07:42:48 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
-        mchehab@kernel.org
-Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
-        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com
-Subject: [PATCH v6 2/6] media: uapi: Add RGB and YUV bus formats for Synopsys HDMI TX Controller
-Date: Mon,  3 Apr 2017 16:42:34 +0200
-Message-Id: <1491230558-10804-3-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1491230558-10804-1-git-send-email-narmstrong@baylibre.com>
-References: <1491230558-10804-1-git-send-email-narmstrong@baylibre.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36444
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1424931AbdD1L0H (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 07:26:07 -0400
+Date: Fri, 28 Apr 2017 08:26:00 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Niklas =?UTF-8?B?U8O2ZGVybHVuZA==?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 0/2] media: entity: add operation to help map DT node to
+ media pad
+Message-ID: <20170428082600.0193f26f@vento.lan>
+In-Reply-To: <20170427223323.13861-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170427223323.13861-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to describe the RGB and YUV bus formats used to feed the
-Synopsys DesignWare HDMI TX Controller, add missing formats to the
-list of Bus Formats.
+Hi Niklas,
 
-Documentation for these formats is added in a separate patch.
+Em Fri, 28 Apr 2017 00:33:21 +0200
+Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se> escreveu:
 
-Reviewed-by: Archit Taneja <architt@codeaurora.org>
-Reviewed-by: Jose Abreu <joabreu@synopsys.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
----
- include/uapi/linux/media-bus-format.h | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+> Hi,
+> 
+> This small series add a new entity operation which will aid capture 
+> drivers to map a port/endpoint in DT to a media graph pad. I looked 
+> around and in my experience most drivers assume the DT port number is 
+> the same as the media pad number.
+> 
+> This might be true for most devices but there are cases where this 
+> mapping do not hold true. This series is implemented support to the 
+> ongoing ADV748x work by Kieran Bingham, [1]. In his work he have a 
+> driver which registers more then one subdevice. So when a driver finds 
+> this subdevice it must be able to ask the subdevice itself which pad 
+> number correspond to the DT endpoint the driver used to bind subdevice 
+> in the first place.
+> 
+> I have updated my R-Car CSI-2 patch series to use this new function to 
+> ask it's subdevice to resolve the media pad.
 
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 2168759..ef6fb30 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -33,7 +33,7 @@
- 
- #define MEDIA_BUS_FMT_FIXED			0x0001
- 
--/* RGB - next is	0x1018 */
-+/* RGB - next is	0x101b */
- #define MEDIA_BUS_FMT_RGB444_1X12		0x1016
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
-@@ -57,8 +57,11 @@
- #define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
- #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
- #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
-+#define MEDIA_BUS_FMT_RGB101010_1X30		0x1018
-+#define MEDIA_BUS_FMT_RGB121212_1X36		0x1019
-+#define MEDIA_BUS_FMT_RGB161616_1X48		0x101a
- 
--/* YUV (including grey) - next is	0x2026 */
-+/* YUV (including grey) - next is	0x202c */
- #define MEDIA_BUS_FMT_Y8_1X8			0x2001
- #define MEDIA_BUS_FMT_UV8_1X8			0x2015
- #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
-@@ -90,12 +93,18 @@
- #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
- #define MEDIA_BUS_FMT_VUY8_1X24			0x2024
- #define MEDIA_BUS_FMT_YUV8_1X24			0x2025
-+#define MEDIA_BUS_FMT_UYYVYY8_0_5X24		0x2026
- #define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
- #define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
- #define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
- #define MEDIA_BUS_FMT_YVYU12_1X24		0x2023
- #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
-+#define MEDIA_BUS_FMT_UYYVYY10_0_5X30		0x2027
- #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
-+#define MEDIA_BUS_FMT_UYYVYY12_0_5X36		0x2028
-+#define MEDIA_BUS_FMT_YUV12_1X36		0x2029
-+#define MEDIA_BUS_FMT_YUV16_1X48		0x202a
-+#define MEDIA_BUS_FMT_UYYVYY16_0_5X48		0x202b
- 
- /* Bayer - next is	0x3021 */
- #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
--- 
-1.9.1
+The problem of finding a PAD is not specific for DT-based devices.
+So, what we need is a generic way to find a pad.
+
+The non-DT based drivers usually don't implement subdev API. So, they
+need to build the pipelines themselves. On such devices, there are
+hundreds of different combinations of devices, and the main driver
+needs to seek the hardware connected into it. Based on such
+runtime knowledge, setup the pipelines.
+
+One such example is em28xx with can use a wide range of different 
+tuners, analog TV decoders and digital TV frontends.
+
+The I2C devices like tuners and decoders have pads with different
+signals:
+	- RF 
+	- digital video (encoded with ITU-R BT.656 or similar)
+	- audio IF signal
+	- chroma IF signal
+	- baseband signal
+	- luminance IF signal
+	- digital audio (using I2S)
+	- composite video
+	- ...
+
+Right now, this is "solved" by using enums at include/media/v4l2-mc.h,
+like this one:
+
+enum tuner_pad_index {
+	TUNER_PAD_RF_INPUT,
+	TUNER_PAD_OUTPUT,
+	TUNER_PAD_AUD_OUT,
+	TUNER_NUM_PADS
+};
+
+That's not optimal, as even tuners that don't provide, for example,
+an audio output pad need to have an unconnected TUNER_PAD_AUD_OUT
+pad [1].
+
+[1] With the current model, we're using TUNER_PAD_AUD_OUT for both
+IF and digital audio - as currently - drivers don't need to distinguish
+and we didn't want to have an excessive number of unconnected PADs.
+
+So, what we really need is a way to represent a set of properties
+associated with pads, and a function that would seek for a PAD that
+matches a property set.
+
+There is a proposal from Sakari to have a properties API that would
+allow such kind of association (among others) and would even let
+export such properties to userspace, but he never had time to send
+us patches adding such functionality.
+
+- 
+
+IMHO, what we should do, instead of the approach you took, would be
+to create a list of properties associated with each PAD (or, actually,
+to any graph object, as we may want later to have properties also for
+entities, interfaces and links). Something like:
+
+enum media_property_type {
+	MEDIA_PROP_PAD_DT_PORT_REG,	// not sure if this is the best name
+	MEDIA_PROP_PAD_DT_REG,	// not sure if this is the best name
+	MEDIA_PROP_PAD_SIGNAL_TYPE,	// that's for the above example of identifying a pad based on the signal it carries: I2S, RF, IF, ...
+	...
+};
+
+struct media_properties {
+	enum media_property_type type;
+	int value;
+
+	struct list_head *list;
+};
+
+struct media_graph {
+	struct {
+		struct media_entity *entity;
+		struct list_head *link;
+	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
+
+	struct media_entity_enum ent_enum;
+	int top;
+
+	struct list_head *props; /* head for struct media_properties */
+};
+
+and a generic media_find_property() function that would allow a
+driver to seek for an specific set of properties, e. g.:
+
+int find_find_property(struct media_properties *props, struct media_graph *gobj);
+
+This way, if someone would need to seek for an specific set of
+properties (like on your DT case), he could use a helper function like
+(untested):
+
+find_dt_reg(int _port_reg, int _reg, struct media_graph *gobj)
+{
+	struct media_properties port_reg, reg;
+
+	port_reg.type =	MEDIA_PROP_DT_PORT_REG;
+	port_reg.value = _port_reg;
+
+	reg.type = MEDIA_PROP_DT_REG;
+	reg.value = _reg;
+
+	INIT_LIST_HEAD(&port_reg->list);
+	list_add_tail(&port->list, &reg);
+
+	find_find_property(&port_reg, gobj);
+}
+
+
+Thanks,
+Mauro
