@@ -1,50 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60554 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752470AbdDGW42 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Apr 2017 18:56:28 -0400
-Date: Sat, 8 Apr 2017 01:56:25 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 6/8] v4l: media/drv-intf/soc_mediabus.h: include
- dependent header file
-Message-ID: <20170407225624.GN4192@valkosipuli.retiisi.org.uk>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
- <1491484330-12040-7-git-send-email-sakari.ailus@linux.intel.com>
- <2155093.Y2052RbRLf@avalon>
+Received: from ale.deltatee.com ([207.54.116.67]:60722 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755333AbdD1QyL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Apr 2017 12:54:11 -0400
+To: Herbert Xu <herbert@gondor.apana.org.au>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+ <1493144468-22493-8-git-send-email-logang@deltatee.com>
+ <20170427035603.GA32212@gondor.apana.org.au>
+ <94123cbf-3287-f05e-7267-0bcf08ab0a8b@deltatee.com>
+ <20170428063039.GB6817@gondor.apana.org.au>
+Cc: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
+        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ross Zwisler <ross.zwisler@linux.intel.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Stephen Bates <sbates@raithlin.com>,
+        "David S. Miller" <davem@davemloft.net>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <5a08708b-c3b8-41fe-96de-607a109eacbd@deltatee.com>
+Date: Fri, 28 Apr 2017 10:53:45 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2155093.Y2052RbRLf@avalon>
+In-Reply-To: <20170428063039.GB6817@gondor.apana.org.au>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH v2 07/21] crypto: shash, caam: Make use of the new sg_map
+ helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
 
-On Fri, Apr 07, 2017 at 01:01:29PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> On Thursday 06 Apr 2017 16:12:08 Sakari Ailus wrote:
-> > media/drv-intf/soc_mediabus.h does depend on struct v4l2_mbus_config which
-> > is defined in media/v4l2-mediabus.h. Include it.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> Was this provided indirectly before, through v4l2-of.h perhaps ? If so, 
-> shouldn't this patch be moved before 5/8 ? Apart from that,
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-I tried compiling with and without this patch and see no difference. I could
-miss something but the more likely case is that the reason why I wrote this
-patch has ceased to exist. I'll drop it from the set, at least for now.
+On 28/04/17 12:30 AM, Herbert Xu wrote:
+> You are right.  Indeed the existing code looks buggy as they
+> don't take sg->offset into account when doing the kmap.  Could
+> you send me some patches that fix these problems first so that
+> they can be easily backported?
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Ok, I think the only buggy one in crypto is hifn_795x. Shash and caam
+both do have the sg->offset accounted for. I'll send a patch for the
+buggy one shortly.
+
+Logan
