@@ -1,97 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59492
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752852AbdDKNeP (ORCPT
+Received: from mail-wm0-f48.google.com ([74.125.82.48]:37728 "EHLO
+        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S638285AbdD1Qq2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Apr 2017 09:34:15 -0400
-Date: Tue, 11 Apr 2017 10:34:09 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: Re: [PATCHv4 04/15] v4l: vsp1: Add histogram support
-Message-ID: <20170411103409.18a4df98@vento.lan>
-In-Reply-To: <a95e3ae3-de87-5ce4-cc68-4cda449d2fe3@xs4all.nl>
-References: <20170410192651.18486-1-hverkuil@xs4all.nl>
-        <20170410192651.18486-5-hverkuil@xs4all.nl>
-        <20170411081728.4df93852@vento.lan>
-        <a95e3ae3-de87-5ce4-cc68-4cda449d2fe3@xs4all.nl>
+        Fri, 28 Apr 2017 12:46:28 -0400
+Received: by mail-wm0-f48.google.com with SMTP id m123so52102333wma.0
+        for <linux-media@vger.kernel.org>; Fri, 28 Apr 2017 09:46:28 -0700 (PDT)
+Subject: Re: em28xx module: misidentified card
+To: Giuseppe Toscano <giuseppe.toscano@unina.it>,
+        linux-media@vger.kernel.org
+References: <5b093b1a-6251-b35e-190c-431fb00eb771@unina.it>
+From: =?UTF-8?Q?Frank_Sch=c3=a4fer?= <fschaefer.oss@googlemail.com>
+Message-ID: <834a80ca-1dde-b3ca-dbee-eca1759f4668@googlemail.com>
+Date: Fri, 28 Apr 2017 18:46:34 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <5b093b1a-6251-b35e-190c-431fb00eb771@unina.it>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 11 Apr 2017 15:27:12 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> On 04/11/17 13:17, Mauro Carvalho Chehab wrote:
-> > Em Mon, 10 Apr 2017 21:26:40 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >   
-> >> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> >>
-> >> The histogram common code will be used to implement support for both the
-> >> HGO and HGT histogram computation engines.
-> >>
-> >> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> >> ---
-> >>  drivers/media/platform/Kconfig           |   1 +
-> >>  drivers/media/platform/vsp1/Makefile     |   1 +
-> >>  drivers/media/platform/vsp1/vsp1_histo.c | 646 +++++++++++++++++++++++++++++++
-> >>  drivers/media/platform/vsp1/vsp1_histo.h |  84 ++++
-> >>  4 files changed, 732 insertions(+)
-> >>  create mode 100644 drivers/media/platform/vsp1/vsp1_histo.c
-> >>  create mode 100644 drivers/media/platform/vsp1/vsp1_histo.h  
-> >   
-> >> diff --git a/drivers/media/platform/vsp1/vsp1_histo.c b/drivers/media/platform/vsp1/vsp1_histo.c
-> >> new file mode 100644
-> >> index 000000000000..afab77cf4fa5
-> >> --- /dev/null
-> >> +++ b/drivers/media/platform/vsp1/vsp1_histo.c  
-> > 
-> > ...
-> >   
-> >> +	crop = vsp1_entity_get_pad_selection(&histo->entity, config, sel->pad,
-> >> +					     V4L2_SEL_TGT_CROP);
-> >> +
-> >> +	/*
-> >> +	 * Clamp the width and height to acceptable values first and then
-> >> +	 * compute the closest rounded dividing ratio.
-> >> +	 *
-> >> +	 * Ratio	Rounded ratio
-> >> +	 * --------------------------
-> >> +	 * [1.0 1.5[	1  
-> > 
-> > Nitpick:
-> > 
-> > 	1.0 1.5]	1  
-> 
-> No, the notation [a b[ means the range 'a to, but not including, b'.
-> 
-> So this is correct.
-> 
-> I'm used to writing this as [a b), but according to wikipedia both notations
-> are allowed.
+Am 28.04.2017 um 13:22 schrieb Giuseppe Toscano:
+> I am trying to use eMPIA Technology, Inc. GrabBeeX+ Video Encoder
+> (card=21) but the em28xx driver erroneously identifies it as
+> EM2860/SAA711X Reference Design (card = 19).
+> Attached the output of lsusb and dmesg.
+>
+Card 21 is an em2800 device, while your device uses an em2710/em2820
+(see log).
+Card 19 should work. Did you test it ?
 
-Ah! Yeah, it occurred to me that it could be using such notation from
-set theory, but as all the other ranges there were using [a b], I
-assumed it was a typo.
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> > Thanks,
-> > Mauro
-> >   
-> 
+Regards,
+Frank
 
 
-
-Thanks,
-Mauro
+> Best regards,
+>
+> Giuseppe Toscano
