@@ -1,275 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43562 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750705AbdDGK6k (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37026 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1425303AbdD1JKe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Apr 2017 06:58:40 -0400
-Date: Fri, 7 Apr 2017 13:58:06 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 5/8] v4l: Switch from V4L2 OF not V4L2 fwnode API
-Message-ID: <20170407105805.GG4192@valkosipuli.retiisi.org.uk>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
- <1491484330-12040-6-git-send-email-sakari.ailus@linux.intel.com>
- <14918382.izlyCngq8n@avalon>
+        Fri, 28 Apr 2017 05:10:34 -0400
+Subject: Re: [PATCH v4 05/27] rcar-vin: move chip information to own struct
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170427224203.14611-6-niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <aa96b62f-1615-ca1a-5101-b0f021f4cb24@ideasonboard.com>
+Date: Fri, 28 Apr 2017 10:10:29 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <14918382.izlyCngq8n@avalon>
+In-Reply-To: <20170427224203.14611-6-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Niklas,
 
-On Fri, Apr 07, 2017 at 01:32:54PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
+On 27/04/17 23:41, Niklas Söderlund wrote:
+> When Gen3 support is added to the driver more then chip id will be
+> different for the different Soc. To avoid a lot of if statements in the
+> code create a struct chip_info to contain this information.
 > 
-> Thank you for the patch.
-> 
-> On Thursday 06 Apr 2017 16:12:07 Sakari Ailus wrote:
-> > Switch users of the v4l2_of_ APIs to the more generic v4l2_fwnode_ APIs.
-> > 
-> > Existing OF matching continues to be supported. omap3isp and smiapp
-> > drivers are converted to fwnode matching as well.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Acked-by: Benoit Parrot <bparrot@ti.com> # i2c/ov2569.c,
-> > am437x/am437x-vpfe.c and ti-vpe/cal.c ---
-> >  drivers/media/i2c/Kconfig                      |  9 ++++
-> >  drivers/media/i2c/adv7604.c                    |  7 +--
-> >  drivers/media/i2c/mt9v032.c                    |  7 +--
-> >  drivers/media/i2c/ov2659.c                     |  8 +--
-> >  drivers/media/i2c/s5c73m3/s5c73m3-core.c       |  7 +--
-> >  drivers/media/i2c/s5k5baf.c                    |  6 +--
-> >  drivers/media/i2c/smiapp/Kconfig               |  1 +
-> >  drivers/media/i2c/smiapp/smiapp-core.c         | 29 ++++++-----
-> >  drivers/media/i2c/tc358743.c                   | 11 ++--
-> >  drivers/media/i2c/tvp514x.c                    |  6 +--
-> >  drivers/media/i2c/tvp5150.c                    |  7 +--
-> >  drivers/media/i2c/tvp7002.c                    |  6 +--
-> >  drivers/media/platform/Kconfig                 |  3 ++
-> >  drivers/media/platform/am437x/Kconfig          |  1 +
-> >  drivers/media/platform/am437x/am437x-vpfe.c    |  8 +--
-> >  drivers/media/platform/atmel/Kconfig           |  1 +
-> >  drivers/media/platform/atmel/atmel-isc.c       |  8 +--
-> >  drivers/media/platform/exynos4-is/Kconfig      |  2 +
-> >  drivers/media/platform/exynos4-is/media-dev.c  |  6 +--
-> >  drivers/media/platform/exynos4-is/mipi-csis.c  |  6 +--
-> >  drivers/media/platform/omap3isp/isp.c          | 71 +++++++++++-----------
-> >  drivers/media/platform/pxa_camera.c            |  7 +--
-> >  drivers/media/platform/rcar-vin/Kconfig        |  1 +
-> >  drivers/media/platform/rcar-vin/rcar-core.c    |  6 +--
-> >  drivers/media/platform/soc_camera/Kconfig      |  1 +
-> >  drivers/media/platform/soc_camera/atmel-isi.c  |  7 +--
-> >  drivers/media/platform/soc_camera/soc_camera.c |  3 +-
-> >  drivers/media/platform/ti-vpe/cal.c            | 11 ++--
-> >  drivers/media/platform/xilinx/Kconfig          |  1 +
-> >  drivers/media/platform/xilinx/xilinx-vipp.c    | 59 +++++++++++----------
-> >  include/media/v4l2-fwnode.h                    |  4 +-
-> >  31 files changed, 176 insertions(+), 134 deletions(-)
-> > 
-> > diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> > index cee1dae..6b2423a 100644
-> > --- a/drivers/media/i2c/Kconfig
-> > +++ b/drivers/media/i2c/Kconfig
-> > @@ -210,6 +210,7 @@ config VIDEO_ADV7604
-> >  	depends on GPIOLIB || COMPILE_TEST
-> >  	select HDMI
-> >  	select MEDIA_CEC_EDID
-> > +	select V4L2_FWNODE
-> 
-> What happens when building the driver on a platform that includes neither OF 
-> nor ACPI support ?
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-You need either in practice, also for the V4L2 fwnode to be meaningful.
+This looks good to me
 
-Do you have something in particular in mind?
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 49 ++++++++++++++++++++++++-----
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c |  3 +-
+>  drivers/media/platform/rcar-vin/rcar-vin.h  | 12 +++++--
+>  3 files changed, 53 insertions(+), 11 deletions(-)
 > 
-> >  	---help---
-> >  	  Support for the Analog Devices ADV7604 video decoder.
-> > 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index c4d4f112da0c9d45..ec1eb723d401fda2 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -255,14 +255,47 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+>   * Platform Device Driver
+>   */
+>  
+> +static const struct rvin_info rcar_info_h1 = {
+> +	.chip = RCAR_H1,
+> +};
+> +
+> +static const struct rvin_info rcar_info_m1 = {
+> +	.chip = RCAR_M1,
+> +};
+> +
+> +static const struct rvin_info rcar_info_gen2 = {
+> +	.chip = RCAR_GEN2,
+> +};
+> +
+>  static const struct of_device_id rvin_of_id_table[] = {
+> -	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
+> -	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
+> -	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
+> -	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+> -	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
+> -	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
+> -	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
+> +	{
+> +		.compatible = "renesas,vin-r8a7794",
+> +		.data = &rcar_info_gen2,
+> +	},
+> +	{
+> +		.compatible = "renesas,vin-r8a7793",
+> +		.data = &rcar_info_gen2,
+> +	},
+> +	{
+> +		.compatible = "renesas,vin-r8a7791",
+> +		.data = &rcar_info_gen2,
+> +	},
+> +	{
+> +		.compatible = "renesas,vin-r8a7790",
+> +		.data = &rcar_info_gen2,
+> +	},
+> +	{
+> +		.compatible = "renesas,vin-r8a7779",
+> +		.data = &rcar_info_h1,
+> +	},
+> +	{
+> +		.compatible = "renesas,vin-r8a7778",
+> +		.data = &rcar_info_m1,
+> +	},
+> +	{
+> +		.compatible = "renesas,rcar-gen2-vin",
+> +		.data = &rcar_info_gen2,
+> +	},
+>  	{ },
+>  };
+>  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+> @@ -283,7 +316,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
+>  		return -ENODEV;
+>  
+>  	vin->dev = &pdev->dev;
+> -	vin->chip = (enum chip_id)match->data;
+> +	vin->info = match->data;
+>  
+>  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	if (mem == NULL)
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> index 27b7733e96afe3e9..7deca15d22b4d6e3 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -272,7 +272,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  	pix->sizeimage = max_t(u32, pix->sizeimage,
+>  			       rvin_format_sizeimage(pix));
+>  
+> -	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+> +	if (vin->info->chip == RCAR_M1 &&
+> +	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+>  		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
+>  		return -EINVAL;
+>  	}
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index 9454ef80bc2b3961..c07b4a6893440a6a 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -89,10 +89,18 @@ struct rvin_graph_entity {
+>  };
+>  
+>  /**
+> + * struct rvin_info- Information about the particular VIN implementation
+> + * @chip:		type of VIN chip
+> + */
+> +struct rvin_info {
+> +	enum chip_id chip;
+> +};
+> +
+> +/**
+>   * struct rvin_dev - Renesas VIN device structure
+>   * @dev:		(OF) device
+>   * @base:		device I/O register space remapped to virtual memory
+> - * @chip:		type of VIN chip
+> + * @info:		info about VIN instance
+>   *
+>   * @vdev:		V4L2 video device associated with VIN
+>   * @v4l2_dev:		V4L2 device
+> @@ -120,7 +128,7 @@ struct rvin_graph_entity {
+>  struct rvin_dev {
+>  	struct device *dev;
+>  	void __iomem *base;
+> -	enum chip_id chip;
+> +	const struct rvin_info *info;
+>  
+>  	struct video_device *vdev;
+>  	struct v4l2_device v4l2_dev;
 > 
-> [snip]
-> 
-> How have you checked that you haven't missed any entry in the Kconfig files ?
-
-I made one Kconfig change per driver. :-)
-
-> 
-> [snip]
-> 
-> > diff --git a/drivers/media/platform/omap3isp/isp.c
-> > b/drivers/media/platform/omap3isp/isp.c index 084ecf4a..95850b9 100644
-> > --- a/drivers/media/platform/omap3isp/isp.c
-> > +++ b/drivers/media/platform/omap3isp/isp.c
-> 
-> [snip]
-> 
-> > @@ -2024,43 +2025,42 @@ enum isp_of_phy {
-> >  	ISP_OF_PHY_CSIPHY2,
-> >  };
-> > 
-> > -static int isp_of_parse_node(struct device *dev, struct device_node *node,
-> > -			     struct isp_async_subdev *isd)
-> > +static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwn,
-> > +			    struct isp_async_subdev *isd)
-> >  {
-> >  	struct isp_bus_cfg *buscfg = &isd->bus;
-> > -	struct v4l2_of_endpoint vep;
-> > +	struct v4l2_fwnode_endpoint vfwn;
-> 
-> vfwn is confusing to me, I think the variable name should show that it refers 
-> to an endpoint.
-
-How about adding ep to tell it's an endpoint?
-
-> 
-> >  	unsigned int i;
-> >  	int ret;
-> > 
-> > -	ret = v4l2_of_parse_endpoint(node, &vep);
-> > +	ret = v4l2_fwnode_endpoint_parse(fwn, &vfwn);
-> >  	if (ret)
-> >  		return ret;
-> > 
-> > -	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
-> > -		vep.base.port);
-> > +	dev_dbg(dev, "interface %u\n", vfwn.base.port);
-> 
-> Is there no way to keep the node name in the error message ?
-
-There's no generic fwnode means to do something similar currently, possibly
-because I understand ACPI doesn't do that. One could check whether the node
-is an OF node and then use the full_name field but I wonder if it's worth
-it.
-
-> 
-> 
-> [snip]
-> 
-> > @@ -2094,18 +2094,17 @@ static int isp_of_parse_node(struct device *dev,
-> > struct device_node *node, break;
-> > 
-> >  	default:
-> > -		dev_warn(dev, "%s: invalid interface %u\n", node->full_name,
-> > -			 vep.base.port);
-> > +		dev_warn(dev, "invalid interface %u\n", vfwn.base.port);
-> 
-> Ditto.
-> 
-> >  		break;
-> >  	}
-> > 
-> >  	return 0;
-> >  }
-> > 
-> > -static int isp_of_parse_nodes(struct device *dev,
-> > -			      struct v4l2_async_notifier *notifier)
-> > +static int isp_fwnodes_parse(struct device *dev,
-> > +			     struct v4l2_async_notifier *notifier)
-> >  {
-> > -	struct device_node *node = NULL;
-> > +	struct fwnode_handle *fwn = NULL;
-> 
-> As explained in the review of another patch from the same series, I wouldn't 
-> rename the variable.
-
-Most pointers to struct fwnode_handle are actually called fwnode and some
-fw_node. fwn is just shorter. :-)
-
-There are also cases pointers to struct device_node and struct fwnode_handle
-are needed in the same function.
-
-> 
-> >  	notifier->subdevs = devm_kcalloc(
-> >  		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
-> 
-> [snip]
-> 
-> > @@ -2219,12 +2220,12 @@ static int isp_probe(struct platform_device *pdev)
-> >  	if (IS_ERR(isp->syscon))
-> >  		return PTR_ERR(isp->syscon);
-> > 
-> > -	ret = of_property_read_u32_index(pdev->dev.of_node, "syscon", 1,
-> > -					 &isp->syscon_offset);
-> > +	ret = of_property_read_u32_index(pdev->dev.of_node,
-> > +					 "syscon", 1, &isp->syscon_offset);
-> 
-> This change doesn't seem to be needed.
-
-Oh, indeed. Will fix.
-
-> 
-> >  	if (ret)
-> >  		return ret;
-> > 
-> > -	ret = isp_of_parse_nodes(&pdev->dev, &isp->notifier);
-> > +	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
-> >  	if (ret < 0)
-> >  		return ret;
-> > 
-> 
-> [snip]
-> 
-> > diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c
-> > b/drivers/media/platform/xilinx/xilinx-vipp.c index feb3b2f..6a2721b 100644
-> > --- a/drivers/media/platform/xilinx/xilinx-vipp.c
-> > +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
-> 
-> [snip]
-> 
-> > @@ -103,9 +103,10 @@ static int xvip_graph_build_one(struct
-> > xvip_composite_device *xdev, * the link.
-> >  		 */
-> >  		if (link.local_port >= local->num_pads) {
-> > -			dev_err(xdev->dev, "invalid port number %u on %s\n",
-> > -				link.local_port, link.local_node->full_name);
-> > -			v4l2_of_put_link(&link);
-> > +			dev_err(xdev->dev, "invalid port number %u for %s\n",
-> > +				link.local_port,
-> > +				to_of_node(link.local_node)->full_name);
-> 
-> This makes me believe that we're missing a fwnode_full_name() function.
-
-It'd be nice to have that, I agree. What should it do on non-OF nodes?
-Return a pointers to an empty string?
-
-> 
-> > +			v4l2_fwnode_put_link(&link);
-> >  			ret = -EINVAL;
-> >  			break;
-> >  		}
-> 
-> [snip]
-> 
-> > diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-> > index a675d8a..bc9cf51 100644
-> > --- a/include/media/v4l2-fwnode.h
-> > +++ b/include/media/v4l2-fwnode.h
-> > @@ -17,10 +17,10 @@
-> >  #ifndef _V4L2_FWNODE_H
-> >  #define _V4L2_FWNODE_H
-> > 
-> > +#include <linux/errno.h>
-> > +#include <linux/fwnode.h>
-> >  #include <linux/list.h>
-> >  #include <linux/types.h>
-> > -#include <linux/errno.h>
-> > -#include <linux/of_graph.h>
-> > 
-> >  #include <media/v4l2-mediabus.h>
-> 
-> This probably belongs to another patch (at least the alphabetical sorting 
-> does).
-
-Yes, I'll change it.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
