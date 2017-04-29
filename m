@@ -1,44 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:35933 "EHLO
-        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751235AbdDNIJZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Apr 2017 04:09:25 -0400
-Date: Fri, 14 Apr 2017 10:09:15 +0200
-From: Greg KH <greg@kroah.com>
-To: kbuild test robot <lkp@intel.com>
-Cc: Alan Cox <alan@linux.intel.com>, kbuild-all@01.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 12/14] atomisp: remove fixedbds kernel code
-Message-ID: <20170414080915.GA21311@kroah.com>
-References: <149202134077.16615.9955869109062515751.stgit@acox1-desk1.ger.corp.intel.com>
- <201704131901.O8h0sjJH%fengguang.wu@intel.com>
+Received: from vader.hardeman.nu ([95.142.160.32]:36907 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932817AbdD2UBZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 29 Apr 2017 16:01:25 -0400
+Date: Sat, 29 Apr 2017 22:01:23 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Subject: Re: [PATCH] ir-lirc-codec: let lirc_dev handle the lirc_buffer
+Message-ID: <20170429200123.scis2tuxtczohxkq@hardeman.nu>
+References: <149339904926.12280.15877468271781678130.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <201704131901.O8h0sjJH%fengguang.wu@intel.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <149339904926.12280.15877468271781678130.stgit@zeus.hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 13, 2017 at 07:53:58PM +0800, kbuild test robot wrote:
-> Hi Alan,
-> 
-> [auto build test ERROR on next-20170412]
-> [cannot apply to linuxtv-media/master v4.9-rc8 v4.9-rc7 v4.9-rc6 v4.11-rc6]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Alan-Cox/staging-atomisp-use-local-variable-to-reduce-number-of-references/20170413-112312
-> config: i386-allmodconfig (attached as .config)
-> compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
-> reproduce:
->         # save the attached .config to linux build tree
->         make ARCH=i386 
-> 
-> All errors (new ones prefixed by >>):
-> 
-> >> make[7]: *** No rule to make target 'drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/fixedbds/fixedbds_1.0/ia_css_fixedbds.host.o', needed by 'drivers/staging/media/atomisp/pci/atomisp2/atomisp.o'.
->    make[7]: Target '__build' not remade because of errors.
+On Fri, Apr 28, 2017 at 07:04:09PM +0200, David Härdeman wrote:
+>ir_lirc_register() currently creates its own lirc_buffer before
+>passing the lirc_driver to lirc_register_driver().
+>
+>When a module is later unloaded, ir_lirc_unregister() gets called
+>which performs a call to lirc_unregister_driver() and then free():s
+>the lirc_buffer.
+>
+>The problem is that:
+>
+>a) there can still be a userspace app holding an open lirc fd
+>   when lirc_unregister_driver() returns; and
+>
+>b) the lirc_buffer contains "wait_queue_head_t wait_poll" which
+>   is potentially used as long as any userspace app is still around.
+>
+>The result is an oops which can be triggered quite easily by a
+>userspace app monitoring its lirc fd using epoll() and not closing
+>the fd promptly on device removal.
+>
+>The minimalistic fix is to let lirc_dev create the lirc_buffer since
+>lirc_dev will then also free the buffer once it believes it is safe to
+>do so.
 
-That's an odd error, this works fine for me here.
+Ignore this patch. I missed that ir_lirc_decode() checks
+dev->raw->lirc.drv->rbuf, so this needs to be reworked.
 
-greg k-h
+-- 
+David Härdeman
