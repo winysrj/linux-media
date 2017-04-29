@@ -1,95 +1,472 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f177.google.com ([209.85.220.177]:33236 "EHLO
-        mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S969007AbdDSTPW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Apr 2017 15:15:22 -0400
-Received: by mail-qk0-f177.google.com with SMTP id h67so28825986qke.0
-        for <linux-media@vger.kernel.org>; Wed, 19 Apr 2017 12:15:21 -0700 (PDT)
+Received: from mail-eopbgr40121.outbound.protection.outlook.com ([40.107.4.121]:43645
+        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1036487AbdD2VaB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 29 Apr 2017 17:30:01 -0400
+Subject: Re: [PATCH 2/2] [media] platform: add video-multiplexer subdevice
+ driver
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        <linux-media@vger.kernel.org>
+References: <20170428141330.16187-1-p.zabel@pengutronix.de>
+ <20170428141330.16187-2-p.zabel@pengutronix.de>
+CC: <devicetree@vger.kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        <kernel@pengutronix.de>, Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Peter Rosin <peda@axentia.se>
+Message-ID: <beb9f7c4-4959-1bb2-03e2-c5ccecbb8368@axentia.se>
+Date: Sat, 29 Apr 2017 23:29:52 +0200
 MIME-Version: 1.0
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-Date: Wed, 19 Apr 2017 15:15:20 -0400
-Message-ID: <CAGoCfixZhG+9WuHgk=zfqgGbJvoggf2FyZMfVS+ifYYR+nw9rQ@mail.gmail.com>
-Subject: RFC: Power states and VIDIOC_STREAMON
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20170428141330.16187-2-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all,
+On 2017-04-28 16:13, Philipp Zabel wrote:
+> This driver can handle SoC internal and external video bus multiplexers,
+> controlled by mux controllers provided by the mux controller framework,
+> such as MMIO register bitfields or GPIOs. The subdevice passes through
+> the mbus configuration of the active input to the output side.
+> 
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+> This has been last sent as part of the i.MX media series.
+> 
+> Changes since https://patchwork.kernel.org/patch/9647869/:
+>  - Split out the actual mux operation to be provided by the mux controller
+>    framework [1]. GPIO and MMIO control can be provided by individual mux
+>    controller drivers [2][3].
+>    [1] https://patchwork.kernel.org/patch/9695837/
+>    [2] https://patchwork.kernel.org/patch/9695839/
+>    [3] https://patchwork.kernel.org/patch/9704509/
+>  - Shortened 'video-multiplexer' to 'video-mux', replaced all instances of
+>    vidsw with video_mux.
+>  - Made the mux inactive by default, only activated by user interaction.
+>  - Added CONFIG_OF and CONFIG_MULTIPLEXER dependencies.
+>  - Reuse subdev.entity.num_pads instead of keeping our own count.
+>  - Removed implicit link disabling. Instead, trying to enable a second
+>    sink pad link yields -EBUSY.
+>  - Merged _async_init into _probe.
+>  - Removed superfluous pad index check from _set_format.
+>  - Added is_source_pad helper to tell source and sink pads apart.
+>  - Removed test for status property in endpoint nodes. Disable the remote
+>    device or sever the endpoint link to disable a sink pad.
+> ---
+>  drivers/media/platform/Kconfig     |   6 +
+>  drivers/media/platform/Makefile    |   2 +
+>  drivers/media/platform/video-mux.c | 341 +++++++++++++++++++++++++++++++++++++
+>  3 files changed, 349 insertions(+)
+>  create mode 100644 drivers/media/platform/video-mux.c
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index c9106e105baba..b046a6d39fee5 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -74,6 +74,12 @@ config VIDEO_M32R_AR_M64278
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called arv.
+>  
+> +config VIDEO_MUX
+> +	tristate "Video Multiplexer"
+> +	depends on OF && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER && MULTIPLEXER
+> +	help
+> +	  This driver provides support for N:1 video bus multiplexers.
+> +
+>  config VIDEO_OMAP3
+>  	tristate "OMAP 3 Camera support"
+>  	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
+> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+> index 349ddf6a69da2..fd2735ca3ff75 100644
+> --- a/drivers/media/platform/Makefile
+> +++ b/drivers/media/platform/Makefile
+> @@ -27,6 +27,8 @@ obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
+>  
+>  obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
+>  
+> +obj-$(CONFIG_VIDEO_MUX)			+= video-mux.o
+> +
+>  obj-$(CONFIG_VIDEO_S3C_CAMIF) 		+= s3c-camif/
+>  obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS4_IS) 	+= exynos4-is/
+>  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
+> diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
+> new file mode 100644
+> index 0000000000000..419541729f67e
+> --- /dev/null
+> +++ b/drivers/media/platform/video-mux.c
+> @@ -0,0 +1,341 @@
+> +/*
+> + * video stream multiplexer controlled via mux control
+> + *
+> + * Copyright (C) 2013 Pengutronix, Sascha Hauer <kernel@pengutronix.de>
+> + * Copyright (C) 2016 Pengutronix, Philipp Zabel <kernel@pengutronix.de>
 
-I'm in the process of putting together a bunch of long-standing fixes
-for HVR-950q driver, and I ran into a regression related to the way
-the video decoder is being managed.  Before we dig into the details
-here's the general question:
+2017?
 
-Should a user be able to interrogate video decoder properties after
-doing a tune without having first called VIDIOC_STREAMON?
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * as published by the Free Software Foundation; either version 2
+> + * of the License, or (at your option) any later version.
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/err.h>
+> +#include <linux/module.h>
+> +#include <linux/mux/consumer.h>
+> +#include <linux/of.h>
+> +#include <linux/of_graph.h>
+> +#include <linux/platform_device.h>
+> +#include <media/v4l2-async.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-subdev.h>
+> +#include <media/v4l2-of.h>
+> +
+> +struct video_mux {
+> +	struct v4l2_subdev subdev;
+> +	struct media_pad *pads;
+> +	struct v4l2_mbus_framefmt *format_mbus;
+> +	struct v4l2_of_endpoint *endpoint;
+> +	struct mux_control *mux;
+> +	int active;
+> +};
+> +
+> +static inline struct video_mux *v4l2_subdev_to_video_mux(struct v4l2_subdev *sd)
+> +{
+> +	return container_of(sd, struct video_mux, subdev);
+> +}
+> +
+> +static inline bool is_source_pad(struct video_mux *vmux, unsigned int pad)
+> +{
+> +	return pad == vmux->subdev.entity.num_pads - 1;
+> +}
+> +
+> +static int video_mux_link_setup(struct media_entity *entity,
+> +				const struct media_pad *local,
+> +				const struct media_pad *remote, u32 flags)
+> +{
+> +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
+> +	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
+> +	int ret;
+> +
+> +	/*
+> +	 * The mux state is determined by the enabled sink pad link.
+> +	 * Enabling or disabling the source pad link has no effect.
+> +	 */
+> +	if (is_source_pad(vmux, local->index))
+> +		return 0;
+> +
+> +	dev_dbg(sd->dev, "link setup '%s':%d->'%s':%d[%d]",
+> +		remote->entity->name, remote->index, local->entity->name,
+> +		local->index, flags & MEDIA_LNK_FL_ENABLED);
+> +
+> +	if (flags & MEDIA_LNK_FL_ENABLED) {
+> +		if (vmux->active == local->index)
 
-A long-standing use case is to be able to use a command-line tool like
-v4l2-ctl to set the input, set the standard, issue a tuning request,
-poll for a lock status, and once you see a signal lock then start
-streaming.  This means that prior to starting streaming the tuner,
-analog demodulator, and video decoder are all running even though
-you're not actually receiving video buffers.
+Here, you shortcut the mux_control_select_trylock test and return "OK"
+based on a driver-local variable that is intended to keep track of mux
+ownership.
 
-The problem comes down to these two patches:
+> +			return 0;
+> +
+> +		if (vmux->active >= 0)
 
-https://git.linuxtv.org/media_tree.git/commit/drivers/media/dvb-frontends/au8522_decoder.c?id=38fe3510fa8fb5e75ee3b196e44a7b717d167e5d
-https://git.linuxtv.org/media_tree.git/commit/drivers/media/dvb-frontends/au8522_decoder.c?id=d289cdf022c5bebf09c73097404aa9faf2211381
+Here too (and this check is not needed, the situation will be covered by
+the mux_control_try_select call).
 
-Prior to these patches, I would power up the IP blocks for the analog
-demodulator and decoder when the video routing was setup (typically
-when setting the input).  However as a result of these patches
-powering up of those IP blocks is deferred until STREAMON is called.
-Hence if you just set the input and issue a tuning request, and poll
-for lock then you will never see the tuner in a locked state
-regardless of the actual signal state.
+> +			return -EBUSY;
+> +
+> +		dev_dbg(sd->dev, "setting %d active\n", local->index);
+> +		ret = mux_control_try_select(vmux->mux, local->index);
+> +		if (ret < 0)
+> +			return ret;
+> +		vmux->active = local->index;
+> +	} else {
+> +		if (vmux->active != local->index)
+> +			return 0;
+> +
+> +		dev_dbg(sd->dev, "going inactive\n");
+> +		mux_control_deselect(vmux->mux);
 
-I can appreciate the motivation behind Mauro's change in wanting to
-constrain the window that the analog decoder is powered up to reduce
-the risk of having it powered up at the same time as the digital
-demodulator, but if it breaks long-standing ABI behavior then that
-probably isn't going to work.
+But here you let go of the mux *before* you clear the driver-local
+ownership indicator. That looks suspicious. My guess is that this is
+"safe" because the upper layers has some serialization, but I don't
+know. Anyway, even if there is something saving you in the upper
+layers, it looks out of order and unneeded. I would have moved the
+below vmux->active = -1; statement up to before the above deselect.
 
-I did take a look at the the VIDIOC_STREAMON docs, which state that
-the "Capture hardware is disabled and no buffers are filled" prior to
-calling STREAMON:
+With that fixed, mux usage looks good to me, so you can add an Acked-
+by from me if you wish (goes for the bindings patch as well).
 
-https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/vidioc-streamon.html
+Cheers,
+peda
 
-However that language would suggest that even the tuner would be
-powered down prior to calling STREAMON, which we know is almost never
-the case.
-
-I suspect the ambiguity lies in what is defined by "capture hardware":
-
-The DMA engine or other mechanism of transferring completed video
-buffers to userland?
-The DMA engine and the video decoder?
-The DMA engine, video decoder, and analog demodulator?
-The DMA engine, video decoder, analog demodulator, and tuner?
-
-I had always interpreted it such that the STREAMON call just
-controlled whether the DMA engine was running, and thus you could do
-anything else with the decoder before calling STREAMON other than
-actually receiving video buffers.
-
-My instinct would be to revert the patch in question since it breaks
-ABI behavior which has been present for over a decade, but I suspect
-such a patch would be rejected since it was Mauro himself who
-introduced the change in behavior.
-
-I look forward to hearing from the V4L2 maintainers with regards to
-what the expected ABI behavior should be, at which point I can figure
-out how to adjust the driver code to accommodate such behavior (and if
-that means I cannot query for a signal lock prior to calling STREAMON,
-going back and changing a bunch of userland code which expects such).
-
-Thanks,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> +		vmux->active = -1;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static struct media_entity_operations video_mux_ops = {
+> +	.link_setup = video_mux_link_setup,
+> +	.link_validate = v4l2_subdev_link_validate,
+> +};
+> +
+> +static bool video_mux_endpoint_disabled(struct device_node *ep)
+> +{
+> +	struct device_node *rpp = of_graph_get_remote_port_parent(ep);
+> +
+> +	return !of_device_is_available(rpp);
+> +}
+> +
+> +static int video_mux_g_mbus_config(struct v4l2_subdev *sd,
+> +				   struct v4l2_mbus_config *cfg)
+> +{
+> +	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
+> +	struct v4l2_of_endpoint *endpoint;
+> +	struct media_pad *pad;
+> +	int ret;
+> +
+> +	if (vmux->active == -1) {
+> +		dev_err(sd->dev, "no configuration for inactive mux\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	/*
+> +	 * Retrieve media bus configuration from the entity connected to the
+> +	 * active input
+> +	 */
+> +	pad = media_entity_remote_pad(&vmux->pads[vmux->active]);
+> +	if (pad) {
+> +		sd = media_entity_to_v4l2_subdev(pad->entity);
+> +		ret = v4l2_subdev_call(sd, video, g_mbus_config, cfg);
+> +		if (ret == -ENOIOCTLCMD)
+> +			pad = NULL;
+> +		else if (ret < 0) {
+> +			dev_err(sd->dev, "failed to get source configuration\n");
+> +			return ret;
+> +		}
+> +	}
+> +	if (!pad) {
+> +		endpoint = &vmux->endpoint[vmux->active];
+> +
+> +		/* Mirror the input side on the output side */
+> +		cfg->type = endpoint->bus_type;
+> +		if (cfg->type == V4L2_MBUS_PARALLEL ||
+> +		    cfg->type == V4L2_MBUS_BT656)
+> +			cfg->flags = endpoint->bus.parallel.flags;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int video_mux_s_stream(struct v4l2_subdev *sd, int enable)
+> +{
+> +	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
+> +	struct v4l2_subdev *upstream_sd;
+> +	struct media_pad *pad;
+> +
+> +	if (vmux->active == -1) {
+> +		dev_err(sd->dev, "Can not start streaming on inactive mux\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	pad = media_entity_remote_pad(&sd->entity.pads[vmux->active]);
+> +	if (!pad) {
+> +		dev_err(sd->dev, "Failed to find remote source pad\n");
+> +		return -ENOLINK;
+> +	}
+> +
+> +	if (!is_media_entity_v4l2_subdev(pad->entity)) {
+> +		dev_err(sd->dev, "Upstream entity is not a v4l2 subdev\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	upstream_sd = media_entity_to_v4l2_subdev(pad->entity);
+> +
+> +	return v4l2_subdev_call(upstream_sd, video, s_stream, enable);
+> +}
+> +
+> +static const struct v4l2_subdev_video_ops video_mux_subdev_video_ops = {
+> +	.g_mbus_config = video_mux_g_mbus_config,
+> +	.s_stream = video_mux_s_stream,
+> +};
+> +
+> +static struct v4l2_mbus_framefmt *
+> +__video_mux_get_pad_format(struct v4l2_subdev *sd,
+> +			   struct v4l2_subdev_pad_config *cfg,
+> +			   unsigned int pad, u32 which)
+> +{
+> +	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
+> +
+> +	switch (which) {
+> +	case V4L2_SUBDEV_FORMAT_TRY:
+> +		return v4l2_subdev_get_try_format(sd, cfg, pad);
+> +	case V4L2_SUBDEV_FORMAT_ACTIVE:
+> +		return &vmux->format_mbus[pad];
+> +	default:
+> +		return NULL;
+> +	}
+> +}
+> +
+> +static int video_mux_get_format(struct v4l2_subdev *sd,
+> +			    struct v4l2_subdev_pad_config *cfg,
+> +			    struct v4l2_subdev_format *sdformat)
+> +{
+> +	sdformat->format = *__video_mux_get_pad_format(sd, cfg, sdformat->pad,
+> +						   sdformat->which);
+> +	return 0;
+> +}
+> +
+> +static int video_mux_set_format(struct v4l2_subdev *sd,
+> +			    struct v4l2_subdev_pad_config *cfg,
+> +			    struct v4l2_subdev_format *sdformat)
+> +{
+> +	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
+> +	struct v4l2_mbus_framefmt *mbusformat;
+> +
+> +	mbusformat = __video_mux_get_pad_format(sd, cfg, sdformat->pad,
+> +					    sdformat->which);
+> +	if (!mbusformat)
+> +		return -EINVAL;
+> +
+> +	/* Source pad mirrors active sink pad, no limitations on sink pads */
+> +	if (is_source_pad(vmux, sdformat->pad) && vmux->active >= 0)
+> +		sdformat->format = vmux->format_mbus[vmux->active];
+> +
+> +	*mbusformat = sdformat->format;
+> +
+> +	return 0;
+> +}
+> +
+> +static struct v4l2_subdev_pad_ops video_mux_pad_ops = {
+> +	.get_fmt = video_mux_get_format,
+> +	.set_fmt = video_mux_set_format,
+> +};
+> +
+> +static struct v4l2_subdev_ops video_mux_subdev_ops = {
+> +	.pad = &video_mux_pad_ops,
+> +	.video = &video_mux_subdev_video_ops,
+> +};
+> +
+> +static int video_mux_probe(struct platform_device *pdev)
+> +{
+> +	struct device_node *np = pdev->dev.of_node;
+> +	struct device *dev = &pdev->dev;
+> +	struct v4l2_of_endpoint endpoint;
+> +	struct device_node *ep;
+> +	struct video_mux *vmux;
+> +	unsigned int num_pads = 0;
+> +	int ret;
+> +	int i;
+> +
+> +	vmux = devm_kzalloc(dev, sizeof(*vmux), GFP_KERNEL);
+> +	if (!vmux)
+> +		return -ENOMEM;
+> +
+> +	platform_set_drvdata(pdev, vmux);
+> +
+> +	v4l2_subdev_init(&vmux->subdev, &video_mux_subdev_ops);
+> +	snprintf(vmux->subdev.name, sizeof(vmux->subdev.name), "%s", np->name);
+> +	vmux->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	vmux->subdev.dev = dev;
+> +
+> +	/*
+> +	 * The largest numbered port is the output port. It determines
+> +	 * total number of pads.
+> +	 */
+> +	for_each_endpoint_of_node(np, ep) {
+> +		of_graph_parse_endpoint(ep, &endpoint.base);
+> +		num_pads = max(num_pads, endpoint.base.port + 1);
+> +	}
+> +
+> +	if (num_pads < 2) {
+> +		dev_err(dev, "Not enough ports %d\n", num_pads);
+> +		return -EINVAL;
+> +	}
+> +
+> +	vmux->mux = devm_mux_control_get(dev, NULL);
+> +	if (IS_ERR(vmux->mux)) {
+> +		ret = PTR_ERR(vmux->mux);
+> +		if (ret != -EPROBE_DEFER)
+> +			dev_err(dev, "Failed to get mux: %d\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	vmux->active = -1;
+> +	vmux->pads = devm_kzalloc(dev, sizeof(*vmux->pads) * num_pads,
+> +				  GFP_KERNEL);
+> +	vmux->format_mbus = devm_kzalloc(dev, sizeof(*vmux->format_mbus) *
+> +					 num_pads, GFP_KERNEL);
+> +	vmux->endpoint = devm_kzalloc(dev, sizeof(*vmux->endpoint) *
+> +				      (num_pads - 1), GFP_KERNEL);
+> +
+> +	for (i = 0; i < num_pads - 1; i++)
+> +		vmux->pads[i].flags = MEDIA_PAD_FL_SINK;
+> +	vmux->pads[num_pads - 1].flags = MEDIA_PAD_FL_SOURCE;
+> +
+> +	vmux->subdev.entity.function = MEDIA_ENT_F_VID_MUX;
+> +	ret = media_entity_pads_init(&vmux->subdev.entity, num_pads,
+> +				     vmux->pads);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	vmux->subdev.entity.ops = &video_mux_ops;
+> +
+> +	for_each_endpoint_of_node(np, ep) {
+> +		v4l2_of_parse_endpoint(ep, &endpoint);
+> +
+> +		if (video_mux_endpoint_disabled(ep)) {
+> +			dev_dbg(dev, "port %d disabled\n", endpoint.base.port);
+> +			continue;
+> +		}
+> +
+> +		vmux->endpoint[endpoint.base.port] = endpoint;
+> +	}
+> +
+> +	return v4l2_async_register_subdev(&vmux->subdev);
+> +}
+> +
+> +static int video_mux_remove(struct platform_device *pdev)
+> +{
+> +	struct video_mux *vmux = platform_get_drvdata(pdev);
+> +	struct v4l2_subdev *sd = &vmux->subdev;
+> +
+> +	v4l2_async_unregister_subdev(sd);
+> +	media_entity_cleanup(&sd->entity);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct of_device_id video_mux_dt_ids[] = {
+> +	{ .compatible = "video-mux", },
+> +	{ /* sentinel */ }
+> +};
+> +MODULE_DEVICE_TABLE(of, video_mux_dt_ids);
+> +
+> +static struct platform_driver video_mux_driver = {
+> +	.probe		= video_mux_probe,
+> +	.remove		= video_mux_remove,
+> +	.driver		= {
+> +		.of_match_table = video_mux_dt_ids,
+> +		.name = "video-mux",
+> +	},
+> +};
+> +
+> +module_platform_driver(video_mux_driver);
+> +
+> +MODULE_DESCRIPTION("video stream multiplexer");
+> +MODULE_AUTHOR("Sascha Hauer, Pengutronix");
+> +MODULE_AUTHOR("Philipp Zabel, Pengutronix");
+> +MODULE_LICENSE("GPL");
+> 
