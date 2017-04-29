@@ -1,100 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:49787 "EHLO ale.deltatee.com"
+Received: from mga07.intel.com ([134.134.136.100]:43999 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1952424AbdDYSV0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Apr 2017 14:21:26 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-        megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com,
-        devel@driverdev.osuosl.org, target-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        dm-devel@redhat.com
-Cc: Christoph Hellwig <hch@lst.de>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>
-Date: Tue, 25 Apr 2017 12:21:05 -0600
-Message-Id: <1493144468-22493-19-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 18/21] mmc: tmio: Make use of the new sg_map helper function
+        id S936774AbdD2XfL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 29 Apr 2017 19:35:11 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com, Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH 2/3] [media] doc-rst: add IPU3 raw10 bayer pixel format definitions
+Date: Sat, 29 Apr 2017 18:34:35 -0500
+Message-Id: <edf6dbb7b690a363558e8b70b22eacd3854bae38.1493479141.git.yong.zhi@intel.com>
+In-Reply-To: <cover.1493479141.git.yong.zhi@intel.com>
+References: <cover.1493479141.git.yong.zhi@intel.com>
+In-Reply-To: <cover.1493479141.git.yong.zhi@intel.com>
+References: <cover.1493479141.git.yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Straightforward conversion to sg_map helper. Seeing there is no
-cleare error path, SG_MAP_MUST_NOT_FAIL which may BUG_ON in certain
-cases in the future.
+The formats added by this patch are:
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>
+    V4L2_PIX_FMT_IPU3_SBGGR10
+    V4L2_PIX_FMT_IPU3_SGBRG10
+    V4L2_PIX_FMT_IPU3_SGRBG10
+    V4L2_PIX_FMT_IPU3_SRGGB10
+
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 ---
- drivers/mmc/host/tmio_mmc.h     |  7 +++++--
- drivers/mmc/host/tmio_mmc_pio.c | 12 ++++++++++++
- 2 files changed, 17 insertions(+), 2 deletions(-)
+ Documentation/media/uapi/v4l/pixfmt-rgb.rst        |  1 +
+ .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         | 61 ++++++++++++++++++++++
+ 2 files changed, 62 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
 
-diff --git a/drivers/mmc/host/tmio_mmc.h b/drivers/mmc/host/tmio_mmc.h
-index d0edb57..bc43eb0 100644
---- a/drivers/mmc/host/tmio_mmc.h
-+++ b/drivers/mmc/host/tmio_mmc.h
-@@ -202,17 +202,20 @@ void tmio_mmc_enable_mmc_irqs(struct tmio_mmc_host *host, u32 i);
- void tmio_mmc_disable_mmc_irqs(struct tmio_mmc_host *host, u32 i);
- irqreturn_t tmio_mmc_irq(int irq, void *devid);
- 
-+/* Note: this function may return PTR_ERR and must be checked! */
- static inline char *tmio_mmc_kmap_atomic(struct scatterlist *sg,
- 					 unsigned long *flags)
- {
-+	void *ret;
+diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+index b0f3513..6900d5c 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+@@ -16,5 +16,6 @@ RGB Formats
+     pixfmt-srggb10p
+     pixfmt-srggb10alaw8
+     pixfmt-srggb10dpcm8
++    pixfmt-srggb10-ipu3
+     pixfmt-srggb12
+     pixfmt-srggb16
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+new file mode 100644
+index 0000000..8a82f30
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+@@ -0,0 +1,61 @@
++.. -*- coding: utf-8; mode: rst -*-
 +
- 	local_irq_save(*flags);
--	return kmap_atomic(sg_page(sg)) + sg->offset;
-+	return sg_map(sg, 0, SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
- }
- 
- static inline void tmio_mmc_kunmap_atomic(struct scatterlist *sg,
- 					  unsigned long *flags, void *virt)
- {
--	kunmap_atomic(virt - sg->offset);
-+	sg_unmap(sg, virt, 0, SG_KMAP_ATOMIC);
- 	local_irq_restore(*flags);
- }
- 
-diff --git a/drivers/mmc/host/tmio_mmc_pio.c b/drivers/mmc/host/tmio_mmc_pio.c
-index a2d92f1..bbb4f19 100644
---- a/drivers/mmc/host/tmio_mmc_pio.c
-+++ b/drivers/mmc/host/tmio_mmc_pio.c
-@@ -506,6 +506,18 @@ static void tmio_mmc_check_bounce_buffer(struct tmio_mmc_host *host)
- 	if (host->sg_ptr == &host->bounce_sg) {
- 		unsigned long flags;
- 		void *sg_vaddr = tmio_mmc_kmap_atomic(host->sg_orig, &flags);
-+		if (IS_ERR(sg_vaddr)) {
-+			/*
-+			 * This should really never happen unless
-+			 * the code is changed to use memory that is
-+			 * not mappable in the sg. Seeing there doesn't
-+			 * seem to be any error path out of here,
-+			 * we can only WARN.
-+			 */
-+			WARN(1, "Non-mappable memory used in sg!");
-+			return;
-+		}
++.. _V4L2_PIX_FMT_IPU3_SBGGR10:
++.. _V4L2_PIX_FMT_IPU3_SGBRG10:
++.. _V4L2_PIX_FMT_IPU3_SGRBG10:
++.. _V4L2_PIX_FMT_IPU3_SRGGB10:
 +
- 		memcpy(sg_vaddr, host->bounce_buf, host->bounce_sg.length);
- 		tmio_mmc_kunmap_atomic(host->sg_orig, &flags, sg_vaddr);
- 	}
++**********************************************************************************************************************************************
++V4L2_PIX_FMT_IPU3_SBGGR10 ('ip3b'), V4L2_PIX_FMT_IPU3_SGBRG10 ('ip3g'), V4L2_PIX_FMT_IPU3_SGRBG10 ('ip3G'), V4L2_PIX_FMT_IPU3_SRGGB10 ('ip3r')
++**********************************************************************************************************************************************
++
++10-bit Bayer formats
++
++Description
++===========
++
++These four pixel formats are raw sRGB / Bayer formats with 10 bits per
++sample with every 25 pixels packed to 32 bytes leaving 6 most significant 
++bits padding in the last byte. The format is little endian.
++
++In other respects this format is similar to :ref:`V4L2-PIX-FMT-SRGGB10`.
++
++**Byte Order.**
++Each cell is one byte.
++
++.. raw:: latex
++
++    \newline\newline\begin{adjustbox}{width=\columnwidth}
++
++.. tabularcolumns:: |p{1.3cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|
++
++.. flat-table::
++
++    * - start + 0:
++      - B\ :sub:`00low`
++      - G\ :sub:`01low` \ (bits 7--2) B\ :sub:`00high`\ (bits 1--0)
++      - B\ :sub:`02low` \ (bits 7--4) G\ :sub:`01high`\ (bits 3--0)
++      - G\ :sub:`03low` \ (bits 7--6) B\ :sub:`02high`\ (bits 5--0)
++      - G\ :sub:`03high`
++    * - start + 5:
++      - G\ :sub:`10low`
++      - R\ :sub:`11low` \ (bits 7--2) G\ :sub:`10high`\ (bits 1--0)
++      - G\ :sub:`12low` \ (bits 7--4) R\ :sub:`11high`\ (bits 3--0)
++      - R\ :sub:`13low` \ (bits 7--6) G\ :sub:`12high`\ (bits 5--0)
++      - R\ :sub:`13high`
++    * - start + 10:
++      - B\ :sub:`20low`
++      - G\ :sub:`21low` \ (bits 7--2) B\ :sub:`20high`\ (bits 1--0)
++      - B\ :sub:`22low` \ (bits 7--4) G\ :sub:`21high`\ (bits 3--0)
++      - G\ :sub:`23low` \ (bits 7--6) B\ :sub:`22high`\ (bits 5--0)
++      - G\ :sub:`23high`
++    * - start + 15:
++      - G\ :sub:`30low`
++      - R\ :sub:`31low` \ (bits 7--2) G\ :sub:`30high`\ (bits 1--0)
++      - G\ :sub:`32low` \ (bits 7--4) R\ :sub:`31high`\ (bits 3--0)
++      - R\ :sub:`33low` \ (bits 7--6) G\ :sub:`32high`\ (bits 5--0)
++      - R\ :sub:`33high`
++
++.. raw:: latex
++
++    \end{adjustbox}\newline\newline
 -- 
-2.1.4
+2.7.4
