@@ -1,143 +1,476 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56193 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752290AbdDLN6K (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46242 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1165625AbdD2WVt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Apr 2017 09:58:10 -0400
-Subject: Re: Looking for device driver advice
-To: Patrick Doyle <wpdster@gmail.com>
-References: <CAF_dkJAwwj0mpOztkTNTrDC1YQkgh=HvZGh=tv3SYsuvUzTb+g@mail.gmail.com>
- <2ea495f2-022d-a9ee-11a0-28fbcba5db57@xs4all.nl>
- <CAF_dkJCqcVuSsey697OkA6-E563qEr=fYFWM26V1ZOSdnu4RGQ@mail.gmail.com>
-Cc: linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7f1ddce2-e3b9-97d2-d816-55f47c76d087@xs4all.nl>
-Date: Wed, 12 Apr 2017 15:58:05 +0200
+        Sat, 29 Apr 2017 18:21:49 -0400
+Date: Sun, 30 Apr 2017 01:21:41 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Subject: Re: [PATCH v8 05/10] media: venus: adding core part and helper
+ functions
+Message-ID: <20170429222141.GK7456@valkosipuli.retiisi.org.uk>
+References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1493370837-19793-6-git-send-email-stanimir.varbanov@linaro.org>
 MIME-Version: 1.0
-In-Reply-To: <CAF_dkJCqcVuSsey697OkA6-E563qEr=fYFWM26V1ZOSdnu4RGQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1493370837-19793-6-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/12/2017 03:13 PM, Patrick Doyle wrote:
-> Thank you Hans,
-> I can modify (or work with Atmel/Microchip to have modified) the
-> atmel-isc driver, so I that's not an issue.
+Hi, Stan!!
+
+On Fri, Apr 28, 2017 at 12:13:52PM +0300, Stanimir Varbanov wrote:
+...
+> +int helper_get_bufreq(struct venus_inst *inst, u32 type,
+> +		      struct hfi_buffer_requirements *req)
+> +{
+> +	u32 ptype = HFI_PROPERTY_CONFIG_BUFFER_REQUIREMENTS;
+> +	union hfi_get_property hprop;
+> +	int ret, i;
+
+unsigned int i ? It's an array index...
+
+> +
+> +	if (req)
+> +		memset(req, 0, sizeof(*req));
+> +
+> +	ret = hfi_session_get_property(inst, ptype, &hprop);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = -EINVAL;
+> +
+> +	for (i = 0; i < HFI_BUFFER_TYPE_MAX; i++) {
+> +		if (hprop.bufreq[i].type != type)
+> +			continue;
+> +
+> +		if (req)
+> +			memcpy(req, &hprop.bufreq[i], sizeof(*req));
+> +		ret = 0;
+> +		break;
+> +	}
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(helper_get_bufreq);
+
+As these are global symbols but still specific to a single driver, it'd be
+good to have them prefixed with a common prefix. How about "venus"? You
+actually already have that in a macro in the header. :-)
+
+> +
+> +int helper_set_input_resolution(struct venus_inst *inst, unsigned int width,
+> +				unsigned int height)
+> +{
+> +	u32 ptype = HFI_PROPERTY_PARAM_FRAME_SIZE;
+> +	struct hfi_framesize fs;
+> +
+> +	fs.buffer_type = HFI_BUFFER_INPUT;
+> +	fs.width = width;
+> +	fs.height = height;
+> +
+> +	return hfi_session_set_property(inst, ptype, &fs);
+> +}
+> +EXPORT_SYMBOL_GPL(helper_set_input_resolution);
+> +
+> +int helper_set_output_resolution(struct venus_inst *inst, unsigned int width,
+> +				 unsigned int height)
+> +{
+> +	u32 ptype = HFI_PROPERTY_PARAM_FRAME_SIZE;
+> +	struct hfi_framesize fs;
+> +
+> +	fs.buffer_type = HFI_BUFFER_OUTPUT;
+> +	fs.width = width;
+> +	fs.height = height;
+> +
+> +	return hfi_session_set_property(inst, ptype, &fs);
+> +}
+> +EXPORT_SYMBOL_GPL(helper_set_output_resolution);
+> +
+> +int helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+> +			unsigned int output_bufs)
+> +{
+> +	u32 ptype = HFI_PROPERTY_PARAM_BUFFER_COUNT_ACTUAL;
+> +	struct hfi_buffer_count_actual buf_count;
+> +	int ret;
+> +
+> +	buf_count.type = HFI_BUFFER_INPUT;
+> +	buf_count.count_actual = input_bufs;
+> +
+> +	ret = hfi_session_set_property(inst, ptype, &buf_count);
+> +	if (ret)
+> +		return ret;
+> +
+> +	buf_count.type = HFI_BUFFER_OUTPUT;
+> +	buf_count.count_actual = output_bufs;
+> +
+> +	return hfi_session_set_property(inst, ptype, &buf_count);
+> +}
+> +EXPORT_SYMBOL_GPL(helper_set_num_bufs);
+> +
+> +int helper_set_color_format(struct venus_inst *inst, u32 pixfmt)
+> +{
+> +	struct hfi_uncompressed_format_select fmt;
+> +	u32 ptype = HFI_PROPERTY_PARAM_UNCOMPRESSED_FORMAT_SELECT;
+> +	int ret;
+> +
+> +	if (inst->session_type == VIDC_SESSION_TYPE_DEC)
+> +		fmt.buffer_type = HFI_BUFFER_OUTPUT;
+> +	else if (inst->session_type == VIDC_SESSION_TYPE_ENC)
+> +		fmt.buffer_type = HFI_BUFFER_INPUT;
+> +	else
+> +		return -EINVAL;
+> +
+> +	switch (pixfmt) {
+> +	case V4L2_PIX_FMT_NV12:
+> +		fmt.format = HFI_COLOR_FORMAT_NV12;
+> +		break;
+> +	case V4L2_PIX_FMT_NV21:
+> +		fmt.format = HFI_COLOR_FORMAT_NV21;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	ret = hfi_session_set_property(inst, ptype, &fmt);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(helper_set_color_format);
+> +
+> +static void delayed_process_buf_func(struct work_struct *work)
+> +{
+> +	struct venus_buffer *buf, *n;
+> +	struct venus_inst *inst;
+> +	int ret;
+> +
+> +	inst = container_of(work, struct venus_inst, delayed_process_work);
+> +
+> +	mutex_lock(&inst->lock);
+> +
+> +	if (!(inst->streamon_out & inst->streamon_cap))
+> +		goto unlock;
+> +
+> +	list_for_each_entry_safe(buf, n, &inst->delayed_process, ref_list) {
+> +		if (buf->flags & HFI_BUFFERFLAG_READONLY)
+> +			continue;
+> +
+> +		ret = session_process_buf(inst, &buf->vb);
+> +		if (ret)
+> +			return_buf_error(inst, &buf->vb);
+> +
+> +		list_del_init(&buf->ref_list);
+> +	}
+> +unlock:
+> +	mutex_unlock(&inst->lock);
+> +}
+> +
+> +void helper_release_buf_ref(struct venus_inst *inst, unsigned int idx)
+> +{
+> +	struct venus_buffer *buf;
+> +
+> +	list_for_each_entry(buf, &inst->registeredbufs, reg_list) {
+> +		if (buf->vb.vb2_buf.index == idx) {
+> +			buf->flags &= ~HFI_BUFFERFLAG_READONLY;
+> +			schedule_work(&inst->delayed_process_work);
+> +			break;
+> +		}
+> +	}
+> +}
+> +EXPORT_SYMBOL_GPL(helper_release_buf_ref);
+> +
+> +void helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf)
+> +{
+> +	struct venus_buffer *buf = to_venus_buffer(vbuf);
+> +
+> +	buf->flags |= HFI_BUFFERFLAG_READONLY;
+> +}
+> +EXPORT_SYMBOL_GPL(helper_acquire_buf_ref);
+> +
+> +static int is_buf_refed(struct venus_inst *inst, struct vb2_v4l2_buffer *vbuf)
+> +{
+> +	struct venus_buffer *buf = to_venus_buffer(vbuf);
+> +
+> +	if (buf->flags & HFI_BUFFERFLAG_READONLY) {
+> +		list_add_tail(&buf->ref_list, &inst->delayed_process);
+> +		schedule_work(&inst->delayed_process_work);
+> +		return 1;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +struct vb2_v4l2_buffer *
+> +helper_find_buf(struct venus_inst *inst, unsigned int type, u32 idx)
+> +{
+> +	struct v4l2_m2m_ctx *m2m_ctx = inst->m2m_ctx;
+> +
+> +	if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		return v4l2_m2m_src_buf_remove_by_idx(m2m_ctx, idx);
+> +	else
+> +		return v4l2_m2m_dst_buf_remove_by_idx(m2m_ctx, idx);
+> +}
+> +EXPORT_SYMBOL_GPL(helper_find_buf);
+> +
+> +int helper_vb2_buf_init(struct vb2_buffer *vb)
+> +{
+> +	struct venus_inst *inst = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> +	struct venus_buffer *buf = to_venus_buffer(vbuf);
+> +	struct sg_table *sgt;
+> +
+> +	sgt = vb2_dma_sg_plane_desc(vb, 0);
+> +	if (!sgt)
+> +		return -EFAULT;
+> +
+> +	buf->size = vb2_plane_size(vb, 0);
+> +	buf->dma_addr = sg_dma_address(sgt->sgl);
+> +
+> +	if (vb->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +		list_add_tail(&buf->reg_list, &inst->registeredbufs);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(helper_vb2_buf_init);
+> +
+> +int helper_vb2_buf_prepare(struct vb2_buffer *vb)
+> +{
+> +	struct venus_inst *inst = vb2_get_drv_priv(vb->vb2_queue);
+> +
+> +	if (vb->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
+> +	    vb2_plane_size(vb, 0) < inst->output_buf_size)
+> +		return -EINVAL;
+> +	if (vb->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE &&
+> +	    vb2_plane_size(vb, 0) < inst->input_buf_size)
+> +		return -EINVAL;
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(helper_vb2_buf_prepare);
+> +
+> +void helper_vb2_buf_queue(struct vb2_buffer *vb)
+> +{
+> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> +	struct venus_inst *inst = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct v4l2_m2m_ctx *m2m_ctx = inst->m2m_ctx;
+> +	int ret;
+> +
+> +	mutex_lock(&inst->lock);
+> +
+> +	if (inst->cmd_stop) {
+> +		vbuf->flags |= V4L2_BUF_FLAG_LAST;
+> +		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_DONE);
+> +		inst->cmd_stop = false;
+> +		goto unlock;
+> +	}
+> +
+> +	v4l2_m2m_buf_queue(m2m_ctx, vbuf);
+> +
+> +	if (!(inst->streamon_out & inst->streamon_cap))
+> +		goto unlock;
+> +
+> +	ret = is_buf_refed(inst, vbuf);
+> +	if (ret)
+> +		goto unlock;
+> +
+> +	ret = session_process_buf(inst, vbuf);
+> +	if (ret)
+> +		return_buf_error(inst, vbuf);
+> +
+> +unlock:
+> +	mutex_unlock(&inst->lock);
+> +}
+> +EXPORT_SYMBOL_GPL(helper_vb2_buf_queue);
+> +
+> +void helper_buffers_done(struct venus_inst *inst, enum vb2_buffer_state state)
+> +{
+> +	struct vb2_v4l2_buffer *buf;
+> +
+> +	while ((buf = v4l2_m2m_src_buf_remove(inst->m2m_ctx)))
+> +		v4l2_m2m_buf_done(buf, state);
+> +	while ((buf = v4l2_m2m_dst_buf_remove(inst->m2m_ctx)))
+> +		v4l2_m2m_buf_done(buf, state);
+> +}
+> +EXPORT_SYMBOL_GPL(helper_buffers_done);
+> +
+> +void helper_vb2_stop_streaming(struct vb2_queue *q)
+> +{
+> +	struct venus_inst *inst = vb2_get_drv_priv(q);
+> +	struct venus_core *core = inst->core;
+> +	int ret;
+> +
+> +	mutex_lock(&inst->lock);
+> +
+> +	if (inst->streamon_out & inst->streamon_cap) {
+> +		ret = hfi_session_stop(inst);
+> +		ret |= hfi_session_unload_res(inst);
+> +		ret |= session_unregister_bufs(inst);
+> +		ret |= intbufs_free(inst);
+> +		ret |= hfi_session_deinit(inst);
+> +
+> +		if (inst->session_error || core->sys_error)
+> +			ret = -EIO;
+> +
+> +		if (ret)
+> +			hfi_session_abort(inst);
+> +
+> +		load_scale_clocks(core);
+> +	}
+> +
+> +	helper_buffers_done(inst, VB2_BUF_STATE_ERROR);
+> +
+> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		inst->streamon_out = 0;
+> +	else
+> +		inst->streamon_cap = 0;
+> +
+> +	mutex_unlock(&inst->lock);
+> +}
+> +EXPORT_SYMBOL_GPL(helper_vb2_stop_streaming);
+> +
+> +int helper_vb2_start_streaming(struct venus_inst *inst)
+> +{
+> +	struct venus_core *core = inst->core;
+> +	int ret;
+> +
+> +	ret = intbufs_alloc(inst);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = session_register_bufs(inst);
+> +	if (ret)
+> +		goto err_bufs_free;
+> +
+> +	load_scale_clocks(core);
+> +
+> +	ret = hfi_session_load_res(inst);
+> +	if (ret)
+> +		goto err_unreg_bufs;
+> +
+> +	ret = hfi_session_start(inst);
+> +	if (ret)
+> +		goto err_unload_res;
+> +
+> +	return 0;
+> +
+> +err_unload_res:
+> +	hfi_session_unload_res(inst);
+> +err_unreg_bufs:
+> +	session_unregister_bufs(inst);
+> +err_bufs_free:
+> +	intbufs_free(inst);
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(helper_vb2_start_streaming);
+> +
+> +void helper_m2m_device_run(void *priv)
+> +{
+> +	struct venus_inst *inst = priv;
+> +	struct v4l2_m2m_ctx *m2m_ctx = inst->m2m_ctx;
+> +	struct v4l2_m2m_buffer *buf, *n;
+> +	int ret;
+> +
+> +	mutex_lock(&inst->lock);
+> +
+> +	v4l2_m2m_for_each_dst_buf_safe(m2m_ctx, buf, n) {
+> +		ret = session_process_buf(inst, &buf->vb);
+> +		if (ret)
+> +			return_buf_error(inst, &buf->vb);
+> +	}
+> +
+> +	v4l2_m2m_for_each_src_buf_safe(m2m_ctx, buf, n) {
+> +		ret = session_process_buf(inst, &buf->vb);
+> +		if (ret)
+> +			return_buf_error(inst, &buf->vb);
+> +	}
+> +
+> +	mutex_unlock(&inst->lock);
+> +}
+> +EXPORT_SYMBOL_GPL(helper_m2m_device_run);
+> +
+> +void helper_m2m_job_abort(void *priv)
+> +{
+> +	struct venus_inst *inst = priv;
+> +
+> +	v4l2_m2m_job_finish(inst->m2m_dev, inst->m2m_ctx);
+> +}
+> +EXPORT_SYMBOL_GPL(helper_m2m_job_abort);
+> +
+> +void helper_init_instance(struct venus_inst *inst)
+> +{
+> +	if (inst->session_type == VIDC_SESSION_TYPE_DEC) {
+> +		INIT_LIST_HEAD(&inst->delayed_process);
+> +		INIT_WORK(&inst->delayed_process_work,
+> +			  delayed_process_buf_func);
+> +	}
+> +}
+> +EXPORT_SYMBOL_GPL(helper_init_instance);
+> diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
+> new file mode 100644
+> index 000000000000..1ff5005b5add
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/venus/helpers.h
+> @@ -0,0 +1,44 @@
+> +/*
+> + * Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
+> + * Copyright (C) 2017 Linaro Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + */
+> +#ifndef __VENUS_HELPERS_H__
+> +#define __VENUS_HELPERS_H__
+> +
+> +#include <media/videobuf2-v4l2.h>
+> +
+> +struct venus_inst;
+> +
+> +struct vb2_v4l2_buffer *helper_find_buf(struct venus_inst *inst,
+> +					unsigned int type, u32 idx);
+> +void helper_buffers_done(struct venus_inst *inst, enum vb2_buffer_state state);
+> +int helper_vb2_buf_init(struct vb2_buffer *vb);
+> +int helper_vb2_buf_prepare(struct vb2_buffer *vb);
+> +void helper_vb2_buf_queue(struct vb2_buffer *vb);
+> +void helper_vb2_stop_streaming(struct vb2_queue *q);
+> +int helper_vb2_start_streaming(struct venus_inst *inst);
+> +void helper_m2m_device_run(void *priv);
+> +void helper_m2m_job_abort(void *priv);
+> +int helper_get_bufreq(struct venus_inst *inst, u32 type,
+> +		      struct hfi_buffer_requirements *req);
+> +int helper_set_input_resolution(struct venus_inst *inst, unsigned int width,
+> +				unsigned int height);
+> +int helper_set_output_resolution(struct venus_inst *inst, unsigned int width,
+> +				 unsigned int height);
+> +int helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+> +			unsigned int output_bufs);
+> +int helper_set_color_format(struct venus_inst *inst, u32 fmt);
+> +void helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
+> +void helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
+> +void helper_init_instance(struct venus_inst *inst);
+> +#endif
 > 
-> With your feedback, I now have a target implementation to which I can aim.
-> 
-> For now, I'll be happy when I can get any image at all through my
-> pipeline... wish me luck! :-)
-> 
-> On a similar vein... the image is much higher resolution than I need
-> at the moment, so I will need to downsample it.
-> 
-> The SAMA5 has a downsampler built into its LCD engine.  Suppose I
-> wanted to treat that downsampler as an independent device and pass
-> image buffers through that downsampler (the LCD display output is
-> disabled in hardware when the device is configured in this mode)....
-> do you have any recommendations as to how I might structure a device
-> driver to do that.  At it's core, it would DMA a buffer from memory,
-> through the downsampler, and back into memory.  Is that something I
-> might also wire in as a pseudo-subdev of the ISC?  Or is there a
-> better abstraction for arbitrary image processing pipeline elements?
 
-I think this is out of scope of V4L2. Check with Atmel/Microchip.
+-- 
+Kind regards,
 
-> 
-> Oh yeah, and speaking about arbitrary image processing pipeline
-> elements, the Atmel ISC has a number of elements that could be enabled
-> (but are not currently supported by the driver).  Is there a model to
-> follow to enable features such as demosaicing, color space conversion,
-> gamma correction, 4:2:2 to 4:2:0 downsampling, etc...
-
-As far as I can see it already has support for colorspace conversion (I
-presume you mean Bayer to YUV or RGB conversions) and ditto for 4:2:2 and
-4:2:0. I see a gamma control as well.
-
-Anyway, this is best discussed with your Atmel/Microchip contact.
-
-Ah, I checked, this isn't upstream yet until kernel 4.12. It is in our
-repo: https://git.linuxtv.org/media_tree.git/ in the master branch which
-will feed into the mainline kernel.
-
-> All of this is on the list of things that I need to get working... by
-> next Tuesday ideally :-)
-> (No, it's not really "next Tuesday", but you get the idea.)
-
-Well, copying the atmel-isc code from our repo should help a lot :-)
-
-Regards,
-
-	Hans
-
-> 
-> --wpd
-> 
-> 
-> On Wed, Apr 12, 2017 at 7:37 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Hi Patrick,
->>
->> On 04/10/2017 10:13 PM, Patrick Doyle wrote:
->>> I am looking for advice regarding the construction of a device driver
->>> for a MIPI CSI2 imager (a Sony IMX241) that is connected to a
->>> MIPI<->Parallel converter (Toshiba TC358748) wired into a parallel
->>> interface on a Soc (a Microchip/Atmel SAMAD2x device.)
->>>
->>> The Sony imager is controlled and configured via I2C, as is the
->>> Toshiba converter.  I could write a single driver that configures both
->>> devices and treats them as a single device that just happens to use 2
->>> i2c addresses.  I could use the i2c_new_dummy() API to construct the
->>> device abstraction for the second physical device at probe time for
->>> the first physical device.
->>>
->>> Or I could do something smarter (or at least different), specifying
->>> the two devices independently via my device tree file, perhaps linking
->>> them together via "port" nodes.  Currently, I use the "port" node
->>> concept to link an i2c imager to the Image System Controller (isc)
->>> node in the SAMA5 device.  Perhaps that generalizes to a chain of
->>> nodes linked together... I don't know.
->>
->> That would be the right solution. Unfortunately the atmel-isc.c driver
->> (at least the version in the mainline kernel) only supports a single
->> subdev device. At least, as far as I can see.
->>
->> What you have is a video pipeline of 2 subdevs and the atmel-isc as DMA
->> engine:
->>
->> imx241 -> tc358748 -> atmel-isc
->>
->> connected in the device tree by ports.
->>
->> Looking at the code I think both subdev drivers would be loaded, but
->> the atmel-isc driver would only call ops from the tc358748.
->>
->> The v4l2_subdev_call functions in atmel-isc should most likely be replaced
->> by v4l2_device_call_all().
->>
->> But I don't have the tc358748 datasheet with the register information, so
->> I am not sure if this is sufficient.
->>
->>> I'm also not sure how these two devices might play into V4L2's
->>> "subdev" concept.  Are they separate, independent sub devices of the
->>> ISC, or are they a single sub device.
->>
->> subdev drivers are standalone drivers for, among others, i2c devices. The
->> top-level driver (atmel-isc + the device tree) is what pulls everything together.
->>
->> This allows us to reuse such subdev drivers on other devices.
->>
->> Regards,
->>
->>         Hans
->>
->>>
->>> Any thoughts, intuition, pointers to existing code that addresses
->>> questions such as these, would be welcome.
->>>
->>> Thanks.
->>>
->>> --wpd
->>>
->>
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
