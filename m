@@ -1,79 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f175.google.com ([209.85.216.175]:34412 "EHLO
-        mail-qt0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937689AbdDSUrG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Apr 2017 16:47:06 -0400
-Received: by mail-qt0-f175.google.com with SMTP id c45so30140558qtb.1
-        for <linux-media@vger.kernel.org>; Wed, 19 Apr 2017 13:47:06 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH]  cx88: Fix regression in initial video standard setting
-Date: Wed, 19 Apr 2017 16:46:51 -0400
-Message-Id: <1492634811-4435-1-git-send-email-dheitmueller@kernellabs.com>
+Received: from mga07.intel.com ([134.134.136.100]:43999 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S936774AbdD2XfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 29 Apr 2017 19:35:06 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com, Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH 1/3] [media] videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
+Date: Sat, 29 Apr 2017 18:34:34 -0500
+Message-Id: <2c2cbc1df3f81dba37e7bd31c3d23fd2df2295af.1493479141.git.yong.zhi@intel.com>
+In-Reply-To: <cover.1493479141.git.yong.zhi@intel.com>
+References: <cover.1493479141.git.yong.zhi@intel.com>
+In-Reply-To: <cover.1493479141.git.yong.zhi@intel.com>
+References: <cover.1493479141.git.yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Setting initial standard at the top of cx8800_initdev would cause the
-first call to cx88_set_tvnorm() to return without programming any
-registers (leaving the driver saying it's set to NTSC but the hardware
-isn't programmed).  Even worse, any subsequent attempt to explicitly
-set it to NTSC-M will return success but actually fail to program the
-underlying registers unless first changing the standard to something
-other than NTSC-M.
+Add IPU3 specific formats:
 
-Set the initial standard later in the process, and make sure the field
-is zero at the beginning to ensure that the call always goes through.
+    V4L2_PIX_FMT_IPU3_SBGGR10
+    V4L2_PIX_FMT_IPU3_SGBRG10
+    V4L2_PIX_FMT_IPU3_SGRBG10
+    V4L2_PIX_FMT_IPU3_SRGGB10
 
-This regression was introduced in the following commit:
-
-commit ccd6f1d488e7 ("[media] cx88: move width, height and field to core
-struct")
-
-Author: Hans Verkuil <hans.verkuil@cisco.com>
-Date:   Sat Sep 20 09:23:44 2014 -0300
-
-[media] cx88: move width, height and field to core struct
-
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 ---
- drivers/media/pci/cx88/cx88-cards.c | 9 ++++++++-
- drivers/media/pci/cx88/cx88-video.c | 2 +-
- 2 files changed, 9 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
+ include/uapi/linux/videodev2.h       | 4 ++++
+ 2 files changed, 8 insertions(+)
 
-diff --git a/drivers/media/pci/cx88/cx88-cards.c b/drivers/media/pci/cx88/cx88-cards.c
-index 73cc7a6..b7a8c8c 100644
---- a/drivers/media/pci/cx88/cx88-cards.c
-+++ b/drivers/media/pci/cx88/cx88-cards.c
-@@ -3681,7 +3681,14 @@ struct cx88_core *cx88_core_create(struct pci_dev *pci, int nr)
- 	core->nr = nr;
- 	sprintf(core->name, "cx88[%d]", core->nr);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index e5a2187..fb1387f 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1202,6 +1202,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_SGBRG10P:	descr = "10-bit Bayer GBGB/RGRG Packed"; break;
+ 	case V4L2_PIX_FMT_SGRBG10P:	descr = "10-bit Bayer GRGR/BGBG Packed"; break;
+ 	case V4L2_PIX_FMT_SRGGB10P:	descr = "10-bit Bayer RGRG/GBGB Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SBGGR10: descr = "10-bit bayer BGGR IPU3 Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SGBRG10: descr = "10-bit bayer GBRG IPU3 Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SGRBG10: descr = "10-bit bayer GRBG IPU3 Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SRGGB10: descr = "10-bit bayer RGGB IPU3 Packed"; break;
+ 	case V4L2_PIX_FMT_SBGGR10ALAW8:	descr = "8-bit Bayer BGBG/GRGR (A-law)"; break;
+ 	case V4L2_PIX_FMT_SGBRG10ALAW8:	descr = "8-bit Bayer GBGB/RGRG (A-law)"; break;
+ 	case V4L2_PIX_FMT_SGRBG10ALAW8:	descr = "8-bit Bayer GRGR/BGBG (A-law)"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 2b8feb8..7dddbc9 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -662,6 +662,10 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
+ #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
+ #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
++#define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
++#define V4L2_PIX_FMT_IPU3_SGBRG10	v4l2_fourcc('i', 'p', '3', 'g') /* IPU3 packed 10-bit GBRG bayer */
++#define V4L2_PIX_FMT_IPU3_SGRBG10	v4l2_fourcc('i', 'p', '3', 'G') /* IPU3 packed 10-bit GRBG bayer */
++#define V4L2_PIX_FMT_IPU3_SRGGB10	v4l2_fourcc('i', 'p', '3', 'r') /* IPU3 packed 10-bit RGGB bayer */
  
--	core->tvnorm = V4L2_STD_NTSC_M;
-+	/*
-+	 * Note: Setting initial standard here would cause first call to
-+	 * cx88_set_tvnorm() to return without programming any registers.  Leave
-+	 * it blank for at this point and it will get set later in
-+	 * cx8800_inittdev()
-+	 */
-+	core->tvnorm  = 0;
-+
- 	core->width   = 320;
- 	core->height  = 240;
- 	core->field   = V4L2_FIELD_INTERLACED;
-diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
-index c7d4e87..3c529dd 100644
---- a/drivers/media/pci/cx88/cx88-video.c
-+++ b/drivers/media/pci/cx88/cx88-video.c
-@@ -1435,7 +1435,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
- 
- 	/* initial device configuration */
- 	mutex_lock(&core->lock);
--	cx88_set_tvnorm(core, core->tvnorm);
-+	cx88_set_tvnorm(core, V4L2_STD_NTSC_M);
- 	v4l2_ctrl_handler_setup(&core->video_hdl);
- 	v4l2_ctrl_handler_setup(&core->audio_hdl);
- 	cx88_video_mux(core, 0);
+ /* SDR formats - used only for Software Defined Radio devices */
+ #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
 -- 
-1.9.1
+2.7.4
