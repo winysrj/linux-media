@@ -1,78 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.211]:45070 "EHLO newverein.lst.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751950AbdD0Gxl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Apr 2017 02:53:41 -0400
-Date: Thu, 27 Apr 2017 08:53:38 +0200
-From: Christoph Hellwig <hch@lst.de>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-        linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com,
-        sparmaintainer@unisys.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, dm-devel@redhat.com,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Stephen Bates <sbates@raithlin.com>
-Subject: Re: [PATCH v2 01/21] scatterlist: Introduce sg_map helper functions
-Message-ID: <20170427065338.GA20677@lst.de>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com> <1493144468-22493-2-git-send-email-logang@deltatee.com> <20170426074416.GA7936@lst.de> <4736d44e-bbcf-5d59-a1a9-317d0f4da847@deltatee.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4736d44e-bbcf-5d59-a1a9-317d0f4da847@deltatee.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53530 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751754AbdD2EH5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 29 Apr 2017 00:07:57 -0400
+Message-ID: <5f930be0e312ab91d8e6928885894c27@smtp-cloud2.xs4all.net>
+Date: Sat, 29 Apr 2017 06:07:54 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 26, 2017 at 12:11:33PM -0600, Logan Gunthorpe wrote:
-> Ok, well for starters I think you are mistaken about kmap being able to
-> fail. I'm having a hard time finding many users of that function that
-> bother to check for an error when calling it.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-A quick audit of the arch code shows you're right - kmap can't fail
-anywhere anymore.
+Results of the daily build of media_tree:
 
-> The main difficulty we
-> have now is that neither of those functions are expected to fail and we
-> need them to be able to in cases where the page doesn't map to system
-> RAM. This patch series is trying to address it for users of scatterlist.
-> I'm certainly open to other suggestions.
+date:			Sat Apr 29 05:00:17 CEST 2017
+media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
+media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
+v4l-utils git hash:	847bf8d62cd6b11defc1e4c3b30b68d3c66876e0
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-I think you'll need to follow the existing kmap semantics and never
-fail the iomem version either.  Otherwise you'll have a special case
-that's almost never used that has a different error path.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10.1-i686: OK
+linux-4.11-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-x86_64: WARNINGS
+linux-4.10.1-x86_64: WARNINGS
+linux-4.11-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-> There are a fair number of cases in the kernel that do something like:
-> 
-> if (something)
->     x = kmap(page);
-> else
->     x = kmap_atomic(page);
-> ...
-> if (something)
->     kunmap(page)
-> else
->     kunmap_atomic(x)
-> 
-> Which just seems cumbersome to me.
+Detailed results are available here:
 
-Passing a different flag based on something isn't really much better.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-> In any case, if you can accept an sg_kmap and sg_kmap_atomic api just
-> say so and I'll make the change. But I'll still need a flags variable
-> for SG_MAP_MUST_NOT_FAIL to support legacy cases that have no fail path
-> and both of those functions will need to be pretty nearly replicas of
-> each other.
+Full logs are available here:
 
-Again, wrong way.  Suddenly making things fail for your special case
-that normally don't fail is a receipe for bugs.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
