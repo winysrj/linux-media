@@ -1,56 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:33824 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753248AbdDGGBi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Apr 2017 02:01:38 -0400
-Date: Fri, 7 Apr 2017 14:57:23 +0900
-From: Daeseok Youn <daeseok.youn@gmail.com>
-To: mchehab@kernel.org
-Cc: gregkh@linuxfoundation.org, daeseok.youn@gmail.com,
-        alan@linux.intel.com, dan.carpenter@oracle.com,
-        singhalsimran0@gmail.com, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Subject: [PATCH 3/3] staging: atomisp: move mipi_info assignment to next line
- in __get_asd_from_port()
-Message-ID: <20170407055702.GA32406@SEL-JYOUN-D1>
+Received: from vader.hardeman.nu ([95.142.160.32]:35733 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1948352AbdD2KDd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 29 Apr 2017 06:03:33 -0400
+Subject: [PATCH] rc-core: export the hardware type to sysfs
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Sat, 29 Apr 2017 12:03:29 +0200
+Message-ID: <149346020957.4157.4374621534433639100.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The line which is initializing mipi_info variable is too long
-to read. It would be placed in next line.
+Exporting the hardware type makes it possible for userspace applications
+to know what to expect from the hardware.
 
-Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+This makes it possible to write more user-friendly userspace apps.
+
+Note that the size of sysfs_groups[] in struct rc_dev is not changed
+by this patch because it was already large enough for one more group.
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
-This series of patches are related to previous patches:
-[1] https://lkml.org/lkml/2017/3/27/159
-[2] https://lkml.org/lkml/2017/3/30/1068
-[3] https://lkml.org/lkml/2017/3/30/1069
+ drivers/media/rc/rc-main.c |   43 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-index 4af76b5..2208477 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-@@ -532,9 +532,11 @@ static void clear_irq_reg(struct atomisp_device *isp)
- 	/* Check which isp subdev to send eof */
- 	for (i = 0; i < isp->num_of_streams; i++) {
- 		struct atomisp_sub_device *asd = &isp->asd[i];
--		struct camera_mipi_info *mipi_info =
--				atomisp_to_sensor_mipi_info(
--					isp->inputs[asd->input_curr].camera);
-+		struct camera_mipi_info *mipi_info;
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 85f95441b85b..e0f9b322ab02 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1294,6 +1294,38 @@ static ssize_t store_protocols(struct device *device,
+ }
+ 
+ /**
++ * show_hwtype() - shows the hardware type in sysfs
++ * @device:	the &struct device descriptor
++ * @attr:	the &struct device_attribute
++ * @buf:	a pointer to the output buffer
++ *
++ * This callback function is used to get the hardware type of an rc device.
++ * It is triggered by reading /sys/class/rc/rc?/hwtype.
++ *
++ * Return: the number of bytes read or a negative error code.
++ */
++static ssize_t show_hwtype(struct device *device,
++			   struct device_attribute *attr,
++			   char *buf)
++{
++	struct rc_dev *dev = to_rc_dev(device);
 +
-+		mipi_info = atomisp_to_sensor_mipi_info(
-+				isp->inputs[asd->input_curr].camera);
++	switch (dev->driver_type) {
++	case RC_DRIVER_SCANCODE:
++		return sprintf(buf, "scancode\n");
++	case RC_DRIVER_IR_RAW_TX:
++		return sprintf(buf, "ir-tx\n");
++	case RC_DRIVER_IR_RAW:
++		if (dev->tx_ir)
++			return sprintf(buf, "ir-tx-rx\n");
++		else
++			return sprintf(buf, "ir-rx\n");
++	default:
++		return sprintf(buf, "<unknown>\n");
++	}
++}
 +
- 		if (asd->streaming == ATOMISP_DEVICE_STREAMING_ENABLED &&
- 		    __get_mipi_port(isp, mipi_info->port) == port) {
- 			return asd;
--- 
-1.9.1
++/**
+  * show_filter() - shows the current scancode filter value or mask
+  * @device:	the device descriptor
+  * @attr:	the device attribute struct
+@@ -1613,6 +1645,7 @@ static int rc_dev_uevent(struct device *device, struct kobj_uevent_env *env)
+  * Static device attribute struct with the sysfs attributes for IR's
+  */
+ static DEVICE_ATTR(protocols, 0644, show_protocols, store_protocols);
++static DEVICE_ATTR(hwtype, 0444, show_hwtype, NULL);
+ static DEVICE_ATTR(wakeup_protocols, 0644, show_wakeup_protocols,
+ 		   store_wakeup_protocols);
+ static RC_FILTER_ATTR(filter, S_IRUGO|S_IWUSR,
+@@ -1633,6 +1666,15 @@ static struct attribute_group rc_dev_protocol_attr_grp = {
+ 	.attrs	= rc_dev_protocol_attrs,
+ };
+ 
++static struct attribute *rc_dev_hwtype_attrs[] = {
++	&dev_attr_hwtype.attr,
++	NULL,
++};
++
++static struct attribute_group rc_dev_hwtype_attr_grp = {
++	.attrs = rc_dev_hwtype_attrs,
++};
++
+ static struct attribute *rc_dev_filter_attrs[] = {
+ 	&dev_attr_filter.attr.attr,
+ 	&dev_attr_filter_mask.attr.attr,
+@@ -1863,6 +1905,7 @@ int rc_register_device(struct rc_dev *dev)
+ 		dev->sysfs_groups[attr++] = &rc_dev_filter_attr_grp;
+ 	if (dev->s_wakeup_filter)
+ 		dev->sysfs_groups[attr++] = &rc_dev_wakeup_filter_attr_grp;
++	dev->sysfs_groups[attr++] = &rc_dev_hwtype_attr_grp;
+ 	dev->sysfs_groups[attr++] = NULL;
+ 
+ 	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
