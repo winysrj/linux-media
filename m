@@ -1,46 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53019
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752067AbdDIK4O (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Apr 2017 06:56:14 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] [media] vidioc-queryctrl.rst: fix menu/int menu references
-Date: Sun,  9 Apr 2017 07:56:08 -0300
-Message-Id: <c8027c4d4c667a0ff406261e948252a94d1c5e7b.1491735360.git.mchehab@s-opensource.com>
+Received: from mga05.intel.com ([192.55.52.43]:6557 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S936774AbdD2XfB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 29 Apr 2017 19:35:01 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com, Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH 0/3] [media] add IPU3 CIO2 CSI2 driver
+Date: Sat, 29 Apr 2017 18:34:33 -0500
+Message-Id: <cover.1493479141.git.yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The documentation incorrectly mentions MENU and INTEGER_MENU
-at struct v4l2_querymenu table as if they were flags. They're
-not: they're types.
+This patch adds the driver for the CIO2 device found in some the Skylake 
+and Kaby Kake SoCs. The CIO2 consists of four D-PHY receivers.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/vidioc-queryctrl.rst | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+The CIO2 driver exposes V4L2, V4L2 sub-device and Media controller 
+interfaces to the user space. It depends on Sakari's V4L2 fwnode 
+patchset here:
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-index 82769de801b1..80842983eb12 100644
---- a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-@@ -301,12 +301,12 @@ See also the examples in :ref:`control`.
-       - ``name``\ [32]
-       - Name of the menu item, a NUL-terminated ASCII string. This
- 	information is intended for the user. This field is valid for
--	``V4L2_CTRL_FLAG_MENU`` type controls.
-+	``V4L2_CTRL_TYPE_MENU`` type controls.
-     * -
-       - __s64
-       - ``value``
-       - Value of the integer menu item. This field is valid for
--	``V4L2_CTRL_FLAG_INTEGER_MENU`` type controls.
-+	``V4L2_CTRL_TYPE_INTEGER_MENU`` type controls.
-     * - __u32
-       -
-       - ``reserved``
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi>
+
+Yong Zhi (3):
+  [media] videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
+  [media] doc-rst: add IPU3 raw10 bayer pixel format definitions
+  [media] intel-ipu3: cio2: Add new MIPI-CSI2 driver
+
+ Documentation/media/uapi/v4l/pixfmt-rgb.rst        |    1 +
+ .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         |   61 +
+ drivers/media/pci/Kconfig                          |    2 +
+ drivers/media/pci/Makefile                         |    3 +-
+ drivers/media/pci/ipu3/Kconfig                     |   17 +
+ drivers/media/pci/ipu3/Makefile                    |    1 +
+ drivers/media/pci/ipu3/ipu3-cio2.c                 | 1813 ++++++++++++++++++++
+ drivers/media/pci/ipu3/ipu3-cio2.h                 |  425 +++++
+ drivers/media/v4l2-core/v4l2-ioctl.c               |    4 +
+ include/uapi/linux/videodev2.h                     |    4 +
+ 10 files changed, 2330 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+ create mode 100644 drivers/media/pci/ipu3/Kconfig
+ create mode 100644 drivers/media/pci/ipu3/Makefile
+ create mode 100644 drivers/media/pci/ipu3/ipu3-cio2.c
+ create mode 100644 drivers/media/pci/ipu3/ipu3-cio2.h
+
 -- 
-2.9.3
+2.7.4
