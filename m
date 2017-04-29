@@ -1,58 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59575
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752367AbdDCS1u (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Apr 2017 14:27:50 -0400
-Subject: Re: [RFC 03/10] [media] vb2: add in-fence support to QBUF
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-References: <20170313192035.29859-1-gustavo@padovan.org>
- <20170313192035.29859-4-gustavo@padovan.org>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Message-ID: <e961f869-9a4c-b68f-6379-1aea277648de@osg.samsung.com>
-Date: Mon, 3 Apr 2017 14:27:42 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44752 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1425851AbdD2JTW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 29 Apr 2017 05:19:22 -0400
+Date: Sat, 29 Apr 2017 11:19:19 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [patch] propagating controls in libv4l2 was Re: support
+ autofocus / autogain in libv4l2
+Message-ID: <20170429091919.GA14148@amd>
+References: <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20170414232332.63850d7b@vento.lan>
+ <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+ <20170419105118.72b8e284@vento.lan>
+ <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+ <20170426105300.GA857@amd>
+ <20170426082608.7dd52fbf@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <20170313192035.29859-4-gustavo@padovan.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="fdj2RfSjLxBAspz7"
+Content-Disposition: inline
+In-Reply-To: <20170426082608.7dd52fbf@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Gustavo,
 
-On 03/13/2017 04:20 PM, Gustavo Padovan wrote:
+--fdj2RfSjLxBAspz7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-[snip]
+Hi!
 
->  
->  int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  {
-> +	struct dma_fence *fence = NULL;
->  	int ret;
->  
->  	if (vb2_fileio_is_active(q)) {
-> @@ -565,7 +567,17 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  	}
->  
->  	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
-> -	return ret ? ret : vb2_core_qbuf(q, b->index, b);
-> +
-> +	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
-> +		if (b->memory != VB2_MEMORY_DMABUF)
-> +			return -EINVAL;
-> +
+> > +	devices[index].subdev_fds[0] =3D SYS_OPEN("/dev/video_sensor", O_RDWR=
+, 0);
+> > +	devices[index].subdev_fds[1] =3D SYS_OPEN("/dev/video_focus", O_RDWR,=
+ 0);
+> > +	devices[index].subdev_fds[2] =3D -1;
+>=20
+> Hardcoding names here is not a good idea. Ideally, it should open
+> the MC, using the newgen API, and parse the media graph.
+>=20
+> The problem is that, even with newgen API, without the properties API
+> you likely won't be able to write a generic parser. So, we need a
+> plugin specific for OMAP3 (or at least some database that would teach
+> a generic plugin about OMAP3 specifics).
+>=20
+> I guess that the approach that Jacek was taken were very close to what
+> a generic plugin would need:
+> 	https://lwn.net/Articles/619449/
+>=20
+> The last version of his patch set is here:
+> 	https://patchwork.linuxtv.org/patch/37496/
+>=20
+> I didn't review his patchset, but from what I saw, Sakari is the one
+> that found some issues on v7.1 patchset.
+>=20
+> Sakari,
+>=20
+> Could you shed us a light about why this patchset was not merged?
+>=20
+> Are there anything really bad at the code, or just minor issues that
+> could be fixed later?
+>=20
+> If it is the last case, perhaps we could merge the code, if this
+> would make easier for Pavel to work on a N9 solution using the
+> same approach.
 
-I wonder if is correct to check this. Only one side of the pipeline uses
-V4L2_MEMORY_DMABUF while the other uses V4L2_MEMORY_MMAP + VIDIOC_EXPBUF.
+It would be nice to get some solution here. Camera without libv4l
+support is pretty much useless :-(.
 
-So that means that fences can only be used in one direction?
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+--fdj2RfSjLxBAspz7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlkEWpYACgkQMOfwapXb+vKlJwCdEhmJUcv49Uhh8SkA4PoHlqW+
+/v8AnjQBrquXo+PtTCQdMR2aFuVZYAHS
+=/iGF
+-----END PGP SIGNATURE-----
+
+--fdj2RfSjLxBAspz7--
