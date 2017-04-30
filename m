@@ -1,87 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43776 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754039AbdERNvX (ORCPT
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:52579 "EHLO
+        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1946792AbdD3Q4k (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 09:51:23 -0400
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: mchehab@s-opensource.com, alan@linux.intel.com
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH 00/13] staging: media: atomisp queued up patches
-Date: Thu, 18 May 2017 15:50:09 +0200
-Message-Id: <20170518135022.6069-1-gregkh@linuxfoundation.org>
+        Sun, 30 Apr 2017 12:56:40 -0400
+Date: Sun, 30 Apr 2017 18:20:29 +0200
+From: Greg KH <greg@kroah.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: uvcvideo logging kernel warnings on device disconnect
+Message-ID: <20170430162029.GD27431@kroah.com>
+References: <ab3241e7-c525-d855-ecb6-ba04dbdb030f@destevenson.freeserve.co.uk>
+ <01726e81-bbc2-b9a0-b2f0-045e3208f7b2@destevenson.freeserve.co.uk>
+ <20161221095954.GG27395@kroah.com>
+ <8113252.R6OEHK1FMB@avalon>
+ <20170430161959.GC27431@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170430161959.GC27431@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Sun, Apr 30, 2017 at 06:19:59PM +0200, Greg KH wrote:
+> On Sun, Apr 16, 2017 at 02:11:31PM +0300, Laurent Pinchart wrote:
+> > Hi Greg,
+> > 
+> > On Wednesday 21 Dec 2016 10:59:54 Greg KH wrote:
+> > > On Tue, Dec 20, 2016 at 11:19:23AM +0000, Dave Stevenson wrote:
+> > > > On 09/12/16 09:43, Greg KH wrote:
+> > > >> On Fri, Dec 09, 2016 at 11:14:41AM +0200, Laurent Pinchart wrote:
+> > > >>> On Friday 09 Dec 2016 10:11:13 Greg KH wrote:
+> > > >>>> On Fri, Dec 09, 2016 at 10:59:24AM +0200, Laurent Pinchart wrote:
+> > > >>>>> On Friday 09 Dec 2016 08:25:52 Greg KH wrote:
+> > > >>>>>> On Fri, Dec 09, 2016 at 01:09:21AM +0200, Laurent Pinchart wrote:
+> > > >>>>>>> On Thursday 08 Dec 2016 12:31:55 Dave Stevenson wrote:
+> > > >>>>>>>> Hi All.
+> > > >>>>>>>> 
+> > > >>>>>>>> I'm working with a USB webcam which has been seen to
+> > > >>>>>>>> spontaneously disconnect when in use. That's a separate
+> > > >>>>>>>> issue, but when it does it throws a load of warnings into
+> > > >>>>>>>> the kernel log if there is a file handle on the device open
+> > > >>>>>>>> at the time, even if not streaming.
+> > > >>>>>>>> 
+> > > >>>>>>>> I've reproduced this with a generic Logitech C270 webcam on:
+> > > >>>>>>>> - Ubuntu 16.04 (kernel 4.4.0-51) vanilla, and with the
+> > > >>>>>>>> latest media tree from linuxtv.org
+> > > >>>>>>>> - Ubuntu 14.04 (kernel 4.4.0-42) vanilla
+> > > >>>>>>>> - an old 3.10.x tree on an embedded device.
+> > > >>>>>>>> 
+> > > >>>>>>>> To reproduce:
+> > > >>>>>>>> - connect USB webcam.
+> > > >>>>>>>> - run a simple app that opens /dev/videoX, sleeps for a
+> > > >>>>>>>> while, and then closes the handle.
+> > > >>>>>>>> - disconnect the webcam whilst the app is running.
+> > > >>>>>>>> - read kernel logs - observe warnings. We get the disconnect
+> > > >>>>>>>> logged as it occurs, but the warnings all occur when the
+> > > >>>>>>>> file descriptor is closed. (A copy of the logs from my
+> > > >>>>>>>> Ubuntu 14.04 machine are below).
+> > > >>>>>>>> 
+> > > >>>>>>>> I can fully appreciate that the open file descriptor is
+> > > >>>>>>>> holding references to a now invalid device, but is there a
+> > > >>>>>>>> way to avoid them? Or do we really not care and have to put
+> > > >>>>>>>> up with the log noise when doing such silly things?
+> > > >>>>>>> 
+> > > >>>>>>> This is a known problem, caused by the driver core trying to
+> > > >>>>>>> remove the same sysfs attributes group twice.
+> > > >>>>>> 
+> > > >>>>>> Ick, not good.
+> > > >>>>>> 
+> > > >>>>>>> The group is first removed when the USB device is
+> > > >>>>>>> disconnected. The input device and media device created by the
+> > > >>>>>>> uvcvideo driver are children of the USB interface device,
+> > > >>>>>>> which is deleted from the system when the camera is unplugged.
+> > > >>>>>>> Due to the parent-child relationship, all sysfs attribute
+> > > >>>>>>> groups of the children are removed.
+> > > >>>>>> 
+> > > >>>>>> Wait, why is the USB device being removed from sysfs at this
+> > > >>>>>> point, didn't the input and media subsystems grab a reference to
+> > > >>>>>> it so that it does not disappear just yet?
+> > > >>>>> 
+> > > >>>>> References are taken in uvc_prove():
+> > > >>>>>         dev->udev = usb_get_dev(udev);
+> > > >>>>>         dev->intf = usb_get_intf(intf);
+> > > >>>> 
+> > > >>>> s/uvc_prove/uvc_probe/ ?  :)
+> > > >>> 
+> > > >>> Oops :-)
+> > > >>> 
+> > > >>>>> and released in uvc_delete(), called when the last video device
+> > > >>>>> node is closed. This prevents the device from being released
+> > > >>>>> (freed), but device_del() is synchronous to device unplug as far
+> > > >>>>> as I understand.
+> > > >>>> 
+> > > >>>> Ok, good, that means the UVC driver is doing the right thing here.
+> > > >>>> 
+> > > >>>> But the sysfs files should only be attempted to be removed by the
+> > > >>>> driver core once, when the device is removed from sysfs, not twice,
+> > > >>>> which is really odd.
+> > > >>>> 
+> > > >>>> Is there a copy of the "simple app that grabs the device node"
+> > > >>>> anywhere so that I can test it out here with my USB camera device to
+> > > >>>> try to track down where the problem is?
+> > > >>> 
+> > > >>> Sure. The easiest way is to grab http://git.ideasonboard.org/yavta.git
+> > > >>> and run
+> > > >>> 
+> > > >>> yavta -c /dev/video0
+> > > >>> 
+> > > >>> (your mileage may vary if you have other video devices)
+> > > >> 
+> > > >> I'll point it at the correct device, /dev/video0 is built into this
+> > > >> laptop and can't be physically removed :)
+> > > >> 
+> > > >>> While the application is running, unplug the webcam, and then
+> > > >>> terminate the application with ctrl-C.
+> > > >> 
+> > > >> Ok, will try this out this afternoon and let you know how it goes.
+> > > > 
+> > > > I hate to pester, but wondered if you had found anything obvious.
+> > > > I really do appreciate you taking the time to look.
+> > > 
+> > > Sorry, I haven't had the chance and now will not be able to until
+> > > January....
+> > 
+> > Did you mean January 2017 or 2018 ? :-)
+> 
+> Heh, sorry about this, I think David's patch should resolve this now.
 
-Here's the set of accumulated atomisp staging patches that I had in my
-to-review mailbox.  After this, my queue is empty, the driver is all
-yours!  Good Luck! :)
-
-thanks,
+Ugh, jet-lag, that should read "Daniel", my apologies.
 
 greg k-h
-
-Avraham Shukron (3):
-  staging: media: atomisp: fixed sparse warnings
-  staging: media: atomisp: fixed coding style errors
-  staging: media: atomisp: fix coding style warnings
-
-Dan Carpenter (2):
-  staging: media: atomisp: one char read beyond end of string
-  staging: media: atomisp: putting NULs in the wrong place
-
-Fabrizio Perria (1):
-  staging: media: atomisp: Fix unnecessary initialization of static
-
-Guru Das Srinagesh (2):
-  staging: media: atomisp: use logical AND, not bitwise
-  staging: media: atomisp: Make undeclared symbols static
-
-Hans de Goede (1):
-  staging: media: atomisp: Fix -Werror=int-in-bool-context compile
-    errors
-
-Joe Perches (1):
-  staging: media: atomisp: Add __printf validation and fix fallout
-
-Manny Vindiola (1):
-  staging: media: atomisp: fix missing blank line coding style issue in
-    atomisp_tpg.c
-
-Mauro Carvalho Chehab (1):
-  staging: media: atomisp: don't treat warnings as errors
-
-Valentin Vidic (1):
-  staging: media: atomisp: drop unused qos variable
-
- drivers/staging/media/atomisp/i2c/Makefile         |   2 -
- drivers/staging/media/atomisp/i2c/imx/Makefile     |   2 -
- drivers/staging/media/atomisp/i2c/ov5693/Makefile  |   2 -
- .../staging/media/atomisp/pci/atomisp2/Makefile    |   2 +-
- .../atomisp/pci/atomisp2/atomisp_compat_css20.c    |   1 -
- .../media/atomisp/pci/atomisp2/atomisp_fops.c      |  14 +-
- .../media/atomisp/pci/atomisp2/atomisp_tpg.c       |   1 +
- .../media/atomisp/pci/atomisp2/atomisp_v4l2.c      |   2 +-
- .../css2400/hive_isp_css_include/math_support.h    |   6 +-
- .../css2400/hive_isp_css_include/string_support.h  |   9 +-
- .../isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c   |   6 +-
- .../isp/kernels/sdis/sdis_2/ia_css_sdis2.host.c    |   2 +-
- .../isp/kernels/tnr/tnr_1.0/ia_css_tnr.host.c      |   2 +-
- .../atomisp2/css2400/runtime/binary/src/binary.c   |   2 +-
- .../css2400/runtime/debug/interface/ia_css_debug.h |   1 +
- .../css2400/runtime/debug/src/ia_css_debug.c       |   6 +-
- .../media/atomisp/pci/atomisp2/css2400/sh_css.c    |  19 +-
- .../atomisp/pci/atomisp2/css2400/sh_css_mipi.c     |   2 +-
- .../atomisp/pci/atomisp2/css2400/sh_css_params.c   |  10 +-
- .../platform/intel-mid/atomisp_gmin_platform.c     | 210 +++++++++++----------
- .../platform/intel-mid/intel_mid_pcihelpers.c      |  12 +-
- 21 files changed, 162 insertions(+), 151 deletions(-)
-
--- 
-2.13.0
