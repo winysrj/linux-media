@@ -1,277 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:52580 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1948809AbdEZWxh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 May 2017 18:53:37 -0400
-From: "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
-Subject: RE: [PATCH 1/1] [media] i2c: add support for OV13858 sensor
-Date: Fri, 26 May 2017 22:53:30 +0000
-Message-ID: <7A4F467111FEF64486F40DFE7DF3500A03E998E5@ORSMSX111.amr.corp.intel.com>
-References: <1495583908-2479-1-git-send-email-hyungwoo.yang@intel.com>
- <20170524125111.GJ29527@valkosipuli.retiisi.org.uk>
- <7A4F467111FEF64486F40DFE7DF3500A03E99242@ORSMSX111.amr.corp.intel.com>
- <20170526215003.GS29527@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20170526215003.GS29527@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:33027 "EHLO
+        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1035268AbdD3QVd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 30 Apr 2017 12:21:33 -0400
+Date: Sun, 30 Apr 2017 18:18:44 +0200
+From: Greg KH <greg@kroah.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Daniel Axtens <dja@axtens.net>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Dave Stevenson <linux-media@destevenson.freeserve.co.uk>
+Subject: Re: [PATCH 1/2] [media] uvcvideo: Refactor teardown of uvc on USB
+ disconnect
+Message-ID: <20170430161844.GA27431@kroah.com>
+References: <20170417085240.12930-1-dja@axtens.net>
+ <2540812.MKbs17NyWb@avalon>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2540812.MKbs17NyWb@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Mon, Apr 17, 2017 at 03:23:55PM +0300, Laurent Pinchart wrote:
+> Hi Daniel,
+> 
+> Thank you for the patch (and the investigation).
+> 
+> On Monday 17 Apr 2017 18:52:39 Daniel Axtens wrote:
+> > Currently, disconnecting a USB webcam while it is in use prints out a
+> > number of warnings, such as:
+> > 
+> > WARNING: CPU: 2 PID: 3118 at
+> > /build/linux-ezBi1T/linux-4.8.0/fs/sysfs/group.c:237
+> > sysfs_remove_group+0x8b/0x90 sysfs group ffffffffa7cd0780 not found for
+> > kobject 'event13'
+> > 
+> > This has been noticed before. [0]
+> > 
+> > This is because of the order in which things are torn down.
+> > 
+> > If there are no streams active during a USB disconnect:
+> > 
+> >  - uvc_disconnect() is invoked via device_del() through the bus
+> >    notifier mechanism.
+> > 
+> >  - this calls uvc_unregister_video().
+> > 
+> >  - uvc_unregister_video() unregisters the video device for each
+> >    stream,
+> > 
+> >  - because there are no streams open, it calls uvc_delete()
+> > 
+> >  - uvc_delete() calls uvc_status_cleanup(), which cleans up the status
+> >    input device.
+> > 
+> >  - uvc_delete() calls media_device_unregister(), which cleans up the
+> >    media device
+> > 
+> >  - uvc_delete(), uvc_unregister_video() and uvc_disconnect() all
+> >    return, and we end up back in device_del().
+> > 
+> >  - device_del() then cleans up the sysfs folder for the camera with
+> >    dpm_sysfs_remove(). Because uvc_status_cleanup() and
+> >    media_device_unregister() have already been called, this all works
+> >    nicely.
+> > 
+> > If, on the other hand, there *are* streams active during a USB disconnect:
+> > 
+> >  - uvc_disconnect() is invoked
+> > 
+> >  - this calls uvc_unregister_video()
+> > 
+> >  - uvc_unregister_video() unregisters the video device for each
+> >    stream,
+> > 
+> >  - uvc_unregister_video() and uvc_disconnect() return, and we end up
+> >    back in device_del().
+> > 
+> >  - device_del() then cleans up the sysfs folder for the camera with
+> >    dpm_sysfs_remove(). Because the status input device and the media
+> >    device are children of the USB device, this also deletes their
+> >    sysfs folders.
+> > 
+> >  - Sometime later, the final stream is closed, invoking uvc_release().
+> > 
+> >  - uvc_release() calls uvc_delete()
+> > 
+> >  - uvc_delete() calls uvc_status_cleanup(), which cleans up the status
+> >    input device. Because the sysfs directory has already been removed,
+> >    this causes a WARNing.
+> > 
+> >  - uvc_delete() calls media_device_unregister(), which cleans up the
+> >    media device. Because the sysfs directory has already been removed,
+> >    this causes another WARNing.
+> > 
+> > To fix this, we need to make sure the devices are always unregistered
+> > before the end of uvc_disconnect(). To this, move the unregistration
+> > into the disconnect path:
+> >
+> >  - split uvc_status_cleanup() into two parts, one on disconnect that
+> >    unregisters and one on delete that frees.
+> > 
+> >  - move media_device_unregister() into the disconnect path.
+> 
+> While the patch looks reasonable to me (with one comment below though), isn't 
+> this an issue with the USB core, or possibly the device core ? It's a common 
+> practice to create device nodes as children of physical devices. Does the 
+> device core really require all device nodes to be unregistered synchronously 
+> with physical device hot-unplug ? If so, shouldn't it warn somehow when a 
+> device is deleted and still has children, instead of accepting that silently 
+> and later complaining due to sysfs issues ?
 
-I've submitted V2 yesterday. If possible, can you review that one also ?
-I'm learning many things from your review comments.
+When a physical device, or any other device, is removed, the children
+should all also be removed.  You can't leave them around to be cleaned
+up later, this has always been the case.
 
-I think in V2, I've addressed most of comments except raw bayer format.
+Yes, userspace can still hold references, but that should be fine as the
+device will still be unregistered, just not freed yet, right?
 
-For ray bayer format, for now, I intentionally don't support crop since it requires more complexity to meet request from _set_pad_format() while keeping FOV for the resolutions with the same ratio(4:3 or 16:9).
-Yes, it is hacky but I thought it's OK unless there's a need to support crop. Hm..... I'm thinking drop "bayer order change" since it is not that meaningful. Should I ?
+> > [0]: https://lkml.org/lkml/2016/12/8/657
+> > 
+> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Cc: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>
+> > Cc: Greg KH <greg@kroah.com>
+> > Signed-off-by: Daniel Axtens <dja@axtens.net>
+> > 
+> > ---
+> > 
+> > Tested with cheese and yavta.
+> > ---
+> >  drivers/media/usb/uvc/uvc_driver.c | 8 ++++++--
+> >  drivers/media/usb/uvc/uvc_status.c | 8 ++++++--
+> >  drivers/media/usb/uvc/uvcvideo.h   | 1 +
+> >  3 files changed, 13 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> > b/drivers/media/usb/uvc/uvc_driver.c index 46d6be0bb316..2390592f78e0
+> > 100644
+> > --- a/drivers/media/usb/uvc/uvc_driver.c
+> > +++ b/drivers/media/usb/uvc/uvc_driver.c
+> > @@ -1815,8 +1815,6 @@ static void uvc_delete(struct uvc_device *dev)
+> >  	if (dev->vdev.dev)
+> >  		v4l2_device_unregister(&dev->vdev);
+> >  #ifdef CONFIG_MEDIA_CONTROLLER
+> > -	if (media_devnode_is_registered(dev->mdev.devnode))
+> > -		media_device_unregister(&dev->mdev);
+> 
+> media_device_unregister() will now be called before v4l2_device_unregister() 
+> which, unless I'm mistaken, will now result in 
+> media_device_unregister_entity() being called twice for every entity, the 
+> first time by media_device_unregister(), and the second time by 
+> v4l2_device_unregister_subdev() through v4l2_device_unregister(). Looking at 
+> media_device_unregister() I don't think that's safe.
+> 
+> We could move to v4l2_device_unregister() call to uvc_unregister_video(), but 
+> that worries me (perhaps unnecessarily though) due to the race conditions it 
+> could introduce. Would you still be able to give it a try ?
+> 
+> Note that your patch isn't really at fault here, the media controller and V4L2 
+> core code have been broken for a long time when it comes to entity lifetime 
+> management. That might be fixed some day, but I won't hold my breath given the 
+> bad track record of the previous year and a half.
 
-For VBLANK, I realized I made wrong comments just after I send it. Yeas, it shouldn't be read-only. So you can see that VBLANK I added in V2 is NOT read-only. 
+Ugh, what a mess, I'll trust you that this is correct :)
 
-Thanks,
-Hyungwoo
+thanks,
 
-
-> Hi Hyungwoo,
-> 
-> On Wed, May 24, 2017 at 11:13:50PM +0000, Yang, Hyungwoo wrote:
-> ...
-> > > > +static inline int ov13858_write_reg_list(struct ov13858 *ov13858,
-> > > 
-> > > I'd drop inline.
-> > 
-> > if it's not mandatory for upstream, I prefer to keep inline for people 
-> > who want to port this with a not-good-compiler. Is it mandatory ?
-> 
-> I don't think you'd really lose anything if the compiler didn't inline it.
-> It's a non-issue anyway.
-> 
-> ...
-> 
-> > > > +/*
-> > > > + * Change the bayer order to meet the requested one.
-> > > > + */
-> > > > +static int ov13858_apply_bayer_order(struct ov13858 *ov13858) {
-> > > > +	int ret;
-> > > > +
-> > > > +	switch (ov13858->cur_bayer_format) {
-> > > > +	case MEDIA_BUS_FMT_SGRBG10_1X10:
-> > > > +		break;
-> > > > +	case MEDIA_BUS_FMT_SRGGB10_1X10:
-> > > > +		return ov13858_increase_offset(ov13858, OV13858_REG_H_OFFSET);
-> > > > +	case MEDIA_BUS_FMT_SGBRG10_1X10:
-> > > > +		ret = ov13858_increase_offset(ov13858, OV13858_REG_H_OFFSET);
-> > > 
-> > > The bayer pixel order is defined by cropping the pixel array. If the sensor can do that, you should implement support for the crop selection rectangle instead.
-> > 
-> > Sorry, I'm new to imaging world but, as you can see, bayer order in 
-> > this sensor IS DEFINED by both cropping and offset(where you start to 
-> > read). Is there a strict (implicit or explicit) rule or specific 
-> > reason that we should use only crop to apply expected bayer order, 
-> > even though the bayer order in the sensor is defined by both crop and offset ?
-> > 
-> > Anyway, I changed H_/V_OFFSET(0x3810, 0x3812) to 
-> > H_/V_CROP_START(0x3800,
-> > 0x3802) with no changes in initial values.
-> 
-> The CROP selection rectangle is the interface to configure crop an area from the parent rectangle (NATIVE_SIZE in this case). Using the format to change cropping in pre-defined ways is quite hackish.
-> 
-> ...
-> 
-> > > > +/* Exposure control */
-> > > > +static int ov13858_update_exposure(struct ov13858 *ov13858,
-> > > > +				   struct v4l2_ctrl *ctrl)
-> > > > +{
-> > > > +	int ret;
-> > > > +	u32 exposure, new_vts = 0;
-> > > > +
-> > > > +	exposure = ctrl->val;
-> > > > +	if (exposure > ov13858->cur_mode->vts - 8)
-> > > > +		new_vts = exposure + 8;
-> > > > +	else
-> > > > +		new_vts = ov13858->cur_mode->vts;
-> > > 
-> > > Instead of changing the vertical blanking interval implicitly, could 
-> > > you do it explicitly though the VBLANK control instead?
-> > > 
-> > > As you do already control the vertical sync and provide the pixel 
-> > > rate control, how about adding a HBLANK control as well? I suppose 
-> > > it could be added later on as well. And presumably will be read only.
-> > 
-> > I'll introduce VBLANK control with READ ONLY and the value of the 
-> > control will be updated here.
-> 
-> HBLANK would be read-only since the register list that you have might contain dependencies to the horizontal blanking so you can't change that.
-> The VBLANK control, instead, should not be read-only to allow controlling the frame rate and also controlling the exposure without affecting the frame rate.
-> 
-> > 
-> > > 
-> > > > +
-> > > > +	ret = ov13858_group_hold_start(ov13858, 0);
-> > > > +	if (ret)
-> > > > +		return ret;
-> > > > +
-> > > > +	ret = ov13858_write_reg(ov13858, OV13858_REG_VTS,
-> > > > +				OV13858_REG_VALUE_16BIT, new_vts);
-> > > > +	if (ret)
-> > > > +		return ret;
-> > > > +
-> > > 
-> > > If you want group hold for that, too, we need a new callback (or 
-> > > two) for the control handler I believe.
-> > 
-> > I don't understand wht this means. Can you give me detail ?
-> 
-> The V4L2 control framework calls the s_ctrl() callback in the driver to set control values. The driver however doesn't know how many controls there will be to set or when the last control of the set would be conveyed to the driver. To use the grouped parameter hold meaningfully this information is needed.
-> 
-> ...
-> 
-> > > > +	/* Values of V4L2 controls will be applied only when power is up */
-> > > > +	if (atomic_read(&client->dev.power.usage_count) == 0)
-> > > 
-> > > I wonder if using pm_runtime_active() would work for this. Checking 
-> > > the usage_count directly does not look like something a driver 
-> > > should be doing.
-> > 
-> > Agree, I really wanted to use any helper(accesor) method for this but 
-> > when I checked the pm_runtime_active() it wasn't good enough. Anyway I 
-> > just found better one for this case. I'll not use using usage_count 
-> > and instread of using pm_runtime_get_sync, I'll use 
-> > pm_runtime_get_if_in_use()
-> 
-> Ah, that seems much better indeed!
-> 
-> > 
-> > > 
-> > > > +		return 0;
-> > > > +
-> > > > +	ret = pm_runtime_get_sync(&client->dev);
-> > > > +	if (ret < 0) {
-> > > > +		pm_runtime_put_noidle(&client->dev);
-> > > > +		return ret;
-> > > > +	}
-> > > > +
-> > > > +	ret = 0;
-> > > > +	switch (ctrl->id) {
-> > > > +	case V4L2_CID_ANALOGUE_GAIN:
-> > > > +		ret = ov13858_update_analog_gain(ov13858, ctrl);
-> > > > +		break;
-> > > > +	case V4L2_CID_EXPOSURE:
-> > > > +		ret = ov13858_update_exposure(ov13858, ctrl);
-> > > > +		break;
-> > > > +	default:
-> > > > +		dev_info(&client->dev,
-> > > > +			 "ctrl(id:0x%x,val:0x%x) is not handled\n",
-> > > > +			 ctrl->id, ctrl->val);
-> > > > +		break;
-> > > > +	};
-> > > > +
-> > > > +	pm_runtime_put(&client->dev);
-> > > > +
-> > > > +	return ret;
-> > > > +}
-> > > > +
-> > > > +static const struct v4l2_ctrl_ops ov13858_ctrl_ops = {
-> > > > +	.s_ctrl = ov13858_set_ctrl,
-> > > > +};
-> > > > +
-> > > > +/* Initialize control handlers */ static int 
-> > > > +ov13858_init_controls(struct ov13858 *ov13858) {
-> > > > +	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-> > > > +	struct v4l2_ctrl_handler *ctrl_hdlr;
-> > > > +	int ret;
-> > > > +
-> > > > +	ctrl_hdlr = &ov13858->ctrl_handler;
-> > > > +	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 4);
-> > > > +	if (ret)
-> > > > +		return ret;
-> > > > +
-> > > > +	ctrl_hdlr->lock = &ov13858->mutex;
-> > > > +	ov13858->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr,
-> > > > +				&ov13858_ctrl_ops,
-> > > > +				V4L2_CID_LINK_FREQ,
-> > > > +				OV13858_NUM_OF_LINK_FREQS - 1,
-> > > > +				0,
-> > > > +				link_freq_menu_items);
-> > > > +	ov13858->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-> > > > +
-> > > > +	/* By default, PIXEL_RATE is read only */
-> > > > +	ov13858->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops,
-> > > > +					V4L2_CID_PIXEL_RATE, 0,
-> > > > +					OV13858_GET_PIXEL_RATE(0), 1,
-> > > > +					OV13858_GET_PIXEL_RATE(0));
-> > > > +
-> > > > +	v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
-> > > > +			  OV13858_ANA_GAIN_MIN, OV13858_ANA_GAIN_MAX,
-> > > > +			  OV13858_ANA_GAIN_STEP, OV13858_ANA_GAIN_DEFAULT);
-> > > > +
-> > > > +	v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_EXPOSURE,
-> > > > +			  OV13858_EXP_GAIN_MIN, OV13858_EXP_GAIN_MAX,
-> > > > +			  OV13858_EXP_GAIN_STEP, OV13858_EXP_GAIN_DEFAULT);
-> > > 
-> > > Are the minimum and maximum values dependent on the register list chosen?
-> > 
-> > We are going to use the same HTS for all reolutions.
-> > The supports 4 lines as minimum and MAX_VTS - 8 as maximum.
-> > 
-> > > 
-> > > > +	if (ctrl_hdlr->error) {
-> > > > +		ret = ctrl_hdlr->error;
-> > > > +		dev_err(&client->dev, "%s control init failed (%d)\n",
-> > > > +			__func__, ret);
-> > > > +		goto error;
-> > > > +	}
-> > > > +
-> > > > +	ov13858->sd.ctrl_handler = ctrl_hdlr;
-> > > > +
-> > > > +	return 0;
-> > > > +
-> > > > +error:
-> > > > +	v4l2_ctrl_handler_free(ctrl_hdlr);
-> > > > +
-> > > > +	return ret;
-> > > > +}
-> > > > +
-> > > > +static void ov13858_update_pad_format(struct ov13858 *ov13858,
-> > > > +				      const struct ov13858_mode *mode,
-> > > > +				      struct v4l2_subdev_format *fmt) {
-> > > > +	fmt->format.width = mode->width;
-> > > > +	fmt->format.height = mode->height;
-> > > > +	fmt->format.code = ov13858->cur_bayer_format;
-> > > > +	fmt->format.field = V4L2_FIELD_NONE; }
-> > > > +
-> > > > +static int ov13858_do_get_pad_format(struct ov13858 *ov13858,
-> > > > +				     struct v4l2_subdev_pad_config *cfg,
-> > > > +				     struct v4l2_subdev_format *fmt) {
-> > > > +	struct v4l2_mbus_framefmt *framefmt;
-> > > > +	struct v4l2_subdev *sd = &ov13858->sd;
-> > > > +
-> > > > +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> > > > +		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-> > > > +		fmt->format = *framefmt;
-> > > 
-> > > You could write this as :
-> > > 
-> > > fmt->format = *v4l2_subdev_get_try_format(&ov13858->sd, cfg, 
-> > > fmt->fmt->pad);
-> > > 
-> > 
-> > Personally I don't like this since I believe readablity of this kind 
-> > of code is not good. If there's no stric rule for this, I want to keep 
-> > this since believe there's no difference in generated code.
-> 
-> I don't think the extra local variable assigned and used once really helps, but ok for me.
-> 
-> --
-> Regards,
-> 
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
->
+greg k-h
