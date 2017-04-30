@@ -1,52 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:45428 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1763406AbdEXAHz (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:35228 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1162712AbdD3S35 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 May 2017 20:07:55 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2 1/2] v4l: async: check for v4l2_dev in v4l2_async_notifier_register()
-Date: Wed, 24 May 2017 02:07:26 +0200
-Message-Id: <20170524000727.12936-2-niklas.soderlund@ragnatech.se>
-In-Reply-To: <20170524000727.12936-1-niklas.soderlund@ragnatech.se>
-References: <20170524000727.12936-1-niklas.soderlund@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Sun, 30 Apr 2017 14:29:57 -0400
+From: Guru Das Srinagesh <gurooodas@gmail.com>
+To: mchehab@kernel.org, gregkh@linuxfoundation.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] staging: media: atomisp: use logical AND, not bitwise
+Date: Sun, 30 Apr 2017 11:29:49 -0700
+Message-Id: <1493576989-26048-1-git-send-email-gurooodas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Fixes sparse warning "dubious: x & !y" in logical expression.
 
-Add a check for v4l2_dev to v4l2_async_notifier_register() as to fail as
-early as possible since this will fail later in v4l2_async_test_notify().
-
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Guru Das Srinagesh <gurooodas@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ .../media/atomisp/pci/atomisp2/css2400/runtime/binary/src/binary.c      | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index cbd919d4edd27e17..c16200c88417b151 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -148,7 +148,8 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 	struct v4l2_async_subdev *asd;
- 	int i;
- 
--	if (!notifier->num_subdevs || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-+	if (!v4l2_dev || !notifier->num_subdevs ||
-+	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
- 		return -EINVAL;
- 
- 	notifier->v4l2_dev = v4l2_dev;
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/src/binary.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/src/binary.c
+index 34ca534..44b2aff 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/src/binary.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/src/binary.c
+@@ -1658,7 +1658,7 @@ ia_css_binary_find(struct ia_css_binary_descr *descr,
+ 			candidate->internal.max_height);
+ 			continue;
+ 		}
+-		if (!candidate->enable.ds && need_ds & !(xcandidate->num_output_pins > 1)) {
++		if (!candidate->enable.ds && need_ds && !(xcandidate->num_output_pins > 1)) {
+ 			ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,
+ 				"ia_css_binary_find() [%d] continue: !%d && %d\n",
+ 				__LINE__, candidate->enable.ds, (int)need_ds);
 -- 
-2.13.0
+2.7.4
