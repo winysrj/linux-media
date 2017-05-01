@@ -1,127 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:44061 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750714AbdEFEKg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 6 May 2017 00:10:36 -0400
-Message-ID: <111c33e470f86ef63c12c8e14dc6bc08@smtp-cloud3.xs4all.net>
-Date: Sat, 06 May 2017 06:10:34 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from vader.hardeman.nu ([95.142.160.32]:41315 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758718AbdEAQEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 May 2017 12:04:45 -0400
+Subject: [PATCH 10/16] lirc_dev: remove superfluous get/put_device() calls
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Mon, 01 May 2017 18:04:26 +0200
+Message-ID: <149365466682.12922.11735486114121409407.stgit@zeus.hardeman.nu>
+In-Reply-To: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
+References: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+device_add() and friends alredy manage the references to the parent device so
+these calls aren't necessary.
 
-Results of the daily build of media_tree:
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/lirc_dev.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-date:			Sat May  6 05:00:23 CEST 2017
-media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
-media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
-v4l-utils git hash:	eb9dcc3e1d4805c382e244397df2290051179601
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
-
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: WARNINGS
-linux-4.9.26-i686: WARNINGS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 574f4dd416b8..34bd3f8bf30d 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -69,8 +69,6 @@ static void lirc_release(struct device *ld)
+ {
+ 	struct irctl *ir = container_of(ld, struct irctl, dev);
+ 
+-	put_device(ir->dev.parent);
+-
+ 	if (ir->buf_internal) {
+ 		lirc_buffer_free(ir->buf);
+ 		kfree(ir->buf);
+@@ -230,8 +228,6 @@ int lirc_register_driver(struct lirc_driver *d)
+ 
+ 	mutex_unlock(&lirc_dev_lock);
+ 
+-	get_device(ir->dev.parent);
+-
+ 	dev_info(ir->d.dev, "lirc_dev: driver %s registered at minor = %d\n",
+ 		 ir->d.name, ir->d.minor);
+ 
