@@ -1,138 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f52.google.com ([74.125.83.52]:33620 "EHLO
-        mail-pg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933629AbdEKQEt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 May 2017 12:04:49 -0400
-Received: by mail-pg0-f52.google.com with SMTP id u187so16781581pgb.0
-        for <linux-media@vger.kernel.org>; Thu, 11 May 2017 09:04:44 -0700 (PDT)
+Received: from vader.hardeman.nu ([95.142.160.32]:41240 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757788AbdEAQDs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 May 2017 12:03:48 -0400
+Subject: [PATCH 02/16] lirc_dev: remove unused set_use_inc/set_use_dec
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Mon, 01 May 2017 18:03:46 +0200
+Message-ID: <149365462608.12922.6571054209014823717.stgit@zeus.hardeman.nu>
+In-Reply-To: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
+References: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-In-Reply-To: <m38tm3j0wr.fsf@t19.piap.pl>
-References: <590ADAB1.1040501@suntec.net> <m3h90thwjt.fsf@t19.piap.pl>
- <m3d1bhhwf3.fsf_-_@t19.piap.pl> <CAAEAJfBVOKBcZBg91EKHBXKMOkM6eRafe8=XnW8E=6vtn2dBmQ@mail.gmail.com>
- <m38tm3j0wr.fsf@t19.piap.pl>
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Date: Thu, 11 May 2017 13:04:42 -0300
-Message-ID: <CAAEAJfAo8-efB-ZopydXFdRZDKsTKcSzx1vkaJwcpDQQ1Eiivw@mail.gmail.com>
-Subject: Re: [PATCH] TW686x: Fix OOPS on buffer alloc failure
-To: =?UTF-8?Q?Krzysztof_Ha=C5=82asa?= <khalasa@piap.pl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        zhaoxuegang <zhaoxuegang@suntec.net>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11 May 2017 at 04:41, Krzysztof Ha=C5=82asa <khalasa@piap.pl> wrote:
-> Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> writes:
->
->>> +       /* Initialize vc->dev and vc->ch for the error path first */
->>> +       for (ch =3D 0; ch < max_channels(dev); ch++) {
->>> +               struct tw686x_video_channel *vc =3D &dev->video_channel=
-s[ch];
->>> +               vc->dev =3D dev;
->>> +               vc->ch =3D ch;
->>> +       }
->>> +
->>
->> I'm not sure where is the oops this commit fixes, care to explain it to =
-me?
->
-> The error path apparently calls tw686x_video_free() which requires
-> vc->dev to be initialized. Now, the vc->dev is set for the channel being
-> currently initialized (unsuccesfully), but not for ones which haven't
-> been initialized yet. tw686x_video_free() iterates over the whole set.
->
-> It seems it also happens in "memcpy" mode. I didn't test it before since
-> on my ARMv7 "memcpy" mode is unusable, it's way too slow. Also, does the
-> driver attempt to use consistent memory for entire buffers in this mode?
+Since there are no users of this functionality, it can be removed altogether.
 
-Yes, memcpy mode allocates a couple P and B dma-coherent bounce
-buffers for each channel.
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/ir-lirc-codec.c |    2 --
+ drivers/media/rc/lirc_dev.c      |   24 ++++++------------------
+ include/media/lirc_dev.h         |    6 ------
+ 3 files changed, 6 insertions(+), 26 deletions(-)
 
-> This may work on i686/x86_64 because the caches are coherent by design
-> and there is no difference between consistent and non-consistent RAM
-> (if one isn't using SWIOTLB etc).
->
-> tw6869: PCI 0000:07:00.0, IRQ 24, MMIO 0x1100000 (memcpy mode)
-> tw686x 0000:07:00.0: enabling device (0140 -> 0142)
-> tw686x 0000:07:00.0: dma0: unable to allocate P-buffer
-> Unable to handle kernel NULL pointer dereference at virtual address 00000=
-000
-> PC is at _raw_spin_lock_irqsave+0x10/0x4c
-> LR is at tw686x_memcpy_dma_free+0x1c/0x124
-> pc : [<805a8b14>]    lr : [<7f04a3c0>]    psr: 20010093
-> sp : be915c80  ip : 00000000  fp : bea1b000
-> r10: 00000000  r9 : fffffff4  r8 : 0000b000
-> r7 : 00000000  r6 : 000003f0  r5 : 00000000  r4 : bf0e21f8
-> r3 : 7f04a3a4  r2 : 00000000  r1 : 00000000  r0 : 20010013
-> Flags: nzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment none
-> Control: 10c5387d  Table: 4e91804a  DAC: 00000051
-> Process udevd (pid: 88, stack limit =3D 0xbe914210)
-> (_raw_spin_lock_irqsave) from (tw686x_memcpy_dma_free+0x1c/0x124)
-> (tw686x_memcpy_dma_free) from (tw686x_video_free+0x50/0x78)
-> (tw686x_video_free) from (tw686x_video_init+0x478/0x5e8)
-> (tw686x_video_init) from (tw686x_probe+0x36c/0x3fc)
-> (tw686x_probe) from (pci_device_probe+0x88/0xf4)
-> (pci_device_probe) from (driver_probe_device+0x238/0x2d8)
-> (driver_probe_device) from (__driver_attach+0xac/0xb0)
-> (__driver_attach) from (bus_for_each_dev+0x6c/0xa0)
-> (bus_for_each_dev) from (bus_add_driver+0x1a0/0x218)
-> (bus_add_driver) from (driver_register+0x78/0xf8)
-> (driver_register) from (do_one_initcall+0x40/0x168)
-> (do_one_initcall) from (do_init_module+0x60/0x3a4)
-> (do_init_module) from (load_module+0x1c90/0x20e4)
-> (load_module) from (SyS_finit_module+0x8c/0x9c)
-> (SyS_finit_module) from (ret_fast_syscall+0x0/0x3c)
-> Code: e1a02000 e10f0000 f10c0080 f592f000 (e1923f9f)
->
->
-> With the patch:
-> tw6869: PCI 0000:07:00.0, IRQ 24, MMIO 0x1100000 (memcpy mode)
-> tw686x 0000:07:00.0: enabling device (0140 -> 0142)
-> tw686x 0000:07:00.0: dma0: unable to allocate P-buffer
-> tw686x 0000:07:00.0: can't register video
-> tw686x: probe of 0000:07:00.0 failed with error -12
-
-Oh, I see. Thanks for the details!
-
-How about this one (untested) ?
-
-diff --git a/drivers/media/pci/tw686x/tw686x-video.c
-b/drivers/media/pci/tw686x/tw686x-video.c
-index c3fafa97b2d0..77b8d2dbd995 100644
---- a/drivers/media/pci/tw686x/tw686x-video.c
-+++ b/drivers/media/pci/tw686x/tw686x-video.c
-@@ -86,6 +86,9 @@ static void tw686x_memcpy_dma_free(struct
-tw686x_video_channel *vc,
-        struct pci_dev *pci_dev;
-        unsigned long flags;
-
-+       /* Make sure this channel is initialized */
-+       if (!dev)
-+               return;
-        /* Check device presence. Shouldn't really happen! */
-        spin_lock_irqsave(&dev->lock, flags);
-        pci_dev =3D dev->pci_dev;
-
-Also, when submitting a patch please make sure you write a commit
-log. Only trivial patches can have empty commit logs.
-
-The description you made in your last mail is perfect,
-including the oops details, the backtrace and
-the "With the patch" note. Doing a `git log --grep=3D"fix.*oops"`
-might give you some ideas on commit logs.
-
-The subject of the patch should be:
-
-"tw686x: Fix oops on buffer alloc failure"
-
-If you `git log` on tw686x, you'll notice all the
-commits use "tw686x" prefix.
-
-When submitting fixes, it's useful to add a "Fixes" tag.
-See https://static.lwn.net/kerneldoc/process/submitting-patches.html
-for details.
---=20
-Ezequiel Garc=C3=ADa, VanguardiaSur
-www.vanguardiasur.com.ar
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index fc58745b26b8..a30af91710fe 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -386,8 +386,6 @@ static int ir_lirc_register(struct rc_dev *dev)
+ 	drv->features = features;
+ 	drv->data = &dev->raw->lirc;
+ 	drv->rbuf = NULL;
+-	drv->set_use_inc = NULL;
+-	drv->set_use_dec = NULL;
+ 	drv->code_length = sizeof(struct ir_raw_event) * 8;
+ 	drv->chunk_size = sizeof(int);
+ 	drv->buffer_size = LIRCBUF_SIZE;
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 42704552b005..05f600bd6c67 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -418,12 +418,6 @@ int lirc_unregister_driver(int minor)
+ 		wake_up_interruptible(&ir->buf->wait_poll);
+ 	}
+ 
+-	mutex_lock(&ir->irctl_lock);
+-
+-	if (ir->d.set_use_dec)
+-		ir->d.set_use_dec(ir->d.data);
+-
+-	mutex_unlock(&ir->irctl_lock);
+ 	mutex_unlock(&lirc_dev_lock);
+ 
+ 	device_del(&ir->dev);
+@@ -473,17 +467,13 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
+ 			goto error;
+ 	}
+ 
++	if (ir->buf)
++		lirc_buffer_clear(ir->buf);
++
++	if (ir->task)
++		wake_up_process(ir->task);
++
+ 	ir->open++;
+-	if (ir->d.set_use_inc)
+-		retval = ir->d.set_use_inc(ir->d.data);
+-	if (retval) {
+-		ir->open--;
+-	} else {
+-		if (ir->buf)
+-			lirc_buffer_clear(ir->buf);
+-		if (ir->task)
+-			wake_up_process(ir->task);
+-	}
+ 
+ error:
+ 	nonseekable_open(inode, file);
+@@ -508,8 +498,6 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
+ 	rc_close(ir->d.rdev);
+ 
+ 	ir->open--;
+-	if (ir->d.set_use_dec)
+-		ir->d.set_use_dec(ir->d.data);
+ 	if (!ret)
+ 		mutex_unlock(&lirc_dev_lock);
+ 
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index cec7d35602d1..71c1c11950fe 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -165,10 +165,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+  *			have to write to the buffer by other means, like irq's
+  *			(see also lirc_serial.c).
+  *
+- * @set_use_inc:	set_use_inc will be called after device is opened
+- *
+- * @set_use_dec:	set_use_dec will be called after device is closed
+- *
+  * @rdev:		Pointed to struct rc_dev associated with the LIRC
+  *			device.
+  *
+@@ -198,8 +194,6 @@ struct lirc_driver {
+ 	int max_timeout;
+ 	int (*add_to_buf)(void *data, struct lirc_buffer *buf);
+ 	struct lirc_buffer *rbuf;
+-	int (*set_use_inc)(void *data);
+-	void (*set_use_dec)(void *data);
+ 	struct rc_dev *rdev;
+ 	const struct file_operations *fops;
+ 	struct device *dev;
