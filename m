@@ -1,50 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:24994 "EHLO
-        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750792AbdEFCKO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 May 2017 22:10:14 -0400
-Date: Sat, 6 May 2017 05:09:52 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Gideon Sheril <elmocia@gmail.com>
-Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        rvarsha016@gmail.com, julia.lawall@lip6.fr, alan@linux.intel.com,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] staging/media/atomisp/platform/intel-mid change spaces
- to tabs and comma/assignment space padding
-Message-ID: <20170506020952.wzfx2wefmwzxja3d@mwanda>
-References: <1494032690-12302-1-git-send-email-elmocia@gmail.com>
+Received: from vader.hardeman.nu ([95.142.160.32]:40691 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S964833AbdEANbV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 May 2017 09:31:21 -0400
+Date: Mon, 1 May 2017 15:31:19 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: [PATCH] ir-lirc-codec: let lirc_dev handle the lirc_buffer (v2)
+Message-ID: <20170501133119.nusofm7ddgdx3ww2@hardeman.nu>
+References: <149350094837.3873.17474877144956140933.stgit@zeus.hardeman.nu>
+ <20170501122221.GA11985@gofer.mess.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <1494032690-12302-1-git-send-email-elmocia@gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170501122221.GA11985@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Subject is too long.
+On Mon, May 01, 2017 at 01:22:21PM +0100, Sean Young wrote:
+>On Sat, Apr 29, 2017 at 11:22:28PM +0200, David Härdeman wrote:
+>> ir_lirc_register() currently creates its own lirc_buffer before
+>> passing the lirc_driver to lirc_register_driver().
+>> 
+>> When a module is later unloaded, ir_lirc_unregister() gets called
+>> which performs a call to lirc_unregister_driver() and then free():s
+>> the lirc_buffer.
+>> 
+>> The problem is that:
+>> 
+>> a) there can still be a userspace app holding an open lirc fd
+>>    when lirc_unregister_driver() returns; and
+>> 
+>> b) the lirc_buffer contains "wait_queue_head_t wait_poll" which
+>>    is potentially used as long as any userspace app is still around.
+>> 
+>> The result is an oops which can be triggered quite easily by a
+>> userspace app monitoring its lirc fd using epoll() and not closing
+>> the fd promptly on device removal.
+>
+>You're right, the rbuf is freed too early. Good catch! I missed this one.
+>
+>However, when I test your patch it does not work.
+>
+>[sean@bigcore bin]$ ./ir-ctl -d /dev/lirc1 -r
+>/dev/lirc1: read returned 2 bytes
+>
+>The lirc_buffer is no longer has a chunk size of 4.
 
-On Sat, May 06, 2017 at 04:04:50AM +0300, Gideon Sheril wrote:
->  /* The atomisp uses type==0 for the end-of-list marker, so leave space. */
-> @@ -152,13 +152,13 @@ const struct camera_af_platform_data *camera_get_af_platform_data(void)
->  EXPORT_SYMBOL_GPL(camera_get_af_platform_data);
->  
->  int atomisp_register_i2c_module(struct v4l2_subdev *subdev,
-> -                                struct camera_sensor_platform_data *plat_data,
-> -                                enum intel_v4l2_subdev_type type)
-> +								struct camera_sensor_platform_data *plat_data,
-> +								enum intel_v4l2_subdev_type type)
+Thanks. I just tested that /dev/lirc0 returned something, but not the
+actual data which was returned. I'll spin a v3.
 
-Huh???
-
->  {
->  	int i;
->  	struct i2c_board_info *bi;
->  	struct gmin_subdev *gs;
-> -        struct i2c_client *client = v4l2_get_subdevdata(subdev);
-> +		struct i2c_client *client = v4l2_get_subdevdata(subdev);
-
-
-Wut?  How would this be correct?
-
-regards,
-dan carpenter
+-- 
+David Härdeman
