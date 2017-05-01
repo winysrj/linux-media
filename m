@@ -1,214 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.14]:38853 "EHLO imap.netup.ru"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751009AbdEaL4T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 07:56:19 -0400
-Received: from mail-oi0-f47.google.com (mail-oi0-f47.google.com [209.85.218.47])
-        by imap.netup.ru (Postfix) with ESMTPSA id 3CA2C8B3E14
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 14:56:17 +0300 (MSK)
-Received: by mail-oi0-f47.google.com with SMTP id b204so12109608oii.1
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 04:56:16 -0700 (PDT)
+Received: from mail-qk0-f182.google.com ([209.85.220.182]:32982 "EHLO
+        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1165183AbdEAOV7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 1 May 2017 10:21:59 -0400
+Received: by mail-qk0-f182.google.com with SMTP id u68so10140320qkd.0
+        for <linux-media@vger.kernel.org>; Mon, 01 May 2017 07:21:58 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20170409193828.18458-6-d.scheller.oss@gmail.com>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com> <20170409193828.18458-6-d.scheller.oss@gmail.com>
-From: Abylay Ospan <aospan@netup.ru>
-Date: Wed, 31 May 2017 07:55:54 -0400
-Message-ID: <CAK3bHNWc0EnnSrZ69Dss7h6ft9JaDjzPgYMGngWC5fWzi-O21w@mail.gmail.com>
-Subject: Re: [PATCH 05/19] [media] dvb-frontends/cxd2841er: replace IFFREQ
- calc macros into functions
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: Kozlov Sergey <serjk@netup.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>, rjkm@metzlerbros.de
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <2431f8bf-1bbd-ffa6-1e72-488c31c9c2a7@googlemail.com>
+References: <05c4899146e7f2cfa1d0bc7a5118e3f2294ede40.1493638682.git.mchehab@s-opensource.com>
+ <2431f8bf-1bbd-ffa6-1e72-488c31c9c2a7@googlemail.com>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Mon, 1 May 2017 10:21:57 -0400
+Message-ID: <CAGoCfizpoomajhcouvWobn3LUthUX5_tRBda489jDc7sM0J6CQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] em28xx: allow setting the eeprom bus at cards struct
+To: =?UTF-8?Q?Frank_Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Abylay Ospan <aospan@netup.ru>
+On Mon, May 1, 2017 at 10:11 AM, Frank Sch=C3=A4fer
+<fschaefer.oss@googlemail.com> wrote:
+>
+> Am 01.05.2017 um 13:38 schrieb Mauro Carvalho Chehab:
+>> Right now, all devices use bus 0 for eeprom. However, newer
+>> versions of Terratec H6 use a different buffer for eeprom.
+>>
+>> So, add support to use a different I2C address for eeprom.
+>
+> Has this been tested ?
+> Did you read my reply to the previous patch version ?:
+> See http://www.spinics.net/lists/linux-media/msg114860.html
+>
+> I doubt it will work. At least not for the device from the thread in the
+> Kodi-forum.
 
-2017-04-09 15:38 GMT-04:00 Daniel Scheller <d.scheller.oss@gmail.com>:
-> From: Daniel Scheller <d.scheller@gmx.net>
->
-> The way the MAKE_IFFREQ_CONFIG macros are written make it impossible to
-> pass regular integers for iffreq calculation, since this will cause "SSE
-> register return with SSE disabled" compile errors. This changes the
-> calculation into C functions which also might help when debugging. Also,
-> expand all passed frequencies from MHz to Hz scale.
->
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
->  drivers/media/dvb-frontends/cxd2841er.c | 48 ++++++++++++++++++++-------------
->  1 file changed, 29 insertions(+), 19 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-> index 72a27cc..6648bd1 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.c
-> +++ b/drivers/media/dvb-frontends/cxd2841er.c
-> @@ -201,11 +201,6 @@ static const struct cxd2841er_cnr_data s2_cn_data[] = {
->         { 0x0016, 19700 }, { 0x0015, 19900 }, { 0x0014, 20000 },
->  };
->
-> -#define MAKE_IFFREQ_CONFIG(iffreq) ((u32)(((iffreq)/41.0)*16777216.0 + 0.5))
-> -#define MAKE_IFFREQ_CONFIG_XTAL(xtal, iffreq) ((xtal == SONY_XTAL_24000) ? \
-> -               (u32)(((iffreq)/48.0)*16777216.0 + 0.5) : \
-> -               (u32)(((iffreq)/41.0)*16777216.0 + 0.5))
-> -
->  static int cxd2841er_freeze_regs(struct cxd2841er_priv *priv);
->  static int cxd2841er_unfreeze_regs(struct cxd2841er_priv *priv);
->
-> @@ -316,6 +311,21 @@ static int cxd2841er_set_reg_bits(struct cxd2841er_priv *priv,
->         return cxd2841er_write_reg(priv, addr, reg, data);
->  }
->
-> +static u32 cxd2841er_calc_iffreq_xtal(enum cxd2841er_xtal xtal, u32 ifhz)
-> +{
-> +       u64 tmp;
-> +
-> +       tmp = (u64) ifhz * 16777216;
-> +       do_div(tmp, ((xtal == SONY_XTAL_24000) ? 48000000 : 41000000));
-> +
-> +       return (u32) tmp;
-> +}
-> +
-> +static u32 cxd2841er_calc_iffreq(u32 ifhz)
-> +{
-> +       return cxd2841er_calc_iffreq_xtal(SONY_XTAL_20500, ifhz);
-> +}
-> +
->  static int cxd2841er_dvbs2_set_symbol_rate(struct cxd2841er_priv *priv,
->                                            u32 symbol_rate)
->  {
-> @@ -2228,7 +2238,7 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef8bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.80);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4800000);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2256,7 +2266,7 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef7bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.20);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4200000);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2284,7 +2294,7 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef6bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.60);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2312,7 +2322,7 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef5bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.60);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2340,7 +2350,7 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef17bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.50);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3500000);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2439,7 +2449,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef8bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.80);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4800000);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2474,7 +2484,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef7bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.20);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4200000);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2509,7 +2519,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef6bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.60);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2544,7 +2554,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef5bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.60);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2646,7 +2656,7 @@ static int cxd2841er_sleep_tc_to_active_i_band(
->                                 0xA6, itbCoef8bw[priv->xtal], 14);
->
->                 /* IF freq setting */
-> -               iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.75);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4750000);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2675,7 +2685,7 @@ static int cxd2841er_sleep_tc_to_active_i_band(
->                                 0xA6, itbCoef7bw[priv->xtal], 14);
->
->                 /* IF freq setting */
-> -               iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 4.15);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4150000);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2704,7 +2714,7 @@ static int cxd2841er_sleep_tc_to_active_i_band(
->                                 0xA6, itbCoef6bw[priv->xtal], 14);
->
->                 /* IF freq setting */
-> -               iffreq = MAKE_IFFREQ_CONFIG_XTAL(priv->xtal, 3.55);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3550000);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2765,13 +2775,13 @@ static int cxd2841er_sleep_tc_to_active_c_band(struct cxd2841er_priv *priv,
->                 cxd2841er_write_regs(
->                         priv, I2C_SLVT, 0xa6,
->                         bw7_8mhz_b10_a6, sizeof(bw7_8mhz_b10_a6));
-> -               iffreq = MAKE_IFFREQ_CONFIG(4.9);
-> +               iffreq = cxd2841er_calc_iffreq(4900000);
->                 break;
->         case 6000000:
->                 cxd2841er_write_regs(
->                         priv, I2C_SLVT, 0xa6,
->                         bw6mhz_b10_a6, sizeof(bw6mhz_b10_a6));
-> -               iffreq = MAKE_IFFREQ_CONFIG(3.7);
-> +               iffreq = cxd2841er_calc_iffreq(3700000);
->                 break;
->         default:
->                 dev_err(&priv->i2c->dev, "%s(): unsupported bandwidth %d\n",
-> --
-> 2.10.2
->
+Based on what I know about the Empia 2874/2884 design, I would be
+absolutely shocked if the eeprom was really on the second I2C bus.
+The boot code in ROM requires the eeprom to be on bus 0 in order to
+find the 8051 microcode to be executed.  This is a documented hardware
+design requirement.
 
+I have seen designs where the first bus is accessible through an I2C
+gate on a demodulator on the second bus.  This creates a multi-master
+situation and I have no idea why anyone would ever do this.  However
+it does explain a situation where the EEPROM could be optionally
+accessed via the second bus (if the I2C gate on the demod was open at
+the time).
 
+Devin
 
--- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+--=20
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
