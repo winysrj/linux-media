@@ -1,124 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:19585 "EHLO mga01.intel.com"
+Received: from bubo.tul.cz ([147.230.16.1]:50440 "EHLO bubo.tul.cz"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750864AbdE2TGA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 15:06:00 -0400
-From: "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-CC: Sakari Ailus <sakari.ailus@iki.fi>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hsu, Cedric" <cedric.hsu@intel.com>
-Subject: RE: [PATCH v3 1/1] [media] i2c: add support for OV13858 sensor
-Date: Mon, 29 May 2017 19:05:58 +0000
-Message-ID: <7A4F467111FEF64486F40DFE7DF3500A03EB24E8@ORSMSX111.amr.corp.intel.com>
-References: <1495844847-21655-1-git-send-email-hyungwoo.yang@intel.com>
- <20170527203053.GY29527@valkosipuli.retiisi.org.uk>
- <7A4F467111FEF64486F40DFE7DF3500A03EAF344@ORSMSX111.amr.corp.intel.com>
- <CAAFQd5Bd_KXeALAJxfOKwJecE0nZLmbPR2butXPmvrdnW=cW0A@mail.gmail.com>
- <7A4F467111FEF64486F40DFE7DF3500A03EB248E@ORSMSX111.amr.corp.intel.com>
- <CAAFQd5CrOe2yEf3hHObUR_H5oyWQi5PmcSSRmoyFFHBM66ySiQ@mail.gmail.com>
-In-Reply-To: <CAAFQd5CrOe2yEf3hHObUR_H5oyWQi5PmcSSRmoyFFHBM66ySiQ@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+        id S1423576AbdEAETk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 May 2017 00:19:40 -0400
+From: Petr Cvek <petr.cvek@tul.cz>
+Subject: [PATCH 1/4] [media] pxa_camera: Add remaining Bayer 8 formats
+To: robert.jarzmik@free.fr
+References: <cover.1493612057.git.petr.cvek@tul.cz>
+Cc: linux-media@vger.kernel.org
+Message-ID: <c2961fbe-c4dd-718c-75b6-bb5fad5c7b1e@tul.cz>
+Date: Mon, 1 May 2017 06:20:45 +0200
 MIME-Version: 1.0
+In-Reply-To: <cover.1493612057.git.petr.cvek@tul.cz>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQpIaSBUb21hc3osDQoNCkkgbGVmdCBteSBjb21tZW50cy4NCg0KVGhhbmtzLA0KSHl1bmd3b28N
-Cg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogVG9tYXN6IEZpZ2EgW21haWx0
-bzp0ZmlnYUBjaHJvbWl1bS5vcmddIA0KPiBTZW50OiBNb25kYXksIE1heSAyOSwgMjAxNyAxMjoz
-NSBBTQ0KPiBUbzogWWFuZywgSHl1bmd3b28gPGh5dW5nd29vLnlhbmdAaW50ZWwuY29tPg0KPiBD
-YzogU2FrYXJpIEFpbHVzIDxzYWthcmkuYWlsdXNAaWtpLmZpPjsgbGludXgtbWVkaWFAdmdlci5r
-ZXJuZWwub3JnOyBzYWthcmkuYWlsdXNAbGludXguaW50ZWwuY29tOyBaaGVuZywgSmlhbiBYdSA8
-amlhbi54dS56aGVuZ0BpbnRlbC5jb20+OyBIc3UsIENlZHJpYyA8Y2VkcmljLmhzdUBpbnRlbC5j
-b20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjMgMS8xXSBbbWVkaWFdIGkyYzogYWRkIHN1cHBv
-cnQgZm9yIE9WMTM4NTggc2Vuc29yDQo+IA0KPiBPbiBNb24sIE1heSAyOSwgMjAxNyBhdCAzOjQ5
-IFBNLCBZYW5nLCBIeXVuZ3dvbyA8aHl1bmd3b28ueWFuZ0BpbnRlbC5jb20+IHdyb3RlOg0KPiA+
-DQo+ID4gSGVsbG8gVG9tYXN6LA0KPiA+DQo+ID4gSGVyZSdzIG15IGNvbW1lbnRzLg0KPiA+DQo+
-ID4gVGhhbmtzLA0KPiA+IEh5dW5nd29vDQo+ID4NCj4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
-LS0tLQ0KPiA+PiBGcm9tOiBUb21hc3ogRmlnYSBbbWFpbHRvOnRmaWdhQGNocm9taXVtLm9yZ10N
-Cj4gPj4gU2VudDogU3VuZGF5LCBNYXkgMjgsIDIwMTcgNzo1NiBQTQ0KPiA+PiBUbzogWWFuZywg
-SHl1bmd3b28gPGh5dW5nd29vLnlhbmdAaW50ZWwuY29tPg0KPiA+PiBDYzogU2FrYXJpIEFpbHVz
-IDxzYWthcmkuYWlsdXNAaWtpLmZpPjsgbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnOyANCj4g
-Pj4gc2FrYXJpLmFpbHVzQGxpbnV4LmludGVsLmNvbTsgWmhlbmcsIEppYW4gWHUgDQo+ID4+IDxq
-aWFuLnh1LnpoZW5nQGludGVsLmNvbT47IEhzdSwgQ2VkcmljIDxjZWRyaWMuaHN1QGludGVsLmNv
-bT4NCj4gPj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MyAxLzFdIFttZWRpYV0gaTJjOiBhZGQgc3Vw
-cG9ydCBmb3IgT1YxMzg1OCANCj4gPj4gc2Vuc29yDQo+ID4+DQo+ID4+IEhpIEh5dW5nd29vLA0K
-PiA+Pg0KPiA+PiBPbiBNb24sIE1heSAyOSwgMjAxNyBhdCA4OjI2IEFNLCBZYW5nLCBIeXVuZ3dv
-byA8aHl1bmd3b28ueWFuZ0BpbnRlbC5jb20+IHdyb3RlOg0KPiA+PiA+DQo+ID4+ID4gSGkgU2Fr
-YXJpLA0KPiA+PiA+DQo+ID4+ID4gSGVyZSdzIG15IGNvbW1lbnRzLg0KPiA+PiA+DQo+ID4+ID4g
-LUh5dW5nd29vDQo+ID4+ID4NCj4gPj4gPg0KPiA+PiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0t
-LS0tDQo+ID4+ID4+IEZyb206IFNha2FyaSBBaWx1cyBbbWFpbHRvOnNha2FyaS5haWx1c0Bpa2ku
-ZmldDQo+ID4+ID4+IFNlbnQ6IFNhdHVyZGF5LCBNYXkgMjcsIDIwMTcgMTozMSBQTQ0KPiA+PiA+
-PiBUbzogWWFuZywgSHl1bmd3b28gPGh5dW5nd29vLnlhbmdAaW50ZWwuY29tPg0KPiA+PiA+PiBD
-YzogbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnOyBzYWthcmkuYWlsdXNAbGludXguaW50ZWwu
-Y29tOyANCj4gPj4gPj4gWmhlbmcsIEppYW4gWHUgPGppYW4ueHUuemhlbmdAaW50ZWwuY29tPjsg
-SHN1LCBDZWRyaWMgDQo+ID4+ID4+IDxjZWRyaWMuaHN1QGludGVsLmNvbT47IHRmaWdhQGNocm9t
-aXVtLm9yZw0KPiA+PiA+PiBTdWJqZWN0OiBSZTogW1BBVENIIHYzIDEvMV0gW21lZGlhXSBpMmM6
-IGFkZCBzdXBwb3J0IGZvciBPVjEzODU4IA0KPiA+PiA+PiBzZW5zb3INCj4gPj4gPj4NCj4gPj4g
-Pj4gSGkgSHl1bmd3b28sDQo+ID4+ID4+DQo+ID4+ID4+IFRoYW5rcyBmb3IgdGhlIHVwZGF0ZS4g
-QSBmZXcgY29tbWVudHMgYmVsb3cuDQo+ID4+ID4+DQo+ID4+IFtzbmlwXQ0KPiA+PiA+PiA+ICsv
-KiBVcGRhdGUgVlRTIHRoYXQgbWVldHMgZXhwZWN0ZWQgdmVydGljYWwgYmxhbmtpbmcgKi8gc3Rh
-dGljIA0KPiA+PiA+PiA+ICtpbnQgb3YxMzg1OF91cGRhdGVfdmJsYW5rKHN0cnVjdCBvdjEzODU4
-ICpvdjEzODU4LA0KPiA+PiA+PiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0
-IHY0bDJfY3RybCAqY3RybCkgew0KPiA+PiA+PiA+ICsgICByZXR1cm4gb3YxMzg1OF93cml0ZV9y
-ZWcoDQo+ID4+ID4+ID4gKyAgICAgICAgICAgICAgICAgICBvdjEzODU4LCBPVjEzODU4X1JFR19W
-VFMsDQo+ID4+ID4+ID4gKyAgICAgICAgICAgICAgICAgICBPVjEzODU4X1JFR19WQUxVRV8xNkJJ
-VCwNCj4gPj4gPj4gPiArICAgICAgICAgICAgICAgICAgIG92MTM4NTgtPmN1cl9tb2RlLT5oZWln
-aHQgKw0KPiA+PiA+PiA+ICtvdjEzODU4LT52YmxhbmstPnZhbCk7IH0NCj4gPj4gPj4gPiArDQo+
-ID4+ID4+ID4gKy8qIFVwZGF0ZSBhbmFsb2cgZ2FpbiAqLw0KPiA+PiA+PiA+ICtzdGF0aWMgaW50
-IG92MTM4NThfdXBkYXRlX2FuYWxvZ19nYWluKHN0cnVjdCBvdjEzODU4ICpvdjEzODU4LA0KPiA+
-PiA+PiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgdjRsMl9jdHJs
-ICpjdHJsKSB7DQo+ID4+ID4+ID4gKyAgIHJldHVybiBvdjEzODU4X3dyaXRlX3JlZyhvdjEzODU4
-LCBPVjEzODU4X1JFR19BTkFMT0dfR0FJTiwNCj4gPj4gPj4gPiArICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIE9WMTM4NThfUkVHX1ZBTFVFXzE2QklULCANCj4gPj4gPj4gPiArY3RybC0+dmFs
-KTsNCj4gPj4gPj4NCj4gPj4gPj4gSSB0aGluayBJJ2QgbW92ZSB3aGF0IHRoZSBmb3VyIGFib3Zl
-IGZ1bmN0aW9ucyBkbyB0byBvdjEzODU4X3NldF9jdHJsKCkgdW5sZXNzIHRoZXkncmUgdXNlZCBp
-biBtb3JlIHRoYW4gb25lIGxvY2F0aW9uLg0KPiA+PiA+DQo+ID4+ID4gV2h5ID8gUGVyc29uYWxs
-eSBJIGxpa2UgdGhpcy4gU2luY2UgdGhlcmUgIHdvdWxkbid0IGJlIGFueSBkaWZmZXJlbmNlIGlu
-IGdlbmVyYXRlZCBtYWNoaW5lIGNvZGUsIEkgd2FudCB0byBrZWVwIHRoaXMgaWYgdGhlcmUncyBu
-byBzdHJpY3QgcnVsZSBvbiB0aGlzLg0KPiA+Pg0KPiA+PiBQZXJzb25hbGx5IEkgd291bGRuJ3Qg
-cHJvYmFibHkgY2FyZSBhYm91dCB0aGlzLCBidXQgSSBzZWUgb25lIGFkdmFudGFnZSBvZiBTYWth
-cmkncyBzdWdnZXN0aW9uLg0KPiA+Pg0KPiA+PiBOYW1lbHksIGl0IGltcHJvdmVzIGNvZGUgcmVh
-ZGFiaWxpdHksIGJlY2F1c2UgdGhlcmUgaXMgbGVzcyBpbmRpcmVjdGlvbiBhbmQgdGhlIHBlcnNv
-biByZWFkaW5nIG92MTM4NThfc2V0X2N0cmwoKSBpbnN0YW50bHkga25vd3MgdGhhdCBhbGwgaXQg
-ZG9lcyBpcyBkaXJlY3RseSB3cml0aW5nIHRoZSBjb250cm9sIHZhbHVlIHRvIGhhcmR3YXJlIHJl
-Z2lzdGVycy4gT3RoZXJ3aXNlLCB3aXRoIHRoZSBpbmRpcmVjdGlvbiBpbiBjdXJyZW50IHZlcnNp
-b24sIHVudGlsIHlvdSByZWFkIG92MTM4NThfdXBkYXRlX2FuYWxvZ19nYWluKCkgKG9yIHN1Y2gp
-LCB5b3UgZG9uJ3Qga25vdyB3aGV0aGVyIGl0IGRvZXMgc29tZSBleHRyYSBwcm9jZXNzaW5nLCBw
-b3dlciBtYW5hZ2VtZW50IG9yIHdoYXRub3QuDQo+ID4+DQo+ID4+IElmIG92MTM4NThfdXBkYXRl
-X2FuYWxvZ19nYWluKCkgZGlkIG1vcmUgdGhhbiBqdXN0IGEgc2ltcGxlIHJlZ2lzdGVyIA0KPiA+
-PiB3cml0ZSwgaXQgd291bGQgaW5kZWVkIG1ha2Ugc2Vuc2UgdG8gc2VwYXJhdGUgaXQsIGFzIGl0
-J3MgaW50dWl0aXZlIA0KPiA+PiB0aGF0IGEgc2VwYXJhdGUgZnVuY3Rpb24gbWVhbnMgc29tZSBt
-b3JlIGNvbXBsaWNhdGVkIHdvcmsuIChBbmQgdmljZSANCj4gPj4gdmVyc2EsIGl0J3MgY291bnRl
-ci1pbnR1aXRpdmUgdG8gaGF2ZSBhIGZ1bmN0aW9uIHRoYXQgaXMgb25seSB0aGVyZSANCj4gPj4g
-dG8gY2FsbCBhIHJlZ2lzdGVyIGFjY2Vzc29yLikNCj4gPj4NCj4gPg0KPiA+IFRoaXMgaXMgbXkg
-aGFiaXQgZm9yIHBlb3BsZSB3aG8gZG9lc24ndCBoYXZlIGRhdGFzaGVldCBmb3IgaC93IG9yIHBl
-b3BsZSB3aG8gZG9lc24ndCBuZWVkKHdhbnQpIHRvIGtub3cgYWJvdXQgZGV0YWlsLiBZZWFoLCBt
-eSBoYWJpdCBpcyBlc3BlY2lhbGx5IGZvciB0aG9zZSBoL3cgd2hpY2ggaGF2ZSBtYW55IGJpdC1m
-aWVsZHMgaW4gYSByZWdpc3RlciBhbmQgSSBiZWxpZXZlIHRoaXMga2luZCBvZiBzZXBhcmF0aW9u
-IGhlbHBzIHRoZXNlIHBlb3BsZS4gSSBrbm93IHRoZSByZWdpc3RlcnMgaW4gdGhpcyBzZW5zb3Ig
-aXMgdmVyeSBtdWNoIHN0cmFpZ2h0Zm9yd2FyZC4NCj4gDQo+IEkgc3RpbGwgdGhpbmsgaXQgZG9l
-c24ndCByZWFsbHkgYWRkIGFueSB2YWx1ZS4gSWYgdGhlIGNvZGUgaXMgb3JnYW5pemVkIHdlbGws
-IGkuZS4gbm8gZm9yd2FyZCBkZWNsYXJhdGlvbnMsIGNhbGxlZXMgYWx3YXlzIGFib3ZlIGNhbGxl
-cnMsIHRoZW4geW91IGNhbiBzaW1wbHkgcmVhZCB0aGUgY29kZSBmcm9tIHRvcCB0byBib3R0b20g
-YW5kIGhhdmUgZXhhY3RseSB0aGUgc2FtZSB1bmRlcnN0YW5kaW5nIG9mIGl0IHdpdGhvdXQgaGF2
-aW5nIHRoZSBkYXRhc2hlZXQsIGJlY2F1c2UgeW91IGNhbiBzZWUgd2hhdCB0aGUgY29kZSBpcyBz
-dXBwb3NlZCB0byBkbywgaW4gdGhpcyBjYXNlIHlvdSB3b3VsZCBnZXQgdG8gb3YxMzg1OF9zZXRf
-Y3RybCgpLCB3aGljaCBpcyBjbGVhciB0byBiZSB0aGUgZnVuY3Rpb24gdG8gc2V0IGEgY29udHJv
-bCwgdGhlbiB0byB0aGUgc3dpdGNoIGNvbnN0cnVjdCBhbmQgdGhlbiB0byBwYXJ0aWN1bGFyIHN3
-aXRjaCBjYXNlIGFuZCBhdCB0aGlzIHBvaW50IGl0J3MgYWxyZWFkeSBjbGVhciB0aGF0IHlvdSB3
-YW50IHRvIHNldCBhbmFsb2cgZ2FpbiBvciB3aGF0ZXZlciBnaXZlbiB0aGUgVjRMMl9DSURfKiBl
-bnVtLiBTbyBoYXZpbmcgYSBmdW5jdGlvbiBuYW1lZCBpbiBleGFjdGx5IHRoZSBzYW1lIHdheSAo
-b3YxMzg1OF91cGRhdGVfYW5hbG9nX2dhaW4oKSkgaXMganVzdCByZWR1bmRhbnQgYW5kIGFjdHVh
-bGx5IHRha2VzIHRoZSBpbmZvcm1hdGlvbiBhYm91dCB3aGF0J3MgZ29pbmcgb24gaW5zaWRlIGF3
-YXkgZnJvbSB0aGUgcmVhZGVyLg0KDQpGaXJzdCwgYWx0aG91Z2ggSSBiZWxpZXZlIHRoaXMgaXMg
-bm90aGluZyByZWxhdGVkIHdpdGggImZvcndhcmQgZGVjbGFyYXRpb24iIG9yICJub3QgZWFzeSB0
-byB0byByZWFkIGNvZGUiLCBJIFdJTEwgTU9WRSB0aGUgY29kZS4gQXMgSSBzYWlkLCBJIGtub3cg
-dGhlIHJlZ2lzdGVycyBpbiB0aGlzIHNlbnNvciBpcyB2ZXJ5IHN0cmFpZ2h0Zm9yd2FyZCBzbyBw
-ZW9wbGUgY2FuIHRoaW5rIGl0J3MgcmVkdW5kYW50LiBGb3IgbWUsIGl0J3MgbW9yZSBsaWtlIHlv
-dSBoYXZlIG1hY3JvIG9yIG5vdCB0byBoYXZlIGRpZmZlcmVudCBsb29rLg0KDQo+IA0KPiBCZXN0
-IHJlZ2FyZHMsDQo+IFRvbWFzeg0KPg0K
+This patch adds Bayer 8 GBRG and RGGB support and move GRBG definition
+close to BGGR (so all Bayer 8 variants are together). No other changes are
+needed as the driver handles them as RAW data stream.
+
+The RGGB variant was tested in a modified OV9640 driver.
+
+Signed-off-by: Petr Cvek <petr.cvek@tul.cz>
+---
+ drivers/media/platform/pxa_camera.c | 40 +++++++++++++++++++++++++++----------
+ 1 file changed, 30 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+index 6615f80fe059..5f007713417e 100644
+--- a/drivers/media/platform/pxa_camera.c
++++ b/drivers/media/platform/pxa_camera.c
+@@ -345,6 +345,36 @@ static const struct pxa_mbus_lookup mbus_fmt[] = {
+ 		.layout			= PXA_MBUS_LAYOUT_PACKED,
+ 	},
+ }, {
++	.code = MEDIA_BUS_FMT_SGBRG8_1X8,
++	.fmt = {
++		.fourcc			= V4L2_PIX_FMT_SGBRG8,
++		.name			= "Bayer 8 GBRG",
++		.bits_per_sample	= 8,
++		.packing		= PXA_MBUS_PACKING_NONE,
++		.order			= PXA_MBUS_ORDER_LE,
++		.layout			= PXA_MBUS_LAYOUT_PACKED,
++	},
++}, {
++	.code = MEDIA_BUS_FMT_SGRBG8_1X8,
++	.fmt = {
++		.fourcc			= V4L2_PIX_FMT_SGRBG8,
++		.name			= "Bayer 8 GRBG",
++		.bits_per_sample	= 8,
++		.packing		= PXA_MBUS_PACKING_NONE,
++		.order			= PXA_MBUS_ORDER_LE,
++		.layout			= PXA_MBUS_LAYOUT_PACKED,
++	},
++}, {
++	.code = MEDIA_BUS_FMT_SRGGB8_1X8,
++	.fmt = {
++		.fourcc			= V4L2_PIX_FMT_SRGGB8,
++		.name			= "Bayer 8 RGGB",
++		.bits_per_sample	= 8,
++		.packing		= PXA_MBUS_PACKING_NONE,
++		.order			= PXA_MBUS_ORDER_LE,
++		.layout			= PXA_MBUS_LAYOUT_PACKED,
++	},
++}, {
+ 	.code = MEDIA_BUS_FMT_SBGGR10_1X10,
+ 	.fmt = {
+ 		.fourcc			= V4L2_PIX_FMT_SBGGR10,
+@@ -445,16 +475,6 @@ static const struct pxa_mbus_lookup mbus_fmt[] = {
+ 		.layout			= PXA_MBUS_LAYOUT_PACKED,
+ 	},
+ }, {
+-	.code = MEDIA_BUS_FMT_SGRBG8_1X8,
+-	.fmt = {
+-		.fourcc			= V4L2_PIX_FMT_SGRBG8,
+-		.name			= "Bayer 8 GRBG",
+-		.bits_per_sample	= 8,
+-		.packing		= PXA_MBUS_PACKING_NONE,
+-		.order			= PXA_MBUS_ORDER_LE,
+-		.layout			= PXA_MBUS_LAYOUT_PACKED,
+-	},
+-}, {
+ 	.code = MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
+ 	.fmt = {
+ 		.fourcc			= V4L2_PIX_FMT_SGRBG10DPCM8,
+-- 
+2.11.0
