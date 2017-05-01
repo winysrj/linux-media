@@ -1,51 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:36190 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758055AbdEOUs6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 May 2017 16:48:58 -0400
-Date: Mon, 15 May 2017 15:48:56 -0500
-From: Rob Herring <robh@kernel.org>
-To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, daniel.thompson@linaro.org,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Houlong Wei <houlong.wei@mediatek.com>,
-        srv_heupstream@mediatek.com,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        Wu-Cheng Li <wuchengli@google.com>, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
-Subject: Re: [PATCH v3 1/3] dt-bindings: mt8173: Fix mdp device tree
-Message-ID: <20170515204856.p7zwsfwear5b6nyx@rob-hp-laptop>
-References: <1494559361-42835-1-git-send-email-minghsiu.tsai@mediatek.com>
- <1494559361-42835-2-git-send-email-minghsiu.tsai@mediatek.com>
+Received: from vader.hardeman.nu ([95.142.160.32]:41264 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932715AbdEAQED (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 May 2017 12:04:03 -0400
+Subject: [PATCH 05/16] lirc_dev: clarify error handling
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Mon, 01 May 2017 18:04:01 +0200
+Message-ID: <149365464135.12922.1126233823471662348.stgit@zeus.hardeman.nu>
+In-Reply-To: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
+References: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1494559361-42835-2-git-send-email-minghsiu.tsai@mediatek.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 12, 2017 at 11:22:39AM +0800, Minghsiu Tsai wrote:
-> If the mdp_* nodes are under an mdp sub-node, their corresponding
-> platform device does not automatically get its iommu assigned properly.
-> 
-> Fix this by moving the mdp component nodes up a level such that they are
-> siblings of mdp and all other SoC subsystems.  This also simplifies the
-> device tree.
-> 
-> Although it fixes iommu assignment issue, it also break compatibility
-> with old device tree. So, the patch in driver is needed to iterate over
-> sibling mdp device nodes, not child ones, to keep driver work properly.
-> 
-> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-> 
-> ---
->  Documentation/devicetree/bindings/media/mediatek-mdp.txt | 12 +++---------
->  1 file changed, 3 insertions(+), 9 deletions(-)
+out_sysfs is misleading, sysfs only comes into play after device_add(). Also,
+calling device_init() before the rest of struct dev is filled out is clearer.
 
-Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/lirc_dev.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 5c2b009b6d50..fb487c39b834 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -238,16 +238,16 @@ static int lirc_allocate_driver(struct lirc_driver *d)
+ 
+ 	ir->d = *d;
+ 
++	device_initialize(&ir->dev);
+ 	ir->dev.devt = MKDEV(MAJOR(lirc_base_dev), ir->d.minor);
+ 	ir->dev.class = lirc_class;
+ 	ir->dev.parent = d->dev;
+ 	ir->dev.release = lirc_release;
+ 	dev_set_name(&ir->dev, "lirc%d", ir->d.minor);
+-	device_initialize(&ir->dev);
+ 
+ 	err = lirc_cdev_add(ir);
+ 	if (err)
+-		goto out_sysfs;
++		goto out_free_dev;
+ 
+ 	ir->attached = 1;
+ 
+@@ -264,7 +264,7 @@ static int lirc_allocate_driver(struct lirc_driver *d)
+ 	return minor;
+ out_cdev:
+ 	cdev_del(&ir->cdev);
+-out_sysfs:
++out_free_dev:
+ 	put_device(&ir->dev);
+ out_lock:
+ 	mutex_unlock(&lirc_dev_lock);
