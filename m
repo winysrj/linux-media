@@ -1,126 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:33815 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1164945AbdEYAag (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 May 2017 20:30:36 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v7 14/34] ARM: dts: imx6-sabreauto: add the ADV7180 video decoder
-Date: Wed, 24 May 2017 17:29:29 -0700
-Message-Id: <1495672189-29164-15-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from vader.hardeman.nu ([95.142.160.32]:41252 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757788AbdEAQDx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 May 2017 12:03:53 -0400
+Subject: [PATCH 03/16] lirc_dev: correct error handling
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Mon, 01 May 2017 18:03:51 +0200
+Message-ID: <149365463117.12922.15518669536847504845.stgit@zeus.hardeman.nu>
+In-Reply-To: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
+References: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enables the ADV7180 decoder sensor. The ADV7180 connects to the
-parallel-bus mux input on ipu1_csi0_mux.
+If an error is generated, nonseekable_open() shouldn't be called.
 
-The ADV7180 power pin is via max7310_b port expander.
-
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 58 ++++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
+ drivers/media/rc/lirc_dev.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-index 1212f82..a712ff1 100644
---- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-@@ -124,6 +124,21 @@
- 			#size-cells = <0>;
- 			reg = <1>;
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 05f600bd6c67..7f13ed479e1c 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -431,7 +431,7 @@ EXPORT_SYMBOL(lirc_unregister_driver);
+ int lirc_dev_fop_open(struct inode *inode, struct file *file)
+ {
+ 	struct irctl *ir;
+-	int retval = 0;
++	int retval;
  
-+			adv7180: camera@21 {
-+				compatible = "adi,adv7180";
-+				reg = <0x21>;
-+				powerdown-gpios = <&max7310_b 2 GPIO_ACTIVE_LOW>;
-+				interrupt-parent = <&gpio1>;
-+				interrupts = <27 0x8>;
-+
-+				port {
-+					adv7180_to_ipu1_csi0_mux: endpoint {
-+						remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+						bus-width = <8>;
-+					};
-+				};
-+			};
-+
- 			max7310_a: gpio@30 {
- 				compatible = "maxim,max7310";
- 				reg = <0x30>;
-@@ -151,6 +166,25 @@
- 	};
- };
+ 	if (iminor(inode) >= MAX_IRCTL_DEVICES) {
+ 		pr_err("open result for %d is -ENODEV\n", iminor(inode));
+@@ -475,9 +475,11 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
  
-+&ipu1_csi0_from_ipu1_csi0_mux {
-+	bus-width = <8>;
-+};
-+
-+&ipu1_csi0_mux_from_parallel_sensor {
-+	remote-endpoint = <&adv7180_to_ipu1_csi0_mux>;
-+	bus-width = <8>;
-+};
-+
-+&ipu1_csi0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_ipu1_csi0>;
-+
-+	/* enable frame interval monitor on this port */
-+	fim {
-+		status = "okay";
-+	};
-+};
-+
- &clks {
- 	assigned-clocks = <&clks IMX6QDL_PLL4_BYPASS_SRC>,
- 			  <&clks IMX6QDL_PLL4_BYPASS>,
-@@ -444,6 +478,30 @@
- 			>;
- 		};
+ 	ir->open++;
  
-+		pinctrl_ipu1_csi0: ipu1csi0grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04   0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05   0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06   0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07   0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT8__IPU1_CSI0_DATA08   0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT9__IPU1_CSI0_DATA09   0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT10__IPU1_CSI0_DATA10  0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT11__IPU1_CSI0_DATA11  0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12  0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13  0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14  0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15  0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16  0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17  0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18  0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19  0x1b0b0
-+				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK 0x1b0b0
-+				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC    0x1b0b0
-+				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC   0x1b0b0
-+			>;
-+		};
+-error:
+ 	nonseekable_open(inode, file);
+ 
++	return 0;
 +
- 		pinctrl_max7310: max7310grp {
- 			fsl,pins = <
- 				MX6QDL_PAD_SD2_DAT0__GPIO1_IO15 0x1b0b0
--- 
-2.7.4
++error:
+ 	return retval;
+ }
+ EXPORT_SYMBOL(lirc_dev_fop_open);
