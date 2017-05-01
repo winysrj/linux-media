@@ -1,53 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:60001 "EHLO mga06.intel.com"
+Received: from gofer.mess.org ([88.97.38.141]:39495 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755374AbdERQbd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 12:31:33 -0400
-Message-ID: <1495125080.7848.63.camel@linux.intel.com>
-Subject: Re: [PATCH] Staging: media: fix missing blank line coding style
- issue in atomisp_tpg.c
-From: Alan Cox <alan@linux.intel.com>
-To: Manny Vindiola <mannyv@gmail.com>, mchehab@kernel.org,
-        gregkh@linuxfoundation.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Date: Thu, 18 May 2017 17:31:20 +0100
-In-Reply-To: <1495072118-912-1-git-send-email-mannyv@gmail.com>
-References: <1495072118-912-1-git-send-email-mannyv@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+        id S3000680AbdEAKic (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 May 2017 06:38:32 -0400
+Date: Mon, 1 May 2017 11:38:30 +0100
+From: Sean Young <sean@mess.org>
+To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: [PATCH] [RFC] rc-core: report protocol information to userspace
+Message-ID: <20170501103830.GB10867@gofer.mess.org>
+References: <149346313232.25459.10475301883786006034.stgit@zeus.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <149346313232.25459.10475301883786006034.stgit@zeus.hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2017-05-17 at 21:48 -0400, Manny Vindiola wrote:
-> This is a patch to the atomisp_tpg.c file that fixes up a missing
-> blank line warning found by the checkpatch.pl tool
+On Sat, Apr 29, 2017 at 12:52:12PM +0200, David H�rdeman wrote:
+> Whether we decide to go for any new keytable ioctl():s or not in rc-core, we
+> should provide the protocol information of keypresses to userspace.
 > 
-> Signed-off-by: Manny Vindiola <mannyv@gmail.com>
+> Note that this means that the RC_TYPE_* definitions become part of the
+> userspace <-> kernel API/ABI (meaning a full patch should maybe move those
+> defines under include/uapi).
+> 
+> This would also need to be ack:ed by the input maintainers.
+
+This was already NACKed in the past.
+
+http://www.spinics.net/lists/linux-input/msg46941.html
+
 > ---
->  drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c | 1 +
->  1 file changed, 1 insertion(+)
+>  drivers/media/rc/rc-main.c             |    1 +
+>  include/uapi/linux/input-event-codes.h |    1 +
+>  2 files changed, 2 insertions(+)
 > 
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c
-> b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c
-> index 996d1bd..48b9604 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c
-> @@ -56,6 +56,7 @@ static int tpg_set_fmt(struct v4l2_subdev *sd,
->  		       struct v4l2_subdev_format *format)
->  {
->  	struct v4l2_mbus_framefmt *fmt = &format->format;
-> +
->  	if (format->pad)
->  		return -EINVAL;
->  	/* only raw8 grbg is supported by TPG */
-
-The TODO fille for this driver specifically says not to send formatting
-patches at this point.
-
-There is no point making trivial spacing changes in code that needs
-lots of real work. It's like polishing your car when the doors have
-fallen off.
-
-Alan
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index e0f9b322ab02..a38c1f3569ee 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -773,6 +773,7 @@ static void ir_do_keydown(struct rc_dev *dev, enum rc_type protocol,
+>  	if (new_event && dev->keypressed)
+>  		ir_do_keyup(dev, false);
+>  
+> +	input_event(dev->input_dev, EV_MSC, MSC_PROTOCOL, protocol);
+>  	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
+>  
+>  	if (new_event && keycode != KEY_RESERVED) {
+> diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
+> index 3af60ee69053..1a8c3554cbcb 100644
+> --- a/include/uapi/linux/input-event-codes.h
+> +++ b/include/uapi/linux/input-event-codes.h
+> @@ -794,6 +794,7 @@
+>  #define MSC_RAW			0x03
+>  #define MSC_SCAN		0x04
+>  #define MSC_TIMESTAMP		0x05
+> +#define MSC_PROTOCOL		0x06
+>  #define MSC_MAX			0x07
+>  #define MSC_CNT			(MSC_MAX+1)
+>  
