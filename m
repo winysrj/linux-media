@@ -1,85 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:45064 "EHLO mail.kernel.org"
+Received: from vader.hardeman.nu ([95.142.160.32]:41436 "EHLO hardeman.nu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752901AbdEEPVZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 May 2017 11:21:25 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-renesas-soc@vger.kernel.org, mchehab@kernel.org
-Cc: kieran.bingham@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH v4 1/4] drm: rcar-du: Arm the page flip event after queuing the page flip
-Date: Fri,  5 May 2017 16:21:07 +0100
-Message-Id: <41efc7efede2bab8a87ac6fd036222c32deab931.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+        id S932968AbdEAQKY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 May 2017 12:10:24 -0400
+Subject: [PATCH 6/7] rc-core: cx231xx - leave the internals of rc_dev alone
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Mon, 01 May 2017 18:10:22 +0200
+Message-ID: <149365502220.13489.11712034094657134184.stgit@zeus.hardeman.nu>
+In-Reply-To: <149365487447.13489.15793446874818182829.stgit@zeus.hardeman.nu>
+References: <149365487447.13489.15793446874818182829.stgit@zeus.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Just some debug statements to change.
 
-The page flip event is armed in the atomic begin handler, creating a
-race condition with the frame end interrupt that could send the event
-before the atomic operation actually completes. To avoid that, arm the
-event in the atomic flush handler after queuing the page flip.
-
-This change doesn't fully close the race window, as the frame end
-interrupt could be generated before the page flip is committed to
-hardware but only handled after the event is armed. However, the race
-window is now much smaller.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/media/usb/cx231xx/cx231xx-input.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-index 4ed6f2340af0..5f0664bcd12d 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-@@ -581,17 +581,6 @@ static void rcar_du_crtc_atomic_begin(struct drm_crtc *crtc,
- 				      struct drm_crtc_state *old_crtc_state)
- {
- 	struct rcar_du_crtc *rcrtc = to_rcar_crtc(crtc);
--	struct drm_device *dev = rcrtc->crtc.dev;
--	unsigned long flags;
--
--	if (crtc->state->event) {
--		WARN_ON(drm_crtc_vblank_get(crtc) != 0);
--
--		spin_lock_irqsave(&dev->event_lock, flags);
--		rcrtc->event = crtc->state->event;
--		crtc->state->event = NULL;
--		spin_unlock_irqrestore(&dev->event_lock, flags);
--	}
+diff --git a/drivers/media/usb/cx231xx/cx231xx-input.c b/drivers/media/usb/cx231xx/cx231xx-input.c
+index 6e80f3c573f3..eecf074b0a48 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-input.c
++++ b/drivers/media/usb/cx231xx/cx231xx-input.c
+@@ -30,7 +30,7 @@ static int get_key_isdbt(struct IR_i2c *ir, enum rc_type *protocol,
+ 	int	rc;
+ 	u8	cmd, scancode;
  
- 	if (rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_VSP1_SOURCE))
- 		rcar_du_vsp_atomic_begin(rcrtc);
-@@ -601,9 +590,20 @@ static void rcar_du_crtc_atomic_flush(struct drm_crtc *crtc,
- 				      struct drm_crtc_state *old_crtc_state)
- {
- 	struct rcar_du_crtc *rcrtc = to_rcar_crtc(crtc);
-+	struct drm_device *dev = rcrtc->crtc.dev;
-+	unsigned long flags;
+-	dev_dbg(&ir->rc->input_dev->dev, "%s\n", __func__);
++	dev_dbg(&ir->rc->dev, "%s\n", __func__);
  
- 	rcar_du_crtc_update_planes(rcrtc);
+ 		/* poll IR chip */
+ 	rc = i2c_master_recv(ir->c, &cmd, 1);
+@@ -48,8 +48,7 @@ static int get_key_isdbt(struct IR_i2c *ir, enum rc_type *protocol,
  
-+	if (crtc->state->event) {
-+		WARN_ON(drm_crtc_vblank_get(crtc) != 0);
-+
-+		spin_lock_irqsave(&dev->event_lock, flags);
-+		rcrtc->event = crtc->state->event;
-+		crtc->state->event = NULL;
-+		spin_unlock_irqrestore(&dev->event_lock, flags);
-+	}
-+
- 	if (rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_VSP1_SOURCE))
- 		rcar_du_vsp_atomic_flush(rcrtc);
- }
--- 
-git-series 0.9.1
+ 	scancode = bitrev8(cmd);
+ 
+-	dev_dbg(&ir->rc->input_dev->dev, "cmd %02x, scan = %02x\n",
+-		cmd, scancode);
++	dev_dbg(&ir->rc->dev, "cmd %02x, scan = %02x\n", cmd, scancode);
+ 
+ 	*protocol = RC_TYPE_OTHER;
+ 	*pscancode = scancode;
