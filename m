@@ -1,70 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56498 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754205AbdEJSN1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 May 2017 14:13:27 -0400
-Date: Wed, 10 May 2017 21:13:21 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Kieran Bingham <kbingham@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: Re: [PATCH] v4l2-subdev: Remove of_node
-Message-ID: <20170510181321.GC3227@valkosipuli.retiisi.org.uk>
-References: <1491829376-14791-8-git-send-email-sakari.ailus@linux.intel.com>
- <1494434754-32144-1-git-send-email-kbingham@kernel.org>
+Received: from vader.hardeman.nu ([95.142.160.32]:41333 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1760315AbdEAQEy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 May 2017 12:04:54 -0400
+Subject: [PATCH 15/16] lirc_dev: remove name from struct lirc_driver
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Mon, 01 May 2017 18:04:52 +0200
+Message-ID: <149365469232.12922.13451178429094271759.stgit@zeus.hardeman.nu>
+In-Reply-To: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
+References: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1494434754-32144-1-git-send-email-kbingham@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+The name is only used for a few debug messages and the name of the parent
+device as well as the name of the lirc device (e.g. "lirc0") are sufficient
+anyway.
 
-Thanks for the patch.
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/ir-lirc-codec.c        |    2 --
+ drivers/media/rc/lirc_dev.c             |   25 ++++++++-----------------
+ drivers/staging/media/lirc/lirc_zilog.c |    1 -
+ include/media/lirc_dev.h                |    3 ---
+ 4 files changed, 8 insertions(+), 23 deletions(-)
 
-On Wed, May 10, 2017 at 05:45:54PM +0100, Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> With the fwnode implementation, of_node is no longer used.
-> 
-> Remove it.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> ---
->  include/media/v4l2-subdev.h | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 5f1669c45642..a40760174797 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -787,7 +787,6 @@ struct v4l2_subdev_platform_data {
->   *	is attached.
->   * @devnode: subdev device node
->   * @dev: pointer to the physical device, if any
-> - * @of_node: The device_node of the subdev, usually the same as dev->of_node.
->   * @fwnode: The fwnode_handle of the subdev, usually the same as
->   *	    either dev->of_node->fwnode or dev->fwnode (whichever is non-NULL).
->   * @async_list: Links this subdev to a global subdev_list or @notifier->done
-> @@ -820,7 +819,6 @@ struct v4l2_subdev {
->  	void *host_priv;
->  	struct video_device *devnode;
->  	struct device *dev;
-> -	struct device_node *of_node;
->  	struct fwnode_handle *fwnode;
->  	struct list_head async_list;
->  	struct v4l2_async_subdev *asd;
-
-This is actually the difference my local v4l2-acpi branch and what I have in
-my git.linuxtv.org tree. :-) So the change is there, embedded in the same
-patch that converts the users.
-
-I'll upload it later tonight.
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index 2c1221a61ea1..74ce27f92901 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -380,8 +380,6 @@ static int ir_lirc_register(struct rc_dev *dev)
+ 	if (dev->max_timeout)
+ 		features |= LIRC_CAN_SET_REC_TIMEOUT;
+ 
+-	snprintf(drv->name, sizeof(drv->name), "ir-lirc-codec (%s)",
+-		 dev->driver_name);
+ 	drv->features = features;
+ 	drv->data = &dev->raw->lirc;
+ 	drv->rbuf = NULL;
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 4ba6c7e2d41b..10783ef75a25 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -28,8 +28,6 @@
+ #include <media/lirc.h>
+ #include <media/lirc_dev.h>
+ 
+-#define LOGHEAD		"lirc_dev (%s[%d]): "
+-
+ static dev_t lirc_base_dev;
+ 
+ /**
+@@ -160,7 +158,6 @@ lirc_register_driver(struct lirc_driver *d)
+ 		return -EBADRQC;
+ 	}
+ 
+-	d->name[sizeof(d->name)-1] = '\0';
+ 	if (d->features == 0)
+ 		d->features = LIRC_CAN_REC_LIRCCODE;
+ 
+@@ -207,8 +204,7 @@ lirc_register_driver(struct lirc_driver *d)
+ 	if (err)
+ 		goto out_cdev;
+ 
+-	dev_info(ir->d.dev, "lirc_dev: driver %s registered at minor = %d\n",
+-		 ir->d.name, ir->d.minor);
++	dev_info(ir->d.dev, "lirc device registered as lirc%d\n", minor);
+ 
+ 	d->lirc_internal = ir;
+ 	return 0;
+@@ -242,13 +238,11 @@ lirc_unregister_driver(struct lirc_driver *d)
+ 
+ 	mutex_lock(&ir->mutex);
+ 
+-	dev_dbg(ir->d.dev, "lirc_dev: driver %s unregistered from minor = %d\n",
+-		ir->d.name, ir->d.minor);
++	dev_dbg(&ir->dev, "unregistered\n");
+ 
+ 	ir->dead = true;
+ 	if (ir->users) {
+-		dev_dbg(ir->d.dev, LOGHEAD "releasing opened driver\n",
+-			ir->d.name, ir->d.minor);
++		dev_dbg(&ir->dev, "releasing opened driver\n");
+ 		wake_up_interruptible(&ir->buf->wait_poll);
+ 	}
+ 
+@@ -278,7 +272,7 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
+ 
+ 	mutex_unlock(&ir->mutex);
+ 
+-	dev_dbg(ir->d.dev, LOGHEAD "open called\n", ir->d.name, ir->d.minor);
++	dev_dbg(&ir->dev, "open called\n");
+ 
+ 	if (ir->d.rdev) {
+ 		retval = rc_open(ir->d.rdev);
+@@ -332,8 +326,7 @@ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait)
+ 	else
+ 		ret = POLLIN | POLLRDNORM;
+ 
+-	dev_dbg(ir->d.dev, LOGHEAD "poll result = %d\n",
+-		ir->d.name, ir->d.minor, ret);
++	dev_dbg(&ir->dev, "poll result = %d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -345,12 +338,10 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 	__u32 mode;
+ 	int result = 0;
+ 
+-	dev_dbg(ir->d.dev, LOGHEAD "ioctl called (0x%x)\n",
+-		ir->d.name, ir->d.minor, cmd);
++	dev_dbg(&ir->dev, "ioctl called (0x%x)\n", cmd);
+ 
+ 	if (ir->dead) {
+-		dev_err(ir->d.dev, LOGHEAD "ioctl result = -ENODEV\n",
+-			ir->d.name, ir->d.minor);
++		dev_err(&ir->dev, "ioctl result = -ENODEV\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -428,7 +419,7 @@ ssize_t lirc_dev_fop_read(struct file *file,
+ 	if (!LIRC_CAN_REC(ir->d.features))
+ 		return -EINVAL;
+ 
+-	dev_dbg(ir->d.dev, LOGHEAD "read called\n", ir->d.name, ir->d.minor);
++	dev_dbg(&ir->dev, "read called\n");
+ 
+ 	buf = kzalloc(ir->chunk_size, GFP_KERNEL);
+ 	if (!buf)
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+index ffb70dee4547..131d87a04aab 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -1377,7 +1377,6 @@ static const struct file_operations lirc_fops = {
+ };
+ 
+ static struct lirc_driver lirc_template = {
+-	.name		= "lirc_zilog",
+ 	.code_length	= 13,
+ 	.buffer_size	= BUFLEN / 2,
+ 	.chunk_size	= 2,
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index f7629ff116a9..11f455a34090 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -120,8 +120,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+ /**
+  * struct lirc_driver - Defines the parameters on a LIRC driver
+  *
+- * @name:		this string will be used for logs
+- *
+  * @minor:		indicates minor device (/dev/lirc) number for
+  *			registered driver if caller fills it with negative
+  *			value, then the first free minor number will be used
+@@ -167,7 +165,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+  * @lirc_internal:	lirc_dev bookkeeping data, don't touch.
+  */
+ struct lirc_driver {
+-	char name[40];
+ 	int minor;
+ 	__u32 code_length;
+ 	unsigned int buffer_size; /* in chunks holding one code each */
