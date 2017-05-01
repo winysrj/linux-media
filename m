@@ -1,103 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40310 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1763985AbdEXIzm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 May 2017 04:55:42 -0400
-Subject: Re: [PATCH 1/3] [media] si2157: get chip id during probing
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <1489616530-4025-1-git-send-email-andreas@kemnade.info>
- <1489616530-4025-2-git-send-email-andreas@kemnade.info>
- <43216679-3794-14ca-b489-00ac97a57777@iki.fi> <20170515222837.3d822338@aktux>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <e20f0625-98c9-7778-4723-ebff59195593@iki.fi>
-Date: Wed, 24 May 2017 11:55:39 +0300
+Received: from kirsty.vergenet.net ([202.4.237.240]:54816 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1952059AbdEAIcz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 1 May 2017 04:32:55 -0400
+Date: Mon, 1 May 2017 10:32:48 +0200
+From: Simon Horman <horms@verge.net.au>
+To: kieran.bingham@ideasonboard.com
+Cc: Kieran Bingham <kbingham@kernel.org>,
+        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
+        sakari.ailus@iki.fi, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/5] RFC: ADV748x HDMI/Analog video receiver
+Message-ID: <20170501083248.GG18349@verge.net.au>
+References: <1493317564-18026-1-git-send-email-kbingham@kernel.org>
+ <20170428070935.GC10196@verge.net.au>
+ <b0497e51-78f1-40e2-b97d-7c1ce7939b1d@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <20170515222837.3d822338@aktux>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <b0497e51-78f1-40e2-b97d-7c1ce7939b1d@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/15/2017 11:28 PM, Andreas Kemnade wrote:
-> Hi,
+On Fri, Apr 28, 2017 at 09:47:05AM +0100, Kieran Bingham wrote:
+> Hi Simon,
 > 
-> On Sun, 23 Apr 2017 15:19:21 +0300
-> Antti Palosaari <crope@iki.fi> wrote:
+> On 28/04/17 08:09, Simon Horman wrote:
+> > On Thu, Apr 27, 2017 at 07:25:59PM +0100, Kieran Bingham wrote:
+> >> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >>
+> >> This is an RFC for the Analog Devices ADV748x driver, and follows on from a
+> >> previous posting by Niklas Söderlund [0] of an earlier incarnation of this
+> >> driver.
+> > 
+> > ...
+> > 
+> >> This series presents the following patches:
+> >>
+> >>  [PATCH 1/5] v4l2-subdev: Provide a port mapping for asynchronous
+> >>  [PATCH 2/5] rcar-vin: Match sources against ports if specified.
+> >>  [PATCH 3/5] media: i2c: adv748x: add adv748x driver
+> >>  [PATCH 4/5] arm64: dts: r8a7795: salvator-x: enable VIN, CSI and ADV7482
+> >>  [PATCH 5/5] arm64: dts: r8a7796: salvator-x: enable VIN, CSI and ADV7482
+> > 
+> > I am marking the above dts patches as "RFC" and do not plan to apply them
+> > unless you ping me or repost them.
 > 
->> On 03/16/2017 12:22 AM, Andreas Kemnade wrote:
->>> If the si2157 is behind a e.g. si2168, the si2157 will
->>> at least in some situations not be readable after the si268
->>> got the command 0101. It still accepts commands but the answer
->>> is just ffffff. So read the chip id before that so the
->>> information is not lost.
->>>
->>> The following line in kernel output is a symptome
->>> of that problem:
->>> si2157 7-0063: unknown chip version Si21255-\xffffffff\xffffffff\xffffffff
->> That is hackish solution :( Somehow I2C reads should be get working
->> rather than making this kind of work-around. Returning 0xff to i2c reads
->> means that signal strength also shows some wrong static value?
->>
-> Also this is needed for the Terratec CinergyTC2.
-> I see the ff even on windows. So it cannot be solved by usb-sniffing of
-> a working system, so, again how should we proceed?
+> Yes, sorry - the whole series was supposed to be marked as RFC, but I didn't
+> think about it - and apparently only applied the tag to the cover letter.
 > 
-> a) not support dvb sticks which do not work with your preferred
->     order of initialization.
-> 
-> b) change order of initialisation (maybe optionally add a flag like
->     INIT_TUNER_BEFORE_DEMOD to avoid risk of breaking other things)
-> 
-> c) something like the current patch.
-> 
-> d) while(!i2c_readable(tuner)) {
->       write_random_data_to_demod();
->       write_random_data_it9306_bridge();
->     }
->     remember_random_data();
-> 
-> 
-> There was not much feedback here.
+> Apologies for any confusion.
 
-If it is not possible to fix i2c communication then better to add some 
-device specific logic to i2c adapter in order to meet demod/tuner 
-requirements.
+It was clear enough, though an tag RFC in every patch would be better.
+In any case I was referring to how I have handled these patches in
+patchwork.
 
+Apologies for any confusion.
 
+> > Assuming they don't cause any
+> > regressions I would be happy to consider applying them as soon as their
+> > dependencies are accepted.
 > 
-> An excerpt from my windows sniff logs:
-> ep: 02 l:   15 GEN_I2C_WR 00 0603c6120100000000
-> ep: 02 l:    0
-> ep: 81 l:    0
-> ep: 81 l:    5 042300dcff
-> ep: 02 l:    9 GEN_I2C_RD 00 0603c6
-> ep: 02 l:    0
-> ep: 81 l:    0
-> ep: 81 l:   11 0a240080ffffffffff5b02
-> ep: 02 l:   15 GEN_I2C_WR 00 0603c6140011070300
-> ep: 02 l:    0
-> ep: 81 l:    0
-> ep: 81 l:    5 042500daff
-> ep: 02 l:    9 GEN_I2C_RD 00 0403c6
-> ep: 02 l:    0
-> ep: 81 l:    0
-> ep: 81 l:    9 08260080ffffff5901
-> 
-> here you see all the ffff from the device.
-> 
-> 
-> 
-> Regards,
-> Andreas
-> 
+> Does that mean you've done a cursory glance over the content ? :-)
 
-regards
-Antti
+Yes, I did take a quick glance.
 
+> In this instance, the port numbers need to revert back to a zero-base,
+> but I would appreciate an eye on how and where I've put the
+> representation of the physical hdmi/cvbs connectors. Having modified
+> plenty of DT, but not actually submitted much - I still feel 'new' at it
+> - so I'm sure I may not have followed the standards quite right yet.
 
+Assuming you are talking about where in the DT file the hdmi and cvbs nodes
+should go, I think this is somewhat arbitrary so long as they are within
+the top-level node - what you have looks good to me.
 
--- 
-http://palosaari.fi/
+> The dts patches are based heavily on the previous posting by Niklas, but I have
+> extended to put the extra hdmi and cvbs links in.
+> 
+> Regards
+> --
+> Kieran
+> 
