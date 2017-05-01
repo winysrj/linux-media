@@ -1,109 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:50823 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933734AbdEVOQQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 May 2017 10:16:16 -0400
-Subject: Re: [PATCH v3 0/3] Fix mdp device tree
-To: Matthias Brugger <matthias.bgg@gmail.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Houlong Wei <houlong.wei@mediatek.com>
-Cc: srv_heupstream@mediatek.com,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        Wu-Cheng Li <wuchengli@google.com>, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
-References: <1494559361-42835-1-git-send-email-minghsiu.tsai@mediatek.com>
- <20ba4f83-7d22-2a8e-4eb6-7d4eba92e2ae@xs4all.nl>
- <1f7de9e7-2c18-6662-4b95-519d22a70723@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <fe23cd68-461d-845a-13e9-93dd9493c1f9@xs4all.nl>
-Date: Mon, 22 May 2017 16:16:09 +0200
+Received: from gofer.mess.org ([88.97.38.141]:43415 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2992797AbdEAKgP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 May 2017 06:36:15 -0400
+Date: Mon, 1 May 2017 11:36:13 +0100
+From: Sean Young <sean@mess.org>
+To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: [PATCH] rc-core: export the hardware type to sysfs
+Message-ID: <20170501103613.GA10867@gofer.mess.org>
+References: <149346020957.4157.4374621534433639100.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-In-Reply-To: <1f7de9e7-2c18-6662-4b95-519d22a70723@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <149346020957.4157.4374621534433639100.stgit@zeus.hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/22/2017 04:14 PM, Matthias Brugger wrote:
+On Sat, Apr 29, 2017 at 12:03:29PM +0200, David Härdeman wrote:
+> Exporting the hardware type makes it possible for userspace applications
+> to know what to expect from the hardware.
 > 
-> 
-> On 22/05/17 11:09, Hans Verkuil wrote:
->> On 05/12/2017 05:22 AM, Minghsiu Tsai wrote:
->>
->> Who should take care of the dtsi changes? I'm not sure who maintains the mdp dts.
-> 
-> I will take care of the dtsi patches.
-> 
->>
->> The driver change and the dtsi change need to be in sync, so it is probably easiest
->> to merge this via one tree.
->>
->> Here is my Acked-by for these three patches:
->>
->> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> I can take all three, provided I have the Ack of the mdp dts maintainer. Or it can
->> go through him with my Ack.
->>
-> 
-> I think we should provide backwards compability instead, as proposed here:
-> http://lists.infradead.org/pipermail/linux-mediatek/2017-May/008811.html
-> 
-> If this change is ok for you, please let Minghsiu know so that he can 
-> provide a v4.
+> This makes it possible to write more user-friendly userspace apps.
 
-That's a lot better. In that case I can take the media patches and you the dts.
+This duplicates lirc features (LIRC_GET_FEATURES ioctl); the one exception
+is that the scancode-only devices which have no lirc device, but there
+are patches which change that.
 
-I'll wait for the v4.
+https://patchwork.linuxtv.org/patch/39593/
 
-Regards,
 
-	Hans
+Sean
 
 > 
-> Regards,
-> Matthias
+> Note that the size of sysfs_groups[] in struct rc_dev is not changed
+> by this patch because it was already large enough for one more group.
 > 
->> Regards,
->>
->> 	Hans
->>
->>> Changes in v3:
->>> - Upload patches again because forget to add v2 in title
->>>
->>> Changes in v2:
->>> - Update commit message
->>>
->>> If the mdp_* nodes are under an mdp sub-node, their corresponding
->>> platform device does not automatically get its iommu assigned properly.
->>>
->>> Fix this by moving the mdp component nodes up a level such that they are
->>> siblings of mdp and all other SoC subsystems.  This also simplifies the
->>> device tree.
->>>
->>> Although it fixes iommu assignment issue, it also break compatibility
->>> with old device tree. So, the patch in driver is needed to iterate over
->>> sibling mdp device nodes, not child ones, to keep driver work properly.
->>>
->>> Daniel Kurtz (2):
->>>    arm64: dts: mt8173: Fix mdp device tree
->>>    media: mtk-mdp: Fix mdp device tree
->>>
->>> Minghsiu Tsai (1):
->>>    dt-bindings: mt8173: Fix mdp device tree
->>>
->>>   .../devicetree/bindings/media/mediatek-mdp.txt     |  12 +-
->>>   arch/arm64/boot/dts/mediatek/mt8173.dtsi           | 126 ++++++++++-----------
->>>   drivers/media/platform/mtk-mdp/mtk_mdp_core.c      |   2 +-
->>>   3 files changed, 64 insertions(+), 76 deletions(-)
->>>
->>
+> Signed-off-by: David Härdeman <david@hardeman.nu>
+> ---
+>  drivers/media/rc/rc-main.c |   43 +++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 43 insertions(+)
+> 
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 85f95441b85b..e0f9b322ab02 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -1294,6 +1294,38 @@ static ssize_t store_protocols(struct device *device,
+>  }
+>  
+>  /**
+> + * show_hwtype() - shows the hardware type in sysfs
+> + * @device:	the &struct device descriptor
+> + * @attr:	the &struct device_attribute
+> + * @buf:	a pointer to the output buffer
+> + *
+> + * This callback function is used to get the hardware type of an rc device.
+> + * It is triggered by reading /sys/class/rc/rc?/hwtype.
+> + *
+> + * Return: the number of bytes read or a negative error code.
+> + */
+> +static ssize_t show_hwtype(struct device *device,
+> +			   struct device_attribute *attr,
+> +			   char *buf)
+> +{
+> +	struct rc_dev *dev = to_rc_dev(device);
+> +
+> +	switch (dev->driver_type) {
+> +	case RC_DRIVER_SCANCODE:
+> +		return sprintf(buf, "scancode\n");
+> +	case RC_DRIVER_IR_RAW_TX:
+> +		return sprintf(buf, "ir-tx\n");
+> +	case RC_DRIVER_IR_RAW:
+> +		if (dev->tx_ir)
+> +			return sprintf(buf, "ir-tx-rx\n");
+> +		else
+> +			return sprintf(buf, "ir-rx\n");
+> +	default:
+> +		return sprintf(buf, "<unknown>\n");
+> +	}
+> +}
+> +
+> +/**
+>   * show_filter() - shows the current scancode filter value or mask
+>   * @device:	the device descriptor
+>   * @attr:	the device attribute struct
+> @@ -1613,6 +1645,7 @@ static int rc_dev_uevent(struct device *device, struct kobj_uevent_env *env)
+>   * Static device attribute struct with the sysfs attributes for IR's
+>   */
+>  static DEVICE_ATTR(protocols, 0644, show_protocols, store_protocols);
+> +static DEVICE_ATTR(hwtype, 0444, show_hwtype, NULL);
+>  static DEVICE_ATTR(wakeup_protocols, 0644, show_wakeup_protocols,
+>  		   store_wakeup_protocols);
+>  static RC_FILTER_ATTR(filter, S_IRUGO|S_IWUSR,
+> @@ -1633,6 +1666,15 @@ static struct attribute_group rc_dev_protocol_attr_grp = {
+>  	.attrs	= rc_dev_protocol_attrs,
+>  };
+>  
+> +static struct attribute *rc_dev_hwtype_attrs[] = {
+> +	&dev_attr_hwtype.attr,
+> +	NULL,
+> +};
+> +
+> +static struct attribute_group rc_dev_hwtype_attr_grp = {
+> +	.attrs = rc_dev_hwtype_attrs,
+> +};
+> +
+>  static struct attribute *rc_dev_filter_attrs[] = {
+>  	&dev_attr_filter.attr.attr,
+>  	&dev_attr_filter_mask.attr.attr,
+> @@ -1863,6 +1905,7 @@ int rc_register_device(struct rc_dev *dev)
+>  		dev->sysfs_groups[attr++] = &rc_dev_filter_attr_grp;
+>  	if (dev->s_wakeup_filter)
+>  		dev->sysfs_groups[attr++] = &rc_dev_wakeup_filter_attr_grp;
+> +	dev->sysfs_groups[attr++] = &rc_dev_hwtype_attr_grp;
+>  	dev->sysfs_groups[attr++] = NULL;
+>  
+>  	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
