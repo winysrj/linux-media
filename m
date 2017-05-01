@@ -1,51 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57860 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751473AbdEDWrS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 May 2017 18:47:18 -0400
-Date: Fri, 5 May 2017 01:47:14 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Peter Rosin <peda@axentia.se>, Pavel Machek <pavel@ucw.cz>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v3 2/2] [media] platform: add video-multiplexer subdevice
- driver
-Message-ID: <20170504224714.GF7456@valkosipuli.retiisi.org.uk>
-References: <1493905137-27051-1-git-send-email-p.zabel@pengutronix.de>
- <1493905137-27051-2-git-send-email-p.zabel@pengutronix.de>
- <20170504203208.GC7456@valkosipuli.retiisi.org.uk>
+Received: from vader.hardeman.nu ([95.142.160.32]:41321 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758715AbdEAQEu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 May 2017 12:04:50 -0400
+Subject: [PATCH 14/16] lirc_dev: cleanup includes
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Mon, 01 May 2017 18:04:47 +0200
+Message-ID: <149365468723.12922.7216057583221400867.stgit@zeus.hardeman.nu>
+In-Reply-To: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
+References: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170504203208.GC7456@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 04, 2017 at 11:32:08PM +0300, Sakari Ailus wrote:
-> Hi Philipp,
-> 
-> On Thu, May 04, 2017 at 03:38:57PM +0200, Philipp Zabel wrote:
-> ...
-> > +static const struct of_device_id video_mux_dt_ids[] = {
-> > +	{ .compatible = "video-mux", },
-> > +	{ /* sentinel */ }
-> > +};
-> > +MODULE_DEVICE_TABLE(of, video_mux_dt_ids);
-> > +
-> > +static struct platform_driver video_mux_driver = {
-> 
-> Shouldn't this be const?
+Remove superfluous includes and defines.
 
-To reply myself --- no. Driver registration requires that, which makes
-perfect sense. Please ignore the comment.
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/lirc_dev.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 7db7d4c57991..4ba6c7e2d41b 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -15,20 +15,11 @@
+  *
+  */
+ 
+-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-
+ #include <linux/module.h>
+-#include <linux/kernel.h>
+ #include <linux/sched/signal.h>
+-#include <linux/errno.h>
+ #include <linux/ioctl.h>
+-#include <linux/fs.h>
+ #include <linux/poll.h>
+-#include <linux/completion.h>
+ #include <linux/mutex.h>
+-#include <linux/wait.h>
+-#include <linux/unistd.h>
+-#include <linux/bitops.h>
+ #include <linux/device.h>
+ #include <linux/cdev.h>
+ #include <linux/idr.h>
+@@ -37,7 +28,6 @@
+ #include <media/lirc.h>
+ #include <media/lirc_dev.h>
+ 
+-#define IRCTL_DEV_NAME	"BaseRemoteCtl"
+ #define LOGHEAD		"lirc_dev (%s[%d]): "
+ 
+ static dev_t lirc_base_dev;
+@@ -545,7 +535,7 @@ static int __init lirc_dev_init(void)
+ 	}
+ 
+ 	retval = alloc_chrdev_region(&lirc_base_dev, 0, LIRC_MAX_DEVICES,
+-				     IRCTL_DEV_NAME);
++				     "BaseRemoteCtl");
+ 	if (retval) {
+ 		class_destroy(lirc_class);
+ 		pr_err("alloc_chrdev_region failed\n");
