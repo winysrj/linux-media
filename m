@@ -1,196 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58340 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754386AbdECTvu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 May 2017 15:51:50 -0400
-Date: Wed, 3 May 2017 22:51:46 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] v4l2-async: add subnotifier registration for subdevices
-Message-ID: <20170503195146.GP7456@valkosipuli.retiisi.org.uk>
-References: <20170427223035.13164-1-niklas.soderlund+renesas@ragnatech.se>
- <20170428102817.GF7456@valkosipuli.retiisi.org.uk>
- <20170428114748.GC1532@bigcity.dyn.berto.se>
+Received: from kirsty.vergenet.net ([202.4.237.240]:54714 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S938686AbdEAIV2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 1 May 2017 04:21:28 -0400
+Date: Mon, 1 May 2017 10:21:22 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        magnus.damm@gmail.com, hans.verkuil@cisco.com,
+        niklas.soderlund@ragnatech.se, geert@linux-m68k.org,
+        sergei.shtylyov@cogentembedded.com
+Subject: Re: [PATCH v2 0/3] r8a7793 Gose video input support
+Message-ID: <20170501082121.GF18349@verge.net.au>
+References: <1476802943-5189-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <1702484.RNuXBAXB1F@avalon>
+ <20170428051624.GC18349@verge.net.au>
+ <1636596.a9JMt0l4X4@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170428114748.GC1532@bigcity.dyn.berto.se>
+In-Reply-To: <1636596.a9JMt0l4X4@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hejssan!
-
-On Fri, Apr 28, 2017 at 01:47:48PM +0200, Niklas Söderlund wrote:
-> On 2017-04-28 13:28:17 +0300, Sakari Ailus wrote:
-> > Hi Niklas,
+On Fri, Apr 28, 2017 at 11:40:20AM +0300, Laurent Pinchart wrote:
+> Hi Simon,
+> 
+> On Friday 28 Apr 2017 07:16:24 Simon Horman wrote:
+> > On Wed, Apr 26, 2017 at 06:56:06PM +0300, Laurent Pinchart wrote:
+> > > On Tuesday 21 Feb 2017 01:42:15 Laurent Pinchart wrote:
+> > >> On Thursday 20 Oct 2016 10:49:11 Simon Horman wrote:
+> > >>> On Tue, Oct 18, 2016 at 05:02:20PM +0200, Ulrich Hecht wrote:
+> > >>>> Hi!
+> > >>>> 
+> > >>>> This is a by-the-datasheet implementation of analog and digital video
+> > >>>> input on the Gose board.
+> > >>>> 
+> > >>>> I have tried to address all concerns raised by reviewers, with the
+> > >>>> exception of the composite input patch, which has been left as is for
+> > >>>> now.
+> > >>>> 
+> > >>>> CU
+> > >>>> Uli
+> > >>>> 
+> > >>>> 
+> > >>>> Changes since v1:
+> > >>>> - r8a7793.dtsi: added VIN2
+> > >>>> - modeled HDMI decoder input/output and connector
+> > >>>> - added "renesas,rcar-gen2-vin" compat strings
+> > >>>> - removed unnecessary "remote" node and aliases
+> > >>>> - set ADV7612 interrupt to GP4_2
+> > >>>> 
+> > >>>> Ulrich Hecht (3):
+> > >>>>   ARM: dts: r8a7793: Enable VIN0-VIN2
+> > >>> 
+> > >>> I have queued up the above patch with Laurent and Geert's tags.
+> > >>> 
+> > >>>>   ARM: dts: gose: add HDMI input
+> > >>>>   ARM: dts: gose: add composite video input
+> > >>> 
+> > >>> Please address the review of the above two patches and repost.
+> > >> 
+> > >> Could you please do so ? Feedback on 2/3 should be easy to handle. For
+> > >> 3/3, you might need to ping the DT maintainers.
+> > > 
+> > > Ping. These are the only two patches that block
+> > > 
+> > > VIN,v4.12,public,ulrich,Gen2 VIN integration
 > > 
-> > Thank you for the patch.
-> > 
-> > Do you happen to have a driver that would use this, to see some example of
-> > how the code is to be used?
+> > Sorry, I'm unsure how these slipped through the cracks.
+> > I now have them queued up locally for v4.13 and I plan to push this morning.
 > 
-> Yes, the latest R-Car CSI-2 series make use of this, see:
-> 
-> https://www.spinics.net/lists/linux-renesas-soc/msg13693.html
+> Please don't, the ping was for Ulrich, he needs to address review comments on 
+> patches 2/3 and 3/3.
 
-Ah, thanks. I'll take a look at that --- which should do for other reasons
-as well...
-
-...
-
-> > > +
-> > > +	/*
-> > > +	 * This function can be called recursively so the list
-> > > +	 * might be modified in a recursive call. Start from the
-> > > +	 * top of the list each iteration.
-> > > +	 */
-> > > +	found = 1;
-> > > +	while (found) {
-> > > +		found = 0;
-> > >  
-> > > -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> > > -		int ret;
-> > > +		list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> > > +			int ret;
-> > >  
-> > > -		asd = v4l2_async_belongs(notifier, sd);
-> > > -		if (!asd)
-> > > -			continue;
-> > > +			asd = v4l2_async_belongs(notifier, sd);
-> > > +			if (!asd)
-> > > +				continue;
-> > >  
-> > > -		ret = v4l2_async_test_notify(notifier, sd, asd);
-> > > -		if (ret < 0) {
-> > > -			mutex_unlock(&list_lock);
-> > > -			return ret;
-> > > +			ret = v4l2_async_test_notify(notifier, sd, asd);
-> > > +			if (ret < 0) {
-> > > +				if (!subnotifier)
-> > > +					mutex_unlock(&list_lock);
-> > > +				return ret;
-> > > +			}
-> > > +
-> > > +			found = 1;
-> > > +			break;
-> > >  		}
-> > >  	}
-> > >  
-> > >  	/* Keep also completed notifiers on the list */
-> > >  	list_add(&notifier->list, &notifier_list);
-> > >  
-> > > -	mutex_unlock(&list_lock);
-> > > +	if (!subnotifier)
-> > > +		mutex_unlock(&list_lock);
-> > >  
-> > >  	return 0;
-> > >  }
-> > > +
-> > > +int v4l2_async_subnotifier_register(struct v4l2_subdev *sd,
-> > > +				    struct v4l2_async_notifier *notifier)
-> > > +{
-> > > +	if (!sd->v4l2_dev) {
-> > > +		dev_err(sd->dev ? sd->dev : NULL,
-
-sd->dev is enough.
-
-> > > +			"Can't register subnotifier for without v4l2_dev\n");
-> > > +		return -EINVAL;
-> > 
-> > When did this start happening? :-)
-> 
-> What do you mean? I'm not sure I understand this comment.
-
-Uh, right. So the caller simply needs to specify v4l2_dev? The same applies
-to v4l2_async_notifier_register() which does not test that --- but it
-should.
-
-How about adding this change in a separate patch to what will be called
-v4l2_async_do_notifier_register()?
-
-> 
-> > 
-> > > +	}
-> > > +
-> > > +	return v4l2_async_do_notifier_register(sd->v4l2_dev, notifier, true);
-> > > +}
-> > > +EXPORT_SYMBOL(v4l2_async_subnotifier_register);
-> > > +
-> > > +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> > > +				 struct v4l2_async_notifier *notifier)
-> > > +{
-> > > +	return v4l2_async_do_notifier_register(v4l2_dev, notifier, false);
-> > > +}
-> > >  EXPORT_SYMBOL(v4l2_async_notifier_register);
-> > >  
-> > > -void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> > > +static void
-> > > +v4l2_async_do_notifier_unregister(struct v4l2_async_notifier *notifier,
-> > > +				  bool subnotifier)
-> > >  {
-> > >  	struct v4l2_subdev *sd, *tmp;
-> > >  	unsigned int notif_n_subdev = notifier->num_subdevs;
-> > > @@ -210,7 +248,8 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> > >  			"Failed to allocate device cache!\n");
-> > >  	}
-> > >  
-> > > -	mutex_lock(&list_lock);
-> > > +	if (!subnotifier)
-> > > +		mutex_lock(&list_lock);
-> > >  
-> > >  	list_del(&notifier->list);
-> > >  
-> > > @@ -237,15 +276,20 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> > >  			put_device(d);
-> > >  	}
-> > >  
-> > > -	mutex_unlock(&list_lock);
-> > > +	if (!subnotifier)
-> > > +		mutex_unlock(&list_lock);
-> > >  
-> > >  	/*
-> > >  	 * Call device_attach() to reprobe devices
-> > >  	 *
-> > >  	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
-> > >  	 * executed.
-> > > +	 * TODO: If we are unregistering a subdevice notifier we can't reprobe
-> > > +	 * since the lock_list is held by the master device and attaching that
-> > > +	 * device would call v4l2_async_register_subdev() and end in a deadlock
-> > > +	 * on list_lock.
-> > >  	 */
-> > > -	while (i--) {
-> > > +	while (i-- && !subnotifier) {
-> > 
-> > Why is this not done for sub-notifiers?
-> > 
-> > That said, the code here looks really dubious. But that's out of scope of
-> > the patchset.
-> 
-> I try to explain this in the comment above :-)
-> 
-> If this is called for sub-notifiers it will result in the probe function 
-> of the subdevices it contained to be called. And as most drivers call 
-> v4l2_async_register_subdev() in there probe functions this will result 
-> in a dead lock since v4l2_async_register_subdev() will try to lock the 
-> list_lock (which for sub-notifiers already is held).
-> 
-> This is not optimal of course and I agree with you that this code is 
-> dubious. It calls remove and then probe on all subdevices of the 
-> notifier that is unregistered.
-
-Ack. Let's address this one later.
-
--- 
-Trevliga hälsningar,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Oh, sorry. I will dequeue them.
