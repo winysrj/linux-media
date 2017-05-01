@@ -1,59 +1,284 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:49512 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754030AbdECUf7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 May 2017 16:35:59 -0400
-Subject: Re: [PATCH 3/3] [media] intel-ipu3: cio2: Add new MIPI-CSI2 driver
-To: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com
-References: <cover.1493479141.git.yong.zhi@intel.com>
- <9cf19d01f6f85ac0e5969a2b2fcd5ad5ef8c1e22.1493479141.git.yong.zhi@intel.com>
-Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
-        hyungwoo.yang@intel.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4a486cd9-48f8-fcab-6abb-4e89671c95fe@xs4all.nl>
-Date: Wed, 3 May 2017 22:35:50 +0200
+Received: from gofer.mess.org ([88.97.38.141]:54753 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934589AbdEAQt6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 May 2017 12:49:58 -0400
+Date: Mon, 1 May 2017 17:49:53 +0100
+From: Sean Young <sean@mess.org>
+To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: [PATCH 2/6] rc-core: cleanup rc_register_device
+Message-ID: <20170501164953.GA14836@gofer.mess.org>
+References: <149332488240.32431.6597996407440701793.stgit@zeus.hardeman.nu>
+ <149332524306.32431.8964878481747905258.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-In-Reply-To: <9cf19d01f6f85ac0e5969a2b2fcd5ad5ef8c1e22.1493479141.git.yong.zhi@intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <149332524306.32431.8964878481747905258.stgit@zeus.hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/30/2017 01:34 AM, Yong Zhi wrote:
-> This patch adds CIO2 CSI-2 device driver for
-> Intel's IPU3 camera sub-system support.
+On Thu, Apr 27, 2017 at 10:34:03PM +0200, David Härdeman wrote:
+> The device core infrastructure is based on the presumption that
+> once a driver calls device_add(), it must be ready to accept
+> userspace interaction.
 > 
-> The V4L2 fwnode matching depends on the following work:
+> This requires splitting rc_setup_rx_device() into two functions
+> and reorganizing rc_register_device() so that as much work
+> as possible is performed before calling device_add().
 > 
-> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi>
-> 
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+
+With this patch applied, I'm no longer getting any scancodes from
+my rc devices.
+
+David, please can you test your patches before submitting. I have to go
+over them meticulously because I cannot assume you've tested them.
+
+Thanks
+Sean
+
+> Signed-off-by: David Härdeman <david@hardeman.nu>
 > ---
->  drivers/media/pci/Kconfig          |    2 +
->  drivers/media/pci/Makefile         |    3 +-
->  drivers/media/pci/ipu3/Kconfig     |   17 +
->  drivers/media/pci/ipu3/Makefile    |    1 +
->  drivers/media/pci/ipu3/ipu3-cio2.c | 1813 ++++++++++++++++++++++++++++++++++++
->  drivers/media/pci/ipu3/ipu3-cio2.h |  425 +++++++++
->  6 files changed, 2260 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/media/pci/ipu3/Kconfig
->  create mode 100644 drivers/media/pci/ipu3/Makefile
->  create mode 100644 drivers/media/pci/ipu3/ipu3-cio2.c
->  create mode 100644 drivers/media/pci/ipu3/ipu3-cio2.h
-
-Not a review (yet), just something I noticed: I would recommend calling
-the directory intel-ipu3. The ipu3 name is a bit obscure.
-
-Is it likely that there will be more Intel PCI drivers? If so, then we
-can consider putting it in pci/intel/ipu3/.
-
-Also, can you post as a reply to the cover letter of this patch series the
-output of 'v4l2-compliance' and 'v4l2-compliance -f'. Make sure you use the
-latest v4l2-compliance code from the master branch of the v4l-utils repository
-(https://git.linuxtv.org/v4l-utils.git/).
-
-Regards,
-
-	Hans
+>  drivers/media/rc/rc-core-priv.h |    2 +
+>  drivers/media/rc/rc-ir-raw.c    |   34 ++++++++++++------
+>  drivers/media/rc/rc-main.c      |   75 +++++++++++++++++++++++++--------------
+>  3 files changed, 73 insertions(+), 38 deletions(-)
+> 
+> diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+> index 0455b273c2fc..b3e7cac2c3ee 100644
+> --- a/drivers/media/rc/rc-core-priv.h
+> +++ b/drivers/media/rc/rc-core-priv.h
+> @@ -263,7 +263,9 @@ int ir_raw_gen_pl(struct ir_raw_event **ev, unsigned int max,
+>   * Routines from rc-raw.c to be used internally and by decoders
+>   */
+>  u64 ir_raw_get_allowed_protocols(void);
+> +int ir_raw_event_prepare(struct rc_dev *dev);
+>  int ir_raw_event_register(struct rc_dev *dev);
+> +void ir_raw_event_free(struct rc_dev *dev);
+>  void ir_raw_event_unregister(struct rc_dev *dev);
+>  int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
+>  void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
+> diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+> index 90f66dc7c0d7..ae7785c4fbe7 100644
+> --- a/drivers/media/rc/rc-ir-raw.c
+> +++ b/drivers/media/rc/rc-ir-raw.c
+> @@ -486,14 +486,18 @@ EXPORT_SYMBOL(ir_raw_encode_scancode);
+>  /*
+>   * Used to (un)register raw event clients
+>   */
+> -int ir_raw_event_register(struct rc_dev *dev)
+> +int ir_raw_event_prepare(struct rc_dev *dev)
+>  {
+> -	int rc;
+> -	struct ir_raw_handler *handler;
+> +	static bool raw_init; /* 'false' default value, raw decoders loaded? */
+>  
+>  	if (!dev)
+>  		return -EINVAL;
+>  
+> +	if (!raw_init) {
+> +		request_module("ir-lirc-codec");
+> +		raw_init = true;
+> +	}
+> +
+>  	dev->raw = kzalloc(sizeof(*dev->raw), GFP_KERNEL);
+>  	if (!dev->raw)
+>  		return -ENOMEM;
+> @@ -502,6 +506,13 @@ int ir_raw_event_register(struct rc_dev *dev)
+>  	dev->change_protocol = change_protocol;
+>  	INIT_KFIFO(dev->raw->kfifo);
+>  
+> +	return 0;
+> +}
+> +
+> +int ir_raw_event_register(struct rc_dev *dev)
+> +{
+> +	struct ir_raw_handler *handler;
+> +
+>  	/*
+>  	 * raw transmitters do not need any event registration
+>  	 * because the event is coming from userspace
+> @@ -510,10 +521,8 @@ int ir_raw_event_register(struct rc_dev *dev)
+>  		dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
+>  					       "rc%u", dev->minor);
+>  
+> -		if (IS_ERR(dev->raw->thread)) {
+> -			rc = PTR_ERR(dev->raw->thread);
+> -			goto out;
+> -		}
+> +		if (IS_ERR(dev->raw->thread))
+> +			return PTR_ERR(dev->raw->thread);
+>  	}
+>  
+>  	mutex_lock(&ir_raw_handler_lock);
+> @@ -524,11 +533,15 @@ int ir_raw_event_register(struct rc_dev *dev)
+>  	mutex_unlock(&ir_raw_handler_lock);
+>  
+>  	return 0;
+> +}
+> +
+> +void ir_raw_event_free(struct rc_dev *dev)
+> +{
+> +	if (!dev)
+> +		return;
+>  
+> -out:
+>  	kfree(dev->raw);
+>  	dev->raw = NULL;
+> -	return rc;
+>  }
+>  
+>  void ir_raw_event_unregister(struct rc_dev *dev)
+> @@ -547,8 +560,7 @@ void ir_raw_event_unregister(struct rc_dev *dev)
+>  			handler->raw_unregister(dev);
+>  	mutex_unlock(&ir_raw_handler_lock);
+>  
+> -	kfree(dev->raw);
+> -	dev->raw = NULL;
+> +	ir_raw_event_free(dev);
+>  }
+>  
+>  /*
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 802e559cc30e..44189366f232 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -1663,7 +1663,7 @@ struct rc_dev *devm_rc_allocate_device(struct device *dev,
+>  }
+>  EXPORT_SYMBOL_GPL(devm_rc_allocate_device);
+>  
+> -static int rc_setup_rx_device(struct rc_dev *dev)
+> +static int rc_prepare_rx_device(struct rc_dev *dev)
+>  {
+>  	int rc;
+>  	struct rc_map *rc_map;
+> @@ -1708,10 +1708,22 @@ static int rc_setup_rx_device(struct rc_dev *dev)
+>  	dev->input_dev->phys = dev->input_phys;
+>  	dev->input_dev->name = dev->input_name;
+>  
+> +	return 0;
+> +
+> +out_table:
+> +	ir_free_table(&dev->rc_map);
+> +
+> +	return rc;
+> +}
+> +
+> +static int rc_setup_rx_device(struct rc_dev *dev)
+> +{
+> +	int rc;
+> +
+>  	/* rc_open will be called here */
+>  	rc = input_register_device(dev->input_dev);
+>  	if (rc)
+> -		goto out_table;
+> +		return rc;
+>  
+>  	/*
+>  	 * Default delay of 250ms is too short for some protocols, especially
+> @@ -1729,27 +1741,23 @@ static int rc_setup_rx_device(struct rc_dev *dev)
+>  	dev->input_dev->rep[REP_PERIOD] = 125;
+>  
+>  	return 0;
+> -
+> -out_table:
+> -	ir_free_table(&dev->rc_map);
+> -
+> -	return rc;
+>  }
+>  
+>  static void rc_free_rx_device(struct rc_dev *dev)
+>  {
+> -	if (!dev || dev->driver_type == RC_DRIVER_IR_RAW_TX)
+> +	if (!dev)
+>  		return;
+>  
+> -	ir_free_table(&dev->rc_map);
+> +	if (dev->input_dev) {
+> +		input_unregister_device(dev->input_dev);
+> +		dev->input_dev = NULL;
+> +	}
+>  
+> -	input_unregister_device(dev->input_dev);
+> -	dev->input_dev = NULL;
+> +	ir_free_table(&dev->rc_map);
+>  }
+>  
+>  int rc_register_device(struct rc_dev *dev)
+>  {
+> -	static bool raw_init; /* 'false' default value, raw decoders loaded? */
+>  	const char *path;
+>  	int attr = 0;
+>  	int minor;
+> @@ -1776,30 +1784,39 @@ int rc_register_device(struct rc_dev *dev)
+>  		dev->sysfs_groups[attr++] = &rc_dev_wakeup_filter_attr_grp;
+>  	dev->sysfs_groups[attr++] = NULL;
+>  
+> +	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
+> +		rc = rc_prepare_rx_device(dev);
+> +		if (rc)
+> +			goto out_minor;
+> +	}
+> +
+> +	if (dev->driver_type == RC_DRIVER_IR_RAW ||
+> +	    dev->driver_type == RC_DRIVER_IR_RAW_TX) {
+> +		rc = ir_raw_event_prepare(dev);
+> +		if (rc < 0)
+> +			goto out_rx_free;
+> +	}
+> +
+>  	rc = device_add(&dev->dev);
+>  	if (rc)
+> -		goto out_unlock;
+> +		goto out_raw;
+>  
+>  	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
+>  	dev_info(&dev->dev, "%s as %s\n",
+>  		dev->input_name ?: "Unspecified device", path ?: "N/A");
+>  	kfree(path);
+>  
+> +	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
+> +		rc = rc_setup_rx_device(dev);
+> +		if (rc)
+> +			goto out_dev;
+> +	}
+> +
+>  	if (dev->driver_type == RC_DRIVER_IR_RAW ||
+>  	    dev->driver_type == RC_DRIVER_IR_RAW_TX) {
+> -		if (!raw_init) {
+> -			request_module_nowait("ir-lirc-codec");
+> -			raw_init = true;
+> -		}
+>  		rc = ir_raw_event_register(dev);
+>  		if (rc < 0)
+> -			goto out_dev;
+> -	}
+> -
+> -	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
+> -		rc = rc_setup_rx_device(dev);
+> -		if (rc)
+> -			goto out_raw;
+> +			goto out_rx;
+>  	}
+>  
+>  	/* Allow the RC sysfs nodes to be accessible */
+> @@ -1811,11 +1828,15 @@ int rc_register_device(struct rc_dev *dev)
+>  
+>  	return 0;
+>  
+> -out_raw:
+> -	ir_raw_event_unregister(dev);
+> +out_rx:
+> +	rc_free_rx_device(dev);
+>  out_dev:
+>  	device_del(&dev->dev);
+> -out_unlock:
+> +out_raw:
+> +	ir_raw_event_free(dev);
+> +out_rx_free:
+> +	ir_free_table(&dev->rc_map);
+> +out_minor:
+>  	ida_simple_remove(&rc_ida, minor);
+>  	return rc;
+>  }
