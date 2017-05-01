@@ -1,63 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:39495 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S3000680AbdEAKic (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 May 2017 06:38:32 -0400
-Date: Mon, 1 May 2017 11:38:30 +0100
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH] [RFC] rc-core: report protocol information to userspace
-Message-ID: <20170501103830.GB10867@gofer.mess.org>
-References: <149346313232.25459.10475301883786006034.stgit@zeus.hardeman.nu>
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:34236 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754168AbdEAOLc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 1 May 2017 10:11:32 -0400
+Subject: Re: [PATCH 1/2] em28xx: allow setting the eeprom bus at cards struct
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+References: <05c4899146e7f2cfa1d0bc7a5118e3f2294ede40.1493638682.git.mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+From: =?UTF-8?Q?Frank_Sch=c3=a4fer?= <fschaefer.oss@googlemail.com>
+Message-ID: <2431f8bf-1bbd-ffa6-1e72-488c31c9c2a7@googlemail.com>
+Date: Mon, 1 May 2017 16:11:51 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <149346313232.25459.10475301883786006034.stgit@zeus.hardeman.nu>
+In-Reply-To: <05c4899146e7f2cfa1d0bc7a5118e3f2294ede40.1493638682.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Apr 29, 2017 at 12:52:12PM +0200, David Härdeman wrote:
-> Whether we decide to go for any new keytable ioctl():s or not in rc-core, we
-> should provide the protocol information of keypresses to userspace.
-> 
-> Note that this means that the RC_TYPE_* definitions become part of the
-> userspace <-> kernel API/ABI (meaning a full patch should maybe move those
-> defines under include/uapi).
-> 
-> This would also need to be ack:ed by the input maintainers.
 
-This was already NACKed in the past.
+Am 01.05.2017 um 13:38 schrieb Mauro Carvalho Chehab:
+> Right now, all devices use bus 0 for eeprom. However, newer
+> versions of Terratec H6 use a different buffer for eeprom.
+>
+> So, add support to use a different I2C address for eeprom.
 
-http://www.spinics.net/lists/linux-input/msg46941.html
+Has this been tested ?
+Did you read my reply to the previous patch version ?:
+See http://www.spinics.net/lists/linux-media/msg114860.html
 
+I doubt it will work. At least not for the device from the thread in the
+Kodi-forum.
+
+Regards,
+Frank
+
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 > ---
->  drivers/media/rc/rc-main.c             |    1 +
->  include/uapi/linux/input-event-codes.h |    1 +
->  2 files changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index e0f9b322ab02..a38c1f3569ee 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -773,6 +773,7 @@ static void ir_do_keydown(struct rc_dev *dev, enum rc_type protocol,
->  	if (new_event && dev->keypressed)
->  		ir_do_keyup(dev, false);
+>  drivers/media/usb/em28xx/em28xx-cards.c | 1 +
+>  drivers/media/usb/em28xx/em28xx-i2c.c   | 5 +----
+>  drivers/media/usb/em28xx/em28xx.h       | 4 +++-
+>  3 files changed, 5 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+> index a12b599a1fa2..c7754303e88e 100644
+> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+> @@ -2669,6 +2669,7 @@ static inline void em28xx_set_model(struct em28xx *dev)
 >  
-> +	input_event(dev->input_dev, EV_MSC, MSC_PROTOCOL, protocol);
->  	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
+>  	/* Should be initialized early, for I2C to work */
+>  	dev->def_i2c_bus = dev->board.def_i2c_bus;
+> +	dev->eeprom_i2c_bus = dev->board.eeprom_i2c_bus;
+>  }
 >  
->  	if (new_event && keycode != KEY_RESERVED) {
-> diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
-> index 3af60ee69053..1a8c3554cbcb 100644
-> --- a/include/uapi/linux/input-event-codes.h
-> +++ b/include/uapi/linux/input-event-codes.h
-> @@ -794,6 +794,7 @@
->  #define MSC_RAW			0x03
->  #define MSC_SCAN		0x04
->  #define MSC_TIMESTAMP		0x05
-> +#define MSC_PROTOCOL		0x06
->  #define MSC_MAX			0x07
->  #define MSC_CNT			(MSC_MAX+1)
+>  /* Wait until AC97_RESET reports the expected value reliably before proceeding.
+> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+> index 8c472d5adb50..df0ab4b6f18f 100644
+> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+> @@ -665,8 +665,6 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned bus,
+>  	*eedata = NULL;
+>  	*eedata_len = 0;
+>  
+> -	/* EEPROM is always on i2c bus 0 on all known devices. */
+> -
+>  	dev->i2c_client[bus].addr = 0xa0 >> 1;
+>  
+>  	/* Check if board has eeprom */
+> @@ -975,8 +973,7 @@ int em28xx_i2c_register(struct em28xx *dev, unsigned bus,
+>  	dev->i2c_client[bus] = em28xx_client_template;
+>  	dev->i2c_client[bus].adapter = &dev->i2c_adap[bus];
+>  
+> -	/* Up to now, all eeproms are at bus 0 */
+> -	if (!bus) {
+> +	if (bus == dev->eeprom_i2c_bus) {
+>  		retval = em28xx_i2c_eeprom(dev, bus, &dev->eedata, &dev->eedata_len);
+>  		if ((retval < 0) && (retval != -ENODEV)) {
+>  			dev_err(&dev->intf->dev,
+> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+> index e8d97d5ec161..8117536343ab 100644
+> --- a/drivers/media/usb/em28xx/em28xx.h
+> +++ b/drivers/media/usb/em28xx/em28xx.h
+> @@ -440,7 +440,8 @@ struct em28xx_board {
+>  	int vchannels;
+>  	int tuner_type;
+>  	int tuner_addr;
+> -	unsigned def_i2c_bus;	/* Default I2C bus */
+> +	unsigned def_i2c_bus;		/* Default I2C bus */
+> +	unsigned eeprom_i2c_bus;	/* EEPROM I2C bus */
+>  
+>  	/* i2c flags */
+>  	unsigned int tda9887_conf;
+> @@ -643,6 +644,7 @@ struct em28xx {
+>  
+>  	unsigned char eeprom_addrwidth_16bit:1;
+>  	unsigned def_i2c_bus;	/* Default I2C bus */
+> +	unsigned eeprom_i2c_bus;/* EEPROM I2C bus */
+>  	unsigned cur_i2c_bus;	/* Current I2C bus */
+>  	struct rt_mutex i2c_bus_lock;
 >  
