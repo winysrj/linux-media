@@ -1,81 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:3502 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750864AbdEEI2p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 May 2017 04:28:45 -0400
-Subject: Re: [RFC 1/3] dt: bindings: Add a binding for flash devices
- associated to a sensor
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        pavel@ucw.cz
-References: <1493720749-31509-1-git-send-email-sakari.ailus@linux.intel.com>
- <1493720749-31509-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170504142730.tq4k3paofmyk5jul@earth>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <1e8d0a73-3f3f-410b-ca04-89fa35b1f0b9@linux.intel.com>
-Date: Fri, 5 May 2017 11:28:34 +0300
+Received: from smtp10.smtpout.orange.fr ([80.12.242.132]:59935 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751672AbdEBOxL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 May 2017 10:53:11 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Petr Cvek <petr.cvek@tul.cz>, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/4] [media] pxa_camera: Fix a call with an uninitialized device pointer
+References: <cover.1493612057.git.petr.cvek@tul.cz>
+        <81365c5e-d102-12ba-777f-47c758416cd8@tul.cz>
+Date: Tue, 02 May 2017 16:53:09 +0200
+In-Reply-To: <81365c5e-d102-12ba-777f-47c758416cd8@tul.cz> (Petr Cvek's
+        message of "Mon, 1 May 2017 06:21:57 +0200")
+Message-ID: <87shknz4x6.fsf@belgarion.home>
 MIME-Version: 1.0
-In-Reply-To: <20170504142730.tq4k3paofmyk5jul@earth>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sebastian,
+Petr Cvek <petr.cvek@tul.cz> writes:
 
-Sebastian Reichel wrote:
-> Hi Sakari,
+> In 'commit 295ab497d6357 ("[media] media: platform: pxa_camera: make
+> printk consistent")' a pointer to the device structure in
+> mclk_get_divisor() was changed to pcdev_to_dev(pcdev). The pointer used
+> by pcdev_to_dev() is still uninitialized during the call to
+> mclk_get_divisor() as it happens in v4l2_device_register() at the end
+> of the probe. The dev_warn and dev_dbg caused a line in the log:
 >
-> On Tue, May 02, 2017 at 01:25:47PM +0300, Sakari Ailus wrote:
->> Camera flash drivers (and LEDs) are separate from the sensor devices in
->> DT. In order to make an association between the two, provide the
->> association information to the software.
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->> ---
->>  Documentation/devicetree/bindings/media/video-interfaces.txt | 11 +++++++++++
->>  1 file changed, 11 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
->> index 9cd2a36..d6c62bc 100644
->> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
->> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
->> @@ -67,6 +67,17 @@ are required in a relevant parent node:
->>  		    identifier, should be 1.
->>   - #size-cells    : should be zero.
->>
->> +
->> +Optional properties
->> +-------------------
->> +
->> +- flash: An array of phandles that refer to the flash light sources
->> +  related to an image sensor. These could be e.g. LEDs. In case the LED
->> +  driver drives more than a single LED, then the phandles here refer to
->> +  the child nodes of the LED driver describing individual LEDs. Only
->> +  valid for device nodes that are related to an image sensor.
+> 	(NULL device *): Limiting master clock to 26000000
 >
-> s/driver/controller/g - DT describes HW. Otherwise
+> Fix this by using an initialized pointer from the platform_device
+> (as before the old patch).
+>
+> Signed-off-by: Petr Cvek <petr.cvek@tul.cz>
+Right, would be good to add to the commit message :
+Fixes: 295ab497d635 ("[media] media: platform: pxa_camera: make printk consistent")
 
-Driver is hardware in this case. :-) The chip that acts as a current 
-sink or source for the LED is the driver. E.g. the adp1653 documentation 
-describes the chip as "Compact, High Efficiency, High Power, Flash/Torch 
-LED Driver with Dual Interface".
+And :
+Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
 
-It might be still possible to improve the wording. Software oriented 
-folks are more likely to misunderstand the meaning of driver here, but 
-controller might seem ambiguous for hardware oriented people.
+Cheers.
 
-How about:
+--
+Robert
 
-- flash: An array of phandles that refer to the flash light sources
-   related to an image sensor. These could be e.g. LEDs. In case the LED
-   driver (current sink or source chip for the LED(s)) drives more than a
-   single LED, then the phandles here refer to the child nodes of the LED
-   driver describing individual LEDs. Only valid for device nodes that are
-   related to an image sensor.
-
--- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+> ---
+>  drivers/media/platform/pxa_camera.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+> index 79fd7269d1e6..c8466c63be22 100644
+> --- a/drivers/media/platform/pxa_camera.c
+> +++ b/drivers/media/platform/pxa_camera.c
+> @@ -1124,7 +1124,7 @@ static u32 mclk_get_divisor(struct platform_device *pdev,
+>  	/* mclk <= ciclk / 4 (27.4.2) */
+>  	if (mclk > lcdclk / 4) {
+>  		mclk = lcdclk / 4;
+> -		dev_warn(pcdev_to_dev(pcdev),
+> +		dev_warn(&pdev->dev,
+>  			 "Limiting master clock to %lu\n", mclk);
+>  	}
+>  
+> @@ -1135,7 +1135,7 @@ static u32 mclk_get_divisor(struct platform_device *pdev,
+>  	if (pcdev->platform_flags & PXA_CAMERA_MCLK_EN)
+>  		pcdev->mclk = lcdclk / (2 * (div + 1));
+>  
+> -	dev_dbg(pcdev_to_dev(pcdev), "LCD clock %luHz, target freq %luHz, divisor %u\n",
+> +	dev_dbg(&pdev->dev, "LCD clock %luHz, target freq %luHz, divisor %u\n",
+>  		lcdclk, mclk, div);
+>  
+>  	return div;
