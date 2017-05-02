@@ -1,222 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:1093 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752446AbdEEPcM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 May 2017 11:32:12 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v5 0/8] Add support for DCMI camera interface of STMicroelectronics STM32 SoC series
-Date: Fri, 5 May 2017 17:31:19 +0200
-Message-ID: <1493998287-5828-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47254
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751785AbdEBTQz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 May 2017 15:16:55 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 2/2] em28xx: add support for new of Terratec H6
+Date: Tue,  2 May 2017 16:16:49 -0300
+Message-Id: <e80fd4519a42f7b11c0127db522da2df1639088b.1493752606.git.mchehab@s-opensource.com>
+In-Reply-To: <383deb4911c305a20bfab4c9ea24aa2fb4368599.1493752606.git.mchehab@s-opensource.com>
+References: <383deb4911c305a20bfab4c9ea24aa2fb4368599.1493752606.git.mchehab@s-opensource.com>
+In-Reply-To: <383deb4911c305a20bfab4c9ea24aa2fb4368599.1493752606.git.mchehab@s-opensource.com>
+References: <383deb4911c305a20bfab4c9ea24aa2fb4368599.1493752606.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset introduces a basic support for Digital Camera Memory Interface
-(DCMI) of STMicroelectronics STM32 SoC series.
+There's a new version of Terratec H6 with uses USB ID
+0ccd:10b2. This version is similar to the old one (with is
+supported via the HTC entry), except that this one has the
+eeprom on the second bus.
 
-This first basic support implements RGB565 & YUV frame grabbing.
-Cropping and JPEG support will be added later on.
+On this board, one side of this board is labeled with:
+	dvbc v2.0
+The other side with:
+	94V-0, MO2, RK-4221 with huge digits: 1107
 
-This has been tested on STM324x9I-EVAL evaluation board embedding
-an OV2640 camera sensor.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c | 18 ++++++++++++++++++
+ drivers/media/usb/em28xx/em28xx-dvb.c   |  1 +
+ drivers/media/usb/em28xx/em28xx.h       |  1 +
+ 3 files changed, 20 insertions(+)
 
-This driver depends on:
-  - [PATCHv6 00/14] atmel-isi/ov7670/ov2640: convert to standalone drivers http://www.spinics.net/lists/linux-media/msg113480.html
-
-===========
-= history =
-===========
-version 5:
-  - Fix remarks from Hans Verkuil on v4:
-    http://www.mail-archive.com/linux-media@vger.kernel.org/msg112338.html
-    - clk_enable before subdev streamon in start_streaming
-    - rework cleanup on error in start_streaming
-    - typos/blank fixing
-    - remove extra checks done by core in try_fmt
-    - use clamp macro to check supported min/max resolution
-    - revisit cap->card string to fit cap->card length
-  - removed some unneeded ret variables
-  - use of devm_reset_control_get to save reset cleanup
-
-version 4:
-  - "v4l2-compliance -s -f" report
-  - fix behaviour in case of start_streaming failure (DMA memory shortage for ex.)
-  - dt-bindings: Fix remarks from Rob Herring:
-    http://www.mail-archive.com/linux-media@vger.kernel.org/msg111340.html
-    Add "Acked-by: Rob Herring <robh@kernel.org>"
-
-version 3:
-  - stm32-dcmi: Add "Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>"
-  - dt-bindings: Fix remarks from Rob Herring:
-    http://www.mail-archive.com/linux-media@vger.kernel.org/msg110956.html
-
-version 2:
-  - Fix a Kbuild warning in probe:
-    http://www.mail-archive.com/linux-media@vger.kernel.org/msg110678.html
-  - Fix a warning in dcmi_queue_setup()
-  - dt-bindings: warn on sensor signals level inversion in board example
-  - Typos fixing
-
-version 1:
-  - Initial submission
-
-===================
-= v4l2-compliance =
-===================
-Below is the v4l2-compliance report for this current version of the DCMI camera interface.
-v4l2-compliance has been built from v4l-utils-1.12.3.
-
-~ # v4l2-compliance -s -f -d /dev/video0
-v4l2-compliance SHA   : f5f45e17ee98a0ebad7836ade2b34ceec909d751
-
-Driver Info:
-        Driver name   : stm32-dcmi
-        Card type     : STM32 Digital Camera Memory Int
-        Bus info      : platform:dcmi
-        Driver version: 4.11.0
-        Capabilities  : 0x85200001
-                Video Capture
-                Read/Write
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x05200001
-                Video Capture
-                Read/Write
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-                test VIDIOC_QUERYCTRL: OK
-                test VIDIOC_G/S_CTRL: OK
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 3 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK (Not Supported)
-                test Composing: OK (Not Supported)
-                test Scaling: OK
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-Streaming ioctls:
-        test read/write: OK
-        test MMAP: OK                                     
-        test USERPTR: OK (Not Supported)
-        test DMABUF: Cannot test, specify --expbuf-device
-
-Stream using all formats:
-        test MMAP for Format YUYV, Frame Size 176x144:
-                Stride 352, Field None: OK                                  
-        test MMAP for Format YUYV, Frame Size 320x240:
-                Stride 640, Field None: OK                                  
-        test MMAP for Format UYVY, Frame Size 176x144:
-                Stride 352, Field None: OK                                  
-        test MMAP for Format UYVY, Frame Size 320x240:
-                Stride 640, Field None: OK                                  
-        test MMAP for Format RGBP, Frame Size 176x144:
-                Stride 352, Field None: OK                                  
-        test MMAP for Format RGBP, Frame Size 320x240:
-                Stride 640, Field None: OK                                  
-
-Total: 52, Succeeded: 52, Failed: 0, Warnings: 0
-
-Hugues Fruchet (8):
-  dt-bindings: Document STM32 DCMI bindings
-  [media] stm32-dcmi: STM32 DCMI camera interface driver
-  ARM: dts: stm32: Enable DCMI support on STM32F429 MCU
-  ARM: dts: stm32: Enable DCMI camera interface on STM32F429-EVAL board
-  ARM: dts: stm32: Enable STMPE1600 gpio expander of STM32F429-EVAL
-    board
-  ARM: dts: stm32: Enable OV2640 camera support of STM32F429-EVAL board
-  ARM: configs: stm32: STMPE1600 GPIO expander
-  ARM: configs: stm32: DCMI + OV2640 camera support
-
- .../devicetree/bindings/media/st,stm32-dcmi.txt    |   46 +
- arch/arm/boot/dts/stm32429i-eval.dts               |   56 +
- arch/arm/boot/dts/stm32f429.dtsi                   |   37 +
- arch/arm/configs/stm32_defconfig                   |    9 +
- drivers/media/platform/Kconfig                     |   12 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/stm32/Makefile              |    1 +
- drivers/media/platform/stm32/stm32-dcmi.c          | 1403 ++++++++++++++++++++
- 8 files changed, 1566 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
- create mode 100644 drivers/media/platform/stm32/Makefile
- create mode 100644 drivers/media/platform/stm32/stm32-dcmi.c
-
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index a12b599a1fa2..25e952b176ae 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -1193,6 +1193,22 @@ struct em28xx_board em28xx_boards[] = {
+ 		.i2c_speed    = EM28XX_I2C_CLK_WAIT_ENABLE |
+ 				EM28XX_I2C_FREQ_400_KHZ,
+ 	},
++	[EM2884_BOARD_TERRATEC_H6] = {
++		.name         = "Terratec Cinergy H6 rev. 2",
++		.has_dvb      = 1,
++		.ir_codes     = RC_MAP_NEC_TERRATEC_CINERGY_XS,
++#if 0
++		.tuner_type   = TUNER_PHILIPS_TDA8290,
++		.tuner_addr   = 0x41,
++		.dvb_gpio     = terratec_h5_digital, /* FIXME: probably wrong */
++		.tuner_gpio   = terratec_h5_gpio,
++#else
++		.tuner_type   = TUNER_ABSENT,
++#endif
++		.def_i2c_bus  = 1,
++		.i2c_speed    = EM28XX_I2C_CLK_WAIT_ENABLE |
++				EM28XX_I2C_FREQ_400_KHZ,
++	},
+ 	[EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C] = {
+ 		.name         = "Hauppauge WinTV HVR 930C",
+ 		.has_dvb      = 1,
+@@ -2496,6 +2512,8 @@ struct usb_device_id em28xx_id_table[] = {
+ 			.driver_info = EM2884_BOARD_TERRATEC_H5 },
+ 	{ USB_DEVICE(0x0ccd, 0x10b6),	/* H5 Rev. 3 */
+ 			.driver_info = EM2884_BOARD_TERRATEC_H5 },
++	{ USB_DEVICE(0x0ccd, 0x10b2),	/* H6 */
++			.driver_info = EM2884_BOARD_TERRATEC_H6 },
+ 	{ USB_DEVICE(0x0ccd, 0x0084),
+ 			.driver_info = EM2860_BOARD_TERRATEC_AV350 },
+ 	{ USB_DEVICE(0x0ccd, 0x0096),
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 82edd37f0d73..4a7db623fe29 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1522,6 +1522,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 		break;
+ 	case EM2884_BOARD_ELGATO_EYETV_HYBRID_2008:
+ 	case EM2884_BOARD_CINERGY_HTC_STICK:
++	case EM2884_BOARD_TERRATEC_H6:
+ 		terratec_htc_stick_init(dev);
+ 
+ 		/* attach demodulator */
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index e8d97d5ec161..88084f24f033 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -148,6 +148,7 @@
+ #define EM28178_BOARD_PLEX_PX_BCUD                98
+ #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB  99
+ #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 100
++#define EM2884_BOARD_TERRATEC_H6		  101
+ 
+ /* Limits minimum and default number of buffers */
+ #define EM28XX_MIN_BUF 4
 -- 
-1.9.1
+2.9.3
