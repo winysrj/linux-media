@@ -1,90 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:58961 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750942AbdEIGcZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 May 2017 02:32:25 -0400
-Subject: Re: [patch, libv4l]: fix integer overflow
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pavel Machek <pavel@ucw.cz>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        pali.rohar@gmail.com, sre@kernel.org,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com
-References: <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan> <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan> <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan> <20170426105300.GA857@amd>
- <20170426081330.6ca10e42@vento.lan> <20170426132337.GA6482@amd>
- <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com> <20170508222819.GA14833@amd>
- <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
-Message-ID: <9722356b-aa92-293f-40c5-bcb30bf71147@xs4all.nl>
-Date: Tue, 9 May 2017 08:32:20 +0200
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:54616 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750769AbdEBQyf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 May 2017 12:54:35 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Kieran Bingham <kbingham@kernel.org>, hverkuil@xs4all.nl,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH] v4l2-async: add v4l2_async_match()
+Date: Tue,  2 May 2017 18:54:13 +0200
+Message-Id: <20170502165413.7559-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/09/2017 08:29 AM, Hans Verkuil wrote:
-> On 05/09/2017 12:28 AM, Pavel Machek wrote:
->> Hi!
->>
->> This bit me while trying to use absolute exposure time on Nokia N900:
->>
->> Can someone apply it to libv4l2 tree? Could I get some feedback on the
->> other patches? Is this the way to submit patches to libv4l2?
-> 
-> Yes, it is. But I do need a Signed-off-by from you.
+For drivers registering notifiers with more then one subdevices it's
+difficult to know exactly which one is being bound in each call to the
+notifiers bound callback. Comparing OF nodes became harder after the
+introduction of fwnode where the two following comparisons are not equal
+but where so previous to fwnode.
 
-I saw other patches from you for libv4l without a Signed-off-by. Can you
-check them and reply with the Signed-off-by line?
+asd.match.fwnode.fwnode == of_fwnode_handle(subdev->dev->of_node)
 
-Thanks!
+asd.match.fwnode.fwnode == of_fwnode_handle(subdev->of_node)
 
-	Hans
+It's also not ideal to directly access the asd.match union without first
+checking the match_type. So to make it easier for drivers to perform
+this type of matching export the v4l2 async match helpers with a new
+symbol v4l2_async_match(). This wold replace the comparisons above with:
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>
->> Thanks,
->> 								Pavel
->>
->> commit 0484e39ec05fdc644191e7c334a7ebfff9cb2ec5
->> Author: Pavel <pavel@ucw.cz>
->> Date:   Mon May 8 21:52:02 2017 +0200
->>
->>     Fix integer overflow with EXPOSURE_ABSOLUTE.
->>
->> diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
->> index e795aee..189fc06 100644
->> --- a/lib/libv4l2/libv4l2.c
->> +++ b/lib/libv4l2/libv4l2.c
->> @@ -1776,7 +1776,7 @@ int v4l2_set_control(int fd, int cid, int value)
->>  		if (qctrl.type == V4L2_CTRL_TYPE_BOOLEAN)
->>  			ctrl.value = value ? 1 : 0;
->>  		else
->> -			ctrl.value = (value * (qctrl.maximum - qctrl.minimum) + 32767) / 65535 +
->> +			ctrl.value = ((long long) value * (qctrl.maximum - qctrl.minimum) + 32767) / 65535 +
->>  				qctrl.minimum;
->>  
->>  		result = v4lconvert_vidioc_s_ctrl(devices[index].convert, &ctrl);
->> @@ -1812,7 +1812,7 @@ int v4l2_get_control(int fd, int cid)
->>  		if (v4l2_propagate_ioctl(index, VIDIOC_G_CTRL, &ctrl))
->>  			return -1;
->>  
->> -	return ((ctrl.value - qctrl.minimum) * 65535 +
->> +	return (((long long) ctrl.value - qctrl.minimum) * 65535 +
->>  			(qctrl.maximum - qctrl.minimum) / 2) /
->>  		(qctrl.maximum - qctrl.minimum);
->>  }
->>
->>
-> 
+v4l2_async_match(subdev, &asd)
+
+Suggested-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 52 +++++++++++++++++++++---------------
+ include/media/v4l2-async.h           | 11 ++++++++
+ 2 files changed, 41 insertions(+), 22 deletions(-)
+
+Depends on '[PATCH v3 0/7] V4L2 fwnode support' and tested on Renesas 
+R-Car H3 and M3-W together with rcar-vin Gen3 patches.
+
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index cbd919d4edd27e17..c291ffda4d18202b 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -60,6 +60,35 @@ static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ 	return asd->match.custom.match(sd->dev, asd);
+ }
+ 
++bool v4l2_async_match(struct v4l2_subdev *sd,
++		      struct v4l2_async_subdev *asd)
++{
++	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
++
++	switch (asd->match_type) {
++	case V4L2_ASYNC_MATCH_CUSTOM:
++		match = match_custom;
++		break;
++	case V4L2_ASYNC_MATCH_DEVNAME:
++		match = match_devname;
++		break;
++	case V4L2_ASYNC_MATCH_I2C:
++		match = match_i2c;
++		break;
++	case V4L2_ASYNC_MATCH_FWNODE:
++		match = match_fwnode;
++		break;
++	default:
++		/* Cannot happen, unless someone breaks us */
++		WARN_ON(true);
++		return false;
++	}
++
++	/* match cannot be NULL here */
++	return match(sd, asd);
++}
++EXPORT_SYMBOL(v4l2_async_match);
++
+ static LIST_HEAD(subdev_list);
+ static LIST_HEAD(notifier_list);
+ static DEFINE_MUTEX(list_lock);
+@@ -67,32 +96,11 @@ static DEFINE_MUTEX(list_lock);
+ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
+ 						    struct v4l2_subdev *sd)
+ {
+-	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
+ 	struct v4l2_async_subdev *asd;
+ 
+ 	list_for_each_entry(asd, &notifier->waiting, list) {
+ 		/* bus_type has been verified valid before */
+-		switch (asd->match_type) {
+-		case V4L2_ASYNC_MATCH_CUSTOM:
+-			match = match_custom;
+-			break;
+-		case V4L2_ASYNC_MATCH_DEVNAME:
+-			match = match_devname;
+-			break;
+-		case V4L2_ASYNC_MATCH_I2C:
+-			match = match_i2c;
+-			break;
+-		case V4L2_ASYNC_MATCH_FWNODE:
+-			match = match_fwnode;
+-			break;
+-		default:
+-			/* Cannot happen, unless someone breaks us */
+-			WARN_ON(true);
+-			return NULL;
+-		}
+-
+-		/* match cannot be NULL here */
+-		if (match(sd, asd))
++		if (v4l2_async_match(sd, asd))
+ 			return asd;
+ 	}
+ 
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index c69d8c8a66d0093a..45677387282919d7 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -135,4 +135,15 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd);
+  * @sd: pointer to &struct v4l2_subdev
+  */
+ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
++
++/**
++ * v4l2_async_match - match a subdevice with a asynchronous subdevice descriptor
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ * @asd: pointer to &struct v4l2_async_subdev
++ *
++ * Return: true if @asd matches @sd else false
++ */
++bool v4l2_async_match(struct v4l2_subdev *sd,
++		      struct v4l2_async_subdev *asd);
+ #endif
+-- 
+2.12.2
