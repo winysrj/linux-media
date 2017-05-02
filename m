@@ -1,96 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57556 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753924AbdERUyg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 16:54:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Kieran Bingham <kbingham@kernel.org>,
-        niklas.soderlund@ragnatech.se, geert@glider.be,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: Re: [PATCH v3.1 1/2] v4l: subdev: tolerate null in media_entity_to_v4l2_subdev
-Date: Thu, 18 May 2017 23:54:46 +0300
-Message-ID: <1676271.nErFi1MvTr@avalon>
-In-Reply-To: <20170518205033.GW3227@valkosipuli.retiisi.org.uk>
-References: <cover.ed561929790222fc2c4467d4e57072a8e4ba69f3.1495035409.git-series.kieran.bingham+renesas@ideasonboard.com> <3270185.UdjK4gGCsr@avalon> <20170518205033.GW3227@valkosipuli.retiisi.org.uk>
+Received: from mail-wr0-f172.google.com ([209.85.128.172]:35509 "EHLO
+        mail-wr0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751814AbdEBIwr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 May 2017 04:52:47 -0400
+Received: by mail-wr0-f172.google.com with SMTP id z52so74717183wrc.2
+        for <linux-media@vger.kernel.org>; Tue, 02 May 2017 01:52:47 -0700 (PDT)
+Subject: Re: [PATCH v8 05/10] media: venus: adding core part and helper
+ functions
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1493370837-19793-6-git-send-email-stanimir.varbanov@linaro.org>
+ <20170429222141.GK7456@valkosipuli.retiisi.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <d4f46814-41b3-b3a2-2e8f-d9f3cb7638a0@linaro.org>
+Date: Tue, 2 May 2017 11:52:44 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20170429222141.GK7456@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hei Sakari,
 
-On Thursday 18 May 2017 23:50:34 Sakari Ailus wrote:
-> On Thu, May 18, 2017 at 07:08:00PM +0300, Laurent Pinchart wrote:
-> > On Wednesday 17 May 2017 22:20:57 Sakari Ailus wrote:
-> >> On Wed, May 17, 2017 at 04:38:14PM +0100, Kieran Bingham wrote:
-> >>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> >>> 
-> >>> Return NULL, if a null entity is parsed for it's v4l2_subdev
-> >>> 
-> >>> Signed-off-by: Kieran Bingham
-> >>> <kieran.bingham+renesas@ideasonboard.com>
-> >>> ---
-> >>> 
-> >>>  include/media/v4l2-subdev.h | 2 +-
-> >>>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >>> 
-> >>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> >>> index 5f1669c45642..72d7f28f38dc 100644
-> >>> --- a/include/media/v4l2-subdev.h
-> >>> +++ b/include/media/v4l2-subdev.h
-> >>> @@ -829,7 +829,7 @@ struct v4l2_subdev {
-> >>>  };
-> >>>  
-> >>>  #define media_entity_to_v4l2_subdev(ent) \
-> >>> -	container_of(ent, struct v4l2_subdev, entity)
-> >>> +	(ent ? container_of(ent, struct v4l2_subdev, entity) : NULL)
-> >>>  #define vdev_to_v4l2_subdev(vdev) \
-> >>>  	((struct v4l2_subdev *)video_get_drvdata(vdev))
-> >> 
-> >> The problem with this is that ent is now referenced twice. If the ent
-> >> macro argument has side effect, this would introduce bugs. It's
-> >> unlikely, but worth avoiding. Either use a macro or a function.
-> >> 
-> >> I think I'd use function for there's little use for supporting for const
-> >> and non-const arguments presumably. A simple static inline function
-> >> should do.
-> >
-> > Note that, if we want to keep using a macro, this could be written as
-> > 
-> > #define media_entity_to_v4l2_subdev(ent) ({ \
-> > 
-> > 	typeof(ent) __ent = ent; \
-
-I just realized that this should be written
-
- 	typeof(ent) __ent = (ent);
-
-> > 	__ent ? container_of(__ent, struct v4l2_subdev, entity) : NULL; \
-> > 
-> > })
-> > 
-> > Bonus point if you can come up with a way to return a const struct
-> > v4l2_subdev pointer when then ent argument is const.
+On 04/30/2017 01:21 AM, Sakari Ailus wrote:
+> Hi, Stan!!
 > 
-> I can't think of a use case for that. I've never seen a const struct
-> v4l2_subdev anywhere. I could be just oblivious though. :-)
+> On Fri, Apr 28, 2017 at 12:13:52PM +0300, Stanimir Varbanov wrote:
+> ...
+>> +int helper_get_bufreq(struct venus_inst *inst, u32 type,
+>> +		      struct hfi_buffer_requirements *req)
+>> +{
+>> +	u32 ptype = HFI_PROPERTY_CONFIG_BUFFER_REQUIREMENTS;
+>> +	union hfi_get_property hprop;
+>> +	int ret, i;
+> 
+> unsigned int i ? It's an array index...
 
-I agree with you, it's overkill, at least for now. Although I'd like to see 
-how it could be done, for other similar constructs where both const and non-
-const versions are useful.
+Thanks for pointing that out, I have to revisit all similar places as
+well ...
 
-> Better give a __ent a name that someone will not accidentally come up with.
-> That can lead to problems that are difficult to debug --- for the code
-> compiles, it just doesn't do what's expected.
+> 
+>> +
+>> +	if (req)
+>> +		memset(req, 0, sizeof(*req));
+>> +
+>> +	ret = hfi_session_get_property(inst, ptype, &hprop);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	ret = -EINVAL;
+>> +
+>> +	for (i = 0; i < HFI_BUFFER_TYPE_MAX; i++) {
+>> +		if (hprop.bufreq[i].type != type)
+>> +			continue;
+>> +
+>> +		if (req)
+>> +			memcpy(req, &hprop.bufreq[i], sizeof(*req));
+>> +		ret = 0;
+>> +		break;
+>> +	}
+>> +
+>> +	return ret;
+>> +}
+>> +EXPORT_SYMBOL_GPL(helper_get_bufreq);
+> 
+> As these are global symbols but still specific to a single driver, it'd be
+> good to have them prefixed with a common prefix. How about "venus"? You
+> actually already have that in a macro in the header. :-)
 
-Won't it generate a compilation error as the variable would be redefined by 
-the macro ?
+You are damned right, will rework that in next version.
+
+<snip>
 
 -- 
-Regards,
-
-Laurent Pinchart
+regards,
+Stan
