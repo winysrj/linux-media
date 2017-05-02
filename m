@@ -1,122 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54688 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750873AbdE2UjC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 16:39:02 -0400
-Date: Mon, 29 May 2017 23:38:26 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Peter Rosin <peda@axentia.se>, Pavel Machek <pavel@ucw.cz>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        kernel@pengutronix.de,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v7 2/3] [media] add mux and video interface bridge entity
- functions
-Message-ID: <20170529203826.GJ29527@valkosipuli.retiisi.org.uk>
-References: <1496070731-12611-1-git-send-email-p.zabel@pengutronix.de>
- <1496070731-12611-2-git-send-email-p.zabel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1496070731-12611-2-git-send-email-p.zabel@pengutronix.de>
+Received: from mga05.intel.com ([192.55.52.43]:53981 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750892AbdEBK1V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 2 May 2017 06:27:21 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: pavel@ucw.cz
+Subject: [RFC 2/3] dt: bindings: Add lens-focus binding for image sensors
+Date: Tue,  2 May 2017 13:25:48 +0300
+Message-Id: <1493720749-31509-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1493720749-31509-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1493720749-31509-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+The lens-focus property contains a phandle to the lens voice coil driver
+that is associated to the sensor; typically both are contained in the same
+camera module.
 
-On Mon, May 29, 2017 at 05:12:10PM +0200, Philipp Zabel wrote:
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> 
-> - renamed MEDIA_ENT_F_MUX to MEDIA_ENT_F_VID_MUX
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
-> Changes since [1]:
->  - Reword the video interface bridge description, do not use "bus format" to
->    avoid confiusion with media bus formats.
-> 
-> [1] https://patchwork.linuxtv.org/patch/41467/
-> ---
->  Documentation/media/uapi/mediactl/media-types.rst | 22 ++++++++++++++++++++++
->  include/uapi/linux/media.h                        |  6 ++++++
->  2 files changed, 28 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
-> index 2a5164aea2b40..1d15542f447c1 100644
-> --- a/Documentation/media/uapi/mediactl/media-types.rst
-> +++ b/Documentation/media/uapi/mediactl/media-types.rst
-> @@ -299,6 +299,28 @@ Types and flags used to represent the media graph elements
->  	  received on its sink pad and outputs the statistics data on
->  	  its source pad.
->  
-> +    -  ..  row 29
-> +
-> +       ..  _MEDIA-ENT-F-VID-MUX:
-> +
-> +       -  ``MEDIA_ENT_F_VID_MUX``
-> +
-> +       - Video multiplexer. An entity capable of multiplexing must have at
-> +         least two sink pads and one source pad, and must pass the video
-> +         frame(s) received from the active sink pad to the source pad. Video
-> +         frame(s) from the inactive sink pads are discarded.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/devicetree/bindings/media/video-interfaces.txt | 3 +++
+ 1 file changed, 3 insertions(+)
 
-I don't think the last sentence is needed, I'd drop it as redundant. Up to
-you.
-
-> +
-> +    -  ..  row 30
-> +
-> +       ..  _MEDIA-ENT-F-VID-IF-BRIDGE:
-> +
-> +       -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
-> +
-> +       - Video interface bridge. A video interface bridge entity must have at
-> +         least one sink pad and one source pad. It receives video frames on
-
-It's not clear whether there must be at least one source pad or one source
-pad. How about either:
-
-"must have at least one sink pad and at least one source pad" or
-
-"must have at least one sink pad and exactly one source pad"?
-
-With this considered,
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-> +         its sink pad from an input video bus of one type (HDMI, eDP, MIPI
-> +         CSI-2, ...), and outputs them on its source pad to an output video bus
-> +         of another type (eDP, MIPI CSI-2, parallel, ...).
->  
->  ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
->  
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 4890787731b85..fac96c64fe513 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -105,6 +105,12 @@ struct media_device_info {
->  #define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
->  
->  /*
-> + * Switch and bridge entitites
-> + */
-> +#define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
-> +#define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
-> +
-> +/*
->   * Connectors
->   */
->  /* It is a responsibility of the entity drivers to add connectors and links */
-
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index d6c62bc..e52aefc 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -77,6 +77,9 @@ Optional properties
+   the child nodes of the LED driver describing individual LEDs. Only
+   valid for device nodes that are related to an image sensor.
+ 
++- lens-focus: A phandle to the node of the lens. Only valid for device
++  nodes that are related to an image sensor.
++
+ 
+ Optional endpoint properties
+ ----------------------------
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
