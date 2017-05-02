@@ -1,166 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:35568 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754078AbdEHOfQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 May 2017 10:35:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 2/2] media/uapi/v4l: clarify cropcap/crop/selection behavior
-Date: Mon,  8 May 2017 16:35:06 +0200
-Message-Id: <20170508143506.16448-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170508143506.16448-1-hverkuil@xs4all.nl>
-References: <20170508143506.16448-1-hverkuil@xs4all.nl>
+Received: from mail-pg0-f49.google.com ([74.125.83.49]:35687 "EHLO
+        mail-pg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751285AbdEBTWF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 May 2017 15:22:05 -0400
+Received: by mail-pg0-f49.google.com with SMTP id o3so60820705pgn.2
+        for <linux-media@vger.kernel.org>; Tue, 02 May 2017 12:22:05 -0700 (PDT)
+Date: Tue, 2 May 2017 12:22:01 -0700
+From: Bjorn Andersson <bjorn.andersson@linaro.org>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Gross <andy.gross@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Subject: Re: [PATCH v8 01/10] firmware: qcom_scm: Fix to allow
+ COMPILE_TEST-ing
+Message-ID: <20170502192201.GY15143@minitux>
+References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1493370837-19793-2-git-send-email-stanimir.varbanov@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1493370837-19793-2-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Fri 28 Apr 02:13 PDT 2017, Stanimir Varbanov wrote:
 
-Unfortunately the use of 'type' was inconsistent for multiplanar
-buffer types. Starting with 4.12 both the normal and _MPLANE variants
-are allowed, thus making it possible to write sensible code.
+> Unfortunatly previous attempt to allow consumer drivers to
+> use COMPILE_TEST option in Kconfig is not enough, because in the
+> past the consumer drivers used 'depends on' Kconfig option but
+> now they are using 'select' Kconfig option which means on non ARM
+> arch'es compilation is triggered. Thus we need to move the ifdefery
+> one level below by touching the private qcom_scm.h header.
+> 
+> To: Andy Gross <andy.gross@linaro.org>
 
-Yes, we messed up :-(
+"To" should not be listed in the commit message and "Cc" means that you
+really do expect Stephen and myself to say something - i.e. it's not the
+same as To and Cc in the email header.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/v4l/vidioc-cropcap.rst    | 21 ++++++++++++---------
- Documentation/media/uapi/v4l/vidioc-g-crop.rst     | 22 +++++++++++++---------
- .../media/uapi/v4l/vidioc-g-selection.rst          | 22 ++++++++++++----------
- 3 files changed, 37 insertions(+), 28 deletions(-)
+> Cc: Stephen Boyd <sboyd@codeaurora.org>
+> Cc: Bjorn Andersson <bjorn.andersson@linaro.org>
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+>  drivers/firmware/Kconfig    |  2 +-
+>  drivers/firmware/qcom_scm.h | 72 ++++++++++++++++++++++++++++++++++++++-------
+>  include/linux/qcom_scm.h    | 32 --------------------
+>  3 files changed, 62 insertions(+), 44 deletions(-)
+> 
+> diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
+> index 6e4ed5a9c6fd..480578c3691a 100644
+> --- a/drivers/firmware/Kconfig
+> +++ b/drivers/firmware/Kconfig
+> @@ -204,7 +204,7 @@ config FW_CFG_SYSFS_CMDLINE
+>  
+>  config QCOM_SCM
+>  	bool
+> -	depends on ARM || ARM64
+> +	depends on ARM || ARM64 || COMPILE_TEST
+>  	select RESET_CONTROLLER
+>  
+>  config QCOM_SCM_32
+> diff --git a/drivers/firmware/qcom_scm.h b/drivers/firmware/qcom_scm.h
+> index 9bea691f30fb..d2b5723afb3f 100644
+> --- a/drivers/firmware/qcom_scm.h
+> +++ b/drivers/firmware/qcom_scm.h
+> @@ -12,6 +12,7 @@
+>  #ifndef __QCOM_SCM_INT_H
+>  #define __QCOM_SCM_INT_H
+>  
+> +#if IS_ENABLED(CONFIG_ARM) || IS_ENABLED(CONFIG_ARM64)
+>  #define QCOM_SCM_SVC_BOOT		0x1
+>  #define QCOM_SCM_BOOT_ADDR		0x1
+>  #define QCOM_SCM_BOOT_ADDR_MC		0x11
+> @@ -58,6 +59,66 @@ extern int  __qcom_scm_pas_auth_and_reset(struct device *dev, u32 peripheral);
+>  extern int  __qcom_scm_pas_shutdown(struct device *dev, u32 peripheral);
+>  extern int  __qcom_scm_pas_mss_reset(struct device *dev, bool reset);
+>  
+> +#define QCOM_SCM_SVC_MP			0xc
+> +#define QCOM_SCM_RESTORE_SEC_CFG	2
+> +extern int __qcom_scm_restore_sec_cfg(struct device *dev, u32 device_id,
+> +				      u32 spare);
+> +#define QCOM_SCM_IOMMU_SECURE_PTBL_SIZE	3
+> +#define QCOM_SCM_IOMMU_SECURE_PTBL_INIT	4
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-cropcap.rst b/Documentation/media/uapi/v4l/vidioc-cropcap.rst
-index f21a69b554e1..d354216846e6 100644
---- a/Documentation/media/uapi/v4l/vidioc-cropcap.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-cropcap.rst
-@@ -39,16 +39,19 @@ structure. Drivers fill the rest of the structure. The results are
- constant except when switching the video standard. Remember this switch
- can occur implicit when switching the video input or output.
- 
--Do not use the multiplanar buffer types. Use
--``V4L2_BUF_TYPE_VIDEO_CAPTURE`` instead of
--``V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE`` and use
--``V4L2_BUF_TYPE_VIDEO_OUTPUT`` instead of
--``V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE``.
--
- This ioctl must be implemented for video capture or output devices that
- support cropping and/or scaling and/or have non-square pixels, and for
- overlay devices.
- 
-+.. note::
-+   Unfortunately in the case of multiplanar buffer types
-+   (``V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE`` and ``V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE``)
-+   this API was messed up with regards to how the :c:type:`v4l2_cropcap` ``type`` field
-+   should be filled in. The Samsung Exynos drivers only accepted the
-+   ``_MPLANE`` buffer type while other drivers only accepted a non-multiplanar
-+   buffer type (i.e. without the ``_MPLANE`` at the end).
-+
-+   Starting with kernel 4.12 both variations are allowed.
- 
- .. c:type:: v4l2_cropcap
- 
-@@ -62,9 +65,9 @@ overlay devices.
-     * - __u32
-       - ``type``
-       - Type of the data stream, set by the application. Only these types
--	are valid here: ``V4L2_BUF_TYPE_VIDEO_CAPTURE``,
--	``V4L2_BUF_TYPE_VIDEO_OUTPUT`` and
--	``V4L2_BUF_TYPE_VIDEO_OVERLAY``. See :c:type:`v4l2_buf_type`.
-+	are valid here: ``V4L2_BUF_TYPE_VIDEO_CAPTURE``, ``V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE``,
-+	``V4L2_BUF_TYPE_VIDEO_OUTPUT``, ``V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE`` and
-+	``V4L2_BUF_TYPE_VIDEO_OVERLAY``. See :c:type:`v4l2_buf_type` and the note above.
-     * - struct :ref:`v4l2_rect <v4l2-rect-crop>`
-       - ``bounds``
-       - Defines the window within capturing or output is possible, this
-diff --git a/Documentation/media/uapi/v4l/vidioc-g-crop.rst b/Documentation/media/uapi/v4l/vidioc-g-crop.rst
-index 56a36340f565..8aabe33c8da7 100644
---- a/Documentation/media/uapi/v4l/vidioc-g-crop.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-g-crop.rst
-@@ -45,12 +45,6 @@ and struct :c:type:`v4l2_rect` substructure named ``c`` of a
- v4l2_crop structure and call the :ref:`VIDIOC_S_CROP <VIDIOC_G_CROP>` ioctl with a pointer
- to this structure.
- 
--Do not use the multiplanar buffer types. Use
--``V4L2_BUF_TYPE_VIDEO_CAPTURE`` instead of
--``V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE`` and use
--``V4L2_BUF_TYPE_VIDEO_OUTPUT`` instead of
--``V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE``.
--
- The driver first adjusts the requested dimensions against hardware
- limits, i. e. the bounds given by the capture/output window, and it
- rounds to the closest possible values of horizontal and vertical offset,
-@@ -74,6 +68,16 @@ been negotiated.
- When cropping is not supported then no parameters are changed and
- :ref:`VIDIOC_S_CROP <VIDIOC_G_CROP>` returns the ``EINVAL`` error code.
- 
-+.. note::
-+   Unfortunately in the case of multiplanar buffer types
-+   (``V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE`` and ``V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE``)
-+   this API was messed up with regards to how the :c:type:`v4l2_crop` ``type`` field
-+   should be filled in. The Samsung Exynos drivers only accepted the
-+   ``_MPLANE`` buffer type while other drivers only accepted a non-multiplanar
-+   buffer type (i.e. without the ``_MPLANE`` at the end).
-+
-+   Starting with kernel 4.12 both variations are allowed.
-+
- 
- .. c:type:: v4l2_crop
- 
-@@ -87,9 +91,9 @@ When cropping is not supported then no parameters are changed and
-     * - __u32
-       - ``type``
-       - Type of the data stream, set by the application. Only these types
--	are valid here: ``V4L2_BUF_TYPE_VIDEO_CAPTURE``,
--	``V4L2_BUF_TYPE_VIDEO_OUTPUT`` and
--	``V4L2_BUF_TYPE_VIDEO_OVERLAY``. See :c:type:`v4l2_buf_type`.
-+	are valid here: ``V4L2_BUF_TYPE_VIDEO_CAPTURE``, ``V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE``,
-+	``V4L2_BUF_TYPE_VIDEO_OUTPUT``, ``V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE`` and
-+	``V4L2_BUF_TYPE_VIDEO_OVERLAY``. See :c:type:`v4l2_buf_type` and the note above.
-     * - struct :c:type:`v4l2_rect`
-       - ``c``
-       - Cropping rectangle. The same co-ordinate system as for struct
-diff --git a/Documentation/media/uapi/v4l/vidioc-g-selection.rst b/Documentation/media/uapi/v4l/vidioc-g-selection.rst
-index deb1f6fb473b..8d4e7bf49eab 100644
---- a/Documentation/media/uapi/v4l/vidioc-g-selection.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-g-selection.rst
-@@ -40,13 +40,19 @@ Description
- 
- The ioctls are used to query and configure selection rectangles.
- 
-+.. note::
-+   Unfortunately in the case of multiplanar buffer types
-+   (``V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE`` and ``V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE``)
-+   this API was messed up with regards to how the :c:type:`v4l2_selection` ``type`` field
-+   should be filled in. The Samsung Exynos drivers only accepted the
-+   ``_MPLANE`` buffer type while other drivers only accepted a non-multiplanar
-+   buffer type (i.e. without the ``_MPLANE`` at the end).
-+
-+   Starting with kernel 4.12 both variations are allowed.
-+
- To query the cropping (composing) rectangle set struct
- :c:type:`v4l2_selection` ``type`` field to the
--respective buffer type. Do not use the multiplanar buffer types. Use
--``V4L2_BUF_TYPE_VIDEO_CAPTURE`` instead of
--``V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE`` and use
--``V4L2_BUF_TYPE_VIDEO_OUTPUT`` instead of
--``V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE``. The next step is setting the
-+respective buffer type. The next step is setting the
- value of struct :c:type:`v4l2_selection` ``target``
- field to ``V4L2_SEL_TGT_CROP`` (``V4L2_SEL_TGT_COMPOSE``). Please refer
- to table :ref:`v4l2-selections-common` or :ref:`selection-api` for
-@@ -64,11 +70,7 @@ pixels.
- 
- To change the cropping (composing) rectangle set the struct
- :c:type:`v4l2_selection` ``type`` field to the
--respective buffer type. Do not use multiplanar buffers. Use
--``V4L2_BUF_TYPE_VIDEO_CAPTURE`` instead of
--``V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE``. Use
--``V4L2_BUF_TYPE_VIDEO_OUTPUT`` instead of
--``V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE``. The next step is setting the
-+respective buffer type. The next step is setting the
- value of struct :c:type:`v4l2_selection` ``target`` to
- ``V4L2_SEL_TGT_CROP`` (``V4L2_SEL_TGT_COMPOSE``). Please refer to table
- :ref:`v4l2-selections-common` or :ref:`selection-api` for additional
--- 
-2.11.0
+Don't you need these constants in the COMPILE_TEST case?
+
+> +extern int __qcom_scm_iommu_secure_ptbl_size(struct device *dev, u32 spare,
+> +					     size_t *size);
+> +extern int __qcom_scm_iommu_secure_ptbl_init(struct device *dev, u64 addr,
+> +					     u32 size, u32 spare);
+> +#else
+> +static inline int __qcom_scm_set_remote_state(struct device *dev, u32 state,
+> +					      u32 id)
+> +{ return -ENODEV; }
+
+Please space this out over 3 lines with proper indentation.
+
+> +static inline int __qcom_scm_set_warm_boot_addr(struct device *dev, void *entry,
+> +						const cpumask_t *cpus)
+> +{ return -ENODEV; }
+> +static inline int __qcom_scm_set_cold_boot_addr(void *entry,
+> +						const cpumask_t *cpus)
+> +{ return -ENODEV; }
+> +static inline void __qcom_scm_cpu_power_down(u32 flags) {}
+> +static inline int __qcom_scm_is_call_available(struct device *dev, u32 svc_id,
+> +					       u32 cmd_id)
+> +{ return -ENODEV; }
+> +#define QCOM_SCM_SVC_HDCP		0x11
+> +#define QCOM_SCM_CMD_HDCP		0x01
+> +static inline int __qcom_scm_hdcp_req(struct device *dev,
+> +				      struct qcom_scm_hdcp_req *req,
+> +				      u32 req_cnt, u32 *resp)
+> +{ return -ENODEV; }
+> +static inline void __qcom_scm_init(void) {}
+> +#define QCOM_SCM_SVC_PIL		0x2
+> +#define QCOM_SCM_PAS_IS_SUPPORTED_CMD	0x7
+
+Do we only need 4 service-related defines in the COMPILE_TEST case?
+
+
+I don't think we want to duplicate all the defines, so please prepend a
+separate patch grouping them at the top.
+
+Regards,
+Bjorn
