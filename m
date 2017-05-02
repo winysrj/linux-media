@@ -1,116 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58414 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752424AbdEJNVk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 May 2017 09:21:40 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH 06/16] rcar-vin: refactor pad lookup code
-Date: Wed, 10 May 2017 16:21:38 +0300
-Message-ID: <1777354.Z7yukgknS8@avalon>
-In-Reply-To: <20170314185957.25253-7-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se> <20170314185957.25253-7-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:34046 "EHLO
+        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751197AbdEBJRX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 May 2017 05:17:23 -0400
+Received: by mail-wm0-f52.google.com with SMTP id r190so26387728wme.1
+        for <linux-media@vger.kernel.org>; Tue, 02 May 2017 02:17:23 -0700 (PDT)
+Subject: Re: [PATCH v8 05/10] media: venus: adding core part and helper
+ functions
+To: Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Gross <andy.gross@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1493370837-19793-6-git-send-email-stanimir.varbanov@linaro.org>
+ <20170428220245.GA3283@jcrouse-lnx.qualcomm.com>
+ <20170429202247.GV15143@minitux>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <5840407a-8812-65a9-5716-f3a64427649b@linaro.org>
+Date: Tue, 2 May 2017 12:17:20 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <20170429202247.GV15143@minitux>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hi,
 
-Thank you for the patch.
+On 04/29/2017 11:22 PM, Bjorn Andersson wrote:
+> On Fri 28 Apr 15:02 PDT 2017, Jordan Crouse wrote:
+> 
+>> On Fri, Apr 28, 2017 at 12:13:52PM +0300, Stanimir Varbanov wrote:
+>>> +int venus_boot(struct device *parent, struct device *fw_dev)
+>>> +{
+>>> +	const struct firmware *mdt;
+>>> +	phys_addr_t mem_phys;
+>>> +	ssize_t fw_size;
+>>> +	size_t mem_size;
+>>> +	void *mem_va;
+>>> +	int ret;
+>>> +
+>>> +	if (!qcom_scm_is_available())
+>>> +		return -EPROBE_DEFER;
+>>> +
+>>> +	fw_dev->parent = parent;
+>>> +	fw_dev->release = device_release_dummy;
+>>> +
+>>> +	ret = dev_set_name(fw_dev, "%s:%s", dev_name(parent), "firmware");
+>>> +	if (ret)
+>>> +		return ret;
+>>> +
+>>> +	ret = device_register(fw_dev);
+>>> +	if (ret < 0)
+>>> +		return ret;
+>>> +
+>>> +	ret = of_reserved_mem_device_init_by_idx(fw_dev, parent->of_node, 0);
+>>> +	if (ret)
+>>> +		goto err_unreg_device;
+>>> +
+>>> +	mem_size = VENUS_FW_MEM_SIZE;
+>>> +
+>>> +	mem_va = dmam_alloc_coherent(fw_dev, mem_size, &mem_phys, GFP_KERNEL);
+>>> +	if (!mem_va) {
+>>> +		ret = -ENOMEM;
+>>> +		goto err_unreg_device;
+>>> +	}
+>>> +
+>>> +	ret = request_firmware(&mdt, VENUS_FIRMWARE_NAME, fw_dev);
+>>> +	if (ret < 0)
+>>> +		goto err_unreg_device;
+>>> +
+>>> +	fw_size = qcom_mdt_get_size(mdt);
+>>> +	if (fw_size < 0) {
+>>> +		ret = fw_size;
+>>> +		release_firmware(mdt);
+>>> +		goto err_unreg_device;
+>>> +	}
+>>> +
+>>> +	ret = qcom_mdt_load(fw_dev, mdt, VENUS_FIRMWARE_NAME, VENUS_PAS_ID,
+>>> +			    mem_va, mem_phys, mem_size);
+>>> +
+>>> +	release_firmware(mdt);
+>>> +
+>>> +	if (ret)
+>>> +		goto err_unreg_device;
+>>> +
+>>> +	ret = qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
+>>> +	if (ret)
+>>> +		goto err_unreg_device;
+>>> +
+>>> +	return 0;
+>>> +
+>>> +err_unreg_device:
+>>> +	device_unregister(fw_dev);
+>>> +	return ret;
+>>> +}
+>>
+>> Hey, this looks familiar - almost line for line identical to what we'll need to
+>> do for GPU.
+>>
+>> Bjorn - Is this enough to qualify for generic status in the mdt_loader code?
+>> I know its just two consumers, but it would save 50 or 60 lines of code between
+>> the two drivers and be easier to maintain.
+>>
+> 
+> I think the code setting up the struct device for memory allocation
+> should be done during probe of the parent, so that I don't think should
+> be shared.
+> 
+> The part that allocates memory from a device, loads the mdt into that
+> memory and calls auth_and_reset() sounds like a useful thing to move to
+> the mdt_loader.c
 
-On Tuesday 14 Mar 2017 19:59:47 Niklas S=F6derlund wrote:
-> The pad lookup code can be broken out to increase readability and to
-> reduce code duplication.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
-.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 38 +++++++++++++------=
-------
->  1 file changed, 23 insertions(+), 15 deletions(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> 1a75191539b0e7d7..ce29a21888da48d5 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -870,11 +870,25 @@ static void rvin_notify(struct v4l2_subdev *sd,=
+I agree, who is going to do that?
 
->  =09}
->  }
->=20
-> +static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
-> +{
-> +=09unsigned int pad;
-> +
-> +=09if (sd->entity.num_pads <=3D 1)
-> +=09=09return 0;
-> +
-> +=09for (pad =3D 0; pad < sd->entity.num_pads; pad++)
-> +=09=09if (sd->entity.pads[pad].flags & direction)
-> +=09=09=09return pad;
-> +
-> +=09return -EINVAL;
-> +}
-> +
->  int rvin_v4l2_probe(struct rvin_dev *vin)
->  {
->  =09struct video_device *vdev =3D &vin->vdev;
->  =09struct v4l2_subdev *sd =3D vin_to_source(vin);
-> -=09int pad_idx, ret;
-> +=09int ret;
->=20
->  =09v4l2_set_subdev_hostdata(sd, vin);
->=20
-> @@ -920,21 +934,15 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
->  =09vdev->device_caps =3D V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING=
- |
->  =09=09V4L2_CAP_READWRITE;
->=20
-> -=09vin->digital.source_pad =3D 0;
-> -=09for (pad_idx =3D 0; pad_idx < sd->entity.num_pads; pad_idx++)
-> -=09=09if (sd->entity.pads[pad_idx].flags =3D=3D MEDIA_PAD_FL_SOURCE)=
-
-> -=09=09=09break;
-> -=09if (pad_idx >=3D sd->entity.num_pads)
-> -=09=09return -EINVAL;
-> -
-> -=09vin->digital.source_pad =3D pad_idx;
-> +=09ret =3D rvin_find_pad(sd, MEDIA_PAD_FL_SOURCE);
-> +=09if (ret < 0)
-> +=09=09return ret;
-> +=09vin->digital.source_pad =3D ret;
->=20
-> -=09vin->digital.sink_pad =3D 0;
-> -=09for (pad_idx =3D 0; pad_idx < sd->entity.num_pads; pad_idx++)
-> -=09=09if (sd->entity.pads[pad_idx].flags =3D=3D MEDIA_PAD_FL_SINK) {=
-
-> -=09=09=09vin->digital.sink_pad =3D pad_idx;
-> -=09=09=09break;
-> -=09=09}
-> +=09ret =3D rvin_find_pad(sd, MEDIA_PAD_FL_SINK);
-> +=09if (ret < 0)
-> +=09=09return ret;
-> +=09vin->digital.sink_pad =3D ret;
-
-The driver didn't previously consider the lack of a sink pad as an erro=
-r. As=20
-camera sensor subdevs typically have no sink pad, I don't think you sho=
-uld=20
-change this.
-
->  =09vin->format.pixelformat=09=3D RVIN_DEFAULT_FORMAT;
->  =09rvin_reset_format(vin);
-
---=20
-Regards,
-
-Laurent Pinchart
+-- 
+regards,
+Stan
