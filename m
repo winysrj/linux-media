@@ -1,72 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:27153 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755087AbdEHPEh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 May 2017 11:04:37 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v4 11/18] vb2: dma-contig: Add WARN_ON_ONCE() to check for potential bugs
-Date: Mon,  8 May 2017 18:03:23 +0300
-Message-Id: <1494255810-12672-12-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from relmlor1.renesas.com ([210.160.252.171]:25279 "EHLO
+        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751139AbdEBNiu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 2 May 2017 09:38:50 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v4 0/7] Add V4L2 SDR (DRIF & MAX2175) driver
+Date: Tue,  2 May 2017 14:26:08 +0100
+Message-Id: <20170502132615.42134-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The scatterlist should always be present when the cache would need to be
-flushed. Each buffer type has its own means to provide that. Add
-WARN_ON_ONCE() to check the scatterist exists.
+Hi Media, DT maintainers, All,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+This patch set contains two drivers
+ - Renesas R-Car Digital Radio Interface (DRIF) driver
+ - Maxim's MAX2175 RF to Bits tuner driver
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 8b0298a..f572911 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -101,7 +101,7 @@ static void vb2_dc_prepare(void *buf_priv)
- 	 * DMABUF exporter will flush the cache for us; only USERPTR
- 	 * and MMAP buffers with non-coherent memory will be flushed.
- 	 */
--	if (buf->attrs & DMA_ATTR_NON_CONSISTENT)
-+	if (buf->attrs & DMA_ATTR_NON_CONSISTENT && !WARN_ON_ONCE(!sgt))
- 		dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents,
- 				       buf->dma_dir);
- }
-@@ -115,7 +115,7 @@ static void vb2_dc_finish(void *buf_priv)
- 	 * DMABUF exporter will flush the cache for us; only USERPTR
- 	 * and MMAP buffers with non-coherent memory will be flushed.
- 	 */
--	if (buf->attrs & DMA_ATTR_NON_CONSISTENT)
-+	if (buf->attrs & DMA_ATTR_NON_CONSISTENT && !WARN_ON_ONCE(!sgt))
- 		dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents,
- 				    buf->dma_dir);
- }
-@@ -363,7 +363,7 @@ static int vb2_dc_dmabuf_ops_begin_cpu_access(struct dma_buf *dbuf,
- 	 * DMABUF exporter will flush the cache for us; only USERPTR
- 	 * and MMAP buffers with non-coherent memory will be flushed.
- 	 */
--	if (buf->attrs & DMA_ATTR_NON_CONSISTENT)
-+	if (buf->attrs & DMA_ATTR_NON_CONSISTENT && !WARN_ON_ONCE(!sgt))
- 		dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents,
- 				    buf->dma_dir);
- 
-@@ -380,7 +380,7 @@ static int vb2_dc_dmabuf_ops_end_cpu_access(struct dma_buf *dbuf,
- 	 * DMABUF exporter will flush the cache for us; only USERPTR
- 	 * and MMAP buffers with non-coherent memory will be flushed.
- 	 */
--	if (buf->attrs & DMA_ATTR_NON_CONSISTENT)
-+	if (buf->attrs & DMA_ATTR_NON_CONSISTENT && !WARN_ON_ONCE(!sgt))
- 		dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents,
- 				       buf->dma_dir);
- 
+These patches were based on top of media-next repo
+commit:6d95b3f24881c0fd0f345eca959a2a803a040930
+
+These two drivers combined together expose a V4L2 SDR device that is compliant with the V4L2 framework [1]. Agreed review comments are incorporated in this series.
+
+The rcar_drif device is modelled using "renesas,bonding" property. The discussion on this property is available here [2].
+
+Change history:
+
+v3 -> v4:
+ - Added ACKs
+rcar_drif:
+ - Incorporated a number of review comments from Laurent on DRIF driver.
+ - Addressed comments from Rob and Laurent on bindings.
+max2175:
+ - Minor changes addressing Hans and Laurent's comments
+
+v2 -> v3:
+rcar_drif:
+ - Reduced DRIF DT properties to expose tested I2S mode only (Hans - discussion on #v4l)
+ - Fixed error path clean up of ctrl_hdl on rcar_drif
+
+v1 -> v2:
+ - SDR formats renamed as "planar" instead of sliced (Hans)
+ - Documentation formatting correction (Laurent)
+
+ rcar_drif:
+ - DT model using "bonding" property
+ - Addressed Laurent's coments on bindings - DT optional parameters rename & rework
+ - Addressed Han's comments on driver
+ - Addressed Geert's comments on DT
+
+ max2175:
+ - Avoided scaling using method proposed by Antti. Thanks
+ - Bindings is a separate patch (Rob)
+ - Addressed Rob's comment on bindings
+ - Added Custom controls documentation (Laurent)
+
+[1] v4l2-compliance report:
+root@salvator-x:~# v4l2-compliance -S /dev/swradio0
+v4l2-compliance SHA   : b514d615166bdc0901a4c71261b87db31e89f464
+
+Driver Info:
+        Driver name   : rcar_drif
+        Card type     : R-Car DRIF
+        Bus info      : platform:R-Car DRIF
+        Driver version: 4.11.0
+        Capabilities  : 0x85310000
+                SDR Capture
+                Tuner
+                Read/Write
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x05310000
+                SDR Capture
+                Tuner
+                Read/Write
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/swradio0 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second sdr open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK
+        test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK
+        test VIDIOC_G/S_FREQUENCY: OK
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 1
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 5 Private Controls: 3
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK (Not Supported)
+                test Scaling: OK (Not Supported)
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK (Not Supported)
+
+Test input 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+root@salvator-x:~#
+
+[2] "bonding" DT property discussion (https://www.mail-archive.com/linux-renesas-soc@vger.kernel.org/msg09415.html)
+
+Ramesh Shanmugasundaram (7):
+  media: v4l2-ctrls: Reserve controls for MAX217X
+  dt-bindings: media: Add MAX2175 binding description
+  media: i2c: max2175: Add MAX2175 support
+  media: Add new SDR formats PC16, PC18 & PC20
+  doc_rst: media: New SDR formats PC16, PC18 & PC20
+  dt-bindings: media: Add Renesas R-Car DRIF binding
+  media: platform: rcar_drif: Add DRIF support
+
+ .../devicetree/bindings/media/i2c/max2175.txt      |   61 +
+ .../devicetree/bindings/media/renesas,drif.txt     |  187 +++
+ .../devicetree/bindings/property-units.txt         |    1 +
+ .../media/uapi/v4l/pixfmt-sdr-pcu16be.rst          |   55 +
+ .../media/uapi/v4l/pixfmt-sdr-pcu18be.rst          |   55 +
+ .../media/uapi/v4l/pixfmt-sdr-pcu20be.rst          |   54 +
+ Documentation/media/uapi/v4l/sdr-formats.rst       |    3 +
+ Documentation/media/v4l-drivers/index.rst          |    1 +
+ Documentation/media/v4l-drivers/max2175.rst        |   60 +
+ drivers/media/i2c/Kconfig                          |    4 +
+ drivers/media/i2c/Makefile                         |    2 +
+ drivers/media/i2c/max2175/Kconfig                  |    8 +
+ drivers/media/i2c/max2175/Makefile                 |    4 +
+ drivers/media/i2c/max2175/max2175.c                | 1437 +++++++++++++++++++
+ drivers/media/i2c/max2175/max2175.h                |  108 ++
+ drivers/media/platform/Kconfig                     |   25 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/rcar_drif.c                 | 1488 ++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c               |    3 +
+ include/uapi/linux/v4l2-controls.h                 |    5 +
+ include/uapi/linux/videodev2.h                     |    3 +
+ 21 files changed, 3565 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/max2175.txt
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
+ create mode 100644 Documentation/media/v4l-drivers/max2175.rst
+ create mode 100644 drivers/media/i2c/max2175/Kconfig
+ create mode 100644 drivers/media/i2c/max2175/Makefile
+ create mode 100644 drivers/media/i2c/max2175/max2175.c
+ create mode 100644 drivers/media/i2c/max2175/max2175.h
+ create mode 100644 drivers/media/platform/rcar_drif.c
+
 -- 
-2.7.4
+2.12.2
