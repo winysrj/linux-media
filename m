@@ -1,100 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:38560 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750758AbdEDKxk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 06:53:40 -0400
-From: agheorghe <Alexandru_Gheorghe@mentor.com>
-To: <Alexandru_Gheorghe@mentor.com>,
-        <laurent.pinchart@ideasonboard.com>,
-        <linux-renesas-soc@vger.kernel.org>,
-        <dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] v4l: vsp1: Add support for colorkey alpha blending
-Date: Thu, 4 May 2017 13:53:32 +0300
-Message-ID: <1493895213-12573-2-git-send-email-Alexandru_Gheorghe@mentor.com>
-In-Reply-To: <1493895213-12573-1-git-send-email-Alexandru_Gheorghe@mentor.com>
-References: <1493895213-12573-1-git-send-email-Alexandru_Gheorghe@mentor.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from relmlor1.renesas.com ([210.160.252.171]:34106 "EHLO
+        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751253AbdEBNjL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 2 May 2017 09:39:11 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v4 5/7] doc_rst: media: New SDR formats PC16, PC18 & PC20
+Date: Tue,  2 May 2017 14:26:13 +0100
+Message-Id: <20170502132615.42134-6-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <20170502132615.42134-1-ramesh.shanmugasundaram@bp.renesas.com>
+References: <20170502132615.42134-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vsp2 hw supports changing of the alpha of pixels that match a color
-key, this patch adds support for this feature in order to be used by
-the rcar-du driver.
-The colorkey is interpreted different depending of the pixel format:
-	* RGB   - all color components have to match.
-	* YCbCr - only the Y component has to match.
+This patch adds documentation for the three new SDR formats
 
-Signed-off-by: agheorghe <Alexandru_Gheorghe@mentor.com>
+V4L2_SDR_FMT_PCU16BE
+V4L2_SDR_FMT_PCU18BE
+V4L2_SDR_FMT_PCU20BE
+
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
 ---
- drivers/media/platform/vsp1/vsp1_drm.c  |  3 +++
- drivers/media/platform/vsp1/vsp1_rpf.c  | 10 ++++++++--
- drivers/media/platform/vsp1/vsp1_rwpf.h |  3 +++
- include/media/vsp1.h                    |  3 +++
- 4 files changed, 17 insertions(+), 2 deletions(-)
+ .../media/uapi/v4l/pixfmt-sdr-pcu16be.rst          | 55 ++++++++++++++++++++++
+ .../media/uapi/v4l/pixfmt-sdr-pcu18be.rst          | 55 ++++++++++++++++++++++
+ .../media/uapi/v4l/pixfmt-sdr-pcu20be.rst          | 54 +++++++++++++++++++++
+ Documentation/media/uapi/v4l/sdr-formats.rst       |  3 ++
+ 4 files changed, 167 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index 3627f08..a4d0aee 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -393,6 +393,9 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
- 	else
- 		rpf->format.plane_fmt[1].bytesperline = cfg->pitch;
- 	rpf->alpha = cfg->alpha;
-+	rpf->colorkey = cfg->colorkey;
-+	rpf->colorkey_en = cfg->colorkey_en;
-+	rpf->colorkey_alpha = cfg->colorkey_alpha;
- 	rpf->interlaced = cfg->interlaced;
- 
- 	if (soc_device_match(r8a7795es1) && rpf->interlaced) {
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index a12d6f9..91f2a9f 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -356,8 +356,14 @@ static void rpf_configure(struct vsp1_entity *entity,
- 	}
- 
- 	vsp1_rpf_write(rpf, dl, VI6_RPF_MSK_CTRL, 0);
--	vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_CTRL, 0);
--
-+	if (rpf->colorkey_en) {
-+		vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_SET0,
-+			       (rpf->colorkey_alpha << 24) | rpf->colorkey);
-+		vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_CTRL,
-+			       VI6_RPF_CKEY_CTRL_SAPE0);
-+	} else {
-+		vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_CTRL, 0);
-+	}
- }
- 
- static const struct vsp1_entity_operations rpf_entity_ops = {
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index fbe6aa6..2d7f4b9 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -51,6 +51,9 @@ struct vsp1_rwpf {
- 	unsigned int brs_input;
- 
- 	unsigned int alpha;
-+	u32 colorkey;
-+	bool colorkey_en;
-+	u32 colorkey_alpha;
- 
- 	u32 mult_alpha;
- 	u32 outfmt;
-diff --git a/include/media/vsp1.h b/include/media/vsp1.h
-index 97265f7..879f464 100644
---- a/include/media/vsp1.h
-+++ b/include/media/vsp1.h
-@@ -32,6 +32,9 @@ struct vsp1_du_atomic_config {
- 	struct v4l2_rect dst;
- 	unsigned int alpha;
- 	unsigned int zpos;
-+	u32 colorkey;
-+	bool colorkey_en;
-+	u32 colorkey_alpha;
- 	bool interlaced;
- };
- 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
+new file mode 100644
+index 000000000000..2de1b1a0f517
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
+@@ -0,0 +1,55 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2-SDR-FMT-PCU16BE:
++
++******************************
++V4L2_SDR_FMT_PCU16BE ('PC16')
++******************************
++
++Planar complex unsigned 16-bit big endian IQ sample
++
++Description
++===========
++
++This format contains a sequence of complex number samples. Each complex
++number consist of two parts called In-phase and Quadrature (IQ). Both I
++and Q are represented as a 16 bit unsigned big endian number stored in
++32 bit space. The remaining unused bits within the 32 bit space will be
++padded with 0. I value starts first and Q value starts at an offset
++equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
++the 16 bits, bit 15:2 (14 bit) is data and bit 1:0 (2 bit) can be any
++value.
++
++**Byte Order.**
++Each cell is one byte.
++
++.. flat-table::
++    :header-rows:  1
++    :stub-columns: 0
++
++    * -  Offset:
++      -  Byte B0
++      -  Byte B1
++      -  Byte B2
++      -  Byte B3
++    * -  start + 0:
++      -  I'\ :sub:`0[13:6]`
++      -  I'\ :sub:`0[5:0]; B1[1:0]=pad`
++      -  pad
++      -  pad
++    * -  start + 4:
++      -  I'\ :sub:`1[13:6]`
++      -  I'\ :sub:`1[5:0]; B1[1:0]=pad`
++      -  pad
++      -  pad
++    * -  ...
++    * - start + offset:
++      -  Q'\ :sub:`0[13:6]`
++      -  Q'\ :sub:`0[5:0]; B1[1:0]=pad`
++      -  pad
++      -  pad
++    * - start + offset + 4:
++      -  Q'\ :sub:`1[13:6]`
++      -  Q'\ :sub:`1[5:0]; B1[1:0]=pad`
++      -  pad
++      -  pad
+diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
+new file mode 100644
+index 000000000000..da8b26bf6b95
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
+@@ -0,0 +1,55 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2-SDR-FMT-PCU18BE:
++
++******************************
++V4L2_SDR_FMT_PCU18BE ('PC18')
++******************************
++
++Planar complex unsigned 18-bit big endian IQ sample
++
++Description
++===========
++
++This format contains a sequence of complex number samples. Each complex
++number consist of two parts called In-phase and Quadrature (IQ). Both I
++and Q are represented as a 18 bit unsigned big endian number stored in
++32 bit space. The remaining unused bits within the 32 bit space will be
++padded with 0. I value starts first and Q value starts at an offset
++equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
++the 18 bits, bit 17:2 (16 bit) is data and bit 1:0 (2 bit) can be any
++value.
++
++**Byte Order.**
++Each cell is one byte.
++
++.. flat-table::
++    :header-rows:  1
++    :stub-columns: 0
++
++    * -  Offset:
++      -  Byte B0
++      -  Byte B1
++      -  Byte B2
++      -  Byte B3
++    * -  start + 0:
++      -  I'\ :sub:`0[17:10]`
++      -  I'\ :sub:`0[9:2]`
++      -  I'\ :sub:`0[1:0]; B2[5:0]=pad`
++      -  pad
++    * -  start + 4:
++      -  I'\ :sub:`1[17:10]`
++      -  I'\ :sub:`1[9:2]`
++      -  I'\ :sub:`1[1:0]; B2[5:0]=pad`
++      -  pad
++    * -  ...
++    * - start + offset:
++      -  Q'\ :sub:`0[17:10]`
++      -  Q'\ :sub:`0[9:2]`
++      -  Q'\ :sub:`0[1:0]; B2[5:0]=pad`
++      -  pad
++    * - start + offset + 4:
++      -  Q'\ :sub:`1[17:10]`
++      -  Q'\ :sub:`1[9:2]`
++      -  Q'\ :sub:`1[1:0]; B2[5:0]=pad`
++      -  pad
+diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
+new file mode 100644
+index 000000000000..5499eed39477
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
+@@ -0,0 +1,54 @@
++.. -*- coding: utf-8; mode: rst -*-
++.. _V4L2-SDR-FMT-PCU20BE:
++
++******************************
++V4L2_SDR_FMT_PCU20BE ('PC20')
++******************************
++
++Planar complex unsigned 20-bit big endian IQ sample
++
++Description
++===========
++
++This format contains a sequence of complex number samples. Each complex
++number consist of two parts called In-phase and Quadrature (IQ). Both I
++and Q are represented as a 20 bit unsigned big endian number stored in
++32 bit space. The remaining unused bits within the 32 bit space will be
++padded with 0. I value starts first and Q value starts at an offset
++equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
++the 20 bits, bit 19:2 (18 bit) is data and bit 1:0 (2 bit) can be any
++value.
++
++**Byte Order.**
++Each cell is one byte.
++
++.. flat-table::
++    :header-rows:  1
++    :stub-columns: 0
++
++    * -  Offset:
++      -  Byte B0
++      -  Byte B1
++      -  Byte B2
++      -  Byte B3
++    * -  start + 0:
++      -  I'\ :sub:`0[19:12]`
++      -  I'\ :sub:`0[11:4]`
++      -  I'\ :sub:`0[3:0]; B2[3:0]=pad`
++      -  pad
++    * -  start + 4:
++      -  I'\ :sub:`1[19:12]`
++      -  I'\ :sub:`1[11:4]`
++      -  I'\ :sub:`1[3:0]; B2[3:0]=pad`
++      -  pad
++    * -  ...
++    * - start + offset:
++      -  Q'\ :sub:`0[19:12]`
++      -  Q'\ :sub:`0[11:4]`
++      -  Q'\ :sub:`0[3:0]; B2[3:0]=pad`
++      -  pad
++    * - start + offset + 4:
++      -  Q'\ :sub:`1[19:12]`
++      -  Q'\ :sub:`1[11:4]`
++      -  Q'\ :sub:`1[3:0]; B2[3:0]=pad`
++      -  pad
+diff --git a/Documentation/media/uapi/v4l/sdr-formats.rst b/Documentation/media/uapi/v4l/sdr-formats.rst
+index f863c08f1add..2037f5bad727 100644
+--- a/Documentation/media/uapi/v4l/sdr-formats.rst
++++ b/Documentation/media/uapi/v4l/sdr-formats.rst
+@@ -17,3 +17,6 @@ These formats are used for :ref:`SDR <sdr>` interface only.
+     pixfmt-sdr-cs08
+     pixfmt-sdr-cs14le
+     pixfmt-sdr-ru12le
++    pixfmt-sdr-pcu16be
++    pixfmt-sdr-pcu18be
++    pixfmt-sdr-pcu20be
 -- 
-1.9.1
+2.12.2
