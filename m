@@ -1,165 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:25084 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1036903AbdEZBnU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 May 2017 21:43:20 -0400
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        "s.nawrocki@samsung.com" <s.nawrocki@samsung.com>
-Subject: RE: [PATCH v4] dw9714: Initial driver for dw9714 VCM
-Date: Fri, 26 May 2017 01:43:17 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A595AA0A463@FMSMSX114.amr.corp.intel.com>
-References: <1494478820-22199-1-git-send-email-rajmohan.mani@intel.com>
- <CAAFQd5Ck3CKp-JR8d3d1X9-2cRS0oZG9GPwcpunBq50EY7qCtg@mail.gmail.com>
-In-Reply-To: <CAAFQd5Ck3CKp-JR8d3d1X9-2cRS0oZG9GPwcpunBq50EY7qCtg@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from relmlor1.renesas.com ([210.160.252.171]:34106 "EHLO
+        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750744AbdEBNjD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 2 May 2017 09:39:03 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v4 4/7] media: Add new SDR formats PC16, PC18 & PC20
+Date: Tue,  2 May 2017 14:26:12 +0100
+Message-Id: <20170502132615.42134-5-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <20170502132615.42134-1-ramesh.shanmugasundaram@bp.renesas.com>
+References: <20170502132615.42134-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgVG9tYXN6LA0KDQpUaGFua3MgZm9yIHRoZSByZXZpZXdzLiBJIGhhdmUgY29uc29saWRhdGVk
-IG15IHJlc3BvbnNlcyB0byBjb21tZW50cyBmcm9tIGFsbCBvZiB5b3UgYmVsb3cgYW5kIGFyZSBh
-ZGRyZXNzZWQgaW4gdjUgb2YgdGhpcyBwYXRjaC4NCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
-LS0tLQ0KPiBGcm9tOiBUb21hc3ogRmlnYSBbbWFpbHRvOnRmaWdhQGNocm9taXVtLm9yZ10NCj4g
-U2VudDogV2VkbmVzZGF5LCBNYXkgMTAsIDIwMTcgMTE6MzEgUE0NCj4gVG86IE1hbmksIFJham1v
-aGFuIDxyYWptb2hhbi5tYW5pQGludGVsLmNvbT4NCj4gQ2M6IGxpbnV4LW1lZGlhQHZnZXIua2Vy
-bmVsLm9yZzsgbWNoZWhhYkBrZXJuZWwub3JnOyBIYW5zIFZlcmt1aWwNCj4gPGh2ZXJrdWlsQHhz
-NGFsbC5ubD47IFNha2FyaSBBaWx1cyA8c2FrYXJpLmFpbHVzQGlraS5maT4NCj4gU3ViamVjdDog
-UmU6IFtQQVRDSCB2NF0gZHc5NzE0OiBJbml0aWFsIGRyaXZlciBmb3IgZHc5NzE0IFZDTQ0KPiAN
-Cj4gSGkgUmFqLA0KPiANCj4gVGhhbmtzIGZvciByZS1zcGluLiBTdGlsbCBhIGJpdCBtb3JlIGNv
-bW1lbnRzIGlubGluZS4gKEkgbWlzc2VkIGZldyBtb3JlIGJlZm9yZSwNCj4gc29ycnkuKQ0KPiAN
-Cj4gT24gVGh1LCBNYXkgMTEsIDIwMTcgYXQgMTowMCBQTSwgUmFqbW9oYW4gTWFuaQ0KPiA8cmFq
-bW9oYW4ubWFuaUBpbnRlbC5jb20+IHdyb3RlOg0KPiA+IERXOTcxNCBpcyBhIDEwIGJpdCBEQUMs
-IGRlc2lnbmVkIGZvciBsaW5lYXIgY29udHJvbCBvZiB2b2ljZSBjb2lsDQo+ID4gbW90b3IuDQo+
-IFtzbmlwXQ0KPiA+ICtzdGF0aWMgaW50IGR3OTcxNF9pMmNfd3JpdGUoc3RydWN0IGkyY19jbGll
-bnQgKmNsaWVudCwgdTE2IGRhdGEpIHsNCj4gPiArICAgICAgIGludCByZXQ7DQo+ID4gKyAgICAg
-ICB1MTYgdmFsID0gY3B1X3RvX2JlMTYoZGF0YSk7DQo+ID4gKyAgICAgICBjb25zdCBpbnQgbnVt
-X2J5dGVzID0gc2l6ZW9mKHZhbCk7DQo+ID4gKw0KPiA+ICsgICAgICAgcmV0ID0gaTJjX21hc3Rl
-cl9zZW5kKGNsaWVudCwgKGNvbnN0IGNoYXIgKikgJnZhbCwNCj4gPiArIHNpemVvZih2YWwpKTsN
-Cj4gDQo+IG5pdDogTm8gbmVlZCBmb3Igc3BhY2UgYmV0d2VlbiBjYXN0IGFuZCBjYXN0ZWQgdmFs
-dWUuDQo+IA0KDQpBY2sNCg0KPiA+ICsNCj4gPiArICAgICAgIC8qT25lIHJldHJ5ICovDQo+ID4g
-KyAgICAgICBpZiAocmV0ICE9IG51bV9ieXRlcykNCj4gPiArICAgICAgICAgICAgICAgcmV0ID0g
-aTJjX21hc3Rlcl9zZW5kKGNsaWVudCwgKGNvbnN0IGNoYXIgKikgJnZhbCwNCj4gPiArIHNpemVv
-Zih2YWwpKTsNCj4gDQo+IFdoeSBkbyB3ZSBuZWVkIHRoaXMgcmV0cnk/DQo+IA0KDQpUaGlzIHdh
-cyBmb3VuZCB0byBiZSB1c2VmdWwgaW4gdGhlIGVhcmx5IGJyaW5nIHVwIGRheXMgb2YgdGhpcyB2
-Y20uIEkgdGhpbmsgdGhpcyBjYW4gYmUgcmVtb3ZlZCBub3cuDQoNCj4gPiArDQo+ID4gKyAgICAg
-ICBpZiAocmV0ICE9IG51bV9ieXRlcykgew0KPiA+ICsgICAgICAgICAgICAgICBkZXZfZXJyKCZj
-bGllbnQtPmRldiwgIkkyQyB3cml0ZSBmYWlsXG4iKTsNCj4gPiArICAgICAgICAgICAgICAgcmV0
-dXJuIC1FSU87DQo+ID4gKyAgICAgICB9DQo+ID4gKyAgICAgICByZXR1cm4gMDsNCj4gPiArfQ0K
-PiA+ICsNCj4gPiArc3RhdGljIGludCBkdzk3MTRfdF9mb2N1c192Y20oc3RydWN0IGR3OTcxNF9k
-ZXZpY2UgKmR3OTcxNF9kZXYsIHUxNg0KPiA+ICt2YWwpIHsNCj4gPiArICAgICAgIHN0cnVjdCBp
-MmNfY2xpZW50ICpjbGllbnQgPSBkdzk3MTRfZGV2LT5jbGllbnQ7DQo+ID4gKw0KPiA+ICsgICAg
-ICAgZHc5NzE0X2Rldi0+Y3VycmVudF92YWwgPSB2YWw7DQo+ID4gKw0KPiA+ICsgICAgICAgcmV0
-dXJuIGR3OTcxNF9pMmNfd3JpdGUoY2xpZW50LCBEVzk3MTRfVkFMKHZhbCwNCj4gPiArIERXOTcx
-NF9ERUZBVUxUX1MpKTsNCj4gDQo+IFRoaXMgc3RpbGwgZG9lc24ndCBzZWVtIHRvIGFwcGx5IHRo
-ZSBjb250cm9sIGdyYWR1YWxseSBhcyBzdXNwZW5kIGFuZCByZXN1bWUgZG8uDQo+IA0KDQpBY2sN
-CkFzIHdhcyBkaXNjdXNzZWQgd2l0aCBTYWthcmkgb24gdGhlIGZvbGxvdyB1cCB0aHJlYWRzLCB3
-ZSBjYW4gbGVhdmUgaXQgYXMgaXQgaXMgaGVyZSwgc28gdGhlIHVzZXIgc3BhY2UgY2FuIGNvbnRy
-b2wgdGhpcyBhcyBuZWVkZWQuDQoNCj4gPiArfQ0KPiBbc25pcF0NCj4gPiArc3RhdGljIGludCBk
-dzk3MTRfb3BlbihzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNkLCBzdHJ1Y3QgdjRsMl9zdWJkZXZfZmgN
-Cj4gPiArKmZoKSB7DQo+ID4gKyAgICAgICBzdHJ1Y3QgZHc5NzE0X2RldmljZSAqZHc5NzE0X2Rl
-diA9IGNvbnRhaW5lcl9vZihzZCwNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIHN0cnVjdCBkdzk3MTRfZGV2aWNlLA0KPiA+ICsgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc2QpOw0K
-PiA+ICsgICAgICAgc3RydWN0IGRldmljZSAqZGV2ID0gJmR3OTcxNF9kZXYtPmNsaWVudC0+ZGV2
-Ow0KPiA+ICsgICAgICAgaW50IHJ2YWw7DQo+ID4gKw0KPiA+ICsgICAgICAgcnZhbCA9IHBtX3J1
-bnRpbWVfZ2V0X3N5bmMoZGV2KTsNCj4gPiArICAgICAgIGlmIChydmFsID49IDApDQo+ID4gKyAg
-ICAgICAgICAgICAgIHJldHVybiAwOw0KPiA+ICsNCj4gPiArICAgICAgIHBtX3J1bnRpbWVfcHV0
-KGRldik7DQo+ID4gKyAgICAgICByZXR1cm4gcnZhbDsNCj4gDQo+IG5pdDogVGhlIHR5cGljYWwg
-Y29kaW5nIHN0eWxlIGlzIHRvIHJldHVybiBlYXJseSBpbiBjYXNlIG9mIGEgc3BlY2lhbCBjYXNl
-IGFuZCBrZWVwDQo+IHRoZSBjb21tb24gcGF0aCBsaW5lYXIsIGkuZS4NCj4gDQoNCkFjaw0KDQo+
-ICAgICBydmFsID0gcG1fcnVudGltZV9nZXRfc3luYyhkZXYpOw0KPiAgICAgaWYgKHJ2YWwgPCAw
-KSB7DQo+ICAgICAgICAgcG1fcnVudGltZV9wdXQoZGV2KTsNCj4gICAgICAgICByZXR1cm4gcnZh
-bDsNCj4gICAgIH0NCj4gDQo+ICAgICByZXR1cm4gMDsNCj4gDQo+ID4gK30NCj4gPiArDQo+IFtz
-bmlwXQ0KPiA+ICtzdGF0aWMgaW50IGR3OTcxNF9yZW1vdmUoc3RydWN0IGkyY19jbGllbnQgKmNs
-aWVudCkgew0KPiA+ICsgICAgICAgc3RydWN0IHY0bDJfc3ViZGV2ICpzZCA9IGkyY19nZXRfY2xp
-ZW50ZGF0YShjbGllbnQpOw0KPiA+ICsgICAgICAgc3RydWN0IGR3OTcxNF9kZXZpY2UgKmR3OTcx
-NF9kZXYgPSBjb250YWluZXJfb2Yoc2QsDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgZHc5NzE0X2RldmljZSwNCj4gPiAr
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHNk
-KTsNCj4gPiArDQo+ID4gKyAgICAgICBwbV9ydW50aW1lX2Rpc2FibGUoJmNsaWVudC0+ZGV2KTsN
-Cj4gPiArICAgICAgIGR3OTcxNF9zdWJkZXZfY2xlYW51cChkdzk3MTRfZGV2KTsNCj4gPiArDQo+
-ID4gKyAgICAgICByZXR1cm4gMDsNCj4gPiArfQ0KPiA+ICsNCj4gPiArI2lmZGVmIENPTkZJR19Q
-TQ0KPiANCj4gI2lmIGRlZmluZWQoQ09ORklHX1BNKSB8fCBkZWZpbmVkKENPTkZJR19QTV9TTEVF
-UCkNCj4gDQoNCkFjay4gX19tYXliZV91bnVzZWQgaXMgYWRkZWQgZm9yIHZjbV8qc3VzcGVuZC9y
-ZXN1bWUgZnVuY3Rpb25zDQoNCj4gPiArDQo+ID4gKy8qDQo+ID4gKyAqIFRoaXMgZnVuY3Rpb24g
-c2V0cyB0aGUgdmNtIHBvc2l0aW9uLCBzbyBpdCBjb25zdW1lcyBsZWFzdCBjdXJyZW50DQo+ID4g
-KyAqIFRoZSBsZW5zIHBvc2l0aW9uIGlzIGdyYWR1YWxseSBtb3ZlZCBpbiB1bml0cyBvZg0KPiA+
-ICtEVzk3MTRfQ1RSTF9TVEVQUywNCj4gPiArICogdG8gbWFrZSB0aGUgbW92ZW1lbnRzIHNtb290
-aGx5Lg0KPiA+ICsgKi8NCj4gPiArc3RhdGljIGludCBkdzk3MTRfdmNtX3N1c3BlbmQoc3RydWN0
-IGRldmljZSAqZGV2KSB7DQo+ID4gKyAgICAgICBzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0g
-dG9faTJjX2NsaWVudChkZXYpOw0KPiA+ICsgICAgICAgc3RydWN0IHY0bDJfc3ViZGV2ICpzZCA9
-IGkyY19nZXRfY2xpZW50ZGF0YShjbGllbnQpOw0KPiA+ICsgICAgICAgc3RydWN0IGR3OTcxNF9k
-ZXZpY2UgKmR3OTcxNF9kZXYgPSBjb250YWluZXJfb2Yoc2QsDQo+ID4gKyAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgZHc5NzE0X2Rl
-dmljZSwNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIHNkKTsNCj4gPiArICAgICAgIGludCByZXQsIHZhbDsNCj4gPiArDQo+ID4gKyAg
-ICAgICBmb3IgKHZhbCA9IGR3OTcxNF9kZXYtPmN1cnJlbnRfdmFsICYgfihEVzk3MTRfQ1RSTF9T
-VEVQUyAtIDEpOw0KPiA+ICsgICAgICAgICAgICB2YWwgPj0gMDsgdmFsIC09IERXOTcxNF9DVFJM
-X1NURVBTKSB7DQo+ID4gKyAgICAgICAgICAgICAgIHJldCA9IGR3OTcxNF9pMmNfd3JpdGUoY2xp
-ZW50LA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIERXOTcxNF9W
-QUwoKHUxNikgdmFsLA0KPiA+ICsgRFc5NzE0X0RFRkFVTFRfUykpOw0KPiANCj4gRFc5NzE0X1ZB
-TCgpIGFscmVhZHkgY29udGFpbnMgc3VjaCBjYXN0LiBBbnl3YXksIEkgc3RpbGwgdGhpbmsgdGhl
-eSBkb24ndCByZWFsbHkNCj4gZ2l2ZSB1cyBhbnl0aGluZyBhbmQgc2hvdWxkIGJlIHJlbW92ZWQu
-DQo+IA0KDQpBY2sNCg0KPiA+ICsgICAgICAgICAgICAgICBpZiAocmV0KQ0KPiA+ICsgICAgICAg
-ICAgICAgICAgICAgICAgIGRldl9lcnIoZGV2LCAiJXMgSTJDIGZhaWx1cmU6ICVkIiwgX19mdW5j
-X18sDQo+ID4gKyByZXQpOw0KPiANCj4gSSB0aGluayB3ZSBzaG91bGQganVzdCByZXR1cm4gYW4g
-ZXJyb3IgY29kZSBoZXJlIGFuZCBmYWlsIHRoZSBzdXNwZW5kLg0KPiANCg0KQXMgZGlzY3Vzc2Vk
-LCB3ZSBhcmUgZ29pbmcgdG8gaWdub3JlIHRoaXMgZXJyb3IgYW5kIG5vdCBsZXQgaXQgYWZmZWN0
-IHN5c3RlbSBzdXNwZW5kLg0KDQo+ID4gKyAgICAgICAgICAgICAgIHVzbGVlcF9yYW5nZShEVzk3
-MTRfQ1RSTF9ERUxBWV9VUywgRFc5NzE0X0NUUkxfREVMQVlfVVMNCj4gKyAxMCk7DQo+ID4gKyAg
-ICAgICB9DQo+ID4gKyAgICAgICByZXR1cm4gMDsNCj4gPiArfQ0KPiA+ICsNCj4gPiArLyoNCj4g
-PiArICogVGhpcyBmdW5jdGlvbiBzZXRzIHRoZSB2Y20gcG9zaXRpb24gdG8gdGhlIHZhbHVlIHNl
-dCBieSB0aGUgdXNlcg0KPiA+ICsgKiB0aHJvdWdoIHY0bDJfY3RybF9vcHMgc19jdHJsIGhhbmRs
-ZXINCj4gPiArICogVGhlIGxlbnMgcG9zaXRpb24gaXMgZ3JhZHVhbGx5IG1vdmVkIGluIHVuaXRz
-IG9mDQo+ID4gK0RXOTcxNF9DVFJMX1NURVBTLA0KPiA+ICsgKiB0byBtYWtlIHRoZSBtb3ZlbWVu
-dHMgc21vb3RobHkuDQo+ID4gKyAqLw0KPiA+ICtzdGF0aWMgaW50IGR3OTcxNF92Y21fcmVzdW1l
-KHN0cnVjdCBkZXZpY2UgKmRldikgew0KPiA+ICsgICAgICAgc3RydWN0IGkyY19jbGllbnQgKmNs
-aWVudCA9IHRvX2kyY19jbGllbnQoZGV2KTsNCj4gPiArICAgICAgIHN0cnVjdCB2NGwyX3N1YmRl
-diAqc2QgPSBpMmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50KTsNCj4gPiArICAgICAgIHN0cnVjdCBk
-dzk3MTRfZGV2aWNlICpkdzk3MTRfZGV2ID0gY29udGFpbmVyX29mKHNkLA0KPiA+ICsgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0IGR3
-OTcxNF9kZXZpY2UsDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICBzZCk7DQo+ID4gKyAgICAgICBpbnQgcmV0LCB2YWw7DQo+ID4gKw0K
-PiA+ICsgICAgICAgZm9yICh2YWwgPSBkdzk3MTRfZGV2LT5jdXJyZW50X3ZhbCAlIERXOTcxNF9D
-VFJMX1NURVBTOw0KPiA+ICsgICAgICAgICAgICB2YWwgPCBkdzk3MTRfZGV2LT5jdXJyZW50X3Zh
-bCArIERXOTcxNF9DVFJMX1NURVBTIC0gMTsNCj4gPiArICAgICAgICAgICAgdmFsICs9IERXOTcx
-NF9DVFJMX1NURVBTKSB7DQo+ID4gKyAgICAgICAgICAgICAgIHJldCA9IGR3OTcxNF9pMmNfd3Jp
-dGUoY2xpZW50LA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIERX
-OTcxNF9WQUwoKHUxNikgdmFsLA0KPiA+ICsgRFc5NzE0X0RFRkFVTFRfUykpOw0KPiANCj4gRGl0
-dG8uDQo+IA0KPiA+ICsgICAgICAgICAgICAgICBpZiAocmV0KQ0KPiA+ICsgICAgICAgICAgICAg
-ICAgICAgICAgIGRldl9lcnIoZGV2LCAiJXMgSTJDIGZhaWx1cmU6ICVkIiwgX19mdW5jX18sDQo+
-ID4gKyByZXQpOw0KPiANCj4gRGl0dG8uDQo+IA0KPiA+ICsgICAgICAgICAgICAgICB1c2xlZXBf
-cmFuZ2UoRFc5NzE0X0NUUkxfREVMQVlfVVMsIERXOTcxNF9DVFJMX0RFTEFZX1VTDQo+ICsgMTAp
-Ow0KPiA+ICsgICAgICAgfQ0KPiA+ICsNCj4gPiArICAgICAgIC8qIHJlc3RvcmUgdjRsMiBjb250
-cm9sIHZhbHVlcyAqLw0KPiA+ICsgICAgICAgcmV0ID0gdjRsMl9jdHJsX2hhbmRsZXJfc2V0dXAo
-JmR3OTcxNF9kZXYtPmN0cmxzX3ZjbSk7DQo+ID4gKyAgICAgICByZXR1cm4gcmV0Ow0KPiANCj4g
-SG1tLCBhY3R1YWxseSBJIGJlbGlldmUgdjRsMl9jdHJsX2hhbmRsZXJfc2V0dXAoKSB3aWxsIGNh
-bGwgLnNfY3RybCgpIGhlcmUgYW5kIHNldA0KPiB0aGUgbW90b3IgdmFsdWUgYWdhaW4uIElmIHdl
-IGp1c3QgbWFrZSAuc19jdHJsKCkgZG8gdGhlIGFkanVzdG1lbnQgaW4gc3RlcHMNCj4gcHJvcGVy
-bHksIHdlIGNhbiBzaW1wbGlmeSB0aGUgcmVzdW1lIHRvIHNpbXBseSBjYWxsIHY0bDJfY3RybF9o
-YW5kbGVyX3NldHVwKCkNCj4gYWxvbmUuDQo+IA0KDQpBcyBTYWthcmkgc3VnZ2VzdGVkLCB2NGwy
-X2N0cmxfaGFuZGxlcl9zZXR1cCgpIGNvZGUgaXMgcmVtb3ZlZCwgYXMgdGhlIHByZWNlZGluZyBj
-b2RlIHNob3VsZCByZXN0b3JlIHRoZSB2Y20gcG9zaXRpb24gcHJpb3IgdG8gc3VzcGVuZA0KDQo+
-ID4gK30NCj4gDQo+ICNlbmRpZg0KPiANCj4gI2lmZGVmIENPTkZJR19QTQ0KPiANCj4gPiArDQo+
-ID4gK3N0YXRpYyBpbnQgZHc5NzE0X3J1bnRpbWVfc3VzcGVuZChzdHJ1Y3QgZGV2aWNlICpkZXYp
-IHsNCj4gPiArICAgICAgIHJldHVybiBkdzk3MTRfdmNtX3N1c3BlbmQoZGV2KTsgfQ0KPiA+ICsN
-Cj4gPiArc3RhdGljIGludCBkdzk3MTRfcnVudGltZV9yZXN1bWUoc3RydWN0IGRldmljZSAqZGV2
-KSB7DQo+ID4gKyAgICAgICByZXR1cm4gZHc5NzE0X3ZjbV9yZXN1bWUoZGV2KTsgfQ0KPiANCj4g
-I2VuZGlmDQo+IA0KPiAjaWZkZWYgQ09ORklHX1BNX1NMRUVQDQo+IA0KPiA+ICsNCj4gPiArc3Rh
-dGljIGludCBkdzk3MTRfc3VzcGVuZChzdHJ1Y3QgZGV2aWNlICpkZXYpIHsNCj4gPiArICAgICAg
-IHJldHVybiBkdzk3MTRfdmNtX3N1c3BlbmQoZGV2KTsgfQ0KPiA+ICsNCj4gPiArc3RhdGljIGlu
-dCBkdzk3MTRfcmVzdW1lKHN0cnVjdCBkZXZpY2UgKmRldikgew0KPiA+ICsgICAgICAgcmV0dXJu
-IGR3OTcxNF92Y21fcmVzdW1lKGRldik7IH0NCj4gDQo+ICNlbmRpZg0KPiANCj4gT3IgeW91IGNv
-dWxkIGFjdHVhbGx5IGp1c3QgdXNlIGR3OTcxNF92Y21fe3N1c3BlbmQscmVzdW1lfSgpIGRpcmVj
-dGx5IGZvciB0aGUNCj4gY2FsbGJhY2tzIGFuZCBhdm9pZCB0aGUgZHVwbGljYXRlcyBhYm92ZS4N
-Cj4gDQoNCkFjaw0KDQo+ID4gKw0KPiA+ICsjZWxzZQ0KPiA+ICsNCj4gPiArI2RlZmluZSBkdzk3
-MTRfdmNtX3N1c3BlbmQgICAgIE5VTEwNCj4gPiArI2RlZmluZSBkdzk3MTRfdmNtX3Jlc3VtZSAg
-ICAgIE5VTEwNCj4gDQo+IFRoaXMgI2Vsc2UgYmxvY2sgaXMgbm90IG5lZWRlZC4NCj4gDQoNCkFj
-aw0KDQo+IEJlc3QgcmVnYXJkcywNCj4gVG9tYXN6DQo=
+This patch adds support for the three new SDR formats. These formats
+were prefixed with "planar" indicating I & Q data are not interleaved
+as in other formats. Here, I & Q data constitutes the top half and bottom
+half of the received buffer respectively.
+
+V4L2_SDR_FMT_PCU16BE - 14-bit complex (I & Q) unsigned big-endian sample
+inside 16-bit. V4L2 FourCC: PC16
+
+V4L2_SDR_FMT_PCU18BE - 16-bit complex (I & Q) unsigned big-endian sample
+inside 18-bit. V4L2 FourCC: PC18
+
+V4L2_SDR_FMT_PCU20BE - 18-bit complex (I & Q) unsigned big-endian sample
+inside 20-bit. V4L2 FourCC: PC20
+
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 3 +++
+ include/uapi/linux/videodev2.h       | 3 +++
+ 2 files changed, 6 insertions(+)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index e5a2187381db..ca1e920d3e7c 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1229,6 +1229,9 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
+ 	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
+ 	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
++	case V4L2_SDR_FMT_PCU16BE:	descr = "Planar Complex U16BE"; break;
++	case V4L2_SDR_FMT_PCU18BE:	descr = "Planar Complex U18BE"; break;
++	case V4L2_SDR_FMT_PCU20BE:	descr = "Planar Complex U20BE"; break;
+ 	case V4L2_TCH_FMT_DELTA_TD16:	descr = "16-bit signed deltas"; break;
+ 	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
+ 	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 2b8feb86d09e..45cf7359822c 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -669,6 +669,9 @@ struct v4l2_pix_format {
+ #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
+ #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
+ #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
++#define V4L2_SDR_FMT_PCU16BE	  v4l2_fourcc('P', 'C', '1', '6') /* planar complex u16be */
++#define V4L2_SDR_FMT_PCU18BE	  v4l2_fourcc('P', 'C', '1', '8') /* planar complex u18be */
++#define V4L2_SDR_FMT_PCU20BE	  v4l2_fourcc('P', 'C', '2', '0') /* planar complex u20be */
+ 
+ /* Touch formats - used for Touch devices */
+ #define V4L2_TCH_FMT_DELTA_TD16	v4l2_fourcc('T', 'D', '1', '6') /* 16-bit signed deltas */
+-- 
+2.12.2
