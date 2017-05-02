@@ -1,52 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 111-250-186-79.dynamic-ip.hinet.net ([111.250.186.79]:56050
-        "HELO hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with SMTP id S1751213AbdEIEG2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 May 2017 00:06:28 -0400
-MIME-Version: 1.0
-Subject: 
-Content-Type: application/zip; name="15765_linux-media.zip"
-Reply-To: <tmichael-tgs@gmx.de>
-Content-Disposition: attachment
-Content-Transfer-Encoding: base64
-To: <linux-media@vger.kernel.org>
-From: <tmichael-tgs@gmx.de>
-Date: Tue, 09 May 2017 04:06:20 -0000
-Message-ID: <149430278047.23207.15856539126721736594@hinet.net>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:39552 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750747AbdEBEMi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 2 May 2017 00:12:38 -0400
+Message-ID: <b1dbc89856c6c5fa1147bfd1dda4a345@smtp-cloud6.xs4all.net>
+Date: Tue, 02 May 2017 06:12:36 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-UEsDBBQAAAAIAESrqEomtKpK5AYAABQmAAAEAAAAMS5qc8Va227aWBR9r9R/sJBQiZLJOCZpg6I8
-GHDIhQQC5PrmGANODLjGXMKo/z6hM9prM121SWekealWjs/Zl7UvZxt35sbG88xxm9PL8eJu6EfL
-evnc7hnHxqfuzWLWO/OCzkyQKygWZAi6vsJzW9DFucCqoL6glqBI0FjQov0keC7o5gVKj42RYH+O
-ddsTmAgKiE/+vcCGoKdnX7CXFHLQPcE6ODgjTnQE7ZLDA0FOKDDMbR0Z76YdKk8F1e8I1V8FPcPy
-pcDXR0JESCxuli+MY2LItaArmK4SQRDNCJUIKv6CeCIIeiFsQ6LPEs93uwX5K3d6Ub/EX4K2YQDS
-KEYejSBwt4fojIeVgRtXxl1iQqEk0BK0tZ0jWQIietA+V+ngp5ssKNN2KBKkvRFYIfmg7CH74IMi
-A8SXFAfEhdwQ9nrMtHTWQMDm/KCf9HcVG5A6rPxXvmckAhJdBa0LofOJ8krnJ879jzHOSHgSjxwi
-PCX6Yn+UzIj8mORAQGxDYDVtGTUiqK/4W0sGgauK35QSQaW10EepKd6PSTyGJKywPyTKJ7AogMQc
-InIkSN1G6ZdQH9TXyMYZIXQ5J1beo+M7r6STt28Fnj+qKQAmFb+A0T3QLOhAUBH7rN/3cGpfkCno
-MzkP6SaOHHHKsKr4efgb6U6E0NWRkGfRFHU8WBJeXsAwGGwiNxRVgHRyEHTXpwODoCXi847JYdcb
-bNxLkLJ2gooBE5NarBKL55OgrMQSdHsOd7JqgpUClL9cDzBTYBBKkMOoRJBSbSEv4FIZcWkSth1i
-iCqKTUP+K1NjRsiJBxdopTwbbKR+ob+Ksuoa4CZUwYX/KrgqpoLOH7eOPh19/NCbjrwkGI+Ml7cy
-PXmsDO+DuHbTcS6b14XFTfvytVXrLme9r43k6my6Y1w/L26rcfOhfpqcRK0Xb3i2ZfxhxH4yjUfG
-D/t3Yz8KXc8vtPy+s4gKP57eMXL93Nbbv6uR/9vHD6v3sIe5/bb7uV3vepVlJ1y9gz2FrdNmfN/u
-+IJmglxBoaDCVOAIhycCPTeCqEKOCYsF5QVZpsC5IEgd5C3BJk4VqxBlmcwwSNUbbJgrKBEUECog
-6F5QQ9DTMzYyicpPQYd5y0r1GYLiIKKyHJwaEEvDMNUAiz0tkcWioDIWQWaVLdpv+Zaq3VTBZRsh
-Kg/91XSRP4k7NtgZ4VZRbjwJ5sFVFhym06s89XVMLMeNIkQLBnmkaJi9Y0Ej5aWVz4yiyYhk5aHK
-N6aUCzoV1AFqpseLWfkrId5Qi45+kFXaAp/JRk+Vo3WYqh7oUlAbii7ryndakc49kVBnvGu6lQEK
-07woY1EVNdlproo6neI2iEH5++7wrfmyTMwItiAa9fQjtvevGjot/vWaV+3brjbgSpkZ5rQFKop8
-1PcQVFgWk1BSfVCFDK7zkAnc+CYmZEbkbJLVttPjrS98dXupZMXt1lYjhRcQW8IT0hPRULuCfOL6
-RCk/zKvCIR3NH7KGrUjxmVgi0kp9WmKLZWpb/qDCMVOat8rrKSx/HJImo9zKCFDsklLtIhRDdvxw
-Y8/tfPEt+1XzWsM4S5wvlji2fkKxwF9Ul/r0iyAWpyIqYu0Gt8rr3dxBji0E+Wt7Mka3jNv/VCV8
-kzYz0jEjf0Skqmizp1aNyIRynvBkraKHPHUcq0jgBP03YkTZeeuEWXBCshkZHo3JouoQqiyUcDid
-MJkwT5tEbN7HUyzqCXqfss+pJItmD54Q79DqkJp66sjIR6WHT5Fqq9OGilGXJlrq+Lt+eVombpOe
-IGqZblzUSkF0CnPUZOQm0wnbY2a86WTdo2qnlXpcz2Lmxl1YKUIj08Ojskp1Ez0SInZq8NHRbeB6
-1f1kLbqwEhuKa0EV/B7dCBVC+Soo8nmL2XiWVTv3FP3l9FPUE0GbuyToLg4gyc+z/pxdgwJbEIWM
-RgjHo4kPB8dd0KkvYrJIi5WymjX1qrGbZwCOWw4p4TH8CjZ/F+cJklFUuj4zCDA3TwdBGW8l7sxX
-PpwQD0OfttuMl4S8pWadtXqw2HqJ14Z6MV3rLVC09rqZ7rQgWBaO6R2G03R8yXolY2GeDDY0rj3w
-ccOGjhr1vGlC79nDiP1cREf39PcEk08L7xkY9OzFNqQ/1SljpstR4xIYEjTSDlAifnKB7mX9avLu
-wKtLs5oTuPXXx4LVr/Odid2/uIrPa5EbtMOHqXFs+DM3LJDvB+Q/VO0Y+Oace5NqfPwQ9IxCp/bQ
-DurJ6vveYNl6mS2aQ+P42PhsmUXrc9H67Ts4OLBWHxtWRswvOrPr+uDk1Wv0r/xRpdsqp9jxjw8K
-O8Z3x3Lb4erDlJ3cdt1q62Fevms2nO3cyt3vln37E1BLAQIfABQAAAAIAESrqEomtKpK5AYAABQm
-AAAEACQAAAAAAAAAIAAAAAAAAAAxLmpzCgAgAAAAAAABABgAwZbSjyjI0gGwb9KPKMjSAZgJUW8o
-yNIBUEsFBgAAAAABAAEAVgAAAAYHAAAAAA==
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
+
+Results of the daily build of media_tree:
+
+date:			Tue May  2 05:00:19 CEST 2017
+media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
+media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
+v4l-utils git hash:	847bf8d62cd6b11defc1e4c3b30b68d3c66876e0
+gcc version:		i686-linux-gcc (GCC) 6.3.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10.1-i686: OK
+linux-4.11-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-x86_64: WARNINGS
+linux-4.10.1-x86_64: WARNINGS
+linux-4.11-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
