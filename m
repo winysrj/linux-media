@@ -1,190 +1,429 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:36654 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750938AbdE3V34 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 17:29:56 -0400
-Subject: Re: [RFC PATCH 7/7] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
- support
-To: Clint Taylor <clinton.a.taylor@intel.com>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Daniel Vetter <daniel@ffwll.ch>
-Cc: intel-gfx@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-References: <20170525150626.29748-1-hverkuil@xs4all.nl>
- <20170525150626.29748-8-hverkuil@xs4all.nl>
- <20170526071550.3gsq3pc375cnk2gk@phenom.ffwll.local>
- <0a417a9c-4a41-796c-9876-51b61d429bb5@xs4all.nl>
- <20170529190004.ipdeyntsmzzb3iij@phenom.ffwll.local>
- <d9e9354b-eeb7-0a1e-2dbc-16c1ba0c0784@xs4all.nl> <87y3tekedi.fsf@intel.com>
- <f7d14e1c-9a6a-6d0f-bfe8-b4b619efd3bc@intel.com>
- <22961af9-5157-ae14-3000-f91cedc27958@xs4all.nl>
- <8150d62a-ecbc-6235-5595-1764fe616d8b@xs4all.nl>
- <ca46b0db-1ee2-ec78-04cf-90e9d48b7109@intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5dcf7b38-b833-2136-f755-73016522b982@xs4all.nl>
-Date: Tue, 30 May 2017 23:29:44 +0200
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44512 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750934AbdEBNDM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 May 2017 09:03:12 -0400
+Subject: Re: [PATCH v4 23/27] rcar-vin: parse Gen3 OF and setup media graph
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170427224203.14611-24-niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Reply-To: kieran.bingham@ideasonboard.com
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <b487f427-006a-5489-9ddc-324e3a5d031a@ideasonboard.com>
+Date: Tue, 2 May 2017 14:02:54 +0100
 MIME-Version: 1.0
-In-Reply-To: <ca46b0db-1ee2-ec78-04cf-90e9d48b7109@intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170427224203.14611-24-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/30/2017 10:32 PM, Clint Taylor wrote:
+Hi Niklas
+
+Just a quick comment here, as I've come across it while looking at the fw_node
+topic.
+
+On 27/04/17 23:41, Niklas Söderlund wrote:
+> Parse the VIN Gen3 OF graph and register all CSI-2 devices in the VIN
+> group common media device. Once a CSI-2 subdevice is added to the common
+> media device list as many links as possible are added.
 > 
+> The parsing and registering CSI-2 subdevices is a collaborative effort
+> shared between all rcar-vin instances which are part of the group.  The
+> rcar-vin instance that first sees a new CSI-2 subdevice adds it to its
+> private v4l2 async notifier and once it's bound it will be
+> available for the whole group.
 > 
-> On 05/30/2017 09:54 AM, Hans Verkuil wrote:
->> On 05/30/2017 06:49 PM, Hans Verkuil wrote:
->>> On 05/30/2017 04:19 PM, Clint Taylor wrote:
->>>>
->>>>
->>>> On 05/30/2017 12:11 AM, Jani Nikula wrote:
->>>>> On Tue, 30 May 2017, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>>>> On 05/29/2017 09:00 PM, Daniel Vetter wrote:
->>>>>>> On Fri, May 26, 2017 at 12:20:48PM +0200, Hans Verkuil wrote:
->>>>>>>> On 05/26/2017 09:15 AM, Daniel Vetter wrote:
->>>>>>>>> Did you look into also wiring this up for dp mst chains?
->>>>>>>> Isn't this sufficient? I have no way of testing mst chains.
->>>>>>>>
->>>>>>>> I think I need some pointers from you, since I am a complete
->>>>>>>> newbie when it
->>>>>>>> comes to mst.
->>>>>>> I don't really have more clue, but yeah if you don't have an mst
->>>>>>> thing (a
->>>>>>> simple dp port multiplexer is what I use for testing here, then
->>>>>>> plug in a
->>>>>>> converter dongle or cable into that) then probably better to not
->>>>>>> wire up
->>>>>>> the code for it.
->>>>>> I think my NUC already uses mst internally. But I was planning on
->>>>>> buying a
->>>>>> dp multiplexer to make sure there is nothing special I need to do
->>>>>> for mst.
->>>>>>
->>>>>> The CEC Tunneling is all in the branch device, so if I understand
->>>>>> things
->>>>>> correctly it is not affected by mst.
->>>>>>
->>>>>> BTW, I did a bit more testing on my NUC7i5BNK: for the HDMI output
->>>>>> they
->>>>>> use a MegaChip MCDP2800 DP-to-HDMI converter which according to their
->>>>>> datasheet is supposed to implement CEC Tunneling, but if they do
->>>>>> it is not
->>>>>> exposed as a capability. I'm not sure if it is a MegaChip firmware
->>>>>> issue
->>>>>> or something else. The BIOS is able to do some CEC, but whether
->>>>>> they hook
->>>>>> into the MegaChip or have the CEC pin connected to a GPIO or
->>>>>> something and
->>>>>> have their own controller is something I do not know.
->>>>>>
->>>>>> If anyone can clarify what Intel did on the NUC, then that would
->>>>>> be very
->>>>>> helpful.
->>>>> It's called LSPCON, see i915/intel_lspcon.c, basically to support HDMI
->>>>> 2.0. Currently we only use it in PCON mode, shows up as DP for us. It
->>>>> could be used in LS mode, showing up as HDMI 1.4, but we don't support
->>>>> that in i915.
->>>>>
->>>>> I don't know about the CEC on that.
->>>>
->>>> My NUC6i7KYK has the MCDP2850 LSPCON and it does support CEC over Aux.
->>>> The release notes for the NUC state that there is a BIOS configuration
->>>> option for enabling support. My doesn't have the option but the LSPCON
->>>> fully supports CEC.
->>>
->>> What is the output of:
->>>
->>> dd if=/dev/drm_dp_aux0 of=aux0 skip=12288 ibs=1 count=48
->>> od -t x1 aux0
->>>
->>> Assuming drm_dp_aux0 is the aux channel for the HDMI output on your NUC.
->>>
->>> If the first byte is != 0x00, then it advertises CEC over Aux.
->>>
->>> For me it says 0x00.
->>>
->>> When you say "it does support CEC over Aux", does that mean you have
->>> actually
->>> tested it somehow? The only working solution I have seen mentioned
->>> for the
->>> NUC6i7KYK is a Pulse-Eight adapter.
->>>
->>> With the NUC7i Intel made BIOS support for CEC, but it is not at all
->>> clear to me if they used CEC tunneling or just hooked up the CEC pin to
->>> some microcontroller.
->>>
->>> The only working chipset I have seen is the Parade PS176.
->>
->> If it really is working on your NUC, then can you add the output of
->> /sys/kernel/debug/dri/0/i915_display_info?
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 340 ++++++++++++++++++++++++++--
+>  1 file changed, 327 insertions(+), 13 deletions(-)
 > 
-> [root@localhost cec-ctl]# cat /sys/kernel/debug/dri/0/i915_display_info
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index c10770d5ec37816c..9b9da9a419d0b7e1 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -158,21 +158,32 @@ static int rvin_parse_v4l2(struct rvin_dev *vin,
+>  
+>  	mbus_cfg->type = v4l2_ep.bus_type;
+>  
+> -	switch (mbus_cfg->type) {
+> -	case V4L2_MBUS_PARALLEL:
+> -		vin_dbg(vin, "Found PARALLEL media bus\n");
+> -		mbus_cfg->flags = v4l2_ep.bus.parallel.flags;
+> -		break;
+> -	case V4L2_MBUS_BT656:
+> -		vin_dbg(vin, "Found BT656 media bus\n");
+> -		mbus_cfg->flags = 0;
+> -		break;
+> -	default:
+> -		vin_err(vin, "Unknown media bus type\n");
+> -		return -EINVAL;
+> +	if (vin->info->chip == RCAR_GEN3) {
+> +		switch (mbus_cfg->type) {
+> +		case V4L2_MBUS_CSI2:
+> +			vin_dbg(vin, "Found CSI-2 media bus\n");
+> +			mbus_cfg->flags = 0;
+> +			return 0;
+> +		default:
+> +			break;
+> +		}
+> +	} else {
+> +		switch (mbus_cfg->type) {
+> +		case V4L2_MBUS_PARALLEL:
+> +			vin_dbg(vin, "Found PARALLEL media bus\n");
+> +			mbus_cfg->flags = v4l2_ep.bus.parallel.flags;
+> +			return 0;
+> +		case V4L2_MBUS_BT656:
+> +			vin_dbg(vin, "Found BT656 media bus\n");
+> +			mbus_cfg->flags = 0;
+> +			return 0;
+> +		default:
+> +			break;
+> +		}
+>  	}
+>  
+> -	return 0;
+> +	vin_err(vin, "Unknown media bus type\n");
+> +	return -EINVAL;
+>  }
+>  
+>  /* -----------------------------------------------------------------------------
+> @@ -357,6 +368,299 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+>   * Group async notifier
+>   */
+>  
+> +/* group lock should be held when calling this function */
+> +static int rvin_group_add_link(struct rvin_dev *vin,
+> +			       struct media_entity *source,
+> +			       unsigned int source_idx,
+> +			       struct media_entity *sink,
+> +			       unsigned int sink_idx,
+> +			       u32 flags)
+> +{
+> +	struct media_pad *source_pad, *sink_pad;
+> +	int ret = 0;
+> +
+> +	source_pad = &source->pads[source_idx];
+> +	sink_pad = &sink->pads[sink_idx];
+> +
+> +	if (!media_entity_find_link(source_pad, sink_pad))
+> +		ret = media_create_pad_link(source, source_idx,
+> +					    sink, sink_idx, flags);
+> +
+> +	if (ret)
+> +		vin_err(vin, "Error adding link from %s to %s\n",
+> +			source->name, sink->name);
+> +
+> +	return ret;
+> +}
+> +
+> +static int rvin_group_update_links(struct rvin_dev *vin)
+> +{
+> +	struct media_entity *source, *sink;
+> +	struct rvin_dev *master;
+> +	unsigned int i, n, idx, chsel, csi;
+> +	u32 flags;
+> +	int ret;
+> +
+> +	mutex_lock(&vin->group->lock);
+> +
+> +	for (n = 0; n < RCAR_VIN_NUM; n++) {
+> +
+> +		/* Check that VIN is part of the group */
+> +		if (!vin->group->vin[n])
+> +			continue;
+> +
+> +		/* Check that subgroup master is part of the group */
+> +		master = vin->group->vin[n < 4 ? 0 : 4];
+> +		if (!master)
+> +			continue;
+> +
+> +		chsel = rvin_get_chsel(master);
+> +
+> +		for (i = 0; i < vin->info->num_chsels; i++) {
+> +			csi = vin->info->chsels[n][i].csi;
+> +
+> +			/* If the CSI-2 is out of bounds it's a noop, skip */
+> +			if (csi >= RVIN_CSI_MAX)
+> +				continue;
+> +
+> +			/* Check that CSI-2 are part of the group */
+> +			if (!vin->group->csi[csi].subdev)
+> +				continue;
+> +
+> +			source = &vin->group->csi[csi].subdev->entity;
+> +			sink = &vin->group->vin[n]->vdev->entity;
+> +			idx = vin->info->chsels[n][i].chan + 1;
+> +			flags = i == chsel ? MEDIA_LNK_FL_ENABLED : 0;
+> +
+> +			ret = rvin_group_add_link(vin, source, idx, sink, 0,
+> +						  flags);
+> +			if (ret)
+> +				goto out;
+> +		}
+> +	}
+> +out:
+> +	mutex_unlock(&vin->group->lock);
+> +
+> +	return ret;
+> +}
+> +
+> +static int rvin_group_notify_complete(struct v4l2_async_notifier *notifier)
+> +{
+> +	struct rvin_dev *vin = notifier_to_vin(notifier);
+> +	int ret;
+> +
+> +	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
+> +	if (ret) {
+> +		vin_err(vin, "Failed to register subdev nodes\n");
+> +		return ret;
+> +	}
+> +
+> +	return rvin_group_update_links(vin);
+> +}
+> +
+> +static void rvin_group_notify_unbind(struct v4l2_async_notifier *notifier,
+> +				     struct v4l2_subdev *subdev,
+> +				     struct v4l2_async_subdev *asd)
+> +{
+> +	struct rvin_dev *vin = notifier_to_vin(notifier);
+> +	struct device_node *del = subdev->of_node;
+> +	unsigned int i;
+> +
+> +	mutex_lock(&vin->group->lock);
+> +	for (i = 0; i < RVIN_CSI_MAX; i++) {
+> +		if (vin->group->csi[i].asd.match.of.node == del) {
+
+I think here we should either use (or export if necessary) the async match helper.
+
+This would then cope sucessfully with the change to the fw_node matching.
 
 
-> Connector info
-> --------------
-> connector 48: type DP-1, status: connected
->       name:
->       physical dimensions: 700x400mm
->       subpixel order: Unknown
->       CEA rev: 3
->       DPCD rev: 12
->       audio support: yes
->       DP branch device present: yes
->           Type: HDMI
->           ID: 175IB0
->           HW: 1.0
->           SW: 7.32
->           Max TMDS clock: 600000 kHz
->           Max bpc: 12
 
-Huh. Based on this document:
+> +			vin_dbg(vin, "Unbind CSI-2 %s\n", subdev->name);
+> +			vin->group->csi[i].subdev = NULL;
+> +			mutex_unlock(&vin->group->lock);
+> +			return;
+> +		}
+> +	}
+> +	mutex_unlock(&vin->group->lock);
+> +
+> +	vin_err(vin, "No entity for subdev %s to unbind\n", subdev->name);
+> +}
+> +
+> +static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
+> +				   struct v4l2_subdev *subdev,
+> +				   struct v4l2_async_subdev *asd)
+> +{
+> +	struct rvin_dev *vin = notifier_to_vin(notifier);
+> +	struct device_node *new = subdev->of_node;
+> +	unsigned int i;
+> +
+> +	v4l2_set_subdev_hostdata(subdev, vin);
+> +
+> +	mutex_lock(&vin->group->lock);
+> +	for (i = 0; i < RVIN_CSI_MAX; i++) {
+> +		if (vin->group->csi[i].asd.match.of.node == new) {
 
-https://downloadmirror.intel.com/26061/eng/NUC6i7KYK%20HDMI%202.0%20Firmware%20update%20Instructions.pdf
 
-this is the internal DP-to-HDMI adapter and it has the PS175. So it is a
-Parade chipset, and I have seen that work before (at least the PS176).
+Same here of course, as above.
 
-<snip>
-
-> connector 55: type DP-2, status: connected
->       name:
->       physical dimensions: 620x340mm
->       subpixel order: Unknown
->       CEA rev: 3
->       DPCD rev: 12
->       audio support: yes
->       DP branch device present: yes
->           Type: HDMI
->           ID: BCTRC0
->           HW: 2.0
->           SW: 0.26
-
-And is this from a USB-C to HDMI adapter? Which one? I don't recognize the ID.
-
-For the record, this is the internal HDMI output of my NUC7i5BNK:
-
-connector 48: type DP-1, status: connected
-         name:
-         physical dimensions: 1050x590mm
-         subpixel order: Unknown
-         CEA rev: 3
-         DPCD rev: 12
-         audio support: yes
-         DP branch device present: yes
-                 Type: HDMI
-                 ID: MC2800
-                 HW: 2.2
-                 SW: 1.66
-                 Max TMDS clock: 600000 kHz
-                 Max bpc: 16
-
-Clearly a Megachip.
-
-Regards,
-
-	Hans
+> +			vin_dbg(vin, "Bound CSI-2 %s\n", subdev->name);
+> +			vin->group->csi[i].subdev = subdev;
+> +			mutex_unlock(&vin->group->lock);
+> +			return 0;
+> +		}
+> +	}
+> +	mutex_unlock(&vin->group->lock);
+> +
+> +	vin_err(vin, "No entity for subdev %s to bind\n", subdev->name);
+> +	return -EINVAL;
+> +}
+> +
+> +static struct device_node *rvin_group_get_csi(struct rvin_dev *vin,
+> +					      struct device_node *node)
+> +{
+> +	struct device_node *csi;
+> +
+> +	csi = of_graph_get_remote_port_parent(node);
+> +	if (!csi) {
+> +		vin_err(vin, "No CSI-2 found %s\n", of_node_full_name(node));
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +
+> +	/* Not all CSI-2 are available, this is OK */
+> +	if (!of_device_is_available(csi)) {
+> +		vin_dbg(vin, "CSI-2 %s not available\n",
+> +			of_node_full_name(csi));
+> +		of_node_put(csi);
+> +		return NULL;
+> +	}
+> +
+> +	return csi;
+> +}
+> +
+> +/* group lock should be held when calling this function */
+> +static int rvin_group_graph_parse(struct rvin_dev *vin, unsigned long *bitmap)
+> +{
+> +	struct device_node *ep, *csi;
+> +	unsigned int i;
+> +	u32 val;
+> +	int ret;
+> +
+> +	*bitmap = 0;
+> +
+> +	/* Figure out which VIN we are */
+> +	ret = of_property_read_u32(vin->dev->of_node, "renesas,id", &val);
+> +	if (ret) {
+> +		vin_err(vin, "No renesas,id property found\n");
+> +		return ret;
+> +	}
+> +
+> +	if (val >= RCAR_VIN_NUM) {
+> +		vin_err(vin, "Invalid renesas,id '%u'\n", val);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (vin->group->vin[val] != NULL) {
+> +		vin_err(vin, "VIN number %d already occupied\n", val);
+> +		return -EINVAL;
+> +	}
+> +
+> +	vin_dbg(vin, "I'm VIN number %u", val);
+> +	vin->group->vin[val] = vin;
+> +
+> +	/* Parse all CSI-2 nodes */
+> +	for (i = 0; i < RVIN_CSI_MAX; i++) {
+> +
+> +		/* Check if instance is connected to the CSI-2 */
+> +		ep = of_graph_get_endpoint_by_regs(vin->dev->of_node, 1, i);
+> +		if (!ep) {
+> +			vin_dbg(vin, "CSI-2: %d not connected\n", i);
+> +			continue;
+> +		}
+> +
+> +		if (vin->group->csi[i].asd.match.of.node) {
+> +			of_node_put(ep);
+> +			vin_dbg(vin, "CSI-2: %d handled by other device\n", i);
+> +			continue;
+> +		}
+> +
+> +		csi = rvin_group_get_csi(vin, ep);
+> +		of_node_put(ep);
+> +		if (IS_ERR(csi))
+> +			return PTR_ERR(csi);
+> +		if (csi == NULL)
+> +			continue;
+> +
+> +		vin->group->csi[i].asd.match.of.node = csi;
+> +		vin->group->csi[i].asd.match_type = V4L2_ASYNC_MATCH_OF;
+> +
+> +		*bitmap |= BIT(i);
+> +
+> +		vin_dbg(vin, "Handle CSI-2 %s\n", of_node_full_name(csi));
+> +	}
+> +
+> +	/* All our sources are CSI-2 */
+> +	vin->mbus_cfg.type = V4L2_MBUS_CSI2;
+> +	vin->mbus_cfg.flags = 0;
+> +
+> +	return 0;
+> +}
+> +
+> +/* group lock should be held when calling this function */
+> +static void rvin_group_graph_revert(struct rvin_dev *vin, unsigned long bitmap)
+> +{
+> +	int bit;
+> +
+> +	for_each_set_bit(bit, &bitmap, RVIN_CSI_MAX) {
+> +		vin_dbg(vin, "Reverting graph for %s\n",
+> +			of_node_full_name(vin->dev->of_node));
+> +		vin->group->csi[bit].asd.match.of.node = NULL;
+> +		vin->group->csi[bit].asd.match_type = 0;
+> +	}
+> +}
+> +
+> +static int rvin_group_graph_init(struct rvin_dev *vin)
+> +{
+> +	struct v4l2_async_subdev **subdevs = NULL;
+> +	unsigned long bitmap;
+> +	int i, bit, count, ret;
+> +
+> +	mutex_lock(&vin->group->lock);
+> +
+> +	ret = rvin_group_graph_parse(vin, &bitmap);
+> +	if (ret) {
+> +		rvin_group_graph_revert(vin, bitmap);
+> +		mutex_unlock(&vin->group->lock);
+> +		return ret;
+> +	}
+> +
+> +	/* Check if instance need to handle subdevices on behalf of the group */
+> +	count = hweight_long(bitmap);
+> +	if (!count) {
+> +		mutex_unlock(&vin->group->lock);
+> +		return 0;
+> +	}
+> +
+> +	subdevs = devm_kzalloc(vin->dev, sizeof(*subdevs) * count, GFP_KERNEL);
+> +	if (subdevs == NULL) {
+> +		rvin_group_graph_revert(vin, bitmap);
+> +		mutex_unlock(&vin->group->lock);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	i = 0;
+> +	for_each_set_bit(bit, &bitmap, RVIN_CSI_MAX) {
+> +		subdevs[i++] = &vin->group->csi[bit].asd;
+> +	}
+> +
+> +	vin_dbg(vin, "Claimed %d subdevices for group\n", count);
+> +
+> +	vin->notifier.num_subdevs = count;
+> +	vin->notifier.subdevs = subdevs;
+> +	vin->notifier.bound = rvin_group_notify_bound;
+> +	vin->notifier.unbind = rvin_group_notify_unbind;
+> +	vin->notifier.complete = rvin_group_notify_complete;
+> +
+> +	mutex_unlock(&vin->group->lock);
+> +
+> +	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
+> +	if (ret < 0) {
+> +		vin_err(vin, "Notifier registration failed\n");
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static int rvin_group_init(struct rvin_dev *vin)
+>  {
+>  	int ret;
+> @@ -374,7 +678,17 @@ static int rvin_group_init(struct rvin_dev *vin)
+>  	if (ret)
+>  		goto error_v4l2;
+>  
+> +	ret = rvin_group_graph_init(vin);
+> +	if (ret)
+> +		goto error_v4l2;
+> +
+> +	ret = rvin_group_update_links(vin);
+> +	if (ret)
+> +		goto error_async;
+> +
+>  	return 0;
+> +error_async:
+> +	v4l2_async_notifier_unregister(&vin->notifier);
+>  error_v4l2:
+>  	rvin_v4l2_mc_remove(vin);
+>  error_group:
+> 
