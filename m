@@ -1,130 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:33150 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751250AbdEIDoG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 May 2017 23:44:06 -0400
-Subject: Re: [PATCH 40/40] media: imx: set and propagate empty field,
- colorimetry params
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-References: <7d836723-dc01-2cea-f794-901b632ce46e@gmail.com>
- <1492044337-11324-1-git-send-email-steve_longerbeam@mentor.com>
- <1494236507.3029.69.camel@pengutronix.de>
-Cc: gregkh@linuxfoundation.org, mchehab@kernel.org,
-        rmk+kernel@armlinux.org.uk, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <c2f14369-2aeb-d9bc-5b65-d15d39db8f47@gmail.com>
-Date: Mon, 8 May 2017 20:44:03 -0700
-MIME-Version: 1.0
-In-Reply-To: <1494236507.3029.69.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37614 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750981AbdECEJC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 3 May 2017 00:09:02 -0400
+Message-ID: <76f36041daa086622c2dbdb286295da3@smtp-cloud3.xs4all.net>
+Date: Wed, 03 May 2017 06:09:00 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On 05/08/2017 02:41 AM, Philipp Zabel wrote:
-> Hi Steve,
->
-> On Wed, 2017-04-12 at 17:45 -0700, Steve Longerbeam wrote:
->> This patch adds a call to imx_media_fill_empty_mbus_fields() in the
->> *_try_fmt() functions at the sink pads, to set empty field order and
->> colorimetry parameters.
->>
->> If the field order is set to ANY, choose the currently set field order
->> at the sink pad. If the colorspace is set to DEFAULT, choose the
->> current colorspace at the sink pad.  If any of xfer_func, ycbcr_enc
->> or quantization are set to DEFAULT, either choose the current sink pad
->> setting, or the default setting for the new colorspace, if non-DEFAULT
->> colorspace was given.
->>
->> Colorimetry is also propagated from sink to source pads anywhere
->> this has not already been done. The exception is ic-prpencvf at the
->> source pad, since the Image Converter outputs fixed quantization and
->> Y`CbCr encoding.
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> ---
->>  drivers/staging/media/imx/imx-ic-prp.c      |  5 ++-
->>  drivers/staging/media/imx/imx-ic-prpencvf.c | 25 +++++++++++---
->>  drivers/staging/media/imx/imx-media-csi.c   | 12 +++++--
->>  drivers/staging/media/imx/imx-media-utils.c | 53 +++++++++++++++++++++++++++++
->>  drivers/staging/media/imx/imx-media-vdic.c  |  7 ++--
->>  drivers/staging/media/imx/imx-media.h       |  3 +-
->>  6 files changed, 95 insertions(+), 10 deletions(-)
->>
-> [...]
->> diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
->> index 7b2f92d..b07d0ae 100644
->> --- a/drivers/staging/media/imx/imx-media-utils.c
->> +++ b/drivers/staging/media/imx/imx-media-utils.c
->> @@ -464,6 +464,59 @@ int imx_media_init_mbus_fmt(struct v4l2_mbus_framefmt *mbus,
->>  }
->>  EXPORT_SYMBOL_GPL(imx_media_init_mbus_fmt);
->>
->> +/*
->> + * Check whether the field or colorimetry params in tryfmt are
->> + * uninitialized, and if so fill them with the values from fmt.
->> + * The exception is when tryfmt->colorspace has been initialized,
->> + * if so all the further default colorimetry params can be derived
->> + * from tryfmt->colorspace.
->> + */
->> +void imx_media_fill_empty_mbus_fields(struct v4l2_mbus_framefmt *tryfmt,
->> +				      struct v4l2_mbus_framefmt *fmt)
->> +{
->> +	/* fill field if necessary */
->> +	if (tryfmt->field == V4L2_FIELD_ANY)
->> +		tryfmt->field = fmt->field;
->> +
->> +	/* fill colorimetry if necessary */
->> +	if (tryfmt->colorspace == V4L2_COLORSPACE_DEFAULT) {
->> +		tryfmt->colorspace = fmt->colorspace;
->> +		if (tryfmt->xfer_func == V4L2_XFER_FUNC_DEFAULT)
->> +			tryfmt->xfer_func = fmt->xfer_func;
->> +		if (tryfmt->ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT)
->> +			tryfmt->ycbcr_enc = fmt->ycbcr_enc;
->> +		if (tryfmt->quantization == V4L2_QUANTIZATION_DEFAULT)
->> +			tryfmt->quantization = fmt->quantization;
->
-> According to Hans' latest comments, this could be changed to:
->
-> ----------8<----------
-> From cca3cda9effcaca0891eb8044a79137023fed1c2 Mon Sep 17 00:00:00 2001
-> From: Philipp Zabel <p.zabel@pengutronix.de>
-> Date: Mon, 8 May 2017 11:38:05 +0200
-> Subject: [PATCH] fixup! media: imx: set and propagate default field,
->  colorimetry
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/staging/media/imx/imx-media-utils.c | 9 +++------
->  1 file changed, 3 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
-> index a8766489e8a18..ec2abd618cc44 100644
-> --- a/drivers/staging/media/imx/imx-media-utils.c
-> +++ b/drivers/staging/media/imx/imx-media-utils.c
-> @@ -497,12 +497,9 @@ void imx_media_fill_default_mbus_fields(struct v4l2_mbus_framefmt *tryfmt,
->  	/* fill colorimetry if necessary */
->  	if (tryfmt->colorspace == V4L2_COLORSPACE_DEFAULT) {
->  		tryfmt->colorspace = fmt->colorspace;
-> -		if (tryfmt->xfer_func == V4L2_XFER_FUNC_DEFAULT)
-> -			tryfmt->xfer_func = fmt->xfer_func;
-> -		if (tryfmt->ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT)
-> -			tryfmt->ycbcr_enc = fmt->ycbcr_enc;
-> -		if (tryfmt->quantization == V4L2_QUANTIZATION_DEFAULT)
-> -			tryfmt->quantization = fmt->quantization;
-> +		tryfmt->xfer_func = fmt->xfer_func;
-> +		tryfmt->ycbcr_enc = fmt->ycbcr_enc;
-> +		tryfmt->quantization = fmt->quantization;
->  	} else {
->  		if (tryfmt->xfer_func == V4L2_XFER_FUNC_DEFAULT) {
->  			tryfmt->xfer_func =
->
+date:			Wed May  3 05:00:26 CEST 2017
+media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
+media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
+v4l-utils git hash:	847bf8d62cd6b11defc1e4c3b30b68d3c66876e0
+gcc version:		i686-linux-gcc (GCC) 6.3.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-Hi Philipp, makes sense to me, I'll make the change in next revision.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10.1-i686: OK
+linux-4.11-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-x86_64: WARNINGS
+linux-4.10.1-x86_64: WARNINGS
+linux-4.11-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-Steve
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
