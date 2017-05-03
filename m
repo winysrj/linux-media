@@ -1,431 +1,284 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:62106 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755251AbdEHPEh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 May 2017 11:04:37 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com,
-        laurent.pinchart@ideasonboard.com,
-        Samu Onkalo <samu.onkalo@intel.com>
-Subject: [RFC v4 13/18] vb2: Don't sync cache for a buffer if so requested
-Date: Mon,  8 May 2017 18:03:25 +0300
-Message-Id: <1494255810-12672-14-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-lf0-f48.google.com ([209.85.215.48]:34200 "EHLO
+        mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751151AbdECWrT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 May 2017 18:47:19 -0400
+Received: by mail-lf0-f48.google.com with SMTP id t144so1876383lff.1
+        for <linux-media@vger.kernel.org>; Wed, 03 May 2017 15:47:18 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Thu, 4 May 2017 00:47:15 +0200
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] v4l2-async: add subnotifier registration for subdevices
+Message-ID: <20170503224715.GU1532@bigcity.dyn.berto.se>
+References: <20170427223035.13164-1-niklas.soderlund+renesas@ragnatech.se>
+ <cbb1230e-43bc-5f43-d127-9e1a1364f153@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <cbb1230e-43bc-5f43-d127-9e1a1364f153@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Samu Onkalo <samu.onkalo@intel.com>
+Hi Kieran,
 
-The user may request to the driver (vb2) to skip the cache maintenance
-operations in case the buffer does not need cache synchronisation, e.g. in
-cases where the buffer is passed between hardware blocks without it being
-touched by the CPU.
+Thanks for your feedback.
 
-Also document that the prepare and finish vb2_mem_ops might not get called
-every time the buffer ownership changes between the kernel and the user
-space.
+On 2017-05-03 18:07:47 +0100, Kieran Bingham wrote:
+> Hi Niklas,
+> 
+> Small thing to ponder discovered below:
+> 
+> On 27/04/17 23:30, Niklas Söderlund wrote:
+> > When registered() of v4l2_subdev_internal_ops is called the subdevice
+> > have access to the master devices v4l2_dev and it's called with the
+> > async frameworks list_lock held. In this context the subdevice can
+> > register its own notifiers to allow for incremental discovery of
+> > subdevices.
+> > 
+> > The master device registers the subdevices closest to itself in its
+> > notifier while the subdevice(s) themself register notifiers for there
+> > closest neighboring devices when they are registered. Using this
+> > incremental approach two problems can be solved.
+> > 
+> > 1. The master device no longer have to care how many subdevices exist in
+> >    the pipeline. It only needs to care about its closest subdevice and
+> >    arbitrary long pipelines can be created without having to adapt the
+> >    master device for each case.
+> > 
+> > 2. Subdevices which are represented as a single DT node but register
+> >    more then one subdevice can use this to further the pipeline
+> >    discovery. Since the subdevice driver is the only one who knows which
+> >    of its subdevices is linked with which subdevice of a neighboring DT
+> >    node.
+> > 
+> > To enable subdevices to register/unregister notifiers from the
+> > registered()/unregistered() callback v4l2_async_subnotifier_register()
+> > and v4l2_async_subnotifier_unregister() are added. These new notifier
+> > register functions are similar to the master device equivalent functions
+> > but run without taking the v4l2-async list_lock which already are held
+> > when he registered()/unregistered() callbacks are called.
+> > 
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-async.c | 91 +++++++++++++++++++++++++++++-------
+> >  include/media/v4l2-async.h           | 22 +++++++++
+> >  2 files changed, 95 insertions(+), 18 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> > index 96cc733f35ef72b0..d4a676a2935eb058 100644
+> > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > @@ -136,12 +136,13 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+> >  	sd->dev = NULL;
+> >  }
+> >  
+> > -int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> > -				 struct v4l2_async_notifier *notifier)
+> > +static int v4l2_async_do_notifier_register(struct v4l2_device *v4l2_dev,
+> > +					   struct v4l2_async_notifier *notifier,
+> > +					   bool subnotifier)
+> >  {
+> >  	struct v4l2_subdev *sd, *tmp;
+> >  	struct v4l2_async_subdev *asd;
+> > -	int i;
+> > +	int found, i;
+> >  
+> >  	if (!notifier->num_subdevs || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+> >  		return -EINVAL;
+> > @@ -168,32 +169,69 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> >  		list_add_tail(&asd->list, &notifier->waiting);
+> >  	}
+> >  
+> > -	mutex_lock(&list_lock);
+> > +	if (!subnotifier)
+> > +		mutex_lock(&list_lock);
+> > +
+> > +	/*
+> > +	 * This function can be called recursively so the list
+> > +	 * might be modified in a recursive call. Start from the
+> > +	 * top of the list each iteration.
+> > +	 */
+> > +	found = 1;
+> > +	while (found) {
+> > +		found = 0;
+> >  
+> > -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+> > -		int ret;
+> > +		list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+> > +			int ret;
+> >  
+> > -		asd = v4l2_async_belongs(notifier, sd);
+> > -		if (!asd)
+> > -			continue;
+> > +			asd = v4l2_async_belongs(notifier, sd);
+> > +			if (!asd)
+> > +				continue;
+> >  
+> > -		ret = v4l2_async_test_notify(notifier, sd, asd);
+> > -		if (ret < 0) {
+> > -			mutex_unlock(&list_lock);
+> > -			return ret;
+> > +			ret = v4l2_async_test_notify(notifier, sd, asd);
+> > +			if (ret < 0) {
+> > +				if (!subnotifier)
+> > +					mutex_unlock(&list_lock);
+> > +				return ret;
+> > +			}
+> > +
+> > +			found = 1;
+> > +			break;
+> >  		}
+> >  	}
+> >  
+> >  	/* Keep also completed notifiers on the list */
+> >  	list_add(&notifier->list, &notifier_list);
+> >  
+> > -	mutex_unlock(&list_lock);
+> > +	if (!subnotifier)
+> > +		mutex_unlock(&list_lock);
+> >  
+> >  	return 0;
+> >  }
+> > +
+> > +int v4l2_async_subnotifier_register(struct v4l2_subdev *sd,
+> > +				    struct v4l2_async_notifier *notifier)
+> > +{
+> > +	if (!sd->v4l2_dev) {
+> > +		dev_err(sd->dev ? sd->dev : NULL,
+> 
+> Just came across this, and it seems a bit 'extraneous'
+> 
+> 'If sd->dev is not null, use sd->dev, otherwise use NULL'
 
-Signed-off-by: Samu Onkalo <samu.onkalo@intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 101 +++++++++++++++++++++----------
- drivers/media/v4l2-core/videobuf2-v4l2.c |  14 ++++-
- include/media/videobuf2-core.h           |  23 ++++---
- 3 files changed, 97 insertions(+), 41 deletions(-)
+Thanks, will fix for next version.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index c659b64..fbe0db1 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -189,6 +189,28 @@ static void __vb2_queue_cancel(struct vb2_queue *q);
- static void __enqueue_in_driver(struct vb2_buffer *vb);
- 
- /**
-+ * __mem_prepare_planes() - call finish mem op for all planes of the buffer
-+ */
-+static void __mem_prepare_planes(struct vb2_buffer *vb)
-+{
-+	unsigned int plane;
-+
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
-+}
-+
-+/**
-+ * __mem_finish_planes() - call finish mem op for all planes of the buffer
-+ */
-+static void __mem_finish_planes(struct vb2_buffer *vb)
-+{
-+	unsigned int plane;
-+
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
-+}
-+
-+/**
-  * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
-  */
- static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
-@@ -953,20 +975,29 @@ EXPORT_SYMBOL_GPL(vb2_discard_done);
- /**
-  * __prepare_mmap() - prepare an MMAP buffer
-  */
--static int __prepare_mmap(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_mmap(struct vb2_buffer *vb, const void *pb,
-+			  bool no_cache_sync)
- {
--	int ret = 0;
-+	int ret;
- 
--	if (pb)
-+	if (pb) {
- 		ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
- 				 vb, pb, vb->planes);
--	return ret ? ret : call_vb_qop(vb, buf_prepare, vb);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	if (!no_cache_sync)
-+		__mem_prepare_planes(vb);
-+
-+	return call_vb_qop(vb, buf_prepare, vb);
- }
- 
- /**
-  * __prepare_userptr() - prepare a USERPTR buffer
-  */
--static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_userptr(struct vb2_buffer *vb, const void *pb,
-+			     bool no_cache_sync)
- {
- 	struct vb2_plane planes[VB2_MAX_PLANES];
- 	struct vb2_queue *q = vb->vb2_queue;
-@@ -1057,6 +1088,11 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
- 			dprintk(1, "buffer initialization failed\n");
- 			goto err;
- 		}
-+
-+		/* This is new buffer memory --- always synchronise cache. */
-+		__mem_prepare_planes(vb);
-+	} else if (!no_cache_sync) {
-+		__mem_prepare_planes(vb);
- 	}
- 
- 	ret = call_vb_qop(vb, buf_prepare, vb);
-@@ -1084,7 +1120,8 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
- /**
-  * __prepare_dmabuf() - prepare a DMABUF buffer
-  */
--static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb,
-+			    bool no_cache_sync)
- {
- 	struct vb2_plane planes[VB2_MAX_PLANES];
- 	struct vb2_queue *q = vb->vb2_queue;
-@@ -1199,6 +1236,11 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
- 			dprintk(1, "buffer initialization failed\n");
- 			goto err;
- 		}
-+
-+		/* This is new buffer memory --- always synchronise cache. */
-+		__mem_prepare_planes(vb);
-+	} else if (!no_cache_sync) {
-+		__mem_prepare_planes(vb);
- 	}
- 
- 	ret = call_vb_qop(vb, buf_prepare, vb);
-@@ -1231,10 +1273,10 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- 	call_void_vb_qop(vb, buf_queue, vb);
- }
- 
--static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
-+static int __buf_prepare(struct vb2_buffer *vb, const void *pb,
-+			 bool no_cache_sync)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
--	unsigned int plane;
- 	int ret;
- 
- 	if (q->error) {
-@@ -1246,13 +1288,13 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
- 
- 	switch (q->memory) {
- 	case VB2_MEMORY_MMAP:
--		ret = __prepare_mmap(vb, pb);
-+		ret = __prepare_mmap(vb, pb, no_cache_sync);
- 		break;
- 	case VB2_MEMORY_USERPTR:
--		ret = __prepare_userptr(vb, pb);
-+		ret = __prepare_userptr(vb, pb, no_cache_sync);
- 		break;
- 	case VB2_MEMORY_DMABUF:
--		ret = __prepare_dmabuf(vb, pb);
-+		ret = __prepare_dmabuf(vb, pb, no_cache_sync);
- 		break;
- 	default:
- 		WARN(1, "Invalid queue type\n");
-@@ -1265,16 +1307,13 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
- 		return ret;
- 	}
- 
--	/* sync buffers */
--	for (plane = 0; plane < vb->num_planes; ++plane)
--		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
--
- 	vb->state = VB2_BUF_STATE_PREPARED;
- 
- 	return 0;
- }
- 
--int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
-+int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb,
-+			 bool no_cache_sync)
- {
- 	struct vb2_buffer *vb;
- 	int ret;
-@@ -1286,7 +1325,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
- 		return -EINVAL;
- 	}
- 
--	ret = __buf_prepare(vb, pb);
-+	ret = __buf_prepare(vb, pb, no_cache_sync);
- 	if (ret)
- 		return ret;
- 
-@@ -1362,7 +1401,8 @@ static int vb2_start_streaming(struct vb2_queue *q)
- 	return ret;
- }
- 
--int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
-+int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-+		  bool no_cache_sync)
- {
- 	struct vb2_buffer *vb;
- 	int ret;
-@@ -1371,7 +1411,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DEQUEUED:
--		ret = __buf_prepare(vb, pb);
-+		ret = __buf_prepare(vb, pb, no_cache_sync);
- 		if (ret)
- 			return ret;
- 		break;
-@@ -1557,7 +1597,7 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
- /**
-  * __vb2_dqbuf() - bring back the buffer to the DEQUEUED state
-  */
--static void __vb2_dqbuf(struct vb2_buffer *vb)
-+static void __vb2_dqbuf(struct vb2_buffer *vb, bool no_cache_sync)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
- 	unsigned int i;
-@@ -1568,9 +1608,8 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
- 
- 	vb->state = VB2_BUF_STATE_DEQUEUED;
- 
--	/* sync buffers */
--	for (i = 0; i < vb->num_planes; ++i)
--		call_void_memop(vb, finish, vb->planes[i].mem_priv);
-+	if (!no_cache_sync)
-+		__mem_finish_planes(vb);
- 
- 	/* unmap DMABUF buffer */
- 	if (q->memory == VB2_MEMORY_DMABUF)
-@@ -1583,7 +1622,7 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
- }
- 
- int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
--		   bool nonblocking)
-+		   bool nonblocking, bool no_cache_sync)
- {
- 	struct vb2_buffer *vb = NULL;
- 	int ret;
-@@ -1620,7 +1659,7 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
- 	trace_vb2_dqbuf(q, vb);
- 
- 	/* go back to dequeued state */
--	__vb2_dqbuf(vb);
-+	__vb2_dqbuf(vb, no_cache_sync);
- 
- 	dprintk(1, "dqbuf of buffer %d, with state %d\n",
- 			vb->index, vb->state);
-@@ -1694,7 +1733,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 			vb->state = VB2_BUF_STATE_PREPARED;
- 			call_void_vb_qop(vb, buf_finish, vb);
- 		}
--		__vb2_dqbuf(vb);
-+		__vb2_dqbuf(vb, false);
- 	}
- }
- 
-@@ -2242,7 +2281,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 		 * Queue all buffers.
- 		 */
- 		for (i = 0; i < q->num_buffers; i++) {
--			ret = vb2_core_qbuf(q, i, NULL);
-+			ret = vb2_core_qbuf(q, i, NULL, false);
- 			if (ret)
- 				goto err_reqbufs;
- 			fileio->bufs[i].queued = 1;
-@@ -2345,7 +2384,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 		/*
- 		 * Call vb2_dqbuf to get buffer back.
- 		 */
--		ret = vb2_core_dqbuf(q, &index, NULL, nonblock);
-+		ret = vb2_core_dqbuf(q, &index, NULL, nonblock, false);
- 		dprintk(5, "vb2_dqbuf result: %d\n", ret);
- 		if (ret)
- 			return ret;
-@@ -2421,7 +2460,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 
- 		if (copy_timestamp)
- 			b->timestamp = ktime_get_ns();
--		ret = vb2_core_qbuf(q, index, NULL);
-+		ret = vb2_core_qbuf(q, index, NULL, false);
- 		dprintk(5, "vb2_dbuf result: %d\n", ret);
- 		if (ret)
- 			return ret;
-@@ -2507,7 +2546,7 @@ static int vb2_thread(void *data)
- 		} else {
- 			call_void_qop(q, wait_finish, q);
- 			if (!threadio->stop)
--				ret = vb2_core_dqbuf(q, &index, NULL, 0);
-+				ret = vb2_core_dqbuf(q, &index, NULL, 0, false);
- 			call_void_qop(q, wait_prepare, q);
- 			dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
- 			if (!ret)
-@@ -2524,7 +2563,7 @@ static int vb2_thread(void *data)
- 		if (copy_timestamp)
- 			vb->timestamp = ktime_get_ns();;
- 		if (!threadio->stop)
--			ret = vb2_core_qbuf(q, vb->index, NULL);
-+			ret = vb2_core_qbuf(q, vb->index, NULL, false);
- 		call_void_qop(q, wait_prepare, q);
- 		if (ret || threadio->stop)
- 			break;
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 0c06699..a0c4511 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -499,8 +499,11 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	}
- 
- 	ret = vb2_queue_or_prepare_buf(q, b, "prepare_buf");
-+	if (ret)
-+		return ret;
- 
--	return ret ? ret : vb2_core_prepare_buf(q, b->index, b);
-+	return vb2_core_prepare_buf(q, b->index, b,
-+				    b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC);
- }
- EXPORT_SYMBOL_GPL(vb2_prepare_buf);
- 
-@@ -568,7 +571,11 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	}
- 
- 	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
--	return ret ? ret : vb2_core_qbuf(q, b->index, b);
-+	if (ret)
-+		return ret;
-+
-+	return vb2_core_qbuf(q, b->index, b,
-+			     b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC);
- }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
- 
-@@ -586,7 +593,8 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
- 		return -EINVAL;
- 	}
- 
--	ret = vb2_core_dqbuf(q, NULL, b, nonblocking);
-+	ret = vb2_core_dqbuf(q, NULL, b, nonblocking,
-+			     b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC);
- 
- 	/*
- 	 *  After calling the VIDIOC_DQBUF V4L2_BUF_FLAG_DONE must be
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 4172f6e..08f1d0e 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -83,10 +83,14 @@ struct vb2_threadio_data;
-  *		dmabuf.
-  * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
-  *		  that this driver is done using the dmabuf for now.
-- * @prepare:	called every time the buffer is passed from userspace to the
-- *		driver, useful for cache synchronisation, optional.
-- * @finish:	called every time the buffer is passed back from the driver
-- *		to the userspace, also optional.
-+ * @prepare:	Called on the plane when the buffer ownership is passed from
-+ *		the user space to the kernel and the plane must be cache
-+ *		syncronised. The V4L2_BUF_FLAG_NO_CACHE_SYNC buffer flag may
-+ *		be used to skip this call. Optional.
-+ * @finish:	Called on the plane when the buffer ownership is passed from
-+ *		the kernel to the user space and the plane must be cache
-+ *		syncronised. The V4L2_BUF_FLAG_NO_CACHE_SYNC buffer flag may
-+ *		be used to skip this call. Optional.
-  * @vaddr:	return a kernel virtual address to a given memory buffer
-  *		associated with the passed private structure or NULL if no
-  *		such mapping exists.
-@@ -696,6 +700,7 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
-  * @index:	id number of the buffer
-  * @pb:		buffer structure passed from userspace to vidioc_prepare_buf
-  *		handler in driver
-+ * @no_cache_sync if true, skip cache synchronization
-  *
-  * Should be called from vidioc_prepare_buf ioctl handler of a driver.
-  * The passed buffer should have been verified.
-@@ -705,7 +710,8 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
-  * The return values from this function are intended to be directly returned
-  * from vidioc_prepare_buf handler in driver.
-  */
--int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-+int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb,
-+			 bool no_cache_sync);
- 
- /**
-  * vb2_core_qbuf() - Queue a buffer from userspace
-@@ -714,6 +720,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-  * @index:	id number of the buffer
-  * @pb:		buffer structure passed from userspace to vidioc_qbuf handler
-  *		in driver
-+ * @no_cache_sync if true, skip cache synchronization
-  *
-  * Should be called from vidioc_qbuf ioctl handler of a driver.
-  * The passed buffer should have been verified.
-@@ -728,7 +735,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-  * The return values from this function are intended to be directly returned
-  * from vidioc_qbuf handler in driver.
-  */
--int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
-+int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-+		  bool no_cache_sync);
- 
- /**
-  * vb2_core_dqbuf() - Dequeue a buffer to the userspace
-@@ -739,6 +747,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
-  * @nonblocking: if true, this call will not sleep waiting for a buffer if no
-  *		 buffers ready for dequeuing are present. Normally the driver
-  *		 would be passing (file->f_flags & O_NONBLOCK) here
-+ * @no_cache_sync if true, skip cache synchronization
-  *
-  * Should be called from vidioc_dqbuf ioctl handler of a driver.
-  * The passed buffer should have been verified.
-@@ -755,7 +764,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
-  * from vidioc_dqbuf handler in driver.
-  */
- int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
--		   bool nonblocking);
-+		   bool nonblocking, bool no_cache_sync);
- 
- int vb2_core_streamon(struct vb2_queue *q, unsigned int type);
- int vb2_core_streamoff(struct vb2_queue *q, unsigned int type);
+> 
+> --
+> KB
+> 
+> 
+> 
+> > +			"Can't register subnotifier for without v4l2_dev\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	return v4l2_async_do_notifier_register(sd->v4l2_dev, notifier, true);
+> > +}
+> > +EXPORT_SYMBOL(v4l2_async_subnotifier_register);
+> > +
+> > +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> > +				 struct v4l2_async_notifier *notifier)
+> > +{
+> > +	return v4l2_async_do_notifier_register(v4l2_dev, notifier, false);
+> > +}
+> >  EXPORT_SYMBOL(v4l2_async_notifier_register);
+> >  
+> > -void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> > +static void
+> > +v4l2_async_do_notifier_unregister(struct v4l2_async_notifier *notifier,
+> > +				  bool subnotifier)
+> >  {
+> >  	struct v4l2_subdev *sd, *tmp;
+> >  	unsigned int notif_n_subdev = notifier->num_subdevs;
+> > @@ -210,7 +248,8 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> >  			"Failed to allocate device cache!\n");
+> >  	}
+> >  
+> > -	mutex_lock(&list_lock);
+> > +	if (!subnotifier)
+> > +		mutex_lock(&list_lock);
+> >  
+> >  	list_del(&notifier->list);
+> >  
+> > @@ -237,15 +276,20 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> >  			put_device(d);
+> >  	}
+> >  
+> > -	mutex_unlock(&list_lock);
+> > +	if (!subnotifier)
+> > +		mutex_unlock(&list_lock);
+> >  
+> >  	/*
+> >  	 * Call device_attach() to reprobe devices
+> >  	 *
+> >  	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
+> >  	 * executed.
+> > +	 * TODO: If we are unregistering a subdevice notifier we can't reprobe
+> > +	 * since the lock_list is held by the master device and attaching that
+> > +	 * device would call v4l2_async_register_subdev() and end in a deadlock
+> > +	 * on list_lock.
+> >  	 */
+> > -	while (i--) {
+> > +	while (i-- && !subnotifier) {
+> >  		struct device *d = dev[i];
+> >  
+> >  		if (d && device_attach(d) < 0) {
+> > @@ -269,6 +313,17 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> >  	 * upon notifier registration.
+> >  	 */
+> >  }
+> > +
+> > +void v4l2_async_subnotifier_unregister(struct v4l2_async_notifier *notifier)
+> > +{
+> > +	v4l2_async_do_notifier_unregister(notifier, true);
+> > +}
+> > +EXPORT_SYMBOL(v4l2_async_subnotifier_unregister);
+> > +
+> > +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> > +{
+> > +	v4l2_async_do_notifier_unregister(notifier, false);
+> > +}
+> >  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+> >  
+> >  int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+> > diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> > index 8e2a236a4d039df6..dee070be59f211bd 100644
+> > --- a/include/media/v4l2-async.h
+> > +++ b/include/media/v4l2-async.h
+> > @@ -105,6 +105,18 @@ struct v4l2_async_notifier {
+> >  };
+> >  
+> >  /**
+> > + * v4l2_async_notifier_register - registers a subdevice asynchronous subnotifier
+> > + *
+> > + * @sd: pointer to &struct v4l2_subdev
+> > + * @notifier: pointer to &struct v4l2_async_notifier
+> > + *
+> > + * This function assumes the async list_lock is already locked, allowing
+> > + * it to be used from struct v4l2_subdev_internal_ops registered() callback.
+> > + */
+> > +int v4l2_async_subnotifier_register(struct v4l2_subdev *sd,
+> > +				    struct v4l2_async_notifier *notifier);
+> > +
+> > +/**
+> >   * v4l2_async_notifier_register - registers a subdevice asynchronous notifier
+> >   *
+> >   * @v4l2_dev: pointer to &struct v4l2_device
+> > @@ -114,6 +126,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> >  				 struct v4l2_async_notifier *notifier);
+> >  
+> >  /**
+> > + * v4l2_async_subnotifier_unregister - unregisters a asynchronous subnotifier
+> > + *
+> > + * @notifier: pointer to &struct v4l2_async_notifier
+> > + *
+> > + * This function assumes the async list_lock is already locked, allowing
+> > + * it to be used from struct v4l2_subdev_internal_ops unregistered() callback.
+> > + */
+> > +void v4l2_async_subnotifier_unregister(struct v4l2_async_notifier *notifier);
+> > +
+> > +/**
+> >   * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
+> >   *
+> >   * @notifier: pointer to &struct v4l2_async_notifier
+> > 
+
 -- 
-2.7.4
+Regards,
+Niklas Söderlund
