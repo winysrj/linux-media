@@ -1,89 +1,273 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:51211 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751676AbdEQIDj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 May 2017 04:03:39 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        Gregor Jasny <gjasny@googlemail.com>,
-        Christophe Priouzeau <christophe.priouzeau@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v1 0/5] v4l-utils build on buildroot with no-MMU devices
-Date: Wed, 17 May 2017 10:03:07 +0200
-Message-ID: <1495008192-21202-1-git-send-email-hugues.fruchet@st.com>
+Received: from vader.hardeman.nu ([95.142.160.32]:52621 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752440AbdECKEC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 3 May 2017 06:04:02 -0400
+Subject: [PATCH] rc-core: cleanup rc_register_device (v2)
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Wed, 03 May 2017 12:04:00 +0200
+Message-ID: <149380584051.16088.1242474111722854646.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to pass V4L2 compliancy tests on STM32 devices -which are MMU less-,
-compliancy utilities -at least v4l2-compliance and cec-compliance- have to be built.
-Unfortunately the support of shared libraries (dlopen()) and fork() is a must
-have in v4l-utils.
-This have been fixed by:
-- revisiting --disable-libv4l to --disable-dyn-libv4l; first naming
-  suggests that libv4l will not be built which is not the case
-  (only the dynamic support of libv4l is disabled in this case)
-- for the sake of coherency, configure.ac variables USE_V4L2_CTL & USE_V4L2_COMPLIANCE
-  have been changed to USE_V4L2_CTL_LIBV4L & USE_V4L2_COMPLIANCE_LIBV4L
-  for the same reason.
-- adding an option --disable-libv4l to really not build libv4l
-  - libraries which require dlopen() and libv4lconvert which
-    require fork(). For the sake of simplicity, the entire lib/ folder
-    is not built with this option.
-  - The contrib/ folder is also not built in that case because of its dependency
-    on libv4l/libv4lconvert libraries.
-  - The utility rds-ctl is also not built for the same reason.
-  - configure.ac is also fixed to not trig error on dlopen() missing, further
-    test on "enable_shared" will automatically disable the build of libv4l
-    and items which have libv4l has dependency.
-- fix configure.ac to allow build of v4l-utils utilities with uclinux.
+The device core infrastructure is based on the presumption that
+once a driver calls device_add(), it must be ready to accept
+userspace interaction.
 
+This requires splitting rc_setup_rx_device() into two functions
+and reorganizing rc_register_device() so that as much work
+as possible is performed before calling device_add().
 
-This have been tested on buildroot build system with following patch
-to let throw build even if no MMU and no shared libraries support
-(those patches will be upstreamed on buildroot side):
-package/libv4l/Config.in
-config BR2_PACKAGE_LIBV4L
-	bool "libv4l"
-	depends on BR2_TOOLCHAIN_HAS_THREADS
--	depends on BR2_USE_MMU # fork()
--	depends on !BR2_STATIC_LIBS # dlopen()
+Version 2: switch the order in which rc_prepare_rx_device() and
+ir_raw_event_prepare() gets called so that dev->change_protocol()
+gets called before device_add().
 
-config BR2_PACKAGE_LIBV4L_UTILS
-	bool "v4l-utils tools"
--	depends on BR2_ENABLE_LOCALE
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-core-priv.h |    2 +
+ drivers/media/rc/rc-ir-raw.c    |   34 ++++++++++++------
+ drivers/media/rc/rc-main.c      |   75 +++++++++++++++++++++++++--------------
+ 3 files changed, 73 insertions(+), 38 deletions(-)
 
-
-===========
-= history =
-===========
-version 1:
-  - Initial submission
-
-
-Hugues Fruchet (5):
-  configure.ac: fix wrong summary if --disable-v4l2-ctl-stream-to
-  configure.ac: revisit v4l2-ctl/compliance using libv4l variable naming
-  configure.ac: revisit --disable-libv4l to --disable-dyn-libv4l
-  configure.ac: add --disable-libv4l option
-  configure.ac: fix build of v4l-utils on uclinux
-
- Makefile.am                       | 11 +++++++++--
- configure.ac                      | 33 +++++++++++++++++++++------------
- lib/libv4l1/Makefile.am           |  2 +-
- lib/libv4l2/Makefile.am           |  2 +-
- lib/libv4l2rds/Makefile.am        |  2 +-
- lib/libv4lconvert/Makefile.am     |  2 +-
- utils/Makefile.am                 |  6 +++++-
- utils/v4l2-compliance/Makefile.am |  4 ++++
- utils/v4l2-ctl/Makefile.am        |  4 ++++
- 9 files changed, 47 insertions(+), 19 deletions(-)
-
--- 
-1.9.1
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 0455b273c2fc..b3e7cac2c3ee 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -263,7 +263,9 @@ int ir_raw_gen_pl(struct ir_raw_event **ev, unsigned int max,
+  * Routines from rc-raw.c to be used internally and by decoders
+  */
+ u64 ir_raw_get_allowed_protocols(void);
++int ir_raw_event_prepare(struct rc_dev *dev);
+ int ir_raw_event_register(struct rc_dev *dev);
++void ir_raw_event_free(struct rc_dev *dev);
+ void ir_raw_event_unregister(struct rc_dev *dev);
+ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
+ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 90f66dc7c0d7..ae7785c4fbe7 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -486,14 +486,18 @@ EXPORT_SYMBOL(ir_raw_encode_scancode);
+ /*
+  * Used to (un)register raw event clients
+  */
+-int ir_raw_event_register(struct rc_dev *dev)
++int ir_raw_event_prepare(struct rc_dev *dev)
+ {
+-	int rc;
+-	struct ir_raw_handler *handler;
++	static bool raw_init; /* 'false' default value, raw decoders loaded? */
+ 
+ 	if (!dev)
+ 		return -EINVAL;
+ 
++	if (!raw_init) {
++		request_module("ir-lirc-codec");
++		raw_init = true;
++	}
++
+ 	dev->raw = kzalloc(sizeof(*dev->raw), GFP_KERNEL);
+ 	if (!dev->raw)
+ 		return -ENOMEM;
+@@ -502,6 +506,13 @@ int ir_raw_event_register(struct rc_dev *dev)
+ 	dev->change_protocol = change_protocol;
+ 	INIT_KFIFO(dev->raw->kfifo);
+ 
++	return 0;
++}
++
++int ir_raw_event_register(struct rc_dev *dev)
++{
++	struct ir_raw_handler *handler;
++
+ 	/*
+ 	 * raw transmitters do not need any event registration
+ 	 * because the event is coming from userspace
+@@ -510,10 +521,8 @@ int ir_raw_event_register(struct rc_dev *dev)
+ 		dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
+ 					       "rc%u", dev->minor);
+ 
+-		if (IS_ERR(dev->raw->thread)) {
+-			rc = PTR_ERR(dev->raw->thread);
+-			goto out;
+-		}
++		if (IS_ERR(dev->raw->thread))
++			return PTR_ERR(dev->raw->thread);
+ 	}
+ 
+ 	mutex_lock(&ir_raw_handler_lock);
+@@ -524,11 +533,15 @@ int ir_raw_event_register(struct rc_dev *dev)
+ 	mutex_unlock(&ir_raw_handler_lock);
+ 
+ 	return 0;
++}
++
++void ir_raw_event_free(struct rc_dev *dev)
++{
++	if (!dev)
++		return;
+ 
+-out:
+ 	kfree(dev->raw);
+ 	dev->raw = NULL;
+-	return rc;
+ }
+ 
+ void ir_raw_event_unregister(struct rc_dev *dev)
+@@ -547,8 +560,7 @@ void ir_raw_event_unregister(struct rc_dev *dev)
+ 			handler->raw_unregister(dev);
+ 	mutex_unlock(&ir_raw_handler_lock);
+ 
+-	kfree(dev->raw);
+-	dev->raw = NULL;
++	ir_raw_event_free(dev);
+ }
+ 
+ /*
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 802e559cc30e..f3bc9f4e2b96 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1663,7 +1663,7 @@ struct rc_dev *devm_rc_allocate_device(struct device *dev,
+ }
+ EXPORT_SYMBOL_GPL(devm_rc_allocate_device);
+ 
+-static int rc_setup_rx_device(struct rc_dev *dev)
++static int rc_prepare_rx_device(struct rc_dev *dev)
+ {
+ 	int rc;
+ 	struct rc_map *rc_map;
+@@ -1708,10 +1708,22 @@ static int rc_setup_rx_device(struct rc_dev *dev)
+ 	dev->input_dev->phys = dev->input_phys;
+ 	dev->input_dev->name = dev->input_name;
+ 
++	return 0;
++
++out_table:
++	ir_free_table(&dev->rc_map);
++
++	return rc;
++}
++
++static int rc_setup_rx_device(struct rc_dev *dev)
++{
++	int rc;
++
+ 	/* rc_open will be called here */
+ 	rc = input_register_device(dev->input_dev);
+ 	if (rc)
+-		goto out_table;
++		return rc;
+ 
+ 	/*
+ 	 * Default delay of 250ms is too short for some protocols, especially
+@@ -1729,27 +1741,23 @@ static int rc_setup_rx_device(struct rc_dev *dev)
+ 	dev->input_dev->rep[REP_PERIOD] = 125;
+ 
+ 	return 0;
+-
+-out_table:
+-	ir_free_table(&dev->rc_map);
+-
+-	return rc;
+ }
+ 
+ static void rc_free_rx_device(struct rc_dev *dev)
+ {
+-	if (!dev || dev->driver_type == RC_DRIVER_IR_RAW_TX)
++	if (!dev)
+ 		return;
+ 
+-	ir_free_table(&dev->rc_map);
++	if (dev->input_dev) {
++		input_unregister_device(dev->input_dev);
++		dev->input_dev = NULL;
++	}
+ 
+-	input_unregister_device(dev->input_dev);
+-	dev->input_dev = NULL;
++	ir_free_table(&dev->rc_map);
+ }
+ 
+ int rc_register_device(struct rc_dev *dev)
+ {
+-	static bool raw_init; /* 'false' default value, raw decoders loaded? */
+ 	const char *path;
+ 	int attr = 0;
+ 	int minor;
+@@ -1776,30 +1784,39 @@ int rc_register_device(struct rc_dev *dev)
+ 		dev->sysfs_groups[attr++] = &rc_dev_wakeup_filter_attr_grp;
+ 	dev->sysfs_groups[attr++] = NULL;
+ 
++	if (dev->driver_type == RC_DRIVER_IR_RAW ||
++	    dev->driver_type == RC_DRIVER_IR_RAW_TX) {
++		rc = ir_raw_event_prepare(dev);
++		if (rc < 0)
++			goto out_minor;
++	}
++
++	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
++		rc = rc_prepare_rx_device(dev);
++		if (rc)
++			goto out_raw;
++	}
++
+ 	rc = device_add(&dev->dev);
+ 	if (rc)
+-		goto out_unlock;
++		goto out_rx_free;
+ 
+ 	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
+ 	dev_info(&dev->dev, "%s as %s\n",
+ 		dev->input_name ?: "Unspecified device", path ?: "N/A");
+ 	kfree(path);
+ 
++	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
++		rc = rc_setup_rx_device(dev);
++		if (rc)
++			goto out_dev;
++	}
++
+ 	if (dev->driver_type == RC_DRIVER_IR_RAW ||
+ 	    dev->driver_type == RC_DRIVER_IR_RAW_TX) {
+-		if (!raw_init) {
+-			request_module_nowait("ir-lirc-codec");
+-			raw_init = true;
+-		}
+ 		rc = ir_raw_event_register(dev);
+ 		if (rc < 0)
+-			goto out_dev;
+-	}
+-
+-	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
+-		rc = rc_setup_rx_device(dev);
+-		if (rc)
+-			goto out_raw;
++			goto out_rx;
+ 	}
+ 
+ 	/* Allow the RC sysfs nodes to be accessible */
+@@ -1811,11 +1828,15 @@ int rc_register_device(struct rc_dev *dev)
+ 
+ 	return 0;
+ 
+-out_raw:
+-	ir_raw_event_unregister(dev);
++out_rx:
++	rc_free_rx_device(dev);
+ out_dev:
+ 	device_del(&dev->dev);
+-out_unlock:
++out_rx_free:
++	ir_free_table(&dev->rc_map);
++out_raw:
++	ir_raw_event_free(dev);
++out_minor:
+ 	ida_simple_remove(&rc_ida, minor);
+ 	return rc;
+ }
