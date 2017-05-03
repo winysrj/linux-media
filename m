@@ -1,275 +1,281 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:47655 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750898AbdE2G4g (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 02:56:36 -0400
-Subject: Re: [PATCH v2 15/17] rcar-vin: register the video device at probe
- time
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-References: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
- <20170524001540.13613-16-niklas.soderlund@ragnatech.se>
- <5c911c00-ef4c-89c9-4629-20abaeb37f26@xs4all.nl>
-Message-ID: <072c6d94-3ede-724d-2626-e085e17f7c6d@xs4all.nl>
-Date: Mon, 29 May 2017 08:56:31 +0200
+Received: from fllnx210.ext.ti.com ([198.47.19.17]:64847 "EHLO
+        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751061AbdECLJu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 May 2017 07:09:50 -0400
+Subject: Re: [RESEND v2 PATCH] v4l: omap_vout: vrfb: Convert to dmaengine
+To: <laurent.pinchart@ideasonboard.com>
+References: <20170503110851.8335-1-peter.ujfalusi@ti.com>
+CC: <hans.verkuil@cisco.com>, <linux-media@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <arnd@arndb.de>,
+        <linux@armlinux.org.uk>, <tony@atomide.com>,
+        <linux-omap@vger.kernel.org>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Message-ID: <ec58d2e5-7835-d7f4-8382-e8febc7e5606@ti.com>
+Date: Wed, 3 May 2017 14:09:41 +0300
 MIME-Version: 1.0
-In-Reply-To: <5c911c00-ef4c-89c9-4629-20abaeb37f26@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+In-Reply-To: <20170503110851.8335-1-peter.ujfalusi@ti.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/29/2017 08:52 AM, Hans Verkuil wrote:
-> Hi Niklas,
-> 
-> On 05/24/2017 02:15 AM, Niklas Söderlund wrote:
->> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
->>
->> The driver registers the video device from the async complete callback
->> and unregistered in the async unbind callback. This creates problems if
->> if the subdevice is bound, unbound and later rebound. The second time
->> video_register_device() is called it fails:
->>
->>      kobject (eb3be918): tried to init an initialized object, something is seriously wrong.
->>
->> To prevent this register the video device at prob time and don't allow
->> user-space to open the video device if the subdevice have not yet been
->> bound.
-> 
-> This patch feels wrong. Creating the video device in the notify_complete seems
-> right to me, so the problem is much more likely in the removal of the video device.
-> 
-> What *exactly* goes wrong here?
-> 
-> FYI: I'm taking all other patches of this series,
+On 2017-05-03 14:08, Peter Ujfalusi wrote:
+> The dmaengine driver for sDMA now have support for interleaved transfer.
+> This trasnfer type was open coded with the legacy omap-dma API, but now
+> we can move it to dmaengine.
+>
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+> Hi,
+>
+> changes since RESEND (27.10.2016):
+> - rebased on next-20170503
+>
+> I can not test it on real HW (still), but I have validated [1] that the change
+> is correct and should not cause any regression.
+>
+> Laurent: can you verify the patch on a real hardware?
 
-Oops, I saw Sakari had two comments. I'll wait for a v3 then.
+[1] 
+https://github.com/omap-audio/linux-audio/blob/peter/linux-next-wip/drivers/misc/ovv_dmaengine.c
 
-If you make a v3 with Sakari's suggestions and drop this patch, then I can merge
-it and make a pull request for it.
-
-This patch can be handled separately from the other the patches.
-
-Regards,
-
-	Hans
-
- > but I leave this one out
-> as I am not convinced of this patch. Having to block open() calls is always
-> a bad sign.
-> 
+>
 > Regards,
-> 
-> 	Hans
-> 
->>
->> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
->> ---
->>    drivers/media/platform/rcar-vin/rcar-core.c | 47 ++++++++++++++++++++++++++---
->>    drivers/media/platform/rcar-vin/rcar-v4l2.c | 42 ++++----------------------
->>    drivers/media/platform/rcar-vin/rcar-vin.h  |  1 +
->>    3 files changed, 50 insertions(+), 40 deletions(-)
->>
->> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
->> index dcca906ba58435f5..0e1757301a0bca1e 100644
->> --- a/drivers/media/platform/rcar-vin/rcar-core.c
->> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
->> @@ -74,6 +74,7 @@ static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
->>    static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
->>    {
->>    	struct rvin_dev *vin = notifier_to_vin(notifier);
->> +	struct v4l2_subdev *sd = vin_to_source(vin);
->>    	int ret;
->>    
->>    	/* Verify subdevices mbus format */
->> @@ -92,7 +93,35 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
->>    		return ret;
->>    	}
->>    
->> -	return rvin_v4l2_probe(vin);
->> +	/* Add the controls */
->> +	/*
->> +	 * Currently the subdev with the largest number of controls (13) is
->> +	 * ov6550. So let's pick 16 as a hint for the control handler. Note
->> +	 * that this is a hint only: too large and you waste some memory, too
->> +	 * small and there is a (very) small performance hit when looking up
->> +	 * controls in the internal hash.
->> +	 */
->> +	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
->> +	if (ret < 0)
->> +		return ret;
->> +
->> +	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler, NULL);
->> +	if (ret < 0)
->> +		return ret;
->> +
->> +	ret = v4l2_subdev_call(sd, video, g_tvnorms, &vin->vdev.tvnorms);
->> +	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
->> +		return ret;
->> +
->> +	if (vin->vdev.tvnorms == 0) {
->> +		/* Disable the STD API if there are no tvnorms defined */
->> +		v4l2_disable_ioctl(&vin->vdev, VIDIOC_G_STD);
->> +		v4l2_disable_ioctl(&vin->vdev, VIDIOC_S_STD);
->> +		v4l2_disable_ioctl(&vin->vdev, VIDIOC_QUERYSTD);
->> +		v4l2_disable_ioctl(&vin->vdev, VIDIOC_ENUMSTD);
->> +	}
->> +
->> +	return rvin_reset_format(vin);
->>    }
->>    
->>    static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
->> @@ -102,7 +131,7 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
->>    	struct rvin_dev *vin = notifier_to_vin(notifier);
->>    
->>    	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
->> -	rvin_v4l2_remove(vin);
->> +	v4l2_ctrl_handler_free(&vin->ctrl_handler);
->>    	vin->digital.subdev = NULL;
->>    }
->>    
->> @@ -290,9 +319,13 @@ static int rcar_vin_probe(struct platform_device *pdev)
->>    	if (ret)
->>    		return ret;
->>    
->> +	ret = rvin_v4l2_probe(vin);
->> +	if (ret)
->> +		goto error_dma;
->> +
->>    	ret = rvin_digital_graph_init(vin);
->>    	if (ret < 0)
->> -		goto error;
->> +		goto error_v4l2;
->>    
->>    	pm_suspend_ignore_children(&pdev->dev, true);
->>    	pm_runtime_enable(&pdev->dev);
->> @@ -300,7 +333,9 @@ static int rcar_vin_probe(struct platform_device *pdev)
->>    	platform_set_drvdata(pdev, vin);
->>    
->>    	return 0;
->> -error:
->> +error_v4l2:
->> +	rvin_v4l2_remove(vin);
->> +error_dma:
->>    	rvin_dma_remove(vin);
->>    
->>    	return ret;
->> @@ -314,6 +349,10 @@ static int rcar_vin_remove(struct platform_device *pdev)
->>    
->>    	v4l2_async_notifier_unregister(&vin->notifier);
->>    
->> +	/* Checks internaly if handlers have been init or not */
->> +	v4l2_ctrl_handler_free(&vin->ctrl_handler);
->> +
->> +	rvin_v4l2_remove(vin);
->>    	rvin_dma_remove(vin);
->>    
->>    	return 0;
->> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
->> index be6f41bf82ac3bc5..6f1c27fc828fe57e 100644
->> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
->> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
->> @@ -103,7 +103,7 @@ static void rvin_reset_crop_compose(struct rvin_dev *vin)
->>    	vin->compose.height = vin->format.height;
->>    }
->>    
->> -static int rvin_reset_format(struct rvin_dev *vin)
->> +int rvin_reset_format(struct rvin_dev *vin)
->>    {
->>    	struct v4l2_subdev_format fmt = {
->>    		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
->> @@ -785,6 +785,11 @@ static int rvin_open(struct file *file)
->>    
->>    	mutex_lock(&vin->lock);
->>    
->> +	if (!vin->digital.subdev) {
->> +		ret = -ENODEV;
->> +		goto unlock;
->> +	}
->> +
->>    	file->private_data = vin;
->>    
->>    	ret = v4l2_fh_open(file);
->> @@ -848,9 +853,6 @@ void rvin_v4l2_remove(struct rvin_dev *vin)
->>    	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
->>    		  video_device_node_name(&vin->vdev));
->>    
->> -	/* Checks internaly if handlers have been init or not */
->> -	v4l2_ctrl_handler_free(&vin->ctrl_handler);
->> -
->>    	/* Checks internaly if vdev have been init or not */
->>    	video_unregister_device(&vin->vdev);
->>    }
->> @@ -873,41 +875,10 @@ static void rvin_notify(struct v4l2_subdev *sd,
->>    int rvin_v4l2_probe(struct rvin_dev *vin)
->>    {
->>    	struct video_device *vdev = &vin->vdev;
->> -	struct v4l2_subdev *sd = vin_to_source(vin);
->>    	int ret;
->>    
->> -	v4l2_set_subdev_hostdata(sd, vin);
->> -
->>    	vin->v4l2_dev.notify = rvin_notify;
->>    
->> -	ret = v4l2_subdev_call(sd, video, g_tvnorms, &vin->vdev.tvnorms);
->> -	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
->> -		return ret;
->> -
->> -	if (vin->vdev.tvnorms == 0) {
->> -		/* Disable the STD API if there are no tvnorms defined */
->> -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_G_STD);
->> -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_S_STD);
->> -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_QUERYSTD);
->> -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_ENUMSTD);
->> -	}
->> -
->> -	/* Add the controls */
->> -	/*
->> -	 * Currently the subdev with the largest number of controls (13) is
->> -	 * ov6550. So let's pick 16 as a hint for the control handler. Note
->> -	 * that this is a hint only: too large and you waste some memory, too
->> -	 * small and there is a (very) small performance hit when looking up
->> -	 * controls in the internal hash.
->> -	 */
->> -	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
->> -	if (ret < 0)
->> -		return ret;
->> -
->> -	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler, NULL);
->> -	if (ret < 0)
->> -		return ret;
->> -
->>    	/* video node */
->>    	vdev->fops = &rvin_fops;
->>    	vdev->v4l2_dev = &vin->v4l2_dev;
->> @@ -921,7 +892,6 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
->>    		V4L2_CAP_READWRITE;
->>    
->>    	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
->> -	rvin_reset_format(vin);
->>    
->>    	ret = video_register_device(&vin->vdev, VFL_TYPE_GRABBER, -1);
->>    	if (ret) {
->> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
->> index 9bfb5a7c4dc4f215..9d0d4a5001b6ccd8 100644
->> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
->> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
->> @@ -158,6 +158,7 @@ void rvin_dma_remove(struct rvin_dev *vin);
->>    
->>    int rvin_v4l2_probe(struct rvin_dev *vin);
->>    void rvin_v4l2_remove(struct rvin_dev *vin);
->> +int rvin_reset_format(struct rvin_dev *vin);
->>    
->>    const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
->>    
->>
-> 
+> Peter
+>
+>  drivers/media/platform/omap/omap_vout_vrfb.c | 133 ++++++++++++++++-----------
+>  drivers/media/platform/omap/omap_voutdef.h   |   6 +-
+>  2 files changed, 83 insertions(+), 56 deletions(-)
+>
+> diff --git a/drivers/media/platform/omap/omap_vout_vrfb.c b/drivers/media/platform/omap/omap_vout_vrfb.c
+> index 92c4e1826356..45a553d4f5b2 100644
+> --- a/drivers/media/platform/omap/omap_vout_vrfb.c
+> +++ b/drivers/media/platform/omap/omap_vout_vrfb.c
+> @@ -16,7 +16,6 @@
+>  #include <media/videobuf-dma-contig.h>
+>  #include <media/v4l2-device.h>
+>
+> -#include <linux/omap-dma.h>
+>  #include <video/omapvrfb.h>
+>
+>  #include "omap_voutdef.h"
+> @@ -63,7 +62,7 @@ static int omap_vout_allocate_vrfb_buffers(struct omap_vout_device *vout,
+>  /*
+>   * Wakes up the application once the DMA transfer to VRFB space is completed.
+>   */
+> -static void omap_vout_vrfb_dma_tx_callback(int lch, u16 ch_status, void *data)
+> +static void omap_vout_vrfb_dma_tx_callback(void *data)
+>  {
+>  	struct vid_vrfb_dma *t = (struct vid_vrfb_dma *) data;
+>
+> @@ -94,6 +93,7 @@ int omap_vout_setup_vrfb_bufs(struct platform_device *pdev, int vid_num,
+>  	int ret = 0, i, j;
+>  	struct omap_vout_device *vout;
+>  	struct video_device *vfd;
+> +	dma_cap_mask_t mask;
+>  	int image_width, image_height;
+>  	int vrfb_num_bufs = VRFB_NUM_BUFS;
+>  	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
+> @@ -131,18 +131,27 @@ int omap_vout_setup_vrfb_bufs(struct platform_device *pdev, int vid_num,
+>  	/*
+>  	 * Request and Initialize DMA, for DMA based VRFB transfer
+>  	 */
+> -	vout->vrfb_dma_tx.dev_id = OMAP_DMA_NO_DEVICE;
+> -	vout->vrfb_dma_tx.dma_ch = -1;
+> -	vout->vrfb_dma_tx.req_status = DMA_CHAN_ALLOTED;
+> -	ret = omap_request_dma(vout->vrfb_dma_tx.dev_id, "VRFB DMA TX",
+> -			omap_vout_vrfb_dma_tx_callback,
+> -			(void *) &vout->vrfb_dma_tx, &vout->vrfb_dma_tx.dma_ch);
+> -	if (ret < 0) {
+> +	dma_cap_zero(mask);
+> +	dma_cap_set(DMA_INTERLEAVE, mask);
+> +	vout->vrfb_dma_tx.chan = dma_request_chan_by_mask(&mask);
+> +	if (IS_ERR(vout->vrfb_dma_tx.chan)) {
+>  		vout->vrfb_dma_tx.req_status = DMA_CHAN_NOT_ALLOTED;
+> +	} else {
+> +		size_t xt_size = sizeof(struct dma_interleaved_template) +
+> +				 sizeof(struct data_chunk);
+> +
+> +		vout->vrfb_dma_tx.xt = kzalloc(xt_size, GFP_KERNEL);
+> +		if (!vout->vrfb_dma_tx.xt) {
+> +			dma_release_channel(vout->vrfb_dma_tx.chan);
+> +			vout->vrfb_dma_tx.req_status = DMA_CHAN_NOT_ALLOTED;
+> +		}
+> +	}
+> +
+> +	if (vout->vrfb_dma_tx.req_status == DMA_CHAN_NOT_ALLOTED)
+>  		dev_info(&pdev->dev,
+>  			 ": failed to allocate DMA Channel for video%d\n",
+>  			 vfd->minor);
+> -	}
+> +
+>  	init_waitqueue_head(&vout->vrfb_dma_tx.wait);
+>
+>  	/* statically allocated the VRFB buffer is done through
+> @@ -177,7 +186,9 @@ void omap_vout_release_vrfb(struct omap_vout_device *vout)
+>
+>  	if (vout->vrfb_dma_tx.req_status == DMA_CHAN_ALLOTED) {
+>  		vout->vrfb_dma_tx.req_status = DMA_CHAN_NOT_ALLOTED;
+> -		omap_free_dma(vout->vrfb_dma_tx.dma_ch);
+> +		kfree(vout->vrfb_dma_tx.xt);
+> +		dmaengine_terminate_sync(vout->vrfb_dma_tx.chan);
+> +		dma_release_channel(vout->vrfb_dma_tx.chan);
+>  	}
+>  }
+>
+> @@ -219,70 +230,84 @@ int omap_vout_vrfb_buffer_setup(struct omap_vout_device *vout,
+>  }
+>
+>  int omap_vout_prepare_vrfb(struct omap_vout_device *vout,
+> -				struct videobuf_buffer *vb)
+> +			   struct videobuf_buffer *vb)
+>  {
+> -	dma_addr_t dmabuf;
+> -	struct vid_vrfb_dma *tx;
+> +	struct dma_async_tx_descriptor *tx;
+> +	enum dma_ctrl_flags flags;
+> +	struct dma_chan *chan = vout->vrfb_dma_tx.chan;
+> +	struct dma_device *dmadev = chan->device;
+> +	struct dma_interleaved_template *xt = vout->vrfb_dma_tx.xt;
+> +	dma_cookie_t cookie;
+> +	enum dma_status status;
+>  	enum dss_rotation rotation;
+> -	u32 dest_frame_index = 0, src_element_index = 0;
+> -	u32 dest_element_index = 0, src_frame_index = 0;
+> -	u32 elem_count = 0, frame_count = 0, pixsize = 2;
+> +	size_t dst_icg;
+> +	u32 pixsize;
+>
+>  	if (!is_rotation_enabled(vout))
+>  		return 0;
+>
+> -	dmabuf = vout->buf_phy_addr[vb->i];
+>  	/* If rotation is enabled, copy input buffer into VRFB
+>  	 * memory space using DMA. We are copying input buffer
+>  	 * into VRFB memory space of desired angle and DSS will
+>  	 * read image VRFB memory for 0 degree angle
+>  	 */
+> +
+>  	pixsize = vout->bpp * vout->vrfb_bpp;
+> -	/*
+> -	 * DMA transfer in double index mode
+> -	 */
+> +	dst_icg = ((MAX_PIXELS_PER_LINE * pixsize) -
+> +		  (vout->pix.width * vout->bpp)) + 1;
+> +
+> +	xt->src_start = vout->buf_phy_addr[vb->i];
+> +	xt->dst_start = vout->vrfb_context[vb->i].paddr[0];
+> +
+> +	xt->numf = vout->pix.height;
+> +	xt->frame_size = 1;
+> +	xt->sgl[0].size = vout->pix.width * vout->bpp;
+> +	xt->sgl[0].icg = dst_icg;
+> +
+> +	xt->dir = DMA_MEM_TO_MEM;
+> +	xt->src_sgl = false;
+> +	xt->src_inc = true;
+> +	xt->dst_sgl = true;
+> +	xt->dst_inc = true;
+> +
+> +	tx = dmadev->device_prep_interleaved_dma(chan, xt, flags);
+> +	if (tx == NULL) {
+> +		pr_err("%s: DMA interleaved prep error\n", __func__);
+> +		return -EINVAL;
+> +	}
+>
+> -	/* Frame index */
+> -	dest_frame_index = ((MAX_PIXELS_PER_LINE * pixsize) -
+> -			(vout->pix.width * vout->bpp)) + 1;
+> -
+> -	/* Source and destination parameters */
+> -	src_element_index = 0;
+> -	src_frame_index = 0;
+> -	dest_element_index = 1;
+> -	/* Number of elements per frame */
+> -	elem_count = vout->pix.width * vout->bpp;
+> -	frame_count = vout->pix.height;
+> -	tx = &vout->vrfb_dma_tx;
+> -	tx->tx_status = 0;
+> -	omap_set_dma_transfer_params(tx->dma_ch, OMAP_DMA_DATA_TYPE_S32,
+> -			(elem_count / 4), frame_count, OMAP_DMA_SYNC_ELEMENT,
+> -			tx->dev_id, 0x0);
+> -	/* src_port required only for OMAP1 */
+> -	omap_set_dma_src_params(tx->dma_ch, 0, OMAP_DMA_AMODE_POST_INC,
+> -			dmabuf, src_element_index, src_frame_index);
+> -	/*set dma source burst mode for VRFB */
+> -	omap_set_dma_src_burst_mode(tx->dma_ch, OMAP_DMA_DATA_BURST_16);
+> -	rotation = calc_rotation(vout);
+> +	tx->callback = omap_vout_vrfb_dma_tx_callback;
+> +	tx->callback_param = &vout->vrfb_dma_tx;
+> +
+> +	cookie = dmaengine_submit(tx);
+> +	if (dma_submit_error(cookie)) {
+> +		pr_err("%s: dmaengine_submit failed (%d)\n", __func__, cookie);
+> +		return -EINVAL;
+> +	}
+>
+> -	/* dest_port required only for OMAP1 */
+> -	omap_set_dma_dest_params(tx->dma_ch, 0, OMAP_DMA_AMODE_DOUBLE_IDX,
+> -			vout->vrfb_context[vb->i].paddr[0], dest_element_index,
+> -			dest_frame_index);
+> -	/*set dma dest burst mode for VRFB */
+> -	omap_set_dma_dest_burst_mode(tx->dma_ch, OMAP_DMA_DATA_BURST_16);
+> -	omap_dma_set_global_params(DMA_DEFAULT_ARB_RATE, 0x20, 0);
+> +	vout->vrfb_dma_tx.tx_status = 0;
+> +	dma_async_issue_pending(chan);
+>
+> -	omap_start_dma(tx->dma_ch);
+> -	wait_event_interruptible_timeout(tx->wait, tx->tx_status == 1,
+> +	wait_event_interruptible_timeout(vout->vrfb_dma_tx.wait,
+> +					 vout->vrfb_dma_tx.tx_status == 1,
+>  					 VRFB_TX_TIMEOUT);
+>
+> -	if (tx->tx_status == 0) {
+> -		omap_stop_dma(tx->dma_ch);
+> +	status = dma_async_is_tx_complete(chan, cookie, NULL, NULL);
+> +
+> +	if (vout->vrfb_dma_tx.tx_status == 0) {
+> +		pr_err("%s: Timeout while waiting for DMA\n", __func__);
+> +		dmaengine_terminate_sync(chan);
+> +		return -EINVAL;
+> +	} else if (status != DMA_COMPLETE) {
+> +		pr_err("%s: DMA completion %s status\n", __func__,
+> +		       status == DMA_ERROR ? "error" : "busy");
+> +		dmaengine_terminate_sync(chan);
+>  		return -EINVAL;
+>  	}
+> +
+>  	/* Store buffers physical address into an array. Addresses
+>  	 * from this array will be used to configure DSS */
+> +	rotation = calc_rotation(vout);
+>  	vout->queued_buf_addr[vb->i] = (u8 *)
+>  		vout->vrfb_context[vb->i].paddr[rotation];
+>  	return 0;
+> diff --git a/drivers/media/platform/omap/omap_voutdef.h b/drivers/media/platform/omap/omap_voutdef.h
+> index 80c79fabdf95..56b630b1c8b4 100644
+> --- a/drivers/media/platform/omap/omap_voutdef.h
+> +++ b/drivers/media/platform/omap/omap_voutdef.h
+> @@ -14,6 +14,7 @@
+>  #include <media/v4l2-ctrls.h>
+>  #include <video/omapfb_dss.h>
+>  #include <video/omapvrfb.h>
+> +#include <linux/dmaengine.h>
+>
+>  #define YUYV_BPP        2
+>  #define RGB565_BPP      2
+> @@ -81,8 +82,9 @@ enum vout_rotaion_type {
+>   * for VRFB hidden buffer
+>   */
+>  struct vid_vrfb_dma {
+> -	int dev_id;
+> -	int dma_ch;
+> +	struct dma_chan *chan;
+> +	struct dma_interleaved_template *xt;
+> +
+>  	int req_status;
+>  	int tx_status;
+>  	wait_queue_head_t wait;
+>
+
+- P�ter
