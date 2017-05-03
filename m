@@ -1,36 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bubo.tul.cz ([147.230.16.1]:50946 "EHLO bubo.tul.cz"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S969121AbdEAEnX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 May 2017 00:43:23 -0400
-Subject: Re: [PATCH] [media] pxa_camera: fix module remove codepath for v4l2
- clock
-To: Robert Jarzmik <robert.jarzmik@free.fr>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-References: <4391b498-0a75-ff42-6a7e-65aef0fada07@tul.cz>
- <87efwd1wus.fsf@belgarion.home> <c95ef700-d34d-5aa2-ef92-ad1aa7dd5a0d@tul.cz>
- <87a87111s6.fsf@belgarion.home>
-Cc: mchehab@kernel.org, g.liakhovetski@gmx.de,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        slapin@ossfans.org
-From: Petr Cvek <petr.cvek@tul.cz>
-Message-ID: <b9c94483-5990-9a3f-31d3-7b65e5ccac44@tul.cz>
-Date: Mon, 1 May 2017 06:44:28 +0200
-MIME-Version: 1.0
-In-Reply-To: <87a87111s6.fsf@belgarion.home>
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: 7bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48393
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754931AbdECCM2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 May 2017 22:12:28 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 1/2] em28xx: Ignore errors while reading from eeprom
+Date: Tue,  2 May 2017 23:12:22 -0300
+Message-Id: <15f3ba8371344a8dac830797216c06e9c5524a81.1493776983.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1493776983.git.mchehab@s-opensource.com>
+References: <cover.1493776983.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1493776983.git.mchehab@s-opensource.com>
+References: <cover.1493776983.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dne 28.4.2017 v 08:31 Robert Jarzmik napsal(a):
-> Petr Cvek <petr.cvek@tul.cz> writes:
-> 
->> I will post some other bugfixes (and feature adding) for pxa_camera soon. Do you wish to be CC'd? 
->>
->> P.S. Who is the the maintainer of pxa_camera BTW? Still Guennadi Liakhovetski?
-> Euh no, that's me.
+While testing support for Terratec H6 rev. 2, it was noticed
+that reading from eeprom there causes a timeout error.
 
-OK ... so when I remove the ov9640 driver from soc_camera (palmz72 and magician used it with soc_camera+pxa_camera) does that mean I will be its maintainer?
+Apparently, this is due to the need of properly setting GPIOs.
 
-Petr
+In any case, the driver doesn't really require eeprom reading
+to succeed, as this is currently used only for debug.
+
+So, Ignore such errors.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/em28xx/em28xx-i2c.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 8c472d5adb50..60b195c157b8 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -982,8 +982,6 @@ int em28xx_i2c_register(struct em28xx *dev, unsigned bus,
+ 			dev_err(&dev->intf->dev,
+ 				"%s: em28xx_i2_eeprom failed! retval [%d]\n",
+ 				__func__, retval);
+-
+-			return retval;
+ 		}
+ 	}
+ 
+-- 
+2.9.3
