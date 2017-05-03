@@ -1,96 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35973 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754402AbdECTun (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 3 May 2017 15:50:43 -0400
-Date: Wed, 3 May 2017 21:50:39 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCHv2] omap3isp: add support for CSI1 bus
-Message-ID: <20170503195039.GB12396@amd>
-References: <20161228183036.GA13139@amd>
- <10545906.Gxg3yScdu4@avalon>
- <20170215094228.GA8586@amd>
- <2414221.XNA4JCFMRx@avalon>
- <20170302090143.GB27818@amd>
- <20170302101603.GE27818@amd>
- <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
- <20170302123848.GA28230@amd>
- <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
- <db549a81-0c1f-3ff0-6293-050ec2e0af84@iki.fi>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51265
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751415AbdECWdY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 May 2017 18:33:24 -0400
+Date: Wed, 3 May 2017 19:33:18 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: Clemens Ladisch <clemens@ladisch.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] libdvbv5: T2 delivery descriptor: fix wrong size of
+ bandwidth field
+Message-ID: <20170503193318.07ddf143@vento.lan>
+In-Reply-To: <20170503095303.71cf3a75@vento.lan>
+References: <dc2b16b2-7caa-6141-a983-c83631544f3e@ladisch.de>
+        <c6f1d1cd-69ea-d454-15a8-5de9325577de@googlemail.com>
+        <20170503095303.71cf3a75@vento.lan>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="zx4FCpZtqtKETZ7O"
-Content-Disposition: inline
-In-Reply-To: <db549a81-0c1f-3ff0-6293-050ec2e0af84@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Wed, 3 May 2017 09:53:03 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
---zx4FCpZtqtKETZ7O
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Hi Gregor,
+> 
+> Em Tue, 2 May 2017 22:30:29 +0200
+> Gregor Jasny <gjasny@googlemail.com> escreveu:
+> 
+> > Hello Clemens,
+> > 
+> > On 4/1/17 5:50 PM, Clemens Ladisch wrote:  
+> > > ETSI EN 300 468 V1.11.1 § 6.4.4.2 defines the bandwith field as having
+> > > four bits.    
+> > 
+> > I just used your patch and another to hopefully fix
+> > https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=859008
+> > 
+> > But I'm a little bit hesitant to merge it to v4l-utils git without
+> > Mauros acknowledgement.  
+> 
+> Patches look correct, but the T2 parser has a more serious issue that
+> will require breaking ABI/API compatibility.
+> 
+> Let me explain a little more about te T2 delivery descriptor.
+> 
+> Such descriptor is present on DVB-T2 streams, but the specs allow
+> a "simplified" version of it, with just 4 bytes:
+> 	16 bytes for system ID;
+> 	16 bytes for bit field.
+> 
+> By the time this descriptor parser was written, the existing
+> DVB-T2 streams I got access were using this simplified version.
+> 
+> After those 4 bytes, the DVB spec[1] allows a variable number of elements, 
+> controlled by a C-like code, defined at the spec as[2]:
+> 
+> 	for (i = 0; i < N, i++){
+> 		cell_id			// 16 bits
+> 		if (tfs_flag == 1) {
+> 			frequency_loop_length	// 8 bits
+> 			for (j = 0; j < frequency_loop_length; j++) {
+> 				centre_frequency	// 32 bis
+> 			}
+> 		} else {
+> 			centre_frequency	// 32 bis
+> 		}
+> 		subcell_info_loop_length	// 8 bits
+> 		for (k = 0; k < subcell_info_loop_length; k++) {
+> 			cell_id_extension	// 8 bits
+> 			transposer_frequency	// 32 bits
+> 		}
+> 	}
+> 
+> where "N" is dynamically discovered, e. g. the logic checks if
+> there is still bytes left inside the descriptor, it will run the
+> loop. So, this is actually something like:
+> 	while (pos < size) {
+> 		// handle cell_ID logic
+> 		pos += number_of_bytes_parsed;
+> 	}
+> 			
+> 
+> [1] https://www.dvb.org/resources/public/standards/a38_dvb-si_specification.pdf
+> [2] The code is not an exact copy of what's at the spec, as, at spec, all
+>     loops use "N" instead of the name of the real variable that controls
+>     the loop.
+> 
+> There are two problems with the current code:
+> 
+> 1) This struct that stores the subcell data is wrong. It is currently
+> defined as:
+> 
+> 	struct dvb_desc_t2_delivery_subcell {
+> 		uint8_t cell_id_extension;
+> 		uint16_t transposer_frequency;
+> 	} __attribute__((packed));
+> 
+> However, the transposer frequency is actually 32 bits. From the specs:
+> 
+> 	"transposer_frequency: This 32 bit field indicates the
+> 	 centre frequency that is used by a transposer in the sub-cell
+> 	 indicated. It is encoded in the same way as the centre_frequency
+> 	 field."
+> 
+> 2) Right now, the code assumes just one table of centre_frequency.
+> According with the specs (at least v1.13.1 - with is the latest
+> documentation), multiple tables can exist.
+> 
+> I remember I tested it some years after the initial version, with a
+> DVB-T2 stream. On that time, there was just one frequency table,
+> e. g. just one cell ID.
+> 
+> Yet, as now DVB-T2 is spreading, I won't doubt that we'll find some
+> places that use multiple cell IDs.
+> 
+> At the end of the day, what really matters for a DVB scan program
+> is that all center_frequency and transposer_frequency to be
+> added to the frequencies that will be scanned.
+> 
+> So, I'm thinking on a way to make a patch that would be
+> backward-compatible, e. g. adding both "centre_frequency" and
+> "transposer_frequency" at the centre_frequency table, and not
+> filling the subcell IDs, as the additional field there (the
+> subcell ID) is useless without the cell ID, and its parsing is
+> broken, anyway.
+> 
+> We may latter add a way to store the cell ID and subcell ID at the
+> end of the structure.
 
-Hi!
+Ok, I added the above logic and merged the corresponding patch
+upstream.
 
-> > Could you try to two patches I've applied on the ccp2 branch (I'll remo=
-ve
-> > them if there are issues).
-> >=20
-> > That's compile tested for now only.
-> >=20
->=20
-> I've updated the CCP2 patches here on top of the latest fwnode patches:
->=20
-> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=3Dccp2>
->=20
-> No even compile testing this time though. I'm afraid I haven't had the
-> time to otherwise to work on the CCP2 support, so there are no other
-> changes besides the rebase.
+Unfortunately, the only DVB-T2 signal I have is simple: it doesn't
+have any subcel IDs. Yet, the first transport (4061) has two
+cell IDs (I added an extra debug prints to identify it (as, currently,
+we're not storing the cell ID anywhere):
+	CELL ID= 6101
+	freq = 64200000
+	CELL ID= 0457
+	freq = 65000000
 
-It seems they don't compile. Hmmm. Did I do something wrong? "struct
-fwnode_endpoint" seems to be only used in v4l2-fwnode.h; that can't be righ=
-t...?
+So, except for the subcel parsing, patch looks OK:
 
-  CC      drivers/media/i2c/smiapp/smiapp-core.o
-  In file included from drivers/media/i2c/smiapp/smiapp-core.c:35:0:
-  ./include/media/v4l2-fwnode.h:83:25: error: field 'base' has
-  incomplete type
-  drivers/media/i2c/smiapp/smiapp-core.c: In function
-  'smiapp_get_hwconfig':
-  drivers/media/i2c/smiapp/smiapp-core.c:2790:9: error: implicit
-  declaration of function 'dev_fwnode'
-  [-Werror=3Dimplicit-function-declaration]
-  drivers/media/i2c/smiapp/smiapp-core.c:2790:33: warning:
-  initialization makes pointer from integer without a cast [enabled by
-  default]
-  drivers/media/i2c/smiapp/smiapp-core.c:2797:2: error: implicit
-  declaration of function 'fwnode_graph_get_next_endpoint'
-  [-Werror=3Dimplicit-function-declaration]
 
-Best regards,
-									Pavel
+NIT
+| table_id         0x40
+| section_length      135
+| one                 3
+| zero                1
+| syntax              1
+| transport_stream_id 12352
+| current_next        1
+| version             9
+| one2                3
+| section_number      0
+| last_section_number 0
+| desc_length   45
+|        0x40: network_name_descriptor
+|           network name: 'MEDIA BROADCAST'
+|        0x4a: linkage_descriptor
+|           40 71 21 14 42 4c 09 12  60 74 8d 0e 00 f6 00 05   @q!.BL..`t......
+|           00 00 01 68 00 00 00 07  07 00                     ...h......
+|- transport 4061 network 2114
+|        0x7f: extension_descriptor
+|           descriptor T2_delivery_system_descriptor type 0x04
+|           plp_id                    0
+|           system_id                 7766
+|           tfs_flag                  0
+|           other_frequency_flag      0
+|           transmission_mode         5
+|           guard_interval            1
+|           reserved                  3
+|           bandwidth                 0
+|           SISO MISO                 0
+|           centre frequency[0]   64200000
+|           centre frequency[1]   65000000
+|        0x41: Unknown descriptor
+|           03 01 1f 42 41 1f 42 42  1f 42 43 1f 42 44 1f 42   ...BA.BB.BC.BD.B
+|           45 1f                                              E.
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
 
---zx4FCpZtqtKETZ7O
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+|- transport 4071 network 2114
+|        0x7f: extension_descriptor
+|           descriptor T2_delivery_system_descriptor type 0x04
+|           plp_id                    1
+|           system_id                 7766
+|           tfs_flag                  0
+|           other_frequency_flag      0
+|           transmission_mode         5
+|           guard_interval            1
+|           reserved                  3
+|           bandwidth                 0
+|           SISO MISO                 0
+|           centre frequency[0]   72200000
+|_  2 transports
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iEYEARECAAYFAlkKNI8ACgkQMOfwapXb+vLvjACfbtPfVbjxzMYCJSfuKP00X96Y
-zj4AnjA9RQIvbOfng+IgRpDipeQm/cAd
-=zS1z
------END PGP SIGNATURE-----
+Gregor,
 
---zx4FCpZtqtKETZ7O--
+I'll cherry-pick the corresponding patches to the stable branch.
+
+
+Thanks,
+Mauro
