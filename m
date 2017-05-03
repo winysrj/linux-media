@@ -1,191 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:45187 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S936424AbdEYPGl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 May 2017 11:06:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-        Clint Taylor <clinton.a.taylor@intel.com>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 1/7] cec: add CEC_CAP_NEEDS_HPD
-Date: Thu, 25 May 2017 17:06:20 +0200
-Message-Id: <20170525150626.29748-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170525150626.29748-1-hverkuil@xs4all.nl>
-References: <20170525150626.29748-1-hverkuil@xs4all.nl>
+Received: from mga14.intel.com ([192.55.52.115]:35510 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751031AbdECHnk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 3 May 2017 03:43:40 -0400
+Subject: Re: [PATCHv2] omap3isp: add support for CSI1 bus
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+References: <20161228183036.GA13139@amd> <10545906.Gxg3yScdu4@avalon>
+ <20170215094228.GA8586@amd> <2414221.XNA4JCFMRx@avalon>
+ <20170302090143.GB27818@amd> <20170302101603.GE27818@amd>
+ <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
+ <20170302123848.GA28230@amd>
+ <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Message-ID: <db549a81-0c1f-3ff0-6293-050ec2e0af84@iki.fi>
+Date: Wed, 3 May 2017 10:43:37 +0300
+MIME-Version: 1.0
+In-Reply-To: <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Pavel,
 
-Add a new capability CEC_CAP_NEEDS_HPD. If this capability is set
-then the hardware can only use CEC if the HDMI Hotplug Detect pin
-is high. Such hardware cannot handle the corner case in the CEC specification
-where it is possible to transmit messages even if no hotplug signal is
-present (needed for some displays that turn off the HPD when in standby,
-but still have CEC enabled).
+On 03/04/17 15:03, Sakari Ailus wrote:
+> Hi Pavel,
+> 
+> On Thu, Mar 02, 2017 at 01:38:48PM +0100, Pavel Machek wrote:
+>> Hi!
+>>
+>>>> Ok, how about this one?
+>>>> omap3isp: add rest of CSI1 support
+>>>>     
+>>>> CSI1 needs one more bit to be set up. Do just that.
+>>>>     
+>>>> It is not as straightforward as I'd like, see the comments in the code
+>>>> for explanation.
+>> ...
+>>>> +	if (isp->phy_type == ISP_PHY_TYPE_3430) {
+>>>> +		struct media_pad *pad;
+>>>> +		struct v4l2_subdev *sensor;
+>>>> +		const struct isp_ccp2_cfg *buscfg;
+>>>> +
+>>>> +		pad = media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
+>>>> +		sensor = media_entity_to_v4l2_subdev(pad->entity);
+>>>> +		/* Struct isp_bus_cfg has union inside */
+>>>> +		buscfg = &((struct isp_bus_cfg *)sensor->host_priv)->bus.ccp2;
+>>>> +
+>>>> +		csiphy_routing_cfg_3430(&isp->isp_csiphy2,
+>>>> +					ISP_INTERFACE_CCP2B_PHY1,
+>>>> +					enable, !!buscfg->phy_layer,
+>>>> +					buscfg->strobe_clk_pol);
+>>>
+>>> You should do this through omap3isp_csiphy_acquire(), and not call
+>>> csiphy_routing_cfg_3430() directly from here.
+>>
+>> Well, unfortunately omap3isp_csiphy_acquire() does have csi2
+>> assumptions hard-coded :-(.
+>>
+>> This will probably fail.
+>>
+>> 	        rval = omap3isp_csi2_reset(phy->csi2);
+>> 	        if (rval < 0)
+>> 		                goto done;
+> 
+> Could you try to two patches I've applied on the ccp2 branch (I'll remove
+> them if there are issues).
+> 
+> That's compile tested for now only.
+> 
 
-Typically hardware that needs this capability have the HPD wired to the CEC
-block, often to a 'power' or 'active' pin.
+I've updated the CCP2 patches here on top of the latest fwnode patches:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/cec/cec-adap.c | 20 ++++++++++++++------
- drivers/media/cec/cec-api.c  |  5 ++++-
- drivers/media/cec/cec-core.c |  1 +
- include/media/cec.h          |  1 +
- include/uapi/linux/cec.h     |  2 ++
- 5 files changed, 22 insertions(+), 7 deletions(-)
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=ccp2>
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index f5fe01c9da8a..303de0d25d2b 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -366,6 +366,8 @@ int cec_thread_func(void *_adap)
- 			 * transmit should be canceled.
- 			 */
- 			err = wait_event_interruptible_timeout(adap->kthread_waitq,
-+				(adap->needs_hpd &&
-+				 (!adap->is_configured && !adap->is_configuring)) ||
- 				kthread_should_stop() ||
- 				(!adap->transmitting &&
- 				 !list_empty(&adap->transmit_queue)),
-@@ -381,7 +383,9 @@ int cec_thread_func(void *_adap)
- 
- 		mutex_lock(&adap->lock);
- 
--		if (kthread_should_stop()) {
-+		if ((adap->needs_hpd &&
-+		     (!adap->is_configured && !adap->is_configuring)) ||
-+		    kthread_should_stop()) {
- 			cec_flush(adap);
- 			goto unlock;
- 		}
-@@ -647,7 +651,7 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
- 		return -EINVAL;
- 	}
- 	if (!adap->is_configured && !adap->is_configuring) {
--		if (msg->msg[0] != 0xf0) {
-+		if (adap->needs_hpd || msg->msg[0] != 0xf0) {
- 			dprintk(1, "%s: adapter is unconfigured\n", __func__);
- 			return -ENONET;
- 		}
-@@ -1126,7 +1130,9 @@ static int cec_config_log_addr(struct cec_adapter *adap,
-  */
- static void cec_adap_unconfigure(struct cec_adapter *adap)
- {
--	WARN_ON(adap->ops->adap_log_addr(adap, CEC_LOG_ADDR_INVALID));
-+	if (!adap->needs_hpd ||
-+	    adap->phys_addr != CEC_PHYS_ADDR_INVALID)
-+		WARN_ON(adap->ops->adap_log_addr(adap, CEC_LOG_ADDR_INVALID));
- 	adap->log_addrs.log_addr_mask = 0;
- 	adap->is_configuring = false;
- 	adap->is_configured = false;
-@@ -1355,6 +1361,8 @@ void __cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block)
- 	if (phys_addr == adap->phys_addr || adap->devnode.unregistered)
- 		return;
- 
-+	dprintk(1, "new physical address %x.%x.%x.%x\n",
-+		cec_phys_addr_exp(phys_addr));
- 	if (phys_addr == CEC_PHYS_ADDR_INVALID ||
- 	    adap->phys_addr != CEC_PHYS_ADDR_INVALID) {
- 		adap->phys_addr = CEC_PHYS_ADDR_INVALID;
-@@ -1364,7 +1372,7 @@ void __cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block)
- 		if (adap->monitor_all_cnt)
- 			WARN_ON(call_op(adap, adap_monitor_all_enable, false));
- 		mutex_lock(&adap->devnode.lock);
--		if (list_empty(&adap->devnode.fhs))
-+		if (adap->needs_hpd || list_empty(&adap->devnode.fhs))
- 			WARN_ON(adap->ops->adap_enable(adap, false));
- 		mutex_unlock(&adap->devnode.lock);
- 		if (phys_addr == CEC_PHYS_ADDR_INVALID)
-@@ -1372,7 +1380,7 @@ void __cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block)
- 	}
- 
- 	mutex_lock(&adap->devnode.lock);
--	if (list_empty(&adap->devnode.fhs) &&
-+	if ((adap->needs_hpd || list_empty(&adap->devnode.fhs)) &&
- 	    adap->ops->adap_enable(adap, true)) {
- 		mutex_unlock(&adap->devnode.lock);
- 		return;
-@@ -1380,7 +1388,7 @@ void __cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block)
- 
- 	if (adap->monitor_all_cnt &&
- 	    call_op(adap, adap_monitor_all_enable, true)) {
--		if (list_empty(&adap->devnode.fhs))
-+		if (adap->needs_hpd || list_empty(&adap->devnode.fhs))
- 			WARN_ON(adap->ops->adap_enable(adap, false));
- 		mutex_unlock(&adap->devnode.lock);
- 		return;
-diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
-index 0860fb458757..1359c3977101 100644
---- a/drivers/media/cec/cec-api.c
-+++ b/drivers/media/cec/cec-api.c
-@@ -202,7 +202,8 @@ static long cec_transmit(struct cec_adapter *adap, struct cec_fh *fh,
- 		err = -EPERM;
- 	else if (adap->is_configuring)
- 		err = -ENONET;
--	else if (!adap->is_configured && msg.msg[0] != 0xf0)
-+	else if (!adap->is_configured &&
-+		 (adap->needs_hpd || msg.msg[0] != 0xf0))
- 		err = -ENONET;
- 	else if (cec_is_busy(adap, fh))
- 		err = -EBUSY;
-@@ -521,6 +522,7 @@ static int cec_open(struct inode *inode, struct file *filp)
- 
- 	mutex_lock(&devnode->lock);
- 	if (list_empty(&devnode->fhs) &&
-+	    !adap->needs_hpd &&
- 	    adap->phys_addr == CEC_PHYS_ADDR_INVALID) {
- 		err = adap->ops->adap_enable(adap, true);
- 		if (err) {
-@@ -565,6 +567,7 @@ static int cec_release(struct inode *inode, struct file *filp)
- 	mutex_lock(&devnode->lock);
- 	list_del(&fh->list);
- 	if (list_empty(&devnode->fhs) &&
-+	    !adap->needs_hpd &&
- 	    adap->phys_addr == CEC_PHYS_ADDR_INVALID) {
- 		WARN_ON(adap->ops->adap_enable(adap, false));
- 	}
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index f9ebff90f8eb..0d9a1f481b86 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -230,6 +230,7 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 	adap->log_addrs.cec_version = CEC_OP_CEC_VERSION_2_0;
- 	adap->log_addrs.vendor_id = CEC_VENDOR_ID_NONE;
- 	adap->capabilities = caps;
-+	adap->needs_hpd = caps & CEC_CAP_NEEDS_HPD;
- 	adap->available_log_addrs = available_las;
- 	adap->sequence = 0;
- 	adap->ops = ops;
-diff --git a/include/media/cec.h b/include/media/cec.h
-index b8eb895731d5..b08edb31508f 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -164,6 +164,7 @@ struct cec_adapter {
- 	u8 available_log_addrs;
- 
- 	u16 phys_addr;
-+	bool needs_hpd;
- 	bool is_configuring;
- 	bool is_configured;
- 	u32 monitor_all_cnt;
-diff --git a/include/uapi/linux/cec.h b/include/uapi/linux/cec.h
-index a0dfe27bc6c7..44579a24f95d 100644
---- a/include/uapi/linux/cec.h
-+++ b/include/uapi/linux/cec.h
-@@ -336,6 +336,8 @@ static inline int cec_is_unconfigured(__u16 log_addr_mask)
- #define CEC_CAP_RC		(1 << 4)
- /* Hardware can monitor all messages, not just directed and broadcast. */
- #define CEC_CAP_MONITOR_ALL	(1 << 5)
-+/* Hardware can use CEC only if the HDMI HPD pin is high. */
-+#define CEC_CAP_NEEDS_HPD	(1 << 6)
- 
- /**
-  * struct cec_caps - CEC capabilities structure.
+No even compile testing this time though. I'm afraid I haven't had the
+time to otherwise to work on the CCP2 support, so there are no other
+changes besides the rebase.
+
+I intend to send a pull request for the fwnode patches once we have the
+next rc1 in media tree so then we can have the patches on plain media
+tree master branch.
+
 -- 
-2.11.0
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
