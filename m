@@ -1,129 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60841 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750838AbdERE1H (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 00:27:07 -0400
-Message-ID: <35ea35ac00082cd092cffc310601ed93@smtp-cloud2.xs4all.net>
-Date: Thu, 18 May 2017 06:27:04 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from smtp.codeaurora.org ([198.145.29.96]:33782 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751990AbdECNqM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 May 2017 09:46:12 -0400
+Date: Wed, 3 May 2017 07:46:08 -0600
+From: Jordan Crouse <jcrouse@codeaurora.org>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Gross <andy.gross@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Subject: Re: [PATCH v8 05/10] media: venus: adding core part and helper
+ functions
+Message-ID: <20170503134607.GA18391@jcrouse-lnx.qualcomm.com>
+References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1493370837-19793-6-git-send-email-stanimir.varbanov@linaro.org>
+ <20170428220245.GA3283@jcrouse-lnx.qualcomm.com>
+ <20170429202247.GV15143@minitux>
+ <5840407a-8812-65a9-5716-f3a64427649b@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5840407a-8812-65a9-5716-f3a64427649b@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Tue, May 02, 2017 at 12:17:20PM +0300, Stanimir Varbanov wrote:
+> Hi,
+> 
+> On 04/29/2017 11:22 PM, Bjorn Andersson wrote:
+> > On Fri 28 Apr 15:02 PDT 2017, Jordan Crouse wrote:
+> > 
+> >> On Fri, Apr 28, 2017 at 12:13:52PM +0300, Stanimir Varbanov wrote:
+> >>> +int venus_boot(struct device *parent, struct device *fw_dev)
+> >>> +{
+> >>> +	const struct firmware *mdt;
+> >>> +	phys_addr_t mem_phys;
+> >>> +	ssize_t fw_size;
+> >>> +	size_t mem_size;
+> >>> +	void *mem_va;
+> >>> +	int ret;
+> >>> +
+> >>> +	if (!qcom_scm_is_available())
+> >>> +		return -EPROBE_DEFER;
+> >>> +
+> >>> +	fw_dev->parent = parent;
+> >>> +	fw_dev->release = device_release_dummy;
+> >>> +
+> >>> +	ret = dev_set_name(fw_dev, "%s:%s", dev_name(parent), "firmware");
+> >>> +	if (ret)
+> >>> +		return ret;
+> >>> +
+> >>> +	ret = device_register(fw_dev);
+> >>> +	if (ret < 0)
+> >>> +		return ret;
+> >>> +
+> >>> +	ret = of_reserved_mem_device_init_by_idx(fw_dev, parent->of_node, 0);
+> >>> +	if (ret)
+> >>> +		goto err_unreg_device;
+> >>> +
+> >>> +	mem_size = VENUS_FW_MEM_SIZE;
+> >>> +
+> >>> +	mem_va = dmam_alloc_coherent(fw_dev, mem_size, &mem_phys, GFP_KERNEL);
+> >>> +	if (!mem_va) {
+> >>> +		ret = -ENOMEM;
+> >>> +		goto err_unreg_device;
+> >>> +	}
+> >>> +
+> >>> +	ret = request_firmware(&mdt, VENUS_FIRMWARE_NAME, fw_dev);
+> >>> +	if (ret < 0)
+> >>> +		goto err_unreg_device;
+> >>> +
+> >>> +	fw_size = qcom_mdt_get_size(mdt);
+> >>> +	if (fw_size < 0) {
+> >>> +		ret = fw_size;
+> >>> +		release_firmware(mdt);
+> >>> +		goto err_unreg_device;
+> >>> +	}
+> >>> +
+> >>> +	ret = qcom_mdt_load(fw_dev, mdt, VENUS_FIRMWARE_NAME, VENUS_PAS_ID,
+> >>> +			    mem_va, mem_phys, mem_size);
+> >>> +
+> >>> +	release_firmware(mdt);
+> >>> +
+> >>> +	if (ret)
+> >>> +		goto err_unreg_device;
+> >>> +
+> >>> +	ret = qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
+> >>> +	if (ret)
+> >>> +		goto err_unreg_device;
+> >>> +
+> >>> +	return 0;
+> >>> +
+> >>> +err_unreg_device:
+> >>> +	device_unregister(fw_dev);
+> >>> +	return ret;
+> >>> +}
+> >>
+> >> Hey, this looks familiar - almost line for line identical to what we'll need to
+> >> do for GPU.
+> >>
+> >> Bjorn - Is this enough to qualify for generic status in the mdt_loader code?
+> >> I know its just two consumers, but it would save 50 or 60 lines of code between
+> >> the two drivers and be easier to maintain.
+> >>
+> > 
+> > I think the code setting up the struct device for memory allocation
+> > should be done during probe of the parent, so that I don't think should
+> > be shared.
+> > 
+> > The part that allocates memory from a device, loads the mdt into that
+> > memory and calls auth_and_reset() sounds like a useful thing to move to
+> > the mdt_loader.c
+> 
+> I agree, who is going to do that?
 
-Results of the daily build of media_tree:
+I'll volunteer with the caveat that sometimes I'm not as fast on turning around
+code as I would like to be given then organization I'm affiliated with. 
 
-date:			Thu May 18 05:00:23 CEST 2017
-media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
-media_build git hash:	ab988a3d089232ce9e1aec2f259e947c06983dbc
-v4l-utils git hash:	d16a17abd1d8d7885ca2f44fb295035278baa89c
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+That said I do have a stack with my zap shader code pending so it would make
+sense to stick it in there.
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: WARNINGS
-linux-4.9.26-i686: WARNINGS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.12-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+If the worst happens we can alway merge separately and then consolidate.
 
-Detailed results are available here:
+Jordan
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
