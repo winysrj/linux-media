@@ -1,157 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33202
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752943AbdEHJzv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 May 2017 05:55:51 -0400
-Date: Mon, 8 May 2017 06:55:45 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: "Jasmin J." <jasmin@anw.at>
-Cc: linux-media@vger.kernel.org, max.kellermann@gmail.com
-Subject: Re: [PATCH 01/11] [media] dvb-core/dvb_ca_en50221.c: Rename
- STATUSREG_??
-Message-ID: <20170508065545.52b26fc9@vento.lan>
-In-Reply-To: <1494192214-20082-2-git-send-email-jasmin@anw.at>
-References: <1494192214-20082-1-git-send-email-jasmin@anw.at>
-        <1494192214-20082-2-git-send-email-jasmin@anw.at>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:34435 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751593AbdEDNjC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 May 2017 09:39:02 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Peter Rosin <peda@axentia.se>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 1/2] [media] dt-bindings: Add bindings for video-multiplexer device
+Date: Thu,  4 May 2017 15:38:56 +0200
+Message-Id: <1493905137-27051-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun,  7 May 2017 23:23:24 +0200
-"Jasmin J." <jasmin@anw.at> escreveu:
+Add bindings documentation for the video multiplexer device.
 
-> From: Jasmin Jessich <jasmin@anw.at>
-> 
-> Rename STATUSREG_?? -> STATREG_?? to reduce the line length.
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Acked-by: Peter Rosin <peda@axentia.se>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+No changes since v2 [1].
 
-That sounds a bad idea. We use "stat" on the DVB subsystem as an
-alias for statistics.
+This was previously sent as part of Steve's i.MX media series [2].
 
-> 
-> Signed-off-by: Jasmin Jessich <jasmin@anw.at>
-> ---
->  drivers/media/dvb-core/dvb_ca_en50221.c | 34 ++++++++++++++++-----------------
->  1 file changed, 17 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-> index cc709c9..b978246 100644
-> --- a/drivers/media/dvb-core/dvb_ca_en50221.c
-> +++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-> @@ -72,11 +72,11 @@ MODULE_PARM_DESC(cam_debug, "enable verbose debug messages");
->  #define CMDREG_DAIE   0x80	/* Enable DA interrupt */
->  #define IRQEN (CMDREG_DAIE)
->  
-> -#define STATUSREG_RE     1	/* read error */
-> -#define STATUSREG_WE     2	/* write error */
-> -#define STATUSREG_FR  0x40	/* module free */
-> -#define STATUSREG_DA  0x80	/* data available */
-> -#define STATUSREG_TXERR (STATUSREG_RE|STATUSREG_WE)	/* general transfer error */
-> +#define STATREG_RE     1	/* read error */
-> +#define STATREG_WE     2	/* write error */
-> +#define STATREG_FR  0x40	/* module free */
-> +#define STATREG_DA  0x80	/* data available */
-> +#define STATREG_TXERR (STATREG_RE|STATREG_WE)	/* general transfer error */
->  
->  
->  #define DVB_CA_SLOTSTATE_NONE           0
-> @@ -347,7 +347,7 @@ static int dvb_ca_en50221_link_init(struct dvb_ca_private *ca, int slot)
->  	/* read the buffer size from the CAM */
->  	if ((ret = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_COMMAND, IRQEN | CMDREG_SR)) != 0)
->  		return ret;
-> -	if ((ret = dvb_ca_en50221_wait_if_status(ca, slot, STATUSREG_DA, HZ)) != 0)
-> +	if ((ret = dvb_ca_en50221_wait_if_status(ca, slot, STATREG_DA, HZ)) != 0)
->  		return ret;
->  	if ((ret = dvb_ca_en50221_read_data(ca, slot, buf, 2)) != 2)
->  		return -EIO;
-> @@ -366,7 +366,7 @@ static int dvb_ca_en50221_link_init(struct dvb_ca_private *ca, int slot)
->  	/* write the buffer size to the CAM */
->  	if ((ret = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_COMMAND, IRQEN | CMDREG_SW)) != 0)
->  		return ret;
-> -	if ((ret = dvb_ca_en50221_wait_if_status(ca, slot, STATUSREG_FR, HZ / 10)) != 0)
-> +	if ((ret = dvb_ca_en50221_wait_if_status(ca, slot, STATREG_FR, HZ / 10)) != 0)
->  		return ret;
->  	if ((ret = dvb_ca_en50221_write_data(ca, slot, buf, 2)) != 2)
->  		return -EIO;
-> @@ -661,7 +661,7 @@ static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot, u8 * eb
->  		/* check if there is data available */
->  		if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
->  			goto exit;
-> -		if (!(status & STATUSREG_DA)) {
-> +		if (!(status & STATREG_DA)) {
->  			/* no data */
->  			status = 0;
->  			goto exit;
-> @@ -713,7 +713,7 @@ static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot, u8 * eb
->  		/* check for read error (RE should now be 0) */
->  		if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
->  			goto exit;
-> -		if (status & STATUSREG_RE) {
-> +		if (status & STATREG_RE) {
->  			ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
->  			status = -EIO;
->  			goto exit;
-> @@ -778,8 +778,8 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot, u8 * b
->  	   process the data if necessary. */
->  	if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
->  		goto exitnowrite;
-> -	if (status & (STATUSREG_DA | STATUSREG_RE)) {
-> -		if (status & STATUSREG_DA)
-> +	if (status & (STATREG_DA | STATREG_RE)) {
-> +		if (status & STATREG_DA)
->  			dvb_ca_en50221_thread_wakeup(ca);
->  
->  		status = -EAGAIN;
-> @@ -794,7 +794,7 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot, u8 * b
->  	/* check if interface is still free */
->  	if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
->  		goto exit;
-> -	if (!(status & STATUSREG_FR)) {
-> +	if (!(status & STATREG_FR)) {
->  		/* it wasn't free => try again later */
->  		status = -EAGAIN;
->  		goto exit;
-> @@ -815,8 +815,8 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot, u8 * b
->  	if (status < 0)
->  		goto exit;
->  
-> -	if (status & (STATUSREG_DA | STATUSREG_RE)) {
-> -		if (status & STATUSREG_DA)
-> +	if (status & (STATREG_DA | STATREG_RE)) {
-> +		if (status & STATREG_DA)
->  			dvb_ca_en50221_thread_wakeup(ca);
->  
->  		status = -EAGAIN;
-> @@ -839,7 +839,7 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot, u8 * b
->  	/* check for write error (WE should now be 0) */
->  	if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
->  		goto exit;
-> -	if (status & STATUSREG_WE) {
-> +	if (status & STATREG_WE) {
->  		ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
->  		status = -EIO;
->  		goto exit;
-> @@ -952,7 +952,7 @@ void dvb_ca_en50221_frda_irq(struct dvb_ca_en50221 *pubca, int slot)
->  	switch (ca->slot_info[slot].slot_state) {
->  	case DVB_CA_SLOTSTATE_LINKINIT:
->  		flags = ca->pub->read_cam_control(pubca, slot, CTRLIF_STATUS);
-> -		if (flags & STATUSREG_DA) {
-> +		if (flags & STATREG_DA) {
->  			dprintk("CAM supports DA IRQ\n");
->  			ca->slot_info[slot].da_irq_supported = 1;
->  		}
-> @@ -1166,7 +1166,7 @@ static int dvb_ca_en50221_thread(void *data)
->  				}
->  
->  				flags = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS);
-> -				if (flags & STATUSREG_FR) {
-> +				if (flags & STATREG_FR) {
->  					ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
->  					ca->wakeup = 1;
->  				}
+[1] https://patchwork.kernel.org/patch/9708235/
+[2] https://patchwork.kernel.org/patch/9647951/
+---
+ .../devicetree/bindings/media/video-mux.txt        | 60 ++++++++++++++++++++++
+ 1 file changed, 60 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/video-mux.txt
 
-
-
-Thanks,
-Mauro
+diff --git a/Documentation/devicetree/bindings/media/video-mux.txt b/Documentation/devicetree/bindings/media/video-mux.txt
+new file mode 100644
+index 0000000000000..63b9dc913e456
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/video-mux.txt
+@@ -0,0 +1,60 @@
++Video Multiplexer
++=================
++
++Video multiplexers allow to select between multiple input ports. Video received
++on the active input port is passed through to the output port. Muxes described
++by this binding are controlled by a multiplexer controller that is described by
++the bindings in Documentation/devicetree/bindings/mux/mux-controller.txt
++
++Required properties:
++- compatible : should be "video-mux"
++- mux-controls : mux controller node to use for operating the mux
++- #address-cells: should be <1>
++- #size-cells: should be <0>
++- port@*: at least three port nodes containing endpoints connecting to the
++  source and sink devices according to of_graph bindings. The last port is
++  the output port, all others are inputs.
++
++Optionally, #address-cells, #size-cells, and port nodes can be grouped under a
++ports node as described in Documentation/devicetree/bindings/graph.txt.
++
++Example:
++
++	mux: mux-controller {
++		compatible = "gpio-mux";
++		#mux-control-cells = <0>;
++
++		mux-gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
++	};
++
++	video-mux {
++		compatible = "video-mux";
++		mux-controls = <&mux>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			mux_in0: endpoint {
++				remote-endpoint = <&video_source0_out>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			mux_in1: endpoint {
++				remote-endpoint = <&video_source1_out>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			mux_out: endpoint {
++				remote-endpoint = <&capture_interface_in>;
++			};
++		};
++	};
++};
+-- 
+2.11.0
