@@ -1,89 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:5717 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750713AbdELCnB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57860 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751473AbdEDWrS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 May 2017 22:43:01 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Houlong Wei <houlong.wei@mediatek.com>
-CC: <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        Wu-Cheng Li <wuchengli@google.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH v2] [media] mtk-mdp: Fix g_/s_selection capture/compose logic
-Date: Fri, 12 May 2017 10:42:50 +0800
-Message-ID: <1494556970-12278-1-git-send-email-minghsiu.tsai@mediatek.com>
+        Thu, 4 May 2017 18:47:18 -0400
+Date: Fri, 5 May 2017 01:47:14 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Peter Rosin <peda@axentia.se>, Pavel Machek <pavel@ucw.cz>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v3 2/2] [media] platform: add video-multiplexer subdevice
+ driver
+Message-ID: <20170504224714.GF7456@valkosipuli.retiisi.org.uk>
+References: <1493905137-27051-1-git-send-email-p.zabel@pengutronix.de>
+ <1493905137-27051-2-git-send-email-p.zabel@pengutronix.de>
+ <20170504203208.GC7456@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170504203208.GC7456@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Kurtz <djkurtz@chromium.org>
+On Thu, May 04, 2017 at 11:32:08PM +0300, Sakari Ailus wrote:
+> Hi Philipp,
+> 
+> On Thu, May 04, 2017 at 03:38:57PM +0200, Philipp Zabel wrote:
+> ...
+> > +static const struct of_device_id video_mux_dt_ids[] = {
+> > +	{ .compatible = "video-mux", },
+> > +	{ /* sentinel */ }
+> > +};
+> > +MODULE_DEVICE_TABLE(of, video_mux_dt_ids);
+> > +
+> > +static struct platform_driver video_mux_driver = {
+> 
+> Shouldn't this be const?
 
-Experiments show that the:
- (1) mtk-mdp uses the _MPLANE form of CAPTURE/OUTPUT
- (2) CAPTURE types use CROP targets, and OUTPUT types use COMPOSE targets
+To reply myself --- no. Driver registration requires that, which makes
+perfect sense. Please ignore the comment.
 
-Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Signed-off-by: Houlong Wei <houlong.wei@mediatek.com>
-
----
-Changes in v2:
-. Can not use *_MPLANE type in g_/s_selection 
----
- drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-index 13afe48..e18ac626 100644
---- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-+++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-@@ -838,10 +838,10 @@ static int mtk_mdp_m2m_g_selection(struct file *file, void *fh,
- 	bool valid = false;
- 
- 	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
--		if (mtk_mdp_is_target_compose(s->target))
-+		if (mtk_mdp_is_target_crop(s->target))
- 			valid = true;
- 	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
--		if (mtk_mdp_is_target_crop(s->target))
-+		if (mtk_mdp_is_target_compose(s->target))
- 			valid = true;
- 	}
- 	if (!valid) {
-@@ -908,10 +908,10 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
- 	bool valid = false;
- 
- 	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
--		if (s->target == V4L2_SEL_TGT_COMPOSE)
-+		if (s->target == V4L2_SEL_TGT_CROP)
- 			valid = true;
- 	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
--		if (s->target == V4L2_SEL_TGT_CROP)
-+		if (s->target == V4L2_SEL_TGT_COMPOSE)
- 			valid = true;
- 	}
- 	if (!valid) {
-@@ -925,7 +925,7 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
- 	if (ret)
- 		return ret;
- 
--	if (mtk_mdp_is_target_crop(s->target))
-+	if (mtk_mdp_is_target_compose(s->target))
- 		frame = &ctx->s_frame;
- 	else
- 		frame = &ctx->d_frame;
 -- 
-1.9.1
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
