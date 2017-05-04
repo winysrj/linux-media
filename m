@@ -1,233 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor1.renesas.com ([210.160.252.171]:5616 "EHLO
-        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750869AbdEaI6c (ORCPT
+Received: from gateway30.websitewelcome.com ([192.185.184.48]:16833 "EHLO
+        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750832AbdEDUi1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 04:58:32 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v6 5/7] doc_rst: media: New SDR formats PC16, PC18 & PC20
-Date: Wed, 31 May 2017 09:44:55 +0100
-Message-Id: <20170531084457.4800-6-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <20170531084457.4800-1-ramesh.shanmugasundaram@bp.renesas.com>
-References: <20170531084457.4800-1-ramesh.shanmugasundaram@bp.renesas.com>
+        Thu, 4 May 2017 16:38:27 -0400
+Received: from cm6.websitewelcome.com (cm6.websitewelcome.com [108.167.139.19])
+        by gateway30.websitewelcome.com (Postfix) with ESMTP id 6B7FD1A204
+        for <linux-media@vger.kernel.org>; Thu,  4 May 2017 14:50:06 -0500 (CDT)
+Date: Thu, 04 May 2017 14:50:04 -0500
+Message-ID: <20170504145004.Horde.gvFfFeEbpRydR4Pody_ABxy@gator4166.hostgator.com>
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [media-s3c-camif] question about arguments position
+References: <20170504140502.Horde.e_TqvS0_CEqTDsNh1soDOGo@gator4166.hostgator.com>
+ <e2137221-f094-530b-e61c-70e28f22a83f@gmail.com>
+In-Reply-To: <e2137221-f094-530b-e61c-70e28f22a83f@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
+MIME-Version: 1.0
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds documentation for the three new SDR formats
+Hello Sylwester,
 
-V4L2_SDR_FMT_PCU16BE
-V4L2_SDR_FMT_PCU18BE
-V4L2_SDR_FMT_PCU20BE
+Quoting Sylwester Nawrocki <sylvester.nawrocki@gmail.com>:
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
----
- .../media/uapi/v4l/pixfmt-sdr-pcu16be.rst          | 55 ++++++++++++++++++++++
- .../media/uapi/v4l/pixfmt-sdr-pcu18be.rst          | 55 ++++++++++++++++++++++
- .../media/uapi/v4l/pixfmt-sdr-pcu20be.rst          | 54 +++++++++++++++++++++
- Documentation/media/uapi/v4l/sdr-formats.rst       |  3 ++
- 4 files changed, 167 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
+> Hi Gustavo,
+>
+> On 05/04/2017 09:05 PM, Gustavo A. R. Silva wrote:
+>> The issue here is that the position of arguments in the call to
+>> camif_hw_set_effect() function do not match the order of the parameters:
+>>
+>> camif->colorfx_cb is passed to cr
+>> camif->colorfx_cr is passed to cb
+>>
+>> This is the function prototype:
+>>
+>> void camif_hw_set_effect(struct camif_dev *camif, unsigned int effect,
+>>             unsigned int cr, unsigned int cb)
+>>
+>> My question here is if this is intentional?
+>>
+>> In case it is not, I will send a patch to fix it. But first it would be
+>> great to hear any comment about it.
+>
+> You are right, it seems you have found a real bug. Feel free to send a patch.
+> The best thing to do now might be to change the function prototype to:
+>
+> void camif_hw_set_effect(struct camif_dev *camif, unsigned int effect,
+>              unsigned int cb, unsigned int cr)
+>
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
-new file mode 100644
-index 000000000000..2de1b1a0f517
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
-@@ -0,0 +1,55 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2-SDR-FMT-PCU16BE:
-+
-+******************************
-+V4L2_SDR_FMT_PCU16BE ('PC16')
-+******************************
-+
-+Planar complex unsigned 16-bit big endian IQ sample
-+
-+Description
-+===========
-+
-+This format contains a sequence of complex number samples. Each complex
-+number consist of two parts called In-phase and Quadrature (IQ). Both I
-+and Q are represented as a 16 bit unsigned big endian number stored in
-+32 bit space. The remaining unused bits within the 32 bit space will be
-+padded with 0. I value starts first and Q value starts at an offset
-+equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
-+the 16 bits, bit 15:2 (14 bit) is data and bit 1:0 (2 bit) can be any
-+value.
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+.. flat-table::
-+    :header-rows:  1
-+    :stub-columns: 0
-+
-+    * -  Offset:
-+      -  Byte B0
-+      -  Byte B1
-+      -  Byte B2
-+      -  Byte B3
-+    * -  start + 0:
-+      -  I'\ :sub:`0[13:6]`
-+      -  I'\ :sub:`0[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-+    * -  start + 4:
-+      -  I'\ :sub:`1[13:6]`
-+      -  I'\ :sub:`1[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-+    * -  ...
-+    * - start + offset:
-+      -  Q'\ :sub:`0[13:6]`
-+      -  Q'\ :sub:`0[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-+    * - start + offset + 4:
-+      -  Q'\ :sub:`1[13:6]`
-+      -  Q'\ :sub:`1[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
-new file mode 100644
-index 000000000000..da8b26bf6b95
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
-@@ -0,0 +1,55 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2-SDR-FMT-PCU18BE:
-+
-+******************************
-+V4L2_SDR_FMT_PCU18BE ('PC18')
-+******************************
-+
-+Planar complex unsigned 18-bit big endian IQ sample
-+
-+Description
-+===========
-+
-+This format contains a sequence of complex number samples. Each complex
-+number consist of two parts called In-phase and Quadrature (IQ). Both I
-+and Q are represented as a 18 bit unsigned big endian number stored in
-+32 bit space. The remaining unused bits within the 32 bit space will be
-+padded with 0. I value starts first and Q value starts at an offset
-+equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
-+the 18 bits, bit 17:2 (16 bit) is data and bit 1:0 (2 bit) can be any
-+value.
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+.. flat-table::
-+    :header-rows:  1
-+    :stub-columns: 0
-+
-+    * -  Offset:
-+      -  Byte B0
-+      -  Byte B1
-+      -  Byte B2
-+      -  Byte B3
-+    * -  start + 0:
-+      -  I'\ :sub:`0[17:10]`
-+      -  I'\ :sub:`0[9:2]`
-+      -  I'\ :sub:`0[1:0]; B2[5:0]=pad`
-+      -  pad
-+    * -  start + 4:
-+      -  I'\ :sub:`1[17:10]`
-+      -  I'\ :sub:`1[9:2]`
-+      -  I'\ :sub:`1[1:0]; B2[5:0]=pad`
-+      -  pad
-+    * -  ...
-+    * - start + offset:
-+      -  Q'\ :sub:`0[17:10]`
-+      -  Q'\ :sub:`0[9:2]`
-+      -  Q'\ :sub:`0[1:0]; B2[5:0]=pad`
-+      -  pad
-+    * - start + offset + 4:
-+      -  Q'\ :sub:`1[17:10]`
-+      -  Q'\ :sub:`1[9:2]`
-+      -  Q'\ :sub:`1[1:0]; B2[5:0]=pad`
-+      -  pad
-diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
-new file mode 100644
-index 000000000000..5499eed39477
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
-@@ -0,0 +1,54 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+.. _V4L2-SDR-FMT-PCU20BE:
-+
-+******************************
-+V4L2_SDR_FMT_PCU20BE ('PC20')
-+******************************
-+
-+Planar complex unsigned 20-bit big endian IQ sample
-+
-+Description
-+===========
-+
-+This format contains a sequence of complex number samples. Each complex
-+number consist of two parts called In-phase and Quadrature (IQ). Both I
-+and Q are represented as a 20 bit unsigned big endian number stored in
-+32 bit space. The remaining unused bits within the 32 bit space will be
-+padded with 0. I value starts first and Q value starts at an offset
-+equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
-+the 20 bits, bit 19:2 (18 bit) is data and bit 1:0 (2 bit) can be any
-+value.
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+.. flat-table::
-+    :header-rows:  1
-+    :stub-columns: 0
-+
-+    * -  Offset:
-+      -  Byte B0
-+      -  Byte B1
-+      -  Byte B2
-+      -  Byte B3
-+    * -  start + 0:
-+      -  I'\ :sub:`0[19:12]`
-+      -  I'\ :sub:`0[11:4]`
-+      -  I'\ :sub:`0[3:0]; B2[3:0]=pad`
-+      -  pad
-+    * -  start + 4:
-+      -  I'\ :sub:`1[19:12]`
-+      -  I'\ :sub:`1[11:4]`
-+      -  I'\ :sub:`1[3:0]; B2[3:0]=pad`
-+      -  pad
-+    * -  ...
-+    * - start + offset:
-+      -  Q'\ :sub:`0[19:12]`
-+      -  Q'\ :sub:`0[11:4]`
-+      -  Q'\ :sub:`0[3:0]; B2[3:0]=pad`
-+      -  pad
-+    * - start + offset + 4:
-+      -  Q'\ :sub:`1[19:12]`
-+      -  Q'\ :sub:`1[11:4]`
-+      -  Q'\ :sub:`1[3:0]; B2[3:0]=pad`
-+      -  pad
-diff --git a/Documentation/media/uapi/v4l/sdr-formats.rst b/Documentation/media/uapi/v4l/sdr-formats.rst
-index f863c08f1add..2037f5bad727 100644
---- a/Documentation/media/uapi/v4l/sdr-formats.rst
-+++ b/Documentation/media/uapi/v4l/sdr-formats.rst
-@@ -17,3 +17,6 @@ These formats are used for :ref:`SDR <sdr>` interface only.
-     pixfmt-sdr-cs08
-     pixfmt-sdr-cs14le
-     pixfmt-sdr-ru12le
-+    pixfmt-sdr-pcu16be
-+    pixfmt-sdr-pcu18be
-+    pixfmt-sdr-pcu20be
--- 
-2.12.2
+OK, I'll send a patch for this shortly.
+
+Thanks for clarifying.
+--
+Gustavo A. R. Silva
