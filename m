@@ -1,58 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:35220 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752689AbdERJFZ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48852 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751932AbdEDOpg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 05:05:25 -0400
-Received: by mail-oi0-f68.google.com with SMTP id m17so6355300oik.2
-        for <linux-media@vger.kernel.org>; Thu, 18 May 2017 02:05:25 -0700 (PDT)
+        Thu, 4 May 2017 10:45:36 -0400
+Date: Thu, 4 May 2017 17:45:03 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v4 16/27] rcar-vin: add functions to manipulate Gen3
+ CHSEL value
+Message-ID: <20170504144503.GY7456@valkosipuli.retiisi.org.uk>
+References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170427224203.14611-17-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <dd8245f445f5e751b38126140b6ba1723f06c60b.1495097103.git.mchehab@s-opensource.com>
-References: <dd8245f445f5e751b38126140b6ba1723f06c60b.1495097103.git.mchehab@s-opensource.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 18 May 2017 11:05:24 +0200
-Message-ID: <CAK8P3a0Fw30dmUGY=piihxk_EwsxEfD9pJ+DD+WE537L9Tkuow@mail.gmail.com>
-Subject: Re: [PATCH] [media] atomisp: don't treat warnings as errors
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>, devel@driverdev.osuosl.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170427224203.14611-17-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 18, 2017 at 10:45 AM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> Several atomisp files use:
->          ccflags-y += -Werror
->
-> As, on media, our usual procedure is to use W=1, and atomisp
-> has *a lot* of warnings with such flag enabled,like:
->
-> ./drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/system_local.h:62:26: warning: 'DDR_BASE' defined but not used [-Wunused-const-variable=]
->
-> At the end, it causes our build to fail, impacting our workflow.
->
-> So, remove this crap. If one wants to force -Werror, he
-> can still build with it enabled by passing a parameter to
-> make.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Hi Niklas,
 
-Good idea.
+On Fri, Apr 28, 2017 at 12:41:52AM +0200, Niklas Söderlund wrote:
+> On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. One
+> feature of this register is that it's only present in the VIN0 and VIN4
+> instances. The register in VIN0 controls the routing for VIN0-3 and the
+> register in VIN4 controls routing for VIN4-7.
+> 
+> To be able to control routing from a media device these functions need
+> to control runtime PM for the subgroup master (VIN0 and VIN4). The
+> subgroup master must be switched on before the register is manipulated,
+> once the operation is complete it's safe to switch the master off and
+> the new routing will still be in effect.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 43 ++++++++++++++++++++++++++++++
+>  drivers/media/platform/rcar-vin/rcar-vin.h |  3 +++
+>  2 files changed, 46 insertions(+)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index 7fecb616b6c45a32..fef31aac0ed40979 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -16,6 +16,7 @@
+>  
+>  #include <linux/delay.h>
+>  #include <linux/interrupt.h>
+> +#include <linux/pm_runtime.h>
+>  
+>  #include <media/videobuf2-dma-contig.h>
+>  
+> @@ -1240,3 +1241,45 @@ int rvin_dma_probe(struct rvin_dev *vin, int irq)
+>  
+>  	return ret;
+>  }
+> +
+> +/* -----------------------------------------------------------------------------
+> + * Gen3 CHSEL manipulation
+> + */
+> +
+> +int rvin_set_chsel(struct rvin_dev *vin, u8 chsel)
+> +{
+> +	u32 ifmd;
+> +
+> +	pm_runtime_get_sync(vin->dev);
 
-On a related note, I have some plans for more fine-grained and more consisten
-control of warning and error messages. The same way we already use W=1
-or W=12, I would like to allow E=0 E=01 etc to turn warnings of a particular
-W= level into errors, and possibly even allow this on a per-file or
-per-directory
-basis. It depends on some infrastructure to replace scripts/Makefile.extrawarn
-with a include/linux/compiler-warnings.h using _Pragma("GCC diagnostic ..."),
-but that infrastructure has other benefits as well.
+Can this fail? Just wondering.
 
-Would you be interested in having the equivalent of W=1 (some extra warnings)
-or E=0 (default warnings become errors) enabled for drivers/media if we had
-a good way of doing that?
+> +
+> +	/*
+> +	 * Undocumented feature: Writing to VNCSI_IFMD_REG will go
+> +	 * through and on read back look correct but won't have
+> +	 * any effect if VNMC_REG is not first set to 0.
+> +	 */
+> +	rvin_write(vin, 0, VNMC_REG);
+> +
+> +	ifmd = VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
+> +		VNCSI_IFMD_CSI_CHSEL(chsel);
+> +
+> +	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
+> +
+> +	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
+> +
+> +	pm_runtime_put(vin->dev);
+> +
+> +	return 0;
 
-      Arnd
+If you always return zero, how about void instead?
+
+> +}
+> +
+> +int rvin_get_chsel(struct rvin_dev *vin)
+> +{
+> +	int chsel;
+> +
+> +	pm_runtime_get_sync(vin->dev);
+
+Same here.
+
+> +
+> +	chsel = rvin_read(vin, VNCSI_IFMD_REG) & VNCSI_IFMD_CSI_CHSEL_MASK;
+> +
+> +	pm_runtime_put(vin->dev);
+> +
+> +	return chsel;
+> +}
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index 09fc70e192699f35..b1cd0abba9ca9c94 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -163,4 +163,7 @@ void rvin_v4l2_remove(struct rvin_dev *vin);
+>  
+>  const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+>  
+> +int rvin_set_chsel(struct rvin_dev *vin, u8 chsel);
+> +int rvin_get_chsel(struct rvin_dev *vin);
+> +
+>  #endif
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
