@@ -1,53 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54216 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1760367AbdEVRgo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 May 2017 13:36:44 -0400
-From: Kieran Bingham <kbingham@kernel.org>
-To: sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v3 0/2] v4l: async: Match parent devices
-Date: Mon, 22 May 2017 18:36:36 +0100
-Message-Id: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:35815 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751628AbdEDTew (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 15:34:52 -0400
+Subject: Re: [media-s3c-camif] question about arguments position
+To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+References: <20170504140502.Horde.e_TqvS0_CEqTDsNh1soDOGo@gator4166.hostgator.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Message-ID: <e2137221-f094-530b-e61c-70e28f22a83f@gmail.com>
+Date: Thu, 4 May 2017 21:34:47 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170504140502.Horde.e_TqvS0_CEqTDsNh1soDOGo@gator4166.hostgator.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Hi Gustavo,
 
-As devices become more complicated, it becomes necessary (and more
-accurate) to match devices based on their endpoint, as devices may
-have multiple subdevices.
+On 05/04/2017 09:05 PM, Gustavo A. R. Silva wrote:
+> The issue here is that the position of arguments in the call to
+> camif_hw_set_effect() function do not match the order of the parameters:
+> 
+> camif->colorfx_cb is passed to cr
+> camif->colorfx_cr is passed to cb
+> 
+> This is the function prototype:
+> 
+> void camif_hw_set_effect(struct camif_dev *camif, unsigned int effect,
+>             unsigned int cr, unsigned int cb)
+> 
+> My question here is if this is intentional?
+> 
+> In case it is not, I will send a patch to fix it. But first it would be
+> great to hear any comment about it.
 
-To support using endpoints in the V4L2 async subdev framework, while
-some devices still use their device fwnode, we need to be able to parse
-a fwnode for the device from the endpoint.
+You are right, it seems you have found a real bug. Feel free to send a patch.
+The best thing to do now might be to change the function prototype to:
 
-By providing a helper fwnode_graph_get_port_parent(), we can use it in
-the match_fwnode to support matches during the transition to endpoint
-matching.
+void camif_hw_set_effect(struct camif_dev *camif, unsigned int effect,
+             unsigned int cb, unsigned int cr)
 
-This series is dependant upon Sakari's v4l2-acpi and acpi-graph-cleaned
-branch
-
-v2:
- - Rebased on top of git.linuxtv.org/sailus/media_tree.git #acpi-graph-cleaned
-
-v3:
- - Fixed uninitialised asd_parent
- - Improved kerneldocs
- - Get the 'port' of the endpoint in fwnode_graph_get_port_parent
-
-Kieran Bingham (2):
-  device property: Add fwnode_graph_get_port_parent
-  v4l: async: Match parent devices
-
- drivers/base/property.c              | 15 ++++++++++++-
- drivers/media/v4l2-core/v4l2-async.c | 36 ++++++++++++++++++++++++-----
- include/linux/property.h             |  2 ++-
- 3 files changed, 48 insertions(+), 5 deletions(-)
-
-base-commit: d043978c7c919c727fb76b6593c71d0e697a5d66
--- 
-git-series 0.9.1
+--
+Regards,
+Sylwester
