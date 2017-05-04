@@ -1,53 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f180.google.com ([209.85.223.180]:35000 "EHLO
-        mail-io0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750735AbdEBQQw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 2 May 2017 12:16:52 -0400
-MIME-Version: 1.0
-In-Reply-To: <20170502132615.42134-3-ramesh.shanmugasundaram@bp.renesas.com>
-References: <20170502132615.42134-1-ramesh.shanmugasundaram@bp.renesas.com> <20170502132615.42134-3-ramesh.shanmugasundaram@bp.renesas.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 2 May 2017 18:16:50 +0200
-Message-ID: <CAMuHMdX7Hff=t=oQf4oygJMqhgxhwrh5cOjuEJCx=7vy28mMfg@mail.gmail.com>
-Subject: Re: [PATCH v4 2/7] dt-bindings: media: Add MAX2175 binding description
-To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48756 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753417AbdEDOmL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 May 2017 10:42:11 -0400
+Date: Thu, 4 May 2017 17:41:32 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Antti Palosaari <crope@iki.fi>,
-        Chris Paterson <chris.paterson2@renesas.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v4 12/27] rcar-vin: read subdevice format for crop only
+ when needed
+Message-ID: <20170504144132.GX7456@valkosipuli.retiisi.org.uk>
+References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170427224203.14611-13-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170427224203.14611-13-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ramesh,
+Hi Niklas,
 
-On Tue, May 2, 2017 at 3:26 PM, Ramesh Shanmugasundaram
-<ramesh.shanmugasundaram@bp.renesas.com> wrote:
-> --- a/Documentation/devicetree/bindings/property-units.txt
-> +++ b/Documentation/devicetree/bindings/property-units.txt
-> @@ -28,6 +28,7 @@ Electricity
->  -ohms          : Ohms
->  -micro-ohms    : micro Ohms
->  -microvolt     : micro volts
-> +-pF            : pico farads
+On Fri, Apr 28, 2017 at 12:41:48AM +0200, Niklas Söderlund wrote:
+> Instead of caching the subdevice format each time the video device
+> format is set read it directly when its needed. As it turns out the
+> format is only needed when figuring out the max rectangle for cropping.
+> 
+> This simplify the code and makes it clearer what the source format is
+> used for.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 76 ++++++++++++++++-------------
+>  drivers/media/platform/rcar-vin/rcar-vin.h  | 12 -----
+>  2 files changed, 42 insertions(+), 46 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> index 919040e40aec60f6..80421421625e6f6f 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -90,6 +90,24 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
+>   * V4L2
+>   */
+>  
+> +static int rvin_get_sd_format(struct rvin_dev *vin, struct v4l2_pix_format *pix)
+> +{
+> +	struct v4l2_subdev_format fmt = {
+> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+> +	};
+> +	int ret;
+> +
+> +	fmt.pad = vin->digital.source_pad;
 
-All electrical units seem to use long(er) names.
+You can assign .pad in declaration, too.
 
-Gr{oetje,eeting}s,
+> +
+> +	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
+> +	if (ret)
+> +		return ret;
+> +
+> +	v4l2_fill_pix_format(pix, &fmt.format);
+> +
+> +	return 0;
+> +}
 
-                        Geert
+-- 
+Regards,
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
