@@ -1,60 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:50458 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754509AbdELDWt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 May 2017 23:22:49 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Houlong Wei <houlong.wei@mediatek.com>
-CC: <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        Wu-Cheng Li <wuchengli@google.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
-Subject: [PATCH v3 0/3] Fix mdp device tree 
-Date: Fri, 12 May 2017 11:22:38 +0800
-Message-ID: <1494559361-42835-1-git-send-email-minghsiu.tsai@mediatek.com>
+Received: from mail-io0-f193.google.com ([209.85.223.193]:33260 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750987AbdEDP6o (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 11:58:44 -0400
+Received: by mail-io0-f193.google.com with SMTP id l196so4672786ioe.0
+        for <linux-media@vger.kernel.org>; Thu, 04 May 2017 08:58:43 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1493912180.2381.35.camel@pengutronix.de>
+References: <20170504152017.3696-1-p.zabel@pengutronix.de> <CAK8P3a00XGeiYXR28aM4EXcMLhSgLdnTDJwTKNk8qKO+B2TXMg@mail.gmail.com>
+ <1493912180.2381.35.camel@pengutronix.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 4 May 2017 17:58:42 +0200
+Message-ID: <CAK8P3a2SpN1+zZeB3UEtU2dunR5Vs2no6=LBbCv9_5c9o4-qpg@mail.gmail.com>
+Subject: Re: [PATCH] [media] tc358743: fix register i2c_rd/wr function fix
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changes in v3:
-- Upload patches again because forget to add v2 in title
+On Thu, May 4, 2017 at 5:36 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Hi Arnd,
+>
+> On Thu, 2017-05-04 at 17:24 +0200, Arnd Bergmann wrote:
+>> On Thu, May 4, 2017 at 5:20 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+>> > The below mentioned fix contains a small but severe bug,
+>> > fix it to make the driver work again.
+>> >
+>> > Fixes: 3538aa6ecfb2 ("[media] tc358743: fix register i2c_rd/wr functions")
+>> > Cc: Arnd Bergmann <arnd@arndb.de>
+>> > Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> > Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+>> > ---
+>>
+>> Cc: stable@vger.kernel.org # v4.11
+>>
+>> Acked-by: Arnd Bergmann <arnd@arndb.de>
+>>
+>> Sorry about the typo
+>
+> Thanks, the original fix currently is only in the media-tree master
+> branch. I don't see any indication that it is queued for
+> stable/linux-4.11.y though. Should it be?
 
-Changes in v2:
-- Update commit message
+Sorry, my mistake (again). I looked it up wrong.
 
-If the mdp_* nodes are under an mdp sub-node, their corresponding
-platform device does not automatically get its iommu assigned properly.
-
-Fix this by moving the mdp component nodes up a level such that they are
-siblings of mdp and all other SoC subsystems.  This also simplifies the
-device tree.
-
-Although it fixes iommu assignment issue, it also break compatibility
-with old device tree. So, the patch in driver is needed to iterate over
-sibling mdp device nodes, not child ones, to keep driver work properly.
-
-Daniel Kurtz (2):
-  arm64: dts: mt8173: Fix mdp device tree
-  media: mtk-mdp: Fix mdp device tree
-
-Minghsiu Tsai (1):
-  dt-bindings: mt8173: Fix mdp device tree
-
- .../devicetree/bindings/media/mediatek-mdp.txt     |  12 +-
- arch/arm64/boot/dts/mediatek/mt8173.dtsi           | 126 ++++++++++-----------
- drivers/media/platform/mtk-mdp/mtk_mdp_core.c      |   2 +-
- 3 files changed, 64 insertions(+), 76 deletions(-)
-
--- 
-1.9.1
+      Arnd
