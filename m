@@ -1,83 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.llwyncelyn.cymru ([82.70.14.225]:38426 "EHLO fuzix.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1030645AbdEZP33 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 May 2017 11:29:29 -0400
-Subject: [PATCH 09/11] atomisp: Unify lut free logic
-From: Alan Cox <alan@llwyncelyn.cymru>
-To: mchehab@kernel.org, linux-media@vger.kernel.org
-Date: Fri, 26 May 2017 16:29:25 +0100
-Message-ID: <149581256100.17585.7448530032630612515.stgit@builder>
-In-Reply-To: <149581243155.17585.8164899156710160858.stgit@builder>
-References: <149581243155.17585.8164899156710160858.stgit@builder>
+Received: from relay1.mentorg.com ([192.94.38.131]:38562 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751488AbdEDKxk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 06:53:40 -0400
+From: agheorghe <Alexandru_Gheorghe@mentor.com>
+To: <Alexandru_Gheorghe@mentor.com>,
+        <laurent.pinchart@ideasonboard.com>,
+        <linux-renesas-soc@vger.kernel.org>,
+        <dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>
+Subject: [PATCH 0/2] rcar-du, vsp1: rcar-gen3: Add support for colorkey alpha blending
+Date: Thu, 4 May 2017 13:53:31 +0300
+Message-ID: <1493895213-12573-1-git-send-email-Alexandru_Gheorghe@mentor.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ISP2401 introduced a helper for this which we can use just as well on the
-ISP2400 and remove some more noise differences.
+Currently, rcar-du supports colorkeying  only for rcar-gen2 and it uses 
+some hw capability of the display unit(DU) which is not available on gen3.
+In order to implement colorkeying for gen3 we need to use the colorkey
+capability of the VSPD, hence the need to change both drivers rcar-du and
+vsp1.
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
- .../media/atomisp/pci/atomisp2/css2400/sh_css.c    |    7 -------
- .../atomisp/pci/atomisp2/css2400/sh_css_params.c   |   14 --------------
- 2 files changed, 21 deletions(-)
+This patchset had been developed and tested on top of v4.9/rcar-3.5.1 from
+git://git.kernel.org/pub/scm/linux/kernel/git/horms/renesas-bsp.git
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-index 55d2a69..dfef219 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-@@ -2533,15 +2533,8 @@ ia_css_pipe_destroy(struct ia_css_pipe *pipe)
- 		break;
- 	}
- 
--#ifndef ISP2401
--	if (pipe->scaler_pp_lut != mmgr_NULL) {
--		hmm_free(pipe->scaler_pp_lut);
--		pipe->scaler_pp_lut = mmgr_NULL;
--	}
--#else
- 	sh_css_params_free_gdc_lut(pipe->scaler_pp_lut);
- 	pipe->scaler_pp_lut = mmgr_NULL;
--#endif
- 
- 	my_css.active_pipes[ia_css_pipe_get_pipe_num(pipe)] = NULL;
- 	sh_css_pipe_free_shading_table(pipe);
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c
-index d8c22e8..4822437 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c
-@@ -3356,15 +3356,8 @@ enum ia_css_err ia_css_pipe_set_bci_scaler_lut(struct ia_css_pipe *pipe,
- 	}
- 
- 	/* Free any existing tables. */
--#ifndef ISP2401
--	if (pipe->scaler_pp_lut != mmgr_NULL) {
--		hmm_free(pipe->scaler_pp_lut);
--		pipe->scaler_pp_lut = mmgr_NULL;
--	}
--#else
- 	sh_css_params_free_gdc_lut(pipe->scaler_pp_lut);
- 	pipe->scaler_pp_lut = mmgr_NULL;
--#endif
- 
- #ifndef ISP2401
- 	if (store) {
-@@ -3445,15 +3438,8 @@ void sh_css_params_free_default_gdc_lut(void)
- {
- 	IA_CSS_ENTER_PRIVATE("void");
- 
--#ifndef ISP2401
--	if (default_gdc_lut != mmgr_NULL) {
--		hmm_free(default_gdc_lut);
--		default_gdc_lut = mmgr_NULL;
--	}
--#else
- 	sh_css_params_free_gdc_lut(default_gdc_lut);
- 	default_gdc_lut = mmgr_NULL;
--#endif
- 
- 	IA_CSS_LEAVE_PRIVATE("void");
- 
+agheorghe (2):
+  v4l: vsp1: Add support for colorkey alpha blending
+  drm: rcar-du: Add support for colorkey alpha blending
+
+ drivers/gpu/drm/rcar-du/rcar_du_drv.h   |  1 +
+ drivers/gpu/drm/rcar-du/rcar_du_kms.c   |  8 ++++++++
+ drivers/gpu/drm/rcar-du/rcar_du_plane.c |  3 ---
+ drivers/gpu/drm/rcar-du/rcar_du_plane.h |  6 ++++++
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c   | 22 ++++++++++++++++++++++
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.h   |  5 +++++
+ drivers/media/platform/vsp1/vsp1_drm.c  |  3 +++
+ drivers/media/platform/vsp1/vsp1_rpf.c  | 10 ++++++++--
+ drivers/media/platform/vsp1/vsp1_rwpf.h |  3 +++
+ include/media/vsp1.h                    |  3 +++
+ 10 files changed, 59 insertions(+), 5 deletions(-)
+
+-- 
+1.9.1
