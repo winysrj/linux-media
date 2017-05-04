@@ -1,45 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailserver.grenoble.archi.fr ([194.199.194.131]:60910 "EHLO
-        zimbra.grenoble.archi.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965069AbdEZFPe (ORCPT
+Received: from gateway21.websitewelcome.com ([192.185.45.176]:11202 "EHLO
+        gateway21.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751894AbdEDWFh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 May 2017 01:15:34 -0400
-Date: Fri, 26 May 2017 07:06:14 +0200 (CEST)
-From: Hubert Guillaud <guillaud.h@grenoble.archi.fr>
-Reply-To: kdafdas988@outlook.com
-To: kdafdas988@outlook.com
-Message-ID: <567021.6638336.1495775174176.JavaMail.zimbra@grenoble.archi.fr>
-In-Reply-To: <2051365398.6634028.1495769859274.JavaMail.zimbra@grenoble.archi.fr>
-References: <2051365398.6634028.1495769859274.JavaMail.zimbra@grenoble.archi.fr>
-Subject: Ich brauche deine Hilfe!
+        Thu, 4 May 2017 18:05:37 -0400
+Received: from cm2.websitewelcome.com (cm2.websitewelcome.com [192.185.178.13])
+        by gateway21.websitewelcome.com (Postfix) with ESMTP id 83B76400C3407
+        for <linux-media@vger.kernel.org>; Thu,  4 May 2017 16:42:04 -0500 (CDT)
+Date: Thu, 4 May 2017 16:42:00 -0500
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] media: platform: s3c-camif: fix function prototype
+Message-ID: <20170504214200.GA22855@embeddedgus>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170504145004.Horde.gvFfFeEbpRydR4Pody_ABxy@gator4166.hostgator.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lieber Freund,
+Fix function prototype so the position of arguments camif->colorfx_cb and
+camif->colorfx_cr match the order of the parameters when calling
+camif_hw_set_effect() function.
 
-Ich bin Frau Dionisia Denis Perman aus Island, verheiratet mit Late Engineer
-Denis Perman {PhD}, der mit MULTINATIONAL OIL COMPANY EXXON AS A gearbeitet hat
-DRILLING RIG SUPPLIER in Kuwait seit 19 Jahren, bevor er auf der
-22. August 2009. Wir waren seit vierundzwanzig Jahren verheiratet
-Kind. Er starb nach einer kurzen Krankheit, die nur vier Tage dauerte.
-Vor seinem Tod hat er die Summe von USD 10.142.728,00 Dollar
-Mit einer Kurierfirma in Indien und dieser Fonds ist derzeit mit dem Kurier warten auf meine
-Auszahlung als Begünstigter und nächste Angehörige der Mittel. Kürzlich, meine
-Doktor sagte mir, dass ich nicht für die nächsten acht Monate dauern würde
-Krebsproblem Nachdem ich meinen Zustand gekannt habe, habe ich beschlossen, dies zu spenden
-Fonds für eine Kirche, Organisation oder gute Person, die dies nutzen wird
-Geld in gutem Glauben.
+Addresses-Coverity-ID: 1248800
+Addresses-Coverity-ID: 1269141
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+---
+ drivers/media/platform/s3c-camif/camif-regs.c | 2 +-
+ drivers/media/platform/s3c-camif/camif-regs.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Ich habe diese Entscheidung getroffen, weil ich kein Kind habe, das erben wird
-dieses Geld. Ich hielt diese Kaution bis heute; Deshalb bin ich
-Diese Entscheidung treffen Ich glaube nicht, dass ich ein Telefon brauchen werde
-Kommunikation in dieser Hinsicht wegen der Vertraulichkeit dieser
-Transaktion. Nach deiner Antwort werde ich dir den Kontakt des Kuriers geben. ich
-Wird auch ein Genehmigungsschreiben an den Kurier ausstellen, der beweisen wird
-Sie der gegenwärtige Begünstigte dieses Geldes. So solltest du mir deine Adresse, deinen Namen, dein Land und deine Hand schicken.
-
-Erwarten Sie Ihre Antworten und Gott segnen Sie.
-Frau Dionisia Denis Perman
+diff --git a/drivers/media/platform/s3c-camif/camif-regs.c b/drivers/media/platform/s3c-camif/camif-regs.c
+index 812fb3a..d70ffef 100644
+--- a/drivers/media/platform/s3c-camif/camif-regs.c
++++ b/drivers/media/platform/s3c-camif/camif-regs.c
+@@ -58,7 +58,7 @@ void camif_hw_set_test_pattern(struct camif_dev *camif, unsigned int pattern)
+ }
+ 
+ void camif_hw_set_effect(struct camif_dev *camif, unsigned int effect,
+-			unsigned int cr, unsigned int cb)
++			unsigned int cb, unsigned int cr)
+ {
+ 	static const struct v4l2_control colorfx[] = {
+ 		{ V4L2_COLORFX_NONE,		CIIMGEFF_FIN_BYPASS },
+diff --git a/drivers/media/platform/s3c-camif/camif-regs.h b/drivers/media/platform/s3c-camif/camif-regs.h
+index 5ad36c1..dfb49a5 100644
+--- a/drivers/media/platform/s3c-camif/camif-regs.h
++++ b/drivers/media/platform/s3c-camif/camif-regs.h
+@@ -255,7 +255,7 @@ void camif_hw_set_output_dma(struct camif_vp *vp);
+ void camif_hw_set_target_format(struct camif_vp *vp);
+ void camif_hw_set_test_pattern(struct camif_dev *camif, unsigned int pattern);
+ void camif_hw_set_effect(struct camif_dev *camif, unsigned int effect,
+-			unsigned int cr, unsigned int cb);
++			unsigned int cb, unsigned int cr);
+ void camif_hw_set_output_addr(struct camif_vp *vp, struct camif_addr *paddr,
+ 			      int index);
+ void camif_hw_dump_regs(struct camif_dev *camif, const char *label);
+-- 
+2.5.0
