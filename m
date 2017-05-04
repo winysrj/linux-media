@@ -1,409 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:20468 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754263AbdEINwu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 May 2017 09:52:50 -0400
-From: Rajmohan Mani <rajmohan.mani@intel.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        hverkuil@xs4all.nl, tfiga@chromium.org, sakari.ailus@iki.fi
-Cc: Rajmohan Mani <rajmohan.mani@intel.com>
-Subject: [PATCH v3] dw9714: Initial driver for dw9714 VCM
-Date: Tue,  9 May 2017 06:45:45 -0700
-Message-Id: <1494337545-9855-1-git-send-email-rajmohan.mani@intel.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:37003 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755370AbdEDONr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 10:13:47 -0400
+Date: Thu, 4 May 2017 16:13:41 +0200
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Peter Rosin <peda@axentia.se>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v3 1/2] [media] dt-bindings: Add bindings for
+ video-multiplexer device
+Message-ID: <20170504141341.uj4uvminlttnjhpe@earth>
+References: <1493905137-27051-1-git-send-email-p.zabel@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="odjczrke3pxkanq7"
+Content-Disposition: inline
+In-Reply-To: <1493905137-27051-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DW9714 is a 10 bit DAC, designed for linear
-control of voice coil motor.
 
-This driver creates a V4L2 subdevice and
-provides control to set the desired focus.
+--odjczrke3pxkanq7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
----
-Changes in v3:
-	- Addressed most of the review comments from Sakari
-	  on v1 of this patch
-Changes in v2:
-        - Addressed review comments from Hans Verkuil
-        - Fixed a debug message typo
-        - Got rid of a return variable
----
- drivers/media/i2c/Kconfig  |   9 ++
- drivers/media/i2c/Makefile |   1 +
- drivers/media/i2c/dw9714.c | 332 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 342 insertions(+)
- create mode 100644 drivers/media/i2c/dw9714.c
+Hi,
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index fd181c9..516e2f2 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -300,6 +300,15 @@ config VIDEO_AD5820
- 	  This is a driver for the AD5820 camera lens voice coil.
- 	  It is used for example in Nokia N900 (RX-51).
- 
-+config VIDEO_DW9714
-+	tristate "DW9714 lens voice coil support"
-+	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER && VIDEO_V4L2_SUBDEV_API
-+	---help---
-+	  This is a driver for the DW9714 camera lens voice coil.
-+	  DW9714 is a 10 bit DAC with 120mA output current sink
-+	  capability. This is designed for linear control of
-+	  voice coil motors, controlled via I2C serial interface.
-+
- config VIDEO_SAA7110
- 	tristate "Philips SAA7110 video decoder"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index 62323ec..987bd1f 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -21,6 +21,7 @@ obj-$(CONFIG_VIDEO_SAA7127) += saa7127.o
- obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
- obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
- obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
-+obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
- obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
- obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
- obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
-diff --git a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c
-new file mode 100644
-index 0000000..a7ca247
---- /dev/null
-+++ b/drivers/media/i2c/dw9714.c
-@@ -0,0 +1,332 @@
-+/*
-+ * Copyright (c) 2015--2017 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/module.h>
-+#include <linux/pm_runtime.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+
-+#define DW9714_NAME		"dw9714"
-+#define DW9714_MAX_FOCUS_POS	1023
-+#define DW9714_CTRL_STEPS	16	/* Keep this value power of 2 */
-+#define DW9714_CTRL_DELAY_US	1000
-+/*
-+ * S[3:2] = 0x00, codes per step for "Linear Slope Control"
-+ * S[1:0] = 0x00, step period
-+ */
-+#define DW9714_DEFAULT_S 0x0
-+#define DW9714_VAL(data, s) (u16)((data) << 4 | (s))
-+
-+/* dw9714 device structure */
-+struct dw9714_device {
-+	struct i2c_client *client;
-+	struct v4l2_ctrl_handler ctrls_vcm;
-+	struct v4l2_subdev sd;
-+	u16 current_val;
-+};
-+
-+#define to_dw9714_vcm(_ctrl)	\
-+	container_of(_ctrl->handler, struct dw9714_device, ctrls_vcm)
-+
-+static int dw9714_i2c_write(struct i2c_client *client, u16 data)
-+{
-+	const int num_msg = 1;
-+	int ret;
-+	u16 val = cpu_to_be16(data);
-+	struct i2c_msg msg = {
-+		.addr = client->addr,
-+		.flags = 0,
-+		.len = sizeof(val),
-+		.buf = (u8 *) &val,
-+	};
-+
-+	ret = i2c_transfer(client->adapter, &msg, num_msg);
-+
-+	/*One retry */
-+	if (ret != num_msg)
-+		ret = i2c_transfer(client->adapter, &msg, num_msg);
-+
-+	if (ret != num_msg) {
-+		dev_err(&client->dev, "I2C write fail\n");
-+		return -EIO;
-+	}
-+	return 0;
-+}
-+
-+static int dw9714_t_focus_vcm(struct dw9714_device *dw9714_dev, u16 val)
-+{
-+	struct i2c_client *client = dw9714_dev->client;
-+
-+	dw9714_dev->current_val = val;
-+
-+	return dw9714_i2c_write(client, DW9714_VAL(val, DW9714_DEFAULT_S));
-+}
-+
-+static int dw9714_set_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct dw9714_device *dev_vcm = to_dw9714_vcm(ctrl);
-+
-+	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE)
-+		return dw9714_t_focus_vcm(dev_vcm, ctrl->val);
-+
-+	return -EINVAL;
-+}
-+
-+static const struct v4l2_ctrl_ops dw9714_vcm_ctrl_ops = {
-+	.s_ctrl = dw9714_set_ctrl,
-+};
-+
-+static int dw9714_init_controls(struct dw9714_device *dev_vcm)
-+{
-+	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
-+	const struct v4l2_ctrl_ops *ops = &dw9714_vcm_ctrl_ops;
-+	struct i2c_client *client = dev_vcm->client;
-+
-+	v4l2_ctrl_handler_init(hdl, 1);
-+
-+	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
-+			  0, DW9714_MAX_FOCUS_POS, 1, 0);
-+
-+	if (hdl->error)
-+		dev_err(&client->dev, "dw9714_init_controls fail\n");
-+	dev_vcm->sd.ctrl_handler = hdl;
-+	return hdl->error;
-+}
-+
-+static void dw9714_subdev_cleanup(struct dw9714_device *dw9714_dev)
-+{
-+	v4l2_async_unregister_subdev(&dw9714_dev->sd);
-+	v4l2_device_unregister_subdev(&dw9714_dev->sd);
-+	v4l2_ctrl_handler_free(&dw9714_dev->ctrls_vcm);
-+	media_entity_cleanup(&dw9714_dev->sd.entity);
-+}
-+
-+static int dw9714_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct dw9714_device *dw9714_dev = container_of(sd,
-+							struct dw9714_device,
-+							sd);
-+	struct device *dev = &dw9714_dev->client->dev;
-+	int rval;
-+
-+	rval = pm_runtime_get_sync(dev);
-+	if (rval >= 0)
-+		return 0;
-+
-+	pm_runtime_put(dev);
-+	return rval;
-+}
-+
-+static int dw9714_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct dw9714_device *dw9714_dev = container_of(sd,
-+							struct dw9714_device,
-+							sd);
-+	struct device *dev = &dw9714_dev->client->dev;
-+
-+	pm_runtime_put(dev);
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_internal_ops dw9714_int_ops = {
-+	.open = dw9714_open,
-+	.close = dw9714_close,
-+};
-+
-+static const struct v4l2_subdev_ops dw9714_ops = { };
-+
-+static int dw9714_probe(struct i2c_client *client,
-+			const struct i2c_device_id *devid)
-+{
-+	struct dw9714_device *dw9714_dev;
-+	int rval;
-+
-+	dw9714_dev = devm_kzalloc(&client->dev, sizeof(*dw9714_dev),
-+				  GFP_KERNEL);
-+
-+	if (dw9714_dev == NULL)
-+		return -ENOMEM;
-+
-+	dw9714_dev->client = client;
-+
-+	v4l2_i2c_subdev_init(&dw9714_dev->sd, client, &dw9714_ops);
-+	dw9714_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	dw9714_dev->sd.internal_ops = &dw9714_int_ops;
-+
-+	rval = dw9714_init_controls(dw9714_dev);
-+	if (rval)
-+		goto err_cleanup;
-+
-+	rval = media_entity_pads_init(&dw9714_dev->sd.entity, 0, NULL);
-+	if (rval < 0)
-+		goto err_cleanup;
-+
-+	dw9714_dev->sd.entity.function = MEDIA_ENT_F_LENS;
-+
-+	rval = v4l2_async_register_subdev(&dw9714_dev->sd);
-+	if (rval < 0)
-+		goto err_cleanup;
-+
-+	pm_runtime_enable(&client->dev);
-+
-+	return 0;
-+
-+err_cleanup:
-+	dw9714_subdev_cleanup(dw9714_dev);
-+	dev_err(&client->dev, "Probe failed: %d\n", rval);
-+	return rval;
-+}
-+
-+static int dw9714_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9714_device *dw9714_dev = container_of(sd,
-+							struct dw9714_device,
-+							sd);
-+
-+	pm_runtime_disable(&client->dev);
-+	dw9714_subdev_cleanup(dw9714_dev);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+
-+/* This function sets the vcm position, so it consumes least current */
-+static int dw9714_vcm_suspend(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9714_device *dw9714_dev = container_of(sd,
-+							struct dw9714_device,
-+							sd);
-+	int ret, val;
-+
-+	for (val = dw9714_dev->current_val & ~(DW9714_CTRL_STEPS - 1);
-+	     val >= 0; val -= DW9714_CTRL_STEPS) {
-+		ret = dw9714_i2c_write(client,
-+				       DW9714_VAL((u16) val, DW9714_DEFAULT_S));
-+		if (ret)
-+			dev_err(dev, "%s I2C failure: %d", __func__, ret);
-+		usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * This function sets the vcm position, so the focus position is set
-+ * closer to the camera
-+ */
-+static int dw9714_vcm_resume(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9714_device *dw9714_dev = container_of(sd,
-+							struct dw9714_device,
-+							sd);
-+	int ret, val;
-+
-+	for (val = dw9714_dev->current_val % DW9714_CTRL_STEPS;
-+	     val < dw9714_dev->current_val + DW9714_CTRL_STEPS - 1;
-+	     val += DW9714_CTRL_STEPS) {
-+		ret = dw9714_i2c_write(client,
-+				       DW9714_VAL((u16) val, DW9714_DEFAULT_S));
-+		if (ret)
-+			dev_err(dev, "%s I2C failure: %d", __func__, ret);
-+		usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
-+	}
-+
-+	/* restore v4l2 control values */
-+	ret = v4l2_ctrl_handler_setup(&dw9714_dev->ctrls_vcm);
-+	return ret;
-+}
-+
-+static int dw9714_runtime_suspend(struct device *dev)
-+{
-+	return dw9714_vcm_suspend(dev);
-+}
-+
-+static int dw9714_runtime_resume(struct device *dev)
-+{
-+	return dw9714_vcm_resume(dev);
-+}
-+
-+static int dw9714_suspend(struct device *dev)
-+{
-+	return dw9714_vcm_suspend(dev);
-+}
-+
-+static int dw9714_resume(struct device *dev)
-+{
-+	return dw9714_vcm_resume(dev);
-+}
-+
-+#else
-+
-+#define dw9714_suspend	NULL
-+#define dw9714_resume	NULL
-+#define dw9714_vcm_suspend	NULL
-+#define dw9714_vcm_resume	NULL
-+#define dw9714_runtime_suspend	NULL
-+#define dw9714_runtime_resume	NULL
-+
-+#endif /* CONFIG_PM */
-+
-+#ifdef CONFIG_ACPI
-+static const struct acpi_device_id dw9714_acpi_match[] = {
-+	{"DW9714", 0},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(acpi, dw9714_acpi_match);
-+#endif
-+
-+static const struct i2c_device_id dw9714_id_table[] = {
-+	{DW9714_NAME, 0},
-+	{}
-+};
-+
-+MODULE_DEVICE_TABLE(i2c, dw9714_id_table);
-+
-+static const struct dev_pm_ops dw9714_pm_ops = {
-+	.suspend = dw9714_suspend,
-+	.resume = dw9714_resume,
-+	.runtime_suspend = dw9714_runtime_suspend,
-+	.runtime_resume = dw9714_runtime_resume,
-+};
-+
-+static struct i2c_driver dw9714_i2c_driver = {
-+	.driver = {
-+		.name = DW9714_NAME,
-+		.pm = &dw9714_pm_ops,
-+#ifdef CONFIG_ACPI
-+		.acpi_match_table = ACPI_PTR(dw9714_acpi_match),
-+#endif
-+	},
-+	.probe = dw9714_probe,
-+	.remove = dw9714_remove,
-+	.id_table = dw9714_id_table,
-+};
-+
-+module_i2c_driver(dw9714_i2c_driver);
-+
-+MODULE_AUTHOR("Tianshu Qiu <tian.shu.qiu@intel.com>");
-+MODULE_AUTHOR("Jian Xu Zheng <jian.xu.zheng@intel.com>");
-+MODULE_AUTHOR("Yuning Pu <yuning.pu@intel.com>");
-+MODULE_AUTHOR("Jouni Ukkonen <jouni.ukkonen@intel.com>");
-+MODULE_AUTHOR("Tommi Franttila <tommi.franttila@intel.com>");
-+MODULE_DESCRIPTION("DW9714 VCM driver");
-+MODULE_LICENSE("GPL");
--- 
-1.9.1
+On Thu, May 04, 2017 at 03:38:56PM +0200, Philipp Zabel wrote:
+> Add bindings documentation for the video multiplexer device.
+>=20
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> Acked-by: Peter Rosin <peda@axentia.se>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+
+-- Sebastian
+
+> ---
+> No changes since v2 [1].
+>=20
+> This was previously sent as part of Steve's i.MX media series [2].
+>=20
+> [1] https://patchwork.kernel.org/patch/9708235/
+> [2] https://patchwork.kernel.org/patch/9647951/
+> ---
+>  .../devicetree/bindings/media/video-mux.txt        | 60 ++++++++++++++++=
+++++++
+>  1 file changed, 60 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/video-mux.txt
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/video-mux.txt b/Docu=
+mentation/devicetree/bindings/media/video-mux.txt
+> new file mode 100644
+> index 0000000000000..63b9dc913e456
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/video-mux.txt
+> @@ -0,0 +1,60 @@
+> +Video Multiplexer
+> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> +
+> +Video multiplexers allow to select between multiple input ports. Video r=
+eceived
+> +on the active input port is passed through to the output port. Muxes des=
+cribed
+> +by this binding are controlled by a multiplexer controller that is descr=
+ibed by
+> +the bindings in Documentation/devicetree/bindings/mux/mux-controller.txt
+> +
+> +Required properties:
+> +- compatible : should be "video-mux"
+> +- mux-controls : mux controller node to use for operating the mux
+> +- #address-cells: should be <1>
+> +- #size-cells: should be <0>
+> +- port@*: at least three port nodes containing endpoints connecting to t=
+he
+> +  source and sink devices according to of_graph bindings. The last port =
+is
+> +  the output port, all others are inputs.
+> +
+> +Optionally, #address-cells, #size-cells, and port nodes can be grouped u=
+nder a
+> +ports node as described in Documentation/devicetree/bindings/graph.txt.
+> +
+> +Example:
+> +
+> +	mux: mux-controller {
+> +		compatible =3D "gpio-mux";
+> +		#mux-control-cells =3D <0>;
+> +
+> +		mux-gpios =3D <&gpio1 15 GPIO_ACTIVE_HIGH>;
+> +	};
+> +
+> +	video-mux {
+> +		compatible =3D "video-mux";
+> +		mux-controls =3D <&mux>;
+> +		#address-cells =3D <1>;
+> +		#size-cells =3D <0>;
+> +
+> +		port@0 {
+> +			reg =3D <0>;
+> +
+> +			mux_in0: endpoint {
+> +				remote-endpoint =3D <&video_source0_out>;
+> +			};
+> +		};
+> +
+> +		port@1 {
+> +			reg =3D <1>;
+> +
+> +			mux_in1: endpoint {
+> +				remote-endpoint =3D <&video_source1_out>;
+> +			};
+> +		};
+> +
+> +		port@2 {
+> +			reg =3D <2>;
+> +
+> +			mux_out: endpoint {
+> +				remote-endpoint =3D <&capture_interface_in>;
+> +			};
+> +		};
+> +	};
+> +};
+> --=20
+> 2.11.0
+>=20
+
+--odjczrke3pxkanq7
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlkLNxIACgkQ2O7X88g7
++prceQ//dWQYu5QUsU3YNoFm0EjEne5McWDLy+2m6BxgNY/mINVfwRcjNsTT7HAX
+7oGr1eJUu8eRVQPv5PjNUoAQUeJmQ8v0cwZyd1X3VBIHXtMmEl+o0et7qaU/mkXQ
+HnHviyRJ3P9So8SM1SeYsOa33BJra7185x3KhEGzw9bk88tHj5Krq2hUw6vYotEw
+4qesMGPUPtf7aCzhnUQNtHfAhAiO6L8D8aG2Qvls1DKBjO/keixOSyrc02mgmPQA
+GPZ7Wvf8H0s0By14QFtC4dqo7hAI+G8NFJz7wOsphmdP27kvuC0U6heK2HGZmCxv
+eumz5WZYoQ0NcfQq3DIEaa1SOUvaUBakmgjrJ0UCbBAs8NKSWglb9uN9ayyjonOn
+RXlinf433Q2JMZ7n4F29wwzwkeve+V8Qp94Oz9DfIhQopIJO/9nxshiJpxQSv4lW
+kOpwsiGA9QHyuDOAJcoNLpbkFg3DTxeHiCtZnT6lrsIHKOMAo5jK1i+4lQrA+6y/
+I7rjYmnWrU924L42Va9qShnxGx94SwN+PVwnz7e9Bo3E50vMOsa15j41bvHoV/6M
+rXtMwmYx1zeMN0D9d5CiF5/72lL4eMShgkOHX/kIoRHWdPhdfF5wd1L6rzAZNTrX
+ASv+wxE8DEBbqP7zIn2KyK0VWMdfMWU4k6mS/XPqFJztVqL705Q=
+=/sYs
+-----END PGP SIGNATURE-----
+
+--odjczrke3pxkanq7--
