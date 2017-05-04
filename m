@@ -1,54 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:37978 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753448AbdEENnF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 May 2017 09:43:05 -0400
-Received: by mail-wm0-f46.google.com with SMTP id 142so6729525wma.1
-        for <linux-media@vger.kernel.org>; Fri, 05 May 2017 06:43:00 -0700 (PDT)
-Subject: Re: [PATCH v8 00/10] Qualcomm video decoder/encoder driver
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
- <c0bdbddd-e6df-f8a5-6d04-0d4e84c9dd0a@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <59e18457-118f-94fe-58c5-7a0567bcde15@linaro.org>
-Date: Fri, 5 May 2017 16:42:44 +0300
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55454 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751281AbdEDUcS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 May 2017 16:32:18 -0400
+Date: Thu, 4 May 2017 23:32:08 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Peter Rosin <peda@axentia.se>, Pavel Machek <pavel@ucw.cz>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v3 2/2] [media] platform: add video-multiplexer subdevice
+ driver
+Message-ID: <20170504203208.GC7456@valkosipuli.retiisi.org.uk>
+References: <1493905137-27051-1-git-send-email-p.zabel@pengutronix.de>
+ <1493905137-27051-2-git-send-email-p.zabel@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <c0bdbddd-e6df-f8a5-6d04-0d4e84c9dd0a@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1493905137-27051-2-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Philipp,
 
-On 05/05/2017 03:44 PM, Hans Verkuil wrote:
-> Hi Stanimir,
-> 
-> It looks good to me. I do think that patch 01/10 shouldn't go through
-> media. This might mean that we have to drop the COMPILE_TEST dependency
-> on the media driver until this firmware driver patch gets merged, which
-> is fine with me as long as this is clearly stated in the commit log for
-> the media Kconfig. Let me know what you want to do with this.
+On Thu, May 04, 2017 at 03:38:57PM +0200, Philipp Zabel wrote:
+...
+> +static const struct of_device_id video_mux_dt_ids[] = {
+> +	{ .compatible = "video-mux", },
+> +	{ /* sentinel */ }
+> +};
+> +MODULE_DEVICE_TABLE(of, video_mux_dt_ids);
+> +
+> +static struct platform_driver video_mux_driver = {
 
-OK, the best I can do is to drop COMPILE_TEST for Venus driver in this
-patch set and work separately on qcom_scm firmware driver patching. Thus
-I will repost v9 version next week.
+Shouldn't this be const?
 
-> 
-> I also saw some comments for patch 05/10, but I'm not sure if that would
-> block merging this driver or can be fixed afterwards.
+With that,
 
-I will prefix the exported symbols from venus-core driver as pointed by
-Sakari in next v9 version plus fixes for few signed-unsigned compare
-warnings.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+> +	.probe		= video_mux_probe,
+> +	.remove		= video_mux_remove,
+> +	.driver		= {
+> +		.of_match_table = video_mux_dt_ids,
+> +		.name = "video-mux",
+> +	},
+> +};
+> +
+> +module_platform_driver(video_mux_driver);
+> +
+> +MODULE_DESCRIPTION("video stream multiplexer");
+> +MODULE_AUTHOR("Sascha Hauer, Pengutronix");
+> +MODULE_AUTHOR("Philipp Zabel, Pengutronix");
+> +MODULE_LICENSE("GPL");
 
 -- 
-regards,
-Stan
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
