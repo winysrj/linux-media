@@ -1,113 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:35906 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754100AbdEGWEb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 7 May 2017 18:04:31 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com, jasmin@anw.at
-Subject: [PATCH 08/11] [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 4
-Date: Sun,  7 May 2017 23:23:31 +0200
-Message-Id: <1494192214-20082-9-git-send-email-jasmin@anw.at>
-In-Reply-To: <1494192214-20082-1-git-send-email-jasmin@anw.at>
-References: <1494192214-20082-1-git-send-email-jasmin@anw.at>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38818 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750773AbdEDIuz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 May 2017 04:50:55 -0400
+Date: Thu, 4 May 2017 11:50:22 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com
+Subject: Re: [PATCH] ov5670: Add Omnivision OV5670 5M sensor support
+Message-ID: <20170504085021.GU7456@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170504084850.GT7456@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+On Thu, May 04, 2017 at 11:48:51AM +0300, Sakari Ailus wrote:
+> On Wed, May 03, 2017 at 03:06:52PM -0700, Chiranjeevi Rapolu wrote:
+> > Provides single source pad with up to 2576x1936 pixels at 10-bit raw
+> > bayer format over MIPI CSI2 two lanes at 640Mbps/lane.
+> > Supports up to 30fps at 5M pixels, up to 60fps at 1080p.
+> > 
+> > Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+> > ---
+> >  drivers/media/i2c/Kconfig  |   11 +
+> >  drivers/media/i2c/Makefile |    1 +
+> >  drivers/media/i2c/ov5670.c | 3890 ++++++++++++++++++++++++++++++++++++++++++++
+> >  3 files changed, 3902 insertions(+)
+> >  create mode 100644 drivers/media/i2c/ov5670.c
+> > 
+> > diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> > index cee1dae..ded8485 100644
+> > --- a/drivers/media/i2c/Kconfig
+> > +++ b/drivers/media/i2c/Kconfig
+> > @@ -531,6 +531,17 @@ config VIDEO_OV2659
+> >  	  To compile this driver as a module, choose M here: the
+> >  	  module will be called ov2659.
+> >  
+> > +config VIDEO_OV5670
+> > +	tristate "OmniVision OV5670 sensor support"
+> > +	depends on I2C && VIDEO_V4L2
+> > +	depends on MEDIA_CAMERA_SUPPORT
 
-Fixed all:
-  WARNING: Missing a blank line after declarations
-  WARNING: Block comments use * on subsequent lines
+select V4L2_FWNODE
 
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
----
- drivers/media/dvb-core/dvb_ca_en50221.c | 24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-index af66c83..090f343 100644
---- a/drivers/media/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-@@ -178,7 +178,9 @@ static void dvb_ca_private_free(struct dvb_ca_private *ca)
- 
- static void dvb_ca_private_release(struct kref *ref)
- {
--	struct dvb_ca_private *ca = container_of(ref, struct dvb_ca_private, refcount);
-+	struct dvb_ca_private *ca;
-+
-+	ca = container_of(ref, struct dvb_ca_private, refcount);
- 	dvb_ca_private_free(ca);
- }
- 
-@@ -237,6 +239,7 @@ static int dvb_ca_en50221_check_camstatus(struct dvb_ca_private *ca, int slot)
- 	struct dvb_ca_slot *sl = &ca->slot_info[slot];
- 	int slot_status;
- 	int cam_present_now;
-+	int cam_present_old;
- 	int cam_changed;
- 
- 	/* IRQ mode */
-@@ -249,7 +252,7 @@ static int dvb_ca_en50221_check_camstatus(struct dvb_ca_private *ca, int slot)
- 	cam_present_now = (slot_status & DVB_CA_EN50221_POLL_CAM_PRESENT) ? 1 : 0;
- 	cam_changed = (slot_status & DVB_CA_EN50221_POLL_CAM_CHANGED) ? 1 : 0;
- 	if (!cam_changed) {
--		int cam_present_old = (sl->slot_state != SLOT_STAT_NONE);
-+		cam_present_old = (sl->slot_state != SLOT_STAT_NONE);
- 		cam_changed = (cam_present_now != cam_present_old);
- 	}
- 
-@@ -294,7 +297,8 @@ static int dvb_ca_en50221_wait_if_status(struct dvb_ca_private *ca, int slot,
- 	timeout = jiffies + timeout_hz;
- 	while (1) {
- 		/* read the status and check for error */
--		int res = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS);
-+		int res = ca->pub->read_cam_control(ca->pub, slot,
-+						    CTRLIF_STATUS);
- 		if (res < 0)
- 			return -EIO;
- 
-@@ -809,9 +813,10 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot,
- 		return ca->pub->write_data(ca->pub, slot, buf, bytes_write);
- 
- 	/* it is possible we are dealing with a single buffer implementation,
--	   thus if there is data available for read or if there is even a read
--	   already in progress, we do nothing but awake the kernel thread to
--	   process the data if necessary. */
-+	 * thus if there is data available for read or if there is even a read
-+	 * already in progress, we do nothing but awake the kernel thread to
-+	 * process the data if necessary.
-+	 */
- 	status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS);
- 	if (status < 0)
- 		goto exitnowrite;
-@@ -921,8 +926,9 @@ static int dvb_ca_en50221_slot_shutdown(struct dvb_ca_private *ca, int slot)
- 	ca->pub->slot_shutdown(ca->pub, slot);
- 	ca->slot_info[slot].slot_state = SLOT_STAT_NONE;
- 
--	/* need to wake up all processes to check if they're now
--	   trying to write to a defunct CAM */
-+	/* need to wake up all processes to check if they're now trying to
-+	 * write to a defunct CAM
-+	 */
- 	wake_up_interruptible(&ca->wait_queue);
- 
- 	dprintk("Slot %i shutdown\n", slot);
-@@ -1342,6 +1348,7 @@ static int dvb_ca_en50221_io_do_ioctl(struct file *file,
- 	case CA_RESET:
- 		for (slot = 0; slot < ca->slot_count; slot++) {
- 			struct dvb_ca_slot *sl = &ca->slot_info[slot];
-+
- 			mutex_lock(&sl->slot_lock);
- 			if (sl->slot_state != SLOT_STAT_NONE) {
- 				dvb_ca_en50221_slot_shutdown(ca, slot);
-@@ -1862,6 +1869,7 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
- 	/* now initialise each slot */
- 	for (i = 0; i < slot_count; i++) {
- 		struct dvb_ca_slot *sl = &ca->slot_info[i];
-+
- 		memset(sl, 0, sizeof(struct dvb_ca_slot));
- 		sl->slot_state = SLOT_STAT_NONE;
- 		atomic_set(&sl->camchange_count, 0);
 -- 
-2.7.4
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
