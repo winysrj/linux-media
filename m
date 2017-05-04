@@ -1,50 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:47448 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751276AbdEGVsK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 7 May 2017 17:48:10 -0400
-From: Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>
-To: <Alexandru_Gheorghe@mentor.com>,
-        <laurent.pinchart@ideasonboard.com>,
-        <linux-renesas-soc@vger.kernel.org>,
-        <dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>,
-        <geert@linux-m68k.org>, <sergei.shtylyov@cogentembedded.com>
-Subject: [PATCH v2 0/2] rcar-du, vsp1: rcar-gen3: Add support for colorkey alpha blending
-Date: Sun, 7 May 2017 13:13:25 +0300
-Message-ID: <1494152007-30094-1-git-send-email-Alexandru_Gheorghe@mentor.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:37043 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752039AbdEDO1f (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 10:27:35 -0400
+Date: Thu, 4 May 2017 16:27:30 +0200
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        pavel@ucw.cz
+Subject: Re: [RFC 1/3] dt: bindings: Add a binding for flash devices
+ associated to a sensor
+Message-ID: <20170504142730.tq4k3paofmyk5jul@earth>
+References: <1493720749-31509-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1493720749-31509-2-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="nfnej6heq332xss3"
+Content-Disposition: inline
+In-Reply-To: <1493720749-31509-2-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, rcar-du supports colorkeying  only for rcar-gen2 and it uses 
-some hw capability of the display unit(DU) which is not available on gen3.
-In order to implement colorkeying for gen3 we need to use the colorkey
-capability of the VSPD, hence the need to change both drivers rcar-du and
-vsp1.
 
-This patchset had been developed and tested on top of v4.9/rcar-3.5.1 from
-git://git.kernel.org/pub/scm/linux/kernel/git/horms/renesas-bsp.git
+--nfnej6heq332xss3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Changes since v1:
-- group boolean variables to reduce object size
-- fixed signoff
+Hi Sakari,
 
-Alexandru Gheorghe (2):
-  v4l: vsp1: Add support for colorkey alpha blending
-  drm: rcar-du: Add support for colorkey alpha blending
+On Tue, May 02, 2017 at 01:25:47PM +0300, Sakari Ailus wrote:
+> Camera flash drivers (and LEDs) are separate from the sensor devices in
+> DT. In order to make an association between the two, provide the
+> association information to the software.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 11 ++++++=
++++++
+>  1 file changed, 11 insertions(+)
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt=
+ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index 9cd2a36..d6c62bc 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -67,6 +67,17 @@ are required in a relevant parent node:
+>  		    identifier, should be 1.
+>   - #size-cells    : should be zero.
+> =20
+> +
+> +Optional properties
+> +-------------------
+> +
+> +- flash: An array of phandles that refer to the flash light sources
+> +  related to an image sensor. These could be e.g. LEDs. In case the LED
+> +  driver drives more than a single LED, then the phandles here refer to
+> +  the child nodes of the LED driver describing individual LEDs. Only
+> +  valid for device nodes that are related to an image sensor.
 
- drivers/gpu/drm/rcar-du/rcar_du_drv.h   |  1 +
- drivers/gpu/drm/rcar-du/rcar_du_kms.c   |  8 ++++++++
- drivers/gpu/drm/rcar-du/rcar_du_plane.c |  3 ---
- drivers/gpu/drm/rcar-du/rcar_du_plane.h |  6 ++++++
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c   | 22 ++++++++++++++++++++++
- drivers/gpu/drm/rcar-du/rcar_du_vsp.h   |  5 +++++
- drivers/media/platform/vsp1/vsp1_drm.c  |  3 +++
- drivers/media/platform/vsp1/vsp1_rpf.c  | 10 ++++++++--
- drivers/media/platform/vsp1/vsp1_rwpf.h |  3 +++
- include/media/vsp1.h                    |  3 +++
- 10 files changed, 59 insertions(+), 5 deletions(-)
+s/driver/controller/g - DT describes HW. Otherwise
 
--- 
-1.9.1
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+
+-- Sebastian
+
+--nfnej6heq332xss3
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlkLOlIACgkQ2O7X88g7
++por8BAAlQQRcQ+jFHXsbbUlmSNQjawbXssH4D/s8drzn2t4kNnCAhDeWUcbeL6u
+sedolCO5BjCK4TEGqAj7Ouw+Ua9f8lRsAypw5ytRioCNkQ5vbbcYYNhUQRSoeVC3
+Sky7HSBa8xTiRV541u2/e0niiS0DkLY5CBoLf6s5mh99z3eJ+Za11MjT38b/wlqw
+34VAd2yLepfdkkXxXfBdec+IY7/dv/9dzUTWrrKfovaEPGDBbtoXklbk0/Npr/Qe
+JTR1OibVTy7P/5tIf8KVXqbtey3MJY+zwAeT9+8Qe6+AiYc0oGSpWFPwQfkEIO9O
+ifh3RtabeffE/nIr15d3VbEbzsdYXvxHfzxJZBkZZVDP8cYs7fxwgQd91HL7cQbL
+9fnzu87P/hdcouIyFPy13BZBU2a7r7hXpf476NEOkijtdBNIdOKORIwAZC56f5M9
+VyfAJCDaW5t1GG/ds/4rIpfAFlQhsim8vGV2mTEV60ZZ7RjB4izV7fafcrtvE8/l
+2BiOEVXTTwDK4WltfUbcDee45SP5jhwP9H/VT+04VJMP4qoNwfYuTVtzhX18h8uR
+kz8xy6++KXRk0+/3+USOsE9uQpKeZ4WwIhrkqFz2F0tJviBOFdIIuBiBq1t7TATW
+Q082xUp5taXDVrYo9a4Z0p98OhOgLaiIBket6WYkBnG+YZBnESo=
+=FVIr
+-----END PGP SIGNATURE-----
+
+--nfnej6heq332xss3--
