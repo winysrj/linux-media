@@ -1,131 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39684 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751323AbdELKuL (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:9435 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751458AbdEDHgc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 May 2017 06:50:11 -0400
-Date: Fri, 12 May 2017 13:49:30 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, pavel@ucw.cz
-Subject: Re: [PATCH v3 1/2] v4l: Add camera voice coil lens control class,
- current control
-Message-ID: <20170512104930.GJ3227@valkosipuli.retiisi.org.uk>
-References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
- <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170414232332.63850d7b@vento.lan>
- <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan>
+        Thu, 4 May 2017 03:36:32 -0400
+Subject: Re: [PATCH v4 0/8] Add support for DCMI camera interface of
+ STMicroelectronics STM32 SoC series
+To: Hugues Fruchet <hugues.fruchet@st.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+References: <1492704445-22186-1-git-send-email-hugues.fruchet@st.com>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>
+From: Alexandre Torgue <alexandre.torgue@st.com>
+Message-ID: <b6cee1d6-a07a-87ac-4f9e-aad6747f60bc@st.com>
+Date: Thu, 4 May 2017 09:35:53 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170419105118.72b8e284@vento.lan>
+In-Reply-To: <1492704445-22186-1-git-send-email-hugues.fruchet@st.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Hugues,
 
-On Wed, Apr 19, 2017 at 10:51:18AM -0300, Mauro Carvalho Chehab wrote:
-> Em Sun, 16 Apr 2017 12:12:10 +0300
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > On Fri, Apr 14, 2017 at 11:23:32PM -0300, Mauro Carvalho Chehab wrote:
-> > > Hi Sakari,
-> > > 
-> > > Em Tue, 14 Feb 2017 14:20:22 +0200
-> > > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> > >   
-> > > > Add a V4L2 control class for voice coil lens driver devices. These are
-> > > > simple devices that are used to move a camera lens from its resting
-> > > > position.  
-> > > 
-> > > From some past threads with this patch, you mentioned that:
-> > > 
-> > > "The FOCUS_ABSOLUTE control really is not a best control ID to
-> > >  control a voice coil driver's current."
-> > > 
-> > > However, I'm not seeing any explanation there at the thread, at
-> > > the patch description or at the documentation explaining why, and,
-> > > more important, when someone should use the focus control or the
-> > > camera voice coil control.  
-> > 
-> > It should be available in the thread.
-> 
-> The email thread is not registered at git logs nor at the API spec.
-> 
-> > Nevertheless, V4L2_CID_FOCUS_ABSOLUTE
-> > is documented as follows (emphasis mine):
-> > 
-> > 	This control sets the *focal point* of the camera to the specified
-> > 	position. The unit is undefined. Positive values set the focus
-> > 	closer to the camera, negative values towards infinity.
-> > 
-> > What you control in voice coil devices is current (in Ampères) and the
-> > current only has a relatively loose relation to the focal point.
-> 
-> The real problem I'm seeing here is that this control is already
-> used by voice coil motor (VCM). Several UVC-based Logitech cameras
-> come with VCM, like their QuickCam Pro-series webcams:
-> 
-> 	https://secure.logitech.com/en-hk/articles/3231
-> 
-> The voice coil can be seen on this picture:
-> 	https://photo.stackexchange.com/questions/48678/can-i-modify-a-logitech-c615-webcam-for-infinity-focus
+On 04/20/2017 06:07 PM, Hugues Fruchet wrote:
+> This patchset introduces a basic support for Digital Camera Memory Interface
+> (DCMI) of STMicroelectronics STM32 SoC series.
+>
+> This first basic support implements RGB565 & YUV frame grabbing.
+> Cropping and JPEG support will be added later on.
+>
+> This has been tested on STM324x9I-EVAL evaluation board embedding
+> an OV2640 camera sensor.
+>
+> This driver depends on:
+>   - [PATCHv6 00/14] atmel-isi/ov7670/ov2640: convert to standalone drivers http://www.spinics.net/lists/linux-media/msg113480.html
 
-There may be voice coil lens implementations that are indirectly controlled
-through this control. Those are hardware solutions that have been taken in
-UVC webcams, for instance. The UVC standard itself uses millimeters.
+For stm32 machine part (DT+config):
+Acked-by: Alexandre TORGUE <alexandre.torgue@st.com>
 
-Lens systems based on voice coils generally cannot focus at a given exact
-distance for they have no concept of focussing at a particular distance.
-Instead, an auto focus algorithm analyses the image data (or statistics of
-image data) to control the lens --- in other words, to set current, not
-distance.
+I will add it in future pull request.
 
-As the auto focus algorithms require both image data (or statistics) and
-access to lens voice coil as well as for algorithmic complexity, they are
-typically implemented in user space.
+Regards
+Alex
 
-In other words, the VOICE_COIL_CURRENT control is thus used by user space to
-implement what the user expects from FOCUS_AUTO control. It could be
-implemented in libv4l2 or a different user space component.
-VOICE_COIL_CURRENT control is not a control which is expected to be used by
-an end user application --- unlike FOCUS_AUTO.
-
-This camera module datasheet shows the dependency between current and lens
-position. See "Performance Diagram" on page 16:
-
-<URL:http://www.trulyamerica.com/wp-content/uploads/CM7945-B1200BA-E_V1.1.pdf>
-
-As you can see, lens position may start changing by applying a current
-between 14 and 34 mA, but exactly how much is specific to a given camera
-module unit. This means that there is no direct mapping between the current
-and the focus distance.
-
-Ringing compensation is another matter. Voice coils do ring unless it is
-compensated, something that the user of a control focussing at a particular
-distance expects. See the diagram on page 13:
-
-<URL:http://www.datasheetspdf.com/datasheet/download.php?id=840322>
-
-Do note that even this is not uniform with systems with the dw9714 lens
-controller: the properties depend on the lens spring spring constant and the
-weight of the moving lens package, for instance.
-
-For these reasons I do think that this warrants having a specific control
-for such devices.
-
-Additionally, there will be controls related to ringing compensation. The
-user (for an auto focus algorithm) still might want to disable the hardware
-ringing compensation so a menu control would be needed for the purpose.
-That's something that can well be addressed later on, just FYI.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+>
+> ===========
+> = history =
+> ===========
+> version 4:
+>   - "v4l2-compliance -s -f" report
+>   - fix behaviour in case of start_streaming failure (DMA memory shortage for ex.)
+>   - dt-bindings: Fix remarks from Rob Herring:
+>     http://www.mail-archive.com/linux-media@vger.kernel.org/msg111340.html
+>     Add "Acked-by: Rob Herring <robh@kernel.org>"
+>
+> version 3:
+>   - stm32-dcmi: Add "Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>"
+>   - dt-bindings: Fix remarks from Rob Herring:
+>     http://www.mail-archive.com/linux-media@vger.kernel.org/msg110956.html
+>
+> version 2:
+>   - Fix a Kbuild warning in probe:
+>     http://www.mail-archive.com/linux-media@vger.kernel.org/msg110678.html
+>   - Fix a warning in dcmi_queue_setup()
+>   - dt-bindings: warn on sensor signals level inversion in board example
+>   - Typos fixing
+>
+> version 1:
+>   - Initial submission
+>
+> ===================
+> = v4l2-compliance =
+> ===================
+> Below is the v4l2-compliance report for this current version of the DCMI camera interface.
+> v4l2-compliance has been built from v4l-utils-1.12.3.
+>
+> ~ # v4l2-compliance -s -f -d /dev/video0
+> v4l2-compliance SHA   : f5f45e17ee98a0ebad7836ade2b34ceec909d751
+>
+> Driver Info:
+>         Driver name   : stm32-dcmi
+>         Card type     : STM32 Digital Camera Memory Int
+>         Bus info      : platform:dcmi
+>         Driver version: 4.11.0
+>         Capabilities  : 0x85200001
+>                 Video Capture
+>                 Read/Write
+>                 Streaming
+>                 Extended Pix Format
+>                 Device Capabilities
+>         Device Caps   : 0x05200001
+>                 Video Capture
+>                 Read/Write
+>                 Streaming
+>                 Extended Pix Format
+>
+> Compliance test for device /dev/video0 (not using libv4l2):
+>
+> Required ioctls:
+>         test VIDIOC_QUERYCAP: OK
+>
+> Allow for multiple opens:
+>         test second video open: OK
+>         test VIDIOC_QUERYCAP: OK
+>         test VIDIOC_G/S_PRIORITY: OK
+>         test for unlimited opens: OK
+>
+> Debug ioctls:
+>         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>         test VIDIOC_LOG_STATUS: OK
+>
+> Input ioctls:
+>         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMINPUT: OK
+>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>         Inputs: 1 Audio Inputs: 0 Tuners: 0
+>
+> Output ioctls:
+>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+>
+> Input/Output configuration ioctls:
+>         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>         test VIDIOC_G/S_EDID: OK (Not Supported)
+>
+> Test input 0:
+>
+>         Control ioctls:
+>                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+>                 test VIDIOC_QUERYCTRL: OK
+>                 test VIDIOC_G/S_CTRL: OK
+>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>                 Standard Controls: 3 Private Controls: 0
+>
+>         Format ioctls:
+>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>                 test VIDIOC_G/S_PARM: OK (Not Supported)
+>                 test VIDIOC_G_FBUF: OK (Not Supported)
+>                 test VIDIOC_G_FMT: OK
+>                 test VIDIOC_TRY_FMT: OK
+>                 test VIDIOC_S_FMT: OK
+>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>                 test Cropping: OK (Not Supported)
+>                 test Composing: OK (Not Supported)
+>                 test Scaling: OK
+>
+>         Codec ioctls:
+>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+>
+>         Buffer ioctls:
+>                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>                 test VIDIOC_EXPBUF: OK
+>
+> Test input 0:
+>
+> Streaming ioctls:
+>         test read/write: OK
+>         test MMAP: OK
+>         test USERPTR: OK (Not Supported)
+>         test DMABUF: Cannot test, specify --expbuf-device
+>
+> Stream using all formats:
+>         test MMAP for Format YUYV, Frame Size 176x144:
+>                 Stride 352, Field None: OK
+>         test MMAP for Format YUYV, Frame Size 320x240:
+>                 Stride 640, Field None: OK
+>         test MMAP for Format UYVY, Frame Size 176x144:
+>                 Stride 352, Field None: OK
+>         test MMAP for Format UYVY, Frame Size 320x240:
+>                 Stride 640, Field None: OK
+>         test MMAP for Format RGBP, Frame Size 176x144:
+>                 Stride 352, Field None: OK
+>         test MMAP for Format RGBP, Frame Size 320x240:
+>                 Stride 640, Field None: OK
+>
+> Total: 52, Succeeded: 52, Failed: 0, Warnings: 0
+>
+> Hugues Fruchet (8):
+>   dt-bindings: Document STM32 DCMI bindings
+>   [media] stm32-dcmi: STM32 DCMI camera interface driver
+>   ARM: dts: stm32: Enable DCMI support on STM32F429 MCU
+>   ARM: dts: stm32: Enable DCMI camera interface on STM32F429-EVAL board
+>   ARM: dts: stm32: Enable STMPE1600 gpio expander of STM32F429-EVAL
+>     board
+>   ARM: dts: stm32: Enable OV2640 camera support of STM32F429-EVAL board
+>   ARM: configs: stm32: STMPE1600 GPIO expander
+>   ARM: configs: stm32: DCMI + OV2640 camera support
+>
+>  .../devicetree/bindings/media/st,stm32-dcmi.txt    |   46 +
+>  arch/arm/boot/dts/stm32429i-eval.dts               |   56 +
+>  arch/arm/boot/dts/stm32f429.dtsi                   |   37 +
+>  arch/arm/configs/stm32_defconfig                   |    9 +
+>  drivers/media/platform/Kconfig                     |   12 +
+>  drivers/media/platform/Makefile                    |    2 +
+>  drivers/media/platform/stm32/Makefile              |    1 +
+>  drivers/media/platform/stm32/stm32-dcmi.c          | 1419 ++++++++++++++++++++
+>  8 files changed, 1582 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
+>  create mode 100644 drivers/media/platform/stm32/Makefile
+>  create mode 100644 drivers/media/platform/stm32/stm32-dcmi.c
+>
