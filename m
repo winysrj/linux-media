@@ -1,122 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.14]:59085 "EHLO imap.netup.ru"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751030AbdEaCsn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 22:48:43 -0400
-Received: from mail-io0-f172.google.com (mail-io0-f172.google.com [209.85.223.172])
-        by imap.netup.ru (Postfix) with ESMTPSA id CE6CF8B31C4
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 05:48:40 +0300 (MSK)
-Received: by mail-io0-f172.google.com with SMTP id f102so6653826ioi.2
-        for <linux-media@vger.kernel.org>; Tue, 30 May 2017 19:48:40 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170409193828.18458-5-d.scheller.oss@gmail.com>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com> <20170409193828.18458-5-d.scheller.oss@gmail.com>
-From: Abylay Ospan <aospan@netup.ru>
-Date: Tue, 30 May 2017 22:48:18 -0400
-Message-ID: <CAK3bHNWaLZaBbTrdPHshuyojjbEv64hFQWT5LWE1zixu27VWqA@mail.gmail.com>
-Subject: Re: [PATCH 04/19] [media] dvb-frontends/cxd2841er: support
- CXD2837/38/43ER demods/Chip IDs
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: Kozlov Sergey <serjk@netup.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>, rjkm@metzlerbros.de
-Content-Type: text/plain; charset="UTF-8"
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:33063 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752589AbdEDPR1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 May 2017 11:17:27 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Peter Rosin <peda@axentia.se>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v4 1/2] [media] dt-bindings: Add bindings for video-multiplexer device
+Date: Thu,  4 May 2017 17:17:18 +0200
+Message-Id: <1493911039-10693-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Abylay Ospan <aospan@netup.ru>
+Add bindings documentation for the video multiplexer device.
 
-2017-04-09 15:38 GMT-04:00 Daniel Scheller <d.scheller.oss@gmail.com>:
-> From: Daniel Scheller <d.scheller@gmx.net>
->
-> Those demods are programmed in the same way as the CXD2841ER/54ER and can
-> be handled by this driver. Support added in a way matching the existing
-> code, supported delivery systems are set according to what each demod
-> supports.
->
-> Updates the type string setting used for printing the "attaching..." log
-> line aswell.
->
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
->  drivers/media/dvb-frontends/cxd2841er.c      | 24 +++++++++++++++++++++++-
->  drivers/media/dvb-frontends/cxd2841er_priv.h |  3 +++
->  2 files changed, 26 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-> index 09c25d7..72a27cc 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.c
-> +++ b/drivers/media/dvb-frontends/cxd2841er.c
-> @@ -3733,16 +3733,39 @@ static struct dvb_frontend *cxd2841er_attach(struct cxd2841er_config *cfg,
->                 priv->i2c_addr_slvx, priv->i2c_addr_slvt);
->         chip_id = cxd2841er_chip_id(priv);
->         switch (chip_id) {
-> +       case CXD2837ER_CHIP_ID:
-> +               snprintf(cxd2841er_t_c_ops.info.name, 128,
-> +                               "Sony CXD2837ER DVB-T/T2/C demodulator");
-> +               name = "CXD2837ER";
-> +               type = "C/T/T2";
-> +               break;
-> +       case CXD2838ER_CHIP_ID:
-> +               snprintf(cxd2841er_t_c_ops.info.name, 128,
-> +                               "Sony CXD2838ER ISDB-T demodulator");
-> +               cxd2841er_t_c_ops.delsys[0] = SYS_ISDBT;
-> +               cxd2841er_t_c_ops.delsys[1] = SYS_UNDEFINED;
-> +               cxd2841er_t_c_ops.delsys[2] = SYS_UNDEFINED;
-> +               name = "CXD2838ER";
-> +               type = "ISDB-T";
-> +               break;
->         case CXD2841ER_CHIP_ID:
->                 snprintf(cxd2841er_t_c_ops.info.name, 128,
->                                 "Sony CXD2841ER DVB-T/T2/C demodulator");
->                 name = "CXD2841ER";
-> +               type = "T/T2/C/ISDB-T";
-> +               break;
-> +       case CXD2843ER_CHIP_ID:
-> +               snprintf(cxd2841er_t_c_ops.info.name, 128,
-> +                               "Sony CXD2843ER DVB-T/T2/C/C2 demodulator");
-> +               name = "CXD2843ER";
-> +               type = "C/C2/T/T2";
->                 break;
->         case CXD2854ER_CHIP_ID:
->                 snprintf(cxd2841er_t_c_ops.info.name, 128,
->                                 "Sony CXD2854ER DVB-T/T2/C and ISDB-T demodulator");
->                 cxd2841er_t_c_ops.delsys[3] = SYS_ISDBT;
->                 name = "CXD2854ER";
-> +               type = "C/C2/T/T2/ISDB-T";
->                 break;
->         default:
->                 dev_err(&priv->i2c->dev, "%s(): invalid chip ID 0x%02x\n",
-> @@ -3762,7 +3785,6 @@ static struct dvb_frontend *cxd2841er_attach(struct cxd2841er_config *cfg,
->                 memcpy(&priv->frontend.ops,
->                         &cxd2841er_t_c_ops,
->                         sizeof(struct dvb_frontend_ops));
-> -               type = "T/T2/C/ISDB-T";
->         }
->
->         dev_info(&priv->i2c->dev,
-> diff --git a/drivers/media/dvb-frontends/cxd2841er_priv.h b/drivers/media/dvb-frontends/cxd2841er_priv.h
-> index 0bbce45..6a71264 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er_priv.h
-> +++ b/drivers/media/dvb-frontends/cxd2841er_priv.h
-> @@ -25,7 +25,10 @@
->  #define I2C_SLVX                       0
->  #define I2C_SLVT                       1
->
-> +#define CXD2837ER_CHIP_ID              0xb1
-> +#define CXD2838ER_CHIP_ID              0xb0
->  #define CXD2841ER_CHIP_ID              0xa7
-> +#define CXD2843ER_CHIP_ID              0xa4
->  #define CXD2854ER_CHIP_ID              0xc1
->
->  #define CXD2841ER_DVBS_POLLING_INVL    10
-> --
-> 2.10.2
->
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+---
+No changes since v3 [1].
 
+This was previously sent as part of Steve's i.MX media series [2].
 
+[1] https://patchwork.kernel.org/patch/9711997/
+[2] https://patchwork.kernel.org/patch/9647951/
+---
+ .../devicetree/bindings/media/video-mux.txt        | 60 ++++++++++++++++++++++
+ 1 file changed, 60 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/video-mux.txt
 
+diff --git a/Documentation/devicetree/bindings/media/video-mux.txt b/Documentation/devicetree/bindings/media/video-mux.txt
+new file mode 100644
+index 0000000000000..63b9dc913e456
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/video-mux.txt
+@@ -0,0 +1,60 @@
++Video Multiplexer
++=================
++
++Video multiplexers allow to select between multiple input ports. Video received
++on the active input port is passed through to the output port. Muxes described
++by this binding are controlled by a multiplexer controller that is described by
++the bindings in Documentation/devicetree/bindings/mux/mux-controller.txt
++
++Required properties:
++- compatible : should be "video-mux"
++- mux-controls : mux controller node to use for operating the mux
++- #address-cells: should be <1>
++- #size-cells: should be <0>
++- port@*: at least three port nodes containing endpoints connecting to the
++  source and sink devices according to of_graph bindings. The last port is
++  the output port, all others are inputs.
++
++Optionally, #address-cells, #size-cells, and port nodes can be grouped under a
++ports node as described in Documentation/devicetree/bindings/graph.txt.
++
++Example:
++
++	mux: mux-controller {
++		compatible = "gpio-mux";
++		#mux-control-cells = <0>;
++
++		mux-gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
++	};
++
++	video-mux {
++		compatible = "video-mux";
++		mux-controls = <&mux>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			mux_in0: endpoint {
++				remote-endpoint = <&video_source0_out>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			mux_in1: endpoint {
++				remote-endpoint = <&video_source1_out>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			mux_out: endpoint {
++				remote-endpoint = <&capture_interface_in>;
++			};
++		};
++	};
++};
 -- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+2.11.0
