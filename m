@@ -1,65 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:32931 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755324AbdESNHR (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:56973 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751319AbdEDKDN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 May 2017 09:07:17 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-renesas-soc@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, geert@linux-m68k.org,
-        magnus.damm@gmail.com, hans.verkuil@cisco.com,
-        niklas.soderlund@ragnatech.se, sergei.shtylyov@cogentembedded.com,
-        horms@verge.net.au, devicetree@vger.kernel.org,
-        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v3 3/4] media: adv7180: Add adv7180cp, adv7180st bindings
-Date: Fri, 19 May 2017 15:07:03 +0200
-Message-Id: <1495199224-16337-4-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1495199224-16337-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1495199224-16337-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+        Thu, 4 May 2017 06:03:13 -0400
+Message-ID: <1493892191.2381.17.camel@pengutronix.de>
+Subject: Re: [PATCH v2 2/2] [media] platform: add video-multiplexer
+ subdevice driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Peter Rosin <peda@axentia.se>, Pavel Machek <pavel@ucw.cz>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Thu, 04 May 2017 12:03:11 +0200
+In-Reply-To: <20170504094845.GV7456@valkosipuli.retiisi.org.uk>
+References: <20170502150913.2168-1-p.zabel@pengutronix.de>
+         <20170502150913.2168-2-p.zabel@pengutronix.de>
+         <20170503192836.GN7456@valkosipuli.retiisi.org.uk>
+         <1493881652.2381.6.camel@pengutronix.de>
+         <20170504071703.GS7456@valkosipuli.retiisi.org.uk>
+         <1493889978.2381.11.camel@pengutronix.de>
+         <20170504094845.GV7456@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To differentiate between two classes of chip packages that have
-different numbers of input ports.
+On Thu, 2017-05-04 at 12:48 +0300, Sakari Ailus wrote:
+> Hi Philipp,
+> 
+> On Thu, May 04, 2017 at 11:26:18AM +0200, Philipp Zabel wrote:
+> > Hi Sakari,
+> > 
+> > On Thu, 2017-05-04 at 10:17 +0300, Sakari Ailus wrote:
+> > > Hi Philipp,
+> > > 
+> > > On Thu, May 04, 2017 at 09:07:32AM +0200, Philipp Zabel wrote:
+> > > > On Wed, 2017-05-03 at 22:28 +0300, Sakari Ailus wrote:
+> > > > > Hi Philipp,
+> > > > > 
+> > > > > Thanks for continuing working on this!
+> > > > > 
+> > > > > I have some minor comments below...
+> > > > 
+> > > > Thank you for the comments.
+> > > > 
+> > > > [...]
+> > > > > Could you rebase this on the V4L2 fwnode patchset here, please?
+> > > > > 
+> > > > > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi>
+> > > > >
+> > > > > The conversion is rather simple, as shown here:
+> > > > > 
+> > > > > <URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=v4l2-acpi&id=679035e11bfdbea146fed5d52fb794b34dc9cea6>
+> > > > 
+> > > > What is the status of this patchset? Will this be merged soon?
+> > > 
+> > > I intend to send a pull request once the next rc1 tag is pulled on
+> > > media-tree master. It depends on patches in linux-pm tree that aren't in
+> > > media-tree yet.
+> > 
+> > I get conflicts trying to merge v4l2-acpi into v4.11 or media-tree
+> > master. Could you provide an updated version?
+> 
+> What kind of conflicts? I wonder if something somewhere is out of sync. :-)
+> My v4l2-acpi branch is on top of current media-tree master and appears to
+> merge cleanly to v4.11 as well.
+> 
+> It still wouldn't compile though as it depends on the fwnode graph patches.
+> 
+> I've merged those here:
+> 
+> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi-merge>
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- Documentation/devicetree/bindings/media/i2c/adv7180.txt | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+My bad, I accidentally used an old git remote that still pointed to
+git://git.retiisi.org.uk/~sailus/linux.git. Fixed that now.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7180.txt b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
-index 4da486f..552b6a8 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv7180.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
-@@ -6,6 +6,8 @@ digital interfaces like MIPI CSI-2 or parallel video.
- Required Properties :
- - compatible : value must be one of
- 		"adi,adv7180"
-+		"adi,adv7180cp"
-+		"adi,adv7180st"
- 		"adi,adv7182"
- 		"adi,adv7280"
- 		"adi,adv7280-m"
-@@ -15,6 +17,19 @@ Required Properties :
- 		"adi,adv7282"
- 		"adi,adv7282-m"
- 
-+Device nodes of "adi,adv7180cp" and "adi,adv7180st" must contain one
-+'port' child node per device input and output port, in accordance with the
-+video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt. The port
-+nodes are numbered as follows.
-+
-+  Port		adv7180cp	adv7180st
-+-------------------------------------------------------------------
-+  Input		0-2		0-5
-+  Output	3		6
-+
-+The digital output port node must contain at least one endpoint.
-+
- Optional Properties :
- - powerdown-gpios: reference to the GPIO connected to the powerdown pin,
-   if any.
--- 
-2.7.4
+thanks
+Philipp
