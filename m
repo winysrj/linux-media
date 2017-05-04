@@ -1,103 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f174.google.com ([209.85.161.174]:34616 "EHLO
-        mail-yw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752046AbdEJLAe (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37514 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751958AbdEDHRj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 May 2017 07:00:34 -0400
-Received: by mail-yw0-f174.google.com with SMTP id l14so13506293ywk.1
-        for <linux-media@vger.kernel.org>; Wed, 10 May 2017 04:00:33 -0700 (PDT)
-Received: from mail-yb0-f174.google.com (mail-yb0-f174.google.com. [209.85.213.174])
-        by smtp.gmail.com with ESMTPSA id m184sm1288146ywd.1.2017.05.10.04.00.31
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 10 May 2017 04:00:31 -0700 (PDT)
-Received: by mail-yb0-f174.google.com with SMTP id s22so6882754ybe.3
-        for <linux-media@vger.kernel.org>; Wed, 10 May 2017 04:00:31 -0700 (PDT)
+        Thu, 4 May 2017 03:17:39 -0400
+Date: Thu, 4 May 2017 10:17:04 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Peter Rosin <peda@axentia.se>, Pavel Machek <pavel@ucw.cz>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v2 2/2] [media] platform: add video-multiplexer subdevice
+ driver
+Message-ID: <20170504071703.GS7456@valkosipuli.retiisi.org.uk>
+References: <20170502150913.2168-1-p.zabel@pengutronix.de>
+ <20170502150913.2168-2-p.zabel@pengutronix.de>
+ <20170503192836.GN7456@valkosipuli.retiisi.org.uk>
+ <1493881652.2381.6.camel@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <1494255810-12672-14-git-send-email-sakari.ailus@linux.intel.com>
-References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com> <1494255810-12672-14-git-send-email-sakari.ailus@linux.intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 10 May 2017 19:00:10 +0800
-Message-ID: <CAAFQd5CD_-754-xEXF7-r3SYWQoOn8FYVE_HXF_kuDfH2OtcYQ@mail.gmail.com>
-Subject: Re: [RFC v4 13/18] vb2: Don't sync cache for a buffer if so requested
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        posciak@chromium.org, Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, sumit.semwal@linaro.org,
-        Rob Clark <robdclark@gmail.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>, labbott@redhat.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Samu Onkalo <samu.onkalo@intel.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1493881652.2381.6.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Philipp,
 
-Few comments inline.
+On Thu, May 04, 2017 at 09:07:32AM +0200, Philipp Zabel wrote:
+> On Wed, 2017-05-03 at 22:28 +0300, Sakari Ailus wrote:
+> > Hi Philipp,
+> > 
+> > Thanks for continuing working on this!
+> > 
+> > I have some minor comments below...
+> 
+> Thank you for the comments.
+> 
+> [...]
+> > Could you rebase this on the V4L2 fwnode patchset here, please?
+> > 
+> > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi>
+> >
+> > The conversion is rather simple, as shown here:
+> > 
+> > <URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=v4l2-acpi&id=679035e11bfdbea146fed5d52fb794b34dc9cea6>
+> 
+> What is the status of this patchset? Will this be merged soon?
 
-On Mon, May 8, 2017 at 11:03 PM, Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
-> From: Samu Onkalo <samu.onkalo@intel.com>
->
-> The user may request to the driver (vb2) to skip the cache maintenance
-> operations in case the buffer does not need cache synchronisation, e.g. in
-> cases where the buffer is passed between hardware blocks without it being
-> touched by the CPU.
-[snip]
-> @@ -1199,6 +1236,11 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
->                         dprintk(1, "buffer initialization failed\n");
->                         goto err;
->                 }
-> +
-> +               /* This is new buffer memory --- always synchronise cache. */
-> +               __mem_prepare_planes(vb);
-> +       } else if (!no_cache_sync) {
-> +               __mem_prepare_planes(vb);
+I intend to send a pull request once the next rc1 tag is pulled on
+media-tree master. It depends on patches in linux-pm tree that aren't in
+media-tree yet.
 
-Do we actually need this at all for DMABUF, given that respective
-callbacks in both vb2_dc and vb2_sg actually bail out if so?
+-- 
+Kind regards,
 
->         }
->
->         ret = call_vb_qop(vb, buf_prepare, vb);
-[snip]
-> @@ -568,7 +571,11 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->         }
->
->         ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
-> -       return ret ? ret : vb2_core_qbuf(q, b->index, b);
-> +       if (ret)
-> +               return ret;
-> +
-> +       return vb2_core_qbuf(q, b->index, b,
-> +                            b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC);
-
-Can we really let the userspace alone control this? I believe there
-are drivers that need to do some fixup in OUTPUT buffers before
-sending to the hardware or in CAPTURE buffer after getting from the
-hardware, respectively in buf_prepare or buf_finish. I believe such
-driver needs to be able to override this behavior.
-
-Actually I'm wondering if we really need this buffer flag at all.
-Wouldn't the following work for typical use cases that we actually
-care about performance of?
-
-buffer_needs_cache_sync = (buffer_type_is_MMAP &&
-buffer_is_non_coherent && (buffer_is_mmapped ||
-buffer_has_kernel_mapping)) || buffer_is_USERPTR
-
-The above should cover all the fast paths that are used only to
-exchange data between devices, without the CPU involved, assuming that
-drivers that don't need the fixups I mentioned before are properly
-updated to request no kernel mapping for allocated buffers.
-
-I've added (buffer_is_USERPTR) to the equation as it's really hard to
-imagine a use case where there is no CPU access to the buffer, but
-USERPTR needs to be used (instead of DMABUF). I might be missing
-something, though.
-
-Best regards,
-Tomasz
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
