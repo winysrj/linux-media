@@ -1,91 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f175.google.com ([209.85.128.175]:36246 "EHLO
-        mail-wr0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750761AbdE3TfF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 15:35:05 -0400
-Received: by mail-wr0-f175.google.com with SMTP id j27so6307276wre.3
-        for <linux-media@vger.kernel.org>; Tue, 30 May 2017 12:35:04 -0700 (PDT)
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42244 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752400AbdEDWBh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 18:01:37 -0400
+Date: Fri, 5 May 2017 00:01:34 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [RFC 0/3] Document bindings for camera modules and associated
+ flash devices
+Message-ID: <20170504220134.GA15551@amd>
+References: <1493720749-31509-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20170528234200.2ffdd351@macbox>
-References: <CAML3znFcKR9wx3wvjBDeQLn7mbtkhU0Knn56cMrXek6H-mTUjQ@mail.gmail.com>
- <9102e964-8143-edd7-3a82-014ae0d29d48@kaiser-linux.li> <CAML3znHkCFrtQqXvZkCwiMGNkRdSAnHBDTvfeoaQdtq8kRMkQQ@mail.gmail.com>
- <20170528234200.2ffdd351@macbox>
-From: Karl Wallin <karl.wallin.86@gmail.com>
-Date: Tue, 30 May 2017 21:35:03 +0200
-Message-ID: <CAML3znGxh2t9VQLMMsqQs0Okeos_enNTF=367QFKwmM=y__x+Q@mail.gmail.com>
-Subject: Re: Build fails Ubuntu 17.04 / "error: implicit declaration of function"
-To: Daniel Scheller <d.scheller.oss@gmail.com>,
-        linux-media@vger.kernel.org, Thomas Kaiser <thomas@kaiser-linux.li>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="liOOAslEiF7prFVr"
+Content-Disposition: inline
+In-Reply-To: <1493720749-31509-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+
+--liOOAslEiF7prFVr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
 Hi!
 
-Sorry for not replying earlier, work.
-I came so far as to download the patches (via n00bishly pasting the
-actual content of the .patch-files into .patch-files since my git
-cherry-pick command didn't work) but then after trying to apply them I
-got a prompt with specifying the path of the file and didn't research
-that further.
+> This RFC patchset documents properties commonly required by camera modules
+> and associated camera flash devices.
+>=20
+> The camera module is essentially a package consisting of an image sensor,
+> a lens, possibly a voice coil to move the lens and a number of other
+> things that at least the drivers need not to know of. All the devices in a
+> camera module are declared separately in the system and as such the fact
+> that they come in a single package isn't generally very useful to driver
+> software.
+>=20
+> I'm sending the set as RFC as there's no driver implementation, and a
+> dependency to the V4L2 async changes:
+>=20
+> <URL:http://www.spinics.net/lists/linux-media/msg114915.html>
 
-I downloaded the latest release from GIT and now it actually builds!!! :D :=
-D
+For the series,
 
-However it does not install :(
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
-"root@nuc-d54250wyk:/home/ubuntu/media_build# make install
-make -C /home/ubuntu/media_build/v4l install
-make[1]: Entering directory '/home/ubuntu/media_build/v4l'
-make[1]: *** No rule to make target 'media-install', needed by 'install'.  =
-Stop.
-make[1]: Leaving directory '/home/ubuntu/media_build/v4l'
-Makefile:15: recipe for target 'install' failed
-make: *** [install] Error 2"
+In 3/3, I'd avoid using strange characters in the changelog. Just
+write it as I2C... If someone ever tries to grep the changelogs, this
+could bite them.
 
-I've gone into "v4l" and looked for a "media-install" file but haven't
-found any.
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Perhaps this is something I've misunderstood and easy to fix so I
-finally can install it?
+--liOOAslEiF7prFVr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Best Regards - Karl
-Med v=C3=A4nlig h=C3=A4lsning / Best Regards - Karl Wallin
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-karl.wallin.86@gmail.com
+iEYEARECAAYFAlkLpL4ACgkQMOfwapXb+vK1KgCeJDunO3aub0fKSYL+U/4LT+Ub
+njcAn0JO8cgIqaLpr7j1/+ccQahBioEM
+=8ZRh
+-----END PGP SIGNATURE-----
 
-P.S. Om mitt mail b=C3=B6r vidarebefodras, v=C3=A4nligen g=C3=B6r detta ist=
-=C3=A4llet f=C3=B6r
-att =C3=A5terkomma med en email-adress i ett svar till mig. / If my mail
-should be forwarded then please forward it instead of replying to me
-with an email address. P.S.
-
-
-2017-05-28 23:42 GMT+02:00 Daniel Scheller <d.scheller.oss@gmail.com>:
-> Am Sun, 28 May 2017 21:06:33 +0200
-> schrieb Karl Wallin <karl.wallin.86@gmail.com>:
->
-> All,
->
->> In "/home/ubuntu/media_build/v4l/cec-core.c" changed row 142 from:
->> "ret =3D cdev_device_add(&devnode->cdev, &devnode->dev);" to:
->> "ret =3D device_add(&devnode->dev);"
->> and row 186 from:
->> "cdev_device_del(&devnode->cdev, &devnode->dev);" to:
->> "device_del(&devnode->dev);"
->
-> Until the upstream media_build repository gets the neccessary backport
-> patch treatment, you can apply [1] and [2] to media_build which should
-> fix all build issues.
->
-> Best regards,
-> Daniel
->
-> [1]
-> https://github.com/herrnst/media_build/commit/4766a716c629707d58d625c6cdf=
-d8c395fd6ed61
-> [2]
-> https://github.com/herrnst/media_build/commit/01507a9c32a301c8fc021dcaf1b=
-943799ff3da51
+--liOOAslEiF7prFVr--
