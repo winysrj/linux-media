@@ -1,81 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:39890 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751056AbdEaMEQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 08:04:16 -0400
-Subject: Re: [PATCH] ARM: dts: exynos: Add HDMI CEC device to Exynos5 SoC family
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org
-Cc: Krzysztof Kozlowski <krzk@kernel.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <2497f348-5d66-f10a-5591-c490b7ee8b4e@samsung.com>
-Date: Wed, 31 May 2017 14:04:00 +0200
-MIME-version: 1.0
-In-reply-to: <44c9e8c6-669c-848c-30df-eabad6dc1a39@xs4all.nl>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
-Content-language: en-US
-References: <CGME20170531110029eucas1p14bb9468f72155d88364c0aa5093ac05d@eucas1p1.samsung.com>
- <1496228417-31126-1-git-send-email-m.szyprowski@samsung.com>
- <44c9e8c6-669c-848c-30df-eabad6dc1a39@xs4all.nl>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:37072 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754704AbdEDOiI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 10:38:08 -0400
+Date: Thu, 4 May 2017 16:38:04 +0200
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        pavel@ucw.cz
+Subject: Re: [RFC 3/3] dt: bindings: Add a binding for referencing EEPROM
+ from camera sensors
+Message-ID: <20170504143803.f5pndnvm73jjfe7i@earth>
+References: <1493720749-31509-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1493720749-31509-4-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="2cbe63unft4ia63v"
+Content-Disposition: inline
+In-Reply-To: <1493720749-31509-4-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-On 2017-05-31 13:17, Hans Verkuil wrote:
-> On 05/31/17 13:00, Marek Szyprowski wrote:
->> Exynos5250 and Exynos542x SoCs have the same CEC hardware module as
->> Exynos4 SoC series, so enable support for it using the same compatible
->> string.
->>
->> Tested on Odroid XU3 (Exynos5422) and Google Snow (Exynos5250) boards.
-> Thanks!
->
-> Do you know if the CEC block is always on for these devices or only if there
-> is a hotplug signal? That was a problem with the exynos4 odroid.
+--2cbe63unft4ia63v
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Odroid XU3 has exactly same wiring between SoC & HDMI connector (via 
-IP4791CZ12
-chip) as Odroid U3, so I expect the same issues.
+Hi,
 
-I don't have schematic for Google Snow board, so I have no idea how it works
-there.
+On Tue, May 02, 2017 at 01:25:49PM +0300, Sakari Ailus wrote:
+> Many camera sensor devices contain EEPROM chips that describe the
+> properties of a given unit --- the data is specific to a given unit can
+> thus is not stored e.g. in user space or the driver.
+>=20
+> Some sensors embed the EEPROM chip and it can be accessed through the
+> sensor's I=B2C interface. This property is to be used for devices where t=
+he
+> EEPROM chip is accessed through a different I=B2C address than the sensor.
+>=20
+> The intent is to later provide this information to the user space.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 3 +++
+>  1 file changed, 3 insertions(+)
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt=
+ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index e52aefc..9bd2005 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -80,6 +80,9 @@ Optional properties
+>  - lens-focus: A phandle to the node of the lens. Only valid for device
+>    nodes that are related to an image sensor.
+> =20
+> +- eeprom: A phandle to the node of the related EEPROM. Only valid for
+> +  device nodes that are related to an image sensor.
 
-> I have made a patch (not posted yet) to signal this in the device tree and
-> added a CEC capability to signal this to the user.
->
-> This capability will be added to 4.13 (see my patch 'cec: add CEC_CAP_NEEDS_HPD'
-> from May 25th) since the DisplayPort CEC tunneling feature needs it as well.
->
-> It's easy to test: don't connect an HDMI cable and run:
->
-> cec-ctl --playback
-> cec-ctl -t0 --image-view-on
->
-> If this returns with a NACK error, then it is OK. If you get a kernel message
-> that the transmit timed out, then you need this capability since CEC is disabled
-> without HPD.
+Here it's even more obvious, that the second sentence is redundant.
+The requirement is already in the first sentence :) Instead it
+should be mentioned, that this is to be used by devices not having
+their own embedded eeprom. How about:
 
-I've checked those commands, but on all tested boards (Odroid U3+, 
-Odroid XU3 and
-Google Snow) I get the following message:
+eeprom: A phandle to the node of the EEPROM describing the camera
+sensor (i.e. device specific calibration data), in case it differs
+=66rom the sensor node.
 
-Transmit from Unregistered to TV (255 to 0):
-CEC_MSG_IMAGE_VIEW_ON (0x04)
-         Sequence: 19 Tx Timestamp: 175.935s
-         Tx, Error (1), Max Retries
+-- Sebastian
 
-I have never got a timeout message from the kernel. Do I need to enable 
-some kind
-of CEC debugs?
+--2cbe63unft4ia63v
+Content-Type: application/pgp-signature; name="signature.asc"
 
- > [...]
+-----BEGIN PGP SIGNATURE-----
 
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlkLPMsACgkQ2O7X88g7
++poNfw//RirP+W4JLW1Y6TyiW+it4GMLWleoA9cP5ezAgva9lq3ADYC5fcsNbj59
+AqEIQ/FC7lMIY1CTOwmhZXr9zP5c2nXC2EcxgqgLakmEV18O0VywnhkuseJLdnP3
+qzLDtBwHrPm3rWznR9D675oK4W14JKEf5+7m5D0TMtLPR9IFepHRi85mpL6JS1id
+FaEzC1BQ0GIDYmQ2i6/4GS9F9j/migqybtKk/Ek1n/QPuVINfD+j1O0L2lD+8lla
+4lN79R1MmvtqrlG58xPKlMYaFlOLDU8QNfeZb9pMepQSZzSmJy10L1afNwJ8gd6b
+JqJslLI1IaSluBJ2punCkdQalc/Hcf+tnex9piOWFVeruHptcIwjKD5fbd3ie/tg
+TUcvDBdJhRt5erNaH0DjUDhEvTon2dc0HBqkLa97UW8s2yxD9ZAY1PZCuDnjWHWX
+bBh87fUTC4TeLZy1ee/wSMM9qFA5dAbljb3DUMNP269XvRQh02s3z0bpGfayK4S9
+llo6agqvuFKNYC+UCizJN7yGqb8msGF+SkPa8Ii7mS41gS5RKtuzZarmQZ0NoxBf
+3iZRLB/DMWyJa+S5TGUsnv2vIdzUhoE/48oYX9bm4aLd69Qdyaj5RwoHKtoVr4/o
++q6W4Urtu1w+qFjB8XIK18/4dvMhDpNv4S/E0hqT5O/u3kc+N/E=
+=MyG2
+-----END PGP SIGNATURE-----
+
+--2cbe63unft4ia63v--
