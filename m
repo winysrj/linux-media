@@ -1,119 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:42408 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933457AbdEXAOL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 May 2017 20:14:11 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v7 0/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 support
-Date: Wed, 24 May 2017 02:13:51 +0200
-Message-Id: <20170524001353.13482-1-niklas.soderlund@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36347 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751474AbdEDPyP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 11:54:15 -0400
+Received: by mail-wm0-f66.google.com with SMTP id u65so4217932wmu.3
+        for <linux-media@vger.kernel.org>; Thu, 04 May 2017 08:54:14 -0700 (PDT)
+From: Tvrtko Ursulin <tursulin@ursulin.net>
+To: Intel-gfx@lists.freedesktop.org
+Cc: tursulin@ursulin.net, Tvrtko Ursulin <tvrtko.ursulin@intel.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Tomasz Stanislawski <t.stanislaws@samsung.com>,
+        Matt Porter <mporter@kernel.crashing.org>,
+        Alexandre Bounine <alexandre.bounine@idt.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 1/4] lib/scatterlist: Fix offset type in sg_alloc_table_from_pages
+Date: Thu,  4 May 2017 16:54:02 +0100
+Message-Id: <20170504155405.7425-1-tvrtko.ursulin@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+From: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
 
-Hi,
+Scatterlist entries have an unsigned int for the offset so
+correct the sg_alloc_table_from_pages function accordingly.
 
-This is the latest incarnation of R-Car MIPI CSI-2 receiver driver. It's
-based on top of v4.12-rc1 and are tested on Renesas Salvator-X together
-with the out of tree patches for rcar-vin to add support for Gen3 VIN
-and a prototype driver for ADV7482. If anyone is interested to test
-video grabbing using these out of tree patches please see [1].
+Since these are offsets withing a page, unsigned int is
+wide enough.
 
-It depends on the patches:
+Also converts callers which were using unsigned long locally
+with the lower_32_bits annotation to make it explicitly
+clear what is happening.
 
-- [GIT PULL FOR v4.13] V4L2 fwnode support
-- [PATCH v2 0/2] v4l2-async: add subnotifier registration for subdevices
-- [PATCH v2 0/2] media: entity: add operation to help map DT node to media pad
+v2: Use offset_in_page. (Chris Wilson)
 
-Changes since v6:
-- Rebased on top of Sakaris fwnode patches.
-- Changed of RCAR_CSI2_PAD_MAX to NR_OF_RCAR_CSI2_PAD.
-- Remove assumtion about unkown medis bus type, thanks Sakari for 
-  pointing this out.
-- Created table for supported format information instead of scattering 
-  this information around the driver, thanks Sakari!
-- Small newline fixes and reduce some indentation levels.
+Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Pawel Osciak <pawel@osciak.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com> (v1)
+Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
+Reviewed-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 4 ++--
+ drivers/rapidio/devices/rio_mport_cdev.c       | 4 ++--
+ include/linux/scatterlist.h                    | 2 +-
+ lib/scatterlist.c                              | 2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
-Changes since v5:
-- Make use of the incremental async subnotifer and helper to map DT 
-  endpoint to media pad number. This moves functionality which
-  previously in the Gen3 patches for R-Car VIN driver to this R-Car
-  CSI-2 driver. This is done in preparation to support the ADV7482
-  driver in development by Kieran which will register more then one
-  subdevice and the CSI-2 driver needs to cope wit this. Further more it
-  prepares the driver for another use-case where more then one subdevice
-  is present upstream for the CSI-2.
-- Small cleanups.
-- Add explicit include for linux/io.h, thanks Kieran.
-
-Changes since v4:
-- Match SoC part numbers and drop trailing space in documentation, 
-  thanks Geert for pointing this out.
-- Clarify that the driver is a CSI-2 receiver by supervised 
-  s/interface/receiver/, thanks Laurent.
-- Add entries in Kconfig and Makefile alphabetically instead of append.
-- Rename struct rcar_csi2 member swap to lane_swap.
-- Remove macros to wrap calls to dev_{dbg,info,warn,err}.
-- Add wrappers for ioread32 and iowrite32.
-- Remove unused interrupt handler, but keep checking in probe that there 
-  are a interrupt define in DT.
-- Rework how to wait for LP-11 state, thanks Laurent for the great idea!
-- Remove unneeded delay in rcar_csi2_reset()
-- Remove check for duplicated lane id:s from DT parsing. Broken out to a 
-  separate patch adding this check directly to v4l2_of_parse_endpoint().
-- Fixed rcar_csi2_start() to ask it's source subdevice for information 
-  about pixel rate and frame format. With this change having
-  {set,get}_fmt operations became redundant, it was only used for
-  figuring out this out so dropped them.
-- Tabulated frequency settings map.
-- Dropped V4L2_SUBDEV_FL_HAS_DEVNODE it should never have been set.
-- Switched from MEDIA_ENT_F_ATV_DECODER to 
-  MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER as entity function. I can't
-  find a more suitable function, and what the hardware do is to fetch
-  video from an external chip and passes it on to a another SoC internal
-  IP it's sort of a formatter.
-- Break out DT documentation and code in two patches.
-
-Changes since v3:
-- Update DT binding documentation with input from Geert Uytterhoeven,
-  thanks!
-
-Changes since v2:
-- Added media control pads as this is needed by the new rcar-vin driver.
-- Update DT bindings after review comments and to add r8a7796 support.
-- Add get_fmt handler.
-- Fix media bus format error s/YUYV8/UYVY8/
-
-Changes since v1:
-- Drop dependency on a pad aware s_stream operation.
-- Use the DT bindings format "renesas,<soctype>-<device>", thanks Geert
-  for pointing this out.
-
-1. http://elinux.org/R-Car/Tests:rcar-vin
-
-Niklas Söderlund (2):
-  media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
-  media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver driver
-
- .../devicetree/bindings/media/rcar-csi2.txt        | 116 +++
- drivers/media/platform/rcar-vin/Kconfig            |  12 +
- drivers/media/platform/rcar-vin/Makefile           |   1 +
- drivers/media/platform/rcar-vin/rcar-csi2.c        | 867 +++++++++++++++++++++
- 4 files changed, 996 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
- create mode 100644 drivers/media/platform/rcar-vin/rcar-csi2.c
-
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 2db0413f5d57..b5009c1649bc 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -478,7 +478,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+ {
+ 	struct vb2_dc_buf *buf;
+ 	struct frame_vector *vec;
+-	unsigned long offset;
++	unsigned int offset;
+ 	int n_pages, i;
+ 	int ret = 0;
+ 	struct sg_table *sgt;
+@@ -506,7 +506,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+ 	buf->dev = dev;
+ 	buf->dma_dir = dma_dir;
+ 
+-	offset = vaddr & ~PAGE_MASK;
++	offset = lower_32_bits(offset_in_page(vaddr));
+ 	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
+ 	if (IS_ERR(vec)) {
+ 		ret = PTR_ERR(vec);
+diff --git a/drivers/rapidio/devices/rio_mport_cdev.c b/drivers/rapidio/devices/rio_mport_cdev.c
+index 50b617af81bd..a8b6696ab6cb 100644
+--- a/drivers/rapidio/devices/rio_mport_cdev.c
++++ b/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -876,10 +876,10 @@ rio_dma_transfer(struct file *filp, u32 transfer_mode,
+ 	 * offset within the internal buffer specified by handle parameter.
+ 	 */
+ 	if (xfer->loc_addr) {
+-		unsigned long offset;
++		unsigned int offset;
+ 		long pinned;
+ 
+-		offset = (unsigned long)(uintptr_t)xfer->loc_addr & ~PAGE_MASK;
++		offset = lower_32_bits(offset_in_page(xfer->loc_addr));
+ 		nr_pages = PAGE_ALIGN(xfer->length + offset) >> PAGE_SHIFT;
+ 
+ 		page_list = kmalloc_array(nr_pages,
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index cb3c8fe6acd7..c981bee1a3ae 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -263,7 +263,7 @@ int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int,
+ int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
+ int sg_alloc_table_from_pages(struct sg_table *sgt,
+ 	struct page **pages, unsigned int n_pages,
+-	unsigned long offset, unsigned long size,
++	unsigned int offset, unsigned long size,
+ 	gfp_t gfp_mask);
+ 
+ size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
+diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+index c6cf82242d65..11f172c383cb 100644
+--- a/lib/scatterlist.c
++++ b/lib/scatterlist.c
+@@ -391,7 +391,7 @@ EXPORT_SYMBOL(sg_alloc_table);
+  */
+ int sg_alloc_table_from_pages(struct sg_table *sgt,
+ 	struct page **pages, unsigned int n_pages,
+-	unsigned long offset, unsigned long size,
++	unsigned int offset, unsigned long size,
+ 	gfp_t gfp_mask)
+ {
+ 	unsigned int chunks;
 -- 
-2.13.0
+2.9.3
