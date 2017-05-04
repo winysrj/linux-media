@@ -1,38 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:51175 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752179AbdEHR24 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 May 2017 13:28:56 -0400
-Subject: Re: [PATCH 01/11] [media] dvb-core/dvb_ca_en50221.c: Rename
- STATUSREG_??
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <1494192214-20082-1-git-send-email-jasmin@anw.at>
- <1494192214-20082-2-git-send-email-jasmin@anw.at>
- <20170508065545.52b26fc9@vento.lan>
-Cc: linux-media@vger.kernel.org, max.kellermann@gmail.com
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <3d4c4a10-0c65-9eee-b4e2-b19f1eddb31a@anw.at>
-Date: Mon, 8 May 2017 19:28:48 +0200
+Received: from mail-lf0-f45.google.com ([209.85.215.45]:34320 "EHLO
+        mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750758AbdEDLVW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 07:21:22 -0400
+Received: by mail-lf0-f45.google.com with SMTP id t144so5938793lff.1
+        for <linux-media@vger.kernel.org>; Thu, 04 May 2017 04:21:22 -0700 (PDT)
+Subject: Re: [PATCH 1/2] v4l: vsp1: Add support for colorkey alpha blending
+To: agheorghe <Alexandru_Gheorghe@mentor.com>,
+        laurent.pinchart@ideasonboard.com,
+        linux-renesas-soc@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org
+References: <1493895213-12573-1-git-send-email-Alexandru_Gheorghe@mentor.com>
+ <1493895213-12573-2-git-send-email-Alexandru_Gheorghe@mentor.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <b4212a5b-da88-16cb-e316-13abef0881cb@cogentembedded.com>
+Date: Thu, 4 May 2017 14:21:18 +0300
 MIME-Version: 1.0
-In-Reply-To: <20170508065545.52b26fc9@vento.lan>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+In-Reply-To: <1493895213-12573-2-git-send-email-Alexandru_Gheorghe@mentor.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro!
+On 05/04/2017 01:53 PM, agheorghe wrote:
 
- >> Rename STATUSREG_?? -> STATREG_?? to reduce the line length.
- > That sounds a bad idea. We use "stat" on the DVB subsystem as an
- > alias for statistics.
-At the beginning of the style fixes, I thought it is a good idea to reduce
-as much as possible to get more characters, but at the end this patch
-doesn't save so much, so we can omit it.
+> The vsp2 hw supports changing of the alpha of pixels that match a color
+> key, this patch adds support for this feature in order to be used by
+> the rcar-du driver.
+> The colorkey is interpreted different depending of the pixel format:
+> 	* RGB   - all color components have to match.
+> 	* YCbCr - only the Y component has to match.
+>
+> Signed-off-by: agheorghe <Alexandru_Gheorghe@mentor.com>
 
-What is then the right procedure now?
-When I omit it in the first place, I can redo the whole work again and
-this were a lot of hours. Would it be acceptable to make a patch no. 12 at
-the end of the sequence, which renames it back?
+   Your full name is absolutely necessary here.
 
-BR,
-    Jasmin
+MBR, Sergei
