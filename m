@@ -1,43 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:51517 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751670AbdECVvw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 3 May 2017 17:51:52 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:56779 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751333AbdEDPgW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 May 2017 11:36:22 -0400
+Message-ID: <1493912180.2381.35.camel@pengutronix.de>
+Subject: Re: [PATCH] [media] tc358743: fix register i2c_rd/wr function fix
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-media@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Max Kellermann <max@duempel.org>,
-        Markus Elfring <elfring@users.sourceforge.net>,
-        Shuah Khan <shuah@kernel.org>,
-        Malcolm Priestley <tvboxspy@gmail.com>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>,
-        Abhilash Jindal <klock.android@gmail.com>,
-        Xiubo Li <lixiubo@cmss.chinamobile.com>
-Subject: Re: [PATCH 11/25] [media] dvb-core: use pr_foo() instead of printk()
-Date: Fri, 14 Oct 2016 22:15:29 +0200
-Message-ID: <5626419.v5W73DMoxa@wuerfel>
-In-Reply-To: <1d5040384c93e1cb37dd41e780e44a88b1e63ce4.1476466574.git.mchehab@s-opensource.com>
-References: <cover.1476466574.git.mchehab@s-opensource.com> <1d5040384c93e1cb37dd41e780e44a88b1e63ce4.1476466574.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Date: Thu, 04 May 2017 17:36:20 +0200
+In-Reply-To: <CAK8P3a00XGeiYXR28aM4EXcMLhSgLdnTDJwTKNk8qKO+B2TXMg@mail.gmail.com>
+References: <20170504152017.3696-1-p.zabel@pengutronix.de>
+         <CAK8P3a00XGeiYXR28aM4EXcMLhSgLdnTDJwTKNk8qKO+B2TXMg@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, October 14, 2016 2:45:49 PM CEST Mauro Carvalho Chehab wrote:
-> 
-> -#define dprintk        if (debug) printk
-> +#define dprintk(fmt, arg...) do {                                      \
-> +       if (debug)                                                      \
-> +               printk(KERN_DEBUG pr_fmt("%s: " fmt),                   \
-> +                       __func__, ##arg);                               \
-> +} while (0)
-> 
+Hi Arnd,
 
-Why not just use pr_debug() or dev_dbg() here? They already
-have a way to control output at runtime (CONFIG_DYNAMIC_DEBUG).
+On Thu, 2017-05-04 at 17:24 +0200, Arnd Bergmann wrote:
+> On Thu, May 4, 2017 at 5:20 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> > The below mentioned fix contains a small but severe bug,
+> > fix it to make the driver work again.
+> >
+> > Fixes: 3538aa6ecfb2 ("[media] tc358743: fix register i2c_rd/wr functions")
+> > Cc: Arnd Bergmann <arnd@arndb.de>
+> > Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> > Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> 
+> Cc: stable@vger.kernel.org # v4.11
+>
+> Acked-by: Arnd Bergmann <arnd@arndb.de>
+> 
+> Sorry about the typo
 
-	Arnd
+Thanks, the original fix currently is only in the media-tree master
+branch. I don't see any indication that it is queued for
+stable/linux-4.11.y though. Should it be?
+
+regards
+Philipp
