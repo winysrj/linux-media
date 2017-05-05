@@ -1,66 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46442
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750954AbdESMKO (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:35770 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751314AbdEEPcK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 May 2017 08:10:14 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: [PATCH 2/6] [media] av7110: avoid switch fall through
-Date: Fri, 19 May 2017 09:10:00 -0300
-Message-Id: <c087fe3ec71bad9bcba731c328b0eb6f306c0de6.1495195712.git.mchehab@s-opensource.com>
-In-Reply-To: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
-References: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
-In-Reply-To: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
-References: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Fri, 5 May 2017 11:32:10 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v5 4/8] ARM: dts: stm32: Enable DCMI camera interface on STM32F429-EVAL board
+Date: Fri, 5 May 2017 17:31:23 +0200
+Message-ID: <1493998287-5828-5-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1493998287-5828-1-git-send-email-hugues.fruchet@st.com>
+References: <1493998287-5828-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On two switches, this driver have unannotated switch
-fall through.
+Enable DCMI camera interface on STM32F429-EVAL board.
 
-in the first case, it falls through a return. On the second
-one, it prints undesired log messages on fall through.
-
-Solve that by copying the commands that it should be
-running. Gcc will very likely optimize it anyway, so this
-sholdn't be causing any harm, and shuts up gcc warnings.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/pci/ttpci/av7110.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm/boot/dts/stm32429i-eval.dts | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/pci/ttpci/av7110.c b/drivers/media/pci/ttpci/av7110.c
-index df9395c87178..f2905bd80366 100644
---- a/drivers/media/pci/ttpci/av7110.c
-+++ b/drivers/media/pci/ttpci/av7110.c
-@@ -336,6 +336,7 @@ static int DvbDmxFilterCallback(u8 *buffer1, size_t buffer1_len,
- 			av7110_p2t_write(buffer1, buffer1_len,
- 					 dvbdmxfilter->feed->pid,
- 					 &av7110->p2t_filter[dvbdmxfilter->index]);
-+		return 0;
- 	default:
- 		return 0;
- 	}
-@@ -451,8 +452,12 @@ static void debiirq(unsigned long cookie)
+diff --git a/arch/arm/boot/dts/stm32429i-eval.dts b/arch/arm/boot/dts/stm32429i-eval.dts
+index 3c99466..617f2f7 100644
+--- a/arch/arm/boot/dts/stm32429i-eval.dts
++++ b/arch/arm/boot/dts/stm32429i-eval.dts
+@@ -141,6 +141,15 @@
+ 	clock-frequency = <25000000>;
+ };
  
- 	case DATA_CI_PUT:
- 		dprintk(4, "debi DATA_CI_PUT\n");
-+		xfer = TX_BUFF;
-+		break;
- 	case DATA_MPEG_PLAY:
- 		dprintk(4, "debi DATA_MPEG_PLAY\n");
-+		xfer = TX_BUFF;
-+		break;
- 	case DATA_BMP_LOAD:
- 		dprintk(4, "debi DATA_BMP_LOAD\n");
- 		xfer = TX_BUFF;
++&dcmi {
++	status = "okay";
++
++	port {
++		dcmi_0: endpoint {
++		};
++	};
++};
++
+ &i2c1 {
+ 	pinctrl-0 = <&i2c1_pins>;
+ 	pinctrl-names = "default";
 -- 
-2.9.3
+1.9.1
