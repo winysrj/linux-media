@@ -1,163 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58229 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S938492AbdEYPGt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 May 2017 11:06:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-        Clint Taylor <clinton.a.taylor@intel.com>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 7/7] drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
-Date: Thu, 25 May 2017 17:06:26 +0200
-Message-Id: <20170525150626.29748-8-hverkuil@xs4all.nl>
-In-Reply-To: <20170525150626.29748-1-hverkuil@xs4all.nl>
-References: <20170525150626.29748-1-hverkuil@xs4all.nl>
+Received: from mail.kernel.org ([198.145.29.136]:45206 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752259AbdEEPVg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 5 May 2017 11:21:36 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-renesas-soc@vger.kernel.org, mchehab@kernel.org
+Cc: kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH v4 3/4] v4l: vsp1: Extend VSP1 module API to allow DRM callbacks
+Date: Fri,  5 May 2017 16:21:09 +0100
+Message-Id: <ce57c449dd9f95fedfb998c3b708aeb25eb3e87f.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+To be able to perform page flips in DRM without flicker we need to be
+able to notify the rcar-du module when the VSP has completed its
+processing.
 
-Implement support for this DisplayPort feature.
+We must not have bidirectional dependencies on the two components to
+maintain support for loadable modules, thus we extend the API to allow
+a callback to be registered within the VSP DRM interface.
 
-The cec device is created whenever it detects an adapter that
-has this feature. It is only removed when a new adapter is connected
-that does not support this. If a new adapter is connected that has
-different properties than the previous one, then the old cec device is
-unregistered and a new one is registered to replace the old one.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/gpu/drm/i915/Kconfig    | 11 ++++++++++
- drivers/gpu/drm/i915/intel_dp.c | 46 +++++++++++++++++++++++++++++++++++++----
- 2 files changed, 53 insertions(+), 4 deletions(-)
+ drivers/media/platform/vsp1/vsp1_drm.c | 17 +++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_drm.h | 11 +++++++++++
+ include/media/vsp1.h                   |  7 +++++++
+ 3 files changed, 35 insertions(+)
 
-diff --git a/drivers/gpu/drm/i915/Kconfig b/drivers/gpu/drm/i915/Kconfig
-index a5cd5dacf055..f317b13a1409 100644
---- a/drivers/gpu/drm/i915/Kconfig
-+++ b/drivers/gpu/drm/i915/Kconfig
-@@ -124,6 +124,17 @@ config DRM_I915_GVT_KVMGT
- 	  Choose this option if you want to enable KVMGT support for
- 	  Intel GVT-g.
- 
-+config DRM_I915_DP_CEC
-+	tristate "Enable DisplayPort CEC-Tunneling-over-AUX HDMI support"
-+	depends on DRM_I915 && CEC_CORE
-+	select DRM_DP_CEC
-+	help
-+	  Choose this option if you want to enable HDMI CEC support for
-+	  DisplayPort/USB-C to HDMI adapters.
-+
-+	  Note: not all adapters support this feature, and even for those
-+	  that do support this often do not hook up the CEC pin.
-+
- menu "drm/i915 Debugging"
- depends on DRM_I915
- depends on EXPERT
-diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
-index ee77b519835c..38e17ee2548d 100644
---- a/drivers/gpu/drm/i915/intel_dp.c
-+++ b/drivers/gpu/drm/i915/intel_dp.c
-@@ -32,6 +32,7 @@
- #include <linux/notifier.h>
- #include <linux/reboot.h>
- #include <asm/byteorder.h>
-+#include <media/cec.h>
- #include <drm/drmP.h>
- #include <drm/drm_atomic_helper.h>
- #include <drm/drm_crtc.h>
-@@ -1405,6 +1406,7 @@ static void intel_aux_reg_init(struct intel_dp *intel_dp)
- static void
- intel_dp_aux_fini(struct intel_dp *intel_dp)
- {
-+	cec_unregister_adapter(intel_dp->aux.cec_adap);
- 	kfree(intel_dp->aux.name);
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 9d235e830f5a..84d0418660bf 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -36,6 +36,14 @@ void vsp1_drm_display_start(struct vsp1_device *vsp1)
+ 	vsp1_dlm_irq_display_start(vsp1->drm->pipe.output->dlm);
  }
  
-@@ -4179,6 +4181,33 @@ intel_dp_check_mst_status(struct intel_dp *intel_dp)
- 	return -EINVAL;
- }
- 
-+static bool
-+intel_dp_check_cec_status(struct intel_dp *intel_dp)
++static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe)
 +{
-+	bool handled = false;
++	struct vsp1_drm *drm = to_vsp1_drm(pipe);
 +
-+	for (;;) {
-+		u8 cec_irq;
-+		int ret;
-+
-+		ret = drm_dp_dpcd_readb(&intel_dp->aux,
-+					DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1,
-+					&cec_irq);
-+		if (ret < 0 || !(cec_irq & DP_CEC_IRQ))
-+			return handled;
-+
-+		cec_irq &= ~DP_CEC_IRQ;
-+		drm_dp_cec_irq(&intel_dp->aux);
-+		handled = true;
-+
-+		ret = drm_dp_dpcd_writeb(&intel_dp->aux,
-+					 DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1,
-+					 cec_irq);
-+		if (ret < 0)
-+			return handled;
-+	}
++	if (drm->du_complete)
++		drm->du_complete(drm->du_private);
 +}
 +
- static void
- intel_dp_retrain_link(struct intel_dp *intel_dp)
- {
-@@ -4553,6 +4582,7 @@ intel_dp_set_edid(struct intel_dp *intel_dp)
- 		intel_dp->has_audio = intel_dp->force_audio == HDMI_AUDIO_ON;
- 	else
- 		intel_dp->has_audio = drm_detect_monitor_audio(edid);
-+	cec_s_phys_addr_from_edid(intel_dp->aux.cec_adap, edid);
- }
+ /* -----------------------------------------------------------------------------
+  * DU Driver API
+  */
+@@ -95,6 +103,7 @@ int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config *cfg)
+ 		}
  
- static void
-@@ -4562,6 +4592,7 @@ intel_dp_unset_edid(struct intel_dp *intel_dp)
+ 		pipe->num_inputs = 0;
++		vsp1->drm->du_complete = NULL;
  
- 	kfree(intel_connector->detect_edid);
- 	intel_connector->detect_edid = NULL;
-+	cec_phys_addr_invalidate(intel_dp->aux.cec_adap);
+ 		vsp1_dlm_reset(pipe->output->dlm);
+ 		vsp1_device_put(vsp1);
+@@ -199,6 +208,13 @@ int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config *cfg)
+ 	if (ret < 0)
+ 		return ret;
  
- 	intel_dp->has_audio = false;
- }
-@@ -4582,13 +4613,17 @@ intel_dp_long_pulse(struct intel_connector *intel_connector)
- 	intel_display_power_get(to_i915(dev), intel_dp->aux_power_domain);
- 
- 	/* Can't disconnect eDP, but you can close the lid... */
--	if (is_edp(intel_dp))
-+	if (is_edp(intel_dp)) {
- 		status = edp_detect(intel_dp);
--	else if (intel_digital_port_connected(to_i915(dev),
--					      dp_to_dig_port(intel_dp)))
-+	} else if (intel_digital_port_connected(to_i915(dev),
-+						dp_to_dig_port(intel_dp))) {
- 		status = intel_dp_detect_dpcd(intel_dp);
--	else
-+		if (status == connector_status_connected)
-+			drm_dp_cec_configure_adapter(&intel_dp->aux,
-+				     intel_dp->aux.name, dev->dev);
-+	} else {
- 		status = connector_status_disconnected;
-+	}
- 
- 	if (status == connector_status_disconnected) {
- 		memset(&intel_dp->compliance, 0, sizeof(intel_dp->compliance));
-@@ -5080,6 +5115,9 @@ intel_dp_hpd_pulse(struct intel_digital_port *intel_dig_port, bool long_hpd)
- 
- 	intel_display_power_get(dev_priv, intel_dp->aux_power_domain);
- 
-+	if (intel_dp->aux.cec_adap)
-+		intel_dp_check_cec_status(intel_dp);
++	/*
++	 * Register a callback to allow us to notify the DRM driver of frame
++	 * completion events.
++	 */
++	vsp1->drm->du_complete = cfg->callback;
++	vsp1->drm->du_private = cfg->callback_data;
 +
- 	if (intel_dp->is_mst) {
- 		if (intel_dp_check_mst_status(intel_dp) == -EINVAL) {
- 			/*
+ 	ret = media_pipeline_start(&pipe->output->entity.subdev.entity,
+ 					  &pipe->pipe);
+ 	if (ret < 0) {
+@@ -603,6 +619,7 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
+ 	pipe->lif = &vsp1->lif->entity;
+ 	pipe->output = vsp1->wpf[0];
+ 	pipe->output->pipe = pipe;
++	pipe->frame_end = vsp1_du_pipeline_frame_end;
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
+index c8d2f88fc483..e9f80727ff92 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.h
++++ b/drivers/media/platform/vsp1/vsp1_drm.h
+@@ -23,6 +23,8 @@
+  * @num_inputs: number of active pipeline inputs at the beginning of an update
+  * @inputs: source crop rectangle, destination compose rectangle and z-order
+  *	position for every input
++ * @du_complete: frame completion callback for the DU driver (optional)
++ * @du_private: data to be passed to the du_complete callback
+  */
+ struct vsp1_drm {
+ 	struct vsp1_pipeline pipe;
+@@ -33,8 +35,17 @@ struct vsp1_drm {
+ 		struct v4l2_rect compose;
+ 		unsigned int zpos;
+ 	} inputs[VSP1_MAX_RPF];
++
++	/* Frame synchronisation */
++	void (*du_complete)(void *);
++	void *du_private;
+ };
+ 
++static inline struct vsp1_drm *to_vsp1_drm(struct vsp1_pipeline *pipe)
++{
++	return container_of(pipe, struct vsp1_drm, pipe);
++}
++
+ int vsp1_drm_init(struct vsp1_device *vsp1);
+ void vsp1_drm_cleanup(struct vsp1_device *vsp1);
+ int vsp1_drm_create_links(struct vsp1_device *vsp1);
+diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+index 38aac554dbba..c135c47b4641 100644
+--- a/include/media/vsp1.h
++++ b/include/media/vsp1.h
+@@ -24,10 +24,17 @@ int vsp1_du_init(struct device *dev);
+  * struct vsp1_du_lif_config - VSP LIF configuration
+  * @width: output frame width
+  * @height: output frame height
++ * @callback: frame completion callback function (optional). When a callback
++ *	      is provided, the VSP driver guarantees that it will be called once
++ *	      and only once for each vsp1_du_atomic_flush() call.
++ * @callback_data: data to be passed to the frame completion callback
+  */
+ struct vsp1_du_lif_config {
+ 	unsigned int width;
+ 	unsigned int height;
++
++	void (*callback)(void *);
++	void *callback_data;
+ };
+ 
+ int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config *cfg);
 -- 
-2.11.0
+git-series 0.9.1
