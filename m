@@ -1,154 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51290 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753846AbdEQVdj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 May 2017 17:33:39 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v3 2/2] v4l: vsp1: Provide a writeback video device
-References: <cover.ebf0f0df2d74f2a209e8b628269e3cac27d4a2ab.1494347923.git-series.kieran.bingham+renesas@ideasonboard.com>
- <5debeb08338b520f52577ca6cf9be815a54c07ea.1494347923.git-series.kieran.bingham+renesas@ideasonboard.com>
- <CAMuHMdUuoAy2kQ3D=GWScgt2GZZbgyiNvvvOaJkTNFH1CbBdew@mail.gmail.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        DRI Development <dri-devel@lists.freedesktop.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <9b6568ec-1a01-96a3-de4f-9ca230cec1aa@ideasonboard.com>
-Date: Wed, 17 May 2017 22:33:29 +0100
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:38912 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753292AbdEEJKV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 May 2017 05:10:21 -0400
+Date: Fri, 5 May 2017 11:10:17 +0200
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        pavel@ucw.cz
+Subject: Re: [RFC v2 3/3] dt: bindings: Add a binding for referencing EEPROM
+ from camera sensors
+Message-ID: <20170505091017.3z7tu32a7ubrfsxk@earth>
+References: <1493974110-26510-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1493974110-26510-4-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAMuHMdUuoAy2kQ3D=GWScgt2GZZbgyiNvvvOaJkTNFH1CbBdew@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="evfdzugpiahk5lk6"
+Content-Disposition: inline
+In-Reply-To: <1493974110-26510-4-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
 
-On 16/05/17 16:30, Geert Uytterhoeven wrote:
-> Hi Kieran,
-> 
-> On Tue, May 9, 2017 at 6:39 PM, Kieran Bingham
-> <kieran.bingham+renesas@ideasonboard.com> wrote:
->> When the VSP1 is used in an active display pipeline, the output of the
->> WPF can supply the LIF entity directly and simultaneously write to
->> memory.
->>
->> Support this functionality in the VSP1 driver, by extending the WPF
->> source pads, and establishing a V4L2 video device node connected to the
->> new source.
->>
->> The source will be able to perform pixel format conversion, but not
->> rescaling, and as such the output from the memory node will always be
->> of the same dimensions as the display output.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
->> --- a/drivers/media/platform/vsp1/vsp1_video.c
->> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> 
->> @@ -900,6 +901,147 @@ static const struct vb2_ops vsp1_video_queue_qops = {
->>         .stop_streaming = vsp1_video_stop_streaming,
->>  };
->>
->> +
->> +/* -----------------------------------------------------------------------------
->> + * videobuf2 queue operations for writeback nodes
->> + */
->> +
->> +static void vsp1_video_wb_process_buffer(struct vsp1_video *video)
->> +{
->> +       struct vsp1_vb2_buffer *buf;
->> +       unsigned long flags;
->> +
->> +       /*
->> +        * Writeback uses a running stream, unlike the M2M interface which
->> +        * controls a pipeline process manually though the use of
->> +        * vsp1_pipeline_run().
->> +        *
->> +        * Instead writeback will commence at the next frame interval, and can
->> +        * be marked complete at the interval following that. To handle this we
->> +        * store the configured buffer as pending until the next callback.
->> +        *
->> +        * |    |    |    |    |
->> +        *  A   |<-->|
->> +        *       B   |<-->|
->> +        *            C   |<-->| : Only at interrupt C can A be marked done
->> +        */
->> +
->> +       spin_lock_irqsave(&video->irqlock, flags);
->> +
->> +       /* Move the pending image to the active hw queue */
->> +       if (video->pending) {
->> +               list_add_tail(&video->pending->queue, &video->irqqueue);
->> +               video->pending = NULL;
->> +       }
->> +
->> +       buf = list_first_entry_or_null(&video->wbqueue, struct vsp1_vb2_buffer,
->> +                                       queue);
->> +
->> +       if (buf) {
->> +               video->rwpf->mem = buf->mem;
->> +
->> +               /*
->> +                * Store this buffer as pending. It will commence at the next
->> +                * frame start interrupt
->> +                */
->> +               video->pending = buf;
->> +               list_del(&buf->queue);
->> +       } else {
->> +               /* Disable writeback with no buffer */
->> +               video->rwpf->mem = (struct vsp1_rwpf_memory) { 0 };
-> 
-> With gcc 4.9.0:
-> 
->     drivers/media/platform/vsp1/vsp1_video.c: In function
-> 'vsp1_video_wb_process_buffer':
->     drivers/media/platform/vsp1/vsp1_video.c:942:30: warning: missing
-> braces around initializer [-Wmissing-braces]
->        video->rwpf->mem = (struct vsp1_rwpf_memory) { 0 };
-> 
-> -               video->rwpf->mem = (struct vsp1_rwpf_memory) { 0 };
-> +               video->rwpf->mem = (struct vsp1_rwpf_memory) { { 0, } };
-> 
+--evfdzugpiahk5lk6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I've updated these to use a memset(&mem, 0, sizeof(mem)) instead.
+Hi,
 
+On Fri, May 05, 2017 at 11:48:30AM +0300, Sakari Ailus wrote:
+> Many camera sensor devices contain EEPROM chips that describe the
+> properties of a given unit --- the data is specific to a given unit can
+> thus is not stored e.g. in user space or the driver.
+>=20
+> Some sensors embed the EEPROM chip and it can be accessed through the
+> sensor's I2C interface. This property is to be used for devices where the
+> EEPROM chip is accessed through a different I2C address than the sensor.
+>=20
+> The intent is to later provide this information to the user space.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
 
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
->> +static void vsp1_video_wb_stop_streaming(struct vb2_queue *vq)
->> +{
->> +       struct vsp1_video *video = vb2_get_drv_priv(vq);
->> +       struct vsp1_rwpf *rwpf = video->rwpf;
->> +       struct vsp1_pipeline *pipe = rwpf->pipe;
->> +       struct vsp1_vb2_buffer *buffer;
->> +       unsigned long flags;
->> +
->> +       /*
->> +        * Disable the completion interrupts, and clear the WPF memory to
->> +        * prevent writing out frames
->> +        */
->> +       spin_lock_irqsave(&video->irqlock, flags);
->> +       video->frame_end = NULL;
->> +       rwpf->mem = (struct vsp1_rwpf_memory) { 0 };
-> 
-> Likewise:
-> 
-> -       rwpf->mem = (struct vsp1_rwpf_memory) { 0 };
-> +       rwpf->mem = (struct vsp1_rwpf_memory) { { 0, } };
-> 
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt=
+ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index 0a33240..38e3916 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -79,6 +79,9 @@ Optional properties
+> =20
+>  - lens-focus: A phandle to the node of the focus lens controller.
+> =20
+> +- eeprom: A phandle to the node of the EEPROM describing the camera sens=
+or
+> +  (i.e. device specific calibration data), in case it differs from the
+> +  sensor node.
+> =20
+>  Optional endpoint properties
+>  ----------------------------
 
-Now memset...
+-- Sebastian
 
-> Gr{oetje,eeting}s,
-> 
->                         Geert
-> 
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-> 
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
-> 
+--evfdzugpiahk5lk6
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlkMQXkACgkQ2O7X88g7
++pr0zA/+NQ7TvQX1dzqsuvXJEnD6xSoUZykgYjEVpvX0GxdFt23iW1jwfEspDx+1
+JqiFNDLc1gOIppDpPtR6214nDOLW3F/6y02Hv1y8UniJ5J/1j5y6yjdKuApyoDR1
+G7JvzuYhNy2uwj4BMrB+N+fTHcmFvU7TiHkPqxYgh8GESn/UJPNcMpAe+If3fqD8
+ANUdZWOhrdzr0YJ0k+s4BgQbNvHz4aBwFRAKc7zJKWTP3oO8MVoDRpnci323SV+n
+YL4x6sgxJAbSypsclATuH320xVFvnCwYEDGzR08u0dr7H80KxRXdAT1nLXuViB0V
+jH1phLGr+A7kvoeKW6Xl+Cj9UTeg4Q4pr0jIbQMqy+NnQu9/5X9HfHR/XtqjkH4G
+5j2DlQlZLElxRZMd65I3ysX6CldxsQLkPpE2QKCZYK3g6zB945EWjsgtgVqsmGzA
+0O9HJ8Vd1ZF1/0WrWgPSFgfR/0J3fI1irguT2Am1TMKPnRw3RbOUR40gHQYyTxG7
+cI9ojrMDAmBzScxY64SNBXNS7yORkejgTTHoQ46MfWW9DsFASC4g9afEBuiZppH3
+joSnm99dxWuI8Cs/K6e4vkSjyZmojJMrHSQMGieiCotvV1kxgfG2f60LgWu3qGYm
+3sucOqW+tuYpe8DrLQD0SuJYblzcewq1+cgzoDqrW8PQHBa6wBU=
+=u3aX
+-----END PGP SIGNATURE-----
+
+--evfdzugpiahk5lk6--
