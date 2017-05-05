@@ -1,231 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:55306 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751497AbdEHOfL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 May 2017 10:35:11 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>
-Subject: [RFC PATCH 1/2] v4l2-ioctl/exynos: fix G/S_SELECTION's type handling
-Date: Mon,  8 May 2017 16:35:05 +0200
-Message-Id: <20170508143506.16448-1-hverkuil@xs4all.nl>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36145 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755606AbdEET7R (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 May 2017 15:59:17 -0400
+Received: by mail-wm0-f66.google.com with SMTP id u65so3308943wmu.3
+        for <linux-media@vger.kernel.org>; Fri, 05 May 2017 12:59:11 -0700 (PDT)
+Date: Fri, 5 May 2017 21:59:09 +0200
+From: Thomas Hollstegge <thomas.hollstegge@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v2] [media] em28xx: support for Sundtek MediaTV Digital Home
+Message-ID: <20170505195905.GA1057@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+Sundtek MediaTV Digital Home is a rebranded MaxMedia UB425-TC with the
+following components:
 
-The type field in struct v4l2_selection is supposed to never use the
-_MPLANE variants. E.g. if the driver supports V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
-then userspace should still pass V4L2_BUF_TYPE_VIDEO_CAPTURE.
+USB bridge: Empia EM2874B
+Demodulator: Micronas DRX 3913KA2
+Tuner: NXP TDA18271HDC2
 
-The reasons for this are lost in the mists of time, but it is really
-annoying. In addition, the exynos drivers didn't follow this rule and
-instead expected the _MPLANE type.
-
-To fix that code is added to the v4l2 core that maps the _MPLANE buffer
-types to their regular equivalents before calling the driver.
-
-Effectively this allows for userspace to use either _MPLANE or the regular
-buffer type. This keeps backwards compatibility while making things easier
-for userspace.
-
-Since drivers now never see the _MPLANE buffer types the exynos drivers
-had to be adapted as well.
-
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Thomas Hollstegge <thomas.hollstegge@gmail.com>
 ---
- drivers/media/platform/exynos-gsc/gsc-core.c     |  4 +-
- drivers/media/platform/exynos-gsc/gsc-m2m.c      |  8 ++--
- drivers/media/platform/exynos4-is/fimc-capture.c |  4 +-
- drivers/media/platform/exynos4-is/fimc-lite.c    |  4 +-
- drivers/media/v4l2-core/v4l2-ioctl.c             | 53 +++++++++++++++++++++---
- 5 files changed, 57 insertions(+), 16 deletions(-)
+Changes in v2:
+  - Make the patch apply against linux-media master
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 59a634201830..107faa04c947 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -569,9 +569,9 @@ int gsc_try_crop(struct gsc_ctx *ctx, struct v4l2_crop *cr)
+ drivers/media/usb/em28xx/em28xx-cards.c | 15 +++++++++++++++
+ drivers/media/usb/em28xx/em28xx-dvb.c   |  1 +
+ drivers/media/usb/em28xx/em28xx.h       |  1 +
+ 3 files changed, 17 insertions(+)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index a12b599..adb5db2 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -415,6 +415,7 @@ static struct em28xx_reg_seq hauppauge_930c_digital[] = {
+ 
+ /* 1b80:e425 MaxMedia UB425-TC
+  * 1b80:e1cc Delock 61959
++ * eb1a:51b2 Sundtek MediaTV Digital Home
+  * GPIO_6 - demod reset, 0=active
+  * GPIO_7 - LED, 0=active
+  */
+@@ -2405,6 +2406,18 @@ struct em28xx_board em28xx_boards[] = {
+ 		.ir_codes      = RC_MAP_HAUPPAUGE,
+ 		.leds          = hauppauge_dualhd_leds,
+ 	},
++	/* eb1a:51b2 Sundtek MediaTV Digital Home
++	 * Empia EM2874B + Micronas DRX 3913KA2 + NXP TDA18271HDC2 */
++	[EM2874_BOARD_SUNDTEK_MEDIATV_DIGITAL_HOME] = {
++		.name          = "Sundtek MediaTV Digital Home",
++		.tuner_type    = TUNER_ABSENT,
++		.tuner_gpio    = maxmedia_ub425_tc,
++		.has_dvb       = 1,
++		.ir_codes      = RC_MAP_REDDO,
++		.def_i2c_bus   = 1,
++		.i2c_speed     = EM28XX_I2C_CLK_WAIT_ENABLE |
++				EM28XX_I2C_FREQ_400_KHZ,
++	},
+ };
+ EXPORT_SYMBOL_GPL(em28xx_boards);
+ 
+@@ -2602,6 +2615,8 @@ struct usb_device_id em28xx_id_table[] = {
+ 			.driver_info = EM28178_BOARD_PLEX_PX_BCUD },
+ 	{ USB_DEVICE(0xeb1a, 0x5051), /* Ion Video 2 PC MKII / Startech svid2usb23 / Raygo R12-41373 */
+ 			.driver_info = EM2860_BOARD_TVP5150_REFERENCE_DESIGN },
++	{ USB_DEVICE(0xeb1a, 0x51b2),
++			.driver_info = EM2874_BOARD_SUNDTEK_MEDIATV_DIGITAL_HOME },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(usb, em28xx_id_table);
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 82edd37..e7fa25d 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1482,6 +1482,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 		break;
  	}
- 	pr_debug("user put w: %d, h: %d", cr->c.width, cr->c.height);
+ 	case EM2874_BOARD_DELOCK_61959:
++	case EM2874_BOARD_SUNDTEK_MEDIATV_DIGITAL_HOME:
+ 	case EM2874_BOARD_MAXMEDIA_UB425_TC:
+ 		/* attach demodulator */
+ 		dvb->fe[0] = dvb_attach(drxk_attach, &maxmedia_ub425_tc_drxk,
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index e8d97d5..226c2b6 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -148,6 +148,7 @@
+ #define EM28178_BOARD_PLEX_PX_BCUD                98
+ #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB  99
+ #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 100
++#define EM2874_BOARD_SUNDTEK_MEDIATV_DIGITAL_HOME 101
  
--	if (cr->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+	if (cr->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		f = &ctx->d_frame;
--	else if (cr->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-+	else if (cr->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
- 		f = &ctx->s_frame;
- 	else
- 		return -EINVAL;
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index 82505025d96c..33611a46ce35 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -460,8 +460,8 @@ static int gsc_m2m_g_selection(struct file *file, void *fh,
- 	struct gsc_frame *frame;
- 	struct gsc_ctx *ctx = fh_to_ctx(fh);
- 
--	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) &&
--	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
-+	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
-+	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
- 		return -EINVAL;
- 
- 	frame = ctx_get_frame(ctx, s->type);
-@@ -503,8 +503,8 @@ static int gsc_m2m_s_selection(struct file *file, void *fh,
- 	cr.type = s->type;
- 	cr.c = s->r;
- 
--	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) &&
--	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
-+	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
-+	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
- 		return -EINVAL;
- 
- 	ret = gsc_try_crop(ctx, &cr);
-diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-index 8a7cd07dbe28..d876fc3e0ef7 100644
---- a/drivers/media/platform/exynos4-is/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -1270,7 +1270,7 @@ static int fimc_cap_g_selection(struct file *file, void *fh,
- 	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
- 	struct fimc_frame *f = &ctx->s_frame;
- 
--	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
- 
- 	switch (s->target) {
-@@ -1320,7 +1320,7 @@ static int fimc_cap_s_selection(struct file *file, void *fh,
- 	struct fimc_frame *f;
- 	unsigned long flags;
- 
--	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
- 
- 	if (s->target == V4L2_SEL_TGT_COMPOSE)
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index b4c4a33784c4..7d3ec5cc6608 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -901,7 +901,7 @@ static int fimc_lite_g_selection(struct file *file, void *fh,
- 	struct fimc_lite *fimc = video_drvdata(file);
- 	struct flite_frame *f = &fimc->out_frame;
- 
--	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
- 
- 	switch (sel->target) {
-@@ -929,7 +929,7 @@ static int fimc_lite_s_selection(struct file *file, void *fh,
- 	struct v4l2_rect rect = sel->r;
- 	unsigned long flags;
- 
--	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE ||
-+	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
- 	    sel->target != V4L2_SEL_TGT_COMPOSE)
- 		return -EINVAL;
- 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index e5a2187381db..fe2a677139df 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2141,6 +2141,47 @@ static int v4l_try_ext_ctrls(const struct v4l2_ioctl_ops *ops,
- 					-EINVAL;
- }
- 
-+/*
-+ * The selection API specified originally that the _MPLANE buffer types
-+ * shouldn't be used. The reasons for this are lost in the mists of time
-+ * (or just really crappy memories). Regardless, this is really annoying
-+ * for userspace. So to keep things simple we map _MPLANE buffer types
-+ * to their 'regular' counterparts before calling the driver. And we
-+ * restore it afterwards. This way applications can use either buffer
-+ * type and drivers don't need to check for both.
-+ */
-+static int v4l_g_selection(const struct v4l2_ioctl_ops *ops,
-+			   struct file *file, void *fh, void *arg)
-+{
-+	struct v4l2_selection *p = arg;
-+	u32 old_type = p->type;
-+	int ret;
-+
-+	if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+		p->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	else if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-+		p->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	ret = ops->vidioc_g_selection(file, fh, p);
-+	p->type = old_type;
-+	return ret;
-+}
-+
-+static int v4l_s_selection(const struct v4l2_ioctl_ops *ops,
-+			   struct file *file, void *fh, void *arg)
-+{
-+	struct v4l2_selection *p = arg;
-+	u32 old_type = p->type;
-+	int ret;
-+
-+	if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+		p->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	else if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-+		p->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	ret = ops->vidioc_s_selection(file, fh, p);
-+	p->type = old_type;
-+	return ret;
-+}
-+
- static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
-@@ -2160,7 +2201,7 @@ static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
- 	else
- 		s.target = V4L2_SEL_TGT_CROP_ACTIVE;
- 
--	ret = ops->vidioc_g_selection(file, fh, &s);
-+	ret = v4l_g_selection(ops, file, fh, &s);
- 
- 	/* copying results to old structure on success */
- 	if (!ret)
-@@ -2187,7 +2228,7 @@ static int v4l_s_crop(const struct v4l2_ioctl_ops *ops,
- 	else
- 		s.target = V4L2_SEL_TGT_CROP_ACTIVE;
- 
--	return ops->vidioc_s_selection(file, fh, &s);
-+	return v4l_s_selection(ops, file, fh, &s);
- }
- 
- static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
-@@ -2229,7 +2270,7 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
- 	else
- 		s.target = V4L2_SEL_TGT_CROP_BOUNDS;
- 
--	ret = ops->vidioc_g_selection(file, fh, &s);
-+	ret = v4l_g_selection(ops, file, fh, &s);
- 	if (ret)
- 		return ret;
- 	p->bounds = s.r;
-@@ -2240,7 +2281,7 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
- 	else
- 		s.target = V4L2_SEL_TGT_CROP_DEFAULT;
- 
--	ret = ops->vidioc_g_selection(file, fh, &s);
-+	ret = v4l_g_selection(ops, file, fh, &s);
- 	if (ret)
- 		return ret;
- 	p->defrect = s.r;
-@@ -2550,8 +2591,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_CROPCAP, v4l_cropcap, v4l_print_cropcap, INFO_FL_CLEAR(v4l2_cropcap, type)),
- 	IOCTL_INFO_FNC(VIDIOC_G_CROP, v4l_g_crop, v4l_print_crop, INFO_FL_CLEAR(v4l2_crop, type)),
- 	IOCTL_INFO_FNC(VIDIOC_S_CROP, v4l_s_crop, v4l_print_crop, INFO_FL_PRIO),
--	IOCTL_INFO_STD(VIDIOC_G_SELECTION, vidioc_g_selection, v4l_print_selection, INFO_FL_CLEAR(v4l2_selection, r)),
--	IOCTL_INFO_STD(VIDIOC_S_SELECTION, vidioc_s_selection, v4l_print_selection, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_selection, r)),
-+	IOCTL_INFO_FNC(VIDIOC_G_SELECTION, v4l_g_selection, v4l_print_selection, INFO_FL_CLEAR(v4l2_selection, r)),
-+	IOCTL_INFO_FNC(VIDIOC_S_SELECTION, v4l_s_selection, v4l_print_selection, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_selection, r)),
- 	IOCTL_INFO_STD(VIDIOC_G_JPEGCOMP, vidioc_g_jpegcomp, v4l_print_jpegcompression, 0),
- 	IOCTL_INFO_STD(VIDIOC_S_JPEGCOMP, vidioc_s_jpegcomp, v4l_print_jpegcompression, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_QUERYSTD, v4l_querystd, v4l_print_std, 0),
+ /* Limits minimum and default number of buffers */
+ #define EM28XX_MIN_BUF 4
 -- 
-2.11.0
+2.7.4
