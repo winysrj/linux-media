@@ -1,89 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46428
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750814AbdESMKN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 May 2017 08:10:13 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>,
-        devel@driverdev.osuosl.org
-Subject: [PATCH v2 1/6] [media] atomisp: disable several warnings when W=1
-Date: Fri, 19 May 2017 09:09:59 -0300
-Message-Id: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:34853 "EHLO
+        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753323AbdEEN3I (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 May 2017 09:29:08 -0400
+Received: by mail-wm0-f49.google.com with SMTP id w64so23984945wma.0
+        for <linux-media@vger.kernel.org>; Fri, 05 May 2017 06:29:07 -0700 (PDT)
+Subject: Re: [PATCH v8 05/10] media: venus: adding core part and helper
+ functions
+To: Bjorn Andersson <bjorn.andersson@linaro.org>
+References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1493370837-19793-6-git-send-email-stanimir.varbanov@linaro.org>
+ <20170429222141.GK7456@valkosipuli.retiisi.org.uk>
+ <d4f46814-41b3-b3a2-2e8f-d9f3cb7638a0@linaro.org>
+ <20170502185241.GX15143@minitux>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Gross <andy.gross@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <7fbca77f-b783-efcb-a39a-4d42ed8db310@linaro.org>
+Date: Fri, 5 May 2017 16:29:05 +0300
+MIME-Version: 1.0
+In-Reply-To: <20170502185241.GX15143@minitux>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The atomisp currently produce hundreds of warnings when W=1.
+Hi Bjorn
 
-It is a known fact that this driver is currently in bad
-shape, and there are lot of things to be done here.
+On 05/02/2017 09:52 PM, Bjorn Andersson wrote:
+> On Tue 02 May 01:52 PDT 2017, Stanimir Varbanov wrote:
+> 
+>> Hei Sakari,
+>>
+>> On 04/30/2017 01:21 AM, Sakari Ailus wrote:
+>>> Hi, Stan!!
+>>>
+>>> On Fri, Apr 28, 2017 at 12:13:52PM +0300, Stanimir Varbanov wrote:
+>>> ...
+>>>> +int helper_get_bufreq(struct venus_inst *inst, u32 type,
+>>>> +		      struct hfi_buffer_requirements *req)
+>>>> +{
+>>>> +	u32 ptype = HFI_PROPERTY_CONFIG_BUFFER_REQUIREMENTS;
+>>>> +	union hfi_get_property hprop;
+>>>> +	int ret, i;
+>>>
+>>> unsigned int i ? It's an array index...
+>>
+>> Thanks for pointing that out, I have to revisit all similar places as
+>> well ...
+>>
+> 
+> It's perfectly fine to index an array with an int and you are comparing
+> the index with a integer constant in the loop - so don't clutter the
+> code unnecessarily.
 
-We don't want to be bothered by those "minor" stuff for now,
-while the driver doesn't receive a major cleanup. So,
-disable those warnings.
+I personally prefer unsigned for iterator variable type (because
+unsigned type has defined behavior on overflow), but having the fact
+that I'm comparing with int I will keep it int.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/staging/media/atomisp/i2c/Makefile          | 4 ++++
- drivers/staging/media/atomisp/i2c/imx/Makefile      | 5 +++++
- drivers/staging/media/atomisp/i2c/ov5693/Makefile   | 5 +++++
- drivers/staging/media/atomisp/pci/atomisp2/Makefile | 6 ++++++
- 4 files changed, 20 insertions(+)
+Also it seems that -Wsign-compare is not enabled by default in kernel,
+no? So I have modified my Makefile and catch few occurrences of warnings
+about signed with unsigned compare and fixed them.
 
-diff --git a/drivers/staging/media/atomisp/i2c/Makefile b/drivers/staging/media/atomisp/i2c/Makefile
-index 466517c7c8e6..a1afca6ec31f 100644
---- a/drivers/staging/media/atomisp/i2c/Makefile
-+++ b/drivers/staging/media/atomisp/i2c/Makefile
-@@ -19,3 +19,7 @@ obj-$(CONFIG_VIDEO_AP1302)     += ap1302.o
- 
- obj-$(CONFIG_VIDEO_LM3554) += lm3554.o
- 
-+# HACK! While this driver is in bad shape, don't enable several warnings
-+#       that would be otherwise enabled with W=1
-+ccflags-y += -Wno-unused-but-set-variable -Wno-missing-prototypes \
-+	     -Wno-unused-const-variable -Wno-missing-declarations
-diff --git a/drivers/staging/media/atomisp/i2c/imx/Makefile b/drivers/staging/media/atomisp/i2c/imx/Makefile
-index 6b13a3a66e49..0eceb7374bec 100644
---- a/drivers/staging/media/atomisp/i2c/imx/Makefile
-+++ b/drivers/staging/media/atomisp/i2c/imx/Makefile
-@@ -4,3 +4,8 @@ imx1x5-objs := imx.o drv201.o ad5816g.o dw9714.o dw9719.o dw9718.o vcm.o otp.o o
- 
- ov8858_driver-objs := ../ov8858.o dw9718.o vcm.o
- obj-$(CONFIG_VIDEO_OV8858)     += ov8858_driver.o
-+
-+# HACK! While this driver is in bad shape, don't enable several warnings
-+#       that would be otherwise enabled with W=1
-+ccflags-y += -Wno-unused-but-set-variable -Wno-missing-prototypes \
-+             -Wno-unused-const-variable -Wno-missing-declarations
-diff --git a/drivers/staging/media/atomisp/i2c/ov5693/Makefile b/drivers/staging/media/atomisp/i2c/ov5693/Makefile
-index c9c0e1245858..fd2ef2e3c31e 100644
---- a/drivers/staging/media/atomisp/i2c/ov5693/Makefile
-+++ b/drivers/staging/media/atomisp/i2c/ov5693/Makefile
-@@ -1 +1,6 @@
- obj-$(CONFIG_VIDEO_OV5693) += ov5693.o
-+
-+# HACK! While this driver is in bad shape, don't enable several warnings
-+#       that would be otherwise enabled with W=1
-+ccflags-y += -Wno-unused-but-set-variable -Wno-missing-prototypes \
-+             -Wno-unused-const-variable -Wno-missing-declarations
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/Makefile b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-index f126a89a08e9..68a9ab1c3b61 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-@@ -353,3 +353,9 @@ DEFINES += -DSYSTEM_hive_isp_css_2400_system -DISP2400
- 
- ccflags-y += $(INCLUDES) $(DEFINES) -fno-common
- 
-+# HACK! While this driver is in bad shape, don't enable several warnings
-+#       that would be otherwise enabled with W=1
-+ccflags-y += -Wno-unused-const-variable -Wno-missing-prototypes \
-+	     -Wno-unused-but-set-variable -Wno-missing-declarations \
-+	     -Wno-suggest-attribute=format -Wno-missing-prototypes \
-+	     -Wno-implicit-fallthrough
 -- 
-2.9.3
+regards,
+Stan
