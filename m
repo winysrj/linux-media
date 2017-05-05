@@ -1,123 +1,328 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36836 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754354AbdECUY3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 3 May 2017 16:24:29 -0400
-Date: Wed, 3 May 2017 22:24:27 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCHv2] omap3isp: add support for CSI1 bus
-Message-ID: <20170503202427.GA18616@amd>
-References: <10545906.Gxg3yScdu4@avalon>
- <20170215094228.GA8586@amd>
- <2414221.XNA4JCFMRx@avalon>
- <20170302090143.GB27818@amd>
- <20170302101603.GE27818@amd>
- <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
- <20170302123848.GA28230@amd>
- <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
- <db549a81-0c1f-3ff0-6293-050ec2e0af84@iki.fi>
- <20170503195039.GB12396@amd>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:59378 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751437AbdEEMoR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 5 May 2017 08:44:17 -0400
+Subject: Re: [PATCH v8 00/10] Qualcomm video decoder/encoder driver
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c0bdbddd-e6df-f8a5-6d04-0d4e84c9dd0a@xs4all.nl>
+Date: Fri, 5 May 2017 14:44:04 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="0OAP2g/MAC+5xKAE"
-Content-Disposition: inline
-In-Reply-To: <20170503195039.GB12396@amd>
+In-Reply-To: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Stanimir,
 
---0OAP2g/MAC+5xKAE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+It looks good to me. I do think that patch 01/10 shouldn't go through
+media. This might mean that we have to drop the COMPILE_TEST dependency
+on the media driver until this firmware driver patch gets merged, which
+is fine with me as long as this is clearly stated in the commit log for
+the media Kconfig. Let me know what you want to do with this.
 
-Hi!
+I also saw some comments for patch 05/10, but I'm not sure if that would
+block merging this driver or can be fixed afterwards.
 
-> It seems they don't compile. Hmmm. Did I do something wrong? "struct
-> fwnode_endpoint" seems to be only used in v4l2-fwnode.h; that can't be ri=
-ght...?
+Regards,
 
-Next problem is missing dev_fwnode; fixed. Next problem is
+	Hans
 
-pavel@duo:/data/l/linux-n900$ git grep fwnode_graph_get_next_endpoint
-=2E
-drivers/media/i2c/smiapp/smiapp-core.c: ep =3D
-fwnode_graph_get_next_endpoint(fwnode, NULL);
-drivers/media/platform/omap3isp/isp.c:  while ((fwnode =3D
-fwnode_graph_get_next_endpoint(dev_fwnode(dev),
-
-So sorry, I guess I should wait for version that compiles ;-).
-									Pavel
-
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index c458c63..f52a260 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -182,11 +182,6 @@ static int pset_prop_read_string(struct property_set *=
-pset,
- 	return 0;
- }
-=20
--static inline struct fwnode_handle *dev_fwnode(struct device *dev)
--{
--	return IS_ENABLED(CONFIG_OF) && dev->of_node ?
--		&dev->of_node->fwnode : dev->fwnode;
--}
-=20
- /**
-  * device_property_present - check if a property of a device is present
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 8bd28ce..9215e23 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -27,4 +27,10 @@ struct fwnode_handle {
- 	struct fwnode_handle *secondary;
- };
-=20
-+static inline struct fwnode_handle *dev_fwnode(struct device *dev)
-+{
-+	return IS_ENABLED(CONFIG_OF) && dev->of_node ?
-+		&dev->of_node->fwnode : dev->fwnode;
-+}
-+
- #endif
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index d762a55..9e9cfbc 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -80,7 +80,7 @@ struct v4l2_fwnode_bus_mipi_csi1 {
-  * @nr_of_link_frequencies: number of elements in link_frequenccies array
-  */
- struct v4l2_fwnode_endpoint {
--	struct fwnode_endpoint base;
-+	/*struct fwnode_endpoint base; */
- 	/*
- 	 * Fields below this line will be zeroed by
- 	 * v4l2_fwnode_parse_endpoint()
-
-
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---0OAP2g/MAC+5xKAE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlkKPHsACgkQMOfwapXb+vIaHACfSgiXwk3jq4RWUPgHt2kgFjrE
-HxkAnj9ZAjaKW70+NqbfkVbwYpAR+K53
-=OvKk
------END PGP SIGNATURE-----
-
---0OAP2g/MAC+5xKAE--
+On 04/28/17 11:13, Stanimir Varbanov wrote:
+> Hi everyone,
+> 
+> The changes since v7 are:
+>   * fixed error path in recovery handler.
+>   * fixed the logic in helper_vb2_buf_prepare.
+>   * added comments over venus_format arrays why MPLANE formats are used.
+>   * added sequence for output queue as well.
+>   * added COMPILE_TEST Kconfig option for the venus driver. To make
+>   compile testing of the venus driver possible I had to create a patch
+>   01/10 which fixing the qcom SCM driver.
+> 
+> I have made various fixes and improvements of the decoder and encoder
+> to make them work on Venus hw versions 1xx & 3xx (Venus hw v.1xx is found
+> on SoC apq8016 / db410c SBC board, and Venus hw v.3xx on apq8096).
+> A brief of the changes:
+>   * implemented buffer reference handling. This is adding delayed process
+>   of the newly queued buffers until the firmware release them completely.
+>   With this in place now vidioc_create_bufs op works properly.
+>   * implemented vidioc_try_decoder_cmd and vidioc_decoder_cmd v4l2 ioctl
+>   ops.
+>   * cleanups and run checkpatch --strict
+> 
+> The patchset is based on next-20170426 and applies cleanly on media_tree
+> as well.
+> 
+> The report of v4l2-compliance is below patchset diff status.
+> 
+> regards,
+> Stan
+>   
+> Stanimir Varbanov (10):
+>   firmware: qcom_scm: Fix to allow COMPILE_TEST-ing
+>   media: v4l2-mem2mem: extend m2m APIs for more accurate buffer
+>     management
+>   doc: DT: venus: binding document for Qualcomm video driver
+>   MAINTAINERS: Add Qualcomm Venus video accelerator driver
+>   media: venus: adding core part and helper functions
+>   media: venus: vdec: add video decoder files
+>   media: venus: venc: add video encoder files
+>   media: venus: hfi: add Host Firmware Interface (HFI)
+>   media: venus: hfi: add Venus HFI files
+>   media: venus: enable building of Venus video driver
+> 
+>  .../devicetree/bindings/media/qcom,venus.txt       |  107 ++
+>  MAINTAINERS                                        |    8 +
+>  drivers/firmware/Kconfig                           |    2 +-
+>  drivers/firmware/qcom_scm.h                        |   72 +-
+>  drivers/media/platform/Kconfig                     |   13 +
+>  drivers/media/platform/Makefile                    |    2 +
+>  drivers/media/platform/qcom/venus/Makefile         |   11 +
+>  drivers/media/platform/qcom/venus/core.c           |  388 +++++
+>  drivers/media/platform/qcom/venus/core.h           |  323 ++++
+>  drivers/media/platform/qcom/venus/firmware.c       |  107 ++
+>  drivers/media/platform/qcom/venus/firmware.h       |   22 +
+>  drivers/media/platform/qcom/venus/helpers.c        |  725 +++++++++
+>  drivers/media/platform/qcom/venus/helpers.h        |   44 +
+>  drivers/media/platform/qcom/venus/hfi.c            |  522 +++++++
+>  drivers/media/platform/qcom/venus/hfi.h            |  175 +++
+>  drivers/media/platform/qcom/venus/hfi_cmds.c       | 1255 ++++++++++++++++
+>  drivers/media/platform/qcom/venus/hfi_cmds.h       |  304 ++++
+>  drivers/media/platform/qcom/venus/hfi_helper.h     | 1050 +++++++++++++
+>  drivers/media/platform/qcom/venus/hfi_msgs.c       | 1056 +++++++++++++
+>  drivers/media/platform/qcom/venus/hfi_msgs.h       |  283 ++++
+>  drivers/media/platform/qcom/venus/hfi_venus.c      | 1571 ++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/hfi_venus.h      |   23 +
+>  drivers/media/platform/qcom/venus/hfi_venus_io.h   |  113 ++
+>  drivers/media/platform/qcom/venus/vdec.c           | 1152 ++++++++++++++
+>  drivers/media/platform/qcom/venus/vdec.h           |   23 +
+>  drivers/media/platform/qcom/venus/vdec_ctrls.c     |  149 ++
+>  drivers/media/platform/qcom/venus/venc.c           | 1281 ++++++++++++++++
+>  drivers/media/platform/qcom/venus/venc.h           |   23 +
+>  drivers/media/platform/qcom/venus/venc_ctrls.c     |  269 ++++
+>  drivers/media/v4l2-core/v4l2-mem2mem.c             |   37 +
+>  include/linux/qcom_scm.h                           |   32 -
+>  include/media/v4l2-mem2mem.h                       |   92 ++
+>  32 files changed, 11190 insertions(+), 44 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+>  create mode 100644 drivers/media/platform/qcom/venus/Makefile
+>  create mode 100644 drivers/media/platform/qcom/venus/core.c
+>  create mode 100644 drivers/media/platform/qcom/venus/core.h
+>  create mode 100644 drivers/media/platform/qcom/venus/firmware.c
+>  create mode 100644 drivers/media/platform/qcom/venus/firmware.h
+>  create mode 100644 drivers/media/platform/qcom/venus/helpers.c
+>  create mode 100644 drivers/media/platform/qcom/venus/helpers.h
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi.c
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi.h
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.c
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.h
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_helper.h
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.c
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.h
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
+>  create mode 100644 drivers/media/platform/qcom/venus/vdec.c
+>  create mode 100644 drivers/media/platform/qcom/venus/vdec.h
+>  create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
+>  create mode 100644 drivers/media/platform/qcom/venus/venc.c
+>  create mode 100644 drivers/media/platform/qcom/venus/venc.h
+>  create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
+> 
+> dragonboard-410c:~$ ./v4l2-compliance -d /dev/video0
+> v4l2-compliance SHA   : 8fc88615b49843acb82cd8316d0bc4ab8474cba2
+> 
+> Driver Info:
+>         Driver name   : qcom-venus
+>         Card type     : Qualcomm Venus video decoder
+>         Bus info      : platform:qcom-venus
+>         Driver version: 4.9.0
+>         Capabilities  : 0x84204000
+>                 Video Memory-to-Memory Multiplanar
+>                 Streaming
+>                 Extended Pix Format
+>                 Device Capabilities
+>         Device Caps   : 0x04204000
+>                 Video Memory-to-Memory Multiplanar
+>                 Streaming
+>                 Extended Pix Format
+> 
+> Compliance test for device /dev/video0 (not using libv4l2):
+> 
+> Required ioctls:
+>         test VIDIOC_QUERYCAP: OK
+> 
+> Allow for multiple opens:
+>         test second video open: OK
+>         test VIDIOC_QUERYCAP: OK
+>         test VIDIOC_G/S_PRIORITY: OK
+>         test for unlimited opens: OK
+> 
+> Debug ioctls:
+>         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>         test VIDIOC_LOG_STATUS: OK (Not Supported)
+> 
+> Input ioctls:
+>         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>         Inputs: 0 Audio Inputs: 0 Tuners: 0
+> 
+> Output ioctls:
+>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+> 
+> Input/Output configuration ioctls:
+>         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>         test VIDIOC_G/S_EDID: OK (Not Supported)
+> 
+>         Control ioctls:
+>                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+>                 test VIDIOC_QUERYCTRL: OK
+>                 test VIDIOC_G/S_CTRL: OK
+>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>                 Standard Controls: 7 Private Controls: 0
+> 
+>         Format ioctls:
+>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>                 test VIDIOC_G/S_PARM: OK (Not Supported)
+>                 test VIDIOC_G_FBUF: OK (Not Supported)
+>                 test VIDIOC_G_FMT: OK
+>                 test VIDIOC_TRY_FMT: OK
+>                 test VIDIOC_S_FMT: OK
+>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>                 test Cropping: OK (Not Supported)
+>                 test Composing: OK (Not Supported)
+>                 test Scaling: OK
+> 
+>         Codec ioctls:
+>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>                 test VIDIOC_(TRY_)DECODER_CMD: OK
+> 
+>         Buffer ioctls:
+>                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>                 test VIDIOC_EXPBUF: OK
+> 
+> Test input 0:
+> 
+> 
+> Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+> 
+> 
+> 
+> dragonboard-410c:~$ ./v4l2-compliance -d /dev/video1
+> v4l2-compliance SHA   : 8fc88615b49843acb82cd8316d0bc4ab8474cba2
+> 
+> Driver Info:
+>         Driver name   : qcom-venus
+>         Card type     : Qualcomm Venus video encoder
+>         Bus info      : platform:qcom-venus
+>         Driver version: 4.9.0
+>         Capabilities  : 0x84204000
+>                 Video Memory-to-Memory Multiplanar
+>                 Streaming
+>                 Extended Pix Format
+>                 Device Capabilities
+>         Device Caps   : 0x04204000
+>                 Video Memory-to-Memory Multiplanar
+>                 Streaming
+>                 Extended Pix Format
+> 
+> Compliance test for device /dev/video1 (not using libv4l2):
+> 
+> Required ioctls:
+>         test VIDIOC_QUERYCAP: OK
+> 
+> Allow for multiple opens:
+>         test second video open: OK
+>         test VIDIOC_QUERYCAP: OK
+>         test VIDIOC_G/S_PRIORITY: OK
+>         test for unlimited opens: OK
+> 
+> Debug ioctls:
+>         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>         test VIDIOC_LOG_STATUS: OK (Not Supported)
+> 
+> Input ioctls:
+>         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>         Inputs: 0 Audio Inputs: 0 Tuners: 0
+> 
+> Output ioctls:
+>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+> 
+> Input/Output configuration ioctls:
+>         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>         test VIDIOC_G/S_EDID: OK (Not Supported)
+> 
+>         Control ioctls:
+>                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+>                 test VIDIOC_QUERYCTRL: OK
+>                 test VIDIOC_G/S_CTRL: OK
+>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>                 Standard Controls: 28 Private Controls: 0
+> 
+>         Format ioctls:
+>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>                 test VIDIOC_G/S_PARM: OK
+>                 test VIDIOC_G_FBUF: OK (Not Supported)
+>                 test VIDIOC_G_FMT: OK
+>                 test VIDIOC_TRY_FMT: OK
+>                 test VIDIOC_S_FMT: OK
+>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>                 test Cropping: OK
+>                 test Composing: OK (Not Supported)
+>                 test Scaling: OK
+> 
+>         Codec ioctls:
+>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> 
+>         Buffer ioctls:
+>                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>                 test VIDIOC_EXPBUF: OK
+> 
+> Test input 0:
+> 
+> 
+> Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+>  
+> 
