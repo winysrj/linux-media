@@ -1,39 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f52.google.com ([209.85.218.52]:33543 "EHLO
-        mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965839AbdEOUY3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 May 2017 16:24:29 -0400
-Received: by mail-oi0-f52.google.com with SMTP id w10so1420049oif.0
-        for <linux-media@vger.kernel.org>; Mon, 15 May 2017 13:24:28 -0700 (PDT)
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:38901 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751458AbdEEJJW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 May 2017 05:09:22 -0400
+Date: Fri, 5 May 2017 11:09:19 +0200
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        pavel@ucw.cz
+Subject: Re: [RFC v2 2/3] dt: bindings: Add lens-focus binding for image
+ sensors
+Message-ID: <20170505090919.unocpq7pk4oojs5t@earth>
+References: <1493974110-26510-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1493974110-26510-3-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAF_dkJCmY-n_0MdceZGXRA5fuPuMCg395Ct8x8WGRF+QCAp1eg@mail.gmail.com>
-References: <CAF_dkJB=2PNbD79msw=G47U-6QkajDOWwLJbr3pCaTQeqn=fXA@mail.gmail.com>
- <CAL8zT=jwVquxzvnieVA2njSTdL98mOt+n=oy=Nb8ptXdBbJ-1w@mail.gmail.com> <CAF_dkJCmY-n_0MdceZGXRA5fuPuMCg395Ct8x8WGRF+QCAp1eg@mail.gmail.com>
-From: Patrick Doyle <wpdster@gmail.com>
-Date: Mon, 15 May 2017 16:23:58 -0400
-Message-ID: <CAF_dkJABcAgHzEVOwg7AQHK1+5n2TqJy2tCsOdUp-QC6qO1SFQ@mail.gmail.com>
-Subject: Re: Is it possible to have a binary blob custom control?
-To: Jean-Michel Hautbois <jhautbois@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="2rpne543od2eiftj"
+Content-Disposition: inline
+In-Reply-To: <1493974110-26510-3-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Another possible mis-abuse of a binary blob control would be as a
-mechanism for retrieving a lumanance histogram from an image
-processing peripheral.  Once again, I could implement that through the
-debugfs as Jean-Michel suggested, or I could do something more
-standard.
 
-Any suggestions for a "more standard" mechanism for retrieving
-out-of-band data (such as a histogram) from a V4L2 camera source?
+--2rpne543od2eiftj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I guess, now that I have mentioned out-of-band data, I could also
-start thinking about the "embedded data lines" that are provided as
-the first two lines from my Sony imager.  Is there any standard way
-for directing those two lines to a separate buffer?
+Hi,
 
-I'd rather ask silly sounding questions, than implement silly code. :-)
+On Fri, May 05, 2017 at 11:48:29AM +0300, Sakari Ailus wrote:
+> The lens-focus property contains a phandle to the lens voice coil driver
+> that is associated to the sensor; typically both are contained in the same
+> camera module.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
 
---wpd
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+
+> ---
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
+>  1 file changed, 2 insertions(+)
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt=
+ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index dac764b..0a33240 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -77,6 +77,8 @@ Optional properties
+>    single LED, then the phandles here refer to the child nodes of the LED
+>    driver describing individual LEDs.
+> =20
+> +- lens-focus: A phandle to the node of the focus lens controller.
+> +
+> =20
+>  Optional endpoint properties
+>  ----------------------------
+
+-- Sebastian
+
+--2rpne543od2eiftj
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlkMQTwACgkQ2O7X88g7
++pq74g/+MrMEfa2Onx/PhUBbZphoMbvtOyY2n/GUlL0VqX8Fbpfy5OQ8QzsEeCFU
+9radEKc3eQm2/KjldKNkF06l9FAMeotGDUvuoQz3T+a+eA7DTn+kn9/He1723o0y
+S+FF0hBVlngyhVPNv7iqeXtm+qs1cZD9hsJVxrbzrYJUc9bSAQeJ5hPIKwmGLmkH
+IoUk2r4F/rlkqO7KZ6t/fcbh6nOibcTGW3lM8bH976RSqOdwvuV7IViwDqCeGDDG
+pxiMJU/UQSw+Y1Kdvpz2GffBtdeTIfW3IsX/KAgUpLW5447hZlkK5mCQczMGroVV
+fGiGc92esYrmroyMrb2YSenx5y+cahbZKxYew6gbalNCnWwY8KX6dUOLz7KMMfpY
+4QKfNqF5t90P9BS/Zaavn9U1JESqS7d85qsdcjia4lNqyRzcIGlCQ7gXOrbUEsOa
+c9hQRx/1dSGINd/GRE0BnXg3G9qyATGpytF8zzNifDQhvUcMIkwriHyWYV12EQ20
+ksqEUUmONZouxLzOc6vubkFL1pTJjhaMquecz3gKFDjwjkDCuWir7ta86GezKwh+
+epbh1rRdA1wudNn1mAqdi5VV8W/a1Xeq7nINyoQawd9zN+UTqYSRTlxMP5MYKln2
+73T3lu0I6wQ/RHdV7YuF8ggouLy7TyHZBA3V+Cdbz8qbAPQh4aU=
+=JIpA
+-----END PGP SIGNATURE-----
+
+--2rpne543od2eiftj--
