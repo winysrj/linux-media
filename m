@@ -1,54 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f45.google.com ([74.125.82.45]:34930 "EHLO
-        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752276AbdEPM5W (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:35773 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751492AbdEEPcK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 May 2017 08:57:22 -0400
-Received: by mail-wm0-f45.google.com with SMTP id b84so132413254wmh.0
-        for <linux-media@vger.kernel.org>; Tue, 16 May 2017 05:57:22 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: yannick.fertre@st.com, alexandre.torgue@st.com, hverkuil@xs4all.nl,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        robh@kernel.org, hans.verkuil@cisco.com
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v2 1/2] binding for stm32 cec driver
-Date: Tue, 16 May 2017 14:56:22 +0200
-Message-Id: <1494939383-18937-2-git-send-email-benjamin.gaignard@linaro.org>
-In-Reply-To: <1494939383-18937-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1494939383-18937-1-git-send-email-benjamin.gaignard@linaro.org>
+        Fri, 5 May 2017 11:32:10 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v5 3/8] ARM: dts: stm32: Enable DCMI support on STM32F429 MCU
+Date: Fri, 5 May 2017 17:31:22 +0200
+Message-ID: <1493998287-5828-4-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1493998287-5828-1-git-send-email-hugues.fruchet@st.com>
+References: <1493998287-5828-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
----
- .../devicetree/bindings/media/st,stm32-cec.txt        | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
+Enable DCMI camera interface on STM32F429 MCU.
 
-diff --git a/Documentation/devicetree/bindings/media/st,stm32-cec.txt b/Documentation/devicetree/bindings/media/st,stm32-cec.txt
-new file mode 100644
-index 0000000..6be2381
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/st,stm32-cec.txt
-@@ -0,0 +1,19 @@
-+STMicroelectronics STM32 CEC driver
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ arch/arm/boot/dts/stm32f429.dtsi | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+
+diff --git a/arch/arm/boot/dts/stm32f429.dtsi b/arch/arm/boot/dts/stm32f429.dtsi
+index ee0da97..e1ff978 100644
+--- a/arch/arm/boot/dts/stm32f429.dtsi
++++ b/arch/arm/boot/dts/stm32f429.dtsi
+@@ -736,6 +736,29 @@
+ 					slew-rate = <3>;
+ 				};
+ 			};
 +
-+Required properties:
-+ - compatible : value should be "st,stm32-cec"
-+ - reg : Physical base address of the IP registers and length of memory
-+	 mapped region.
-+ - clocks : from common clock binding: handle to CEC clocks
-+ - clock-names : from common clock binding: must be "cec" and "hdmi-cec".
-+ - interrupts : CEC interrupt number to the CPU.
++			dcmi_pins: dcmi_pins@0 {
++				pins {
++					pinmux = <STM32F429_PA4_FUNC_DCMI_HSYNC>,
++						 <STM32F429_PB7_FUNC_DCMI_VSYNC>,
++						 <STM32F429_PA6_FUNC_DCMI_PIXCLK>,
++						 <STM32F429_PC6_FUNC_DCMI_D0>,
++						 <STM32F429_PC7_FUNC_DCMI_D1>,
++						 <STM32F429_PC8_FUNC_DCMI_D2>,
++						 <STM32F429_PC9_FUNC_DCMI_D3>,
++						 <STM32F429_PC11_FUNC_DCMI_D4>,
++						 <STM32F429_PD3_FUNC_DCMI_D5>,
++						 <STM32F429_PB8_FUNC_DCMI_D6>,
++						 <STM32F429_PE6_FUNC_DCMI_D7>,
++						 <STM32F429_PC10_FUNC_DCMI_D8>,
++						 <STM32F429_PC12_FUNC_DCMI_D9>,
++						 <STM32F429_PD6_FUNC_DCMI_D10>,
++						 <STM32F429_PD2_FUNC_DCMI_D11>;
++					bias-disable;
++					drive-push-pull;
++					slew-rate = <3>;
++				};
++			};
+ 		};
+ 
+ 		rcc: rcc@40023810 {
+@@ -805,6 +828,20 @@
+ 			status = "disabled";
+ 		};
+ 
++		dcmi: dcmi@50050000 {
++			compatible = "st,stm32-dcmi";
++			reg = <0x50050000 0x400>;
++			interrupts = <78>;
++			resets = <&rcc STM32F4_AHB2_RESET(DCMI)>;
++			clocks = <&rcc 0 STM32F4_AHB2_CLOCK(DCMI)>;
++			clock-names = "mclk";
++			pinctrl-names = "default";
++			pinctrl-0 = <&dcmi_pins>;
++			dmas = <&dma2 1 1 0x414 0x3>;
++			dma-names = "tx";
++			status = "disabled";
++		};
 +
-+Example for stm32f746:
-+
-+cec: cec@40006c00 {
-+	compatible = "st,stm32-cec";
-+	reg = <0x40006C00 0x400>;
-+	interrupts = <94>;
-+	clocks = <&rcc 0 STM32F7_APB1_CLOCK(CEC)>, <&rcc 1 CLK_HDMI_CEC>;
-+	clock-names = "cec", "hdmi-cec";
-+};
+ 		rng: rng@50060800 {
+ 			compatible = "st,stm32-rng";
+ 			reg = <0x50060800 0x400>;
 -- 
 1.9.1
