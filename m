@@ -1,45 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:50767 "EHLO pokefinder.org"
+Received: from mga01.intel.com ([192.55.52.88]:20424 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751118AbdE1Ja6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 May 2017 05:30:58 -0400
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-To: linux-renesas-soc@vger.kernel.org
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 6/7] [media] soc_camera: rcar_vin: use proper name for the R-Car SoC
-Date: Sun, 28 May 2017 11:30:49 +0200
-Message-Id: <20170528093051.11816-7-wsa+renesas@sang-engineering.com>
-In-Reply-To: <20170528093051.11816-1-wsa+renesas@sang-engineering.com>
-References: <20170528093051.11816-1-wsa+renesas@sang-engineering.com>
+        id S1752475AbdEEItZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 5 May 2017 04:49:25 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: pavel@ucw.cz, sebastian.reichel@collabora.co.uk
+Subject: [RFC v2 0/3] Document bindings for camera modules and associated flash devices
+Date: Fri,  5 May 2017 11:48:27 +0300
+Message-Id: <1493974110-26510-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is 'R-Car', not 'RCar'. No code or binding changes, only descriptive text.
+This RFC patchset documents properties commonly required by camera modules
+and associated camera flash devices.
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
----
-I suggest this trivial patch should be picked individually per susbsystem.
+The camera module is essentially a package consisting of an image sensor, 
+a lens, possibly a voice coil to move the lens and a number of other
+things that at least the drivers need not to know of. All the devices in a
+camera module are declared separately in the system and as such the fact
+that they come in a single package isn't generally very useful to driver
+software. 
 
- Documentation/devicetree/bindings/media/rcar_vin.txt | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+I'm sending the set as RFC as there's no driver implementation, and a 
+dependency to the V4L2 async changes:
 
-diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-index 25fc933318483d..4af8760b353339 100644
---- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-+++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-@@ -1,5 +1,5 @@
--Renesas RCar Video Input driver (rcar_vin)
--------------------------------------------
-+Renesas R-Car Video Input driver (rcar_vin)
-+-------------------------------------------
- 
- The rcar_vin device provides video input capabilities for the Renesas R-Car
- family of devices.
+<URL:http://www.spinics.net/lists/linux-media/msg114915.html>
+
+since RFC v1:
+
+- Remove sentences elaborating applicability of the bindings.
+
+- Say a LED driver is a piece of hardware.
+
+- Otherwise reformulate the descriptions according to the comments.
+
+Sakari Ailus (3):
+  dt: bindings: Add a binding for flash devices associated to a sensor
+  dt: bindings: Add lens-focus binding for image sensors
+  dt: bindings: Add a binding for referencing EEPROM from camera sensors
+
+ .../devicetree/bindings/media/video-interfaces.txt       | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
 -- 
-2.11.0
+2.7.4
