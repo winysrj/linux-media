@@ -1,44 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:36525 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752598AbdEHOc3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 May 2017 10:32:29 -0400
-Date: Mon, 8 May 2017 11:32:26 -0300
-From: Gustavo Padovan <gustavo@padovan.org>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-        linux-media@vger.kernel.org,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 3/4] dma-buf: Adjust a null pointer check in
- dma_buf_attach()
-Message-ID: <20170508143226.GC28331@joana>
-References: <3d972fa2-787a-d1f2-ff86-5c05494e00d3@users.sourceforge.net>
- <1deb58e7-7eac-55d6-235a-baf72f392371@users.sourceforge.net>
+Received: from foss.arm.com ([217.140.101.70]:50992 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751437AbdEEMrs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 5 May 2017 08:47:48 -0400
+Date: Fri, 5 May 2017 13:47:45 +0100
+From: Liviu Dudau <liviu.dudau@arm.com>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Brian Starkey <brian.starkey@arm.com>,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/6] drm: Add writeback connector type
+Message-ID: <20170505124745.GQ28653@e110455-lin.cambridge.arm.com>
+References: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
+ <1480092544-1725-2-git-send-email-brian.starkey@arm.com>
+ <20170505102219.0ed543d2@bbrezillon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <1deb58e7-7eac-55d6-235a-baf72f392371@users.sourceforge.net>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170505102219.0ed543d2@bbrezillon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-05-08 SF Markus Elfring <elfring@users.sourceforge.net>:
+On Fri, May 05, 2017 at 10:22:19AM +0200, Boris Brezillon wrote:
+> On Fri, 25 Nov 2016 16:48:59 +0000
+> Brian Starkey <brian.starkey@arm.com> wrote:
+> 
+> > +/**
+> > + * drm_writeback_connector_init - Initialize a writeback connector and its properties
+> > + * @dev: DRM device
+> > + * @wb_connector: Writeback connector to initialize
+> > + * @funcs: Connector funcs vtable
+> > + * @formats: Array of supported pixel formats for the writeback engine
+> > + * @n_formats: Length of the formats array
+> > + *
+> > + * This function creates the writeback-connector-specific properties if they
+> > + * have not been already created, initializes the connector as
+> > + * type DRM_MODE_CONNECTOR_WRITEBACK, and correctly initializes the property
+> > + * values.
+> > + *
+> > + * Drivers should always use this function instead of drm_connector_init() to
+> > + * set up writeback connectors.
+> > + *
+> > + * Returns: 0 on success, or a negative error code
+> > + */
+> > +int drm_writeback_connector_init(struct drm_device *dev,
+> > +				 struct drm_writeback_connector *wb_connector,
+> > +				 const struct drm_connector_funcs *funcs,
+> > +				 u32 *formats, int n_formats)
+> 
+> This should probably be 'const u32 *formats', since developers are
+> likely to define a this array with a 'static const' specifier in their
+> driver.
 
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Mon, 8 May 2017 10:54:17 +0200
-> 
-> The script "checkpatch.pl" pointed information out like the following.
-> 
-> Comparison to NULL could be written "!attach"
-> 
-> Thus adjust this expression.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/dma-buf/dma-buf.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+Fixed in the v4.
 
-Reviewed-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Thanks,
+Liviu
 
-Gustavo
+-- 
+====================
+| I would like to |
+| fix the world,  |
+| but they're not |
+| giving me the   |
+ \ source code!  /
+  ---------------
+    ¯\_(ツ)_/¯
