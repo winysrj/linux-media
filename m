@@ -1,331 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:33684 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1423241AbdEYAbk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 May 2017 20:31:40 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: [PATCH v7 30/34] media: imx: csi: add sink selection rectangles
-Date: Wed, 24 May 2017 17:29:45 -0700
-Message-Id: <1495672189-29164-31-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail.kernel.org ([198.145.29.136]:45180 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752864AbdEEPVX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 5 May 2017 11:21:23 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-renesas-soc@vger.kernel.org, mchehab@kernel.org
+Cc: kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH v4 2/4] v4l: vsp1: Postpone frame end handling in event of display list race
+Date: Fri,  5 May 2017 16:21:08 +0100
+Message-Id: <e36532f33bed86666e9d7c2c23b7d797860e3457.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+If we try to commit the display list while an update is pending, we have
+missed our opportunity. The display list manager will hold the commit
+until the next interrupt.
 
-Move the crop rectangle to the sink pad and add a sink compose rectangle
-to configure scaling. Also propagate rectangles from sink pad to crop
-rectangle, to compose rectangle, and to the source pads both in ACTIVE
-and TRY variants of set_fmt/selection, and initialize the default crop
-and compose rectangles.
+In this event, we skip the pipeline completion callback handler so that
+the pipeline will not mistakenly report frame completion to the user.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/staging/media/imx/imx-media-csi.c | 153 +++++++++++++++++++++++-------
- 1 file changed, 117 insertions(+), 36 deletions(-)
+ drivers/media/platform/vsp1/vsp1_dl.c   | 19 +++++++++++++++++--
+ drivers/media/platform/vsp1/vsp1_dl.h   |  2 +-
+ drivers/media/platform/vsp1/vsp1_pipe.c | 13 ++++++++++++-
+ 3 files changed, 30 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index ed3748a..9766dee 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -80,6 +80,7 @@ struct csi_priv {
- 	const struct imx_media_pixfmt *cc[CSI_NUM_PADS];
- 	struct v4l2_fract frame_interval[CSI_NUM_PADS];
- 	struct v4l2_rect crop;
-+	struct v4l2_rect compose;
- 	const struct csi_skip_desc *skip;
- 
- 	/* active vb2 buffers to send to video dev sink */
-@@ -589,8 +590,8 @@ static int csi_setup(struct csi_priv *priv)
- 	ipu_csi_set_window(priv->csi, &priv->crop);
- 
- 	ipu_csi_set_downsize(priv->csi,
--			     priv->crop.width == 2 * outfmt->width,
--			     priv->crop.height == 2 * outfmt->height);
-+			     priv->crop.width == 2 * priv->compose.width,
-+			     priv->crop.height == 2 * priv->compose.height);
- 
- 	ipu_csi_init_interface(priv->csi, &sensor_mbus_cfg, &if_fmt);
- 
-@@ -1072,6 +1073,17 @@ __csi_get_crop(struct csi_priv *priv, struct v4l2_subdev_pad_config *cfg,
- 		return &priv->crop;
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 7d8f37772b56..85fe2b4ae310 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -561,9 +561,19 @@ void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm)
+ 	spin_unlock(&dlm->lock);
  }
  
-+static struct v4l2_rect *
-+__csi_get_compose(struct csi_priv *priv, struct v4l2_subdev_pad_config *cfg,
-+		  enum v4l2_subdev_format_whence which)
-+{
-+	if (which == V4L2_SUBDEV_FORMAT_TRY)
-+		return v4l2_subdev_get_try_compose(&priv->sd, cfg,
-+						   CSI_SINK_PAD);
-+	else
-+		return &priv->compose;
-+}
-+
- static void csi_try_crop(struct csi_priv *priv,
- 			 struct v4l2_rect *crop,
- 			 struct v4l2_subdev_pad_config *cfg,
-@@ -1181,6 +1193,7 @@ static void csi_try_fmt(struct csi_priv *priv,
- 			struct v4l2_subdev_pad_config *cfg,
- 			struct v4l2_subdev_format *sdformat,
- 			struct v4l2_rect *crop,
-+			struct v4l2_rect *compose,
- 			const struct imx_media_pixfmt **cc)
+-void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
++/**
++ * vsp1_dlm_irq_frame_end - Display list handler for the frame end interrupt
++ * @dlm: the display list manager
++ *
++ * Return true if the previous display list has completed at frame end, or false
++ * if it has been delayed by one frame because the display list commit raced
++ * with the frame end interrupt. The function always returns true in header mode
++ * as display list processing is then not continuous and races never occur.
++ */
++bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
  {
- 	const struct imx_media_pixfmt *incc;
-@@ -1195,15 +1208,8 @@ static void csi_try_fmt(struct csi_priv *priv,
- 		incc = imx_media_find_mbus_format(infmt->code,
- 						  CS_SEL_ANY, true);
+ 	struct vsp1_device *vsp1 = dlm->vsp1;
++	bool completed = false;
  
--		if (sdformat->format.width < crop->width * 3 / 4)
--			sdformat->format.width = crop->width / 2;
--		else
--			sdformat->format.width = crop->width;
--
--		if (sdformat->format.height < crop->height * 3 / 4)
--			sdformat->format.height = crop->height / 2;
--		else
--			sdformat->format.height = crop->height;
-+		sdformat->format.width = compose->width;
-+		sdformat->format.height = compose->height;
+ 	spin_lock(&dlm->lock);
  
- 		if (incc->bayer) {
- 			sdformat->format.code = infmt->code;
-@@ -1239,11 +1245,17 @@ static void csi_try_fmt(struct csi_priv *priv,
- 		v4l_bound_align_image(&sdformat->format.width, MIN_W, MAX_W,
- 				      W_ALIGN, &sdformat->format.height,
- 				      MIN_H, MAX_H, H_ALIGN, S_ALIGN);
-+
-+		/* Reset crop and compose rectangles */
- 		crop->left = 0;
- 		crop->top = 0;
- 		crop->width = sdformat->format.width;
- 		crop->height = sdformat->format.height;
- 		csi_try_crop(priv, crop, cfg, &sdformat->format, sensor);
-+		compose->left = 0;
-+		compose->top = 0;
-+		compose->width = crop->width;
-+		compose->height = crop->height;
- 
- 		*cc = imx_media_find_mbus_format(sdformat->format.code,
- 						 CS_SEL_ANY, true);
-@@ -1268,7 +1280,7 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 	struct imx_media_subdev *sensor;
- 	struct v4l2_pix_format vdev_fmt;
- 	struct v4l2_mbus_framefmt *fmt;
--	struct v4l2_rect *crop;
-+	struct v4l2_rect *crop, *compose;
- 	int ret = 0;
- 
- 	if (sdformat->pad >= CSI_NUM_PADS)
-@@ -1288,8 +1300,9 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 	}
- 
- 	crop = __csi_get_crop(priv, cfg, sdformat->which);
-+	compose = __csi_get_compose(priv, cfg, sdformat->which);
- 
--	csi_try_fmt(priv, sensor, cfg, sdformat, crop, &cc);
-+	csi_try_fmt(priv, sensor, cfg, sdformat, crop, compose, &cc);
- 
- 	fmt = __csi_get_fmt(priv, cfg, sdformat->pad, sdformat->which);
- 	*fmt = sdformat->format;
-@@ -1306,7 +1319,8 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 			format.pad = pad;
- 			format.which = sdformat->which;
- 			format.format = sdformat->format;
--			csi_try_fmt(priv, sensor, cfg, &format, crop, &outcc);
-+			csi_try_fmt(priv, sensor, cfg, &format, NULL, compose,
-+				    &outcc);
- 
- 			outfmt = __csi_get_fmt(priv, cfg, pad, sdformat->which);
- 			*outfmt = format.format;
-@@ -1340,16 +1354,17 @@ static int csi_get_selection(struct v4l2_subdev *sd,
- {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *infmt;
--	struct v4l2_rect *crop;
-+	struct v4l2_rect *crop, *compose;
- 	int ret = 0;
- 
--	if (sel->pad >= CSI_NUM_PADS || sel->pad == CSI_SINK_PAD)
-+	if (sel->pad != CSI_SINK_PAD)
- 		return -EINVAL;
- 
- 	mutex_lock(&priv->lock);
- 
- 	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, sel->which);
- 	crop = __csi_get_crop(priv, cfg, sel->which);
-+	compose = __csi_get_compose(priv, cfg, sel->which);
- 
- 	switch (sel->target) {
- 	case V4L2_SEL_TGT_CROP_BOUNDS:
-@@ -1361,6 +1376,15 @@ static int csi_get_selection(struct v4l2_subdev *sd,
- 	case V4L2_SEL_TGT_CROP:
- 		sel->r = *crop;
- 		break;
-+	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		sel->r.width = crop->width;
-+		sel->r.height = crop->height;
-+		break;
-+	case V4L2_SEL_TGT_COMPOSE:
-+		sel->r = *compose;
-+		break;
- 	default:
- 		ret = -EINVAL;
- 	}
-@@ -1369,19 +1393,34 @@ static int csi_get_selection(struct v4l2_subdev *sd,
- 	return ret;
- }
- 
-+static int csi_set_scale(u32 *compose, u32 crop, u32 flags)
-+{
-+	if ((flags & (V4L2_SEL_FLAG_LE | V4L2_SEL_FLAG_GE)) ==
-+		     (V4L2_SEL_FLAG_LE | V4L2_SEL_FLAG_GE) &&
-+	    *compose != crop && *compose != crop / 2)
-+		return -ERANGE;
-+
-+	if (*compose <= crop / 2 ||
-+	    (*compose < crop * 3 / 4 && !(flags & V4L2_SEL_FLAG_GE)) ||
-+	    (*compose < crop && (flags & V4L2_SEL_FLAG_LE)))
-+		*compose = crop / 2;
-+	else
-+		*compose = crop;
-+
-+	return 0;
-+}
-+
- static int csi_set_selection(struct v4l2_subdev *sd,
- 			     struct v4l2_subdev_pad_config *cfg,
- 			     struct v4l2_subdev_selection *sel)
- {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *infmt;
-+	struct v4l2_rect *crop, *compose;
- 	struct imx_media_subdev *sensor;
--	struct v4l2_rect *crop;
- 	int pad, ret = 0;
- 
--	if (sel->pad >= CSI_NUM_PADS ||
--	    sel->pad == CSI_SINK_PAD ||
--	    sel->target != V4L2_SEL_TGT_CROP)
-+	if (sel->pad != CSI_SINK_PAD)
- 		return -EINVAL;
- 
- 	sensor = imx_media_find_sensor(priv->md, &priv->sd.entity);
-@@ -1399,30 +1438,66 @@ static int csi_set_selection(struct v4l2_subdev *sd,
- 
- 	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, sel->which);
- 	crop = __csi_get_crop(priv, cfg, sel->which);
-+	compose = __csi_get_compose(priv, cfg, sel->which);
- 
--	/*
--	 * Modifying the crop rectangle always changes the format on the source
--	 * pad. If the KEEP_CONFIG flag is set, just return the current crop
--	 * rectangle.
--	 */
--	if (sel->flags & V4L2_SEL_FLAG_KEEP_CONFIG) {
--		sel->r = priv->crop;
--		if (sel->which == V4L2_SUBDEV_FORMAT_TRY)
--			*crop = sel->r;
--		goto out;
--	}
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_CROP:
-+		/*
-+		 * Modifying the crop rectangle always changes the format on
-+		 * the source pads. If the KEEP_CONFIG flag is set, just return
-+		 * the current crop rectangle.
-+		 */
-+		if (sel->flags & V4L2_SEL_FLAG_KEEP_CONFIG) {
-+			sel->r = priv->crop;
-+			if (sel->which == V4L2_SUBDEV_FORMAT_TRY)
-+				*crop = sel->r;
-+			goto out;
-+		}
-+
-+		csi_try_crop(priv, &sel->r, cfg, infmt, sensor);
-+
-+		*crop = sel->r;
-+
-+		/* Reset scaling to 1:1 */
-+		compose->width = crop->width;
-+		compose->height = crop->height;
-+		break;
-+	case V4L2_SEL_TGT_COMPOSE:
-+		/*
-+		 * Modifying the compose rectangle always changes the format on
-+		 * the source pads. If the KEEP_CONFIG flag is set, just return
-+		 * the current compose rectangle.
-+		 */
-+		if (sel->flags & V4L2_SEL_FLAG_KEEP_CONFIG) {
-+			sel->r = priv->compose;
-+			if (sel->which == V4L2_SUBDEV_FORMAT_TRY)
-+				*compose = sel->r;
-+			goto out;
-+		}
- 
--	csi_try_crop(priv, &sel->r, cfg, infmt, sensor);
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		ret = csi_set_scale(&sel->r.width, crop->width, sel->flags);
-+		if (ret)
-+			goto out;
-+		ret = csi_set_scale(&sel->r.height, crop->height, sel->flags);
-+		if (ret)
-+			goto out;
- 
--	*crop = sel->r;
-+		*compose = sel->r;
-+		break;
-+	default:
-+		ret = -EINVAL;
-+		goto out;
+@@ -575,8 +585,10 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+ 	 * perform any operation as there can't be any new display list queued
+ 	 * in that case.
+ 	 */
+-	if (dlm->mode == VSP1_DL_MODE_HEADER)
++	if (dlm->mode == VSP1_DL_MODE_HEADER) {
++		completed = true;
+ 		goto done;
 +	}
  
--	/* Update the source pad formats */
-+	/* Reset source pads to sink compose rectangle */
- 	for (pad = CSI_SINK_PAD + 1; pad < CSI_NUM_PADS; pad++) {
- 		struct v4l2_mbus_framefmt *outfmt;
- 
- 		outfmt = __csi_get_fmt(priv, cfg, pad, sel->which);
--		outfmt->width = crop->width;
--		outfmt->height = crop->height;
-+		outfmt->width = compose->width;
-+		outfmt->height = compose->height;
+ 	/*
+ 	 * The UPD bit set indicates that the commit operation raced with the
+@@ -594,6 +606,7 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+ 	if (dlm->queued) {
+ 		dlm->active = dlm->queued;
+ 		dlm->queued = NULL;
++		completed = true;
  	}
  
- out:
-@@ -1489,6 +1564,12 @@ static int csi_registered(struct v4l2_subdev *sd)
- 	/* disable frame skipping */
- 	priv->skip = &csi_skip[0];
+ 	/*
+@@ -614,6 +627,8 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
  
-+	/* init default crop and compose rectangle sizes */
-+	priv->crop.width = 640;
-+	priv->crop.height = 480;
-+	priv->compose.width = 640;
-+	priv->compose.height = 480;
+ done:
+ 	spin_unlock(&dlm->lock);
 +
- 	priv->fim = imx_media_fim_init(&priv->sd);
- 	if (IS_ERR(priv->fim)) {
- 		ret = PTR_ERR(priv->fim);
++	return completed;
+ }
+ 
+ /* Hardware Setup */
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+index 7131aa3c5978..6ec1380a10af 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.h
++++ b/drivers/media/platform/vsp1/vsp1_dl.h
+@@ -28,7 +28,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
+ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
+ void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm);
+-void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
++bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
+ 
+ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
+ void vsp1_dl_list_put(struct vsp1_dl_list *dl);
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index edebf3fa926f..e817623b84e0 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -330,10 +330,21 @@ bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe)
+ 
+ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
+ {
++	bool completed;
++
+ 	if (pipe == NULL)
+ 		return;
+ 
+-	vsp1_dlm_irq_frame_end(pipe->output->dlm);
++	completed = vsp1_dlm_irq_frame_end(pipe->output->dlm);
++	if (!completed) {
++		/*
++		 * If the DL commit raced with the frame end interrupt, the
++		 * commit ends up being postponed by one frame. Return
++		 * immediately without calling the pipeline's frame end handler
++		 * or incrementing the sequence number.
++		 */
++		return;
++	}
+ 
+ 	if (pipe->hgo)
+ 		vsp1_hgo_frame_end(pipe->hgo);
 -- 
-2.7.4
+git-series 0.9.1
