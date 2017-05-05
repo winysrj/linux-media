@@ -1,46 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40375
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754645AbdERMiu (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:35771 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752183AbdEEPcL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 08:38:50 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>
-Subject: [PATCH 1/5] [media] bcm3510: fix handling of VSB16 modulation
-Date: Thu, 18 May 2017 09:38:35 -0300
-Message-Id: <8072ec0b3dd754f84e5d5c5835dc79f0ac077d63.1495110899.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1495110899.git.mchehab@s-opensource.com>
-References: <cover.1495110899.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1495110899.git.mchehab@s-opensource.com>
-References: <cover.1495110899.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Fri, 5 May 2017 11:32:11 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v5 6/8] ARM: dts: stm32: Enable OV2640 camera support of STM32F429-EVAL board
+Date: Fri, 5 May 2017 17:31:25 +0200
+Message-ID: <1493998287-5828-7-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1493998287-5828-1-git-send-email-hugues.fruchet@st.com>
+References: <1493998287-5828-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's a missing break for VSB16 modulation logic, with would
-cause it to return -EINVAL, instead of handling it.
+Enable OV2640 camera support of STM32F429-EVAL board.
 
-Fix it.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/dvb-frontends/bcm3510.c | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/stm32429i-eval.dts | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/bcm3510.c b/drivers/media/dvb-frontends/bcm3510.c
-index 617c5e29f919..30cfc0f2b575 100644
---- a/drivers/media/dvb-frontends/bcm3510.c
-+++ b/drivers/media/dvb-frontends/bcm3510.c
-@@ -538,6 +538,7 @@ static int bcm3510_set_frontend(struct dvb_frontend *fe)
- 			cmd.ACQUIRE0.MODE = 0x9;
- 			cmd.ACQUIRE1.SYM_RATE = 0x0;
- 			cmd.ACQUIRE1.IF_FREQ = 0x0;
-+			break;
- 		default:
- 			return -EINVAL;
- 	}
+diff --git a/arch/arm/boot/dts/stm32429i-eval.dts b/arch/arm/boot/dts/stm32429i-eval.dts
+index 2bb8a0f..95c33b1 100644
+--- a/arch/arm/boot/dts/stm32429i-eval.dts
++++ b/arch/arm/boot/dts/stm32429i-eval.dts
+@@ -48,6 +48,7 @@
+ /dts-v1/;
+ #include "stm32f429.dtsi"
+ #include <dt-bindings/input/input.h>
++#include <dt-bindings/gpio/gpio.h>
+ 
+ / {
+ 	model = "STMicroelectronics STM32429i-EVAL board";
+@@ -66,6 +67,14 @@
+ 		serial0 = &usart1;
+ 	};
+ 
++	clocks {
++		clk_ext_camera: clk-ext-camera {
++			#clock-cells = <0>;
++			compatible = "fixed-clock";
++			clock-frequency = <24000000>;
++		};
++	};
++
+ 	soc {
+ 		dma-ranges = <0xc0000000 0x0 0x10000000>;
+ 	};
+@@ -146,6 +155,11 @@
+ 
+ 	port {
+ 		dcmi_0: endpoint {
++			remote-endpoint = <&ov2640_0>;
++			bus-width = <8>;
++			hsync-active = <0>;
++			vsync-active = <0>;
++			pclk-sample = <1>;
+ 		};
+ 	};
+ };
+@@ -155,6 +169,22 @@
+ 	pinctrl-names = "default";
+ 	status = "okay";
+ 
++	ov2640: camera@30 {
++		compatible = "ovti,ov2640";
++		reg = <0x30>;
++		resetb-gpios = <&stmpegpio 2 GPIO_ACTIVE_HIGH>;
++		pwdn-gpios = <&stmpegpio 0 GPIO_ACTIVE_LOW>;
++		clocks = <&clk_ext_camera>;
++		clock-names = "xvclk";
++		status = "okay";
++
++		port {
++			ov2640_0: endpoint {
++				remote-endpoint = <&dcmi_0>;
++			};
++		};
++	};
++
+ 	stmpe1600: stmpe1600@42 {
+ 		compatible = "st,stmpe1600";
+ 		reg = <0x42>;
 -- 
-2.9.3
+1.9.1
