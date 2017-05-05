@@ -1,79 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54160 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933989AbdERNSg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 09:18:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: kieran.bingham@ideasonboard.com
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Kieran Bingham <kbingham@kernel.org>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
-        <linux-renesas-soc@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Frank Rowand <frowand.list@gmail.com>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE"
-        <devicetree@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v1 1/3] of: base: Provide of_graph_get_port_parent()
-Date: Thu, 18 May 2017 16:18:39 +0300
-Message-ID: <2172554.nJqIiczhoI@avalon>
-In-Reply-To: <61138419-5781-bbec-7ac5-44524ad501ce@ideasonboard.com>
-References: <cover.6800d0e1b9b578b82f68dec1b99b3a601d6e54ca.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com> <CAL_JsqLvXH3kKV-DxWuNrAYGh8=L8Mdg5zcm2RsHZTpmi_8g-g@mail.gmail.com> <61138419-5781-bbec-7ac5-44524ad501ce@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kernel.org ([198.145.29.136]:45064 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752901AbdEEPVZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 5 May 2017 11:21:25 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-renesas-soc@vger.kernel.org, mchehab@kernel.org
+Cc: kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH v4 1/4] drm: rcar-du: Arm the page flip event after queuing the page flip
+Date: Fri,  5 May 2017 16:21:07 +0100
+Message-Id: <41efc7efede2bab8a87ac6fd036222c32deab931.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-On Wednesday 17 May 2017 21:02:42 Kieran Bingham wrote:
-> On 17/05/17 17:36, Rob Herring wrote:
-> > On Wed, May 17, 2017 at 10:03 AM, Kieran Bingham wrote:
-> >> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> >> 
-> >> When handling endpoints, the v4l2 async framework needs to identify the
-> >> parent device of a port endpoint.
-> >> 
-> >> Adapt the existing of_graph_get_remote_port_parent() such that a caller
-> >> can obtain the parent of a port without parsing the remote-endpoint
-> >> first.
-> > 
-> > A similar patch is already applied as part of the ASoC graph card support.
-> > 
-> > Rob
-> 
-> Ah yes, a quick google finds it...
-> 
-> :  https://patchwork.kernel.org/patch/9658907/
-> 
-> Surprisingly similar patch ... and a familiar name.
+The page flip event is armed in the atomic begin handler, creating a
+race condition with the frame end interrupt that could send the event
+before the atomic operation actually completes. To avoid that, arm the
+event in the atomic flush handler after queuing the page flip.
 
-Very similar indeed, down to identical problems ;-) Quoting your patch,
+This change doesn't fully close the race window, as the frame end
+interrupt could be generated before the page flip is committed to
+hardware but only handled after the event is armed. However, the race
+window is now much smaller.
 
->  /**
-> + * of_graph_get_port_parent() - get port's parent node
-> + * @node: pointer to a local endpoint device_node
-> + *
-> + * Return: device node associated with endpoint @node.
-> + *	   Use of_node_put() on it when done.
-> + */
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-The documentation of the return value is a bit confusing to me. I assume that, 
-by device node, you meant the DT node corresponding to the device of the 
-endpoint which is passed as an argument. However, device node cal also refer 
-to struct device_node. Should this be clarified ?
-
-> Morimoto-san - you beat me to it :D !
-> 
-> Thanks Rob, (And Morimoto!)
-
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+index 4ed6f2340af0..5f0664bcd12d 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+@@ -581,17 +581,6 @@ static void rcar_du_crtc_atomic_begin(struct drm_crtc *crtc,
+ 				      struct drm_crtc_state *old_crtc_state)
+ {
+ 	struct rcar_du_crtc *rcrtc = to_rcar_crtc(crtc);
+-	struct drm_device *dev = rcrtc->crtc.dev;
+-	unsigned long flags;
+-
+-	if (crtc->state->event) {
+-		WARN_ON(drm_crtc_vblank_get(crtc) != 0);
+-
+-		spin_lock_irqsave(&dev->event_lock, flags);
+-		rcrtc->event = crtc->state->event;
+-		crtc->state->event = NULL;
+-		spin_unlock_irqrestore(&dev->event_lock, flags);
+-	}
+ 
+ 	if (rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_VSP1_SOURCE))
+ 		rcar_du_vsp_atomic_begin(rcrtc);
+@@ -601,9 +590,20 @@ static void rcar_du_crtc_atomic_flush(struct drm_crtc *crtc,
+ 				      struct drm_crtc_state *old_crtc_state)
+ {
+ 	struct rcar_du_crtc *rcrtc = to_rcar_crtc(crtc);
++	struct drm_device *dev = rcrtc->crtc.dev;
++	unsigned long flags;
+ 
+ 	rcar_du_crtc_update_planes(rcrtc);
+ 
++	if (crtc->state->event) {
++		WARN_ON(drm_crtc_vblank_get(crtc) != 0);
++
++		spin_lock_irqsave(&dev->event_lock, flags);
++		rcrtc->event = crtc->state->event;
++		crtc->state->event = NULL;
++		spin_unlock_irqrestore(&dev->event_lock, flags);
++	}
++
+ 	if (rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_VSP1_SOURCE))
+ 		rcar_du_vsp_atomic_flush(rcrtc);
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+git-series 0.9.1
