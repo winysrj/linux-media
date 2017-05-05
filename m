@@ -1,208 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:57023 "EHLO
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:58093 "EHLO
         lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751558AbdEELg0 (ORCPT
+        by vger.kernel.org with ESMTP id S1750812AbdEEENO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 May 2017 07:36:26 -0400
-Subject: Re: [PATCH v8 02/10] media: v4l2-mem2mem: extend m2m APIs for more
- accurate buffer management
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
- <1493370837-19793-3-git-send-email-stanimir.varbanov@linaro.org>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e35b5b76-cef8-7393-d853-5ad16780ccf7@xs4all.nl>
-Date: Fri, 5 May 2017 13:36:21 +0200
-MIME-Version: 1.0
-In-Reply-To: <1493370837-19793-3-git-send-email-stanimir.varbanov@linaro.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Fri, 5 May 2017 00:13:14 -0400
+Message-ID: <00c0cf071418c3af7c97fbb8e616a06b@smtp-cloud3.xs4all.net>
+Date: Fri, 05 May 2017 06:13:11 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/28/17 11:13, Stanimir Varbanov wrote:
-> this add functions for:
->   - remove buffers from src/dst queue by index
->   - remove exact buffer from src/dst queue
-> 
-> also extends m2m API to iterate over a list of src/dst buffers
-> in safely and non-safely manner.
-> 
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Results of the daily build of media_tree:
 
-Thanks!
+date:			Fri May  5 05:00:17 CEST 2017
+media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
+media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
+v4l-utils git hash:	eb9dcc3e1d4805c382e244397df2290051179601
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-	Hans
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: WARNINGS
+linux-4.9-i686: WARNINGS
+linux-4.10.1-i686: WARNINGS
+linux-4.11-rc1-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-x86_64: WARNINGS
+linux-4.10.1-x86_64: WARNINGS
+linux-4.11-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-> ---
->  drivers/media/v4l2-core/v4l2-mem2mem.c | 37 ++++++++++++++
->  include/media/v4l2-mem2mem.h           | 92 ++++++++++++++++++++++++++++++++++
->  2 files changed, 129 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> index 6bc27e7b2a33..f62e68aa04c4 100644
-> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> @@ -126,6 +126,43 @@ void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx)
->  }
->  EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove);
->  
-> +void v4l2_m2m_buf_remove_by_buf(struct v4l2_m2m_queue_ctx *q_ctx,
-> +				struct vb2_v4l2_buffer *vbuf)
-> +{
-> +	struct v4l2_m2m_buffer *b;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
-> +	b = container_of(vbuf, struct v4l2_m2m_buffer, vb);
-> +	list_del(&b->list);
-> +	q_ctx->num_rdy--;
-> +	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove_by_buf);
-> +
-> +struct vb2_v4l2_buffer *
-> +v4l2_m2m_buf_remove_by_idx(struct v4l2_m2m_queue_ctx *q_ctx, unsigned int idx)
-> +
-> +{
-> +	struct v4l2_m2m_buffer *b, *tmp;
-> +	struct vb2_v4l2_buffer *ret = NULL;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
-> +	list_for_each_entry_safe(b, tmp, &q_ctx->rdy_queue, list) {
-> +		if (b->vb.vb2_buf.index == idx) {
-> +			list_del(&b->list);
-> +			q_ctx->num_rdy--;
-> +			ret = &b->vb;
-> +			break;
-> +		}
-> +	}
-> +	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove_by_idx);
-> +
->  /*
->   * Scheduling handlers
->   */
-> diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-> index 3ccd01bd245e..e157d5c9b224 100644
-> --- a/include/media/v4l2-mem2mem.h
-> +++ b/include/media/v4l2-mem2mem.h
-> @@ -437,6 +437,47 @@ static inline void *v4l2_m2m_next_dst_buf(struct v4l2_m2m_ctx *m2m_ctx)
->  }
->  
->  /**
-> + * v4l2_m2m_for_each_dst_buf() - iterate over a list of destination ready
-> + * buffers
-> + *
-> + * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-> + * @b: current buffer of type struct v4l2_m2m_buffer
-> + */
-> +#define v4l2_m2m_for_each_dst_buf(m2m_ctx, b)	\
-> +	list_for_each_entry(b, &m2m_ctx->cap_q_ctx.rdy_queue, list)
-> +
-> +/**
-> + * v4l2_m2m_for_each_src_buf() - iterate over a list of source ready buffers
-> + *
-> + * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-> + * @b: current buffer of type struct v4l2_m2m_buffer
-> + */
-> +#define v4l2_m2m_for_each_src_buf(m2m_ctx, b)	\
-> +	list_for_each_entry(b, &m2m_ctx->out_q_ctx.rdy_queue, list)
-> +
-> +/**
-> + * v4l2_m2m_for_each_dst_buf_safe() - iterate over a list of destination ready
-> + * buffers safely
-> + *
-> + * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-> + * @b: current buffer of type struct v4l2_m2m_buffer
-> + * @n: used as temporary storage
-> + */
-> +#define v4l2_m2m_for_each_dst_buf_safe(m2m_ctx, b, n)	\
-> +	list_for_each_entry_safe(b, n, &m2m_ctx->cap_q_ctx.rdy_queue, list)
-> +
-> +/**
-> + * v4l2_m2m_for_each_src_buf_safe() - iterate over a list of source ready
-> + * buffers safely
-> + *
-> + * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-> + * @b: current buffer of type struct v4l2_m2m_buffer
-> + * @n: used as temporary storage
-> + */
-> +#define v4l2_m2m_for_each_src_buf_safe(m2m_ctx, b, n)	\
-> +	list_for_each_entry_safe(b, n, &m2m_ctx->out_q_ctx.rdy_queue, list)
-> +
-> +/**
->   * v4l2_m2m_get_src_vq() - return vb2_queue for source buffers
->   *
->   * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-> @@ -488,6 +529,57 @@ static inline void *v4l2_m2m_dst_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
->  	return v4l2_m2m_buf_remove(&m2m_ctx->cap_q_ctx);
->  }
->  
-> +/**
-> + * v4l2_m2m_buf_remove_by_buf() - take off exact buffer from the list of ready
-> + * buffers
-> + *
-> + * @q_ctx: pointer to struct @v4l2_m2m_queue_ctx
-> + * @vbuf: the buffer to be removed
-> + */
-> +void v4l2_m2m_buf_remove_by_buf(struct v4l2_m2m_queue_ctx *q_ctx,
-> +				struct vb2_v4l2_buffer *vbuf);
-> +
-> +/**
-> + * v4l2_m2m_src_buf_remove_by_buf() - take off exact source buffer from the list
-> + * of ready buffers
-> + *
-> + * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-> + * @vbuf: the buffer to be removed
-> + */
-> +static inline void v4l2_m2m_src_buf_remove_by_buf(struct v4l2_m2m_ctx *m2m_ctx,
-> +						  struct vb2_v4l2_buffer *vbuf)
-> +{
-> +	v4l2_m2m_buf_remove_by_buf(&m2m_ctx->out_q_ctx, vbuf);
-> +}
-> +
-> +/**
-> + * v4l2_m2m_dst_buf_remove_by_buf() - take off exact destination buffer from the
-> + * list of ready buffers
-> + *
-> + * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-> + * @vbuf: the buffer to be removed
-> + */
-> +static inline void v4l2_m2m_dst_buf_remove_by_buf(struct v4l2_m2m_ctx *m2m_ctx,
-> +						  struct vb2_v4l2_buffer *vbuf)
-> +{
-> +	v4l2_m2m_buf_remove_by_buf(&m2m_ctx->cap_q_ctx, vbuf);
-> +}
-> +
-> +struct vb2_v4l2_buffer *
-> +v4l2_m2m_buf_remove_by_idx(struct v4l2_m2m_queue_ctx *q_ctx, unsigned int idx);
-> +
-> +static inline struct vb2_v4l2_buffer *
-> +v4l2_m2m_src_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
-> +{
-> +	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->out_q_ctx, idx);
-> +}
-> +
-> +static inline struct vb2_v4l2_buffer *
-> +v4l2_m2m_dst_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
-> +{
-> +	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->cap_q_ctx, idx);
-> +}
-> +
->  /* v4l2 ioctl helpers */
->  
->  int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
-> 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
