@@ -1,63 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:34301 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S933441AbdEWDYT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 May 2017 23:24:19 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Houlong Wei <houlong.wei@mediatek.com>
-CC: <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        Wu-Cheng Li <wuchengli@google.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
-Subject: [PATCH v4 0/3] Fix mdp device tree 
-Date: Tue, 23 May 2017 11:24:08 +0800
-Message-ID: <1495509851-29159-1-git-send-email-minghsiu.tsai@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:35939 "EHLO
+        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751706AbdEEUSr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 May 2017 16:18:47 -0400
+Received: by mail-wm0-f51.google.com with SMTP id u65so33056527wmu.1
+        for <linux-media@vger.kernel.org>; Fri, 05 May 2017 13:18:46 -0700 (PDT)
+From: Remco <remco@dutchcoders.io>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Cc: Remco Verhoef <remco@dutchcoders.io>
+Subject: [PATCH] media: fix one code style problem
+Date: Fri,  5 May 2017 13:18:24 -0700
+Message-Id: <20170505201824.39399-1-remco@dutchcoders.io>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changes in v4:
-- Add backwards compability if dts is out-of-date
+From: Remco Verhoef <remco@dutchcoders.io>
 
-Changes in v3:
-- Upload patches again because forget to add v2 in title
+this patch will fix one code style problem (ctx:WxE), space
+prohibited before that
 
-Changes in v2:
-- Update commit message
+Signed-off-by: Remco Verhoef <remco@dutchcoders.io>
+---
+ .../staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c    | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-If the mdp_* nodes are under an mdp sub-node, their corresponding
-platform device does not automatically get its iommu assigned properly.
-
-Fix this by moving the mdp component nodes up a level such that they are
-siblings of mdp and all other SoC subsystems.  This also simplifies the
-device tree.
-
-Although it fixes iommu assignment issue, it also break compatibility
-with old device tree. So, the patch in driver is needed to iterate over
-sibling mdp device nodes, not child ones, to keep driver work properly.
-
-Daniel Kurtz (2):
-  arm64: dts: mt8173: Fix mdp device tree
-  media: mtk-mdp: Fix mdp device tree
-
-Minghsiu Tsai (1):
-  dt-bindings: mt8173: Fix mdp device tree
-
- .../devicetree/bindings/media/mediatek-mdp.txt     |  12 +-
- arch/arm64/boot/dts/mediatek/mt8173.dtsi           | 126 ++++++++++-----------
- drivers/media/platform/mtk-mdp/mtk_mdp_core.c      |  12 +-
- 3 files changed, 73 insertions(+), 77 deletions(-)
-
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+index 5b4506a..b0f9188 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+@@ -51,7 +51,7 @@ struct gmin_subdev {
+ 
+ static struct gmin_subdev gmin_subdevs[MAX_SUBDEVS];
+ 
+-static enum { PMIC_UNSET = 0, PMIC_REGULATOR, PMIC_AXP, PMIC_TI ,
++static enum { PMIC_UNSET = 0, PMIC_REGULATOR, PMIC_AXP, PMIC_TI,
+ 	PMIC_CRYSTALCOVE } pmic_id;
+ 
+ /* The atomisp uses type==0 for the end-of-list marker, so leave space. */
 -- 
 1.9.1
