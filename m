@@ -1,87 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f170.google.com ([209.85.192.170]:35405 "EHLO
-        mail-pf0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751024AbdE3JyF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 05:54:05 -0400
-Received: by mail-pf0-f170.google.com with SMTP id n23so67849164pfb.2
-        for <linux-media@vger.kernel.org>; Tue, 30 May 2017 02:54:05 -0700 (PDT)
-From: Hirokazu Honda <hiroh@chromium.org>
-To: Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Hirokazu Honda <hiroh@chromium.org>
-Subject: [PATCH v2] [media] mtk-vcodec: Show mtk driver error without DEBUG definition
-Date: Tue, 30 May 2017 18:53:58 +0900
-Message-Id: <20170530095358.2685-1-hiroh@chromium.org>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55050
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751441AbdEEAho (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 20:37:44 -0400
+Date: Thu, 4 May 2017 21:37:37 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Reinhard Speyerer <rspmn@arcor.de>
+Cc: Gregor Jasny <gjasny@googlemail.com>,
+        Clemens Ladisch <clemens@ladisch.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] libdvbv5: T2 delivery descriptor: fix wrong size of
+ bandwidth field
+Message-ID: <20170504213737.5a91c5a0@vento.lan>
+In-Reply-To: <20170504231429.GA1997@arcor.de>
+References: <dc2b16b2-7caa-6141-a983-c83631544f3e@ladisch.de>
+        <c6f1d1cd-69ea-d454-15a8-5de9325577de@googlemail.com>
+        <20170503095303.71cf3a75@vento.lan>
+        <20170503193318.07ddf143@vento.lan>
+        <00937473-581c-ecf8-58c6-616a78aa37c5@googlemail.com>
+        <20170504091147.3f3edc16@vento.lan>
+        <20170504231429.GA1997@arcor.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A driver error message is shown without DEBUG definition
-to find an error and debug easily.
+Em Fri, 5 May 2017 01:14:29 +0200
+Reinhard Speyerer <rspmn@arcor.de> escreveu:
 
-Signed-off-by: Hirokazu Honda <hiroh@chromium.org>
----
- drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h | 20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+> On Thu, May 04, 2017 at 09:11:47AM -0300, Mauro Carvalho Chehab wrote:
+> > Em Thu, 4 May 2017 09:55:04 +0200
+> > Gregor Jasny <gjasny@googlemail.com> escreveu:
+> >   
+> > > Hello Mauro,
+> > > 
+> > > On 04.05.17 00:33, Mauro Carvalho Chehab wrote:  
+> > > > Em Wed, 3 May 2017 09:53:03 -0300
+> > > > Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:    
+> > > >> Em Tue, 2 May 2017 22:30:29 +0200
+> > > >> Gregor Jasny <gjasny@googlemail.com> escreveu:    
+> > > >>> I just used your patch and another to hopefully fix
+> > > >>> https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=859008
+> > > >>>
+> > > >>> But I'm a little bit hesitant to merge it to v4l-utils git without
+> > > >>> Mauros acknowledgement.    
+> > >   
+> > > >> Patches look correct, but the T2 parser has a more serious issue that
+> > > >> will require breaking ABI/API compatibility.    
+> > >   
+> > > > I'll cherry-pick the corresponding patches to the stable branch.    
+> > > 
+> > > Reinhard, could you please test the latest patches on
+> > > https://git.linuxtv.org/v4l-utils.git/log/?h=stable-1.12
+> > > 
+> > > If they work for you, I'd release a new stable version and upload it to 
+> > > Debian Sid afterwards.  
+> > 
+> > I found one additional bug there, at the code that handles subcells.
+> > 
+> > Fix applied. Reinhard/Clemens, if you find some channel that use
+> > subcells on this descriptor and/or tfs_flag == 1, it would be really cool
+> > if you could store ~60 seconds of the transponder and send it to me, as it
+> > would allow me to have a testing stream. With that, I can input the stream
+> > on my RF generator and test if this is parsed well with libdvbv5,
+> > dvbv5-tools and Kaffeine.  
+> 
+> Hi Gregor and Mauro,
+> 
+> the created dvb_channel.conf files look good to me with both stable-1.12
+> and master. Thanks!
+> 
+> I noticed that the dvb_channel.conf created by dvbv5-scan from the master
+> branch already contains VIDE0_PID = ... while the one created by the
+> stable-1.12 version still contains PID_24 = ... . Perhaps it might make
+> sense to cherry-pick this for stable-1.12 if the changes are small.
 
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
-index 237e144c194f..06c254f5c171 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
-@@ -32,6 +32,15 @@ extern int mtk_v4l2_dbg_level;
- extern bool mtk_vcodec_dbg;
- 
- 
-+#define mtk_v4l2_err(fmt, args...)                \
-+	pr_err("[MTK_V4L2][ERROR] %s:%d: " fmt "\n", __func__, __LINE__, \
-+	       ##args)
-+
-+#define mtk_vcodec_err(h, fmt, args...)					\
-+	pr_err("[MTK_VCODEC][ERROR][%d]: %s() " fmt "\n",		\
-+	       ((struct mtk_vcodec_ctx *)h->ctx)->id, __func__, ##args)
-+
-+
- #if defined(DEBUG)
- 
- #define mtk_v4l2_debug(level, fmt, args...)				 \
-@@ -41,11 +50,6 @@ extern bool mtk_vcodec_dbg;
- 				level, __func__, __LINE__, ##args);	 \
- 	} while (0)
- 
--#define mtk_v4l2_err(fmt, args...)                \
--	pr_err("[MTK_V4L2][ERROR] %s:%d: " fmt "\n", __func__, __LINE__, \
--	       ##args)
--
--
- #define mtk_v4l2_debug_enter()  mtk_v4l2_debug(3, "+")
- #define mtk_v4l2_debug_leave()  mtk_v4l2_debug(3, "-")
- 
-@@ -57,22 +61,16 @@ extern bool mtk_vcodec_dbg;
- 				__func__, ##args);			\
- 	} while (0)
- 
--#define mtk_vcodec_err(h, fmt, args...)					\
--	pr_err("[MTK_VCODEC][ERROR][%d]: %s() " fmt "\n",		\
--	       ((struct mtk_vcodec_ctx *)h->ctx)->id, __func__, ##args)
--
- #define mtk_vcodec_debug_enter(h)  mtk_vcodec_debug(h, "+")
- #define mtk_vcodec_debug_leave(h)  mtk_vcodec_debug(h, "-")
- 
- #else
- 
- #define mtk_v4l2_debug(level, fmt, args...) {}
--#define mtk_v4l2_err(fmt, args...) {}
- #define mtk_v4l2_debug_enter() {}
- #define mtk_v4l2_debug_leave() {}
- 
- #define mtk_vcodec_debug(h, fmt, args...) {}
--#define mtk_vcodec_err(h, fmt, args...) {}
- #define mtk_vcodec_debug_enter(h) {}
- #define mtk_vcodec_debug_leave(h) {}
- 
--- 
-2.13.0.219.gdb65acc882-goog
+Just cherry-picked. It is a small patch, but it is important in order
+to handle HEVC channels.
+
+> For some reason several/most(?) programs from freenet.TV (connect) which
+> are distributed via the Internet instead of DVB-T2 have duplicate entries.
+
+The dvb scan logic has some code to avoid parsing twice the
+same transponder, but it doesn't have any logic to detect if
+the same channel is announced multiple times. Perhaps this is
+what's happening.
+
+The best would be if you could record 60 seconds of the
+transponder with the freenet (connect) channel. From the
+dvb_channel.conf, it is located at frequency 578000000.
+So, this should do the trick:
+
+	$ dvbv5-zap -c dvb_channel.conf 'freenet. TV (connect )' -r -P -t60 -o freenet.ts
+or
+	$ dvbv5-zap -c de-scan_file 578000000 -r -P -t60 -o freenet.ts
+
+(where de-scan_file is the name of the file you're using for 
+dvbv5-scan)
+
+Running dvbv5-scan with "-vv" could give some glue why it is
+duplicating the channels, but if you send me the channel dump,
+it would be easier for me to produce a patch and test it
+locally.
+
+> None of the channels available to me uses subcells or tfs_flag == 1.
+
+Ok.
+
+
+Thanks,
+Mauro
