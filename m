@@ -1,284 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f48.google.com ([209.85.215.48]:34200 "EHLO
-        mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751151AbdECWrT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 3 May 2017 18:47:19 -0400
-Received: by mail-lf0-f48.google.com with SMTP id t144so1876383lff.1
-        for <linux-media@vger.kernel.org>; Wed, 03 May 2017 15:47:18 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Thu, 4 May 2017 00:47:15 +0200
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] v4l2-async: add subnotifier registration for subdevices
-Message-ID: <20170503224715.GU1532@bigcity.dyn.berto.se>
-References: <20170427223035.13164-1-niklas.soderlund+renesas@ragnatech.se>
- <cbb1230e-43bc-5f43-d127-9e1a1364f153@ideasonboard.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:47247 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751393AbdEELeI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 5 May 2017 07:34:08 -0400
+Subject: Re: [PATCH v8 01/10] firmware: qcom_scm: Fix to allow
+ COMPILE_TEST-ing
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1493370837-19793-2-git-send-email-stanimir.varbanov@linaro.org>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <bd344b32-77a0-9160-7be8-52b88ccd225e@xs4all.nl>
+Date: Fri, 5 May 2017 13:34:02 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <cbb1230e-43bc-5f43-d127-9e1a1364f153@ideasonboard.com>
+In-Reply-To: <1493370837-19793-2-git-send-email-stanimir.varbanov@linaro.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+On 04/28/17 11:13, Stanimir Varbanov wrote:
+> Unfortunatly previous attempt to allow consumer drivers to
+> use COMPILE_TEST option in Kconfig is not enough, because in the
+> past the consumer drivers used 'depends on' Kconfig option but
+> now they are using 'select' Kconfig option which means on non ARM
+> arch'es compilation is triggered. Thus we need to move the ifdefery
+> one level below by touching the private qcom_scm.h header.
+> 
+> To: Andy Gross <andy.gross@linaro.org>
+> Cc: Stephen Boyd <sboyd@codeaurora.org>
+> Cc: Bjorn Andersson <bjorn.andersson@linaro.org>
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+>  drivers/firmware/Kconfig    |  2 +-
+>  drivers/firmware/qcom_scm.h | 72 ++++++++++++++++++++++++++++++++++++++-------
+>  include/linux/qcom_scm.h    | 32 --------------------
+>  3 files changed, 62 insertions(+), 44 deletions(-)
+> 
+> diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
+> index 6e4ed5a9c6fd..480578c3691a 100644
+> --- a/drivers/firmware/Kconfig
+> +++ b/drivers/firmware/Kconfig
+> @@ -204,7 +204,7 @@ config FW_CFG_SYSFS_CMDLINE
+>  
+>  config QCOM_SCM
+>  	bool
+> -	depends on ARM || ARM64
+> +	depends on ARM || ARM64 || COMPILE_TEST
+>  	select RESET_CONTROLLER
+>  
+>  config QCOM_SCM_32
+> diff --git a/drivers/firmware/qcom_scm.h b/drivers/firmware/qcom_scm.h
+> index 9bea691f30fb..d2b5723afb3f 100644
+> --- a/drivers/firmware/qcom_scm.h
+> +++ b/drivers/firmware/qcom_scm.h
+> @@ -12,6 +12,7 @@
+>  #ifndef __QCOM_SCM_INT_H
+>  #define __QCOM_SCM_INT_H
+>  
+> +#if IS_ENABLED(CONFIG_ARM) || IS_ENABLED(CONFIG_ARM64)
 
-Thanks for your feedback.
+This is weird. Shouldn't this be:
 
-On 2017-05-03 18:07:47 +0100, Kieran Bingham wrote:
-> Hi Niklas,
-> 
-> Small thing to ponder discovered below:
-> 
-> On 27/04/17 23:30, Niklas Söderlund wrote:
-> > When registered() of v4l2_subdev_internal_ops is called the subdevice
-> > have access to the master devices v4l2_dev and it's called with the
-> > async frameworks list_lock held. In this context the subdevice can
-> > register its own notifiers to allow for incremental discovery of
-> > subdevices.
-> > 
-> > The master device registers the subdevices closest to itself in its
-> > notifier while the subdevice(s) themself register notifiers for there
-> > closest neighboring devices when they are registered. Using this
-> > incremental approach two problems can be solved.
-> > 
-> > 1. The master device no longer have to care how many subdevices exist in
-> >    the pipeline. It only needs to care about its closest subdevice and
-> >    arbitrary long pipelines can be created without having to adapt the
-> >    master device for each case.
-> > 
-> > 2. Subdevices which are represented as a single DT node but register
-> >    more then one subdevice can use this to further the pipeline
-> >    discovery. Since the subdevice driver is the only one who knows which
-> >    of its subdevices is linked with which subdevice of a neighboring DT
-> >    node.
-> > 
-> > To enable subdevices to register/unregister notifiers from the
-> > registered()/unregistered() callback v4l2_async_subnotifier_register()
-> > and v4l2_async_subnotifier_unregister() are added. These new notifier
-> > register functions are similar to the master device equivalent functions
-> > but run without taking the v4l2-async list_lock which already are held
-> > when he registered()/unregistered() callbacks are called.
-> > 
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-async.c | 91 +++++++++++++++++++++++++++++-------
-> >  include/media/v4l2-async.h           | 22 +++++++++
-> >  2 files changed, 95 insertions(+), 18 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> > index 96cc733f35ef72b0..d4a676a2935eb058 100644
-> > --- a/drivers/media/v4l2-core/v4l2-async.c
-> > +++ b/drivers/media/v4l2-core/v4l2-async.c
-> > @@ -136,12 +136,13 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
-> >  	sd->dev = NULL;
-> >  }
-> >  
-> > -int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> > -				 struct v4l2_async_notifier *notifier)
-> > +static int v4l2_async_do_notifier_register(struct v4l2_device *v4l2_dev,
-> > +					   struct v4l2_async_notifier *notifier,
-> > +					   bool subnotifier)
-> >  {
-> >  	struct v4l2_subdev *sd, *tmp;
-> >  	struct v4l2_async_subdev *asd;
-> > -	int i;
-> > +	int found, i;
-> >  
-> >  	if (!notifier->num_subdevs || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-> >  		return -EINVAL;
-> > @@ -168,32 +169,69 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> >  		list_add_tail(&asd->list, &notifier->waiting);
-> >  	}
-> >  
-> > -	mutex_lock(&list_lock);
-> > +	if (!subnotifier)
-> > +		mutex_lock(&list_lock);
-> > +
-> > +	/*
-> > +	 * This function can be called recursively so the list
-> > +	 * might be modified in a recursive call. Start from the
-> > +	 * top of the list each iteration.
-> > +	 */
-> > +	found = 1;
-> > +	while (found) {
-> > +		found = 0;
-> >  
-> > -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> > -		int ret;
-> > +		list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> > +			int ret;
-> >  
-> > -		asd = v4l2_async_belongs(notifier, sd);
-> > -		if (!asd)
-> > -			continue;
-> > +			asd = v4l2_async_belongs(notifier, sd);
-> > +			if (!asd)
-> > +				continue;
-> >  
-> > -		ret = v4l2_async_test_notify(notifier, sd, asd);
-> > -		if (ret < 0) {
-> > -			mutex_unlock(&list_lock);
-> > -			return ret;
-> > +			ret = v4l2_async_test_notify(notifier, sd, asd);
-> > +			if (ret < 0) {
-> > +				if (!subnotifier)
-> > +					mutex_unlock(&list_lock);
-> > +				return ret;
-> > +			}
-> > +
-> > +			found = 1;
-> > +			break;
-> >  		}
-> >  	}
-> >  
-> >  	/* Keep also completed notifiers on the list */
-> >  	list_add(&notifier->list, &notifier_list);
-> >  
-> > -	mutex_unlock(&list_lock);
-> > +	if (!subnotifier)
-> > +		mutex_unlock(&list_lock);
-> >  
-> >  	return 0;
-> >  }
-> > +
-> > +int v4l2_async_subnotifier_register(struct v4l2_subdev *sd,
-> > +				    struct v4l2_async_notifier *notifier)
-> > +{
-> > +	if (!sd->v4l2_dev) {
-> > +		dev_err(sd->dev ? sd->dev : NULL,
-> 
-> Just came across this, and it seems a bit 'extraneous'
-> 
-> 'If sd->dev is not null, use sd->dev, otherwise use NULL'
+#if IS_ENABLED(CONFIG_QCOM_SCM)
 
-Thanks, will fix for next version.
+If the code in the actual source only works for ARM, then that should be
+handled in that source code, and not in this header IMHO.
 
-> 
-> --
-> KB
-> 
-> 
-> 
-> > +			"Can't register subnotifier for without v4l2_dev\n");
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	return v4l2_async_do_notifier_register(sd->v4l2_dev, notifier, true);
-> > +}
-> > +EXPORT_SYMBOL(v4l2_async_subnotifier_register);
-> > +
-> > +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> > +				 struct v4l2_async_notifier *notifier)
-> > +{
-> > +	return v4l2_async_do_notifier_register(v4l2_dev, notifier, false);
-> > +}
-> >  EXPORT_SYMBOL(v4l2_async_notifier_register);
-> >  
-> > -void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> > +static void
-> > +v4l2_async_do_notifier_unregister(struct v4l2_async_notifier *notifier,
-> > +				  bool subnotifier)
-> >  {
-> >  	struct v4l2_subdev *sd, *tmp;
-> >  	unsigned int notif_n_subdev = notifier->num_subdevs;
-> > @@ -210,7 +248,8 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> >  			"Failed to allocate device cache!\n");
-> >  	}
-> >  
-> > -	mutex_lock(&list_lock);
-> > +	if (!subnotifier)
-> > +		mutex_lock(&list_lock);
-> >  
-> >  	list_del(&notifier->list);
-> >  
-> > @@ -237,15 +276,20 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> >  			put_device(d);
-> >  	}
-> >  
-> > -	mutex_unlock(&list_lock);
-> > +	if (!subnotifier)
-> > +		mutex_unlock(&list_lock);
-> >  
-> >  	/*
-> >  	 * Call device_attach() to reprobe devices
-> >  	 *
-> >  	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
-> >  	 * executed.
-> > +	 * TODO: If we are unregistering a subdevice notifier we can't reprobe
-> > +	 * since the lock_list is held by the master device and attaching that
-> > +	 * device would call v4l2_async_register_subdev() and end in a deadlock
-> > +	 * on list_lock.
-> >  	 */
-> > -	while (i--) {
-> > +	while (i-- && !subnotifier) {
-> >  		struct device *d = dev[i];
-> >  
-> >  		if (d && device_attach(d) < 0) {
-> > @@ -269,6 +313,17 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> >  	 * upon notifier registration.
-> >  	 */
-> >  }
-> > +
-> > +void v4l2_async_subnotifier_unregister(struct v4l2_async_notifier *notifier)
-> > +{
-> > +	v4l2_async_do_notifier_unregister(notifier, true);
-> > +}
-> > +EXPORT_SYMBOL(v4l2_async_subnotifier_unregister);
-> > +
-> > +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> > +{
-> > +	v4l2_async_do_notifier_unregister(notifier, false);
-> > +}
-> >  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
-> >  
-> >  int v4l2_async_register_subdev(struct v4l2_subdev *sd)
-> > diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> > index 8e2a236a4d039df6..dee070be59f211bd 100644
-> > --- a/include/media/v4l2-async.h
-> > +++ b/include/media/v4l2-async.h
-> > @@ -105,6 +105,18 @@ struct v4l2_async_notifier {
-> >  };
-> >  
-> >  /**
-> > + * v4l2_async_notifier_register - registers a subdevice asynchronous subnotifier
-> > + *
-> > + * @sd: pointer to &struct v4l2_subdev
-> > + * @notifier: pointer to &struct v4l2_async_notifier
-> > + *
-> > + * This function assumes the async list_lock is already locked, allowing
-> > + * it to be used from struct v4l2_subdev_internal_ops registered() callback.
-> > + */
-> > +int v4l2_async_subnotifier_register(struct v4l2_subdev *sd,
-> > +				    struct v4l2_async_notifier *notifier);
-> > +
-> > +/**
-> >   * v4l2_async_notifier_register - registers a subdevice asynchronous notifier
-> >   *
-> >   * @v4l2_dev: pointer to &struct v4l2_device
-> > @@ -114,6 +126,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> >  				 struct v4l2_async_notifier *notifier);
-> >  
-> >  /**
-> > + * v4l2_async_subnotifier_unregister - unregisters a asynchronous subnotifier
-> > + *
-> > + * @notifier: pointer to &struct v4l2_async_notifier
-> > + *
-> > + * This function assumes the async list_lock is already locked, allowing
-> > + * it to be used from struct v4l2_subdev_internal_ops unregistered() callback.
-> > + */
-> > +void v4l2_async_subnotifier_unregister(struct v4l2_async_notifier *notifier);
-> > +
-> > +/**
-> >   * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
-> >   *
-> >   * @notifier: pointer to &struct v4l2_async_notifier
-> > 
-
--- 
 Regards,
-Niklas Söderlund
+
+	Hans
+
+>  #define QCOM_SCM_SVC_BOOT		0x1
+>  #define QCOM_SCM_BOOT_ADDR		0x1
+>  #define QCOM_SCM_BOOT_ADDR_MC		0x11
+> @@ -58,6 +59,66 @@ extern int  __qcom_scm_pas_auth_and_reset(struct device *dev, u32 peripheral);
+>  extern int  __qcom_scm_pas_shutdown(struct device *dev, u32 peripheral);
+>  extern int  __qcom_scm_pas_mss_reset(struct device *dev, bool reset);
+>  
+> +#define QCOM_SCM_SVC_MP			0xc
+> +#define QCOM_SCM_RESTORE_SEC_CFG	2
+> +extern int __qcom_scm_restore_sec_cfg(struct device *dev, u32 device_id,
+> +				      u32 spare);
+> +#define QCOM_SCM_IOMMU_SECURE_PTBL_SIZE	3
+> +#define QCOM_SCM_IOMMU_SECURE_PTBL_INIT	4
+> +extern int __qcom_scm_iommu_secure_ptbl_size(struct device *dev, u32 spare,
+> +					     size_t *size);
+> +extern int __qcom_scm_iommu_secure_ptbl_init(struct device *dev, u64 addr,
+> +					     u32 size, u32 spare);
+> +#else
+> +static inline int __qcom_scm_set_remote_state(struct device *dev, u32 state,
+> +					      u32 id)
+> +{ return -ENODEV; }
+> +static inline int __qcom_scm_set_warm_boot_addr(struct device *dev, void *entry,
+> +						const cpumask_t *cpus)
+> +{ return -ENODEV; }
+> +static inline int __qcom_scm_set_cold_boot_addr(void *entry,
+> +						const cpumask_t *cpus)
+> +{ return -ENODEV; }
+> +static inline void __qcom_scm_cpu_power_down(u32 flags) {}
+> +static inline int __qcom_scm_is_call_available(struct device *dev, u32 svc_id,
+> +					       u32 cmd_id)
+> +{ return -ENODEV; }
+> +#define QCOM_SCM_SVC_HDCP		0x11
+> +#define QCOM_SCM_CMD_HDCP		0x01
+> +static inline int __qcom_scm_hdcp_req(struct device *dev,
+> +				      struct qcom_scm_hdcp_req *req,
+> +				      u32 req_cnt, u32 *resp)
+> +{ return -ENODEV; }
+> +static inline void __qcom_scm_init(void) {}
+> +#define QCOM_SCM_SVC_PIL		0x2
+> +#define QCOM_SCM_PAS_IS_SUPPORTED_CMD	0x7
+> +static inline bool __qcom_scm_pas_supported(struct device *dev, u32 peripheral)
+> +{ return false; }
+> +static inline int  __qcom_scm_pas_init_image(struct device *dev, u32 peripheral,
+> +					     dma_addr_t metadata_phys)
+> +{ return -ENODEV; }
+> +static inline int  __qcom_scm_pas_mem_setup(struct device *dev, u32 peripheral,
+> +					    phys_addr_t addr, phys_addr_t size)
+> +{ return -ENODEV; }
+> +static inline int  __qcom_scm_pas_auth_and_reset(struct device *dev,
+> +						 u32 peripheral)
+> +{ return -ENODEV; }
+> +static inline int  __qcom_scm_pas_shutdown(struct device *dev, u32 peripheral)
+> +{ return -ENODEV; }
+> +static inline int  __qcom_scm_pas_mss_reset(struct device *dev, bool reset)
+> +{ return -ENODEV; }
+> +static inline int __qcom_scm_restore_sec_cfg(struct device *dev, u32 device_id,
+> +					     u32 spare)
+> +{ return -ENODEV; }
+> +extern int __qcom_scm_iommu_secure_ptbl_size(struct device *dev, u32 spare,
+> +					     size_t *size)
+> +{ return -ENODEV; }
+> +static inline int __qcom_scm_iommu_secure_ptbl_init(struct device *dev,
+> +						    u64 addr, u32 size,
+> +						    u32 spare)
+> +{ return -ENODEV; }
+> +#endif
+> +
+>  /* common error codes */
+>  #define QCOM_SCM_V2_EBUSY	-12
+>  #define QCOM_SCM_ENOMEM		-5
+> @@ -85,15 +146,4 @@ static inline int qcom_scm_remap_error(int err)
+>  	return -EINVAL;
+>  }
+>  
+> -#define QCOM_SCM_SVC_MP			0xc
+> -#define QCOM_SCM_RESTORE_SEC_CFG	2
+> -extern int __qcom_scm_restore_sec_cfg(struct device *dev, u32 device_id,
+> -				      u32 spare);
+> -#define QCOM_SCM_IOMMU_SECURE_PTBL_SIZE	3
+> -#define QCOM_SCM_IOMMU_SECURE_PTBL_INIT	4
+> -extern int __qcom_scm_iommu_secure_ptbl_size(struct device *dev, u32 spare,
+> -					     size_t *size);
+> -extern int __qcom_scm_iommu_secure_ptbl_init(struct device *dev, u64 addr,
+> -					     u32 size, u32 spare);
+> -
+>  #endif
+> diff --git a/include/linux/qcom_scm.h b/include/linux/qcom_scm.h
+> index e5380471c2cd..b628f735f355 100644
+> --- a/include/linux/qcom_scm.h
+> +++ b/include/linux/qcom_scm.h
+> @@ -23,7 +23,6 @@ struct qcom_scm_hdcp_req {
+>  	u32 val;
+>  };
+>  
+> -#if IS_ENABLED(CONFIG_QCOM_SCM)
+>  extern int qcom_scm_set_cold_boot_addr(void *entry, const cpumask_t *cpus);
+>  extern int qcom_scm_set_warm_boot_addr(void *entry, const cpumask_t *cpus);
+>  extern bool qcom_scm_is_available(void);
+> @@ -43,35 +42,4 @@ extern int qcom_scm_set_remote_state(u32 state, u32 id);
+>  extern int qcom_scm_restore_sec_cfg(u32 device_id, u32 spare);
+>  extern int qcom_scm_iommu_secure_ptbl_size(u32 spare, size_t *size);
+>  extern int qcom_scm_iommu_secure_ptbl_init(u64 addr, u32 size, u32 spare);
+> -#else
+> -static inline
+> -int qcom_scm_set_cold_boot_addr(void *entry, const cpumask_t *cpus)
+> -{
+> -	return -ENODEV;
+> -}
+> -static inline
+> -int qcom_scm_set_warm_boot_addr(void *entry, const cpumask_t *cpus)
+> -{
+> -	return -ENODEV;
+> -}
+> -static inline bool qcom_scm_is_available(void) { return false; }
+> -static inline bool qcom_scm_hdcp_available(void) { return false; }
+> -static inline int qcom_scm_hdcp_req(struct qcom_scm_hdcp_req *req, u32 req_cnt,
+> -				    u32 *resp) { return -ENODEV; }
+> -static inline bool qcom_scm_pas_supported(u32 peripheral) { return false; }
+> -static inline int qcom_scm_pas_init_image(u32 peripheral, const void *metadata,
+> -					  size_t size) { return -ENODEV; }
+> -static inline int qcom_scm_pas_mem_setup(u32 peripheral, phys_addr_t addr,
+> -					 phys_addr_t size) { return -ENODEV; }
+> -static inline int
+> -qcom_scm_pas_auth_and_reset(u32 peripheral) { return -ENODEV; }
+> -static inline int qcom_scm_pas_shutdown(u32 peripheral) { return -ENODEV; }
+> -static inline void qcom_scm_cpu_power_down(u32 flags) {}
+> -static inline u32 qcom_scm_get_version(void) { return 0; }
+> -static inline u32
+> -qcom_scm_set_remote_state(u32 state,u32 id) { return -ENODEV; }
+> -static inline int qcom_scm_restore_sec_cfg(u32 device_id, u32 spare) { return -ENODEV; }
+> -static inline int qcom_scm_iommu_secure_ptbl_size(u32 spare, size_t *size) { return -ENODEV; }
+> -static inline int qcom_scm_iommu_secure_ptbl_init(u64 addr, u32 size, u32 spare) { return -ENODEV; }
+> -#endif
+>  #endif
+> 
