@@ -1,75 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.14]:57439 "EHLO imap.netup.ru"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751141AbdEaUjo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 16:39:44 -0400
-Received: from mail-yw0-f182.google.com (mail-yw0-f182.google.com [209.85.161.182])
-        by imap.netup.ru (Postfix) with ESMTPSA id E929F8B4738
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 23:39:42 +0300 (MSK)
-Received: by mail-yw0-f182.google.com with SMTP id b68so11861121ywe.3
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 13:39:42 -0700 (PDT)
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37633 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751196AbdEFL65 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 6 May 2017 07:58:57 -0400
+Subject: Re: [PATCH 8/8] omapdrm: hdmi4: hook up the HDMI CEC support
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20170414102512.48834-1-hverkuil@xs4all.nl>
+ <20170414102512.48834-9-hverkuil@xs4all.nl>
+Message-ID: <144b95df-8eb2-1307-1157-2eb2572c51aa@xs4all.nl>
+Date: Sat, 6 May 2017 13:58:51 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170531223204.5d1de002@macbox>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com>
- <20170528234738.6726df65@macbox> <CAK3bHNW9sM0fZFqYEX-mEhv-Rax82u25KdgjQftGcoY6wV1O0A@mail.gmail.com>
- <CAK3bHNVu9_x492P+KQQHEVe8HOCvnktPaLSyHjRgMN_svQ56+A@mail.gmail.com> <20170531223204.5d1de002@macbox>
-From: Abylay Ospan <aospan@netup.ru>
-Date: Wed, 31 May 2017 16:39:20 -0400
-Message-ID: <CAK3bHNW7ymsOz5d8R5WEico9pkHiSgpVN_tOW+4htOefiEmQ3w@mail.gmail.com>
-Subject: Re: [PATCH 00/19] cxd2841er/ddbridge: support Sony CXD28xx hardware
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: Kozlov Sergey <serjk@netup.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>, rjkm@metzlerbros.de
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20170414102512.48834-9-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
+Hi Tomi,
 
-ok, perfect !
-Will check this flags later when I switch back to driver :) Current
-situation with configurable flags is ok.
+I did some more testing, and I discovered a bug in this code, but I am not
+sure how to solve it.
 
+On 04/14/2017 12:25 PM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Hook up the HDMI CEC support in the hdmi4 driver.
+> 
+> It add the CEC irq handler, the CEC (un)init calls and tells the CEC
+> implementation when the physical address changes.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/gpu/drm/omapdrm/dss/Kconfig  |  9 +++++++++
+>  drivers/gpu/drm/omapdrm/dss/Makefile |  1 +
+>  drivers/gpu/drm/omapdrm/dss/hdmi4.c  | 23 ++++++++++++++++++++++-
+>  3 files changed, 32 insertions(+), 1 deletion(-)
+> 
 
-2017-05-31 16:32 GMT-04:00 Daniel Scheller <d.scheller.oss@gmail.com>:
-> Am Wed, 31 May 2017 08:30:34 -0400
-> schrieb Abylay Ospan <aospan@netup.ru>:
->
-> Hi Abylay,
->
->> I have ack'ed all patches related to cxd2841er. Please check am i
->> missing something ?
->
-> Thank you very much for your review and your ACKs, and in general
-> taking time to look into them! You didn't miss any of the patches :)
-> Will add your ACKs to the cxd2841er patches in a very likely upcoming V2
-> of the series.
->
->> I see some good flags (CXD2841ER_NO_WAIT_LOCK and
->> CXD2841ER_EARLY_TUNE). I should check it for our boards too :)
->
-> Re EARLY_TUNE - I wasn't sure if the order of tuner/demod setup is of
-> importance on your devices. When picking the IF freq from the tuner
-> though, we first need to tune and then set up the demod since the demod
-> queries the tuner about this. If your hardware also works with the
-> "earlier tune", maybe we should drop this flag/condition and just move
-> the tune call up.
->
-> Re NO_WAIT_LOCK - works fine with or without this. However, when e.g.
-> using TVH and looking at the stats, the Web UI will freeze if a retune
-> occurs. Again, not sure if it's absolutely required on your
-> hardware/software - if not, I suggest to remove the flag together with
-> the wait lock entirely.
->
-> Looking forward for your results and opinions! :-)
->
-> Best regards,
-> Daniel Scheller
+<snip>
 
+> diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+> index e371b47ff6ff..ebe5b27cee6f 100644
+> --- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+> +++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
 
+<snip>
 
--- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+> @@ -392,6 +401,8 @@ static void hdmi_display_disable(struct omap_dss_device *dssdev)
+>  
+>  	DSSDBG("Enter hdmi_display_disable\n");
+>  
+> +	hdmi4_cec_set_phys_addr(&hdmi.core, CEC_PHYS_ADDR_INVALID);
+> +
+>  	mutex_lock(&hdmi.lock);
+>  
+>  	spin_lock_irqsave(&hdmi.audio_playing_lock, flags);
+
+My assumption was that hdmi_display_disable() was called when the hotplug would go
+away. But I discovered that that isn't the case, or at least not when X is running.
+It seems that the actual HPD check is done in hdmic_detect() in
+omapdrm/displays/connector-hdmi.c.
+
+But there I have no access to hdmi.core (needed for the hdmi4_cec_set_phys_addr() call).
+
+Any idea how to solve this? I am not all that familiar with drm, let alone omapdrm,
+so if you can point me in the right direction, then that would be very helpful.
+
+Regards,
+
+	Hans
