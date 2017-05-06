@@ -1,110 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f179.google.com ([209.85.161.179]:34913 "EHLO
-        mail-yw0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752606AbdEJKN2 (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51620 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751408AbdEFIyZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 May 2017 06:13:28 -0400
-Received: by mail-yw0-f179.google.com with SMTP id l135so13009986ywb.2
-        for <linux-media@vger.kernel.org>; Wed, 10 May 2017 03:13:28 -0700 (PDT)
-Received: from mail-yw0-f175.google.com (mail-yw0-f175.google.com. [209.85.161.175])
-        by smtp.gmail.com with ESMTPSA id n5sm1193266ywd.15.2017.05.10.03.13.25
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 10 May 2017 03:13:26 -0700 (PDT)
-Received: by mail-yw0-f175.google.com with SMTP id b68so12998570ywe.3
-        for <linux-media@vger.kernel.org>; Wed, 10 May 2017 03:13:25 -0700 (PDT)
+        Sat, 6 May 2017 04:54:25 -0400
+Subject: Re: [PATCH v5 2/8] [media] stm32-dcmi: STM32 DCMI camera interface
+ driver
+To: Hugues Fruchet <hugues.fruchet@st.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>
+References: <1493998287-5828-1-git-send-email-hugues.fruchet@st.com>
+ <1493998287-5828-3-git-send-email-hugues.fruchet@st.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <dd4a1ec1-b84a-81cb-51b6-c2e53b5efcc5@xs4all.nl>
+Date: Sat, 6 May 2017 10:54:20 +0200
 MIME-Version: 1.0
-In-Reply-To: <1494255810-12672-8-git-send-email-sakari.ailus@linux.intel.com>
-References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com> <1494255810-12672-8-git-send-email-sakari.ailus@linux.intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 10 May 2017 18:13:04 +0800
-Message-ID: <CAAFQd5CSf33de4r3WX_v8ZuLwb6SFFtP5EQY=Bh5t8y3UiR+sA@mail.gmail.com>
-Subject: Re: [RFC v4 07/18] vb2: dma-contig: Remove redundant sgt_base field
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        posciak@chromium.org, Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, sumit.semwal@linaro.org,
-        Rob Clark <robdclark@gmail.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>, labbott@redhat.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1493998287-5828-3-git-send-email-hugues.fruchet@st.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Hugues,
 
-Some comments inline.
-
-On Mon, May 8, 2017 at 11:03 PM, Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
-> The struct vb2_dc_buf contains two struct sg_table fields: sgt_base and
-> dma_sgt. The former is used by DMA-BUF buffers whereas the latter is used
-> by USERPTR.
->
-> Unify the two, leaving dma_sgt.
->
-> MMAP buffers do not need cache flushing since they have been allocated
-> using dma_alloc_coherent().
->
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On 05/05/2017 05:31 PM, Hugues Fruchet wrote:
+> This V4L2 subdev driver enables Digital Camera Memory Interface (DCMI)
+> of STMicroelectronics STM32 SoC series.
+> 
+> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Yannick Fertre <yannick.fertre@st.com>
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 > ---
->  drivers/media/v4l2-core/videobuf2-dma-contig.c | 25 +++++++++++++------------
->  1 file changed, 13 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> index a8a46a8..ddbbcf0 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -31,12 +31,13 @@ struct vb2_dc_buf {
->         unsigned long                   attrs;
->         enum dma_data_direction         dma_dir;
->         struct sg_table                 *dma_sgt;
-> -       struct frame_vector             *vec;
->
->         /* MMAP related */
->         struct vb2_vmarea_handler       handler;
->         refcount_t                      refcount;
-> -       struct sg_table                 *sgt_base;
+>  drivers/media/platform/Kconfig            |   12 +
+>  drivers/media/platform/Makefile           |    2 +
+>  drivers/media/platform/stm32/Makefile     |    1 +
+>  drivers/media/platform/stm32/stm32-dcmi.c | 1403 +++++++++++++++++++++++++++++
+>  4 files changed, 1418 insertions(+)
+>  create mode 100644 drivers/media/platform/stm32/Makefile
+>  create mode 100644 drivers/media/platform/stm32/stm32-dcmi.c
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index ac026ee..de6e18b 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -114,6 +114,18 @@ config VIDEO_S3C_CAMIF
+>  	  To compile this driver as a module, choose M here: the module
+>  	  will be called s3c-camif.
+>  
+> +config VIDEO_STM32_DCMI
+> +	tristate "Digital Camera Memory Interface (DCMI) support"
+
+Is it OK with you if I change this to:
+
+	tristate "STM32 Digital Camera Memory Interface (DCMI) support"
+
+Right now the text gives no indication that this driver is for an STM32 platform.
+
+No need to spin a new patch, just let me know you're OK with it and I'll make
+the change.
+
+Regards,
+
+	Hans
+
+> +	depends on VIDEO_V4L2 && OF && HAS_DMA
+> +	depends on ARCH_STM32 || COMPILE_TEST
+> +	select VIDEOBUF2_DMA_CONTIG
+> +	---help---
+> +	  This module makes the STM32 Digital Camera Memory Interface (DCMI)
+> +	  available as a v4l2 device.
 > +
-> +       /* USERPTR related */
-> +       struct frame_vector             *vec;
->
->         /* DMABUF related */
->         struct dma_buf_attachment       *db_attach;
-> @@ -96,7 +97,7 @@ static void vb2_dc_prepare(void *buf_priv)
->         struct sg_table *sgt = buf->dma_sgt;
->
->         /* DMABUF exporter will flush the cache for us */
-> -       if (!sgt || buf->db_attach)
-> +       if (!buf->vec)
-
-While at it, can we change the comment above to actually refer to what
-this condition is checking? Maybe it's just me, but it's very
-confusing, as the condition is actually (!USERPTR), while the comment
-mentions DMABUF alone and not even mentioning about MMAP. Maybe we
-could have something like this:
-
-/*
- * Only USERPTR needs cache maintenance. DMABUF exporter will flush
- * the cache for us, while MMAP buffers are coherent by design.
- */
-
-I guess it could be done as a separate patch after this series,
-especially considering the message might actually change, since we are
-going to allow cached MMAP buffers.
-
->                 return;
->
->         dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents,
-> @@ -109,7 +110,7 @@ static void vb2_dc_finish(void *buf_priv)
->         struct sg_table *sgt = buf->dma_sgt;
->
->         /* DMABUF exporter will flush the cache for us */
-
-Here too.
-
-Best regards,
-Tomasz
+> +	  To compile this driver as a module, choose M here: the module
+> +	  will be called stm32-dcmi.
+> +
+>  source "drivers/media/platform/soc_camera/Kconfig"
+>  source "drivers/media/platform/exynos4-is/Kconfig"
+>  source "drivers/media/platform/am437x/Kconfig"
