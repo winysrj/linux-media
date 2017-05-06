@@ -1,93 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:60446
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1756331AbdEGWUD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 7 May 2017 18:20:03 -0400
-Date: Sun, 7 May 2017 08:43:33 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Reinhard Speyerer <rspmn@arcor.de>
-Cc: Gregor Jasny <gjasny@googlemail.com>,
-        Clemens Ladisch <clemens@ladisch.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] libdvbv5: T2 delivery descriptor: fix wrong size of
- bandwidth field
-Message-ID: <20170507084233.037ec0c3@vento.lan>
-In-Reply-To: <20170504231429.GA1997@arcor.de>
-References: <dc2b16b2-7caa-6141-a983-c83631544f3e@ladisch.de>
-        <c6f1d1cd-69ea-d454-15a8-5de9325577de@googlemail.com>
-        <20170503095303.71cf3a75@vento.lan>
-        <20170503193318.07ddf143@vento.lan>
-        <00937473-581c-ecf8-58c6-616a78aa37c5@googlemail.com>
-        <20170504091147.3f3edc16@vento.lan>
-        <20170504231429.GA1997@arcor.de>
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:35233 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751344AbdEFGxE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 6 May 2017 02:53:04 -0400
+Received: by mail-qk0-f195.google.com with SMTP id k74so3674615qke.2
+        for <linux-media@vger.kernel.org>; Fri, 05 May 2017 23:53:04 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170505195054.GA29473@googlemail.com>
+References: <20170504222115.GA26659@googlemail.com> <CA+O4pCJqqSqE_YFDM6unU8pvuVoRJijkNOv64AWD6CPdbxD5qA@mail.gmail.com>
+ <20170505154435.GA18161@googlemail.com> <CA+O4pCKDyADH+Bx8Mxd01jCzU3vefRK6JLLYFDMuXdbZxToDtw@mail.gmail.com>
+ <20170505195054.GA29473@googlemail.com>
+From: Markus Rechberger <mrechberger@gmail.com>
+Date: Sat, 6 May 2017 14:53:03 +0800
+Message-ID: <CA+O4pC+0oeqepXf5dVLxxDQRswXGjAq50GVrmepzUJwoa8pR=w@mail.gmail.com>
+Subject: Re: [PATCH] [media] em28xx: support for Sundtek MediaTV Digital Home
+To: Markus Rechberger <mrechberger@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 5 May 2017 01:14:29 +0200
-Reinhard Speyerer <rspmn@arcor.de> escreveu:
+On Sat, May 6, 2017 at 3:50 AM, Thomas Hollstegge
+<thomas.hollstegge@gmail.com> wrote:
+> Hi Markus,
+>
+> Markus Rechberger <mrechberger@gmail.com> schrieb am Sat, 06. May 00:33:
+>> We had different HW designs based on Empia until 2012 using this USB
+>> ID it will not work with many units out there, also with different
+>> standby behaviours, chipsets etc.
+>
+> Well, after this patch there's one more device that works with an
+> open-source driver, which I consider a good thing. What about
+> open-sourcing support for the other devices you're talking about?
+>
 
-> Hi Gregor and Mauro,
-> 
-> For some reason several/most(?) programs from freenet.TV (connect) which
-> are distributed via the Internet instead of DVB-T2 have duplicate entries.
+As mentioned you can use the sysfs approach for you.
+Don't buy a device which you intend to use with unintended software afterwards.
+Your device is from 2010 as far as I see, you can ship the unit back
+for changing the USB ID for it so you can mess around with it and
+break it completely.
+The USB ID in question is used for all kind of devices, even analog or
+radio only units which are very far from being supported by this
+crappy opensource driver which is able to crash the entire kernel.
+Our work is pretty much isolated.
+
+You might match your unit also based on your serialnumber if you want
+to apply such a patch to the crappy opensource driver.
 
 
-Found the issue. There's a logic inside the scan algorithm that groups
-multi-section tables. There was a mistake there with was causing it to
-read twice the first section. As, on most cases, the SDT table has just
-one section, nobody noticed it so far. Just added a patch, on both master 
-and stable fixing this issue, as enclosed.
+>> If you want to get a device with kernel support I recommend buying a
+>> different one and let that one go back to our community (since our
+>> tuners and support are still quite popular).
+>
+> Thanks, but I'd rather stick with the device I have than spending more
+> money to have a device that only works with a closed-source driver.
+>
 
-Thanks for reporting it!
+then sell it get a good price and buy another unit or ship it back for
+getting another USB ID (the EEPROM needs to be removed for rewriting
+it).
 
-Regards,
-Mauro
-
--
-
-[PATCH] dvb-scan: fix the logic for multi-section handling
-
-The logic that parses multisection handling is broken.
-Right now, it parses twice the initial section, causing
-duplicated entries at the tables.
-
-The net result is that, on tables like SDT, channels
-appear duplicated. Before this patch, what was happening
-was:
-
-	dvb_read_sections: waiting for table ID 0x42, program ID 0x11
-	dvb_parse_section: received table 0x42, extension ID 0x4072, section 0/1
-	dvb_parse_section: received table 0x42, extension ID 0x4072, section 1/1
-	dvb_parse_section: received table 0x42, extension ID 0x4072, section 0/1
-	dvb_parse_section: table 0x42, extension ID 0x4072: done
-
-So, section 0/1 were parsed twice. After that, it now properly
-detects that section 0/1 was already parsed:
-	dvb_read_sections: waiting for table ID 0x42, program ID 0x11
-	dvb_parse_section: received table 0x42, extension ID 0x4072, section 0/1
-	dvb_parse_section: received table 0x42, extension ID 0x4072, section 1/1
-	dvb_parse_section: table 0x42, extension ID 0x4072: done
-
-Reported-by: Reinhard Speyerer <rspmn@arcor.de>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
-index 07fe13e808a8..7ff8ba4f0446 100644
---- a/lib/libdvbv5/dvb-scan.c
-+++ b/lib/libdvbv5/dvb-scan.c
-@@ -239,12 +239,6 @@ static int dvb_parse_section(struct dvb_v5_fe_parms_priv *parms,
- 				return -1;
- 			}
- 			ext += i;
--
--			memset(ext, 0, sizeof(*ext));
--			ext->ext_id = h.id;
--			ext->first_section = h.section_id;
--			ext->last_section = h.last_section;
--			new = 1;
- 		}
- 	}
- 
+> Anyway, I just saw that the patch doesn't apply cleanly against
+> linux-media master. I'll submit a new version of the patch in a
+> minute.
+>
+> Cheers
+> Thomas
