@@ -1,49 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:35815 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751628AbdEDTew (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 15:34:52 -0400
-Subject: Re: [media-s3c-camif] question about arguments position
-To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-References: <20170504140502.Horde.e_TqvS0_CEqTDsNh1soDOGo@gator4166.hostgator.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Message-ID: <e2137221-f094-530b-e61c-70e28f22a83f@gmail.com>
-Date: Thu, 4 May 2017 21:34:47 +0200
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37338 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750935AbdEFRXR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 6 May 2017 13:23:17 -0400
+Subject: Re: [PATCH] media: entity: Catch unbalanced media_pipeline_stop calls
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <1483449131-18075-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+ <2426604.oXt7iAeI8O@avalon>
+ <f2029382-de41-3267-d1f2-6b1366bcae27@ideasonboard.com>
+ <20170104085746.GO3958@valkosipuli.retiisi.org.uk>
+ <a89c9fa7-37e9-e857-268e-b4105c6c8e77@ideasonboard.com>
+ <20170505211156.GI7456@valkosipuli.retiisi.org.uk>
+Cc: mchehab@kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <2a5738e2-ca57-4669-b99f-67dc1495a9ba@ideasonboard.com>
+Date: Sat, 6 May 2017 18:23:10 +0100
 MIME-Version: 1.0
-In-Reply-To: <20170504140502.Horde.e_TqvS0_CEqTDsNh1soDOGo@gator4166.hostgator.com>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20170505211156.GI7456@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gustavo,
+Hi Sakari,
 
-On 05/04/2017 09:05 PM, Gustavo A. R. Silva wrote:
-> The issue here is that the position of arguments in the call to
-> camif_hw_set_effect() function do not match the order of the parameters:
+>> Did it get lost?
+>>  It looks like the cleanup series it was based on made it through...
 > 
-> camif->colorfx_cb is passed to cr
-> camif->colorfx_cr is passed to cb
-> 
-> This is the function prototype:
-> 
-> void camif_hw_set_effect(struct camif_dev *camif, unsigned int effect,
->             unsigned int cr, unsigned int cb)
-> 
-> My question here is if this is intentional?
-> 
-> In case it is not, I will send a patch to fix it. But first it would be
-> great to hear any comment about it.
+> What I think happened was that I had applied it to the correct branch BUT I
+> already had sent a pull request on it. My apologies.
 
-You are right, it seems you have found a real bug. Feel free to send a patch.
-The best thing to do now might be to change the function prototype to:
+No worries - thanks for checking!
 
-void camif_hw_set_effect(struct camif_dev *camif, unsigned int effect,
-             unsigned int cb, unsigned int cr)
+> 
+>>
+>> Mauro, perhaps you could pick this one up now ?
+> 
+> The patchwork link is here:
+> 
+> <URL:https://patchwork.linuxtv.org/patch/38883/>
 
---
-Regards,
-Sylwester
+Regards
+
+Kieran
