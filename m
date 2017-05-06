@@ -1,75 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33893 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932084AbdEKIrV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 May 2017 04:47:21 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH] v4l2-subdev: Remove of_node
-References: <1491829376-14791-8-git-send-email-sakari.ailus@linux.intel.com>
- <1494434754-32144-1-git-send-email-kbingham@kernel.org>
- <20170510181321.GC3227@valkosipuli.retiisi.org.uk>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Kieran Bingham <kbingham@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <90c78a38-a9a8-a282-3024-7d6926861b40@ideasonboard.com>
-Date: Thu, 11 May 2017 09:47:16 +0100
+Received: from aserp1040.oracle.com ([141.146.126.69]:24994 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750792AbdEFCKO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 May 2017 22:10:14 -0400
+Date: Sat, 6 May 2017 05:09:52 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Gideon Sheril <elmocia@gmail.com>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        rvarsha016@gmail.com, julia.lawall@lip6.fr, alan@linux.intel.com,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] staging/media/atomisp/platform/intel-mid change spaces
+ to tabs and comma/assignment space padding
+Message-ID: <20170506020952.wzfx2wefmwzxja3d@mwanda>
+References: <1494032690-12302-1-git-send-email-elmocia@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20170510181321.GC3227@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1494032690-12302-1-git-send-email-elmocia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Subject is too long.
 
-On 10/05/17 19:13, Sakari Ailus wrote:
-> Hi Kieran,
-> 
-> Thanks for the patch.
-> 
-> On Wed, May 10, 2017 at 05:45:54PM +0100, Kieran Bingham wrote:
->> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>
->> With the fwnode implementation, of_node is no longer used.
->>
->> Remove it.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->> ---
->>  include/media/v4l2-subdev.h | 2 --
->>  1 file changed, 2 deletions(-)
->>
->> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
->> index 5f1669c45642..a40760174797 100644
->> --- a/include/media/v4l2-subdev.h
->> +++ b/include/media/v4l2-subdev.h
->> @@ -787,7 +787,6 @@ struct v4l2_subdev_platform_data {
->>   *	is attached.
->>   * @devnode: subdev device node
->>   * @dev: pointer to the physical device, if any
->> - * @of_node: The device_node of the subdev, usually the same as dev->of_node.
->>   * @fwnode: The fwnode_handle of the subdev, usually the same as
->>   *	    either dev->of_node->fwnode or dev->fwnode (whichever is non-NULL).
->>   * @async_list: Links this subdev to a global subdev_list or @notifier->done
->> @@ -820,7 +819,6 @@ struct v4l2_subdev {
->>  	void *host_priv;
->>  	struct video_device *devnode;
->>  	struct device *dev;
->> -	struct device_node *of_node;
->>  	struct fwnode_handle *fwnode;
->>  	struct list_head async_list;
->>  	struct v4l2_async_subdev *asd;
-> 
-> This is actually the difference my local v4l2-acpi branch and what I have in
-> my git.linuxtv.org tree. :-) So the change is there, embedded in the same
-> patch that converts the users.
-> 
-> I'll upload it later tonight.
+On Sat, May 06, 2017 at 04:04:50AM +0300, Gideon Sheril wrote:
+>  /* The atomisp uses type==0 for the end-of-list marker, so leave space. */
+> @@ -152,13 +152,13 @@ const struct camera_af_platform_data *camera_get_af_platform_data(void)
+>  EXPORT_SYMBOL_GPL(camera_get_af_platform_data);
+>  
+>  int atomisp_register_i2c_module(struct v4l2_subdev *subdev,
+> -                                struct camera_sensor_platform_data *plat_data,
+> -                                enum intel_v4l2_subdev_type type)
+> +								struct camera_sensor_platform_data *plat_data,
+> +								enum intel_v4l2_subdev_type type)
 
-Great - no problem then :)
+Huh???
 
---
-Cheers
+>  {
+>  	int i;
+>  	struct i2c_board_info *bi;
+>  	struct gmin_subdev *gs;
+> -        struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> +		struct i2c_client *client = v4l2_get_subdevdata(subdev);
 
-Kieran
+
+Wut?  How would this be correct?
+
+regards,
+dan carpenter
