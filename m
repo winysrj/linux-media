@@ -1,54 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35953 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750825AbdE2GN3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 02:13:29 -0400
-Subject: Re: [patch, libv4l]: add sdlcam example for testing digital still
- camera functionality
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        pali.rohar@gmail.com, sre@kernel.org,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com
-References: <20170424093059.GA20427@amd> <20170424103802.00d3b554@vento.lan>
- <20170424212914.GA20780@amd> <20170424224724.5bb52382@vento.lan>
- <20170426105300.GA857@amd> <20170426081330.6ca10e42@vento.lan>
- <20170426132337.GA6482@amd> <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
- <20170508222819.GA14833@amd> <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
- <20170521103315.GA10716@amd>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <57f24742-f039-dce3-8c8f-65b114dfd7d2@xs4all.nl>
-Date: Mon, 29 May 2017 08:13:22 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170521103315.GA10716@amd>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail.anw.at ([195.234.101.228]:35906 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756613AbdEGWEz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 7 May 2017 18:04:55 -0400
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net, jasmin@anw.at
+Subject: [PATCH 5/7] [media] ddbridge/ddbridge-core.c: Set maximum cxd2099 block size to 512
+Date: Sun,  7 May 2017 22:51:51 +0200
+Message-Id: <1494190313-18557-6-git-send-email-jasmin@anw.at>
+In-Reply-To: <1494190313-18557-1-git-send-email-jasmin@anw.at>
+References: <1494190313-18557-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+From: Jasmin Jessich <jasmin@anw.at>
 
-On 05/21/2017 12:33 PM, Pavel Machek wrote:
-> Add simple SDL-based application for capturing photos. Manual
-> focus/gain/exposure can be set, flash can be controlled and
-> autofocus/autogain can be selected if camera supports that.
-> 
-> It is already useful for testing autofocus/autogain improvements to
-> the libraries on Nokia N900.
-> 
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-I think this is more suitable as a github project. To be honest, I feel that
-v4l-utils already contains too many random utilities, so I prefer not to add
-to that.
-
-On the other hand, there is nothing against sharing this as on github as it
-certainly can be useful.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 340cff0..c96b7f9 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -1036,6 +1036,7 @@ static struct cxd2099_cfg cxd_cfg = {
+ 	.adr     =  0x40,
+ 	.polarity = 1,
+ 	.clock_mode = 1,
++	.max_i2c = 512,
+ };
+ 
+ static int ddb_ci_attach(struct ddb_port *port)
+-- 
+2.7.4
