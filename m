@@ -1,130 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:57395 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750812AbdEPE3z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 May 2017 00:29:55 -0400
-Message-ID: <05bf15d23d82e6f0693abe57147d3a9f@smtp-cloud2.xs4all.net>
-Date: Tue, 16 May 2017 06:29:52 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from relay1.mentorg.com ([192.94.38.131]:52552 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753406AbdEGXgG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 7 May 2017 19:36:06 -0400
+From: "Gheorghe, Alexandru" <Alexandru_Gheorghe@mentor.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-renesas-soc@vger.kernel.org"
+        <linux-renesas-soc@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] drm: rcar-du: Add support for colorkey alpha blending
+Date: Sun, 7 May 2017 10:07:39 +0000
+Message-ID: <1494151659494.51736@mentor.com>
+References: <1493895213-12573-1-git-send-email-Alexandru_Gheorghe@mentor.com>
+ <1493895213-12573-3-git-send-email-Alexandru_Gheorghe@mentor.com>,<6918649.iXqMEK0pQv@avalon>
+In-Reply-To: <6918649.iXqMEK0pQv@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Laurent,
 
-Results of the daily build of media_tree:
+On Thursday, May 4, 2017 3:44 PM Laurent Pinchart wrote: 
+> Hi Alexandru,
+>
+> On Thursday 04 May 2017 13:53:33 agheorghe wrote:
+>> Add two new plane properties colorkey and colorkey_alpha for rcar gen3.
+>> * colorkey:
+>>       - used for specifying the color on which the filtering is done.
+>>       - bits 0 to 23 are interpreted as RGB888 format, in case we are
+>>         dealing with an YCbCr format, only the Y componenet is
+>>         compared and it is represented by the G bits from RGB888
+>>         format.
+>>       - bit 24 tells if it is enabled or not.
+>> * colorkey_alpha:
+>>       - the alpha to be set for matching pixels, in case it is
+>>         missing the pixels will be made transparent
+>
+> Colour keying is a feature found in most display engines, and would thus
+> benefit from standardizing the properties. Instead of adding another colorkey
+> property specific to rcar-du, could you make a proposal to standardize it ?
 
-date:			Tue May 16 05:00:23 CEST 2017
-media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
-media_build git hash:	ab988a3d089232ce9e1aec2f259e947c06983dbc
-v4l-utils git hash:	48e8552417023bb9a1ae257251bc01446835239d
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Yeah sure, I could give it a try and comeback with a RFC. By standardizing it
+I'm assuming you mean something similar with what we have now in drm_blend,
+with zpos and rotate properties, right? Or do you think it should get its own IOCTL? 
 
-linux-git-Module.symvers: ERRORS
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: WARNINGS
-linux-4.9.26-i686: WARNINGS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.12-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+>> Signed-off-by: agheorghe <Alexandru_Gheorghe@mentor.com>
+>> ---
+>>  drivers/gpu/drm/rcar-du/rcar_du_drv.h   |  1 +
+>>  drivers/gpu/drm/rcar-du/rcar_du_kms.c   |  8 ++++++++
+>>  drivers/gpu/drm/rcar-du/rcar_du_plane.c |  3 ---
+>>  drivers/gpu/drm/rcar-du/rcar_du_plane.h |  6 ++++++
+>>  drivers/gpu/drm/rcar-du/rcar_du_vsp.c   | 22 ++++++++++++++++++++++
+>>  drivers/gpu/drm/rcar-du/rcar_du_vsp.h   |  5 +++++
+>>  6 files changed, 42 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.h
+>> b/drivers/gpu/drm/rcar-du/rcar_du_drv.h index 91e8fc5..1cb92e3 100644
+>> --- a/drivers/gpu/drm/rcar-du/rcar_du_drv.h
+>> +++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.h
+>> @@ -98,6 +98,7 @@ struct rcar_du_device {
+>>       struct {
+>>               struct drm_property *alpha;
+>>               struct drm_property *colorkey;
+>> +             struct drm_property *colorkey_alpha;
+>>       } props;
+>>
+>>       unsigned int dpad0_source;
+>> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_kms.c
+>> b/drivers/gpu/drm/rcar-du/rcar_du_kms.c index 1cc88ed..a733fa2 100644
+>> --- a/drivers/gpu/drm/rcar-du/rcar_du_kms.c
+>> +++ b/drivers/gpu/drm/rcar-du/rcar_du_kms.c
+>> @@ -630,6 +630,14 @@ static int rcar_du_properties_init(struct
+>> rcar_du_device *rcdu) if (rcdu->props.colorkey == NULL)
+>>               return -ENOMEM;
+>>
+>> +     if (rcdu->info->gen == 3) {
+>> +             rcdu->props.colorkey_alpha =
+>> +                     drm_property_create_range(rcdu->ddev, 0,
+>> +                                               "colorkey_alpha", 0, 255);
+>> +             if (!rcdu->props.colorkey_alpha)
+>> +                     return -ENOMEM;
+>> +     }
+>> +
+>>       return 0;
+>>  }
+>>
+>> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.c
+>> b/drivers/gpu/drm/rcar-du/rcar_du_plane.c index e408aa3..df689c4 100644
+>> --- a/drivers/gpu/drm/rcar-du/rcar_du_plane.c
+>> +++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
+>> @@ -307,9 +307,6 @@ int rcar_du_atomic_check_planes(struct drm_device *dev,
+>>   * Plane Setup
+>>   */
+>>
+>> -#define RCAR_DU_COLORKEY_NONE                (0 << 24)
+>> -#define RCAR_DU_COLORKEY_SOURCE              (1 << 24)
+>> -#define RCAR_DU_COLORKEY_MASK                (1 << 24)
+>>
+>>  static void rcar_du_plane_write(struct rcar_du_group *rgrp,
+>>                               unsigned int index, u32 reg, u32 data)
+>> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.h
+>> b/drivers/gpu/drm/rcar-du/rcar_du_plane.h index c1de338..9e7c3b6 100644
+>> --- a/drivers/gpu/drm/rcar-du/rcar_du_plane.h
+>> +++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.h
+>> @@ -49,6 +49,12 @@ static inline struct rcar_du_plane *to_rcar_plane(struct
+>> drm_plane *plane) return container_of(plane, struct rcar_du_plane, plane);
+>>  }
+>>
+>> +#define RCAR_DU_COLORKEY_NONE                (0 << 24)
+>> +#define RCAR_DU_COLORKEY_MASK                BIT(24)
+>> +#define RCAR_DU_COLORKEY_EN_MASK     RCAR_DU_COLORKEY_MASK
+>> +#define RCAR_DU_COLORKEY_COLOR_MASK  0xFFFFFF
+>> +#define RCAR_DU_COLORKEY_ALPHA_MASK  0xFF
+>> +
+>>  /**
+>>   * struct rcar_du_plane_state - Driver-specific plane state
+>>   * @state: base DRM plane state
+>> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+>> b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c index 4b460d4..b223be1 100644
+>> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+>> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+>> @@ -180,6 +180,11 @@ static void rcar_du_vsp_plane_setup(struct
+>> rcar_du_vsp_plane *plane) .pitch = fb->pitches[0],
+>>               .alpha = state->alpha,
+>>               .zpos = state->state.zpos,
+>> +             .colorkey = state->colorkey & RCAR_DU_COLORKEY_COLOR_MASK,
+>> +             .colorkey_en =
+>> +                     ((state->colorkey & RCAR_DU_COLORKEY_EN_MASK) != 0),
+>> +             .colorkey_alpha =
+>> +                     (state->colorkey_alpha & RCAR_DU_COLORKEY_ALPHA_MASK),
+>>       };
+>>       unsigned int i;
+>>
+>> @@ -379,6 +384,8 @@ static void rcar_du_vsp_plane_reset(struct drm_plane
+>> *plane) return;
+>>
+>>       state->alpha = 255;
+>> +     state->colorkey = RCAR_DU_COLORKEY_NONE;
+>> +     state->colorkey_alpha = 0;
+>>       state->state.zpos = plane->type == DRM_PLANE_TYPE_PRIMARY ? 0 : 1;
+>>
+>>       plane->state = &state->state;
+>> @@ -394,6 +401,10 @@ static int rcar_du_vsp_plane_atomic_set_property(struct
+>> drm_plane *plane,
+>>
+>>       if (property == rcdu->props.alpha)
+>>               rstate->alpha = val;
+>> +     else if (property == rcdu->props.colorkey)
+>> +             rstate->colorkey = val;
+>> +     else if (property == rcdu->props.colorkey_alpha)
+>> +             rstate->colorkey_alpha = val;
+>>       else
+>>               return -EINVAL;
+>>
+>> @@ -410,6 +421,10 @@ static int rcar_du_vsp_plane_atomic_get_property(struct
+>> drm_plane *plane,
+>>
+>>       if (property == rcdu->props.alpha)
+>>               *val = rstate->alpha;
+>> +     else if (property == rcdu->props.colorkey)
+>> +             *val = rstate->colorkey;
+>> +     else if (property == rcdu->props.colorkey_alpha)
+>> +             *val = rstate->colorkey_alpha;
+>>       else
+>>               return -EINVAL;
+>>
+>> @@ -633,6 +648,13 @@ int rcar_du_vsp_init(struct rcar_du_vsp *vsp)
+>>
+>>               drm_object_attach_property(&plane->plane.base,
+>>                                          rcdu->props.alpha, 255);
+>> +             drm_object_attach_property(&plane->plane.base,
+>> +                                        rcdu->props.colorkey,
+>> +                                        RCAR_DU_COLORKEY_NONE);
+>> +             if (rcdu->props.colorkey_alpha)
+>> +                     drm_object_attach_property(&plane->plane.base,
+>> +                                                rcdu->props.colorkey_alpha,
+>> +                                                0);
+>>               drm_plane_create_zpos_property(&plane->plane, 1, 1,
+>>                                              vsp->num_planes - 1);
+>>       }
+>> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
+>> b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h index 3fd9cef..1543503 100644
+>> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
+>> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
+>> @@ -47,6 +47,9 @@ static inline struct rcar_du_vsp_plane
+>> *to_rcar_vsp_plane(struct drm_plane *p) * @sg_tables: scatter-gather tables
+>> for the frame buffer memory
+>>   * @alpha: value of the plane alpha property
+>>   * @zpos: value of the plane zpos property
+>> + * @colorkey: value of the color for which to apply colorkey_alpha, bit 24
+>> + * tells if it is enabled or not
+>> + * @colorkey_alpha: alpha to be used for pixels with color equal to
+>> colorkey */
+>>  struct rcar_du_vsp_plane_state {
+>>       struct drm_plane_state state;
+>> @@ -56,6 +59,8 @@ struct rcar_du_vsp_plane_state {
+>>
+>>       unsigned int alpha;
+>>       unsigned int zpos;
+>> +     u32 colorkey;
+>> +     u32 colorkey_alpha;
+>>  };
+>>
+>>  static inline struct rcar_du_vsp_plane_state *
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Best Regards,
+Alex Gheorghe
