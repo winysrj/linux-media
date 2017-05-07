@@ -1,215 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:7976 "EHLO
-        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751189AbdEaI6c (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 04:58:32 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v6 6/7] dt-bindings: media: Add Renesas R-Car DRIF binding
-Date: Wed, 31 May 2017 09:44:56 +0100
-Message-Id: <20170531084457.4800-7-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <20170531084457.4800-1-ramesh.shanmugasundaram@bp.renesas.com>
-References: <20170531084457.4800-1-ramesh.shanmugasundaram@bp.renesas.com>
+Received: from mail.anw.at ([195.234.101.228]:35906 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754100AbdEGWEb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 7 May 2017 18:04:31 -0400
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com, jasmin@anw.at
+Subject: [PATCH 08/11] [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 4
+Date: Sun,  7 May 2017 23:23:31 +0200
+Message-Id: <1494192214-20082-9-git-send-email-jasmin@anw.at>
+In-Reply-To: <1494192214-20082-1-git-send-email-jasmin@anw.at>
+References: <1494192214-20082-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add binding documentation for Renesas R-Car Digital Radio Interface
-(DRIF) controller.
+From: Jasmin Jessich <jasmin@anw.at>
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Acked-by: Rob Herring <robh@kernel.org>
+Fixed all:
+  WARNING: Missing a blank line after declarations
+  WARNING: Block comments use * on subsequent lines
+
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
 ---
- .../devicetree/bindings/media/renesas,drif.txt     | 176 +++++++++++++++++++++
- 1 file changed, 176 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
+ drivers/media/dvb-core/dvb_ca_en50221.c | 24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,drif.txt b/Documentation/devicetree/bindings/media/renesas,drif.txt
-new file mode 100644
-index 000000000000..39516b94c28f
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
-@@ -0,0 +1,176 @@
-+Renesas R-Car Gen3 Digital Radio Interface controller (DRIF)
-+------------------------------------------------------------
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index af66c83..090f343 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -178,7 +178,9 @@ static void dvb_ca_private_free(struct dvb_ca_private *ca)
+ 
+ static void dvb_ca_private_release(struct kref *ref)
+ {
+-	struct dvb_ca_private *ca = container_of(ref, struct dvb_ca_private, refcount);
++	struct dvb_ca_private *ca;
 +
-+R-Car Gen3 DRIF is a SPI like receive only slave device. A general
-+representation of DRIF interfacing with a master device is shown below.
++	ca = container_of(ref, struct dvb_ca_private, refcount);
+ 	dvb_ca_private_free(ca);
+ }
+ 
+@@ -237,6 +239,7 @@ static int dvb_ca_en50221_check_camstatus(struct dvb_ca_private *ca, int slot)
+ 	struct dvb_ca_slot *sl = &ca->slot_info[slot];
+ 	int slot_status;
+ 	int cam_present_now;
++	int cam_present_old;
+ 	int cam_changed;
+ 
+ 	/* IRQ mode */
+@@ -249,7 +252,7 @@ static int dvb_ca_en50221_check_camstatus(struct dvb_ca_private *ca, int slot)
+ 	cam_present_now = (slot_status & DVB_CA_EN50221_POLL_CAM_PRESENT) ? 1 : 0;
+ 	cam_changed = (slot_status & DVB_CA_EN50221_POLL_CAM_CHANGED) ? 1 : 0;
+ 	if (!cam_changed) {
+-		int cam_present_old = (sl->slot_state != SLOT_STAT_NONE);
++		cam_present_old = (sl->slot_state != SLOT_STAT_NONE);
+ 		cam_changed = (cam_present_now != cam_present_old);
+ 	}
+ 
+@@ -294,7 +297,8 @@ static int dvb_ca_en50221_wait_if_status(struct dvb_ca_private *ca, int slot,
+ 	timeout = jiffies + timeout_hz;
+ 	while (1) {
+ 		/* read the status and check for error */
+-		int res = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS);
++		int res = ca->pub->read_cam_control(ca->pub, slot,
++						    CTRLIF_STATUS);
+ 		if (res < 0)
+ 			return -EIO;
+ 
+@@ -809,9 +813,10 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot,
+ 		return ca->pub->write_data(ca->pub, slot, buf, bytes_write);
+ 
+ 	/* it is possible we are dealing with a single buffer implementation,
+-	   thus if there is data available for read or if there is even a read
+-	   already in progress, we do nothing but awake the kernel thread to
+-	   process the data if necessary. */
++	 * thus if there is data available for read or if there is even a read
++	 * already in progress, we do nothing but awake the kernel thread to
++	 * process the data if necessary.
++	 */
+ 	status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS);
+ 	if (status < 0)
+ 		goto exitnowrite;
+@@ -921,8 +926,9 @@ static int dvb_ca_en50221_slot_shutdown(struct dvb_ca_private *ca, int slot)
+ 	ca->pub->slot_shutdown(ca->pub, slot);
+ 	ca->slot_info[slot].slot_state = SLOT_STAT_NONE;
+ 
+-	/* need to wake up all processes to check if they're now
+-	   trying to write to a defunct CAM */
++	/* need to wake up all processes to check if they're now trying to
++	 * write to a defunct CAM
++	 */
+ 	wake_up_interruptible(&ca->wait_queue);
+ 
+ 	dprintk("Slot %i shutdown\n", slot);
+@@ -1342,6 +1348,7 @@ static int dvb_ca_en50221_io_do_ioctl(struct file *file,
+ 	case CA_RESET:
+ 		for (slot = 0; slot < ca->slot_count; slot++) {
+ 			struct dvb_ca_slot *sl = &ca->slot_info[slot];
 +
-++---------------------+                +---------------------+
-+|                     |-----SCK------->|CLK                  |
-+|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-+|                     |-----SD0------->|D0                   |
-+|                     |-----SD1------->|D1                   |
-++---------------------+                +---------------------+
+ 			mutex_lock(&sl->slot_lock);
+ 			if (sl->slot_state != SLOT_STAT_NONE) {
+ 				dvb_ca_en50221_slot_shutdown(ca, slot);
+@@ -1862,6 +1869,7 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
+ 	/* now initialise each slot */
+ 	for (i = 0; i < slot_count; i++) {
+ 		struct dvb_ca_slot *sl = &ca->slot_info[i];
 +
-+As per datasheet, each DRIF channel (drifn) is made up of two internal
-+channels (drifn0 & drifn1). These two internal channels share the common
-+CLK & SYNC. Each internal channel has its own dedicated resources like
-+irq, dma channels, address space & clock. This internal split is not
-+visible to the external master device.
-+
-+The device tree model represents each internal channel as a separate node.
-+The internal channels sharing the CLK & SYNC are tied together by their
-+phandles using a property called "renesas,bonding". For the rest of
-+the documentation, unless explicitly stated, the word channel implies an
-+internal channel.
-+
-+When both internal channels are enabled they need to be managed together
-+as one (i.e.) they cannot operate alone as independent devices. Out of the
-+two, one of them needs to act as a primary device that accepts common
-+properties of both the internal channels. This channel is identified by a
-+property called "renesas,primary-bond".
-+
-+To summarize,
-+   - When both the internal channels that are bonded together are enabled,
-+     the zeroth channel is selected as primary-bond. This channels accepts
-+     properties common to all the members of the bond.
-+   - When only one of the bonded channels need to be enabled, the property
-+     "renesas,bonding" or "renesas,primary-bond" will have no effect. That
-+     enabled channel can act alone as any other independent device.
-+
-+Required properties of an internal channel:
-+-------------------------------------------
-+- compatible:	"renesas,r8a7795-drif" if DRIF controller is a part of R8A7795 SoC.
-+		"renesas,rcar-gen3-drif" for a generic R-Car Gen3 compatible device.
-+
-+		When compatible with the generic version, nodes must list the
-+		SoC-specific version corresponding to the platform first
-+		followed by the generic version.
-+
-+- reg: offset and length of that channel.
-+- interrupts: associated with that channel.
-+- clocks: phandle and clock specifier of that channel.
-+- clock-names: clock input name string: "fck".
-+- dmas: phandles to the DMA channels.
-+- dma-names: names of the DMA channel: "rx".
-+- renesas,bonding: phandle to the other channel.
-+
-+Optional properties of an internal channel:
-+-------------------------------------------
-+- power-domains: phandle to the respective power domain.
-+
-+Required properties of an internal channel when:
-+	- It is the only enabled channel of the bond (or)
-+	- If it acts as primary among enabled bonds
-+--------------------------------------------------------
-+- pinctrl-0: pin control group to be used for this channel.
-+- pinctrl-names: must be "default".
-+- renesas,primary-bond: empty property indicating the channel acts as primary
-+			among the bonded channels.
-+- port: child port node corresponding to the data input, in accordance with
-+	the video interface bindings defined in
-+	Documentation/devicetree/bindings/media/video-interfaces.txt. The port
-+	node must contain at least one endpoint.
-+
-+Optional endpoint property:
-+---------------------------
-+- sync-active: Indicates sync signal polarity, 0/1 for low/high respectively.
-+	       This property maps to SYNCAC bit in the hardware manual. The
-+	       default is 1 (active high).
-+
-+Example:
-+--------
-+
-+(1) Both internal channels enabled:
-+-----------------------------------
-+
-+When interfacing with a third party tuner device with two data pins as shown
-+below.
-+
-++---------------------+                +---------------------+
-+|                     |-----SCK------->|CLK                  |
-+|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-+|                     |-----SD0------->|D0                   |
-+|                     |-----SD1------->|D1                   |
-++---------------------+                +---------------------+
-+
-+	drif00: rif@e6f40000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f40000 0 0x64>;
-+		interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 515>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x20>, <&dmac2 0x20>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif01>;
-+		renesas,primary-bond;
-+		pinctrl-0 = <&drif0_pins>;
-+		pinctrl-names = "default";
-+		port {
-+			drif0_ep: endpoint {
-+			     remote-endpoint = <&tuner_ep>;
-+			};
-+		};
-+	};
-+
-+	drif01: rif@e6f50000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f50000 0 0x64>;
-+		interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 514>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x22>, <&dmac2 0x22>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif00>;
-+	};
-+
-+
-+(2) Internal channel 1 alone is enabled:
-+----------------------------------------
-+
-+When interfacing with a third party tuner device with one data pin as shown
-+below.
-+
-++---------------------+                +---------------------+
-+|                     |-----SCK------->|CLK                  |
-+|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-+|                     |                |D0 (unused)          |
-+|                     |-----SD-------->|D1                   |
-++---------------------+                +---------------------+
-+
-+	drif00: rif@e6f40000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f40000 0 0x64>;
-+		interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 515>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x20>, <&dmac2 0x20>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif01>;
-+	};
-+
-+	drif01: rif@e6f50000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f50000 0 0x64>;
-+		interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 514>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x22>, <&dmac2 0x22>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif00>;
-+		pinctrl-0 = <&drif0_pins>;
-+		pinctrl-names = "default";
-+		port {
-+			drif0_ep: endpoint {
-+			     remote-endpoint = <&tuner_ep>;
-+			     sync-active = <0>;
-+			};
-+		};
-+	};
+ 		memset(sl, 0, sizeof(struct dvb_ca_slot));
+ 		sl->slot_state = SLOT_STAT_NONE;
+ 		atomic_set(&sl->camchange_count, 0);
 -- 
-2.12.2
+2.7.4
