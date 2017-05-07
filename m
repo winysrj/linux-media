@@ -1,77 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:46055 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030668AbdEZGtL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 May 2017 02:49:11 -0400
-Date: Fri, 26 May 2017 08:49:07 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        geert@linux-m68k.org, magnus.damm@gmail.com,
-        hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se,
-        sergei.shtylyov@cogentembedded.com, devicetree@vger.kernel.org
-Subject: Re: [PATCH v3 0/4] r8a7793 Gose video input support
-Message-ID: <20170526064907.GD2628@verge.net.au>
-References: <1495199224-16337-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1495199224-16337-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from mail.anw.at ([195.234.101.228]:35906 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754100AbdEGWE2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 7 May 2017 18:04:28 -0400
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com, jasmin@anw.at
+Subject: [PATCH 00/11] Fix coding style in en50221 CAM functions
+Date: Sun,  7 May 2017 23:23:23 +0200
+Message-Id: <1494192214-20082-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 19, 2017 at 03:07:00PM +0200, Ulrich Hecht wrote:
-> Hi!
-> 
-> This is a by-the-datasheet implementation of analog and digital video input
-> on the Gose board.
-> 
-> This revision adds new bindings that distinguish between ADV7180 variants
-> with three and six input ports. There are numerous variants of this chip,
-> but since all that have "CP" in their names have three inputs, and all that
-> have "ST" have six, I have limited myself to two new compatible strings,
-> "adv7180cp" and "adv7180st".
-> 
-> The digital input patch has received minor tweaks of the port names for
-> consistency, and the Gose analog input patch has been modified to use the
-> new bindings, and a composite video connector has been added.
-> 
-> CU
-> Uli
-> 
-> 
-> Changes since v2:
-> - hdmi: port hdmi_con renamed to hdmi_con_out
-> - adv7180: added new compatibility strings and bindings
-> - composite: added connector, use new bindings
-> 
-> Changes since v1:
-> - r8a7793.dtsi: added VIN2
-> - modeled HDMI decoder input/output and connector
-> - added "renesas,rcar-gen2-vin" compat strings
-> - removed unnecessary "remote" node and aliases
-> - set ADV7612 interrupt to GP4_2
-> 
-> 
-> Ulrich Hecht (4):
->   ARM: dts: gose: add HDMI input
+From: Jasmin Jessich <jasmin@anw.at>
 
-I have queued-up the above patch for v4.13.
+These patch series is a follow up to the series "Add block read/write to
+en50221 CAM functions". It fixed nearly all the style issues reported by
+checkpatch.pl in dvb-core/dvb_ca_en50221.c
+Please note, that there are 7 Warnings left, which I won't fix.
 
->   media: adv7180: add adv7180cp, adv7180st compatible strings
->   media: adv7180: Add adv7180cp, adv7180st bindings
->   ARM: dts: gose: add composite video input
+Two of them are "WARNING: memory barrier without comment". I have really
+no clue why there is a call to "mb()" in that file, so I can't fill in a
+good comment.
 
-I have marked the above dts patch as "deferred" pending acceptance
-of the binding. Please repost or otherwise ping me once that has happened.
+Four warnings are "WARNING: line over 80 characters" which are strings for
+debugging, which shouldn't be split in several lines (will give other
+warning).
 
->  .../devicetree/bindings/media/i2c/adv7180.txt      |  15 +++
->  arch/arm/boot/dts/r8a7793-gose.dts                 | 127 ++++++++++++++++++++-
->  drivers/media/i2c/adv7180.c                        |   2 +
->  3 files changed, 142 insertions(+), 2 deletions(-)
-> 
-> -- 
-> 2.7.4
-> 
+And finally one "WARNING: Prefer [subsystem eg: netdev]_dbg", complaining
+about the "dprintk" macro. In my opinion it is correctly used and it is
+normally disabled anyway.
+
+The main problem of the original code was the size of the lines and the
+structural complexity of some functions. Beside shortening the names and
+refactoring of the thread state machine, I used in nearly every function
+a helper pointer "sl" (for "slot" structure) instead the whole structure
+path. This saved also a lot of characters in long lines.
+
+I split the patch set is small pieces for easier review, compiled each
+step and tested the resulting driver on my hardware with the DD DuoFlex CI
+(single) card.
+
+
+Jasmin Jessich (11):
+  [media] dvb-core/dvb_ca_en50221.c: Rename STATUSREG_??
+  [media] dvb-core/dvb_ca_en50221.c: Rename DVB_CA_SLOTSTATE_???
+  [media] dvb-core/dvb_ca_en50221.c: Used a helper variable
+  [media] dvb-core/dvb_ca_en50221.c: Refactored dvb_ca_en50221_thread
+  [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 1
+  [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 2
+  [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 3
+  [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 4
+  [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 5
+  [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 6
+  [media] dvb-core/dvb_ca_en50221.c: Fixed wrong EXPORT_SYMBOL order
+
+ drivers/media/dvb-core/dvb_ca_en50221.c | 916 ++++++++++++++++++--------------
+ 1 file changed, 527 insertions(+), 389 deletions(-)
+
+-- 
+2.7.4
