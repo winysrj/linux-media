@@ -1,45 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46438
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750728AbdESMKO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 May 2017 08:10:14 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 4/6] [media] soc_camera: annotate a switch fall through
-Date: Fri, 19 May 2017 09:10:02 -0300
-Message-Id: <d0994fe9ba22895e56b943ff3f03f2b39fcaa397.1495195712.git.mchehab@s-opensource.com>
-In-Reply-To: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
-References: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
-In-Reply-To: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
-References: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from relay1.mentorg.com ([192.94.38.131]:47448 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751276AbdEGVsK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 7 May 2017 17:48:10 -0400
+From: Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>
+To: <Alexandru_Gheorghe@mentor.com>,
+        <laurent.pinchart@ideasonboard.com>,
+        <linux-renesas-soc@vger.kernel.org>,
+        <dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>,
+        <geert@linux-m68k.org>, <sergei.shtylyov@cogentembedded.com>
+Subject: [PATCH v2 0/2] rcar-du, vsp1: rcar-gen3: Add support for colorkey alpha blending
+Date: Sun, 7 May 2017 13:13:25 +0300
+Message-ID: <1494152007-30094-1-git-send-email-Alexandru_Gheorghe@mentor.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Clearly, hsync and vsinc bool vars are part of the return
-logic on the second case of the switch. Annotate that, in
-order to shut up gcc warnings.
+Currently, rcar-du supports colorkeying  only for rcar-gen2 and it uses 
+some hw capability of the display unit(DU) which is not available on gen3.
+In order to implement colorkeying for gen3 we need to use the colorkey
+capability of the VSPD, hence the need to change both drivers rcar-du and
+vsp1.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/platform/soc_camera/soc_mediabus.c | 1 +
- 1 file changed, 1 insertion(+)
+This patchset had been developed and tested on top of v4.9/rcar-3.5.1 from
+git://git.kernel.org/pub/scm/linux/kernel/git/horms/renesas-bsp.git
 
-diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/drivers/media/platform/soc_camera/soc_mediabus.c
-index e3e665e1c503..57581f626f4c 100644
---- a/drivers/media/platform/soc_camera/soc_mediabus.c
-+++ b/drivers/media/platform/soc_camera/soc_mediabus.c
-@@ -494,6 +494,7 @@ unsigned int soc_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
- 					V4L2_MBUS_HSYNC_ACTIVE_LOW);
- 		vsync = common_flags & (V4L2_MBUS_VSYNC_ACTIVE_HIGH |
- 					V4L2_MBUS_VSYNC_ACTIVE_LOW);
-+		/* fall through */
- 	case V4L2_MBUS_BT656:
- 		pclk = common_flags & (V4L2_MBUS_PCLK_SAMPLE_RISING |
- 				       V4L2_MBUS_PCLK_SAMPLE_FALLING);
+Changes since v1:
+- group boolean variables to reduce object size
+- fixed signoff
+
+Alexandru Gheorghe (2):
+  v4l: vsp1: Add support for colorkey alpha blending
+  drm: rcar-du: Add support for colorkey alpha blending
+
+ drivers/gpu/drm/rcar-du/rcar_du_drv.h   |  1 +
+ drivers/gpu/drm/rcar-du/rcar_du_kms.c   |  8 ++++++++
+ drivers/gpu/drm/rcar-du/rcar_du_plane.c |  3 ---
+ drivers/gpu/drm/rcar-du/rcar_du_plane.h |  6 ++++++
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c   | 22 ++++++++++++++++++++++
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.h   |  5 +++++
+ drivers/media/platform/vsp1/vsp1_drm.c  |  3 +++
+ drivers/media/platform/vsp1/vsp1_rpf.c  | 10 ++++++++--
+ drivers/media/platform/vsp1/vsp1_rwpf.h |  3 +++
+ include/media/vsp1.h                    |  3 +++
+ 10 files changed, 59 insertions(+), 5 deletions(-)
+
 -- 
-2.9.3
+1.9.1
