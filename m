@@ -1,35 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:20869 "EHLO
-        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751197AbdEOK2E (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 May 2017 06:28:04 -0400
-Date: Mon, 15 May 2017 13:27:27 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: walter harms <wharms@bfs.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Alan Cox <alan@linux.intel.com>,
-        David Binderman <dcb314@hotmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 2/2] staging/atomisp: putting NULs in the wrong place
-Message-ID: <20170515102727.fv34r6kgkdcv7lqk@mwanda>
-References: <20170515100135.guvreypnckqolnrq@mwanda>
- <59198139.9030405@bfs.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <59198139.9030405@bfs.de>
+Received: from mail.anw.at ([195.234.101.228]:35906 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753526AbdEGWE0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 7 May 2017 18:04:26 -0400
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com, jasmin@anw.at
+Subject: [PATCH 09/11] [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 5
+Date: Sun,  7 May 2017 23:23:32 +0200
+Message-Id: <1494192214-20082-10-git-send-email-jasmin@anw.at>
+In-Reply-To: <1494192214-20082-1-git-send-email-jasmin@anw.at>
+References: <1494192214-20082-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 15, 2017 at 12:21:45PM +0200, walter harms wrote:
-> can this strcpy_s() replaced with strlcpy ?
-> 
+From: Jasmin Jessich <jasmin@anw.at>
 
-These functions obviously should be removed, yes.  Please send a patch
-for that and we can drop my patches.  Give David reported-by credit.
+Fixed all:
+  WARNING: msleep < 20ms can sleep for up to 20ms
+by using usleep_range.
 
-regards,
-dan carpenter
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ drivers/media/dvb-core/dvb_ca_en50221.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index 090f343..724fb34 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -314,7 +314,7 @@ static int dvb_ca_en50221_wait_if_status(struct dvb_ca_private *ca, int slot,
+ 			break;
+ 
+ 		/* wait for a bit */
+-		msleep(1);
++		usleep_range(1000, 1100);
+ 	}
+ 
+ 	dprintk("%s failed timeout:%lu\n", __func__, jiffies - start);
+@@ -1504,7 +1504,7 @@ static ssize_t dvb_ca_en50221_io_write(struct file *file,
+ 			if (status != -EAGAIN)
+ 				goto exit;
+ 
+-			msleep(1);
++			usleep_range(1000, 1100);
+ 		}
+ 		if (!written) {
+ 			status = -EIO;
+-- 
+2.7.4
