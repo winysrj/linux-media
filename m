@@ -1,434 +1,317 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:48548 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750735AbdETMgW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 20 May 2017 08:36:22 -0400
-Date: Sat, 20 May 2017 14:36:15 +0200
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Peter Rosin <peda@axentia.se>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v5 2/3] platform: add video-multiplexer subdevice driver
-Message-ID: <20170520123615.vhi72kakhlj725ni@earth>
-References: <1495034107-21407-1-git-send-email-p.zabel@pengutronix.de>
- <1495034107-21407-2-git-send-email-p.zabel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="ogsnrmmo6ov63lav"
-Content-Disposition: inline
-In-Reply-To: <1495034107-21407-2-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:34020 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752144AbdEGVpL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 7 May 2017 17:45:11 -0400
+From: Avraham Shukron <avraham.shukron@gmail.com>
+To: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        rvarsha016@gmail.com, julia.lawall@lip6.fr,
+        dan.carpenter@oracle.com, colin.king@canonical.com,
+        alan@linux.intel.com
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 1/2] drivers: staging: media: atomisp: fixed coding style errors
+Date: Sun,  7 May 2017 20:44:45 +0300
+Message-Id: <a2582ddea24b007895ab80530c83a4239f990803.1494178741.git.avraham.shukron@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Fix for error (not warnings) reported by checkpatch.pl
+Specifically:
+ - missing whitespace around "=" and after ","
+ - indentation with spaces instead of tabs
+ - lines starting with a whitespace
 
---ogsnrmmo6ov63lav
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This patch does not affect the compiled code in any way.
 
-Hi,
+Signed-off-by: Avraham Shukron <avraham.shukron@gmail.com>
+---
+ .../platform/intel-mid/atomisp_gmin_platform.c     | 156 ++++++++++-----------
+ .../platform/intel-mid/intel_mid_pcihelpers.c      |   2 +-
+ 2 files changed, 79 insertions(+), 79 deletions(-)
 
-On Wed, May 17, 2017 at 05:15:06PM +0200, Philipp Zabel wrote:
-> This driver can handle SoC internal and external video bus multiplexers,
-> controlled by mux controllers provided by the mux controller framework,
-> such as MMIO register bitfields or GPIOs. The subdevice passes through
-> the mbus configuration of the active input to the output side.
->=20
-> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-
--- Sebastian
-
-> ---
-> No changes since v4 [1]:
->=20
-> This patch depends on the mux subsystem [2] and on the mmio-mux driver [3]
-> to work on i.MX6. The follow-up patch will make this usable until the mux
-> framework is merged.
->=20
-> [1] https://patchwork.kernel.org/patch/9712131/
-> [2] https://patchwork.kernel.org/patch/9725911/
-> [3] https://patchwork.kernel.org/patch/9725893/
-> ---
->  drivers/media/platform/Kconfig     |   6 +
->  drivers/media/platform/Makefile    |   2 +
->  drivers/media/platform/video-mux.c | 295 +++++++++++++++++++++++++++++++=
-++++++
->  3 files changed, 303 insertions(+)
->  create mode 100644 drivers/media/platform/video-mux.c
->=20
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kcon=
-fig
-> index ac026ee1ca074..259c0ff780937 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -74,6 +74,12 @@ config VIDEO_M32R_AR_M64278
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called arv.
-> =20
-> +config VIDEO_MUX
-> +	tristate "Video Multiplexer"
-> +	depends on OF && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER && MULTIPLEX=
-ER
-> +	help
-> +	  This driver provides support for N:1 video bus multiplexers.
-> +
->  config VIDEO_OMAP3
->  	tristate "OMAP 3 Camera support"
->  	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Mak=
-efile
-> index 63303d63c64cf..a6363023f981e 100644
-> --- a/drivers/media/platform/Makefile
-> +++ b/drivers/media/platform/Makefile
-> @@ -28,6 +28,8 @@ obj-$(CONFIG_VIDEO_SH_VEU)		+=3D sh_veu.o
-> =20
->  obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+=3D m2m-deinterlace.o
-> =20
-> +obj-$(CONFIG_VIDEO_MUX)			+=3D video-mux.o
-> +
->  obj-$(CONFIG_VIDEO_S3C_CAMIF) 		+=3D s3c-camif/
->  obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS4_IS) 	+=3D exynos4-is/
->  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+=3D s5p-jpeg/
-> diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/=
-video-mux.c
-> new file mode 100644
-> index 0000000000000..e35ffa18126f3
-> --- /dev/null
-> +++ b/drivers/media/platform/video-mux.c
-> @@ -0,0 +1,295 @@
-> +/*
-> + * video stream multiplexer controlled via mux control
-> + *
-> + * Copyright (C) 2013 Pengutronix, Sascha Hauer <kernel@pengutronix.de>
-> + * Copyright (C) 2016-2017 Pengutronix, Philipp Zabel <kernel@pengutroni=
-x.de>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * as published by the Free Software Foundation; either version 2
-> + * of the License, or (at your option) any later version.
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/err.h>
-> +#include <linux/module.h>
-> +#include <linux/mutex.h>
-> +#include <linux/mux/consumer.h>
-> +#include <linux/of.h>
-> +#include <linux/of_graph.h>
-> +#include <linux/platform_device.h>
-> +#include <media/v4l2-async.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-subdev.h>
-> +
-> +struct video_mux {
-> +	struct v4l2_subdev subdev;
-> +	struct media_pad *pads;
-> +	struct v4l2_mbus_framefmt *format_mbus;
-> +	struct mux_control *mux;
-> +	struct mutex lock;
-> +	int active;
-> +};
-> +
-> +static inline struct video_mux *v4l2_subdev_to_video_mux(struct v4l2_sub=
-dev *sd)
-> +{
-> +	return container_of(sd, struct video_mux, subdev);
-> +}
-> +
-> +static int video_mux_link_setup(struct media_entity *entity,
-> +				const struct media_pad *local,
-> +				const struct media_pad *remote, u32 flags)
-> +{
-> +	struct v4l2_subdev *sd =3D media_entity_to_v4l2_subdev(entity);
-> +	struct video_mux *vmux =3D v4l2_subdev_to_video_mux(sd);
-> +	int ret =3D 0;
-> +
-> +	/*
-> +	 * The mux state is determined by the enabled sink pad link.
-> +	 * Enabling or disabling the source pad link has no effect.
-> +	 */
-> +	if (local->flags & MEDIA_PAD_FL_SOURCE)
-> +		return 0;
-> +
-> +	dev_dbg(sd->dev, "link setup '%s':%d->'%s':%d[%d]",
-> +		remote->entity->name, remote->index, local->entity->name,
-> +		local->index, flags & MEDIA_LNK_FL_ENABLED);
-> +
-> +	mutex_lock(&vmux->lock);
-> +
-> +	if (flags & MEDIA_LNK_FL_ENABLED) {
-> +		if (vmux->active =3D=3D local->index)
-> +			goto out;
-> +
-> +		if (vmux->active >=3D 0) {
-> +			ret =3D -EBUSY;
-> +			goto out;
-> +		}
-> +
-> +		dev_dbg(sd->dev, "setting %d active\n", local->index);
-> +		ret =3D mux_control_try_select(vmux->mux, local->index);
-> +		if (ret < 0)
-> +			goto out;
-> +		vmux->active =3D local->index;
-> +	} else {
-> +		if (vmux->active !=3D local->index)
-> +			goto out;
-> +
-> +		dev_dbg(sd->dev, "going inactive\n");
-> +		mux_control_deselect(vmux->mux);
-> +		vmux->active =3D -1;
-> +	}
-> +
-> +out:
-> +	mutex_unlock(&vmux->lock);
-> +	return ret;
-> +}
-> +
-> +static struct media_entity_operations video_mux_ops =3D {
-> +	.link_setup =3D video_mux_link_setup,
-> +	.link_validate =3D v4l2_subdev_link_validate,
-> +};
-> +
-> +static int video_mux_s_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> +	struct video_mux *vmux =3D v4l2_subdev_to_video_mux(sd);
-> +	struct v4l2_subdev *upstream_sd;
-> +	struct media_pad *pad;
-> +
-> +	if (vmux->active =3D=3D -1) {
-> +		dev_err(sd->dev, "Can not start streaming on inactive mux\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	pad =3D media_entity_remote_pad(&sd->entity.pads[vmux->active]);
-> +	if (!pad) {
-> +		dev_err(sd->dev, "Failed to find remote source pad\n");
-> +		return -ENOLINK;
-> +	}
-> +
-> +	if (!is_media_entity_v4l2_subdev(pad->entity)) {
-> +		dev_err(sd->dev, "Upstream entity is not a v4l2 subdev\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	upstream_sd =3D media_entity_to_v4l2_subdev(pad->entity);
-> +
-> +	return v4l2_subdev_call(upstream_sd, video, s_stream, enable);
-> +}
-> +
-> +static const struct v4l2_subdev_video_ops video_mux_subdev_video_ops =3D=
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+index 5b4506a..7ebefb3 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+@@ -51,7 +51,7 @@ struct gmin_subdev {
+ 
+ static struct gmin_subdev gmin_subdevs[MAX_SUBDEVS];
+ 
+-static enum { PMIC_UNSET = 0, PMIC_REGULATOR, PMIC_AXP, PMIC_TI ,
++static enum { PMIC_UNSET = 0, PMIC_REGULATOR, PMIC_AXP, PMIC_TI,
+ 	PMIC_CRYSTALCOVE } pmic_id;
+ 
+ /* The atomisp uses type==0 for the end-of-list marker, so leave space. */
+@@ -152,13 +152,13 @@ const struct camera_af_platform_data *camera_get_af_platform_data(void)
+ EXPORT_SYMBOL_GPL(camera_get_af_platform_data);
+ 
+ int atomisp_register_i2c_module(struct v4l2_subdev *subdev,
+-                                struct camera_sensor_platform_data *plat_data,
+-                                enum intel_v4l2_subdev_type type)
++				struct camera_sensor_platform_data *plat_data,
++				enum intel_v4l2_subdev_type type)
  {
-> +	.s_stream =3D video_mux_s_stream,
-> +};
-> +
-> +static struct v4l2_mbus_framefmt *
-> +__video_mux_get_pad_format(struct v4l2_subdev *sd,
-> +			   struct v4l2_subdev_pad_config *cfg,
-> +			   unsigned int pad, u32 which)
-> +{
-> +	struct video_mux *vmux =3D v4l2_subdev_to_video_mux(sd);
-> +
-> +	switch (which) {
-> +	case V4L2_SUBDEV_FORMAT_TRY:
-> +		return v4l2_subdev_get_try_format(sd, cfg, pad);
-> +	case V4L2_SUBDEV_FORMAT_ACTIVE:
-> +		return &vmux->format_mbus[pad];
-> +	default:
-> +		return NULL;
-> +	}
-> +}
-> +
-> +static int video_mux_get_format(struct v4l2_subdev *sd,
-> +			    struct v4l2_subdev_pad_config *cfg,
-> +			    struct v4l2_subdev_format *sdformat)
-> +{
-> +	struct video_mux *vmux =3D v4l2_subdev_to_video_mux(sd);
-> +
-> +	mutex_lock(&vmux->lock);
-> +
-> +	sdformat->format =3D *__video_mux_get_pad_format(sd, cfg, sdformat->pad,
-> +						   sdformat->which);
-> +
-> +	mutex_unlock(&vmux->lock);
-> +
-> +	return 0;
-> +}
-> +
-> +static int video_mux_set_format(struct v4l2_subdev *sd,
-> +			    struct v4l2_subdev_pad_config *cfg,
-> +			    struct v4l2_subdev_format *sdformat)
-> +{
-> +	struct video_mux *vmux =3D v4l2_subdev_to_video_mux(sd);
-> +	struct v4l2_mbus_framefmt *mbusformat;
-> +	struct media_pad *pad =3D &vmux->pads[sdformat->pad];
-> +
-> +	mbusformat =3D __video_mux_get_pad_format(sd, cfg, sdformat->pad,
-> +					    sdformat->which);
-> +	if (!mbusformat)
-> +		return -EINVAL;
-> +
-> +	mutex_lock(&vmux->lock);
-> +
-> +	/* Source pad mirrors active sink pad, no limitations on sink pads */
-> +	if ((pad->flags & MEDIA_PAD_FL_SOURCE) && vmux->active >=3D 0)
-> +		sdformat->format =3D vmux->format_mbus[vmux->active];
-> +
-> +	*mbusformat =3D sdformat->format;
-> +
-> +	mutex_unlock(&vmux->lock);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_pad_ops video_mux_pad_ops =3D {
-> +	.get_fmt =3D video_mux_get_format,
-> +	.set_fmt =3D video_mux_set_format,
-> +};
-> +
-> +static const struct v4l2_subdev_ops video_mux_subdev_ops =3D {
-> +	.pad =3D &video_mux_pad_ops,
-> +	.video =3D &video_mux_subdev_video_ops,
-> +};
-> +
-> +static int video_mux_probe(struct platform_device *pdev)
-> +{
-> +	struct device_node *np =3D pdev->dev.of_node;
-> +	struct device *dev =3D &pdev->dev;
-> +	struct device_node *ep;
-> +	struct video_mux *vmux;
-> +	unsigned int num_pads =3D 0;
-> +	int ret;
-> +	int i;
-> +
-> +	vmux =3D devm_kzalloc(dev, sizeof(*vmux), GFP_KERNEL);
-> +	if (!vmux)
-> +		return -ENOMEM;
-> +
-> +	platform_set_drvdata(pdev, vmux);
-> +
-> +	v4l2_subdev_init(&vmux->subdev, &video_mux_subdev_ops);
-> +	snprintf(vmux->subdev.name, sizeof(vmux->subdev.name), "%s", np->name);
-> +	vmux->subdev.flags |=3D V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	vmux->subdev.dev =3D dev;
-> +
-> +	/*
-> +	 * The largest numbered port is the output port. It determines
-> +	 * total number of pads.
-> +	 */
-> +	for_each_endpoint_of_node(np, ep) {
-> +		struct of_endpoint endpoint;
-> +
-> +		of_graph_parse_endpoint(ep, &endpoint);
-> +		num_pads =3D max(num_pads, endpoint.port + 1);
-> +	}
-> +
-> +	if (num_pads < 2) {
-> +		dev_err(dev, "Not enough ports %d\n", num_pads);
-> +		return -EINVAL;
-> +	}
-> +
-> +	vmux->mux =3D devm_mux_control_get(dev, NULL);
-> +	if (IS_ERR(vmux->mux)) {
-> +		ret =3D PTR_ERR(vmux->mux);
-> +		if (ret !=3D -EPROBE_DEFER)
-> +			dev_err(dev, "Failed to get mux: %d\n", ret);
-> +		return ret;
-> +	}
-> +
-> +	mutex_init(&vmux->lock);
-> +	vmux->active =3D -1;
-> +	vmux->pads =3D devm_kcalloc(dev, num_pads, sizeof(*vmux->pads),
-> +				  GFP_KERNEL);
-> +	vmux->format_mbus =3D devm_kcalloc(dev, num_pads,
-> +					 sizeof(*vmux->format_mbus),
-> +					 GFP_KERNEL);
-> +
-> +	for (i =3D 0; i < num_pads - 1; i++)
-> +		vmux->pads[i].flags =3D MEDIA_PAD_FL_SINK;
-> +	vmux->pads[num_pads - 1].flags =3D MEDIA_PAD_FL_SOURCE;
-> +
-> +	vmux->subdev.entity.function =3D MEDIA_ENT_F_VID_MUX;
-> +	ret =3D media_entity_pads_init(&vmux->subdev.entity, num_pads,
-> +				     vmux->pads);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	vmux->subdev.entity.ops =3D &video_mux_ops;
-> +
-> +	return v4l2_async_register_subdev(&vmux->subdev);
-> +}
-> +
-> +static int video_mux_remove(struct platform_device *pdev)
-> +{
-> +	struct video_mux *vmux =3D platform_get_drvdata(pdev);
-> +	struct v4l2_subdev *sd =3D &vmux->subdev;
-> +
-> +	v4l2_async_unregister_subdev(sd);
-> +	media_entity_cleanup(&sd->entity);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct of_device_id video_mux_dt_ids[] =3D {
-> +	{ .compatible =3D "video-mux", },
-> +	{ /* sentinel */ }
-> +};
-> +MODULE_DEVICE_TABLE(of, video_mux_dt_ids);
-> +
-> +static struct platform_driver video_mux_driver =3D {
-> +	.probe		=3D video_mux_probe,
-> +	.remove		=3D video_mux_remove,
-> +	.driver		=3D {
-> +		.of_match_table =3D video_mux_dt_ids,
-> +		.name =3D "video-mux",
-> +	},
-> +};
-> +
-> +module_platform_driver(video_mux_driver);
-> +
-> +MODULE_DESCRIPTION("video stream multiplexer");
-> +MODULE_AUTHOR("Sascha Hauer, Pengutronix");
-> +MODULE_AUTHOR("Philipp Zabel, Pengutronix");
-> +MODULE_LICENSE("GPL");
-> --=20
-> 2.11.0
->=20
-
---ogsnrmmo6ov63lav
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlkgOD8ACgkQ2O7X88g7
-+prA1w//aR8RxwkzaZhABbzlyFfZl33RXWOz14b9/hlsxgHB9hjypD4XUBomLCkr
-HKdKmYWd59pOfz4XbRR31hZ8UqunuNntghK82hbaAMyjLdWp80huC06WjISVwRJV
-vKQRY4HEeXagrEA6n3wA6rZFe5bjIfTL3TFeLWXcomFXdPPh45kPXns3of0p5BEH
-swXtuOF+eSysM0grIMPfjEp4e2cOOZQR2SUP+MnkwHkgN7Y99iQ5hXyWBq3rXfIP
-G8RmGemkS8G8gVeofsnVTV9EGc2EEGhBDRj6Yh4mK70AImQspqQRWhOjqB6a435C
-gpG1KxxzGz7TNEuKK0ZswC6e708cOI+xFkVRdYCRdbvdrJrtpDlvnkv6+blw+Yd/
-DjaE/wTwpba8ZkaLcDLXSH2khHAkSmDuKhhx+5WR1MxoyJBsYa/qm3Sj7Itf5dPF
-XuPwXv2BAunC/HqamuZNNS1g0qPd1FGkH10Liuxl8+9mU091dHiQhye5h6tiI6xa
-Q7gsYJvZtorudsWMqtaXwnuhnCL+rOuAFF+jexnPj4hvbwG/qoCWSFpe/FYVyacg
-aVJzwQEtNRVOft84ymGvidUUcajirpLTIb70odGFod5R/gmSaHoP2j32Ue/0Cm9o
-3V/2ThgiTk61YjAY5puyerXu9gJbrdEZyucK1otSIzkCFIPGTro=
-=+JFY
------END PGP SIGNATURE-----
-
---ogsnrmmo6ov63lav--
+ 	int i;
+ 	struct i2c_board_info *bi;
+ 	struct gmin_subdev *gs;
+-        struct i2c_client *client = v4l2_get_subdevdata(subdev);
++	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+ 	struct acpi_device *adev;
+ 
+ 	dev_info(&client->dev, "register atomisp i2c module type %d\n", type);
+@@ -172,7 +172,7 @@ int atomisp_register_i2c_module(struct v4l2_subdev *subdev,
+ 	if (adev)
+ 		adev->power.flags.power_resources = 0;
+ 
+-	for (i=0; i < MAX_SUBDEVS; i++)
++	for (i = 0; i < MAX_SUBDEVS; i++)
+ 		if (!pdata.subdevs[i].type)
+ 			break;
+ 
+@@ -206,7 +206,7 @@ struct v4l2_subdev *atomisp_gmin_find_subdev(struct i2c_adapter *adapter,
+ 					     struct i2c_board_info *board_info)
+ {
+ 	int i;
+-	for (i=0; i < MAX_SUBDEVS && pdata.subdevs[i].type; i++) {
++	for (i = 0; i < MAX_SUBDEVS && pdata.subdevs[i].type; i++) {
+ 		struct intel_v4l2_subdev_table *sd = &pdata.subdevs[i];
+ 		if (sd->v4l2_subdev.i2c_adapter_id == adapter->nr &&
+ 		    sd->v4l2_subdev.board_info.addr == board_info->addr)
+@@ -270,45 +270,45 @@ static const struct gmin_cfg_var t100_vars[] = {
+ };
+ 
+ static const struct gmin_cfg_var mrd7_vars[] = {
+-        {"INT33F8:00_CamType", "1"},
+-        {"INT33F8:00_CsiPort", "1"},
+-        {"INT33F8:00_CsiLanes","2"},
+-        {"INT33F8:00_CsiFmt","13"},
+-        {"INT33F8:00_CsiBayer", "0"},
+-        {"INT33F8:00_CamClk", "0"},
+-        {"INT33F9:00_CamType", "1"},
+-        {"INT33F9:00_CsiPort", "0"},
+-        {"INT33F9:00_CsiLanes","1"},
+-        {"INT33F9:00_CsiFmt","13"},
+-        {"INT33F9:00_CsiBayer", "0"},
+-        {"INT33F9:00_CamClk", "1"},
+-        {},
++	{"INT33F8:00_CamType", "1"},
++	{"INT33F8:00_CsiPort", "1"},
++	{"INT33F8:00_CsiLanes", "2"},
++	{"INT33F8:00_CsiFmt", "13"},
++	{"INT33F8:00_CsiBayer", "0"},
++	{"INT33F8:00_CamClk", "0"},
++	{"INT33F9:00_CamType", "1"},
++	{"INT33F9:00_CsiPort", "0"},
++	{"INT33F9:00_CsiLanes", "1"},
++	{"INT33F9:00_CsiFmt", "13"},
++	{"INT33F9:00_CsiBayer", "0"},
++	{"INT33F9:00_CamClk", "1"},
++	{},
+ };
+ 
+ static const struct gmin_cfg_var ecs7_vars[] = {
+-        {"INT33BE:00_CsiPort", "1"},
+-        {"INT33BE:00_CsiLanes","2"},
+-        {"INT33BE:00_CsiFmt","13"},
+-        {"INT33BE:00_CsiBayer", "2"},
+-        {"INT33BE:00_CamClk", "0"},
+-        {"INT33F0:00_CsiPort", "0"},
+-        {"INT33F0:00_CsiLanes","1"},
+-        {"INT33F0:00_CsiFmt","13"},
+-        {"INT33F0:00_CsiBayer", "0"},
+-        {"INT33F0:00_CamClk", "1"},
+-        {"gmin_V2P8GPIO","402"},
+-        {},
++	{"INT33BE:00_CsiPort", "1"},
++	{"INT33BE:00_CsiLanes", "2"},
++	{"INT33BE:00_CsiFmt", "13"},
++	{"INT33BE:00_CsiBayer", "2"},
++	{"INT33BE:00_CamClk", "0"},
++	{"INT33F0:00_CsiPort", "0"},
++	{"INT33F0:00_CsiLanes", "1"},
++	{"INT33F0:00_CsiFmt", "13"},
++	{"INT33F0:00_CsiBayer", "0"},
++	{"INT33F0:00_CamClk", "1"},
++	{"gmin_V2P8GPIO", "402"},
++	{},
+ };
+ 
+ 
+ static const struct gmin_cfg_var i8880_vars[] = {
+-        {"XXOV2680:00_CsiPort", "1"},
+-        {"XXOV2680:00_CsiLanes","1"},
+-        {"XXOV2680:00_CamClk","0"},
+-        {"XXGC0310:00_CsiPort", "0"},
+-        {"XXGC0310:00_CsiLanes", "1"},
+-        {"XXGC0310:00_CamClk", "1"},
+-        {},
++	{"XXOV2680:00_CsiPort", "1"},
++	{"XXOV2680:00_CsiLanes", "1"},
++	{"XXOV2680:00_CamClk", "0"},
++	{"XXGC0310:00_CsiPort", "0"},
++	{"XXGC0310:00_CsiLanes", "1"},
++	{"XXGC0310:00_CamClk", "1"},
++	{},
+ };
+ 
+ static const struct {
+@@ -317,9 +317,9 @@ static const struct {
+ } hard_vars[] = {
+ 	{ "BYT-T FFD8", ffrd8_vars },
+ 	{ "T100TA", t100_vars },
+-        { "MRD7", mrd7_vars },
+-        { "ST70408", ecs7_vars },
+-        { "VTA0803", i8880_vars },
++	{ "MRD7", mrd7_vars },
++	{ "ST70408", ecs7_vars },
++	{ "VTA0803", i8880_vars },
+ };
+ 
+ 
+@@ -343,7 +343,7 @@ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
+ {
+ 	int i, ret;
+ 	struct device *dev;
+-        struct i2c_client *client = v4l2_get_subdevdata(subdev);
++	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+ 
+ 	if (!pmic_id) {
+ 
+@@ -355,7 +355,7 @@ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
+ 
+ 	dev = &client->dev;
+ 
+-	for (i=0; i < MAX_SUBDEVS && gmin_subdevs[i].subdev; i++)
++	for (i = 0; i < MAX_SUBDEVS && gmin_subdevs[i].subdev; i++)
+ 		;
+ 	if (i >= MAX_SUBDEVS)
+ 		return NULL;
+@@ -410,7 +410,7 @@ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
+ static struct gmin_subdev *find_gmin_subdev(struct v4l2_subdev *subdev)
+ {
+ 	int i;
+-	for (i=0; i < MAX_SUBDEVS; i++)
++	for (i = 0; i < MAX_SUBDEVS; i++)
+ 		if (gmin_subdevs[i].subdev == subdev)
+ 			return &gmin_subdevs[i];
+ 	return gmin_subdev_add(subdev);
+@@ -481,7 +481,7 @@ int gmin_v1p8_ctrl(struct v4l2_subdev *subdev, int on)
+ 		gpio_set_value(v1p8_gpio, on);
+ 
+ 	if (gs->v1p8_reg) {
+-           regulator_set_voltage(gs->v1p8_reg, 1800000, 1800000);
++		regulator_set_voltage(gs->v1p8_reg, 1800000, 1800000);
+ 		if (on)
+ 			return regulator_enable(gs->v1p8_reg);
+ 		else
+@@ -517,7 +517,7 @@ int gmin_v2p8_ctrl(struct v4l2_subdev *subdev, int on)
+ 		gpio_set_value(v2p8_gpio, on);
+ 
+ 	if (gs->v2p8_reg) {
+-           regulator_set_voltage(gs->v2p8_reg, 2900000, 2900000);
++		regulator_set_voltage(gs->v2p8_reg, 2900000, 2900000);
+ 		if (on)
+ 			return regulator_enable(gs->v2p8_reg);
+ 		else
+@@ -627,13 +627,13 @@ int gmin_get_config_var(struct device *dev, const char *var, char *out, size_t *
+ 	int i, j, ret;
+ 	unsigned long efilen;
+ 
+-        if (dev && ACPI_COMPANION(dev))
+-                dev = &ACPI_COMPANION(dev)->dev;
++	if (dev && ACPI_COMPANION(dev))
++		dev = &ACPI_COMPANION(dev)->dev;
+ 
+-        if (dev)
+-                ret = snprintf(var8, sizeof(var8), "%s_%s", dev_name(dev), var);
+-        else
+-                ret = snprintf(var8, sizeof(var8), "gmin_%s", var);
++	if (dev)
++		ret = snprintf(var8, sizeof(var8), "%s_%s", dev_name(dev), var);
++	else
++		ret = snprintf(var8, sizeof(var8), "gmin_%s", var);
+ 
+ 	if (ret < 0 || ret >= sizeof(var8) - 1)
+ 		return -EINVAL;
+@@ -692,7 +692,7 @@ int gmin_get_config_var(struct device *dev, const char *var, char *out, size_t *
+ 	*out_len = efilen;
+ 
+ 	if (ret)
+- 		dev_warn(dev, "Failed to find gmin variable %s\n", var8);
++		dev_warn(dev, "Failed to find gmin variable %s\n", var8);
+ 
+ 	return ret;
+ }
+@@ -718,31 +718,31 @@ EXPORT_SYMBOL_GPL(gmin_get_var_int);
+ int camera_sensor_csi(struct v4l2_subdev *sd, u32 port,
+ 		      u32 lanes, u32 format, u32 bayer_order, int flag)
+ {
+-        struct i2c_client *client = v4l2_get_subdevdata(sd);
+-        struct camera_mipi_info *csi = NULL;
+-
+-        if (flag) {
+-                csi = kzalloc(sizeof(*csi), GFP_KERNEL);
+-                if (!csi) {
+-                        dev_err(&client->dev, "out of memory\n");
+-                        return -ENOMEM;
+-                }
+-                csi->port = port;
+-                csi->num_lanes = lanes;
+-                csi->input_format = format;
+-                csi->raw_bayer_order = bayer_order;
+-                v4l2_set_subdev_hostdata(sd, (void *)csi);
+-                csi->metadata_format = ATOMISP_INPUT_FORMAT_EMBEDDED;
+-                csi->metadata_effective_width = NULL;
+-                dev_info(&client->dev,
+-                         "camera pdata: port: %d lanes: %d order: %8.8x\n",
+-                         port, lanes, bayer_order);
+-        } else {
+-                csi = v4l2_get_subdev_hostdata(sd);
+-                kfree(csi);
+-        }
+-
+-        return 0;
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct camera_mipi_info *csi = NULL;
++
++	if (flag) {
++		csi = kzalloc(sizeof(*csi), GFP_KERNEL);
++		if (!csi) {
++			dev_err(&client->dev, "out of memory\n");
++			return -ENOMEM;
++		}
++		csi->port = port;
++		csi->num_lanes = lanes;
++		csi->input_format = format;
++		csi->raw_bayer_order = bayer_order;
++		v4l2_set_subdev_hostdata(sd, (void *)csi);
++		csi->metadata_format = ATOMISP_INPUT_FORMAT_EMBEDDED;
++		csi->metadata_effective_width = NULL;
++		dev_info(&client->dev,
++			 "camera pdata: port: %d lanes: %d order: %8.8x\n",
++			 port, lanes, bayer_order);
++	} else {
++		csi = v4l2_get_subdev_hostdata(sd);
++		kfree(csi);
++	}
++
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(camera_sensor_csi);
+ 
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+index a6c0f5f..b84fe9c 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+@@ -22,7 +22,7 @@
+ #endif
+ static inline int platform_is(u8 model)
+ {
+-        return (boot_cpu_data.x86_model == model);
++	return (boot_cpu_data.x86_model == model);
+ }
+ 
+ #include "../../include/asm/intel_mid_pcihelpers.h"
+-- 
+2.7.4
