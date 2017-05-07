@@ -1,43 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:60007 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750969AbdEIHmc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 May 2017 03:42:32 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.13] Add new STM32 DCMI camera driver
-Message-ID: <87a13ce2-8352-8fc2-1f0d-c1c2e385f2bb@xs4all.nl>
-Date: Tue, 9 May 2017 09:42:26 +0200
+Received: from youngberry.canonical.com ([91.189.89.112]:37816 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752144AbdEHAJr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 7 May 2017 20:09:47 -0400
+From: Colin King <colin.king@canonical.com>
+To: Mike Isely <isely@pobox.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org
+Subject: [PATCH] [media] pvrusb2: remove redundant check on cnt > 8
+Date: Sun,  7 May 2017 19:33:05 +0100
+Message-Id: <20170507183305.25350-1-colin.king@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 3622d3e77ecef090b5111e3c5423313f11711dfa:
+From: Colin Ian King <colin.king@canonical.com>
 
-  [media] ov2640: print error if devm_*_optional*() fails (2017-04-25 07:08:21 -0300)
+The 2nd check of cnt > 8 is redundant as cnt is already checked
+and thresholded to a maximum of 8 a few statements earlier.
+Remove this redundant 2nd check.
 
-are available in the git repository at:
+Detected by CoverityScan, CID#114281 ("Logically dead code")
 
-  git://linuxtv.org/hverkuil/media_tree.git stm32
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-for you to fetch changes up to e48842d83dc4ccd0519f8721f42a3a89b2f2329c:
-
-  stm32-dcmi: STM32 DCMI camera interface driver (2017-05-06 10:55:27 +0200)
-
-----------------------------------------------------------------
-Hugues Fruchet (2):
-      dt-bindings: Document STM32 DCMI bindings
-      stm32-dcmi: STM32 DCMI camera interface driver
-
- Documentation/devicetree/bindings/media/st,stm32-dcmi.txt |   45 ++
- drivers/media/platform/Kconfig                            |   12 +
- drivers/media/platform/Makefile                           |    2 +
- drivers/media/platform/stm32/Makefile                     |    1 +
- drivers/media/platform/stm32/stm32-dcmi.c                 | 1403 +++++++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 1463 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
- create mode 100644 drivers/media/platform/stm32/Makefile
- create mode 100644 drivers/media/platform/stm32/stm32-dcmi.c
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c b/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
+index f727b54a53c6..20a52b785fff 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
+@@ -488,7 +488,7 @@ static int pvr2_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			if ((ret > 0) || !(msgs[idx].flags & I2C_M_RD)) {
+ 				if (cnt > 8) cnt = 8;
+ 				printk(KERN_CONT " [");
+-				for (offs = 0; offs < (cnt>8?8:cnt); offs++) {
++				for (offs = 0; offs < cnt; offs++) {
+ 					if (offs) printk(KERN_CONT " ");
+ 					printk(KERN_CONT "%02x",msgs[idx].buf[offs]);
+ 				}
+-- 
+2.11.0
