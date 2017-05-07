@@ -1,59 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f182.google.com ([209.85.220.182]:32982 "EHLO
-        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1165183AbdEAOV7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 1 May 2017 10:21:59 -0400
-Received: by mail-qk0-f182.google.com with SMTP id u68so10140320qkd.0
-        for <linux-media@vger.kernel.org>; Mon, 01 May 2017 07:21:58 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <2431f8bf-1bbd-ffa6-1e72-488c31c9c2a7@googlemail.com>
-References: <05c4899146e7f2cfa1d0bc7a5118e3f2294ede40.1493638682.git.mchehab@s-opensource.com>
- <2431f8bf-1bbd-ffa6-1e72-488c31c9c2a7@googlemail.com>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-Date: Mon, 1 May 2017 10:21:57 -0400
-Message-ID: <CAGoCfizpoomajhcouvWobn3LUthUX5_tRBda489jDc7sM0J6CQ@mail.gmail.com>
-Subject: Re: [PATCH 1/2] em28xx: allow setting the eeprom bus at cards struct
-To: =?UTF-8?Q?Frank_Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:46428 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756651AbdEGWhY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 7 May 2017 18:37:24 -0400
+Message-ID: <862a76bda6a6c47aadef92656345710f@smtp-cloud6.xs4all.net>
+Date: Sun, 07 May 2017 06:10:52 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 1, 2017 at 10:11 AM, Frank Sch=C3=A4fer
-<fschaefer.oss@googlemail.com> wrote:
->
-> Am 01.05.2017 um 13:38 schrieb Mauro Carvalho Chehab:
->> Right now, all devices use bus 0 for eeprom. However, newer
->> versions of Terratec H6 use a different buffer for eeprom.
->>
->> So, add support to use a different I2C address for eeprom.
->
-> Has this been tested ?
-> Did you read my reply to the previous patch version ?:
-> See http://www.spinics.net/lists/linux-media/msg114860.html
->
-> I doubt it will work. At least not for the device from the thread in the
-> Kodi-forum.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Based on what I know about the Empia 2874/2884 design, I would be
-absolutely shocked if the eeprom was really on the second I2C bus.
-The boot code in ROM requires the eeprom to be on bus 0 in order to
-find the 8051 microcode to be executed.  This is a documented hardware
-design requirement.
+Results of the daily build of media_tree:
 
-I have seen designs where the first bus is accessible through an I2C
-gate on a demodulator on the second bus.  This creates a multi-master
-situation and I have no idea why anyone would ever do this.  However
-it does explain a situation where the EEPROM could be optionally
-accessed via the second bus (if the I2C gate on the demod was open at
-the time).
+date:			Sun May  7 05:00:52 CEST 2017
+media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
+media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
+v4l-utils git hash:	5a34da11d928e536686d686e41557523f5972b49
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-Devin
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: WARNINGS
+linux-4.9.26-i686: WARNINGS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
---=20
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
