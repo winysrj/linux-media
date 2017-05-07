@@ -1,173 +1,241 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:35887 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1423163AbdEYAbM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 May 2017 20:31:12 -0400
-Date: Wed, 24 May 2017 21:31:01 -0300
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [RFC 00/10] V4L2 explicit synchronization support
-Message-ID: <20170525003101.GA16058@jade>
-References: <20170313192035.29859-1-gustavo@padovan.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170313192035.29859-1-gustavo@padovan.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34433 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754848AbdEGV6i (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 7 May 2017 17:58:38 -0400
+From: Avraham Shukron <avraham.shukron@gmail.com>
+To: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        rvarsha016@gmail.com, julia.lawall@lip6.fr,
+        dan.carpenter@oracle.com, colin.king@canonical.com,
+        alan@linux.intel.com
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 2/2] drivers: staging: media: atomisp: fix coding style warnings
+Date: Sun,  7 May 2017 20:44:46 +0300
+Message-Id: <d519dd1d872a6c26965164fece94d961797fa487.1494178741.git.avraham.shukron@gmail.com>
+In-Reply-To: <a2582ddea24b007895ab80530c83a4239f990803.1494178741.git.avraham.shukron@gmail.com>
+References: <a2582ddea24b007895ab80530c83a4239f990803.1494178741.git.avraham.shukron@gmail.com>
+In-Reply-To: <a2582ddea24b007895ab80530c83a4239f990803.1494178741.git.avraham.shukron@gmail.com>
+References: <a2582ddea24b007895ab80530c83a4239f990803.1494178741.git.avraham.shukron@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Fix for warnings reported by checkpatch.pl:
+ - Multiline comment style
+ - Bare "unsigned"
+ - Missing blank line after declarations
+ - Un-needed braces around single-statement branch
 
-I've been working on the v2 of this series, but I think I hit a blocker
-when trying to cover the case where the driver asks to requeue the
-buffer. It is related to the out-fence side.
+Signed-off-by: Avraham Shukron <avraham.shukron@gmail.com>
+---
+ .../platform/intel-mid/atomisp_gmin_platform.c     | 45 ++++++++++++++--------
+ .../platform/intel-mid/intel_mid_pcihelpers.c      |  9 +++--
+ 2 files changed, 35 insertions(+), 19 deletions(-)
 
-In the current implementation we return on QBUF an out-fence fd that is not
-tied to any buffer, because we don't know the queueing order until the
-buffer is queued to the driver. Then when the buffer is queued we use
-the BUF_QUEUED event to notify userspace of the index of the buffer,
-so now userspace knows the buffer associated to the out-fence fd
-received earlier.
-
-Userspace goes ahead and send a DRM Atomic Request to the kernel to
-display that buffer on the screen once the fence signals. If it is 
-a nonblocking request the fence waiting is past the check phase, thus
-it isn't allowed to fail anymore.
-
-But now, what happens if the V4L2 driver calls buffer_done() asking
-to requeue the buffer. That means the operation failed and can't
-signal the fence, starving the DRM side.
-
-We need to fix that. The only way I can see is to guarantee ordering of
-buffers when out-fences are used. Ordering is something that HAL3 needs
-to so maybe there is more than one reason to do it like this. I'm not
-a V4L2 expert, so I don't know all the consequences of such a change.
-
-Any other ideas?
-
-The current patchset is at:
-
-https://git.kernel.org/pub/scm/linux/kernel/git/padovan/linux.git/log/?h=v4l2-fences
-
-Regards,
-
-Gustavo
-
-2017-03-13 Gustavo Padovan <gustavo@padovan.org>:
-
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> Hi,
-> 
-> This RFC adds support for Explicit Synchronization of shared buffers in V4L2.
-> It uses the Sync File Framework[1] as vector to communicate the fences
-> between kernel and userspace.
-> 
-> I'm sending this to start the discussion on the best approach to implement
-> Explicit Synchronization, please check the TODO/OPEN section below.
-> 
-> Explicit Synchronization allows us to control the synchronization of
-> shared buffers from userspace by passing fences to the kernel and/or 
-> receiving them from the the kernel.
-> 
-> Fences passed to the kernel are named in-fences and the kernel should wait
-> them to signal before using the buffer. On the other side, the kernel creates
-> out-fences for every buffer it receives from userspace. This fence is sent back
-> to userspace and it will signal when the capture, for example, has finished.
-> 
-> Signalling an out-fence in V4L2 would mean that the job on the buffer is done
-> and the buffer can be used by other drivers.
-> 
-> Current RFC implementation
-> --------------------------
-> 
-> The current implementation is not intended to be more than a PoC to start
-> the discussion on how Explicit Synchronization should be supported in V4L2.
-> 
-> The first patch proposes an userspace API for fences, then on patch 2
-> we prepare to the addition of in-fences in patch 3, by introducing the
-> infrastructure on vb2 to wait on an in-fence signal before queueing the buffer
-> in the driver.
-> 
-> Patch 4 fix uvc v4l2 event handling and patch 5 configure q->dev for vivid
-> drivers to enable to subscribe and dequeue events on it.
-> 
-> Patches 6-7 enables support to notify BUF_QUEUED events, i.e., let userspace
-> know that particular buffer was enqueued in the driver. This is needed,
-> because we return the out-fence fd as an out argument in QBUF, but at the time
-> it returns we don't know to which buffer the fence will be attached thus
-> the BUF_QUEUED event tells which buffer is associated to the fence received in
-> QBUF by userspace.
-> 
-> Patches 8 and 9 add more fence infrastructure to support out-fences and finally
-> patch 10 adds support to out-fences.
-> 
-> TODO/OPEN:
-> ----------
-> 
-> * For this first implementation we will keep the ordering of the buffers queued
-> in videobuf2, that means we will only enqueue buffer whose fence was signalled
-> if that buffer is the first one in the queue. Otherwise it has to wait until it
-> is the first one. This is not implmented yet. Later we could create a flag to
-> allow unordered queing in the drivers from vb2 if needed.
-> 
-> * Should we have out-fences per-buffer or per-plane? or both? In this RFC, for
-> simplicity they are per-buffer, but Mauro and Javier raised the option of
-> doing per-plane fences. That could benefit mem2mem and V4L2 <-> GPU operation
-> at least on cases when we have Capture hw that releases the Y frame before the
-> other frames for example. When using V4L2 per-plane out-fences to communicate
-> with KMS they would need to be merged together as currently the DRM Plane
-> interface only supports one fence per DRM Plane.
-> 
-> In-fences should be per-buffer as the DRM only has per-buffer fences, but
-> in case of mem2mem operations per-plane fences might be useful?
-> 
-> So should we have both ways, per-plane and per-buffer, or just one of them
-> for now?
-> 
-> * other open topics are how to deal with hw-fences and Request API.
-> 
-> Comments are welcome!
-> 
-> Regards,
-> 
-> Gustavo
-> 
-> ---
-> Gustavo Padovan (9):
->   [media] vb2: add explicit fence user API
->   [media] vb2: split out queueing from vb_core_qbuf()
->   [media] vb2: add in-fence support to QBUF
->   [media] uvc: enable subscriptions to other events
->   [media] vivid: assign the specific device to the vb2_queue->dev
->   [media] v4l: add V4L2_EVENT_BUF_QUEUED event
->   [media] v4l: add support to BUF_QUEUED event
->   [media] vb2: add infrastructure to support out-fences
->   [media] vb2: add out-fence support to QBUF
-> 
-> Javier Martinez Canillas (1):
->   [media] vb2: add videobuf2 dma-buf fence helpers
-> 
->  drivers/media/Kconfig                         |   1 +
->  drivers/media/platform/vivid/vivid-core.c     |  10 +-
->  drivers/media/usb/uvc/uvc_v4l2.c              |   2 +-
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |   4 +-
->  drivers/media/v4l2-core/v4l2-ctrls.c          |   6 +-
->  drivers/media/v4l2-core/videobuf2-core.c      | 139 ++++++++++++++++++++------
->  drivers/media/v4l2-core/videobuf2-v4l2.c      |  29 +++++-
->  include/media/videobuf2-core.h                |  12 ++-
->  include/media/videobuf2-fence.h               |  49 +++++++++
->  include/uapi/linux/videodev2.h                |  12 ++-
->  10 files changed, 218 insertions(+), 46 deletions(-)
->  create mode 100644 include/media/videobuf2-fence.h
-> 
-> -- 
-> 2.9.3
-> 
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+index 7ebefb3..fac03a0 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+@@ -119,7 +119,7 @@ static int af_power_ctrl(struct v4l2_subdev *subdev, int flag)
+ 	/*
+ 	 * The power here is used for dw9817,
+ 	 * regulator is from rear sensor
+-	*/
++	 */
+ 	if (gs->v2p8_vcm_reg) {
+ 		if (flag)
+ 			return regulator_enable(gs->v2p8_vcm_reg);
+@@ -167,7 +167,8 @@ int atomisp_register_i2c_module(struct v4l2_subdev *subdev,
+ 	 * uses ACPI runtime power management for camera devices, but
+ 	 * we don't.  Disable it, or else the rails will be needlessly
+ 	 * tickled during suspend/resume.  This has caused power and
+-	 * performance issues on multiple devices. */
++	 * performance issues on multiple devices.
++	 */
+ 	adev = ACPI_COMPANION(&client->dev);
+ 	if (adev)
+ 		adev->power.flags.power_resources = 0;
+@@ -182,7 +183,8 @@ int atomisp_register_i2c_module(struct v4l2_subdev *subdev,
+ 	/* Note subtlety of initialization order: at the point where
+ 	 * this registration API gets called, the platform data
+ 	 * callbacks have probably already been invoked, so the
+-	 * gmin_subdev struct is already initialized for us. */
++	 * gmin_subdev struct is already initialized for us.
++	 */
+ 	gs = find_gmin_subdev(subdev);
+ 
+ 	pdata.subdevs[i].type = type;
+@@ -206,8 +208,10 @@ struct v4l2_subdev *atomisp_gmin_find_subdev(struct i2c_adapter *adapter,
+ 					     struct i2c_board_info *board_info)
+ {
+ 	int i;
++
+ 	for (i = 0; i < MAX_SUBDEVS && pdata.subdevs[i].type; i++) {
+ 		struct intel_v4l2_subdev_table *sd = &pdata.subdevs[i];
++
+ 		if (sd->v4l2_subdev.i2c_adapter_id == adapter->nr &&
+ 		    sd->v4l2_subdev.board_info.addr == board_info->addr)
+ 			return sd->subdev;
+@@ -261,7 +265,8 @@ static const struct gmin_cfg_var ffrd8_vars[] = {
+ };
+ 
+ /* Cribbed from MCG defaults in the mt9m114 driver, not actually verified
+- * vs. T100 hardware */
++ * vs. T100 hardware
++ */
+ static const struct gmin_cfg_var t100_vars[] = {
+ 	{ "INT33F0:00_CsiPort",  "0" },
+ 	{ "INT33F0:00_CsiLanes", "1" },
+@@ -345,10 +350,8 @@ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
+ 	struct device *dev;
+ 	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+ 
+-	if (!pmic_id) {
+-
+-			pmic_id = PMIC_REGULATOR;
+-	}
++	if (!pmic_id)
++		pmic_id = PMIC_REGULATOR;
+ 
+ 	if (!client)
+ 		return NULL;
+@@ -401,7 +404,8 @@ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
+ 		 * API is broken with the current drivers, returning
+ 		 * "1" for a regulator that will then emit a
+ 		 * "unbalanced disable" WARNing if we try to disable
+-		 * it. */
++		 * it.
++		 */
+ 	}
+ 
+ 	return &gmin_subdevs[i];
+@@ -410,6 +414,7 @@ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
+ static struct gmin_subdev *find_gmin_subdev(struct v4l2_subdev *subdev)
+ {
+ 	int i;
++
+ 	for (i = 0; i < MAX_SUBDEVS; i++)
+ 		if (gmin_subdevs[i].subdev == subdev)
+ 			return &gmin_subdevs[i];
+@@ -419,6 +424,7 @@ static struct gmin_subdev *find_gmin_subdev(struct v4l2_subdev *subdev)
+ static int gmin_gpio0_ctrl(struct v4l2_subdev *subdev, int on)
+ {
+ 	struct gmin_subdev *gs = find_gmin_subdev(subdev);
++
+ 	if (gs && gs->gpio0) {
+ 		gpiod_set_value(gs->gpio0, on);
+ 		return 0;
+@@ -429,6 +435,7 @@ static int gmin_gpio0_ctrl(struct v4l2_subdev *subdev, int on)
+ static int gmin_gpio1_ctrl(struct v4l2_subdev *subdev, int on)
+ {
+ 	struct gmin_subdev *gs = find_gmin_subdev(subdev);
++
+ 	if (gs && gs->gpio1) {
+ 		gpiod_set_value(gs->gpio1, on);
+ 		return 0;
+@@ -531,6 +538,7 @@ int gmin_flisclk_ctrl(struct v4l2_subdev *subdev, int on)
+ {
+ 	int ret = 0;
+ 	struct gmin_subdev *gs = find_gmin_subdev(subdev);
++
+ 	if (on)
+ 		ret = vlv2_plat_set_clock_freq(gs->clock_num, gs->clock_src);
+ 	if (ret)
+@@ -595,6 +603,7 @@ struct camera_sensor_platform_data *gmin_camera_platform_data(
+ 		enum atomisp_bayer_order csi_bayer)
+ {
+ 	struct gmin_subdev *gs = find_gmin_subdev(subdev);
++
+ 	gs->csi_fmt = csi_format;
+ 	gs->csi_bayer = csi_bayer;
+ 
+@@ -617,8 +626,10 @@ EXPORT_SYMBOL_GPL(atomisp_gmin_register_vcm_control);
+ 
+ /* Retrieves a device-specific configuration variable.  The dev
+  * argument should be a device with an ACPI companion, as all
+- * configuration is based on firmware ID. */
+-int gmin_get_config_var(struct device *dev, const char *var, char *out, size_t *out_len)
++ * configuration is based on firmware ID.
++ */
++int gmin_get_config_var(struct device *dev, const char *var, char *out,
++			size_t *out_len)
+ {
+ 	char var8[CFG_VAR_NAME_MAX];
+ 	efi_char16_t var16[CFG_VAR_NAME_MAX];
+@@ -640,7 +651,8 @@ int gmin_get_config_var(struct device *dev, const char *var, char *out, size_t *
+ 
+ 	/* First check a hard-coded list of board-specific variables.
+ 	 * Some device firmwares lack the ability to set EFI variables at
+-	 * runtime. */
++	 * runtime.
++	 */
+ 	for (i = 0; i < ARRAY_SIZE(hard_vars); i++) {
+ 		if (dmi_match(DMI_BOARD_NAME, hard_vars[i].dmi_board_name)) {
+ 			for (j = 0; hard_vars[i].vars[j].name; j++) {
+@@ -665,7 +677,8 @@ int gmin_get_config_var(struct device *dev, const char *var, char *out, size_t *
+ 	}
+ 
+ 	/* Our variable names are ASCII by construction, but EFI names
+-	 * are wide chars.  Convert and zero-pad. */
++	 * are wide chars.  Convert and zero-pad.
++	 */
+ 	memset(var16, 0, sizeof(var16));
+ 	for (i = 0; i < sizeof(var8) && var8[i]; i++)
+ 		var16[i] = var8[i];
+@@ -678,7 +691,8 @@ int gmin_get_config_var(struct device *dev, const char *var, char *out, size_t *
+ 	 * implementation simply uses VariableName and VendorGuid from
+ 	 * the struct and ignores the rest, but it seems like there
+ 	 * ought to be an "official" efivar_entry registered
+-	 * somewhere? */
++	 * somewhere?
++	 */
+ 	ev = kzalloc(sizeof(*ev), GFP_KERNEL);
+ 	if (!ev)
+ 		return -ENOMEM;
+@@ -749,7 +763,8 @@ EXPORT_SYMBOL_GPL(camera_sensor_csi);
+ /* PCI quirk: The BYT ISP advertises PCI runtime PM but it doesn't
+  * work.  Disable so the kernel framework doesn't hang the device
+  * trying.  The driver itself does direct calls to the PUNIT to manage
+- * ISP power. */
++ * ISP power.
++ */
+ static void isp_pm_cap_fixup(struct pci_dev *dev)
+ {
+ 	dev_info(&dev->dev, "Disabling PCI power management on camera ISP\n");
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+index b84fe9c..28afc76 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+@@ -5,7 +5,8 @@
+ 
+ /* G-Min addition: "platform_is()" lives in intel_mid_pm.h in the MCG
+  * tree, but it's just platform ID info and we don't want to pull in
+- * the whole SFI-based PM architecture. */
++ * the whole SFI-based PM architecture.
++ */
+ #define INTEL_ATOM_MRST 0x26
+ #define INTEL_ATOM_MFLD 0x27
+ #define INTEL_ATOM_CLV 0x35
+@@ -136,8 +137,8 @@ u32 intel_mid_msgbus_read32(u8 port, u32 addr)
+ 
+ 	return data;
+ }
+-
+ EXPORT_SYMBOL(intel_mid_msgbus_read32);
++
+ void intel_mid_msgbus_write32(u8 port, u32 addr, u32 data)
+ {
+ 	unsigned long irq_flags;
+@@ -171,8 +172,8 @@ EXPORT_SYMBOL(intel_mid_soc_stepping);
+ 
+ static bool is_south_complex_device(struct pci_dev *dev)
+ {
+-	unsigned base_class = dev->class >> 16;
+-	unsigned sub_class  = (dev->class & SUB_CLASS_MASK) >> 8;
++	unsigned int base_class = dev->class >> 16;
++	unsigned int sub_class  = (dev->class & SUB_CLASS_MASK) >> 8;
+ 
+ 	/* other than camera, pci bridges and display,
+ 	 * everything else are south complex devices.
+-- 
+2.7.4
