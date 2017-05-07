@@ -1,85 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:48290 "EHLO hardeman.nu"
+Received: from mail.anw.at ([195.234.101.228]:35906 "EHLO mail.anw.at"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750786AbdEUGvy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 May 2017 02:51:54 -0400
-Date: Sun, 21 May 2017 08:51:52 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH 14/16] lirc_dev: cleanup includes
-Message-ID: <20170521065152.q5amscfqbj4yb5xw@hardeman.nu>
-References: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
- <149365468723.12922.7216057583221400867.stgit@zeus.hardeman.nu>
- <20170519182122.GA4136@gofer.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170519182122.GA4136@gofer.mess.org>
+        id S1756650AbdEGWFG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 7 May 2017 18:05:06 -0400
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net, jasmin@anw.at
+Subject: [PATCH 6/7] [staging] cxd2099/cxd2099.c: Removed useless printing in cxd2099 driver
+Date: Sun,  7 May 2017 22:51:52 +0200
+Message-Id: <1494190313-18557-7-git-send-email-jasmin@anw.at>
+In-Reply-To: <1494190313-18557-1-git-send-email-jasmin@anw.at>
+References: <1494190313-18557-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 19, 2017 at 07:21:23PM +0100, Sean Young wrote:
->On Mon, May 01, 2017 at 06:04:47PM +0200, David Härdeman wrote:
->> Remove superfluous includes and defines.
->> 
->> Signed-off-by: David Härdeman <david@hardeman.nu>
->> ---
->>  drivers/media/rc/lirc_dev.c |   12 +-----------
->>  1 file changed, 1 insertion(+), 11 deletions(-)
->> 
->> diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
->> index 7db7d4c57991..4ba6c7e2d41b 100644
->> --- a/drivers/media/rc/lirc_dev.c
->> +++ b/drivers/media/rc/lirc_dev.c
->> @@ -15,20 +15,11 @@
->>   *
->>   */
->>  
->> -#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
->> -
->>  #include <linux/module.h>
->> -#include <linux/kernel.h>
->>  #include <linux/sched/signal.h>
->> -#include <linux/errno.h>
->>  #include <linux/ioctl.h>
->> -#include <linux/fs.h>
->>  #include <linux/poll.h>
->> -#include <linux/completion.h>
->>  #include <linux/mutex.h>
->> -#include <linux/wait.h>
->> -#include <linux/unistd.h>
->> -#include <linux/bitops.h>
->>  #include <linux/device.h>
->>  #include <linux/cdev.h>
->>  #include <linux/idr.h>
->> @@ -37,7 +28,6 @@
->>  #include <media/lirc.h>
->>  #include <media/lirc_dev.h>
->>  
->> -#define IRCTL_DEV_NAME	"BaseRemoteCtl"
->>  #define LOGHEAD		"lirc_dev (%s[%d]): "
->>  
->>  static dev_t lirc_base_dev;
->> @@ -545,7 +535,7 @@ static int __init lirc_dev_init(void)
->>  	}
->>  
->>  	retval = alloc_chrdev_region(&lirc_base_dev, 0, LIRC_MAX_DEVICES,
->> -				     IRCTL_DEV_NAME);
->> +				     "BaseRemoteCtl");
->
->This has always surprised/annoyed me. Why is this called BaseRemoteCtl? As
->far as I know, this is only used for /proc/devices, where it says:
->
->$ grep 239 /proc/devices 
->239 BaseRemoteCtl
->
->And not lirc, as you would expect.
+From: Jasmin Jessich <jasmin@anw.at>
 
-Yeah, I also find it a bit of an ugly wart. I didn't dare to change it
-though since userspace might rely on "BaseRemoteCtl". For example:
-https://build.opensuse.org/package/view_file/openSUSE:12.2/lirc/rc.lirc?expand=1)
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ drivers/staging/media/cxd2099/cxd2099.c | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
+diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
+index ac01433..64de129 100644
+--- a/drivers/staging/media/cxd2099/cxd2099.c
++++ b/drivers/staging/media/cxd2099/cxd2099.c
+@@ -231,7 +231,6 @@ static int write_block(struct cxd *ci, u8 adr, u8 *data, u16 n)
+ 		status = i2c_write_reg(ci->i2c, ci->cfg.adr, 0, adr);
+ 	if (status)
+ 		return status;
+-	dev_info(&ci->i2c->dev, "write_block %d\n", n);
+ 
+ 	ci->lastaddress = adr;
+ 	buf[0] = 1;
+@@ -240,7 +239,6 @@ static int write_block(struct cxd *ci, u8 adr, u8 *data, u16 n)
+ 
+ 		if (ci->cfg.max_i2c && (len + 1 > ci->cfg.max_i2c))
+ 			len = ci->cfg.max_i2c - 1;
+-		dev_info(&ci->i2c->dev, "write %d\n", len);
+ 		memcpy(buf + 1, data, len);
+ 		status = i2c_write(ci->i2c, ci->cfg.adr, buf, len + 1);
+ 		if (status)
+@@ -570,14 +568,11 @@ static int campoll(struct cxd *ci)
+ 		return 0;
+ 	write_reg(ci, 0x05, istat);
+ 
+-	if (istat&0x40) {
++	if (istat&0x40)
+ 		ci->dr = 1;
+-		dev_info(&ci->i2c->dev, "DR\n");
+-	}
+-	if (istat&0x20) {
++
++	if (istat&0x20)
+ 		ci->write_busy = 0;
+-		dev_info(&ci->i2c->dev, "WC\n");
+-	}
+ 
+ 	if (istat&2) {
+ 		u8 slotstat;
+@@ -631,7 +626,6 @@ static int read_data(struct dvb_ca_en50221 *ca, int slot, u8 *ebuf, int ecount)
+ 	campoll(ci);
+ 	mutex_unlock(&ci->lock);
+ 
+-	dev_info(&ci->i2c->dev, "read_data\n");
+ 	if (!ci->dr)
+ 		return 0;
+ 
+@@ -660,7 +654,6 @@ static int write_data(struct dvb_ca_en50221 *ca, int slot, u8 *ebuf, int ecount)
+ 	if (ci->write_busy)
+ 		return -EAGAIN;
+ 	mutex_lock(&ci->lock);
+-	dev_info(&ci->i2c->dev, "write_data %d\n", ecount);
+ 	write_reg(ci, 0x0d, ecount>>8);
+ 	write_reg(ci, 0x0e, ecount&0xff);
+ 	write_block(ci, 0x11, ebuf, ecount);
 -- 
-David Härdeman
+2.7.4
