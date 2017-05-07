@@ -1,99 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44020 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S936424AbdEYPGn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 May 2017 11:06:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-        Clint Taylor <clinton.a.taylor@intel.com>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 3/7] cec: add cec_s_phys_addr_from_edid helper function
-Date: Thu, 25 May 2017 17:06:22 +0200
-Message-Id: <20170525150626.29748-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170525150626.29748-1-hverkuil@xs4all.nl>
-References: <20170525150626.29748-1-hverkuil@xs4all.nl>
+Received: from mail.CARNet.hr ([161.53.123.6]:35097 "EHLO mail.carnet.hr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751140AbdEHB3Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 7 May 2017 21:29:24 -0400
+From: Valentin Vidic <Valentin.Vidic@CARNet.hr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Cc: Valentin Vidic <Valentin.Vidic@CARNet.hr>
+Date: Sun,  7 May 2017 09:57:37 +0200
+Message-Id: <20170507075737.20142-1-Valentin.Vidic@CARNet.hr>
+Subject: [PATCH] staging: media/atomisp: drop unused qos variable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Fixes a sparse warning:
 
-This function simplifies the integration of CEC in DRM drivers.
+drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c:35:5: warning: symbol 'qos' was not declared. Should it be static?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Valentin Vidic <Valentin.Vidic@CARNet.hr>
 ---
- drivers/media/cec/cec-adap.c | 14 ++++++++++++++
- include/media/cec.h          |  9 +++++++++
- 2 files changed, 23 insertions(+)
+ drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index 303de0d25d2b..1b9537d8d24b 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -28,6 +28,8 @@
- #include <linux/string.h>
- #include <linux/types.h>
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+index a6c0f5f8c3f8..b01463361943 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+@@ -32,7 +32,6 @@ static DEFINE_SPINLOCK(msgbus_lock);
  
-+#include <drm/drm_edid.h>
-+
- #include "cec-priv.h"
+ static struct pci_dev *pci_root;
+ static struct pm_qos_request pm_qos;
+-int qos;
  
- static void cec_fill_msg_report_features(struct cec_adapter *adap,
-@@ -1412,6 +1414,18 @@ void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block)
- }
- EXPORT_SYMBOL_GPL(cec_s_phys_addr);
+ #define DW_I2C_NEED_QOS	(platform_is(INTEL_ATOM_BYT))
  
-+void cec_s_phys_addr_from_edid(struct cec_adapter *adap,
-+			       const struct edid *edid)
-+{
-+	u16 pa = CEC_PHYS_ADDR_INVALID;
-+
-+	if (edid && edid->extensions)
-+		pa = cec_get_edid_phys_addr((const u8 *)edid,
-+				EDID_LENGTH * (edid->extensions + 1), NULL);
-+	cec_s_phys_addr(adap, pa, false);
-+}
-+EXPORT_SYMBOL_GPL(cec_s_phys_addr_from_edid);
-+
- /*
-  * Called from either the ioctl or a driver to set the logical addresses.
-  *
-diff --git a/include/media/cec.h b/include/media/cec.h
-index b08edb31508f..9989cdb58bd8 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -207,6 +207,8 @@ static inline bool cec_is_sink(const struct cec_adapter *adap)
- #define cec_phys_addr_exp(pa) \
- 	((pa) >> 12), ((pa) >> 8) & 0xf, ((pa) >> 4) & 0xf, (pa) & 0xf
- 
-+struct edid;
-+
- #if IS_ENABLED(CONFIG_CEC_CORE)
- struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 		void *priv, const char *name, u32 caps, u8 available_las);
-@@ -218,6 +220,8 @@ int cec_s_log_addrs(struct cec_adapter *adap, struct cec_log_addrs *log_addrs,
- 		    bool block);
- void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr,
- 		     bool block);
-+void cec_s_phys_addr_from_edid(struct cec_adapter *adap,
-+			       const struct edid *edid);
- int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
- 		     bool block);
- 
-@@ -327,6 +331,11 @@ static inline void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr,
- {
- }
- 
-+static inline void cec_s_phys_addr_from_edid(struct cec_adapter *adap,
-+					     const struct edid *edid)
-+{
-+}
-+
- static inline u16 cec_get_edid_phys_addr(const u8 *edid, unsigned int size,
- 					 unsigned int *offset)
- {
 -- 
 2.11.0
