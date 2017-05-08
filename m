@@ -1,72 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:46773 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1765686AbdEXARE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 May 2017 20:17:04 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2 17/17] rcar-vin: fix bug in pixelformat selection
-Date: Wed, 24 May 2017 02:15:40 +0200
-Message-Id: <20170524001540.13613-18-niklas.soderlund@ragnatech.se>
-In-Reply-To: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
-References: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:33438 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755118AbdEHRYU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 May 2017 13:24:20 -0400
+Date: Mon, 8 May 2017 12:24:18 -0500
+From: Rob Herring <robh@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sebastian.reichel@collabora.co.uk
+Subject: Re: [RFC v2 3/3] dt: bindings: Add a binding for referencing EEPROM
+ from camera sensors
+Message-ID: <20170508172418.zha3eyfsnuricfjk@rob-hp-laptop>
+References: <1493974110-26510-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1493974110-26510-4-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1493974110-26510-4-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+On Fri, May 05, 2017 at 11:48:30AM +0300, Sakari Ailus wrote:
+> Many camera sensor devices contain EEPROM chips that describe the
+> properties of a given unit --- the data is specific to a given unit can
+> thus is not stored e.g. in user space or the driver.
+> 
+> Some sensors embed the EEPROM chip and it can be accessed through the
+> sensor's I2C interface. This property is to be used for devices where the
+> EEPROM chip is accessed through a different I2C address than the sensor.
 
-If the requested pixelformat is not supported fallback to the default
-format, do not revert the entire format.
+Different I2C address or bus? We already have i2c bindings for sub 
+devices downstream of another I2C device. Either the upstream device 
+passes thru the I2C transactions or itself is an I2C controller with a 
+separate downstream bus. For those cases the EEPROM should be a child 
+node. A phandle only makes sense if you have the sensor and eeprom 
+connected to 2 entirely separate host buses.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 17 +++++------------
- 1 file changed, 5 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index de71e5fa8b10cb5e..81ff59c3b4744075 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -206,7 +206,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 			     struct v4l2_pix_format *pix,
- 			     struct rvin_source_fmt *source)
- {
--	const struct rvin_video_format *info;
- 	u32 rwidth, rheight, walign;
- 	int ret;
- 
-@@ -218,17 +217,11 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	if (pix->field == V4L2_FIELD_ANY)
- 		pix->field = vin->format.field;
- 
--	/*
--	 * Retrieve format information and select the current format if the
--	 * requested format isn't supported.
--	 */
--	info = rvin_format_from_pixel(pix->pixelformat);
--	if (!info) {
--		vin_dbg(vin, "Format %x not found, keeping %x\n",
--			pix->pixelformat, vin->format.pixelformat);
--		*pix = vin->format;
--		pix->width = rwidth;
--		pix->height = rheight;
-+	/* If requested format is not supported fallback to the default */
-+	if (!rvin_format_from_pixel(pix->pixelformat)) {
-+		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
-+			pix->pixelformat, RVIN_DEFAULT_FORMAT);
-+		pix->pixelformat = RVIN_DEFAULT_FORMAT;
- 	}
- 
- 	/* Always recalculate */
--- 
-2.13.0
+Rob
