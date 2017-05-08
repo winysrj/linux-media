@@ -1,77 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.14]:57757 "EHLO imap.netup.ru"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751000AbdEaMX3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 08:23:29 -0400
-Received: from mail-oi0-f45.google.com (mail-oi0-f45.google.com [209.85.218.45])
-        by imap.netup.ru (Postfix) with ESMTPSA id 49B568B3F51
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 15:23:27 +0300 (MSK)
-Received: by mail-oi0-f45.google.com with SMTP id l18so12912705oig.2
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 05:23:26 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170409193828.18458-15-d.scheller.oss@gmail.com>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com> <20170409193828.18458-15-d.scheller.oss@gmail.com>
-From: Abylay Ospan <aospan@netup.ru>
-Date: Wed, 31 May 2017 08:23:05 -0400
-Message-ID: <CAK3bHNWeSsdA5aPm8MRkh5rac4=N9zMBjohm0ecg=7N_Nv6-Bg@mail.gmail.com>
-Subject: Re: [PATCH 14/19] [media] dvb-frontends/cxd2841er: more configurable TSBITS
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: Kozlov Sergey <serjk@netup.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>, rjkm@metzlerbros.de
-Content-Type: text/plain; charset="UTF-8"
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:55306 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751497AbdEHOfL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 May 2017 10:35:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [RFC PATCH 1/2] v4l2-ioctl/exynos: fix G/S_SELECTION's type handling
+Date: Mon,  8 May 2017 16:35:05 +0200
+Message-Id: <20170508143506.16448-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Abylay Ospan <aospan@netup.ru>
+From: Hans Verkuil <hansverk@cisco.com>
 
-2017-04-09 15:38 GMT-04:00 Daniel Scheller <d.scheller.oss@gmail.com>:
-> From: Daniel Scheller <d.scheller@gmx.net>
->
-> Bits 3 and 4 of the TSCONFIG register are important for certain hardware
-> constellations, in that they need to be zeroed. Add a configuration flag
-> to toggle this.
->
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
->  drivers/media/dvb-frontends/cxd2841er.c | 4 ++++
->  drivers/media/dvb-frontends/cxd2841er.h | 1 +
->  2 files changed, 5 insertions(+)
->
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-> index 67bd13c..efb2795 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.c
-> +++ b/drivers/media/dvb-frontends/cxd2841er.c
-> @@ -3794,6 +3794,10 @@ static int cxd2841er_init_tc(struct dvb_frontend *fe)
->         cxd2841er_set_reg_bits(priv, I2C_SLVT, 0xc4,
->                 ((priv->flags & CXD2841ER_TS_SERIAL) ? 0x80 : 0x00), 0x80);
->
-> +       /* clear TSCFG bits 3+4 */
-> +       if (priv->flags & CXD2841ER_TSBITS)
-> +               cxd2841er_set_reg_bits(priv, I2C_SLVT, 0xc4, 0x00, 0x18);
-> +
->         cxd2841er_init_stats(fe);
->
->         return 0;
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.h b/drivers/media/dvb-frontends/cxd2841er.h
-> index 4f94422..dc32f5fb 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.h
-> +++ b/drivers/media/dvb-frontends/cxd2841er.h
-> @@ -31,6 +31,7 @@
->  #define CXD2841ER_EARLY_TUNE   16      /* bit 4 */
->  #define CXD2841ER_NO_WAIT_LOCK 32      /* bit 5 */
->  #define CXD2841ER_NO_AGCNEG    64      /* bit 6 */
-> +#define CXD2841ER_TSBITS       128     /* bit 7 */
->
->  enum cxd2841er_xtal {
->         SONY_XTAL_20500, /* 20.5 MHz */
-> --
-> 2.10.2
->
+The type field in struct v4l2_selection is supposed to never use the
+_MPLANE variants. E.g. if the driver supports V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
+then userspace should still pass V4L2_BUF_TYPE_VIDEO_CAPTURE.
 
+The reasons for this are lost in the mists of time, but it is really
+annoying. In addition, the exynos drivers didn't follow this rule and
+instead expected the _MPLANE type.
 
+To fix that code is added to the v4l2 core that maps the _MPLANE buffer
+types to their regular equivalents before calling the driver.
 
+Effectively this allows for userspace to use either _MPLANE or the regular
+buffer type. This keeps backwards compatibility while making things easier
+for userspace.
+
+Since drivers now never see the _MPLANE buffer types the exynos drivers
+had to be adapted as well.
+
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c     |  4 +-
+ drivers/media/platform/exynos-gsc/gsc-m2m.c      |  8 ++--
+ drivers/media/platform/exynos4-is/fimc-capture.c |  4 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c    |  4 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c             | 53 +++++++++++++++++++++---
+ 5 files changed, 57 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 59a634201830..107faa04c947 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -569,9 +569,9 @@ int gsc_try_crop(struct gsc_ctx *ctx, struct v4l2_crop *cr)
+ 	}
+ 	pr_debug("user put w: %d, h: %d", cr->c.width, cr->c.height);
+ 
+-	if (cr->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++	if (cr->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		f = &ctx->d_frame;
+-	else if (cr->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++	else if (cr->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+ 		f = &ctx->s_frame;
+ 	else
+ 		return -EINVAL;
+diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+index 82505025d96c..33611a46ce35 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
++++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+@@ -460,8 +460,8 @@ static int gsc_m2m_g_selection(struct file *file, void *fh,
+ 	struct gsc_frame *frame;
+ 	struct gsc_ctx *ctx = fh_to_ctx(fh);
+ 
+-	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) &&
+-	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
++	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
++	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
+ 		return -EINVAL;
+ 
+ 	frame = ctx_get_frame(ctx, s->type);
+@@ -503,8 +503,8 @@ static int gsc_m2m_s_selection(struct file *file, void *fh,
+ 	cr.type = s->type;
+ 	cr.c = s->r;
+ 
+-	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) &&
+-	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
++	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
++	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
+ 		return -EINVAL;
+ 
+ 	ret = gsc_try_crop(ctx, &cr);
+diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+index 8a7cd07dbe28..d876fc3e0ef7 100644
+--- a/drivers/media/platform/exynos4-is/fimc-capture.c
++++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+@@ -1270,7 +1270,7 @@ static int fimc_cap_g_selection(struct file *file, void *fh,
+ 	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
+ 	struct fimc_frame *f = &ctx->s_frame;
+ 
+-	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+ 
+ 	switch (s->target) {
+@@ -1320,7 +1320,7 @@ static int fimc_cap_s_selection(struct file *file, void *fh,
+ 	struct fimc_frame *f;
+ 	unsigned long flags;
+ 
+-	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+ 
+ 	if (s->target == V4L2_SEL_TGT_COMPOSE)
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index b4c4a33784c4..7d3ec5cc6608 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -901,7 +901,7 @@ static int fimc_lite_g_selection(struct file *file, void *fh,
+ 	struct fimc_lite *fimc = video_drvdata(file);
+ 	struct flite_frame *f = &fimc->out_frame;
+ 
+-	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+ 
+ 	switch (sel->target) {
+@@ -929,7 +929,7 @@ static int fimc_lite_s_selection(struct file *file, void *fh,
+ 	struct v4l2_rect rect = sel->r;
+ 	unsigned long flags;
+ 
+-	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE ||
++	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
+ 	    sel->target != V4L2_SEL_TGT_COMPOSE)
+ 		return -EINVAL;
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index e5a2187381db..fe2a677139df 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2141,6 +2141,47 @@ static int v4l_try_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 					-EINVAL;
+ }
+ 
++/*
++ * The selection API specified originally that the _MPLANE buffer types
++ * shouldn't be used. The reasons for this are lost in the mists of time
++ * (or just really crappy memories). Regardless, this is really annoying
++ * for userspace. So to keep things simple we map _MPLANE buffer types
++ * to their 'regular' counterparts before calling the driver. And we
++ * restore it afterwards. This way applications can use either buffer
++ * type and drivers don't need to check for both.
++ */
++static int v4l_g_selection(const struct v4l2_ioctl_ops *ops,
++			   struct file *file, void *fh, void *arg)
++{
++	struct v4l2_selection *p = arg;
++	u32 old_type = p->type;
++	int ret;
++
++	if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		p->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	else if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		p->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
++	ret = ops->vidioc_g_selection(file, fh, p);
++	p->type = old_type;
++	return ret;
++}
++
++static int v4l_s_selection(const struct v4l2_ioctl_ops *ops,
++			   struct file *file, void *fh, void *arg)
++{
++	struct v4l2_selection *p = arg;
++	u32 old_type = p->type;
++	int ret;
++
++	if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		p->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	else if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		p->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
++	ret = ops->vidioc_s_selection(file, fh, p);
++	p->type = old_type;
++	return ret;
++}
++
+ static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
+ {
+@@ -2160,7 +2201,7 @@ static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
+ 	else
+ 		s.target = V4L2_SEL_TGT_CROP_ACTIVE;
+ 
+-	ret = ops->vidioc_g_selection(file, fh, &s);
++	ret = v4l_g_selection(ops, file, fh, &s);
+ 
+ 	/* copying results to old structure on success */
+ 	if (!ret)
+@@ -2187,7 +2228,7 @@ static int v4l_s_crop(const struct v4l2_ioctl_ops *ops,
+ 	else
+ 		s.target = V4L2_SEL_TGT_CROP_ACTIVE;
+ 
+-	return ops->vidioc_s_selection(file, fh, &s);
++	return v4l_s_selection(ops, file, fh, &s);
+ }
+ 
+ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
+@@ -2229,7 +2270,7 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
+ 	else
+ 		s.target = V4L2_SEL_TGT_CROP_BOUNDS;
+ 
+-	ret = ops->vidioc_g_selection(file, fh, &s);
++	ret = v4l_g_selection(ops, file, fh, &s);
+ 	if (ret)
+ 		return ret;
+ 	p->bounds = s.r;
+@@ -2240,7 +2281,7 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
+ 	else
+ 		s.target = V4L2_SEL_TGT_CROP_DEFAULT;
+ 
+-	ret = ops->vidioc_g_selection(file, fh, &s);
++	ret = v4l_g_selection(ops, file, fh, &s);
+ 	if (ret)
+ 		return ret;
+ 	p->defrect = s.r;
+@@ -2550,8 +2591,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_CROPCAP, v4l_cropcap, v4l_print_cropcap, INFO_FL_CLEAR(v4l2_cropcap, type)),
+ 	IOCTL_INFO_FNC(VIDIOC_G_CROP, v4l_g_crop, v4l_print_crop, INFO_FL_CLEAR(v4l2_crop, type)),
+ 	IOCTL_INFO_FNC(VIDIOC_S_CROP, v4l_s_crop, v4l_print_crop, INFO_FL_PRIO),
+-	IOCTL_INFO_STD(VIDIOC_G_SELECTION, vidioc_g_selection, v4l_print_selection, INFO_FL_CLEAR(v4l2_selection, r)),
+-	IOCTL_INFO_STD(VIDIOC_S_SELECTION, vidioc_s_selection, v4l_print_selection, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_selection, r)),
++	IOCTL_INFO_FNC(VIDIOC_G_SELECTION, v4l_g_selection, v4l_print_selection, INFO_FL_CLEAR(v4l2_selection, r)),
++	IOCTL_INFO_FNC(VIDIOC_S_SELECTION, v4l_s_selection, v4l_print_selection, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_selection, r)),
+ 	IOCTL_INFO_STD(VIDIOC_G_JPEGCOMP, vidioc_g_jpegcomp, v4l_print_jpegcompression, 0),
+ 	IOCTL_INFO_STD(VIDIOC_S_JPEGCOMP, vidioc_s_jpegcomp, v4l_print_jpegcompression, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_QUERYSTD, v4l_querystd, v4l_print_std, 0),
 -- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+2.11.0
