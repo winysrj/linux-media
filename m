@@ -1,38 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bubo.tul.cz ([147.230.16.1]:51054 "EHLO bubo.tul.cz"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750895AbdENEbd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 14 May 2017 00:31:33 -0400
-Subject: Re: [RFC] [PATCH 0/4] [media] pxa_camera: Fixing bugs and missing
- colorformats
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-References: <19820fae-fae3-9579-8f37-5b515e0edb66@tul.cz>
- <34b6ce27-7567-a654-4276-ae522b44f781@tul.cz> <87o9vbz4pp.fsf@belgarion.home>
- <c2c51214-71ad-7c32-5d19-63e731852781@tul.cz>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-From: Petr Cvek <petr.cvek@tul.cz>
-Message-ID: <be13b205-2d60-b00a-06ec-5008cc635bed@tul.cz>
-Date: Sun, 14 May 2017 06:33:16 +0200
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:33739 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752554AbdEHOby (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 May 2017 10:31:54 -0400
+Date: Mon, 8 May 2017 11:31:51 -0300
+From: Gustavo Padovan <gustavo@padovan.org>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+        linux-media@vger.kernel.org,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH 2/4] dma-buf: Improve a size determination in
+ dma_buf_attach()
+Message-ID: <20170508143151.GB28331@joana>
+References: <3d972fa2-787a-d1f2-ff86-5c05494e00d3@users.sourceforge.net>
+ <cff83dc6-4391-d9b1-6ac2-791d5a3e2eb4@users.sourceforge.net>
 MIME-Version: 1.0
-In-Reply-To: <c2c51214-71ad-7c32-5d19-63e731852781@tul.cz>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cff83dc6-4391-d9b1-6ac2-791d5a3e2eb4@users.sourceforge.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dne 13.5.2017 v 08:40 Petr Cvek napsal(a):
+2017-05-08 SF Markus Elfring <elfring@users.sourceforge.net>:
 
-> The second problem seems to be a same problem. When playing/encoding the data from the sensor (with or without previous fix) and calling (probably) anything on v4l2 the drivers stops in a same way. I discovered it by trying to use the CONFIG_VIDEO_ADV_DEBUG interface to realtime poking the sensor.
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Mon, 8 May 2017 10:50:09 +0200
 > 
-> You should be able to recreate that by starting the stream (mplayer or ffmpeg) and run:
-> 	v4l2-ctl -n
-> or reading registers, running v4l2-compliance etc... 
+> Replace the specification of a data structure by a pointer dereference
+> as the parameter for the operator "sizeof" to make the corresponding size
+> determination a bit safer according to the Linux coding style convention.
 > 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/dma-buf/dma-buf.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-I get it now. The second problem is likely in pxac_fops_camera_release(). At the closing of the device the function calls sensor_call → s_power and sets the sensor to OFF regardless if somebody is using it somewhere else. There should be reference counter (as was in the original soc_camera_close() function).
+Reviewed-by: Gustavo Padovan <gustavo.padovan@collabora.com>                    
 
-This bug makes impossible to debug pxa camera and its sensors.
-
-cheers,
-Petr
+Gustavo
+ 
