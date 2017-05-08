@@ -1,278 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58512 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751419AbdEJN3c (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:42715 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753565AbdEHJhc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 May 2017 09:29:32 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH 10/16] rcar-vin: move functions which acts on hardware
-Date: Wed, 10 May 2017 16:29:31 +0300
-Message-ID: <2287556.jBiR5uoPLP@avalon>
-In-Reply-To: <20170314185957.25253-11-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se> <20170314185957.25253-11-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+        Mon, 8 May 2017 05:37:32 -0400
+Message-ID: <1494236207.3029.66.camel@pengutronix.de>
+Subject: Re: [PATCH] [media] imx: csi: retain current field order and
+ colorimetry setting as default
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Mon, 08 May 2017 11:36:47 +0200
+In-Reply-To: <0632df59-10e7-1e03-c0f6-eb7c90b83c0d@xs4all.nl>
+References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+         <1490661656-10318-22-git-send-email-steve_longerbeam@mentor.com>
+         <1491486929.2392.29.camel@pengutronix.de>
+         <0632df59-10e7-1e03-c0f6-eb7c90b83c0d@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hi Hans,
 
-Thank you for the patch.
+On Mon, 2017-05-08 at 10:27 +0200, Hans Verkuil wrote:
+> Hi Philipp,
+> 
+> Sorry for the very long delay, but I finally had some time to think about this.
 
-On Tuesday 14 Mar 2017 19:59:51 Niklas S=F6derlund wrote:
-> This only moves whole structs, defines and functions around, no code =
-is
-> changed inside any function. The reason for moving this code around i=
-s
-> to prepare for refactoring and fixing of a start/stop stream bug with=
-out
-> having to use forward declarations.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
-.se>
-> ---
-> drivers/media/platform/rcar-vin/rcar-dma.c | 181 ++++++++++++--------=
------
-> 1 file changed, 90 insertions(+), 91 deletions(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
-> b/drivers/media/platform/rcar-vin/rcar-dma.c index
-> c37f7a2993fb5565..c10d75aa7e71d665 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -119,6 +119,15 @@
->  #define VNDMR2_FTEV=09=09(1 << 17)
->  #define VNDMR2_VLV(n)=09=09((n & 0xf) << 12)
->=20
-> +struct rvin_buffer {
-> +=09struct vb2_v4l2_buffer vb;
-> +=09struct list_head list;
-> +};
-> +
-> +#define to_buf_list(vb2_buffer) (&container_of(vb2_buffer, \
-> +=09=09=09=09=09       struct rvin_buffer, \
-> +=09=09=09=09=09       vb)->list)
-> +
->  static void rvin_write(struct rvin_dev *vin, u32 value, u32 offset)
->  {
->  =09iowrite32(value, vin->base + offset);
-> @@ -269,48 +278,6 @@ static int rvin_setup(struct rvin_dev *vin)
->  =09return 0;
->  }
->=20
-> -static void rvin_capture_on(struct rvin_dev *vin)
-> -{
-> -=09vin_dbg(vin, "Capture on in %s mode\n",
-> -=09=09vin->continuous ? "continuous" : "single");
-> -
-> -=09if (vin->continuous)
-> -=09=09/* Continuous Frame Capture Mode */
-> -=09=09rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
-> -=09else
-> -=09=09/* Single Frame Capture Mode */
-> -=09=09rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
-> -}
-> -
-> -static void rvin_capture_off(struct rvin_dev *vin)
-> -{
-> -=09/* Set continuous & single transfer off */
-> -=09rvin_write(vin, 0, VNFC_REG);
-> -}
-> -
-> -static int rvin_capture_start(struct rvin_dev *vin)
-> -{
-> -=09int ret;
-> -
-> -=09rvin_crop_scale_comp(vin);
-> -
-> -=09ret =3D rvin_setup(vin);
-> -=09if (ret)
-> -=09=09return ret;
-> -
-> -=09rvin_capture_on(vin);
-> -
-> -=09return 0;
-> -}
-> -
-> -static void rvin_capture_stop(struct rvin_dev *vin)
-> -{
-> -=09rvin_capture_off(vin);
-> -
-> -=09/* Disable module */
-> -=09rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
-> -}
-> -
->  static void rvin_disable_interrupts(struct rvin_dev *vin)
->  {
->  =09rvin_write(vin, 0, VNIE_REG);
-> @@ -377,6 +344,87 @@ static void rvin_set_slot_addr(struct rvin_dev *=
-vin,
-> int slot, dma_addr_t addr) rvin_write(vin, offset, VNMB_REG(slot));
->  }
->=20
-> +static bool rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
-> +{
-> +=09struct rvin_buffer *buf;
-> +=09struct vb2_v4l2_buffer *vbuf;
-> +=09dma_addr_t phys_addr_top;
-> +
-> +=09if (vin->queue_buf[slot] !=3D NULL)
-> +=09=09return true;
-> +
-> +=09if (list_empty(&vin->buf_list))
-> +=09=09return false;
-> +
-> +=09vin_dbg(vin, "Filling HW slot: %d\n", slot);
-> +
-> +=09/* Keep track of buffer we give to HW */
-> +=09buf =3D list_entry(vin->buf_list.next, struct rvin_buffer, list);=
+Thank you for your thoughts.
 
-> +=09vbuf =3D &buf->vb;
-> +=09list_del_init(to_buf_list(vbuf));
-> +=09vin->queue_buf[slot] =3D vbuf;
-> +
-> +=09/* Setup DMA */
-> +=09phys_addr_top =3D vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0=
-);
-> +=09rvin_set_slot_addr(vin, slot, phys_addr_top);
-> +
-> +=09return true;
-> +}
-> +
-> +static bool rvin_fill_hw(struct rvin_dev *vin)
-> +{
-> +=09int slot, limit;
-> +
-> +=09limit =3D vin->continuous ? HW_BUFFER_NUM : 1;
-> +
-> +=09for (slot =3D 0; slot < limit; slot++)
-> +=09=09if (!rvin_fill_hw_slot(vin, slot))
-> +=09=09=09return false;
-> +=09return true;
-> +}
-> +
-> +static void rvin_capture_on(struct rvin_dev *vin)
-> +{
-> +=09vin_dbg(vin, "Capture on in %s mode\n",
-> +=09=09vin->continuous ? "continuous" : "single");
-> +
-> +=09if (vin->continuous)
-> +=09=09/* Continuous Frame Capture Mode */
-> +=09=09rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
-> +=09else
-> +=09=09/* Single Frame Capture Mode */
-> +=09=09rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
-> +}
-> +
-> +static void rvin_capture_off(struct rvin_dev *vin)
-> +{
-> +=09/* Set continuous & single transfer off */
-> +=09rvin_write(vin, 0, VNFC_REG);
-> +}
-> +
-> +static int rvin_capture_start(struct rvin_dev *vin)
-> +{
-> +=09int ret;
-> +
-> +=09rvin_crop_scale_comp(vin);
-> +
-> +=09ret =3D rvin_setup(vin);
-> +=09if (ret)
-> +=09=09return ret;
-> +
-> +=09rvin_capture_on(vin);
-> +
-> +=09return 0;
-> +}
-> +
-> +static void rvin_capture_stop(struct rvin_dev *vin)
-> +{
-> +=09rvin_capture_off(vin);
-> +
-> +=09/* Disable module */
-> +=09rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
-> +}
-> +
->  /*
-> ---------------------------------------------------------------------=
-------
-> -- * Crop and Scaling Gen2
->   */
-> @@ -839,55 +887,6 @@ void rvin_scale_try(struct rvin_dev *vin, struct=
+> On 04/06/2017 03:55 PM, Philipp Zabel wrote:
+> > If the the field order is set to ANY in set_fmt, choose the currently
+> > set field order. If the colorspace is set to DEFAULT, choose the current
+> > colorspace.  If any of xfer_func, ycbcr_enc or quantization are set to
+> > DEFAULT, either choose the current setting, or the default setting for the
+> > new colorspace, if non-DEFAULT colorspace was given.
+> > 
+> > This allows to let field order and colorimetry settings be propagated
+> > from upstream by calling media-ctl on the upstream entity source pad,
+> > and then call media-ctl on the sink pad to manually set the input frame
+> > interval, without changing the already set field order and colorimetry
+> > information.
+> > 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> > This is based on imx-media-staging-md-v14, and it is supposed to allow
+> > configuring the pipeline with media-ctl like this:
+> > 
+> > 1) media-ctl --set-v4l2 "'tc358743 1-000f':0[fmt:UYVY8_1X16/1920x1080]"
+> > 2) media-ctl --set-v4l2 "'imx6-mipi-csi2':1[fmt:UYVY8_1X16/1920x108]"
+> > 3) media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY8_1X16/1920x1080]"
+> > 4) media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY8_1X16/1920x1080@1/60]"
+> > 5) media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/1920x1080@1/30]"
+> > 
+> > Without having step 4) overwrite the colorspace and field order set on
+> > 'ipu1_csi0':0 by the propagation in step 3).
+> > ---
+> >  drivers/staging/media/imx/imx-media-csi.c | 34 +++++++++++++++++++++++++++++++
+> >  1 file changed, 34 insertions(+)
+> > 
+> > diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> > index 64dc454f6b371..d94ce1de2bf05 100644
+> > --- a/drivers/staging/media/imx/imx-media-csi.c
+> > +++ b/drivers/staging/media/imx/imx-media-csi.c
+> > @@ -1325,6 +1325,40 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
+> >  	csi_try_fmt(priv, sensor, cfg, sdformat, crop, compose, &cc);
+> >  
+> >  	fmt = __csi_get_fmt(priv, cfg, sdformat->pad, sdformat->which);
+> > +
+> > +	/* Retain current field setting as default */
+> > +	if (sdformat->format.field == V4L2_FIELD_ANY)
+> > +		sdformat->format.field = fmt->field;
+> 
+> This is OK.
 
-> v4l2_pix_format *pix, #define RVIN_TIMEOUT_MS 100
->  #define RVIN_RETRIES 10
->=20
-> -struct rvin_buffer {
-> -=09struct vb2_v4l2_buffer vb;
-> -=09struct list_head list;
-> -};
-> -
-> -#define to_buf_list(vb2_buffer) (&container_of(vb2_buffer, \
-> -=09=09=09=09=09       struct rvin_buffer, \
-> -=09=09=09=09=09       vb)->list)
-> -
-> -/* Moves a buffer from the queue to the HW slots */
+Would this be a "may" or a "should"? As in,
+"If SUBDEV_S_FMT is called with field == ANY, the driver may/should set
+field to the previously configured interlacing field order".
 
-You're loosing this comment. With this fixed (or not, if there's a good=
-=20
-reason),
+What would be the correct place to document this behaviour?
+Documentation/media/uapi/v4l/vidioc-subdev-g-fmt.rst?
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > +	/* Retain current colorspace setting as default */
+> > +	if (sdformat->format.colorspace == V4L2_COLORSPACE_DEFAULT) {
+> > +		sdformat->format.colorspace = fmt->colorspace;
+> > +		if (sdformat->format.xfer_func == V4L2_XFER_FUNC_DEFAULT)
+> > +			sdformat->format.xfer_func = fmt->xfer_func;
+> > +		if (sdformat->format.ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT)
+> > +			sdformat->format.ycbcr_enc = fmt->ycbcr_enc;
+> > +		if (sdformat->format.quantization == V4L2_QUANTIZATION_DEFAULT)
+> > +			sdformat->format.quantization = fmt->quantization;
+> 
+> If sdformat->format.colorspace == V4L2_COLORSPACE_DEFAULT, then you can just copy
+> all four fields from fmt to sdformat->format. The other three fields are meaningless
+> when colorspace == V4L2_COLORSPACE_DEFAULT.
 
-> -static bool rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
-> -{
-> -=09struct rvin_buffer *buf;
-> -=09struct vb2_v4l2_buffer *vbuf;
-> -=09dma_addr_t phys_addr_top;
-> -
-> -=09if (vin->queue_buf[slot] !=3D NULL)
-> -=09=09return true;
-> -
-> -=09if (list_empty(&vin->buf_list))
-> -=09=09return false;
-> -
-> -=09vin_dbg(vin, "Filling HW slot: %d\n", slot);
-> -
-> -=09/* Keep track of buffer we give to HW */
-> -=09buf =3D list_entry(vin->buf_list.next, struct rvin_buffer, list);=
+Ok, good. Ignoring the transfer function / YCbCr encoding / quantization
+range fields when colorspace is DEFAULT would simplify this part to:
 
-> -=09vbuf =3D &buf->vb;
-> -=09list_del_init(to_buf_list(vbuf));
-> -=09vin->queue_buf[slot] =3D vbuf;
-> -
-> -=09/* Setup DMA */
-> -=09phys_addr_top =3D vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0=
-);
-> -=09rvin_set_slot_addr(vin, slot, phys_addr_top);
-> -
-> -=09return true;
-> -}
-> -
-> -static bool rvin_fill_hw(struct rvin_dev *vin)
-> -{
-> -=09int slot, limit;
-> -
-> -=09limit =3D vin->continuous ? HW_BUFFER_NUM : 1;
-> -
-> -=09for (slot =3D 0; slot < limit; slot++)
-> -=09=09if (!rvin_fill_hw_slot(vin, slot))
-> -=09=09=09return false;
-> -=09return true;
-> -}
-> -
->  static irqreturn_t rvin_irq(int irq, void *data)
->  {
->  =09struct rvin_dev *vin =3D data;
+	if (sdformat->format.colorspace == V4L2_COLORSPACE_DEFAULT) {
+		sdformat->format.colorspace = fmt->colorspace;
+		sdformat->format.xfer_func = fmt->xfer_func;
+		sdformat->format.ycbcr_enc = fmt->ycbcr_enc;
+		sdformat->format.quantization = fmt->quantization;
+	}
 
---=20
-Regards,
+Is that expectation already written down somewhere? If not, should we
+add it to Documentation/media/uapi/v4l/pixfmt-006.rst?
 
-Laurent Pinchart
+> > +	} else {
+> > +		if (sdformat->format.xfer_func == V4L2_XFER_FUNC_DEFAULT) {
+> > +			sdformat->format.xfer_func =
+> > +				V4L2_MAP_XFER_FUNC_DEFAULT(
+> > +						sdformat->format.colorspace);
+> > +		}
+> > +		if (sdformat->format.ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT) {
+> > +			sdformat->format.ycbcr_enc =
+> > +				V4L2_MAP_YCBCR_ENC_DEFAULT(
+> > +						sdformat->format.colorspace);
+> > +		}
+> > +		if (sdformat->format.quantization == V4L2_QUANTIZATION_DEFAULT) {
+> > +			sdformat->format.quantization =
+> > +				V4L2_MAP_QUANTIZATION_DEFAULT(
+> > +						cc->cs != IPUV3_COLORSPACE_YUV,
+> > +						sdformat->format.colorspace,
+> > +						sdformat->format.ycbcr_enc);
+> > +		}
+> 
+> Is this needed for validation? Currently these fields play no role in the
+> default link validation. Which I think is actually the right thing to do,
+> unless the subdev can do actual colorspace conversion.
+
+The CSI subdevice can't do colorspace conversion, but exactly the same
+applies to the IC subdevices, which can. Also I'd like this information
+to be correct, as the /dev/videoX capture device takes its colorspace
+information from the CSI source pad.
+
+The problem I wanted to solve here initially was that if the colorspace
+information was previously set correctly:
+
+  media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY8_1X16/1920x1080@1/60 colorspace:rec709 xfer:709 ycbcr:709 quantization:lim-range]"
+    ->
+	V4L2_COLORSPACE_REC709
+	V4L2_XFER_FUNC_709
+	V4L2_YCBCR_ENC_709
+	V4L2_QUANTIZATION_LIMITED_RANGE
+
+A later media-ctl call to just change the frame interval would overwrite the colorspace information:
+
+  media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY8_1X16/1920x1080@1/30]"
+    ->
+	V4L2_COLORSPACE_DEFAULT
+	V4L2_XFER_FUNC_DEFAULT
+	V4L2_YCBCR_ENC_DEFAULT
+	V4L2_QUANTIZATION_DEFAULT
+
+> I would just drop the whole 'else' here.
+
+That would allow to set the actual colorspace information reported by
+SUBDEV_G_FMT on both sink and source pads (and by extension, the
+colorspace information reported by G_FMT on /dev/videoX) to
+V4L2_{XFER_FUNC,YCBCR_ENC,QUANTIZATION}_DEFAULT.
+
+  media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY8_1X16/1920x1080 colorspace:rec709]"
+    ->
+	V4L2_COLORSPACE_REC709
+	V4L2_XFER_FUNC_DEFAULT
+	V4L2_YCBCR_ENC_DEFAULT
+	V4L2_QUANTIZATION_DEFAULT
+
+I suppose that is acceptable as given the colorspace, the other DEFAULT
+values have a unique meaning, but wouldn't it be nicer to show userspace
+what these default inputs actually map to?
+
+> Actually, wouldn't it be better to always just copy this information from
+> fmt? This subdev doesn't do any colorspace conversion, it just passes on
+> this information. I.e., you can't set it in any meaningful way.
+
+csi_set_fmt on the sink pad is the function that actually sets fmt in
+the first place. If we always copy colorspace information from fmt, it
+can't be set to the correct value at all.
+
+regards
+Philipp
