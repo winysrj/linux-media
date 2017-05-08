@@ -1,263 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44594 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36732 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750871AbdE2K5Y (ORCPT
+        by vger.kernel.org with ESMTP id S1751061AbdEHVdT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 06:57:24 -0400
-Date: Mon, 29 May 2017 13:57:09 +0300
+        Mon, 8 May 2017 17:33:19 -0400
+Date: Tue, 9 May 2017 00:32:46 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: Re: [PATCH v2 2/2] v4l: async: add subnotifier registration for
- subdevices
-Message-ID: <20170529105708.GB29527@valkosipuli.retiisi.org.uk>
-References: <20170524000727.12936-1-niklas.soderlund@ragnatech.se>
- <20170524000727.12936-3-niklas.soderlund@ragnatech.se>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, jian.xu.zheng@intel.com,
+        rajmohan.mani@intel.com, hyungwoo.yang@intel.com
+Subject: Re: [PATCH 3/3] [media] intel-ipu3: cio2: Add new MIPI-CSI2 driver
+Message-ID: <20170508213246.GN7456@valkosipuli.retiisi.org.uk>
+References: <cover.1493479141.git.yong.zhi@intel.com>
+ <9cf19d01f6f85ac0e5969a2b2fcd5ad5ef8c1e22.1493479141.git.yong.zhi@intel.com>
+ <a33ac20c-5a72-3e6e-c55c-78bdb46449a5@xs4all.nl>
+ <20170508121003.GJ7456@valkosipuli.retiisi.org.uk>
+ <8dbaa458-6476-ac3b-daf3-785b0f591a69@xs4all.nl>
+ <20170508125620.GK7456@valkosipuli.retiisi.org.uk>
+ <1b0cde5d-37a9-2274-43a2-c242e2b944f5@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170524000727.12936-3-niklas.soderlund@ragnatech.se>
+In-Reply-To: <1b0cde5d-37a9-2274-43a2-c242e2b944f5@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hi Hans,
 
-On Wed, May 24, 2017 at 02:07:27AM +0200, Niklas Söderlund wrote:
+On Mon, May 08, 2017 at 03:08:26PM +0200, Hans Verkuil wrote:
+> On 05/08/2017 02:56 PM, Sakari Ailus wrote:
 ...
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index c16200c88417b151..e1e181db90f789c0 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -141,11 +141,13 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
->  	sd->dev = NULL;
->  }
->  
-> -int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> -				 struct v4l2_async_notifier *notifier)
-> +static int v4l2_async_do_notifier_register(struct v4l2_device *v4l2_dev,
-> +					   struct v4l2_async_notifier *notifier,
-> +					   bool subnotifier)
->  {
->  	struct v4l2_subdev *sd, *tmp;
->  	struct v4l2_async_subdev *asd;
-> +	bool found;
->  	int i;
->  
->  	if (!v4l2_dev || !notifier->num_subdevs ||
-> @@ -174,32 +176,65 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  		list_add_tail(&asd->list, &notifier->waiting);
->  	}
->  
-> -	mutex_lock(&list_lock);
-> +	if (subnotifier)
-> +		lockdep_assert_held(&list_lock);
-> +	else
-> +		mutex_lock(&list_lock);
-> +
-> +	/*
-> +	 * This function can be called recursively so the list
-> +	 * might be modified in a recursive call. Start from the
-> +	 * top of the list each iteration.
-> +	 */
-> +	found = true;
-> +	while (found) {
+> >> The USERPTR mode is more dubious. Has this been tested? Can the DMA handle partially
+> >> filled pages? (I.e. there must be no requirements such as that the DMA has to start
+> >> at a page boundary, since that's not the case with USERPTR).
+> > 
+> > I rememeber this has been discussed before. :-)
+> > 
+> > Most hardware has some limitations on the granularity of the buffer start
+> > address, and the drivers still support USERPTR memory. In practice the C
+> > library allocated memory is always page aligned if the size is large enough,
+> > which is in practice the case for video buffers.
+> 
+> That was not true the last time I checked. I can't remember what the exact
+> alignment was, although I do remember that it was different for 32 and 64 bit.
 
-That looks a bit cumbersome. You can do:
+Hmm. This just shows how little I really know about user space. :-I
 
-do {
-	found = false;
-	...;
-} while (found);
+I just tested this to see how it really works out, and there doesn't seem to
+be much alignment at all. I believe my earlier recollection was likely
+related to a non-GNU C library (huh!).
 
-And remove the assignment above. Or even
+> 
+> I am also pretty sure it was less than 64 bytes. It's been 2 years ago since
+> I last looked at this, though.
 
-for (found = true; found; found = false) {
-	...;
+As in here:
+
+00:26:02 lanttu sailus [~]cat /tmp/foo.c
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+void main() {
+	unsigned int i;
+
+	for (i=0; i < 16; i++)
+		printf("%x\n",malloc(1024*768*i));
 }
+00:26:03 lanttu sailus [~]gcc -o /tmp/foo /tmp/foo.c
+00:26:06 lanttu sailus [~]/tmp/foo
+8604008
+f7525008
+f73a4008
+f7163008
+f6e62008
+f6aa1008
+f6620008
+f60df008
+f5ade008
+f541d008
+f4c9c008
+f445b008
+f3b5a008
+f3199008
+f2718008
+f1bd7008
 
-> +		found = false;
->  
-> -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> -		int ret;
-> +		list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> +			int ret;
->  
-> -		asd = v4l2_async_belongs(notifier, sd);
-> -		if (!asd)
-> -			continue;
-> +			asd = v4l2_async_belongs(notifier, sd);
-> +			if (!asd)
-> +				continue;
->  
-> -		ret = v4l2_async_test_notify(notifier, sd, asd);
-> -		if (ret < 0) {
-> -			mutex_unlock(&list_lock);
-> -			return ret;
-> +			ret = v4l2_async_test_notify(notifier, sd, asd);
-> +			if (ret < 0) {
-> +				if (!subnotifier)
-> +					mutex_unlock(&list_lock);
-> +				return ret;
-> +			}
-> +
-> +			found = true;
-
-Alternatively you could use goto and a label to restart the matching. That
-would be quite clean, you'd remove one variable which is just serving as a
-condition to restart the loop:
-
-again:
-	list_for_each_entry_safe() {
-		ret = test_notify();
-		if (ret < 0)
-			return ret;
-		goto again;
-	}
-
-I think I like this better. This considered,
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-> +			break;
->  		}
->  	}
->  
->  	/* Keep also completed notifiers on the list */
->  	list_add(&notifier->list, &notifier_list);
->  
-> -	mutex_unlock(&list_lock);
-> +	if (!subnotifier)
-> +		mutex_unlock(&list_lock);
->  
->  	return 0;
->  }
-> +
-> +int v4l2_async_subnotifier_register(struct v4l2_subdev *sd,
-> +				    struct v4l2_async_notifier *notifier)
-> +{
-> +	return v4l2_async_do_notifier_register(sd->v4l2_dev, notifier, true);
-> +}
-> +EXPORT_SYMBOL(v4l2_async_subnotifier_register);
-> +
-> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> +				 struct v4l2_async_notifier *notifier)
-> +{
-> +	return v4l2_async_do_notifier_register(v4l2_dev, notifier, false);
-> +}
->  EXPORT_SYMBOL(v4l2_async_notifier_register);
->  
-> -void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> +static void
-> +v4l2_async_do_notifier_unregister(struct v4l2_async_notifier *notifier,
-> +				  bool subnotifier)
->  {
->  	struct v4l2_subdev *sd, *tmp;
->  	unsigned int notif_n_subdev = notifier->num_subdevs;
-> @@ -216,7 +251,10 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  			"Failed to allocate device cache!\n");
->  	}
->  
-> -	mutex_lock(&list_lock);
-> +	if (subnotifier)
-> +		lockdep_assert_held(&list_lock);
-> +	else
-> +		mutex_lock(&list_lock);
->  
->  	list_del(&notifier->list);
->  
-> @@ -243,15 +281,20 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  			put_device(d);
->  	}
->  
-> -	mutex_unlock(&list_lock);
-> +	if (!subnotifier)
-> +		mutex_unlock(&list_lock);
->  
->  	/*
->  	 * Call device_attach() to reprobe devices
->  	 *
->  	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
->  	 * executed.
-> +	 * TODO: If we are unregistering a subdevice notifier we can't reprobe
-> +	 * since the lock_list is held by the master device and attaching that
-> +	 * device would call v4l2_async_register_subdev() and end in a deadlock
-> +	 * on list_lock.
->  	 */
-> -	while (i--) {
-> +	while (i-- && !subnotifier) {
->  		struct device *d = dev[i];
->  
->  		if (d && device_attach(d) < 0) {
-> @@ -275,6 +318,17 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  	 * upon notifier registration.
->  	 */
->  }
-> +
-> +void v4l2_async_subnotifier_unregister(struct v4l2_async_notifier *notifier)
-> +{
-> +	v4l2_async_do_notifier_unregister(notifier, true);
-> +}
-> +EXPORT_SYMBOL(v4l2_async_subnotifier_unregister);
-> +
-> +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> +{
-> +	v4l2_async_do_notifier_unregister(notifier, false);
-> +}
->  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
->  
->  int v4l2_async_register_subdev(struct v4l2_subdev *sd)
-> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> index c69d8c8a66d0093a..7d55a5b0adc86580 100644
-> --- a/include/media/v4l2-async.h
-> +++ b/include/media/v4l2-async.h
-> @@ -105,6 +105,18 @@ struct v4l2_async_notifier {
->  };
->  
->  /**
-> + * v4l2_async_notifier_register - registers a subdevice asynchronous subnotifier
-> + *
-> + * @sd: pointer to &struct v4l2_subdev
-> + * @notifier: pointer to &struct v4l2_async_notifier
-> + *
-> + * This function assumes the async list_lock is already locked, allowing
-> + * it to be used from struct v4l2_subdev_internal_ops registered() callback.
-> + */
-> +int v4l2_async_subnotifier_register(struct v4l2_subdev *sd,
-> +				    struct v4l2_async_notifier *notifier);
-> +
-> +/**
->   * v4l2_async_notifier_register - registers a subdevice asynchronous notifier
->   *
->   * @v4l2_dev: pointer to &struct v4l2_device
-> @@ -114,6 +126,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  				 struct v4l2_async_notifier *notifier);
->  
->  /**
-> + * v4l2_async_subnotifier_unregister - unregisters a asynchronous subnotifier
-> + *
-> + * @notifier: pointer to &struct v4l2_async_notifier
-> + *
-> + * This function assumes the async list_lock is already locked, allowing
-> + * it to be used from struct v4l2_subdev_internal_ops unregistered() callback.
-> + */
-> +void v4l2_async_subnotifier_unregister(struct v4l2_async_notifier *notifier);
-> +
-> +/**
->   * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
->   *
->   * @notifier: pointer to &struct v4l2_async_notifier
+So posix_memalign() (or memalign()) is needed to allocate page aligned
+memory. At least on GNU libc.
 
 -- 
-Kind regards,
+Regards,
 
 Sakari Ailus
 e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
