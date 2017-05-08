@@ -1,213 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:55004 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1162851AbdEYP4n (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 May 2017 11:56:43 -0400
-Subject: Re: [RFC PATCH 0/7] drm/i915: add support for DisplayPort
- CEC-Tunneling-over-AUX
-To: Mike Lothian <mike@fireburn.co.uk>, linux-media@vger.kernel.org
-Cc: Jani Nikula <jani.nikula@intel.com>,
-        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org
-References: <20170525150626.29748-1-hverkuil@xs4all.nl>
- <CAHbf0-E1nZzD7Sikf3YrNtjQTWbvP8FGaO2-pqgDJ6fRwpZwbA@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2076b411-88f1-eabe-5344-dc2eae9879f7@xs4all.nl>
-Date: Thu, 25 May 2017 17:56:38 +0200
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:32789 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754846AbdEHRNa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 May 2017 13:13:30 -0400
+Date: Mon, 8 May 2017 12:13:27 -0500
+From: Rob Herring <robh@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sebastian.reichel@collabora.co.uk
+Subject: Re: [RFC v2 1/3] dt: bindings: Add a binding for flash devices
+ associated to a sensor
+Message-ID: <20170508171327.ow7p33566gt3lenp@rob-hp-laptop>
+References: <1493974110-26510-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1493974110-26510-2-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAHbf0-E1nZzD7Sikf3YrNtjQTWbvP8FGaO2-pqgDJ6fRwpZwbA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1493974110-26510-2-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/25/2017 05:30 PM, Mike Lothian wrote:
-> Hi
+On Fri, May 05, 2017 at 11:48:28AM +0300, Sakari Ailus wrote:
+> Camera flash drivers (and LEDs) are separate from the sensor devices in
+> DT. In order to make an association between the two, provide the
+> association information to the software.
 > 
-> Sorry if this is off topic, I've got a Skylake Dell laptop with a USB-C connector and no displayport 
-> 
-> Which USB-C -> HDMI-2.0 connector do you recommend for stuff just working based on your testing?
-> 
-> I've been putting off buying one until I knew 4K@60Hz would work, CEC would be nice to have too
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
+> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> ---
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
 
-We have done a lot of testing of USB-C to HDMI adapters and many are awful.
-Admittedly, we have a special requirement that the adapter shouldn't enable HDCP if
-the sink doesn't support HDCP. For whatever reason many of these adapters enable HDCP
-regardless, making them useless for video conferencing where you are not allowed to
-share HDCP encrypted video. Besides that issue many also have bad signal integrity
-or the voltage of the 5V pin is below the allowed minimum voltage.
-
-The best is the Club 3D CAC-1504, but that is one that doesn't hook up the
-CEC pin :-( That's a shame since this one was fully within the HDMI specifications.
-
-If you want CEC, then the Samsung EE-PW700 is best.
-
-BTW, the Kramer adapter I mentioned below is indeed the ADC-U31C/HF model.
-
-There are some more adapters that I can test next week, and I'll see if I can also
-test a bunch of (mini-)DP to HDMI adapters.
-
-Regards,
-
-	Hans
+Acked-by: Rob Herring <robh@kernel.org>
 
 > 
-> Thanks
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index 9cd2a36..dac764b 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -67,6 +67,17 @@ are required in a relevant parent node:
+>  		    identifier, should be 1.
+>   - #size-cells    : should be zero.
+>  
+> +
+> +Optional properties
+> +-------------------
+> +
+> +- flash: An array of phandles that refer to the flash light sources
+> +  related to an image sensor. These could be e.g. LEDs. In case the LED
+> +  driver (current sink or source chip for the LED(s)) drives more than a
+> +  single LED, then the phandles here refer to the child nodes of the LED
+> +  driver describing individual LEDs.
+> +
+> +
+>  Optional endpoint properties
+>  ----------------------------
+>  
+> -- 
+> 2.7.4
 > 
-> Mike
-> 
-> On Thu, 25 May 2017 at 16:06 Hans Verkuil <hverkuil@xs4all.nl <mailto:hverkuil@xs4all.nl>> wrote:
-> 
->     From: Hans Verkuil <hans.verkuil@cisco.com <mailto:hans.verkuil@cisco.com>>
-> 
->     This patch series adds support for the DisplayPort CEC-Tunneling-over-AUX
->     protocol.
-> 
->     This patch series is based on v4.12-rc2.
-> 
->     The first four patches add support for a new CEC capability which is
->     needed for these devices and for two helper functions.
-> 
->     Then the DP CEC registers are added using Clint's patch.
-> 
->     The core CEC tunneling support is added to drm_dp_cec.c.
-> 
->     And finally this is hooked up in the i915 driver.
-> 
->     Ideally the cec driver is created and destroyed whenever the DP-to-HDMI
->     adapter is connected/disconnected, but I have not been a able to find
->     a way to distinguish between connecting/disconnecting the HDMI cable
->     and connecting/disconnecting the actual DP-to-HDMI adapter.
-> 
->     My current approach is to check the CEC tunneling support whenever a new
->     display is connected:
-> 
->     - if CEC tunneling is supported, but no CEC adapter exists, then create one.
->     - if CEC tunneling is not supported, then unregister the CEC adapter if one
->       was created earlier.
->     - if CEC tunneling is supported and the capabilities are identical to the
->       existing CEC adapter, then leave it be.
->     - if CEC tunneling is supported and the capabilities are different to the
->       existing CEC adapter, then unregister that CEC adapter and register a
->       new one.
-> 
->     This works well, but it would be much nicer if I would just know when the
->     DP adapter is disconnected as opposed to when the HDMI cable is disconnected
->     from the adapter. Suggestions are welcome.
-> 
->     The other remaining problem is that there are DP/USB-C to HDMI adapters that
->     support CEC tunneling in the chipset, but where the CEC pin is simply never
->     hooked up. From the point of view of the driver CEC is supported, but you'll
->     never see any other devices.
-> 
->     I am considering sending a CEC POLL message to logical address 0 (the TV)
->     to detect if the CEC pin is connected, but this is not 100% guaranteed to
->     work. This can be put under a kernel config option, though.
-> 
->     I think I need to do something for this since of the 5 USB-C to HDMI
->     adapters I've tested that set the CEC tunneling capability, only 2 have
->     the CEC pin hooked up. So this seems to be quite common.
-> 
->     I have tested this with my Intel NUC7i5BNK and with the two working
->     USB-C to HDMI adapters that I have found:
-> 
->     a Samsung EE-PW700 adapter and a Kramer ADC-U31C/HF adapter (I think that's
->     the model, I need to confirm this).
-> 
->     As usual the specifications of these adapters never, ever tell you whether
->     this is supported or not :-( It's trial and error to find one that works. In
->     fact, of the 10 USB-C to HDMI adapters I tested 5 didn't support CEC tunneling
->     at all, and of the remaining 5 only two had the CEC pin hooked up and so
->     actually worked.
-> 
->     BTW, all adapters that supported CEC tunneling used the Parade PS176 chip.
-> 
->     Output of cec-ctl -S (discovers the CEC topology):
-> 
->     $ cec-ctl -S
->     Driver Info:
->             Driver Name                : i915
->             Adapter Name               : DPDDC-C
->             Capabilities               : 0x0000007e
->                     Logical Addresses
->                     Transmit
->                     Passthrough
->                     Remote Control Support
->                     Monitor All
->             Driver version             : 4.12.0
->             Available Logical Addresses: 4
->             Physical Address           : 3.0.0.0
->             Logical Address Mask       : 0x0010
->             CEC Version                : 2.0
->             Vendor ID                  : 0x000c03 (HDMI)
->             OSD Name                   : 'Playback'
->             Logical Addresses          : 1 (Allow RC Passthrough)
-> 
->               Logical Address          : 4 (Playback Device 1)
->                 Primary Device Type    : Playback
->                 Logical Address Type   : Playback
->                 All Device Types       : Playback
->                 RC TV Profile          : None
->                 Device Features        :
->                     None
-> 
->             System Information for device 0 (TV) from device 4 (Playback Device 1):
->                     CEC Version                : 1.4
->                     Physical Address           : 0.0.0.0
->                     Primary Device Type        : TV
->                     Vendor ID                  : 0x0000f0 (Samsung)
->                     OSD Name                   : TV
->                     Menu Language              : eng
->                     Power Status               : On
-> 
->             Topology:
-> 
->             0.0.0.0 <http://0.0.0.0>: TV
->                 3.0.0.0 <http://3.0.0.0>: Playback Device 1
-> 
->     Regards,
-> 
->             Hans
-> 
->     Clint Taylor (1):
->       drm/cec: Add CEC over Aux register definitions
-> 
->     Hans Verkuil (6):
->       cec: add CEC_CAP_NEEDS_HPD
->       cec-ioc-adap-g-caps.rst: document CEC_CAP_NEEDS_HPD
->       cec: add cec_s_phys_addr_from_edid helper function
->       cec: add cec_phys_addr_invalidate() helper function
->       drm: add support for DisplayPort CEC-Tunneling-over-AUX
->       drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
-> 
->      .../media/uapi/cec/cec-ioc-adap-g-caps.rst         |   8 +
->      drivers/gpu/drm/Kconfig                            |   3 +
->      drivers/gpu/drm/Makefile                           |   1 +
->      drivers/gpu/drm/drm_dp_cec.c                       | 196 +++++++++++++++++++++
->      drivers/gpu/drm/i915/Kconfig                       |  11 ++
->      drivers/gpu/drm/i915/intel_dp.c                    |  46 ++++-
->      drivers/media/cec/cec-adap.c                       |  34 +++-
->      drivers/media/cec/cec-api.c                        |   5 +-
->      drivers/media/cec/cec-core.c                       |   1 +
->      include/drm/drm_dp_helper.h                        |  83 +++++++++
->      include/media/cec.h                                |  15 ++
->      include/uapi/linux/cec.h                           |   2 +
->      12 files changed, 394 insertions(+), 11 deletions(-)
->      create mode 100644 drivers/gpu/drm/drm_dp_cec.c
-> 
->     --
->     2.11.0
-> 
->     _______________________________________________
->     dri-devel mailing list
->     dri-devel@lists.freedesktop.org <mailto:dri-devel@lists.freedesktop.org>
->     https://lists.freedesktop.org/mailman/listinfo/dri-devel
-> 
-> 
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
-> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
