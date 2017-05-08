@@ -1,234 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:38196 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1756906AbdEUUKA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 May 2017 16:10:00 -0400
-From: Takashi Iwai <tiwai@suse.de>
-To: alsa-devel@alsa-project.org
-Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-        Mark Brown <broonie@kernel.org>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 05/16] ALSA: korg1212: Convert to copy_silence ops
-Date: Sun, 21 May 2017 22:09:39 +0200
-Message-Id: <20170521200950.4592-6-tiwai@suse.de>
-In-Reply-To: <20170521200950.4592-1-tiwai@suse.de>
-References: <20170521200950.4592-1-tiwai@suse.de>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51208 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750786AbdEHSb5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 May 2017 14:31:57 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH 3/4] v4l: vsp1: Calculate partition sizes at stream start.
+References: <1478283570-19688-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+ <1478283570-19688-4-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+ <3804080.QOE9vPlxB7@avalon>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <2a02b7da-e27f-cc90-676c-f522c74715c4@ideasonboard.com>
+Date: Mon, 8 May 2017 19:31:52 +0100
+MIME-Version: 1.0
+In-Reply-To: <3804080.QOE9vPlxB7@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the copy and the silence ops with the new merged ops.
-The redundant function calls are reduced and the copy/silence are
-handled directly in callback functions now.
+Hi Laurent,
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
----
- sound/pci/korg1212/korg1212.c | 128 ++++++++++++------------------------------
- 1 file changed, 36 insertions(+), 92 deletions(-)
+Thanks for the review,
 
-diff --git a/sound/pci/korg1212/korg1212.c b/sound/pci/korg1212/korg1212.c
-index 1e25095fd144..865ff553dc87 100644
---- a/sound/pci/korg1212/korg1212.c
-+++ b/sound/pci/korg1212/korg1212.c
-@@ -1273,43 +1273,24 @@ static struct snd_pcm_hardware snd_korg1212_capture_info =
-         .fifo_size =          0,
- };
- 
--static int snd_korg1212_silence(struct snd_korg1212 *korg1212, int pos, int count, int offset, int size)
--{
--	struct KorgAudioFrame * dst =  korg1212->playDataBufsPtr[0].bufferData + pos;
--	int i;
--
--	K1212_DEBUG_PRINTK_VERBOSE("K1212_DEBUG: snd_korg1212_silence pos=%d offset=%d size=%d count=%d\n",
--				   pos, offset, size, count);
--	if (snd_BUG_ON(pos + count > K1212_MAX_SAMPLES))
--		return -EINVAL;
--
--	for (i=0; i < count; i++) {
--#if K1212_DEBUG_LEVEL > 0
--		if ( (void *) dst < (void *) korg1212->playDataBufsPtr ||
--		     (void *) dst > (void *) korg1212->playDataBufsPtr[8].bufferData ) {
--			printk(KERN_DEBUG "K1212_DEBUG: snd_korg1212_silence KERNEL EFAULT dst=%p iter=%d\n",
--			       dst, i);
--			return -EFAULT;
--		}
--#endif
--		memset((void*) dst + offset, 0, size);
--		dst++;
--	}
--
--	return 0;
--}
--
--static int snd_korg1212_copy_to(struct snd_korg1212 *korg1212, void __user *dst, int pos, int count, int offset, int size)
-+static int snd_korg1212_capture_copy(struct snd_pcm_substream *substream,
-+				     int channel,
-+				     snd_pcm_uframes_t pos,
-+				     void __user *dst,
-+				     snd_pcm_uframes_t count,
-+				     bool in_kernel)
- {
-+	struct snd_korg1212 *korg1212 = snd_pcm_substream_chip(substream);
- 	struct KorgAudioFrame * src =  korg1212->recordDataBufsPtr[0].bufferData + pos;
--	int i, rc;
-+	int size, i;
- 
--	K1212_DEBUG_PRINTK_VERBOSE("K1212_DEBUG: snd_korg1212_copy_to pos=%d offset=%d size=%d\n",
--				   pos, offset, size);
-+	size = korg1212->channels * 2;
-+	K1212_DEBUG_PRINTK_VERBOSE("K1212_DEBUG: snd_korg1212_copy_to pos=%ld size=%d\n",
-+				   pos, size);
- 	if (snd_BUG_ON(pos + count > K1212_MAX_SAMPLES))
- 		return -EINVAL;
- 
--	for (i=0; i < count; i++) {
-+	for (i = 0; i < count; i++) {
- #if K1212_DEBUG_LEVEL > 0
- 		if ( (void *) src < (void *) korg1212->recordDataBufsPtr ||
- 		     (void *) src > (void *) korg1212->recordDataBufsPtr[8].bufferData ) {
-@@ -1317,11 +1298,10 @@ static int snd_korg1212_copy_to(struct snd_korg1212 *korg1212, void __user *dst,
- 			return -EFAULT;
- 		}
- #endif
--		rc = copy_to_user(dst + offset, src, size);
--		if (rc) {
--			K1212_DEBUG_PRINTK("K1212_DEBUG: snd_korg1212_copy_to USER EFAULT src=%p dst=%p iter=%d\n", src, dst, i);
-+		if (in_kernel)
-+			memcpy((char *)dst, src, size);
-+		else if (copy_to_user(dst, src, size))
- 			return -EFAULT;
--		}
- 		src++;
- 		dst += size;
- 	}
-@@ -1329,18 +1309,25 @@ static int snd_korg1212_copy_to(struct snd_korg1212 *korg1212, void __user *dst,
- 	return 0;
- }
- 
--static int snd_korg1212_copy_from(struct snd_korg1212 *korg1212, void __user *src, int pos, int count, int offset, int size)
-+static int snd_korg1212_playback_copy(struct snd_pcm_substream *substream,
-+				      int channel,
-+				      snd_pcm_uframes_t pos,
-+				      void __user *src,
-+				      snd_pcm_uframes_t count,
-+				      bool in_kernel)
- {
-+	struct snd_korg1212 *korg1212 = snd_pcm_substream_chip(substream);
- 	struct KorgAudioFrame * dst =  korg1212->playDataBufsPtr[0].bufferData + pos;
--	int i, rc;
-+	int size, i;
- 
--	K1212_DEBUG_PRINTK_VERBOSE("K1212_DEBUG: snd_korg1212_copy_from pos=%d offset=%d size=%d count=%d\n",
--				   pos, offset, size, count);
-+	size = korg1212->channels * 2;
-+	K1212_DEBUG_PRINTK_VERBOSE("K1212_DEBUG: snd_korg1212_copy_from pos=%ld size=%d count=%ld\n",
-+				   pos, size, count);
- 
- 	if (snd_BUG_ON(pos + count > K1212_MAX_SAMPLES))
- 		return -EINVAL;
- 
--	for (i=0; i < count; i++) {
-+	for (i = 0; i < count; i++) {
- #if K1212_DEBUG_LEVEL > 0
- 		if ( (void *) dst < (void *) korg1212->playDataBufsPtr ||
- 		     (void *) dst > (void *) korg1212->playDataBufsPtr[8].bufferData ) {
-@@ -1348,13 +1335,15 @@ static int snd_korg1212_copy_from(struct snd_korg1212 *korg1212, void __user *sr
- 			return -EFAULT;
- 		}
- #endif
--		rc = copy_from_user((void*) dst + offset, src, size);
--		if (rc) {
--			K1212_DEBUG_PRINTK("K1212_DEBUG: snd_korg1212_copy_from USER EFAULT src=%p dst=%p iter=%d\n", src, dst, i);
-+		if (!src)
-+			memset((void *)dst, 0, size);
-+		else if (in_kernel)
-+			memcpy((void *)dst, src, size);
-+		else if (copy_from_user((void *)dst, src, size))
- 			return -EFAULT;
--		}
- 		dst++;
--		src += size;
-+		if (src)
-+			src += size;
- 	}
- 
- 	return 0;
-@@ -1437,8 +1426,6 @@ static int snd_korg1212_playback_close(struct snd_pcm_substream *substream)
- 	K1212_DEBUG_PRINTK("K1212_DEBUG: snd_korg1212_playback_close [%s]\n",
- 			   stateName[korg1212->cardState]);
- 
--	snd_korg1212_silence(korg1212, 0, K1212_MAX_SAMPLES, 0, korg1212->channels * 2);
--
-         spin_lock_irqsave(&korg1212->lock, flags);
- 
- 	korg1212->playback_pid = -1;
-@@ -1639,48 +1626,6 @@ static snd_pcm_uframes_t snd_korg1212_capture_pointer(struct snd_pcm_substream *
-         return pos;
- }
- 
--static int snd_korg1212_playback_copy(struct snd_pcm_substream *substream,
--                        int channel, /* not used (interleaved data) */
--                        snd_pcm_uframes_t pos,
--                        void __user *src,
--                        snd_pcm_uframes_t count)
--{
--        struct snd_korg1212 *korg1212 = snd_pcm_substream_chip(substream);
--
--	K1212_DEBUG_PRINTK_VERBOSE("K1212_DEBUG: snd_korg1212_playback_copy [%s] %ld %ld\n",
--				   stateName[korg1212->cardState], pos, count);
-- 
--	return snd_korg1212_copy_from(korg1212, src, pos, count, 0, korg1212->channels * 2);
--
--}
--
--static int snd_korg1212_playback_silence(struct snd_pcm_substream *substream,
--                           int channel, /* not used (interleaved data) */
--                           snd_pcm_uframes_t pos,
--                           snd_pcm_uframes_t count)
--{
--        struct snd_korg1212 *korg1212 = snd_pcm_substream_chip(substream);
--
--	K1212_DEBUG_PRINTK_VERBOSE("K1212_DEBUG: snd_korg1212_playback_silence [%s]\n",
--				   stateName[korg1212->cardState]);
--
--	return snd_korg1212_silence(korg1212, pos, count, 0, korg1212->channels * 2);
--}
--
--static int snd_korg1212_capture_copy(struct snd_pcm_substream *substream,
--                        int channel, /* not used (interleaved data) */
--                        snd_pcm_uframes_t pos,
--                        void __user *dst,
--                        snd_pcm_uframes_t count)
--{
--        struct snd_korg1212 *korg1212 = snd_pcm_substream_chip(substream);
--
--	K1212_DEBUG_PRINTK_VERBOSE("K1212_DEBUG: snd_korg1212_capture_copy [%s] %ld %ld\n",
--				   stateName[korg1212->cardState], pos, count);
--
--	return snd_korg1212_copy_to(korg1212, dst, pos, count, 0, korg1212->channels * 2);
--}
--
- static const struct snd_pcm_ops snd_korg1212_playback_ops = {
-         .open =		snd_korg1212_playback_open,
-         .close =	snd_korg1212_playback_close,
-@@ -1689,8 +1634,7 @@ static const struct snd_pcm_ops snd_korg1212_playback_ops = {
-         .prepare =	snd_korg1212_prepare,
-         .trigger =	snd_korg1212_trigger,
-         .pointer =	snd_korg1212_playback_pointer,
--        .copy =		snd_korg1212_playback_copy,
--        .silence =	snd_korg1212_playback_silence,
-+	.copy_silence =	snd_korg1212_playback_copy,
- };
- 
- static const struct snd_pcm_ops snd_korg1212_capture_ops = {
-@@ -1701,7 +1645,7 @@ static const struct snd_pcm_ops snd_korg1212_capture_ops = {
- 	.prepare =	snd_korg1212_prepare,
- 	.trigger =	snd_korg1212_trigger,
- 	.pointer =	snd_korg1212_capture_pointer,
--	.copy =		snd_korg1212_capture_copy,
-+	.copy_silence =	snd_korg1212_capture_copy,
- };
- 
- /*
--- 
-2.13.0
+V2 to be posted after testing.
+
+On 13/02/17 21:21, Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> Thank you for the patch.
+> 
+> On Friday 04 Nov 2016 18:19:29 Kieran Bingham wrote:
+>> Previously the active window and partition sizes for each partition is
+> 
+> s/is/were/
+
+Fixed.
+
+> 
+>> calculated for each partition every frame. This data is constant and
+>> only needs to be calculated once at the start of the stream.
+>>
+>> Extend the vsp1_pipe object to store the maximum number of partitions
+>> possible and pre-calculate the partition sizes into this table.
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>> ---
+>>  drivers/media/platform/vsp1/vsp1_pipe.h  | 6 ++++++
+>>  drivers/media/platform/vsp1/vsp1_video.c | 8 ++++++--
+>>  2 files changed, 12 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h
+>> b/drivers/media/platform/vsp1/vsp1_pipe.h index f181949824c9..3af96c4ea244
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
+>> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+>> @@ -20,6 +20,9 @@
+>>
+>>  #include <media/media-entity.h>
+>>
+>> +/* Max Video Width / Min Partition Size = 8190/128 */
+>> +#define VSP1_PIPE_MAX_PARTITIONS 64
+>> +
+
+^ This define is removed with dynamic allocations.
+
+>>  struct vsp1_dl_list;
+>>  struct vsp1_rwpf;
+>>
+>> @@ -81,7 +84,9 @@ enum vsp1_pipeline_state {
+>>   * @dl: display list associated with the pipeline
+>>   * @div_size: The maximum allowed partition size for the pipeline
+>>   * @partitions: The number of partitions used to process one frame
+>> + * @partition: The current partition for configuration to process
+>>   * @current_partition: The partition number currently being configured
+>> + * @part_table: The pre-calculated partitions used by the pipeline
+>>   */
+>>  struct vsp1_pipeline {
+>>  	struct media_pipeline pipe;
+>> @@ -116,6 +121,7 @@ struct vsp1_pipeline {
+>>  	unsigned int partitions;
+>>  	struct v4l2_rect partition;
+>>  	unsigned int current_partition;
+>> +	struct v4l2_rect part_table[VSP1_PIPE_MAX_PARTITIONS];
+> 
+> That's an extra 1kB or kmalloc'ed data. I'd prefer allocating it dynamically 
+> as needed.
+
+Ok, allocating with kcalloc in vsp1_video_pipeline_setup_partitions() (The
+earliest opportunity to know how many partitions are needed)
+
+Free'd in vsp1_video_stop_streaming()
+
+>>  };
+>>
+>>  void vsp1_pipeline_reset(struct vsp1_pipeline *pipe);
+>> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+>> b/drivers/media/platform/vsp1/vsp1_video.c index 6d43c02bbc56..c4a8c30df108
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_video.c
+>> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+>> @@ -255,6 +255,7 @@ static void vsp1_video_pipeline_setup_partitions(struct
+>> vsp1_pipeline *pipe) const struct v4l2_mbus_framefmt *format;
+>>  	struct vsp1_entity *entity;
+>>  	unsigned int div_size;
+>> +	int i;
+> 
+> i can never be negative, you can make it an unsigned int.
+
+Fixed.
+
+> Apart from that,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Thanks, I'll tentatively add this tag, but please check you are happy with the
+dynamic allocation on the repost v2 :-) !
+
+> 
+>>  	/*
+>>  	 * Partitions are computed on the size before rotation, use the format
+>> @@ -269,6 +270,7 @@ static void vsp1_video_pipeline_setup_partitions(struct
+>> vsp1_pipeline *pipe) if (vsp1->info->gen == 2) {
+>>  		pipe->div_size = div_size;
+>>  		pipe->partitions = 1;
+>> +		pipe->part_table[0] = vsp1_video_partition(pipe, div_size, 0);
+>>  		return;
+>>  	}
+>>
+>> @@ -284,6 +286,9 @@ static void vsp1_video_pipeline_setup_partitions(struct
+>> vsp1_pipeline *pipe)
+>>
+>>  	pipe->div_size = div_size;
+>>  	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
+>> +
+>> +	for (i = 0; i < pipe->partitions; i++)
+>> +		pipe->part_table[i] = vsp1_video_partition(pipe, div_size, i);
+>>  }
+>>
+>>  /* ------------------------------------------------------------------------
+>> @@ -355,8 +360,7 @@ static void vsp1_video_pipeline_run_partition(struct
+>> vsp1_pipeline *pipe, {
+>>  	struct vsp1_entity *entity;
+>>
+>> -	pipe->partition = vsp1_video_partition(pipe, pipe->div_size,
+>> -					       pipe->current_partition);
+>> +	pipe->partition = pipe->part_table[pipe->current_partition];
+>>
+>>  	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+>>  		if (entity->ops->configure)
+> 
