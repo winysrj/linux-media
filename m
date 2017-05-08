@@ -1,176 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33186 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751296AbdESOl5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 May 2017 10:41:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: kieran.bingham@ideasonboard.com
-Cc: Kieran Bingham <kbingham@kernel.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@iki.fi, niklas.soderlund@ragnatech.se,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Adam Thomson <Adam.Thomson.Opensource@diasemi.com>,
-        John Youn <johnyoun@synopsys.com>,
-        open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v1 2/3] device property: Add fwnode_graph_get_port_parent
-Date: Fri, 19 May 2017 17:42:07 +0300
-Message-ID: <11266116.VtDrNngWRY@avalon>
-In-Reply-To: <1d82a0b2-61e7-656c-7df5-17fcb599aa76@ideasonboard.com>
-References: <cover.6800d0e1b9b578b82f68dec1b99b3a601d6e54ca.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com> <2150794.GUKVLPLrWM@avalon> <1d82a0b2-61e7-656c-7df5-17fcb599aa76@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mga11.intel.com ([192.55.52.93]:62269 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755087AbdEHPEd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 May 2017 11:04:33 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
+        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
+        daniel.vetter@ffwll.ch, labbott@redhat.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v4 10/18] vb2: dma-contig: Fix DMA attribute and cache management
+Date: Mon,  8 May 2017 18:03:22 +0300
+Message-Id: <1494255810-12672-11-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Patch ccc66e73 ("ARM: 8508/2: videobuf2-dc: Let drivers specify DMA
+attrs") added support for driver specific DMA attributes to
+videobuf2-dma-contig but it had several issues in it.
 
-On Friday 19 May 2017 14:34:33 Kieran Bingham wrote:
-> On 18/05/17 14:36, Laurent Pinchart wrote:
-> > On Wednesday 17 May 2017 16:03:38 Kieran Bingham wrote:
-> >> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> >> 
-> >> V4L2 async notifiers can pass the endpoint fwnode rather than the device
-> >> fwnode.
-> > 
-> > I'm not sure I would mention V4L2 in the commit message, as this is
-> > generic.
->
-> Good point
-> 
-> >> Provide a helper to obtain the parent device fwnode without first
-> >> parsing the remote-endpoint as per fwnode_graph_get_remote_port_parent.
-> >> 
-> >> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> >> ---
-> >> 
-> >>  drivers/base/property.c  | 25 +++++++++++++++++++++++++
-> >>  include/linux/property.h |  2 ++
-> >>  2 files changed, 27 insertions(+)
-> >> 
-> >> diff --git a/drivers/base/property.c b/drivers/base/property.c
-> >> index 627ebc9b570d..caf4316fe565 100644
-> >> --- a/drivers/base/property.c
-> >> +++ b/drivers/base/property.c
-> >> @@ -1245,6 +1245,31 @@ fwnode_graph_get_next_endpoint(struct
-> >> fwnode_handle
-> >> *fwnode, EXPORT_SYMBOL_GPL(fwnode_graph_get_next_endpoint);
-> >> 
-> >>  /**
-> >> 
-> >> + * fwnode_graph_get_port_parent - Return device node of a port endpoint
-> >> + * @fwnode: Endpoint firmware node pointing of the port
-> >> + *
-> >> + * Extracts firmware node of the device the @fwnode belongs to.
-> > 
-> > I'm not too familiar with the fwnode API, but I know it's written in C,
-> > where functions don't extract something but return a value :-) How about
-> > 
-> > Return: the firmware node of the device the @endpoint belongs to.
-> 
-> I'm not averse to the reword - but it is different to the other functions in
-> the same context:
-> 
-> fwnode_graph_get_remote_endpoint(struct fwnode_handle *fwnode)
->  * Extracts firmware node of a remote endpoint the @fwnode points to.
-> 
-> struct fwnode_handle *fwnode_graph_get_remote_port(struct fwnode_handle
-> *fwnode)
->  * Extracts firmware node of a remote port the @fwnode points to.
-> 
-> fwnode_graph_get_remote_port_parent(struct fwnode_handle *fwnode)
->  * Extracts firmware node of a remote device the @fwnode points to.
-> 
-> Then with this function becoming:
-> 
-> fwnode_graph_get_port_parent(struct fwnode_handle *endpoint)
->  * Returns firmware node of the device the @endpoint belongs to.
-> 
-> 
-> I guess those could be changed too ...
+In particular,
 
-My point is that the kerneldoc format documents return values with a "Return:" 
-tag. The documentation for the function can still provide extra information.
+- cache operations were only performed on USERPTR buffers,
 
-> >> + */
-> >> +struct fwnode_handle *
-> >> +fwnode_graph_get_port_parent(struct fwnode_handle *fwnode)
-> > 
-> > This is akin to writing (unsigned int integer)
-> 
-> Yes, good point there - I was thinking of the fwnode as an object itself,
-> but really it's representing the endpoint, and the fwnode is the class type
-> :)
->
-> > How about calling the variable endpoint ? That would also make the
-> > documentation clearer in my opinion, with "the @fwnode belongs to"
-> > replaced with "the @endpoint belongs to".
-> 
-> Agreed
-> 
-> >> +{
-> >> +	struct fwnode_handle *parent = NULL;
-> >> +
-> >> +	if (is_of_node(fwnode)) {
-> >> +		struct device_node *node;
-> >> +
-> >> +		node = of_graph_get_port_parent(to_of_node(fwnode));
-> >> +		if (node)
-> >> +			parent = &node->fwnode;
-> > 
-> > This part looks good to me, with the above small change,
-> > 
-> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Thanks,
-> 
-> I'll add this if the code doesn't change drastically based on Sakari's
-> suggestion.
->
-> >> +	} else if (is_acpi_node(fwnode)) {
-> >> +		parent = acpi_node_get_parent(fwnode);
-> > 
-> > I can't comment on this one though.
-> > 
-> >> +	}
-> >> +
-> >> +	return parent;
-> >> +}
-> >> +EXPORT_SYMBOL_GPL(fwnode_graph_get_port_parent);
-> >> +
-> >> +/**
-> >> 
-> >>   * fwnode_graph_get_remote_port_parent - Return fwnode of a remote
-> >>   device
-> >>   * @fwnode: Endpoint firmware node pointing to the remote endpoint
-> >>   *
-> >> 
-> >> diff --git a/include/linux/property.h b/include/linux/property.h
-> >> index 2f482616a2f2..624129b86c82 100644
-> >> --- a/include/linux/property.h
-> >> +++ b/include/linux/property.h
-> >> @@ -274,6 +274,8 @@ void *device_get_mac_address(struct device *dev, char
-> >> *addr, int alen);
-> >> 
-> >>  struct fwnode_handle *fwnode_graph_get_next_endpoint(
-> >>  
-> >>  	struct fwnode_handle *fwnode, struct fwnode_handle *prev);
-> >> 
-> >> +struct fwnode_handle *fwnode_graph_get_port_parent(
-> >> +	struct fwnode_handle *fwnode);
-> >> 
-> >>  struct fwnode_handle *fwnode_graph_get_remote_port_parent(
-> >>  
-> >>  	struct fwnode_handle *fwnode);
-> >>  
-> >>  struct fwnode_handle *fwnode_graph_get_remote_port(
+- DMA attributes were set only for MMAP buffers and
 
+- it did not provide begin_cpu_access() and end_cpu_access() dma_buf_ops
+  callbacks for cache syncronisation on exported MMAP buffers.
+
+This patch corrects these issues.
+
+Also arrange the header files alphabetically.
+
+Fixes: ccc66e73 ("ARM: 8508/2: videobuf2-dc: Let drivers specify DMA attrs")
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 94 ++++++++++++++++++++------
+ 1 file changed, 72 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 0afc3da..8b0298a 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -11,12 +11,12 @@
+  */
+ 
+ #include <linux/dma-buf.h>
++#include <linux/dma-mapping.h>
+ #include <linux/module.h>
+ #include <linux/refcount.h>
+ #include <linux/scatterlist.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+-#include <linux/dma-mapping.h>
+ 
+ #include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+@@ -97,12 +97,13 @@ static void vb2_dc_prepare(void *buf_priv)
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 	struct sg_table *sgt = buf->dma_sgt;
+ 
+-	/* DMABUF exporter will flush the cache for us */
+-	if (!buf->vec)
+-		return;
+-
+-	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents,
+-			       buf->dma_dir);
++	/*
++	 * DMABUF exporter will flush the cache for us; only USERPTR
++	 * and MMAP buffers with non-coherent memory will be flushed.
++	 */
++	if (buf->attrs & DMA_ATTR_NON_CONSISTENT)
++		dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents,
++				       buf->dma_dir);
+ }
+ 
+ static void vb2_dc_finish(void *buf_priv)
+@@ -110,11 +111,13 @@ static void vb2_dc_finish(void *buf_priv)
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 	struct sg_table *sgt = buf->dma_sgt;
+ 
+-	/* DMABUF exporter will flush the cache for us */
+-	if (!buf->vec)
+-		return;
+-
+-	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
++	/*
++	 * DMABUF exporter will flush the cache for us; only USERPTR
++	 * and MMAP buffers with non-coherent memory will be flushed.
++	 */
++	if (buf->attrs & DMA_ATTR_NON_CONSISTENT)
++		dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents,
++				    buf->dma_dir);
+ }
+ 
+ /*********************************************/
+@@ -142,6 +145,7 @@ static void *vb2_dc_alloc(struct device *dev, unsigned long attrs,
+ 			  gfp_t gfp_flags)
+ {
+ 	struct vb2_dc_buf *buf;
++	int ret;
+ 
+ 	if (WARN_ON(!dev))
+ 		return ERR_PTR(-EINVAL);
+@@ -152,9 +156,9 @@ static void *vb2_dc_alloc(struct device *dev, unsigned long attrs,
+ 
+ 	buf->attrs = attrs;
+ 	buf->cookie = dma_alloc_attrs(dev, size, &buf->dma_addr,
+-					GFP_KERNEL | gfp_flags, buf->attrs);
++				      GFP_KERNEL | gfp_flags, buf->attrs);
+ 	if (!buf->cookie) {
+-		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
++		dev_err(dev, "dma_alloc_attrs of size %ld failed\n", size);
+ 		kfree(buf);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+@@ -167,6 +171,16 @@ static void *vb2_dc_alloc(struct device *dev, unsigned long attrs,
+ 	buf->size = size;
+ 	buf->dma_dir = dma_dir;
+ 
++	ret = dma_get_sgtable_attrs(buf->dev, &buf->__dma_sgt, buf->cookie,
++				    buf->dma_addr, buf->size, buf->attrs);
++	if (ret < 0) {
++		dma_free_attrs(dev, size, buf->cookie, buf->dma_addr,
++			       buf->attrs);
++		put_device(dev);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	buf->dma_sgt = &buf->__dma_sgt;
+ 	buf->handler.refcount = &buf->refcount;
+ 	buf->handler.put = vb2_dc_put;
+ 	buf->handler.arg = buf;
+@@ -339,6 +353,40 @@ static void *vb2_dc_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
+ 	return buf->vaddr ? buf->vaddr + pgnum * PAGE_SIZE : NULL;
+ }
+ 
++static int vb2_dc_dmabuf_ops_begin_cpu_access(struct dma_buf *dbuf,
++					      enum dma_data_direction direction)
++{
++	struct vb2_dc_buf *buf = dbuf->priv;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	/*
++	 * DMABUF exporter will flush the cache for us; only USERPTR
++	 * and MMAP buffers with non-coherent memory will be flushed.
++	 */
++	if (buf->attrs & DMA_ATTR_NON_CONSISTENT)
++		dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents,
++				    buf->dma_dir);
++
++	return 0;
++}
++
++static int vb2_dc_dmabuf_ops_end_cpu_access(struct dma_buf *dbuf,
++					    enum dma_data_direction direction)
++{
++	struct vb2_dc_buf *buf = dbuf->priv;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	/*
++	 * DMABUF exporter will flush the cache for us; only USERPTR
++	 * and MMAP buffers with non-coherent memory will be flushed.
++	 */
++	if (buf->attrs & DMA_ATTR_NON_CONSISTENT)
++		dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents,
++				       buf->dma_dir);
++
++	return 0;
++}
++
+ static void *vb2_dc_dmabuf_ops_vmap(struct dma_buf *dbuf)
+ {
+ 	struct vb2_dc_buf *buf = dbuf->priv;
+@@ -359,6 +407,8 @@ static struct dma_buf_ops vb2_dc_dmabuf_ops = {
+ 	.unmap_dma_buf = vb2_dc_dmabuf_ops_unmap,
+ 	.kmap = vb2_dc_dmabuf_ops_kmap,
+ 	.kmap_atomic = vb2_dc_dmabuf_ops_kmap,
++	.begin_cpu_access = vb2_dc_dmabuf_ops_begin_cpu_access,
++	.end_cpu_access = vb2_dc_dmabuf_ops_end_cpu_access,
+ 	.vmap = vb2_dc_dmabuf_ops_vmap,
+ 	.mmap = vb2_dc_dmabuf_ops_mmap,
+ 	.release = vb2_dc_dmabuf_ops_release,
+@@ -412,11 +462,12 @@ static void vb2_dc_put_userptr(void *buf_priv)
+ 
+ 	if (sgt) {
+ 		/*
+-		 * No need to sync to CPU, it's already synced to the CPU
+-		 * since the finish() memop will have been called before this.
++		 * Don't ask to skip cache sync in case if the user
++		 * did ask to skip cache flush the last time the
++		 * buffer was dequeued.
+ 		 */
+ 		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+-				   buf->dma_dir, DMA_ATTR_SKIP_CPU_SYNC);
++				   buf->dma_dir, buf->attrs);
+ 		pages = frame_vector_pages(buf->vec);
+ 		/* sgt should exist only if vector contains pages... */
+ 		BUG_ON(IS_ERR(pages));
+@@ -491,6 +542,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+ 
+ 	buf->dev = dev;
+ 	buf->dma_dir = dma_dir;
++	buf->attrs = attrs;
+ 
+ 	offset = vaddr & ~PAGE_MASK;
+ 	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
+@@ -526,13 +578,11 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+ 	buf->dma_sgt = &buf->__dma_sgt;
+ 
+ 	/*
+-	 * No need to sync to the device, this will happen later when the
+-	 * prepare() memop is called.
++	 * Sync the cache now; the user might not ever ask for it.
+ 	 */
+ 	buf->dma_sgt->nents = dma_map_sg_attrs(buf->dev, buf->dma_sgt->sgl,
+ 					       buf->dma_sgt->orig_nents,
+-					       buf->dma_dir,
+-					       DMA_ATTR_SKIP_CPU_SYNC);
++					       buf->dma_dir, buf->attrs);
+ 	if (buf->dma_sgt->nents <= 0) {
+ 		pr_err("failed to map scatterlist\n");
+ 		ret = -EIO;
+@@ -556,7 +606,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+ fail_map_sg:
+ 	dma_unmap_sg_attrs(buf->dev, buf->dma_sgt->sgl,
+ 			   buf->dma_sgt->orig_nents, buf->dma_dir,
+-			   DMA_ATTR_SKIP_CPU_SYNC);
++			   buf->attrs);
+ 
+ fail_sgt_init:
+ 	sg_free_table(buf->dma_sgt);
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
