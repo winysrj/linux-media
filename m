@@ -1,129 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:43681 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753072AbdEQE1K (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 May 2017 00:27:10 -0400
-Message-ID: <e2aac9d5310e49a16600bf5c5512d05c@smtp-cloud3.xs4all.net>
-Date: Wed, 17 May 2017 06:27:07 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mga02.intel.com ([134.134.136.20]:50357 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755179AbdEHPEf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 May 2017 11:04:35 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
+        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
+        daniel.vetter@ffwll.ch, labbott@redhat.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v4 07/18] vb2: dma-contig: Remove redundant sgt_base field
+Date: Mon,  8 May 2017 18:03:19 +0300
+Message-Id: <1494255810-12672-8-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The struct vb2_dc_buf contains two struct sg_table fields: sgt_base and
+dma_sgt. The former is used by DMA-BUF buffers whereas the latter is used
+by USERPTR.
 
-Results of the daily build of media_tree:
+Unify the two, leaving dma_sgt.
 
-date:			Wed May 17 05:00:21 CEST 2017
-media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
-media_build git hash:	ab988a3d089232ce9e1aec2f259e947c06983dbc
-v4l-utils git hash:	d16a17abd1d8d7885ca2f44fb295035278baa89c
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+MMAP buffers do not need cache flushing since they have been allocated
+using dma_alloc_coherent().
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: WARNINGS
-linux-4.9.26-i686: WARNINGS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.12-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index a8a46a8..ddbbcf0 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -31,12 +31,13 @@ struct vb2_dc_buf {
+ 	unsigned long			attrs;
+ 	enum dma_data_direction		dma_dir;
+ 	struct sg_table			*dma_sgt;
+-	struct frame_vector		*vec;
+ 
+ 	/* MMAP related */
+ 	struct vb2_vmarea_handler	handler;
+ 	refcount_t			refcount;
+-	struct sg_table			*sgt_base;
++
++	/* USERPTR related */
++	struct frame_vector		*vec;
+ 
+ 	/* DMABUF related */
+ 	struct dma_buf_attachment	*db_attach;
+@@ -96,7 +97,7 @@ static void vb2_dc_prepare(void *buf_priv)
+ 	struct sg_table *sgt = buf->dma_sgt;
+ 
+ 	/* DMABUF exporter will flush the cache for us */
+-	if (!sgt || buf->db_attach)
++	if (!buf->vec)
+ 		return;
+ 
+ 	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents,
+@@ -109,7 +110,7 @@ static void vb2_dc_finish(void *buf_priv)
+ 	struct sg_table *sgt = buf->dma_sgt;
+ 
+ 	/* DMABUF exporter will flush the cache for us */
+-	if (!sgt || buf->db_attach)
++	if (!buf->vec)
+ 		return;
+ 
+ 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
+@@ -126,9 +127,9 @@ static void vb2_dc_put(void *buf_priv)
+ 	if (!refcount_dec_and_test(&buf->refcount))
+ 		return;
+ 
+-	if (buf->sgt_base) {
+-		sg_free_table(buf->sgt_base);
+-		kfree(buf->sgt_base);
++	if (buf->dma_sgt) {
++		sg_free_table(buf->dma_sgt);
++		kfree(buf->dma_sgt);
+ 	}
+ 	dma_free_attrs(buf->dev, buf->size, buf->cookie, buf->dma_addr,
+ 		       buf->attrs);
+@@ -239,13 +240,13 @@ static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
+ 	/* Copy the buf->base_sgt scatter list to the attachment, as we can't
+ 	 * map the same scatter list to multiple attachments at the same time.
+ 	 */
+-	ret = sg_alloc_table(sgt, buf->sgt_base->orig_nents, GFP_KERNEL);
++	ret = sg_alloc_table(sgt, buf->dma_sgt->orig_nents, GFP_KERNEL);
+ 	if (ret) {
+ 		kfree(attach);
+ 		return -ENOMEM;
+ 	}
+ 
+-	rd = buf->sgt_base->sgl;
++	rd = buf->dma_sgt->sgl;
+ 	wr = sgt->sgl;
+ 	for (i = 0; i < sgt->orig_nents; ++i) {
+ 		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
+@@ -396,10 +397,10 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
+ 	exp_info.flags = flags;
+ 	exp_info.priv = buf;
+ 
+-	if (!buf->sgt_base)
+-		buf->sgt_base = vb2_dc_get_base_sgt(buf);
++	if (!buf->dma_sgt)
++		buf->dma_sgt = vb2_dc_get_base_sgt(buf);
+ 
+-	if (WARN_ON(!buf->sgt_base))
++	if (WARN_ON(!buf->dma_sgt))
+ 		return NULL;
+ 
+ 	dbuf = dma_buf_export(&exp_info);
+-- 
+2.7.4
