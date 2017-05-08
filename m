@@ -1,264 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.14]:35166 "EHLO imap.netup.ru"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751169AbdEaMDd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 08:03:33 -0400
-Received: from mail-oi0-f54.google.com (mail-oi0-f54.google.com [209.85.218.54])
-        by imap.netup.ru (Postfix) with ESMTPSA id BAB1F8B3E79
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 15:03:24 +0300 (MSK)
-Received: by mail-oi0-f54.google.com with SMTP id w10so12357912oif.0
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 05:03:24 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170409193828.18458-9-d.scheller.oss@gmail.com>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com> <20170409193828.18458-9-d.scheller.oss@gmail.com>
-From: Abylay Ospan <aospan@netup.ru>
-Date: Wed, 31 May 2017 08:03:02 -0400
-Message-ID: <CAK3bHNUievM6OoQTmrt5rGYD1LjxwNirnAw7=x2PCJ7Y372vSg@mail.gmail.com>
-Subject: Re: [PATCH 08/19] [media] dvb-frontends/cxd2841er: support IF speed
- calc from tuner values
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: Kozlov Sergey <serjk@netup.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>, rjkm@metzlerbros.de
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57931 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751727AbdEHJlx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 May 2017 05:41:53 -0400
+Message-ID: <1494236507.3029.69.camel@pengutronix.de>
+Subject: Re: [PATCH 40/40] media: imx: set and propagate empty field,
+ colorimetry params
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: gregkh@linuxfoundation.org, mchehab@kernel.org,
+        rmk+kernel@armlinux.org.uk, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Mon, 08 May 2017 11:41:47 +0200
+In-Reply-To: <1492044337-11324-1-git-send-email-steve_longerbeam@mentor.com>
+References: <7d836723-dc01-2cea-f794-901b632ce46e@gmail.com>
+         <1492044337-11324-1-git-send-email-steve_longerbeam@mentor.com>
 Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Abylay Ospan <aospan@netup.ru>
+Hi Steve,
 
-2017-04-09 15:38 GMT-04:00 Daniel Scheller <d.scheller.oss@gmail.com>:
-> From: Daniel Scheller <d.scheller@gmx.net>
->
-> Add a AUTO_IFHZ flag and a function that will read IF speed values from any
-> attached tuner if the tuner supports this and if AUTO_IFHZ is enabled, and
-> else the passed default value (which probably matches Sony ASCOT tuners)
-> will be passed back. The returned value is then used to calculate the iffeq
-> which the demod will be programmed with.
->
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+On Wed, 2017-04-12 at 17:45 -0700, Steve Longerbeam wrote:
+> This patch adds a call to imx_media_fill_empty_mbus_fields() in the
+> *_try_fmt() functions at the sink pads, to set empty field order and
+> colorimetry parameters.
+> 
+> If the field order is set to ANY, choose the currently set field order
+> at the sink pad. If the colorspace is set to DEFAULT, choose the
+> current colorspace at the sink pad.  If any of xfer_func, ycbcr_enc
+> or quantization are set to DEFAULT, either choose the current sink pad
+> setting, or the default setting for the new colorspace, if non-DEFAULT
+> colorspace was given.
+> 
+> Colorimetry is also propagated from sink to source pads anywhere
+> this has not already been done. The exception is ic-prpencvf at the
+> source pad, since the Image Converter outputs fixed quantization and
+> Y`CbCr encoding.
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 > ---
->  drivers/media/dvb-frontends/cxd2841er.c | 64 +++++++++++++++++++++++----------
->  drivers/media/dvb-frontends/cxd2841er.h |  1 +
->  2 files changed, 47 insertions(+), 18 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-> index 162a0f5..fa6a963 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.c
-> +++ b/drivers/media/dvb-frontends/cxd2841er.c
-> @@ -327,6 +327,20 @@ static u32 cxd2841er_calc_iffreq(u32 ifhz)
->         return cxd2841er_calc_iffreq_xtal(SONY_XTAL_20500, ifhz);
+>  drivers/staging/media/imx/imx-ic-prp.c      |  5 ++-
+>  drivers/staging/media/imx/imx-ic-prpencvf.c | 25 +++++++++++---
+>  drivers/staging/media/imx/imx-media-csi.c   | 12 +++++--
+>  drivers/staging/media/imx/imx-media-utils.c | 53 +++++++++++++++++++++++++++++
+>  drivers/staging/media/imx/imx-media-vdic.c  |  7 ++--
+>  drivers/staging/media/imx/imx-media.h       |  3 +-
+>  6 files changed, 95 insertions(+), 10 deletions(-)
+> 
+[...]
+> diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
+> index 7b2f92d..b07d0ae 100644
+> --- a/drivers/staging/media/imx/imx-media-utils.c
+> +++ b/drivers/staging/media/imx/imx-media-utils.c
+> @@ -464,6 +464,59 @@ int imx_media_init_mbus_fmt(struct v4l2_mbus_framefmt *mbus,
 >  }
->
-> +static int cxd2841er_get_if_hz(struct cxd2841er_priv *priv, u32 def_hz)
+>  EXPORT_SYMBOL_GPL(imx_media_init_mbus_fmt);
+>  
+> +/*
+> + * Check whether the field or colorimetry params in tryfmt are
+> + * uninitialized, and if so fill them with the values from fmt.
+> + * The exception is when tryfmt->colorspace has been initialized,
+> + * if so all the further default colorimetry params can be derived
+> + * from tryfmt->colorspace.
+> + */
+> +void imx_media_fill_empty_mbus_fields(struct v4l2_mbus_framefmt *tryfmt,
+> +				      struct v4l2_mbus_framefmt *fmt)
 > +{
-> +       u32 hz;
+> +	/* fill field if necessary */
+> +	if (tryfmt->field == V4L2_FIELD_ANY)
+> +		tryfmt->field = fmt->field;
 > +
-> +       if (priv->frontend.ops.tuner_ops.get_if_frequency
-> +                       && (priv->flags & CXD2841ER_AUTO_IFHZ))
-> +               priv->frontend.ops.tuner_ops.get_if_frequency(
-> +                       &priv->frontend, &hz);
-> +       else
-> +               hz = def_hz;
-> +
-> +       return hz;
-> +}
-> +
->  static int cxd2841er_tuner_set(struct dvb_frontend *fe)
->  {
->         struct cxd2841er_priv *priv = fe->demodulator_priv;
-> @@ -2147,7 +2161,7 @@ static int cxd2841er_dvbt2_set_plp_config(struct cxd2841er_priv *priv,
->  static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
->                                                 u32 bandwidth)
->  {
-> -       u32 iffreq;
-> +       u32 iffreq, ifhz;
->         u8 data[MAX_WRITE_REGSIZE];
->
->         const uint8_t nominalRate8bw[3][5] = {
-> @@ -2253,7 +2267,8 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef8bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4800000);
-> +               ifhz = cxd2841er_get_if_hz(priv, 4800000);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2281,7 +2296,8 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef7bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4200000);
-> +               ifhz = cxd2841er_get_if_hz(priv, 4200000);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2309,7 +2325,8 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef6bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
-> +               ifhz = cxd2841er_get_if_hz(priv, 3600000);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2337,7 +2354,8 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef5bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
-> +               ifhz = cxd2841er_get_if_hz(priv, 3600000);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2365,7 +2383,8 @@ static int cxd2841er_sleep_tc_to_active_t2_band(struct cxd2841er_priv *priv,
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef17bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3500000);
-> +               ifhz = cxd2841er_get_if_hz(priv, 3500000);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2384,7 +2403,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
->                 struct cxd2841er_priv *priv, u32 bandwidth)
->  {
->         u8 data[MAX_WRITE_REGSIZE];
-> -       u32 iffreq;
-> +       u32 iffreq, ifhz;
->         u8 nominalRate8bw[3][5] = {
->                 /* TRCG Nominal Rate [37:0] */
->                 {0x11, 0xF0, 0x00, 0x00, 0x00}, /* 20.5MHz XTal */
-> @@ -2464,7 +2483,8 @@ static int cxd2841er_sleep_tc_to_active_t_band(
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef8bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4800000);
-> +               ifhz = cxd2841er_get_if_hz(priv, 4800000);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2499,7 +2519,8 @@ static int cxd2841er_sleep_tc_to_active_t_band(
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef7bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4200000);
-> +               ifhz = cxd2841er_get_if_hz(priv, 4200000);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2534,7 +2555,8 @@ static int cxd2841er_sleep_tc_to_active_t_band(
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef6bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
-> +               ifhz = cxd2841er_get_if_hz(priv, 3600000);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2569,7 +2591,8 @@ static int cxd2841er_sleep_tc_to_active_t_band(
->                 cxd2841er_write_regs(priv, I2C_SLVT,
->                                 0xA6, itbCoef5bw[priv->xtal], 14);
->                 /* <IF freq setting> */
-> -               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3600000);
-> +               ifhz = cxd2841er_get_if_hz(priv, 3600000);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2602,7 +2625,7 @@ static int cxd2841er_sleep_tc_to_active_t_band(
->  static int cxd2841er_sleep_tc_to_active_i_band(
->                 struct cxd2841er_priv *priv, u32 bandwidth)
->  {
-> -       u32 iffreq;
-> +       u32 iffreq, ifhz;
->         u8 data[3];
->
->         /* TRCG Nominal Rate */
-> @@ -2671,7 +2694,8 @@ static int cxd2841er_sleep_tc_to_active_i_band(
->                                 0xA6, itbCoef8bw[priv->xtal], 14);
->
->                 /* IF freq setting */
-> -               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4750000);
-> +               ifhz = cxd2841er_get_if_hz(priv, 4750000);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2700,7 +2724,8 @@ static int cxd2841er_sleep_tc_to_active_i_band(
->                                 0xA6, itbCoef7bw[priv->xtal], 14);
->
->                 /* IF freq setting */
-> -               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 4150000);
-> +               ifhz = cxd2841er_get_if_hz(priv, 4150000);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2729,7 +2754,8 @@ static int cxd2841er_sleep_tc_to_active_i_band(
->                                 0xA6, itbCoef6bw[priv->xtal], 14);
->
->                 /* IF freq setting */
-> -               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, 3550000);
-> +               ifhz = cxd2841er_get_if_hz(priv, 3550000);
-> +               iffreq = cxd2841er_calc_iffreq_xtal(priv->xtal, ifhz);
->                 data[0] = (u8) ((iffreq >> 16) & 0xff);
->                 data[1] = (u8)((iffreq >> 8) & 0xff);
->                 data[2] = (u8)(iffreq & 0xff);
-> @@ -2772,7 +2798,7 @@ static int cxd2841er_sleep_tc_to_active_c_band(struct cxd2841er_priv *priv,
->                 0x27, 0xA7, 0x28, 0xB3, 0x02, 0xF0, 0x01, 0xE8,
->                 0x00, 0xCF, 0x00, 0xE6, 0x23, 0xA4 };
->         u8 b10_b6[3];
-> -       u32 iffreq;
-> +       u32 iffreq, ifhz;
->
->         if (bandwidth != 6000000 &&
->                         bandwidth != 7000000 &&
-> @@ -2790,13 +2816,15 @@ static int cxd2841er_sleep_tc_to_active_c_band(struct cxd2841er_priv *priv,
->                 cxd2841er_write_regs(
->                         priv, I2C_SLVT, 0xa6,
->                         bw7_8mhz_b10_a6, sizeof(bw7_8mhz_b10_a6));
-> -               iffreq = cxd2841er_calc_iffreq(4900000);
-> +               ifhz = cxd2841er_get_if_hz(priv, 4900000);
-> +               iffreq = cxd2841er_calc_iffreq(ifhz);
->                 break;
->         case 6000000:
->                 cxd2841er_write_regs(
->                         priv, I2C_SLVT, 0xa6,
->                         bw6mhz_b10_a6, sizeof(bw6mhz_b10_a6));
-> -               iffreq = cxd2841er_calc_iffreq(3700000);
-> +               ifhz = cxd2841er_get_if_hz(priv, 3700000);
-> +               iffreq = cxd2841er_calc_iffreq(ifhz);
->                 break;
->         default:
->                 dev_err(&priv->i2c->dev, "%s(): unsupported bandwidth %d\n",
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.h b/drivers/media/dvb-frontends/cxd2841er.h
-> index 15564af..38d7f9f 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.h
-> +++ b/drivers/media/dvb-frontends/cxd2841er.h
-> @@ -25,6 +25,7 @@
->  #include <linux/dvb/frontend.h>
->
->  #define CXD2841ER_USE_GATECTRL 1
-> +#define CXD2841ER_AUTO_IFHZ    2
->
->  enum cxd2841er_xtal {
->         SONY_XTAL_20500, /* 20.5 MHz */
-> --
-> 2.10.2
->
+> +	/* fill colorimetry if necessary */
+> +	if (tryfmt->colorspace == V4L2_COLORSPACE_DEFAULT) {
+> +		tryfmt->colorspace = fmt->colorspace;
+> +		if (tryfmt->xfer_func == V4L2_XFER_FUNC_DEFAULT)
+> +			tryfmt->xfer_func = fmt->xfer_func;
+> +		if (tryfmt->ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT)
+> +			tryfmt->ycbcr_enc = fmt->ycbcr_enc;
+> +		if (tryfmt->quantization == V4L2_QUANTIZATION_DEFAULT)
+> +			tryfmt->quantization = fmt->quantization;
 
+According to Hans' latest comments, this could be changed to:
 
+----------8<----------
+>From cca3cda9effcaca0891eb8044a79137023fed1c2 Mon Sep 17 00:00:00 2001
+From: Philipp Zabel <p.zabel@pengutronix.de>
+Date: Mon, 8 May 2017 11:38:05 +0200
+Subject: [PATCH] fixup! media: imx: set and propagate default field,
+ colorimetry
 
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/staging/media/imx/imx-media-utils.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
+index a8766489e8a18..ec2abd618cc44 100644
+--- a/drivers/staging/media/imx/imx-media-utils.c
++++ b/drivers/staging/media/imx/imx-media-utils.c
+@@ -497,12 +497,9 @@ void imx_media_fill_default_mbus_fields(struct v4l2_mbus_framefmt *tryfmt,
+ 	/* fill colorimetry if necessary */
+ 	if (tryfmt->colorspace == V4L2_COLORSPACE_DEFAULT) {
+ 		tryfmt->colorspace = fmt->colorspace;
+-		if (tryfmt->xfer_func == V4L2_XFER_FUNC_DEFAULT)
+-			tryfmt->xfer_func = fmt->xfer_func;
+-		if (tryfmt->ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT)
+-			tryfmt->ycbcr_enc = fmt->ycbcr_enc;
+-		if (tryfmt->quantization == V4L2_QUANTIZATION_DEFAULT)
+-			tryfmt->quantization = fmt->quantization;
++		tryfmt->xfer_func = fmt->xfer_func;
++		tryfmt->ycbcr_enc = fmt->ycbcr_enc;
++		tryfmt->quantization = fmt->quantization;
+ 	} else {
+ 		if (tryfmt->xfer_func == V4L2_XFER_FUNC_DEFAULT) {
+ 			tryfmt->xfer_func =
 -- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+2.11.0
+---------->8----------
+
+> +	} else {
+> +		const struct imx_media_pixfmt *cc;
+> +		bool is_rgb = false;
+> +
+> +		cc = imx_media_find_mbus_format(tryfmt->code,
+> +						CS_SEL_ANY, false);
+> +		if (!cc)
+> +			cc = imx_media_find_ipu_format(tryfmt->code,
+> +						       CS_SEL_ANY);
+> +		if (cc && cc->cs != IPUV3_COLORSPACE_YUV)
+> +			is_rgb = true;
+> +
+> +		if (tryfmt->xfer_func == V4L2_XFER_FUNC_DEFAULT) {
+> +			tryfmt->xfer_func =
+> +				V4L2_MAP_XFER_FUNC_DEFAULT(tryfmt->colorspace);
+> +		}
+> +		if (tryfmt->ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT) {
+> +			tryfmt->ycbcr_enc =
+> +				V4L2_MAP_YCBCR_ENC_DEFAULT(tryfmt->colorspace);
+> +		}
+> +		if (tryfmt->quantization == V4L2_QUANTIZATION_DEFAULT) {
+> +			tryfmt->quantization =
+> +				V4L2_MAP_QUANTIZATION_DEFAULT(
+> +					is_rgb, tryfmt->colorspace,
+> +					tryfmt->ycbcr_enc);
+> +		}
+> +	}
+
+I'm not sure about removing this part yet.
+
+regards
+Philipp
