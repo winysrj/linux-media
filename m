@@ -1,99 +1,318 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33597 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751473AbdEDWVj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 18:21:39 -0400
-Received: by mail-wm0-f65.google.com with SMTP id y10so6278658wmh.0
-        for <linux-media@vger.kernel.org>; Thu, 04 May 2017 15:21:38 -0700 (PDT)
-Date: Fri, 5 May 2017 00:21:35 +0200
-From: Thomas Hollstegge <thomas.hollstegge@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH] [media] em28xx: support for Sundtek MediaTV Digital Home
-Message-ID: <20170504222115.GA26659@googlemail.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:35756 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750911AbdEHMc1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 May 2017 08:32:27 -0400
+Subject: Re: [PATCH 3/3] [media] intel-ipu3: cio2: Add new MIPI-CSI2 driver
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, jian.xu.zheng@intel.com,
+        rajmohan.mani@intel.com, hyungwoo.yang@intel.com
+References: <cover.1493479141.git.yong.zhi@intel.com>
+ <9cf19d01f6f85ac0e5969a2b2fcd5ad5ef8c1e22.1493479141.git.yong.zhi@intel.com>
+ <a33ac20c-5a72-3e6e-c55c-78bdb46449a5@xs4all.nl>
+ <20170508121003.GJ7456@valkosipuli.retiisi.org.uk>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8dbaa458-6476-ac3b-daf3-785b0f591a69@xs4all.nl>
+Date: Mon, 8 May 2017 14:32:22 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20170508121003.GJ7456@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sundtek MediaTV Digital Home is a rebranded MaxMedia UB425-TC with the
-following components:
+On 05/08/2017 02:10 PM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Mon, May 08, 2017 at 11:06:29AM +0200, Hans Verkuil wrote:
+> ...
+>>> +static void cio2_queue_event_sof(struct cio2_device *cio2, struct cio2_queue *q)
+>>> +{
+>>> +	struct v4l2_event event = {
+>>> +		.type = V4L2_EVENT_FRAME_SYNC,
+>>> +		.u.frame_sync.frame_sequence =
+>>> +			atomic_inc_return(&q->frame_sequence) - 1,
+>>> +	};
+>>> +
+>>> +	v4l2_event_queue(q->subdev.devnode, &event);
+>>
+>> Out of curiosity: why do you need this event? I recommend that you document the
+>> reasons for having this event somewhere.
+> 
+> For the user space camera control algorithms it is essential to know when
+> the reception of a frame has begun. That's often the best timing information
+> you get from the hardware, and not specific to this device --- the omap3isp
+> driver does the same.
 
-USB bridge: Empia EM2874B
-Demodulator: Micronas DRX 3913KA2
-Tuner: NXP TDA18271HDC2
+OK. Just document this somewhere in the driver. It's helpful background info.
 
-Signed-off-by: Thomas Hollstegge <thomas.hollstegge@gmail.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c | 15 +++++++++++++++
- drivers/media/usb/em28xx/em28xx-dvb.c   |  1 +
- drivers/media/usb/em28xx/em28xx.h       |  1 +
- 3 files changed, 17 insertions(+)
+> 
+> ...
+> 
+>>> +static const struct v4l2_file_operations cio2_v4l2_fops = {
+>>> +	.owner = THIS_MODULE,
+>>> +	.unlocked_ioctl = video_ioctl2,
+>>> +	.open = v4l2_fh_open,
+>>> +	.release = vb2_fop_release,
+>>> +	.poll = vb2_fop_poll,
+>>> +	.mmap = vb2_fop_mmap,
+>>
+>> I suggest adding .read = vb2_fop_read as well. It's for free, and I never see any
+>> reason not to do this (although opinions differ on that :-) ).
+> 
+> I wonder if any real applications use it. A number of drivers have never
+> supported it either and frankly I'd be happy to rather see it disappear.
+> Complexity is one of the biggest problems also in videobuf2.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 5f90d08..4effbda 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -415,6 +415,7 @@ static struct em28xx_reg_seq hauppauge_930c_digital[] = {
- 
- /* 1b80:e425 MaxMedia UB425-TC
-  * 1b80:e1cc Delock 61959
-+ * eb1a:51b2 Sundtek MediaTV Digital Home
-  * GPIO_6 - demod reset, 0=active
-  * GPIO_7 - LED, 0=active
-  */
-@@ -2405,6 +2406,18 @@ struct em28xx_board em28xx_boards[] = {
- 		.ir_codes      = RC_MAP_HAUPPAUGE,
- 		.leds          = hauppauge_dualhd_leds,
- 	},
-+	/* eb1a:51b2 Sundtek MediaTV Digital Home
-+	 * Empia EM2874B + Micronas DRX 3913KA2 + NXP TDA18271HDC2 */
-+	[EM2874_BOARD_SUNDTEK_MEDIATV_DIGITAL_HOME] = {
-+		.name          = "Sundtek MediaTV Digital Home",
-+		.tuner_type    = TUNER_ABSENT,
-+		.tuner_gpio    = maxmedia_ub425_tc,
-+		.has_dvb       = 1,
-+		.ir_codes      = RC_MAP_REDDO,
-+		.def_i2c_bus   = 1,
-+		.i2c_speed     = EM28XX_I2C_CLK_WAIT_ENABLE |
-+				EM28XX_I2C_FREQ_400_KHZ,
-+	},
- };
- EXPORT_SYMBOL_GPL(em28xx_boards);
- 
-@@ -2600,6 +2613,8 @@ struct usb_device_id em28xx_id_table[] = {
- 			.driver_info = EM28178_BOARD_TERRATEC_T2_STICK_HD },
- 	{ USB_DEVICE(0x3275, 0x0085),
- 			.driver_info = EM28178_BOARD_PLEX_PX_BCUD },
-+	{ USB_DEVICE(0xeb1a, 0x51b2),
-+			.driver_info = EM2874_BOARD_SUNDTEK_MEDIATV_DIGITAL_HOME },
- 	{ },
- };
- MODULE_DEVICE_TABLE(usb, em28xx_id_table);
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 82edd37..e7fa25d 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -1482,6 +1482,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 		break;
- 	}
- 	case EM2874_BOARD_DELOCK_61959:
-+	case EM2874_BOARD_SUNDTEK_MEDIATV_DIGITAL_HOME:
- 	case EM2874_BOARD_MAXMEDIA_UB425_TC:
- 		/* attach demodulator */
- 		dvb->fe[0] = dvb_attach(drxk_attach, &maxmedia_ub425_tc_drxk,
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index e9f3799..72f1468 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -148,6 +148,7 @@
- #define EM28178_BOARD_PLEX_PX_BCUD                98
- #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB  99
- #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 100
-+#define EM2874_BOARD_SUNDTEK_MEDIATV_DIGITAL_HOME 101
- 
- /* Limits minimum and default number of buffers */
- #define EM28XX_MIN_BUF 4
--- 
-2.7.4
+Applications are unlikely to use it, but I use it occasionally when debugging,
+just to get some raw video quickly. All the support is there, so it is all for
+free. But it is up to you.
+
+> 
+> The support can be added later on but it cannot be reasonably removed going
+> forward.
+> 
+>>
+>>> +};
+>>> +
+>>> +static const struct v4l2_ioctl_ops cio2_v4l2_ioctl_ops = {
+>>> +	.vidioc_querycap = cio2_v4l2_querycap,
+>>> +	.vidioc_enum_fmt_vid_cap = cio2_v4l2_enum_fmt,
+>>> +	.vidioc_g_fmt_vid_cap = cio2_v4l2_g_fmt,
+>>> +	.vidioc_s_fmt_vid_cap = cio2_v4l2_s_fmt,
+>>> +	.vidioc_try_fmt_vid_cap = cio2_v4l2_try_fmt,
+>>> +	.vidioc_reqbufs = vb2_ioctl_reqbufs,
+>>> +	.vidioc_create_bufs = vb2_ioctl_create_bufs,
+>>> +	.vidioc_prepare_buf = vb2_ioctl_prepare_buf,
+>>> +	.vidioc_querybuf = vb2_ioctl_querybuf,
+>>> +	.vidioc_qbuf = vb2_ioctl_qbuf,
+>>> +	.vidioc_dqbuf = vb2_ioctl_dqbuf,
+>>> +	.vidioc_streamon = vb2_ioctl_streamon,
+>>> +	.vidioc_streamoff = vb2_ioctl_streamoff,
+>>> +	.vidioc_expbuf = vb2_ioctl_expbuf,
+>>> +};
+>>> +
+>>> +static int cio2_subdev_subscribe_event(struct v4l2_subdev *sd,
+>>> +				       struct v4l2_fh *fh,
+>>> +				       struct v4l2_event_subscription *sub)
+>>> +{
+>>> +	if (sub->type != V4L2_EVENT_FRAME_SYNC)
+>>> +		return -EINVAL;
+>>
+>> You must also support V4L2_EVENT_CTRL.
+>>
+>>> +
+>>> +	/* Line number. For now only zero accepted. */
+>>> +	if (sub->id != 0)
+>>> +		return -EINVAL;
+>>> +
+>>> +	return v4l2_event_subscribe(fh, sub, 0, NULL);
+>>
+>> You support room in the event queue for only one V4L2_EVENT_FRAME_SYNC event. Is
+>> that what you want? If userspace can't keep up you will lose older frame_sync events.
+>>
+>> It's probably OK for this event, but I want to make sure you thought about this :-)
+> 
+> I think I'd like to have as many events as there can be buffers. I have to
+> say I don't write much user space software, but I presume it'll be extra
+> work to prepare for one more not-seen-often special case.
+
+Given the use-case you have to wonder how useful it is to retain old events.
+I leave it up to you.
+
+> 
+> ...
+> 
+>>> +/* .complete() is called after all subdevices have been located */
+>>> +static int cio2_notifier_complete(struct v4l2_async_notifier *notifier)
+>>> +{
+>>> +	struct cio2_device *cio2 = container_of(notifier, struct cio2_device,
+>>> +						notifier);
+>>> +	struct sensor_async_subdev *s_asd;
+>>> +	struct fwnode_handle *fwn_remote, *fwn_endpt, *fwn_remote_endpt;
+>>> +	struct cio2_queue *q;
+>>> +	struct fwnode_endpoint remote_endpt;
+>>> +	int i, ret;
+>>> +
+>>> +	for (i = 0; i < notifier->num_subdevs; i++) {
+>>> +		s_asd = container_of(cio2->notifier.subdevs[i],
+>>> +					struct sensor_async_subdev,
+>>> +					asd);
+>>> +
+>>> +		fwn_remote = s_asd->asd.match.fwnode.fwn;
+>>> +		fwn_endpt = (struct fwnode_handle *)
+>>> +					s_asd->vfwn_endpt.base.local_fwnode;
+>>> +		fwn_remote_endpt = fwnode_graph_get_remote_endpoint(fwn_endpt);
+>>> +		if (!fwn_remote_endpt) {
+>>> +			dev_err(&cio2->pci_dev->dev,
+>>> +					"failed to get remote endpt %d\n", ret);
+>>> +			return ret;
+>>> +		}
+>>> +
+>>> +		ret = fwnode_graph_parse_endpoint(fwn_remote_endpt,
+>>> +							&remote_endpt);
+>>> +		if (ret) {
+>>> +			dev_err(&cio2->pci_dev->dev,
+>>> +				"failed to parse remote endpt %d\n", ret);
+>>> +			return ret;
+>>> +		}
+>>> +
+>>> +		q = cio2_find_queue_by_sensor_node(cio2->queue, fwn_remote);
+>>> +		if (!q) {
+>>> +			dev_err(&cio2->pci_dev->dev,
+>>> +					"failed to find cio2 queue %d\n", ret);
+>>> +			return ret;
+>>> +		}
+>>> +
+>>> +		ret = media_create_pad_link(
+>>> +				&q->sensor->entity, remote_endpt.id,
+>>> +				&q->subdev.entity, s_asd->vfwn_endpt.base.id,
+>>> +				0);
+>>> +		if (ret) {
+>>> +			dev_err(&cio2->pci_dev->dev,
+>>> +					"failed to create link for %s\n",
+>>> +					cio2->queue[i].sensor->name);
+>>> +			return ret;
+>>> +		}
+>>> +	}
+>>> +
+>>> +	return v4l2_device_register_subdev_nodes(&cio2->v4l2_dev);
+>>> +}
+>>
+>> The current code only supports sensor subdevs, right? Not non-sensor subdevs such as
+>> for focus etc. control (e.g. voice coil).
+> 
+> The CIO2 driver only supports sensors (I presume you could attach e.g. a TV
+> tuner, too) but then again I don't think it's its job to support voice coils
+> either: they're related to the sensors instead and the CIO2 driver wouldn't
+> have enough information on them to associate them to a particular sensor.
+> 
+> There are DT binding patches for such devices + async sub-device notifier
+> patches floating around to support these.
+
+Can you give me a pointer to those?
+
+> 
+> 
+> ...
+> 
+>>> +/**************** Queue initialization ****************/
+>>> +static const struct media_entity_operations cio2_media_ops = {
+>>> +	.link_validate = v4l2_subdev_link_validate,
+>>> +};
+>>> +
+>>> +int cio2_queue_init(struct cio2_device *cio2, struct cio2_queue *q)
+>>> +{
+>>> +	static const u32 default_width = 1936;
+>>> +	static const u32 default_height = 1096;
+>>> +	static const u32 default_mbusfmt = MEDIA_BUS_FMT_SRGGB10_1X10;
+>>> +
+>>> +	struct video_device *vdev = &q->vdev;
+>>> +	struct vb2_queue *vbq = &q->vbq;
+>>> +	struct v4l2_subdev *subdev = &q->subdev;
+>>> +	struct v4l2_mbus_framefmt *fmt;
+>>> +	int r;
+>>> +
+>>> +	/* Initialize miscellaneous variables */
+>>> +	mutex_init(&q->lock);
+>>> +
+>>> +	/* Initialize formats to default values */
+>>> +	fmt = &q->subdev_fmt;
+>>> +	fmt->width = default_width;
+>>> +	fmt->height = default_height;
+>>> +	fmt->code = default_mbusfmt;
+>>> +	fmt->field = V4L2_FIELD_NONE;
+>>
+>>> +	fmt->colorspace = V4L2_COLORSPACE_RAW;
+>>> +	fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
+>>> +	fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
+>>> +	fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
+>>
+>> Same question as before: shouldn't this all come from the sensor subdev?
+> 
+> This is done at device initialisation time. I guess the above four lines
+> could be simply dropped.
+> 
+>>
+>>> +
+>>> +	q->pixelformat = V4L2_PIX_FMT_IPU3_SRGGB10;
+>>> +
+>>> +	/* Initialize fbpt */
+>>> +	r = cio2_fbpt_init(cio2, q);
+>>> +	if (r)
+>>> +		goto fail_fbpt;
+>>> +
+>>> +	/* Initialize media entities */
+>>> +	r = media_entity_pads_init(&subdev->entity, CIO2_PADS, q->subdev_pads);
+>>> +	if (r) {
+>>> +		dev_err(&cio2->pci_dev->dev,
+>>> +			"failed initialize subdev media entity (%d)\n", r);
+>>> +		goto fail_subdev_media_entity;
+>>> +	}
+>>> +	q->subdev_pads[CIO2_PAD_SINK].flags = MEDIA_PAD_FL_SINK |
+>>> +		MEDIA_PAD_FL_MUST_CONNECT;
+>>> +	q->subdev_pads[CIO2_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
+>>> +	subdev->entity.ops = &cio2_media_ops;
+>>> +	r = media_entity_pads_init(&vdev->entity, 1, &q->vdev_pad);
+>>> +	if (r) {
+>>> +		dev_err(&cio2->pci_dev->dev,
+>>> +			"failed initialize videodev media entity (%d)\n", r);
+>>> +		goto fail_vdev_media_entity;
+>>> +	}
+>>> +	q->vdev_pad.flags = MEDIA_PAD_FL_SINK | MEDIA_PAD_FL_MUST_CONNECT;
+>>> +	vdev->entity.ops = &cio2_media_ops;
+>>> +
+>>> +	/* Initialize subdev */
+>>> +	v4l2_subdev_init(subdev, &cio2_subdev_ops);
+>>> +	subdev->flags = V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
+>>> +	subdev->owner = THIS_MODULE;
+>>> +	snprintf(subdev->name, sizeof(subdev->name),
+>>> +		 CIO2_ENTITY_NAME ":%li", q - cio2->queue);
+>>> +	v4l2_set_subdevdata(subdev, cio2);
+>>> +	r = v4l2_device_register_subdev(&cio2->v4l2_dev, subdev);
+>>> +	if (r) {
+>>> +		dev_err(&cio2->pci_dev->dev,
+>>> +			"failed initialize subdev (%d)\n", r);
+>>> +		goto fail_subdev;
+>>> +	}
+>>> +
+>>> +	/* Initialize vbq */
+>>> +	vbq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>>> +	vbq->io_modes = VB2_USERPTR | VB2_MMAP;
+>>
+>> No DMABUF?!
+> 
+> I don't think it should require really code from the driver but I wonder if
+> something could go wrong if you don't test it.
+
+Not to my knowledge. All new drivers should really support VB2_DMABUF. In fact, this
+driver supports vidioc_expbuf, which makes no sense unless VB2_DMABUF is set.
+
+The USERPTR mode is more dubious. Has this been tested? Can the DMA handle partially
+filled pages? (I.e. there must be no requirements such as that the DMA has to start
+at a page boundary, since that's not the case with USERPTR).
+
+> 
+>>
+>>> +	vbq->ops = &cio2_vb2_ops;
+>>> +	vbq->mem_ops = &vb2_dma_sg_memops;
+>>> +	vbq->buf_struct_size = sizeof(struct cio2_buffer);
+>>> +	vbq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>>> +	vbq->min_buffers_needed = 1;
+>>> +	vbq->drv_priv = cio2;
+>>> +	vbq->lock = &q->lock;
+>>> +	r = vb2_queue_init(vbq);
+>>> +	if (r) {
+>>> +		dev_err(&cio2->pci_dev->dev,
+>>> +			"failed to initialize videobuf2 queue (%d)\n", r);
+>>> +		goto fail_vbq;
+>>> +	}
+>>> +
+> 
+
+Regards,
+
+	Hans
