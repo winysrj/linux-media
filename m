@@ -1,56 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:36031 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751931AbdENMyP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 14 May 2017 08:54:15 -0400
-Received: by mail-oi0-f67.google.com with SMTP id w138so15219131oiw.3
-        for <linux-media@vger.kernel.org>; Sun, 14 May 2017 05:54:15 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAL8zT=jwVquxzvnieVA2njSTdL98mOt+n=oy=Nb8ptXdBbJ-1w@mail.gmail.com>
-References: <CAF_dkJB=2PNbD79msw=G47U-6QkajDOWwLJbr3pCaTQeqn=fXA@mail.gmail.com>
- <CAL8zT=jwVquxzvnieVA2njSTdL98mOt+n=oy=Nb8ptXdBbJ-1w@mail.gmail.com>
-From: Patrick Doyle <wpdster@gmail.com>
-Date: Sun, 14 May 2017 08:53:44 -0400
-Message-ID: <CAF_dkJCmY-n_0MdceZGXRA5fuPuMCg395Ct8x8WGRF+QCAp1eg@mail.gmail.com>
-Subject: Re: Is it possible to have a binary blob custom control?
-To: Jean-Michel Hautbois <jhautbois@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mga06.intel.com ([134.134.136.31]:43942 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754908AbdEHPFA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 May 2017 11:05:00 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
+        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
+        daniel.vetter@ffwll.ch, labbott@redhat.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v4 03/18] vb2: Move cache synchronisation from buffer done to dqbuf handler
+Date: Mon,  8 May 2017 18:03:15 +0300
+Message-Id: <1494255810-12672-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, May 14, 2017 at 3:27 AM, Jean-Michel Hautbois
-<jhautbois@gmail.com> wrote:
-> Maybe a debugfs would be easier than an ioctl? Do you have a good reason to
-> use the control framework for that matter?
+The cache synchronisation may be a time consuming operation and thus not
+best performed in an interrupt which is a typical context for
+vb2_buffer_done() calls. This may consume up to tens of ms on some
+machines, depending on the buffer size.
 
-I implemented this once before, using a custom ioctl, which meant that
-I had to maintain a custom kernel header file.  I am looking for a
-better way to do this.  I wondered if I could do this through the V4L2
-framework, but perhaps, as you suggest, the debugfs would be better.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-The underlying issue I am trying to address is this:  I have an
-application that used the ov7740 imager from Omnivision.  I have
-custom register settings that were provided to me under NDA.  I have
-asked Omnivision if I can publish those register settings in GPL'd
-source code, but have received no response.  So, my alternative
-approach was to modify the GPL driver to accept custom register
-settings (through a new IOCTL).  That way I can bake the register
-settings in my custom application and still use the GPL'd driver.
-
-But that meant that I had to define a header file that gets included
-in the kernel, and I need some way to build my application with a
-reference to that header file.  This is error prone.
-
-I like your suggestion of a debugfs API.  That way I could open
-/proc/sys/debug/ov7740/custom_vga_settings and write my register
-settings there.  The name is the documentation.  The format is in the
-README.
-
-Are there other ways I could do this?  Certainly?  Are there better
-ways I could do this?  I'm open to opinions.
-
-Thanks again.
-
---wpd
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 8bf3369..e866115 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -889,7 +889,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 	unsigned long flags;
+-	unsigned int plane;
+ 
+ 	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
+ 		return;
+@@ -910,10 +909,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	dprintk(4, "done processing on buffer %d, state: %d\n",
+ 			vb->index, state);
+ 
+-	/* sync buffers */
+-	for (plane = 0; plane < vb->num_planes; ++plane)
+-		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+-
+ 	spin_lock_irqsave(&q->done_lock, flags);
+ 	if (state == VB2_BUF_STATE_QUEUED ||
+ 	    state == VB2_BUF_STATE_REQUEUEING) {
+@@ -1573,6 +1568,10 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+ 
+ 	vb->state = VB2_BUF_STATE_DEQUEUED;
+ 
++	/* sync buffers */
++	for (i = 0; i < vb->num_planes; ++i)
++		call_void_memop(vb, finish, vb->planes[i].mem_priv);
++
+ 	/* unmap DMABUF buffer */
+ 	if (q->memory == VB2_MEMORY_DMABUF)
+ 		for (i = 0; i < vb->num_planes; ++i) {
+-- 
+2.7.4
