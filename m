@@ -1,61 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:40850 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758778AbdENQrt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 14 May 2017 12:47:49 -0400
-From: Colin King <colin.king@canonical.com>
-To: Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] s5p-mfc: fix spelling mistake: "destionation" -> "destination"
-Date: Sun, 14 May 2017 17:47:41 +0100
-Message-Id: <20170514164741.6483-1-colin.king@canonical.com>
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:33591 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754632AbdEHObS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 May 2017 10:31:18 -0400
+Date: Mon, 8 May 2017 11:31:15 -0300
+From: Gustavo Padovan <gustavo@padovan.org>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+        linux-media@vger.kernel.org,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH 1/4] dma-buf: Combine two function calls into one in
+ dma_buf_debug_show()
+Message-ID: <20170508143115.GA28331@joana>
+References: <3d972fa2-787a-d1f2-ff86-5c05494e00d3@users.sourceforge.net>
+ <b8a85220-039a-e4bb-c74b-d76baab234e8@users.sourceforge.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <b8a85220-039a-e4bb-c74b-d76baab234e8@users.sourceforge.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+2017-05-08 SF Markus Elfring <elfring@users.sourceforge.net>:
 
-Trivial fix to spelling mistake in mfc_err error messages
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Mon, 8 May 2017 10:32:44 +0200
+> 
+> A bit of data was put into a sequence by two separate function calls.
+> Print the same data by a single function call instead.
+> 
+> This issue was detected by using the Coccinelle software.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/dma-buf/dma-buf.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c | 2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Reviewed-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-index b41ee608c171..0913881219ff 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-@@ -1293,7 +1293,7 @@ static int s5p_mfc_run_init_dec_buffers(struct s5p_mfc_ctx *ctx)
- 	 * First set the output frame buffers
- 	 */
- 	if (ctx->capture_state != QUEUE_BUFS_MMAPED) {
--		mfc_err("It seems that not all destionation buffers were mmaped\nMFC requires that all destination are mmaped before starting processing\n");
-+		mfc_err("It seems that not all destination buffers were mmaped\nMFC requires that all destination are mmaped before starting processing\n");
- 		return -EAGAIN;
- 	}
- 	if (list_empty(&ctx->src_queue)) {
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 85880e9106be..88dbb9c341ec 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -1650,7 +1650,7 @@ static inline int s5p_mfc_run_init_dec_buffers(struct s5p_mfc_ctx *ctx)
- 	 * s5p_mfc_alloc_dec_buffers(ctx); */
- 
- 	if (ctx->capture_state != QUEUE_BUFS_MMAPED) {
--		mfc_err("It seems that not all destionation buffers were\n"
-+		mfc_err("It seems that not all destination buffers were\n"
- 			"mmaped.MFC requires that all destination are mmaped\n"
- 			"before starting processing.\n");
- 		return -EAGAIN;
--- 
-2.11.0
+Gustavo
