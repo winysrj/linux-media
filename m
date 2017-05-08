@@ -1,124 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa2.microchip.iphmx.com ([68.232.149.84]:48270 "EHLO
-        esa2.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750934AbdEVFEw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 May 2017 01:04:52 -0400
-Subject: Re: [PATCH v1] [media] atmel-isi: code cleanup
-To: Hugues FRUCHET <hugues.fruchet@st.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1495188292-3113-1-git-send-email-hugues.fruchet@st.com>
- <1495188292-3113-2-git-send-email-hugues.fruchet@st.com>
- <e1973f0e-4ba2-24ca-f013-c3ef20a7bf47@st.com>
-From: "Wu, Songjun" <Songjun.Wu@microchip.com>
-Message-ID: <96e522a2-e12f-9fe4-9469-c5fe7c9a58f8@microchip.com>
-Date: Mon, 22 May 2017 13:02:51 +0800
-MIME-Version: 1.0
-In-Reply-To: <e1973f0e-4ba2-24ca-f013-c3ef20a7bf47@st.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mga05.intel.com ([192.55.52.43]:63811 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755107AbdEHPFA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 May 2017 11:05:00 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
+        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
+        daniel.vetter@ffwll.ch, labbott@redhat.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v4 01/18] vb2: Rename confusingly named internal buffer preparation functions
+Date: Mon,  8 May 2017 18:03:13 +0300
+Message-Id: <1494255810-12672-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hugues,
+Rename __qbuf_*() functions which are specific to a buffer type as
+__prepare_*() which matches with what they do. The naming was there for
+historical reasons; the purpose of the functions was changed without
+renaming them.
 
-Thank you for your patch.
-Is it necessary to ensure ISI is clocked before starting sensor sub device?
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-On 5/19/2017 20:08, Hugues FRUCHET wrote:
-> Adding Songjun and Ludovic as Atmel maintainers, sorry for inconvenience.
-> 
-> On 05/19/2017 12:04 PM, Hugues Fruchet wrote:
->> Ensure that ISI is clocked before starting sensor sub device.
->> Remove un-needed type check in try_fmt().
->> Use clamp() macro for hardware capabilities.
->> Fix wrong tabulation to space.
->>
->> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
->> ---
->>    drivers/media/platform/atmel/atmel-isi.c | 24 ++++++++++--------------
->>    1 file changed, 10 insertions(+), 14 deletions(-)
->>
->> diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
->> index e4867f8..7bf9f7d 100644
->> --- a/drivers/media/platform/atmel/atmel-isi.c
->> +++ b/drivers/media/platform/atmel/atmel-isi.c
->> @@ -36,8 +36,8 @@
->>    
->>    #include "atmel-isi.h"
->>    
->> -#define MAX_SUPPORT_WIDTH		2048
->> -#define MAX_SUPPORT_HEIGHT		2048
->> +#define MAX_SUPPORT_WIDTH		2048U
->> +#define MAX_SUPPORT_HEIGHT		2048U
->>    #define MIN_FRAME_RATE			15
->>    #define FRAME_INTERVAL_MILLI_SEC	(1000 / MIN_FRAME_RATE)
->>    
->> @@ -424,6 +424,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
->>    	struct frame_buffer *buf, *node;
->>    	int ret;
->>    
->> +	pm_runtime_get_sync(isi->dev);
->> +
->>    	/* Enable stream on the sub device */
->>    	ret = v4l2_subdev_call(isi->entity.subdev, video, s_stream, 1);
->>    	if (ret && ret != -ENOIOCTLCMD) {
->> @@ -431,8 +433,6 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
->>    		goto err_start_stream;
->>    	}
->>    
->> -	pm_runtime_get_sync(isi->dev);
->> -
->>    	/* Reset ISI */
->>    	ret = atmel_isi_wait_status(isi, WAIT_ISI_RESET);
->>    	if (ret < 0) {
->> @@ -455,10 +455,11 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
->>    	return 0;
->>    
->>    err_reset:
->> -	pm_runtime_put(isi->dev);
->>    	v4l2_subdev_call(isi->entity.subdev, video, s_stream, 0);
->>    
->>    err_start_stream:
->> +	pm_runtime_put(isi->dev);
->> +
->>    	spin_lock_irq(&isi->irqlock);
->>    	isi->active = NULL;
->>    	/* Release all active buffers */
->> @@ -566,20 +567,15 @@ static int isi_try_fmt(struct atmel_isi *isi, struct v4l2_format *f,
->>    	};
->>    	int ret;
->>    
->> -	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->> -		return -EINVAL;
->> -
->>    	isi_fmt = find_format_by_fourcc(isi, pixfmt->pixelformat);
->>    	if (!isi_fmt) {
->>    		isi_fmt = isi->user_formats[isi->num_user_formats - 1];
->>    		pixfmt->pixelformat = isi_fmt->fourcc;
->>    	}
->>    
->> -	/* Limit to Atmel ISC hardware capabilities */
->> -	if (pixfmt->width > MAX_SUPPORT_WIDTH)
->> -		pixfmt->width = MAX_SUPPORT_WIDTH;
->> -	if (pixfmt->height > MAX_SUPPORT_HEIGHT)
->> -		pixfmt->height = MAX_SUPPORT_HEIGHT;
->> +	/* Limit to Atmel ISI hardware capabilities */
->> +	pixfmt->width = clamp(pixfmt->width, 0U, MAX_SUPPORT_WIDTH);
->> +	pixfmt->height = clamp(pixfmt->height, 0U, MAX_SUPPORT_HEIGHT);
->>    
->>    	v4l2_fill_mbus_format(&format.format, pixfmt, isi_fmt->mbus_code);
->>    	ret = v4l2_subdev_call(isi->entity.subdev, pad, set_fmt,
->> @@ -1058,7 +1054,7 @@ static int isi_graph_notify_complete(struct v4l2_async_notifier *notifier)
->>    	struct atmel_isi *isi = notifier_to_isi(notifier);
->>    	int ret;
->>    
->> -	isi->vdev->ctrl_handler	= isi->entity.subdev->ctrl_handler;
->> +	isi->vdev->ctrl_handler = isi->entity.subdev->ctrl_handler;
->>    	ret = isi_formats_init(isi);
->>    	if (ret) {
->>    		dev_err(isi->dev, "No supported mediabus format found\n");
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 94afbbf9..8df680d 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -956,9 +956,9 @@ void vb2_discard_done(struct vb2_queue *q)
+ EXPORT_SYMBOL_GPL(vb2_discard_done);
+ 
+ /**
+- * __qbuf_mmap() - handle qbuf of an MMAP buffer
++ * __prepare_mmap() - prepare an MMAP buffer
+  */
+-static int __qbuf_mmap(struct vb2_buffer *vb, const void *pb)
++static int __prepare_mmap(struct vb2_buffer *vb, const void *pb)
+ {
+ 	int ret = 0;
+ 
+@@ -969,9 +969,9 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const void *pb)
+ }
+ 
+ /**
+- * __qbuf_userptr() - handle qbuf of a USERPTR buffer
++ * __prepare_userptr() - prepare a USERPTR buffer
+  */
+-static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
++static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
+ {
+ 	struct vb2_plane planes[VB2_MAX_PLANES];
+ 	struct vb2_queue *q = vb->vb2_queue;
+@@ -1087,9 +1087,9 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
+ }
+ 
+ /**
+- * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
++ * __prepare_dmabuf() - prepare a DMABUF buffer
+  */
+-static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
++static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
+ {
+ 	struct vb2_plane planes[VB2_MAX_PLANES];
+ 	struct vb2_queue *q = vb->vb2_queue;
+@@ -1255,13 +1255,13 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+ 
+ 	switch (q->memory) {
+ 	case VB2_MEMORY_MMAP:
+-		ret = __qbuf_mmap(vb, pb);
++		ret = __prepare_mmap(vb, pb);
+ 		break;
+ 	case VB2_MEMORY_USERPTR:
+-		ret = __qbuf_userptr(vb, pb);
++		ret = __prepare_userptr(vb, pb);
+ 		break;
+ 	case VB2_MEMORY_DMABUF:
+-		ret = __qbuf_dmabuf(vb, pb);
++		ret = __prepare_dmabuf(vb, pb);
+ 		break;
+ 	default:
+ 		WARN(1, "Invalid queue type\n");
+-- 
+2.7.4
