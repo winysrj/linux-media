@@ -1,126 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:40056 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750797AbdEHId0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 May 2017 04:33:26 -0400
-Subject: Re: [PATCH 2/3] [media] doc-rst: add IPU3 raw10 bayer pixel format
- definitions
-To: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
-        hyungwoo.yang@intel.com
-References: <cover.1493479141.git.yong.zhi@intel.com>
- <edf6dbb7b690a363558e8b70b22eacd3854bae38.1493479141.git.yong.zhi@intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <027cd9dd-95b0-7bea-5c69-d434bd69a16e@xs4all.nl>
-Date: Mon, 8 May 2017 10:33:20 +0200
-MIME-Version: 1.0
-In-Reply-To: <edf6dbb7b690a363558e8b70b22eacd3854bae38.1493479141.git.yong.zhi@intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mga02.intel.com ([134.134.136.20]:30997 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754923AbdEHPEe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 May 2017 11:04:34 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
+        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
+        daniel.vetter@ffwll.ch, labbott@redhat.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v4 08/18] vb2: dma-contig: Don't warn on failure in obtaining scatterlist
+Date: Mon,  8 May 2017 18:03:20 +0300
+Message-Id: <1494255810-12672-9-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/30/2017 01:34 AM, Yong Zhi wrote:
-> The formats added by this patch are:
-> 
->     V4L2_PIX_FMT_IPU3_SBGGR10
->     V4L2_PIX_FMT_IPU3_SGBRG10
->     V4L2_PIX_FMT_IPU3_SGRBG10
->     V4L2_PIX_FMT_IPU3_SRGGB10
-> 
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> ---
->  Documentation/media/uapi/v4l/pixfmt-rgb.rst        |  1 +
->  .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         | 61 ++++++++++++++++++++++
->  2 files changed, 62 insertions(+)
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
-> 
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-> index b0f3513..6900d5c 100644
-> --- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-> +++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-> @@ -16,5 +16,6 @@ RGB Formats
->      pixfmt-srggb10p
->      pixfmt-srggb10alaw8
->      pixfmt-srggb10dpcm8
-> +    pixfmt-srggb10-ipu3
->      pixfmt-srggb12
->      pixfmt-srggb16
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
-> new file mode 100644
-> index 0000000..8a82f30
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
-> @@ -0,0 +1,61 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _V4L2_PIX_FMT_IPU3_SBGGR10:
-> +.. _V4L2_PIX_FMT_IPU3_SGBRG10:
-> +.. _V4L2_PIX_FMT_IPU3_SGRBG10:
-> +.. _V4L2_PIX_FMT_IPU3_SRGGB10:
-> +
-> +**********************************************************************************************************************************************
-> +V4L2_PIX_FMT_IPU3_SBGGR10 ('ip3b'), V4L2_PIX_FMT_IPU3_SGBRG10 ('ip3g'), V4L2_PIX_FMT_IPU3_SGRBG10 ('ip3G'), V4L2_PIX_FMT_IPU3_SRGGB10 ('ip3r')
-> +**********************************************************************************************************************************************
-> +
-> +10-bit Bayer formats
-> +
-> +Description
-> +===========
-> +
-> +These four pixel formats are raw sRGB / Bayer formats with 10 bits per
-> +sample with every 25 pixels packed to 32 bytes leaving 6 most significant 
-> +bits padding in the last byte. The format is little endian.
+vb2_dc_get_base_sgt() which obtains the scatterlist already prints
+information on why the scatterlist could not be obtained.
 
-Make a quick mention that these formats are used by the Intel IPU3 driver.
+Also, remove the useless warning of a failed kmalloc().
 
-Regards,
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-	Hans
-
-> +
-> +In other respects this format is similar to :ref:`V4L2-PIX-FMT-SRGGB10`.
-> +
-> +**Byte Order.**
-> +Each cell is one byte.
-> +
-> +.. raw:: latex
-> +
-> +    \newline\newline\begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{1.3cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|
-> +
-> +.. flat-table::
-> +
-> +    * - start + 0:
-> +      - B\ :sub:`00low`
-> +      - G\ :sub:`01low` \ (bits 7--2) B\ :sub:`00high`\ (bits 1--0)
-> +      - B\ :sub:`02low` \ (bits 7--4) G\ :sub:`01high`\ (bits 3--0)
-> +      - G\ :sub:`03low` \ (bits 7--6) B\ :sub:`02high`\ (bits 5--0)
-> +      - G\ :sub:`03high`
-> +    * - start + 5:
-> +      - G\ :sub:`10low`
-> +      - R\ :sub:`11low` \ (bits 7--2) G\ :sub:`10high`\ (bits 1--0)
-> +      - G\ :sub:`12low` \ (bits 7--4) R\ :sub:`11high`\ (bits 3--0)
-> +      - R\ :sub:`13low` \ (bits 7--6) G\ :sub:`12high`\ (bits 5--0)
-> +      - R\ :sub:`13high`
-> +    * - start + 10:
-> +      - B\ :sub:`20low`
-> +      - G\ :sub:`21low` \ (bits 7--2) B\ :sub:`20high`\ (bits 1--0)
-> +      - B\ :sub:`22low` \ (bits 7--4) G\ :sub:`21high`\ (bits 3--0)
-> +      - G\ :sub:`23low` \ (bits 7--6) B\ :sub:`22high`\ (bits 5--0)
-> +      - G\ :sub:`23high`
-> +    * - start + 15:
-> +      - G\ :sub:`30low`
-> +      - R\ :sub:`31low` \ (bits 7--2) G\ :sub:`30high`\ (bits 1--0)
-> +      - G\ :sub:`32low` \ (bits 7--4) R\ :sub:`31high`\ (bits 3--0)
-> +      - R\ :sub:`33low` \ (bits 7--6) G\ :sub:`32high`\ (bits 5--0)
-> +      - R\ :sub:`33high`
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}\newline\newline
-> 
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index ddbbcf0..22636cd 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -370,10 +370,8 @@ static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
+ 	struct sg_table *sgt;
+ 
+ 	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
+-	if (!sgt) {
+-		dev_err(buf->dev, "failed to alloc sg table\n");
++	if (!sgt)
+ 		return NULL;
+-	}
+ 
+ 	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->cookie, buf->dma_addr,
+ 		buf->size, buf->attrs);
+@@ -400,7 +398,7 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
+ 	if (!buf->dma_sgt)
+ 		buf->dma_sgt = vb2_dc_get_base_sgt(buf);
+ 
+-	if (WARN_ON(!buf->dma_sgt))
++	if (!buf->dma_sgt)
+ 		return NULL;
+ 
+ 	dbuf = dma_buf_export(&exp_info);
+-- 
+2.7.4
