@@ -1,86 +1,403 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:47923 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750837AbdE2FTJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 01:19:09 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.12] cec kernel config fixes
-Message-ID: <86d47e74-1977-5d2f-e58d-8107873902e0@xs4all.nl>
-Date: Mon, 29 May 2017 07:19:04 +0200
+Received: from mail-yw0-f170.google.com ([209.85.161.170]:33538 "EHLO
+        mail-yw0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750787AbdEIIoh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 May 2017 04:44:37 -0400
+Received: by mail-yw0-f170.google.com with SMTP id 203so41160070ywe.0
+        for <linux-media@vger.kernel.org>; Tue, 09 May 2017 01:44:36 -0700 (PDT)
+Received: from mail-yw0-f182.google.com (mail-yw0-f182.google.com. [209.85.161.182])
+        by smtp.gmail.com with ESMTPSA id t9sm4180932ywc.19.2017.05.09.01.44.34
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 09 May 2017 01:44:35 -0700 (PDT)
+Received: by mail-yw0-f182.google.com with SMTP id b68so41281896ywe.3
+        for <linux-media@vger.kernel.org>; Tue, 09 May 2017 01:44:34 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1494254208-30045-1-git-send-email-rajmohan.mani@intel.com>
+References: <1494254208-30045-1-git-send-email-rajmohan.mani@intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Tue, 9 May 2017 16:44:13 +0800
+Message-ID: <CAAFQd5A34z8=uAAq-k+d-n0E+93dup1DuQZHsoaw+5YNaGqWPw@mail.gmail.com>
+Subject: Re: [PATCH v2] dw9714: Initial driver for dw9714 VCM
+To: Rajmohan Mani <rajmohan.mani@intel.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- From the cover letter of the patch series:
+Hi Rajmohan,
 
-While working on drm CEC drivers I realized that the correct config
-setup is a pain. The problem is that the CEC subsystem is really independent
-of the media subsystem: both media and drm drivers can use it.
+Some comments below.
 
-So this patch series moves the core CEC kernel config options outside the
-"Multimedia support" menu and drivers that want to use CEC should select
-CEC_CORE. This also ensures that the cec framework will be correctly build
-as either a module or a built-in.
+On Mon, May 8, 2017 at 10:36 PM, Rajmohan Mani <rajmohan.mani@intel.com> wrote:
+> DW9714 is a 10 bit DAC, designed for linear
+> control of voice coil motor.
+>
+> This driver creates a V4L2 subdevice and
+> provides control to set the desired focus.
+>
+> Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+> ---
+> Changes in v2:
+>         - Addressed review comments from Hans Verkuil
+>         - Fixed a debug message typo
+>         - Got rid of a return variable
+> ---
+>  drivers/media/i2c/Kconfig  |   9 ++
+>  drivers/media/i2c/Makefile |   1 +
+>  drivers/media/i2c/dw9714.c | 320 +++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 330 insertions(+)
+>  create mode 100644 drivers/media/i2c/dw9714.c
+[snip]
+> diff --git a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c
+> new file mode 100644
+> index 0000000..cd6cde7
+> --- /dev/null
+> +++ b/drivers/media/i2c/dw9714.c
+> @@ -0,0 +1,320 @@
+> +/*
+> + * Copyright (c) 2015--2017 Intel Corporation.
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License version
+> + * 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/delay.h>
+> +#include <linux/i2c.h>
+> +#include <linux/module.h>
+> +#include <linux/pm_runtime.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-device.h>
+> +
+> +#define DW9714_NAME            "dw9714"
+> +#define DW9714_MAX_FOCUS_POS   1023
+> +#define DW9714_CTRL_STEPS      16      /* Keep this value power of 2 */
 
-The only missing piece is that drm drivers that use cec-notifier.h need to
-add a 'select CEC_CORE if CEC_NOTIFIER' to their Kconfig. That would allow
-the removal of the ugly 'IS_REACHABLE' construct in cec-notifier.h.
+Because?
 
-But that can be done for 4.13.
+> +#define DW9714_CTRL_DELAY_US   1000
+> +/*
+> + * S[3:2] = 0x00, codes per step for "Linear Slope Control"
+> + * S[1:0] = 0x00, step period
+> + */
+> +#define DW9714_DEFAULT_S 0x0
+> +#define DW9714_VAL(data, s) (u16)((data) << 4 | (s))
 
-Enabling the RC integration is still part of the MEDIA_CEC_SUPPORT menu,
-since it obviously relies on the media rc core.
+Do we need this cast?
 
-The second patch renames MEDIA_CEC_NOTIFIER to CEC_NOTIFIER since
-this too is not part of the media subsystem and is instead selected by
-drivers that want to use it.
+> +
+> +/* dw9714 device structure */
+> +struct dw9714_device {
+> +       struct i2c_client *client;
+> +       struct v4l2_ctrl_handler ctrls_vcm;
+> +       struct v4l2_subdev sd;
+> +       u16 current_val;
+> +};
+> +
+> +#define to_dw9714_vcm(_ctrl)   \
+> +       container_of(_ctrl->handler, struct dw9714_device, ctrls_vcm)
 
-The last patch drops the MEDIA_CEC_DEBUG kernel config option: instead
-just rely on DEBUG_FS. There really is no need for this additional option,
-and in fact it would require enabled the media subsystem just to enable
-the CEC debugfs support when used by a drm driver.
+Please use a static inline function for type safety.
 
-I want to get this in for 4.12 while there are no drm drivers yet that
-integrate CEC support.
+> +
+> +static int dw9714_i2c_write(struct i2c_client *client, u16 data)
+> +{
+> +       const int num_msg = 1;
+> +       int ret;
+> +       u16 val = cpu_to_be16(data);
+> +       struct i2c_msg msg = {
+> +               .addr = client->addr,
+> +               .flags = 0,
+> +               .len = sizeof(val),
+> +               .buf = (u8 *) &val,
+> +       };
+> +
+> +       ret = i2c_transfer(client->adapter, &msg, num_msg);
+> +
+> +       /*One retry */
+> +       if (ret != num_msg)
+> +               ret = i2c_transfer(client->adapter, &msg, num_msg);
+> +
+> +       if (ret != num_msg) {
+> +               dev_err(&client->dev, "I2C write fail\n");
+> +               return -EIO;
+> +       }
 
-Regards,
+I believe i2c_master_send() would simplify this function significantly.
 
-         Hans
+> +       return 0;
+> +}
+> +
+> +static int dw9714_t_focus_vcm(struct dw9714_device *dw9714_dev, u16 val)
+> +{
+> +       struct i2c_client *client = dw9714_dev->client;
+> +
+> +       dev_dbg(&client->dev, "Setting new value VCM: %d\n", val);
+> +       dw9714_dev->current_val = val;
+> +
+> +       return dw9714_i2c_write(client, DW9714_VAL(val, DW9714_DEFAULT_S));
+> +}
+> +
+> +static int dw9714_set_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +       struct dw9714_device *dev_vcm = to_dw9714_vcm(ctrl);
+> +
+> +       if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE)
+> +               return dw9714_t_focus_vcm(dev_vcm, ctrl->val);
+> +
+> +       return -EINVAL;
+> +}
+> +
+> +static const struct v4l2_ctrl_ops dw9714_vcm_ctrl_ops = {
+> +       .s_ctrl = dw9714_set_ctrl,
+> +};
+> +
+> +static int dw9714_init_controls(struct dw9714_device *dev_vcm)
+> +{
+> +       struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
+> +       const struct v4l2_ctrl_ops *ops = &dw9714_vcm_ctrl_ops;
+> +       struct i2c_client *client = dev_vcm->client;
+> +
+> +       v4l2_ctrl_handler_init(hdl, 1);
+> +
+> +       v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
+> +                         0, DW9714_MAX_FOCUS_POS, 1, 0);
+> +
+> +       if (hdl->error)
+> +               dev_err(&client->dev, "dw9714_init_controls fail\n");
+> +       dev_vcm->sd.ctrl_handler = hdl;
+> +       return hdl->error;
+> +}
+> +
+> +static void dw9714_subdev_cleanup(struct dw9714_device *dw9714_dev)
+> +{
+> +       v4l2_ctrl_handler_free(&dw9714_dev->ctrls_vcm);
+> +       v4l2_async_unregister_subdev(&dw9714_dev->sd);
+> +       v4l2_device_unregister_subdev(&dw9714_dev->sd);
+> +       media_entity_cleanup(&dw9714_dev->sd.entity);
+> +}
+> +
+> +static int dw9714_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> +{
+> +       struct dw9714_device *dw9714_dev = container_of(sd,
+> +                                                       struct dw9714_device,
+> +                                                       sd);
+> +       struct device *dev = &dw9714_dev->client->dev;
+> +
+> +       return pm_runtime_get_sync(dev);
 
-The following changes since commit 36bcba973ad478042d1ffc6e89afd92e8bd17030:
+Need pm_runtime_put() if this fails.
 
-   [media] mtk_vcodec_dec: return error at mtk_vdec_pic_info_update() (2017-05-19 07:12:05 -0300)
+> +}
+> +
+> +static int dw9714_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> +{
+> +       struct dw9714_device *dw9714_dev = container_of(sd,
+> +                                                       struct dw9714_device,
+> +                                                       sd);
+> +       struct device *dev = &dw9714_dev->client->dev;
+> +
+> +       pm_runtime_put(dev);
+> +
+> +       return 0;
+> +}
+> +
+> +static const struct v4l2_subdev_internal_ops dw9714_int_ops = {
+> +       .open = dw9714_open,
+> +       .close = dw9714_close,
+> +};
+> +
+> +static const struct v4l2_subdev_ops dw9714_ops = { };
+> +
+> +static int dw9714_probe(struct i2c_client *client,
+> +                       const struct i2c_device_id *devid)
+> +{
+> +       struct dw9714_device *dw9714_dev;
+> +       int rval;
+> +
+> +       dw9714_dev = devm_kzalloc(&client->dev, sizeof(*dw9714_dev),
+> +                                 GFP_KERNEL);
+> +
+> +       if (dw9714_dev == NULL)
+> +               return -ENOMEM;
+> +
+> +       dw9714_dev->client = client;
+> +
+> +       v4l2_i2c_subdev_init(&dw9714_dev->sd, client, &dw9714_ops);
+> +       dw9714_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +       dw9714_dev->sd.internal_ops = &dw9714_int_ops;
+> +
+> +       rval = dw9714_init_controls(dw9714_dev);
+> +       if (rval)
+> +               goto err_cleanup;
+> +
+> +       rval = media_entity_pads_init(&dw9714_dev->sd.entity, 0, NULL);
+> +       if (rval < 0)
+> +               goto err_cleanup;
+> +
+> +       dw9714_dev->sd.entity.function = MEDIA_ENT_F_LENS;
+> +
+> +       rval = v4l2_async_register_subdev(&dw9714_dev->sd);
+> +       if (rval < 0)
+> +               goto err_cleanup;
+> +
+> +       pm_runtime_enable(&client->dev);
+> +
+> +       return 0;
+> +
+> +err_cleanup:
+> +       dw9714_subdev_cleanup(dw9714_dev);
+> +       dev_err(&client->dev, "Probe failed: %d\n", rval);
+> +       return rval;
+> +}
+> +
+> +static int dw9714_remove(struct i2c_client *client)
+> +{
+> +       struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +       struct dw9714_device *dw9714_dev = container_of(sd,
+> +                                                       struct dw9714_device,
+> +                                                       sd);
+> +
+> +       pm_runtime_disable(&client->dev);
+> +       dw9714_subdev_cleanup(dw9714_dev);
+> +
+> +       return 0;
+> +}
+> +
+> +#ifdef CONFIG_PM
+> +
+> +static int dw9714_runtime_suspend(struct device *dev)
+> +{
+> +       return 0;
+> +}
+> +
+> +static int dw9714_runtime_resume(struct device *dev)
+> +{
+> +       return 0;
+> +}
+> +
+> +/* This function sets the vcm position, so it consumes least current */
+> +static int dw9714_suspend(struct device *dev)
+> +{
+> +       struct i2c_client *client = to_i2c_client(dev);
+> +       struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +       struct dw9714_device *dw9714_dev = container_of(sd,
+> +                                                       struct dw9714_device,
+> +                                                       sd);
+> +       int ret, val;
+> +
+> +       dev_dbg(dev, "%s\n", __func__);
+> +
+> +       for (val = dw9714_dev->current_val & ~(DW9714_CTRL_STEPS - 1);
+> +            val >= 0; val -= DW9714_CTRL_STEPS) {
+> +               ret = dw9714_i2c_write(client,
+> +                                      DW9714_VAL((u16) val, DW9714_DEFAULT_S));
+> +               if (ret)
+> +                       dev_err(dev, "%s I2C failure: %d", __func__, ret);
+> +               usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
 
-are available in the git repository at:
+Is it necessary to change the value in such steps? If so, shouldn't
+the control handler behave in the same way, making sure that userspace
+does not request changes in bigger steps?
 
-   git://linuxtv.org/hverkuil/media_tree.git cec-config
+> +       }
+> +       return 0;
+> +}
+> +
+> +/*
+> + * This function sets the vcm position, so the focus position is set
+> + * closer to the camera
 
-for you to fetch changes up to c3e855ff8f8b5a4a210c5f3b6b2b3de93e9a491a:
+I think it should only set the VCM position to the value as set before
+the suspend.
 
-   cec: drop MEDIA_CEC_DEBUG (2017-05-28 11:36:04 +0200)
+> + */
+> +static int dw9714_resume(struct device *dev)
+> +{
+> +       struct i2c_client *client = to_i2c_client(dev);
+> +       struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +       struct dw9714_device *dw9714_dev = container_of(sd,
+> +                                                       struct dw9714_device,
+> +                                                       sd);
+> +       int ret, val;
+> +
+> +       dev_dbg(dev, "%s\n", __func__);
+> +
+> +       for (val = dw9714_dev->current_val % DW9714_CTRL_STEPS;
+> +            val < dw9714_dev->current_val + DW9714_CTRL_STEPS - 1;
+> +            val += DW9714_CTRL_STEPS) {
+> +               ret = dw9714_i2c_write(client,
+> +                                      DW9714_VAL((u16) val, DW9714_DEFAULT_S));
+> +               if (ret)
+> +                       dev_err(dev, "%s I2C failure: %d", __func__, ret);
+> +               usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
+> +       }
+> +
+> +       /* restore v4l2 control values */
+> +       ret = v4l2_ctrl_handler_setup(&dw9714_dev->ctrls_vcm);
+> +       dev_dbg(dev, "%s ret = %d\n", __func__, ret);
+> +       return ret;
+> +}
+> +
+> +#else
+> +
+> +#define dw9714_suspend NULL
+> +#define dw9714_resume  NULL
+> +#define dw9714_runtime_suspend NULL
+> +#define dw9714_runtime_resume  NULL
 
-----------------------------------------------------------------
-Hans Verkuil (3):
-       cec: select CEC_CORE instead of depend on it
-       cec: rename MEDIA_CEC_NOTIFIER to CEC_NOTIFIER
-       cec: drop MEDIA_CEC_DEBUG
+This #define trickery shouldn't be necessary. Please see below.
+(#ifndef/#endif around the functions themselves is still necessary.)
 
-  drivers/media/Kconfig                    |  6 ++++++
-  drivers/media/Makefile                   |  4 ++--
-  drivers/media/cec/Kconfig                | 14 --------------
-  drivers/media/cec/Makefile               |  2 +-
-  drivers/media/cec/cec-adap.c             |  2 +-
-  drivers/media/cec/cec-core.c             |  8 ++++----
-  drivers/media/i2c/Kconfig                |  9 ++++++---
-  drivers/media/platform/Kconfig           | 10 ++++++----
-  drivers/media/platform/vivid/Kconfig     |  3 ++-
-  drivers/media/usb/pulse8-cec/Kconfig     |  3 ++-
-  drivers/media/usb/rainshadow-cec/Kconfig |  3 ++-
-  include/media/cec-notifier.h             |  2 +-
-  include/media/cec.h                      |  4 ++--
-  13 files changed, 35 insertions(+), 35 deletions(-)
+> +
+> +#endif /* CONFIG_PM */
+> +
+> +#ifdef CONFIG_ACPI
+> +static const struct acpi_device_id dw9714_acpi_match[] = {
+> +       {"DW9714", 0},
+> +       {},
+> +};
+> +MODULE_DEVICE_TABLE(acpi, dw9714_acpi_match);
+> +#endif
+> +
+> +static const struct i2c_device_id dw9714_id_table[] = {
+> +       {DW9714_NAME, 0},
+> +       {}
+> +};
+> +
+> +MODULE_DEVICE_TABLE(i2c, dw9714_id_table);
+> +
+> +static const struct dev_pm_ops dw9714_pm_ops = {
+> +       .suspend = dw9714_suspend,
+> +       .resume = dw9714_resume,
+> +       .runtime_suspend = dw9714_runtime_suspend,
+> +       .runtime_resume = dw9714_runtime_resume,
+
+You can (and probably should) use SET_SYSTEM_SLEEP_PM_OPS() for global
+suspend/resume handlers and SET_RUNTIME_PM_OPS() for runtime ones.
+This also takes care of functions being undefined if !CONFIG_PM.
+
+> +};
+> +
+> +static struct i2c_driver dw9714_i2c_driver = {
+> +       .driver = {
+> +               .name = DW9714_NAME,
+> +               .pm = &dw9714_pm_ops,
+> +#ifdef CONFIG_ACPI
+> +               .acpi_match_table = ACPI_PTR(dw9714_acpi_match),
+> +#endif
+
+No need for #ifdef CONFIG_ACPI, as .acpi_match_table is always present
+in the struct and ACPI_PTR() takes care of dw9714_acpi_match being
+undefined if !CONFIG_ACPI.
+
+Best regards,
+Tomasz
