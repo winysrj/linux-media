@@ -1,120 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41707 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750733AbdE3Qt4 (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:59084 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751213AbdEIEXG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 12:49:56 -0400
-Subject: Re: [RFC PATCH 7/7] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
- support
-To: Clint Taylor <clinton.a.taylor@intel.com>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Daniel Vetter <daniel@ffwll.ch>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20170525150626.29748-1-hverkuil@xs4all.nl>
- <20170525150626.29748-8-hverkuil@xs4all.nl>
- <20170526071550.3gsq3pc375cnk2gk@phenom.ffwll.local>
- <0a417a9c-4a41-796c-9876-51b61d429bb5@xs4all.nl>
- <20170529190004.ipdeyntsmzzb3iij@phenom.ffwll.local>
- <d9e9354b-eeb7-0a1e-2dbc-16c1ba0c0784@xs4all.nl> <87y3tekedi.fsf@intel.com>
- <f7d14e1c-9a6a-6d0f-bfe8-b4b619efd3bc@intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <22961af9-5157-ae14-3000-f91cedc27958@xs4all.nl>
-Date: Tue, 30 May 2017 18:49:50 +0200
-MIME-Version: 1.0
-In-Reply-To: <f7d14e1c-9a6a-6d0f-bfe8-b4b619efd3bc@intel.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Tue, 9 May 2017 00:23:06 -0400
+Message-ID: <a638ebf1e84d231aa1a2442c21eab3cf@smtp-cloud2.xs4all.net>
+Date: Tue, 09 May 2017 06:23:03 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/30/2017 04:19 PM, Clint Taylor wrote:
-> 
-> 
-> On 05/30/2017 12:11 AM, Jani Nikula wrote:
->> On Tue, 30 May 2017, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> On 05/29/2017 09:00 PM, Daniel Vetter wrote:
->>>> On Fri, May 26, 2017 at 12:20:48PM +0200, Hans Verkuil wrote:
->>>>> On 05/26/2017 09:15 AM, Daniel Vetter wrote:
->>>>>> Did you look into also wiring this up for dp mst chains?
->>>>> Isn't this sufficient? I have no way of testing mst chains.
->>>>>
->>>>> I think I need some pointers from you, since I am a complete newbie when it
->>>>> comes to mst.
->>>> I don't really have more clue, but yeah if you don't have an mst thing (a
->>>> simple dp port multiplexer is what I use for testing here, then plug in a
->>>> converter dongle or cable into that) then probably better to not wire up
->>>> the code for it.
->>> I think my NUC already uses mst internally. But I was planning on buying a
->>> dp multiplexer to make sure there is nothing special I need to do for mst.
->>>
->>> The CEC Tunneling is all in the branch device, so if I understand things
->>> correctly it is not affected by mst.
->>>
->>> BTW, I did a bit more testing on my NUC7i5BNK: for the HDMI output they
->>> use a MegaChip MCDP2800 DP-to-HDMI converter which according to their
->>> datasheet is supposed to implement CEC Tunneling, but if they do it is not
->>> exposed as a capability. I'm not sure if it is a MegaChip firmware issue
->>> or something else. The BIOS is able to do some CEC, but whether they hook
->>> into the MegaChip or have the CEC pin connected to a GPIO or something and
->>> have their own controller is something I do not know.
->>>
->>> If anyone can clarify what Intel did on the NUC, then that would be very
->>> helpful.
->> It's called LSPCON, see i915/intel_lspcon.c, basically to support HDMI
->> 2.0. Currently we only use it in PCON mode, shows up as DP for us. It
->> could be used in LS mode, showing up as HDMI 1.4, but we don't support
->> that in i915.
->>
->> I don't know about the CEC on that.
-> 
-> My NUC6i7KYK has the MCDP2850 LSPCON and it does support CEC over Aux.
-> The release notes for the NUC state that there is a BIOS configuration
-> option for enabling support. My doesn't have the option but the LSPCON
-> fully supports CEC.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-What is the output of:
+Results of the daily build of media_tree:
 
-dd if=/dev/drm_dp_aux0 of=aux0 skip=12288 ibs=1 count=48
-od -t x1 aux0
+date:			Tue May  9 05:00:19 CEST 2017
+media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
+media_build git hash:	ab988a3d089232ce9e1aec2f259e947c06983dbc
+v4l-utils git hash:	fba2bdde45aaf6b56608c3cf8b906d7e5ee0e21f
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-Assuming drm_dp_aux0 is the aux channel for the HDMI output on your NUC.
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: WARNINGS
+linux-4.9.26-i686: WARNINGS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-If the first byte is != 0x00, then it advertises CEC over Aux.
+Detailed results are available here:
 
-For me it says 0x00.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-When you say "it does support CEC over Aux", does that mean you have actually
-tested it somehow? The only working solution I have seen mentioned for the
-NUC6i7KYK is a Pulse-Eight adapter.
+Full logs are available here:
 
-With the NUC7i Intel made BIOS support for CEC, but it is not at all
-clear to me if they used CEC tunneling or just hooked up the CEC pin to
-some microcontroller.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-The only working chipset I have seen is the Parade PS176.
+The Media Infrastructure API from this daily build is here:
 
-Regards,
-
-	Hans
-
-> 
-> -Clint
-> 
->>
->>
->> BR,
->> Jani.
->>
->>> It would be so nice to get MegaChip CEC Tunneling working on the NUC, because
->>> then you have native CEC support without requiring any Pulse Eight adapter.
->>>
->>> And add a CEC-capable USB-C to HDMI adapter and you have it on the USB-C
->>> output as well.
->>>
->>> Regards,
->>>
->>> 	Hans
-> 
+http://www.xs4all.nl/~hverkuil/spec/index.html
