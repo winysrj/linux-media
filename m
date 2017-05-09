@@ -1,61 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.llwyncelyn.cymru ([82.70.14.225]:38374 "EHLO fuzix.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1947941AbdEZP0B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 May 2017 11:26:01 -0400
-Subject: [PATCH 02/12] atomisp: remove NUM_OF_BLS
-From: Alan Cox <alan@llwyncelyn.cymru>
-To: mchehab@kernel.org, linux-media@vger.kernel.org
-Date: Fri, 26 May 2017 16:25:57 +0100
-Message-ID: <149581235405.17406.14617300483450029323.stgit@builder>
-In-Reply-To: <149581234670.17406.8086980349538517529.stgit@builder>
-References: <149581234670.17406.8086980349538517529.stgit@builder>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f179.google.com ([209.85.128.179]:32947 "EHLO
+        mail-wr0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754245AbdEIPgw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 May 2017 11:36:52 -0400
+Received: by mail-wr0-f179.google.com with SMTP id w50so4259086wrc.0
+        for <linux-media@vger.kernel.org>; Tue, 09 May 2017 08:36:51 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v9 2/9] doc: DT: venus: binding document for Qualcomm video driver
+Date: Tue,  9 May 2017 18:35:54 +0300
+Message-Id: <1494344161-28131-3-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1494344161-28131-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1494344161-28131-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With the removal of the HAS_BL bootloader code the value of NUM_OF_BLS is an
-invariant zero. So let's get rid of it.
+Add binding document for Venus video encoder/decoder driver
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- .../atomisp/pci/atomisp2/css2400/sh_css_firmware.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ .../devicetree/bindings/media/qcom,venus.txt       | 107 +++++++++++++++++++++
+ 1 file changed, 107 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-index 57b4fe5..a179de5 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-@@ -234,9 +234,9 @@ sh_css_load_firmware(const char *fw_data,
- 
- 	sh_css_num_binaries = file_header->binary_nr;
- 	/* Only allocate memory for ISP blob info */
--	if (sh_css_num_binaries > (NUM_OF_SPS + NUM_OF_BLS)) {
-+	if (sh_css_num_binaries > NUM_OF_SPS) {
- 		sh_css_blob_info = kmalloc(
--					(sh_css_num_binaries - (NUM_OF_SPS + NUM_OF_BLS)) *
-+					(sh_css_num_binaries - NUM_OF_SPS) *
- 					sizeof(*sh_css_blob_info), GFP_KERNEL);
- 		if (sh_css_blob_info == NULL)
- 			return IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
-@@ -272,15 +272,15 @@ sh_css_load_firmware(const char *fw_data,
- 			if (err != IA_CSS_SUCCESS)
- 				return err;
- 		} else {
--			/* All subsequent binaries (including bootloaders) (i>NUM_OF_SPS+NUM_OF_BLS) are ISP firmware */
--			if (i < (NUM_OF_SPS + NUM_OF_BLS))
-+			/* All subsequent binaries (including bootloaders) (i>NUM_OF_SPS) are ISP firmware */
-+			if (i < NUM_OF_SPS)
- 				return IA_CSS_ERR_INTERNAL_ERROR;
- 
- 			if (bi->type != ia_css_isp_firmware)
- 				return IA_CSS_ERR_INTERNAL_ERROR;
- 			if (sh_css_blob_info == NULL) /* cannot happen but KW does not see this */
- 				return IA_CSS_ERR_INTERNAL_ERROR;
--			sh_css_blob_info[i-(NUM_OF_SPS + NUM_OF_BLS)] = bd;
-+			sh_css_blob_info[i - NUM_OF_SPS] = bd;
- 		}
- 	}
- 
+diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
+new file mode 100644
+index 000000000000..2693449daf73
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
+@@ -0,0 +1,107 @@
++* Qualcomm Venus video encoder/decoder accelerators
++
++- compatible:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Value should contain one of:
++		- "qcom,msm8916-venus"
++		- "qcom,msm8996-venus"
++- reg:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: Register base address and length of the register map.
++- interrupts:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: Should contain interrupt line number.
++- clocks:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A List of phandle and clock specifier pairs as listed
++		    in clock-names property.
++- clock-names:
++	Usage: required for msm8916
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "core"	Core video accelerator clock
++		- "iface"	Video accelerator AHB clock
++		- "bus"		Video accelerator AXI clock
++- clock-names:
++	Usage: required for msm8996
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "core"	Core video accelerator clock
++		- "iface"	Video accelerator AHB clock
++		- "bus"		Video accelerator AXI clock
++		- "mbus"	Video MAXI clock
++- power-domains:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A phandle and power domain specifier pairs to the
++		    power domain which is responsible for collapsing
++		    and restoring power to the peripheral.
++- iommus:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A list of phandle and IOMMU specifier pairs.
++- memory-region:
++	Usage: required
++	Value type: <phandle>
++	Definition: reference to the reserved-memory for the firmware
++		    memory region.
++
++* Subnodes
++The Venus video-codec node must contain two subnodes representing
++video-decoder and video-encoder.
++
++Every of video-encoder or video-decoder subnode should have:
++
++- compatible:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Value should contain "venus-decoder" or "venus-encoder"
++- clocks:
++	Usage: required for msm8996
++	Value type: <prop-encoded-array>
++	Definition: A List of phandle and clock specifier pairs as listed
++		    in clock-names property.
++- clock-names:
++	Usage: required for msm8996
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "core"	Subcore video accelerator clock
++
++- power-domains:
++	Usage: required for msm8996
++	Value type: <prop-encoded-array>
++	Definition: A phandle and power domain specifier pairs to the
++		    power domain which is responsible for collapsing
++		    and restoring power to the subcore.
++
++* An Example
++	video-codec@1d00000 {
++		compatible = "qcom,msm8916-venus";
++		reg = <0x01d00000 0xff000>;
++		interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&gcc GCC_VENUS0_VCODEC0_CLK>,
++			 <&gcc GCC_VENUS0_AHB_CLK>,
++			 <&gcc GCC_VENUS0_AXI_CLK>;
++		clock-names = "core", "iface", "bus";
++		power-domains = <&gcc VENUS_GDSC>;
++		iommus = <&apps_iommu 5>;
++		memory-region = <&venus_mem>;
++
++		video-decoder {
++			compatible = "venus-decoder";
++			clocks = <&mmcc VIDEO_SUBCORE0_CLK>;
++			clock-names = "core";
++			power-domains = <&mmcc VENUS_CORE0_GDSC>;
++		};
++
++		video-encoder {
++			compatible = "venus-encoder";
++			clocks = <&mmcc VIDEO_SUBCORE1_CLK>;
++			clock-names = "core";
++			power-domains = <&mmcc VENUS_CORE1_GDSC>;
++		};
++	};
+-- 
+2.7.4
