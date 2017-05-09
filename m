@@ -1,102 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36145 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755606AbdEET7R (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 May 2017 15:59:17 -0400
-Received: by mail-wm0-f66.google.com with SMTP id u65so3308943wmu.3
-        for <linux-media@vger.kernel.org>; Fri, 05 May 2017 12:59:11 -0700 (PDT)
-Date: Fri, 5 May 2017 21:59:09 +0200
-From: Thomas Hollstegge <thomas.hollstegge@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v2] [media] em28xx: support for Sundtek MediaTV Digital Home
-Message-ID: <20170505195905.GA1057@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mail-wr0-f177.google.com ([209.85.128.177]:35739 "EHLO
+        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754050AbdEIPg3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 May 2017 11:36:29 -0400
+Received: by mail-wr0-f177.google.com with SMTP id z52so4125212wrc.2
+        for <linux-media@vger.kernel.org>; Tue, 09 May 2017 08:36:28 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v9 0/9] Qualcomm video decoder/encoder driver
+Date: Tue,  9 May 2017 18:35:52 +0300
+Message-Id: <1494344161-28131-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sundtek MediaTV Digital Home is a rebranded MaxMedia UB425-TC with the
-following components:
+Hello everyone,
 
-USB bridge: Empia EM2874B
-Demodulator: Micronas DRX 3913KA2
-Tuner: NXP TDA18271HDC2
+The changes since v8 are:
+  * no functional changes.
+  * dropped COMPILE_TEST support until the drivers which Venus
+  driver selects got compile test support.
+  * added venus_ prefix to the exported helper functions as
+  suggested by Sakari.
+  * fixed few signed-unsigned compare warnings.
 
-Signed-off-by: Thomas Hollstegge <thomas.hollstegge@gmail.com>
----
-Changes in v2:
-  - Make the patch apply against linux-media master
+Patches applies cleanly on next-20170509 and media_tree.
+  
+regards,
+Stan
 
- drivers/media/usb/em28xx/em28xx-cards.c | 15 +++++++++++++++
- drivers/media/usb/em28xx/em28xx-dvb.c   |  1 +
- drivers/media/usb/em28xx/em28xx.h       |  1 +
- 3 files changed, 17 insertions(+)
+Stanimir Varbanov (9):
+  media: v4l2-mem2mem: extend m2m APIs for more accurate buffer
+    management
+  doc: DT: venus: binding document for Qualcomm video driver
+  MAINTAINERS: Add Qualcomm Venus video accelerator driver
+  media: venus: adding core part and helper functions
+  media: venus: vdec: add video decoder files
+  media: venus: venc: add video encoder files
+  media: venus: hfi: add Host Firmware Interface (HFI)
+  media: venus: hfi: add Venus HFI files
+  media: venus: enable building of Venus video driver
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index a12b599..adb5db2 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -415,6 +415,7 @@ static struct em28xx_reg_seq hauppauge_930c_digital[] = {
- 
- /* 1b80:e425 MaxMedia UB425-TC
-  * 1b80:e1cc Delock 61959
-+ * eb1a:51b2 Sundtek MediaTV Digital Home
-  * GPIO_6 - demod reset, 0=active
-  * GPIO_7 - LED, 0=active
-  */
-@@ -2405,6 +2406,18 @@ struct em28xx_board em28xx_boards[] = {
- 		.ir_codes      = RC_MAP_HAUPPAUGE,
- 		.leds          = hauppauge_dualhd_leds,
- 	},
-+	/* eb1a:51b2 Sundtek MediaTV Digital Home
-+	 * Empia EM2874B + Micronas DRX 3913KA2 + NXP TDA18271HDC2 */
-+	[EM2874_BOARD_SUNDTEK_MEDIATV_DIGITAL_HOME] = {
-+		.name          = "Sundtek MediaTV Digital Home",
-+		.tuner_type    = TUNER_ABSENT,
-+		.tuner_gpio    = maxmedia_ub425_tc,
-+		.has_dvb       = 1,
-+		.ir_codes      = RC_MAP_REDDO,
-+		.def_i2c_bus   = 1,
-+		.i2c_speed     = EM28XX_I2C_CLK_WAIT_ENABLE |
-+				EM28XX_I2C_FREQ_400_KHZ,
-+	},
- };
- EXPORT_SYMBOL_GPL(em28xx_boards);
- 
-@@ -2602,6 +2615,8 @@ struct usb_device_id em28xx_id_table[] = {
- 			.driver_info = EM28178_BOARD_PLEX_PX_BCUD },
- 	{ USB_DEVICE(0xeb1a, 0x5051), /* Ion Video 2 PC MKII / Startech svid2usb23 / Raygo R12-41373 */
- 			.driver_info = EM2860_BOARD_TVP5150_REFERENCE_DESIGN },
-+	{ USB_DEVICE(0xeb1a, 0x51b2),
-+			.driver_info = EM2874_BOARD_SUNDTEK_MEDIATV_DIGITAL_HOME },
- 	{ },
- };
- MODULE_DEVICE_TABLE(usb, em28xx_id_table);
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 82edd37..e7fa25d 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -1482,6 +1482,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 		break;
- 	}
- 	case EM2874_BOARD_DELOCK_61959:
-+	case EM2874_BOARD_SUNDTEK_MEDIATV_DIGITAL_HOME:
- 	case EM2874_BOARD_MAXMEDIA_UB425_TC:
- 		/* attach demodulator */
- 		dvb->fe[0] = dvb_attach(drxk_attach, &maxmedia_ub425_tc_drxk,
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index e8d97d5..226c2b6 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -148,6 +148,7 @@
- #define EM28178_BOARD_PLEX_PX_BCUD                98
- #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB  99
- #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 100
-+#define EM2874_BOARD_SUNDTEK_MEDIATV_DIGITAL_HOME 101
- 
- /* Limits minimum and default number of buffers */
- #define EM28XX_MIN_BUF 4
+ .../devicetree/bindings/media/qcom,venus.txt       |  107 ++
+ MAINTAINERS                                        |    8 +
+ drivers/media/platform/Kconfig                     |   13 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/qcom/venus/Makefile         |   11 +
+ drivers/media/platform/qcom/venus/core.c           |  388 +++++
+ drivers/media/platform/qcom/venus/core.h           |  323 ++++
+ drivers/media/platform/qcom/venus/firmware.c       |  109 ++
+ drivers/media/platform/qcom/venus/firmware.h       |   22 +
+ drivers/media/platform/qcom/venus/helpers.c        |  727 +++++++++
+ drivers/media/platform/qcom/venus/helpers.h        |   45 +
+ drivers/media/platform/qcom/venus/hfi.c            |  522 +++++++
+ drivers/media/platform/qcom/venus/hfi.h            |  175 +++
+ drivers/media/platform/qcom/venus/hfi_cmds.c       | 1255 ++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_cmds.h       |  304 ++++
+ drivers/media/platform/qcom/venus/hfi_helper.h     | 1050 +++++++++++++
+ drivers/media/platform/qcom/venus/hfi_msgs.c       | 1054 +++++++++++++
+ drivers/media/platform/qcom/venus/hfi_msgs.h       |  283 ++++
+ drivers/media/platform/qcom/venus/hfi_venus.c      | 1571 ++++++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_venus.h      |   23 +
+ drivers/media/platform/qcom/venus/hfi_venus_io.h   |  113 ++
+ drivers/media/platform/qcom/venus/vdec.c           | 1154 ++++++++++++++
+ drivers/media/platform/qcom/venus/vdec.h           |   23 +
+ drivers/media/platform/qcom/venus/vdec_ctrls.c     |  150 ++
+ drivers/media/platform/qcom/venus/venc.c           | 1283 ++++++++++++++++
+ drivers/media/platform/qcom/venus/venc.h           |   23 +
+ drivers/media/platform/qcom/venus/venc_ctrls.c     |  270 ++++
+ drivers/media/v4l2-core/v4l2-mem2mem.c             |   37 +
+ include/media/v4l2-mem2mem.h                       |   92 ++
+ 29 files changed, 11137 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+ create mode 100644 drivers/media/platform/qcom/venus/Makefile
+ create mode 100644 drivers/media/platform/qcom/venus/core.c
+ create mode 100644 drivers/media/platform/qcom/venus/core.h
+ create mode 100644 drivers/media/platform/qcom/venus/firmware.c
+ create mode 100644 drivers/media/platform/qcom/venus/firmware.h
+ create mode 100644 drivers/media/platform/qcom/venus/helpers.c
+ create mode 100644 drivers/media/platform/qcom/venus/helpers.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_helper.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
+ create mode 100644 drivers/media/platform/qcom/venus/vdec.c
+ create mode 100644 drivers/media/platform/qcom/venus/vdec.h
+ create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
+ create mode 100644 drivers/media/platform/qcom/venus/venc.c
+ create mode 100644 drivers/media/platform/qcom/venus/venc.h
+ create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
+
 -- 
 2.7.4
