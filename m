@@ -1,210 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:19088 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750913AbdE3X1n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 19:27:43 -0400
-Subject: Re: [RFC PATCH 7/7] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
- support
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Daniel Vetter <daniel@ffwll.ch>
-References: <20170525150626.29748-1-hverkuil@xs4all.nl>
- <20170525150626.29748-8-hverkuil@xs4all.nl>
- <20170526071550.3gsq3pc375cnk2gk@phenom.ffwll.local>
- <0a417a9c-4a41-796c-9876-51b61d429bb5@xs4all.nl>
- <20170529190004.ipdeyntsmzzb3iij@phenom.ffwll.local>
- <d9e9354b-eeb7-0a1e-2dbc-16c1ba0c0784@xs4all.nl> <87y3tekedi.fsf@intel.com>
- <f7d14e1c-9a6a-6d0f-bfe8-b4b619efd3bc@intel.com>
- <22961af9-5157-ae14-3000-f91cedc27958@xs4all.nl>
- <8150d62a-ecbc-6235-5595-1764fe616d8b@xs4all.nl>
- <ca46b0db-1ee2-ec78-04cf-90e9d48b7109@intel.com>
- <5dcf7b38-b833-2136-f755-73016522b982@xs4all.nl>
-Cc: intel-gfx@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-From: Clint Taylor <clinton.a.taylor@intel.com>
-Message-ID: <5894913a-f5dc-71c6-2d57-6e95a5676aee@intel.com>
-Date: Tue, 30 May 2017 16:25:34 -0700
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:37148 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752576AbdEILEm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 May 2017 07:04:42 -0400
+Date: Tue, 9 May 2017 13:04:40 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Subject: [patch, libv4l]: Introduce define for lookup table size
+Message-ID: <20170509110440.GC28248@amd>
+References: <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+ <20170426105300.GA857@amd>
+ <20170426081330.6ca10e42@vento.lan>
+ <20170426132337.GA6482@amd>
+ <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
+ <20170508222819.GA14833@amd>
+ <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <5dcf7b38-b833-2136-f755-73016522b982@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="wxDdMuZNg1r63Hyj"
+Content-Disposition: inline
+In-Reply-To: <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+--wxDdMuZNg1r63Hyj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 05/30/2017 02:29 PM, Hans Verkuil wrote:
-> On 05/30/2017 10:32 PM, Clint Taylor wrote:
->>
->>
->> On 05/30/2017 09:54 AM, Hans Verkuil wrote:
->>> On 05/30/2017 06:49 PM, Hans Verkuil wrote:
->>>> On 05/30/2017 04:19 PM, Clint Taylor wrote:
->>>>>
->>>>>
->>>>> On 05/30/2017 12:11 AM, Jani Nikula wrote:
->>>>>> On Tue, 30 May 2017, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>>>>> On 05/29/2017 09:00 PM, Daniel Vetter wrote:
->>>>>>>> On Fri, May 26, 2017 at 12:20:48PM +0200, Hans Verkuil wrote:
->>>>>>>>> On 05/26/2017 09:15 AM, Daniel Vetter wrote:
->>>>>>>>>> Did you look into also wiring this up for dp mst chains?
->>>>>>>>> Isn't this sufficient? I have no way of testing mst chains.
->>>>>>>>>
->>>>>>>>> I think I need some pointers from you, since I am a complete
->>>>>>>>> newbie when it
->>>>>>>>> comes to mst.
->>>>>>>> I don't really have more clue, but yeah if you don't have an mst
->>>>>>>> thing (a
->>>>>>>> simple dp port multiplexer is what I use for testing here, then
->>>>>>>> plug in a
->>>>>>>> converter dongle or cable into that) then probably better to not
->>>>>>>> wire up
->>>>>>>> the code for it.
->>>>>>> I think my NUC already uses mst internally. But I was planning on
->>>>>>> buying a
->>>>>>> dp multiplexer to make sure there is nothing special I need to do
->>>>>>> for mst.
->>>>>>>
->>>>>>> The CEC Tunneling is all in the branch device, so if I understand
->>>>>>> things
->>>>>>> correctly it is not affected by mst.
->>>>>>>
->>>>>>> BTW, I did a bit more testing on my NUC7i5BNK: for the HDMI output
->>>>>>> they
->>>>>>> use a MegaChip MCDP2800 DP-to-HDMI converter which according to 
->>>>>>> their
->>>>>>> datasheet is supposed to implement CEC Tunneling, but if they do
->>>>>>> it is not
->>>>>>> exposed as a capability. I'm not sure if it is a MegaChip firmware
->>>>>>> issue
->>>>>>> or something else. The BIOS is able to do some CEC, but whether
->>>>>>> they hook
->>>>>>> into the MegaChip or have the CEC pin connected to a GPIO or
->>>>>>> something and
->>>>>>> have their own controller is something I do not know.
->>>>>>>
->>>>>>> If anyone can clarify what Intel did on the NUC, then that would
->>>>>>> be very
->>>>>>> helpful.
->>>>>> It's called LSPCON, see i915/intel_lspcon.c, basically to support 
->>>>>> HDMI
->>>>>> 2.0. Currently we only use it in PCON mode, shows up as DP for 
->>>>>> us. It
->>>>>> could be used in LS mode, showing up as HDMI 1.4, but we don't 
->>>>>> support
->>>>>> that in i915.
->>>>>>
->>>>>> I don't know about the CEC on that.
->>>>>
->>>>> My NUC6i7KYK has the MCDP2850 LSPCON and it does support CEC over 
->>>>> Aux.
->>>>> The release notes for the NUC state that there is a BIOS 
->>>>> configuration
->>>>> option for enabling support. My doesn't have the option but the 
->>>>> LSPCON
->>>>> fully supports CEC.
->>>>
->>>> What is the output of:
->>>>
->>>> dd if=/dev/drm_dp_aux0 of=aux0 skip=12288 ibs=1 count=48
->>>> od -t x1 aux0
->>>>
->>>> Assuming drm_dp_aux0 is the aux channel for the HDMI output on your 
->>>> NUC.
->>>>
->>>> If the first byte is != 0x00, then it advertises CEC over Aux.
->>>>
->>>> For me it says 0x00.
->>>>
->>>> When you say "it does support CEC over Aux", does that mean you have
->>>> actually
->>>> tested it somehow? The only working solution I have seen mentioned
->>>> for the
->>>> NUC6i7KYK is a Pulse-Eight adapter.
->>>>
->>>> With the NUC7i Intel made BIOS support for CEC, but it is not at all
->>>> clear to me if they used CEC tunneling or just hooked up the CEC 
->>>> pin to
->>>> some microcontroller.
->>>>
->>>> The only working chipset I have seen is the Parade PS176.
->>>
->>> If it really is working on your NUC, then can you add the output of
->>> /sys/kernel/debug/dri/0/i915_display_info?
->>
->> [root@localhost cec-ctl]# cat /sys/kernel/debug/dri/0/i915_display_info
->
->
->> Connector info
->> --------------
->> connector 48: type DP-1, status: connected
->>       name:
->>       physical dimensions: 700x400mm
->>       subpixel order: Unknown
->>       CEA rev: 3
->>       DPCD rev: 12
->>       audio support: yes
->>       DP branch device present: yes
->>           Type: HDMI
->>           ID: 175IB0
->>           HW: 1.0
->>           SW: 7.32
->>           Max TMDS clock: 600000 kHz
->>           Max bpc: 12
->
-> Huh. Based on this document:
->
-> https://downloadmirror.intel.com/26061/eng/NUC6i7KYK%20HDMI%202.0%20Firmware%20update%20Instructions.pdf 
->
->
-> this is the internal DP-to-HDMI adapter and it has the PS175. So it is a
-> Parade chipset, and I have seen that work before (at least the PS176).
-This is the PS175 LSPCON on the NUC6.
->
-> <snip>
->
->> connector 55: type DP-2, status: connected
->>       name:
->>       physical dimensions: 620x340mm
->>       subpixel order: Unknown
->>       CEA rev: 3
->>       DPCD rev: 12
->>       audio support: yes
->>       DP branch device present: yes
->>           Type: HDMI
->>           ID: BCTRC0
->>           HW: 2.0
->>           SW: 0.26
->
-> And is this from a USB-C to HDMI adapter? Which one? I don't recognize 
-> the ID.
->
-This is a LSPCON inside the Google USB-C->HDMI dongle. This is actually 
-a MC2850 with what appears to be a custom ID. Datasheet claims CEC over 
-Aux and the pin is wired, but FW has it currently disabled.
 
--Clint
+Make lookup table size configurable at compile-time.
+   =20
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-> For the record, this is the internal HDMI output of my NUC7i5BNK:
->
-> connector 48: type DP-1, status: connected
->         name:
->         physical dimensions: 1050x590mm
->         subpixel order: Unknown
->         CEA rev: 3
->         DPCD rev: 12
->         audio support: yes
->         DP branch device present: yes
->                 Type: HDMI
->                 ID: MC2800
->                 HW: 2.2
->                 SW: 1.66
->                 Max TMDS clock: 600000 kHz
->                 Max bpc: 16
->
-> Clearly a Megachip.
->
-> Regards,
->
->     Hans
+diff --git a/lib/libv4lconvert/processing/libv4lprocessing-priv.h b/lib/lib=
+v4lconvert/processing/libv4lprocessing-priv.h
+index e4a29dd..55e1687 100644
+--- a/lib/libv4lconvert/processing/libv4lprocessing-priv.h
++++ b/lib/libv4lconvert/processing/libv4lprocessing-priv.h
+@@ -25,6 +25,8 @@
+ #include "../libv4lsyscall-priv.h"
+=20
+ #define V4L2PROCESSING_UPDATE_RATE 10
++/* Size of lookup tables */
++#define LSIZE 256
+=20
+ struct v4lprocessing_data {
+ 	struct v4lcontrol_data *control;
+@@ -32,15 +34,15 @@ struct v4lprocessing_data {
+ 	int do_process;
+ 	int controls_changed;
+ 	/* True if any of the lookup tables does not contain
+-	   linear 0-255 */
++	   linear 0-LSIZE-1 */
+ 	int lookup_table_active;
+ 	/* Counts the number of processed frames until a
+ 	   V4L2PROCESSING_UPDATE_RATE overflow happens */
+ 	int lookup_table_update_counter;
+ 	/* RGB/BGR lookup tables */
+-	unsigned char comp1[256];
+-	unsigned char green[256];
+-	unsigned char comp2[256];
++	unsigned char comp1[LSIZE];
++	unsigned char green[LSIZE];
++	unsigned char comp2[LSIZE];
+ 	/* Filter private data for filters which need it */
+ 	/* whitebalance.c data */
+ 	int green_avg;
+@@ -48,7 +50,7 @@ struct v4lprocessing_data {
+ 	int comp2_avg;
+ 	/* gamma.c data */
+ 	int last_gamma;
+-	unsigned char gamma_table[256];
++	unsigned char gamma_table[LSIZE];
+ 	/* autogain.c data */
+ 	int last_gain_correction;
+ };
+diff --git a/lib/libv4lconvert/processing/libv4lprocessing.c b/lib/libv4lco=
+nvert/processing/libv4lprocessing.c
+index b061f50..6d0ad20 100644
+--- a/lib/libv4lconvert/processing/libv4lprocessing.c
++++ b/lib/libv4lconvert/processing/libv4lprocessing.c
+@@ -74,7 +74,7 @@ static void v4lprocessing_update_lookup_tables(struct v4l=
+processing_data *data,
+ {
+ 	int i;
+=20
+-	for (i =3D 0; i < 256; i++) {
++	for (i =3D 0; i < LSIZE; i++) {
+ 		data->comp1[i] =3D i;
+ 		data->green[i] =3D i;
+ 		data->comp2[i] =3D i;
+diff --git a/lib/libv4lconvert/processing/whitebalance.c b/lib/libv4lconver=
+t/processing/whitebalance.c
+index c74069a..2dd33c1 100644
+--- a/lib/libv4lconvert/processing/whitebalance.c
++++ b/lib/libv4lconvert/processing/whitebalance.c
+@@ -27,7 +27,7 @@
+ #include "libv4lprocessing-priv.h"
+ #include "../libv4lconvert-priv.h" /* for PIX_FMT defines */
+=20
+-#define CLIP256(color) (((color) > 0xff) ? 0xff : (((color) < 0) ? 0 : (co=
+lor)))
++#define CLIPLSIZE(color) (((color) > LSIZE) ? LSIZE : (((color) < 0) ? 0 :=
+ (color)))
+ #define CLIP(color, min, max) (((color) > (max)) ? (max) : (((color) < (mi=
+n)) ? (min) : (color)))
+=20
+ static int whitebalance_active(struct v4lprocessing_data *data)
+@@ -111,10 +111,10 @@ static int whitebalance_calculate_lookup_tables_gener=
+ic(
+=20
+ 	avg_avg =3D (data->green_avg + data->comp1_avg + data->comp2_avg) / 3;
+=20
+-	for (i =3D 0; i < 256; i++) {
+-		data->comp1[i] =3D CLIP256(data->comp1[i] * avg_avg / data->comp1_avg);
+-		data->green[i] =3D CLIP256(data->green[i] * avg_avg / data->green_avg);
+-		data->comp2[i] =3D CLIP256(data->comp2[i] * avg_avg / data->comp2_avg);
++	for (i =3D 0; i < LSIZE; i++) {
++		data->comp1[i] =3D CLIPLSIZE(data->comp1[i] * avg_avg / data->comp1_avg);
++		data->green[i] =3D CLIPLSIZE(data->green[i] * avg_avg / data->green_avg);
++		data->comp2[i] =3D CLIPLSIZE(data->comp2[i] * avg_avg / data->comp2_avg);
+ 	}
+=20
+ 	return 1;
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--wxDdMuZNg1r63Hyj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlkRokgACgkQMOfwapXb+vLNlQCfeJKXH+WLqUF4xIrZ4vEpIS+Y
+2wMAoIHS1FGmv+cs0ax3VpPEKiqTzdOx
+=L9vp
+-----END PGP SIGNATURE-----
+
+--wxDdMuZNg1r63Hyj--
