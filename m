@@ -1,129 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47520 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1163497AbdEZDhc (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44001 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750942AbdEIG3M (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 May 2017 23:37:32 -0400
-Message-ID: <76359cda1718cfdbe32134388d351d38@smtp-cloud3.xs4all.net>
-Date: Fri, 26 May 2017 05:37:24 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 9 May 2017 02:29:12 -0400
+Subject: Re: [patch, libv4l]: fix integer overflow
+To: Pavel Machek <pavel@ucw.cz>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com
+References: <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+ <20170419105118.72b8e284@vento.lan> <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan> <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan> <20170426105300.GA857@amd>
+ <20170426081330.6ca10e42@vento.lan> <20170426132337.GA6482@amd>
+ <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com> <20170508222819.GA14833@amd>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
+Date: Tue, 9 May 2017 08:29:06 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170508222819.GA14833@amd>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 05/09/2017 12:28 AM, Pavel Machek wrote:
+> Hi!
+> 
+> This bit me while trying to use absolute exposure time on Nokia N900:
+> 
+> Can someone apply it to libv4l2 tree? Could I get some feedback on the
+> other patches? Is this the way to submit patches to libv4l2?
 
-Results of the daily build of media_tree:
+Yes, it is. But I do need a Signed-off-by from you.
 
-date:			Fri May 26 05:00:20 CEST 2017
-media-tree git hash:	36bcba973ad478042d1ffc6e89afd92e8bd17030
-media_build git hash:	c8dfc17d6d049d79497c78737625f6ea3b08c456
-v4l-utils git hash:	d16a17abd1d8d7885ca2f44fb295035278baa89c
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Regards,
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+	Hans
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> 
+> Thanks,
+> 								Pavel
+> 
+> commit 0484e39ec05fdc644191e7c334a7ebfff9cb2ec5
+> Author: Pavel <pavel@ucw.cz>
+> Date:   Mon May 8 21:52:02 2017 +0200
+> 
+>     Fix integer overflow with EXPOSURE_ABSOLUTE.
+> 
+> diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
+> index e795aee..189fc06 100644
+> --- a/lib/libv4l2/libv4l2.c
+> +++ b/lib/libv4l2/libv4l2.c
+> @@ -1776,7 +1776,7 @@ int v4l2_set_control(int fd, int cid, int value)
+>  		if (qctrl.type == V4L2_CTRL_TYPE_BOOLEAN)
+>  			ctrl.value = value ? 1 : 0;
+>  		else
+> -			ctrl.value = (value * (qctrl.maximum - qctrl.minimum) + 32767) / 65535 +
+> +			ctrl.value = ((long long) value * (qctrl.maximum - qctrl.minimum) + 32767) / 65535 +
+>  				qctrl.minimum;
+>  
+>  		result = v4lconvert_vidioc_s_ctrl(devices[index].convert, &ctrl);
+> @@ -1812,7 +1812,7 @@ int v4l2_get_control(int fd, int cid)
+>  		if (v4l2_propagate_ioctl(index, VIDIOC_G_CTRL, &ctrl))
+>  			return -1;
+>  
+> -	return ((ctrl.value - qctrl.minimum) * 65535 +
+> +	return (((long long) ctrl.value - qctrl.minimum) * 65535 +
+>  			(qctrl.maximum - qctrl.minimum) / 2) /
+>  		(qctrl.maximum - qctrl.minimum);
+>  }
+> 
+> 
