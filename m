@@ -1,84 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.14]:52267 "EHLO imap.netup.ru"
+Received: from mga11.intel.com ([192.55.52.93]:27619 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751071AbdEaMYW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 08:24:22 -0400
-Received: from mail-oi0-f53.google.com (mail-oi0-f53.google.com [209.85.218.53])
-        by imap.netup.ru (Postfix) with ESMTPSA id 63E308B3F66
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 15:24:20 +0300 (MSK)
-Received: by mail-oi0-f53.google.com with SMTP id h4so12922217oib.3
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 05:24:19 -0700 (PDT)
+        id S1751181AbdEIIC4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 May 2017 04:02:56 -0400
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
+Subject: RE: [PATCH v2] dw9714: Initial driver for dw9714 VCM
+Date: Tue, 9 May 2017 08:02:53 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A595AA0581B@FMSMSX114.amr.corp.intel.com>
+References: <1494254208-30045-1-git-send-email-rajmohan.mani@intel.com>
+ <20170508205532.GM7456@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20170508205532.GM7456@valkosipuli.retiisi.org.uk>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <20170409193828.18458-16-d.scheller.oss@gmail.com>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com> <20170409193828.18458-16-d.scheller.oss@gmail.com>
-From: Abylay Ospan <aospan@netup.ru>
-Date: Wed, 31 May 2017 08:23:58 -0400
-Message-ID: <CAK3bHNXDV3V+UmsNJaCv1L9JBVbfcmuD+KOOVBx9gO-R5wHB7g@mail.gmail.com>
-Subject: Re: [PATCH 15/19] [media] dvb-frontends/cxd2841er: improved snr reporting
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: Kozlov Sergey <serjk@netup.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>, rjkm@metzlerbros.de
-Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Abylay Ospan <aospan@netup.ru>
+Hi Sakari,
 
-2017-04-09 15:38 GMT-04:00 Daniel Scheller <d.scheller.oss@gmail.com>:
-> From: Daniel Scheller <d.scheller@gmx.net>
->
-> On DVB-T/T2 at least, SNR might be reported as >2500dB, which not only is
-> just wrong but also ridiculous, so fix this by improving the conversion
-> of the register value.
->
-> The INTLOG10X100 function/macro and the way the values are converted were
-> both taken from DD's cxd2843 driver.
->
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
->  drivers/media/dvb-frontends/cxd2841er.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-> index efb2795..a01ac58 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.c
-> +++ b/drivers/media/dvb-frontends/cxd2841er.c
-> @@ -38,6 +38,8 @@
->  #define MAX_WRITE_REGSIZE      16
->  #define LOG2_E_100X 144
->
-> +#define INTLOG10X100(x) ((u32) (((u64) intlog10(x) * 100) >> 24))
-> +
->  /* DVB-C constellation */
->  enum sony_dvbc_constellation_t {
->         SONY_DVBC_CONSTELLATION_16QAM,
-> @@ -1817,7 +1819,7 @@ static int cxd2841er_read_snr_t(struct cxd2841er_priv *priv, u32 *snr)
->         }
->         if (reg > 4996)
->                 reg = 4996;
-> -       *snr = 10000 * ((intlog10(reg) - intlog10(5350 - reg)) >> 24) + 28500;
-> +       *snr = 100 * ((INTLOG10X100(reg) - INTLOG10X100(5350 - reg)) + 285);
->         return 0;
->  }
->
-> @@ -1846,8 +1848,7 @@ static int cxd2841er_read_snr_t2(struct cxd2841er_priv *priv, u32 *snr)
->         }
->         if (reg > 10876)
->                 reg = 10876;
-> -       *snr = 10000 * ((intlog10(reg) -
-> -               intlog10(12600 - reg)) >> 24) + 32000;
-> +       *snr = 100 * ((INTLOG10X100(reg) - INTLOG10X100(12600 - reg)) + 320);
->         return 0;
->  }
->
+> -----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
+> Sent: Tuesday, May 09, 2017 4:56 AM
+> To: Mani, Rajmohan <rajmohan.mani@intel.com>
+> Cc: linux-media@vger.kernel.org; mchehab@kernel.org; hverkuil@xs4all.nl
+> Subject: Re: [PATCH v2] dw9714: Initial driver for dw9714 VCM
+> 
+> On Mon, May 08, 2017 at 07:36:48AM -0700, Rajmohan Mani wrote:
+> > +	dev_dbg(dev, "%s ret = %d\n", __func__, ret);
+> 
+> Please remove such debug prints.
+
+I have removed all dev_dbg prints and this will be addressed in v3 of this patch.
+> 
 > --
-> 2.10.2
->
-
-
-
--- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
