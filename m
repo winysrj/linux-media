@@ -1,46 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54993 "EHLO
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:55005 "EHLO
         lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S938492AbdEYPGp (ORCPT
+        by vger.kernel.org with ESMTP id S1752024AbdEIHks (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 May 2017 11:06:45 -0400
+        Tue, 9 May 2017 03:40:48 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-        Clint Taylor <clinton.a.taylor@intel.com>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 4/7] cec: add cec_phys_addr_invalidate() helper function
-Date: Thu, 25 May 2017 17:06:23 +0200
-Message-Id: <20170525150626.29748-5-hverkuil@xs4all.nl>
-In-Reply-To: <20170525150626.29748-1-hverkuil@xs4all.nl>
-References: <20170525150626.29748-1-hverkuil@xs4all.nl>
+Subject: [PATCH] 50-udev-default.rules.in: set correct group for mediaX/cecX
+To: systemd-devel@lists.freedesktop.org
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <072f4734-5636-7a9d-2151-5fb95e48a262@xs4all.nl>
+Date: Tue, 9 May 2017 09:40:32 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The /dev/mediaX and /dev/cecX devices belong to the video group.
+Add two default rules for that.
 
-Simplifies setting the physical address to CEC_PHYS_ADDR_INVALID.
+The /dev/cecX devices were introduced in kernel 4.8 in staging and moved
+out of staging in 4.10. These devices support the HDMI CEC bus.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+The /dev/mediaX devices are much older, but because they are not used very
+frequently nobody got around to adding this rule to systemd. They let the
+user control complex media pipelines.
+
 ---
- include/media/cec.h | 5 +++++
- 1 file changed, 5 insertions(+)
+ rules/50-udev-default.rules.in | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/include/media/cec.h b/include/media/cec.h
-index 9989cdb58bd8..6123a5eec540 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -361,4 +361,9 @@ static inline int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port)
- 
- #endif
- 
-+static inline void cec_phys_addr_invalidate(struct cec_adapter *adap)
-+{
-+	cec_s_phys_addr(adap, CEC_PHYS_ADDR_INVALID, false);
-+}
-+
- #endif /* _MEDIA_CEC_H */
+diff --git a/rules/50-udev-default.rules.in b/rules/50-udev-default.rules.in
+index 064f66a97..e55653302 100644
+--- a/rules/50-udev-default.rules.in
++++ b/rules/50-udev-default.rules.in
+@@ -34,6 +34,8 @@ SUBSYSTEM=="video4linux", GROUP="video"
+ SUBSYSTEM=="graphics", GROUP="video"
+ SUBSYSTEM=="drm", GROUP="video"
+ SUBSYSTEM=="dvb", GROUP="video"
++SUBSYSTEM=="media", GROUP="video"
++SUBSYSTEM=="cec", GROUP="video"
+
+ SUBSYSTEM=="sound", GROUP="audio", \
+   OPTIONS+="static_node=snd/seq", OPTIONS+="static_node=snd/timer"
 -- 
 2.11.0
