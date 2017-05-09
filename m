@@ -1,113 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57568 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934381AbdEVOT3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 May 2017 10:19:29 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
-Subject: [PATCH v3 3/5] v4l: vsp1: Map the DL and video buffers through the proper bus master
-Date: Mon, 22 May 2017 15:19:20 +0100
-Message-Id: <79c3bf9799c7d652e80efee473bf3178d8b6e428.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50006 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753149AbdEIMQv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 May 2017 08:16:51 -0400
+Date: Tue, 9 May 2017 15:16:10 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org
+Subject: Re: [PATCH] dw9714: Initial driver for dw9714 VCM
+Message-ID: <20170509121610.GQ7456@valkosipuli.retiisi.org.uk>
+References: <1494156804-9784-1-git-send-email-rajmohan.mani@intel.com>
+ <20170508205503.GL7456@valkosipuli.retiisi.org.uk>
+ <CAAFQd5CVrrP5tK_LvDbvDT7F5ZjfO+u26T2ca4pOpPjggB6vxw@mail.gmail.com>
+ <20170509104045.GO7456@valkosipuli.retiisi.org.uk>
+ <CAAFQd5DfOhMVFdR35DNTnt_R3pHP4xpdL8BBN+KGc_3S9DO=DA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5DfOhMVFdR35DNTnt_R3pHP4xpdL8BBN+KGc_3S9DO=DA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Magnus Damm <magnus.damm@gmail.com>
+Hi Tomasz,
 
-On Gen2 hardware the VSP1 is a bus master and accesses the display list
-and video buffers through DMA directly. On Gen3 hardware, however,
-memory accesses go through a separate IP core called FCP.
+On Tue, May 09, 2017 at 07:38:26PM +0800, Tomasz Figa wrote:
+> On Tue, May 9, 2017 at 6:40 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > Hi Tomasz,
+> >
+> > On Tue, May 09, 2017 at 04:30:40PM +0800, Tomasz Figa wrote:
+> >> Hi Sakari,
+> >>
+> >> On Tue, May 9, 2017 at 4:55 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> >> > Hi Rajmohan,
+> >> >
+> >> > A few comments below...
+> >> >
+> >> > On Sun, May 07, 2017 at 04:33:24AM -0700, rajmohan.mani@intel.com wrote:
+> >> [snip]
+> >> >> +     rval = v4l2_async_register_subdev(&dw9714_dev->sd);
+> >> >> +     if (rval < 0)
+> >> >> +             goto err_cleanup;
+> >> >> +
+> >> >> +     pm_runtime_enable(&client->dev);
+> >> >
+> >> > Getting PM runtime right doesn't seem to be easy. :-I
+> >> >
+> >> > pm_runtime_enable() alone doesn't do the trick. I wonder if adding
+> >> > pm_runtime_suspend() would do the trick.
+> >>
+> >> Is this something specific for I2C devices? For platform devices,
+> >> typically pm_runtime_enable() is the only thing you would need to do.
+> >
+> > I think you're right --- driver_probe_device() will call pm_request_idle()
+> > to the device right after probe. So indeed calling pm_runtime_enable() is
+> > enough.
+> >
+> >> >> +
+> >> >> +     return 0;
+> >> >> +
+> >> >> +err_cleanup:
+> >> >> +     dw9714_subdev_cleanup(dw9714_dev);
+> >> >> +     dev_err(&client->dev, "Probe failed: %d\n", rval);
+> >> >> +     return rval;
+> >> >> +}
+> >> >> +
+> >> >> +static int dw9714_remove(struct i2c_client *client)
+> >> >> +{
+> >> >> +     struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> >> >> +     struct dw9714_device *dw9714_dev = container_of(sd,
+> >> >> +                                                     struct dw9714_device,
+> >> >> +                                                     sd);
+> >> >> +
+> >> >> +     pm_runtime_disable(&client->dev);
+> >> >> +     dw9714_subdev_cleanup(dw9714_dev);
+> >> >> +
+> >> >> +     return 0;
+> >> >> +}
+> >> >> +
+> >> >> +#ifdef CONFIG_PM
+> >> >> +
+> >> >> +static int dw9714_runtime_suspend(struct device *dev)
+> >> >> +{
+> >> >> +     return 0;
+> >> >> +}
+> >> >> +
+> >> >> +static int dw9714_runtime_resume(struct device *dev)
+> >> >> +{
+> >> >> +     return 0;
+> >> >
+> >> > I think it'd be fine to remove empty callbacks.
+> >>
+> >> It's actually a bit more complicated (if a PM domain is attached, the
+> >> callbacks must be present), however in case of external I2C devices it
+> >> should be fine indeed. However, AFAIK, pm_runtime_no_callbacks()
+> >> should be called.
+> >
+> > I wonder if I'm missing something --- acpi_subsys_runtime_resume() first
+> > calls acpi_dev_runtime_resume() and if all goes well, the proceeds to call
+> > pm_generic_runtime_resume() which calls device's runtime_resume() if it's
+> > non-NULL.
+> >
+> > In other words, having a runtime_resume() and runtime_suspend() callbacks
+> > that return zero is equivalent of having neither of the callbacks.
+> 
+> Ah, I missed the fact this device is instantiated by ACPI and it has
+> different handling of runtime PM, which apparently means it doesn't
+> use the code paths affected by the PM domain thing I mentioned.
 
-The VSP1 driver unconditionally maps DMA buffers through the VSP device.
-While this doesn't cause any practical issue so far, DMA mappings will
-be incorrect as soon as we will enable IOMMU support for the FCP on Gen3
-platforms, resulting in IOMMU faults.
+I have to admit I'm no expert in the topic but I'd presume that other
+implementations should still maintain consistent behaviour towards drivers.
+acpi_subsys_runtime_resume() is the PM domain runtime_resume() callback in
+acpi_general_pm_domain.
 
-Fix this by mapping all buffers through the FCP device if present, and
-through the VSP1 device as usual otherwise.
+> 
+> >
+> >>
+> >> >
+> >> >> +}
+> >> >> +
+> >> >> +/* This function sets the vcm position, so it consumes least current */
+> >> >> +static int dw9714_suspend(struct device *dev)
+> >> >> +{
+> >> >> +     struct i2c_client *client = to_i2c_client(dev);
+> >> >> +     struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> >> >> +     struct dw9714_device *dw9714_dev = container_of(sd,
+> >> >> +                                                     struct dw9714_device,
+> >> >> +                                                     sd);
+> >> >> +     int ret, val;
+> >> >> +
+> >> >> +     dev_dbg(dev, "%s\n", __func__);
+> >> >> +
+> >> >> +     for (val = dw9714_dev->current_val & ~(DW9714_CTRL_STEPS - 1);
+> >> >> +          val >= 0; val -= DW9714_CTRL_STEPS) {
+> >> >> +             ret = dw9714_i2c_write(client,
+> >> >> +                                    DW9714_VAL((u16) val, DW9714_DEFAULT_S));
+> >> >> +             if (ret)
+> >> >> +                     dev_err(dev, "%s I2C failure: %d", __func__, ret);
+> >> >> +             usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
+> >> >> +     }
+> >> >> +     return 0;
+> >> >> +}
+> >> >> +
+> >> >> +/*
+> >> >> + * This function sets the vcm position, so the focus position is set
+> >> >> + * closer to the camera
+> >> >> + */
+> >> >> +static int dw9714_resume(struct device *dev)
+> >> >> +{
+> >> >> +     struct i2c_client *client = to_i2c_client(dev);
+> >> >> +     struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> >> >> +     struct dw9714_device *dw9714_dev = container_of(sd,
+> >> >> +                                                     struct dw9714_device,
+> >> >> +                                                     sd);
+> >> >> +     int ret, val;
+> >> >> +
+> >> >> +     dev_dbg(dev, "%s\n", __func__);
+> >> >> +
+> >> >> +     for (val = dw9714_dev->current_val % DW9714_CTRL_STEPS;
+> >> >> +          val < dw9714_dev->current_val + DW9714_CTRL_STEPS - 1;
+> >> >> +          val += DW9714_CTRL_STEPS) {
+> >> >> +             ret = dw9714_i2c_write(client,
+> >> >> +                                    DW9714_VAL((u16) val, DW9714_DEFAULT_S));
+> >> >> +             if (ret)
+> >> >> +                     dev_err(dev, "%s I2C failure: %d", __func__, ret);
+> >> >> +             usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
+> >> >> +     }
+> >> >> +
+> >> >> +     /* restore v4l2 control values */
+> >> >> +     ret = v4l2_ctrl_handler_setup(&dw9714_dev->ctrls_vcm);
+> >> >
+> >> > Doesn't this need to be done for runtime_resume as well?
+> >>
+> >> This driver doesn't seem to be doing any physical power off in its
+> >> runtime_suspend and I don't expect an I2C device to be put in a PM
+> >> domain, so possibly no need for it.
+> >
+> > I'd expect runtime PM suspend callback to power the device off through ACPI
+> > PM. For this reason the device state must be restored when it's powered on,
+> > i.e. its runtime_resume callback.
+> 
+> Ah, again ACPI here, that's something not usual for me. Sorry for the noise.
 
-Suggested-by: Magnus Damm <magnus.damm@gmail.com>
-[Cache the bus master device]
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1.h       |  1 +
- drivers/media/platform/vsp1/vsp1_dl.c    |  4 ++--
- drivers/media/platform/vsp1/vsp1_drv.c   |  9 +++++++++
- drivers/media/platform/vsp1/vsp1_video.c |  2 +-
- 4 files changed, 13 insertions(+), 3 deletions(-)
+No harm done. Very good comments in general IMO, thanks for those!
 
-diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-index 85387a64179a..847963b6e9eb 100644
---- a/drivers/media/platform/vsp1/vsp1.h
-+++ b/drivers/media/platform/vsp1/vsp1.h
-@@ -74,6 +74,7 @@ struct vsp1_device {
- 
- 	void __iomem *mmio;
- 	struct rcar_fcp_device *fcp;
-+	struct device *bus_master;
- 
- 	struct vsp1_bru *bru;
- 	struct vsp1_clu *clu;
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 7d8f37772b56..445d1c31fff3 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -137,7 +137,7 @@ static int vsp1_dl_body_init(struct vsp1_device *vsp1,
- 	dlb->vsp1 = vsp1;
- 	dlb->size = size;
- 
--	dlb->entries = dma_alloc_wc(vsp1->dev, dlb->size, &dlb->dma,
-+	dlb->entries = dma_alloc_wc(vsp1->bus_master, dlb->size, &dlb->dma,
- 				    GFP_KERNEL);
- 	if (!dlb->entries)
- 		return -ENOMEM;
-@@ -150,7 +150,7 @@ static int vsp1_dl_body_init(struct vsp1_device *vsp1,
-  */
- static void vsp1_dl_body_cleanup(struct vsp1_dl_body *dlb)
- {
--	dma_free_wc(dlb->vsp1->dev, dlb->size, dlb->entries, dlb->dma);
-+	dma_free_wc(dlb->vsp1->bus_master, dlb->size, dlb->entries, dlb->dma);
- }
- 
- /**
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 048446af5ae7..95c26edead85 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -764,6 +764,15 @@ static int vsp1_probe(struct platform_device *pdev)
- 				PTR_ERR(vsp1->fcp));
- 			return PTR_ERR(vsp1->fcp);
- 		}
-+
-+		/*
-+		 * When the FCP is present, it handles all bus master accesses
-+		 * for the VSP and must thus be used in place of the VSP device
-+		 * to map DMA buffers.
-+		 */
-+		vsp1->bus_master = rcar_fcp_get_device(vsp1->fcp);
-+	} else {
-+		vsp1->bus_master = vsp1->dev;
- 	}
- 
- 	/* Configure device parameters based on the version register. */
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index eab3c3ea85d7..5af3486afe07 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -1197,7 +1197,7 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 	video->queue.ops = &vsp1_video_queue_qops;
- 	video->queue.mem_ops = &vb2_dma_contig_memops;
- 	video->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
--	video->queue.dev = video->vsp1->dev;
-+	video->queue.dev = video->vsp1->bus_master;
- 	ret = vb2_queue_init(&video->queue);
- 	if (ret < 0) {
- 		dev_err(video->vsp1->dev, "failed to initialize vb2 queue\n");
 -- 
-git-series 0.9.1
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
