@@ -1,89 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40204 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1030812AbdEXNVv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 May 2017 09:21:51 -0400
-Date: Wed, 24 May 2017 16:21:37 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: Re: [PATCH v2 1/2] media: entity: Add pad_from_fwnode entity
- operation
-Message-ID: <20170524132137.GK29527@valkosipuli.retiisi.org.uk>
-References: <20170524000907.13061-1-niklas.soderlund@ragnatech.se>
- <20170524000907.13061-2-niklas.soderlund@ragnatech.se>
+Received: from 111-250-186-79.dynamic-ip.hinet.net ([111.250.186.79]:56050
+        "HELO hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with SMTP id S1751213AbdEIEG2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 May 2017 00:06:28 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170524000907.13061-2-niklas.soderlund@ragnatech.se>
+Subject: 
+Content-Type: application/zip; name="15765_linux-media.zip"
+Reply-To: <tmichael-tgs@gmx.de>
+Content-Disposition: attachment
+Content-Transfer-Encoding: base64
+To: <linux-media@vger.kernel.org>
+From: <tmichael-tgs@gmx.de>
+Date: Tue, 09 May 2017 04:06:20 -0000
+Message-ID: <149430278047.23207.15856539126721736594@hinet.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
-
-On Wed, May 24, 2017 at 02:09:06AM +0200, Niklas Söderlund wrote:
-> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> 
-> The optional operation can be used by entities to report how it maps its
-> fwnode endpoints to media pad numbers. This is useful for devices which
-> require advanced mappings of pads.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  include/media/media-entity.h | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index c7c254c5bca1761b..2aea22b0409d1070 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -21,6 +21,7 @@
->  
->  #include <linux/bitmap.h>
->  #include <linux/bug.h>
-> +#include <linux/fwnode.h>
->  #include <linux/kernel.h>
->  #include <linux/list.h>
->  #include <linux/media.h>
-> @@ -171,6 +172,9 @@ struct media_pad {
->  
->  /**
->   * struct media_entity_operations - Media entity operations
-> + * @pad_from_fwnode:	Return the pad number based on a fwnode endpoint.
-> + *			This operation can be used to map a fwnode to a
-> + *			media pad number. Optional.
->   * @link_setup:		Notify the entity of link changes. The operation can
->   *			return an error, in which case link setup will be
->   *			cancelled. Optional.
-> @@ -184,6 +188,8 @@ struct media_pad {
->   *    mutex held.
->   */
->  struct media_entity_operations {
-> +	int (*pad_from_fwnode)(struct fwnode_endpoint *endpoint,
-> +			       unsigned int *pad);
-
-Hmm. How about calling this get_fwnode_pad for instance? I wonder what
-others think.
-
-You could just return the pad number still, and a negative value on error. I
-think we won't have more than INT_MAX pads. :-)
-
->  	int (*link_setup)(struct media_entity *entity,
->  			  const struct media_pad *local,
->  			  const struct media_pad *remote, u32 flags);
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+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
+yNIBUEsFBgAAAAABAAEAVgAAAAYHAAAAAA==
