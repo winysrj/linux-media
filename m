@@ -1,108 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f46.google.com ([209.85.215.46]:33406 "EHLO
-        mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1164141AbdEXOHj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 May 2017 10:07:39 -0400
-Received: by mail-lf0-f46.google.com with SMTP id m18so68205771lfj.0
-        for <linux-media@vger.kernel.org>; Wed, 24 May 2017 07:07:38 -0700 (PDT)
-Date: Wed, 24 May 2017 16:07:36 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60710 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750825AbdEIIHy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 May 2017 04:07:54 -0400
+Date: Tue, 9 May 2017 10:07:52 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        Sakari Ailus <sakari.ailus@iki.fi>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 1/2] media: entity: Add pad_from_fwnode entity
- operation
-Message-ID: <20170524140736.GB7346@bigcity.dyn.berto.se>
-References: <20170524000907.13061-1-niklas.soderlund@ragnatech.se>
- <20170524000907.13061-2-niklas.soderlund@ragnatech.se>
- <20170524132137.GK29527@valkosipuli.retiisi.org.uk>
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Subject: Re: [patch, libv4l]: fix integer overflow
+Message-ID: <20170509080752.GA19912@amd>
+References: <20170419105118.72b8e284@vento.lan>
+ <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+ <20170426105300.GA857@amd>
+ <20170426081330.6ca10e42@vento.lan>
+ <20170426132337.GA6482@amd>
+ <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
+ <20170508222819.GA14833@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="ReaqsoxgOBHFXBhH"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170524132137.GK29527@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20170508222819.GA14833@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
 
-Thanks for your feedback.
+--ReaqsoxgOBHFXBhH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 2017-05-24 16:21:37 +0300, Sakari Ailus wrote:
-> Hi Niklas,
-> 
-> On Wed, May 24, 2017 at 02:09:06AM +0200, Niklas Söderlund wrote:
-> > From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > 
-> > The optional operation can be used by entities to report how it maps its
-> > fwnode endpoints to media pad numbers. This is useful for devices which
-> > require advanced mappings of pads.
-> > 
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> >  include/media/media-entity.h | 6 ++++++
-> >  1 file changed, 6 insertions(+)
-> > 
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index c7c254c5bca1761b..2aea22b0409d1070 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -21,6 +21,7 @@
-> >  
-> >  #include <linux/bitmap.h>
-> >  #include <linux/bug.h>
-> > +#include <linux/fwnode.h>
-> >  #include <linux/kernel.h>
-> >  #include <linux/list.h>
-> >  #include <linux/media.h>
-> > @@ -171,6 +172,9 @@ struct media_pad {
-> >  
-> >  /**
-> >   * struct media_entity_operations - Media entity operations
-> > + * @pad_from_fwnode:	Return the pad number based on a fwnode endpoint.
-> > + *			This operation can be used to map a fwnode to a
-> > + *			media pad number. Optional.
-> >   * @link_setup:		Notify the entity of link changes. The operation can
-> >   *			return an error, in which case link setup will be
-> >   *			cancelled. Optional.
-> > @@ -184,6 +188,8 @@ struct media_pad {
-> >   *    mutex held.
-> >   */
-> >  struct media_entity_operations {
-> > +	int (*pad_from_fwnode)(struct fwnode_endpoint *endpoint,
-> > +			       unsigned int *pad);
-> 
-> Hmm. How about calling this get_fwnode_pad for instance? I wonder what
-> others think.
 
-I'm OK with this name change, will update for next version.
+Fix integer overflow with EXPOSURE_ABSOLUTE. This is problem for
+example with Nokia N900.
 
-> 
-> You could just return the pad number still, and a negative value on error. I
-> think we won't have more than INT_MAX pads. :-)
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-I did that at first but then I remembered all the review comments I have 
-gotten earlier about using int as the type for pads :-) If you and 
-others agree in this case returning the pad as int or a negative value 
-as error I have no problem chaining this for the next version.
+diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
+index e795aee..189fc06 100644
+--- a/lib/libv4l2/libv4l2.c
++++ b/lib/libv4l2/libv4l2.c
+@@ -1776,7 +1776,7 @@ int v4l2_set_control(int fd, int cid, int value)
+ 		if (qctrl.type =3D=3D V4L2_CTRL_TYPE_BOOLEAN)
+ 			ctrl.value =3D value ? 1 : 0;
+ 		else
+-			ctrl.value =3D (value * (qctrl.maximum - qctrl.minimum) + 32767) / 6553=
+5 +
++			ctrl.value =3D ((long long) value * (qctrl.maximum - qctrl.minimum) + 3=
+2767) / 65535 +
+ 				qctrl.minimum;
+=20
+ 		result =3D v4lconvert_vidioc_s_ctrl(devices[index].convert, &ctrl);
+@@ -1812,7 +1812,7 @@ int v4l2_get_control(int fd, int cid)
+ 		if (v4l2_propagate_ioctl(index, VIDIOC_G_CTRL, &ctrl))
+ 			return -1;
+=20
+-	return ((ctrl.value - qctrl.minimum) * 65535 +
++	return (((long long) ctrl.value - qctrl.minimum) * 65535 +
+ 			(qctrl.maximum - qctrl.minimum) / 2) /
+ 		(qctrl.maximum - qctrl.minimum);
+ }
 
-> 
-> >  	int (*link_setup)(struct media_entity *entity,
-> >  			  const struct media_pad *local,
-> >  			  const struct media_pad *remote, u32 flags);
-> 
-> -- 
-> Regards,
-> 
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
 
--- 
-Regards,
-Niklas Söderlund
+
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--ReaqsoxgOBHFXBhH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlkReNgACgkQMOfwapXb+vKXLQCfQpehIV9w6cRRd6r3kpdSnykp
+UBYAoJiQGx5GD8Cl6fWwipeKmTrZDKF2
+=hBrD
+-----END PGP SIGNATURE-----
+
+--ReaqsoxgOBHFXBhH--
