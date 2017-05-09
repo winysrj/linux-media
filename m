@@ -1,82 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58395 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1757285AbdEVJC4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 May 2017 05:02:56 -0400
-Subject: Re: [PATCH] media: platform: s3c-camif: fix function prototype
-To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>
-References: <20170504214200.GA22855@embeddedgus>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ea039557-023c-736d-5bfb-928cd87cc3e3@xs4all.nl>
-Date: Mon, 22 May 2017 11:02:50 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170504214200.GA22855@embeddedgus>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f182.google.com ([209.85.128.182]:36205 "EHLO
+        mail-wr0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751705AbdEIPgx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 May 2017 11:36:53 -0400
+Received: by mail-wr0-f182.google.com with SMTP id l50so4083036wrc.3
+        for <linux-media@vger.kernel.org>; Tue, 09 May 2017 08:36:48 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v9 3/9] MAINTAINERS: Add Qualcomm Venus video accelerator driver
+Date: Tue,  9 May 2017 18:35:55 +0300
+Message-Id: <1494344161-28131-4-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1494344161-28131-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1494344161-28131-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/04/2017 11:42 PM, Gustavo A. R. Silva wrote:
-> Fix function prototype so the position of arguments camif->colorfx_cb and
-> camif->colorfx_cr match the order of the parameters when calling
-> camif_hw_set_effect() function.
-> 
-> Addresses-Coverity-ID: 1248800
-> Addresses-Coverity-ID: 1269141
-> Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-> Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
-> ---
->  drivers/media/platform/s3c-camif/camif-regs.c | 2 +-
->  drivers/media/platform/s3c-camif/camif-regs.h | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s3c-camif/camif-regs.c b/drivers/media/platform/s3c-camif/camif-regs.c
-> index 812fb3a..d70ffef 100644
-> --- a/drivers/media/platform/s3c-camif/camif-regs.c
-> +++ b/drivers/media/platform/s3c-camif/camif-regs.c
-> @@ -58,7 +58,7 @@ void camif_hw_set_test_pattern(struct camif_dev *camif, unsigned int pattern)
->  }
->  
->  void camif_hw_set_effect(struct camif_dev *camif, unsigned int effect,
-> -			unsigned int cr, unsigned int cb)
-> +			unsigned int cb, unsigned int cr)
->  {
->  	static const struct v4l2_control colorfx[] = {
->  		{ V4L2_COLORFX_NONE,		CIIMGEFF_FIN_BYPASS },
+Add an entry for Venus video encoder/decoder accelerator driver.
 
-This will also affect this line:
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-cfg |= cr | (cb << 13);
-
-cr and cb are now swapped so this will result in a different color.
-
-Sylwester, who is wrong here: the prototype or how this function is called?
-
-I suspect that Gustavo is right and that the prototype is wrong. But in that
-case this patch should also change the cfg assignment.
-
-Regards,
-
-	Hans
-
-> diff --git a/drivers/media/platform/s3c-camif/camif-regs.h b/drivers/media/platform/s3c-camif/camif-regs.h
-> index 5ad36c1..dfb49a5 100644
-> --- a/drivers/media/platform/s3c-camif/camif-regs.h
-> +++ b/drivers/media/platform/s3c-camif/camif-regs.h
-> @@ -255,7 +255,7 @@ void camif_hw_set_output_dma(struct camif_vp *vp);
->  void camif_hw_set_target_format(struct camif_vp *vp);
->  void camif_hw_set_test_pattern(struct camif_dev *camif, unsigned int pattern);
->  void camif_hw_set_effect(struct camif_dev *camif, unsigned int effect,
-> -			unsigned int cr, unsigned int cb);
-> +			unsigned int cb, unsigned int cr);
->  void camif_hw_set_output_addr(struct camif_vp *vp, struct camif_addr *paddr,
->  			      int index);
->  void camif_hw_dump_regs(struct camif_dev *camif, const char *label);
-> 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 58590cfed9f8..cff2be4a44d0 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10590,6 +10590,14 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rkuo/linux-hexagon-kernel.g
+ S:	Supported
+ F:	arch/hexagon/
+ 
++QUALCOMM VENUS VIDEO ACCELERATOR DRIVER
++M:	Stanimir Varbanov <stanimir.varbanov@linaro.org>
++L:	linux-media@vger.kernel.org
++L:	linux-arm-msm@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/platform/qcom/venus/
++
+ QUALCOMM WCN36XX WIRELESS DRIVER
+ M:	Eugene Krasnikov <k.eugene.e@gmail.com>
+ L:	wcn36xx@lists.infradead.org
+-- 
+2.7.4
