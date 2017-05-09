@@ -1,215 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:47247 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751393AbdEELeI (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:32185 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750968AbdEIHhN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 May 2017 07:34:08 -0400
-Subject: Re: [PATCH v8 01/10] firmware: qcom_scm: Fix to allow
- COMPILE_TEST-ing
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Tue, 9 May 2017 03:37:13 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Rob Herring <robh+dt@kernel.org>,
+        "Mark Rutland" <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre TORGUE <alexandre.torgue@st.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1493370837-19793-1-git-send-email-stanimir.varbanov@linaro.org>
- <1493370837-19793-2-git-send-email-stanimir.varbanov@linaro.org>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <bd344b32-77a0-9160-7be8-52b88ccd225e@xs4all.nl>
-Date: Fri, 5 May 2017 13:34:02 +0200
+CC: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick FERTRE <yannick.fertre@st.com>
+Subject: Re: [PATCH v5 2/8] [media] stm32-dcmi: STM32 DCMI camera interface
+ driver
+Date: Tue, 9 May 2017 07:36:34 +0000
+Message-ID: <5d588e10-4185-60c5-de38-54b2a4428ae6@st.com>
+References: <1493998287-5828-1-git-send-email-hugues.fruchet@st.com>
+ <1493998287-5828-3-git-send-email-hugues.fruchet@st.com>
+ <dd4a1ec1-b84a-81cb-51b6-c2e53b5efcc5@xs4all.nl>
+In-Reply-To: <dd4a1ec1-b84a-81cb-51b6-c2e53b5efcc5@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <55EF19CDA8ED04469180783B236B4A77@st.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <1493370837-19793-2-git-send-email-stanimir.varbanov@linaro.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/28/17 11:13, Stanimir Varbanov wrote:
-> Unfortunatly previous attempt to allow consumer drivers to
-> use COMPILE_TEST option in Kconfig is not enough, because in the
-> past the consumer drivers used 'depends on' Kconfig option but
-> now they are using 'select' Kconfig option which means on non ARM
-> arch'es compilation is triggered. Thus we need to move the ifdefery
-> one level below by touching the private qcom_scm.h header.
-> 
-> To: Andy Gross <andy.gross@linaro.org>
-> Cc: Stephen Boyd <sboyd@codeaurora.org>
-> Cc: Bjorn Andersson <bjorn.andersson@linaro.org>
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> ---
->  drivers/firmware/Kconfig    |  2 +-
->  drivers/firmware/qcom_scm.h | 72 ++++++++++++++++++++++++++++++++++++++-------
->  include/linux/qcom_scm.h    | 32 --------------------
->  3 files changed, 62 insertions(+), 44 deletions(-)
-> 
-> diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
-> index 6e4ed5a9c6fd..480578c3691a 100644
-> --- a/drivers/firmware/Kconfig
-> +++ b/drivers/firmware/Kconfig
-> @@ -204,7 +204,7 @@ config FW_CFG_SYSFS_CMDLINE
->  
->  config QCOM_SCM
->  	bool
-> -	depends on ARM || ARM64
-> +	depends on ARM || ARM64 || COMPILE_TEST
->  	select RESET_CONTROLLER
->  
->  config QCOM_SCM_32
-> diff --git a/drivers/firmware/qcom_scm.h b/drivers/firmware/qcom_scm.h
-> index 9bea691f30fb..d2b5723afb3f 100644
-> --- a/drivers/firmware/qcom_scm.h
-> +++ b/drivers/firmware/qcom_scm.h
-> @@ -12,6 +12,7 @@
->  #ifndef __QCOM_SCM_INT_H
->  #define __QCOM_SCM_INT_H
->  
-> +#if IS_ENABLED(CONFIG_ARM) || IS_ENABLED(CONFIG_ARM64)
-
-This is weird. Shouldn't this be:
-
-#if IS_ENABLED(CONFIG_QCOM_SCM)
-
-If the code in the actual source only works for ARM, then that should be
-handled in that source code, and not in this header IMHO.
-
-Regards,
-
-	Hans
-
->  #define QCOM_SCM_SVC_BOOT		0x1
->  #define QCOM_SCM_BOOT_ADDR		0x1
->  #define QCOM_SCM_BOOT_ADDR_MC		0x11
-> @@ -58,6 +59,66 @@ extern int  __qcom_scm_pas_auth_and_reset(struct device *dev, u32 peripheral);
->  extern int  __qcom_scm_pas_shutdown(struct device *dev, u32 peripheral);
->  extern int  __qcom_scm_pas_mss_reset(struct device *dev, bool reset);
->  
-> +#define QCOM_SCM_SVC_MP			0xc
-> +#define QCOM_SCM_RESTORE_SEC_CFG	2
-> +extern int __qcom_scm_restore_sec_cfg(struct device *dev, u32 device_id,
-> +				      u32 spare);
-> +#define QCOM_SCM_IOMMU_SECURE_PTBL_SIZE	3
-> +#define QCOM_SCM_IOMMU_SECURE_PTBL_INIT	4
-> +extern int __qcom_scm_iommu_secure_ptbl_size(struct device *dev, u32 spare,
-> +					     size_t *size);
-> +extern int __qcom_scm_iommu_secure_ptbl_init(struct device *dev, u64 addr,
-> +					     u32 size, u32 spare);
-> +#else
-> +static inline int __qcom_scm_set_remote_state(struct device *dev, u32 state,
-> +					      u32 id)
-> +{ return -ENODEV; }
-> +static inline int __qcom_scm_set_warm_boot_addr(struct device *dev, void *entry,
-> +						const cpumask_t *cpus)
-> +{ return -ENODEV; }
-> +static inline int __qcom_scm_set_cold_boot_addr(void *entry,
-> +						const cpumask_t *cpus)
-> +{ return -ENODEV; }
-> +static inline void __qcom_scm_cpu_power_down(u32 flags) {}
-> +static inline int __qcom_scm_is_call_available(struct device *dev, u32 svc_id,
-> +					       u32 cmd_id)
-> +{ return -ENODEV; }
-> +#define QCOM_SCM_SVC_HDCP		0x11
-> +#define QCOM_SCM_CMD_HDCP		0x01
-> +static inline int __qcom_scm_hdcp_req(struct device *dev,
-> +				      struct qcom_scm_hdcp_req *req,
-> +				      u32 req_cnt, u32 *resp)
-> +{ return -ENODEV; }
-> +static inline void __qcom_scm_init(void) {}
-> +#define QCOM_SCM_SVC_PIL		0x2
-> +#define QCOM_SCM_PAS_IS_SUPPORTED_CMD	0x7
-> +static inline bool __qcom_scm_pas_supported(struct device *dev, u32 peripheral)
-> +{ return false; }
-> +static inline int  __qcom_scm_pas_init_image(struct device *dev, u32 peripheral,
-> +					     dma_addr_t metadata_phys)
-> +{ return -ENODEV; }
-> +static inline int  __qcom_scm_pas_mem_setup(struct device *dev, u32 peripheral,
-> +					    phys_addr_t addr, phys_addr_t size)
-> +{ return -ENODEV; }
-> +static inline int  __qcom_scm_pas_auth_and_reset(struct device *dev,
-> +						 u32 peripheral)
-> +{ return -ENODEV; }
-> +static inline int  __qcom_scm_pas_shutdown(struct device *dev, u32 peripheral)
-> +{ return -ENODEV; }
-> +static inline int  __qcom_scm_pas_mss_reset(struct device *dev, bool reset)
-> +{ return -ENODEV; }
-> +static inline int __qcom_scm_restore_sec_cfg(struct device *dev, u32 device_id,
-> +					     u32 spare)
-> +{ return -ENODEV; }
-> +extern int __qcom_scm_iommu_secure_ptbl_size(struct device *dev, u32 spare,
-> +					     size_t *size)
-> +{ return -ENODEV; }
-> +static inline int __qcom_scm_iommu_secure_ptbl_init(struct device *dev,
-> +						    u64 addr, u32 size,
-> +						    u32 spare)
-> +{ return -ENODEV; }
-> +#endif
-> +
->  /* common error codes */
->  #define QCOM_SCM_V2_EBUSY	-12
->  #define QCOM_SCM_ENOMEM		-5
-> @@ -85,15 +146,4 @@ static inline int qcom_scm_remap_error(int err)
->  	return -EINVAL;
->  }
->  
-> -#define QCOM_SCM_SVC_MP			0xc
-> -#define QCOM_SCM_RESTORE_SEC_CFG	2
-> -extern int __qcom_scm_restore_sec_cfg(struct device *dev, u32 device_id,
-> -				      u32 spare);
-> -#define QCOM_SCM_IOMMU_SECURE_PTBL_SIZE	3
-> -#define QCOM_SCM_IOMMU_SECURE_PTBL_INIT	4
-> -extern int __qcom_scm_iommu_secure_ptbl_size(struct device *dev, u32 spare,
-> -					     size_t *size);
-> -extern int __qcom_scm_iommu_secure_ptbl_init(struct device *dev, u64 addr,
-> -					     u32 size, u32 spare);
-> -
->  #endif
-> diff --git a/include/linux/qcom_scm.h b/include/linux/qcom_scm.h
-> index e5380471c2cd..b628f735f355 100644
-> --- a/include/linux/qcom_scm.h
-> +++ b/include/linux/qcom_scm.h
-> @@ -23,7 +23,6 @@ struct qcom_scm_hdcp_req {
->  	u32 val;
->  };
->  
-> -#if IS_ENABLED(CONFIG_QCOM_SCM)
->  extern int qcom_scm_set_cold_boot_addr(void *entry, const cpumask_t *cpus);
->  extern int qcom_scm_set_warm_boot_addr(void *entry, const cpumask_t *cpus);
->  extern bool qcom_scm_is_available(void);
-> @@ -43,35 +42,4 @@ extern int qcom_scm_set_remote_state(u32 state, u32 id);
->  extern int qcom_scm_restore_sec_cfg(u32 device_id, u32 spare);
->  extern int qcom_scm_iommu_secure_ptbl_size(u32 spare, size_t *size);
->  extern int qcom_scm_iommu_secure_ptbl_init(u64 addr, u32 size, u32 spare);
-> -#else
-> -static inline
-> -int qcom_scm_set_cold_boot_addr(void *entry, const cpumask_t *cpus)
-> -{
-> -	return -ENODEV;
-> -}
-> -static inline
-> -int qcom_scm_set_warm_boot_addr(void *entry, const cpumask_t *cpus)
-> -{
-> -	return -ENODEV;
-> -}
-> -static inline bool qcom_scm_is_available(void) { return false; }
-> -static inline bool qcom_scm_hdcp_available(void) { return false; }
-> -static inline int qcom_scm_hdcp_req(struct qcom_scm_hdcp_req *req, u32 req_cnt,
-> -				    u32 *resp) { return -ENODEV; }
-> -static inline bool qcom_scm_pas_supported(u32 peripheral) { return false; }
-> -static inline int qcom_scm_pas_init_image(u32 peripheral, const void *metadata,
-> -					  size_t size) { return -ENODEV; }
-> -static inline int qcom_scm_pas_mem_setup(u32 peripheral, phys_addr_t addr,
-> -					 phys_addr_t size) { return -ENODEV; }
-> -static inline int
-> -qcom_scm_pas_auth_and_reset(u32 peripheral) { return -ENODEV; }
-> -static inline int qcom_scm_pas_shutdown(u32 peripheral) { return -ENODEV; }
-> -static inline void qcom_scm_cpu_power_down(u32 flags) {}
-> -static inline u32 qcom_scm_get_version(void) { return 0; }
-> -static inline u32
-> -qcom_scm_set_remote_state(u32 state,u32 id) { return -ENODEV; }
-> -static inline int qcom_scm_restore_sec_cfg(u32 device_id, u32 spare) { return -ENODEV; }
-> -static inline int qcom_scm_iommu_secure_ptbl_size(u32 spare, size_t *size) { return -ENODEV; }
-> -static inline int qcom_scm_iommu_secure_ptbl_init(u64 addr, u32 size, u32 spare) { return -ENODEV; }
-> -#endif
->  #endif
-> 
+SGkgSGFucywNCkl0J3MgT0ssIGZlZWwgZnJlZSB0byBjaGFuZ2UuDQpCUg0KSHVndWVzLg0KDQoN
+Ck9uIDA1LzA2LzIwMTcgMTA6NTQgQU0sIEhhbnMgVmVya3VpbCB3cm90ZToNCj4gSGkgSHVndWVz
+LA0KPg0KPiBPbiAwNS8wNS8yMDE3IDA1OjMxIFBNLCBIdWd1ZXMgRnJ1Y2hldCB3cm90ZToNCj4+
+IFRoaXMgVjRMMiBzdWJkZXYgZHJpdmVyIGVuYWJsZXMgRGlnaXRhbCBDYW1lcmEgTWVtb3J5IElu
+dGVyZmFjZSAoRENNSSkNCj4+IG9mIFNUTWljcm9lbGVjdHJvbmljcyBTVE0zMiBTb0Mgc2VyaWVz
+Lg0KPj4NCj4+IFJldmlld2VkLWJ5OiBIYW5zIFZlcmt1aWwgPGhhbnMudmVya3VpbEBjaXNjby5j
+b20+DQo+PiBTaWduZWQtb2ZmLWJ5OiBZYW5uaWNrIEZlcnRyZSA8eWFubmljay5mZXJ0cmVAc3Qu
+Y29tPg0KPj4gU2lnbmVkLW9mZi1ieTogSHVndWVzIEZydWNoZXQgPGh1Z3Vlcy5mcnVjaGV0QHN0
+LmNvbT4NCj4+IC0tLQ0KPj4gIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vS2NvbmZpZyAgICAgICAg
+ICAgIHwgICAxMiArDQo+PiAgZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9NYWtlZmlsZSAgICAgICAg
+ICAgfCAgICAyICsNCj4+ICBkcml2ZXJzL21lZGlhL3BsYXRmb3JtL3N0bTMyL01ha2VmaWxlICAg
+ICB8ICAgIDEgKw0KPj4gIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc3RtMzIvc3RtMzItZGNtaS5j
+IHwgMTQwMyArKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPj4gIDQgZmlsZXMgY2hhbmdl
+ZCwgMTQxOCBpbnNlcnRpb25zKCspDQo+PiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvbWVk
+aWEvcGxhdGZvcm0vc3RtMzIvTWFrZWZpbGUNCj4+ICBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVy
+cy9tZWRpYS9wbGF0Zm9ybS9zdG0zMi9zdG0zMi1kY21pLmMNCj4+DQo+PiBkaWZmIC0tZ2l0IGEv
+ZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9LY29uZmlnIGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9L
+Y29uZmlnDQo+PiBpbmRleCBhYzAyNmVlLi5kZTZlMThiIDEwMDY0NA0KPj4gLS0tIGEvZHJpdmVy
+cy9tZWRpYS9wbGF0Zm9ybS9LY29uZmlnDQo+PiArKysgYi9kcml2ZXJzL21lZGlhL3BsYXRmb3Jt
+L0tjb25maWcNCj4+IEBAIC0xMTQsNiArMTE0LDE4IEBAIGNvbmZpZyBWSURFT19TM0NfQ0FNSUYN
+Cj4+ICAJICBUbyBjb21waWxlIHRoaXMgZHJpdmVyIGFzIGEgbW9kdWxlLCBjaG9vc2UgTSBoZXJl
+OiB0aGUgbW9kdWxlDQo+PiAgCSAgd2lsbCBiZSBjYWxsZWQgczNjLWNhbWlmLg0KPj4NCj4+ICtj
+b25maWcgVklERU9fU1RNMzJfRENNSQ0KPj4gKwl0cmlzdGF0ZSAiRGlnaXRhbCBDYW1lcmEgTWVt
+b3J5IEludGVyZmFjZSAoRENNSSkgc3VwcG9ydCINCj4NCj4gSXMgaXQgT0sgd2l0aCB5b3UgaWYg
+SSBjaGFuZ2UgdGhpcyB0bzoNCj4NCj4gCXRyaXN0YXRlICJTVE0zMiBEaWdpdGFsIENhbWVyYSBN
+ZW1vcnkgSW50ZXJmYWNlIChEQ01JKSBzdXBwb3J0Ig0KPg0KPiBSaWdodCBub3cgdGhlIHRleHQg
+Z2l2ZXMgbm8gaW5kaWNhdGlvbiB0aGF0IHRoaXMgZHJpdmVyIGlzIGZvciBhbiBTVE0zMiBwbGF0
+Zm9ybS4NCj4NCj4gTm8gbmVlZCB0byBzcGluIGEgbmV3IHBhdGNoLCBqdXN0IGxldCBtZSBrbm93
+IHlvdSdyZSBPSyB3aXRoIGl0IGFuZCBJJ2xsIG1ha2UNCj4gdGhlIGNoYW5nZS4NCj4NCj4gUmVn
+YXJkcywNCj4NCj4gCUhhbnMNCj4NCj4+ICsJZGVwZW5kcyBvbiBWSURFT19WNEwyICYmIE9GICYm
+IEhBU19ETUENCj4+ICsJZGVwZW5kcyBvbiBBUkNIX1NUTTMyIHx8IENPTVBJTEVfVEVTVA0KPj4g
+KwlzZWxlY3QgVklERU9CVUYyX0RNQV9DT05USUcNCj4+ICsJLS0taGVscC0tLQ0KPj4gKwkgIFRo
+aXMgbW9kdWxlIG1ha2VzIHRoZSBTVE0zMiBEaWdpdGFsIENhbWVyYSBNZW1vcnkgSW50ZXJmYWNl
+IChEQ01JKQ0KPj4gKwkgIGF2YWlsYWJsZSBhcyBhIHY0bDIgZGV2aWNlLg0KPj4gKw0KPj4gKwkg
+IFRvIGNvbXBpbGUgdGhpcyBkcml2ZXIgYXMgYSBtb2R1bGUsIGNob29zZSBNIGhlcmU6IHRoZSBt
+b2R1bGUNCj4+ICsJICB3aWxsIGJlIGNhbGxlZCBzdG0zMi1kY21pLg0KPj4gKw0KPj4gIHNvdXJj
+ZSAiZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zb2NfY2FtZXJhL0tjb25maWciDQo+PiAgc291cmNl
+ICJkcml2ZXJzL21lZGlhL3BsYXRmb3JtL2V4eW5vczQtaXMvS2NvbmZpZyINCj4+ICBzb3VyY2Ug
+ImRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vYW00Mzd4L0tjb25maWci
