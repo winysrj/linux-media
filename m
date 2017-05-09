@@ -1,193 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58426 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752684AbdEJNWO (ORCPT
+Received: from relmlor4.renesas.com ([210.160.252.174]:62794 "EHLO
+        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752049AbdEINuS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 May 2017 09:22:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH 05/16] rcar-vin: move subdev source and sink pad index to rvin_graph_entity
-Date: Wed, 10 May 2017 16:22:13 +0300
-Message-ID: <2412864.T3pvZBx668@avalon>
-In-Reply-To: <20170314185957.25253-6-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se> <20170314185957.25253-6-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+        Tue, 9 May 2017 09:50:18 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v5 0/7] Add V4L2 SDR (DRIF & MAX2175) driver
+Date: Tue,  9 May 2017 14:37:31 +0100
+Message-Id: <20170509133738.16414-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hi Media, DT maintainers, All,
 
-Thank you for the patch.
+This patch set contains two drivers
+ - Renesas R-Car Digital Radio Interface (DRIF) driver
+ - Maxim's MAX2175 RF to Bits tuner driver
 
-On Tuesday 14 Mar 2017 19:59:46 Niklas S=F6derlund wrote:
-> It makes more sens to store the sink and source pads in struct
-> rvin_graph_entity since that contains other subdevice related
-> information.
->=20
-> The data type to store pad information in is unsigned int and not int=
-,
-> change this. While we are at it drop the _idx suffix from the names,
-> this never made sens.
+These patches were based on top of media-next repo
+commit:6d95b3f24881c0fd0f345eca959a2a803a040930
 
-s/sens/sense/
+These two drivers combined together expose a V4L2 SDR device that is compliant with the V4L2 framework [1]. Agreed review comments are incorporated in this series.
 
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
-.se>
+The rcar_drif device is modelled using "renesas,bonding" property. The discussion on this property is available here [2].
 
-With the typo fixed,
+Change history:
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+v4 -> v5:
+ - Minor documentation changes. Refer individual patches.
 
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 20 ++++++++++---------=
--
->  drivers/media/platform/rcar-vin/rcar-vin.h  |  9 +++++----
->  2 files changed, 15 insertions(+), 14 deletions(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> 7be52c2036bb35fc..1a75191539b0e7d7 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -111,7 +111,7 @@ static int rvin_reset_format(struct rvin_dev *vin=
-)
->  =09struct v4l2_mbus_framefmt *mf =3D &fmt.format;
->  =09int ret;
->=20
-> -=09fmt.pad =3D vin->src_pad_idx;
-> +=09fmt.pad =3D vin->digital.source_pad;
->=20
->  =09ret =3D v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, =
-&fmt);
->  =09if (ret)
-> @@ -178,7 +178,7 @@ static int __rvin_try_format_source(struct rvin_d=
-ev
-> *vin, if (pad_cfg =3D=3D NULL)
->  =09=09return -ENOMEM;
->=20
-> -=09format.pad =3D vin->src_pad_idx;
-> +=09format.pad =3D vin->digital.source_pad;
->=20
->  =09field =3D pix->field;
->=20
-> @@ -559,7 +559,7 @@ static int rvin_enum_dv_timings(struct file *file=
-, void
-> *priv_fh, if (timings->pad)
->  =09=09return -EINVAL;
->=20
-> -=09timings->pad =3D vin->sink_pad_idx;
-> +=09timings->pad =3D vin->digital.sink_pad;
->=20
->  =09ret =3D v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
->=20
-> @@ -611,7 +611,7 @@ static int rvin_dv_timings_cap(struct file *file,=
- void
-> *priv_fh, if (cap->pad)
->  =09=09return -EINVAL;
->=20
-> -=09cap->pad =3D vin->sink_pad_idx;
-> +=09cap->pad =3D vin->digital.sink_pad;
->=20
->  =09ret =3D v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
->=20
-> @@ -629,7 +629,7 @@ static int rvin_g_edid(struct file *file, void *f=
-h,
-> struct v4l2_edid *edid) if (edid->pad)
->  =09=09return -EINVAL;
->=20
-> -=09edid->pad =3D vin->sink_pad_idx;
-> +=09edid->pad =3D vin->digital.sink_pad;
->=20
->  =09ret =3D v4l2_subdev_call(sd, pad, get_edid, edid);
->=20
-> @@ -647,7 +647,7 @@ static int rvin_s_edid(struct file *file, void *f=
-h,
-> struct v4l2_edid *edid) if (edid->pad)
->  =09=09return -EINVAL;
->=20
-> -=09edid->pad =3D vin->sink_pad_idx;
-> +=09edid->pad =3D vin->digital.sink_pad;
->=20
->  =09ret =3D v4l2_subdev_call(sd, pad, set_edid, edid);
->=20
-> @@ -920,19 +920,19 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
->  =09vdev->device_caps =3D V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING=
- |
->  =09=09V4L2_CAP_READWRITE;
->=20
-> -=09vin->src_pad_idx =3D 0;
-> +=09vin->digital.source_pad =3D 0;
->  =09for (pad_idx =3D 0; pad_idx < sd->entity.num_pads; pad_idx++)
->  =09=09if (sd->entity.pads[pad_idx].flags =3D=3D MEDIA_PAD_FL_SOURCE)=
+v3 -> v4:
+ - Added ACKs
+rcar_drif:
+ - Incorporated a number of review comments from Laurent on DRIF driver.
+ - Addressed comments from Rob and Laurent on bindings.
+max2175:
+ - Minor changes addressing Hans and Laurent's comments
 
->  =09=09=09break;
->  =09if (pad_idx >=3D sd->entity.num_pads)
->  =09=09return -EINVAL;
->=20
-> -=09vin->src_pad_idx =3D pad_idx;
-> +=09vin->digital.source_pad =3D pad_idx;
->=20
-> -=09vin->sink_pad_idx =3D 0;
-> +=09vin->digital.sink_pad =3D 0;
->  =09for (pad_idx =3D 0; pad_idx < sd->entity.num_pads; pad_idx++)
->  =09=09if (sd->entity.pads[pad_idx].flags =3D=3D MEDIA_PAD_FL_SINK) {=
+v2 -> v3:
+rcar_drif:
+ - Reduced DRIF DT properties to expose tested I2S mode only (Hans - discussion on #v4l)
+ - Fixed error path clean up of ctrl_hdl on rcar_drif
 
-> -=09=09=09vin->sink_pad_idx =3D pad_idx;
-> +=09=09=09vin->digital.sink_pad =3D pad_idx;
->  =09=09=09break;
->  =09=09}
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
-> b/drivers/media/platform/rcar-vin/rcar-vin.h index
-> 727e215c08718eb9..9bfb5a7c4dc4f215 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -74,6 +74,8 @@ struct rvin_video_format {
->   * @subdev:=09subdevice matched using async framework
->   * @code:=09Media bus format from source
->   * @mbus_cfg:=09Media bus format from DT
-> + * @source_pad:=09source pad of remote subdevice
-> + * @sink_pad:=09sink pad of remote subdevice
->   */
->  struct rvin_graph_entity {
->  =09struct v4l2_async_subdev asd;
-> @@ -81,6 +83,9 @@ struct rvin_graph_entity {
->=20
->  =09u32 code;
->  =09struct v4l2_mbus_config mbus_cfg;
-> +
-> +=09unsigned int source_pad;
-> +=09unsigned int sink_pad;
->  };
->=20
->  /**
-> @@ -91,8 +96,6 @@ struct rvin_graph_entity {
->   *
->   * @vdev:=09=09V4L2 video device associated with VIN
->   * @v4l2_dev:=09=09V4L2 device
-> - * @src_pad_idx:=09source pad index for media controller drivers
-> - * @sink_pad_idx:=09sink pad index for media controller drivers
->   * @ctrl_handler:=09V4L2 control handler
->   * @notifier:=09=09V4L2 asynchronous subdevs notifier
->   * @digital:=09=09entity in the DT for local digital subdevice
-> @@ -121,8 +124,6 @@ struct rvin_dev {
->=20
->  =09struct video_device vdev;
->  =09struct v4l2_device v4l2_dev;
-> -=09int src_pad_idx;
-> -=09int sink_pad_idx;
->  =09struct v4l2_ctrl_handler ctrl_handler;
->  =09struct v4l2_async_notifier notifier;
->  =09struct rvin_graph_entity digital;
+v1 -> v2:
+ - SDR formats renamed as "planar" instead of sliced (Hans)
+ - Documentation formatting correction (Laurent)
 
---=20
-Regards,
+ rcar_drif:
+ - DT model using "bonding" property
+ - Addressed Laurent's coments on bindings - DT optional parameters rename & rework
+ - Addressed Han's comments on driver
+ - Addressed Geert's comments on DT
 
-Laurent Pinchart
+ max2175:
+ - Avoided scaling using method proposed by Antti. Thanks
+ - Bindings is a separate patch (Rob)
+ - Addressed Rob's comment on bindings
+ - Added Custom controls documentation (Laurent)
+
+[1] v4l2-compliance report:
+root@salvator-x:~# v4l2-compliance -S /dev/swradio0
+v4l2-compliance SHA   : b514d615166bdc0901a4c71261b87db31e89f464
+
+Driver Info:
+        Driver name   : rcar_drif
+        Card type     : R-Car DRIF
+        Bus info      : platform:R-Car DRIF
+        Driver version: 4.11.0
+        Capabilities  : 0x85310000
+                SDR Capture
+                Tuner
+                Read/Write
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x05310000
+                SDR Capture
+                Tuner
+                Read/Write
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/swradio0 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second sdr open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK
+        test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK
+        test VIDIOC_G/S_FREQUENCY: OK
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 1
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 5 Private Controls: 3
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK (Not Supported)
+                test Scaling: OK (Not Supported)
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK (Not Supported)
+
+Test input 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+root@salvator-x:~#
+
+[2] "bonding" DT property discussion (https://www.mail-archive.com/linux-renesas-soc@vger.kernel.org/msg09415.html)
+
+Ramesh Shanmugasundaram (7):
+  media: v4l2-ctrls: Reserve controls for MAX217X
+  dt-bindings: media: Add MAX2175 binding description
+  media: i2c: max2175: Add MAX2175 support
+  media: Add new SDR formats PC16, PC18 & PC20
+  doc_rst: media: New SDR formats PC16, PC18 & PC20
+  dt-bindings: media: Add Renesas R-Car DRIF binding
+  media: platform: rcar_drif: Add DRIF support
+
+ .../devicetree/bindings/media/i2c/max2175.txt      |   61 +
+ .../devicetree/bindings/media/renesas,drif.txt     |  177 +++
+ .../devicetree/bindings/property-units.txt         |    1 +
+ .../media/uapi/v4l/pixfmt-sdr-pcu16be.rst          |   55 +
+ .../media/uapi/v4l/pixfmt-sdr-pcu18be.rst          |   55 +
+ .../media/uapi/v4l/pixfmt-sdr-pcu20be.rst          |   54 +
+ Documentation/media/uapi/v4l/sdr-formats.rst       |    3 +
+ Documentation/media/v4l-drivers/index.rst          |    1 +
+ Documentation/media/v4l-drivers/max2175.rst        |   60 +
+ drivers/media/i2c/Kconfig                          |    4 +
+ drivers/media/i2c/Makefile                         |    2 +
+ drivers/media/i2c/max2175/Kconfig                  |    8 +
+ drivers/media/i2c/max2175/Makefile                 |    4 +
+ drivers/media/i2c/max2175/max2175.c                | 1437 +++++++++++++++++++
+ drivers/media/i2c/max2175/max2175.h                |  108 ++
+ drivers/media/platform/Kconfig                     |   25 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/rcar_drif.c                 | 1488 ++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c               |    3 +
+ include/uapi/linux/v4l2-controls.h                 |    5 +
+ include/uapi/linux/videodev2.h                     |    3 +
+ 21 files changed, 3555 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/max2175.txt
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
+ create mode 100644 Documentation/media/v4l-drivers/max2175.rst
+ create mode 100644 drivers/media/i2c/max2175/Kconfig
+ create mode 100644 drivers/media/i2c/max2175/Makefile
+ create mode 100644 drivers/media/i2c/max2175/max2175.c
+ create mode 100644 drivers/media/i2c/max2175/max2175.h
+ create mode 100644 drivers/media/platform/rcar_drif.c
+
+-- 
+2.12.2
