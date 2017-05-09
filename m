@@ -1,88 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46149
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752496AbdESKhm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 May 2017 06:37:42 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>,
-        devel@driverdev.osuosl.org
-Subject: [PATCH] [media] atomisp: disable several warnings when W=1
-Date: Fri, 19 May 2017 07:37:31 -0300
-Message-Id: <013d515d13693a66ecc927b985c2b0db720c257f.1495190226.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail.kernel.org ([198.145.29.136]:36624 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753449AbdEIMhj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 May 2017 08:37:39 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v5 0/2] v4l: vsp1: Fix suspend/resume and race on M2M pipelines
+Date: Tue,  9 May 2017 13:37:29 +0100
+Message-Id: <cover.7da7d07a321ae8bff8445a8dd714d9a61a3ee71b.1494328856.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The atomisp currently produce hundreds of warnings when W=1.
+This small patchset helps rework the VSP1 driver to repair an issue on
+suspend/resume operations whereby the pipeline does not get reconfigured after
+it has been re-initialised following a resume operation.
 
-It is a known fact that this driver is currently in bad
-shape, and there are lot of things to be done here.
+Patch [1/2] is a code move only, with no functional change.
+Patch [2/2] fixes the suspend/resume operations for video pipelines by marking
+            the new pipe configured flag as false, and configuring the pipe
+            during the vsp1_video_pipeline_run() call.
 
-We don't want to be bothered by those "minor" stuff for now,
-while the driver doesn't receive a major cleanup. So,
-disable those warnings.
+v5:
+ - Rebased for v4.12-rc1
+ - Dropped two patches from v4 as they are integrated already:
+    - BRU streamon race
+    - DRM scoped pipe->dl removal
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/staging/media/atomisp/i2c/Makefile          | 4 ++++
- drivers/staging/media/atomisp/i2c/imx/Makefile      | 5 +++++
- drivers/staging/media/atomisp/i2c/ov5693/Makefile   | 5 +++++
- drivers/staging/media/atomisp/pci/atomisp2/Makefile | 5 +++++
- 4 files changed, 19 insertions(+)
+v4:
+ - Rework and separate out the BRU race back to v1 style implementation
+ - Split BRU race and Suspend Resume fixes into separate commits.
 
-diff --git a/drivers/staging/media/atomisp/i2c/Makefile b/drivers/staging/media/atomisp/i2c/Makefile
-index 466517c7c8e6..a1afca6ec31f 100644
---- a/drivers/staging/media/atomisp/i2c/Makefile
-+++ b/drivers/staging/media/atomisp/i2c/Makefile
-@@ -19,3 +19,7 @@ obj-$(CONFIG_VIDEO_AP1302)     += ap1302.o
- 
- obj-$(CONFIG_VIDEO_LM3554) += lm3554.o
- 
-+# HACK! While this driver is in bad shape, don't enable several warnings
-+#       that would be otherwise enabled with W=1
-+ccflags-y += -Wno-unused-but-set-variable -Wno-missing-prototypes \
-+	     -Wno-unused-const-variable -Wno-missing-declarations
-diff --git a/drivers/staging/media/atomisp/i2c/imx/Makefile b/drivers/staging/media/atomisp/i2c/imx/Makefile
-index 6b13a3a66e49..0eceb7374bec 100644
---- a/drivers/staging/media/atomisp/i2c/imx/Makefile
-+++ b/drivers/staging/media/atomisp/i2c/imx/Makefile
-@@ -4,3 +4,8 @@ imx1x5-objs := imx.o drv201.o ad5816g.o dw9714.o dw9719.o dw9718.o vcm.o otp.o o
- 
- ov8858_driver-objs := ../ov8858.o dw9718.o vcm.o
- obj-$(CONFIG_VIDEO_OV8858)     += ov8858_driver.o
-+
-+# HACK! While this driver is in bad shape, don't enable several warnings
-+#       that would be otherwise enabled with W=1
-+ccflags-y += -Wno-unused-but-set-variable -Wno-missing-prototypes \
-+             -Wno-unused-const-variable -Wno-missing-declarations
-diff --git a/drivers/staging/media/atomisp/i2c/ov5693/Makefile b/drivers/staging/media/atomisp/i2c/ov5693/Makefile
-index c9c0e1245858..fd2ef2e3c31e 100644
---- a/drivers/staging/media/atomisp/i2c/ov5693/Makefile
-+++ b/drivers/staging/media/atomisp/i2c/ov5693/Makefile
-@@ -1 +1,6 @@
- obj-$(CONFIG_VIDEO_OV5693) += ov5693.o
-+
-+# HACK! While this driver is in bad shape, don't enable several warnings
-+#       that would be otherwise enabled with W=1
-+ccflags-y += -Wno-unused-but-set-variable -Wno-missing-prototypes \
-+             -Wno-unused-const-variable -Wno-missing-declarations
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/Makefile b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-index f126a89a08e9..8ccb5f29f2c1 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-@@ -353,3 +353,8 @@ DEFINES += -DSYSTEM_hive_isp_css_2400_system -DISP2400
- 
- ccflags-y += $(INCLUDES) $(DEFINES) -fno-common
- 
-+# HACK! While this driver is in bad shape, don't enable several warnings
-+#       that would be otherwise enabled with W=1
-+ccflags-y += -Wno-unused-const-variable -Wno-missing-prototypes \
-+	     -Wno-unused-but-set-variable -Wno-missing-declarations \
-+	     -Wno-suggest-attribute=format -Wno-missing-prototypes
+v3:
+ - Move configured=false from vsp1_device_init to vsp1_reset_wpf()
+ - Clean up flag dereferencing with a local struct *
+
+v2:
+ - Refactor video pipeline configuration implementation to solve both suspend
+   resume and the VSP BRU race in a single change
+
+v1:
+ - Original pipeline configuration rework
+
+Kieran Bingham (2):
+  v4l: vsp1: Move vsp1_video_setup_pipeline()
+  v4l: vsp1: Repair suspend resume operations for video pipelines
+
+ drivers/media/platform/vsp1/vsp1_drv.c   |   4 +-
+ drivers/media/platform/vsp1/vsp1_pipe.c  |   1 +-
+ drivers/media/platform/vsp1/vsp1_pipe.h  |   4 +-
+ drivers/media/platform/vsp1/vsp1_video.c | 123 +++++++++++-------------
+ 4 files changed, 64 insertions(+), 68 deletions(-)
+
+base-commit: 13e0988140374123bead1dd27c287354cb95108e
 -- 
-2.9.3
+git-series 0.9.1
