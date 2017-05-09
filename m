@@ -1,54 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:12419 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752099AbdELDPX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 May 2017 23:15:23 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Houlong Wei <houlong.wei@mediatek.com>
-CC: <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        Wu-Cheng Li <wuchengli@google.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
-Subject: [PATCH v2 0/3] Fix mdp device tree 
-Date: Fri, 12 May 2017 11:15:11 +0800
-Message-ID: <1494558914-41591-1-git-send-email-minghsiu.tsai@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail.kernel.org ([198.145.29.136]:44430 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754399AbdEIQkC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 May 2017 12:40:02 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 1/2] Revert "[media] v4l: vsp1: Supply frames to the DU continuously"
+Date: Tue,  9 May 2017 17:39:51 +0100
+Message-Id: <bdf682b44a1ea5060d46f81620b82ff528fdd68a.1494347923.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.ebf0f0df2d74f2a209e8b628269e3cac27d4a2ab.1494347923.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.ebf0f0df2d74f2a209e8b628269e3cac27d4a2ab.1494347923.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.ebf0f0df2d74f2a209e8b628269e3cac27d4a2ab.1494347923.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.ebf0f0df2d74f2a209e8b628269e3cac27d4a2ab.1494347923.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the mdp_* nodes are under an mdp sub-node, their corresponding
-platform device does not automatically get its iommu assigned properly.
+This reverts commit 3299ba5c0b21 ("[media] v4l: vsp1: Supply frames to
+the DU continuously")
 
-Fix this by moving the mdp component nodes up a level such that they are
-siblings of mdp and all other SoC subsystems.  This also simplifies the
-device tree.
+The DU output mode does not rely on frames being supplied on the WPF as
+its pipeline is supplied from DRM. For the upcoming WPF writeback
+functionality, we will choose to enable writeback mode if there is an
+output buffer, or disable it (leaving the existing display pipeline
+unharmed) otherwise.
 
-Although it fixes iommu assignment issue, it also break compatibility
-with old device tree. So, the patch in driver is needed to iterate over
-sibling mdp device nodes, not child ones, to keep driver work properly.
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 11 -----------
+ 1 file changed, 11 deletions(-)
 
-Daniel Kurtz (2):
-  arm64: dts: mt8173: Fix mdp device tree
-  media: mtk-mdp: Fix mdp device tree
-
-Minghsiu Tsai (1):
-  dt-bindings: mt8173: Fix mdp device tree
-
- .../devicetree/bindings/media/mediatek-mdp.txt     |  12 +-
- arch/arm64/boot/dts/mediatek/mt8173.dtsi           | 126 ++++++++++-----------
- drivers/media/platform/mtk-mdp/mtk_mdp_core.c      |   2 +-
- 3 files changed, 64 insertions(+), 76 deletions(-)
-
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index eab3c3ea85d7..47b5c24043d7 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -304,11 +304,6 @@ static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
+  * This function completes the current buffer by filling its sequence number,
+  * time stamp and payload size, and hands it back to the videobuf core.
+  *
+- * When operating in DU output mode (deep pipeline to the DU through the LIF),
+- * the VSP1 needs to constantly supply frames to the display. In that case, if
+- * no other buffer is queued, reuse the one that has just been processed instead
+- * of handing it back to the videobuf core.
+- *
+  * Return the next queued buffer or NULL if the queue is empty.
+  */
+ static struct vsp1_vb2_buffer *
+@@ -330,12 +325,6 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
+ 	done = list_first_entry(&video->irqqueue,
+ 				struct vsp1_vb2_buffer, queue);
+ 
+-	/* In DU output mode reuse the buffer if the list is singular. */
+-	if (pipe->lif && list_is_singular(&video->irqqueue)) {
+-		spin_unlock_irqrestore(&video->irqlock, flags);
+-		return done;
+-	}
+-
+ 	list_del(&done->queue);
+ 
+ 	if (!list_empty(&video->irqqueue))
 -- 
-1.9.1
+git-series 0.9.1
