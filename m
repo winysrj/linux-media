@@ -1,63 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38021 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750864AbdE2KJD (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58592 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750733AbdEJNjn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 06:09:03 -0400
-Subject: Re: [PATCH v2 1/2] v4l: async: check for v4l2_dev in
- v4l2_async_notifier_register()
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        Wed, 10 May 2017 09:39:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
-References: <20170524000727.12936-1-niklas.soderlund@ragnatech.se>
- <20170524000727.12936-2-niklas.soderlund@ragnatech.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e6ed1abd-7028-377d-ea94-2e26e00abf4c@xs4all.nl>
-Date: Mon, 29 May 2017 12:08:56 +0200
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH 13/16] rcar-vin: refactor and fold in function after stall handling rework
+Date: Wed, 10 May 2017 16:39:42 +0300
+Message-ID: <1661133.rgc9DWuKkP@avalon>
+In-Reply-To: <20170314185957.25253-14-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se> <20170314185957.25253-14-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20170524000727.12936-2-niklas.soderlund@ragnatech.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/24/2017 02:07 AM, Niklas Söderlund wrote:
-> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> 
-> Add a check for v4l2_dev to v4l2_async_notifier_register() as to fail as
-> early as possible since this will fail later in v4l2_async_test_notify().
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Hi Niklas,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Thank you for the patch.
 
-Thanks!
+On Tuesday 14 Mar 2017 19:59:54 Niklas S=F6derlund wrote:
+> With the driver stopping and starting the stream each time the driver=
+ is
+> stalled rvin_capture_off() can be folded in to the only caller.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
+.se>
 
-	Hans
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
 > ---
->   drivers/media/v4l2-core/v4l2-async.c | 3 ++-
->   1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index cbd919d4edd27e17..c16200c88417b151 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -148,7 +148,8 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->   	struct v4l2_async_subdev *asd;
->   	int i;
->   
-> -	if (!notifier->num_subdevs || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-> +	if (!v4l2_dev || !notifier->num_subdevs ||
-> +	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
->   		return -EINVAL;
->   
->   	notifier->v4l2_dev = v4l2_dev;
-> 
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 9 ++-------
+>  1 file changed, 2 insertions(+), 7 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
+> b/drivers/media/platform/rcar-vin/rcar-dma.c index
+> bd1ccb70ae2bc47e..c5fa176ac9d8cc4a 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -396,12 +396,6 @@ static void rvin_capture_on(struct rvin_dev *vin=
+)
+>  =09=09rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
+>  }
+>=20
+> -static void rvin_capture_off(struct rvin_dev *vin)
+> -{
+> -=09/* Set continuous & single transfer off */
+> -=09rvin_write(vin, 0, VNFC_REG);
+> -}
+> -
+>  static int rvin_capture_start(struct rvin_dev *vin)
+>  {
+>  =09struct rvin_buffer *buf, *node;
+> @@ -435,7 +429,8 @@ static int rvin_capture_start(struct rvin_dev *vi=
+n)
+>=20
+>  static void rvin_capture_stop(struct rvin_dev *vin)
+>  {
+> -=09rvin_capture_off(vin);
+> +=09/* Set continuous & single transfer off */
+> +=09rvin_write(vin, 0, VNFC_REG);
+>=20
+>  =09/* Disable module */
+>  =09rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
+
+--=20
+Regards,
+
+Laurent Pinchart
