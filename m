@@ -1,143 +1,241 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58896 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751741AbdEPXXH (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:49695 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751419AbdEJNaG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 May 2017 19:23:07 -0400
-Date: Wed, 17 May 2017 01:23:04 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        pali.rohar@gmail.com, sre@kernel.org,
+        Wed, 10 May 2017 09:30:06 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8; format=flowed
+Subject: Re: [RFC 0/4] Exynos DRM: add Picture Processor extension
+To: Daniel Vetter <daniel@ffwll.ch>, Inki Dae <inki.dae@samsung.com>
+Cc: Tomasz Figa <tfiga@chromium.org>, linux-media@vger.kernel.org,
+        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Tobias Jakobi <tjakobi@math.uni-bielefeld.de>,
         Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: [patch, libv4l]: Introduce define for lookup table size
-Message-ID: <20170516232304.GA31370@amd>
-References: <20170426105300.GA857@amd>
- <20170426081330.6ca10e42@vento.lan>
- <20170426132337.GA6482@amd>
- <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
- <20170508222819.GA14833@amd>
- <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
- <20170509110440.GC28248@amd>
- <c4f61bc5-6650-9468-5fbf-8041403a0ef2@xs4all.nl>
- <20170516124519.GA25650@amd>
- <76e09f45-8f04-1149-a744-ccb19f36871a@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="n8g4imXOkfNTN/H1"
-Content-Disposition: inline
-In-Reply-To: <76e09f45-8f04-1149-a744-ccb19f36871a@xs4all.nl>
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@intel.com>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <8d192b3c-3010-f17c-3e6e-9f4c4a577678@samsung.com>
+Date: Wed, 10 May 2017 15:30:00 +0200
+In-reply-to: <20170510075508.kqg6t35qccwpzxwn@phenom.ffwll.local>
+Content-transfer-encoding: 8bit
+References: <CGME20170420091406eucas1p24c50a0015545105081257d880727386c@eucas1p2.samsung.com>
+ <1492679620-12792-1-git-send-email-m.szyprowski@samsung.com>
+ <2541347.TzHdYYQVhG@avalon> <711bf4a5-7e57-6720-d00b-66e97a81e5ec@samsung.com>
+ <20170425222124.GA7456@valkosipuli.retiisi.org.uk>
+ <59126BB4.6050309@samsung.com>
+ <CAAFQd5CPNQ5hDDXPwo2v54VcoOMeDszuvoHZPYQYNJsMJk41Ww@mail.gmail.com>
+ <5912B2B6.4050605@samsung.com>
+ <20170510075508.kqg6t35qccwpzxwn@phenom.ffwll.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Daniel,
 
---n8g4imXOkfNTN/H1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 2017-05-10 09:55, Daniel Vetter wrote:
+> On Wed, May 10, 2017 at 03:27:02PM +0900, Inki Dae wrote:
+>> Hi Tomasz,
+>>
+>> 2017년 05월 10일 14:38에 Tomasz Figa 이(가) 쓴 글:
+>>> Hi Everyone,
+>>>
+>>> On Wed, May 10, 2017 at 9:24 AM, Inki Dae <inki.dae@samsung.com> wrote:
+>>>>
+>>>> 2017년 04월 26일 07:21에 Sakari Ailus 이(가) 쓴 글:
+>>>>> Hi Marek,
+>>>>>
+>>>>> On Thu, Apr 20, 2017 at 01:23:09PM +0200, Marek Szyprowski wrote:
+>>>>>> Hi Laurent,
+>>>>>>
+>>>>>> On 2017-04-20 12:25, Laurent Pinchart wrote:
+>>>>>>> Hi Marek,
+>>>>>>>
+>>>>>>> (CC'ing Sakari Ailus)
+>>>>>>>
+>>>>>>> Thank you for the patches.
+>>>>>>>
+>>>>>>> On Thursday 20 Apr 2017 11:13:36 Marek Szyprowski wrote:
+>>>>>>>> Dear all,
+>>>>>>>>
+>>>>>>>> This is an updated proposal for extending EXYNOS DRM API with generic
+>>>>>>>> support for hardware modules, which can be used for processing image data
+>>>>>>> >from the one memory buffer to another. Typical memory-to-memory operations
+>>>>>>>> are: rotation, scaling, colour space conversion or mix of them. This is a
+>>>>>>>> follow-up of my previous proposal "[RFC 0/2] New feature: Framebuffer
+>>>>>>>> processors", which has been rejected as "not really needed in the DRM
+>>>>>>>> core":
+>>>>>>>> http://www.mail-archive.com/dri-devel@lists.freedesktop.org/msg146286.html
+>>>>>>>>
+>>>>>>>> In this proposal I moved all the code to Exynos DRM driver, so now this
+>>>>>>>> will be specific only to Exynos DRM. I've also changed the name from
+>>>>>>>> framebuffer processor (fbproc) to picture processor (pp) to avoid confusion
+>>>>>>>> with fbdev API.
+>>>>>>>>
+>>>>>>>> Here is a bit more information what picture processors are:
+>>>>>>>>
+>>>>>>>> Embedded SoCs are known to have a number of hardware blocks, which perform
+>>>>>>>> such operations. They can be used in paralel to the main GPU module to
+>>>>>>>> offload CPU from processing grapics or video data. One of example use of
+>>>>>>>> such modules is implementing video overlay, which usually requires color
+>>>>>>>> space conversion from NV12 (or similar) to RGB32 color space and scaling to
+>>>>>>>> target window size.
+>>>>>>>>
+>>>>>>>> The proposed API is heavily inspired by atomic KMS approach - it is also
+>>>>>>>> based on DRM objects and their properties. A new DRM object is introduced:
+>>>>>>>> picture processor (called pp for convenience). Such objects have a set of
+>>>>>>>> standard DRM properties, which describes the operation to be performed by
+>>>>>>>> respective hardware module. In typical case those properties are a source
+>>>>>>>> fb id and rectangle (x, y, width, height) and destination fb id and
+>>>>>>>> rectangle. Optionally a rotation property can be also specified if
+>>>>>>>> supported by the given hardware. To perform an operation on image data,
+>>>>>>>> userspace provides a set of properties and their values for given fbproc
+>>>>>>>> object in a similar way as object and properties are provided for
+>>>>>>>> performing atomic page flip / mode setting.
+>>>>>>>>
+>>>>>>>> The proposed API consists of the 3 new ioctls:
+>>>>>>>> - DRM_IOCTL_EXYNOS_PP_GET_RESOURCES: to enumerate all available picture
+>>>>>>>>    processors,
+>>>>>>>> - DRM_IOCTL_EXYNOS_PP_GET: to query capabilities of given picture
+>>>>>>>>    processor,
+>>>>>>>> - DRM_IOCTL_EXYNOS_PP_COMMIT: to perform operation described by given
+>>>>>>>>    property set.
+>>>>>>>>
+>>>>>>>> The proposed API is extensible. Drivers can attach their own, custom
+>>>>>>>> properties to add support for more advanced picture processing (for example
+>>>>>>>> blending).
+>>>>>>>>
+>>>>>>>> This proposal aims to replace Exynos DRM IPP (Image Post Processing)
+>>>>>>>> subsystem. IPP API is over-engineered in general, but not really extensible
+>>>>>>>> on the other side. It is also buggy, with significant design flaws - the
+>>>>>>>> biggest issue is the fact that the API covers memory-2-memory picture
+>>>>>>>> operations together with CRTC writeback and duplicating features, which
+>>>>>>>> belongs to video plane. Comparing with IPP subsystem, the PP framework is
+>>>>>>>> smaller (1807 vs 778 lines) and allows driver simplification (Exynos
+>>>>>>>> rotator driver smaller by over 200 lines).
+>>>>>>> This seems to be the kind of hardware that is typically supported by V4L2.
+>>>>>>> Stupid question, why DRM ?
+>>>>>> Let me elaborate a bit on the reasons for implementing it in Exynos DRM:
+>>>>>>
+>>>>>> 1. we want to replace existing Exynos IPP subsystem:
+>>>>>>   - it is used only in some internal/vendor trees, not in open-source
+>>>>>>   - we want it to have sane and potentially extensible userspace API
+>>>>>>   - but we don't want to loose its functionality
+>>>>>>
+>>>>>> 2. we want to have simple API for performing single image processing
+>>>>>> operation:
+>>>>>>   - typically it will be used by compositing window manager, this means that
+>>>>>>     some parameters of the processing might change on each vblank (like
+>>>>>>     destination rectangle for example). This api allows such change on each
+>>>>>>     operation without any additional cost. V4L2 requires to reinitialize
+>>>>>>     queues with new configuration on such change, what means that a bunch of
+>>>>>>     ioctls has to be called.
+>>>>> What do you mean by re-initialising the queue? Format, buffers or something
+>>>>> else?
+>>>>>
+>>>>> If you need a larger buffer than what you have already allocated, you'll
+>>>>> need to re-allocate, V4L2 or not.
+>>>>>
+>>>>> We also do lack a way to destroy individual buffers in V4L2. It'd be up to
+>>>>> implementing that and some work in videobuf2.
+>>>>>
+>>>>> Another thing is that V4L2 is very stream oriented. For most devices that's
+>>>>> fine as a lot of the parameters are not changeable during streaming,
+>>>>> especially if the pipeline is handled by multiple drivers. That said, for
+>>>>> devices that process data from memory to memory performing changes in the
+>>>>> media bus formats and pipeline configuration is not very efficient
+>>>>> currently, largely for the same reason.
+>>>>>
+>>>>> The request API that people have been working for a bit different use cases
+>>>>> isn't in mainline yet. It would allow more efficient per-request
+>>>>> configuration than what is currently possible, but it has turned out to be
+>>>>> far from trivial to implement.
+>>>>>
+>>>>>>   - validating processing parameters in V4l2 API is really complicated,
+>>>>>>     because the parameters (format, src&dest rectangles, rotation) are being
+>>>>>>     set incrementally, so we have to either allow some impossible,
+>>>>>> transitional
+>>>>>>     configurations or complicate the configuration steps even more (like
+>>>>>>     calling some ioctls multiple times for both input and output). In the end
+>>>>>>     all parameters have to be again validated just before performing the
+>>>>>>     operation.
+>>>>> You have to validate the parameters in any case. In a MC pipeline this takes
+>>>>> place when the stream is started.
+>>>>>
+>>>>>> 3. generic approach (to add it to DRM core) has been rejected:
+>>>>>> http://www.mail-archive.com/dri-devel@lists.freedesktop.org/msg146286.html
+>>>>> For GPUs I generally understand the reasoning: there's a very limited number
+>>>>> of users of this API --- primarily because it's not an application
+>>>>> interface.
+>>>>>
+>>>>> If you have a device that however falls under the scope of V4L2 (at least
+>>>>> API-wise), does this continue to be the case? Will there be only one or two
+>>>>> (or so) users for this API? Is it the case here?
+>>>>>
+>>>>> Using a device specific interface definitely has some benefits: there's no
+>>>>> need to think how would you generalise the interface for other similar
+>>>>> devices. There's no need to consider backwards compatibility as it's not a
+>>>>> requirement. The drawback is that the applications that need to support
+>>>>> similar devices will bear the burden of having to support different APIs.
+>>>>>
+>>>>> I don't mean to say that you should ram whatever under V4L2 / MC
+>>>>> independently of how unworkable that might be, but there are also clear
+>>>>> advantages in using a standardised interface such as V4L2.
+>>>>>
+>>>>> V4L2 has a long history behind it and if it was designed today, I bet it
+>>>>> would look quite different from what it is now.
+>>>> It's true. There is definitely a benefit with V4L2 because V4L2 provides Linux standard ABI - for DRM as of now not.
+>>>>
+>>>> However, I think that is a only benefit we could get through V4L2. Using V4L2 makes software stack of Platform to be complicated - We have to open video device node and card device node to display a image on the screen scaling or converting color space of the image and also we need to export DMA buffer from one side and import it to other side using DMABUF.
+>>>>
+>>>> It may not related to this but even V4L2 has performance problem - every QBUF/DQBUF requests performs mapping/unmapping DMA buffer you already know this. :)
+>>>>
+>>>> In addition, recently Display subsystems on ARM SoC tend to include pre/post processing hardware in Display controller - OMAP, Exynos8895 and MSM as long as I know.
+>>>>
+>>> I agree with many of the arguments given by Inki above and earlier by
+>>> Marek. However, they apply to already existing V4L2 implementation,
+>>> not V4L2 as the idea in general, and I believe a comparison against a
+>>> complete new API that doesn't even exist in the kernel tree and
+>>> userspace yet (only in terms of patches on the list) is not fair.
+>> Below is a user space who uses Exynos DRM post processor driver, IPP driver.
+>> https://review.tizen.org/git/?p=platform/adaptation/samsung_exynos/libtdm-exynos.git;a=blob;f=src/tdm_exynos_pp.c;h=db20e6f226d313672d1d468e06d80526ea30121c;hb=refs/heads/tizen
+>>
+>> Marek patch series is just a new version of this driver which is specific to Exynos DRM. Marek is trying to enhance this driver.
+>> Ps. other DRM drivers in mainline already have such or similar API.
+>>
+>> We will also open the user space who uses new API later.
+> Those drivers are different, because they just expose a hw-specific abi.
+> Like the current IPP interfaces exposed by drm/exynos.
+>
+> I think you have 2 options:
+> - Extend the current IPP interface in drm/exynos with whatever new pixel
+>    processor modes you want. Of course this still means you need to have
+>    the userspace side open-source, but otherwise it's all private to exynos
+>    hardware and software.
 
-Hi!
+That's what I proposed in RFC v2 posted 2 days ago - everything is kept in
+Exynos DRM driver, no changes to DRM-core at all. Maybe calling it Exynos
+IPP v2 would have been a better idea.
 
-> >>> Make lookup table size configurable at compile-time.
-> >>
-> >> I don't think I'll take this patch. The problem is that if we really a=
-dd
-> >> support for 10 or 12 bit lookup tables in the future, then just changi=
-ng
-> >> LSIZE isn't enough.
-> >>
-> >> This patch doesn't really add anything as it stands.
-> >=20
-> > Well, currently we have 256, 255 and 0xff sprinkled through the code,
-> > when it means to say "lookup table size". That is quite wrong (because
-> > you can't really grep "what depends on the table size).
-> >=20
-> > And BTW with the LSIZE set to 1024, 10 bit processing seems to
-> > work. So it is already useful, at least for me.
-> >=20
-> > But now I noticed the patch is subtly wrong:
-> >=20
-> >>> -#define CLIP256(color) (((color) > 0xff) ? 0xff : (((color) < 0) ? 0=
- : (color)))
-> >>> +#define CLIPLSIZE(color) (((color) > LSIZE) ? LSIZE : (((color) <
-> > 0) ? 0 : (color)))
-> >=20
-> > This should be LSIZE-1.
-> >=20
-> > So I need to adjust the patch. But I'd still like you to take (fixed
-> > version) for documentation purposes...
->=20
-> I much rather do this as part of a longer series that actually adds 10 bi=
-t support.
->=20
-> The problem is that adding support for 10 bit doesn't mean you can just u=
-se LSIZE
-> all the time since you still need support for 8 bit as well.
->=20
-> E.g. CLIPLSIZE makes no sense, I would expect to see a CLIP256 and a CLIP=
-1024.
->=20
-> So it becomes a bit more complex than just adding an LSIZE define.
+> - If you want something standardized otoh, go with v4l2. And the issues
+>    you point out in v4l2 aren't uapi issues, but implementation details of
+>    the current vbuf helpers, which can be fixed. At least that's my
+>    understanding. And it should be fairly easy to fix that, simply switch
+>    from doing a map/unmap for every q/deqbuf to caching the mappings and
+>    use the stream dma-api interfaces to only do the flush (if needed at
+>    all, should turn into a no-op) on q/deqbuf.
+>
+> Trying to come up with a generic drm api has imo not much chance of
+> getting accepted anytime soon (since for the simple pixel processor
+> pipeline it's just duplicating v4l, and for something more generic/faster
+> a generic interfaces is alwas too slow).
 
-Yes, proper 10 bit support will be more complex (and I'm not sure if
-I'll be able to do it, I might need help there). OTOH... table size is
-used at 7 places in three different files, and 256 is _very_ common
-constant.
+Okay, I don't want to make it DRM-wide. For us it is enough to have it at
+Exynos DRM, like existing IPP ioctls.
 
-So IMO this makes sense regardless of full 10-bit support.
-
-Best regards,
-									Pavel
-
-
-> >>>  #define CLIP(color, min, max) (((color) > (max)) ? (max) : (((color)=
- < (min)) ? (min) : (color)))
-> >>> =20
-> >>>  static int whitebalance_active(struct v4lprocessing_data *data)
-> >>> @@ -111,10 +111,10 @@ static int whitebalance_calculate_lookup_tables=
-_generic(
-> >>> =20
-> >>>  	avg_avg =3D (data->green_avg + data->comp1_avg + data->comp2_avg) /=
- 3;
-> >>> =20
-> >>> -	for (i =3D 0; i < 256; i++) {
-> >>> -		data->comp1[i] =3D CLIP256(data->comp1[i] * avg_avg / data->comp1_=
-avg);
-> >>> -		data->green[i] =3D CLIP256(data->green[i] * avg_avg / data->green_=
-avg);
-> >>> -		data->comp2[i] =3D CLIP256(data->comp2[i] * avg_avg / data->comp2_=
-avg);
-> >>> +	for (i =3D 0; i < LSIZE; i++) {
-> >>> +		data->comp1[i] =3D CLIPLSIZE(data->comp1[i] * avg_avg / data->comp=
-1_avg);
-> >>> +		data->green[i] =3D CLIPLSIZE(data->green[i] * avg_avg / data->gree=
-n_avg);
-> >>> +		data->comp2[i] =3D CLIPLSIZE(data->comp2[i] * avg_avg / data->comp=
-2_avg);
-> >>>  	}
-> >>> =20
-> >>>  	return 1;
-> >>>
-> >=20
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---n8g4imXOkfNTN/H1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlkbidgACgkQMOfwapXb+vJfxgCfYIuvSamp5gIgR9tJHIhfDwDx
-2xIAmwc5y4W4HUdVMzcobI6QsQo6za49
-=G5Y0
------END PGP SIGNATURE-----
-
---n8g4imXOkfNTN/H1--
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
