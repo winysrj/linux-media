@@ -1,44 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:35939 "EHLO
-        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751706AbdEEUSr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 May 2017 16:18:47 -0400
-Received: by mail-wm0-f51.google.com with SMTP id u65so33056527wmu.1
-        for <linux-media@vger.kernel.org>; Fri, 05 May 2017 13:18:46 -0700 (PDT)
-From: Remco <remco@dutchcoders.io>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Cc: Remco Verhoef <remco@dutchcoders.io>
-Subject: [PATCH] media: fix one code style problem
-Date: Fri,  5 May 2017 13:18:24 -0700
-Message-Id: <20170505201824.39399-1-remco@dutchcoders.io>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45510 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751235AbdEJINP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 10 May 2017 04:13:15 -0400
+Date: Wed, 10 May 2017 11:12:31 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi,
+        chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v5 3/7] media: i2c: max2175: Add MAX2175 support
+Message-ID: <20170510081231.GB3227@valkosipuli.retiisi.org.uk>
+References: <20170509133738.16414-1-ramesh.shanmugasundaram@bp.renesas.com>
+ <20170509133738.16414-4-ramesh.shanmugasundaram@bp.renesas.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170509133738.16414-4-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Remco Verhoef <remco@dutchcoders.io>
+Hi Ramesh,
 
-this patch will fix one code style problem (ctx:WxE), space
-prohibited before that
+On Tue, May 09, 2017 at 02:37:34PM +0100, Ramesh Shanmugasundaram wrote:
+...
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-of.h>
 
-Signed-off-by: Remco Verhoef <remco@dutchcoders.io>
----
- .../staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c    | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Could you rebase this on the V4L2 fwnode patchset here, please?
 
-diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-index 5b4506a..b0f9188 100644
---- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-+++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-@@ -51,7 +51,7 @@ struct gmin_subdev {
- 
- static struct gmin_subdev gmin_subdevs[MAX_SUBDEVS];
- 
--static enum { PMIC_UNSET = 0, PMIC_REGULATOR, PMIC_AXP, PMIC_TI ,
-+static enum { PMIC_UNSET = 0, PMIC_REGULATOR, PMIC_AXP, PMIC_TI,
- 	PMIC_CRYSTALCOVE } pmic_id;
- 
- /* The atomisp uses type==0 for the end-of-list marker, so leave space. */
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi>
+
+It depends on other patches which will reach media-tree master in next rc1,
+for now I've merged them here:
+
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi-merge>
+
+I'll send a pull request for media-tree once we have 4.12rc1 in media-tree
+master.
+
+Thanks.
+
 -- 
-1.9.1
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
