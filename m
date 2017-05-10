@@ -1,152 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:26349 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751037AbdEaLAe (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58530 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753024AbdEJNcC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 07:00:34 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] ARM: dts: exynos: Add HDMI CEC device to Exynos5 SoC family
-Date: Wed, 31 May 2017 13:00:17 +0200
-Message-id: <1496228417-31126-1-git-send-email-m.szyprowski@samsung.com>
-References: <CGME20170531110029eucas1p14bb9468f72155d88364c0aa5093ac05d@eucas1p1.samsung.com>
+        Wed, 10 May 2017 09:32:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH 11/16] rcar-vin: select capture mode based on free buffers
+Date: Wed, 10 May 2017 16:32:02 +0300
+Message-ID: <1612875.YPaiTLNXp7@avalon>
+In-Reply-To: <20170314185957.25253-12-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se> <20170314185957.25253-12-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Exynos5250 and Exynos542x SoCs have the same CEC hardware module as
-Exynos4 SoC series, so enable support for it using the same compatible
-string.
+Hi Niklas,
 
-Tested on Odroid XU3 (Exynos5422) and Google Snow (Exynos5250) boards.
+Thank you for the patch.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- arch/arm/boot/dts/exynos5250-pinctrl.dtsi          |  7 +++++++
- arch/arm/boot/dts/exynos5250-snow-common.dtsi      |  4 ++++
- arch/arm/boot/dts/exynos5250.dtsi                  | 13 +++++++++++++
- arch/arm/boot/dts/exynos5420-pinctrl.dtsi          |  7 +++++++
- arch/arm/boot/dts/exynos5420.dtsi                  | 13 +++++++++++++
- arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi |  4 ++++
- 6 files changed, 48 insertions(+)
+On Tuesday 14 Mar 2017 19:59:52 Niklas S=F6derlund wrote:
+> Instead of selecting single or continuous capture mode based on how m=
+any
+> buffers userspace intends to give us select capture mode based on num=
+ber
+> of free buffers we can allocate to hardware when the stream is starte=
+d.
+>=20
+> This change is a prerequisite to enable the driver to switch from
+> continuous to single capture mode (or the other way around) when the
+> driver is stalled by userspace not feeding it buffers as fast as it
+> consumes it.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
+.se>
 
-diff --git a/arch/arm/boot/dts/exynos5250-pinctrl.dtsi b/arch/arm/boot/dts/exynos5250-pinctrl.dtsi
-index 2f6ab32b5954..1fd122db18e6 100644
---- a/arch/arm/boot/dts/exynos5250-pinctrl.dtsi
-+++ b/arch/arm/boot/dts/exynos5250-pinctrl.dtsi
-@@ -589,6 +589,13 @@
- 		samsung,pin-pud = <EXYNOS_PIN_PULL_NONE>;
- 		samsung,pin-drv = <EXYNOS4_PIN_DRV_LV1>;
- 	};
-+
-+	hdmi_cec: hdmi-cec {
-+		samsung,pins = "gpx3-6";
-+		samsung,pin-function = <EXYNOS_PIN_FUNC_3>;
-+		samsung,pin-pud = <EXYNOS_PIN_PULL_NONE>;
-+		samsung,pin-drv = <EXYNOS4_PIN_DRV_LV1>;
-+	};
- };
- 
- &pinctrl_1 {
-diff --git a/arch/arm/boot/dts/exynos5250-snow-common.dtsi b/arch/arm/boot/dts/exynos5250-snow-common.dtsi
-index 8f3a80430748..e1d293dbbe5d 100644
---- a/arch/arm/boot/dts/exynos5250-snow-common.dtsi
-+++ b/arch/arm/boot/dts/exynos5250-snow-common.dtsi
-@@ -272,6 +272,10 @@
- 	vdd_pll-supply = <&ldo8_reg>;
- };
- 
-+&hdmicec {
-+	status = "okay";
-+};
-+
- &i2c_0 {
- 	status = "okay";
- 	samsung,i2c-sda-delay = <100>;
-diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
-index 79c9c885613a..fbdc1d53a2ce 100644
---- a/arch/arm/boot/dts/exynos5250.dtsi
-+++ b/arch/arm/boot/dts/exynos5250.dtsi
-@@ -689,6 +689,19 @@
- 			samsung,syscon-phandle = <&pmu_system_controller>;
- 		};
- 
-+		hdmicec: cec@101B0000 {
-+			compatible = "samsung,s5p-cec";
-+			reg = <0x101B0000 0x200>;
-+			interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH>;
-+			clocks = <&clock CLK_HDMI_CEC>;
-+			clock-names = "hdmicec";
-+			samsung,syscon-phandle = <&pmu_system_controller>;
-+			hdmi-phandle = <&hdmi>;
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&hdmi_cec>;
-+			status = "disabled";
-+		};
-+
- 		mixer@14450000 {
- 			compatible = "samsung,exynos5250-mixer";
- 			reg = <0x14450000 0x10000>;
-diff --git a/arch/arm/boot/dts/exynos5420-pinctrl.dtsi b/arch/arm/boot/dts/exynos5420-pinctrl.dtsi
-index 3924b4fafe72..65aa0e300c23 100644
---- a/arch/arm/boot/dts/exynos5420-pinctrl.dtsi
-+++ b/arch/arm/boot/dts/exynos5420-pinctrl.dtsi
-@@ -67,6 +67,13 @@
- 		samsung,pin-pud = <EXYNOS_PIN_PULL_NONE>;
- 		samsung,pin-drv = <EXYNOS5420_PIN_DRV_LV1>;
- 	};
-+
-+	hdmi_cec: hdmi-cec {
-+		samsung,pins = "gpx3-6";
-+		samsung,pin-function = <EXYNOS_PIN_FUNC_3>;
-+		samsung,pin-pud = <EXYNOS_PIN_PULL_NONE>;
-+		samsung,pin-drv = <EXYNOS5420_PIN_DRV_LV1>;
-+	};
- };
- 
- &pinctrl_1 {
-diff --git a/arch/arm/boot/dts/exynos5420.dtsi b/arch/arm/boot/dts/exynos5420.dtsi
-index 0db0bcf8da36..acd77b10b3df 100644
---- a/arch/arm/boot/dts/exynos5420.dtsi
-+++ b/arch/arm/boot/dts/exynos5420.dtsi
-@@ -624,6 +624,19 @@
- 			reg = <0x145D0000 0x20>;
- 		};
- 
-+		hdmicec: cec@101B0000 {
-+			compatible = "samsung,s5p-cec";
-+			reg = <0x101B0000 0x200>;
-+			interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH>;
-+			clocks = <&clock CLK_HDMI_CEC>;
-+			clock-names = "hdmicec";
-+			samsung,syscon-phandle = <&pmu_system_controller>;
-+			hdmi-phandle = <&hdmi>;
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&hdmi_cec>;
-+			status = "disabled";
-+		};
-+
- 		mixer: mixer@14450000 {
- 			compatible = "samsung,exynos5420-mixer";
- 			reg = <0x14450000 0x10000>;
-diff --git a/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi b/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi
-index 05b9afdd6757..01d6ac99e974 100644
---- a/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi
-+++ b/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi
-@@ -265,6 +265,10 @@
- 	vdd-supply = <&ldo6_reg>;
- };
- 
-+&hdmicec {
-+	status = "okay";
-+};
-+
- &hsi2c_4 {
- 	status = "okay";
- 
--- 
-1.9.1
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 31 ++++++++++++--------=
+-------
+>  1 file changed, 15 insertions(+), 16 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
+> b/drivers/media/platform/rcar-vin/rcar-dma.c index
+> c10d75aa7e71d665..f7776592b9a13d41 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -404,7 +404,21 @@ static void rvin_capture_off(struct rvin_dev *vi=
+n)
+>=20
+>  static int rvin_capture_start(struct rvin_dev *vin)
+>  {
+> -=09int ret;
+> +=09struct rvin_buffer *buf, *node;
+> +=09int bufs, ret;
+> +
+> +=09/* Count number of free buffers */
+> +=09bufs =3D 0;
+> +=09list_for_each_entry_safe(buf, node, &vin->buf_list, list)
+> +=09=09bufs++;
+> +
+> +=09/* Continuous capture requires more buffers then there are HW slo=
+ts */
+> +=09vin->continuous =3D bufs > HW_BUFFER_NUM;
+> +
+> +=09if (!rvin_fill_hw(vin)) {
+> +=09=09vin_err(vin, "HW not ready to start, not enough buffers=20
+available\n");
+> +=09=09return -EINVAL;
+> +=09}
+>=20
+>  =09rvin_crop_scale_comp(vin);
+>=20
+> @@ -1061,22 +1075,7 @@ static int rvin_start_streaming(struct vb2_que=
+ue *vq,
+> unsigned int count) vin->state =3D RUNNING;
+>  =09vin->sequence =3D 0;
+>=20
+> -=09/* Continuous capture requires more buffers then there are HW slo=
+ts */
+> -=09vin->continuous =3D count > HW_BUFFER_NUM;
+> -
+> -=09/*
+> -=09 * This should never happen but if we don't have enough
+> -=09 * buffers for HW bail out
+> -=09 */
+> -=09if (!rvin_fill_hw(vin)) {
+> -=09=09vin_err(vin, "HW not ready to start, not enough buffers=20
+available\n");
+> -=09=09ret =3D -EINVAL;
+> -=09=09goto out;
+> -=09}
+> -
+>  =09ret =3D rvin_capture_start(vin);
+> -out:
+> -=09/* Return all buffers if something went wrong */
+>  =09if (ret) {
+>  =09=09return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
+>  =09=09v4l2_subdev_call(sd, video, s_stream, 0);
+
+--=20
+Regards,
+
+Laurent Pinchart
