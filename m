@@ -1,54 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.llwyncelyn.cymru ([82.70.14.225]:44856 "EHLO fuzix.org"
+Received: from ni.piap.pl ([195.187.100.4]:58466 "EHLO ni.piap.pl"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750802AbdE1UAh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 May 2017 16:00:37 -0400
-Date: Sun, 28 May 2017 21:00:25 +0100
-From: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Lee Jones <lee.jones@linaro.org>, Chen-Yu Tsai <wens@csie.org>,
-        linux-kernel@vger.kernel.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v5 2/7] staging: atomisp: Do not call dev_warn with a
- NULL device
-Message-ID: <20170528210025.0062014d@alans-desktop>
-In-Reply-To: <508ccb9b-fcde-b040-593d-5e8552db5f24@redhat.com>
-References: <20170528123040.18555-1-hdegoede@redhat.com>
-        <20170528123040.18555-2-hdegoede@redhat.com>
-        <20170528180853.5a6c8f11@alans-desktop>
-        <508ccb9b-fcde-b040-593d-5e8552db5f24@redhat.com>
+        id S1752193AbdEJJ6Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 10 May 2017 05:58:16 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: linux-media <linux-media@vger.kernel.org>
+Cc: <zhaoxuegang@suntec.net>,
+        "Ezequiel Garcia" <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH] TW686x: Fix OOPS on buffer alloc failure
+References: <590ADAB1.1040501@suntec.net> <m3h90thwjt.fsf@t19.piap.pl>
+Date: Wed, 10 May 2017 11:51:28 +0200
+In-Reply-To: <m3h90thwjt.fsf@t19.piap.pl> ("Krzysztof \=\?utf-8\?Q\?Ha\=C5\=82as\?\=
+ \=\?utf-8\?Q\?a\=22's\?\= message of
+        "Wed, 10 May 2017 11:48:38 +0200")
+Message-ID: <m3d1bhhwf3.fsf_-_@t19.piap.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> The code for the special v1p8 / v2p8 gpios is ugly as sin, it operates on
-> a global v2p8_gpio value rather then storing info in the gmin_subdev struct,
-> as such passing the subdev->dev pointer would be simply wrong. AFAICT the
-> v1p8 / v2p8 gpio code is the only caller passing in a NULL pointer and
-> as said since thisv1p8 / v2p8 gpio code is only for some special evaluation
-> boards, silencing the error when these variables are not present actually
-> is the right thing to do.
+Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
 
-Unfortunately I don't think it is constrained to RVPs. As with all
-developer hacks on code that isn't subject to public review at the time
-they escape into the wild 8(
-
-Agreed though. The patch makes sense if you don't want to print anything.
-
-> > which if my understanding of the subdevices is correct should pass the
-> > right valid device field from the atomisp.
-> > 
-> > Please also cc me if you are proposing patches this driver - and also
-> > linux-media.  
-> 
-> Sorry about that, I messed up my git send-email foo and send this to
-> a wrong set of addresses (and also added v5 in the subject which should
-> not be there) I did send out a fresh-copy with the full 7 patch patch-set
-> directly after CTRL+c-ing this wrong send-email (which only got the
-> first 3 patches send).
-
-So I discovered just afterwards 8)
-
-Alan
+diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+index c3fafa9..d637f47 100644
+--- a/drivers/media/pci/tw686x/tw686x-video.c
++++ b/drivers/media/pci/tw686x/tw686x-video.c
+@@ -1190,6 +1190,13 @@ int tw686x_video_init(struct tw686x_dev *dev)
+ 			return err;
+ 	}
+ 
++	/* Initialize vc->dev and vc->ch for the error path first */
++	for (ch = 0; ch < max_channels(dev); ch++) {
++		struct tw686x_video_channel *vc = &dev->video_channels[ch];
++		vc->dev = dev;
++		vc->ch = ch;
++	}
++
+ 	for (ch = 0; ch < max_channels(dev); ch++) {
+ 		struct tw686x_video_channel *vc = &dev->video_channels[ch];
+ 		struct video_device *vdev;
+@@ -1198,9 +1205,6 @@ int tw686x_video_init(struct tw686x_dev *dev)
+ 		spin_lock_init(&vc->qlock);
+ 		INIT_LIST_HEAD(&vc->vidq_queued);
+ 
+-		vc->dev = dev;
+-		vc->ch = ch;
+-
+ 		/* default settings */
+ 		err = tw686x_set_standard(vc, V4L2_STD_NTSC);
+ 		if (err)
