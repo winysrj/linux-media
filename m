@@ -1,175 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:42414 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933973AbdEXAOL (ORCPT
+Received: from mail-it0-f44.google.com ([209.85.214.44]:35249 "EHLO
+        mail-it0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753128AbdEJNSl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 May 2017 20:14:11 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v7 1/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
-Date: Wed, 24 May 2017 02:13:52 +0200
-Message-Id: <20170524001353.13482-2-niklas.soderlund@ragnatech.se>
-In-Reply-To: <20170524001353.13482-1-niklas.soderlund@ragnatech.se>
-References: <20170524001353.13482-1-niklas.soderlund@ragnatech.se>
+        Wed, 10 May 2017 09:18:41 -0400
+Received: by mail-it0-f44.google.com with SMTP id c15so24325264ith.0
+        for <linux-media@vger.kernel.org>; Wed, 10 May 2017 06:18:41 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <5912EB71.9090104@samsung.com>
+References: <CGME20170420091406eucas1p24c50a0015545105081257d880727386c@eucas1p2.samsung.com>
+ <1492679620-12792-1-git-send-email-m.szyprowski@samsung.com>
+ <2541347.TzHdYYQVhG@avalon> <711bf4a5-7e57-6720-d00b-66e97a81e5ec@samsung.com>
+ <20170425222124.GA7456@valkosipuli.retiisi.org.uk> <59126BB4.6050309@samsung.com>
+ <CAAFQd5CPNQ5hDDXPwo2v54VcoOMeDszuvoHZPYQYNJsMJk41Ww@mail.gmail.com>
+ <5912B2B6.4050605@samsung.com> <CAAFQd5D1-ZsXNcArXBf5=a=ukjnLHehHmvQg_zJc+b_WLka6rQ@mail.gmail.com>
+ <5912EB71.9090104@samsung.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Date: Wed, 10 May 2017 15:18:39 +0200
+Message-ID: <CAKMK7uEdPaPsPtO368oXNsqUF2=fZJUA9rJDmeDkouJzSF8HFw@mail.gmail.com>
+Subject: Re: [RFC 0/4] Exynos DRM: add Picture Processor extension
+To: Inki Dae <inki.dae@samsung.com>
+Cc: Tomasz Figa <tfiga@chromium.org>,
+        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Tobias Jakobi <tjakobi@math.uni-bielefeld.de>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+On Wed, May 10, 2017 at 12:29 PM, Inki Dae <inki.dae@samsung.com> wrote:
+>> This kind of contradicts with response Marek received from DRM
+>> community about his proposal. Which drivers in particular you have in
+>> mind?
+>
+> You can check vmw_overlay_ioctl of vmwgfx driver and intel_overlay_put_image_ioctl of i915 driver. These was all I could find in mainline.
+> Seems the boundaries of whether we have to implement pre/post post processing mem2mem driver in V4L2 or DRM are really vague.
 
-Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
-are located between the video sources (CSI-2 transmitters) and the video
-grabbers (VIN) on Gen3 of Renesas R-Car SoC.
-
-Each CSI-2 device is connected to more then one VIN device which
-simultaneously can receive video from the same CSI-2 device. Each VIN
-device can also be connected to more then one CSI-2 device. The routing
-of which link are used are controlled by the VIN devices. There are only
-a few possible routes which are set by hardware limitations, which are
-different for each SoC in the Gen3 family.
-
-To work with the limitations of routing possibilities it is necessary
-for the DT bindings to describe which VIN device is connected to which
-CSI-2 device. This is why port 1 needs to to assign reg numbers for each
-VIN device that be connected to it. To setup and to know which links are
-valid for each SoC is the responsibility of the VIN driver since the
-register to configure it belongs to the VIN hardware.
-
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- .../devicetree/bindings/media/rcar-csi2.txt        | 116 +++++++++++++++++++++
- 1 file changed, 116 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
-
-diff --git a/Documentation/devicetree/bindings/media/rcar-csi2.txt b/Documentation/devicetree/bindings/media/rcar-csi2.txt
-new file mode 100644
-index 0000000000000000..f6e2027ee92b171a
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/rcar-csi2.txt
-@@ -0,0 +1,116 @@
-+Renesas R-Car MIPI CSI-2
-+------------------------
-+
-+The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesas R-Car
-+family of devices. It is to be used in conjunction with the R-Car VIN module,
-+which provides the video capture capabilities.
-+
-+ - compatible: Must be one or more of the following
-+   - "renesas,r8a7795-csi2" for the R8A7795 device.
-+   - "renesas,r8a7796-csi2" for the R8A7796 device.
-+   - "renesas,rcar-gen3-csi2" for a generic R-Car Gen3 compatible device.
-+
-+   When compatible with a generic version nodes must list the
-+   SoC-specific version corresponding to the platform first
-+   followed by the generic version.
-+
-+ - reg: the register base and size for the device registers
-+ - interrupts: the interrupt for the device
-+ - clocks: Reference to the parent clock
-+
-+The device node should contain two 'port' child nodes according to the
-+bindings defined in Documentation/devicetree/bindings/media/
-+video-interfaces.txt. Port 0 should connect the node that is the video
-+source for to the CSI-2. Port 1 should connect all the R-Car VIN
-+modules, which can make use of the CSI-2 module.
-+
-+- Port 0 - Video source
-+	- Reg 0 - sub-node describing the endpoint that is the video source
-+
-+- Port 1 - VIN instances
-+	- Reg 0 - sub-node describing the endpoint that is VIN0
-+	- Reg 1 - sub-node describing the endpoint that is VIN1
-+	- Reg 2 - sub-node describing the endpoint that is VIN2
-+	- Reg 3 - sub-node describing the endpoint that is VIN3
-+	- Reg 4 - sub-node describing the endpoint that is VIN4
-+	- Reg 5 - sub-node describing the endpoint that is VIN5
-+	- Reg 6 - sub-node describing the endpoint that is VIN6
-+	- Reg 7 - sub-node describing the endpoint that is VIN7
-+
-+Example:
-+
-+/* SoC properties */
-+
-+	 csi20: csi2@fea80000 {
-+		 compatible = "renesas,r8a7796-csi2";
-+		 reg = <0 0xfea80000 0 0x10000>;
-+		 interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
-+		 clocks = <&cpg CPG_MOD 714>;
-+		 power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
-+		 status = "disabled";
-+
-+		 ports {
-+			 #address-cells = <1>;
-+			 #size-cells = <0>;
-+
-+			 port@1 {
-+				 #address-cells = <1>;
-+				 #size-cells = <0>;
-+
-+				 reg = <1>;
-+
-+				 csi20vin0: endpoint@0 {
-+					 reg = <0>;
-+					 remote-endpoint = <&vin0csi20>;
-+				 };
-+				 csi20vin1: endpoint@1 {
-+					 reg = <1>;
-+					 remote-endpoint = <&vin1csi20>;
-+				 };
-+				 csi20vin2: endpoint@2 {
-+					 reg = <2>;
-+					 remote-endpoint = <&vin2csi20>;
-+				 };
-+				 csi20vin3: endpoint@3 {
-+					 reg = <3>;
-+					 remote-endpoint = <&vin3csi20>;
-+				 };
-+				 csi20vin4: endpoint@4 {
-+					 reg = <4>;
-+					 remote-endpoint = <&vin4csi20>;
-+				 };
-+				 csi20vin5: endpoint@5 {
-+					 reg = <5>;
-+					 remote-endpoint = <&vin5csi20>;
-+				 };
-+				 csi20vin6: endpoint@6 {
-+					 reg = <6>;
-+					 remote-endpoint = <&vin6csi20>;
-+				 };
-+				 csi20vin7: endpoint@7 {
-+					 reg = <7>;
-+					 remote-endpoint = <&vin7csi20>;
-+				 };
-+			 };
-+		 };
-+	 };
-+
-+/* Board properties */
-+
-+	&csi20 {
-+		status = "okay";
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+				csi20_in: endpoint@0 {
-+					clock-lanes = <0>;
-+					data-lanes = <1>;
-+					remote-endpoint = <&adv7482_txb>;
-+				};
-+			};
-+		};
-+	};
+These aren't picture processors, but overlay plane support merged
+before we had the core drm overlay support. Please do not emulate them
+at all, your patch will be rejected :-)
+-Daniel
 -- 
-2.13.0
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
