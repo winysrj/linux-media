@@ -1,74 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42874 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751428AbdESQQJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 May 2017 12:16:09 -0400
-From: Kieran Bingham <kbingham@kernel.org>
-To: sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        niklas.soderlund@ragnatech.se,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v2 1/2] device property: Add fwnode_graph_get_port_parent
-Date: Fri, 19 May 2017 17:16:02 +0100
-Message-Id: <6d3ca9a2f4af281191b6672489f6d2a6d036d372.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.9f22ad082e363959e4679246793bc4698479a44e.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.9f22ad082e363959e4679246793bc4698479a44e.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.9f22ad082e363959e4679246793bc4698479a44e.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.9f22ad082e363959e4679246793bc4698479a44e.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail-yw0-f179.google.com ([209.85.161.179]:34913 "EHLO
+        mail-yw0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752606AbdEJKN2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 10 May 2017 06:13:28 -0400
+Received: by mail-yw0-f179.google.com with SMTP id l135so13009986ywb.2
+        for <linux-media@vger.kernel.org>; Wed, 10 May 2017 03:13:28 -0700 (PDT)
+Received: from mail-yw0-f175.google.com (mail-yw0-f175.google.com. [209.85.161.175])
+        by smtp.gmail.com with ESMTPSA id n5sm1193266ywd.15.2017.05.10.03.13.25
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 10 May 2017 03:13:26 -0700 (PDT)
+Received: by mail-yw0-f175.google.com with SMTP id b68so12998570ywe.3
+        for <linux-media@vger.kernel.org>; Wed, 10 May 2017 03:13:25 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1494255810-12672-8-git-send-email-sakari.ailus@linux.intel.com>
+References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com> <1494255810-12672-8-git-send-email-sakari.ailus@linux.intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 10 May 2017 18:13:04 +0800
+Message-ID: <CAAFQd5CSf33de4r3WX_v8ZuLwb6SFFtP5EQY=Bh5t8y3UiR+sA@mail.gmail.com>
+Subject: Re: [RFC v4 07/18] vb2: dma-contig: Remove redundant sgt_base field
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        posciak@chromium.org, Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, sumit.semwal@linaro.org,
+        Rob Clark <robdclark@gmail.com>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>, labbott@redhat.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Hi Sakari,
 
-Provide a helper to obtain the parent device fwnode without first
-parsing the remote-endpoint as per fwnode_graph_get_remote_port_parent.
+Some comments inline.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+On Mon, May 8, 2017 at 11:03 PM, Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+> The struct vb2_dc_buf contains two struct sg_table fields: sgt_base and
+> dma_sgt. The former is used by DMA-BUF buffers whereas the latter is used
+> by USERPTR.
+>
+> Unify the two, leaving dma_sgt.
+>
+> MMAP buffers do not need cache flushing since they have been allocated
+> using dma_alloc_coherent().
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 25 +++++++++++++------------
+>  1 file changed, 13 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index a8a46a8..ddbbcf0 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -31,12 +31,13 @@ struct vb2_dc_buf {
+>         unsigned long                   attrs;
+>         enum dma_data_direction         dma_dir;
+>         struct sg_table                 *dma_sgt;
+> -       struct frame_vector             *vec;
+>
+>         /* MMAP related */
+>         struct vb2_vmarea_handler       handler;
+>         refcount_t                      refcount;
+> -       struct sg_table                 *sgt_base;
+> +
+> +       /* USERPTR related */
+> +       struct frame_vector             *vec;
+>
+>         /* DMABUF related */
+>         struct dma_buf_attachment       *db_attach;
+> @@ -96,7 +97,7 @@ static void vb2_dc_prepare(void *buf_priv)
+>         struct sg_table *sgt = buf->dma_sgt;
+>
+>         /* DMABUF exporter will flush the cache for us */
+> -       if (!sgt || buf->db_attach)
+> +       if (!buf->vec)
 
----
-v2:
- - Rebase on top of Sakari's acpi-graph-clean branch and simplify
+While at it, can we change the comment above to actually refer to what
+this condition is checking? Maybe it's just me, but it's very
+confusing, as the condition is actually (!USERPTR), while the comment
+mentions DMABUF alone and not even mentioning about MMAP. Maybe we
+could have something like this:
 
- drivers/base/property.c  | 13 +++++++++++++
- include/linux/property.h |  2 ++
- 2 files changed, 15 insertions(+)
+/*
+ * Only USERPTR needs cache maintenance. DMABUF exporter will flush
+ * the cache for us, while MMAP buffers are coherent by design.
+ */
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index b311a6fa7d0c..310c53b6b7fc 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -1169,6 +1169,19 @@ fwnode_graph_get_next_endpoint(struct fwnode_handle *fwnode,
- EXPORT_SYMBOL_GPL(fwnode_graph_get_next_endpoint);
- 
- /**
-+ * fwnode_graph_get_port_parent - Return the device fwnode of a port endpoint
-+ * @endpoint: Endpoint firmware node of the port
-+ *
-+ * Returns firmware node of the device the @endpoint belongs to.
-+ */
-+struct fwnode_handle *
-+fwnode_graph_get_port_parent(struct fwnode_handle *endpoint)
-+{
-+	return fwnode_call_ptr_op(endpoint, graph_get_port_parent);
-+}
-+EXPORT_SYMBOL_GPL(fwnode_graph_get_port_parent);
-+
-+/**
-  * fwnode_graph_get_remote_port_parent - Return fwnode of a remote device
-  * @fwnode: Endpoint firmware node pointing to the remote endpoint
-  *
-diff --git a/include/linux/property.h b/include/linux/property.h
-index b9f4838d9882..af95d5d84192 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -275,6 +275,8 @@ void *device_get_mac_address(struct device *dev, char *addr, int alen);
- 
- struct fwnode_handle *fwnode_graph_get_next_endpoint(
- 	struct fwnode_handle *fwnode, struct fwnode_handle *prev);
-+struct fwnode_handle *fwnode_graph_get_port_parent(
-+	struct fwnode_handle *fwnode);
- struct fwnode_handle *fwnode_graph_get_remote_port_parent(
- 	struct fwnode_handle *fwnode);
- struct fwnode_handle *fwnode_graph_get_remote_port(
--- 
-git-series 0.9.1
+I guess it could be done as a separate patch after this series,
+especially considering the message might actually change, since we are
+going to allow cached MMAP buffers.
+
+>                 return;
+>
+>         dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents,
+> @@ -109,7 +110,7 @@ static void vb2_dc_finish(void *buf_priv)
+>         struct sg_table *sgt = buf->dma_sgt;
+>
+>         /* DMABUF exporter will flush the cache for us */
+
+Here too.
+
+Best regards,
+Tomasz
