@@ -1,155 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:35639 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750898AbdE2Jid (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58483 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752778AbdEJNZe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 05:38:33 -0400
-Received: by mail-wm0-f48.google.com with SMTP id b84so48582987wmh.0
-        for <linux-media@vger.kernel.org>; Mon, 29 May 2017 02:38:32 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: yannick.fertre@st.com, alexandre.torgue@st.com, hverkuil@xs4all.nl,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        robh@kernel.org, hans.verkuil@cisco.com
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v5 0/2] cec: STM32 driver
-Date: Mon, 29 May 2017 11:38:03 +0200
-Message-Id: <1496050685-14301-1-git-send-email-benjamin.gaignard@linaro.org>
+        Wed, 10 May 2017 09:25:34 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH 08/16] rcar-vin: use pad information when verifying media bus format
+Date: Wed, 10 May 2017 16:25:34 +0300
+Message-ID: <1760650.1pXjjvRq0D@avalon>
+In-Reply-To: <20170314185957.25253-9-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se> <20170314185957.25253-9-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-version 5:
-- remove cec notifier (to be added for drm driver release)
+Hi Niklas,
 
-version 4:
-- rebased on Hans cec-config branch
-- rework bindings commit message
-- add notifier support
-- update KConfig
+Thank you for the patch.
 
-version 2:
-- fix typo in compagnie name
-- add yannick sign-off
-- use cec_message instead of custom struct in cec device
-- add monitor mode
+On Tuesday 14 Mar 2017 19:59:49 Niklas S=F6derlund wrote:
+> Use information about pad index when enumerating mbus codes.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
+.se>
 
-I don't change the split between irq handler and irq thread because
-it would had mean to handle all errors cases irq handler to keep
-a correct sequence. I don't think it is critical as it is since cec is a very
-slow protocol.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-This serie of patches add cec driver for STM32 platforms.
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 1 +
+>  1 file changed, 1 insertion(+)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
+> b/drivers/media/platform/rcar-vin/rcar-core.c index
+> d7aba15f6761259b..c4d4f112da0c9d45 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -53,6 +53,7 @@ static bool rvin_mbus_supported(struct rvin_graph_e=
+ntity
+> *entity) };
+>=20
+>  =09code.index =3D 0;
+> +=09code.pad =3D entity->source_pad;
+>  =09while (!v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code)) {=
 
-This code doesn't implement cec notifier because STM32 doesn't
-provide HDMI yet but it will be added later.
+>  =09=09code.index++;
+>  =09=09switch (code.code) {
 
-Those patches have been developped on top of media_tree master branch
-where STM32 DCMI code has not been merged so conflict in Kconfig and Makefile
-could occur depending of merge ordering.
+--=20
+Regards,
 
-Compliance has been tested on STM32F769.
-
-~ # cec-ctl -p 1.0.0.0 --playback 
-Driver Info:
-        Driver Name                : stm32-cec
-        Adapter Name               : stm32-cec
-        Capabilities               : 0x0000000f
-                Physical Address
-                Logical Addresses
-                Transmit
-                Passthrough
-        Driver version             : 4.11.0
-        Available Logical Addresses: 1
-        Physical Address           : 1.0.0.0
-        Logical Address Mask       : 0x0010
-        CEC Version                : 2.0
-        Vendor ID                  : 0x000c03 (HDMI)
-        OSD Name                   : 'Playback'
-        Logical Addresses          : 1 (Allow RC Passthrough)
-
-          Logical Address          : 4 (Playback Device 1)
-            Primary Device Type    : Playback
-            Logical Address Type   : Playback
-            All Device Types       : Playback
-            RC TV Profile          : None
-            Device Features        :
-                None
-
-~ # cec-compliance -A 
-cec-compliance SHA                 : 6acac5cec698de39b9398b66c4f5f4db6b2730d8
-
-Driver Info:
-        Driver Name                : stm32-cec
-        Adapter Name               : stm32-cec
-        Capabilities               : 0x0000000f
-                Physical Address
-                Logical Addresses
-                Transmit
-                Passthrough
-        Driver version             : 4.11.0
-        Available Logical Addresses: 1
-        Physical Address           : 1.0.0.0
-        Logical Address Mask       : 0x0010
-        CEC Version                : 2.0
-        Vendor ID                  : 0x000c03
-        Logical Addresses          : 1 (Allow RC Passthrough)
-
-          Logical Address          : 4
-            Primary Device Type    : Playback
-            Logical Address Type   : Playback
-            All Device Types       : Playback
-            RC TV Profile          : None
-            Device Features        :
-                None
-
-Compliance test for device /dev/cec0:
-
-    The test results mean the following:
-        OK                  Supported correctly by the device.
-        OK (Not Supported)  Not supported and not mandatory for the device.
-        OK (Presumed)       Presumably supported.  Manually check to confirm.
-        OK (Unexpected)     Supported correctly but is not expected to be supported for this device.
-        OK (Refused)        Supported by the device, but was refused.
-        FAIL                Failed and was expected to be supported by this device.
-
-Find remote devices:
-        Polling: OK
-
-CEC API:
-        CEC_ADAP_G_CAPS: OK
-        CEC_DQEVENT: OK
-        CEC_ADAP_G/S_PHYS_ADDR: OK
-        CEC_ADAP_G/S_LOG_ADDRS: OK
-        CEC_TRANSMIT: OK
-        CEC_RECEIVE: OK
-        CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
-        CEC_G/S_MODE: OK
-        CEC_EVENT_LOST_MSGS: OK
-
-Network topology:
-        System Information for device 0 (TV) from device 4 (Playback Device 1):
-                CEC Version                : 1.4
-                Physical Address           : 0.0.0.0
-                Primary Device Type        : TV
-                Vendor ID                  : 0x00903e
-                OSD Name                   : 'TV'
-                Menu Language              : fre
-                Power Status               : On
-
-Total: 10, Succeeded: 10, Failed: 0, Warnings: 0
-
-Benjamin Gaignard (2):
-  dt-bindings: media: stm32 cec driver
-  cec: add STM32 cec driver
-
- .../devicetree/bindings/media/st,stm32-cec.txt     |  19 ++
- drivers/media/platform/Kconfig                     |  12 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/stm32/Makefile              |   1 +
- drivers/media/platform/stm32/stm32-cec.c           | 361 +++++++++++++++++++++
- 5 files changed, 395 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
- create mode 100644 drivers/media/platform/stm32/Makefile
- create mode 100644 drivers/media/platform/stm32/stm32-cec.c
-
--- 
-1.9.1
+Laurent Pinchart
