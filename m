@@ -1,127 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:44869 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751555AbdD3EJA (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:36671 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750780AbdEJGhC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 30 Apr 2017 00:09:00 -0400
-Message-ID: <38bb075120767209eee50d36bd5c7507@smtp-cloud2.xs4all.net>
-Date: Sun, 30 Apr 2017 06:08:56 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Wed, 10 May 2017 02:37:02 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH[ v4l2-ioctl.c: always copy G/S_EDID result
+Message-ID: <ea4085e3-07aa-44f5-fef6-4913858bd707@xs4all.nl>
+Date: Wed, 10 May 2017 08:36:56 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The VIDIOC_G/S_EDID ioctls can return valid data even if an error is returned.
 
-Results of the daily build of media_tree:
+Mark those ioctls accordingly. Rather than using an explicit 'if' to check for the
+ioctl (as was done until now for VIDIOC_QUERY_DV_TIMINGS) just set a new flag in the
+v4l2_ioctls array.
 
-date:			Sun Apr 30 05:00:18 CEST 2017
-media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
-media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
-v4l-utils git hash:	847bf8d62cd6b11defc1e4c3b30b68d3c66876e0
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index e5a2187381db..4f27cfa134a1 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2472,20 +2472,22 @@ struct v4l2_ioctl_info {
+ };
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+ /* This control needs a priority check */
+-#define INFO_FL_PRIO	(1 << 0)
++#define INFO_FL_PRIO		(1 << 0)
+ /* This control can be valid if the filehandle passes a control handler. */
+-#define INFO_FL_CTRL	(1 << 1)
++#define INFO_FL_CTRL		(1 << 1)
+ /* This is a standard ioctl, no need for special code */
+-#define INFO_FL_STD	(1 << 2)
++#define INFO_FL_STD		(1 << 2)
+ /* This is ioctl has its own function */
+-#define INFO_FL_FUNC	(1 << 3)
++#define INFO_FL_FUNC		(1 << 3)
+ /* Queuing ioctl */
+-#define INFO_FL_QUEUE	(1 << 4)
++#define INFO_FL_QUEUE		(1 << 4)
++/* Always copy back result, even on error */
++#define INFO_FL_ALWAYS_COPY	(1 << 5)
+ /* Zero struct from after the field to the end */
+ #define INFO_FL_CLEAR(v4l2_struct, field)			\
+ 	((offsetof(struct v4l2_struct, field) +			\
+ 	  sizeof(((struct v4l2_struct *)0)->field)) << 16)
+-#define INFO_FL_CLEAR_MASK (_IOC_SIZEMASK << 16)
++#define INFO_FL_CLEAR_MASK 	(_IOC_SIZEMASK << 16)
 
-Detailed results are available here:
+ #define IOCTL_INFO_STD(_ioctl, _vidioc, _debug, _flags)			\
+ 	[_IOC_NR(_ioctl)] = {						\
+@@ -2536,8 +2538,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_QUERYMENU, v4l_querymenu, v4l_print_querymenu, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu, index)),
+ 	IOCTL_INFO_STD(VIDIOC_G_INPUT, vidioc_g_input, v4l_print_u32, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_S_INPUT, v4l_s_input, v4l_print_u32, INFO_FL_PRIO),
+-	IOCTL_INFO_STD(VIDIOC_G_EDID, vidioc_g_edid, v4l_print_edid, 0),
+-	IOCTL_INFO_STD(VIDIOC_S_EDID, vidioc_s_edid, v4l_print_edid, INFO_FL_PRIO),
++	IOCTL_INFO_STD(VIDIOC_G_EDID, vidioc_g_edid, v4l_print_edid, INFO_FL_ALWAYS_COPY),
++	IOCTL_INFO_STD(VIDIOC_S_EDID, vidioc_s_edid, v4l_print_edid, INFO_FL_PRIO | INFO_FL_ALWAYS_COPY),
+ 	IOCTL_INFO_STD(VIDIOC_G_OUTPUT, vidioc_g_output, v4l_print_u32, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_S_OUTPUT, v4l_s_output, v4l_print_u32, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_ENUMOUTPUT, v4l_enumoutput, v4l_print_enumoutput, INFO_FL_CLEAR(v4l2_output, index)),
+@@ -2583,7 +2585,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_CREATE_BUFS, v4l_create_bufs, v4l_print_create_buffers, INFO_FL_PRIO | INFO_FL_QUEUE),
+ 	IOCTL_INFO_FNC(VIDIOC_PREPARE_BUF, v4l_prepare_buf, v4l_print_buffer, INFO_FL_QUEUE),
+ 	IOCTL_INFO_STD(VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings, v4l_print_enum_dv_timings, INFO_FL_CLEAR(v4l2_enum_dv_timings, pad)),
+-	IOCTL_INFO_STD(VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings, v4l_print_dv_timings, 0),
++	IOCTL_INFO_STD(VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings, v4l_print_dv_timings, INFO_FL_ALWAYS_COPY),
+ 	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, type)),
+ 	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
+@@ -2801,6 +2803,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 	void	*parg = (void *)arg;
+ 	long	err  = -EINVAL;
+ 	bool	has_array_args;
++	bool	always_copy = false;
+ 	size_t  array_size = 0;
+ 	void __user *user_ptr = NULL;
+ 	void	**kernel_ptr = NULL;
+@@ -2830,8 +2833,10 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 			 */
+ 			if (v4l2_is_known_ioctl(cmd)) {
+ 				u32 flags = v4l2_ioctls[_IOC_NR(cmd)].flags;
++
+ 				if (flags & INFO_FL_CLEAR_MASK)
+ 					n = (flags & INFO_FL_CLEAR_MASK) >> 16;
++				always_copy = flags & INFO_FL_ALWAYS_COPY;
+ 			}
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+ 			if (copy_from_user(parg, (void __user *)arg, n))
+@@ -2885,9 +2890,11 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 			err = -EFAULT;
+ 		goto out_array_args;
+ 	}
+-	/* VIDIOC_QUERY_DV_TIMINGS can return an error, but still have valid
+-	   results that must be returned. */
+-	if (err < 0 && cmd != VIDIOC_QUERY_DV_TIMINGS)
++	/*
++	 * Some ioctls can return an error, but still have valid
++	 * results that must be returned.
++	 */
++	if (err < 0 && !always_copy)
+ 		goto out;
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+ out_array_args:
