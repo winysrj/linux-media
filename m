@@ -1,316 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:43555 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750796AbdE3HKc (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58633 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753387AbdEJOCi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 03:10:32 -0400
-Subject: Re: [PATCH v2 5/7] [media] vimc: cap: Support several image formats
-To: Helen Koike <helen.koike@collabora.com>,
-        linux-media@vger.kernel.org
-Cc: jgebben@codeaurora.org, mchehab@osg.samsung.com,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <cover.1438891530.git.helen.fornazier@gmail.com>
- <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
- <1491604632-23544-6-git-send-email-helen.koike@collabora.com>
- <7e323c9c-7d29-a5af-14a9-d50312012fae@xs4all.nl>
- <cdc5fc58-729f-91b4-5e77-d30d1853e792@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <be56c5e9-eb12-271b-1196-f4f40238ca6a@xs4all.nl>
-Date: Tue, 30 May 2017 09:10:25 +0200
+        Wed, 10 May 2017 10:02:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH 12/16] rcar-vin: allow switch between capturing modes when stalling
+Date: Wed, 10 May 2017 17:02:37 +0300
+Message-ID: <3477912.RTBmKcPLi1@avalon>
+In-Reply-To: <20170314185957.25253-13-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se> <20170314185957.25253-13-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <cdc5fc58-729f-91b4-5e77-d30d1853e792@collabora.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/29/2017 07:48 PM, Helen Koike wrote:
-> Hi Hans,
-> 
-> Thank you for your review. I just have a question for this one.
-> 
-> On 2017-05-08 08:53 AM, Hans Verkuil wrote:
->> On 04/08/2017 12:37 AM, Helen Koike wrote:
->>> Allow user space to change the image format as the frame size, the
->>> pixel format, colorspace, quantization, field YCbCr encoding
->>> and the transfer function
->>>
->>> Signed-off-by: Helen Koike <helen.koike@collabora.com>
->>>
->>> ---
->>>
->>> Changes in v2:
->>> [media] vimc: cap: Support several image formats
->>> 	- this is a new commit in the serie (the old one was splitted in two)
->>> 	- allow user space to change all fields from struct v4l2_pix_format
->>> 	  (e.g. colospace, quantization, field, xfer_func, ycbcr_enc)
->>> 	- link_validate and try_fmt: also checks colospace, quantization, field, xfer_func, ycbcr_enc
->>> 	- add struct v4l2_pix_format fmt_default
->>> 	- add enum_framesizes
->>> 	- enum_fmt_vid_cap: enumerate all formats from vimc_pix_map_table
->>> 	- add mode dev_dbg
->>>
->>>
->>> ---
->>>   drivers/media/platform/vimc/vimc-capture.c | 167 ++++++++++++++++++++++++-----
->>>   1 file changed, 139 insertions(+), 28 deletions(-)
->>>
->>> diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
->>> index 93f6a09..a6441f7 100644
->>> --- a/drivers/media/platform/vimc/vimc-capture.c
->>> +++ b/drivers/media/platform/vimc/vimc-capture.c
->>> @@ -40,6 +40,16 @@ struct vimc_cap_device {
->>>   	struct media_pipeline pipe;
->>>   };
->>>
->>> +static const struct v4l2_pix_format fmt_default = {
->>> +	.width = 640,
->>> +	.height = 480,
->>> +	.pixelformat = V4L2_PIX_FMT_RGB24,
->>> +	.field = V4L2_FIELD_NONE,
->>> +	.colorspace = V4L2_COLORSPACE_SRGB,
->>> +	.quantization = V4L2_QUANTIZATION_FULL_RANGE,
->>> +	.xfer_func = V4L2_XFER_FUNC_SRGB,
->>
->> I actually think we should keep .quantization and .xfer_func to 0 (DEFAULT).
->> It's what most drivers will do. Same for the previous patch (I didn't mention
->> it there).
->>
->>> +};
->>> +
->>>   struct vimc_cap_buffer {
->>>   	/*
->>>   	 * struct vb2_v4l2_buffer must be the first element
->>> @@ -64,7 +74,7 @@ static int vimc_cap_querycap(struct file *file, void *priv,
->>>   	return 0;
->>>   }
->>>
->>> -static int vimc_cap_fmt_vid_cap(struct file *file, void *priv,
->>> +static int vimc_cap_g_fmt_vid_cap(struct file *file, void *priv,
->>>   				  struct v4l2_format *f)
->>>   {
->>>   	struct vimc_cap_device *vcap = video_drvdata(file);
->>> @@ -74,16 +84,112 @@ static int vimc_cap_fmt_vid_cap(struct file *file, void *priv,
->>>   	return 0;
->>>   }
->>>
->>> +static int vimc_cap_try_fmt_vid_cap(struct file *file, void *priv,
->>> +				    struct v4l2_format *f)
->>> +{
->>> +	struct v4l2_pix_format *format = &f->fmt.pix;
->>> +	const struct vimc_pix_map *vpix;
->>> +
->>> +	format->width = clamp_t(u32, format->width, VIMC_FRAME_MIN_WIDTH,
->>> +				VIMC_FRAME_MAX_WIDTH);
->>> +	format->height = clamp_t(u32, format->height, VIMC_FRAME_MIN_HEIGHT,
->>> +				 VIMC_FRAME_MAX_HEIGHT);
->>> +
->>> +	/* Don't accept a pixelformat that is not on the table */
->>> +	vpix = vimc_pix_map_by_pixelformat(format->pixelformat);
->>> +	if (!vpix) {
->>> +		format->pixelformat = fmt_default.pixelformat;
->>> +		vpix = vimc_pix_map_by_pixelformat(format->pixelformat);
->>> +	}
->>> +	/* TODO: Add support for custom bytesperline values */
->>> +	format->bytesperline = format->width * vpix->bpp;
->>> +	format->sizeimage = format->bytesperline * format->height;
->>> +
->>> +	if (format->field == V4L2_FIELD_ANY)
->>> +		format->field = fmt_default.field;
->>> +
->>> +	/* Check if values are out of range */
->>> +	if (format->colorspace == V4L2_COLORSPACE_DEFAULT
->>> +	    || format->colorspace > V4L2_COLORSPACE_DCI_P3)
->>> +		format->colorspace = fmt_default.colorspace;
->>> +	if (format->ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT
->>> +	    || format->ycbcr_enc > V4L2_YCBCR_ENC_SMPTE240M)
->>> +		format->ycbcr_enc = fmt_default.ycbcr_enc;
->>> +	if (format->quantization == V4L2_QUANTIZATION_DEFAULT
->>> +	    || format->quantization > V4L2_QUANTIZATION_LIM_RANGE)
->>> +		format->quantization = fmt_default.quantization;
->>> +	if (format->xfer_func == V4L2_XFER_FUNC_DEFAULT
->>> +	    || format->xfer_func > V4L2_XFER_FUNC_SMPTE2084)
->>> +		format->xfer_func = fmt_default.xfer_func;
->>
->> Same comments in the previous patch regarding width/height and the colorspace
->> information apply here as well.
->>
->>> +
->>> +	return 0;
->>> +}
->>> +
->>> +static int vimc_cap_s_fmt_vid_cap(struct file *file, void *priv,
->>> +				  struct v4l2_format *f)
->>> +{
->>> +	struct vimc_cap_device *vcap = video_drvdata(file);
->>> +
->>> +	/* Do not change the format while stream is on */
->>> +	if (vb2_is_busy(&vcap->queue))
->>> +		return -EBUSY;
->>> +
->>> +	vimc_cap_try_fmt_vid_cap(file, priv, f);
->>> +
->>> +	dev_dbg(vcap->vdev.v4l2_dev->dev, "%s: format update: "
->>> +		"old:%dx%d (0x%x, %d, %d, %d, %d) "
->>> +		"new:%dx%d (0x%x, %d, %d, %d, %d)\n", vcap->vdev.name,
->>> +		/* old */
->>> +		vcap->format.width, vcap->format.height,
->>> +		vcap->format.pixelformat, vcap->format.colorspace,
->>> +		vcap->format.quantization, vcap->format.xfer_func,
->>> +		vcap->format.ycbcr_enc,
->>> +		/* new */
->>> +		f->fmt.pix.width, f->fmt.pix.height,
->>> +		f->fmt.pix.pixelformat,	f->fmt.pix.colorspace,
->>> +		f->fmt.pix.quantization, f->fmt.pix.xfer_func,
->>> +		f->fmt.pix.ycbcr_enc);
->>> +
->>> +	vcap->format = f->fmt.pix;
->>> +
->>> +	return 0;
->>> +}
->>> +
->>>   static int vimc_cap_enum_fmt_vid_cap(struct file *file, void *priv,
->>>   				     struct v4l2_fmtdesc *f)
->>>   {
->>> -	struct vimc_cap_device *vcap = video_drvdata(file);
->>> +	const struct vimc_pix_map *vpix = vimc_pix_map_by_index(f->index);
->>>
->>> -	if (f->index > 0)
->>> +	if (!vpix)
->>>   		return -EINVAL;
->>>
->>> -	/* We only support one format for now */
->>> -	f->pixelformat = vcap->format.pixelformat;
->>> +	f->pixelformat = vpix->pixelformat;
->>> +	f->flags = V4L2_FMT_FLAG_COMPRESSED;
->>
->> Why set this to COMPRESSED? The flag is set by the v4l2 core anyway, but the format
->> we support here isn't a compressed format at all. Perhaps a left-over from an earlier
->> version?
->>
->>> +	f->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->>
->> No need for this, this op can only be called for such types anyway.
->>
->>> +
->>> +	return 0;
->>> +}
->>> +
->>> +static int vimc_cap_enum_framesizes(struct file *file, void *fh,
->>> +				    struct v4l2_frmsizeenum *fsize)
->>> +{
->>> +	const struct vimc_pix_map *vpix;
->>> +
->>> +	if (fsize->index)
->>> +		return -EINVAL;
->>> +
->>> +	/* Only accept code in the pix map table */
->>> +	vpix = vimc_pix_map_by_code(fsize->pixel_format);
->>> +	if (!vpix)
->>> +		return -EINVAL;
->>> +
->>> +	fsize->type = V4L2_FRMSIZE_TYPE_CONTINUOUS;
->>> +	fsize->stepwise.min_width = VIMC_FRAME_MIN_WIDTH;
->>> +	fsize->stepwise.max_width = VIMC_FRAME_MAX_WIDTH;
->>> +	fsize->stepwise.min_height = VIMC_FRAME_MIN_HEIGHT;
->>> +	fsize->stepwise.max_height = VIMC_FRAME_MAX_HEIGHT;
->>> +	fsize->stepwise.step_width = 1;
->>> +	fsize->stepwise.step_height = 1;
->>
->> I think the step should be at least 2.
->>
->>>
->>>   	return 0;
->>>   }
->>> @@ -101,10 +207,11 @@ static const struct v4l2_file_operations vimc_cap_fops = {
->>>   static const struct v4l2_ioctl_ops vimc_cap_ioctl_ops = {
->>>   	.vidioc_querycap = vimc_cap_querycap,
->>>
->>> -	.vidioc_g_fmt_vid_cap = vimc_cap_fmt_vid_cap,
->>> -	.vidioc_s_fmt_vid_cap = vimc_cap_fmt_vid_cap,
->>> -	.vidioc_try_fmt_vid_cap = vimc_cap_fmt_vid_cap,
->>> +	.vidioc_g_fmt_vid_cap = vimc_cap_g_fmt_vid_cap,
->>> +	.vidioc_s_fmt_vid_cap = vimc_cap_s_fmt_vid_cap,
->>> +	.vidioc_try_fmt_vid_cap = vimc_cap_try_fmt_vid_cap,
->>>   	.vidioc_enum_fmt_vid_cap = vimc_cap_enum_fmt_vid_cap,
->>> +	.vidioc_enum_framesizes = vimc_cap_enum_framesizes,
->>>
->>>   	.vidioc_reqbufs = vb2_ioctl_reqbufs,
->>>   	.vidioc_create_bufs = vb2_ioctl_create_bufs,
->>> @@ -270,20 +377,21 @@ static int vimc_cap_link_validate(struct media_link *link)
->>>   	if (ret)
->>>   		return ret;
->>>
->>> -	dev_dbg(vcap->vdev.v4l2_dev->dev,
->>> -		"%s: link validate formats src:%dx%d %d sink:%dx%d %d\n",
->>> -		vcap->vdev.name,
->>> +	vpix = vimc_pix_map_by_pixelformat(sink_fmt->pixelformat);
->>> +
->>> +	dev_dbg(vcap->vdev.v4l2_dev->dev, "%s: link validate formats: "
->>> +		"src:%dx%d (0x%x, %d, %d, %d, %d) "
->>> +		"snk:%dx%d (0x%x, %d, %d, %d, %d)\n", vcap->vdev.name,
->>> +		/* src */
->>>   		source_fmt.format.width, source_fmt.format.height,
->>> -		source_fmt.format.code,
->>> +		source_fmt.format.code,	source_fmt.format.colorspace,
->>> +		source_fmt.format.quantization,	source_fmt.format.xfer_func,
->>> +		source_fmt.format.ycbcr_enc,
->>> +		/* sink */
->>>   		sink_fmt->width, sink_fmt->height,
->>> -		sink_fmt->pixelformat);
->>> -
->>> -	/* The width, height and code must match. */
->>> -	vpix = vimc_pix_map_by_pixelformat(sink_fmt->pixelformat);
->>> -	if (source_fmt.format.width != sink_fmt->width
->>> -	    || source_fmt.format.height != sink_fmt->height
->>> -	    || vpix->code != source_fmt.format.code)
->>> -		return -EPIPE;
->>> +		vpix->code, sink_fmt->colorspace,
->>> +		sink_fmt->quantization,	sink_fmt->xfer_func,
->>> +		sink_fmt->ycbcr_enc);
->>>
->>>   	/*
->>>   	 * The field order must match, or the sink field order must be NONE
->>> @@ -294,6 +402,15 @@ static int vimc_cap_link_validate(struct media_link *link)
->>>   	    sink_fmt->field != V4L2_FIELD_NONE)
->>>   		return -EPIPE;
->>>
->>> +	if (source_fmt.format.width != sink_fmt->width
->>> +	    || source_fmt.format.height != sink_fmt->height
->>> +	    || source_fmt.format.colorspace != sink_fmt->colorspace
->>> +	    || source_fmt.format.quantization != sink_fmt->quantization
->>> +	    || source_fmt.format.xfer_func != sink_fmt->xfer_func
->>> +	    || source_fmt.format.ycbcr_enc != sink_fmt->ycbcr_enc
->>
->> You can't just compare this. I just discussed this with Philipp Zabel as well,
->> and I don't think this should be included in the link validation, unless the
->> hardware block can do actual colorspace conversions.
->>
->> In most cases this is irrelevant to the link validation.
-> 
-> 
-> If it is irrelevant, then what it means to have different entities with
-> different colorspaces?
-> 
-> If I have a topology like [sensor]0->0[scaler]1->0[video cap] for
-> example, the user can configure different colorspaces in each pad no?
-> Should these configuration just be ignored ?
+Hi Niklas,
 
-Yes.
+Thank you for the patch.
 
-To be honest, this is something we need to clarify. It certainly shouldn't be
-used in the validation check, but it is not really defined what should be done
-when userspace sets these fields to non-0 values. Right now I think most drivers
-just set it and do not otherwise touch it.
+On Tuesday 14 Mar 2017 19:59:53 Niklas S=F6derlund wrote:
+> If userspace can't feed the driver with buffers as fast as the driver=
 
-I looked at this with Philipp Zabel recently for the imx6 driver:
+> consumes them the driver will stop video capturing and wait for more
+> buffers from userspace, the driver is stalled. Once it have been feed=
 
-https://patchwork.linuxtv.org/patch/41451/
+> one or more free buffers it will recover from the stall and resume
+> capturing.
+>=20
+> Instead of of continue to capture using the same capture mode as befo=
+re
 
-What is done there is probably the best solution.
+s/of of continue/of continuing/
 
+> the stall allow the driver to choose between single and continuous mo=
+de
+> base on free buffer availability. Do this by stopping capturing when =
+the
+
+s/base/based/
+
+> driver becomes stalled and restart capturing once it continues. By do=
+ing
+> this the capture mode will be evaluated each time the driver is
+> recovering from a stall.
+>=20
+> This behavior is needed to fix a bug where continuous capturing mode =
+is
+> used, userspace is about to stop the stream and is waiting for the la=
+st
+> buffers to be returned from the driver and is not queuing any new
+> buffers. In this case the driver becomes stalled when there are only =
+3
+> buffers remaining streaming will never resume since the driver is
+> waiting for userspace to feed it more buffers before it can continue
+> streaming.  With this fix the driver will then switch to single captu=
+re
+> mode for the last 3 buffers and a deadlock is avoided. The issue can =
+be
+> demonstrated using yavta.
+>=20
+> $ yavta -f RGB565 -s 640x480 -n 4 --capture=3D10  /dev/video22
+> Device /dev/video22 opened.
+> Device `R_Car_VIN' on `platform:e6ef1000.video' (driver 'rcar_vin') s=
+upports
+> video, capture, without mplanes. Video format set: RGB565 (50424752)
+> 640x480 (stride 1280) field interlaced buffer size 614400 Video forma=
+t:
+> RGB565 (50424752) 640x480 (stride 1280) field interlaced buffer size =
+614400
+> 4 buffers requested.
+> length: 614400 offset: 0 timestamp type/source: mono/EoF
+> Buffer 0/0 mapped at address 0xb6cc7000.
+> length: 614400 offset: 614400 timestamp type/source: mono/EoF
+> Buffer 1/0 mapped at address 0xb6c31000.
+> length: 614400 offset: 1228800 timestamp type/source: mono/EoF
+> Buffer 2/0 mapped at address 0xb6b9b000.
+> length: 614400 offset: 1843200 timestamp type/source: mono/EoF
+> Buffer 3/0 mapped at address 0xb6b05000.
+> 0 (0) [-] interlaced 0 614400 B 38.240285 38.240303 12.421 fps ts mon=
+o/EoF
+> 1 (1) [-] interlaced 1 614400 B 38.282329 38.282346 23.785 fps ts mon=
+o/EoF
+> 2 (2) [-] interlaced 2 614400 B 38.322324 38.322338 25.003 fps ts mon=
+o/EoF
+> 3 (3) [-] interlaced 3 614400 B 38.362318 38.362333 25.004 fps ts mon=
+o/EoF
+> 4 (0) [-] interlaced 4 614400 B 38.402313 38.402328 25.003 fps ts mon=
+o/EoF
+> 5 (1) [-] interlaced 5 614400 B 38.442307 38.442321 25.004 fps ts mon=
+o/EoF
+> 6 (2) [-] interlaced 6 614400 B 38.482301 38.482316 25.004 fps ts mon=
+o/EoF
+> 7 (3) [-] interlaced 7 614400 B 38.522295 38.522312 25.004 fps ts mon=
+o/EoF
+> 8 (0) [-] interlaced 8 614400 B 38.562290 38.562306 25.003 fps ts mon=
+o/EoF
+> <blocks forever, waiting for the last buffer>
+>=20
+> This fix also allow the driver to switch to single capture mode if
+> userspace don't feed it buffers fast enough. Or the other way around,=
+ if
+
+s/don't/doesn't/
+
+> userspace suddenly feeds the driver buffers faster it can switch to
+> continues capturing mode.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
+.se>
+
+I have a feeling that the streaming code is a bit fragile, but it doesn=
+'t seem=20
+that this patch is making it worse, so we can rework it later.
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 22 +++++++++++++++++---=
+--
+>  1 file changed, 17 insertions(+), 5 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
+> b/drivers/media/platform/rcar-vin/rcar-dma.c index
+> f7776592b9a13d41..bd1ccb70ae2bc47e 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -428,6 +428,8 @@ static int rvin_capture_start(struct rvin_dev *vi=
+n)
+>=20
+>  =09rvin_capture_on(vin);
+>=20
+> +=09vin->state =3D RUNNING;
+> +
+>  =09return 0;
+>  }
+>=20
+> @@ -906,7 +908,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
+>  =09struct rvin_dev *vin =3D data;
+>  =09u32 int_status, vnms;
+>  =09int slot;
+> -=09unsigned int sequence, handled =3D 0;
+> +=09unsigned int i, sequence, handled =3D 0;
+>  =09unsigned long flags;
+>=20
+>  =09spin_lock_irqsave(&vin->qlock, flags);
+> @@ -968,8 +970,20 @@ static irqreturn_t rvin_irq(int irq, void *data)=
+
+>  =09=09 * the VnMBm registers.
+>  =09=09 */
+>  =09=09if (vin->continuous) {
+> -=09=09=09rvin_capture_off(vin);
+> +=09=09=09rvin_capture_stop(vin);
+>  =09=09=09vin_dbg(vin, "IRQ %02d: hw not ready stop\n",=20
+sequence);
+> +
+> +=09=09=09/* Maybe we can continue in single capture mode */
+> +=09=09=09for (i =3D 0; i < HW_BUFFER_NUM; i++) {
+> +=09=09=09=09if (vin->queue_buf[i]) {
+> +=09=09=09=09=09list_add(to_buf_list(vin-
+>queue_buf[i]),
+> +=09=09=09=09=09=09 &vin->buf_list);
+> +=09=09=09=09=09vin->queue_buf[i] =3D NULL;
+> +=09=09=09=09}
+> +=09=09=09}
+> +
+> +=09=09=09if (!list_empty(&vin->buf_list))
+> +=09=09=09=09rvin_capture_start(vin);
+>  =09=09}
+>  =09} else {
+>  =09=09/*
+> @@ -1054,8 +1068,7 @@ static void rvin_buffer_queue(struct vb2_buffer=
+ *vb)
+>  =09 * capturing if HW is ready to continue.
+>  =09 */
+>  =09if (vin->state =3D=3D STALLED)
+> -=09=09if (rvin_fill_hw(vin))
+> -=09=09=09rvin_capture_on(vin);
+> +=09=09rvin_capture_start(vin);
+>=20
+>  =09spin_unlock_irqrestore(&vin->qlock, flags);
+>  }
+> @@ -1072,7 +1085,6 @@ static int rvin_start_streaming(struct vb2_queu=
+e *vq,
+> unsigned int count)
+>=20
+>  =09spin_lock_irqsave(&vin->qlock, flags);
+>=20
+> -=09vin->state =3D RUNNING;
+>  =09vin->sequence =3D 0;
+>=20
+>  =09ret =3D rvin_capture_start(vin);
+
+--=20
 Regards,
 
-	Hans
+Laurent Pinchart
