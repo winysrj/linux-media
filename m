@@ -1,43 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:33739 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752554AbdEHOby (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 May 2017 10:31:54 -0400
-Date: Mon, 8 May 2017 11:31:51 -0300
-From: Gustavo Padovan <gustavo@padovan.org>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-        linux-media@vger.kernel.org,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 2/4] dma-buf: Improve a size determination in
- dma_buf_attach()
-Message-ID: <20170508143151.GB28331@joana>
-References: <3d972fa2-787a-d1f2-ff86-5c05494e00d3@users.sourceforge.net>
- <cff83dc6-4391-d9b1-6ac2-791d5a3e2eb4@users.sourceforge.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cff83dc6-4391-d9b1-6ac2-791d5a3e2eb4@users.sourceforge.net>
+Received: from mail.kernel.org ([198.145.29.99]:36128 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933204AbdEKR1U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 11 May 2017 13:27:20 -0400
+From: Kieran Bingham <kbingham@kernel.org>
+To: laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
+        sakari.ailus@iki.fi
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [RFC PATCH v2 2/4] arm64: dts: r8a7795: salvator-x: enable VIN, CSI and ADV7482
+Date: Thu, 11 May 2017 18:21:21 +0100
+Message-Id: <b7f89ec984dcb1cd14c61de72b43c6e55fd80b88.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.5d2526b759f71c06d51df279c3d5885aca476fb6.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.5d2526b759f71c06d51df279c3d5885aca476fb6.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.5d2526b759f71c06d51df279c3d5885aca476fb6.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.5d2526b759f71c06d51df279c3d5885aca476fb6.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-05-08 SF Markus Elfring <elfring@users.sourceforge.net>:
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Mon, 8 May 2017 10:50:09 +0200
-> 
-> Replace the specification of a data structure by a pointer dereference
-> as the parameter for the operator "sizeof" to make the corresponding size
-> determination a bit safer according to the Linux coding style convention.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/dma-buf/dma-buf.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+Provide bindings between the VIN, CSI and the ADV7482 on the r8a7795.
 
-Reviewed-by: Gustavo Padovan <gustavo.padovan@collabora.com>                    
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts | 147 ++++++++++++++-
+ 1 file changed, 147 insertions(+)
 
-Gustavo
+diff --git a/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts b/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts
+index 7a8986edcdc0..e295f041b36a 100644
+--- a/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts
++++ b/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts
+@@ -196,6 +196,22 @@
+ 			};
+ 		};
+ 	};
++
++	hdmi {
++		port {
++			hdmi_in: endpoint {
++				remote-endpoint = <&adv7482_hdmi>;
++			};
++		};
++	};
++
++	cvbs {
++		port {
++			cvbs_in: endpoint {
++				remote-endpoint = <&adv7482_ain8>;
++			};
++		};
++	};
+ };
  
+ &du {
+@@ -387,6 +403,68 @@
+ 	};
+ };
+ 
++&i2c4 {
++	status = "okay";
++
++	clock-frequency = <100000>;
++
++	video-receiver@70 {
++		compatible = "adi,adv7482";
++		reg = <0x70>;
++
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			adv7482_hdmi: endpoint@1 {
++				reg = <1>;
++				remote-endpoint = <&hdmi_in>;
++			};
++		};
++
++		port@8 {
++			reg = <8>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			adv7482_ain8: endpoint@1 {
++				reg = <1>;
++				remote-endpoint = <&cvbs_in>;
++			};
++		};
++
++		port@10 {
++			reg = <10>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			adv7482_txa: endpoint@1 {
++				reg = <1>;
++				clock-lanes = <0>;
++				data-lanes = <1 2 3 4>;
++				remote-endpoint = <&csi40_in>;
++			};
++		};
++
++		port@11 {
++			reg = <11>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			adv7482_txb: endpoint@1 {
++				reg = <1>;
++				clock-lanes = <0>;
++				data-lanes = <1>;
++				remote-endpoint = <&csi20_in>;
++			};
++		};
++	};
++};
++
+ &rcar_sound {
+ 	pinctrl-0 = <&sound_pins &sound_clk_pins>;
+ 	pinctrl-names = "default";
+@@ -577,3 +655,72 @@
+ &pciec1 {
+ 	status = "okay";
+ };
++
++&vin0 {
++	status = "okay";
++};
++
++&vin1 {
++	status = "okay";
++};
++
++&vin2 {
++	status = "okay";
++};
++
++&vin3 {
++	status = "okay";
++};
++
++&vin4 {
++	status = "okay";
++};
++
++&vin5 {
++	status = "okay";
++};
++
++&vin6 {
++	status = "okay";
++};
++
++&vin7 {
++	status = "okay";
++};
++
++&csi20 {
++	status = "okay";
++
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++			csi20_in: endpoint@0 {
++				clock-lanes = <0>;
++				data-lanes = <1>;
++				remote-endpoint = <&adv7482_txb>;
++			};
++		};
++	};
++};
++
++&csi40 {
++	status = "okay";
++
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			csi40_in: endpoint@0 {
++				clock-lanes = <0>;
++				data-lanes = <1 2 3 4>;
++				remote-endpoint = <&adv7482_txa>;
++			};
++		};
++	};
++};
+-- 
+git-series 0.9.1
