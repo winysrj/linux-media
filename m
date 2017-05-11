@@ -1,146 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f173.google.com ([209.85.220.173]:34580 "EHLO
-        mail-qk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751104AbdEPJKS (ORCPT
+Received: from mbkd0307.ocn.ad.jp ([153.149.236.8]:48499 "EHLO
+        mbkd0307.ocn.ad.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752011AbdEKJJQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 May 2017 05:10:18 -0400
-Received: by mail-qk0-f173.google.com with SMTP id k74so122052439qke.1
-        for <linux-media@vger.kernel.org>; Tue, 16 May 2017 02:10:17 -0700 (PDT)
+        Thu, 11 May 2017 05:09:16 -0400
+Date: Thu, 11 May 2017 17:47:32 +0900 (JST)
+From: Mis Grace Remond <"grace."@pearl.ocn.ne.jp>
+Reply-To: Mis Grace Remond <mis.graceremond@gmail.com>
+Message-ID: <779720618.3671587.1494492452066.JavaMail.root@pearl.ocn.ne.jp>
+Subject: Greetings to you, From Mrs.Grace Remond
 MIME-Version: 1.0
-In-Reply-To: <1494925280-4527-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1494925280-4527-1-git-send-email-benjamin.gaignard@linaro.org>
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Date: Tue, 16 May 2017 11:10:16 +0200
-Message-ID: <CA+M3ks6eO7144jNyBQZQfQ=ANwgxQjKKCY03iBnQB4mik6uFMQ@mail.gmail.com>
-Subject: Re: [PATCH 0/2] cec: STM32 driver
-To: Alexandre Torgue <alexandre.torgue@st.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, devicetree@vger.kernel.org,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Rob Herring <robh@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Yannick Fertre <yannick.fertre@st.com>
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-+ Yannick who is the original writer of this driver (sorry)
+Hello Friend,
+Greetings to you. I know it will be difficult for you to believe my story but it is nothing but the real truth. I’m Mrs.Grace Remond and I have been suffering from ovarian cancer disease and the doctor says that I have just few days to leave. I am from (Paris) France, but based in Africa Burkina Faso since eight years ago as a business woman dealing with gold exportation and cotton Sales.
 
-2017-05-16 11:01 GMT+02:00 Benjamin Gaignard <benjamin.gaignard@linaro.org>:
-> This serie of patches add cec driver for STM32 platforms.
->
-> This code doesn't implement cec notifier because STM32 doesn't
-> provide HDMI yet but it will be added later.
->
-> Those patches have been developped on top of media_tree master branch
-> where STM32 DCMI code has not been merged so conflict in Kconfig and Makefile
-> could occur depending of merge ordering.
->
-> Compliance has been tested on STM32F769.
->
-> ~ # cec-ctl -p 1.0.0.0 --playback
-> Driver Info:
->         Driver Name                : stm32-cec
->         Adapter Name               : stm32-cec
->         Capabilities               : 0x0000000f
->                 Physical Address
->                 Logical Addresses
->                 Transmit
->                 Passthrough
->         Driver version             : 4.11.0
->         Available Logical Addresses: 1
->         Physical Address           : 1.0.0.0
->         Logical Address Mask       : 0x0010
->         CEC Version                : 2.0
->         Vendor ID                  : 0x000c03 (HDMI)
->         OSD Name                   : 'Playback'
->         Logical Addresses          : 1 (Allow RC Passthrough)
->
->           Logical Address          : 4 (Playback Device 1)
->             Primary Device Type    : Playback
->             Logical Address Type   : Playback
->             All Device Types       : Playback
->             RC TV Profile          : None
->             Device Features        :
->                 None
->
-> ~ # cec-compliance -A
-> cec-compliance SHA                 : 6acac5cec698de39b9398b66c4f5f4db6b2730d8
->
-> Driver Info:
->         Driver Name                : stm32-cec
->         Adapter Name               : stm32-cec
->         Capabilities               : 0x0000000f
->                 Physical Address
->                 Logical Addresses
->                 Transmit
->                 Passthrough
->         Driver version             : 4.11.0
->         Available Logical Addresses: 1
->         Physical Address           : 1.0.0.0
->         Logical Address Mask       : 0x0010
->         CEC Version                : 2.0
->         Vendor ID                  : 0x000c03
->         Logical Addresses          : 1 (Allow RC Passthrough)
->
->           Logical Address          : 4
->             Primary Device Type    : Playback
->             Logical Address Type   : Playback
->             All Device Types       : Playback
->             RC TV Profile          : None
->             Device Features        :
->                 None
->
-> Compliance test for device /dev/cec0:
->
->     The test results mean the following:
->         OK                  Supported correctly by the device.
->         OK (Not Supported)  Not supported and not mandatory for the device.
->         OK (Presumed)       Presumably supported.  Manually check to confirm.
->         OK (Unexpected)     Supported correctly but is not expected to be supported for this device.
->         OK (Refused)        Supported by the device, but was refused.
->         FAIL                Failed and was expected to be supported by this device.
->
-> Find remote devices:
->         Polling: OK
->
-> CEC API:
->         CEC_ADAP_G_CAPS: OK
->         CEC_DQEVENT: OK
->         CEC_ADAP_G/S_PHYS_ADDR: OK
->         CEC_ADAP_G/S_LOG_ADDRS: OK
->         CEC_TRANSMIT: OK
->         CEC_RECEIVE: OK
->         CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
->         CEC_G/S_MODE: OK
->         CEC_EVENT_LOST_MSGS: OK
->
-> Network topology:
->         System Information for device 0 (TV) from device 4 (Playback Device 1):
->                 CEC Version                : 1.4
->                 Physical Address           : 0.0.0.0
->                 Primary Device Type        : TV
->                 Vendor ID                  : 0x00903e
->                 OSD Name                   : 'TV'
->                 Menu Language              : fre
->                 Power Status               : On
->
-> Total: 10, Succeeded: 10, Failed: 0, Warnings: 0
->
-> Benjamin Gaignard (2):
->   binding for stm32 cec driver
->   cec: add STM32 cec driver
->
->  .../devicetree/bindings/media/st,stm32-cec.txt     |  19 ++
->  drivers/media/platform/Kconfig                     |  11 +
->  drivers/media/platform/Makefile                    |   2 +
->  drivers/media/platform/stm32/Makefile              |   1 +
->  drivers/media/platform/stm32/stm32-cec.c           | 368 +++++++++++++++++++++
->  5 files changed, 401 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
->  create mode 100644 drivers/media/platform/stm32/Makefile
->  create mode 100644 drivers/media/platform/stm32/stm32-cec.c
->
-> --
-> 1.9.1
->
+Now, that I am about to end the race like this, without any family members and no child. I have $6.8mollion (b.o.a) Burkina Faso which I instructed the Bank to give St Andrews Missionary and Home Kizito Orphanage in Burkina Faso. But my mind is not at rest because I am writing this letter now through the help of my computer beside my sick bed.
+
+I have instructed the bank to transfer the fund to you as a foreigner that will apply to the bank after I have gone that they should release the fund to him/her, but you will assure me that you will take 50 percent of the fund and 50 percent to the orphanage as I instructed for my heart to rest in peace. Respond to me immediately for further details since I have just few days to end my life due to the ovarian cancer disease, hoping you will understand my situation and give favorable attention.
+
+Thank you and God bless you,
+
+Mrs.Grace Remond
