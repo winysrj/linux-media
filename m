@@ -1,127 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:39552 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750747AbdEBEMi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 2 May 2017 00:12:38 -0400
-Message-ID: <b1dbc89856c6c5fa1147bfd1dda4a345@smtp-cloud6.xs4all.net>
-Date: Tue, 02 May 2017 06:12:36 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from ni.piap.pl ([195.187.100.4]:58566 "EHLO ni.piap.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754926AbdEKHl2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 11 May 2017 03:41:28 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        zhaoxuegang <zhaoxuegang@suntec.net>
+Subject: Re: [PATCH] TW686x: Fix OOPS on buffer alloc failure
+References: <590ADAB1.1040501@suntec.net> <m3h90thwjt.fsf@t19.piap.pl>
+        <m3d1bhhwf3.fsf_-_@t19.piap.pl>
+        <CAAEAJfBVOKBcZBg91EKHBXKMOkM6eRafe8=XnW8E=6vtn2dBmQ@mail.gmail.com>
+Date: Thu, 11 May 2017 09:41:24 +0200
+In-Reply-To: <CAAEAJfBVOKBcZBg91EKHBXKMOkM6eRafe8=XnW8E=6vtn2dBmQ@mail.gmail.com>
+        (Ezequiel Garcia's message of "Wed, 10 May 2017 13:18:00 -0300")
+Message-ID: <m38tm3j0wr.fsf@t19.piap.pl>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> writes:
 
-Results of the daily build of media_tree:
+>> +       /* Initialize vc->dev and vc->ch for the error path first */
+>> +       for (ch = 0; ch < max_channels(dev); ch++) {
+>> +               struct tw686x_video_channel *vc = &dev->video_channels[ch];
+>> +               vc->dev = dev;
+>> +               vc->ch = ch;
+>> +       }
+>> +
+>
+> I'm not sure where is the oops this commit fixes, care to explain it to me?
 
-date:			Tue May  2 05:00:19 CEST 2017
-media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
-media_build git hash:	1af19680bde3e227d64d99ff5fdc43eb343a3b28
-v4l-utils git hash:	847bf8d62cd6b11defc1e4c3b30b68d3c66876e0
-gcc version:		i686-linux-gcc (GCC) 6.3.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+The error path apparently calls tw686x_video_free() which requires
+vc->dev to be initialized. Now, the vc->dev is set for the channel being
+currently initialized (unsuccesfully), but not for ones which haven't
+been initialized yet. tw686x_video_free() iterates over the whole set.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+It seems it also happens in "memcpy" mode. I didn't test it before since
+on my ARMv7 "memcpy" mode is unusable, it's way too slow. Also, does the
+driver attempt to use consistent memory for entire buffers in this mode?
+This may work on i686/x86_64 because the caches are coherent by design
+and there is no difference between consistent and non-consistent RAM
+(if one isn't using SWIOTLB etc).
 
-Detailed results are available here:
+tw6869: PCI 0000:07:00.0, IRQ 24, MMIO 0x1100000 (memcpy mode)
+tw686x 0000:07:00.0: enabling device (0140 -> 0142)
+tw686x 0000:07:00.0: dma0: unable to allocate P-buffer
+Unable to handle kernel NULL pointer dereference at virtual address 00000000
+PC is at _raw_spin_lock_irqsave+0x10/0x4c
+LR is at tw686x_memcpy_dma_free+0x1c/0x124
+pc : [<805a8b14>]    lr : [<7f04a3c0>]    psr: 20010093
+sp : be915c80  ip : 00000000  fp : bea1b000
+r10: 00000000  r9 : fffffff4  r8 : 0000b000
+r7 : 00000000  r6 : 000003f0  r5 : 00000000  r4 : bf0e21f8
+r3 : 7f04a3a4  r2 : 00000000  r1 : 00000000  r0 : 20010013
+Flags: nzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment none
+Control: 10c5387d  Table: 4e91804a  DAC: 00000051
+Process udevd (pid: 88, stack limit = 0xbe914210)
+(_raw_spin_lock_irqsave) from (tw686x_memcpy_dma_free+0x1c/0x124)
+(tw686x_memcpy_dma_free) from (tw686x_video_free+0x50/0x78)
+(tw686x_video_free) from (tw686x_video_init+0x478/0x5e8)
+(tw686x_video_init) from (tw686x_probe+0x36c/0x3fc)
+(tw686x_probe) from (pci_device_probe+0x88/0xf4)
+(pci_device_probe) from (driver_probe_device+0x238/0x2d8)
+(driver_probe_device) from (__driver_attach+0xac/0xb0)
+(__driver_attach) from (bus_for_each_dev+0x6c/0xa0)
+(bus_for_each_dev) from (bus_add_driver+0x1a0/0x218)
+(bus_add_driver) from (driver_register+0x78/0xf8)
+(driver_register) from (do_one_initcall+0x40/0x168)
+(do_one_initcall) from (do_init_module+0x60/0x3a4)
+(do_init_module) from (load_module+0x1c90/0x20e4)
+(load_module) from (SyS_finit_module+0x8c/0x9c)
+(SyS_finit_module) from (ret_fast_syscall+0x0/0x3c)
+Code: e1a02000 e10f0000 f10c0080 f592f000 (e1923f9f)
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Full logs are available here:
+With the patch:
+tw6869: PCI 0000:07:00.0, IRQ 24, MMIO 0x1100000 (memcpy mode)
+tw686x 0000:07:00.0: enabling device (0140 -> 0142)
+tw686x 0000:07:00.0: dma0: unable to allocate P-buffer
+tw686x 0000:07:00.0: can't register video
+tw686x: probe of 0000:07:00.0 failed with error -12
+--
+Krzysztof Halasa
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
