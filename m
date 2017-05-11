@@ -1,107 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41016
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754347AbdEROKQ (ORCPT
+Received: from mail-yw0-f172.google.com ([209.85.161.172]:35311 "EHLO
+        mail-yw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752714AbdEKGay (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 10:10:16 -0400
-Date: Thu, 18 May 2017 11:10:10 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: alan@linux.intel.com, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH 00/13] staging: media: atomisp queued up patches
-Message-ID: <20170518111010.756a13c2@vento.lan>
-In-Reply-To: <20170518135022.6069-1-gregkh@linuxfoundation.org>
-References: <20170518135022.6069-1-gregkh@linuxfoundation.org>
+        Thu, 11 May 2017 02:30:54 -0400
+Received: by mail-yw0-f172.google.com with SMTP id l135so8105949ywb.2
+        for <linux-media@vger.kernel.org>; Wed, 10 May 2017 23:30:54 -0700 (PDT)
+Received: from mail-yb0-f180.google.com (mail-yb0-f180.google.com. [209.85.213.180])
+        by smtp.gmail.com with ESMTPSA id t9sm391353ywc.19.2017.05.10.23.30.52
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 10 May 2017 23:30:52 -0700 (PDT)
+Received: by mail-yb0-f180.google.com with SMTP id p143so4145500yba.2
+        for <linux-media@vger.kernel.org>; Wed, 10 May 2017 23:30:52 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1494478820-22199-1-git-send-email-rajmohan.mani@intel.com>
+References: <1494478820-22199-1-git-send-email-rajmohan.mani@intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 11 May 2017 14:30:31 +0800
+Message-ID: <CAAFQd5Ck3CKp-JR8d3d1X9-2cRS0oZG9GPwcpunBq50EY7qCtg@mail.gmail.com>
+Subject: Re: [PATCH v4] dw9714: Initial driver for dw9714 VCM
+To: Rajmohan Mani <rajmohan.mani@intel.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 18 May 2017 15:50:09 +0200
-Greg Kroah-Hartman <gregkh@linuxfoundation.org> escreveu:
+Hi Raj,
 
-> Hi Mauro,
-> 
-> Here's the set of accumulated atomisp staging patches that I had in my
-> to-review mailbox.  After this, my queue is empty, the driver is all
-> yours!
+Thanks for re-spin. Still a bit more comments inline. (I missed few
+more before, sorry.)
 
-Thanks!
+On Thu, May 11, 2017 at 1:00 PM, Rajmohan Mani <rajmohan.mani@intel.com> wrote:
+> DW9714 is a 10 bit DAC, designed for linear
+> control of voice coil motor.
+[snip]
+> +static int dw9714_i2c_write(struct i2c_client *client, u16 data)
+> +{
+> +       int ret;
+> +       u16 val = cpu_to_be16(data);
+> +       const int num_bytes = sizeof(val);
+> +
+> +       ret = i2c_master_send(client, (const char *) &val, sizeof(val));
 
-Alan, please let me know if you prefer if I don't apply any of
-such patches, otherwise I should be merging them tomorrow ;)
+nit: No need for space between cast and casted value.
 
-> Good Luck! :)
+> +
+> +       /*One retry */
+> +       if (ret != num_bytes)
+> +               ret = i2c_master_send(client, (const char *) &val, sizeof(val));
 
-Thanks!
+Why do we need this retry?
 
-Regards,
-Mauro
-> 
-> thanks,
-> 
-> greg k-h
-> 
-> Avraham Shukron (3):
->   staging: media: atomisp: fixed sparse warnings
->   staging: media: atomisp: fixed coding style errors
->   staging: media: atomisp: fix coding style warnings
-> 
-> Dan Carpenter (2):
->   staging: media: atomisp: one char read beyond end of string
->   staging: media: atomisp: putting NULs in the wrong place
-> 
-> Fabrizio Perria (1):
->   staging: media: atomisp: Fix unnecessary initialization of static
-> 
-> Guru Das Srinagesh (2):
->   staging: media: atomisp: use logical AND, not bitwise
->   staging: media: atomisp: Make undeclared symbols static
-> 
-> Hans de Goede (1):
->   staging: media: atomisp: Fix -Werror=int-in-bool-context compile
->     errors
-> 
-> Joe Perches (1):
->   staging: media: atomisp: Add __printf validation and fix fallout
-> 
-> Manny Vindiola (1):
->   staging: media: atomisp: fix missing blank line coding style issue in
->     atomisp_tpg.c
-> 
-> Mauro Carvalho Chehab (1):
->   staging: media: atomisp: don't treat warnings as errors
-> 
-> Valentin Vidic (1):
->   staging: media: atomisp: drop unused qos variable
-> 
->  drivers/staging/media/atomisp/i2c/Makefile         |   2 -
->  drivers/staging/media/atomisp/i2c/imx/Makefile     |   2 -
->  drivers/staging/media/atomisp/i2c/ov5693/Makefile  |   2 -
->  .../staging/media/atomisp/pci/atomisp2/Makefile    |   2 +-
->  .../atomisp/pci/atomisp2/atomisp_compat_css20.c    |   1 -
->  .../media/atomisp/pci/atomisp2/atomisp_fops.c      |  14 +-
->  .../media/atomisp/pci/atomisp2/atomisp_tpg.c       |   1 +
->  .../media/atomisp/pci/atomisp2/atomisp_v4l2.c      |   2 +-
->  .../css2400/hive_isp_css_include/math_support.h    |   6 +-
->  .../css2400/hive_isp_css_include/string_support.h  |   9 +-
->  .../isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c   |   6 +-
->  .../isp/kernels/sdis/sdis_2/ia_css_sdis2.host.c    |   2 +-
->  .../isp/kernels/tnr/tnr_1.0/ia_css_tnr.host.c      |   2 +-
->  .../atomisp2/css2400/runtime/binary/src/binary.c   |   2 +-
->  .../css2400/runtime/debug/interface/ia_css_debug.h |   1 +
->  .../css2400/runtime/debug/src/ia_css_debug.c       |   6 +-
->  .../media/atomisp/pci/atomisp2/css2400/sh_css.c    |  19 +-
->  .../atomisp/pci/atomisp2/css2400/sh_css_mipi.c     |   2 +-
->  .../atomisp/pci/atomisp2/css2400/sh_css_params.c   |  10 +-
->  .../platform/intel-mid/atomisp_gmin_platform.c     | 210 +++++++++++----------
->  .../platform/intel-mid/intel_mid_pcihelpers.c      |  12 +-
->  21 files changed, 162 insertions(+), 151 deletions(-)
-> 
+> +
+> +       if (ret != num_bytes) {
+> +               dev_err(&client->dev, "I2C write fail\n");
+> +               return -EIO;
+> +       }
+> +       return 0;
+> +}
+> +
+> +static int dw9714_t_focus_vcm(struct dw9714_device *dw9714_dev, u16 val)
+> +{
+> +       struct i2c_client *client = dw9714_dev->client;
+> +
+> +       dw9714_dev->current_val = val;
+> +
+> +       return dw9714_i2c_write(client, DW9714_VAL(val, DW9714_DEFAULT_S));
 
+This still doesn't seem to apply the control gradually as suspend and resume do.
 
+> +}
+[snip]
+> +static int dw9714_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> +{
+> +       struct dw9714_device *dw9714_dev = container_of(sd,
+> +                                                       struct dw9714_device,
+> +                                                       sd);
+> +       struct device *dev = &dw9714_dev->client->dev;
+> +       int rval;
+> +
+> +       rval = pm_runtime_get_sync(dev);
+> +       if (rval >= 0)
+> +               return 0;
+> +
+> +       pm_runtime_put(dev);
+> +       return rval;
 
-Thanks,
-Mauro
+nit: The typical coding style is to return early in case of a special
+case and keep the common path linear, i.e.
+
+    rval = pm_runtime_get_sync(dev);
+    if (rval < 0) {
+        pm_runtime_put(dev);
+        return rval;
+    }
+
+    return 0;
+
+> +}
+> +
+[snip]
+> +static int dw9714_remove(struct i2c_client *client)
+> +{
+> +       struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +       struct dw9714_device *dw9714_dev = container_of(sd,
+> +                                                       struct dw9714_device,
+> +                                                       sd);
+> +
+> +       pm_runtime_disable(&client->dev);
+> +       dw9714_subdev_cleanup(dw9714_dev);
+> +
+> +       return 0;
+> +}
+> +
+> +#ifdef CONFIG_PM
+
+#if defined(CONFIG_PM) || defined(CONFIG_PM_SLEEP)
+
+> +
+> +/*
+> + * This function sets the vcm position, so it consumes least current
+> + * The lens position is gradually moved in units of DW9714_CTRL_STEPS,
+> + * to make the movements smoothly.
+> + */
+> +static int dw9714_vcm_suspend(struct device *dev)
+> +{
+> +       struct i2c_client *client = to_i2c_client(dev);
+> +       struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +       struct dw9714_device *dw9714_dev = container_of(sd,
+> +                                                       struct dw9714_device,
+> +                                                       sd);
+> +       int ret, val;
+> +
+> +       for (val = dw9714_dev->current_val & ~(DW9714_CTRL_STEPS - 1);
+> +            val >= 0; val -= DW9714_CTRL_STEPS) {
+> +               ret = dw9714_i2c_write(client,
+> +                                      DW9714_VAL((u16) val, DW9714_DEFAULT_S));
+
+DW9714_VAL() already contains such cast. Anyway, I still think they
+don't really give us anything and should be removed.
+
+> +               if (ret)
+> +                       dev_err(dev, "%s I2C failure: %d", __func__, ret);
+
+I think we should just return an error code here and fail the suspend.
+
+> +               usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
+> +       }
+> +       return 0;
+> +}
+> +
+> +/*
+> + * This function sets the vcm position to the value set by the user
+> + * through v4l2_ctrl_ops s_ctrl handler
+> + * The lens position is gradually moved in units of DW9714_CTRL_STEPS,
+> + * to make the movements smoothly.
+> + */
+> +static int dw9714_vcm_resume(struct device *dev)
+> +{
+> +       struct i2c_client *client = to_i2c_client(dev);
+> +       struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +       struct dw9714_device *dw9714_dev = container_of(sd,
+> +                                                       struct dw9714_device,
+> +                                                       sd);
+> +       int ret, val;
+> +
+> +       for (val = dw9714_dev->current_val % DW9714_CTRL_STEPS;
+> +            val < dw9714_dev->current_val + DW9714_CTRL_STEPS - 1;
+> +            val += DW9714_CTRL_STEPS) {
+> +               ret = dw9714_i2c_write(client,
+> +                                      DW9714_VAL((u16) val, DW9714_DEFAULT_S));
+
+Ditto.
+
+> +               if (ret)
+> +                       dev_err(dev, "%s I2C failure: %d", __func__, ret);
+
+Ditto.
+
+> +               usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
+> +       }
+> +
+> +       /* restore v4l2 control values */
+> +       ret = v4l2_ctrl_handler_setup(&dw9714_dev->ctrls_vcm);
+> +       return ret;
+
+Hmm, actually I believe v4l2_ctrl_handler_setup() will call .s_ctrl()
+here and set the motor value again. If we just make .s_ctrl() do the
+adjustment in steps properly, we can simplify the resume to simply
+call v4l2_ctrl_handler_setup() alone.
+
+> +}
+
+#endif
+
+#ifdef CONFIG_PM
+
+> +
+> +static int dw9714_runtime_suspend(struct device *dev)
+> +{
+> +       return dw9714_vcm_suspend(dev);
+> +}
+> +
+> +static int dw9714_runtime_resume(struct device *dev)
+> +{
+> +       return dw9714_vcm_resume(dev);
+> +}
+
+#endif
+
+#ifdef CONFIG_PM_SLEEP
+
+> +
+> +static int dw9714_suspend(struct device *dev)
+> +{
+> +       return dw9714_vcm_suspend(dev);
+> +}
+> +
+> +static int dw9714_resume(struct device *dev)
+> +{
+> +       return dw9714_vcm_resume(dev);
+> +}
+
+#endif
+
+Or you could actually just use dw9714_vcm_{suspend,resume}() directly
+for the callbacks and avoid the duplicates above.
+
+> +
+> +#else
+> +
+> +#define dw9714_vcm_suspend     NULL
+> +#define dw9714_vcm_resume      NULL
+
+This #else block is not needed.
+
+Best regards,
+Tomasz
