@@ -1,94 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:46789 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937857AbdEXARC (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37594 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755036AbdEKJDf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 May 2017 20:17:02 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2 11/17] rcar-vin: select capture mode based on free buffers
-Date: Wed, 24 May 2017 02:15:34 +0200
-Message-Id: <20170524001540.13613-12-niklas.soderlund@ragnatech.se>
-In-Reply-To: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
-References: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+        Thu, 11 May 2017 05:03:35 -0400
+Date: Thu, 11 May 2017 12:03:27 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Rajmohan Mani <rajmohan.mani@intel.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v4] dw9714: Initial driver for dw9714 VCM
+Message-ID: <20170511090326.GH3227@valkosipuli.retiisi.org.uk>
+References: <1494478820-22199-1-git-send-email-rajmohan.mani@intel.com>
+ <CAAFQd5Ck3CKp-JR8d3d1X9-2cRS0oZG9GPwcpunBq50EY7qCtg@mail.gmail.com>
+ <20170511075511.GF3227@valkosipuli.retiisi.org.uk>
+ <CAAFQd5BH17YofrbaZa07UFTR_qV_h_KgskGJm0bXhuf3sM6huw@mail.gmail.com>
+ <20170511082441.GG3227@valkosipuli.retiisi.org.uk>
+ <CAAFQd5CdJ4-cg-2s85=8sR4y7o45ybUXcD4buHiOiRuvD=+nWQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5CdJ4-cg-2s85=8sR4y7o45ybUXcD4buHiOiRuvD=+nWQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Hi Tomasz,
 
-Instead of selecting single or continuous capture mode based on how many
-buffers userspace intends to give us select capture mode based on number
-of free buffers we can allocate to hardware when the stream is started.
+On Thu, May 11, 2017 at 04:37:08PM +0800, Tomasz Figa wrote:
+> >> >> > +/*
+> >> >> > + * This function sets the vcm position to the value set by the user
+> >> >> > + * through v4l2_ctrl_ops s_ctrl handler
+> >> >> > + * The lens position is gradually moved in units of DW9714_CTRL_STEPS,
+> >> >> > + * to make the movements smoothly.
+> >> >> > + */
+> >> >> > +static int dw9714_vcm_resume(struct device *dev)
+> >> >> > +{
+> >> >> > +       struct i2c_client *client = to_i2c_client(dev);
+> >> >> > +       struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> >> >> > +       struct dw9714_device *dw9714_dev = container_of(sd,
+> >> >> > +                                                       struct dw9714_device,
+> >> >> > +                                                       sd);
+> >> >> > +       int ret, val;
+> >> >> > +
+> >> >> > +       for (val = dw9714_dev->current_val % DW9714_CTRL_STEPS;
+> >> >> > +            val < dw9714_dev->current_val + DW9714_CTRL_STEPS - 1;
+> >> >> > +            val += DW9714_CTRL_STEPS) {
+> >> >> > +               ret = dw9714_i2c_write(client,
+> >> >> > +                                      DW9714_VAL((u16) val, DW9714_DEFAULT_S));
+> >> >>
+> >> >> Ditto.
+> >> >>
+> >> >> > +               if (ret)
+> >> >> > +                       dev_err(dev, "%s I2C failure: %d", __func__, ret);
+> >> >>
+> >> >> Ditto.
+> >> >>
+> >> >> > +               usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
+> >> >> > +       }
+> >> >> > +
+> >> >> > +       /* restore v4l2 control values */
+> >> >> > +       ret = v4l2_ctrl_handler_setup(&dw9714_dev->ctrls_vcm);
+> >> >> > +       return ret;
+> >> >>
+> >> >> Hmm, actually I believe v4l2_ctrl_handler_setup() will call .s_ctrl()
+> >> >> here and set the motor value again. If we just make .s_ctrl() do the
+> >> >> adjustment in steps properly, we can simplify the resume to simply
+> >> >> call v4l2_ctrl_handler_setup() alone.
+> >> >
+> >> > Or drop the v4l2_ctrl_handler_setup() here.
+> >> >
+> >> > The reason is that the driver uses direct drive method for the lens and is
+> >> > thus responsible for managing ringing compensation as well. Ringing
+> >> > compensation support could be added to the driver later on; I think another
+> >> > control will be needed to control the mode.
+> >>
+> >> Given that we already have some kind of ringing compensation in
+> >> suspend and resume, can't we just reuse this in control handler? On
+> >
+> > The way it's done here is unlikely to be helpful for the user space that
+> > needs to drive the lens to a new position as fast as possible. The code
+> > above is presumably enough to prevent the lens from hitting the mechanical
+> > stopper but I'd equally expect it to interfere badly with the user space
+> > trying to control the lens.
+> 
+> Okay, fair enough. I assume then it's not unsafe for the hardware to
+> allow userspace to control it over the full range and the worst thing
+> that can happen is getting some sound effects? (Rather than some
+> malicious userspace burning the motor or so.
 
-This change is a prerequisite to enable the driver to switch from
-continuous to single capture mode (or the other way around) when the
-driver is stalled by userspace not feeding it buffers as fast as it
-consumes it.
+Correct. It's a coil, and the dw9714 chip controls the current to the coil.
+The higher is the current, the greater is the force that deviating the lens
+from its resting position.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 31 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 11e9799564299fca..47d78f68d715d945 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -405,7 +405,21 @@ static void rvin_capture_off(struct rvin_dev *vin)
- 
- static int rvin_capture_start(struct rvin_dev *vin)
- {
--	int ret;
-+	struct rvin_buffer *buf, *node;
-+	int bufs, ret;
-+
-+	/* Count number of free buffers */
-+	bufs = 0;
-+	list_for_each_entry_safe(buf, node, &vin->buf_list, list)
-+		bufs++;
-+
-+	/* Continuous capture requires more buffers then there are HW slots */
-+	vin->continuous = bufs > HW_BUFFER_NUM;
-+
-+	if (!rvin_fill_hw(vin)) {
-+		vin_err(vin, "HW not ready to start, not enough buffers available\n");
-+		return -EINVAL;
-+	}
- 
- 	rvin_crop_scale_comp(vin);
- 
-@@ -1062,22 +1076,7 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	vin->state = RUNNING;
- 	vin->sequence = 0;
- 
--	/* Continuous capture requires more buffers then there are HW slots */
--	vin->continuous = count > HW_BUFFER_NUM;
--
--	/*
--	 * This should never happen but if we don't have enough
--	 * buffers for HW bail out
--	 */
--	if (!rvin_fill_hw(vin)) {
--		vin_err(vin, "HW not ready to start, not enough buffers available\n");
--		ret = -EINVAL;
--		goto out;
--	}
--
- 	ret = rvin_capture_start(vin);
--out:
--	/* Return all buffers if something went wrong */
- 	if (ret) {
- 		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
- 		v4l2_subdev_call(sd, video, s_stream, 0);
 -- 
-2.13.0
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
