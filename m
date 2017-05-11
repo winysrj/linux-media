@@ -1,76 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35589 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965542AbdEOTm6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 May 2017 15:42:58 -0400
-Received: by mail-wm0-f68.google.com with SMTP id v4so31119462wmb.2
-        for <linux-media@vger.kernel.org>; Mon, 15 May 2017 12:42:58 -0700 (PDT)
-From: Ricardo Silva <rjpdasilva@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Ricardo Silva <rjpdasilva@gmail.com>
-Subject: [PATCH 5/5] staging: media: lirc: Fix unbalanced braces around if/else
-Date: Mon, 15 May 2017 20:40:16 +0100
-Message-Id: <20170515194016.10246-6-rjpdasilva@gmail.com>
-In-Reply-To: <20170515194016.10246-1-rjpdasilva@gmail.com>
-References: <20170515194016.10246-1-rjpdasilva@gmail.com>
+Received: from mail.kernel.org ([198.145.29.99]:36116 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933203AbdEKR1U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 11 May 2017 13:27:20 -0400
+From: Kieran Bingham <kbingham@kernel.org>
+To: laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
+        sakari.ailus@iki.fi
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [RFC PATCH v2 3/4] arm64: dts: r8a7796: salvator-x: enable VIN, CSI and ADV7482
+Date: Thu, 11 May 2017 18:21:22 +0100
+Message-Id: <f6f888b797402e75ad542742ddc63d4829622489.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.5d2526b759f71c06d51df279c3d5885aca476fb6.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.5d2526b759f71c06d51df279c3d5885aca476fb6.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.5d2526b759f71c06d51df279c3d5885aca476fb6.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.5d2526b759f71c06d51df279c3d5885aca476fb6.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix all checkpatch reported issues for:
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
- * CHECK: "braces {} should be used on all arms of this statement".
- * CHECK: "Unbalanced braces around else statement".
+Provide bindings between the VIN, CSI and the ADV7482 on the r8a7796.
 
-Make sure all if/else statements are balanced in terms of braces. Most
-cases in code are, but a few were left unbalanced, so put them all
-consistent with the recommended style.
-
-Signed-off-by: Ricardo Silva <rjpdasilva@gmail.com>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
- drivers/staging/media/lirc/lirc_zilog.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts | 147 ++++++++++++++-
+ 1 file changed, 147 insertions(+)
 
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index 7e36693b66a8..121126beccd0 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -554,9 +554,9 @@ static int get_key_data(unsigned char *buf,
- 		if (!read_uint32(&data, tx_data->endp, &i))
- 			goto corrupt;
+diff --git a/arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts b/arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts
+index c7f40f8f3169..aaebe58b02c8 100644
+--- a/arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts
++++ b/arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts
+@@ -102,6 +102,22 @@
+ 		states = <3300000 1
+ 			  1800000 0>;
+ 	};
++
++	hdmi {
++		port {
++			hdmi_in: endpoint {
++				remote-endpoint = <&adv7482_hdmi>;
++			};
++		};
++	};
++
++	cvbs {
++		port {
++			cvbs_in: endpoint {
++				remote-endpoint = <&adv7482_ain8>;
++			};
++		};
++	};
+ };
  
--		if (i == codeset)
-+		if (i == codeset) {
- 			break;
--		else if (codeset > i) {
-+		} else if (codeset > i) {
- 			base = pos + 1;
- 			--lim;
- 		}
-@@ -990,8 +990,9 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
- 			"failed to get data for code %u, key %u -- check lircd.conf entries\n",
- 			code, key);
- 		return ret;
--	} else if (ret != 0)
-+	} else if (ret != 0) {
- 		return ret;
-+	}
- 
- 	/* Send the data block */
- 	ret = send_data_block(tx, data_block);
-@@ -1188,8 +1189,9 @@ static ssize_t write(struct file *filep, const char __user *buf, size_t n,
- 			schedule_timeout((100 * HZ + 999) / 1000);
- 			tx->need_boot = 1;
- 			++failures;
--		} else
-+		} else {
- 			i += sizeof(int);
-+		}
- 	}
- 
- 	/* Release i2c bus */
+ &pfc {
+@@ -261,3 +277,134 @@
+ 	timeout-sec = <60>;
+ 	status = "okay";
+ };
++
++&i2c4 {
++	status = "okay";
++
++	clock-frequency = <100000>;
++
++	video-receiver@70 {
++		compatible = "adi,adv7482";
++		reg = <0x70>;
++
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			adv7482_hdmi: endpoint@1 {
++				reg = <1>;
++				remote-endpoint = <&hdmi_in>;
++			};
++		};
++
++		port@8 {
++			reg = <8>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			adv7482_ain8: endpoint@1 {
++				reg = <1>;
++				remote-endpoint = <&cvbs_in>;
++			};
++		};
++
++		port@10 {
++			reg = <10>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			adv7482_txa: endpoint@1 {
++				reg = <1>;
++				clock-lanes = <0>;
++				data-lanes = <1 2 3 4>;
++				remote-endpoint = <&csi40_in>;
++			};
++		};
++
++		port@11 {
++			reg = <11>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			adv7482_txb: endpoint@1 {
++				reg = <1>;
++				clock-lanes = <0>;
++				data-lanes = <1>;
++				remote-endpoint = <&csi20_in>;
++			};
++		};
++	};
++};
++
++&vin0 {
++	status = "okay";
++};
++
++&vin1 {
++	status = "okay";
++};
++
++&vin2 {
++	status = "okay";
++};
++
++&vin3 {
++	status = "okay";
++};
++
++&vin4 {
++	status = "okay";
++};
++
++&vin5 {
++	status = "okay";
++};
++
++&vin6 {
++	status = "okay";
++};
++
++&vin7 {
++	status = "okay";
++};
++
++&csi20 {
++	status = "okay";
++
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++			csi20_in: endpoint@0 {
++				clock-lanes = <0>;
++				data-lanes = <1>;
++				remote-endpoint = <&adv7482_txb>;
++			};
++		};
++	};
++};
++
++&csi40 {
++	status = "okay";
++
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			csi40_in: endpoint@0 {
++				clock-lanes = <0>;
++				data-lanes = <1 2 3 4>;
++				remote-endpoint = <&adv7482_txa>;
++			};
++		};
++	};
++};
 -- 
-2.12.2
+git-series 0.9.1
