@@ -1,239 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:46769 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1765675AbdEXARF (ORCPT
+Received: from mail-yw0-f171.google.com ([209.85.161.171]:34538 "EHLO
+        mail-yw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754670AbdEKFhj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 May 2017 20:17:05 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2 15/17] rcar-vin: register the video device at probe time
-Date: Wed, 24 May 2017 02:15:38 +0200
-Message-Id: <20170524001540.13613-16-niklas.soderlund@ragnatech.se>
-In-Reply-To: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
-References: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+        Thu, 11 May 2017 01:37:39 -0400
+Received: by mail-yw0-f171.google.com with SMTP id l14so7775733ywk.1
+        for <linux-media@vger.kernel.org>; Wed, 10 May 2017 22:37:38 -0700 (PDT)
+Received: from mail-yw0-f176.google.com (mail-yw0-f176.google.com. [209.85.161.176])
+        by smtp.gmail.com with ESMTPSA id b74sm357065ywa.25.2017.05.10.22.37.36
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 10 May 2017 22:37:36 -0700 (PDT)
+Received: by mail-yw0-f176.google.com with SMTP id 203so7786912ywe.0
+        for <linux-media@vger.kernel.org>; Wed, 10 May 2017 22:37:36 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A595AA06541@FMSMSX114.amr.corp.intel.com>
+References: <1494254208-30045-1-git-send-email-rajmohan.mani@intel.com>
+ <CAAFQd5A34z8=uAAq-k+d-n0E+93dup1DuQZHsoaw+5YNaGqWPw@mail.gmail.com> <6F87890CF0F5204F892DEA1EF0D77A595AA06541@FMSMSX114.amr.corp.intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 11 May 2017 13:37:15 +0800
+Message-ID: <CAAFQd5BAuEuVzaVrzNAa6N5H1TV56WJsGY2m6eYSSCnoM1khsw@mail.gmail.com>
+Subject: Re: [PATCH v2] dw9714: Initial driver for dw9714 VCM
+To: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Hi Raj,
 
-The driver registers the video device from the async complete callback
-and unregistered in the async unbind callback. This creates problems if
-if the subdevice is bound, unbound and later rebound. The second time
-video_register_device() is called it fails:
+On Thu, May 11, 2017 at 12:12 PM, Mani, Rajmohan
+<rajmohan.mani@intel.com> wrote:
+> Hi Tomasz,
+> Thanks for the reviews. Please see comments inline.
+>
+>> -----Original Message-----
+>> From: Tomasz Figa [mailto:tfiga@chromium.org]
+>> Sent: Tuesday, May 09, 2017 4:44 PM
+>> To: Mani, Rajmohan <rajmohan.mani@intel.com>
+>> Cc: linux-media@vger.kernel.org; mchehab@kernel.org; Hans Verkuil
+>> <hverkuil@xs4all.nl>
+>> Subject: Re: [PATCH v2] dw9714: Initial driver for dw9714 VCM
+>>
+>> Hi Rajmohan,
+>>
+>> Some comments below.
+>>
+>> On Mon, May 8, 2017 at 10:36 PM, Rajmohan Mani
+>> <rajmohan.mani@intel.com> wrote:
+>> > DW9714 is a 10 bit DAC, designed for linear control of voice coil
+>> > motor.
+>> >
+>> > This driver creates a V4L2 subdevice and provides control to set the
+>> > desired focus.
+>> >
+>> > Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+>> > ---
+>> > Changes in v2:
+>> >         - Addressed review comments from Hans Verkuil
+>> >         - Fixed a debug message typo
+>> >         - Got rid of a return variable
+>> > ---
+>> >  drivers/media/i2c/Kconfig  |   9 ++
+>> >  drivers/media/i2c/Makefile |   1 +
+>> >  drivers/media/i2c/dw9714.c | 320
+>> > +++++++++++++++++++++++++++++++++++++++++++++
+>> >  3 files changed, 330 insertions(+)
+>> >  create mode 100644 drivers/media/i2c/dw9714.c
+>> [snip]
+>> > diff --git a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c
+>> > new file mode 100644 index 0000000..cd6cde7
+>> > --- /dev/null
+>> > +++ b/drivers/media/i2c/dw9714.c
+>> > @@ -0,0 +1,320 @@
+>> > +/*
+>> > + * Copyright (c) 2015--2017 Intel Corporation.
+>> > + *
+>> > + * This program is free software; you can redistribute it and/or
+>> > + * modify it under the terms of the GNU General Public License
+>> > +version
+>> > + * 2 as published by the Free Software Foundation.
+>> > + *
+>> > + * This program is distributed in the hope that it will be useful,
+>> > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> > + * GNU General Public License for more details.
+>> > + */
+>> > +
+>> > +#include <linux/acpi.h>
+>> > +#include <linux/delay.h>
+>> > +#include <linux/i2c.h>
+>> > +#include <linux/module.h>
+>> > +#include <linux/pm_runtime.h>
+>> > +#include <media/v4l2-ctrls.h>
+>> > +#include <media/v4l2-device.h>
+>> > +
+>> > +#define DW9714_NAME            "dw9714"
+>> > +#define DW9714_MAX_FOCUS_POS   1023
+>> > +#define DW9714_CTRL_STEPS      16      /* Keep this value power of 2 */
+>>
+>> Because?
+>>
+>
+> This acts as the minimum granularity of lens movement.
+> Keep this value power of 2, so the control steps can be uniformly adjusted for gradual lens movement, with desired number of control steps.
 
-   kobject (eb3be918): tried to init an initialized object, something is seriously wrong.
+I mean, the comment should explain the reason.
 
-To prevent this register the video device at prob time and don't allow
-user-space to open the video device if the subdevice have not yet been
-bound.
+>
+>> > +#define DW9714_CTRL_DELAY_US   1000
+>> > +/*
+>> > + * S[3:2] = 0x00, codes per step for "Linear Slope Control"
+>> > + * S[1:0] = 0x00, step period
+>> > + */
+>> > +#define DW9714_DEFAULT_S 0x0
+>> > +#define DW9714_VAL(data, s) (u16)((data) << 4 | (s))
+>>
+>> Do we need this cast?
+>>
+> Yes. This is a write to a 2 byte register
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 47 ++++++++++++++++++++++++++---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 42 ++++----------------------
- drivers/media/platform/rcar-vin/rcar-vin.h  |  1 +
- 3 files changed, 50 insertions(+), 40 deletions(-)
+Still, I'm not sure what this cast really gives us. If we want strict
+type checking we should make this a static inline that has all types
+specified, but that's probably not necessary either.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index dcca906ba58435f5..0e1757301a0bca1e 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -74,6 +74,7 @@ static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
- static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- {
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	struct v4l2_subdev *sd = vin_to_source(vin);
- 	int ret;
- 
- 	/* Verify subdevices mbus format */
-@@ -92,7 +93,35 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- 		return ret;
- 	}
- 
--	return rvin_v4l2_probe(vin);
-+	/* Add the controls */
-+	/*
-+	 * Currently the subdev with the largest number of controls (13) is
-+	 * ov6550. So let's pick 16 as a hint for the control handler. Note
-+	 * that this is a hint only: too large and you waste some memory, too
-+	 * small and there is a (very) small performance hit when looking up
-+	 * controls in the internal hash.
-+	 */
-+	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler, NULL);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(sd, video, g_tvnorms, &vin->vdev.tvnorms);
-+	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
-+		return ret;
-+
-+	if (vin->vdev.tvnorms == 0) {
-+		/* Disable the STD API if there are no tvnorms defined */
-+		v4l2_disable_ioctl(&vin->vdev, VIDIOC_G_STD);
-+		v4l2_disable_ioctl(&vin->vdev, VIDIOC_S_STD);
-+		v4l2_disable_ioctl(&vin->vdev, VIDIOC_QUERYSTD);
-+		v4l2_disable_ioctl(&vin->vdev, VIDIOC_ENUMSTD);
-+	}
-+
-+	return rvin_reset_format(vin);
- }
- 
- static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
-@@ -102,7 +131,7 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
- 
- 	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
--	rvin_v4l2_remove(vin);
-+	v4l2_ctrl_handler_free(&vin->ctrl_handler);
- 	vin->digital.subdev = NULL;
- }
- 
-@@ -290,9 +319,13 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
-+	ret = rvin_v4l2_probe(vin);
-+	if (ret)
-+		goto error_dma;
-+
- 	ret = rvin_digital_graph_init(vin);
- 	if (ret < 0)
--		goto error;
-+		goto error_v4l2;
- 
- 	pm_suspend_ignore_children(&pdev->dev, true);
- 	pm_runtime_enable(&pdev->dev);
-@@ -300,7 +333,9 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, vin);
- 
- 	return 0;
--error:
-+error_v4l2:
-+	rvin_v4l2_remove(vin);
-+error_dma:
- 	rvin_dma_remove(vin);
- 
- 	return ret;
-@@ -314,6 +349,10 @@ static int rcar_vin_remove(struct platform_device *pdev)
- 
- 	v4l2_async_notifier_unregister(&vin->notifier);
- 
-+	/* Checks internaly if handlers have been init or not */
-+	v4l2_ctrl_handler_free(&vin->ctrl_handler);
-+
-+	rvin_v4l2_remove(vin);
- 	rvin_dma_remove(vin);
- 
- 	return 0;
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index be6f41bf82ac3bc5..6f1c27fc828fe57e 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -103,7 +103,7 @@ static void rvin_reset_crop_compose(struct rvin_dev *vin)
- 	vin->compose.height = vin->format.height;
- }
- 
--static int rvin_reset_format(struct rvin_dev *vin)
-+int rvin_reset_format(struct rvin_dev *vin)
- {
- 	struct v4l2_subdev_format fmt = {
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-@@ -785,6 +785,11 @@ static int rvin_open(struct file *file)
- 
- 	mutex_lock(&vin->lock);
- 
-+	if (!vin->digital.subdev) {
-+		ret = -ENODEV;
-+		goto unlock;
-+	}
-+
- 	file->private_data = vin;
- 
- 	ret = v4l2_fh_open(file);
-@@ -848,9 +853,6 @@ void rvin_v4l2_remove(struct rvin_dev *vin)
- 	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
- 		  video_device_node_name(&vin->vdev));
- 
--	/* Checks internaly if handlers have been init or not */
--	v4l2_ctrl_handler_free(&vin->ctrl_handler);
--
- 	/* Checks internaly if vdev have been init or not */
- 	video_unregister_device(&vin->vdev);
- }
-@@ -873,41 +875,10 @@ static void rvin_notify(struct v4l2_subdev *sd,
- int rvin_v4l2_probe(struct rvin_dev *vin)
- {
- 	struct video_device *vdev = &vin->vdev;
--	struct v4l2_subdev *sd = vin_to_source(vin);
- 	int ret;
- 
--	v4l2_set_subdev_hostdata(sd, vin);
--
- 	vin->v4l2_dev.notify = rvin_notify;
- 
--	ret = v4l2_subdev_call(sd, video, g_tvnorms, &vin->vdev.tvnorms);
--	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
--		return ret;
--
--	if (vin->vdev.tvnorms == 0) {
--		/* Disable the STD API if there are no tvnorms defined */
--		v4l2_disable_ioctl(&vin->vdev, VIDIOC_G_STD);
--		v4l2_disable_ioctl(&vin->vdev, VIDIOC_S_STD);
--		v4l2_disable_ioctl(&vin->vdev, VIDIOC_QUERYSTD);
--		v4l2_disable_ioctl(&vin->vdev, VIDIOC_ENUMSTD);
--	}
--
--	/* Add the controls */
--	/*
--	 * Currently the subdev with the largest number of controls (13) is
--	 * ov6550. So let's pick 16 as a hint for the control handler. Note
--	 * that this is a hint only: too large and you waste some memory, too
--	 * small and there is a (very) small performance hit when looking up
--	 * controls in the internal hash.
--	 */
--	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
--	if (ret < 0)
--		return ret;
--
--	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler, NULL);
--	if (ret < 0)
--		return ret;
--
- 	/* video node */
- 	vdev->fops = &rvin_fops;
- 	vdev->v4l2_dev = &vin->v4l2_dev;
-@@ -921,7 +892,6 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 		V4L2_CAP_READWRITE;
- 
- 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
--	rvin_reset_format(vin);
- 
- 	ret = video_register_device(&vin->vdev, VFL_TYPE_GRABBER, -1);
- 	if (ret) {
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 9bfb5a7c4dc4f215..9d0d4a5001b6ccd8 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -158,6 +158,7 @@ void rvin_dma_remove(struct rvin_dev *vin);
- 
- int rvin_v4l2_probe(struct rvin_dev *vin);
- void rvin_v4l2_remove(struct rvin_dev *vin);
-+int rvin_reset_format(struct rvin_dev *vin);
- 
- const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
- 
--- 
-2.13.0
+Best regards,
+Tomasz
