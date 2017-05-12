@@ -1,167 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:46751 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756155AbdEXARB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 May 2017 20:17:01 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2 05/17] rcar-vin: move subdev source and sink pad index to rvin_graph_entity
-Date: Wed, 24 May 2017 02:15:28 +0200
-Message-Id: <20170524001540.13613-6-niklas.soderlund@ragnatech.se>
-In-Reply-To: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
-References: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+Received: from www.zeus03.de ([194.117.254.33]:56456 "EHLO mail.zeus03.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753373AbdELJ6v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 May 2017 05:58:51 -0400
+Date: Fri, 12 May 2017 11:58:48 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Jacopo Mondi <jacopo@jmondi.org>
+Cc: laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
+        sre@kernel.org, magnus.damm@gmail.com,
+        wsa+renesas@sang-engineering.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] media: i2c: ov772x: Force use of SCCB protocol
+Message-ID: <20170512095847.GA3147@katana>
+References: <1494582763-22385-1-git-send-email-jacopo@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="45Z9DzgjV8m4Oswq"
+Content-Disposition: inline
+In-Reply-To: <1494582763-22385-1-git-send-email-jacopo@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-It makes more sense to store the sink and source pads in struct
-rvin_graph_entity since that contains other subdevice related
-information.
+--45Z9DzgjV8m4Oswq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The data type to store pad information in is unsigned int and not int,
-change this. While we are at it drop the _idx suffix from the names,
-this never made sense.
+On Fri, May 12, 2017 at 11:52:43AM +0200, Jacopo Mondi wrote:
+> Force use of Omnivision's SCCB protocol and make sure the I2c adapter
+> supports protocol mangling during probe.
+>=20
+> Testing done on SH4 Migo-R board.
+> As commit:
+> [e789029761503f0cce03e8767a56ae099b88e1bd]
+> "i2c: sh_mobile: don't send a stop condition by default inside transfers"
+> makes the i2c adapter emit a stop bit between messages in a single
+> transfer only when explicitly required, the ov772x driver fails to
+> probe due to i2c transfer timeout without SCCB flag set.
+>=20
+> i2c-sh_mobile i2c-sh_mobile.0: Transfer request timed out
+> ov772x 0-0021: Product ID error 92:92
+>=20
+> With this patch applied:
+>=20
+> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
+> ov772x 0-0021: ov7725 Product ID 77:21 Manufacturer ID 7f:a2
+>=20
+> Signed-off-by: Jacopo Mondi <jacopo@jmondi.org>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 20 ++++++++++----------
- drivers/media/platform/rcar-vin/rcar-vin.h  |  9 +++++----
- 2 files changed, 15 insertions(+), 14 deletions(-)
+Acked-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 7be52c2036bb35fc..1a75191539b0e7d7 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -111,7 +111,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
- 	struct v4l2_mbus_framefmt *mf = &fmt.format;
- 	int ret;
- 
--	fmt.pad = vin->src_pad_idx;
-+	fmt.pad = vin->digital.source_pad;
- 
- 	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
- 	if (ret)
-@@ -178,7 +178,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 	if (pad_cfg == NULL)
- 		return -ENOMEM;
- 
--	format.pad = vin->src_pad_idx;
-+	format.pad = vin->digital.source_pad;
- 
- 	field = pix->field;
- 
-@@ -559,7 +559,7 @@ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
- 	if (timings->pad)
- 		return -EINVAL;
- 
--	timings->pad = vin->sink_pad_idx;
-+	timings->pad = vin->digital.sink_pad;
- 
- 	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
- 
-@@ -611,7 +611,7 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
- 	if (cap->pad)
- 		return -EINVAL;
- 
--	cap->pad = vin->sink_pad_idx;
-+	cap->pad = vin->digital.sink_pad;
- 
- 	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
- 
-@@ -629,7 +629,7 @@ static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
- 	if (edid->pad)
- 		return -EINVAL;
- 
--	edid->pad = vin->sink_pad_idx;
-+	edid->pad = vin->digital.sink_pad;
- 
- 	ret = v4l2_subdev_call(sd, pad, get_edid, edid);
- 
-@@ -647,7 +647,7 @@ static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
- 	if (edid->pad)
- 		return -EINVAL;
- 
--	edid->pad = vin->sink_pad_idx;
-+	edid->pad = vin->digital.sink_pad;
- 
- 	ret = v4l2_subdev_call(sd, pad, set_edid, edid);
- 
-@@ -920,19 +920,19 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
- 		V4L2_CAP_READWRITE;
- 
--	vin->src_pad_idx = 0;
-+	vin->digital.source_pad = 0;
- 	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
- 		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
- 			break;
- 	if (pad_idx >= sd->entity.num_pads)
- 		return -EINVAL;
- 
--	vin->src_pad_idx = pad_idx;
-+	vin->digital.source_pad = pad_idx;
- 
--	vin->sink_pad_idx = 0;
-+	vin->digital.sink_pad = 0;
- 	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
- 		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
--			vin->sink_pad_idx = pad_idx;
-+			vin->digital.sink_pad = pad_idx;
- 			break;
- 		}
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 727e215c08718eb9..9bfb5a7c4dc4f215 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -74,6 +74,8 @@ struct rvin_video_format {
-  * @subdev:	subdevice matched using async framework
-  * @code:	Media bus format from source
-  * @mbus_cfg:	Media bus format from DT
-+ * @source_pad:	source pad of remote subdevice
-+ * @sink_pad:	sink pad of remote subdevice
-  */
- struct rvin_graph_entity {
- 	struct v4l2_async_subdev asd;
-@@ -81,6 +83,9 @@ struct rvin_graph_entity {
- 
- 	u32 code;
- 	struct v4l2_mbus_config mbus_cfg;
-+
-+	unsigned int source_pad;
-+	unsigned int sink_pad;
- };
- 
- /**
-@@ -91,8 +96,6 @@ struct rvin_graph_entity {
-  *
-  * @vdev:		V4L2 video device associated with VIN
-  * @v4l2_dev:		V4L2 device
-- * @src_pad_idx:	source pad index for media controller drivers
-- * @sink_pad_idx:	sink pad index for media controller drivers
-  * @ctrl_handler:	V4L2 control handler
-  * @notifier:		V4L2 asynchronous subdevs notifier
-  * @digital:		entity in the DT for local digital subdevice
-@@ -121,8 +124,6 @@ struct rvin_dev {
- 
- 	struct video_device vdev;
- 	struct v4l2_device v4l2_dev;
--	int src_pad_idx;
--	int sink_pad_idx;
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	struct v4l2_async_notifier notifier;
- 	struct rvin_graph_entity digital;
--- 
-2.13.0
+
+--45Z9DzgjV8m4Oswq
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlkVh1MACgkQFA3kzBSg
+KbYbAQ/9EC6+up+kTx9UT36PuggyStzsgqyupu5zceTHS7AnFsACPbALV+lUw2oA
+wQ9zg4me3uma4r9YAqHGYZY5CZO5cKIgOhBo7ByxGRGa/RSw6T8NvJCgn1mr36NP
+6JcWVEGenyDefpiePjgV5on5wZCDwtpuxIEqDQao/1bgXyoufkV4K/+7P8xoqG6w
++kOdTc7kB+PE0p+WM8647fZeilIIGJeQmQ7TiuRy9ORIZLseTmYQI0sq0xGnbi5E
+SC6Oml0hBkU4tdPAGSITDL/Q39AbuO1+86Tvi5WcKAQWivj36RKx8KvtS/hrGmWT
+dlB43GZMI7CeEm73yaY4Te04gZKUiXqsp013h0l4Ti8YINkg63aM2fFcQ+had8PB
+FJE2nh3RQgkZR9wsQfCgrOWYfChKxuccw2gK6fQw4KO78exw3gUa1+cS5b+ZrvTY
+FGUUtxHyf79FCHQgJTRDwjop1Qsmd5z4WkvFMQBX0lVDc4OjOeeOWNVnBH91JV+w
+a16IkdQnx1OQ6J05YD2JidpiKBu0/HayUouY347ep5jhusFYiPTO04C86j8AdvWB
+IUs3yc00NIE7KTWFQ1kZnORiLWlDPTZ2ydDErr4x/SNe5QK3nhqVtqp3ah+n0l6m
++W8xglo/WbTH4sd+5Gm74qidF/ov7YquwAITLAfzoeIz7FXHfsw=
+=kjtD
+-----END PGP SIGNATURE-----
+
+--45Z9DzgjV8m4Oswq--
