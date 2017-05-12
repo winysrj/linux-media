@@ -1,54 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54630 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750773AbdE1Mab (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 May 2017 08:30:31 -0400
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Firmware for staging atomisp driver
-Message-ID: <e4933669-faf4-a721-cce0-117ba3d0f1eb@redhat.com>
-Date: Sun, 28 May 2017 14:30:28 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:56273 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752001AbdELEXZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 May 2017 00:23:25 -0400
+Message-ID: <28177e3befb5baf3bcda5f79d9fdeaf2@smtp-cloud2.xs4all.net>
+Date: Fri, 12 May 2017 06:23:22 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I've been trying to get the atomisp driver from staging to work
-on a couple of devices I have.
+Results of the daily build of media_tree:
 
-I started with an Asus T100TA after fixing 2 oopses in the sensor
-driver there I found out that the BIOS does not allow to put the
-ISP in PCI mode and that there is no code to drive it in ACPI
-enumerated mode.
+date:			Fri May 12 05:00:17 CEST 2017
+media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
+media_build git hash:	ab988a3d089232ce9e1aec2f259e947c06983dbc
+v4l-utils git hash:	6acac5cec698de39b9398b66c4f5f4db6b2730d8
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-So I moved to a generic Insyde T701 tablet which does allow
-this. After fixing some more sensor driver issues there I was
-ready to actually load the atomisp driver, but I could not
-find the exact firmware required, I did find a version which
-is close: "irci_stable_candrpv_0415_20150423_1753"
-and tried that but that causes the atomisp driver to explode
-in a backtrace which contains atomisp_load_firmware() so that
-one seems no good.
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: WARNINGS
+linux-4.9.26-i686: WARNINGS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-Can someone help me to get the right firmware ?
+Detailed results are available here:
 
-The TODO says: "can also be extracted from the upgrade kit"
-about the firmware files, but it is not clear to me what /
-where the "upgrade kit" is.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-More in general it would be a good idea if someone inside Intel
-would try to get permission to add the firmware to linux-firmware.
+Full logs are available here:
 
-Anyways I will send out the patches I've currently, once I've
-the right firmware I will continue working on this.
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-Regards,
+The Media Infrastructure API from this daily build is here:
 
-Hans
+http://www.xs4all.nl/~hverkuil/spec/index.html
