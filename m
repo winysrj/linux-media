@@ -1,48 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46202 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1756453AbdESVvy (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:37790 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755091AbdELMX6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 May 2017 17:51:54 -0400
-Date: Sat, 20 May 2017 00:51:48 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Kieran Bingham <kbingham@kernel.org>
-Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: Re: [PATCH v2 1/2] device property: Add fwnode_graph_get_port_parent
-Message-ID: <20170519215147.GE3227@valkosipuli.retiisi.org.uk>
-References: <cover.9f22ad082e363959e4679246793bc4698479a44e.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
- <6d3ca9a2f4af281191b6672489f6d2a6d036d372.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6d3ca9a2f4af281191b6672489f6d2a6d036d372.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Fri, 12 May 2017 08:23:58 -0400
+From: Jacopo Mondi <jacopo@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
+        sre@kernel.org, magnus.damm@gmail.com,
+        wsa+renesas@sang-engineering.com
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2] media: i2c: ov772x: Force use of SCCB protocol
+Date: Fri, 12 May 2017 14:23:47 +0200
+Message-Id: <1494591827-22653-1-git-send-email-jacopo@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Commit e78902976150 ("i2c: sh_mobile: don't send a stop condition by
+default inside transfers") makes the i2c_sh_mobile I2C-adapter emit a
+stop/start sequence between messages in a single transfer only when
+explicitly requested with I2C_M_STOP.
 
-On Fri, May 19, 2017 at 05:16:02PM +0100, Kieran Bingham wrote:
-> +struct fwnode_handle *
-> +fwnode_graph_get_port_parent(struct fwnode_handle *endpoint)
-> +{
-> +	return fwnode_call_ptr_op(endpoint, graph_get_port_parent);
+This breaks the ov772x driver in the SH4 Migo-R board as the Omnivision
+sensor uses the I2C-like SCCB protocol that doesn't support repeated
+starts:
 
-graph_get_port_parent op will actually get the parent of the port. But it
-expects a port node, not an endpoint node. This is implemented so in order
-to center the ops around primitives rather than end user APIs that may
-change over time.
+i2c-sh_mobile i2c-sh_mobile.0: Transfer request timed out
+ov772x 0-0021: Product ID error 92:92
 
-I think you'll need:
+Fix it by marking the client as SCCB, forcing the emission of a
+stop/start sequence between all messages.
 
-	return fwnode_call_ptr_op(fwnode_graph_get_next_parent(endpoint),
-				  graph_get_port_parent);
+Tested on SH4 Migo-R board, with OV772x now successfully probing
 
-Or something like that.
+soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
+ov772x 0-0021: ov7725 Product ID 77:21 Manufacturer ID 7f:a2
 
+Signed-off-by: Jacopo Mondi <jacopo@jmondi.org>
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/soc_camera/ov772x.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/i2c/soc_camera/ov772x.c b/drivers/media/i2c/soc_camera/ov772x.c
+index 985a367..351abec 100644
+--- a/drivers/media/i2c/soc_camera/ov772x.c
++++ b/drivers/media/i2c/soc_camera/ov772x.c
+@@ -1062,11 +1062,13 @@ static int ov772x_probe(struct i2c_client *client,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
++					      I2C_FUNC_PROTOCOL_MANGLING)) {
+ 		dev_err(&adapter->dev,
+-			"I2C-Adapter doesn't support I2C_FUNC_SMBUS_BYTE_DATA\n");
++			"I2C-Adapter doesn't support SMBUS_BYTE_DATA or PROTOCOL_MANGLING\n");
+ 		return -EIO;
+ 	}
++	client->flags |= I2C_CLIENT_SCCB;
+ 
+ 	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
+ 	if (!priv)
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
