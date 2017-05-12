@@ -1,76 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:38734 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751494AbdECTGM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 3 May 2017 15:06:12 -0400
-Date: Wed, 3 May 2017 20:05:56 +0100
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        abcloriens@gmail.com, linux-media@vger.kernel.org,
-        khilman@kernel.org, tony@atomide.com, aaro.koskinen@iki.fi,
-        kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        pali.rohar@gmail.com, linux-omap@vger.kernel.org,
-        patrikbachan@gmail.com,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        serge@hallyn.com
-Subject: Re: [patch] autogain support for bayer10 format (was Re: [patch]
- propagating controls in libv4l2)
-Message-ID: <20170503190556.GT23750@n2100.armlinux.org.uk>
-References: <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan>
- <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan>
- <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan>
- <20170426105300.GA857@amd>
- <20170426081330.6ca10e42@vento.lan>
- <20170426132337.GA6482@amd>
- <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:35265 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756211AbdELTjX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 May 2017 15:39:23 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
+In-Reply-To: <632c9564-97f3-7e43-11a5-222ba835889d@xs4all.nl>
+References: <20170421105224.899350-1-arnd@arndb.de> <CAK8P3a2V4mUtPNWnFXBBNABqt09vRujRE1w=6wkYc1q63-Ujhg@mail.gmail.com>
+ <632c9564-97f3-7e43-11a5-222ba835889d@xs4all.nl>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 12 May 2017 21:39:21 +0200
+Message-ID: <CAK8P3a0N54scMtjCjOjqVQRSikhxn3bKBmKSk9VHz1AVGkiLqA@mail.gmail.com>
+Subject: Re: [PATCH] [media] cec: improve MEDIA_CEC_RC dependencies
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-media@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 26, 2017 at 06:43:54PM +0300, Ivaylo Dimitrov wrote:
-> >+static int get_luminosity_bayer10(uint16_t *buf, const struct v4l2_format *fmt)
-> >+{
-> >+	long long avg_lum = 0;
-> >+	int x, y;
-> >+	
-> >+	buf += fmt->fmt.pix.height * fmt->fmt.pix.bytesperline / 4 +
-> >+		fmt->fmt.pix.width / 4;
-> >+
-> >+	for (y = 0; y < fmt->fmt.pix.height / 2; y++) {
-> >+		for (x = 0; x < fmt->fmt.pix.width / 2; x++)
-> 
-> That would take some time :). AIUI, we have NEON support in ARM kernels
-> (CONFIG_KERNEL_MODE_NEON), I wonder if it makes sense (me) to convert the
-> above loop to NEON-optimized when it comes to it? Are there any drawbacks in
-> using NEON code in kernel?
+On Fri, May 12, 2017 at 12:00 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 05/12/17 11:49, Arnd Bergmann wrote:
 
-Using neon without the VFP state saved and restored corrupts userspace's
-FP state.  So, you have to save the entire VFP state to use neon in kernel
-mode.  There are helper functions for this: kernel_neon_begin() and
-kernel_neon_end().
+>> I can probably come up with a workaround, but haven't completely thought
+>> through all the combinations yet. Also, I assume the same fix will be needed
+>> for exynos, though that has not come up in randconfig testing so far.
+>
+> Try this patch:
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+> diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
+> index eb50ce54b759..da3528c8edb9 100644
+> --- a/include/media/cec-notifier.h
+> +++ b/include/media/cec-notifier.h
+> @@ -29,7 +29,7 @@ struct edid;
+>  struct cec_adapter;
+>  struct cec_notifier;
+>
+> -#ifdef CONFIG_MEDIA_CEC_NOTIFIER
+> +#if IS_REACHABLE(CONFIG_MEDIA_CEC_NOTIFIER)
+>
 
-You can't build C code with the compiler believing that neon is available
-as the compiler could emit neon instructions in unprotected kernel code.
+This misses how CONFIG_MEDIA_CEC_NOTIFIER is just a
+ 'bool' option to the 'MEDIA_CEC_CORE' symbol that controls
+whether the code is built-in or in a module, and it lacks helpers
+for cec_notifier_{un,}register.
 
-Note that kernel_neon_begin() is only allowed to be called outside
-interrupt context and with preemption disabled.
+The version below seems to work, though I don't particularly
+like the IS_REACHABLE() addition since that can be confusing
+to users.
 
-Given that, do we really want to be walking over multi-megabytes of image
-data in the kernel with preemption disabled - it sounds like a recipe for
-a very sluggish system.  I think this should (and can only sensibly be
-done) in userspace.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
+index eb50ce54b759..69f7d8eed1b0 100644
+--- a/include/media/cec-notifier.h
++++ b/include/media/cec-notifier.h
+@@ -29,7 +29,7 @@ struct edid;
+ struct cec_adapter;
+ struct cec_notifier;
+
+-#ifdef CONFIG_MEDIA_CEC_NOTIFIER
++#if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_MEDIA_CEC_NOTIFIER)
+
+ /**
+  * cec_notifier_get - find or create a new cec_notifier for the given device.
+@@ -106,6 +106,17 @@ static inline void
+cec_notifier_set_phys_addr_from_edid(struct cec_notifier *n,
+ {
+ }
+
++static inline void cec_notifier_register(struct cec_notifier *n,
++   struct cec_adapter *adap,
++   void (*callback)(struct cec_adapter *adap, u16 pa))
++{
++}
++
++static inline void cec_notifier_unregister(struct cec_notifier *n)
++{
++}
++
++
+ #endif
+
+ #endif
