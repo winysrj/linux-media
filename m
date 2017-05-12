@@ -1,183 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f169.google.com ([209.85.161.169]:34072 "EHLO
-        mail-yw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753108AbdEILiu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 May 2017 07:38:50 -0400
-Received: by mail-yw0-f169.google.com with SMTP id l14so21473774ywk.1
-        for <linux-media@vger.kernel.org>; Tue, 09 May 2017 04:38:49 -0700 (PDT)
-Received: from mail-yw0-f172.google.com (mail-yw0-f172.google.com. [209.85.161.172])
-        by smtp.gmail.com with ESMTPSA id m28sm7583444ywh.55.2017.05.09.04.38.47
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 09 May 2017 04:38:48 -0700 (PDT)
-Received: by mail-yw0-f172.google.com with SMTP id b68so43011286ywe.3
-        for <linux-media@vger.kernel.org>; Tue, 09 May 2017 04:38:47 -0700 (PDT)
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39684 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751323AbdELKuL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 May 2017 06:50:11 -0400
+Date: Fri, 12 May 2017 13:49:30 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, pavel@ucw.cz
+Subject: Re: [PATCH v3 1/2] v4l: Add camera voice coil lens control class,
+ current control
+Message-ID: <20170512104930.GJ3227@valkosipuli.retiisi.org.uk>
+References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20170414232332.63850d7b@vento.lan>
+ <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+ <20170419105118.72b8e284@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <20170509104045.GO7456@valkosipuli.retiisi.org.uk>
-References: <1494156804-9784-1-git-send-email-rajmohan.mani@intel.com>
- <20170508205503.GL7456@valkosipuli.retiisi.org.uk> <CAAFQd5CVrrP5tK_LvDbvDT7F5ZjfO+u26T2ca4pOpPjggB6vxw@mail.gmail.com>
- <20170509104045.GO7456@valkosipuli.retiisi.org.uk>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Tue, 9 May 2017 19:38:26 +0800
-Message-ID: <CAAFQd5DfOhMVFdR35DNTnt_R3pHP4xpdL8BBN+KGc_3S9DO=DA@mail.gmail.com>
-Subject: Re: [PATCH] dw9714: Initial driver for dw9714 VCM
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        linux-media@vger.kernel.org, mchehab@kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170419105118.72b8e284@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 9, 2017 at 6:40 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Tomasz,
->
-> On Tue, May 09, 2017 at 04:30:40PM +0800, Tomasz Figa wrote:
->> Hi Sakari,
->>
->> On Tue, May 9, 2017 at 4:55 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
->> > Hi Rajmohan,
->> >
->> > A few comments below...
->> >
->> > On Sun, May 07, 2017 at 04:33:24AM -0700, rajmohan.mani@intel.com wrote:
->> [snip]
->> >> +     rval = v4l2_async_register_subdev(&dw9714_dev->sd);
->> >> +     if (rval < 0)
->> >> +             goto err_cleanup;
->> >> +
->> >> +     pm_runtime_enable(&client->dev);
->> >
->> > Getting PM runtime right doesn't seem to be easy. :-I
->> >
->> > pm_runtime_enable() alone doesn't do the trick. I wonder if adding
->> > pm_runtime_suspend() would do the trick.
->>
->> Is this something specific for I2C devices? For platform devices,
->> typically pm_runtime_enable() is the only thing you would need to do.
->
-> I think you're right --- driver_probe_device() will call pm_request_idle()
-> to the device right after probe. So indeed calling pm_runtime_enable() is
-> enough.
->
->> >> +
->> >> +     return 0;
->> >> +
->> >> +err_cleanup:
->> >> +     dw9714_subdev_cleanup(dw9714_dev);
->> >> +     dev_err(&client->dev, "Probe failed: %d\n", rval);
->> >> +     return rval;
->> >> +}
->> >> +
->> >> +static int dw9714_remove(struct i2c_client *client)
->> >> +{
->> >> +     struct v4l2_subdev *sd = i2c_get_clientdata(client);
->> >> +     struct dw9714_device *dw9714_dev = container_of(sd,
->> >> +                                                     struct dw9714_device,
->> >> +                                                     sd);
->> >> +
->> >> +     pm_runtime_disable(&client->dev);
->> >> +     dw9714_subdev_cleanup(dw9714_dev);
->> >> +
->> >> +     return 0;
->> >> +}
->> >> +
->> >> +#ifdef CONFIG_PM
->> >> +
->> >> +static int dw9714_runtime_suspend(struct device *dev)
->> >> +{
->> >> +     return 0;
->> >> +}
->> >> +
->> >> +static int dw9714_runtime_resume(struct device *dev)
->> >> +{
->> >> +     return 0;
->> >
->> > I think it'd be fine to remove empty callbacks.
->>
->> It's actually a bit more complicated (if a PM domain is attached, the
->> callbacks must be present), however in case of external I2C devices it
->> should be fine indeed. However, AFAIK, pm_runtime_no_callbacks()
->> should be called.
->
-> I wonder if I'm missing something --- acpi_subsys_runtime_resume() first
-> calls acpi_dev_runtime_resume() and if all goes well, the proceeds to call
-> pm_generic_runtime_resume() which calls device's runtime_resume() if it's
-> non-NULL.
->
-> In other words, having a runtime_resume() and runtime_suspend() callbacks
-> that return zero is equivalent of having neither of the callbacks.
+Hi Mauro,
 
-Ah, I missed the fact this device is instantiated by ACPI and it has
-different handling of runtime PM, which apparently means it doesn't
-use the code paths affected by the PM domain thing I mentioned.
+On Wed, Apr 19, 2017 at 10:51:18AM -0300, Mauro Carvalho Chehab wrote:
+> Em Sun, 16 Apr 2017 12:12:10 +0300
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > On Fri, Apr 14, 2017 at 11:23:32PM -0300, Mauro Carvalho Chehab wrote:
+> > > Hi Sakari,
+> > > 
+> > > Em Tue, 14 Feb 2017 14:20:22 +0200
+> > > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> > >   
+> > > > Add a V4L2 control class for voice coil lens driver devices. These are
+> > > > simple devices that are used to move a camera lens from its resting
+> > > > position.  
+> > > 
+> > > From some past threads with this patch, you mentioned that:
+> > > 
+> > > "The FOCUS_ABSOLUTE control really is not a best control ID to
+> > >  control a voice coil driver's current."
+> > > 
+> > > However, I'm not seeing any explanation there at the thread, at
+> > > the patch description or at the documentation explaining why, and,
+> > > more important, when someone should use the focus control or the
+> > > camera voice coil control.  
+> > 
+> > It should be available in the thread.
+> 
+> The email thread is not registered at git logs nor at the API spec.
+> 
+> > Nevertheless, V4L2_CID_FOCUS_ABSOLUTE
+> > is documented as follows (emphasis mine):
+> > 
+> > 	This control sets the *focal point* of the camera to the specified
+> > 	position. The unit is undefined. Positive values set the focus
+> > 	closer to the camera, negative values towards infinity.
+> > 
+> > What you control in voice coil devices is current (in Ampères) and the
+> > current only has a relatively loose relation to the focal point.
+> 
+> The real problem I'm seeing here is that this control is already
+> used by voice coil motor (VCM). Several UVC-based Logitech cameras
+> come with VCM, like their QuickCam Pro-series webcams:
+> 
+> 	https://secure.logitech.com/en-hk/articles/3231
+> 
+> The voice coil can be seen on this picture:
+> 	https://photo.stackexchange.com/questions/48678/can-i-modify-a-logitech-c615-webcam-for-infinity-focus
 
->
->>
->> >
->> >> +}
->> >> +
->> >> +/* This function sets the vcm position, so it consumes least current */
->> >> +static int dw9714_suspend(struct device *dev)
->> >> +{
->> >> +     struct i2c_client *client = to_i2c_client(dev);
->> >> +     struct v4l2_subdev *sd = i2c_get_clientdata(client);
->> >> +     struct dw9714_device *dw9714_dev = container_of(sd,
->> >> +                                                     struct dw9714_device,
->> >> +                                                     sd);
->> >> +     int ret, val;
->> >> +
->> >> +     dev_dbg(dev, "%s\n", __func__);
->> >> +
->> >> +     for (val = dw9714_dev->current_val & ~(DW9714_CTRL_STEPS - 1);
->> >> +          val >= 0; val -= DW9714_CTRL_STEPS) {
->> >> +             ret = dw9714_i2c_write(client,
->> >> +                                    DW9714_VAL((u16) val, DW9714_DEFAULT_S));
->> >> +             if (ret)
->> >> +                     dev_err(dev, "%s I2C failure: %d", __func__, ret);
->> >> +             usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
->> >> +     }
->> >> +     return 0;
->> >> +}
->> >> +
->> >> +/*
->> >> + * This function sets the vcm position, so the focus position is set
->> >> + * closer to the camera
->> >> + */
->> >> +static int dw9714_resume(struct device *dev)
->> >> +{
->> >> +     struct i2c_client *client = to_i2c_client(dev);
->> >> +     struct v4l2_subdev *sd = i2c_get_clientdata(client);
->> >> +     struct dw9714_device *dw9714_dev = container_of(sd,
->> >> +                                                     struct dw9714_device,
->> >> +                                                     sd);
->> >> +     int ret, val;
->> >> +
->> >> +     dev_dbg(dev, "%s\n", __func__);
->> >> +
->> >> +     for (val = dw9714_dev->current_val % DW9714_CTRL_STEPS;
->> >> +          val < dw9714_dev->current_val + DW9714_CTRL_STEPS - 1;
->> >> +          val += DW9714_CTRL_STEPS) {
->> >> +             ret = dw9714_i2c_write(client,
->> >> +                                    DW9714_VAL((u16) val, DW9714_DEFAULT_S));
->> >> +             if (ret)
->> >> +                     dev_err(dev, "%s I2C failure: %d", __func__, ret);
->> >> +             usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
->> >> +     }
->> >> +
->> >> +     /* restore v4l2 control values */
->> >> +     ret = v4l2_ctrl_handler_setup(&dw9714_dev->ctrls_vcm);
->> >
->> > Doesn't this need to be done for runtime_resume as well?
->>
->> This driver doesn't seem to be doing any physical power off in its
->> runtime_suspend and I don't expect an I2C device to be put in a PM
->> domain, so possibly no need for it.
->
-> I'd expect runtime PM suspend callback to power the device off through ACPI
-> PM. For this reason the device state must be restored when it's powered on,
-> i.e. its runtime_resume callback.
+There may be voice coil lens implementations that are indirectly controlled
+through this control. Those are hardware solutions that have been taken in
+UVC webcams, for instance. The UVC standard itself uses millimeters.
 
-Ah, again ACPI here, that's something not usual for me. Sorry for the noise.
+Lens systems based on voice coils generally cannot focus at a given exact
+distance for they have no concept of focussing at a particular distance.
+Instead, an auto focus algorithm analyses the image data (or statistics of
+image data) to control the lens --- in other words, to set current, not
+distance.
 
-Best regards,
-Tomasz
+As the auto focus algorithms require both image data (or statistics) and
+access to lens voice coil as well as for algorithmic complexity, they are
+typically implemented in user space.
+
+In other words, the VOICE_COIL_CURRENT control is thus used by user space to
+implement what the user expects from FOCUS_AUTO control. It could be
+implemented in libv4l2 or a different user space component.
+VOICE_COIL_CURRENT control is not a control which is expected to be used by
+an end user application --- unlike FOCUS_AUTO.
+
+This camera module datasheet shows the dependency between current and lens
+position. See "Performance Diagram" on page 16:
+
+<URL:http://www.trulyamerica.com/wp-content/uploads/CM7945-B1200BA-E_V1.1.pdf>
+
+As you can see, lens position may start changing by applying a current
+between 14 and 34 mA, but exactly how much is specific to a given camera
+module unit. This means that there is no direct mapping between the current
+and the focus distance.
+
+Ringing compensation is another matter. Voice coils do ring unless it is
+compensated, something that the user of a control focussing at a particular
+distance expects. See the diagram on page 13:
+
+<URL:http://www.datasheetspdf.com/datasheet/download.php?id=840322>
+
+Do note that even this is not uniform with systems with the dw9714 lens
+controller: the properties depend on the lens spring spring constant and the
+weight of the moving lens package, for instance.
+
+For these reasons I do think that this warrants having a specific control
+for such devices.
+
+Additionally, there will be controls related to ringing compensation. The
+user (for an auto focus algorithm) still might want to disable the hardware
+ringing compensation so a menu control would be needed for the purpose.
+That's something that can well be addressed later on, just FYI.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
