@@ -1,126 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:57134 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1757306AbdEWQst (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:62821 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755171AbdELDPZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 May 2017 12:48:49 -0400
-Subject: Re: [RFC 2/2] [media] platform: Add Synopsys Designware HDMI RX
- Controller Driver
-To: Jose Abreu <Jose.Abreu@synopsys.com>
-Cc: linux-media@vger.kernel.org,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-kernel@vger.kernel.org
-References: <cover.1492767176.git.joabreu@synopsys.com>
- <a0c0a46aa86abf87da4f6b1742114fbfc40a3963.1492767176.git.joabreu@synopsys.com>
- <d6bfa439-a0e5-d08f-a94f-5b75e17bf9db@xs4all.nl>
- <05c536fe-4a0b-b78d-7f88-c3c51383863e@synopsys.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e21711ef-70e9-1cbd-a759-0e4476dd09d1@xs4all.nl>
-Date: Tue, 23 May 2017 18:48:43 +0200
+        Thu, 11 May 2017 23:15:25 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>
+CC: <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: [PATCH 2/3] arm64: dts: mt8173: Fix mdp device tree
+Date: Fri, 12 May 2017 11:15:13 +0800
+Message-ID: <1494558914-41591-3-git-send-email-minghsiu.tsai@mediatek.com>
+In-Reply-To: <1494558914-41591-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1494558914-41591-1-git-send-email-minghsiu.tsai@mediatek.com>
 MIME-Version: 1.0
-In-Reply-To: <05c536fe-4a0b-b78d-7f88-c3c51383863e@synopsys.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/23/2017 06:38 PM, Jose Abreu wrote:
-> Hi Hans,
-> 
-> 
-> Thanks for the review!
-> 
-> On 22-05-2017 11:36, Hans Verkuil wrote:
->> On 04/21/2017 11:53 AM, Jose Abreu wrote:
+From: Daniel Kurtz <djkurtz@chromium.org>
 
-<snip>
+If the mdp_* nodes are under an mdp sub-node, their corresponding
+platform device does not automatically get its iommu assigned properly.
 
->>> +static int dw_hdmi_query_dv_timings(struct v4l2_subdev *sd,
->>> +		struct v4l2_dv_timings *timings)
->>> +{
->>> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
->>> +	struct v4l2_bt_timings *bt = &timings->bt;
->>> +	u32 htot, hofs;
->>> +	u32 vtot;
->>> +	u8 vic;
->>> +
->>> +	dev_dbg(dw_dev->dev, "%s\n", __func__);
->>> +
->>> +	memset(timings, 0, sizeof(*timings));
->>> +
->>> +	timings->type = V4L2_DV_BT_656_1120;
->>> +	bt->width = hdmi_readl(dw_dev, HDMI_MD_HACT_PX);
->>> +	bt->height = hdmi_readl(dw_dev, HDMI_MD_VAL);
->>> +	bt->interlaced = 0;
->> There is no interlaced support? Most receivers can at least detect it.
-> 
-> The controller supports interlaced, unfortunately there is no way
-> I can test it, so we chose not to add it in the driver.
+Fix this by moving the mdp component nodes up a level such that they are
+siblings of mdp and all other SoC subsystems.  This also simplifies the
+device tree.
 
-But isn't there a register that tells you if the source was interlaced?
-Almost all HDMI receiver drivers can detect this, even though they don't
-actually allow interlaced formats to be used. It is disabled in the
-DV timings capabilities.
+Although it fixes iommu assignment issue, it also break compatibility
+with old device tree. So, the patch in driver is needed to iterate over
+sibling mdp device nodes, not child ones, to keep driver work properly.
 
-My problem with this code is that it doesn't tell the caller that the
-signal is interlaced. This can lead to problems where it is incorrectly
-interpreted as progressive.
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
 
-> 
->>
->>> +
->>> +	if (hdmi_readl(dw_dev, HDMI_ISTS) & HDMI_ISTS_VS_POL_ADJ)
->>> +		bt->polarities |= V4L2_DV_VSYNC_POS_POL;
->>> +	if (hdmi_readl(dw_dev, HDMI_ISTS) & HDMI_ISTS_HS_POL_ADJ)
->>> +		bt->polarities |= V4L2_DV_HSYNC_POS_POL;
->>> +
->>> +	bt->pixelclock = dw_hdmi_get_pixelclk(dw_dev);
->> Can this be rounded up to a value above 594 MHz? In the timings cap that
->> is the max frequency, but you probably need to allow for a bit of margin there
->> in case you measure e.g. 594050000 Hz.
-> 
-> Hmm, yeah, probably it can. Actually the timings cap may not be
-> correct because we support deep color in 4k, so freq will be >
-> 594MHz.
+---
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi | 126 +++++++++++++++----------------
+ 1 file changed, 60 insertions(+), 66 deletions(-)
 
-No, since this is the pixel clock, and the number of pixels remains the same,
-even when using deep color.
-
-It is increasingly likely that this driver might be the first to support
-deep color, so it is very possible that some API changes may have to be made.
-
-I always wanted to add support for this, but I never had the chance.
-
->>> +static int dw_hdmi_s_register(struct v4l2_subdev *sd,
->>> +		const struct v4l2_dbg_register *reg)
->>> +{
->>> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
->>> +
->>> +	switch (reg->reg >> 15) {
->>> +	case 0: /* Controller core write */
->>> +		hdmi_writel(dw_dev, reg->val & GENMASK(31,0), reg->reg & 0x7fff);
->>> +		return 0;
->>> +	case 1: /* PHY write */
->>> +		if ((reg->reg & ~0xff) != BIT(15))
->>> +			break;
->>> +		dw_hdmi_phy_write(dw_dev, reg->val & 0xffff, reg->reg & 0xff);
->>> +		return 0;
->>> +	default:
->>> +		break;
->>> +	}
->> Be careful here: if you support HDCP, then you typically don't want to allow
->> userspace to touch any HDCP-related registers through this API.
-> 
-> Yeah, HDCP is supported but still not implemented. Still, the
-> only thing the user will be able to change will be bksv because
-> keys can not be read, they are write only. I will add a check though.
-
-Let me know if/when you want to add actual HDCP support. I have some old patches
-for HDCP that we (Cisco) made a long time ago.
-
-Regards,
-
-	Hans
+diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+index 6922252..d28a363 100644
+--- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
++++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+@@ -792,80 +792,74 @@
+ 			#clock-cells = <1>;
+ 		};
+ 
+-		mdp {
+-			compatible = "mediatek,mt8173-mdp";
+-			#address-cells = <2>;
+-			#size-cells = <2>;
+-			ranges;
++		mdp_rdma0: rdma@14001000 {
++			compatible = "mediatek,mt8173-mdp-rdma",
++				     "mediatek,mt8173-mdp";
++			reg = <0 0x14001000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_RDMA0>,
++				 <&mmsys CLK_MM_MUTEX_32K>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++			iommus = <&iommu M4U_PORT_MDP_RDMA0>;
++			mediatek,larb = <&larb0>;
+ 			mediatek,vpu = <&vpu>;
++		};
+ 
+-			mdp_rdma0: rdma@14001000 {
+-				compatible = "mediatek,mt8173-mdp-rdma";
+-				reg = <0 0x14001000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_RDMA0>,
+-					 <&mmsys CLK_MM_MUTEX_32K>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-				iommus = <&iommu M4U_PORT_MDP_RDMA0>;
+-				mediatek,larb = <&larb0>;
+-			};
+-
+-			mdp_rdma1: rdma@14002000 {
+-				compatible = "mediatek,mt8173-mdp-rdma";
+-				reg = <0 0x14002000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_RDMA1>,
+-					 <&mmsys CLK_MM_MUTEX_32K>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-				iommus = <&iommu M4U_PORT_MDP_RDMA1>;
+-				mediatek,larb = <&larb4>;
+-			};
++		mdp_rdma1: rdma@14002000 {
++			compatible = "mediatek,mt8173-mdp-rdma";
++			reg = <0 0x14002000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_RDMA1>,
++				 <&mmsys CLK_MM_MUTEX_32K>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++			iommus = <&iommu M4U_PORT_MDP_RDMA1>;
++			mediatek,larb = <&larb4>;
++		};
+ 
+-			mdp_rsz0: rsz@14003000 {
+-				compatible = "mediatek,mt8173-mdp-rsz";
+-				reg = <0 0x14003000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_RSZ0>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-			};
++		mdp_rsz0: rsz@14003000 {
++			compatible = "mediatek,mt8173-mdp-rsz";
++			reg = <0 0x14003000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_RSZ0>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++		};
+ 
+-			mdp_rsz1: rsz@14004000 {
+-				compatible = "mediatek,mt8173-mdp-rsz";
+-				reg = <0 0x14004000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_RSZ1>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-			};
++		mdp_rsz1: rsz@14004000 {
++			compatible = "mediatek,mt8173-mdp-rsz";
++			reg = <0 0x14004000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_RSZ1>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++		};
+ 
+-			mdp_rsz2: rsz@14005000 {
+-				compatible = "mediatek,mt8173-mdp-rsz";
+-				reg = <0 0x14005000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_RSZ2>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-			};
++		mdp_rsz2: rsz@14005000 {
++			compatible = "mediatek,mt8173-mdp-rsz";
++			reg = <0 0x14005000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_RSZ2>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++		};
+ 
+-			mdp_wdma0: wdma@14006000 {
+-				compatible = "mediatek,mt8173-mdp-wdma";
+-				reg = <0 0x14006000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_WDMA>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-				iommus = <&iommu M4U_PORT_MDP_WDMA>;
+-				mediatek,larb = <&larb0>;
+-			};
++		mdp_wdma0: wdma@14006000 {
++			compatible = "mediatek,mt8173-mdp-wdma";
++			reg = <0 0x14006000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_WDMA>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++			iommus = <&iommu M4U_PORT_MDP_WDMA>;
++			mediatek,larb = <&larb0>;
++		};
+ 
+-			mdp_wrot0: wrot@14007000 {
+-				compatible = "mediatek,mt8173-mdp-wrot";
+-				reg = <0 0x14007000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_WROT0>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-				iommus = <&iommu M4U_PORT_MDP_WROT0>;
+-				mediatek,larb = <&larb0>;
+-			};
++		mdp_wrot0: wrot@14007000 {
++			compatible = "mediatek,mt8173-mdp-wrot";
++			reg = <0 0x14007000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_WROT0>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++			iommus = <&iommu M4U_PORT_MDP_WROT0>;
++			mediatek,larb = <&larb0>;
++		};
+ 
+-			mdp_wrot1: wrot@14008000 {
+-				compatible = "mediatek,mt8173-mdp-wrot";
+-				reg = <0 0x14008000 0 0x1000>;
+-				clocks = <&mmsys CLK_MM_MDP_WROT1>;
+-				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+-				iommus = <&iommu M4U_PORT_MDP_WROT1>;
+-				mediatek,larb = <&larb4>;
+-			};
++		mdp_wrot1: wrot@14008000 {
++			compatible = "mediatek,mt8173-mdp-wrot";
++			reg = <0 0x14008000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_WROT1>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++			iommus = <&iommu M4U_PORT_MDP_WROT1>;
++			mediatek,larb = <&larb4>;
+ 		};
+ 
+ 		ovl0: ovl@1400c000 {
+-- 
+1.9.1
