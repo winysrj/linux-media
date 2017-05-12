@@ -1,65 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:32906 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754793AbdESNHL (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:37020 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751272AbdELMhI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 May 2017 09:07:11 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-renesas-soc@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, geert@linux-m68k.org,
-        magnus.damm@gmail.com, hans.verkuil@cisco.com,
-        niklas.soderlund@ragnatech.se, sergei.shtylyov@cogentembedded.com,
-        horms@verge.net.au, devicetree@vger.kernel.org,
-        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v3 0/4] r8a7793 Gose video input support
-Date: Fri, 19 May 2017 15:07:00 +0200
-Message-Id: <1495199224-16337-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+        Fri, 12 May 2017 08:37:08 -0400
+From: Jacopo Mondi <jacopo@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
+        sre@kernel.org, magnus.damm@gmail.com,
+        wsa+renesas@sang-engineering.com
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v3] media: i2c: ov772x: Force use of SCCB protocol
+Date: Fri, 12 May 2017 14:36:59 +0200
+Message-Id: <1494592619-23231-1-git-send-email-jacopo@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Commit e78902976150 ("i2c: sh_mobile: don't send a stop condition by
+default inside transfers") makes the i2c_sh_mobile I2C-adapter emit a
+stop/start sequence between messages in a single transfer only when
+explicitly requested with I2C_M_STOP.
 
-This is a by-the-datasheet implementation of analog and digital video input
-on the Gose board.
+This breaks the ov772x driver in the SH4 Migo-R board as the Omnivision
+sensor uses the I2C-like SCCB protocol that doesn't support repeated
+starts:
 
-This revision adds new bindings that distinguish between ADV7180 variants
-with three and six input ports. There are numerous variants of this chip,
-but since all that have "CP" in their names have three inputs, and all that
-have "ST" have six, I have limited myself to two new compatible strings,
-"adv7180cp" and "adv7180st".
+i2c-sh_mobile i2c-sh_mobile.0: Transfer request timed out
+ov772x 0-0021: Product ID error 92:92
 
-The digital input patch has received minor tweaks of the port names for
-consistency, and the Gose analog input patch has been modified to use the
-new bindings, and a composite video connector has been added.
+Fix it by marking the client as SCCB, forcing the emission of a
+stop/start sequence between all messages.
+As I2C_M_STOP requires the I2C adapter to support protocol mangling,
+ensure that the I2C_FUNC_PROTOCOL_MANGLING functionality is available.
 
-CU
-Uli
+Tested on SH4 Migo-R board, with OV772x now successfully probing
+
+soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
+ov772x 0-0021: ov7725 Product ID 77:21 Manufacturer ID 7f:a2
+
+Signed-off-by: Jacopo Mondi <jacopo@jmondi.org>
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+---
+v1 -> v2:
+- change commit message to describe what this fix is for first.
+
+v2 -> v3:
+- add to commit message that patch checks for I2C_FUNC_PROTOCOL_MANGLING support
 
 
-Changes since v2:
-- hdmi: port hdmi_con renamed to hdmi_con_out
-- adv7180: added new compatibility strings and bindings
-- composite: added connector, use new bindings
+ drivers/media/i2c/soc_camera/ov772x.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Changes since v1:
-- r8a7793.dtsi: added VIN2
-- modeled HDMI decoder input/output and connector
-- added "renesas,rcar-gen2-vin" compat strings
-- removed unnecessary "remote" node and aliases
-- set ADV7612 interrupt to GP4_2
+diff --git a/drivers/media/i2c/soc_camera/ov772x.c b/drivers/media/i2c/soc_camera/ov772x.c
+index 985a367..351abec 100644
+--- a/drivers/media/i2c/soc_camera/ov772x.c
++++ b/drivers/media/i2c/soc_camera/ov772x.c
+@@ -1062,11 +1062,13 @@ static int ov772x_probe(struct i2c_client *client,
+ 		return -EINVAL;
+ 	}
 
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
++					      I2C_FUNC_PROTOCOL_MANGLING)) {
+ 		dev_err(&adapter->dev,
+-			"I2C-Adapter doesn't support I2C_FUNC_SMBUS_BYTE_DATA\n");
++			"I2C-Adapter doesn't support SMBUS_BYTE_DATA or PROTOCOL_MANGLING\n");
+ 		return -EIO;
+ 	}
++	client->flags |= I2C_CLIENT_SCCB;
 
-Ulrich Hecht (4):
-  ARM: dts: gose: add HDMI input
-  media: adv7180: add adv7180cp, adv7180st compatible strings
-  media: adv7180: Add adv7180cp, adv7180st bindings
-  ARM: dts: gose: add composite video input
-
- .../devicetree/bindings/media/i2c/adv7180.txt      |  15 +++
- arch/arm/boot/dts/r8a7793-gose.dts                 | 127 ++++++++++++++++++++-
- drivers/media/i2c/adv7180.c                        |   2 +
- 3 files changed, 142 insertions(+), 2 deletions(-)
-
--- 
+ 	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
+ 	if (!priv)
+--
 2.7.4
