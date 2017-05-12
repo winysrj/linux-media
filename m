@@ -1,186 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:38225 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1756936AbdEUUKC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 May 2017 16:10:02 -0400
-From: Takashi Iwai <tiwai@suse.de>
-To: alsa-devel@alsa-project.org
-Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-        Mark Brown <broonie@kernel.org>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 12/16] ALSA: sb: Convert to copy_silence ops
-Date: Sun, 21 May 2017 22:09:46 +0200
-Message-Id: <20170521200950.4592-13-tiwai@suse.de>
-In-Reply-To: <20170521200950.4592-1-tiwai@suse.de>
-References: <20170521200950.4592-1-tiwai@suse.de>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36492 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756863AbdELKKc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 May 2017 06:10:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jacopo Mondi <jacopo@jmondi.org>
+Cc: mchehab@kernel.org, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com, sre@kernel.org,
+        magnus.damm@gmail.com, wsa+renesas@sang-engineering.com,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] media: i2c: ov772x: Force use of SCCB protocol
+Date: Fri, 12 May 2017 13:10:33 +0300
+Message-ID: <6204273.WTihKTXbd5@avalon>
+In-Reply-To: <1494582763-22385-1-git-send-email-jacopo@jmondi.org>
+References: <1494582763-22385-1-git-send-email-jacopo@jmondi.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the copy and the silence ops with the new merged ops.
-We could reduce the redundant silence code by that.
+Hi Jacopo,
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
----
- sound/isa/sb/emu8000_pcm.c | 99 ++++++++++++++--------------------------------
- 1 file changed, 30 insertions(+), 69 deletions(-)
+Thank you for the patch.
 
-diff --git a/sound/isa/sb/emu8000_pcm.c b/sound/isa/sb/emu8000_pcm.c
-index 32f234f494e5..fd42ae2f73b8 100644
---- a/sound/isa/sb/emu8000_pcm.c
-+++ b/sound/isa/sb/emu8000_pcm.c
-@@ -422,16 +422,28 @@ do { \
- 		return -EAGAIN;\
- } while (0)
- 
-+static inline int get_val(unsigned short *sval, unsigned short __user *buf,
-+			  bool in_kernel)
-+{
-+	if (!buf)
-+		*sval = 0;
-+	else if (in_kernel)
-+		*sval = *(unsigned short *)buf;
-+	else if (get_user(*sval, buf))
-+		return -EFAULT;
-+	return 0;
-+}
- 
- #ifdef USE_NONINTERLEAVE
- /* copy one channel block */
--static int emu8k_transfer_block(struct snd_emu8000 *emu, int offset, unsigned short *buf, int count)
-+static int emu8k_transfer_block(struct snd_emu8000 *emu, int offset,
-+				unsigned short *buf, int count, bool in_kernel)
- {
- 	EMU8000_SMALW_WRITE(emu, offset);
- 	while (count > 0) {
- 		unsigned short sval;
- 		CHECK_SCHEDULER();
--		if (get_user(sval, buf))
-+		if (get_val(&sval, buf, in_kernel))
- 			return -EFAULT;
- 		EMU8000_SMLD_WRITE(emu, sval);
- 		buf++;
-@@ -455,48 +467,18 @@ static int emu8k_pcm_copy(struct snd_pcm_substream *subs,
- 		int i, err;
- 		count /= rec->voices;
- 		for (i = 0; i < rec->voices; i++) {
--			err = emu8k_transfer_block(emu, pos + rec->loop_start[i], buf, count);
-+			err = emu8k_transfer_block(emu,
-+						   pos + rec->loop_start[i],
-+						   buf, count, in_kernel);
- 			if (err < 0)
- 				return err;
--			buf += count;
-+			if (buf)
-+				buf += count;
- 		}
- 		return 0;
- 	} else {
--		return emu8k_transfer_block(emu, pos + rec->loop_start[voice], src, count);
--	}
--}
--
--/* make a channel block silence */
--static int emu8k_silence_block(struct snd_emu8000 *emu, int offset, int count)
--{
--	EMU8000_SMALW_WRITE(emu, offset);
--	while (count > 0) {
--		CHECK_SCHEDULER();
--		EMU8000_SMLD_WRITE(emu, 0);
--		count--;
--	}
--	return 0;
--}
--
--static int emu8k_pcm_silence(struct snd_pcm_substream *subs,
--			     int voice,
--			     snd_pcm_uframes_t pos,
--			     snd_pcm_uframes_t count)
--{
--	struct snd_emu8k_pcm *rec = subs->runtime->private_data;
--	struct snd_emu8000 *emu = rec->emu;
--
--	snd_emu8000_write_wait(emu, 1);
--	if (voice == -1 && rec->voices == 1)
--		voice = 0;
--	if (voice == -1) {
--		int err;
--		err = emu8k_silence_block(emu, pos + rec->loop_start[0], count / 2);
--		if (err < 0)
--			return err;
--		return emu8k_silence_block(emu, pos + rec->loop_start[1], count / 2);
--	} else {
--		return emu8k_silence_block(emu, pos + rec->loop_start[voice], count);
-+		return emu8k_transfer_block(emu, pos + rec->loop_start[voice],
-+					    src, count, in_kernel);
- 	}
- }
- 
-@@ -510,7 +492,8 @@ static int emu8k_pcm_copy(struct snd_pcm_substream *subs,
- 			  int voice,
- 			  snd_pcm_uframes_t pos,
- 			  void __user *src,
--			  snd_pcm_uframes_t count)
-+			  snd_pcm_uframes_t count,
-+			  bool in_kernel)
- {
- 	struct snd_emu8k_pcm *rec = subs->runtime->private_data;
- 	struct snd_emu8000 *emu = rec->emu;
-@@ -524,39 +507,18 @@ static int emu8k_pcm_copy(struct snd_pcm_substream *subs,
- 	while (count-- > 0) {
- 		unsigned short sval;
- 		CHECK_SCHEDULER();
--		if (get_user(sval, buf))
-+		if (get_val(&sval, buf, in_kernel))
- 			return -EFAULT;
- 		EMU8000_SMLD_WRITE(emu, sval);
--		buf++;
-+		if (buf)
-+			buf++;
- 		if (rec->voices > 1) {
- 			CHECK_SCHEDULER();
--			if (get_user(sval, buf))
-+			if (get_val(&sval, buf, in_kernel))
- 				return -EFAULT;
- 			EMU8000_SMRD_WRITE(emu, sval);
--			buf++;
--		}
--	}
--	return 0;
--}
--
--static int emu8k_pcm_silence(struct snd_pcm_substream *subs,
--			     int voice,
--			     snd_pcm_uframes_t pos,
--			     snd_pcm_uframes_t count)
--{
--	struct snd_emu8k_pcm *rec = subs->runtime->private_data;
--	struct snd_emu8000 *emu = rec->emu;
--
--	snd_emu8000_write_wait(emu, 1);
--	EMU8000_SMALW_WRITE(emu, rec->loop_start[0] + pos);
--	if (rec->voices > 1)
--		EMU8000_SMARW_WRITE(emu, rec->loop_start[1] + pos);
--	while (count-- > 0) {
--		CHECK_SCHEDULER();
--		EMU8000_SMLD_WRITE(emu, 0);
--		if (rec->voices > 1) {
--			CHECK_SCHEDULER();
--			EMU8000_SMRD_WRITE(emu, 0);
-+			if (buf)
-+				buf++;
- 		}
- 	}
- 	return 0;
-@@ -674,8 +636,7 @@ static struct snd_pcm_ops emu8k_pcm_ops = {
- 	.prepare =	emu8k_pcm_prepare,
- 	.trigger =	emu8k_pcm_trigger,
- 	.pointer =	emu8k_pcm_pointer,
--	.copy =		emu8k_pcm_copy,
--	.silence =	emu8k_pcm_silence,
-+	.copy_silence =	emu8k_pcm_copy,
- };
- 
- 
+On Friday 12 May 2017 11:52:43 Jacopo Mondi wrote:
+> Force use of Omnivision's SCCB protocol and make sure the I2c adapter
+> supports protocol mangling during probe.
+
+How does this patch make sure that the I2C adapter supports protocol mangling 
+?
+
+> Testing done on SH4 Migo-R board.
+> As commit:
+> [e789029761503f0cce03e8767a56ae099b88e1bd]
+> "i2c: sh_mobile: don't send a stop condition by default inside transfers"
+
+References to commits are usually formatted as
+
+commit e789029761503f0cce03e8767a56ae099b88e1bd
+Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Date:   Thu Jan 17 10:45:57 2013 +0100
+
+    i2c: sh_mobile: don't send a stop condition by default inside transfers
+
+or
+
+commit e78902976150 ("i2c: sh_mobile: don't send a stop condition by default 
+inside transfers")
+
+> makes the i2c adapter emit a stop bit between messages in a single
+> transfer only when explicitly required, the ov772x driver fails to
+> probe due to i2c transfer timeout without SCCB flag set.
+> 
+> i2c-sh_mobile i2c-sh_mobile.0: Transfer request timed out
+> ov772x 0-0021: Product ID error 92:92
+> 
+> With this patch applied:
+> 
+> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
+> ov772x 0-0021: ov7725 Product ID 77:21 Manufacturer ID 7f:a2
+
+I think you're getting the commit message backwards. It would be easier to 
+read if you start by an explanation of why the commit is needed, followed by 
+what it does. How about something like this ?
+
+--------
+Since commit e78902976150 ("i2c: sh_mobile: don't send a stop condition by 
+default inside transfers") the i2c_sh_mobile I2C adapter emits repeated starts 
+between messages in a transfer unless explicitly requested with I2C_M_STOP. 
+This breaks the ov772x driver in the SH4 Migo-R board as the Omnivision sensor 
+uses the I2C-like SCCB protocol that doesn't support repeated starts:
+
+i2c-sh_mobile i2c-sh_mobile.0: Transfer request timed out
+ov772x 0-0021: Product ID error 92:92
+
+Fix it by marking the client as an SCCB client, which will force the I2C 
+adapter to emit a stop/start between all messages.
+
+The patch has been tested on SH4 Migo-R board and fixes probing of the ov772x 
+driver:
+
+soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
+ov772x 0-0021: ov7725 Product ID 77:21 Manufacturer ID 7f:a2
+--------
+
+> Signed-off-by: Jacopo Mondi <jacopo@jmondi.org>
+
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/i2c/soc_camera/ov772x.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/i2c/soc_camera/ov772x.c
+> b/drivers/media/i2c/soc_camera/ov772x.c index 985a367..8a4b29e 100644
+> --- a/drivers/media/i2c/soc_camera/ov772x.c
+> +++ b/drivers/media/i2c/soc_camera/ov772x.c
+> @@ -1067,6 +1067,7 @@ static int ov772x_probe(struct i2c_client *client,
+>  			"I2C-Adapter doesn't support 
+I2C_FUNC_SMBUS_BYTE_DATA\n");
+>  		return -EIO;
+>  	}
+> +	client->flags |= I2C_CLIENT_SCCB;
+> 
+>  	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
+>  	if (!priv)
+
 -- 
-2.13.0
+Regards,
+
+Laurent Pinchart
