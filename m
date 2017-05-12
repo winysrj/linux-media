@@ -1,104 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:38218 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1756931AbdEUUKB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 May 2017 16:10:01 -0400
-From: Takashi Iwai <tiwai@suse.de>
-To: alsa-devel@alsa-project.org
-Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-        Mark Brown <broonie@kernel.org>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 11/16] ALSA: gus: Convert to copy_silence ops
-Date: Sun, 21 May 2017 22:09:45 +0200
-Message-Id: <20170521200950.4592-12-tiwai@suse.de>
-In-Reply-To: <20170521200950.4592-1-tiwai@suse.de>
-References: <20170521200950.4592-1-tiwai@suse.de>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:29442 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750708AbdELDWs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 11 May 2017 23:22:48 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>
+CC: <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: [PATCH v3 1/3] dt-bindings: mt8173: Fix mdp device tree
+Date: Fri, 12 May 2017 11:22:39 +0800
+Message-ID: <1494559361-42835-2-git-send-email-minghsiu.tsai@mediatek.com>
+In-Reply-To: <1494559361-42835-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1494559361-42835-1-git-send-email-minghsiu.tsai@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the copy and the silence ops with the new merged ops.
-The conversion is straightforward with standard helper functions.
+If the mdp_* nodes are under an mdp sub-node, their corresponding
+platform device does not automatically get its iommu assigned properly.
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Fix this by moving the mdp component nodes up a level such that they are
+siblings of mdp and all other SoC subsystems.  This also simplifies the
+device tree.
+
+Although it fixes iommu assignment issue, it also break compatibility
+with old device tree. So, the patch in driver is needed to iterate over
+sibling mdp device nodes, not child ones, to keep driver work properly.
+
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+
 ---
- sound/isa/gus/gus_pcm.c | 43 +++++++++----------------------------------
- 1 file changed, 9 insertions(+), 34 deletions(-)
+ Documentation/devicetree/bindings/media/mediatek-mdp.txt | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff --git a/sound/isa/gus/gus_pcm.c b/sound/isa/gus/gus_pcm.c
-index 33c1891f469a..c541370d3d76 100644
---- a/sound/isa/gus/gus_pcm.c
-+++ b/sound/isa/gus/gus_pcm.c
-@@ -359,7 +359,8 @@ static int snd_gf1_pcm_playback_copy(struct snd_pcm_substream *substream,
- 				     int voice,
- 				     snd_pcm_uframes_t pos,
- 				     void __user *src,
--				     snd_pcm_uframes_t count)
-+				     snd_pcm_uframes_t count,
-+				     bool in_kernel)
- {
- 	struct snd_pcm_runtime *runtime = substream->runtime;
- 	struct gus_pcm_private *pcmp = runtime->private_data;
-@@ -371,7 +372,12 @@ static int snd_gf1_pcm_playback_copy(struct snd_pcm_substream *substream,
- 		return -EIO;
- 	if (snd_BUG_ON(bpos + len > pcmp->dma_size))
- 		return -EIO;
--	if (copy_from_user(runtime->dma_area + bpos, src, len))
-+	if (!src)
-+		snd_pcm_format_set_silence(runtime->format,
-+					   runtime->dma_area + bpos, count);
-+	else if (in_kernel)
-+		memcpy(runtime->dma_area + bpos, (void *)src, len);
-+	else if (copy_from_user(runtime->dma_area + bpos, src, len))
- 		return -EFAULT;
- 	if (snd_gf1_pcm_use_dma && len > 32) {
- 		return snd_gf1_pcm_block_change(substream, bpos, pcmp->memory + bpos, len);
-@@ -387,36 +393,6 @@ static int snd_gf1_pcm_playback_copy(struct snd_pcm_substream *substream,
- 	return 0;
- }
+diff --git a/Documentation/devicetree/bindings/media/mediatek-mdp.txt b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
+index 4182063..0d03e3a 100644
+--- a/Documentation/devicetree/bindings/media/mediatek-mdp.txt
++++ b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
+@@ -2,7 +2,7 @@
  
--static int snd_gf1_pcm_playback_silence(struct snd_pcm_substream *substream,
--					int voice,
--					snd_pcm_uframes_t pos,
--					snd_pcm_uframes_t count)
--{
--	struct snd_pcm_runtime *runtime = substream->runtime;
--	struct gus_pcm_private *pcmp = runtime->private_data;
--	unsigned int bpos, len;
--	
--	bpos = samples_to_bytes(runtime, pos) + (voice * (pcmp->dma_size / 2));
--	len = samples_to_bytes(runtime, count);
--	if (snd_BUG_ON(bpos > pcmp->dma_size))
--		return -EIO;
--	if (snd_BUG_ON(bpos + len > pcmp->dma_size))
--		return -EIO;
--	snd_pcm_format_set_silence(runtime->format, runtime->dma_area + bpos, count);
--	if (snd_gf1_pcm_use_dma && len > 32) {
--		return snd_gf1_pcm_block_change(substream, bpos, pcmp->memory + bpos, len);
--	} else {
--		struct snd_gus_card *gus = pcmp->gus;
--		int err, w16, invert;
--
--		w16 = (snd_pcm_format_width(runtime->format) == 16);
--		invert = snd_pcm_format_unsigned(runtime->format);
--		if ((err = snd_gf1_pcm_poke_block(gus, runtime->dma_area + bpos, pcmp->memory + bpos, len, w16, invert)) < 0)
--			return err;
--	}
--	return 0;
--}
--
- static int snd_gf1_pcm_playback_hw_params(struct snd_pcm_substream *substream,
- 					  struct snd_pcm_hw_params *hw_params)
- {
-@@ -836,8 +812,7 @@ static struct snd_pcm_ops snd_gf1_pcm_playback_ops = {
- 	.prepare =	snd_gf1_pcm_playback_prepare,
- 	.trigger =	snd_gf1_pcm_playback_trigger,
- 	.pointer =	snd_gf1_pcm_playback_pointer,
--	.copy =		snd_gf1_pcm_playback_copy,
--	.silence =	snd_gf1_pcm_playback_silence,
-+	.copy_silence =	snd_gf1_pcm_playback_copy,
- };
+ Media Data Path is used for scaling and color space conversion.
  
- static struct snd_pcm_ops snd_gf1_pcm_capture_ops = {
+-Required properties (controller (parent) node):
++Required properties (controller node):
+ - compatible: "mediatek,mt8173-mdp"
+ - mediatek,vpu: the node of video processor unit, see
+   Documentation/devicetree/bindings/media/mediatek-vpu.txt for details.
+@@ -32,21 +32,16 @@ Required properties (DMA function blocks, child node):
+   for details.
+ 
+ Example:
+-mdp {
+-	compatible = "mediatek,mt8173-mdp";
+-	#address-cells = <2>;
+-	#size-cells = <2>;
+-	ranges;
+-	mediatek,vpu = <&vpu>;
+-
+ 	mdp_rdma0: rdma@14001000 {
+ 		compatible = "mediatek,mt8173-mdp-rdma";
++			     "mediatek,mt8173-mdp";
+ 		reg = <0 0x14001000 0 0x1000>;
+ 		clocks = <&mmsys CLK_MM_MDP_RDMA0>,
+ 			 <&mmsys CLK_MM_MUTEX_32K>;
+ 		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+ 		iommus = <&iommu M4U_PORT_MDP_RDMA0>;
+ 		mediatek,larb = <&larb0>;
++		mediatek,vpu = <&vpu>;
+ 	};
+ 
+ 	mdp_rdma1: rdma@14002000 {
+@@ -106,4 +101,3 @@ mdp {
+ 		iommus = <&iommu M4U_PORT_MDP_WROT1>;
+ 		mediatek,larb = <&larb4>;
+ 	};
+-};
 -- 
-2.13.0
+1.9.1
