@@ -1,223 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:9435 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751458AbdEDHgc (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:64563 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753350AbdELDPZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 May 2017 03:36:32 -0400
-Subject: Re: [PATCH v4 0/8] Add support for DCMI camera interface of
- STMicroelectronics STM32 SoC series
-To: Hugues Fruchet <hugues.fruchet@st.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-References: <1492704445-22186-1-git-send-email-hugues.fruchet@st.com>
-CC: <devicetree@vger.kernel.org>,
+        Thu, 11 May 2017 23:15:25 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>
+CC: <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>
-From: Alexandre Torgue <alexandre.torgue@st.com>
-Message-ID: <b6cee1d6-a07a-87ac-4f9e-aad6747f60bc@st.com>
-Date: Thu, 4 May 2017 09:35:53 +0200
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: [PATCH 1/3] dt-bindings: mt8173: Fix mdp device tree
+Date: Fri, 12 May 2017 11:15:12 +0800
+Message-ID: <1494558914-41591-2-git-send-email-minghsiu.tsai@mediatek.com>
+In-Reply-To: <1494558914-41591-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1494558914-41591-1-git-send-email-minghsiu.tsai@mediatek.com>
 MIME-Version: 1.0
-In-Reply-To: <1492704445-22186-1-git-send-email-hugues.fruchet@st.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hugues,
+If the mdp_* nodes are under an mdp sub-node, their corresponding
+platform device does not automatically get its iommu assigned properly.
 
-On 04/20/2017 06:07 PM, Hugues Fruchet wrote:
-> This patchset introduces a basic support for Digital Camera Memory Interface
-> (DCMI) of STMicroelectronics STM32 SoC series.
->
-> This first basic support implements RGB565 & YUV frame grabbing.
-> Cropping and JPEG support will be added later on.
->
-> This has been tested on STM324x9I-EVAL evaluation board embedding
-> an OV2640 camera sensor.
->
-> This driver depends on:
->   - [PATCHv6 00/14] atmel-isi/ov7670/ov2640: convert to standalone drivers http://www.spinics.net/lists/linux-media/msg113480.html
+Fix this by moving the mdp component nodes up a level such that they are
+siblings of mdp and all other SoC subsystems.  This also simplifies the
+device tree.
 
-For stm32 machine part (DT+config):
-Acked-by: Alexandre TORGUE <alexandre.torgue@st.com>
+Although it fixes iommu assignment issue, it also break compatibility
+with old device tree. So, the patch in driver is needed to iterate over
+sibling mdp device nodes, not child ones, to keep driver work properly.
 
-I will add it in future pull request.
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
 
-Regards
-Alex
+---
+ Documentation/devicetree/bindings/media/mediatek-mdp.txt | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
->
-> ===========
-> = history =
-> ===========
-> version 4:
->   - "v4l2-compliance -s -f" report
->   - fix behaviour in case of start_streaming failure (DMA memory shortage for ex.)
->   - dt-bindings: Fix remarks from Rob Herring:
->     http://www.mail-archive.com/linux-media@vger.kernel.org/msg111340.html
->     Add "Acked-by: Rob Herring <robh@kernel.org>"
->
-> version 3:
->   - stm32-dcmi: Add "Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>"
->   - dt-bindings: Fix remarks from Rob Herring:
->     http://www.mail-archive.com/linux-media@vger.kernel.org/msg110956.html
->
-> version 2:
->   - Fix a Kbuild warning in probe:
->     http://www.mail-archive.com/linux-media@vger.kernel.org/msg110678.html
->   - Fix a warning in dcmi_queue_setup()
->   - dt-bindings: warn on sensor signals level inversion in board example
->   - Typos fixing
->
-> version 1:
->   - Initial submission
->
-> ===================
-> = v4l2-compliance =
-> ===================
-> Below is the v4l2-compliance report for this current version of the DCMI camera interface.
-> v4l2-compliance has been built from v4l-utils-1.12.3.
->
-> ~ # v4l2-compliance -s -f -d /dev/video0
-> v4l2-compliance SHA   : f5f45e17ee98a0ebad7836ade2b34ceec909d751
->
-> Driver Info:
->         Driver name   : stm32-dcmi
->         Card type     : STM32 Digital Camera Memory Int
->         Bus info      : platform:dcmi
->         Driver version: 4.11.0
->         Capabilities  : 0x85200001
->                 Video Capture
->                 Read/Write
->                 Streaming
->                 Extended Pix Format
->                 Device Capabilities
->         Device Caps   : 0x05200001
->                 Video Capture
->                 Read/Write
->                 Streaming
->                 Extended Pix Format
->
-> Compliance test for device /dev/video0 (not using libv4l2):
->
-> Required ioctls:
->         test VIDIOC_QUERYCAP: OK
->
-> Allow for multiple opens:
->         test second video open: OK
->         test VIDIOC_QUERYCAP: OK
->         test VIDIOC_G/S_PRIORITY: OK
->         test for unlimited opens: OK
->
-> Debug ioctls:
->         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
->         test VIDIOC_LOG_STATUS: OK
->
-> Input ioctls:
->         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
->         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
->         test VIDIOC_ENUMAUDIO: OK (Not Supported)
->         test VIDIOC_G/S/ENUMINPUT: OK
->         test VIDIOC_G/S_AUDIO: OK (Not Supported)
->         Inputs: 1 Audio Inputs: 0 Tuners: 0
->
-> Output ioctls:
->         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
->         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
->         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
->         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
->         Outputs: 0 Audio Outputs: 0 Modulators: 0
->
-> Input/Output configuration ioctls:
->         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
->         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
->         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
->         test VIDIOC_G/S_EDID: OK (Not Supported)
->
-> Test input 0:
->
->         Control ioctls:
->                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
->                 test VIDIOC_QUERYCTRL: OK
->                 test VIDIOC_G/S_CTRL: OK
->                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK
->                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
->                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
->                 Standard Controls: 3 Private Controls: 0
->
->         Format ioctls:
->                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
->                 test VIDIOC_G/S_PARM: OK (Not Supported)
->                 test VIDIOC_G_FBUF: OK (Not Supported)
->                 test VIDIOC_G_FMT: OK
->                 test VIDIOC_TRY_FMT: OK
->                 test VIDIOC_S_FMT: OK
->                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
->                 test Cropping: OK (Not Supported)
->                 test Composing: OK (Not Supported)
->                 test Scaling: OK
->
->         Codec ioctls:
->                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
->
->         Buffer ioctls:
->                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->                 test VIDIOC_EXPBUF: OK
->
-> Test input 0:
->
-> Streaming ioctls:
->         test read/write: OK
->         test MMAP: OK
->         test USERPTR: OK (Not Supported)
->         test DMABUF: Cannot test, specify --expbuf-device
->
-> Stream using all formats:
->         test MMAP for Format YUYV, Frame Size 176x144:
->                 Stride 352, Field None: OK
->         test MMAP for Format YUYV, Frame Size 320x240:
->                 Stride 640, Field None: OK
->         test MMAP for Format UYVY, Frame Size 176x144:
->                 Stride 352, Field None: OK
->         test MMAP for Format UYVY, Frame Size 320x240:
->                 Stride 640, Field None: OK
->         test MMAP for Format RGBP, Frame Size 176x144:
->                 Stride 352, Field None: OK
->         test MMAP for Format RGBP, Frame Size 320x240:
->                 Stride 640, Field None: OK
->
-> Total: 52, Succeeded: 52, Failed: 0, Warnings: 0
->
-> Hugues Fruchet (8):
->   dt-bindings: Document STM32 DCMI bindings
->   [media] stm32-dcmi: STM32 DCMI camera interface driver
->   ARM: dts: stm32: Enable DCMI support on STM32F429 MCU
->   ARM: dts: stm32: Enable DCMI camera interface on STM32F429-EVAL board
->   ARM: dts: stm32: Enable STMPE1600 gpio expander of STM32F429-EVAL
->     board
->   ARM: dts: stm32: Enable OV2640 camera support of STM32F429-EVAL board
->   ARM: configs: stm32: STMPE1600 GPIO expander
->   ARM: configs: stm32: DCMI + OV2640 camera support
->
->  .../devicetree/bindings/media/st,stm32-dcmi.txt    |   46 +
->  arch/arm/boot/dts/stm32429i-eval.dts               |   56 +
->  arch/arm/boot/dts/stm32f429.dtsi                   |   37 +
->  arch/arm/configs/stm32_defconfig                   |    9 +
->  drivers/media/platform/Kconfig                     |   12 +
->  drivers/media/platform/Makefile                    |    2 +
->  drivers/media/platform/stm32/Makefile              |    1 +
->  drivers/media/platform/stm32/stm32-dcmi.c          | 1419 ++++++++++++++++++++
->  8 files changed, 1582 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
->  create mode 100644 drivers/media/platform/stm32/Makefile
->  create mode 100644 drivers/media/platform/stm32/stm32-dcmi.c
->
+diff --git a/Documentation/devicetree/bindings/media/mediatek-mdp.txt b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
+index 4182063..0d03e3a 100644
+--- a/Documentation/devicetree/bindings/media/mediatek-mdp.txt
++++ b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
+@@ -2,7 +2,7 @@
+ 
+ Media Data Path is used for scaling and color space conversion.
+ 
+-Required properties (controller (parent) node):
++Required properties (controller node):
+ - compatible: "mediatek,mt8173-mdp"
+ - mediatek,vpu: the node of video processor unit, see
+   Documentation/devicetree/bindings/media/mediatek-vpu.txt for details.
+@@ -32,21 +32,16 @@ Required properties (DMA function blocks, child node):
+   for details.
+ 
+ Example:
+-mdp {
+-	compatible = "mediatek,mt8173-mdp";
+-	#address-cells = <2>;
+-	#size-cells = <2>;
+-	ranges;
+-	mediatek,vpu = <&vpu>;
+-
+ 	mdp_rdma0: rdma@14001000 {
+ 		compatible = "mediatek,mt8173-mdp-rdma";
++			     "mediatek,mt8173-mdp";
+ 		reg = <0 0x14001000 0 0x1000>;
+ 		clocks = <&mmsys CLK_MM_MDP_RDMA0>,
+ 			 <&mmsys CLK_MM_MUTEX_32K>;
+ 		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
+ 		iommus = <&iommu M4U_PORT_MDP_RDMA0>;
+ 		mediatek,larb = <&larb0>;
++		mediatek,vpu = <&vpu>;
+ 	};
+ 
+ 	mdp_rdma1: rdma@14002000 {
+@@ -106,4 +101,3 @@ mdp {
+ 		iommus = <&iommu M4U_PORT_MDP_WROT1>;
+ 		mediatek,larb = <&larb4>;
+ 	};
+-};
+-- 
+1.9.1
