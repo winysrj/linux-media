@@ -1,91 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:63811 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755107AbdEHPFA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 May 2017 11:05:00 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v4 01/18] vb2: Rename confusingly named internal buffer preparation functions
-Date: Mon,  8 May 2017 18:03:13 +0300
-Message-Id: <1494255810-12672-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-io0-f194.google.com ([209.85.223.194]:36569 "EHLO
+        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756111AbdELG4d (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 May 2017 02:56:33 -0400
+MIME-Version: 1.0
+In-Reply-To: <b7f89ec984dcb1cd14c61de72b43c6e55fd80b88.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.5d2526b759f71c06d51df279c3d5885aca476fb6.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <b7f89ec984dcb1cd14c61de72b43c6e55fd80b88.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Fri, 12 May 2017 08:56:32 +0200
+Message-ID: <CAMuHMdWXUkqSz6XUtsBjJH1U=fS8w7PAw0Av8WM+Uzi3N+w0Zw@mail.gmail.com>
+Subject: Re: [RFC PATCH v2 2/4] arm64: dts: r8a7795: salvator-x: enable VIN,
+ CSI and ADV7482
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename __qbuf_*() functions which are specific to a buffer type as
-__prepare_*() which matches with what they do. The naming was there for
-historical reasons; the purpose of the functions was changed without
-renaming them.
+Hi Kieran,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+On Thu, May 11, 2017 at 7:21 PM, Kieran Bingham <kbingham@kernel.org> wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>
+> Provide bindings between the VIN, CSI and the ADV7482 on the r8a7795.
+>
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 94afbbf9..8df680d 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -956,9 +956,9 @@ void vb2_discard_done(struct vb2_queue *q)
- EXPORT_SYMBOL_GPL(vb2_discard_done);
- 
- /**
-- * __qbuf_mmap() - handle qbuf of an MMAP buffer
-+ * __prepare_mmap() - prepare an MMAP buffer
-  */
--static int __qbuf_mmap(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_mmap(struct vb2_buffer *vb, const void *pb)
- {
- 	int ret = 0;
- 
-@@ -969,9 +969,9 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const void *pb)
- }
- 
- /**
-- * __qbuf_userptr() - handle qbuf of a USERPTR buffer
-+ * __prepare_userptr() - prepare a USERPTR buffer
-  */
--static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
- {
- 	struct vb2_plane planes[VB2_MAX_PLANES];
- 	struct vb2_queue *q = vb->vb2_queue;
-@@ -1087,9 +1087,9 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
- }
- 
- /**
-- * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
-+ * __prepare_dmabuf() - prepare a DMABUF buffer
-  */
--static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
- {
- 	struct vb2_plane planes[VB2_MAX_PLANES];
- 	struct vb2_queue *q = vb->vb2_queue;
-@@ -1255,13 +1255,13 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
- 
- 	switch (q->memory) {
- 	case VB2_MEMORY_MMAP:
--		ret = __qbuf_mmap(vb, pb);
-+		ret = __prepare_mmap(vb, pb);
- 		break;
- 	case VB2_MEMORY_USERPTR:
--		ret = __qbuf_userptr(vb, pb);
-+		ret = __prepare_userptr(vb, pb);
- 		break;
- 	case VB2_MEMORY_DMABUF:
--		ret = __qbuf_dmabuf(vb, pb);
-+		ret = __prepare_dmabuf(vb, pb);
- 		break;
- 	default:
- 		WARN(1, "Invalid queue type\n");
--- 
-2.7.4
+> index 7a8986edcdc0..e295f041b36a 100644
+> --- a/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts
+> +++ b/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts
+
+I think this should be added to salvator-x.dtsi instead.
+
+> @@ -387,6 +403,68 @@
+>         };
+>  };
+>
+> +&i2c4 {
+> +       status = "okay";
+
+Please extend the existing "&i2c4 { ... }" section.
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
