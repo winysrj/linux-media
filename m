@@ -1,89 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:58566 "EHLO ni.piap.pl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754926AbdEKHl2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 May 2017 03:41:28 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        zhaoxuegang <zhaoxuegang@suntec.net>
-Subject: Re: [PATCH] TW686x: Fix OOPS on buffer alloc failure
-References: <590ADAB1.1040501@suntec.net> <m3h90thwjt.fsf@t19.piap.pl>
-        <m3d1bhhwf3.fsf_-_@t19.piap.pl>
-        <CAAEAJfBVOKBcZBg91EKHBXKMOkM6eRafe8=XnW8E=6vtn2dBmQ@mail.gmail.com>
-Date: Thu, 11 May 2017 09:41:24 +0200
-In-Reply-To: <CAAEAJfBVOKBcZBg91EKHBXKMOkM6eRafe8=XnW8E=6vtn2dBmQ@mail.gmail.com>
-        (Ezequiel Garcia's message of "Wed, 10 May 2017 13:18:00 -0300")
-Message-ID: <m38tm3j0wr.fsf@t19.piap.pl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38809 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759302AbdENRBS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 14 May 2017 13:01:18 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Magnus Damm <magnus.damm@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        dri-devel@lists.freedesktop.org,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Subject: Re: [PATCH 0/6] R-Car DU: Fix IOMMU operation when connected to VSP
+Date: Sun, 14 May 2017 20:01:18 +0300
+Message-ID: <1655138.Hl7EZz7Q96@avalon>
+In-Reply-To: <CANqRtoQZP+t541GjBNUsB2enP1Rr1M06UPwcj96PQo0CYWiKvA@mail.gmail.com>
+References: <1471595974-28960-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CANqRtoQZP+t541GjBNUsB2enP1Rr1M06UPwcj96PQo0CYWiKvA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> writes:
+Hi Magnus,
 
->> +       /* Initialize vc->dev and vc->ch for the error path first */
->> +       for (ch = 0; ch < max_channels(dev); ch++) {
->> +               struct tw686x_video_channel *vc = &dev->video_channels[ch];
->> +               vc->dev = dev;
->> +               vc->ch = ch;
->> +       }
->> +
->
-> I'm not sure where is the oops this commit fixes, care to explain it to me?
+On Wednesday 07 Sep 2016 17:01:06 Magnus Damm wrote:
+> Hi Laurent,
+> 
+> Thanks for your help with this. Good to see that the DU driver is
+> getting closer to work with the IPMMU hardware! Please see below for
+> some feedback from me.
+> 
+> On Fri, Aug 19, 2016 at 5:39 PM, Laurent Pinchart wrote:
+> > Hello,
+> > 
+> > This patch series fixes the rcar-du-drm driver to support VSP plane
+> > sources with an IOMMU. It is available for convenience at
+> > 
+> >         git://linuxtv.org/pinchartl/media.git iommu/devel/du
+> > 
+> > On R-Car Gen3 the DU has no direct memory access but sources planes
+> > through VSP instances. When an IOMMU is inserted between the VSP and
+> > memory, the DU framebuffers need to be DMA mapped using the VSP device,
+> > not the DU device as currently done. The same situation can also be
+> > reproduced on Gen2 hardware by linking the VSP to the DU in DT [1],
+> > effectively disabling direct memory access by the DU.
+> > 
+> > The situation is made quite complex by the fact that different planes can
+> > be connected to different DU instances, and thus served by different
+> > IOMMUs (or, in practice on existing hardware, by the same IOMMU but
+> > through different micro-TLBs). We thus can't allocate and map buffers to
+> > the right device in a single dma_alloc_wc() operation as done in the DRM
+> > CMA GEM helpers.
+> > 
+> > However, on such setups, the DU DT node doesn't reference IOMMUs as the DU
+> > does not perform any direct memory access. We can thus keep the GEM object
+> > allocation unchanged, and the DMA addresses that we receive in the DU
+> > driver will be physical addresses. Those buffers then need to be mapped
+> > to the VSP device when they are associated with planes. Fortunately the
+> > atomic framework provides two plane helper operations, .prepare_fb() and
+> > .cleanup_fb() that we can use for this purpose.
+> > 
+> > The reality is slightly more complex than this on Gen3, as an FCP device
+> > instance sits between VSP instances and memory. It is the FCP devices that
+> > are connected to the IOMMUs, and buffer mapping thus need to be performed
+> > using the FCP devices. This isn't required on Gen2 as the platforms don't
+> > have any FCPs.
+> > 
+> > Patches 1/6 and 2/6 unconstify the state argument to the .prepare_fb() and
+> > .cleanup_fb() operations, to allow storing the mapped buffer addresses in
+> > the state. Patches 3/6 and 4/6 then extend the rcar-fcp driver API to
+> > expose the FCP struct device. Patch 5/6 extends the vsp1 driver API to
+> > allow mapping a scatter-gather list to the VSP, with the implementation
+> > using the FCP devices instead when available. Patch 6/6 then use the vsp1
+> > mapping API in the rcar-du-drm driver to map and unmap buffers when
+> > needed.
+> > 
+> > The series has been tested on Gen2 (Lager) only as the Gen3 IOMMU is known
+> > to be broken.
+> 
+> Slight clarification, the R-Car Gen3 family as a whole does not have
+> broken IPMMU hardware. Early R-Car H3 revisions do require some errata
+> handling though, but M3-W and later ES versions and MP of H3 will be
+> fine. Given the early R-Car H3 errata I agree it makes sense to
+> develop and test this series on R-Car Gen2 though.
+> 
+> > A possible improvement is to modify the GEM object allocation mechanism to
+> > use non-contiguous memory when the DU driver detects that all the VSP
+> > instances it is connected to use an IOMMU (possibly through FCP devices).
+> > 
+> > An issue has been noticed with synchronization between page flip and VSP
+> > operation. Buffers get unmapped (and possibly freed) before the VSP is
+> > done reading them. The problem isn't new, but is much more noticeable with
+> > IOMMU support enabled as any hardware access to unmapped memory generates
+> > an IOMMU page fault immediately.
+> > 
+> > The series unfortunately contain a dependency between DRM and V4L2
+> > patches, complicating upstream merge. As there's no urgency to merge patch
+> > 6/6 due to the IOMMU being broken on Gen3 at the moment, I propose merging
+> > patches 1/6-2/6 and 3/6-5/6 independently for the next kernel release.
+> > 
+> > I would particularly appreciate feedback on the APIs introduced by patches
+> > 4/6 and 5/6.
+> 
+> The code in general looks fine to me. The APIs introduced by patches
+> 4/6 and 5/6 seem quite straightforward. Is there something I can do to
+> help with those?
+> 
+> > [1]
+> > https://www.mail-archive.com/linux-renesas-soc@vger.kernel.org/msg06589.h
+> > tml
+> > Laurent Pinchart (6):
+> >   drm: Don't implement empty prepare_fb()/cleanup_fb()
+> >   drm: Unconstify state argument to prepare_fb()/cleanup_fb()
+> >   v4l: rcar-fcp: Don't get/put module reference
+> >   v4l: rcar-fcp: Add an API to retrieve the FCP device
+> >   v4l: vsp1: Add API to map and unmap DRM buffers through the VSP
+> >   drm: rcar-du: Map memory through the VSP device
+> >  
+> >  drivers/gpu/drm/arc/arcpgu_crtc.c               |  2 -
+> >  drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_plane.c |  4 +-
+> >  drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_plane.c     | 15 -----
+> >  drivers/gpu/drm/hisilicon/kirin/kirin_drm_ade.c | 15 -----
+> >  drivers/gpu/drm/i915/intel_display.c            |  4 +-
+> >  drivers/gpu/drm/i915/intel_drv.h                |  4 +-
+> >  drivers/gpu/drm/msm/mdp/mdp4/mdp4_plane.c       |  4 +-
+> >  drivers/gpu/drm/msm/mdp/mdp5/mdp5_plane.c       |  4 +-
+> >  drivers/gpu/drm/omapdrm/omap_plane.c            |  4 +-
+> >  drivers/gpu/drm/rcar-du/rcar_du_vsp.c           | 74 ++++++++++++++++++--
+> >  drivers/gpu/drm/rcar-du/rcar_du_vsp.h           |  2 +
+> >  drivers/gpu/drm/rockchip/rockchip_drm_vop.c     |  4 +-
+> >  drivers/gpu/drm/tegra/dc.c                      | 17 ------
+> >  drivers/gpu/drm/vc4/vc4_plane.c                 |  2 -
+> >  drivers/media/platform/rcar-fcp.c               | 17 +++---
+> >  drivers/media/platform/vsp1/vsp1_drm.c          | 24 ++++++++
+> >  include/drm/drm_modeset_helper_vtables.h        |  4 +-
+> >  include/media/rcar-fcp.h                        |  5 ++
+> >  include/media/vsp1.h                            |  3 +
+> >  19 files changed, 126 insertions(+), 82 deletions(-)
+> 
+> So I've spent some time to test this series on R-Car H3. In particular
+> I've tested the code in renesas-drivers-2016-08-23-v4.8-rc3.
+> 
+> Since I did some early prototyping to enable the DU with IPMMU myself
+> I noticed that some further changes may be needed. For instance, the
+> Display List code and VB2 queue both need a struct device from
+> somewhere. I propose something like the below, using the API from
+> patch 4/6 in this series:
+> 
+> --- 0001/drivers/media/platform/vsp1/vsp1_dl.c
+> +++ work/drivers/media/platform/vsp1/vsp1_dl.c 2016-09-01
+> 06:18:17.140607110 +0900
+> @@ -17,6 +17,8 @@
+>  #include <linux/slab.h>
+>  #include <linux/workqueue.h>
+> 
+> +#include <media/rcar-fcp.h>
+> +
+>  #include "vsp1.h"
+>  #include "vsp1_dl.h"
+> 
+> @@ -130,12 +132,12 @@ static int vsp1_dl_body_init(struct vsp1
+>       size_t extra_size)
+>  {
+>   size_t size = num_entries * sizeof(*dlb->entries) + extra_size;
+> + struct device *fcp = rcar_fcp_get_device(vsp1->fcp);
+> 
+>   dlb->vsp1 = vsp1;
+>   dlb->size = size;
+> -
+> - dlb->entries = dma_alloc_wc(vsp1->dev, dlb->size, &dlb->dma,
+> -    GFP_KERNEL);
+> + dlb->entries = dma_alloc_wc(fcp ? fcp : vsp1->dev,
+> +    dlb->size, &dlb->dma, GFP_KERNEL);
+>   if (!dlb->entries)
+>   return -ENOMEM;
+> 
+> @@ -147,7 +149,10 @@ static int vsp1_dl_body_init(struct vsp1
+>   */
+>  static void vsp1_dl_body_cleanup(struct vsp1_dl_body *dlb)
+>  {
+> - dma_free_wc(dlb->vsp1->dev, dlb->size, dlb->entries, dlb->dma);
+> + struct device *fcp = rcar_fcp_get_device(dlb->vsp1->fcp);
+> +
+> + dma_free_wc(fcp ? fcp : dlb->vsp1->dev,
+> +    dlb->size, dlb->entries, dlb->dma);
+>  }
+> 
+>  /**
+> --- 0001/drivers/media/platform/vsp1/vsp1_video.c
+> +++ work/drivers/media/platform/vsp1/vsp1_video.c 2016-09-01
+> 06:20:02.940607110 +0900
+> @@ -27,6 +27,8 @@
+>  #include <media/videobuf2-v4l2.h>
+>  #include <media/videobuf2-dma-contig.h>
+> 
+> +#include <media/rcar-fcp.h>
+> +
+>  #include "vsp1.h"
+>  #include "vsp1_bru.h"
+>  #include "vsp1_dl.h"
+> @@ -939,6 +941,7 @@ struct vsp1_video *vsp1_video_create(str
+>  {
+>   struct vsp1_video *video;
+>   const char *direction;
+> + struct device *fcp;
+>   int ret;
+> 
+>   video = devm_kzalloc(vsp1->dev, sizeof(*video), GFP_KERNEL);
+> @@ -996,7 +999,8 @@ struct vsp1_video *vsp1_video_create(str
+>   video->queue.ops = &vsp1_video_queue_qops;
+>   video->queue.mem_ops = &vb2_dma_contig_memops;
+>   video->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> - video->queue.dev = video->vsp1->dev;
+> + fcp = rcar_fcp_get_device(vsp1->fcp);
+> + video->queue.dev = fcp ? fcp : video->vsp1->dev;
+>   ret = vb2_queue_init(&video->queue);
+>   if (ret < 0) {
+>   dev_err(video->vsp1->dev, "failed to initialize vb2 queue\n");
+> 
+> Can you please consider to include or rework the above code in your
+> next version of this series?
+> 
+> Not sure if R-Car Gen2 is affected or not, but without the above code
+> I get the following trap during boot on r8a7795 Salvator-X:
+> 
+> ipmmu-vmsa febd0000.mmu: Unhandled faut: status 0x00000101 iova 0x7f09a000
 
-The error path apparently calls tw686x_video_free() which requires
-vc->dev to be initialized. Now, the vc->dev is set for the channel being
-currently initialized (unsuccesfully), but not for ones which haven't
-been initialized yet. tw686x_video_free() iterates over the whole set.
+I'm finally getting back to this. I'll include a modified version of the above 
+code in the next version of the series and will make sure to test it on both 
+Gen2 and Gen3 systems with and without the IOMMU enabled.
 
-It seems it also happens in "memcpy" mode. I didn't test it before since
-on my ARMv7 "memcpy" mode is unusable, it's way too slow. Also, does the
-driver attempt to use consistent memory for entire buffers in this mode?
-This may work on i686/x86_64 because the caches are coherent by design
-and there is no difference between consistent and non-consistent RAM
-(if one isn't using SWIOTLB etc).
+Unless you'd prefer otherwise, I'll mark you as the author of the code. Can I 
+get your SoB ?
 
-tw6869: PCI 0000:07:00.0, IRQ 24, MMIO 0x1100000 (memcpy mode)
-tw686x 0000:07:00.0: enabling device (0140 -> 0142)
-tw686x 0000:07:00.0: dma0: unable to allocate P-buffer
-Unable to handle kernel NULL pointer dereference at virtual address 00000000
-PC is at _raw_spin_lock_irqsave+0x10/0x4c
-LR is at tw686x_memcpy_dma_free+0x1c/0x124
-pc : [<805a8b14>]    lr : [<7f04a3c0>]    psr: 20010093
-sp : be915c80  ip : 00000000  fp : bea1b000
-r10: 00000000  r9 : fffffff4  r8 : 0000b000
-r7 : 00000000  r6 : 000003f0  r5 : 00000000  r4 : bf0e21f8
-r3 : 7f04a3a4  r2 : 00000000  r1 : 00000000  r0 : 20010013
-Flags: nzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment none
-Control: 10c5387d  Table: 4e91804a  DAC: 00000051
-Process udevd (pid: 88, stack limit = 0xbe914210)
-(_raw_spin_lock_irqsave) from (tw686x_memcpy_dma_free+0x1c/0x124)
-(tw686x_memcpy_dma_free) from (tw686x_video_free+0x50/0x78)
-(tw686x_video_free) from (tw686x_video_init+0x478/0x5e8)
-(tw686x_video_init) from (tw686x_probe+0x36c/0x3fc)
-(tw686x_probe) from (pci_device_probe+0x88/0xf4)
-(pci_device_probe) from (driver_probe_device+0x238/0x2d8)
-(driver_probe_device) from (__driver_attach+0xac/0xb0)
-(__driver_attach) from (bus_for_each_dev+0x6c/0xa0)
-(bus_for_each_dev) from (bus_add_driver+0x1a0/0x218)
-(bus_add_driver) from (driver_register+0x78/0xf8)
-(driver_register) from (do_one_initcall+0x40/0x168)
-(do_one_initcall) from (do_init_module+0x60/0x3a4)
-(do_init_module) from (load_module+0x1c90/0x20e4)
-(load_module) from (SyS_finit_module+0x8c/0x9c)
-(SyS_finit_module) from (ret_fast_syscall+0x0/0x3c)
-Code: e1a02000 e10f0000 f10c0080 f592f000 (e1923f9f)
+-- 
+Regards,
 
-
-With the patch:
-tw6869: PCI 0000:07:00.0, IRQ 24, MMIO 0x1100000 (memcpy mode)
-tw686x 0000:07:00.0: enabling device (0140 -> 0142)
-tw686x 0000:07:00.0: dma0: unable to allocate P-buffer
-tw686x 0000:07:00.0: can't register video
-tw686x: probe of 0000:07:00.0 failed with error -12
---
-Krzysztof Halasa
-
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+Laurent Pinchart
