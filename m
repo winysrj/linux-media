@@ -1,72 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.aosc.io ([199.195.250.187]:43668 "EHLO hermes.aosc.io"
+Received: from bubo.tul.cz ([147.230.16.1]:51054 "EHLO bubo.tul.cz"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751012AbdE1PEE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 May 2017 11:04:04 -0400
+        id S1750895AbdENEbd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 14 May 2017 00:31:33 -0400
+Subject: Re: [RFC] [PATCH 0/4] [media] pxa_camera: Fixing bugs and missing
+ colorformats
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+References: <19820fae-fae3-9579-8f37-5b515e0edb66@tul.cz>
+ <34b6ce27-7567-a654-4276-ae522b44f781@tul.cz> <87o9vbz4pp.fsf@belgarion.home>
+ <c2c51214-71ad-7c32-5d19-63e731852781@tul.cz>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+From: Petr Cvek <petr.cvek@tul.cz>
+Message-ID: <be13b205-2d60-b00a-06ec-5008cc635bed@tul.cz>
+Date: Sun, 14 May 2017 06:33:16 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
+In-Reply-To: <c2c51214-71ad-7c32-5d19-63e731852781@tul.cz>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Date: Sun, 28 May 2017 23:04:02 +0800
-From: icenowy@aosc.io
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Lubomir Rintel <lkundrak@v3.sk>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RESEND2] [media] usbtv: add a new usbid
-In-Reply-To: <20170416065116.61662-1-icenowy@aosc.io>
-References: <20170416065116.61662-1-icenowy@aosc.io>
-Message-ID: <73197902b0e171553d0a048524110eaf@aosc.io>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-在 2017-04-16 14:51，Icenowy Zheng 写道：
-> A new usbid of UTV007 is found in a newly bought device.
-> 
-> The usbid is 1f71:3301.
-> 
-> The ID on the chip is:
-> UTV007
-> A89029.1
-> 1520L18K1
-> 
-> Both video and audio is tested with the modified usbtv driver.
-> 
-> Signed-off-by: Icenowy Zheng <icenowy@aosc.io>
-> Acked-by: Lubomir Rintel <lkundrak@v3.sk>
+Dne 13.5.2017 v 08:40 Petr Cvek napsal(a):
 
-Ping?
+> The second problem seems to be a same problem. When playing/encoding the data from the sensor (with or without previous fix) and calling (probably) anything on v4l2 the drivers stops in a same way. I discovered it by trying to use the CONFIG_VIDEO_ADV_DEBUG interface to realtime poking the sensor.
+> 
+> You should be able to recreate that by starting the stream (mplayer or ffmpeg) and run:
+> 	v4l2-ctl -n
+> or reading registers, running v4l2-compliance etc... 
+> 
 
-I found this patch in Superseded state in patchwork, however it's
-not superseded at all -- I didn't send any new version, and I didn't
-see this one get merged...
+I get it now. The second problem is likely in pxac_fops_camera_release(). At the closing of the device the function calls sensor_call → s_power and sets the sensor to OFF regardless if somebody is using it somewhere else. There should be reference counter (as was in the original soc_camera_close() function).
 
-Could someone merge it?
+This bug makes impossible to debug pxa camera and its sensors.
 
-> ---
-> 
-> Added Lubomir's ACK in the second time of resend.
-> 
-> The old patch may be lost because the old aosc.xyz mail is using 
-> Yandex's
-> service -- which is rejected by many mail providers. As part of AOSC 
-> mailing
-> system refactor, we got a new mailing system, so that the patch is now
-> resent.
-> 
->  drivers/media/usb/usbtv/usbtv-core.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/usb/usbtv/usbtv-core.c
-> b/drivers/media/usb/usbtv/usbtv-core.c
-> index ceb953be0770..cae637845876 100644
-> --- a/drivers/media/usb/usbtv/usbtv-core.c
-> +++ b/drivers/media/usb/usbtv/usbtv-core.c
-> @@ -144,6 +144,7 @@ static void usbtv_disconnect(struct usb_interface 
-> *intf)
-> 
->  static struct usb_device_id usbtv_id_table[] = {
->  	{ USB_DEVICE(0x1b71, 0x3002) },
-> +	{ USB_DEVICE(0x1f71, 0x3301) },
->  	{}
->  };
->  MODULE_DEVICE_TABLE(usb, usbtv_id_table);
+cheers,
+Petr
