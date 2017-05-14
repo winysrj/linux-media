@@ -1,62 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out2-smtp.messagingengine.com ([66.111.4.26]:42599 "EHLO
-        out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751486AbdERTA5 (ORCPT
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:36031 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751931AbdENMyP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 15:00:57 -0400
-Date: Thu, 18 May 2017 19:48:28 +0100
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Michael Buesch <m@bues.ch>, anton@corp.bluecherry.net
-Subject: Re: [PATCH 1/4] [media] tw5864, fc0011: better handle WARN_ON()
-Message-ID: <20170518184828.GA6449@dell-m4800>
-References: <754069659fbb44b458d8a8bef67d8f3f235d0c87.1495116400.git.mchehab@s-opensource.com>
+        Sun, 14 May 2017 08:54:15 -0400
+Received: by mail-oi0-f67.google.com with SMTP id w138so15219131oiw.3
+        for <linux-media@vger.kernel.org>; Sun, 14 May 2017 05:54:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <754069659fbb44b458d8a8bef67d8f3f235d0c87.1495116400.git.mchehab@s-opensource.com>
+In-Reply-To: <CAL8zT=jwVquxzvnieVA2njSTdL98mOt+n=oy=Nb8ptXdBbJ-1w@mail.gmail.com>
+References: <CAF_dkJB=2PNbD79msw=G47U-6QkajDOWwLJbr3pCaTQeqn=fXA@mail.gmail.com>
+ <CAL8zT=jwVquxzvnieVA2njSTdL98mOt+n=oy=Nb8ptXdBbJ-1w@mail.gmail.com>
+From: Patrick Doyle <wpdster@gmail.com>
+Date: Sun, 14 May 2017 08:53:44 -0400
+Message-ID: <CAF_dkJCmY-n_0MdceZGXRA5fuPuMCg395Ct8x8WGRF+QCAp1eg@mail.gmail.com>
+Subject: Re: Is it possible to have a binary blob custom control?
+To: Jean-Michel Hautbois <jhautbois@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 18, 2017 at 11:06:43AM -0300, Mauro Carvalho Chehab wrote:
-> As such macro will check if the expression is true, it may fall through, as
-> warned:
+On Sun, May 14, 2017 at 3:27 AM, Jean-Michel Hautbois
+<jhautbois@gmail.com> wrote:
+> Maybe a debugfs would be easier than an ioctl? Do you have a good reason to
+> use the control framework for that matter?
 
-> On both cases, it means an error, so, let's return an error
-> code, to make gcc happy.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/pci/tw5864/tw5864-video.c | 1 +
->  drivers/media/tuners/fc0011.c           | 1 +
->  2 files changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/pci/tw5864/tw5864-video.c b/drivers/media/pci/tw5864/tw5864-video.c
-> index 2a044be729da..e7bd2b8484e3 100644
-> --- a/drivers/media/pci/tw5864/tw5864-video.c
-> +++ b/drivers/media/pci/tw5864/tw5864-video.c
-> @@ -545,6 +545,7 @@ static int tw5864_fmt_vid_cap(struct file *file, void *priv,
->  	switch (input->std) {
->  	default:
->  		WARN_ON_ONCE(1);
-> +		return -EINVAL;
->  	case STD_NTSC:
->  		f->fmt.pix.height = 480;
->  		break;
+I implemented this once before, using a custom ioctl, which meant that
+I had to maintain a custom kernel header file.  I am looking for a
+better way to do this.  I wondered if I could do this through the V4L2
+framework, but perhaps, as you suggest, the debugfs would be better.
 
-Hi Mauro,
+The underlying issue I am trying to address is this:  I have an
+application that used the ov7740 imager from Omnivision.  I have
+custom register settings that were provided to me under NDA.  I have
+asked Omnivision if I can publish those register settings in GPL'd
+source code, but have received no response.  So, my alternative
+approach was to modify the GPL driver to accept custom register
+settings (through a new IOCTL).  That way I can bake the register
+settings in my custom application and still use the GPL'd driver.
 
-Thanks for the patch.
+But that meant that I had to define a header file that gets included
+in the kernel, and I need some way to build my application with a
+reference to that header file.  This is error prone.
 
-I actually meant it to fall through, but I agree this is not how it
-should be.
-I'm fine with this patch. Unfortunately I don't possess tw5864 hardware
-now. CCing Anton Sviridenko whom I've handed it (I guess he's on
-Bluecherry Maintainers groupmail as well).
+I like your suggestion of a debugfs API.  That way I could open
+/proc/sys/debug/ov7740/custom_vga_settings and write my register
+settings there.  The name is the documentation.  The format is in the
+README.
 
-Anton, just in case, could you please ensure the driver with this patch
-works well in runtime?
+Are there other ways I could do this?  Certainly?  Are there better
+ways I could do this?  I'm open to opinions.
+
+Thanks again.
+
+--wpd
