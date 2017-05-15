@@ -1,45 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43826 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755333AbdERNvc (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:18844 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1760568AbdEOJ7X (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 09:51:32 -0400
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: mchehab@s-opensource.com, alan@linux.intel.com
-Cc: Valentin Vidic <Valentin.Vidic@CARNet.hr>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 05/13] staging: media: atomisp: drop unused qos variable
-Date: Thu, 18 May 2017 15:50:14 +0200
-Message-Id: <20170518135022.6069-6-gregkh@linuxfoundation.org>
-In-Reply-To: <20170518135022.6069-1-gregkh@linuxfoundation.org>
-References: <20170518135022.6069-1-gregkh@linuxfoundation.org>
+        Mon, 15 May 2017 05:59:23 -0400
+Date: Mon, 15 May 2017 12:59:04 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH 1/2] staging/atomisp: one char read beyond end of string
+Message-ID: <20170515095903.e66y3uszhgc6ik2l@mwanda>
+References: <20170515095658.fuopb2q7rtfvjypo@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170515095658.fuopb2q7rtfvjypo@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Valentin Vidic <Valentin.Vidic@CARNet.hr>
+Oops.  Please ignore this one.  I meant to send it to David Binderman's
+thread.
 
-Fixes a sparse warning:
-
-drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c:35:5: warning: symbol 'qos' was not declared. Should it be static?
-
-Signed-off-by: Valentin Vidic <Valentin.Vidic@CARNet.hr>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
-index a6c0f5f8c3f8..b01463361943 100644
---- a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
-+++ b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
-@@ -32,7 +32,6 @@ static DEFINE_SPINLOCK(msgbus_lock);
- 
- static struct pci_dev *pci_root;
- static struct pm_qos_request pm_qos;
--int qos;
- 
- #define DW_I2C_NEED_QOS	(platform_is(INTEL_ATOM_BYT))
- 
--- 
-2.13.0
+regards,
+dan carpenter
