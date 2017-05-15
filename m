@@ -1,107 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41774 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1948758AbdEZVwN (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35589 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965542AbdEOTm6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 May 2017 17:52:13 -0400
-Date: Sat, 27 May 2017 00:52:09 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
+        Mon, 15 May 2017 15:42:58 -0400
+Received: by mail-wm0-f68.google.com with SMTP id v4so31119462wmb.2
+        for <linux-media@vger.kernel.org>; Mon, 15 May 2017 12:42:58 -0700 (PDT)
+From: Ricardo Silva <rjpdasilva@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 1/2] media: entity: Add pad_from_fwnode entity
- operation
-Message-ID: <20170526215209.GT29527@valkosipuli.retiisi.org.uk>
-References: <20170524000907.13061-1-niklas.soderlund@ragnatech.se>
- <20170524000907.13061-2-niklas.soderlund@ragnatech.se>
- <20170524132137.GK29527@valkosipuli.retiisi.org.uk>
- <20170524140736.GB7346@bigcity.dyn.berto.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170524140736.GB7346@bigcity.dyn.berto.se>
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Ricardo Silva <rjpdasilva@gmail.com>
+Subject: [PATCH 5/5] staging: media: lirc: Fix unbalanced braces around if/else
+Date: Mon, 15 May 2017 20:40:16 +0100
+Message-Id: <20170515194016.10246-6-rjpdasilva@gmail.com>
+In-Reply-To: <20170515194016.10246-1-rjpdasilva@gmail.com>
+References: <20170515194016.10246-1-rjpdasilva@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hejssan,
+Fix all checkpatch reported issues for:
 
-On Wed, May 24, 2017 at 04:07:36PM +0200, Niklas Söderlund wrote:
-> Hi Sakari,
-> 
-> Thanks for your feedback.
-> 
-> On 2017-05-24 16:21:37 +0300, Sakari Ailus wrote:
-> > Hi Niklas,
-> > 
-> > On Wed, May 24, 2017 at 02:09:06AM +0200, Niklas Söderlund wrote:
-> > > From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > > 
-> > > The optional operation can be used by entities to report how it maps its
-> > > fwnode endpoints to media pad numbers. This is useful for devices which
-> > > require advanced mappings of pads.
-> > > 
-> > > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > > ---
-> > >  include/media/media-entity.h | 6 ++++++
-> > >  1 file changed, 6 insertions(+)
-> > > 
-> > > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > > index c7c254c5bca1761b..2aea22b0409d1070 100644
-> > > --- a/include/media/media-entity.h
-> > > +++ b/include/media/media-entity.h
-> > > @@ -21,6 +21,7 @@
-> > >  
-> > >  #include <linux/bitmap.h>
-> > >  #include <linux/bug.h>
-> > > +#include <linux/fwnode.h>
-> > >  #include <linux/kernel.h>
-> > >  #include <linux/list.h>
-> > >  #include <linux/media.h>
-> > > @@ -171,6 +172,9 @@ struct media_pad {
-> > >  
-> > >  /**
-> > >   * struct media_entity_operations - Media entity operations
-> > > + * @pad_from_fwnode:	Return the pad number based on a fwnode endpoint.
-> > > + *			This operation can be used to map a fwnode to a
-> > > + *			media pad number. Optional.
-> > >   * @link_setup:		Notify the entity of link changes. The operation can
-> > >   *			return an error, in which case link setup will be
-> > >   *			cancelled. Optional.
-> > > @@ -184,6 +188,8 @@ struct media_pad {
-> > >   *    mutex held.
-> > >   */
-> > >  struct media_entity_operations {
-> > > +	int (*pad_from_fwnode)(struct fwnode_endpoint *endpoint,
-> > > +			       unsigned int *pad);
-> > 
-> > Hmm. How about calling this get_fwnode_pad for instance? I wonder what
-> > others think.
-> 
-> I'm OK with this name change, will update for next version.
-> 
-> > 
-> > You could just return the pad number still, and a negative value on error. I
-> > think we won't have more than INT_MAX pads. :-)
-> 
-> I did that at first but then I remembered all the review comments I have 
-> gotten earlier about using int as the type for pads :-) If you and 
-> others agree in this case returning the pad as int or a negative value 
-> as error I have no problem chaining this for the next version.
+ * CHECK: "braces {} should be used on all arms of this statement".
+ * CHECK: "Unbalanced braces around else statement".
 
-unsigned int was proposed for there was no need for negative values. In this
-case there is.
+Make sure all if/else statements are balanced in terms of braces. Most
+cases in code are, but a few were left unbalanced, so put them all
+consistent with the recommended style.
 
-I don't really have a strong opinion either way. I wonder what Hans or
-Laurent thinks.
+Signed-off-by: Ricardo Silva <rjpdasilva@gmail.com>
+---
+ drivers/staging/media/lirc/lirc_zilog.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+index 7e36693b66a8..121126beccd0 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -554,9 +554,9 @@ static int get_key_data(unsigned char *buf,
+ 		if (!read_uint32(&data, tx_data->endp, &i))
+ 			goto corrupt;
+ 
+-		if (i == codeset)
++		if (i == codeset) {
+ 			break;
+-		else if (codeset > i) {
++		} else if (codeset > i) {
+ 			base = pos + 1;
+ 			--lim;
+ 		}
+@@ -990,8 +990,9 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 			"failed to get data for code %u, key %u -- check lircd.conf entries\n",
+ 			code, key);
+ 		return ret;
+-	} else if (ret != 0)
++	} else if (ret != 0) {
+ 		return ret;
++	}
+ 
+ 	/* Send the data block */
+ 	ret = send_data_block(tx, data_block);
+@@ -1188,8 +1189,9 @@ static ssize_t write(struct file *filep, const char __user *buf, size_t n,
+ 			schedule_timeout((100 * HZ + 999) / 1000);
+ 			tx->need_boot = 1;
+ 			++failures;
+-		} else
++		} else {
+ 			i += sizeof(int);
++		}
+ 	}
+ 
+ 	/* Release i2c bus */
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.12.2
