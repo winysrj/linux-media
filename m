@@ -1,134 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:46763 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1765678AbdEXARC (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35539 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751536AbdEOH14 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 May 2017 20:17:02 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2 07/17] rcar-vin: move pad lookup to async bound handler
-Date: Wed, 24 May 2017 02:15:30 +0200
-Message-Id: <20170524001540.13613-8-niklas.soderlund@ragnatech.se>
-In-Reply-To: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
-References: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+        Mon, 15 May 2017 03:27:56 -0400
+Subject: Re: [PATCH v3 3/3] media: mtk-mdp: Fix mdp device tree
+To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, daniel.thompson@linaro.org,
+        Rob Herring <robh+dt@kernel.org>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>,
+        srv_heupstream@mediatek.com,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
+References: <1494559361-42835-1-git-send-email-minghsiu.tsai@mediatek.com>
+ <1494559361-42835-4-git-send-email-minghsiu.tsai@mediatek.com>
+ <60f89b9a-f068-25a7-3f8b-d13b19357361@gmail.com>
+ <1494815512.31916.11.camel@mtksdaap41>
+From: Matthias Brugger <matthias.bgg@gmail.com>
+Message-ID: <79df594b-33cb-e606-5ace-66f450f839e9@gmail.com>
+Date: Mon, 15 May 2017 09:27:52 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1494815512.31916.11.camel@mtksdaap41>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Information about pads will be needed when enumerating the media bus
-codes in the async complete handler which is run before
-rvin_v4l2_probe(). Move the pad lookup to the async bound handler so
-they are available when needed.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 30 ++++++++++++++++++++++++++++-
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 22 ---------------------
- 2 files changed, 29 insertions(+), 23 deletions(-)
+On 15/05/17 04:31, Minghsiu Tsai wrote:
+> On Fri, 2017-05-12 at 17:05 +0200, Matthias Brugger wrote:
+>>
+>> On 12/05/17 05:22, Minghsiu Tsai wrote:
+>>> From: Daniel Kurtz <djkurtz@chromium.org>
+>>>
+>>> If the mdp_* nodes are under an mdp sub-node, their corresponding
+>>> platform device does not automatically get its iommu assigned properly.
+>>>
+>>> Fix this by moving the mdp component nodes up a level such that they are
+>>> siblings of mdp and all other SoC subsystems.  This also simplifies the
+>>> device tree.
+>>>
+>>> Although it fixes iommu assignment issue, it also break compatibility
+>>> with old device tree. So, the patch in driver is needed to iterate over
+>>> sibling mdp device nodes, not child ones, to keep driver work properly.
+>>>
+>>
+>> Couldn't we preserve backwards compatibility by doing something like this:
+>> diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+>> b/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+>> index 9e4eb7dcc424..277d8fe6eb76 100644
+>> --- a/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+>> +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+>> @@ -103,7 +103,7 @@ static int mtk_mdp_probe(struct platform_device *pdev)
+>>    {
+>>    	struct mtk_mdp_dev *mdp;
+>>    	struct device *dev = &pdev->dev;
+>> -	struct device_node *node;
+>> +	struct device_node *node, *parent;
+>>    	int i, ret = 0;
+>>
+>>    	mdp = devm_kzalloc(dev, sizeof(*mdp), GFP_KERNEL);
+>> @@ -117,8 +117,14 @@ static int mtk_mdp_probe(struct platform_device *pdev)
+>>    	mutex_init(&mdp->lock);
+>>    	mutex_init(&mdp->vpulock);
+>>
+>> +	/* Old dts had the components as child nodes */
+>> +	if (of_get_next_child(dev->of_node, NULL))
+>> +		parent = dev->of_node;
+>> +	else
+>> +		parent = dev->of_node->parent;
+>> +
+>>    	/* Iterate over sibling MDP function blocks */
+>> -	for_each_child_of_node(dev->of_node, node) {
+>> +	for_each_child_of_node(parent, node) {
+>>    		const struct of_device_id *of_id;
+>>    		enum mtk_mdp_comp_type comp_type;
+>>    		int comp_id;
+>>
+>> Maybe even by putting a warning in the if branch to make sure, people
+>> are aware of their out-of-date device tree blobs.
+>>
+>> Regards,
+>> Matthias
+>>
+> 
+> Hi Matthias,
+> 
+> It is a good idea to do compatible in such a way and put a warning the
+> device tree is out of date. People can find out cause soon if device
+> tree is old.
+> 
+> I modify the code as below:
+> 
+> +	/* Old dts had the components as child nodes */
+> +	if (of_get_next_child(dev->of_node, NULL)) {
+> +		parent = dev->of_node;
+> +		dev_warn(dev, "device tree is out of date\n");
+> +	} else {
+> +		parent = dev->of_node->parent;
+> +	}
+> 
+> Will you upload it in a separate patch?
+> If not, I can merge it in my patch series and upload v4.
+> 
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 264604a9bcf86110..58fd04a7e9f1151b 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -31,6 +31,20 @@
- 
- #define notifier_to_vin(n) container_of(n, struct rvin_dev, notifier)
- 
-+static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
-+{
-+	unsigned int pad;
-+
-+	if (sd->entity.num_pads <= 1)
-+		return 0;
-+
-+	for (pad = 0; pad < sd->entity.num_pads; pad++)
-+		if (sd->entity.pads[pad].flags & direction)
-+			return pad;
-+
-+	return -EINVAL;
-+}
-+
- static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
- {
- 	struct v4l2_subdev *sd = entity->subdev;
-@@ -101,13 +115,27 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
- 				     struct v4l2_async_subdev *asd)
- {
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	int ret;
- 
- 	v4l2_set_subdev_hostdata(subdev, vin);
- 
- 	if (vin->digital.asd.match.fwnode.fwnode ==
- 	    of_fwnode_handle(subdev->dev->of_node)) {
--		vin_dbg(vin, "bound digital subdev %s\n", subdev->name);
-+		/* Find surce and sink pad of remote subdevice */
-+
-+		ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
-+		if (ret < 0)
-+			return ret;
-+		vin->digital.source_pad = ret;
-+
-+		ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
-+		vin->digital.sink_pad = ret < 0 ? 0 : ret;
-+
- 		vin->digital.subdev = subdev;
-+
-+		vin_dbg(vin, "bound subdev %s source pad: %u sink pad: %u\n",
-+			subdev->name, vin->digital.source_pad,
-+			vin->digital.sink_pad);
- 		return 0;
- 	}
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 90ea582fb48e3cb5..be6f41bf82ac3bc5 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -870,20 +870,6 @@ static void rvin_notify(struct v4l2_subdev *sd,
- 	}
- }
- 
--static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
--{
--	unsigned int pad;
--
--	if (sd->entity.num_pads <= 1)
--		return 0;
--
--	for (pad = 0; pad < sd->entity.num_pads; pad++)
--		if (sd->entity.pads[pad].flags & direction)
--			return pad;
--
--	return -EINVAL;
--}
--
- int rvin_v4l2_probe(struct rvin_dev *vin)
- {
- 	struct video_device *vdev = &vin->vdev;
-@@ -934,14 +920,6 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
- 		V4L2_CAP_READWRITE;
- 
--	ret = rvin_find_pad(sd, MEDIA_PAD_FL_SOURCE);
--	if (ret < 0)
--		return ret;
--	vin->digital.source_pad = ret;
--
--	ret = rvin_find_pad(sd, MEDIA_PAD_FL_SINK);
--	vin->digital.sink_pad = ret < 0 ? 0 : ret;
--
- 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
- 	rvin_reset_format(vin);
- 
--- 
-2.13.0
+Please integrate it into your patch series.
+
+Mauro, are you ok with the dev_warn about the out-of-date device-tree?
+
+Regards,
+Matthias
+
+
+> 
+> Best Regards,
+> 
+> Ming Hsiu
+> 
+>>> Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+>>> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+>>>
+>>> ---
+>>>    drivers/media/platform/mtk-mdp/mtk_mdp_core.c | 2 +-
+>>>    1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_core.c b/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+>>> index 9e4eb7d..a5ad586 100644
+>>> --- a/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+>>> +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+>>> @@ -118,7 +118,7 @@ static int mtk_mdp_probe(struct platform_device *pdev)
+>>>    	mutex_init(&mdp->vpulock);
+>>>    
+>>>    	/* Iterate over sibling MDP function blocks */
+>>> -	for_each_child_of_node(dev->of_node, node) {
+>>> +	for_each_child_of_node(dev->of_node->parent, node) {
+>>>    		const struct of_device_id *of_id;
+>>>    		enum mtk_mdp_comp_type comp_type;
+>>>    		int comp_id;
+>>>
+> 
+> 
