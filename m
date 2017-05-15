@@ -1,93 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:35772 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751996AbdEEPcK (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:41454 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751176AbdEOCb5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 May 2017 11:32:10 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
+        Sun, 14 May 2017 22:31:57 -0400
+Message-ID: <1494815512.31916.11.camel@mtksdaap41>
+Subject: Re: [PATCH v3 3/3] media: mtk-mdp: Fix mdp device tree
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Matthias Brugger <matthias.bgg@gmail.com>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        "Pawel Osciak" <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>,
+        <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v5 1/8] dt-bindings: Document STM32 DCMI bindings
-Date: Fri, 5 May 2017 17:31:20 +0200
-Message-ID: <1493998287-5828-2-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1493998287-5828-1-git-send-email-hugues.fruchet@st.com>
-References: <1493998287-5828-1-git-send-email-hugues.fruchet@st.com>
+        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
+Date: Mon, 15 May 2017 10:31:52 +0800
+In-Reply-To: <60f89b9a-f068-25a7-3f8b-d13b19357361@gmail.com>
+References: <1494559361-42835-1-git-send-email-minghsiu.tsai@mediatek.com>
+         <1494559361-42835-4-git-send-email-minghsiu.tsai@mediatek.com>
+         <60f89b9a-f068-25a7-3f8b-d13b19357361@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds documentation of device tree bindings for the STM32 DCMI
-(Digital Camera Memory Interface).
+On Fri, 2017-05-12 at 17:05 +0200, Matthias Brugger wrote:
+> 
+> On 12/05/17 05:22, Minghsiu Tsai wrote:
+> > From: Daniel Kurtz <djkurtz@chromium.org>
+> > 
+> > If the mdp_* nodes are under an mdp sub-node, their corresponding
+> > platform device does not automatically get its iommu assigned properly.
+> > 
+> > Fix this by moving the mdp component nodes up a level such that they are
+> > siblings of mdp and all other SoC subsystems.  This also simplifies the
+> > device tree.
+> > 
+> > Although it fixes iommu assignment issue, it also break compatibility
+> > with old device tree. So, the patch in driver is needed to iterate over
+> > sibling mdp device nodes, not child ones, to keep driver work properly.
+> > 
+> 
+> Couldn't we preserve backwards compatibility by doing something like this:
+> diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_core.c 
+> b/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+> index 9e4eb7dcc424..277d8fe6eb76 100644
+> --- a/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+> +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+> @@ -103,7 +103,7 @@ static int mtk_mdp_probe(struct platform_device *pdev)
+>   {
+>   	struct mtk_mdp_dev *mdp;
+>   	struct device *dev = &pdev->dev;
+> -	struct device_node *node;
+> +	struct device_node *node, *parent;
+>   	int i, ret = 0;
+> 
+>   	mdp = devm_kzalloc(dev, sizeof(*mdp), GFP_KERNEL);
+> @@ -117,8 +117,14 @@ static int mtk_mdp_probe(struct platform_device *pdev)
+>   	mutex_init(&mdp->lock);
+>   	mutex_init(&mdp->vpulock);
+> 
+> +	/* Old dts had the components as child nodes */
+> +	if (of_get_next_child(dev->of_node, NULL))
+> +		parent = dev->of_node;
+> +	else
+> +		parent = dev->of_node->parent;
+> +
+>   	/* Iterate over sibling MDP function blocks */
+> -	for_each_child_of_node(dev->of_node, node) {
+> +	for_each_child_of_node(parent, node) {
+>   		const struct of_device_id *of_id;
+>   		enum mtk_mdp_comp_type comp_type;
+>   		int comp_id;
+> 
+> Maybe even by putting a warning in the if branch to make sure, people 
+> are aware of their out-of-date device tree blobs.
+> 
+> Regards,
+> Matthias
+> 
 
-Acked-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- .../devicetree/bindings/media/st,stm32-dcmi.txt    | 46 ++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
+Hi Matthias,
 
-diff --git a/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
-new file mode 100644
-index 0000000..f8baf65
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
-@@ -0,0 +1,46 @@
-+STMicroelectronics STM32 Digital Camera Memory Interface (DCMI)
-+
-+Required properties:
-+- compatible: "st,stm32-dcmi"
-+- reg: physical base address and length of the registers set for the device
-+- interrupts: should contain IRQ line for the DCMI
-+- resets: reference to a reset controller,
-+          see Documentation/devicetree/bindings/reset/st,stm32-rcc.txt
-+- clocks: list of clock specifiers, corresponding to entries in
-+          the clock-names property
-+- clock-names: must contain "mclk", which is the DCMI peripherial clock
-+- pinctrl: the pincontrol settings to configure muxing properly
-+           for pins that connect to DCMI device.
-+           See Documentation/devicetree/bindings/pinctrl/st,stm32-pinctrl.txt.
-+- dmas: phandle to DMA controller node,
-+        see Documentation/devicetree/bindings/dma/stm32-dma.txt
-+- dma-names: must contain "tx", which is the transmit channel from DCMI to DMA
-+
-+DCMI supports a single port node with parallel bus. It should contain one
-+'port' child node with child 'endpoint' node. Please refer to the bindings
-+defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+
-+	dcmi: dcmi@50050000 {
-+		compatible = "st,stm32-dcmi";
-+		reg = <0x50050000 0x400>;
-+		interrupts = <78>;
-+		resets = <&rcc STM32F4_AHB2_RESET(DCMI)>;
-+		clocks = <&rcc 0 STM32F4_AHB2_CLOCK(DCMI)>;
-+		clock-names = "mclk";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&dcmi_pins>;
-+		dmas = <&dma2 1 1 0x414 0x3>;
-+		dma-names = "tx";
-+		port {
-+			dcmi_0: endpoint {
-+				remote-endpoint = <...>;
-+				bus-width = <8>;
-+				hsync-active = <0>;
-+				vsync-active = <0>;
-+				pclk-sample = <1>;
-+			};
-+		};
-+	};
-+
--- 
-1.9.1
+It is a good idea to do compatible in such a way and put a warning the
+device tree is out of date. People can find out cause soon if device
+tree is old.
+
+I modify the code as below:
+
++	/* Old dts had the components as child nodes */
++	if (of_get_next_child(dev->of_node, NULL)) {
++		parent = dev->of_node;
++		dev_warn(dev, "device tree is out of date\n");
++	} else {
++		parent = dev->of_node->parent;
++	}
+
+Will you upload it in a separate patch? 
+If not, I can merge it in my patch series and upload v4.
+
+
+Best Regards,
+
+Ming Hsiu
+
+> > Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+> > Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+> > 
+> > ---
+> >   drivers/media/platform/mtk-mdp/mtk_mdp_core.c | 2 +-
+> >   1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_core.c b/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+> > index 9e4eb7d..a5ad586 100644
+> > --- a/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+> > +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+> > @@ -118,7 +118,7 @@ static int mtk_mdp_probe(struct platform_device *pdev)
+> >   	mutex_init(&mdp->vpulock);
+> >   
+> >   	/* Iterate over sibling MDP function blocks */
+> > -	for_each_child_of_node(dev->of_node, node) {
+> > +	for_each_child_of_node(dev->of_node->parent, node) {
+> >   		const struct of_device_id *of_id;
+> >   		enum mtk_mdp_comp_type comp_type;
+> >   		int comp_id;
+> > 
