@@ -1,87 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:17783 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750748AbdESMJH (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:20869 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751197AbdEOK2E (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 May 2017 08:09:07 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>,
-        "Wu, Songjun" <Songjun.Wu@microchip.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v1] [media] atmel-isi: code cleanup
-Date: Fri, 19 May 2017 12:08:59 +0000
-Message-ID: <e1973f0e-4ba2-24ca-f013-c3ef20a7bf47@st.com>
-References: <1495188292-3113-1-git-send-email-hugues.fruchet@st.com>
- <1495188292-3113-2-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1495188292-3113-2-git-send-email-hugues.fruchet@st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <E82E793CF5FD7C459A63D00B507A61E6@st.com>
-Content-Transfer-Encoding: base64
+        Mon, 15 May 2017 06:28:04 -0400
+Date: Mon, 15 May 2017 13:27:27 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: walter harms <wharms@bfs.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Alan Cox <alan@linux.intel.com>,
+        David Binderman <dcb314@hotmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH 2/2] staging/atomisp: putting NULs in the wrong place
+Message-ID: <20170515102727.fv34r6kgkdcv7lqk@mwanda>
+References: <20170515100135.guvreypnckqolnrq@mwanda>
+ <59198139.9030405@bfs.de>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <59198139.9030405@bfs.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-QWRkaW5nIFNvbmdqdW4gYW5kIEx1ZG92aWMgYXMgQXRtZWwgbWFpbnRhaW5lcnMsIHNvcnJ5IGZv
-ciBpbmNvbnZlbmllbmNlLg0KDQpPbiAwNS8xOS8yMDE3IDEyOjA0IFBNLCBIdWd1ZXMgRnJ1Y2hl
-dCB3cm90ZToNCj4gRW5zdXJlIHRoYXQgSVNJIGlzIGNsb2NrZWQgYmVmb3JlIHN0YXJ0aW5nIHNl
-bnNvciBzdWIgZGV2aWNlLg0KPiBSZW1vdmUgdW4tbmVlZGVkIHR5cGUgY2hlY2sgaW4gdHJ5X2Zt
-dCgpLg0KPiBVc2UgY2xhbXAoKSBtYWNybyBmb3IgaGFyZHdhcmUgY2FwYWJpbGl0aWVzLg0KPiBG
-aXggd3JvbmcgdGFidWxhdGlvbiB0byBzcGFjZS4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEh1Z3Vl
-cyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+DQo+IC0tLQ0KPiAgIGRyaXZlcnMvbWVk
-aWEvcGxhdGZvcm0vYXRtZWwvYXRtZWwtaXNpLmMgfCAyNCArKysrKysrKysrLS0tLS0tLS0tLS0t
-LS0NCj4gICAxIGZpbGUgY2hhbmdlZCwgMTAgaW5zZXJ0aW9ucygrKSwgMTQgZGVsZXRpb25zKC0p
-DQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9hdG1lbC9hdG1lbC1p
-c2kuYyBiL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vYXRtZWwvYXRtZWwtaXNpLmMNCj4gaW5kZXgg
-ZTQ4NjdmOC4uN2JmOWY3ZCAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9h
-dG1lbC9hdG1lbC1pc2kuYw0KPiArKysgYi9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL2F0bWVsL2F0
-bWVsLWlzaS5jDQo+IEBAIC0zNiw4ICszNiw4IEBADQo+ICAgDQo+ICAgI2luY2x1ZGUgImF0bWVs
-LWlzaS5oIg0KPiAgIA0KPiAtI2RlZmluZSBNQVhfU1VQUE9SVF9XSURUSAkJMjA0OA0KPiAtI2Rl
-ZmluZSBNQVhfU1VQUE9SVF9IRUlHSFQJCTIwNDgNCj4gKyNkZWZpbmUgTUFYX1NVUFBPUlRfV0lE
-VEgJCTIwNDhVDQo+ICsjZGVmaW5lIE1BWF9TVVBQT1JUX0hFSUdIVAkJMjA0OFUNCj4gICAjZGVm
-aW5lIE1JTl9GUkFNRV9SQVRFCQkJMTUNCj4gICAjZGVmaW5lIEZSQU1FX0lOVEVSVkFMX01JTExJ
-X1NFQwkoMTAwMCAvIE1JTl9GUkFNRV9SQVRFKQ0KPiAgIA0KPiBAQCAtNDI0LDYgKzQyNCw4IEBA
-IHN0YXRpYyBpbnQgc3RhcnRfc3RyZWFtaW5nKHN0cnVjdCB2YjJfcXVldWUgKnZxLCB1bnNpZ25l
-ZCBpbnQgY291bnQpDQo+ICAgCXN0cnVjdCBmcmFtZV9idWZmZXIgKmJ1ZiwgKm5vZGU7DQo+ICAg
-CWludCByZXQ7DQo+ICAgDQo+ICsJcG1fcnVudGltZV9nZXRfc3luYyhpc2ktPmRldik7DQo+ICsN
-Cj4gICAJLyogRW5hYmxlIHN0cmVhbSBvbiB0aGUgc3ViIGRldmljZSAqLw0KPiAgIAlyZXQgPSB2
-NGwyX3N1YmRldl9jYWxsKGlzaS0+ZW50aXR5LnN1YmRldiwgdmlkZW8sIHNfc3RyZWFtLCAxKTsN
-Cj4gICAJaWYgKHJldCAmJiByZXQgIT0gLUVOT0lPQ1RMQ01EKSB7DQo+IEBAIC00MzEsOCArNDMz
-LDYgQEAgc3RhdGljIGludCBzdGFydF9zdHJlYW1pbmcoc3RydWN0IHZiMl9xdWV1ZSAqdnEsIHVu
-c2lnbmVkIGludCBjb3VudCkNCj4gICAJCWdvdG8gZXJyX3N0YXJ0X3N0cmVhbTsNCj4gICAJfQ0K
-PiAgIA0KPiAtCXBtX3J1bnRpbWVfZ2V0X3N5bmMoaXNpLT5kZXYpOw0KPiAtDQo+ICAgCS8qIFJl
-c2V0IElTSSAqLw0KPiAgIAlyZXQgPSBhdG1lbF9pc2lfd2FpdF9zdGF0dXMoaXNpLCBXQUlUX0lT
-SV9SRVNFVCk7DQo+ICAgCWlmIChyZXQgPCAwKSB7DQo+IEBAIC00NTUsMTAgKzQ1NSwxMSBAQCBz
-dGF0aWMgaW50IHN0YXJ0X3N0cmVhbWluZyhzdHJ1Y3QgdmIyX3F1ZXVlICp2cSwgdW5zaWduZWQg
-aW50IGNvdW50KQ0KPiAgIAlyZXR1cm4gMDsNCj4gICANCj4gICBlcnJfcmVzZXQ6DQo+IC0JcG1f
-cnVudGltZV9wdXQoaXNpLT5kZXYpOw0KPiAgIAl2NGwyX3N1YmRldl9jYWxsKGlzaS0+ZW50aXR5
-LnN1YmRldiwgdmlkZW8sIHNfc3RyZWFtLCAwKTsNCj4gICANCj4gICBlcnJfc3RhcnRfc3RyZWFt
-Og0KPiArCXBtX3J1bnRpbWVfcHV0KGlzaS0+ZGV2KTsNCj4gKw0KPiAgIAlzcGluX2xvY2tfaXJx
-KCZpc2ktPmlycWxvY2spOw0KPiAgIAlpc2ktPmFjdGl2ZSA9IE5VTEw7DQo+ICAgCS8qIFJlbGVh
-c2UgYWxsIGFjdGl2ZSBidWZmZXJzICovDQo+IEBAIC01NjYsMjAgKzU2NywxNSBAQCBzdGF0aWMg
-aW50IGlzaV90cnlfZm10KHN0cnVjdCBhdG1lbF9pc2kgKmlzaSwgc3RydWN0IHY0bDJfZm9ybWF0
-ICpmLA0KPiAgIAl9Ow0KPiAgIAlpbnQgcmV0Ow0KPiAgIA0KPiAtCWlmIChmLT50eXBlICE9IFY0
-TDJfQlVGX1RZUEVfVklERU9fQ0FQVFVSRSkNCj4gLQkJcmV0dXJuIC1FSU5WQUw7DQo+IC0NCj4g
-ICAJaXNpX2ZtdCA9IGZpbmRfZm9ybWF0X2J5X2ZvdXJjYyhpc2ksIHBpeGZtdC0+cGl4ZWxmb3Jt
-YXQpOw0KPiAgIAlpZiAoIWlzaV9mbXQpIHsNCj4gICAJCWlzaV9mbXQgPSBpc2ktPnVzZXJfZm9y
-bWF0c1tpc2ktPm51bV91c2VyX2Zvcm1hdHMgLSAxXTsNCj4gICAJCXBpeGZtdC0+cGl4ZWxmb3Jt
-YXQgPSBpc2lfZm10LT5mb3VyY2M7DQo+ICAgCX0NCj4gICANCj4gLQkvKiBMaW1pdCB0byBBdG1l
-bCBJU0MgaGFyZHdhcmUgY2FwYWJpbGl0aWVzICovDQo+IC0JaWYgKHBpeGZtdC0+d2lkdGggPiBN
-QVhfU1VQUE9SVF9XSURUSCkNCj4gLQkJcGl4Zm10LT53aWR0aCA9IE1BWF9TVVBQT1JUX1dJRFRI
-Ow0KPiAtCWlmIChwaXhmbXQtPmhlaWdodCA+IE1BWF9TVVBQT1JUX0hFSUdIVCkNCj4gLQkJcGl4
-Zm10LT5oZWlnaHQgPSBNQVhfU1VQUE9SVF9IRUlHSFQ7DQo+ICsJLyogTGltaXQgdG8gQXRtZWwg
-SVNJIGhhcmR3YXJlIGNhcGFiaWxpdGllcyAqLw0KPiArCXBpeGZtdC0+d2lkdGggPSBjbGFtcChw
-aXhmbXQtPndpZHRoLCAwVSwgTUFYX1NVUFBPUlRfV0lEVEgpOw0KPiArCXBpeGZtdC0+aGVpZ2h0
-ID0gY2xhbXAocGl4Zm10LT5oZWlnaHQsIDBVLCBNQVhfU1VQUE9SVF9IRUlHSFQpOw0KPiAgIA0K
-PiAgIAl2NGwyX2ZpbGxfbWJ1c19mb3JtYXQoJmZvcm1hdC5mb3JtYXQsIHBpeGZtdCwgaXNpX2Zt
-dC0+bWJ1c19jb2RlKTsNCj4gICAJcmV0ID0gdjRsMl9zdWJkZXZfY2FsbChpc2ktPmVudGl0eS5z
-dWJkZXYsIHBhZCwgc2V0X2ZtdCwNCj4gQEAgLTEwNTgsNyArMTA1NCw3IEBAIHN0YXRpYyBpbnQg
-aXNpX2dyYXBoX25vdGlmeV9jb21wbGV0ZShzdHJ1Y3QgdjRsMl9hc3luY19ub3RpZmllciAqbm90
-aWZpZXIpDQo+ICAgCXN0cnVjdCBhdG1lbF9pc2kgKmlzaSA9IG5vdGlmaWVyX3RvX2lzaShub3Rp
-Zmllcik7DQo+ICAgCWludCByZXQ7DQo+ICAgDQo+IC0JaXNpLT52ZGV2LT5jdHJsX2hhbmRsZXIJ
-PSBpc2ktPmVudGl0eS5zdWJkZXYtPmN0cmxfaGFuZGxlcjsNCj4gKwlpc2ktPnZkZXYtPmN0cmxf
-aGFuZGxlciA9IGlzaS0+ZW50aXR5LnN1YmRldi0+Y3RybF9oYW5kbGVyOw0KPiAgIAlyZXQgPSBp
-c2lfZm9ybWF0c19pbml0KGlzaSk7DQo+ICAgCWlmIChyZXQpIHsNCj4gICAJCWRldl9lcnIoaXNp
-LT5kZXYsICJObyBzdXBwb3J0ZWQgbWVkaWFidXMgZm9ybWF0IGZvdW5kXG4iKTsNCj4g
+On Mon, May 15, 2017 at 12:21:45PM +0200, walter harms wrote:
+> can this strcpy_s() replaced with strlcpy ?
+> 
+
+These functions obviously should be removed, yes.  Please send a patch
+for that and we can drop my patches.  Give David reported-by credit.
+
+regards,
+dan carpenter
