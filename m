@@ -1,49 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:41315 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758718AbdEAQEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 May 2017 12:04:45 -0400
-Subject: [PATCH 10/16] lirc_dev: remove superfluous get/put_device() calls
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, sean@mess.org
-Date: Mon, 01 May 2017 18:04:26 +0200
-Message-ID: <149365466682.12922.11735486114121409407.stgit@zeus.hardeman.nu>
-In-Reply-To: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
-References: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
+Received: from userp1040.oracle.com ([156.151.31.81]:20198 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754906AbdEOKCA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 15 May 2017 06:02:00 -0400
+Date: Mon, 15 May 2017 13:01:35 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Alan Cox <alan@linux.intel.com>,
+        David Binderman <dcb314@hotmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH 2/2] staging/atomisp: putting NULs in the wrong place
+Message-ID: <20170515100135.guvreypnckqolnrq@mwanda>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <HE1PR0801MB18654EFD46513A845BBD4BAD9CE00@HE1PR0801MB1865.eurprd08.prod.outlook.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-device_add() and friends alredy manage the references to the parent device so
-these calls aren't necessary.
+We're putting the NUL terminators one space beyond where they belong.
+This doesn't show up in testing because all but the callers put a NUL in
+the correct place themselves.  LOL.  It causes a static checker warning
+about buffer overflows.
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/lirc_dev.c |    4 ----
- 1 file changed, 4 deletions(-)
+Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 574f4dd416b8..34bd3f8bf30d 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -69,8 +69,6 @@ static void lirc_release(struct device *ld)
- {
- 	struct irctl *ir = container_of(ld, struct irctl, dev);
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/string_support.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/string_support.h
+index 74b5a1c7ac9a..c53241a7a281 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/string_support.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/string_support.h
+@@ -117,7 +117,7 @@ STORAGE_CLASS_INLINE int strncpy_s(
  
--	put_device(ir->dev.parent);
--
- 	if (ir->buf_internal) {
- 		lirc_buffer_free(ir->buf);
- 		kfree(ir->buf);
-@@ -230,8 +228,6 @@ int lirc_register_driver(struct lirc_driver *d)
+ 	/* dest_str is big enough for the len */
+ 	strncpy(dest_str, src_str, len);
+-	dest_str[len+1] = '\0';
++	dest_str[len] = '\0';
+ 	return 0;
+ }
  
- 	mutex_unlock(&lirc_dev_lock);
+@@ -157,7 +157,7 @@ STORAGE_CLASS_INLINE int strcpy_s(
  
--	get_device(ir->dev.parent);
--
- 	dev_info(ir->d.dev, "lirc_dev: driver %s registered at minor = %d\n",
- 		 ir->d.name, ir->d.minor);
+ 	/* dest_str is big enough for the len */
+ 	strncpy(dest_str, src_str, len);
+-	dest_str[len+1] = '\0';
++	dest_str[len] = '\0';
+ 	return 0;
+ }
  
