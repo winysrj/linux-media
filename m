@@ -1,127 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:56273 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752001AbdELEXZ (ORCPT
+Received: from mail-oi0-f52.google.com ([209.85.218.52]:33543 "EHLO
+        mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965839AbdEOUY3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 May 2017 00:23:25 -0400
-Message-ID: <28177e3befb5baf3bcda5f79d9fdeaf2@smtp-cloud2.xs4all.net>
-Date: Fri, 12 May 2017 06:23:22 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Mon, 15 May 2017 16:24:29 -0400
+Received: by mail-oi0-f52.google.com with SMTP id w10so1420049oif.0
+        for <linux-media@vger.kernel.org>; Mon, 15 May 2017 13:24:28 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAF_dkJCmY-n_0MdceZGXRA5fuPuMCg395Ct8x8WGRF+QCAp1eg@mail.gmail.com>
+References: <CAF_dkJB=2PNbD79msw=G47U-6QkajDOWwLJbr3pCaTQeqn=fXA@mail.gmail.com>
+ <CAL8zT=jwVquxzvnieVA2njSTdL98mOt+n=oy=Nb8ptXdBbJ-1w@mail.gmail.com> <CAF_dkJCmY-n_0MdceZGXRA5fuPuMCg395Ct8x8WGRF+QCAp1eg@mail.gmail.com>
+From: Patrick Doyle <wpdster@gmail.com>
+Date: Mon, 15 May 2017 16:23:58 -0400
+Message-ID: <CAF_dkJABcAgHzEVOwg7AQHK1+5n2TqJy2tCsOdUp-QC6qO1SFQ@mail.gmail.com>
+Subject: Re: Is it possible to have a binary blob custom control?
+To: Jean-Michel Hautbois <jhautbois@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Another possible mis-abuse of a binary blob control would be as a
+mechanism for retrieving a lumanance histogram from an image
+processing peripheral.  Once again, I could implement that through the
+debugfs as Jean-Michel suggested, or I could do something more
+standard.
 
-Results of the daily build of media_tree:
+Any suggestions for a "more standard" mechanism for retrieving
+out-of-band data (such as a histogram) from a V4L2 camera source?
 
-date:			Fri May 12 05:00:17 CEST 2017
-media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
-media_build git hash:	ab988a3d089232ce9e1aec2f259e947c06983dbc
-v4l-utils git hash:	6acac5cec698de39b9398b66c4f5f4db6b2730d8
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+I guess, now that I have mentioned out-of-band data, I could also
+start thinking about the "embedded data lines" that are provided as
+the first two lines from my Sony imager.  Is there any standard way
+for directing those two lines to a separate buffer?
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: WARNINGS
-linux-4.9.26-i686: WARNINGS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+I'd rather ask silly sounding questions, than implement silly code. :-)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+--wpd
