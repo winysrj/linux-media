@@ -1,277 +1,720 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f50.google.com ([209.85.215.50]:36587 "EHLO
-        mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750854AbdE2Hta (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45118 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751529AbdEPM4L (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 03:49:30 -0400
-Received: by mail-lf0-f50.google.com with SMTP id h4so30359105lfj.3
-        for <linux-media@vger.kernel.org>; Mon, 29 May 2017 00:49:29 -0700 (PDT)
-Date: Mon, 29 May 2017 09:49:26 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v2 15/17] rcar-vin: register the video device at probe
- time
-Message-ID: <20170529074926.GL5567@bigcity.dyn.berto.se>
-References: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
- <20170524001540.13613-16-niklas.soderlund@ragnatech.se>
- <5c911c00-ef4c-89c9-4629-20abaeb37f26@xs4all.nl>
- <072c6d94-3ede-724d-2626-e085e17f7c6d@xs4all.nl>
+        Tue, 16 May 2017 08:56:11 -0400
+Subject: Re: [RFC PATCH v2 1/4] media: i2c: adv748x: add adv748x driver
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <cover.5d2526b759f71c06d51df279c3d5885aca476fb6.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <6aba7dbe2cdecc1afe6efc25fd0cea3f26508b1d.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <20170512164633.GL3227@valkosipuli.retiisi.org.uk>
+ <399f5310-1270-40a0-843a-3a07ebf47f38@ideasonboard.com>
+ <20170516115430.GN3227@valkosipuli.retiisi.org.uk>
+Cc: Kieran Bingham <kbingham@kernel.org>,
+        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        gennarone@gmail.com
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <76dee3f6-0187-1b9d-06ea-d49d85741d14@ideasonboard.com>
+Date: Tue, 16 May 2017 13:56:05 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <20170516115430.GN3227@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <072c6d94-3ede-724d-2626-e085e17f7c6d@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Sakari,
 
-Thanks for taking the time to look at this :-)
+(Gianluca, I've pulled you in on CC in respect to discussing changes you
+implemented for supporting GCC < 4.4.6)
 
-On 2017-05-29 08:56:31 +0200, Hans Verkuil wrote:
-> On 05/29/2017 08:52 AM, Hans Verkuil wrote:
-> > Hi Niklas,
-> > 
-> > On 05/24/2017 02:15 AM, Niklas Söderlund wrote:
-> > > From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > > 
-> > > The driver registers the video device from the async complete callback
-> > > and unregistered in the async unbind callback. This creates problems if
-> > > if the subdevice is bound, unbound and later rebound. The second time
-> > > video_register_device() is called it fails:
-> > > 
-> > >      kobject (eb3be918): tried to init an initialized object, something is seriously wrong.
-> > > 
-> > > To prevent this register the video device at prob time and don't allow
-> > > user-space to open the video device if the subdevice have not yet been
-> > > bound.
-> > 
-> > This patch feels wrong. Creating the video device in the notify_complete seems
-> > right to me, so the problem is much more likely in the removal of the video device.
-> > 
-> > What *exactly* goes wrong here
-
-When calling video_register_device() it fails since the device structure 
-have already been registered once. So it is not possible to register, 
-unregister and then register the same video device struct. The other 
-solution to this is to memset the whole embedded video device struct to 
-zero  before initializing it and calling video_register_device(), but 
-that feels more wrong. Let me know what you think and I will rework this 
-patch.
-
-
-> > 
-> > FYI: I'm taking all other patches of this series,
+On 16/05/17 12:54, Sakari Ailus wrote:
+> Hi Kieran,
 > 
-> Oops, I saw Sakari had two comments. I'll wait for a v3 then.
+> On Mon, May 15, 2017 at 01:32:41PM +0100, Kieran Bingham wrote:
+>> Hi Sakari
+>>
+>> On 12/05/17 17:46, Sakari Ailus wrote:
+>>> Hi Kieran,
+>>>
+>>> Thanks for the patches!
+>>
+>> Thankyou for the review!
 > 
-> If you make a v3 with Sakari's suggestions and drop this patch, then I can merge
-> it and make a pull request for it.
-
-I can't find Sakaris comments in my inbox or on the ML for this thread.  
-Where did you see them?
-
+> You're welcome! :-)
 > 
-> This patch can be handled separately from the other the patches.
+>>
+>>> Would you have a media-ctl -p && media-ctl --print-dot (or the PS file) to
+>>> see how this looks like in practice?
+>>
+>> The file I linked to on Friday showed the immutable links version (I have that
+>> in as a temporary workaround until the links are correctly ignored by rvin /
+>> handled by core correctly)
+>>
+>> So again, here is the posted 'immutable' version, which represents this patch
+>> version:
+>>
+>>     http://janet.linuxembedded.co.uk/adv748x-immutable.png
+>>
+>> But the end goal of this patchset will be the following configuration:
+>>
+>>     http://janet.linuxembedded.co.uk/adv748x-non-immutable.png
 > 
-> Regards,
-> 
-> 	Hans
-> 
-> > but I leave this one out
-> > as I am not convinced of this patch. Having to block open() calls is always
-> > a bad sign.
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> > > 
-> > > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > > ---
-> > >    drivers/media/platform/rcar-vin/rcar-core.c | 47 ++++++++++++++++++++++++++---
-> > >    drivers/media/platform/rcar-vin/rcar-v4l2.c | 42 ++++----------------------
-> > >    drivers/media/platform/rcar-vin/rcar-vin.h  |  1 +
-> > >    3 files changed, 50 insertions(+), 40 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> > > index dcca906ba58435f5..0e1757301a0bca1e 100644
-> > > --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> > > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> > > @@ -74,6 +74,7 @@ static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
-> > >    static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
-> > >    {
-> > >    	struct rvin_dev *vin = notifier_to_vin(notifier);
-> > > +	struct v4l2_subdev *sd = vin_to_source(vin);
-> > >    	int ret;
-> > >    	/* Verify subdevices mbus format */
-> > > @@ -92,7 +93,35 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
-> > >    		return ret;
-> > >    	}
-> > > -	return rvin_v4l2_probe(vin);
-> > > +	/* Add the controls */
-> > > +	/*
-> > > +	 * Currently the subdev with the largest number of controls (13) is
-> > > +	 * ov6550. So let's pick 16 as a hint for the control handler. Note
-> > > +	 * that this is a hint only: too large and you waste some memory, too
-> > > +	 * small and there is a (very) small performance hit when looking up
-> > > +	 * controls in the internal hash.
-> > > +	 */
-> > > +	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
-> > > +	if (ret < 0)
-> > > +		return ret;
-> > > +
-> > > +	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler, NULL);
-> > > +	if (ret < 0)
-> > > +		return ret;
-> > > +
-> > > +	ret = v4l2_subdev_call(sd, video, g_tvnorms, &vin->vdev.tvnorms);
-> > > +	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
-> > > +		return ret;
-> > > +
-> > > +	if (vin->vdev.tvnorms == 0) {
-> > > +		/* Disable the STD API if there are no tvnorms defined */
-> > > +		v4l2_disable_ioctl(&vin->vdev, VIDIOC_G_STD);
-> > > +		v4l2_disable_ioctl(&vin->vdev, VIDIOC_S_STD);
-> > > +		v4l2_disable_ioctl(&vin->vdev, VIDIOC_QUERYSTD);
-> > > +		v4l2_disable_ioctl(&vin->vdev, VIDIOC_ENUMSTD);
-> > > +	}
-> > > +
-> > > +	return rvin_reset_format(vin);
-> > >    }
-> > >    static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
-> > > @@ -102,7 +131,7 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
-> > >    	struct rvin_dev *vin = notifier_to_vin(notifier);
-> > >    	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
-> > > -	rvin_v4l2_remove(vin);
-> > > +	v4l2_ctrl_handler_free(&vin->ctrl_handler);
-> > >    	vin->digital.subdev = NULL;
-> > >    }
-> > > @@ -290,9 +319,13 @@ static int rcar_vin_probe(struct platform_device *pdev)
-> > >    	if (ret)
-> > >    		return ret;
-> > > +	ret = rvin_v4l2_probe(vin);
-> > > +	if (ret)
-> > > +		goto error_dma;
-> > > +
-> > >    	ret = rvin_digital_graph_init(vin);
-> > >    	if (ret < 0)
-> > > -		goto error;
-> > > +		goto error_v4l2;
-> > >    	pm_suspend_ignore_children(&pdev->dev, true);
-> > >    	pm_runtime_enable(&pdev->dev);
-> > > @@ -300,7 +333,9 @@ static int rcar_vin_probe(struct platform_device *pdev)
-> > >    	platform_set_drvdata(pdev, vin);
-> > >    	return 0;
-> > > -error:
-> > > +error_v4l2:
-> > > +	rvin_v4l2_remove(vin);
-> > > +error_dma:
-> > >    	rvin_dma_remove(vin);
-> > >    	return ret;
-> > > @@ -314,6 +349,10 @@ static int rcar_vin_remove(struct platform_device *pdev)
-> > >    	v4l2_async_notifier_unregister(&vin->notifier);
-> > > +	/* Checks internaly if handlers have been init or not */
-> > > +	v4l2_ctrl_handler_free(&vin->ctrl_handler);
-> > > +
-> > > +	rvin_v4l2_remove(vin);
-> > >    	rvin_dma_remove(vin);
-> > >    	return 0;
-> > > diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> > > index be6f41bf82ac3bc5..6f1c27fc828fe57e 100644
-> > > --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> > > +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> > > @@ -103,7 +103,7 @@ static void rvin_reset_crop_compose(struct rvin_dev *vin)
-> > >    	vin->compose.height = vin->format.height;
-> > >    }
-> > > -static int rvin_reset_format(struct rvin_dev *vin)
-> > > +int rvin_reset_format(struct rvin_dev *vin)
-> > >    {
-> > >    	struct v4l2_subdev_format fmt = {
-> > >    		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-> > > @@ -785,6 +785,11 @@ static int rvin_open(struct file *file)
-> > >    	mutex_lock(&vin->lock);
-> > > +	if (!vin->digital.subdev) {
-> > > +		ret = -ENODEV;
-> > > +		goto unlock;
-> > > +	}
-> > > +
-> > >    	file->private_data = vin;
-> > >    	ret = v4l2_fh_open(file);
-> > > @@ -848,9 +853,6 @@ void rvin_v4l2_remove(struct rvin_dev *vin)
-> > >    	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
-> > >    		  video_device_node_name(&vin->vdev));
-> > > -	/* Checks internaly if handlers have been init or not */
-> > > -	v4l2_ctrl_handler_free(&vin->ctrl_handler);
-> > > -
-> > >    	/* Checks internaly if vdev have been init or not */
-> > >    	video_unregister_device(&vin->vdev);
-> > >    }
-> > > @@ -873,41 +875,10 @@ static void rvin_notify(struct v4l2_subdev *sd,
-> > >    int rvin_v4l2_probe(struct rvin_dev *vin)
-> > >    {
-> > >    	struct video_device *vdev = &vin->vdev;
-> > > -	struct v4l2_subdev *sd = vin_to_source(vin);
-> > >    	int ret;
-> > > -	v4l2_set_subdev_hostdata(sd, vin);
-> > > -
-> > >    	vin->v4l2_dev.notify = rvin_notify;
-> > > -	ret = v4l2_subdev_call(sd, video, g_tvnorms, &vin->vdev.tvnorms);
-> > > -	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
-> > > -		return ret;
-> > > -
-> > > -	if (vin->vdev.tvnorms == 0) {
-> > > -		/* Disable the STD API if there are no tvnorms defined */
-> > > -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_G_STD);
-> > > -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_S_STD);
-> > > -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_QUERYSTD);
-> > > -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_ENUMSTD);
-> > > -	}
-> > > -
-> > > -	/* Add the controls */
-> > > -	/*
-> > > -	 * Currently the subdev with the largest number of controls (13) is
-> > > -	 * ov6550. So let's pick 16 as a hint for the control handler. Note
-> > > -	 * that this is a hint only: too large and you waste some memory, too
-> > > -	 * small and there is a (very) small performance hit when looking up
-> > > -	 * controls in the internal hash.
-> > > -	 */
-> > > -	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
-> > > -	if (ret < 0)
-> > > -		return ret;
-> > > -
-> > > -	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler, NULL);
-> > > -	if (ret < 0)
-> > > -		return ret;
-> > > -
-> > >    	/* video node */
-> > >    	vdev->fops = &rvin_fops;
-> > >    	vdev->v4l2_dev = &vin->v4l2_dev;
-> > > @@ -921,7 +892,6 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
-> > >    		V4L2_CAP_READWRITE;
-> > >    	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
-> > > -	rvin_reset_format(vin);
-> > >    	ret = video_register_device(&vin->vdev, VFL_TYPE_GRABBER, -1);
-> > >    	if (ret) {
-> > > diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-> > > index 9bfb5a7c4dc4f215..9d0d4a5001b6ccd8 100644
-> > > --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> > > +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> > > @@ -158,6 +158,7 @@ void rvin_dma_remove(struct rvin_dev *vin);
-> > >    int rvin_v4l2_probe(struct rvin_dev *vin);
-> > >    void rvin_v4l2_remove(struct rvin_dev *vin);
-> > > +int rvin_reset_format(struct rvin_dev *vin);
-> > >    const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
-> > > 
-> > 
+> What does media-ctl -p say?
 > 
 
--- 
-Regards,
-Niklas Söderlund
+media-ctl -p | pastebinit : http://paste.ubuntu.com/24586605/
+
+> ...
+> 
+>>>> +static int adv748x_afe_g_input_status(struct v4l2_subdev *sd, u32 *status)
+>>>> +{
+>>>> +	struct adv748x_state *state = adv748x_afe_to_state(sd);
+>>>> +	int ret;
+>>>> +
+>>>> +	ret = mutex_lock_interruptible(&state->mutex);
+>>>
+>>> I wonder if this is necessary. Do you expect the mutex to be taken for
+>>> extended periods of time?
+>>
+>> It looks like the only other adv* driver to take a lock here is the 7180.
+>> Perhaps that is where the heritage of this code derived from.
+>>
+>> I don't think the locking should be held for a long time anywhere, but I will
+>> try to go through and consider all the locking throughout the code base.
+>>
+>> At the moment I think anything that calls adv748x_afe_status() should be locked
+>> to ensure serialisation through adv748x_afe_read_ro_map().
+> 
+> I meant whether you need the "_interruptible" part. It's quite a bit of
+> repeating error handling that looks mostly unnecessary.
+> 
+
+Aha - I see what you mean now...
+
+Most of these use I2C transactions though, so that would be our source of any delay.
+
+If it's acceptable to expect an I2C bus to never hang, or if the I2C subsystem
+can handle that, then we can chop the interruptible ... but I'm not sure I2C bus
+transactions are guaranteed like that ? Don't things like clock stretching, and
+unreliable hardware leave us vulnerable there...
+
+>>
+>>
+>>>> +	if (ret)
+>>>> +		return ret;
+>>>> +
+>>>> +	ret = adv748x_afe_status(state, status, NULL);
+>>>> +
+>>>> +	mutex_unlock(&state->mutex);
+>>>> +	return ret;
+>>>> +}
+> 
+> ...
+> 
+>>>> +static int adv748x_afe_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+>>>> +{
+>>>> +	struct adv748x_state *state =
+>>>> +		container_of(ctrl->handler, struct adv748x_state, afe.ctrl_hdl);
+>>>> +	unsigned int width, height, fps;
+>>>> +	v4l2_std_id std;
+>>>> +
+>>>> +	switch (ctrl->id) {
+>>>> +	case V4L2_CID_PIXEL_RATE:
+>>>
+>>> I presume you will know when PIXEL_RATE changes? 
+>>
+>> No interrupt handling in here yet to handle input changes - but I'm working on
+>> that. At the least it could be set on format configurations.
+> 
+> Ack. Then I guess this is good.
+> 
+>>
+>>
+>>> You can use
+>>> v4l2_ctrl_s_ctrl_int64() to change it. That way control events will be
+>>> emitted correctly, too.
+>>
+>> Thanks - I didn't know about those helpers. I'll try to add where applicable.
+>>
+>> These controls are indirectly read through the CSI2 'pass-through' entity.
+>>
+>> Do I need to add some event handling in there to update it's control value to
+>> propagate the events?
+> 
+> As long as you allow subscribing the control event I guess nothing special
+> is needed.
+> 
+> ..
+> 
+>>>> +int adv748x_afe_probe(struct adv748x_state *state, struct device_node *ep)
+>>>> +{
+>>>> +	int ret;
+>>>> +	unsigned int i;
+>>>> +
+>>>> +	state->afe.streaming = false;
+>>>> +	state->afe.curr_norm = V4L2_STD_ALL;
+>>>> +
+>>>> +	adv748x_subdev_init(&state->afe.sd, state, &adv748x_afe_ops, "afe");
+>>>> +
+>>>> +	/* Ensure that matching is based upon the endpoint fwnodes */
+>>>> +	state->afe.sd.fwnode = &ep->fwnode;
+>>>
+>>> I wonder if you really need to convert all users of async matching to use
+>>> endpoints --- could you opportunistically peek if the device node matches,
+>>> just in case? You can't have an accidental positive match anyway.
+>>>
+>>> So, the match is now for plain fwnode pointers, and it would be:
+>>>
+>>> return async->fwnode == fwnode ||
+>>> 	port_parent(parent(async->fwnode)) == fwnode ||
+>>> 	async->fwnode == port_parent(parent(fwnode));
+>>
+>>
+>> If we adapt the core to match against endpoint comparisons and device node
+>> comparisons then yes we wouldn't have to adapt everything, I.e. we wouldn't have
+>> to change all the async devices - but we would have to adapt all the bus/bridge
+>> drivers (those who perform the v4l2_async_notifier_register() call) as they must
+>> register their notifier against an endpoint if they are to ever be able to
+>> connect to an ADV748x or other device which will rely upon multiple endpoints.
+> 
+> If there really is a need to, we can add a new framework helper function for
+> that --- as I think Niklas proposed. I'm not really sure it should be really
+> needed though; e.g. the omap3isp driver does without that.
+> 
+
+I'm afraid I don't understand what you mean by omap3isp doing without ...
+
+In omap3isp/isp.c: isp_fwnodes_parse() the async notifier is registered looking
+at the endpoints parent fwnode:
+
+		isd->asd.match.fwnode.fwnode =
+			fwnode_graph_get_remote_port_parent(fwnode);
+
+This would therefore not support ADV748x ... (it wouldn't know which TX/CSI
+entity to match against)
+
+So the way I see it is that all devices which currently register an async
+notifier should now register the match against the endpoint instead of the
+parent device:
+
+ - isd->asd.match.fwnode.fwnode = fwnode_graph_get_remote_port_parent(fwnode);
+ + isd->asd.match.fwnode.fwnode = fwnode;
+
+And then if we adapt the match to check against:
+   fwnode == fwnode || fwnode == fwnode_graph_get_remote_port_parent(fwnode);
+
+This would then support existing sensor/remote devices which still store their
+(default) device fwnode, but also match specifically against devices which store
+their endpoint fwnode...
+
+So this looks like the following drivers would need to be updated:
+
+(users of fwnode.fwnode:)
+ drivers/media/platform/am437x/am437x-vpfe
+ drivers/media/platform/atmel/atmel-isc.c
+ drivers/media/platform/exynos4-is/media-dev.c
+ drivers/media/platform/omap3isp/isp.c
+ drivers/media/platform/pxa_camera.c
+ drivers/media/platform/rcar-vin
+ drivers/media/platform/soc_camera/soc_camera.c
+ drivers/media/platform/ti-vpe/cal.c
+ drivers/media/platform/xilinx/xilinx-vipp.c
+
+
+> ...
+> 
+>>>> +void adv748x_subdev_init(struct v4l2_subdev *sd, struct adv748x_state *state,
+>>>> +		const struct v4l2_subdev_ops *ops, const char *ident)
+>>>> +{
+>>>> +	v4l2_subdev_init(sd, ops);
+>>>> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>>>> +
+>>>> +	/* the owner is the same as the i2c_client's driver owner */
+>>>> +	sd->owner = state->dev->driver->owner;
+>>>> +	sd->dev = state->dev;
+>>>> +
+>>>> +	v4l2_set_subdevdata(sd, state);
+>>>
+>>> A lot of this would be done by v4l2_i2c_subdev_init(). You'd have to
+>>> relinquish your use of v4l2_set_subdevdata() --- it always points to the I²C
+>>> client in that case. You'll just need to dig your device state in a bit
+>>> different manner in that case.
+>>
+>> I don't believe I can use v4l2_i2c_subdev_init, as it tries to unregister the
+>> i2c clients automatically.
+> 
+> Good point. That's there mostly for sub-devices that have been created by
+> drivers.
+> 
+>>
+>> My use case here breaks the one subdevice -> one i2c client assumption held by
+>> the v4l2_i2c_subdev_init() and v4l2_device_unregister() code paths.
+> 
+> Ack. Feel free to ignore the comment then.
+> 
+>>
+>>
+>>>
+>>>> +
+>>>> +	/* initialize name */
+>>>> +	snprintf(sd->name, sizeof(sd->name), "%s %d-%04x %s",
+>>>> +		state->dev->driver->name,
+>>>> +		i2c_adapter_id(state->client->adapter),
+>>>> +		state->client->addr, ident);
+>>>> +
+>>>> +	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+>>>> +	sd->entity.ops = &adv748x_media_ops;
+>>>> +}
+>>>> +
+>>>> +static int adv748x_parse_dt(struct adv748x_state *state)
+>>>> +{
+>>>> +	struct device_node *ep_np = NULL;
+>>>> +	struct of_endpoint ep;
+>>>> +	unsigned int found = 0;
+>>>> +	int ret;
+>>>> +
+>>>
+>>> Would of_graph_get_remote_node() do this more simple? Not necessarily, just
+>>> wondering.
+>>
+>> I'm not certain I understand, but I don't think so.
+>>
+>> Up to 12 ports could potentially be mapped in the DT. I want to enumerate all of
+>> them:
+>>
+>> enum adv748x_ports {
+>> 	ADV748X_PORT_HDMI = 0,
+>> 	ADV748X_PORT_AIN1 = 1,
+>> 	ADV748X_PORT_AIN2 = 2,
+>> 	ADV748X_PORT_AIN3 = 3,
+>> 	ADV748X_PORT_AIN4 = 4,
+>> 	ADV748X_PORT_AIN5 = 5,
+>> 	ADV748X_PORT_AIN6 = 6,
+>> 	ADV748X_PORT_AIN7 = 7,
+>> 	ADV748X_PORT_AIN8 = 8,
+>> 	ADV748X_PORT_TTL = 9,
+>> 	ADV748X_PORT_TXA = 10,
+>> 	ADV748X_PORT_TXB = 11,
+>> 	ADV748X_PORT_MAX = 12,
+>> };
+>>
+>> Whilst currently we are hardwired to input from AIN8 on the AFE (a Todo to
+>> adapt), I would envisage that there might be entities described in the DT to
+>> state which ports have connections on them.
+> 
+> Indeed. I was thinking of this code would look like if one was using
+> of_graph_get_remote_node().
+> 
+>>
+>> I'd almost like to see the end video node being able to select from those
+>> (available) inputs as well - but that's out of scope for now - and we don't have
+>> a way to forward the 'inputs' through to the master driver.
+>>
+>>>> +	for_each_endpoint_of_node(state->dev->of_node, ep_np) {
+>>>> +		ret = of_graph_parse_endpoint(ep_np, &ep);
+> 
+> of_graph_parse_endpoint() always succeeds.
+> 
+> Do you call it for other purposes than to print information on the endpoint?
+
+To get the port and verify it.
+
+Now I think I see where you were going with of_graph_get_remote_node().
+This could just loop through 'known port' values instead... removing the need to
+parse_endpoint, and have other error checks...
+
+> 
+>>>> +		if (!ret) {
+>>>> +			adv_info(state, "Endpoint %s on port %d",
+>>>> +					of_node_full_name(ep.local_node),
+>>>> +					ep.port);
+>>>> +
+>>>> +			if (ep.port > ADV748X_PORT_MAX) {
+>>>> +				adv_err(state, "Invalid endpoint %s on port %d",
+>>>> +					of_node_full_name(ep.local_node),
+>>>> +					ep.port);
+>>>> +
+>>>> +				continue;
+>>>> +			}
+>>>> +
+>>>> +			state->endpoints[ep.port] = ep_np;
+>>>> +			found++;
+>>>> +		}
+>>>> +	}
+>>>> +
+>>>> +	return found ? 0 : -ENODEV;
+>>>> +}
+>>>> +
+> 
+> ...
+> 
+>>>> diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+>>>> new file mode 100644
+>>>> index 000000000000..d0a0fcfeae2e
+>>>> --- /dev/null
+>>>> +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> 
+> ...
+> 
+>>>> +}
+>>>> +
+>>>> +static struct v4l2_subdev *adv748x_csi2_get_remote_sd(struct media_pad *local)
+>>>> +{
+>>>> +	struct media_pad *pad;
+>>>> +
+>>>> +	pad = media_entity_remote_pad(local);
+>>>> +	if (!pad) {
+>>>> +		return NULL;
+>>>
+>>> if (...)
+>>> 	return NULL;
+>>>
+>>>> +	}
+>>>> +
+>>>> +	return media_entity_to_v4l2_subdev(pad->entity);
+>>>
+>>> Or:
+>>>
+>>> return pad ? media...(pad->entity) : NULL;
+>>
+>> Less lines - I like this better :)
+> 
+> How about making media_entity_to_v4l2_subdev() tolerate NULL argument? Then
+> it does just what you need here while others benefit from that, too.
+
+And that sounds even better!
+
+> 
+>>
+>>>
+>>>> +}
+>>>> +
+>>>> +/* -----------------------------------------------------------------------------
+>>>> + * v4l2_subdev_internal_ops
+>>>> + *
+>>>> + * We use the internal registered operation to be able to ensure that our
+>>>> + * incremental subdevices (not connected in the forward path) can be registered
+>>>> + * against the resulting video path and media device.
+>>>> + */
+>>>> +
+>>>> +static int adv748x_csi2_notify_complete(struct v4l2_async_notifier *notifier)
+>>>> +{
+>>>> +	struct adv748x_csi2 *tx = notifier_to_csi2(notifier);
+>>>> +	struct adv748x_state *state = tx->state;
+>>>> +	int ret;
+>>>> +
+>>>> +	ret = v4l2_device_register_subdev_nodes(tx->sd.v4l2_dev);
+>>>> +	if (ret) {
+>>>> +		adv_err(state, "Failed to register subdev nodes\n");
+>>>> +		return ret;
+>>>> +	}
+>>>> +
+>>>> +	/* Return early until we register TXB */
+>>>> +	if (is_txa(tx))
+>>>> +		return ret;
+>>>> +
+>>>> +	ret = adv748x_setup_links(state);
+>>>
+>>> Could you set up links first? It'd be really annoying to clean up the mess
+>>> after the sub-device nodes have been registered. Actually --- it's not even
+>>> doable at the moment.
+>>
+>> No - I don't think I can set up links until the devices are registered so that I
+>> have access to the media-dev.
+>>
+>> I think I've already tried that :)
+> 
+> You still don't need to register the sub-device nodes, do you? The
+> sub-devices are already registered before
+> v4l2_device_register_subdev_nodes(), right?
+> 
+
+Don't worry about the code above - It's all been deleted.
+
+I realised I was using the async notifiers to register the AFE/HDMI entities but
+it was completely overkill.
+
+Now I just register the subdevs 'normally?' when at the second TX entity
+.registered callback...
+
+This chopped out *a lot* of code :) so I'm hoping it's better.
+
+'V3' is fairly imminent.
+
+>>
+>>>
+>>>> +	if (ret) {
+>>>> +		adv_err(state, "Failed to setup entity links");
+>>>> +		return ret;
+>>>> +	}
+>>>> +
+>>>> +	return ret;
+>>>> +}
+>>>> +
+>>>> +static int adv748x_csi2_notify_bound(struct v4l2_async_notifier *notifier,
+>>>> +				   struct v4l2_subdev *subdev,
+>>>> +				   struct v4l2_async_subdev *asd)
+>>>> +{
+>>>> +	struct adv748x_csi2 *tx = notifier_to_csi2(notifier);
+>>>> +	struct adv748x_state *state = tx->state;
+>>>> +
+>>>> +	v4l2_set_subdev_hostdata(subdev, tx);
+>>>> +
+>>>> +	adv_info(state, "Bind %s -> %s", is_txa(tx)? "TXA":"TXB", subdev->name);
+>>>> +
+>>>> +	return 0;
+>>>> +}
+>>>> +static void adv748x_csi2_notify_unbind(struct v4l2_async_notifier *notifier,
+>>>> +				     struct v4l2_subdev *subdev,
+>>>> +				     struct v4l2_async_subdev *asd)
+>>>> +{
+>>>> +	struct adv748x_csi2 *tx = notifier_to_csi2(notifier);
+>>>> +	struct adv748x_state *state = tx->state;
+>>>> +
+>>>> +	adv_info(state, "Unbind %s -> %s", is_txa(tx)? "TXA":"TXB",
+>>>> +			subdev->name);
+>>>> +}
+>>>> +
+>>>> +static int adv748x_csi2_registered(struct v4l2_subdev *sd)
+>>>> +{
+>>>> +	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
+>>>> +	struct adv748x_state *state = tx->state;
+>>>> +	int ret;
+>>>> +
+>>>> +	adv_info(state, "Registered %s (%s)", is_txa(tx)? "TXA":"TXB",
+>>>> +			sd->name);
+>>>> +
+>>>> +	/*
+>>>> +	 * Register HDMI on TXA, and AFE on TXB.
+>>>> +	 */
+>>>> +	if (is_txa(tx)) {
+>>>> +		tx->subdevs[0].match_type = V4L2_ASYNC_MATCH_FWNODE;
+>>>> +		tx->subdevs[0].match.fwnode.fwnode =
+>>>> +			of_fwnode_handle(state->endpoints[ADV748X_PORT_HDMI]);
+>>>> +	} else {
+>>>> +		/* TODO: This isn't right - Hardwiring to AIN8 ... ???? */
+>>>> +		tx->subdevs[0].match_type = V4L2_ASYNC_MATCH_FWNODE;
+>>>> +		tx->subdevs[0].match.fwnode.fwnode =
+>>>> +			of_fwnode_handle(state->endpoints[ADV748X_PORT_AIN8]);
+>>>> +	}
+>>>> +
+>>>> +	tx->subdev_p[0] = &tx->subdevs[0];
+>>>> +
+>>>> +	tx->notifier.num_subdevs = 1;
+>>>> +	tx->notifier.subdevs = tx->subdev_p;
+>>>> +
+>>>> +	tx->notifier.bound = adv748x_csi2_notify_bound;
+>>>> +	tx->notifier.unbind = adv748x_csi2_notify_unbind;
+>>>> +	tx->notifier.complete = adv748x_csi2_notify_complete;
+>>>> +
+>>>> +	ret = v4l2_async_subnotifier_register(&tx->sd, &tx->notifier);
+>>>
+>>> How do things work out if there's a failure here? Any idea?
+>>
+>> It would invoke the error path in v4l2_device_register_subdev() and start
+>> calling media_device_unregister_entity()
+>>
+>> Do you envisage that we will need to handle something extra here?
+> 
+> Not necessarily. I was just wondering. We do have object lifetime issues
+> elsewhere...
+
+
+Yes, I've got my head in a twist in a few places pondering about this as well...
+
+>>>
+>>>> +	if (ret < 0) {
+>>>> +		adv_err(state, "Notifier registration failed\n");
+>>>> +		return ret;
+>>>> +	}
+>>>> +
+>>>> +	return 0;
+>>>> +}
+>>>> +
+>>>> +static void adv748x_csi2_unregistered(struct v4l2_subdev *sd)
+>>>> +{
+>>>> +	struct adv748x_csi2 *tx = container_of(sd, struct adv748x_csi2, sd);
+>>>> +
+>>>> +	v4l2_async_subnotifier_unregister(&tx->notifier);
+>>>> +}
+>>>> +
+>>>> +static const struct v4l2_subdev_internal_ops adv748x_csi2_internal_ops = {
+>>>> +	.registered = adv748x_csi2_registered,
+>>>> +	.unregistered = adv748x_csi2_unregistered,
+>>>> +};
+>>>> +
+>>>> +/* -----------------------------------------------------------------------------
+>>>> + * v4l2_subdev_pad_ops
+>>>> + */
+>>>> +
+>>>> +static int adv748x_csi2_s_stream(struct v4l2_subdev *sd, int enable)
+>>>> +{
+>>>> +	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
+>>>> +	struct v4l2_subdev *src;
+>>>> +	int ret;
+>>>> +
+>>>> +	src = adv748x_csi2_get_remote_sd(&tx->pads[ADV748X_CSI2_SINK]);
+>>>> +	if (!src)
+>>>> +		return -ENODEV;
+>>>> +
+>>>> +	ret = v4l2_subdev_call(src, video, s_stream, enable);
+>>>
+>>> return v4l2_subdev_call();
+>>
+>> Ack.
+>>
+>>>
+>>>> +
+>>>> +	return ret;
+>>>> +}
+>>>> +
+>>>> +static const struct v4l2_subdev_video_ops adv748x_csi2_video_ops = {
+>>>> +	.s_stream = adv748x_csi2_s_stream,
+>>>> +};
+>>>> +
+>>>> +/* -----------------------------------------------------------------------------
+>>>> + * v4l2_subdev_pad_ops
+>>>> + *
+>>>> + * The CSI2 bus pads, are ignorant to the data sizes or formats.
+>>>> + * But we must support setting the pad formats for format propagation.
+>>>> + */
+>>>> +
+>>>> +static struct v4l2_mbus_framefmt *
+>>>> +adv748x_csi2_get_pad_format(struct v4l2_subdev *sd,
+>>>> +			    struct v4l2_subdev_pad_config *cfg,
+>>>> +			    unsigned int pad, u32 which)
+>>>> +{
+>>>> +	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
+>>>> +
+>>>> +	switch (which) {
+>>>> +	case V4L2_SUBDEV_FORMAT_TRY:
+>>>> +		return v4l2_subdev_get_try_format(sd, cfg, pad);
+>>>> +	case V4L2_SUBDEV_FORMAT_ACTIVE:
+>>>> +		return &tx->format;
+>>>> +	default:
+>>>
+>>> This won't happen. I think a lot of drivers assume that.
+>>>
+>>
+>> Do you mean just remove the default case ? Won't this cause false positives on
+>> static analysers etc?
+> 
+> Not if you just do
+> 
+> if (which == V4L2_SUBDEV_FORMAT_ACTIVE)
+> 	...;
+> else
+> 	...;
+> 
+> Up to you.
+
+Haha - obvious when you say it like that ;)
+
+Less dead code == better code !
+
+> 
+>>>> diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+>>>> new file mode 100644
+>>>> index 000000000000..19c1bd41cc6c
+>>>> --- /dev/null
+>>>> +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+>>>> @@ -0,0 +1,671 @@
+> 
+> ...
+> 
+>>>> +static const struct v4l2_dv_timings_cap adv748x_hdmi_timings_cap = {
+>>>> +	.type = V4L2_DV_BT_656_1120,
+>>>> +	/* keep this initialization for compatibility with GCC < 4.4.6 */
+>>>> +	.reserved = { 0 },
+>>>
+>>> Is this necessary? Aren't the uninitialised fields zeroed if any field in a
+>>> struct is initialised, also on those versions of GCC? (Of course there have
+>>> been bugs, but nothing rings a bell.)
+>>
+>> Looks like it is necessary:
+>>  https://patchwork.kernel.org/patch/2851851/
+> 
+> This is related to the anonymous union. What I'm saying appears unrelated
+> --- if any struct field is initialised, then the rest of the fields of the
+> struct are initialised to zero by the compiler (unless explicitly
+> initialised to something else).
+> 
+> I.e. you can drop ".reserved = { 0 }," line.
+
+In that patch I referenced, (several of the drivers were all updated in a
+similar fashion) Gianluca mentioned the following:
+
+> 
+> Please note that I have also to init the reserved space as otherwise GCC fails with this error:
+> 
+>  CC [M]  adv7842.o
+>  adv7842.c:549: error: field name not in record or union initializer
+>  adv7842.c:549: error: (near initialization for  'adv7842_timings_cap_analog.reserved')
+>  adv7842.c:549: warning: braces around  scalar initializer
+>  adv7842.c:549: warning: (near initialization for  'adv7842_timings_cap_analog.reserved[0]')
+
+Therefore my understanding was that it was necessary.
+
+If not - then we can remove from the following drivers too:
+
+git grep ".reserved = { 0 }"
+drivers/media/i2c/ad9389b.c:    .reserved = { 0 },
+drivers/media/i2c/adv7511.c:    .reserved = { 0 },
+drivers/media/i2c/adv7604.c:    .reserved = { 0 },
+drivers/media/i2c/adv7604.c:    .reserved = { 0 },
+drivers/media/i2c/adv7842.c:    .reserved = { 0 },
+drivers/media/i2c/adv7842.c:    .reserved = { 0 },
+drivers/media/i2c/tc358743.c:   .reserved = { 0 },
+drivers/media/i2c/ths8200.c:    .reserved = { 0 },
+drivers/media/platform/vivid/vivid-vid-common.c:        .reserved = { 0 },
+drivers/media/spi/gs1662.c:     .reserved = { 0 },
+samples/v4l/v4l2-pci-skeleton.c:        .reserved = { 0 },
+
+But maybe we should test with an older compiler to verify this...
+
+Is there a cut-off point where we would stop supporting older compilers?
+
+>>>
+>>>> +	/* Min pixelclock value is unknown */
+>>>> +	V4L2_INIT_BT_TIMINGS(ADV748X_HDMI_MIN_WIDTH, ADV748X_HDMI_MAX_WIDTH,
+>>>> +			     ADV748X_HDMI_MIN_HEIGHT, ADV748X_HDMI_MAX_HEIGHT,
+>>>> +			     ADV748X_HDMI_MIN_PIXELCLOCK,
+>>>> +			     ADV748X_HDMI_MAX_PIXELCLOCK,
+>>>> +			     V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT,
+>>>> +			     V4L2_DV_BT_CAP_INTERLACED |
+>>>> +			     V4L2_DV_BT_CAP_PROGRESSIVE)
+>>>> +};
+> 
+> ... 
+> 
+> 
+>>>> +static int adv748x_hdmi_s_ctrl(struct v4l2_ctrl *ctrl)
+>>>> +{
+>>>> +	struct adv748x_state *state = container_of(ctrl->handler,
+>>>> +					struct adv748x_state, hdmi.ctrl_hdl);
+>>>> +	int ret;
+>>>> +
+>>>> +	ret = mutex_lock_interruptible(&state->mutex);
+>>>
+>>> Could you use the same mutex for the control handler? It'd make things
+>>> simpler...
+>>
+>> I believe the lock is about keeping the i2c accesses to the hardware serialised.
+>>
+>> Isn't the lock for the control handler already taken by core? Or are you
+>> implying that I can register state->mutex as the lock for cotnrol handler ...
+>>
+>> Interesting - I see in v4l2-ctrls.h that I can indeed do that!
+>>
+>>  * @lock:	Lock to control access to this handler and its controls.
+>>  *		May be replaced by the user right after init.
+>>
+>> I'll think this over... as I review all the locking.
+>>
+>> Maybe it's not so bad keeping a single lock for the whole of the ADV748x
+> 
+> Ack.
+> 
