@@ -1,114 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:33759 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1162253AbdEYAaD (ORCPT
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:37697 "EHLO
+        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751302AbdEPJBe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 May 2017 20:30:03 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v7 01/34] dt-bindings: Add bindings for video-multiplexer device
-Date: Wed, 24 May 2017 17:29:16 -0700
-Message-Id: <1495672189-29164-2-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+        Tue, 16 May 2017 05:01:34 -0400
+Received: by mail-wm0-f51.google.com with SMTP id d127so111519808wmf.0
+        for <linux-media@vger.kernel.org>; Tue, 16 May 2017 02:01:33 -0700 (PDT)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: yannick.ferte@st.com, alexandre.torgue@st.com, hverkuil@xs4all.nl,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        robh@kernel.org, hans.verkuil@cisco.com
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH 0/2] cec: STM32 driver
+Date: Tue, 16 May 2017 11:01:18 +0200
+Message-Id: <1494925280-4527-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+This serie of patches add cec driver for STM32 platforms.
 
-Add bindings documentation for the video multiplexer device.
+This code doesn't implement cec notifier because STM32 doesn't
+provide HDMI yet but it will be added later.
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Acked-by: Rob Herring <robh@kernel.org>
----
- .../devicetree/bindings/media/video-mux.txt        | 60 ++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/video-mux.txt
+Those patches have been developped on top of media_tree master branch
+where STM32 DCMI code has not been merged so conflict in Kconfig and Makefile
+could occur depending of merge ordering.
 
-diff --git a/Documentation/devicetree/bindings/media/video-mux.txt b/Documentation/devicetree/bindings/media/video-mux.txt
-new file mode 100644
-index 0000000..63b9dc9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/video-mux.txt
-@@ -0,0 +1,60 @@
-+Video Multiplexer
-+=================
-+
-+Video multiplexers allow to select between multiple input ports. Video received
-+on the active input port is passed through to the output port. Muxes described
-+by this binding are controlled by a multiplexer controller that is described by
-+the bindings in Documentation/devicetree/bindings/mux/mux-controller.txt
-+
-+Required properties:
-+- compatible : should be "video-mux"
-+- mux-controls : mux controller node to use for operating the mux
-+- #address-cells: should be <1>
-+- #size-cells: should be <0>
-+- port@*: at least three port nodes containing endpoints connecting to the
-+  source and sink devices according to of_graph bindings. The last port is
-+  the output port, all others are inputs.
-+
-+Optionally, #address-cells, #size-cells, and port nodes can be grouped under a
-+ports node as described in Documentation/devicetree/bindings/graph.txt.
-+
-+Example:
-+
-+	mux: mux-controller {
-+		compatible = "gpio-mux";
-+		#mux-control-cells = <0>;
-+
-+		mux-gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
-+	};
-+
-+	video-mux {
-+		compatible = "video-mux";
-+		mux-controls = <&mux>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			mux_in0: endpoint {
-+				remote-endpoint = <&video_source0_out>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			mux_in1: endpoint {
-+				remote-endpoint = <&video_source1_out>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			mux_out: endpoint {
-+				remote-endpoint = <&capture_interface_in>;
-+			};
-+		};
-+	};
-+};
+Compliance has been tested on STM32F769.
+
+~ # cec-ctl -p 1.0.0.0 --playback 
+Driver Info:
+        Driver Name                : stm32-cec
+        Adapter Name               : stm32-cec
+        Capabilities               : 0x0000000f
+                Physical Address
+                Logical Addresses
+                Transmit
+                Passthrough
+        Driver version             : 4.11.0
+        Available Logical Addresses: 1
+        Physical Address           : 1.0.0.0
+        Logical Address Mask       : 0x0010
+        CEC Version                : 2.0
+        Vendor ID                  : 0x000c03 (HDMI)
+        OSD Name                   : 'Playback'
+        Logical Addresses          : 1 (Allow RC Passthrough)
+
+          Logical Address          : 4 (Playback Device 1)
+            Primary Device Type    : Playback
+            Logical Address Type   : Playback
+            All Device Types       : Playback
+            RC TV Profile          : None
+            Device Features        :
+                None
+
+~ # cec-compliance -A 
+cec-compliance SHA                 : 6acac5cec698de39b9398b66c4f5f4db6b2730d8
+
+Driver Info:
+        Driver Name                : stm32-cec
+        Adapter Name               : stm32-cec
+        Capabilities               : 0x0000000f
+                Physical Address
+                Logical Addresses
+                Transmit
+                Passthrough
+        Driver version             : 4.11.0
+        Available Logical Addresses: 1
+        Physical Address           : 1.0.0.0
+        Logical Address Mask       : 0x0010
+        CEC Version                : 2.0
+        Vendor ID                  : 0x000c03
+        Logical Addresses          : 1 (Allow RC Passthrough)
+
+          Logical Address          : 4
+            Primary Device Type    : Playback
+            Logical Address Type   : Playback
+            All Device Types       : Playback
+            RC TV Profile          : None
+            Device Features        :
+                None
+
+Compliance test for device /dev/cec0:
+
+    The test results mean the following:
+        OK                  Supported correctly by the device.
+        OK (Not Supported)  Not supported and not mandatory for the device.
+        OK (Presumed)       Presumably supported.  Manually check to confirm.
+        OK (Unexpected)     Supported correctly but is not expected to be supported for this device.
+        OK (Refused)        Supported by the device, but was refused.
+        FAIL                Failed and was expected to be supported by this device.
+
+Find remote devices:
+        Polling: OK
+
+CEC API:
+        CEC_ADAP_G_CAPS: OK
+        CEC_DQEVENT: OK
+        CEC_ADAP_G/S_PHYS_ADDR: OK
+        CEC_ADAP_G/S_LOG_ADDRS: OK
+        CEC_TRANSMIT: OK
+        CEC_RECEIVE: OK
+        CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
+        CEC_G/S_MODE: OK
+        CEC_EVENT_LOST_MSGS: OK
+
+Network topology:
+        System Information for device 0 (TV) from device 4 (Playback Device 1):
+                CEC Version                : 1.4
+                Physical Address           : 0.0.0.0
+                Primary Device Type        : TV
+                Vendor ID                  : 0x00903e
+                OSD Name                   : 'TV'
+                Menu Language              : fre
+                Power Status               : On
+
+Total: 10, Succeeded: 10, Failed: 0, Warnings: 0
+
+Benjamin Gaignard (2):
+  binding for stm32 cec driver
+  cec: add STM32 cec driver
+
+ .../devicetree/bindings/media/st,stm32-cec.txt     |  19 ++
+ drivers/media/platform/Kconfig                     |  11 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/stm32/Makefile              |   1 +
+ drivers/media/platform/stm32/stm32-cec.c           | 368 +++++++++++++++++++++
+ 5 files changed, 401 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
+ create mode 100644 drivers/media/platform/stm32/Makefile
+ create mode 100644 drivers/media/platform/stm32/stm32-cec.c
+
 -- 
-2.7.4
+1.9.1
