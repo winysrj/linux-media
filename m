@@ -1,80 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.andi.de1.cc ([85.214.239.24]:54303 "EHLO
-        h2641619.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751791AbdEDUSi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 16:18:38 -0400
-Date: Thu, 4 May 2017 22:18:19 +0200
-From: Andreas Kemnade <andreas@kemnade.info>
-To: crope@iki.fi, mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/3] [media] af9035: init i2c already in
- it930x_frontend_attach
-Message-ID: <20170504221819.0aac4a73@aktux>
-In-Reply-To: <1489616530-4025-3-git-send-email-andreas@kemnade.info>
-References: <1489616530-4025-1-git-send-email-andreas@kemnade.info>
-        <1489616530-4025-3-git-send-email-andreas@kemnade.info>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40255 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751132AbdEPKm4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 16 May 2017 06:42:56 -0400
+Date: Tue, 16 May 2017 12:42:53 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Subject: Re: [patch, libv4l]: fix integer overflow
+Message-ID: <20170516104253.GA28041@amd>
+References: <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+ <20170426105300.GA857@amd>
+ <20170426081330.6ca10e42@vento.lan>
+ <20170426132337.GA6482@amd>
+ <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
+ <20170508222819.GA14833@amd>
+ <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/V_WIvYnabTwkrsfbGqzy8+r"; protocol="application/pgp-signature"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="W/nzBZO5zC0uMSeA"
+Content-Disposition: inline
+In-Reply-To: <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/V_WIvYnabTwkrsfbGqzy8+r
-Content-Type: text/plain; charset=UTF-8
+
+--W/nzBZO5zC0uMSeA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 15 Mar 2017 23:22:09 +0100
-Andreas Kemnade <andreas@kemnade.info> wrote:
+Hi!
 
-> i2c bus is already needed when the frontend is probed,
-> so init it already in it930x_frontend_attach
-> That prevents errors like
->      si2168: probe of 6-0067 failed with error -5
+> > This bit me while trying to use absolute exposure time on Nokia N900:
+> >=20
+> > Can someone apply it to libv4l2 tree? Could I get some feedback on the
+> > other patches? Is this the way to submit patches to libv4l2?
 >=20
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> Yes, it is. But I do need a Signed-off-by from you.
 
-seems to be also needed for the
-CINERGY TC2 Stick
-Quoting from=20
-https://www.linuxmintusers.de/index.php?topic=3D41074.30
+Ping? Can I get you to apply the patches?
 
-Mar 26 12:44:14 minimoose kernel: [=C2=A0 732.884876] usb 1-3: dvb_usb_v2: =
-found a 'TerraTec Cinergy TC2 Stick' in warm state
-Mar 26 12:44:14 minimoose kernel: [=C2=A0 732.885012] usb 1-3: dvb_usb_v2: =
-will pass the complete MPEG2 transport stream to the software demuxer
-Mar 26 12:44:14 minimoose kernel: [=C2=A0 732.885245] dvbdev: DVB: register=
-ing new adapter (TerraTec Cinergy TC2 Stick)
-Mar 26 12:44:14 minimoose kernel: [=C2=A0 732.885254] usb 1-3: media contro=
-ller created
-Mar 26 12:44:14 minimoose kernel: [=C2=A0 732.886117] dvbdev: dvb_create_me=
-dia_entity: media entity 'dvb-demux' registered.
-Mar 26 12:44:14 minimoose kernel: [=C2=A0 732.890589] si2168: probe of 8-00=
-67 failed with error -5
+Thanks,
+								Pavel
+							=09
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-
-Regards,
-Andreas Kemnade
-
---Sig_/V_WIvYnabTwkrsfbGqzy8+r
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+--W/nzBZO5zC0uMSeA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v1
 
-iQIcBAEBCAAGBQJZC4yWAAoJEInxNTv1CwY0wCEP/1Sj2LV6vAf4bZqn2w8w3QiY
-IUsAS6F3dDlClwnEgBQyz9v1nJXfIZK4fXK4d0AG1u1y2pOAAXWt3XIGBFKq1PUU
-7hqT/zzaxgc0/3eE31jkW47s+nhUvLoFHaxT+yqN03rs7l4cGtYZbsW1nQle2ZuH
-PomUl+HAuk/kmEFnBq7Djh7s6TO4l18pQsXx+9EXQRKznzKonUZpNKSc7avg6Vng
-5Z1znKHu3sFuYujNhQQbgCNXJYNrMejQNrgXXhlQbGGL01ntjHfaTjFQSYlFvO34
-zs5S0oEAifXGQ80gF3MWjLxgvmOdBivRQnQ2Aiuj7TB45xaxUcCJBR2GjIrvSku5
-k7fwXsSVI5yP8s7dtawRzzPrzk0jfXU0KH2pNNjODSsNzRJafSyFx20nZj47DGMd
-lwr6kVW4TMGnxlmq4fOmNOeBeujpEttf3RPa0cMUtohhhwD1BSmJsy/Jk0zG62+E
-89TbY9PgHrjcBrzs/OyfJ4uzIGyKEDrNTqgLcI4XWaMl2rQ/MIYkt3rEaA8aXEZR
-AMX6eiovoZsGtm3623s3I9Lf/9GI/puXwwloj7wRhAknrXRXlkIcm2Nk3wi8t3om
-kyZjNTdlIVRHgfIF88WMd2blMZ7vOGj8ufMfaLTWu7wWyuTVFNM01thCskY6hAYV
-7xGoLlr62ifEjqozKUAk
-=xU8p
+iEYEARECAAYFAlka160ACgkQMOfwapXb+vJDDACghserSZ3yBfYaWzDZJClMGNBM
+PckAn1XjKvsQB8YCaY3wSbyZ4Dq9+Bra
+=1GG5
 -----END PGP SIGNATURE-----
 
---Sig_/V_WIvYnabTwkrsfbGqzy8+r--
+--W/nzBZO5zC0uMSeA--
