@@ -1,202 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:42715 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753565AbdEHJhc (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58896 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751741AbdEPXXH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 May 2017 05:37:32 -0400
-Message-ID: <1494236207.3029.66.camel@pengutronix.de>
-Subject: Re: [PATCH] [media] imx: csi: retain current field order and
- colorimetry setting as default
-From: Philipp Zabel <p.zabel@pengutronix.de>
+        Tue, 16 May 2017 19:23:07 -0400
+Date: Wed, 17 May 2017 01:23:04 +0200
+From: Pavel Machek <pavel@ucw.cz>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Mon, 08 May 2017 11:36:47 +0200
-In-Reply-To: <0632df59-10e7-1e03-c0f6-eb7c90b83c0d@xs4all.nl>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-         <1490661656-10318-22-git-send-email-steve_longerbeam@mentor.com>
-         <1491486929.2392.29.camel@pengutronix.de>
-         <0632df59-10e7-1e03-c0f6-eb7c90b83c0d@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Subject: Re: [patch, libv4l]: Introduce define for lookup table size
+Message-ID: <20170516232304.GA31370@amd>
+References: <20170426105300.GA857@amd>
+ <20170426081330.6ca10e42@vento.lan>
+ <20170426132337.GA6482@amd>
+ <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
+ <20170508222819.GA14833@amd>
+ <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
+ <20170509110440.GC28248@amd>
+ <c4f61bc5-6650-9468-5fbf-8041403a0ef2@xs4all.nl>
+ <20170516124519.GA25650@amd>
+ <76e09f45-8f04-1149-a744-ccb19f36871a@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="n8g4imXOkfNTN/H1"
+Content-Disposition: inline
+In-Reply-To: <76e09f45-8f04-1149-a744-ccb19f36871a@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-On Mon, 2017-05-08 at 10:27 +0200, Hans Verkuil wrote:
-> Hi Philipp,
-> 
-> Sorry for the very long delay, but I finally had some time to think about this.
+--n8g4imXOkfNTN/H1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thank you for your thoughts.
+Hi!
 
-> On 04/06/2017 03:55 PM, Philipp Zabel wrote:
-> > If the the field order is set to ANY in set_fmt, choose the currently
-> > set field order. If the colorspace is set to DEFAULT, choose the current
-> > colorspace.  If any of xfer_func, ycbcr_enc or quantization are set to
-> > DEFAULT, either choose the current setting, or the default setting for the
-> > new colorspace, if non-DEFAULT colorspace was given.
-> > 
-> > This allows to let field order and colorimetry settings be propagated
-> > from upstream by calling media-ctl on the upstream entity source pad,
-> > and then call media-ctl on the sink pad to manually set the input frame
-> > interval, without changing the already set field order and colorimetry
-> > information.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> > This is based on imx-media-staging-md-v14, and it is supposed to allow
-> > configuring the pipeline with media-ctl like this:
-> > 
-> > 1) media-ctl --set-v4l2 "'tc358743 1-000f':0[fmt:UYVY8_1X16/1920x1080]"
-> > 2) media-ctl --set-v4l2 "'imx6-mipi-csi2':1[fmt:UYVY8_1X16/1920x108]"
-> > 3) media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY8_1X16/1920x1080]"
-> > 4) media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY8_1X16/1920x1080@1/60]"
-> > 5) media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/1920x1080@1/30]"
-> > 
-> > Without having step 4) overwrite the colorspace and field order set on
-> > 'ipu1_csi0':0 by the propagation in step 3).
-> > ---
-> >  drivers/staging/media/imx/imx-media-csi.c | 34 +++++++++++++++++++++++++++++++
-> >  1 file changed, 34 insertions(+)
-> > 
-> > diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> > index 64dc454f6b371..d94ce1de2bf05 100644
-> > --- a/drivers/staging/media/imx/imx-media-csi.c
-> > +++ b/drivers/staging/media/imx/imx-media-csi.c
-> > @@ -1325,6 +1325,40 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
-> >  	csi_try_fmt(priv, sensor, cfg, sdformat, crop, compose, &cc);
-> >  
-> >  	fmt = __csi_get_fmt(priv, cfg, sdformat->pad, sdformat->which);
-> > +
-> > +	/* Retain current field setting as default */
-> > +	if (sdformat->format.field == V4L2_FIELD_ANY)
-> > +		sdformat->format.field = fmt->field;
-> 
-> This is OK.
+> >>> Make lookup table size configurable at compile-time.
+> >>
+> >> I don't think I'll take this patch. The problem is that if we really a=
+dd
+> >> support for 10 or 12 bit lookup tables in the future, then just changi=
+ng
+> >> LSIZE isn't enough.
+> >>
+> >> This patch doesn't really add anything as it stands.
+> >=20
+> > Well, currently we have 256, 255 and 0xff sprinkled through the code,
+> > when it means to say "lookup table size". That is quite wrong (because
+> > you can't really grep "what depends on the table size).
+> >=20
+> > And BTW with the LSIZE set to 1024, 10 bit processing seems to
+> > work. So it is already useful, at least for me.
+> >=20
+> > But now I noticed the patch is subtly wrong:
+> >=20
+> >>> -#define CLIP256(color) (((color) > 0xff) ? 0xff : (((color) < 0) ? 0=
+ : (color)))
+> >>> +#define CLIPLSIZE(color) (((color) > LSIZE) ? LSIZE : (((color) <
+> > 0) ? 0 : (color)))
+> >=20
+> > This should be LSIZE-1.
+> >=20
+> > So I need to adjust the patch. But I'd still like you to take (fixed
+> > version) for documentation purposes...
+>=20
+> I much rather do this as part of a longer series that actually adds 10 bi=
+t support.
+>=20
+> The problem is that adding support for 10 bit doesn't mean you can just u=
+se LSIZE
+> all the time since you still need support for 8 bit as well.
+>=20
+> E.g. CLIPLSIZE makes no sense, I would expect to see a CLIP256 and a CLIP=
+1024.
+>=20
+> So it becomes a bit more complex than just adding an LSIZE define.
 
-Would this be a "may" or a "should"? As in,
-"If SUBDEV_S_FMT is called with field == ANY, the driver may/should set
-field to the previously configured interlacing field order".
+Yes, proper 10 bit support will be more complex (and I'm not sure if
+I'll be able to do it, I might need help there). OTOH... table size is
+used at 7 places in three different files, and 256 is _very_ common
+constant.
 
-What would be the correct place to document this behaviour?
-Documentation/media/uapi/v4l/vidioc-subdev-g-fmt.rst?
+So IMO this makes sense regardless of full 10-bit support.
 
-> > +	/* Retain current colorspace setting as default */
-> > +	if (sdformat->format.colorspace == V4L2_COLORSPACE_DEFAULT) {
-> > +		sdformat->format.colorspace = fmt->colorspace;
-> > +		if (sdformat->format.xfer_func == V4L2_XFER_FUNC_DEFAULT)
-> > +			sdformat->format.xfer_func = fmt->xfer_func;
-> > +		if (sdformat->format.ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT)
-> > +			sdformat->format.ycbcr_enc = fmt->ycbcr_enc;
-> > +		if (sdformat->format.quantization == V4L2_QUANTIZATION_DEFAULT)
-> > +			sdformat->format.quantization = fmt->quantization;
-> 
-> If sdformat->format.colorspace == V4L2_COLORSPACE_DEFAULT, then you can just copy
-> all four fields from fmt to sdformat->format. The other three fields are meaningless
-> when colorspace == V4L2_COLORSPACE_DEFAULT.
+Best regards,
+									Pavel
 
-Ok, good. Ignoring the transfer function / YCbCr encoding / quantization
-range fields when colorspace is DEFAULT would simplify this part to:
 
-	if (sdformat->format.colorspace == V4L2_COLORSPACE_DEFAULT) {
-		sdformat->format.colorspace = fmt->colorspace;
-		sdformat->format.xfer_func = fmt->xfer_func;
-		sdformat->format.ycbcr_enc = fmt->ycbcr_enc;
-		sdformat->format.quantization = fmt->quantization;
-	}
+> >>>  #define CLIP(color, min, max) (((color) > (max)) ? (max) : (((color)=
+ < (min)) ? (min) : (color)))
+> >>> =20
+> >>>  static int whitebalance_active(struct v4lprocessing_data *data)
+> >>> @@ -111,10 +111,10 @@ static int whitebalance_calculate_lookup_tables=
+_generic(
+> >>> =20
+> >>>  	avg_avg =3D (data->green_avg + data->comp1_avg + data->comp2_avg) /=
+ 3;
+> >>> =20
+> >>> -	for (i =3D 0; i < 256; i++) {
+> >>> -		data->comp1[i] =3D CLIP256(data->comp1[i] * avg_avg / data->comp1_=
+avg);
+> >>> -		data->green[i] =3D CLIP256(data->green[i] * avg_avg / data->green_=
+avg);
+> >>> -		data->comp2[i] =3D CLIP256(data->comp2[i] * avg_avg / data->comp2_=
+avg);
+> >>> +	for (i =3D 0; i < LSIZE; i++) {
+> >>> +		data->comp1[i] =3D CLIPLSIZE(data->comp1[i] * avg_avg / data->comp=
+1_avg);
+> >>> +		data->green[i] =3D CLIPLSIZE(data->green[i] * avg_avg / data->gree=
+n_avg);
+> >>> +		data->comp2[i] =3D CLIPLSIZE(data->comp2[i] * avg_avg / data->comp=
+2_avg);
+> >>>  	}
+> >>> =20
+> >>>  	return 1;
+> >>>
+> >=20
 
-Is that expectation already written down somewhere? If not, should we
-add it to Documentation/media/uapi/v4l/pixfmt-006.rst?
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-> > +	} else {
-> > +		if (sdformat->format.xfer_func == V4L2_XFER_FUNC_DEFAULT) {
-> > +			sdformat->format.xfer_func =
-> > +				V4L2_MAP_XFER_FUNC_DEFAULT(
-> > +						sdformat->format.colorspace);
-> > +		}
-> > +		if (sdformat->format.ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT) {
-> > +			sdformat->format.ycbcr_enc =
-> > +				V4L2_MAP_YCBCR_ENC_DEFAULT(
-> > +						sdformat->format.colorspace);
-> > +		}
-> > +		if (sdformat->format.quantization == V4L2_QUANTIZATION_DEFAULT) {
-> > +			sdformat->format.quantization =
-> > +				V4L2_MAP_QUANTIZATION_DEFAULT(
-> > +						cc->cs != IPUV3_COLORSPACE_YUV,
-> > +						sdformat->format.colorspace,
-> > +						sdformat->format.ycbcr_enc);
-> > +		}
-> 
-> Is this needed for validation? Currently these fields play no role in the
-> default link validation. Which I think is actually the right thing to do,
-> unless the subdev can do actual colorspace conversion.
+--n8g4imXOkfNTN/H1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-The CSI subdevice can't do colorspace conversion, but exactly the same
-applies to the IC subdevices, which can. Also I'd like this information
-to be correct, as the /dev/videoX capture device takes its colorspace
-information from the CSI source pad.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-The problem I wanted to solve here initially was that if the colorspace
-information was previously set correctly:
+iEYEARECAAYFAlkbidgACgkQMOfwapXb+vJfxgCfYIuvSamp5gIgR9tJHIhfDwDx
+2xIAmwc5y4W4HUdVMzcobI6QsQo6za49
+=G5Y0
+-----END PGP SIGNATURE-----
 
-  media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY8_1X16/1920x1080@1/60 colorspace:rec709 xfer:709 ycbcr:709 quantization:lim-range]"
-    ->
-	V4L2_COLORSPACE_REC709
-	V4L2_XFER_FUNC_709
-	V4L2_YCBCR_ENC_709
-	V4L2_QUANTIZATION_LIMITED_RANGE
-
-A later media-ctl call to just change the frame interval would overwrite the colorspace information:
-
-  media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY8_1X16/1920x1080@1/30]"
-    ->
-	V4L2_COLORSPACE_DEFAULT
-	V4L2_XFER_FUNC_DEFAULT
-	V4L2_YCBCR_ENC_DEFAULT
-	V4L2_QUANTIZATION_DEFAULT
-
-> I would just drop the whole 'else' here.
-
-That would allow to set the actual colorspace information reported by
-SUBDEV_G_FMT on both sink and source pads (and by extension, the
-colorspace information reported by G_FMT on /dev/videoX) to
-V4L2_{XFER_FUNC,YCBCR_ENC,QUANTIZATION}_DEFAULT.
-
-  media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY8_1X16/1920x1080 colorspace:rec709]"
-    ->
-	V4L2_COLORSPACE_REC709
-	V4L2_XFER_FUNC_DEFAULT
-	V4L2_YCBCR_ENC_DEFAULT
-	V4L2_QUANTIZATION_DEFAULT
-
-I suppose that is acceptable as given the colorspace, the other DEFAULT
-values have a unique meaning, but wouldn't it be nicer to show userspace
-what these default inputs actually map to?
-
-> Actually, wouldn't it be better to always just copy this information from
-> fmt? This subdev doesn't do any colorspace conversion, it just passes on
-> this information. I.e., you can't set it in any meaningful way.
-
-csi_set_fmt on the sink pad is the function that actually sets fmt in
-the first place. If we always copy colorspace information from fmt, it
-can't be set to the correct value at all.
-
-regards
-Philipp
+--n8g4imXOkfNTN/H1--
