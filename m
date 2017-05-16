@@ -1,87 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41868
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S939368AbdEALiS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 1 May 2017 07:38:18 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/2] em28xx: allow setting the eeprom bus at cards struct
-Date: Mon,  1 May 2017 08:38:10 -0300
-Message-Id: <05c4899146e7f2cfa1d0bc7a5118e3f2294ede40.1493638682.git.mchehab@s-opensource.com>
+Received: from mail-qk0-f173.google.com ([209.85.220.173]:34580 "EHLO
+        mail-qk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751104AbdEPJKS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 16 May 2017 05:10:18 -0400
+Received: by mail-qk0-f173.google.com with SMTP id k74so122052439qke.1
+        for <linux-media@vger.kernel.org>; Tue, 16 May 2017 02:10:17 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1494925280-4527-1-git-send-email-benjamin.gaignard@linaro.org>
+References: <1494925280-4527-1-git-send-email-benjamin.gaignard@linaro.org>
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Date: Tue, 16 May 2017 11:10:16 +0200
+Message-ID: <CA+M3ks6eO7144jNyBQZQfQ=ANwgxQjKKCY03iBnQB4mik6uFMQ@mail.gmail.com>
+Subject: Re: [PATCH 0/2] cec: STM32 driver
+To: Alexandre Torgue <alexandre.torgue@st.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, devicetree@vger.kernel.org,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Rob Herring <robh@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Yannick Fertre <yannick.fertre@st.com>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right now, all devices use bus 0 for eeprom. However, newer
-versions of Terratec H6 use a different buffer for eeprom.
++ Yannick who is the original writer of this driver (sorry)
 
-So, add support to use a different I2C address for eeprom.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c | 1 +
- drivers/media/usb/em28xx/em28xx-i2c.c   | 5 +----
- drivers/media/usb/em28xx/em28xx.h       | 4 +++-
- 3 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index a12b599a1fa2..c7754303e88e 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2669,6 +2669,7 @@ static inline void em28xx_set_model(struct em28xx *dev)
- 
- 	/* Should be initialized early, for I2C to work */
- 	dev->def_i2c_bus = dev->board.def_i2c_bus;
-+	dev->eeprom_i2c_bus = dev->board.eeprom_i2c_bus;
- }
- 
- /* Wait until AC97_RESET reports the expected value reliably before proceeding.
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index 8c472d5adb50..df0ab4b6f18f 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -665,8 +665,6 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned bus,
- 	*eedata = NULL;
- 	*eedata_len = 0;
- 
--	/* EEPROM is always on i2c bus 0 on all known devices. */
--
- 	dev->i2c_client[bus].addr = 0xa0 >> 1;
- 
- 	/* Check if board has eeprom */
-@@ -975,8 +973,7 @@ int em28xx_i2c_register(struct em28xx *dev, unsigned bus,
- 	dev->i2c_client[bus] = em28xx_client_template;
- 	dev->i2c_client[bus].adapter = &dev->i2c_adap[bus];
- 
--	/* Up to now, all eeproms are at bus 0 */
--	if (!bus) {
-+	if (bus == dev->eeprom_i2c_bus) {
- 		retval = em28xx_i2c_eeprom(dev, bus, &dev->eedata, &dev->eedata_len);
- 		if ((retval < 0) && (retval != -ENODEV)) {
- 			dev_err(&dev->intf->dev,
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index e8d97d5ec161..8117536343ab 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -440,7 +440,8 @@ struct em28xx_board {
- 	int vchannels;
- 	int tuner_type;
- 	int tuner_addr;
--	unsigned def_i2c_bus;	/* Default I2C bus */
-+	unsigned def_i2c_bus;		/* Default I2C bus */
-+	unsigned eeprom_i2c_bus;	/* EEPROM I2C bus */
- 
- 	/* i2c flags */
- 	unsigned int tda9887_conf;
-@@ -643,6 +644,7 @@ struct em28xx {
- 
- 	unsigned char eeprom_addrwidth_16bit:1;
- 	unsigned def_i2c_bus;	/* Default I2C bus */
-+	unsigned eeprom_i2c_bus;/* EEPROM I2C bus */
- 	unsigned cur_i2c_bus;	/* Current I2C bus */
- 	struct rt_mutex i2c_bus_lock;
- 
--- 
-2.9.3
+2017-05-16 11:01 GMT+02:00 Benjamin Gaignard <benjamin.gaignard@linaro.org>:
+> This serie of patches add cec driver for STM32 platforms.
+>
+> This code doesn't implement cec notifier because STM32 doesn't
+> provide HDMI yet but it will be added later.
+>
+> Those patches have been developped on top of media_tree master branch
+> where STM32 DCMI code has not been merged so conflict in Kconfig and Makefile
+> could occur depending of merge ordering.
+>
+> Compliance has been tested on STM32F769.
+>
+> ~ # cec-ctl -p 1.0.0.0 --playback
+> Driver Info:
+>         Driver Name                : stm32-cec
+>         Adapter Name               : stm32-cec
+>         Capabilities               : 0x0000000f
+>                 Physical Address
+>                 Logical Addresses
+>                 Transmit
+>                 Passthrough
+>         Driver version             : 4.11.0
+>         Available Logical Addresses: 1
+>         Physical Address           : 1.0.0.0
+>         Logical Address Mask       : 0x0010
+>         CEC Version                : 2.0
+>         Vendor ID                  : 0x000c03 (HDMI)
+>         OSD Name                   : 'Playback'
+>         Logical Addresses          : 1 (Allow RC Passthrough)
+>
+>           Logical Address          : 4 (Playback Device 1)
+>             Primary Device Type    : Playback
+>             Logical Address Type   : Playback
+>             All Device Types       : Playback
+>             RC TV Profile          : None
+>             Device Features        :
+>                 None
+>
+> ~ # cec-compliance -A
+> cec-compliance SHA                 : 6acac5cec698de39b9398b66c4f5f4db6b2730d8
+>
+> Driver Info:
+>         Driver Name                : stm32-cec
+>         Adapter Name               : stm32-cec
+>         Capabilities               : 0x0000000f
+>                 Physical Address
+>                 Logical Addresses
+>                 Transmit
+>                 Passthrough
+>         Driver version             : 4.11.0
+>         Available Logical Addresses: 1
+>         Physical Address           : 1.0.0.0
+>         Logical Address Mask       : 0x0010
+>         CEC Version                : 2.0
+>         Vendor ID                  : 0x000c03
+>         Logical Addresses          : 1 (Allow RC Passthrough)
+>
+>           Logical Address          : 4
+>             Primary Device Type    : Playback
+>             Logical Address Type   : Playback
+>             All Device Types       : Playback
+>             RC TV Profile          : None
+>             Device Features        :
+>                 None
+>
+> Compliance test for device /dev/cec0:
+>
+>     The test results mean the following:
+>         OK                  Supported correctly by the device.
+>         OK (Not Supported)  Not supported and not mandatory for the device.
+>         OK (Presumed)       Presumably supported.  Manually check to confirm.
+>         OK (Unexpected)     Supported correctly but is not expected to be supported for this device.
+>         OK (Refused)        Supported by the device, but was refused.
+>         FAIL                Failed and was expected to be supported by this device.
+>
+> Find remote devices:
+>         Polling: OK
+>
+> CEC API:
+>         CEC_ADAP_G_CAPS: OK
+>         CEC_DQEVENT: OK
+>         CEC_ADAP_G/S_PHYS_ADDR: OK
+>         CEC_ADAP_G/S_LOG_ADDRS: OK
+>         CEC_TRANSMIT: OK
+>         CEC_RECEIVE: OK
+>         CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
+>         CEC_G/S_MODE: OK
+>         CEC_EVENT_LOST_MSGS: OK
+>
+> Network topology:
+>         System Information for device 0 (TV) from device 4 (Playback Device 1):
+>                 CEC Version                : 1.4
+>                 Physical Address           : 0.0.0.0
+>                 Primary Device Type        : TV
+>                 Vendor ID                  : 0x00903e
+>                 OSD Name                   : 'TV'
+>                 Menu Language              : fre
+>                 Power Status               : On
+>
+> Total: 10, Succeeded: 10, Failed: 0, Warnings: 0
+>
+> Benjamin Gaignard (2):
+>   binding for stm32 cec driver
+>   cec: add STM32 cec driver
+>
+>  .../devicetree/bindings/media/st,stm32-cec.txt     |  19 ++
+>  drivers/media/platform/Kconfig                     |  11 +
+>  drivers/media/platform/Makefile                    |   2 +
+>  drivers/media/platform/stm32/Makefile              |   1 +
+>  drivers/media/platform/stm32/stm32-cec.c           | 368 +++++++++++++++++++++
+>  5 files changed, 401 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
+>  create mode 100644 drivers/media/platform/stm32/Makefile
+>  create mode 100644 drivers/media/platform/stm32/stm32-cec.c
+>
+> --
+> 1.9.1
+>
