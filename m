@@ -1,419 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49242 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752589AbdEDPAZ (ORCPT
+Received: from mail-qk0-f177.google.com ([209.85.220.177]:35280 "EHLO
+        mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750949AbdEPJYq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 May 2017 11:00:25 -0400
-Date: Thu, 4 May 2017 17:59:52 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v4 19/27] rcar-vin: use different v4l2 operations in
- media controller mode
-Message-ID: <20170504145951.GZ7456@valkosipuli.retiisi.org.uk>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
- <20170427224203.14611-20-niklas.soderlund+renesas@ragnatech.se>
+        Tue, 16 May 2017 05:24:46 -0400
+Received: by mail-qk0-f177.google.com with SMTP id a72so121919679qkj.2
+        for <linux-media@vger.kernel.org>; Tue, 16 May 2017 02:24:46 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170427224203.14611-20-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <f0eb8619-e2e3-f5db-bffd-0a51580e725c@xs4all.nl>
+References: <1494925280-4527-1-git-send-email-benjamin.gaignard@linaro.org>
+ <CA+M3ks6eO7144jNyBQZQfQ=ANwgxQjKKCY03iBnQB4mik6uFMQ@mail.gmail.com> <f0eb8619-e2e3-f5db-bffd-0a51580e725c@xs4all.nl>
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Date: Tue, 16 May 2017 11:24:40 +0200
+Message-ID: <CA+M3ks6Ak906eTANudnS9yhOya=JV25wP8_2wMNixJnrp5axCA@mail.gmail.com>
+Subject: Re: [PATCH 0/2] cec: STM32 driver
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Alexandre Torgue <alexandre.torgue@st.com>,
+        devicetree@vger.kernel.org,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Rob Herring <robh@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Yannick Fertre <yannick.fertre@st.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+2017-05-16 11:18 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
+> On 16/05/17 11:10, Benjamin Gaignard wrote:
+>> + Yannick who is the original writer of this driver (sorry)
+>>
+>> 2017-05-16 11:01 GMT+02:00 Benjamin Gaignard <benjamin.gaignard@linaro.o=
+rg>:
+>>> This serie of patches add cec driver for STM32 platforms.
+>>>
+>>> This code doesn't implement cec notifier because STM32 doesn't
+>>> provide HDMI yet but it will be added later.
+>
+> When will that happen? Is that in 4.12?
 
-On Fri, Apr 28, 2017 at 12:41:55AM +0200, Niklas Söderlund wrote:
-> When the driver runs in media controller mode it should not directly
-> control the subdevice instead userspace will be responsible for
-> configuring the pipeline. To be able to run in this mode a different set
-> of v4l2 operations needs to be used.
-> 
-> Add a new set of v4l2 operations to support the running without directly
-> interacting with the source subdevice.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c |  25 ++-
->  drivers/media/platform/rcar-vin/rcar-dma.c  |   3 +-
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 239 ++++++++++++++++++++++++++++
->  drivers/media/platform/rcar-vin/rcar-vin.h  |   3 +
->  4 files changed, 268 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index 8b30d8d3ec7d9c04..7aaa01dee014d64b 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -256,6 +256,21 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
->  }
->  
->  /* -----------------------------------------------------------------------------
-> + * Group async notifier
-> + */
-> +
-> +static int rvin_group_init(struct rvin_dev *vin)
-> +{
-> +	int ret;
-> +
-> +	ret = rvin_v4l2_mc_probe(vin);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return 0;
-> +}
-> +
-> +/* -----------------------------------------------------------------------------
->   * Platform Device Driver
->   */
->  
-> @@ -347,7 +362,10 @@ static int rcar_vin_probe(struct platform_device *pdev)
->  	if (ret)
->  		return ret;
->  
-> -	ret = rvin_digital_graph_init(vin);
-> +	if (vin->info->use_mc)
-> +		ret = rvin_group_init(vin);
-> +	else
-> +		ret = rvin_digital_graph_init(vin);
->  	if (ret < 0)
->  		goto error;
->  
-> @@ -371,6 +389,11 @@ static int rcar_vin_remove(struct platform_device *pdev)
->  
->  	v4l2_async_notifier_unregister(&vin->notifier);
->  
-> +	if (vin->info->use_mc)
-> +		rvin_v4l2_mc_remove(vin);
-> +	else
-> +		rvin_v4l2_remove(vin);
-> +
->  	rvin_dma_remove(vin);
->  
->  	return 0;
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> index fef31aac0ed40979..34f01f32bab7bd32 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -628,7 +628,8 @@ static int rvin_setup(struct rvin_dev *vin)
->  		/* Default to TB */
->  		vnmc = VNMC_IM_FULL;
->  		/* Use BT if video standard can be read and is 60 Hz format */
-> -		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
-> +		if (!vin->info->use_mc &&
-> +		    !v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
->  			if (std & V4L2_STD_525_60)
->  				vnmc = VNMC_IM_FULL | VNMC_FOC;
->  		}
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index 1ee9dcb621350f77..ae6910ac87ec7f6a 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -23,6 +23,9 @@
->  #include "rcar-vin.h"
->  
->  #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
-> +#define RVIN_DEFAULT_WIDTH	800
-> +#define RVIN_DEFAULT_HEIGHT	600
-> +#define RVIN_DEFAULT_COLORSPACE	V4L2_COLORSPACE_SRGB
->  
->  /* -----------------------------------------------------------------------------
->   * Format Conversions
-> @@ -694,6 +697,126 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
->  };
->  
->  /* -----------------------------------------------------------------------------
-> + * V4L2 Media Controller
-> + */
-> +
-> +static int __rvin_mc_try_format(struct rvin_dev *vin,
-> +				struct v4l2_pix_format *pix)
-> +{
-> +	const struct rvin_video_format *info;
-> +	u32 walign;
-> +
-> +	/* Keep current field if no specific one is asked for */
-> +	if (pix->field == V4L2_FIELD_ANY)
-> +		pix->field = vin->format.field;
-> +
-> +	switch (pix->field) {
-> +	case V4L2_FIELD_TOP:
-> +	case V4L2_FIELD_BOTTOM:
-> +	case V4L2_FIELD_ALTERNATE:
-> +	case V4L2_FIELD_NONE:
-> +	case V4L2_FIELD_INTERLACED_TB:
-> +	case V4L2_FIELD_INTERLACED_BT:
-> +	case V4L2_FIELD_INTERLACED:
-> +		break;
-> +	default:
-> +		pix->field = V4L2_FIELD_NONE;
-> +		break;
-> +	}
-> +
-> +	/* Check that colorspace is resonable, if not keep current */
-> +	if (!pix->colorspace || pix->colorspace >= 0xff)
-> +		pix->colorspace = vin->format.colorspace;
-> +
-> +	info = rvin_format_from_pixel(pix->pixelformat);
-> +	if (!info) {
-> +		vin_dbg(vin, "Format %x not found, keeping %x\n",
-> +			pix->pixelformat, vin->format.pixelformat);
-> +		pix->pixelformat = vin->format.pixelformat;
-> +		info = rvin_format_from_pixel(pix->pixelformat);
-> +	}
-> +
-> +	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
-> +	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
-> +
-> +	/* Limit to VIN capabilities */
-> +	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-> +			      &pix->height, 4, vin->info->max_height, 2, 0);
-> +
-> +	pix->bytesperline = rvin_format_bytesperline(pix);
-> +	pix->sizeimage = rvin_format_sizeimage(pix);
-> +
-> +	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
-> +		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
-> +
-> +	return 0;
-> +}
-> +
-> +static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
-> +				   struct v4l2_format *f)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +
-> +	return __rvin_mc_try_format(vin, &f->fmt.pix);
-> +}
-> +
-> +static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
-> +				 struct v4l2_format *f)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	int ret;
-> +
-> +	if (vb2_is_busy(&vin->queue))
-> +		return -EBUSY;
-> +
-> +	ret = __rvin_mc_try_format(vin, &f->fmt.pix);
-> +	if (ret)
-> +		return ret;
-> +
-> +	vin->format = f->fmt.pix;
-> +
-> +	return 0;
-> +}
-> +
-> +static int rvin_mc_enum_input(struct file *file, void *priv,
-> +			      struct v4l2_input *i)
-> +{
-> +	if (i->index != 0)
-> +		return -EINVAL;
-> +
-> +	i->type = V4L2_INPUT_TYPE_CAMERA;
-> +	strlcpy(i->name, "Camera", sizeof(i->name));
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_ioctl_ops rvin_mc_ioctl_ops = {
-> +	.vidioc_querycap		= rvin_querycap,
-> +	.vidioc_try_fmt_vid_cap		= rvin_mc_try_fmt_vid_cap,
-> +	.vidioc_g_fmt_vid_cap		= rvin_g_fmt_vid_cap,
-> +	.vidioc_s_fmt_vid_cap		= rvin_mc_s_fmt_vid_cap,
-> +	.vidioc_enum_fmt_vid_cap	= rvin_enum_fmt_vid_cap,
-> +
-> +	.vidioc_enum_input		= rvin_mc_enum_input,
-> +	.vidioc_g_input			= rvin_g_input,
-> +	.vidioc_s_input			= rvin_s_input,
-> +
-> +	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
-> +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
-> +	.vidioc_querybuf		= vb2_ioctl_querybuf,
-> +	.vidioc_qbuf			= vb2_ioctl_qbuf,
-> +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-> +	.vidioc_expbuf			= vb2_ioctl_expbuf,
-> +	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
-> +	.vidioc_streamon		= vb2_ioctl_streamon,
-> +	.vidioc_streamoff		= vb2_ioctl_streamoff,
-> +
-> +	.vidioc_log_status		= v4l2_ctrl_log_status,
-> +	.vidioc_subscribe_event		= rvin_subscribe_event,
-> +	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
-> +};
-> +
-> +/* -----------------------------------------------------------------------------
->   * File Operations
->   */
->  
-> @@ -836,6 +959,68 @@ static const struct v4l2_file_operations rvin_fops = {
->  	.read		= vb2_fop_read,
->  };
->  
-> +/* -----------------------------------------------------------------------------
-> + * Media controller file Operations
-> + */
-> +
-> +static int rvin_mc_open(struct file *file)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	int ret;
-> +
-> +	mutex_lock(&vin->lock);
-> +
-> +	file->private_data = vin;
-> +
-> +	ret = v4l2_fh_open(file);
-> +	if (ret)
-> +		goto unlock;
-> +
-> +	if (v4l2_fh_is_singular_file(file)) {
-> +		pm_runtime_get_sync(vin->dev);
-> +		v4l2_pipeline_pm_use(&vin->vdev->entity, 1);
+We have send the patches yesterday for DSI support to dri-devel mailing lis=
+t.
+I guess the discussions will take some time but cec hardware could
+work without it.
 
-There's nothing wrong in calling the two unconditionally. To the contrary
---- v4l2_fh_is_singular() is unreliable as the check isn't serialised with
-the changes to the list.
+>
+> Regards,
+>
+>         Hans
+>
+>>>
+>>> Those patches have been developped on top of media_tree master branch
+>>> where STM32 DCMI code has not been merged so conflict in Kconfig and Ma=
+kefile
+>>> could occur depending of merge ordering.
+>>>
+>>> Compliance has been tested on STM32F769.
+>>>
+>>> ~ # cec-ctl -p 1.0.0.0 --playback
+>>> Driver Info:
+>>>         Driver Name                : stm32-cec
+>>>         Adapter Name               : stm32-cec
+>>>         Capabilities               : 0x0000000f
+>>>                 Physical Address
+>>>                 Logical Addresses
+>>>                 Transmit
+>>>                 Passthrough
+>>>         Driver version             : 4.11.0
+>>>         Available Logical Addresses: 1
+>>>         Physical Address           : 1.0.0.0
+>>>         Logical Address Mask       : 0x0010
+>>>         CEC Version                : 2.0
+>>>         Vendor ID                  : 0x000c03 (HDMI)
+>>>         OSD Name                   : 'Playback'
+>>>         Logical Addresses          : 1 (Allow RC Passthrough)
+>>>
+>>>           Logical Address          : 4 (Playback Device 1)
+>>>             Primary Device Type    : Playback
+>>>             Logical Address Type   : Playback
+>>>             All Device Types       : Playback
+>>>             RC TV Profile          : None
+>>>             Device Features        :
+>>>                 None
+>>>
+>>> ~ # cec-compliance -A
+>>> cec-compliance SHA                 : 6acac5cec698de39b9398b66c4f5f4db6b=
+2730d8
+>>>
+>>> Driver Info:
+>>>         Driver Name                : stm32-cec
+>>>         Adapter Name               : stm32-cec
+>>>         Capabilities               : 0x0000000f
+>>>                 Physical Address
+>>>                 Logical Addresses
+>>>                 Transmit
+>>>                 Passthrough
+>>>         Driver version             : 4.11.0
+>>>         Available Logical Addresses: 1
+>>>         Physical Address           : 1.0.0.0
+>>>         Logical Address Mask       : 0x0010
+>>>         CEC Version                : 2.0
+>>>         Vendor ID                  : 0x000c03
+>>>         Logical Addresses          : 1 (Allow RC Passthrough)
+>>>
+>>>           Logical Address          : 4
+>>>             Primary Device Type    : Playback
+>>>             Logical Address Type   : Playback
+>>>             All Device Types       : Playback
+>>>             RC TV Profile          : None
+>>>             Device Features        :
+>>>                 None
+>>>
+>>> Compliance test for device /dev/cec0:
+>>>
+>>>     The test results mean the following:
+>>>         OK                  Supported correctly by the device.
+>>>         OK (Not Supported)  Not supported and not mandatory for the dev=
+ice.
+>>>         OK (Presumed)       Presumably supported.  Manually check to co=
+nfirm.
+>>>         OK (Unexpected)     Supported correctly but is not expected to =
+be supported for this device.
+>>>         OK (Refused)        Supported by the device, but was refused.
+>>>         FAIL                Failed and was expected to be supported by =
+this device.
+>>>
+>>> Find remote devices:
+>>>         Polling: OK
+>>>
+>>> CEC API:
+>>>         CEC_ADAP_G_CAPS: OK
+>>>         CEC_DQEVENT: OK
+>>>         CEC_ADAP_G/S_PHYS_ADDR: OK
+>>>         CEC_ADAP_G/S_LOG_ADDRS: OK
+>>>         CEC_TRANSMIT: OK
+>>>         CEC_RECEIVE: OK
+>>>         CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
+>>>         CEC_G/S_MODE: OK
+>>>         CEC_EVENT_LOST_MSGS: OK
+>>>
+>>> Network topology:
+>>>         System Information for device 0 (TV) from device 4 (Playback De=
+vice 1):
+>>>                 CEC Version                : 1.4
+>>>                 Physical Address           : 0.0.0.0
+>>>                 Primary Device Type        : TV
+>>>                 Vendor ID                  : 0x00903e
+>>>                 OSD Name                   : 'TV'
+>>>                 Menu Language              : fre
+>>>                 Power Status               : On
+>>>
+>>> Total: 10, Succeeded: 10, Failed: 0, Warnings: 0
+>>>
+>>> Benjamin Gaignard (2):
+>>>   binding for stm32 cec driver
+>>>   cec: add STM32 cec driver
+>>>
+>>>  .../devicetree/bindings/media/st,stm32-cec.txt     |  19 ++
+>>>  drivers/media/platform/Kconfig                     |  11 +
+>>>  drivers/media/platform/Makefile                    |   2 +
+>>>  drivers/media/platform/stm32/Makefile              |   1 +
+>>>  drivers/media/platform/stm32/stm32-cec.c           | 368 +++++++++++++=
+++++++++
+>>>  5 files changed, 401 insertions(+)
+>>>  create mode 100644 Documentation/devicetree/bindings/media/st,stm32-ce=
+c.txt
+>>>  create mode 100644 drivers/media/platform/stm32/Makefile
+>>>  create mode 100644 drivers/media/platform/stm32/stm32-cec.c
+>>>
+>>> --
+>>> 1.9.1
+>>>
+>
 
-> +	}
-> +
-> +unlock:
-> +	mutex_unlock(&vin->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static int rvin_mc_release(struct file *file)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	bool fh_singular;
-> +	int ret;
-> +
-> +	mutex_lock(&vin->lock);
-> +
-> +	/* Save the singular status before we call the clean-up helper */
-> +	fh_singular = v4l2_fh_is_singular_file(file);
-> +
-> +	/* the release helper will cleanup any on-going streaming */
-> +	ret = _vb2_fop_release(file, NULL);
-> +
-> +	if (fh_singular) {
 
-Ditto.
 
-> +		v4l2_pipeline_pm_use(&vin->vdev->entity, 0);
-> +		pm_runtime_put(vin->dev);
-> +	}
-> +
-> +	mutex_unlock(&vin->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static const struct v4l2_file_operations rvin_mc_fops = {
-> +	.owner		= THIS_MODULE,
-> +	.unlocked_ioctl	= video_ioctl2,
-> +	.open		= rvin_mc_open,
-> +	.release	= rvin_mc_release,
-> +	.poll		= vb2_fop_poll,
-> +	.mmap		= vb2_fop_mmap,
-> +	.read		= vb2_fop_read,
-> +};
-> +
->  void rvin_v4l2_remove(struct rvin_dev *vin)
->  {
->  	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
-> @@ -934,3 +1119,57 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
->  
->  	return ret;
->  }
-> +
-> +void rvin_v4l2_mc_remove(struct rvin_dev *vin)
-> +{
-> +	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
-> +		  video_device_node_name(vin->vdev));
-> +
-> +	/* Checks internaly if vdev have been init or not */
-> +	video_unregister_device(vin->vdev);
-> +}
-> +
-> +int rvin_v4l2_mc_probe(struct rvin_dev *vin)
-> +{
-> +	struct video_device *vdev;
-> +	int ret;
-> +
-> +	vin->v4l2_dev.notify = rvin_notify;
-> +
-> +	vdev = video_device_alloc();
-> +
-> +	vdev->fops = &rvin_mc_fops;
-> +	vdev->v4l2_dev = &vin->v4l2_dev;
-> +	vdev->queue = &vin->queue;
-> +	snprintf(vdev->name, sizeof(vdev->name), "%s %s", KBUILD_MODNAME,
-> +		 dev_name(vin->dev));
-> +	vdev->release = video_device_release;
-> +	vdev->ioctl_ops = &rvin_mc_ioctl_ops;
-> +	vdev->lock = &vin->lock;
-> +	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
-> +		V4L2_CAP_READWRITE;
-> +
-> +	/* Set some form of default format */
-> +	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
-> +	vin->format.width = RVIN_DEFAULT_WIDTH;
-> +	vin->format.height = RVIN_DEFAULT_HEIGHT;
-> +	vin->format.colorspace = RVIN_DEFAULT_COLORSPACE;
-> +	ret = __rvin_mc_try_format(vin, &vin->format);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
-> +	if (ret) {
-> +		vin_err(vin, "Failed to register video device\n");
-> +		return ret;
-> +	}
-> +
-> +	video_set_drvdata(vdev, vin);
-> +
-> +	v4l2_info(&vin->v4l2_dev, "Device registered as %s\n",
+--=20
+Benjamin Gaignard
 
-vin_*() macros translate to dev_*() macros. How about using them uniformly
-in the driver instead of mixing with v4l2_*() ones?
+Graphic Study Group
 
-> +		  video_device_node_name(vdev));
-> +
-> +	vin->vdev = vdev;
-> +
-> +	return ret;
-> +}
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-> index 512e67fdefd15015..6f2b1e28381678a9 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -21,6 +21,7 @@
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-dev.h>
->  #include <media/v4l2-device.h>
-> +#include <media/v4l2-mc.h>
->  #include <media/videobuf2-v4l2.h>
->  
->  /* Number of HW buffers */
-> @@ -162,6 +163,8 @@ void rvin_dma_remove(struct rvin_dev *vin);
->  
->  int rvin_v4l2_probe(struct rvin_dev *vin);
->  void rvin_v4l2_remove(struct rvin_dev *vin);
-> +int rvin_v4l2_mc_probe(struct rvin_dev *vin);
-> +void rvin_v4l2_mc_remove(struct rvin_dev *vin);
->  
->  const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
->  
+Linaro.org =E2=94=82 Open source software for ARM SoCs
 
--- 
-Kind regrads,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Follow Linaro: Facebook | Twitter | Blog
