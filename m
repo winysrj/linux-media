@@ -1,70 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:49845 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1762701AbdEWJU3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 May 2017 05:20:29 -0400
-Date: Tue, 23 May 2017 10:20:27 +0100
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH 5/7] rc-core: ir-raw - leave the internals of rc_dev alone
-Message-ID: <20170523092026.GA30040@gofer.mess.org>
-References: <149365487447.13489.15793446874818182829.stgit@zeus.hardeman.nu>
- <149365501711.13489.17027324920634077369.stgit@zeus.hardeman.nu>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56958 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751449AbdEPMCq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 16 May 2017 08:02:46 -0400
+Date: Tue, 16 May 2017 15:02:06 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com
+Subject: Re: [PATCH 2/3] [media] doc-rst: add IPU3 raw10 bayer pixel format
+ definitions
+Message-ID: <20170516120205.GO3227@valkosipuli.retiisi.org.uk>
+References: <cover.1493479141.git.yong.zhi@intel.com>
+ <edf6dbb7b690a363558e8b70b22eacd3854bae38.1493479141.git.yong.zhi@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <149365501711.13489.17027324920634077369.stgit@zeus.hardeman.nu>
+In-Reply-To: <edf6dbb7b690a363558e8b70b22eacd3854bae38.1493479141.git.yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 01, 2017 at 06:10:17PM +0200, David Härdeman wrote:
-> Replace the REP_DELAY value with a static value, which makes more sense.
-> Automatic repeat handling in the input layer has no relevance for the drivers
-> idea of "a long time".
+Hi Yong,
+
+On Sat, Apr 29, 2017 at 06:34:35PM -0500, Yong Zhi wrote:
+> The formats added by this patch are:
 > 
-> Signed-off-by: David Härdeman <david@hardeman.nu>
+>     V4L2_PIX_FMT_IPU3_SBGGR10
+>     V4L2_PIX_FMT_IPU3_SGBRG10
+>     V4L2_PIX_FMT_IPU3_SGRBG10
+>     V4L2_PIX_FMT_IPU3_SRGGB10
+> 
+> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 > ---
->  drivers/media/rc/rc-ir-raw.c |    4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
+>  Documentation/media/uapi/v4l/pixfmt-rgb.rst        |  1 +
+>  .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         | 61 ++++++++++++++++++++++
+>  2 files changed, 62 insertions(+)
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
 > 
-> diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-> index ae7785c4fbe7..967ab9531e0a 100644
-> --- a/drivers/media/rc/rc-ir-raw.c
-> +++ b/drivers/media/rc/rc-ir-raw.c
-> @@ -102,20 +102,18 @@ int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type)
->  	s64			delta; /* ns */
->  	DEFINE_IR_RAW_EVENT(ev);
->  	int			rc = 0;
-> -	int			delay;
->  
->  	if (!dev->raw)
->  		return -EINVAL;
->  
->  	now = ktime_get();
->  	delta = ktime_to_ns(ktime_sub(now, dev->raw->last_event));
-> -	delay = MS_TO_NS(dev->input_dev->rep[REP_DELAY]);
->  
->  	/* Check for a long duration since last event or if we're
->  	 * being called for the first time, note that delta can't
->  	 * possibly be negative.
->  	 */
-> -	if (delta > delay || !dev->raw->last_type)
-> +	if (delta > MS_TO_NS(500) || !dev->raw->last_type)
->  		type |= IR_START_EVENT;
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+> index b0f3513..6900d5c 100644
+> --- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+> +++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+> @@ -16,5 +16,6 @@ RGB Formats
+>      pixfmt-srggb10p
+>      pixfmt-srggb10alaw8
+>      pixfmt-srggb10dpcm8
+> +    pixfmt-srggb10-ipu3
+>      pixfmt-srggb12
+>      pixfmt-srggb16
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+> new file mode 100644
+> index 0000000..8a82f30
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+> @@ -0,0 +1,61 @@
+> +.. -*- coding: utf-8; mode: rst -*-
+> +
+> +.. _V4L2_PIX_FMT_IPU3_SBGGR10:
+> +.. _V4L2_PIX_FMT_IPU3_SGBRG10:
+> +.. _V4L2_PIX_FMT_IPU3_SGRBG10:
+> +.. _V4L2_PIX_FMT_IPU3_SRGGB10:
+> +
+> +**********************************************************************************************************************************************
+> +V4L2_PIX_FMT_IPU3_SBGGR10 ('ip3b'), V4L2_PIX_FMT_IPU3_SGBRG10 ('ip3g'), V4L2_PIX_FMT_IPU3_SGRBG10 ('ip3G'), V4L2_PIX_FMT_IPU3_SRGGB10 ('ip3r')
+> +**********************************************************************************************************************************************
+> +
+> +10-bit Bayer formats
+> +
+> +Description
+> +===========
+> +
+> +These four pixel formats are raw sRGB / Bayer formats with 10 bits per
+> +sample with every 25 pixels packed to 32 bytes leaving 6 most significant 
+> +bits padding in the last byte. The format is little endian.
+> +
+> +In other respects this format is similar to :ref:`V4L2-PIX-FMT-SRGGB10`.
+> +
+> +**Byte Order.**
+> +Each cell is one byte.
+> +
+> +.. raw:: latex
+> +
+> +    \newline\newline\begin{adjustbox}{width=\columnwidth}
+> +
+> +.. tabularcolumns:: |p{1.3cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|
+> +
+> +.. flat-table::
+> +
+> +    * - start + 0:
+> +      - B\ :sub:`00low`
+> +      - G\ :sub:`01low` \ (bits 7--2) B\ :sub:`00high`\ (bits 1--0)
+> +      - B\ :sub:`02low` \ (bits 7--4) G\ :sub:`01high`\ (bits 3--0)
+> +      - G\ :sub:`03low` \ (bits 7--6) B\ :sub:`02high`\ (bits 5--0)
+> +      - G\ :sub:`03high`
+> +    * - start + 5:
+> +      - G\ :sub:`10low`
+> +      - R\ :sub:`11low` \ (bits 7--2) G\ :sub:`10high`\ (bits 1--0)
+> +      - G\ :sub:`12low` \ (bits 7--4) R\ :sub:`11high`\ (bits 3--0)
+> +      - R\ :sub:`13low` \ (bits 7--6) G\ :sub:`12high`\ (bits 5--0)
+> +      - R\ :sub:`13high`
+> +    * - start + 10:
+> +      - B\ :sub:`20low`
+> +      - G\ :sub:`21low` \ (bits 7--2) B\ :sub:`20high`\ (bits 1--0)
+> +      - B\ :sub:`22low` \ (bits 7--4) G\ :sub:`21high`\ (bits 3--0)
+> +      - G\ :sub:`23low` \ (bits 7--6) B\ :sub:`22high`\ (bits 5--0)
+> +      - G\ :sub:`23high`
+> +    * - start + 15:
+> +      - G\ :sub:`30low`
+> +      - R\ :sub:`31low` \ (bits 7--2) G\ :sub:`30high`\ (bits 1--0)
+> +      - G\ :sub:`32low` \ (bits 7--4) R\ :sub:`31high`\ (bits 3--0)
+> +      - R\ :sub:`33low` \ (bits 7--6) G\ :sub:`32high`\ (bits 5--0)
+> +      - R\ :sub:`33high`
 
-So this is just a fail-safe to ensure that the IR decoders are reset after
-a period of IR silence. The decoders should reset themselves anyway if they
-receive a long space, so it's just belt and braces.
+Could you extend the example a bit, so that it includes the end of the
+current and the beginning of the next 25-pixel (32 byte) chunk? Perhaps a
+4x8 or a 8x4 pixel image?
 
-Why is a static value better? At least REP_DELAY can be changed from
-user space.
+> +
+> +.. raw:: latex
+> +
+> +    \end{adjustbox}\newline\newline
 
-Maybe we should do away with it.
+-- 
+Kind regards,
 
-
-Sean
-
->  	else
->  		ev.duration = delta;
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
