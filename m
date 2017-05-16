@@ -1,67 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:38627 "EHLO
-        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750769AbdEBRAV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 2 May 2017 13:00:21 -0400
-Subject: Re: [PATCH 1/2] em28xx: allow setting the eeprom bus at cards struct
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <05c4899146e7f2cfa1d0bc7a5118e3f2294ede40.1493638682.git.mchehab@s-opensource.com>
- <2431f8bf-1bbd-ffa6-1e72-488c31c9c2a7@googlemail.com>
- <20170501145425.10388b37@vento.lan>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-From: =?UTF-8?Q?Frank_Sch=c3=a4fer?= <fschaefer.oss@googlemail.com>
-Message-ID: <6c672c61-9dde-a8c7-c660-c5659d093bce@googlemail.com>
-Date: Tue, 2 May 2017 19:00:39 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170501145425.10388b37@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:34930 "EHLO
+        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752276AbdEPM5W (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 16 May 2017 08:57:22 -0400
+Received: by mail-wm0-f45.google.com with SMTP id b84so132413254wmh.0
+        for <linux-media@vger.kernel.org>; Tue, 16 May 2017 05:57:22 -0700 (PDT)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: yannick.fertre@st.com, alexandre.torgue@st.com, hverkuil@xs4all.nl,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        robh@kernel.org, hans.verkuil@cisco.com
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v2 1/2] binding for stm32 cec driver
+Date: Tue, 16 May 2017 14:56:22 +0200
+Message-Id: <1494939383-18937-2-git-send-email-benjamin.gaignard@linaro.org>
+In-Reply-To: <1494939383-18937-1-git-send-email-benjamin.gaignard@linaro.org>
+References: <1494939383-18937-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+---
+ .../devicetree/bindings/media/st,stm32-cec.txt        | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
 
-Am 01.05.2017 um 19:54 schrieb Mauro Carvalho Chehab:
-> Hi Frank,
->
-> Em Mon, 1 May 2017 16:11:51 +0200
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Am 01.05.2017 um 13:38 schrieb Mauro Carvalho Chehab:
->>> Right now, all devices use bus 0 for eeprom. However, newer
->>> versions of Terratec H6 use a different buffer for eeprom.
->>>
->>> So, add support to use a different I2C address for eeprom.  
->> Has this been tested ?
->> Did you read my reply to the previous patch version ?:
->> See http://www.spinics.net/lists/linux-media/msg114860.html
->>
->> I doubt it will work. At least not for the device from the thread in the
->> Kodi-forum.
-> Yes. Someone at IRC were complaining about this device (his nick is
-> buxy81). 
-Ahh, you are in contact with him ? That's good.
-
-> According with the tests he did, with both patches his
-> device is now working.
-I guess it works because (due to the first patch) no eeprom is detected
-anymore.
-In this case the driver prints a "board has no eeprom" message to the
-log and continues.
-
-> That's said, it would be great if he could provide us more details
-> about the tests he did, with the logs enabled, in order for us to see
-> if the eeprom contents is properly read.
-Yes, further tests/details are required.
-Can you ask him to join the list ?
-
-Regards,
-Frank
-
-
-
->
->
-> Thanks,
-> Mauro
+diff --git a/Documentation/devicetree/bindings/media/st,stm32-cec.txt b/Documentation/devicetree/bindings/media/st,stm32-cec.txt
+new file mode 100644
+index 0000000..6be2381
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/st,stm32-cec.txt
+@@ -0,0 +1,19 @@
++STMicroelectronics STM32 CEC driver
++
++Required properties:
++ - compatible : value should be "st,stm32-cec"
++ - reg : Physical base address of the IP registers and length of memory
++	 mapped region.
++ - clocks : from common clock binding: handle to CEC clocks
++ - clock-names : from common clock binding: must be "cec" and "hdmi-cec".
++ - interrupts : CEC interrupt number to the CPU.
++
++Example for stm32f746:
++
++cec: cec@40006c00 {
++	compatible = "st,stm32-cec";
++	reg = <0x40006C00 0x400>;
++	interrupts = <94>;
++	clocks = <&rcc 0 STM32F7_APB1_CLOCK(CEC)>, <&rcc 1 CLK_HDMI_CEC>;
++	clock-names = "cec", "hdmi-cec";
++};
+-- 
+1.9.1
