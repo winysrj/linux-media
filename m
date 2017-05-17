@@ -1,61 +1,286 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.llwyncelyn.cymru ([82.70.14.225]:38396 "EHLO fuzix.org"
+Received: from gofer.mess.org ([88.97.38.141]:43627 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933683AbdEZP1d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 May 2017 11:27:33 -0400
-Subject: [PATCHv2 02/11] atomisp: remove NUM_OF_BLS
-From: Alan Cox <alan@llwyncelyn.cymru>
-To: mchehab@kernel.org, linux-media@vger.kernel.org
-Date: Fri, 26 May 2017 16:27:29 +0100
-Message-ID: <149581244430.17585.8359368078384156683.stgit@builder>
-In-Reply-To: <149581243155.17585.8164899156710160858.stgit@builder>
-References: <149581243155.17585.8164899156710160858.stgit@builder>
+        id S1754341AbdEQUJ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 17 May 2017 16:09:59 -0400
+Date: Wed, 17 May 2017 21:09:57 +0100
+From: Sean Young <sean@mess.org>
+To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: [PATCH] rc-core: cleanup rc_register_device (v2)
+Message-ID: <20170517200957.GA1531@gofer.mess.org>
+References: <149380584051.16088.1242474111722854646.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <149380584051.16088.1242474111722854646.stgit@zeus.hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With the removal of the HAS_BL bootloader code the value of NUM_OF_BLS is an
-invariant zero. So let's get rid of it.
+Hi David,
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
- .../atomisp/pci/atomisp2/css2400/sh_css_firmware.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+On Wed, May 03, 2017 at 12:04:00PM +0200, David Härdeman wrote:
+> The device core infrastructure is based on the presumption that
+> once a driver calls device_add(), it must be ready to accept
+> userspace interaction.
+> 
+> This requires splitting rc_setup_rx_device() into two functions
+> and reorganizing rc_register_device() so that as much work
+> as possible is performed before calling device_add().
+> 
+> Version 2: switch the order in which rc_prepare_rx_device() and
+> ir_raw_event_prepare() gets called so that dev->change_protocol()
+> gets called before device_add().
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-index 57b4fe5..a179de5 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-@@ -234,9 +234,9 @@ sh_css_load_firmware(const char *fw_data,
- 
- 	sh_css_num_binaries = file_header->binary_nr;
- 	/* Only allocate memory for ISP blob info */
--	if (sh_css_num_binaries > (NUM_OF_SPS + NUM_OF_BLS)) {
-+	if (sh_css_num_binaries > NUM_OF_SPS) {
- 		sh_css_blob_info = kmalloc(
--					(sh_css_num_binaries - (NUM_OF_SPS + NUM_OF_BLS)) *
-+					(sh_css_num_binaries - NUM_OF_SPS) *
- 					sizeof(*sh_css_blob_info), GFP_KERNEL);
- 		if (sh_css_blob_info == NULL)
- 			return IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
-@@ -272,15 +272,15 @@ sh_css_load_firmware(const char *fw_data,
- 			if (err != IA_CSS_SUCCESS)
- 				return err;
- 		} else {
--			/* All subsequent binaries (including bootloaders) (i>NUM_OF_SPS+NUM_OF_BLS) are ISP firmware */
--			if (i < (NUM_OF_SPS + NUM_OF_BLS))
-+			/* All subsequent binaries (including bootloaders) (i>NUM_OF_SPS) are ISP firmware */
-+			if (i < NUM_OF_SPS)
- 				return IA_CSS_ERR_INTERNAL_ERROR;
- 
- 			if (bi->type != ia_css_isp_firmware)
- 				return IA_CSS_ERR_INTERNAL_ERROR;
- 			if (sh_css_blob_info == NULL) /* cannot happen but KW does not see this */
- 				return IA_CSS_ERR_INTERNAL_ERROR;
--			sh_css_blob_info[i-(NUM_OF_SPS + NUM_OF_BLS)] = bd;
-+			sh_css_blob_info[i - NUM_OF_SPS] = bd;
- 		}
- 	}
- 
+I've looked at this patch and I don't see what problem it solves;
+what user-space interaction is problematic?
+
+
+Sean
+
+> 
+> Signed-off-by: David Härdeman <david@hardeman.nu>
+> ---
+>  drivers/media/rc/rc-core-priv.h |    2 +
+>  drivers/media/rc/rc-ir-raw.c    |   34 ++++++++++++------
+>  drivers/media/rc/rc-main.c      |   75 +++++++++++++++++++++++++--------------
+>  3 files changed, 73 insertions(+), 38 deletions(-)
+> 
+> diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+> index 0455b273c2fc..b3e7cac2c3ee 100644
+> --- a/drivers/media/rc/rc-core-priv.h
+> +++ b/drivers/media/rc/rc-core-priv.h
+> @@ -263,7 +263,9 @@ int ir_raw_gen_pl(struct ir_raw_event **ev, unsigned int max,
+>   * Routines from rc-raw.c to be used internally and by decoders
+>   */
+>  u64 ir_raw_get_allowed_protocols(void);
+> +int ir_raw_event_prepare(struct rc_dev *dev);
+>  int ir_raw_event_register(struct rc_dev *dev);
+> +void ir_raw_event_free(struct rc_dev *dev);
+>  void ir_raw_event_unregister(struct rc_dev *dev);
+>  int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
+>  void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
+> diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+> index 90f66dc7c0d7..ae7785c4fbe7 100644
+> --- a/drivers/media/rc/rc-ir-raw.c
+> +++ b/drivers/media/rc/rc-ir-raw.c
+> @@ -486,14 +486,18 @@ EXPORT_SYMBOL(ir_raw_encode_scancode);
+>  /*
+>   * Used to (un)register raw event clients
+>   */
+> -int ir_raw_event_register(struct rc_dev *dev)
+> +int ir_raw_event_prepare(struct rc_dev *dev)
+>  {
+> -	int rc;
+> -	struct ir_raw_handler *handler;
+> +	static bool raw_init; /* 'false' default value, raw decoders loaded? */
+>  
+>  	if (!dev)
+>  		return -EINVAL;
+>  
+> +	if (!raw_init) {
+> +		request_module("ir-lirc-codec");
+> +		raw_init = true;
+> +	}
+> +
+>  	dev->raw = kzalloc(sizeof(*dev->raw), GFP_KERNEL);
+>  	if (!dev->raw)
+>  		return -ENOMEM;
+> @@ -502,6 +506,13 @@ int ir_raw_event_register(struct rc_dev *dev)
+>  	dev->change_protocol = change_protocol;
+>  	INIT_KFIFO(dev->raw->kfifo);
+>  
+> +	return 0;
+> +}
+> +
+> +int ir_raw_event_register(struct rc_dev *dev)
+> +{
+> +	struct ir_raw_handler *handler;
+> +
+>  	/*
+>  	 * raw transmitters do not need any event registration
+>  	 * because the event is coming from userspace
+> @@ -510,10 +521,8 @@ int ir_raw_event_register(struct rc_dev *dev)
+>  		dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
+>  					       "rc%u", dev->minor);
+>  
+> -		if (IS_ERR(dev->raw->thread)) {
+> -			rc = PTR_ERR(dev->raw->thread);
+> -			goto out;
+> -		}
+> +		if (IS_ERR(dev->raw->thread))
+> +			return PTR_ERR(dev->raw->thread);
+>  	}
+>  
+>  	mutex_lock(&ir_raw_handler_lock);
+> @@ -524,11 +533,15 @@ int ir_raw_event_register(struct rc_dev *dev)
+>  	mutex_unlock(&ir_raw_handler_lock);
+>  
+>  	return 0;
+> +}
+> +
+> +void ir_raw_event_free(struct rc_dev *dev)
+> +{
+> +	if (!dev)
+> +		return;
+>  
+> -out:
+>  	kfree(dev->raw);
+>  	dev->raw = NULL;
+> -	return rc;
+>  }
+>  
+>  void ir_raw_event_unregister(struct rc_dev *dev)
+> @@ -547,8 +560,7 @@ void ir_raw_event_unregister(struct rc_dev *dev)
+>  			handler->raw_unregister(dev);
+>  	mutex_unlock(&ir_raw_handler_lock);
+>  
+> -	kfree(dev->raw);
+> -	dev->raw = NULL;
+> +	ir_raw_event_free(dev);
+>  }
+>  
+>  /*
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 802e559cc30e..f3bc9f4e2b96 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -1663,7 +1663,7 @@ struct rc_dev *devm_rc_allocate_device(struct device *dev,
+>  }
+>  EXPORT_SYMBOL_GPL(devm_rc_allocate_device);
+>  
+> -static int rc_setup_rx_device(struct rc_dev *dev)
+> +static int rc_prepare_rx_device(struct rc_dev *dev)
+>  {
+>  	int rc;
+>  	struct rc_map *rc_map;
+> @@ -1708,10 +1708,22 @@ static int rc_setup_rx_device(struct rc_dev *dev)
+>  	dev->input_dev->phys = dev->input_phys;
+>  	dev->input_dev->name = dev->input_name;
+>  
+> +	return 0;
+> +
+> +out_table:
+> +	ir_free_table(&dev->rc_map);
+> +
+> +	return rc;
+> +}
+> +
+> +static int rc_setup_rx_device(struct rc_dev *dev)
+> +{
+> +	int rc;
+> +
+>  	/* rc_open will be called here */
+>  	rc = input_register_device(dev->input_dev);
+>  	if (rc)
+> -		goto out_table;
+> +		return rc;
+>  
+>  	/*
+>  	 * Default delay of 250ms is too short for some protocols, especially
+> @@ -1729,27 +1741,23 @@ static int rc_setup_rx_device(struct rc_dev *dev)
+>  	dev->input_dev->rep[REP_PERIOD] = 125;
+>  
+>  	return 0;
+> -
+> -out_table:
+> -	ir_free_table(&dev->rc_map);
+> -
+> -	return rc;
+>  }
+>  
+>  static void rc_free_rx_device(struct rc_dev *dev)
+>  {
+> -	if (!dev || dev->driver_type == RC_DRIVER_IR_RAW_TX)
+> +	if (!dev)
+>  		return;
+>  
+> -	ir_free_table(&dev->rc_map);
+> +	if (dev->input_dev) {
+> +		input_unregister_device(dev->input_dev);
+> +		dev->input_dev = NULL;
+> +	}
+>  
+> -	input_unregister_device(dev->input_dev);
+> -	dev->input_dev = NULL;
+> +	ir_free_table(&dev->rc_map);
+>  }
+>  
+>  int rc_register_device(struct rc_dev *dev)
+>  {
+> -	static bool raw_init; /* 'false' default value, raw decoders loaded? */
+>  	const char *path;
+>  	int attr = 0;
+>  	int minor;
+> @@ -1776,30 +1784,39 @@ int rc_register_device(struct rc_dev *dev)
+>  		dev->sysfs_groups[attr++] = &rc_dev_wakeup_filter_attr_grp;
+>  	dev->sysfs_groups[attr++] = NULL;
+>  
+> +	if (dev->driver_type == RC_DRIVER_IR_RAW ||
+> +	    dev->driver_type == RC_DRIVER_IR_RAW_TX) {
+> +		rc = ir_raw_event_prepare(dev);
+> +		if (rc < 0)
+> +			goto out_minor;
+> +	}
+> +
+> +	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
+> +		rc = rc_prepare_rx_device(dev);
+> +		if (rc)
+> +			goto out_raw;
+> +	}
+> +
+>  	rc = device_add(&dev->dev);
+>  	if (rc)
+> -		goto out_unlock;
+> +		goto out_rx_free;
+>  
+>  	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
+>  	dev_info(&dev->dev, "%s as %s\n",
+>  		dev->input_name ?: "Unspecified device", path ?: "N/A");
+>  	kfree(path);
+>  
+> +	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
+> +		rc = rc_setup_rx_device(dev);
+> +		if (rc)
+> +			goto out_dev;
+> +	}
+> +
+>  	if (dev->driver_type == RC_DRIVER_IR_RAW ||
+>  	    dev->driver_type == RC_DRIVER_IR_RAW_TX) {
+> -		if (!raw_init) {
+> -			request_module_nowait("ir-lirc-codec");
+> -			raw_init = true;
+> -		}
+>  		rc = ir_raw_event_register(dev);
+>  		if (rc < 0)
+> -			goto out_dev;
+> -	}
+> -
+> -	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
+> -		rc = rc_setup_rx_device(dev);
+> -		if (rc)
+> -			goto out_raw;
+> +			goto out_rx;
+>  	}
+>  
+>  	/* Allow the RC sysfs nodes to be accessible */
+> @@ -1811,11 +1828,15 @@ int rc_register_device(struct rc_dev *dev)
+>  
+>  	return 0;
+>  
+> -out_raw:
+> -	ir_raw_event_unregister(dev);
+> +out_rx:
+> +	rc_free_rx_device(dev);
+>  out_dev:
+>  	device_del(&dev->dev);
+> -out_unlock:
+> +out_rx_free:
+> +	ir_free_table(&dev->rc_map);
+> +out_raw:
+> +	ir_raw_event_free(dev);
+> +out_minor:
+>  	ida_simple_remove(&rc_ida, minor);
+>  	return rc;
+>  }
