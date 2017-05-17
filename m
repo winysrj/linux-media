@@ -1,88 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f42.google.com ([209.85.215.42]:36811 "EHLO
-        mail-lf0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755338AbdETO36 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 20 May 2017 10:29:58 -0400
-Received: by mail-lf0-f42.google.com with SMTP id h4so12902126lfj.3
-        for <linux-media@vger.kernel.org>; Sat, 20 May 2017 07:29:57 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Sat, 20 May 2017 16:29:54 +0200
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH 02/16] rcar-vin: use rvin_reset_format() in S_DV_TIMINGS
-Message-ID: <20170520142954.GB1229@bigcity.dyn.berto.se>
-References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
- <20170314185957.25253-3-niklas.soderlund+renesas@ragnatech.se>
- <5932754.eWeQtlWCiC@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <5932754.eWeQtlWCiC@avalon>
+Received: from mail.kernel.org ([198.145.29.99]:58020 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754516AbdEQPEJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 17 May 2017 11:04:09 -0400
+From: Kieran Bingham <kbingham@kernel.org>
+To: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@iki.fi, niklas.soderlund@ragnatech.se,
+        laurent.pinchart@ideasonboard.com
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        devicetree@vger.kernel.org (open list:OPEN FIRMWARE AND FLATTENED
+        DEVICE TREE), linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v1 1/3] of: base: Provide of_graph_get_port_parent()
+Date: Wed, 17 May 2017 16:03:37 +0100
+Message-Id: <56c9c74fa9e2879aea9e008d54d8b8d7b450b8ae.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.6800d0e1b9b578b82f68dec1b99b3a601d6e54ca.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.6800d0e1b9b578b82f68dec1b99b3a601d6e54ca.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.6800d0e1b9b578b82f68dec1b99b3a601d6e54ca.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.6800d0e1b9b578b82f68dec1b99b3a601d6e54ca.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Thanks for your feedback.
+When handling endpoints, the v4l2 async framework needs to identify the
+parent device of a port endpoint.
 
-On 2017-05-10 16:22:16 +0300, Laurent Pinchart wrote:
-> Hi Niklas,
-> 
-> Thank you for the patch.
-> 
-> On Tuesday 14 Mar 2017 19:59:43 Niklas Söderlund wrote:
-> > Use rvin_reset_format() in rvin_s_dv_timings() instead of just resetting
-> > a few fields. This fixes an issue where the field format was not
-> > properly set after S_DV_TIMINGS.
-> > 
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> >  drivers/media/platform/rcar-vin/rcar-v4l2.c | 8 ++------
-> >  1 file changed, 2 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> > b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> > 69bc4cfea6a8aeb5..7ca27599b9982ffc 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> > +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> > @@ -573,12 +573,8 @@ static int rvin_s_dv_timings(struct file *file, void
-> > *priv_fh, if (ret)
-> >  		return ret;
-> > 
-> > -	vin->source.width = timings->bt.width;
-> > -	vin->source.height = timings->bt.height;
-> > -	vin->format.width = timings->bt.width;
-> > -	vin->format.height = timings->bt.height;
-> > -
-> > -	return 0;
-> > +	/* Changing the timings will change the width/height */
-> > +	return rvin_reset_format(vin);
-> 
-> vin->source won't be updated anymore. Is this intentional ?
+Adapt the existing of_graph_get_remote_port_parent() such that a caller
+can obtain the parent of a port without parsing the remote-endpoint
+first.
 
-Yes this is intentional. vin->source cache the frame width and height 
-from the source subdevice, and this is done in .vidioc_s_fmt_vid_cap().  
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/of/base.c        | 30 ++++++++++++++++++++++--------
+ include/linux/of_graph.h |  1 +
+ 2 files changed, 23 insertions(+), 8 deletions(-)
 
-This cacheing was due to a misunderstanding on my part in the port from 
-soc_camera and the whole vin->source caching is removed in later patch 
-when cleaning up the scaling code in the Gen3 enablement series.
-
-> 
-> >  }
-> > 
-> >  static int rvin_g_dv_timings(struct file *file, void *priv_fh,
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index d7c4629a3a2d..f81100500999 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -2455,6 +2455,27 @@ struct device_node *of_graph_get_endpoint_by_regs(
+ EXPORT_SYMBOL(of_graph_get_endpoint_by_regs);
+ 
+ /**
++ * of_graph_get_port_parent() - get port's parent node
++ * @node: pointer to a local endpoint device_node
++ *
++ * Return: device node associated with endpoint @node.
++ *	   Use of_node_put() on it when done.
++ */
++struct device_node *of_graph_get_port_parent(struct device_node *node)
++{
++	unsigned int depth;
++
++	/* Walk 3 levels up only if there is 'ports' node. */
++	for (depth = 3; depth && node; depth--) {
++		node = of_get_next_parent(node);
++		if (depth == 2 && of_node_cmp(node->name, "ports"))
++			break;
++	}
++	return node;
++}
++EXPORT_SYMBOL(of_graph_get_port_parent);
++
++/**
+  * of_graph_get_remote_port_parent() - get remote port's parent node
+  * @node: pointer to a local endpoint device_node
+  *
+@@ -2465,18 +2486,11 @@ struct device_node *of_graph_get_remote_port_parent(
+ 			       const struct device_node *node)
+ {
+ 	struct device_node *np;
+-	unsigned int depth;
+ 
+ 	/* Get remote endpoint node. */
+ 	np = of_parse_phandle(node, "remote-endpoint", 0);
+ 
+-	/* Walk 3 levels up only if there is 'ports' node. */
+-	for (depth = 3; depth && np; depth--) {
+-		np = of_get_next_parent(np);
+-		if (depth == 2 && of_node_cmp(np->name, "ports"))
+-			break;
+-	}
+-	return np;
++	return of_graph_get_port_parent(np);
+ }
+ EXPORT_SYMBOL(of_graph_get_remote_port_parent);
+ 
+diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
+index abdb02eaef06..49bf34880ebc 100644
+--- a/include/linux/of_graph.h
++++ b/include/linux/of_graph.h
+@@ -48,6 +48,7 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 					struct device_node *previous);
+ struct device_node *of_graph_get_endpoint_by_regs(
+ 		const struct device_node *parent, int port_reg, int reg);
++struct device_node *of_graph_get_port_parent(struct device_node *node);
+ struct device_node *of_graph_get_remote_port_parent(
+ 					const struct device_node *node);
+ struct device_node *of_graph_get_remote_port(const struct device_node *node);
 -- 
-Regards,
-Niklas Söderlund
+git-series 0.9.1
