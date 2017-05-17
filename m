@@ -1,63 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:34277 "EHLO
-        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750865AbdE2IeZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 04:34:25 -0400
-Received: by mail-wm0-f43.google.com with SMTP id 123so17616572wmg.1
-        for <linux-media@vger.kernel.org>; Mon, 29 May 2017 01:34:24 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: yannick.fertre@st.com, alexandre.torgue@st.com, hverkuil@xs4all.nl,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        robh@kernel.org, hans.verkuil@cisco.com
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v4 1/2] dt-bindings: media: stm32 cec driver
-Date: Mon, 29 May 2017 10:34:14 +0200
-Message-Id: <1496046855-5809-2-git-send-email-benjamin.gaignard@linaro.org>
-In-Reply-To: <1496046855-5809-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1496046855-5809-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from mail.kernel.org ([198.145.29.99]:60672 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751957AbdEQPiU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 17 May 2017 11:38:20 -0400
+From: Kieran Bingham <kbingham@kernel.org>
+To: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+        niklas.soderlund@ragnatech.se, geert@glider.be
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3.1 1/2] v4l: subdev: tolerate null in media_entity_to_v4l2_subdev
+Date: Wed, 17 May 2017 16:38:14 +0100
+Message-Id: <38adea84b864609515b2db580a76954b1a114e3f.1495035409.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <2a3a6d999502db1b6a47706b4da92d396075b22b.1495029016.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <2a3a6d999502db1b6a47706b4da92d396075b22b.1495029016.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.ed561929790222fc2c4467d4e57072a8e4ba69f3.1495035409.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.ed561929790222fc2c4467d4e57072a8e4ba69f3.1495035409.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add bindings documentation for stm32 CEC driver.
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Return NULL, if a null entity is parsed for it's v4l2_subdev
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
-version 4:
-- rework commit message
-- add hdmi-phandle optional property
+ include/media/v4l2-subdev.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- .../devicetree/bindings/media/st,stm32-cec.txt     | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
-
-diff --git a/Documentation/devicetree/bindings/media/st,stm32-cec.txt b/Documentation/devicetree/bindings/media/st,stm32-cec.txt
-new file mode 100644
-index 0000000..790d6d3
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/st,stm32-cec.txt
-@@ -0,0 +1,22 @@
-+STMicroelectronics STM32 CEC driver
-+
-+Required properties:
-+ - compatible : value should be "st,stm32-cec"
-+ - reg : Physical base address of the IP registers and length of memory
-+	 mapped region.
-+ - clocks : from common clock binding: handle to CEC clocks
-+ - clock-names : from common clock binding: must be "cec" and "hdmi-cec".
-+ - interrupts : CEC interrupt number to the CPU.
-+
-+Optional properties:
-+ - hdmi-phandle: Phandle to the HDMI controller
-+
-+Example for stm32f746:
-+
-+cec: cec@40006c00 {
-+	compatible = "st,stm32-cec";
-+	reg = <0x40006C00 0x400>;
-+	interrupts = <94>;
-+	clocks = <&rcc 0 STM32F7_APB1_CLOCK(CEC)>, <&rcc 1 CLK_HDMI_CEC>;
-+	clock-names = "cec", "hdmi-cec";
-+};
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 5f1669c45642..72d7f28f38dc 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -829,7 +829,7 @@ struct v4l2_subdev {
+ };
+ 
+ #define media_entity_to_v4l2_subdev(ent) \
+-	container_of(ent, struct v4l2_subdev, entity)
++	(ent ? container_of(ent, struct v4l2_subdev, entity) : NULL)
+ #define vdev_to_v4l2_subdev(vdev) \
+ 	((struct v4l2_subdev *)video_get_drvdata(vdev))
+ 
 -- 
-1.9.1
+git-series 0.9.1
