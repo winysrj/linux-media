@@ -1,62 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:57263 "EHLO mga07.intel.com"
+Received: from gofer.mess.org ([88.97.38.141]:34087 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755293AbdEHPFK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 May 2017 11:05:10 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+        id S1752849AbdEQRc5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 17 May 2017 13:32:57 -0400
+From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v4 14/18] vb2: Improve struct vb2_mem_ops documentation; alloc and put are for MMAP
-Date: Mon,  8 May 2017 18:03:26 +0300
-Message-Id: <1494255810-12672-15-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH 2/5] [media] sir_ir: use dev managed resources
+Date: Wed, 17 May 2017 18:32:51 +0100
+Message-Id: <ceb4ec40a0ae19a324b172433623727db3fcbdb7.1495035457.git.sean@mess.org>
+In-Reply-To: <cover.1495035457.git.sean@mess.org>
+References: <cover.1495035457.git.sean@mess.org>
+In-Reply-To: <cover.1495035457.git.sean@mess.org>
+References: <cover.1495035457.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The alloc() and put() ops are for MMAP buffers only. Document it.
+Several error paths do not free up resources. This simplifies the code
+and fixes this.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- include/media/videobuf2-core.h | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/media/rc/sir_ir.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 08f1d0e..dd67ae6 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -46,16 +46,16 @@ struct vb2_threadio_data;
+diff --git a/drivers/media/rc/sir_ir.c b/drivers/media/rc/sir_ir.c
+index c27d6b4..1ee41adb 100644
+--- a/drivers/media/rc/sir_ir.c
++++ b/drivers/media/rc/sir_ir.c
+@@ -334,14 +334,13 @@ static int init_port(void)
+ 	setup_timer(&timerlist, sir_timeout, 0);
  
- /**
-  * struct vb2_mem_ops - memory handling/memory allocator operations
-- * @alloc:	allocate video memory and, optionally, allocator private data,
-- *		return ERR_PTR() on failure or a pointer to allocator private,
-- *		per-buffer data on success; the returned private structure
-- *		will then be passed as @buf_priv argument to other ops in this
-- *		structure. Additional gfp_flags to use when allocating the
-- *		are also passed to this operation. These flags are from the
-- *		gfp_flags field of vb2_queue.
-- * @put:	inform the allocator that the buffer will no longer be used;
-- *		usually will result in the allocator freeing the buffer (if
-- *		no other users of this buffer are present); the @buf_priv
-+ * @alloc:	allocate video memory for an MMAP buffer and, optionally,
-+ *		allocator private data, return ERR_PTR() on failure or a pointer
-+ *		to allocator private, per-buffer data on success; the returned
-+ *		private structure will then be passed as @buf_priv argument to
-+ *		other ops in this structure. Additional gfp_flags to use when
-+ *		allocating the memory are also passed to this operation. These
-+ *		flags are from the gfp_flags field of vb2_queue.
-+ * @put:	inform the allocator that the MMAP buffer will no longer be
-+ *		used; usually will result in the allocator freeing the buffer
-+ *		(if no other users of this buffer are present); the @buf_priv
-  *		argument is the allocator private per-buffer structure
-  *		previously returned from the alloc callback.
-  * @get_dmabuf: acquire userspace memory for a hardware operation; used for
+ 	/* get I/O port access and IRQ line */
+-	if (!request_region(io, 8, KBUILD_MODNAME)) {
++	if (!devm_request_region(&sir_ir_dev->dev, io, 8, KBUILD_MODNAME)) {
+ 		pr_err("i/o port 0x%.4x already in use.\n", io);
+ 		return -EBUSY;
+ 	}
+-	retval = request_irq(irq, sir_interrupt, 0,
+-			     KBUILD_MODNAME, NULL);
++	retval = devm_request_irq(&sir_ir_dev->dev, irq, sir_interrupt, 0,
++				  KBUILD_MODNAME, NULL);
+ 	if (retval < 0) {
+-		release_region(io, 8);
+ 		pr_err("IRQ %d already in use.\n", irq);
+ 		return retval;
+ 	}
+@@ -352,9 +351,7 @@ static int init_port(void)
+ 
+ static void drop_port(void)
+ {
+-	free_irq(irq, NULL);
+ 	del_timer_sync(&timerlist);
+-	release_region(io, 8);
+ }
+ 
+ static int init_sir_ir(void)
 -- 
-2.7.4
+2.9.4
