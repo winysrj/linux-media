@@ -1,94 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:38832 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756036AbdEEIiu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 May 2017 04:38:50 -0400
-Date: Fri, 5 May 2017 10:38:45 +0200
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        pavel@ucw.cz
-Subject: Re: [RFC 1/3] dt: bindings: Add a binding for flash devices
- associated to a sensor
-Message-ID: <20170505083845.gwltdxxk4djbbfcf@earth>
-References: <1493720749-31509-1-git-send-email-sakari.ailus@linux.intel.com>
- <1493720749-31509-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170504142730.tq4k3paofmyk5jul@earth>
- <1e8d0a73-3f3f-410b-ca04-89fa35b1f0b9@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="3ptuqwy2jrcze7a7"
-Content-Disposition: inline
-In-Reply-To: <1e8d0a73-3f3f-410b-ca04-89fa35b1f0b9@linux.intel.com>
+Received: from gofer.mess.org ([88.97.38.141]:58857 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752896AbdEQRc5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 17 May 2017 13:32:57 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 3/5] [media] sir_ir: remove init_port and drop_port functions
+Date: Wed, 17 May 2017 18:32:52 +0100
+Message-Id: <cbb39945637fe6e8211cc4911a36b5f7cb64d86d.1495035457.git.sean@mess.org>
+In-Reply-To: <cover.1495035457.git.sean@mess.org>
+References: <cover.1495035457.git.sean@mess.org>
+In-Reply-To: <cover.1495035457.git.sean@mess.org>
+References: <cover.1495035457.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+These functions are too short and removing them makes the code more
+readable.
 
---3ptuqwy2jrcze7a7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/sir_ir.c | 27 +++++----------------------
+ 1 file changed, 5 insertions(+), 22 deletions(-)
 
-Hi,
-
-On Fri, May 05, 2017 at 11:28:34AM +0300, Sakari Ailus wrote:
-> Sebastian Reichel wrote:
-> > On Tue, May 02, 2017 at 01:25:47PM +0300, Sakari Ailus wrote:
-> > > +- flash: An array of phandles that refer to the flash light sources
-> > > +  related to an image sensor. These could be e.g. LEDs. In case the =
-LED
-> > > +  driver drives more than a single LED, then the phandles here refer=
- to
-> > > +  the child nodes of the LED driver describing individual LEDs. Only
-> > > +  valid for device nodes that are related to an image sensor.
-> >=20
-> > s/driver/controller/g - DT describes HW. Otherwise
->=20
-> Driver is hardware in this case. :-) The chip that acts as a current sink=
- or
-> source for the LED is the driver. E.g. the adp1653 documentation describes
-> the chip as "Compact, High Efficiency, High Power, Flash/Torch LED Driver
-> with Dual Interface".
->=20
-> It might be still possible to improve the wording. Software oriented folks
-> are more likely to misunderstand the meaning of driver here, but controll=
-er
-> might seem ambiguous for hardware oriented people.
->=20
-> How about:
->=20
-> - flash: An array of phandles that refer to the flash light sources
->   related to an image sensor. These could be e.g. LEDs. In case the LED
->   driver (current sink or source chip for the LED(s)) drives more than a
->   single LED, then the phandles here refer to the child nodes of the LED
->   driver describing individual LEDs. Only valid for device nodes that are
->   related to an image sensor.
-
-Maybe drop the last sentence? The requirement is already in the
-first one. Otherwise:
-
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-
--- Sebastian
-
---3ptuqwy2jrcze7a7
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlkMOhIACgkQ2O7X88g7
-+praIQ//dI4O5is/HDiHpHPpsKGT/eO2/yMlswrf1RhsjsC9vx4q0spngSg8pUYK
-Wy6IuwAQn8VY9TWqMkufU0urO1F+AYlrV4g/r8Kfr89X82deTtwHtPpeUjIPI91B
-TtSL/SvBNhzNWWwZzTdY/8pIORWHlOMdl538jeHo1dCQjQn4YdgIkrW4FiAwGLK4
-z8yoRn5g4gAHJDkXO4EStUkDBKqoebYGKIvqBxdLArSeGYnETITIO6sjKP413pt1
-KqtoWSzWti5+14BwyO0Q9bRwF6o8a1yFxagz2tsIkxlMiBd4rcBRa+xiPrpxiDcw
-GchAmThqd6mxF9/sX+3cef3Cyg59wkf5UxFjguAUdRO7veQaL2WhAzts8AqdKpuC
-egrnC/A9Vu1x+KcH3jIkARmX+MArgG7HMjPr4d2jIqPT916SBoSPRQPVlnBb3w1l
-2KncnCdeFP4wcRRRKR8qvLrG23ZADAyOP7HVqRk3npNHK67+YY9GtjqejAQlCCrp
-Q1gYuyA88kIZUCz3ditPCk7Uo8G4BYi8vWQ5Y1fxahrFHB39JYUeOEdZTyibI1mA
-WjLzRcjJtndtkytycyiofAxMiEnG5lA8Kj5ItlXs6pAyYO4b19UG/W/4TzBtKkiA
-dZv94WkNv6yDPwzNLNQiUA9NdXD+HX5DmuNymNudC04FitPGEdo=
-=JffM
------END PGP SIGNATURE-----
-
---3ptuqwy2jrcze7a7--
+diff --git a/drivers/media/rc/sir_ir.c b/drivers/media/rc/sir_ir.c
+index 1ee41adb..fdac570 100644
+--- a/drivers/media/rc/sir_ir.c
++++ b/drivers/media/rc/sir_ir.c
+@@ -58,11 +58,9 @@ static int init_chrdev(void);
+ static irqreturn_t sir_interrupt(int irq, void *dev_id);
+ static void send_space(unsigned long len);
+ static void send_pulse(unsigned long len);
+-static int init_hardware(void);
++static void init_hardware(void);
+ static void drop_hardware(void);
+ /* Initialisation */
+-static int init_port(void);
+-static void drop_port(void);
+ 
+ static inline unsigned int sinp(int offset)
+ {
+@@ -288,7 +286,7 @@ static void send_pulse(unsigned long len)
+ 	}
+ }
+ 
+-static int init_hardware(void)
++static void init_hardware(void)
+ {
+ 	unsigned long flags;
+ 
+@@ -310,7 +308,6 @@ static int init_hardware(void)
+ 	/* turn on UART */
+ 	outb(UART_MCR_DTR | UART_MCR_RTS | UART_MCR_OUT2, io + UART_MCR);
+ 	spin_unlock_irqrestore(&hardware_lock, flags);
+-	return 0;
+ }
+ 
+ static void drop_hardware(void)
+@@ -327,7 +324,7 @@ static void drop_hardware(void)
+ 
+ /* SECTION: Initialisation */
+ 
+-static int init_port(void)
++static int init_sir_ir(void)
+ {
+ 	int retval;
+ 
+@@ -346,22 +343,8 @@ static int init_port(void)
+ 	}
+ 	pr_info("I/O port 0x%.4x, IRQ %d.\n", io, irq);
+ 
+-	return 0;
+-}
+-
+-static void drop_port(void)
+-{
+-	del_timer_sync(&timerlist);
+-}
+-
+-static int init_sir_ir(void)
+-{
+-	int retval;
+-
+-	retval = init_port();
+-	if (retval < 0)
+-		return retval;
+ 	init_hardware();
++
+ 	return 0;
+ }
+ 
+@@ -379,7 +362,7 @@ static int sir_ir_probe(struct platform_device *dev)
+ static int sir_ir_remove(struct platform_device *dev)
+ {
+ 	drop_hardware();
+-	drop_port();
++	del_timer_sync(&timerlist);
+ 	return 0;
+ }
+ 
+-- 
+2.9.4
