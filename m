@@ -1,251 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:36646 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750849AbdEHQAc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 May 2017 12:00:32 -0400
-Date: Mon, 8 May 2017 11:00:26 -0500
-From: Rob Herring <robh@kernel.org>
-To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Cc: mark.rutland@arm.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        sakari.ailus@linux.intel.com, crope@iki.fi,
-        chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v4 6/7] dt-bindings: media: Add Renesas R-Car DRIF binding
-Message-ID: <20170508160026.4qjr7voa3ovesecz@rob-hp-laptop>
-References: <20170502132615.42134-1-ramesh.shanmugasundaram@bp.renesas.com>
- <20170502132615.42134-7-ramesh.shanmugasundaram@bp.renesas.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:27963 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753468AbdEQIDl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 17 May 2017 04:03:41 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Gregor Jasny <gjasny@googlemail.com>,
+        Christophe Priouzeau <christophe.priouzeau@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v1 4/5] configure.ac: add --disable-libv4l option
+Date: Wed, 17 May 2017 10:03:11 +0200
+Message-ID: <1495008192-21202-5-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1495008192-21202-1-git-send-email-hugues.fruchet@st.com>
+References: <1495008192-21202-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170502132615.42134-7-ramesh.shanmugasundaram@bp.renesas.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 02, 2017 at 02:26:14PM +0100, Ramesh Shanmugasundaram wrote:
-> Add binding documentation for Renesas R-Car Digital Radio Interface
-> (DRIF) controller.
-> 
-> Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-> ---
-> v4:
->  - port property description modified as suggested by Laurent.
->  - removed renesas vendor tag from sync-active end-point property (Rob)
-> ---
->  .../devicetree/bindings/media/renesas,drif.txt     | 187 +++++++++++++++++++++
->  1 file changed, 187 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/renesas,drif.txt b/Documentation/devicetree/bindings/media/renesas,drif.txt
-> new file mode 100644
-> index 000000000000..12428f969958
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
-> @@ -0,0 +1,187 @@
-> +Renesas R-Car Gen3 Digital Radio Interface controller (DRIF)
-> +------------------------------------------------------------
-> +
-> +R-Car Gen3 DRIF is a SPI like receive only slave device. A general
-> +representation of DRIF interfacing with a master device is shown below.
-> +
-> ++---------------------+                +---------------------+
-> +|                     |-----SCK------->|CLK                  |
-> +|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-> +|                     |-----SD0------->|D0                   |
-> +|                     |-----SD1------->|D1                   |
-> ++---------------------+                +---------------------+
-> +
-> +As per datasheet, each DRIF channel (drifn) is made up of two internal
-> +channels (drifn0 & drifn1). These two internal channels share the common
-> +CLK & SYNC. Each internal channel has its own dedicated resources like
-> +irq, dma channels, address space & clock. This internal split is not
-> +visible to the external master device.
-> +
-> +The device tree model represents each internal channel as a separate node.
-> +The internal channels sharing the CLK & SYNC are tied together by their
-> +phandles using a new property called "renesas,bonding". For the rest of
-> +the documentation, unless explicitly stated, the word channel implies an
-> +internal channel.
-> +
-> +When both internal channels are enabled they need to be managed together
-> +as one (i.e.) they cannot operate alone as independent devices. Out of the
-> +two, one of them needs to act as a primary device that accepts common
-> +properties of both the internal channels. This channel is identified by a
-> +new property called "renesas,primary-bond".
+Add an option to disable libv4l libraries and plugins compilation.
+If system is not supporting dynamic shared libraries, this option
+is automatically set.
+dlopen() is no more a mandatory dependency (warning is kept).
+lib/ and contrib/ folders are no more built with this option set
+because of libv4l dependency.
+utils/ folder is still built with this options set but without
+rds-ctl because of its libv4l dependency.
+v4l2-compliance and v4l2-ctl are also built but without any links
+on libv4l and libv4lconvert libraries.
 
-s/new property/property/
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ Makefile.am                       | 11 +++++++++--
+ configure.ac                      | 12 +++++++++++-
+ utils/Makefile.am                 |  6 +++++-
+ utils/v4l2-compliance/Makefile.am |  4 ++++
+ utils/v4l2-ctl/Makefile.am        |  4 ++++
+ 5 files changed, 33 insertions(+), 4 deletions(-)
 
-> +
-> +To summarize,
-> +   - When both the internal channels that are bonded together are enabled,
-> +     the zeroth channel is selected as primary-bond. This channels accepts
-> +     properties common to all the members of the bond.
-> +   - When only one of the bonded channels need to be enabled, the property
-> +     "renesas,bonding" or "renesas,primary-bond" will have no effect. That
-> +     enabled channel can act alone as any other independent device.
-> +
-> +Required properties of an internal channel:
-> +-------------------------------------------
-> +- compatible: "renesas,r8a7795-drif" if DRIF controller is a part of R8A7795 SoC.
-> +	      "renesas,rcar-gen3-drif" for a generic R-Car Gen3 compatible device.
-> +	      When compatible with the generic version, nodes must list the
-> +	      SoC-specific version corresponding to the platform first
-> +	      followed by the generic version.
-
-Please format this such that it is easier to add the 2nd SoC with this 
-block. 
-
-> +- reg: offset and length of that channel.
-> +- interrupts: associated with that channel.
-> +- clocks: phandle and clock specifier of that channel.
-> +- clock-names: clock input name string: "fck".
-> +- dmas: phandles to the DMA channels.
-> +- dma-names: names of the DMA channel: "rx".
-> +- renesas,bonding: phandle to the other channel.
-> +
-> +Optional properties of an internal channel:
-> +-------------------------------------------
-> +- power-domains: phandle to the respective power domain.
-> +
-> +Required properties of an internal channel when:
-> +	- It is the only enabled channel of the bond (or)
-> +	- If it acts as primary among enabled bonds
-> +--------------------------------------------------------
-> +- pinctrl-0: pin control group to be used for this channel.
-> +- pinctrl-names: must be "default".
-> +- renesas,primary-bond: empty property indicating the channel acts as primary
-> +			among the bonded channels.
-> +- port: child port node corresponding to the data input, in accordance with
-> +	the video interface bindings defined in
-> +	Documentation/devicetree/bindings/media/video-interfaces.txt. The port
-> +	node must contain at least one endpoint.
-> +
-> +Optional endpoint property:
-> +---------------------------
-> +- sync-active: Indicates sync signal polarity, 0/1 for low/high respectively.
-> +	       This property maps to SYNCAC bit in the hardware manual. The
-> +	       default is 1 (active high).
-> +
-> +Example
-> +--------
-> +
-> +SoC common dtsi file
-
-Don't split the example into SoC and board specific parts. That's purely 
-convention and not part of the binding.
-
-> +
-> +		drif00: rif@e6f40000 {
-> +			compatible = "renesas,r8a7795-drif",
-> +				     "renesas,rcar-gen3-drif";
-> +			reg = <0 0xe6f40000 0 0x64>;
-> +			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
-> +			clocks = <&cpg CPG_MOD 515>;
-> +			clock-names = "fck";
-> +			dmas = <&dmac1 0x20>, <&dmac2 0x20>;
-> +			dma-names = "rx", "rx";
-> +			power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-> +			renesas,bonding = <&drif01>;
-> +			status = "disabled";
-
-Don't need to show status in example.
-
-> +		};
-> +
-> +		drif01: rif@e6f50000 {
-> +			compatible = "renesas,r8a7795-drif",
-> +				     "renesas,rcar-gen3-drif";
-> +			reg = <0 0xe6f50000 0 0x64>;
-> +			interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
-> +			clocks = <&cpg CPG_MOD 514>;
-> +			clock-names = "fck";
-> +			dmas = <&dmac1 0x22>, <&dmac2 0x22>;
-> +			dma-names = "rx", "rx";
-> +			power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-> +			renesas,bonding = <&drif00>;
-> +			status = "disabled";
-> +		};
-> +
-> +
-> +Board specific dts file
-> +
-> +(1) Both internal channels enabled:
-> +-----------------------------------
-> +
-> +When interfacing with a third party tuner device with two data pins as shown
-> +below.
-> +
-> ++---------------------+                +---------------------+
-> +|                     |-----SCK------->|CLK                  |
-> +|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-> +|                     |-----SD0------->|D0                   |
-> +|                     |-----SD1------->|D1                   |
-> ++---------------------+                +---------------------+
-> +
-> +pfc {
-> +	...
-> +
-> +	drif0_pins: drif0 {
-> +		groups = "drif0_ctrl_a", "drif0_data0_a",
-> +				 "drif0_data1_a";
-> +		function = "drif0";
-> +	};
-> +	..
-
-You don't need to show the pinctrl nodes.
-
-> +}
-> +
-> +&drif00 {
-> +	pinctrl-0 = <&drif0_pins>;
-> +	pinctrl-names = "default";
-> +	renesas,primary-bond;
-> +	status = "okay";
-> +	port {
-> +		drif0_ep: endpoint {
-> +		     remote-endpoint = <&tuner_ep>;
-> +		};
-> +	};
-> +};
-> +
-> +&drif01 {
-> +	status = "okay";
-> +};
-> +
-> +(2) Internal channel 1 alone is enabled:
-> +----------------------------------------
-> +
-> +When interfacing with a third party tuner device with one data pin as shown
-> +below.
-> +
-> ++---------------------+                +---------------------+
-> +|                     |-----SCK------->|CLK                  |
-> +|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-> +|                     |                |D0 (unused)          |
-> +|                     |-----SD-------->|D1                   |
-> ++---------------------+                +---------------------+
-> +
-> +pfc {
-> +	...
-> +
-> +	drif0_pins: drif0 {
-> +		groups = "drif0_ctrl_a", "drif0_data1_a";
-> +		function = "drif0";
-> +	};
-> +	...
-> +}
-> +
-> +&drif01 {
-> +	pinctrl-0 = <&drif0_pins>;
-> +	pinctrl-names = "default";
-> +	status = "okay";
-> +	port {
-> +		drif0_ep: endpoint {
-> +		     remote-endpoint = <&tuner_ep>;
-> +		     sync-active = <0>;
-> +		};
-> +	};
-> +};
-> -- 
-> 2.12.2
-> 
+diff --git a/Makefile.am b/Makefile.am
+index e603472..07c3ef8 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,10 +1,17 @@
+ AUTOMAKE_OPTIONS = foreign
+ ACLOCAL_AMFLAGS = -I m4
+ 
+-SUBDIRS = v4l-utils-po libdvbv5-po lib
++SUBDIRS = v4l-utils-po libdvbv5-po
++
++if WITH_LIBV4L
++SUBDIRS += lib
++endif
+ 
+ if WITH_V4LUTILS
+-SUBDIRS += utils contrib
++SUBDIRS += utils
++if WITH_LIBV4L
++SUBDIRS += contrib
++endif
+ endif
+ 
+ EXTRA_DIST = android-config.h bootstrap.sh doxygen_libdvbv5.cfg include COPYING.libv4l \
+diff --git a/configure.ac b/configure.ac
+index 033d13c..26dc18d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -286,7 +286,7 @@ dl_saved_libs=$LIBS
+   AC_SEARCH_LIBS([dlopen],
+                  [dl],
+                  [test "$ac_cv_search_dlopen" = "none required" || DLOPEN_LIBS=$ac_cv_search_dlopen],
+-                 [AC_MSG_ERROR([unable to find the dlopen() function])])
++                 [AC_MSG_WARN([unable to find the dlopen() function])])
+   AC_SUBST([DLOPEN_LIBS])
+ LIBS=$dl_saved_libs
+ 
+@@ -372,6 +372,14 @@ AC_ARG_ENABLE(libdvbv5,
+    esac]
+ )
+ 
++AC_ARG_ENABLE(libv4l,
++  AS_HELP_STRING([--disable-libv4l], [disable libv4l compilation]),
++  [case "${enableval}" in
++     yes | no ) ;;
++     *) AC_MSG_ERROR(bad value ${enableval} for --disable-libv4l) ;;
++   esac]
++)
++
+ AC_ARG_ENABLE(dyn-libv4l,
+   AS_HELP_STRING([--disable-dyn-libv4l], [disable dynamic libv4l support]),
+   [case "${enableval}" in
+@@ -437,6 +445,7 @@ AM_CONDITIONAL([WITH_LIBDVBV5],     [test x$enable_libdvbv5  != xno -a x$have_li
+ AM_CONDITIONAL([WITH_DVBV5_REMOTE], [test x$enable_libdvbv5  != xno -a x$have_libudev = xyes -a x$have_pthread = xyes])
+ 
+ AM_CONDITIONAL([WITH_DYN_LIBV4L],   [test x$enable_dyn_libv4l != xno])
++AM_CONDITIONAL([WITH_LIBV4L],       [test x$enable_libv4l    != xno -a x$enable_shared != xno])
+ AM_CONDITIONAL([WITH_V4LUTILS],	    [test x$enable_v4l_utils != xno -a x$linux_os = xyes])
+ AM_CONDITIONAL([WITH_QV4L2],	    [test x${qt_pkgconfig} = xtrue -a x$enable_qv4l2 != xno])
+ AM_CONDITIONAL([WITH_V4L_PLUGINS],  [test x$enable_dyn_libv4l != xno -a x$enable_shared != xno])
+@@ -465,6 +474,7 @@ AM_COND_IF([WITH_LIBDVBV5], [USE_LIBDVBV5="yes"], [USE_LIBDVBV5="no"])
+ AM_COND_IF([WITH_DVBV5_REMOTE], [USE_DVBV5_REMOTE="yes"
+ 				 AC_DEFINE([HAVE_DVBV5_REMOTE], [1], [Usage of DVBv5 remote enabled])],
+ 			        [USE_DVBV5_REMOTE="no"])
++AM_COND_IF([WITH_LIBV4L], [USE_LIBV4L="yes"], [USE_LIBV4L="no"])
+ AM_COND_IF([WITH_DYN_LIBV4L], [USE_DYN_LIBV4L="yes"], [USE_DYN_LIBV4L="no"])
+ AM_COND_IF([WITH_V4LUTILS], [USE_V4LUTILS="yes"], [USE_V4LUTILS="no"])
+ AM_COND_IF([WITH_QV4L2], [USE_QV4L2="yes"], [USE_QV4L2="no"])
+diff --git a/utils/Makefile.am b/utils/Makefile.am
+index d7708cc..ce710c2 100644
+--- a/utils/Makefile.am
++++ b/utils/Makefile.am
+@@ -13,8 +13,12 @@ SUBDIRS = \
+ 	v4l2-sysfs-path \
+ 	cec-ctl \
+ 	cec-compliance \
+-	cec-follower \
++	cec-follower
++
++if WITH_LIBV4L
++SUBDIRS += \
+ 	rds-ctl
++endif
+ 
+ if WITH_LIBDVBV5
+ SUBDIRS += \
+diff --git a/utils/v4l2-compliance/Makefile.am b/utils/v4l2-compliance/Makefile.am
+index 58bad86..0671fda 100644
+--- a/utils/v4l2-compliance/Makefile.am
++++ b/utils/v4l2-compliance/Makefile.am
+@@ -7,12 +7,16 @@ v4l2_compliance_SOURCES = v4l2-compliance.cpp v4l2-test-debug.cpp v4l2-test-inpu
+ 	v4l2-test-codecs.cpp v4l2-test-colors.cpp v4l2-compliance.h
+ v4l2_compliance_CPPFLAGS = -I$(top_srcdir)/utils/common
+ 
++if WITH_LIBV4L
+ if WITH_V4L2_COMPLIANCE_LIBV4L
+ v4l2_compliance_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la -lrt -lpthread
+ else
+ v4l2_compliance_LDADD = -lrt -lpthread
+ DEFS += -DNO_LIBV4L2
+ endif
++else
++DEFS += -DNO_LIBV4L2
++endif
+ 
+ EXTRA_DIST = Android.mk fixme.txt v4l2-compliance.1
+ 
+diff --git a/utils/v4l2-ctl/Makefile.am b/utils/v4l2-ctl/Makefile.am
+index 83fa49a..cae4e74 100644
+--- a/utils/v4l2-ctl/Makefile.am
++++ b/utils/v4l2-ctl/Makefile.am
+@@ -9,11 +9,15 @@ v4l2_ctl_SOURCES = v4l2-ctl.cpp v4l2-ctl.h v4l2-ctl-common.cpp v4l2-ctl-tuner.cp
+ 	v4l2-tpg-colors.c v4l2-tpg-core.c v4l-stream.c v4l2-ctl-meta.cpp
+ v4l2_ctl_CPPFLAGS = -I$(top_srcdir)/utils/common
+ 
++if WITH_LIBV4L
+ if WITH_V4L2_CTL_LIBV4L
+ v4l2_ctl_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la -lrt -lpthread
+ else
+ DEFS += -DNO_LIBV4L2
+ endif
++else
++DEFS += -DNO_LIBV4L2
++endif
+ 
+ if !WITH_V4L2_CTL_STREAM_TO
+ DEFS += -DNO_STREAM_TO
+-- 
+1.9.1
