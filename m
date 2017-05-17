@@ -1,53 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38818 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750773AbdEDIuz (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51108 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750838AbdEQUCr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 May 2017 04:50:55 -0400
-Date: Thu, 4 May 2017 11:50:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
-        hyungwoo.yang@intel.com
-Subject: Re: [PATCH] ov5670: Add Omnivision OV5670 5M sensor support
-Message-ID: <20170504085021.GU7456@valkosipuli.retiisi.org.uk>
+        Wed, 17 May 2017 16:02:47 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH v1 1/3] of: base: Provide of_graph_get_port_parent()
+References: <cover.6800d0e1b9b578b82f68dec1b99b3a601d6e54ca.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <56c9c74fa9e2879aea9e008d54d8b8d7b450b8ae.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <CAL_JsqLvXH3kKV-DxWuNrAYGh8=L8Mdg5zcm2RsHZTpmi_8g-g@mail.gmail.com>
+To: Rob Herring <robh+dt@kernel.org>,
+        Kieran Bingham <kbingham@kernel.org>,
+        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Cc: "open list:MEDIA DRIVERS FOR RENESAS - FCP"
+        <linux-renesas-soc@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Frank Rowand <frowand.list@gmail.com>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE"
+        <devicetree@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <61138419-5781-bbec-7ac5-44524ad501ce@ideasonboard.com>
+Date: Wed, 17 May 2017 21:02:42 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170504084850.GT7456@valkosipuli.retiisi.org.uk>
+In-Reply-To: <CAL_JsqLvXH3kKV-DxWuNrAYGh8=L8Mdg5zcm2RsHZTpmi_8g-g@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 04, 2017 at 11:48:51AM +0300, Sakari Ailus wrote:
-> On Wed, May 03, 2017 at 03:06:52PM -0700, Chiranjeevi Rapolu wrote:
-> > Provides single source pad with up to 2576x1936 pixels at 10-bit raw
-> > bayer format over MIPI CSI2 two lanes at 640Mbps/lane.
-> > Supports up to 30fps at 5M pixels, up to 60fps at 1080p.
-> > 
-> > Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-> > ---
-> >  drivers/media/i2c/Kconfig  |   11 +
-> >  drivers/media/i2c/Makefile |    1 +
-> >  drivers/media/i2c/ov5670.c | 3890 ++++++++++++++++++++++++++++++++++++++++++++
-> >  3 files changed, 3902 insertions(+)
-> >  create mode 100644 drivers/media/i2c/ov5670.c
-> > 
-> > diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> > index cee1dae..ded8485 100644
-> > --- a/drivers/media/i2c/Kconfig
-> > +++ b/drivers/media/i2c/Kconfig
-> > @@ -531,6 +531,17 @@ config VIDEO_OV2659
-> >  	  To compile this driver as a module, choose M here: the
-> >  	  module will be called ov2659.
-> >  
-> > +config VIDEO_OV5670
-> > +	tristate "OmniVision OV5670 sensor support"
-> > +	depends on I2C && VIDEO_V4L2
-> > +	depends on MEDIA_CAMERA_SUPPORT
+On 17/05/17 17:36, Rob Herring wrote:
+> On Wed, May 17, 2017 at 10:03 AM, Kieran Bingham <kbingham@kernel.org> wrote:
+>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>
+>> When handling endpoints, the v4l2 async framework needs to identify the
+>> parent device of a port endpoint.
+>>
+>> Adapt the existing of_graph_get_remote_port_parent() such that a caller
+>> can obtain the parent of a port without parsing the remote-endpoint
+>> first.
+> 
+> A similar patch is already applied as part of the ASoC graph card support.
+> 
+> Rob
 
-select V4L2_FWNODE
+Ah yes, a quick google finds it...
+:  https://patchwork.kernel.org/patch/9658907/
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Surprisingly similar patch ... and a familiar name.
+
+Morimoto-san - you beat me to it :D !
+
+Thanks Rob, (And Morimoto!)
+
+--
+Kieran
