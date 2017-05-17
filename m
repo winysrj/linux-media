@@ -1,89 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:41232 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757788AbdEAQDp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 May 2017 12:03:45 -0400
-Subject: [PATCH 01/16] lirc_dev: remove pointless functions
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:37335 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753518AbdEQPPR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 17 May 2017 11:15:17 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, sean@mess.org
-Date: Mon, 01 May 2017 18:03:41 +0200
-Message-ID: <149365462098.12922.6242101173051498781.stgit@zeus.hardeman.nu>
-In-Reply-To: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
-References: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Cc: devicetree@vger.kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Peter Rosin <peda@axentia.se>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v5 3/3] [media] platform: video-mux: include temporary mmio-mux support
+Date: Wed, 17 May 2017 17:15:07 +0200
+Message-Id: <1495034107-21407-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1495034107-21407-1-git-send-email-p.zabel@pengutronix.de>
+References: <1495034107-21407-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drv->set_use_inc and drv->set_use_dec are already optional so we can remove all
-dummy functions.
+As long as the mux framework is not merged, add temporary mmio-mux
+support to the video-mux driver itself. This patch is to be reverted
+once the "mux: minimal mux subsystem" and "mux: mmio-based syscon mux
+controller" patches are merged.
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/rc/ir-lirc-codec.c        |   14 ++------------
- drivers/staging/media/lirc/lirc_zilog.c |   11 -----------
- 2 files changed, 2 insertions(+), 23 deletions(-)
+This patch allows the video-mux driver to be built and used on i.MX6 before
+the mux framework [1][2] is merged. It can be dropped after that happened,
+but until then, it should help to avoid a dependency of the i.MX6 capture
+drivers on the mux framework, so that the two can be merged independently.
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 8f0669c9894c..fc58745b26b8 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -327,16 +327,6 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 	return ret;
- }
+[1] https://patchwork.kernel.org/patch/9725911/
+[2] https://patchwork.kernel.org/patch/9725893/
+---
+ drivers/media/platform/Kconfig     |  2 +-
+ drivers/media/platform/video-mux.c | 62 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 63 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 259c0ff780937..fea1dc05ea7b7 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -76,7 +76,7 @@ config VIDEO_M32R_AR_M64278
  
--static int ir_lirc_open(void *data)
--{
--	return 0;
--}
--
--static void ir_lirc_close(void *data)
--{
--	return;
--}
--
- static const struct file_operations lirc_fops = {
- 	.owner		= THIS_MODULE,
- 	.write		= ir_lirc_transmit_ir,
-@@ -396,8 +386,8 @@ static int ir_lirc_register(struct rc_dev *dev)
- 	drv->features = features;
- 	drv->data = &dev->raw->lirc;
- 	drv->rbuf = NULL;
--	drv->set_use_inc = &ir_lirc_open;
--	drv->set_use_dec = &ir_lirc_close;
-+	drv->set_use_inc = NULL;
-+	drv->set_use_dec = NULL;
- 	drv->code_length = sizeof(struct ir_raw_event) * 8;
- 	drv->chunk_size = sizeof(int);
- 	drv->buffer_size = LIRCBUF_SIZE;
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index e4a533b6beb3..436cf1b6a70a 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -497,15 +497,6 @@ static int lirc_thread(void *arg)
- 	return 0;
- }
+ config VIDEO_MUX
+ 	tristate "Video Multiplexer"
+-	depends on OF && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER && MULTIPLEXER
++	depends on OF && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
+ 	help
+ 	  This driver provides support for N:1 video bus multiplexers.
  
--static int set_use_inc(void *data)
--{
--	return 0;
--}
--
--static void set_use_dec(void *data)
--{
--}
--
- /* safe read of a uint32 (always network byte order) */
- static int read_uint32(unsigned char **data,
- 				     unsigned char *endp, unsigned int *val)
-@@ -1396,8 +1387,6 @@ static struct lirc_driver lirc_template = {
- 	.buffer_size	= BUFLEN / 2,
- 	.sample_rate	= 0, /* tell lirc_dev to not start its own kthread */
- 	.chunk_size	= 2,
--	.set_use_inc	= set_use_inc,
--	.set_use_dec	= set_use_dec,
- 	.fops		= &lirc_fops,
- 	.owner		= THIS_MODULE,
+diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
+index e35ffa18126f3..b997ff881ad24 100644
+--- a/drivers/media/platform/video-mux.c
++++ b/drivers/media/platform/video-mux.c
+@@ -17,7 +17,12 @@
+ #include <linux/err.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
++#ifdef CONFIG_MULTIPLEXER
+ #include <linux/mux/consumer.h>
++#else
++#include <linux/regmap.h>
++#include <linux/mfd/syscon.h>
++#endif
+ #include <linux/of.h>
+ #include <linux/of_graph.h>
+ #include <linux/platform_device.h>
+@@ -29,7 +34,11 @@ struct video_mux {
+ 	struct v4l2_subdev subdev;
+ 	struct media_pad *pads;
+ 	struct v4l2_mbus_framefmt *format_mbus;
++#ifdef CONFIG_MULTIPLEXER
+ 	struct mux_control *mux;
++#else
++	struct regmap_field *field;
++#endif
+ 	struct mutex lock;
+ 	int active;
  };
+@@ -70,7 +79,11 @@ static int video_mux_link_setup(struct media_entity *entity,
+ 		}
+ 
+ 		dev_dbg(sd->dev, "setting %d active\n", local->index);
++#ifdef CONFIG_MULTIPLEXER
+ 		ret = mux_control_try_select(vmux->mux, local->index);
++#else
++		ret = regmap_field_write(vmux->field, local->index);
++#endif
+ 		if (ret < 0)
+ 			goto out;
+ 		vmux->active = local->index;
+@@ -79,7 +92,9 @@ static int video_mux_link_setup(struct media_entity *entity,
+ 			goto out;
+ 
+ 		dev_dbg(sd->dev, "going inactive\n");
++#ifdef CONFIG_MULTIPLEXER
+ 		mux_control_deselect(vmux->mux);
++#endif
+ 		vmux->active = -1;
+ 	}
+ 
+@@ -193,6 +208,48 @@ static const struct v4l2_subdev_ops video_mux_subdev_ops = {
+ 	.video = &video_mux_subdev_video_ops,
+ };
+ 
++#ifndef CONFIG_MULTIPLEXER
++static int video_mux_probe_mmio_mux(struct video_mux *vmux)
++{
++	struct device *dev = vmux->subdev.dev;
++	struct of_phandle_args args;
++	struct reg_field field;
++	struct regmap *regmap;
++	u32 reg, mask;
++	int ret;
++
++	ret = of_parse_phandle_with_args(dev->of_node, "mux-controls",
++					 "#mux-control-cells", 0, &args);
++	if (ret)
++		return ret;
++
++	if (!of_device_is_compatible(args.np, "mmio-mux"))
++		return -EINVAL;
++
++	regmap = syscon_node_to_regmap(args.np->parent);
++	if (IS_ERR(regmap))
++		return PTR_ERR(regmap);
++
++	ret = of_property_read_u32_index(args.np, "mux-reg-masks",
++					 2 * args.args[0], &reg);
++	if (!ret)
++		ret = of_property_read_u32_index(args.np, "mux-reg-masks",
++						 2 * args.args[0] + 1, &mask);
++	if (ret < 0)
++		return ret;
++
++	field.reg = reg;
++	field.msb = fls(mask) - 1;
++	field.lsb = ffs(mask) - 1;
++
++	vmux->field = devm_regmap_field_alloc(dev, regmap, field);
++	if (IS_ERR(vmux->field))
++		return PTR_ERR(vmux->field);
++
++	return 0;
++}
++#endif
++
+ static int video_mux_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *np = pdev->dev.of_node;
+@@ -230,9 +287,14 @@ static int video_mux_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
+ 
++#ifdef CONFIG_MULTIPLEXER
+ 	vmux->mux = devm_mux_control_get(dev, NULL);
+ 	if (IS_ERR(vmux->mux)) {
+ 		ret = PTR_ERR(vmux->mux);
++#else
++	ret = video_mux_probe_mmio_mux(vmux);
++	if (ret) {
++#endif
+ 		if (ret != -EPROBE_DEFER)
+ 			dev_err(dev, "Failed to get mux: %d\n", ret);
+ 		return ret;
+-- 
+2.11.0
