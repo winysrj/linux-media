@@ -1,115 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:41240 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757788AbdEAQDs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 May 2017 12:03:48 -0400
-Subject: [PATCH 02/16] lirc_dev: remove unused set_use_inc/set_use_dec
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:43681 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753072AbdEQE1K (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 17 May 2017 00:27:10 -0400
+Message-ID: <e2aac9d5310e49a16600bf5c5512d05c@smtp-cloud3.xs4all.net>
+Date: Wed, 17 May 2017 06:27:07 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, sean@mess.org
-Date: Mon, 01 May 2017 18:03:46 +0200
-Message-ID: <149365462608.12922.6571054209014823717.stgit@zeus.hardeman.nu>
-In-Reply-To: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
-References: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since there are no users of this functionality, it can be removed altogether.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/ir-lirc-codec.c |    2 --
- drivers/media/rc/lirc_dev.c      |   24 ++++++------------------
- include/media/lirc_dev.h         |    6 ------
- 3 files changed, 6 insertions(+), 26 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index fc58745b26b8..a30af91710fe 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -386,8 +386,6 @@ static int ir_lirc_register(struct rc_dev *dev)
- 	drv->features = features;
- 	drv->data = &dev->raw->lirc;
- 	drv->rbuf = NULL;
--	drv->set_use_inc = NULL;
--	drv->set_use_dec = NULL;
- 	drv->code_length = sizeof(struct ir_raw_event) * 8;
- 	drv->chunk_size = sizeof(int);
- 	drv->buffer_size = LIRCBUF_SIZE;
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 42704552b005..05f600bd6c67 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -418,12 +418,6 @@ int lirc_unregister_driver(int minor)
- 		wake_up_interruptible(&ir->buf->wait_poll);
- 	}
- 
--	mutex_lock(&ir->irctl_lock);
--
--	if (ir->d.set_use_dec)
--		ir->d.set_use_dec(ir->d.data);
--
--	mutex_unlock(&ir->irctl_lock);
- 	mutex_unlock(&lirc_dev_lock);
- 
- 	device_del(&ir->dev);
-@@ -473,17 +467,13 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
- 			goto error;
- 	}
- 
-+	if (ir->buf)
-+		lirc_buffer_clear(ir->buf);
-+
-+	if (ir->task)
-+		wake_up_process(ir->task);
-+
- 	ir->open++;
--	if (ir->d.set_use_inc)
--		retval = ir->d.set_use_inc(ir->d.data);
--	if (retval) {
--		ir->open--;
--	} else {
--		if (ir->buf)
--			lirc_buffer_clear(ir->buf);
--		if (ir->task)
--			wake_up_process(ir->task);
--	}
- 
- error:
- 	nonseekable_open(inode, file);
-@@ -508,8 +498,6 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
- 	rc_close(ir->d.rdev);
- 
- 	ir->open--;
--	if (ir->d.set_use_dec)
--		ir->d.set_use_dec(ir->d.data);
- 	if (!ret)
- 		mutex_unlock(&lirc_dev_lock);
- 
-diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
-index cec7d35602d1..71c1c11950fe 100644
---- a/include/media/lirc_dev.h
-+++ b/include/media/lirc_dev.h
-@@ -165,10 +165,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
-  *			have to write to the buffer by other means, like irq's
-  *			(see also lirc_serial.c).
-  *
-- * @set_use_inc:	set_use_inc will be called after device is opened
-- *
-- * @set_use_dec:	set_use_dec will be called after device is closed
-- *
-  * @rdev:		Pointed to struct rc_dev associated with the LIRC
-  *			device.
-  *
-@@ -198,8 +194,6 @@ struct lirc_driver {
- 	int max_timeout;
- 	int (*add_to_buf)(void *data, struct lirc_buffer *buf);
- 	struct lirc_buffer *rbuf;
--	int (*set_use_inc)(void *data);
--	void (*set_use_dec)(void *data);
- 	struct rc_dev *rdev;
- 	const struct file_operations *fops;
- 	struct device *dev;
+date:			Wed May 17 05:00:21 CEST 2017
+media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
+media_build git hash:	ab988a3d089232ce9e1aec2f259e947c06983dbc
+v4l-utils git hash:	d16a17abd1d8d7885ca2f44fb295035278baa89c
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
+
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: WARNINGS
+linux-4.9.26-i686: WARNINGS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-4.12-rc1-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
