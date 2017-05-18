@@ -1,65 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:44430 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754399AbdEIQkC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 May 2017 12:40:02 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v3 1/2] Revert "[media] v4l: vsp1: Supply frames to the DU continuously"
-Date: Tue,  9 May 2017 17:39:51 +0100
-Message-Id: <bdf682b44a1ea5060d46f81620b82ff528fdd68a.1494347923.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.ebf0f0df2d74f2a209e8b628269e3cac27d4a2ab.1494347923.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.ebf0f0df2d74f2a209e8b628269e3cac27d4a2ab.1494347923.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.ebf0f0df2d74f2a209e8b628269e3cac27d4a2ab.1494347923.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.ebf0f0df2d74f2a209e8b628269e3cac27d4a2ab.1494347923.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:39476
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753712AbdERIpi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 May 2017 04:45:38 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>,
+        devel@driverdev.osuosl.org
+Subject: [PATCH] [media] atomisp: don't treat warnings as errors
+Date: Thu, 18 May 2017 05:45:25 -0300
+Message-Id: <dd8245f445f5e751b38126140b6ba1723f06c60b.1495097103.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit 3299ba5c0b21 ("[media] v4l: vsp1: Supply frames to
-the DU continuously")
+Several atomisp files use:
+	 ccflags-y += -Werror
 
-The DU output mode does not rely on frames being supplied on the WPF as
-its pipeline is supplied from DRM. For the upcoming WPF writeback
-functionality, we will choose to enable writeback mode if there is an
-output buffer, or disable it (leaving the existing display pipeline
-unharmed) otherwise.
+As, on media, our usual procedure is to use W=1, and atomisp
+has *a lot* of warnings with such flag enabled,like:
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+./drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/system_local.h:62:26: warning: 'DDR_BASE' defined but not used [-Wunused-const-variable=]
+
+At the end, it causes our build to fail, impacting our workflow.
+
+So, remove this crap. If one wants to force -Werror, he
+can still build with it enabled by passing a parameter to
+make.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 11 -----------
- 1 file changed, 11 deletions(-)
+ drivers/staging/media/atomisp/i2c/Makefile          | 2 --
+ drivers/staging/media/atomisp/i2c/imx/Makefile      | 2 --
+ drivers/staging/media/atomisp/i2c/ov5693/Makefile   | 2 --
+ drivers/staging/media/atomisp/pci/atomisp2/Makefile | 2 +-
+ 4 files changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index eab3c3ea85d7..47b5c24043d7 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -304,11 +304,6 @@ static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
-  * This function completes the current buffer by filling its sequence number,
-  * time stamp and payload size, and hands it back to the videobuf core.
-  *
-- * When operating in DU output mode (deep pipeline to the DU through the LIF),
-- * the VSP1 needs to constantly supply frames to the display. In that case, if
-- * no other buffer is queued, reuse the one that has just been processed instead
-- * of handing it back to the videobuf core.
-- *
-  * Return the next queued buffer or NULL if the queue is empty.
-  */
- static struct vsp1_vb2_buffer *
-@@ -330,12 +325,6 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
- 	done = list_first_entry(&video->irqqueue,
- 				struct vsp1_vb2_buffer, queue);
+diff --git a/drivers/staging/media/atomisp/i2c/Makefile b/drivers/staging/media/atomisp/i2c/Makefile
+index 8ea01904c0ea..466517c7c8e6 100644
+--- a/drivers/staging/media/atomisp/i2c/Makefile
++++ b/drivers/staging/media/atomisp/i2c/Makefile
+@@ -19,5 +19,3 @@ obj-$(CONFIG_VIDEO_AP1302)     += ap1302.o
  
--	/* In DU output mode reuse the buffer if the list is singular. */
--	if (pipe->lif && list_is_singular(&video->irqqueue)) {
--		spin_unlock_irqrestore(&video->irqlock, flags);
--		return done;
--	}
+ obj-$(CONFIG_VIDEO_LM3554) += lm3554.o
+ 
+-ccflags-y += -Werror
 -
- 	list_del(&done->queue);
+diff --git a/drivers/staging/media/atomisp/i2c/imx/Makefile b/drivers/staging/media/atomisp/i2c/imx/Makefile
+index 1d7f7ab94cac..6b13a3a66e49 100644
+--- a/drivers/staging/media/atomisp/i2c/imx/Makefile
++++ b/drivers/staging/media/atomisp/i2c/imx/Makefile
+@@ -4,5 +4,3 @@ imx1x5-objs := imx.o drv201.o ad5816g.o dw9714.o dw9719.o dw9718.o vcm.o otp.o o
  
- 	if (!list_empty(&video->irqqueue))
+ ov8858_driver-objs := ../ov8858.o dw9718.o vcm.o
+ obj-$(CONFIG_VIDEO_OV8858)     += ov8858_driver.o
+-
+-ccflags-y += -Werror
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/Makefile b/drivers/staging/media/atomisp/i2c/ov5693/Makefile
+index fceb9e9b881b..c9c0e1245858 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/Makefile
++++ b/drivers/staging/media/atomisp/i2c/ov5693/Makefile
+@@ -1,3 +1 @@
+ obj-$(CONFIG_VIDEO_OV5693) += ov5693.o
+-
+-ccflags-y += -Werror
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/Makefile b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+index 3fa7c1c1479f..f126a89a08e9 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/Makefile
++++ b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+@@ -351,5 +351,5 @@ DEFINES := -DHRT_HW -DHRT_ISP_CSS_CUSTOM_HOST -DHRT_USE_VIR_ADDRS -D__HOST__
+ DEFINES += -DATOMISP_POSTFIX=\"css2400b0_v21\" -DISP2400B0
+ DEFINES += -DSYSTEM_hive_isp_css_2400_system -DISP2400
+ 
+-ccflags-y += $(INCLUDES) $(DEFINES) -fno-common -Werror
++ccflags-y += $(INCLUDES) $(DEFINES) -fno-common
+ 
 -- 
-git-series 0.9.1
+2.9.3
