@@ -1,146 +1,321 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37020 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753820AbdEKIZX (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43836 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751486AbdERNve (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 May 2017 04:25:23 -0400
-Date: Thu, 11 May 2017 11:24:41 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Rajmohan Mani <rajmohan.mani@intel.com>,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v4] dw9714: Initial driver for dw9714 VCM
-Message-ID: <20170511082441.GG3227@valkosipuli.retiisi.org.uk>
-References: <1494478820-22199-1-git-send-email-rajmohan.mani@intel.com>
- <CAAFQd5Ck3CKp-JR8d3d1X9-2cRS0oZG9GPwcpunBq50EY7qCtg@mail.gmail.com>
- <20170511075511.GF3227@valkosipuli.retiisi.org.uk>
- <CAAFQd5BH17YofrbaZa07UFTR_qV_h_KgskGJm0bXhuf3sM6huw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5BH17YofrbaZa07UFTR_qV_h_KgskGJm0bXhuf3sM6huw@mail.gmail.com>
+        Thu, 18 May 2017 09:51:34 -0400
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: mchehab@s-opensource.com, alan@linux.intel.com
+Cc: Avraham Shukron <avraham.shukron@gmail.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 06/13] staging: media: atomisp: fixed coding style errors
+Date: Thu, 18 May 2017 15:50:15 +0200
+Message-Id: <20170518135022.6069-7-gregkh@linuxfoundation.org>
+In-Reply-To: <20170518135022.6069-1-gregkh@linuxfoundation.org>
+References: <20170518135022.6069-1-gregkh@linuxfoundation.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+From: Avraham Shukron <avraham.shukron@gmail.com>
 
-On Thu, May 11, 2017 at 04:02:35PM +0800, Tomasz Figa wrote:
-> Hi Sakari,
-> 
-> On Thu, May 11, 2017 at 3:55 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > Hi Tomasz,
-> >
-> > On Thu, May 11, 2017 at 02:30:31PM +0800, Tomasz Figa wrote:
-> > ...
-> >> > +
-> >> > +/*
-> >> > + * This function sets the vcm position, so it consumes least current
-> >> > + * The lens position is gradually moved in units of DW9714_CTRL_STEPS,
-> >> > + * to make the movements smoothly.
-> >> > + */
-> >> > +static int dw9714_vcm_suspend(struct device *dev)
-> >> > +{
-> >> > +       struct i2c_client *client = to_i2c_client(dev);
-> >> > +       struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> >> > +       struct dw9714_device *dw9714_dev = container_of(sd,
-> >> > +                                                       struct dw9714_device,
-> >> > +                                                       sd);
-> >> > +       int ret, val;
-> >> > +
-> >> > +       for (val = dw9714_dev->current_val & ~(DW9714_CTRL_STEPS - 1);
-> >> > +            val >= 0; val -= DW9714_CTRL_STEPS) {
-> >> > +               ret = dw9714_i2c_write(client,
-> >> > +                                      DW9714_VAL((u16) val, DW9714_DEFAULT_S));
-> >>
-> >> DW9714_VAL() already contains such cast. Anyway, I still think they
-> >> don't really give us anything and should be removed.
-> >>
-> >> > +               if (ret)
-> >> > +                       dev_err(dev, "%s I2C failure: %d", __func__, ret);
-> >>
-> >> I think we should just return an error code here and fail the suspend.
-> >
-> > The result from an error here is that the user would hear an audible click.
-> > I don't think it's worth failing system suspend. :-)
-> >
-> 
-> Hmm, the result of an error here would be higher power consumption in
-> suspend (unless there is also some other mechanism that actually cuts
-> the power).  Moreover, if an error here happens it would rather mean
+Fix for error (not warnings) reported by checkpatch.pl
+Specifically:
+ - missing whitespace around "=" and after ","
+ - indentation with spaces instead of tabs
+ - lines starting with a whitespace
 
-On systems where power consumption matters the device would presumably be
-powered off (e.g. by ACPI).
+This patch does not affect the compiled code in any way.
 
-> that there is something wrong with hardware itself (or I2C driver) and
-> not bailing out here would make it easier to let the error go
-> unnoticed.
+Signed-off-by: Avraham Shukron <avraham.shukron@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ .../platform/intel-mid/atomisp_gmin_platform.c     | 156 ++++++++++-----------
+ .../platform/intel-mid/intel_mid_pcihelpers.c      |   2 +-
+ 2 files changed, 79 insertions(+), 79 deletions(-)
 
-I'm not sure an error here matters much. :-)
-
-The same function is also used as runtime_suspend(), in which case the
-result won't be cared much about to begin with.
-
-...
-
-> >> > +/*
-> >> > + * This function sets the vcm position to the value set by the user
-> >> > + * through v4l2_ctrl_ops s_ctrl handler
-> >> > + * The lens position is gradually moved in units of DW9714_CTRL_STEPS,
-> >> > + * to make the movements smoothly.
-> >> > + */
-> >> > +static int dw9714_vcm_resume(struct device *dev)
-> >> > +{
-> >> > +       struct i2c_client *client = to_i2c_client(dev);
-> >> > +       struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> >> > +       struct dw9714_device *dw9714_dev = container_of(sd,
-> >> > +                                                       struct dw9714_device,
-> >> > +                                                       sd);
-> >> > +       int ret, val;
-> >> > +
-> >> > +       for (val = dw9714_dev->current_val % DW9714_CTRL_STEPS;
-> >> > +            val < dw9714_dev->current_val + DW9714_CTRL_STEPS - 1;
-> >> > +            val += DW9714_CTRL_STEPS) {
-> >> > +               ret = dw9714_i2c_write(client,
-> >> > +                                      DW9714_VAL((u16) val, DW9714_DEFAULT_S));
-> >>
-> >> Ditto.
-> >>
-> >> > +               if (ret)
-> >> > +                       dev_err(dev, "%s I2C failure: %d", __func__, ret);
-> >>
-> >> Ditto.
-> >>
-> >> > +               usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
-> >> > +       }
-> >> > +
-> >> > +       /* restore v4l2 control values */
-> >> > +       ret = v4l2_ctrl_handler_setup(&dw9714_dev->ctrls_vcm);
-> >> > +       return ret;
-> >>
-> >> Hmm, actually I believe v4l2_ctrl_handler_setup() will call .s_ctrl()
-> >> here and set the motor value again. If we just make .s_ctrl() do the
-> >> adjustment in steps properly, we can simplify the resume to simply
-> >> call v4l2_ctrl_handler_setup() alone.
-> >
-> > Or drop the v4l2_ctrl_handler_setup() here.
-> >
-> > The reason is that the driver uses direct drive method for the lens and is
-> > thus responsible for managing ringing compensation as well. Ringing
-> > compensation support could be added to the driver later on; I think another
-> > control will be needed to control the mode.
-> 
-> Given that we already have some kind of ringing compensation in
-> suspend and resume, can't we just reuse this in control handler? On
-
-The way it's done here is unlikely to be helpful for the user space that
-needs to drive the lens to a new position as fast as possible. The code
-above is presumably enough to prevent the lens from hitting the mechanical
-stopper but I'd equally expect it to interfere badly with the user space
-trying to control the lens.
-
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+index 15409e96449d..2a819ac6f9e2 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+@@ -51,7 +51,7 @@ struct gmin_subdev {
+ 
+ static struct gmin_subdev gmin_subdevs[MAX_SUBDEVS];
+ 
+-static enum { PMIC_UNSET = 0, PMIC_REGULATOR, PMIC_AXP, PMIC_TI ,
++static enum { PMIC_UNSET = 0, PMIC_REGULATOR, PMIC_AXP, PMIC_TI,
+ 	PMIC_CRYSTALCOVE } pmic_id;
+ 
+ /* The atomisp uses type==0 for the end-of-list marker, so leave space. */
+@@ -152,13 +152,13 @@ const struct camera_af_platform_data *camera_get_af_platform_data(void)
+ EXPORT_SYMBOL_GPL(camera_get_af_platform_data);
+ 
+ int atomisp_register_i2c_module(struct v4l2_subdev *subdev,
+-                                struct camera_sensor_platform_data *plat_data,
+-                                enum intel_v4l2_subdev_type type)
++				struct camera_sensor_platform_data *plat_data,
++				enum intel_v4l2_subdev_type type)
+ {
+ 	int i;
+ 	struct i2c_board_info *bi;
+ 	struct gmin_subdev *gs;
+-        struct i2c_client *client = v4l2_get_subdevdata(subdev);
++	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+ 	struct acpi_device *adev;
+ 
+ 	dev_info(&client->dev, "register atomisp i2c module type %d\n", type);
+@@ -172,7 +172,7 @@ int atomisp_register_i2c_module(struct v4l2_subdev *subdev,
+ 	if (adev)
+ 		adev->power.flags.power_resources = 0;
+ 
+-	for (i=0; i < MAX_SUBDEVS; i++)
++	for (i = 0; i < MAX_SUBDEVS; i++)
+ 		if (!pdata.subdevs[i].type)
+ 			break;
+ 
+@@ -206,7 +206,7 @@ struct v4l2_subdev *atomisp_gmin_find_subdev(struct i2c_adapter *adapter,
+ 					     struct i2c_board_info *board_info)
+ {
+ 	int i;
+-	for (i=0; i < MAX_SUBDEVS && pdata.subdevs[i].type; i++) {
++	for (i = 0; i < MAX_SUBDEVS && pdata.subdevs[i].type; i++) {
+ 		struct intel_v4l2_subdev_table *sd = &pdata.subdevs[i];
+ 		if (sd->v4l2_subdev.i2c_adapter_id == adapter->nr &&
+ 		    sd->v4l2_subdev.board_info.addr == board_info->addr)
+@@ -270,45 +270,45 @@ static const struct gmin_cfg_var t100_vars[] = {
+ };
+ 
+ static const struct gmin_cfg_var mrd7_vars[] = {
+-        {"INT33F8:00_CamType", "1"},
+-        {"INT33F8:00_CsiPort", "1"},
+-        {"INT33F8:00_CsiLanes","2"},
+-        {"INT33F8:00_CsiFmt","13"},
+-        {"INT33F8:00_CsiBayer", "0"},
+-        {"INT33F8:00_CamClk", "0"},
+-        {"INT33F9:00_CamType", "1"},
+-        {"INT33F9:00_CsiPort", "0"},
+-        {"INT33F9:00_CsiLanes","1"},
+-        {"INT33F9:00_CsiFmt","13"},
+-        {"INT33F9:00_CsiBayer", "0"},
+-        {"INT33F9:00_CamClk", "1"},
+-        {},
++	{"INT33F8:00_CamType", "1"},
++	{"INT33F8:00_CsiPort", "1"},
++	{"INT33F8:00_CsiLanes", "2"},
++	{"INT33F8:00_CsiFmt", "13"},
++	{"INT33F8:00_CsiBayer", "0"},
++	{"INT33F8:00_CamClk", "0"},
++	{"INT33F9:00_CamType", "1"},
++	{"INT33F9:00_CsiPort", "0"},
++	{"INT33F9:00_CsiLanes", "1"},
++	{"INT33F9:00_CsiFmt", "13"},
++	{"INT33F9:00_CsiBayer", "0"},
++	{"INT33F9:00_CamClk", "1"},
++	{},
+ };
+ 
+ static const struct gmin_cfg_var ecs7_vars[] = {
+-        {"INT33BE:00_CsiPort", "1"},
+-        {"INT33BE:00_CsiLanes","2"},
+-        {"INT33BE:00_CsiFmt","13"},
+-        {"INT33BE:00_CsiBayer", "2"},
+-        {"INT33BE:00_CamClk", "0"},
+-        {"INT33F0:00_CsiPort", "0"},
+-        {"INT33F0:00_CsiLanes","1"},
+-        {"INT33F0:00_CsiFmt","13"},
+-        {"INT33F0:00_CsiBayer", "0"},
+-        {"INT33F0:00_CamClk", "1"},
+-        {"gmin_V2P8GPIO","402"},
+-        {},
++	{"INT33BE:00_CsiPort", "1"},
++	{"INT33BE:00_CsiLanes", "2"},
++	{"INT33BE:00_CsiFmt", "13"},
++	{"INT33BE:00_CsiBayer", "2"},
++	{"INT33BE:00_CamClk", "0"},
++	{"INT33F0:00_CsiPort", "0"},
++	{"INT33F0:00_CsiLanes", "1"},
++	{"INT33F0:00_CsiFmt", "13"},
++	{"INT33F0:00_CsiBayer", "0"},
++	{"INT33F0:00_CamClk", "1"},
++	{"gmin_V2P8GPIO", "402"},
++	{},
+ };
+ 
+ 
+ static const struct gmin_cfg_var i8880_vars[] = {
+-        {"XXOV2680:00_CsiPort", "1"},
+-        {"XXOV2680:00_CsiLanes","1"},
+-        {"XXOV2680:00_CamClk","0"},
+-        {"XXGC0310:00_CsiPort", "0"},
+-        {"XXGC0310:00_CsiLanes", "1"},
+-        {"XXGC0310:00_CamClk", "1"},
+-        {},
++	{"XXOV2680:00_CsiPort", "1"},
++	{"XXOV2680:00_CsiLanes", "1"},
++	{"XXOV2680:00_CamClk", "0"},
++	{"XXGC0310:00_CsiPort", "0"},
++	{"XXGC0310:00_CsiLanes", "1"},
++	{"XXGC0310:00_CamClk", "1"},
++	{},
+ };
+ 
+ static const struct {
+@@ -317,9 +317,9 @@ static const struct {
+ } hard_vars[] = {
+ 	{ "BYT-T FFD8", ffrd8_vars },
+ 	{ "T100TA", t100_vars },
+-        { "MRD7", mrd7_vars },
+-        { "ST70408", ecs7_vars },
+-        { "VTA0803", i8880_vars },
++	{ "MRD7", mrd7_vars },
++	{ "ST70408", ecs7_vars },
++	{ "VTA0803", i8880_vars },
+ };
+ 
+ 
+@@ -343,7 +343,7 @@ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
+ {
+ 	int i, ret;
+ 	struct device *dev;
+-        struct i2c_client *client = v4l2_get_subdevdata(subdev);
++	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+ 
+ 	if (!pmic_id) {
+ 
+@@ -355,7 +355,7 @@ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
+ 
+ 	dev = &client->dev;
+ 
+-	for (i=0; i < MAX_SUBDEVS && gmin_subdevs[i].subdev; i++)
++	for (i = 0; i < MAX_SUBDEVS && gmin_subdevs[i].subdev; i++)
+ 		;
+ 	if (i >= MAX_SUBDEVS)
+ 		return NULL;
+@@ -410,7 +410,7 @@ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
+ static struct gmin_subdev *find_gmin_subdev(struct v4l2_subdev *subdev)
+ {
+ 	int i;
+-	for (i=0; i < MAX_SUBDEVS; i++)
++	for (i = 0; i < MAX_SUBDEVS; i++)
+ 		if (gmin_subdevs[i].subdev == subdev)
+ 			return &gmin_subdevs[i];
+ 	return gmin_subdev_add(subdev);
+@@ -482,7 +482,7 @@ static int gmin_v1p8_ctrl(struct v4l2_subdev *subdev, int on)
+ 		gpio_set_value(v1p8_gpio, on);
+ 
+ 	if (gs->v1p8_reg) {
+-           regulator_set_voltage(gs->v1p8_reg, 1800000, 1800000);
++		regulator_set_voltage(gs->v1p8_reg, 1800000, 1800000);
+ 		if (on)
+ 			return regulator_enable(gs->v1p8_reg);
+ 		else
+@@ -518,7 +518,7 @@ static int gmin_v2p8_ctrl(struct v4l2_subdev *subdev, int on)
+ 		gpio_set_value(v2p8_gpio, on);
+ 
+ 	if (gs->v2p8_reg) {
+-           regulator_set_voltage(gs->v2p8_reg, 2900000, 2900000);
++		regulator_set_voltage(gs->v2p8_reg, 2900000, 2900000);
+ 		if (on)
+ 			return regulator_enable(gs->v2p8_reg);
+ 		else
+@@ -628,13 +628,13 @@ int gmin_get_config_var(struct device *dev, const char *var, char *out, size_t *
+ 	int i, j, ret;
+ 	unsigned long efilen;
+ 
+-        if (dev && ACPI_COMPANION(dev))
+-                dev = &ACPI_COMPANION(dev)->dev;
++	if (dev && ACPI_COMPANION(dev))
++		dev = &ACPI_COMPANION(dev)->dev;
+ 
+-        if (dev)
+-                ret = snprintf(var8, sizeof(var8), "%s_%s", dev_name(dev), var);
+-        else
+-                ret = snprintf(var8, sizeof(var8), "gmin_%s", var);
++	if (dev)
++		ret = snprintf(var8, sizeof(var8), "%s_%s", dev_name(dev), var);
++	else
++		ret = snprintf(var8, sizeof(var8), "gmin_%s", var);
+ 
+ 	if (ret < 0 || ret >= sizeof(var8) - 1)
+ 		return -EINVAL;
+@@ -693,7 +693,7 @@ int gmin_get_config_var(struct device *dev, const char *var, char *out, size_t *
+ 	*out_len = efilen;
+ 
+ 	if (ret)
+- 		dev_warn(dev, "Failed to find gmin variable %s\n", var8);
++		dev_warn(dev, "Failed to find gmin variable %s\n", var8);
+ 
+ 	return ret;
+ }
+@@ -719,31 +719,31 @@ EXPORT_SYMBOL_GPL(gmin_get_var_int);
+ int camera_sensor_csi(struct v4l2_subdev *sd, u32 port,
+ 		      u32 lanes, u32 format, u32 bayer_order, int flag)
+ {
+-        struct i2c_client *client = v4l2_get_subdevdata(sd);
+-        struct camera_mipi_info *csi = NULL;
+-
+-        if (flag) {
+-                csi = kzalloc(sizeof(*csi), GFP_KERNEL);
+-                if (!csi) {
+-                        dev_err(&client->dev, "out of memory\n");
+-                        return -ENOMEM;
+-                }
+-                csi->port = port;
+-                csi->num_lanes = lanes;
+-                csi->input_format = format;
+-                csi->raw_bayer_order = bayer_order;
+-                v4l2_set_subdev_hostdata(sd, (void *)csi);
+-                csi->metadata_format = ATOMISP_INPUT_FORMAT_EMBEDDED;
+-                csi->metadata_effective_width = NULL;
+-                dev_info(&client->dev,
+-                         "camera pdata: port: %d lanes: %d order: %8.8x\n",
+-                         port, lanes, bayer_order);
+-        } else {
+-                csi = v4l2_get_subdev_hostdata(sd);
+-                kfree(csi);
+-        }
+-
+-        return 0;
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct camera_mipi_info *csi = NULL;
++
++	if (flag) {
++		csi = kzalloc(sizeof(*csi), GFP_KERNEL);
++		if (!csi) {
++			dev_err(&client->dev, "out of memory\n");
++			return -ENOMEM;
++		}
++		csi->port = port;
++		csi->num_lanes = lanes;
++		csi->input_format = format;
++		csi->raw_bayer_order = bayer_order;
++		v4l2_set_subdev_hostdata(sd, (void *)csi);
++		csi->metadata_format = ATOMISP_INPUT_FORMAT_EMBEDDED;
++		csi->metadata_effective_width = NULL;
++		dev_info(&client->dev,
++			 "camera pdata: port: %d lanes: %d order: %8.8x\n",
++			 port, lanes, bayer_order);
++	} else {
++		csi = v4l2_get_subdev_hostdata(sd);
++		kfree(csi);
++	}
++
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(camera_sensor_csi);
+ 
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+index b01463361943..c9eea71ece2c 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+@@ -22,7 +22,7 @@
+ #endif
+ static inline int platform_is(u8 model)
+ {
+-        return (boot_cpu_data.x86_model == model);
++	return (boot_cpu_data.x86_model == model);
+ }
+ 
+ #include "../../include/asm/intel_mid_pcihelpers.h"
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.13.0
