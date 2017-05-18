@@ -1,69 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:50992 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751437AbdEEMrs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 May 2017 08:47:48 -0400
-Date: Fri, 5 May 2017 13:47:45 +0100
-From: Liviu Dudau <liviu.dudau@arm.com>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Brian Starkey <brian.starkey@arm.com>,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/6] drm: Add writeback connector type
-Message-ID: <20170505124745.GQ28653@e110455-lin.cambridge.arm.com>
-References: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
- <1480092544-1725-2-git-send-email-brian.starkey@arm.com>
- <20170505102219.0ed543d2@bbrezillon>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40896
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752823AbdERNyj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 May 2017 09:54:39 -0400
+Date: Thu, 18 May 2017 10:54:32 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-renesas-soc@vger.kernel.org, mchehab@kernel.org,
+        kieran.bingham@ideasonboard.com,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: Re: [PATCH v4 4/4] drm: rcar-du: Register a completion callback
+ with VSP1
+Message-ID: <20170518105432.710fa911@vento.lan>
+In-Reply-To: <934d69fcc0717a688bc3994e1fdc3e27c3827be6.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+        <934d69fcc0717a688bc3994e1fdc3e27c3827be6.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170505102219.0ed543d2@bbrezillon>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 05, 2017 at 10:22:19AM +0200, Boris Brezillon wrote:
-> On Fri, 25 Nov 2016 16:48:59 +0000
-> Brian Starkey <brian.starkey@arm.com> wrote:
-> 
-> > +/**
-> > + * drm_writeback_connector_init - Initialize a writeback connector and its properties
-> > + * @dev: DRM device
-> > + * @wb_connector: Writeback connector to initialize
-> > + * @funcs: Connector funcs vtable
-> > + * @formats: Array of supported pixel formats for the writeback engine
-> > + * @n_formats: Length of the formats array
-> > + *
-> > + * This function creates the writeback-connector-specific properties if they
-> > + * have not been already created, initializes the connector as
-> > + * type DRM_MODE_CONNECTOR_WRITEBACK, and correctly initializes the property
-> > + * values.
-> > + *
-> > + * Drivers should always use this function instead of drm_connector_init() to
-> > + * set up writeback connectors.
-> > + *
-> > + * Returns: 0 on success, or a negative error code
-> > + */
-> > +int drm_writeback_connector_init(struct drm_device *dev,
-> > +				 struct drm_writeback_connector *wb_connector,
-> > +				 const struct drm_connector_funcs *funcs,
-> > +				 u32 *formats, int n_formats)
-> 
-> This should probably be 'const u32 *formats', since developers are
-> likely to define a this array with a 'static const' specifier in their
-> driver.
+Em Fri,  5 May 2017 16:21:10 +0100
+Kieran Bingham <kieran.bingham+renesas@ideasonboard.com> escreveu:
 
-Fixed in the v4.
+> Currently we process page flip events on every display interrupt,
+> however this does not take into consideration the processing time needed
+> by the VSP1 utilised in the pipeline.
+> 
+> Register a callback with the VSP driver to obtain completion events, and
+> track them so that we only perform page flips when the full display
+> pipeline has completed for the frame.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+
+For all parts of this series that touch drivers/media:
+
+Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+
+> ---
+>  drivers/gpu/drm/rcar-du/rcar_du_crtc.c |  8 ++++++--
+>  drivers/gpu/drm/rcar-du/rcar_du_crtc.h |  1 +
+>  drivers/gpu/drm/rcar-du/rcar_du_vsp.c  |  9 +++++++++
+>  3 files changed, 16 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+> index 5f0664bcd12d..345eff72f581 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+> +++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+> @@ -378,7 +378,7 @@ static void rcar_du_crtc_update_planes(struct rcar_du_crtc *rcrtc)
+>   * Page Flip
+>   */
+>  
+> -static void rcar_du_crtc_finish_page_flip(struct rcar_du_crtc *rcrtc)
+> +void rcar_du_crtc_finish_page_flip(struct rcar_du_crtc *rcrtc)
+>  {
+>  	struct drm_pending_vblank_event *event;
+>  	struct drm_device *dev = rcrtc->crtc.dev;
+> @@ -650,6 +650,7 @@ static const struct drm_crtc_funcs crtc_funcs = {
+>  static irqreturn_t rcar_du_crtc_irq(int irq, void *arg)
+>  {
+>  	struct rcar_du_crtc *rcrtc = arg;
+> +	struct rcar_du_device *rcdu = rcrtc->group->dev;
+>  	irqreturn_t ret = IRQ_NONE;
+>  	u32 status;
+>  
+> @@ -658,7 +659,10 @@ static irqreturn_t rcar_du_crtc_irq(int irq, void *arg)
+>  
+>  	if (status & DSSR_FRM) {
+>  		drm_crtc_handle_vblank(&rcrtc->crtc);
+> -		rcar_du_crtc_finish_page_flip(rcrtc);
+> +
+> +		if (rcdu->info->gen < 3)
+> +			rcar_du_crtc_finish_page_flip(rcrtc);
+> +
+>  		ret = IRQ_HANDLED;
+>  	}
+>  
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.h b/drivers/gpu/drm/rcar-du/rcar_du_crtc.h
+> index 15871fae7445..b199ed5adf36 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.h
+> +++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.h
+> @@ -73,5 +73,6 @@ void rcar_du_crtc_resume(struct rcar_du_crtc *rcrtc);
+>  
+>  void rcar_du_crtc_route_output(struct drm_crtc *crtc,
+>  			       enum rcar_du_output output);
+> +void rcar_du_crtc_finish_page_flip(struct rcar_du_crtc *rcrtc);
+>  
+>  #endif /* __RCAR_DU_CRTC_H__ */
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> index b0ff304ce3dc..c7bb96fbfab1 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> @@ -28,6 +28,13 @@
+>  #include "rcar_du_kms.h"
+>  #include "rcar_du_vsp.h"
+>  
+> +static void rcar_du_vsp_complete(void *private)
+> +{
+> +	struct rcar_du_crtc *crtc = private;
+> +
+> +	rcar_du_crtc_finish_page_flip(crtc);
+> +}
+> +
+>  void rcar_du_vsp_enable(struct rcar_du_crtc *crtc)
+>  {
+>  	const struct drm_display_mode *mode = &crtc->crtc.state->adjusted_mode;
+> @@ -35,6 +42,8 @@ void rcar_du_vsp_enable(struct rcar_du_crtc *crtc)
+>  	struct vsp1_du_lif_config cfg = {
+>  		.width = mode->hdisplay,
+>  		.height = mode->vdisplay,
+> +		.callback = rcar_du_vsp_complete,
+> +		.callback_data = crtc,
+>  	};
+>  	struct rcar_du_plane_state state = {
+>  		.state = {
+
+
 
 Thanks,
-Liviu
-
--- 
-====================
-| I would like to |
-| fix the world,  |
-| but they're not |
-| giving me the   |
- \ source code!  /
-  ---------------
-    ¯\_(ツ)_/¯
+Mauro
