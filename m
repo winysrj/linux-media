@@ -1,64 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:60062 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752079AbdESRjr (ORCPT
+Received: from gateway33.websitewelcome.com ([192.185.145.4]:47328 "EHLO
+        gateway33.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755577AbdERWaG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 May 2017 13:39:47 -0400
-From: Colin King <colin.king@canonical.com>
-To: Arnd Bergmann <arnd@arndb.de>, Eric Anholt <eric@anholt.net>,
-        David Airlie <airlied@linux.ie>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] rainshadow-cec: ensure exit_loop is initialized
-Date: Fri, 19 May 2017 18:39:39 +0100
-Message-Id: <20170519173939.6489-1-colin.king@canonical.com>
+        Thu, 18 May 2017 18:30:06 -0400
+Received: from cm4.websitewelcome.com (unknown [108.167.139.16])
+        by gateway33.websitewelcome.com (Postfix) with ESMTP id 8594016273
+        for <linux-media@vger.kernel.org>; Thu, 18 May 2017 17:07:10 -0500 (CDT)
+Date: Thu, 18 May 2017 17:07:09 -0500
+Message-ID: <20170518170709.Horde.zKHvDFB0L61Od1t7GtHytpR@gator4166.hostgator.com>
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [media-pci-cx25821] question about value overwrite
+Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
 
-exit_loop is not being initialized, so it contains garbage. Ensure it is
-initialized to false.
+Hello everybody,
 
-Detected by CoverityScan, CID#1436409 ("Uninitialzed scalar variable")
+While looking into Coverity ID 1226903 I ran into the following piece  
+of code at drivers/media/pci/cx25821/cx25821-medusa-video.c:393:
 
-Fixes: ea6a69defd3311 ("[media] rainshadow-cec: avoid -Wmaybe-uninitialized warning")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/gpu/drm/vc4/vc4_v3d.c                     | 2 +-
- drivers/media/usb/rainshadow-cec/rainshadow-cec.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+393int medusa_set_videostandard(struct cx25821_dev *dev)
+394{
+395        int status = 0;
+396        u32 value = 0, tmp = 0;
+397
+398        if (dev->tvnorm & V4L2_STD_PAL_BG || dev->tvnorm & V4L2_STD_PAL_DK)
+399                status = medusa_initialize_pal(dev);
+400        else
+401                status = medusa_initialize_ntsc(dev);
+402
+403        /* Enable DENC_A output */
+404        value = cx25821_i2c_read(&dev->i2c_bus[0], DENC_A_REG_4, &tmp);
+405        value = setBitAtPos(value, 4);
+406        status = cx25821_i2c_write(&dev->i2c_bus[0], DENC_A_REG_4, value);
+407
+408        /* Enable DENC_B output */
+409        value = cx25821_i2c_read(&dev->i2c_bus[0], DENC_B_REG_4, &tmp);
+410        value = setBitAtPos(value, 4);
+411        status = cx25821_i2c_write(&dev->i2c_bus[0], DENC_B_REG_4, value);
+412
+413        return status;
+414}
 
-diff --git a/drivers/gpu/drm/vc4/vc4_v3d.c b/drivers/gpu/drm/vc4/vc4_v3d.c
-index c53afec34586..c42210203f6e 100644
---- a/drivers/gpu/drm/vc4/vc4_v3d.c
-+++ b/drivers/gpu/drm/vc4/vc4_v3d.c
-@@ -218,7 +218,7 @@ int vc4_v3d_get_bin_slot(struct vc4_dev *vc4)
-  * overall CMA pool before they make scenes complicated enough to run
-  * out of bin space.
-  */
--int
-+static int
- vc4_allocate_bin_bo(struct drm_device *drm)
- {
- 	struct vc4_dev *vc4 = to_vc4_dev(drm);
-diff --git a/drivers/media/usb/rainshadow-cec/rainshadow-cec.c b/drivers/media/usb/rainshadow-cec/rainshadow-cec.c
-index 8d3ca2c8b20f..ad468efc4399 100644
---- a/drivers/media/usb/rainshadow-cec/rainshadow-cec.c
-+++ b/drivers/media/usb/rainshadow-cec/rainshadow-cec.c
-@@ -119,7 +119,7 @@ static void rain_irq_work_handler(struct work_struct *work)
- 
- 	while (true) {
- 		unsigned long flags;
--		bool exit_loop;
-+		bool exit_loop = false;
- 		char data;
- 
- 		spin_lock_irqsave(&rain->buf_lock, flags);
--- 
-2.11.0
+The issue is that the value stored in variable _status_ at lines 399  
+and 401 is overwritten by the one stored at line 406 and then at line  
+411, before it can be used.
+
+My question is if the original intention was to ORed the return  
+values, something like in the following patch:
+
+index 0a9db05..226d14f 100644
+--- a/drivers/media/pci/cx25821/cx25821-medusa-video.c
++++ b/drivers/media/pci/cx25821/cx25821-medusa-video.c
+@@ -403,12 +403,12 @@ int medusa_set_videostandard(struct cx25821_dev *dev)
+         /* Enable DENC_A output */
+         value = cx25821_i2c_read(&dev->i2c_bus[0], DENC_A_REG_4, &tmp);
+         value = setBitAtPos(value, 4);
+-       status = cx25821_i2c_write(&dev->i2c_bus[0], DENC_A_REG_4, value);
++       status |= cx25821_i2c_write(&dev->i2c_bus[0], DENC_A_REG_4, value);
+
+         /* Enable DENC_B output */
+         value = cx25821_i2c_read(&dev->i2c_bus[0], DENC_B_REG_4, &tmp);
+         value = setBitAtPos(value, 4);
+-       status = cx25821_i2c_write(&dev->i2c_bus[0], DENC_B_REG_4, value);
++       status |= cx25821_i2c_write(&dev->i2c_bus[0], DENC_B_REG_4, value);
+
+         return status;
+  }
+
+What do you think?
+
+I'd really appreciate any comment on this.
+
+Thank you!
+--
+Gustavo A. R. Silva
