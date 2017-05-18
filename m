@@ -1,55 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46435
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750831AbdESMKO (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57556 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753924AbdERUyg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 May 2017 08:10:14 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 5/6] [media] s2255drv: avoid a switch fall through
-Date: Fri, 19 May 2017 09:10:03 -0300
-Message-Id: <ec33fbd585f76b0803a90ee66804fa6f937dccaa.1495195712.git.mchehab@s-opensource.com>
-In-Reply-To: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
-References: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
-In-Reply-To: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
-References: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Thu, 18 May 2017 16:54:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Kieran Bingham <kbingham@kernel.org>,
+        niklas.soderlund@ragnatech.se, geert@glider.be,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH v3.1 1/2] v4l: subdev: tolerate null in media_entity_to_v4l2_subdev
+Date: Thu, 18 May 2017 23:54:46 +0300
+Message-ID: <1676271.nErFi1MvTr@avalon>
+In-Reply-To: <20170518205033.GW3227@valkosipuli.retiisi.org.uk>
+References: <cover.ed561929790222fc2c4467d4e57072a8e4ba69f3.1495035409.git-series.kieran.bingham+renesas@ideasonboard.com> <3270185.UdjK4gGCsr@avalon> <20170518205033.GW3227@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On this driver, it can fall through a switch. I tried to
-annotate it, in order to shut up a gcc warning, but that
-didn't work, as the logic there is somewhat complex.
+Hi Sakari,
 
-So, instead, let's just repeat the code. gcc should likely
-optimize it anyway, and this makes the code better readable,
-IMHO.
+On Thursday 18 May 2017 23:50:34 Sakari Ailus wrote:
+> On Thu, May 18, 2017 at 07:08:00PM +0300, Laurent Pinchart wrote:
+> > On Wednesday 17 May 2017 22:20:57 Sakari Ailus wrote:
+> >> On Wed, May 17, 2017 at 04:38:14PM +0100, Kieran Bingham wrote:
+> >>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >>> 
+> >>> Return NULL, if a null entity is parsed for it's v4l2_subdev
+> >>> 
+> >>> Signed-off-by: Kieran Bingham
+> >>> <kieran.bingham+renesas@ideasonboard.com>
+> >>> ---
+> >>> 
+> >>>  include/media/v4l2-subdev.h | 2 +-
+> >>>  1 file changed, 1 insertion(+), 1 deletion(-)
+> >>> 
+> >>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> >>> index 5f1669c45642..72d7f28f38dc 100644
+> >>> --- a/include/media/v4l2-subdev.h
+> >>> +++ b/include/media/v4l2-subdev.h
+> >>> @@ -829,7 +829,7 @@ struct v4l2_subdev {
+> >>>  };
+> >>>  
+> >>>  #define media_entity_to_v4l2_subdev(ent) \
+> >>> -	container_of(ent, struct v4l2_subdev, entity)
+> >>> +	(ent ? container_of(ent, struct v4l2_subdev, entity) : NULL)
+> >>>  #define vdev_to_v4l2_subdev(vdev) \
+> >>>  	((struct v4l2_subdev *)video_get_drvdata(vdev))
+> >> 
+> >> The problem with this is that ent is now referenced twice. If the ent
+> >> macro argument has side effect, this would introduce bugs. It's
+> >> unlikely, but worth avoiding. Either use a macro or a function.
+> >> 
+> >> I think I'd use function for there's little use for supporting for const
+> >> and non-const arguments presumably. A simple static inline function
+> >> should do.
+> >
+> > Note that, if we want to keep using a macro, this could be written as
+> > 
+> > #define media_entity_to_v4l2_subdev(ent) ({ \
+> > 
+> > 	typeof(ent) __ent = ent; \
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/s2255/s2255drv.c | 2 ++
- 1 file changed, 2 insertions(+)
+I just realized that this should be written
 
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index a9d4484f7626..6a88b1dbb3a0 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -1803,6 +1803,8 @@ static int save_frame(struct s2255_dev *dev, struct s2255_pipeinfo *pipe_info)
- 				default:
- 					pr_info("s2255 unknown resp\n");
- 				}
-+				pdata++;
-+				break;
- 			default:
- 				pdata++;
- 				break;
+ 	typeof(ent) __ent = (ent);
+
+> > 	__ent ? container_of(__ent, struct v4l2_subdev, entity) : NULL; \
+> > 
+> > })
+> > 
+> > Bonus point if you can come up with a way to return a const struct
+> > v4l2_subdev pointer when then ent argument is const.
+> 
+> I can't think of a use case for that. I've never seen a const struct
+> v4l2_subdev anywhere. I could be just oblivious though. :-)
+
+I agree with you, it's overkill, at least for now. Although I'd like to see 
+how it could be done, for other similar constructs where both const and non-
+const versions are useful.
+
+> Better give a __ent a name that someone will not accidentally come up with.
+> That can lead to problems that are difficult to debug --- for the code
+> compiles, it just doesn't do what's expected.
+
+Won't it generate a compilation error as the variable would be redefined by 
+the macro ?
+
 -- 
-2.9.3
+Regards,
+
+Laurent Pinchart
