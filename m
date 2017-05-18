@@ -1,134 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48852 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751932AbdEDOpg (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56821 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751782AbdERQHu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 May 2017 10:45:36 -0400
-Date: Thu, 4 May 2017 17:45:03 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v4 16/27] rcar-vin: add functions to manipulate Gen3
- CHSEL value
-Message-ID: <20170504144503.GY7456@valkosipuli.retiisi.org.uk>
-References: <20170427224203.14611-1-niklas.soderlund+renesas@ragnatech.se>
- <20170427224203.14611-17-niklas.soderlund+renesas@ragnatech.se>
+        Thu, 18 May 2017 12:07:50 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Kieran Bingham <kbingham@kernel.org>,
+        niklas.soderlund@ragnatech.se, geert@glider.be,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH v3.1 1/2] v4l: subdev: tolerate null in media_entity_to_v4l2_subdev
+Date: Thu, 18 May 2017 19:08 +0300
+Message-ID: <3270185.UdjK4gGCsr@avalon>
+In-Reply-To: <20170517192057.GT3227@valkosipuli.retiisi.org.uk>
+References: <cover.ed561929790222fc2c4467d4e57072a8e4ba69f3.1495035409.git-series.kieran.bingham+renesas@ideasonboard.com> <38adea84b864609515b2db580a76954b1a114e3f.1495035409.git-series.kieran.bingham+renesas@ideasonboard.com> <20170517192057.GT3227@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170427224203.14611-17-niklas.soderlund+renesas@ragnatech.se>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hi Sakari,
 
-On Fri, Apr 28, 2017 at 12:41:52AM +0200, Niklas Söderlund wrote:
-> On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. One
-> feature of this register is that it's only present in the VIN0 and VIN4
-> instances. The register in VIN0 controls the routing for VIN0-3 and the
-> register in VIN4 controls routing for VIN4-7.
+On Wednesday 17 May 2017 22:20:57 Sakari Ailus wrote:
+> On Wed, May 17, 2017 at 04:38:14PM +0100, Kieran Bingham wrote:
+> > From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> > 
+> > Return NULL, if a null entity is parsed for it's v4l2_subdev
+> > 
+> > Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> > ---
+> > 
+> >  include/media/v4l2-subdev.h | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> > index 5f1669c45642..72d7f28f38dc 100644
+> > --- a/include/media/v4l2-subdev.h
+> > +++ b/include/media/v4l2-subdev.h
+> > @@ -829,7 +829,7 @@ struct v4l2_subdev {
+> > 
+> >  };
+> >  
+> >  #define media_entity_to_v4l2_subdev(ent) \
+> > -	container_of(ent, struct v4l2_subdev, entity)
+> > +	(ent ? container_of(ent, struct v4l2_subdev, entity) : NULL)
+> > 
+> >  #define vdev_to_v4l2_subdev(vdev) \
+> >  	((struct v4l2_subdev *)video_get_drvdata(vdev))
 > 
-> To be able to control routing from a media device these functions need
-> to control runtime PM for the subgroup master (VIN0 and VIN4). The
-> subgroup master must be switched on before the register is manipulated,
-> once the operation is complete it's safe to switch the master off and
-> the new routing will still be in effect.
+> The problem with this is that ent is now referenced twice. If the ent macro
+> argument has side effect, this would introduce bugs. It's unlikely, but
+> worth avoiding. Either use a macro or a function.
 > 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-dma.c | 43 ++++++++++++++++++++++++++++++
->  drivers/media/platform/rcar-vin/rcar-vin.h |  3 +++
->  2 files changed, 46 insertions(+)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> index 7fecb616b6c45a32..fef31aac0ed40979 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -16,6 +16,7 @@
->  
->  #include <linux/delay.h>
->  #include <linux/interrupt.h>
-> +#include <linux/pm_runtime.h>
->  
->  #include <media/videobuf2-dma-contig.h>
->  
-> @@ -1240,3 +1241,45 @@ int rvin_dma_probe(struct rvin_dev *vin, int irq)
->  
->  	return ret;
->  }
-> +
-> +/* -----------------------------------------------------------------------------
-> + * Gen3 CHSEL manipulation
-> + */
-> +
-> +int rvin_set_chsel(struct rvin_dev *vin, u8 chsel)
-> +{
-> +	u32 ifmd;
-> +
-> +	pm_runtime_get_sync(vin->dev);
+> I think I'd use function for there's little use for supporting for const and
+> non-const arguments presumably. A simple static inline function should do.
 
-Can this fail? Just wondering.
+Note that, if we want to keep using a macro, this could be written as
 
-> +
-> +	/*
-> +	 * Undocumented feature: Writing to VNCSI_IFMD_REG will go
-> +	 * through and on read back look correct but won't have
-> +	 * any effect if VNMC_REG is not first set to 0.
-> +	 */
-> +	rvin_write(vin, 0, VNMC_REG);
-> +
-> +	ifmd = VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
-> +		VNCSI_IFMD_CSI_CHSEL(chsel);
-> +
-> +	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
-> +
-> +	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
-> +
-> +	pm_runtime_put(vin->dev);
-> +
-> +	return 0;
+#define media_entity_to_v4l2_subdev(ent) ({ \
+	typeof(ent) __ent = ent; \
+	__ent ? container_of(__ent, struct v4l2_subdev, entity) : NULL; \
+})
 
-If you always return zero, how about void instead?
-
-> +}
-> +
-> +int rvin_get_chsel(struct rvin_dev *vin)
-> +{
-> +	int chsel;
-> +
-> +	pm_runtime_get_sync(vin->dev);
-
-Same here.
-
-> +
-> +	chsel = rvin_read(vin, VNCSI_IFMD_REG) & VNCSI_IFMD_CSI_CHSEL_MASK;
-> +
-> +	pm_runtime_put(vin->dev);
-> +
-> +	return chsel;
-> +}
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-> index 09fc70e192699f35..b1cd0abba9ca9c94 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -163,4 +163,7 @@ void rvin_v4l2_remove(struct rvin_dev *vin);
->  
->  const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
->  
-> +int rvin_set_chsel(struct rvin_dev *vin, u8 chsel);
-> +int rvin_get_chsel(struct rvin_dev *vin);
-> +
->  #endif
+Bonus point if you can come up with a way to return a const struct v4l2_subdev 
+pointer when then ent argument is const.
 
 -- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
