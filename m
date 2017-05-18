@@ -1,61 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:60467 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750917AbdEUI5O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 May 2017 04:57:14 -0400
-Date: Sun, 21 May 2017 09:57:13 +0100
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH 03/16] lirc_dev: correct error handling
-Message-ID: <20170521085712.GA29355@gofer.mess.org>
-References: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
- <149365463117.12922.15518669536847504845.stgit@zeus.hardeman.nu>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48198 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932157AbdERUsx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 May 2017 16:48:53 -0400
+Date: Thu, 18 May 2017 22:48:43 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Alan Cox <alan@linux.intel.com>
+Cc: Manny Vindiola <mannyv@gmail.com>, mchehab@kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] Staging: media: fix missing blank line coding style
+ issue in atomisp_tpg.c
+Message-ID: <20170518204843.GA16508@kroah.com>
+References: <1495072118-912-1-git-send-email-mannyv@gmail.com>
+ <1495125080.7848.63.camel@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <149365463117.12922.15518669536847504845.stgit@zeus.hardeman.nu>
+In-Reply-To: <1495125080.7848.63.camel@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 01, 2017 at 06:03:51PM +0200, David Härdeman wrote:
-> If an error is generated, nonseekable_open() shouldn't be called.
-
-There is no harm in calling nonseekable_open(), so this commit is
-misleading.
-
-Sean
-
+On Thu, May 18, 2017 at 05:31:20PM +0100, Alan Cox wrote:
+> On Wed, 2017-05-17 at 21:48 -0400, Manny Vindiola wrote:
+> > This is a patch to the atomisp_tpg.c file that fixes up a missing
+> > blank line warning found by the checkpatch.pl tool
+> > 
+> > Signed-off-by: Manny Vindiola <mannyv@gmail.com>
+> > ---
+> >  drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c | 1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c
+> > b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c
+> > index 996d1bd..48b9604 100644
+> > --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c
+> > +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c
+> > @@ -56,6 +56,7 @@ static int tpg_set_fmt(struct v4l2_subdev *sd,
+> >  		       struct v4l2_subdev_format *format)
+> >  {
+> >  	struct v4l2_mbus_framefmt *fmt = &format->format;
+> > +
+> >  	if (format->pad)
+> >  		return -EINVAL;
+> >  	/* only raw8 grbg is supported by TPG */
 > 
-> Signed-off-by: David Härdeman <david@hardeman.nu>
-> ---
->  drivers/media/rc/lirc_dev.c |    6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
+> The TODO fille for this driver specifically says not to send formatting
+> patches at this point.
 > 
-> diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-> index 05f600bd6c67..7f13ed479e1c 100644
-> --- a/drivers/media/rc/lirc_dev.c
-> +++ b/drivers/media/rc/lirc_dev.c
-> @@ -431,7 +431,7 @@ EXPORT_SYMBOL(lirc_unregister_driver);
->  int lirc_dev_fop_open(struct inode *inode, struct file *file)
->  {
->  	struct irctl *ir;
-> -	int retval = 0;
-> +	int retval;
->  
->  	if (iminor(inode) >= MAX_IRCTL_DEVICES) {
->  		pr_err("open result for %d is -ENODEV\n", iminor(inode));
-> @@ -475,9 +475,11 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
->  
->  	ir->open++;
->  
-> -error:
->  	nonseekable_open(inode, file);
->  
-> +	return 0;
-> +
-> +error:
->  	return retval;
->  }
->  EXPORT_SYMBOL(lirc_dev_fop_open);
+> There is no point making trivial spacing changes in code that needs
+> lots of real work. It's like polishing your car when the doors have
+> fallen off.
+
+Unfortunatly, given that the code is in staging, that's not going to
+happen, people are going to send cleanup patches, and that's ok.  They
+should be easy to merge around, it's the price for being in the tree.
+
+thanks,
+
+greg k-h
