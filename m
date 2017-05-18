@@ -1,201 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54116 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55279 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750934AbdEDMmx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 08:42:53 -0400
+        with ESMTP id S1753786AbdEROBj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 May 2017 10:01:39 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: agheorghe <Alexandru_Gheorghe@mentor.com>
-Cc: linux-renesas-soc@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] drm: rcar-du: Add support for colorkey alpha blending
-Date: Thu, 04 May 2017 15:44:10 +0300
-Message-ID: <6918649.iXqMEK0pQv@avalon>
-In-Reply-To: <1493895213-12573-3-git-send-email-Alexandru_Gheorghe@mentor.com>
-References: <1493895213-12573-1-git-send-email-Alexandru_Gheorghe@mentor.com> <1493895213-12573-3-git-send-email-Alexandru_Gheorghe@mentor.com>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@iki.fi, niklas.soderlund@ragnatech.se,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Tuukka Toivonen <tuukka.toivonen@intel.com>,
+        Javi Merino <javi.merino@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v1 3/3] v4l: async: Match parent devices
+Date: Thu, 18 May 2017 17:01:48 +0300
+Message-ID: <1611647.ovgU3nOQAy@avalon>
+In-Reply-To: <4db2a777a71b51a864caae16385b60b4b7e9f992.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.6800d0e1b9b578b82f68dec1b99b3a601d6e54ca.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com> <4db2a777a71b51a864caae16385b60b4b7e9f992.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alexandru,
+Hi Kieran,
 
-On Thursday 04 May 2017 13:53:33 agheorghe wrote:
-> Add two new plane properties colorkey and colorkey_alpha for rcar gen3.
-> * colorkey:
-> 	- used for specifying the color on which the filtering is done.
-> 	- bits 0 to 23 are interpreted as RGB888 format, in case we are
-> 	  dealing with an YCbCr format, only the Y componenet is
-> 	  compared and it is represented by the G bits from RGB888
-> 	  format.
-> 	- bit 24 tells if it is enabled or not.
-> * colorkey_alpha:
-> 	- the alpha to be set for matching pixels, in case it is
-> 	  missing the pixels will be made transparent
+Thank you for the patch.
 
-Colour keying is a feature found in most display engines, and would thus 
-benefit from standardizing the properties. Instead of adding another colorkey 
-property specific to rcar-du, could you make a proposal to standardize it ?
-
-> Signed-off-by: agheorghe <Alexandru_Gheorghe@mentor.com>
+On Wednesday 17 May 2017 16:03:39 Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> Devices supporting multiple endpoints on a single device node must set
+> their subdevice fwnode to the endpoint to allow distinct comparisons.
+> 
+> Adapt the match_fwnode call to compare against the provided fwnodes
+> first, but also to search for a comparison against the parent fwnode.
+> 
+> This allows notifiers to pass the endpoint for comparison and still
+> support existing subdevices which store their default parent device
+> node.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > ---
->  drivers/gpu/drm/rcar-du/rcar_du_drv.h   |  1 +
->  drivers/gpu/drm/rcar-du/rcar_du_kms.c   |  8 ++++++++
->  drivers/gpu/drm/rcar-du/rcar_du_plane.c |  3 ---
->  drivers/gpu/drm/rcar-du/rcar_du_plane.h |  6 ++++++
->  drivers/gpu/drm/rcar-du/rcar_du_vsp.c   | 22 ++++++++++++++++++++++
->  drivers/gpu/drm/rcar-du/rcar_du_vsp.h   |  5 +++++
->  6 files changed, 42 insertions(+), 3 deletions(-)
+>  drivers/media/v4l2-core/v4l2-async.c | 20 ++++++++++++++++----
+>  1 file changed, 16 insertions(+), 4 deletions(-)
 > 
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.h
-> b/drivers/gpu/drm/rcar-du/rcar_du_drv.h index 91e8fc5..1cb92e3 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_drv.h
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.h
-> @@ -98,6 +98,7 @@ struct rcar_du_device {
->  	struct {
->  		struct drm_property *alpha;
->  		struct drm_property *colorkey;
-> +		struct drm_property *colorkey_alpha;
->  	} props;
-> 
->  	unsigned int dpad0_source;
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_kms.c
-> b/drivers/gpu/drm/rcar-du/rcar_du_kms.c index 1cc88ed..a733fa2 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_kms.c
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_kms.c
-> @@ -630,6 +630,14 @@ static int rcar_du_properties_init(struct
-> rcar_du_device *rcdu) if (rcdu->props.colorkey == NULL)
->  		return -ENOMEM;
-> 
-> +	if (rcdu->info->gen == 3) {
-> +		rcdu->props.colorkey_alpha =
-> +			drm_property_create_range(rcdu->ddev, 0,
-> +						  "colorkey_alpha", 0, 255);
-> +		if (!rcdu->props.colorkey_alpha)
-> +			return -ENOMEM;
-> +	}
-> +
->  	return 0;
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c
+> b/drivers/media/v4l2-core/v4l2-async.c index e1e181db90f7..65735a5c4350
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -41,14 +41,26 @@ static bool match_devname(struct v4l2_subdev *sd,
+>  	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
 >  }
 > 
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.c
-> b/drivers/gpu/drm/rcar-du/rcar_du_plane.c index e408aa3..df689c4 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_plane.c
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
-> @@ -307,9 +307,6 @@ int rcar_du_atomic_check_planes(struct drm_device *dev,
->   * Plane Setup
->   */
+/*
+ * Check whether the two device_node pointers refer to the same OF node. We
+ * can't compare pointers directly as they can differ if overlays have been
+ * applied.
+ */
+
+> +static bool match_of(struct device_node *a, struct device_node *b)
+> +{
+> +	return !of_node_cmp(of_node_full_name(a), of_node_full_name(b));
+> +}
+> +
+>  static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev
+> *asd)
+> {
+> +	struct device_node *sdnode;
+> +	struct fwnode_handle *async_device;
+
+I would name this asd_fwnode, and to be consistent rename sdnode to sd_ofnode.
+
+> +
+> +	async_device = fwnode_graph_get_port_parent(asd->match.fwnode.fwnode);
+> +
+>  	if (!is_of_node(sd->fwnode) || !is_of_node(asd->match.fwnode.fwnode))
+> -		return sd->fwnode == asd->match.fwnode.fwnode;
+> +		return sd->fwnode == asd->match.fwnode.fwnode ||
+> +		       sd->fwnode == async_device;
+
+I wonder whether we could simplify this by changing the 
+fwnode_graph_get_port_parent() API. At the moment the function walks two or 
+three levels up depending on whether there's a ports name or not. If we turned 
+in into a function that accepts an endpoint, port or device node, and returns 
+the device node unconditionally (basically, returning the argument if its name 
+is not "port(@[0-9]+)?" or "endpoint(@[0-9]+)?", and walking up until it 
+reaches the device node otherwise), you could write the above
+
+	asd_fwnode = fwnode_graph_get_port_parent(asd->match.fwnode.fwnode);
+
+  	if (!is_of_node(sd->fwnode) || !is_of_node(asd_fwnode))
+		       sd->fwnode == asd_fwnode;
+
+	sdnode = to_of_node(sd->fwnode);
+ 
+	return match_of(sdnode, to_of_node(asd_node));
+
+> +
+> +	sdnode = to_of_node(sd->fwnode);
 > 
-> -#define RCAR_DU_COLORKEY_NONE		(0 << 24)
-> -#define RCAR_DU_COLORKEY_SOURCE		(1 << 24)
-> -#define RCAR_DU_COLORKEY_MASK		(1 << 24)
-> 
->  static void rcar_du_plane_write(struct rcar_du_group *rgrp,
->  				unsigned int index, u32 reg, u32 data)
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.h
-> b/drivers/gpu/drm/rcar-du/rcar_du_plane.h index c1de338..9e7c3b6 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_plane.h
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.h
-> @@ -49,6 +49,12 @@ static inline struct rcar_du_plane *to_rcar_plane(struct
-> drm_plane *plane) return container_of(plane, struct rcar_du_plane, plane);
+> -	return !of_node_cmp(of_node_full_name(to_of_node(sd->fwnode)),
+> -			    of_node_full_name(
+> -				    to_of_node(asd->match.fwnode.fwnode)));
+> +	return match_of(sdnode, to_of_node(asd->match.fwnode.fwnode)) ||
+> +	       match_of(sdnode, to_of_node(async_device));
+
+This is getting a bit complex, could you document the function ?
+
 >  }
 > 
-> +#define RCAR_DU_COLORKEY_NONE		(0 << 24)
-> +#define RCAR_DU_COLORKEY_MASK		BIT(24)
-> +#define RCAR_DU_COLORKEY_EN_MASK	RCAR_DU_COLORKEY_MASK
-> +#define RCAR_DU_COLORKEY_COLOR_MASK	0xFFFFFF
-> +#define RCAR_DU_COLORKEY_ALPHA_MASK	0xFF
-> +
->  /**
->   * struct rcar_du_plane_state - Driver-specific plane state
->   * @state: base DRM plane state
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-> b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c index 4b460d4..b223be1 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-> @@ -180,6 +180,11 @@ static void rcar_du_vsp_plane_setup(struct
-> rcar_du_vsp_plane *plane) .pitch = fb->pitches[0],
->  		.alpha = state->alpha,
->  		.zpos = state->state.zpos,
-> +		.colorkey = state->colorkey & RCAR_DU_COLORKEY_COLOR_MASK,
-> +		.colorkey_en =
-> +			((state->colorkey & RCAR_DU_COLORKEY_EN_MASK) != 0),
-> +		.colorkey_alpha =
-> +			(state->colorkey_alpha & RCAR_DU_COLORKEY_ALPHA_MASK),
->  	};
->  	unsigned int i;
-> 
-> @@ -379,6 +384,8 @@ static void rcar_du_vsp_plane_reset(struct drm_plane
-> *plane) return;
-> 
->  	state->alpha = 255;
-> +	state->colorkey = RCAR_DU_COLORKEY_NONE;
-> +	state->colorkey_alpha = 0;
->  	state->state.zpos = plane->type == DRM_PLANE_TYPE_PRIMARY ? 0 : 1;
-> 
->  	plane->state = &state->state;
-> @@ -394,6 +401,10 @@ static int rcar_du_vsp_plane_atomic_set_property(struct
-> drm_plane *plane,
-> 
->  	if (property == rcdu->props.alpha)
->  		rstate->alpha = val;
-> +	else if (property == rcdu->props.colorkey)
-> +		rstate->colorkey = val;
-> +	else if (property == rcdu->props.colorkey_alpha)
-> +		rstate->colorkey_alpha = val;
->  	else
->  		return -EINVAL;
-> 
-> @@ -410,6 +421,10 @@ static int rcar_du_vsp_plane_atomic_get_property(struct
-> drm_plane *plane,
-> 
->  	if (property == rcdu->props.alpha)
->  		*val = rstate->alpha;
-> +	else if (property == rcdu->props.colorkey)
-> +		*val = rstate->colorkey;
-> +	else if (property == rcdu->props.colorkey_alpha)
-> +		*val = rstate->colorkey_alpha;
->  	else
->  		return -EINVAL;
-> 
-> @@ -633,6 +648,13 @@ int rcar_du_vsp_init(struct rcar_du_vsp *vsp)
-> 
->  		drm_object_attach_property(&plane->plane.base,
->  					   rcdu->props.alpha, 255);
-> +		drm_object_attach_property(&plane->plane.base,
-> +					   rcdu->props.colorkey,
-> +					   RCAR_DU_COLORKEY_NONE);
-> +		if (rcdu->props.colorkey_alpha)
-> +			drm_object_attach_property(&plane->plane.base,
-> +						   rcdu->props.colorkey_alpha,
-> +						   0);
->  		drm_plane_create_zpos_property(&plane->plane, 1, 1,
->  					       vsp->num_planes - 1);
->  	}
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
-> b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h index 3fd9cef..1543503 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
-> @@ -47,6 +47,9 @@ static inline struct rcar_du_vsp_plane
-> *to_rcar_vsp_plane(struct drm_plane *p) * @sg_tables: scatter-gather tables
-> for the frame buffer memory
->   * @alpha: value of the plane alpha property
->   * @zpos: value of the plane zpos property
-> + * @colorkey: value of the color for which to apply colorkey_alpha, bit 24
-> + * tells if it is enabled or not
-> + * @colorkey_alpha: alpha to be used for pixels with color equal to
-> colorkey */
->  struct rcar_du_vsp_plane_state {
->  	struct drm_plane_state state;
-> @@ -56,6 +59,8 @@ struct rcar_du_vsp_plane_state {
-> 
->  	unsigned int alpha;
->  	unsigned int zpos;
-> +	u32 colorkey;
-> +	u32 colorkey_alpha;
->  };
-> 
->  static inline struct rcar_du_vsp_plane_state *
+>  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev
+> *asd)
 
 -- 
 Regards,
