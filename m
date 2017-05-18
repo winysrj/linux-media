@@ -1,233 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor4.renesas.com ([210.160.252.174]:13310 "EHLO
-        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752623AbdEINue (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60841 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750838AbdERE1H (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 May 2017 09:50:34 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v5 5/7] doc_rst: media: New SDR formats PC16, PC18 & PC20
-Date: Tue,  9 May 2017 14:37:36 +0100
-Message-Id: <20170509133738.16414-6-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <20170509133738.16414-1-ramesh.shanmugasundaram@bp.renesas.com>
-References: <20170509133738.16414-1-ramesh.shanmugasundaram@bp.renesas.com>
+        Thu, 18 May 2017 00:27:07 -0400
+Message-ID: <35ea35ac00082cd092cffc310601ed93@smtp-cloud2.xs4all.net>
+Date: Thu, 18 May 2017 06:27:04 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds documentation for the three new SDR formats
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-V4L2_SDR_FMT_PCU16BE
-V4L2_SDR_FMT_PCU18BE
-V4L2_SDR_FMT_PCU20BE
+Results of the daily build of media_tree:
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
----
- .../media/uapi/v4l/pixfmt-sdr-pcu16be.rst          | 55 ++++++++++++++++++++++
- .../media/uapi/v4l/pixfmt-sdr-pcu18be.rst          | 55 ++++++++++++++++++++++
- .../media/uapi/v4l/pixfmt-sdr-pcu20be.rst          | 54 +++++++++++++++++++++
- Documentation/media/uapi/v4l/sdr-formats.rst       |  3 ++
- 4 files changed, 167 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
+date:			Thu May 18 05:00:23 CEST 2017
+media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
+media_build git hash:	ab988a3d089232ce9e1aec2f259e947c06983dbc
+v4l-utils git hash:	d16a17abd1d8d7885ca2f44fb295035278baa89c
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
-new file mode 100644
-index 000000000000..2de1b1a0f517
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
-@@ -0,0 +1,55 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2-SDR-FMT-PCU16BE:
-+
-+******************************
-+V4L2_SDR_FMT_PCU16BE ('PC16')
-+******************************
-+
-+Planar complex unsigned 16-bit big endian IQ sample
-+
-+Description
-+===========
-+
-+This format contains a sequence of complex number samples. Each complex
-+number consist of two parts called In-phase and Quadrature (IQ). Both I
-+and Q are represented as a 16 bit unsigned big endian number stored in
-+32 bit space. The remaining unused bits within the 32 bit space will be
-+padded with 0. I value starts first and Q value starts at an offset
-+equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
-+the 16 bits, bit 15:2 (14 bit) is data and bit 1:0 (2 bit) can be any
-+value.
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+.. flat-table::
-+    :header-rows:  1
-+    :stub-columns: 0
-+
-+    * -  Offset:
-+      -  Byte B0
-+      -  Byte B1
-+      -  Byte B2
-+      -  Byte B3
-+    * -  start + 0:
-+      -  I'\ :sub:`0[13:6]`
-+      -  I'\ :sub:`0[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-+    * -  start + 4:
-+      -  I'\ :sub:`1[13:6]`
-+      -  I'\ :sub:`1[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-+    * -  ...
-+    * - start + offset:
-+      -  Q'\ :sub:`0[13:6]`
-+      -  Q'\ :sub:`0[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-+    * - start + offset + 4:
-+      -  Q'\ :sub:`1[13:6]`
-+      -  Q'\ :sub:`1[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
-new file mode 100644
-index 000000000000..da8b26bf6b95
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
-@@ -0,0 +1,55 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2-SDR-FMT-PCU18BE:
-+
-+******************************
-+V4L2_SDR_FMT_PCU18BE ('PC18')
-+******************************
-+
-+Planar complex unsigned 18-bit big endian IQ sample
-+
-+Description
-+===========
-+
-+This format contains a sequence of complex number samples. Each complex
-+number consist of two parts called In-phase and Quadrature (IQ). Both I
-+and Q are represented as a 18 bit unsigned big endian number stored in
-+32 bit space. The remaining unused bits within the 32 bit space will be
-+padded with 0. I value starts first and Q value starts at an offset
-+equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
-+the 18 bits, bit 17:2 (16 bit) is data and bit 1:0 (2 bit) can be any
-+value.
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+.. flat-table::
-+    :header-rows:  1
-+    :stub-columns: 0
-+
-+    * -  Offset:
-+      -  Byte B0
-+      -  Byte B1
-+      -  Byte B2
-+      -  Byte B3
-+    * -  start + 0:
-+      -  I'\ :sub:`0[17:10]`
-+      -  I'\ :sub:`0[9:2]`
-+      -  I'\ :sub:`0[1:0]; B2[5:0]=pad`
-+      -  pad
-+    * -  start + 4:
-+      -  I'\ :sub:`1[17:10]`
-+      -  I'\ :sub:`1[9:2]`
-+      -  I'\ :sub:`1[1:0]; B2[5:0]=pad`
-+      -  pad
-+    * -  ...
-+    * - start + offset:
-+      -  Q'\ :sub:`0[17:10]`
-+      -  Q'\ :sub:`0[9:2]`
-+      -  Q'\ :sub:`0[1:0]; B2[5:0]=pad`
-+      -  pad
-+    * - start + offset + 4:
-+      -  Q'\ :sub:`1[17:10]`
-+      -  Q'\ :sub:`1[9:2]`
-+      -  Q'\ :sub:`1[1:0]; B2[5:0]=pad`
-+      -  pad
-diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
-new file mode 100644
-index 000000000000..5499eed39477
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
-@@ -0,0 +1,54 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+.. _V4L2-SDR-FMT-PCU20BE:
-+
-+******************************
-+V4L2_SDR_FMT_PCU20BE ('PC20')
-+******************************
-+
-+Planar complex unsigned 20-bit big endian IQ sample
-+
-+Description
-+===========
-+
-+This format contains a sequence of complex number samples. Each complex
-+number consist of two parts called In-phase and Quadrature (IQ). Both I
-+and Q are represented as a 20 bit unsigned big endian number stored in
-+32 bit space. The remaining unused bits within the 32 bit space will be
-+padded with 0. I value starts first and Q value starts at an offset
-+equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
-+the 20 bits, bit 19:2 (18 bit) is data and bit 1:0 (2 bit) can be any
-+value.
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+.. flat-table::
-+    :header-rows:  1
-+    :stub-columns: 0
-+
-+    * -  Offset:
-+      -  Byte B0
-+      -  Byte B1
-+      -  Byte B2
-+      -  Byte B3
-+    * -  start + 0:
-+      -  I'\ :sub:`0[19:12]`
-+      -  I'\ :sub:`0[11:4]`
-+      -  I'\ :sub:`0[3:0]; B2[3:0]=pad`
-+      -  pad
-+    * -  start + 4:
-+      -  I'\ :sub:`1[19:12]`
-+      -  I'\ :sub:`1[11:4]`
-+      -  I'\ :sub:`1[3:0]; B2[3:0]=pad`
-+      -  pad
-+    * -  ...
-+    * - start + offset:
-+      -  Q'\ :sub:`0[19:12]`
-+      -  Q'\ :sub:`0[11:4]`
-+      -  Q'\ :sub:`0[3:0]; B2[3:0]=pad`
-+      -  pad
-+    * - start + offset + 4:
-+      -  Q'\ :sub:`1[19:12]`
-+      -  Q'\ :sub:`1[11:4]`
-+      -  Q'\ :sub:`1[3:0]; B2[3:0]=pad`
-+      -  pad
-diff --git a/Documentation/media/uapi/v4l/sdr-formats.rst b/Documentation/media/uapi/v4l/sdr-formats.rst
-index f863c08f1add..2037f5bad727 100644
---- a/Documentation/media/uapi/v4l/sdr-formats.rst
-+++ b/Documentation/media/uapi/v4l/sdr-formats.rst
-@@ -17,3 +17,6 @@ These formats are used for :ref:`SDR <sdr>` interface only.
-     pixfmt-sdr-cs08
-     pixfmt-sdr-cs14le
-     pixfmt-sdr-ru12le
-+    pixfmt-sdr-pcu16be
-+    pixfmt-sdr-pcu18be
-+    pixfmt-sdr-pcu20be
--- 
-2.12.2
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: WARNINGS
+linux-4.9.26-i686: WARNINGS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-4.12-rc1-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
