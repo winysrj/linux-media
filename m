@@ -1,129 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:55525 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750837AbdE2Dhk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 May 2017 23:37:40 -0400
-Message-ID: <2c32b62ae7d2aca1c5c941da3a684ced@smtp-cloud2.xs4all.net>
-Date: Mon, 29 May 2017 05:37:37 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mga06.intel.com ([134.134.136.31]:60001 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755374AbdERQbd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 May 2017 12:31:33 -0400
+Message-ID: <1495125080.7848.63.camel@linux.intel.com>
+Subject: Re: [PATCH] Staging: media: fix missing blank line coding style
+ issue in atomisp_tpg.c
+From: Alan Cox <alan@linux.intel.com>
+To: Manny Vindiola <mannyv@gmail.com>, mchehab@kernel.org,
+        gregkh@linuxfoundation.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Date: Thu, 18 May 2017 17:31:20 +0100
+In-Reply-To: <1495072118-912-1-git-send-email-mannyv@gmail.com>
+References: <1495072118-912-1-git-send-email-mannyv@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Wed, 2017-05-17 at 21:48 -0400, Manny Vindiola wrote:
+> This is a patch to the atomisp_tpg.c file that fixes up a missing
+> blank line warning found by the checkpatch.pl tool
+> 
+> Signed-off-by: Manny Vindiola <mannyv@gmail.com>
+> ---
+>  drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c
+> b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c
+> index 996d1bd..48b9604 100644
+> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c
+> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c
+> @@ -56,6 +56,7 @@ static int tpg_set_fmt(struct v4l2_subdev *sd,
+>  		       struct v4l2_subdev_format *format)
+>  {
+>  	struct v4l2_mbus_framefmt *fmt = &format->format;
+> +
+>  	if (format->pad)
+>  		return -EINVAL;
+>  	/* only raw8 grbg is supported by TPG */
 
-Results of the daily build of media_tree:
+The TODO fille for this driver specifically says not to send formatting
+patches at this point.
 
-date:			Mon May 29 05:00:31 CEST 2017
-media-tree git hash:	36bcba973ad478042d1ffc6e89afd92e8bd17030
-media_build git hash:	c8dfc17d6d049d79497c78737625f6ea3b08c456
-v4l-utils git hash:	d16a17abd1d8d7885ca2f44fb295035278baa89c
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+There is no point making trivial spacing changes in code that needs
+lots of real work. It's like polishing your car when the doors have
+fallen off.
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Alan
