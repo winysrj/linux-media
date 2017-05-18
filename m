@@ -1,151 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:38227 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1756942AbdEUUKC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 May 2017 16:10:02 -0400
-From: Takashi Iwai <tiwai@suse.de>
-To: alsa-devel@alsa-project.org
-Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-        Mark Brown <broonie@kernel.org>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 16/16] ALSA: pcm: Drop the old copy and silence ops
-Date: Sun, 21 May 2017 22:09:50 +0200
-Message-Id: <20170521200950.4592-17-tiwai@suse.de>
-In-Reply-To: <20170521200950.4592-1-tiwai@suse.de>
-References: <20170521200950.4592-1-tiwai@suse.de>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54160 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933989AbdERNSg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 May 2017 09:18:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: kieran.bingham@ideasonboard.com
+Cc: Rob Herring <robh+dt@kernel.org>,
+        Kieran Bingham <kbingham@kernel.org>,
+        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
+        <linux-renesas-soc@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Frank Rowand <frowand.list@gmail.com>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE"
+        <devicetree@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v1 1/3] of: base: Provide of_graph_get_port_parent()
+Date: Thu, 18 May 2017 16:18:39 +0300
+Message-ID: <2172554.nJqIiczhoI@avalon>
+In-Reply-To: <61138419-5781-bbec-7ac5-44524ad501ce@ideasonboard.com>
+References: <cover.6800d0e1b9b578b82f68dec1b99b3a601d6e54ca.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com> <CAL_JsqLvXH3kKV-DxWuNrAYGh8=L8Mdg5zcm2RsHZTpmi_8g-g@mail.gmail.com> <61138419-5781-bbec-7ac5-44524ad501ce@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that all users of old copy and silence ops have been converted to
-the new copy_silence ops, the old stuff can be retired and go away.
+Hi Kieran,
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
----
- include/sound/pcm.h  |  5 -----
- sound/core/pcm_lib.c | 38 +-------------------------------------
- sound/soc/soc-pcm.c  |  2 --
- 3 files changed, 1 insertion(+), 44 deletions(-)
+On Wednesday 17 May 2017 21:02:42 Kieran Bingham wrote:
+> On 17/05/17 17:36, Rob Herring wrote:
+> > On Wed, May 17, 2017 at 10:03 AM, Kieran Bingham wrote:
+> >> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >> 
+> >> When handling endpoints, the v4l2 async framework needs to identify the
+> >> parent device of a port endpoint.
+> >> 
+> >> Adapt the existing of_graph_get_remote_port_parent() such that a caller
+> >> can obtain the parent of a port without parsing the remote-endpoint
+> >> first.
+> > 
+> > A similar patch is already applied as part of the ASoC graph card support.
+> > 
+> > Rob
+> 
+> Ah yes, a quick google finds it...
+> 
+> :  https://patchwork.kernel.org/patch/9658907/
+> 
+> Surprisingly similar patch ... and a familiar name.
 
-diff --git a/include/sound/pcm.h b/include/sound/pcm.h
-index b9dd813dd885..4243c02c3f11 100644
---- a/include/sound/pcm.h
-+++ b/include/sound/pcm.h
-@@ -78,11 +78,6 @@ struct snd_pcm_ops {
- 			struct timespec *system_ts, struct timespec *audio_ts,
- 			struct snd_pcm_audio_tstamp_config *audio_tstamp_config,
- 			struct snd_pcm_audio_tstamp_report *audio_tstamp_report);
--	int (*copy)(struct snd_pcm_substream *substream, int channel,
--		    snd_pcm_uframes_t pos,
--		    void __user *buf, snd_pcm_uframes_t count);
--	int (*silence)(struct snd_pcm_substream *substream, int channel, 
--		       snd_pcm_uframes_t pos, snd_pcm_uframes_t count);
- 	int (*copy_silence)(struct snd_pcm_substream *substream, int channel,
- 			    snd_pcm_uframes_t pos, void __user *buf,
- 			    snd_pcm_uframes_t count, bool in_kernel);
-diff --git a/sound/core/pcm_lib.c b/sound/core/pcm_lib.c
-index b720cbda017f..1c9d43fefacc 100644
---- a/sound/core/pcm_lib.c
-+++ b/sound/core/pcm_lib.c
-@@ -115,9 +115,6 @@ void snd_pcm_playback_silence(struct snd_pcm_substream *substream, snd_pcm_ufram
- 				err = substream->ops->copy_silence(substream,
- 					-1, ofs, NULL, transfer, false);
- 				snd_BUG_ON(err < 0);
--			} else if (substream->ops->silence) {
--				err = substream->ops->silence(substream, -1, ofs, transfer);
--				snd_BUG_ON(err < 0);
- 			} else {
- 				hwbuf = runtime->dma_area + frames_to_bytes(runtime, ofs);
- 				snd_pcm_format_set_silence(runtime->format, hwbuf, transfer * runtime->channels);
-@@ -131,11 +128,6 @@ void snd_pcm_playback_silence(struct snd_pcm_substream *substream, snd_pcm_ufram
- 						c, ofs, NULL, transfer, false);
- 					snd_BUG_ON(err < 0);
- 				}
--			} else if (substream->ops->silence) {
--				for (c = 0; c < channels; ++c) {
--					err = substream->ops->silence(substream, c, ofs, transfer);
--					snd_BUG_ON(err < 0);
--				}
- 			} else {
- 				size_t dma_csize = runtime->dma_bytes / channels;
- 				for (c = 0; c < channels; ++c) {
-@@ -2010,9 +2002,6 @@ static int snd_pcm_lib_write_transfer(struct snd_pcm_substream *substream,
- 						   frames, false);
- 		if (err < 0)
- 			return err;
--	} else if (substream->ops->copy) {
--		if ((err = substream->ops->copy(substream, -1, hwoff, buf, frames)) < 0)
--			return err;
- 	} else {
- 		char *hwbuf = runtime->dma_area + frames_to_bytes(runtime, hwoff);
- 		if (copy_from_user(hwbuf, buf, frames_to_bytes(runtime, frames)))
-@@ -2134,8 +2123,7 @@ static int pcm_sanity_check(struct snd_pcm_substream *substream)
- 	if (PCM_RUNTIME_CHECK(substream))
- 		return -ENXIO;
- 	runtime = substream->runtime;
--	if (snd_BUG_ON(!substream->ops->copy_silence && !substream->ops->copy
--		       && !runtime->dma_area))
-+	if (snd_BUG_ON(!substream->ops->copy_silence && !runtime->dma_area))
- 		return -EINVAL;
- 	if (runtime->status->state == SNDRV_PCM_STATE_OPEN)
- 		return -EBADFD;
-@@ -2186,19 +2174,6 @@ static int snd_pcm_lib_writev_transfer(struct snd_pcm_substream *substream,
- 			if (err < 0)
- 				return err;
- 		}
--	} else if (substream->ops->copy) {
--		if (snd_BUG_ON(!substream->ops->silence))
--			return -EINVAL;
--		for (c = 0; c < channels; ++c, ++bufs) {
--			if (*bufs == NULL) {
--				if ((err = substream->ops->silence(substream, c, hwoff, frames)) < 0)
--					return err;
--			} else {
--				buf = *bufs + samples_to_bytes(runtime, off);
--				if ((err = substream->ops->copy(substream, c, hwoff, buf, frames)) < 0)
--					return err;
--			}
--		}
- 	} else {
- 		/* default transfer behaviour */
- 		size_t dma_csize = runtime->dma_bytes / channels;
-@@ -2251,9 +2226,6 @@ static int snd_pcm_lib_read_transfer(struct snd_pcm_substream *substream,
- 						   frames, false);
- 		if (err < 0)
- 			return err;
--	} else if (substream->ops->copy) {
--		if ((err = substream->ops->copy(substream, -1, hwoff, buf, frames)) < 0)
--			return err;
- 	} else {
- 		char *hwbuf = runtime->dma_area + frames_to_bytes(runtime, hwoff);
- 		if (copy_to_user(buf, hwbuf, frames_to_bytes(runtime, frames)))
-@@ -2413,14 +2385,6 @@ static int snd_pcm_lib_readv_transfer(struct snd_pcm_substream *substream,
- 			if (err < 0)
- 				return err;
- 		}
--	} else if (substream->ops->copy) {
--		for (c = 0; c < channels; ++c, ++bufs) {
--			if (*bufs == NULL)
--				continue;
--			buf = *bufs + samples_to_bytes(runtime, off);
--			if ((err = substream->ops->copy(substream, c, hwoff, buf, frames)) < 0)
--				return err;
--		}
- 	} else {
- 		snd_pcm_uframes_t dma_csize = runtime->dma_bytes / channels;
- 		for (c = 0; c < channels; ++c, ++bufs) {
-diff --git a/sound/soc/soc-pcm.c b/sound/soc/soc-pcm.c
-index 3cfb9aa1203b..5d58d8434971 100644
---- a/sound/soc/soc-pcm.c
-+++ b/sound/soc/soc-pcm.c
-@@ -2744,8 +2744,6 @@ int soc_new_pcm(struct snd_soc_pcm_runtime *rtd, int num)
- 	if (platform->driver->ops) {
- 		rtd->ops.ack		= platform->driver->ops->ack;
- 		rtd->ops.copy_silence	= platform->driver->ops->copy_silence;
--		rtd->ops.copy		= platform->driver->ops->copy;
--		rtd->ops.silence	= platform->driver->ops->silence;
- 		rtd->ops.page		= platform->driver->ops->page;
- 		rtd->ops.mmap		= platform->driver->ops->mmap;
- 	}
+Very similar indeed, down to identical problems ;-) Quoting your patch,
+
+>  /**
+> + * of_graph_get_port_parent() - get port's parent node
+> + * @node: pointer to a local endpoint device_node
+> + *
+> + * Return: device node associated with endpoint @node.
+> + *	   Use of_node_put() on it when done.
+> + */
+
+The documentation of the return value is a bit confusing to me. I assume that, 
+by device node, you meant the DT node corresponding to the device of the 
+endpoint which is passed as an argument. However, device node cal also refer 
+to struct device_node. Should this be clarified ?
+
+> Morimoto-san - you beat me to it :D !
+> 
+> Thanks Rob, (And Morimoto!)
+
 -- 
-2.13.0
+Regards,
+
+Laurent Pinchart
