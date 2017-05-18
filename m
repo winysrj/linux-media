@@ -1,134 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:36664 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753576AbdEIMhq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 May 2017 08:37:46 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v5 1/2] v4l: vsp1: Move vsp1_video_setup_pipeline()
-Date: Tue,  9 May 2017 13:37:30 +0100
-Message-Id: <3dd182284ad870021e561b00d376e18649f5bbf2.1494328856.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.7da7d07a321ae8bff8445a8dd714d9a61a3ee71b.1494328856.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.7da7d07a321ae8bff8445a8dd714d9a61a3ee71b.1494328856.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.7da7d07a321ae8bff8445a8dd714d9a61a3ee71b.1494328856.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.7da7d07a321ae8bff8445a8dd714d9a61a3ee71b.1494328856.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43924 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754063AbdERNvv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 May 2017 09:51:51 -0400
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: mchehab@s-opensource.com, alan@linux.intel.com
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 13/13] staging: media: atomisp: don't treat warnings as errors
+Date: Thu, 18 May 2017 15:50:22 +0200
+Message-Id: <20170518135022.6069-14-gregkh@linuxfoundation.org>
+In-Reply-To: <20170518135022.6069-1-gregkh@linuxfoundation.org>
+References: <20170518135022.6069-1-gregkh@linuxfoundation.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the static vsp1_video_setup_pipeline() function in preparation for
-the callee updates so that the vsp1_video_pipeline_run() call can
-configure pipelines following suspend resume actions.
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-This commit is just a code move for clarity performing no functional
-change.
+Several atomisp files use:
+	 ccflags-y += -Werror
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+As, on media, our usual procedure is to use W=1, and atomisp
+has *a lot* of warnings with such flag enabled,like:
+
+./drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/system_local.h:62:26: warning: 'DDR_BASE' defined but not used [-Wunused-const-variable=]
+
+At the end, it causes our build to fail, impacting our workflow.
+
+So, remove this crap. If one wants to force -Werror, he
+can still build with it enabled by passing a parameter to
+make.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 83 ++++++++++++-------------
- 1 file changed, 41 insertions(+), 42 deletions(-)
+ drivers/staging/media/atomisp/i2c/Makefile          | 2 --
+ drivers/staging/media/atomisp/i2c/imx/Makefile      | 2 --
+ drivers/staging/media/atomisp/i2c/ov5693/Makefile   | 2 --
+ drivers/staging/media/atomisp/pci/atomisp2/Makefile | 2 +-
+ 4 files changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index eab3c3ea85d7..3e9919c613fe 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -368,6 +368,47 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
- 	pipe->buffers_ready |= 1 << video->pipe_index;
- }
+diff --git a/drivers/staging/media/atomisp/i2c/Makefile b/drivers/staging/media/atomisp/i2c/Makefile
+index 8ea01904c0ea..466517c7c8e6 100644
+--- a/drivers/staging/media/atomisp/i2c/Makefile
++++ b/drivers/staging/media/atomisp/i2c/Makefile
+@@ -19,5 +19,3 @@ obj-$(CONFIG_VIDEO_AP1302)     += ap1302.o
  
-+static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_entity *entity;
-+
-+	/* Determine this pipelines sizes for image partitioning support. */
-+	vsp1_video_pipeline_setup_partitions(pipe);
-+
-+	/* Prepare the display list. */
-+	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-+	if (!pipe->dl)
-+		return -ENOMEM;
-+
-+	if (pipe->uds) {
-+		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
-+
-+		/* If a BRU is present in the pipeline before the UDS, the alpha
-+		 * component doesn't need to be scaled as the BRU output alpha
-+		 * value is fixed to 255. Otherwise we need to scale the alpha
-+		 * component only when available at the input RPF.
-+		 */
-+		if (pipe->uds_input->type == VSP1_ENTITY_BRU) {
-+			uds->scale_alpha = false;
-+		} else {
-+			struct vsp1_rwpf *rpf =
-+				to_rwpf(&pipe->uds_input->subdev);
-+
-+			uds->scale_alpha = rpf->fmtinfo->alpha;
-+		}
-+	}
-+
-+	list_for_each_entry(entity, &pipe->entities, list_pipe) {
-+		vsp1_entity_route_setup(entity, pipe, pipe->dl);
-+
-+		if (entity->ops->configure)
-+			entity->ops->configure(entity, pipe, pipe->dl,
-+					       VSP1_ENTITY_PARAMS_INIT);
-+	}
-+
-+	return 0;
-+}
-+
- static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
- 					      struct vsp1_dl_list *dl)
- {
-@@ -780,48 +821,6 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&pipe->irqlock, flags);
- }
+ obj-$(CONFIG_VIDEO_LM3554) += lm3554.o
  
--static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
--{
--	struct vsp1_entity *entity;
+-ccflags-y += -Werror
 -
--	/* Determine this pipelines sizes for image partitioning support. */
--	vsp1_video_pipeline_setup_partitions(pipe);
+diff --git a/drivers/staging/media/atomisp/i2c/imx/Makefile b/drivers/staging/media/atomisp/i2c/imx/Makefile
+index 1d7f7ab94cac..6b13a3a66e49 100644
+--- a/drivers/staging/media/atomisp/i2c/imx/Makefile
++++ b/drivers/staging/media/atomisp/i2c/imx/Makefile
+@@ -4,5 +4,3 @@ imx1x5-objs := imx.o drv201.o ad5816g.o dw9714.o dw9719.o dw9718.o vcm.o otp.o o
+ 
+ ov8858_driver-objs := ../ov8858.o dw9718.o vcm.o
+ obj-$(CONFIG_VIDEO_OV8858)     += ov8858_driver.o
 -
--	/* Prepare the display list. */
--	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
--	if (!pipe->dl)
--		return -ENOMEM;
+-ccflags-y += -Werror
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/Makefile b/drivers/staging/media/atomisp/i2c/ov5693/Makefile
+index fceb9e9b881b..c9c0e1245858 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/Makefile
++++ b/drivers/staging/media/atomisp/i2c/ov5693/Makefile
+@@ -1,3 +1 @@
+ obj-$(CONFIG_VIDEO_OV5693) += ov5693.o
 -
--	if (pipe->uds) {
--		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
--
--		/*
--		 * If a BRU is present in the pipeline before the UDS, the alpha
--		 * component doesn't need to be scaled as the BRU output alpha
--		 * value is fixed to 255. Otherwise we need to scale the alpha
--		 * component only when available at the input RPF.
--		 */
--		if (pipe->uds_input->type == VSP1_ENTITY_BRU) {
--			uds->scale_alpha = false;
--		} else {
--			struct vsp1_rwpf *rpf =
--				to_rwpf(&pipe->uds_input->subdev);
--
--			uds->scale_alpha = rpf->fmtinfo->alpha;
--		}
--	}
--
--	list_for_each_entry(entity, &pipe->entities, list_pipe) {
--		vsp1_entity_route_setup(entity, pipe, pipe->dl);
--
--		if (entity->ops->configure)
--			entity->ops->configure(entity, pipe, pipe->dl,
--					       VSP1_ENTITY_PARAMS_INIT);
--	}
--
--	return 0;
--}
--
- static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct vsp1_video *video = vb2_get_drv_priv(vq);
+-ccflags-y += -Werror
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/Makefile b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+index 3fa7c1c1479f..f126a89a08e9 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/Makefile
++++ b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+@@ -351,5 +351,5 @@ DEFINES := -DHRT_HW -DHRT_ISP_CSS_CUSTOM_HOST -DHRT_USE_VIR_ADDRS -D__HOST__
+ DEFINES += -DATOMISP_POSTFIX=\"css2400b0_v21\" -DISP2400B0
+ DEFINES += -DSYSTEM_hive_isp_css_2400_system -DISP2400
+ 
+-ccflags-y += $(INCLUDES) $(DEFINES) -fno-common -Werror
++ccflags-y += $(INCLUDES) $(DEFINES) -fno-common
+ 
 -- 
-git-series 0.9.1
+2.13.0
