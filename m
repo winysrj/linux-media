@@ -1,71 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:35366 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1164723AbdEYAaT (ORCPT
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:34597 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754053AbdERBto (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 May 2017 20:30:19 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v7 07/34] ARM: dts: imx6qdl: add capture-subsystem device
-Date: Wed, 24 May 2017 17:29:22 -0700
-Message-Id: <1495672189-29164-8-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+        Wed, 17 May 2017 21:49:44 -0400
+From: Manny Vindiola <mannyv@gmail.com>
+To: mannyv@gmail.com, mchehab@kernel.org, gregkh@linuxfoundation.org,
+        alan@linux.intel.com
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] Staging: media: fix missing blank line coding style issue in atomisp_tpg.c
+Date: Wed, 17 May 2017 21:48:38 -0400
+Message-Id: <1495072118-912-1-git-send-email-mannyv@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/boot/dts/imx6dl.dtsi | 5 +++++
- arch/arm/boot/dts/imx6q.dtsi  | 5 +++++
- 2 files changed, 10 insertions(+)
+This is a patch to the atomisp_tpg.c file that fixes up a missing
+blank line warning found by the checkpatch.pl tool
 
-diff --git a/arch/arm/boot/dts/imx6dl.dtsi b/arch/arm/boot/dts/imx6dl.dtsi
-index 4049af7..8475e6c 100644
---- a/arch/arm/boot/dts/imx6dl.dtsi
-+++ b/arch/arm/boot/dts/imx6dl.dtsi
-@@ -100,6 +100,11 @@
- 		};
- 	};
- 
-+	capture-subsystem {
-+		compatible = "fsl,imx-capture-subsystem";
-+		ports = <&ipu1_csi0>, <&ipu1_csi1>;
-+	};
+Signed-off-by: Manny Vindiola <mannyv@gmail.com>
+---
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c
+index 996d1bd..48b9604 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_tpg.c
+@@ -56,6 +56,7 @@ static int tpg_set_fmt(struct v4l2_subdev *sd,
+ 		       struct v4l2_subdev_format *format)
+ {
+ 	struct v4l2_mbus_framefmt *fmt = &format->format;
 +
- 	display-subsystem {
- 		compatible = "fsl,imx-display-subsystem";
- 		ports = <&ipu1_di0>, <&ipu1_di1>;
-diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
-index 214bbb3..89dab0f 100644
---- a/arch/arm/boot/dts/imx6q.dtsi
-+++ b/arch/arm/boot/dts/imx6q.dtsi
-@@ -206,6 +206,11 @@
- 		};
- 	};
- 
-+	capture-subsystem {
-+		compatible = "fsl,imx-capture-subsystem";
-+		ports = <&ipu1_csi0>, <&ipu1_csi1>, <&ipu2_csi0>, <&ipu2_csi1>;
-+	};
-+
- 	display-subsystem {
- 		compatible = "fsl,imx-display-subsystem";
- 		ports = <&ipu1_di0>, <&ipu1_di1>, <&ipu2_di0>, <&ipu2_di1>;
+ 	if (format->pad)
+ 		return -EINVAL;
+ 	/* only raw8 grbg is supported by TPG */
 -- 
 2.7.4
