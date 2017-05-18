@@ -1,64 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:33007 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756596AbdEGWCG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 7 May 2017 18:02:06 -0400
-From: Guru Das Srinagesh <gurooodas@gmail.com>
-To: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        alan@linux.intel.com
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] staging: media: atomisp: Make undeclared symbols static
-Date: Sun,  7 May 2017 13:58:58 -0700
-Message-Id: <1494190738-395-1-git-send-email-gurooodas@gmail.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40360
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754612AbdERMiu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 May 2017 08:38:50 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
+Subject: [PATCH 4/5] [media] dvb-usb-remote: don't write bogus debug messages
+Date: Thu, 18 May 2017 09:38:38 -0300
+Message-Id: <5c77b18687e5676dd05e5f83f0f54f8260992f1b.1495110899.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1495110899.git.mchehab@s-opensource.com>
+References: <cover.1495110899.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1495110899.git.mchehab@s-opensource.com>
+References: <cover.1495110899.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix sparse warnings: "symbol not declared; should it be static?"
+When a REMOTE_KEY_PRESSED event happens, it does the right
+thing. However, if debug is enabled, it will print a bogus
+message warning that "key repeated".
 
-Signed-off-by: Guru Das Srinagesh <gurooodas@gmail.com>
+Fix it.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/media/usb/dvb-usb/dvb-usb-remote.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
-index 7ce8803..c151c84 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
-@@ -130,9 +130,9 @@ static int atomisp_q_one_metadata_buffer(struct atomisp_sub_device *asd,
- 	return 0;
- }
- 
--int atomisp_q_one_s3a_buffer(struct atomisp_sub_device *asd,
--				enum atomisp_input_stream_id stream_id,
--				enum atomisp_css_pipe_id css_pipe_id)
-+static int atomisp_q_one_s3a_buffer(struct atomisp_sub_device *asd,
-+				    enum atomisp_input_stream_id stream_id,
-+				    enum atomisp_css_pipe_id css_pipe_id)
- {
- 	struct atomisp_s3a_buf *s3a_buf;
- 	struct list_head *s3a_list;
-@@ -172,9 +172,9 @@ int atomisp_q_one_s3a_buffer(struct atomisp_sub_device *asd,
- 	return 0;
- }
- 
--int atomisp_q_one_dis_buffer(struct atomisp_sub_device *asd,
--				enum atomisp_input_stream_id stream_id,
--				enum atomisp_css_pipe_id css_pipe_id)
-+static int atomisp_q_one_dis_buffer(struct atomisp_sub_device *asd,
-+				    enum atomisp_input_stream_id stream_id,
-+				    enum atomisp_css_pipe_id css_pipe_id)
- {
- 	struct atomisp_dis_buf *dis_buf;
- 	unsigned long irqflags;
-@@ -744,7 +744,7 @@ static void atomisp_subdev_init_struct(struct atomisp_sub_device *asd)
- /*
-  * file operation functions
-  */
--unsigned int atomisp_subdev_users(struct atomisp_sub_device *asd)
-+static unsigned int atomisp_subdev_users(struct atomisp_sub_device *asd)
- {
- 	return asd->video_out_preview.users +
- 	       asd->video_out_vf.users +
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb-remote.c b/drivers/media/usb/dvb-usb/dvb-usb-remote.c
+index 059ded59208e..f05f1fc80729 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb-remote.c
++++ b/drivers/media/usb/dvb-usb/dvb-usb-remote.c
+@@ -131,6 +131,11 @@ static void legacy_dvb_usb_read_remote_control(struct work_struct *work)
+ 		case REMOTE_KEY_PRESSED:
+ 			deb_rc("key pressed\n");
+ 			d->last_event = event;
++			input_event(d->input_dev, EV_KEY, event, 1);
++			input_sync(d->input_dev);
++			input_event(d->input_dev, EV_KEY, d->last_event, 0);
++			input_sync(d->input_dev);
++			break;
+ 		case REMOTE_KEY_REPEAT:
+ 			deb_rc("key repeated\n");
+ 			input_event(d->input_dev, EV_KEY, event, 1);
 -- 
-2.7.4
+2.9.3
