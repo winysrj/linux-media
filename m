@@ -1,177 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay2.synopsys.com ([198.182.60.111]:36679 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751035AbdEPSFr (ORCPT
+Received: from gateway21.websitewelcome.com ([192.185.45.147]:44946 "EHLO
+        gateway21.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755215AbdERTJG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 May 2017 14:05:47 -0400
-Subject: Re: [PATCH 3/4] Documentation: dt: Add bindings documentation for
- CSI-2 Host Video Platform
-To: Rob Herring <robh@kernel.org>,
-        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-References: <cover.1488885081.git.roliveir@synopsys.com>
- <95825021f5eae29a118ce0a2570c5c1886023110.1488885081.git.roliveir@synopsys.com>
- <20170315183515.qnai3fwrdqobn6ky@rob-hp-laptop>
-CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <CARLOS.PALMINHA@synopsys.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>, Benoit Parrot <bparrot@ti.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Kamil Debski <k.debski@samsung.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Peter Griffin <peter.griffin@linaro.org>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Simon Horman <simon.horman@netronome.com>,
-        Tiffany Lin <tiffany.lin@mediatek.com>
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Message-ID: <1c4f9aef-5e19-691e-706c-f65deed597e4@synopsys.com>
-Date: Tue, 16 May 2017 19:05:40 +0100
+        Thu, 18 May 2017 15:09:06 -0400
+Received: from cm11.websitewelcome.com (cm11.websitewelcome.com [100.42.49.5])
+        by gateway21.websitewelcome.com (Postfix) with ESMTP id AB396400DEF1B
+        for <linux-media@vger.kernel.org>; Thu, 18 May 2017 14:09:02 -0500 (CDT)
+Date: Thu, 18 May 2017 14:09:01 -0500
+Message-ID: <20170518140901.Horde.bHPlhISMuTRMEbVjfq3p1kd@gator4166.hostgator.com>
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Malcolm Priestley <tvboxspy@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [media-dvb-usb-v2] question about value overwrite
+Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
 MIME-Version: 1.0
-In-Reply-To: <20170315183515.qnai3fwrdqobn6ky@rob-hp-laptop>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
 
-Once again sorry for the late response and thank you for your feedback.
+Hello everybody,
 
-On 3/15/2017 6:35 PM, Rob Herring wrote:
-> On Tue, Mar 07, 2017 at 02:37:50PM +0000, Ramiro Oliveira wrote:
->> Create device tree bindings documentation for the CSI-2 Host Video
->>  platform.
->>
->> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
->> ---
->>  .../devicetree/bindings/media/snps,plat-csi2.txt   | 77 ++++++++++++++++++++++
->>  1 file changed, 77 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/snps,plat-csi2.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/snps,plat-csi2.txt b/Documentation/devicetree/bindings/media/snps,plat-csi2.txt
->> new file mode 100644
->> index 000000000000..f559257a0a44
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/snps,plat-csi2.txt
->> @@ -0,0 +1,77 @@
->> +Synopsys DesignWare CSI-2 Host Video Platform
->> +
->> +The Synopsys DesignWare CSI-2 Host Video Device subsystem comprises of multiple
->> +sub-devices represented by separate device tree nodes. Currently this includes:
->> +plat-csi2, video-device, and dw-mipi-csi.
->> +
->> +The sub-subdevices are defined as child nodes of the common 'camera'.
->> +
->> +Common 'camera' node
->> +--------------------
->> +
->> +Required properties:
->> +
->> +- compatible: must be "snps,plat-csi2", "simple-bus"
->> +
->> +The 'camera' node must include at least one 'video-device' and one 'dw-mipi-csi'
->> +child node.
->> +
->> +'video-device' device nodes
->> +-------------------
->> +
->> +Required properties:
->> +
->> +- compatible: "snps,video-device"
->> +- dmas, dma-names: List of one DMA specifier and identifier string (as defined
->> +  in Documentation/devicetree/bindings/dma/dma.txt) per port. Each port
->> +  requires a DMA channel with the identifier string set to "vdma" followed by
->> +  the port index.
->> +
->> +Image sensor nodes
->> +------------------
->> +
->> +The sensor device nodes should be added to their control bus controller (e.g.
->> +I2C0) nodes and linked to a port node in the dw-mipi-csi,using the common video
->> +interfaces bindings, defined in video-interfaces.txt.
->> +
->> +Example:
->> +
->> +
->> +	camera {
->> +		compatible = "snps,plat-csi2", "simple-bus";
->> +		#address-cells = <1>;
->> +		#size-cells = <1>;
->> +		ranges;
->> +			video_device: video-device@0x10000 {
-> 
-> Drop the '0x' and any leading 0s on unit addresses.
-> 
+While looking into Coverity ID 1226934 I ran into the following piece  
+of code at drivers/media/usb/dvb-usb-v2/lmedm04.c:205
 
-Sure.
+205static int lme2510_stream_restart(struct dvb_usb_device *d)
+206{
+207        struct lme2510_state *st = d->priv;
+208        u8 all_pids[] = LME_ALL_PIDS;
+209        u8 stream_on[] = LME_ST_ON_W;
+210        int ret;
+211        u8 rbuff[1];
+212        if (st->pid_off)
+213                ret = lme2510_usb_talk(d, all_pids, sizeof(all_pids),
+214                        rbuff, sizeof(rbuff));
+215        /*Restart Stream Command*/
+216        ret = lme2510_usb_talk(d, stream_on, sizeof(stream_on),
+217                        rbuff, sizeof(rbuff));
+218        return ret;
+219}
 
->> +				compatible = "snps,video-device";
->> +				dmas = <&axi_vdma_0 0>;
->> +				dma-names = "vdma0";
->> +			};
-> 
-> If video-device is not a real device, then you shouldn't need a DT node. 
-> I need a better explanation or diagram of what the h/w blocks and 
-> connections look like here.
-> 
-> From the looks of this, you can just move dmas to the csi2 node. But I 
-> don't think that is right, because you can't generally just use an 
-> external DMA controller with camera data (maybe for validation, but it's 
-> not something you see in SoCs).
-> 
+The issue is that the value store in variable _ret_ at line 213 is  
+overwritten by the one stored at line 216, before it can be used.
 
-Actually we do use an external DMA controller directly connected to the CSI-2
-Host controller, although, like you said, we use it for HW validation.
+My question is if an _else_ statement is missing, or the variable  
+assignment at line 213 should be removed, leaving just the call  
+lme2510_usb_talk(d, all_pids, sizeof(all_pids), rbuff, sizeof(rbuff));  
+in place.
 
-I "created" the video-device in order to remove the DMA engine control from the
-CSI-2 Host driver, in order to make it more useful to other people.
+Maybe either of the following patches could be applied:
 
->> +
->> +			csi2:	csi2@0x03000 {
->> +				compatible = "snps,dw-mipi-csi";
->> +				#address-cells = <1>;
->> +				#size-cells = <0>;
->> +				reg = < 0x03000 0x7FF>;
->> +				interrupts = <2>;
->> +				phys = <&mipi_phy_ctrl1 0>;
->> +				resets = <&csi2_rst 1>;
->> +
->> +				output-type = <2>;
->> +				ipi-mode = <0>;
->> +				ipi-color-mode = <0>;
->> +				ipi-auto-flush = <1>;
->> +				virtual-channel = <0>;
->> +
->> +				port@1 {
->> +					reg = <1>;
->> +					csi1_ep1: endpoint {
->> +						remote-endpoint = <&camera>;
->> +						data-lanes = <1 2>;
->> +					};
->> +				};
->> +			};
->> +		};
->> +	};
->> +
->> +The dw-mipi-csi device binding is defined in snps,dw-mipi-csi.txt.
->> -- 
->> 2.11.0
->>
->>
+index 924adfd..d573144 100644
+--- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
++++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+@@ -207,15 +207,15 @@ static int lme2510_stream_restart(struct  
+dvb_usb_device *d)
+         struct lme2510_state *st = d->priv;
+         u8 all_pids[] = LME_ALL_PIDS;
+         u8 stream_on[] = LME_ST_ON_W;
+-       int ret;
+         u8 rbuff[1];
++
+         if (st->pid_off)
+-               ret = lme2510_usb_talk(d, all_pids, sizeof(all_pids),
++               lme2510_usb_talk(d, all_pids, sizeof(all_pids),
+                         rbuff, sizeof(rbuff));
++
+         /*Restart Stream Command*/
+-       ret = lme2510_usb_talk(d, stream_on, sizeof(stream_on),
++       return lme2510_usb_talk(d, stream_on, sizeof(stream_on),
+                         rbuff, sizeof(rbuff));
+-       return ret;
+  }
 
--- 
-Best Regards
+index 924adfd..dd51f05 100644
+--- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
++++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+@@ -207,15 +207,15 @@ static int lme2510_stream_restart(struct  
+dvb_usb_device *d)
+         struct lme2510_state *st = d->priv;
+         u8 all_pids[] = LME_ALL_PIDS;
+         u8 stream_on[] = LME_ST_ON_W;
+-       int ret;
+         u8 rbuff[1];
++
+         if (st->pid_off)
+-               ret = lme2510_usb_talk(d, all_pids, sizeof(all_pids),
++               return lme2510_usb_talk(d, all_pids, sizeof(all_pids),
+                         rbuff, sizeof(rbuff));
+-       /*Restart Stream Command*/
+-       ret = lme2510_usb_talk(d, stream_on, sizeof(stream_on),
++       else
++               /*Restart Stream Command*/
++               return lme2510_usb_talk(d, stream_on, sizeof(stream_on),
+                         rbuff, sizeof(rbuff));
+-       return ret;
+  }
 
-Ramiro Oliveira
-Ramiro.Oliveira@synopsys.com
+What do you think?
+
+I'd really appreciate any comment on this.
+
+Thank you!
+--
+Gustavo A. R. Silva
