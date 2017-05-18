@@ -1,29 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.ufrnet.br ([177.20.144.208]:45510 "EHLO mx.ufrnet.br"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751337AbdEDMr0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 May 2017 08:47:26 -0400
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: RE: Donation Award
-To: Recipients <info@charity.net>
-From: "Mayrhofer Family" <info@charity.net>
-Date: Thu, 04 May 2017 19:16:34 +0800
-Reply-To: tmason9w4r@gmail.com
-Message-Id: <20170504112017.22DAD40DA25@mx.ufrnet.br>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43872 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751486AbdERNvl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 May 2017 09:51:41 -0400
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: mchehab@s-opensource.com, alan@linux.intel.com
+Cc: Guru Das Srinagesh <gurooodas@gmail.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 02/13] staging: media: atomisp: use logical AND, not bitwise
+Date: Thu, 18 May 2017 15:50:11 +0200
+Message-Id: <20170518135022.6069-3-gregkh@linuxfoundation.org>
+In-Reply-To: <20170518135022.6069-1-gregkh@linuxfoundation.org>
+References: <20170518135022.6069-1-gregkh@linuxfoundation.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Good Day,
+From: Guru Das Srinagesh <gurooodas@gmail.com>
 
-My wife and I have awarded you with a donation of $ 1,000,000.00 Dollars from part of our Jackpot Lottery of 50 Million Dollars, respond with your details for claims.
+Fixes sparse warning "dubious: x & !y" in logical expression.
 
-We await your earliest response and God Bless you.
-
-Friedrich And Annand Mayrhofer.
-
+Signed-off-by: Guru Das Srinagesh <gurooodas@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
-This email has been checked for viruses by Avast antivirus software.
-https://www.avast.com/antivirus
+ .../media/atomisp/pci/atomisp2/css2400/runtime/binary/src/binary.c      | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/src/binary.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/src/binary.c
+index a8b93a756e41..ae0b229c9fb8 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/src/binary.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/src/binary.c
+@@ -1658,7 +1658,7 @@ ia_css_binary_find(struct ia_css_binary_descr *descr,
+ 			candidate->internal.max_height);
+ 			continue;
+ 		}
+-		if (!candidate->enable.ds && need_ds & !(xcandidate->num_output_pins > 1)) {
++		if (!candidate->enable.ds && need_ds && !(xcandidate->num_output_pins > 1)) {
+ 			ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,
+ 				"ia_css_binary_find() [%d] continue: !%d && %d\n",
+ 				__LINE__, candidate->enable.ds, (int)need_ds);
+-- 
+2.13.0
