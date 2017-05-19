@@ -1,44 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60672 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751957AbdEQPiU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 May 2017 11:38:20 -0400
-From: Kieran Bingham <kbingham@kernel.org>
-To: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-        niklas.soderlund@ragnatech.se, geert@glider.be
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v3.1 1/2] v4l: subdev: tolerate null in media_entity_to_v4l2_subdev
-Date: Wed, 17 May 2017 16:38:14 +0100
-Message-Id: <38adea84b864609515b2db580a76954b1a114e3f.1495035409.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <2a3a6d999502db1b6a47706b4da92d396075b22b.1495029016.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <2a3a6d999502db1b6a47706b4da92d396075b22b.1495029016.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.ed561929790222fc2c4467d4e57072a8e4ba69f3.1495035409.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.ed561929790222fc2c4467d4e57072a8e4ba69f3.1495035409.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46428
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750814AbdESMKN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 May 2017 08:10:13 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>,
+        devel@driverdev.osuosl.org
+Subject: [PATCH v2 1/6] [media] atomisp: disable several warnings when W=1
+Date: Fri, 19 May 2017 09:09:59 -0300
+Message-Id: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+The atomisp currently produce hundreds of warnings when W=1.
 
-Return NULL, if a null entity is parsed for it's v4l2_subdev
+It is a known fact that this driver is currently in bad
+shape, and there are lot of things to be done here.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+We don't want to be bothered by those "minor" stuff for now,
+while the driver doesn't receive a major cleanup. So,
+disable those warnings.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- include/media/v4l2-subdev.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/media/atomisp/i2c/Makefile          | 4 ++++
+ drivers/staging/media/atomisp/i2c/imx/Makefile      | 5 +++++
+ drivers/staging/media/atomisp/i2c/ov5693/Makefile   | 5 +++++
+ drivers/staging/media/atomisp/pci/atomisp2/Makefile | 6 ++++++
+ 4 files changed, 20 insertions(+)
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 5f1669c45642..72d7f28f38dc 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -829,7 +829,7 @@ struct v4l2_subdev {
- };
+diff --git a/drivers/staging/media/atomisp/i2c/Makefile b/drivers/staging/media/atomisp/i2c/Makefile
+index 466517c7c8e6..a1afca6ec31f 100644
+--- a/drivers/staging/media/atomisp/i2c/Makefile
++++ b/drivers/staging/media/atomisp/i2c/Makefile
+@@ -19,3 +19,7 @@ obj-$(CONFIG_VIDEO_AP1302)     += ap1302.o
  
- #define media_entity_to_v4l2_subdev(ent) \
--	container_of(ent, struct v4l2_subdev, entity)
-+	(ent ? container_of(ent, struct v4l2_subdev, entity) : NULL)
- #define vdev_to_v4l2_subdev(vdev) \
- 	((struct v4l2_subdev *)video_get_drvdata(vdev))
+ obj-$(CONFIG_VIDEO_LM3554) += lm3554.o
  
++# HACK! While this driver is in bad shape, don't enable several warnings
++#       that would be otherwise enabled with W=1
++ccflags-y += -Wno-unused-but-set-variable -Wno-missing-prototypes \
++	     -Wno-unused-const-variable -Wno-missing-declarations
+diff --git a/drivers/staging/media/atomisp/i2c/imx/Makefile b/drivers/staging/media/atomisp/i2c/imx/Makefile
+index 6b13a3a66e49..0eceb7374bec 100644
+--- a/drivers/staging/media/atomisp/i2c/imx/Makefile
++++ b/drivers/staging/media/atomisp/i2c/imx/Makefile
+@@ -4,3 +4,8 @@ imx1x5-objs := imx.o drv201.o ad5816g.o dw9714.o dw9719.o dw9718.o vcm.o otp.o o
+ 
+ ov8858_driver-objs := ../ov8858.o dw9718.o vcm.o
+ obj-$(CONFIG_VIDEO_OV8858)     += ov8858_driver.o
++
++# HACK! While this driver is in bad shape, don't enable several warnings
++#       that would be otherwise enabled with W=1
++ccflags-y += -Wno-unused-but-set-variable -Wno-missing-prototypes \
++             -Wno-unused-const-variable -Wno-missing-declarations
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/Makefile b/drivers/staging/media/atomisp/i2c/ov5693/Makefile
+index c9c0e1245858..fd2ef2e3c31e 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/Makefile
++++ b/drivers/staging/media/atomisp/i2c/ov5693/Makefile
+@@ -1 +1,6 @@
+ obj-$(CONFIG_VIDEO_OV5693) += ov5693.o
++
++# HACK! While this driver is in bad shape, don't enable several warnings
++#       that would be otherwise enabled with W=1
++ccflags-y += -Wno-unused-but-set-variable -Wno-missing-prototypes \
++             -Wno-unused-const-variable -Wno-missing-declarations
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/Makefile b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+index f126a89a08e9..68a9ab1c3b61 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/Makefile
++++ b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+@@ -353,3 +353,9 @@ DEFINES += -DSYSTEM_hive_isp_css_2400_system -DISP2400
+ 
+ ccflags-y += $(INCLUDES) $(DEFINES) -fno-common
+ 
++# HACK! While this driver is in bad shape, don't enable several warnings
++#       that would be otherwise enabled with W=1
++ccflags-y += -Wno-unused-const-variable -Wno-missing-prototypes \
++	     -Wno-unused-but-set-variable -Wno-missing-declarations \
++	     -Wno-suggest-attribute=format -Wno-missing-prototypes \
++	     -Wno-implicit-fallthrough
 -- 
-git-series 0.9.1
+2.9.3
