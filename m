@@ -1,38 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49134 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1034371AbdEWVoB (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46149
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752496AbdESKhm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 May 2017 17:44:01 -0400
-Date: Wed, 24 May 2017 00:43:52 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: Kieran Bingham <kbingham@kernel.org>,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: Re: [PATCH v3 2/2] v4l: async: Match parent devices
-Message-ID: <20170523214352.GH29527@valkosipuli.retiisi.org.uk>
-References: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
- <6154c8f092e1cb4f5286c1f11f4a846c821b53d6.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
- <20170523130222.GE29527@valkosipuli.retiisi.org.uk>
- <f56ce770-c7cc-1613-194f-e5f9a944dc4e@ideasonboard.com>
- <20170523214018.GG29527@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170523214018.GG29527@valkosipuli.retiisi.org.uk>
+        Fri, 19 May 2017 06:37:42 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>,
+        devel@driverdev.osuosl.org
+Subject: [PATCH] [media] atomisp: disable several warnings when W=1
+Date: Fri, 19 May 2017 07:37:31 -0300
+Message-Id: <013d515d13693a66ecc927b985c2b0db720c257f.1495190226.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 24, 2017 at 12:40:19AM +0300, Sakari Ailus wrote:
-> >  * When all devices use endpoint matching, this code can be simplified, and the
-> >  * parent comparisons can be removed.
+The atomisp currently produce hundreds of warnings when W=1.
 
-Oh, and this I'm not so sure about --- we'll need to match lens controllers
-and flash drivers. There are no endpoints in those devices. Let's see how it
-goes when we get there...
+It is a known fact that this driver is currently in bad
+shape, and there are lot of things to be done here.
 
+We don't want to be bothered by those "minor" stuff for now,
+while the driver doesn't receive a major cleanup. So,
+disable those warnings.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/staging/media/atomisp/i2c/Makefile          | 4 ++++
+ drivers/staging/media/atomisp/i2c/imx/Makefile      | 5 +++++
+ drivers/staging/media/atomisp/i2c/ov5693/Makefile   | 5 +++++
+ drivers/staging/media/atomisp/pci/atomisp2/Makefile | 5 +++++
+ 4 files changed, 19 insertions(+)
+
+diff --git a/drivers/staging/media/atomisp/i2c/Makefile b/drivers/staging/media/atomisp/i2c/Makefile
+index 466517c7c8e6..a1afca6ec31f 100644
+--- a/drivers/staging/media/atomisp/i2c/Makefile
++++ b/drivers/staging/media/atomisp/i2c/Makefile
+@@ -19,3 +19,7 @@ obj-$(CONFIG_VIDEO_AP1302)     += ap1302.o
+ 
+ obj-$(CONFIG_VIDEO_LM3554) += lm3554.o
+ 
++# HACK! While this driver is in bad shape, don't enable several warnings
++#       that would be otherwise enabled with W=1
++ccflags-y += -Wno-unused-but-set-variable -Wno-missing-prototypes \
++	     -Wno-unused-const-variable -Wno-missing-declarations
+diff --git a/drivers/staging/media/atomisp/i2c/imx/Makefile b/drivers/staging/media/atomisp/i2c/imx/Makefile
+index 6b13a3a66e49..0eceb7374bec 100644
+--- a/drivers/staging/media/atomisp/i2c/imx/Makefile
++++ b/drivers/staging/media/atomisp/i2c/imx/Makefile
+@@ -4,3 +4,8 @@ imx1x5-objs := imx.o drv201.o ad5816g.o dw9714.o dw9719.o dw9718.o vcm.o otp.o o
+ 
+ ov8858_driver-objs := ../ov8858.o dw9718.o vcm.o
+ obj-$(CONFIG_VIDEO_OV8858)     += ov8858_driver.o
++
++# HACK! While this driver is in bad shape, don't enable several warnings
++#       that would be otherwise enabled with W=1
++ccflags-y += -Wno-unused-but-set-variable -Wno-missing-prototypes \
++             -Wno-unused-const-variable -Wno-missing-declarations
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/Makefile b/drivers/staging/media/atomisp/i2c/ov5693/Makefile
+index c9c0e1245858..fd2ef2e3c31e 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/Makefile
++++ b/drivers/staging/media/atomisp/i2c/ov5693/Makefile
+@@ -1 +1,6 @@
+ obj-$(CONFIG_VIDEO_OV5693) += ov5693.o
++
++# HACK! While this driver is in bad shape, don't enable several warnings
++#       that would be otherwise enabled with W=1
++ccflags-y += -Wno-unused-but-set-variable -Wno-missing-prototypes \
++             -Wno-unused-const-variable -Wno-missing-declarations
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/Makefile b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+index f126a89a08e9..8ccb5f29f2c1 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/Makefile
++++ b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+@@ -353,3 +353,8 @@ DEFINES += -DSYSTEM_hive_isp_css_2400_system -DISP2400
+ 
+ ccflags-y += $(INCLUDES) $(DEFINES) -fno-common
+ 
++# HACK! While this driver is in bad shape, don't enable several warnings
++#       that would be otherwise enabled with W=1
++ccflags-y += -Wno-unused-const-variable -Wno-missing-prototypes \
++	     -Wno-unused-but-set-variable -Wno-missing-declarations \
++	     -Wno-suggest-attribute=format -Wno-missing-prototypes
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.9.3
