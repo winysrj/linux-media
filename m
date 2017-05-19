@@ -1,62 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:35906 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754100AbdEGWE2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 7 May 2017 18:04:28 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com, jasmin@anw.at
-Subject: [PATCH 00/11] Fix coding style in en50221 CAM functions
-Date: Sun,  7 May 2017 23:23:23 +0200
-Message-Id: <1494192214-20082-1-git-send-email-jasmin@anw.at>
+Received: from youngberry.canonical.com ([91.189.89.112]:60195 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752563AbdESRpV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 May 2017 13:45:21 -0400
+From: Colin King <colin.king@canonical.com>
+To: Arnd Bergmann <arnd@arndb.de>, Eric Anholt <eric@anholt.net>,
+        David Airlie <airlied@linux.ie>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH][V2] [media] rainshadow-cec: ensure exit_loop is intialized
+Date: Fri, 19 May 2017 18:45:15 +0100
+Message-Id: <20170519174515.6695-1-colin.king@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+From: Colin Ian King <colin.king@canonical.com>
 
-These patch series is a follow up to the series "Add block read/write to
-en50221 CAM functions". It fixed nearly all the style issues reported by
-checkpatch.pl in dvb-core/dvb_ca_en50221.c
-Please note, that there are 7 Warnings left, which I won't fix.
+exit_loop is not being initialized, so it contains garbage. Ensure it is
+initialized to false.
 
-Two of them are "WARNING: memory barrier without comment". I have really
-no clue why there is a call to "mb()" in that file, so I can't fill in a
-good comment.
+Detected by CoverityScan, CID#1436409 ("Uninitialized scalar variable")
 
-Four warnings are "WARNING: line over 80 characters" which are strings for
-debugging, which shouldn't be split in several lines (will give other
-warning).
+Fixes: ea6a69defd3311 ("[media] rainshadow-cec: avoid -Wmaybe-uninitialized warning")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/usb/rainshadow-cec/rainshadow-cec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-And finally one "WARNING: Prefer [subsystem eg: netdev]_dbg", complaining
-about the "dprintk" macro. In my opinion it is correctly used and it is
-normally disabled anyway.
-
-The main problem of the original code was the size of the lines and the
-structural complexity of some functions. Beside shortening the names and
-refactoring of the thread state machine, I used in nearly every function
-a helper pointer "sl" (for "slot" structure) instead the whole structure
-path. This saved also a lot of characters in long lines.
-
-I split the patch set is small pieces for easier review, compiled each
-step and tested the resulting driver on my hardware with the DD DuoFlex CI
-(single) card.
-
-
-Jasmin Jessich (11):
-  [media] dvb-core/dvb_ca_en50221.c: Rename STATUSREG_??
-  [media] dvb-core/dvb_ca_en50221.c: Rename DVB_CA_SLOTSTATE_???
-  [media] dvb-core/dvb_ca_en50221.c: Used a helper variable
-  [media] dvb-core/dvb_ca_en50221.c: Refactored dvb_ca_en50221_thread
-  [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 1
-  [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 2
-  [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 3
-  [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 4
-  [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 5
-  [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 6
-  [media] dvb-core/dvb_ca_en50221.c: Fixed wrong EXPORT_SYMBOL order
-
- drivers/media/dvb-core/dvb_ca_en50221.c | 916 ++++++++++++++++++--------------
- 1 file changed, 527 insertions(+), 389 deletions(-)
-
+diff --git a/drivers/media/usb/rainshadow-cec/rainshadow-cec.c b/drivers/media/usb/rainshadow-cec/rainshadow-cec.c
+index 8d3ca2c8b20f..ad468efc4399 100644
+--- a/drivers/media/usb/rainshadow-cec/rainshadow-cec.c
++++ b/drivers/media/usb/rainshadow-cec/rainshadow-cec.c
+@@ -119,7 +119,7 @@ static void rain_irq_work_handler(struct work_struct *work)
+ 
+ 	while (true) {
+ 		unsigned long flags;
+-		bool exit_loop;
++		bool exit_loop = false;
+ 		char data;
+ 
+ 		spin_lock_irqsave(&rain->buf_lock, flags);
 -- 
-2.7.4
+2.11.0
