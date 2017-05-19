@@ -1,59 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40352 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46202 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753010AbdEPVs1 (ORCPT
+        by vger.kernel.org with ESMTP id S1756453AbdESVvy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 May 2017 17:48:27 -0400
-Date: Wed, 17 May 2017 00:48:17 +0300
+        Fri, 19 May 2017 17:51:54 -0400
+Date: Sat, 20 May 2017 00:51:48 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, CARLOS.PALMINHA@synopsys.com,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>, Benoit Parrot <bparrot@ti.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Peter Griffin <peter.griffin@linaro.org>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Simon Horman <simon.horman@netronome.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: Re: [PATCH 0/4] Support for Synopsys DW CSI-2 Host
-Message-ID: <20170516214817.GP3227@valkosipuli.retiisi.org.uk>
-References: <cover.1488885081.git.roliveir@synopsys.com>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH v2 1/2] device property: Add fwnode_graph_get_port_parent
+Message-ID: <20170519215147.GE3227@valkosipuli.retiisi.org.uk>
+References: <cover.9f22ad082e363959e4679246793bc4698479a44e.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <6d3ca9a2f4af281191b6672489f6d2a6d036d372.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <cover.1488885081.git.roliveir@synopsys.com>
+In-Reply-To: <6d3ca9a2f4af281191b6672489f6d2a6d036d372.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ramiro,
+Hi Kieran,
 
-On Tue, Mar 07, 2017 at 02:37:47PM +0000, Ramiro Oliveira wrote:
-> This patchset adds support for the DW CSI-2 Host and also for a video
-> device associated with it. 
-> 
-> The first 2 patches are only for the DW CSI-2 Host and the last 2 are for
-> the video device.
-> 
-> Although this patchset is named as v1 there were already two patchsets
-> previous to this one, but with a different name: "Add support for the DW
-> IP Prototyping Kits for MIPI CSI-2 Host".
+On Fri, May 19, 2017 at 05:16:02PM +0100, Kieran Bingham wrote:
+> +struct fwnode_handle *
+> +fwnode_graph_get_port_parent(struct fwnode_handle *endpoint)
+> +{
+> +	return fwnode_call_ptr_op(endpoint, graph_get_port_parent);
 
-Could you briefly describe the hardware and which IP blocks you have there?
-Three devices to capture images from CSI-2 bus seems a lot.
+graph_get_port_parent op will actually get the parent of the port. But it
+expects a port node, not an endpoint node. This is implemented so in order
+to center the ops around primitives rather than end user APIs that may
+change over time.
+
+I think you'll need:
+
+	return fwnode_call_ptr_op(fwnode_graph_get_next_parent(endpoint),
+				  graph_get_port_parent);
+
+Or something like that.
 
 -- 
 Regards,
