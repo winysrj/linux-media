@@ -1,83 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ozlabs.org ([103.22.144.67]:56023 "EHLO ozlabs.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752715AbdEGWpZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 7 May 2017 18:45:25 -0400
-From: Anton Blanchard <anton@ozlabs.org>
-To: mchehab@kernel.org, andi.shyti@samsung.com, sean@mess.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] ir-spi: Fix issues with lirc API
-Date: Sun,  7 May 2017 11:00:11 +1000
-Message-Id: <20170507010011.2786-1-anton@ozlabs.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34202 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755217AbdESNHO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 May 2017 09:07:14 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-renesas-soc@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org, geert@linux-m68k.org,
+        magnus.damm@gmail.com, hans.verkuil@cisco.com,
+        niklas.soderlund@ragnatech.se, sergei.shtylyov@cogentembedded.com,
+        horms@verge.net.au, devicetree@vger.kernel.org,
+        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v3 1/4] ARM: dts: gose: add HDMI input
+Date: Fri, 19 May 2017 15:07:01 +0200
+Message-Id: <1495199224-16337-2-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1495199224-16337-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1495199224-16337-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Anton Blanchard <anton@samba.org>
+Identical to the setup on Koelsch.
 
-The ir-spi driver has 2 issues which prevents it from working with
-lirc:
-
-1. The ir-spi driver uses 16 bits of SPI data to create one cycle of
-the waveform. As such our SPI clock needs to be 16x faster than the
-carrier frequency.
-
-The driver is inconsistent in how it currently handles this. It
-initializes it to the carrier frequency:
-
-But the commit message has some example code which initialises it
-to 16x the carrier frequency:
-
-	val = 608000;
-	ret = ioctl(fd, LIRC_SET_SEND_CARRIER, &val);
-
-To maintain compatibility with lirc, always do the frequency adjustment
-in the driver.
-
-2. lirc presents pulses in microseconds, but the ir-spi driver treats
-them as cycles of the carrier. Similar to other lirc drivers, do the
-conversion with DIV_ROUND_CLOSEST().
-
-Fixes: fe052da49201 ("[media] rc: add support for IR LEDs driven through SPI")
-Cc: stable@vger.kernel.org
-Signed-off-by: Anton Blanchard <anton@samba.org>
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/rc/ir-spi.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/r8a7793-gose.dts | 68 ++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 66 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/rc/ir-spi.c b/drivers/media/rc/ir-spi.c
-index c8863f36686a..f39cf8cb639f 100644
---- a/drivers/media/rc/ir-spi.c
-+++ b/drivers/media/rc/ir-spi.c
-@@ -57,10 +57,13 @@ static int ir_spi_tx(struct rc_dev *dev,
+diff --git a/arch/arm/boot/dts/r8a7793-gose.dts b/arch/arm/boot/dts/r8a7793-gose.dts
+index 95e51b7..30f0835 100644
+--- a/arch/arm/boot/dts/r8a7793-gose.dts
++++ b/arch/arm/boot/dts/r8a7793-gose.dts
+@@ -253,12 +253,23 @@
+ 		};
+ 	};
  
- 	/* convert the pulse/space signal to raw binary signal */
- 	for (i = 0; i < count; i++) {
-+		unsigned int periods;
- 		int j;
- 		u16 val = ((i + 1) % 2) ? idata->pulse : idata->space;
- 
--		if (len + buffer[i] >= IR_SPI_MAX_BUFSIZE)
-+		periods = DIV_ROUND_CLOSEST(buffer[i] * idata->freq, 1000000);
++	hdmi-in {
++		compatible = "hdmi-connector";
++		type = "a";
 +
-+		if (len + periods >= IR_SPI_MAX_BUFSIZE)
- 			return -EINVAL;
++		port {
++			hdmi_con_in: endpoint {
++				remote-endpoint = <&adv7612_in>;
++			};
++		};
++	};
++
+ 	hdmi-out {
+ 		compatible = "hdmi-connector";
+ 		type = "a";
  
- 		/*
-@@ -69,13 +72,13 @@ static int ir_spi_tx(struct rc_dev *dev,
- 		 * contain a space duration.
- 		 */
- 		val = (i % 2) ? idata->space : idata->pulse;
--		for (j = 0; j < buffer[i]; j++)
-+		for (j = 0; j < periods; j++)
- 			idata->tx_buf[len++] = val;
- 	}
+ 		port {
+-			hdmi_con: endpoint {
++			hdmi_con_out: endpoint {
+ 				remote-endpoint = <&adv7511_out>;
+ 			};
+ 		};
+@@ -395,6 +406,11 @@
+ 		groups = "audio_clk_a";
+ 		function = "audio_clk";
+ 	};
++
++	vin0_pins: vin0 {
++		groups = "vin0_data24", "vin0_sync", "vin0_clkenb", "vin0_clk";
++		function = "vin0";
++	};
+ };
  
- 	memset(&xfer, 0, sizeof(xfer));
- 
--	xfer.speed_hz = idata->freq;
-+	xfer.speed_hz = idata->freq * 16;
- 	xfer.len = len * sizeof(*idata->tx_buf);
- 	xfer.tx_buf = idata->tx_buf;
- 
+ &ether {
+@@ -552,7 +568,34 @@
+ 			port@1 {
+ 				reg = <1>;
+ 				adv7511_out: endpoint {
+-					remote-endpoint = <&hdmi_con>;
++					remote-endpoint = <&hdmi_con_out>;
++				};
++			};
++		};
++	};
++
++	hdmi-in@4c {
++		compatible = "adi,adv7612";
++		reg = <0x4c>;
++		interrupt-parent = <&gpio4>;
++		interrupts = <2 IRQ_TYPE_LEVEL_LOW>;
++		default-input = <0>;
++
++		port {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0>;
++				adv7612_in: endpoint {
++					remote-endpoint = <&hdmi_con_in>;
++				};
++			};
++
++			port@2 {
++				reg = <2>;
++				adv7612_out: endpoint {
++					remote-endpoint = <&vin0ep2>;
+ 				};
+ 			};
+ 		};
+@@ -606,3 +649,24 @@
+ &ssi1 {
+ 	shared-pin;
+ };
++
++/* HDMI video input */
++&vin0 {
++	status = "okay";
++	pinctrl-0 = <&vin0_pins>;
++	pinctrl-names = "default";
++
++	port {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		vin0ep2: endpoint {
++			remote-endpoint = <&adv7612_out>;
++			bus-width = <24>;
++			hsync-active = <0>;
++			vsync-active = <0>;
++			pclk-sample = <1>;
++			data-active = <1>;
++		};
++	};
++};
 -- 
-2.11.0
+2.7.4
