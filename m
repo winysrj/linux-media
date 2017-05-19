@@ -1,90 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36608 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750951AbdEaRhU (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46448
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751073AbdESMKO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 13:37:20 -0400
-Date: Wed, 31 May 2017 19:37:18 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Daniel Mack <daniel@zonque.org>, Rob Herring <robh@kernel.org>,
+        Fri, 19 May 2017 08:10:14 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Santosh Kumar Singh <kumar.san1093@gmail.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        sebastian.reichel@collabora.co.uk
-Subject: Re: [RFC v2 3/3] dt: bindings: Add a binding for referencing EEPROM
- from camera sensors
-Message-ID: <20170531173718.GA11983@amd>
-References: <1493974110-26510-1-git-send-email-sakari.ailus@linux.intel.com>
- <1493974110-26510-4-git-send-email-sakari.ailus@linux.intel.com>
- <20170508172418.zha3eyfsnuricfjk@rob-hp-laptop>
- <20170529122004.GE29527@valkosipuli.retiisi.org.uk>
- <c7a98681-4c95-0103-96ee-97ca6a02d9b3@zonque.org>
- <20170529130524.GF29527@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="gBBFr7Ir9EOA20Yy"
-Content-Disposition: inline
-In-Reply-To: <20170529130524.GF29527@valkosipuli.retiisi.org.uk>
+        mjpeg-users@lists.sourceforge.net
+Subject: [PATCH 3/6] [media] zoran: annotate switch fall through
+Date: Fri, 19 May 2017 09:10:01 -0300
+Message-Id: <9ca3ae0d5e46a48b7eaf4afcdc68887e32692c17.1495195712.git.mchehab@s-opensource.com>
+In-Reply-To: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
+References: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
+In-Reply-To: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
+References: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+There are two cases here that it does a switch fall through.
+Annotate it, in order to shut up gcc warnings.
 
---gBBFr7Ir9EOA20Yy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/zoran/zoran_driver.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Hi!
-
-> > I agree, yes. I think the only way to solve this is to have a generic
-> > EEPROM API that allows the camera sensor to read data from it. If
->=20
-> We have one already, and it's defined in Documentation/misc-devices/eepro=
-m .
->=20
-> > another vendor uses a different type of EEPROM, the sensor driver would
-> > remain the same, as it only reads data from the storage behind the
-> > phandle, not caring about the details.
-> >=20
-> > Same goes for the lens driver, and after thinking about it for awhile,
-> > I'd say it makes most sense to allow referencing a v4l2_subdev device
-> > through a phandle from another v4l2_subdev, and then offload certain
-> > commands such as V4L2_CID_FOCUS_ABSOLUTE to the device that does the
-> > actual work. Opinions?
->=20
-> There are different kinds of lens systems and I don't think the sensor
-> drivers should be aware of them. The current approach is that the lens is=
- a
-> separate sub-device --- the intent of the patchset I posted was to docume=
-nt
-> how the information on the related lens and eeprom components is conveyed=
- to
-> the software. There's one such driver in the mainline kernel, ad5820.
->=20
-> Unfortunately we don't right now have a good user space interface for
-> telling which sensor a lens device is related to. The struct
-> media_entity_desc does have a group_id field for grouping the sub-devices
-> but that's hardly a good way to describe this.
-
-Yeah, it would be good to get the corresponding patches to be merged
-to v4l-utils...
-
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---gBBFr7Ir9EOA20Yy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlku/04ACgkQMOfwapXb+vJ+qACgn6EYKhVRZSY6hYXty1C2e85C
-pZQAnRRUOYXCSTDh4iKat5vI9H2yXK0j
-=eOq3
------END PGP SIGNATURE-----
-
---gBBFr7Ir9EOA20Yy--
+diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
+index 180f3d7af3e1..a11cb501c550 100644
+--- a/drivers/media/pci/zoran/zoran_driver.c
++++ b/drivers/media/pci/zoran/zoran_driver.c
+@@ -534,6 +534,7 @@ static int zoran_v4l_queue_frame(struct zoran_fh *fh, int num)
+ 				KERN_WARNING
+ 				"%s: %s - queueing buffer %d in state DONE!?\n",
+ 				ZR_DEVNAME(zr), __func__, num);
++			/* fall through */
+ 		case BUZ_STATE_USER:
+ 			/* since there is at least one unused buffer there's room for at least
+ 			 * one more pend[] entry */
+@@ -693,6 +694,7 @@ static int zoran_jpg_queue_frame(struct zoran_fh *fh, int num,
+ 				KERN_WARNING
+ 				"%s: %s - queing frame in BUZ_STATE_DONE state!?\n",
+ 				ZR_DEVNAME(zr), __func__);
++			/* fall through */
+ 		case BUZ_STATE_USER:
+ 			/* since there is at least one unused buffer there's room for at
+ 			 *least one more pend[] entry */
+-- 
+2.9.3
