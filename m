@@ -1,80 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54290 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1760689AbdEVRgq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 May 2017 13:36:46 -0400
-From: Kieran Bingham <kbingham@kernel.org>
-To: sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v3 1/2] device property: Add fwnode_graph_get_port_parent
-Date: Mon, 22 May 2017 18:36:37 +0100
-Message-Id: <cce043f797174561fe49350a66b56ce07059716c.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:32906 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754793AbdESNHL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 May 2017 09:07:11 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-renesas-soc@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org, geert@linux-m68k.org,
+        magnus.damm@gmail.com, hans.verkuil@cisco.com,
+        niklas.soderlund@ragnatech.se, sergei.shtylyov@cogentembedded.com,
+        horms@verge.net.au, devicetree@vger.kernel.org,
+        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v3 0/4] r8a7793 Gose video input support
+Date: Fri, 19 May 2017 15:07:00 +0200
+Message-Id: <1495199224-16337-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Hi!
 
-Provide a helper to obtain the parent device fwnode without first
-parsing the remote-endpoint as per fwnode_graph_get_remote_port_parent.
+This is a by-the-datasheet implementation of analog and digital video input
+on the Gose board.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+This revision adds new bindings that distinguish between ADV7180 variants
+with three and six input ports. There are numerous variants of this chip,
+but since all that have "CP" in their names have three inputs, and all that
+have "ST" have six, I have limited myself to two new compatible strings,
+"adv7180cp" and "adv7180st".
 
----
-v2:
- - Rebase on top of Sakari's acpi-graph-clean branch and simplify
+The digital input patch has received minor tweaks of the port names for
+consistency, and the Gose analog input patch has been modified to use the
+new bindings, and a composite video connector has been added.
 
-v3:
- - Fix up kerneldoc
- - Get the 'port' of the endpoint to find the parent of the port
+CU
+Uli
 
- drivers/base/property.c  | 15 +++++++++++++++
- include/linux/property.h |  2 ++
- 2 files changed, 17 insertions(+)
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index b311a6fa7d0c..fdbc644fd743 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -1169,6 +1169,21 @@ fwnode_graph_get_next_endpoint(struct fwnode_handle *fwnode,
- EXPORT_SYMBOL_GPL(fwnode_graph_get_next_endpoint);
- 
- /**
-+ * fwnode_graph_get_port_parent - Return the device fwnode of a port endpoint
-+ * @endpoint: Endpoint firmware node of the port
-+ *
-+ * Return: the firmware node of the device the @endpoint belongs to.
-+ */
-+struct fwnode_handle *
-+fwnode_graph_get_port_parent(struct fwnode_handle *endpoint)
-+{
-+	struct fwnode_handle *port = fwnode_get_next_parent(endpoint);
-+
-+	return fwnode_call_ptr_op(port, graph_get_port_parent);
-+}
-+EXPORT_SYMBOL_GPL(fwnode_graph_get_port_parent);
-+
-+/**
-  * fwnode_graph_get_remote_port_parent - Return fwnode of a remote device
-  * @fwnode: Endpoint firmware node pointing to the remote endpoint
-  *
-diff --git a/include/linux/property.h b/include/linux/property.h
-index b9f4838d9882..af95d5d84192 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -275,6 +275,8 @@ void *device_get_mac_address(struct device *dev, char *addr, int alen);
- 
- struct fwnode_handle *fwnode_graph_get_next_endpoint(
- 	struct fwnode_handle *fwnode, struct fwnode_handle *prev);
-+struct fwnode_handle *fwnode_graph_get_port_parent(
-+	struct fwnode_handle *fwnode);
- struct fwnode_handle *fwnode_graph_get_remote_port_parent(
- 	struct fwnode_handle *fwnode);
- struct fwnode_handle *fwnode_graph_get_remote_port(
+Changes since v2:
+- hdmi: port hdmi_con renamed to hdmi_con_out
+- adv7180: added new compatibility strings and bindings
+- composite: added connector, use new bindings
+
+Changes since v1:
+- r8a7793.dtsi: added VIN2
+- modeled HDMI decoder input/output and connector
+- added "renesas,rcar-gen2-vin" compat strings
+- removed unnecessary "remote" node and aliases
+- set ADV7612 interrupt to GP4_2
+
+
+Ulrich Hecht (4):
+  ARM: dts: gose: add HDMI input
+  media: adv7180: add adv7180cp, adv7180st compatible strings
+  media: adv7180: Add adv7180cp, adv7180st bindings
+  ARM: dts: gose: add composite video input
+
+ .../devicetree/bindings/media/i2c/adv7180.txt      |  15 +++
+ arch/arm/boot/dts/r8a7793-gose.dts                 | 127 ++++++++++++++++++++-
+ drivers/media/i2c/adv7180.c                        |   2 +
+ 3 files changed, 142 insertions(+), 2 deletions(-)
+
 -- 
-git-series 0.9.1
+2.7.4
