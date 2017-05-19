@@ -1,43 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam03on0100.outbound.protection.outlook.com ([104.47.42.100]:61758
-        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751033AbdFABlT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 21:41:19 -0400
-Subject: Re: [PATCH v2 0/15] [dt-bindings] [media] Add document file and
- driver for Sony CXD2880 DVB-T2/T tuner + demodulator
-To: "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        <mchehab@s-opensource.com>
-References: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
- <5188b958-9a34-4519-5845-a318273592e0@sony.com>
- <d7c70c53-3fb0-a045-5e1a-1a736bdeda1f@sony.com>
-CC: "tbird20d@gmail.com" <tbird20d@gmail.com>,
-        "frowand.list@gmail.com" <frowand.list@gmail.com>,
-        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
-        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
-        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
-        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
-        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
-        <yasunari.takiguchi@sony.com>
-From: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
-Message-ID: <0e192530-9b56-e8fb-6210-ab619ddde1de@sony.com>
-Date: Thu, 1 Jun 2017 10:41:04 +0900
+Received: from gofer.mess.org ([88.97.38.141]:45873 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752411AbdESSVZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 May 2017 14:21:25 -0400
+Date: Fri, 19 May 2017 19:21:23 +0100
+From: Sean Young <sean@mess.org>
+To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: [PATCH 14/16] lirc_dev: cleanup includes
+Message-ID: <20170519182122.GA4136@gofer.mess.org>
+References: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
+ <149365468723.12922.7216057583221400867.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-In-Reply-To: <d7c70c53-3fb0-a045-5e1a-1a736bdeda1f@sony.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <149365468723.12922.7216057583221400867.stgit@zeus.hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, all
+On Mon, May 01, 2017 at 06:04:47PM +0200, David Härdeman wrote:
+> Remove superfluous includes and defines.
+> 
+> Signed-off-by: David Härdeman <david@hardeman.nu>
+> ---
+>  drivers/media/rc/lirc_dev.c |   12 +-----------
+>  1 file changed, 1 insertion(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+> index 7db7d4c57991..4ba6c7e2d41b 100644
+> --- a/drivers/media/rc/lirc_dev.c
+> +++ b/drivers/media/rc/lirc_dev.c
+> @@ -15,20 +15,11 @@
+>   *
+>   */
+>  
+> -#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+> -
+>  #include <linux/module.h>
+> -#include <linux/kernel.h>
+>  #include <linux/sched/signal.h>
+> -#include <linux/errno.h>
+>  #include <linux/ioctl.h>
+> -#include <linux/fs.h>
+>  #include <linux/poll.h>
+> -#include <linux/completion.h>
+>  #include <linux/mutex.h>
+> -#include <linux/wait.h>
+> -#include <linux/unistd.h>
+> -#include <linux/bitops.h>
+>  #include <linux/device.h>
+>  #include <linux/cdev.h>
+>  #include <linux/idr.h>
+> @@ -37,7 +28,6 @@
+>  #include <media/lirc.h>
+>  #include <media/lirc_dev.h>
+>  
+> -#define IRCTL_DEV_NAME	"BaseRemoteCtl"
+>  #define LOGHEAD		"lirc_dev (%s[%d]): "
+>  
+>  static dev_t lirc_base_dev;
+> @@ -545,7 +535,7 @@ static int __init lirc_dev_init(void)
+>  	}
+>  
+>  	retval = alloc_chrdev_region(&lirc_base_dev, 0, LIRC_MAX_DEVICES,
+> -				     IRCTL_DEV_NAME);
+> +				     "BaseRemoteCtl");
 
-I sent the patch series of Sony CXD2880 DVB-T2/T tuner + demodulator driver on Apr/14.
-Are there any comments, advices and review results for them?
+This has always surprised/annoyed me. Why is this called BaseRemoteCtl? As
+far as I know, this is only used for /proc/devices, where it says:
 
-I'd like to get better understanding of current review status for our codes.
+$ grep 239 /proc/devices 
+239 BaseRemoteCtl
 
-Regards,
-Takiguchi
+And not lirc, as you would expect.
+
+Sean
