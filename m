@@ -1,164 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:13875 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750827AbdE2GtR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 02:49:17 -0400
-From: "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-CC: Sakari Ailus <sakari.ailus@iki.fi>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hsu, Cedric" <cedric.hsu@intel.com>
-Subject: RE: [PATCH v3 1/1] [media] i2c: add support for OV13858 sensor
-Date: Mon, 29 May 2017 06:49:16 +0000
-Message-ID: <7A4F467111FEF64486F40DFE7DF3500A03EB248E@ORSMSX111.amr.corp.intel.com>
-References: <1495844847-21655-1-git-send-email-hyungwoo.yang@intel.com>
- <20170527203053.GY29527@valkosipuli.retiisi.org.uk>
- <7A4F467111FEF64486F40DFE7DF3500A03EAF344@ORSMSX111.amr.corp.intel.com>
- <CAAFQd5Bd_KXeALAJxfOKwJecE0nZLmbPR2butXPmvrdnW=cW0A@mail.gmail.com>
-In-Reply-To: <CAAFQd5Bd_KXeALAJxfOKwJecE0nZLmbPR2butXPmvrdnW=cW0A@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:20483 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750760AbdESHXC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 May 2017 03:23:02 -0400
+Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OQ6001X0V6C3230@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 19 May 2017 08:23:00 +0100 (BST)
+Subject: Re: [PATCH 3/4] [media] s5p-jpeg: don't return a random width/height
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        linux-arm-kernel@lists.infradead.org
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Message-id: <991ced35-4d49-0c8b-2656-ba23046750a5@samsung.com>
+Date: Fri, 19 May 2017 09:22:52 +0200
+MIME-version: 1.0
+In-reply-to: <db2a1b1de920cc4bccaadbbbeee11a854ab81f00.1495116400.git.mchehab@s-opensource.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-language: en-US
+Content-transfer-encoding: 7bit
+References: <754069659fbb44b458d8a8bef67d8f3f235d0c87.1495116400.git.mchehab@s-opensource.com>
+ <CGME20170518140655epcas1p355f0f629cfef1f44dd6a23f4264af22a@epcas1p3.samsung.com>
+ <db2a1b1de920cc4bccaadbbbeee11a854ab81f00.1495116400.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQpIZWxsbyBUb21hc3osDQoNCkhlcmUncyBteSBjb21tZW50cy4NCg0KVGhhbmtzLA0KSHl1bmd3
-b28NCiANCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbWFzeiBGaWdhIFtt
-YWlsdG86dGZpZ2FAY2hyb21pdW0ub3JnXSANCj4gU2VudDogU3VuZGF5LCBNYXkgMjgsIDIwMTcg
-Nzo1NiBQTQ0KPiBUbzogWWFuZywgSHl1bmd3b28gPGh5dW5nd29vLnlhbmdAaW50ZWwuY29tPg0K
-PiBDYzogU2FrYXJpIEFpbHVzIDxzYWthcmkuYWlsdXNAaWtpLmZpPjsgbGludXgtbWVkaWFAdmdl
-ci5rZXJuZWwub3JnOyBzYWthcmkuYWlsdXNAbGludXguaW50ZWwuY29tOyBaaGVuZywgSmlhbiBY
-dSA8amlhbi54dS56aGVuZ0BpbnRlbC5jb20+OyBIc3UsIENlZHJpYyA8Y2VkcmljLmhzdUBpbnRl
-bC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjMgMS8xXSBbbWVkaWFdIGkyYzogYWRkIHN1
-cHBvcnQgZm9yIE9WMTM4NTggc2Vuc29yDQo+IA0KPiBIaSBIeXVuZ3dvbywNCj4gDQo+IE9uIE1v
-biwgTWF5IDI5LCAyMDE3IGF0IDg6MjYgQU0sIFlhbmcsIEh5dW5nd29vIDxoeXVuZ3dvby55YW5n
-QGludGVsLmNvbT4gd3JvdGU6DQo+ID4NCj4gPiBIaSBTYWthcmksDQo+ID4NCj4gPiBIZXJlJ3Mg
-bXkgY29tbWVudHMuDQo+ID4NCj4gPiAtSHl1bmd3b28NCj4gPg0KPiA+DQo+ID4gLS0tLS1Pcmln
-aW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gRnJvbTogU2FrYXJpIEFpbHVzIFttYWlsdG86c2FrYXJp
-LmFpbHVzQGlraS5maV0NCj4gPj4gU2VudDogU2F0dXJkYXksIE1heSAyNywgMjAxNyAxOjMxIFBN
-DQo+ID4+IFRvOiBZYW5nLCBIeXVuZ3dvbyA8aHl1bmd3b28ueWFuZ0BpbnRlbC5jb20+DQo+ID4+
-IENjOiBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc7IHNha2FyaS5haWx1c0BsaW51eC5pbnRl
-bC5jb207IFpoZW5nLCANCj4gPj4gSmlhbiBYdSA8amlhbi54dS56aGVuZ0BpbnRlbC5jb20+OyBI
-c3UsIENlZHJpYyANCj4gPj4gPGNlZHJpYy5oc3VAaW50ZWwuY29tPjsgdGZpZ2FAY2hyb21pdW0u
-b3JnDQo+ID4+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjMgMS8xXSBbbWVkaWFdIGkyYzogYWRkIHN1
-cHBvcnQgZm9yIE9WMTM4NTggDQo+ID4+IHNlbnNvcg0KPiA+Pg0KPiA+PiBIaSBIeXVuZ3dvbywN
-Cj4gPj4NCj4gPj4gVGhhbmtzIGZvciB0aGUgdXBkYXRlLiBBIGZldyBjb21tZW50cyBiZWxvdy4N
-Cj4gPj4NCj4gW3NuaXBdDQo+ID4+ID4gKy8qIFVwZGF0ZSBWVFMgdGhhdCBtZWV0cyBleHBlY3Rl
-ZCB2ZXJ0aWNhbCBibGFua2luZyAqLyBzdGF0aWMgaW50IA0KPiA+PiA+ICtvdjEzODU4X3VwZGF0
-ZV92Ymxhbmsoc3RydWN0IG92MTM4NTggKm92MTM4NTgsDQo+ID4+ID4gKyAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBzdHJ1Y3QgdjRsMl9jdHJsICpjdHJsKSB7DQo+ID4+ID4gKyAgIHJldHVy
-biBvdjEzODU4X3dyaXRlX3JlZygNCj4gPj4gPiArICAgICAgICAgICAgICAgICAgIG92MTM4NTgs
-IE9WMTM4NThfUkVHX1ZUUywNCj4gPj4gPiArICAgICAgICAgICAgICAgICAgIE9WMTM4NThfUkVH
-X1ZBTFVFXzE2QklULA0KPiA+PiA+ICsgICAgICAgICAgICAgICAgICAgb3YxMzg1OC0+Y3VyX21v
-ZGUtPmhlaWdodCArIA0KPiA+PiA+ICtvdjEzODU4LT52YmxhbmstPnZhbCk7IH0NCj4gPj4gPiAr
-DQo+ID4+ID4gKy8qIFVwZGF0ZSBhbmFsb2cgZ2FpbiAqLw0KPiA+PiA+ICtzdGF0aWMgaW50IG92
-MTM4NThfdXBkYXRlX2FuYWxvZ19nYWluKHN0cnVjdCBvdjEzODU4ICpvdjEzODU4LA0KPiA+PiA+
-ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgdjRsMl9jdHJsICpjdHJs
-KSB7DQo+ID4+ID4gKyAgIHJldHVybiBvdjEzODU4X3dyaXRlX3JlZyhvdjEzODU4LCBPVjEzODU4
-X1JFR19BTkFMT0dfR0FJTiwNCj4gPj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgIE9W
-MTM4NThfUkVHX1ZBTFVFXzE2QklULCBjdHJsLT52YWwpOw0KPiA+Pg0KPiA+PiBJIHRoaW5rIEkn
-ZCBtb3ZlIHdoYXQgdGhlIGZvdXIgYWJvdmUgZnVuY3Rpb25zIGRvIHRvIG92MTM4NThfc2V0X2N0
-cmwoKSB1bmxlc3MgdGhleSdyZSB1c2VkIGluIG1vcmUgdGhhbiBvbmUgbG9jYXRpb24uDQo+ID4N
-Cj4gPiBXaHkgPyBQZXJzb25hbGx5IEkgbGlrZSB0aGlzLiBTaW5jZSB0aGVyZSAgd291bGRuJ3Qg
-YmUgYW55IGRpZmZlcmVuY2UgaW4gZ2VuZXJhdGVkIG1hY2hpbmUgY29kZSwgSSB3YW50IHRvIGtl
-ZXAgdGhpcyBpZiB0aGVyZSdzIG5vIHN0cmljdCBydWxlIG9uIHRoaXMuDQo+IA0KPiBQZXJzb25h
-bGx5IEkgd291bGRuJ3QgcHJvYmFibHkgY2FyZSBhYm91dCB0aGlzLCBidXQgSSBzZWUgb25lIGFk
-dmFudGFnZSBvZiBTYWthcmkncyBzdWdnZXN0aW9uLg0KPiANCj4gTmFtZWx5LCBpdCBpbXByb3Zl
-cyBjb2RlIHJlYWRhYmlsaXR5LCBiZWNhdXNlIHRoZXJlIGlzIGxlc3MgaW5kaXJlY3Rpb24gYW5k
-IHRoZSBwZXJzb24gcmVhZGluZyBvdjEzODU4X3NldF9jdHJsKCkgaW5zdGFudGx5IGtub3dzIHRo
-YXQgYWxsIGl0IGRvZXMgaXMgZGlyZWN0bHkgd3JpdGluZyB0aGUgY29udHJvbCB2YWx1ZSB0byBo
-YXJkd2FyZSByZWdpc3RlcnMuIE90aGVyd2lzZSwgd2l0aCB0aGUgaW5kaXJlY3Rpb24gaW4gY3Vy
-cmVudCB2ZXJzaW9uLCB1bnRpbCB5b3UgcmVhZCBvdjEzODU4X3VwZGF0ZV9hbmFsb2dfZ2Fpbigp
-IChvciBzdWNoKSwgeW91IGRvbid0IGtub3cgd2hldGhlciBpdCBkb2VzIHNvbWUgZXh0cmEgcHJv
-Y2Vzc2luZywgcG93ZXIgbWFuYWdlbWVudCBvciB3aGF0bm90Lg0KPiANCj4gSWYgb3YxMzg1OF91
-cGRhdGVfYW5hbG9nX2dhaW4oKSBkaWQgbW9yZSB0aGFuIGp1c3QgYSBzaW1wbGUgcmVnaXN0ZXIg
-d3JpdGUsIGl0IHdvdWxkIGluZGVlZCBtYWtlIHNlbnNlIHRvIHNlcGFyYXRlIGl0LCBhcyBpdCdz
-IGludHVpdGl2ZSB0aGF0IGEgc2VwYXJhdGUgZnVuY3Rpb24gbWVhbnMgc29tZSBtb3JlIGNvbXBs
-aWNhdGVkIHdvcmsuIChBbmQgdmljZSB2ZXJzYSwgaXQncyBjb3VudGVyLWludHVpdGl2ZSB0byBo
-YXZlIGEgZnVuY3Rpb24gdGhhdCBpcyBvbmx5IHRoZXJlIHRvIGNhbGwgYSByZWdpc3RlciBhY2Nl
-c3Nvci4pDQo+IA0KDQpUaGlzIGlzIG15IGhhYml0IGZvciBwZW9wbGUgd2hvIGRvZXNuJ3QgaGF2
-ZSBkYXRhc2hlZXQgZm9yIGgvdyBvciBwZW9wbGUgd2hvIGRvZXNuJ3QgbmVlZCh3YW50KSB0byBr
-bm93IGFib3V0IGRldGFpbC4gWWVhaCwgbXkgaGFiaXQgaXMgZXNwZWNpYWxseSBmb3IgdGhvc2Ug
-aC93IHdoaWNoIGhhdmUgbWFueSBiaXQtZmllbGRzIGluIGEgcmVnaXN0ZXIgYW5kIEkgYmVsaWV2
-ZSB0aGlzIGtpbmQgb2Ygc2VwYXJhdGlvbiBoZWxwcyB0aGVzZSBwZW9wbGUuIEkga25vdyB0aGUg
-cmVnaXN0ZXJzIGluIHRoaXMgc2Vuc29yIGlzIHZlcnkgbXVjaCBzdHJhaWdodGZvcndhcmQuDQoN
-Cj4gPg0KPiA+Pg0KPiA+PiA+ICt9DQo+ID4+ID4gKw0KPiA+PiA+ICtzdGF0aWMgaW50IG92MTM4
-NThfc2V0X2N0cmwoc3RydWN0IHY0bDJfY3RybCAqY3RybCkgew0KPiA+PiA+ICsgICBzdHJ1Y3Qg
-b3YxMzg1OCAqb3YxMzg1OCA9IGNvbnRhaW5lcl9vZihjdHJsLT5oYW5kbGVyLA0KPiA+PiA+ICsg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3Qgb3YxMzg1OCwg
-Y3RybF9oYW5kbGVyKTsNCj4gPj4gPiArICAgc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCA9IHY0
-bDJfZ2V0X3N1YmRldmRhdGEoJm92MTM4NTgtPnNkKTsNCj4gPj4gPiArICAgaW50IHJldDsNCj4g
-Pj4gPiArDQo+ID4+ID4gKyAgIC8qIFByb3BhZ2F0ZSBjaGFuZ2Ugb2YgY3VycmVudCBjb250cm9s
-IHRvIGFsbCByZWxhdGVkIGNvbnRyb2xzICovDQo+ID4+ID4gKyAgIHN3aXRjaCAoY3RybC0+aWQp
-IHsNCj4gPj4gPiArICAgY2FzZSBWNEwyX0NJRF9WQkxBTks6DQo+ID4+ID4gKyAgICAgICAgICAg
-b3YxMzg1OF91cGRhdGVfZXhwb3N1cmVfbGltaXRzKG92MTM4NTgpOw0KPiA+PiA+ICsgICAgICAg
-ICAgIGJyZWFrOw0KPiA+PiA+ICsgICB9Ow0KPiA+PiA+ICsNCj4gPj4gPiArICAgLyoNCj4gPj4g
-PiArICAgICogQXBwbHlpbmcgVjRMMiBjb250cm9sIHZhbHVlIG9ubHkgaGFwcGVucw0KPiA+PiA+
-ICsgICAgKiB3aGVuIHBvd2VyIGlzIHVwIGZvciBzdHJlYW1pbmcNCj4gPj4gPiArICAgICovDQo+
-ID4+ID4gKyAgIGlmIChwbV9ydW50aW1lX2dldF9pZl9pbl91c2UoJmNsaWVudC0+ZGV2KSA8PSAw
-KQ0KPiA+PiA+ICsgICAgICAgICAgIHJldHVybiAwOw0KPiA+PiA+ICsNCj4gPj4gPiArICAgcmV0
-ID0gMDsNCj4gPj4gPiArICAgc3dpdGNoIChjdHJsLT5pZCkgew0KPiA+PiA+ICsgICBjYXNlIFY0
-TDJfQ0lEX0FOQUxPR1VFX0dBSU46DQo+ID4+ID4gKyAgICAgICAgICAgcmV0ID0gb3YxMzg1OF91
-cGRhdGVfYW5hbG9nX2dhaW4ob3YxMzg1OCwgY3RybCk7DQo+ID4+ID4gKyAgICAgICAgICAgYnJl
-YWs7DQo+ID4+ID4gKyAgIGNhc2UgVjRMMl9DSURfRVhQT1NVUkU6DQo+ID4+ID4gKyAgICAgICAg
-ICAgcmV0ID0gb3YxMzg1OF91cGRhdGVfZXhwb3N1cmUob3YxMzg1OCwgY3RybCk7DQo+ID4+ID4g
-KyAgICAgICAgICAgYnJlYWs7DQo+ID4+ID4gKyAgIGNhc2UgVjRMMl9DSURfVkJMQU5LOg0KPiA+
-PiA+ICsgICAgICAgICAgIHJldCA9IG92MTM4NThfdXBkYXRlX3ZibGFuayhvdjEzODU4LCBjdHJs
-KTsNCj4gPj4gPiArICAgICAgICAgICBicmVhazsNCj4gPj4gPiArICAgZGVmYXVsdDoNCj4gPj4g
-PiArICAgICAgICAgICBkZXZfaW5mbygmY2xpZW50LT5kZXYsDQo+ID4+ID4gKyAgICAgICAgICAg
-ICAgICAgICAgImN0cmwoaWQ6MHgleCx2YWw6MHgleCkgaXMgbm90IGhhbmRsZWRcbiIsDQo+ID4+
-ID4gKyAgICAgICAgICAgICAgICAgICAgY3RybC0+aWQsIGN0cmwtPnZhbCk7DQo+ID4+ID4gKyAg
-ICAgICAgICAgYnJlYWs7DQo+ID4+ID4gKyAgIH07DQo+ID4+ID4gKw0KPiA+PiA+ICsgICBwbV9y
-dW50aW1lX3B1dCgmY2xpZW50LT5kZXYpOw0KPiA+PiA+ICsNCj4gPj4gPiArICAgcmV0dXJuIHJl
-dDsNCj4gPj4gPiArfQ0KPiA+PiA+ICsNCj4gPiAgICAgICAgICAgICAgICAgOg0KPiA+ICAgICAg
-ICAgICAgICAgICA6DQo+ID4+ID4gKy8qDQo+ID4+ID4gKyAqIFByZXBhcmUgc3RyZWFtaW5nIGJ5
-IHdyaXRpbmcgZGVmYXVsdCB2YWx1ZXMgYW5kIGN1c3RvbWl6ZWQgdmFsdWVzLg0KPiA+PiA+ICsg
-KiBUaGlzIHNob3VsZCBiZSBjYWxsZWQgd2l0aCBvdjEzODU4LT5tdXRleCBhY3F1aXJlZC4NCj4g
-Pj4gPiArICovDQo+ID4+ID4gK3N0YXRpYyBpbnQgb3YxMzg1OF9wcmVwYXJlX3N0cmVhbWluZyhz
-dHJ1Y3Qgb3YxMzg1OCAqb3YxMzg1OCkgew0KPiA+PiA+ICsgICBzdHJ1Y3QgaTJjX2NsaWVudCAq
-Y2xpZW50ID0gdjRsMl9nZXRfc3ViZGV2ZGF0YSgmb3YxMzg1OC0+c2QpOw0KPiA+PiA+ICsgICBj
-b25zdCBzdHJ1Y3Qgb3YxMzg1OF9yZWdfbGlzdCAqcmVnX2xpc3Q7DQo+ID4+ID4gKyAgIGludCBy
-ZXQsIGxpbmtfZnJlcV9pbmRleDsNCj4gPj4gPiArDQo+ID4+ID4gKyAgIC8qIEdldCBvdXQgb2Yg
-ZnJvbSBzb2Z0d2FyZSByZXNldCAqLw0KPiA+PiA+ICsgICByZXQgPSBvdjEzODU4X3dyaXRlX3Jl
-ZyhvdjEzODU4LCBPVjEzODU4X1JFR19TT0ZUV0FSRV9SU1QsDQo+ID4+ID4gKyAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIE9WMTM4NThfUkVHX1ZBTFVFXzA4QklULCBPVjEzODU4X1NPRlRXQVJF
-X1JTVCk7DQo+ID4+ID4gKyAgIGlmIChyZXQpIHsNCj4gPj4gPiArICAgICAgICAgICBkZXZfZXJy
-KCZjbGllbnQtPmRldiwgIiVzIGZhaWxlZCB0byBzZXQgcG93ZXJ1cCByZWdpc3RlcnNcbiIsDQo+
-ID4+ID4gKyAgICAgICAgICAgICAgICAgICBfX2Z1bmNfXyk7DQo+ID4+ID4gKyAgICAgICAgICAg
-cmV0dXJuIHJldDsNCj4gPj4gPiArICAgfQ0KPiA+PiA+ICsNCj4gPj4gPiArICAgLyogU2V0dXAg
-UExMICovDQo+ID4+ID4gKyAgIGxpbmtfZnJlcV9pbmRleCA9IG92MTM4NTgtPmN1cl9tb2RlLT5s
-aW5rX2ZyZXFfaW5kZXg7DQo+ID4+ID4gKyAgIHJlZ19saXN0ID0gJmxpbmtfZnJlcV9jb25maWdz
-W2xpbmtfZnJlcV9pbmRleF0ucmVnX2xpc3Q7DQo+ID4+ID4gKyAgIHJldCA9IG92MTM4NThfd3Jp
-dGVfcmVnX2xpc3Qob3YxMzg1OCwgcmVnX2xpc3QpOw0KPiA+PiA+ICsgICBpZiAocmV0KSB7DQo+
-ID4+ID4gKyAgICAgICAgICAgZGV2X2VycigmY2xpZW50LT5kZXYsICIlcyBmYWlsZWQgdG8gc2V0
-IHBsbHNcbiIsIF9fZnVuY19fKTsNCj4gPj4gPiArICAgICAgICAgICByZXR1cm4gcmV0Ow0KPiA+
-PiA+ICsgICB9DQo+ID4+ID4gKw0KPiA+PiA+ICsgICAvKiBBcHBseSBkZWZhdWx0IHZhbHVlcyBv
-ZiBjdXJyZW50IG1vZGUgKi8NCj4gPj4gPiArICAgcmVnX2xpc3QgPSAmb3YxMzg1OC0+Y3VyX21v
-ZGUtPnJlZ19saXN0Ow0KPiA+PiA+ICsgICByZXQgPSBvdjEzODU4X3dyaXRlX3JlZ19saXN0KG92
-MTM4NTgsIHJlZ19saXN0KTsNCj4gPj4gPiArICAgaWYgKHJldCkgew0KPiA+PiA+ICsgICAgICAg
-ICAgIGRldl9lcnIoJmNsaWVudC0+ZGV2LCAiJXMgZmFpbGVkIHRvIHNldCBtb2RlXG4iLCBfX2Z1
-bmNfXyk7DQo+ID4+ID4gKyAgICAgICAgICAgcmV0dXJuIHJldDsNCj4gPj4gPiArICAgfQ0KPiA+
-PiA+ICsNCj4gPj4gPiArICAgLyogQXBwbHkgY3VzdG9taXplZCB2YWx1ZXMgZnJvbSB1c2VyICov
-DQo+ID4+ID4gKyAgIHJldHVybiBfX3Y0bDJfY3RybF9oYW5kbGVyX3NldHVwKG92MTM4NTgtPnNk
-LmN0cmxfaGFuZGxlcik7DQo+ID4+ID4gK30NCj4gPj4gPiArDQo+ID4+ID4gKy8qIFN0YXJ0IHN0
-cmVhbWluZyAqLw0KPiA+PiA+ICtzdGF0aWMgaW50IG92MTM4NThfc3RhcnRfc3RyZWFtaW5nKHN0
-cnVjdCBvdjEzODU4ICpvdjEzODU4KSB7DQo+ID4+ID4gKyAgIGludCByZXQ7DQo+ID4+ID4gKw0K
-PiA+PiA+ICsgICAvKiBXcml0ZSBkZWZhdWx0ICYgY3VzdG9taXplZCB2YWx1ZXMgKi8NCj4gPj4g
-PiArICAgcmV0ID0gb3YxMzg1OF9wcmVwYXJlX3N0cmVhbWluZyhvdjEzODU4KTsNCj4gPj4NCj4g
-Pj4gQ291bGQgeW91IG1lcmdlIHRoaXMgd2l0aCBvdjEzODU4X3ByZXBhcmVfc3RyZWFtaW5nKCk/
-DQo+ID4+DQo+ID4NCj4gPiBXaHkgPyBJIHdhbnQgdG8ga2VlcCB0aGlzLiBJZiB5b3Ugd2FudCB0
-byB3b3JyeSBhYm91dCAxIG1vcmUganVtcCB0aGVuLCBpZiBpdCBpcyByZWFsbHkgdGhlcmUsIEkg
-Y2FuIG1ha2UgdGhpcyBmdW5jdGlvbiAiaW5saW5lIg0KPiANCj4gSSBkb3VidCBpdCdzIGFib3V0
-IHRoZSBudW1iZXIgb2YganVtcHMuIFRoZSBzYW1lIGFyZ3VtZW50IG9mIGNvZGUgcmVhZGFiaWxp
-dHkgYXMgSSBtZW50aW9uZWQgYWJvdmUgYXBwbGllcyBoZXJlIGFzIHdlbGwuIEkgc2VlIG5vIHBv
-aW50IGluIGhhdmluZyBvdjEzODU4X3N0YXJ0X3N0cmVhbWluZygpIHNlcGFyYXRlIGlmIGFsbCBp
-dCBkb2VzIG9uIHRvcCBvZg0KPiBvdjEzODU4X3ByZXBhcmVfc3RyZWFtaW5nKCkgaXMgYSByZWdp
-c3RlciB3cml0ZSwgaXQgaXMgY291bnRlci1pbnR1aXRpdmUgZm9yIHJlYWRlcnMgb2YgdGhlIGNv
-ZGUuDQoNCkhlcmUsIGl0J3MgdGhlIHNhbWUuIEkgYmVsaWV2ZSB0aGlzIGtpbmQgb2YgY29kZSB2
-ZXJ5IG11Y2ggcmVhZGFibGUgZm9yIHBlb3BsZSB3aG8gZG9lc24ndCBoYXZlIG11Y2ggZXhwZXJp
-ZW5jZXMob3IgZHVtbWllcyBsaWtlIG1lKSBhbmQgd2hvIGp1c3Qgd2FudHMgdG8ga25vdyBjb250
-cm9sIGZsb3cobm90IGRldGFpbCBhYm91dCBoL3cpLg0KDQo+IA0KPiBCZXN0IHJlZ2FyZHMsDQo+
-IFRvbWFzeg0K
+W dniu 18.05.2017 o 16:06, Mauro Carvalho Chehab pisze:
+> Gcc 7.1 complains about:
+> 
+> drivers/media/platform/s5p-jpeg/jpeg-core.c: In function 's5p_jpeg_parse_hdr.isra.9':
+> drivers/media/platform/s5p-jpeg/jpeg-core.c:1207:12: warning: 'width' may be used uninitialized in this function [-Wmaybe-uninitialized]
+>    result->w = width;
+>    ~~~~~~~~~~^~~~~~~
+> drivers/media/platform/s5p-jpeg/jpeg-core.c:1208:12: warning: 'height' may be used uninitialized in this function [-Wmaybe-uninitialized]
+>    result->h = height;
+>    ~~~~~~~~~~^~~~~~~~
+> 
+> Indeed the code would allow it to return a random value (although
+> it shouldn't happen, in practice). So, explicitly set both to zero,
+> just in case.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+
+Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+
+
+
+> ---
+>   drivers/media/platform/s5p-jpeg/jpeg-core.c | 8 ++++----
+>   1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> index 52dc7941db65..1da2c94e1dca 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> @@ -1099,10 +1099,10 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
+>   			       struct s5p_jpeg_ctx *ctx)
+>   {
+>   	int c, components = 0, notfound, n_dht = 0, n_dqt = 0;
+> -	unsigned int height, width, word, subsampling = 0, sos = 0, sof = 0,
+> -		     sof_len = 0;
+> -	unsigned int dht[S5P_JPEG_MAX_MARKER], dht_len[S5P_JPEG_MAX_MARKER],
+> -		     dqt[S5P_JPEG_MAX_MARKER], dqt_len[S5P_JPEG_MAX_MARKER];
+> +	unsigned int height = 0, width = 0, word, subsampling = 0;
+> +	unsigned int sos = 0, sof = 0, sof_len = 0;
+> +	unsigned int dht[S5P_JPEG_MAX_MARKER], dht_len[S5P_JPEG_MAX_MARKER];
+> +	unsigned int dqt[S5P_JPEG_MAX_MARKER], dqt_len[S5P_JPEG_MAX_MARKER];
+>   	long length;
+>   	struct s5p_jpeg_buffer jpeg_buffer;
+>   
+> 
