@@ -1,84 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:47160 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751100AbdEaOUB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 10:20:01 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id C1A2320A70
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 17:18:43 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/3] vb2: Move buffer cache synchronisation to prepare from queue
-Date: Wed, 31 May 2017 17:17:26 +0300
-Message-Id: <1496240247-25936-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1496240247-25936-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1496240247-25936-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46438
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750728AbdESMKO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 May 2017 08:10:14 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 4/6] [media] soc_camera: annotate a switch fall through
+Date: Fri, 19 May 2017 09:10:02 -0300
+Message-Id: <d0994fe9ba22895e56b943ff3f03f2b39fcaa397.1495195712.git.mchehab@s-opensource.com>
+In-Reply-To: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
+References: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
+In-Reply-To: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
+References: <4c9ef4f150589478ac0b26bc7db1216c0af207fb.1495195712.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The buffer cache should be synchronised in buffer preparation, not when
-the buffer is queued to the device. Fix this.
+Clearly, hsync and vsinc bool vars are part of the return
+logic on the second case of the switch. Annotate that, in
+order to shut up gcc warnings.
 
-Mmap buffers do not need cache synchronisation since they are always
-coherent.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ drivers/media/platform/soc_camera/soc_mediabus.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 9f3ce3b..3107e21 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1227,23 +1227,19 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
- static void __enqueue_in_driver(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
--	unsigned int plane;
- 
- 	vb->state = VB2_BUF_STATE_ACTIVE;
- 	atomic_inc(&q->owned_by_drv_count);
- 
- 	trace_vb2_buf_queue(q, vb);
- 
--	/* sync buffers */
--	for (plane = 0; plane < vb->num_planes; ++plane)
--		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
--
- 	call_void_vb_qop(vb, buf_queue, vb);
- }
- 
- static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
-+	unsigned int plane;
- 	int ret;
- 
- 	if (q->error) {
-@@ -1268,11 +1264,19 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
- 		ret = -EINVAL;
- 	}
- 
--	if (ret)
-+	if (ret) {
- 		dprintk(1, "buffer preparation failed: %d\n", ret);
--	vb->state = ret ? VB2_BUF_STATE_DEQUEUED : VB2_BUF_STATE_PREPARED;
-+		vb->state = VB2_BUF_STATE_DEQUEUED;
-+		return ret;
-+	}
- 
--	return ret;
-+	/* sync buffers */
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
-+
-+	vb->state = VB2_BUF_STATE_PREPARED;
-+
-+	return 0;
- }
- 
- int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
+diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/drivers/media/platform/soc_camera/soc_mediabus.c
+index e3e665e1c503..57581f626f4c 100644
+--- a/drivers/media/platform/soc_camera/soc_mediabus.c
++++ b/drivers/media/platform/soc_camera/soc_mediabus.c
+@@ -494,6 +494,7 @@ unsigned int soc_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
+ 					V4L2_MBUS_HSYNC_ACTIVE_LOW);
+ 		vsync = common_flags & (V4L2_MBUS_VSYNC_ACTIVE_HIGH |
+ 					V4L2_MBUS_VSYNC_ACTIVE_LOW);
++		/* fall through */
+ 	case V4L2_MBUS_BT656:
+ 		pclk = common_flags & (V4L2_MBUS_PCLK_SAMPLE_RISING |
+ 				       V4L2_MBUS_PCLK_SAMPLE_FALLING);
 -- 
-2.7.4
+2.9.3
