@@ -1,96 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:46759 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1765677AbdEXARA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 May 2017 20:17:00 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2 06/17] rcar-vin: refactor pad lookup code
-Date: Wed, 24 May 2017 02:15:29 +0200
-Message-Id: <20170524001540.13613-7-niklas.soderlund@ragnatech.se>
-In-Reply-To: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
-References: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mx2.suse.de ([195.135.220.15]:38197 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1756771AbdEUUKB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 May 2017 16:10:01 -0400
+From: Takashi Iwai <tiwai@suse.de>
+To: alsa-devel@alsa-project.org
+Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
+        Mark Brown <broonie@kernel.org>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 10/16] ALSA: hdsp: Convert to copy_silence ops
+Date: Sun, 21 May 2017 22:09:44 +0200
+Message-Id: <20170521200950.4592-11-tiwai@suse.de>
+In-Reply-To: <20170521200950.4592-1-tiwai@suse.de>
+References: <20170521200950.4592-1-tiwai@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Replace the copy and the silence ops with the new merged ops.
+The conversion is straightforward with standard helper functions.
 
-The pad lookup code can be broken out to increase readability and to
-reduce code duplication.
-
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 36 +++++++++++++++++------------
- 1 file changed, 21 insertions(+), 15 deletions(-)
+ sound/pci/rme9652/hdsp.c | 44 ++++++++++++++++++++------------------------
+ 1 file changed, 20 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 1a75191539b0e7d7..90ea582fb48e3cb5 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -870,11 +870,25 @@ static void rvin_notify(struct v4l2_subdev *sd,
- 	}
+diff --git a/sound/pci/rme9652/hdsp.c b/sound/pci/rme9652/hdsp.c
+index fc0face6cdc6..5325e91fc3a8 100644
+--- a/sound/pci/rme9652/hdsp.c
++++ b/sound/pci/rme9652/hdsp.c
+@@ -3913,8 +3913,10 @@ static char *hdsp_channel_buffer_location(struct hdsp *hdsp,
+ 		return hdsp->playback_buffer + (mapped_channel * HDSP_CHANNEL_BUFFER_BYTES);
  }
  
-+static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
-+{
-+	unsigned int pad;
-+
-+	if (sd->entity.num_pads <= 1)
-+		return 0;
-+
-+	for (pad = 0; pad < sd->entity.num_pads; pad++)
-+		if (sd->entity.pads[pad].flags & direction)
-+			return pad;
-+
-+	return -EINVAL;
-+}
-+
- int rvin_v4l2_probe(struct rvin_dev *vin)
+-static int snd_hdsp_playback_copy(struct snd_pcm_substream *substream, int channel,
+-				  snd_pcm_uframes_t pos, void __user *src, snd_pcm_uframes_t count)
++static int snd_hdsp_playback_copy(struct snd_pcm_substream *substream,
++				  int channel, snd_pcm_uframes_t pos,
++				  void __user *src, snd_pcm_uframes_t count,
++				  bool in_kernel)
  {
- 	struct video_device *vdev = &vin->vdev;
- 	struct v4l2_subdev *sd = vin_to_source(vin);
--	int pad_idx, ret;
-+	int ret;
+ 	struct hdsp *hdsp = snd_pcm_substream_chip(substream);
+ 	char *channel_buf;
+@@ -3925,13 +3927,19 @@ static int snd_hdsp_playback_copy(struct snd_pcm_substream *substream, int chann
+ 	channel_buf = hdsp_channel_buffer_location (hdsp, substream->pstr->stream, channel);
+ 	if (snd_BUG_ON(!channel_buf))
+ 		return -EIO;
+-	if (copy_from_user(channel_buf + pos * 4, src, count * 4))
++	if (!src)
++		memset(channel_buf + pos * 4, 0, count * 4);
++	else if (in_kernel)
++		memcpy(channel_buf + pos * 4, (void *)src, count * 4);
++	else if (copy_from_user(channel_buf + pos * 4, src, count * 4))
+ 		return -EFAULT;
+-	return count;
++	return 0;
+ }
  
- 	v4l2_set_subdev_hostdata(sd, vin);
- 
-@@ -920,21 +934,13 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
- 		V4L2_CAP_READWRITE;
- 
--	vin->digital.source_pad = 0;
--	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
--		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
--			break;
--	if (pad_idx >= sd->entity.num_pads)
--		return -EINVAL;
+-static int snd_hdsp_capture_copy(struct snd_pcm_substream *substream, int channel,
+-				 snd_pcm_uframes_t pos, void __user *dst, snd_pcm_uframes_t count)
++static int snd_hdsp_capture_copy(struct snd_pcm_substream *substream,
++				 int channel, snd_pcm_uframes_t pos,
++				 void __user *dst, snd_pcm_uframes_t count,
++				 bool in_kernel)
+ {
+ 	struct hdsp *hdsp = snd_pcm_substream_chip(substream);
+ 	char *channel_buf;
+@@ -3942,22 +3950,11 @@ static int snd_hdsp_capture_copy(struct snd_pcm_substream *substream, int channe
+ 	channel_buf = hdsp_channel_buffer_location (hdsp, substream->pstr->stream, channel);
+ 	if (snd_BUG_ON(!channel_buf))
+ 		return -EIO;
+-	if (copy_to_user(dst, channel_buf + pos * 4, count * 4))
++	if (in_kernel)
++		memcpy((void *)dst, channel_buf + pos * 4, count * 4);
++	else if (copy_to_user(dst, channel_buf + pos * 4, count * 4))
+ 		return -EFAULT;
+-	return count;
+-}
 -
--	vin->digital.source_pad = pad_idx;
-+	ret = rvin_find_pad(sd, MEDIA_PAD_FL_SOURCE);
-+	if (ret < 0)
-+		return ret;
-+	vin->digital.source_pad = ret;
+-static int snd_hdsp_hw_silence(struct snd_pcm_substream *substream, int channel,
+-				  snd_pcm_uframes_t pos, snd_pcm_uframes_t count)
+-{
+-	struct hdsp *hdsp = snd_pcm_substream_chip(substream);
+-	char *channel_buf;
+-
+-	channel_buf = hdsp_channel_buffer_location (hdsp, substream->pstr->stream, channel);
+-	if (snd_BUG_ON(!channel_buf))
+-		return -EIO;
+-	memset(channel_buf + pos * 4, 0, count * 4);
+-	return count;
++	return 0;
+ }
  
--	vin->digital.sink_pad = 0;
--	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
--		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
--			vin->digital.sink_pad = pad_idx;
--			break;
--		}
-+	ret = rvin_find_pad(sd, MEDIA_PAD_FL_SINK);
-+	vin->digital.sink_pad = ret < 0 ? 0 : ret;
+ static int snd_hdsp_reset(struct snd_pcm_substream *substream)
+@@ -4869,8 +4866,7 @@ static const struct snd_pcm_ops snd_hdsp_playback_ops = {
+ 	.prepare =	snd_hdsp_prepare,
+ 	.trigger =	snd_hdsp_trigger,
+ 	.pointer =	snd_hdsp_hw_pointer,
+-	.copy =		snd_hdsp_playback_copy,
+-	.silence =	snd_hdsp_hw_silence,
++	.copy_silence =	snd_hdsp_playback_copy,
+ };
  
- 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
- 	rvin_reset_format(vin);
+ static const struct snd_pcm_ops snd_hdsp_capture_ops = {
+@@ -4881,7 +4877,7 @@ static const struct snd_pcm_ops snd_hdsp_capture_ops = {
+ 	.prepare =	snd_hdsp_prepare,
+ 	.trigger =	snd_hdsp_trigger,
+ 	.pointer =	snd_hdsp_hw_pointer,
+-	.copy =		snd_hdsp_capture_copy,
++	.copy_silence =	snd_hdsp_capture_copy,
+ };
+ 
+ static int snd_hdsp_create_hwdep(struct snd_card *card, struct hdsp *hdsp)
 -- 
 2.13.0
