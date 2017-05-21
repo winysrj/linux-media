@@ -1,99 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oln040092065053.outbound.protection.outlook.com ([40.92.65.53]:14208
-        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+Received: from mx2.suse.de ([195.135.220.15]:38193 "EHLO mx1.suse.de"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750952AbdE0Pii (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 27 May 2017 11:38:38 -0400
-From: Christian Steiner <christian.steiner@outlook.de>
-To: Olli Salonen <olli.salonen@iki.fi>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "brad@nextdimension.cc" <brad@nextdimension.cc>
-Subject: Re: Fwd: [PATCH] em28xx: add support for Hauppauge WinTV-dualHD DVB
- tuner
-Date: Sat, 27 May 2017 15:38:35 +0000
-Message-ID: <VI1P194MB004719DAD98521F900F5D11191FD0@VI1P194MB0047.EURP194.PROD.OUTLOOK.COM>
-References: <1459782772-21451-1-git-send-email-olli.salonen@iki.fi>
- <570A6FED.4090700@outlook.de>
- <CAAZRmGy1=8UXe0WqpucCt0qUfZQS+NHsHYmAq3yKu_pxK38yTw@mail.gmail.com>
- <CAAZRmGzXcHz21m4yL4rFOpippzLq07nYsenwTvUgqkhbRJ8X4w@mail.gmail.com>
-In-Reply-To: <CAAZRmGzXcHz21m4yL4rFOpippzLq07nYsenwTvUgqkhbRJ8X4w@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <DA56F9EEE7AF0746A9723497192721A1@EURP194.PROD.OUTLOOK.COM>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        id S1756933AbdEUUKC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 May 2017 16:10:02 -0400
+From: Takashi Iwai <tiwai@suse.de>
+To: alsa-devel@alsa-project.org
+Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
+        Mark Brown <broonie@kernel.org>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 14/16] ASoC: blackfin: Convert to copy_silence ops
+Date: Sun, 21 May 2017 22:09:48 +0200
+Message-Id: <20170521200950.4592-15-tiwai@suse.de>
+In-Reply-To: <20170521200950.4592-1-tiwai@suse.de>
+References: <20170521200950.4592-1-tiwai@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGVsbG8sDQoNCkkgaGF2ZSBmb3VuZCBwYXRjaGVzIHRoYXQgYWRkIHN1cHBvcnQgZm9yIHRoZSBz
-ZWNvbmQgdHVuZXI6DQpodHRwczovL2dpdGh1Yi5jb20vYi1yYWQtTkRpL1VidW50dS1tZWRpYS10
-cmVlLWtlcm5lbC1idWlsZGVyL3RyZWUvbWFzdGVyL3BhdGNoZXMvdWJ1bnR1LXplc3R5LTQuMTAu
-MC9leHRyYQ0KDQpJIGNhbiBjb25maXJtIHRoYXQgdGhleSBhbHNvIHdvcmsgd2l0aCB0aGUgbGF0
-ZXN0IGtlcm5lbCAoNC4xMi4wLXJjMikuDQpXb3VsZCBpdCBiZSBwb3NzaWJsZSB0byBpbnRlZ3Jh
-dGUgdGhlc2UgcGF0Y2hlcyBpbnRvIG1haW5saW5lPw0KQXBwbHlpbmcgMDAwNi1IYXVwcGF1Z2Ut
-V2luVFYtRHVhbEhELURWQi1BVFNDLXNlY29uZC10dW5lci1zdXBwb3J0LnBhdGNoDQppcyBzdWZm
-aWNpZW50IGZvciB0aGUgc2Vjb25kIHR1bmVyIHRvIGFwcGVhciwgYnV0IEkgZ3Vlc3Mgd2Ugc2hv
-dWxkDQppbmNsdWRlIGFsbCBwYXRjaGVzLg0KDQpCZXN0IHJlZ2FyZHMsDQpDaHJpc3RpYW4NCg0K
-DQpPbiAxMS4wNC4yMDE2IDExOjE0LCBPbGxpIFNhbG9uZW4gd3JvdGU6DQo+IEhpIENocmlzdGlh
-biwNCj4gDQo+IFRoYW5rcyBmb3IgcmVwb3J0aW5nIGJhY2sgeW91ciBleHBlcmllbmNlLiBDZXJ0
-YWlubHkgdGhlcmUncyBhIGNoYW5jZQ0KPiBvZiBzdXBwb3J0aW5nIHRoZSBzZWNvbmQgdHVuZXIg
-dG9vLiBUaGVyZSBhcmUgc3RpbGwgdHdvIGlzc3VlcyB0aGF0IEkNCj4gaGF2ZSBub3Qgc29sdmVk
-Og0KPiANCj4gMS4gSSBoYXZlbid0IGdvdHRlbiB0aGUgMm5kIHR1bmVyIHdvcmtpbmcgeWV0IChh
-bG9uZSwgd2l0aG91dCB0aGUNCj4gZmlyc3QgdHVuZXIpLCBldmVuIGlmIEkgdGhpbmsgYWxsIHRo
-ZSBwaWVjZXMgb2YgdGhlIHB1enpsZSBhcmUgdGhlcmUuDQo+IDIuIGVtMjh4eCBkcml2ZXIgaXMg
-YnVpbHQgd2l0aCBvbmUgdHVuZXIgaW4gbWluZCBhbmQgbmVlZHMgc2lnbmlmaWNhbnQNCj4gc3Ry
-dWN0dXJhbCBjaGFuZ2VzLiBJZiB0aGVyZSdzIGFueW9uZSB2ZXJ5IGZhbWlsaWFyIHdpdGggdGhl
-IGVtMjh4eA0KPiBkcml2ZXIgaGVyZSwgSSdkIGJlIGhhcHB5IHRvIGhlYXIgeW91ciBpZGVhIG9m
-IHdoYXQgaXMgZW50YWlsZWQgZm9yDQo+IHRoaXMuDQo+IA0KPiBDaGVlcnMsDQo+IC1vbGxpDQo+
-IA0KPiBPbiAxMCBBcHJpbCAyMDE2IGF0IDE4OjIzLCBDaHJpc3RpYW4gU3RlaW5lcg0KPiA8Y2hy
-aXN0aWFuLnN0ZWluZXJAb3V0bG9vay5kZT4gd3JvdGU6DQo+Pg0KPj4gT24gMDQuMDQuMjAxNiAx
-NzoxMiwgT2xsaSBTYWxvbmVuIHdyb3RlOg0KPj4+IEhhdXBwYXVnZSBXaW5UVi1kdWFsSEQgaXMg
-YSBVU0IgMi4wIGR1YWwgRFZCLVQvVDIvQyB0dW5lciB3aXRoDQo+Pj4gZm9sbG93aW5nIGNvbXBv
-bmVudHM6DQo+Pj4NCj4+PiBVU0IgYnJpZGdlOiBFbXBpYSBFTTI4Mjc0IChjaGlwIGlkIGlzIHRo
-ZSBzYW1lIGFzIEVNMjgxNzQpDQo+Pj4gRGVtb2R1bGF0b3I6IDJ4IFNpbGljb24gTGFicyBTaTIx
-NjgtQjQwDQo+Pj4gVHVuZXI6IDJ4IFNpbGljb24gTGFicyBTaTIxNTctQTMwDQo+Pj4NCj4+PiBU
-aGlzIHBhdGNoIGFkZHMgc3VwcG9ydCBvbmx5IGZvciB0aGUgZmlyc3QgdHVuZXIuDQo+Pj4NCj4+
-PiBbLi4uXQ0KPj4NCj4+IFRoYW5rIHlvdSB2ZXJ5IG11Y2ghDQo+PiBXb3JrcyBmaW5lIGZvciBt
-ZToNCj4+DQo+Pj4gWyAgNDE5LjQxMzE4OF0gZW0yOHh4OiBOZXcgZGV2aWNlIEhDVyBkdWFsSEQg
-QCA0ODAgTWJwcyAoMjA0MDowMjY1LCBpbnRlcmZhY2UgMCwgY2xhc3MgMCkNCj4+PiBbICA0MTku
-NDEzMTk1XSBlbTI4eHg6IERWQiBpbnRlcmZhY2UgMCBmb3VuZDogaXNvYw0KPj4+IFsgIDQxOS40
-MTMyNjVdIGVtMjh4eDogY2hpcCBJRCBpcyBlbTI4MTc0DQo+Pj4gWyAgNDIwLjUyOTYxOV0gZW0y
-ODE3NCAjMDogRUVQUk9NIElEID0gMjYgMDAgMDEgMDAsIEVFUFJPTSBoYXNoID0gMHg3YWRkYzFj
-OA0KPj4+IFsgIDQyMC41Mjk2MjZdIGVtMjgxNzQgIzA6IEVFUFJPTSBpbmZvOg0KPj4+IFsgIDQy
-MC41Mjk2MzBdIGVtMjgxNzQgIzA6ICAgICAgbWljcm9jb2RlIHN0YXJ0IGFkZHJlc3MgPSAweDAw
-MDQsIGJvb3QgY29uZmlndXJhdGlvbiA9IDB4MDENCj4+PiBbICA0MjAuNTM2MDc3XSBlbTI4MTc0
-ICMwOiAgICAgIEFDOTcgYXVkaW8gKDUgc2FtcGxlIHJhdGVzKQ0KPj4+IFsgIDQyMC41MzYwODRd
-IGVtMjgxNzQgIzA6ICAgICAgNTAwbUEgbWF4IHBvd2VyDQo+Pj4gWyAgNDIwLjUzNjA4OV0gZW0y
-ODE3NCAjMDogICAgICBUYWJsZSBhdCBvZmZzZXQgMHgyNywgc3RyaW5ncz0weDBlNmEsIDB4MTg4
-OCwgMHgwODdlDQo+Pj4gWyAgNDIwLjUzNjE4OF0gZW0yODE3NCAjMDogSWRlbnRpZmllZCBhcyBI
-YXVwcGF1Z2UgV2luVFYtZHVhbEhEIERWQiAoY2FyZD05OCkNCj4+PiBbICA0MjAuNTM3OTc0XSB0
-dmVlcHJvbSA4LTAwNTA6IEhhdXBwYXVnZSBtb2RlbCAyMDQxMDksIHJldiBCMkk2LCBzZXJpYWwj
-IDExWFhYWFhYDQo+Pj4gWyAgNDIwLjUzNzk4MV0gdHZlZXByb20gOC0wMDUwOiB0dW5lciBtb2Rl
-bCBpcyBTaUxhYnMgU2kyMTU3IChpZHggMTg2LCB0eXBlIDQpDQo+Pj4gWyAgNDIwLjUzNzk4Nl0g
-dHZlZXByb20gOC0wMDUwOiBUViBzdGFuZGFyZHMgUEFMKEIvRykgTlRTQyhNKSBQQUwoSSkgU0VD
-QU0oTC9MJykgUEFMKEQvRDEvSykgQVRTQy9EVkIgRGlnaXRhbCAoZWVwcm9tIDB4ZmMpDQo+Pj4g
-WyAgNDIwLjUzNzk4OV0gdHZlZXByb20gOC0wMDUwOiBhdWRpbyBwcm9jZXNzb3IgaXMgTm9uZSAo
-aWR4IDApDQo+Pj4gWyAgNDIwLjUzNzk5M10gdHZlZXByb20gOC0wMDUwOiBoYXMgbm8gcmFkaW8s
-IGhhcyBJUiByZWNlaXZlciwgaGFzIG5vIElSIHRyYW5zbWl0dGVyDQo+Pj4gWyAgNDIwLjUzNzk5
-N10gZW0yODE3NCAjMDogZHZiIHNldCB0byBpc29jIG1vZGUuDQo+Pj4gWyAgNDIwLjUzODA1Nl0g
-dXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBlbTI4eHgNCj4+PiBbICA0
-MjAuNTQxMDg3XSBlbTI4MTc0ICMwOiBCaW5kaW5nIERWQiBleHRlbnNpb24NCj4+PiBbICA0MjAu
-NTQ0MDA4XSBpMmMgaTJjLTg6IEFkZGVkIG11bHRpcGxleGVkIGkyYyBidXMgOQ0KPj4+IFsgIDQy
-MC41NDQwMTZdIHNpMjE2OCA4LTAwNjQ6IFNpbGljb24gTGFicyBTaTIxNjggc3VjY2Vzc2Z1bGx5
-IGF0dGFjaGVkDQo+Pj4gWyAgNDIwLjU0ODM3Ml0gc2kyMTU3IDktMDA2MDogU2lsaWNvbiBMYWJz
-IFNpMjE0Ny8yMTQ4LzIxNTcvMjE1OCBzdWNjZXNzZnVsbHkgYXR0YWNoZWQNCj4+PiBbICA0MjAu
-NTQ4Mzg5XSBEVkI6IHJlZ2lzdGVyaW5nIG5ldyBhZGFwdGVyIChlbTI4MTc0ICMwKQ0KPj4+IFsg
-IDQyMC41NDgzOTZdIHVzYiAyLTI6IERWQjogcmVnaXN0ZXJpbmcgYWRhcHRlciAwIGZyb250ZW5k
-IDAgKFNpbGljb24gTGFicyBTaTIxNjgpLi4uDQo+Pj4gWyAgNDIwLjU0OTczN10gZW0yODE3NCAj
-MDogRFZCIGV4dGVuc2lvbiBzdWNjZXNzZnVsbHkgaW5pdGlhbGl6ZWQNCj4+PiBbICA0MjAuNTQ5
-NzQzXSBlbTI4eHg6IFJlZ2lzdGVyZWQgKEVtMjh4eCBkdmIgRXh0ZW5zaW9uKSBleHRlbnNpb24N
-Cj4+PiBbICA0MzUuNDE4Nzk4XSBzaTIxNjggOC0wMDY0OiBmb3VuZCBhICdTaWxpY29uIExhYnMg
-U2kyMTY4LUI0MCcNCj4+PiBbICA0MzUuNDE4ODIzXSBzaTIxNjggOC0wMDY0OiBkb3dubG9hZGlu
-ZyBmaXJtd2FyZSBmcm9tIGZpbGUgJ2R2Yi1kZW1vZC1zaTIxNjgtYjQwLTAxLmZ3Jw0KPj4+IFsg
-IDQzNS42MTcxODFdIHNpMjE2OCA4LTAwNjQ6IGZpcm13YXJlIHZlcnNpb246IDQuMC4xMQ0KPj4+
-IFsgIDQzNS42MTk3OTFdIHNpMjE1NyA5LTAwNjA6IGZvdW5kIGEgJ1NpbGljb24gTGFicyBTaTIx
-NTctQTMwJw0KPj4+IFsgIDQzNS42NDIwMDZdIHNpMjE1NyA5LTAwNjA6IGZpcm13YXJlIHZlcnNp
-b246IDMuMC41DQo+Pg0KPj4gKEkgaGF2ZSByZXBsYWNlZCB0aGUgbGFzdCBkaWdpdHMgb2YgdGhl
-IHNlcmlhbCBudW1iZXIgd2l0aCBYKQ0KPj4NCj4+IElzIHRoZXJlIGFueSBjaGFuY2UgdG8gYWRk
-IHN1cHBvcnQgZm9yIHRoZSBzZWNvbmQgdHVuZXIsIHRvbz8NCj4+IFRoaXMgd291bGQgYmUgYXdl
-c29tZS4NCj4+DQo+PiBCZXN0LA0KPj4gQ2hyaXN0aWFuDQo+Pg0KDQo=
+Replace the copy and the silence ops with the new merged ops.
+The silence is performed only when CONFIG_SND_BF5XX_MMAP_SUPPORT is
+set (since copy_silence ops is set only with this config), so in
+bf5xx-ac97.c we have a bit tricky macro for a slight optimization.
+
+Note that we don't need to take in_kernel into account on this
+architecture, so the conversion is easy otherwise.
+
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+---
+ sound/soc/blackfin/bf5xx-ac97-pcm.c |  6 ++---
+ sound/soc/blackfin/bf5xx-ac97.c     | 18 ++++++++++-----
+ sound/soc/blackfin/bf5xx-i2s-pcm.c  | 46 ++++++++++++-------------------------
+ 3 files changed, 30 insertions(+), 40 deletions(-)
+
+diff --git a/sound/soc/blackfin/bf5xx-ac97-pcm.c b/sound/soc/blackfin/bf5xx-ac97-pcm.c
+index 02ad2606fa19..2fdffa7d376c 100644
+--- a/sound/soc/blackfin/bf5xx-ac97-pcm.c
++++ b/sound/soc/blackfin/bf5xx-ac97-pcm.c
+@@ -280,8 +280,8 @@ static int bf5xx_pcm_mmap(struct snd_pcm_substream *substream,
+ }
+ #else
+ static	int bf5xx_pcm_copy(struct snd_pcm_substream *substream, int channel,
+-		    snd_pcm_uframes_t pos,
+-		    void __user *buf, snd_pcm_uframes_t count)
++			   snd_pcm_uframes_t pos, void __user *buf,
++			   snd_pcm_uframes_t count, bool in_kernel)
+ {
+ 	struct snd_pcm_runtime *runtime = substream->runtime;
+ 	unsigned int chan_mask = ac97_chan_mask[runtime->channels - 1];
+@@ -309,7 +309,7 @@ static struct snd_pcm_ops bf5xx_pcm_ac97_ops = {
+ #if defined(CONFIG_SND_BF5XX_MMAP_SUPPORT)
+ 	.mmap		= bf5xx_pcm_mmap,
+ #else
+-	.copy		= bf5xx_pcm_copy,
++	.copy_silence	= bf5xx_pcm_copy,
+ #endif
+ };
+ 
+diff --git a/sound/soc/blackfin/bf5xx-ac97.c b/sound/soc/blackfin/bf5xx-ac97.c
+index a040cfe29fc0..d1f11d9ecb07 100644
+--- a/sound/soc/blackfin/bf5xx-ac97.c
++++ b/sound/soc/blackfin/bf5xx-ac97.c
+@@ -43,35 +43,41 @@
+ 
+ static struct sport_device *ac97_sport_handle;
+ 
++#ifdef CONFIG_SND_BF5XX_MMAP_SUPPORT
++#define GET_VAL(src)	(*src++)		/* copy only */
++#else
++#define GET_VAL(src)	(src ? *src++ : 0)	/* copy/silence */
++#endif
++
+ void bf5xx_pcm_to_ac97(struct ac97_frame *dst, const __u16 *src,
+ 		size_t count, unsigned int chan_mask)
+ {
+ 	while (count--) {
+ 		dst->ac97_tag = TAG_VALID;
+ 		if (chan_mask & SP_FL) {
+-			dst->ac97_pcm_r = *src++;
++			dst->ac97_pcm_r = GET_VAL(src);
+ 			dst->ac97_tag |= TAG_PCM_RIGHT;
+ 		}
+ 		if (chan_mask & SP_FR) {
+-			dst->ac97_pcm_l = *src++;
++			dst->ac97_pcm_l = GET_VAL(src);
+ 			dst->ac97_tag |= TAG_PCM_LEFT;
+ 
+ 		}
+ #if defined(CONFIG_SND_BF5XX_MULTICHAN_SUPPORT)
+ 		if (chan_mask & SP_SR) {
+-			dst->ac97_sl = *src++;
++			dst->ac97_sl = GET_VAL(src);
+ 			dst->ac97_tag |= TAG_PCM_SL;
+ 		}
+ 		if (chan_mask & SP_SL) {
+-			dst->ac97_sr = *src++;
++			dst->ac97_sr = GET_VAL(src);
+ 			dst->ac97_tag |= TAG_PCM_SR;
+ 		}
+ 		if (chan_mask & SP_LFE) {
+-			dst->ac97_lfe = *src++;
++			dst->ac97_lfe = GET_VAL(src);
+ 			dst->ac97_tag |= TAG_PCM_LFE;
+ 		}
+ 		if (chan_mask & SP_FC) {
+-			dst->ac97_center = *src++;
++			dst->ac97_center = GET_VAL(src);
+ 			dst->ac97_tag |= TAG_PCM_CENTER;
+ 		}
+ #endif
+diff --git a/sound/soc/blackfin/bf5xx-i2s-pcm.c b/sound/soc/blackfin/bf5xx-i2s-pcm.c
+index 6cba211da32e..5686c29fb058 100644
+--- a/sound/soc/blackfin/bf5xx-i2s-pcm.c
++++ b/sound/soc/blackfin/bf5xx-i2s-pcm.c
+@@ -226,7 +226,8 @@ static int bf5xx_pcm_mmap(struct snd_pcm_substream *substream,
+ }
+ 
+ static int bf5xx_pcm_copy(struct snd_pcm_substream *substream, int channel,
+-	snd_pcm_uframes_t pos, void *buf, snd_pcm_uframes_t count)
++			  snd_pcm_uframes_t pos, void *buf,
++			  snd_pcm_uframes_t count, bool in_kernel)
+ {
+ 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+ 	struct snd_pcm_runtime *runtime = substream->runtime;
+@@ -245,8 +246,14 @@ static int bf5xx_pcm_copy(struct snd_pcm_substream *substream, int channel,
+ 
+ 			while (count--) {
+ 				for (i = 0; i < runtime->channels; i++) {
+-					memcpy(dst + dma_data->map[i] *
+-						sample_size, src, sample_size);
++					if (!buf)
++						memset(dst + dma_data->map[i] *
++						       sample_size, 0,
++						       sample_size);
++					else
++						memcpy(dst + dma_data->map[i] *
++						       sample_size, src,
++						       sample_size);
+ 					src += sample_size;
+ 				}
+ 				dst += 8 * sample_size;
+@@ -276,34 +283,12 @@ static int bf5xx_pcm_copy(struct snd_pcm_substream *substream, int channel,
+ 			dst = buf;
+ 		}
+ 
+-		memcpy(dst, src, frames_to_bytes(runtime, count));
+-	}
+-
+-	return 0;
+-}
+-
+-static int bf5xx_pcm_silence(struct snd_pcm_substream *substream,
+-	int channel, snd_pcm_uframes_t pos, snd_pcm_uframes_t count)
+-{
+-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+-	struct snd_pcm_runtime *runtime = substream->runtime;
+-	unsigned int sample_size = runtime->sample_bits / 8;
+-	void *buf = runtime->dma_area;
+-	struct bf5xx_i2s_pcm_data *dma_data;
+-	unsigned int offset, samples;
+-
+-	dma_data = snd_soc_dai_get_dma_data(rtd->cpu_dai, substream);
+-
+-	if (dma_data->tdm_mode) {
+-		offset = pos * 8 * sample_size;
+-		samples = count * 8;
+-	} else {
+-		offset = frames_to_bytes(runtime, pos);
+-		samples = count * runtime->channels;
++		if (!buf)
++			memset(dst, 0, frames_to_bytes(runtime, count));
++		else
++			memcpy(dst, src, frames_to_bytes(runtime, count));
+ 	}
+ 
+-	snd_pcm_format_set_silence(runtime->format, buf + offset, samples);
+-
+ 	return 0;
+ }
+ 
+@@ -316,8 +301,7 @@ static struct snd_pcm_ops bf5xx_pcm_i2s_ops = {
+ 	.trigger	= bf5xx_pcm_trigger,
+ 	.pointer	= bf5xx_pcm_pointer,
+ 	.mmap		= bf5xx_pcm_mmap,
+-	.copy		= bf5xx_pcm_copy,
+-	.silence	= bf5xx_pcm_silence,
++	.copy_silence	= bf5xx_pcm_copy,
+ };
+ 
+ static int bf5xx_pcm_i2s_new(struct snd_soc_pcm_runtime *rtd)
+-- 
+2.13.0
