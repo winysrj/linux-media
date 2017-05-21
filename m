@@ -1,53 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f44.google.com ([209.85.214.44]:35249 "EHLO
-        mail-it0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753128AbdEJNSl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 May 2017 09:18:41 -0400
-Received: by mail-it0-f44.google.com with SMTP id c15so24325264ith.0
-        for <linux-media@vger.kernel.org>; Wed, 10 May 2017 06:18:41 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <5912EB71.9090104@samsung.com>
-References: <CGME20170420091406eucas1p24c50a0015545105081257d880727386c@eucas1p2.samsung.com>
- <1492679620-12792-1-git-send-email-m.szyprowski@samsung.com>
- <2541347.TzHdYYQVhG@avalon> <711bf4a5-7e57-6720-d00b-66e97a81e5ec@samsung.com>
- <20170425222124.GA7456@valkosipuli.retiisi.org.uk> <59126BB4.6050309@samsung.com>
- <CAAFQd5CPNQ5hDDXPwo2v54VcoOMeDszuvoHZPYQYNJsMJk41Ww@mail.gmail.com>
- <5912B2B6.4050605@samsung.com> <CAAFQd5D1-ZsXNcArXBf5=a=ukjnLHehHmvQg_zJc+b_WLka6rQ@mail.gmail.com>
- <5912EB71.9090104@samsung.com>
-From: Daniel Vetter <daniel@ffwll.ch>
-Date: Wed, 10 May 2017 15:18:39 +0200
-Message-ID: <CAKMK7uEdPaPsPtO368oXNsqUF2=fZJUA9rJDmeDkouJzSF8HFw@mail.gmail.com>
-Subject: Re: [RFC 0/4] Exynos DRM: add Picture Processor extension
-To: Inki Dae <inki.dae@samsung.com>
-Cc: Tomasz Figa <tfiga@chromium.org>,
-        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Tobias Jakobi <tjakobi@math.uni-bielefeld.de>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mx2.suse.de ([195.135.220.15]:38227 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1756942AbdEUUKC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 May 2017 16:10:02 -0400
+From: Takashi Iwai <tiwai@suse.de>
+To: alsa-devel@alsa-project.org
+Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
+        Mark Brown <broonie@kernel.org>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 16/16] ALSA: pcm: Drop the old copy and silence ops
+Date: Sun, 21 May 2017 22:09:50 +0200
+Message-Id: <20170521200950.4592-17-tiwai@suse.de>
+In-Reply-To: <20170521200950.4592-1-tiwai@suse.de>
+References: <20170521200950.4592-1-tiwai@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 10, 2017 at 12:29 PM, Inki Dae <inki.dae@samsung.com> wrote:
->> This kind of contradicts with response Marek received from DRM
->> community about his proposal. Which drivers in particular you have in
->> mind?
->
-> You can check vmw_overlay_ioctl of vmwgfx driver and intel_overlay_put_image_ioctl of i915 driver. These was all I could find in mainline.
-> Seems the boundaries of whether we have to implement pre/post post processing mem2mem driver in V4L2 or DRM are really vague.
+Now that all users of old copy and silence ops have been converted to
+the new copy_silence ops, the old stuff can be retired and go away.
 
-These aren't picture processors, but overlay plane support merged
-before we had the core drm overlay support. Please do not emulate them
-at all, your patch will be rejected :-)
--Daniel
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+---
+ include/sound/pcm.h  |  5 -----
+ sound/core/pcm_lib.c | 38 +-------------------------------------
+ sound/soc/soc-pcm.c  |  2 --
+ 3 files changed, 1 insertion(+), 44 deletions(-)
+
+diff --git a/include/sound/pcm.h b/include/sound/pcm.h
+index b9dd813dd885..4243c02c3f11 100644
+--- a/include/sound/pcm.h
++++ b/include/sound/pcm.h
+@@ -78,11 +78,6 @@ struct snd_pcm_ops {
+ 			struct timespec *system_ts, struct timespec *audio_ts,
+ 			struct snd_pcm_audio_tstamp_config *audio_tstamp_config,
+ 			struct snd_pcm_audio_tstamp_report *audio_tstamp_report);
+-	int (*copy)(struct snd_pcm_substream *substream, int channel,
+-		    snd_pcm_uframes_t pos,
+-		    void __user *buf, snd_pcm_uframes_t count);
+-	int (*silence)(struct snd_pcm_substream *substream, int channel, 
+-		       snd_pcm_uframes_t pos, snd_pcm_uframes_t count);
+ 	int (*copy_silence)(struct snd_pcm_substream *substream, int channel,
+ 			    snd_pcm_uframes_t pos, void __user *buf,
+ 			    snd_pcm_uframes_t count, bool in_kernel);
+diff --git a/sound/core/pcm_lib.c b/sound/core/pcm_lib.c
+index b720cbda017f..1c9d43fefacc 100644
+--- a/sound/core/pcm_lib.c
++++ b/sound/core/pcm_lib.c
+@@ -115,9 +115,6 @@ void snd_pcm_playback_silence(struct snd_pcm_substream *substream, snd_pcm_ufram
+ 				err = substream->ops->copy_silence(substream,
+ 					-1, ofs, NULL, transfer, false);
+ 				snd_BUG_ON(err < 0);
+-			} else if (substream->ops->silence) {
+-				err = substream->ops->silence(substream, -1, ofs, transfer);
+-				snd_BUG_ON(err < 0);
+ 			} else {
+ 				hwbuf = runtime->dma_area + frames_to_bytes(runtime, ofs);
+ 				snd_pcm_format_set_silence(runtime->format, hwbuf, transfer * runtime->channels);
+@@ -131,11 +128,6 @@ void snd_pcm_playback_silence(struct snd_pcm_substream *substream, snd_pcm_ufram
+ 						c, ofs, NULL, transfer, false);
+ 					snd_BUG_ON(err < 0);
+ 				}
+-			} else if (substream->ops->silence) {
+-				for (c = 0; c < channels; ++c) {
+-					err = substream->ops->silence(substream, c, ofs, transfer);
+-					snd_BUG_ON(err < 0);
+-				}
+ 			} else {
+ 				size_t dma_csize = runtime->dma_bytes / channels;
+ 				for (c = 0; c < channels; ++c) {
+@@ -2010,9 +2002,6 @@ static int snd_pcm_lib_write_transfer(struct snd_pcm_substream *substream,
+ 						   frames, false);
+ 		if (err < 0)
+ 			return err;
+-	} else if (substream->ops->copy) {
+-		if ((err = substream->ops->copy(substream, -1, hwoff, buf, frames)) < 0)
+-			return err;
+ 	} else {
+ 		char *hwbuf = runtime->dma_area + frames_to_bytes(runtime, hwoff);
+ 		if (copy_from_user(hwbuf, buf, frames_to_bytes(runtime, frames)))
+@@ -2134,8 +2123,7 @@ static int pcm_sanity_check(struct snd_pcm_substream *substream)
+ 	if (PCM_RUNTIME_CHECK(substream))
+ 		return -ENXIO;
+ 	runtime = substream->runtime;
+-	if (snd_BUG_ON(!substream->ops->copy_silence && !substream->ops->copy
+-		       && !runtime->dma_area))
++	if (snd_BUG_ON(!substream->ops->copy_silence && !runtime->dma_area))
+ 		return -EINVAL;
+ 	if (runtime->status->state == SNDRV_PCM_STATE_OPEN)
+ 		return -EBADFD;
+@@ -2186,19 +2174,6 @@ static int snd_pcm_lib_writev_transfer(struct snd_pcm_substream *substream,
+ 			if (err < 0)
+ 				return err;
+ 		}
+-	} else if (substream->ops->copy) {
+-		if (snd_BUG_ON(!substream->ops->silence))
+-			return -EINVAL;
+-		for (c = 0; c < channels; ++c, ++bufs) {
+-			if (*bufs == NULL) {
+-				if ((err = substream->ops->silence(substream, c, hwoff, frames)) < 0)
+-					return err;
+-			} else {
+-				buf = *bufs + samples_to_bytes(runtime, off);
+-				if ((err = substream->ops->copy(substream, c, hwoff, buf, frames)) < 0)
+-					return err;
+-			}
+-		}
+ 	} else {
+ 		/* default transfer behaviour */
+ 		size_t dma_csize = runtime->dma_bytes / channels;
+@@ -2251,9 +2226,6 @@ static int snd_pcm_lib_read_transfer(struct snd_pcm_substream *substream,
+ 						   frames, false);
+ 		if (err < 0)
+ 			return err;
+-	} else if (substream->ops->copy) {
+-		if ((err = substream->ops->copy(substream, -1, hwoff, buf, frames)) < 0)
+-			return err;
+ 	} else {
+ 		char *hwbuf = runtime->dma_area + frames_to_bytes(runtime, hwoff);
+ 		if (copy_to_user(buf, hwbuf, frames_to_bytes(runtime, frames)))
+@@ -2413,14 +2385,6 @@ static int snd_pcm_lib_readv_transfer(struct snd_pcm_substream *substream,
+ 			if (err < 0)
+ 				return err;
+ 		}
+-	} else if (substream->ops->copy) {
+-		for (c = 0; c < channels; ++c, ++bufs) {
+-			if (*bufs == NULL)
+-				continue;
+-			buf = *bufs + samples_to_bytes(runtime, off);
+-			if ((err = substream->ops->copy(substream, c, hwoff, buf, frames)) < 0)
+-				return err;
+-		}
+ 	} else {
+ 		snd_pcm_uframes_t dma_csize = runtime->dma_bytes / channels;
+ 		for (c = 0; c < channels; ++c, ++bufs) {
+diff --git a/sound/soc/soc-pcm.c b/sound/soc/soc-pcm.c
+index 3cfb9aa1203b..5d58d8434971 100644
+--- a/sound/soc/soc-pcm.c
++++ b/sound/soc/soc-pcm.c
+@@ -2744,8 +2744,6 @@ int soc_new_pcm(struct snd_soc_pcm_runtime *rtd, int num)
+ 	if (platform->driver->ops) {
+ 		rtd->ops.ack		= platform->driver->ops->ack;
+ 		rtd->ops.copy_silence	= platform->driver->ops->copy_silence;
+-		rtd->ops.copy		= platform->driver->ops->copy;
+-		rtd->ops.silence	= platform->driver->ops->silence;
+ 		rtd->ops.page		= platform->driver->ops->page;
+ 		rtd->ops.mmap		= platform->driver->ops->mmap;
+ 	}
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+2.13.0
