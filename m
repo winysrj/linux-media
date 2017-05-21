@@ -1,532 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:35906 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756676AbdEGWFQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 7 May 2017 18:05:16 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net, jasmin@anw.at
-Subject: [PATCH 4/7] [staging] cxd2099/cxd2099.c/.h: Fixed buffer mode
-Date: Sun,  7 May 2017 22:51:50 +0200
-Message-Id: <1494190313-18557-5-git-send-email-jasmin@anw.at>
-In-Reply-To: <1494190313-18557-1-git-send-email-jasmin@anw.at>
-References: <1494190313-18557-1-git-send-email-jasmin@anw.at>
+Received: from mx2.suse.de ([195.135.220.15]:38137 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1756876AbdEUUJ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 May 2017 16:09:59 -0400
+From: Takashi Iwai <tiwai@suse.de>
+To: alsa-devel@alsa-project.org
+Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
+        Mark Brown <broonie@kernel.org>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 02/16] ALSA: Update document about copy_silence PCM ops
+Date: Sun, 21 May 2017 22:09:36 +0200
+Message-Id: <20170521200950.4592-3-tiwai@suse.de>
+In-Reply-To: <20170521200950.4592-1-tiwai@suse.de>
+References: <20170521200950.4592-1-tiwai@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
-
-The buffer mode was already implemented in this driver, but it did not work
-as expected. This has been fixed now, but it is still deactivated and can
-be activated by removing a comment at the begin of the file.
-
-Signed-off-by: Ralph Metzler <rjkm@metzlerbros.de>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
 ---
- drivers/staging/media/cxd2099/cxd2099.c | 232 ++++++++++++++++----------------
- drivers/staging/media/cxd2099/cxd2099.h |   6 +-
- 2 files changed, 120 insertions(+), 118 deletions(-)
+ .../sound/kernel-api/writing-an-alsa-driver.rst    | 110 ++++++++++++---------
+ 1 file changed, 63 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
-index c72c3f0..ac01433 100644
---- a/drivers/staging/media/cxd2099/cxd2099.c
-+++ b/drivers/staging/media/cxd2099/cxd2099.c
-@@ -1,7 +1,7 @@
- /*
-  * cxd2099.c: Driver for the CXD2099AR Common Interface Controller
-  *
-- * Copyright (C) 2010-2011 Digital Devices GmbH
-+ * Copyright (C) 2010-2013 Digital Devices GmbH
-  *
-  *
-  * This program is free software; you can redistribute it and/or
-@@ -33,7 +33,9 @@
+diff --git a/Documentation/sound/kernel-api/writing-an-alsa-driver.rst b/Documentation/sound/kernel-api/writing-an-alsa-driver.rst
+index 95c5443eff38..ebaf8b1e0079 100644
+--- a/Documentation/sound/kernel-api/writing-an-alsa-driver.rst
++++ b/Documentation/sound/kernel-api/writing-an-alsa-driver.rst
+@@ -2080,18 +2080,18 @@ sleeping poll threads, etc.
  
- #include "cxd2099.h"
+ This callback is also atomic as default.
  
--#define MAX_BUFFER_SIZE 248
-+/* #define BUFFER_MODE 1 */
-+
-+static int read_data(struct dvb_ca_en50221 *ca, int slot, u8 *ebuf, int ecount);
+-copy and silence callbacks
+-~~~~~~~~~~~~~~~~~~~~~~~~~~
++copy_silence callback
++~~~~~~~~~~~~~~~~~~~~~
  
- struct cxd {
- 	struct dvb_ca_en50221 en;
-@@ -48,6 +50,7 @@ struct cxd {
- 	int    mode;
- 	int    ready;
- 	int    dr;
-+	int    write_busy;
- 	int    slot_stat;
+-These callbacks are not mandatory, and can be omitted in most cases.
+-These callbacks are used when the hardware buffer cannot be in the
++This callback is not mandatory, and can be omitted in most cases.
++This callback is used when the hardware buffer cannot be in the
+ normal memory space. Some chips have their own buffer on the hardware
+ which is not mappable. In such a case, you have to transfer the data
+ manually from the memory buffer to the hardware buffer. Or, if the
+ buffer is non-contiguous on both physical and virtual memory spaces,
+ these callbacks must be defined, too.
  
- 	u8     amem[1024];
-@@ -55,6 +58,9 @@ struct cxd {
+-If these two callbacks are defined, copy and set-silence operations
++If this callback is defined, copy and set-silence operations
+ are done by them. The detailed will be described in the later section
+ `Buffer and Memory Management`_.
  
- 	int    cammode;
- 	struct mutex lock;
-+
-+	u8     rbuf[1028];
-+	u8     wbuf[1028];
- };
+@@ -3545,30 +3545,34 @@ Another case is when the chip uses a PCI memory-map region for the
+ buffer instead of the host memory. In this case, mmap is available only
+ on certain architectures like the Intel one. In non-mmap mode, the data
+ cannot be transferred as in the normal way. Thus you need to define the
+-``copy`` and ``silence`` callbacks as well, as in the cases above. The
++``copy_silence`` callback as well, as in the cases above. The
+ examples are found in ``rme32.c`` and ``rme96.c``.
  
- static int i2c_write_reg(struct i2c_adapter *adapter, u8 adr,
-@@ -73,7 +79,7 @@ static int i2c_write_reg(struct i2c_adapter *adapter, u8 adr,
- }
+-The implementation of the ``copy`` and ``silence`` callbacks depends
++The implementation of the ``copy_silence`` callback depends
+ upon whether the hardware supports interleaved or non-interleaved
+-samples. The ``copy`` callback is defined like below, a bit
++samples. The ``copy_silence`` callback is defined like below, a bit
+ differently depending whether the direction is playback or capture:
  
- static int i2c_write(struct i2c_adapter *adapter, u8 adr,
--		     u8 *data, u8 len)
-+		     u8 *data, u16 len)
- {
- 	struct i2c_msg msg = {.addr = adr, .flags = 0, .buf = data, .len = len};
+ ::
  
-@@ -100,7 +106,7 @@ static int i2c_read_reg(struct i2c_adapter *adapter, u8 adr,
- }
+   static int playback_copy(struct snd_pcm_substream *substream, int channel,
+-               snd_pcm_uframes_t pos, void *src, snd_pcm_uframes_t count);
++               snd_pcm_uframes_t pos, void __user *src,
++	       snd_pcm_uframes_t count, bool in_kernel);
+   static int capture_copy(struct snd_pcm_substream *substream, int channel,
+-               snd_pcm_uframes_t pos, void *dst, snd_pcm_uframes_t count);
++               snd_pcm_uframes_t pos, void __user *dst,
++	       snd_pcm_uframes_t count, bool in_kernel);
  
- static int i2c_read(struct i2c_adapter *adapter, u8 adr,
--		    u8 reg, u8 *data, u8 n)
-+		    u8 reg, u8 *data, u16 n)
- {
- 	struct i2c_msg msgs[2] = {{.addr = adr, .flags = 0,
- 				 .buf = &reg, .len = 1},
-@@ -114,14 +120,26 @@ static int i2c_read(struct i2c_adapter *adapter, u8 adr,
- 	return 0;
- }
+ In the case of interleaved samples, the second argument (``channel``) is
+-not used. The third argument (``pos``) points the current position
+-offset in frames.
++not used, and -1 is passed. The third argument (``pos``) points the
++current position offset in frames.
  
--static int read_block(struct cxd *ci, u8 adr, u8 *data, u8 n)
-+static int read_block(struct cxd *ci, u8 adr, u8 *data, u16 n)
- {
--	int status;
-+	int status = 0;
+ The meaning of the fourth argument is different between playback and
+ capture. For playback, it holds the source data pointer, and for
+ capture, it's the destination data pointer.
  
--	status = i2c_write_reg(ci->i2c, ci->cfg.adr, 0, adr);
-+	if (ci->lastaddress != adr)
-+		status = i2c_write_reg(ci->i2c, ci->cfg.adr, 0, adr);
- 	if (!status) {
- 		ci->lastaddress = adr;
--		status = i2c_read(ci->i2c, ci->cfg.adr, 1, data, n);
-+
-+		while (n) {
-+			int len = n;
-+
-+			if (ci->cfg.max_i2c && (len > ci->cfg.max_i2c))
-+				len = ci->cfg.max_i2c;
-+			status = i2c_read(ci->i2c, ci->cfg.adr, 1, data, len);
-+			if (status)
-+				return status;
-+			data += len;
-+			n -= len;
-+		}
- 	}
- 	return status;
- }
-@@ -181,46 +199,18 @@ static int write_io(struct cxd *ci, u16 address, u8 val)
- 	return status;
- }
+-The last argument is the number of frames to be copied.
++The fifth argument is the number of frames to be copied.
++And the last argument indicates whether the passed buffer pointer is in
++user-space or in kernel-space.  The copy operation depends on this.
  
--#if 0
--static int read_io_data(struct cxd *ci, u8 *data, u8 n)
--{
--	int status;
--	u8 addr[3] = { 2, 0, 0 };
+ What you have to do in this callback is again different between playback
+ and capture directions. In the playback case, you copy the given amount
+@@ -3578,52 +3582,64 @@ way, the copy would be like:
+ 
+ ::
+ 
+-  my_memcpy(my_buffer + frames_to_bytes(runtime, pos), src,
+-            frames_to_bytes(runtime, count));
 -
--	status = i2c_write(ci->i2c, ci->cfg.adr, addr, 3);
--	if (!status)
--		status = i2c_read(ci->i2c, ci->cfg.adr, 3, data, n);
--	return 0;
--}
+-For the capture direction, you copy the given amount of data (``count``)
+-at the specified offset (``pos``) on the hardware buffer to the
+-specified pointer (``dst``).
 -
--static int write_io_data(struct cxd *ci, u8 *data, u8 n)
--{
--	int status;
--	u8 addr[3] = {2, 0, 0};
+-::
++  if (!src)
++          my_memset(my_buffer + frames_to_bytes(runtime, pos), 0,
++                    frames_to_bytes(runtime, count));
++  else if (in_kernel)
++          memcpy_toio(my_buffer + frames_to_bytes(runtime, pos),
++                      (void *)src, frames_to_bytes(runtime, count));
++  else if (copy_from_user_toio(my_buffer + frames_to_bytes(runtime, pos),
++                               src, frames_to_bytes(runtime, count)))
++          return -EFAULT;
++  return 0;
+ 
+-  my_memcpy(dst, my_buffer + frames_to_bytes(runtime, pos),
+-            frames_to_bytes(runtime, count));
++Here we prepared three different memory operations operations.
+ 
+-Note that both the position and the amount of data are given in frames.
++The first one, with the NULL ``src`` pointer, is for silencing the
++buffer. In this case, we clear the samples for the given position and
++portion.
+ 
+-In the case of non-interleaved samples, the implementation will be a bit
+-more complicated.
++The second one, with ``in_kernel`` check, is for the in-kernel memory
++copying.  In this case, the given buffer pointer (``src``) is a kernel
++pointer despite of being declared with ``__user`` prefix.  When this
++flag is set, you have to copy the memory from the kernel space.
++Typically, a simple :c:func:`memcpy()` or :c:func`memcpy_toio()` can
++be used.  Note the explicit cast at the function call there to drop
++``__user`` prefix.
+ 
+-You need to check the channel argument, and if it's -1, copy the whole
+-channels. Otherwise, you have to copy only the specified channel. Please
+-check ``isa/gus/gus_pcm.c`` as an example.
++The last one is the usual operation, to copy from the user-space
++buffer to the hardware buffer.
+ 
+-The ``silence`` callback is also implemented in a similar way
++For the capture direction, you copy the given amount of data (``count``)
++at the specified offset (``pos``) on the hardware buffer to the
++specified pointer (``dst``).
+ 
+ ::
+ 
+-  static int silence(struct snd_pcm_substream *substream, int channel,
+-                     snd_pcm_uframes_t pos, snd_pcm_uframes_t count);
 -
--	status = i2c_write(ci->i2c, ci->cfg.adr, addr, 3);
--	if (!status) {
--		u8 buf[256] = {3};
--
--		memcpy(buf+1, data, n);
--		status = i2c_write(ci->i2c, ci->cfg.adr, buf, n + 1);
--	}
--	return 0;
--}
--#endif
--
- static int write_regm(struct cxd *ci, u8 reg, u8 val, u8 mask)
- {
--	int status;
-+	int status = 0;
+-The meanings of arguments are the same as in the ``copy`` callback,
+-although there is no ``src/dst`` argument. In the case of interleaved
+-samples, the channel argument has no meaning, as well as on ``copy``
+-callback.
++  if (in_kernel)
++          memcpy_fromio((void *)dst,
++	          my_buffer + frames_to_bytes(runtime, pos),
++                  frames_to_bytes(runtime, count));
++  else if (copy_to_user_fromio(dst,
++                  my_buffer + frames_to_bytes(runtime, pos),
++                  frames_to_bytes(runtime, count)))
++          return -EFAULT;
++  return 0;
  
--	status = i2c_write_reg(ci->i2c, ci->cfg.adr, 0, reg);
-+	if (ci->lastaddress != reg)
-+		status = i2c_write_reg(ci->i2c, ci->cfg.adr, 0, reg);
- 	if (!status && reg >= 6 && reg <= 8 && mask != 0xff)
- 		status = i2c_read_reg(ci->i2c, ci->cfg.adr, 1, &ci->regs[reg]);
-+	ci->lastaddress = reg;
- 	ci->regs[reg] = (ci->regs[reg] & (~mask)) | val;
--	if (!status) {
--		ci->lastaddress = reg;
-+	if (!status)
- 		status = i2c_write_reg(ci->i2c, ci->cfg.adr, 1, ci->regs[reg]);
--	}
- 	if (reg == 0x20)
- 		ci->regs[reg] &= 0x7f;
- 	return status;
-@@ -232,16 +222,31 @@ static int write_reg(struct cxd *ci, u8 reg, u8 val)
- }
+-The role of ``silence`` callback is to set the given amount
+-(``count``) of silence data at the specified offset (``pos``) on the
+-hardware buffer. Suppose that the data format is signed (that is, the
+-silent-data is 0), and the implementation using a memset-like function
+-would be like: 
++A clear difference from the playback is that there is no silencing
++mode.  For the capture direction, ``dst`` is always non-NULL.
  
- #ifdef BUFFER_MODE
--static int write_block(struct cxd *ci, u8 adr, u8 *data, int n)
-+static int write_block(struct cxd *ci, u8 adr, u8 *data, u16 n)
- {
--	int status;
--	u8 buf[256] = {1};
--
--	status = i2c_write_reg(ci->i2c, ci->cfg.adr, 0, adr);
--	if (!status) {
--		ci->lastaddress = adr;
--		memcpy(buf + 1, data, n);
--		status = i2c_write(ci->i2c, ci->cfg.adr, buf, n + 1);
-+	int status = 0;
-+	u8 *buf = ci->wbuf;
-+
-+	if (ci->lastaddress != adr)
-+		status = i2c_write_reg(ci->i2c, ci->cfg.adr, 0, adr);
-+	if (status)
-+		return status;
-+	dev_info(&ci->i2c->dev, "write_block %d\n", n);
-+
-+	ci->lastaddress = adr;
-+	buf[0] = 1;
-+	while (n) {
-+		int len = n;
-+
-+		if (ci->cfg.max_i2c && (len + 1 > ci->cfg.max_i2c))
-+			len = ci->cfg.max_i2c - 1;
-+		dev_info(&ci->i2c->dev, "write %d\n", len);
-+		memcpy(buf + 1, data, len);
-+		status = i2c_write(ci->i2c, ci->cfg.adr, buf, len + 1);
-+		if (status)
-+			return status;
-+		n -= len;
-+		data += len;
- 	}
- 	return status;
- }
-@@ -267,6 +272,8 @@ static void set_mode(struct cxd *ci, int mode)
+-::
++Other than that, the two memory operations are similar, but just in
++different direction.  And, note that both the position and the amount
++of data are given in frames.
  
- static void cam_mode(struct cxd *ci, int mode)
- {
-+	u8 dummy;
-+
- 	if (mode == ci->cammode)
- 		return;
+-  my_memcpy(my_buffer + frames_to_bytes(runtime, pos), 0,
+-            frames_to_bytes(runtime, count));
++In the case of non-interleaved samples, the implementation will be a bit
++more complicated.  First off, the operation depends on ``channel``
++argument.  When -1 is passed there, copy the whole channels.
++Otherwise, copy only the specified channel.
  
-@@ -275,16 +282,15 @@ static void cam_mode(struct cxd *ci, int mode)
- 		write_regm(ci, 0x20, 0x80, 0x80);
- 		break;
- 	case 0x01:
--#ifdef BUFFER_MODE
- 		if (!ci->en.read_data)
- 			return;
-+		ci->write_busy = 0;
- 		dev_info(&ci->i2c->dev, "enable cam buffer mode\n");
--		/* write_reg(ci, 0x0d, 0x00); */
--		/* write_reg(ci, 0x0e, 0x01); */
-+		write_reg(ci, 0x0d, 0x00);
-+		write_reg(ci, 0x0e, 0x01);
- 		write_regm(ci, 0x08, 0x40, 0x40);
--		/* read_reg(ci, 0x12, &dummy); */
-+		read_reg(ci, 0x12, &dummy);
- 		write_regm(ci, 0x08, 0x80, 0x80);
--#endif
- 		break;
- 	default:
- 		break;
-@@ -292,8 +298,6 @@ static void cam_mode(struct cxd *ci, int mode)
- 	ci->cammode = mode;
- }
+-In the case of non-interleaved samples, again, the implementation
+-becomes a bit more complicated. See, for example, ``isa/gus/gus_pcm.c``.
++As an implementation example, please take a look at the code in
++``sound/isa/gus/gus_pcm.c``.
  
--
--
- static int init(struct cxd *ci)
- {
- 	int status;
-@@ -329,12 +333,6 @@ static int init(struct cxd *ci)
- 		if (status < 0)
- 			break;
- 
--#if 0
--		/* Input Mode C, BYPass Serial, TIVAL = low, MSB */
--		status = write_reg(ci, 0x09, 0x4D);
--		if (status < 0)
--			break;
--#endif
- 		/* TOSTRT = 8, Mode B (gated clock), falling Edge,
- 		 * Serial, POL=HIGH, MSB
- 		 */
-@@ -362,7 +360,10 @@ static int init(struct cxd *ci)
- 		if (status < 0)
- 			break;
- 
--		if (ci->cfg.clock_mode) {
-+		if (ci->cfg.clock_mode == 2) {
-+			/* bitrate*2^13/ 72000 */
-+			u32 reg = ((ci->cfg.bitrate << 13) + 71999) / 72000;
-+
- 			if (ci->cfg.polarity) {
- 				status = write_reg(ci, 0x09, 0x6f);
- 				if (status < 0)
-@@ -372,6 +373,25 @@ static int init(struct cxd *ci)
- 				if (status < 0)
- 					break;
- 			}
-+			status = write_reg(ci, 0x20, 0x08);
-+			if (status < 0)
-+				break;
-+			status = write_reg(ci, 0x21, (reg >> 8) & 0xff);
-+			if (status < 0)
-+				break;
-+			status = write_reg(ci, 0x22, reg & 0xff);
-+			if (status < 0)
-+				break;
-+		} else if (ci->cfg.clock_mode == 1) {
-+			if (ci->cfg.polarity) {
-+				status = write_reg(ci, 0x09, 0x6f); /* D */
-+				if (status < 0)
-+					break;
-+			} else {
-+				status = write_reg(ci, 0x09, 0x6d);
-+				if (status < 0)
-+					break;
-+			}
- 			status = write_reg(ci, 0x20, 0x68);
- 			if (status < 0)
- 				break;
-@@ -383,7 +403,7 @@ static int init(struct cxd *ci)
- 				break;
- 		} else {
- 			if (ci->cfg.polarity) {
--				status = write_reg(ci, 0x09, 0x4f);
-+				status = write_reg(ci, 0x09, 0x4f); /* C */
- 				if (status < 0)
- 					break;
- 			} else {
-@@ -391,7 +411,6 @@ static int init(struct cxd *ci)
- 				if (status < 0)
- 					break;
- 			}
--
- 			status = write_reg(ci, 0x20, 0x28);
- 			if (status < 0)
- 				break;
-@@ -432,32 +451,13 @@ static int read_attribute_mem(struct dvb_ca_en50221 *ca,
- 			      int slot, int address)
- {
- 	struct cxd *ci = ca->data;
--#if 0
--	if (ci->amem_read) {
--		if (address <= 0 || address > 1024)
--			return -EIO;
--		return ci->amem[address];
--	}
--
--	mutex_lock(&ci->lock);
--	write_regm(ci, 0x06, 0x00, 0x05);
--	read_pccard(ci, 0, &ci->amem[0], 128);
--	read_pccard(ci, 128, &ci->amem[0], 128);
--	read_pccard(ci, 256, &ci->amem[0], 128);
--	read_pccard(ci, 384, &ci->amem[0], 128);
--	write_regm(ci, 0x06, 0x05, 0x05);
--	mutex_unlock(&ci->lock);
--	return ci->amem[address];
--#else
- 	u8 val;
- 
- 	mutex_lock(&ci->lock);
- 	set_mode(ci, 1);
- 	read_pccard(ci, address, &val, 1);
- 	mutex_unlock(&ci->lock);
--	/* printk(KERN_INFO "%02x:%02x\n", address,val); */
- 	return val;
--#endif
- }
- 
- static int write_attribute_mem(struct dvb_ca_en50221 *ca, int slot,
-@@ -501,16 +501,10 @@ static int slot_reset(struct dvb_ca_en50221 *ca, int slot)
- {
- 	struct cxd *ci = ca->data;
- 
-+	if (ci->cammode)
-+		read_data(ca, slot, ci->rbuf, 0);
-+
- 	mutex_lock(&ci->lock);
--#if 0
--	write_reg(ci, 0x00, 0x21);
--	write_reg(ci, 0x06, 0x1F);
--	write_reg(ci, 0x00, 0x31);
--#else
--#if 0
--	write_reg(ci, 0x06, 0x1F);
--	write_reg(ci, 0x06, 0x2F);
--#else
- 	cam_mode(ci, 0);
- 	write_reg(ci, 0x00, 0x21);
- 	write_reg(ci, 0x06, 0x1F);
-@@ -518,29 +512,17 @@ static int slot_reset(struct dvb_ca_en50221 *ca, int slot)
- 	write_regm(ci, 0x20, 0x80, 0x80);
- 	write_reg(ci, 0x03, 0x02);
- 	ci->ready = 0;
--#endif
--#endif
- 	ci->mode = -1;
- 	{
- 		int i;
--#if 0
--		u8 val;
--#endif
-+
- 		for (i = 0; i < 100; i++) {
- 			usleep_range(10000, 11000);
--#if 0
--			read_reg(ci, 0x06, &val);
--			dev_info(&ci->i2c->dev, "%d:%02x\n", i, val);
--			if (!(val&0x10))
--				break;
--#else
- 			if (ci->ready)
- 				break;
--#endif
- 		}
- 	}
- 	mutex_unlock(&ci->lock);
--	/* msleep(500); */
- 	return 0;
- }
- 
-@@ -549,11 +531,19 @@ static int slot_shutdown(struct dvb_ca_en50221 *ca, int slot)
- 	struct cxd *ci = ca->data;
- 
- 	dev_info(&ci->i2c->dev, "slot_shutdown\n");
-+	if (ci->cammode)
-+		read_data(ca, slot, ci->rbuf, 0);
- 	mutex_lock(&ci->lock);
-+	write_reg(ci, 0x00, 0x21);
-+	write_reg(ci, 0x06, 0x1F);
-+	msleep(300);
-+
- 	write_regm(ci, 0x09, 0x08, 0x08);
- 	write_regm(ci, 0x20, 0x80, 0x80); /* Reset CAM Mode */
- 	write_regm(ci, 0x06, 0x07, 0x07); /* Clear IO Mode */
-+
- 	ci->mode = -1;
-+	ci->write_busy = 0;
- 	mutex_unlock(&ci->lock);
- 	return 0;
- }
-@@ -565,9 +555,7 @@ static int slot_ts_enable(struct dvb_ca_en50221 *ca, int slot)
- 	mutex_lock(&ci->lock);
- 	write_regm(ci, 0x09, 0x00, 0x08);
- 	set_mode(ci, 0);
--#ifdef BUFFER_MODE
- 	cam_mode(ci, 1);
--#endif
- 	mutex_unlock(&ci->lock);
- 	return 0;
- }
-@@ -586,8 +574,10 @@ static int campoll(struct cxd *ci)
- 		ci->dr = 1;
- 		dev_info(&ci->i2c->dev, "DR\n");
- 	}
--	if (istat&0x20)
-+	if (istat&0x20) {
-+		ci->write_busy = 0;
- 		dev_info(&ci->i2c->dev, "WC\n");
-+	}
- 
- 	if (istat&2) {
- 		u8 slotstat;
-@@ -595,7 +585,8 @@ static int campoll(struct cxd *ci)
- 		read_reg(ci, 0x01, &slotstat);
- 		if (!(2&slotstat)) {
- 			if (!ci->slot_stat) {
--				ci->slot_stat = DVB_CA_EN50221_POLL_CAM_PRESENT;
-+				ci->slot_stat |=
-+					      DVB_CA_EN50221_POLL_CAM_PRESENT;
- 				write_regm(ci, 0x03, 0x08, 0x08);
- 			}
- 
-@@ -607,8 +598,8 @@ static int campoll(struct cxd *ci)
- 				ci->ready = 0;
- 			}
- 		}
--		if (istat&8 &&
--		    ci->slot_stat == DVB_CA_EN50221_POLL_CAM_PRESENT) {
-+		if ((istat&8) &&
-+		    (ci->slot_stat == DVB_CA_EN50221_POLL_CAM_PRESENT)) {
- 			ci->ready = 1;
- 			ci->slot_stat |= DVB_CA_EN50221_POLL_CAM_READY;
- 		}
-@@ -630,7 +621,6 @@ static int poll_slot_status(struct dvb_ca_en50221 *ca, int slot, int open)
- 	return ci->slot_stat;
- }
- 
--#ifdef BUFFER_MODE
- static int read_data(struct dvb_ca_en50221 *ca, int slot, u8 *ebuf, int ecount)
- {
- 	struct cxd *ci = ca->data;
-@@ -648,23 +638,33 @@ static int read_data(struct dvb_ca_en50221 *ca, int slot, u8 *ebuf, int ecount)
- 	mutex_lock(&ci->lock);
- 	read_reg(ci, 0x0f, &msb);
- 	read_reg(ci, 0x10, &lsb);
--	len = (msb<<8)|lsb;
-+	len = ((u16) msb << 8) | lsb;
-+	if (len > ecount || len < 2) {
-+		/* read it anyway or cxd may hang */
-+		read_block(ci, 0x12, ci->rbuf, len);
-+		mutex_unlock(&ci->lock);
-+		return -EIO;
-+	}
- 	read_block(ci, 0x12, ebuf, len);
- 	ci->dr = 0;
- 	mutex_unlock(&ci->lock);
--
- 	return len;
- }
- 
-+#ifdef BUFFER_MODE
-+
- static int write_data(struct dvb_ca_en50221 *ca, int slot, u8 *ebuf, int ecount)
- {
- 	struct cxd *ci = ca->data;
- 
-+	if (ci->write_busy)
-+		return -EAGAIN;
- 	mutex_lock(&ci->lock);
- 	dev_info(&ci->i2c->dev, "write_data %d\n", ecount);
- 	write_reg(ci, 0x0d, ecount>>8);
- 	write_reg(ci, 0x0e, ecount&0xff);
- 	write_block(ci, 0x11, ebuf, ecount);
-+	ci->write_busy = 1;
- 	mutex_unlock(&ci->lock);
- 	return ecount;
- }
-diff --git a/drivers/staging/media/cxd2099/cxd2099.h b/drivers/staging/media/cxd2099/cxd2099.h
-index 0eb607c..f4b29b1 100644
---- a/drivers/staging/media/cxd2099/cxd2099.h
-+++ b/drivers/staging/media/cxd2099/cxd2099.h
-@@ -30,8 +30,10 @@
- struct cxd2099_cfg {
- 	u32 bitrate;
- 	u8  adr;
--	u8  polarity:1;
--	u8  clock_mode:1;
-+	u8  polarity;
-+	u8  clock_mode;
-+
-+	u32 max_i2c;
- };
- 
- #if defined(CONFIG_DVB_CXD2099) || \
+ Non-Contiguous Buffers
+ ----------------------
 -- 
-2.7.4
+2.13.0
