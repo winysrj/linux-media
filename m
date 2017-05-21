@@ -1,79 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f174.google.com ([209.85.192.174]:35162 "EHLO
-        mail-pf0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750767AbdE3Gyq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 02:54:46 -0400
-Received: by mail-pf0-f174.google.com with SMTP id n23so63602691pfb.2
-        for <linux-media@vger.kernel.org>; Mon, 29 May 2017 23:54:45 -0700 (PDT)
-From: Hirokazu Honda <hiroh@chromium.org>
-To: Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Hirokazu Honda <hiroh@chromium.org>
-Subject: [PATCH] Lower the log level of debug outputs
-Date: Tue, 30 May 2017 15:54:37 +0900
-Message-Id: <20170530065437.65828-1-hiroh@chromium.org>
+Received: from mx2.suse.de ([195.135.220.15]:38225 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1756936AbdEUUKC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 May 2017 16:10:02 -0400
+From: Takashi Iwai <tiwai@suse.de>
+To: alsa-devel@alsa-project.org
+Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
+        Mark Brown <broonie@kernel.org>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 12/16] ALSA: sb: Convert to copy_silence ops
+Date: Sun, 21 May 2017 22:09:46 +0200
+Message-Id: <20170521200950.4592-13-tiwai@suse.de>
+In-Reply-To: <20170521200950.4592-1-tiwai@suse.de>
+References: <20170521200950.4592-1-tiwai@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some debug output whose log level is set 1 flooded the log.
-Their log level is lowered to find the important log easily.
+Replace the copy and the silence ops with the new merged ops.
+We could reduce the redundant silence code by that.
 
-Signed-off-by: Hirokazu Honda <hiroh@chromium.org>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ sound/isa/sb/emu8000_pcm.c | 99 ++++++++++++++--------------------------------
+ 1 file changed, 30 insertions(+), 69 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 94afbbf92807..25257f92bbcf 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1139,7 +1139,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
- 			continue;
+diff --git a/sound/isa/sb/emu8000_pcm.c b/sound/isa/sb/emu8000_pcm.c
+index 32f234f494e5..fd42ae2f73b8 100644
+--- a/sound/isa/sb/emu8000_pcm.c
++++ b/sound/isa/sb/emu8000_pcm.c
+@@ -422,16 +422,28 @@ do { \
+ 		return -EAGAIN;\
+ } while (0)
+ 
++static inline int get_val(unsigned short *sval, unsigned short __user *buf,
++			  bool in_kernel)
++{
++	if (!buf)
++		*sval = 0;
++	else if (in_kernel)
++		*sval = *(unsigned short *)buf;
++	else if (get_user(*sval, buf))
++		return -EFAULT;
++	return 0;
++}
+ 
+ #ifdef USE_NONINTERLEAVE
+ /* copy one channel block */
+-static int emu8k_transfer_block(struct snd_emu8000 *emu, int offset, unsigned short *buf, int count)
++static int emu8k_transfer_block(struct snd_emu8000 *emu, int offset,
++				unsigned short *buf, int count, bool in_kernel)
+ {
+ 	EMU8000_SMALW_WRITE(emu, offset);
+ 	while (count > 0) {
+ 		unsigned short sval;
+ 		CHECK_SCHEDULER();
+-		if (get_user(sval, buf))
++		if (get_val(&sval, buf, in_kernel))
+ 			return -EFAULT;
+ 		EMU8000_SMLD_WRITE(emu, sval);
+ 		buf++;
+@@ -455,48 +467,18 @@ static int emu8k_pcm_copy(struct snd_pcm_substream *subs,
+ 		int i, err;
+ 		count /= rec->voices;
+ 		for (i = 0; i < rec->voices; i++) {
+-			err = emu8k_transfer_block(emu, pos + rec->loop_start[i], buf, count);
++			err = emu8k_transfer_block(emu,
++						   pos + rec->loop_start[i],
++						   buf, count, in_kernel);
+ 			if (err < 0)
+ 				return err;
+-			buf += count;
++			if (buf)
++				buf += count;
  		}
- 
--		dprintk(1, "buffer for plane %d changed\n", plane);
-+		dprintk(3, "buffer for plane %d changed\n", plane);
- 
- 		if (!reacquired) {
- 			reacquired = true;
-@@ -1294,7 +1294,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
- 	/* Fill buffer information for the userspace */
- 	call_void_bufop(q, fill_user_buffer, vb, pb);
- 
--	dprintk(1, "prepare of buffer %d succeeded\n", vb->index);
-+	dprintk(2, "prepare of buffer %d succeeded\n", vb->index);
- 
- 	return ret;
- }
-@@ -1424,7 +1424,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 			return ret;
+ 		return 0;
+ 	} else {
+-		return emu8k_transfer_block(emu, pos + rec->loop_start[voice], src, count);
+-	}
+-}
+-
+-/* make a channel block silence */
+-static int emu8k_silence_block(struct snd_emu8000 *emu, int offset, int count)
+-{
+-	EMU8000_SMALW_WRITE(emu, offset);
+-	while (count > 0) {
+-		CHECK_SCHEDULER();
+-		EMU8000_SMLD_WRITE(emu, 0);
+-		count--;
+-	}
+-	return 0;
+-}
+-
+-static int emu8k_pcm_silence(struct snd_pcm_substream *subs,
+-			     int voice,
+-			     snd_pcm_uframes_t pos,
+-			     snd_pcm_uframes_t count)
+-{
+-	struct snd_emu8k_pcm *rec = subs->runtime->private_data;
+-	struct snd_emu8000 *emu = rec->emu;
+-
+-	snd_emu8000_write_wait(emu, 1);
+-	if (voice == -1 && rec->voices == 1)
+-		voice = 0;
+-	if (voice == -1) {
+-		int err;
+-		err = emu8k_silence_block(emu, pos + rec->loop_start[0], count / 2);
+-		if (err < 0)
+-			return err;
+-		return emu8k_silence_block(emu, pos + rec->loop_start[1], count / 2);
+-	} else {
+-		return emu8k_silence_block(emu, pos + rec->loop_start[voice], count);
++		return emu8k_transfer_block(emu, pos + rec->loop_start[voice],
++					    src, count, in_kernel);
  	}
- 
--	dprintk(1, "qbuf of buffer %d succeeded\n", vb->index);
-+	dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
- 	return 0;
  }
- EXPORT_SYMBOL_GPL(vb2_core_qbuf);
-@@ -1472,7 +1472,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 
+@@ -510,7 +492,8 @@ static int emu8k_pcm_copy(struct snd_pcm_substream *subs,
+ 			  int voice,
+ 			  snd_pcm_uframes_t pos,
+ 			  void __user *src,
+-			  snd_pcm_uframes_t count)
++			  snd_pcm_uframes_t count,
++			  bool in_kernel)
+ {
+ 	struct snd_emu8k_pcm *rec = subs->runtime->private_data;
+ 	struct snd_emu8000 *emu = rec->emu;
+@@ -524,39 +507,18 @@ static int emu8k_pcm_copy(struct snd_pcm_substream *subs,
+ 	while (count-- > 0) {
+ 		unsigned short sval;
+ 		CHECK_SCHEDULER();
+-		if (get_user(sval, buf))
++		if (get_val(&sval, buf, in_kernel))
+ 			return -EFAULT;
+ 		EMU8000_SMLD_WRITE(emu, sval);
+-		buf++;
++		if (buf)
++			buf++;
+ 		if (rec->voices > 1) {
+ 			CHECK_SCHEDULER();
+-			if (get_user(sval, buf))
++			if (get_val(&sval, buf, in_kernel))
+ 				return -EFAULT;
+ 			EMU8000_SMRD_WRITE(emu, sval);
+-			buf++;
+-		}
+-	}
+-	return 0;
+-}
+-
+-static int emu8k_pcm_silence(struct snd_pcm_substream *subs,
+-			     int voice,
+-			     snd_pcm_uframes_t pos,
+-			     snd_pcm_uframes_t count)
+-{
+-	struct snd_emu8k_pcm *rec = subs->runtime->private_data;
+-	struct snd_emu8000 *emu = rec->emu;
+-
+-	snd_emu8000_write_wait(emu, 1);
+-	EMU8000_SMALW_WRITE(emu, rec->loop_start[0] + pos);
+-	if (rec->voices > 1)
+-		EMU8000_SMARW_WRITE(emu, rec->loop_start[1] + pos);
+-	while (count-- > 0) {
+-		CHECK_SCHEDULER();
+-		EMU8000_SMLD_WRITE(emu, 0);
+-		if (rec->voices > 1) {
+-			CHECK_SCHEDULER();
+-			EMU8000_SMRD_WRITE(emu, 0);
++			if (buf)
++				buf++;
  		}
- 
- 		if (nonblocking) {
--			dprintk(1, "nonblocking and no buffers to dequeue, will not wait\n");
-+			dprintk(3, "nonblocking and no buffers to dequeue, will not wait\n");
- 			return -EAGAIN;
- 		}
- 
-@@ -1619,7 +1619,7 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
- 	/* go back to dequeued state */
- 	__vb2_dqbuf(vb);
- 
--	dprintk(1, "dqbuf of buffer %d, with state %d\n",
-+	dprintk(2, "dqbuf of buffer %d, with state %d\n",
- 			vb->index, vb->state);
- 
+ 	}
  	return 0;
+@@ -674,8 +636,7 @@ static struct snd_pcm_ops emu8k_pcm_ops = {
+ 	.prepare =	emu8k_pcm_prepare,
+ 	.trigger =	emu8k_pcm_trigger,
+ 	.pointer =	emu8k_pcm_pointer,
+-	.copy =		emu8k_pcm_copy,
+-	.silence =	emu8k_pcm_silence,
++	.copy_silence =	emu8k_pcm_copy,
+ };
+ 
+ 
 -- 
-2.13.0.219.gdb65acc882-goog
+2.13.0
