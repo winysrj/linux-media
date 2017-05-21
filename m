@@ -1,56 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:57651 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752462AbdEEPcM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 May 2017 11:32:12 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v5 8/8] ARM: configs: stm32: DCMI + OV2640 camera support
-Date: Fri, 5 May 2017 17:31:27 +0200
-Message-ID: <1493998287-5828-9-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1493998287-5828-1-git-send-email-hugues.fruchet@st.com>
-References: <1493998287-5828-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mx2.suse.de ([195.135.220.15]:38226 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1756938AbdEUUKC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 May 2017 16:10:02 -0400
+From: Takashi Iwai <tiwai@suse.de>
+To: alsa-devel@alsa-project.org
+Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
+        Mark Brown <broonie@kernel.org>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 15/16] [media] solo6x10: Convert to copy_silence ops
+Date: Sun, 21 May 2017 22:09:49 +0200
+Message-Id: <20170521200950.4592-16-tiwai@suse.de>
+In-Reply-To: <20170521200950.4592-1-tiwai@suse.de>
+References: <20170521200950.4592-1-tiwai@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable DCMI camera interface and OV2640 camera sensor drivers.
+Replace the copy and the silence ops with the new merged ops.
+It's a capture stream, thus no silence is needed.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
 ---
- arch/arm/configs/stm32_defconfig | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/media/pci/solo6x10/solo6x10-g723.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/configs/stm32_defconfig b/arch/arm/configs/stm32_defconfig
-index 84adc88..3f2e4ce 100644
---- a/arch/arm/configs/stm32_defconfig
-+++ b/arch/arm/configs/stm32_defconfig
-@@ -53,6 +53,13 @@ CONFIG_GPIO_STMPE=y
- CONFIG_MFD_STMPE=y
- CONFIG_REGULATOR_FIXED_VOLTAGE=y
- # CONFIG_USB_SUPPORT is not set
-+CONFIG_VIDEO_V4L2=y
-+CONFIG_MEDIA_SUBDRV_AUTOSELECT=n
-+CONFIG_V4L_PLATFORM_DRIVERS=y
-+CONFIG_MEDIA_SUPPORT=y
-+CONFIG_MEDIA_CAMERA_SUPPORT=y
-+CONFIG_VIDEO_STM32_DCMI=y
-+CONFIG_VIDEO_OV2640=y
- CONFIG_NEW_LEDS=y
- CONFIG_LEDS_CLASS=y
- CONFIG_LEDS_GPIO=y
+diff --git a/drivers/media/pci/solo6x10/solo6x10-g723.c b/drivers/media/pci/solo6x10/solo6x10-g723.c
+index 36e93540bb49..e21db3efb748 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-g723.c
++++ b/drivers/media/pci/solo6x10/solo6x10-g723.c
+@@ -225,7 +225,7 @@ static snd_pcm_uframes_t snd_solo_pcm_pointer(struct snd_pcm_substream *ss)
+ 
+ static int snd_solo_pcm_copy(struct snd_pcm_substream *ss, int channel,
+ 			     snd_pcm_uframes_t pos, void __user *dst,
+-			     snd_pcm_uframes_t count)
++			     snd_pcm_uframes_t count, bool in_kernel)
+ {
+ 	struct solo_snd_pcm *solo_pcm = snd_pcm_substream_chip(ss);
+ 	struct solo_dev *solo_dev = solo_pcm->solo_dev;
+@@ -242,10 +242,11 @@ static int snd_solo_pcm_copy(struct snd_pcm_substream *ss, int channel,
+ 		if (err)
+ 			return err;
+ 
+-		err = copy_to_user(dst + (i * G723_PERIOD_BYTES),
+-				   solo_pcm->g723_buf, G723_PERIOD_BYTES);
+-
+-		if (err)
++		if (in_kernel)
++			memcpy((void *)dst + (i * G723_PERIOD_BYTES),
++			       solo_pcm->g723_buf, G723_PERIOD_BYTES);
++		else if (copy_to_user(dst + (i * G723_PERIOD_BYTES),
++				      solo_pcm->g723_buf, G723_PERIOD_BYTES))
+ 			return -EFAULT;
+ 	}
+ 
+@@ -261,7 +262,7 @@ static const struct snd_pcm_ops snd_solo_pcm_ops = {
+ 	.prepare = snd_solo_pcm_prepare,
+ 	.trigger = snd_solo_pcm_trigger,
+ 	.pointer = snd_solo_pcm_pointer,
+-	.copy = snd_solo_pcm_copy,
++	.copy_silence = snd_solo_pcm_copy,
+ };
+ 
+ static int snd_solo_capture_volume_info(struct snd_kcontrol *kcontrol,
 -- 
-1.9.1
+2.13.0
