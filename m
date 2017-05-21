@@ -1,70 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:35906 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755693AbdEGWFH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 7 May 2017 18:05:07 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net, jasmin@anw.at
-Subject: [PATCH 0/7] Add block read/write to en50221 CAM functions
-Date: Sun,  7 May 2017 22:51:46 +0200
-Message-Id: <1494190313-18557-1-git-send-email-jasmin@anw.at>
+Received: from mx2.suse.de ([195.135.220.15]:38194 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1756905AbdEUUKA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 May 2017 16:10:00 -0400
+From: Takashi Iwai <tiwai@suse.de>
+To: alsa-devel@alsa-project.org
+Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
+        Mark Brown <broonie@kernel.org>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 09/16] ALSA: rme9652: Convert to copy_silence ops
+Date: Sun, 21 May 2017 22:09:43 +0200
+Message-Id: <20170521200950.4592-10-tiwai@suse.de>
+In-Reply-To: <20170521200950.4592-1-tiwai@suse.de>
+References: <20170521200950.4592-1-tiwai@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+Replace the copy and the silence ops with the new merged ops.
+The conversion is straightforward with standard helper functions.
 
-These patch series implement a block read/write interface to the en50221
-CAM control functions. The origin of this patches can be found in the
-Digital Devices Git on https://github.com/DigitalDevices/dddvb maintained
-by Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+---
+ sound/pci/rme9652/rme9652.c | 46 ++++++++++++++++++++-------------------------
+ 1 file changed, 20 insertions(+), 26 deletions(-)
 
-The relevant changes concerning dvb-core/dvb_ca_en50221.c/.h and
-cxd2099/cxd2099.c/.h have been extracted from the mentioned repository by
-Daniel Scheller <d.scheller@gmx.net> and committed to his branch on
-https://github.com/herrnst/dddvb-linux-kernel/tree/mediatree/master-cxd2099
-
-I split the patch set is smaller pieces for easier review, compiled each
-step, fixed code style issues in cxd2099/cxd2099.c/.h (checkpatch.pl) and
-tested the resulting driver on my hardware with the DD DuoFlex CI (single)
-card.
-
-Please note, that the block read/write functionality is already implemented
-in the currently existing cxd2099/cxd2099.c/.h driver, but deactivated. The
-existing code in this driver is also not functional and has been updated by
-the working implementation from the Digital Devices Git.
-
-Additionally to the block read/write functions, I merged also two patches
-in the en50221 CAM control state machine, which were existing in the
-Digital Devices Git. This are the first two patches of this series.
-
-There is another patch series coming soon "Fix coding style in en50221 CAM
-functions" which fixes nearly all the style issues in
-dvb-core/dvb_ca_en50221.c/.h, based on this patch series. So please be
-patient, if any of the dvb_ca_en50221.c/.h might be not 100% checkpatch.pl
-compliant. I tried to keep the original patch code from DD as much as
-possible.
-
-Apologizes if anything regarding the patch submission is/went wrong, as
-this is my first time contribution of a patch set.
-
-
-Jasmin Jessich (7):
-  [media] dvb-core/dvb_ca_en50221.c: State UNINITIALISED instead of INVALID
-  [media] dvb-core/dvb_ca_en50221.c: Increase timeout for link init
-  [media] dvb-core/dvb_ca_en50221.c: Add block read/write functions
-  [staging] cxd2099/cxd2099.c/.h: Fixed buffer mode
-  [media] ddbridge/ddbridge-core.c: Set maximum cxd2099 block size to 512
-  [staging] cxd2099/cxd2099.c: Removed useless printing in cxd2099 driver
-  [staging] cxd2099/cxd2099.c: Activate cxd2099 buffer mode
-
- drivers/media/dvb-core/dvb_ca_en50221.c    | 121 ++++++++-------
- drivers/media/dvb-core/dvb_ca_en50221.h    |   7 +
- drivers/media/pci/ddbridge/ddbridge-core.c |   1 +
- drivers/staging/media/cxd2099/cxd2099.c    | 237 ++++++++++++++---------------
- drivers/staging/media/cxd2099/cxd2099.h    |   6 +-
- 5 files changed, 196 insertions(+), 176 deletions(-)
-
+diff --git a/sound/pci/rme9652/rme9652.c b/sound/pci/rme9652/rme9652.c
+index 55172c689991..ce9faa32c7ed 100644
+--- a/sound/pci/rme9652/rme9652.c
++++ b/sound/pci/rme9652/rme9652.c
+@@ -1883,8 +1883,10 @@ static char *rme9652_channel_buffer_location(struct snd_rme9652 *rme9652,
+ 	}
+ }
+ 
+-static int snd_rme9652_playback_copy(struct snd_pcm_substream *substream, int channel,
+-				     snd_pcm_uframes_t pos, void __user *src, snd_pcm_uframes_t count)
++static int snd_rme9652_playback_copy(struct snd_pcm_substream *substream,
++				     int channel, snd_pcm_uframes_t pos,
++				     void __user *src, snd_pcm_uframes_t count,
++				     bool in_kernel)
+ {
+ 	struct snd_rme9652 *rme9652 = snd_pcm_substream_chip(substream);
+ 	char *channel_buf;
+@@ -1897,13 +1899,19 @@ static int snd_rme9652_playback_copy(struct snd_pcm_substream *substream, int ch
+ 						       channel);
+ 	if (snd_BUG_ON(!channel_buf))
+ 		return -EIO;
+-	if (copy_from_user(channel_buf + pos * 4, src, count * 4))
++	if (!src)
++		memset(channel_buf + pos * 4, 0, count * 4);
++	else if (in_kernel)
++		memcpy(channel_buf + pos * 4, (void *)src, count * 4);
++	else if (copy_from_user(channel_buf + pos * 4, src, count * 4))
+ 		return -EFAULT;
+-	return count;
++	return 0;
+ }
+ 
+-static int snd_rme9652_capture_copy(struct snd_pcm_substream *substream, int channel,
+-				    snd_pcm_uframes_t pos, void __user *dst, snd_pcm_uframes_t count)
++static int snd_rme9652_capture_copy(struct snd_pcm_substream *substream,
++				    int channel, snd_pcm_uframes_t pos,
++				    void __user *dst, snd_pcm_uframes_t count,
++				    bool in_kernel)
+ {
+ 	struct snd_rme9652 *rme9652 = snd_pcm_substream_chip(substream);
+ 	char *channel_buf;
+@@ -1916,24 +1924,11 @@ static int snd_rme9652_capture_copy(struct snd_pcm_substream *substream, int cha
+ 						       channel);
+ 	if (snd_BUG_ON(!channel_buf))
+ 		return -EIO;
+-	if (copy_to_user(dst, channel_buf + pos * 4, count * 4))
++	if (in_kernel)
++		memcpy((void *)dst, channel_buf + pos * 4, count * 4);
++	else if (copy_to_user(dst, channel_buf + pos * 4, count * 4))
+ 		return -EFAULT;
+-	return count;
+-}
+-
+-static int snd_rme9652_hw_silence(struct snd_pcm_substream *substream, int channel,
+-				  snd_pcm_uframes_t pos, snd_pcm_uframes_t count)
+-{
+-	struct snd_rme9652 *rme9652 = snd_pcm_substream_chip(substream);
+-	char *channel_buf;
+-
+-	channel_buf = rme9652_channel_buffer_location (rme9652,
+-						       substream->pstr->stream,
+-						       channel);
+-	if (snd_BUG_ON(!channel_buf))
+-		return -EIO;
+-	memset(channel_buf + pos * 4, 0, count * 4);
+-	return count;
++	return 0;
+ }
+ 
+ static int snd_rme9652_reset(struct snd_pcm_substream *substream)
+@@ -2376,8 +2371,7 @@ static const struct snd_pcm_ops snd_rme9652_playback_ops = {
+ 	.prepare =	snd_rme9652_prepare,
+ 	.trigger =	snd_rme9652_trigger,
+ 	.pointer =	snd_rme9652_hw_pointer,
+-	.copy =		snd_rme9652_playback_copy,
+-	.silence =	snd_rme9652_hw_silence,
++	.copy_silence =	snd_rme9652_playback_copy,
+ };
+ 
+ static const struct snd_pcm_ops snd_rme9652_capture_ops = {
+@@ -2388,7 +2382,7 @@ static const struct snd_pcm_ops snd_rme9652_capture_ops = {
+ 	.prepare =	snd_rme9652_prepare,
+ 	.trigger =	snd_rme9652_trigger,
+ 	.pointer =	snd_rme9652_hw_pointer,
+-	.copy =		snd_rme9652_capture_copy,
++	.copy_silence =	snd_rme9652_capture_copy,
+ };
+ 
+ static int snd_rme9652_create_pcm(struct snd_card *card,
 -- 
-2.7.4
+2.13.0
