@@ -1,78 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60525 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750866AbdEIICs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 May 2017 04:02:48 -0400
-Date: Tue, 9 May 2017 10:02:44 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        pali.rohar@gmail.com, sre@kernel.org,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: [patch, libv4l]: fix integer overflow
-Message-ID: <20170509080244.GA16975@amd>
-References: <20170424103802.00d3b554@vento.lan>
- <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan>
- <20170426105300.GA857@amd>
- <20170426081330.6ca10e42@vento.lan>
- <20170426132337.GA6482@amd>
- <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
- <20170508222819.GA14833@amd>
- <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
- <9722356b-aa92-293f-40c5-bcb30bf71147@xs4all.nl>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52102 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752638AbdEVHpi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 May 2017 03:45:38 -0400
+Subject: Re: [media-pci-cx25821] question about value overwrite
+To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20170518170709.Horde.zKHvDFB0L61Od1t7GtHytpR@gator4166.hostgator.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <b170bdc6-8c36-936a-a960-2dcde3b64bc5@xs4all.nl>
+Date: Mon, 22 May 2017 09:45:31 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="SLDf9lqlvOQaIe6s"
-Content-Disposition: inline
-In-Reply-To: <9722356b-aa92-293f-40c5-bcb30bf71147@xs4all.nl>
+In-Reply-To: <20170518170709.Horde.zKHvDFB0L61Od1t7GtHytpR@gator4166.hostgator.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 05/19/2017 12:07 AM, Gustavo A. R. Silva wrote:
+> 
+> Hello everybody,
+> 
+> While looking into Coverity ID 1226903 I ran into the following piece  
+> of code at drivers/media/pci/cx25821/cx25821-medusa-video.c:393:
+> 
+> 393int medusa_set_videostandard(struct cx25821_dev *dev)
+> 394{
+> 395        int status = 0;
+> 396        u32 value = 0, tmp = 0;
+> 397
+> 398        if (dev->tvnorm & V4L2_STD_PAL_BG || dev->tvnorm & V4L2_STD_PAL_DK)
+> 399                status = medusa_initialize_pal(dev);
+> 400        else
+> 401                status = medusa_initialize_ntsc(dev);
+> 402
+> 403        /* Enable DENC_A output */
+> 404        value = cx25821_i2c_read(&dev->i2c_bus[0], DENC_A_REG_4, &tmp);
+> 405        value = setBitAtPos(value, 4);
+> 406        status = cx25821_i2c_write(&dev->i2c_bus[0], DENC_A_REG_4, value);
+> 407
+> 408        /* Enable DENC_B output */
+> 409        value = cx25821_i2c_read(&dev->i2c_bus[0], DENC_B_REG_4, &tmp);
+> 410        value = setBitAtPos(value, 4);
+> 411        status = cx25821_i2c_write(&dev->i2c_bus[0], DENC_B_REG_4, value);
+> 412
+> 413        return status;
+> 414}
+> 
+> The issue is that the value stored in variable _status_ at lines 399  
+> and 401 is overwritten by the one stored at line 406 and then at line  
+> 411, before it can be used.
+> 
+> My question is if the original intention was to ORed the return  
+> values, something like in the following patch:
+> 
+> index 0a9db05..226d14f 100644
+> --- a/drivers/media/pci/cx25821/cx25821-medusa-video.c
+> +++ b/drivers/media/pci/cx25821/cx25821-medusa-video.c
+> @@ -403,12 +403,12 @@ int medusa_set_videostandard(struct cx25821_dev *dev)
+>          /* Enable DENC_A output */
+>          value = cx25821_i2c_read(&dev->i2c_bus[0], DENC_A_REG_4, &tmp);
+>          value = setBitAtPos(value, 4);
+> -       status = cx25821_i2c_write(&dev->i2c_bus[0], DENC_A_REG_4, value);
+> +       status |= cx25821_i2c_write(&dev->i2c_bus[0], DENC_A_REG_4, value);
+> 
+>          /* Enable DENC_B output */
+>          value = cx25821_i2c_read(&dev->i2c_bus[0], DENC_B_REG_4, &tmp);
+>          value = setBitAtPos(value, 4);
+> -       status = cx25821_i2c_write(&dev->i2c_bus[0], DENC_B_REG_4, value);
+> +       status |= cx25821_i2c_write(&dev->i2c_bus[0], DENC_B_REG_4, value);
+> 
+>          return status;
+>   }
 
---SLDf9lqlvOQaIe6s
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This is a crappy driver, they just couldn't be bothered to check the error from
+cx25821_i2c_read/write.
 
-On Tue 2017-05-09 08:32:20, Hans Verkuil wrote:
-> On 05/09/2017 08:29 AM, Hans Verkuil wrote:
-> > On 05/09/2017 12:28 AM, Pavel Machek wrote:
-> >> Hi!
-> >>
-> >> This bit me while trying to use absolute exposure time on Nokia N900:
-> >>
-> >> Can someone apply it to libv4l2 tree? Could I get some feedback on the
-> >> other patches? Is this the way to submit patches to libv4l2?
-> >=20
-> > Yes, it is. But I do need a Signed-off-by from you.
->=20
-> I saw other patches from you for libv4l without a Signed-off-by. Can you
-> check them and reply with the Signed-off-by line?
+Strictly speaking the return value should be checked after every read/write and
+returned in case of an error.
 
-Thanks for quick reply. Yes, will do.
+Not sure whether it is worth the effort fixing this.
 
-Best regards,
-									Pavel
-								=09
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Regards,
 
---SLDf9lqlvOQaIe6s
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+	Hans
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlkRd6QACgkQMOfwapXb+vItRgCggoWXHlW3LGKRBq6hxgSahojQ
-By8AnRDXtvJMPj/8jKg8nl9qW+h07rzi
-=RkyN
------END PGP SIGNATURE-----
-
---SLDf9lqlvOQaIe6s--
+> 
+> What do you think?
+> 
+> I'd really appreciate any comment on this.
+> 
+> Thank you!
+> --
+> Gustavo A. R. Silva
+> 
+> 
+> 
+> 
