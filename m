@@ -1,36 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f50.google.com ([209.85.215.50]:34275 "EHLO
-        mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750871AbdE2Ilz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 04:41:55 -0400
-Received: by mail-lf0-f50.google.com with SMTP id 99so31054002lfu.1
-        for <linux-media@vger.kernel.org>; Mon, 29 May 2017 01:41:54 -0700 (PDT)
-Subject: Re: [PATCH 6/7] [media] soc_camera: rcar_vin: use proper name for the
- R-Car SoC
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        linux-renesas-soc@vger.kernel.org
-References: <20170528093051.11816-1-wsa+renesas@sang-engineering.com>
- <20170528093051.11816-7-wsa+renesas@sang-engineering.com>
-Cc: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <a133a7f7-e887-5043-83d3-cccbec581487@cogentembedded.com>
-Date: Mon, 29 May 2017 11:41:53 +0300
+Received: from gofer.mess.org ([88.97.38.141]:50245 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933464AbdEVUkc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 May 2017 16:40:32 -0400
+Date: Mon, 22 May 2017 21:40:30 +0100
+From: Sean Young <sean@mess.org>
+To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: [PATCH 3/7] rc-core: img-nec-decoder - leave the internals of
+ rc_dev alone
+Message-ID: <20170522204030.GA22650@gofer.mess.org>
+References: <149365487447.13489.15793446874818182829.stgit@zeus.hardeman.nu>
+ <149365500692.13489.9572857464621441673.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-In-Reply-To: <20170528093051.11816-7-wsa+renesas@sang-engineering.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <149365500692.13489.9572857464621441673.stgit@zeus.hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+On Mon, May 01, 2017 at 06:10:06PM +0200, David Härdeman wrote:
+> Obvious fix, leave repeat handling to rc-core
+> 
+> Signed-off-by: David Härdeman <david@hardeman.nu>
+> ---
+>  drivers/media/rc/ir-nec-decoder.c |   10 +++-------
+>  1 file changed, 3 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
+> index 3ce850314dca..75b9137f6faf 100644
+> --- a/drivers/media/rc/ir-nec-decoder.c
+> +++ b/drivers/media/rc/ir-nec-decoder.c
+> @@ -88,13 +88,9 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+>  			data->state = STATE_BIT_PULSE;
+>  			return 0;
+>  		} else if (eq_margin(ev.duration, NEC_REPEAT_SPACE, NEC_UNIT / 2)) {
+> -			if (!dev->keypressed) {
+> -				IR_dprintk(1, "Discarding last key repeat: event after key up\n");
+> -			} else {
+> -				rc_repeat(dev);
+> -				IR_dprintk(1, "Repeat last key\n");
+> -				data->state = STATE_TRAILER_PULSE;
+> -			}
+> +			rc_repeat(dev);
+> +			IR_dprintk(1, "Repeat last key\n");
+> +			data->state = STATE_TRAILER_PULSE;
 
-    Why "soc_camera:" in the subject?
-    The 'soc_camera" driver has been removed (replaced by a "normal" V4L2 driver).
+This is not correct. This means that whenever a nec repeat is received,
+the last scancode is sent to the input device, irrespective of whether
+there has been no IR for hours. The original code is stricter.
 
-MBR, Sergei
+>  			return 0;
+>  		}
+>  
