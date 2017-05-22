@@ -1,93 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:35510 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751031AbdECHnk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 May 2017 03:43:40 -0400
-Subject: Re: [PATCHv2] omap3isp: add support for CSI1 bus
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-References: <20161228183036.GA13139@amd> <10545906.Gxg3yScdu4@avalon>
- <20170215094228.GA8586@amd> <2414221.XNA4JCFMRx@avalon>
- <20170302090143.GB27818@amd> <20170302101603.GE27818@amd>
- <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
- <20170302123848.GA28230@amd>
- <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Message-ID: <db549a81-0c1f-3ff0-6293-050ec2e0af84@iki.fi>
-Date: Wed, 3 May 2017 10:43:37 +0300
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58395 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1757285AbdEVJC4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 May 2017 05:02:56 -0400
+Subject: Re: [PATCH] media: platform: s3c-camif: fix function prototype
+To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>
+References: <20170504214200.GA22855@embeddedgus>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ea039557-023c-736d-5bfb-928cd87cc3e3@xs4all.nl>
+Date: Mon, 22 May 2017 11:02:50 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <20170504214200.GA22855@embeddedgus>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
-
-On 03/04/17 15:03, Sakari Ailus wrote:
-> Hi Pavel,
+On 05/04/2017 11:42 PM, Gustavo A. R. Silva wrote:
+> Fix function prototype so the position of arguments camif->colorfx_cb and
+> camif->colorfx_cr match the order of the parameters when calling
+> camif_hw_set_effect() function.
 > 
-> On Thu, Mar 02, 2017 at 01:38:48PM +0100, Pavel Machek wrote:
->> Hi!
->>
->>>> Ok, how about this one?
->>>> omap3isp: add rest of CSI1 support
->>>>     
->>>> CSI1 needs one more bit to be set up. Do just that.
->>>>     
->>>> It is not as straightforward as I'd like, see the comments in the code
->>>> for explanation.
->> ...
->>>> +	if (isp->phy_type == ISP_PHY_TYPE_3430) {
->>>> +		struct media_pad *pad;
->>>> +		struct v4l2_subdev *sensor;
->>>> +		const struct isp_ccp2_cfg *buscfg;
->>>> +
->>>> +		pad = media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
->>>> +		sensor = media_entity_to_v4l2_subdev(pad->entity);
->>>> +		/* Struct isp_bus_cfg has union inside */
->>>> +		buscfg = &((struct isp_bus_cfg *)sensor->host_priv)->bus.ccp2;
->>>> +
->>>> +		csiphy_routing_cfg_3430(&isp->isp_csiphy2,
->>>> +					ISP_INTERFACE_CCP2B_PHY1,
->>>> +					enable, !!buscfg->phy_layer,
->>>> +					buscfg->strobe_clk_pol);
->>>
->>> You should do this through omap3isp_csiphy_acquire(), and not call
->>> csiphy_routing_cfg_3430() directly from here.
->>
->> Well, unfortunately omap3isp_csiphy_acquire() does have csi2
->> assumptions hard-coded :-(.
->>
->> This will probably fail.
->>
->> 	        rval = omap3isp_csi2_reset(phy->csi2);
->> 	        if (rval < 0)
->> 		                goto done;
+> Addresses-Coverity-ID: 1248800
+> Addresses-Coverity-ID: 1269141
+> Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+> Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+> ---
+>  drivers/media/platform/s3c-camif/camif-regs.c | 2 +-
+>  drivers/media/platform/s3c-camif/camif-regs.h | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> Could you try to two patches I've applied on the ccp2 branch (I'll remove
-> them if there are issues).
-> 
-> That's compile tested for now only.
-> 
+> diff --git a/drivers/media/platform/s3c-camif/camif-regs.c b/drivers/media/platform/s3c-camif/camif-regs.c
+> index 812fb3a..d70ffef 100644
+> --- a/drivers/media/platform/s3c-camif/camif-regs.c
+> +++ b/drivers/media/platform/s3c-camif/camif-regs.c
+> @@ -58,7 +58,7 @@ void camif_hw_set_test_pattern(struct camif_dev *camif, unsigned int pattern)
+>  }
+>  
+>  void camif_hw_set_effect(struct camif_dev *camif, unsigned int effect,
+> -			unsigned int cr, unsigned int cb)
+> +			unsigned int cb, unsigned int cr)
+>  {
+>  	static const struct v4l2_control colorfx[] = {
+>  		{ V4L2_COLORFX_NONE,		CIIMGEFF_FIN_BYPASS },
 
-I've updated the CCP2 patches here on top of the latest fwnode patches:
+This will also affect this line:
 
-<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=ccp2>
+cfg |= cr | (cb << 13);
 
-No even compile testing this time though. I'm afraid I haven't had the
-time to otherwise to work on the CCP2 support, so there are no other
-changes besides the rebase.
+cr and cb are now swapped so this will result in a different color.
 
-I intend to send a pull request for the fwnode patches once we have the
-next rc1 in media tree so then we can have the patches on plain media
-tree master branch.
+Sylwester, who is wrong here: the prototype or how this function is called?
 
--- 
+I suspect that Gustavo is right and that the prototype is wrong. But in that
+case this patch should also change the cfg assignment.
+
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+	Hans
+
+> diff --git a/drivers/media/platform/s3c-camif/camif-regs.h b/drivers/media/platform/s3c-camif/camif-regs.h
+> index 5ad36c1..dfb49a5 100644
+> --- a/drivers/media/platform/s3c-camif/camif-regs.h
+> +++ b/drivers/media/platform/s3c-camif/camif-regs.h
+> @@ -255,7 +255,7 @@ void camif_hw_set_output_dma(struct camif_vp *vp);
+>  void camif_hw_set_target_format(struct camif_vp *vp);
+>  void camif_hw_set_test_pattern(struct camif_dev *camif, unsigned int pattern);
+>  void camif_hw_set_effect(struct camif_dev *camif, unsigned int effect,
+> -			unsigned int cr, unsigned int cb);
+> +			unsigned int cb, unsigned int cr);
+>  void camif_hw_set_output_addr(struct camif_vp *vp, struct camif_addr *paddr,
+>  			      int index);
+>  void camif_hw_dump_regs(struct camif_dev *camif, const char *label);
+> 
