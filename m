@@ -1,1839 +1,1177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53220 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750737AbdE0UbA (ORCPT
+Received: from smtprelay.synopsys.com ([198.182.60.111]:51201 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751656AbdEVKOh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 27 May 2017 16:31:00 -0400
-Date: Sat, 27 May 2017 23:30:53 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hyungwoo Yang <hyungwoo.yang@intel.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        jian.xu.zheng@intel.com, cedric.hsu@intel.com, tfiga@chromium.org
-Subject: Re: [PATCH v3 1/1] [media] i2c: add support for OV13858 sensor
-Message-ID: <20170527203053.GY29527@valkosipuli.retiisi.org.uk>
-References: <1495844847-21655-1-git-send-email-hyungwoo.yang@intel.com>
+        Mon, 22 May 2017 06:14:37 -0400
+Subject: Re: [RFC 1/2] [media] platform: Add Synopsys Designware HDMI RX PHY
+ e405 Driver
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Jose Abreu <Jose.Abreu@synopsys.com>,
+        <linux-media@vger.kernel.org>
+References: <cover.1492767176.git.joabreu@synopsys.com>
+ <ffdf47e90c860b9328fdcd6136f91f3e8814e7d2.1492767176.git.joabreu@synopsys.com>
+ <a5a2931c-8289-836c-4053-94cd27d346ed@xs4all.nl>
+CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        <linux-kernel@vger.kernel.org>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <8fd96d63-84b2-029e-f71c-5e16fc7c2a60@synopsys.com>
+Date: Mon, 22 May 2017 11:14:31 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1495844847-21655-1-git-send-email-hyungwoo.yang@intel.com>
+In-Reply-To: <a5a2931c-8289-836c-4053-94cd27d346ed@xs4all.nl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hyungwoo,
+Hi Hans,
 
-Thanks for the update. A few comments below.
 
-On Fri, May 26, 2017 at 05:27:27PM -0700, Hyungwoo Yang wrote:
-> This patch adds driver for Omnivision's ov13858
-> sensor, the driver supports following features:
-> 
-> - manual exposure/analog gain
-> - two link frequencies
-> - VBLANK support
-> - media controller support
-> - runtime pm support
-> 
-> Signed-off-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
-> ---
->  drivers/media/i2c/Kconfig   |    8 +
->  drivers/media/i2c/Makefile  |    1 +
->  drivers/media/i2c/ov13858.c | 1738 +++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 1747 insertions(+)
->  create mode 100644 drivers/media/i2c/ov13858.c
-> 
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> index fd181c9..f8c5cca 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -589,6 +589,14 @@ config VIDEO_OV9650
->  	  This is a V4L2 sensor-level driver for the Omnivision
->  	  OV9650 and OV9652 camera sensors.
->  
-> +config VIDEO_OV13858
-> +	tristate "OmniVision OV13858 sensor support"
-> +	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-> +	depends on MEDIA_CAMERA_SUPPORT
-> +	---help---
-> +	  This is a Video4Linux2 sensor-level driver for the OmniVision
-> +	  OV13858 camera.
-> +
->  config VIDEO_VS6624
->  	tristate "ST VS6624 sensor support"
->  	depends on VIDEO_V4L2 && I2C
-> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-> index 62323ec..3f4dc02 100644
-> --- a/drivers/media/i2c/Makefile
-> +++ b/drivers/media/i2c/Makefile
-> @@ -63,6 +63,7 @@ obj-$(CONFIG_VIDEO_OV5647) += ov5647.o
->  obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
->  obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
->  obj-$(CONFIG_VIDEO_OV9650) += ov9650.o
-> +obj-$(CONFIG_VIDEO_OV13858) += ov13858.o
->  obj-$(CONFIG_VIDEO_MT9M032) += mt9m032.o
->  obj-$(CONFIG_VIDEO_MT9M111) += mt9m111.o
->  obj-$(CONFIG_VIDEO_MT9P031) += mt9p031.o
-> diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
-> new file mode 100644
-> index 0000000..58dd9c7
-> --- /dev/null
-> +++ b/drivers/media/i2c/ov13858.c
-> @@ -0,0 +1,1738 @@
-> +/*
-> + * Copyright (c) 2017 Intel Corporation.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License version
-> + * 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-> + * GNU General Public License for more details.
-> + *
-> + */
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/i2c.h>
-> +#include <linux/module.h>
-> +#include <linux/pm_runtime.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +
-> +#define OV13858_REG_VALUE_08BIT		1
-> +#define OV13858_REG_VALUE_16BIT		2
-> +#define OV13858_REG_VALUE_24BIT		3
-> +
-> +#define OV13858_REG_MODE_SELECT		0x0100
-> +#define OV13858_MODE_STANDBY		0x00
-> +#define OV13858_MODE_STREAMING		0x01
-> +
-> +#define OV13858_REG_SOFTWARE_RST	0x0103
-> +#define OV13858_SOFTWARE_RST		0x01
-> +
-> +/* PLL1 generates PCLK and MIPI_PHY_CLK */
-> +#define OV13858_REG_PLL1_CTRL_0		0x0300
-> +#define OV13858_REG_PLL1_CTRL_1		0x0301
-> +#define OV13858_REG_PLL1_CTRL_2		0x0302
-> +#define OV13858_REG_PLL1_CTRL_3		0x0303
-> +#define OV13858_REG_PLL1_CTRL_4		0x0304
-> +#define OV13858_REG_PLL1_CTRL_5		0x0305
-> +
-> +/* PLL2 generates DAC_CLK, SCLK and SRAM_CLK */
-> +#define OV13858_REG_PLL2_CTRL_B		0x030b
-> +#define OV13858_REG_PLL2_CTRL_C		0x030c
-> +#define OV13858_REG_PLL2_CTRL_D		0x030d
-> +#define OV13858_REG_PLL2_CTRL_E		0x030e
-> +#define OV13858_REG_PLL2_CTRL_F		0x030f
-> +#define OV13858_REG_PLL2_CTRL_12	0x0312
-> +#define OV13858_REG_MIPI_SC_CTRL0	0x3016
-> +#define OV13858_REG_MIPI_SC_CTRL1	0x3022
-> +
-> +/* Chip ID */
-> +#define OV13858_REG_CHIP_ID		0x300a
-> +#define OV13858_CHIP_ID			0x00d855
-> +
-> +/* V_TIMING internal */
-> +#define OV13858_REG_VTS			0x380e
-> +#define OV13858_VTS_30FPS		0x0c8e /* 30 fps */
-> +#define OV13858_VTS_60FPS		0x0648 /* 60 fps */
-> +#define OV13858_VTS_MAX			0x7fff
-> +#define OV13858_VBLANK_MIN		56
-> +
-> +/* Exposure control */
-> +#define OV13858_REG_EXPOSURE		0x3500
-> +#define OV13858_EXPOSURE_MIN		4
-> +#define OV13858_EXPOSURE_MAX		(OV13858_VTS_MAX - 8)
-> +#define OV13858_EXPOSURE_STEP		1
-> +#define OV13858_EXPOSURE_DEFAULT	0x640
-> +
-> +/* Analog gain control */
-> +#define OV13858_REG_ANALOG_GAIN		0x3508
-> +#define OV13858_ANA_GAIN_MIN		0
-> +#define OV13858_ANA_GAIN_MAX		0x1fff
-> +#define OV13858_ANA_GAIN_STEP		1
-> +#define OV13858_ANA_GAIN_DEFAULT	0x80
-> +
-> +/* Number of frames to skip */
-> +#define OV13858_NUM_OF_SKIP_FRAMES	2
-> +
-> +struct ov13858_reg {
-> +	u16 address;
-> +	u8 val;
-> +};
-> +
-> +struct ov13858_reg_list {
-> +	u32 num_of_regs;
-> +	const struct ov13858_reg *regs;
-> +};
-> +
-> +/* Link frequency config */
-> +struct ov13858_link_freq_config {
-> +	u32 pixel_rate;
-> +
-> +	/* PLL registers for this link frequency */
-> +	struct ov13858_reg_list reg_list;
-> +};
-> +
-> +/* Mode : resolution and related config&values */
-> +struct ov13858_mode {
-> +	/* Frame width */
-> +	u32 width;
-> +	/* Frame height */
-> +	u32 height;
-> +
-> +	/* V-timing */
-> +	u32 vts;
+Thanks for the review!
 
-Aren't the three fields here unused?
 
-> +
-> +	/* Index of Link frequency config to be used */
-> +	u32 link_freq_index;
-> +	/* Default register values */
-> +	struct ov13858_reg_list reg_list;
-> +};
-> +
-> +/* 4224x3136 needs 1080Mbps/lane, 4 lanes */
-> +static const struct ov13858_reg mipi_data_rate_1080mbps[] = {
-> +	/* PLL1 registers */
-> +	{OV13858_REG_PLL1_CTRL_0, 0x07},
-> +	{OV13858_REG_PLL1_CTRL_1, 0x01},
-> +	{OV13858_REG_PLL1_CTRL_2, 0xc2},
-> +	{OV13858_REG_PLL1_CTRL_3, 0x00},
-> +	{OV13858_REG_PLL1_CTRL_4, 0x00},
-> +	{OV13858_REG_PLL1_CTRL_5, 0x01},
-> +
-> +	/* PLL2 registers */
-> +	{OV13858_REG_PLL2_CTRL_B, 0x05},
-> +	{OV13858_REG_PLL2_CTRL_C, 0x01},
-> +	{OV13858_REG_PLL2_CTRL_D, 0x0e},
-> +	{OV13858_REG_PLL2_CTRL_E, 0x05},
-> +	{OV13858_REG_PLL2_CTRL_F, 0x01},
-> +	{OV13858_REG_PLL2_CTRL_12, 0x01},
-> +	{OV13858_REG_MIPI_SC_CTRL0, 0x72},
-> +	{OV13858_REG_MIPI_SC_CTRL1, 0x01},
-> +};
-> +
-> +/*
-> + * 2112x1568, 2112x1188, 1056x784 need 540Mbps/lane,
-> + * 4 lanes
-> + */
-> +static const struct ov13858_reg mipi_data_rate_540mbps[] = {
-> +	/* PLL1 registers */
-> +	{OV13858_REG_PLL1_CTRL_0, 0x07},
-> +	{OV13858_REG_PLL1_CTRL_1, 0x01},
-> +	{OV13858_REG_PLL1_CTRL_2, 0xc2},
-> +	{OV13858_REG_PLL1_CTRL_3, 0x01},
-> +	{OV13858_REG_PLL1_CTRL_4, 0x00},
-> +	{OV13858_REG_PLL1_CTRL_5, 0x01},
-> +
-> +	/* PLL2 registers */
-> +	{OV13858_REG_PLL2_CTRL_B, 0x05},
-> +	{OV13858_REG_PLL2_CTRL_C, 0x01},
-> +	{OV13858_REG_PLL2_CTRL_D, 0x0e},
-> +	{OV13858_REG_PLL2_CTRL_E, 0x05},
-> +	{OV13858_REG_PLL2_CTRL_F, 0x01},
-> +	{OV13858_REG_PLL2_CTRL_12, 0x01},
-> +	{OV13858_REG_MIPI_SC_CTRL0, 0x72},
-> +	{OV13858_REG_MIPI_SC_CTRL1, 0x01},
-> +};
-> +
-> +static const struct ov13858_reg mode_4224x3136_regs[] = {
-> +	{0x3013, 0x32},
-> +	{0x301b, 0xf0},
-> +	{0x301f, 0xd0},
-> +	{0x3106, 0x15},
-> +	{0x3107, 0x23},
-> +	{0x350a, 0x00},
-> +	{0x350e, 0x00},
-> +	{0x3510, 0x00},
-> +	{0x3511, 0x02},
-> +	{0x3512, 0x00},
-> +	{0x3600, 0x2b},
-> +	{0x3601, 0x52},
-> +	{0x3602, 0x60},
-> +	{0x3612, 0x05},
-> +	{0x3613, 0xa4},
-> +	{0x3620, 0x80},
-> +	{0x3621, 0x10},
-> +	{0x3622, 0x30},
-> +	{0x3624, 0x1c},
-> +	{0x3640, 0x10},
-> +	{0x3641, 0x70},
-> +	{0x3661, 0x80},
-> +	{0x3662, 0x12},
-> +	{0x3664, 0x73},
-> +	{0x3665, 0xa7},
-> +	{0x366e, 0xff},
-> +	{0x366f, 0xf4},
-> +	{0x3674, 0x00},
-> +	{0x3679, 0x0c},
-> +	{0x367f, 0x01},
-> +	{0x3680, 0x0c},
-> +	{0x3681, 0x50},
-> +	{0x3682, 0x50},
-> +	{0x3683, 0xa9},
-> +	{0x3684, 0xa9},
-> +	{0x3709, 0x5f},
-> +	{0x3714, 0x24},
-> +	{0x371a, 0x3e},
-> +	{0x3737, 0x04},
-> +	{0x3738, 0xcc},
-> +	{0x3739, 0x12},
-> +	{0x373d, 0x26},
-> +	{0x3764, 0x20},
-> +	{0x3765, 0x20},
-> +	{0x37a1, 0x36},
-> +	{0x37a8, 0x3b},
-> +	{0x37ab, 0x31},
-> +	{0x37c2, 0x04},
-> +	{0x37c3, 0xf1},
-> +	{0x37c5, 0x00},
-> +	{0x37d8, 0x03},
-> +	{0x37d9, 0x0c},
-> +	{0x37da, 0xc2},
-> +	{0x37dc, 0x02},
-> +	{0x37e0, 0x00},
-> +	{0x37e1, 0x0a},
-> +	{0x37e2, 0x14},
-> +	{0x37e3, 0x04},
-> +	{0x37e4, 0x2a},
-> +	{0x37e5, 0x03},
-> +	{0x37e6, 0x04},
-> +	{0x3800, 0x00},
-> +	{0x3801, 0x00},
-> +	{0x3802, 0x00},
-> +	{0x3803, 0x00},
-> +	{0x3804, 0x10},
-> +	{0x3805, 0x9f},
-> +	{0x3806, 0x0c},
-> +	{0x3807, 0x5f},
-> +	{0x3808, 0x10},
-> +	{0x3809, 0x80},
-> +	{0x380a, 0x0c},
-> +	{0x380b, 0x40},
-> +	{0x380c, 0x04},
-> +	{0x380d, 0x62},
-> +	{0x380e, 0x0c},
-> +	{0x380f, 0x8e},
-> +	{0x3811, 0x04},
-> +	{0x3813, 0x05},
-> +	{0x3814, 0x01},
-> +	{0x3815, 0x01},
-> +	{0x3816, 0x01},
-> +	{0x3817, 0x01},
-> +	{0x3820, 0xa8},
-> +	{0x3821, 0x00},
-> +	{0x3822, 0xc2},
-> +	{0x3823, 0x18},
-> +	{0x3826, 0x11},
-> +	{0x3827, 0x1c},
-> +	{0x3829, 0x03},
-> +	{0x3832, 0x00},
-> +	{0x3c80, 0x00},
-> +	{0x3c87, 0x01},
-> +	{0x3c8c, 0x19},
-> +	{0x3c8d, 0x1c},
-> +	{0x3c90, 0x00},
-> +	{0x3c91, 0x00},
-> +	{0x3c92, 0x00},
-> +	{0x3c93, 0x00},
-> +	{0x3c94, 0x40},
-> +	{0x3c95, 0x54},
-> +	{0x3c96, 0x34},
-> +	{0x3c97, 0x04},
-> +	{0x3c98, 0x00},
-> +	{0x3d8c, 0x73},
-> +	{0x3d8d, 0xc0},
-> +	{0x3f00, 0x0b},
-> +	{0x3f03, 0x00},
-> +	{0x4001, 0xe0},
-> +	{0x4008, 0x00},
-> +	{0x4009, 0x0f},
-> +	{0x4011, 0xf0},
-> +	{0x4017, 0x08},
-> +	{0x4050, 0x04},
-> +	{0x4051, 0x0b},
-> +	{0x4052, 0x00},
-> +	{0x4053, 0x80},
-> +	{0x4054, 0x00},
-> +	{0x4055, 0x80},
-> +	{0x4056, 0x00},
-> +	{0x4057, 0x80},
-> +	{0x4058, 0x00},
-> +	{0x4059, 0x80},
-> +	{0x405e, 0x20},
-> +	{0x4500, 0x07},
-> +	{0x4503, 0x00},
-> +	{0x450a, 0x04},
-> +	{0x4809, 0x04},
-> +	{0x480c, 0x12},
-> +	{0x481f, 0x30},
-> +	{0x4833, 0x10},
-> +	{0x4837, 0x0e},
-> +	{0x4902, 0x01},
-> +	{0x4d00, 0x03},
-> +	{0x4d01, 0xc9},
-> +	{0x4d02, 0xbc},
-> +	{0x4d03, 0xd7},
-> +	{0x4d04, 0xf0},
-> +	{0x4d05, 0xa2},
-> +	{0x5000, 0xfd},
-> +	{0x5001, 0x01},
-> +	{0x5040, 0x39},
-> +	{0x5041, 0x10},
-> +	{0x5042, 0x10},
-> +	{0x5043, 0x84},
-> +	{0x5044, 0x62},
-> +	{0x5180, 0x00},
-> +	{0x5181, 0x10},
-> +	{0x5182, 0x02},
-> +	{0x5183, 0x0f},
-> +	{0x5200, 0x1b},
-> +	{0x520b, 0x07},
-> +	{0x520c, 0x0f},
-> +	{0x5300, 0x04},
-> +	{0x5301, 0x0c},
-> +	{0x5302, 0x0c},
-> +	{0x5303, 0x0f},
-> +	{0x5304, 0x00},
-> +	{0x5305, 0x70},
-> +	{0x5306, 0x00},
-> +	{0x5307, 0x80},
-> +	{0x5308, 0x00},
-> +	{0x5309, 0xa5},
-> +	{0x530a, 0x00},
-> +	{0x530b, 0xd3},
-> +	{0x530c, 0x00},
-> +	{0x530d, 0xf0},
-> +	{0x530e, 0x01},
-> +	{0x530f, 0x10},
-> +	{0x5310, 0x01},
-> +	{0x5311, 0x20},
-> +	{0x5312, 0x01},
-> +	{0x5313, 0x20},
-> +	{0x5314, 0x01},
-> +	{0x5315, 0x20},
-> +	{0x5316, 0x08},
-> +	{0x5317, 0x08},
-> +	{0x5318, 0x10},
-> +	{0x5319, 0x88},
-> +	{0x531a, 0x88},
-> +	{0x531b, 0xa9},
-> +	{0x531c, 0xaa},
-> +	{0x531d, 0x0a},
-> +	{0x5405, 0x02},
-> +	{0x5406, 0x67},
-> +	{0x5407, 0x01},
-> +	{0x5408, 0x4a},
-> +};
-> +
-> +static const struct ov13858_reg mode_2112x1568_regs[] = {
-> +	{0x3013, 0x32},
-> +	{0x301b, 0xf0},
-> +	{0x301f, 0xd0},
-> +	{0x3106, 0x15},
-> +	{0x3107, 0x23},
-> +	{0x350a, 0x00},
-> +	{0x350e, 0x00},
-> +	{0x3510, 0x00},
-> +	{0x3511, 0x02},
-> +	{0x3512, 0x00},
-> +	{0x3600, 0x2b},
-> +	{0x3601, 0x52},
-> +	{0x3602, 0x60},
-> +	{0x3612, 0x05},
-> +	{0x3613, 0xa4},
-> +	{0x3620, 0x80},
-> +	{0x3621, 0x10},
-> +	{0x3622, 0x30},
-> +	{0x3624, 0x1c},
-> +	{0x3640, 0x10},
-> +	{0x3641, 0x70},
-> +	{0x3661, 0x80},
-> +	{0x3662, 0x10},
-> +	{0x3664, 0x73},
-> +	{0x3665, 0xa7},
-> +	{0x366e, 0xff},
-> +	{0x366f, 0xf4},
-> +	{0x3674, 0x00},
-> +	{0x3679, 0x0c},
-> +	{0x367f, 0x01},
-> +	{0x3680, 0x0c},
-> +	{0x3681, 0x50},
-> +	{0x3682, 0x50},
-> +	{0x3683, 0xa9},
-> +	{0x3684, 0xa9},
-> +	{0x3709, 0x5f},
-> +	{0x3714, 0x28},
-> +	{0x371a, 0x3e},
-> +	{0x3737, 0x08},
-> +	{0x3738, 0xcc},
-> +	{0x3739, 0x20},
-> +	{0x373d, 0x26},
-> +	{0x3764, 0x20},
-> +	{0x3765, 0x20},
-> +	{0x37a1, 0x36},
-> +	{0x37a8, 0x3b},
-> +	{0x37ab, 0x31},
-> +	{0x37c2, 0x14},
-> +	{0x37c3, 0xf1},
-> +	{0x37c5, 0x00},
-> +	{0x37d8, 0x03},
-> +	{0x37d9, 0x0c},
-> +	{0x37da, 0xc2},
-> +	{0x37dc, 0x02},
-> +	{0x37e0, 0x00},
-> +	{0x37e1, 0x0a},
-> +	{0x37e2, 0x14},
-> +	{0x37e3, 0x08},
-> +	{0x37e4, 0x38},
-> +	{0x37e5, 0x03},
-> +	{0x37e6, 0x08},
-> +	{0x3800, 0x00},
-> +	{0x3801, 0x00},
-> +	{0x3802, 0x00},
-> +	{0x3803, 0x00},
-> +	{0x3804, 0x10},
-> +	{0x3805, 0x9f},
-> +	{0x3806, 0x0c},
-> +	{0x3807, 0x5f},
-> +	{0x3808, 0x08},
-> +	{0x3809, 0x40},
-> +	{0x380a, 0x06},
-> +	{0x380b, 0x20},
-> +	{0x380c, 0x04},
-> +	{0x380d, 0x62},
-> +	{0x380e, 0x0c},
-> +	{0x380f, 0x8e},
-> +	{0x3811, 0x04},
-> +	{0x3813, 0x05},
-> +	{0x3814, 0x03},
-> +	{0x3815, 0x01},
-> +	{0x3816, 0x03},
-> +	{0x3817, 0x01},
-> +	{0x3820, 0xab},
-> +	{0x3821, 0x00},
-> +	{0x3822, 0xc2},
-> +	{0x3823, 0x18},
-> +	{0x3826, 0x04},
-> +	{0x3827, 0x90},
-> +	{0x3829, 0x07},
-> +	{0x3832, 0x00},
-> +	{0x3c80, 0x00},
-> +	{0x3c87, 0x01},
-> +	{0x3c8c, 0x19},
-> +	{0x3c8d, 0x1c},
-> +	{0x3c90, 0x00},
-> +	{0x3c91, 0x00},
-> +	{0x3c92, 0x00},
-> +	{0x3c93, 0x00},
-> +	{0x3c94, 0x40},
-> +	{0x3c95, 0x54},
-> +	{0x3c96, 0x34},
-> +	{0x3c97, 0x04},
-> +	{0x3c98, 0x00},
-> +	{0x3d8c, 0x73},
-> +	{0x3d8d, 0xc0},
-> +	{0x3f00, 0x0b},
-> +	{0x3f03, 0x00},
-> +	{0x4001, 0xe0},
-> +	{0x4008, 0x00},
-> +	{0x4009, 0x0d},
-> +	{0x4011, 0xf0},
-> +	{0x4017, 0x08},
-> +	{0x4050, 0x04},
-> +	{0x4051, 0x0b},
-> +	{0x4052, 0x00},
-> +	{0x4053, 0x80},
-> +	{0x4054, 0x00},
-> +	{0x4055, 0x80},
-> +	{0x4056, 0x00},
-> +	{0x4057, 0x80},
-> +	{0x4058, 0x00},
-> +	{0x4059, 0x80},
-> +	{0x405e, 0x20},
-> +	{0x4500, 0x07},
-> +	{0x4503, 0x00},
-> +	{0x450a, 0x04},
-> +	{0x4809, 0x04},
-> +	{0x480c, 0x12},
-> +	{0x481f, 0x30},
-> +	{0x4833, 0x10},
-> +	{0x4837, 0x1c},
-> +	{0x4902, 0x01},
-> +	{0x4d00, 0x03},
-> +	{0x4d01, 0xc9},
-> +	{0x4d02, 0xbc},
-> +	{0x4d03, 0xd7},
-> +	{0x4d04, 0xf0},
-> +	{0x4d05, 0xa2},
-> +	{0x5000, 0xfd},
-> +	{0x5001, 0x01},
-> +	{0x5040, 0x39},
-> +	{0x5041, 0x10},
-> +	{0x5042, 0x10},
-> +	{0x5043, 0x84},
-> +	{0x5044, 0x62},
-> +	{0x5180, 0x00},
-> +	{0x5181, 0x10},
-> +	{0x5182, 0x02},
-> +	{0x5183, 0x0f},
-> +	{0x5200, 0x1b},
-> +	{0x520b, 0x07},
-> +	{0x520c, 0x0f},
-> +	{0x5300, 0x04},
-> +	{0x5301, 0x0c},
-> +	{0x5302, 0x0c},
-> +	{0x5303, 0x0f},
-> +	{0x5304, 0x00},
-> +	{0x5305, 0x70},
-> +	{0x5306, 0x00},
-> +	{0x5307, 0x80},
-> +	{0x5308, 0x00},
-> +	{0x5309, 0xa5},
-> +	{0x530a, 0x00},
-> +	{0x530b, 0xd3},
-> +	{0x530c, 0x00},
-> +	{0x530d, 0xf0},
-> +	{0x530e, 0x01},
-> +	{0x530f, 0x10},
-> +	{0x5310, 0x01},
-> +	{0x5311, 0x20},
-> +	{0x5312, 0x01},
-> +	{0x5313, 0x20},
-> +	{0x5314, 0x01},
-> +	{0x5315, 0x20},
-> +	{0x5316, 0x08},
-> +	{0x5317, 0x08},
-> +	{0x5318, 0x10},
-> +	{0x5319, 0x88},
-> +	{0x531a, 0x88},
-> +	{0x531b, 0xa9},
-> +	{0x531c, 0xaa},
-> +	{0x531d, 0x0a},
-> +	{0x5405, 0x02},
-> +	{0x5406, 0x67},
-> +	{0x5407, 0x01},
-> +	{0x5408, 0x4a},
-> +};
-> +
-> +static const struct ov13858_reg mode_2112x1188_regs[] = {
-> +	{0x3013, 0x32},
-> +	{0x301b, 0xf0},
-> +	{0x301f, 0xd0},
-> +	{0x3106, 0x15},
-> +	{0x3107, 0x23},
-> +	{0x350a, 0x00},
-> +	{0x350e, 0x00},
-> +	{0x3510, 0x00},
-> +	{0x3511, 0x02},
-> +	{0x3512, 0x00},
-> +	{0x3600, 0x2b},
-> +	{0x3601, 0x52},
-> +	{0x3602, 0x60},
-> +	{0x3612, 0x05},
-> +	{0x3613, 0xa4},
-> +	{0x3620, 0x80},
-> +	{0x3621, 0x10},
-> +	{0x3622, 0x30},
-> +	{0x3624, 0x1c},
-> +	{0x3640, 0x10},
-> +	{0x3641, 0x70},
-> +	{0x3661, 0x80},
-> +	{0x3662, 0x10},
-> +	{0x3664, 0x73},
-> +	{0x3665, 0xa7},
-> +	{0x366e, 0xff},
-> +	{0x366f, 0xf4},
-> +	{0x3674, 0x00},
-> +	{0x3679, 0x0c},
-> +	{0x367f, 0x01},
-> +	{0x3680, 0x0c},
-> +	{0x3681, 0x50},
-> +	{0x3682, 0x50},
-> +	{0x3683, 0xa9},
-> +	{0x3684, 0xa9},
-> +	{0x3709, 0x5f},
-> +	{0x3714, 0x28},
-> +	{0x371a, 0x3e},
-> +	{0x3737, 0x08},
-> +	{0x3738, 0xcc},
-> +	{0x3739, 0x20},
-> +	{0x373d, 0x26},
-> +	{0x3764, 0x20},
-> +	{0x3765, 0x20},
-> +	{0x37a1, 0x36},
-> +	{0x37a8, 0x3b},
-> +	{0x37ab, 0x31},
-> +	{0x37c2, 0x14},
-> +	{0x37c3, 0xf1},
-> +	{0x37c5, 0x00},
-> +	{0x37d8, 0x03},
-> +	{0x37d9, 0x0c},
-> +	{0x37da, 0xc2},
-> +	{0x37dc, 0x02},
-> +	{0x37e0, 0x00},
-> +	{0x37e1, 0x0a},
-> +	{0x37e2, 0x14},
-> +	{0x37e3, 0x08},
-> +	{0x37e4, 0x38},
-> +	{0x37e5, 0x03},
-> +	{0x37e6, 0x08},
-> +	{0x3800, 0x00},
-> +	{0x3801, 0x00},
-> +	{0x3802, 0x01},
-> +	{0x3803, 0x84},
-> +	{0x3804, 0x10},
-> +	{0x3805, 0x9f},
-> +	{0x3806, 0x0a},
-> +	{0x3807, 0xd3},
-> +	{0x3808, 0x08},
-> +	{0x3809, 0x40},
-> +	{0x380a, 0x04},
-> +	{0x380b, 0xa4},
-> +	{0x380c, 0x04},
-> +	{0x380d, 0x62},
-> +	{0x380e, 0x0c},
-> +	{0x380f, 0x8e},
-> +	{0x3811, 0x08},
-> +	{0x3813, 0x03},
-> +	{0x3814, 0x03},
-> +	{0x3815, 0x01},
-> +	{0x3816, 0x03},
-> +	{0x3817, 0x01},
-> +	{0x3820, 0xab},
-> +	{0x3821, 0x00},
-> +	{0x3822, 0xc2},
-> +	{0x3823, 0x18},
-> +	{0x3826, 0x04},
-> +	{0x3827, 0x90},
-> +	{0x3829, 0x07},
-> +	{0x3832, 0x00},
-> +	{0x3c80, 0x00},
-> +	{0x3c87, 0x01},
-> +	{0x3c8c, 0x19},
-> +	{0x3c8d, 0x1c},
-> +	{0x3c90, 0x00},
-> +	{0x3c91, 0x00},
-> +	{0x3c92, 0x00},
-> +	{0x3c93, 0x00},
-> +	{0x3c94, 0x40},
-> +	{0x3c95, 0x54},
-> +	{0x3c96, 0x34},
-> +	{0x3c97, 0x04},
-> +	{0x3c98, 0x00},
-> +	{0x3d8c, 0x73},
-> +	{0x3d8d, 0xc0},
-> +	{0x3f00, 0x0b},
-> +	{0x3f03, 0x00},
-> +	{0x4001, 0xe0},
-> +	{0x4008, 0x00},
-> +	{0x4009, 0x0d},
-> +	{0x4011, 0xf0},
-> +	{0x4017, 0x08},
-> +	{0x4050, 0x04},
-> +	{0x4051, 0x0b},
-> +	{0x4052, 0x00},
-> +	{0x4053, 0x80},
-> +	{0x4054, 0x00},
-> +	{0x4055, 0x80},
-> +	{0x4056, 0x00},
-> +	{0x4057, 0x80},
-> +	{0x4058, 0x00},
-> +	{0x4059, 0x80},
-> +	{0x405e, 0x20},
-> +	{0x4500, 0x07},
-> +	{0x4503, 0x00},
-> +	{0x450a, 0x04},
-> +	{0x4809, 0x04},
-> +	{0x480c, 0x12},
-> +	{0x481f, 0x30},
-> +	{0x4833, 0x10},
-> +	{0x4837, 0x1c},
-> +	{0x4902, 0x01},
-> +	{0x4d00, 0x03},
-> +	{0x4d01, 0xc9},
-> +	{0x4d02, 0xbc},
-> +	{0x4d03, 0xd7},
-> +	{0x4d04, 0xf0},
-> +	{0x4d05, 0xa2},
-> +	{0x5000, 0xfd},
-> +	{0x5001, 0x01},
-> +	{0x5040, 0x39},
-> +	{0x5041, 0x10},
-> +	{0x5042, 0x10},
-> +	{0x5043, 0x84},
-> +	{0x5044, 0x62},
-> +	{0x5180, 0x00},
-> +	{0x5181, 0x10},
-> +	{0x5182, 0x02},
-> +	{0x5183, 0x0f},
-> +	{0x5200, 0x1b},
-> +	{0x520b, 0x07},
-> +	{0x520c, 0x0f},
-> +	{0x5300, 0x04},
-> +	{0x5301, 0x0c},
-> +	{0x5302, 0x0c},
-> +	{0x5303, 0x0f},
-> +	{0x5304, 0x00},
-> +	{0x5305, 0x70},
-> +	{0x5306, 0x00},
-> +	{0x5307, 0x80},
-> +	{0x5308, 0x00},
-> +	{0x5309, 0xa5},
-> +	{0x530a, 0x00},
-> +	{0x530b, 0xd3},
-> +	{0x530c, 0x00},
-> +	{0x530d, 0xf0},
-> +	{0x530e, 0x01},
-> +	{0x530f, 0x10},
-> +	{0x5310, 0x01},
-> +	{0x5311, 0x20},
-> +	{0x5312, 0x01},
-> +	{0x5313, 0x20},
-> +	{0x5314, 0x01},
-> +	{0x5315, 0x20},
-> +	{0x5316, 0x08},
-> +	{0x5317, 0x08},
-> +	{0x5318, 0x10},
-> +	{0x5319, 0x88},
-> +	{0x531a, 0x88},
-> +	{0x531b, 0xa9},
-> +	{0x531c, 0xaa},
-> +	{0x531d, 0x0a},
-> +	{0x5405, 0x02},
-> +	{0x5406, 0x67},
-> +	{0x5407, 0x01},
-> +	{0x5408, 0x4a},
-> +};
-> +
-> +static const struct ov13858_reg mode_1056x784_regs[] = {
-> +	{0x3013, 0x32},
-> +	{0x301b, 0xf0},
-> +	{0x301f, 0xd0},
-> +	{0x3106, 0x15},
-> +	{0x3107, 0x23},
-> +	{0x350a, 0x00},
-> +	{0x350e, 0x00},
-> +	{0x3510, 0x00},
-> +	{0x3511, 0x02},
-> +	{0x3512, 0x00},
-> +	{0x3600, 0x2b},
-> +	{0x3601, 0x52},
-> +	{0x3602, 0x60},
-> +	{0x3612, 0x05},
-> +	{0x3613, 0xa4},
-> +	{0x3620, 0x80},
-> +	{0x3621, 0x10},
-> +	{0x3622, 0x30},
-> +	{0x3624, 0x1c},
-> +	{0x3640, 0x10},
-> +	{0x3641, 0x70},
-> +	{0x3661, 0x80},
-> +	{0x3662, 0x08},
-> +	{0x3664, 0x73},
-> +	{0x3665, 0xa7},
-> +	{0x366e, 0xff},
-> +	{0x366f, 0xf4},
-> +	{0x3674, 0x00},
-> +	{0x3679, 0x0c},
-> +	{0x367f, 0x01},
-> +	{0x3680, 0x0c},
-> +	{0x3681, 0x50},
-> +	{0x3682, 0x50},
-> +	{0x3683, 0xa9},
-> +	{0x3684, 0xa9},
-> +	{0x3709, 0x5f},
-> +	{0x3714, 0x30},
-> +	{0x371a, 0x3e},
-> +	{0x3737, 0x08},
-> +	{0x3738, 0xcc},
-> +	{0x3739, 0x20},
-> +	{0x373d, 0x26},
-> +	{0x3764, 0x20},
-> +	{0x3765, 0x20},
-> +	{0x37a1, 0x36},
-> +	{0x37a8, 0x3b},
-> +	{0x37ab, 0x31},
-> +	{0x37c2, 0x2c},
-> +	{0x37c3, 0xf1},
-> +	{0x37c5, 0x00},
-> +	{0x37d8, 0x03},
-> +	{0x37d9, 0x06},
-> +	{0x37da, 0xc2},
-> +	{0x37dc, 0x02},
-> +	{0x37e0, 0x00},
-> +	{0x37e1, 0x0a},
-> +	{0x37e2, 0x14},
-> +	{0x37e3, 0x08},
-> +	{0x37e4, 0x36},
-> +	{0x37e5, 0x03},
-> +	{0x37e6, 0x08},
-> +	{0x3800, 0x00},
-> +	{0x3801, 0x00},
-> +	{0x3802, 0x00},
-> +	{0x3803, 0x00},
-> +	{0x3804, 0x10},
-> +	{0x3805, 0x9f},
-> +	{0x3806, 0x0c},
-> +	{0x3807, 0x5f},
-> +	{0x3808, 0x04},
-> +	{0x3809, 0x20},
-> +	{0x380a, 0x03},
-> +	{0x380b, 0x10},
-> +	{0x380c, 0x04},
-> +	{0x380d, 0x62},
-> +	{0x380e, 0x0c},
-> +	{0x380f, 0x8e},
-> +	{0x3811, 0x04},
-> +	{0x3813, 0x05},
-> +	{0x3814, 0x07},
-> +	{0x3815, 0x01},
-> +	{0x3816, 0x07},
-> +	{0x3817, 0x01},
-> +	{0x3820, 0xac},
-> +	{0x3821, 0x00},
-> +	{0x3822, 0xc2},
-> +	{0x3823, 0x18},
-> +	{0x3826, 0x04},
-> +	{0x3827, 0x48},
-> +	{0x3829, 0x03},
-> +	{0x3832, 0x00},
-> +	{0x3c80, 0x00},
-> +	{0x3c87, 0x01},
-> +	{0x3c8c, 0x19},
-> +	{0x3c8d, 0x1c},
-> +	{0x3c90, 0x00},
-> +	{0x3c91, 0x00},
-> +	{0x3c92, 0x00},
-> +	{0x3c93, 0x00},
-> +	{0x3c94, 0x40},
-> +	{0x3c95, 0x54},
-> +	{0x3c96, 0x34},
-> +	{0x3c97, 0x04},
-> +	{0x3c98, 0x00},
-> +	{0x3d8c, 0x73},
-> +	{0x3d8d, 0xc0},
-> +	{0x3f00, 0x0b},
-> +	{0x3f03, 0x00},
-> +	{0x4001, 0xe0},
-> +	{0x4008, 0x00},
-> +	{0x4009, 0x05},
-> +	{0x4011, 0xf0},
-> +	{0x4017, 0x08},
-> +	{0x4050, 0x02},
-> +	{0x4051, 0x05},
-> +	{0x4052, 0x00},
-> +	{0x4053, 0x80},
-> +	{0x4054, 0x00},
-> +	{0x4055, 0x80},
-> +	{0x4056, 0x00},
-> +	{0x4057, 0x80},
-> +	{0x4058, 0x00},
-> +	{0x4059, 0x80},
-> +	{0x405e, 0x20},
-> +	{0x4500, 0x07},
-> +	{0x4503, 0x00},
-> +	{0x450a, 0x04},
-> +	{0x4809, 0x04},
-> +	{0x480c, 0x12},
-> +	{0x481f, 0x30},
-> +	{0x4833, 0x10},
-> +	{0x4837, 0x1e},
-> +	{0x4902, 0x02},
-> +	{0x4d00, 0x03},
-> +	{0x4d01, 0xc9},
-> +	{0x4d02, 0xbc},
-> +	{0x4d03, 0xd7},
-> +	{0x4d04, 0xf0},
-> +	{0x4d05, 0xa2},
-> +	{0x5000, 0xfd},
-> +	{0x5001, 0x01},
-> +	{0x5040, 0x39},
-> +	{0x5041, 0x10},
-> +	{0x5042, 0x10},
-> +	{0x5043, 0x84},
-> +	{0x5044, 0x62},
-> +	{0x5180, 0x00},
-> +	{0x5181, 0x10},
-> +	{0x5182, 0x02},
-> +	{0x5183, 0x0f},
-> +	{0x5200, 0x1b},
-> +	{0x520b, 0x07},
-> +	{0x520c, 0x0f},
-> +	{0x5300, 0x04},
-> +	{0x5301, 0x0c},
-> +	{0x5302, 0x0c},
-> +	{0x5303, 0x0f},
-> +	{0x5304, 0x00},
-> +	{0x5305, 0x70},
-> +	{0x5306, 0x00},
-> +	{0x5307, 0x80},
-> +	{0x5308, 0x00},
-> +	{0x5309, 0xa5},
-> +	{0x530a, 0x00},
-> +	{0x530b, 0xd3},
-> +	{0x530c, 0x00},
-> +	{0x530d, 0xf0},
-> +	{0x530e, 0x01},
-> +	{0x530f, 0x10},
-> +	{0x5310, 0x01},
-> +	{0x5311, 0x20},
-> +	{0x5312, 0x01},
-> +	{0x5313, 0x20},
-> +	{0x5314, 0x01},
-> +	{0x5315, 0x20},
-> +	{0x5316, 0x08},
-> +	{0x5317, 0x08},
-> +	{0x5318, 0x10},
-> +	{0x5319, 0x88},
-> +	{0x531a, 0x88},
-> +	{0x531b, 0xa9},
-> +	{0x531c, 0xaa},
-> +	{0x531d, 0x0a},
-> +	{0x5405, 0x02},
-> +	{0x5406, 0x67},
-> +	{0x5407, 0x01},
-> +	{0x5408, 0x4a},
-> +};
-> +
-> +/* Configurations for supported link frequencies */
-> +#define OV13858_NUM_OF_LINK_FREQS	2
-> +#define OV13858_LINK_FREQ_1080MBPS	1080000000
-> +#define OV13858_LINK_FREQ_540MBPS	540000000
-> +#define OV13858_LINK_FREQ_INDEX_0	0
-> +#define OV13858_LINK_FREQ_INDEX_1	1
-> +
-> +/* Menu items for LINK_FREQ V4L2 control */
-> +static const const s64 link_freq_menu_items[OV13858_NUM_OF_LINK_FREQS] = {
-> +	OV13858_LINK_FREQ_1080MBPS,
-> +	OV13858_LINK_FREQ_540MBPS
-> +};
-> +
-> +/* Link frequency configs */
-> +static const struct ov13858_link_freq_config
-> +			link_freq_configs[OV13858_NUM_OF_LINK_FREQS] = {
-> +	{
-> +		.pixel_rate = 864000000,
-> +		.reg_list = {
-> +			.num_of_regs = ARRAY_SIZE(mipi_data_rate_1080mbps),
-> +			.regs = mipi_data_rate_1080mbps,
-> +		}
-> +	},
-> +	{
-> +		.pixel_rate = 432000000,
-> +		.reg_list = {
-> +			.num_of_regs = ARRAY_SIZE(mipi_data_rate_540mbps),
-> +			.regs = mipi_data_rate_540mbps,
-> +		}
-> +	}
-> +};
-> +
-> +/* Mode configs */
-> +static const struct ov13858_mode supported_modes[] = {
-> +	{
-> +		.width = 4224,
-> +		.height = 3136,
-> +		.vts = OV13858_VTS_30FPS,
-> +		.reg_list = {
-> +			.num_of_regs = ARRAY_SIZE(mode_4224x3136_regs),
-> +			.regs = mode_4224x3136_regs,
-> +		},
-> +		.link_freq_index = OV13858_LINK_FREQ_INDEX_0,
-> +	},
-> +	{
-> +		.width = 2112,
-> +		.height = 1568,
-> +		.vts = OV13858_VTS_30FPS,
-> +		.reg_list = {
-> +			.num_of_regs = ARRAY_SIZE(mode_2112x1568_regs),
-> +			.regs = mode_2112x1568_regs,
-> +		},
-> +		.link_freq_index = OV13858_LINK_FREQ_INDEX_1,
-> +	},
-> +	{
-> +		.width = 2112,
-> +		.height = 1188,
-> +		.vts = OV13858_VTS_30FPS,
-> +		.reg_list = {
-> +			.num_of_regs = ARRAY_SIZE(mode_2112x1188_regs),
-> +			.regs = mode_2112x1188_regs,
-> +		},
-> +		.link_freq_index = OV13858_LINK_FREQ_INDEX_1,
-> +	},
-> +	{
-> +		.width = 1056,
-> +		.height = 784,
-> +		.vts = OV13858_VTS_30FPS,
-> +		.reg_list = {
-> +			.num_of_regs = ARRAY_SIZE(mode_1056x784_regs),
-> +			.regs = mode_1056x784_regs,
-> +		},
-> +		.link_freq_index = OV13858_LINK_FREQ_INDEX_1,
-> +	}
-> +};
-> +
-> +struct ov13858 {
-> +	struct v4l2_subdev sd;
-> +	struct media_pad pad;
-> +
-> +	struct v4l2_ctrl_handler ctrl_handler;
-> +	/* V4L2 Controls */
-> +	struct v4l2_ctrl *link_freq;
-> +	struct v4l2_ctrl *pixel_rate;
-> +	struct v4l2_ctrl *vblank;
-> +	struct v4l2_ctrl *exposure;
-> +
-> +	/* Current mode */
-> +	const struct ov13858_mode *cur_mode;
-> +
-> +	/* Num of skip frames */
-> +	u32 num_of_skip_frames;
+On 22-05-2017 11:04, Hans Verkuil wrote:
+> On 04/21/2017 11:53 AM, Jose Abreu wrote:
+>> This adds support for the Synopsys Designware HDMI RX PHY e405. This
+>> phy receives and decodes HDMI video that is delivered to a controller.
+>>
+>> Main features included in this driver are:
+>> 	- Equalizer algorithm that chooses the phy best settings
+>> 	according to the detected HDMI cable characteristics.
+>> 	- Support for scrambling
+>> 	- Support for HDMI 2.0 modes up to 6G (HDMI 4k@60Hz).
+>>
+>> The driver was implemented as a standalone V4L2 subdevice and the
+>> phy interface with the controller was implemented using V4L2 ioctls. I
+>> do not know if this is the best option but it is not possible to use the
+>> existing API functions directly as we need specific functions that will
+>> be called by the controller at specific configuration stages.
+>>
+>> There is also a bidirectional communication between controller and phy:
+>> The phy must provide functions that the controller will call (i.e.
+>> configuration functions) and the controller must provide read/write
+>> callbacks, as well as other specific functions.
+>>
+>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+>> Cc: Carlos Palminha <palminha@synopsys.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: linux-kernel@vger.kernel.org
+>> Cc: linux-media@vger.kernel.org
+>> ---
+>>  drivers/media/platform/Kconfig                |   2 +
+>>  drivers/media/platform/Makefile               |   2 +
+>>  drivers/media/platform/dwc/Kconfig            |   8 +
+>>  drivers/media/platform/dwc/Makefile           |   1 +
+>>  drivers/media/platform/dwc/dw-hdmi-phy-e405.c | 879 ++++++++++++++++++++++++++
+>>  drivers/media/platform/dwc/dw-hdmi-phy-e405.h |  63 ++
+>>  include/media/dwc/dw-hdmi-phy-pdata.h         |  64 ++
+>>  7 files changed, 1019 insertions(+)
+>>  create mode 100644 drivers/media/platform/dwc/Kconfig
+>>  create mode 100644 drivers/media/platform/dwc/Makefile
+>>  create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.c
+>>  create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.h
+>>  create mode 100644 include/media/dwc/dw-hdmi-phy-pdata.h
+>>
+>> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+>> index ac026ee..5178229 100644
+>> --- a/drivers/media/platform/Kconfig
+>> +++ b/drivers/media/platform/Kconfig
+>> @@ -33,6 +33,8 @@ source "drivers/media/platform/omap/Kconfig"
+>>  
+>>  source "drivers/media/platform/blackfin/Kconfig"
+>>  
+>> +source "drivers/media/platform/dwc/Kconfig"
+>> +
+>>  config VIDEO_SH_VOU
+>>  	tristate "SuperH VOU video output driver"
+>>  	depends on MEDIA_CAMERA_SUPPORT
+>> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+>> index 63303d6..50bc148 100644
+>> --- a/drivers/media/platform/Makefile
+>> +++ b/drivers/media/platform/Makefile
+>> @@ -77,3 +77,5 @@ obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC)	+= mtk-vcodec/
+>>  obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
+>>  
+>>  obj-$(CONFIG_VIDEO_MEDIATEK_JPEG)	+= mtk-jpeg/
+>> +
+>> +obj-y	+= dwc/
+>> diff --git a/drivers/media/platform/dwc/Kconfig b/drivers/media/platform/dwc/Kconfig
+>> new file mode 100644
+>> index 0000000..361d38d
+>> --- /dev/null
+>> +++ b/drivers/media/platform/dwc/Kconfig
+>> @@ -0,0 +1,8 @@
+>> +config VIDEO_DWC_HDMI_PHY_E405
+>> +	tristate "Synopsys Designware HDMI RX PHY e405 driver"
+>> +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+>> +	help
+>> +	  Support for Synopsys Designware HDMI RX PHY. Version is e405.
+>> +
+>> +	  To compile this driver as a module, choose M here. The module
+>> +	  will be called dw-hdmi-phy-e405.
+>> diff --git a/drivers/media/platform/dwc/Makefile b/drivers/media/platform/dwc/Makefile
+>> new file mode 100644
+>> index 0000000..fc3b62c
+>> --- /dev/null
+>> +++ b/drivers/media/platform/dwc/Makefile
+>> @@ -0,0 +1 @@
+>> +obj-$(CONFIG_VIDEO_DWC_HDMI_PHY_E405) += dw-hdmi-phy-e405.o
+>> diff --git a/drivers/media/platform/dwc/dw-hdmi-phy-e405.c b/drivers/media/platform/dwc/dw-hdmi-phy-e405.c
+>> new file mode 100644
+>> index 0000000..dc00677
+>> --- /dev/null
+>> +++ b/drivers/media/platform/dwc/dw-hdmi-phy-e405.c
+>> @@ -0,0 +1,879 @@
+>> +/*
+>> + * Synopsys Designware HDMI PHY E405 driver
+>> + *
+>> + * This Synopsys dw-phy-e405 software and associated documentation
+>> + * (hereinafter the "Software") is an unsupported proprietary work of
+>> + * Synopsys, Inc. unless otherwise expressly agreed to in writing between
+>> + * Synopsys and you. The Software IS NOT an item of Licensed Software or a
+>> + * Licensed Product under any End User Software License Agreement or
+>> + * Agreement for Licensed Products with Synopsys or any supplement thereto.
+>> + * Synopsys is a registered trademark of Synopsys, Inc. Other names included
+>> + * in the SOFTWARE may be the trademarks of their respective owners.
+>> + *
+>> + * The contents of this file are dual-licensed; you may select either version 2
+>> + * of the GNU General Public License (“GPL”) or the MIT license (“MIT”).
+>> + *
+>> + * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
+>> + *
+>> + * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+>> + * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+>> + * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+>> + * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+>> + * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE
+>> + * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
+>> + * OTHER DEALINGS IN THE SOFTWARE.
+>> + */
+>> +
+>> +#include <linux/delay.h>
+>> +#include <linux/module.h>
+>> +#include <linux/platform_device.h>
+>> +#include <linux/types.h>
+>> +#include <media/v4l2-subdev.h>
+>> +#include <media/dwc/dw-hdmi-phy-pdata.h>
+>> +#include "dw-hdmi-phy-e405.h"
+>> +
+>> +MODULE_AUTHOR("Jose Abreu <joabreu@synopsys.com>");
+>> +MODULE_DESCRIPTION("Designware HDMI PHY e405 driver");
+>> +MODULE_LICENSE("Dual MIT/GPL");
+>> +MODULE_ALIAS("platform:" DW_PHY_E405_DRVNAME);
+>> +
+>> +#define PHY_EQ_WAIT_TIME_START			3
+>> +#define PHY_EQ_SLEEP_TIME_CDR			30
+>> +#define PHY_EQ_SLEEP_TIME_ACQ			1
+>> +#define PHY_EQ_BOUNDSPREAD			20
+>> +#define PHY_EQ_MIN_ACQ_STABLE			3
+>> +#define PHY_EQ_ACC_LIMIT			360
+>> +#define PHY_EQ_ACC_MIN_LIMIT			0
+>> +#define PHY_EQ_MAX_SETTING			13
+>> +#define PHY_EQ_SHORT_CABLE_SETTING		4
+>> +#define PHY_EQ_ERROR_CABLE_SETTING		4
+>> +#define PHY_EQ_MIN_SLOPE			50
+>> +#define PHY_EQ_AVG_ACQ				5
+>> +#define PHY_EQ_MINMAX_NTRIES			3
+>> +#define PHY_EQ_EQUALIZED_COUNTER_VAL		512
+>> +#define PHY_EQ_EQUALIZED_COUNTER_VAL_HDMI20	512
+>> +#define PHY_EQ_MINMAX_MAXDIFF			4
+>> +#define PHY_EQ_MINMAX_MAXDIFF_HDMI20		2
+>> +#define PHY_EQ_FATBIT_MASK			0x0000
+>> +#define PHY_EQ_FATBIT_MASK_4K			0x0c03
+>> +#define PHY_EQ_FATBIT_MASK_HDMI20		0x0e03
+>> +
+>> +struct dw_phy_eq_ch {
+>> +	u16 best_long_setting;
+>> +	u8 valid_long_setting;
+>> +	u16 best_short_setting;
+>> +	u8 valid_short_setting;
+>> +	u16 best_setting;
+>> +	u16 acc;
+>> +	u16 acq;
+>> +	u16 last_acq;
+>> +	u16 upper_bound_acq;
+>> +	u16 lower_bound_acq;
+>> +	u16 out_bound_acq;
+>> +	u16 read_acq;
+>> +};
+>> +
+>> +static const struct dw_phy_mpll_config {
+>> +	u16 addr;
+>> +	u16 val;
+>> +} dw_phy_e405_mpll_cfg[] = {
+>> +	{ 0x27, 0x1B94 },
+>> +	{ 0x28, 0x16D2 },
+>> +	{ 0x29, 0x12D9 },
+>> +	{ 0x2A, 0x3249 },
+>> +	{ 0x2B, 0x3653 },
+>> +	{ 0x2C, 0x3436 },
+>> +	{ 0x2D, 0x124D },
+>> +	{ 0x2E, 0x0001 },
+>> +	{ 0xCE, 0x0505 },
+>> +	{ 0xCF, 0x0505 },
+>> +	{ 0xD0, 0x0000 },
+>> +	{ 0x00, 0x0000 },
+>> +};
+>> +
+>> +struct dw_phy_dev {
+>> +	struct device *dev;
+>> +	struct dw_phy_pdata *config;
+>> +	bool phy_enabled;
+>> +	struct v4l2_subdev sd;
+>> +	u16 mpll_status;
+>> +	unsigned char res;
+>> +	bool hdmi2;
+>> +	bool scrambling;
+>> +	struct mutex lock;
+>> +};
+>> +
+>> +static inline struct dw_phy_dev *to_dw_dev(struct v4l2_subdev *sd)
+>> +{
+>> +	return container_of(sd, struct dw_phy_dev, sd);
+>> +}
+>> +
+>> +static void phy_write(struct dw_phy_dev *dw_dev, u16 val, u16 addr)
+>> +{
+>> +	void *arg = dw_dev->config->funcs_arg;
+>> +
+>> +	dw_dev->config->funcs->write(arg, val, addr);
+>> +}
+>> +
+>> +static u16 phy_read(struct dw_phy_dev *dw_dev, u16 addr)
+>> +{
+>> +	void *arg = dw_dev->config->funcs_arg;
+>> +
+>> +	return dw_dev->config->funcs->read(arg, addr);
+>> +}
+>> +
+>> +static void phy_reset(struct dw_phy_dev *dw_dev, int enable)
+>> +{
+>> +	void *arg = dw_dev->config->funcs_arg;
+>> +
+>> +	dw_dev->config->funcs->reset(arg, enable);
+>> +}
+>> +
+>> +static void phy_pddq(struct dw_phy_dev *dw_dev, int enable)
+>> +{
+>> +	void *arg = dw_dev->config->funcs_arg;
+>> +
+>> +	dw_dev->config->funcs->pddq(arg, enable);
+>> +}
+>> +
+>> +static void phy_svsmode(struct dw_phy_dev *dw_dev, int enable)
+>> +{
+>> +	void *arg = dw_dev->config->funcs_arg;
+>> +
+>> +	dw_dev->config->funcs->svsmode(arg, enable);
+>> +}
+>> +
+>> +static void phy_zcal_reset(struct dw_phy_dev *dw_dev)
+>> +{
+>> +	void *arg = dw_dev->config->funcs_arg;
+>> +
+>> +	dw_dev->config->funcs->zcal_reset(arg);
+>> +}
+>> +
+>> +static bool phy_zcal_done(struct dw_phy_dev *dw_dev)
+>> +{
+>> +	void *arg = dw_dev->config->funcs_arg;
+>> +
+>> +	return dw_dev->config->funcs->zcal_done(arg);
+>> +}
+>> +
+>> +static bool phy_tmds_valid(struct dw_phy_dev *dw_dev)
+>> +{
+>> +	void *arg = dw_dev->config->funcs_arg;
+>> +
+>> +	return dw_dev->config->funcs->tmds_valid(arg);
+>> +}
+>> +
+>> +static int dw_phy_eq_test(struct dw_phy_dev *dw_dev,
+>> +		u16 *fat_bit_mask, int *min_max_length)
+>> +{
+>> +	u16 main_fsm_status, val;
+>> +	int i;
+>> +
+>> +	for (i = 0; i < PHY_EQ_WAIT_TIME_START; i++) {
+>> +		main_fsm_status = phy_read(dw_dev, PHY_MAINFSM_STATUS1);
+>> +		if (main_fsm_status & 0x100)
+>> +			break;
+>> +		mdelay(PHY_EQ_SLEEP_TIME_CDR);
+>> +	}
+>> +
+>> +	if (i == PHY_EQ_WAIT_TIME_START) {
+>> +		dev_err(dw_dev->dev, "phy start conditions not achieved\n");
+>> +		return -ETIMEDOUT;
+>> +	}
+>> +
+>> +	if (main_fsm_status & 0x400) {
+>> +		dev_err(dw_dev->dev, "invalid pll rate\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	val = (phy_read(dw_dev, PHY_CDR_CTRL_CNT) & 0x300) >> 8;
+>> +	if (val == 0x1) {
+>> +		/* HDMI 2.0 */
+>> +		*fat_bit_mask = PHY_EQ_FATBIT_MASK_HDMI20;
+>> +		*min_max_length = PHY_EQ_MINMAX_MAXDIFF_HDMI20;
+>> +		dev_dbg(dw_dev->dev, "[EQUALIZER] using HDMI 2.0 values\n");
+>> +	} else if (!(main_fsm_status & 0x600)) {
+>> +		/* HDMI 1.4 (pll rate = 0) */
+>> +		*fat_bit_mask = PHY_EQ_FATBIT_MASK_4K;
+>> +		*min_max_length = PHY_EQ_MINMAX_MAXDIFF;
+>> +		dev_dbg(dw_dev->dev, "[EQUALIZER] using HDMI 1.4@4k values\n");
+>> +	} else {
+>> +		/* HDMI 1.4 */
+>> +		*fat_bit_mask = PHY_EQ_FATBIT_MASK;
+>> +		*min_max_length = PHY_EQ_MINMAX_MAXDIFF;
+>> +		dev_dbg(dw_dev->dev, "[EQUALIZER] using HDMI 1.4 values\n");
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static void dw_phy_eq_default(struct dw_phy_dev *dw_dev)
+>> +{
+>> +	phy_write(dw_dev, 0x08A8, PHY_CH0_EQ_CTRL1);
+>> +	phy_write(dw_dev, 0x0020, PHY_CH0_EQ_CTRL2);
+>> +	phy_write(dw_dev, 0x08A8, PHY_CH1_EQ_CTRL1);
+>> +	phy_write(dw_dev, 0x0020, PHY_CH1_EQ_CTRL2);
+>> +	phy_write(dw_dev, 0x08A8, PHY_CH2_EQ_CTRL1);
+>> +	phy_write(dw_dev, 0x0020, PHY_CH2_EQ_CTRL2);
+>> +}
+>> +
+>> +static void dw_phy_eq_single(struct dw_phy_dev *dw_dev)
+>> +{
+>> +	phy_write(dw_dev, 0x0211, PHY_CH0_EQ_CTRL1);
+>> +	phy_write(dw_dev, 0x0211, PHY_CH1_EQ_CTRL1);
+>> +	phy_write(dw_dev, 0x0211, PHY_CH2_EQ_CTRL1);
+>> +}
+>> +
+>> +static void dw_phy_eq_equal_setting(struct dw_phy_dev *dw_dev,
+>> +		u16 lock_vector)
+>> +{
+>> +	phy_write(dw_dev, lock_vector, PHY_CH0_EQ_CTRL4);
+>> +	phy_write(dw_dev, 0x0024, PHY_CH0_EQ_CTRL2);
+>> +	phy_write(dw_dev, 0x0026, PHY_CH0_EQ_CTRL2);
+>> +	phy_read(dw_dev, PHY_CH0_EQ_STATUS2);
+>> +	phy_write(dw_dev, lock_vector, PHY_CH1_EQ_CTRL4);
+>> +	phy_write(dw_dev, 0x0024, PHY_CH1_EQ_CTRL2);
+>> +	phy_write(dw_dev, 0x0026, PHY_CH1_EQ_CTRL2);
+>> +	phy_read(dw_dev, PHY_CH1_EQ_STATUS2);
+>> +	phy_write(dw_dev, lock_vector, PHY_CH2_EQ_CTRL4);
+>> +	phy_write(dw_dev, 0x0024, PHY_CH2_EQ_CTRL2);
+>> +	phy_write(dw_dev, 0x0026, PHY_CH2_EQ_CTRL2);
+>> +	phy_read(dw_dev, PHY_CH2_EQ_STATUS2);
+>> +}
+>> +
+>> +static void dw_phy_eq_equal_setting_ch0(struct dw_phy_dev *dw_dev,
+>> +		u16 lock_vector)
+>> +{
+>> +	phy_write(dw_dev, lock_vector, PHY_CH0_EQ_CTRL4);
+>> +	phy_write(dw_dev, 0x0024, PHY_CH0_EQ_CTRL2);
+>> +	phy_write(dw_dev, 0x0026, PHY_CH0_EQ_CTRL2);
+>> +	phy_read(dw_dev, PHY_CH0_EQ_STATUS2);
+>> +}
+>> +
+>> +static void dw_phy_eq_equal_setting_ch1(struct dw_phy_dev *dw_dev,
+>> +		u16 lock_vector)
+>> +{
+>> +	phy_write(dw_dev, lock_vector, PHY_CH1_EQ_CTRL4);
+>> +	phy_write(dw_dev, 0x0024, PHY_CH1_EQ_CTRL2);
+>> +	phy_write(dw_dev, 0x0026, PHY_CH1_EQ_CTRL2);
+>> +	phy_read(dw_dev, PHY_CH1_EQ_STATUS2);
+>> +}
+>> +
+>> +static void dw_phy_eq_equal_setting_ch2(struct dw_phy_dev *dw_dev,
+>> +		u16 lock_vector)
+>> +{
+>> +	phy_write(dw_dev, lock_vector, PHY_CH2_EQ_CTRL4);
+>> +	phy_write(dw_dev, 0x0024, PHY_CH2_EQ_CTRL2);
+>> +	phy_write(dw_dev, 0x0026, PHY_CH2_EQ_CTRL2);
+>> +	phy_read(dw_dev, PHY_CH2_EQ_STATUS2);
+>> +}
+>> +
+>> +static void dw_phy_eq_auto_calib(struct dw_phy_dev *dw_dev)
+>> +{
+>> +	phy_write(dw_dev, 0x1809, PHY_MAINFSM_CTRL);
+>> +	phy_write(dw_dev, 0x1819, PHY_MAINFSM_CTRL);
+>> +	phy_write(dw_dev, 0x1809, PHY_MAINFSM_CTRL);
+>> +}
+>> +
+>> +static void dw_phy_eq_init_vars(struct dw_phy_eq_ch *ch)
+>> +{
+>> +	ch->acc = 0;
+>> +	ch->acq = 0;
+>> +	ch->last_acq = 0;
+>> +	ch->valid_long_setting = 0;
+>> +	ch->valid_short_setting = 0;
+>> +	ch->best_setting = PHY_EQ_SHORT_CABLE_SETTING;
+>> +}
+>> +
+>> +static bool dw_phy_eq_acquire_early_cnt(struct dw_phy_dev *dw_dev,
+>> +		u16 setting, u16 acq, struct dw_phy_eq_ch *ch0,
+>> +		struct dw_phy_eq_ch *ch1, struct dw_phy_eq_ch *ch2)
+>> +{
+>> +	u16 lock_vector = 0x1;
+>> +	int i;
+>> +
+>> +	lock_vector <<= setting;
+>> +	ch0->out_bound_acq = 0;
+>> +	ch1->out_bound_acq = 0;
+>> +	ch2->out_bound_acq = 0;
+>> +	ch0->acq = 0;
+>> +	ch1->acq = 0;
+>> +	ch2->acq = 0;
+>> +
+>> +	dw_phy_eq_equal_setting(dw_dev, lock_vector);
+>> +	dw_phy_eq_auto_calib(dw_dev);
+>> +
+>> +	mdelay(PHY_EQ_SLEEP_TIME_CDR);
+>> +	if (!phy_tmds_valid(dw_dev))
+>> +		dev_dbg(dw_dev->dev, "TMDS is NOT valid\n");
+>> +
+>> +	ch0->read_acq = phy_read(dw_dev, PHY_CH0_EQ_STATUS3);
+>> +	ch1->read_acq = phy_read(dw_dev, PHY_CH1_EQ_STATUS3);
+>> +	ch2->read_acq = phy_read(dw_dev, PHY_CH2_EQ_STATUS3);
+>> +
+>> +	ch0->acq += ch0->read_acq;
+>> +	ch1->acq += ch1->read_acq;
+>> +	ch2->acq += ch2->read_acq;
+>> +
+>> +	ch0->upper_bound_acq = ch0->read_acq + PHY_EQ_BOUNDSPREAD;
+>> +	ch0->lower_bound_acq = ch0->read_acq - PHY_EQ_BOUNDSPREAD;
+>> +	ch1->upper_bound_acq = ch1->read_acq + PHY_EQ_BOUNDSPREAD;
+>> +	ch1->lower_bound_acq = ch1->read_acq - PHY_EQ_BOUNDSPREAD;
+>> +	ch2->upper_bound_acq = ch2->read_acq + PHY_EQ_BOUNDSPREAD;
+>> +	ch2->lower_bound_acq = ch2->read_acq - PHY_EQ_BOUNDSPREAD;
+>> +
+>> +	for (i = 1; i < acq; i++) {
+>> +		dw_phy_eq_auto_calib(dw_dev);
+>> +		mdelay(PHY_EQ_SLEEP_TIME_ACQ);
+>> +
+>> +		if ((ch0->read_acq > ch0->upper_bound_acq) ||
+>> +				(ch0->read_acq < ch0->lower_bound_acq))
+>> +			ch0->out_bound_acq++;
+>> +		if ((ch1->read_acq > ch1->upper_bound_acq) ||
+>> +				(ch1->read_acq < ch1->lower_bound_acq))
+>> +			ch1->out_bound_acq++;
+>> +		if ((ch2->read_acq > ch2->upper_bound_acq) ||
+>> +				(ch2->read_acq < ch1->lower_bound_acq))
+>> +			ch2->out_bound_acq++;
+>> +
+>> +		if (i == PHY_EQ_MIN_ACQ_STABLE) {
+>> +			if ((ch0->out_bound_acq == 0) &&
+>> +					(ch1->out_bound_acq == 0) &&
+>> +					(ch2->out_bound_acq == 0)) {
+>> +				acq = 3;
+>> +				break;
+>> +			}
+>> +		}
+>> +
+>> +		ch0->read_acq = phy_read(dw_dev, PHY_CH0_EQ_STATUS3);
+>> +		ch1->read_acq = phy_read(dw_dev, PHY_CH1_EQ_STATUS3);
+>> +		ch2->read_acq = phy_read(dw_dev, PHY_CH2_EQ_STATUS3);
+>> +
+>> +		ch0->acq += ch0->read_acq;
+>> +		ch1->acq += ch1->read_acq;
+>> +		ch2->acq += ch2->read_acq;
+>> +	}
+>> +
+>> +	ch0->acq = ch0->acq / acq;
+>> +	ch1->acq = ch1->acq / acq;
+>> +	ch2->acq = ch2->acq / acq;
+>> +
+>> +	return true;
+>> +}
+>> +
+>> +static int dw_phy_eq_test_type(u16 setting, bool tmds_valid,
+>> +		struct dw_phy_eq_ch *ch)
+>> +{
+>> +	u16 step_slope = 0;
+>> +
+>> +	if ((ch->acq < ch->last_acq) && tmds_valid) {
+>> +		/* Long cable equalization */
+>> +		ch->acc += ch->last_acq - ch->acq;
+>> +		if ((ch->valid_long_setting == 0) && (ch->acq < 512) &&
+>> +				(ch->acc > 0)) {
+>> +			ch->best_long_setting = setting;
+>> +			ch->valid_long_setting = 1;
+>> +		}
+>> +		step_slope = ch->last_acq - ch->acq;
+>> +	}
+>> +
+>> +	if (tmds_valid && (ch->valid_short_setting == 0)) {
+>> +		/* Short cable equalization */
+>> +		if ((setting < PHY_EQ_SHORT_CABLE_SETTING) &&
+>> +				(ch->acq < PHY_EQ_EQUALIZED_COUNTER_VAL)) {
+>> +			ch->best_short_setting= setting;
+>> +			ch->valid_short_setting = 1;
+>> +		}
+>> +
+>> +		if (setting == PHY_EQ_SHORT_CABLE_SETTING) {
+>> +			ch->best_short_setting = PHY_EQ_SHORT_CABLE_SETTING;
+>> +			ch->valid_short_setting = 1;
+>> +		}
+>> +	}
+>> +
+>> +	if (ch->valid_long_setting && (ch->acc > PHY_EQ_ACC_LIMIT)) {
+>> +		ch->best_setting = ch->best_long_setting;
+>> +		return 1;
+>> +	}
+>> +
+>> +	if ((setting == PHY_EQ_MAX_SETTING) && (ch->acc < PHY_EQ_ACC_LIMIT) &&
+>> +			ch->valid_short_setting) {
+>> +		ch->best_setting = ch->best_short_setting;
+>> +		return 2;
+>> +	}
+>> +
+>> +	if ((setting == PHY_EQ_MAX_SETTING) && tmds_valid &&
+>> +			(ch->acc > PHY_EQ_ACC_LIMIT) &&
+>> +			(step_slope > PHY_EQ_MIN_SLOPE)) {
+>> +		ch->best_setting = PHY_EQ_MAX_SETTING;
+>> +		return 3;
+>> +	}
+>> +
+>> +	if (setting == PHY_EQ_MAX_SETTING) {
+>> +		ch->best_setting = PHY_EQ_ERROR_CABLE_SETTING;
+>> +		return 255;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static bool dw_phy_eq_setting_finder(struct dw_phy_dev *dw_dev, u16 acq,
+>> +		struct dw_phy_eq_ch *ch0, struct dw_phy_eq_ch *ch1,
+>> +		struct dw_phy_eq_ch *ch2)
+>> +{
+>> +	u16 act = 0;
+>> +	int ret_ch0 = 0, ret_ch1 = 0, ret_ch2 = 0;
+>> +	bool tmds_valid = false;
+>> +
+>> +	dw_phy_eq_init_vars(ch0);
+>> +	dw_phy_eq_init_vars(ch1);
+>> +	dw_phy_eq_init_vars(ch2);
+>> +
+>> +	tmds_valid = dw_phy_eq_acquire_early_cnt(dw_dev, act, acq,
+>> +			ch0, ch1, ch2);
+>> +
+>> +	while ((ret_ch0 == 0) || (ret_ch1 == 0) || (ret_ch2 == 0)) {
+>> +		act++;
+>> +
+>> +		ch0->last_acq = ch0->acq;
+>> +		ch1->last_acq = ch1->acq;
+>> +		ch2->last_acq = ch2->acq;
+>> +
+>> +		tmds_valid = dw_phy_eq_acquire_early_cnt(dw_dev, act, acq,
+>> +				ch0, ch1, ch2);
+>> +
+>> +		if (!ret_ch0)
+>> +			ret_ch0 = dw_phy_eq_test_type(act, tmds_valid, ch0);
+>> +		if (!ret_ch1)
+>> +			ret_ch1 = dw_phy_eq_test_type(act, tmds_valid, ch1);
+>> +		if (!ret_ch2)
+>> +			ret_ch2 = dw_phy_eq_test_type(act, tmds_valid, ch2);
+>> +	}
+>> +
+>> +	if ((ret_ch0 == 255) || (ret_ch1 == 255) || (ret_ch2 == 255))
+>> +		return false;
+>> +	return true;
+>> +}
+>> +
+>> +static bool dw_phy_eq_maxvsmin(u16 ch0_setting, u16 ch1_setting,
+>> +		u16 ch2_setting, u16 min_max_length)
+>> +{
+>> +	u16 min = ch0_setting, max = ch0_setting;
+>> +
+>> +	if (ch1_setting > max)
+>> +		max = ch1_setting;
+>> +	if (ch2_setting > max)
+>> +		max = ch2_setting;
+>> +	if (ch1_setting < min)
+>> +		min = ch1_setting;
+>> +	if (ch2_setting < min)
+>> +		min = ch2_setting;
+>> +
+>> +	if ((max - min) > min_max_length)
+>> +		return false;
+>> +	return true;
+>> +}
+>> +
+>> +static int dw_phy_eq_init(struct dw_phy_dev *dw_dev, u16 acq, bool force)
+>> +{
+>> +	struct dw_phy_pdata *phy = dw_dev->config;
+>> +	struct dw_phy_eq_ch ch0, ch1, ch2;
+>> +	u16 fat_bit_mask, lock_vector = 0x1;
+>> +	int min_max_length, i, ret = 0;
+>> +	u16 mpll_status;
+>> +
+>> +	if (phy->version < 401)
+>> +		return ret;
+>> +
+>> +	mpll_status = phy_read(dw_dev, PHY_CLK_MPLL_STATUS);
+>> +	if (mpll_status == dw_dev->mpll_status && !force)
+>> +		return ret;
+>> +	dw_dev->mpll_status = mpll_status;
+>> +
+>> +	phy_write(dw_dev, 0x00, PHY_MAINFSM_OVR2);
+>> +	phy_write(dw_dev, 0x00, PHY_CH0_EQ_CTRL3);
+>> +	phy_write(dw_dev, 0x00, PHY_CH1_EQ_CTRL3);
+>> +	phy_write(dw_dev, 0x00, PHY_CH2_EQ_CTRL3);
+>> +
+>> +	ret = dw_phy_eq_test(dw_dev, &fat_bit_mask, &min_max_length);
+>> +	if (ret) {
+>> +		if (ret == -EINVAL) /* Means equalizer is not needed */
+>> +			ret = 0;
+>> +
+>> +		/* Do not change values if we don't have clock */
+>> +		if (ret != -ETIMEDOUT) {
+>> +			dw_phy_eq_default(dw_dev);
+>> +			phy_pddq(dw_dev, 1);
+>> +			udelay(1);
+>> +			phy_pddq(dw_dev, 0);
+>> +			mdelay(3);
+>> +		}
+>> +	} else {
+>> +		dw_phy_eq_single(dw_dev);
+>> +		dw_phy_eq_equal_setting(dw_dev, 0x0001);
+>> +		phy_write(dw_dev, fat_bit_mask, PHY_CH0_EQ_CTRL6);
+>> +		phy_write(dw_dev, fat_bit_mask, PHY_CH1_EQ_CTRL6);
+>> +		phy_write(dw_dev, fat_bit_mask, PHY_CH2_EQ_CTRL6);
+>> +
+>> +		for (i = 0; i < PHY_EQ_MINMAX_NTRIES; i++) {
+>> +			if (dw_phy_eq_setting_finder(dw_dev, acq,
+>> +						&ch0, &ch1, &ch2)) {
+>> +				if (dw_phy_eq_maxvsmin(ch0.best_setting,
+>> +							ch1.best_setting,
+>> +							ch2.best_setting,
+>> +							min_max_length))
+>> +					break;
+>> +			}
+>> +
+>> +			ch0.best_setting = PHY_EQ_ERROR_CABLE_SETTING;
+>> +			ch1.best_setting = PHY_EQ_ERROR_CABLE_SETTING;
+>> +			ch2.best_setting = PHY_EQ_ERROR_CABLE_SETTING;
+>> +		}
+>> +
+>> +		dev_dbg(dw_dev->dev, "equalizer settings: "
+>> +				"ch0=0x%x, ch1=0x%x, ch1=0x%x\n",
+>> +				ch0.best_setting, ch1.best_setting,
+>> +				ch2.best_setting);
+>> +
+>> +		if (i == PHY_EQ_MINMAX_NTRIES)
+>> +			ret = -EINVAL;
+>> +
+>> +		lock_vector = 0x1;
+>> +		lock_vector <<= ch0.best_setting;
+>> +		dw_phy_eq_equal_setting_ch0(dw_dev, lock_vector);
+>> +
+>> +		lock_vector = 0x1;
+>> +		lock_vector <<= ch1.best_setting;
+>> +		dw_phy_eq_equal_setting_ch1(dw_dev, lock_vector);
+>> +
+>> +		lock_vector = 0x1;
+>> +		lock_vector <<= ch2.best_setting;
+>> +		dw_phy_eq_equal_setting_ch2(dw_dev, lock_vector);
+>> +
+>> +		phy_pddq(dw_dev, 1);
+>> +		udelay(1);
+>> +		phy_pddq(dw_dev, 0);
+>> +		mdelay(3);
+>> +	}
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +static void dw_phy_set_res(struct dw_phy_dev *dw_dev, unsigned char res)
+>> +{
+>> +	u16 val, res_idx;
+>> +
+>> +	if (!dw_dev->phy_enabled)
+>> +		return;
+>> +	if (dw_dev->res == res)
+>> +		return;
+>> +
+>> +	dev_dbg(dw_dev->dev, "%s: res=%d\n", __func__, res);
+>> +
+>> +	switch (res) {
+>> +	case 8:
+>> +		res_idx = 0x0;
+>> +		break;
+>> +	case 10:
+>> +		res_idx = 0x1;
+>> +		break;
+>> +	case 12:
+>> +		res_idx = 0x2;
+>> +		break;
+>> +	case 16:
+>> +		res_idx = 0x3;
+>> +		break;
+>> +	default:
+>> +		return;
+>> +	}
+>> +
+>> +	/* Set phy in configuration mode */
+>> +	phy_pddq(dw_dev, 1);
+>> +
+>> +	/* Color depth */
+>> +	val = phy_read(dw_dev, PHY_SYSTEM_CONFIG);
+>> +	val = (val & ~0x60) | (res_idx << 5);
+>> +	phy_write(dw_dev, val, PHY_SYSTEM_CONFIG);
+>> +
+>> +	/* Enable phy */
+>> +	phy_pddq(dw_dev, 0);
+>> +
+>> +	dw_dev->res = res;
+>> +}
+>> +
+>> +static void dw_phy_set_hdmi2(struct dw_phy_dev *dw_dev, bool on)
+>> +{
+>> +	u16 val;
+>> +
+>> +	if (!dw_dev->phy_enabled)
+>> +		return;
+>> +	if (dw_dev->hdmi2 == on)
+>> +		return;
+>> +
+>> +	dev_dbg(dw_dev->dev, "%s: on=%d\n", __func__, on);
+>> +
+>> +	/* Set phy in configuration mode */
+>> +	phy_pddq(dw_dev, 1);
+>> +
+>> +	/* Operation for data rates between 3.4Gbps and 6Gbps */
+>> +	val = phy_read(dw_dev, PHY_CDR_CTRL_CNT);
+>> +	if (on)
+>> +		val |= BIT(8);
+>> +	else
+>> +		val &= ~BIT(8);
+>> +	phy_write(dw_dev, val, PHY_CDR_CTRL_CNT);
+>> +
+>> +	/* Enable phy */
+>> +	phy_pddq(dw_dev, 0);
+>> +
+>> +	dw_dev->hdmi2 = on;
+>> +}
+>> +
+>> +static void dw_phy_set_scrambling(struct dw_phy_dev *dw_dev, bool on)
+>> +{
+>> +	u16 val;
+>> +
+>> +	if (!dw_dev->phy_enabled)
+>> +		return;
+>> +	if (dw_dev->scrambling == on)
+>> +		return;
+>> +
+>> +	dev_dbg(dw_dev->dev, "%s: on=%d\n", __func__, on);
+>> +
+>> +	/* Set phy in configuration mode */
+>> +	phy_pddq(dw_dev, 1);
+>> +
+>> +	val = phy_read(dw_dev, PHY_OVL_PROT_CTRL);
+>> +	if (on)
+>> +		val |= GENMASK(7,6);
+>> +	else
+>> +		val &= ~GENMASK(7,6);
+>> +	phy_write(dw_dev, val, PHY_OVL_PROT_CTRL);
+>> +
+>> +	/* Enable phy */
+>> +	phy_pddq(dw_dev, 0);
+>> +
+>> +	dw_dev->scrambling = on;
+>> +}
+>> +
+>> +static int dw_phy_init(struct dw_phy_dev *dw_dev, unsigned char res,
+>> +		bool data_rate_6g, bool scrambling)
+>> +{
+>> +	struct device *dev = dw_dev->dev;
+>> +	struct dw_phy_pdata *phy = dw_dev->config;
+>> +	const struct dw_phy_mpll_config *mpll_cfg = dw_phy_e405_mpll_cfg;
+>> +	bool zcal_done;
+>> +	u16 val, res_idx;
+>> +	int timeout = 100;
+>> +
+>> +	dev_dbg(dev, "configuring phy: res=%d, hdmi2=%d, scrambling=%d\n",
+>> +			res, data_rate_6g, scrambling);
+>> +
+>> +	switch (res) {
+>> +	case 8:
+>> +		res_idx = 0x0;
+>> +		break;
+>> +	case 10:
+>> +		res_idx = 0x1;
+>> +		break;
+>> +	case 12:
+>> +		res_idx = 0x2;
+>> +		break;
+>> +	case 16:
+>> +		res_idx = 0x3;
+>> +		break;
+>> +	default:
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	phy_reset(dw_dev, 1);
+>> +	phy_pddq(dw_dev, 1);
+>> +	phy_svsmode(dw_dev, 1);
+>> +
+>> +	phy_zcal_reset(dw_dev);
+>> +	do {
+>> +		udelay(1000);
+>> +		zcal_done = phy_zcal_done(dw_dev);
+>> +	} while (!zcal_done && timeout--);
+>> +
+>> +	if (!zcal_done) {
+>> +		dev_err(dw_dev->dev, "Zcal calibration failed\n");
+>> +		return -ETIMEDOUT;
+>> +	}
+>> +
+>> +	phy_reset(dw_dev, 0);
+>> +
+>> +	/* CMU */
+>> +	val = (0x08 << 10) | (0x01 << 9);
+>> +	val |= (phy->cfg_clk * 4) & GENMASK(8, 0);
+>> +	phy_write(dw_dev, val, PHY_CMU_CONFIG);
+>> +
+>> +	/* Color Depth and enable fast switching */
+>> +	val = phy_read(dw_dev, PHY_SYSTEM_CONFIG);
+>> +	val = (val & ~0x60) | (res_idx << 5) | BIT(11);
+>> +	phy_write(dw_dev, val, PHY_SYSTEM_CONFIG);
+>> +
+>> +	/* MPLL */
+>> +	for (; mpll_cfg->addr != 0x0; mpll_cfg++)
+>> +		phy_write(dw_dev, mpll_cfg->val, mpll_cfg->addr);
+>> +
+>> +	/* Operation for data rates between 3.4Gbps and 6Gbps */
+>> +	val = phy_read(dw_dev, PHY_CDR_CTRL_CNT);
+>> +	if (data_rate_6g)
+>> +		val |= BIT(8);
+>> +	else
+>> +		val &= ~BIT(8);
+>> +	phy_write(dw_dev, val, PHY_CDR_CTRL_CNT);
+>> +
+>> +	/* Scrambling */
+>> +	val = phy_read(dw_dev, PHY_OVL_PROT_CTRL);
+>> +	if (scrambling)
+>> +		val |= GENMASK(7,6);
+>> +	else
+>> +		val &= ~GENMASK(7,6);
+>> +	phy_write(dw_dev, val, PHY_OVL_PROT_CTRL);
+>> +
+>> +	/* Enable phy */
+>> +	phy_pddq(dw_dev, 0);
+>> +
+>> +	dw_dev->res = res;
+>> +	dw_dev->hdmi2 = data_rate_6g;
+>> +	dw_dev->scrambling = scrambling;
+>> +	return 0;
+>> +}
+>> +
+>> +static void dw_phy_enable(struct dw_phy_dev *dw_dev)
+>> +{
+>> +	if (dw_dev->phy_enabled)
+>> +		return;
+>> +
+>> +	dw_phy_init(dw_dev, 8, false, false);
+>> +	phy_reset(dw_dev, 0);
+>> +	phy_pddq(dw_dev, 0);
+>> +	dw_dev->phy_enabled = true;
+>> +}
+>> +
+>> +static void dw_phy_disable(struct dw_phy_dev *dw_dev)
+>> +{
+>> +	if (!dw_dev->phy_enabled)
+>> +		return;
+>> +
+>> +	phy_reset(dw_dev, 1);
+>> +	phy_pddq(dw_dev, 1);
+>> +	phy_svsmode(dw_dev, 0);
+>> +	dw_dev->mpll_status = 0xFFFF;
+>> +	dw_dev->phy_enabled = false;
+>> +}
+>> +
+>> +static long dw_phy_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+>> +{
+>> +	struct dw_phy_dev *dw_dev = to_dw_dev(sd);
+>> +	struct dw_phy_command *a = arg;
+>> +	int ret = 0;
+>> +
+>> +	dev_dbg(dw_dev->dev, "%s: cmd=%d\n", __func__, cmd);
+>> +
+>> +	mutex_lock(&dw_dev->lock);
+>> +	switch (cmd) {
+>> +	case DW_PHY_IOCTL_EQ_INIT:
+>> +		a->result = dw_phy_eq_init(dw_dev, a->nacq, a->force);
+>> +		break;
+>> +	case DW_PHY_IOCTL_SET_HDMI2:
+>> +		dw_phy_set_hdmi2(dw_dev, a->hdmi2);
+>> +		a->result = 0;
+>> +		break;
+>> +	case DW_PHY_IOCTL_SET_SCRAMBLING:
+>> +		dw_phy_set_scrambling(dw_dev, a->scrambling);
+>> +		a->result = 0;
+>> +		break;
+>> +	case DW_PHY_IOCTL_CONFIG:
+>> +		dw_phy_enable(dw_dev);
+>> +		dw_phy_set_res(dw_dev, a->res);
+> set_color_depth would be more appropriate IMHO.
 
-If you always tell the receiver to skip  OV13858_NUM_OF_SKIP_FRAMES frames
-in the beginning, you could just return this from your g_skip_frames
-callback.
+Agree.
 
-> +
-> +	/* Mutex for serialized access */
-> +	struct mutex mutex;
-> +
-> +	/* Streaming on/off */
-> +	bool streaming;
-> +};
-> +
-> +#define to_ov13858(_sd)	container_of(_sd, struct ov13858, sd)
-> +
-> +/* Read registers up to 4 at a time */
-> +static int ov13858_read_reg(struct ov13858 *ov13858, u16 reg, u32 len, u32 *val)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-> +	struct i2c_msg msgs[2];
-> +	u8 *data_be_p;
-> +	int ret;
-> +	u32 data_be = 0;
-> +	u16 reg_addr_be = cpu_to_be16(reg);
-> +
-> +	if (len > 4)
-> +		return -EINVAL;
-> +
-> +	data_be_p = (u8 *)&data_be;
-> +	/* Write register address */
-> +	msgs[0].addr = client->addr;
-> +	msgs[0].flags = 0;
-> +	msgs[0].len = 2;
-> +	msgs[0].buf = (u8 *)&reg_addr_be;
-> +
-> +	/* Read data from register */
-> +	msgs[1].addr = client->addr;
-> +	msgs[1].flags = I2C_M_RD;
-> +	msgs[1].len = len;
-> +	msgs[1].buf = &data_be_p[4 - len];
-> +
-> +	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
-> +	if (ret != ARRAY_SIZE(msgs))
-> +		return -EIO;
-> +
-> +	*val = be32_to_cpu(data_be);
-> +
-> +	return 0;
-> +}
-> +
-> +/* Write registers up to 4 at a time */
-> +static int ov13858_write_reg(struct ov13858 *ov13858, u16 reg, u32 len, u32 val)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-> +	int buf_i, val_i;
-> +	u8 buf[6], *val_p;
-> +
-> +	if (len > 4)
-> +		return -EINVAL;
-> +
-> +	buf[0] = reg >> 8;
-> +	buf[1] = reg & 0xff;
-> +
-> +	buf_i = 2;
-> +	val_p = (u8 *)&val;
-> +	val_i = len - 1;
-> +
-> +	while (val_i >= 0)
-> +		buf[buf_i++] = val_p[val_i--];
-> +
-> +	if (i2c_master_send(client, buf, len + 2) != len + 2)
-> +		return -EIO;
-> +
-> +	return 0;
-> +}
-> +
-> +/* Write a list of registers */
-> +static int ov13858_write_regs(struct ov13858 *ov13858,
-> +			      const struct ov13858_reg *regs, u32 len)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-> +	int ret;
-> +	u32 i;
-> +
-> +	for (i = 0; i < len; i++) {
-> +		ret = ov13858_write_reg(ov13858, regs[i].address, 1,
-> +					regs[i].val);
-> +		if (ret) {
-> +			dev_err_ratelimited(
-> +				&client->dev,
-> +				"Failed to write reg 0x%4.4x. error = %d\n",
-> +				regs[i].address, ret);
-> +
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int ov13858_write_reg_list(struct ov13858 *ov13858,
-> +				  const struct ov13858_reg_list *r_list)
-> +{
-> +	return ov13858_write_regs(ov13858, r_list->regs, r_list->num_of_regs);
-> +}
-> +
-> +/* Open sub-device */
-> +static int ov13858_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-> +{
-> +	struct ov13858 *ov13858 = to_ov13858(sd);
-> +	struct v4l2_mbus_framefmt *try_fmt;
-> +
-> +	mutex_lock(&ov13858->mutex);
-> +
-> +	/* Initialize try_fmt */
-> +	try_fmt = v4l2_subdev_get_try_format(sd, fh->pad, 0);
-> +	try_fmt->width = ov13858->cur_mode->width;
-> +	try_fmt->height = ov13858->cur_mode->height;
-> +	try_fmt->code = MEDIA_BUS_FMT_SGRBG10_1X10;
-> +	try_fmt->field = V4L2_FIELD_NONE;
-> +
-> +	/* No crop or compose */
-> +	mutex_unlock(&ov13858->mutex);
-> +
-> +	return 0;
-> +}
-> +
-> +/* Update max exposure while meeting expected vertial blanking */
-> +static void ov13858_update_exposure_limits(struct ov13858 *ov13858)
-> +{
-> +	s64 max;
-> +
-> +	max = ov13858->cur_mode->height + ov13858->vblank->val - 8;
-> +	__v4l2_ctrl_modify_range(ov13858->exposure, ov13858->exposure->minimum,
-> +				 max, ov13858->exposure->step, max);
-> +}
-> +
-> +/* Update exposure */
-> +static int ov13858_update_exposure(struct ov13858 *ov13858,
-> +				   struct v4l2_ctrl *ctrl)
-> +{
-> +	return ov13858_write_reg(ov13858, OV13858_REG_EXPOSURE,
-> +				OV13858_REG_VALUE_24BIT, ctrl->val << 4);
-> +}
-> +
-> +/* Update VTS that meets expected vertical blanking */
-> +static int ov13858_update_vblank(struct ov13858 *ov13858,
-> +				 struct v4l2_ctrl *ctrl)
-> +{
-> +	return ov13858_write_reg(
-> +			ov13858, OV13858_REG_VTS,
-> +			OV13858_REG_VALUE_16BIT,
-> +			ov13858->cur_mode->height + ov13858->vblank->val);
-> +}
-> +
-> +/* Update analog gain */
-> +static int ov13858_update_analog_gain(struct ov13858 *ov13858,
-> +				      struct v4l2_ctrl *ctrl)
-> +{
-> +	return ov13858_write_reg(ov13858, OV13858_REG_ANALOG_GAIN,
-> +				 OV13858_REG_VALUE_16BIT, ctrl->val);
+>
+>> +		dw_phy_set_hdmi2(dw_dev, a->hdmi2);
+>> +		dw_phy_set_scrambling(dw_dev, a->scrambling);
+>> +		a->result = 0;
+>> +		break;
+> I'm not sure that you need SET_HDMI2, SET_SCRAMBLING and CONFIG: I think
+> these can be deduced from the s_dv_timings op. I.e. the timings imply
+> what should be set here.
+>
+> Note: I'm not sure whether the color depth can be deduced from the timings,
+> I think that is not part of the timings.
 
-I think I'd move what the four above functions do to ov13858_set_ctrl()
-unless they're used in more than one location.
+Hmm, so, now that I'm thinking about this better indeed
+s_dv_timings can simplify this, except from scrambling.
+Scrambling can't be done this way because we support scrambling
+bellow 340Msc, so any mode can use scrambling. HDMI2 can be
+deduced by pixel clock frequency as well as color depth (I think,
+not sure though).
 
-> +}
-> +
-> +static int ov13858_set_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct ov13858 *ov13858 = container_of(ctrl->handler,
-> +					       struct ov13858, ctrl_handler);
-> +	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-> +	int ret;
-> +
-> +	/* Propagate change of current control to all related controls */
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_VBLANK:
-> +		ov13858_update_exposure_limits(ov13858);
-> +		break;
-> +	};
-> +
-> +	/*
-> +	 * Applying V4L2 control value only happens
-> +	 * when power is up for streaming
-> +	 */
-> +	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
-> +		return 0;
-> +
-> +	ret = 0;
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_ANALOGUE_GAIN:
-> +		ret = ov13858_update_analog_gain(ov13858, ctrl);
-> +		break;
-> +	case V4L2_CID_EXPOSURE:
-> +		ret = ov13858_update_exposure(ov13858, ctrl);
-> +		break;
-> +	case V4L2_CID_VBLANK:
-> +		ret = ov13858_update_vblank(ov13858, ctrl);
-> +		break;
-> +	default:
-> +		dev_info(&client->dev,
-> +			 "ctrl(id:0x%x,val:0x%x) is not handled\n",
-> +			 ctrl->id, ctrl->val);
-> +		break;
-> +	};
-> +
-> +	pm_runtime_put(&client->dev);
-> +
-> +	return ret;
-> +}
-> +
-> +static const struct v4l2_ctrl_ops ov13858_ctrl_ops = {
-> +	.s_ctrl = ov13858_set_ctrl,
-> +};
-> +
-> +static int ov13858_enum_mbus_code(struct v4l2_subdev *sd,
-> +				  struct v4l2_subdev_pad_config *cfg,
-> +				  struct v4l2_subdev_mbus_code_enum *code)
-> +{
-> +	/* Only one bayer order(GRBG) is supported */
-> +	if (code->index > 0)
-> +		return -EINVAL;
-> +
-> +	code->code = MEDIA_BUS_FMT_SGRBG10_1X10;
-> +
-> +	return 0;
-> +}
-> +
-> +static int ov13858_enum_frame_size(struct v4l2_subdev *sd,
-> +				   struct v4l2_subdev_pad_config *cfg,
-> +				   struct v4l2_subdev_frame_size_enum *fse)
-> +{
-> +	if (fse->index >= ARRAY_SIZE(supported_modes))
-> +		return -EINVAL;
-> +
-> +	if (fse->code != MEDIA_BUS_FMT_SGRBG10_1X10)
-> +		return -EINVAL;
-> +
-> +	fse->min_width = supported_modes[fse->index].width;
-> +	fse->max_width = fse->min_width;
-> +	fse->min_height = supported_modes[fse->index].height;
-> +	fse->max_height = fse->min_height;
-> +
-> +	return 0;
-> +}
-> +
-> +static void ov13858_update_pad_format(const struct ov13858_mode *mode,
-> +				      struct v4l2_subdev_format *fmt)
-> +{
-> +	fmt->format.width = mode->width;
-> +	fmt->format.height = mode->height;
-> +	fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
-> +	fmt->format.field = V4L2_FIELD_NONE;
-> +}
-> +
-> +static int ov13858_do_get_pad_format(struct ov13858 *ov13858,
-> +				     struct v4l2_subdev_pad_config *cfg,
-> +				     struct v4l2_subdev_format *fmt)
-> +{
-> +	struct v4l2_mbus_framefmt *framefmt;
-> +	struct v4l2_subdev *sd = &ov13858->sd;
-> +
-> +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> +		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-> +		fmt->format = *framefmt;
-> +	} else {
-> +		ov13858_update_pad_format(ov13858->cur_mode, fmt);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int ov13858_get_pad_format(struct v4l2_subdev *sd,
-> +				  struct v4l2_subdev_pad_config *cfg,
-> +				  struct v4l2_subdev_format *fmt)
-> +{
-> +	struct ov13858 *ov13858 = to_ov13858(sd);
-> +	int ret;
-> +
-> +	mutex_lock(&ov13858->mutex);
-> +	ret = ov13858_do_get_pad_format(ov13858, cfg, fmt);
-> +	mutex_unlock(&ov13858->mutex);
-> +
-> +	return ret;
-> +}
-> +
-> +/*
-> + * Calculate resolution distance
-> + */
-> +static int
-> +ov13858_get_resolution_dist(const struct ov13858_mode *mode,
-> +			    struct v4l2_mbus_framefmt *framefmt)
-> +{
-> +	return abs(mode->width - framefmt->width) +
-> +	       abs(mode->height - framefmt->height);
-> +}
-> +
-> +/*
-> + * Find the closest supported resolution to the requested resolution
-> + */
-> +static const struct ov13858_mode *
-> +ov13858_find_best_fit(struct ov13858 *ov13858,
-> +		      struct v4l2_subdev_format *fmt)
-> +{
-> +	int i, dist, cur_best_fit = 0, cur_best_fit_dist = -1;
-> +	struct v4l2_mbus_framefmt *framefmt = &fmt->format;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(supported_modes); i++) {
-> +		dist = ov13858_get_resolution_dist(&supported_modes[i],
-> +						   framefmt);
-> +		if (cur_best_fit_dist == -1 || dist < cur_best_fit_dist) {
-> +			cur_best_fit_dist = dist;
-> +			cur_best_fit = i;
-> +		}
-> +	}
-> +
-> +	return &supported_modes[cur_best_fit];
-> +}
-> +
-> +static int
-> +ov13858_set_pad_format(struct v4l2_subdev *sd,
-> +		       struct v4l2_subdev_pad_config *cfg,
-> +		       struct v4l2_subdev_format *fmt)
-> +{
-> +	struct ov13858 *ov13858 = to_ov13858(sd);
-> +	const struct ov13858_mode *mode;
-> +	struct v4l2_mbus_framefmt *framefmt;
-> +
-> +	mutex_lock(&ov13858->mutex);
-> +
-> +	/* Only one raw bayer(GRBG) order is supported */
-> +	if (fmt->format.code != MEDIA_BUS_FMT_SGRBG10_1X10)
-> +		fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
-> +
-> +	mode = ov13858_find_best_fit(ov13858, fmt);
-> +	ov13858_update_pad_format(mode, fmt);
-> +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> +		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-> +		*framefmt = fmt->format;
-> +	} else {
-> +		ov13858->cur_mode = mode;
-> +		__v4l2_ctrl_s_ctrl(ov13858->link_freq, mode->link_freq_index);
-> +		__v4l2_ctrl_s_ctrl_int64(
-> +			ov13858->pixel_rate,
-> +			link_freq_configs[mode->link_freq_index].pixel_rate);
-> +		/* Update limits and set FPS to default */
-> +		__v4l2_ctrl_modify_range(
-> +			ov13858->vblank, OV13858_VBLANK_MIN,
-> +			OV13858_VTS_MAX - ov13858->cur_mode->height, 1,
-> +			ov13858->cur_mode->vts - ov13858->cur_mode->height);
-> +	}
-> +
-> +	mutex_unlock(&ov13858->mutex);
-> +
-> +	return 0;
-> +}
-> +
-> +static int ov13858_get_skip_frames(struct v4l2_subdev *sd, u32 *frames)
-> +{
-> +	struct ov13858 *ov13858 = to_ov13858(sd);
-> +
-> +	mutex_lock(&ov13858->mutex);
-> +	*frames = ov13858->num_of_skip_frames;
-> +	mutex_unlock(&ov13858->mutex);
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Prepare streaming by writing default values and customized values.
-> + * This should be called with ov13858->mutex acquired.
-> + */
-> +static int ov13858_prepare_streaming(struct ov13858 *ov13858)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-> +	const struct ov13858_reg_list *reg_list;
-> +	int ret, link_freq_index;
-> +
-> +	/* Get out of from software reset */
-> +	ret = ov13858_write_reg(ov13858, OV13858_REG_SOFTWARE_RST,
-> +				OV13858_REG_VALUE_08BIT, OV13858_SOFTWARE_RST);
-> +	if (ret) {
-> +		dev_err(&client->dev, "%s failed to set powerup registers\n",
-> +			__func__);
-> +		return ret;
-> +	}
-> +
-> +	/* Setup PLL */
-> +	link_freq_index = ov13858->cur_mode->link_freq_index;
-> +	reg_list = &link_freq_configs[link_freq_index].reg_list;
-> +	ret = ov13858_write_reg_list(ov13858, reg_list);
-> +	if (ret) {
-> +		dev_err(&client->dev, "%s failed to set plls\n", __func__);
-> +		return ret;
-> +	}
-> +
-> +	/* Apply default values of current mode */
-> +	reg_list = &ov13858->cur_mode->reg_list;
-> +	ret = ov13858_write_reg_list(ov13858, reg_list);
-> +	if (ret) {
-> +		dev_err(&client->dev, "%s failed to set mode\n", __func__);
-> +		return ret;
-> +	}
-> +
-> +	/* Apply customized values from user */
-> +	return __v4l2_ctrl_handler_setup(ov13858->sd.ctrl_handler);
-> +}
-> +
-> +/* Start streaming */
-> +static int ov13858_start_streaming(struct ov13858 *ov13858)
-> +{
-> +	int ret;
-> +
-> +	/* Write default & customized values */
-> +	ret = ov13858_prepare_streaming(ov13858);
+>
+>> +	default:
+>> +		ret = -ENOIOCTLCMD;
+>> +		break;
+>> +	}
+>> +	mutex_unlock(&dw_dev->lock);
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +static int dw_phy_s_power(struct v4l2_subdev *sd, int on)
+>> +{
+>> +	struct dw_phy_dev *dw_dev = to_dw_dev(sd);
+>> +
+>> +	dev_dbg(dw_dev->dev, "%s: on=%d\n", __func__, on);
+>> +
+>> +	mutex_lock(&dw_dev->lock);
+>> +	if (!on)
+>> +		dw_phy_disable(dw_dev);
+>> +	mutex_unlock(&dw_dev->lock);
+>> +	return 0;
+>> +}
+>> +
+>> +static const struct v4l2_subdev_core_ops dw_phy_core_ops = {
+>> +	.ioctl = dw_phy_ioctl,
+>> +	.s_power = dw_phy_s_power,
+>> +};
+>> +
+>> +static const struct v4l2_subdev_ops dw_phy_sd_ops = {
+>> +	.core = &dw_phy_core_ops,
+>> +};
+>> +
+>> +static int dw_phy_probe(struct platform_device *pdev)
+>> +{
+>> +	struct device *dev = &pdev->dev;
+>> +	struct dw_phy_dev *dw_dev;
+>> +	struct dw_phy_pdata *pdata = pdev->dev.platform_data;
+>> +	struct v4l2_subdev *sd;
+>> +
+>> +	dev_dbg(dev, "probe start\n");
+>> +
+>> +	/* Resource allocation */
+>> +	dw_dev = devm_kzalloc(dev, sizeof(*dw_dev), GFP_KERNEL);
+>> +	if (!dw_dev)
+>> +		return -ENOMEM;
+>> +
+>> +	/* Resource initialization */
+>> +	if (!pdata)
+>> +		return -EINVAL;
+>> +
+>> +	dw_dev->dev = dev;
+>> +	dw_dev->config = pdata;
+>> +	mutex_init(&dw_dev->lock);
+>> +
+>> +	/* V4L2 initialization */
+>> +	sd = &dw_dev->sd;
+>> +	v4l2_subdev_init(sd, &dw_phy_sd_ops);
+>> +	strlcpy(sd->name, dev_name(dev), sizeof(sd->name));
+>> +
+>> +	/* Phy initialization */
+>> +	dw_phy_init(dw_dev, 8, false, false);
+>> +
+>> +	/* All done */
+>> +	dev_set_drvdata(dev, sd);
+>> +	dev_info(dev, "driver probed\n");
+>> +	return 0;
+>> +}
+>> +
+>> +static int dw_phy_remove(struct platform_device *pdev)
+>> +{
+>> +	struct device *dev = &pdev->dev;
+>> +
+>> +	dev_info(dev, "driver removed\n");
+>> +	return 0;
+>> +}
+>> +
+>> +static struct platform_driver dw_phy_e405_driver = {
+>> +	.probe = dw_phy_probe,
+>> +	.remove = dw_phy_remove,
+>> +	.driver = {
+>> +		.name = DW_PHY_E405_DRVNAME,
+>> +	}
+>> +};
+>> +module_platform_driver(dw_phy_e405_driver);
+>> diff --git a/drivers/media/platform/dwc/dw-hdmi-phy-e405.h b/drivers/media/platform/dwc/dw-hdmi-phy-e405.h
+>> new file mode 100644
+>> index 0000000..3e6c8da
+>> --- /dev/null
+>> +++ b/drivers/media/platform/dwc/dw-hdmi-phy-e405.h
+>> @@ -0,0 +1,63 @@
+>> +/*
+>> + * Synopsys Designware HDMI PHY E405 driver
+>> + *
+>> + * This Synopsys dw-phy-e405 software and associated documentation
+>> + * (hereinafter the "Software") is an unsupported proprietary work of
+>> + * Synopsys, Inc. unless otherwise expressly agreed to in writing between
+>> + * Synopsys and you. The Software IS NOT an item of Licensed Software or a
+>> + * Licensed Product under any End User Software License Agreement or
+>> + * Agreement for Licensed Products with Synopsys or any supplement thereto.
+>> + * Synopsys is a registered trademark of Synopsys, Inc. Other names included
+>> + * in the SOFTWARE may be the trademarks of their respective owners.
+>> + *
+>> + * The contents of this file are dual-licensed; you may select either version 2
+>> + * of the GNU General Public License (“GPL”) or the MIT license (“MIT”).
+>> + *
+>> + * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
+>> + *
+>> + * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+>> + * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+>> + * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+>> + * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+>> + * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE
+>> + * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
+>> + * OTHER DEALINGS IN THE SOFTWARE.
+>> + */
+>> +
+>> +#ifndef __DW_HDMI_PHY_E405_H__
+>> +#define __DW_HDMI_PHY_E405_H__
+>> +
+>> +#define PHY_CMU_CONFIG				0x02
+>> +#define PHY_SYSTEM_CONFIG			0x03
+>> +#define PHY_MAINFSM_CTRL			0x05
+>> +#define PHY_MAINFSM_OVR2			0x08
+>> +#define PHY_MAINFSM_STATUS1			0x09
+>> +#define PHY_OVL_PROT_CTRL			0x0D
+>> +#define PHY_CDR_CTRL_CNT			0x0E
+>> +#define PHY_CLK_MPLL_STATUS			0x2F
+>> +#define PHY_CH0_EQ_CTRL1			0x32
+>> +#define PHY_CH0_EQ_CTRL2			0x33
+>> +#define PHY_CH0_EQ_STATUS			0x34
+>> +#define PHY_CH0_EQ_CTRL3			0x3E
+>> +#define PHY_CH0_EQ_CTRL4			0x3F
+>> +#define PHY_CH0_EQ_STATUS2			0x40
+>> +#define PHY_CH0_EQ_STATUS3			0x42
+>> +#define PHY_CH0_EQ_CTRL6			0x43
+>> +#define PHY_CH1_EQ_CTRL1			0x52
+>> +#define PHY_CH1_EQ_CTRL2			0x53
+>> +#define PHY_CH1_EQ_STATUS			0x54
+>> +#define PHY_CH1_EQ_CTRL3			0x5E
+>> +#define PHY_CH1_EQ_CTRL4			0x5F
+>> +#define PHY_CH1_EQ_STATUS2			0x60
+>> +#define PHY_CH1_EQ_STATUS3			0x62
+>> +#define PHY_CH1_EQ_CTRL6			0x63
+>> +#define PHY_CH2_EQ_CTRL1			0x72
+>> +#define PHY_CH2_EQ_CTRL2			0x73
+>> +#define PHY_CH2_EQ_STATUS			0x74
+>> +#define PHY_CH2_EQ_CTRL3			0x7E
+>> +#define PHY_CH2_EQ_CTRL4			0x7F
+>> +#define PHY_CH2_EQ_STATUS2			0x80
+>> +#define PHY_CH2_EQ_STATUS3			0x82
+>> +#define PHY_CH2_EQ_CTRL6			0x83
+>> +
+>> +#endif /* __DW_HDMI_PHY_E405_H__ */
+>> diff --git a/include/media/dwc/dw-hdmi-phy-pdata.h b/include/media/dwc/dw-hdmi-phy-pdata.h
+>> new file mode 100644
+>> index 0000000..c2962ec
+>> --- /dev/null
+>> +++ b/include/media/dwc/dw-hdmi-phy-pdata.h
+>> @@ -0,0 +1,64 @@
+>> +/*
+>> + * Synopsys Designware HDMI PHY platform data
+>> + *
+>> + * This Synopsys dw-hdmi-phy software and associated documentation
+>> + * (hereinafter the "Software") is an unsupported proprietary work of
+>> + * Synopsys, Inc. unless otherwise expressly agreed to in writing between
+>> + * Synopsys and you. The Software IS NOT an item of Licensed Software or a
+>> + * Licensed Product under any End User Software License Agreement or
+>> + * Agreement for Licensed Products with Synopsys or any supplement thereto.
+>> + * Synopsys is a registered trademark of Synopsys, Inc. Other names included
+>> + * in the SOFTWARE may be the trademarks of their respective owners.
+>> + *
+>> + * The contents of this file are dual-licensed; you may select either version 2
+>> + * of the GNU General Public License (“GPL”) or the MIT license (“MIT”).
+>> + *
+>> + * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
+>> + *
+>> + * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+>> + * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+>> + * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+>> + * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+>> + * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE
+>> + * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
+>> + * OTHER DEALINGS IN THE SOFTWARE.
+>> + */
+>> +
+>> +#ifndef __DW_HDMI_PHY_PDATA_H__
+>> +#define __DW_HDMI_PHY_PDATA_H__
+>> +
+>> +#define DW_PHY_E405_DRVNAME	"dw-hdmi-phy-e405"
+>> +
+>> +#define DW_PHY_IOCTL_EQ_INIT		_IOW('R',1,int)
+>> +#define DW_PHY_IOCTL_SET_HDMI2		_IOW('R',2,int)
+>> +#define DW_PHY_IOCTL_SET_SCRAMBLING	_IOW('R',3,int)
+>> +#define DW_PHY_IOCTL_CONFIG		_IOW('R',4,int)
+>> +
+>> +struct dw_phy_command {
+>> +	int result;
+>> +	unsigned char res;
+>> +	bool hdmi2;
+>> +	u16 nacq;
+>> +	bool scrambling;
+>> +	bool force;
+>> +};
+>> +
+>> +struct dw_phy_funcs {
+>> +	void (*write) (void *arg, u16 val, u16 addr);
+>> +	u16 (*read) (void *arg, u16 addr);
+>> +	void (*reset) (void *arg, int enable);
+>> +	void (*pddq) (void *arg, int enable);
+>> +	void (*svsmode) (void *arg, int enable);
+>> +	void (*zcal_reset) (void *arg);
+>> +	bool (*zcal_done) (void *arg);
+>> +	bool (*tmds_valid) (void *arg);
+> This needs some comments. Esp. for 'pddq', 'svsmode' and the zcal ops.
 
-Could you merge this with ov13858_prepare_streaming()?
+Yeah, agreed.
 
-> +	if (ret)
-> +		return ret;
-> +
-> +	return ov13858_write_reg(ov13858, OV13858_REG_MODE_SELECT,
-> +				 OV13858_REG_VALUE_08BIT,
-> +				 OV13858_MODE_STREAMING);
-> +}
-> +
-> +/* Stop streaming */
-> +static int ov13858_stop_streaming(struct ov13858 *ov13858)
-> +{
-> +	return ov13858_write_reg(ov13858, OV13858_REG_MODE_SELECT,
-> +				 OV13858_REG_VALUE_08BIT, OV13858_MODE_STANDBY);
-> +}
-> +
-> +static int ov13858_set_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> +	struct ov13858 *ov13858 = to_ov13858(sd);
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	int ret = 0;
-> +
-> +	mutex_lock(&ov13858->mutex);
-> +	if (ov13858->streaming == enable) {
-> +		mutex_unlock(&ov13858->mutex);
-> +		return 0;
-> +	}
-> +
-> +	if (enable) {
-> +		ret = pm_runtime_get_sync(&client->dev);
-> +		if (ret < 0) {
-> +			pm_runtime_put_noidle(&client->dev);
-> +			goto err_unlock;
-> +		}
-> +
-> +		/*
-> +		 * Apply default & customized values
-> +		 * and then start streaming.
-> +		 */
-> +		ret = ov13858_start_streaming(ov13858);
-> +		if (ret)
-> +			goto err_rpm_put;
-> +	} else {
-> +		ov13858_stop_streaming(ov13858);
-> +		pm_runtime_put(&client->dev);
-> +	}
-> +
-> +	ov13858->streaming = enable;
-> +	mutex_unlock(&ov13858->mutex);
-> +
-> +	return ret;
-> +
-> +err_rpm_put:
-> +	pm_runtime_put(&client->dev);
-> +err_unlock:
-> +	mutex_unlock(&ov13858->mutex);
-> +
-> +	return ret;
-> +}
-> +
-> +static int __maybe_unused ov13858_suspend(struct device *dev)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct ov13858 *ov13858 = to_ov13858(sd);
-> +
-> +	if (ov13858->streaming)
-> +		ov13858_stop_streaming(ov13858);
-> +
-> +	return 0;
-> +}
-> +
-> +static int __maybe_unused ov13858_resume(struct device *dev)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct ov13858 *ov13858 = to_ov13858(sd);
-> +	int ret;
-> +
-> +	if (ov13858->streaming) {
-> +		ret = ov13858_start_streaming(ov13858);
-> +		if (ret)
-> +			goto error;
-> +	}
-> +
-> +	return 0;
-> +
-> +error:
-> +	ov13858_stop_streaming(ov13858);
-> +	ov13858->streaming = 0;
-> +	return ret;
-> +}
-> +
-> +/* Verify chip ID */
-> +static int ov13858_identify_module(struct ov13858 *ov13858)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-> +	int ret;
-> +	u32 val;
-> +
-> +	ret = ov13858_read_reg(ov13858, OV13858_REG_CHIP_ID,
-> +			       OV13858_REG_VALUE_24BIT, &val);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (val != OV13858_CHIP_ID) {
-> +		dev_err(&client->dev, "chip id mismatch: %x!=%x\n",
-> +			OV13858_CHIP_ID, val);
-> +		return -EIO;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_video_ops ov13858_video_ops = {
-> +	.s_stream = ov13858_set_stream,
-> +};
-> +
-> +static const struct v4l2_subdev_pad_ops ov13858_pad_ops = {
-> +	.enum_mbus_code = ov13858_enum_mbus_code,
-> +	.get_fmt = ov13858_get_pad_format,
-> +	.set_fmt = ov13858_set_pad_format,
-> +	.enum_frame_size = ov13858_enum_frame_size,
-> +};
-> +
-> +static const struct v4l2_subdev_sensor_ops ov13858_sensor_ops = {
-> +	.g_skip_frames = ov13858_get_skip_frames,
-> +};
-> +
-> +static const struct v4l2_subdev_ops ov13858_subdev_ops = {
-> +	.video = &ov13858_video_ops,
-> +	.pad = &ov13858_pad_ops,
-> +	.sensor = &ov13858_sensor_ops,
-> +};
-> +
-> +static const struct media_entity_operations ov13858_subdev_entity_ops = {
-> +	.link_validate = v4l2_subdev_link_validate,
-> +};
-> +
-> +static const struct v4l2_subdev_internal_ops ov13858_internal_ops = {
-> +	.open = ov13858_open,
-> +};
-> +
-> +/* Initialize control handlers */
-> +static int ov13858_init_controls(struct ov13858 *ov13858)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-> +	struct v4l2_ctrl_handler *ctrl_hdlr;
-> +	int ret;
-> +
-> +	ctrl_hdlr = &ov13858->ctrl_handler;
-> +	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 5);
-> +	if (ret)
-> +		return ret;
-> +
-> +	mutex_init(&ov13858->mutex);
-> +	ctrl_hdlr->lock = &ov13858->mutex;
-> +	ov13858->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr,
-> +				&ov13858_ctrl_ops,
-> +				V4L2_CID_LINK_FREQ,
-> +				OV13858_NUM_OF_LINK_FREQS - 1,
-> +				0,
-> +				link_freq_menu_items);
-> +	ov13858->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-> +
-> +	/* By default, PIXEL_RATE is read only */
-> +	ov13858->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops,
-> +					V4L2_CID_PIXEL_RATE, 0,
-> +					link_freq_configs[0].pixel_rate, 1,
-> +					link_freq_configs[0].pixel_rate);
-> +
-> +	ov13858->vblank = v4l2_ctrl_new_std(
-> +				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_VBLANK,
-> +				OV13858_VBLANK_MIN,
-> +				OV13858_VTS_MAX - ov13858->cur_mode->height, 1,
-> +				ov13858->cur_mode->vts
-> +				  - ov13858->cur_mode->height);
-> +
-> +	ov13858->exposure = v4l2_ctrl_new_std(
-> +				ctrl_hdlr, &ov13858_ctrl_ops,
-> +				V4L2_CID_EXPOSURE, OV13858_EXPOSURE_MIN,
-> +				OV13858_EXPOSURE_MAX, OV13858_EXPOSURE_STEP,
-> +				OV13858_EXPOSURE_DEFAULT);
-> +
-> +	v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
-> +			  OV13858_ANA_GAIN_MIN, OV13858_ANA_GAIN_MAX,
-> +			  OV13858_ANA_GAIN_STEP, OV13858_ANA_GAIN_DEFAULT);
-> +	if (ctrl_hdlr->error) {
-> +		ret = ctrl_hdlr->error;
-> +		dev_err(&client->dev, "%s control init failed (%d)\n",
-> +			__func__, ret);
-> +		goto error;
-> +	}
-> +
-> +	ov13858->sd.ctrl_handler = ctrl_hdlr;
-> +
-> +	return 0;
-> +
-> +error:
-> +	v4l2_ctrl_handler_free(ctrl_hdlr);
-> +	mutex_destroy(&ov13858->mutex);
-> +
-> +	return ret;
-> +}
-> +
-> +static void ov13858_free_controls(struct ov13858 *ov13858)
-> +{
-> +	v4l2_ctrl_handler_free(ov13858->sd.ctrl_handler);
-> +	mutex_destroy(&ov13858->mutex);
-> +}
-> +
-> +static int ov13858_probe(struct i2c_client *client,
-> +			 const struct i2c_device_id *devid)
-> +{
-> +	struct ov13858 *ov13858;
-> +	int ret;
-> +
-> +	ov13858 = devm_kzalloc(&client->dev, sizeof(*ov13858), GFP_KERNEL);
-> +	if (!ov13858)
-> +		return -ENOMEM;
-> +
-> +	/* Initialize subdev */
-> +	v4l2_i2c_subdev_init(&ov13858->sd, client, &ov13858_subdev_ops);
-> +
-> +	/* Check module identity */
-> +	ret = ov13858_identify_module(ov13858);
-> +	if (ret) {
-> +		dev_err(&client->dev, "failed to find sensor: %d\n", ret);
-> +		return ret;
-> +	}
-> +
-> +	/* Set default mode to max resolution */
-> +	ov13858->cur_mode = &supported_modes[0];
-> +	/* Set number of frames to skip */
-> +	ov13858->num_of_skip_frames = OV13858_NUM_OF_SKIP_FRAMES;
-> +
-> +	ret = ov13858_init_controls(ov13858);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* Initialize subdev */
-> +	ov13858->sd.internal_ops = &ov13858_internal_ops;
-> +	ov13858->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	ov13858->sd.entity.ops = &ov13858_subdev_entity_ops;
-> +	ov13858->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
-> +
-> +	/* Initialize source pad */
-> +	ov13858->pad.flags = MEDIA_PAD_FL_SOURCE;
-> +	ret = media_entity_pads_init(&ov13858->sd.entity, 1, &ov13858->pad);
-> +	if (ret) {
-> +		dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
-> +		goto error_handler_free;
-> +	}
-> +
-> +	ret = v4l2_async_register_subdev(&ov13858->sd);
-> +	if (ret < 0)
-> +		goto error_media_entity;
-> +
-> +	pm_runtime_put(&client->dev);
-> +
-> +	return 0;
-> +
-> +error_media_entity:
-> +	media_entity_cleanup(&ov13858->sd.entity);
-> +
-> +error_handler_free:
-> +	ov13858_free_controls(ov13858);
-> +	dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
-> +
-> +	return ret;
-> +}
-> +
-> +static int ov13858_remove(struct i2c_client *client)
-> +{
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct ov13858 *ov13858 = to_ov13858(sd);
-> +
-> +	v4l2_async_unregister_subdev(sd);
-> +	media_entity_cleanup(&sd->entity);
-> +	ov13858_free_controls(ov13858);
-> +	pm_runtime_get(&client->dev);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id ov13858_id_table[] = {
-> +	{"ov13858", 0},
-> +	{},
-> +};
-> +
-> +MODULE_DEVICE_TABLE(i2c, ov13858_id_table);
-> +
-> +static const struct dev_pm_ops ov13858_pm_ops = {
-> +	SET_SYSTEM_SLEEP_PM_OPS(ov13858_suspend, ov13858_resume)
-> +};
-> +
-> +#ifdef CONFIG_ACPI
-> +static const struct acpi_device_id ov13858_acpi_ids[] = {
-> +	{"OVTID858"},
-> +	{ /* sentinel */ }
-> +};
-> +
-> +MODULE_DEVICE_TABLE(acpi, ov13858_acpi_ids);
-> +#endif
-> +
-> +static struct i2c_driver ov13858_i2c_driver = {
-> +	.driver = {
-> +		.name = "ov13858",
-> +		.owner = THIS_MODULE,
-> +		.pm = &ov13858_pm_ops,
-> +		.acpi_match_table = ACPI_PTR(ov13858_acpi_ids),
-> +	},
-> +	.probe = ov13858_probe,
-> +	.remove = ov13858_remove,
-> +	.id_table = ov13858_id_table,
-> +};
-> +
-> +module_i2c_driver(ov13858_i2c_driver);
-> +
-> +MODULE_AUTHOR("Kan, Chris <chris.kan@intel.com>");
-> +MODULE_AUTHOR("Rapolu, Chiranjeevi <chiranjeevi.rapolu@intel.com>");
-> +MODULE_AUTHOR("Yang, Hyungwoo <hyungwoo.yang@intel.com>");
-> +MODULE_DESCRIPTION("Omnivision ov13858 sensor driver");
-> +MODULE_LICENSE("GPL v2");
+Best regards,
+Jose Miguel Abreu
 
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+>
+>> +};
+>> +
+>> +struct dw_phy_pdata {
+>> +	unsigned int version;
+>> +	unsigned int cfg_clk;
+>> +	const struct dw_phy_funcs *funcs;
+>> +	void *funcs_arg;
+>> +};
+>> +
+>> +#endif /* __DW_HDMI_PHY_PDATA_H__ */
+>>
+> Regards,
+>
+> 	Hans
