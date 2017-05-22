@@ -1,99 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:48582 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750883AbdEHW2W (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 May 2017 18:28:22 -0400
-Date: Tue, 9 May 2017 00:28:19 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        pali.rohar@gmail.com, sre@kernel.org,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: [patch, libv4l]: fix integer overflow
-Message-ID: <20170508222819.GA14833@amd>
-References: <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan>
- <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan>
- <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan>
- <20170426105300.GA857@amd>
- <20170426081330.6ca10e42@vento.lan>
- <20170426132337.GA6482@amd>
- <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
-Content-Disposition: inline
-In-Reply-To: <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
+Received: from mail.kernel.org ([198.145.29.99]:57568 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934381AbdEVOT3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 May 2017 10:19:29 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
+Subject: [PATCH v3 3/5] v4l: vsp1: Map the DL and video buffers through the proper bus master
+Date: Mon, 22 May 2017 15:19:20 +0100
+Message-Id: <79c3bf9799c7d652e80efee473bf3178d8b6e428.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Magnus Damm <magnus.damm@gmail.com>
 
---9jxsPFA5p3P2qPhR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Gen2 hardware the VSP1 is a bus master and accesses the display list
+and video buffers through DMA directly. On Gen3 hardware, however,
+memory accesses go through a separate IP core called FCP.
 
-Hi!
+The VSP1 driver unconditionally maps DMA buffers through the VSP device.
+While this doesn't cause any practical issue so far, DMA mappings will
+be incorrect as soon as we will enable IOMMU support for the FCP on Gen3
+platforms, resulting in IOMMU faults.
 
-This bit me while trying to use absolute exposure time on Nokia N900:
+Fix this by mapping all buffers through the FCP device if present, and
+through the VSP1 device as usual otherwise.
 
-Can someone apply it to libv4l2 tree? Could I get some feedback on the
-other patches? Is this the way to submit patches to libv4l2?
+Suggested-by: Magnus Damm <magnus.damm@gmail.com>
+[Cache the bus master device]
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1.h       |  1 +
+ drivers/media/platform/vsp1/vsp1_dl.c    |  4 ++--
+ drivers/media/platform/vsp1/vsp1_drv.c   |  9 +++++++++
+ drivers/media/platform/vsp1/vsp1_video.c |  2 +-
+ 4 files changed, 13 insertions(+), 3 deletions(-)
 
-Thanks,
-								Pavel
-
-commit 0484e39ec05fdc644191e7c334a7ebfff9cb2ec5
-Author: Pavel <pavel@ucw.cz>
-Date:   Mon May 8 21:52:02 2017 +0200
-
-    Fix integer overflow with EXPOSURE_ABSOLUTE.
-
-diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
-index e795aee..189fc06 100644
---- a/lib/libv4l2/libv4l2.c
-+++ b/lib/libv4l2/libv4l2.c
-@@ -1776,7 +1776,7 @@ int v4l2_set_control(int fd, int cid, int value)
- 		if (qctrl.type =3D=3D V4L2_CTRL_TYPE_BOOLEAN)
- 			ctrl.value =3D value ? 1 : 0;
- 		else
--			ctrl.value =3D (value * (qctrl.maximum - qctrl.minimum) + 32767) / 6553=
-5 +
-+			ctrl.value =3D ((long long) value * (qctrl.maximum - qctrl.minimum) + 3=
-2767) / 65535 +
- 				qctrl.minimum;
-=20
- 		result =3D v4lconvert_vidioc_s_ctrl(devices[index].convert, &ctrl);
-@@ -1812,7 +1812,7 @@ int v4l2_get_control(int fd, int cid)
- 		if (v4l2_propagate_ioctl(index, VIDIOC_G_CTRL, &ctrl))
- 			return -1;
-=20
--	return ((ctrl.value - qctrl.minimum) * 65535 +
-+	return (((long long) ctrl.value - qctrl.minimum) * 65535 +
- 			(qctrl.maximum - qctrl.minimum) / 2) /
- 		(qctrl.maximum - qctrl.minimum);
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index 85387a64179a..847963b6e9eb 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -74,6 +74,7 @@ struct vsp1_device {
+ 
+ 	void __iomem *mmio;
+ 	struct rcar_fcp_device *fcp;
++	struct device *bus_master;
+ 
+ 	struct vsp1_bru *bru;
+ 	struct vsp1_clu *clu;
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 7d8f37772b56..445d1c31fff3 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -137,7 +137,7 @@ static int vsp1_dl_body_init(struct vsp1_device *vsp1,
+ 	dlb->vsp1 = vsp1;
+ 	dlb->size = size;
+ 
+-	dlb->entries = dma_alloc_wc(vsp1->dev, dlb->size, &dlb->dma,
++	dlb->entries = dma_alloc_wc(vsp1->bus_master, dlb->size, &dlb->dma,
+ 				    GFP_KERNEL);
+ 	if (!dlb->entries)
+ 		return -ENOMEM;
+@@ -150,7 +150,7 @@ static int vsp1_dl_body_init(struct vsp1_device *vsp1,
+  */
+ static void vsp1_dl_body_cleanup(struct vsp1_dl_body *dlb)
+ {
+-	dma_free_wc(dlb->vsp1->dev, dlb->size, dlb->entries, dlb->dma);
++	dma_free_wc(dlb->vsp1->bus_master, dlb->size, dlb->entries, dlb->dma);
  }
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---9jxsPFA5p3P2qPhR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlkQ8QMACgkQMOfwapXb+vJ6BACdEHP3nn75PjVNJHxLqOmIW/GL
-/xkAoIdbLSolcavTBhEMPm7SZP1niZaZ
-=Ti75
------END PGP SIGNATURE-----
-
---9jxsPFA5p3P2qPhR--
+ 
+ /**
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 048446af5ae7..95c26edead85 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -764,6 +764,15 @@ static int vsp1_probe(struct platform_device *pdev)
+ 				PTR_ERR(vsp1->fcp));
+ 			return PTR_ERR(vsp1->fcp);
+ 		}
++
++		/*
++		 * When the FCP is present, it handles all bus master accesses
++		 * for the VSP and must thus be used in place of the VSP device
++		 * to map DMA buffers.
++		 */
++		vsp1->bus_master = rcar_fcp_get_device(vsp1->fcp);
++	} else {
++		vsp1->bus_master = vsp1->dev;
+ 	}
+ 
+ 	/* Configure device parameters based on the version register. */
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index eab3c3ea85d7..5af3486afe07 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -1197,7 +1197,7 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
+ 	video->queue.ops = &vsp1_video_queue_qops;
+ 	video->queue.mem_ops = &vb2_dma_contig_memops;
+ 	video->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+-	video->queue.dev = video->vsp1->dev;
++	video->queue.dev = video->vsp1->bus_master;
+ 	ret = vb2_queue_init(&video->queue);
+ 	if (ret < 0) {
+ 		dev_err(video->vsp1->dev, "failed to initialize vb2 queue\n");
+-- 
+git-series 0.9.1
