@@ -1,146 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.14]:38322 "EHLO imap.netup.ru"
+Received: from mail.kernel.org ([198.145.29.99]:57536 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751000AbdEaL75 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 07:59:57 -0400
-Received: from mail-oi0-f53.google.com (mail-oi0-f53.google.com [209.85.218.53])
-        by imap.netup.ru (Postfix) with ESMTPSA id E2A2D8B3E90
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 14:59:55 +0300 (MSK)
-Received: by mail-oi0-f53.google.com with SMTP id b204so12208394oii.1
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 04:59:55 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170409193828.18458-8-d.scheller.oss@gmail.com>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com> <20170409193828.18458-8-d.scheller.oss@gmail.com>
-From: Abylay Ospan <aospan@netup.ru>
-Date: Wed, 31 May 2017 07:59:33 -0400
-Message-ID: <CAK3bHNW=vTWTn6nxtL2GEy0Q-ZFYynbknrRGhsx4VDyby1utxQ@mail.gmail.com>
-Subject: Re: [PATCH 07/19] [media] dvb-frontends/cxd2841er: make call to
- i2c_gate_ctrl optional
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: Kozlov Sergey <serjk@netup.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>, rjkm@metzlerbros.de
-Content-Type: text/plain; charset="UTF-8"
+        id S934742AbdEVOTb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 May 2017 10:19:31 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
+Subject: [PATCH v3 0/5] R-Car DU: Fix IOMMU operation when connected to VSP
+Date: Mon, 22 May 2017 15:19:17 +0100
+Message-Id: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Abylay Ospan <aospan@netup.ru>
+Hello,
 
-2017-04-09 15:38 GMT-04:00 Daniel Scheller <d.scheller.oss@gmail.com>:
-> From: Daniel Scheller <d.scheller@gmx.net>
->
-> Some cards/bridges wrap i2c_gate_ctrl handling with a mutex_lock(). This is
-> e.g. done in ddbridge to protect against concurrent tuner access with
-> regards to the dual tuner HW, where concurrent tuner reconfiguration can
-> result in tuning fails or bad reception quality. When the tuner driver
-> additionally tries to open the I2C gate (which e.g. the tda18212 driver
-> does) when the demod already did this, this will lead to a deadlock. This
-> makes the calls to i2c_gatectrl from the demod driver optional when the
-> flag is set, leaving this to the tuner driver. For readability reasons and
-> to not have the check duplicated multiple times, the setup is factored
-> into cxd2841er_tuner_set().
->
-> This commit also updates the netup card driver (which seems to be the only
-> consumer of the cxd2841er as of now).
->
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
->  drivers/media/dvb-frontends/cxd2841er.c            | 32 ++++++++++++++--------
->  drivers/media/dvb-frontends/cxd2841er.h            |  2 ++
->  drivers/media/pci/netup_unidvb/netup_unidvb_core.c |  3 +-
->  3 files changed, 24 insertions(+), 13 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-> index f49a09b..162a0f5 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.c
-> +++ b/drivers/media/dvb-frontends/cxd2841er.c
-> @@ -327,6 +327,20 @@ static u32 cxd2841er_calc_iffreq(u32 ifhz)
->         return cxd2841er_calc_iffreq_xtal(SONY_XTAL_20500, ifhz);
->  }
->
-> +static int cxd2841er_tuner_set(struct dvb_frontend *fe)
-> +{
-> +       struct cxd2841er_priv *priv = fe->demodulator_priv;
-> +
-> +       if ((priv->flags & CXD2841ER_USE_GATECTRL) && fe->ops.i2c_gate_ctrl)
-> +               fe->ops.i2c_gate_ctrl(fe, 1);
-> +       if (fe->ops.tuner_ops.set_params)
-> +               fe->ops.tuner_ops.set_params(fe);
-> +       if ((priv->flags & CXD2841ER_USE_GATECTRL) && fe->ops.i2c_gate_ctrl)
-> +               fe->ops.i2c_gate_ctrl(fe, 0);
-> +
-> +       return 0;
-> +}
-> +
->  static int cxd2841er_dvbs2_set_symbol_rate(struct cxd2841er_priv *priv,
->                                            u32 symbol_rate)
->  {
-> @@ -3251,12 +3265,9 @@ static int cxd2841er_set_frontend_s(struct dvb_frontend *fe)
->                 dev_dbg(&priv->i2c->dev, "%s(): tune failed\n", __func__);
->                 goto done;
->         }
-> -       if (fe->ops.i2c_gate_ctrl)
-> -               fe->ops.i2c_gate_ctrl(fe, 1);
-> -       if (fe->ops.tuner_ops.set_params)
-> -               fe->ops.tuner_ops.set_params(fe);
-> -       if (fe->ops.i2c_gate_ctrl)
-> -               fe->ops.i2c_gate_ctrl(fe, 0);
-> +
-> +       cxd2841er_tuner_set(fe);
-> +
->         cxd2841er_tune_done(priv);
->         timeout = ((3000000 + (symbol_rate - 1)) / symbol_rate) + 150;
->         for (i = 0; i < timeout / CXD2841ER_DVBS_POLLING_INVL; i++) {
-> @@ -3376,12 +3387,9 @@ static int cxd2841er_set_frontend_tc(struct dvb_frontend *fe)
->         }
->         if (ret)
->                 goto done;
-> -       if (fe->ops.i2c_gate_ctrl)
-> -               fe->ops.i2c_gate_ctrl(fe, 1);
-> -       if (fe->ops.tuner_ops.set_params)
-> -               fe->ops.tuner_ops.set_params(fe);
-> -       if (fe->ops.i2c_gate_ctrl)
-> -               fe->ops.i2c_gate_ctrl(fe, 0);
-> +
-> +       cxd2841er_tuner_set(fe);
-> +
->         cxd2841er_tune_done(priv);
->         timeout = 2500;
->         while (timeout > 0) {
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.h b/drivers/media/dvb-frontends/cxd2841er.h
-> index 2fb8b38..15564af 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.h
-> +++ b/drivers/media/dvb-frontends/cxd2841er.h
-> @@ -24,6 +24,8 @@
->
->  #include <linux/dvb/frontend.h>
->
-> +#define CXD2841ER_USE_GATECTRL 1
-> +
->  enum cxd2841er_xtal {
->         SONY_XTAL_20500, /* 20.5 MHz */
->         SONY_XTAL_24000, /* 24 MHz */
-> diff --git a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-> index 191bd82..5e6553f 100644
-> --- a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-> +++ b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-> @@ -122,7 +122,8 @@ static void netup_unidvb_queue_cleanup(struct netup_dma *dma);
->
->  static struct cxd2841er_config demod_config = {
->         .i2c_addr = 0xc8,
-> -       .xtal = SONY_XTAL_24000
-> +       .xtal = SONY_XTAL_24000,
-> +       .flags = CXD2841ER_USE_GATECTRL
->  };
->
->  static struct horus3a_config horus3a_conf = {
-> --
-> 2.10.2
->
+This patch series fixes the rcar-du-drm driver to support VSP plane sources
+with an IOMMU. It is available for convenience at
 
+  git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git vsp-du/iommu-fcp
 
+On R-Car Gen3 the DU has no direct memory access but sources planes through
+VSP instances. When an IOMMU is inserted between the VSP and memory, the DU
+framebuffers need to be DMA mapped using the VSP device, not the DU device as
+currently done. The same situation can also be reproduced on Gen2 hardware by
+linking the VSP to the DU in DT [1], effectively disabling direct memory
+access by the DU.
 
+The situation is made quite complex by the fact that different planes can be
+connected to different DU instances, and thus served by different IOMMUs (or,
+in practice on existing hardware, by the same IOMMU but through different
+micro-TLBs). We thus can't allocate and map buffers to the right device in a
+single dma_alloc_wc() operation as done in the DRM CMA GEM helpers.
+
+However, on such setups, the DU DT node doesn't reference IOMMUs as the DU
+does not perform any direct memory access. We can thus keep the GEM object
+allocation unchanged, and the DMA addresses that we receive in the DU driver
+will be physical addresses. Those buffers then need to be mapped to the VSP
+device when they are associated with planes. Fortunately the atomic framework
+provides two plane helper operations, .prepare_fb() and .cleanup_fb() that we
+can use for this purpose.
+
+The reality is slightly more complex than this on Gen3, as an FCP device
+instance sits between VSP instances and memory. It is the FCP devices that are
+connected to the IOMMUs, and buffer mapping thus need to be performed using
+the FCP devices. This isn't required on Gen2 as the platforms don't have any
+FCPs.
+
+Patches 1/5 and 2/5 extend the rcar-fcp driver API to expose the FCP struct
+device. Patch 3/5 then updates the vsp1 driver to map the display lists and
+video buffers through the FCP when it exists. This alone fixes VSP operation
+with an IOMMU on R-Car Gen3 systems.
+
+Moving on to addressing the DU issue, patch 4/5 extends the vsp1 driver API to
+allow mapping a scatter-gather list to the VSP, with the implementation using
+the FCP devices instead when available. Patch 5/5 finally uses the vsp1
+mapping API in the rcar-du-drm driver to map and unmap buffers when needed.
+
+The series has been tested on the H2 Lager board and M3-W Salvator-X boards.
+The IOMMU is known not to work properly on the H3 ES1.1, so the H3 Salvator-X
+board hasn't been tested. In all cases both the DU and VSP operation has been
+tested, and tests were run with and without linking the DU and VSP devices to
+the IOMMU in DT.
+
+For H2, the patches were tested on top of v4.12-rc1 with a set of out-of-tree
+patches to link the VSP and DU to the IOMMUs and to enable VSP+DU combined
+similar to R-Car Gen3, and an additional DMA mapping API patch [2] that fixes
+IOMMU operation on ARM32, currently broken in v4.12-rc1. For M3-W, they were
+were tested on top of renesas-drivers-2017-05-16-v4.12-rc1 with a set of
+out-of-tree patches to add FCP, VSP, DU and IPMMU instances to the M3-W DT, as
+well as a hack for the IPMMU driver to whitelist all bus master devices.
+
+All tests passed successfully. The issue previously noticed on H3 with
+synchronization between page flip and VSP operation that was caused by buffers
+getting unmapped (and possibly freed) before the VSP was done reading them is
+now gone thanks to the VSP+DU flicker fix that should be merged in v4.13 and
+is available in renesas-drivers-2017-05-16-v4.12-rc1.
+
+A possible improvement is to modify the GEM object allocation mechanism to use
+non-contiguous memory when the DU driver detects that all the VSP instances it
+is connected to use an IOMMU (possibly through FCP devices).
+
+[1] https://www.mail-archive.com/linux-renesas-soc@vger.kernel.org/msg06589.html
+[2] https://www.spinics.net/lists/arm-kernel/msg581410.html
+
+Laurent Pinchart (4):
+  v4l: rcar-fcp: Don't get/put module reference
+  v4l: rcar-fcp: Add an API to retrieve the FCP device
+  v4l: vsp1: Add API to map and unmap DRM buffers through the VSP
+  drm: rcar-du: Map memory through the VSP device
+
+Magnus Damm (1):
+  v4l: vsp1: Map the DL and video buffers through the proper bus master
+
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c    | 74 ++++++++++++++++++++++---
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.h    |  2 +-
+ drivers/media/platform/rcar-fcp.c        | 17 ++----
+ drivers/media/platform/vsp1/vsp1.h       |  1 +-
+ drivers/media/platform/vsp1/vsp1_dl.c    |  4 +-
+ drivers/media/platform/vsp1/vsp1_drm.c   | 24 ++++++++-
+ drivers/media/platform/vsp1/vsp1_drv.c   |  9 +++-
+ drivers/media/platform/vsp1/vsp1_video.c |  2 +-
+ include/media/rcar-fcp.h                 |  5 ++-
+ include/media/vsp1.h                     |  3 +-
+ 10 files changed, 123 insertions(+), 18 deletions(-)
+
+base-commit: f2c61f98e0b5f8b53b8fb860e5dcdd661bde7d0b
 -- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+git-series 0.9.1
