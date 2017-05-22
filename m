@@ -1,111 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:34435 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751593AbdEDNjC (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:41732 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1757781AbdEVJXT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 May 2017 09:39:02 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Peter Rosin <peda@axentia.se>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v3 1/2] [media] dt-bindings: Add bindings for video-multiplexer device
-Date: Thu,  4 May 2017 15:38:56 +0200
-Message-Id: <1493905137-27051-1-git-send-email-p.zabel@pengutronix.de>
+        Mon, 22 May 2017 05:23:19 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.12] Fix stupid rainshadow bug
+Message-ID: <f0e64971-678e-90bb-6792-6386d2b63f47@xs4all.nl>
+Date: Mon, 22 May 2017 11:23:13 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add bindings documentation for the video multiplexer device.
+Let's fix this serious bug before it ends up in the 4.12 release.
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Acked-by: Peter Rosin <peda@axentia.se>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-No changes since v2 [1].
+Regards,
 
-This was previously sent as part of Steve's i.MX media series [2].
+	Hans
 
-[1] https://patchwork.kernel.org/patch/9708235/
-[2] https://patchwork.kernel.org/patch/9647951/
----
- .../devicetree/bindings/media/video-mux.txt        | 60 ++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/video-mux.txt
+The following changes since commit 36bcba973ad478042d1ffc6e89afd92e8bd17030:
 
-diff --git a/Documentation/devicetree/bindings/media/video-mux.txt b/Documentation/devicetree/bindings/media/video-mux.txt
-new file mode 100644
-index 0000000000000..63b9dc913e456
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/video-mux.txt
-@@ -0,0 +1,60 @@
-+Video Multiplexer
-+=================
-+
-+Video multiplexers allow to select between multiple input ports. Video received
-+on the active input port is passed through to the output port. Muxes described
-+by this binding are controlled by a multiplexer controller that is described by
-+the bindings in Documentation/devicetree/bindings/mux/mux-controller.txt
-+
-+Required properties:
-+- compatible : should be "video-mux"
-+- mux-controls : mux controller node to use for operating the mux
-+- #address-cells: should be <1>
-+- #size-cells: should be <0>
-+- port@*: at least three port nodes containing endpoints connecting to the
-+  source and sink devices according to of_graph bindings. The last port is
-+  the output port, all others are inputs.
-+
-+Optionally, #address-cells, #size-cells, and port nodes can be grouped under a
-+ports node as described in Documentation/devicetree/bindings/graph.txt.
-+
-+Example:
-+
-+	mux: mux-controller {
-+		compatible = "gpio-mux";
-+		#mux-control-cells = <0>;
-+
-+		mux-gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
-+	};
-+
-+	video-mux {
-+		compatible = "video-mux";
-+		mux-controls = <&mux>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			mux_in0: endpoint {
-+				remote-endpoint = <&video_source0_out>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			mux_in1: endpoint {
-+				remote-endpoint = <&video_source1_out>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			mux_out: endpoint {
-+				remote-endpoint = <&capture_interface_in>;
-+			};
-+		};
-+	};
-+};
--- 
-2.11.0
+  [media] mtk_vcodec_dec: return error at mtk_vdec_pic_info_update() (2017-05-19 07:12:05 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.12j
+
+for you to fetch changes up to 71eb916453ed806ee105ef896b8f02f7eab2d4fc:
+
+  rainshadow-cec: ensure exit_loop is intialized (2017-05-22 10:39:11 +0200)
+
+----------------------------------------------------------------
+Colin Ian King (1):
+      rainshadow-cec: ensure exit_loop is intialized
+
+ drivers/media/usb/rainshadow-cec/rainshadow-cec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
