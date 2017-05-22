@@ -1,153 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:46489 "EHLO extserv.mm-sol.com"
+Received: from mail.kernel.org ([198.145.29.99]:57630 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751527AbdERKqb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 06:46:31 -0400
-Subject: Re: [PATCH 08/10] media: camss: Add files which handle the video
- device nodes
-To: Todor Tomov <todor.tomov@linaro.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1480085841-28276-1-git-send-email-todor.tomov@linaro.org>
- <1480085841-28276-7-git-send-email-todor.tomov@linaro.org>
- <3060297.EOJqEVJIo3@avalon> <58809839.8050301@linaro.org>
-Cc: mchehab@kernel.org, laurent.pinchart+renesas@ideasonboard.com,
-        hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-From: Todor Tomov <ttomov@mm-sol.com>
-Message-ID: <591D79E3.9060501@mm-sol.com>
-Date: Thu, 18 May 2017 13:39:31 +0300
-MIME-Version: 1.0
-In-Reply-To: <58809839.8050301@linaro.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        id S934745AbdEVOTd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 May 2017 10:19:33 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
+Subject: [PATCH v3 5/5] drm: rcar-du: Map memory through the VSP device
+Date: Mon, 22 May 2017 15:19:22 +0100
+Message-Id: <53c58c67d65aae3070966cd408d4f141ee66f786.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-On 01/19/2017 12:43 PM, Todor Tomov wrote:
-> Hi Laurent,
-> 
-> Thank you for the detailed review.
-> 
-> On 12/05/2016 05:22 PM, Laurent Pinchart wrote:
->> Hi Todor,
->>
->> Thank you for the patch.
->>
->> On Friday 25 Nov 2016 16:57:20 Todor Tomov wrote:
->>> These files handle the video device nodes of the camss driver.
->>
->> camss is a quite generic, I'm a bit concerned about claiming that acronym in 
->> the global kernel namespace. Would it be too long if we prefixed symbols with 
->> msm_camss instead ?
-> 
-> Ok. Are you concerned about camss_enable_clocks() and camss_disable_clocks() or
-> you have something else in mind too?
+For planes handled by a VSP instance, map the framebuffer memory through
+the VSP to ensure proper IOMMU handling.
 
-Could you please add more details about this?
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+[Kieran: Fix infinite loop on fail]
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c | 74 +++++++++++++++++++++++++---
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.h |  2 +-
+ 2 files changed, 70 insertions(+), 6 deletions(-)
 
-> 
->>
->>> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
->>> ---
->>>  drivers/media/platform/qcom/camss-8x16/video.c | 597 ++++++++++++++++++++++
->>>  drivers/media/platform/qcom/camss-8x16/video.h |  67 +++
->>>  2 files changed, 664 insertions(+)
->>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/video.c
->>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/video.h
->>>
->>> diff --git a/drivers/media/platform/qcom/camss-8x16/video.c
->>> b/drivers/media/platform/qcom/camss-8x16/video.c new file mode 100644
->>> index 0000000..0bf8ea9
->>> --- /dev/null
->>> +++ b/drivers/media/platform/qcom/camss-8x16/video.c
-
-<snip>
-
->>> +/* ------------------------------------------------------------------------
->>> + * V4L2 file operations
->>> + */
->>> +
->>> +/*
->>> + * video_init_format - Helper function to initialize format
->>> + *
->>> + * Initialize all pad formats with default values.
->>> + */
->>> +static int video_init_format(struct file *file, void *fh)
->>> +{
->>> +	struct v4l2_format format;
->>> +
->>> +	memset(&format, 0, sizeof(format));
->>> +	format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->>> +
->>> +	return video_s_fmt(file, fh, &format);
->>
->> This will set the active format every time you open the device node, I don't 
->> think that's what you want.
-> 
-> Well, actually this is what I wanted. I wanted to keep in sync the pixel format
-> on the video node and the media bus format on the subdev node (i.e. the pixel
-> format will be always correct for the current media bus format). For the current
-> version there is a direct correspondence between the pixel format and the media
-> format so this will work I think. For the future there might be multiple pixel
-> formats for one media bus format and a second open of the video node could reset
-> the pixel format to unwanted value so this will need a change. I'm wondering about
-> (and still not able to find) a good moment/event when to perform the initialization
-> of the format on the video node. As it gets the current format from the subdev
-> node, the moment of the registration will be too early as the media link is still
-> not created. But after that I couldn't find a suitable callback/event where to do
-> it. If you can share any idea about this, please do :)
-
-I still haven't found a better solution for this. If you have something in mind,
-please share.
-
-> 
->>
->>> +}
->>> +
->>> +static int video_open(struct file *file)
->>> +{
->>> +	struct video_device *vdev = video_devdata(file);
->>> +	struct camss_video *video = video_drvdata(file);
->>> +	struct camss_video_fh *handle;
->>> +	int ret;
->>> +
->>> +	handle = kzalloc(sizeof(*handle), GFP_KERNEL);
->>> +	if (handle == NULL)
->>> +		return -ENOMEM;
->>> +
->>> +	v4l2_fh_init(&handle->vfh, video->vdev);
->>> +	v4l2_fh_add(&handle->vfh);
->>> +
->>> +	handle->video = video;
->>> +	file->private_data = &handle->vfh;
->>> +
->>> +	ret = v4l2_pipeline_pm_use(&vdev->entity, 1);
->>> +	if (ret < 0) {
->>> +		dev_err(video->camss->dev, "Failed to power up pipeline\n");
->>> +		goto error_pm_use;
->>> +	}
->>> +
->>> +	ret = video_init_format(file, &handle->vfh);
->>> +	if (ret < 0) {
->>> +		dev_err(video->camss->dev, "Failed to init format\n");
->>> +		goto error_init_format;
->>> +	}
->>> +
->>> +	return 0;
->>> +
->>> +error_init_format:
->>> +	v4l2_pipeline_pm_use(&vdev->entity, 0);
->>> +
->>> +error_pm_use:
->>> +	v4l2_fh_del(&handle->vfh);
->>> +	kfree(handle);
->>> +
->>> +	return ret;
->>> +}
-
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+index b0ff304ce3dc..7f8b03fc2b69 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+@@ -19,7 +19,9 @@
+ #include <drm/drm_gem_cma_helper.h>
+ #include <drm/drm_plane_helper.h>
+ 
++#include <linux/dma-mapping.h>
+ #include <linux/of_platform.h>
++#include <linux/scatterlist.h>
+ #include <linux/videodev2.h>
+ 
+ #include <media/vsp1.h>
+@@ -170,12 +172,9 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
+ 	cfg.dst.width = state->state.crtc_w;
+ 	cfg.dst.height = state->state.crtc_h;
+ 
+-	for (i = 0; i < state->format->planes; ++i) {
+-		struct drm_gem_cma_object *gem;
+-
+-		gem = drm_fb_cma_get_gem_obj(fb, i);
+-		cfg.mem[i] = gem->paddr + fb->offsets[i];
+-	}
++	for (i = 0; i < state->format->planes; ++i)
++		cfg.mem[i] = sg_dma_address(state->sg_tables[i].sgl)
++			   + fb->offsets[i];
+ 
+ 	for (i = 0; i < ARRAY_SIZE(formats_kms); ++i) {
+ 		if (formats_kms[i] == state->format->fourcc) {
+@@ -187,6 +186,67 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
+ 	vsp1_du_atomic_update(plane->vsp->vsp, plane->index, &cfg);
+ }
+ 
++static int rcar_du_vsp_plane_prepare_fb(struct drm_plane *plane,
++					struct drm_plane_state *state)
++{
++	struct rcar_du_vsp_plane_state *rstate = to_rcar_vsp_plane_state(state);
++	struct rcar_du_vsp *vsp = to_rcar_vsp_plane(plane)->vsp;
++	struct rcar_du_device *rcdu = vsp->dev;
++	unsigned int i;
++	int ret;
++
++	if (!state->fb)
++		return 0;
++
++	for (i = 0; i < rstate->format->planes; ++i) {
++		struct drm_gem_cma_object *gem =
++			drm_fb_cma_get_gem_obj(state->fb, i);
++		struct sg_table *sgt = &rstate->sg_tables[i];
++
++		ret = dma_get_sgtable(rcdu->dev, sgt, gem->vaddr, gem->paddr,
++				      gem->base.size);
++		if (ret)
++			goto fail;
++
++		ret = vsp1_du_map_sg(vsp->vsp, sgt);
++		if (!ret) {
++			sg_free_table(sgt);
++			ret = -ENOMEM;
++			goto fail;
++		}
++	}
++
++	return 0;
++
++fail:
++	while (i--) {
++		struct sg_table *sgt = &rstate->sg_tables[i];
++
++		vsp1_du_unmap_sg(vsp->vsp, sgt);
++		sg_free_table(sgt);
++	}
++
++	return ret;
++}
++
++static void rcar_du_vsp_plane_cleanup_fb(struct drm_plane *plane,
++					 struct drm_plane_state *state)
++{
++	struct rcar_du_vsp_plane_state *rstate = to_rcar_vsp_plane_state(state);
++	struct rcar_du_vsp *vsp = to_rcar_vsp_plane(plane)->vsp;
++	unsigned int i;
++
++	if (!state->fb)
++		return;
++
++	for (i = 0; i < rstate->format->planes; ++i) {
++		struct sg_table *sgt = &rstate->sg_tables[i];
++
++		vsp1_du_unmap_sg(vsp->vsp, sgt);
++		sg_free_table(sgt);
++	}
++}
++
+ static int rcar_du_vsp_plane_atomic_check(struct drm_plane *plane,
+ 					  struct drm_plane_state *state)
+ {
+@@ -227,6 +287,8 @@ static void rcar_du_vsp_plane_atomic_update(struct drm_plane *plane,
+ }
+ 
+ static const struct drm_plane_helper_funcs rcar_du_vsp_plane_helper_funcs = {
++	.prepare_fb = rcar_du_vsp_plane_prepare_fb,
++	.cleanup_fb = rcar_du_vsp_plane_cleanup_fb,
+ 	.atomic_check = rcar_du_vsp_plane_atomic_check,
+ 	.atomic_update = rcar_du_vsp_plane_atomic_update,
+ };
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
+index f1d0f1824528..8861661590ff 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
++++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
+@@ -43,6 +43,7 @@ static inline struct rcar_du_vsp_plane *to_rcar_vsp_plane(struct drm_plane *p)
+  * struct rcar_du_vsp_plane_state - Driver-specific plane state
+  * @state: base DRM plane state
+  * @format: information about the pixel format used by the plane
++ * @sg_tables: scatter-gather tables for the frame buffer memory
+  * @alpha: value of the plane alpha property
+  * @zpos: value of the plane zpos property
+  */
+@@ -50,6 +51,7 @@ struct rcar_du_vsp_plane_state {
+ 	struct drm_plane_state state;
+ 
+ 	const struct rcar_du_format_info *format;
++	struct sg_table sg_tables[3];
+ 
+ 	unsigned int alpha;
+ 	unsigned int zpos;
 -- 
-Best regards,
-Todor Tomov
+git-series 0.9.1
