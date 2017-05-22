@@ -1,88 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53738 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751041AbdEaM6j (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44577 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751790AbdEVHhx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 08:58:39 -0400
-Subject: Re: [PATCH] ARM: dts: exynos: Add HDMI CEC device to Exynos5 SoC
- family
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <CGME20170531110029eucas1p14bb9468f72155d88364c0aa5093ac05d@eucas1p1.samsung.com>
- <1496228417-31126-1-git-send-email-m.szyprowski@samsung.com>
- <44c9e8c6-669c-848c-30df-eabad6dc1a39@xs4all.nl>
- <2497f348-5d66-f10a-5591-c490b7ee8b4e@samsung.com>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>
+        Mon, 22 May 2017 03:37:53 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Stanimir Varbanov <svarbanov@mm-sol.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0e11b430-b444-b1c0-5900-809193e32902@xs4all.nl>
-Date: Wed, 31 May 2017 14:58:32 +0200
+Subject: [GIT PULL FOR v4.13] Add qualcomm venus codec
+Message-ID: <441c2430-ff9a-6212-4252-1502312248da@xs4all.nl>
+Date: Mon, 22 May 2017 09:37:48 +0200
 MIME-Version: 1.0
-In-Reply-To: <2497f348-5d66-f10a-5591-c490b7ee8b4e@samsung.com>
 Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/31/17 14:04, Marek Szyprowski wrote:
-> Hi Hans,
-> 
-> On 2017-05-31 13:17, Hans Verkuil wrote:
->> On 05/31/17 13:00, Marek Szyprowski wrote:
->>> Exynos5250 and Exynos542x SoCs have the same CEC hardware module as
->>> Exynos4 SoC series, so enable support for it using the same compatible
->>> string.
->>>
->>> Tested on Odroid XU3 (Exynos5422) and Google Snow (Exynos5250) boards.
->> Thanks!
->>
->> Do you know if the CEC block is always on for these devices or only if there
->> is a hotplug signal? That was a problem with the exynos4 odroid.
-> 
-> Odroid XU3 has exactly same wiring between SoC & HDMI connector (via 
-> IP4791CZ12
-> chip) as Odroid U3, so I expect the same issues.
-> 
-> I don't have schematic for Google Snow board, so I have no idea how it works
-> there.
-> 
->> I have made a patch (not posted yet) to signal this in the device tree and
->> added a CEC capability to signal this to the user.
->>
->> This capability will be added to 4.13 (see my patch 'cec: add CEC_CAP_NEEDS_HPD'
->> from May 25th) since the DisplayPort CEC tunneling feature needs it as well.
->>
->> It's easy to test: don't connect an HDMI cable and run:
->>
->> cec-ctl --playback
->> cec-ctl -t0 --image-view-on
->>
->> If this returns with a NACK error, then it is OK. If you get a kernel message
->> that the transmit timed out, then you need this capability since CEC is disabled
->> without HPD.
-> 
-> I've checked those commands, but on all tested boards (Odroid U3+, 
-> Odroid XU3 and
-> Google Snow) I get the following message:
-> 
-> Transmit from Unregistered to TV (255 to 0):
-> CEC_MSG_IMAGE_VIEW_ON (0x04)
->          Sequence: 19 Tx Timestamp: 175.935s
->          Tx, Error (1), Max Retries
-> 
-> I have never got a timeout message from the kernel. Do I need to enable 
-> some kind
-> of CEC debugs?
+Hi Mauro,
 
-Ah, that's right. CEC works, but the level shifter drops the CEC signal
-when there is no HPD. So this is actually quite hard to test.
-
-The easiest is to get a Pulse-Eight USB CEC adapter since then you can
-connect the odroid to the Pulse-Eight without connecting that to a TV
-in turn. Sending a CEC command would show up with the Pulse-Eight if CEC
-works without HPD.
+This pull requests adds support for the Qualcomm venus codec driver.
 
 Regards,
 
 	Hans
+
+
+The following changes since commit 36bcba973ad478042d1ffc6e89afd92e8bd17030:
+
+  [media] mtk_vcodec_dec: return error at mtk_vdec_pic_info_update() (2017-05-19 07:12:05 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git venus
+
+for you to fetch changes up to f0486d42560ae110f6e7d9b92352d7a1827cd38e:
+
+  media: venus: enable building of Venus video driver (2017-05-22 09:24:20 +0200)
+
+----------------------------------------------------------------
+Stanimir Varbanov (9):
+      media: v4l2-mem2mem: extend m2m APIs for more accurate buffer management
+      doc: DT: venus: binding document for Qualcomm video driver
+      MAINTAINERS: Add Qualcomm Venus video accelerator driver
+      media: venus: adding core part and helper functions
+      media: venus: vdec: add video decoder files
+      media: venus: venc: add video encoder files
+      media: venus: hfi: add Host Firmware Interface (HFI)
+      media: venus: hfi: add Venus HFI files
+      media: venus: enable building of Venus video driver
+
+ Documentation/devicetree/bindings/media/qcom,venus.txt |  107 +++
+ MAINTAINERS                                            |    8 +
+ drivers/media/platform/Kconfig                         |   13 +
+ drivers/media/platform/Makefile                        |    2 +
+ drivers/media/platform/qcom/venus/Makefile             |   11 +
+ drivers/media/platform/qcom/venus/core.c               |  388 +++++++++++
+ drivers/media/platform/qcom/venus/core.h               |  323 +++++++++
+ drivers/media/platform/qcom/venus/firmware.c           |  109 +++
+ drivers/media/platform/qcom/venus/firmware.h           |   22 +
+ drivers/media/platform/qcom/venus/helpers.c            |  727 ++++++++++++++++++++
+ drivers/media/platform/qcom/venus/helpers.h            |   45 ++
+ drivers/media/platform/qcom/venus/hfi.c                |  522 +++++++++++++++
+ drivers/media/platform/qcom/venus/hfi.h                |  175 +++++
+ drivers/media/platform/qcom/venus/hfi_cmds.c           | 1255 +++++++++++++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_cmds.h           |  304 +++++++++
+ drivers/media/platform/qcom/venus/hfi_helper.h         | 1050 +++++++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_msgs.c           | 1054 +++++++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_msgs.h           |  283 ++++++++
+ drivers/media/platform/qcom/venus/hfi_venus.c          | 1571 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_venus.h          |   23 +
+ drivers/media/platform/qcom/venus/hfi_venus_io.h       |  113 ++++
+ drivers/media/platform/qcom/venus/vdec.c               | 1154 ++++++++++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/vdec.h               |   23 +
+ drivers/media/platform/qcom/venus/vdec_ctrls.c         |  150 +++++
+ drivers/media/platform/qcom/venus/venc.c               | 1283 ++++++++++++++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/venc.h               |   23 +
+ drivers/media/platform/qcom/venus/venc_ctrls.c         |  270 ++++++++
+ drivers/media/v4l2-core/v4l2-mem2mem.c                 |   37 ++
+ include/media/v4l2-mem2mem.h                           |   92 +++
+ 29 files changed, 11137 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+ create mode 100644 drivers/media/platform/qcom/venus/Makefile
+ create mode 100644 drivers/media/platform/qcom/venus/core.c
+ create mode 100644 drivers/media/platform/qcom/venus/core.h
+ create mode 100644 drivers/media/platform/qcom/venus/firmware.c
+ create mode 100644 drivers/media/platform/qcom/venus/firmware.h
+ create mode 100644 drivers/media/platform/qcom/venus/helpers.c
+ create mode 100644 drivers/media/platform/qcom/venus/helpers.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_helper.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
+ create mode 100644 drivers/media/platform/qcom/venus/vdec.c
+ create mode 100644 drivers/media/platform/qcom/venus/vdec.h
+ create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
+ create mode 100644 drivers/media/platform/qcom/venus/venc.c
+ create mode 100644 drivers/media/platform/qcom/venus/venc.h
+ create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
