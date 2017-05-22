@@ -1,56 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:61940 "EHLO mga11.intel.com"
+Received: from mail.kernel.org ([198.145.29.99]:57556 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1946586AbdEZBr4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 May 2017 21:47:56 -0400
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: Tomasz Figa <tfiga@chromium.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: RE: [PATCH v4] dw9714: Initial driver for dw9714 VCM
-Date: Fri, 26 May 2017 01:47:54 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A595AA0A47B@FMSMSX114.amr.corp.intel.com>
-References: <1494478820-22199-1-git-send-email-rajmohan.mani@intel.com>
- <CAAFQd5Ck3CKp-JR8d3d1X9-2cRS0oZG9GPwcpunBq50EY7qCtg@mail.gmail.com>
- <CGME20170511143945epcas1p26203dff026b3dc9c2f65c5ca0be7967b@epcas1p2.samsung.com>
- <9fc11dec-8c64-a681-21f9-2602fb1132c1@samsung.com>
- <20170511145913.GI3227@valkosipuli.retiisi.org.uk>
- <8a1a65d6-6b56-6471-1216-b42adcd5a693@samsung.com>
- <20170512115234.GK3227@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20170512115234.GK3227@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+        id S934381AbdEVOT1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 May 2017 10:19:27 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
+Subject: [PATCH v3 1/5] v4l: rcar-fcp: Don't get/put module reference
+Date: Mon, 22 May 2017 15:19:18 +0100
+Message-Id: <3fed991d0f5e9690b9972f603256601d6a898bb0.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari, Sylwester,
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-> >
-> > You're right, sorry. I'd expect such things to be better covered in
-> > the API documentation.  Probably pm_runtime_put_noidle() is a better
-> 
-> Well, the documentation tells what the function does. It'd be good if it pointed
-> that the usage count needs to be decremented if the function fails.
-> 
-> I guess the reason is that it's just a synchronous variant of pm_runtime_get(),
-> which could not handle the error anyway.
-> 
-> > match for just decreasing usage_count.  Now many drivers appear to not
-> > be balancing usage_count when when pm_runtime_get_sync() fails.
-> 
-> Ah, quite a few drivers seem to be using pm_runtime_put_noidle() which seems
-> to be the correct thing to do as the device won't be on then anyway.
-> 
+Direct callers of the FCP API hold a reference to the FCP module due to
+module linkage, there's no need to take another one manually. Take a
+reference to the device instead to ensure that it won't disappear behind
+the caller's back.
 
-Ack
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/rcar-fcp.c | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-> --
-> Regards,
-> 
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+diff --git a/drivers/media/platform/rcar-fcp.c b/drivers/media/platform/rcar-fcp.c
+index 7146fc5ef168..e9f609edf513 100644
+--- a/drivers/media/platform/rcar-fcp.c
++++ b/drivers/media/platform/rcar-fcp.c
+@@ -53,14 +53,7 @@ struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np)
+ 		if (fcp->dev->of_node != np)
+ 			continue;
+ 
+-		/*
+-		 * Make sure the module won't be unloaded behind our back. This
+-		 * is a poor man's safety net, the module should really not be
+-		 * unloaded while FCP users can be active.
+-		 */
+-		if (!try_module_get(fcp->dev->driver->owner))
+-			fcp = NULL;
+-
++		get_device(fcp->dev);
+ 		goto done;
+ 	}
+ 
+@@ -81,7 +74,7 @@ EXPORT_SYMBOL_GPL(rcar_fcp_get);
+ void rcar_fcp_put(struct rcar_fcp_device *fcp)
+ {
+ 	if (fcp)
+-		module_put(fcp->dev->driver->owner);
++		put_device(fcp->dev);
+ }
+ EXPORT_SYMBOL_GPL(rcar_fcp_put);
+ 
+-- 
+git-series 0.9.1
