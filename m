@@ -1,104 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:33830 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751424AbdELJtv (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43429 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933210AbdEVQLR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 May 2017 05:49:51 -0400
+        Mon, 22 May 2017 12:11:17 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH v1 3/3] v4l: async: Match parent devices
+References: <cover.6800d0e1b9b578b82f68dec1b99b3a601d6e54ca.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <4db2a777a71b51a864caae16385b60b4b7e9f992.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <1611647.ovgU3nOQAy@avalon>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Kieran Bingham <kbingham@kernel.org>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@iki.fi, niklas.soderlund@ragnatech.se,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Tuukka Toivonen <tuukka.toivonen@intel.com>,
+        Javi Merino <javi.merino@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <067718bb-af9d-e595-46d5-c0ca7b785c30@ideasonboard.com>
+Date: Mon, 22 May 2017 17:11:11 +0100
 MIME-Version: 1.0
-In-Reply-To: <20170421105224.899350-1-arnd@arndb.de>
-References: <20170421105224.899350-1-arnd@arndb.de>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 12 May 2017 11:49:50 +0200
-Message-ID: <CAK8P3a2V4mUtPNWnFXBBNABqt09vRujRE1w=6wkYc1q63-Ujhg@mail.gmail.com>
-Subject: Re: [PATCH] [media] cec: improve MEDIA_CEC_RC dependencies
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-media@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <1611647.ovgU3nOQAy@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 21, 2017 at 12:52 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> Changing the IS_REACHABLE() into a plain #ifdef broke the case of
-> CONFIG_MEDIA_RC=m && CONFIG_MEDIA_CEC=y:
->
-> drivers/media/cec/cec-core.o: In function `cec_unregister_adapter':
-> cec-core.c:(.text.cec_unregister_adapter+0x18): undefined reference to `rc_unregister_device'
-> drivers/media/cec/cec-core.o: In function `cec_delete_adapter':
-> cec-core.c:(.text.cec_delete_adapter+0x54): undefined reference to `rc_free_device'
-> drivers/media/cec/cec-core.o: In function `cec_register_adapter':
-> cec-core.c:(.text.cec_register_adapter+0x94): undefined reference to `rc_register_device'
-> cec-core.c:(.text.cec_register_adapter+0xa4): undefined reference to `rc_free_device'
-> cec-core.c:(.text.cec_register_adapter+0x110): undefined reference to `rc_unregister_device'
-> drivers/media/cec/cec-core.o: In function `cec_allocate_adapter':
-> cec-core.c:(.text.cec_allocate_adapter+0x234): undefined reference to `rc_allocate_device'
-> drivers/media/cec/cec-adap.o: In function `cec_received_msg':
-> cec-adap.c:(.text.cec_received_msg+0x734): undefined reference to `rc_keydown'
-> cec-adap.c:(.text.cec_received_msg+0x768): undefined reference to `rc_keyup'
->
-> This adds an additional dependency to explicitly forbid this combination.
->
-> Fixes: 5f2c467c54f5 ("[media] cec: add MEDIA_CEC_RC config option")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
+Hi Laurent,
 
-What is the status of this patch? According to
-https://patchwork.linuxtv.org/patch/40934/ it is marked 'accepted',
-but the patch that caused the problem has made it into mainline
-in the merge window, and the fix is still needed on top.
+On 18/05/17 15:01, Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday 17 May 2017 16:03:39 Kieran Bingham wrote:
+>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>
+>> Devices supporting multiple endpoints on a single device node must set
+>> their subdevice fwnode to the endpoint to allow distinct comparisons.
+>>
+>> Adapt the match_fwnode call to compare against the provided fwnodes
+>> first, but also to search for a comparison against the parent fwnode.
+>>
+>> This allows notifiers to pass the endpoint for comparison and still
+>> support existing subdevices which store their default parent device
+>> node.
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-async.c | 20 ++++++++++++++++----
+>>  1 file changed, 16 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-async.c
+>> b/drivers/media/v4l2-core/v4l2-async.c index e1e181db90f7..65735a5c4350
+>> 100644
+>> --- a/drivers/media/v4l2-core/v4l2-async.c
+>> +++ b/drivers/media/v4l2-core/v4l2-async.c
+>> @@ -41,14 +41,26 @@ static bool match_devname(struct v4l2_subdev *sd,
+>>  	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
+>>  }
+>>
+> /*
+>  * Check whether the two device_node pointers refer to the same OF node. We
+>  * can't compare pointers directly as they can differ if overlays have been
+>  * applied.
+>  */
 
-On a related note, I've run into another link error now:
+Thanks - that's a good addition - I've put it in.
 
-drivers/gpu/drm/sti/sti_hdmi.o: In function `sti_hdmi_remove':
-sti_hdmi.c:(.text.sti_hdmi_remove+0x10): undefined reference to
-`cec_notifier_set_phys_addr'
-sti_hdmi.c:(.text.sti_hdmi_remove+0x34): undefined reference to
-`cec_notifier_put'
-drivers/gpu/drm/sti/sti_hdmi.o: In function `sti_hdmi_connector_get_modes':
-sti_hdmi.c:(.text.sti_hdmi_connector_get_modes+0x4a): undefined
-reference to `cec_notifier_set_phys_addr_from_edid'
-drivers/gpu/drm/sti/sti_hdmi.o: In function `sti_hdmi_probe':
-sti_hdmi.c:(.text.sti_hdmi_probe+0x204): undefined reference to
-`cec_notifier_get'
-drivers/gpu/drm/sti/sti_hdmi.o: In function `sti_hdmi_connector_detect':
-sti_hdmi.c:(.text.sti_hdmi_connector_detect+0x36): undefined reference
-to `cec_notifier_set_phys_addr'
-drivers/gpu/drm/sti/sti_hdmi.o: In function `sti_hdmi_disable':
-sti_hdmi.c:(.text.sti_hdmi_disable+0xc0): undefined reference to
-`cec_notifier_set_phys_addr'
+> 
+>> +static bool match_of(struct device_node *a, struct device_node *b)
+>> +{
+>> +	return !of_node_cmp(of_node_full_name(a), of_node_full_name(b));
+>> +}
+>> +
+>>  static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev
+>> *asd)
+>> {
+>> +	struct device_node *sdnode;
+>> +	struct fwnode_handle *async_device;
+> 
+> I would name this asd_fwnode, and to be consistent rename sdnode to sd_ofnode.
 
-The config options leading to the second failure are:
+Actually, now that I agree with Sakari, and the parent of both the SD and the
+ASD should be cross-referenced, I have used:
 
-CONFIG_MEDIA_CEC_SUPPORT=y
-CONFIG_CEC_CORE=m
-CONFIG_MEDIA_CEC_NOTIFIER=y
-CONFIG_VIDEO_STI_HDMI_CEC=m
-CONFIG_DRM_STI=y
+	sd_parent = fwnode_graph_get_port_parent(sd->fwnode);
+	asd_parent = fwnode_graph_get_port_parent(asd_fwnode);
 
-I can probably come up with a workaround, but haven't completely thought
-through all the combinations yet. Also, I assume the same fix will be needed
-for exynos, though that has not come up in randconfig testing so far.
+> 
+>> +
+>> +	async_device = fwnode_graph_get_port_parent(asd->match.fwnode.fwnode);
+>> +
+>>  	if (!is_of_node(sd->fwnode) || !is_of_node(asd->match.fwnode.fwnode))
+>> -		return sd->fwnode == asd->match.fwnode.fwnode;
+>> +		return sd->fwnode == asd->match.fwnode.fwnode ||
+>> +		       sd->fwnode == async_device;
+> 
+> I wonder whether we could simplify this by changing the 
+> fwnode_graph_get_port_parent() API. At the moment the function walks two or 
+> three levels up depending on whether there's a ports name or not. If we turned 
+> in into a function that accepts an endpoint, port or device node, and returns 
+> the device node unconditionally (basically, returning the argument if its name 
+> is not "port(@[0-9]+)?" or "endpoint(@[0-9]+)?", and walking up until it 
+> reaches the device node otherwise), you could write the above
+> 
+> 	asd_fwnode = fwnode_graph_get_port_parent(asd->match.fwnode.fwnode);
+> 
+>   	if (!is_of_node(sd->fwnode) || !is_of_node(asd_fwnode))
+> 		       sd->fwnode == asd_fwnode;
+> 
+> 	sdnode = to_of_node(sd->fwnode);
+>  
+> 	return match_of(sdnode, to_of_node(asd_node));
 
-       Arnd
 
->  drivers/media/cec/Kconfig | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/media/cec/Kconfig b/drivers/media/cec/Kconfig
-> index f944d93e3167..488fb908244d 100644
-> --- a/drivers/media/cec/Kconfig
-> +++ b/drivers/media/cec/Kconfig
-> @@ -9,6 +9,7 @@ config MEDIA_CEC_NOTIFIER
->  config MEDIA_CEC_RC
->         bool "HDMI CEC RC integration"
->         depends on CEC_CORE && RC_CORE
-> +       depends on CEC_CORE=m || RC_CORE=y
->         ---help---
->           Pass on CEC remote control messages to the RC framework.
->
-> --
-> 2.9.0
->
+I don't think that would help here. I want the function to do comparisons on the
+endpoint when provided - I don't want helpers to suddenly bring the comparison
+up to the device level.
+
+> 
+>> +
+>> +	sdnode = to_of_node(sd->fwnode);
+>>
+>> -	return !of_node_cmp(of_node_full_name(to_of_node(sd->fwnode)),
+>> -			    of_node_full_name(
+>> -				    to_of_node(asd->match.fwnode.fwnode)));
+>> +	return match_of(sdnode, to_of_node(asd->match.fwnode.fwnode)) ||
+>> +	       match_of(sdnode, to_of_node(async_device));
+> 
+> This is getting a bit complex, could you document the function ?
+
+I've added comments, and improved helpers - I think it's looking a lot better now :)
+
+> 
+>>  }
+>>
+>>  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev
+>> *asd)
+> 
+
+--
+Kieran
