@@ -1,67 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:59283 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752914AbdEARFq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 May 2017 13:05:46 -0400
-Date: Mon, 1 May 2017 18:05:44 +0100
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH] [RFC] rc-core: report protocol information to userspace
-Message-ID: <20170501170544.GB14836@gofer.mess.org>
-References: <149346313232.25459.10475301883786006034.stgit@zeus.hardeman.nu>
- <20170501103830.GB10867@gofer.mess.org>
- <20170501124957.yqvy6dcqz5lh3bu5@hardeman.nu>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43493 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933500AbdEVRF0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 May 2017 13:05:26 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH v2 2/2] v4l: async: Match parent devices
+References: <cover.9f22ad082e363959e4679246793bc4698479a44e.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <133ce0f3de88925fee3685ebe3967b6c5f93f8ef.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
+To: sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com
+Cc: Kieran Bingham <kbingham@kernel.org>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <3aace1d3-d8f9-0090-9c96-1bedcbddda8c@ideasonboard.com>
+Date: Mon, 22 May 2017 18:05:12 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170501124957.yqvy6dcqz5lh3bu5@hardeman.nu>
+In-Reply-To: <133ce0f3de88925fee3685ebe3967b6c5f93f8ef.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 01, 2017 at 02:49:57PM +0200, David Härdeman wrote:
-> On Mon, May 01, 2017 at 11:38:30AM +0100, Sean Young wrote:
-> >On Sat, Apr 29, 2017 at 12:52:12PM +0200, David Härdeman wrote:
-> >> Whether we decide to go for any new keytable ioctl():s or not in rc-core, we
-> >> should provide the protocol information of keypresses to userspace.
-> >> 
-> >> Note that this means that the RC_TYPE_* definitions become part of the
-> >> userspace <-> kernel API/ABI (meaning a full patch should maybe move those
-> >> defines under include/uapi).
-> >> 
-> >> This would also need to be ack:ed by the input maintainers.
-> >
-> >This was already NACKed in the past.
-> >
-> >http://www.spinics.net/lists/linux-input/msg46941.html
-> >
+Reviewing my own post:
+
+On 19/05/17 17:16, Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > 
-> Didn't know that, thanks for the pointer. I still think we should
-> revisit this though. Even if we don't add protocol-aware EVIOC[SG]KEY_V2
-> ioctls, that information is useful for a configuration tool when
-> creating keymaps for a new remote.
+> Devices supporting multiple endpoints on a single device node must set
+> their subdevice fwnode to the endpoint to allow distinct comparisons.
 > 
-> And examining the parent hardware device (as Dmitry seemed to suggest)
-> doesn't help with protocol identification.
+> Adapt the match_fwnode call to compare against the provided fwnodes
+> first, but also to search for a comparison against the parent fwnode.
 > 
-> Another option if we don't want to touch the input layer would be to
-> export the last_* members from struct rc_dev in sysfs (and I'm guessing
-> a timestamp would be necessary then). Seems like a lot of work to
-> accomplish what would otherwise be a one-line change in the input layer
-> though (one-line since I'm assuming we could provide the protocol
-> defines in a separate header, other than input-event-codes.h as the
-> protocols are subsystem-specific).
+> This allows notifiers to pass the endpoint for comparison and still
+> support existing subdevices which store their default parent device
+> node.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> ---
+> v2:
+>  - Added documentation comments
+>  - simplified the OF match by adding match_fwnode_of()
+> 
+>  drivers/media/v4l2-core/v4l2-async.c | 33 ++++++++++++++++++++++++-----
+>  1 file changed, 28 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index cbd919d4edd2..2473c0a1f7a8 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -41,14 +41,37 @@ static bool match_devname(struct v4l2_subdev *sd,
+>  	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
+>  }
+>  
+> +static bool match_fwnode_of(struct fwnode_handle *a, struct fwnode_handle *b)
+> +{
+> +	return !of_node_cmp(of_node_full_name(to_of_node(a)),
+> +			    of_node_full_name(to_of_node(b)));
+> +}
+> +
+> +/*
+> + * Compare the sd with the notifier.
+> + *
+> + * As a measure to support drivers which have not been converted to use
+> + * endpoint matching, we also find the parent device of the node in the
+> + * notifier, and compare the sd against that device.
+> + */
+>  static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+>  {
+> -	if (!is_of_node(sd->fwnode) || !is_of_node(asd->match.fwnode.fwnode))
+> -		return sd->fwnode == asd->match.fwnode.fwnode;
+> +	struct fwnode_handle *asd_fwnode = asd->match.fwnode.fwnode;
+> +	struct fwnode_handle *sd_parent, *asd_parent;
+> +
 
-So I have some patches for reading and writing scancodes, which will
-give you a u64 scancode, protocol and other bits of information. This
-can also be used for transmit where the IR encoders will be used.
+The keen eyed will notice that sd_parent is not initialised here before use:
+Fixed in the next version, pending testing and repost.
 
-http://www.spinics.net/lists/linux-media/msg109836.html
-
-I wanted to make sure that these patches are also sufficient for sending
-scancodes for the lirc_zilog driver before merging, which is what I'm
-working on right now.
-
-
-Sean
+> +	asd_parent = fwnode_graph_get_port_parent(asd_fwnode);
+> +
+> +	if (!is_of_node(sd->fwnode) || !is_of_node(asd_fwnode))
+> +		return sd->fwnode == asd_fwnode ||
+> +		       sd_parent == asd_fwnode ||
+> +		       sd->fwnode == asd_parent;
+>  
+> -	return !of_node_cmp(of_node_full_name(to_of_node(sd->fwnode)),
+> -			    of_node_full_name(
+> -				    to_of_node(asd->match.fwnode.fwnode)));
+> +	/*
+> +	 * Compare OF nodes with a full match to support removable dt snippets.
+> +	 */
+> +	return match_fwnode_of(sd->fwnode, asd_fwnode) ||
+> +	       match_fwnode_of(sd_parent, asd_fwnode) ||
+> +	       match_fwnode_of(sd->fwnode, asd_parent);
+>  }
+>  
+>  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+> 
