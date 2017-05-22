@@ -1,51 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40360
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754612AbdERMiu (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:35351 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933734AbdEVOOb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 08:38:50 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
-Subject: [PATCH 4/5] [media] dvb-usb-remote: don't write bogus debug messages
-Date: Thu, 18 May 2017 09:38:38 -0300
-Message-Id: <5c77b18687e5676dd05e5f83f0f54f8260992f1b.1495110899.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1495110899.git.mchehab@s-opensource.com>
-References: <cover.1495110899.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1495110899.git.mchehab@s-opensource.com>
-References: <cover.1495110899.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Mon, 22 May 2017 10:14:31 -0400
+Subject: Re: [PATCH v3 0/3] Fix mdp device tree
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>
+Cc: srv_heupstream@mediatek.com,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
+References: <1494559361-42835-1-git-send-email-minghsiu.tsai@mediatek.com>
+ <20ba4f83-7d22-2a8e-4eb6-7d4eba92e2ae@xs4all.nl>
+From: Matthias Brugger <matthias.bgg@gmail.com>
+Message-ID: <1f7de9e7-2c18-6662-4b95-519d22a70723@gmail.com>
+Date: Mon, 22 May 2017 16:14:26 +0200
+MIME-Version: 1.0
+In-Reply-To: <20ba4f83-7d22-2a8e-4eb6-7d4eba92e2ae@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When a REMOTE_KEY_PRESSED event happens, it does the right
-thing. However, if debug is enabled, it will print a bogus
-message warning that "key repeated".
 
-Fix it.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb/dvb-usb-remote.c | 5 +++++
- 1 file changed, 5 insertions(+)
+On 22/05/17 11:09, Hans Verkuil wrote:
+> On 05/12/2017 05:22 AM, Minghsiu Tsai wrote:
+> 
+> Who should take care of the dtsi changes? I'm not sure who maintains the mdp dts.
 
-diff --git a/drivers/media/usb/dvb-usb/dvb-usb-remote.c b/drivers/media/usb/dvb-usb/dvb-usb-remote.c
-index 059ded59208e..f05f1fc80729 100644
---- a/drivers/media/usb/dvb-usb/dvb-usb-remote.c
-+++ b/drivers/media/usb/dvb-usb/dvb-usb-remote.c
-@@ -131,6 +131,11 @@ static void legacy_dvb_usb_read_remote_control(struct work_struct *work)
- 		case REMOTE_KEY_PRESSED:
- 			deb_rc("key pressed\n");
- 			d->last_event = event;
-+			input_event(d->input_dev, EV_KEY, event, 1);
-+			input_sync(d->input_dev);
-+			input_event(d->input_dev, EV_KEY, d->last_event, 0);
-+			input_sync(d->input_dev);
-+			break;
- 		case REMOTE_KEY_REPEAT:
- 			deb_rc("key repeated\n");
- 			input_event(d->input_dev, EV_KEY, event, 1);
--- 
-2.9.3
+I will take care of the dtsi patches.
+
+> 
+> The driver change and the dtsi change need to be in sync, so it is probably easiest
+> to merge this via one tree.
+> 
+> Here is my Acked-by for these three patches:
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> I can take all three, provided I have the Ack of the mdp dts maintainer. Or it can
+> go through him with my Ack.
+> 
+
+I think we should provide backwards compability instead, as proposed here:
+http://lists.infradead.org/pipermail/linux-mediatek/2017-May/008811.html
+
+If this change is ok for you, please let Minghsiu know so that he can 
+provide a v4.
+
+Regards,
+Matthias
+
+> Regards,
+> 
+> 	Hans
+> 
+>> Changes in v3:
+>> - Upload patches again because forget to add v2 in title
+>>
+>> Changes in v2:
+>> - Update commit message
+>>
+>> If the mdp_* nodes are under an mdp sub-node, their corresponding
+>> platform device does not automatically get its iommu assigned properly.
+>>
+>> Fix this by moving the mdp component nodes up a level such that they are
+>> siblings of mdp and all other SoC subsystems.  This also simplifies the
+>> device tree.
+>>
+>> Although it fixes iommu assignment issue, it also break compatibility
+>> with old device tree. So, the patch in driver is needed to iterate over
+>> sibling mdp device nodes, not child ones, to keep driver work properly.
+>>
+>> Daniel Kurtz (2):
+>>    arm64: dts: mt8173: Fix mdp device tree
+>>    media: mtk-mdp: Fix mdp device tree
+>>
+>> Minghsiu Tsai (1):
+>>    dt-bindings: mt8173: Fix mdp device tree
+>>
+>>   .../devicetree/bindings/media/mediatek-mdp.txt     |  12 +-
+>>   arch/arm64/boot/dts/mediatek/mt8173.dtsi           | 126 ++++++++++-----------
+>>   drivers/media/platform/mtk-mdp/mtk_mdp_core.c      |   2 +-
+>>   3 files changed, 64 insertions(+), 76 deletions(-)
+>>
+> 
