@@ -1,125 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36347 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751474AbdEDPyP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 May 2017 11:54:15 -0400
-Received: by mail-wm0-f66.google.com with SMTP id u65so4217932wmu.3
-        for <linux-media@vger.kernel.org>; Thu, 04 May 2017 08:54:14 -0700 (PDT)
-From: Tvrtko Ursulin <tursulin@ursulin.net>
-To: Intel-gfx@lists.freedesktop.org
-Cc: tursulin@ursulin.net, Tvrtko Ursulin <tvrtko.ursulin@intel.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Tomasz Stanislawski <t.stanislaws@samsung.com>,
-        Matt Porter <mporter@kernel.crashing.org>,
-        Alexandre Bounine <alexandre.bounine@idt.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/4] lib/scatterlist: Fix offset type in sg_alloc_table_from_pages
-Date: Thu,  4 May 2017 16:54:02 +0100
-Message-Id: <20170504155405.7425-1-tvrtko.ursulin@linux.intel.com>
+Received: from mail.kernel.org ([198.145.29.99]:54330 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1760367AbdEVRgr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 May 2017 13:36:47 -0400
+From: Kieran Bingham <kbingham@kernel.org>
+To: sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 2/2] v4l: async: Match parent devices
+Date: Mon, 22 May 2017 18:36:38 +0100
+Message-Id: <6154c8f092e1cb4f5286c1f11f4a846c821b53d6.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Scatterlist entries have an unsigned int for the offset so
-correct the sg_alloc_table_from_pages function accordingly.
+Devices supporting multiple endpoints on a single device node must set
+their subdevice fwnode to the endpoint to allow distinct comparisons.
 
-Since these are offsets withing a page, unsigned int is
-wide enough.
+Adapt the match_fwnode call to compare against the provided fwnodes
+first, but also to search for a comparison against the parent fwnode.
 
-Also converts callers which were using unsigned long locally
-with the lower_32_bits annotation to make it explicitly
-clear what is happening.
+This allows notifiers to pass the endpoint for comparison and still
+support existing subdevices which store their default parent device
+node.
 
-v2: Use offset_in_page. (Chris Wilson)
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Pawel Osciak <pawel@osciak.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com> (v1)
-Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
-Reviewed-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 4 ++--
- drivers/rapidio/devices/rio_mport_cdev.c       | 4 ++--
- include/linux/scatterlist.h                    | 2 +-
- lib/scatterlist.c                              | 2 +-
- 4 files changed, 6 insertions(+), 6 deletions(-)
+v2:
+ - Added documentation comments
+ - simplified the OF match by adding match_fwnode_of()
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 2db0413f5d57..b5009c1649bc 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -478,7 +478,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+v3:
+ - Fix comments
+ - Fix sd_parent, and asd_parent usage
+
+ drivers/media/v4l2-core/v4l2-async.c | 36 ++++++++++++++++++++++++-----
+ 1 file changed, 31 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index cbd919d4edd2..12c0707851fd 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -41,14 +41,40 @@ static bool match_devname(struct v4l2_subdev *sd,
+ 	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
+ }
+ 
++/*
++ * Check whether the two device_node pointers refer to the same OF node. We
++ * can't compare pointers directly as they can differ if overlays have been
++ * applied.
++ */
++static bool match_fwnode_of(struct fwnode_handle *a, struct fwnode_handle *b)
++{
++	return !of_node_cmp(of_node_full_name(to_of_node(a)),
++			    of_node_full_name(to_of_node(b)));
++}
++
++/*
++ * As a measure to support drivers which have not been converted to use
++ * endpoint matching, we also find the parent devices for cross-matching.
++ *
++ * When all devices use endpoint matching, this code can be simplified, and the
++ * parent comparisons can be removed.
++ */
+ static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
  {
- 	struct vb2_dc_buf *buf;
- 	struct frame_vector *vec;
--	unsigned long offset;
-+	unsigned int offset;
- 	int n_pages, i;
- 	int ret = 0;
- 	struct sg_table *sgt;
-@@ -506,7 +506,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
- 	buf->dev = dev;
- 	buf->dma_dir = dma_dir;
+-	if (!is_of_node(sd->fwnode) || !is_of_node(asd->match.fwnode.fwnode))
+-		return sd->fwnode == asd->match.fwnode.fwnode;
++	struct fwnode_handle *asd_fwnode = asd->match.fwnode.fwnode;
++	struct fwnode_handle *sd_parent, *asd_parent;
++
++	sd_parent = fwnode_graph_get_port_parent(sd->fwnode);
++	asd_parent = fwnode_graph_get_port_parent(asd_fwnode);
++
++	if (!is_of_node(sd->fwnode) || !is_of_node(asd_fwnode))
++		return sd->fwnode == asd_fwnode ||
++		       sd_parent == asd_fwnode ||
++		       sd->fwnode == asd_parent;
  
--	offset = vaddr & ~PAGE_MASK;
-+	offset = lower_32_bits(offset_in_page(vaddr));
- 	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
- 	if (IS_ERR(vec)) {
- 		ret = PTR_ERR(vec);
-diff --git a/drivers/rapidio/devices/rio_mport_cdev.c b/drivers/rapidio/devices/rio_mport_cdev.c
-index 50b617af81bd..a8b6696ab6cb 100644
---- a/drivers/rapidio/devices/rio_mport_cdev.c
-+++ b/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -876,10 +876,10 @@ rio_dma_transfer(struct file *filp, u32 transfer_mode,
- 	 * offset within the internal buffer specified by handle parameter.
- 	 */
- 	if (xfer->loc_addr) {
--		unsigned long offset;
-+		unsigned int offset;
- 		long pinned;
+-	return !of_node_cmp(of_node_full_name(to_of_node(sd->fwnode)),
+-			    of_node_full_name(
+-				    to_of_node(asd->match.fwnode.fwnode)));
++	return match_fwnode_of(sd->fwnode, asd_fwnode) ||
++	       match_fwnode_of(sd_parent, asd_fwnode) ||
++	       match_fwnode_of(sd->fwnode, asd_parent);
+ }
  
--		offset = (unsigned long)(uintptr_t)xfer->loc_addr & ~PAGE_MASK;
-+		offset = lower_32_bits(offset_in_page(xfer->loc_addr));
- 		nr_pages = PAGE_ALIGN(xfer->length + offset) >> PAGE_SHIFT;
- 
- 		page_list = kmalloc_array(nr_pages,
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index cb3c8fe6acd7..c981bee1a3ae 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -263,7 +263,7 @@ int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int,
- int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
- int sg_alloc_table_from_pages(struct sg_table *sgt,
- 	struct page **pages, unsigned int n_pages,
--	unsigned long offset, unsigned long size,
-+	unsigned int offset, unsigned long size,
- 	gfp_t gfp_mask);
- 
- size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
-diff --git a/lib/scatterlist.c b/lib/scatterlist.c
-index c6cf82242d65..11f172c383cb 100644
---- a/lib/scatterlist.c
-+++ b/lib/scatterlist.c
-@@ -391,7 +391,7 @@ EXPORT_SYMBOL(sg_alloc_table);
-  */
- int sg_alloc_table_from_pages(struct sg_table *sgt,
- 	struct page **pages, unsigned int n_pages,
--	unsigned long offset, unsigned long size,
-+	unsigned int offset, unsigned long size,
- 	gfp_t gfp_mask)
- {
- 	unsigned int chunks;
+ static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
 -- 
-2.9.3
+git-series 0.9.1
