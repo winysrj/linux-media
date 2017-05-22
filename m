@@ -1,149 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f179.google.com ([209.85.128.179]:32947 "EHLO
-        mail-wr0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754245AbdEIPgw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 May 2017 11:36:52 -0400
-Received: by mail-wr0-f179.google.com with SMTP id w50so4259086wrc.0
-        for <linux-media@vger.kernel.org>; Tue, 09 May 2017 08:36:51 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v9 2/9] doc: DT: venus: binding document for Qualcomm video driver
-Date: Tue,  9 May 2017 18:35:54 +0300
-Message-Id: <1494344161-28131-3-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1494344161-28131-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1494344161-28131-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from mail.kernel.org ([198.145.29.99]:54216 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1760367AbdEVRgo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 May 2017 13:36:44 -0400
+From: Kieran Bingham <kbingham@kernel.org>
+To: sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 0/2] v4l: async: Match parent devices
+Date: Mon, 22 May 2017 18:36:36 +0100
+Message-Id: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add binding document for Venus video encoder/decoder driver
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Acked-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- .../devicetree/bindings/media/qcom,venus.txt       | 107 +++++++++++++++++++++
- 1 file changed, 107 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+As devices become more complicated, it becomes necessary (and more
+accurate) to match devices based on their endpoint, as devices may
+have multiple subdevices.
 
-diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
-new file mode 100644
-index 000000000000..2693449daf73
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
-@@ -0,0 +1,107 @@
-+* Qualcomm Venus video encoder/decoder accelerators
-+
-+- compatible:
-+	Usage: required
-+	Value type: <stringlist>
-+	Definition: Value should contain one of:
-+		- "qcom,msm8916-venus"
-+		- "qcom,msm8996-venus"
-+- reg:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: Register base address and length of the register map.
-+- interrupts:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: Should contain interrupt line number.
-+- clocks:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A List of phandle and clock specifier pairs as listed
-+		    in clock-names property.
-+- clock-names:
-+	Usage: required for msm8916
-+	Value type: <stringlist>
-+	Definition: Should contain the following entries:
-+		- "core"	Core video accelerator clock
-+		- "iface"	Video accelerator AHB clock
-+		- "bus"		Video accelerator AXI clock
-+- clock-names:
-+	Usage: required for msm8996
-+	Value type: <stringlist>
-+	Definition: Should contain the following entries:
-+		- "core"	Core video accelerator clock
-+		- "iface"	Video accelerator AHB clock
-+		- "bus"		Video accelerator AXI clock
-+		- "mbus"	Video MAXI clock
-+- power-domains:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A phandle and power domain specifier pairs to the
-+		    power domain which is responsible for collapsing
-+		    and restoring power to the peripheral.
-+- iommus:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A list of phandle and IOMMU specifier pairs.
-+- memory-region:
-+	Usage: required
-+	Value type: <phandle>
-+	Definition: reference to the reserved-memory for the firmware
-+		    memory region.
-+
-+* Subnodes
-+The Venus video-codec node must contain two subnodes representing
-+video-decoder and video-encoder.
-+
-+Every of video-encoder or video-decoder subnode should have:
-+
-+- compatible:
-+	Usage: required
-+	Value type: <stringlist>
-+	Definition: Value should contain "venus-decoder" or "venus-encoder"
-+- clocks:
-+	Usage: required for msm8996
-+	Value type: <prop-encoded-array>
-+	Definition: A List of phandle and clock specifier pairs as listed
-+		    in clock-names property.
-+- clock-names:
-+	Usage: required for msm8996
-+	Value type: <stringlist>
-+	Definition: Should contain the following entries:
-+		- "core"	Subcore video accelerator clock
-+
-+- power-domains:
-+	Usage: required for msm8996
-+	Value type: <prop-encoded-array>
-+	Definition: A phandle and power domain specifier pairs to the
-+		    power domain which is responsible for collapsing
-+		    and restoring power to the subcore.
-+
-+* An Example
-+	video-codec@1d00000 {
-+		compatible = "qcom,msm8916-venus";
-+		reg = <0x01d00000 0xff000>;
-+		interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&gcc GCC_VENUS0_VCODEC0_CLK>,
-+			 <&gcc GCC_VENUS0_AHB_CLK>,
-+			 <&gcc GCC_VENUS0_AXI_CLK>;
-+		clock-names = "core", "iface", "bus";
-+		power-domains = <&gcc VENUS_GDSC>;
-+		iommus = <&apps_iommu 5>;
-+		memory-region = <&venus_mem>;
-+
-+		video-decoder {
-+			compatible = "venus-decoder";
-+			clocks = <&mmcc VIDEO_SUBCORE0_CLK>;
-+			clock-names = "core";
-+			power-domains = <&mmcc VENUS_CORE0_GDSC>;
-+		};
-+
-+		video-encoder {
-+			compatible = "venus-encoder";
-+			clocks = <&mmcc VIDEO_SUBCORE1_CLK>;
-+			clock-names = "core";
-+			power-domains = <&mmcc VENUS_CORE1_GDSC>;
-+		};
-+	};
+To support using endpoints in the V4L2 async subdev framework, while
+some devices still use their device fwnode, we need to be able to parse
+a fwnode for the device from the endpoint.
+
+By providing a helper fwnode_graph_get_port_parent(), we can use it in
+the match_fwnode to support matches during the transition to endpoint
+matching.
+
+This series is dependant upon Sakari's v4l2-acpi and acpi-graph-cleaned
+branch
+
+v2:
+ - Rebased on top of git.linuxtv.org/sailus/media_tree.git #acpi-graph-cleaned
+
+v3:
+ - Fixed uninitialised asd_parent
+ - Improved kerneldocs
+ - Get the 'port' of the endpoint in fwnode_graph_get_port_parent
+
+Kieran Bingham (2):
+  device property: Add fwnode_graph_get_port_parent
+  v4l: async: Match parent devices
+
+ drivers/base/property.c              | 15 ++++++++++++-
+ drivers/media/v4l2-core/v4l2-async.c | 36 ++++++++++++++++++++++++-----
+ include/linux/property.h             |  2 ++-
+ 3 files changed, 48 insertions(+), 5 deletions(-)
+
+base-commit: d043978c7c919c727fb76b6593c71d0e697a5d66
 -- 
-2.7.4
+git-series 0.9.1
