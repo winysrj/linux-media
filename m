@@ -1,135 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:53647 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751059AbdE2PY7 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43272 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934188AbdEVOeS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 11:24:59 -0400
-Subject: Re: [PATCH v7 00/34] i.MX Media Driver
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
- <dd82968a-4c0b-12a4-f43b-7e63a255812d@xs4all.nl>
- <1496067346.17695.91.camel@pengutronix.de>
- <58c82482-d7d0-93cb-1e12-9749233bc5f3@xs4all.nl>
-Message-ID: <3de70e29-8429-1b56-8a01-84ca49f4fd89@xs4all.nl>
-Date: Mon, 29 May 2017 17:24:51 +0200
+        Mon, 22 May 2017 10:34:18 -0400
+Subject: Re: [PATCH v3 0/5] R-Car DU: Fix IOMMU operation when connected to
+ VSP
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <3ed12a08-b1b5-cfd3-c10f-df1baa99b744@ideasonboard.com>
+Date: Mon, 22 May 2017 15:34:13 +0100
 MIME-Version: 1.0
-In-Reply-To: <58c82482-d7d0-93cb-1e12-9749233bc5f3@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+In-Reply-To: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/29/2017 04:21 PM, Hans Verkuil wrote:
-> On 05/29/2017 04:15 PM, Philipp Zabel wrote:
->> On Mon, 2017-05-29 at 15:46 +0200, Hans Verkuil wrote:
->>> Hi Steve,
->>>
->>> On 05/25/2017 02:29 AM, Steve Longerbeam wrote:
->>>> In version 7:
->>>>
->>>> - video-mux: switched to Philipp's latest video-mux driver and updated
->>>>      bindings docs, that makes use of the mmio-mux framework.
->>>>
->>>> - mmio-mux: includes Philipp's temporary patch that adds mmio-mux support
->>>>      to video-mux driver, until mux framework is merged.
->>>>
->>>> - mmio-mux: updates to device tree from Philipp that define the i.MX6 mux
->>>>      devices and modifies the video-mux device to become a consumer of the
->>>>      video mmio-mux.
->>>>
->>>> - minor updates to Documentation/media/v4l-drivers/imx.rst.
->>>>
->>>> - ov5640: do nothing if entity stream count is greater than 1 in
->>>>      ov5640_s_stream().
->>>>
->>>> - Previous versions of this driver had not tested the ability to enable
->>>>      multiple independent streams, for instance enabling multiple output
->>>>      pads from the imx6-mipi-csi2 subdevice, or enabling both prpenc and
->>>>      prpvf outputs. Marek Vasut tested this support and reported issues
->>>>      with it.
->>>>
->>>>      v4l2_pipeline_inherit_controls() used the media graph walk APIs, but
->>>>      that walks both sink and source pads, so if there are multiple paths
->>>>      enabled to video capture devices, controls would be added to the wrong
->>>>      video capture device, and no controls added to the other enabled
->>>>      capture devices.
->>>>
->>>>      These issues have been fixed. Control inheritance works correctly now
->>>>      even with multiple enabled capture paths, and (for example)
->>>>      simultaneous capture from prpenc and prpvf works also, and each with
->>>>      independent scaling, CSC, and controls. For example prpenc can be
->>>>      capturing with a 90 degree rotation, while prpvf is capturing with
->>>>      vertical flip.
->>>>
->>>>      So the v4l2_pipeline_inherit_controls() patch has been dropped. The
->>>>      new version of control inheritance could be made generically available,
->>>>      but it would be more involved to incorporate it into v4l2-core.
->>>>
->>>> - A new function imx_media_fill_default_mbus_fields() is added to setup
->>>>      colorimetry at sink pads, and these are propagated to source pads.
->>>>
->>>> - Ensure that the current sink and source rectangles meet alignment
->>>>      restrictions before applying a new rotation control setting in
->>>>      prp-enc/vf subdevices.
->>>>
->>>> - Chain the s_stream() subdev calls instead of implementing a custom
->>>>      stream on/off function that attempts to call a fixed set of subdevices
->>>>      in a pipeline in the correct order. This also simplifies imx6-mipi-csi2
->>>>      subdevice, since the correct MIPI CSI-2 startup sequence can be
->>>>      enforced completely in s_stream(), and s_power() is no longer
->>>>      required. This also paves the way for more arbitrary OF graphs
->>>>      external to the i.MX6.
->>>>
->>>> - Converted the v4l2_subdev and media_entity ops structures to const.
->>>
->>> What is the status as of v7?
->>>
->>>    From what I can tell patch 2/34 needs an Ack from Rob Herring, patches
->>> 4-14 are out of scope for the media subsystem, patches 20-25 and 27-34
->>> are all staging (so fine to be merged from my point of view).
->>>
->>> I'm not sure if patch 26 (defconfig) should be applied while the imx
->>> driver is in staging. I would suggest that this patch is moved to the end
->>> of the series.
->>>
->>> That leaves patches 15-19. I replied to patch 15 with a comment, patches
->>> 16-18 look good to me, although patches 17 and 18 should be combined to one
->>> patch since patch 17 won't compile otherwise.
->>
->> Is this a problem? It won't break any builds as patch 17 depends on
->> CONFIG_MULTIPLEXER, which doesn't exist yet. I'm fine with merging the
->> two patches, though.
+Hi Mauro,
+
+I would like this series to go in the same pull-request to the DRM tree as the
+previous series you acked.
+
+Again, the series touches both V4L2, and DRM, to provide another fix up the
+Rcar-DU driver.
+
+I have reviewed and tested the whole series
+
+Would it be possible to get your Acked-by: again please?
+
+--
+Regards
+
+Kieran Bingham
+
+
+
+On 22/05/17 15:19, Kieran Bingham wrote:
+> Hello,
 > 
-> You are right, but it is weird. I think I would prefer to have these two
-> merged and the #ifdef CONFIG_MULTIPLEXER bits removed. Just a note in the
-> commit log that this should be converted to the multiplexer when that gets
-> merged would be enough.
+> This patch series fixes the rcar-du-drm driver to support VSP plane sources
+> with an IOMMU. It is available for convenience at
 > 
-> Dead code in drivers/media should be avoided because that's what this
-> driver currently has.
-
-Thanks for those updates! That really leaves just an Ack for patch 2/34.
-
-Sooo close!
-
-Regards,
-
-	Hans
+>   git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git vsp-du/iommu-fcp
+> 
+> On R-Car Gen3 the DU has no direct memory access but sources planes through
+> VSP instances. When an IOMMU is inserted between the VSP and memory, the DU
+> framebuffers need to be DMA mapped using the VSP device, not the DU device as
+> currently done. The same situation can also be reproduced on Gen2 hardware by
+> linking the VSP to the DU in DT [1], effectively disabling direct memory
+> access by the DU.
+> 
+> The situation is made quite complex by the fact that different planes can be
+> connected to different DU instances, and thus served by different IOMMUs (or,
+> in practice on existing hardware, by the same IOMMU but through different
+> micro-TLBs). We thus can't allocate and map buffers to the right device in a
+> single dma_alloc_wc() operation as done in the DRM CMA GEM helpers.
+> 
+> However, on such setups, the DU DT node doesn't reference IOMMUs as the DU
+> does not perform any direct memory access. We can thus keep the GEM object
+> allocation unchanged, and the DMA addresses that we receive in the DU driver
+> will be physical addresses. Those buffers then need to be mapped to the VSP
+> device when they are associated with planes. Fortunately the atomic framework
+> provides two plane helper operations, .prepare_fb() and .cleanup_fb() that we
+> can use for this purpose.
+> 
+> The reality is slightly more complex than this on Gen3, as an FCP device
+> instance sits between VSP instances and memory. It is the FCP devices that are
+> connected to the IOMMUs, and buffer mapping thus need to be performed using
+> the FCP devices. This isn't required on Gen2 as the platforms don't have any
+> FCPs.
+> 
+> Patches 1/5 and 2/5 extend the rcar-fcp driver API to expose the FCP struct
+> device. Patch 3/5 then updates the vsp1 driver to map the display lists and
+> video buffers through the FCP when it exists. This alone fixes VSP operation
+> with an IOMMU on R-Car Gen3 systems.
+> 
+> Moving on to addressing the DU issue, patch 4/5 extends the vsp1 driver API to
+> allow mapping a scatter-gather list to the VSP, with the implementation using
+> the FCP devices instead when available. Patch 5/5 finally uses the vsp1
+> mapping API in the rcar-du-drm driver to map and unmap buffers when needed.
+> 
+> The series has been tested on the H2 Lager board and M3-W Salvator-X boards.
+> The IOMMU is known not to work properly on the H3 ES1.1, so the H3 Salvator-X
+> board hasn't been tested. In all cases both the DU and VSP operation has been
+> tested, and tests were run with and without linking the DU and VSP devices to
+> the IOMMU in DT.
+> 
+> For H2, the patches were tested on top of v4.12-rc1 with a set of out-of-tree
+> patches to link the VSP and DU to the IOMMUs and to enable VSP+DU combined
+> similar to R-Car Gen3, and an additional DMA mapping API patch [2] that fixes
+> IOMMU operation on ARM32, currently broken in v4.12-rc1. For M3-W, they were
+> were tested on top of renesas-drivers-2017-05-16-v4.12-rc1 with a set of
+> out-of-tree patches to add FCP, VSP, DU and IPMMU instances to the M3-W DT, as
+> well as a hack for the IPMMU driver to whitelist all bus master devices.
+> 
+> All tests passed successfully. The issue previously noticed on H3 with
+> synchronization between page flip and VSP operation that was caused by buffers
+> getting unmapped (and possibly freed) before the VSP was done reading them is
+> now gone thanks to the VSP+DU flicker fix that should be merged in v4.13 and
+> is available in renesas-drivers-2017-05-16-v4.12-rc1.
+> 
+> A possible improvement is to modify the GEM object allocation mechanism to use
+> non-contiguous memory when the DU driver detects that all the VSP instances it
+> is connected to use an IOMMU (possibly through FCP devices).
+> 
+> [1] https://www.mail-archive.com/linux-renesas-soc@vger.kernel.org/msg06589.html
+> [2] https://www.spinics.net/lists/arm-kernel/msg581410.html
+> 
+> Laurent Pinchart (4):
+>   v4l: rcar-fcp: Don't get/put module reference
+>   v4l: rcar-fcp: Add an API to retrieve the FCP device
+>   v4l: vsp1: Add API to map and unmap DRM buffers through the VSP
+>   drm: rcar-du: Map memory through the VSP device
+> 
+> Magnus Damm (1):
+>   v4l: vsp1: Map the DL and video buffers through the proper bus master
+> 
+>  drivers/gpu/drm/rcar-du/rcar_du_vsp.c    | 74 ++++++++++++++++++++++---
+>  drivers/gpu/drm/rcar-du/rcar_du_vsp.h    |  2 +-
+>  drivers/media/platform/rcar-fcp.c        | 17 ++----
+>  drivers/media/platform/vsp1/vsp1.h       |  1 +-
+>  drivers/media/platform/vsp1/vsp1_dl.c    |  4 +-
+>  drivers/media/platform/vsp1/vsp1_drm.c   | 24 ++++++++-
+>  drivers/media/platform/vsp1/vsp1_drv.c   |  9 +++-
+>  drivers/media/platform/vsp1/vsp1_video.c |  2 +-
+>  include/media/rcar-fcp.h                 |  5 ++-
+>  include/media/vsp1.h                     |  3 +-
+>  10 files changed, 123 insertions(+), 18 deletions(-)
+> 
+> base-commit: f2c61f98e0b5f8b53b8fb860e5dcdd661bde7d0b
+> 
