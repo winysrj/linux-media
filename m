@@ -1,266 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41740 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1948757AbdEZVuH (ORCPT
+Received: from esa2.microchip.iphmx.com ([68.232.149.84]:48270 "EHLO
+        esa2.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750934AbdEVFEw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 May 2017 17:50:07 -0400
-Date: Sat, 27 May 2017 00:50:03 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
-Subject: Re: [PATCH 1/1] [media] i2c: add support for OV13858 sensor
-Message-ID: <20170526215003.GS29527@valkosipuli.retiisi.org.uk>
-References: <1495583908-2479-1-git-send-email-hyungwoo.yang@intel.com>
- <20170524125111.GJ29527@valkosipuli.retiisi.org.uk>
- <7A4F467111FEF64486F40DFE7DF3500A03E99242@ORSMSX111.amr.corp.intel.com>
+        Mon, 22 May 2017 01:04:52 -0400
+Subject: Re: [PATCH v1] [media] atmel-isi: code cleanup
+To: Hugues FRUCHET <hugues.fruchet@st.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1495188292-3113-1-git-send-email-hugues.fruchet@st.com>
+ <1495188292-3113-2-git-send-email-hugues.fruchet@st.com>
+ <e1973f0e-4ba2-24ca-f013-c3ef20a7bf47@st.com>
+From: "Wu, Songjun" <Songjun.Wu@microchip.com>
+Message-ID: <96e522a2-e12f-9fe4-9469-c5fe7c9a58f8@microchip.com>
+Date: Mon, 22 May 2017 13:02:51 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7A4F467111FEF64486F40DFE7DF3500A03E99242@ORSMSX111.amr.corp.intel.com>
+In-Reply-To: <e1973f0e-4ba2-24ca-f013-c3ef20a7bf47@st.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hyungwoo,
+Hi Hugues,
 
-On Wed, May 24, 2017 at 11:13:50PM +0000, Yang, Hyungwoo wrote:
-...
-> > > +static inline int ov13858_write_reg_list(struct ov13858 *ov13858,
-> > 
-> > I'd drop inline.
+Thank you for your patch.
+Is it necessary to ensure ISI is clocked before starting sensor sub device?
+
+On 5/19/2017 20:08, Hugues FRUCHET wrote:
+> Adding Songjun and Ludovic as Atmel maintainers, sorry for inconvenience.
 > 
-> if it's not mandatory for upstream, I prefer to keep inline for people who
-> want to port this with a not-good-compiler. Is it mandatory ?
-
-I don't think you'd really lose anything if the compiler didn't inline it.
-It's a non-issue anyway.
-
-...
-
-> > > +/*
-> > > + * Change the bayer order to meet the requested one.
-> > > + */
-> > > +static int ov13858_apply_bayer_order(struct ov13858 *ov13858) {
-> > > +	int ret;
-> > > +
-> > > +	switch (ov13858->cur_bayer_format) {
-> > > +	case MEDIA_BUS_FMT_SGRBG10_1X10:
-> > > +		break;
-> > > +	case MEDIA_BUS_FMT_SRGGB10_1X10:
-> > > +		return ov13858_increase_offset(ov13858, OV13858_REG_H_OFFSET);
-> > > +	case MEDIA_BUS_FMT_SGBRG10_1X10:
-> > > +		ret = ov13858_increase_offset(ov13858, OV13858_REG_H_OFFSET);
-> > 
-> > The bayer pixel order is defined by cropping the pixel array. If the sensor can do that, you should implement support for the crop selection rectangle instead.
-> 
-> Sorry, I'm new to imaging world but, as you can see, bayer order in this
-> sensor IS DEFINED by both cropping and offset(where you start to read). Is
-> there a strict (implicit or explicit) rule or specific reason that we
-> should use only crop to apply expected bayer order, even though the bayer
-> order in the sensor is defined by both crop and offset ?
-> 
-> Anyway, I changed H_/V_OFFSET(0x3810, 0x3812) to H_/V_CROP_START(0x3800,
-> 0x3802) with no changes in initial values.
-
-The CROP selection rectangle is the interface to configure crop an area from
-the parent rectangle (NATIVE_SIZE in this case). Using the format to change
-cropping in pre-defined ways is quite hackish.
-
-...
-
-> > > +/* Exposure control */
-> > > +static int ov13858_update_exposure(struct ov13858 *ov13858,
-> > > +				   struct v4l2_ctrl *ctrl)
-> > > +{
-> > > +	int ret;
-> > > +	u32 exposure, new_vts = 0;
-> > > +
-> > > +	exposure = ctrl->val;
-> > > +	if (exposure > ov13858->cur_mode->vts - 8)
-> > > +		new_vts = exposure + 8;
-> > > +	else
-> > > +		new_vts = ov13858->cur_mode->vts;
-> > 
-> > Instead of changing the vertical blanking interval implicitly, could you
-> > do it explicitly though the VBLANK control instead?
-> > 
-> > As you do already control the vertical sync and provide the pixel rate
-> > control, how about adding a HBLANK control as well? I suppose it could
-> > be added later on as well. And presumably will be read only.
-> 
-> I'll introduce VBLANK control with READ ONLY and the value of the control
-> will be updated here.
-
-HBLANK would be read-only since the register list that you have might
-contain dependencies to the horizontal blanking so you can't change that.
-The VBLANK control, instead, should not be read-only to allow controlling
-the frame rate and also controlling the exposure without affecting the frame
-rate.
-
-> 
-> > 
-> > > +
-> > > +	ret = ov13858_group_hold_start(ov13858, 0);
-> > > +	if (ret)
-> > > +		return ret;
-> > > +
-> > > +	ret = ov13858_write_reg(ov13858, OV13858_REG_VTS,
-> > > +				OV13858_REG_VALUE_16BIT, new_vts);
-> > > +	if (ret)
-> > > +		return ret;
-> > > +
-> > 
-> > If you want group hold for that, too, we need a new callback (or two)
-> > for the control handler I believe.
-> 
-> I don't understand wht this means. Can you give me detail ?
-
-The V4L2 control framework calls the s_ctrl() callback in the driver to set
-control values. The driver however doesn't know how many controls there will
-be to set or when the last control of the set would be conveyed to the
-driver. To use the grouped parameter hold meaningfully this information is
-needed.
-
-...
-
-> > > +	/* Values of V4L2 controls will be applied only when power is up */
-> > > +	if (atomic_read(&client->dev.power.usage_count) == 0)
-> > 
-> > I wonder if using pm_runtime_active() would work for this. Checking the
-> > usage_count directly does not look like something a driver should be
-> > doing.
-> 
-> Agree, I really wanted to use any helper(accesor) method for this but when
-> I checked the pm_runtime_active() it wasn't good enough. Anyway I just
-> found better one for this case. I'll not use using usage_count and
-> instread of using pm_runtime_get_sync, I'll use pm_runtime_get_if_in_use()
-
-Ah, that seems much better indeed!
-
-> 
-> > 
-> > > +		return 0;
-> > > +
-> > > +	ret = pm_runtime_get_sync(&client->dev);
-> > > +	if (ret < 0) {
-> > > +		pm_runtime_put_noidle(&client->dev);
-> > > +		return ret;
-> > > +	}
-> > > +
-> > > +	ret = 0;
-> > > +	switch (ctrl->id) {
-> > > +	case V4L2_CID_ANALOGUE_GAIN:
-> > > +		ret = ov13858_update_analog_gain(ov13858, ctrl);
-> > > +		break;
-> > > +	case V4L2_CID_EXPOSURE:
-> > > +		ret = ov13858_update_exposure(ov13858, ctrl);
-> > > +		break;
-> > > +	default:
-> > > +		dev_info(&client->dev,
-> > > +			 "ctrl(id:0x%x,val:0x%x) is not handled\n",
-> > > +			 ctrl->id, ctrl->val);
-> > > +		break;
-> > > +	};
-> > > +
-> > > +	pm_runtime_put(&client->dev);
-> > > +
-> > > +	return ret;
-> > > +}
-> > > +
-> > > +static const struct v4l2_ctrl_ops ov13858_ctrl_ops = {
-> > > +	.s_ctrl = ov13858_set_ctrl,
-> > > +};
-> > > +
-> > > +/* Initialize control handlers */
-> > > +static int ov13858_init_controls(struct ov13858 *ov13858) {
-> > > +	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-> > > +	struct v4l2_ctrl_handler *ctrl_hdlr;
-> > > +	int ret;
-> > > +
-> > > +	ctrl_hdlr = &ov13858->ctrl_handler;
-> > > +	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 4);
-> > > +	if (ret)
-> > > +		return ret;
-> > > +
-> > > +	ctrl_hdlr->lock = &ov13858->mutex;
-> > > +	ov13858->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr,
-> > > +				&ov13858_ctrl_ops,
-> > > +				V4L2_CID_LINK_FREQ,
-> > > +				OV13858_NUM_OF_LINK_FREQS - 1,
-> > > +				0,
-> > > +				link_freq_menu_items);
-> > > +	ov13858->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-> > > +
-> > > +	/* By default, PIXEL_RATE is read only */
-> > > +	ov13858->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops,
-> > > +					V4L2_CID_PIXEL_RATE, 0,
-> > > +					OV13858_GET_PIXEL_RATE(0), 1,
-> > > +					OV13858_GET_PIXEL_RATE(0));
-> > > +
-> > > +	v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
-> > > +			  OV13858_ANA_GAIN_MIN, OV13858_ANA_GAIN_MAX,
-> > > +			  OV13858_ANA_GAIN_STEP, OV13858_ANA_GAIN_DEFAULT);
-> > > +
-> > > +	v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_EXPOSURE,
-> > > +			  OV13858_EXP_GAIN_MIN, OV13858_EXP_GAIN_MAX,
-> > > +			  OV13858_EXP_GAIN_STEP, OV13858_EXP_GAIN_DEFAULT);
-> > 
-> > Are the minimum and maximum values dependent on the register list chosen?
-> 
-> We are going to use the same HTS for all reolutions.
-> The supports 4 lines as minimum and MAX_VTS - 8 as maximum.
-> 
-> > 
-> > > +	if (ctrl_hdlr->error) {
-> > > +		ret = ctrl_hdlr->error;
-> > > +		dev_err(&client->dev, "%s control init failed (%d)\n",
-> > > +			__func__, ret);
-> > > +		goto error;
-> > > +	}
-> > > +
-> > > +	ov13858->sd.ctrl_handler = ctrl_hdlr;
-> > > +
-> > > +	return 0;
-> > > +
-> > > +error:
-> > > +	v4l2_ctrl_handler_free(ctrl_hdlr);
-> > > +
-> > > +	return ret;
-> > > +}
-> > > +
-> > > +static void ov13858_update_pad_format(struct ov13858 *ov13858,
-> > > +				      const struct ov13858_mode *mode,
-> > > +				      struct v4l2_subdev_format *fmt) {
-> > > +	fmt->format.width = mode->width;
-> > > +	fmt->format.height = mode->height;
-> > > +	fmt->format.code = ov13858->cur_bayer_format;
-> > > +	fmt->format.field = V4L2_FIELD_NONE; }
-> > > +
-> > > +static int ov13858_do_get_pad_format(struct ov13858 *ov13858,
-> > > +				     struct v4l2_subdev_pad_config *cfg,
-> > > +				     struct v4l2_subdev_format *fmt) {
-> > > +	struct v4l2_mbus_framefmt *framefmt;
-> > > +	struct v4l2_subdev *sd = &ov13858->sd;
-> > > +
-> > > +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> > > +		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-> > > +		fmt->format = *framefmt;
-> > 
-> > You could write this as :
-> > 
-> > fmt->format = *v4l2_subdev_get_try_format(&ov13858->sd, cfg, fmt->pad);
-> > 
-> 
-> Personally I don't like this since I believe readablity of this kind of
-> code is not good. If there's no stric rule for this, I want to keep this
-> since believe there's no difference in generated code.
-
-I don't think the extra local variable assigned and used once really helps,
-but ok for me.
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> On 05/19/2017 12:04 PM, Hugues Fruchet wrote:
+>> Ensure that ISI is clocked before starting sensor sub device.
+>> Remove un-needed type check in try_fmt().
+>> Use clamp() macro for hardware capabilities.
+>> Fix wrong tabulation to space.
+>>
+>> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+>> ---
+>>    drivers/media/platform/atmel/atmel-isi.c | 24 ++++++++++--------------
+>>    1 file changed, 10 insertions(+), 14 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
+>> index e4867f8..7bf9f7d 100644
+>> --- a/drivers/media/platform/atmel/atmel-isi.c
+>> +++ b/drivers/media/platform/atmel/atmel-isi.c
+>> @@ -36,8 +36,8 @@
+>>    
+>>    #include "atmel-isi.h"
+>>    
+>> -#define MAX_SUPPORT_WIDTH		2048
+>> -#define MAX_SUPPORT_HEIGHT		2048
+>> +#define MAX_SUPPORT_WIDTH		2048U
+>> +#define MAX_SUPPORT_HEIGHT		2048U
+>>    #define MIN_FRAME_RATE			15
+>>    #define FRAME_INTERVAL_MILLI_SEC	(1000 / MIN_FRAME_RATE)
+>>    
+>> @@ -424,6 +424,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+>>    	struct frame_buffer *buf, *node;
+>>    	int ret;
+>>    
+>> +	pm_runtime_get_sync(isi->dev);
+>> +
+>>    	/* Enable stream on the sub device */
+>>    	ret = v4l2_subdev_call(isi->entity.subdev, video, s_stream, 1);
+>>    	if (ret && ret != -ENOIOCTLCMD) {
+>> @@ -431,8 +433,6 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+>>    		goto err_start_stream;
+>>    	}
+>>    
+>> -	pm_runtime_get_sync(isi->dev);
+>> -
+>>    	/* Reset ISI */
+>>    	ret = atmel_isi_wait_status(isi, WAIT_ISI_RESET);
+>>    	if (ret < 0) {
+>> @@ -455,10 +455,11 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+>>    	return 0;
+>>    
+>>    err_reset:
+>> -	pm_runtime_put(isi->dev);
+>>    	v4l2_subdev_call(isi->entity.subdev, video, s_stream, 0);
+>>    
+>>    err_start_stream:
+>> +	pm_runtime_put(isi->dev);
+>> +
+>>    	spin_lock_irq(&isi->irqlock);
+>>    	isi->active = NULL;
+>>    	/* Release all active buffers */
+>> @@ -566,20 +567,15 @@ static int isi_try_fmt(struct atmel_isi *isi, struct v4l2_format *f,
+>>    	};
+>>    	int ret;
+>>    
+>> -	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>> -		return -EINVAL;
+>> -
+>>    	isi_fmt = find_format_by_fourcc(isi, pixfmt->pixelformat);
+>>    	if (!isi_fmt) {
+>>    		isi_fmt = isi->user_formats[isi->num_user_formats - 1];
+>>    		pixfmt->pixelformat = isi_fmt->fourcc;
+>>    	}
+>>    
+>> -	/* Limit to Atmel ISC hardware capabilities */
+>> -	if (pixfmt->width > MAX_SUPPORT_WIDTH)
+>> -		pixfmt->width = MAX_SUPPORT_WIDTH;
+>> -	if (pixfmt->height > MAX_SUPPORT_HEIGHT)
+>> -		pixfmt->height = MAX_SUPPORT_HEIGHT;
+>> +	/* Limit to Atmel ISI hardware capabilities */
+>> +	pixfmt->width = clamp(pixfmt->width, 0U, MAX_SUPPORT_WIDTH);
+>> +	pixfmt->height = clamp(pixfmt->height, 0U, MAX_SUPPORT_HEIGHT);
+>>    
+>>    	v4l2_fill_mbus_format(&format.format, pixfmt, isi_fmt->mbus_code);
+>>    	ret = v4l2_subdev_call(isi->entity.subdev, pad, set_fmt,
+>> @@ -1058,7 +1054,7 @@ static int isi_graph_notify_complete(struct v4l2_async_notifier *notifier)
+>>    	struct atmel_isi *isi = notifier_to_isi(notifier);
+>>    	int ret;
+>>    
+>> -	isi->vdev->ctrl_handler	= isi->entity.subdev->ctrl_handler;
+>> +	isi->vdev->ctrl_handler = isi->entity.subdev->ctrl_handler;
+>>    	ret = isi_formats_init(isi);
+>>    	if (ret) {
+>>    		dev_err(isi->dev, "No supported mediabus format found\n");
