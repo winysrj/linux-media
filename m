@@ -1,40 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bubo.tul.cz ([147.230.16.1]:50422 "EHLO bubo.tul.cz"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752206AbdEAETO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 May 2017 00:19:14 -0400
-From: Petr Cvek <petr.cvek@tul.cz>
-Subject: [PATCH 0/4] [media] pxa_camera: Fixing bugs and missing colorformats
-To: robert.jarzmik@free.fr
-Cc: linux-media@vger.kernel.org
-Message-ID: <19820fae-fae3-9579-8f37-5b515e0edb66@tul.cz>
-Date: Mon, 1 May 2017 06:20:19 +0200
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:53766 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752782AbdEVHwu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 May 2017 03:52:50 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: "Wu, Songjun" <Songjun.Wu@microchip.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v1] [media] atmel-isi: code cleanup
+Date: Mon, 22 May 2017 07:52:41 +0000
+Message-ID: <7a4ef8b6-7c01-88f8-57ee-c3550e4716fa@st.com>
+References: <1495188292-3113-1-git-send-email-hugues.fruchet@st.com>
+ <1495188292-3113-2-git-send-email-hugues.fruchet@st.com>
+ <e1973f0e-4ba2-24ca-f013-c3ef20a7bf47@st.com>
+ <96e522a2-e12f-9fe4-9469-c5fe7c9a58f8@microchip.com>
+In-Reply-To: <96e522a2-e12f-9fe4-9469-c5fe7c9a58f8@microchip.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <235D6F4758B358448C936295AEFFC4DC@st.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset is just a grouping of a few bugfixes I've found during
-the ov9640 sensor support re-adding. The remaining Bayer 8 formats are
-just a permutation of the channels (pxa_camera treats them as raw data).
-The missing/incorrect test in the image size generation was just re-added
-from the soc_camera. The (un)subscribe_event ioctl calls were added
-in a same way as other media drivers. The call with an uninitialized
-pointer is a revert of a part of the patch, which broke it.
-
-The series are based on the kernel commit after
-
-	[media] pxa_camera: fix module remove codepath for v4l2 clock
-
-Petr Cvek (4):
-  [media] pxa_camera: Add remaining Bayer 8 formats
-  [media] pxa_camera: Fix incorrect test in the image size generation
-  [media] pxa_camera: Add (un)subscribe_event ioctl
-  [media] pxa_camera: Fix a call with an uninitialized device pointer
-
- drivers/media/platform/pxa_camera.c | 51 ++++++++++++++++++++++++++++---------
- 1 file changed, 39 insertions(+), 12 deletions(-)
-
--- 
-2.11.0
+SGkgU29uZ2p1biwNCg0KSXQgd2FzIGFuIGFkdmljZSBmcm9tIEhhbnMsIEkgY29weS9wYXN0ZSB0
+aGUgY29tbWVudCBoZXJlOg0KaHR0cDovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LW1lZGlh
+QHZnZXIua2VybmVsLm9yZy9tc2cxMTIzMzguaHRtbA0KID4+ICsgICAgIC8qIEVuYWJsZSBzdHJl
+YW0gb24gdGhlIHN1YiBkZXZpY2UgKi8NCiA+PiArICAgICByZXQgPSB2NGwyX3N1YmRldl9jYWxs
+KGRjbWktPmVudGl0eS5zdWJkZXYsIHZpZGVvLCBzX3N0cmVhbSwgMSk7DQogPj4gKyAgICAgaWYg
+KHJldCAmJiByZXQgIT0gLUVOT0lPQ1RMQ01EKSB7DQogPj4gKyAgICAgICAgICAgICBkZXZfZXJy
+KGRjbWktPmRldiwgIiVzOiBGYWlsZWQgdG8gc3RhcnQgc3RyZWFtaW5nLCBzdWJkZXYNCiA+PiBz
+dHJlYW1vbiBlcnJvciIsDQogPj4gKyAgICAgICAgICAgICAgICAgICAgIF9fZnVuY19fKTsNCiA+
+PiArICAgICAgICAgICAgIGdvdG8gZXJyX3JlbGVhc2VfYnVmZmVyczsNCiA+PiArICAgICB9DQog
+Pj4gKw0KID4+ICsgICAgIGlmIChjbGtfZW5hYmxlKGRjbWktPm1jbGspKSB7DQogPj4gKyAgICAg
+ICAgICAgICBkZXZfZXJyKGRjbWktPmRldiwgIiVzOiBGYWlsZWQgdG8gc3RhcnQgc3RyZWFtaW5n
+LCBjYW5ub3QNCiA+PiBlbmFibGUgY2xvY2siLA0KID4+ICsgICAgICAgICAgICAgICAgICAgICBf
+X2Z1bmNfXyk7DQogPj4gKyAgICAgICAgICAgICBnb3RvIGVycl9zdWJkZXZfc3RyZWFtb2ZmOw0K
+ID4+ICsgICAgIH0NCiA+SXQgZmVlbHMgbW9yZSBuYXR1cmFsIHRvIG1lIHRvIGZpcnN0IGVuYWJs
+ZSB0aGUgY2xvY2ssIHRoZW4gY2FsbCANCiA+c19zdHJlYW0uDQoNClBsZWFzZSBub3RlIHRoYXQg
+SSBoYXZlIG5vdCB0ZXN0ZWQgY29kZSwgYnV0IG9ubHkgcmVwb3J0ZWQgY2hhbmdlcyBkb25lIA0K
+aW4gU1QgRENNSSBkcml2ZXIgdG8gcmVmbGVjdCB0aGUgc2FtZSBvbiBJU0kgZHJpdmVyLCB3b3Vs
+ZCBpdCBiZSANCnBvc3NpYmxlIHRoYXQgeW91IGNoZWNrIHRoYXQgaXQgaXMgc3RpbGwgZnVuY3Rp
+b25hbCBvbiB5b3VyIHNpZGUgPw0KDQpCZXN0IHJlZ2FyZHMsDQpIdWd1ZXMuDQoNCk9uIDA1LzIy
+LzIwMTcgMDc6MDIgQU0sIFd1LCBTb25nanVuIHdyb3RlOg0KPiBIaSBIdWd1ZXMsDQo+IA0KPiBU
+aGFuayB5b3UgZm9yIHlvdXIgcGF0Y2guDQo+IElzIGl0IG5lY2Vzc2FyeSB0byBlbnN1cmUgSVNJ
+IGlzIGNsb2NrZWQgYmVmb3JlIHN0YXJ0aW5nIHNlbnNvciBzdWIgZGV2aWNlPw0KPiANCj4gT24g
+NS8xOS8yMDE3IDIwOjA4LCBIdWd1ZXMgRlJVQ0hFVCB3cm90ZToNCj4+IEFkZGluZyBTb25nanVu
+IGFuZCBMdWRvdmljIGFzIEF0bWVsIG1haW50YWluZXJzLCBzb3JyeSBmb3IgaW5jb252ZW5pZW5j
+ZS4NCj4+DQo+PiBPbiAwNS8xOS8yMDE3IDEyOjA0IFBNLCBIdWd1ZXMgRnJ1Y2hldCB3cm90ZToN
+Cj4+PiBFbnN1cmUgdGhhdCBJU0kgaXMgY2xvY2tlZCBiZWZvcmUgc3RhcnRpbmcgc2Vuc29yIHN1
+YiBkZXZpY2UuDQo+Pj4gUmVtb3ZlIHVuLW5lZWRlZCB0eXBlIGNoZWNrIGluIHRyeV9mbXQoKS4N
+Cj4+PiBVc2UgY2xhbXAoKSBtYWNybyBmb3IgaGFyZHdhcmUgY2FwYWJpbGl0aWVzLg0KPj4+IEZp
+eCB3cm9uZyB0YWJ1bGF0aW9uIHRvIHNwYWNlLg0KPj4+DQo+Pj4gU2lnbmVkLW9mZi1ieTogSHVn
+dWVzIEZydWNoZXQgPGh1Z3Vlcy5mcnVjaGV0QHN0LmNvbT4NCj4+PiAtLS0NCj4+PiAgICBkcml2
+ZXJzL21lZGlhL3BsYXRmb3JtL2F0bWVsL2F0bWVsLWlzaS5jIHwgMjQgDQo+Pj4gKysrKysrKysr
+Ky0tLS0tLS0tLS0tLS0tDQo+Pj4gICAgMSBmaWxlIGNoYW5nZWQsIDEwIGluc2VydGlvbnMoKyks
+IDE0IGRlbGV0aW9ucygtKQ0KPj4+DQo+Pj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvcGxh
+dGZvcm0vYXRtZWwvYXRtZWwtaXNpLmMgDQo+Pj4gYi9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL2F0
+bWVsL2F0bWVsLWlzaS5jDQo+Pj4gaW5kZXggZTQ4NjdmOC4uN2JmOWY3ZCAxMDA2NDQNCj4+PiAt
+LS0gYS9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL2F0bWVsL2F0bWVsLWlzaS5jDQo+Pj4gKysrIGIv
+ZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9hdG1lbC9hdG1lbC1pc2kuYw0KPj4+IEBAIC0zNiw4ICsz
+Niw4IEBADQo+Pj4gICAgI2luY2x1ZGUgImF0bWVsLWlzaS5oIg0KPj4+IC0jZGVmaW5lIE1BWF9T
+VVBQT1JUX1dJRFRIICAgICAgICAyMDQ4DQo+Pj4gLSNkZWZpbmUgTUFYX1NVUFBPUlRfSEVJR0hU
+ICAgICAgICAyMDQ4DQo+Pj4gKyNkZWZpbmUgTUFYX1NVUFBPUlRfV0lEVEggICAgICAgIDIwNDhV
+DQo+Pj4gKyNkZWZpbmUgTUFYX1NVUFBPUlRfSEVJR0hUICAgICAgICAyMDQ4VQ0KPj4+ICAgICNk
+ZWZpbmUgTUlOX0ZSQU1FX1JBVEUgICAgICAgICAgICAxNQ0KPj4+ICAgICNkZWZpbmUgRlJBTUVf
+SU5URVJWQUxfTUlMTElfU0VDICAgICgxMDAwIC8gTUlOX0ZSQU1FX1JBVEUpDQo+Pj4gQEAgLTQy
+NCw2ICs0MjQsOCBAQCBzdGF0aWMgaW50IHN0YXJ0X3N0cmVhbWluZyhzdHJ1Y3QgdmIyX3F1ZXVl
+ICp2cSwgDQo+Pj4gdW5zaWduZWQgaW50IGNvdW50KQ0KPj4+ICAgICAgICBzdHJ1Y3QgZnJhbWVf
+YnVmZmVyICpidWYsICpub2RlOw0KPj4+ICAgICAgICBpbnQgcmV0Ow0KPj4+ICsgICAgcG1fcnVu
+dGltZV9nZXRfc3luYyhpc2ktPmRldik7DQo+Pj4gKw0KPj4+ICAgICAgICAvKiBFbmFibGUgc3Ry
+ZWFtIG9uIHRoZSBzdWIgZGV2aWNlICovDQo+Pj4gICAgICAgIHJldCA9IHY0bDJfc3ViZGV2X2Nh
+bGwoaXNpLT5lbnRpdHkuc3ViZGV2LCB2aWRlbywgc19zdHJlYW0sIDEpOw0KPj4+ICAgICAgICBp
+ZiAocmV0ICYmIHJldCAhPSAtRU5PSU9DVExDTUQpIHsNCj4+PiBAQCAtNDMxLDggKzQzMyw2IEBA
+IHN0YXRpYyBpbnQgc3RhcnRfc3RyZWFtaW5nKHN0cnVjdCB2YjJfcXVldWUgKnZxLCANCj4+PiB1
+bnNpZ25lZCBpbnQgY291bnQpDQo+Pj4gICAgICAgICAgICBnb3RvIGVycl9zdGFydF9zdHJlYW07
+DQo+Pj4gICAgICAgIH0NCj4+PiAtICAgIHBtX3J1bnRpbWVfZ2V0X3N5bmMoaXNpLT5kZXYpOw0K
+Pj4+IC0NCj4+PiAgICAgICAgLyogUmVzZXQgSVNJICovDQo+Pj4gICAgICAgIHJldCA9IGF0bWVs
+X2lzaV93YWl0X3N0YXR1cyhpc2ksIFdBSVRfSVNJX1JFU0VUKTsNCj4+PiAgICAgICAgaWYgKHJl
+dCA8IDApIHsNCj4+PiBAQCAtNDU1LDEwICs0NTUsMTEgQEAgc3RhdGljIGludCBzdGFydF9zdHJl
+YW1pbmcoc3RydWN0IHZiMl9xdWV1ZSANCj4+PiAqdnEsIHVuc2lnbmVkIGludCBjb3VudCkNCj4+
+PiAgICAgICAgcmV0dXJuIDA7DQo+Pj4gICAgZXJyX3Jlc2V0Og0KPj4+IC0gICAgcG1fcnVudGlt
+ZV9wdXQoaXNpLT5kZXYpOw0KPj4+ICAgICAgICB2NGwyX3N1YmRldl9jYWxsKGlzaS0+ZW50aXR5
+LnN1YmRldiwgdmlkZW8sIHNfc3RyZWFtLCAwKTsNCj4+PiAgICBlcnJfc3RhcnRfc3RyZWFtOg0K
+Pj4+ICsgICAgcG1fcnVudGltZV9wdXQoaXNpLT5kZXYpOw0KPj4+ICsNCj4+PiAgICAgICAgc3Bp
+bl9sb2NrX2lycSgmaXNpLT5pcnFsb2NrKTsNCj4+PiAgICAgICAgaXNpLT5hY3RpdmUgPSBOVUxM
+Ow0KPj4+ICAgICAgICAvKiBSZWxlYXNlIGFsbCBhY3RpdmUgYnVmZmVycyAqLw0KPj4+IEBAIC01
+NjYsMjAgKzU2NywxNSBAQCBzdGF0aWMgaW50IGlzaV90cnlfZm10KHN0cnVjdCBhdG1lbF9pc2kg
+KmlzaSwgDQo+Pj4gc3RydWN0IHY0bDJfZm9ybWF0ICpmLA0KPj4+ICAgICAgICB9Ow0KPj4+ICAg
+ICAgICBpbnQgcmV0Ow0KPj4+IC0gICAgaWYgKGYtPnR5cGUgIT0gVjRMMl9CVUZfVFlQRV9WSURF
+T19DQVBUVVJFKQ0KPj4+IC0gICAgICAgIHJldHVybiAtRUlOVkFMOw0KPj4+IC0NCj4+PiAgICAg
+ICAgaXNpX2ZtdCA9IGZpbmRfZm9ybWF0X2J5X2ZvdXJjYyhpc2ksIHBpeGZtdC0+cGl4ZWxmb3Jt
+YXQpOw0KPj4+ICAgICAgICBpZiAoIWlzaV9mbXQpIHsNCj4+PiAgICAgICAgICAgIGlzaV9mbXQg
+PSBpc2ktPnVzZXJfZm9ybWF0c1tpc2ktPm51bV91c2VyX2Zvcm1hdHMgLSAxXTsNCj4+PiAgICAg
+ICAgICAgIHBpeGZtdC0+cGl4ZWxmb3JtYXQgPSBpc2lfZm10LT5mb3VyY2M7DQo+Pj4gICAgICAg
+IH0NCj4+PiAtICAgIC8qIExpbWl0IHRvIEF0bWVsIElTQyBoYXJkd2FyZSBjYXBhYmlsaXRpZXMg
+Ki8NCj4+PiAtICAgIGlmIChwaXhmbXQtPndpZHRoID4gTUFYX1NVUFBPUlRfV0lEVEgpDQo+Pj4g
+LSAgICAgICAgcGl4Zm10LT53aWR0aCA9IE1BWF9TVVBQT1JUX1dJRFRIOw0KPj4+IC0gICAgaWYg
+KHBpeGZtdC0+aGVpZ2h0ID4gTUFYX1NVUFBPUlRfSEVJR0hUKQ0KPj4+IC0gICAgICAgIHBpeGZt
+dC0+aGVpZ2h0ID0gTUFYX1NVUFBPUlRfSEVJR0hUOw0KPj4+ICsgICAgLyogTGltaXQgdG8gQXRt
+ZWwgSVNJIGhhcmR3YXJlIGNhcGFiaWxpdGllcyAqLw0KPj4+ICsgICAgcGl4Zm10LT53aWR0aCA9
+IGNsYW1wKHBpeGZtdC0+d2lkdGgsIDBVLCBNQVhfU1VQUE9SVF9XSURUSCk7DQo+Pj4gKyAgICBw
+aXhmbXQtPmhlaWdodCA9IGNsYW1wKHBpeGZtdC0+aGVpZ2h0LCAwVSwgTUFYX1NVUFBPUlRfSEVJ
+R0hUKTsNCj4+PiAgICAgICAgdjRsMl9maWxsX21idXNfZm9ybWF0KCZmb3JtYXQuZm9ybWF0LCBw
+aXhmbXQsIA0KPj4+IGlzaV9mbXQtPm1idXNfY29kZSk7DQo+Pj4gICAgICAgIHJldCA9IHY0bDJf
+c3ViZGV2X2NhbGwoaXNpLT5lbnRpdHkuc3ViZGV2LCBwYWQsIHNldF9mbXQsDQo+Pj4gQEAgLTEw
+NTgsNyArMTA1NCw3IEBAIHN0YXRpYyBpbnQgaXNpX2dyYXBoX25vdGlmeV9jb21wbGV0ZShzdHJ1
+Y3QgDQo+Pj4gdjRsMl9hc3luY19ub3RpZmllciAqbm90aWZpZXIpDQo+Pj4gICAgICAgIHN0cnVj
+dCBhdG1lbF9pc2kgKmlzaSA9IG5vdGlmaWVyX3RvX2lzaShub3RpZmllcik7DQo+Pj4gICAgICAg
+IGludCByZXQ7DQo+Pj4gLSAgICBpc2ktPnZkZXYtPmN0cmxfaGFuZGxlciAgICA9IGlzaS0+ZW50
+aXR5LnN1YmRldi0+Y3RybF9oYW5kbGVyOw0KPj4+ICsgICAgaXNpLT52ZGV2LT5jdHJsX2hhbmRs
+ZXIgPSBpc2ktPmVudGl0eS5zdWJkZXYtPmN0cmxfaGFuZGxlcjsNCj4+PiAgICAgICAgcmV0ID0g
+aXNpX2Zvcm1hdHNfaW5pdChpc2kpOw0KPj4+ICAgICAgICBpZiAocmV0KSB7DQo+Pj4gICAgICAg
+ICAgICBkZXZfZXJyKGlzaS0+ZGV2LCAiTm8gc3VwcG9ydGVkIG1lZGlhYnVzIGZvcm1hdCBmb3Vu
+ZFxuIik7
