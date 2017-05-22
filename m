@@ -1,347 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:34207 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750988AbdEFM4p (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 6 May 2017 08:56:45 -0400
-From: Gideon Sheril <elmocia@gmail.com>
-To: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        rvarsha016@gmail.com, julia.lawall@lip6.fr, alan@linux.intel.com,
-        dan.carpenter@oracle.com, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Cc: Gideon Sheril <elmocia@gmail.com>
-Subject: [PATCH] Fix spaces ERROR in atomisp_gmin_platform.c
-Date: Sat,  6 May 2017 15:56:23 +0300
-Message-Id: <1494075383-8682-1-git-send-email-elmocia@gmail.com>
-In-Reply-To: <20170506020952.wzfx2wefmwzxja3d@mwanda>
-References: <20170506020952.wzfx2wefmwzxja3d@mwanda>
+Received: from smtprelay.synopsys.com ([198.182.47.9]:59242 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757672AbdEVJl6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 May 2017 05:41:58 -0400
+Subject: Re: [RFC 0/2] Synopsys Designware HDMI Video Capture Controller + PHY
+To: <linux-media@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <cover.1492767176.git.joabreu@synopsys.com>
+CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        <linux-kernel@vger.kernel.org>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <9d391e15-7912-426a-eb4e-343d9a65f54f@synopsys.com>
+Date: Mon, 22 May 2017 10:41:53 +0100
+MIME-Version: 1.0
+In-Reply-To: <cover.1492767176.git.joabreu@synopsys.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c:
-Fixing style ERRORs related to spaces instead of tabs
-and comma/assignment space padding.
+Hi Hans,
 
-Signed-off-by: Gideon Sheril <elmocia@gmail.com>
----
- .../platform/intel-mid/atomisp_gmin_platform.c     | 180 ++++++++++-----------
- 1 file changed, 89 insertions(+), 91 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-index 5b4506a..3ee8b5e 100644
---- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-+++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-@@ -51,7 +51,7 @@ struct gmin_subdev {
- 
- static struct gmin_subdev gmin_subdevs[MAX_SUBDEVS];
- 
--static enum { PMIC_UNSET = 0, PMIC_REGULATOR, PMIC_AXP, PMIC_TI ,
-+static enum { PMIC_UNSET = 0, PMIC_REGULATOR, PMIC_AXP, PMIC_TI,
- 	PMIC_CRYSTALCOVE } pmic_id;
- 
- /* The atomisp uses type==0 for the end-of-list marker, so leave space. */
-@@ -152,13 +152,13 @@ const struct camera_af_platform_data *camera_get_af_platform_data(void)
- EXPORT_SYMBOL_GPL(camera_get_af_platform_data);
- 
- int atomisp_register_i2c_module(struct v4l2_subdev *subdev,
--                                struct camera_sensor_platform_data *plat_data,
--                                enum intel_v4l2_subdev_type type)
-+	struct camera_sensor_platform_data *plat_data,
-+	enum intel_v4l2_subdev_type type)
- {
- 	int i;
- 	struct i2c_board_info *bi;
- 	struct gmin_subdev *gs;
--        struct i2c_client *client = v4l2_get_subdevdata(subdev);
-+	struct i2c_client *client = v4l2_get_subdevdata(subdev);
- 	struct acpi_device *adev;
- 
- 	dev_info(&client->dev, "register atomisp i2c module type %d\n", type);
-@@ -172,7 +172,7 @@ int atomisp_register_i2c_module(struct v4l2_subdev *subdev,
- 	if (adev)
- 		adev->power.flags.power_resources = 0;
- 
--	for (i=0; i < MAX_SUBDEVS; i++)
-+	for (i = 0; i < MAX_SUBDEVS; i++)
- 		if (!pdata.subdevs[i].type)
- 			break;
- 
-@@ -203,13 +203,13 @@ int atomisp_register_i2c_module(struct v4l2_subdev *subdev,
- EXPORT_SYMBOL_GPL(atomisp_register_i2c_module);
- 
- struct v4l2_subdev *atomisp_gmin_find_subdev(struct i2c_adapter *adapter,
--					     struct i2c_board_info *board_info)
-+	struct i2c_board_info *board_info)
- {
- 	int i;
--	for (i=0; i < MAX_SUBDEVS && pdata.subdevs[i].type; i++) {
-+	for (i = 0; i < MAX_SUBDEVS && pdata.subdevs[i].type; i++) {
- 		struct intel_v4l2_subdev_table *sd = &pdata.subdevs[i];
- 		if (sd->v4l2_subdev.i2c_adapter_id == adapter->nr &&
--		    sd->v4l2_subdev.board_info.addr == board_info->addr)
-+			sd->v4l2_subdev.board_info.addr == board_info->addr)
- 			return sd->subdev;
- 	}
- 	return NULL;
-@@ -270,45 +270,45 @@ static const struct gmin_cfg_var t100_vars[] = {
- };
- 
- static const struct gmin_cfg_var mrd7_vars[] = {
--        {"INT33F8:00_CamType", "1"},
--        {"INT33F8:00_CsiPort", "1"},
--        {"INT33F8:00_CsiLanes","2"},
--        {"INT33F8:00_CsiFmt","13"},
--        {"INT33F8:00_CsiBayer", "0"},
--        {"INT33F8:00_CamClk", "0"},
--        {"INT33F9:00_CamType", "1"},
--        {"INT33F9:00_CsiPort", "0"},
--        {"INT33F9:00_CsiLanes","1"},
--        {"INT33F9:00_CsiFmt","13"},
--        {"INT33F9:00_CsiBayer", "0"},
--        {"INT33F9:00_CamClk", "1"},
--        {},
-+	{"INT33F8:00_CamType", "1"},
-+	{"INT33F8:00_CsiPort", "1"},
-+	{"INT33F8:00_CsiLanes", "2"},
-+	{"INT33F8:00_CsiFmt", "13"},
-+	{"INT33F8:00_CsiBayer", "0"},
-+	{"INT33F8:00_CamClk", "0"},
-+	{"INT33F9:00_CamType", "1"},
-+	{"INT33F9:00_CsiPort", "0"},
-+	{"INT33F9:00_CsiLanes", "1"},
-+	{"INT33F9:00_CsiFmt", "13"},
-+	{"INT33F9:00_CsiBayer", "0"},
-+	{"INT33F9:00_CamClk", "1"},
-+	{},
- };
- 
- static const struct gmin_cfg_var ecs7_vars[] = {
--        {"INT33BE:00_CsiPort", "1"},
--        {"INT33BE:00_CsiLanes","2"},
--        {"INT33BE:00_CsiFmt","13"},
--        {"INT33BE:00_CsiBayer", "2"},
--        {"INT33BE:00_CamClk", "0"},
--        {"INT33F0:00_CsiPort", "0"},
--        {"INT33F0:00_CsiLanes","1"},
--        {"INT33F0:00_CsiFmt","13"},
--        {"INT33F0:00_CsiBayer", "0"},
--        {"INT33F0:00_CamClk", "1"},
--        {"gmin_V2P8GPIO","402"},
--        {},
-+	{"INT33BE:00_CsiPort", "1"},
-+	{"INT33BE:00_CsiLanes", "2"},
-+	{"INT33BE:00_CsiFmt", "13"},
-+	{"INT33BE:00_CsiBayer", "2"},
-+	{"INT33BE:00_CamClk", "0"},
-+	{"INT33F0:00_CsiPort", "0"},
-+	{"INT33F0:00_CsiLanes", "1"},
-+	{"INT33F0:00_CsiFmt", "13"},
-+	{"INT33F0:00_CsiBayer", "0"},
-+	{"INT33F0:00_CamClk", "1"},
-+	{"gmin_V2P8GPIO", "402"},
-+	{},
- };
- 
- 
- static const struct gmin_cfg_var i8880_vars[] = {
--        {"XXOV2680:00_CsiPort", "1"},
--        {"XXOV2680:00_CsiLanes","1"},
--        {"XXOV2680:00_CamClk","0"},
--        {"XXGC0310:00_CsiPort", "0"},
--        {"XXGC0310:00_CsiLanes", "1"},
--        {"XXGC0310:00_CamClk", "1"},
--        {},
-+	{"XXOV2680:00_CsiPort", "1"},
-+	{"XXOV2680:00_CsiLanes", "1"},
-+	{"XXOV2680:00_CamClk", "0"},
-+	{"XXGC0310:00_CsiPort", "0"},
-+	{"XXGC0310:00_CsiLanes", "1"},
-+	{"XXGC0310:00_CamClk", "1"},
-+	{},
- };
- 
- static const struct {
-@@ -317,15 +317,15 @@ static const struct {
- } hard_vars[] = {
- 	{ "BYT-T FFD8", ffrd8_vars },
- 	{ "T100TA", t100_vars },
--        { "MRD7", mrd7_vars },
--        { "ST70408", ecs7_vars },
--        { "VTA0803", i8880_vars },
-+	{ "MRD7", mrd7_vars },
-+	{ "ST70408", ecs7_vars },
-+	{ "VTA0803", i8880_vars },
- };
- 
- 
- #define GMIN_CFG_VAR_EFI_GUID EFI_GUID(0xecb54cd9, 0xe5ae, 0x4fdc, \
--				       0xa9, 0x71, 0xe8, 0x77,	   \
--				       0x75, 0x60, 0x68, 0xf7)
-+	0xa9, 0x71, 0xe8, 0x77,	   \
-+	0x75, 0x60, 0x68, 0xf7)
- 
- #define CFG_VAR_NAME_MAX 64
- 
-@@ -343,19 +343,17 @@ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
- {
- 	int i, ret;
- 	struct device *dev;
--        struct i2c_client *client = v4l2_get_subdevdata(subdev);
--
--	if (!pmic_id) {
-+	struct i2c_client *client = v4l2_get_subdevdata(subdev);
- 
--			pmic_id = PMIC_REGULATOR;
--	}
-+	if (!pmic_id)
-+		pmic_id = PMIC_REGULATOR;
- 
- 	if (!client)
- 		return NULL;
- 
- 	dev = &client->dev;
- 
--	for (i=0; i < MAX_SUBDEVS && gmin_subdevs[i].subdev; i++)
-+	for (i = 0; i < MAX_SUBDEVS && gmin_subdevs[i].subdev; i++)
- 		;
- 	if (i >= MAX_SUBDEVS)
- 		return NULL;
-@@ -410,7 +408,7 @@ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
- static struct gmin_subdev *find_gmin_subdev(struct v4l2_subdev *subdev)
- {
- 	int i;
--	for (i=0; i < MAX_SUBDEVS; i++)
-+	for (i = 0; i < MAX_SUBDEVS; i++)
- 		if (gmin_subdevs[i].subdev == subdev)
- 			return &gmin_subdevs[i];
- 	return gmin_subdev_add(subdev);
-@@ -481,7 +479,7 @@ int gmin_v1p8_ctrl(struct v4l2_subdev *subdev, int on)
- 		gpio_set_value(v1p8_gpio, on);
- 
- 	if (gs->v1p8_reg) {
--           regulator_set_voltage(gs->v1p8_reg, 1800000, 1800000);
-+		regulator_set_voltage(gs->v1p8_reg, 1800000, 1800000);
- 		if (on)
- 			return regulator_enable(gs->v1p8_reg);
- 		else
-@@ -517,7 +515,7 @@ int gmin_v2p8_ctrl(struct v4l2_subdev *subdev, int on)
- 		gpio_set_value(v2p8_gpio, on);
- 
- 	if (gs->v2p8_reg) {
--           regulator_set_voltage(gs->v2p8_reg, 2900000, 2900000);
-+		regulator_set_voltage(gs->v2p8_reg, 2900000, 2900000);
- 		if (on)
- 			return regulator_enable(gs->v2p8_reg);
- 		else
-@@ -552,7 +550,7 @@ static int gmin_csi_cfg(struct v4l2_subdev *sd, int flag)
- }
- 
- static struct camera_vcm_control *gmin_get_vcm_ctrl(struct v4l2_subdev *subdev,
--						char *camera_module)
-+	char *camera_module)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(subdev);
- 	struct gmin_subdev *gs = find_gmin_subdev(subdev);
-@@ -590,9 +588,9 @@ static struct camera_sensor_platform_data gmin_plat = {
- };
- 
- struct camera_sensor_platform_data *gmin_camera_platform_data(
--		struct v4l2_subdev *subdev,
--		enum atomisp_input_format csi_format,
--		enum atomisp_bayer_order csi_bayer)
-+	struct v4l2_subdev *subdev,
-+	enum atomisp_input_format csi_format,
-+	enum atomisp_bayer_order csi_bayer)
- {
- 	struct gmin_subdev *gs = find_gmin_subdev(subdev);
- 	gs->csi_fmt = csi_format;
-@@ -627,13 +625,13 @@ int gmin_get_config_var(struct device *dev, const char *var, char *out, size_t *
- 	int i, j, ret;
- 	unsigned long efilen;
- 
--        if (dev && ACPI_COMPANION(dev))
--                dev = &ACPI_COMPANION(dev)->dev;
-+	if (dev && ACPI_COMPANION(dev))
-+		dev = &ACPI_COMPANION(dev)->dev;
- 
--        if (dev)
--                ret = snprintf(var8, sizeof(var8), "%s_%s", dev_name(dev), var);
--        else
--                ret = snprintf(var8, sizeof(var8), "gmin_%s", var);
-+	if (dev)
-+		ret = snprintf(var8, sizeof(var8), "%s_%s", dev_name(dev), var);
-+	else
-+		ret = snprintf(var8, sizeof(var8), "gmin_%s", var);
- 
- 	if (ret < 0 || ret >= sizeof(var8) - 1)
- 		return -EINVAL;
-@@ -692,7 +690,7 @@ int gmin_get_config_var(struct device *dev, const char *var, char *out, size_t *
- 	*out_len = efilen;
- 
- 	if (ret)
-- 		dev_warn(dev, "Failed to find gmin variable %s\n", var8);
-+		dev_warn(dev, "Failed to find gmin variable %s\n", var8);
- 
- 	return ret;
- }
-@@ -716,33 +714,33 @@ int gmin_get_var_int(struct device *dev, const char *var, int def)
- EXPORT_SYMBOL_GPL(gmin_get_var_int);
- 
- int camera_sensor_csi(struct v4l2_subdev *sd, u32 port,
--		      u32 lanes, u32 format, u32 bayer_order, int flag)
-+	u32 lanes, u32 format, u32 bayer_order, int flag)
- {
--        struct i2c_client *client = v4l2_get_subdevdata(sd);
--        struct camera_mipi_info *csi = NULL;
--
--        if (flag) {
--                csi = kzalloc(sizeof(*csi), GFP_KERNEL);
--                if (!csi) {
--                        dev_err(&client->dev, "out of memory\n");
--                        return -ENOMEM;
--                }
--                csi->port = port;
--                csi->num_lanes = lanes;
--                csi->input_format = format;
--                csi->raw_bayer_order = bayer_order;
--                v4l2_set_subdev_hostdata(sd, (void *)csi);
--                csi->metadata_format = ATOMISP_INPUT_FORMAT_EMBEDDED;
--                csi->metadata_effective_width = NULL;
--                dev_info(&client->dev,
--                         "camera pdata: port: %d lanes: %d order: %8.8x\n",
--                         port, lanes, bayer_order);
--        } else {
--                csi = v4l2_get_subdev_hostdata(sd);
--                kfree(csi);
--        }
--
--        return 0;
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct camera_mipi_info *csi = NULL;
-+
-+	if (flag) {
-+		csi = kzalloc(sizeof(*csi), GFP_KERNEL);
-+		if (!csi) {
-+			dev_err(&client->dev, "out of memory\n");
-+			return -ENOMEM;
-+		}
-+		csi->port = port;
-+		csi->num_lanes = lanes;
-+		csi->input_format = format;
-+		csi->raw_bayer_order = bayer_order;
-+		v4l2_set_subdev_hostdata(sd, (void *)csi);
-+		csi->metadata_format = ATOMISP_INPUT_FORMAT_EMBEDDED;
-+		csi->metadata_effective_width = NULL;
-+		dev_info(&client->dev,
-+			"camera pdata: port: %d lanes: %d order: %8.8x\n",
-+			port, lanes, bayer_order);
-+	} else {
-+		csi = v4l2_get_subdev_hostdata(sd);
-+		kfree(csi);
-+	}
-+
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(camera_sensor_csi);
- 
--- 
-2.7.4
+On 21-04-2017 10:53, Jose Abreu wrote:
+> Hi All,
+>
+> This is a RFC series that is intended to collect comments regarding the
+> Synopsys Designware HDMI RX controller and Synopsys Designware HDMI RX e405 PHY
+> drivers.
+>
+> The Synopsys Designware HDMI RX controller is an HDMI receiver controller that
+> is responsible to process digital data that comes from a phy. The final result
+> is a stream of raw video data that can then be connected to a video DMA, for
+> example, and transfered into RAM so that it can be displayed.
+>
+> The controller + phy available in this series natively support all HDMI 1.4 and
+> HDMI 2.0 modes, including deep color. Although, the driver is quite in its
+> initial stage and unfortunatelly only non deep color modes are supported. Also,
+> audio is not yet supported in the driver (the controller has several audio
+> output interfaces).
+>
+> Feel free to take a look at this series and please leave a comment! I can
+> expand a little bit more about design decisions and would like to know wether
+> these were the best choices.
+>
+> With best regards,
+> Jose Miguel Abreu
+>
+> Jose Abreu (2):
+>   [media] platform: Add Synopsys Designware HDMI RX PHY e405 Driver
+>   [media] platform: Add Synopsys Designware HDMI RX Controller Driver
+>
+> Cc: Carlos Palminha <palminha@synopsys.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: linux-kernel@vger.kernel.org
+> Cc: linux-media@vger.kernel.org
+>
+>  drivers/media/platform/Kconfig                |    2 +
+>  drivers/media/platform/Makefile               |    2 +
+>  drivers/media/platform/dwc/Kconfig            |   17 +
+>  drivers/media/platform/dwc/Makefile           |    2 +
+>  drivers/media/platform/dwc/dw-hdmi-phy-e405.c |  879 ++++++++++++++++
+>  drivers/media/platform/dwc/dw-hdmi-phy-e405.h |   63 ++
+>  drivers/media/platform/dwc/dw-hdmi-rx.c       | 1396 +++++++++++++++++++++++++
+>  drivers/media/platform/dwc/dw-hdmi-rx.h       |  313 ++++++
+>  include/media/dwc/dw-hdmi-phy-pdata.h         |   64 ++
+>  include/media/dwc/dw-hdmi-rx-pdata.h          |   50 +
+>  10 files changed, 2788 insertions(+)
+>  create mode 100644 drivers/media/platform/dwc/Kconfig
+>  create mode 100644 drivers/media/platform/dwc/Makefile
+>  create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.c
+>  create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.h
+>  create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.c
+>  create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.h
+>  create mode 100644 include/media/dwc/dw-hdmi-phy-pdata.h
+>  create mode 100644 include/media/dwc/dw-hdmi-rx-pdata.h
+>
+
+Sorry for pinging but could you review this rfc series? This is
+not for the controller I mentioned a while ago, its for a
+different one which I had a few free time to make a driver.
+Though, the behavior and phy interface is similar, and the phy
+driver used is the same also.
+
+Best regards,
+Jose Miguel Abreu
