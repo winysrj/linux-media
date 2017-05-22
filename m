@@ -1,183 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:35906 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754100AbdEGWEe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 7 May 2017 18:04:34 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com, jasmin@anw.at
-Subject: [PATCH 07/11] [media] dvb-core/dvb_ca_en50221.c: Make checkpatch happy 3
-Date: Sun,  7 May 2017 23:23:30 +0200
-Message-Id: <1494192214-20082-8-git-send-email-jasmin@anw.at>
-In-Reply-To: <1494192214-20082-1-git-send-email-jasmin@anw.at>
-References: <1494192214-20082-1-git-send-email-jasmin@anw.at>
+Received: from fallback.mail.elte.hu ([157.181.151.13]:38167 "EHLO
+        fallback.mail.elte.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933017AbdEVVGE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 May 2017 17:06:04 -0400
+Received: from mx3.mail.elte.hu ([157.181.1.138])
+        by fallback.mail.elte.hu with esmtp (Exim)
+        id 1dCuWe-00010w-5H
+        from <melko@frugalware.org>
+        for <linux-media@vger.kernel.org>; Mon, 22 May 2017 23:06:00 +0200
+From: Paolo Cretaro <melko@frugalware.org>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, Paolo Cretaro <melko@frugalware.org>
+Subject: [PATCH] [media] atomisp: use NULL instead of 0 for pointers
+Date: Mon, 22 May 2017 23:04:46 +0200
+Message-Id: <20170522210446.20029-1-melko@frugalware.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+Fix warning issued by sparse: Using plain integer as NULL pointer
 
-Fixed all:
-  WARNING: braces {} are not necessary for single statement blocks
-
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+Signed-off-by: Paolo Cretaro <melko@frugalware.org>
 ---
- drivers/media/dvb-core/dvb_ca_en50221.c | 48 +++++++++++++--------------------
- 1 file changed, 18 insertions(+), 30 deletions(-)
+ drivers/staging/media/atomisp/i2c/ov5693/ov5693.c                     | 2 +-
+ .../media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c        | 2 +-
+ .../media/atomisp/pci/atomisp2/css2400/runtime/spctrl/src/spctrl.c    | 2 +-
+ drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c                  | 2 +-
+ drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c  | 4 ++--
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-index 6d405b5..af66c83 100644
---- a/drivers/media/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-@@ -240,9 +240,8 @@ static int dvb_ca_en50221_check_camstatus(struct dvb_ca_private *ca, int slot)
- 	int cam_changed;
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
+index 5e9dafe7cc32..d6447398f5ef 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
++++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
+@@ -706,7 +706,7 @@ static int ov5693_read_otp_reg_array(struct i2c_client *client, u16 size,
+ {
+ 	u16 index;
+ 	int ret;
+-	u16 *pVal = 0;
++	u16 *pVal = NULL;
  
- 	/* IRQ mode */
--	if (ca->flags & DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE) {
-+	if (ca->flags & DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE)
- 		return (atomic_read(&sl->camchange_count) != 0);
--	}
+ 	for (index = 0; index <= size; index++) {
+ 		pVal = (u16 *) (buf + index);
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c
+index ed33d4c4c84a..5d40afd482f5 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c
+@@ -239,7 +239,7 @@ static ia_css_queue_t *bufq_get_qhandle(
+ 	enum sh_css_queue_id id,
+ 	int thread)
+ {
+-	ia_css_queue_t *q = 0;
++	ia_css_queue_t *q = NULL;
  
- 	/* poll mode */
- 	slot_status = ca->pub->poll_slot_status(ca->pub, slot, ca->open);
-@@ -255,11 +254,9 @@ static int dvb_ca_en50221_check_camstatus(struct dvb_ca_private *ca, int slot)
- 	}
+ 	switch (type) {
+ 	case sh_css_host2sp_buffer_queue:
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/spctrl/src/spctrl.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/spctrl/src/spctrl.c
+index b36d7b00ebe8..18966d89602a 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/spctrl/src/spctrl.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/spctrl/src/spctrl.c
+@@ -57,7 +57,7 @@ enum ia_css_err ia_css_spctrl_load_fw(sp_ID_t sp_id,
+ 	hrt_vaddress code_addr = mmgr_NULL;
+ 	struct ia_css_sp_init_dmem_cfg *init_dmem_cfg;
  
- 	if (cam_changed) {
--		if (!cam_present_now) {
--			sl->camchange_type = DVB_CA_EN50221_CAMCHANGE_REMOVED;
--		} else {
--			sl->camchange_type = DVB_CA_EN50221_CAMCHANGE_INSERTED;
--		}
-+		sl->camchange_type = cam_present_now ?
-+				     DVB_CA_EN50221_CAMCHANGE_INSERTED :
-+				     DVB_CA_EN50221_CAMCHANGE_REMOVED;
- 		atomic_set(&sl->camchange_count, 1);
- 	} else {
- 		if ((sl->slot_state == SLOT_STAT_WAITREADY) &&
-@@ -309,9 +306,8 @@ static int dvb_ca_en50221_wait_if_status(struct dvb_ca_private *ca, int slot,
- 		}
+-	if ((sp_id >= N_SP_ID) || (spctrl_cfg == 0))
++	if ((sp_id >= N_SP_ID) || (spctrl_cfg == NULL))
+ 		return IA_CSS_ERR_INVALID_ARGUMENTS;
  
- 		/* check for timeout */
--		if (time_after(jiffies, timeout)) {
-+		if (time_after(jiffies, timeout))
- 			break;
--		}
+ 	spctrl_cofig_info[sp_id].code_addr = mmgr_NULL;
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
+index 57295397da3e..5e63073f3581 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
+@@ -193,7 +193,7 @@ int hmm_init(void)
+ 	 * at the beginning, to avoid hmm_alloc return 0 in the
+ 	 * further allocation.
+ 	 */
+-	dummy_ptr = hmm_alloc(1, HMM_BO_PRIVATE, 0, 0, HMM_UNCACHED);
++	dummy_ptr = hmm_alloc(1, HMM_BO_PRIVATE, 0, NULL, HMM_UNCACHED);
  
- 		/* wait for a bit */
- 		msleep(1);
-@@ -534,9 +530,8 @@ static int dvb_ca_en50221_parse_attributes(struct dvb_ca_private *ca, int slot)
- 
- 	sl = &ca->slot_info[slot];
- 	sl->config_base = 0;
--	for (i = 0; i < rasz + 1; i++) {
-+	for (i = 0; i < rasz + 1; i++)
- 		sl->config_base |= (tuple[2 + i] << (8 * i));
--	}
- 
- 	/* check it contains the correct DVB string */
- 	dvb_str = findstr((char *)tuple, tupleLength, "DVB_CI_V", 8);
-@@ -774,9 +769,9 @@ static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot,
- 		buf[0], (buf[1] & 0x80) == 0, bytes_read);
- 
- 	/* wake up readers when a last_fragment is received */
--	if ((buf[1] & 0x80) == 0x00) {
-+	if ((buf[1] & 0x80) == 0x00)
- 		wake_up_interruptible(&ca->wait_queue);
--	}
-+
- 	status = bytes_read;
- 
- exit:
-@@ -1122,9 +1117,8 @@ static void dvb_ca_en50221_thread_state_machine(struct dvb_ca_private *ca,
- 			dvb_ca_en50221_slot_shutdown(ca, slot);
- 
- 		/* if a CAM is NOW present, initialise it */
--		if (sl->camchange_type == DVB_CA_EN50221_CAMCHANGE_INSERTED) {
-+		if (sl->camchange_type == DVB_CA_EN50221_CAMCHANGE_INSERTED)
- 			sl->slot_state = SLOT_STAT_UNINIT;
--		}
- 
- 		/* we've handled one CAMCHANGE */
- 		dvb_ca_en50221_thread_update_delay(ca);
-@@ -1389,9 +1383,8 @@ static int dvb_ca_en50221_io_do_ioctl(struct file *file,
- 			&& (sl->slot_state != SLOT_STAT_INVALID)) {
- 			info->flags = CA_CI_MODULE_PRESENT;
- 		}
--		if (sl->slot_state == SLOT_STAT_RUNNING) {
-+		if (sl->slot_state == SLOT_STAT_RUNNING)
- 			info->flags |= CA_CI_MODULE_READY;
--		}
- 		break;
- 	}
- 
-@@ -1541,9 +1534,8 @@ static int dvb_ca_en50221_io_read_condition(struct dvb_ca_private *ca,
- 		if (sl->slot_state != SLOT_STAT_RUNNING)
- 			goto nextslot;
- 
--		if (sl->rx_buffer.data == NULL) {
-+		if (sl->rx_buffer.data == NULL)
- 			return 0;
--		}
- 
- 		idx = dvb_ringbuffer_pkt_next(&sl->rx_buffer, -1, &fraglen);
- 		while (idx != -1) {
-@@ -1637,20 +1629,18 @@ static ssize_t dvb_ca_en50221_io_read(struct file *file, char __user *buf,
- 			connection_id = hdr[0];
- 		if (hdr[0] == connection_id) {
- 			if (pktlen < count) {
--				if ((pktlen + fraglen - 2) > count) {
-+				if ((pktlen + fraglen - 2) > count)
- 					fraglen = count - pktlen;
--				} else {
-+				else
- 					fraglen -= 2;
--				}
- 
- 				status =
- 				   dvb_ringbuffer_pkt_read_user(&sl->rx_buffer,
- 								idx, 2,
- 								buf + pktlen,
- 								fraglen);
--				if (status < 0) {
-+				if (status < 0)
- 					goto exit;
--				}
- 				pktlen += fraglen;
- 			}
- 
-@@ -1776,9 +1766,8 @@ static unsigned int dvb_ca_en50221_io_poll(struct file *file, poll_table *wait)
- 
- 	dprintk("%s\n", __func__);
- 
--	if (dvb_ca_en50221_io_read_condition(ca, &result, &slot) == 1) {
-+	if (dvb_ca_en50221_io_read_condition(ca, &result, &slot) == 1)
- 		mask |= POLLIN;
--	}
- 
- 	/* if there is something, return now */
- 	if (mask)
-@@ -1787,9 +1776,8 @@ static unsigned int dvb_ca_en50221_io_poll(struct file *file, poll_table *wait)
- 	/* wait for something to happen */
- 	poll_wait(file, &ca->wait_queue, wait);
- 
--	if (dvb_ca_en50221_io_read_condition(ca, &result, &slot) == 1) {
-+	if (dvb_ca_en50221_io_read_condition(ca, &result, &slot) == 1)
- 		mask |= POLLIN;
--	}
- 
- 	return mask;
- }
-@@ -1930,9 +1918,9 @@ void dvb_ca_en50221_release(struct dvb_ca_en50221 *pubca)
- 	/* shutdown the thread if there was one */
- 	kthread_stop(ca->thread);
- 
--	for (i = 0; i < ca->slot_count; i++) {
-+	for (i = 0; i < ca->slot_count; i++)
- 		dvb_ca_en50221_slot_shutdown(ca, i);
--	}
-+
- 	dvb_remove_device(ca->dvbdev);
- 	dvb_ca_private_put(ca);
- 	pubca->private = NULL;
+ 	if (!ret) {
+ 		ret = sysfs_create_group(&atomisp_dev->kobj,
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c b/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c
+index 7dff22f59e29..2e78976bb2ac 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c
+@@ -55,7 +55,7 @@ static ia_css_ptr __hrt_isp_css_mm_alloc(size_t bytes, void *userptr,
+ 	if (type == HRT_USR_PTR) {
+ 		if (userptr == NULL)
+ 			return hmm_alloc(bytes, HMM_BO_PRIVATE, 0,
+-						 0, cached);
++						 NULL, cached);
+ 		else {
+ 			if (num_pages < ((__page_align(bytes)) >> PAGE_SHIFT))
+ 				dev_err(atomisp_dev,
+@@ -94,7 +94,7 @@ ia_css_ptr hrt_isp_css_mm_alloc_user_ptr(size_t bytes, void *userptr,
+ ia_css_ptr hrt_isp_css_mm_alloc_cached(size_t bytes)
+ {
+ 	if (my_userptr == NULL)
+-		return hmm_alloc(bytes, HMM_BO_PRIVATE, 0, 0,
++		return hmm_alloc(bytes, HMM_BO_PRIVATE, 0, NULL,
+ 						HMM_CACHED);
+ 	else {
+ 		if (my_num_pages < ((__page_align(bytes)) >> PAGE_SHIFT))
 -- 
-2.7.4
+2.13.0
