@@ -1,53 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40369
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754636AbdERMiu (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:34301 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933441AbdEWDYT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 08:38:50 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Peter Senna Tschudin <peter.senna@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 2/5] [media] saa7164: better handle error codes
-Date: Thu, 18 May 2017 09:38:36 -0300
-Message-Id: <26c356e6512bc7227a5af0dac87d4afbd2063e01.1495110899.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1495110899.git.mchehab@s-opensource.com>
-References: <cover.1495110899.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1495110899.git.mchehab@s-opensource.com>
-References: <cover.1495110899.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Mon, 22 May 2017 23:24:19 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>
+CC: <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
+Subject: [PATCH v4 0/3] Fix mdp device tree 
+Date: Tue, 23 May 2017 11:24:08 +0800
+Message-ID: <1495509851-29159-1-git-send-email-minghsiu.tsai@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right now, the driver is doing the right thing for
-PVC_ERRORCODE_UNKNOWN and PVC_ERRORCODE_INVALID_CONTROL:
-for both, it returns an error code (SAA_ERR_NOT_SUPPORTED).
+Changes in v4:
+- Add backwards compability if dts is out-of-date
 
-However, it is printing two error messages instead of one
-on those cases.
+Changes in v3:
+- Upload patches again because forget to add v2 in title
 
-Fix the logic.
+Changes in v2:
+- Update commit message
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/pci/saa7164/saa7164-cmd.c | 2 ++
- 1 file changed, 2 insertions(+)
+If the mdp_* nodes are under an mdp sub-node, their corresponding
+platform device does not automatically get its iommu assigned properly.
 
-diff --git a/drivers/media/pci/saa7164/saa7164-cmd.c b/drivers/media/pci/saa7164/saa7164-cmd.c
-index 175015ca79f2..dfebd77ada59 100644
---- a/drivers/media/pci/saa7164/saa7164-cmd.c
-+++ b/drivers/media/pci/saa7164/saa7164-cmd.c
-@@ -506,6 +506,8 @@ int saa7164_cmd_send(struct saa7164_dev *dev, u8 id, enum tmComResCmd command,
- 				dprintk(DBGLVL_CMD,
- 					"%s() UNKNOWN OR INVALID CONTROL\n",
- 					__func__);
-+				ret = SAA_ERR_NOT_SUPPORTED;
-+				break;
- 			default:
- 				dprintk(DBGLVL_CMD, "%s() UNKNOWN\n", __func__);
- 				ret = SAA_ERR_NOT_SUPPORTED;
+Fix this by moving the mdp component nodes up a level such that they are
+siblings of mdp and all other SoC subsystems.  This also simplifies the
+device tree.
+
+Although it fixes iommu assignment issue, it also break compatibility
+with old device tree. So, the patch in driver is needed to iterate over
+sibling mdp device nodes, not child ones, to keep driver work properly.
+
+Daniel Kurtz (2):
+  arm64: dts: mt8173: Fix mdp device tree
+  media: mtk-mdp: Fix mdp device tree
+
+Minghsiu Tsai (1):
+  dt-bindings: mt8173: Fix mdp device tree
+
+ .../devicetree/bindings/media/mediatek-mdp.txt     |  12 +-
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi           | 126 ++++++++++-----------
+ drivers/media/platform/mtk-mdp/mtk_mdp_core.c      |  12 +-
+ 3 files changed, 73 insertions(+), 77 deletions(-)
+
 -- 
-2.9.3
+1.9.1
