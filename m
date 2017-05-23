@@ -1,191 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38678 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750863AbdE2Iye (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59914 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1758270AbdEWMfK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 04:54:34 -0400
-Subject: Re: [PATCH v4 0/2] cec: STM32 driver
-To: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        yannick.fertre@st.com, alexandre.torgue@st.com,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        robh@kernel.org, hans.verkuil@cisco.com
-References: <1496046855-5809-1-git-send-email-benjamin.gaignard@linaro.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5ef1d96d-dc5f-49b9-0650-51d086efc226@xs4all.nl>
-Date: Mon, 29 May 2017 10:54:27 +0200
+        Tue, 23 May 2017 08:35:10 -0400
+Date: Tue, 23 May 2017 15:35:04 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        posciak@chromium.org, Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, sumit.semwal@linaro.org,
+        Rob Clark <robdclark@gmail.com>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>, labbott@redhat.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Samu Onkalo <samu.onkalo@intel.com>
+Subject: Re: [RFC v4 13/18] vb2: Don't sync cache for a buffer if so requested
+Message-ID: <20170523123503.GC29527@valkosipuli.retiisi.org.uk>
+References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1494255810-12672-14-git-send-email-sakari.ailus@linux.intel.com>
+ <CAAFQd5CD_-754-xEXF7-r3SYWQoOn8FYVE_HXF_kuDfH2OtcYQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1496046855-5809-1-git-send-email-benjamin.gaignard@linaro.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5CD_-754-xEXF7-r3SYWQoOn8FYVE_HXF_kuDfH2OtcYQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Benjamin,
+Hi Tomasz,
 
-On 05/29/2017 10:34 AM, Benjamin Gaignard wrote:
-> version 4:
-> - rebased on Hans cec-config branch
-> - rework bindings commit message
-> - add notifier support
+On Wed, May 10, 2017 at 07:00:10PM +0800, Tomasz Figa wrote:
+> Hi Sakari,
+> 
+> Few comments inline.
+> 
+> On Mon, May 8, 2017 at 11:03 PM, Sakari Ailus
+> <sakari.ailus@linux.intel.com> wrote:
+> > From: Samu Onkalo <samu.onkalo@intel.com>
+> >
+> > The user may request to the driver (vb2) to skip the cache maintenance
+> > operations in case the buffer does not need cache synchronisation, e.g. in
+> > cases where the buffer is passed between hardware blocks without it being
+> > touched by the CPU.
+> [snip]
+> > @@ -1199,6 +1236,11 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
+> >                         dprintk(1, "buffer initialization failed\n");
+> >                         goto err;
+> >                 }
+> > +
+> > +               /* This is new buffer memory --- always synchronise cache. */
+> > +               __mem_prepare_planes(vb);
+> > +       } else if (!no_cache_sync) {
+> > +               __mem_prepare_planes(vb);
+> 
+> Do we actually need this at all for DMABUF, given that respective
+> callbacks in both vb2_dc and vb2_sg actually bail out if so?
 
-I really don't like this change. This forced me to think about this a bit more,
-and I think this requires another change as well.
+I think the original purpose for the finish and prepare might have allowed
+more than just cache synchronisation but that's all they've ever done. I
+think the documentation should be changed to reflect this, and then we could
+drop the call here.
 
-The problem you have is that the drm driver for this platform isn't ready yet,
-so this CEC driver needs userspace to provide a physical address since it can't
-use a notifier.
+There should be no need for this anyway.
 
-Trying to support both is a bad idea since this runs the risk that we will forget
-to remove the CAP_PHYS_ADDR path later.
+> 
+> >         }
+> >
+> >         ret = call_vb_qop(vb, buf_prepare, vb);
+> [snip]
+> > @@ -568,7 +571,11 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+> >         }
+> >
+> >         ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
+> > -       return ret ? ret : vb2_core_qbuf(q, b->index, b);
+> > +       if (ret)
+> > +               return ret;
+> > +
+> > +       return vb2_core_qbuf(q, b->index, b,
+> > +                            b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC);
+> 
+> Can we really let the userspace alone control this? I believe there
+> are drivers that need to do some fixup in OUTPUT buffers before
+> sending to the hardware or in CAPTURE buffer after getting from the
+> hardware, respectively in buf_prepare or buf_finish. I believe such
+> driver needs to be able to override this behavior.
 
-Instead, just drop the notifier support. And move this driver to staging, just
-as we did with the st-cec driver. Once the drm driver arrives this cec driver
-can switch to using the notifier and be moved out of staging.
+Good point.
 
-Add a TODO file explaining that this is waiting for the drm driver so the
-CEC_CAP_PHYS_ADDR capability can be removed after switching to using CEC_NOTIFIER.
+> 
+> Actually I'm wondering if we really need this buffer flag at all.
+> Wouldn't the following work for typical use cases that we actually
+> care about performance of?
+> 
+> buffer_needs_cache_sync = (buffer_type_is_MMAP &&
+> buffer_is_non_coherent && (buffer_is_mmapped ||
+> buffer_has_kernel_mapping)) || buffer_is_USERPTR
 
-I should have realized this when reviewing v2, sorry about that.
+Not in general case. The information the driver does not have currently is
+whether or not the user has accessed the buffer (written to it) at various
+points. I don't think there's another way to handle this than let the user
+tell this to the kernel.
 
-The reason why I don't want CEC drivers using CEC_CAP_PHYS_ADDR in mainline (except
-if it is obviously required such as for the usb CEC dongles) is that it puts a
-major burden on the application to discover the physical address from the EDID. It
-should only be used if there is no other way. In this case this is just a
-temporary situation, so staging is the right place.
+Even now, V4L2 does not require the application not to write to CAPTURE
+buffers which means that cache synchronisation operations will need to be
+used even when queueing such a buffer. This is where the flag helps, too.
 
-BTW, if the stm32 drm driver is going to be accepted for 4.13, then that would
-change things, but I don't think that's the case.
+DMA-BUFs are a different matter, this is not really addressed by the
+patchset.
 
+> 
+> The above should cover all the fast paths that are used only to
+> exchange data between devices, without the CPU involved, assuming that
+> drivers that don't need the fixups I mentioned before are properly
+> updated to request no kernel mapping for allocated buffers.
+> 
+> I've added (buffer_is_USERPTR) to the equation as it's really hard to
+> imagine a use case where there is no CPU access to the buffer, but
+> USERPTR needs to be used (instead of DMABUF). I might be missing
+> something, though.
+
+If you have a USERPTR buffer the backed memory of which you use with two
+devices and don't touch the buffer memory, no cache synchronisation will be
+needed.
+
+DMA-BUF would benefit from improvements in the same area.
+
+-- 
 Regards,
 
-	Hans
-
-> - update KConfig
-> 
-> version 2:
-> - fix typo in compagnie name
-> - add yannick sign-off
-> - use cec_message instead of custom struct in cec device
-> - add monitor mode
-> 
-> I don't change the split between irq handler and irq thread because
-> it would had mean to handle all errors cases irq handler to keep
-> a correct sequence. I don't think it is critical as it is since cec is a very
-> slow protocol.
-> 
-> This serie of patches add cec driver for STM32 platforms.
-> 
-> This code doesn't implement cec notifier because STM32 doesn't
-> provide HDMI yet but it will be added later.
-> 
-> Those patches have been developped on top of media_tree master branch
-> where STM32 DCMI code has not been merged so conflict in Kconfig and Makefile
-> could occur depending of merge ordering.
-> 
-> Compliance has been tested on STM32F769.
-> 
-> ~ # cec-ctl -p 1.0.0.0 --playback
-> Driver Info:
->          Driver Name                : stm32-cec
->          Adapter Name               : stm32-cec
->          Capabilities               : 0x0000000f
->                  Physical Address
->                  Logical Addresses
->                  Transmit
->                  Passthrough
->          Driver version             : 4.11.0
->          Available Logical Addresses: 1
->          Physical Address           : 1.0.0.0
->          Logical Address Mask       : 0x0010
->          CEC Version                : 2.0
->          Vendor ID                  : 0x000c03 (HDMI)
->          OSD Name                   : 'Playback'
->          Logical Addresses          : 1 (Allow RC Passthrough)
-> 
->            Logical Address          : 4 (Playback Device 1)
->              Primary Device Type    : Playback
->              Logical Address Type   : Playback
->              All Device Types       : Playback
->              RC TV Profile          : None
->              Device Features        :
->                  None
-> 
-> ~ # cec-compliance -A
-> cec-compliance SHA                 : 6acac5cec698de39b9398b66c4f5f4db6b2730d8
-> 
-> Driver Info:
->          Driver Name                : stm32-cec
->          Adapter Name               : stm32-cec
->          Capabilities               : 0x0000000f
->                  Physical Address
->                  Logical Addresses
->                  Transmit
->                  Passthrough
->          Driver version             : 4.11.0
->          Available Logical Addresses: 1
->          Physical Address           : 1.0.0.0
->          Logical Address Mask       : 0x0010
->          CEC Version                : 2.0
->          Vendor ID                  : 0x000c03
->          Logical Addresses          : 1 (Allow RC Passthrough)
-> 
->            Logical Address          : 4
->              Primary Device Type    : Playback
->              Logical Address Type   : Playback
->              All Device Types       : Playback
->              RC TV Profile          : None
->              Device Features        :
->                  None
-> 
-> Compliance test for device /dev/cec0:
-> 
->      The test results mean the following:
->          OK                  Supported correctly by the device.
->          OK (Not Supported)  Not supported and not mandatory for the device.
->          OK (Presumed)       Presumably supported.  Manually check to confirm.
->          OK (Unexpected)     Supported correctly but is not expected to be supported for this device.
->          OK (Refused)        Supported by the device, but was refused.
->          FAIL                Failed and was expected to be supported by this device.
-> 
-> Find remote devices:
->          Polling: OK
-> 
-> CEC API:
->          CEC_ADAP_G_CAPS: OK
->          CEC_DQEVENT: OK
->          CEC_ADAP_G/S_PHYS_ADDR: OK
->          CEC_ADAP_G/S_LOG_ADDRS: OK
->          CEC_TRANSMIT: OK
->          CEC_RECEIVE: OK
->          CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
->          CEC_G/S_MODE: OK
->          CEC_EVENT_LOST_MSGS: OK
-> 
-> Network topology:
->          System Information for device 0 (TV) from device 4 (Playback Device 1):
->                  CEC Version                : 1.4
->                  Physical Address           : 0.0.0.0
->                  Primary Device Type        : TV
->                  Vendor ID                  : 0x00903e
->                  OSD Name                   : 'TV'
->                  Menu Language              : fre
->                  Power Status               : On
-> 
-> Total: 10, Succeeded: 10, Failed: 0, Warnings: 0
-> 
-> 
-> Benjamin Gaignard (2):
->    dt-bindings: media: stm32 cec driver
->    cec: add STM32 cec driver
-> 
->   .../devicetree/bindings/media/st,stm32-cec.txt     |  22 ++
->   drivers/media/platform/Kconfig                     |  13 +
->   drivers/media/platform/Makefile                    |   2 +
->   drivers/media/platform/stm32/Makefile              |   1 +
->   drivers/media/platform/stm32/stm32-cec.c           | 392 +++++++++++++++++++++
->   5 files changed, 430 insertions(+)
->   create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
->   create mode 100644 drivers/media/platform/stm32/Makefile
->   create mode 100644 drivers/media/platform/stm32/stm32-cec.c
-> 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
