@@ -1,233 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor1.renesas.com ([210.160.252.171]:34106 "EHLO
-        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751253AbdEBNjL (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60602 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1763985AbdEWNC1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 2 May 2017 09:39:11 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v4 5/7] doc_rst: media: New SDR formats PC16, PC18 & PC20
-Date: Tue,  2 May 2017 14:26:13 +0100
-Message-Id: <20170502132615.42134-6-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <20170502132615.42134-1-ramesh.shanmugasundaram@bp.renesas.com>
-References: <20170502132615.42134-1-ramesh.shanmugasundaram@bp.renesas.com>
+        Tue, 23 May 2017 09:02:27 -0400
+Date: Tue, 23 May 2017 16:02:22 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH v3 2/2] v4l: async: Match parent devices
+Message-ID: <20170523130222.GE29527@valkosipuli.retiisi.org.uk>
+References: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <6154c8f092e1cb4f5286c1f11f4a846c821b53d6.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6154c8f092e1cb4f5286c1f11f4a846c821b53d6.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds documentation for the three new SDR formats
+Hi Kieran,
 
-V4L2_SDR_FMT_PCU16BE
-V4L2_SDR_FMT_PCU18BE
-V4L2_SDR_FMT_PCU20BE
+On Mon, May 22, 2017 at 06:36:38PM +0100, Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> Devices supporting multiple endpoints on a single device node must set
+> their subdevice fwnode to the endpoint to allow distinct comparisons.
+> 
+> Adapt the match_fwnode call to compare against the provided fwnodes
+> first, but also to search for a comparison against the parent fwnode.
+> 
+> This allows notifiers to pass the endpoint for comparison and still
+> support existing subdevices which store their default parent device
+> node.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> ---
+> v2:
+>  - Added documentation comments
+>  - simplified the OF match by adding match_fwnode_of()
+> 
+> v3:
+>  - Fix comments
+>  - Fix sd_parent, and asd_parent usage
+> 
+>  drivers/media/v4l2-core/v4l2-async.c | 36 ++++++++++++++++++++++++-----
+>  1 file changed, 31 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index cbd919d4edd2..12c0707851fd 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -41,14 +41,40 @@ static bool match_devname(struct v4l2_subdev *sd,
+>  	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
+>  }
+>  
+> +/*
+> + * Check whether the two device_node pointers refer to the same OF node. We
+> + * can't compare pointers directly as they can differ if overlays have been
+> + * applied.
+> + */
+> +static bool match_fwnode_of(struct fwnode_handle *a, struct fwnode_handle *b)
+> +{
+> +	return !of_node_cmp(of_node_full_name(to_of_node(a)),
+> +			    of_node_full_name(to_of_node(b)));
+> +}
+> +
+> +/*
+> + * As a measure to support drivers which have not been converted to use
+> + * endpoint matching, we also find the parent devices for cross-matching.
+> + *
+> + * When all devices use endpoint matching, this code can be simplified, and the
+> + * parent comparisons can be removed.
+> + */
+>  static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+>  {
+> -	if (!is_of_node(sd->fwnode) || !is_of_node(asd->match.fwnode.fwnode))
+> -		return sd->fwnode == asd->match.fwnode.fwnode;
+> +	struct fwnode_handle *asd_fwnode = asd->match.fwnode.fwnode;
+> +	struct fwnode_handle *sd_parent, *asd_parent;
+> +
+> +	sd_parent = fwnode_graph_get_port_parent(sd->fwnode);
+> +	asd_parent = fwnode_graph_get_port_parent(asd_fwnode);
+> +
+> +	if (!is_of_node(sd->fwnode) || !is_of_node(asd_fwnode))
+> +		return sd->fwnode == asd_fwnode ||
+> +		       sd_parent == asd_fwnode ||
+> +		       sd->fwnode == asd_parent;
+>  
+> -	return !of_node_cmp(of_node_full_name(to_of_node(sd->fwnode)),
+> -			    of_node_full_name(
+> -				    to_of_node(asd->match.fwnode.fwnode)));
+> +	return match_fwnode_of(sd->fwnode, asd_fwnode) ||
+> +	       match_fwnode_of(sd_parent, asd_fwnode) ||
+> +	       match_fwnode_of(sd->fwnode, asd_parent);
+>  }
+>  
+>  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
----
- .../media/uapi/v4l/pixfmt-sdr-pcu16be.rst          | 55 ++++++++++++++++++++++
- .../media/uapi/v4l/pixfmt-sdr-pcu18be.rst          | 55 ++++++++++++++++++++++
- .../media/uapi/v4l/pixfmt-sdr-pcu20be.rst          | 54 +++++++++++++++++++++
- Documentation/media/uapi/v4l/sdr-formats.rst       |  3 ++
- 4 files changed, 167 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
+Would this become easier to read if you handled all matching in what is
+called match_fwnode_of() above, also for non-OF fwnodes? Essentially you'd
+have what used to be match_fwnode() there, and new match_fwnode() would call
+that function with all the three combinations.
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
-new file mode 100644
-index 000000000000..2de1b1a0f517
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
-@@ -0,0 +1,55 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2-SDR-FMT-PCU16BE:
-+
-+******************************
-+V4L2_SDR_FMT_PCU16BE ('PC16')
-+******************************
-+
-+Planar complex unsigned 16-bit big endian IQ sample
-+
-+Description
-+===========
-+
-+This format contains a sequence of complex number samples. Each complex
-+number consist of two parts called In-phase and Quadrature (IQ). Both I
-+and Q are represented as a 16 bit unsigned big endian number stored in
-+32 bit space. The remaining unused bits within the 32 bit space will be
-+padded with 0. I value starts first and Q value starts at an offset
-+equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
-+the 16 bits, bit 15:2 (14 bit) is data and bit 1:0 (2 bit) can be any
-+value.
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+.. flat-table::
-+    :header-rows:  1
-+    :stub-columns: 0
-+
-+    * -  Offset:
-+      -  Byte B0
-+      -  Byte B1
-+      -  Byte B2
-+      -  Byte B3
-+    * -  start + 0:
-+      -  I'\ :sub:`0[13:6]`
-+      -  I'\ :sub:`0[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-+    * -  start + 4:
-+      -  I'\ :sub:`1[13:6]`
-+      -  I'\ :sub:`1[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-+    * -  ...
-+    * - start + offset:
-+      -  Q'\ :sub:`0[13:6]`
-+      -  Q'\ :sub:`0[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-+    * - start + offset + 4:
-+      -  Q'\ :sub:`1[13:6]`
-+      -  Q'\ :sub:`1[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
-new file mode 100644
-index 000000000000..da8b26bf6b95
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
-@@ -0,0 +1,55 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2-SDR-FMT-PCU18BE:
-+
-+******************************
-+V4L2_SDR_FMT_PCU18BE ('PC18')
-+******************************
-+
-+Planar complex unsigned 18-bit big endian IQ sample
-+
-+Description
-+===========
-+
-+This format contains a sequence of complex number samples. Each complex
-+number consist of two parts called In-phase and Quadrature (IQ). Both I
-+and Q are represented as a 18 bit unsigned big endian number stored in
-+32 bit space. The remaining unused bits within the 32 bit space will be
-+padded with 0. I value starts first and Q value starts at an offset
-+equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
-+the 18 bits, bit 17:2 (16 bit) is data and bit 1:0 (2 bit) can be any
-+value.
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+.. flat-table::
-+    :header-rows:  1
-+    :stub-columns: 0
-+
-+    * -  Offset:
-+      -  Byte B0
-+      -  Byte B1
-+      -  Byte B2
-+      -  Byte B3
-+    * -  start + 0:
-+      -  I'\ :sub:`0[17:10]`
-+      -  I'\ :sub:`0[9:2]`
-+      -  I'\ :sub:`0[1:0]; B2[5:0]=pad`
-+      -  pad
-+    * -  start + 4:
-+      -  I'\ :sub:`1[17:10]`
-+      -  I'\ :sub:`1[9:2]`
-+      -  I'\ :sub:`1[1:0]; B2[5:0]=pad`
-+      -  pad
-+    * -  ...
-+    * - start + offset:
-+      -  Q'\ :sub:`0[17:10]`
-+      -  Q'\ :sub:`0[9:2]`
-+      -  Q'\ :sub:`0[1:0]; B2[5:0]=pad`
-+      -  pad
-+    * - start + offset + 4:
-+      -  Q'\ :sub:`1[17:10]`
-+      -  Q'\ :sub:`1[9:2]`
-+      -  Q'\ :sub:`1[1:0]; B2[5:0]=pad`
-+      -  pad
-diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
-new file mode 100644
-index 000000000000..5499eed39477
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
-@@ -0,0 +1,54 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+.. _V4L2-SDR-FMT-PCU20BE:
-+
-+******************************
-+V4L2_SDR_FMT_PCU20BE ('PC20')
-+******************************
-+
-+Planar complex unsigned 20-bit big endian IQ sample
-+
-+Description
-+===========
-+
-+This format contains a sequence of complex number samples. Each complex
-+number consist of two parts called In-phase and Quadrature (IQ). Both I
-+and Q are represented as a 20 bit unsigned big endian number stored in
-+32 bit space. The remaining unused bits within the 32 bit space will be
-+padded with 0. I value starts first and Q value starts at an offset
-+equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
-+the 20 bits, bit 19:2 (18 bit) is data and bit 1:0 (2 bit) can be any
-+value.
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+.. flat-table::
-+    :header-rows:  1
-+    :stub-columns: 0
-+
-+    * -  Offset:
-+      -  Byte B0
-+      -  Byte B1
-+      -  Byte B2
-+      -  Byte B3
-+    * -  start + 0:
-+      -  I'\ :sub:`0[19:12]`
-+      -  I'\ :sub:`0[11:4]`
-+      -  I'\ :sub:`0[3:0]; B2[3:0]=pad`
-+      -  pad
-+    * -  start + 4:
-+      -  I'\ :sub:`1[19:12]`
-+      -  I'\ :sub:`1[11:4]`
-+      -  I'\ :sub:`1[3:0]; B2[3:0]=pad`
-+      -  pad
-+    * -  ...
-+    * - start + offset:
-+      -  Q'\ :sub:`0[19:12]`
-+      -  Q'\ :sub:`0[11:4]`
-+      -  Q'\ :sub:`0[3:0]; B2[3:0]=pad`
-+      -  pad
-+    * - start + offset + 4:
-+      -  Q'\ :sub:`1[19:12]`
-+      -  Q'\ :sub:`1[11:4]`
-+      -  Q'\ :sub:`1[3:0]; B2[3:0]=pad`
-+      -  pad
-diff --git a/Documentation/media/uapi/v4l/sdr-formats.rst b/Documentation/media/uapi/v4l/sdr-formats.rst
-index f863c08f1add..2037f5bad727 100644
---- a/Documentation/media/uapi/v4l/sdr-formats.rst
-+++ b/Documentation/media/uapi/v4l/sdr-formats.rst
-@@ -17,3 +17,6 @@ These formats are used for :ref:`SDR <sdr>` interface only.
-     pixfmt-sdr-cs08
-     pixfmt-sdr-cs14le
-     pixfmt-sdr-ru12le
-+    pixfmt-sdr-pcu16be
-+    pixfmt-sdr-pcu18be
-+    pixfmt-sdr-pcu20be
+I'd call the other function __match_fwnode() for instance.
+
 -- 
-2.12.2
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
