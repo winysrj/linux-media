@@ -1,89 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:53895 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751021AbdEaOSv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 10:18:51 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id BFB2E20067
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 17:18:43 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/3] vb2: Rename confusingly named internal buffer preparation functions
-Date: Wed, 31 May 2017 17:17:25 +0300
-Message-Id: <1496240247-25936-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1496240247-25936-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1496240247-25936-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-qt0-f181.google.com ([209.85.216.181]:33300 "EHLO
+        mail-qt0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1762078AbdEWHPF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 23 May 2017 03:15:05 -0400
+Received: by mail-qt0-f181.google.com with SMTP id t26so120357864qtg.0
+        for <linux-media@vger.kernel.org>; Tue, 23 May 2017 00:15:05 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170523001448.iryswhvw2irtdyuz@rob-hp-laptop>
+References: <1494939383-18937-1-git-send-email-benjamin.gaignard@linaro.org>
+ <1494939383-18937-2-git-send-email-benjamin.gaignard@linaro.org> <20170523001448.iryswhvw2irtdyuz@rob-hp-laptop>
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Date: Tue, 23 May 2017 09:15:04 +0200
+Message-ID: <CA+M3ks4erq+_ty4pq1yTTz3JXk+MjLvh=EXGsnYh5G7wVWqVnw@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] binding for stm32 cec driver
+To: Rob Herring <robh@kernel.org>
+Cc: Yannick Fertre <yannick.fertre@st.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, devicetree@vger.kernel.org,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename __qbuf_*() functions which are specific to a buffer type as
-__prepare_*() which matches with what they do. The naming was there for
-historical reasons; the purpose of the functions was changed without
-renaming them.
+2017-05-23 2:14 GMT+02:00 Rob Herring <robh@kernel.org>:
+> On Tue, May 16, 2017 at 02:56:22PM +0200, Benjamin Gaignard wrote:
+>
+> Commit message?
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+is missing, sorry..
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index c0175ea..9f3ce3b 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -956,9 +956,9 @@ void vb2_discard_done(struct vb2_queue *q)
- EXPORT_SYMBOL_GPL(vb2_discard_done);
- 
- /**
-- * __qbuf_mmap() - handle qbuf of an MMAP buffer
-+ * __prepare_mmap() - prepare an MMAP buffer
-  */
--static int __qbuf_mmap(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_mmap(struct vb2_buffer *vb, const void *pb)
- {
- 	int ret = 0;
- 
-@@ -969,9 +969,9 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const void *pb)
- }
- 
- /**
-- * __qbuf_userptr() - handle qbuf of a USERPTR buffer
-+ * __prepare_userptr() - prepare a USERPTR buffer
-  */
--static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
- {
- 	struct vb2_plane planes[VB2_MAX_PLANES];
- 	struct vb2_queue *q = vb->vb2_queue;
-@@ -1087,9 +1087,9 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
- }
- 
- /**
-- * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
-+ * __prepare_dmabuf() - prepare a DMABUF buffer
-  */
--static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
- {
- 	struct vb2_plane planes[VB2_MAX_PLANES];
- 	struct vb2_queue *q = vb->vb2_queue;
-@@ -1255,13 +1255,13 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
- 
- 	switch (q->memory) {
- 	case VB2_MEMORY_MMAP:
--		ret = __qbuf_mmap(vb, pb);
-+		ret = __prepare_mmap(vb, pb);
- 		break;
- 	case VB2_MEMORY_USERPTR:
--		ret = __qbuf_userptr(vb, pb);
-+		ret = __prepare_userptr(vb, pb);
- 		break;
- 	case VB2_MEMORY_DMABUF:
--		ret = __qbuf_dmabuf(vb, pb);
-+		ret = __prepare_dmabuf(vb, pb);
- 		break;
- 	default:
- 		WARN(1, "Invalid queue type\n");
--- 
-2.7.4
+>
+> Preferred subject prefix is "dt-bindings: media: ..."
+
+ok
+
+>
+>> Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+>> ---
+>>  .../devicetree/bindings/media/st,stm32-cec.txt        | 19 +++++++++++++++++++
+>>  1 file changed, 19 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/st,stm32-cec.txt b/Documentation/devicetree/bindings/media/st,stm32-cec.txt
+>> new file mode 100644
+>> index 0000000..6be2381
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/st,stm32-cec.txt
+>> @@ -0,0 +1,19 @@
+>> +STMicroelectronics STM32 CEC driver
+>> +
+>> +Required properties:
+>> + - compatible : value should be "st,stm32-cec"
+>
+> All stm32 chips have same CEC block?
+
+yes the block is the same for all stm32 f4/f7/h7 chips
+
+>
+>> + - reg : Physical base address of the IP registers and length of memory
+>> +      mapped region.
+>> + - clocks : from common clock binding: handle to CEC clocks
+>> + - clock-names : from common clock binding: must be "cec" and "hdmi-cec".
+>> + - interrupts : CEC interrupt number to the CPU.
+>> +
+>> +Example for stm32f746:
+>> +
+>> +cec: cec@40006c00 {
+>> +     compatible = "st,stm32-cec";
+>> +     reg = <0x40006C00 0x400>;
+>> +     interrupts = <94>;
+>> +     clocks = <&rcc 0 STM32F7_APB1_CLOCK(CEC)>, <&rcc 1 CLK_HDMI_CEC>;
+>> +     clock-names = "cec", "hdmi-cec";
+>> +};
+>> --
+>> 1.9.1
+>>
