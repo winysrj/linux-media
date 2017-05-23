@@ -1,111 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43813 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750969AbdEQPPN (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47259 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752114AbdEWRPq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 May 2017 11:15:13 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Peter Rosin <peda@axentia.se>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v5 1/3] dt-bindings: Add bindings for video-multiplexer device
-Date: Wed, 17 May 2017 17:15:05 +0200
-Message-Id: <1495034107-21407-1-git-send-email-p.zabel@pengutronix.de>
+        Tue, 23 May 2017 13:15:46 -0400
+Subject: Re: [PATCH v3 1/2] device property: Add fwnode_graph_get_port_parent
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Kieran Bingham <kbingham@kernel.org>
+References: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <cce043f797174561fe49350a66b56ce07059716c.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <20170523125856.GD29527@valkosipuli.retiisi.org.uk>
+Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <79865ffc-ba02-3a6c-7355-1a37c11dbdd2@ideasonboard.com>
+Date: Tue, 23 May 2017 18:15:42 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170523125856.GD29527@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add bindings documentation for the video multiplexer device.
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Acked-by: Rob Herring <robh@kernel.org>
----
-No changes since v4 [1].
 
-[1] https://patchwork.kernel.org/patch/9712129/
----
- .../devicetree/bindings/media/video-mux.txt        | 60 ++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/video-mux.txt
+On 23/05/17 13:58, Sakari Ailus wrote:
+> Hi Kieran,
+> 
+> On Mon, May 22, 2017 at 06:36:37PM +0100, Kieran Bingham wrote:
+>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>
+>> Provide a helper to obtain the parent device fwnode without first
+>> parsing the remote-endpoint as per fwnode_graph_get_remote_port_parent.
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>
+>> ---
+>> v2:
+>>  - Rebase on top of Sakari's acpi-graph-clean branch and simplify
+>>
+>> v3:
+>>  - Fix up kerneldoc
+>>  - Get the 'port' of the endpoint to find the parent of the port
+>>
+>>  drivers/base/property.c  | 15 +++++++++++++++
+>>  include/linux/property.h |  2 ++
+>>  2 files changed, 17 insertions(+)
+>>
+>> diff --git a/drivers/base/property.c b/drivers/base/property.c
+>> index b311a6fa7d0c..fdbc644fd743 100644
+>> --- a/drivers/base/property.c
+>> +++ b/drivers/base/property.c
+>> @@ -1169,6 +1169,21 @@ fwnode_graph_get_next_endpoint(struct fwnode_handle *fwnode,
+>>  EXPORT_SYMBOL_GPL(fwnode_graph_get_next_endpoint);
+>>  
+>>  /**
+>> + * fwnode_graph_get_port_parent - Return the device fwnode of a port endpoint
+>> + * @endpoint: Endpoint firmware node of the port
+>> + *
+>> + * Return: the firmware node of the device the @endpoint belongs to.
+>> + */
+>> +struct fwnode_handle *
+>> +fwnode_graph_get_port_parent(struct fwnode_handle *endpoint)
+>> +{
+>> +	struct fwnode_handle *port = fwnode_get_next_parent(endpoint);
+>> +
+>> +	return fwnode_call_ptr_op(port, graph_get_port_parent);
+> 
+> I missed one thing: the reference to port obtained in
+> fwnode_get_next_parent() needs to be released.
+> 
+> I can do the change while applying the patch on top of the set if you're ok
+> with that.
 
-diff --git a/Documentation/devicetree/bindings/media/video-mux.txt b/Documentation/devicetree/bindings/media/video-mux.txt
-new file mode 100644
-index 0000000000000..63b9dc913e456
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/video-mux.txt
-@@ -0,0 +1,60 @@
-+Video Multiplexer
-+=================
-+
-+Video multiplexers allow to select between multiple input ports. Video received
-+on the active input port is passed through to the output port. Muxes described
-+by this binding are controlled by a multiplexer controller that is described by
-+the bindings in Documentation/devicetree/bindings/mux/mux-controller.txt
-+
-+Required properties:
-+- compatible : should be "video-mux"
-+- mux-controls : mux controller node to use for operating the mux
-+- #address-cells: should be <1>
-+- #size-cells: should be <0>
-+- port@*: at least three port nodes containing endpoints connecting to the
-+  source and sink devices according to of_graph bindings. The last port is
-+  the output port, all others are inputs.
-+
-+Optionally, #address-cells, #size-cells, and port nodes can be grouped under a
-+ports node as described in Documentation/devicetree/bindings/graph.txt.
-+
-+Example:
-+
-+	mux: mux-controller {
-+		compatible = "gpio-mux";
-+		#mux-control-cells = <0>;
-+
-+		mux-gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
-+	};
-+
-+	video-mux {
-+		compatible = "video-mux";
-+		mux-controls = <&mux>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			mux_in0: endpoint {
-+				remote-endpoint = <&video_source0_out>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			mux_in1: endpoint {
-+				remote-endpoint = <&video_source1_out>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			mux_out: endpoint {
-+				remote-endpoint = <&capture_interface_in>;
-+			};
-+		};
-+	};
-+};
--- 
-2.11.0
+Yes, that would be great thanks.
+
+--
+Kieran
+
+> 
+>> +}
+>> +EXPORT_SYMBOL_GPL(fwnode_graph_get_port_parent);
+>> +
+>> +/**
+>>   * fwnode_graph_get_remote_port_parent - Return fwnode of a remote device
+>>   * @fwnode: Endpoint firmware node pointing to the remote endpoint
+>>   *
+>> diff --git a/include/linux/property.h b/include/linux/property.h
+>> index b9f4838d9882..af95d5d84192 100644
+>> --- a/include/linux/property.h
+>> +++ b/include/linux/property.h
+>> @@ -275,6 +275,8 @@ void *device_get_mac_address(struct device *dev, char *addr, int alen);
+>>  
+>>  struct fwnode_handle *fwnode_graph_get_next_endpoint(
+>>  	struct fwnode_handle *fwnode, struct fwnode_handle *prev);
+>> +struct fwnode_handle *fwnode_graph_get_port_parent(
+>> +	struct fwnode_handle *fwnode);
+>>  struct fwnode_handle *fwnode_graph_get_remote_port_parent(
+>>  	struct fwnode_handle *fwnode);
+>>  struct fwnode_handle *fwnode_graph_get_remote_port(
+> 
