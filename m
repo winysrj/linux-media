@@ -1,127 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41424 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750734AbdEMEXu (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48882 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S937806AbdEWViD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 13 May 2017 00:23:50 -0400
-Message-ID: <d76d84d1f4b0d3921f209dcb3b11510d@smtp-cloud2.xs4all.net>
-Date: Sat, 13 May 2017 06:23:47 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Tue, 23 May 2017 17:38:03 -0400
+Date: Wed, 24 May 2017 00:37:57 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Kieran Bingham <kbingham@kernel.org>,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH v3 1/2] device property: Add fwnode_graph_get_port_parent
+Message-ID: <20170523213756.GF29527@valkosipuli.retiisi.org.uk>
+References: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <cce043f797174561fe49350a66b56ce07059716c.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <20170523125856.GD29527@valkosipuli.retiisi.org.uk>
+ <79865ffc-ba02-3a6c-7355-1a37c11dbdd2@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <79865ffc-ba02-3a6c-7355-1a37c11dbdd2@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Kieran,
 
-Results of the daily build of media_tree:
+On Tue, May 23, 2017 at 06:15:42PM +0100, Kieran Bingham wrote:
+> 
+> 
+> On 23/05/17 13:58, Sakari Ailus wrote:
+> > Hi Kieran,
+> > 
+> > On Mon, May 22, 2017 at 06:36:37PM +0100, Kieran Bingham wrote:
+> >> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >>
+> >> Provide a helper to obtain the parent device fwnode without first
+> >> parsing the remote-endpoint as per fwnode_graph_get_remote_port_parent.
+> >>
+> >> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >>
+> >> ---
+> >> v2:
+> >>  - Rebase on top of Sakari's acpi-graph-clean branch and simplify
+> >>
+> >> v3:
+> >>  - Fix up kerneldoc
+> >>  - Get the 'port' of the endpoint to find the parent of the port
+> >>
+> >>  drivers/base/property.c  | 15 +++++++++++++++
+> >>  include/linux/property.h |  2 ++
+> >>  2 files changed, 17 insertions(+)
+> >>
+> >> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> >> index b311a6fa7d0c..fdbc644fd743 100644
+> >> --- a/drivers/base/property.c
+> >> +++ b/drivers/base/property.c
+> >> @@ -1169,6 +1169,21 @@ fwnode_graph_get_next_endpoint(struct fwnode_handle *fwnode,
+> >>  EXPORT_SYMBOL_GPL(fwnode_graph_get_next_endpoint);
+> >>  
+> >>  /**
+> >> + * fwnode_graph_get_port_parent - Return the device fwnode of a port endpoint
+> >> + * @endpoint: Endpoint firmware node of the port
+> >> + *
+> >> + * Return: the firmware node of the device the @endpoint belongs to.
+> >> + */
+> >> +struct fwnode_handle *
+> >> +fwnode_graph_get_port_parent(struct fwnode_handle *endpoint)
+> >> +{
+> >> +	struct fwnode_handle *port = fwnode_get_next_parent(endpoint);
+> >> +
+> >> +	return fwnode_call_ptr_op(port, graph_get_port_parent);
+> > 
+> > I missed one thing: the reference to port obtained in
+> > fwnode_get_next_parent() needs to be released.
+> > 
+> > I can do the change while applying the patch on top of the set if you're ok
+> > with that.
+> 
+> Yes, that would be great thanks.
 
-date:			Sat May 13 05:00:22 CEST 2017
-media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
-media_build git hash:	ab988a3d089232ce9e1aec2f259e947c06983dbc
-v4l-utils git hash:	6acac5cec698de39b9398b66c4f5f4db6b2730d8
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Thanks! The patch actually came out in this form:
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: WARNINGS
-linux-4.9.26-i686: WARNINGS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+<URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=acpi-graph-cleaned&id=6c9e58006e73de03441337f3ca6247afed28cf0a>
 
-Detailed results are available here:
+I'll post it to list once I've rebased the set again, I hope you're ok with
+that. :-)
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
