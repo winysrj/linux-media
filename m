@@ -1,101 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:55284 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750782AbdEHAYi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 7 May 2017 20:24:38 -0400
-From: Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>
-To: <Alexandru_Gheorghe@mentor.com>,
-        <laurent.pinchart@ideasonboard.com>,
-        <linux-renesas-soc@vger.kernel.org>,
-        <dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>,
-        <geert@linux-m68k.org>, <sergei.shtylyov@cogentembedded.com>
-Subject: [PATCH v2 1/2] v4l: vsp1: Add support for colorkey alpha blending
-Date: Sun, 7 May 2017 13:13:26 +0300
-Message-ID: <1494152007-30094-2-git-send-email-Alexandru_Gheorghe@mentor.com>
-In-Reply-To: <1494152007-30094-1-git-send-email-Alexandru_Gheorghe@mentor.com>
-References: <1494152007-30094-1-git-send-email-Alexandru_Gheorghe@mentor.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60396 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S967472AbdEWM7a (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 23 May 2017 08:59:30 -0400
+Date: Tue, 23 May 2017 15:58:56 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH v3 1/2] device property: Add fwnode_graph_get_port_parent
+Message-ID: <20170523125856.GD29527@valkosipuli.retiisi.org.uk>
+References: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <cce043f797174561fe49350a66b56ce07059716c.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cce043f797174561fe49350a66b56ce07059716c.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vsp2 hw supports changing of the alpha of pixels that match a color
-key, this patch adds support for this feature in order to be used by
-the rcar-du driver.
-The colorkey is interpreted different depending of the pixel format:
-	* RGB   - all color components have to match.
-	* YCbCr - only the Y component has to match.
+Hi Kieran,
 
-Signed-off-by: Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>
----
- drivers/media/platform/vsp1/vsp1_drm.c  |  3 +++
- drivers/media/platform/vsp1/vsp1_rpf.c  | 10 ++++++++--
- drivers/media/platform/vsp1/vsp1_rwpf.h |  3 +++
- include/media/vsp1.h                    |  3 +++
- 4 files changed, 17 insertions(+), 2 deletions(-)
+On Mon, May 22, 2017 at 06:36:37PM +0100, Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> Provide a helper to obtain the parent device fwnode without first
+> parsing the remote-endpoint as per fwnode_graph_get_remote_port_parent.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> ---
+> v2:
+>  - Rebase on top of Sakari's acpi-graph-clean branch and simplify
+> 
+> v3:
+>  - Fix up kerneldoc
+>  - Get the 'port' of the endpoint to find the parent of the port
+> 
+>  drivers/base/property.c  | 15 +++++++++++++++
+>  include/linux/property.h |  2 ++
+>  2 files changed, 17 insertions(+)
+> 
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index b311a6fa7d0c..fdbc644fd743 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -1169,6 +1169,21 @@ fwnode_graph_get_next_endpoint(struct fwnode_handle *fwnode,
+>  EXPORT_SYMBOL_GPL(fwnode_graph_get_next_endpoint);
+>  
+>  /**
+> + * fwnode_graph_get_port_parent - Return the device fwnode of a port endpoint
+> + * @endpoint: Endpoint firmware node of the port
+> + *
+> + * Return: the firmware node of the device the @endpoint belongs to.
+> + */
+> +struct fwnode_handle *
+> +fwnode_graph_get_port_parent(struct fwnode_handle *endpoint)
+> +{
+> +	struct fwnode_handle *port = fwnode_get_next_parent(endpoint);
+> +
+> +	return fwnode_call_ptr_op(port, graph_get_port_parent);
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index 3627f08..a4d0aee 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -393,6 +393,9 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
- 	else
- 		rpf->format.plane_fmt[1].bytesperline = cfg->pitch;
- 	rpf->alpha = cfg->alpha;
-+	rpf->colorkey = cfg->colorkey;
-+	rpf->colorkey_en = cfg->colorkey_en;
-+	rpf->colorkey_alpha = cfg->colorkey_alpha;
- 	rpf->interlaced = cfg->interlaced;
- 
- 	if (soc_device_match(r8a7795es1) && rpf->interlaced) {
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index a12d6f9..91f2a9f 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -356,8 +356,14 @@ static void rpf_configure(struct vsp1_entity *entity,
- 	}
- 
- 	vsp1_rpf_write(rpf, dl, VI6_RPF_MSK_CTRL, 0);
--	vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_CTRL, 0);
--
-+	if (rpf->colorkey_en) {
-+		vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_SET0,
-+			       (rpf->colorkey_alpha << 24) | rpf->colorkey);
-+		vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_CTRL,
-+			       VI6_RPF_CKEY_CTRL_SAPE0);
-+	} else {
-+		vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_CTRL, 0);
-+	}
- }
- 
- static const struct vsp1_entity_operations rpf_entity_ops = {
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index fbe6aa6..2d7f4b9 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -51,6 +51,9 @@ struct vsp1_rwpf {
- 	unsigned int brs_input;
- 
- 	unsigned int alpha;
-+	u32 colorkey;
-+	bool colorkey_en;
-+	u32 colorkey_alpha;
- 
- 	u32 mult_alpha;
- 	u32 outfmt;
-diff --git a/include/media/vsp1.h b/include/media/vsp1.h
-index 97265f7..65e3934 100644
---- a/include/media/vsp1.h
-+++ b/include/media/vsp1.h
-@@ -32,6 +32,9 @@ struct vsp1_du_atomic_config {
- 	struct v4l2_rect dst;
- 	unsigned int alpha;
- 	unsigned int zpos;
-+	u32 colorkey;
-+	u32 colorkey_alpha;
-+	bool colorkey_en;
- 	bool interlaced;
- };
- 
+I missed one thing: the reference to port obtained in
+fwnode_get_next_parent() needs to be released.
+
+I can do the change while applying the patch on top of the set if you're ok
+with that.
+
+> +}
+> +EXPORT_SYMBOL_GPL(fwnode_graph_get_port_parent);
+> +
+> +/**
+>   * fwnode_graph_get_remote_port_parent - Return fwnode of a remote device
+>   * @fwnode: Endpoint firmware node pointing to the remote endpoint
+>   *
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index b9f4838d9882..af95d5d84192 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -275,6 +275,8 @@ void *device_get_mac_address(struct device *dev, char *addr, int alen);
+>  
+>  struct fwnode_handle *fwnode_graph_get_next_endpoint(
+>  	struct fwnode_handle *fwnode, struct fwnode_handle *prev);
+> +struct fwnode_handle *fwnode_graph_get_port_parent(
+> +	struct fwnode_handle *fwnode);
+>  struct fwnode_handle *fwnode_graph_get_remote_port_parent(
+>  	struct fwnode_handle *fwnode);
+>  struct fwnode_handle *fwnode_graph_get_remote_port(
+
 -- 
-1.9.1
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
