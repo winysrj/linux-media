@@ -1,194 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33438 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S967296AbdEZHP7 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49002 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1034282AbdEWVkX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 May 2017 03:15:59 -0400
-Received: by mail-wm0-f65.google.com with SMTP id b84so1899754wmh.0
-        for <linux-media@vger.kernel.org>; Fri, 26 May 2017 00:15:58 -0700 (PDT)
-Date: Fri, 26 May 2017 09:15:50 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org,
-        Clint Taylor <clinton.a.taylor@intel.com>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 7/7] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
- support
-Message-ID: <20170526071550.3gsq3pc375cnk2gk@phenom.ffwll.local>
-References: <20170525150626.29748-1-hverkuil@xs4all.nl>
- <20170525150626.29748-8-hverkuil@xs4all.nl>
+        Tue, 23 May 2017 17:40:23 -0400
+Date: Wed, 24 May 2017 00:40:19 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Kieran Bingham <kbingham@kernel.org>,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH v3 2/2] v4l: async: Match parent devices
+Message-ID: <20170523214018.GG29527@valkosipuli.retiisi.org.uk>
+References: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <6154c8f092e1cb4f5286c1f11f4a846c821b53d6.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <20170523130222.GE29527@valkosipuli.retiisi.org.uk>
+ <f56ce770-c7cc-1613-194f-e5f9a944dc4e@ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170525150626.29748-8-hverkuil@xs4all.nl>
+In-Reply-To: <f56ce770-c7cc-1613-194f-e5f9a944dc4e@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 25, 2017 at 05:06:26PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Kieran,
+
+On Tue, May 23, 2017 at 06:40:08PM +0100, Kieran Bingham wrote:
+> On 23/05/17 14:02, Sakari Ailus wrote:
+> > Hi Kieran,
+> > 
+> > On Mon, May 22, 2017 at 06:36:38PM +0100, Kieran Bingham wrote:
+> >> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >>
+> >> Devices supporting multiple endpoints on a single device node must set
+> >> their subdevice fwnode to the endpoint to allow distinct comparisons.
+> >>
+> >> Adapt the match_fwnode call to compare against the provided fwnodes
+> >> first, but also to search for a comparison against the parent fwnode.
+> >>
+> >> This allows notifiers to pass the endpoint for comparison and still
+> >> support existing subdevices which store their default parent device
+> >> node.
+> >>
+> >> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >>
+> >> ---
+> >> v2:
+> >>  - Added documentation comments
+> >>  - simplified the OF match by adding match_fwnode_of()
+> >>
+> >> v3:
+> >>  - Fix comments
+> >>  - Fix sd_parent, and asd_parent usage
+> >>
+> >>  drivers/media/v4l2-core/v4l2-async.c | 36 ++++++++++++++++++++++++-----
+> >>  1 file changed, 31 insertions(+), 5 deletions(-)
+> >>
+> >> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> >> index cbd919d4edd2..12c0707851fd 100644
+> >> --- a/drivers/media/v4l2-core/v4l2-async.c
+> >> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> >> @@ -41,14 +41,40 @@ static bool match_devname(struct v4l2_subdev *sd,
+> >>  	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
+> >>  }
+> >>  
+> >> +/*
+> >> + * Check whether the two device_node pointers refer to the same OF node. We
+> >> + * can't compare pointers directly as they can differ if overlays have been
+> >> + * applied.
+> >> + */
+> >> +static bool match_fwnode_of(struct fwnode_handle *a, struct fwnode_handle *b)
+> >> +{
+> >> +	return !of_node_cmp(of_node_full_name(to_of_node(a)),
+> >> +			    of_node_full_name(to_of_node(b)));
+> >> +}
+> >> +
+> >> +/*
+> >> + * As a measure to support drivers which have not been converted to use
+> >> + * endpoint matching, we also find the parent devices for cross-matching.
+> >> + *
+> >> + * When all devices use endpoint matching, this code can be simplified, and the
+> >> + * parent comparisons can be removed.
+> >> + */
+> >>  static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+> >>  {
+> >> -	if (!is_of_node(sd->fwnode) || !is_of_node(asd->match.fwnode.fwnode))
+> >> -		return sd->fwnode == asd->match.fwnode.fwnode;
+> >> +	struct fwnode_handle *asd_fwnode = asd->match.fwnode.fwnode;
+> >> +	struct fwnode_handle *sd_parent, *asd_parent;
+> >> +
+> >> +	sd_parent = fwnode_graph_get_port_parent(sd->fwnode);
+> >> +	asd_parent = fwnode_graph_get_port_parent(asd_fwnode);
+> >> +
+> >> +	if (!is_of_node(sd->fwnode) || !is_of_node(asd_fwnode))
+> >> +		return sd->fwnode == asd_fwnode ||
+> >> +		       sd_parent == asd_fwnode ||
+> >> +		       sd->fwnode == asd_parent;
+> >>  
+> >> -	return !of_node_cmp(of_node_full_name(to_of_node(sd->fwnode)),
+> >> -			    of_node_full_name(
+> >> -				    to_of_node(asd->match.fwnode.fwnode)));
+> >> +	return match_fwnode_of(sd->fwnode, asd_fwnode) ||
+> >> +	       match_fwnode_of(sd_parent, asd_fwnode) ||
+> >> +	       match_fwnode_of(sd->fwnode, asd_parent);
+> >>  }
+> >>  
+> >>  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+> > 
+> > Would this become easier to read if you handled all matching in what is
+> > called match_fwnode_of() above, also for non-OF fwnodes? Essentially you'd
+> > have what used to be match_fwnode() there, and new match_fwnode() would call
+> > that function with all the three combinations.
+> > 
 > 
-> Implement support for this DisplayPort feature.
 > 
-> The cec device is created whenever it detects an adapter that
-> has this feature. It is only removed when a new adapter is connected
-> that does not support this. If a new adapter is connected that has
-> different properties than the previous one, then the old cec device is
-> unregistered and a new one is registered to replace the old one.
+> > I'd call the other function __match_fwnode() for instance.
+> > 
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Some small comments below.
-
-> ---
->  drivers/gpu/drm/i915/Kconfig    | 11 ++++++++++
->  drivers/gpu/drm/i915/intel_dp.c | 46 +++++++++++++++++++++++++++++++++++++----
->  2 files changed, 53 insertions(+), 4 deletions(-)
 > 
-> diff --git a/drivers/gpu/drm/i915/Kconfig b/drivers/gpu/drm/i915/Kconfig
-> index a5cd5dacf055..f317b13a1409 100644
-> --- a/drivers/gpu/drm/i915/Kconfig
-> +++ b/drivers/gpu/drm/i915/Kconfig
-> @@ -124,6 +124,17 @@ config DRM_I915_GVT_KVMGT
->  	  Choose this option if you want to enable KVMGT support for
->  	  Intel GVT-g.
->  
-> +config DRM_I915_DP_CEC
-> +	tristate "Enable DisplayPort CEC-Tunneling-over-AUX HDMI support"
-> +	depends on DRM_I915 && CEC_CORE
-> +	select DRM_DP_CEC
-> +	help
-> +	  Choose this option if you want to enable HDMI CEC support for
-> +	  DisplayPort/USB-C to HDMI adapters.
-> +
-> +	  Note: not all adapters support this feature, and even for those
-> +	  that do support this often do not hook up the CEC pin.
+> Yes - Took me a moment to understand what you meant here - but yes it's leaner +
+> cleaner:
 
-Why Kconfig? There's not anything else optional in i915.ko (except debug
-stuff ofc), since generally just not worth the pain. Also doesn't seem to
-be wired up at all :-)
+Looks quite nice! Thanks! :)
 
-> +
->  menu "drm/i915 Debugging"
->  depends on DRM_I915
->  depends on EXPERT
-> diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
-> index ee77b519835c..38e17ee2548d 100644
-> --- a/drivers/gpu/drm/i915/intel_dp.c
-> +++ b/drivers/gpu/drm/i915/intel_dp.c
-> @@ -32,6 +32,7 @@
->  #include <linux/notifier.h>
->  #include <linux/reboot.h>
->  #include <asm/byteorder.h>
-> +#include <media/cec.h>
->  #include <drm/drmP.h>
->  #include <drm/drm_atomic_helper.h>
->  #include <drm/drm_crtc.h>
-> @@ -1405,6 +1406,7 @@ static void intel_aux_reg_init(struct intel_dp *intel_dp)
->  static void
->  intel_dp_aux_fini(struct intel_dp *intel_dp)
->  {
-> +	cec_unregister_adapter(intel_dp->aux.cec_adap);
->  	kfree(intel_dp->aux.name);
->  }
->  
-> @@ -4179,6 +4181,33 @@ intel_dp_check_mst_status(struct intel_dp *intel_dp)
->  	return -EINVAL;
->  }
->  
-> +static bool
-> +intel_dp_check_cec_status(struct intel_dp *intel_dp)
-> +{
-> +	bool handled = false;
-> +
-> +	for (;;) {
-> +		u8 cec_irq;
-> +		int ret;
-> +
-> +		ret = drm_dp_dpcd_readb(&intel_dp->aux,
-> +					DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1,
-> +					&cec_irq);
-> +		if (ret < 0 || !(cec_irq & DP_CEC_IRQ))
-> +			return handled;
-> +
-> +		cec_irq &= ~DP_CEC_IRQ;
-> +		drm_dp_cec_irq(&intel_dp->aux);
-> +		handled = true;
-> +
-> +		ret = drm_dp_dpcd_writeb(&intel_dp->aux,
-> +					 DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1,
-> +					 cec_irq);
-> +		if (ret < 0)
-> +			return handled;
-> +	}
-> +}
+> 
+> 
+> /*
+>  * As a measure to support drivers which have not been converted to use
+>  * endpoint matching, we also find the parent devices for cross-matching.
+>  *
+>  * When all devices use endpoint matching, this code can be simplified, and the
+>  * parent comparisons can be removed.
+>  */
+> 
+> static bool __match_fwnode(struct fwnode_handle *a, struct fwnode_handle *b)
+> {
+> 	if (is_of_node(a) || is_of_node(b))
 
-Shouldn't the above be a helper in the cec library? Doesn't look i915
-specific to me at least ...
+I think you need && (not ||) although in practice I don't think it'd have
+made any difference.
 
-> +
->  static void
->  intel_dp_retrain_link(struct intel_dp *intel_dp)
->  {
-> @@ -4553,6 +4582,7 @@ intel_dp_set_edid(struct intel_dp *intel_dp)
->  		intel_dp->has_audio = intel_dp->force_audio == HDMI_AUDIO_ON;
->  	else
->  		intel_dp->has_audio = drm_detect_monitor_audio(edid);
-> +	cec_s_phys_addr_from_edid(intel_dp->aux.cec_adap, edid);
->  }
->  
->  static void
-> @@ -4562,6 +4592,7 @@ intel_dp_unset_edid(struct intel_dp *intel_dp)
->  
->  	kfree(intel_connector->detect_edid);
->  	intel_connector->detect_edid = NULL;
-> +	cec_phys_addr_invalidate(intel_dp->aux.cec_adap);
->  
->  	intel_dp->has_audio = false;
->  }
-> @@ -4582,13 +4613,17 @@ intel_dp_long_pulse(struct intel_connector *intel_connector)
->  	intel_display_power_get(to_i915(dev), intel_dp->aux_power_domain);
->  
->  	/* Can't disconnect eDP, but you can close the lid... */
-> -	if (is_edp(intel_dp))
-> +	if (is_edp(intel_dp)) {
->  		status = edp_detect(intel_dp);
-> -	else if (intel_digital_port_connected(to_i915(dev),
-> -					      dp_to_dig_port(intel_dp)))
-> +	} else if (intel_digital_port_connected(to_i915(dev),
-> +						dp_to_dig_port(intel_dp))) {
->  		status = intel_dp_detect_dpcd(intel_dp);
-> -	else
-> +		if (status == connector_status_connected)
-> +			drm_dp_cec_configure_adapter(&intel_dp->aux,
-> +				     intel_dp->aux.name, dev->dev);
-
-Did you look into also wiring this up for dp mst chains?
--Daniel
-
-> +	} else {
->  		status = connector_status_disconnected;
-> +	}
->  
->  	if (status == connector_status_disconnected) {
->  		memset(&intel_dp->compliance, 0, sizeof(intel_dp->compliance));
-> @@ -5080,6 +5115,9 @@ intel_dp_hpd_pulse(struct intel_digital_port *intel_dig_port, bool long_hpd)
->  
->  	intel_display_power_get(dev_priv, intel_dp->aux_power_domain);
->  
-> +	if (intel_dp->aux.cec_adap)
-> +		intel_dp_check_cec_status(intel_dp);
-> +
->  	if (intel_dp->is_mst) {
->  		if (intel_dp_check_mst_status(intel_dp) == -EINVAL) {
->  			/*
-> -- 
-> 2.11.0
+> 		return !of_node_cmp(of_node_full_name(to_of_node(a)),
+> 				    of_node_full_name(to_of_node(b)));
+> 	else
+> 		return a == b;
+> }
+> 
+> static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+> {
+> 	struct fwnode_handle *asd_fwnode = asd->match.fwnode.fwnode;
+> 	struct fwnode_handle *sd_parent, *asd_parent;
+> 
+> 	sd_parent = fwnode_graph_get_port_parent(sd->fwnode);
+> 	asd_parent = fwnode_graph_get_port_parent(asd_fwnode);
+> 
+> 	return __match_fwnode(sd->fwnode, asd_fwnode) ||
+> 	       __match_fwnode(sd_parent, asd_fwnode) ||
+> 	       __match_fwnode(sd->fwnode, asd_parent);
+> }
 > 
 
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
