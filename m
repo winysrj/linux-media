@@ -1,108 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.14]:37548 "EHLO imap.netup.ru"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751100AbdEaMFH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 08:05:07 -0400
-Received: from mail-oi0-f52.google.com (mail-oi0-f52.google.com [209.85.218.52])
-        by imap.netup.ru (Postfix) with ESMTPSA id 7EA2F8B3EB3
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 15:05:05 +0300 (MSK)
-Received: by mail-oi0-f52.google.com with SMTP id l18so12359663oig.2
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 05:05:05 -0700 (PDT)
+Received: from mail-vk0-f67.google.com ([209.85.213.67]:35169 "EHLO
+        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759945AbdEWXrv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 23 May 2017 19:47:51 -0400
+Received: by mail-vk0-f67.google.com with SMTP id x71so8362179vkd.2
+        for <linux-media@vger.kernel.org>; Tue, 23 May 2017 16:47:50 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20170409193828.18458-10-d.scheller.oss@gmail.com>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com> <20170409193828.18458-10-d.scheller.oss@gmail.com>
-From: Abylay Ospan <aospan@netup.ru>
-Date: Wed, 31 May 2017 08:04:43 -0400
-Message-ID: <CAK3bHNX6fJhVEvb+ORx+bzm9ED=TT_ZQ3NkQxMhvAW=14gB--w@mail.gmail.com>
-Subject: Re: [PATCH 09/19] [media] dvb-frontends/cxd2841er: TS_SERIAL config flag
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: Kozlov Sergey <serjk@netup.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>, rjkm@metzlerbros.de
+In-Reply-To: <20170427212748.GD2568@joana>
+References: <20170426144620.3560-1-andresx7@gmail.com> <92c9bc96-cf60-f246-a82e-47653472521e@vodafone.de>
+ <20170427212748.GD2568@joana>
+From: Dave Airlie <airlied@gmail.com>
+Date: Wed, 24 May 2017 09:47:49 +1000
+Message-ID: <CAPM=9twvHHDaVsEOJCazWJeNptMb+pFUroq5jc52Tu4Cvg-T0g@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: avoid scheduling on fence status
+ query v2
+To: Gustavo Padovan <gustavo@padovan.org>,
+        =?UTF-8?Q?Christian_K=C3=B6nig?= <deathsimple@vodafone.de>,
+        Andres Rodriguez <andresx7@gmail.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Abylay Ospan <aospan@netup.ru>
+On 28 April 2017 at 07:27, Gustavo Padovan <gustavo@padovan.org> wrote:
+> 2017-04-26 Christian K=C3=B6nig <deathsimple@vodafone.de>:
+>
+>> Am 26.04.2017 um 16:46 schrieb Andres Rodriguez:
+>> > When a timeout of zero is specified, the caller is only interested in
+>> > the fence status.
+>> >
+>> > In the current implementation, dma_fence_default_wait will always call
+>> > schedule_timeout() at least once for an unsignaled fence. This adds a
+>> > significant overhead to a fence status query.
+>> >
+>> > Avoid this overhead by returning early if a zero timeout is specified.
+>> >
+>> > v2: move early return after enable_signaling
+>> >
+>> > Signed-off-by: Andres Rodriguez <andresx7@gmail.com>
+>>
+>> Reviewed-by: Christian K=C3=B6nig <christian.koenig@amd.com>
+>
+> pushed to drm-misc-next. Thanks all.
 
-2017-04-09 15:38 GMT-04:00 Daniel Scheller <d.scheller.oss@gmail.com>:
-> From: Daniel Scheller <d.scheller@gmx.net>
->
-> Some constellations work/need a serial TS transport mode. This adds a flag
-> that will toggle set up of such mode.
->
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
->  drivers/media/dvb-frontends/cxd2841er.c | 18 ++++++++++++++++--
->  drivers/media/dvb-frontends/cxd2841er.h |  5 +++--
->  2 files changed, 19 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-> index fa6a963..1df95c4 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.c
-> +++ b/drivers/media/dvb-frontends/cxd2841er.c
-> @@ -912,6 +912,18 @@ static void cxd2841er_set_ts_clock_mode(struct cxd2841er_priv *priv,
->
->         /*
->          * slave    Bank    Addr    Bit    default    Name
-> +        * <SLV-T>  00h     C4h     [1:0]  2'b??      OSERCKMODE
-> +        */
-> +       cxd2841er_set_reg_bits(priv, I2C_SLVT, 0xc4,
-> +               ((priv->flags & CXD2841ER_TS_SERIAL) ? 0x01 : 0x00), 0x03);
-> +       /*
-> +        * slave    Bank    Addr    Bit    default    Name
-> +        * <SLV-T>  00h     D1h     [1:0]  2'b??      OSERDUTYMODE
-> +        */
-> +       cxd2841er_set_reg_bits(priv, I2C_SLVT, 0xd1,
-> +               ((priv->flags & CXD2841ER_TS_SERIAL) ? 0x01 : 0x00), 0x03);
-> +       /*
-> +        * slave    Bank    Addr    Bit    default    Name
->          * <SLV-T>  00h     D9h     [7:0]  8'h08      OTSCKPERIOD
->          */
->         cxd2841er_write_reg(priv, I2C_SLVT, 0xd9, 0x08);
-> @@ -925,7 +937,8 @@ static void cxd2841er_set_ts_clock_mode(struct cxd2841er_priv *priv,
->          * slave    Bank    Addr    Bit    default    Name
->          * <SLV-T>  00h     33h     [1:0]  2'b01      OREG_CKSEL_TSIF
->          */
-> -       cxd2841er_set_reg_bits(priv, I2C_SLVT, 0x33, 0x00, 0x03);
-> +       cxd2841er_set_reg_bits(priv, I2C_SLVT, 0x33,
-> +               ((priv->flags & CXD2841ER_TS_SERIAL) ? 0x01 : 0x00), 0x03);
->         /*
->          * Enable TS IF Clock
->          * slave    Bank    Addr    Bit    default    Name
-> @@ -3745,7 +3758,8 @@ static int cxd2841er_init_tc(struct dvb_frontend *fe)
->         cxd2841er_write_reg(priv, I2C_SLVT, 0xcd, 0x50);
->         /* SONY_DEMOD_CONFIG_PARALLEL_SEL = 1 */
->         cxd2841er_write_reg(priv, I2C_SLVT, 0x00, 0x00);
-> -       cxd2841er_set_reg_bits(priv, I2C_SLVT, 0xc4, 0x00, 0x80);
-> +       cxd2841er_set_reg_bits(priv, I2C_SLVT, 0xc4,
-> +               ((priv->flags & CXD2841ER_TS_SERIAL) ? 0x80 : 0x00), 0x80);
->
->         cxd2841er_init_stats(fe);
->
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.h b/drivers/media/dvb-frontends/cxd2841er.h
-> index 38d7f9f..58fbd98 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.h
-> +++ b/drivers/media/dvb-frontends/cxd2841er.h
-> @@ -24,8 +24,9 @@
->
->  #include <linux/dvb/frontend.h>
->
-> -#define CXD2841ER_USE_GATECTRL 1
-> -#define CXD2841ER_AUTO_IFHZ    2
-> +#define CXD2841ER_USE_GATECTRL 1       /* bit 0 */
-> +#define CXD2841ER_AUTO_IFHZ    2       /* bit 1 */
-> +#define CXD2841ER_TS_SERIAL    4       /* bit 2 */
->
->  enum cxd2841er_xtal {
->         SONY_XTAL_20500, /* 20.5 MHz */
-> --
-> 2.10.2
->
+I don't see this patch in -rc2, where did it end up going?
 
-
-
--- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+Dave.
