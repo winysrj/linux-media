@@ -1,108 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:55771 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1757782AbdELKAk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 May 2017 06:00:40 -0400
-Subject: Re: [PATCH] [media] cec: improve MEDIA_CEC_RC dependencies
-To: Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <20170421105224.899350-1-arnd@arndb.de>
- <CAK8P3a2V4mUtPNWnFXBBNABqt09vRujRE1w=6wkYc1q63-Ujhg@mail.gmail.com>
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-media@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <632c9564-97f3-7e43-11a5-222ba835889d@xs4all.nl>
-Date: Fri, 12 May 2017 12:00:30 +0200
+Received: from mail.kapsi.fi ([217.30.184.167]:40310 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1763985AbdEXIzm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 24 May 2017 04:55:42 -0400
+Subject: Re: [PATCH 1/3] [media] si2157: get chip id during probing
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1489616530-4025-1-git-send-email-andreas@kemnade.info>
+ <1489616530-4025-2-git-send-email-andreas@kemnade.info>
+ <43216679-3794-14ca-b489-00ac97a57777@iki.fi> <20170515222837.3d822338@aktux>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <e20f0625-98c9-7778-4723-ebff59195593@iki.fi>
+Date: Wed, 24 May 2017 11:55:39 +0300
 MIME-Version: 1.0
-In-Reply-To: <CAK8P3a2V4mUtPNWnFXBBNABqt09vRujRE1w=6wkYc1q63-Ujhg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20170515222837.3d822338@aktux>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/12/17 11:49, Arnd Bergmann wrote:
-> On Fri, Apr 21, 2017 at 12:52 PM, Arnd Bergmann <arnd@arndb.de> wrote:
->> Changing the IS_REACHABLE() into a plain #ifdef broke the case of
->> CONFIG_MEDIA_RC=m && CONFIG_MEDIA_CEC=y:
+On 05/15/2017 11:28 PM, Andreas Kemnade wrote:
+> Hi,
+> 
+> On Sun, 23 Apr 2017 15:19:21 +0300
+> Antti Palosaari <crope@iki.fi> wrote:
+> 
+>> On 03/16/2017 12:22 AM, Andreas Kemnade wrote:
+>>> If the si2157 is behind a e.g. si2168, the si2157 will
+>>> at least in some situations not be readable after the si268
+>>> got the command 0101. It still accepts commands but the answer
+>>> is just ffffff. So read the chip id before that so the
+>>> information is not lost.
+>>>
+>>> The following line in kernel output is a symptome
+>>> of that problem:
+>>> si2157 7-0063: unknown chip version Si21255-\xffffffff\xffffffff\xffffffff
+>> That is hackish solution :( Somehow I2C reads should be get working
+>> rather than making this kind of work-around. Returning 0xff to i2c reads
+>> means that signal strength also shows some wrong static value?
 >>
->> drivers/media/cec/cec-core.o: In function `cec_unregister_adapter':
->> cec-core.c:(.text.cec_unregister_adapter+0x18): undefined reference to `rc_unregister_device'
->> drivers/media/cec/cec-core.o: In function `cec_delete_adapter':
->> cec-core.c:(.text.cec_delete_adapter+0x54): undefined reference to `rc_free_device'
->> drivers/media/cec/cec-core.o: In function `cec_register_adapter':
->> cec-core.c:(.text.cec_register_adapter+0x94): undefined reference to `rc_register_device'
->> cec-core.c:(.text.cec_register_adapter+0xa4): undefined reference to `rc_free_device'
->> cec-core.c:(.text.cec_register_adapter+0x110): undefined reference to `rc_unregister_device'
->> drivers/media/cec/cec-core.o: In function `cec_allocate_adapter':
->> cec-core.c:(.text.cec_allocate_adapter+0x234): undefined reference to `rc_allocate_device'
->> drivers/media/cec/cec-adap.o: In function `cec_received_msg':
->> cec-adap.c:(.text.cec_received_msg+0x734): undefined reference to `rc_keydown'
->> cec-adap.c:(.text.cec_received_msg+0x768): undefined reference to `rc_keyup'
->>
->> This adds an additional dependency to explicitly forbid this combination.
->>
->> Fixes: 5f2c467c54f5 ("[media] cec: add MEDIA_CEC_RC config option")
->> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->> ---
+> Also this is needed for the Terratec CinergyTC2.
+> I see the ff even on windows. So it cannot be solved by usb-sniffing of
+> a working system, so, again how should we proceed?
 > 
-> What is the status of this patch? According to
-> https://patchwork.linuxtv.org/patch/40934/ it is marked 'accepted',
-> but the patch that caused the problem has made it into mainline
-> in the merge window, and the fix is still needed on top.
+> a) not support dvb sticks which do not work with your preferred
+>     order of initialization.
+> 
+> b) change order of initialisation (maybe optionally add a flag like
+>     INIT_TUNER_BEFORE_DEMOD to avoid risk of breaking other things)
+> 
+> c) something like the current patch.
+> 
+> d) while(!i2c_readable(tuner)) {
+>       write_random_data_to_demod();
+>       write_random_data_it9306_bridge();
+>     }
+>     remember_random_data();
+> 
+> 
+> There was not much feedback here.
 
-It's in a pull request for 4.12 that Mauro hasn't picked up yet. I
-pinged him, but he seems to be very busy lately.
+If it is not possible to fix i2c communication then better to add some 
+device specific logic to i2c adapter in order to meet demod/tuner 
+requirements.
+
 
 > 
-> On a related note, I've run into another link error now:
+> An excerpt from my windows sniff logs:
+> ep: 02 l:   15 GEN_I2C_WR 00 0603c6120100000000
+> ep: 02 l:    0
+> ep: 81 l:    0
+> ep: 81 l:    5 042300dcff
+> ep: 02 l:    9 GEN_I2C_RD 00 0603c6
+> ep: 02 l:    0
+> ep: 81 l:    0
+> ep: 81 l:   11 0a240080ffffffffff5b02
+> ep: 02 l:   15 GEN_I2C_WR 00 0603c6140011070300
+> ep: 02 l:    0
+> ep: 81 l:    0
+> ep: 81 l:    5 042500daff
+> ep: 02 l:    9 GEN_I2C_RD 00 0403c6
+> ep: 02 l:    0
+> ep: 81 l:    0
+> ep: 81 l:    9 08260080ffffff5901
 > 
-> drivers/gpu/drm/sti/sti_hdmi.o: In function `sti_hdmi_remove':
-> sti_hdmi.c:(.text.sti_hdmi_remove+0x10): undefined reference to
-> `cec_notifier_set_phys_addr'
-> sti_hdmi.c:(.text.sti_hdmi_remove+0x34): undefined reference to
-> `cec_notifier_put'
-> drivers/gpu/drm/sti/sti_hdmi.o: In function `sti_hdmi_connector_get_modes':
-> sti_hdmi.c:(.text.sti_hdmi_connector_get_modes+0x4a): undefined
-> reference to `cec_notifier_set_phys_addr_from_edid'
-> drivers/gpu/drm/sti/sti_hdmi.o: In function `sti_hdmi_probe':
-> sti_hdmi.c:(.text.sti_hdmi_probe+0x204): undefined reference to
-> `cec_notifier_get'
-> drivers/gpu/drm/sti/sti_hdmi.o: In function `sti_hdmi_connector_detect':
-> sti_hdmi.c:(.text.sti_hdmi_connector_detect+0x36): undefined reference
-> to `cec_notifier_set_phys_addr'
-> drivers/gpu/drm/sti/sti_hdmi.o: In function `sti_hdmi_disable':
-> sti_hdmi.c:(.text.sti_hdmi_disable+0xc0): undefined reference to
-> `cec_notifier_set_phys_addr'
+> here you see all the ffff from the device.
 > 
-> The config options leading to the second failure are:
 > 
-> CONFIG_MEDIA_CEC_SUPPORT=y
-> CONFIG_CEC_CORE=m
-> CONFIG_MEDIA_CEC_NOTIFIER=y
-> CONFIG_VIDEO_STI_HDMI_CEC=m
-> CONFIG_DRM_STI=y
 > 
-> I can probably come up with a workaround, but haven't completely thought
-> through all the combinations yet. Also, I assume the same fix will be needed
-> for exynos, though that has not come up in randconfig testing so far.
+> Regards,
+> Andreas
+> 
 
-Try this patch:
+regards
+Antti
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
-index eb50ce54b759..da3528c8edb9 100644
---- a/include/media/cec-notifier.h
-+++ b/include/media/cec-notifier.h
-@@ -29,7 +29,7 @@ struct edid;
- struct cec_adapter;
- struct cec_notifier;
 
--#ifdef CONFIG_MEDIA_CEC_NOTIFIER
-+#if IS_REACHABLE(CONFIG_MEDIA_CEC_NOTIFIER)
 
- /**
-  * cec_notifier_get - find or create a new cec_notifier for the given device.
+-- 
+http://palosaari.fi/
