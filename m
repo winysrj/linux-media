@@ -1,98 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:35351 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933734AbdEVOOb (ORCPT
+Received: from mail-lf0-f49.google.com ([209.85.215.49]:34504 "EHLO
+        mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1162547AbdEXJBz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 May 2017 10:14:31 -0400
-Subject: Re: [PATCH v3 0/3] Fix mdp device tree
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Houlong Wei <houlong.wei@mediatek.com>
-Cc: srv_heupstream@mediatek.com,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        Wu-Cheng Li <wuchengli@google.com>, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
-References: <1494559361-42835-1-git-send-email-minghsiu.tsai@mediatek.com>
- <20ba4f83-7d22-2a8e-4eb6-7d4eba92e2ae@xs4all.nl>
-From: Matthias Brugger <matthias.bgg@gmail.com>
-Message-ID: <1f7de9e7-2c18-6662-4b95-519d22a70723@gmail.com>
-Date: Mon, 22 May 2017 16:14:26 +0200
+        Wed, 24 May 2017 05:01:55 -0400
+Received: by mail-lf0-f49.google.com with SMTP id 99so63370439lfu.1
+        for <linux-media@vger.kernel.org>; Wed, 24 May 2017 02:01:49 -0700 (PDT)
+Subject: Re: [PATCH v2 17/17] rcar-vin: fix bug in pixelformat selection
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+ <20170524001540.13613-18-niklas.soderlund@ragnatech.se>
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <9d780f84-ca1b-dda1-b5ec-36265d52c330@cogentembedded.com>
+Date: Wed, 24 May 2017 12:01:45 +0300
 MIME-Version: 1.0
-In-Reply-To: <20ba4f83-7d22-2a8e-4eb6-7d4eba92e2ae@xs4all.nl>
+In-Reply-To: <20170524001540.13613-18-niklas.soderlund@ragnatech.se>
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello!
 
+On 5/24/2017 3:15 AM, Niklas Söderlund wrote:
 
-On 22/05/17 11:09, Hans Verkuil wrote:
-> On 05/12/2017 05:22 AM, Minghsiu Tsai wrote:
-> 
-> Who should take care of the dtsi changes? I'm not sure who maintains the mdp dts.
+> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>
+> If the requested pixelformat is not supported fallback to the default
+> format, do not revert the entire format.
+>
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 17 +++++------------
+>  1 file changed, 5 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> index de71e5fa8b10cb5e..81ff59c3b4744075 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+[...]
+> @@ -218,17 +217,11 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  	if (pix->field == V4L2_FIELD_ANY)
+>  		pix->field = vin->format.field;
+>
+> -	/*
+> -	 * Retrieve format information and select the current format if the
+> -	 * requested format isn't supported.
+> -	 */
+> -	info = rvin_format_from_pixel(pix->pixelformat);
+> -	if (!info) {
+> -		vin_dbg(vin, "Format %x not found, keeping %x\n",
+> -			pix->pixelformat, vin->format.pixelformat);
+> -		*pix = vin->format;
+> -		pix->width = rwidth;
+> -		pix->height = rheight;
+> +	/* If requested format is not supported fallback to the default */
+> +	if (!rvin_format_from_pixel(pix->pixelformat)) {
+> +		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
 
-I will take care of the dtsi patches.
+     s/0x%x/%#x/, maybe?
 
-> 
-> The driver change and the dtsi change need to be in sync, so it is probably easiest
-> to merge this via one tree.
-> 
-> Here is my Acked-by for these three patches:
-> 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> I can take all three, provided I have the Ack of the mdp dts maintainer. Or it can
-> go through him with my Ack.
-> 
+> +			pix->pixelformat, RVIN_DEFAULT_FORMAT);
+> +		pix->pixelformat = RVIN_DEFAULT_FORMAT;
+>  	}
+>
+>  	/* Always recalculate */
 
-I think we should provide backwards compability instead, as proposed here:
-http://lists.infradead.org/pipermail/linux-mediatek/2017-May/008811.html
-
-If this change is ok for you, please let Minghsiu know so that he can 
-provide a v4.
-
-Regards,
-Matthias
-
-> Regards,
-> 
-> 	Hans
-> 
->> Changes in v3:
->> - Upload patches again because forget to add v2 in title
->>
->> Changes in v2:
->> - Update commit message
->>
->> If the mdp_* nodes are under an mdp sub-node, their corresponding
->> platform device does not automatically get its iommu assigned properly.
->>
->> Fix this by moving the mdp component nodes up a level such that they are
->> siblings of mdp and all other SoC subsystems.  This also simplifies the
->> device tree.
->>
->> Although it fixes iommu assignment issue, it also break compatibility
->> with old device tree. So, the patch in driver is needed to iterate over
->> sibling mdp device nodes, not child ones, to keep driver work properly.
->>
->> Daniel Kurtz (2):
->>    arm64: dts: mt8173: Fix mdp device tree
->>    media: mtk-mdp: Fix mdp device tree
->>
->> Minghsiu Tsai (1):
->>    dt-bindings: mt8173: Fix mdp device tree
->>
->>   .../devicetree/bindings/media/mediatek-mdp.txt     |  12 +-
->>   arch/arm64/boot/dts/mediatek/mt8173.dtsi           | 126 ++++++++++-----------
->>   drivers/media/platform/mtk-mdp/mtk_mdp_core.c      |   2 +-
->>   3 files changed, 64 insertions(+), 76 deletions(-)
->>
-> 
+MBR, Sergei
