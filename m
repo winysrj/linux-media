@@ -1,62 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46188
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752320AbdESKyP (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:42018 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S937664AbdEXAJ2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 May 2017 06:54:15 -0400
-Date: Fri, 19 May 2017 07:54:09 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Alan Cox <alan@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: Re: [PATCH 00/13] staging: media: atomisp queued up patches
-Message-ID: <20170519075409.6d8597fa@vento.lan>
-In-Reply-To: <1495125627.7848.69.camel@linux.intel.com>
-References: <20170518135022.6069-1-gregkh@linuxfoundation.org>
-        <20170518111010.756a13c2@vento.lan>
-        <1495125627.7848.69.camel@linux.intel.com>
+        Tue, 23 May 2017 20:09:28 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v2 1/2] media: entity: Add pad_from_fwnode entity operation
+Date: Wed, 24 May 2017 02:09:06 +0200
+Message-Id: <20170524000907.13061-2-niklas.soderlund@ragnatech.se>
+In-Reply-To: <20170524000907.13061-1-niklas.soderlund@ragnatech.se>
+References: <20170524000907.13061-1-niklas.soderlund@ragnatech.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 18 May 2017 17:40:27 +0100
-Alan Cox <alan@linux.intel.com> escreveu:
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-> On Thu, 2017-05-18 at 11:10 -0300, Mauro Carvalho Chehab wrote:
-> > Em Thu, 18 May 2017 15:50:09 +0200
-> > Greg Kroah-Hartman <gregkh@linuxfoundation.org> escreveu:
-> >   
-> > > 
-> > > Hi Mauro,
-> > > 
-> > > Here's the set of accumulated atomisp staging patches that I had in
-> > > my
-> > > to-review mailbox.  After this, my queue is empty, the driver is
-> > > all
-> > > yours!  
-> > 
-> > Thanks!
-> > 
-> > Alan, please let me know if you prefer if I don't apply any of
-> > such patches, otherwise I should be merging them tomorrow ;)  
-> 
-> I will assume you've merged them and resync the internal patch queue I
-> have here to that. 
+The optional operation can be used by entities to report how it maps its
+fwnode endpoints to media pad numbers. This is useful for devices which
+require advanced mappings of pads.
 
-Merged, thanks! I'll also merge a patch I just sent with disables
-several warnings that W=1 would otherwise turn on. They indicate
-real issues there, but, as you pointed, there are much more
-important tasks to to than to try fixing those warnings.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ include/media/media-entity.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-> At the moment I'm still slowly trying to unthread
-> some of the fascinating layers of indirection without actually breaking
-> anything.
-
-I don't envy you trying to get some sense out of it ;-)
-
-Good luck!
-
-Thanks,
-Mauro
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index c7c254c5bca1761b..2aea22b0409d1070 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -21,6 +21,7 @@
+ 
+ #include <linux/bitmap.h>
+ #include <linux/bug.h>
++#include <linux/fwnode.h>
+ #include <linux/kernel.h>
+ #include <linux/list.h>
+ #include <linux/media.h>
+@@ -171,6 +172,9 @@ struct media_pad {
+ 
+ /**
+  * struct media_entity_operations - Media entity operations
++ * @pad_from_fwnode:	Return the pad number based on a fwnode endpoint.
++ *			This operation can be used to map a fwnode to a
++ *			media pad number. Optional.
+  * @link_setup:		Notify the entity of link changes. The operation can
+  *			return an error, in which case link setup will be
+  *			cancelled. Optional.
+@@ -184,6 +188,8 @@ struct media_pad {
+  *    mutex held.
+  */
+ struct media_entity_operations {
++	int (*pad_from_fwnode)(struct fwnode_endpoint *endpoint,
++			       unsigned int *pad);
+ 	int (*link_setup)(struct media_entity *entity,
+ 			  const struct media_pad *local,
+ 			  const struct media_pad *remote, u32 flags);
+-- 
+2.13.0
