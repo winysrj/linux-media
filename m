@@ -1,160 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:34301 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751078AbdEaMOG (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:46802 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1765683AbdEXARE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 08:14:06 -0400
-Received: by mail-wm0-f48.google.com with SMTP id 123so33373204wmg.1
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 05:14:05 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: yannick.fertre@st.com, alexandre.torgue@st.com, hverkuil@xs4all.nl,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        robh@kernel.org, hans.verkuil@cisco.com
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v6 0/2] cec: STM32 driver
-Date: Wed, 31 May 2017 14:13:54 +0200
-Message-Id: <1496232836-18220-1-git-send-email-benjamin.gaignard@linaro.org>
+        Tue, 23 May 2017 20:17:04 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v2 12/17] rcar-vin: allow switch between capturing modes when stalling
+Date: Wed, 24 May 2017 02:15:35 +0200
+Message-Id: <20170524001540.13613-13-niklas.soderlund@ragnatech.se>
+In-Reply-To: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+References: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-version 6:
-- fix duplicate constant in define 
-- add monitor mode
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-version 5:
-- remove cec notifier (to be added after drm driver release)
+If userspace can't feed the driver with buffers as fast as the driver
+consumes them the driver will stop video capturing and wait for more
+buffers from userspace, the driver is stalled. Once it have been feed
+one or more free buffers it will recover from the stall and resume
+capturing.
 
-version 4:
-- rebased on Hans cec-config branch
-- rework bindings commit message
-- add notifier support
-- update KConfig
+Instead of continue to capture using the same capture mode as before the
+stall allow the driver to choose between single and continuous mode
+based on free buffer availability. Do this by stopping capturing when
+the driver becomes stalled and restart capturing once it continues. By
+doing
+this the capture mode will be evaluated each time the driver is
+recovering from a stall.
 
-version 2:
-- fix typo in compagnie name
-- add yannick sign-off
-- use cec_message instead of custom struct in cec device
-- add monitor mode
+This behavior is needed to fix a bug where continuous capturing mode is
+used, userspace is about to stop the stream and is waiting for the last
+buffers to be returned from the driver and is not queuing any new
+buffers. In this case the driver becomes stalled when there are only 3
+buffers remaining streaming will never resume since the driver is
+waiting for userspace to feed it more buffers before it can continue
+streaming.  With this fix the driver will then switch to single capture
+mode for the last 3 buffers and a deadlock is avoided. The issue can be
+demonstrated using yavta.
 
-I don't change the split between irq handler and irq thread because
-it would had mean to handle all errors cases irq handler to keep
-a correct sequence. I don't think it is critical as it is since cec is a very
-slow protocol.
+$ yavta -f RGB565 -s 640x480 -n 4 --capture=10  /dev/video22
+Device /dev/video22 opened.
+Device `R_Car_VIN' on `platform:e6ef1000.video' (driver 'rcar_vin') supports video, capture, without mplanes.
+Video format set: RGB565 (50424752) 640x480 (stride 1280) field interlaced buffer size 614400
+Video format: RGB565 (50424752) 640x480 (stride 1280) field interlaced buffer size 614400
+4 buffers requested.
+length: 614400 offset: 0 timestamp type/source: mono/EoF
+Buffer 0/0 mapped at address 0xb6cc7000.
+length: 614400 offset: 614400 timestamp type/source: mono/EoF
+Buffer 1/0 mapped at address 0xb6c31000.
+length: 614400 offset: 1228800 timestamp type/source: mono/EoF
+Buffer 2/0 mapped at address 0xb6b9b000.
+length: 614400 offset: 1843200 timestamp type/source: mono/EoF
+Buffer 3/0 mapped at address 0xb6b05000.
+0 (0) [-] interlaced 0 614400 B 38.240285 38.240303 12.421 fps ts mono/EoF
+1 (1) [-] interlaced 1 614400 B 38.282329 38.282346 23.785 fps ts mono/EoF
+2 (2) [-] interlaced 2 614400 B 38.322324 38.322338 25.003 fps ts mono/EoF
+3 (3) [-] interlaced 3 614400 B 38.362318 38.362333 25.004 fps ts mono/EoF
+4 (0) [-] interlaced 4 614400 B 38.402313 38.402328 25.003 fps ts mono/EoF
+5 (1) [-] interlaced 5 614400 B 38.442307 38.442321 25.004 fps ts mono/EoF
+6 (2) [-] interlaced 6 614400 B 38.482301 38.482316 25.004 fps ts mono/EoF
+7 (3) [-] interlaced 7 614400 B 38.522295 38.522312 25.004 fps ts mono/EoF
+8 (0) [-] interlaced 8 614400 B 38.562290 38.562306 25.003 fps ts mono/EoF
+<blocks forever, waiting for the last buffer>
 
-This serie of patches add cec driver for STM32 platforms.
+This fix also allow the driver to switch to single capture mode if
+userspace doesn't feed it buffers fast enough. Or the other way around,
+if userspace suddenly feeds the driver buffers faster it can switch to
+continues capturing mode.
 
-This code doesn't implement cec notifier because STM32 doesn't
-provide HDMI yet but it will be added later.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-Those patches have been developped on top of media_tree master branch
-where STM32 DCMI code has not been merged so conflict in Kconfig and Makefile
-could occur depending of merge ordering.
-
-Compliance has been tested on STM32F769.
-
-~ # cec-ctl -p 1.0.0.0 --playback 
-Driver Info:
-        Driver Name                : stm32-cec
-        Adapter Name               : stm32-cec
-        Capabilities               : 0x0000000f
-                Physical Address
-                Logical Addresses
-                Transmit
-                Passthrough
-        Driver version             : 4.11.0
-        Available Logical Addresses: 1
-        Physical Address           : 1.0.0.0
-        Logical Address Mask       : 0x0010
-        CEC Version                : 2.0
-        Vendor ID                  : 0x000c03 (HDMI)
-        OSD Name                   : 'Playback'
-        Logical Addresses          : 1 (Allow RC Passthrough)
-
-          Logical Address          : 4 (Playback Device 1)
-            Primary Device Type    : Playback
-            Logical Address Type   : Playback
-            All Device Types       : Playback
-            RC TV Profile          : None
-            Device Features        :
-                None
-
-~ # cec-compliance -A 
-cec-compliance SHA                 : 6acac5cec698de39b9398b66c4f5f4db6b2730d8
-
-Driver Info:
-        Driver Name                : stm32-cec
-        Adapter Name               : stm32-cec
-        Capabilities               : 0x0000000f
-                Physical Address
-                Logical Addresses
-                Transmit
-                Passthrough
-        Driver version             : 4.11.0
-        Available Logical Addresses: 1
-        Physical Address           : 1.0.0.0
-        Logical Address Mask       : 0x0010
-        CEC Version                : 2.0
-        Vendor ID                  : 0x000c03
-        Logical Addresses          : 1 (Allow RC Passthrough)
-
-          Logical Address          : 4
-            Primary Device Type    : Playback
-            Logical Address Type   : Playback
-            All Device Types       : Playback
-            RC TV Profile          : None
-            Device Features        :
-                None
-
-Compliance test for device /dev/cec0:
-
-    The test results mean the following:
-        OK                  Supported correctly by the device.
-        OK (Not Supported)  Not supported and not mandatory for the device.
-        OK (Presumed)       Presumably supported.  Manually check to confirm.
-        OK (Unexpected)     Supported correctly but is not expected to be supported for this device.
-        OK (Refused)        Supported by the device, but was refused.
-        FAIL                Failed and was expected to be supported by this device.
-
-Find remote devices:
-        Polling: OK
-
-CEC API:
-        CEC_ADAP_G_CAPS: OK
-        CEC_DQEVENT: OK
-        CEC_ADAP_G/S_PHYS_ADDR: OK
-        CEC_ADAP_G/S_LOG_ADDRS: OK
-        CEC_TRANSMIT: OK
-        CEC_RECEIVE: OK
-        CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
-        CEC_G/S_MODE: OK
-        CEC_EVENT_LOST_MSGS: OK
-
-Network topology:
-        System Information for device 0 (TV) from device 4 (Playback Device 1):
-                CEC Version                : 1.4
-                Physical Address           : 0.0.0.0
-                Primary Device Type        : TV
-                Vendor ID                  : 0x00903e
-                OSD Name                   : 'TV'
-                Menu Language              : fre
-                Power Status               : On
-
-Total: 10, Succeeded: 10, Failed: 0, Warnings: 0
-
-
-Benjamin Gaignard (2):
-  dt-bindings: media: stm32 cec driver
-  cec: add STM32 cec driver
-
- .../devicetree/bindings/media/st,stm32-cec.txt     |  19 ++
- drivers/media/platform/Kconfig                     |  12 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/stm32/Makefile              |   1 +
- drivers/media/platform/stm32/stm32-cec.c           | 369 +++++++++++++++++++++
- 5 files changed, 403 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
- create mode 100644 drivers/media/platform/stm32/Makefile
- create mode 100644 drivers/media/platform/stm32/stm32-cec.c
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 47d78f68d715d945..ae4febede5f79f28 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -429,6 +429,8 @@ static int rvin_capture_start(struct rvin_dev *vin)
+ 
+ 	rvin_capture_on(vin);
+ 
++	vin->state = RUNNING;
++
+ 	return 0;
+ }
+ 
+@@ -907,7 +909,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
+ 	struct rvin_dev *vin = data;
+ 	u32 int_status, vnms;
+ 	int slot;
+-	unsigned int sequence, handled = 0;
++	unsigned int i, sequence, handled = 0;
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&vin->qlock, flags);
+@@ -969,8 +971,20 @@ static irqreturn_t rvin_irq(int irq, void *data)
+ 		 * the VnMBm registers.
+ 		 */
+ 		if (vin->continuous) {
+-			rvin_capture_off(vin);
++			rvin_capture_stop(vin);
+ 			vin_dbg(vin, "IRQ %02d: hw not ready stop\n", sequence);
++
++			/* Maybe we can continue in single capture mode */
++			for (i = 0; i < HW_BUFFER_NUM; i++) {
++				if (vin->queue_buf[i]) {
++					list_add(to_buf_list(vin->queue_buf[i]),
++						 &vin->buf_list);
++					vin->queue_buf[i] = NULL;
++				}
++			}
++
++			if (!list_empty(&vin->buf_list))
++				rvin_capture_start(vin);
+ 		}
+ 	} else {
+ 		/*
+@@ -1055,8 +1069,7 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
+ 	 * capturing if HW is ready to continue.
+ 	 */
+ 	if (vin->state == STALLED)
+-		if (rvin_fill_hw(vin))
+-			rvin_capture_on(vin);
++		rvin_capture_start(vin);
+ 
+ 	spin_unlock_irqrestore(&vin->qlock, flags);
+ }
+@@ -1073,7 +1086,6 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 
+ 	spin_lock_irqsave(&vin->qlock, flags);
+ 
+-	vin->state = RUNNING;
+ 	vin->sequence = 0;
+ 
+ 	ret = rvin_capture_start(vin);
 -- 
-1.9.1
+2.13.0
