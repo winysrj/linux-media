@@ -1,78 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:50827 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750733AbdE3HIb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 03:08:31 -0400
-From: Jani Nikula <jani.nikula@intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, Daniel Vetter <daniel@ffwll.ch>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org,
-        Clint Taylor <clinton.a.taylor@intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 7/7] drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
-In-Reply-To: <d9e9354b-eeb7-0a1e-2dbc-16c1ba0c0784@xs4all.nl>
-References: <20170525150626.29748-1-hverkuil@xs4all.nl> <20170525150626.29748-8-hverkuil@xs4all.nl> <20170526071550.3gsq3pc375cnk2gk@phenom.ffwll.local> <0a417a9c-4a41-796c-9876-51b61d429bb5@xs4all.nl> <20170529190004.ipdeyntsmzzb3iij@phenom.ffwll.local> <d9e9354b-eeb7-0a1e-2dbc-16c1ba0c0784@xs4all.nl>
-Date: Tue, 30 May 2017 10:11:53 +0300
-Message-ID: <87y3tekedi.fsf@intel.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:46759 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1765677AbdEXARA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 23 May 2017 20:17:00 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v2 06/17] rcar-vin: refactor pad lookup code
+Date: Wed, 24 May 2017 02:15:29 +0200
+Message-Id: <20170524001540.13613-7-niklas.soderlund@ragnatech.se>
+In-Reply-To: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+References: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 30 May 2017, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 05/29/2017 09:00 PM, Daniel Vetter wrote:
->> On Fri, May 26, 2017 at 12:20:48PM +0200, Hans Verkuil wrote:
->>> On 05/26/2017 09:15 AM, Daniel Vetter wrote:
->>>> Did you look into also wiring this up for dp mst chains?
->>>
->>> Isn't this sufficient? I have no way of testing mst chains.
->>>
->>> I think I need some pointers from you, since I am a complete newbie when it
->>> comes to mst.
->> 
->> I don't really have more clue, but yeah if you don't have an mst thing (a
->> simple dp port multiplexer is what I use for testing here, then plug in a
->> converter dongle or cable into that) then probably better to not wire up
->> the code for it.
->
-> I think my NUC already uses mst internally. But I was planning on buying a
-> dp multiplexer to make sure there is nothing special I need to do for mst.
->
-> The CEC Tunneling is all in the branch device, so if I understand things
-> correctly it is not affected by mst.
->
-> BTW, I did a bit more testing on my NUC7i5BNK: for the HDMI output they
-> use a MegaChip MCDP2800 DP-to-HDMI converter which according to their
-> datasheet is supposed to implement CEC Tunneling, but if they do it is not
-> exposed as a capability. I'm not sure if it is a MegaChip firmware issue
-> or something else. The BIOS is able to do some CEC, but whether they hook
-> into the MegaChip or have the CEC pin connected to a GPIO or something and
-> have their own controller is something I do not know.
->
-> If anyone can clarify what Intel did on the NUC, then that would be very
-> helpful.
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-It's called LSPCON, see i915/intel_lspcon.c, basically to support HDMI
-2.0. Currently we only use it in PCON mode, shows up as DP for us. It
-could be used in LS mode, showing up as HDMI 1.4, but we don't support
-that in i915.
+The pad lookup code can be broken out to increase readability and to
+reduce code duplication.
 
-I don't know about the CEC on that.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 36 +++++++++++++++++------------
+ 1 file changed, 21 insertions(+), 15 deletions(-)
 
-
-BR,
-Jani.
-
->
-> It would be so nice to get MegaChip CEC Tunneling working on the NUC, because
-> then you have native CEC support without requiring any Pulse Eight adapter.
->
-> And add a CEC-capable USB-C to HDMI adapter and you have it on the USB-C
-> output as well.
->
-> Regards,
->
-> 	Hans
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 1a75191539b0e7d7..90ea582fb48e3cb5 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -870,11 +870,25 @@ static void rvin_notify(struct v4l2_subdev *sd,
+ 	}
+ }
+ 
++static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
++{
++	unsigned int pad;
++
++	if (sd->entity.num_pads <= 1)
++		return 0;
++
++	for (pad = 0; pad < sd->entity.num_pads; pad++)
++		if (sd->entity.pads[pad].flags & direction)
++			return pad;
++
++	return -EINVAL;
++}
++
+ int rvin_v4l2_probe(struct rvin_dev *vin)
+ {
+ 	struct video_device *vdev = &vin->vdev;
+ 	struct v4l2_subdev *sd = vin_to_source(vin);
+-	int pad_idx, ret;
++	int ret;
+ 
+ 	v4l2_set_subdev_hostdata(sd, vin);
+ 
+@@ -920,21 +934,13 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+ 		V4L2_CAP_READWRITE;
+ 
+-	vin->digital.source_pad = 0;
+-	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
+-		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
+-			break;
+-	if (pad_idx >= sd->entity.num_pads)
+-		return -EINVAL;
+-
+-	vin->digital.source_pad = pad_idx;
++	ret = rvin_find_pad(sd, MEDIA_PAD_FL_SOURCE);
++	if (ret < 0)
++		return ret;
++	vin->digital.source_pad = ret;
+ 
+-	vin->digital.sink_pad = 0;
+-	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
+-		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
+-			vin->digital.sink_pad = pad_idx;
+-			break;
+-		}
++	ret = rvin_find_pad(sd, MEDIA_PAD_FL_SINK);
++	vin->digital.sink_pad = ret < 0 ? 0 : ret;
+ 
+ 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
+ 	rvin_reset_format(vin);
 -- 
-Jani Nikula, Intel Open Source Technology Center
+2.13.0
