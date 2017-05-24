@@ -1,110 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:34983 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750763AbdEBPJf (ORCPT
+Received: from mail-lf0-f46.google.com ([209.85.215.46]:33406 "EHLO
+        mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1164141AbdEXOHj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 2 May 2017 11:09:35 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Peter Rosin <peda@axentia.se>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 1/2] [media] dt-bindings: Add bindings for video-multiplexer device
-Date: Tue,  2 May 2017 17:09:12 +0200
-Message-Id: <20170502150913.2168-1-p.zabel@pengutronix.de>
+        Wed, 24 May 2017 10:07:39 -0400
+Received: by mail-lf0-f46.google.com with SMTP id m18so68205771lfj.0
+        for <linux-media@vger.kernel.org>; Wed, 24 May 2017 07:07:38 -0700 (PDT)
+Date: Wed, 24 May 2017 16:07:36 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 1/2] media: entity: Add pad_from_fwnode entity
+ operation
+Message-ID: <20170524140736.GB7346@bigcity.dyn.berto.se>
+References: <20170524000907.13061-1-niklas.soderlund@ragnatech.se>
+ <20170524000907.13061-2-niklas.soderlund@ragnatech.se>
+ <20170524132137.GK29527@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170524132137.GK29527@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add bindings documentation for the video multiplexer device.
+Hi Sakari,
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Acked-by: Peter Rosin <peda@axentia.se>
----
-No changes since v1 [1].
+Thanks for your feedback.
 
-This was previously sent as part of Steve's i.MX media series [2].
+On 2017-05-24 16:21:37 +0300, Sakari Ailus wrote:
+> Hi Niklas,
+> 
+> On Wed, May 24, 2017 at 02:09:06AM +0200, Niklas Söderlund wrote:
+> > From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > 
+> > The optional operation can be used by entities to report how it maps its
+> > fwnode endpoints to media pad numbers. This is useful for devices which
+> > require advanced mappings of pads.
+> > 
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  include/media/media-entity.h | 6 ++++++
+> >  1 file changed, 6 insertions(+)
+> > 
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > index c7c254c5bca1761b..2aea22b0409d1070 100644
+> > --- a/include/media/media-entity.h
+> > +++ b/include/media/media-entity.h
+> > @@ -21,6 +21,7 @@
+> >  
+> >  #include <linux/bitmap.h>
+> >  #include <linux/bug.h>
+> > +#include <linux/fwnode.h>
+> >  #include <linux/kernel.h>
+> >  #include <linux/list.h>
+> >  #include <linux/media.h>
+> > @@ -171,6 +172,9 @@ struct media_pad {
+> >  
+> >  /**
+> >   * struct media_entity_operations - Media entity operations
+> > + * @pad_from_fwnode:	Return the pad number based on a fwnode endpoint.
+> > + *			This operation can be used to map a fwnode to a
+> > + *			media pad number. Optional.
+> >   * @link_setup:		Notify the entity of link changes. The operation can
+> >   *			return an error, in which case link setup will be
+> >   *			cancelled. Optional.
+> > @@ -184,6 +188,8 @@ struct media_pad {
+> >   *    mutex held.
+> >   */
+> >  struct media_entity_operations {
+> > +	int (*pad_from_fwnode)(struct fwnode_endpoint *endpoint,
+> > +			       unsigned int *pad);
+> 
+> Hmm. How about calling this get_fwnode_pad for instance? I wonder what
+> others think.
 
-[1] https://patchwork.kernel.org/patch/9704789/
-[2] https://patchwork.kernel.org/patch/9647951/
----
- .../devicetree/bindings/media/video-mux.txt        | 60 ++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/video-mux.txt
+I'm OK with this name change, will update for next version.
 
-diff --git a/Documentation/devicetree/bindings/media/video-mux.txt b/Documentation/devicetree/bindings/media/video-mux.txt
-new file mode 100644
-index 0000000000000..63b9dc913e456
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/video-mux.txt
-@@ -0,0 +1,60 @@
-+Video Multiplexer
-+=================
-+
-+Video multiplexers allow to select between multiple input ports. Video received
-+on the active input port is passed through to the output port. Muxes described
-+by this binding are controlled by a multiplexer controller that is described by
-+the bindings in Documentation/devicetree/bindings/mux/mux-controller.txt
-+
-+Required properties:
-+- compatible : should be "video-mux"
-+- mux-controls : mux controller node to use for operating the mux
-+- #address-cells: should be <1>
-+- #size-cells: should be <0>
-+- port@*: at least three port nodes containing endpoints connecting to the
-+  source and sink devices according to of_graph bindings. The last port is
-+  the output port, all others are inputs.
-+
-+Optionally, #address-cells, #size-cells, and port nodes can be grouped under a
-+ports node as described in Documentation/devicetree/bindings/graph.txt.
-+
-+Example:
-+
-+	mux: mux-controller {
-+		compatible = "gpio-mux";
-+		#mux-control-cells = <0>;
-+
-+		mux-gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
-+	};
-+
-+	video-mux {
-+		compatible = "video-mux";
-+		mux-controls = <&mux>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			mux_in0: endpoint {
-+				remote-endpoint = <&video_source0_out>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			mux_in1: endpoint {
-+				remote-endpoint = <&video_source1_out>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			mux_out: endpoint {
-+				remote-endpoint = <&capture_interface_in>;
-+			};
-+		};
-+	};
-+};
+> 
+> You could just return the pad number still, and a negative value on error. I
+> think we won't have more than INT_MAX pads. :-)
+
+I did that at first but then I remembered all the review comments I have 
+gotten earlier about using int as the type for pads :-) If you and 
+others agree in this case returning the pad as int or a negative value 
+as error I have no problem chaining this for the next version.
+
+> 
+> >  	int (*link_setup)(struct media_entity *entity,
+> >  			  const struct media_pad *local,
+> >  			  const struct media_pad *remote, u32 flags);
+> 
+> -- 
+> Regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+
 -- 
-2.11.0
+Regards,
+Niklas Söderlund
