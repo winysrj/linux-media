@@ -1,100 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43493 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933500AbdEVRF0 (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:42028 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S937812AbdEXAJ3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 May 2017 13:05:26 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v2 2/2] v4l: async: Match parent devices
-References: <cover.9f22ad082e363959e4679246793bc4698479a44e.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
- <133ce0f3de88925fee3685ebe3967b6c5f93f8ef.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
-To: sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com
-Cc: Kieran Bingham <kbingham@kernel.org>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <3aace1d3-d8f9-0090-9c96-1bedcbddda8c@ideasonboard.com>
-Date: Mon, 22 May 2017 18:05:12 +0100
+        Tue, 23 May 2017 20:09:29 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v2 2/2] media: entity: Add media_entity_pad_from_fwnode() function
+Date: Wed, 24 May 2017 02:09:07 +0200
+Message-Id: <20170524000907.13061-3-niklas.soderlund@ragnatech.se>
+In-Reply-To: <20170524000907.13061-1-niklas.soderlund@ragnatech.se>
+References: <20170524000907.13061-1-niklas.soderlund@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <133ce0f3de88925fee3685ebe3967b6c5f93f8ef.1495210364.git-series.kieran.bingham+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewing my own post:
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-On 19/05/17 17:16, Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> Devices supporting multiple endpoints on a single device node must set
-> their subdevice fwnode to the endpoint to allow distinct comparisons.
-> 
-> Adapt the match_fwnode call to compare against the provided fwnodes
-> first, but also to search for a comparison against the parent fwnode.
-> 
-> This allows notifiers to pass the endpoint for comparison and still
-> support existing subdevices which store their default parent device
-> node.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> ---
-> v2:
->  - Added documentation comments
->  - simplified the OF match by adding match_fwnode_of()
-> 
->  drivers/media/v4l2-core/v4l2-async.c | 33 ++++++++++++++++++++++++-----
->  1 file changed, 28 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index cbd919d4edd2..2473c0a1f7a8 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -41,14 +41,37 @@ static bool match_devname(struct v4l2_subdev *sd,
->  	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
->  }
->  
-> +static bool match_fwnode_of(struct fwnode_handle *a, struct fwnode_handle *b)
-> +{
-> +	return !of_node_cmp(of_node_full_name(to_of_node(a)),
-> +			    of_node_full_name(to_of_node(b)));
-> +}
-> +
-> +/*
-> + * Compare the sd with the notifier.
-> + *
-> + * As a measure to support drivers which have not been converted to use
-> + * endpoint matching, we also find the parent device of the node in the
-> + * notifier, and compare the sd against that device.
-> + */
->  static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
->  {
-> -	if (!is_of_node(sd->fwnode) || !is_of_node(asd->match.fwnode.fwnode))
-> -		return sd->fwnode == asd->match.fwnode.fwnode;
-> +	struct fwnode_handle *asd_fwnode = asd->match.fwnode.fwnode;
-> +	struct fwnode_handle *sd_parent, *asd_parent;
-> +
+This is a wrapper around the media entity pad_from_fwnode operation.
 
-The keen eyed will notice that sd_parent is not initialised here before use:
-Fixed in the next version, pending testing and repost.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/media-entity.c | 39 +++++++++++++++++++++++++++++++++++++++
+ include/media/media-entity.h | 22 ++++++++++++++++++++++
+ 2 files changed, 61 insertions(+)
 
-> +	asd_parent = fwnode_graph_get_port_parent(asd_fwnode);
-> +
-> +	if (!is_of_node(sd->fwnode) || !is_of_node(asd_fwnode))
-> +		return sd->fwnode == asd_fwnode ||
-> +		       sd_parent == asd_fwnode ||
-> +		       sd->fwnode == asd_parent;
->  
-> -	return !of_node_cmp(of_node_full_name(to_of_node(sd->fwnode)),
-> -			    of_node_full_name(
-> -				    to_of_node(asd->match.fwnode.fwnode)));
-> +	/*
-> +	 * Compare OF nodes with a full match to support removable dt snippets.
-> +	 */
-> +	return match_fwnode_of(sd->fwnode, asd_fwnode) ||
-> +	       match_fwnode_of(sd_parent, asd_fwnode) ||
-> +	       match_fwnode_of(sd->fwnode, asd_parent);
->  }
->  
->  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
-> 
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index bc44193efa4798b4..c124754f739a8b94 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -18,6 +18,7 @@
+ 
+ #include <linux/bitmap.h>
+ #include <linux/module.h>
++#include <linux/property.h>
+ #include <linux/slab.h>
+ #include <media/media-entity.h>
+ #include <media/media-device.h>
+@@ -386,6 +387,44 @@ struct media_entity *media_graph_walk_next(struct media_graph *graph)
+ }
+ EXPORT_SYMBOL_GPL(media_graph_walk_next);
+ 
++int media_entity_pad_from_fwnode(struct media_entity *entity,
++				 struct fwnode_handle *fwnode,
++				 int direction, unsigned int *pad)
++{
++	struct fwnode_endpoint endpoint;
++	int i, tmp, ret;
++
++	if (!entity->ops || !entity->ops->pad_from_fwnode) {
++		for (i = 0; i < entity->num_pads; i++) {
++			if (entity->pads[i].flags & direction) {
++				*pad = i;
++				return 0;
++			}
++		}
++
++		return -ENXIO;
++	}
++
++	ret = fwnode_graph_parse_endpoint(fwnode, &endpoint);
++	if (ret)
++		return ret;
++
++	ret = entity->ops->pad_from_fwnode(&endpoint, &tmp);
++	if (ret)
++		return ret;
++
++	if (tmp >= entity->num_pads)
++		return -ENXIO;
++
++	if (!(entity->pads[tmp].flags & direction))
++		return -ENXIO;
++
++	*pad = tmp;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(media_entity_pad_from_fwnode);
++
+ /* -----------------------------------------------------------------------------
+  * Pipeline management
+  */
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 2aea22b0409d1070..7507181609bec43c 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -822,6 +822,28 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
+ struct media_entity *media_entity_get(struct media_entity *entity);
+ 
+ /**
++ * media_entity_pad_from_fwnode - Get pad number from fwnode
++ *
++ * @entity: The entity
++ * @fwnode: Pointer to fwnode_handle which should be used to find pad
++ * @direction: Expected direction of the pad
++ * @pad: Pointer to pad which will should be filled in
++ *
++ * This function can be used to resolve the media pad number from
++ * a fwnode. This is useful for devices which uses more complex
++ * mappings of media pads.
++ *
++ * If the entity do not implement the pad_from_fwnode() operation
++ * this function searches the entity for the first pad that matches
++ * the @direction.
++ *
++ * Return: return 0 on success.
++ */
++int media_entity_pad_from_fwnode(struct media_entity *entity,
++				 struct fwnode_handle *fwnode,
++				 int direction, unsigned int *pad);
++
++/**
+  * media_graph_walk_init - Allocate resources used by graph walk.
+  *
+  * @graph: Media graph structure that will be used to walk the graph
+-- 
+2.13.0
