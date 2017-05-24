@@ -1,67 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:35731 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932604AbdEDJ00 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40324 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1035456AbdEXN3I (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 May 2017 05:26:26 -0400
-Message-ID: <1493889978.2381.11.camel@pengutronix.de>
-Subject: Re: [PATCH v2 2/2] [media] platform: add video-multiplexer
- subdevice driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Peter Rosin <peda@axentia.se>, Pavel Machek <pavel@ucw.cz>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Thu, 04 May 2017 11:26:18 +0200
-In-Reply-To: <20170504071703.GS7456@valkosipuli.retiisi.org.uk>
-References: <20170502150913.2168-1-p.zabel@pengutronix.de>
-         <20170502150913.2168-2-p.zabel@pengutronix.de>
-         <20170503192836.GN7456@valkosipuli.retiisi.org.uk>
-         <1493881652.2381.6.camel@pengutronix.de>
-         <20170504071703.GS7456@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Wed, 24 May 2017 09:29:08 -0400
+Date: Wed, 24 May 2017 16:28:34 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: Re: [PATCH v2 1/2] v4l: async: check for v4l2_dev in
+ v4l2_async_notifier_register()
+Message-ID: <20170524132833.GM29527@valkosipuli.retiisi.org.uk>
+References: <20170524000727.12936-1-niklas.soderlund@ragnatech.se>
+ <20170524000727.12936-2-niklas.soderlund@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170524000727.12936-2-niklas.soderlund@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-On Thu, 2017-05-04 at 10:17 +0300, Sakari Ailus wrote:
-> Hi Philipp,
+On Wed, May 24, 2017 at 02:07:26AM +0200, Niklas Söderlund wrote:
+> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 > 
-> On Thu, May 04, 2017 at 09:07:32AM +0200, Philipp Zabel wrote:
-> > On Wed, 2017-05-03 at 22:28 +0300, Sakari Ailus wrote:
-> > > Hi Philipp,
-> > > 
-> > > Thanks for continuing working on this!
-> > > 
-> > > I have some minor comments below...
-> > 
-> > Thank you for the comments.
-> > 
-> > [...]
-> > > Could you rebase this on the V4L2 fwnode patchset here, please?
-> > > 
-> > > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi>
-> > >
-> > > The conversion is rather simple, as shown here:
-> > > 
-> > > <URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=v4l2-acpi&id=679035e11bfdbea146fed5d52fb794b34dc9cea6>
-> > 
-> > What is the status of this patchset? Will this be merged soon?
+> Add a check for v4l2_dev to v4l2_async_notifier_register() as to fail as
+> early as possible since this will fail later in v4l2_async_test_notify().
 > 
-> I intend to send a pull request once the next rc1 tag is pulled on
-> media-tree master. It depends on patches in linux-pm tree that aren't in
-> media-tree yet.
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-I get conflicts trying to merge v4l2-acpi into v4.11 or media-tree
-master. Could you provide an updated version?
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-regards
-Philipp
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
