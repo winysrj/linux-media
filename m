@@ -1,40 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:51267 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751129AbdE1PEr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 May 2017 11:04:47 -0400
-Date: Sun, 28 May 2017 16:04:30 +0100
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH 03/16] lirc_dev: correct error handling
-Message-ID: <20170528150429.GA18977@gofer.mess.org>
-References: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
- <149365463117.12922.15518669536847504845.stgit@zeus.hardeman.nu>
- <20170521085712.GA29355@gofer.mess.org>
- <20170528082337.2hk4zwfi47xzjqea@hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170528082337.2hk4zwfi47xzjqea@hardeman.nu>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36318 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965002AbdEXA2X (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 23 May 2017 20:28:23 -0400
+From: Juan Antonio Pedreira Martos <juanpm1@gmail.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Julia Lawall <julia.lawall@lip6.fr>,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        Juan Antonio Pedreira Martos <juanpm1@gmail.com>
+Subject: [PATCH] staging: media: atomisp: fix non static symbol warnings
+Date: Wed, 24 May 2017 02:27:11 +0200
+Message-Id: <20170524002711.4481-1-juanpm1@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, May 28, 2017 at 10:23:37AM +0200, David Härdeman wrote:
-> On Sun, May 21, 2017 at 09:57:13AM +0100, Sean Young wrote:
-> >On Mon, May 01, 2017 at 06:03:51PM +0200, David Härdeman wrote:
-> >> If an error is generated, nonseekable_open() shouldn't be called.
-> >
-> >There is no harm in calling nonseekable_open(), so this commit is
-> >misleading.
-> 
-> I'm not sure why you consider it misleading? If there's an error, the
-> logic thing to do is to error out immediately and not do any further
-> work?
+Fix a couple of sparse warnings:
+drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c:59:14: warning: symbol 'repool_pgnr' was not declared. Should it be static?
+drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c:387:6: warning: symbol 'punit_ddr_dvfs_enable' was not declared. Should it be static?
 
-The commit message says that nonseekable_open() should not be called,
-suggesting there is a bug which is not the case.
+Mark these symbols as static, so they are no longer incorrectly exported.
 
+Signed-off-by: Juan Antonio Pedreira Martos <juanpm1@gmail.com>
+---
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Sean
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+index e3fdbdba0b34..14d32174c869 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+@@ -56,7 +56,7 @@ module_param(skip_fwload, uint, 0644);
+ MODULE_PARM_DESC(skip_fwload, "Skip atomisp firmware load");
+ 
+ /* set reserved memory pool size in page */
+-unsigned int repool_pgnr;
++static unsigned int repool_pgnr;
+ module_param(repool_pgnr, uint, 0644);
+ MODULE_PARM_DESC(repool_pgnr,
+ 		"Set the reserved memory pool size in page (default:0)");
+@@ -384,7 +384,7 @@ static int atomisp_mrfld_pre_power_down(struct atomisp_device *isp)
+  * WA for DDR DVFS enable/disable
+  * By default, ISP will force DDR DVFS 1600MHz before disable DVFS
+  */
+-void punit_ddr_dvfs_enable(bool enable)
++static void punit_ddr_dvfs_enable(bool enable)
+ {
+ 	int reg = intel_mid_msgbus_read32(PUNIT_PORT, MRFLD_ISPSSDVFS);
+ 	int door_bell = 1 << 8;
+-- 
+2.13.0
