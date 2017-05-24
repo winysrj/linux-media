@@ -1,412 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:41019 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752718AbdEDNjD (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:46769 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1765675AbdEXARF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 May 2017 09:39:03 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Peter Rosin <peda@axentia.se>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v3 2/2] [media] platform: add video-multiplexer subdevice driver
-Date: Thu,  4 May 2017 15:38:57 +0200
-Message-Id: <1493905137-27051-2-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1493905137-27051-1-git-send-email-p.zabel@pengutronix.de>
-References: <1493905137-27051-1-git-send-email-p.zabel@pengutronix.de>
+        Tue, 23 May 2017 20:17:05 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v2 15/17] rcar-vin: register the video device at probe time
+Date: Wed, 24 May 2017 02:15:38 +0200
+Message-Id: <20170524001540.13613-16-niklas.soderlund@ragnatech.se>
+In-Reply-To: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+References: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver can handle SoC internal and external video bus multiplexers,
-controlled by mux controllers provided by the mux controller framework,
-such as MMIO register bitfields or GPIOs. The subdevice passes through
-the mbus configuration of the active input to the output side.
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+The driver registers the video device from the async complete callback
+and unregistered in the async unbind callback. This creates problems if
+if the subdevice is bound, unbound and later rebound. The second time
+video_register_device() is called it fails:
+
+   kobject (eb3be918): tried to init an initialized object, something is seriously wrong.
+
+To prevent this register the video device at prob time and don't allow
+user-space to open the video device if the subdevice have not yet been
+bound.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
-Changes since v2 [1]:
- - Extend vmux->lock to protect mbus format against simultaneous access
-   from get/set_format calls.
- - Drop is_source_pad(), check pad->flags & MEDIA_PAD_FL_SOURCE directly.
- - Replace v4l2_of_parse_endpoint call with v4l2_fwnode_endpoint_parse,
-   include media/v4l2-fwnode.h instead of media/v4l2-of.h.
- - Constify ops structures.
+ drivers/media/platform/rcar-vin/rcar-core.c | 47 ++++++++++++++++++++++++++---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 42 ++++----------------------
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  1 +
+ 3 files changed, 50 insertions(+), 40 deletions(-)
 
-This was previously sent as part of Steve's i.MX media series [2].
-Tested against
-https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi-merge
-
-[1] https://patchwork.kernel.org/patch/9708237/
-[2] https://patchwork.kernel.org/patch/9647869/
----
- drivers/media/platform/Kconfig     |   6 +
- drivers/media/platform/Makefile    |   2 +
- drivers/media/platform/video-mux.c | 318 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 326 insertions(+)
- create mode 100644 drivers/media/platform/video-mux.c
-
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 317f8d41e4ad6..2fea699962624 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -74,6 +74,12 @@ config VIDEO_M32R_AR_M64278
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called arv.
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index dcca906ba58435f5..0e1757301a0bca1e 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -74,6 +74,7 @@ static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
+ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+ {
+ 	struct rvin_dev *vin = notifier_to_vin(notifier);
++	struct v4l2_subdev *sd = vin_to_source(vin);
+ 	int ret;
  
-+config VIDEO_MUX
-+	tristate "Video Multiplexer"
-+	depends on OF && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER && MULTIPLEXER
-+	help
-+	  This driver provides support for N:1 video bus multiplexers.
-+
- config VIDEO_OMAP3
- 	tristate "OMAP 3 Camera support"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 63303d63c64cf..a6363023f981e 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -28,6 +28,8 @@ obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
+ 	/* Verify subdevices mbus format */
+@@ -92,7 +93,35 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+ 		return ret;
+ 	}
  
- obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
- 
-+obj-$(CONFIG_VIDEO_MUX)			+= video-mux.o
-+
- obj-$(CONFIG_VIDEO_S3C_CAMIF) 		+= s3c-camif/
- obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS4_IS) 	+= exynos4-is/
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
-diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
-new file mode 100644
-index 0000000000000..afa06febf6c33
---- /dev/null
-+++ b/drivers/media/platform/video-mux.c
-@@ -0,0 +1,318 @@
-+/*
-+ * video stream multiplexer controlled via mux control
-+ *
-+ * Copyright (C) 2013 Pengutronix, Sascha Hauer <kernel@pengutronix.de>
-+ * Copyright (C) 2016-2017 Pengutronix, Philipp Zabel <kernel@pengutronix.de>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/err.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/mux/consumer.h>
-+#include <linux/of.h>
-+#include <linux/of_graph.h>
-+#include <linux/platform_device.h>
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
-+#include <media/v4l2-subdev.h>
-+
-+struct video_mux {
-+	struct v4l2_subdev subdev;
-+	struct media_pad *pads;
-+	struct v4l2_mbus_framefmt *format_mbus;
-+	struct v4l2_fwnode_endpoint *endpoint;
-+	struct mux_control *mux;
-+	struct mutex lock;
-+	int active;
-+};
-+
-+static inline struct video_mux *v4l2_subdev_to_video_mux(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct video_mux, subdev);
-+}
-+
-+static int video_mux_link_setup(struct media_entity *entity,
-+				const struct media_pad *local,
-+				const struct media_pad *remote, u32 flags)
-+{
-+	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-+	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
-+	int ret = 0;
-+
+-	return rvin_v4l2_probe(vin);
++	/* Add the controls */
 +	/*
-+	 * The mux state is determined by the enabled sink pad link.
-+	 * Enabling or disabling the source pad link has no effect.
++	 * Currently the subdev with the largest number of controls (13) is
++	 * ov6550. So let's pick 16 as a hint for the control handler. Note
++	 * that this is a hint only: too large and you waste some memory, too
++	 * small and there is a (very) small performance hit when looking up
++	 * controls in the internal hash.
 +	 */
-+	if (local->flags & MEDIA_PAD_FL_SOURCE)
-+		return 0;
-+
-+	dev_dbg(sd->dev, "link setup '%s':%d->'%s':%d[%d]",
-+		remote->entity->name, remote->index, local->entity->name,
-+		local->index, flags & MEDIA_LNK_FL_ENABLED);
-+
-+	mutex_lock(&vmux->lock);
-+
-+	if (flags & MEDIA_LNK_FL_ENABLED) {
-+		if (vmux->active == local->index)
-+			goto out;
-+
-+		if (vmux->active >= 0) {
-+			ret = -EBUSY;
-+			goto out;
-+		}
-+
-+		dev_dbg(sd->dev, "setting %d active\n", local->index);
-+		ret = mux_control_try_select(vmux->mux, local->index);
-+		if (ret < 0)
-+			goto out;
-+		vmux->active = local->index;
-+	} else {
-+		if (vmux->active != local->index)
-+			goto out;
-+
-+		dev_dbg(sd->dev, "going inactive\n");
-+		mux_control_deselect(vmux->mux);
-+		vmux->active = -1;
-+	}
-+
-+out:
-+	mutex_unlock(&vmux->lock);
-+	return ret;
-+}
-+
-+static struct media_entity_operations video_mux_ops = {
-+	.link_setup = video_mux_link_setup,
-+	.link_validate = v4l2_subdev_link_validate,
-+};
-+
-+static bool video_mux_endpoint_disabled(struct device_node *ep)
-+{
-+	struct device_node *rpp = of_graph_get_remote_port_parent(ep);
-+
-+	return !of_device_is_available(rpp);
-+}
-+
-+static int video_mux_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
-+	struct v4l2_subdev *upstream_sd;
-+	struct media_pad *pad;
-+
-+	if (vmux->active == -1) {
-+		dev_err(sd->dev, "Can not start streaming on inactive mux\n");
-+		return -EINVAL;
-+	}
-+
-+	pad = media_entity_remote_pad(&sd->entity.pads[vmux->active]);
-+	if (!pad) {
-+		dev_err(sd->dev, "Failed to find remote source pad\n");
-+		return -ENOLINK;
-+	}
-+
-+	if (!is_media_entity_v4l2_subdev(pad->entity)) {
-+		dev_err(sd->dev, "Upstream entity is not a v4l2 subdev\n");
-+		return -ENODEV;
-+	}
-+
-+	upstream_sd = media_entity_to_v4l2_subdev(pad->entity);
-+
-+	return v4l2_subdev_call(upstream_sd, video, s_stream, enable);
-+}
-+
-+static const struct v4l2_subdev_video_ops video_mux_subdev_video_ops = {
-+	.s_stream = video_mux_s_stream,
-+};
-+
-+static struct v4l2_mbus_framefmt *
-+__video_mux_get_pad_format(struct v4l2_subdev *sd,
-+			   struct v4l2_subdev_pad_config *cfg,
-+			   unsigned int pad, u32 which)
-+{
-+	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
-+
-+	switch (which) {
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		return v4l2_subdev_get_try_format(sd, cfg, pad);
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		return &vmux->format_mbus[pad];
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+static int video_mux_get_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *sdformat)
-+{
-+	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
-+
-+	mutex_lock(&vmux->lock);
-+
-+	sdformat->format = *__video_mux_get_pad_format(sd, cfg, sdformat->pad,
-+						   sdformat->which);
-+
-+	mutex_unlock(&vmux->lock);
-+
-+	return 0;
-+}
-+
-+static int video_mux_set_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *sdformat)
-+{
-+	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
-+	struct v4l2_mbus_framefmt *mbusformat;
-+	struct media_pad *pad = &vmux->pads[sdformat->pad];
-+
-+	mbusformat = __video_mux_get_pad_format(sd, cfg, sdformat->pad,
-+					    sdformat->which);
-+	if (!mbusformat)
-+		return -EINVAL;
-+
-+	mutex_lock(&vmux->lock);
-+
-+	/* Source pad mirrors active sink pad, no limitations on sink pads */
-+	if ((pad->flags & MEDIA_PAD_FL_SOURCE) && vmux->active >= 0)
-+		sdformat->format = vmux->format_mbus[vmux->active];
-+
-+	*mbusformat = sdformat->format;
-+
-+	mutex_unlock(&vmux->lock);
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_pad_ops video_mux_pad_ops = {
-+	.get_fmt = video_mux_get_format,
-+	.set_fmt = video_mux_set_format,
-+};
-+
-+static const struct v4l2_subdev_ops video_mux_subdev_ops = {
-+	.pad = &video_mux_pad_ops,
-+	.video = &video_mux_subdev_video_ops,
-+};
-+
-+static int video_mux_probe(struct platform_device *pdev)
-+{
-+	struct device_node *np = pdev->dev.of_node;
-+	struct device *dev = &pdev->dev;
-+	struct device_node *ep;
-+	struct video_mux *vmux;
-+	unsigned int num_pads = 0;
-+	int ret;
-+	int i;
-+
-+	vmux = devm_kzalloc(dev, sizeof(*vmux), GFP_KERNEL);
-+	if (!vmux)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, vmux);
-+
-+	v4l2_subdev_init(&vmux->subdev, &video_mux_subdev_ops);
-+	snprintf(vmux->subdev.name, sizeof(vmux->subdev.name), "%s", np->name);
-+	vmux->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	vmux->subdev.dev = dev;
-+
-+	/*
-+	 * The largest numbered port is the output port. It determines
-+	 * total number of pads.
-+	 */
-+	for_each_endpoint_of_node(np, ep) {
-+		struct of_endpoint endpoint;
-+
-+		of_graph_parse_endpoint(ep, &endpoint);
-+		num_pads = max(num_pads, endpoint.port + 1);
-+	}
-+
-+	if (num_pads < 2) {
-+		dev_err(dev, "Not enough ports %d\n", num_pads);
-+		return -EINVAL;
-+	}
-+
-+	vmux->mux = devm_mux_control_get(dev, NULL);
-+	if (IS_ERR(vmux->mux)) {
-+		ret = PTR_ERR(vmux->mux);
-+		if (ret != -EPROBE_DEFER)
-+			dev_err(dev, "Failed to get mux: %d\n", ret);
-+		return ret;
-+	}
-+
-+	mutex_init(&vmux->lock);
-+	vmux->active = -1;
-+	vmux->pads = devm_kzalloc(dev, sizeof(*vmux->pads) * num_pads,
-+				  GFP_KERNEL);
-+	vmux->format_mbus = devm_kzalloc(dev, sizeof(*vmux->format_mbus) *
-+					 num_pads, GFP_KERNEL);
-+	vmux->endpoint = devm_kzalloc(dev, sizeof(*vmux->endpoint) *
-+				      (num_pads - 1), GFP_KERNEL);
-+
-+	for (i = 0; i < num_pads - 1; i++)
-+		vmux->pads[i].flags = MEDIA_PAD_FL_SINK;
-+	vmux->pads[num_pads - 1].flags = MEDIA_PAD_FL_SOURCE;
-+
-+	vmux->subdev.entity.function = MEDIA_ENT_F_VID_MUX;
-+	ret = media_entity_pads_init(&vmux->subdev.entity, num_pads,
-+				     vmux->pads);
++	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
 +	if (ret < 0)
 +		return ret;
 +
-+	vmux->subdev.entity.ops = &video_mux_ops;
++	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler, NULL);
++	if (ret < 0)
++		return ret;
 +
-+	for_each_endpoint_of_node(np, ep) {
-+		struct v4l2_fwnode_endpoint endpoint;
++	ret = v4l2_subdev_call(sd, video, g_tvnorms, &vin->vdev.tvnorms);
++	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
++		return ret;
 +
-+		v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &endpoint);
-+
-+		if (video_mux_endpoint_disabled(ep)) {
-+			dev_dbg(dev, "port %d disabled\n", endpoint.base.port);
-+			continue;
-+		}
-+
-+		vmux->endpoint[endpoint.base.port] = endpoint;
++	if (vin->vdev.tvnorms == 0) {
++		/* Disable the STD API if there are no tvnorms defined */
++		v4l2_disable_ioctl(&vin->vdev, VIDIOC_G_STD);
++		v4l2_disable_ioctl(&vin->vdev, VIDIOC_S_STD);
++		v4l2_disable_ioctl(&vin->vdev, VIDIOC_QUERYSTD);
++		v4l2_disable_ioctl(&vin->vdev, VIDIOC_ENUMSTD);
 +	}
 +
-+	return v4l2_async_register_subdev(&vmux->subdev);
-+}
++	return rvin_reset_format(vin);
+ }
+ 
+ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
+@@ -102,7 +131,7 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
+ 	struct rvin_dev *vin = notifier_to_vin(notifier);
+ 
+ 	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
+-	rvin_v4l2_remove(vin);
++	v4l2_ctrl_handler_free(&vin->ctrl_handler);
+ 	vin->digital.subdev = NULL;
+ }
+ 
+@@ -290,9 +319,13 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
++	ret = rvin_v4l2_probe(vin);
++	if (ret)
++		goto error_dma;
 +
-+static int video_mux_remove(struct platform_device *pdev)
-+{
-+	struct video_mux *vmux = platform_get_drvdata(pdev);
-+	struct v4l2_subdev *sd = &vmux->subdev;
+ 	ret = rvin_digital_graph_init(vin);
+ 	if (ret < 0)
+-		goto error;
++		goto error_v4l2;
+ 
+ 	pm_suspend_ignore_children(&pdev->dev, true);
+ 	pm_runtime_enable(&pdev->dev);
+@@ -300,7 +333,9 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, vin);
+ 
+ 	return 0;
+-error:
++error_v4l2:
++	rvin_v4l2_remove(vin);
++error_dma:
+ 	rvin_dma_remove(vin);
+ 
+ 	return ret;
+@@ -314,6 +349,10 @@ static int rcar_vin_remove(struct platform_device *pdev)
+ 
+ 	v4l2_async_notifier_unregister(&vin->notifier);
+ 
++	/* Checks internaly if handlers have been init or not */
++	v4l2_ctrl_handler_free(&vin->ctrl_handler);
 +
-+	v4l2_async_unregister_subdev(sd);
-+	media_entity_cleanup(&sd->entity);
++	rvin_v4l2_remove(vin);
+ 	rvin_dma_remove(vin);
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index be6f41bf82ac3bc5..6f1c27fc828fe57e 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -103,7 +103,7 @@ static void rvin_reset_crop_compose(struct rvin_dev *vin)
+ 	vin->compose.height = vin->format.height;
+ }
+ 
+-static int rvin_reset_format(struct rvin_dev *vin)
++int rvin_reset_format(struct rvin_dev *vin)
+ {
+ 	struct v4l2_subdev_format fmt = {
+ 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+@@ -785,6 +785,11 @@ static int rvin_open(struct file *file)
+ 
+ 	mutex_lock(&vin->lock);
+ 
++	if (!vin->digital.subdev) {
++		ret = -ENODEV;
++		goto unlock;
++	}
 +
-+	return 0;
-+}
-+
-+static const struct of_device_id video_mux_dt_ids[] = {
-+	{ .compatible = "video-mux", },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, video_mux_dt_ids);
-+
-+static struct platform_driver video_mux_driver = {
-+	.probe		= video_mux_probe,
-+	.remove		= video_mux_remove,
-+	.driver		= {
-+		.of_match_table = video_mux_dt_ids,
-+		.name = "video-mux",
-+	},
-+};
-+
-+module_platform_driver(video_mux_driver);
-+
-+MODULE_DESCRIPTION("video stream multiplexer");
-+MODULE_AUTHOR("Sascha Hauer, Pengutronix");
-+MODULE_AUTHOR("Philipp Zabel, Pengutronix");
-+MODULE_LICENSE("GPL");
+ 	file->private_data = vin;
+ 
+ 	ret = v4l2_fh_open(file);
+@@ -848,9 +853,6 @@ void rvin_v4l2_remove(struct rvin_dev *vin)
+ 	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
+ 		  video_device_node_name(&vin->vdev));
+ 
+-	/* Checks internaly if handlers have been init or not */
+-	v4l2_ctrl_handler_free(&vin->ctrl_handler);
+-
+ 	/* Checks internaly if vdev have been init or not */
+ 	video_unregister_device(&vin->vdev);
+ }
+@@ -873,41 +875,10 @@ static void rvin_notify(struct v4l2_subdev *sd,
+ int rvin_v4l2_probe(struct rvin_dev *vin)
+ {
+ 	struct video_device *vdev = &vin->vdev;
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+ 	int ret;
+ 
+-	v4l2_set_subdev_hostdata(sd, vin);
+-
+ 	vin->v4l2_dev.notify = rvin_notify;
+ 
+-	ret = v4l2_subdev_call(sd, video, g_tvnorms, &vin->vdev.tvnorms);
+-	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
+-		return ret;
+-
+-	if (vin->vdev.tvnorms == 0) {
+-		/* Disable the STD API if there are no tvnorms defined */
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_G_STD);
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_S_STD);
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_QUERYSTD);
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_ENUMSTD);
+-	}
+-
+-	/* Add the controls */
+-	/*
+-	 * Currently the subdev with the largest number of controls (13) is
+-	 * ov6550. So let's pick 16 as a hint for the control handler. Note
+-	 * that this is a hint only: too large and you waste some memory, too
+-	 * small and there is a (very) small performance hit when looking up
+-	 * controls in the internal hash.
+-	 */
+-	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
+-	if (ret < 0)
+-		return ret;
+-
+-	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler, NULL);
+-	if (ret < 0)
+-		return ret;
+-
+ 	/* video node */
+ 	vdev->fops = &rvin_fops;
+ 	vdev->v4l2_dev = &vin->v4l2_dev;
+@@ -921,7 +892,6 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 		V4L2_CAP_READWRITE;
+ 
+ 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
+-	rvin_reset_format(vin);
+ 
+ 	ret = video_register_device(&vin->vdev, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 9bfb5a7c4dc4f215..9d0d4a5001b6ccd8 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -158,6 +158,7 @@ void rvin_dma_remove(struct rvin_dev *vin);
+ 
+ int rvin_v4l2_probe(struct rvin_dev *vin);
+ void rvin_v4l2_remove(struct rvin_dev *vin);
++int rvin_reset_format(struct rvin_dev *vin);
+ 
+ const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+ 
 -- 
-2.11.0
+2.13.0
