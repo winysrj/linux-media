@@ -1,94 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:42357 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751116AbdE2PMX (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:46708 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756155AbdEXAQ6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 11:12:23 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Peter Rosin <peda@axentia.se>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v7 2/3] [media] add mux and video interface bridge entity functions
-Date: Mon, 29 May 2017 17:12:10 +0200
-Message-Id: <1496070731-12611-2-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1496070731-12611-1-git-send-email-p.zabel@pengutronix.de>
-References: <1496070731-12611-1-git-send-email-p.zabel@pengutronix.de>
+        Tue, 23 May 2017 20:16:58 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v2 00/17] rcar-vin: fix issues with format and capturing
+Date: Wed, 24 May 2017 02:15:23 +0200
+Message-Id: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-- renamed MEDIA_ENT_F_MUX to MEDIA_ENT_F_VID_MUX
+Hi,
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
-Changes since [1]:
- - Reword the video interface bridge description, do not use "bus format" to
-   avoid confiusion with media bus formats.
+This series fix a number of issues for the rcar-vin driver regarding
+format and capturing. It is based on top of '[GIT PULL FOR v4.13] V4L2 
+fwnode support' and tested on Koelsch.
 
-[1] https://patchwork.linuxtv.org/patch/41467/
----
- Documentation/media/uapi/mediactl/media-types.rst | 22 ++++++++++++++++++++++
- include/uapi/linux/media.h                        |  6 ++++++
- 2 files changed, 28 insertions(+)
+Parts of this series where previously part of '[PATCH 00/11] media:
+rcar-vin: fix OPS and format/pad index issues'. But after good reviews
+a large part of that series where dropped.
 
-diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
-index 2a5164aea2b40..1d15542f447c1 100644
---- a/Documentation/media/uapi/mediactl/media-types.rst
-+++ b/Documentation/media/uapi/mediactl/media-types.rst
-@@ -299,6 +299,28 @@ Types and flags used to represent the media graph elements
- 	  received on its sink pad and outputs the statistics data on
- 	  its source pad.
- 
-+    -  ..  row 29
-+
-+       ..  _MEDIA-ENT-F-VID-MUX:
-+
-+       -  ``MEDIA_ENT_F_VID_MUX``
-+
-+       - Video multiplexer. An entity capable of multiplexing must have at
-+         least two sink pads and one source pad, and must pass the video
-+         frame(s) received from the active sink pad to the source pad. Video
-+         frame(s) from the inactive sink pads are discarded.
-+
-+    -  ..  row 30
-+
-+       ..  _MEDIA-ENT-F-VID-IF-BRIDGE:
-+
-+       -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
-+
-+       - Video interface bridge. A video interface bridge entity must have at
-+         least one sink pad and one source pad. It receives video frames on
-+         its sink pad from an input video bus of one type (HDMI, eDP, MIPI
-+         CSI-2, ...), and outputs them on its source pad to an output video bus
-+         of another type (eDP, MIPI CSI-2, parallel, ...).
- 
- ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
- 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 4890787731b85..fac96c64fe513 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -105,6 +105,12 @@ struct media_device_info {
- #define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
- 
- /*
-+ * Switch and bridge entitites
-+ */
-+#define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
-+#define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
-+
-+/*
-  * Connectors
-  */
- /* It is a responsibility of the entity drivers to add connectors and links */
+* Changes since v1
+- Do not consider the lack of a subdevice sink pad an error instead
+  default to use pad 0 in such case. This keeps the behavior of the
+  driver which previous versions of this series changed.
+- When printing pad numbers print using %u not %d as they are unsigned.
+- Keep comment in code which was lost when moving code around.
+- If trying to set an unsupported pixel format do not switch the current
+  format, instead switch to the first supported format of the driver to
+  achieve a more deterministic behaviour.
+- Add new patch to remove redundant checks in the async bind/unbind
+  callbacks.
+- Clarify some commit messages, thanks Laurent!
+- Fix typos in commit messages, thanks Sergei and Laurent!
+- Add Reviewed-by tags from Lauren
+
+Niklas Söderlund (17):
+  rcar-vin: reset bytesperline and sizeimage when resetting format
+  rcar-vin: use rvin_reset_format() in S_DV_TIMINGS
+  rcar-vin: fix how pads are handled for v4l2 subdevice operations
+  rcar-vin: fix standard in input enumeration
+  rcar-vin: move subdev source and sink pad index to rvin_graph_entity
+  rcar-vin: refactor pad lookup code
+  rcar-vin: move pad lookup to async bound handler
+  rcar-vin: use pad information when verifying media bus format
+  rcar-vin: decrease buffers needed to capture
+  rcar-vin: move functions which acts on hardware
+  rcar-vin: select capture mode based on free buffers
+  rcar-vin: allow switch between capturing modes when stalling
+  rcar-vin: refactor and fold in function after stall handling rework
+  rcar-vin: remove subdevice matching from bind and unbind callbacks
+  rcar-vin: register the video device at probe time
+  rcar-vin: add missing error check to propagate error
+  rcar-vin: fix bug in pixelformat selection
+
+ drivers/media/platform/rcar-vin/rcar-core.c |  96 +++++++++---
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 230 ++++++++++++++--------------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 139 ++++++-----------
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  10 +-
+ 4 files changed, 248 insertions(+), 227 deletions(-)
+
 -- 
-2.11.0
+2.13.0
