@@ -1,104 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f176.google.com ([209.85.128.176]:34840 "EHLO
-        mail-wr0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750761AbdE3Tfb (ORCPT
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:36585 "EHLO
+        mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757366AbdEXOKA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 15:35:31 -0400
-Received: by mail-wr0-f176.google.com with SMTP id q97so11636799wrb.2
-        for <linux-media@vger.kernel.org>; Tue, 30 May 2017 12:35:30 -0700 (PDT)
+        Wed, 24 May 2017 10:10:00 -0400
+Received: by mail-lf0-f41.google.com with SMTP id h4so68278381lfj.3
+        for <linux-media@vger.kernel.org>; Wed, 24 May 2017 07:09:59 -0700 (PDT)
+Date: Wed, 24 May 2017 16:09:55 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 2/2] media: entity: Add media_entity_pad_from_fwnode()
+ function
+Message-ID: <20170524140955.GC7346@bigcity.dyn.berto.se>
+References: <20170524000907.13061-1-niklas.soderlund@ragnatech.se>
+ <20170524000907.13061-3-niklas.soderlund@ragnatech.se>
+ <20170524132741.GL29527@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <CAML3znGxh2t9VQLMMsqQs0Okeos_enNTF=367QFKwmM=y__x+Q@mail.gmail.com>
-References: <CAML3znFcKR9wx3wvjBDeQLn7mbtkhU0Knn56cMrXek6H-mTUjQ@mail.gmail.com>
- <9102e964-8143-edd7-3a82-014ae0d29d48@kaiser-linux.li> <CAML3znHkCFrtQqXvZkCwiMGNkRdSAnHBDTvfeoaQdtq8kRMkQQ@mail.gmail.com>
- <20170528234200.2ffdd351@macbox> <CAML3znGxh2t9VQLMMsqQs0Okeos_enNTF=367QFKwmM=y__x+Q@mail.gmail.com>
-From: Karl Wallin <karl.wallin.86@gmail.com>
-Date: Tue, 30 May 2017 21:35:29 +0200
-Message-ID: <CAML3znFx618HdD39Z+bhE6TzJjC_Bz_Z=A+PbWn_ij7cAnTwJg@mail.gmail.com>
-Subject: Re: Build fails Ubuntu 17.04 / "error: implicit declaration of function"
-To: Daniel Scheller <d.scheller.oss@gmail.com>,
-        linux-media@vger.kernel.org, Thomas Kaiser <thomas@kaiser-linux.li>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170524132741.GL29527@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Oh and it is the same running as my normal user as well as "root".
-Med v=C3=A4nlig h=C3=A4lsning / Best Regards - Karl Wallin
+Hi Sakari,
 
-karl.wallin.86@gmail.com
+Thanks for your feedback.
 
-P.S. Om mitt mail b=C3=B6r vidarebefodras, v=C3=A4nligen g=C3=B6r detta ist=
-=C3=A4llet f=C3=B6r
-att =C3=A5terkomma med en email-adress i ett svar till mig. / If my mail
-should be forwarded then please forward it instead of replying to me
-with an email address. P.S.
+On 2017-05-24 16:27:42 +0300, Sakari Ailus wrote:
+> Hi Niklas,
+> 
+> On Wed, May 24, 2017 at 02:09:07AM +0200, Niklas Söderlund wrote:
+> > From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > 
+> > This is a wrapper around the media entity pad_from_fwnode operation.
+> > 
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  drivers/media/media-entity.c | 39 +++++++++++++++++++++++++++++++++++++++
+> >  include/media/media-entity.h | 22 ++++++++++++++++++++++
+> >  2 files changed, 61 insertions(+)
+> > 
+> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > index bc44193efa4798b4..c124754f739a8b94 100644
+> > --- a/drivers/media/media-entity.c
+> > +++ b/drivers/media/media-entity.c
+> > @@ -18,6 +18,7 @@
+> >  
+> >  #include <linux/bitmap.h>
+> >  #include <linux/module.h>
+> > +#include <linux/property.h>
+> >  #include <linux/slab.h>
+> >  #include <media/media-entity.h>
+> >  #include <media/media-device.h>
+> > @@ -386,6 +387,44 @@ struct media_entity *media_graph_walk_next(struct media_graph *graph)
+> >  }
+> >  EXPORT_SYMBOL_GPL(media_graph_walk_next);
+> >  
+> > +int media_entity_pad_from_fwnode(struct media_entity *entity,
+> > +				 struct fwnode_handle *fwnode,
+> > +				 int direction, unsigned int *pad)
+> > +{
+> > +	struct fwnode_endpoint endpoint;
+> > +	int i, tmp, ret;
+> > +
+> > +	if (!entity->ops || !entity->ops->pad_from_fwnode) {
+> > +		for (i = 0; i < entity->num_pads; i++) {
+> > +			if (entity->pads[i].flags & direction) {
+> > +				*pad = i;
+> > +				return 0;
+> > +			}
+> > +		}
+> > +
+> > +		return -ENXIO;
+> > +	}
+> > +
+> > +	ret = fwnode_graph_parse_endpoint(fwnode, &endpoint);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	ret = entity->ops->pad_from_fwnode(&endpoint, &tmp);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	if (tmp >= entity->num_pads)
+> > +		return -ENXIO;
+> > +
+> > +	if (!(entity->pads[tmp].flags & direction))
+> > +		return -ENXIO;
+> > +
+> > +	*pad = tmp;
+> > +
+> > +	return 0;
+> 
+> I'd just return the pad number to the caller.
 
+Depending on if there is any comments about this in the previous patch I 
+switch to returning an int from this function, where a negative value 
+would signal an error.
 
-2017-05-30 21:35 GMT+02:00 Karl Wallin <karl.wallin.86@gmail.com>:
-> Hi!
->
-> Sorry for not replying earlier, work.
-> I came so far as to download the patches (via n00bishly pasting the
-> actual content of the .patch-files into .patch-files since my git
-> cherry-pick command didn't work) but then after trying to apply them I
-> got a prompt with specifying the path of the file and didn't research
-> that further.
->
-> I downloaded the latest release from GIT and now it actually builds!!! :D=
- :D
->
-> However it does not install :(
->
-> "root@nuc-d54250wyk:/home/ubuntu/media_build# make install
-> make -C /home/ubuntu/media_build/v4l install
-> make[1]: Entering directory '/home/ubuntu/media_build/v4l'
-> make[1]: *** No rule to make target 'media-install', needed by 'install'.=
-  Stop.
-> make[1]: Leaving directory '/home/ubuntu/media_build/v4l'
-> Makefile:15: recipe for target 'install' failed
-> make: *** [install] Error 2"
->
-> I've gone into "v4l" and looked for a "media-install" file but haven't
-> found any.
->
-> Perhaps this is something I've misunderstood and easy to fix so I
-> finally can install it?
->
-> Best Regards - Karl
-> Med v=C3=A4nlig h=C3=A4lsning / Best Regards - Karl Wallin
->
-> karl.wallin.86@gmail.com
->
-> P.S. Om mitt mail b=C3=B6r vidarebefodras, v=C3=A4nligen g=C3=B6r detta i=
-st=C3=A4llet f=C3=B6r
-> att =C3=A5terkomma med en email-adress i ett svar till mig. / If my mail
-> should be forwarded then please forward it instead of replying to me
-> with an email address. P.S.
->
->
-> 2017-05-28 23:42 GMT+02:00 Daniel Scheller <d.scheller.oss@gmail.com>:
->> Am Sun, 28 May 2017 21:06:33 +0200
->> schrieb Karl Wallin <karl.wallin.86@gmail.com>:
->>
->> All,
->>
->>> In "/home/ubuntu/media_build/v4l/cec-core.c" changed row 142 from:
->>> "ret =3D cdev_device_add(&devnode->cdev, &devnode->dev);" to:
->>> "ret =3D device_add(&devnode->dev);"
->>> and row 186 from:
->>> "cdev_device_del(&devnode->cdev, &devnode->dev);" to:
->>> "device_del(&devnode->dev);"
->>
->> Until the upstream media_build repository gets the neccessary backport
->> patch treatment, you can apply [1] and [2] to media_build which should
->> fix all build issues.
->>
->> Best regards,
->> Daniel
->>
->> [1]
->> https://github.com/herrnst/media_build/commit/4766a716c629707d58d625c6cd=
-fd8c395fd6ed61
->> [2]
->> https://github.com/herrnst/media_build/commit/01507a9c32a301c8fc021dcaf1=
-b943799ff3da51
+> 
+> > +}
+> > +EXPORT_SYMBOL_GPL(media_entity_pad_from_fwnode);
+> > +
+> >  /* -----------------------------------------------------------------------------
+> >   * Pipeline management
+> >   */
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > index 2aea22b0409d1070..7507181609bec43c 100644
+> > --- a/include/media/media-entity.h
+> > +++ b/include/media/media-entity.h
+> > @@ -822,6 +822,28 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
+> >  struct media_entity *media_entity_get(struct media_entity *entity);
+> >  
+> >  /**
+> > + * media_entity_pad_from_fwnode - Get pad number from fwnode
+> > + *
+> > + * @entity: The entity
+> > + * @fwnode: Pointer to fwnode_handle which should be used to find pad
+> > + * @direction: Expected direction of the pad
+> 
+> You should document the possible values for this. What would you think about
+> using a bool called e.g. is_sink? I don't have a strong opinion either way
+> though.
+
+Thanks, I think it is better to add documentation about possible values 
+here. If no one else disagrees whit this I will do so in the next 
+version.
+
+> 
+> > + * @pad: Pointer to pad which will should be filled in
+> > + *
+> > + * This function can be used to resolve the media pad number from
+> > + * a fwnode. This is useful for devices which uses more complex
+> > + * mappings of media pads.
+> > + *
+> > + * If the entity do not implement the pad_from_fwnode() operation
+> > + * this function searches the entity for the first pad that matches
+> > + * the @direction.
+> > + *
+> > + * Return: return 0 on success.
+> > + */
+> > +int media_entity_pad_from_fwnode(struct media_entity *entity,
+> > +				 struct fwnode_handle *fwnode,
+> > +				 int direction, unsigned int *pad);
+> > +
+> > +/**
+> >   * media_graph_walk_init - Allocate resources used by graph walk.
+> >   *
+> >   * @graph: Media graph structure that will be used to walk the graph
+> 
+> -- 
+> Regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+
+-- 
+Regards,
+Niklas Söderlund
