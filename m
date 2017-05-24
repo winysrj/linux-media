@@ -1,118 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:50357 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755179AbdEHPEf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 May 2017 11:04:35 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v4 07/18] vb2: dma-contig: Remove redundant sgt_base field
-Date: Mon,  8 May 2017 18:03:19 +0300
-Message-Id: <1494255810-12672-8-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40282 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750728AbdEXN2R (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 24 May 2017 09:28:17 -0400
+Date: Wed, 24 May 2017 16:27:42 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: Re: [PATCH v2 2/2] media: entity: Add media_entity_pad_from_fwnode()
+ function
+Message-ID: <20170524132741.GL29527@valkosipuli.retiisi.org.uk>
+References: <20170524000907.13061-1-niklas.soderlund@ragnatech.se>
+ <20170524000907.13061-3-niklas.soderlund@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170524000907.13061-3-niklas.soderlund@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The struct vb2_dc_buf contains two struct sg_table fields: sgt_base and
-dma_sgt. The former is used by DMA-BUF buffers whereas the latter is used
-by USERPTR.
+Hi Niklas,
 
-Unify the two, leaving dma_sgt.
+On Wed, May 24, 2017 at 02:09:07AM +0200, Niklas Söderlund wrote:
+> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> 
+> This is a wrapper around the media entity pad_from_fwnode operation.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/media-entity.c | 39 +++++++++++++++++++++++++++++++++++++++
+>  include/media/media-entity.h | 22 ++++++++++++++++++++++
+>  2 files changed, 61 insertions(+)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index bc44193efa4798b4..c124754f739a8b94 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -18,6 +18,7 @@
+>  
+>  #include <linux/bitmap.h>
+>  #include <linux/module.h>
+> +#include <linux/property.h>
+>  #include <linux/slab.h>
+>  #include <media/media-entity.h>
+>  #include <media/media-device.h>
+> @@ -386,6 +387,44 @@ struct media_entity *media_graph_walk_next(struct media_graph *graph)
+>  }
+>  EXPORT_SYMBOL_GPL(media_graph_walk_next);
+>  
+> +int media_entity_pad_from_fwnode(struct media_entity *entity,
+> +				 struct fwnode_handle *fwnode,
+> +				 int direction, unsigned int *pad)
+> +{
+> +	struct fwnode_endpoint endpoint;
+> +	int i, tmp, ret;
+> +
+> +	if (!entity->ops || !entity->ops->pad_from_fwnode) {
+> +		for (i = 0; i < entity->num_pads; i++) {
+> +			if (entity->pads[i].flags & direction) {
+> +				*pad = i;
+> +				return 0;
+> +			}
+> +		}
+> +
+> +		return -ENXIO;
+> +	}
+> +
+> +	ret = fwnode_graph_parse_endpoint(fwnode, &endpoint);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = entity->ops->pad_from_fwnode(&endpoint, &tmp);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (tmp >= entity->num_pads)
+> +		return -ENXIO;
+> +
+> +	if (!(entity->pads[tmp].flags & direction))
+> +		return -ENXIO;
+> +
+> +	*pad = tmp;
+> +
+> +	return 0;
 
-MMAP buffers do not need cache flushing since they have been allocated
-using dma_alloc_coherent().
+I'd just return the pad number to the caller.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+> +}
+> +EXPORT_SYMBOL_GPL(media_entity_pad_from_fwnode);
+> +
+>  /* -----------------------------------------------------------------------------
+>   * Pipeline management
+>   */
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 2aea22b0409d1070..7507181609bec43c 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -822,6 +822,28 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
+>  struct media_entity *media_entity_get(struct media_entity *entity);
+>  
+>  /**
+> + * media_entity_pad_from_fwnode - Get pad number from fwnode
+> + *
+> + * @entity: The entity
+> + * @fwnode: Pointer to fwnode_handle which should be used to find pad
+> + * @direction: Expected direction of the pad
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index a8a46a8..ddbbcf0 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -31,12 +31,13 @@ struct vb2_dc_buf {
- 	unsigned long			attrs;
- 	enum dma_data_direction		dma_dir;
- 	struct sg_table			*dma_sgt;
--	struct frame_vector		*vec;
- 
- 	/* MMAP related */
- 	struct vb2_vmarea_handler	handler;
- 	refcount_t			refcount;
--	struct sg_table			*sgt_base;
-+
-+	/* USERPTR related */
-+	struct frame_vector		*vec;
- 
- 	/* DMABUF related */
- 	struct dma_buf_attachment	*db_attach;
-@@ -96,7 +97,7 @@ static void vb2_dc_prepare(void *buf_priv)
- 	struct sg_table *sgt = buf->dma_sgt;
- 
- 	/* DMABUF exporter will flush the cache for us */
--	if (!sgt || buf->db_attach)
-+	if (!buf->vec)
- 		return;
- 
- 	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents,
-@@ -109,7 +110,7 @@ static void vb2_dc_finish(void *buf_priv)
- 	struct sg_table *sgt = buf->dma_sgt;
- 
- 	/* DMABUF exporter will flush the cache for us */
--	if (!sgt || buf->db_attach)
-+	if (!buf->vec)
- 		return;
- 
- 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
-@@ -126,9 +127,9 @@ static void vb2_dc_put(void *buf_priv)
- 	if (!refcount_dec_and_test(&buf->refcount))
- 		return;
- 
--	if (buf->sgt_base) {
--		sg_free_table(buf->sgt_base);
--		kfree(buf->sgt_base);
-+	if (buf->dma_sgt) {
-+		sg_free_table(buf->dma_sgt);
-+		kfree(buf->dma_sgt);
- 	}
- 	dma_free_attrs(buf->dev, buf->size, buf->cookie, buf->dma_addr,
- 		       buf->attrs);
-@@ -239,13 +240,13 @@ static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
- 	/* Copy the buf->base_sgt scatter list to the attachment, as we can't
- 	 * map the same scatter list to multiple attachments at the same time.
- 	 */
--	ret = sg_alloc_table(sgt, buf->sgt_base->orig_nents, GFP_KERNEL);
-+	ret = sg_alloc_table(sgt, buf->dma_sgt->orig_nents, GFP_KERNEL);
- 	if (ret) {
- 		kfree(attach);
- 		return -ENOMEM;
- 	}
- 
--	rd = buf->sgt_base->sgl;
-+	rd = buf->dma_sgt->sgl;
- 	wr = sgt->sgl;
- 	for (i = 0; i < sgt->orig_nents; ++i) {
- 		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
-@@ -396,10 +397,10 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
- 	exp_info.flags = flags;
- 	exp_info.priv = buf;
- 
--	if (!buf->sgt_base)
--		buf->sgt_base = vb2_dc_get_base_sgt(buf);
-+	if (!buf->dma_sgt)
-+		buf->dma_sgt = vb2_dc_get_base_sgt(buf);
- 
--	if (WARN_ON(!buf->sgt_base))
-+	if (WARN_ON(!buf->dma_sgt))
- 		return NULL;
- 
- 	dbuf = dma_buf_export(&exp_info);
+You should document the possible values for this. What would you think about
+using a bool called e.g. is_sink? I don't have a strong opinion either way
+though.
+
+> + * @pad: Pointer to pad which will should be filled in
+> + *
+> + * This function can be used to resolve the media pad number from
+> + * a fwnode. This is useful for devices which uses more complex
+> + * mappings of media pads.
+> + *
+> + * If the entity do not implement the pad_from_fwnode() operation
+> + * this function searches the entity for the first pad that matches
+> + * the @direction.
+> + *
+> + * Return: return 0 on success.
+> + */
+> +int media_entity_pad_from_fwnode(struct media_entity *entity,
+> +				 struct fwnode_handle *fwnode,
+> +				 int direction, unsigned int *pad);
+> +
+> +/**
+>   * media_graph_walk_init - Allocate resources used by graph walk.
+>   *
+>   * @graph: Media graph structure that will be used to walk the graph
+
 -- 
-2.7.4
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
