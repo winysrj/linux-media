@@ -1,67 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:43942 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754908AbdEHPFA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 May 2017 11:05:00 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v4 03/18] vb2: Move cache synchronisation from buffer done to dqbuf handler
-Date: Mon,  8 May 2017 18:03:15 +0300
-Message-Id: <1494255810-12672-4-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:46751 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S937861AbdEXARD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 23 May 2017 20:17:03 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v2 14/17] rcar-vin: remove subdevice matching from bind and unbind callbacks
+Date: Wed, 24 May 2017 02:15:37 +0200
+Message-Id: <20170524001540.13613-15-niklas.soderlund@ragnatech.se>
+In-Reply-To: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+References: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cache synchronisation may be a time consuming operation and thus not
-best performed in an interrupt which is a typical context for
-vb2_buffer_done() calls. This may consume up to tens of ms on some
-machines, depending on the buffer size.
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+There is only one subdevice registered with the async framework so there
+is no need for the driver to check which subdevice is bound or unbound.
+Remove these checks since the async framework preforms this.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-core.c | 40 +++++++++++------------------
+ 1 file changed, 15 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 8bf3369..e866115 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -889,7 +889,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index e67e4a57baadc3fb..dcca906ba58435f5 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -101,14 +101,9 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
  {
- 	struct vb2_queue *q = vb->vb2_queue;
- 	unsigned long flags;
--	unsigned int plane;
+ 	struct rvin_dev *vin = notifier_to_vin(notifier);
  
- 	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
- 		return;
-@@ -910,10 +909,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	dprintk(4, "done processing on buffer %d, state: %d\n",
- 			vb->index, state);
- 
--	/* sync buffers */
--	for (plane = 0; plane < vb->num_planes; ++plane)
--		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+-	if (vin->digital.subdev == subdev) {
+-		vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
+-		rvin_v4l2_remove(vin);
+-		vin->digital.subdev = NULL;
+-		return;
+-	}
 -
- 	spin_lock_irqsave(&q->done_lock, flags);
- 	if (state == VB2_BUF_STATE_QUEUED ||
- 	    state == VB2_BUF_STATE_REQUEUEING) {
-@@ -1573,6 +1568,10 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+-	vin_err(vin, "no entity for subdev %s to unbind\n", subdev->name);
++	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
++	rvin_v4l2_remove(vin);
++	vin->digital.subdev = NULL;
+ }
  
- 	vb->state = VB2_BUF_STATE_DEQUEUED;
+ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+@@ -120,28 +115,23 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
  
-+	/* sync buffers */
-+	for (i = 0; i < vb->num_planes; ++i)
-+		call_void_memop(vb, finish, vb->planes[i].mem_priv);
-+
- 	/* unmap DMABUF buffer */
- 	if (q->memory == VB2_MEMORY_DMABUF)
- 		for (i = 0; i < vb->num_planes; ++i) {
+ 	v4l2_set_subdev_hostdata(subdev, vin);
+ 
+-	if (vin->digital.asd.match.fwnode.fwnode ==
+-	    of_fwnode_handle(subdev->dev->of_node)) {
+-		/* Find surce and sink pad of remote subdevice */
++	/* Find surce and sink pad of remote subdevice */
+ 
+-		ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
+-		if (ret < 0)
+-			return ret;
+-		vin->digital.source_pad = ret;
++	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
++	if (ret < 0)
++		return ret;
++	vin->digital.source_pad = ret;
+ 
+-		ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
+-		vin->digital.sink_pad = ret < 0 ? 0 : ret;
++	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
++	vin->digital.sink_pad = ret < 0 ? 0 : ret;
+ 
+-		vin->digital.subdev = subdev;
++	vin->digital.subdev = subdev;
+ 
+-		vin_dbg(vin, "bound subdev %s source pad: %u sink pad: %u\n",
+-			subdev->name, vin->digital.source_pad,
+-			vin->digital.sink_pad);
+-		return 0;
+-	}
++	vin_dbg(vin, "bound subdev %s source pad: %u sink pad: %u\n",
++		subdev->name, vin->digital.source_pad,
++		vin->digital.sink_pad);
+ 
+-	vin_err(vin, "no entity for subdev %s to bind\n", subdev->name);
+-	return -EINVAL;
++	return 0;
+ }
+ 
+ static int rvin_digitial_parse_v4l2(struct rvin_dev *vin,
 -- 
-2.7.4
+2.13.0
