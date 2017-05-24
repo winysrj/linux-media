@@ -1,119 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:43415 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2992797AbdEAKgP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 May 2017 06:36:15 -0400
-Date: Mon, 1 May 2017 11:36:13 +0100
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH] rc-core: export the hardware type to sysfs
-Message-ID: <20170501103613.GA10867@gofer.mess.org>
-References: <149346020957.4157.4374621534433639100.stgit@zeus.hardeman.nu>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:46789 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S937857AbdEXARC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 23 May 2017 20:17:02 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v2 11/17] rcar-vin: select capture mode based on free buffers
+Date: Wed, 24 May 2017 02:15:34 +0200
+Message-Id: <20170524001540.13613-12-niklas.soderlund@ragnatech.se>
+In-Reply-To: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+References: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <149346020957.4157.4374621534433639100.stgit@zeus.hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Apr 29, 2017 at 12:03:29PM +0200, David Härdeman wrote:
-> Exporting the hardware type makes it possible for userspace applications
-> to know what to expect from the hardware.
-> 
-> This makes it possible to write more user-friendly userspace apps.
+From: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
 
-This duplicates lirc features (LIRC_GET_FEATURES ioctl); the one exception
-is that the scancode-only devices which have no lirc device, but there
-are patches which change that.
+Instead of selecting single or continuous capture mode based on how many
+buffers userspace intends to give us select capture mode based on number
+of free buffers we can allocate to hardware when the stream is started.
 
-https://patchwork.linuxtv.org/patch/39593/
+This change is a prerequisite to enable the driver to switch from
+continuous to single capture mode (or the other way around) when the
+driver is stalled by userspace not feeding it buffers as fast as it
+consumes it.
 
+Signed-off-by: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 31 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 16 deletions(-)
 
-Sean
-
-> 
-> Note that the size of sysfs_groups[] in struct rc_dev is not changed
-> by this patch because it was already large enough for one more group.
-> 
-> Signed-off-by: David Härdeman <david@hardeman.nu>
-> ---
->  drivers/media/rc/rc-main.c |   43 +++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 43 insertions(+)
-> 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 85f95441b85b..e0f9b322ab02 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -1294,6 +1294,38 @@ static ssize_t store_protocols(struct device *device,
->  }
->  
->  /**
-> + * show_hwtype() - shows the hardware type in sysfs
-> + * @device:	the &struct device descriptor
-> + * @attr:	the &struct device_attribute
-> + * @buf:	a pointer to the output buffer
-> + *
-> + * This callback function is used to get the hardware type of an rc device.
-> + * It is triggered by reading /sys/class/rc/rc?/hwtype.
-> + *
-> + * Return: the number of bytes read or a negative error code.
-> + */
-> +static ssize_t show_hwtype(struct device *device,
-> +			   struct device_attribute *attr,
-> +			   char *buf)
-> +{
-> +	struct rc_dev *dev = to_rc_dev(device);
-> +
-> +	switch (dev->driver_type) {
-> +	case RC_DRIVER_SCANCODE:
-> +		return sprintf(buf, "scancode\n");
-> +	case RC_DRIVER_IR_RAW_TX:
-> +		return sprintf(buf, "ir-tx\n");
-> +	case RC_DRIVER_IR_RAW:
-> +		if (dev->tx_ir)
-> +			return sprintf(buf, "ir-tx-rx\n");
-> +		else
-> +			return sprintf(buf, "ir-rx\n");
-> +	default:
-> +		return sprintf(buf, "<unknown>\n");
-> +	}
-> +}
-> +
-> +/**
->   * show_filter() - shows the current scancode filter value or mask
->   * @device:	the device descriptor
->   * @attr:	the device attribute struct
-> @@ -1613,6 +1645,7 @@ static int rc_dev_uevent(struct device *device, struct kobj_uevent_env *env)
->   * Static device attribute struct with the sysfs attributes for IR's
->   */
->  static DEVICE_ATTR(protocols, 0644, show_protocols, store_protocols);
-> +static DEVICE_ATTR(hwtype, 0444, show_hwtype, NULL);
->  static DEVICE_ATTR(wakeup_protocols, 0644, show_wakeup_protocols,
->  		   store_wakeup_protocols);
->  static RC_FILTER_ATTR(filter, S_IRUGO|S_IWUSR,
-> @@ -1633,6 +1666,15 @@ static struct attribute_group rc_dev_protocol_attr_grp = {
->  	.attrs	= rc_dev_protocol_attrs,
->  };
->  
-> +static struct attribute *rc_dev_hwtype_attrs[] = {
-> +	&dev_attr_hwtype.attr,
-> +	NULL,
-> +};
-> +
-> +static struct attribute_group rc_dev_hwtype_attr_grp = {
-> +	.attrs = rc_dev_hwtype_attrs,
-> +};
-> +
->  static struct attribute *rc_dev_filter_attrs[] = {
->  	&dev_attr_filter.attr.attr,
->  	&dev_attr_filter_mask.attr.attr,
-> @@ -1863,6 +1905,7 @@ int rc_register_device(struct rc_dev *dev)
->  		dev->sysfs_groups[attr++] = &rc_dev_filter_attr_grp;
->  	if (dev->s_wakeup_filter)
->  		dev->sysfs_groups[attr++] = &rc_dev_wakeup_filter_attr_grp;
-> +	dev->sysfs_groups[attr++] = &rc_dev_hwtype_attr_grp;
->  	dev->sysfs_groups[attr++] = NULL;
->  
->  	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 11e9799564299fca..47d78f68d715d945 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -405,7 +405,21 @@ static void rvin_capture_off(struct rvin_dev *vin)
+ 
+ static int rvin_capture_start(struct rvin_dev *vin)
+ {
+-	int ret;
++	struct rvin_buffer *buf, *node;
++	int bufs, ret;
++
++	/* Count number of free buffers */
++	bufs = 0;
++	list_for_each_entry_safe(buf, node, &vin->buf_list, list)
++		bufs++;
++
++	/* Continuous capture requires more buffers then there are HW slots */
++	vin->continuous = bufs > HW_BUFFER_NUM;
++
++	if (!rvin_fill_hw(vin)) {
++		vin_err(vin, "HW not ready to start, not enough buffers available\n");
++		return -EINVAL;
++	}
+ 
+ 	rvin_crop_scale_comp(vin);
+ 
+@@ -1062,22 +1076,7 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	vin->state = RUNNING;
+ 	vin->sequence = 0;
+ 
+-	/* Continuous capture requires more buffers then there are HW slots */
+-	vin->continuous = count > HW_BUFFER_NUM;
+-
+-	/*
+-	 * This should never happen but if we don't have enough
+-	 * buffers for HW bail out
+-	 */
+-	if (!rvin_fill_hw(vin)) {
+-		vin_err(vin, "HW not ready to start, not enough buffers available\n");
+-		ret = -EINVAL;
+-		goto out;
+-	}
+-
+ 	ret = rvin_capture_start(vin);
+-out:
+-	/* Return all buffers if something went wrong */
+ 	if (ret) {
+ 		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
+ 		v4l2_subdev_call(sd, video, s_stream, 0);
+-- 
+2.13.0
