@@ -1,222 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor4.renesas.com ([210.160.252.174]:13310 "EHLO
-        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753451AbdEINuh (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:42414 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933973AbdEXAOL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 May 2017 09:50:37 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v5 6/7] dt-bindings: media: Add Renesas R-Car DRIF binding
-Date: Tue,  9 May 2017 14:37:37 +0100
-Message-Id: <20170509133738.16414-7-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <20170509133738.16414-1-ramesh.shanmugasundaram@bp.renesas.com>
-References: <20170509133738.16414-1-ramesh.shanmugasundaram@bp.renesas.com>
+        Tue, 23 May 2017 20:14:11 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v7 1/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
+Date: Wed, 24 May 2017 02:13:52 +0200
+Message-Id: <20170524001353.13482-2-niklas.soderlund@ragnatech.se>
+In-Reply-To: <20170524001353.13482-1-niklas.soderlund@ragnatech.se>
+References: <20170524001353.13482-1-niklas.soderlund@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add binding documentation for Renesas R-Car Digital Radio Interface
-(DRIF) controller.
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
----
-v5:
- - Addressed Rob's comments on v4:
-	- Formatted compatible string entries.
-	- Removed "status".
-	- Removed board and SoC specific bindings classification example.
-	- Removed pinctrl nodes.
----
- .../devicetree/bindings/media/renesas,drif.txt     | 177 +++++++++++++++++++++
- 1 file changed, 177 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
+Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
+are located between the video sources (CSI-2 transmitters) and the video
+grabbers (VIN) on Gen3 of Renesas R-Car SoC.
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,drif.txt b/Documentation/devicetree/bindings/media/renesas,drif.txt
+Each CSI-2 device is connected to more then one VIN device which
+simultaneously can receive video from the same CSI-2 device. Each VIN
+device can also be connected to more then one CSI-2 device. The routing
+of which link are used are controlled by the VIN devices. There are only
+a few possible routes which are set by hardware limitations, which are
+different for each SoC in the Gen3 family.
+
+To work with the limitations of routing possibilities it is necessary
+for the DT bindings to describe which VIN device is connected to which
+CSI-2 device. This is why port 1 needs to to assign reg numbers for each
+VIN device that be connected to it. To setup and to know which links are
+valid for each SoC is the responsibility of the VIN driver since the
+register to configure it belongs to the VIN hardware.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ .../devicetree/bindings/media/rcar-csi2.txt        | 116 +++++++++++++++++++++
+ 1 file changed, 116 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
+
+diff --git a/Documentation/devicetree/bindings/media/rcar-csi2.txt b/Documentation/devicetree/bindings/media/rcar-csi2.txt
 new file mode 100644
-index 000000000000..ec718c8bd937
+index 0000000000000000..f6e2027ee92b171a
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
-@@ -0,0 +1,177 @@
-+Renesas R-Car Gen3 Digital Radio Interface controller (DRIF)
-+------------------------------------------------------------
++++ b/Documentation/devicetree/bindings/media/rcar-csi2.txt
+@@ -0,0 +1,116 @@
++Renesas R-Car MIPI CSI-2
++------------------------
 +
-+R-Car Gen3 DRIF is a SPI like receive only slave device. A general
-+representation of DRIF interfacing with a master device is shown below.
++The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesas R-Car
++family of devices. It is to be used in conjunction with the R-Car VIN module,
++which provides the video capture capabilities.
 +
-++---------------------+                +---------------------+
-+|                     |-----SCK------->|CLK                  |
-+|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-+|                     |-----SD0------->|D0                   |
-+|                     |-----SD1------->|D1                   |
-++---------------------+                +---------------------+
++ - compatible: Must be one or more of the following
++   - "renesas,r8a7795-csi2" for the R8A7795 device.
++   - "renesas,r8a7796-csi2" for the R8A7796 device.
++   - "renesas,rcar-gen3-csi2" for a generic R-Car Gen3 compatible device.
 +
-+As per datasheet, each DRIF channel (drifn) is made up of two internal
-+channels (drifn0 & drifn1). These two internal channels share the common
-+CLK & SYNC. Each internal channel has its own dedicated resources like
-+irq, dma channels, address space & clock. This internal split is not
-+visible to the external master device.
++   When compatible with a generic version nodes must list the
++   SoC-specific version corresponding to the platform first
++   followed by the generic version.
 +
-+The device tree model represents each internal channel as a separate node.
-+The internal channels sharing the CLK & SYNC are tied together by their
-+phandles using a property called "renesas,bonding". For the rest of
-+the documentation, unless explicitly stated, the word channel implies an
-+internal channel.
++ - reg: the register base and size for the device registers
++ - interrupts: the interrupt for the device
++ - clocks: Reference to the parent clock
 +
-+When both internal channels are enabled they need to be managed together
-+as one (i.e.) they cannot operate alone as independent devices. Out of the
-+two, one of them needs to act as a primary device that accepts common
-+properties of both the internal channels. This channel is identified by a
-+property called "renesas,primary-bond".
++The device node should contain two 'port' child nodes according to the
++bindings defined in Documentation/devicetree/bindings/media/
++video-interfaces.txt. Port 0 should connect the node that is the video
++source for to the CSI-2. Port 1 should connect all the R-Car VIN
++modules, which can make use of the CSI-2 module.
 +
-+To summarize,
-+   - When both the internal channels that are bonded together are enabled,
-+     the zeroth channel is selected as primary-bond. This channels accepts
-+     properties common to all the members of the bond.
-+   - When only one of the bonded channels need to be enabled, the property
-+     "renesas,bonding" or "renesas,primary-bond" will have no effect. That
-+     enabled channel can act alone as any other independent device.
++- Port 0 - Video source
++	- Reg 0 - sub-node describing the endpoint that is the video source
 +
-+Required properties of an internal channel:
-+-------------------------------------------
-+- compatible:	"renesas,r8a7795-drif" if DRIF controller is a part of R8A7795 SoC.
-+		"renesas,rcar-gen3-drif" for a generic R-Car Gen3 compatible device.
-+
-+		When compatible with the generic version, nodes must list the
-+		SoC-specific version corresponding to the platform first
-+		followed by the generic version.
-+
-+- reg: offset and length of that channel.
-+- interrupts: associated with that channel.
-+- clocks: phandle and clock specifier of that channel.
-+- clock-names: clock input name string: "fck".
-+- dmas: phandles to the DMA channels.
-+- dma-names: names of the DMA channel: "rx".
-+- renesas,bonding: phandle to the other channel.
-+
-+Optional properties of an internal channel:
-+-------------------------------------------
-+- power-domains: phandle to the respective power domain.
-+
-+Required properties of an internal channel when:
-+	- It is the only enabled channel of the bond (or)
-+	- If it acts as primary among enabled bonds
-+--------------------------------------------------------
-+- pinctrl-0: pin control group to be used for this channel.
-+- pinctrl-names: must be "default".
-+- renesas,primary-bond: empty property indicating the channel acts as primary
-+			among the bonded channels.
-+- port: child port node corresponding to the data input, in accordance with
-+	the video interface bindings defined in
-+	Documentation/devicetree/bindings/media/video-interfaces.txt. The port
-+	node must contain at least one endpoint.
-+
-+Optional endpoint property:
-+---------------------------
-+- sync-active: Indicates sync signal polarity, 0/1 for low/high respectively.
-+	       This property maps to SYNCAC bit in the hardware manual. The
-+	       default is 1 (active high).
++- Port 1 - VIN instances
++	- Reg 0 - sub-node describing the endpoint that is VIN0
++	- Reg 1 - sub-node describing the endpoint that is VIN1
++	- Reg 2 - sub-node describing the endpoint that is VIN2
++	- Reg 3 - sub-node describing the endpoint that is VIN3
++	- Reg 4 - sub-node describing the endpoint that is VIN4
++	- Reg 5 - sub-node describing the endpoint that is VIN5
++	- Reg 6 - sub-node describing the endpoint that is VIN6
++	- Reg 7 - sub-node describing the endpoint that is VIN7
 +
 +Example:
-+--------
 +
-+(1) Both internal channels enabled:
-+-----------------------------------
++/* SoC properties */
 +
-+When interfacing with a third party tuner device with two data pins as shown
-+below.
++	 csi20: csi2@fea80000 {
++		 compatible = "renesas,r8a7796-csi2";
++		 reg = <0 0xfea80000 0 0x10000>;
++		 interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
++		 clocks = <&cpg CPG_MOD 714>;
++		 power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
++		 status = "disabled";
 +
-++---------------------+                +---------------------+
-+|                     |-----SCK------->|CLK                  |
-+|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-+|                     |-----SD0------->|D0                   |
-+|                     |-----SD1------->|D1                   |
-++---------------------+                +---------------------+
++		 ports {
++			 #address-cells = <1>;
++			 #size-cells = <0>;
 +
-+	drif00: rif@e6f40000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f40000 0 0x64>;
-+		interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 515>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x20>, <&dmac2 0x20>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif01>;
-+		renesas,primary-bond;
-+		pinctrl-0 = <&drif0_pins>;
-+		pinctrl-names = "default";
-+		port {
-+			drif0_ep: endpoint {
-+			     remote-endpoint = <&tuner_ep>;
++			 port@1 {
++				 #address-cells = <1>;
++				 #size-cells = <0>;
++
++				 reg = <1>;
++
++				 csi20vin0: endpoint@0 {
++					 reg = <0>;
++					 remote-endpoint = <&vin0csi20>;
++				 };
++				 csi20vin1: endpoint@1 {
++					 reg = <1>;
++					 remote-endpoint = <&vin1csi20>;
++				 };
++				 csi20vin2: endpoint@2 {
++					 reg = <2>;
++					 remote-endpoint = <&vin2csi20>;
++				 };
++				 csi20vin3: endpoint@3 {
++					 reg = <3>;
++					 remote-endpoint = <&vin3csi20>;
++				 };
++				 csi20vin4: endpoint@4 {
++					 reg = <4>;
++					 remote-endpoint = <&vin4csi20>;
++				 };
++				 csi20vin5: endpoint@5 {
++					 reg = <5>;
++					 remote-endpoint = <&vin5csi20>;
++				 };
++				 csi20vin6: endpoint@6 {
++					 reg = <6>;
++					 remote-endpoint = <&vin6csi20>;
++				 };
++				 csi20vin7: endpoint@7 {
++					 reg = <7>;
++					 remote-endpoint = <&vin7csi20>;
++				 };
++			 };
++		 };
++	 };
++
++/* Board properties */
++
++	&csi20 {
++		status = "okay";
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0>;
++				csi20_in: endpoint@0 {
++					clock-lanes = <0>;
++					data-lanes = <1>;
++					remote-endpoint = <&adv7482_txb>;
++				};
 +			};
 +		};
 +	};
-+
-+	drif01: rif@e6f50000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f50000 0 0x64>;
-+		interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 514>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x22>, <&dmac2 0x22>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif00>;
-+	};
-+
-+
-+(2) Internal channel 1 alone is enabled:
-+----------------------------------------
-+
-+When interfacing with a third party tuner device with one data pin as shown
-+below.
-+
-++---------------------+                +---------------------+
-+|                     |-----SCK------->|CLK                  |
-+|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-+|                     |                |D0 (unused)          |
-+|                     |-----SD-------->|D1                   |
-++---------------------+                +---------------------+
-+
-+	drif00: rif@e6f40000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f40000 0 0x64>;
-+		interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 515>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x20>, <&dmac2 0x20>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif01>;
-+	};
-+
-+	drif01: rif@e6f50000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f50000 0 0x64>;
-+		interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 514>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x22>, <&dmac2 0x22>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif00>;
-+		pinctrl-0 = <&drif0_pins>;
-+		pinctrl-names = "default";
-+		port {
-+			drif0_ep: endpoint {
-+			     remote-endpoint = <&tuner_ep>;
-+			     sync-active = <0>;
-+			};
-+		};
-+	};
-+
 -- 
-2.12.2
+2.13.0
