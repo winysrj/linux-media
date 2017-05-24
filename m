@@ -1,45 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43802 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754754AbdERNv1 (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34968 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756453AbdEXMVj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 09:51:27 -0400
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: mchehab@s-opensource.com, alan@linux.intel.com
-Cc: Fabrizio Perria <fabrizio.perria@gmail.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 03/13] staging: media: atomisp: Fix unnecessary initialization of static
-Date: Thu, 18 May 2017 15:50:12 +0200
-Message-Id: <20170518135022.6069-4-gregkh@linuxfoundation.org>
-In-Reply-To: <20170518135022.6069-1-gregkh@linuxfoundation.org>
-References: <20170518135022.6069-1-gregkh@linuxfoundation.org>
+        Wed, 24 May 2017 08:21:39 -0400
+Received: by mail-wm0-f66.google.com with SMTP id g15so27407813wmc.2
+        for <linux-media@vger.kernel.org>; Wed, 24 May 2017 05:21:38 -0700 (PDT)
+Date: Wed, 24 May 2017 14:21:31 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Dave Airlie <airlied@gmail.com>
+Cc: Gustavo Padovan <gustavo@padovan.org>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <deathsimple@vodafone.de>,
+        Andres Rodriguez <andresx7@gmail.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: avoid scheduling on fence
+ status query v2
+Message-ID: <20170524122131.gea7lcyz2ldhfmal@phenom.ffwll.local>
+References: <20170426144620.3560-1-andresx7@gmail.com>
+ <92c9bc96-cf60-f246-a82e-47653472521e@vodafone.de>
+ <20170427212748.GD2568@joana>
+ <CAPM=9twvHHDaVsEOJCazWJeNptMb+pFUroq5jc52Tu4Cvg-T0g@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPM=9twvHHDaVsEOJCazWJeNptMb+pFUroq5jc52Tu4Cvg-T0g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabrizio Perria <fabrizio.perria@gmail.com>
+On Wed, May 24, 2017 at 09:47:49AM +1000, Dave Airlie wrote:
+> On 28 April 2017 at 07:27, Gustavo Padovan <gustavo@padovan.org> wrote:
+> > 2017-04-26 Christian König <deathsimple@vodafone.de>:
+> >
+> >> Am 26.04.2017 um 16:46 schrieb Andres Rodriguez:
+> >> > When a timeout of zero is specified, the caller is only interested in
+> >> > the fence status.
+> >> >
+> >> > In the current implementation, dma_fence_default_wait will always call
+> >> > schedule_timeout() at least once for an unsignaled fence. This adds a
+> >> > significant overhead to a fence status query.
+> >> >
+> >> > Avoid this overhead by returning early if a zero timeout is specified.
+> >> >
+> >> > v2: move early return after enable_signaling
+> >> >
+> >> > Signed-off-by: Andres Rodriguez <andresx7@gmail.com>
+> >>
+> >> Reviewed-by: Christian König <christian.koenig@amd.com>
+> >
+> > pushed to drm-misc-next. Thanks all.
+> 
+> I don't see this patch in -rc2, where did it end up going?
 
-Fix checkpatch warning: removed unnecessary initialization of
-static variable "skip_fwload" to 0 in source atomisp_v4l2.c
+Queued for 4.13. Makes imo sense since it's just a performance
+improvement, not a clear bugfix. But it's in your drm-next, so if you want
+to fast-track you can cherry-pick it over:
 
-Signed-off-by: Fabrizio Perria <fabrizio.perria@gmail.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+commit 03c0c5f6641533f5fc14bf4e76d2304197402552
+Author: Andres Rodriguez <andresx7@gmail.com>
+Date:   Wed Apr 26 10:46:20 2017 -0400
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-index e3fdbdba0b34..a0478077a012 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-@@ -51,7 +51,7 @@
- /* G-Min addition: pull this in from intel_mid_pm.h */
- #define CSTATE_EXIT_LATENCY_C1  1
- 
--static uint skip_fwload = 0;
-+static uint skip_fwload;
- module_param(skip_fwload, uint, 0644);
- MODULE_PARM_DESC(skip_fwload, "Skip atomisp firmware load");
- 
+    dma-buf: avoid scheduling on fence status query v2
+
+Cheers, Daniel
 -- 
-2.13.0
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
