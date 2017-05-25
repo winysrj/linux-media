@@ -1,71 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor1.renesas.com ([210.160.252.171]:34106 "EHLO
-        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750744AbdEBNjD (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:33759 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1162253AbdEYAaD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 2 May 2017 09:39:03 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v4 4/7] media: Add new SDR formats PC16, PC18 & PC20
-Date: Tue,  2 May 2017 14:26:12 +0100
-Message-Id: <20170502132615.42134-5-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <20170502132615.42134-1-ramesh.shanmugasundaram@bp.renesas.com>
-References: <20170502132615.42134-1-ramesh.shanmugasundaram@bp.renesas.com>
+        Wed, 24 May 2017 20:30:03 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v7 01/34] dt-bindings: Add bindings for video-multiplexer device
+Date: Wed, 24 May 2017 17:29:16 -0700
+Message-Id: <1495672189-29164-2-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for the three new SDR formats. These formats
-were prefixed with "planar" indicating I & Q data are not interleaved
-as in other formats. Here, I & Q data constitutes the top half and bottom
-half of the received buffer respectively.
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-V4L2_SDR_FMT_PCU16BE - 14-bit complex (I & Q) unsigned big-endian sample
-inside 16-bit. V4L2 FourCC: PC16
+Add bindings documentation for the video multiplexer device.
 
-V4L2_SDR_FMT_PCU18BE - 16-bit complex (I & Q) unsigned big-endian sample
-inside 18-bit. V4L2 FourCC: PC18
-
-V4L2_SDR_FMT_PCU20BE - 18-bit complex (I & Q) unsigned big-endian sample
-inside 20-bit. V4L2 FourCC: PC20
-
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Acked-by: Rob Herring <robh@kernel.org>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 3 +++
- include/uapi/linux/videodev2.h       | 3 +++
- 2 files changed, 6 insertions(+)
+ .../devicetree/bindings/media/video-mux.txt        | 60 ++++++++++++++++++++++
+ 1 file changed, 60 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/video-mux.txt
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index e5a2187381db..ca1e920d3e7c 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1229,6 +1229,9 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
- 	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
- 	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
-+	case V4L2_SDR_FMT_PCU16BE:	descr = "Planar Complex U16BE"; break;
-+	case V4L2_SDR_FMT_PCU18BE:	descr = "Planar Complex U18BE"; break;
-+	case V4L2_SDR_FMT_PCU20BE:	descr = "Planar Complex U20BE"; break;
- 	case V4L2_TCH_FMT_DELTA_TD16:	descr = "16-bit signed deltas"; break;
- 	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
- 	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 2b8feb86d09e..45cf7359822c 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -669,6 +669,9 @@ struct v4l2_pix_format {
- #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
- #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
- #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
-+#define V4L2_SDR_FMT_PCU16BE	  v4l2_fourcc('P', 'C', '1', '6') /* planar complex u16be */
-+#define V4L2_SDR_FMT_PCU18BE	  v4l2_fourcc('P', 'C', '1', '8') /* planar complex u18be */
-+#define V4L2_SDR_FMT_PCU20BE	  v4l2_fourcc('P', 'C', '2', '0') /* planar complex u20be */
- 
- /* Touch formats - used for Touch devices */
- #define V4L2_TCH_FMT_DELTA_TD16	v4l2_fourcc('T', 'D', '1', '6') /* 16-bit signed deltas */
+diff --git a/Documentation/devicetree/bindings/media/video-mux.txt b/Documentation/devicetree/bindings/media/video-mux.txt
+new file mode 100644
+index 0000000..63b9dc9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/video-mux.txt
+@@ -0,0 +1,60 @@
++Video Multiplexer
++=================
++
++Video multiplexers allow to select between multiple input ports. Video received
++on the active input port is passed through to the output port. Muxes described
++by this binding are controlled by a multiplexer controller that is described by
++the bindings in Documentation/devicetree/bindings/mux/mux-controller.txt
++
++Required properties:
++- compatible : should be "video-mux"
++- mux-controls : mux controller node to use for operating the mux
++- #address-cells: should be <1>
++- #size-cells: should be <0>
++- port@*: at least three port nodes containing endpoints connecting to the
++  source and sink devices according to of_graph bindings. The last port is
++  the output port, all others are inputs.
++
++Optionally, #address-cells, #size-cells, and port nodes can be grouped under a
++ports node as described in Documentation/devicetree/bindings/graph.txt.
++
++Example:
++
++	mux: mux-controller {
++		compatible = "gpio-mux";
++		#mux-control-cells = <0>;
++
++		mux-gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
++	};
++
++	video-mux {
++		compatible = "video-mux";
++		mux-controls = <&mux>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			mux_in0: endpoint {
++				remote-endpoint = <&video_source0_out>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			mux_in1: endpoint {
++				remote-endpoint = <&video_source1_out>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			mux_out: endpoint {
++				remote-endpoint = <&capture_interface_in>;
++			};
++		};
++	};
++};
 -- 
-2.12.2
+2.7.4
