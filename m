@@ -1,107 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway23.websitewelcome.com ([192.185.49.219]:23223 "EHLO
-        gateway23.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755643AbdERUh7 (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:36136 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1423231AbdEYAbZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 16:37:59 -0400
-Received: from cm15.websitewelcome.com (cm15.websitewelcome.com [100.42.49.9])
-        by gateway23.websitewelcome.com (Postfix) with ESMTP id D33E01AAE0
-        for <linux-media@vger.kernel.org>; Thu, 18 May 2017 15:08:38 -0500 (CDT)
-Date: Thu, 18 May 2017 15:08:38 -0500
-Message-ID: <20170518150838.Horde.QcvULS7zHP-s_vp5WQpCBSD@gator4166.hostgator.com>
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Malcolm Priestley <tvboxspy@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [media-dvb-usb-v2] question about value overwrite
-References: <20170518140901.Horde.bHPlhISMuTRMEbVjfq3p1kd@gator4166.hostgator.com>
- <00672b5e-4cf2-e271-80c1-af5c406cdb09@gmail.com>
-In-Reply-To: <00672b5e-4cf2-e271-80c1-af5c406cdb09@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
-MIME-Version: 1.0
-Content-Disposition: inline
+        Wed, 24 May 2017 20:31:25 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: [PATCH v7 28/34] media: imx: csi: increase burst size for YUV formats
+Date: Wed, 24 May 2017 17:29:43 -0700
+Message-Id: <1495672189-29164-29-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Malcolm,
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-Quoting Malcolm Priestley <tvboxspy@gmail.com>:
+The IDMAC supports burst sizes of up to 32 pixels for interleaved YUV
+formats and up to 64 pixels for planar YUV formats.
 
-> Hi
->
-> On 18/05/17 20:09, Gustavo A. R. Silva wrote:
->>
->> Hello everybody,
->>
->> While looking into Coverity ID 1226934 I ran into the following  
->> piece of code at drivers/media/usb/dvb-usb-v2/lmedm04.c:205
->>
->> 205static int lme2510_stream_restart(struct dvb_usb_device *d)
->> 206{
->> 207        struct lme2510_state *st = d->priv;
->> 208        u8 all_pids[] = LME_ALL_PIDS;
->> 209        u8 stream_on[] = LME_ST_ON_W;
->> 210        int ret;
->> 211        u8 rbuff[1];
->> 212        if (st->pid_off)
->> 213                ret = lme2510_usb_talk(d, all_pids, sizeof(all_pids),
->> 214                        rbuff, sizeof(rbuff));
->> 215        /*Restart Stream Command*/
->> 216        ret = lme2510_usb_talk(d, stream_on, sizeof(stream_on),
->> 217                        rbuff, sizeof(rbuff));
->> 218        return ret;
->> 219}
->
-> It is a mistake it should have been ORed ad in |= as  
-> lme2510_usb_talk only returns three states.
->
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/staging/media/imx/imx-media-csi.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-I see now. The idea is to code something similar to the following  
-piece of code in the same file:
-
-242
-243        ret |= lme2510_usb_talk(d, pid_buff ,
-244                sizeof(pid_buff) , rbuf, sizeof(rbuf));
-245
-246        if (st->stream_on)
-247                ret |= lme2510_stream_restart(d);
-248
-249        return ret;
-
-right?
-
-So in this case, the following patch would properly fix the bug:
-
-index 924adfd..3ab1754 100644
---- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
-+++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-@@ -207,13 +207,14 @@ static int lme2510_stream_restart(struct  
-dvb_usb_device *d)
-         struct lme2510_state *st = d->priv;
-         u8 all_pids[] = LME_ALL_PIDS;
-         u8 stream_on[] = LME_ST_ON_W;
--       int ret;
-+       int ret = 0;
-         u8 rbuff[1];
-+
-         if (st->pid_off)
-                 ret = lme2510_usb_talk(d, all_pids, sizeof(all_pids),
-                         rbuff, sizeof(rbuff));
-         /*Restart Stream Command*/
--       ret = lme2510_usb_talk(d, stream_on, sizeof(stream_on),
-+       ret |= lme2510_usb_talk(d, stream_on, sizeof(stream_on),
-                         rbuff, sizeof(rbuff));
-         return ret;
-  }
-
-What do you think?
-
-> So if an error is in the running it will be returned to user.
->
-> The first of your patches is better and more or less the same, the  
-> second would break driver, restart is not an else condition.
->
-
-Thank you for the clarification.
---
-Gustavo A. R. Silva
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 7defe53..e26c025 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -333,6 +333,23 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 		passthrough = true;
+ 		passthrough_bits = 16;
+ 		break;
++	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_NV12:
++		burst_size = (image.pix.width & 0x3f) ?
++			     ((image.pix.width & 0x1f) ?
++			      ((image.pix.width & 0xf) ? 8 : 16) : 32) : 64;
++		passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
++			       sensor_ep->bus.parallel.bus_width >= 16);
++		passthrough_bits = 16;
++		break;
++	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_UYVY:
++		burst_size = (image.pix.width & 0x1f) ?
++			     ((image.pix.width & 0xf) ? 8 : 16) : 32;
++		passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
++			       sensor_ep->bus.parallel.bus_width >= 16);
++		passthrough_bits = 16;
++		break;
+ 	default:
+ 		burst_size = (image.pix.width & 0xf) ? 8 : 16;
+ 		passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
+-- 
+2.7.4
