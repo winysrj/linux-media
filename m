@@ -1,50 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:53185 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750902AbdE3Ioe (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:34444 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1164975AbdEYAba (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 04:44:34 -0400
-Date: Tue, 30 May 2017 10:44:33 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-        linux-renesas-soc@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        geert@linux-m68k.org, magnus.damm@gmail.com,
-        hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se,
-        sergei.shtylyov@cogentembedded.com, devicetree@vger.kernel.org
-Subject: Re: [PATCH v3 0/4] r8a7793 Gose video input support
-Message-ID: <20170530084433.GD32139@verge.net.au>
-References: <1495199224-16337-1-git-send-email-ulrich.hecht+renesas@gmail.com>
- <ed9be832-21f5-ac8c-56cf-02afd14f5a34@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ed9be832-21f5-ac8c-56cf-02afd14f5a34@xs4all.nl>
+        Wed, 24 May 2017 20:31:30 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v7 32/34] media: imx: capture: add frame sizes/interval enumeration
+Date: Wed, 24 May 2017 17:29:47 -0700
+Message-Id: <1495672189-29164-33-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 29, 2017 at 11:08:12AM +0200, Hans Verkuil wrote:
-> On 05/19/2017 03:07 PM, Ulrich Hecht wrote:
-> >Hi!
-> >
-> >This is a by-the-datasheet implementation of analog and digital video input
-> >on the Gose board.
-> >
-> >This revision adds new bindings that distinguish between ADV7180 variants
-> >with three and six input ports. There are numerous variants of this chip,
-> >but since all that have "CP" in their names have three inputs, and all that
-> >have "ST" have six, I have limited myself to two new compatible strings,
-> >"adv7180cp" and "adv7180st".
-> >
-> >The digital input patch has received minor tweaks of the port names for
-> >consistency, and the Gose analog input patch has been modified to use the
-> >new bindings, and a composite video connector has been added.
-> 
-> Looks good. I assume the dts changes go through linux-renesas-soc@vger.kernel.org?
+From: Russell King <rmk+kernel@armlinux.org.uk>
 
-Yes, I will pick up the dts changes.
+Add support for enumerating frame sizes and frame intervals from the
+first subdev via the V4L2 interfaces.
 
-> I'll pick up the adv7180 changes.
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-media-capture.c | 73 +++++++++++++++++++++++++++
+ 1 file changed, 73 insertions(+)
 
-Thanks!
+diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
+index 76c17d9..8b28dbc 100644
+--- a/drivers/staging/media/imx/imx-media-capture.c
++++ b/drivers/staging/media/imx/imx-media-capture.c
+@@ -81,6 +81,76 @@ static int vidioc_querycap(struct file *file, void *fh,
+ 	return 0;
+ }
+ 
++static int capture_enum_framesizes(struct file *file, void *fh,
++				   struct v4l2_frmsizeenum *fsize)
++{
++	struct capture_priv *priv = video_drvdata(file);
++	const struct imx_media_pixfmt *cc;
++	struct v4l2_subdev_frame_size_enum fse = {
++		.index = fsize->index,
++		.pad = priv->src_sd_pad,
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
++	int ret;
++
++	cc = imx_media_find_format(fsize->pixel_format, CS_SEL_ANY, true);
++	if (!cc)
++		return -EINVAL;
++
++	fse.code = cc->codes[0];
++
++	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_size, NULL, &fse);
++	if (ret)
++		return ret;
++
++	if (fse.min_width == fse.max_width &&
++	    fse.min_height == fse.max_height) {
++		fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++		fsize->discrete.width = fse.min_width;
++		fsize->discrete.height = fse.min_height;
++	} else {
++		fsize->type = V4L2_FRMSIZE_TYPE_CONTINUOUS;
++		fsize->stepwise.min_width = fse.min_width;
++		fsize->stepwise.max_width = fse.max_width;
++		fsize->stepwise.min_height = fse.min_height;
++		fsize->stepwise.max_height = fse.max_height;
++		fsize->stepwise.step_width = 1;
++		fsize->stepwise.step_height = 1;
++	}
++
++	return 0;
++}
++
++static int capture_enum_frameintervals(struct file *file, void *fh,
++				       struct v4l2_frmivalenum *fival)
++{
++	struct capture_priv *priv = video_drvdata(file);
++	const struct imx_media_pixfmt *cc;
++	struct v4l2_subdev_frame_interval_enum fie = {
++		.index = fival->index,
++		.pad = priv->src_sd_pad,
++		.width = fival->width,
++		.height = fival->height,
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
++	int ret;
++
++	cc = imx_media_find_format(fival->pixel_format, CS_SEL_ANY, true);
++	if (!cc)
++		return -EINVAL;
++
++	fie.code = cc->codes[0];
++
++	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_interval, NULL, &fie);
++	if (ret)
++		return ret;
++
++	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++	fival->discrete = fie.interval;
++
++	return 0;
++}
++
+ static int capture_enum_fmt_vid_cap(struct file *file, void *fh,
+ 				    struct v4l2_fmtdesc *f)
+ {
+@@ -269,6 +339,9 @@ static int capture_s_parm(struct file *file, void *fh,
+ static const struct v4l2_ioctl_ops capture_ioctl_ops = {
+ 	.vidioc_querycap	= vidioc_querycap,
+ 
++	.vidioc_enum_framesizes = capture_enum_framesizes,
++	.vidioc_enum_frameintervals = capture_enum_frameintervals,
++
+ 	.vidioc_enum_fmt_vid_cap        = capture_enum_fmt_vid_cap,
+ 	.vidioc_g_fmt_vid_cap           = capture_g_fmt_vid_cap,
+ 	.vidioc_try_fmt_vid_cap         = capture_try_fmt_vid_cap,
+-- 
+2.7.4
