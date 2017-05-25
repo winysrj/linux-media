@@ -1,210 +1,247 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor4.renesas.com ([210.160.252.174]:62794 "EHLO
-        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752049AbdEINuS (ORCPT
+Received: from mail-yb0-f169.google.com ([209.85.213.169]:32944 "EHLO
+        mail-yb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936424AbdEYPBG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 May 2017 09:50:18 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v5 0/7] Add V4L2 SDR (DRIF & MAX2175) driver
-Date: Tue,  9 May 2017 14:37:31 +0100
-Message-Id: <20170509133738.16414-1-ramesh.shanmugasundaram@bp.renesas.com>
+        Thu, 25 May 2017 11:01:06 -0400
+Received: by mail-yb0-f169.google.com with SMTP id 187so46763232ybg.0
+        for <linux-media@vger.kernel.org>; Thu, 25 May 2017 08:01:06 -0700 (PDT)
+Received: from mail-yw0-f176.google.com (mail-yw0-f176.google.com. [209.85.161.176])
+        by smtp.gmail.com with ESMTPSA id m21sm3454116ywh.2.2017.05.25.08.01.02
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 25 May 2017 08:01:03 -0700 (PDT)
+Received: by mail-yw0-f176.google.com with SMTP id l14so104568306ywk.1
+        for <linux-media@vger.kernel.org>; Thu, 25 May 2017 08:01:02 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAAFQd5Ck3CKp-JR8d3d1X9-2cRS0oZG9GPwcpunBq50EY7qCtg@mail.gmail.com>
+References: <1494478820-22199-1-git-send-email-rajmohan.mani@intel.com> <CAAFQd5Ck3CKp-JR8d3d1X9-2cRS0oZG9GPwcpunBq50EY7qCtg@mail.gmail.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 26 May 2017 00:00:41 +0900
+Message-ID: <CAAFQd5A4d2oPRUYScYmOtG3RMvE9aZ0c+1uw_8F7-b-bBG-sSQ@mail.gmail.com>
+Subject: Re: [PATCH v4] dw9714: Initial driver for dw9714 VCM
+To: Rajmohan Mani <rajmohan.mani@intel.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Media, DT maintainers, All,
+Hi Raj,
 
-This patch set contains two drivers
- - Renesas R-Car Digital Radio Interface (DRIF) driver
- - Maxim's MAX2175 RF to Bits tuner driver
+On Thu, May 11, 2017 at 3:30 PM, Tomasz Figa <tfiga@chromium.org> wrote:
+> Hi Raj,
+>
+> Thanks for re-spin. Still a bit more comments inline. (I missed few
+> more before, sorry.)
+>
+> On Thu, May 11, 2017 at 1:00 PM, Rajmohan Mani <rajmohan.mani@intel.com> wrote:
+>> DW9714 is a 10 bit DAC, designed for linear
+>> control of voice coil motor.
+> [snip]
+>> +static int dw9714_i2c_write(struct i2c_client *client, u16 data)
+>> +{
+>> +       int ret;
+>> +       u16 val = cpu_to_be16(data);
+>> +       const int num_bytes = sizeof(val);
+>> +
+>> +       ret = i2c_master_send(client, (const char *) &val, sizeof(val));
+>
+> nit: No need for space between cast and casted value.
+>
+>> +
+>> +       /*One retry */
+>> +       if (ret != num_bytes)
+>> +               ret = i2c_master_send(client, (const char *) &val, sizeof(val));
+>
+> Why do we need this retry?
+>
+>> +
+>> +       if (ret != num_bytes) {
+>> +               dev_err(&client->dev, "I2C write fail\n");
+>> +               return -EIO;
+>> +       }
+>> +       return 0;
+>> +}
+>> +
+>> +static int dw9714_t_focus_vcm(struct dw9714_device *dw9714_dev, u16 val)
+>> +{
+>> +       struct i2c_client *client = dw9714_dev->client;
+>> +
+>> +       dw9714_dev->current_val = val;
+>> +
+>> +       return dw9714_i2c_write(client, DW9714_VAL(val, DW9714_DEFAULT_S));
+>
+> This still doesn't seem to apply the control gradually as suspend and resume do.
+>
+>> +}
+> [snip]
+>> +static int dw9714_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+>> +{
+>> +       struct dw9714_device *dw9714_dev = container_of(sd,
+>> +                                                       struct dw9714_device,
+>> +                                                       sd);
+>> +       struct device *dev = &dw9714_dev->client->dev;
+>> +       int rval;
+>> +
+>> +       rval = pm_runtime_get_sync(dev);
+>> +       if (rval >= 0)
+>> +               return 0;
+>> +
+>> +       pm_runtime_put(dev);
+>> +       return rval;
+>
+> nit: The typical coding style is to return early in case of a special
+> case and keep the common path linear, i.e.
+>
+>     rval = pm_runtime_get_sync(dev);
+>     if (rval < 0) {
+>         pm_runtime_put(dev);
+>         return rval;
+>     }
+>
+>     return 0;
+>
+>> +}
+>> +
+> [snip]
+>> +static int dw9714_remove(struct i2c_client *client)
+>> +{
+>> +       struct v4l2_subdev *sd = i2c_get_clientdata(client);
+>> +       struct dw9714_device *dw9714_dev = container_of(sd,
+>> +                                                       struct dw9714_device,
+>> +                                                       sd);
+>> +
+>> +       pm_runtime_disable(&client->dev);
+>> +       dw9714_subdev_cleanup(dw9714_dev);
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +#ifdef CONFIG_PM
+>
+> #if defined(CONFIG_PM) || defined(CONFIG_PM_SLEEP)
+>
+>> +
+>> +/*
+>> + * This function sets the vcm position, so it consumes least current
+>> + * The lens position is gradually moved in units of DW9714_CTRL_STEPS,
+>> + * to make the movements smoothly.
+>> + */
+>> +static int dw9714_vcm_suspend(struct device *dev)
+>> +{
+>> +       struct i2c_client *client = to_i2c_client(dev);
+>> +       struct v4l2_subdev *sd = i2c_get_clientdata(client);
+>> +       struct dw9714_device *dw9714_dev = container_of(sd,
+>> +                                                       struct dw9714_device,
+>> +                                                       sd);
+>> +       int ret, val;
+>> +
+>> +       for (val = dw9714_dev->current_val & ~(DW9714_CTRL_STEPS - 1);
+>> +            val >= 0; val -= DW9714_CTRL_STEPS) {
+>> +               ret = dw9714_i2c_write(client,
+>> +                                      DW9714_VAL((u16) val, DW9714_DEFAULT_S));
+>
+> DW9714_VAL() already contains such cast. Anyway, I still think they
+> don't really give us anything and should be removed.
+>
+>> +               if (ret)
+>> +                       dev_err(dev, "%s I2C failure: %d", __func__, ret);
+>
+> I think we should just return an error code here and fail the suspend.
+>
+>> +               usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
+>> +       }
+>> +       return 0;
+>> +}
+>> +
+>> +/*
+>> + * This function sets the vcm position to the value set by the user
+>> + * through v4l2_ctrl_ops s_ctrl handler
+>> + * The lens position is gradually moved in units of DW9714_CTRL_STEPS,
+>> + * to make the movements smoothly.
+>> + */
+>> +static int dw9714_vcm_resume(struct device *dev)
+>> +{
+>> +       struct i2c_client *client = to_i2c_client(dev);
+>> +       struct v4l2_subdev *sd = i2c_get_clientdata(client);
+>> +       struct dw9714_device *dw9714_dev = container_of(sd,
+>> +                                                       struct dw9714_device,
+>> +                                                       sd);
+>> +       int ret, val;
+>> +
+>> +       for (val = dw9714_dev->current_val % DW9714_CTRL_STEPS;
+>> +            val < dw9714_dev->current_val + DW9714_CTRL_STEPS - 1;
+>> +            val += DW9714_CTRL_STEPS) {
+>> +               ret = dw9714_i2c_write(client,
+>> +                                      DW9714_VAL((u16) val, DW9714_DEFAULT_S));
+>
+> Ditto.
+>
+>> +               if (ret)
+>> +                       dev_err(dev, "%s I2C failure: %d", __func__, ret);
+>
+> Ditto.
+>
+>> +               usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
+>> +       }
+>> +
+>> +       /* restore v4l2 control values */
+>> +       ret = v4l2_ctrl_handler_setup(&dw9714_dev->ctrls_vcm);
+>> +       return ret;
+>
+> Hmm, actually I believe v4l2_ctrl_handler_setup() will call .s_ctrl()
+> here and set the motor value again. If we just make .s_ctrl() do the
+> adjustment in steps properly, we can simplify the resume to simply
+> call v4l2_ctrl_handler_setup() alone.
+>
+>> +}
+>
+> #endif
+>
+> #ifdef CONFIG_PM
+>
+>> +
+>> +static int dw9714_runtime_suspend(struct device *dev)
+>> +{
+>> +       return dw9714_vcm_suspend(dev);
+>> +}
+>> +
+>> +static int dw9714_runtime_resume(struct device *dev)
+>> +{
+>> +       return dw9714_vcm_resume(dev);
+>> +}
+>
+> #endif
+>
+> #ifdef CONFIG_PM_SLEEP
+>
+>> +
+>> +static int dw9714_suspend(struct device *dev)
+>> +{
+>> +       return dw9714_vcm_suspend(dev);
+>> +}
+>> +
+>> +static int dw9714_resume(struct device *dev)
+>> +{
+>> +       return dw9714_vcm_resume(dev);
+>> +}
+>
+> #endif
+>
+> Or you could actually just use dw9714_vcm_{suspend,resume}() directly
+> for the callbacks and avoid the duplicates above.
+>
+>> +
+>> +#else
+>> +
+>> +#define dw9714_vcm_suspend     NULL
+>> +#define dw9714_vcm_resume      NULL
+>
+> This #else block is not needed.
+>
+Any updates on this and other comments?
 
-These patches were based on top of media-next repo
-commit:6d95b3f24881c0fd0f345eca959a2a803a040930
-
-These two drivers combined together expose a V4L2 SDR device that is compliant with the V4L2 framework [1]. Agreed review comments are incorporated in this series.
-
-The rcar_drif device is modelled using "renesas,bonding" property. The discussion on this property is available here [2].
-
-Change history:
-
-v4 -> v5:
- - Minor documentation changes. Refer individual patches.
-
-v3 -> v4:
- - Added ACKs
-rcar_drif:
- - Incorporated a number of review comments from Laurent on DRIF driver.
- - Addressed comments from Rob and Laurent on bindings.
-max2175:
- - Minor changes addressing Hans and Laurent's comments
-
-v2 -> v3:
-rcar_drif:
- - Reduced DRIF DT properties to expose tested I2S mode only (Hans - discussion on #v4l)
- - Fixed error path clean up of ctrl_hdl on rcar_drif
-
-v1 -> v2:
- - SDR formats renamed as "planar" instead of sliced (Hans)
- - Documentation formatting correction (Laurent)
-
- rcar_drif:
- - DT model using "bonding" property
- - Addressed Laurent's coments on bindings - DT optional parameters rename & rework
- - Addressed Han's comments on driver
- - Addressed Geert's comments on DT
-
- max2175:
- - Avoided scaling using method proposed by Antti. Thanks
- - Bindings is a separate patch (Rob)
- - Addressed Rob's comment on bindings
- - Added Custom controls documentation (Laurent)
-
-[1] v4l2-compliance report:
-root@salvator-x:~# v4l2-compliance -S /dev/swradio0
-v4l2-compliance SHA   : b514d615166bdc0901a4c71261b87db31e89f464
-
-Driver Info:
-        Driver name   : rcar_drif
-        Card type     : R-Car DRIF
-        Bus info      : platform:R-Car DRIF
-        Driver version: 4.11.0
-        Capabilities  : 0x85310000
-                SDR Capture
-                Tuner
-                Read/Write
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x05310000
-                SDR Capture
-                Tuner
-                Read/Write
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/swradio0 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second sdr open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK
-        test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK
-        test VIDIOC_G/S_FREQUENCY: OK
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 0 Audio Inputs: 0 Tuners: 1
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-                test VIDIOC_QUERYCTRL: OK
-                test VIDIOC_G/S_CTRL: OK
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 5 Private Controls: 3
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK (Not Supported)
-                test Composing: OK (Not Supported)
-                test Scaling: OK (Not Supported)
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK (Not Supported)
-
-Test input 0:
-
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-root@salvator-x:~#
-
-[2] "bonding" DT property discussion (https://www.mail-archive.com/linux-renesas-soc@vger.kernel.org/msg09415.html)
-
-Ramesh Shanmugasundaram (7):
-  media: v4l2-ctrls: Reserve controls for MAX217X
-  dt-bindings: media: Add MAX2175 binding description
-  media: i2c: max2175: Add MAX2175 support
-  media: Add new SDR formats PC16, PC18 & PC20
-  doc_rst: media: New SDR formats PC16, PC18 & PC20
-  dt-bindings: media: Add Renesas R-Car DRIF binding
-  media: platform: rcar_drif: Add DRIF support
-
- .../devicetree/bindings/media/i2c/max2175.txt      |   61 +
- .../devicetree/bindings/media/renesas,drif.txt     |  177 +++
- .../devicetree/bindings/property-units.txt         |    1 +
- .../media/uapi/v4l/pixfmt-sdr-pcu16be.rst          |   55 +
- .../media/uapi/v4l/pixfmt-sdr-pcu18be.rst          |   55 +
- .../media/uapi/v4l/pixfmt-sdr-pcu20be.rst          |   54 +
- Documentation/media/uapi/v4l/sdr-formats.rst       |    3 +
- Documentation/media/v4l-drivers/index.rst          |    1 +
- Documentation/media/v4l-drivers/max2175.rst        |   60 +
- drivers/media/i2c/Kconfig                          |    4 +
- drivers/media/i2c/Makefile                         |    2 +
- drivers/media/i2c/max2175/Kconfig                  |    8 +
- drivers/media/i2c/max2175/Makefile                 |    4 +
- drivers/media/i2c/max2175/max2175.c                | 1437 +++++++++++++++++++
- drivers/media/i2c/max2175/max2175.h                |  108 ++
- drivers/media/platform/Kconfig                     |   25 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/rcar_drif.c                 | 1488 ++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ioctl.c               |    3 +
- include/uapi/linux/v4l2-controls.h                 |    5 +
- include/uapi/linux/videodev2.h                     |    3 +
- 21 files changed, 3555 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/max2175.txt
- create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
- create mode 100644 Documentation/media/v4l-drivers/max2175.rst
- create mode 100644 drivers/media/i2c/max2175/Kconfig
- create mode 100644 drivers/media/i2c/max2175/Makefile
- create mode 100644 drivers/media/i2c/max2175/max2175.c
- create mode 100644 drivers/media/i2c/max2175/max2175.h
- create mode 100644 drivers/media/platform/rcar_drif.c
-
--- 
-2.12.2
+Best regards,
+Tomasz
