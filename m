@@ -1,108 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback.mail.elte.hu ([157.181.151.13]:38167 "EHLO
-        fallback.mail.elte.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933017AbdEVVGE (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:35230 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1164644AbdEYAaG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 May 2017 17:06:04 -0400
-Received: from mx3.mail.elte.hu ([157.181.1.138])
-        by fallback.mail.elte.hu with esmtp (Exim)
-        id 1dCuWe-00010w-5H
-        from <melko@frugalware.org>
-        for <linux-media@vger.kernel.org>; Mon, 22 May 2017 23:06:00 +0200
-From: Paolo Cretaro <melko@frugalware.org>
-To: mchehab@kernel.org
-Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, Paolo Cretaro <melko@frugalware.org>
-Subject: [PATCH] [media] atomisp: use NULL instead of 0 for pointers
-Date: Mon, 22 May 2017 23:04:46 +0200
-Message-Id: <20170522210446.20029-1-melko@frugalware.org>
+        Wed, 24 May 2017 20:30:06 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v7 02/34] [media] dt-bindings: Add bindings for i.MX media driver
+Date: Wed, 24 May 2017 17:29:17 -0700
+Message-Id: <1495672189-29164-3-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix warning issued by sparse: Using plain integer as NULL pointer
+Add bindings documentation for the i.MX media driver.
 
-Signed-off-by: Paolo Cretaro <melko@frugalware.org>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/staging/media/atomisp/i2c/ov5693/ov5693.c                     | 2 +-
- .../media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c        | 2 +-
- .../media/atomisp/pci/atomisp2/css2400/runtime/spctrl/src/spctrl.c    | 2 +-
- drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c                  | 2 +-
- drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c  | 4 ++--
- 5 files changed, 6 insertions(+), 6 deletions(-)
+ Documentation/devicetree/bindings/media/imx.txt | 74 +++++++++++++++++++++++++
+ 1 file changed, 74 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/imx.txt
 
-diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-index 5e9dafe7cc32..d6447398f5ef 100644
---- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-+++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-@@ -706,7 +706,7 @@ static int ov5693_read_otp_reg_array(struct i2c_client *client, u16 size,
- {
- 	u16 index;
- 	int ret;
--	u16 *pVal = 0;
-+	u16 *pVal = NULL;
- 
- 	for (index = 0; index <= size; index++) {
- 		pVal = (u16 *) (buf + index);
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c
-index ed33d4c4c84a..5d40afd482f5 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c
-@@ -239,7 +239,7 @@ static ia_css_queue_t *bufq_get_qhandle(
- 	enum sh_css_queue_id id,
- 	int thread)
- {
--	ia_css_queue_t *q = 0;
-+	ia_css_queue_t *q = NULL;
- 
- 	switch (type) {
- 	case sh_css_host2sp_buffer_queue:
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/spctrl/src/spctrl.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/spctrl/src/spctrl.c
-index b36d7b00ebe8..18966d89602a 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/spctrl/src/spctrl.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/spctrl/src/spctrl.c
-@@ -57,7 +57,7 @@ enum ia_css_err ia_css_spctrl_load_fw(sp_ID_t sp_id,
- 	hrt_vaddress code_addr = mmgr_NULL;
- 	struct ia_css_sp_init_dmem_cfg *init_dmem_cfg;
- 
--	if ((sp_id >= N_SP_ID) || (spctrl_cfg == 0))
-+	if ((sp_id >= N_SP_ID) || (spctrl_cfg == NULL))
- 		return IA_CSS_ERR_INVALID_ARGUMENTS;
- 
- 	spctrl_cofig_info[sp_id].code_addr = mmgr_NULL;
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
-index 57295397da3e..5e63073f3581 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
-@@ -193,7 +193,7 @@ int hmm_init(void)
- 	 * at the beginning, to avoid hmm_alloc return 0 in the
- 	 * further allocation.
- 	 */
--	dummy_ptr = hmm_alloc(1, HMM_BO_PRIVATE, 0, 0, HMM_UNCACHED);
-+	dummy_ptr = hmm_alloc(1, HMM_BO_PRIVATE, 0, NULL, HMM_UNCACHED);
- 
- 	if (!ret) {
- 		ret = sysfs_create_group(&atomisp_dev->kobj,
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c b/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c
-index 7dff22f59e29..2e78976bb2ac 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/hrt/hive_isp_css_mm_hrt.c
-@@ -55,7 +55,7 @@ static ia_css_ptr __hrt_isp_css_mm_alloc(size_t bytes, void *userptr,
- 	if (type == HRT_USR_PTR) {
- 		if (userptr == NULL)
- 			return hmm_alloc(bytes, HMM_BO_PRIVATE, 0,
--						 0, cached);
-+						 NULL, cached);
- 		else {
- 			if (num_pages < ((__page_align(bytes)) >> PAGE_SHIFT))
- 				dev_err(atomisp_dev,
-@@ -94,7 +94,7 @@ ia_css_ptr hrt_isp_css_mm_alloc_user_ptr(size_t bytes, void *userptr,
- ia_css_ptr hrt_isp_css_mm_alloc_cached(size_t bytes)
- {
- 	if (my_userptr == NULL)
--		return hmm_alloc(bytes, HMM_BO_PRIVATE, 0, 0,
-+		return hmm_alloc(bytes, HMM_BO_PRIVATE, 0, NULL,
- 						HMM_CACHED);
- 	else {
- 		if (my_num_pages < ((__page_align(bytes)) >> PAGE_SHIFT))
+diff --git a/Documentation/devicetree/bindings/media/imx.txt b/Documentation/devicetree/bindings/media/imx.txt
+new file mode 100644
+index 0000000..3059c06
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/imx.txt
+@@ -0,0 +1,74 @@
++Freescale i.MX Media Video Device
++=================================
++
++Video Media Controller node
++---------------------------
++
++This is the media controller node for video capture support. It is a
++virtual device that lists the camera serial interface nodes that the
++media device will control.
++
++Required properties:
++- compatible : "fsl,imx-capture-subsystem";
++- ports      : Should contain a list of phandles pointing to camera
++		sensor interface ports of IPU devices
++
++example:
++
++capture-subsystem {
++	compatible = "fsl,imx-capture-subsystem";
++	ports = <&ipu1_csi0>, <&ipu1_csi1>;
++};
++
++fim child node
++--------------
++
++This is an optional child node of the ipu_csi port nodes. If present and
++available, it enables the Frame Interval Monitor. Its properties can be
++used to modify the method in which the FIM measures frame intervals.
++Refer to Documentation/media/v4l-drivers/imx.rst for more info on the
++Frame Interval Monitor.
++
++Optional properties:
++- fsl,input-capture-channel: an input capture channel and channel flags,
++			     specified as <chan flags>. The channel number
++			     must be 0 or 1. The flags can be
++			     IRQ_TYPE_EDGE_RISING, IRQ_TYPE_EDGE_FALLING, or
++			     IRQ_TYPE_EDGE_BOTH, and specify which input
++			     capture signal edge will trigger the input
++			     capture event. If an input capture channel is
++			     specified, the FIM will use this method to
++			     measure frame intervals instead of via the EOF
++			     interrupt. The input capture method is much
++			     preferred over EOF as it is not subject to
++			     interrupt latency errors. However it requires
++			     routing the VSYNC or FIELD output signals of
++			     the camera sensor to one of the i.MX input
++			     capture pads (SD1_DAT0, SD1_DAT1), which also
++			     gives up support for SD1.
++
++
++mipi_csi2 node
++--------------
++
++This is the device node for the MIPI CSI-2 Receiver, required for MIPI
++CSI-2 sensors.
++
++Required properties:
++- compatible	: "fsl,imx6-mipi-csi2", "snps,dw-mipi-csi2";
++- reg           : physical base address and length of the register set;
++- clocks	: the MIPI CSI-2 receiver requires three clocks: hsi_tx
++		  (the D-PHY clock), video_27m (D-PHY PLL reference
++		  clock), and eim_podf;
++- clock-names	: must contain "dphy", "ref", "pix";
++- port@*        : five port nodes must exist, containing endpoints
++		  connecting to the source and sink devices according to
++		  of_graph bindings. The first port is an input port,
++		  connecting with a MIPI CSI-2 source, and ports 1
++		  through 4 are output ports connecting with parallel
++		  bus sink endpoint nodes and correspond to the four
++		  MIPI CSI-2 virtual channel outputs.
++
++Optional properties:
++- interrupts	: must contain two level-triggered interrupts,
++		  in order: 100 and 101;
 -- 
-2.13.0
+2.7.4
