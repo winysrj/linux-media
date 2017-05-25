@@ -1,49 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:41444 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750725AbdEAQK3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 May 2017 12:10:29 -0400
-Subject: [PATCH 7/7] rc-core: tm6000 - leave the internals of rc_dev alone
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, sean@mess.org
-Date: Mon, 01 May 2017 18:10:27 +0200
-Message-ID: <149365502730.13489.14956537533540738118.stgit@zeus.hardeman.nu>
-In-Reply-To: <149365487447.13489.15793446874818182829.stgit@zeus.hardeman.nu>
-References: <149365487447.13489.15793446874818182829.stgit@zeus.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:34659 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1164742AbdEYAaV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 24 May 2017 20:30:21 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v7 08/34] ARM: dts: imx6qdl-sabrelite: remove erratum ERR006687 workaround
+Date: Wed, 24 May 2017 17:29:23 -0700
+Message-Id: <1495672189-29164-9-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Not sure what the driver is trying to do, however, IR handling seems incomplete
-ATM so deleting the offending parts shouldn't affect functionality
+There is a pin conflict with GPIO_6. This pin functions as a power
+input pin to the OV5642 camera sensor, but ENET uses it as the h/w
+workaround for erratum ERR006687, to wake-up the ARM cores on normal
+RX and TX packet done events. So we need to remove the h/w workaround
+to support the OV5642. The result is that the CPUidle driver will no
+longer allow entering the deep idle states on the sabrelite.
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
+This is a partial revert of
+
+commit 6261c4c8f13e ("ARM: dts: imx6qdl-sabrelite: use GPIO_6 for FEC
+			interrupt.")
+commit a28eeb43ee57 ("ARM: dts: imx6: tag boards that have the HW workaround
+			for ERR006687")
+
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/usb/tm6000/tm6000-input.c |    4 ----
+ arch/arm/boot/dts/imx6qdl-sabrelite.dtsi | 4 ----
  1 file changed, 4 deletions(-)
 
-diff --git a/drivers/media/usb/tm6000/tm6000-input.c b/drivers/media/usb/tm6000/tm6000-input.c
-index 39c15bb2b20c..1a033f57fcc1 100644
---- a/drivers/media/usb/tm6000/tm6000-input.c
-+++ b/drivers/media/usb/tm6000/tm6000-input.c
-@@ -63,7 +63,6 @@ struct tm6000_IR {
- 	u8			wait:1;
- 	u8			pwled:2;
- 	u8			submit_urb:1;
--	u16			key_addr;
- 	struct urb		*int_urb;
+diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+index 8413179..89dce27 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+@@ -270,9 +270,6 @@
+ 	txd1-skew-ps = <0>;
+ 	txd2-skew-ps = <0>;
+ 	txd3-skew-ps = <0>;
+-	interrupts-extended = <&gpio1 6 IRQ_TYPE_LEVEL_HIGH>,
+-			      <&intc 0 119 IRQ_TYPE_LEVEL_HIGH>;
+-	fsl,err006687-workaround-present;
+ 	status = "okay";
+ };
  
- 	/* IR device properties */
-@@ -321,9 +320,6 @@ static int tm6000_ir_change_protocol(struct rc_dev *rc, u64 *rc_type)
+@@ -373,7 +370,6 @@
+ 				MX6QDL_PAD_RGMII_RX_CTL__RGMII_RX_CTL	0x1b030
+ 				/* Phy reset */
+ 				MX6QDL_PAD_EIM_D23__GPIO3_IO23		0x000b0
+-				MX6QDL_PAD_GPIO_6__ENET_IRQ		0x000b1
+ 			>;
+ 		};
  
- 	dprintk(2, "%s\n",__func__);
- 
--	if ((rc->rc_map.scan) && (*rc_type == RC_BIT_NEC))
--		ir->key_addr = ((rc->rc_map.scan[0].scancode >> 8) & 0xffff);
--
- 	ir->rc_type = *rc_type;
- 
- 	tm6000_ir_config(ir);
+-- 
+2.7.4
