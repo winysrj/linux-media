@@ -1,38 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35140 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751005AbdEBUac (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 2 May 2017 16:30:32 -0400
-Received: by mail-wm0-f68.google.com with SMTP id d79so7535537wmi.2
-        for <linux-media@vger.kernel.org>; Tue, 02 May 2017 13:30:32 -0700 (PDT)
-Subject: Re: [PATCH] libdvbv5: T2 delivery descriptor: fix wrong size of
- bandwidth field
-To: Clemens Ladisch <clemens@ladisch.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <dc2b16b2-7caa-6141-a983-c83631544f3e@ladisch.de>
-From: Gregor Jasny <gjasny@googlemail.com>
-Message-ID: <c6f1d1cd-69ea-d454-15a8-5de9325577de@googlemail.com>
-Date: Tue, 2 May 2017 22:30:29 +0200
-MIME-Version: 1.0
-In-Reply-To: <dc2b16b2-7caa-6141-a983-c83631544f3e@ladisch.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:33113 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1423119AbdEYAaj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 24 May 2017 20:30:39 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v7 15/34] add mux and video interface bridge entity functions
+Date: Wed, 24 May 2017 17:29:30 -0700
+Message-Id: <1495672189-29164-16-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Clemens,
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-On 4/1/17 5:50 PM, Clemens Ladisch wrote:
-> ETSI EN 300 468 V1.11.1 § 6.4.4.2 defines the bandwith field as having
-> four bits.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-I just used your patch and another to hopefully fix
-https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=859008
+- renamed MEDIA_ENT_F_MUX to MEDIA_ENT_F_VID_MUX
 
-But I'm a little bit hesitant to merge it to v4l-utils git without
-Mauros acknowledgement.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ Documentation/media/uapi/mediactl/media-types.rst | 22 ++++++++++++++++++++++
+ include/uapi/linux/media.h                        |  6 ++++++
+ 2 files changed, 28 insertions(+)
 
-Thanks,
-Gregor
+diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
+index 2a5164a..47ee003 100644
+--- a/Documentation/media/uapi/mediactl/media-types.rst
++++ b/Documentation/media/uapi/mediactl/media-types.rst
+@@ -299,6 +299,28 @@ Types and flags used to represent the media graph elements
+ 	  received on its sink pad and outputs the statistics data on
+ 	  its source pad.
+ 
++    -  ..  row 29
++
++       ..  _MEDIA-ENT-F-VID-MUX:
++
++       -  ``MEDIA_ENT_F_VID_MUX``
++
++       - Video multiplexer. An entity capable of multiplexing must have at
++         least two sink pads and one source pad, and must pass the video
++         frame(s) received from the active sink pad to the source pad. Video
++         frame(s) from the inactive sink pads are discarded.
++
++    -  ..  row 30
++
++       ..  _MEDIA-ENT-F-VID-IF-BRIDGE:
++
++       -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
++
++       - Video interface bridge. A video interface bridge entity must have at
++         least one sink pad and one source pad. It receives video frame(s) on
++         its sink pad in one bus format (HDMI, eDP, MIPI CSI-2, ...) and
++         converts them and outputs them on its source pad in another bus format
++         (eDP, MIPI CSI-2, parallel, ...).
+ 
+ ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
+ 
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 4890787..fac96c6 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -105,6 +105,12 @@ struct media_device_info {
+ #define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
+ 
+ /*
++ * Switch and bridge entitites
++ */
++#define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
++#define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
++
++/*
+  * Connectors
+  */
+ /* It is a responsibility of the entity drivers to add connectors and links */
+-- 
+2.7.4
