@@ -1,106 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44577 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751790AbdEVHhx (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42258 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S941523AbdEYDhV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 May 2017 03:37:53 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Stanimir Varbanov <svarbanov@mm-sol.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.13] Add qualcomm venus codec
-Message-ID: <441c2430-ff9a-6212-4252-1502312248da@xs4all.nl>
-Date: Mon, 22 May 2017 09:37:48 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 24 May 2017 23:37:21 -0400
+Message-ID: <5bf9224c84e39be2fcab5954ebfedc1d@smtp-cloud2.xs4all.net>
+Date: Thu, 25 May 2017 05:37:19 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This pull requests adds support for the Qualcomm venus codec driver.
+Results of the daily build of media_tree:
 
-Regards,
+date:			Thu May 25 05:00:22 CEST 2017
+media-tree git hash:	36bcba973ad478042d1ffc6e89afd92e8bd17030
+media_build git hash:	c8dfc17d6d049d79497c78737625f6ea3b08c456
+v4l-utils git hash:	d16a17abd1d8d7885ca2f44fb295035278baa89c
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-	Hans
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
 
-The following changes since commit 36bcba973ad478042d1ffc6e89afd92e8bd17030:
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-  [media] mtk_vcodec_dec: return error at mtk_vdec_pic_info_update() (2017-05-19 07:12:05 -0300)
+Full logs are available here:
 
-are available in the git repository at:
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-  git://linuxtv.org/hverkuil/media_tree.git venus
+The Media Infrastructure API from this daily build is here:
 
-for you to fetch changes up to f0486d42560ae110f6e7d9b92352d7a1827cd38e:
-
-  media: venus: enable building of Venus video driver (2017-05-22 09:24:20 +0200)
-
-----------------------------------------------------------------
-Stanimir Varbanov (9):
-      media: v4l2-mem2mem: extend m2m APIs for more accurate buffer management
-      doc: DT: venus: binding document for Qualcomm video driver
-      MAINTAINERS: Add Qualcomm Venus video accelerator driver
-      media: venus: adding core part and helper functions
-      media: venus: vdec: add video decoder files
-      media: venus: venc: add video encoder files
-      media: venus: hfi: add Host Firmware Interface (HFI)
-      media: venus: hfi: add Venus HFI files
-      media: venus: enable building of Venus video driver
-
- Documentation/devicetree/bindings/media/qcom,venus.txt |  107 +++
- MAINTAINERS                                            |    8 +
- drivers/media/platform/Kconfig                         |   13 +
- drivers/media/platform/Makefile                        |    2 +
- drivers/media/platform/qcom/venus/Makefile             |   11 +
- drivers/media/platform/qcom/venus/core.c               |  388 +++++++++++
- drivers/media/platform/qcom/venus/core.h               |  323 +++++++++
- drivers/media/platform/qcom/venus/firmware.c           |  109 +++
- drivers/media/platform/qcom/venus/firmware.h           |   22 +
- drivers/media/platform/qcom/venus/helpers.c            |  727 ++++++++++++++++++++
- drivers/media/platform/qcom/venus/helpers.h            |   45 ++
- drivers/media/platform/qcom/venus/hfi.c                |  522 +++++++++++++++
- drivers/media/platform/qcom/venus/hfi.h                |  175 +++++
- drivers/media/platform/qcom/venus/hfi_cmds.c           | 1255 +++++++++++++++++++++++++++++++++++
- drivers/media/platform/qcom/venus/hfi_cmds.h           |  304 +++++++++
- drivers/media/platform/qcom/venus/hfi_helper.h         | 1050 +++++++++++++++++++++++++++++
- drivers/media/platform/qcom/venus/hfi_msgs.c           | 1054 +++++++++++++++++++++++++++++
- drivers/media/platform/qcom/venus/hfi_msgs.h           |  283 ++++++++
- drivers/media/platform/qcom/venus/hfi_venus.c          | 1571 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/qcom/venus/hfi_venus.h          |   23 +
- drivers/media/platform/qcom/venus/hfi_venus_io.h       |  113 ++++
- drivers/media/platform/qcom/venus/vdec.c               | 1154 ++++++++++++++++++++++++++++++++
- drivers/media/platform/qcom/venus/vdec.h               |   23 +
- drivers/media/platform/qcom/venus/vdec_ctrls.c         |  150 +++++
- drivers/media/platform/qcom/venus/venc.c               | 1283 ++++++++++++++++++++++++++++++++++++
- drivers/media/platform/qcom/venus/venc.h               |   23 +
- drivers/media/platform/qcom/venus/venc_ctrls.c         |  270 ++++++++
- drivers/media/v4l2-core/v4l2-mem2mem.c                 |   37 ++
- include/media/v4l2-mem2mem.h                           |   92 +++
- 29 files changed, 11137 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
- create mode 100644 drivers/media/platform/qcom/venus/Makefile
- create mode 100644 drivers/media/platform/qcom/venus/core.c
- create mode 100644 drivers/media/platform/qcom/venus/core.h
- create mode 100644 drivers/media/platform/qcom/venus/firmware.c
- create mode 100644 drivers/media/platform/qcom/venus/firmware.h
- create mode 100644 drivers/media/platform/qcom/venus/helpers.c
- create mode 100644 drivers/media/platform/qcom/venus/helpers.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_helper.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
- create mode 100644 drivers/media/platform/qcom/venus/vdec.c
- create mode 100644 drivers/media/platform/qcom/venus/vdec.h
- create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
- create mode 100644 drivers/media/platform/qcom/venus/venc.c
- create mode 100644 drivers/media/platform/qcom/venus/venc.h
- create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
+http://www.xs4all.nl/~hverkuil/spec/index.html
