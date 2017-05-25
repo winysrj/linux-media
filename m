@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:36222 "EHLO
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:35366 "EHLO
         mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1423208AbdEYAbd (ORCPT
+        with ESMTP id S1164723AbdEYAaT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 May 2017 20:31:33 -0400
+        Wed, 24 May 2017 20:30:19 -0400
 From: Steve Longerbeam <slongerbeam@gmail.com>
 To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
         kernel@pengutronix.de, fabio.estevam@nxp.com,
@@ -20,120 +20,52 @@ To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
 Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
         devel@driverdev.osuosl.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
         Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v7 31/34] media: imx: csi: add frame size/interval enumeration
-Date: Wed, 24 May 2017 17:29:46 -0700
-Message-Id: <1495672189-29164-32-git-send-email-steve_longerbeam@mentor.com>
+Subject: [PATCH v7 07/34] ARM: dts: imx6qdl: add capture-subsystem device
+Date: Wed, 24 May 2017 17:29:22 -0700
+Message-Id: <1495672189-29164-8-git-send-email-steve_longerbeam@mentor.com>
 In-Reply-To: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
 References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Russell King <rmk+kernel@armlinux.org.uk>
-
-Add frame size and frame interval enumeration to CSI.
-
-CSI can downscale the image independently horizontally and vertically by a
-factor of two, which enumerates to four different frame sizes at the
-output pads. The input pad supports a range of frame sizes.
-
-CSI can also drop frames, resulting in frame rate reduction, so
-enumerate the resulting possible output frame rates.
-
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/staging/media/imx/imx-media-csi.c | 70 +++++++++++++++++++++++++++++++
- 1 file changed, 70 insertions(+)
+ arch/arm/boot/dts/imx6dl.dtsi | 5 +++++
+ arch/arm/boot/dts/imx6q.dtsi  | 5 +++++
+ 2 files changed, 10 insertions(+)
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 9766dee..b8b3630 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -1163,6 +1163,74 @@ static int csi_enum_mbus_code(struct v4l2_subdev *sd,
- 	return ret;
- }
+diff --git a/arch/arm/boot/dts/imx6dl.dtsi b/arch/arm/boot/dts/imx6dl.dtsi
+index 4049af7..8475e6c 100644
+--- a/arch/arm/boot/dts/imx6dl.dtsi
++++ b/arch/arm/boot/dts/imx6dl.dtsi
+@@ -100,6 +100,11 @@
+ 		};
+ 	};
  
-+static int csi_enum_frame_size(struct v4l2_subdev *sd,
-+			       struct v4l2_subdev_pad_config *cfg,
-+			       struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_rect *crop;
-+	int ret = 0;
++	capture-subsystem {
++		compatible = "fsl,imx-capture-subsystem";
++		ports = <&ipu1_csi0>, <&ipu1_csi1>;
++	};
 +
-+	if (fse->pad >= CSI_NUM_PADS ||
-+	    fse->index > (fse->pad == CSI_SINK_PAD ? 0 : 3))
-+		return -EINVAL;
-+
-+	mutex_lock(&priv->lock);
-+
-+	if (fse->pad == CSI_SINK_PAD) {
-+		fse->min_width = MIN_W;
-+		fse->max_width = MAX_W;
-+		fse->min_height = MIN_H;
-+		fse->max_height = MAX_H;
-+	} else {
-+		crop = __csi_get_crop(priv, cfg, fse->which);
-+
-+		fse->min_width = fse->max_width = fse->index & 1 ?
-+			crop->width / 2 : crop->width;
-+		fse->min_height = fse->max_height = fse->index & 2 ?
-+			crop->height / 2 : crop->height;
-+	}
-+
-+	mutex_unlock(&priv->lock);
-+	return ret;
-+}
-+
-+static int csi_enum_frame_interval(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_pad_config *cfg,
-+				   struct v4l2_subdev_frame_interval_enum *fie)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_fract *input_fi;
-+	struct v4l2_rect *crop;
-+	int ret = 0;
-+
-+	if (fie->pad >= CSI_NUM_PADS ||
-+	    fie->index >= (fie->pad != CSI_SRC_PAD_IDMAC ?
-+			   1 : ARRAY_SIZE(csi_skip)))
-+		return -EINVAL;
-+
-+	mutex_lock(&priv->lock);
-+
-+	input_fi = &priv->frame_interval[CSI_SINK_PAD];
-+	crop = __csi_get_crop(priv, cfg, fie->which);
-+
-+	if ((fie->width != crop->width && fie->width != crop->width / 2) ||
-+	    (fie->height != crop->height && fie->height != crop->height / 2)) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	fie->interval = *input_fi;
-+
-+	if (fie->pad == CSI_SRC_PAD_IDMAC)
-+		csi_apply_skip_interval(&csi_skip[fie->index],
-+					&fie->interval);
-+
-+out:
-+	mutex_unlock(&priv->lock);
-+	return ret;
-+}
-+
- static int csi_get_fmt(struct v4l2_subdev *sd,
- 		       struct v4l2_subdev_pad_config *cfg,
- 		       struct v4l2_subdev_format *sdformat)
-@@ -1631,6 +1699,8 @@ static const struct v4l2_subdev_video_ops csi_video_ops = {
+ 	display-subsystem {
+ 		compatible = "fsl,imx-display-subsystem";
+ 		ports = <&ipu1_di0>, <&ipu1_di1>;
+diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
+index 214bbb3..89dab0f 100644
+--- a/arch/arm/boot/dts/imx6q.dtsi
++++ b/arch/arm/boot/dts/imx6q.dtsi
+@@ -206,6 +206,11 @@
+ 		};
+ 	};
  
- static const struct v4l2_subdev_pad_ops csi_pad_ops = {
- 	.enum_mbus_code = csi_enum_mbus_code,
-+	.enum_frame_size = csi_enum_frame_size,
-+	.enum_frame_interval = csi_enum_frame_interval,
- 	.get_fmt = csi_get_fmt,
- 	.set_fmt = csi_set_fmt,
- 	.get_selection = csi_get_selection,
++	capture-subsystem {
++		compatible = "fsl,imx-capture-subsystem";
++		ports = <&ipu1_csi0>, <&ipu1_csi1>, <&ipu2_csi0>, <&ipu2_csi1>;
++	};
++
+ 	display-subsystem {
+ 		compatible = "fsl,imx-display-subsystem";
+ 		ports = <&ipu1_di0>, <&ipu1_di1>, <&ipu2_di0>, <&ipu2_di1>;
 -- 
 2.7.4
