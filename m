@@ -1,36 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:59400 "EHLO ni.piap.pl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754996AbdEKICr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 May 2017 04:02:47 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: "zhaoxuegang" <zhaoxuegang@suntec.net>
-Cc: "Ezequiel Garcia" <ezequiel@vanguardiasur.com.ar>,
-        "linux-media" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] TW686x: Fix OOPS on buffer alloc failure
-References: <590ADAB1.1040501@suntec.net> <m3h90thwjt.fsf@t19.piap.pl>
-        <m3d1bhhwf3.fsf_-_@t19.piap.pl>
-        <CAAEAJfBVOKBcZBg91EKHBXKMOkM6eRafe8=XnW8E=6vtn2dBmQ@mail.gmail.com>
-        <5913C1BB.8000103@suntec.net>
-Date: Thu, 11 May 2017 10:02:45 +0200
-In-Reply-To: <5913C1BB.8000103@suntec.net> (zhaoxuegang@suntec.net's message
-        of "Thu, 11 May 2017 09:43:26 +0800")
-Message-ID: <m34lwrizx6.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:32816 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1164689AbdEYAaL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 24 May 2017 20:30:11 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: [PATCH v7 04/34] ARM: dts: imx6qdl: add multiplexer controls
+Date: Wed, 24 May 2017 17:29:19 -0700
+Message-Id: <1495672189-29164-5-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-"zhaoxuegang" <zhaoxuegang@suntec.net> writes:
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-> In my opinion, the oops occur to tw686x_free_dma(struct tw686x_video_channel *vc, unsigned int pb).
-> In function tw686x_video_init, if coherent-DMA is not enough, tw686x_alloc_dma will failed.
-> Then tw686x_video_free will be called. but some channel's dev is null（in other words, vc->dev is null）
+The IOMUXC General Purpose Register space contains various bitfields
+that control video bus multiplexers. Describe them using a mmio-mux
+node. The placement of the IPU CSI video mux controls differs between
+i.MX6D/Q and i.MX6S/DL.
 
-Exactly.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ arch/arm/boot/dts/imx6dl.dtsi  | 10 ++++++++++
+ arch/arm/boot/dts/imx6q.dtsi   | 10 ++++++++++
+ arch/arm/boot/dts/imx6qdl.dtsi |  7 ++++++-
+ 3 files changed, 26 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/imx6dl.dtsi b/arch/arm/boot/dts/imx6dl.dtsi
+index 7aa120f..10bc9d1 100644
+--- a/arch/arm/boot/dts/imx6dl.dtsi
++++ b/arch/arm/boot/dts/imx6dl.dtsi
+@@ -181,6 +181,16 @@
+ 		      "di0", "di1";
+ };
+ 
++&mux {
++	mux-reg-masks = <0x34 0x00000007>, /* IPU_CSI0_MUX */
++			<0x34 0x00000038>, /* IPU_CSI1_MUX */
++			<0x0c 0x0000000c>, /* HDMI_MUX_CTL */
++			<0x0c 0x000000c0>, /* LVDS0_MUX_CTL */
++			<0x0c 0x00000300>, /* LVDS1_MUX_CTL */
++			<0x28 0x00000003>, /* DCIC1_MUX_CTL */
++			<0x28 0x0000000c>; /* DCIC2_MUX_CTL */
++};
++
+ &vpu {
+ 	compatible = "fsl,imx6dl-vpu", "cnm,coda960";
+ };
+diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
+index e9a5d0b..a6962be 100644
+--- a/arch/arm/boot/dts/imx6q.dtsi
++++ b/arch/arm/boot/dts/imx6q.dtsi
+@@ -332,6 +332,16 @@
+ 	};
+ };
+ 
++&mux {
++	mux-reg-masks = <0x04 0x00080000>, /* MIPI_IPU1_MUX */
++			<0x04 0x00100000>, /* MIPI_IPU2_MUX */
++			<0x0c 0x0000000c>, /* HDMI_MUX_CTL */
++			<0x0c 0x000000c0>, /* LVDS0_MUX_CTL */
++			<0x0c 0x00000300>, /* LVDS1_MUX_CTL */
++			<0x28 0x00000003>, /* DCIC1_MUX_CTL */
++			<0x28 0x0000000c>; /* DCIC2_MUX_CTL */
++};
++
+ &vpu {
+ 	compatible = "fsl,imx6q-vpu", "cnm,coda960";
+ };
+diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+index e426faa..50534dd 100644
+--- a/arch/arm/boot/dts/imx6qdl.dtsi
++++ b/arch/arm/boot/dts/imx6qdl.dtsi
+@@ -808,8 +808,13 @@
+ 			};
+ 
+ 			gpr: iomuxc-gpr@020e0000 {
+-				compatible = "fsl,imx6q-iomuxc-gpr", "syscon";
++				compatible = "fsl,imx6q-iomuxc-gpr", "syscon", "simple-mfd";
+ 				reg = <0x020e0000 0x38>;
++
++				mux: mux-controller {
++					compatible = "mmio-mux";
++					#mux-control-cells = <1>;
++				};
+ 			};
+ 
+ 			iomuxc: iomuxc@020e0000 {
 -- 
-Krzysztof Halasa
-
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+2.7.4
