@@ -1,77 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:38125 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753488AbdEUUJ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 May 2017 16:09:59 -0400
-From: Takashi Iwai <tiwai@suse.de>
-To: alsa-devel@alsa-project.org
-Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-        Mark Brown <broonie@kernel.org>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 00/16] ALSA: Convert to new copy_silence PCM ops
-Date: Sun, 21 May 2017 22:09:34 +0200
-Message-Id: <20170521200950.4592-1-tiwai@suse.de>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:35541 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1164924AbdEYAae (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 24 May 2017 20:30:34 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v7 13/34] ARM: dts: imx6-sabreauto: add pinctrl for gpt input capture
+Date: Wed, 24 May 2017 17:29:28 -0700
+Message-Id: <1495672189-29164-14-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Add pinctrl groups for both GPT input capture channels.
 
-this is a part of the previous RFC patchset, and it's preliminary for
-eliminating set_fs() usages in the rest ALSA codes.  This patchset
-itself converts the existing copy and silence PCM ops to a new single
-copy_silence ops.  The new callback takes in_kernel flag for allowing
-in-kernel buffer copy, so that the PCM drivers can pass the buffer in
-kernel-space later directly without set_fs() hackery.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-The latest codes are found in topic/kill-set_fs branch of sound git
-tree.
-
-The media people are Cc'ed for solo6x10 changes.
-
-
-Takashi
-
-===
-
-Takashi Iwai (16):
-  ALSA: pcm: Introduce copy_silence PCM ops
-  ALSA: Update document about copy_silence PCM ops
-  ALSA: dummy: Convert to copy_silence ops
-  ALSA: es1938: Convert to copy_silence ops
-  ALSA: korg1212: Convert to copy_silence ops
-  ALSA: nm256: Convert to copy_silence ops
-  ALSA: rme32: Convert to copy_silence ops
-  ALSA: rme96: Convert to copy_silence ops
-  ALSA: rme9652: Convert to copy_silence ops
-  ALSA: hdsp: Convert to copy_silence ops
-  ALSA: gus: Convert to copy_silence ops
-  ALSA: sb: Convert to copy_silence ops
-  ALSA: sh: Convert to copy_silence ops
-  ASoC: blackfin: Convert to copy_silence ops
-  [media] solo6x10: Convert to copy_silence ops
-  ALSA: pcm: Drop the old copy and silence ops
-
- .../sound/kernel-api/writing-an-alsa-driver.rst    | 110 ++++++++++--------
- drivers/media/pci/solo6x10/solo6x10-g723.c         |  13 ++-
- include/sound/pcm.h                                |   8 +-
- sound/core/pcm_lib.c                               |  68 ++++++-----
- sound/drivers/dummy.c                              |  13 +--
- sound/isa/gus/gus_pcm.c                            |  43 ++-----
- sound/isa/sb/emu8000_pcm.c                         |  99 +++++-----------
- sound/pci/es1938.c                                 |  11 +-
- sound/pci/korg1212/korg1212.c                      | 128 ++++++---------------
- sound/pci/nm256/nm256.c                            |  35 +++---
- sound/pci/rme32.c                                  |  49 ++++----
- sound/pci/rme96.c                                  |  52 ++++-----
- sound/pci/rme9652/hdsp.c                           |  44 ++++---
- sound/pci/rme9652/rme9652.c                        |  46 ++++----
- sound/sh/sh_dac_audio.c                            |  40 ++-----
- sound/soc/blackfin/bf5xx-ac97-pcm.c                |   6 +-
- sound/soc/blackfin/bf5xx-ac97.c                    |  18 ++-
- sound/soc/blackfin/bf5xx-i2s-pcm.c                 |  46 +++-----
- sound/soc/soc-pcm.c                                |   3 +-
- 19 files changed, 340 insertions(+), 492 deletions(-)
-
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 21dea5f..1212f82 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -456,6 +456,18 @@
+ 			>;
+ 		};
+ 
++		pinctrl_gpt_input_capture0: gptinputcapture0grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT0__GPT_CAPTURE1	0x1b0b0
++			>;
++		};
++
++		pinctrl_gpt_input_capture1: gptinputcapture1grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT1__GPT_CAPTURE2	0x1b0b0
++			>;
++		};
++
+ 		pinctrl_spdif: spdifgrp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_KEY_COL3__SPDIF_IN 0x1b0b0
 -- 
-2.13.0
+2.7.4
