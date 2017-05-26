@@ -1,67 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:42625 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752408AbdEHKqW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 May 2017 06:46:22 -0400
-Subject: Re: [PATCH 8/8] omapdrm: hdmi4: hook up the HDMI CEC support
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
- <20170414102512.48834-9-hverkuil@xs4all.nl>
- <144b95df-8eb2-1307-1157-2eb2572c51aa@xs4all.nl>
- <7d3ab159-9284-bcc8-80f0-cbc621769203@ti.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b0b6be94-1471-61b9-381c-af9646d22ec2@xs4all.nl>
-Date: Mon, 8 May 2017 12:46:14 +0200
+Received: from www.llwyncelyn.cymru ([82.70.14.225]:38430 "EHLO fuzix.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934021AbdEZP3u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 May 2017 11:29:50 -0400
+Subject: [PATCH 10/11] atomisp: remove sh_css_irq - it contains nothing
+From: Alan Cox <alan@llwyncelyn.cymru>
+To: mchehab@kernel.org, linux-media@vger.kernel.org
+Date: Fri, 26 May 2017 16:29:36 +0100
+Message-ID: <149581257111.17585.17522902601608671868.stgit@builder>
+In-Reply-To: <149581243155.17585.8164899156710160858.stgit@builder>
+References: <149581243155.17585.8164899156710160858.stgit@builder>
 MIME-Version: 1.0
-In-Reply-To: <7d3ab159-9284-bcc8-80f0-cbc621769203@ti.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/08/2017 12:26 PM, Tomi Valkeinen wrote:
-> On 06/05/17 14:58, Hans Verkuil wrote:
-> 
->> My assumption was that hdmi_display_disable() was called when the hotplug would go
->> away. But I discovered that that isn't the case, or at least not when X is running.
->> It seems that the actual HPD check is done in hdmic_detect() in
->> omapdrm/displays/connector-hdmi.c.
-> 
-> For some HW it's done there (in the case there's no IP handling the
-> HPD), but in some cases it's done in tpd12s015 driver (e.g. pandaboard),
-> and in some cases it also could be done in the hdmi driver (if the HPD
-> is handled by the HDMI IP, but at the moment we don't have this case
-> supported in the SW).
-> 
->> But there I have no access to hdmi.core (needed for the hdmi4_cec_set_phys_addr() call).
->>
->> Any idea how to solve this? I am not all that familiar with drm, let alone omapdrm,
->> so if you can point me in the right direction, then that would be very helpful.
-> 
-> Hmm, indeed, looks the the output is kept enabled even if HPD drops and
-> the connector status is changed to disconnected.
-> 
-> I don't have a very good solution... I think we have to add a function
-> to omapdss_hdmi_ops, which the connector-hdmi and tpd12s015 drivers can
-> call when they detect a HPD change. That call would go to the HDMI IP
-> driver.
+We won't be adding abstractions or moving them here so kill it.
 
-Right, I was thinking the same, I just wasn't sure if that was the correct
-solution.
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
+ .../staging/media/atomisp/pci/atomisp2/Makefile    |    1 -
+ .../atomisp/pci/atomisp2/css2400/sh_css_irq.c      |   16 ----------------
+ 2 files changed, 17 deletions(-)
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_irq.c
 
-> Peter is about to send hotplug-interrupt-handling series, I think the
-> HPD function work should be done on top of that, as otherwise it'll just
-> conflict horribly.
-
-OK, I'll do that.
-
-I'll get CEC supported on the omap4 eventually! :-)
-
-Regards,
-
-	Hans
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/Makefile b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+index f126a89..93f85d3 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/Makefile
++++ b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+@@ -108,7 +108,6 @@ atomisp-objs += \
+ 	css2400/sh_css_metadata.o \
+ 	css2400/base/refcount/src/refcount.o \
+ 	css2400/base/circbuf/src/circbuf.o \
+-	css2400/sh_css_irq.o \
+ 	css2400/camera/pipe/src/pipe_binarydesc.o \
+ 	css2400/camera/pipe/src/pipe_util.o \
+ 	css2400/camera/pipe/src/pipe_stagedesc.o \
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_irq.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_irq.c
+deleted file mode 100644
+index 37e954a..0000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_irq.c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-/* This file will contain the code to implement the functions declared in ia_css_irq.h
+-   and associated helper functions */
