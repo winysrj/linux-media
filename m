@@ -1,204 +1,477 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:42454 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750761AbdESIIo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 May 2017 04:08:44 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        "florent.revest@free-electrons.com"
-        <florent.revest@free-electrons.com>,
-        "posciak@chromium.org" <posciak@chromium.org>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "randy.li@rock-chips.com" <randy.li@rock-chips.com>,
-        "jung.zhao@rock-chips.com" <jung.zhao@rock-chips.com>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC] V4L2 unified low-level decoder API
-Date: Fri, 19 May 2017 08:08:34 +0000
-Message-ID: <48b04997-bd80-5640-4272-2c4d69c25a97@st.com>
-References: <2890f845-eef2-5689-f154-fc76ae6abc8b@st.com>
- <816ba2d8-f1e7-ce34-3524-b2a3f1bf3d74@xs4all.nl>
- <fb4a4815-e1ff-081e-787a-0213e32a5405@st.com>
- <8f93f4f2df49431cb2750963c2f7b168@SFHDAG5NODE2.st.com>
-In-Reply-To: <8f93f4f2df49431cb2750963c2f7b168@SFHDAG5NODE2.st.com>
+Received: from mga06.intel.com ([134.134.136.31]:24696 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1761435AbdEZBpM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 25 May 2017 21:45:12 -0400
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+        "tfiga@chromium.org" <tfiga@chromium.org>
+Subject: RE: [PATCH v4] dw9714: Initial driver for dw9714 VCM
+Date: Fri, 26 May 2017 01:45:10 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A595AA0A46F@FMSMSX114.amr.corp.intel.com>
+References: <1494478820-22199-1-git-send-email-rajmohan.mani@intel.com>
+ <20170511074125.GD3227@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20170511074125.GD3227@valkosipuli.retiisi.org.uk>
 Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <40DA2D9E0CE0A74683F94F71812325FB@st.com>
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgYWxsLA0KDQpIZXJlIGlzIHRoZSBsYXRlc3Qgc3QtZGVsdGEgTVBFRzIgY29kZToNCltQQVRD
-SCB2NiAwLzNdIEFkZCBzdXBwb3J0IGZvciBNUEVHLTIgaW4gREVMVEEgdmlkZW8gZGVjb2RlciAN
-Cmh0dHA6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcv
-bXNnMTEyMDY3Lmh0bWwNCltQQVRDSCB2MiAwLzNdIEFkZCBhIGxpYnY0bCBwbHVnaW4gZm9yIHZp
-ZGVvIGJpdHN0cmVhbSBwYXJzaW5nIA0KaHR0cDovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4
-LW1lZGlhQHZnZXIua2VybmVsLm9yZy9tc2cxMTIwNzYuaHRtbA0KDQpCZWZvcmUgbWVyZ2luZyB0
-aGlzIHdvcmsgSGFucyB3b3VsZCBsaWtlIHRvIGhhdmUgZmVlZGJhY2sgZnJvbSBwZWVycywgaW4g
-DQpvcmRlciB0byBiZSBzdXJlIHRoYXQgdGhpcyBpcyBpbmxpbmUgd2l0aCBvdGhlciBTb0MgdmVu
-ZG9ycyBkcml2ZXJzIA0KZXhwZWN0YXRpb25zLg0KDQpUaG9tYXN6LCBQYXdlbCwgY291bGQgeW91
-IGdpdmUgeW91ciB2aWV3IHJlZ2FyZGluZyBDaHJvbWVPUyBhbmQgUm9ja2NoaXAgDQpkcml2ZXIg
-Pw0KTGF1cmVudCwgY291bGQgeW91IGdpdmUgeW91ciB2aWV3IHJlZ2FyZGluZyBSZW5lc2FzIGRy
-aXZlciA/DQoNCkkgaGF2ZSBhbHNvIGFkZGVkIGluIGFwcGVuZGljZSBbN10gdGhlIG1hdGVyaWFs
-cyBwcmVzZW50ZWQgYnkgTGF1cmVudCBhdCANCkVMQyAyMDE3IGluIFBvcnRsYW5kIHRvIGludHJv
-ZHVjZSBzdGF0ZWxlc3MgdmlkZW8gY29kZWNzIGFuZCBWNEwyIA0KcmVxdWVzdCBBUEksIHRoYW5r
-cyBmb3IgdGhpcyBwcmVzZW50YXRpb24gTGF1cmVudC4NCg0KDQpCZXN0IHJlZ2FyZHMsDQpIdWd1
-ZXMuDQoNCj4gT24gMDIvMDcvMjAxNyAwODoyMSBBTSwgSHVndWVzIEZSVUNIRVQgd3JvdGU6DQo+
-IEhpLA0KPiANCj4gSGVyZSBpcyBhbiB1cGRhdGUgcmVnYXJkaW5nIE1QRUctMiBpbXBsZW1lbnRh
-dGlvbiBiYXNlZCBvbiBTVCB2aWRlbyBkZWNvZGVyOg0KPiAqIE1QRUctMiBBUEkgKyBERUxUQSBr
-ZXJuZWwgZHJpdmVyOg0KPiBodHRwOi8vd3d3Lm1haWwtYXJjaGl2ZS5jb20vbGludXgtbWVkaWFA
-dmdlci5rZXJuZWwub3JnL21zZzEwNzQwNS5odG1sDQo+ICogbGlidjRsLWNvZGVjcGFyc2VycyBw
-bHVnaW4gaW5jbHVkaW5nIE1QRUctMiBiYWNrLWVuZDoNCj4gaHR0cDovL3d3dy5tYWlsLWFyY2hp
-dmUuY29tL2xpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZy9tc2cxMDc4MTIuaHRtbA0KPiANCj4g
-UGxlYXNlIG5vdGUgdGhhdCB0aGlzIGlzIGltcGxlbWVudGVkICYgZnVuY3Rpb25hbCB1c2luZyBj
-dXJyZW50bHkgYXZhaWxhYmxlIFY0TDIgY29udHJvbCBmcmFtZXdvcmsgKG5vIFJlcXVlc3QgQVBJ
-KSwgYXNzdW1pbmcgdGhhdCB1c2VyIHNpZGUga2VlcHMgdW5pY2l0eSBvZiBTX0VYVF9DVFJMKCkg
-LyBRQlVGKE9VVFBVVCkgcGFpci4NCj4gUmVxdWVzdCBBUEkgd2lsbCByZW1vdmUgdGhpcyBjb25z
-dHJhaW50LCBidXQgdGhlIHBvaW50IGhlcmUgaXMgdG8gZGVmaW5lIGNvbnRyb2wgaW50ZXJmYWNl
-LCBhcyBmYXIgYXMgSSBoYXZlIHVuZGVyc3Rvb2QgY29kZSwgUmVxdWVzdCBBUEkgd2lsbCBub3Qg
-YWZmZWN0IHRob3NlIGNvbnRyb2wgZGVmaW5pdGlvbnMuDQo+IA0KPiBTb21lIHVwZGF0ZXMgaW5s
-aW5lIHRoZXJlYWZ0ZXIgcmVnYXJkaW5nIGFjdGl2aXRpZXMgb24gdGhpcyBzdWJqZWN0OyBtZSBm
-b3IgTVBFRy0yIG9uIFNUIHBsYXRmb3JtIGFuZCBSYW5keSBMaSwgTmljb2xhcyBEdWZyZXNuZSwg
-QXlha2EgZm9yIEgyNjQgb24gUm9ja2NoaXAgcGxhdGZvcm06DQo+IA0KPiANCj4gT24gMTEvMTQv
-MjAxNiAxMDo1NSBBTSwgSGFucyBWZXJrdWlsIHdyb3RlOg0KPj4gT24gMTAvMjcvMjAxNiAwOTo0
-MiBBTSwgSHVndWVzIEZSVUNIRVQgd3JvdGU6DQo+Pj4gSGksDQo+Pj4NCj4+PiBUaGlzIFJGQyBh
-aW1zIHRvIHN0YXJ0IGRpc2N1c3Npb25zIGluIG9yZGVyIHRvIGRlZmluZSB0aGUgY29kZWMNCj4+
-PiBzcGVjaWZpYyBjb250cm9scyBzdHJ1Y3R1cmVzIHRvIGZ1bGZpbGwgdGhlIGxvdy1sZXZlbCBk
-ZWNvZGVyIEFQSQ0KPj4+IG5lZWRlZCBieSBub24gIlN0cmVhbSBBUEkiIGJhc2VkIGRlY29kZXJz
-ICgic3RhdGVsZXNzIiBvciAiRnJhbWUgQVBJIiBiYXNlZCBkZWNvZGVycykuDQo+Pg0KPj4gTGV0
-J3MgcmVmZXIgdG8gdGhpcyBhcyAnc3RhdGVmdWwnIGRlY29kZXJzIGFuZCAnc3RhdGVsZXNzJyBk
-ZWNvZGVycy4NCj4+IFRoaXMgaXMgdGhlIHByZWZlcnJlZCB0ZXJtaW5vbG9neSAoYW5kIG11Y2gg
-bW9yZSBkZXNjcmlwdGl2ZSB0aGFuDQo+PiAnU3RyZWFtJyB2cyAnRnJhbWUnKS4gSXQncyBhbHNv
-IG5vdCByZWFsbHkgYSBuZXcgQVBJLCBhbHRob3VnaCBpdCBkb2VzDQo+PiByZWx5IG9uIHRoZSBS
-ZXF1ZXN0IEFQSS4NCj4+DQo+Pj4gU2V2ZXJhbCBpbXBsZW1lbnRhdGlvbiBleGlzdHMgbm93IHdo
-aWNoIHJ1bnMgb24gc2V2ZXJhbCBTb0MgYW5kDQo+Pj4gdmFyaW91cyBzb2Z0d2FyZSBmcmFtZXdv
-cmtzLg0KPj4+IFRoZSBpZGVhIGlzIHRvIGZpbmQgdGhlIGNvbW11bmFsaXRpZXMgYmV0d2VlbiBh
-bGwgdGhvc2UNCj4+PiBpbXBsZW1lbnRhdGlvbnMgYW5kIFNvQyB0byBkZWZpbmUgYSBzaW5nbGUg
-dW5pZmllZCBpbnRlcmZhY2UgaW4gVjRMMiBpbmNsdWRlcy4NCj4+PiBFdmVuIGlmICJSZXF1ZXN0
-IEFQSSIgaXMgbmVlZGVkIHRvIHBhc3MgdGhvc2UgY29kZWMgc3BlY2lmaWMgY29udHJvbHMNCj4+
-PiBmcm9tIHVzZXJzcGFjZSBkb3duIHRvIGtlcm5lbCBvbiBhIHBlci1idWZmZXIgYmFzaXMsIHdl
-IGNhbiBzdGFydA0KPj4+IGRpc2N1c3Npb25zIGFuZCBkZWZpbmUgdGhlIGNvbnRyb2xzIGluIHBh
-cmFsbGVsIG9mIGl0cyBkZXZlbG9wbWVudC4NCj4+PiBXZSBjYW4gZXZlbiBwcm9wb3NlIHNvbWUg
-aW1wbGVtZW50YXRpb25zIGJhc2VkIG9uIGV4aXN0aW5nIFY0TDINCj4+PiBjb250cm9sIGZyYW1l
-d29yayAod2hpY2ggZG9lc24ndCBzdXBwb3J0ICJwZXItZnJhbWUiIGJhc2lzKSBieQ0KPj4+IGVu
-c3VyaW5nIGF0b21pY2l0eSBvZiBzZXF1ZW5jZSBTX0VYVF9DVFJMKGhlYWRlcltpXSkvUUJVRihz
-dHJlYW1baV0pLg0KPj4+IENvbnN0cmFpbnQgY2FuIHRoZW4gYmUgcmVsYXhlZCB3aGVuICJSZXF1
-ZXN0IEFQSSIgaXMgbWVyZ2VkLg0KPj4+DQo+Pj4gSSB3b3VsZCBsaWtlIHRvIHByb3Bvc2UgdG8g
-d29yayBvbiBhICJwZXItY29kZWMiIGJhc2lzLCBoYXZpbmcgYXQNCj4+PiBsZWFzdA0KPj4+IDIg
-ZGlmZmVyZW50IFNvQyBhbmQgMiBkaWZmZXJlbnQgZnJhbWV3b3JrcyB0byB0ZXN0IGFuZCB2YWxp
-ZGF0ZSBjb250cm9scy4NCj4+PiBUbyBkbyBzbywgSSBoYXZlIHRyaWVkIHRvIGlkZW50aWZ5IHNv
-bWUgcGVvcGxlIHRoYXQgaGF2ZSB3b3JrZWQgb24NCj4+PiB0aGlzIHN1YmplY3QgYW5kIGhhdmUg
-cHJvcG9zZWQgc29tZSBpbXBsZW1lbnRhdGlvbnMsIGZlZWwgZnJlZSB0bw0KPj4+IGNvcnJlY3Qg
-bWUgYW5kIGVuaGFuY2UgdGhlIGxpc3QgaWYgbmVlZGVkOg0KPj4+ICogTVBFRzIvTVBFRzQNCj4+
-PiAgICAgIC0gRmxvcmVudCBSZXZlc3QgZm9yIEFsbHdpbm5lciBBMTMgQ2VkYXJYIHN1cHBvcnQg
-WzFdIHRlc3RlZCB3aXRoDQo+Pj4gVkxDIC0+IGxpYlZBICsgc3VueGktY2VkcnVzLWRydi12aWRl
-byAtPiBWNEwyDQo+Pj4gICAgICAtIE15c2VsZiBmb3IgU1RNaWNyb2VsZWN0cm9uaWNzIERlbHRh
-IHN1cHBvcnQgWzJdIHRlc3RlZCB3aXRoDQo+Pj4gR1N0cmVhbWVyIFY0TDIgLT4gbGlidjRsMiAr
-IGxpYnY0bC1kZWx0YSBwbHVnaW4gLT4gVjRMMg0KPiBBdmFpbGFibGUgb24gU1QgcGxhdGZvcm0g
-d2l0aCBbMl0gJiBbMi4xXSBwYXRjaHNldCBzZXJpZXMuDQo+IA0KPj4+DQo+Pj4gKiBWUDgNCj4+
-PiAtIFBhd2VsIE9zY2lhayBmb3IgUm9ja2NoaXAgUkszMjg4LCBSSzMzOTk/IFZQVSBTdXBwb3J0
-IFszXSB0ZXN0ZWQNCj4+PiB3aXRoIENocm9taXVtIC0+IFY0TDINCj4+PiAtIEp1bmcgWmhhbyBm
-b3IgUm9ja2NoaXAgUkszMjg4IFZQVSBzdXBwb3J0IFs0XSA8Y2Fubm90IGZpbmQgdGhlDQo+Pj4g
-ZnJhbWV3b3JrIHVzZWQ+DQo+Pj4NCj4+PiAqIEgyNjQNCj4+PiAtIFBhd2VsIE9zY2lhayBmb3Ig
-Um9ja2NoaXAgUkszMjg4LCBSSzMzOTk/IFZQVSBTdXBwb3J0IFs1XSB0ZXN0ZWQNCj4+PiB3aXRo
-IENocm9taXVtIC0+IFY0TDINCj4+PiAtIFJhbmR5IExpIGZvciBSb2NrY2hpcCBSSzMyODggIFZQ
-VSBzdXBwb3J0IFs2XSB0ZXN0ZWQgd2l0aCBWTEM/IC0+DQo+Pj4gbGliVkEgKyByb2NrY2hpcC12
-YS1kcml2ZXIgLT4gVjRMMiBWTEM/IC0+IGxpYlZEUEFVICsNCj4+PiByb2NrY2hpcC12YS1kcml2
-ZXIgLT4gVjRMMg0KPiBUZXN0ZWQgd2l0aCBHc3RyZWFtZXIgLT4gVkEtQVBJIGVsZW1lbnQgLT4g
-Um9ja2NoaXAgVkEtQVBJIGRyaXZlciAtPiBWNEwyIGh0dHBzOi8vZ2l0aHViLmNvbS9yb2NrY2hp
-cC1saW51eC9saWJ2ZHBhdS1yb2NrY2hpcA0KPiANCj4gU3R1ZHkgb24tZ29pbmcgZm9yIEgyNjQg
-dXNlcmxhbmQva2VybmVsIHBhcnRpdGlvbmluZyBpbiB0aGlzIHRocmVhZDoNCj4gUmVxdWVzdCBB
-UEk6IHN0YXRlbGVzcyBWUFU6IHRoZSBidWZmZXIgbWVjaGFuaXNtIGFuZCBEUEIgbWFuYWdlbWVu
-dDoNCj4gaHR0cDovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LW1lZGlhQHZnZXIua2VybmVs
-Lm9yZy9tc2cxMDcxNjUuaHRtbA0KPiANCj4+Pg0KPj4+IEkgY2FuIHdvcmsgdG8gZGVmaW5lIE1Q
-RUcyL01QRUc0IGNvbnRyb2xzIGFuZCBwcm9wb3NlIGZ1bmN0aW9uYWwNCj4+PiBpbXBsZW1lbnRh
-dGlvbnMgZm9yIHRob3NlIGNvZGVjcywgYW5kIHdpbGwgYmUgZ2xhZCB0byBjby13b3JrIHdpdGgN
-Cj4+PiB5b3UgRmxvcmVudC4NCj4+PiBJIGNhbiBoZWxwIG9uIEgyNjQgb24gYSBjb2RlIHJldmll
-dyBiYXNpcyBiYXNlZCBvbiB0aGUgZnVuY3Rpb25hbA0KPj4+IEgyNjQgc2V0dXAgSSBoYXZlIGlu
-LWhvdXNlIGFuZCBjb2RlYyBrbm93bGVkZ2UsIGJ1dCBJIGNhbm5vdCBwcm92aWRlDQo+Pj4gaW1w
-bGVtZW50YXRpb24gaW4gYSByZWFzb25hYmxlIHRpbWVmcmFtZSwgc2FtZSBmb3IgVlA4Lg0KPj4+
-DQo+Pj4gQXBhcnQgb2YgdmVyeSBkZXRhaWxzIG9mIGVhY2ggY29kZWMsIHdlIGhhdmUgYWxzbyB0
-byBzdGF0ZSBhYm91dA0KPj4+IGdlbmVyaWMgY29uY2VybnMgc3VjaCBhczoNCj4+PiAtIG5ldyBw
-aXhlbCBmb3JtYXQgaW50cm9kdWN0aW9uIChWUDggPT4gVlA4RiwgSDI2NCA9PiBTMjY0LCBNUEcy
-ID0+DQo+Pj4gTUcyRiwgTVBHNCA9PiBNRzRGKQ0KPj4+IC0gbmV3IGRldmljZSBjYXBzIHRvIGlu
-ZGljYXRlIHRoYXQgZHJpdmVyIHJlcXVpcmVzIGV4dHJhIGhlYWRlcnMgPw0KPj4+IG1heWJlIG5v
-dCBuZWVkZWQgYmVjYXVzZSByZWR1bmRhbnQgd2l0aCBuZXcgcGl4ZWwgZm9ybWF0DQo+Pg0KPj4g
-VGhhdCdzIGluZGVlZCB0eXBpY2FsbHkgc2lnbmFsZWQgdGhyb3VnaCB0aGUgcGl4ZWxmb3JtYXQu
-DQo+Pg0KPiANCj4gWzJdIGlzIGltcGxlbWVudGVkIHRoaXMgd2F5IGluIFttZWRpYV0gdjRsOiBh
-ZGQgcGFyc2VkIE1QRUctMiBzdXBwb3J0LCB0d28gbmV3IHBpeGVsIGZvcm1hdCBNRzFQIGFuZCBN
-RzJQICgiUCIgZm9yICJQYXJzZWQiKSBoYXZlIGJlZW4gaW50cm9kdWNlZDoNCj4gKyNkZWZpbmUg
-VjRMMl9QSVhfRk1UX01QRUcxX1BBUlNFRCB2NGwyX2ZvdXJjYygnTScsICdHJywgJzEnLCAnUCcp
-IC8qDQo+IE1QRUcxIHdpdGggcGFyc2luZyBtZXRhZGF0YSBnaXZlbiB0aHJvdWdoIGNvbnRyb2xz
-ICovDQo+ICsjZGVmaW5lIFY0TDJfUElYX0ZNVF9NUEVHMl9QQVJTRUQgdjRsMl9mb3VyY2MoJ00n
-LCAnRycsICcyJywgJ1AnKSAvKg0KPiBNUEVHMiB3aXRoIHBhcnNpbmcgbWV0YWRhdGEgZ2l2ZW4g
-dGhyb3VnaCBjb250cm9scyAqLw0KPiANCj4gbGlidjRsIHBsdWdpbiBbMi4xXSBpbnRlcmNlcHRz
-IHRoZSBwaXhlbCBmb3JtYXQgaW5mb3JtYXRpb24gbmVnb3RpYXRlZA0KPiBiZXR3ZWVuIHVzZXIg
-YW5kIGRyaXZlciAoZW51bV9mbXQvdHJ5X2ZtdC9nZXRfZm10L3NfZm10KSBhbmQgc2VsZWN0cyB0
-aGUNCj4gcmlnaHQgcGFyc2VyIHRvIHVzZSB0byBjb252ZXJ0IE1QRUctMiBjb21wcmVzc2VkIGZv
-cm1hdCB0byBuZXcgIk1QRUctMg0KPiBwYXJzZWQiIGNvbXByZXNzZWQgZm9ybWF0IHJlcXVpcmVk
-IGJ5IGtlcm5lbCBkcml2ZXIuDQo+IFBsdWdpbiBpcyBkZXNpZ25lZCB0byBzdXBwb3J0IHNldmVy
-YWwgZm9ybWF0cy4NCj4gDQo+IA0KPj4+IC0gY29udGludWUgdG8gbW9kaWZ5IHY0bDItY29udHJv
-bHMuaCA/IG9yIGRvIHdlIGFkZCBzb21lIG5ldyBzcGVjaWZpYw0KPj4+IGhlYWRlciBmaWxlcyAo
-SDI2NCBpcyBodWdlISkgPw0KPj4+IC0gaG93IHRvIG1hbmFnZSBzZXF1ZW5jZSBoZWFkZXIgJiBw
-aWN0dXJlIGhlYWRlciwgb3B0aW9uYWwvZXh0ZW5kZWQNCj4+PiBjb250cm9scyAoTVBFRzIgc2Vx
-dWVuY2UvcGljdHVyZSBleHRlbnNpb25zLCBIMjY0IFNFSSwgLi4uKS4gUGVyc29uYWxseQ0KPj4+
-IEkgaGF2ZSBhZGRlZCBmbGFncyBpbnNpZGUgYSBzaW5nbGUgY29udHJvbCBzdHJ1Y3R1cmUsIEgy
-NjQgaXMgZG9uZSBpbiBhDQo+Pj4gZGlmZmVyZW50IHdheSB1c2luZyBzZXZlcmFsIGNvbnRyb2xz
-IChTUFMvUFBTL1NMSUNFL0RFQ09ERS8uLi4pDQo+Pj4NCj4+PiBUaGFua3MgeW91IHRvIGFsbCBv
-ZiB5b3UgZm9yIHlvdXIgYXR0ZW50aW9uIGFuZCBmZWVsIGZyZWUgdG8gcmVhY3Qgb24NCj4+PiB0
-aGlzIHRvcGljIGlmIHlvdSBhcmUgaW50ZXJlc3RlZCB0byB3b3JrIG9uIHRoaXMgc3ViamVjdC4N
-Cj4+DQo+PiBBcyBsb25nIGFzIHRoZSBWNEwyIGRyaXZlciB1bmRlcnBpbnMgdGhlIHZhcmlvdXMg
-c29sdXRpb25zIEkgYW0gaGFwcHkgOi0pDQo+Pg0KPj4gSSBkbyB0aGluayB0aGF0IGhhdmluZyBh
-IGxpYnY0bCBwbHVnaW4gd2lsbCBiZSB1c2VmdWwgc2luY2UgaXQgd2lsbCBtYWtlDQo+PiBpdCBl
-YXN5IGZvciBhcHBsaWNhdGlvbnMgdGhhdCBzdXBwb3J0IHRoZSBzdGF0ZWZ1bCBkZWNvZGVyIHRv
-IHVzZSB0aGUNCj4+IHNhbWUgY29kZSBmb3IgYSBzdGF0ZWxlc3MgZGVjb2RlciBieSBzZWFtbGVz
-c2x5IHVzaW5nIHRoZSBwbHVnaW4uDQo+Pg0KPj4gVGhpcyBkb2VzIG5vdCBwcmV2ZW50IG90aGVy
-IGFwcHJvYWNoZXMgYXQgdGhlIHNhbWUgdGltZSwgb2YgY291cnNlLg0KPj4NCj4+IFJlZ2FyZHMs
-DQo+Pg0KPj4gSGFucw0KPj4NCj4gWzJdIGltcGxlbWVudHMgbmV3IGV4dGVuZGVkIGNvbnRyb2xz
-IGZvciBNUEVHLTIgaW4gW21lZGlhXSB2NGw6IGFkZA0KPiBwYXJzZWQgTVBFRy0yIHN1cHBvcnQN
-Cj4gaHR0cDovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9y
-Zy9tc2cxMDc0MDYuaHRtbA0KPiBUaGlzIGhhcyBiZWVuIGRvbmUgaW4gdWFwaS9saW51eC92NGwy
-LWNvbnRyb2xzLmggYXMgZXh0ZW5zaW9uIG9mIGFscmVhZHkNCj4gZXhpc3RpbmcgTVBFRyB2aWRl
-byBjb250cm9scywgZGVmaW5pbmcgb25lIGNvbnRyb2wgcGVyICJoZWFkZXIiIChzbyBub3QNCj4g
-dXNpbmcgYSBzaW5nbGUgY29udHJvbCB3aXRoIHNlbGVjdGlvbiBmbGFnKToNCj4gI2RlZmluZSBW
-NEwyX0NJRF9NUEVHX1ZJREVPX01QRUcyX1NFUV9IRFINCj4gI2RlZmluZSBWNEwyX0NJRF9NUEVH
-X1ZJREVPX01QRUcyX1NFUV9FWFQNCj4gI2RlZmluZSBWNEwyX0NJRF9NUEVHX1ZJREVPX01QRUcy
-X1NFUV9ESVNQTEFZX0VYVA0KPiAjZGVmaW5lIFY0TDJfQ0lEX01QRUdfVklERU9fTVBFRzJfU0VR
-X01BVFJJWF9FWFQNCj4gI2RlZmluZSBWNEwyX0NJRF9NUEVHX1ZJREVPX01QRUcyX1BJQ19IRFIN
-Cj4gI2RlZmluZSBWNEwyX0NJRF9NUEVHX1ZJREVPX01QRUcyX1BJQ19FWFQNCj4gDQo+IFRob3Nl
-IGNvbnRyb2xzIGFuZCB0aGVpciBhc3NvY2lhdGVkIGRhdGEgc3RydWN0dXJlIGhhdmUgYmVlbiBk
-ZWZpbmVkDQo+IGJhc2VkIG9uIE1QRUctMiBzdGFuZGFyZCBJU08vSUVDIDEzODE4LTIuDQo+IA0K
-Pj4+DQo+Pj4gQmVzdCByZWdhcmRzLA0KPj4+IEh1Z3Vlcy4NCj4+Pg0KPj4+IFswXSBbQU5OXSBD
-b2RlYyAmIFJlcXVlc3QgQVBJIEJyYWluc3Rvcm0gbWVldGluZyBPY3QgMTAgJg0KPj4+IDExaHR0
-cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtbWVkaWEvbXNnMTA2Njk5Lmh0bWwNCj4+
-PiBbMV0gTVBFRzIgQTEzIENlZGFyWGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgt
-bWVkaWEvbXNnMTA0ODIzLmh0bWwNCj4+PiBbMV0gTVBFRzQgQTEzIENlZGFyWGh0dHA6Ly93d3cu
-c3Bpbmljcy5uZXQvbGlzdHMvbGludXgtbWVkaWEvbXNnMTA0ODE3Lmh0bWwNCj4+PiBbMl0gTVBF
-RzIgU1RpNHh4DQo+Pj4gRGVsdGFodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LW1l
-ZGlhL21zZzEwNjI0MC5odG1sDQo+IFsyXSBNUEVHMiBERUxUQSBrZXJuZWwgZHJpdmVyOiBodHRw
-Oi8vd3d3Lm1haWwtYXJjaGl2ZS5jb20vbGludXgtDQo+IG1lZGlhQHZnZXIua2VybmVsLm9yZy9t
-c2cxMDc0MDUuaHRtbA0KPiBbMi4xXSBNUEVHMiBsaWJ2NGwgcGx1Z2luOg0KPiBodHRwOi8vd3d3
-Lm1haWwtYXJjaGl2ZS5jb20vbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEwNzgxMi5o
-dG1sDQo+IA0KPj4+IFsyXSBNUEVHNCBTVGk0eHggRGVsdGEgaXMgYWxzbyBzdXBwb3J0ZWQgYnV0
-IG5vdCB5ZXQgcHVzaGVkDQo+Pj4gWzNdIFZQOCBSb2NrY2hpcCBSSzMyODgsIFJLMzM5OT8NCj4+
-PiBWUFVodHRwczovL2Nocm9taXVtLmdvb2dsZXNvdXJjZS5jb20vY2hyb21pdW1vcy9vdmVybGF5
-cy9jaHJvbWl1bW9zLW92ZXJsYXkvKy9yZWZzL2hlYWRzL21hc3Rlci9zeXMta2VybmVsL2xpbnV4
-LWhlYWRlcnMvZmlsZXMvMDAwMi1DSFJPTUlVTS12NGwtQWRkLVZQOC1sb3ctbGV2ZWwtZGVjb2Rl
-ci1BUEktY29udHJvbHMucGF0Y2gNCj4+PiBbNF0gVlA4IFJvY2tjaGlwIFJLMzI4OA0KPj4+IFZQ
-VWh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtbWVkaWEvbXNnOTc5OTcuaHRtbA0K
-Pj4+IFs1XSBIMjY0IFJvY2tjaGlwIFJLMzI4OCwgUkszMzk5Pw0KPj4+IFZQVWh0dHBzOi8vY2hy
-b21pdW0uZ29vZ2xlc291cmNlLmNvbS9jaHJvbWl1bW9zL292ZXJsYXlzL2Nocm9taXVtb3Mtb3Zl
-cmxheS8rL3JlZnMvaGVhZHMvbWFzdGVyL3N5cy1rZXJuZWwvbGludXgtaGVhZGVycy9maWxlcy8w
-MDAxLUNIUk9NSVVNLW1lZGlhLWhlYWRlcnMtSW1wb3J0LVY0TDItaGVhZGVycy1mcm9tLUNocm8u
-cGF0Y2gNCj4+PiBbNl0gSDI2NCBSb2NrY2hpcCBSSzMyODgNCj4+PiBWUFVodHRwOi8vd3d3LnNw
-aW5pY3MubmV0L2xpc3RzL2xpbnV4LW1lZGlhL21zZzEwNTA5NS5odG1sDQo+IGh0dHBzOi8vZ2l0
-aHViLmNvbS9yb2NrY2hpcC1saW51eC9saWJ2ZHBhdS1yb2NrY2hpcA0KPiBodHRwczovL2dpdGh1
-Yi5jb20vcm9ja2NoaXAtbGludXgvZ3N0cmVhbWVyLXJvY2tjaGlwDQo+IGh0dHBzOi8vZ2l0aHVi
-LmNvbS9yb2NrY2hpcC1saW51eC9tcHANCls3XSAiMjAxNyBpcyB0aGUgWWVhciBvZiB0aGUgTGlu
-dXggVmlkZW8gQ29kZWMgRHJpdmVycyIgcHJlc2VudGF0aW9uIA0KZG9uZSBieSBMYXVyZW50IFBp
-bmNoYXJ0IEAgRUxDIDIwMTcgUG9ydGxhbmQNCmh0dHBzOi8vd3d3LnlvdXR1YmUuY29tL3dhdGNo
-P3Y9WTVQOENFOVJ0RnMNCmh0dHA6Ly9ldmVudHMubGludXhmb3VuZGF0aW9uLm9yZy9zaXRlcy9l
-dmVudHMvZmlsZXMvc2xpZGVzLzIwMTcwMjIzLWVsYy5wZGYNCg0KPiA=
+Hi Sakari,
+
+> -----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
+> Sent: Thursday, May 11, 2017 12:41 AM
+> To: Mani, Rajmohan <rajmohan.mani@intel.com>
+> Cc: linux-media@vger.kernel.org; mchehab@kernel.org; hverkuil@xs4all.nl;
+> tfiga@chromium.org
+> Subject: Re: [PATCH v4] dw9714: Initial driver for dw9714 VCM
+> 
+> Hi Rajmohan,
+> 
+> A few minor comments below.
+> 
+> On Wed, May 10, 2017 at 10:00:20PM -0700, Rajmohan Mani wrote:
+> > DW9714 is a 10 bit DAC, designed for linear control of voice coil
+> > motor.
+> >
+> > This driver creates a V4L2 subdevice and provides control to set the
+> > desired focus.
+> >
+> > Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+> > ---
+> > Changes in v4:
+> > 	- Addressed review comments from Tomasz Changes in v3:
+> > 	- Addressed most of the review comments from Sakari
+> > 	  on v1 of this patch
+> > Changes in v2:
+> >         - Addressed review comments from Hans Verkuil
+> >         - Fixed a debug message typo
+> >         - Got rid of a return variable
+> > ---
+> >  drivers/media/i2c/Kconfig  |   9 ++
+> >  drivers/media/i2c/Makefile |   1 +
+> >  drivers/media/i2c/dw9714.c | 332
+> > +++++++++++++++++++++++++++++++++++++++++++++
+> >  3 files changed, 342 insertions(+)
+> >  create mode 100644 drivers/media/i2c/dw9714.c
+> >
+> > diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> > index fd181c9..516e2f2 100644
+> > --- a/drivers/media/i2c/Kconfig
+> > +++ b/drivers/media/i2c/Kconfig
+> > @@ -300,6 +300,15 @@ config VIDEO_AD5820
+> >  	  This is a driver for the AD5820 camera lens voice coil.
+> >  	  It is used for example in Nokia N900 (RX-51).
+> >
+> > +config VIDEO_DW9714
+> > +	tristate "DW9714 lens voice coil support"
+> > +	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER &&
+> VIDEO_V4L2_SUBDEV_API
+> > +	---help---
+> > +	  This is a driver for the DW9714 camera lens voice coil.
+> > +	  DW9714 is a 10 bit DAC with 120mA output current sink
+> > +	  capability. This is designed for linear control of
+> > +	  voice coil motors, controlled via I2C serial interface.
+> > +
+> >  config VIDEO_SAA7110
+> >  	tristate "Philips SAA7110 video decoder"
+> >  	depends on VIDEO_V4L2 && I2C
+> > diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+> > index 62323ec..987bd1f 100644
+> > --- a/drivers/media/i2c/Makefile
+> > +++ b/drivers/media/i2c/Makefile
+> > @@ -21,6 +21,7 @@ obj-$(CONFIG_VIDEO_SAA7127) += saa7127.o
+> >  obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
+> >  obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
+> >  obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
+> > +obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
+> >  obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
+> >  obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
+> >  obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o diff --git
+> > a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c new file
+> > mode 100644 index 0000000..fefd5d2
+> > --- /dev/null
+> > +++ b/drivers/media/i2c/dw9714.c
+> > @@ -0,0 +1,332 @@
+> > +/*
+> > + * Copyright (c) 2015--2017 Intel Corporation.
+> > + *
+> > + * This program is free software; you can redistribute it and/or
+> > + * modify it under the terms of the GNU General Public License
+> > +version
+> > + * 2 as published by the Free Software Foundation.
+> > + *
+> > + * This program is distributed in the hope that it will be useful,
+> > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > + * GNU General Public License for more details.
+> > + */
+> > +
+> > +#include <linux/acpi.h>
+> > +#include <linux/delay.h>
+> > +#include <linux/i2c.h>
+> > +#include <linux/module.h>
+> > +#include <linux/pm_runtime.h>
+> > +#include <media/v4l2-ctrls.h>
+> > +#include <media/v4l2-device.h>
+> > +
+> > +#define DW9714_NAME		"dw9714"
+> > +#define DW9714_MAX_FOCUS_POS	1023
+> > +/*
+> > + * This acts as the minimum granularity of lens movement.
+> > + * Keep this value power of 2, so the control steps can be
+> > + * uniformly adjusted for gradual lens movement, with desired
+> > + * number of control steps.
+> > + */
+> > +#define DW9714_CTRL_STEPS	16
+> > +#define DW9714_CTRL_DELAY_US	1000
+> > +/*
+> > + * S[3:2] = 0x00, codes per step for "Linear Slope Control"
+> > + * S[1:0] = 0x00, step period
+> > + */
+> > +#define DW9714_DEFAULT_S 0x0
+> > +#define DW9714_VAL(data, s) (u16)((data) << 4 | (s))
+> > +
+> > +/* dw9714 device structure */
+> > +struct dw9714_device {
+> > +	struct i2c_client *client;
+> > +	struct v4l2_ctrl_handler ctrls_vcm;
+> > +	struct v4l2_subdev sd;
+> > +	u16 current_val;
+> > +};
+> > +
+> > +static inline struct dw9714_device *to_dw9714_vcm(struct v4l2_ctrl
+> > +*ctrl) {
+> > +	return container_of(ctrl->handler, struct dw9714_device, ctrls_vcm);
+> > +}
+> > +
+> > +static int dw9714_i2c_write(struct i2c_client *client, u16 data) {
+> > +	int ret;
+> > +	u16 val = cpu_to_be16(data);
+> > +	const int num_bytes = sizeof(val);
+> > +
+> > +	ret = i2c_master_send(client, (const char *) &val, sizeof(val));
+> > +
+> > +	/*One retry */
+> > +	if (ret != num_bytes)
+> > +		ret = i2c_master_send(client, (const char *) &val, sizeof(val));
+> > +
+> > +	if (ret != num_bytes) {
+> 
+> Use sizeof(val) here and three linees above and you can remove num_bytes.
+> 
+
+Ack
+
+> > +		dev_err(&client->dev, "I2C write fail\n");
+> > +		return -EIO;
+> > +	}
+> > +	return 0;
+> > +}
+> > +
+> > +static int dw9714_t_focus_vcm(struct dw9714_device *dw9714_dev, u16
+> > +val) {
+> > +	struct i2c_client *client = dw9714_dev->client;
+> > +
+> > +	dw9714_dev->current_val = val;
+> > +
+> > +	return dw9714_i2c_write(client, DW9714_VAL(val,
+> DW9714_DEFAULT_S));
+> > +}
+> > +
+> > +static int dw9714_set_ctrl(struct v4l2_ctrl *ctrl) {
+> > +	struct dw9714_device *dev_vcm = to_dw9714_vcm(ctrl);
+> > +
+> > +	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE)
+> > +		return dw9714_t_focus_vcm(dev_vcm, ctrl->val);
+> > +
+> > +	return -EINVAL;
+> > +}
+> > +
+> > +static const struct v4l2_ctrl_ops dw9714_vcm_ctrl_ops = {
+> > +	.s_ctrl = dw9714_set_ctrl,
+> > +};
+> > +
+> > +static int dw9714_init_controls(struct dw9714_device *dev_vcm) {
+> > +	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
+> > +	const struct v4l2_ctrl_ops *ops = &dw9714_vcm_ctrl_ops;
+> > +	struct i2c_client *client = dev_vcm->client;
+> > +
+> > +	v4l2_ctrl_handler_init(hdl, 1);
+> > +
+> > +	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
+> > +			  0, DW9714_MAX_FOCUS_POS,
+> DW9714_CTRL_STEPS, 0);
+> > +
+> > +	if (hdl->error)
+> > +		dev_err(&client->dev, "dw9714_init_controls fail\n");
+> > +	dev_vcm->sd.ctrl_handler = hdl;
+> > +	return hdl->error;
+> > +}
+> > +
+> > +static void dw9714_subdev_cleanup(struct dw9714_device *dw9714_dev) {
+> > +	v4l2_async_unregister_subdev(&dw9714_dev->sd);
+> > +	v4l2_device_unregister_subdev(&dw9714_dev->sd);
+> > +	v4l2_ctrl_handler_free(&dw9714_dev->ctrls_vcm);
+> > +	media_entity_cleanup(&dw9714_dev->sd.entity);
+> > +}
+> > +
+> > +static int dw9714_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh
+> > +*fh) {
+> > +	struct dw9714_device *dw9714_dev = container_of(sd,
+> > +							struct
+> dw9714_device,
+> > +							sd);
+> > +	struct device *dev = &dw9714_dev->client->dev;
+> > +	int rval;
+> > +
+> > +	rval = pm_runtime_get_sync(dev);
+> > +	if (rval >= 0)
+> > +		return 0;
+> > +
+> > +	pm_runtime_put(dev);
+> > +	return rval;
+> > +}
+> > +
+> > +static int dw9714_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh
+> > +*fh) {
+> > +	struct dw9714_device *dw9714_dev = container_of(sd,
+> > +							struct
+> dw9714_device,
+> > +							sd);
+> > +	struct device *dev = &dw9714_dev->client->dev;
+> > +
+> > +	pm_runtime_put(dev);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static const struct v4l2_subdev_internal_ops dw9714_int_ops = {
+> > +	.open = dw9714_open,
+> > +	.close = dw9714_close,
+> > +};
+> > +
+> > +static const struct v4l2_subdev_ops dw9714_ops = { };
+> > +
+> > +static int dw9714_probe(struct i2c_client *client,
+> > +			const struct i2c_device_id *devid) {
+> > +	struct dw9714_device *dw9714_dev;
+> > +	int rval;
+> > +
+> > +	dw9714_dev = devm_kzalloc(&client->dev, sizeof(*dw9714_dev),
+> > +				  GFP_KERNEL);
+> > +
+> > +	if (dw9714_dev == NULL)
+> > +		return -ENOMEM;
+> > +
+> > +	dw9714_dev->client = client;
+> > +
+> > +	v4l2_i2c_subdev_init(&dw9714_dev->sd, client, &dw9714_ops);
+> > +	dw9714_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> > +	dw9714_dev->sd.internal_ops = &dw9714_int_ops;
+> > +
+> > +	rval = dw9714_init_controls(dw9714_dev);
+> > +	if (rval)
+> > +		goto err_cleanup;
+> > +
+> > +	rval = media_entity_pads_init(&dw9714_dev->sd.entity, 0, NULL);
+> > +	if (rval < 0)
+> > +		goto err_cleanup;
+> > +
+> > +	dw9714_dev->sd.entity.function = MEDIA_ENT_F_LENS;
+> > +
+> > +	rval = v4l2_async_register_subdev(&dw9714_dev->sd);
+> > +	if (rval < 0)
+> > +		goto err_cleanup;
+> > +
+> > +	pm_runtime_enable(&client->dev);
+> > +
+> > +	return 0;
+> > +
+> > +err_cleanup:
+> > +	dw9714_subdev_cleanup(dw9714_dev);
+> > +	dev_err(&client->dev, "Probe failed: %d\n", rval);
+> > +	return rval;
+> > +}
+> > +
+> > +static int dw9714_remove(struct i2c_client *client) {
+> > +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> > +	struct dw9714_device *dw9714_dev = container_of(sd,
+> > +							struct
+> dw9714_device,
+> > +							sd);
+> > +
+> > +	pm_runtime_disable(&client->dev);
+> > +	dw9714_subdev_cleanup(dw9714_dev);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +#ifdef CONFIG_PM
+> > +
+> > +/*
+> > + * This function sets the vcm position, so it consumes least current
+> > + * The lens position is gradually moved in units of
+> > +DW9714_CTRL_STEPS,
+> > + * to make the movements smoothly.
+> > + */
+> > +static int dw9714_vcm_suspend(struct device *dev)
+> 
+> static int __maybe_unused
+> 
+> > +{
+> > +	struct i2c_client *client = to_i2c_client(dev);
+> > +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> > +	struct dw9714_device *dw9714_dev = container_of(sd,
+> > +							struct
+> dw9714_device,
+> > +							sd);
+> 
+> Could you add an inline function for converting v4l2_subdev to
+> dw9714_device? It's done in quite a few places.
+> 
+
+Ack
+
+> > +	int ret, val;
+> > +
+> > +	for (val = dw9714_dev->current_val & ~(DW9714_CTRL_STEPS - 1);
+> > +	     val >= 0; val -= DW9714_CTRL_STEPS) {
+> > +		ret = dw9714_i2c_write(client,
+> > +				       DW9714_VAL((u16) val,
+> DW9714_DEFAULT_S));
+> > +		if (ret)
+> > +			dev_err(dev, "%s I2C failure: %d", __func__, ret);
+> > +		usleep_range(DW9714_CTRL_DELAY_US,
+> DW9714_CTRL_DELAY_US + 10);
+> > +	}
+> > +	return 0;
+> > +}
+> > +
+> > +/*
+> > + * This function sets the vcm position to the value set by the user
+> > + * through v4l2_ctrl_ops s_ctrl handler
+> > + * The lens position is gradually moved in units of
+> > +DW9714_CTRL_STEPS,
+> > + * to make the movements smoothly.
+> > + */
+> > +static int dw9714_vcm_resume(struct device *dev)
+> 
+> static int __maybe_unused
+> 
+
+Ack
+
+> > +{
+> > +	struct i2c_client *client = to_i2c_client(dev);
+> > +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> > +	struct dw9714_device *dw9714_dev = container_of(sd,
+> > +							struct
+> dw9714_device,
+> > +							sd);
+> > +	int ret, val;
+> > +
+> > +	for (val = dw9714_dev->current_val % DW9714_CTRL_STEPS;
+> > +	     val < dw9714_dev->current_val + DW9714_CTRL_STEPS - 1;
+> > +	     val += DW9714_CTRL_STEPS) {
+> > +		ret = dw9714_i2c_write(client,
+> > +				       DW9714_VAL((u16) val,
+> DW9714_DEFAULT_S));
+> > +		if (ret)
+> > +			dev_err(dev, "%s I2C failure: %d", __func__, ret);
+> > +		usleep_range(DW9714_CTRL_DELAY_US,
+> DW9714_CTRL_DELAY_US + 10);
+> > +	}
+> > +
+> > +	/* restore v4l2 control values */
+> > +	ret = v4l2_ctrl_handler_setup(&dw9714_dev->ctrls_vcm);
+> > +	return ret;
+> > +}
+> > +
+> > +static int dw9714_runtime_suspend(struct device *dev) {
+> > +	return dw9714_vcm_suspend(dev);
+> 
+> You can remove the four callbacks and use dw9714_vcm_{suspend,resume}
+> directly.
+> 
+
+Ack
+
+> > +}
+> > +
+> > +static int dw9714_runtime_resume(struct device *dev) {
+> > +	return dw9714_vcm_resume(dev);
+> > +}
+> > +
+> > +static int dw9714_suspend(struct device *dev) {
+> > +	return dw9714_vcm_suspend(dev);
+> > +}
+> > +
+> > +static int dw9714_resume(struct device *dev) {
+> > +	return dw9714_vcm_resume(dev);
+> > +}
+> > +
+> > +#else
+> 
+> And please remove the #ifdefs. They're not needed here.
+> 
+
+Ack
+
+> > +
+> > +#define dw9714_vcm_suspend	NULL
+> > +#define dw9714_vcm_resume	NULL
+> > +
+> > +#endif /* CONFIG_PM */
+> > +
+> > +#ifdef CONFIG_ACPI
+> > +static const struct acpi_device_id dw9714_acpi_match[] = {
+> > +	{"DW9714", 0},
+> > +	{},
+> > +};
+> > +MODULE_DEVICE_TABLE(acpi, dw9714_acpi_match); #endif
+> > +
+> > +static const struct i2c_device_id dw9714_id_table[] = {
+> > +	{DW9714_NAME, 0},
+> > +	{}
+> > +};
+> > +
+> > +MODULE_DEVICE_TABLE(i2c, dw9714_id_table);
+> > +
+> > +static const struct dev_pm_ops dw9714_pm_ops = {
+> > +	SET_SYSTEM_SLEEP_PM_OPS(dw9714_suspend, dw9714_resume)
+> > +	SET_RUNTIME_PM_OPS(dw9714_runtime_suspend,
+> dw9714_runtime_resume,
+> > +NULL) };
+> > +
+> > +static struct i2c_driver dw9714_i2c_driver = {
+> > +	.driver = {
+> > +		.name = DW9714_NAME,
+> > +		.pm = &dw9714_pm_ops,
+> > +		.acpi_match_table = ACPI_PTR(dw9714_acpi_match),
+> > +	},
+> > +	.probe = dw9714_probe,
+> > +	.remove = dw9714_remove,
+> > +	.id_table = dw9714_id_table,
+> > +};
+> > +
+> > +module_i2c_driver(dw9714_i2c_driver);
+> > +
+> > +MODULE_AUTHOR("Tianshu Qiu <tian.shu.qiu@intel.com>");
+> > +MODULE_AUTHOR("Jian Xu Zheng <jian.xu.zheng@intel.com>");
+> > +MODULE_AUTHOR("Yuning Pu <yuning.pu@intel.com>");
+> > +MODULE_AUTHOR("Jouni Ukkonen <jouni.ukkonen@intel.com>");
+> > +MODULE_AUTHOR("Tommi Franttila <tommi.franttila@intel.com>");
+> > +MODULE_DESCRIPTION("DW9714 VCM driver"); MODULE_LICENSE("GPL");
+> 
+> --
+> Regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
