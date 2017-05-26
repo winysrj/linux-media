@@ -1,72 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp10.smtpout.orange.fr ([80.12.242.132]:59935 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751672AbdEBOxL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 2 May 2017 10:53:11 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Petr Cvek <petr.cvek@tul.cz>, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/4] [media] pxa_camera: Fix a call with an uninitialized device pointer
-References: <cover.1493612057.git.petr.cvek@tul.cz>
-        <81365c5e-d102-12ba-777f-47c758416cd8@tul.cz>
-Date: Tue, 02 May 2017 16:53:09 +0200
-In-Reply-To: <81365c5e-d102-12ba-777f-47c758416cd8@tul.cz> (Petr Cvek's
-        message of "Mon, 1 May 2017 06:21:57 +0200")
-Message-ID: <87shknz4x6.fsf@belgarion.home>
+Received: from mga01.intel.com ([192.55.52.88]:12293 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1946470AbdEZBVx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 25 May 2017 21:21:53 -0400
+From: "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
+Subject: RE: [PATCH] ov5670: Add Omnivision OV5670 5M sensor support
+Date: Fri, 26 May 2017 01:21:52 +0000
+Message-ID: <8408A4B5C50F354EA5F62D9FC805153D018D4DF1@ORSMSX115.amr.corp.intel.com>
+References: <20170504084850.GT7456@valkosipuli.retiisi.org.uk>
+ <20170504085021.GU7456@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20170504085021.GU7456@valkosipuli.retiisi.org.uk>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Petr Cvek <petr.cvek@tul.cz> writes:
+Sakari,
+V2 patch selects V4L2_FWNODE.
 
-> In 'commit 295ab497d6357 ("[media] media: platform: pxa_camera: make
-> printk consistent")' a pointer to the device structure in
-> mclk_get_divisor() was changed to pcdev_to_dev(pcdev). The pointer used
-> by pcdev_to_dev() is still uninitialized during the call to
-> mclk_get_divisor() as it happens in v4l2_device_register() at the end
-> of the probe. The dev_warn and dev_dbg caused a line in the log:
->
-> 	(NULL device *): Limiting master clock to 26000000
->
-> Fix this by using an initialized pointer from the platform_device
-> (as before the old patch).
->
-> Signed-off-by: Petr Cvek <petr.cvek@tul.cz>
-Right, would be good to add to the commit message :
-Fixes: 295ab497d635 ("[media] media: platform: pxa_camera: make printk consistent")
+-----Original Message-----
+From: Sakari Ailus [mailto:sakari.ailus@iki.fi] 
+Sent: Thursday, May 4, 2017 1:50 AM
+To: Rapolu, Chiranjeevi <chiranjeevi.rapolu@intel.com>
+Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; Zheng, Jian Xu <jian.xu.zheng@intel.com>; Mani, Rajmohan <rajmohan.mani@intel.com>; Yang, Hyungwoo <hyungwoo.yang@intel.com>
+Subject: Re: [PATCH] ov5670: Add Omnivision OV5670 5M sensor support
 
-And :
-Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+On Thu, May 04, 2017 at 11:48:51AM +0300, Sakari Ailus wrote:
+> On Wed, May 03, 2017 at 03:06:52PM -0700, Chiranjeevi Rapolu wrote:
+> > Provides single source pad with up to 2576x1936 pixels at 10-bit raw 
+> > bayer format over MIPI CSI2 two lanes at 640Mbps/lane.
+> > Supports up to 30fps at 5M pixels, up to 60fps at 1080p.
+> > 
+> > Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+> > ---
+> >  drivers/media/i2c/Kconfig  |   11 +
+> >  drivers/media/i2c/Makefile |    1 +
+> >  drivers/media/i2c/ov5670.c | 3890 
+> > ++++++++++++++++++++++++++++++++++++++++++++
+> >  3 files changed, 3902 insertions(+)  create mode 100644 
+> > drivers/media/i2c/ov5670.c
+> > 
+> > diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig 
+> > index cee1dae..ded8485 100644
+> > --- a/drivers/media/i2c/Kconfig
+> > +++ b/drivers/media/i2c/Kconfig
+> > @@ -531,6 +531,17 @@ config VIDEO_OV2659
+> >  	  To compile this driver as a module, choose M here: the
+> >  	  module will be called ov2659.
+> >  
+> > +config VIDEO_OV5670
+> > +	tristate "OmniVision OV5670 sensor support"
+> > +	depends on I2C && VIDEO_V4L2
+> > +	depends on MEDIA_CAMERA_SUPPORT
 
-Cheers.
+select V4L2_FWNODE
 
 --
-Robert
-
-> ---
->  drivers/media/platform/pxa_camera.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-> index 79fd7269d1e6..c8466c63be22 100644
-> --- a/drivers/media/platform/pxa_camera.c
-> +++ b/drivers/media/platform/pxa_camera.c
-> @@ -1124,7 +1124,7 @@ static u32 mclk_get_divisor(struct platform_device *pdev,
->  	/* mclk <= ciclk / 4 (27.4.2) */
->  	if (mclk > lcdclk / 4) {
->  		mclk = lcdclk / 4;
-> -		dev_warn(pcdev_to_dev(pcdev),
-> +		dev_warn(&pdev->dev,
->  			 "Limiting master clock to %lu\n", mclk);
->  	}
->  
-> @@ -1135,7 +1135,7 @@ static u32 mclk_get_divisor(struct platform_device *pdev,
->  	if (pcdev->platform_flags & PXA_CAMERA_MCLK_EN)
->  		pcdev->mclk = lcdclk / (2 * (div + 1));
->  
-> -	dev_dbg(pcdev_to_dev(pcdev), "LCD clock %luHz, target freq %luHz, divisor %u\n",
-> +	dev_dbg(&pdev->dev, "LCD clock %luHz, target freq %luHz, divisor %u\n",
->  		lcdclk, mclk, div);
->  
->  	return div;
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
