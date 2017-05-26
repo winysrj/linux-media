@@ -1,583 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from asip.xyz ([198.211.98.88]:49704 "EHLO asip.xyz"
+Received: from mga14.intel.com ([192.55.52.115]:40051 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752274AbdEHCMM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 7 May 2017 22:12:12 -0400
-Received: from aslap.home.asip.xyz (pool-108-49-81-28.bstnma.east.verizon.net [108.49.81.28])
-        by asip.xyz (Postfix) with ESMTPSA id 9D2145FA21
-        for <linux-media@vger.kernel.org>; Sun,  7 May 2017 22:05:21 -0400 (EDT)
-Date: Sun, 7 May 2017 22:05:19 -0400
-From: Andrew Siplas <andrew@asip.xyz>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] updated 'dvb-apps' source/headers to reflect FSF's new
- physical address
-Message-ID: <20170508020518.GC3589@aslap.home.asip.xyz>
+        id S935733AbdEZIga (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 May 2017 04:36:30 -0400
+From: Jani Nikula <jani.nikula@intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+        Clint Taylor <clinton.a.taylor@intel.com>,
+        Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [RFC PATCH 5/7] drm/cec: Add CEC over Aux register definitions
+In-Reply-To: <20170525150626.29748-6-hverkuil@xs4all.nl>
+References: <20170525150626.29748-1-hverkuil@xs4all.nl> <20170525150626.29748-6-hverkuil@xs4all.nl>
+Date: Fri, 26 May 2017 11:39:53 +0300
+Message-ID: <87wp94m2p2.fsf@intel.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="cNdxnHkX5QqsyA0e"
-Content-Disposition: inline
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, 25 May 2017, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Clint Taylor <clinton.a.taylor@intel.com>
+>
+> Adding DPCD register definitions from the DP 1.3 specification for CEC
+> over AUX support.
+>
+> V2: Add DP_ prefix to all defines.
+> V3: missed prefixes from the ESI1 defines
+>
+> Cc: Jani Nikula <jani.nikula@linux.intel.com>
+>
+> Reviewed-by: Jani Nikula <jani.nikula@intel.com>
+> Signed-off-by: Clint Taylor <clinton.a.taylor@intel.com>
+> Signed-off-by: Jani Nikula <jani.nikula@intel.com>
+> Link: http://patchwork.freedesktop.org/patch/msgid/1492703263-11494-1-git-send-email-clinton.a.taylor@intel.com
 
---cNdxnHkX5QqsyA0e
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This one's already in drm-next as
 
-Sources from https://linuxtv.org/hg/dvb-apps contain outdated address.
+commit d753e41d475421543eaaea5f0feadba827f5fa01
+Author: Clint Taylor <clinton.a.taylor@intel.com>
+Date:   Thu Apr 20 08:47:43 2017 -0700
 
-Easily verifiable via fsf.org , etc.
+    drm/cec: Add CEC over Aux register definitions
+
+BR,
+Jani.
 
 
-# HG changeset patch
-# User Andrew Siplas <andrew@asip.xyz>
-# Date 1494134745 14400
-#      Sun May 07 01:25:45 2017 -0400
-# Node ID de11eebb3d835387a2d0a5c3622f4dd91f2b4bbd
-# Parent  3d43b280298c39a67d1d889e01e173f52c12da35
-Updated FSF mailing address--thanks to RedHat's rpmlint.
+> ---
+>  include/drm/drm_dp_helper.h | 59 +++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 59 insertions(+)
+>
+> diff --git a/include/drm/drm_dp_helper.h b/include/drm/drm_dp_helper.h
+> index c0bd0d7651a9..3f4ad709534e 100644
+> --- a/include/drm/drm_dp_helper.h
+> +++ b/include/drm/drm_dp_helper.h
+> @@ -603,6 +603,9 @@
+>  #define DP_DEVICE_SERVICE_IRQ_VECTOR_ESI0   0x2003   /* 1.2 */
+>  
+>  #define DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1   0x2004   /* 1.2 */
+> +# define DP_RX_GTC_MSTR_REQ_STATUS_CHANGE    (1 << 0)
+> +# define DP_LOCK_ACQUISITION_REQUEST         (1 << 1)
+> +# define DP_CEC_IRQ                          (1 << 2)
+>  
+>  #define DP_LINK_SERVICE_IRQ_VECTOR_ESI0     0x2005   /* 1.2 */
+>  
+> @@ -636,6 +639,62 @@
+>  # define DP_VSC_EXT_CEA_SDP_SUPPORTED			(1 << 6)  /* DP 1.4 */
+>  # define DP_VSC_EXT_CEA_SDP_CHAINING_SUPPORTED		(1 << 7)  /* DP 1.4 */
+>  
+> +/* HDMI CEC tunneling over AUX DP 1.3 section 5.3.3.3.1 DPCD 1.4+ */
+> +#define DP_CEC_TUNNELING_CAPABILITY            0x3000
+> +# define DP_CEC_TUNNELING_CAPABLE               (1 << 0)
+> +# define DP_CEC_SNOOPING_CAPABLE                (1 << 1)
+> +# define DP_CEC_MULTIPLE_LA_CAPABLE             (1 << 2)
+> +
+> +#define DP_CEC_TUNNELING_CONTROL               0x3001
+> +# define DP_CEC_TUNNELING_ENABLE                (1 << 0)
+> +# define DP_CEC_SNOOPING_ENABLE                 (1 << 1)
+> +
+> +#define DP_CEC_RX_MESSAGE_INFO                 0x3002
+> +# define DP_CEC_RX_MESSAGE_LEN_MASK             (0xf << 0)
+> +# define DP_CEC_RX_MESSAGE_LEN_SHIFT            0
+> +# define DP_CEC_RX_MESSAGE_HPD_STATE            (1 << 4)
+> +# define DP_CEC_RX_MESSAGE_HPD_LOST             (1 << 5)
+> +# define DP_CEC_RX_MESSAGE_ACKED                (1 << 6)
+> +# define DP_CEC_RX_MESSAGE_ENDED                (1 << 7)
+> +
+> +#define DP_CEC_TX_MESSAGE_INFO                 0x3003
+> +# define DP_CEC_TX_MESSAGE_LEN_MASK             (0xf << 0)
+> +# define DP_CEC_TX_MESSAGE_LEN_SHIFT            0
+> +# define DP_CEC_TX_RETRY_COUNT_MASK             (0x7 << 4)
+> +# define DP_CEC_TX_RETRY_COUNT_SHIFT            4
+> +# define DP_CEC_TX_MESSAGE_SEND                 (1 << 7)
+> +
+> +#define DP_CEC_TUNNELING_IRQ_FLAGS             0x3004
+> +# define DP_CEC_RX_MESSAGE_INFO_VALID           (1 << 0)
+> +# define DP_CEC_RX_MESSAGE_OVERFLOW             (1 << 1)
+> +# define DP_CEC_TX_MESSAGE_SENT                 (1 << 4)
+> +# define DP_CEC_TX_LINE_ERROR                   (1 << 5)
+> +# define DP_CEC_TX_ADDRESS_NACK_ERROR           (1 << 6)
+> +# define DP_CEC_TX_DATA_NACK_ERROR              (1 << 7)
+> +
+> +#define DP_CEC_LOGICAL_ADDRESS_MASK            0x300E /* 0x300F word */
+> +# define DP_CEC_LOGICAL_ADDRESS_0               (1 << 0)
+> +# define DP_CEC_LOGICAL_ADDRESS_1               (1 << 1)
+> +# define DP_CEC_LOGICAL_ADDRESS_2               (1 << 2)
+> +# define DP_CEC_LOGICAL_ADDRESS_3               (1 << 3)
+> +# define DP_CEC_LOGICAL_ADDRESS_4               (1 << 4)
+> +# define DP_CEC_LOGICAL_ADDRESS_5               (1 << 5)
+> +# define DP_CEC_LOGICAL_ADDRESS_6               (1 << 6)
+> +# define DP_CEC_LOGICAL_ADDRESS_7               (1 << 7)
+> +#define DP_CEC_LOGICAL_ADDRESS_MASK_2          0x300F /* 0x300E word */
+> +# define DP_CEC_LOGICAL_ADDRESS_8               (1 << 0)
+> +# define DP_CEC_LOGICAL_ADDRESS_9               (1 << 1)
+> +# define DP_CEC_LOGICAL_ADDRESS_10              (1 << 2)
+> +# define DP_CEC_LOGICAL_ADDRESS_11              (1 << 3)
+> +# define DP_CEC_LOGICAL_ADDRESS_12              (1 << 4)
+> +# define DP_CEC_LOGICAL_ADDRESS_13              (1 << 5)
+> +# define DP_CEC_LOGICAL_ADDRESS_14              (1 << 6)
+> +# define DP_CEC_LOGICAL_ADDRESS_15              (1 << 7)
+> +
+> +#define DP_CEC_RX_MESSAGE_BUFFER               0x3010
+> +#define DP_CEC_TX_MESSAGE_BUFFER               0x3020
+> +#define DP_CEC_MESSAGE_BUFFER_LENGTH             0x10
+> +
+>  /* DP 1.2 Sideband message defines */
+>  /* peer device type - DP 1.2a Table 2-92 */
+>  #define DP_PEER_DEVICE_NONE		0x0
 
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/asn_1.c
---- a/lib/libdvben50221/asn_1.c	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/asn_1.c	Sun May 07 01:25:45 2017 -0400
-@@ -17,7 +17,7 @@
-=20
- 	You should have received a copy of the GNU Lesser General Public
- 	License along with this library; if not, write to the Free Software
--	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335 =
-USA
- */
-=20
- #include <stdio.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/asn_1.h
---- a/lib/libdvben50221/asn_1.h	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/asn_1.h	Sun May 07 01:25:45 2017 -0400
-@@ -17,7 +17,7 @@
-=20
- 	You should have received a copy of the GNU Lesser General Public
- 	License along with this library; if not, write to the Free Software
--	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335 =
-USA
- */
-=20
- #ifndef __ASN_1_H__
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_ai.c
---- a/lib/libdvben50221/en50221_app_ai.c	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_ai.c	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #include <string.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_ai.h
---- a/lib/libdvben50221/en50221_app_ai.h	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_ai.h	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #ifndef __EN50221_APPLICATION_AI_H__
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_auth.c
---- a/lib/libdvben50221/en50221_app_auth.c	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_auth.c	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #include <string.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_auth.h
---- a/lib/libdvben50221/en50221_app_auth.h	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_auth.h	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #ifndef __EN50221_APPLICATION_auth_H__
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_ca.c
---- a/lib/libdvben50221/en50221_app_ca.c	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_ca.c	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #include <string.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_ca.h
---- a/lib/libdvben50221/en50221_app_ca.h	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_ca.h	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #ifndef __EN50221_APPLICATION_ca_H__
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_datetime=
-=2Ec
---- a/lib/libdvben50221/en50221_app_datetime.c	Fri Mar 21 20:26:36 2014 +01=
-00
-+++ b/lib/libdvben50221/en50221_app_datetime.c	Sun May 07 01:25:45 2017 -04=
-00
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #include <string.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_datetime=
-=2Eh
---- a/lib/libdvben50221/en50221_app_datetime.h	Fri Mar 21 20:26:36 2014 +01=
-00
-+++ b/lib/libdvben50221/en50221_app_datetime.h	Sun May 07 01:25:45 2017 -04=
-00
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #ifndef __EN50221_APPLICATION_DATETIME_H__
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_dvb.c
---- a/lib/libdvben50221/en50221_app_dvb.c	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_dvb.c	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #include <string.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_dvb.h
---- a/lib/libdvben50221/en50221_app_dvb.h	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_dvb.h	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #ifndef __EN50221_APPLICATION_DVB_H__
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_epg.c
---- a/lib/libdvben50221/en50221_app_epg.c	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_epg.c	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #include <string.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_epg.h
---- a/lib/libdvben50221/en50221_app_epg.h	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_epg.h	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #ifndef __EN50221_APPLICATION_epg_H__
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_lowspeed=
-=2Ec
---- a/lib/libdvben50221/en50221_app_lowspeed.c	Fri Mar 21 20:26:36 2014 +01=
-00
-+++ b/lib/libdvben50221/en50221_app_lowspeed.c	Sun May 07 01:25:45 2017 -04=
-00
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #include <string.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_lowspeed=
-=2Eh
---- a/lib/libdvben50221/en50221_app_lowspeed.h	Fri Mar 21 20:26:36 2014 +01=
-00
-+++ b/lib/libdvben50221/en50221_app_lowspeed.h	Sun May 07 01:25:45 2017 -04=
-00
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #ifndef __EN50221_APPLICATION_LOWSPEED_H__
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_mmi.c
---- a/lib/libdvben50221/en50221_app_mmi.c	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_mmi.c	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #include <string.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_mmi.h
---- a/lib/libdvben50221/en50221_app_mmi.h	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_mmi.h	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #ifndef __EN50221_APPLICATION_mmi_H__
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_rm.c
---- a/lib/libdvben50221/en50221_app_rm.c	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_rm.c	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #include <string.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_rm.h
---- a/lib/libdvben50221/en50221_app_rm.h	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_rm.h	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #ifndef __EN50221_APPLICATION_RM_H__
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_smartcar=
-d.c
---- a/lib/libdvben50221/en50221_app_smartcard.c	Fri Mar 21 20:26:36 2014 +0=
-100
-+++ b/lib/libdvben50221/en50221_app_smartcard.c	Sun May 07 01:25:45 2017 -0=
-400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #include <string.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_smartcar=
-d.h
---- a/lib/libdvben50221/en50221_app_smartcard.h	Fri Mar 21 20:26:36 2014 +0=
-100
-+++ b/lib/libdvben50221/en50221_app_smartcard.h	Sun May 07 01:25:45 2017 -0=
-400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #ifndef __EN50221_APPLICATION_smartcard_H__
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_tags.h
---- a/lib/libdvben50221/en50221_app_tags.h	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_tags.h	Sun May 07 01:25:45 2017 -0400
-@@ -17,7 +17,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #ifndef __EN50221_APP_TAGS_H__
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_teletext=
-=2Ec
---- a/lib/libdvben50221/en50221_app_teletext.c	Fri Mar 21 20:26:36 2014 +01=
-00
-+++ b/lib/libdvben50221/en50221_app_teletext.c	Sun May 07 01:25:45 2017 -04=
-00
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #include <string.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_teletext=
-=2Eh
---- a/lib/libdvben50221/en50221_app_teletext.h	Fri Mar 21 20:26:36 2014 +01=
-00
-+++ b/lib/libdvben50221/en50221_app_teletext.h	Sun May 07 01:25:45 2017 -04=
-00
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #ifndef __EN50221_APPLICATION_teletext_H__
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_utils.c
---- a/lib/libdvben50221/en50221_app_utils.c	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_utils.c	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #include "en50221_app_utils.h"
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_app_utils.h
---- a/lib/libdvben50221/en50221_app_utils.h	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_app_utils.h	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #ifndef __EN50221_APP_UTILS_H__
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_errno.h
---- a/lib/libdvben50221/en50221_errno.h	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_errno.h	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #ifndef EN50221_ERRNO
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_session.c
---- a/lib/libdvben50221/en50221_session.c	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_session.c	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #include <stdio.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_session.h
---- a/lib/libdvben50221/en50221_session.h	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_session.h	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
-=20
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_stdcam.c
---- a/lib/libdvben50221/en50221_stdcam.c	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_stdcam.c	Sun May 07 01:25:45 2017 -0400
-@@ -16,7 +16,7 @@
-=20
- 	You should have received a copy of the GNU Lesser General Public
- 	License along with this library; if not, write to the Free Software
--	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335 =
-USA
- */
-=20
- #include <stdio.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_stdcam.h
---- a/lib/libdvben50221/en50221_stdcam.h	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_stdcam.h	Sun May 07 01:25:45 2017 -0400
-@@ -16,7 +16,7 @@
-=20
- 	You should have received a copy of the GNU Lesser General Public
- 	License along with this library; if not, write to the Free Software
--	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335 =
-USA
- */
-=20
- #ifndef EN50221_STDCAM_H
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_stdcam_hlci.c
---- a/lib/libdvben50221/en50221_stdcam_hlci.c	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_stdcam_hlci.c	Sun May 07 01:25:45 2017 -0400
-@@ -16,7 +16,7 @@
-=20
- 	You should have received a copy of the GNU Lesser General Public
- 	License along with this library; if not, write to the Free Software
--	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335 =
-USA
- */
-=20
- #include <stdio.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_stdcam_llci.c
---- a/lib/libdvben50221/en50221_stdcam_llci.c	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_stdcam_llci.c	Sun May 07 01:25:45 2017 -0400
-@@ -16,7 +16,7 @@
-=20
- 	You should have received a copy of the GNU Lesser General Public
- 	License along with this library; if not, write to the Free Software
--	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335 =
-USA
- */
-=20
- #include <stdio.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_transport.c
---- a/lib/libdvben50221/en50221_transport.c	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_transport.c	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
- #include <stdio.h>
-diff -r 3d43b280298c -r de11eebb3d83 lib/libdvben50221/en50221_transport.h
---- a/lib/libdvben50221/en50221_transport.h	Fri Mar 21 20:26:36 2014 +0100
-+++ b/lib/libdvben50221/en50221_transport.h	Sun May 07 01:25:45 2017 -0400
-@@ -18,7 +18,7 @@
-=20
-     You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
--    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 U=
-SA
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-13=
-35 USA
- */
-=20
-=20
-Signed-off-by: Andrew Siplas <andrew@asip.xyz>
-
---cNdxnHkX5QqsyA0e
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQGcBAEBAgAGBQJZD9JeAAoJECFsCi5VxjMmlwML/jiPlkxAbCsfrbCN0H0MZLLr
-vk2cDCy/O+vMhj/cRcXv1atsGvarzGa0ThqfHdnPv1J/G3I7Pk4LHzgHq3DBHejx
-ChHSFNmNm8W1ohC/8ey06eKMieZeU0v1P6b7uQxhZKq4CLN0UqbjuCyxLMaSzX1D
-p657UrAxCQdmXBrKRSfTQRQv3FM07PliiHODtQujLSpO8RxujDh57H5TnuDsEtkA
-poTR1/IT2eFKYpMZsbTme/Vu38+9K4hylaveWX2lLnYlYrE7KePtGJcQsbOWQBBd
-uE+7Is2oNkG3LXKMD1Z0Iad+/HIgX1haIvRCqeHRomh6ZpVgu8dyCDfB+W3kZe90
-BHAMY0tfBdLW6eLdZjMK+W1HLTymX24rF8L3clIAQFWjM4AYdU5UXvmfa61LoL5K
-VQJwZJLZDS32pjmZMl7b2ZyYAqPjDmSVFWEr/qQ4/n7bonmFHL5YdqEd0O6C0byo
-qnhcn3eIifRVIOmxMbdy4l8+NjM+XrPtCDqNw2jBVg==
-=nBUp
------END PGP SIGNATURE-----
-
---cNdxnHkX5QqsyA0e--
+-- 
+Jani Nikula, Intel Open Source Technology Center
