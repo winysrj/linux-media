@@ -1,111 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:54365 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751042AbdE2PMW (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57410 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934939AbdEZKeh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 11:12:22 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Peter Rosin <peda@axentia.se>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v7 1/3] dt-bindings: Add bindings for video-multiplexer device
-Date: Mon, 29 May 2017 17:12:09 +0200
-Message-Id: <1496070731-12611-1-git-send-email-p.zabel@pengutronix.de>
+        Fri, 26 May 2017 06:34:37 -0400
+Subject: Re: [RFC PATCH 6/7] drm: add support for DisplayPort
+ CEC-Tunneling-over-AUX
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Jani Nikula <jani.nikula@intel.com>,
+        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+References: <20170525150626.29748-1-hverkuil@xs4all.nl>
+ <20170525150626.29748-7-hverkuil@xs4all.nl>
+ <20170526071856.v6sj4yv2vj5x73aq@phenom.ffwll.local>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <914a2100-800e-d2aa-7c28-3d53f50596d6@xs4all.nl>
+Date: Fri, 26 May 2017 12:34:32 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170526071856.v6sj4yv2vj5x73aq@phenom.ffwll.local>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add bindings documentation for the video multiplexer device.
+On 05/26/2017 09:18 AM, Daniel Vetter wrote:
+> On Thu, May 25, 2017 at 05:06:25PM +0200, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> This adds support for the DisplayPort CEC-Tunneling-over-AUX
+>> feature that is part of the DisplayPort 1.3 standard.
+>>
+>> Unfortunately, not all DisplayPort/USB-C to HDMI adapters with a
+>> chip that has this capability actually hook up the CEC pin, so
+>> even though a CEC device is created, it may not actually work.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/gpu/drm/Kconfig      |   3 +
+>>  drivers/gpu/drm/Makefile     |   1 +
+>>  drivers/gpu/drm/drm_dp_cec.c | 196 +++++++++++++++++++++++++++++++++++++++++++
+>>  include/drm/drm_dp_helper.h  |  24 ++++++
+>>  4 files changed, 224 insertions(+)
+>>  create mode 100644 drivers/gpu/drm/drm_dp_cec.c
+>>
+>> diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+>> index 78d7fc0ebb57..dd771ce8a3d0 100644
+>> --- a/drivers/gpu/drm/Kconfig
+>> +++ b/drivers/gpu/drm/Kconfig
+>> @@ -120,6 +120,9 @@ config DRM_LOAD_EDID_FIRMWARE
+>>  	  default case is N. Details and instructions how to build your own
+>>  	  EDID data are given in Documentation/EDID/HOWTO.txt.
+>>  
+>> +config DRM_DP_CEC
+>> +	bool
+> 
+> We generally don't bother with a Kconfig for every little bit in drm, not
+> worth the trouble (yes I know there's some exceptions, but somehow they're
+> all from soc people). Just smash this into the KMS_HELPER one and live is
+> much easier for drivers. Also allows you to drop the dummy inline
+> functions.
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Pavel Machek <pavel@ucw.cz>
----
-No changes since [1].
+For all other CEC implementations I have placed it under a config option. The
+reason is that 1) CEC is an optional feature of HDMI and you may not actually
+want it, and 2) enabling CEC also pulls in the cec module.
 
-[1] https://patchwork.linuxtv.org/patch/41475/
----
- .../devicetree/bindings/media/video-mux.txt        | 60 ++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/video-mux.txt
+I still think turning this into a drm config option makes sense. This would
+replace the i915 config option I made in the next patch, i.e. this config option
+is moved up one level.
 
-diff --git a/Documentation/devicetree/bindings/media/video-mux.txt b/Documentation/devicetree/bindings/media/video-mux.txt
-new file mode 100644
-index 0000000000000..63b9dc913e456
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/video-mux.txt
-@@ -0,0 +1,60 @@
-+Video Multiplexer
-+=================
-+
-+Video multiplexers allow to select between multiple input ports. Video received
-+on the active input port is passed through to the output port. Muxes described
-+by this binding are controlled by a multiplexer controller that is described by
-+the bindings in Documentation/devicetree/bindings/mux/mux-controller.txt
-+
-+Required properties:
-+- compatible : should be "video-mux"
-+- mux-controls : mux controller node to use for operating the mux
-+- #address-cells: should be <1>
-+- #size-cells: should be <0>
-+- port@*: at least three port nodes containing endpoints connecting to the
-+  source and sink devices according to of_graph bindings. The last port is
-+  the output port, all others are inputs.
-+
-+Optionally, #address-cells, #size-cells, and port nodes can be grouped under a
-+ports node as described in Documentation/devicetree/bindings/graph.txt.
-+
-+Example:
-+
-+	mux: mux-controller {
-+		compatible = "gpio-mux";
-+		#mux-control-cells = <0>;
-+
-+		mux-gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
-+	};
-+
-+	video-mux {
-+		compatible = "video-mux";
-+		mux-controls = <&mux>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			mux_in0: endpoint {
-+				remote-endpoint = <&video_source0_out>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			mux_in1: endpoint {
-+				remote-endpoint = <&video_source1_out>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			mux_out: endpoint {
-+				remote-endpoint = <&capture_interface_in>;
-+			};
-+		};
-+	};
-+};
--- 
-2.11.0
+Your choice, though.
+
+> The other nitpick: Pls kernel-doc the functions exported to drivers, and
+> then pull them into Documentation/gpu/drm-kms-helpers.rst, next to the
+> existing DP helper section.
+
+Will do.
+
+BTW, do you know if it is possible to detect when a DP-to-HDMI adapter is
+connected as I discussed in my cover letter? That's my main open question
+for this patch series.
+
+Regarding the other thing I discussed in the cover letter about detecting if
+the CEC pin is really hooked up: I think I shouldn't try to be smart. Yes, I
+can try to poll for a TV, but that doesn't really say anything about whether
+CEC is working or not since the TV itself may not have enabled CEC (actually
+quite common).
+
+One alternative might be to poll and, if no TV is detected, call dev_info to
+let the user know that either there is no CEC-enabled TV, or the CEC pin isn't
+connected.
+
+I'm not sure if that helps the user or not.
+
+Regards,
+
+	Hans
+
+> 
+> Thanks, Daniel
