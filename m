@@ -1,58 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:33946 "EHLO
-        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758062AbdEVJ2K (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 May 2017 05:28:10 -0400
-Date: Mon, 22 May 2017 10:27:56 +0100
-From: Mark Brown <broonie@kernel.org>
-To: Takashi Iwai <tiwai@suse.de>
-Cc: alsa-devel@alsa-project.org,
-        Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        linux-media@vger.kernel.org
-Message-ID: <20170522092756.yhlylhqhy4wm6fty@sirena.org.uk>
-References: <20170521200950.4592-1-tiwai@suse.de>
- <20170521200950.4592-15-tiwai@suse.de>
+Received: from mga11.intel.com ([192.55.52.93]:61940 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1946586AbdEZBr4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 25 May 2017 21:47:56 -0400
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: Tomasz Figa <tfiga@chromium.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: RE: [PATCH v4] dw9714: Initial driver for dw9714 VCM
+Date: Fri, 26 May 2017 01:47:54 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A595AA0A47B@FMSMSX114.amr.corp.intel.com>
+References: <1494478820-22199-1-git-send-email-rajmohan.mani@intel.com>
+ <CAAFQd5Ck3CKp-JR8d3d1X9-2cRS0oZG9GPwcpunBq50EY7qCtg@mail.gmail.com>
+ <CGME20170511143945epcas1p26203dff026b3dc9c2f65c5ca0be7967b@epcas1p2.samsung.com>
+ <9fc11dec-8c64-a681-21f9-2602fb1132c1@samsung.com>
+ <20170511145913.GI3227@valkosipuli.retiisi.org.uk>
+ <8a1a65d6-6b56-6471-1216-b42adcd5a693@samsung.com>
+ <20170512115234.GK3227@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20170512115234.GK3227@valkosipuli.retiisi.org.uk>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="3j2jiap3val242hs"
-Content-Disposition: inline
-In-Reply-To: <20170521200950.4592-15-tiwai@suse.de>
-Subject: Re: [PATCH 14/16] ASoC: blackfin: Convert to copy_silence ops
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sakari, Sylwester,
 
---3j2jiap3val242hs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> >
+> > You're right, sorry. I'd expect such things to be better covered in
+> > the API documentation.  Probably pm_runtime_put_noidle() is a better
+> 
+> Well, the documentation tells what the function does. It'd be good if it pointed
+> that the usage count needs to be decremented if the function fails.
+> 
+> I guess the reason is that it's just a synchronous variant of pm_runtime_get(),
+> which could not handle the error anyway.
+> 
+> > match for just decreasing usage_count.  Now many drivers appear to not
+> > be balancing usage_count when when pm_runtime_get_sync() fails.
+> 
+> Ah, quite a few drivers seem to be using pm_runtime_put_noidle() which seems
+> to be the correct thing to do as the device won't be on then anyway.
+> 
 
-On Sun, May 21, 2017 at 10:09:48PM +0200, Takashi Iwai wrote:
-> Replace the copy and the silence ops with the new merged ops.
-> The silence is performed only when CONFIG_SND_BF5XX_MMAP_SUPPORT is
-> set (since copy_silence ops is set only with this config), so in
-> bf5xx-ac97.c we have a bit tricky macro for a slight optimization.
->=20
-> Note that we don't need to take in_kernel into account on this
-> architecture, so the conversion is easy otherwise.
+Ack
 
-Acked-by: Mark Brown <broonie@kernel.org>
-
---3j2jiap3val242hs
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlkirxsACgkQJNaLcl1U
-h9DuUQf/V2n6Vlu71qRUNOzKCIhBaPDQ6SunlUEdzoMc5qYUvsOssUvRtxMbXHMM
-MBG1lqxWV+a761HraN+z9meGDwgpagtlhBidw3ECOAsi+XK5o23i1owNMcRApMrX
-bx3NA9IxHLkbvrGB7xPlSccH3SSNQ/BE8oWCnrdSq1MwLJR0L2Q6yFQLMests0Q2
-q+r3TILyrVo3ev8P+/EsVl+Iap7XB/lXzYPtpM/dkeGYtKye/znk6WOdzEs6SKNS
-GbF6tM0Am5eco4kwnjPxIZwJcke6411Y4WyTseCFeyQ3fjrgkhocojnTc9/pL5VZ
-JIegAyWmIY62BzoiBEFF2Jy6LTLtsQ==
-=y0uZ
------END PGP SIGNATURE-----
-
---3j2jiap3val242hs--
+> --
+> Regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
