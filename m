@@ -1,102 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57568 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934741AbdEVOTa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 May 2017 10:19:30 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
-Subject: [PATCH v3 4/5] v4l: vsp1: Add API to map and unmap DRM buffers through the VSP
-Date: Mon, 22 May 2017 15:19:21 +0100
-Message-Id: <6ffd75ffaf42ab205fcfa42335f0f1a90544e6b3.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.d1f5942e1a0b688b3527bb7998b184d3c0b0e9b1.1495461942.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail-io0-f169.google.com ([209.85.223.169]:35537 "EHLO
+        mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1035572AbdEZOcW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 May 2017 10:32:22 -0400
+Received: by mail-io0-f169.google.com with SMTP id f102so10432265ioi.2
+        for <linux-media@vger.kernel.org>; Fri, 26 May 2017 07:32:21 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <e20f0625-98c9-7778-4723-ebff59195593@iki.fi>
+References: <1489616530-4025-1-git-send-email-andreas@kemnade.info>
+ <1489616530-4025-2-git-send-email-andreas@kemnade.info> <43216679-3794-14ca-b489-00ac97a57777@iki.fi>
+ <20170515222837.3d822338@aktux> <e20f0625-98c9-7778-4723-ebff59195593@iki.fi>
+From: Steven Toth <stoth@kernellabs.com>
+Date: Fri, 26 May 2017 10:32:20 -0400
+Message-ID: <CALzAhNUjXY=S=TotADqWFTnP-VscdHdUir1VctmTe_n+TSHRtQ@mail.gmail.com>
+Subject: Re: [PATCH 1/3] [media] si2157: get chip id during probing
+To: Antti Palosaari <crope@iki.fi>
+Cc: Andreas Kemnade <andreas@kemnade.info>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+>> ep: 81 l:    9 08260080ffffff5901
+>>
+>> here you see all the ffff from the device.
 
-The display buffers must be mapped for DMA through the device that
-performs memory access. Expose an API to map and unmap memory through
-the VSP device to be used by the DU.
+You need to be able to see the traffic on the physical I2C bus in
+order to help diagnose issues like this. You're going to want to see
+ACKS/NAKS, clocks and other I2C bus activity.
 
-As all the buffers allocated by the DU driver are coherent, we can skip
-cache handling when mapping and unmapping them. This will need to be
-revisited when support for non-coherent buffers will be added to the DU
-driver.
+You'll need to solder down scl/sda/gnd wiring to the PCB, I generally
+attached to the eeprom which tends to have larger pins (details on
+their respective datasheets).
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-[Kieran: Remove unused header]
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drm.c | 24 ++++++++++++++++++++++++
- include/media/vsp1.h                   |  3 +++
- 2 files changed, 27 insertions(+)
+It's not hard to do, but does require a small investment in hardware.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index 9d235e830f5a..7e456e482e16 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -12,6 +12,7 @@
-  */
- 
- #include <linux/device.h>
-+#include <linux/dma-mapping.h>
- #include <linux/slab.h>
- 
- #include <media/media-entity.h>
-@@ -524,6 +525,29 @@ void vsp1_du_atomic_flush(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
- 
-+int vsp1_du_map_sg(struct device *dev, struct sg_table *sgt)
-+{
-+	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
-+
-+	/*
-+	 * As all the buffers allocated by the DU driver are coherent, we can
-+	 * skip cache sync. This will need to be revisited when support for
-+	 * non-coherent buffers will be added to the DU driver.
-+	 */
-+	return dma_map_sg_attrs(vsp1->bus_master, sgt->sgl, sgt->nents,
-+				DMA_TO_DEVICE, DMA_ATTR_SKIP_CPU_SYNC);
-+}
-+EXPORT_SYMBOL_GPL(vsp1_du_map_sg);
-+
-+void vsp1_du_unmap_sg(struct device *dev, struct sg_table *sgt)
-+{
-+	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
-+
-+	dma_unmap_sg_attrs(vsp1->bus_master, sgt->sgl, sgt->nents,
-+			   DMA_TO_DEVICE, DMA_ATTR_SKIP_CPU_SYNC);
-+}
-+EXPORT_SYMBOL_GPL(vsp1_du_unmap_sg);
-+
- /* -----------------------------------------------------------------------------
-  * Initialization
-  */
-diff --git a/include/media/vsp1.h b/include/media/vsp1.h
-index 38aac554dbba..6aa630c9f7af 100644
---- a/include/media/vsp1.h
-+++ b/include/media/vsp1.h
-@@ -13,6 +13,7 @@
- #ifndef __MEDIA_VSP1_H__
- #define __MEDIA_VSP1_H__
- 
-+#include <linux/scatterlist.h>
- #include <linux/types.h>
- #include <linux/videodev2.h>
- 
-@@ -46,5 +47,7 @@ void vsp1_du_atomic_begin(struct device *dev);
- int vsp1_du_atomic_update(struct device *dev, unsigned int rpf,
- 			  const struct vsp1_du_atomic_config *cfg);
- void vsp1_du_atomic_flush(struct device *dev);
-+int vsp1_du_map_sg(struct device *dev, struct sg_table *sgt);
-+void vsp1_du_unmap_sg(struct device *dev, struct sg_table *sgt);
- 
- #endif /* __MEDIA_VSP1_H__ */
+One the actual bus behavior is documented and understood, you'll
+likely get a better technical discussion going on.
+
+Send me a detailed picture of the PCB and I can probably help spot the
+I2C bus for you, if you have a low cost bus analyzer and a soldering
+iron.
+
 -- 
-git-series 0.9.1
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
