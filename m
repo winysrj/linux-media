@@ -1,143 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:46584 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750986AbdE1Joi (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47520 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1163497AbdEZDhc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 May 2017 05:44:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Thu, 25 May 2017 23:37:32 -0400
+Message-ID: <76359cda1718cfdbe32134388d351d38@smtp-cloud3.xs4all.net>
+Date: Fri, 26 May 2017 05:37:24 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH for v4.12 2/3] cec: rename MEDIA_CEC_NOTIFIER to CEC_NOTIFIER
-Date: Sun, 28 May 2017 11:44:25 +0200
-Message-Id: <20170528094426.10089-3-hverkuil@xs4all.nl>
-In-Reply-To: <20170528094426.10089-1-hverkuil@xs4all.nl>
-References: <20170528094426.10089-1-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This config option is strictly speaking independent of the
-media subsystem since it can be used by drm as well.
+Results of the daily build of media_tree:
 
-Besides, it looks odd when drivers select CEC_CORE and
-MEDIA_CEC_NOTIFIER, that's inconsistent naming.
+date:			Fri May 26 05:00:20 CEST 2017
+media-tree git hash:	36bcba973ad478042d1ffc6e89afd92e8bd17030
+media_build git hash:	c8dfc17d6d049d79497c78737625f6ea3b08c456
+v4l-utils git hash:	d16a17abd1d8d7885ca2f44fb295035278baa89c
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/Kconfig          | 2 +-
- drivers/media/cec/Makefile     | 2 +-
- drivers/media/cec/cec-core.c   | 4 ++--
- drivers/media/platform/Kconfig | 4 ++--
- include/media/cec-notifier.h   | 2 +-
- include/media/cec.h            | 4 ++--
- 6 files changed, 9 insertions(+), 9 deletions(-)
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index 9ec634e2f2ba..55d9c2b82b7e 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -5,7 +5,7 @@
- config CEC_CORE
- 	tristate
- 
--config MEDIA_CEC_NOTIFIER
-+config CEC_NOTIFIER
- 	bool
- 
- menuconfig MEDIA_SUPPORT
-diff --git a/drivers/media/cec/Makefile b/drivers/media/cec/Makefile
-index 402a6c62a3e8..eaf408e64669 100644
---- a/drivers/media/cec/Makefile
-+++ b/drivers/media/cec/Makefile
-@@ -1,6 +1,6 @@
- cec-objs := cec-core.o cec-adap.o cec-api.o cec-edid.o
- 
--ifeq ($(CONFIG_MEDIA_CEC_NOTIFIER),y)
-+ifeq ($(CONFIG_CEC_NOTIFIER),y)
-   cec-objs += cec-notifier.o
- endif
- 
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index f9ebff90f8eb..feeb4c5afa69 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -187,7 +187,7 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
- 	put_device(&devnode->dev);
- }
- 
--#ifdef CONFIG_MEDIA_CEC_NOTIFIER
-+#ifdef CONFIG_CEC_NOTIFIER
- static void cec_cec_notify(struct cec_adapter *adap, u16 pa)
- {
- 	cec_s_phys_addr(adap, pa, false);
-@@ -355,7 +355,7 @@ void cec_unregister_adapter(struct cec_adapter *adap)
- 	adap->rc = NULL;
- #endif
- 	debugfs_remove_recursive(adap->cec_dir);
--#ifdef CONFIG_MEDIA_CEC_NOTIFIER
-+#ifdef CONFIG_CEC_NOTIFIER
- 	if (adap->notifier)
- 		cec_notifier_unregister(adap->notifier);
- #endif
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 017419bef9b1..041cb80a26b1 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -503,7 +503,7 @@ config VIDEO_SAMSUNG_S5P_CEC
-        tristate "Samsung S5P CEC driver"
-        depends on PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST
-        select CEC_CORE
--       select MEDIA_CEC_NOTIFIER
-+       select CEC_NOTIFIER
-        ---help---
-          This is a driver for Samsung S5P HDMI CEC interface. It uses the
-          generic CEC framework interface.
-@@ -514,7 +514,7 @@ config VIDEO_STI_HDMI_CEC
-        tristate "STMicroelectronics STiH4xx HDMI CEC driver"
-        depends on ARCH_STI || COMPILE_TEST
-        select CEC_CORE
--       select MEDIA_CEC_NOTIFIER
-+       select CEC_NOTIFIER
-        ---help---
-          This is a driver for STIH4xx HDMI CEC interface. It uses the
-          generic CEC framework interface.
-diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
-index 71d7ced2c09e..298f996969df 100644
---- a/include/media/cec-notifier.h
-+++ b/include/media/cec-notifier.h
-@@ -29,7 +29,7 @@ struct edid;
- struct cec_adapter;
- struct cec_notifier;
- 
--#if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_MEDIA_CEC_NOTIFIER)
-+#if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_CEC_NOTIFIER)
- 
- /**
-  * cec_notifier_get - find or create a new cec_notifier for the given device.
-diff --git a/include/media/cec.h b/include/media/cec.h
-index b8eb895731d5..bfa88d4d67e1 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -173,7 +173,7 @@ struct cec_adapter {
- 	bool passthrough;
- 	struct cec_log_addrs log_addrs;
- 
--#ifdef CONFIG_MEDIA_CEC_NOTIFIER
-+#ifdef CONFIG_CEC_NOTIFIER
- 	struct cec_notifier *notifier;
- #endif
- 
-@@ -300,7 +300,7 @@ u16 cec_phys_addr_for_input(u16 phys_addr, u8 input);
-  */
- int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port);
- 
--#ifdef CONFIG_MEDIA_CEC_NOTIFIER
-+#ifdef CONFIG_CEC_NOTIFIER
- void cec_register_cec_notifier(struct cec_adapter *adap,
- 			       struct cec_notifier *notifier);
- #endif
--- 
-2.11.0
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
