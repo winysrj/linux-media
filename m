@@ -1,58 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:36624 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753449AbdEIMhj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 May 2017 08:37:39 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v5 0/2] v4l: vsp1: Fix suspend/resume and race on M2M pipelines
-Date: Tue,  9 May 2017 13:37:29 +0100
-Message-Id: <cover.7da7d07a321ae8bff8445a8dd714d9a61a3ee71b.1494328856.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from kirsty.vergenet.net ([202.4.237.240]:46055 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1030668AbdEZGtL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 May 2017 02:49:11 -0400
+Date: Fri, 26 May 2017 08:49:07 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: linux-renesas-soc@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        geert@linux-m68k.org, magnus.damm@gmail.com,
+        hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se,
+        sergei.shtylyov@cogentembedded.com, devicetree@vger.kernel.org
+Subject: Re: [PATCH v3 0/4] r8a7793 Gose video input support
+Message-ID: <20170526064907.GD2628@verge.net.au>
+References: <1495199224-16337-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1495199224-16337-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This small patchset helps rework the VSP1 driver to repair an issue on
-suspend/resume operations whereby the pipeline does not get reconfigured after
-it has been re-initialised following a resume operation.
+On Fri, May 19, 2017 at 03:07:00PM +0200, Ulrich Hecht wrote:
+> Hi!
+> 
+> This is a by-the-datasheet implementation of analog and digital video input
+> on the Gose board.
+> 
+> This revision adds new bindings that distinguish between ADV7180 variants
+> with three and six input ports. There are numerous variants of this chip,
+> but since all that have "CP" in their names have three inputs, and all that
+> have "ST" have six, I have limited myself to two new compatible strings,
+> "adv7180cp" and "adv7180st".
+> 
+> The digital input patch has received minor tweaks of the port names for
+> consistency, and the Gose analog input patch has been modified to use the
+> new bindings, and a composite video connector has been added.
+> 
+> CU
+> Uli
+> 
+> 
+> Changes since v2:
+> - hdmi: port hdmi_con renamed to hdmi_con_out
+> - adv7180: added new compatibility strings and bindings
+> - composite: added connector, use new bindings
+> 
+> Changes since v1:
+> - r8a7793.dtsi: added VIN2
+> - modeled HDMI decoder input/output and connector
+> - added "renesas,rcar-gen2-vin" compat strings
+> - removed unnecessary "remote" node and aliases
+> - set ADV7612 interrupt to GP4_2
+> 
+> 
+> Ulrich Hecht (4):
+>   ARM: dts: gose: add HDMI input
 
-Patch [1/2] is a code move only, with no functional change.
-Patch [2/2] fixes the suspend/resume operations for video pipelines by marking
-            the new pipe configured flag as false, and configuring the pipe
-            during the vsp1_video_pipeline_run() call.
+I have queued-up the above patch for v4.13.
 
-v5:
- - Rebased for v4.12-rc1
- - Dropped two patches from v4 as they are integrated already:
-    - BRU streamon race
-    - DRM scoped pipe->dl removal
+>   media: adv7180: add adv7180cp, adv7180st compatible strings
+>   media: adv7180: Add adv7180cp, adv7180st bindings
+>   ARM: dts: gose: add composite video input
 
-v4:
- - Rework and separate out the BRU race back to v1 style implementation
- - Split BRU race and Suspend Resume fixes into separate commits.
+I have marked the above dts patch as "deferred" pending acceptance
+of the binding. Please repost or otherwise ping me once that has happened.
 
-v3:
- - Move configured=false from vsp1_device_init to vsp1_reset_wpf()
- - Clean up flag dereferencing with a local struct *
-
-v2:
- - Refactor video pipeline configuration implementation to solve both suspend
-   resume and the VSP BRU race in a single change
-
-v1:
- - Original pipeline configuration rework
-
-Kieran Bingham (2):
-  v4l: vsp1: Move vsp1_video_setup_pipeline()
-  v4l: vsp1: Repair suspend resume operations for video pipelines
-
- drivers/media/platform/vsp1/vsp1_drv.c   |   4 +-
- drivers/media/platform/vsp1/vsp1_pipe.c  |   1 +-
- drivers/media/platform/vsp1/vsp1_pipe.h  |   4 +-
- drivers/media/platform/vsp1/vsp1_video.c | 123 +++++++++++-------------
- 4 files changed, 64 insertions(+), 68 deletions(-)
-
-base-commit: 13e0988140374123bead1dd27c287354cb95108e
--- 
-git-series 0.9.1
+>  .../devicetree/bindings/media/i2c/adv7180.txt      |  15 +++
+>  arch/arm/boot/dts/r8a7793-gose.dts                 | 127 ++++++++++++++++++++-
+>  drivers/media/i2c/adv7180.c                        |   2 +
+>  3 files changed, 142 insertions(+), 2 deletions(-)
+> 
+> -- 
+> 2.7.4
+> 
