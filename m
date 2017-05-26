@@ -1,69 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:60550 "EHLO mout.web.de"
+Received: from www.llwyncelyn.cymru ([82.70.14.225]:38396 "EHLO fuzix.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750797AbdEHJOL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 May 2017 05:14:11 -0400
-Subject: [PATCH 4/4] dma-buf: Use seq_putc() in two functions
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-        linux-media@vger.kernel.org, Gustavo Padovan <gustavo@padovan.org>,
-        Sumit Semwal <sumit.semwal@linaro.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <3d972fa2-787a-d1f2-ff86-5c05494e00d3@users.sourceforge.net>
-Message-ID: <609254ac-000d-c87c-eabc-7ca8814daf5c@users.sourceforge.net>
-Date: Mon, 8 May 2017 11:14:04 +0200
+        id S933683AbdEZP1d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 May 2017 11:27:33 -0400
+Subject: [PATCHv2 02/11] atomisp: remove NUM_OF_BLS
+From: Alan Cox <alan@llwyncelyn.cymru>
+To: mchehab@kernel.org, linux-media@vger.kernel.org
+Date: Fri, 26 May 2017 16:27:29 +0100
+Message-ID: <149581244430.17585.8359368078384156683.stgit@builder>
+In-Reply-To: <149581243155.17585.8164899156710160858.stgit@builder>
+References: <149581243155.17585.8164899156710160858.stgit@builder>
 MIME-Version: 1.0
-In-Reply-To: <3d972fa2-787a-d1f2-ff86-5c05494e00d3@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 8 May 2017 10:55:42 +0200
+With the removal of the HAS_BL bootloader code the value of NUM_OF_BLS is an
+invariant zero. So let's get rid of it.
 
-Three single characters (line breaks) should be put into a sequence.
-Thus use the corresponding function "seq_putc".
-
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
 ---
- drivers/dma-buf/sync_debug.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ .../atomisp/pci/atomisp2/css2400/sh_css_firmware.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/dma-buf/sync_debug.c b/drivers/dma-buf/sync_debug.c
-index c769dc653b34..a0d780ab68c3 100644
---- a/drivers/dma-buf/sync_debug.c
-+++ b/drivers/dma-buf/sync_debug.c
-@@ -110,7 +110,7 @@ static void sync_print_fence(struct seq_file *s,
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+index 57b4fe5..a179de5 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+@@ -234,9 +234,9 @@ sh_css_load_firmware(const char *fw_data,
+ 
+ 	sh_css_num_binaries = file_header->binary_nr;
+ 	/* Only allocate memory for ISP blob info */
+-	if (sh_css_num_binaries > (NUM_OF_SPS + NUM_OF_BLS)) {
++	if (sh_css_num_binaries > NUM_OF_SPS) {
+ 		sh_css_blob_info = kmalloc(
+-					(sh_css_num_binaries - (NUM_OF_SPS + NUM_OF_BLS)) *
++					(sh_css_num_binaries - NUM_OF_SPS) *
+ 					sizeof(*sh_css_blob_info), GFP_KERNEL);
+ 		if (sh_css_blob_info == NULL)
+ 			return IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+@@ -272,15 +272,15 @@ sh_css_load_firmware(const char *fw_data,
+ 			if (err != IA_CSS_SUCCESS)
+ 				return err;
+ 		} else {
+-			/* All subsequent binaries (including bootloaders) (i>NUM_OF_SPS+NUM_OF_BLS) are ISP firmware */
+-			if (i < (NUM_OF_SPS + NUM_OF_BLS))
++			/* All subsequent binaries (including bootloaders) (i>NUM_OF_SPS) are ISP firmware */
++			if (i < NUM_OF_SPS)
+ 				return IA_CSS_ERR_INTERNAL_ERROR;
+ 
+ 			if (bi->type != ia_css_isp_firmware)
+ 				return IA_CSS_ERR_INTERNAL_ERROR;
+ 			if (sh_css_blob_info == NULL) /* cannot happen but KW does not see this */
+ 				return IA_CSS_ERR_INTERNAL_ERROR;
+-			sh_css_blob_info[i-(NUM_OF_SPS + NUM_OF_BLS)] = bd;
++			sh_css_blob_info[i - NUM_OF_SPS] = bd;
  		}
  	}
  
--	seq_puts(s, "\n");
-+	seq_putc(s, '\n');
- }
- 
- static void sync_print_obj(struct seq_file *s, struct sync_timeline *obj)
-@@ -161,7 +161,7 @@ static int sync_debugfs_show(struct seq_file *s, void *unused)
- 				     sync_timeline_list);
- 
- 		sync_print_obj(s, obj);
--		seq_puts(s, "\n");
-+		seq_putc(s, '\n');
- 	}
- 	spin_unlock_irqrestore(&sync_timeline_list_lock, flags);
- 
-@@ -173,7 +173,7 @@ static int sync_debugfs_show(struct seq_file *s, void *unused)
- 			container_of(pos, struct sync_file, sync_file_list);
- 
- 		sync_print_sync_file(s, sync_file);
--		seq_puts(s, "\n");
-+		seq_putc(s, '\n');
- 	}
- 	spin_unlock_irqrestore(&sync_file_list_lock, flags);
- 	return 0;
--- 
-2.12.2
