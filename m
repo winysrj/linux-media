@@ -1,67 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:39052 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750871AbdE1IXj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 May 2017 04:23:39 -0400
-Date: Sun, 28 May 2017 10:23:37 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH 03/16] lirc_dev: correct error handling
-Message-ID: <20170528082337.2hk4zwfi47xzjqea@hardeman.nu>
-References: <149365439677.12922.11872546284425440362.stgit@zeus.hardeman.nu>
- <149365463117.12922.15518669536847504845.stgit@zeus.hardeman.nu>
- <20170521085712.GA29355@gofer.mess.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46743 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S944923AbdEZUlU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 May 2017 16:41:20 -0400
+Date: Fri, 26 May 2017 22:41:02 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Subject: Re: [patch, libv4l]: add sdlcam example for testing digital still
+ camera functionality
+Message-ID: <20170526204102.GA22860@amd>
+References: <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+ <20170426105300.GA857@amd>
+ <20170426081330.6ca10e42@vento.lan>
+ <20170426132337.GA6482@amd>
+ <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
+ <20170508222819.GA14833@amd>
+ <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
+ <20170521103315.GA10716@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="yrj/dFKFPuw6o+aM"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170521085712.GA29355@gofer.mess.org>
+In-Reply-To: <20170521103315.GA10716@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, May 21, 2017 at 09:57:13AM +0100, Sean Young wrote:
->On Mon, May 01, 2017 at 06:03:51PM +0200, David Härdeman wrote:
->> If an error is generated, nonseekable_open() shouldn't be called.
->
->There is no harm in calling nonseekable_open(), so this commit is
->misleading.
 
-I'm not sure why you consider it misleading? If there's an error, the
-logic thing to do is to error out immediately and not do any further
-work?
+--yrj/dFKFPuw6o+aM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->> Signed-off-by: David Härdeman <david@hardeman.nu>
->> ---
->>  drivers/media/rc/lirc_dev.c |    6 ++++--
->>  1 file changed, 4 insertions(+), 2 deletions(-)
->> 
->> diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
->> index 05f600bd6c67..7f13ed479e1c 100644
->> --- a/drivers/media/rc/lirc_dev.c
->> +++ b/drivers/media/rc/lirc_dev.c
->> @@ -431,7 +431,7 @@ EXPORT_SYMBOL(lirc_unregister_driver);
->>  int lirc_dev_fop_open(struct inode *inode, struct file *file)
->>  {
->>  	struct irctl *ir;
->> -	int retval = 0;
->> +	int retval;
->>  
->>  	if (iminor(inode) >= MAX_IRCTL_DEVICES) {
->>  		pr_err("open result for %d is -ENODEV\n", iminor(inode));
->> @@ -475,9 +475,11 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
->>  
->>  	ir->open++;
->>  
->> -error:
->>  	nonseekable_open(inode, file);
->>  
->> +	return 0;
->> +
->> +error:
->>  	return retval;
->>  }
->>  EXPORT_SYMBOL(lirc_dev_fop_open);
+Hi!
 
--- 
-David Härdeman
+> Add simple SDL-based application for capturing photos. Manual
+> focus/gain/exposure can be set, flash can be controlled and
+> autofocus/autogain can be selected if camera supports that.
+>=20
+> It is already useful for testing autofocus/autogain improvements to
+> the libraries on Nokia N900.
+>=20
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+Could I get some feedback here, or get you to apply the patch?
+
+Thanks,
+								Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--yrj/dFKFPuw6o+aM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlkokt4ACgkQMOfwapXb+vI9fgCfZQ1W7FttW3QsmqXW73zx1y6u
+AQUAoLSK/XX9xTLn+yOk3RGYQGhTTw0P
+=Uo2F
+-----END PGP SIGNATURE-----
+
+--yrj/dFKFPuw6o+aM--
