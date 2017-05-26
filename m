@@ -1,132 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:40051 "EHLO mga14.intel.com"
+Received: from www.llwyncelyn.cymru ([82.70.14.225]:38422 "EHLO fuzix.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935733AbdEZIga (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 May 2017 04:36:30 -0400
-From: Jani Nikula <jani.nikula@intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-        Clint Taylor <clinton.a.taylor@intel.com>,
-        Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [RFC PATCH 5/7] drm/cec: Add CEC over Aux register definitions
-In-Reply-To: <20170525150626.29748-6-hverkuil@xs4all.nl>
-References: <20170525150626.29748-1-hverkuil@xs4all.nl> <20170525150626.29748-6-hverkuil@xs4all.nl>
-Date: Fri, 26 May 2017 11:39:53 +0300
-Message-ID: <87wp94m2p2.fsf@intel.com>
+        id S1030511AbdEZP3T (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 May 2017 11:29:19 -0400
+Subject: [PATCH 08/11] atomisp: Unify load_preview_binaries for the most part
+From: Alan Cox <alan@llwyncelyn.cymru>
+To: mchehab@kernel.org, linux-media@vger.kernel.org
+Date: Fri, 26 May 2017 16:29:15 +0100
+Message-ID: <149581254152.17585.17036659992372839972.stgit@builder>
+In-Reply-To: <149581243155.17585.8164899156710160858.stgit@builder>
+References: <149581243155.17585.8164899156710160858.stgit@builder>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 25 May 2017, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Clint Taylor <clinton.a.taylor@intel.com>
->
-> Adding DPCD register definitions from the DP 1.3 specification for CEC
-> over AUX support.
->
-> V2: Add DP_ prefix to all defines.
-> V3: missed prefixes from the ESI1 defines
->
-> Cc: Jani Nikula <jani.nikula@linux.intel.com>
->
-> Reviewed-by: Jani Nikula <jani.nikula@intel.com>
-> Signed-off-by: Clint Taylor <clinton.a.taylor@intel.com>
-> Signed-off-by: Jani Nikula <jani.nikula@intel.com>
-> Link: http://patchwork.freedesktop.org/patch/msgid/1492703263-11494-1-git-send-email-clinton.a.taylor@intel.com
+ISP2401 introduced a rather sensible change to cut through the structure
+spaghetti. Adopt that for the ISP2400 as well. It makes no difference to the
+actual code other than readability.
 
-This one's already in drm-next as
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
+ .../media/atomisp/pci/atomisp2/css2400/sh_css.c    |   40 +-------------------
+ 1 file changed, 1 insertion(+), 39 deletions(-)
 
-commit d753e41d475421543eaaea5f0feadba827f5fa01
-Author: Clint Taylor <clinton.a.taylor@intel.com>
-Date:   Thu Apr 20 08:47:43 2017 -0700
-
-    drm/cec: Add CEC over Aux register definitions
-
-BR,
-Jani.
-
-
-> ---
->  include/drm/drm_dp_helper.h | 59 +++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 59 insertions(+)
->
-> diff --git a/include/drm/drm_dp_helper.h b/include/drm/drm_dp_helper.h
-> index c0bd0d7651a9..3f4ad709534e 100644
-> --- a/include/drm/drm_dp_helper.h
-> +++ b/include/drm/drm_dp_helper.h
-> @@ -603,6 +603,9 @@
->  #define DP_DEVICE_SERVICE_IRQ_VECTOR_ESI0   0x2003   /* 1.2 */
->  
->  #define DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1   0x2004   /* 1.2 */
-> +# define DP_RX_GTC_MSTR_REQ_STATUS_CHANGE    (1 << 0)
-> +# define DP_LOCK_ACQUISITION_REQUEST         (1 << 1)
-> +# define DP_CEC_IRQ                          (1 << 2)
->  
->  #define DP_LINK_SERVICE_IRQ_VECTOR_ESI0     0x2005   /* 1.2 */
->  
-> @@ -636,6 +639,62 @@
->  # define DP_VSC_EXT_CEA_SDP_SUPPORTED			(1 << 6)  /* DP 1.4 */
->  # define DP_VSC_EXT_CEA_SDP_CHAINING_SUPPORTED		(1 << 7)  /* DP 1.4 */
->  
-> +/* HDMI CEC tunneling over AUX DP 1.3 section 5.3.3.3.1 DPCD 1.4+ */
-> +#define DP_CEC_TUNNELING_CAPABILITY            0x3000
-> +# define DP_CEC_TUNNELING_CAPABLE               (1 << 0)
-> +# define DP_CEC_SNOOPING_CAPABLE                (1 << 1)
-> +# define DP_CEC_MULTIPLE_LA_CAPABLE             (1 << 2)
-> +
-> +#define DP_CEC_TUNNELING_CONTROL               0x3001
-> +# define DP_CEC_TUNNELING_ENABLE                (1 << 0)
-> +# define DP_CEC_SNOOPING_ENABLE                 (1 << 1)
-> +
-> +#define DP_CEC_RX_MESSAGE_INFO                 0x3002
-> +# define DP_CEC_RX_MESSAGE_LEN_MASK             (0xf << 0)
-> +# define DP_CEC_RX_MESSAGE_LEN_SHIFT            0
-> +# define DP_CEC_RX_MESSAGE_HPD_STATE            (1 << 4)
-> +# define DP_CEC_RX_MESSAGE_HPD_LOST             (1 << 5)
-> +# define DP_CEC_RX_MESSAGE_ACKED                (1 << 6)
-> +# define DP_CEC_RX_MESSAGE_ENDED                (1 << 7)
-> +
-> +#define DP_CEC_TX_MESSAGE_INFO                 0x3003
-> +# define DP_CEC_TX_MESSAGE_LEN_MASK             (0xf << 0)
-> +# define DP_CEC_TX_MESSAGE_LEN_SHIFT            0
-> +# define DP_CEC_TX_RETRY_COUNT_MASK             (0x7 << 4)
-> +# define DP_CEC_TX_RETRY_COUNT_SHIFT            4
-> +# define DP_CEC_TX_MESSAGE_SEND                 (1 << 7)
-> +
-> +#define DP_CEC_TUNNELING_IRQ_FLAGS             0x3004
-> +# define DP_CEC_RX_MESSAGE_INFO_VALID           (1 << 0)
-> +# define DP_CEC_RX_MESSAGE_OVERFLOW             (1 << 1)
-> +# define DP_CEC_TX_MESSAGE_SENT                 (1 << 4)
-> +# define DP_CEC_TX_LINE_ERROR                   (1 << 5)
-> +# define DP_CEC_TX_ADDRESS_NACK_ERROR           (1 << 6)
-> +# define DP_CEC_TX_DATA_NACK_ERROR              (1 << 7)
-> +
-> +#define DP_CEC_LOGICAL_ADDRESS_MASK            0x300E /* 0x300F word */
-> +# define DP_CEC_LOGICAL_ADDRESS_0               (1 << 0)
-> +# define DP_CEC_LOGICAL_ADDRESS_1               (1 << 1)
-> +# define DP_CEC_LOGICAL_ADDRESS_2               (1 << 2)
-> +# define DP_CEC_LOGICAL_ADDRESS_3               (1 << 3)
-> +# define DP_CEC_LOGICAL_ADDRESS_4               (1 << 4)
-> +# define DP_CEC_LOGICAL_ADDRESS_5               (1 << 5)
-> +# define DP_CEC_LOGICAL_ADDRESS_6               (1 << 6)
-> +# define DP_CEC_LOGICAL_ADDRESS_7               (1 << 7)
-> +#define DP_CEC_LOGICAL_ADDRESS_MASK_2          0x300F /* 0x300E word */
-> +# define DP_CEC_LOGICAL_ADDRESS_8               (1 << 0)
-> +# define DP_CEC_LOGICAL_ADDRESS_9               (1 << 1)
-> +# define DP_CEC_LOGICAL_ADDRESS_10              (1 << 2)
-> +# define DP_CEC_LOGICAL_ADDRESS_11              (1 << 3)
-> +# define DP_CEC_LOGICAL_ADDRESS_12              (1 << 4)
-> +# define DP_CEC_LOGICAL_ADDRESS_13              (1 << 5)
-> +# define DP_CEC_LOGICAL_ADDRESS_14              (1 << 6)
-> +# define DP_CEC_LOGICAL_ADDRESS_15              (1 << 7)
-> +
-> +#define DP_CEC_RX_MESSAGE_BUFFER               0x3010
-> +#define DP_CEC_TX_MESSAGE_BUFFER               0x3020
-> +#define DP_CEC_MESSAGE_BUFFER_LENGTH             0x10
-> +
->  /* DP 1.2 Sideband message defines */
->  /* peer device type - DP 1.2a Table 2-92 */
->  #define DP_PEER_DEVICE_NONE		0x0
-
--- 
-Jani Nikula, Intel Open Source Technology Center
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+index 8e1cd12..55d2a69 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+@@ -2923,11 +2923,8 @@ load_preview_binaries(struct ia_css_pipe *pipe)
+ #endif
+ 	/* preview only have 1 output pin now */
+ 	struct ia_css_frame_info *pipe_out_info = &pipe->output_info[0];
+-#ifdef ISP2401
+ 	struct ia_css_preview_settings *mycs  = &pipe->pipe_settings.preview;
+ 
+-#endif
+-
+ 	IA_CSS_ENTER_PRIVATE("");
+ 	assert(pipe != NULL);
+ 	assert(pipe->stream != NULL);
+@@ -2939,11 +2936,7 @@ load_preview_binaries(struct ia_css_pipe *pipe)
+ 	sensor = pipe->stream->config.mode == IA_CSS_INPUT_MODE_SENSOR;
+ #endif
+ 
+-#ifndef ISP2401
+-	if (pipe->pipe_settings.preview.preview_binary.info)
+-#else
+ 	if (mycs->preview_binary.info)
+-#endif
+ 		return IA_CSS_SUCCESS;
+ 
+ 	err = ia_css_util_check_input(&pipe->stream->config, false, false);
+@@ -2996,12 +2989,7 @@ load_preview_binaries(struct ia_css_pipe *pipe)
+ 			&prev_vf_info);
+ 	if (err != IA_CSS_SUCCESS)
+ 		return err;
+-	err = ia_css_binary_find(&preview_descr,
+-#ifndef ISP2401
+-				 &pipe->pipe_settings.preview.preview_binary);
+-#else
+-				 &mycs->preview_binary);
+-#endif
++	err = ia_css_binary_find(&preview_descr, &mycs->preview_binary);
+ 	if (err != IA_CSS_SUCCESS)
+ 		return err;
+ 
+@@ -3017,24 +3005,15 @@ load_preview_binaries(struct ia_css_pipe *pipe)
+ 
+ #endif
+ 	/* The vf_pp binary is needed when (further) YUV downscaling is required */
+-#ifndef ISP2401
+-	need_vf_pp |= pipe->pipe_settings.preview.preview_binary.out_frame_info[0].res.width != pipe_out_info->res.width;
+-	need_vf_pp |= pipe->pipe_settings.preview.preview_binary.out_frame_info[0].res.height != pipe_out_info->res.height;
+-#else
+ 	need_vf_pp |= mycs->preview_binary.out_frame_info[0].res.width != pipe_out_info->res.width;
+ 	need_vf_pp |= mycs->preview_binary.out_frame_info[0].res.height != pipe_out_info->res.height;
+-#endif
+ 
+ 	/* When vf_pp is needed, then the output format of the selected
+ 	 * preview binary must be yuv_line. If this is not the case,
+ 	 * then the preview binary selection is done again.
+ 	 */
+ 	if (need_vf_pp &&
+-#ifndef ISP2401
+-		(pipe->pipe_settings.preview.preview_binary.out_frame_info[0].format != IA_CSS_FRAME_FORMAT_YUV_LINE)) {
+-#else
+ 		(mycs->preview_binary.out_frame_info[0].format != IA_CSS_FRAME_FORMAT_YUV_LINE)) {
+-#endif
+ 
+ 		/* Preview step 2 */
+ 		if (pipe->vf_yuv_ds_input_info.res.width)
+@@ -3055,11 +3034,7 @@ load_preview_binaries(struct ia_css_pipe *pipe)
+ 		if (err != IA_CSS_SUCCESS)
+ 			return err;
+ 		err = ia_css_binary_find(&preview_descr,
+-#ifndef ISP2401
+-				&pipe->pipe_settings.preview.preview_binary);
+-#else
+ 				&mycs->preview_binary);
+-#endif
+ 		if (err != IA_CSS_SUCCESS)
+ 			return err;
+ 	}
+@@ -3069,18 +3044,10 @@ load_preview_binaries(struct ia_css_pipe *pipe)
+ 
+ 		/* Viewfinder post-processing */
+ 		ia_css_pipe_get_vfpp_binarydesc(pipe, &vf_pp_descr,
+-#ifndef ISP2401
+-			&pipe->pipe_settings.preview.preview_binary.out_frame_info[0],
+-#else
+ 			&mycs->preview_binary.out_frame_info[0],
+-#endif
+ 			pipe_out_info);
+ 		err = ia_css_binary_find(&vf_pp_descr,
+-#ifndef ISP2401
+-				 &pipe->pipe_settings.preview.vf_pp_binary);
+-#else
+ 				 &mycs->vf_pp_binary);
+-#endif
+ 		if (err != IA_CSS_SUCCESS)
+ 			return err;
+ 	}
+@@ -3106,13 +3073,8 @@ load_preview_binaries(struct ia_css_pipe *pipe)
+ 	/* Copy */
+ 	if (need_isp_copy_binary) {
+ 		err = load_copy_binary(pipe,
+-#ifndef ISP2401
+-				       &pipe->pipe_settings.preview.copy_binary,
+-				       &pipe->pipe_settings.preview.preview_binary);
+-#else
+ 				       &mycs->copy_binary,
+ 				       &mycs->preview_binary);
+-#endif
+ 		if (err != IA_CSS_SUCCESS)
+ 			return err;
+ 	}
