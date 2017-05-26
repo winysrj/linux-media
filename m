@@ -1,84 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.14]:46998 "EHLO imap.netup.ru"
+Received: from mga05.intel.com ([192.55.52.43]:19675 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751096AbdEaL5w (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 07:57:52 -0400
-Received: from mail-oi0-f51.google.com (mail-oi0-f51.google.com [209.85.218.51])
-        by imap.netup.ru (Postfix) with ESMTPSA id 8F0A78B3E6D
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 14:57:50 +0300 (MSK)
-Received: by mail-oi0-f51.google.com with SMTP id l18so12140903oig.2
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 04:57:50 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170409193828.18458-7-d.scheller.oss@gmail.com>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com> <20170409193828.18458-7-d.scheller.oss@gmail.com>
-From: Abylay Ospan <aospan@netup.ru>
-Date: Wed, 31 May 2017 07:57:28 -0400
-Message-ID: <CAK3bHNVwBE6WWH07dZeUO5PbdTBrg3szZwcRPWvo7SuXDkYmOQ@mail.gmail.com>
-Subject: Re: [PATCH 06/19] [media] dvb-frontends/cxd2841er: add variable for
- configuration flags
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: Kozlov Sergey <serjk@netup.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>, rjkm@metzlerbros.de
-Content-Type: text/plain; charset="UTF-8"
+        id S1762765AbdEZIWt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 May 2017 04:22:49 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: chiranjeevi.rapolu@intel.com
+Subject: [PATCH 1/1] v4l2-ctrls.c: Implement unlocked variant of v4l2_ctrl_handler_setup()
+Date: Fri, 26 May 2017 11:21:37 +0300
+Message-Id: <1495786897-29085-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Abylay Ospan <aospan@netup.ru>
+Sometimes the caller is already holding the control handler mutex and
+using it to serialise something. Provide an unlocked variant of the same
+function to be used in those cases.
 
-2017-04-09 15:38 GMT-04:00 Daniel Scheller <d.scheller.oss@gmail.com>:
-> From: Daniel Scheller <d.scheller@gmx.net>
->
-> Throughout the patch series some configuration flags will be added to the
-> demod driver. This patch prepares this by adding the flags var to
-> struct cxd2841er_config, which will serve as a bitmask to toggle various
-> options and behaviour in the driver.
->
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
->  drivers/media/dvb-frontends/cxd2841er.c | 2 ++
->  drivers/media/dvb-frontends/cxd2841er.h | 1 +
->  2 files changed, 3 insertions(+)
->
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-> index 6648bd1..f49a09b 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.c
-> +++ b/drivers/media/dvb-frontends/cxd2841er.c
-> @@ -65,6 +65,7 @@ struct cxd2841er_priv {
->         u8                              system;
->         enum cxd2841er_xtal             xtal;
->         enum fe_caps caps;
-> +       u32                             flags;
->  };
->
->  static const struct cxd2841er_cnr_data s_cn_data[] = {
-> @@ -3736,6 +3737,7 @@ static struct dvb_frontend *cxd2841er_attach(struct cxd2841er_config *cfg,
->         priv->i2c_addr_slvx = (cfg->i2c_addr + 4) >> 1;
->         priv->i2c_addr_slvt = (cfg->i2c_addr) >> 1;
->         priv->xtal = cfg->xtal;
-> +       priv->flags = cfg->flags;
->         priv->frontend.demodulator_priv = priv;
->         dev_info(&priv->i2c->dev,
->                 "%s(): I2C adapter %p SLVX addr %x SLVT addr %x\n",
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.h b/drivers/media/dvb-frontends/cxd2841er.h
-> index 7f1acfb..2fb8b38 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.h
-> +++ b/drivers/media/dvb-frontends/cxd2841er.h
-> @@ -33,6 +33,7 @@ enum cxd2841er_xtal {
->  struct cxd2841er_config {
->         u8      i2c_addr;
->         enum cxd2841er_xtal     xtal;
-> +       u32     flags;
->  };
->
->  #if IS_REACHABLE(CONFIG_DVB_CXD2841ER)
-> --
-> 2.10.2
->
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 21 +++++++++++++++++++--
+ include/media/v4l2-ctrls.h           | 13 +++++++++++++
+ 2 files changed, 32 insertions(+), 2 deletions(-)
 
-
-
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index ec42872..dec55d5 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2444,14 +2444,16 @@ int v4l2_ctrl_subdev_log_status(struct v4l2_subdev *sd)
+ EXPORT_SYMBOL(v4l2_ctrl_subdev_log_status);
+ 
+ /* Call s_ctrl for all controls owned by the handler */
+-int v4l2_ctrl_handler_setup(struct v4l2_ctrl_handler *hdl)
++int __v4l2_ctrl_handler_setup(struct v4l2_ctrl_handler *hdl)
+ {
+ 	struct v4l2_ctrl *ctrl;
+ 	int ret = 0;
+ 
+ 	if (hdl == NULL)
+ 		return 0;
+-	mutex_lock(hdl->lock);
++
++	lockdep_assert_held(hdl->lock);
++
+ 	list_for_each_entry(ctrl, &hdl->ctrls, node)
+ 		ctrl->done = false;
+ 
+@@ -2476,7 +2478,22 @@ int v4l2_ctrl_handler_setup(struct v4l2_ctrl_handler *hdl)
+ 		if (ret)
+ 			break;
+ 	}
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(__v4l2_ctrl_handler_setup);
++
++int v4l2_ctrl_handler_setup(struct v4l2_ctrl_handler *hdl)
++{
++	int ret;
++
++	if (hdl == NULL)
++		return 0;
++
++	mutex_lock(hdl->lock);
++	ret = __v4l2_ctrl_handler_setup(hdl);
+ 	mutex_unlock(hdl->lock);
++
+ 	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_handler_setup);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index bee1404..2d2aed5 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -458,6 +458,19 @@ static inline void v4l2_ctrl_unlock(struct v4l2_ctrl *ctrl)
+ }
+ 
+ /**
++ * __v4l2_ctrl_handler_setup() - Call the s_ctrl op for all controls belonging
++ * to the handler to initialize the hardware to the current control values. The
++ * caller is responsible for acquiring the control handler mutex on behalf of
++ * __v4l2_ctrl_handler_setup().
++ * @hdl:	The control handler.
++ *
++ * Button controls will be skipped, as are read-only controls.
++ *
++ * If @hdl == NULL, then this just returns 0.
++ */
++int __v4l2_ctrl_handler_setup(struct v4l2_ctrl_handler *hdl);
++
++/**
+  * v4l2_ctrl_handler_setup() - Call the s_ctrl op for all controls belonging
+  * to the handler to initialize the hardware to the current control values.
+  * @hdl:	The control handler.
 -- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+2.7.4
