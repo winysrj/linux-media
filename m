@@ -1,54 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36242 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750797AbdE1McJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 May 2017 08:32:09 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: [PATCH 7/7] staging: atomisp: Make ov2680 driver less chatty
-Date: Sun, 28 May 2017 14:31:53 +0200
-Message-Id: <20170528123153.18613-7-hdegoede@redhat.com>
-In-Reply-To: <20170528123153.18613-1-hdegoede@redhat.com>
-References: <20170528123153.18613-1-hdegoede@redhat.com>
+Received: from mail-oln040092065053.outbound.protection.outlook.com ([40.92.65.53]:14208
+        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750952AbdE0Pii (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 27 May 2017 11:38:38 -0400
+From: Christian Steiner <christian.steiner@outlook.de>
+To: Olli Salonen <olli.salonen@iki.fi>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "brad@nextdimension.cc" <brad@nextdimension.cc>
+Subject: Re: Fwd: [PATCH] em28xx: add support for Hauppauge WinTV-dualHD DVB
+ tuner
+Date: Sat, 27 May 2017 15:38:35 +0000
+Message-ID: <VI1P194MB004719DAD98521F900F5D11191FD0@VI1P194MB0047.EURP194.PROD.OUTLOOK.COM>
+References: <1459782772-21451-1-git-send-email-olli.salonen@iki.fi>
+ <570A6FED.4090700@outlook.de>
+ <CAAZRmGy1=8UXe0WqpucCt0qUfZQS+NHsHYmAq3yKu_pxK38yTw@mail.gmail.com>
+ <CAAZRmGzXcHz21m4yL4rFOpippzLq07nYsenwTvUgqkhbRJ8X4w@mail.gmail.com>
+In-Reply-To: <CAAZRmGzXcHz21m4yL4rFOpippzLq07nYsenwTvUgqkhbRJ8X4w@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <DA56F9EEE7AF0746A9723497192721A1@EURP194.PROD.OUTLOOK.COM>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no reason for all this printk spamming and certainly
-not at an error log level.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/staging/media/atomisp/i2c/ov2680.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/staging/media/atomisp/i2c/ov2680.c b/drivers/staging/media/atomisp/i2c/ov2680.c
-index 6dd466558701..3cabfe54c669 100644
---- a/drivers/staging/media/atomisp/i2c/ov2680.c
-+++ b/drivers/staging/media/atomisp/i2c/ov2680.c
-@@ -1191,9 +1191,8 @@ static int ov2680_detect(struct i2c_client *client)
- 					OV2680_SC_CMMN_SUB_ID, &high);
- 	revision = (u8) high & 0x0f;
- 
--	dev_err(&client->dev, "sensor_revision id  = 0x%x\n", id);
--	dev_err(&client->dev, "detect ov2680 success\n");
--	dev_err(&client->dev, "################5##########\n");
-+	dev_info(&client->dev, "sensor_revision id = 0x%x\n", id);
-+
- 	return 0;
- }
- 
-@@ -1448,8 +1447,6 @@ static int ov2680_probe(struct i2c_client *client,
- 	void *pdata;
- 	unsigned int i;
- 
--	printk("++++ov2680_probe++++\n");
--	dev_info(&client->dev, "++++ov2680_probe++++\n");
- 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
- 	if (!dev) {
- 		dev_err(&client->dev, "out of memory\n");
--- 
-2.13.0
+SGVsbG8sDQoNCkkgaGF2ZSBmb3VuZCBwYXRjaGVzIHRoYXQgYWRkIHN1cHBvcnQgZm9yIHRoZSBz
+ZWNvbmQgdHVuZXI6DQpodHRwczovL2dpdGh1Yi5jb20vYi1yYWQtTkRpL1VidW50dS1tZWRpYS10
+cmVlLWtlcm5lbC1idWlsZGVyL3RyZWUvbWFzdGVyL3BhdGNoZXMvdWJ1bnR1LXplc3R5LTQuMTAu
+MC9leHRyYQ0KDQpJIGNhbiBjb25maXJtIHRoYXQgdGhleSBhbHNvIHdvcmsgd2l0aCB0aGUgbGF0
+ZXN0IGtlcm5lbCAoNC4xMi4wLXJjMikuDQpXb3VsZCBpdCBiZSBwb3NzaWJsZSB0byBpbnRlZ3Jh
+dGUgdGhlc2UgcGF0Y2hlcyBpbnRvIG1haW5saW5lPw0KQXBwbHlpbmcgMDAwNi1IYXVwcGF1Z2Ut
+V2luVFYtRHVhbEhELURWQi1BVFNDLXNlY29uZC10dW5lci1zdXBwb3J0LnBhdGNoDQppcyBzdWZm
+aWNpZW50IGZvciB0aGUgc2Vjb25kIHR1bmVyIHRvIGFwcGVhciwgYnV0IEkgZ3Vlc3Mgd2Ugc2hv
+dWxkDQppbmNsdWRlIGFsbCBwYXRjaGVzLg0KDQpCZXN0IHJlZ2FyZHMsDQpDaHJpc3RpYW4NCg0K
+DQpPbiAxMS4wNC4yMDE2IDExOjE0LCBPbGxpIFNhbG9uZW4gd3JvdGU6DQo+IEhpIENocmlzdGlh
+biwNCj4gDQo+IFRoYW5rcyBmb3IgcmVwb3J0aW5nIGJhY2sgeW91ciBleHBlcmllbmNlLiBDZXJ0
+YWlubHkgdGhlcmUncyBhIGNoYW5jZQ0KPiBvZiBzdXBwb3J0aW5nIHRoZSBzZWNvbmQgdHVuZXIg
+dG9vLiBUaGVyZSBhcmUgc3RpbGwgdHdvIGlzc3VlcyB0aGF0IEkNCj4gaGF2ZSBub3Qgc29sdmVk
+Og0KPiANCj4gMS4gSSBoYXZlbid0IGdvdHRlbiB0aGUgMm5kIHR1bmVyIHdvcmtpbmcgeWV0IChh
+bG9uZSwgd2l0aG91dCB0aGUNCj4gZmlyc3QgdHVuZXIpLCBldmVuIGlmIEkgdGhpbmsgYWxsIHRo
+ZSBwaWVjZXMgb2YgdGhlIHB1enpsZSBhcmUgdGhlcmUuDQo+IDIuIGVtMjh4eCBkcml2ZXIgaXMg
+YnVpbHQgd2l0aCBvbmUgdHVuZXIgaW4gbWluZCBhbmQgbmVlZHMgc2lnbmlmaWNhbnQNCj4gc3Ry
+dWN0dXJhbCBjaGFuZ2VzLiBJZiB0aGVyZSdzIGFueW9uZSB2ZXJ5IGZhbWlsaWFyIHdpdGggdGhl
+IGVtMjh4eA0KPiBkcml2ZXIgaGVyZSwgSSdkIGJlIGhhcHB5IHRvIGhlYXIgeW91ciBpZGVhIG9m
+IHdoYXQgaXMgZW50YWlsZWQgZm9yDQo+IHRoaXMuDQo+IA0KPiBDaGVlcnMsDQo+IC1vbGxpDQo+
+IA0KPiBPbiAxMCBBcHJpbCAyMDE2IGF0IDE4OjIzLCBDaHJpc3RpYW4gU3RlaW5lcg0KPiA8Y2hy
+aXN0aWFuLnN0ZWluZXJAb3V0bG9vay5kZT4gd3JvdGU6DQo+Pg0KPj4gT24gMDQuMDQuMjAxNiAx
+NzoxMiwgT2xsaSBTYWxvbmVuIHdyb3RlOg0KPj4+IEhhdXBwYXVnZSBXaW5UVi1kdWFsSEQgaXMg
+YSBVU0IgMi4wIGR1YWwgRFZCLVQvVDIvQyB0dW5lciB3aXRoDQo+Pj4gZm9sbG93aW5nIGNvbXBv
+bmVudHM6DQo+Pj4NCj4+PiBVU0IgYnJpZGdlOiBFbXBpYSBFTTI4Mjc0IChjaGlwIGlkIGlzIHRo
+ZSBzYW1lIGFzIEVNMjgxNzQpDQo+Pj4gRGVtb2R1bGF0b3I6IDJ4IFNpbGljb24gTGFicyBTaTIx
+NjgtQjQwDQo+Pj4gVHVuZXI6IDJ4IFNpbGljb24gTGFicyBTaTIxNTctQTMwDQo+Pj4NCj4+PiBU
+aGlzIHBhdGNoIGFkZHMgc3VwcG9ydCBvbmx5IGZvciB0aGUgZmlyc3QgdHVuZXIuDQo+Pj4NCj4+
+PiBbLi4uXQ0KPj4NCj4+IFRoYW5rIHlvdSB2ZXJ5IG11Y2ghDQo+PiBXb3JrcyBmaW5lIGZvciBt
+ZToNCj4+DQo+Pj4gWyAgNDE5LjQxMzE4OF0gZW0yOHh4OiBOZXcgZGV2aWNlIEhDVyBkdWFsSEQg
+QCA0ODAgTWJwcyAoMjA0MDowMjY1LCBpbnRlcmZhY2UgMCwgY2xhc3MgMCkNCj4+PiBbICA0MTku
+NDEzMTk1XSBlbTI4eHg6IERWQiBpbnRlcmZhY2UgMCBmb3VuZDogaXNvYw0KPj4+IFsgIDQxOS40
+MTMyNjVdIGVtMjh4eDogY2hpcCBJRCBpcyBlbTI4MTc0DQo+Pj4gWyAgNDIwLjUyOTYxOV0gZW0y
+ODE3NCAjMDogRUVQUk9NIElEID0gMjYgMDAgMDEgMDAsIEVFUFJPTSBoYXNoID0gMHg3YWRkYzFj
+OA0KPj4+IFsgIDQyMC41Mjk2MjZdIGVtMjgxNzQgIzA6IEVFUFJPTSBpbmZvOg0KPj4+IFsgIDQy
+MC41Mjk2MzBdIGVtMjgxNzQgIzA6ICAgICAgbWljcm9jb2RlIHN0YXJ0IGFkZHJlc3MgPSAweDAw
+MDQsIGJvb3QgY29uZmlndXJhdGlvbiA9IDB4MDENCj4+PiBbICA0MjAuNTM2MDc3XSBlbTI4MTc0
+ICMwOiAgICAgIEFDOTcgYXVkaW8gKDUgc2FtcGxlIHJhdGVzKQ0KPj4+IFsgIDQyMC41MzYwODRd
+IGVtMjgxNzQgIzA6ICAgICAgNTAwbUEgbWF4IHBvd2VyDQo+Pj4gWyAgNDIwLjUzNjA4OV0gZW0y
+ODE3NCAjMDogICAgICBUYWJsZSBhdCBvZmZzZXQgMHgyNywgc3RyaW5ncz0weDBlNmEsIDB4MTg4
+OCwgMHgwODdlDQo+Pj4gWyAgNDIwLjUzNjE4OF0gZW0yODE3NCAjMDogSWRlbnRpZmllZCBhcyBI
+YXVwcGF1Z2UgV2luVFYtZHVhbEhEIERWQiAoY2FyZD05OCkNCj4+PiBbICA0MjAuNTM3OTc0XSB0
+dmVlcHJvbSA4LTAwNTA6IEhhdXBwYXVnZSBtb2RlbCAyMDQxMDksIHJldiBCMkk2LCBzZXJpYWwj
+IDExWFhYWFhYDQo+Pj4gWyAgNDIwLjUzNzk4MV0gdHZlZXByb20gOC0wMDUwOiB0dW5lciBtb2Rl
+bCBpcyBTaUxhYnMgU2kyMTU3IChpZHggMTg2LCB0eXBlIDQpDQo+Pj4gWyAgNDIwLjUzNzk4Nl0g
+dHZlZXByb20gOC0wMDUwOiBUViBzdGFuZGFyZHMgUEFMKEIvRykgTlRTQyhNKSBQQUwoSSkgU0VD
+QU0oTC9MJykgUEFMKEQvRDEvSykgQVRTQy9EVkIgRGlnaXRhbCAoZWVwcm9tIDB4ZmMpDQo+Pj4g
+WyAgNDIwLjUzNzk4OV0gdHZlZXByb20gOC0wMDUwOiBhdWRpbyBwcm9jZXNzb3IgaXMgTm9uZSAo
+aWR4IDApDQo+Pj4gWyAgNDIwLjUzNzk5M10gdHZlZXByb20gOC0wMDUwOiBoYXMgbm8gcmFkaW8s
+IGhhcyBJUiByZWNlaXZlciwgaGFzIG5vIElSIHRyYW5zbWl0dGVyDQo+Pj4gWyAgNDIwLjUzNzk5
+N10gZW0yODE3NCAjMDogZHZiIHNldCB0byBpc29jIG1vZGUuDQo+Pj4gWyAgNDIwLjUzODA1Nl0g
+dXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBlbTI4eHgNCj4+PiBbICA0
+MjAuNTQxMDg3XSBlbTI4MTc0ICMwOiBCaW5kaW5nIERWQiBleHRlbnNpb24NCj4+PiBbICA0MjAu
+NTQ0MDA4XSBpMmMgaTJjLTg6IEFkZGVkIG11bHRpcGxleGVkIGkyYyBidXMgOQ0KPj4+IFsgIDQy
+MC41NDQwMTZdIHNpMjE2OCA4LTAwNjQ6IFNpbGljb24gTGFicyBTaTIxNjggc3VjY2Vzc2Z1bGx5
+IGF0dGFjaGVkDQo+Pj4gWyAgNDIwLjU0ODM3Ml0gc2kyMTU3IDktMDA2MDogU2lsaWNvbiBMYWJz
+IFNpMjE0Ny8yMTQ4LzIxNTcvMjE1OCBzdWNjZXNzZnVsbHkgYXR0YWNoZWQNCj4+PiBbICA0MjAu
+NTQ4Mzg5XSBEVkI6IHJlZ2lzdGVyaW5nIG5ldyBhZGFwdGVyIChlbTI4MTc0ICMwKQ0KPj4+IFsg
+IDQyMC41NDgzOTZdIHVzYiAyLTI6IERWQjogcmVnaXN0ZXJpbmcgYWRhcHRlciAwIGZyb250ZW5k
+IDAgKFNpbGljb24gTGFicyBTaTIxNjgpLi4uDQo+Pj4gWyAgNDIwLjU0OTczN10gZW0yODE3NCAj
+MDogRFZCIGV4dGVuc2lvbiBzdWNjZXNzZnVsbHkgaW5pdGlhbGl6ZWQNCj4+PiBbICA0MjAuNTQ5
+NzQzXSBlbTI4eHg6IFJlZ2lzdGVyZWQgKEVtMjh4eCBkdmIgRXh0ZW5zaW9uKSBleHRlbnNpb24N
+Cj4+PiBbICA0MzUuNDE4Nzk4XSBzaTIxNjggOC0wMDY0OiBmb3VuZCBhICdTaWxpY29uIExhYnMg
+U2kyMTY4LUI0MCcNCj4+PiBbICA0MzUuNDE4ODIzXSBzaTIxNjggOC0wMDY0OiBkb3dubG9hZGlu
+ZyBmaXJtd2FyZSBmcm9tIGZpbGUgJ2R2Yi1kZW1vZC1zaTIxNjgtYjQwLTAxLmZ3Jw0KPj4+IFsg
+IDQzNS42MTcxODFdIHNpMjE2OCA4LTAwNjQ6IGZpcm13YXJlIHZlcnNpb246IDQuMC4xMQ0KPj4+
+IFsgIDQzNS42MTk3OTFdIHNpMjE1NyA5LTAwNjA6IGZvdW5kIGEgJ1NpbGljb24gTGFicyBTaTIx
+NTctQTMwJw0KPj4+IFsgIDQzNS42NDIwMDZdIHNpMjE1NyA5LTAwNjA6IGZpcm13YXJlIHZlcnNp
+b246IDMuMC41DQo+Pg0KPj4gKEkgaGF2ZSByZXBsYWNlZCB0aGUgbGFzdCBkaWdpdHMgb2YgdGhl
+IHNlcmlhbCBudW1iZXIgd2l0aCBYKQ0KPj4NCj4+IElzIHRoZXJlIGFueSBjaGFuY2UgdG8gYWRk
+IHN1cHBvcnQgZm9yIHRoZSBzZWNvbmQgdHVuZXIsIHRvbz8NCj4+IFRoaXMgd291bGQgYmUgYXdl
+c29tZS4NCj4+DQo+PiBCZXN0LA0KPj4gQ2hyaXN0aWFuDQo+Pg0KDQo=
