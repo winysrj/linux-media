@@ -1,51 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:18904 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752410AbdEEPcM (ORCPT
+Received: from mxout017.mail.hostpoint.ch ([217.26.49.177]:14329 "EHLO
+        mxout017.mail.hostpoint.ch" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750802AbdE1TiY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 May 2017 11:32:12 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v5 7/8] ARM: configs: stm32: STMPE1600 GPIO expander
-Date: Fri, 5 May 2017 17:31:26 +0200
-Message-ID: <1493998287-5828-8-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1493998287-5828-1-git-send-email-hugues.fruchet@st.com>
-References: <1493998287-5828-1-git-send-email-hugues.fruchet@st.com>
+        Sun, 28 May 2017 15:38:24 -0400
+Subject: Re: Build fails Ubuntu 17.04 / "error: implicit declaration of
+ function"
+To: Karl Wallin <karl.wallin.86@gmail.com>, linux-media@vger.kernel.org
+References: <CAML3znFcKR9wx3wvjBDeQLn7mbtkhU0Knn56cMrXek6H-mTUjQ@mail.gmail.com>
+ <9102e964-8143-edd7-3a82-014ae0d29d48@kaiser-linux.li>
+ <CAML3znHkCFrtQqXvZkCwiMGNkRdSAnHBDTvfeoaQdtq8kRMkQQ@mail.gmail.com>
+From: Thomas Kaiser <thomas@kaiser-linux.li>
+Message-ID: <48f09c13-817b-f496-0721-b2bf8533d3d3@kaiser-linux.li>
+Date: Sun, 28 May 2017 21:14:18 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <CAML3znHkCFrtQqXvZkCwiMGNkRdSAnHBDTvfeoaQdtq8kRMkQQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable STMPE1600 GPIO expander.
+On 28.05.2017 21:06, Karl Wallin wrote:
+> Hi Thomas,
+> 
+> Thanks for the help (and to Vincent as well) :)
+> 
+> In "/home/ubuntu/media_build/v4l/cec-core.c" changed row 142 from:
+> "ret = cdev_device_add(&devnode->cdev, &devnode->dev);" to:
+> "ret = device_add(&devnode->dev);"
+> and row 186 from:
+> "cdev_device_del(&devnode->cdev, &devnode->dev);" to:
+> "device_del(&devnode->dev);"
+> 
+> Even if I do that when I try to build it again (using ./build) it
+> seems to reload / revert the cec-core.c to the original file since I
+> still get these errors even though I saved the changes in Notepadqq:
+> "/home/ubuntu/media_build/v4l/cec-core.c:142:8: error: implicit
+> declaration of function 'cdev_device_add'
+> [-Werror=implicit-function-declaration]
+>    ret = cdev_device_add(&devnode->cdev, &devnode->dev);"
+> and
+> "/home/ubuntu/media_build/v4l/cec-core.c:186:2: error: implicit
+> declaration of function 'cdev_device_del'
+> [-Werror=implicit-function-declaration]
+>    cdev_device_del(&devnode->cdev, &devnode->dev);"
+> 
+> I am probably missing something here since it worked for you, would be
+> grateful for your help :)
+> 
+> /Karl
+> Med vänlig hälsning / Best Regards - Karl Wallin
+> 
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- arch/arm/configs/stm32_defconfig | 2 ++
- 1 file changed, 2 insertions(+)
+Hi Karl
 
-diff --git a/arch/arm/configs/stm32_defconfig b/arch/arm/configs/stm32_defconfig
-index a9d8e3c..84adc88 100644
---- a/arch/arm/configs/stm32_defconfig
-+++ b/arch/arm/configs/stm32_defconfig
-@@ -49,6 +49,8 @@ CONFIG_SERIAL_STM32_CONSOLE=y
- # CONFIG_HW_RANDOM is not set
- # CONFIG_HWMON is not set
- CONFIG_REGULATOR=y
-+CONFIG_GPIO_STMPE=y
-+CONFIG_MFD_STMPE=y
- CONFIG_REGULATOR_FIXED_VOLTAGE=y
- # CONFIG_USB_SUPPORT is not set
- CONFIG_NEW_LEDS=y
--- 
-1.9.1
+The build downloads the latest source and overwrites your change (I think?)
+
+I used "make" to compile.
+
+After your have run the build script. Do the changes as you have described above. Run "make" to compile and "sudo make install" to install. This should do the trick.
+
+Thomas
