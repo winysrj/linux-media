@@ -1,100 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:58707 "EHLO mout.gmx.net"
+Received: from mx1.redhat.com ([209.132.183.28]:59068 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750739AbdETML5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 20 May 2017 08:11:57 -0400
-Received: from mail-yw0-f170.google.com ([209.85.161.170]) by mail.gmx.com
- (mrgmx002 [212.227.17.184]) with ESMTPSA (Nemesis) id
- 0MMBun-1dK1SR2ghR-007yZb for <linux-media@vger.kernel.org>; Sat, 20 May 2017
- 14:11:54 +0200
-Received: by mail-yw0-f170.google.com with SMTP id l74so44382882ywe.2
-        for <linux-media@vger.kernel.org>; Sat, 20 May 2017 05:11:54 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201205092112.02807.linux@rainbow-software.org>
-References: <201205092112.02807.linux@rainbow-software.org>
-From: Christopher Chavez <chrischavez@gmx.us>
-Date: Sat, 20 May 2017 07:11:33 -0500
-Message-ID: <CAAFQ00nD8Z+qhYCbfX8a84Ampqr27B1dP+ADsH7cBZhgJ+jpjw@mail.gmail.com>
-Subject: Re: Dazzle DVC80 under FC16
-To: Ondrej Zary <linux@rainbow-software.org>
-Cc: Bruno Martins <lists@skorzen.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        id S1750897AbdE1Mb5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 28 May 2017 08:31:57 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: [PATCH 2/7] staging: atomisp: Do not call dev_warn with a NULL device
+Date: Sun, 28 May 2017 14:31:48 +0200
+Message-Id: <20170528123153.18613-2-hdegoede@redhat.com>
+In-Reply-To: <20170528123153.18613-1-hdegoede@redhat.com>
+References: <20170528123153.18613-1-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->
-> On May 9, 2012, at 2:12 PM, Ondrej Zary <linux@rainbow-software.org> wrote:
-> Can you test this patch? It should make the driver ignore the second
-> interface with no endpoints.
-> --- a/drivers/media/video/usbvision/usbvision-video.c
-> +++ b/drivers/media/video/usbvision/usbvision-video.c
-> @@ -1504,6 +1504,11 @@ static int __devinit usbvision_probe(struct usb_interface *intf,
-> interface = &dev->actconfig->interface[usbvision_device_data[model].interface]->altsetting[0];
-> else
-> interface = &dev->actconfig->interface[ifnum]->altsetting[0];
-> + if (interface->desc.bNumEndpoints < 1) {
-> + dev_err(&intf->dev, "%s: interface %d. has no endpoints\n",
-> +    __func__, ifnum);
-> + return -ENODEV;
-> + }
-> endpoint = &interface->endpoint[1].desc;
-> if (!usb_endpoint_xfer_isoc(endpoint)) {
-> dev_err(&intf->dev, "%s: interface %d. has non-ISO endpoint!\n",
+Do not call dev_warn with a NULL device, this silence the following 2
+warnings:
 
+[   14.392194] (NULL device *): Failed to find gmin variable gmin_V2P8GPIO
+[   14.392257] (NULL device *): Failed to find gmin variable gmin_V1P8GPIO
 
-Leaving a reply for reference: while trying to add support for another
-device [1], I noticed that the fix for CVE-2015-7833 [2] contained a
-check similar to the one in Zary's patch:
+We could switch to using pr_warn for dev == NULL instead, but as comments
+in the source indicate, the check for these 2 special gmin variables with
+a NULL device is a workaround for 2 specific evaluation boards, so
+completely silencing the missing warning for these actually is a good
+thing.
 
-(from commit fa52bd506f274b7619955917abfde355e3d19ffe)
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ .../staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c    | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-
- drivers/media/usb/usbvision/usbvision-video.c | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/usbvision/usbvision-video.c
-b/drivers/media/usb/usbvision/usbvision-video.c
-index b693206..d1dc1a1 100644
---- a/drivers/media/usb/usbvision/usbvision-video.c
-+++ b/drivers/media/usb/usbvision/usbvision-video.c
-@@ -1463,9 +1463,23 @@ static int usbvision_probe(struct usb_interface *intf,
-
-  if (usbvision_device_data[model].interface >= 0)
-  interface = &dev->actconfig->interface[usbvision_device_data[model].interface]->altsetting[0];
-- else
-+ else if (ifnum < dev->actconfig->desc.bNumInterfaces)
-  interface = &dev->actconfig->interface[ifnum]->altsetting[0];
-+ else {
-+ dev_err(&intf->dev, "interface %d is invalid, max is %d\n",
-+    ifnum, dev->actconfig->desc.bNumInterfaces - 1);
-+ ret = -ENODEV;
-+ goto err_usb;
-+ }
-+
-+ if (interface->desc.bNumEndpoints < 2) {
-+ dev_err(&intf->dev, "interface %d has %d endpoints, but must"
-+    " have minimum 2\n", ifnum, interface->desc.bNumEndpoints);
-+ ret = -ENODEV;
-+ goto err_usb;
-+ }
-  endpoint = &interface->endpoint[1].desc;
-+
-  if (!usb_endpoint_xfer_isoc(endpoint)) {
-  dev_err(&intf->dev, "%s: interface %d. has non-ISO endpoint!\n",
-     __func__, ifnum);
-
-
-
-I can still reproduce the "cannot change alternate number to 1
-(error=-22)" issue, however. Unless something else is broken, e.g. in
-my card definition, I haven't made any progress myself on figuring out
-why this happens.
-
-[1] usbvision: problems adding support for ATI TV Wonder USB Edition
-https://www.spinics.net/lists/linux-media/msg95854.html
-
-[2] usbvision: fix crash on detecting device with invalid configuration
-https://www.spinics.net/lists/linux-media/msg94831.html
-
-Christopher A. Chavez
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+index 104fea2f8697..3fea81ea5dbd 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+@@ -689,7 +689,7 @@ int gmin_get_config_var(struct device *dev, const char *var, char *out, size_t *
+ 	if (ret == 0) {
+ 		memcpy(out, ev->var.Data, ev->var.DataSize);
+ 		*out_len = ev->var.DataSize;
+-	} else {
++	} else if (dev) {
+ 		dev_warn(dev, "Failed to find gmin variable %s\n", var8);
+ 	}
+ 
+-- 
+2.13.0
