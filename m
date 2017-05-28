@@ -1,97 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:34286 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1423214AbdEYAbP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 May 2017 20:31:15 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v7 26/34] ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
-Date: Wed, 24 May 2017 17:29:41 -0700
-Message-Id: <1495672189-29164-27-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from www.llwyncelyn.cymru ([82.70.14.225]:44554 "EHLO fuzix.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750837AbdE1Rfi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 28 May 2017 13:35:38 -0400
+Received: from alans-desktop (82-70-14-226.dsl.in-addr.zen.co.uk [82.70.14.226])
+        by fuzix.org (8.15.2/8.15.2) with ESMTP id v4SHZZVN017239
+        for <linux-media@vger.kernel.org>; Sun, 28 May 2017 18:35:35 +0100
+Date: Sun, 28 May 2017 18:35:35 +0100
+From: Alan Cox <alan@llwyncelyn.cymru>
+To: linux-media@vger.kernel.org
+Subject: [2/7/] staging: atomisp: Do not call dev_warn with a NULL device
+Message-ID: <20170528183535.21d49466@alans-desktop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable i.MX v4l2 media staging driver. For video capture on i.MX, the
-video multiplexer subdev is required. On the SabreAuto, the ADV7180
-video decoder is required along with i2c-mux-gpio. The Sabrelite
-and SabreSD require the OV5640 and the SabreLite requires PWM clocks
-for the OV5640.
+>On Sun, May 28, 2017 at 3:31 PM, Hans de Goede <hdegoede@redhat.com>
+wrote:
+>> Do not call dev_warn with a NULL device, this silence the following 2
+>> warnings:
+>>
+>> [   14.392194] (NULL device *): Failed to find gmin variable gmin_V2P8GPIO
+>> [   14.392257] (NULL device *): Failed to find gmin variable gmin_V1P8GPIO
+>>
+>> We could switch to using pr_warn for dev == NULL instead, but as comments
+>> in the source indicate, the check for these 2 special gmin variables with
+>> a NULL device is a workaround for 2 specific evaluation boards, so
+>> completely silencing the missing warning for these actually is a good
+>> thing.
+>
+> Perhaps removing all code related explicitly to Gmin is a right thing to do.
 
-Increase max zoneorder to allow larger video buffer allocations.
+That would make the driver somewhat useless because the Android derived
+platforms I have seen that you can re-install Linux on that use this as
+far as I am aware use the GMIN EFI variables.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/configs/imx_v6_v7_defconfig | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+Only the Windows platforms do it differently, and they appear to embed
+the entire configuration in a machine specific driver for each platform
+(at least the supposedly relevant ACPI in my T100TA appears to be copied
+from an Intel reference board and bears no relation to the actual
+hardware!)
 
-diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
-index bb6fa56..63caf25 100644
---- a/arch/arm/configs/imx_v6_v7_defconfig
-+++ b/arch/arm/configs/imx_v6_v7_defconfig
-@@ -51,6 +51,7 @@ CONFIG_PREEMPT_VOLUNTARY=y
- CONFIG_AEABI=y
- CONFIG_HIGHMEM=y
- CONFIG_CMA=y
-+CONFIG_FORCE_MAX_ZONEORDER=14
- CONFIG_CMDLINE="noinitrd console=ttymxc0,115200"
- CONFIG_KEXEC=y
- CONFIG_CPU_FREQ=y
-@@ -183,6 +184,7 @@ CONFIG_SERIAL_FSL_LPUART=y
- CONFIG_SERIAL_FSL_LPUART_CONSOLE=y
- # CONFIG_I2C_COMPAT is not set
- CONFIG_I2C_CHARDEV=y
-+CONFIG_I2C_MUX=y
- CONFIG_I2C_MUX_GPIO=y
- # CONFIG_I2C_HELPER_AUTO is not set
- CONFIG_I2C_ALGOPCF=m
-@@ -223,14 +225,20 @@ CONFIG_REGULATOR_PFUZE100=y
- CONFIG_MEDIA_SUPPORT=y
- CONFIG_MEDIA_CAMERA_SUPPORT=y
- CONFIG_MEDIA_RC_SUPPORT=y
-+CONFIG_MEDIA_CONTROLLER=y
-+CONFIG_VIDEO_V4L2_SUBDEV_API=y
- CONFIG_RC_DEVICES=y
- CONFIG_IR_GPIO_CIR=y
- CONFIG_MEDIA_USB_SUPPORT=y
- CONFIG_USB_VIDEO_CLASS=m
- CONFIG_V4L_PLATFORM_DRIVERS=y
-+CONFIG_VIDEO_MUX=y
- CONFIG_SOC_CAMERA=y
- CONFIG_V4L_MEM2MEM_DRIVERS=y
- CONFIG_VIDEO_CODA=y
-+# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
-+CONFIG_VIDEO_ADV7180=m
-+CONFIG_VIDEO_OV5640=m
- CONFIG_SOC_CAMERA_OV2640=y
- CONFIG_IMX_IPUV3_CORE=y
- CONFIG_DRM=y
-@@ -340,6 +348,9 @@ CONFIG_FSL_EDMA=y
- CONFIG_IMX_SDMA=y
- CONFIG_MXS_DMA=y
- CONFIG_STAGING=y
-+CONFIG_STAGING_MEDIA=y
-+CONFIG_VIDEO_IMX_MEDIA=y
-+CONFIG_COMMON_CLK_PWM=y
- CONFIG_IIO=y
- CONFIG_VF610_ADC=y
- CONFIG_MPL3115=y
--- 
-2.7.4
+Easy enough to check what a given Android x86 tablet does - plug it into a
+powered OTG hub, add a live USB stick and a keyboard, hit the Fn key for
+BIOS entry as it boots and boot off USB. You can then check lsacpi and
+the EFI variables.
+
+Alan
