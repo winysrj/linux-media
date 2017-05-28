@@ -1,71 +1,415 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:46462 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750992AbdE3HCV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 03:02:21 -0400
-Subject: Re: [RFC PATCH 7/7] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
- support
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org,
-        Clint Taylor <clinton.a.taylor@intel.com>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20170525150626.29748-1-hverkuil@xs4all.nl>
- <20170525150626.29748-8-hverkuil@xs4all.nl>
- <20170526071550.3gsq3pc375cnk2gk@phenom.ffwll.local>
- <0a417a9c-4a41-796c-9876-51b61d429bb5@xs4all.nl>
- <20170529190004.ipdeyntsmzzb3iij@phenom.ffwll.local>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <d9e9354b-eeb7-0a1e-2dbc-16c1ba0c0784@xs4all.nl>
-Date: Tue, 30 May 2017 09:02:08 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170529190004.ipdeyntsmzzb3iij@phenom.ffwll.local>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Received: from mga04.intel.com ([192.55.52.120]:41963 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750866AbdE1X0s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 28 May 2017 19:26:48 -0400
+From: "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hsu, Cedric" <cedric.hsu@intel.com>,
+        "tfiga@chromium.org" <tfiga@chromium.org>
+Subject: RE: [PATCH v3 1/1] [media] i2c: add support for OV13858 sensor
+Date: Sun, 28 May 2017 23:26:46 +0000
+Message-ID: <7A4F467111FEF64486F40DFE7DF3500A03EAF344@ORSMSX111.amr.corp.intel.com>
+References: <1495844847-21655-1-git-send-email-hyungwoo.yang@intel.com>
+ <20170527203053.GY29527@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20170527203053.GY29527@valkosipuli.retiisi.org.uk>
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/29/2017 09:00 PM, Daniel Vetter wrote:
-> On Fri, May 26, 2017 at 12:20:48PM +0200, Hans Verkuil wrote:
->> On 05/26/2017 09:15 AM, Daniel Vetter wrote:
->>> Did you look into also wiring this up for dp mst chains?
->>
->> Isn't this sufficient? I have no way of testing mst chains.
->>
->> I think I need some pointers from you, since I am a complete newbie when it
->> comes to mst.
+
+Hi Sakari,
+
+Here's my comments.
+
+-Hyungwoo
+
+
+-----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@iki.fi] 
+> Sent: Saturday, May 27, 2017 1:31 PM
+> To: Yang, Hyungwoo <hyungwoo.yang@intel.com>
+> Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; Zheng, Jian Xu <jian.xu.zheng@intel.com>; Hsu, Cedric <cedric.hsu@intel.com>; tfiga@chromium.org
+> Subject: Re: [PATCH v3 1/1] [media] i2c: add support for OV13858 sensor
 > 
-> I don't really have more clue, but yeah if you don't have an mst thing (a
-> simple dp port multiplexer is what I use for testing here, then plug in a
-> converter dongle or cable into that) then probably better to not wire up
-> the code for it.
+> Hi Hyungwoo,
+> 
+> Thanks for the update. A few comments below.
+> 
+> > +
+> > +/* Mode : resolution and related config&values */
+> > +struct ov13858_mode 
+> > +{
+> > +	/* Frame width */
+> > +	u32 width;
+> > +	/* Frame height */
+> > +	u32 height;
+> > +
+> > +	/* V-timing */
+> > +	u32 vts;
+> 
+> Aren't the three fields here unused?
 
-I think my NUC already uses mst internally. But I was planning on buying a
-dp multiplexer to make sure there is nothing special I need to do for mst.
+?? Yes, they are used. 
+		:
+		:
+		:
+> 
+> > +/* Mode configs */
+> > +static const struct ov13858_mode supported_modes[] = {
+> > +	{
+> > +		.width = 4224,
+> > +		.height = 3136,
+> > +		.vts = OV13858_VTS_30FPS,
+> > +		.reg_list = {
+> > +			.num_of_regs = ARRAY_SIZE(mode_4224x3136_regs),
+> > +			.regs = mode_4224x3136_regs,
+> > +		},
+> > +		.link_freq_index = OV13858_LINK_FREQ_INDEX_0,
+> > +	},
+> > +	{
+> > +		.width = 2112,
+> > +		.height = 1568,
+> > +		.vts = OV13858_VTS_30FPS,
+> > +		.reg_list = {
+> > +			.num_of_regs = ARRAY_SIZE(mode_2112x1568_regs),
+> > +			.regs = mode_2112x1568_regs,
+> > +		},
+> > +		.link_freq_index = OV13858_LINK_FREQ_INDEX_1,
+> > +	},
+> > +	{
+> > +		.width = 2112,
+> > +		.height = 1188,
+> > +		.vts = OV13858_VTS_30FPS,
+> > +		.reg_list = {
+> > +			.num_of_regs = ARRAY_SIZE(mode_2112x1188_regs),
+> > +			.regs = mode_2112x1188_regs,
+> > +		},
+> > +		.link_freq_index = OV13858_LINK_FREQ_INDEX_1,
+> > +	},
+> > +	{
+> > +		.width = 1056,
+> > +		.height = 784,
+> > +		.vts = OV13858_VTS_30FPS,
+> > +		.reg_list = {
+> > +			.num_of_regs = ARRAY_SIZE(mode_1056x784_regs),
+> > +			.regs = mode_1056x784_regs,
+> > +		},
+> > +		.link_freq_index = OV13858_LINK_FREQ_INDEX_1,
+> > +	}
+> > +};
+> > +
+> > +struct ov13858 {
+> > +	struct v4l2_subdev sd;
+> > +	struct media_pad pad;
+> > +
+> > +	struct v4l2_ctrl_handler ctrl_handler;
+> > +	/* V4L2 Controls */
+> > +	struct v4l2_ctrl *link_freq;
+> > +	struct v4l2_ctrl *pixel_rate;
+> > +	struct v4l2_ctrl *vblank;
+> > +	struct v4l2_ctrl *exposure;
+> > +
+> > +	/* Current mode */
+> > +	const struct ov13858_mode *cur_mode;
+> > +
+> > +	/* Num of skip frames */
+> > +	u32 num_of_skip_frames;
+> 
+> If you always tell the receiver to skip  OV13858_NUM_OF_SKIP_FRAMES frames in the beginning, you could just return this from your g_skip_frames callback.
+> 
 
-The CEC Tunneling is all in the branch device, so if I understand things
-correctly it is not affected by mst.
+Oops!!! Yes, you're right. My original version gets some platform dependent values including this through fwnode API.
+I removed them to make this simple but didn't think much. I'll remove this.
 
-BTW, I did a bit more testing on my NUC7i5BNK: for the HDMI output they
-use a MegaChip MCDP2800 DP-to-HDMI converter which according to their
-datasheet is supposed to implement CEC Tunneling, but if they do it is not
-exposed as a capability. I'm not sure if it is a MegaChip firmware issue
-or something else. The BIOS is able to do some CEC, but whether they hook
-into the MegaChip or have the CEC pin connected to a GPIO or something and
-have their own controller is something I do not know.
+> > +
+> > +	/* Mutex for serialized access */
+> > +	struct mutex mutex;
+> > +
+> > +	/* Streaming on/off */
+> > +	bool streaming;
+> > +};
+> > +
+> > +#define to_ov13858(_sd)	container_of(_sd, struct ov13858, sd)
+> > +
+> > +/* Read registers up to 4 at a time */ static int 
+> > +ov13858_read_reg(struct ov13858 *ov13858, u16 reg, u32 len, u32 *val) 
+> > +{
+> > +	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
+> > +	struct i2c_msg msgs[2];
+> > +	u8 *data_be_p;
+> > +	int ret;
+> > +	u32 data_be = 0;
+> > +	u16 reg_addr_be = cpu_to_be16(reg);
+> > +
+> > +	if (len > 4)
+> > +		return -EINVAL;
+> > +
+> > +	data_be_p = (u8 *)&data_be;
+> > +	/* Write register address */
+> > +	msgs[0].addr = client->addr;
+> > +	msgs[0].flags = 0;
+> > +	msgs[0].len = 2;
+> > +	msgs[0].buf = (u8 *)&reg_addr_be;
+> > +
+> > +	/* Read data from register */
+> > +	msgs[1].addr = client->addr;
+> > +	msgs[1].flags = I2C_M_RD;
+> > +	msgs[1].len = len;
+> > +	msgs[1].buf = &data_be_p[4 - len];
+> > +
+> > +	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+> > +	if (ret != ARRAY_SIZE(msgs))
+> > +		return -EIO;
+> > +
+> > +	*val = be32_to_cpu(data_be);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +/* Write registers up to 4 at a time */ static int 
+> > +ov13858_write_reg(struct ov13858 *ov13858, u16 reg, u32 len, u32 val) 
+> > +{
+> > +	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
+> > +	int buf_i, val_i;
+> > +	u8 buf[6], *val_p;
+> > +
+> > +	if (len > 4)
+> > +		return -EINVAL;
+> > +
+> > +	buf[0] = reg >> 8;
+> > +	buf[1] = reg & 0xff;
+> > +
+> > +	buf_i = 2;
+> > +	val_p = (u8 *)&val;
+> > +	val_i = len - 1;
+> > +
+> > +	while (val_i >= 0)
+> > +		buf[buf_i++] = val_p[val_i--];
+> > +
+> > +	if (i2c_master_send(client, buf, len + 2) != len + 2)
+> > +		return -EIO;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +/* Write a list of registers */
+> > +static int ov13858_write_regs(struct ov13858 *ov13858,
+> > +			      const struct ov13858_reg *regs, u32 len) {
+> > +	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
+> > +	int ret;
+> > +	u32 i;
+> > +
+> > +	for (i = 0; i < len; i++) {
+> > +		ret = ov13858_write_reg(ov13858, regs[i].address, 1,
+> > +					regs[i].val);
+> > +		if (ret) {
+> > +			dev_err_ratelimited(
+> > +				&client->dev,
+> > +				"Failed to write reg 0x%4.4x. error = %d\n",
+> > +				regs[i].address, ret);
+> > +
+> > +			return ret;
+> > +		}
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int ov13858_write_reg_list(struct ov13858 *ov13858,
+> > +				  const struct ov13858_reg_list *r_list) {
+> > +	return ov13858_write_regs(ov13858, r_list->regs, 
+> > +r_list->num_of_regs); }
+> > +
+> > +/* Open sub-device */
+> > +static int ov13858_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh 
+> > +*fh) {
+> > +	struct ov13858 *ov13858 = to_ov13858(sd);
+> > +	struct v4l2_mbus_framefmt *try_fmt;
+> > +
+> > +	mutex_lock(&ov13858->mutex);
+> > +
+> > +	/* Initialize try_fmt */
+> > +	try_fmt = v4l2_subdev_get_try_format(sd, fh->pad, 0);
+> > +	try_fmt->width = ov13858->cur_mode->width;
+> > +	try_fmt->height = ov13858->cur_mode->height;
+> > +	try_fmt->code = MEDIA_BUS_FMT_SGRBG10_1X10;
+> > +	try_fmt->field = V4L2_FIELD_NONE;
+> > +
+> > +	/* No crop or compose */
+> > +	mutex_unlock(&ov13858->mutex);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +/* Update max exposure while meeting expected vertial blanking */ 
+> > +static void ov13858_update_exposure_limits(struct ov13858 *ov13858) {
+> > +	s64 max;
+> > +
+> > +	max = ov13858->cur_mode->height + ov13858->vblank->val - 8;
+> > +	__v4l2_ctrl_modify_range(ov13858->exposure, ov13858->exposure->minimum,
+> > +				 max, ov13858->exposure->step, max); }
+> > +
+> > +/* Update exposure */
+> > +static int ov13858_update_exposure(struct ov13858 *ov13858,
+> > +				   struct v4l2_ctrl *ctrl)
+> > +{
+> > +	return ov13858_write_reg(ov13858, OV13858_REG_EXPOSURE,
+> > +				OV13858_REG_VALUE_24BIT, ctrl->val << 4); }
+> > +
+> > +/* Update VTS that meets expected vertical blanking */ static int 
+> > +ov13858_update_vblank(struct ov13858 *ov13858,
+> > +				 struct v4l2_ctrl *ctrl)
+> > +{
+> > +	return ov13858_write_reg(
+> > +			ov13858, OV13858_REG_VTS,
+> > +			OV13858_REG_VALUE_16BIT,
+> > +			ov13858->cur_mode->height + ov13858->vblank->val); }
+> > +
+> > +/* Update analog gain */
+> > +static int ov13858_update_analog_gain(struct ov13858 *ov13858,
+> > +				      struct v4l2_ctrl *ctrl)
+> > +{
+> > +	return ov13858_write_reg(ov13858, OV13858_REG_ANALOG_GAIN,
+> > +				 OV13858_REG_VALUE_16BIT, ctrl->val);
+> 
+> I think I'd move what the four above functions do to ov13858_set_ctrl() unless they're used in more than one location.
 
-If anyone can clarify what Intel did on the NUC, then that would be very
-helpful.
+Why ? Personally I like this. Since there  wouldn't be any difference in generated machine code, I want to keep this if there's no strict rule on this.
 
-It would be so nice to get MegaChip CEC Tunneling working on the NUC, because
-then you have native CEC support without requiring any Pulse Eight adapter.
+> 
+> > +}
+> > +
+> > +static int ov13858_set_ctrl(struct v4l2_ctrl *ctrl) {
+> > +	struct ov13858 *ov13858 = container_of(ctrl->handler,
+> > +					       struct ov13858, ctrl_handler);
+> > +	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
+> > +	int ret;
+> > +
+> > +	/* Propagate change of current control to all related controls */
+> > +	switch (ctrl->id) {
+> > +	case V4L2_CID_VBLANK:
+> > +		ov13858_update_exposure_limits(ov13858);
+> > +		break;
+> > +	};
+> > +
+> > +	/*
+> > +	 * Applying V4L2 control value only happens
+> > +	 * when power is up for streaming
+> > +	 */
+> > +	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
+> > +		return 0;
+> > +
+> > +	ret = 0;
+> > +	switch (ctrl->id) {
+> > +	case V4L2_CID_ANALOGUE_GAIN:
+> > +		ret = ov13858_update_analog_gain(ov13858, ctrl);
+> > +		break;
+> > +	case V4L2_CID_EXPOSURE:
+> > +		ret = ov13858_update_exposure(ov13858, ctrl);
+> > +		break;
+> > +	case V4L2_CID_VBLANK:
+> > +		ret = ov13858_update_vblank(ov13858, ctrl);
+> > +		break;
+> > +	default:
+> > +		dev_info(&client->dev,
+> > +			 "ctrl(id:0x%x,val:0x%x) is not handled\n",
+> > +			 ctrl->id, ctrl->val);
+> > +		break;
+> > +	};
+> > +
+> > +	pm_runtime_put(&client->dev);
+> > +
+> > +	return ret;
+> > +}
+> > +
+		:
+		:
+> > +/*
+> > + * Prepare streaming by writing default values and customized values.
+> > + * This should be called with ov13858->mutex acquired.
+> > + */
+> > +static int ov13858_prepare_streaming(struct ov13858 *ov13858)
+> > +{
+> > +	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
+> > +	const struct ov13858_reg_list *reg_list;
+> > +	int ret, link_freq_index;
+> > +
+> > +	/* Get out of from software reset */
+> > +	ret = ov13858_write_reg(ov13858, OV13858_REG_SOFTWARE_RST,
+> > +				OV13858_REG_VALUE_08BIT, OV13858_SOFTWARE_RST);
+> > +	if (ret) {
+> > +		dev_err(&client->dev, "%s failed to set powerup registers\n",
+> > +			__func__);
+> > +		return ret;
+> > +	}
+> > +
+> > +	/* Setup PLL */
+> > +	link_freq_index = ov13858->cur_mode->link_freq_index;
+> > +	reg_list = &link_freq_configs[link_freq_index].reg_list;
+> > +	ret = ov13858_write_reg_list(ov13858, reg_list);
+> > +	if (ret) {
+> > +		dev_err(&client->dev, "%s failed to set plls\n", __func__);
+> > +		return ret;
+> > +	}
+> > +
+> > +	/* Apply default values of current mode */
+> > +	reg_list = &ov13858->cur_mode->reg_list;
+> > +	ret = ov13858_write_reg_list(ov13858, reg_list);
+> > +	if (ret) {
+> > +		dev_err(&client->dev, "%s failed to set mode\n", __func__);
+> > +		return ret;
+> > +	}
+> > +
+> > +	/* Apply customized values from user */
+> > +	return __v4l2_ctrl_handler_setup(ov13858->sd.ctrl_handler);
+> > +}
+> > +
+> > +/* Start streaming */
+> > +static int ov13858_start_streaming(struct ov13858 *ov13858)
+> > +{
+> > +	int ret;
+> > +
+> > +	/* Write default & customized values */
+> > +	ret = ov13858_prepare_streaming(ov13858);
+> 
+> Could you merge this with ov13858_prepare_streaming()?
+> 
 
-And add a CEC-capable USB-C to HDMI adapter and you have it on the USB-C
-output as well.
+Why ? I want to keep this. If you want to worry about 1 more jump then, if it is really there, I can make this function "inline"
 
-Regards,
-
-	Hans
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	return ov13858_write_reg(ov13858, OV13858_REG_MODE_SELECT,
+> > +				 OV13858_REG_VALUE_08BIT,
+> > +				 OV13858_MODE_STREAMING);
+> > +}
+> > +
+> > +/* Stop streaming */
+> > +static int ov13858_stop_streaming(struct ov13858 *ov13858)
+> > +{
+> > +	return ov13858_write_reg(ov13858, OV13858_REG_MODE_SELECT,
+> > +				 OV13858_REG_VALUE_08BIT, OV13858_MODE_STANDBY);
+> > +}
+> > +
+		:
+		:
+> > +MODULE_AUTHOR("Kan, Chris <chris.kan@intel.com>");
+> > +MODULE_AUTHOR("Rapolu, Chiranjeevi <chiranjeevi.rapolu@intel.com>");
+> > +MODULE_AUTHOR("Yang, Hyungwoo <hyungwoo.yang@intel.com>");
+> > +MODULE_DESCRIPTION("Omnivision ov13858 sensor driver");
+> > +MODULE_LICENSE("GPL v2");
+> 
+> -- 
+> Kind regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+>
