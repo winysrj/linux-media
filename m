@@ -1,81 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:48589 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753177AbdEDPOM (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:39275 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750777AbdE1Dhe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 May 2017 11:14:12 -0400
-Message-ID: <1493910850.2381.29.camel@pengutronix.de>
-Subject: Re: [PATCH v3 2/2] [media] platform: add video-multiplexer
- subdevice driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Peter Rosin <peda@axentia.se>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Thu, 04 May 2017 17:14:10 +0200
-In-Reply-To: <20170504142123.3hiblxfkdtbrvotb@earth>
-References: <1493905137-27051-1-git-send-email-p.zabel@pengutronix.de>
-         <1493905137-27051-2-git-send-email-p.zabel@pengutronix.de>
-         <20170504142123.3hiblxfkdtbrvotb@earth>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Sat, 27 May 2017 23:37:34 -0400
+Message-ID: <6174c5b64743d70411d3191a634cdffe@smtp-cloud3.xs4all.net>
+Date: Sun, 28 May 2017 05:37:31 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sebastian,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Thu, 2017-05-04 at 16:21 +0200, Sebastian Reichel wrote:
-> Hi,
-> 
-> On Thu, May 04, 2017 at 03:38:57PM +0200, Philipp Zabel wrote:
-> > This driver can handle SoC internal and external video bus multiplexers,
-> > controlled by mux controllers provided by the mux controller framework,
-> > such as MMIO register bitfields or GPIOs. The subdevice passes through
-> > the mbus configuration of the active input to the output side.
-> > 
-> > Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> > ---
-> > Changes since v2 [1]:
-> >  - Extend vmux->lock to protect mbus format against simultaneous access
-> >    from get/set_format calls.
-> >  - Drop is_source_pad(), check pad->flags & MEDIA_PAD_FL_SOURCE directly.
-> >  - Replace v4l2_of_parse_endpoint call with v4l2_fwnode_endpoint_parse,
-> >    include media/v4l2-fwnode.h instead of media/v4l2-of.h.
-> >  - Constify ops structures.
-> > 
-> > This was previously sent as part of Steve's i.MX media series [2].
-> > Tested against
-> > https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi-merge
-> > 
-> > [1] https://patchwork.kernel.org/patch/9708237/
-> > [2] https://patchwork.kernel.org/patch/9647869/
-> 
-> Looks fine to me. Just one nitpick:
-> 
-> > +static int video_mux_probe(struct platform_device *pdev)
-> > +{
-> 
-> [...]
-> 
-> > +	vmux->pads = devm_kzalloc(dev, sizeof(*vmux->pads) * num_pads,
-> > +				  GFP_KERNEL);
-> > +	vmux->format_mbus = devm_kzalloc(dev, sizeof(*vmux->format_mbus) *
-> > +					 num_pads, GFP_KERNEL);
-> > +	vmux->endpoint = devm_kzalloc(dev, sizeof(*vmux->endpoint) *
-> > +				      (num_pads - 1), GFP_KERNEL);
-> 
-> devm_kcalloc(dev, num_pads, sizeof(*foo), GFP_KERNEL).
+Results of the daily build of media_tree:
 
-thank you, I'll fix this.
+date:			Sun May 28 05:00:24 CEST 2017
+media-tree git hash:	36bcba973ad478042d1ffc6e89afd92e8bd17030
+media_build git hash:	c8dfc17d6d049d79497c78737625f6ea3b08c456
+v4l-utils git hash:	d16a17abd1d8d7885ca2f44fb295035278baa89c
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-regards
-Philipp
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
