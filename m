@@ -1,123 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:35279 "EHLO
-        mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1426514AbdD3PIh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 30 Apr 2017 11:08:37 -0400
-Date: Sun, 30 Apr 2017 17:08:22 +0200
-From: Reinhard Speyerer <rspmn@arcor.de>
-To: Tino Mettler <tino.mettler+debbugs@tikei.de>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Gregor Jasny <gjasny@googlemail.com>, 859008@bugs.debian.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: dvb-tools: dvbv5-scan segfaults with DVB-T2 HD service that just
- started in Germany
-Message-ID: <20170430150822.GA1384@arcor.de>
-References: <149079515540.3615.11876491556658692986.reportbug@mac>
- <06f151f3-0037-dcd0-fc5a-522533f70a3e@googlemail.com>
- <20170329144227.zwrdtnnl4iuhgbkw@mac.home>
- <6bc7b007-cc0e-767d-5e2e-30e8d5bdff05@googlemail.com>
- <20170330171334.06c6135d@vento.lan>
- <20170418105452.GA10975@eazy.amigager.de>
+Received: from vader.hardeman.nu ([95.142.160.32]:39108 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750925AbdE1Ibw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 28 May 2017 04:31:52 -0400
+Date: Sun, 28 May 2017 10:31:50 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: [PATCH 5/7] rc-core: ir-raw - leave the internals of rc_dev alone
+Message-ID: <20170528083150.l3qs5jmkl4smm3vk@hardeman.nu>
+References: <149365487447.13489.15793446874818182829.stgit@zeus.hardeman.nu>
+ <149365501711.13489.17027324920634077369.stgit@zeus.hardeman.nu>
+ <20170523092026.GA30040@gofer.mess.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20170418105452.GA10975@eazy.amigager.de>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170523092026.GA30040@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 18, 2017 at 12:54:52PM +0200, Tino Mettler wrote:
-> On Thu, Mar 30, 2017 at 17:13:34 -0300, Mauro Carvalho Chehab wrote:
-> > Hi Gregor,
-> > 
-> > Em Wed, 29 Mar 2017 20:45:06 +0200
-> > Gregor Jasny <gjasny@googlemail.com> escreveu:
-> > 
-> > > Hello Mauro & list,
-> > > 
-> > > could you please have a look at the dvbv5-scan crash report below?
-> > > https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=859008
-> > > 
-> > > Is there anything else you need to debug this?
-> > 
-> > I'm able to reproduce it on a Debian machine here too, but so far,
-> > I was unable to discover what's causing it. I'll try to find some time
-> > to take a better look on it.
-> 
-> Hi,
-> 
-> can I help in some way to find the cause of crash?
-> 
-> Regards,
-> Tino
-> 
+On Tue, May 23, 2017 at 10:20:27AM +0100, Sean Young wrote:
+>On Mon, May 01, 2017 at 06:10:17PM +0200, David Härdeman wrote:
+>> Replace the REP_DELAY value with a static value, which makes more sense.
+>> Automatic repeat handling in the input layer has no relevance for the drivers
+>> idea of "a long time".
+>> 
+>> Signed-off-by: David Härdeman <david@hardeman.nu>
+>> ---
+>>  drivers/media/rc/rc-ir-raw.c |    4 +---
+>>  1 file changed, 1 insertion(+), 3 deletions(-)
+>> 
+>> diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+>> index ae7785c4fbe7..967ab9531e0a 100644
+>> --- a/drivers/media/rc/rc-ir-raw.c
+>> +++ b/drivers/media/rc/rc-ir-raw.c
+>> @@ -102,20 +102,18 @@ int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type)
+>>  	s64			delta; /* ns */
+>>  	DEFINE_IR_RAW_EVENT(ev);
+>>  	int			rc = 0;
+>> -	int			delay;
+>>  
+>>  	if (!dev->raw)
+>>  		return -EINVAL;
+>>  
+>>  	now = ktime_get();
+>>  	delta = ktime_to_ns(ktime_sub(now, dev->raw->last_event));
+>> -	delay = MS_TO_NS(dev->input_dev->rep[REP_DELAY]);
+>>  
+>>  	/* Check for a long duration since last event or if we're
+>>  	 * being called for the first time, note that delta can't
+>>  	 * possibly be negative.
+>>  	 */
+>> -	if (delta > delay || !dev->raw->last_type)
+>> +	if (delta > MS_TO_NS(500) || !dev->raw->last_type)
+>>  		type |= IR_START_EVENT;
+>
+>So this is just a fail-safe to ensure that the IR decoders are reset after
+>a period of IR silence. The decoders should reset themselves anyway if they
+>receive a long space, so it's just belt and braces.
 
-Hi Mauro and Tino,
-with the patch below in addition to commit b514d615166bdc0901a4c71261b87db31e89f464
-("libdvbv5: T2 delivery descriptor: fix wrong size of bandwidth field") applied
-to v4l-utils 1.12.3 sources dvbv5-scan no longer segfaults for me.
+Not 100% sure but it also checks for the first call to
+ir_raw_event_store_edge()...
 
-Manually replacing PID_24 with VIDEO_PID in the created dvb_channel.conf
-as described in a german DVB-T2 forum is required to make dvbv5-zap also
-record the video.
+>Why is a static value better? At least REP_DELAY can be changed from
+>user space.
 
-Regards,
-Reinhard
+REP_DELAY serves a completely different purpose. It controls how long a
+key should be pressed before the input layer should start generating
+soft-repeat events.
 
-Subject: [PATCH] libdvbv5: fix T2 delivery descriptor parsing in dvb_desc_t2_delivery_init()
+The timeout here is related to the IR protocol handling...which is a
+quite different matter.
 
-Fix T2 delivery descriptor parsing by proper use of memcpy()/bswap16()
-on struct dvb_desc_t2_delivery *d, only skipping the cell_id instead of
-the remaining descriptor and using the correct d->tfs_flag check
-to avoid dvbv5-scan segfaults observed with the DVB-T2 HD service that 
-was started in Germany.
+>Maybe we should do away with it.
 
-Signed-off-by: Reinhard Speyerer <rspmn@arcor.de>
----
- lib/libdvbv5/descriptors/desc_t2_delivery.c | 20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+Maybe...but that'd be a different patch...I think this fix should go in
+nevertheless.
 
-diff --git a/lib/libdvbv5/descriptors/desc_t2_delivery.c b/lib/libdvbv5/descriptors/desc_t2_delivery.c
-index 56e8d43..3831ac1 100644
---- a/lib/libdvbv5/descriptors/desc_t2_delivery.c
-+++ b/lib/libdvbv5/descriptors/desc_t2_delivery.c
-@@ -40,7 +40,7 @@ int dvb_desc_t2_delivery_init(struct dvb_v5_fe_parms *parms,
- 		return -1;
- 	}
- 	if (desc_len < len2) {
--		memcpy(p, buf, len);
-+		memcpy(d, buf, len);
- 		bswap16(d->system_id);
- 
- 		if (desc_len != len)
-@@ -48,19 +48,23 @@ int dvb_desc_t2_delivery_init(struct dvb_v5_fe_parms *parms,
- 
- 		return -2;
- 	}
--	memcpy(p, buf, len2);
-+	memcpy(d, buf, len2);
-+	bswap16(d->system_id);
-+	bswap16(d->bitfield);
- 	p += len2;
- 
--	len = desc_len - (p - buf);
--	memcpy(&d->centre_frequency, p, len);
--	p += len;
-+	if (desc_len - (p - buf) < sizeof(uint16_t)) {
-+		dvb_logwarn("T2 delivery descriptor is truncated");
-+		return -2;
-+	}
-+	p += sizeof(uint16_t);
- 
--	if (d->tfs_flag)
--		d->frequency_loop_length = 1;
--	else {
-+	if (d->tfs_flag) {
- 		d->frequency_loop_length = *p;
- 		p++;
- 	}
-+	else
-+		d->frequency_loop_length = 1;
- 
- 	d->centre_frequency = calloc(d->frequency_loop_length,
- 				     sizeof(*d->centre_frequency));
+-- 
+David Härdeman
