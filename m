@@ -1,165 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33092 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751330AbdESNek (ORCPT
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:34417 "EHLO
+        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750798AbdE1TGf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 May 2017 09:34:40 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v1 2/3] device property: Add fwnode_graph_get_port_parent
-References: <cover.6800d0e1b9b578b82f68dec1b99b3a601d6e54ca.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com>
- <e81284b2bb29552ab7cf02c07367a6a542f06d49.1495032810.git-series.kieran.bingham+renesas@ideasonboard.com>
- <2150794.GUKVLPLrWM@avalon>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Kieran Bingham <kbingham@kernel.org>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@iki.fi, niklas.soderlund@ragnatech.se,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Adam Thomson <Adam.Thomson.Opensource@diasemi.com>,
-        John Youn <johnyoun@synopsys.com>,
-        open list <linux-kernel@vger.kernel.org>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <1d82a0b2-61e7-656c-7df5-17fcb599aa76@ideasonboard.com>
-Date: Fri, 19 May 2017 14:34:33 +0100
+        Sun, 28 May 2017 15:06:35 -0400
+Received: by mail-wm0-f49.google.com with SMTP id 123so14383892wmg.1
+        for <linux-media@vger.kernel.org>; Sun, 28 May 2017 12:06:35 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <2150794.GUKVLPLrWM@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <9102e964-8143-edd7-3a82-014ae0d29d48@kaiser-linux.li>
+References: <CAML3znFcKR9wx3wvjBDeQLn7mbtkhU0Knn56cMrXek6H-mTUjQ@mail.gmail.com>
+ <9102e964-8143-edd7-3a82-014ae0d29d48@kaiser-linux.li>
+From: Karl Wallin <karl.wallin.86@gmail.com>
+Date: Sun, 28 May 2017 21:06:33 +0200
+Message-ID: <CAML3znHkCFrtQqXvZkCwiMGNkRdSAnHBDTvfeoaQdtq8kRMkQQ@mail.gmail.com>
+Subject: Re: Build fails Ubuntu 17.04 / "error: implicit declaration of function"
+To: Thomas Kaiser <thomas@kaiser-linux.li>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Thomas,
 
-On 18/05/17 14:36, Laurent Pinchart wrote:
-> Hi Kieran,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday 17 May 2017 16:03:38 Kieran Bingham wrote:
->> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Thanks for the help (and to Vincent as well) :)
+
+In "/home/ubuntu/media_build/v4l/cec-core.c" changed row 142 from:
+"ret =3D cdev_device_add(&devnode->cdev, &devnode->dev);" to:
+"ret =3D device_add(&devnode->dev);"
+and row 186 from:
+"cdev_device_del(&devnode->cdev, &devnode->dev);" to:
+"device_del(&devnode->dev);"
+
+Even if I do that when I try to build it again (using ./build) it
+seems to reload / revert the cec-core.c to the original file since I
+still get these errors even though I saved the changes in Notepadqq:
+"/home/ubuntu/media_build/v4l/cec-core.c:142:8: error: implicit
+declaration of function 'cdev_device_add'
+[-Werror=3Dimplicit-function-declaration]
+  ret =3D cdev_device_add(&devnode->cdev, &devnode->dev);"
+and
+"/home/ubuntu/media_build/v4l/cec-core.c:186:2: error: implicit
+declaration of function 'cdev_device_del'
+[-Werror=3Dimplicit-function-declaration]
+  cdev_device_del(&devnode->cdev, &devnode->dev);"
+
+I am probably missing something here since it worked for you, would be
+grateful for your help :)
+
+/Karl
+Med v=C3=A4nlig h=C3=A4lsning / Best Regards - Karl Wallin
+
+karl.wallin.86@gmail.com
+
+P.S. Om mitt mail b=C3=B6r vidarebefodras, v=C3=A4nligen g=C3=B6r detta ist=
+=C3=A4llet f=C3=B6r
+att =C3=A5terkomma med en email-adress i ett svar till mig. / If my mail
+should be forwarded then please forward it instead of replying to me
+with an email address. P.S.
+
+
+2017-05-28 14:28 GMT+02:00 Thomas Kaiser <thomas@kaiser-linux.li>:
+> On 27.05.2017 21:28, Karl Wallin wrote:
 >>
->> V4L2 async notifiers can pass the endpoint fwnode rather than the device
->> fwnode.
-> 
-> I'm not sure I would mention V4L2 in the commit message, as this is generic.
-
-Good point
-
->> Provide a helper to obtain the parent device fwnode without first
->> parsing the remote-endpoint as per fwnode_graph_get_remote_port_parent.
+>> Hi!
 >>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->> ---
->>  drivers/base/property.c  | 25 +++++++++++++++++++++++++
->>  include/linux/property.h |  2 ++
->>  2 files changed, 27 insertions(+)
+>> Sorry if this is something I should have figured out, I am bit
+>> experienced with Linux but not at all a pro.
 >>
->> diff --git a/drivers/base/property.c b/drivers/base/property.c
->> index 627ebc9b570d..caf4316fe565 100644
->> --- a/drivers/base/property.c
->> +++ b/drivers/base/property.c
->> @@ -1245,6 +1245,31 @@ fwnode_graph_get_next_endpoint(struct fwnode_handle
->> *fwnode, EXPORT_SYMBOL_GPL(fwnode_graph_get_next_endpoint);
+>> Trying to build v4l-dvb on Ubuntu 17.04 (kernel 4.10.0-21-generic) and
+>> get build errors.
 >>
->>  /**
->> + * fwnode_graph_get_port_parent - Return device node of a port endpoint
->> + * @fwnode: Endpoint firmware node pointing of the port
->> + *
->> + * Extracts firmware node of the device the @fwnode belongs to.
-> 
-> I'm not too familiar with the fwnode API, but I know it's written in C, where 
-> functions don't extract something but return a value :-) How about
-> 
-> Return: the firmware node of the device the @endpoint belongs to.
-> 
-
-I'm not averse to the reword - but it is different to the other functions in the
-same context:
-
-fwnode_graph_get_remote_endpoint(struct fwnode_handle *fwnode)
- * Extracts firmware node of a remote endpoint the @fwnode points to.
-
-struct fwnode_handle *fwnode_graph_get_remote_port(struct fwnode_handle *fwnode)
- * Extracts firmware node of a remote port the @fwnode points to.
-
-fwnode_graph_get_remote_port_parent(struct fwnode_handle *fwnode)
- * Extracts firmware node of a remote device the @fwnode points to.
-
-Then with this function becoming:
-
-fwnode_graph_get_port_parent(struct fwnode_handle *endpoint)
- * Returns firmware node of the device the @endpoint belongs to.
-
-
-I guess those could be changed too ...
-
-
->> + */
->> +struct fwnode_handle *
->> +fwnode_graph_get_port_parent(struct fwnode_handle *fwnode)
-> 
-> This is akin to writing (unsigned int integer)
-
-Yes, good point there - I was thinking of the fwnode as an object itself, but
-really it's representing the endpoint, and the fwnode is the class type :)
-
-> 
-> How about calling the variable endpoint ? That would also make the 
-> documentation clearer in my opinion, with "the @fwnode belongs to" replaced 
-> with "the @endpoint belongs to".
-
-Agreed
-
-> 
->> +{
->> +	struct fwnode_handle *parent = NULL;
->> +
->> +	if (is_of_node(fwnode)) {
->> +		struct device_node *node;
->> +
->> +		node = of_graph_get_port_parent(to_of_node(fwnode));
->> +		if (node)
->> +			parent = &node->fwnode;
-> 
-> This part looks good to me, with the above small change,
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Thanks,
-
-I'll add this if the code doesn't change drastically based on Sakari's suggestion.
-
-> 
->> +	} else if (is_acpi_node(fwnode)) {
->> +		parent = acpi_node_get_parent(fwnode);
-> 
-> I can't comment on this one though.
-> 
->> +	}
->> +
->> +	return parent;
->> +}
->> +EXPORT_SYMBOL_GPL(fwnode_graph_get_port_parent);
->> +
->> +/**
->>   * fwnode_graph_get_remote_port_parent - Return fwnode of a remote device
->>   * @fwnode: Endpoint firmware node pointing to the remote endpoint
->>   *
->> diff --git a/include/linux/property.h b/include/linux/property.h
->> index 2f482616a2f2..624129b86c82 100644
->> --- a/include/linux/property.h
->> +++ b/include/linux/property.h
->> @@ -274,6 +274,8 @@ void *device_get_mac_address(struct device *dev, char
->> *addr, int alen);
+>> Dependencies are met:
 >>
->>  struct fwnode_handle *fwnode_graph_get_next_endpoint(
->>  	struct fwnode_handle *fwnode, struct fwnode_handle *prev);
->> +struct fwnode_handle *fwnode_graph_get_port_parent(
->> +	struct fwnode_handle *fwnode);
->>  struct fwnode_handle *fwnode_graph_get_remote_port_parent(
->>  	struct fwnode_handle *fwnode);
->>  struct fwnode_handle *fwnode_graph_get_remote_port(
-> 
+>> make[2]: Entering directory '/usr/src/linux-headers-4.10.0-21-generic'
+>>    CC [M]  /home/ubuntu/media_build/v4l/cec-core.o
+>> /home/ubuntu/media_build/v4l/cec-core.c: In function
+>> 'cec_devnode_register':
+>> /home/ubuntu/media_build/v4l/cec-core.c:142:8: error: implicit
+>> declaration of function 'cdev_device_add'
+>> [-Werror=3Dimplicit-function-declaration]
+>>    ret =3D cdev_device_add(&devnode->cdev, &devnode->dev);
+>>          ^~~~~~~~~~~~~~~
+>> /home/ubuntu/media_build/v4l/cec-core.c: In function
+>> 'cec_devnode_unregister':
+>> /home/ubuntu/media_build/v4l/cec-core.c:186:2: error: implicit
+>> declaration of function 'cdev_device_del'
+>> [-Werror=3Dimplicit-function-declaration]
+>>    cdev_device_del(&devnode->cdev, &devnode->dev);
+>>    ^~~~~~~~~~~~~~~
+>
+>
+> Hi Karl
+>
+> I changed in cec-core.c cdev_device_add(&devnode->cdev, &devnode->dev) an=
+d
+> cdev_device_del(&devnode->cdev, &devnode->dev) to device_add(&devnode->de=
+v)
+> and device_del(&devnode->dev).
+>
+> I can compile now and the driver runs with kernel 4.10.0-21-generic on
+> Ubuntu 17.04.
+>
+> Thomas
+>
