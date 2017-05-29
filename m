@@ -1,74 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39304 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754551AbdEMMna (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 13 May 2017 08:43:30 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: [PATCH] staging: atomisp: Fix -Werror=int-in-bool-context compile errors
-Date: Sat, 13 May 2017 14:43:22 +0200
-Message-Id: <20170513124322.28967-1-hdegoede@redhat.com>
+Received: from mail-lf0-f53.google.com ([209.85.215.53]:32841 "EHLO
+        mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750989AbdE2INi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 May 2017 04:13:38 -0400
+Received: by mail-lf0-f53.google.com with SMTP id m18so30738294lfj.0
+        for <linux-media@vger.kernel.org>; Mon, 29 May 2017 01:13:32 -0700 (PDT)
+Date: Mon, 29 May 2017 10:13:30 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v2 15/17] rcar-vin: register the video device at probe
+ time
+Message-ID: <20170529081330.GM5567@bigcity.dyn.berto.se>
+References: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+ <20170524001540.13613-16-niklas.soderlund@ragnatech.se>
+ <5c911c00-ef4c-89c9-4629-20abaeb37f26@xs4all.nl>
+ <072c6d94-3ede-724d-2626-e085e17f7c6d@xs4all.nl>
+ <20170529074926.GL5567@bigcity.dyn.berto.se>
+ <98f45f1c-83ef-f7cd-f774-1978eeff2a45@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <98f45f1c-83ef-f7cd-f774-1978eeff2a45@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With gcc-7.1.1 I was getting the following compile error:
+Hi Hans,
 
-error: â€˜*â€™ in boolean context, suggest â€˜&&â€™ instead
+On 2017-05-29 09:55:07 +0200, Hans Verkuil wrote:
+> On 05/29/2017 09:49 AM, Niklas Söderlund wrote:
+> > Hi Hans,
+> > 
+> > Thanks for taking the time to look at this :-)
+> > 
+> > On 2017-05-29 08:56:31 +0200, Hans Verkuil wrote:
+> > > On 05/29/2017 08:52 AM, Hans Verkuil wrote:
+> > > > Hi Niklas,
+> > > > 
+> > > > On 05/24/2017 02:15 AM, Niklas Söderlund wrote:
+> > > > > From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > > > > 
+> > > > > The driver registers the video device from the async complete callback
+> > > > > and unregistered in the async unbind callback. This creates problems if
+> > > > > if the subdevice is bound, unbound and later rebound. The second time
+> > > > > video_register_device() is called it fails:
+> > > > > 
+> > > > >       kobject (eb3be918): tried to init an initialized object, something is seriously wrong.
+> > > > > 
+> > > > > To prevent this register the video device at prob time and don't allow
+> > > > > user-space to open the video device if the subdevice have not yet been
+> > > > > bound.
+> > > > 
+> > > > This patch feels wrong. Creating the video device in the notify_complete seems
+> > > > right to me, so the problem is much more likely in the removal of the video device.
+> > > > 
+> > > > What *exactly* goes wrong here
+> > 
+> > When calling video_register_device() it fails since the device structure
+> > have already been registered once. So it is not possible to register,
+> > unregister and then register the same video device struct. The other
+> > solution to this is to memset the whole embedded video device struct to
+> > zero  before initializing it and calling video_register_device(), but
+> > that feels more wrong. Let me know what you think and I will rework this
+> > patch.
+> > 
+> > 
+> > > > 
+> > > > FYI: I'm taking all other patches of this series,
+> > > 
+> > > Oops, I saw Sakari had two comments. I'll wait for a v3 then.
+> > > 
+> > > If you make a v3 with Sakari's suggestions and drop this patch, then I can merge
+> > > it and make a pull request for it.
+> > 
+> > I can't find Sakaris comments in my inbox or on the ML for this thread.
+> > Where did you see them?
+> 
+> Sorry, my mistake. Those comments were for the
+> 
+> "[PATCH v2 0/2] media: entity: add operation to help map DT node to media pad"
+> 
+> patch series.
+> 
+> Never mind. I'm going to merge all but this patch and get back to you on this one.
 
-The problem is the definition of CEIL_DIV:
- #define CEIL_DIV(a, b)       ((b) ? ((a) + (b) - 1) / (b) : 0)
+Thanks!
 
-Which when called as: CEIL_DIV(x, y * z) triggers this error, note
-we cannot do as the error suggests since b is evaluated multiple times.
+> 
+> Regards,
+> 
+> 	Hans
 
-This commit fixes these compile errors.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c   | 1 -
- .../pci/atomisp2/css2400/hive_isp_css_include/math_support.h        | 6 +++---
- 2 files changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
-index b830b241e2e6..ad2c610d2ce3 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
-@@ -2506,7 +2506,6 @@ static void __configure_capture_pp_input(struct atomisp_sub_device *asd,
- 	struct ia_css_pipe_extra_config *pipe_extra_configs =
- 		&stream_env->pipe_extra_configs[pipe_id];
- 	unsigned int hor_ds_factor = 0, ver_ds_factor = 0;
--#define CEIL_DIV(a, b)       ((b) ? ((a) + (b) - 1) / (b) : 0)
- 
- 	if (width == 0 && height == 0)
- 		return;
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/math_support.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/math_support.h
-index 48d84bc0ad9e..f74b405b0f39 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/math_support.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/math_support.h
-@@ -62,15 +62,15 @@
- #define MAX(a, b)            (((a) > (b)) ? (a) : (b))
- #define MIN(a, b)            (((a) < (b)) ? (a) : (b))
- #ifdef ISP2401
--#define ROUND_DIV(a, b)      ((b) ? ((a) + ((b) >> 1)) / (b) : 0)
-+#define ROUND_DIV(a, b)      (((b) != 0) ? ((a) + ((b) >> 1)) / (b) : 0)
- #endif
--#define CEIL_DIV(a, b)       ((b) ? ((a) + (b) - 1) / (b) : 0)
-+#define CEIL_DIV(a, b)       (((b) != 0) ? ((a) + (b) - 1) / (b) : 0)
- #define CEIL_MUL(a, b)       (CEIL_DIV(a, b) * (b))
- #define CEIL_MUL2(a, b)      (((a) + (b) - 1) & ~((b) - 1))
- #define CEIL_SHIFT(a, b)     (((a) + (1 << (b)) - 1)>>(b))
- #define CEIL_SHIFT_MUL(a, b) (CEIL_SHIFT(a, b) << (b))
- #ifdef ISP2401
--#define ROUND_HALF_DOWN_DIV(a, b)	((b) ? ((a) + (b / 2) - 1) / (b) : 0)
-+#define ROUND_HALF_DOWN_DIV(a, b)	(((b) != 0) ? ((a) + (b / 2) - 1) / (b) : 0)
- #define ROUND_HALF_DOWN_MUL(a, b)	(ROUND_HALF_DOWN_DIV(a, b) * (b))
- #endif
- 
 -- 
-2.12.2
+Regards,
+Niklas Söderlund
