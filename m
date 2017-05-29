@@ -1,133 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:45180 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752864AbdEEPVX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 May 2017 11:21:23 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-renesas-soc@vger.kernel.org, mchehab@kernel.org
-Cc: kieran.bingham@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH v4 2/4] v4l: vsp1: Postpone frame end handling in event of display list race
-Date: Fri,  5 May 2017 16:21:08 +0100
-Message-Id: <e36532f33bed86666e9d7c2c23b7d797860e3457.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.7bcdc495e53f6c50c4c68df9ac0b57361b88d2f8.1493995408.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:36211 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751106AbdE2NhP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 May 2017 09:37:15 -0400
+Subject: Re: [PATCH v7 15/34] add mux and video interface bridge entity
+ functions
+To: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+ <1495672189-29164-16-git-send-email-steve_longerbeam@mentor.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <3d3f0c9f-7315-69f0-877e-04b33c498c46@xs4all.nl>
+Date: Mon, 29 May 2017 15:37:00 +0200
+MIME-Version: 1.0
+In-Reply-To: <1495672189-29164-16-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If we try to commit the display list while an update is pending, we have
-missed our opportunity. The display list manager will hold the commit
-until the next interrupt.
+On 05/25/2017 02:29 AM, Steve Longerbeam wrote:
+> From: Philipp Zabel <p.zabel@pengutronix.de>
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> 
+> - renamed MEDIA_ENT_F_MUX to MEDIA_ENT_F_VID_MUX
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>   Documentation/media/uapi/mediactl/media-types.rst | 22 ++++++++++++++++++++++
+>   include/uapi/linux/media.h                        |  6 ++++++
+>   2 files changed, 28 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
+> index 2a5164a..47ee003 100644
+> --- a/Documentation/media/uapi/mediactl/media-types.rst
+> +++ b/Documentation/media/uapi/mediactl/media-types.rst
+> @@ -299,6 +299,28 @@ Types and flags used to represent the media graph elements
+>   	  received on its sink pad and outputs the statistics data on
+>   	  its source pad.
+>   
+> +    -  ..  row 29
+> +
+> +       ..  _MEDIA-ENT-F-VID-MUX:
+> +
+> +       -  ``MEDIA_ENT_F_VID_MUX``
+> +
+> +       - Video multiplexer. An entity capable of multiplexing must have at
+> +         least two sink pads and one source pad, and must pass the video
+> +         frame(s) received from the active sink pad to the source pad. Video
+> +         frame(s) from the inactive sink pads are discarded.
+> +
+> +    -  ..  row 30
+> +
+> +       ..  _MEDIA-ENT-F-VID-IF-BRIDGE:
+> +
+> +       -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
+> +
+> +       - Video interface bridge. A video interface bridge entity must have at
+> +         least one sink pad and one source pad. It receives video frame(s) on
+> +         its sink pad in one bus format (HDMI, eDP, MIPI CSI-2, ...) and
+> +         converts them and outputs them on its source pad in another bus format
+> +         (eDP, MIPI CSI-2, parallel, ...).
 
-In this event, we skip the pipeline completion callback handler so that
-the pipeline will not mistakenly report frame completion to the user.
+I'm unhappy with the term 'bus format'. It's too close to 'mediabus format'.
+How about calling it "bus protocol"?
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_dl.c   | 19 +++++++++++++++++--
- drivers/media/platform/vsp1/vsp1_dl.h   |  2 +-
- drivers/media/platform/vsp1/vsp1_pipe.c | 13 ++++++++++++-
- 3 files changed, 30 insertions(+), 4 deletions(-)
+Regards,
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 7d8f37772b56..85fe2b4ae310 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -561,9 +561,19 @@ void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm)
- 	spin_unlock(&dlm->lock);
- }
- 
--void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
-+/**
-+ * vsp1_dlm_irq_frame_end - Display list handler for the frame end interrupt
-+ * @dlm: the display list manager
-+ *
-+ * Return true if the previous display list has completed at frame end, or false
-+ * if it has been delayed by one frame because the display list commit raced
-+ * with the frame end interrupt. The function always returns true in header mode
-+ * as display list processing is then not continuous and races never occur.
-+ */
-+bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
- {
- 	struct vsp1_device *vsp1 = dlm->vsp1;
-+	bool completed = false;
- 
- 	spin_lock(&dlm->lock);
- 
-@@ -575,8 +585,10 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
- 	 * perform any operation as there can't be any new display list queued
- 	 * in that case.
- 	 */
--	if (dlm->mode == VSP1_DL_MODE_HEADER)
-+	if (dlm->mode == VSP1_DL_MODE_HEADER) {
-+		completed = true;
- 		goto done;
-+	}
- 
- 	/*
- 	 * The UPD bit set indicates that the commit operation raced with the
-@@ -594,6 +606,7 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
- 	if (dlm->queued) {
- 		dlm->active = dlm->queued;
- 		dlm->queued = NULL;
-+		completed = true;
- 	}
- 
- 	/*
-@@ -614,6 +627,8 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
- 
- done:
- 	spin_unlock(&dlm->lock);
-+
-+	return completed;
- }
- 
- /* Hardware Setup */
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-index 7131aa3c5978..6ec1380a10af 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.h
-+++ b/drivers/media/platform/vsp1/vsp1_dl.h
-@@ -28,7 +28,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
- void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
- void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm);
--void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
-+bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
- 
- struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
- void vsp1_dl_list_put(struct vsp1_dl_list *dl);
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index edebf3fa926f..e817623b84e0 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -330,10 +330,21 @@ bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe)
- 
- void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
- {
-+	bool completed;
-+
- 	if (pipe == NULL)
- 		return;
- 
--	vsp1_dlm_irq_frame_end(pipe->output->dlm);
-+	completed = vsp1_dlm_irq_frame_end(pipe->output->dlm);
-+	if (!completed) {
-+		/*
-+		 * If the DL commit raced with the frame end interrupt, the
-+		 * commit ends up being postponed by one frame. Return
-+		 * immediately without calling the pipeline's frame end handler
-+		 * or incrementing the sequence number.
-+		 */
-+		return;
-+	}
- 
- 	if (pipe->hgo)
- 		vsp1_hgo_frame_end(pipe->hgo);
--- 
-git-series 0.9.1
+	Hans
+
+>   
+>   ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
+>   
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 4890787..fac96c6 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -105,6 +105,12 @@ struct media_device_info {
+>   #define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
+>   
+>   /*
+> + * Switch and bridge entitites
+> + */
+> +#define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
+> +#define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
+> +
+> +/*
+>    * Connectors
+>    */
+>   /* It is a responsibility of the entity drivers to add connectors and links */
+> 
