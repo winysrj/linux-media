@@ -1,83 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:39476
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753712AbdERIpi (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:42363 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750947AbdE2Nwr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 04:45:38 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>,
-        devel@driverdev.osuosl.org
-Subject: [PATCH] [media] atomisp: don't treat warnings as errors
-Date: Thu, 18 May 2017 05:45:25 -0300
-Message-Id: <dd8245f445f5e751b38126140b6ba1723f06c60b.1495097103.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Mon, 29 May 2017 09:52:47 -0400
+Message-ID: <1496065877.17695.82.camel@pengutronix.de>
+Subject: Re: [PATCH v7 15/34] add mux and video interface bridge entity
+ functions
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Mon, 29 May 2017 15:51:17 +0200
+In-Reply-To: <3d3f0c9f-7315-69f0-877e-04b33c498c46@xs4all.nl>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+         <1495672189-29164-16-git-send-email-steve_longerbeam@mentor.com>
+         <3d3f0c9f-7315-69f0-877e-04b33c498c46@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Several atomisp files use:
-	 ccflags-y += -Werror
+On Mon, 2017-05-29 at 15:37 +0200, Hans Verkuil wrote:
+> On 05/25/2017 02:29 AM, Steve Longerbeam wrote:
+> > From: Philipp Zabel <p.zabel@pengutronix.de>
+> > 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > 
+> > - renamed MEDIA_ENT_F_MUX to MEDIA_ENT_F_VID_MUX
+> > 
+> > Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> > ---
+> >   Documentation/media/uapi/mediactl/media-types.rst | 22 ++++++++++++++++++++++
+> >   include/uapi/linux/media.h                        |  6 ++++++
+> >   2 files changed, 28 insertions(+)
+> > 
+> > diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
+> > index 2a5164a..47ee003 100644
+> > --- a/Documentation/media/uapi/mediactl/media-types.rst
+> > +++ b/Documentation/media/uapi/mediactl/media-types.rst
+> > @@ -299,6 +299,28 @@ Types and flags used to represent the media graph elements
+> >   	  received on its sink pad and outputs the statistics data on
+> >   	  its source pad.
+> >   
+> > +    -  ..  row 29
+> > +
+> > +       ..  _MEDIA-ENT-F-VID-MUX:
+> > +
+> > +       -  ``MEDIA_ENT_F_VID_MUX``
+> > +
+> > +       - Video multiplexer. An entity capable of multiplexing must have at
+> > +         least two sink pads and one source pad, and must pass the video
+> > +         frame(s) received from the active sink pad to the source pad. Video
+> > +         frame(s) from the inactive sink pads are discarded.
+> > +
+> > +    -  ..  row 30
+> > +
+> > +       ..  _MEDIA-ENT-F-VID-IF-BRIDGE:
+> > +
+> > +       -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
+> > +
+> > +       - Video interface bridge. A video interface bridge entity must have at
+> > +         least one sink pad and one source pad. It receives video frame(s) on
+> > +         its sink pad in one bus format (HDMI, eDP, MIPI CSI-2, ...) and
+> > +         converts them and outputs them on its source pad in another bus format
+> > +         (eDP, MIPI CSI-2, parallel, ...).
+> 
+> I'm unhappy with the term 'bus format'. It's too close to 'mediabus format'.
+> How about calling it "bus protocol"?
 
-As, on media, our usual procedure is to use W=1, and atomisp
-has *a lot* of warnings with such flag enabled,like:
+How about:
 
-./drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/system_local.h:62:26: warning: 'DDR_BASE' defined but not used [-Wunused-const-variable=]
+   "It receives video frames on its sink pad from an input video bus
+    of one type (HDMI, eDP, MIPI CSI-2, ...), and outputs them on its
+    source pad to an output video bus of another type (eDP, MIPI
+    CSI-2, parallel, ...)."
 
-At the end, it causes our build to fail, impacting our workflow.
-
-So, remove this crap. If one wants to force -Werror, he
-can still build with it enabled by passing a parameter to
-make.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/staging/media/atomisp/i2c/Makefile          | 2 --
- drivers/staging/media/atomisp/i2c/imx/Makefile      | 2 --
- drivers/staging/media/atomisp/i2c/ov5693/Makefile   | 2 --
- drivers/staging/media/atomisp/pci/atomisp2/Makefile | 2 +-
- 4 files changed, 1 insertion(+), 7 deletions(-)
-
-diff --git a/drivers/staging/media/atomisp/i2c/Makefile b/drivers/staging/media/atomisp/i2c/Makefile
-index 8ea01904c0ea..466517c7c8e6 100644
---- a/drivers/staging/media/atomisp/i2c/Makefile
-+++ b/drivers/staging/media/atomisp/i2c/Makefile
-@@ -19,5 +19,3 @@ obj-$(CONFIG_VIDEO_AP1302)     += ap1302.o
- 
- obj-$(CONFIG_VIDEO_LM3554) += lm3554.o
- 
--ccflags-y += -Werror
--
-diff --git a/drivers/staging/media/atomisp/i2c/imx/Makefile b/drivers/staging/media/atomisp/i2c/imx/Makefile
-index 1d7f7ab94cac..6b13a3a66e49 100644
---- a/drivers/staging/media/atomisp/i2c/imx/Makefile
-+++ b/drivers/staging/media/atomisp/i2c/imx/Makefile
-@@ -4,5 +4,3 @@ imx1x5-objs := imx.o drv201.o ad5816g.o dw9714.o dw9719.o dw9718.o vcm.o otp.o o
- 
- ov8858_driver-objs := ../ov8858.o dw9718.o vcm.o
- obj-$(CONFIG_VIDEO_OV8858)     += ov8858_driver.o
--
--ccflags-y += -Werror
-diff --git a/drivers/staging/media/atomisp/i2c/ov5693/Makefile b/drivers/staging/media/atomisp/i2c/ov5693/Makefile
-index fceb9e9b881b..c9c0e1245858 100644
---- a/drivers/staging/media/atomisp/i2c/ov5693/Makefile
-+++ b/drivers/staging/media/atomisp/i2c/ov5693/Makefile
-@@ -1,3 +1 @@
- obj-$(CONFIG_VIDEO_OV5693) += ov5693.o
--
--ccflags-y += -Werror
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/Makefile b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-index 3fa7c1c1479f..f126a89a08e9 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-@@ -351,5 +351,5 @@ DEFINES := -DHRT_HW -DHRT_ISP_CSS_CUSTOM_HOST -DHRT_USE_VIR_ADDRS -D__HOST__
- DEFINES += -DATOMISP_POSTFIX=\"css2400b0_v21\" -DISP2400B0
- DEFINES += -DSYSTEM_hive_isp_css_2400_system -DISP2400
- 
--ccflags-y += $(INCLUDES) $(DEFINES) -fno-common -Werror
-+ccflags-y += $(INCLUDES) $(DEFINES) -fno-common
- 
--- 
-2.9.3
+regards
+Philipp
