@@ -1,107 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f177.google.com ([209.85.128.177]:35739 "EHLO
-        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754050AbdEIPg3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 May 2017 11:36:29 -0400
-Received: by mail-wr0-f177.google.com with SMTP id z52so4125212wrc.2
-        for <linux-media@vger.kernel.org>; Tue, 09 May 2017 08:36:28 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v9 0/9] Qualcomm video decoder/encoder driver
-Date: Tue,  9 May 2017 18:35:52 +0300
-Message-Id: <1494344161-28131-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from mail-wm0-f48.google.com ([74.125.82.48]:35639 "EHLO
+        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750898AbdE2Jid (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 May 2017 05:38:33 -0400
+Received: by mail-wm0-f48.google.com with SMTP id b84so48582987wmh.0
+        for <linux-media@vger.kernel.org>; Mon, 29 May 2017 02:38:32 -0700 (PDT)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: yannick.fertre@st.com, alexandre.torgue@st.com, hverkuil@xs4all.nl,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        robh@kernel.org, hans.verkuil@cisco.com
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v5 0/2] cec: STM32 driver
+Date: Mon, 29 May 2017 11:38:03 +0200
+Message-Id: <1496050685-14301-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everyone,
+version 5:
+- remove cec notifier (to be added for drm driver release)
 
-The changes since v8 are:
-  * no functional changes.
-  * dropped COMPILE_TEST support until the drivers which Venus
-  driver selects got compile test support.
-  * added venus_ prefix to the exported helper functions as
-  suggested by Sakari.
-  * fixed few signed-unsigned compare warnings.
+version 4:
+- rebased on Hans cec-config branch
+- rework bindings commit message
+- add notifier support
+- update KConfig
 
-Patches applies cleanly on next-20170509 and media_tree.
-  
-regards,
-Stan
+version 2:
+- fix typo in compagnie name
+- add yannick sign-off
+- use cec_message instead of custom struct in cec device
+- add monitor mode
 
-Stanimir Varbanov (9):
-  media: v4l2-mem2mem: extend m2m APIs for more accurate buffer
-    management
-  doc: DT: venus: binding document for Qualcomm video driver
-  MAINTAINERS: Add Qualcomm Venus video accelerator driver
-  media: venus: adding core part and helper functions
-  media: venus: vdec: add video decoder files
-  media: venus: venc: add video encoder files
-  media: venus: hfi: add Host Firmware Interface (HFI)
-  media: venus: hfi: add Venus HFI files
-  media: venus: enable building of Venus video driver
+I don't change the split between irq handler and irq thread because
+it would had mean to handle all errors cases irq handler to keep
+a correct sequence. I don't think it is critical as it is since cec is a very
+slow protocol.
 
- .../devicetree/bindings/media/qcom,venus.txt       |  107 ++
- MAINTAINERS                                        |    8 +
- drivers/media/platform/Kconfig                     |   13 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/qcom/venus/Makefile         |   11 +
- drivers/media/platform/qcom/venus/core.c           |  388 +++++
- drivers/media/platform/qcom/venus/core.h           |  323 ++++
- drivers/media/platform/qcom/venus/firmware.c       |  109 ++
- drivers/media/platform/qcom/venus/firmware.h       |   22 +
- drivers/media/platform/qcom/venus/helpers.c        |  727 +++++++++
- drivers/media/platform/qcom/venus/helpers.h        |   45 +
- drivers/media/platform/qcom/venus/hfi.c            |  522 +++++++
- drivers/media/platform/qcom/venus/hfi.h            |  175 +++
- drivers/media/platform/qcom/venus/hfi_cmds.c       | 1255 ++++++++++++++++
- drivers/media/platform/qcom/venus/hfi_cmds.h       |  304 ++++
- drivers/media/platform/qcom/venus/hfi_helper.h     | 1050 +++++++++++++
- drivers/media/platform/qcom/venus/hfi_msgs.c       | 1054 +++++++++++++
- drivers/media/platform/qcom/venus/hfi_msgs.h       |  283 ++++
- drivers/media/platform/qcom/venus/hfi_venus.c      | 1571 ++++++++++++++++++++
- drivers/media/platform/qcom/venus/hfi_venus.h      |   23 +
- drivers/media/platform/qcom/venus/hfi_venus_io.h   |  113 ++
- drivers/media/platform/qcom/venus/vdec.c           | 1154 ++++++++++++++
- drivers/media/platform/qcom/venus/vdec.h           |   23 +
- drivers/media/platform/qcom/venus/vdec_ctrls.c     |  150 ++
- drivers/media/platform/qcom/venus/venc.c           | 1283 ++++++++++++++++
- drivers/media/platform/qcom/venus/venc.h           |   23 +
- drivers/media/platform/qcom/venus/venc_ctrls.c     |  270 ++++
- drivers/media/v4l2-core/v4l2-mem2mem.c             |   37 +
- include/media/v4l2-mem2mem.h                       |   92 ++
- 29 files changed, 11137 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
- create mode 100644 drivers/media/platform/qcom/venus/Makefile
- create mode 100644 drivers/media/platform/qcom/venus/core.c
- create mode 100644 drivers/media/platform/qcom/venus/core.h
- create mode 100644 drivers/media/platform/qcom/venus/firmware.c
- create mode 100644 drivers/media/platform/qcom/venus/firmware.h
- create mode 100644 drivers/media/platform/qcom/venus/helpers.c
- create mode 100644 drivers/media/platform/qcom/venus/helpers.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_helper.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
- create mode 100644 drivers/media/platform/qcom/venus/vdec.c
- create mode 100644 drivers/media/platform/qcom/venus/vdec.h
- create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
- create mode 100644 drivers/media/platform/qcom/venus/venc.c
- create mode 100644 drivers/media/platform/qcom/venus/venc.h
- create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
+This serie of patches add cec driver for STM32 platforms.
+
+This code doesn't implement cec notifier because STM32 doesn't
+provide HDMI yet but it will be added later.
+
+Those patches have been developped on top of media_tree master branch
+where STM32 DCMI code has not been merged so conflict in Kconfig and Makefile
+could occur depending of merge ordering.
+
+Compliance has been tested on STM32F769.
+
+~ # cec-ctl -p 1.0.0.0 --playback 
+Driver Info:
+        Driver Name                : stm32-cec
+        Adapter Name               : stm32-cec
+        Capabilities               : 0x0000000f
+                Physical Address
+                Logical Addresses
+                Transmit
+                Passthrough
+        Driver version             : 4.11.0
+        Available Logical Addresses: 1
+        Physical Address           : 1.0.0.0
+        Logical Address Mask       : 0x0010
+        CEC Version                : 2.0
+        Vendor ID                  : 0x000c03 (HDMI)
+        OSD Name                   : 'Playback'
+        Logical Addresses          : 1 (Allow RC Passthrough)
+
+          Logical Address          : 4 (Playback Device 1)
+            Primary Device Type    : Playback
+            Logical Address Type   : Playback
+            All Device Types       : Playback
+            RC TV Profile          : None
+            Device Features        :
+                None
+
+~ # cec-compliance -A 
+cec-compliance SHA                 : 6acac5cec698de39b9398b66c4f5f4db6b2730d8
+
+Driver Info:
+        Driver Name                : stm32-cec
+        Adapter Name               : stm32-cec
+        Capabilities               : 0x0000000f
+                Physical Address
+                Logical Addresses
+                Transmit
+                Passthrough
+        Driver version             : 4.11.0
+        Available Logical Addresses: 1
+        Physical Address           : 1.0.0.0
+        Logical Address Mask       : 0x0010
+        CEC Version                : 2.0
+        Vendor ID                  : 0x000c03
+        Logical Addresses          : 1 (Allow RC Passthrough)
+
+          Logical Address          : 4
+            Primary Device Type    : Playback
+            Logical Address Type   : Playback
+            All Device Types       : Playback
+            RC TV Profile          : None
+            Device Features        :
+                None
+
+Compliance test for device /dev/cec0:
+
+    The test results mean the following:
+        OK                  Supported correctly by the device.
+        OK (Not Supported)  Not supported and not mandatory for the device.
+        OK (Presumed)       Presumably supported.  Manually check to confirm.
+        OK (Unexpected)     Supported correctly but is not expected to be supported for this device.
+        OK (Refused)        Supported by the device, but was refused.
+        FAIL                Failed and was expected to be supported by this device.
+
+Find remote devices:
+        Polling: OK
+
+CEC API:
+        CEC_ADAP_G_CAPS: OK
+        CEC_DQEVENT: OK
+        CEC_ADAP_G/S_PHYS_ADDR: OK
+        CEC_ADAP_G/S_LOG_ADDRS: OK
+        CEC_TRANSMIT: OK
+        CEC_RECEIVE: OK
+        CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
+        CEC_G/S_MODE: OK
+        CEC_EVENT_LOST_MSGS: OK
+
+Network topology:
+        System Information for device 0 (TV) from device 4 (Playback Device 1):
+                CEC Version                : 1.4
+                Physical Address           : 0.0.0.0
+                Primary Device Type        : TV
+                Vendor ID                  : 0x00903e
+                OSD Name                   : 'TV'
+                Menu Language              : fre
+                Power Status               : On
+
+Total: 10, Succeeded: 10, Failed: 0, Warnings: 0
+
+Benjamin Gaignard (2):
+  dt-bindings: media: stm32 cec driver
+  cec: add STM32 cec driver
+
+ .../devicetree/bindings/media/st,stm32-cec.txt     |  19 ++
+ drivers/media/platform/Kconfig                     |  12 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/stm32/Makefile              |   1 +
+ drivers/media/platform/stm32/stm32-cec.c           | 361 +++++++++++++++++++++
+ 5 files changed, 395 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
+ create mode 100644 drivers/media/platform/stm32/Makefile
+ create mode 100644 drivers/media/platform/stm32/stm32-cec.c
 
 -- 
-2.7.4
+1.9.1
