@@ -1,57 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41538 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S944965AbdEZVFu (ORCPT
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:37384 "EHLO
+        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751389AbdE2Pqw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 May 2017 17:05:50 -0400
-Date: Sat, 27 May 2017 00:05:12 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Cc: "robh+dt@kernel.org" <robh+dt@kernel.org>,
-        "mark.rutland@arm.com" <mark.rutland@arm.com>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "crope@iki.fi" <crope@iki.fi>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "geert+renesas@glider.be" <geert+renesas@glider.be>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-renesas-soc@vger.kernel.org"
-        <linux-renesas-soc@vger.kernel.org>
-Subject: Re: [PATCH v5 3/7] media: i2c: max2175: Add MAX2175 support
-Message-ID: <20170526210512.GR29527@valkosipuli.retiisi.org.uk>
-References: <20170509133738.16414-1-ramesh.shanmugasundaram@bp.renesas.com>
- <20170509133738.16414-4-ramesh.shanmugasundaram@bp.renesas.com>
- <20170510081231.GB3227@valkosipuli.retiisi.org.uk>
- <KL1PR0601MB2038AAC0C02926FE168A7952C3FC0@KL1PR0601MB2038.apcprd06.prod.outlook.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <KL1PR0601MB2038AAC0C02926FE168A7952C3FC0@KL1PR0601MB2038.apcprd06.prod.outlook.com>
+        Mon, 29 May 2017 11:46:52 -0400
+Received: by mail-wm0-f44.google.com with SMTP id d127so64536786wmf.0
+        for <linux-media@vger.kernel.org>; Mon, 29 May 2017 08:46:51 -0700 (PDT)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 15/15] media: exynos4-is: use devm_of_platform_populate()
+Date: Mon, 29 May 2017 17:46:03 +0200
+Message-Id: <1496072763-31209-16-git-send-email-benjamin.gaignard@linaro.org>
+In-Reply-To: <1496072763-31209-1-git-send-email-benjamin.gaignard@linaro.org>
+References: <1496072763-31209-1-git-send-email-benjamin.gaignard@linaro.org>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 26, 2017 at 02:47:32PM +0000, Ramesh Shanmugasundaram wrote:
-> Hi Sakari,
-> 
-> Thanks for the review comments on the patches. Sorry for the late response
-> as I was caught up with another work.
+Usage of devm_of_platform_populate() simplify driver code
+and save somes lines
 
-No worries.
+Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
-> 
-> I will incorporate your comments and rebase it on top of your branch. I
-> see it is not there in media-tree master yet. Please let me know if there
-> is a change in plan.
+CC: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: Kukjin Kim <kgene@kernel.org>
+CC: Krzysztof Kozlowski <krzk@kernel.org>
+CC: Javier Martinez Canillas <javier@osg.samsung.com>
+CC: linux-media@vger.kernel.org
+CC: linux-arm-kernel@lists.infradead.org
+CC: linux-samsung-soc@vger.kernel.org
+CC: linux-kernel@vger.kernel.org
+---
+ drivers/media/platform/exynos4-is/fimc-is.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-I've sent a pull request to Mauro here and my expectation is it'll reach
-media tree master in not too distant future:
-
-<URL:http://www.spinics.net/lists/linux-media/msg115707.html>
-
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index 7f92144..340d906 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -854,7 +854,7 @@ static int fimc_is_probe(struct platform_device *pdev)
+ 
+ 	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+ 
+-	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
++	ret = devm_of_platform_populate(dev);
+ 	if (ret < 0)
+ 		goto err_pm;
+ 
+@@ -864,7 +864,7 @@ static int fimc_is_probe(struct platform_device *pdev)
+ 	 */
+ 	ret = fimc_is_register_subdevs(is);
+ 	if (ret < 0)
+-		goto err_of_dep;
++		goto err_pm;
+ 
+ 	ret = fimc_is_debugfs_create(is);
+ 	if (ret < 0)
+@@ -883,8 +883,6 @@ static int fimc_is_probe(struct platform_device *pdev)
+ 	fimc_is_debugfs_remove(is);
+ err_sd:
+ 	fimc_is_unregister_subdevs(is);
+-err_of_dep:
+-	of_platform_depopulate(dev);
+ err_pm:
+ 	if (!pm_runtime_enabled(dev))
+ 		fimc_is_runtime_suspend(dev);
+@@ -946,7 +944,6 @@ static int fimc_is_remove(struct platform_device *pdev)
+ 	if (!pm_runtime_status_suspended(dev))
+ 		fimc_is_runtime_suspend(dev);
+ 	free_irq(is->irq, is);
+-	of_platform_depopulate(dev);
+ 	fimc_is_unregister_subdevs(is);
+ 	vb2_dma_contig_clear_max_seg_size(dev);
+ 	fimc_is_put_clocks(is);
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.9.1
