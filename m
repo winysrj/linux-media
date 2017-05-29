@@ -1,77 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37633 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751196AbdEFL65 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38678 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750863AbdE2Iye (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 6 May 2017 07:58:57 -0400
-Subject: Re: [PATCH 8/8] omapdrm: hdmi4: hook up the HDMI CEC support
+        Mon, 29 May 2017 04:54:34 -0400
+Subject: Re: [PATCH v4 0/2] cec: STM32 driver
+To: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        yannick.fertre@st.com, alexandre.torgue@st.com,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        robh@kernel.org, hans.verkuil@cisco.com
+References: <1496046855-5809-1-git-send-email-benjamin.gaignard@linaro.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
- <20170414102512.48834-9-hverkuil@xs4all.nl>
-Message-ID: <144b95df-8eb2-1307-1157-2eb2572c51aa@xs4all.nl>
-Date: Sat, 6 May 2017 13:58:51 +0200
+Message-ID: <5ef1d96d-dc5f-49b9-0650-51d086efc226@xs4all.nl>
+Date: Mon, 29 May 2017 10:54:27 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170414102512.48834-9-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1496046855-5809-1-git-send-email-benjamin.gaignard@linaro.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomi,
+Hi Benjamin,
 
-I did some more testing, and I discovered a bug in this code, but I am not
-sure how to solve it.
+On 05/29/2017 10:34 AM, Benjamin Gaignard wrote:
+> version 4:
+> - rebased on Hans cec-config branch
+> - rework bindings commit message
+> - add notifier support
 
-On 04/14/2017 12:25 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Hook up the HDMI CEC support in the hdmi4 driver.
-> 
-> It add the CEC irq handler, the CEC (un)init calls and tells the CEC
-> implementation when the physical address changes.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/gpu/drm/omapdrm/dss/Kconfig  |  9 +++++++++
->  drivers/gpu/drm/omapdrm/dss/Makefile |  1 +
->  drivers/gpu/drm/omapdrm/dss/hdmi4.c  | 23 ++++++++++++++++++++++-
->  3 files changed, 32 insertions(+), 1 deletion(-)
-> 
+I really don't like this change. This forced me to think about this a bit more,
+and I think this requires another change as well.
 
-<snip>
+The problem you have is that the drm driver for this platform isn't ready yet,
+so this CEC driver needs userspace to provide a physical address since it can't
+use a notifier.
 
-> diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-> index e371b47ff6ff..ebe5b27cee6f 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+Trying to support both is a bad idea since this runs the risk that we will forget
+to remove the CAP_PHYS_ADDR path later.
 
-<snip>
+Instead, just drop the notifier support. And move this driver to staging, just
+as we did with the st-cec driver. Once the drm driver arrives this cec driver
+can switch to using the notifier and be moved out of staging.
 
-> @@ -392,6 +401,8 @@ static void hdmi_display_disable(struct omap_dss_device *dssdev)
->  
->  	DSSDBG("Enter hdmi_display_disable\n");
->  
-> +	hdmi4_cec_set_phys_addr(&hdmi.core, CEC_PHYS_ADDR_INVALID);
-> +
->  	mutex_lock(&hdmi.lock);
->  
->  	spin_lock_irqsave(&hdmi.audio_playing_lock, flags);
+Add a TODO file explaining that this is waiting for the drm driver so the
+CEC_CAP_PHYS_ADDR capability can be removed after switching to using CEC_NOTIFIER.
 
-My assumption was that hdmi_display_disable() was called when the hotplug would go
-away. But I discovered that that isn't the case, or at least not when X is running.
-It seems that the actual HPD check is done in hdmic_detect() in
-omapdrm/displays/connector-hdmi.c.
+I should have realized this when reviewing v2, sorry about that.
 
-But there I have no access to hdmi.core (needed for the hdmi4_cec_set_phys_addr() call).
+The reason why I don't want CEC drivers using CEC_CAP_PHYS_ADDR in mainline (except
+if it is obviously required such as for the usb CEC dongles) is that it puts a
+major burden on the application to discover the physical address from the EDID. It
+should only be used if there is no other way. In this case this is just a
+temporary situation, so staging is the right place.
 
-Any idea how to solve this? I am not all that familiar with drm, let alone omapdrm,
-so if you can point me in the right direction, then that would be very helpful.
+BTW, if the stm32 drm driver is going to be accepted for 4.13, then that would
+change things, but I don't think that's the case.
 
 Regards,
 
 	Hans
+
+> - update KConfig
+> 
+> version 2:
+> - fix typo in compagnie name
+> - add yannick sign-off
+> - use cec_message instead of custom struct in cec device
+> - add monitor mode
+> 
+> I don't change the split between irq handler and irq thread because
+> it would had mean to handle all errors cases irq handler to keep
+> a correct sequence. I don't think it is critical as it is since cec is a very
+> slow protocol.
+> 
+> This serie of patches add cec driver for STM32 platforms.
+> 
+> This code doesn't implement cec notifier because STM32 doesn't
+> provide HDMI yet but it will be added later.
+> 
+> Those patches have been developped on top of media_tree master branch
+> where STM32 DCMI code has not been merged so conflict in Kconfig and Makefile
+> could occur depending of merge ordering.
+> 
+> Compliance has been tested on STM32F769.
+> 
+> ~ # cec-ctl -p 1.0.0.0 --playback
+> Driver Info:
+>          Driver Name                : stm32-cec
+>          Adapter Name               : stm32-cec
+>          Capabilities               : 0x0000000f
+>                  Physical Address
+>                  Logical Addresses
+>                  Transmit
+>                  Passthrough
+>          Driver version             : 4.11.0
+>          Available Logical Addresses: 1
+>          Physical Address           : 1.0.0.0
+>          Logical Address Mask       : 0x0010
+>          CEC Version                : 2.0
+>          Vendor ID                  : 0x000c03 (HDMI)
+>          OSD Name                   : 'Playback'
+>          Logical Addresses          : 1 (Allow RC Passthrough)
+> 
+>            Logical Address          : 4 (Playback Device 1)
+>              Primary Device Type    : Playback
+>              Logical Address Type   : Playback
+>              All Device Types       : Playback
+>              RC TV Profile          : None
+>              Device Features        :
+>                  None
+> 
+> ~ # cec-compliance -A
+> cec-compliance SHA                 : 6acac5cec698de39b9398b66c4f5f4db6b2730d8
+> 
+> Driver Info:
+>          Driver Name                : stm32-cec
+>          Adapter Name               : stm32-cec
+>          Capabilities               : 0x0000000f
+>                  Physical Address
+>                  Logical Addresses
+>                  Transmit
+>                  Passthrough
+>          Driver version             : 4.11.0
+>          Available Logical Addresses: 1
+>          Physical Address           : 1.0.0.0
+>          Logical Address Mask       : 0x0010
+>          CEC Version                : 2.0
+>          Vendor ID                  : 0x000c03
+>          Logical Addresses          : 1 (Allow RC Passthrough)
+> 
+>            Logical Address          : 4
+>              Primary Device Type    : Playback
+>              Logical Address Type   : Playback
+>              All Device Types       : Playback
+>              RC TV Profile          : None
+>              Device Features        :
+>                  None
+> 
+> Compliance test for device /dev/cec0:
+> 
+>      The test results mean the following:
+>          OK                  Supported correctly by the device.
+>          OK (Not Supported)  Not supported and not mandatory for the device.
+>          OK (Presumed)       Presumably supported.  Manually check to confirm.
+>          OK (Unexpected)     Supported correctly but is not expected to be supported for this device.
+>          OK (Refused)        Supported by the device, but was refused.
+>          FAIL                Failed and was expected to be supported by this device.
+> 
+> Find remote devices:
+>          Polling: OK
+> 
+> CEC API:
+>          CEC_ADAP_G_CAPS: OK
+>          CEC_DQEVENT: OK
+>          CEC_ADAP_G/S_PHYS_ADDR: OK
+>          CEC_ADAP_G/S_LOG_ADDRS: OK
+>          CEC_TRANSMIT: OK
+>          CEC_RECEIVE: OK
+>          CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
+>          CEC_G/S_MODE: OK
+>          CEC_EVENT_LOST_MSGS: OK
+> 
+> Network topology:
+>          System Information for device 0 (TV) from device 4 (Playback Device 1):
+>                  CEC Version                : 1.4
+>                  Physical Address           : 0.0.0.0
+>                  Primary Device Type        : TV
+>                  Vendor ID                  : 0x00903e
+>                  OSD Name                   : 'TV'
+>                  Menu Language              : fre
+>                  Power Status               : On
+> 
+> Total: 10, Succeeded: 10, Failed: 0, Warnings: 0
+> 
+> 
+> Benjamin Gaignard (2):
+>    dt-bindings: media: stm32 cec driver
+>    cec: add STM32 cec driver
+> 
+>   .../devicetree/bindings/media/st,stm32-cec.txt     |  22 ++
+>   drivers/media/platform/Kconfig                     |  13 +
+>   drivers/media/platform/Makefile                    |   2 +
+>   drivers/media/platform/stm32/Makefile              |   1 +
+>   drivers/media/platform/stm32/stm32-cec.c           | 392 +++++++++++++++++++++
+>   5 files changed, 430 insertions(+)
+>   create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
+>   create mode 100644 drivers/media/platform/stm32/Makefile
+>   create mode 100644 drivers/media/platform/stm32/stm32-cec.c
+> 
