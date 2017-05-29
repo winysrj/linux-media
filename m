@@ -1,497 +1,989 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:60083 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751338AbdEPJd2 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45300 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750909AbdE2Lfz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 May 2017 05:33:28 -0400
-Subject: Re: [PATCH 2/2] cec: add STM32 cec driver
-To: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        yannick.ferte@st.com, alexandre.torgue@st.com,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        robh@kernel.org, hans.verkuil@cisco.com
-References: <1494925280-4527-1-git-send-email-benjamin.gaignard@linaro.org>
- <1494925280-4527-3-git-send-email-benjamin.gaignard@linaro.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b8a58196-dc86-8ffc-2a3b-77570dd153eb@xs4all.nl>
-Date: Tue, 16 May 2017 11:33:25 +0200
+        Mon, 29 May 2017 07:35:55 -0400
+Date: Mon, 29 May 2017 14:35:16 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: Re: [PATCH v7 2/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2
+ receiver driver
+Message-ID: <20170529113516.GD29527@valkosipuli.retiisi.org.uk>
+References: <20170524001353.13482-1-niklas.soderlund@ragnatech.se>
+ <20170524001353.13482-3-niklas.soderlund@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <1494925280-4527-3-git-send-email-benjamin.gaignard@linaro.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170524001353.13482-3-niklas.soderlund@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Benjamin,
+Hi Niklas,
 
-Thanks for the patch! Always nice to see new CEC drivers.
+A few comments below.
 
-On 16/05/17 11:01, Benjamin Gaignard wrote:
-> This patch add cec driver for STM32 platforms.
-> cec hardware block isn't not always used with hdmi so
-> cec notifier is not implemented. That will be done later
-> when STM32 DSI driver will be available.
+On Wed, May 24, 2017 at 02:13:53AM +0200, Niklas Söderlund wrote:
+> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 > 
-> Driver compliance has been tested with cec-ctl and cec-compliance
-> tools.
+> A V4L2 driver for Renesas R-Car MIPI CSI-2 receiver. The driver
+> supports the rcar-vin driver on R-Car Gen3 SoCs where separate CSI-2
+> hardware blocks are connected between the video sources and the video
+> grabbers (VIN).
 > 
-> Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-
-Since Yannick wrote the original driver, shouldn't there be a Signed-off-by
-from him as well?
-
+> Driver is based on a prototype by Koji Matsuoka in the Renesas BSP.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 > ---
->  drivers/media/platform/Kconfig           |  11 +
->  drivers/media/platform/Makefile          |   2 +
->  drivers/media/platform/stm32/Makefile    |   1 +
->  drivers/media/platform/stm32/stm32-cec.c | 368 +++++++++++++++++++++++++++++++
->  4 files changed, 382 insertions(+)
->  create mode 100644 drivers/media/platform/stm32/Makefile
->  create mode 100644 drivers/media/platform/stm32/stm32-cec.c
+>  drivers/media/platform/rcar-vin/Kconfig     |  12 +
+>  drivers/media/platform/rcar-vin/Makefile    |   1 +
+>  drivers/media/platform/rcar-vin/rcar-csi2.c | 867 ++++++++++++++++++++++++++++
+>  3 files changed, 880 insertions(+)
+>  create mode 100644 drivers/media/platform/rcar-vin/rcar-csi2.c
 > 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index ac026ee..72efe34 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -519,4 +519,15 @@ config VIDEO_STI_HDMI_CEC
->           CEC bus is present in the HDMI connector and enables communication
->           between compatible devices.
->  
-> +config VIDEO_STM32_HDMI_CEC
-> +       tristate "STMicroelectronics STM32 HDMI CEC driver"
-> +       depends on CEC_CORE && (ARCH_STM32 || COMPILE_TEST)
-> +       select REGMAP
-> +       select REGMAP_MMIO
-> +       ---help---
-> +         This is a driver for STM32 interface. It uses the
-> +         generic CEC framework interface.
-> +         CEC bus is present in the HDMI connector and enables communication
-> +         between compatible devices.
+> diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
+> index af4c98b44d2e22cb..6875f30c1ae42631 100644
+> --- a/drivers/media/platform/rcar-vin/Kconfig
+> +++ b/drivers/media/platform/rcar-vin/Kconfig
+> @@ -1,3 +1,15 @@
+> +config VIDEO_RCAR_CSI2
+> +	tristate "R-Car MIPI CSI-2 Receiver"
+> +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF
+> +	depends on ARCH_RENESAS || COMPILE_TEST
+> +	select V4L2_FWNODE
+> +	---help---
+> +	  Support for Renesas R-Car MIPI CSI-2 receiver.
+> +	  Supports R-Car Gen3 SoCs.
 > +
->  endif #CEC_PLATFORM_DRIVERS
-> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-> index 63303d6..7cd9965 100644
-> --- a/drivers/media/platform/Makefile
-> +++ b/drivers/media/platform/Makefile
-> @@ -44,6 +44,8 @@ obj-$(CONFIG_VIDEO_STI_HDMI_CEC) 	+= sti/cec/
->  
->  obj-$(CONFIG_VIDEO_STI_DELTA)		+= sti/delta/
->  
-> +obj-$(CONFIG_VIDEO_STM32_HDMI_CEC) 	+= stm32/
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called rcar-csi2.
 > +
->  obj-$(CONFIG_BLACKFIN)                  += blackfin/
+>  config VIDEO_RCAR_VIN
+>  	tristate "R-Car Video Input (VIN) Driver"
+>  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF && HAS_DMA && MEDIA_CONTROLLER
+> diff --git a/drivers/media/platform/rcar-vin/Makefile b/drivers/media/platform/rcar-vin/Makefile
+> index 48c5632c21dc060b..5ab803d3e7c1aa57 100644
+> --- a/drivers/media/platform/rcar-vin/Makefile
+> +++ b/drivers/media/platform/rcar-vin/Makefile
+> @@ -1,3 +1,4 @@
+>  rcar-vin-objs = rcar-core.o rcar-dma.o rcar-v4l2.o
 >  
->  obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
-> diff --git a/drivers/media/platform/stm32/Makefile b/drivers/media/platform/stm32/Makefile
+> +obj-$(CONFIG_VIDEO_RCAR_CSI2) += rcar-csi2.o
+>  obj-$(CONFIG_VIDEO_RCAR_VIN) += rcar-vin.o
+> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
 > new file mode 100644
-> index 0000000..632b04c
+> index 0000000000000000..1175f1fe4b139a13
 > --- /dev/null
-> +++ b/drivers/media/platform/stm32/Makefile
-> @@ -0,0 +1 @@
-> +obj-$(CONFIG_VIDEO_STM32_HDMI_CEC) += stm32-cec.o
-> diff --git a/drivers/media/platform/stm32/stm32-cec.c b/drivers/media/platform/stm32/stm32-cec.c
-> new file mode 100644
-> index 0000000..a40a6eb
-> --- /dev/null
-> +++ b/drivers/media/platform/stm32/stm32-cec.c
-> @@ -0,0 +1,368 @@
+> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> @@ -0,0 +1,867 @@
 > +/*
-> + * STM32 CEC driver
-> + * Copyright (C) STMicroelectronic SA 2017
-
-Isn't it STMicroelectronics instead of STMicroelectronic?
-
+> + * Driver for Renesas R-Car MIPI CSI-2 Receiver
 > + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
+> + * Copyright (C) 2017 Renesas Electronics Corp.
+> + *
+> + * This program is free software; you can redistribute  it and/or modify it
+> + * under  the terms of  the GNU General  Public License as published by the
+> + * Free Software Foundation;  either version 2 of the  License, or (at your
+> + * option) any later version.
 > + */
 > +
-> +#include <linux/clk.h>
+> +#include <linux/delay.h>
 > +#include <linux/interrupt.h>
-> +#include <linux/kernel.h>
+> +#include <linux/io.h>
 > +#include <linux/module.h>
 > +#include <linux/of.h>
 > +#include <linux/of_device.h>
+> +#include <linux/of_graph.h>
 > +#include <linux/platform_device.h>
-> +#include <linux/regmap.h>
+> +#include <linux/pm_runtime.h>
 > +
-> +#include <media/cec.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-fwnode.h>
+> +#include <media/v4l2-mc.h>
+> +#include <media/v4l2-subdev.h>
 > +
-> +#define CEC_NAME	"stm32-cec"
+> +/* Register offsets and bits */
 > +
-> +/* CEC registers  */
-> +#define CEC_CR		0x0000 /* Control Register */
-> +#define CEC_CFGR	0x0004 /* ConFiGuration Register */
-> +#define CEC_TXDR	0x0008 /* Rx data Register */
-> +#define CEC_RXDR	0x000C /* Rx data Register */
-> +#define CEC_ISR		0x0010 /* Interrupt and status Register */
-> +#define CEC_IER		0x0014 /* Interrupt enable Register */
+> +/* Control Timing Select */
+> +#define TREF_REG			0x00
+> +#define TREF_TREF			(1 << 0)
 > +
-> +#define TXEOM		BIT(2)
-> +#define TXSOM		BIT(1)
-> +#define CECEN		BIT(0)
+> +/* Software Reset */
+> +#define SRST_REG			0x04
+> +#define SRST_SRST			(1 << 0)
 > +
-> +#define LSTN		BIT(31)
-> +#define OAR		GENMASK(30, 16)
-> +#define SFTOP		BIT(8)
-> +#define BRDNOGEN	BIT(7)
-> +#define LBPEGEN		BIT(6)
-> +#define BREGEN		BIT(5)
-> +#define BRESTP		BIT(4)
-> +#define RXTOL		BIT(3)
-> +#define SFT		GENMASK(2, 0)
-> +#define FULL_CFG	(LSTN | SFTOP | BRDNOGEN | LBPEGEN | BREGEN | BRESTP \
-> +			 | RXTOL | SFT | BRDNOGEN)
+> +/* PHY Operation Control */
+> +#define PHYCNT_REG			0x08
+> +#define PHYCNT_SHUTDOWNZ		(1 << 17)
+> +#define PHYCNT_RSTZ			(1 << 16)
+> +#define PHYCNT_ENABLECLK		(1 << 4)
+> +#define PHYCNT_ENABLE_3			(1 << 3)
+> +#define PHYCNT_ENABLE_2			(1 << 2)
+> +#define PHYCNT_ENABLE_1			(1 << 1)
+> +#define PHYCNT_ENABLE_0			(1 << 0)
 > +
-> +#define TXACKE		BIT(12)
-> +#define TXERR		BIT(11)
-> +#define TXUDR		BIT(10)
-> +#define TXEND		BIT(9)
-> +#define TXBR		BIT(8)
-> +#define ARBLST		BIT(7)
-> +#define RXACKE		BIT(6)
-> +#define RXOVR		BIT(2)
-> +#define RXEND		BIT(1)
-> +#define RXBR		BIT(0)
+> +/* Checksum Control */
+> +#define CHKSUM_REG			0x0c
+> +#define CHKSUM_ECC_EN			(1 << 1)
+> +#define CHKSUM_CRC_EN			(1 << 0)
 > +
-> +#define ALL_TX_IT	(TXEND | TXBR | TXACKE | TXERR | TXUDR | ARBLST)
-> +#define ALL_RX_IT	(RXEND | RXBR | RXACKE | RXOVR)
+> +/*
+> + * Channel Data Type Select
+> + * VCDT[0-15]:  Channel 1 VCDT[16-31]:  Channel 2
+> + * VCDT2[0-15]: Channel 3 VCDT2[16-31]: Channel 4
+> + */
+> +#define VCDT_REG			0x10
+> +#define VCDT2_REG			0x14
+> +#define VCDT_VCDTN_EN			(1 << 15)
+> +#define VCDT_SEL_VC(n)			(((n) & 0x3) << 8)
+> +#define VCDT_SEL_DTN_ON			(1 << 6)
+> +#define VCDT_SEL_DT(n)			(((n) & 0x3f) << 0)
 > +
-> +struct stm32_cec {
-> +	struct cec_adapter	*adap;
-> +	struct device		*dev;
-> +	struct clk		*clk_cec;
-> +	struct clk		*clk_hdmi_cec;
-> +	struct reset_control	*rstc;
-> +	struct regmap		*regmap;
-> +	int			irq;
-> +	u32			irq_status;
-> +	u8			rx_msg[CEC_MAX_MSG_SIZE];
-> +	u8			tx_msg[CEC_MAX_MSG_SIZE];
-> +	int			rx_len;
-> +	int			tx_len;
-> +	int			tx_cnt;
+> +/* Frame Data Type Select */
+> +#define FRDT_REG			0x18
+> +
+> +/* Field Detection Control */
+> +#define FLD_REG				0x1c
+> +#define FLD_FLD_NUM(n)			(((n) & 0xff) << 16)
+> +#define FLD_FLD_EN4			(1 << 3)
+> +#define FLD_FLD_EN3			(1 << 2)
+> +#define FLD_FLD_EN2			(1 << 1)
+> +#define FLD_FLD_EN			(1 << 0)
+> +
+> +/* Automatic Standby Control */
+> +#define ASTBY_REG			0x20
+> +
+> +/* Long Data Type Setting 0 */
+> +#define LNGDT0_REG			0x28
+> +
+> +/* Long Data Type Setting 1 */
+> +#define LNGDT1_REG			0x2c
+> +
+> +/* Interrupt Enable */
+> +#define INTEN_REG			0x30
+> +
+> +/* Interrupt Source Mask */
+> +#define INTCLOSE_REG			0x34
+> +
+> +/* Interrupt Status Monitor */
+> +#define INTSTATE_REG			0x38
+> +
+> +/* Interrupt Error Status Monitor */
+> +#define INTERRSTATE_REG			0x3c
+> +
+> +/* Short Packet Data */
+> +#define SHPDAT_REG			0x40
+> +
+> +/* Short Packet Count */
+> +#define SHPCNT_REG			0x44
+> +
+> +/* LINK Operation Control */
+> +#define LINKCNT_REG			0x48
+> +#define LINKCNT_MONITOR_EN		(1 << 31)
+> +#define LINKCNT_REG_MONI_PACT_EN	(1 << 25)
+> +#define LINKCNT_ICLK_NONSTOP		(1 << 24)
+> +
+> +/* Lane Swap */
+> +#define LSWAP_REG			0x4c
+> +#define LSWAP_L3SEL(n)			(((n) & 0x3) << 6)
+> +#define LSWAP_L2SEL(n)			(((n) & 0x3) << 4)
+> +#define LSWAP_L1SEL(n)			(((n) & 0x3) << 2)
+> +#define LSWAP_L0SEL(n)			(((n) & 0x3) << 0)
+> +
+> +/* PHY Test Interface Clear */
+> +#define PHTC_REG			0x58
+> +#define PHTC_TESTCLR			(1 << 0)
+> +
+> +/* PHY Frequency Control */
+> +#define PHYPLL_REG			0x68
+> +#define PHYPLL_HSFREQRANGE(n)		((n) << 16)
+> +
+> +struct phypll_hsfreqrange {
+> +	unsigned int	mbps;
+> +	unsigned char	reg;
 > +};
 > +
-> +static void cec_hw_init(struct stm32_cec *cec)
+> +static const struct phypll_hsfreqrange phypll_hsfreqrange_map[] = {
+> +	{ .mbps =   80,	.reg = 0x00 },
+> +	{ .mbps =   90,	.reg = 0x10 },
+> +	{ .mbps =  100,	.reg = 0x20 },
+> +	{ .mbps =  110,	.reg = 0x30 },
+> +	{ .mbps =  120,	.reg = 0x01 },
+> +	{ .mbps =  130,	.reg = 0x11 },
+> +	{ .mbps =  140,	.reg = 0x21 },
+> +	{ .mbps =  150,	.reg = 0x31 },
+> +	{ .mbps =  160,	.reg = 0x02 },
+> +	{ .mbps =  170,	.reg = 0x12 },
+> +	{ .mbps =  180,	.reg = 0x22 },
+> +	{ .mbps =  190,	.reg = 0x32 },
+> +	{ .mbps =  205,	.reg = 0x03 },
+> +	{ .mbps =  220,	.reg = 0x13 },
+> +	{ .mbps =  235,	.reg = 0x23 },
+> +	{ .mbps =  250,	.reg = 0x33 },
+> +	{ .mbps =  275,	.reg = 0x04 },
+> +	{ .mbps =  300,	.reg = 0x14 },
+> +	{ .mbps =  325,	.reg = 0x05 },
+> +	{ .mbps =  350,	.reg = 0x15 },
+> +	{ .mbps =  400,	.reg = 0x25 },
+> +	{ .mbps =  450,	.reg = 0x06 },
+> +	{ .mbps =  500,	.reg = 0x16 },
+> +	{ .mbps =  550,	.reg = 0x07 },
+> +	{ .mbps =  600,	.reg = 0x17 },
+> +	{ .mbps =  650,	.reg = 0x08 },
+> +	{ .mbps =  700,	.reg = 0x18 },
+> +	{ .mbps =  750,	.reg = 0x09 },
+> +	{ .mbps =  800,	.reg = 0x19 },
+> +	{ .mbps =  850,	.reg = 0x29 },
+> +	{ .mbps =  900,	.reg = 0x39 },
+> +	{ .mbps =  950,	.reg = 0x0A },
+> +	{ .mbps = 1000,	.reg = 0x1A },
+> +	{ .mbps = 1050,	.reg = 0x2A },
+> +	{ .mbps = 1100,	.reg = 0x3A },
+> +	{ .mbps = 1150,	.reg = 0x0B },
+> +	{ .mbps = 1200,	.reg = 0x1B },
+> +	{ .mbps = 1250,	.reg = 0x2B },
+> +	{ .mbps = 1300,	.reg = 0x3B },
+> +	{ .mbps = 1350,	.reg = 0x0C },
+> +	{ .mbps = 1400,	.reg = 0x1C },
+> +	{ .mbps = 1450,	.reg = 0x2C },
+> +	{ .mbps = 1500,	.reg = 0x3C },
+> +	/* guard */
+> +	{ .mbps =   0,	.reg = 0x00 },
+> +};
+> +
+> +/* PHY ESC Error Monitor */
+> +#define PHEERM_REG			0x74
+> +
+> +/* PHY Clock Lane Monitor */
+> +#define PHCLM_REG			0x78
+> +
+> +/* PHY Data Lane Monitor */
+> +#define PHDLM_REG			0x7c
+> +
+> +struct rcar_csi2_format {
+> +	unsigned int code;
+> +	unsigned int datatype;
+> +	unsigned int bpp;
+> +};
+> +
+> +static const struct rcar_csi2_format rcar_csi2_formats[] = {
+> +	{ .code = MEDIA_BUS_FMT_RGB888_1X24,	.datatype = 0x24, .bpp = 24},
+> +	{ .code = MEDIA_BUS_FMT_UYVY8_1X16,	.datatype = 0x1e, .bpp = 8 },
+> +	{ .code = MEDIA_BUS_FMT_UYVY8_2X8,	.datatype = 0x1e, .bpp = 8 },
+> +	{ .code = MEDIA_BUS_FMT_YUYV10_2X10,	.datatype = 0x1e, .bpp = 8 },
+> +};
+> +
+> +static const struct rcar_csi2_format *rcar_csi2_code_to_fmt(unsigned int code)
 > +{
-> +	regmap_update_bits(cec->regmap, CEC_CR, TXEOM | TXSOM | CECEN, 0);
+> +	int i;
 > +
-> +	regmap_update_bits(cec->regmap, CEC_IER, ALL_TX_IT | ALL_RX_IT,
-> +			   ALL_TX_IT | ALL_RX_IT);
-> +
-> +	regmap_update_bits(cec->regmap, CEC_CFGR, FULL_CFG, FULL_CFG);
+> +	for (i = 0; i < ARRAY_SIZE(rcar_csi2_formats); i++)
+> +		if (rcar_csi2_formats[i].code == code)
+> +			return rcar_csi2_formats + i;
+> +	return NULL;
 > +}
 > +
-> +static void stm32_tx_done(struct stm32_cec *cec, u32 status)
+> +enum rcar_csi2_pads {
+> +	RCAR_CSI2_SINK,
+> +	RCAR_CSI2_SOURCE_VC0,
+> +	RCAR_CSI2_SOURCE_VC1,
+> +	RCAR_CSI2_SOURCE_VC2,
+> +	RCAR_CSI2_SOURCE_VC3,
+> +	NR_OF_RCAR_CSI2_PAD,
+> +};
+> +
+> +struct rcar_csi2 {
+> +	struct device *dev;
+> +	void __iomem *base;
+> +
+> +	unsigned short lanes;
+> +	unsigned char lane_swap[4];
+> +
+> +	struct v4l2_subdev subdev;
+> +	struct media_pad pads[NR_OF_RCAR_CSI2_PAD];
+> +
+> +	struct v4l2_mbus_framefmt mf;
+> +
+> +	struct mutex lock;
+> +	int stream_count;
+> +
+> +	struct v4l2_async_notifier notifier;
+> +	struct {
+> +		struct v4l2_async_subdev asd;
+> +		struct v4l2_subdev *subdev;
+> +		struct fwnode_handle *fwnode;
+> +		unsigned int source_pad;
+> +	} remote;
+> +};
+> +
+> +static inline struct rcar_csi2 *sd_to_csi2(struct v4l2_subdev *sd)
 > +{
-> +	if (status & (TXERR | TXUDR)) {
-> +		cec_transmit_done(cec->adap, CEC_TX_STATUS_ERROR,
-> +				  0, 0, 0, 1);
-> +		return;
-> +	}
-> +
-> +	if (status & ARBLST) {
-> +		cec_transmit_done(cec->adap, CEC_TX_STATUS_ARB_LOST,
-> +				  1, 0, 0, 0);
-> +		return;
-> +	}
-> +
-> +	if (status & TXACKE) {
-> +		cec_transmit_done(cec->adap, CEC_TX_STATUS_NACK,
-> +				  0, 1, 0, 0);
-> +		return;
-> +	}
-> +
-> +	if (cec->irq_status & TXBR) {
-> +		/* send next byte */
-> +		if (cec->tx_cnt < cec->tx_len)
-> +			regmap_write(cec->regmap, CEC_TXDR,
-> +				     cec->tx_msg[cec->tx_cnt++]);
-> +
-> +		/* TXEOM is set to command transmission of the last byte */
-> +		if (cec->tx_cnt == cec->tx_len)
-> +			regmap_update_bits(cec->regmap, CEC_CR, TXEOM, TXEOM);
-> +	}
-> +
-> +	if (cec->irq_status & TXEND)
-> +		cec_transmit_done(cec->adap, CEC_TX_STATUS_OK, 0, 0, 0, 0);
+> +	return container_of(sd, struct rcar_csi2, subdev);
 > +}
 > +
-> +static void stm32_rx_done(struct stm32_cec *cec, u32 status)
+> +static u32 rcar_csi2_read(struct rcar_csi2 *priv, unsigned int reg)
 > +{
-> +	if (cec->irq_status & (RXACKE | RXOVR)) {
-> +		cec->rx_len = 0;
-> +		return;
-> +	}
-> +
-> +	if (cec->irq_status & RXBR) {
-> +		u32 val;
-> +
-> +		regmap_read(cec->regmap, CEC_RXDR, &val);
-> +		cec->rx_msg[cec->rx_len++] = val & 0xFF;
-
-Wouldn't it be safer to handle this IRQ and the TXBR interrupt in
-stm32_cec_irq_handler()? This can be done in atomic context and these are
-more time-sensitive.
-
-> +	}
-> +
-> +	if (cec->irq_status & RXEND) {
-> +		struct cec_msg msg = {};
-> +
-> +		msg.len = cec->rx_len;
-> +		memcpy(msg.msg, cec->rx_msg, msg.len);
-
-Most drivers just embed a cec_msg struct in the top-level struct (stm32_cec
-in this case). That way there is no need to have your own copies of the length
-and message data (rx_len and rx_msg in this case).
-
-Actually, the same applies to the tx part, just embed a cec_msg tx_msg.
-
-> +		cec_received_msg(cec->adap, &msg);
-> +
-> +		cec->rx_len = 0;
-> +	}
+> +	return ioread32(priv->base + reg);
 > +}
 > +
-> +static irqreturn_t stm32_cec_irq_thread(int irq, void *arg)
+> +static void rcar_csi2_write(struct rcar_csi2 *priv, unsigned int reg, u32 data)
 > +{
-> +	struct stm32_cec *cec = arg;
-> +
-> +	if (cec->irq_status & ALL_TX_IT)
-> +		stm32_tx_done(cec, cec->irq_status);
-> +
-> +	if (cec->irq_status & ALL_RX_IT)
-> +		stm32_rx_done(cec, cec->irq_status);
-> +
-> +	cec->irq_status = 0;
-> +
-> +	return IRQ_HANDLED;
+> +	iowrite32(data, priv->base + reg);
 > +}
 > +
-> +static irqreturn_t stm32_cec_irq_handler(int irq, void *arg)
+> +static void rcar_csi2_reset(struct rcar_csi2 *priv)
 > +{
-> +	struct stm32_cec *cec = arg;
-> +
-> +	regmap_read(cec->regmap, CEC_ISR, &cec->irq_status);
-> +
-> +	regmap_update_bits(cec->regmap, CEC_ISR,
-> +			   ALL_TX_IT | ALL_RX_IT,
-> +			   ALL_TX_IT | ALL_RX_IT);
-> +
-> +	return IRQ_WAKE_THREAD;
+> +	rcar_csi2_write(priv, SRST_REG, SRST_SRST);
+> +	rcar_csi2_write(priv, SRST_REG, 0);
 > +}
 > +
-> +static int stm32_cec_adap_enable(struct cec_adapter *adap, bool enable)
+> +static int rcar_csi2_wait_phy_start(struct rcar_csi2 *priv)
 > +{
-> +	struct stm32_cec *cec = adap->priv;
-> +	int ret = 0;
+> +	int timeout;
 > +
-> +	if (enable) {
-> +		ret = clk_enable(cec->clk_cec);
+> +	/* Wait for the clock and data lanes to enter LP-11 state. */
+> +	for (timeout = 100; timeout >= 0; timeout--) {
+> +		const u32 lane_mask = (1 << priv->lanes) - 1;
+> +
+> +		if ((rcar_csi2_read(priv, PHCLM_REG) & 1) == 1 &&
+> +		    (rcar_csi2_read(priv, PHDLM_REG) & lane_mask) == lane_mask)
+> +			return 0;
+> +
+> +		msleep(20);
+> +	}
+> +
+> +	dev_err(priv->dev, "Timeout waiting for LP-11 state\n");
+> +
+> +	return -ETIMEDOUT;
+> +}
+> +
+> +static int rcar_csi2_calc_phypll(struct rcar_csi2 *priv,
+> +				 struct v4l2_subdev *source,
+> +				 struct v4l2_mbus_framefmt *mf,
+> +				 u32 *phypll)
+> +{
+> +	const struct phypll_hsfreqrange *hsfreq;
+> +	const struct rcar_csi2_format *format;
+> +	struct v4l2_ext_controls ctrls;
+> +	struct v4l2_ext_control ctrl;
+> +	u64 mbps;
+> +	int ret;
+> +
+> +	memset(&ctrls, 0, sizeof(ctrls));
+> +	memset(&ctrl, 0, sizeof(ctrl));
+> +
+> +	ctrl.id = V4L2_CID_PIXEL_RATE;
+> +
+> +	ctrls.count = 1;
+> +	ctrls.controls = &ctrl;
+> +
+> +	ret = v4l2_g_ext_ctrls(source->ctrl_handler, &ctrls);
+
+v4l2_ctrl_g_ctrl_int64(), please. Or do I miss something?
+
+> +	if (ret < 0) {
+> +		dev_err(priv->dev, "no link freq control in subdev %s\n",
+> +			source->name);
+> +		return ret;
+> +	}
+> +
+> +	format = rcar_csi2_code_to_fmt(mf->code);
+> +	if (!format) {
+> +		dev_err(priv->dev, "Unknown format: %d\n", mf->code);
+> +		return -EINVAL;
+> +	}
+> +
+> +	mbps = ctrl.value64 * format->bpp;
+> +	do_div(mbps, priv->lanes * 1000000);
+> +
+> +	for (hsfreq = phypll_hsfreqrange_map; hsfreq->mbps != 0; hsfreq++)
+> +		if (hsfreq->mbps >= mbps)
+> +			break;
+> +
+> +	if (!hsfreq->mbps) {
+> +		dev_err(priv->dev, "Unsupported PHY speed (%llu Mbps)", mbps);
+> +		return -ERANGE;
+> +	}
+> +
+> +	dev_dbg(priv->dev, "PHY HSFREQRANGE requested %llu got %u Mbps\n", mbps,
+> +		hsfreq->mbps);
+> +
+> +	*phypll = PHYPLL_HSFREQRANGE(hsfreq->reg);
+> +
+> +	return 0;
+> +}
+> +
+> +static int rcar_csi2_start(struct rcar_csi2 *priv)
+> +{
+> +	const struct rcar_csi2_format *format;
+> +	struct v4l2_subdev_format fmt;
+> +	struct media_pad *source_pad;
+> +	struct v4l2_subdev *source = NULL;
+> +	struct v4l2_mbus_framefmt *mf = &fmt.format;
+> +	u32 phycnt, phypll, tmp;
+> +	u32 vcdt = 0, vcdt2 = 0;
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	source_pad =
+> +		media_entity_remote_pad(&priv->subdev.entity.pads[RCAR_CSI2_SINK]);
+
+Over 80 characters per line. I think you could split this up differently.
+
+> +	if (!source_pad) {
+> +		dev_err(priv->dev, "Could not find remote source pad\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	source = media_entity_to_v4l2_subdev(source_pad->entity);
+> +	if (!source) {
+> +		dev_err(priv->dev, "Could not find remote subdevice\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	dev_dbg(priv->dev, "Using source %s pad: %u\n", source->name,
+> +		source_pad->index);
+> +
+> +	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> +	fmt.pad = source_pad->index;
+> +	ret = v4l2_subdev_call(source, pad, get_fmt, NULL, &fmt);
+> +	if (ret)
+> +		return ret;
+> +
+> +	dev_dbg(priv->dev, "Input size (%dx%d%c)\n", mf->width,
+> +		mf->height, mf->field == V4L2_FIELD_NONE ? 'p' : 'i');
+> +
+> +	/*
+> +	 * Enable all Virtual Channels
+> +	 *
+> +	 * NOTE: I'ts not possible to get individual format for each
+
+"It's"
+
+> +	 *       source virtual channel. Once this is possible in V4L2
+> +	 *       it should be used here.
+> +	 */
+> +	for (i = 0; i < 4; i++) {
+> +
+> +		format = rcar_csi2_code_to_fmt(mf->code);
+> +		if (!format) {
+> +			dev_err(priv->dev, "Unsupported media bus format: %d\n",
+> +				mf->code);
+> +			return -EINVAL;
+> +		}
+> +
+> +		tmp = VCDT_SEL_VC(i) | VCDT_VCDTN_EN | VCDT_SEL_DTN_ON |
+> +			VCDT_SEL_DT(format->datatype);
+> +
+> +		/* Store in correct reg and offset */
+> +		if (i < 2)
+> +			vcdt |= tmp << ((i % 2) * 16);
+> +		else
+> +			vcdt2 |= tmp << ((i % 2) * 16);
+> +	}
+> +
+> +	switch (priv->lanes) {
+> +	case 1:
+> +		phycnt = PHYCNT_ENABLECLK | PHYCNT_ENABLE_0;
+> +		break;
+> +	case 2:
+> +		phycnt = PHYCNT_ENABLECLK | PHYCNT_ENABLE_1 | PHYCNT_ENABLE_0;
+> +		break;
+> +	case 4:
+> +		phycnt = PHYCNT_ENABLECLK | PHYCNT_ENABLE_3 | PHYCNT_ENABLE_2 |
+> +			PHYCNT_ENABLE_1 | PHYCNT_ENABLE_0;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	ret = rcar_csi2_calc_phypll(priv, source, mf, &phypll);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* Init */
+> +	rcar_csi2_write(priv, TREF_REG, TREF_TREF);
+> +	rcar_csi2_reset(priv);
+> +	rcar_csi2_write(priv, PHTC_REG, 0);
+> +
+> +	/* Configure */
+> +	rcar_csi2_write(priv, FLD_REG, FLD_FLD_NUM(2) | FLD_FLD_EN4 |
+> +			FLD_FLD_EN3 | FLD_FLD_EN2 | FLD_FLD_EN);
+> +	rcar_csi2_write(priv, VCDT_REG, vcdt);
+> +	rcar_csi2_write(priv, VCDT2_REG, vcdt2);
+> +	/* Lanes are zero indexed */
+> +	rcar_csi2_write(priv, LSWAP_REG,
+> +			LSWAP_L0SEL(priv->lane_swap[0] - 1) |
+> +			LSWAP_L1SEL(priv->lane_swap[1] - 1) |
+> +			LSWAP_L2SEL(priv->lane_swap[2] - 1) |
+> +			LSWAP_L3SEL(priv->lane_swap[3] - 1));
+
+How are the lanes numbered?
+
+Do you have a fixed number of lanes per receiver?
+
+> +
+> +	/* Start */
+> +	rcar_csi2_write(priv, PHYPLL_REG, phypll);
+> +	rcar_csi2_write(priv, PHYCNT_REG, phycnt);
+> +	rcar_csi2_write(priv, LINKCNT_REG, LINKCNT_MONITOR_EN |
+> +			LINKCNT_REG_MONI_PACT_EN | LINKCNT_ICLK_NONSTOP);
+> +	rcar_csi2_write(priv, PHYCNT_REG, phycnt | PHYCNT_SHUTDOWNZ);
+> +	rcar_csi2_write(priv, PHYCNT_REG, phycnt | PHYCNT_SHUTDOWNZ |
+> +			PHYCNT_RSTZ);
+> +
+> +	return rcar_csi2_wait_phy_start(priv);
+> +}
+> +
+> +static void rcar_csi2_stop(struct rcar_csi2 *priv)
+> +{
+> +	rcar_csi2_write(priv, PHYCNT_REG, 0);
+> +
+> +	rcar_csi2_reset(priv);
+> +}
+> +
+> +static int rcar_csi2_sd_info(struct rcar_csi2 *priv, struct v4l2_subdev **sd)
+> +{
+> +	struct media_pad *pad;
+> +
+> +	pad = media_entity_remote_pad(&priv->pads[RCAR_CSI2_SINK]);
+> +	if (!pad) {
+> +		dev_err(priv->dev, "Could not find remote pad\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	*sd = media_entity_to_v4l2_subdev(pad->entity);
+> +	if (!*sd) {
+> +		dev_err(priv->dev, "Could not find remote subdevice\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int rcar_csi2_s_stream(struct v4l2_subdev *sd, int enable)
+> +{
+> +	struct rcar_csi2 *priv = sd_to_csi2(sd);
+> +	struct v4l2_subdev *nextsd;
+> +	int ret;
+> +
+> +	mutex_lock(&priv->lock);
+> +
+> +	ret = rcar_csi2_sd_info(priv, &nextsd);
+> +	if (ret)
+> +		goto out;
+> +
+> +	priv->stream_count += enable ? 1 : -1;
+> +
+> +	if (enable && priv->stream_count == 1) {
+> +		ret =  rcar_csi2_start(priv);
 > +		if (ret)
-> +			dev_err(cec->dev, "fail to enable cec clock\n");
+> +			goto out;
+> +		ret = v4l2_subdev_call(nextsd, video, s_stream, 1);
 > +
-> +		clk_enable(cec->clk_hdmi_cec);
-> +		regmap_update_bits(cec->regmap, CEC_CR, CECEN, CECEN);
-> +	} else {
-> +		clk_disable(cec->clk_cec);
-> +		clk_disable(cec->clk_hdmi_cec);
-> +		regmap_update_bits(cec->regmap, CEC_CR, CECEN, 0);
+> +	} else if (!enable && !priv->stream_count) {
+> +		rcar_csi2_stop(priv);
+> +		ret = v4l2_subdev_call(nextsd, video, s_stream, 0);
 > +	}
+> +out:
+> +	mutex_unlock(&priv->lock);
 > +
 > +	return ret;
 > +}
 > +
-> +static int stm32_cec_adap_log_addr(struct cec_adapter *adap, u8 logical_addr)
+> +static int rcar_csi2_s_power(struct v4l2_subdev *sd, int on)
 > +{
-> +	struct stm32_cec *cec = adap->priv;
+> +	struct rcar_csi2 *priv = sd_to_csi2(sd);
 > +
-> +	regmap_update_bits(cec->regmap, CEC_CR, CECEN, 0);
-> +
-> +	if (logical_addr == CEC_LOG_ADDR_INVALID)
-> +		regmap_update_bits(cec->regmap, CEC_CFGR, OAR, 0);
+> +	if (on)
+> +		pm_runtime_get_sync(priv->dev);
 > +	else
-> +		regmap_update_bits(cec->regmap, CEC_CFGR, OAR,
-> +				   (1 << logical_addr) << 16);
-
-Since this is a mask I assume that this CEC implementation can handle multiple
-logical addresses? In that case you should allow that when you call cec_allocate_adapter:
-instead of '1' use CEC_MAX_LOG_ADDRS as the last argument.
-
-> +
-> +	regmap_update_bits(cec->regmap, CEC_CR, CECEN, CECEN);
+> +		pm_runtime_put(priv->dev);
 > +
 > +	return 0;
 > +}
 > +
-> +static int stm32_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
-> +				   u32 signal_free_time, struct cec_msg *msg)
+> +static int rcar_csi2_set_pad_format(struct v4l2_subdev *sd,
+> +				    struct v4l2_subdev_pad_config *cfg,
+> +				    struct v4l2_subdev_format *format)
 > +{
-> +	struct stm32_cec *cec = adap->priv;
+> +	struct rcar_csi2 *priv = container_of(sd, struct rcar_csi2, subdev);
 > +
-> +	/* Copy message */
-> +	memcpy(cec->tx_msg, msg->msg, msg->len);
-> +
-> +	cec->tx_len = msg->len;
-> +	cec->tx_cnt = 0;
-> +
-> +	/*
-> +	 * If the CEC message consists of only one byte,
-> +	 * TXEOM must be set before of TXSOM.
-> +	 */
-> +	if (cec->tx_len == 1)
-> +		regmap_update_bits(cec->regmap, CEC_CR, TXEOM, TXEOM);
-> +
-> +	/* TXSOM is set to command transmission of the first byte */
-> +	regmap_update_bits(cec->regmap, CEC_CR, TXSOM, TXSOM);
-> +
-> +	/* Write the header (first byte of message) */
-> +	regmap_write(cec->regmap, CEC_TXDR, cec->tx_msg[0]);
-> +	cec->tx_cnt++;
+> +	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+> +		priv->mf = format->format;
+
+How about the try formats? E.g.
+
+*v4l2_subdev_get_try_format() = format->fmt;
+
 > +
 > +	return 0;
 > +}
 > +
-> +static const struct cec_adap_ops stm32_cec_adap_ops = {
-> +	.adap_enable = stm32_cec_adap_enable,
-> +	.adap_log_addr = stm32_cec_adap_log_addr,
-> +	.adap_transmit = stm32_cec_adap_transmit,
-> +};
-> +
-> +static const struct regmap_config stm32_cec_regmap_cfg = {
-> +	.reg_bits = 32,
-> +	.val_bits = 32,
-> +	.reg_stride = sizeof(u32),
-> +	.max_register = 0x14,
-> +	.fast_io = true,
-> +};
-> +
-> +static int stm32_cec_probe(struct platform_device *pdev)
+> +static int rcar_csi2_get_pad_format(struct v4l2_subdev *sd,
+> +				    struct v4l2_subdev_pad_config *cfg,
+> +				    struct v4l2_subdev_format *format)
 > +{
-> +	struct resource *res;
-> +	struct stm32_cec *cec;
-> +	void __iomem *mmio;
+> +	struct rcar_csi2 *priv = container_of(sd, struct rcar_csi2, subdev);
+> +
+> +	format->format = priv->mf;
+
+Ditto.
+
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_subdev_video_ops rcar_csi2_video_ops = {
+> +	.s_stream = rcar_csi2_s_stream,
+> +};
+> +
+> +static const struct v4l2_subdev_core_ops rcar_csi2_subdev_core_ops = {
+> +	.s_power = rcar_csi2_s_power,
+> +};
+> +
+> +static const struct v4l2_subdev_pad_ops rcar_csi2_pad_ops = {
+> +	.set_fmt = rcar_csi2_set_pad_format,
+> +	.get_fmt = rcar_csi2_get_pad_format,
+> +};
+> +
+> +static const struct v4l2_subdev_ops rcar_csi2_subdev_ops = {
+> +	.video	= &rcar_csi2_video_ops,
+> +	.core	= &rcar_csi2_subdev_core_ops,
+> +	.pad	= &rcar_csi2_pad_ops,
+> +};
+> +
+> +/* -----------------------------------------------------------------------------
+> + * Async and registered of subdevices and links
+> + */
+> +
+> +#define notifier_to_priv(n) container_of(n, struct rcar_csi2, notifier)
+> +
+> +static int rcar_csi2_notify_complete(struct v4l2_async_notifier *notifier)
+> +{
+> +	struct rcar_csi2 *priv = notifier_to_priv(notifier);
 > +	int ret;
 > +
-> +	cec = devm_kzalloc(&pdev->dev, sizeof(*cec), GFP_KERNEL);
-> +	if (!cec)
+> +	ret = v4l2_device_register_subdev_nodes(priv->subdev.v4l2_dev);
+> +	if (ret) {
+> +		dev_err(priv->dev, "Failed to register subdev nodes\n");
+> +		return ret;
+> +	}
+> +
+> +	return media_create_pad_link(&priv->remote.subdev->entity,
+> +				     priv->remote.source_pad,
+> +				     &priv->subdev.entity, 0,
+> +				     MEDIA_LNK_FL_ENABLED |
+> +				     MEDIA_LNK_FL_IMMUTABLE);
+> +}
+> +
+> +static int rcar_csi2_notify_bound(struct v4l2_async_notifier *notifier,
+> +				   struct v4l2_subdev *subdev,
+> +				   struct v4l2_async_subdev *asd)
+> +{
+> +	struct rcar_csi2 *priv = notifier_to_priv(notifier);
+> +	int ret;
+> +
+> +	v4l2_set_subdev_hostdata(subdev, priv);
+> +
+> +	ret = media_entity_pad_from_fwnode(&subdev->entity,
+> +					   priv->remote.fwnode,
+> +					   MEDIA_PAD_FL_SOURCE,
+> +					   &priv->remote.source_pad);
+> +	if (ret) {
+> +		dev_err(priv->dev, "Failed to find pad for %s\n",
+> +			subdev->name);
+> +		return ret;
+> +	}
+> +
+> +	dev_dbg(priv->dev, "Bound %s pad: %d\n", subdev->name,
+> +		priv->remote.source_pad);
+> +	priv->remote.subdev = subdev;
+> +
+> +	return 0;
+> +}
+
+A newline would be nice here.
+
+> +static void rcar_csi2_notify_unbind(struct v4l2_async_notifier *notifier,
+> +				     struct v4l2_subdev *subdev,
+> +				     struct v4l2_async_subdev *asd)
+> +{
+> +	struct rcar_csi2 *priv = notifier_to_priv(notifier);
+> +
+> +	dev_dbg(priv->dev, "Unbind %s\n", subdev->name);
+> +	priv->remote.subdev = NULL;
+> +}
+> +
+> +static int rcar_csi2_registered(struct v4l2_subdev *sd)
+> +{
+> +	struct rcar_csi2 *priv = container_of(sd, struct rcar_csi2, subdev);
+> +	struct v4l2_async_subdev **subdevs = NULL;
+> +	int ret;
+> +
+> +	subdevs = devm_kzalloc(priv->dev, sizeof(*subdevs), GFP_KERNEL);
+> +	if (subdevs == NULL)
 > +		return -ENOMEM;
 > +
-> +	cec->dev = &pdev->dev;
+> +	subdevs[0] = &priv->remote.asd;
 > +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	mmio = devm_ioremap_resource(&pdev->dev, res);
-> +	if (IS_ERR(mmio))
-> +		return PTR_ERR(mmio);
+> +	priv->notifier.num_subdevs = 1;
+> +	priv->notifier.subdevs = subdevs;
+> +	priv->notifier.bound = rcar_csi2_notify_bound;
+> +	priv->notifier.unbind = rcar_csi2_notify_unbind;
+> +	priv->notifier.complete = rcar_csi2_notify_complete;
 > +
-> +	cec->regmap = devm_regmap_init_mmio_clk(&pdev->dev, "cec", mmio,
-> +						&stm32_cec_regmap_cfg);
-> +
-> +	if (IS_ERR(cec->regmap))
-> +		return PTR_ERR(cec->regmap);
-> +
-> +	cec->irq = platform_get_irq(pdev, 0);
-> +	if (cec->irq < 0)
-> +		return cec->irq;
-> +
-> +	ret = devm_request_threaded_irq(&pdev->dev, cec->irq,
-> +					stm32_cec_irq_handler,
-> +					stm32_cec_irq_thread,
-> +					0,
-> +					pdev->name, cec);
-> +	if (ret)
+> +	ret = v4l2_async_subnotifier_register(&priv->subdev, &priv->notifier);
+> +	if (ret < 0) {
+> +		dev_err(priv->dev, "Notifier registration failed\n");
 > +		return ret;
-> +
-> +	cec->clk_cec = devm_clk_get(&pdev->dev, "cec");
-> +	if (IS_ERR(cec->clk_cec)) {
-> +		dev_err(&pdev->dev, "Cannot get cec clock\n");
-> +		return PTR_ERR(cec->clk_cec);
 > +	}
 > +
-> +	ret = clk_prepare(cec->clk_cec);
+> +	return 0;
+> +}
+> +
+> +static void rcar_csi2_unregistered(struct v4l2_subdev *sd)
+> +{
+> +	struct rcar_csi2 *priv = container_of(sd, struct rcar_csi2, subdev);
+> +
+> +	v4l2_async_subnotifier_unregister(&priv->notifier);
+> +}
+> +
+> +static const struct v4l2_subdev_internal_ops rcar_csi2_internal_ops = {
+> +	.registered = rcar_csi2_registered,
+> +	.unregistered = rcar_csi2_unregistered,
+> +};
+> +
+> +static int rcar_csi2_parse_dt_subdevice(struct rcar_csi2 *priv)
+> +{
+> +	struct device_node *remote, *ep;
+> +	struct v4l2_fwnode_endpoint v4l2_ep;
+> +	int ret;
+> +
+> +	ep = of_graph_get_endpoint_by_regs(priv->dev->of_node, 0, 0);
+> +	if (!ep) {
+> +		dev_err(priv->dev, "Not connected to subdevice\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
 > +	if (ret) {
-> +		dev_err(&pdev->dev, "Unable to prepare cec clock\n");
-> +		return ret;
+> +		dev_err(priv->dev, "Could not parse v4l2 endpoint\n");
+> +		of_node_put(ep);
+> +		return -EINVAL;
 > +	}
 > +
-> +	cec->clk_hdmi_cec = devm_clk_get(&pdev->dev, "hdmi-cec");
-> +	if (!IS_ERR(cec->clk_hdmi_cec)) {
-> +		ret = clk_prepare(cec->clk_hdmi_cec);
-> +		if (ret) {
-> +			dev_err(&pdev->dev, "Unable to prepare hdmi-cec clock\n");
-> +			return ret;
+> +	if (v4l2_ep.bus_type != V4L2_MBUS_CSI2) {
+> +		dev_err(priv->dev, "Unknown media bus type: 0x%x\n",
+> +			v4l2_ep.bus_type);
+> +		of_node_put(ep);
+> +		return -EINVAL;
+> +	}
+> +
+> +	priv->remote.fwnode =
+> +		fwnode_graph_get_remote_endpoint(of_fwnode_handle(ep));
+> +
+> +	remote = of_graph_get_remote_port_parent(ep);
+> +	of_node_put(ep);
+> +	if (!remote) {
+> +		dev_err(priv->dev, "No subdevice found for endpoint '%s'\n",
+> +			of_node_full_name(ep));
+> +		return -EINVAL;
+> +	}
+> +
+> +	priv->remote.asd.match.fwnode.fwnode = of_fwnode_handle(remote);
+> +	priv->remote.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> +
+> +	dev_dbg(priv->dev, "Found '%s'\n", of_node_full_name(remote));
+> +
+> +	return 0;
+> +}
+> +
+> +/* -----------------------------------------------------------------------------
+> + * Platform Device Driver
+> + */
+> +
+> +static const struct of_device_id rcar_csi2_of_table[] = {
+> +	{ .compatible = "renesas,rcar-gen3-csi2" },
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, rcar_csi2_of_table);
+> +
+> +static const struct media_entity_operations rcar_csi2_entity_ops = {
+> +	.link_validate = v4l2_subdev_link_validate,
+> +};
+> +
+> +static int rcar_csi2_parse_dt_settings(struct rcar_csi2 *priv)
+> +{
+> +	struct v4l2_fwnode_endpoint v4l2_ep;
+> +	struct device_node *ep;
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	ep = of_graph_get_endpoint_by_regs(priv->dev->of_node, 0, 0);
+> +	if (!ep)
+> +		return -EINVAL;
+> +
+> +	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
+> +	of_node_put(ep);
+> +	if (ret) {
+> +		dev_err(priv->dev, "Could not parse v4l2 endpoint\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (v4l2_ep.bus_type != V4L2_MBUS_CSI2) {
+> +		dev_err(priv->dev, "Unsupported media bus type for %s\n",
+> +			of_node_full_name(ep));
+> +		return -EINVAL;
+> +	}
+> +
+> +	priv->lanes = v4l2_ep.bus.mipi_csi2.num_data_lanes;
+> +	if (priv->lanes != 1 && priv->lanes != 2 && priv->lanes != 4) {
+> +		dev_err(priv->dev, "Unsupported number of data-lanes: %d\n",
+> +			priv->lanes);
+> +		return -EINVAL;
+> +	}
+> +
+> +	for (i = 0; i < ARRAY_SIZE(priv->lane_swap); i++) {
+> +		priv->lane_swap[i] = i < priv->lanes ?
+> +			v4l2_ep.bus.mipi_csi2.data_lanes[i] : i;
+> +
+> +		/* Check for valid lane number */
+> +		if (priv->lane_swap[i] < 1 || priv->lane_swap[i] > 4) {
+
+Do you also support for three lanes? Based on the code elsewhere, it doesn't
+seem like that.
+
+> +			dev_err(priv->dev, "data-lanes must be in 1-4 range\n");
+> +			return -EINVAL;
 > +		}
 > +	}
 > +
-> +	cec->adap = cec_allocate_adapter(&stm32_cec_adap_ops, cec,
-> +			CEC_NAME,
-> +			CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH |
-> +			CEC_CAP_PHYS_ADDR | CEC_CAP_TRANSMIT, 1);
-
-Add CEC_CAP_RC.
-
-Add a comment that CEC_CAP_PHYS_ADDR is temporary until this driver is
-switched to using a cec_notifier.
-
-There is no CEC bus monitoring support for this hardware?
-
-> +	ret = PTR_ERR_OR_ZERO(cec->adap);
+> +	return 0;
+> +}
+> +
+> +static int rcar_csi2_probe_resources(struct rcar_csi2 *priv,
+> +				     struct platform_device *pdev)
+> +{
+> +	struct resource *mem;
+> +	int irq;
+> +
+> +	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	if (!mem)
+> +		return -ENODEV;
+> +
+> +	priv->base = devm_ioremap_resource(&pdev->dev, mem);
+> +	if (IS_ERR(priv->base))
+> +		return PTR_ERR(priv->base);
+> +
+> +	irq = platform_get_irq(pdev, 0);
+> +	if (irq < 0)
+> +		return irq;
+> +
+> +	return 0;
+> +}
+> +
+> +static int rcar_csi2_probe(struct platform_device *pdev)
+> +{
+> +	struct rcar_csi2 *priv;
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+> +	if (!priv)
+> +		return -ENOMEM;
+> +
+> +	priv->dev = &pdev->dev;
+> +
+> +	mutex_init(&priv->lock);
+> +	priv->stream_count = 0;
+> +
+> +	ret = rcar_csi2_parse_dt_settings(priv);
 > +	if (ret)
 > +		return ret;
 > +
-> +	ret = cec_register_adapter(cec->adap, &pdev->dev);
+> +	ret = rcar_csi2_parse_dt_subdevice(priv);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = rcar_csi2_probe_resources(priv, pdev);
 > +	if (ret) {
-> +		cec_delete_adapter(cec->adap);
+> +		dev_err(priv->dev, "Failed to get resources\n");
 > +		return ret;
 > +	}
 > +
-> +	cec_hw_init(cec);
+> +	platform_set_drvdata(pdev, priv);
 > +
-> +	platform_set_drvdata(pdev, cec);
+> +	priv->subdev.owner = THIS_MODULE;
+> +	priv->subdev.dev = &pdev->dev;
+> +	v4l2_subdev_init(&priv->subdev, &rcar_csi2_subdev_ops);
+> +	v4l2_set_subdevdata(&priv->subdev, &pdev->dev);
+> +	snprintf(priv->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s %s",
+> +		 KBUILD_MODNAME, dev_name(&pdev->dev));
+> +	priv->subdev.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	priv->subdev.internal_ops = &rcar_csi2_internal_ops;
+> +
+> +	priv->subdev.entity.function = MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
+> +	priv->subdev.entity.ops = &rcar_csi2_entity_ops;
+> +
+> +	priv->pads[RCAR_CSI2_SINK].flags = MEDIA_PAD_FL_SINK;
+> +	for (i = RCAR_CSI2_SOURCE_VC0; i < NR_OF_RCAR_CSI2_PAD; i++)
+> +		priv->pads[i].flags = MEDIA_PAD_FL_SOURCE;
+> +
+> +	ret = media_entity_pads_init(&priv->subdev.entity, NR_OF_RCAR_CSI2_PAD,
+> +				     priv->pads);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = v4l2_async_register_subdev(&priv->subdev);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	pm_runtime_enable(&pdev->dev);
+> +
+> +	dev_info(priv->dev, "%d lanes found\n", priv->lanes);
 > +
 > +	return 0;
 > +}
 > +
-> +static int stm32_cec_remove(struct platform_device *pdev)
+> +static int rcar_csi2_remove(struct platform_device *pdev)
 > +{
-> +	struct stm32_cec *cec = platform_get_drvdata(pdev);
+> +	struct rcar_csi2 *priv = platform_get_drvdata(pdev);
 > +
-> +	clk_unprepare(cec->clk_cec);
-> +	clk_unprepare(cec->clk_hdmi_cec);
+> +	v4l2_async_unregister_subdev(&priv->subdev);
 > +
-> +	cec_unregister_adapter(cec->adap);
-> +
-> +	cec_delete_adapter(cec->adap);
+> +	pm_runtime_disable(&pdev->dev);
 > +
 > +	return 0;
 > +}
 > +
-> +static const struct of_device_id stm32_cec_of_match[] = {
-> +	{ .compatible = "st,stm32-cec" },
-> +	{ /* end node */ }
-> +};
-> +MODULE_DEVICE_TABLE(of, stm32_cec_of_match);
-> +
-> +static struct platform_driver stm32_cec_driver = {
-> +	.probe  = stm32_cec_probe,
-> +	.remove = stm32_cec_remove,
-> +	.driver = {
-> +		.name		= CEC_NAME,
-> +		.of_match_table = stm32_cec_of_match,
+> +static struct platform_driver __refdata rcar_csi2_pdrv = {
+> +	.remove	= rcar_csi2_remove,
+> +	.probe	= rcar_csi2_probe,
+> +	.driver	= {
+> +		.name	= "rcar-csi2",
+> +		.of_match_table	= of_match_ptr(rcar_csi2_of_table),
 > +	},
 > +};
 > +
-> +module_platform_driver(stm32_cec_driver);
+> +module_platform_driver(rcar_csi2_pdrv);
 > +
-> +MODULE_AUTHOR("Benjamin Gaignard <benjamin.gaignard@st.com>");
-> +MODULE_AUTHOR("Yannick Fertre <yannick.fertre@st.com>");
-> +MODULE_DESCRIPTION("STMicroelectronics STM32 Consumer Electronics Control");
+> +MODULE_AUTHOR("Niklas Söderlund <niklas.soderlund@ragnatech.se>");
+> +MODULE_DESCRIPTION("Renesas R-Car MIPI CSI-2 receiver");
 > +MODULE_LICENSE("GPL v2");
-> 
 
+-- 
 Regards,
 
-	Hans
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
