@@ -1,55 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35395 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751604AbdEHSaE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 May 2017 14:30:04 -0400
-Received: by mail-wm0-f68.google.com with SMTP id v4so12433025wmb.2
-        for <linux-media@vger.kernel.org>; Mon, 08 May 2017 11:30:03 -0700 (PDT)
-Date: Mon, 8 May 2017 20:29:58 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Eric Anholt <eric@anholt.net>
-Cc: Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>,
-        laurent.pinchart@ideasonboard.com,
-        linux-renesas-soc@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, geert@linux-m68k.org,
-        sergei.shtylyov@cogentembedded.com
-Subject: Re: [PATCH v2 0/2] rcar-du, vsp1: rcar-gen3: Add support for
- colorkey alpha blending
-Message-ID: <20170508182958.gmi6rrwog4anqxea@phenom.ffwll.local>
-References: <1494152007-30094-1-git-send-email-Alexandru_Gheorghe@mentor.com>
- <8737cf2tr2.fsf@eliezer.anholt.net>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:46042 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751103AbdE2Nww (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 May 2017 09:52:52 -0400
+Subject: Re: [PATCH v7 15/34] add mux and video interface bridge entity
+ functions
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+ <1495672189-29164-16-git-send-email-steve_longerbeam@mentor.com>
+ <3d3f0c9f-7315-69f0-877e-04b33c498c46@xs4all.nl>
+ <1496065877.17695.82.camel@pengutronix.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2c53543a-8f7c-a245-27b1-32fed2067b43@xs4all.nl>
+Date: Mon, 29 May 2017 15:52:45 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8737cf2tr2.fsf@eliezer.anholt.net>
+In-Reply-To: <1496065877.17695.82.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 08, 2017 at 09:33:37AM -0700, Eric Anholt wrote:
-> Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com> writes:
+On 05/29/2017 03:51 PM, Philipp Zabel wrote:
+> On Mon, 2017-05-29 at 15:37 +0200, Hans Verkuil wrote:
+>> On 05/25/2017 02:29 AM, Steve Longerbeam wrote:
+>>> From: Philipp Zabel <p.zabel@pengutronix.de>
+>>>
+>>> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+>>>
+>>> - renamed MEDIA_ENT_F_MUX to MEDIA_ENT_F_VID_MUX
+>>>
+>>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>>> ---
+>>>    Documentation/media/uapi/mediactl/media-types.rst | 22 ++++++++++++++++++++++
+>>>    include/uapi/linux/media.h                        |  6 ++++++
+>>>    2 files changed, 28 insertions(+)
+>>>
+>>> diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
+>>> index 2a5164a..47ee003 100644
+>>> --- a/Documentation/media/uapi/mediactl/media-types.rst
+>>> +++ b/Documentation/media/uapi/mediactl/media-types.rst
+>>> @@ -299,6 +299,28 @@ Types and flags used to represent the media graph elements
+>>>    	  received on its sink pad and outputs the statistics data on
+>>>    	  its source pad.
+>>>    
+>>> +    -  ..  row 29
+>>> +
+>>> +       ..  _MEDIA-ENT-F-VID-MUX:
+>>> +
+>>> +       -  ``MEDIA_ENT_F_VID_MUX``
+>>> +
+>>> +       - Video multiplexer. An entity capable of multiplexing must have at
+>>> +         least two sink pads and one source pad, and must pass the video
+>>> +         frame(s) received from the active sink pad to the source pad. Video
+>>> +         frame(s) from the inactive sink pads are discarded.
+>>> +
+>>> +    -  ..  row 30
+>>> +
+>>> +       ..  _MEDIA-ENT-F-VID-IF-BRIDGE:
+>>> +
+>>> +       -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
+>>> +
+>>> +       - Video interface bridge. A video interface bridge entity must have at
+>>> +         least one sink pad and one source pad. It receives video frame(s) on
+>>> +         its sink pad in one bus format (HDMI, eDP, MIPI CSI-2, ...) and
+>>> +         converts them and outputs them on its source pad in another bus format
+>>> +         (eDP, MIPI CSI-2, parallel, ...).
+>>
+>> I'm unhappy with the term 'bus format'. It's too close to 'mediabus format'.
+>> How about calling it "bus protocol"?
 > 
-> > Currently, rcar-du supports colorkeying  only for rcar-gen2 and it uses 
-> > some hw capability of the display unit(DU) which is not available on gen3.
-> > In order to implement colorkeying for gen3 we need to use the colorkey
-> > capability of the VSPD, hence the need to change both drivers rcar-du and
-> > vsp1.
-> >
-> > This patchset had been developed and tested on top of v4.9/rcar-3.5.1 from
-> > git://git.kernel.org/pub/scm/linux/kernel/git/horms/renesas-bsp.git
+> How about:
 > 
-> A few questions:
-> 
-> Are other drivers interested in supporting this property?  VC4 has the
-> 24-bit RGB colorkey, but I don't see YCBCR support.  Should it be
-> documented in a generic location?
-> 
-> Does your colorkey end up forcing alpha to 1 for the plane when it's not
-> matched?
+>     "It receives video frames on its sink pad from an input video bus
+>      of one type (HDMI, eDP, MIPI CSI-2, ...), and outputs them on its
+>      source pad to an output video bus of another type (eDP, MIPI
+>      CSI-2, parallel, ...)."
 
-I think generic color-key for plane compositioning would be nice, but I'm
-not sure that's possible due to differences in how the key works.
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+That's even better!
+
+Regards,
+
+	Hans
