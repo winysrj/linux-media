@@ -1,115 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.14]:40579 "EHLO imap.netup.ru"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751053AbdEaMSE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 08:18:04 -0400
-Received: from mail-oi0-f43.google.com (mail-oi0-f43.google.com [209.85.218.43])
-        by imap.netup.ru (Postfix) with ESMTPSA id F37558B3F00
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 15:18:02 +0300 (MSK)
-Received: by mail-oi0-f43.google.com with SMTP id b204so12763346oii.1
-        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 05:18:02 -0700 (PDT)
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:53647 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751059AbdE2PY7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 May 2017 11:24:59 -0400
+Subject: Re: [PATCH v7 00/34] i.MX Media Driver
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+ <dd82968a-4c0b-12a4-f43b-7e63a255812d@xs4all.nl>
+ <1496067346.17695.91.camel@pengutronix.de>
+ <58c82482-d7d0-93cb-1e12-9749233bc5f3@xs4all.nl>
+Message-ID: <3de70e29-8429-1b56-8a01-84ca49f4fd89@xs4all.nl>
+Date: Mon, 29 May 2017 17:24:51 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170409193828.18458-12-d.scheller.oss@gmail.com>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com> <20170409193828.18458-12-d.scheller.oss@gmail.com>
-From: Abylay Ospan <aospan@netup.ru>
-Date: Wed, 31 May 2017 08:17:40 -0400
-Message-ID: <CAK3bHNUKm8+ZB+9rZH56gbp2S=i6b7zSGCxhKTsb3pfJKXRMLA@mail.gmail.com>
-Subject: Re: [PATCH 11/19] [media] dvb-frontends/cxd2841er: optionally tune
- earlier in set_frontend()
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: Kozlov Sergey <serjk@netup.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>, rjkm@metzlerbros.de
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <58c82482-d7d0-93cb-1e12-9749233bc5f3@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Abylay Ospan <aospan@netup.ru>
+On 05/29/2017 04:21 PM, Hans Verkuil wrote:
+> On 05/29/2017 04:15 PM, Philipp Zabel wrote:
+>> On Mon, 2017-05-29 at 15:46 +0200, Hans Verkuil wrote:
+>>> Hi Steve,
+>>>
+>>> On 05/25/2017 02:29 AM, Steve Longerbeam wrote:
+>>>> In version 7:
+>>>>
+>>>> - video-mux: switched to Philipp's latest video-mux driver and updated
+>>>>      bindings docs, that makes use of the mmio-mux framework.
+>>>>
+>>>> - mmio-mux: includes Philipp's temporary patch that adds mmio-mux support
+>>>>      to video-mux driver, until mux framework is merged.
+>>>>
+>>>> - mmio-mux: updates to device tree from Philipp that define the i.MX6 mux
+>>>>      devices and modifies the video-mux device to become a consumer of the
+>>>>      video mmio-mux.
+>>>>
+>>>> - minor updates to Documentation/media/v4l-drivers/imx.rst.
+>>>>
+>>>> - ov5640: do nothing if entity stream count is greater than 1 in
+>>>>      ov5640_s_stream().
+>>>>
+>>>> - Previous versions of this driver had not tested the ability to enable
+>>>>      multiple independent streams, for instance enabling multiple output
+>>>>      pads from the imx6-mipi-csi2 subdevice, or enabling both prpenc and
+>>>>      prpvf outputs. Marek Vasut tested this support and reported issues
+>>>>      with it.
+>>>>
+>>>>      v4l2_pipeline_inherit_controls() used the media graph walk APIs, but
+>>>>      that walks both sink and source pads, so if there are multiple paths
+>>>>      enabled to video capture devices, controls would be added to the wrong
+>>>>      video capture device, and no controls added to the other enabled
+>>>>      capture devices.
+>>>>
+>>>>      These issues have been fixed. Control inheritance works correctly now
+>>>>      even with multiple enabled capture paths, and (for example)
+>>>>      simultaneous capture from prpenc and prpvf works also, and each with
+>>>>      independent scaling, CSC, and controls. For example prpenc can be
+>>>>      capturing with a 90 degree rotation, while prpvf is capturing with
+>>>>      vertical flip.
+>>>>
+>>>>      So the v4l2_pipeline_inherit_controls() patch has been dropped. The
+>>>>      new version of control inheritance could be made generically available,
+>>>>      but it would be more involved to incorporate it into v4l2-core.
+>>>>
+>>>> - A new function imx_media_fill_default_mbus_fields() is added to setup
+>>>>      colorimetry at sink pads, and these are propagated to source pads.
+>>>>
+>>>> - Ensure that the current sink and source rectangles meet alignment
+>>>>      restrictions before applying a new rotation control setting in
+>>>>      prp-enc/vf subdevices.
+>>>>
+>>>> - Chain the s_stream() subdev calls instead of implementing a custom
+>>>>      stream on/off function that attempts to call a fixed set of subdevices
+>>>>      in a pipeline in the correct order. This also simplifies imx6-mipi-csi2
+>>>>      subdevice, since the correct MIPI CSI-2 startup sequence can be
+>>>>      enforced completely in s_stream(), and s_power() is no longer
+>>>>      required. This also paves the way for more arbitrary OF graphs
+>>>>      external to the i.MX6.
+>>>>
+>>>> - Converted the v4l2_subdev and media_entity ops structures to const.
+>>>
+>>> What is the status as of v7?
+>>>
+>>>    From what I can tell patch 2/34 needs an Ack from Rob Herring, patches
+>>> 4-14 are out of scope for the media subsystem, patches 20-25 and 27-34
+>>> are all staging (so fine to be merged from my point of view).
+>>>
+>>> I'm not sure if patch 26 (defconfig) should be applied while the imx
+>>> driver is in staging. I would suggest that this patch is moved to the end
+>>> of the series.
+>>>
+>>> That leaves patches 15-19. I replied to patch 15 with a comment, patches
+>>> 16-18 look good to me, although patches 17 and 18 should be combined to one
+>>> patch since patch 17 won't compile otherwise.
+>>
+>> Is this a problem? It won't break any builds as patch 17 depends on
+>> CONFIG_MULTIPLEXER, which doesn't exist yet. I'm fine with merging the
+>> two patches, though.
+> 
+> You are right, but it is weird. I think I would prefer to have these two
+> merged and the #ifdef CONFIG_MULTIPLEXER bits removed. Just a note in the
+> commit log that this should be converted to the multiplexer when that gets
+> merged would be enough.
+> 
+> Dead code in drivers/media should be avoided because that's what this
+> driver currently has.
 
-2017-04-09 15:38 GMT-04:00 Daniel Scheller <d.scheller.oss@gmail.com>:
-> From: Daniel Scheller <d.scheller@gmx.net>
->
-> When AUTO_IFHZ is set and the tuner is supposed to provide proper IF speed
-> values, it should be possible to have the tuner setup take place before
-> the demod is configured, else the demod might be configured with either
-> wrong (old), or even no values at all, which obviously will cause issues.
-> To set this behaviour in the most flexible way, this is done with a
-> separate flag instead of making this depend on AUTO_IFHZ.
->
-> It should be evaluated if tuning shouldn't take place earlier in all cases
-> and hardware constellations.
->
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
->  drivers/media/dvb-frontends/cxd2841er.c | 14 ++++++++++++--
->  drivers/media/dvb-frontends/cxd2841er.h |  1 +
->  2 files changed, 13 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-> index 7ca589a..894cb5a 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.c
-> +++ b/drivers/media/dvb-frontends/cxd2841er.c
-> @@ -3306,6 +3306,10 @@ static int cxd2841er_set_frontend_s(struct dvb_frontend *fe)
->                 __func__,
->                 (p->delivery_system == SYS_DVBS ? "DVB-S" : "DVB-S2"),
->                  p->frequency, symbol_rate, priv->xtal);
-> +
-> +       if (priv->flags & CXD2841ER_EARLY_TUNE)
-> +               cxd2841er_tuner_set(fe);
-> +
->         switch (priv->state) {
->         case STATE_SLEEP_S:
->                 ret = cxd2841er_sleep_s_to_active_s(
-> @@ -3325,7 +3329,8 @@ static int cxd2841er_set_frontend_s(struct dvb_frontend *fe)
->                 goto done;
->         }
->
-> -       cxd2841er_tuner_set(fe);
-> +       if (!(priv->flags & CXD2841ER_EARLY_TUNE))
-> +               cxd2841er_tuner_set(fe);
->
->         cxd2841er_tune_done(priv);
->         timeout = ((3000000 + (symbol_rate - 1)) / symbol_rate) + 150;
-> @@ -3365,6 +3370,10 @@ static int cxd2841er_set_frontend_tc(struct dvb_frontend *fe)
->
->         dev_dbg(&priv->i2c->dev, "%s() delivery_system=%d bandwidth_hz=%d\n",
->                  __func__, p->delivery_system, p->bandwidth_hz);
-> +
-> +       if (priv->flags & CXD2841ER_EARLY_TUNE)
-> +               cxd2841er_tuner_set(fe);
-> +
->         if (p->delivery_system == SYS_DVBT) {
->                 priv->system = SYS_DVBT;
->                 switch (priv->state) {
-> @@ -3447,7 +3456,8 @@ static int cxd2841er_set_frontend_tc(struct dvb_frontend *fe)
->         if (ret)
->                 goto done;
->
-> -       cxd2841er_tuner_set(fe);
-> +       if (!(priv->flags & CXD2841ER_EARLY_TUNE))
-> +               cxd2841er_tuner_set(fe);
->
->         cxd2841er_tune_done(priv);
->         timeout = 2500;
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.h b/drivers/media/dvb-frontends/cxd2841er.h
-> index 90ced97..061e551 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.h
-> +++ b/drivers/media/dvb-frontends/cxd2841er.h
-> @@ -28,6 +28,7 @@
->  #define CXD2841ER_AUTO_IFHZ    2       /* bit 1 */
->  #define CXD2841ER_TS_SERIAL    4       /* bit 2 */
->  #define CXD2841ER_ASCOT                8       /* bit 3 */
-> +#define CXD2841ER_EARLY_TUNE   16      /* bit 4 */
->
->  enum cxd2841er_xtal {
->         SONY_XTAL_20500, /* 20.5 MHz */
-> --
-> 2.10.2
->
+Thanks for those updates! That really leaves just an Ack for patch 2/34.
 
+Sooo close!
 
+Regards,
 
--- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+	Hans
