@@ -1,120 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor1.renesas.com ([210.160.252.171]:18068 "EHLO
-        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752552AbdEINuX (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:53873 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751118AbdE2OQW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 May 2017 09:50:23 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v5 2/7] dt-bindings: media: Add MAX2175 binding description
-Date: Tue,  9 May 2017 14:37:33 +0100
-Message-Id: <20170509133738.16414-3-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <20170509133738.16414-1-ramesh.shanmugasundaram@bp.renesas.com>
-References: <20170509133738.16414-1-ramesh.shanmugasundaram@bp.renesas.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Mon, 29 May 2017 10:16:22 -0400
+Message-ID: <1496067346.17695.91.camel@pengutronix.de>
+Subject: Re: [PATCH v7 00/34] i.MX Media Driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Mon, 29 May 2017 16:15:46 +0200
+In-Reply-To: <dd82968a-4c0b-12a4-f43b-7e63a255812d@xs4all.nl>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+         <dd82968a-4c0b-12a4-f43b-7e63a255812d@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree binding documentation for MAX2175 RF to bits tuner
-device.
+On Mon, 2017-05-29 at 15:46 +0200, Hans Verkuil wrote:
+> Hi Steve,
+> 
+> On 05/25/2017 02:29 AM, Steve Longerbeam wrote:
+> > In version 7:
+> > 
+> > - video-mux: switched to Philipp's latest video-mux driver and updated
+> >    bindings docs, that makes use of the mmio-mux framework.
+> > 
+> > - mmio-mux: includes Philipp's temporary patch that adds mmio-mux support
+> >    to video-mux driver, until mux framework is merged.
+> > 
+> > - mmio-mux: updates to device tree from Philipp that define the i.MX6 mux
+> >    devices and modifies the video-mux device to become a consumer of the
+> >    video mmio-mux.
+> > 
+> > - minor updates to Documentation/media/v4l-drivers/imx.rst.
+> > 
+> > - ov5640: do nothing if entity stream count is greater than 1 in
+> >    ov5640_s_stream().
+> > 
+> > - Previous versions of this driver had not tested the ability to enable
+> >    multiple independent streams, for instance enabling multiple output
+> >    pads from the imx6-mipi-csi2 subdevice, or enabling both prpenc and
+> >    prpvf outputs. Marek Vasut tested this support and reported issues
+> >    with it.
+> > 
+> >    v4l2_pipeline_inherit_controls() used the media graph walk APIs, but
+> >    that walks both sink and source pads, so if there are multiple paths
+> >    enabled to video capture devices, controls would be added to the wrong
+> >    video capture device, and no controls added to the other enabled
+> >    capture devices.
+> > 
+> >    These issues have been fixed. Control inheritance works correctly now
+> >    even with multiple enabled capture paths, and (for example)
+> >    simultaneous capture from prpenc and prpvf works also, and each with
+> >    independent scaling, CSC, and controls. For example prpenc can be
+> >    capturing with a 90 degree rotation, while prpvf is capturing with
+> >    vertical flip.
+> > 
+> >    So the v4l2_pipeline_inherit_controls() patch has been dropped. The
+> >    new version of control inheritance could be made generically available,
+> >    but it would be more involved to incorporate it into v4l2-core.
+> > 
+> > - A new function imx_media_fill_default_mbus_fields() is added to setup
+> >    colorimetry at sink pads, and these are propagated to source pads.
+> > 
+> > - Ensure that the current sink and source rectangles meet alignment
+> >    restrictions before applying a new rotation control setting in
+> >    prp-enc/vf subdevices.
+> > 
+> > - Chain the s_stream() subdev calls instead of implementing a custom
+> >    stream on/off function that attempts to call a fixed set of subdevices
+> >    in a pipeline in the correct order. This also simplifies imx6-mipi-csi2
+> >    subdevice, since the correct MIPI CSI-2 startup sequence can be
+> >    enforced completely in s_stream(), and s_power() is no longer
+> >    required. This also paves the way for more arbitrary OF graphs
+> >    external to the i.MX6.
+> > 
+> > - Converted the v4l2_subdev and media_entity ops structures to const.
+> 
+> What is the status as of v7?
+>
+>  From what I can tell patch 2/34 needs an Ack from Rob Herring, patches
+> 4-14 are out of scope for the media subsystem, patches 20-25 and 27-34
+> are all staging (so fine to be merged from my point of view).
+> 
+> I'm not sure if patch 26 (defconfig) should be applied while the imx
+> driver is in staging. I would suggest that this patch is moved to the end
+> of the series.
+> 
+> That leaves patches 15-19. I replied to patch 15 with a comment, patches
+> 16-18 look good to me, although patches 17 and 18 should be combined to one
+> patch since patch 17 won't compile otherwise.
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
-v5:
- - pF in property-units.txt is renamed to pico-farads (Geert)
- - "maxim,refout-load-pF" is renamed to "maxim,refout-load".
----
- .../devicetree/bindings/media/i2c/max2175.txt      | 61 ++++++++++++++++++++++
- .../devicetree/bindings/property-units.txt         |  1 +
- 2 files changed, 62 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/max2175.txt
+Is this a problem? It won't break any builds as patch 17 depends on
+CONFIG_MULTIPLEXER, which doesn't exist yet. I'm fine with merging the
+two patches, though.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/max2175.txt b/Documentation/devicetree/bindings/media/i2c/max2175.txt
-new file mode 100644
-index 000000000000..dce421857efe
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/max2175.txt
-@@ -0,0 +1,61 @@
-+Maxim Integrated MAX2175 RF to Bits tuner
-+-----------------------------------------
-+
-+The MAX2175 IC is an advanced analog/digital hybrid-radio receiver with
-+RF to Bits® front-end designed for software-defined radio solutions.
-+
-+Required properties:
-+--------------------
-+- compatible: "maxim,max2175" for MAX2175 RF-to-bits tuner.
-+- clocks: phandle to the fixed xtal clock.
-+- clock-names: name of the fixed xtal clock, shall be "xtal".
-+- port: child port node corresponding to the I2S output, in accordance with
-+	the video interface bindings defined in
-+	Documentation/devicetree/bindings/media/video-interfaces.txt. The port
-+	node must contain at least one endpoint.
-+
-+Optional properties:
-+--------------------
-+- maxim,master	      : phandle to the master tuner if it is a slave. This
-+			is used to define two tuners in diversity mode
-+			(1 master, 1 slave). By default each tuner is an
-+			individual master.
-+- maxim,refout-load   : load capacitance value (in pico-farads) on reference
-+			output drive level. The possible load values are:
-+			 0 (default - refout disabled)
-+			10
-+			20
-+			30
-+			40
-+			60
-+			70
-+- maxim,am-hiz-filter : empty property indicates the AM Hi-Z filter is used
-+			in this hardware for AM antenna input.
-+
-+Example:
-+--------
-+
-+Board specific DTS file
-+
-+/* Fixed XTAL clock node */
-+maxim_xtal: clock {
-+	compatible = "fixed-clock";
-+	#clock-cells = <0>;
-+	clock-frequency = <36864000>;
-+};
-+
-+/* A tuner device instance under i2c bus */
-+max2175_0: tuner@60 {
-+	compatible = "maxim,max2175";
-+	reg = <0x60>;
-+	clocks = <&maxim_xtal>;
-+	clock-names = "xtal";
-+	maxim,refout-load = <10>;
-+
-+	port {
-+		max2175_0_ep: endpoint {
-+			remote-endpoint = <&slave_rx_device>;
-+		};
-+	};
-+
-+};
-diff --git a/Documentation/devicetree/bindings/property-units.txt b/Documentation/devicetree/bindings/property-units.txt
-index 0849618a9df0..2d1d28843c96 100644
---- a/Documentation/devicetree/bindings/property-units.txt
-+++ b/Documentation/devicetree/bindings/property-units.txt
-@@ -30,6 +30,7 @@ Electricity
- -micro-ohms	: micro Ohms
- -microwatt-hours: micro Watt-hours
- -microvolt	: micro volts
-+-pico-farads	: picofarads
- 
- Temperature
- ----------------------------------------
--- 
-2.12.2
+> Any idea when the multiplexer is expected to be merged? (just curious)
+
+I have no idea. v15 of the multiplexer framework patchset was posted on
+2017-05-14, is still waiting for comments.
+
+> I would really like to get this merged for 4.13, so did I miss anything?
+
+Seconded, and not that I can tell.
+
+>  From what I can tell it is really just an Ack for patch 2/34.
+
+regards
+Philipp
