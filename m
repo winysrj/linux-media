@@ -1,86 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:54789 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750890AbdE3KRi (ORCPT
+Received: from mail-wm0-f53.google.com ([74.125.82.53]:35814 "EHLO
+        mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750846AbdE2IeY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 06:17:38 -0400
-Message-ID: <1496139454.5485.2.camel@pengutronix.de>
-Subject: Re: [PATCH v7 2/3] [media] add mux and video interface bridge
- entity functions
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Peter Rosin <peda@axentia.se>, Pavel Machek <pavel@ucw.cz>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        kernel@pengutronix.de,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Tue, 30 May 2017 12:17:34 +0200
-In-Reply-To: <20170529203826.GJ29527@valkosipuli.retiisi.org.uk>
-References: <1496070731-12611-1-git-send-email-p.zabel@pengutronix.de>
-         <1496070731-12611-2-git-send-email-p.zabel@pengutronix.de>
-         <20170529203826.GJ29527@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Mon, 29 May 2017 04:34:24 -0400
+Received: by mail-wm0-f53.google.com with SMTP id b84so46377603wmh.0
+        for <linux-media@vger.kernel.org>; Mon, 29 May 2017 01:34:23 -0700 (PDT)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: yannick.fertre@st.com, alexandre.torgue@st.com, hverkuil@xs4all.nl,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        robh@kernel.org, hans.verkuil@cisco.com
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v4 0/2] cec: STM32 driver
+Date: Mon, 29 May 2017 10:34:13 +0200
+Message-Id: <1496046855-5809-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+version 4:
+- rebased on Hans cec-config branch
+- rework bindings commit message
+- add notifier support
+- update KConfig
 
-On Mon, 2017-05-29 at 23:38 +0300, Sakari Ailus wrote:
-[...]
-> > diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
-> > index 2a5164aea2b40..1d15542f447c1 100644
-> > --- a/Documentation/media/uapi/mediactl/media-types.rst
-> > +++ b/Documentation/media/uapi/mediactl/media-types.rst
-> > @@ -299,6 +299,28 @@ Types and flags used to represent the media graph elements
-> >  	  received on its sink pad and outputs the statistics data on
-> >  	  its source pad.
-> >  
-> > +    -  ..  row 29
-> > +
-> > +       ..  _MEDIA-ENT-F-VID-MUX:
-> > +
-> > +       -  ``MEDIA_ENT_F_VID_MUX``
-> > +
-> > +       - Video multiplexer. An entity capable of multiplexing must have at
-> > +         least two sink pads and one source pad, and must pass the video
-> > +         frame(s) received from the active sink pad to the source pad. Video
-> > +         frame(s) from the inactive sink pads are discarded.
-> 
-> I don't think the last sentence is needed, I'd drop it as redundant. Up to
-> you.
+version 2:
+- fix typo in compagnie name
+- add yannick sign-off
+- use cec_message instead of custom struct in cec device
+- add monitor mode
 
-Thanks, I'll drop this sentence ...
+I don't change the split between irq handler and irq thread because
+it would had mean to handle all errors cases irq handler to keep
+a correct sequence. I don't think it is critical as it is since cec is a very
+slow protocol.
 
-> > +
-> > +    -  ..  row 30
-> > +
-> > +       ..  _MEDIA-ENT-F-VID-IF-BRIDGE:
-> > +
-> > +       -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
-> > +
-> > +       - Video interface bridge. A video interface bridge entity must have at
-> > +         least one sink pad and one source pad. It receives video frames on
-> 
-> It's not clear whether there must be at least one source pad or one source
-> pad. How about either:
-> 
-> "must have at least one sink pad and at least one source pad" or
+This serie of patches add cec driver for STM32 platforms.
 
-... and change this to specify "at least one source pad".
+This code doesn't implement cec notifier because STM32 doesn't
+provide HDMI yet but it will be added later.
 
-> "must have at least one sink pad and exactly one source pad"?
-> 
-> With this considered,
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-[...]
+Those patches have been developped on top of media_tree master branch
+where STM32 DCMI code has not been merged so conflict in Kconfig and Makefile
+could occur depending of merge ordering.
 
-regards
-Philipp
+Compliance has been tested on STM32F769.
+
+~ # cec-ctl -p 1.0.0.0 --playback 
+Driver Info:
+        Driver Name                : stm32-cec
+        Adapter Name               : stm32-cec
+        Capabilities               : 0x0000000f
+                Physical Address
+                Logical Addresses
+                Transmit
+                Passthrough
+        Driver version             : 4.11.0
+        Available Logical Addresses: 1
+        Physical Address           : 1.0.0.0
+        Logical Address Mask       : 0x0010
+        CEC Version                : 2.0
+        Vendor ID                  : 0x000c03 (HDMI)
+        OSD Name                   : 'Playback'
+        Logical Addresses          : 1 (Allow RC Passthrough)
+
+          Logical Address          : 4 (Playback Device 1)
+            Primary Device Type    : Playback
+            Logical Address Type   : Playback
+            All Device Types       : Playback
+            RC TV Profile          : None
+            Device Features        :
+                None
+
+~ # cec-compliance -A 
+cec-compliance SHA                 : 6acac5cec698de39b9398b66c4f5f4db6b2730d8
+
+Driver Info:
+        Driver Name                : stm32-cec
+        Adapter Name               : stm32-cec
+        Capabilities               : 0x0000000f
+                Physical Address
+                Logical Addresses
+                Transmit
+                Passthrough
+        Driver version             : 4.11.0
+        Available Logical Addresses: 1
+        Physical Address           : 1.0.0.0
+        Logical Address Mask       : 0x0010
+        CEC Version                : 2.0
+        Vendor ID                  : 0x000c03
+        Logical Addresses          : 1 (Allow RC Passthrough)
+
+          Logical Address          : 4
+            Primary Device Type    : Playback
+            Logical Address Type   : Playback
+            All Device Types       : Playback
+            RC TV Profile          : None
+            Device Features        :
+                None
+
+Compliance test for device /dev/cec0:
+
+    The test results mean the following:
+        OK                  Supported correctly by the device.
+        OK (Not Supported)  Not supported and not mandatory for the device.
+        OK (Presumed)       Presumably supported.  Manually check to confirm.
+        OK (Unexpected)     Supported correctly but is not expected to be supported for this device.
+        OK (Refused)        Supported by the device, but was refused.
+        FAIL                Failed and was expected to be supported by this device.
+
+Find remote devices:
+        Polling: OK
+
+CEC API:
+        CEC_ADAP_G_CAPS: OK
+        CEC_DQEVENT: OK
+        CEC_ADAP_G/S_PHYS_ADDR: OK
+        CEC_ADAP_G/S_LOG_ADDRS: OK
+        CEC_TRANSMIT: OK
+        CEC_RECEIVE: OK
+        CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
+        CEC_G/S_MODE: OK
+        CEC_EVENT_LOST_MSGS: OK
+
+Network topology:
+        System Information for device 0 (TV) from device 4 (Playback Device 1):
+                CEC Version                : 1.4
+                Physical Address           : 0.0.0.0
+                Primary Device Type        : TV
+                Vendor ID                  : 0x00903e
+                OSD Name                   : 'TV'
+                Menu Language              : fre
+                Power Status               : On
+
+Total: 10, Succeeded: 10, Failed: 0, Warnings: 0
+
+
+Benjamin Gaignard (2):
+  dt-bindings: media: stm32 cec driver
+  cec: add STM32 cec driver
+
+ .../devicetree/bindings/media/st,stm32-cec.txt     |  22 ++
+ drivers/media/platform/Kconfig                     |  13 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/stm32/Makefile              |   1 +
+ drivers/media/platform/stm32/stm32-cec.c           | 392 +++++++++++++++++++++
+ 5 files changed, 430 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
+ create mode 100644 drivers/media/platform/stm32/Makefile
+ create mode 100644 drivers/media/platform/stm32/stm32-cec.c
+
+-- 
+1.9.1
