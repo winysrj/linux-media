@@ -1,54 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:56616 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753054AbdE0GzI (ORCPT
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:34277 "EHLO
+        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750865AbdE2IeZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 27 May 2017 02:55:08 -0400
-Date: Sat, 27 May 2017 08:55:06 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] ad5820: unregister async sub-device
-Message-ID: <20170527065506.GB24739@amd>
-References: <1495803648-29261-1-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="XF85m9dhOBO43t/C"
-Content-Disposition: inline
-In-Reply-To: <1495803648-29261-1-git-send-email-sakari.ailus@linux.intel.com>
+        Mon, 29 May 2017 04:34:25 -0400
+Received: by mail-wm0-f43.google.com with SMTP id 123so17616572wmg.1
+        for <linux-media@vger.kernel.org>; Mon, 29 May 2017 01:34:24 -0700 (PDT)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: yannick.fertre@st.com, alexandre.torgue@st.com, hverkuil@xs4all.nl,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        robh@kernel.org, hans.verkuil@cisco.com
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v4 1/2] dt-bindings: media: stm32 cec driver
+Date: Mon, 29 May 2017 10:34:14 +0200
+Message-Id: <1496046855-5809-2-git-send-email-benjamin.gaignard@linaro.org>
+In-Reply-To: <1496046855-5809-1-git-send-email-benjamin.gaignard@linaro.org>
+References: <1496046855-5809-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add bindings documentation for stm32 CEC driver.
 
---XF85m9dhOBO43t/C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+---
+version 4:
+- rework commit message
+- add hdmi-phandle optional property
 
-On Fri 2017-05-26 16:00:48, Sakari Ailus wrote:
-> The async sub-device was not unregistered in ad5820_remove() as it should
-> have been; do it now. Also remove the now-redundant
-> v4l2_device_unregister_subdev().
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+ .../devicetree/bindings/media/st,stm32-cec.txt     | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---XF85m9dhOBO43t/C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlkpIsoACgkQMOfwapXb+vKbbQCfWuyZgO9hONnbJADh4Bc9r8No
-QVwAoLFkiFxXuK5QbIlthoeZ8UVGc1+K
-=RcPV
------END PGP SIGNATURE-----
-
---XF85m9dhOBO43t/C--
+diff --git a/Documentation/devicetree/bindings/media/st,stm32-cec.txt b/Documentation/devicetree/bindings/media/st,stm32-cec.txt
+new file mode 100644
+index 0000000..790d6d3
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/st,stm32-cec.txt
+@@ -0,0 +1,22 @@
++STMicroelectronics STM32 CEC driver
++
++Required properties:
++ - compatible : value should be "st,stm32-cec"
++ - reg : Physical base address of the IP registers and length of memory
++	 mapped region.
++ - clocks : from common clock binding: handle to CEC clocks
++ - clock-names : from common clock binding: must be "cec" and "hdmi-cec".
++ - interrupts : CEC interrupt number to the CPU.
++
++Optional properties:
++ - hdmi-phandle: Phandle to the HDMI controller
++
++Example for stm32f746:
++
++cec: cec@40006c00 {
++	compatible = "st,stm32-cec";
++	reg = <0x40006C00 0x400>;
++	interrupts = <94>;
++	clocks = <&rcc 0 STM32F7_APB1_CLOCK(CEC)>, <&rcc 1 CLK_HDMI_CEC>;
++	clock-names = "cec", "hdmi-cec";
++};
+-- 
+1.9.1
