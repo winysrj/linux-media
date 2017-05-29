@@ -1,74 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:43710 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750839AbdE1Joc (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41405 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750837AbdE2AmL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 May 2017 05:44:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH for v4.12 0/3] cec: more kernel config cleanups
-Date: Sun, 28 May 2017 11:44:23 +0200
-Message-Id: <20170528094426.10089-1-hverkuil@xs4all.nl>
+        Sun, 28 May 2017 20:42:11 -0400
+Subject: Re: [PATCH 7/7] [media] v4l: rcar_fdp1: use proper name for the R-Car
+ SoC
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <20170528093051.11816-1-wsa+renesas@sang-engineering.com>
+ <20170528093051.11816-8-wsa+renesas@sang-engineering.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Reply-To: kieran.bingham@ideasonboard.com
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <7ee334ac-0274-ed9c-a903-93defd5900d8@ideasonboard.com>
+Date: Mon, 29 May 2017 09:41:49 +0900
+MIME-Version: 1.0
+In-Reply-To: <20170528093051.11816-8-wsa+renesas@sang-engineering.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Wolfram
 
-While working on drm CEC drivers I realized that the correct config
-setup is a pain. The problem is that the CEC subsystem is really independent
-of the media subsystem: both media and drm drivers can use it.
+Thankyou for the fixup
 
-So this patch series moves the core CEC kernel config options outside the
-"Multimedia support" menu and drivers that want to use CEC should select
-CEC_CORE. This also ensures that the cec framework will be correctly build
-as either a module or a built-in.
+On 28/05/17 18:30, Wolfram Sang wrote:
+> It is 'R-Car', not 'RCar'. No code or binding changes, only descriptive text.
+> 
+> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 
-The only missing piece is that drm drivers that use cec-notifier.h need to
-add a 'select CEC_CORE if CEC_NOTIFIER' to their Kconfig. That would allow
-the removal of the ugly 'IS_REACHABLE' construct in cec-notifier.h.
+Acked-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-But that can be done for 4.13.
 
-Enabling the RC integration is still part of the MEDIA_CEC_SUPPORT menu,
-since it obviously relies on the media rc core.
+Mauro,
 
-The second patch renames MEDIA_CEC_NOTIFIER to CEC_NOTIFIER since
-this too is not part of the media subsystem and is instead selected by
-drivers that want to use it.
+I'll leave this for you to pick up when you're ready.
 
-The last patch drops the MEDIA_CEC_DEBUG kernel config option: instead
-just rely on DEBUG_FS. There really is no need for this additional option,
-and in fact it would require enabled the media subsystem just to enable
-the CEC debugfs support when used by a drm driver.
+Thanks
 
-I want to get this in for 4.12 while there are no drm drivers yet that
-integrate CEC support.
+Kieran
 
-Regards,
-
-        Hans
-
-Hans Verkuil (3):
-  cec: select CEC_CORE instead of depend on it
-  cec: rename MEDIA_CEC_NOTIFIER to CEC_NOTIFIER
-  cec: drop MEDIA_CEC_DEBUG
-
- drivers/media/Kconfig                    |  6 ++++++
- drivers/media/Makefile                   |  4 ++--
- drivers/media/cec/Kconfig                | 14 --------------
- drivers/media/cec/Makefile               |  2 +-
- drivers/media/cec/cec-adap.c             |  2 +-
- drivers/media/cec/cec-core.c             |  8 ++++----
- drivers/media/i2c/Kconfig                |  9 ++++++---
- drivers/media/platform/Kconfig           | 10 ++++++----
- drivers/media/platform/vivid/Kconfig     |  3 ++-
- drivers/media/usb/pulse8-cec/Kconfig     |  3 ++-
- drivers/media/usb/rainshadow-cec/Kconfig |  3 ++-
- include/media/cec-notifier.h             |  2 +-
- include/media/cec.h                      |  4 ++--
- 13 files changed, 35 insertions(+), 35 deletions(-)
-
--- 
-2.11.0
+> ---
+> I suggest this trivial patch should be picked individually per susbsystem.
+> 
+>  drivers/media/platform/rcar_fdp1.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
+> index 42f25d241edd7c..0da0eba9202cdd 100644
+> --- a/drivers/media/platform/rcar_fdp1.c
+> +++ b/drivers/media/platform/rcar_fdp1.c
+> @@ -1,5 +1,5 @@
+>  /*
+> - * Renesas RCar Fine Display Processor
+> + * Renesas R-Car Fine Display Processor
+>   *
+>   * Video format converter and frame deinterlacer device.
+>   *
+> 
