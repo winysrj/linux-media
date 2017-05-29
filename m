@@ -1,45 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:33445 "EHLO
-        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751011AbdE2JOo (ORCPT
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:62884
+        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750885AbdE2LUR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 05:14:44 -0400
+        Mon, 29 May 2017 07:20:17 -0400
+Date: Mon, 29 May 2017 13:20:10 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+cc: yannick.fertre@st.com, alexandre.torgue@st.com, hverkuil@xs4all.nl,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        robh@kernel.org, hans.verkuil@cisco.com, kbuild-all@01.org
+Subject: Re: [PATCH v4 2/2] cec: add STM32 cec driver (fwd)
+Message-ID: <alpine.DEB.2.20.1705291319130.2989@hadrien>
 MIME-Version: 1.0
-In-Reply-To: <20170528093051.11816-7-wsa+renesas@sang-engineering.com>
-References: <20170528093051.11816-1-wsa+renesas@sang-engineering.com> <20170528093051.11816-7-wsa+renesas@sang-engineering.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 29 May 2017 11:14:42 +0200
-Message-ID: <CAMuHMdVeuFBjcgQ=NLyPBz7_p=HbzHA+VD6N=ksFDNzAXObp4A@mail.gmail.com>
-Subject: Re: [PATCH 6/7] [media] soc_camera: rcar_vin: use proper name for the
- R-Car SoC
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, May 28, 2017 at 11:30 AM, Wolfram Sang
-<wsa+renesas@sang-engineering.com> wrote:
-> It is 'R-Car', not 'RCar'. No code or binding changes, only descriptive text.
->
-> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+BRDNOGEN is duplicate in the #defined on line 46.
 
-Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+julia
 
-Gr{oetje,eeting}s,
+---------- Forwarded message ----------
+Date: Mon, 29 May 2017 19:16:10 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: kbuild@01.org
+Cc: Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH v4 2/2] cec: add STM32 cec driver
 
-                        Geert
+CC: kbuild-all@01.org
+In-Reply-To: <1496046855-5809-3-git-send-email-benjamin.gaignard@linaro.org>
+TO: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+CC: yannick.fertre@st.com, alexandre.torgue@st.com, hverkuil@xs4all.nl, devicetree@vger.kernel.org, linux-media@vger.kernel.org, robh@kernel.org, hans.verkuil@cisco.com
+CC: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+Hi Benjamin,
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+[auto build test WARNING on linuxtv-media/master]
+[also build test WARNING on v4.12-rc3 next-20170529]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Benjamin-Gaignard/cec-STM32-driver/20170529-172722
+base:   git://linuxtv.org/media_tree.git master
+:::::: branch date: 2 hours ago
+:::::: commit date: 2 hours ago
+
+>> drivers/media/platform/stm32/stm32-cec.c:46:33-41: duplicated argument to & or |
+
+git remote add linux-review https://github.com/0day-ci/linux
+git remote update linux-review
+git checkout 8864245090acf32561bbec305dd8be5cfe31f1e1
+vim +46 drivers/media/platform/stm32/stm32-cec.c
+
+88642450 Benjamin Gaignard 2017-05-29  30  #define CEC_ISR		0x0010 /* Interrupt and status Register */
+88642450 Benjamin Gaignard 2017-05-29  31  #define CEC_IER		0x0014 /* Interrupt enable Register */
+88642450 Benjamin Gaignard 2017-05-29  32
+88642450 Benjamin Gaignard 2017-05-29  33  #define TXEOM		BIT(2)
+88642450 Benjamin Gaignard 2017-05-29  34  #define TXSOM		BIT(1)
+88642450 Benjamin Gaignard 2017-05-29  35  #define CECEN		BIT(0)
+88642450 Benjamin Gaignard 2017-05-29  36
+88642450 Benjamin Gaignard 2017-05-29  37  #define LSTN		BIT(31)
+88642450 Benjamin Gaignard 2017-05-29  38  #define OAR		GENMASK(30, 16)
+88642450 Benjamin Gaignard 2017-05-29  39  #define SFTOP		BIT(8)
+88642450 Benjamin Gaignard 2017-05-29  40  #define BRDNOGEN	BIT(7)
+88642450 Benjamin Gaignard 2017-05-29  41  #define LBPEGEN		BIT(6)
+88642450 Benjamin Gaignard 2017-05-29  42  #define BREGEN		BIT(5)
+88642450 Benjamin Gaignard 2017-05-29  43  #define BRESTP		BIT(4)
+88642450 Benjamin Gaignard 2017-05-29  44  #define RXTOL		BIT(3)
+88642450 Benjamin Gaignard 2017-05-29  45  #define SFT		GENMASK(2, 0)
+88642450 Benjamin Gaignard 2017-05-29 @46  #define FULL_CFG	(LSTN | SFTOP | BRDNOGEN | LBPEGEN | BREGEN | BRESTP \
+88642450 Benjamin Gaignard 2017-05-29  47  			 | RXTOL | BRDNOGEN)
+88642450 Benjamin Gaignard 2017-05-29  48
+88642450 Benjamin Gaignard 2017-05-29  49  #define TXACKE		BIT(12)
+88642450 Benjamin Gaignard 2017-05-29  50  #define TXERR		BIT(11)
+88642450 Benjamin Gaignard 2017-05-29  51  #define TXUDR		BIT(10)
+88642450 Benjamin Gaignard 2017-05-29  52  #define TXEND		BIT(9)
+88642450 Benjamin Gaignard 2017-05-29  53  #define TXBR		BIT(8)
+88642450 Benjamin Gaignard 2017-05-29  54  #define ARBLST		BIT(7)
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
