@@ -1,130 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49591
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751108AbdECMxK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 3 May 2017 08:53:10 -0400
-Date: Wed, 3 May 2017 09:53:03 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: Clemens Ladisch <clemens@ladisch.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] libdvbv5: T2 delivery descriptor: fix wrong size of
- bandwidth field
-Message-ID: <20170503095303.71cf3a75@vento.lan>
-In-Reply-To: <c6f1d1cd-69ea-d454-15a8-5de9325577de@googlemail.com>
-References: <dc2b16b2-7caa-6141-a983-c83631544f3e@ladisch.de>
-        <c6f1d1cd-69ea-d454-15a8-5de9325577de@googlemail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54688 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750873AbdE2UjC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 May 2017 16:39:02 -0400
+Date: Mon, 29 May 2017 23:38:26 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Peter Rosin <peda@axentia.se>, Pavel Machek <pavel@ucw.cz>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        kernel@pengutronix.de,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v7 2/3] [media] add mux and video interface bridge entity
+ functions
+Message-ID: <20170529203826.GJ29527@valkosipuli.retiisi.org.uk>
+References: <1496070731-12611-1-git-send-email-p.zabel@pengutronix.de>
+ <1496070731-12611-2-git-send-email-p.zabel@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1496070731-12611-2-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gregor,
+Hi Philipp,
 
-Em Tue, 2 May 2017 22:30:29 +0200
-Gregor Jasny <gjasny@googlemail.com> escreveu:
-
-> Hello Clemens,
+On Mon, May 29, 2017 at 05:12:10PM +0200, Philipp Zabel wrote:
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 > 
-> On 4/1/17 5:50 PM, Clemens Ladisch wrote:
-> > ETSI EN 300 468 V1.11.1 § 6.4.4.2 defines the bandwith field as having
-> > four bits.  
+> - renamed MEDIA_ENT_F_MUX to MEDIA_ENT_F_VID_MUX
 > 
-> I just used your patch and another to hopefully fix
-> https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=859008
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+> Changes since [1]:
+>  - Reword the video interface bridge description, do not use "bus format" to
+>    avoid confiusion with media bus formats.
 > 
-> But I'm a little bit hesitant to merge it to v4l-utils git without
-> Mauros acknowledgement.
+> [1] https://patchwork.linuxtv.org/patch/41467/
+> ---
+>  Documentation/media/uapi/mediactl/media-types.rst | 22 ++++++++++++++++++++++
+>  include/uapi/linux/media.h                        |  6 ++++++
+>  2 files changed, 28 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
+> index 2a5164aea2b40..1d15542f447c1 100644
+> --- a/Documentation/media/uapi/mediactl/media-types.rst
+> +++ b/Documentation/media/uapi/mediactl/media-types.rst
+> @@ -299,6 +299,28 @@ Types and flags used to represent the media graph elements
+>  	  received on its sink pad and outputs the statistics data on
+>  	  its source pad.
+>  
+> +    -  ..  row 29
+> +
+> +       ..  _MEDIA-ENT-F-VID-MUX:
+> +
+> +       -  ``MEDIA_ENT_F_VID_MUX``
+> +
+> +       - Video multiplexer. An entity capable of multiplexing must have at
+> +         least two sink pads and one source pad, and must pass the video
+> +         frame(s) received from the active sink pad to the source pad. Video
+> +         frame(s) from the inactive sink pads are discarded.
 
-Patches look correct, but the T2 parser has a more serious issue that
-will require breaking ABI/API compatibility.
+I don't think the last sentence is needed, I'd drop it as redundant. Up to
+you.
 
-Let me explain a little more about te T2 delivery descriptor.
+> +
+> +    -  ..  row 30
+> +
+> +       ..  _MEDIA-ENT-F-VID-IF-BRIDGE:
+> +
+> +       -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
+> +
+> +       - Video interface bridge. A video interface bridge entity must have at
+> +         least one sink pad and one source pad. It receives video frames on
 
-Such descriptor is present on DVB-T2 streams, but the specs allow
-a "simplified" version of it, with just 4 bytes:
-	16 bytes for system ID;
-	16 bytes for bit field.
+It's not clear whether there must be at least one source pad or one source
+pad. How about either:
 
-By the time this descriptor parser was written, the existing
-DVB-T2 streams I got access were using this simplified version.
+"must have at least one sink pad and at least one source pad" or
 
-After those 4 bytes, the DVB spec[1] allows a variable number of elements, 
-controlled by a C-like code, defined at the spec as[2]:
+"must have at least one sink pad and exactly one source pad"?
 
-	for (i = 0; i < N, i++){
-		cell_id			// 16 bits
-		if (tfs_flag == 1) {
-			frequency_loop_length	// 8 bits
-			for (j = 0; j < frequency_loop_length; j++) {
-				centre_frequency	// 32 bis
-			}
-		} else {
-			centre_frequency	// 32 bis
-		}
-		subcell_info_loop_length	// 8 bits
-		for (k = 0; k < subcell_info_loop_length; k++) {
-			cell_id_extension	// 8 bits
-			transposer_frequency	// 32 bits
-		}
-	}
+With this considered,
 
-where "N" is dynamically discovered, e. g. the logic checks if
-there is still bytes left inside the descriptor, it will run the
-loop. So, this is actually something like:
-	while (pos < size) {
-		// handle cell_ID logic
-		pos += number_of_bytes_parsed;
-	}
-			
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-[1] https://www.dvb.org/resources/public/standards/a38_dvb-si_specification.pdf
-[2] The code is not an exact copy of what's at the spec, as, at spec, all
-    loops use "N" instead of the name of the real variable that controls
-    the loop.
+> +         its sink pad from an input video bus of one type (HDMI, eDP, MIPI
+> +         CSI-2, ...), and outputs them on its source pad to an output video bus
+> +         of another type (eDP, MIPI CSI-2, parallel, ...).
+>  
+>  ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
+>  
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 4890787731b85..fac96c64fe513 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -105,6 +105,12 @@ struct media_device_info {
+>  #define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
+>  
+>  /*
+> + * Switch and bridge entitites
+> + */
+> +#define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
+> +#define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
+> +
+> +/*
+>   * Connectors
+>   */
+>  /* It is a responsibility of the entity drivers to add connectors and links */
 
-There are two problems with the current code:
-
-1) This struct that stores the subcell data is wrong. It is currently
-defined as:
-
-	struct dvb_desc_t2_delivery_subcell {
-		uint8_t cell_id_extension;
-		uint16_t transposer_frequency;
-	} __attribute__((packed));
-
-However, the transposer frequency is actually 32 bits. From the specs:
-
-	"transposer_frequency: This 32 bit field indicates the
-	 centre frequency that is used by a transposer in the sub-cell
-	 indicated. It is encoded in the same way as the centre_frequency
-	 field."
-
-2) Right now, the code assumes just one table of centre_frequency.
-According with the specs (at least v1.13.1 - with is the latest
-documentation), multiple tables can exist.
-
-I remember I tested it some years after the initial version, with a
-DVB-T2 stream. On that time, there was just one frequency table,
-e. g. just one cell ID.
-
-Yet, as now DVB-T2 is spreading, I won't doubt that we'll find some
-places that use multiple cell IDs.
-
-At the end of the day, what really matters for a DVB scan program
-is that all center_frequency and transposer_frequency to be
-added to the frequencies that will be scanned.
-
-So, I'm thinking on a way to make a patch that would be
-backward-compatible, e. g. adding both "centre_frequency" and
-"transposer_frequency" at the centre_frequency table, and not
-filling the subcell IDs, as the additional field there (the
-subcell ID) is useless without the cell ID, and its parsing is
-broken, anyway.
-
-We may latter add a way to store the cell ID and subcell ID at the
-end of the structure.
-
+-- 
 Regards,
-Mauro
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
