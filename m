@@ -1,132 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:54759 "EHLO
-        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1946093AbdD3Q41 (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:53230 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750896AbdE3Ip0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 30 Apr 2017 12:56:27 -0400
-Date: Sun, 30 Apr 2017 18:19:59 +0200
-From: Greg KH <greg@kroah.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: uvcvideo logging kernel warnings on device disconnect
-Message-ID: <20170430161959.GC27431@kroah.com>
-References: <ab3241e7-c525-d855-ecb6-ba04dbdb030f@destevenson.freeserve.co.uk>
- <01726e81-bbc2-b9a0-b2f0-045e3208f7b2@destevenson.freeserve.co.uk>
- <20161221095954.GG27395@kroah.com>
- <8113252.R6OEHK1FMB@avalon>
+        Tue, 30 May 2017 04:45:26 -0400
+Date: Tue, 30 May 2017 10:45:25 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: linux-renesas-soc@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        geert@linux-m68k.org, magnus.damm@gmail.com,
+        hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se,
+        sergei.shtylyov@cogentembedded.com, devicetree@vger.kernel.org
+Subject: Re: [PATCH v3 0/4] r8a7793 Gose video input support
+Message-ID: <20170530084525.GE32139@verge.net.au>
+References: <1495199224-16337-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <20170526064907.GD2628@verge.net.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <8113252.R6OEHK1FMB@avalon>
+In-Reply-To: <20170526064907.GD2628@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Apr 16, 2017 at 02:11:31PM +0300, Laurent Pinchart wrote:
-> Hi Greg,
-> 
-> On Wednesday 21 Dec 2016 10:59:54 Greg KH wrote:
-> > On Tue, Dec 20, 2016 at 11:19:23AM +0000, Dave Stevenson wrote:
-> > > On 09/12/16 09:43, Greg KH wrote:
-> > >> On Fri, Dec 09, 2016 at 11:14:41AM +0200, Laurent Pinchart wrote:
-> > >>> On Friday 09 Dec 2016 10:11:13 Greg KH wrote:
-> > >>>> On Fri, Dec 09, 2016 at 10:59:24AM +0200, Laurent Pinchart wrote:
-> > >>>>> On Friday 09 Dec 2016 08:25:52 Greg KH wrote:
-> > >>>>>> On Fri, Dec 09, 2016 at 01:09:21AM +0200, Laurent Pinchart wrote:
-> > >>>>>>> On Thursday 08 Dec 2016 12:31:55 Dave Stevenson wrote:
-> > >>>>>>>> Hi All.
-> > >>>>>>>> 
-> > >>>>>>>> I'm working with a USB webcam which has been seen to
-> > >>>>>>>> spontaneously disconnect when in use. That's a separate
-> > >>>>>>>> issue, but when it does it throws a load of warnings into
-> > >>>>>>>> the kernel log if there is a file handle on the device open
-> > >>>>>>>> at the time, even if not streaming.
-> > >>>>>>>> 
-> > >>>>>>>> I've reproduced this with a generic Logitech C270 webcam on:
-> > >>>>>>>> - Ubuntu 16.04 (kernel 4.4.0-51) vanilla, and with the
-> > >>>>>>>> latest media tree from linuxtv.org
-> > >>>>>>>> - Ubuntu 14.04 (kernel 4.4.0-42) vanilla
-> > >>>>>>>> - an old 3.10.x tree on an embedded device.
-> > >>>>>>>> 
-> > >>>>>>>> To reproduce:
-> > >>>>>>>> - connect USB webcam.
-> > >>>>>>>> - run a simple app that opens /dev/videoX, sleeps for a
-> > >>>>>>>> while, and then closes the handle.
-> > >>>>>>>> - disconnect the webcam whilst the app is running.
-> > >>>>>>>> - read kernel logs - observe warnings. We get the disconnect
-> > >>>>>>>> logged as it occurs, but the warnings all occur when the
-> > >>>>>>>> file descriptor is closed. (A copy of the logs from my
-> > >>>>>>>> Ubuntu 14.04 machine are below).
-> > >>>>>>>> 
-> > >>>>>>>> I can fully appreciate that the open file descriptor is
-> > >>>>>>>> holding references to a now invalid device, but is there a
-> > >>>>>>>> way to avoid them? Or do we really not care and have to put
-> > >>>>>>>> up with the log noise when doing such silly things?
-> > >>>>>>> 
-> > >>>>>>> This is a known problem, caused by the driver core trying to
-> > >>>>>>> remove the same sysfs attributes group twice.
-> > >>>>>> 
-> > >>>>>> Ick, not good.
-> > >>>>>> 
-> > >>>>>>> The group is first removed when the USB device is
-> > >>>>>>> disconnected. The input device and media device created by the
-> > >>>>>>> uvcvideo driver are children of the USB interface device,
-> > >>>>>>> which is deleted from the system when the camera is unplugged.
-> > >>>>>>> Due to the parent-child relationship, all sysfs attribute
-> > >>>>>>> groups of the children are removed.
-> > >>>>>> 
-> > >>>>>> Wait, why is the USB device being removed from sysfs at this
-> > >>>>>> point, didn't the input and media subsystems grab a reference to
-> > >>>>>> it so that it does not disappear just yet?
-> > >>>>> 
-> > >>>>> References are taken in uvc_prove():
-> > >>>>>         dev->udev = usb_get_dev(udev);
-> > >>>>>         dev->intf = usb_get_intf(intf);
-> > >>>> 
-> > >>>> s/uvc_prove/uvc_probe/ ?  :)
-> > >>> 
-> > >>> Oops :-)
-> > >>> 
-> > >>>>> and released in uvc_delete(), called when the last video device
-> > >>>>> node is closed. This prevents the device from being released
-> > >>>>> (freed), but device_del() is synchronous to device unplug as far
-> > >>>>> as I understand.
-> > >>>> 
-> > >>>> Ok, good, that means the UVC driver is doing the right thing here.
-> > >>>> 
-> > >>>> But the sysfs files should only be attempted to be removed by the
-> > >>>> driver core once, when the device is removed from sysfs, not twice,
-> > >>>> which is really odd.
-> > >>>> 
-> > >>>> Is there a copy of the "simple app that grabs the device node"
-> > >>>> anywhere so that I can test it out here with my USB camera device to
-> > >>>> try to track down where the problem is?
-> > >>> 
-> > >>> Sure. The easiest way is to grab http://git.ideasonboard.org/yavta.git
-> > >>> and run
-> > >>> 
-> > >>> yavta -c /dev/video0
-> > >>> 
-> > >>> (your mileage may vary if you have other video devices)
-> > >> 
-> > >> I'll point it at the correct device, /dev/video0 is built into this
-> > >> laptop and can't be physically removed :)
-> > >> 
-> > >>> While the application is running, unplug the webcam, and then
-> > >>> terminate the application with ctrl-C.
-> > >> 
-> > >> Ok, will try this out this afternoon and let you know how it goes.
-> > > 
-> > > I hate to pester, but wondered if you had found anything obvious.
-> > > I really do appreciate you taking the time to look.
+On Fri, May 26, 2017 at 08:49:07AM +0200, Simon Horman wrote:
+> On Fri, May 19, 2017 at 03:07:00PM +0200, Ulrich Hecht wrote:
+> > Hi!
 > > 
-> > Sorry, I haven't had the chance and now will not be able to until
-> > January....
+> > This is a by-the-datasheet implementation of analog and digital video input
+> > on the Gose board.
+> > 
+> > This revision adds new bindings that distinguish between ADV7180 variants
+> > with three and six input ports. There are numerous variants of this chip,
+> > but since all that have "CP" in their names have three inputs, and all that
+> > have "ST" have six, I have limited myself to two new compatible strings,
+> > "adv7180cp" and "adv7180st".
+> > 
+> > The digital input patch has received minor tweaks of the port names for
+> > consistency, and the Gose analog input patch has been modified to use the
+> > new bindings, and a composite video connector has been added.
+> > 
+> > CU
+> > Uli
+> > 
+> > 
+> > Changes since v2:
+> > - hdmi: port hdmi_con renamed to hdmi_con_out
+> > - adv7180: added new compatibility strings and bindings
+> > - composite: added connector, use new bindings
+> > 
+> > Changes since v1:
+> > - r8a7793.dtsi: added VIN2
+> > - modeled HDMI decoder input/output and connector
+> > - added "renesas,rcar-gen2-vin" compat strings
+> > - removed unnecessary "remote" node and aliases
+> > - set ADV7612 interrupt to GP4_2
+> > 
+> > 
+> > Ulrich Hecht (4):
+> >   ARM: dts: gose: add HDMI input
 > 
-> Did you mean January 2017 or 2018 ? :-)
+> I have queued-up the above patch for v4.13.
+> 
+> >   media: adv7180: add adv7180cp, adv7180st compatible strings
+> >   media: adv7180: Add adv7180cp, adv7180st bindings
+> >   ARM: dts: gose: add composite video input
+> 
+> I have marked the above dts patch as "deferred" pending acceptance
+> of the binding. Please repost or otherwise ping me once that has happened.
 
-Heh, sorry about this, I think David's patch should resolve this now.
-
-thanks,
-
-greg k-h
+It looks like Hans will pick up the driver patches.
+Accordingly I have queued-up the last dts patch above.
