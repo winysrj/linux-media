@@ -1,72 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:49935 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750821AbdE3TIg (ORCPT
+Received: from fllnx210.ext.ti.com ([198.47.19.17]:24447 "EHLO
+        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750890AbdE3K5s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 15:08:36 -0400
-From: Helen Koike <helen.koike@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [RFC PATCH] [media] v4l2-subdev: check colorimetry in link validate
-Date: Tue, 30 May 2017 16:08:08 -0300
-Message-Id: <1496171288-28656-1-git-send-email-helen.koike@collabora.com>
+        Tue, 30 May 2017 06:57:48 -0400
+Subject: Re: [PATCH] davinci: vpif_capture: fix default pixel format for
+ BT.656/BT.1120 video
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-media <linux-media@vger.kernel.org>,
+        Kevin Hilman <khilman@kernel.org>,
+        Alejandro Hernandez <ajhernandez@ti.com>
+References: <20170526105527.10522-1-nsekhar@ti.com>
+ <CA+V-a8tELUESQu4qtDhD95iV6DMZjV_eRvRS3TggB1=EFJF=sg@mail.gmail.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Message-ID: <3abc2227-6b1c-af18-decf-0117a8595756@ti.com>
+Date: Tue, 30 May 2017 16:27:38 +0530
+MIME-Version: 1.0
+In-Reply-To: <CA+V-a8tELUESQu4qtDhD95iV6DMZjV_eRvRS3TggB1=EFJF=sg@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-colorspace, ycbcr_enc, quantization and xfer_func must match across the
-link.
-Check if they match in v4l2_subdev_link_validate_default unless they are
-set as _DEFAULT.
+On Tuesday 30 May 2017 03:10 PM, Lad, Prabhakar wrote:
+> Hi Sekhar,
+> 
+> Thanks for the patch.
+> 
+> On Fri, May 26, 2017 at 11:55 AM, Sekhar Nori <nsekhar@ti.com> wrote:
+>> For both BT.656 and BT.1120 video, the pixel format
+>> used by VPIF is Y/CbCr 4:2:2 in semi-planar format
+>> (Luma in one plane and Chroma in another). This
+>> corresponds to NV16 pixel format.
+>>
+>> This is documented in section 36.2.3 of OMAP-L138
+>> Technical Reference Manual, SPRUH77A.
+>>
+>> The VPIF driver incorrectly sets the default format
+>> to V4L2_PIX_FMT_YUV422P. Fix it.
+>>
+>> Reported-by: Alejandro Hernandez <ajhernandez@ti.com>
+>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> 
+> Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Helen Koike <helen.koike@collabora.com>
+Thanks!
 
----
+> 
+> Can you also post a similar patch for vpif_display as well ?
 
-Hi,
+Sure. The LCDK board I am working on does not have the VPIF display. But
+I should be able to test that on the EVM.
 
-I think we should validate colorimetry as having different colorimetry
-across a link doesn't make sense.
-But I am confused about what to do when they are set to _DEFAULT, what
-do you think?
-
-Thanks
----
- drivers/media/v4l2-core/v4l2-subdev.c | 21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index da78497..784ae92 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -502,10 +502,27 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
- 				      struct v4l2_subdev_format *source_fmt,
- 				      struct v4l2_subdev_format *sink_fmt)
- {
--	/* The width, height and code must match. */
-+	/* The width, height, code and colorspace must match. */
- 	if (source_fmt->format.width != sink_fmt->format.width
- 	    || source_fmt->format.height != sink_fmt->format.height
--	    || source_fmt->format.code != sink_fmt->format.code)
-+	    || source_fmt->format.code != sink_fmt->format.code
-+	    || source_fmt->format.colorspace != sink_fmt->format.colorspace)
-+		return -EPIPE;
-+
-+	/* Colorimetry must match if they are not set to DEFAULT */
-+	if (source_fmt->format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
-+	    && sink_fmt->format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
-+	    && source_fmt->format.ycbcr_enc != sink_fmt->format.ycbcr_enc)
-+		return -EPIPE;
-+
-+	if (source_fmt->format.quantization != V4L2_QUANTIZATION_DEFAULT
-+	    && sink_fmt->format.quantization != V4L2_QUANTIZATION_DEFAULT
-+	    && source_fmt->format.quantization != sink_fmt->format.quantization)
-+		return -EPIPE;
-+
-+	if (source_fmt->format.xfer_func != V4L2_XFER_FUNC_DEFAULT
-+	    && sink_fmt->format.xfer_func != V4L2_XFER_FUNC_DEFAULT
-+	    && source_fmt->format.xfer_func != sink_fmt->format.xfer_func)
- 		return -EPIPE;
- 
- 	/* The field order must match, or the sink field order must be NONE
--- 
-2.7.4
+Thanks,
+Sekhar
