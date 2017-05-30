@@ -1,64 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxout017.mail.hostpoint.ch ([217.26.49.177]:14329 "EHLO
-        mxout017.mail.hostpoint.ch" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750802AbdE1TiY (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34343 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750811AbdE3IkE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 May 2017 15:38:24 -0400
-Subject: Re: Build fails Ubuntu 17.04 / "error: implicit declaration of
- function"
-To: Karl Wallin <karl.wallin.86@gmail.com>, linux-media@vger.kernel.org
-References: <CAML3znFcKR9wx3wvjBDeQLn7mbtkhU0Knn56cMrXek6H-mTUjQ@mail.gmail.com>
- <9102e964-8143-edd7-3a82-014ae0d29d48@kaiser-linux.li>
- <CAML3znHkCFrtQqXvZkCwiMGNkRdSAnHBDTvfeoaQdtq8kRMkQQ@mail.gmail.com>
-From: Thomas Kaiser <thomas@kaiser-linux.li>
-Message-ID: <48f09c13-817b-f496-0721-b2bf8533d3d3@kaiser-linux.li>
-Date: Sun, 28 May 2017 21:14:18 +0200
+        Tue, 30 May 2017 04:40:04 -0400
+Subject: Re: [ANN] HDMI CEC Status Update
+To: Neil Armstrong <narmstrong@baylibre.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Maling list - DRI developers
+        <dri-devel@lists.freedesktop.org>,
+        Archit Taneja <architt@codeaurora.org>
+References: <8e277103-8bc5-34b2-411d-e396665df249@xs4all.nl>
+ <cddc746c-16a2-21b8-f76d-82773cd1941b@baylibre.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2ea7cdb1-88c0-8e5f-df74-9cb3350eb7f5@xs4all.nl>
+Date: Tue, 30 May 2017 10:39:55 +0200
 MIME-Version: 1.0
-In-Reply-To: <CAML3znHkCFrtQqXvZkCwiMGNkRdSAnHBDTvfeoaQdtq8kRMkQQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <cddc746c-16a2-21b8-f76d-82773cd1941b@baylibre.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28.05.2017 21:06, Karl Wallin wrote:
-> Hi Thomas,
+On 05/30/17 09:21, Neil Armstrong wrote:
+> Hi Hans,
 > 
-> Thanks for the help (and to Vincent as well) :)
+> On 05/30/2017 08:53 AM, Hans Verkuil wrote:
+>> For those who are interested in HDMI CEC support I made a little status
+>> document that I intend to keep up to date:
+>>
+>> https://hverkuil.home.xs4all.nl/cec-status.txt
+>>
+>> My goal is to get CEC supported for any mainlined HDMI driver where the hardware
+>> supports CEC.
+>>
+>> If anyone is working on a CEC driver that I don't know already about, just drop
+>> me an email so I can update the status.
+>>
+>> I also started maintaining a list of DisplayPort to HDMI adapters that support
+>> CEC. If you have one that works and is not on the list, then please let me know.
+>> Seeing /dev/cecX is not enough, some adapters do not connect the CEC pin, so they
+>> won't be able to detect any other CEC devices. See the test instructions in the
+>> cec-status.txt file on how to make sure the adapter has a working CEC pin. I
+>> plan to do some more testing this week, so hopefully the list will expand.
+>>
+>> Thanks!
+>>
+>>     Hans
 > 
-> In "/home/ubuntu/media_build/v4l/cec-core.c" changed row 142 from:
-> "ret = cdev_device_add(&devnode->cdev, &devnode->dev);" to:
-> "ret = device_add(&devnode->dev);"
-> and row 186 from:
-> "cdev_device_del(&devnode->cdev, &devnode->dev);" to:
-> "device_del(&devnode->dev);"
-> 
-> Even if I do that when I try to build it again (using ./build) it
-> seems to reload / revert the cec-core.c to the original file since I
-> still get these errors even though I saved the changes in Notepadqq:
-> "/home/ubuntu/media_build/v4l/cec-core.c:142:8: error: implicit
-> declaration of function 'cdev_device_add'
-> [-Werror=implicit-function-declaration]
->    ret = cdev_device_add(&devnode->cdev, &devnode->dev);"
-> and
-> "/home/ubuntu/media_build/v4l/cec-core.c:186:2: error: implicit
-> declaration of function 'cdev_device_del'
-> [-Werror=implicit-function-declaration]
->    cdev_device_del(&devnode->cdev, &devnode->dev);"
-> 
-> I am probably missing something here since it worked for you, would be
-> grateful for your help :)
-> 
-> /Karl
-> Med vänlig hälsning / Best Regards - Karl Wallin
-> 
+> Following our discussion on IRC,
+> I'm working on a CEC driver for the standalone Amlogic CEC Controller that is able
+> to wake up the device from Suspend or Power Off mode by passing infos to the FW.
 
-Hi Karl
+FYI: the Pulse Eight linux driver has similar support. It has to be enabled via a
+module option (persistent_config=1).
 
-The build downloads the latest source and overwrites your change (I think?)
+I have no public API for this, mostly because I would first like to get more information
+about how these things are typically implemented in hardware.
 
-I used "make" to compile.
+Regards,
 
-After your have run the build script. Do the changes as you have described above. Run "make" to compile and "sudo make install" to install. This should do the trick.
+	Hans
 
-Thomas
+> I initially planned to use the DW-HDMI CEC controller but I recently found out that
+> on the Amlogic Meson GX SoCs, the CEC line can be pinmuxed to either an Amlogic custom
+> controller or either to a Synopsys IP.
+> 
+> But it's connected to the Synopsys HDMI-RX controller... so my plan to use Russell's code
+> is now dead.
+> 
+> Anyway, I'll still need to have the CEC notifier suport for DW-HDMI, so I made a rebase/cleanup
+> of Russell's driver on 4.12-rc3 :
+> https://github.com/superna9999/linux/commits/amlogic/v4.12/rmk-dw-hdmi-cec
+> The rebase is aligned on dw-hdmi-i2s to use the bridge read/write ops.
+> 
+> Neil
+> 
