@@ -1,148 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40282 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750728AbdEXN2R (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41707 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750733AbdE3Qt4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 May 2017 09:28:17 -0400
-Date: Wed, 24 May 2017 16:27:42 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: Re: [PATCH v2 2/2] media: entity: Add media_entity_pad_from_fwnode()
- function
-Message-ID: <20170524132741.GL29527@valkosipuli.retiisi.org.uk>
-References: <20170524000907.13061-1-niklas.soderlund@ragnatech.se>
- <20170524000907.13061-3-niklas.soderlund@ragnatech.se>
+        Tue, 30 May 2017 12:49:56 -0400
+Subject: Re: [RFC PATCH 7/7] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
+ support
+To: Clint Taylor <clinton.a.taylor@intel.com>,
+        Jani Nikula <jani.nikula@intel.com>,
+        Daniel Vetter <daniel@ffwll.ch>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20170525150626.29748-1-hverkuil@xs4all.nl>
+ <20170525150626.29748-8-hverkuil@xs4all.nl>
+ <20170526071550.3gsq3pc375cnk2gk@phenom.ffwll.local>
+ <0a417a9c-4a41-796c-9876-51b61d429bb5@xs4all.nl>
+ <20170529190004.ipdeyntsmzzb3iij@phenom.ffwll.local>
+ <d9e9354b-eeb7-0a1e-2dbc-16c1ba0c0784@xs4all.nl> <87y3tekedi.fsf@intel.com>
+ <f7d14e1c-9a6a-6d0f-bfe8-b4b619efd3bc@intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <22961af9-5157-ae14-3000-f91cedc27958@xs4all.nl>
+Date: Tue, 30 May 2017 18:49:50 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170524000907.13061-3-niklas.soderlund@ragnatech.se>
+In-Reply-To: <f7d14e1c-9a6a-6d0f-bfe8-b4b619efd3bc@intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
-
-On Wed, May 24, 2017 at 02:09:07AM +0200, Niklas Söderlund wrote:
-> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+On 05/30/2017 04:19 PM, Clint Taylor wrote:
 > 
-> This is a wrapper around the media entity pad_from_fwnode operation.
 > 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/media-entity.c | 39 +++++++++++++++++++++++++++++++++++++++
->  include/media/media-entity.h | 22 ++++++++++++++++++++++
->  2 files changed, 61 insertions(+)
+> On 05/30/2017 12:11 AM, Jani Nikula wrote:
+>> On Tue, 30 May 2017, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> On 05/29/2017 09:00 PM, Daniel Vetter wrote:
+>>>> On Fri, May 26, 2017 at 12:20:48PM +0200, Hans Verkuil wrote:
+>>>>> On 05/26/2017 09:15 AM, Daniel Vetter wrote:
+>>>>>> Did you look into also wiring this up for dp mst chains?
+>>>>> Isn't this sufficient? I have no way of testing mst chains.
+>>>>>
+>>>>> I think I need some pointers from you, since I am a complete newbie when it
+>>>>> comes to mst.
+>>>> I don't really have more clue, but yeah if you don't have an mst thing (a
+>>>> simple dp port multiplexer is what I use for testing here, then plug in a
+>>>> converter dongle or cable into that) then probably better to not wire up
+>>>> the code for it.
+>>> I think my NUC already uses mst internally. But I was planning on buying a
+>>> dp multiplexer to make sure there is nothing special I need to do for mst.
+>>>
+>>> The CEC Tunneling is all in the branch device, so if I understand things
+>>> correctly it is not affected by mst.
+>>>
+>>> BTW, I did a bit more testing on my NUC7i5BNK: for the HDMI output they
+>>> use a MegaChip MCDP2800 DP-to-HDMI converter which according to their
+>>> datasheet is supposed to implement CEC Tunneling, but if they do it is not
+>>> exposed as a capability. I'm not sure if it is a MegaChip firmware issue
+>>> or something else. The BIOS is able to do some CEC, but whether they hook
+>>> into the MegaChip or have the CEC pin connected to a GPIO or something and
+>>> have their own controller is something I do not know.
+>>>
+>>> If anyone can clarify what Intel did on the NUC, then that would be very
+>>> helpful.
+>> It's called LSPCON, see i915/intel_lspcon.c, basically to support HDMI
+>> 2.0. Currently we only use it in PCON mode, shows up as DP for us. It
+>> could be used in LS mode, showing up as HDMI 1.4, but we don't support
+>> that in i915.
+>>
+>> I don't know about the CEC on that.
 > 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index bc44193efa4798b4..c124754f739a8b94 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -18,6 +18,7 @@
->  
->  #include <linux/bitmap.h>
->  #include <linux/module.h>
-> +#include <linux/property.h>
->  #include <linux/slab.h>
->  #include <media/media-entity.h>
->  #include <media/media-device.h>
-> @@ -386,6 +387,44 @@ struct media_entity *media_graph_walk_next(struct media_graph *graph)
->  }
->  EXPORT_SYMBOL_GPL(media_graph_walk_next);
->  
-> +int media_entity_pad_from_fwnode(struct media_entity *entity,
-> +				 struct fwnode_handle *fwnode,
-> +				 int direction, unsigned int *pad)
-> +{
-> +	struct fwnode_endpoint endpoint;
-> +	int i, tmp, ret;
-> +
-> +	if (!entity->ops || !entity->ops->pad_from_fwnode) {
-> +		for (i = 0; i < entity->num_pads; i++) {
-> +			if (entity->pads[i].flags & direction) {
-> +				*pad = i;
-> +				return 0;
-> +			}
-> +		}
-> +
-> +		return -ENXIO;
-> +	}
-> +
-> +	ret = fwnode_graph_parse_endpoint(fwnode, &endpoint);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = entity->ops->pad_from_fwnode(&endpoint, &tmp);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (tmp >= entity->num_pads)
-> +		return -ENXIO;
-> +
-> +	if (!(entity->pads[tmp].flags & direction))
-> +		return -ENXIO;
-> +
-> +	*pad = tmp;
-> +
-> +	return 0;
+> My NUC6i7KYK has the MCDP2850 LSPCON and it does support CEC over Aux.
+> The release notes for the NUC state that there is a BIOS configuration
+> option for enabling support. My doesn't have the option but the LSPCON
+> fully supports CEC.
 
-I'd just return the pad number to the caller.
+What is the output of:
 
-> +}
-> +EXPORT_SYMBOL_GPL(media_entity_pad_from_fwnode);
-> +
->  /* -----------------------------------------------------------------------------
->   * Pipeline management
->   */
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 2aea22b0409d1070..7507181609bec43c 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -822,6 +822,28 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
->  struct media_entity *media_entity_get(struct media_entity *entity);
->  
->  /**
-> + * media_entity_pad_from_fwnode - Get pad number from fwnode
-> + *
-> + * @entity: The entity
-> + * @fwnode: Pointer to fwnode_handle which should be used to find pad
-> + * @direction: Expected direction of the pad
+dd if=/dev/drm_dp_aux0 of=aux0 skip=12288 ibs=1 count=48
+od -t x1 aux0
 
-You should document the possible values for this. What would you think about
-using a bool called e.g. is_sink? I don't have a strong opinion either way
-though.
+Assuming drm_dp_aux0 is the aux channel for the HDMI output on your NUC.
 
-> + * @pad: Pointer to pad which will should be filled in
-> + *
-> + * This function can be used to resolve the media pad number from
-> + * a fwnode. This is useful for devices which uses more complex
-> + * mappings of media pads.
-> + *
-> + * If the entity do not implement the pad_from_fwnode() operation
-> + * this function searches the entity for the first pad that matches
-> + * the @direction.
-> + *
-> + * Return: return 0 on success.
-> + */
-> +int media_entity_pad_from_fwnode(struct media_entity *entity,
-> +				 struct fwnode_handle *fwnode,
-> +				 int direction, unsigned int *pad);
-> +
-> +/**
->   * media_graph_walk_init - Allocate resources used by graph walk.
->   *
->   * @graph: Media graph structure that will be used to walk the graph
+If the first byte is != 0x00, then it advertises CEC over Aux.
 
--- 
+For me it says 0x00.
+
+When you say "it does support CEC over Aux", does that mean you have actually
+tested it somehow? The only working solution I have seen mentioned for the
+NUC6i7KYK is a Pulse-Eight adapter.
+
+With the NUC7i Intel made BIOS support for CEC, but it is not at all
+clear to me if they used CEC tunneling or just hooked up the CEC pin to
+some microcontroller.
+
+The only working chipset I have seen is the Parade PS176.
+
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Hans
+
+> 
+> -Clint
+> 
+>>
+>>
+>> BR,
+>> Jani.
+>>
+>>> It would be so nice to get MegaChip CEC Tunneling working on the NUC, because
+>>> then you have native CEC support without requiring any Pulse Eight adapter.
+>>>
+>>> And add a CEC-capable USB-C to HDMI adapter and you have it on the USB-C
+>>> output as well.
+>>>
+>>> Regards,
+>>>
+>>> 	Hans
+> 
