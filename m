@@ -1,486 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:35998 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750846AbdE2Ie1 (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:36654 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750938AbdE3V34 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 May 2017 04:34:27 -0400
-Received: by mail-wm0-f46.google.com with SMTP id 7so46353276wmo.1
-        for <linux-media@vger.kernel.org>; Mon, 29 May 2017 01:34:26 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: yannick.fertre@st.com, alexandre.torgue@st.com, hverkuil@xs4all.nl,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        robh@kernel.org, hans.verkuil@cisco.com
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v4 2/2] cec: add STM32 cec driver
-Date: Mon, 29 May 2017 10:34:15 +0200
-Message-Id: <1496046855-5809-3-git-send-email-benjamin.gaignard@linaro.org>
-In-Reply-To: <1496046855-5809-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1496046855-5809-1-git-send-email-benjamin.gaignard@linaro.org>
+        Tue, 30 May 2017 17:29:56 -0400
+Subject: Re: [RFC PATCH 7/7] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
+ support
+To: Clint Taylor <clinton.a.taylor@intel.com>,
+        Jani Nikula <jani.nikula@intel.com>,
+        Daniel Vetter <daniel@ffwll.ch>
+Cc: intel-gfx@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+References: <20170525150626.29748-1-hverkuil@xs4all.nl>
+ <20170525150626.29748-8-hverkuil@xs4all.nl>
+ <20170526071550.3gsq3pc375cnk2gk@phenom.ffwll.local>
+ <0a417a9c-4a41-796c-9876-51b61d429bb5@xs4all.nl>
+ <20170529190004.ipdeyntsmzzb3iij@phenom.ffwll.local>
+ <d9e9354b-eeb7-0a1e-2dbc-16c1ba0c0784@xs4all.nl> <87y3tekedi.fsf@intel.com>
+ <f7d14e1c-9a6a-6d0f-bfe8-b4b619efd3bc@intel.com>
+ <22961af9-5157-ae14-3000-f91cedc27958@xs4all.nl>
+ <8150d62a-ecbc-6235-5595-1764fe616d8b@xs4all.nl>
+ <ca46b0db-1ee2-ec78-04cf-90e9d48b7109@intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5dcf7b38-b833-2136-f755-73016522b982@xs4all.nl>
+Date: Tue, 30 May 2017 23:29:44 +0200
+MIME-Version: 1.0
+In-Reply-To: <ca46b0db-1ee2-ec78-04cf-90e9d48b7109@intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add cec driver for STM32 platforms.
-cec hardware block isn't not always used with hdmi so
-cec notifier is not implemented. That will be done later
-when STM32 DSI driver will be available.
+On 05/30/2017 10:32 PM, Clint Taylor wrote:
+> 
+> 
+> On 05/30/2017 09:54 AM, Hans Verkuil wrote:
+>> On 05/30/2017 06:49 PM, Hans Verkuil wrote:
+>>> On 05/30/2017 04:19 PM, Clint Taylor wrote:
+>>>>
+>>>>
+>>>> On 05/30/2017 12:11 AM, Jani Nikula wrote:
+>>>>> On Tue, 30 May 2017, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>>>> On 05/29/2017 09:00 PM, Daniel Vetter wrote:
+>>>>>>> On Fri, May 26, 2017 at 12:20:48PM +0200, Hans Verkuil wrote:
+>>>>>>>> On 05/26/2017 09:15 AM, Daniel Vetter wrote:
+>>>>>>>>> Did you look into also wiring this up for dp mst chains?
+>>>>>>>> Isn't this sufficient? I have no way of testing mst chains.
+>>>>>>>>
+>>>>>>>> I think I need some pointers from you, since I am a complete
+>>>>>>>> newbie when it
+>>>>>>>> comes to mst.
+>>>>>>> I don't really have more clue, but yeah if you don't have an mst
+>>>>>>> thing (a
+>>>>>>> simple dp port multiplexer is what I use for testing here, then
+>>>>>>> plug in a
+>>>>>>> converter dongle or cable into that) then probably better to not
+>>>>>>> wire up
+>>>>>>> the code for it.
+>>>>>> I think my NUC already uses mst internally. But I was planning on
+>>>>>> buying a
+>>>>>> dp multiplexer to make sure there is nothing special I need to do
+>>>>>> for mst.
+>>>>>>
+>>>>>> The CEC Tunneling is all in the branch device, so if I understand
+>>>>>> things
+>>>>>> correctly it is not affected by mst.
+>>>>>>
+>>>>>> BTW, I did a bit more testing on my NUC7i5BNK: for the HDMI output
+>>>>>> they
+>>>>>> use a MegaChip MCDP2800 DP-to-HDMI converter which according to their
+>>>>>> datasheet is supposed to implement CEC Tunneling, but if they do
+>>>>>> it is not
+>>>>>> exposed as a capability. I'm not sure if it is a MegaChip firmware
+>>>>>> issue
+>>>>>> or something else. The BIOS is able to do some CEC, but whether
+>>>>>> they hook
+>>>>>> into the MegaChip or have the CEC pin connected to a GPIO or
+>>>>>> something and
+>>>>>> have their own controller is something I do not know.
+>>>>>>
+>>>>>> If anyone can clarify what Intel did on the NUC, then that would
+>>>>>> be very
+>>>>>> helpful.
+>>>>> It's called LSPCON, see i915/intel_lspcon.c, basically to support HDMI
+>>>>> 2.0. Currently we only use it in PCON mode, shows up as DP for us. It
+>>>>> could be used in LS mode, showing up as HDMI 1.4, but we don't support
+>>>>> that in i915.
+>>>>>
+>>>>> I don't know about the CEC on that.
+>>>>
+>>>> My NUC6i7KYK has the MCDP2850 LSPCON and it does support CEC over Aux.
+>>>> The release notes for the NUC state that there is a BIOS configuration
+>>>> option for enabling support. My doesn't have the option but the LSPCON
+>>>> fully supports CEC.
+>>>
+>>> What is the output of:
+>>>
+>>> dd if=/dev/drm_dp_aux0 of=aux0 skip=12288 ibs=1 count=48
+>>> od -t x1 aux0
+>>>
+>>> Assuming drm_dp_aux0 is the aux channel for the HDMI output on your NUC.
+>>>
+>>> If the first byte is != 0x00, then it advertises CEC over Aux.
+>>>
+>>> For me it says 0x00.
+>>>
+>>> When you say "it does support CEC over Aux", does that mean you have
+>>> actually
+>>> tested it somehow? The only working solution I have seen mentioned
+>>> for the
+>>> NUC6i7KYK is a Pulse-Eight adapter.
+>>>
+>>> With the NUC7i Intel made BIOS support for CEC, but it is not at all
+>>> clear to me if they used CEC tunneling or just hooked up the CEC pin to
+>>> some microcontroller.
+>>>
+>>> The only working chipset I have seen is the Parade PS176.
+>>
+>> If it really is working on your NUC, then can you add the output of
+>> /sys/kernel/debug/dri/0/i915_display_info?
+> 
+> [root@localhost cec-ctl]# cat /sys/kernel/debug/dri/0/i915_display_info
 
-Driver compliance has been tested with cec-ctl and cec-compliance
-tools.
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Signed-off-by: Yannick Fertre <yannick.fertre@st.com>
----
-version 4:
-- add cec notifier support
-- rework KConfig
-- rebased on Hans cec-config branch
- drivers/media/platform/Kconfig           |  13 +
- drivers/media/platform/Makefile          |   2 +
- drivers/media/platform/stm32/Makefile    |   1 +
- drivers/media/platform/stm32/stm32-cec.c | 392 +++++++++++++++++++++++++++++++
- 4 files changed, 408 insertions(+)
- create mode 100644 drivers/media/platform/stm32/Makefile
- create mode 100644 drivers/media/platform/stm32/stm32-cec.c
+> Connector info
+> --------------
+> connector 48: type DP-1, status: connected
+>       name:
+>       physical dimensions: 700x400mm
+>       subpixel order: Unknown
+>       CEA rev: 3
+>       DPCD rev: 12
+>       audio support: yes
+>       DP branch device present: yes
+>           Type: HDMI
+>           ID: 175IB0
+>           HW: 1.0
+>           SW: 7.32
+>           Max TMDS clock: 600000 kHz
+>           Max bpc: 12
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 041cb80..bf6dc4b 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -521,4 +521,17 @@ config VIDEO_STI_HDMI_CEC
-          CEC bus is present in the HDMI connector and enables communication
-          between compatible devices.
- 
-+config VIDEO_STM32_HDMI_CEC
-+       tristate "STMicroelectronics STM32 HDMI CEC driver"
-+       depends on ARCH_STM32 || COMPILE_TEST
-+       select REGMAP
-+       select REGMAP_MMIO
-+       select CEC_CORE
-+       select CEC_NOTIFIER
-+       ---help---
-+         This is a driver for STM32 interface. It uses the
-+         generic CEC framework interface.
-+         CEC bus is present in the HDMI connector and enables communication
-+         between compatible devices.
-+
- endif #CEC_PLATFORM_DRIVERS
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 63303d6..7cd9965 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -44,6 +44,8 @@ obj-$(CONFIG_VIDEO_STI_HDMI_CEC) 	+= sti/cec/
- 
- obj-$(CONFIG_VIDEO_STI_DELTA)		+= sti/delta/
- 
-+obj-$(CONFIG_VIDEO_STM32_HDMI_CEC) 	+= stm32/
-+
- obj-$(CONFIG_BLACKFIN)                  += blackfin/
- 
- obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
-diff --git a/drivers/media/platform/stm32/Makefile b/drivers/media/platform/stm32/Makefile
-new file mode 100644
-index 0000000..632b04c
---- /dev/null
-+++ b/drivers/media/platform/stm32/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_VIDEO_STM32_HDMI_CEC) += stm32-cec.o
-diff --git a/drivers/media/platform/stm32/stm32-cec.c b/drivers/media/platform/stm32/stm32-cec.c
-new file mode 100644
-index 0000000..2fe8b13
---- /dev/null
-+++ b/drivers/media/platform/stm32/stm32-cec.c
-@@ -0,0 +1,392 @@
-+/*
-+ * STM32 CEC driver
-+ * Copyright (C) STMicroelectronics SA 2017
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/interrupt.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
-+#include <linux/platform_device.h>
-+#include <linux/regmap.h>
-+
-+#include <media/cec.h>
-+#include <media/cec-notifier.h>
-+
-+#define CEC_NAME	"stm32-cec"
-+
-+/* CEC registers  */
-+#define CEC_CR		0x0000 /* Control Register */
-+#define CEC_CFGR	0x0004 /* ConFiGuration Register */
-+#define CEC_TXDR	0x0008 /* Rx data Register */
-+#define CEC_RXDR	0x000C /* Rx data Register */
-+#define CEC_ISR		0x0010 /* Interrupt and status Register */
-+#define CEC_IER		0x0014 /* Interrupt enable Register */
-+
-+#define TXEOM		BIT(2)
-+#define TXSOM		BIT(1)
-+#define CECEN		BIT(0)
-+
-+#define LSTN		BIT(31)
-+#define OAR		GENMASK(30, 16)
-+#define SFTOP		BIT(8)
-+#define BRDNOGEN	BIT(7)
-+#define LBPEGEN		BIT(6)
-+#define BREGEN		BIT(5)
-+#define BRESTP		BIT(4)
-+#define RXTOL		BIT(3)
-+#define SFT		GENMASK(2, 0)
-+#define FULL_CFG	(LSTN | SFTOP | BRDNOGEN | LBPEGEN | BREGEN | BRESTP \
-+			 | RXTOL | BRDNOGEN)
-+
-+#define TXACKE		BIT(12)
-+#define TXERR		BIT(11)
-+#define TXUDR		BIT(10)
-+#define TXEND		BIT(9)
-+#define TXBR		BIT(8)
-+#define ARBLST		BIT(7)
-+#define RXACKE		BIT(6)
-+#define RXOVR		BIT(2)
-+#define RXEND		BIT(1)
-+#define RXBR		BIT(0)
-+
-+#define ALL_TX_IT	(TXEND | TXBR | TXACKE | TXERR | TXUDR | ARBLST)
-+#define ALL_RX_IT	(RXEND | RXBR | RXACKE | RXOVR)
-+
-+struct stm32_cec {
-+	struct cec_adapter	*adap;
-+	struct device		*dev;
-+	struct clk		*clk_cec;
-+	struct clk		*clk_hdmi_cec;
-+	struct reset_control	*rstc;
-+	struct regmap		*regmap;
-+	int			irq;
-+	u32			irq_status;
-+	struct cec_msg		rx_msg;
-+	struct cec_msg		tx_msg;
-+	int			tx_cnt;
-+	struct cec_notifier	*notifier;
-+};
-+
-+static void cec_hw_init(struct stm32_cec *cec)
-+{
-+	regmap_update_bits(cec->regmap, CEC_CR, TXEOM | TXSOM | CECEN, 0);
-+
-+	regmap_update_bits(cec->regmap, CEC_IER, ALL_TX_IT | ALL_RX_IT,
-+			   ALL_TX_IT | ALL_RX_IT);
-+
-+	regmap_update_bits(cec->regmap, CEC_CFGR, FULL_CFG, FULL_CFG);
-+}
-+
-+static void stm32_tx_done(struct stm32_cec *cec, u32 status)
-+{
-+	if (status & (TXERR | TXUDR)) {
-+		cec_transmit_done(cec->adap, CEC_TX_STATUS_ERROR,
-+				  0, 0, 0, 1);
-+		return;
-+	}
-+
-+	if (status & ARBLST) {
-+		cec_transmit_done(cec->adap, CEC_TX_STATUS_ARB_LOST,
-+				  1, 0, 0, 0);
-+		return;
-+	}
-+
-+	if (status & TXACKE) {
-+		cec_transmit_done(cec->adap, CEC_TX_STATUS_NACK,
-+				  0, 1, 0, 0);
-+		return;
-+	}
-+
-+	if (cec->irq_status & TXBR) {
-+		/* send next byte */
-+		if (cec->tx_cnt < cec->tx_msg.len)
-+			regmap_write(cec->regmap, CEC_TXDR,
-+				     cec->tx_msg.msg[cec->tx_cnt++]);
-+
-+		/* TXEOM is set to command transmission of the last byte */
-+		if (cec->tx_cnt == cec->tx_msg.len)
-+			regmap_update_bits(cec->regmap, CEC_CR, TXEOM, TXEOM);
-+	}
-+
-+	if (cec->irq_status & TXEND)
-+		cec_transmit_done(cec->adap, CEC_TX_STATUS_OK, 0, 0, 0, 0);
-+}
-+
-+static void stm32_rx_done(struct stm32_cec *cec, u32 status)
-+{
-+	if (cec->irq_status & (RXACKE | RXOVR)) {
-+		cec->rx_msg.len = 0;
-+		return;
-+	}
-+
-+	if (cec->irq_status & RXBR) {
-+		u32 val;
-+
-+		regmap_read(cec->regmap, CEC_RXDR, &val);
-+		cec->rx_msg.msg[cec->rx_msg.len++] = val & 0xFF;
-+	}
-+
-+	if (cec->irq_status & RXEND) {
-+		cec_received_msg(cec->adap, &cec->rx_msg);
-+		cec->rx_msg.len = 0;
-+	}
-+}
-+
-+static irqreturn_t stm32_cec_irq_thread(int irq, void *arg)
-+{
-+	struct stm32_cec *cec = arg;
-+
-+	if (cec->irq_status & ALL_TX_IT)
-+		stm32_tx_done(cec, cec->irq_status);
-+
-+	if (cec->irq_status & ALL_RX_IT)
-+		stm32_rx_done(cec, cec->irq_status);
-+
-+	cec->irq_status = 0;
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static irqreturn_t stm32_cec_irq_handler(int irq, void *arg)
-+{
-+	struct stm32_cec *cec = arg;
-+
-+	regmap_read(cec->regmap, CEC_ISR, &cec->irq_status);
-+
-+	regmap_update_bits(cec->regmap, CEC_ISR,
-+			   ALL_TX_IT | ALL_RX_IT,
-+			   ALL_TX_IT | ALL_RX_IT);
-+
-+	return IRQ_WAKE_THREAD;
-+}
-+
-+static int stm32_cec_adap_enable(struct cec_adapter *adap, bool enable)
-+{
-+	struct stm32_cec *cec = adap->priv;
-+	int ret = 0;
-+
-+	if (enable) {
-+		ret = clk_enable(cec->clk_cec);
-+		if (ret)
-+			dev_err(cec->dev, "fail to enable cec clock\n");
-+
-+		clk_enable(cec->clk_hdmi_cec);
-+		regmap_update_bits(cec->regmap, CEC_CR, CECEN, CECEN);
-+	} else {
-+		clk_disable(cec->clk_cec);
-+		clk_disable(cec->clk_hdmi_cec);
-+		regmap_update_bits(cec->regmap, CEC_CR, CECEN, 0);
-+	}
-+
-+	return ret;
-+}
-+
-+static int stm32_cec_adap_log_addr(struct cec_adapter *adap, u8 logical_addr)
-+{
-+	struct stm32_cec *cec = adap->priv;
-+	u32 oar = (1 << logical_addr) << 16;
-+
-+	regmap_update_bits(cec->regmap, CEC_CR, CECEN, 0);
-+
-+	if (logical_addr == CEC_LOG_ADDR_INVALID)
-+		regmap_update_bits(cec->regmap, CEC_CFGR, OAR, 0);
-+	else
-+		regmap_update_bits(cec->regmap, CEC_CFGR, oar, oar);
-+
-+	regmap_update_bits(cec->regmap, CEC_CR, CECEN, CECEN);
-+
-+	return 0;
-+}
-+
-+static int stm32_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
-+				   u32 signal_free_time, struct cec_msg *msg)
-+{
-+	struct stm32_cec *cec = adap->priv;
-+
-+	/* Copy message */
-+	cec->tx_msg = *msg;
-+	cec->tx_cnt = 0;
-+
-+	/*
-+	 * If the CEC message consists of only one byte,
-+	 * TXEOM must be set before of TXSOM.
-+	 */
-+	if (cec->tx_msg.len == 1)
-+		regmap_update_bits(cec->regmap, CEC_CR, TXEOM, TXEOM);
-+
-+	/* TXSOM is set to command transmission of the first byte */
-+	regmap_update_bits(cec->regmap, CEC_CR, TXSOM, TXSOM);
-+
-+	/* Write the header (first byte of message) */
-+	regmap_write(cec->regmap, CEC_TXDR, cec->tx_msg.msg[0]);
-+	cec->tx_cnt++;
-+
-+	return 0;
-+}
-+
-+static const struct cec_adap_ops stm32_cec_adap_ops = {
-+	.adap_enable = stm32_cec_adap_enable,
-+	.adap_log_addr = stm32_cec_adap_log_addr,
-+	.adap_transmit = stm32_cec_adap_transmit,
-+};
-+
-+static const struct regmap_config stm32_cec_regmap_cfg = {
-+	.reg_bits = 32,
-+	.val_bits = 32,
-+	.reg_stride = sizeof(u32),
-+	.max_register = 0x14,
-+	.fast_io = true,
-+};
-+
-+static int stm32_cec_probe(struct platform_device *pdev)
-+{
-+	struct resource *res;
-+	struct stm32_cec *cec;
-+	void __iomem *mmio;
-+	struct device_node *np;
-+	int ret;
-+	u32 caps = CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH |
-+		   CEC_CAP_TRANSMIT | CEC_CAP_RC;
-+
-+	cec = devm_kzalloc(&pdev->dev, sizeof(*cec), GFP_KERNEL);
-+	if (!cec)
-+		return -ENOMEM;
-+
-+	/*
-+	 * getting an hdmi device is optional but if the phanlde exists
-+	 * all must be good to use it
-+	 */
-+	np = of_parse_phandle(pdev->dev.of_node, "hdmi-phandle", 0);
-+	if (np) {
-+		struct platform_device *hdmi_dev;
-+
-+		hdmi_dev = of_find_device_by_node(np);
-+		if (!hdmi_dev)
-+			return -EPROBE_DEFER;
-+
-+		cec->notifier = cec_notifier_get(&hdmi_dev->dev);
-+		if (!cec->notifier)
-+			return -ENOMEM;
-+	} else {
-+		/*
-+		 * no hdmi notifier so physical address need to be set by
-+		 * userland
-+		 */
-+		caps |= CEC_CAP_PHYS_ADDR;
-+	}
-+
-+	cec->dev = &pdev->dev;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	mmio = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(mmio))
-+		return PTR_ERR(mmio);
-+
-+	cec->regmap = devm_regmap_init_mmio_clk(&pdev->dev, "cec", mmio,
-+						&stm32_cec_regmap_cfg);
-+
-+	if (IS_ERR(cec->regmap))
-+		return PTR_ERR(cec->regmap);
-+
-+	cec->irq = platform_get_irq(pdev, 0);
-+	if (cec->irq < 0)
-+		return cec->irq;
-+
-+	ret = devm_request_threaded_irq(&pdev->dev, cec->irq,
-+					stm32_cec_irq_handler,
-+					stm32_cec_irq_thread,
-+					0,
-+					pdev->name, cec);
-+	if (ret)
-+		return ret;
-+
-+	cec->clk_cec = devm_clk_get(&pdev->dev, "cec");
-+	if (IS_ERR(cec->clk_cec)) {
-+		dev_err(&pdev->dev, "Cannot get cec clock\n");
-+		return PTR_ERR(cec->clk_cec);
-+	}
-+
-+	ret = clk_prepare(cec->clk_cec);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Unable to prepare cec clock\n");
-+		return ret;
-+	}
-+
-+	cec->clk_hdmi_cec = devm_clk_get(&pdev->dev, "hdmi-cec");
-+	if (!IS_ERR(cec->clk_hdmi_cec)) {
-+		ret = clk_prepare(cec->clk_hdmi_cec);
-+		if (ret) {
-+			dev_err(&pdev->dev, "Unable to prepare hdmi-cec clock\n");
-+			return ret;
-+		}
-+	}
-+
-+	/*
-+	 * CEC_CAP_PHYS_ADDR could be removed when a cec notifier is available
-+	 */
-+	cec->adap = cec_allocate_adapter(&stm32_cec_adap_ops, cec,
-+			CEC_NAME, caps,	CEC_MAX_LOG_ADDRS);
-+	ret = PTR_ERR_OR_ZERO(cec->adap);
-+	if (ret)
-+		return ret;
-+
-+	ret = cec_register_adapter(cec->adap, &pdev->dev);
-+	if (ret) {
-+		cec_delete_adapter(cec->adap);
-+		return ret;
-+	}
-+
-+	if (cec->notifier)
-+		cec_register_cec_notifier(cec->adap, cec->notifier);
-+
-+	cec_hw_init(cec);
-+
-+	platform_set_drvdata(pdev, cec);
-+
-+	return 0;
-+}
-+
-+static int stm32_cec_remove(struct platform_device *pdev)
-+{
-+	struct stm32_cec *cec = platform_get_drvdata(pdev);
-+
-+	clk_unprepare(cec->clk_cec);
-+	clk_unprepare(cec->clk_hdmi_cec);
-+
-+	cec_unregister_adapter(cec->adap);
-+
-+	if (cec->notifier)
-+		cec_notifier_put(cec->notifier);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id stm32_cec_of_match[] = {
-+	{ .compatible = "st,stm32-cec" },
-+	{ /* end node */ }
-+};
-+MODULE_DEVICE_TABLE(of, stm32_cec_of_match);
-+
-+static struct platform_driver stm32_cec_driver = {
-+	.probe  = stm32_cec_probe,
-+	.remove = stm32_cec_remove,
-+	.driver = {
-+		.name		= CEC_NAME,
-+		.of_match_table = stm32_cec_of_match,
-+	},
-+};
-+
-+module_platform_driver(stm32_cec_driver);
-+
-+MODULE_AUTHOR("Benjamin Gaignard <benjamin.gaignard@st.com>");
-+MODULE_AUTHOR("Yannick Fertre <yannick.fertre@st.com>");
-+MODULE_DESCRIPTION("STMicroelectronics STM32 Consumer Electronics Control");
-+MODULE_LICENSE("GPL v2");
--- 
-1.9.1
+Huh. Based on this document:
+
+https://downloadmirror.intel.com/26061/eng/NUC6i7KYK%20HDMI%202.0%20Firmware%20update%20Instructions.pdf
+
+this is the internal DP-to-HDMI adapter and it has the PS175. So it is a
+Parade chipset, and I have seen that work before (at least the PS176).
+
+<snip>
+
+> connector 55: type DP-2, status: connected
+>       name:
+>       physical dimensions: 620x340mm
+>       subpixel order: Unknown
+>       CEA rev: 3
+>       DPCD rev: 12
+>       audio support: yes
+>       DP branch device present: yes
+>           Type: HDMI
+>           ID: BCTRC0
+>           HW: 2.0
+>           SW: 0.26
+
+And is this from a USB-C to HDMI adapter? Which one? I don't recognize the ID.
+
+For the record, this is the internal HDMI output of my NUC7i5BNK:
+
+connector 48: type DP-1, status: connected
+         name:
+         physical dimensions: 1050x590mm
+         subpixel order: Unknown
+         CEA rev: 3
+         DPCD rev: 12
+         audio support: yes
+         DP branch device present: yes
+                 Type: HDMI
+                 ID: MC2800
+                 HW: 2.2
+                 SW: 1.66
+                 Max TMDS clock: 600000 kHz
+                 Max bpc: 16
+
+Clearly a Megachip.
+
+Regards,
+
+	Hans
