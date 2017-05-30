@@ -1,109 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58338 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933664AbdERLfC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 07:35:02 -0400
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 1982B6009C
-        for <linux-media@vger.kernel.org>; Thu, 18 May 2017 14:34:52 +0300 (EEST)
-Date: Thu, 18 May 2017 14:34:20 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.13] V4L2 fwnode support
-Message-ID: <20170518113420.GU3227@valkosipuli.retiisi.org.uk>
+Received: from imap.netup.ru ([77.72.80.14]:49924 "EHLO imap.netup.ru"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751767AbdE3OqH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 May 2017 10:46:07 -0400
+Received: from mail-oi0-f48.google.com (mail-oi0-f48.google.com [209.85.218.48])
+        by imap.netup.ru (Postfix) with ESMTPSA id 1BC988B265D
+        for <linux-media@vger.kernel.org>; Tue, 30 May 2017 17:46:06 +0300 (MSK)
+Received: by mail-oi0-f48.google.com with SMTP id w10so114114073oif.0
+        for <linux-media@vger.kernel.org>; Tue, 30 May 2017 07:46:05 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20170409193828.18458-2-d.scheller.oss@gmail.com>
+References: <20170409193828.18458-1-d.scheller.oss@gmail.com> <20170409193828.18458-2-d.scheller.oss@gmail.com>
+From: Abylay Ospan <aospan@netup.ru>
+Date: Tue, 30 May 2017 10:45:43 -0400
+Message-ID: <CAK3bHNWwuoAdX01xGDWvJh1kdx25Lyt+MSPNCVAcPZew03wD6A@mail.gmail.com>
+Subject: Re: [PATCH 01/19] [media] dvb-frontends/cxd2841er: remove kernel log
+ spam in non-debug levels
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: Kozlov Sergey <serjk@netup.ru>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>, rjkm@metzlerbros.de
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Acked-by: Abylay Ospan <aospan@netup.ru>
 
-This pull request introduces the V4L2 fwnode framework which has equivalent
-functionality to V4L2 OF framework. The V4L2 OF framework users are
-converted to use the V4L2 fwnode framework and the redundant V4L2 OF
-framework is removed.
+2017-04-09 15:38 GMT-04:00 Daniel Scheller <d.scheller.oss@gmail.com>:
+> From: Daniel Scheller <d.scheller@gmx.net>
+>
+> This moves the I2C debug dump into the preceding dev_dbg() call by
+> utilising the %*ph format macro and removes the call to
+> print_hex_debug_bytes().
+>
+> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> ---
+>  drivers/media/dvb-frontends/cxd2841er.c | 6 ++----
+>  1 file changed, 2 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+> index 614bfb3..60d85ce 100644
+> --- a/drivers/media/dvb-frontends/cxd2841er.c
+> +++ b/drivers/media/dvb-frontends/cxd2841er.c
+> @@ -214,10 +214,8 @@ static void cxd2841er_i2c_debug(struct cxd2841er_priv *priv,
+>                                 const u8 *data, u32 len)
+>  {
+>         dev_dbg(&priv->i2c->dev,
+> -               "cxd2841er: I2C %s addr %02x reg 0x%02x size %d\n",
+> -               (write == 0 ? "read" : "write"), addr, reg, len);
+> -       print_hex_dump_bytes("cxd2841er: I2C data: ",
+> -               DUMP_PREFIX_OFFSET, data, len);
+> +               "cxd2841er: I2C %s addr %02x reg 0x%02x size %d data %*ph\n",
+> +               (write == 0 ? "read" : "write"), addr, reg, len, len, data);
+>  }
+>
+>  static int cxd2841er_write_regs(struct cxd2841er_priv *priv,
+> --
+> 2.10.2
+>
 
-Please pull.
 
-The following changes since commit f2c61f98e0b5f8b53b8fb860e5dcdd661bde7d0b:
-
-  [media] tc358743: fix register i2c_rd/wr function fix (2017-05-18 08:00:56 -0300)
-
-are available in the git repository at:
-
-  https://linuxtv.org/git/sailus/media_tree.git v4l2-acpi
-
-for you to fetch changes up to e8519dce8869d48d9e935e1f6da82bc67899c9f5:
-
-  v4l: Remove V4L2 OF framework in favour of V4L2 fwnode framework (2017-05-18 14:18:33 +0300)
-
-----------------------------------------------------------------
-Sakari Ailus (7):
-      v4l: fwnode: Support generic fwnode for parsing standardised properties
-      v4l: async: Add fwnode match support
-      v4l: flash led class: Use fwnode_handle instead of device_node in init
-      v4l: Switch from V4L2 OF not V4L2 fwnode API
-      docs-rst: media: Sort topic list alphabetically
-      docs-rst: media: Switch documentation to V4L2 fwnode API
-      v4l: Remove V4L2 OF framework in favour of V4L2 fwnode framework
-
- Documentation/media/kapi/v4l2-core.rst         |  20 +-
- Documentation/media/kapi/v4l2-fwnode.rst       |   3 +
- Documentation/media/kapi/v4l2-of.rst           |   3 -
- drivers/leds/leds-aat1290.c                    |   5 +-
- drivers/leds/leds-max77693.c                   |   5 +-
- drivers/media/i2c/Kconfig                      |  11 +
- drivers/media/i2c/adv7604.c                    |   7 +-
- drivers/media/i2c/mt9v032.c                    |   7 +-
- drivers/media/i2c/ov2659.c                     |   8 +-
- drivers/media/i2c/ov5645.c                     |   7 +-
- drivers/media/i2c/ov5647.c                     |   7 +-
- drivers/media/i2c/s5c73m3/s5c73m3-core.c       |   7 +-
- drivers/media/i2c/s5k5baf.c                    |   6 +-
- drivers/media/i2c/smiapp/Kconfig               |   1 +
- drivers/media/i2c/smiapp/smiapp-core.c         |  29 ++-
- drivers/media/i2c/tc358743.c                   |  11 +-
- drivers/media/i2c/tvp514x.c                    |   6 +-
- drivers/media/i2c/tvp5150.c                    |   7 +-
- drivers/media/i2c/tvp7002.c                    |   6 +-
- drivers/media/platform/Kconfig                 |   3 +
- drivers/media/platform/am437x/Kconfig          |   1 +
- drivers/media/platform/am437x/am437x-vpfe.c    |  15 +-
- drivers/media/platform/atmel/Kconfig           |   2 +
- drivers/media/platform/atmel/atmel-isc.c       |  13 +-
- drivers/media/platform/atmel/atmel-isi.c       |  11 +-
- drivers/media/platform/exynos4-is/Kconfig      |   2 +
- drivers/media/platform/exynos4-is/media-dev.c  |  13 +-
- drivers/media/platform/exynos4-is/mipi-csis.c  |   6 +-
- drivers/media/platform/omap3isp/isp.c          |  49 ++--
- drivers/media/platform/pxa_camera.c            |  11 +-
- drivers/media/platform/rcar-vin/Kconfig        |   1 +
- drivers/media/platform/rcar-vin/rcar-core.c    |  19 +-
- drivers/media/platform/soc_camera/soc_camera.c |   7 +-
- drivers/media/platform/ti-vpe/cal.c            |  15 +-
- drivers/media/platform/xilinx/Kconfig          |   1 +
- drivers/media/platform/xilinx/xilinx-vipp.c    |  63 +++--
- drivers/media/v4l2-core/Kconfig                |   3 +
- drivers/media/v4l2-core/Makefile               |   4 +-
- drivers/media/v4l2-core/v4l2-async.c           |  21 +-
- drivers/media/v4l2-core/v4l2-flash-led-class.c |  12 +-
- drivers/media/v4l2-core/v4l2-fwnode.c          | 345 +++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-of.c              | 327 -----------------------
- include/media/v4l2-async.h                     |   8 +-
- include/media/v4l2-flash-led-class.h           |   4 +-
- include/media/{v4l2-of.h => v4l2-fwnode.h}     |  96 +++----
- include/media/v4l2-subdev.h                    |   5 +-
- 46 files changed, 634 insertions(+), 579 deletions(-)
- create mode 100644 Documentation/media/kapi/v4l2-fwnode.rst
- delete mode 100644 Documentation/media/kapi/v4l2-of.rst
- create mode 100644 drivers/media/v4l2-core/v4l2-fwnode.c
- delete mode 100644 drivers/media/v4l2-core/v4l2-of.c
- rename include/media/{v4l2-of.h => v4l2-fwnode.h} (50%)
 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Abylay Ospan,
+NetUP Inc.
+http://www.netup.tv
