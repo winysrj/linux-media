@@ -1,70 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02-sz.bfs.de ([194.94.69.103]:1366 "EHLO mx02-sz.bfs.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933177AbdEOKVt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 May 2017 06:21:49 -0400
-Message-ID: <59198139.9030405@bfs.de>
-Date: Mon, 15 May 2017 12:21:45 +0200
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60516 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750733AbdE3G4j (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 May 2017 02:56:39 -0400
+Date: Tue, 30 May 2017 09:56:32 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v7 16/34] [media] add Omnivision OV5640 sensor driver
+Message-ID: <20170530065632.GK29527@valkosipuli.retiisi.org.uk>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+ <1495672189-29164-17-git-send-email-steve_longerbeam@mentor.com>
+ <20170529155511.GI29527@valkosipuli.retiisi.org.uk>
+ <c50c3c5f-71cf-fa73-f5a8-a4b5f59a87dc@gmail.com>
 MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Alan Cox <alan@linux.intel.com>,
-        David Binderman <dcb314@hotmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 2/2] staging/atomisp: putting NULs in the wrong place
-References: <20170515100135.guvreypnckqolnrq@mwanda>
-In-Reply-To: <20170515100135.guvreypnckqolnrq@mwanda>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c50c3c5f-71cf-fa73-f5a8-a4b5f59a87dc@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Steve,
 
-
-Am 15.05.2017 12:01, schrieb Dan Carpenter:
-> We're putting the NUL terminators one space beyond where they belong.
-> This doesn't show up in testing because all but the callers put a NUL in
-> the correct place themselves.  LOL.  It causes a static checker warning
-> about buffer overflows.
+On Mon, May 29, 2017 at 02:50:34PM -0700, Steve Longerbeam wrote:
+> ><snip>
+> >
+> >>+
+> >>+static int ov5640_s_ctrl(struct v4l2_ctrl *ctrl)
+> >>+{
+> >>+	struct v4l2_subdev *sd = ctrl_to_sd(ctrl);
+> >>+	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+> >>+	int ret = 0;
+> >>+
+> >>+	mutex_lock(&sensor->lock);
+> >Could you use the same lock for the controls as you use for the rest? Just
+> >setting handler->lock after handler init does the trick.
 > 
-> Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> Can you please rephrase, I don't follow. "same lock for the controls as
+> you use for the rest" - there's only one device lock owned by this driver
+> and I am already using that same lock.
+
+There's another in the control handler. You could use your own lock for the
+control handler as well.
+
 > 
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/string_support.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/string_support.h
-> index 74b5a1c7ac9a..c53241a7a281 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/string_support.h
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/string_support.h
-> @@ -117,7 +117,7 @@ STORAGE_CLASS_INLINE int strncpy_s(
->  
->  	/* dest_str is big enough for the len */
->  	strncpy(dest_str, src_str, len);
-> -	dest_str[len+1] = '\0';
-> +	dest_str[len] = '\0';
->  	return 0;
->  }
->  
-> @@ -157,7 +157,7 @@ STORAGE_CLASS_INLINE int strcpy_s(
->  
->  	/* dest_str is big enough for the len */
->  	strncpy(dest_str, src_str, len);
-> -	dest_str[len+1] = '\0';
-> +	dest_str[len] = '\0';
->  	return 0;
->  }
->  
-
-can this strcpy_s() replaced with strlcpy ?
-
-re,
- wh
-
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
+> ><snip>
+> >>+
+> >>+static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
+> >>+{
+> >>+	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+> >>+	int ret = 0;
+> >>+
+> >>+	mutex_lock(&sensor->lock);
+> >>+
+> >>+#if defined(CONFIG_MEDIA_CONTROLLER)
+> >>+	if (sd->entity.stream_count > 1)
+> >The entity stream_count isn't connected to the number of times s_stream(sd,
+> >true) is called. Please remove the check.
+> 
+> It's incremented by media_pipeline_start(), even if the entity is already
+> a member of the given pipeline.
+> 
+> I added this check because in imx-media, the ov5640 can be streaming
+> concurrently to multiple video capture devices, and each capture device
+> calls
+> media_pipeline_start() at stream on, which increments the entity stream
+> count.
+> 
+> So if one capture device issues a stream off while others are still
+> streaming,
+> ov5640 should remain at stream on. So the entity stream count is being
+> used as a streaming usage counter. Is there a better way to do this? Should
+> I use a private stream use counter instead?
+
+Different drivers may use media_pipeline_start() in different ways. Stream
+control shouldn't depend on that count. This could cause issues in using the
+driver with other ISP / receiver drivers.
+
+I think it should be enough to move the check to the imx driver in this
+case.
+
+> 
+> 
+> 
+> ><snip>
+> >
+> >>+
+> >>+free_ctrls:
+> >>+	v4l2_ctrl_handler_free(&sensor->ctrls.handler);
+> >>+entity_cleanup:
+> >>+	mutex_destroy(&sensor->lock);
+> >>+	media_entity_cleanup(&sensor->sd.entity);
+> >>+	regulator_bulk_disable(OV5640_NUM_SUPPLIES, sensor->supplies);
+> >Should this still be here?
+> >
+> >>+	return ret;
+> >>+}
+> >>+
+> >>+static int ov5640_remove(struct i2c_client *client)
+> >>+{
+> >>+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> >>+	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+> >>+
+> >>+	regulator_bulk_disable(OV5640_NUM_SUPPLIES, sensor->supplies);
+> >Ditto.
+> 
+> I don't understand. regulator_bulk_disable() is still needed, am I missing
+> something?
+
+You still need to enable it first. I don't see that being done in probe. As
+the driver implements the s_power() op, I don't see a need for powering the
+device on at probe time (and conversely off at remove time).
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
