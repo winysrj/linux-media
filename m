@@ -1,185 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f177.google.com ([209.85.220.177]:35280 "EHLO
-        mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750949AbdEPJYq (ORCPT
+Received: from mail-wr0-f175.google.com ([209.85.128.175]:36246 "EHLO
+        mail-wr0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750761AbdE3TfF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 May 2017 05:24:46 -0400
-Received: by mail-qk0-f177.google.com with SMTP id a72so121919679qkj.2
-        for <linux-media@vger.kernel.org>; Tue, 16 May 2017 02:24:46 -0700 (PDT)
+        Tue, 30 May 2017 15:35:05 -0400
+Received: by mail-wr0-f175.google.com with SMTP id j27so6307276wre.3
+        for <linux-media@vger.kernel.org>; Tue, 30 May 2017 12:35:04 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <f0eb8619-e2e3-f5db-bffd-0a51580e725c@xs4all.nl>
-References: <1494925280-4527-1-git-send-email-benjamin.gaignard@linaro.org>
- <CA+M3ks6eO7144jNyBQZQfQ=ANwgxQjKKCY03iBnQB4mik6uFMQ@mail.gmail.com> <f0eb8619-e2e3-f5db-bffd-0a51580e725c@xs4all.nl>
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Date: Tue, 16 May 2017 11:24:40 +0200
-Message-ID: <CA+M3ks6Ak906eTANudnS9yhOya=JV25wP8_2wMNixJnrp5axCA@mail.gmail.com>
-Subject: Re: [PATCH 0/2] cec: STM32 driver
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Alexandre Torgue <alexandre.torgue@st.com>,
-        devicetree@vger.kernel.org,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Rob Herring <robh@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Yannick Fertre <yannick.fertre@st.com>
+In-Reply-To: <20170528234200.2ffdd351@macbox>
+References: <CAML3znFcKR9wx3wvjBDeQLn7mbtkhU0Knn56cMrXek6H-mTUjQ@mail.gmail.com>
+ <9102e964-8143-edd7-3a82-014ae0d29d48@kaiser-linux.li> <CAML3znHkCFrtQqXvZkCwiMGNkRdSAnHBDTvfeoaQdtq8kRMkQQ@mail.gmail.com>
+ <20170528234200.2ffdd351@macbox>
+From: Karl Wallin <karl.wallin.86@gmail.com>
+Date: Tue, 30 May 2017 21:35:03 +0200
+Message-ID: <CAML3znGxh2t9VQLMMsqQs0Okeos_enNTF=367QFKwmM=y__x+Q@mail.gmail.com>
+Subject: Re: Build fails Ubuntu 17.04 / "error: implicit declaration of function"
+To: Daniel Scheller <d.scheller.oss@gmail.com>,
+        linux-media@vger.kernel.org, Thomas Kaiser <thomas@kaiser-linux.li>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-05-16 11:18 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> On 16/05/17 11:10, Benjamin Gaignard wrote:
->> + Yannick who is the original writer of this driver (sorry)
->>
->> 2017-05-16 11:01 GMT+02:00 Benjamin Gaignard <benjamin.gaignard@linaro.o=
-rg>:
->>> This serie of patches add cec driver for STM32 platforms.
->>>
->>> This code doesn't implement cec notifier because STM32 doesn't
->>> provide HDMI yet but it will be added later.
+Hi!
+
+Sorry for not replying earlier, work.
+I came so far as to download the patches (via n00bishly pasting the
+actual content of the .patch-files into .patch-files since my git
+cherry-pick command didn't work) but then after trying to apply them I
+got a prompt with specifying the path of the file and didn't research
+that further.
+
+I downloaded the latest release from GIT and now it actually builds!!! :D :=
+D
+
+However it does not install :(
+
+"root@nuc-d54250wyk:/home/ubuntu/media_build# make install
+make -C /home/ubuntu/media_build/v4l install
+make[1]: Entering directory '/home/ubuntu/media_build/v4l'
+make[1]: *** No rule to make target 'media-install', needed by 'install'.  =
+Stop.
+make[1]: Leaving directory '/home/ubuntu/media_build/v4l'
+Makefile:15: recipe for target 'install' failed
+make: *** [install] Error 2"
+
+I've gone into "v4l" and looked for a "media-install" file but haven't
+found any.
+
+Perhaps this is something I've misunderstood and easy to fix so I
+finally can install it?
+
+Best Regards - Karl
+Med v=C3=A4nlig h=C3=A4lsning / Best Regards - Karl Wallin
+
+karl.wallin.86@gmail.com
+
+P.S. Om mitt mail b=C3=B6r vidarebefodras, v=C3=A4nligen g=C3=B6r detta ist=
+=C3=A4llet f=C3=B6r
+att =C3=A5terkomma med en email-adress i ett svar till mig. / If my mail
+should be forwarded then please forward it instead of replying to me
+with an email address. P.S.
+
+
+2017-05-28 23:42 GMT+02:00 Daniel Scheller <d.scheller.oss@gmail.com>:
+> Am Sun, 28 May 2017 21:06:33 +0200
+> schrieb Karl Wallin <karl.wallin.86@gmail.com>:
 >
-> When will that happen? Is that in 4.12?
-
-We have send the patches yesterday for DSI support to dri-devel mailing lis=
-t.
-I guess the discussions will take some time but cec hardware could
-work without it.
-
+> All,
 >
-> Regards,
+>> In "/home/ubuntu/media_build/v4l/cec-core.c" changed row 142 from:
+>> "ret =3D cdev_device_add(&devnode->cdev, &devnode->dev);" to:
+>> "ret =3D device_add(&devnode->dev);"
+>> and row 186 from:
+>> "cdev_device_del(&devnode->cdev, &devnode->dev);" to:
+>> "device_del(&devnode->dev);"
 >
->         Hans
+> Until the upstream media_build repository gets the neccessary backport
+> patch treatment, you can apply [1] and [2] to media_build which should
+> fix all build issues.
 >
->>>
->>> Those patches have been developped on top of media_tree master branch
->>> where STM32 DCMI code has not been merged so conflict in Kconfig and Ma=
-kefile
->>> could occur depending of merge ordering.
->>>
->>> Compliance has been tested on STM32F769.
->>>
->>> ~ # cec-ctl -p 1.0.0.0 --playback
->>> Driver Info:
->>>         Driver Name                : stm32-cec
->>>         Adapter Name               : stm32-cec
->>>         Capabilities               : 0x0000000f
->>>                 Physical Address
->>>                 Logical Addresses
->>>                 Transmit
->>>                 Passthrough
->>>         Driver version             : 4.11.0
->>>         Available Logical Addresses: 1
->>>         Physical Address           : 1.0.0.0
->>>         Logical Address Mask       : 0x0010
->>>         CEC Version                : 2.0
->>>         Vendor ID                  : 0x000c03 (HDMI)
->>>         OSD Name                   : 'Playback'
->>>         Logical Addresses          : 1 (Allow RC Passthrough)
->>>
->>>           Logical Address          : 4 (Playback Device 1)
->>>             Primary Device Type    : Playback
->>>             Logical Address Type   : Playback
->>>             All Device Types       : Playback
->>>             RC TV Profile          : None
->>>             Device Features        :
->>>                 None
->>>
->>> ~ # cec-compliance -A
->>> cec-compliance SHA                 : 6acac5cec698de39b9398b66c4f5f4db6b=
-2730d8
->>>
->>> Driver Info:
->>>         Driver Name                : stm32-cec
->>>         Adapter Name               : stm32-cec
->>>         Capabilities               : 0x0000000f
->>>                 Physical Address
->>>                 Logical Addresses
->>>                 Transmit
->>>                 Passthrough
->>>         Driver version             : 4.11.0
->>>         Available Logical Addresses: 1
->>>         Physical Address           : 1.0.0.0
->>>         Logical Address Mask       : 0x0010
->>>         CEC Version                : 2.0
->>>         Vendor ID                  : 0x000c03
->>>         Logical Addresses          : 1 (Allow RC Passthrough)
->>>
->>>           Logical Address          : 4
->>>             Primary Device Type    : Playback
->>>             Logical Address Type   : Playback
->>>             All Device Types       : Playback
->>>             RC TV Profile          : None
->>>             Device Features        :
->>>                 None
->>>
->>> Compliance test for device /dev/cec0:
->>>
->>>     The test results mean the following:
->>>         OK                  Supported correctly by the device.
->>>         OK (Not Supported)  Not supported and not mandatory for the dev=
-ice.
->>>         OK (Presumed)       Presumably supported.  Manually check to co=
-nfirm.
->>>         OK (Unexpected)     Supported correctly but is not expected to =
-be supported for this device.
->>>         OK (Refused)        Supported by the device, but was refused.
->>>         FAIL                Failed and was expected to be supported by =
-this device.
->>>
->>> Find remote devices:
->>>         Polling: OK
->>>
->>> CEC API:
->>>         CEC_ADAP_G_CAPS: OK
->>>         CEC_DQEVENT: OK
->>>         CEC_ADAP_G/S_PHYS_ADDR: OK
->>>         CEC_ADAP_G/S_LOG_ADDRS: OK
->>>         CEC_TRANSMIT: OK
->>>         CEC_RECEIVE: OK
->>>         CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
->>>         CEC_G/S_MODE: OK
->>>         CEC_EVENT_LOST_MSGS: OK
->>>
->>> Network topology:
->>>         System Information for device 0 (TV) from device 4 (Playback De=
-vice 1):
->>>                 CEC Version                : 1.4
->>>                 Physical Address           : 0.0.0.0
->>>                 Primary Device Type        : TV
->>>                 Vendor ID                  : 0x00903e
->>>                 OSD Name                   : 'TV'
->>>                 Menu Language              : fre
->>>                 Power Status               : On
->>>
->>> Total: 10, Succeeded: 10, Failed: 0, Warnings: 0
->>>
->>> Benjamin Gaignard (2):
->>>   binding for stm32 cec driver
->>>   cec: add STM32 cec driver
->>>
->>>  .../devicetree/bindings/media/st,stm32-cec.txt     |  19 ++
->>>  drivers/media/platform/Kconfig                     |  11 +
->>>  drivers/media/platform/Makefile                    |   2 +
->>>  drivers/media/platform/stm32/Makefile              |   1 +
->>>  drivers/media/platform/stm32/stm32-cec.c           | 368 +++++++++++++=
-++++++++
->>>  5 files changed, 401 insertions(+)
->>>  create mode 100644 Documentation/devicetree/bindings/media/st,stm32-ce=
-c.txt
->>>  create mode 100644 drivers/media/platform/stm32/Makefile
->>>  create mode 100644 drivers/media/platform/stm32/stm32-cec.c
->>>
->>> --
->>> 1.9.1
->>>
+> Best regards,
+> Daniel
 >
-
-
-
---=20
-Benjamin Gaignard
-
-Graphic Study Group
-
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-
-Follow Linaro: Facebook | Twitter | Blog
+> [1]
+> https://github.com/herrnst/media_build/commit/4766a716c629707d58d625c6cdf=
+d8c395fd6ed61
+> [2]
+> https://github.com/herrnst/media_build/commit/01507a9c32a301c8fc021dcaf1b=
+943799ff3da51
