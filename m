@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53643 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751586AbdEJEXB (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:40637 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750720AbdE3E2K (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 May 2017 00:23:01 -0400
-Message-ID: <691098586a9fd1cb09b2ad1389f4907b@smtp-cloud2.xs4all.net>
-Date: Wed, 10 May 2017 06:22:58 +0200
+        Tue, 30 May 2017 00:28:10 -0400
+Message-ID: <a336797844b23872a262f77f00022755@smtp-cloud3.xs4all.net>
+Date: Tue, 30 May 2017 06:28:07 +0200
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: cron job: media_tree daily build: WARNINGS
@@ -17,10 +17,10 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:			Wed May 10 05:00:23 CEST 2017
-media-tree git hash:	3622d3e77ecef090b5111e3c5423313f11711dfa
-media_build git hash:	ab988a3d089232ce9e1aec2f259e947c06983dbc
-v4l-utils git hash:	fba2bdde45aaf6b56608c3cf8b906d7e5ee0e21f
+date:			Tue May 30 05:00:17 CEST 2017
+media-tree git hash:	36bcba973ad478042d1ffc6e89afd92e8bd17030
+media_build git hash:	0d8b3274e29b597780719e7ce1b3b460241a5395
+v4l-utils git hash:	d57bb8af0c71d82b702e35a7362aa077189dd593
 gcc version:		i686-linux-gcc (GCC) 7.1.0
 sparse version:		v0.5.0-3553-g78b2ea6
 smatch version:		v0.5.0-3553-g78b2ea6
@@ -32,29 +32,29 @@ linux-git-arm-davinci: WARNINGS
 linux-git-arm-multi: WARNINGS
 linux-git-arm-pxa: OK
 linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
+linux-git-i686: OK
 linux-git-m32r: OK
-linux-git-mips: WARNINGS
+linux-git-mips: OK
 linux-git-powerpc64: OK
 linux-git-sh: OK
 linux-git-x86_64: WARNINGS
 linux-2.6.36.4-i686: WARNINGS
 linux-2.6.37.6-i686: WARNINGS
 linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
 linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
 linux-3.13.11-i686: WARNINGS
 linux-3.14.9-i686: WARNINGS
 linux-3.15.2-i686: WARNINGS
@@ -70,10 +70,11 @@ linux-4.4.22-i686: WARNINGS
 linux-4.5.7-i686: WARNINGS
 linux-4.6.7-i686: WARNINGS
 linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: WARNINGS
-linux-4.9.26-i686: WARNINGS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12-rc1-i686: OK
 linux-2.6.36.4-x86_64: WARNINGS
 linux-2.6.37.6-x86_64: WARNINGS
 linux-2.6.38.8-x86_64: WARNINGS
@@ -110,17 +111,18 @@ linux-4.8-x86_64: WARNINGS
 linux-4.9.26-x86_64: WARNINGS
 linux-4.10.14-x86_64: WARNINGS
 linux-4.11-x86_64: WARNINGS
+linux-4.12-rc1-x86_64: WARNINGS
 apps: WARNINGS
 spec-git: OK
 sparse: WARNINGS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
