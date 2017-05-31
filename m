@@ -1,78 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34343 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750811AbdE3IkE (ORCPT
+Received: from relmlor1.renesas.com ([210.160.252.171]:5616 "EHLO
+        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750869AbdEaI6c (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 04:40:04 -0400
-Subject: Re: [ANN] HDMI CEC Status Update
-To: Neil Armstrong <narmstrong@baylibre.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Maling list - DRI developers
-        <dri-devel@lists.freedesktop.org>,
-        Archit Taneja <architt@codeaurora.org>
-References: <8e277103-8bc5-34b2-411d-e396665df249@xs4all.nl>
- <cddc746c-16a2-21b8-f76d-82773cd1941b@baylibre.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2ea7cdb1-88c0-8e5f-df74-9cb3350eb7f5@xs4all.nl>
-Date: Tue, 30 May 2017 10:39:55 +0200
-MIME-Version: 1.0
-In-Reply-To: <cddc746c-16a2-21b8-f76d-82773cd1941b@baylibre.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Wed, 31 May 2017 04:58:32 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v6 5/7] doc_rst: media: New SDR formats PC16, PC18 & PC20
+Date: Wed, 31 May 2017 09:44:55 +0100
+Message-Id: <20170531084457.4800-6-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <20170531084457.4800-1-ramesh.shanmugasundaram@bp.renesas.com>
+References: <20170531084457.4800-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/30/17 09:21, Neil Armstrong wrote:
-> Hi Hans,
-> 
-> On 05/30/2017 08:53 AM, Hans Verkuil wrote:
->> For those who are interested in HDMI CEC support I made a little status
->> document that I intend to keep up to date:
->>
->> https://hverkuil.home.xs4all.nl/cec-status.txt
->>
->> My goal is to get CEC supported for any mainlined HDMI driver where the hardware
->> supports CEC.
->>
->> If anyone is working on a CEC driver that I don't know already about, just drop
->> me an email so I can update the status.
->>
->> I also started maintaining a list of DisplayPort to HDMI adapters that support
->> CEC. If you have one that works and is not on the list, then please let me know.
->> Seeing /dev/cecX is not enough, some adapters do not connect the CEC pin, so they
->> won't be able to detect any other CEC devices. See the test instructions in the
->> cec-status.txt file on how to make sure the adapter has a working CEC pin. I
->> plan to do some more testing this week, so hopefully the list will expand.
->>
->> Thanks!
->>
->>     Hans
-> 
-> Following our discussion on IRC,
-> I'm working on a CEC driver for the standalone Amlogic CEC Controller that is able
-> to wake up the device from Suspend or Power Off mode by passing infos to the FW.
+This patch adds documentation for the three new SDR formats
 
-FYI: the Pulse Eight linux driver has similar support. It has to be enabled via a
-module option (persistent_config=1).
+V4L2_SDR_FMT_PCU16BE
+V4L2_SDR_FMT_PCU18BE
+V4L2_SDR_FMT_PCU20BE
 
-I have no public API for this, mostly because I would first like to get more information
-about how these things are typically implemented in hardware.
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+---
+ .../media/uapi/v4l/pixfmt-sdr-pcu16be.rst          | 55 ++++++++++++++++++++++
+ .../media/uapi/v4l/pixfmt-sdr-pcu18be.rst          | 55 ++++++++++++++++++++++
+ .../media/uapi/v4l/pixfmt-sdr-pcu20be.rst          | 54 +++++++++++++++++++++
+ Documentation/media/uapi/v4l/sdr-formats.rst       |  3 ++
+ 4 files changed, 167 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
 
-Regards,
-
-	Hans
-
-> I initially planned to use the DW-HDMI CEC controller but I recently found out that
-> on the Amlogic Meson GX SoCs, the CEC line can be pinmuxed to either an Amlogic custom
-> controller or either to a Synopsys IP.
-> 
-> But it's connected to the Synopsys HDMI-RX controller... so my plan to use Russell's code
-> is now dead.
-> 
-> Anyway, I'll still need to have the CEC notifier suport for DW-HDMI, so I made a rebase/cleanup
-> of Russell's driver on 4.12-rc3 :
-> https://github.com/superna9999/linux/commits/amlogic/v4.12/rmk-dw-hdmi-cec
-> The rebase is aligned on dw-hdmi-i2s to use the bridge read/write ops.
-> 
-> Neil
-> 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
+new file mode 100644
+index 000000000000..2de1b1a0f517
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
+@@ -0,0 +1,55 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2-SDR-FMT-PCU16BE:
++
++******************************
++V4L2_SDR_FMT_PCU16BE ('PC16')
++******************************
++
++Planar complex unsigned 16-bit big endian IQ sample
++
++Description
++===========
++
++This format contains a sequence of complex number samples. Each complex
++number consist of two parts called In-phase and Quadrature (IQ). Both I
++and Q are represented as a 16 bit unsigned big endian number stored in
++32 bit space. The remaining unused bits within the 32 bit space will be
++padded with 0. I value starts first and Q value starts at an offset
++equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
++the 16 bits, bit 15:2 (14 bit) is data and bit 1:0 (2 bit) can be any
++value.
++
++**Byte Order.**
++Each cell is one byte.
++
++.. flat-table::
++    :header-rows:  1
++    :stub-columns: 0
++
++    * -  Offset:
++      -  Byte B0
++      -  Byte B1
++      -  Byte B2
++      -  Byte B3
++    * -  start + 0:
++      -  I'\ :sub:`0[13:6]`
++      -  I'\ :sub:`0[5:0]; B1[1:0]=pad`
++      -  pad
++      -  pad
++    * -  start + 4:
++      -  I'\ :sub:`1[13:6]`
++      -  I'\ :sub:`1[5:0]; B1[1:0]=pad`
++      -  pad
++      -  pad
++    * -  ...
++    * - start + offset:
++      -  Q'\ :sub:`0[13:6]`
++      -  Q'\ :sub:`0[5:0]; B1[1:0]=pad`
++      -  pad
++      -  pad
++    * - start + offset + 4:
++      -  Q'\ :sub:`1[13:6]`
++      -  Q'\ :sub:`1[5:0]; B1[1:0]=pad`
++      -  pad
++      -  pad
+diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
+new file mode 100644
+index 000000000000..da8b26bf6b95
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
+@@ -0,0 +1,55 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2-SDR-FMT-PCU18BE:
++
++******************************
++V4L2_SDR_FMT_PCU18BE ('PC18')
++******************************
++
++Planar complex unsigned 18-bit big endian IQ sample
++
++Description
++===========
++
++This format contains a sequence of complex number samples. Each complex
++number consist of two parts called In-phase and Quadrature (IQ). Both I
++and Q are represented as a 18 bit unsigned big endian number stored in
++32 bit space. The remaining unused bits within the 32 bit space will be
++padded with 0. I value starts first and Q value starts at an offset
++equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
++the 18 bits, bit 17:2 (16 bit) is data and bit 1:0 (2 bit) can be any
++value.
++
++**Byte Order.**
++Each cell is one byte.
++
++.. flat-table::
++    :header-rows:  1
++    :stub-columns: 0
++
++    * -  Offset:
++      -  Byte B0
++      -  Byte B1
++      -  Byte B2
++      -  Byte B3
++    * -  start + 0:
++      -  I'\ :sub:`0[17:10]`
++      -  I'\ :sub:`0[9:2]`
++      -  I'\ :sub:`0[1:0]; B2[5:0]=pad`
++      -  pad
++    * -  start + 4:
++      -  I'\ :sub:`1[17:10]`
++      -  I'\ :sub:`1[9:2]`
++      -  I'\ :sub:`1[1:0]; B2[5:0]=pad`
++      -  pad
++    * -  ...
++    * - start + offset:
++      -  Q'\ :sub:`0[17:10]`
++      -  Q'\ :sub:`0[9:2]`
++      -  Q'\ :sub:`0[1:0]; B2[5:0]=pad`
++      -  pad
++    * - start + offset + 4:
++      -  Q'\ :sub:`1[17:10]`
++      -  Q'\ :sub:`1[9:2]`
++      -  Q'\ :sub:`1[1:0]; B2[5:0]=pad`
++      -  pad
+diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
+new file mode 100644
+index 000000000000..5499eed39477
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
+@@ -0,0 +1,54 @@
++.. -*- coding: utf-8; mode: rst -*-
++.. _V4L2-SDR-FMT-PCU20BE:
++
++******************************
++V4L2_SDR_FMT_PCU20BE ('PC20')
++******************************
++
++Planar complex unsigned 20-bit big endian IQ sample
++
++Description
++===========
++
++This format contains a sequence of complex number samples. Each complex
++number consist of two parts called In-phase and Quadrature (IQ). Both I
++and Q are represented as a 20 bit unsigned big endian number stored in
++32 bit space. The remaining unused bits within the 32 bit space will be
++padded with 0. I value starts first and Q value starts at an offset
++equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
++the 20 bits, bit 19:2 (18 bit) is data and bit 1:0 (2 bit) can be any
++value.
++
++**Byte Order.**
++Each cell is one byte.
++
++.. flat-table::
++    :header-rows:  1
++    :stub-columns: 0
++
++    * -  Offset:
++      -  Byte B0
++      -  Byte B1
++      -  Byte B2
++      -  Byte B3
++    * -  start + 0:
++      -  I'\ :sub:`0[19:12]`
++      -  I'\ :sub:`0[11:4]`
++      -  I'\ :sub:`0[3:0]; B2[3:0]=pad`
++      -  pad
++    * -  start + 4:
++      -  I'\ :sub:`1[19:12]`
++      -  I'\ :sub:`1[11:4]`
++      -  I'\ :sub:`1[3:0]; B2[3:0]=pad`
++      -  pad
++    * -  ...
++    * - start + offset:
++      -  Q'\ :sub:`0[19:12]`
++      -  Q'\ :sub:`0[11:4]`
++      -  Q'\ :sub:`0[3:0]; B2[3:0]=pad`
++      -  pad
++    * - start + offset + 4:
++      -  Q'\ :sub:`1[19:12]`
++      -  Q'\ :sub:`1[11:4]`
++      -  Q'\ :sub:`1[3:0]; B2[3:0]=pad`
++      -  pad
+diff --git a/Documentation/media/uapi/v4l/sdr-formats.rst b/Documentation/media/uapi/v4l/sdr-formats.rst
+index f863c08f1add..2037f5bad727 100644
+--- a/Documentation/media/uapi/v4l/sdr-formats.rst
++++ b/Documentation/media/uapi/v4l/sdr-formats.rst
+@@ -17,3 +17,6 @@ These formats are used for :ref:`SDR <sdr>` interface only.
+     pixfmt-sdr-cs08
+     pixfmt-sdr-cs14le
+     pixfmt-sdr-ru12le
++    pixfmt-sdr-pcu16be
++    pixfmt-sdr-pcu18be
++    pixfmt-sdr-pcu20be
+-- 
+2.12.2
