@@ -1,77 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:46708 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756155AbdEXAQ6 (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36197 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751093AbdEaTzV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 May 2017 20:16:58 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2 00/17] rcar-vin: fix issues with format and capturing
-Date: Wed, 24 May 2017 02:15:23 +0200
-Message-Id: <20170524001540.13613-1-niklas.soderlund@ragnatech.se>
+        Wed, 31 May 2017 15:55:21 -0400
+Date: Wed, 31 May 2017 21:55:17 +0200
+From: Krzysztof Kozlowski <krzk@kernel.org>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] ARM: dts: exynos: Add HDMI CEC device to Exynos5 SoC
+ family
+Message-ID: <20170531195517.2vjbc3voefdgq6sg@kozik-lap>
+References: <CGME20170531110029eucas1p14bb9468f72155d88364c0aa5093ac05d@eucas1p1.samsung.com>
+ <1496228417-31126-1-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <1496228417-31126-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+On Wed, May 31, 2017 at 01:00:17PM +0200, Marek Szyprowski wrote:
+> Exynos5250 and Exynos542x SoCs have the same CEC hardware module as
+> Exynos4 SoC series, so enable support for it using the same compatible
+> string.
+> 
+> Tested on Odroid XU3 (Exynos5422) and Google Snow (Exynos5250) boards.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  arch/arm/boot/dts/exynos5250-pinctrl.dtsi          |  7 +++++++
+>  arch/arm/boot/dts/exynos5250-snow-common.dtsi      |  4 ++++
+>  arch/arm/boot/dts/exynos5250.dtsi                  | 13 +++++++++++++
+>  arch/arm/boot/dts/exynos5420-pinctrl.dtsi          |  7 +++++++
+>  arch/arm/boot/dts/exynos5420.dtsi                  | 13 +++++++++++++
+>  arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi |  4 ++++
+>  6 files changed, 48 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/exynos5250-pinctrl.dtsi b/arch/arm/boot/dts/exynos5250-pinctrl.dtsi
+> index 2f6ab32b5954..1fd122db18e6 100644
+> --- a/arch/arm/boot/dts/exynos5250-pinctrl.dtsi
+> +++ b/arch/arm/boot/dts/exynos5250-pinctrl.dtsi
+> @@ -589,6 +589,13 @@
+>  		samsung,pin-pud = <EXYNOS_PIN_PULL_NONE>;
+>  		samsung,pin-drv = <EXYNOS4_PIN_DRV_LV1>;
+>  	};
+> +
+> +	hdmi_cec: hdmi-cec {
+> +		samsung,pins = "gpx3-6";
+> +		samsung,pin-function = <EXYNOS_PIN_FUNC_3>;
+> +		samsung,pin-pud = <EXYNOS_PIN_PULL_NONE>;
+> +		samsung,pin-drv = <EXYNOS4_PIN_DRV_LV1>;
+> +	};
+>  };
+>  
+>  &pinctrl_1 {
+> diff --git a/arch/arm/boot/dts/exynos5250-snow-common.dtsi b/arch/arm/boot/dts/exynos5250-snow-common.dtsi
+> index 8f3a80430748..e1d293dbbe5d 100644
+> --- a/arch/arm/boot/dts/exynos5250-snow-common.dtsi
+> +++ b/arch/arm/boot/dts/exynos5250-snow-common.dtsi
+> @@ -272,6 +272,10 @@
+>  	vdd_pll-supply = <&ldo8_reg>;
+>  };
+>  
+> +&hdmicec {
+> +	status = "okay";
+> +};
+> +
+>  &i2c_0 {
+>  	status = "okay";
+>  	samsung,i2c-sda-delay = <100>;
+> diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
+> index 79c9c885613a..fbdc1d53a2ce 100644
+> --- a/arch/arm/boot/dts/exynos5250.dtsi
+> +++ b/arch/arm/boot/dts/exynos5250.dtsi
+> @@ -689,6 +689,19 @@
+>  			samsung,syscon-phandle = <&pmu_system_controller>;
+>  		};
+>  
+> +		hdmicec: cec@101B0000 {
+> +			compatible = "samsung,s5p-cec";
+> +			reg = <0x101B0000 0x200>;
+> +			interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH>;
+> +			clocks = <&clock CLK_HDMI_CEC>;
+> +			clock-names = "hdmicec";
+> +			samsung,syscon-phandle = <&pmu_system_controller>;
+> +			hdmi-phandle = <&hdmi>;
+> +			pinctrl-names = "default";
+> +			pinctrl-0 = <&hdmi_cec>;
+> +			status = "disabled";
+> +		};
 
-Hi,
+What about Exynos5410? Is it applicable there as well? If yes, then this
+could be added to exynos5.dtsi... although then clocks and pinctrl
+should remain in SoC-specific DTSI. We're following such pattern in many
+places but I am not sure if this more readable.
 
-This series fix a number of issues for the rcar-vin driver regarding
-format and capturing. It is based on top of '[GIT PULL FOR v4.13] V4L2 
-fwnode support' and tested on Koelsch.
+Beside that, looks fine to me.
 
-Parts of this series where previously part of '[PATCH 00/11] media:
-rcar-vin: fix OPS and format/pad index issues'. But after good reviews
-a large part of that series where dropped.
-
-* Changes since v1
-- Do not consider the lack of a subdevice sink pad an error instead
-  default to use pad 0 in such case. This keeps the behavior of the
-  driver which previous versions of this series changed.
-- When printing pad numbers print using %u not %d as they are unsigned.
-- Keep comment in code which was lost when moving code around.
-- If trying to set an unsupported pixel format do not switch the current
-  format, instead switch to the first supported format of the driver to
-  achieve a more deterministic behaviour.
-- Add new patch to remove redundant checks in the async bind/unbind
-  callbacks.
-- Clarify some commit messages, thanks Laurent!
-- Fix typos in commit messages, thanks Sergei and Laurent!
-- Add Reviewed-by tags from Lauren
-
-Niklas Söderlund (17):
-  rcar-vin: reset bytesperline and sizeimage when resetting format
-  rcar-vin: use rvin_reset_format() in S_DV_TIMINGS
-  rcar-vin: fix how pads are handled for v4l2 subdevice operations
-  rcar-vin: fix standard in input enumeration
-  rcar-vin: move subdev source and sink pad index to rvin_graph_entity
-  rcar-vin: refactor pad lookup code
-  rcar-vin: move pad lookup to async bound handler
-  rcar-vin: use pad information when verifying media bus format
-  rcar-vin: decrease buffers needed to capture
-  rcar-vin: move functions which acts on hardware
-  rcar-vin: select capture mode based on free buffers
-  rcar-vin: allow switch between capturing modes when stalling
-  rcar-vin: refactor and fold in function after stall handling rework
-  rcar-vin: remove subdevice matching from bind and unbind callbacks
-  rcar-vin: register the video device at probe time
-  rcar-vin: add missing error check to propagate error
-  rcar-vin: fix bug in pixelformat selection
-
- drivers/media/platform/rcar-vin/rcar-core.c |  96 +++++++++---
- drivers/media/platform/rcar-vin/rcar-dma.c  | 230 ++++++++++++++--------------
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 139 ++++++-----------
- drivers/media/platform/rcar-vin/rcar-vin.h  |  10 +-
- 4 files changed, 248 insertions(+), 227 deletions(-)
-
--- 
-2.13.0
+Best regards,
+Krzysztof
