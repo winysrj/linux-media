@@ -1,200 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36128 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933204AbdEKR1U (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 May 2017 13:27:20 -0400
-From: Kieran Bingham <kbingham@kernel.org>
-To: laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
-        sakari.ailus@iki.fi
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [RFC PATCH v2 2/4] arm64: dts: r8a7795: salvator-x: enable VIN, CSI and ADV7482
-Date: Thu, 11 May 2017 18:21:21 +0100
-Message-Id: <b7f89ec984dcb1cd14c61de72b43c6e55fd80b88.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.5d2526b759f71c06d51df279c3d5885aca476fb6.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.5d2526b759f71c06d51df279c3d5885aca476fb6.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.5d2526b759f71c06d51df279c3d5885aca476fb6.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.5d2526b759f71c06d51df279c3d5885aca476fb6.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40138 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751029AbdEaULJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 May 2017 16:11:09 -0400
+Date: Wed, 31 May 2017 22:11:07 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v7 00/34] i.MX Media Driver
+Message-ID: <20170531201107.GB16962@amd>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+ <dd82968a-4c0b-12a4-f43b-7e63a255812d@xs4all.nl>
+ <20170529153637.GH29527@valkosipuli.retiisi.org.uk>
+ <08dcd6f6-e0ef-a6a0-cfc3-4fcd55624169@gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="KFztAG8eRSV9hGtP"
+Content-Disposition: inline
+In-Reply-To: <08dcd6f6-e0ef-a6a0-cfc3-4fcd55624169@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Provide bindings between the VIN, CSI and the ADV7482 on the r8a7795.
+--KFztAG8eRSV9hGtP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts | 147 ++++++++++++++-
- 1 file changed, 147 insertions(+)
+Hi!
 
-diff --git a/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts b/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts
-index 7a8986edcdc0..e295f041b36a 100644
---- a/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts
-+++ b/arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts
-@@ -196,6 +196,22 @@
- 			};
- 		};
- 	};
-+
-+	hdmi {
-+		port {
-+			hdmi_in: endpoint {
-+				remote-endpoint = <&adv7482_hdmi>;
-+			};
-+		};
-+	};
-+
-+	cvbs {
-+		port {
-+			cvbs_in: endpoint {
-+				remote-endpoint = <&adv7482_ain8>;
-+			};
-+		};
-+	};
- };
- 
- &du {
-@@ -387,6 +403,68 @@
- 	};
- };
- 
-+&i2c4 {
-+	status = "okay";
-+
-+	clock-frequency = <100000>;
-+
-+	video-receiver@70 {
-+		compatible = "adi,adv7482";
-+		reg = <0x70>;
-+
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			adv7482_hdmi: endpoint@1 {
-+				reg = <1>;
-+				remote-endpoint = <&hdmi_in>;
-+			};
-+		};
-+
-+		port@8 {
-+			reg = <8>;
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			adv7482_ain8: endpoint@1 {
-+				reg = <1>;
-+				remote-endpoint = <&cvbs_in>;
-+			};
-+		};
-+
-+		port@10 {
-+			reg = <10>;
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			adv7482_txa: endpoint@1 {
-+				reg = <1>;
-+				clock-lanes = <0>;
-+				data-lanes = <1 2 3 4>;
-+				remote-endpoint = <&csi40_in>;
-+			};
-+		};
-+
-+		port@11 {
-+			reg = <11>;
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			adv7482_txb: endpoint@1 {
-+				reg = <1>;
-+				clock-lanes = <0>;
-+				data-lanes = <1>;
-+				remote-endpoint = <&csi20_in>;
-+			};
-+		};
-+	};
-+};
-+
- &rcar_sound {
- 	pinctrl-0 = <&sound_pins &sound_clk_pins>;
- 	pinctrl-names = "default";
-@@ -577,3 +655,72 @@
- &pciec1 {
- 	status = "okay";
- };
-+
-+&vin0 {
-+	status = "okay";
-+};
-+
-+&vin1 {
-+	status = "okay";
-+};
-+
-+&vin2 {
-+	status = "okay";
-+};
-+
-+&vin3 {
-+	status = "okay";
-+};
-+
-+&vin4 {
-+	status = "okay";
-+};
-+
-+&vin5 {
-+	status = "okay";
-+};
-+
-+&vin6 {
-+	status = "okay";
-+};
-+
-+&vin7 {
-+	status = "okay";
-+};
-+
-+&csi20 {
-+	status = "okay";
-+
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+			csi20_in: endpoint@0 {
-+				clock-lanes = <0>;
-+				data-lanes = <1>;
-+				remote-endpoint = <&adv7482_txb>;
-+			};
-+		};
-+	};
-+};
-+
-+&csi40 {
-+	status = "okay";
-+
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			csi40_in: endpoint@0 {
-+				clock-lanes = <0>;
-+				data-lanes = <1 2 3 4>;
-+				remote-endpoint = <&adv7482_txa>;
-+			};
-+		};
-+	};
-+};
--- 
-git-series 0.9.1
+> >If there's a need for this (there should not be, as the controls are exp=
+osed
+> >to the user space through the sub-device nodes as the other drivers do),=
+ the
+> >framework APIs need to be extended.
+>=20
+> Right, this gets back to the media framework usability arguments. At least
+> myself, Philipp, and Russell feel that automatic inheritance of a configu=
+red
+> pipeline's controls to a video device adds to the usability.
+
+For the record, usability can be pretty much fixed in v4l-utils... I
+have patches that try ioctls on a list of fd's. Now we need a way to
+find out which /dev/video* files belong to single camera. I believe
+kernel already has required APIs, we just need to apply v4l-utils
+patch to use them...
+
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--KFztAG8eRSV9hGtP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlkvI1sACgkQMOfwapXb+vLfEgCfe4WFiqKmIIhFCORleJixmS6S
+V/EAn0APxvTmxHyOU+IpJUkFFYcKPjqx
+=Zw9u
+-----END PGP SIGNATURE-----
+
+--KFztAG8eRSV9hGtP--
