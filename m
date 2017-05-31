@@ -1,44 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54466 "EHLO mail.kernel.org"
+Received: from imap.netup.ru ([77.72.80.14]:45536 "EHLO imap.netup.ru"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754425AbdEQONz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 May 2017 10:13:55 -0400
-From: Kieran Bingham <kbingham@kernel.org>
-To: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-        niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v3 1/2] v4l: subdev: tolerate null in media_entity_to_v4l2_subdev
-Date: Wed, 17 May 2017 15:13:17 +0100
-Message-Id: <2a3a6d999502db1b6a47706b4da92d396075b22b.1495029016.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.29a91b9366a11bb7dbf4118ea12b84f2d48a8989.1495029016.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.29a91b9366a11bb7dbf4118ea12b84f2d48a8989.1495029016.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.29a91b9366a11bb7dbf4118ea12b84f2d48a8989.1495029016.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.29a91b9366a11bb7dbf4118ea12b84f2d48a8989.1495029016.git-series.kieran.bingham+renesas@ideasonboard.com>
+        id S1751059AbdEaM1X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 May 2017 08:27:23 -0400
+Received: from mail-oi0-f46.google.com (mail-oi0-f46.google.com [209.85.218.46])
+        by imap.netup.ru (Postfix) with ESMTPSA id 70E378B3F86
+        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 15:27:21 +0300 (MSK)
+Received: by mail-oi0-f46.google.com with SMTP id l18so13029016oig.2
+        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 05:27:20 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170409193828.18458-17-d.scheller.oss@gmail.com>
+References: <20170409193828.18458-1-d.scheller.oss@gmail.com> <20170409193828.18458-17-d.scheller.oss@gmail.com>
+From: Abylay Ospan <aospan@netup.ru>
+Date: Wed, 31 May 2017 08:26:59 -0400
+Message-ID: <CAK3bHNWSBhF4vi6ZntRf6wAHfxE-qFcxqbtfVvUoMrh2P1LnEQ@mail.gmail.com>
+Subject: Re: [PATCH 16/19] [media] ddbridge: board control setup, ts quirk flags
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: Kozlov Sergey <serjk@netup.ru>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>, rjkm@metzlerbros.de
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+not related to cxd2841er. I'm skipping this ...
 
-Return NULL, if a null entity is parsed for it's v4l2_subdev
+2017-04-09 15:38 GMT-04:00 Daniel Scheller <d.scheller.oss@gmail.com>:
+> From: Daniel Scheller <d.scheller@gmx.net>
+>
+> This is a backport of the board control setup from the vendor provided
+> dddvb driver package, which does additional device initialisation based
+> on the board_control device info values. Also backports the TS quirk
+> flags which is used to control setup and usage of the tuner modules
+> soldered on the bridge cards (e.g. CineCTv7, CineS2 V7, MaxA8 and the
+> likes).
+>
+> Functionality originates from ddbridge vendor driver. Permission for
+> reuse and kernel inclusion was formally granted by Ralph Metzler
+> <rjkm@metzlerbros.de>.
+>
+> Cc: Ralph Metzler <rjkm@metzlerbros.de>
+> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> ---
+>  drivers/media/pci/ddbridge/ddbridge-core.c | 13 +++++++++++++
+>  drivers/media/pci/ddbridge/ddbridge-regs.h |  4 ++++
+>  drivers/media/pci/ddbridge/ddbridge.h      | 10 ++++++++++
+>  3 files changed, 27 insertions(+)
+>
+> diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+> index 12f5aa3..6b49fa9 100644
+> --- a/drivers/media/pci/ddbridge/ddbridge-core.c
+> +++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+> @@ -1763,6 +1763,19 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+>         ddbwritel(0xfff0f, INTERRUPT_ENABLE);
+>         ddbwritel(0, MSI1_ENABLE);
+>
+> +       /* board control */
+> +       if (dev->info->board_control) {
+> +               ddbwritel(0, DDB_LINK_TAG(0) | BOARD_CONTROL);
+> +               msleep(100);
+> +               ddbwritel(dev->info->board_control_2,
+> +                       DDB_LINK_TAG(0) | BOARD_CONTROL);
+> +               usleep_range(2000, 3000);
+> +               ddbwritel(dev->info->board_control_2
+> +                       | dev->info->board_control,
+> +                       DDB_LINK_TAG(0) | BOARD_CONTROL);
+> +               usleep_range(2000, 3000);
+> +       }
+> +
+>         if (ddb_i2c_init(dev) < 0)
+>                 goto fail1;
+>         ddb_ports_init(dev);
+> diff --git a/drivers/media/pci/ddbridge/ddbridge-regs.h b/drivers/media/pci/ddbridge/ddbridge-regs.h
+> index 6ae8103..98cebb9 100644
+> --- a/drivers/media/pci/ddbridge/ddbridge-regs.h
+> +++ b/drivers/media/pci/ddbridge/ddbridge-regs.h
+> @@ -34,6 +34,10 @@
+>
+>  /* ------------------------------------------------------------------------- */
+>
+> +#define BOARD_CONTROL    0x30
+> +
+> +/* ------------------------------------------------------------------------- */
+> +
+>  /* Interrupt controller                                     */
+>  /* How many MSI's are available depends on HW (Min 2 max 8) */
+>  /* How many are usable also depends on Host platform        */
+> diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
+> index 0898f60..734e18e 100644
+> --- a/drivers/media/pci/ddbridge/ddbridge.h
+> +++ b/drivers/media/pci/ddbridge/ddbridge.h
+> @@ -43,6 +43,10 @@
+>  #define DDB_MAX_PORT    4
+>  #define DDB_MAX_INPUT   8
+>  #define DDB_MAX_OUTPUT  4
+> +#define DDB_MAX_LINK    4
+> +#define DDB_LINK_SHIFT 28
+> +
+> +#define DDB_LINK_TAG(_x) (_x << DDB_LINK_SHIFT)
+>
+>  struct ddb_info {
+>         int   type;
+> @@ -51,6 +55,12 @@ struct ddb_info {
+>         char *name;
+>         int   port_num;
+>         u32   port_type[DDB_MAX_PORT];
+> +       u32   board_control;
+> +       u32   board_control_2;
+> +       u8    ts_quirks;
+> +#define TS_QUIRK_SERIAL   1
+> +#define TS_QUIRK_REVERSED 2
+> +#define TS_QUIRK_ALT_OSC  8
+>  };
+>
+>  /* DMA_SIZE MUST be divisible by 188 and 128 !!! */
+> --
+> 2.10.2
+>
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- include/media/v4l2-subdev.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 5f1669c45642..d43fa7ca3a92 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -829,7 +829,7 @@ struct v4l2_subdev {
- };
- 
- #define media_entity_to_v4l2_subdev(ent) \
--	container_of(ent, struct v4l2_subdev, entity)
-+	ent ? container_of(ent, struct v4l2_subdev, entity) : NULL
- #define vdev_to_v4l2_subdev(vdev) \
- 	((struct v4l2_subdev *)video_get_drvdata(vdev))
- 
+
 -- 
-git-series 0.9.1
+Abylay Ospan,
+NetUP Inc.
+http://www.netup.tv
