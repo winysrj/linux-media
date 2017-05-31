@@ -1,169 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:35066 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1164969AbdEYAb2 (ORCPT
+Received: from relmlor3.renesas.com ([210.160.252.173]:7976 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751189AbdEaI6c (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 May 2017 20:31:28 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v7 27/34] media: imx: csi: add support for bayer formats
-Date: Wed, 24 May 2017 17:29:42 -0700
-Message-Id: <1495672189-29164-28-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+        Wed, 31 May 2017 04:58:32 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v6 6/7] dt-bindings: media: Add Renesas R-Car DRIF binding
+Date: Wed, 31 May 2017 09:44:56 +0100
+Message-Id: <20170531084457.4800-7-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <20170531084457.4800-1-ramesh.shanmugasundaram@bp.renesas.com>
+References: <20170531084457.4800-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Russell King <rmk+kernel@armlinux.org.uk>
+Add binding documentation for Renesas R-Car Digital Radio Interface
+(DRIF) controller.
 
-Bayer formats must be treated as generic data and passthrough mode must
-be used.  Add the correct setup for these formats.
-
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-
-- added check to csi_link_validate() to verify that destination is
-  IDMAC output pad when passthrough conditions exist: bayer formats
-  and 16-bit parallel buses.
-
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Acked-by: Rob Herring <robh@kernel.org>
 ---
- drivers/staging/media/imx/imx-media-csi.c | 74 ++++++++++++++++++++++++-------
- 1 file changed, 57 insertions(+), 17 deletions(-)
+ .../devicetree/bindings/media/renesas,drif.txt     | 176 +++++++++++++++++++++
+ 1 file changed, 176 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index b9416ea6..7defe53 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -288,10 +288,11 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- 	struct imx_media_video_dev *vdev = priv->vdev;
- 	struct v4l2_of_endpoint *sensor_ep;
- 	struct v4l2_mbus_framefmt *infmt;
--	unsigned int burst_size;
- 	struct ipu_image image;
-+	u32 passthrough_bits;
- 	dma_addr_t phys[2];
- 	bool passthrough;
-+	u32 burst_size;
- 	int ret;
- 
- 	infmt = &priv->format_mbus[CSI_SINK_PAD];
-@@ -309,24 +310,52 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- 	image.phys0 = phys[0];
- 	image.phys1 = phys[1];
- 
--	ret = ipu_cpmem_set_image(priv->idmac_ch, &image);
--	if (ret)
--		goto unsetup_vb2;
--
--	burst_size = (image.pix.width & 0xf) ? 8 : 16;
--
--	ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
--
- 	/*
--	 * If the sensor uses 16-bit parallel CSI bus, we must handle
--	 * the data internally in the IPU as 16-bit generic, aka
--	 * passthrough mode.
-+	 * Check for conditions that require the IPU to handle the
-+	 * data internally as generic data, aka passthrough mode:
-+	 * - raw bayer formats
-+	 * - the sensor bus is 16-bit parallel
- 	 */
--	passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
--		       sensor_ep->bus.parallel.bus_width >= 16);
-+	switch (image.pix.pixelformat) {
-+	case V4L2_PIX_FMT_SBGGR8:
-+	case V4L2_PIX_FMT_SGBRG8:
-+	case V4L2_PIX_FMT_SGRBG8:
-+	case V4L2_PIX_FMT_SRGGB8:
-+		burst_size = 8;
-+		passthrough = true;
-+		passthrough_bits = 8;
-+		break;
-+	case V4L2_PIX_FMT_SBGGR16:
-+	case V4L2_PIX_FMT_SGBRG16:
-+	case V4L2_PIX_FMT_SGRBG16:
-+	case V4L2_PIX_FMT_SRGGB16:
-+		burst_size = 4;
-+		passthrough = true;
-+		passthrough_bits = 16;
-+		break;
-+	default:
-+		burst_size = (image.pix.width & 0xf) ? 8 : 16;
-+		passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
-+			       sensor_ep->bus.parallel.bus_width >= 16);
-+		passthrough_bits = 16;
-+		break;
-+	}
- 
--	if (passthrough)
--		ipu_cpmem_set_format_passthrough(priv->idmac_ch, 16);
-+	if (passthrough) {
-+		ipu_cpmem_set_resolution(priv->idmac_ch, image.rect.width,
-+					 image.rect.height);
-+		ipu_cpmem_set_stride(priv->idmac_ch, image.pix.bytesperline);
-+		ipu_cpmem_set_buffer(priv->idmac_ch, 0, image.phys0);
-+		ipu_cpmem_set_buffer(priv->idmac_ch, 1, image.phys1);
-+		ipu_cpmem_set_format_passthrough(priv->idmac_ch,
-+						 passthrough_bits);
-+	} else {
-+		ret = ipu_cpmem_set_image(priv->idmac_ch, &image);
-+		if (ret)
-+			goto unsetup_vb2;
-+	}
+diff --git a/Documentation/devicetree/bindings/media/renesas,drif.txt b/Documentation/devicetree/bindings/media/renesas,drif.txt
+new file mode 100644
+index 000000000000..39516b94c28f
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
+@@ -0,0 +1,176 @@
++Renesas R-Car Gen3 Digital Radio Interface controller (DRIF)
++------------------------------------------------------------
 +
-+	ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
- 
- 	/*
- 	 * Set the channel for the direct CSI-->memory via SMFC
-@@ -823,6 +852,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
- 			     struct v4l2_subdev_format *sink_fmt)
- {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	const struct imx_media_pixfmt *incc;
- 	struct v4l2_of_endpoint *sensor_ep;
- 	struct imx_media_subdev *sensor;
- 	bool is_csi2;
-@@ -844,6 +874,16 @@ static int csi_link_validate(struct v4l2_subdev *sd,
- 	priv->sensor = sensor;
- 	sensor_ep = &priv->sensor->sensor_ep;
- 	is_csi2 = (sensor_ep->bus_type == V4L2_MBUS_CSI2);
-+	incc = priv->cc[CSI_SINK_PAD];
++R-Car Gen3 DRIF is a SPI like receive only slave device. A general
++representation of DRIF interfacing with a master device is shown below.
 +
-+	if (priv->dest != IPU_CSI_DEST_IDMAC &&
-+	    (incc->bayer || (!is_csi2 &&
-+			     sensor_ep->bus.parallel.bus_width >= 16))) {
-+		v4l2_err(&priv->sd,
-+			 "bayer/16-bit parallel buses must go to IDMAC pad\n");
-+		ret = -EINVAL;
-+		goto out;
-+	}
- 
- 	if (is_csi2) {
- 		int vc_num = 0;
-@@ -868,7 +908,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
- 
- 	/* select either parallel or MIPI-CSI2 as input to CSI */
- 	ipu_set_csi_src_mux(priv->ipu, priv->csi_id, is_csi2);
--
-+out:
- 	mutex_unlock(&priv->lock);
- 	return ret;
- }
+++---------------------+                +---------------------+
++|                     |-----SCK------->|CLK                  |
++|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
++|                     |-----SD0------->|D0                   |
++|                     |-----SD1------->|D1                   |
+++---------------------+                +---------------------+
++
++As per datasheet, each DRIF channel (drifn) is made up of two internal
++channels (drifn0 & drifn1). These two internal channels share the common
++CLK & SYNC. Each internal channel has its own dedicated resources like
++irq, dma channels, address space & clock. This internal split is not
++visible to the external master device.
++
++The device tree model represents each internal channel as a separate node.
++The internal channels sharing the CLK & SYNC are tied together by their
++phandles using a property called "renesas,bonding". For the rest of
++the documentation, unless explicitly stated, the word channel implies an
++internal channel.
++
++When both internal channels are enabled they need to be managed together
++as one (i.e.) they cannot operate alone as independent devices. Out of the
++two, one of them needs to act as a primary device that accepts common
++properties of both the internal channels. This channel is identified by a
++property called "renesas,primary-bond".
++
++To summarize,
++   - When both the internal channels that are bonded together are enabled,
++     the zeroth channel is selected as primary-bond. This channels accepts
++     properties common to all the members of the bond.
++   - When only one of the bonded channels need to be enabled, the property
++     "renesas,bonding" or "renesas,primary-bond" will have no effect. That
++     enabled channel can act alone as any other independent device.
++
++Required properties of an internal channel:
++-------------------------------------------
++- compatible:	"renesas,r8a7795-drif" if DRIF controller is a part of R8A7795 SoC.
++		"renesas,rcar-gen3-drif" for a generic R-Car Gen3 compatible device.
++
++		When compatible with the generic version, nodes must list the
++		SoC-specific version corresponding to the platform first
++		followed by the generic version.
++
++- reg: offset and length of that channel.
++- interrupts: associated with that channel.
++- clocks: phandle and clock specifier of that channel.
++- clock-names: clock input name string: "fck".
++- dmas: phandles to the DMA channels.
++- dma-names: names of the DMA channel: "rx".
++- renesas,bonding: phandle to the other channel.
++
++Optional properties of an internal channel:
++-------------------------------------------
++- power-domains: phandle to the respective power domain.
++
++Required properties of an internal channel when:
++	- It is the only enabled channel of the bond (or)
++	- If it acts as primary among enabled bonds
++--------------------------------------------------------
++- pinctrl-0: pin control group to be used for this channel.
++- pinctrl-names: must be "default".
++- renesas,primary-bond: empty property indicating the channel acts as primary
++			among the bonded channels.
++- port: child port node corresponding to the data input, in accordance with
++	the video interface bindings defined in
++	Documentation/devicetree/bindings/media/video-interfaces.txt. The port
++	node must contain at least one endpoint.
++
++Optional endpoint property:
++---------------------------
++- sync-active: Indicates sync signal polarity, 0/1 for low/high respectively.
++	       This property maps to SYNCAC bit in the hardware manual. The
++	       default is 1 (active high).
++
++Example:
++--------
++
++(1) Both internal channels enabled:
++-----------------------------------
++
++When interfacing with a third party tuner device with two data pins as shown
++below.
++
+++---------------------+                +---------------------+
++|                     |-----SCK------->|CLK                  |
++|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
++|                     |-----SD0------->|D0                   |
++|                     |-----SD1------->|D1                   |
+++---------------------+                +---------------------+
++
++	drif00: rif@e6f40000 {
++		compatible = "renesas,r8a7795-drif",
++			     "renesas,rcar-gen3-drif";
++		reg = <0 0xe6f40000 0 0x64>;
++		interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cpg CPG_MOD 515>;
++		clock-names = "fck";
++		dmas = <&dmac1 0x20>, <&dmac2 0x20>;
++		dma-names = "rx", "rx";
++		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
++		renesas,bonding = <&drif01>;
++		renesas,primary-bond;
++		pinctrl-0 = <&drif0_pins>;
++		pinctrl-names = "default";
++		port {
++			drif0_ep: endpoint {
++			     remote-endpoint = <&tuner_ep>;
++			};
++		};
++	};
++
++	drif01: rif@e6f50000 {
++		compatible = "renesas,r8a7795-drif",
++			     "renesas,rcar-gen3-drif";
++		reg = <0 0xe6f50000 0 0x64>;
++		interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cpg CPG_MOD 514>;
++		clock-names = "fck";
++		dmas = <&dmac1 0x22>, <&dmac2 0x22>;
++		dma-names = "rx", "rx";
++		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
++		renesas,bonding = <&drif00>;
++	};
++
++
++(2) Internal channel 1 alone is enabled:
++----------------------------------------
++
++When interfacing with a third party tuner device with one data pin as shown
++below.
++
+++---------------------+                +---------------------+
++|                     |-----SCK------->|CLK                  |
++|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
++|                     |                |D0 (unused)          |
++|                     |-----SD-------->|D1                   |
+++---------------------+                +---------------------+
++
++	drif00: rif@e6f40000 {
++		compatible = "renesas,r8a7795-drif",
++			     "renesas,rcar-gen3-drif";
++		reg = <0 0xe6f40000 0 0x64>;
++		interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cpg CPG_MOD 515>;
++		clock-names = "fck";
++		dmas = <&dmac1 0x20>, <&dmac2 0x20>;
++		dma-names = "rx", "rx";
++		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
++		renesas,bonding = <&drif01>;
++	};
++
++	drif01: rif@e6f50000 {
++		compatible = "renesas,r8a7795-drif",
++			     "renesas,rcar-gen3-drif";
++		reg = <0 0xe6f50000 0 0x64>;
++		interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cpg CPG_MOD 514>;
++		clock-names = "fck";
++		dmas = <&dmac1 0x22>, <&dmac2 0x22>;
++		dma-names = "rx", "rx";
++		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
++		renesas,bonding = <&drif00>;
++		pinctrl-0 = <&drif0_pins>;
++		pinctrl-names = "default";
++		port {
++			drif0_ep: endpoint {
++			     remote-endpoint = <&tuner_ep>;
++			     sync-active = <0>;
++			};
++		};
++	};
 -- 
-2.7.4
+2.12.2
