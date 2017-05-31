@@ -1,104 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:58171 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755286AbdEHPFL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 May 2017 11:05:11 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, posciak@chromium.org,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v4 05/18] vb2: Anticipate queue specific DMA attributes for USERPTR buffers
-Date: Mon,  8 May 2017 18:03:17 +0300
-Message-Id: <1494255810-12672-6-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from smtprelay0136.hostedemail.com ([216.40.44.136]:56006 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750862AbdEaEGq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 May 2017 00:06:46 -0400
+Message-ID: <1496203602.2618.54.camel@perches.com>
+Subject: Re: [PATCH v2] [media] vb2: core: Lower the log level of debug
+ outputs
+From: Joe Perches <joe@perches.com>
+To: Hirokazu Honda <hiroh@chromium.org>
+Cc: Pawel Osciak <pawel@osciak.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Tue, 30 May 2017 21:06:42 -0700
+In-Reply-To: <CAO5uPHPWGABuKf3FuAky2BRx+9E=n-QhZ94RPQ7wEuHAwC1qGg@mail.gmail.com>
+References: <20170530094901.1807-1-hiroh@chromium.org>
+         <1496139572.2618.19.camel@perches.com>
+         <CAO5uPHO7GwxCTk2OqQA5NfrL0-Jyt5SB-jVpeUA_eCrqR7u5xA@mail.gmail.com>
+         <1496196991.2618.47.camel@perches.com>
+         <CAO5uPHPWGABuKf3FuAky2BRx+9E=n-QhZ94RPQ7wEuHAwC1qGg@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DMA attributes were available for the memop implementation for MMAP
-buffers but not for USERPTR buffers. Do the same for USERPTR. This patch
-makes no functional changes.
+On Wed, 2017-05-31 at 12:28 +0900, Hirokazu Honda wrote:
+> If I understand a bitmap correctly, it is necessary to change the log level
+> for each message.
+> I didn't mean a bitmap will take a long CPU time.
+> I mean the work to change so takes a long time.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/videobuf2-core.c       | 2 +-
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 3 ++-
- drivers/media/v4l2-core/videobuf2-dma-sg.c     | 3 ++-
- drivers/media/v4l2-core/videobuf2-vmalloc.c    | 3 ++-
- include/media/videobuf2-core.h                 | 3 ++-
- 5 files changed, 9 insertions(+), 5 deletions(-)
+No, none of the messages or levels need change,
+only the >= test changes to & so that for instance,
+level 1 and level 3 messages could be emitted
+without also emitting level 2 messages.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index e866115..c659b64 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1025,7 +1025,7 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
- 		mem_priv = call_ptr_memop(vb, get_userptr,
- 				q->alloc_devs[plane] ? : q->dev,
- 				planes[plane].m.userptr,
--				planes[plane].length, dma_dir);
-+				planes[plane].length, dma_dir, q->dma_attrs);
- 		if (IS_ERR(mem_priv)) {
- 			dprintk(1, "failed acquiring userspace memory for plane %d\n",
- 				plane);
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index d29a07f..30082a4 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -475,7 +475,8 @@ static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn
- #endif
- 
- static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
--	unsigned long size, enum dma_data_direction dma_dir)
-+	unsigned long size, enum dma_data_direction dma_dir,
-+	unsigned long attrs)
- {
- 	struct vb2_dc_buf *buf;
- 	struct frame_vector *vec;
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 29fde1a..102ddb2 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -220,7 +220,8 @@ static void vb2_dma_sg_finish(void *buf_priv)
- 
- static void *vb2_dma_sg_get_userptr(struct device *dev, unsigned long vaddr,
- 				    unsigned long size,
--				    enum dma_data_direction dma_dir)
-+				    enum dma_data_direction dma_dir,
-+				    unsigned long dma_attrs)
- {
- 	struct vb2_dma_sg_buf *buf;
- 	struct sg_table *sgt;
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index f83253a..a4914fc 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -73,7 +73,8 @@ static void vb2_vmalloc_put(void *buf_priv)
- 
- static void *vb2_vmalloc_get_userptr(struct device *dev, unsigned long vaddr,
- 				     unsigned long size,
--				     enum dma_data_direction dma_dir)
-+				     enum dma_data_direction dma_dir,
-+				     unsigned long dma_attrs)
- {
- 	struct vb2_vmalloc_buf *buf;
- 	struct frame_vector *vec;
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index cb97c22..4172f6e 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -122,7 +122,8 @@ struct vb2_mem_ops {
- 
- 	void		*(*get_userptr)(struct device *dev, unsigned long vaddr,
- 					unsigned long size,
--					enum dma_data_direction dma_dir);
-+					enum dma_data_direction dma_dir,
-+					unsigned long dma_attrs);
- 	void		(*put_userptr)(void *buf_priv);
- 
- 	void		(*prepare)(void *buf_priv);
--- 
-2.7.4
+The patch suggested is all that would be required.
