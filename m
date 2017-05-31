@@ -1,380 +1,300 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:11135 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933410AbdEZB6n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 May 2017 21:58:43 -0400
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "mchehab@kernel.org" <mchehab@kernel.org>,
-        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
-        "s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
-Subject: RE: [PATCH] dw9714: Initial driver for dw9714 VCM
-Date: Fri, 26 May 2017 01:58:40 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A595AA0A4B5@FMSMSX114.amr.corp.intel.com>
-References: <1495763377-12254-1-git-send-email-rajmohan.mani@intel.com>
-In-Reply-To: <1495763377-12254-1-git-send-email-rajmohan.mani@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mail-pf0-f182.google.com ([209.85.192.182]:36358 "EHLO
+        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750984AbdEaG6p (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 May 2017 02:58:45 -0400
+Received: by mail-pf0-f182.google.com with SMTP id m17so6042319pfg.3
+        for <linux-media@vger.kernel.org>; Tue, 30 May 2017 23:58:44 -0700 (PDT)
+From: Tomasz Figa <tfiga@chromium.org>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Tomasz Figa <tfiga@chromium.org>
+Subject: [PATCH RFC] v4l2-core: Use kvmalloc() for potentially big allocations
+Date: Wed, 31 May 2017 15:58:37 +0900
+Message-Id: <20170531065837.30346-1-tfiga@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
-Please follow v5 of this patch for the latest and ignore this patch.
-Sorry for the noise.
+There are multiple places where arrays or otherwise variable sized
+buffer are allocated through V4L2 core code, including things like
+controls, memory pages, staging buffers for ioctls and so on. Such
+allocations can potentially require an order > 0 allocation from the
+page allocator, which is not guaranteed to be fulfilled and is likely to
+fail on a system with severe memory fragmentation (e.g. a system with
+very long uptime).
 
-Raj
+Since the memory being allocated is intended to be used by the CPU
+exclusively, we can consider using vmalloc() as a fallback and this is
+exactly what the recently merged kvmalloc() helpers do. A kmalloc() call
+is still attempted, even for order > 0 allocations, but it is done
+with __GFP_NORETRY and __GFP_NOWARN, with expectation of failing if
+requested memory is not available instantly. Only then the vmalloc()
+fallback is used. This should give us fast and more reliable allocations
+even on systems with higher memory pressure and/or more fragmentation,
+while still retaining the same performance level on systems not
+suffering from such conditions.
 
-> -----Original Message-----
-> From: Mani, Rajmohan
-> Sent: Thursday, May 25, 2017 6:50 PM
-> To: linux-media@vger.kernel.org
-> Cc: mchehab@kernel.org; hverkuil@xs4all.nl; tfiga@chromium.org;
-> sakari.ailus@iki.fi; s.nawrocki@samsung.com; Toivonen, Tuukka
-> <tuukka.toivonen@intel.com>; Mani, Rajmohan <rajmohan.mani@intel.com>
-> Subject: [PATCH] dw9714: Initial driver for dw9714 VCM
-> 
-> DW9714 is a 10 bit DAC, designed for linear control of voice coil motor.
-> 
-> This driver creates a V4L2 subdevice and provides control to set the desired
-> focus.
-> 
-> Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
-> ---
->  drivers/media/i2c/Kconfig  |   9 ++
->  drivers/media/i2c/Makefile |   1 +
->  drivers/media/i2c/dw9714.c | 292
-> +++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 302 insertions(+)
->  create mode 100644 drivers/media/i2c/dw9714.c
-> 
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig index
-> fd181c9..516e2f2 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -300,6 +300,15 @@ config VIDEO_AD5820
->  	  This is a driver for the AD5820 camera lens voice coil.
->  	  It is used for example in Nokia N900 (RX-51).
-> 
-> +config VIDEO_DW9714
-> +	tristate "DW9714 lens voice coil support"
-> +	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER &&
-> VIDEO_V4L2_SUBDEV_API
-> +	---help---
-> +	  This is a driver for the DW9714 camera lens voice coil.
-> +	  DW9714 is a 10 bit DAC with 120mA output current sink
-> +	  capability. This is designed for linear control of
-> +	  voice coil motors, controlled via I2C serial interface.
-> +
->  config VIDEO_SAA7110
->  	tristate "Philips SAA7110 video decoder"
->  	depends on VIDEO_V4L2 && I2C
-> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile index
-> 62323ec..987bd1f 100644
-> --- a/drivers/media/i2c/Makefile
-> +++ b/drivers/media/i2c/Makefile
-> @@ -21,6 +21,7 @@ obj-$(CONFIG_VIDEO_SAA7127) += saa7127.o
->  obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
->  obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
->  obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
-> +obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
->  obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
->  obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
->  obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o diff --git
-> a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c new file mode
-> 100644 index 0000000..22c84de
-> --- /dev/null
-> +++ b/drivers/media/i2c/dw9714.c
-> @@ -0,0 +1,292 @@
-> +/*
-> + * Copyright (c) 2015--2017 Intel Corporation.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License version
-> + * 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/delay.h>
-> +#include <linux/i2c.h>
-> +#include <linux/module.h>
-> +#include <linux/pm_runtime.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +
-> +#define DW9714_NAME		"dw9714"
-> +#define DW9714_MAX_FOCUS_POS	1023
-> +/*
-> + * This acts as the minimum granularity of lens movement.
-> + * Keep this value power of 2, so the control steps can be
-> + * uniformly adjusted for gradual lens movement, with desired
-> + * number of control steps.
-> + */
-> +#define DW9714_CTRL_STEPS	16
-> +#define DW9714_CTRL_DELAY_US	1000
-> +/*
-> + * S[3:2] = 0x00, codes per step for "Linear Slope Control"
-> + * S[1:0] = 0x00, step period
-> + */
-> +#define DW9714_DEFAULT_S 0x0
-> +#define DW9714_VAL(data, s) ((data) << 4 | (s))
-> +
-> +/* dw9714 device structure */
-> +struct dw9714_device {
-> +	struct i2c_client *client;
-> +	struct v4l2_ctrl_handler ctrls_vcm;
-> +	struct v4l2_subdev sd;
-> +	u16 current_val;
-> +};
-> +
-> +static inline struct dw9714_device *to_dw9714_vcm(struct v4l2_ctrl
-> +*ctrl) {
-> +	return container_of(ctrl->handler, struct dw9714_device, ctrls_vcm); }
-> +
-> +static inline struct dw9714_device *sd_to_dw9714_vcm(struct v4l2_subdev
-> +*subdev) {
-> +	return container_of(subdev, struct dw9714_device, sd); }
-> +
-> +static int dw9714_i2c_write(struct i2c_client *client, u16 data) {
-> +	int ret;
-> +	u16 val = cpu_to_be16(data);
-> +
-> +	ret = i2c_master_send(client, (const char *)&val, sizeof(val));
-> +	if (ret != sizeof(val)) {
-> +		dev_err(&client->dev, "I2C write fail\n");
-> +		return -EIO;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int dw9714_t_focus_vcm(struct dw9714_device *dw9714_dev, u16
-> +val) {
-> +	struct i2c_client *client = dw9714_dev->client;
-> +
-> +	dw9714_dev->current_val = val;
-> +
-> +	return dw9714_i2c_write(client, DW9714_VAL(val,
-> DW9714_DEFAULT_S)); }
-> +
-> +static int dw9714_set_ctrl(struct v4l2_ctrl *ctrl) {
-> +	struct dw9714_device *dev_vcm = to_dw9714_vcm(ctrl);
-> +
-> +	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE)
-> +		return dw9714_t_focus_vcm(dev_vcm, ctrl->val);
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +static const struct v4l2_ctrl_ops dw9714_vcm_ctrl_ops = {
-> +	.s_ctrl = dw9714_set_ctrl,
-> +};
-> +
-> +static int dw9714_init_controls(struct dw9714_device *dev_vcm) {
-> +	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
-> +	const struct v4l2_ctrl_ops *ops = &dw9714_vcm_ctrl_ops;
-> +	struct i2c_client *client = dev_vcm->client;
-> +
-> +	v4l2_ctrl_handler_init(hdl, 1);
-> +
-> +	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
-> +			  0, DW9714_MAX_FOCUS_POS,
-> DW9714_CTRL_STEPS, 0);
-> +
-> +	if (hdl->error)
-> +		dev_err(&client->dev, "dw9714_init_controls fail\n");
-> +	dev_vcm->sd.ctrl_handler = hdl;
-> +	return hdl->error;
-> +}
-> +
-> +static void dw9714_subdev_cleanup(struct dw9714_device *dw9714_dev) {
-> +	v4l2_async_unregister_subdev(&dw9714_dev->sd);
-> +	v4l2_device_unregister_subdev(&dw9714_dev->sd);
-> +	v4l2_ctrl_handler_free(&dw9714_dev->ctrls_vcm);
-> +	media_entity_cleanup(&dw9714_dev->sd.entity);
-> +}
-> +
-> +static int dw9714_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh
-> +*fh) {
-> +	struct dw9714_device *dw9714_dev = sd_to_dw9714_vcm(sd);
-> +	struct device *dev = &dw9714_dev->client->dev;
-> +	int rval;
-> +
-> +	rval = pm_runtime_get_sync(dev);
-> +	if (rval < 0) {
-> +		pm_runtime_put_noidle(dev);
-> +		return rval;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int dw9714_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh
-> +*fh) {
-> +	struct dw9714_device *dw9714_dev = sd_to_dw9714_vcm(sd);
-> +	struct device *dev = &dw9714_dev->client->dev;
-> +
-> +	pm_runtime_put(dev);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_internal_ops dw9714_int_ops = {
-> +	.open = dw9714_open,
-> +	.close = dw9714_close,
-> +};
-> +
-> +static const struct v4l2_subdev_ops dw9714_ops = { };
-> +
-> +static int dw9714_probe(struct i2c_client *client,
-> +			const struct i2c_device_id *devid)
-> +{
-> +	struct dw9714_device *dw9714_dev;
-> +	int rval;
-> +
-> +	dw9714_dev = devm_kzalloc(&client->dev, sizeof(*dw9714_dev),
-> +				  GFP_KERNEL);
-> +
-> +	if (dw9714_dev == NULL)
-> +		return -ENOMEM;
-> +
-> +	dw9714_dev->client = client;
-> +
-> +	v4l2_i2c_subdev_init(&dw9714_dev->sd, client, &dw9714_ops);
-> +	dw9714_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	dw9714_dev->sd.internal_ops = &dw9714_int_ops;
-> +
-> +	rval = dw9714_init_controls(dw9714_dev);
-> +	if (rval)
-> +		goto err_cleanup;
-> +
-> +	rval = media_entity_pads_init(&dw9714_dev->sd.entity, 0, NULL);
-> +	if (rval < 0)
-> +		goto err_cleanup;
-> +
-> +	dw9714_dev->sd.entity.function = MEDIA_ENT_F_LENS;
-> +
-> +	rval = v4l2_async_register_subdev(&dw9714_dev->sd);
-> +	if (rval < 0)
-> +		goto err_cleanup;
-> +
-> +	pm_runtime_enable(&client->dev);
-> +
-> +	return 0;
-> +
-> +err_cleanup:
-> +	dw9714_subdev_cleanup(dw9714_dev);
-> +	dev_err(&client->dev, "Probe failed: %d\n", rval);
-> +	return rval;
-> +}
-> +
-> +static int dw9714_remove(struct i2c_client *client) {
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct dw9714_device *dw9714_dev = sd_to_dw9714_vcm(sd);
-> +
-> +	pm_runtime_disable(&client->dev);
-> +	dw9714_subdev_cleanup(dw9714_dev);
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * This function sets the vcm position, so it consumes least current
-> + * The lens position is gradually moved in units of DW9714_CTRL_STEPS,
-> + * to make the movements smoothly.
-> + */
-> +static int __maybe_unused dw9714_vcm_suspend(struct device *dev) {
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct dw9714_device *dw9714_dev = sd_to_dw9714_vcm(sd);
-> +	int ret, val;
-> +
-> +	for (val = dw9714_dev->current_val & ~(DW9714_CTRL_STEPS - 1);
-> +	     val >= 0; val -= DW9714_CTRL_STEPS) {
-> +		ret = dw9714_i2c_write(client,
-> +				       DW9714_VAL(val, DW9714_DEFAULT_S));
-> +		if (ret)
-> +			dev_err_once(dev, "%s I2C failure: %d", __func__, ret);
-> +		usleep_range(DW9714_CTRL_DELAY_US,
-> DW9714_CTRL_DELAY_US + 10);
-> +	}
-> +	return 0;
-> +}
-> +
-> +/*
-> + * This function sets the vcm position to the value set by the user
-> + * through v4l2_ctrl_ops s_ctrl handler
-> + * The lens position is gradually moved in units of DW9714_CTRL_STEPS,
-> + * to make the movements smoothly.
-> + */
-> +static int  __maybe_unused dw9714_vcm_resume(struct device *dev) {
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct dw9714_device *dw9714_dev = sd_to_dw9714_vcm(sd);
-> +	int ret, val;
-> +
-> +	for (val = dw9714_dev->current_val % DW9714_CTRL_STEPS;
-> +	     val < dw9714_dev->current_val + DW9714_CTRL_STEPS - 1;
-> +	     val += DW9714_CTRL_STEPS) {
-> +		ret = dw9714_i2c_write(client,
-> +				       DW9714_VAL(val, DW9714_DEFAULT_S));
-> +		if (ret)
-> +			dev_err_ratelimited(dev, "%s I2C failure: %d",
-> +						__func__, ret);
-> +		usleep_range(DW9714_CTRL_DELAY_US,
-> DW9714_CTRL_DELAY_US + 10);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +#ifdef CONFIG_ACPI
-> +static const struct acpi_device_id dw9714_acpi_match[] = {
-> +	{"DW9714", 0},
-> +	{},
-> +};
-> +MODULE_DEVICE_TABLE(acpi, dw9714_acpi_match); #endif
-> +
-> +static const struct i2c_device_id dw9714_id_table[] = {
-> +	{DW9714_NAME, 0},
-> +	{}
-> +};
-> +
-> +MODULE_DEVICE_TABLE(i2c, dw9714_id_table);
-> +
-> +static const struct dev_pm_ops dw9714_pm_ops = {
-> +	SET_SYSTEM_SLEEP_PM_OPS(dw9714_vcm_suspend,
-> dw9714_vcm_resume)
-> +	SET_RUNTIME_PM_OPS(dw9714_vcm_suspend,
-> dw9714_vcm_resume, NULL) };
-> +
-> +static struct i2c_driver dw9714_i2c_driver = {
-> +	.driver = {
-> +		.name = DW9714_NAME,
-> +		.pm = &dw9714_pm_ops,
-> +		.acpi_match_table = ACPI_PTR(dw9714_acpi_match),
-> +	},
-> +	.probe = dw9714_probe,
-> +	.remove = dw9714_remove,
-> +	.id_table = dw9714_id_table,
-> +};
-> +
-> +module_i2c_driver(dw9714_i2c_driver);
-> +
-> +MODULE_AUTHOR("Tianshu Qiu <tian.shu.qiu@intel.com>");
-> +MODULE_AUTHOR("Jian Xu Zheng <jian.xu.zheng@intel.com>");
-> +MODULE_AUTHOR("Yuning Pu <yuning.pu@intel.com>");
-> MODULE_AUTHOR("Jouni
-> +Ukkonen <jouni.ukkonen@intel.com>"); MODULE_AUTHOR("Tommi Franttila
-> +<tommi.franttila@intel.com>");
-> +MODULE_DESCRIPTION("DW9714 VCM driver"); MODULE_LICENSE("GPL");
-> --
-> 1.9.1
+While at it, replace explicit array size calculations on changed
+allocations with kvmalloc_array().
+
+Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+---
+ drivers/media/v4l2-core/v4l2-async.c       |  4 ++--
+ drivers/media/v4l2-core/v4l2-ctrls.c       | 25 +++++++++++++------------
+ drivers/media/v4l2-core/v4l2-event.c       |  8 +++++---
+ drivers/media/v4l2-core/v4l2-ioctl.c       |  6 +++---
+ drivers/media/v4l2-core/v4l2-subdev.c      |  7 ++++---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c |  8 ++++----
+ 6 files changed, 31 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 96cc733f35ef..2d2d9f1f8831 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -204,7 +204,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 	if (!notifier->v4l2_dev)
+ 		return;
+ 
+-	dev = kmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
++	dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
+ 	if (!dev) {
+ 		dev_err(notifier->v4l2_dev->dev,
+ 			"Failed to allocate device cache!\n");
+@@ -260,7 +260,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 		}
+ 		put_device(d);
+ 	}
+-	kfree(dev);
++	kvfree(dev);
+ 
+ 	notifier->v4l2_dev = NULL;
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index ec42872d11cf..88025527c67e 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1745,8 +1745,9 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
+ 	INIT_LIST_HEAD(&hdl->ctrls);
+ 	INIT_LIST_HEAD(&hdl->ctrl_refs);
+ 	hdl->nr_of_buckets = 1 + nr_of_controls_hint / 8;
+-	hdl->buckets = kcalloc(hdl->nr_of_buckets, sizeof(hdl->buckets[0]),
+-			       GFP_KERNEL);
++	hdl->buckets = kvmalloc_array(hdl->nr_of_buckets,
++				      sizeof(hdl->buckets[0]),
++				      GFP_KERNEL | __GFP_ZERO);
+ 	hdl->error = hdl->buckets ? 0 : -ENOMEM;
+ 	return hdl->error;
+ }
+@@ -1773,9 +1774,9 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
+ 		list_del(&ctrl->node);
+ 		list_for_each_entry_safe(sev, next_sev, &ctrl->ev_subs, node)
+ 			list_del(&sev->node);
+-		kfree(ctrl);
++		kvfree(ctrl);
+ 	}
+-	kfree(hdl->buckets);
++	kvfree(hdl->buckets);
+ 	hdl->buckets = NULL;
+ 	hdl->cached = NULL;
+ 	hdl->error = 0;
+@@ -2022,7 +2023,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		 is_array)
+ 		sz_extra += 2 * tot_ctrl_size;
+ 
+-	ctrl = kzalloc(sizeof(*ctrl) + sz_extra, GFP_KERNEL);
++	ctrl = kvzalloc(sizeof(*ctrl) + sz_extra, GFP_KERNEL);
+ 	if (ctrl == NULL) {
+ 		handler_set_err(hdl, -ENOMEM);
+ 		return NULL;
+@@ -2071,7 +2072,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	}
+ 
+ 	if (handler_new_ref(hdl, ctrl)) {
+-		kfree(ctrl);
++		kvfree(ctrl);
+ 		return NULL;
+ 	}
+ 	mutex_lock(hdl->lock);
+@@ -2824,8 +2825,8 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 		return class_check(hdl, cs->which);
+ 
+ 	if (cs->count > ARRAY_SIZE(helper)) {
+-		helpers = kmalloc_array(cs->count, sizeof(helper[0]),
+-					GFP_KERNEL);
++		helpers = kvmalloc_array(cs->count, sizeof(helper[0]),
++					 GFP_KERNEL);
+ 		if (helpers == NULL)
+ 			return -ENOMEM;
+ 	}
+@@ -2877,7 +2878,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 	}
+ 
+ 	if (cs->count > ARRAY_SIZE(helper))
+-		kfree(helpers);
++		kvfree(helpers);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_g_ext_ctrls);
+@@ -3079,8 +3080,8 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 		return class_check(hdl, cs->which);
+ 
+ 	if (cs->count > ARRAY_SIZE(helper)) {
+-		helpers = kmalloc_array(cs->count, sizeof(helper[0]),
+-					GFP_KERNEL);
++		helpers = kvmalloc_array(cs->count, sizeof(helper[0]),
++					 GFP_KERNEL);
+ 		if (!helpers)
+ 			return -ENOMEM;
+ 	}
+@@ -3157,7 +3158,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 	}
+ 
+ 	if (cs->count > ARRAY_SIZE(helper))
+-		kfree(helpers);
++		kvfree(helpers);
+ 	return ret;
+ }
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
+index a75df6cb141f..5f072ef8ff57 100644
+--- a/drivers/media/v4l2-core/v4l2-event.c
++++ b/drivers/media/v4l2-core/v4l2-event.c
+@@ -24,6 +24,7 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/export.h>
++#include <linux/mm.h>
+ 
+ static unsigned sev_pos(const struct v4l2_subscribed_event *sev, unsigned idx)
+ {
+@@ -214,7 +215,8 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 	if (elems < 1)
+ 		elems = 1;
+ 
+-	sev = kzalloc(sizeof(*sev) + sizeof(struct v4l2_kevent) * elems, GFP_KERNEL);
++	sev = kvzalloc(sizeof(*sev) + sizeof(struct v4l2_kevent) * elems,
++		       GFP_KERNEL);
+ 	if (!sev)
+ 		return -ENOMEM;
+ 	for (i = 0; i < elems; i++)
+@@ -232,7 +234,7 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 
+ 	if (found_ev) {
+-		kfree(sev);
++		kvfree(sev);
+ 		return 0; /* Already listening */
+ 	}
+ 
+@@ -304,7 +306,7 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 	if (sev && sev->ops && sev->ops->del)
+ 		sev->ops->del(sev);
+ 
+-	kfree(sev);
++	kvfree(sev);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index e5a2187381db..098e8be36ea6 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2811,7 +2811,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 			parg = sbuf;
+ 		} else {
+ 			/* too big to allocate from stack */
+-			mbuf = kmalloc(_IOC_SIZE(cmd), GFP_KERNEL);
++			mbuf = kvmalloc(_IOC_SIZE(cmd), GFP_KERNEL);
+ 			if (NULL == mbuf)
+ 				return -ENOMEM;
+ 			parg = mbuf;
+@@ -2858,7 +2858,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 		 * array) fits into sbuf (so that mbuf will still remain
+ 		 * unused up to here).
+ 		 */
+-		mbuf = kmalloc(array_size, GFP_KERNEL);
++		mbuf = kvmalloc(array_size, GFP_KERNEL);
+ 		err = -ENOMEM;
+ 		if (NULL == mbuf)
+ 			goto out_array_args;
+@@ -2901,7 +2901,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 	}
+ 
+ out:
+-	kfree(mbuf);
++	kvfree(mbuf);
+ 	return err;
+ }
+ EXPORT_SYMBOL(video_usercopy);
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index da78497ae5ed..053d06bb407d 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -577,13 +577,14 @@ v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
+ 	if (!sd->entity.num_pads)
+ 		return NULL;
+ 
+-	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
++	cfg = kvmalloc_array(sd->entity.num_pads, sizeof(*cfg),
++			     GFP_KERNEL | __GFP_ZERO);
+ 	if (!cfg)
+ 		return NULL;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, init_cfg, cfg);
+ 	if (ret < 0 && ret != -ENOIOCTLCMD) {
+-		kfree(cfg);
++		kvfree(cfg);
+ 		return NULL;
+ 	}
+ 
+@@ -593,7 +594,7 @@ EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
+ 
+ void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg)
+ {
+-	kfree(cfg);
++	kvfree(cfg);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_subdev_free_pad_config);
+ #endif /* CONFIG_MEDIA_CONTROLLER */
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 8e8798a74760..5defa1f22ca2 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -120,8 +120,8 @@ static void *vb2_dma_sg_alloc(struct device *dev, unsigned long dma_attrs,
+ 	buf->num_pages = size >> PAGE_SHIFT;
+ 	buf->dma_sgt = &buf->sg_table;
+ 
+-	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+-			     GFP_KERNEL);
++	buf->pages = kvmalloc_array(buf->num_pages, sizeof(struct page *),
++				    GFP_KERNEL | __GFP_ZERO);
+ 	if (!buf->pages)
+ 		goto fail_pages_array_alloc;
+ 
+@@ -165,7 +165,7 @@ static void *vb2_dma_sg_alloc(struct device *dev, unsigned long dma_attrs,
+ 	while (num_pages--)
+ 		__free_page(buf->pages[num_pages]);
+ fail_pages_alloc:
+-	kfree(buf->pages);
++	kvfree(buf->pages);
+ fail_pages_array_alloc:
+ 	kfree(buf);
+ 	return ERR_PTR(-ENOMEM);
+@@ -187,7 +187,7 @@ static void vb2_dma_sg_put(void *buf_priv)
+ 		sg_free_table(buf->dma_sgt);
+ 		while (--i >= 0)
+ 			__free_page(buf->pages[i]);
+-		kfree(buf->pages);
++		kvfree(buf->pages);
+ 		put_device(buf->dev);
+ 		kfree(buf);
+ 	}
+-- 
+2.13.0.219.gdb65acc882-goog
