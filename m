@@ -1,150 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:55351 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751151AbdE3NEm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 May 2017 09:04:42 -0400
-Message-ID: <1496149479.5485.9.camel@pengutronix.de>
-Subject: Re: [PATCH v4 1/4] media-ctl: add pad support to
- set/get_frame_interval
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Received: from mga11.intel.com ([192.55.52.93]:53895 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751021AbdEaOSv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 May 2017 10:18:51 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id BFB2E20067
+        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 17:18:43 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Russell King <linux@armlinux.org.uk>
-Date: Tue, 30 May 2017 15:04:39 +0200
-In-Reply-To: <1490892676-11634-1-git-send-email-p.zabel@pengutronix.de>
-References: <1490892676-11634-1-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 1/3] vb2: Rename confusingly named internal buffer preparation functions
+Date: Wed, 31 May 2017 17:17:25 +0300
+Message-Id: <1496240247-25936-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1496240247-25936-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1496240247-25936-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Rename __qbuf_*() functions which are specific to a buffer type as
+__prepare_*() which matches with what they do. The naming was there for
+historical reasons; the purpose of the functions was changed without
+renaming them.
 
-On Thu, 2017-03-30 at 18:51 +0200, Philipp Zabel wrote:
-> This allows to set and get the frame interval on pads other than pad 0.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-any more comments on these?
-
-regards
-Philipp
-
-> ---
->  utils/media-ctl/libv4l2subdev.c | 24 ++++++++++++++----------
->  utils/media-ctl/v4l2subdev.h    |  4 ++--
->  2 files changed, 16 insertions(+), 12 deletions(-)
-> 
-> diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-> index 3dcf943c..2f2ac8ee 100644
-> --- a/utils/media-ctl/libv4l2subdev.c
-> +++ b/utils/media-ctl/libv4l2subdev.c
-> @@ -262,7 +262,8 @@ int v4l2_subdev_set_dv_timings(struct media_entity *entity,
->  }
->  
->  int v4l2_subdev_get_frame_interval(struct media_entity *entity,
-> -				   struct v4l2_fract *interval)
-> +				   struct v4l2_fract *interval,
-> +				   unsigned int pad)
->  {
->  	struct v4l2_subdev_frame_interval ival;
->  	int ret;
-> @@ -272,6 +273,7 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
->  		return ret;
->  
->  	memset(&ival, 0, sizeof(ival));
-> +	ival.pad = pad;
->  
->  	ret = ioctl(entity->fd, VIDIOC_SUBDEV_G_FRAME_INTERVAL, &ival);
->  	if (ret < 0)
-> @@ -282,7 +284,8 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
->  }
->  
->  int v4l2_subdev_set_frame_interval(struct media_entity *entity,
-> -				   struct v4l2_fract *interval)
-> +				   struct v4l2_fract *interval,
-> +				   unsigned int pad)
->  {
->  	struct v4l2_subdev_frame_interval ival;
->  	int ret;
-> @@ -292,6 +295,7 @@ int v4l2_subdev_set_frame_interval(struct media_entity *entity,
->  		return ret;
->  
->  	memset(&ival, 0, sizeof(ival));
-> +	ival.pad = pad;
->  	ival.interval = *interval;
->  
->  	ret = ioctl(entity->fd, VIDIOC_SUBDEV_S_FRAME_INTERVAL, &ival);
-> @@ -617,7 +621,7 @@ static int set_selection(struct media_pad *pad, unsigned int target,
->  	return 0;
->  }
->  
-> -static int set_frame_interval(struct media_entity *entity,
-> +static int set_frame_interval(struct media_pad *pad,
->  			      struct v4l2_fract *interval)
->  {
->  	int ret;
-> @@ -625,20 +629,20 @@ static int set_frame_interval(struct media_entity *entity,
->  	if (interval->numerator == 0)
->  		return 0;
->  
-> -	media_dbg(entity->media,
-> -		  "Setting up frame interval %u/%u on entity %s\n",
-> +	media_dbg(pad->entity->media,
-> +		  "Setting up frame interval %u/%u on pad %s/%u\n",
->  		  interval->numerator, interval->denominator,
-> -		  entity->info.name);
-> +		  pad->entity->info.name, pad->index);
->  
-> -	ret = v4l2_subdev_set_frame_interval(entity, interval);
-> +	ret = v4l2_subdev_set_frame_interval(pad->entity, interval, pad->index);
->  	if (ret < 0) {
-> -		media_dbg(entity->media,
-> +		media_dbg(pad->entity->media,
->  			  "Unable to set frame interval: %s (%d)",
->  			  strerror(-ret), ret);
->  		return ret;
->  	}
->  
-> -	media_dbg(entity->media, "Frame interval set: %u/%u\n",
-> +	media_dbg(pad->entity->media, "Frame interval set: %u/%u\n",
->  		  interval->numerator, interval->denominator);
->  
->  	return 0;
-> @@ -685,7 +689,7 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
->  			return ret;
->  	}
->  
-> -	ret = set_frame_interval(pad->entity, &interval);
-> +	ret = set_frame_interval(pad, &interval);
->  	if (ret < 0)
->  		return ret;
->  
-> diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-> index 9c8fee89..413094d5 100644
-> --- a/utils/media-ctl/v4l2subdev.h
-> +++ b/utils/media-ctl/v4l2subdev.h
-> @@ -200,7 +200,7 @@ int v4l2_subdev_set_dv_timings(struct media_entity *entity,
->   */
->  
->  int v4l2_subdev_get_frame_interval(struct media_entity *entity,
-> -	struct v4l2_fract *interval);
-> +	struct v4l2_fract *interval, unsigned int pad);
->  
->  /**
->   * @brief Set the frame interval on a sub-device.
-> @@ -217,7 +217,7 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
->   * @return 0 on success, or a negative error code on failure.
->   */
->  int v4l2_subdev_set_frame_interval(struct media_entity *entity,
-> -	struct v4l2_fract *interval);
-> +	struct v4l2_fract *interval, unsigned int pad);
->  
->  /**
->   * @brief Parse a string and apply format, crop and frame interval settings.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index c0175ea..9f3ce3b 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -956,9 +956,9 @@ void vb2_discard_done(struct vb2_queue *q)
+ EXPORT_SYMBOL_GPL(vb2_discard_done);
+ 
+ /**
+- * __qbuf_mmap() - handle qbuf of an MMAP buffer
++ * __prepare_mmap() - prepare an MMAP buffer
+  */
+-static int __qbuf_mmap(struct vb2_buffer *vb, const void *pb)
++static int __prepare_mmap(struct vb2_buffer *vb, const void *pb)
+ {
+ 	int ret = 0;
+ 
+@@ -969,9 +969,9 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const void *pb)
+ }
+ 
+ /**
+- * __qbuf_userptr() - handle qbuf of a USERPTR buffer
++ * __prepare_userptr() - prepare a USERPTR buffer
+  */
+-static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
++static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
+ {
+ 	struct vb2_plane planes[VB2_MAX_PLANES];
+ 	struct vb2_queue *q = vb->vb2_queue;
+@@ -1087,9 +1087,9 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
+ }
+ 
+ /**
+- * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
++ * __prepare_dmabuf() - prepare a DMABUF buffer
+  */
+-static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
++static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
+ {
+ 	struct vb2_plane planes[VB2_MAX_PLANES];
+ 	struct vb2_queue *q = vb->vb2_queue;
+@@ -1255,13 +1255,13 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+ 
+ 	switch (q->memory) {
+ 	case VB2_MEMORY_MMAP:
+-		ret = __qbuf_mmap(vb, pb);
++		ret = __prepare_mmap(vb, pb);
+ 		break;
+ 	case VB2_MEMORY_USERPTR:
+-		ret = __qbuf_userptr(vb, pb);
++		ret = __prepare_userptr(vb, pb);
+ 		break;
+ 	case VB2_MEMORY_DMABUF:
+-		ret = __qbuf_dmabuf(vb, pb);
++		ret = __prepare_dmabuf(vb, pb);
+ 		break;
+ 	default:
+ 		WARN(1, "Invalid queue type\n");
+-- 
+2.7.4
