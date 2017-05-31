@@ -1,55 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35528 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750830AbdE1Vrm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 May 2017 17:47:42 -0400
-Received: by mail-wm0-f68.google.com with SMTP id g15so13505686wmc.2
-        for <linux-media@vger.kernel.org>; Sun, 28 May 2017 14:47:41 -0700 (PDT)
-Date: Sun, 28 May 2017 23:47:38 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: aospan@netup.ru, serjk@netup.ru, mchehab@kernel.org,
-        linux-media@vger.kernel.org
-Cc: rjkm@metzlerbros.de
-Subject: Re: [PATCH 00/19] cxd2841er/ddbridge: support Sony CXD28xx hardware
-Message-ID: <20170528234738.6726df65@macbox>
-In-Reply-To: <20170409193828.18458-1-d.scheller.oss@gmail.com>
-References: <20170409193828.18458-1-d.scheller.oss@gmail.com>
+Received: from imap.netup.ru ([77.72.80.14]:46998 "EHLO imap.netup.ru"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751096AbdEaL5w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 May 2017 07:57:52 -0400
+Received: from mail-oi0-f51.google.com (mail-oi0-f51.google.com [209.85.218.51])
+        by imap.netup.ru (Postfix) with ESMTPSA id 8F0A78B3E6D
+        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 14:57:50 +0300 (MSK)
+Received: by mail-oi0-f51.google.com with SMTP id l18so12140903oig.2
+        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 04:57:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170409193828.18458-7-d.scheller.oss@gmail.com>
+References: <20170409193828.18458-1-d.scheller.oss@gmail.com> <20170409193828.18458-7-d.scheller.oss@gmail.com>
+From: Abylay Ospan <aospan@netup.ru>
+Date: Wed, 31 May 2017 07:57:28 -0400
+Message-ID: <CAK3bHNVwBE6WWH07dZeUO5PbdTBrg3szZwcRPWvo7SuXDkYmOQ@mail.gmail.com>
+Subject: Re: [PATCH 06/19] [media] dvb-frontends/cxd2841er: add variable for
+ configuration flags
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: Kozlov Sergey <serjk@netup.ru>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>, rjkm@metzlerbros.de
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Sun,  9 Apr 2017 21:38:09 +0200
-schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
+Acked-by: Abylay Ospan <aospan@netup.ru>
+
+2017-04-09 15:38 GMT-04:00 Daniel Scheller <d.scheller.oss@gmail.com>:
+> From: Daniel Scheller <d.scheller@gmx.net>
+>
+> Throughout the patch series some configuration flags will be added to the
+> demod driver. This patch prepares this by adding the flags var to
+> struct cxd2841er_config, which will serve as a bitmask to toggle various
+> options and behaviour in the driver.
+>
+> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> ---
+>  drivers/media/dvb-frontends/cxd2841er.c | 2 ++
+>  drivers/media/dvb-frontends/cxd2841er.h | 1 +
+>  2 files changed, 3 insertions(+)
+>
+> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+> index 6648bd1..f49a09b 100644
+> --- a/drivers/media/dvb-frontends/cxd2841er.c
+> +++ b/drivers/media/dvb-frontends/cxd2841er.c
+> @@ -65,6 +65,7 @@ struct cxd2841er_priv {
+>         u8                              system;
+>         enum cxd2841er_xtal             xtal;
+>         enum fe_caps caps;
+> +       u32                             flags;
+>  };
+>
+>  static const struct cxd2841er_cnr_data s_cn_data[] = {
+> @@ -3736,6 +3737,7 @@ static struct dvb_frontend *cxd2841er_attach(struct cxd2841er_config *cfg,
+>         priv->i2c_addr_slvx = (cfg->i2c_addr + 4) >> 1;
+>         priv->i2c_addr_slvt = (cfg->i2c_addr) >> 1;
+>         priv->xtal = cfg->xtal;
+> +       priv->flags = cfg->flags;
+>         priv->frontend.demodulator_priv = priv;
+>         dev_info(&priv->i2c->dev,
+>                 "%s(): I2C adapter %p SLVX addr %x SLVT addr %x\n",
+> diff --git a/drivers/media/dvb-frontends/cxd2841er.h b/drivers/media/dvb-frontends/cxd2841er.h
+> index 7f1acfb..2fb8b38 100644
+> --- a/drivers/media/dvb-frontends/cxd2841er.h
+> +++ b/drivers/media/dvb-frontends/cxd2841er.h
+> @@ -33,6 +33,7 @@ enum cxd2841er_xtal {
+>  struct cxd2841er_config {
+>         u8      i2c_addr;
+>         enum cxd2841er_xtal     xtal;
+> +       u32     flags;
+>  };
+>
+>  #if IS_REACHABLE(CONFIG_DVB_CXD2841ER)
+> --
+> 2.10.2
+>
 
 
-> Important note: This series depends on the stv0367/ddbridge series
-> posted earlier (patches 12 [1] and 13 [2], depending on the I2C
-> functions and the TDA18212 attach function).
-> 
-> This series improves the cxd2841er demodulator driver and adds some
-> bits to make it more versatile to be used in more scenarios. Also,
-> the ddbridge code is updated to recognize all hardware (PCIe
-> cards/bridges and DuoFlex modules) with Sony CXD28xx tuners,
-> including the newly introduced MaxA8 eight-tuner C2T2 cards.
-> 
-> The series has been tested (together with the STV0367 series) on a
-> wide variety of cards, including CineCTv7, DuoFlex C(2)T2 modules and
-> MaxA8 cards without any issues. Testing was done with TVHeadend, VDR
-> and MythTV.
-> 
-> Note that the i2c_gate_ctrl() flag is needed in this series aswell
-> since the i2c_gate_ctrl function needs to be remapped and mutex_lock
-> protected for the same reasons as in the STV0367 series.
-> 
-> Besides printk() warnings, checkpatch.pl doesn't complain.
 
-Ping on this series aswell.
-
-Abylay, would you please mind taking a look at the cxd2841er changes
-and check if you're fine with them?
-
-Regards,
-Daniel
+-- 
+Abylay Ospan,
+NetUP Inc.
+http://www.netup.tv
