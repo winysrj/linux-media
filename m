@@ -1,116 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60602 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1763985AbdEWNC1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 May 2017 09:02:27 -0400
-Date: Tue, 23 May 2017 16:02:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Kieran Bingham <kbingham@kernel.org>
-Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        kieran.bingham@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: Re: [PATCH v3 2/2] v4l: async: Match parent devices
-Message-ID: <20170523130222.GE29527@valkosipuli.retiisi.org.uk>
-References: <cover.33d4457de9c9f4e5285e7b1d18a8a92345c438d3.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
- <6154c8f092e1cb4f5286c1f11f4a846c821b53d6.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from imap.netup.ru ([77.72.80.14]:40579 "EHLO imap.netup.ru"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751053AbdEaMSE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 May 2017 08:18:04 -0400
+Received: from mail-oi0-f43.google.com (mail-oi0-f43.google.com [209.85.218.43])
+        by imap.netup.ru (Postfix) with ESMTPSA id F37558B3F00
+        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 15:18:02 +0300 (MSK)
+Received: by mail-oi0-f43.google.com with SMTP id b204so12763346oii.1
+        for <linux-media@vger.kernel.org>; Wed, 31 May 2017 05:18:02 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6154c8f092e1cb4f5286c1f11f4a846c821b53d6.1495473356.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <20170409193828.18458-12-d.scheller.oss@gmail.com>
+References: <20170409193828.18458-1-d.scheller.oss@gmail.com> <20170409193828.18458-12-d.scheller.oss@gmail.com>
+From: Abylay Ospan <aospan@netup.ru>
+Date: Wed, 31 May 2017 08:17:40 -0400
+Message-ID: <CAK3bHNUKm8+ZB+9rZH56gbp2S=i6b7zSGCxhKTsb3pfJKXRMLA@mail.gmail.com>
+Subject: Re: [PATCH 11/19] [media] dvb-frontends/cxd2841er: optionally tune
+ earlier in set_frontend()
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: Kozlov Sergey <serjk@netup.ru>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>, rjkm@metzlerbros.de
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Acked-by: Abylay Ospan <aospan@netup.ru>
 
-On Mon, May 22, 2017 at 06:36:38PM +0100, Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> Devices supporting multiple endpoints on a single device node must set
-> their subdevice fwnode to the endpoint to allow distinct comparisons.
-> 
-> Adapt the match_fwnode call to compare against the provided fwnodes
-> first, but also to search for a comparison against the parent fwnode.
-> 
-> This allows notifiers to pass the endpoint for comparison and still
-> support existing subdevices which store their default parent device
-> node.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
+2017-04-09 15:38 GMT-04:00 Daniel Scheller <d.scheller.oss@gmail.com>:
+> From: Daniel Scheller <d.scheller@gmx.net>
+>
+> When AUTO_IFHZ is set and the tuner is supposed to provide proper IF speed
+> values, it should be possible to have the tuner setup take place before
+> the demod is configured, else the demod might be configured with either
+> wrong (old), or even no values at all, which obviously will cause issues.
+> To set this behaviour in the most flexible way, this is done with a
+> separate flag instead of making this depend on AUTO_IFHZ.
+>
+> It should be evaluated if tuning shouldn't take place earlier in all cases
+> and hardware constellations.
+>
+> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 > ---
-> v2:
->  - Added documentation comments
->  - simplified the OF match by adding match_fwnode_of()
-> 
-> v3:
->  - Fix comments
->  - Fix sd_parent, and asd_parent usage
-> 
->  drivers/media/v4l2-core/v4l2-async.c | 36 ++++++++++++++++++++++++-----
->  1 file changed, 31 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index cbd919d4edd2..12c0707851fd 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -41,14 +41,40 @@ static bool match_devname(struct v4l2_subdev *sd,
->  	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
->  }
->  
-> +/*
-> + * Check whether the two device_node pointers refer to the same OF node. We
-> + * can't compare pointers directly as they can differ if overlays have been
-> + * applied.
-> + */
-> +static bool match_fwnode_of(struct fwnode_handle *a, struct fwnode_handle *b)
-> +{
-> +	return !of_node_cmp(of_node_full_name(to_of_node(a)),
-> +			    of_node_full_name(to_of_node(b)));
-> +}
+>  drivers/media/dvb-frontends/cxd2841er.c | 14 ++++++++++++--
+>  drivers/media/dvb-frontends/cxd2841er.h |  1 +
+>  2 files changed, 13 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+> index 7ca589a..894cb5a 100644
+> --- a/drivers/media/dvb-frontends/cxd2841er.c
+> +++ b/drivers/media/dvb-frontends/cxd2841er.c
+> @@ -3306,6 +3306,10 @@ static int cxd2841er_set_frontend_s(struct dvb_frontend *fe)
+>                 __func__,
+>                 (p->delivery_system == SYS_DVBS ? "DVB-S" : "DVB-S2"),
+>                  p->frequency, symbol_rate, priv->xtal);
 > +
-> +/*
-> + * As a measure to support drivers which have not been converted to use
-> + * endpoint matching, we also find the parent devices for cross-matching.
-> + *
-> + * When all devices use endpoint matching, this code can be simplified, and the
-> + * parent comparisons can be removed.
-> + */
->  static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
->  {
-> -	if (!is_of_node(sd->fwnode) || !is_of_node(asd->match.fwnode.fwnode))
-> -		return sd->fwnode == asd->match.fwnode.fwnode;
-> +	struct fwnode_handle *asd_fwnode = asd->match.fwnode.fwnode;
-> +	struct fwnode_handle *sd_parent, *asd_parent;
+> +       if (priv->flags & CXD2841ER_EARLY_TUNE)
+> +               cxd2841er_tuner_set(fe);
 > +
-> +	sd_parent = fwnode_graph_get_port_parent(sd->fwnode);
-> +	asd_parent = fwnode_graph_get_port_parent(asd_fwnode);
+>         switch (priv->state) {
+>         case STATE_SLEEP_S:
+>                 ret = cxd2841er_sleep_s_to_active_s(
+> @@ -3325,7 +3329,8 @@ static int cxd2841er_set_frontend_s(struct dvb_frontend *fe)
+>                 goto done;
+>         }
+>
+> -       cxd2841er_tuner_set(fe);
+> +       if (!(priv->flags & CXD2841ER_EARLY_TUNE))
+> +               cxd2841er_tuner_set(fe);
+>
+>         cxd2841er_tune_done(priv);
+>         timeout = ((3000000 + (symbol_rate - 1)) / symbol_rate) + 150;
+> @@ -3365,6 +3370,10 @@ static int cxd2841er_set_frontend_tc(struct dvb_frontend *fe)
+>
+>         dev_dbg(&priv->i2c->dev, "%s() delivery_system=%d bandwidth_hz=%d\n",
+>                  __func__, p->delivery_system, p->bandwidth_hz);
 > +
-> +	if (!is_of_node(sd->fwnode) || !is_of_node(asd_fwnode))
-> +		return sd->fwnode == asd_fwnode ||
-> +		       sd_parent == asd_fwnode ||
-> +		       sd->fwnode == asd_parent;
->  
-> -	return !of_node_cmp(of_node_full_name(to_of_node(sd->fwnode)),
-> -			    of_node_full_name(
-> -				    to_of_node(asd->match.fwnode.fwnode)));
-> +	return match_fwnode_of(sd->fwnode, asd_fwnode) ||
-> +	       match_fwnode_of(sd_parent, asd_fwnode) ||
-> +	       match_fwnode_of(sd->fwnode, asd_parent);
->  }
->  
->  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+> +       if (priv->flags & CXD2841ER_EARLY_TUNE)
+> +               cxd2841er_tuner_set(fe);
+> +
+>         if (p->delivery_system == SYS_DVBT) {
+>                 priv->system = SYS_DVBT;
+>                 switch (priv->state) {
+> @@ -3447,7 +3456,8 @@ static int cxd2841er_set_frontend_tc(struct dvb_frontend *fe)
+>         if (ret)
+>                 goto done;
+>
+> -       cxd2841er_tuner_set(fe);
+> +       if (!(priv->flags & CXD2841ER_EARLY_TUNE))
+> +               cxd2841er_tuner_set(fe);
+>
+>         cxd2841er_tune_done(priv);
+>         timeout = 2500;
+> diff --git a/drivers/media/dvb-frontends/cxd2841er.h b/drivers/media/dvb-frontends/cxd2841er.h
+> index 90ced97..061e551 100644
+> --- a/drivers/media/dvb-frontends/cxd2841er.h
+> +++ b/drivers/media/dvb-frontends/cxd2841er.h
+> @@ -28,6 +28,7 @@
+>  #define CXD2841ER_AUTO_IFHZ    2       /* bit 1 */
+>  #define CXD2841ER_TS_SERIAL    4       /* bit 2 */
+>  #define CXD2841ER_ASCOT                8       /* bit 3 */
+> +#define CXD2841ER_EARLY_TUNE   16      /* bit 4 */
+>
+>  enum cxd2841er_xtal {
+>         SONY_XTAL_20500, /* 20.5 MHz */
+> --
+> 2.10.2
+>
 
-Would this become easier to read if you handled all matching in what is
-called match_fwnode_of() above, also for non-OF fwnodes? Essentially you'd
-have what used to be match_fwnode() there, and new match_fwnode() would call
-that function with all the three combinations.
 
-I'd call the other function __match_fwnode() for instance.
 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Abylay Ospan,
+NetUP Inc.
+http://www.netup.tv
