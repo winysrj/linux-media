@@ -1,94 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53930 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932301AbdERMFG (ORCPT
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:34393 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751024AbdEaTrz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 May 2017 08:05:06 -0400
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [RFC PATCH v2 1/4] media: i2c: adv748x: add adv748x driver
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-References: <cover.5d2526b759f71c06d51df279c3d5885aca476fb6.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
- <6aba7dbe2cdecc1afe6efc25fd0cea3f26508b1d.1494523203.git-series.kieran.bingham+renesas@ideasonboard.com>
- <20170512164633.GL3227@valkosipuli.retiisi.org.uk>
- <399f5310-1270-40a0-843a-3a07ebf47f38@ideasonboard.com>
- <20170516115430.GN3227@valkosipuli.retiisi.org.uk>
- <76dee3f6-0187-1b9d-06ea-d49d85741d14@ideasonboard.com>
- <20170516222622.GQ3227@valkosipuli.retiisi.org.uk>
- <8db3955c-27fb-7c99-baa9-6337af7befac@ideasonboard.com>
-Cc: Kieran Bingham <kbingham@kernel.org>,
-        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        gennarone@gmail.com
-Message-ID: <550d08a6-a8af-975e-156e-b6daaa2923ef@ideasonboard.com>
-Date: Thu, 18 May 2017 13:04:55 +0100
+        Wed, 31 May 2017 15:47:55 -0400
+Date: Wed, 31 May 2017 14:47:53 -0500
+From: Rob Herring <robh@kernel.org>
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 6/7] [media] soc_camera: rcar_vin: use proper name for
+ the R-Car SoC
+Message-ID: <20170531194753.jefogkdi5fqlwxzv@rob-hp-laptop>
+References: <20170528093051.11816-1-wsa+renesas@sang-engineering.com>
+ <20170528093051.11816-7-wsa+renesas@sang-engineering.com>
 MIME-Version: 1.0
-In-Reply-To: <8db3955c-27fb-7c99-baa9-6337af7befac@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170528093051.11816-7-wsa+renesas@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Sun, May 28, 2017 at 11:30:49AM +0200, Wolfram Sang wrote:
+> It is 'R-Car', not 'RCar'. No code or binding changes, only descriptive text.
+> 
+> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+> ---
+> I suggest this trivial patch should be picked individually per susbsystem.
+> 
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 
->>> In omap3isp/isp.c: isp_fwnodes_parse() the async notifier is registered looking
->>> at the endpoints parent fwnode:
->>>
->>> 		isd->asd.match.fwnode.fwnode =
->>> 			fwnode_graph_get_remote_port_parent(fwnode);
->>>
->>> This would therefore not support ADV748x ... (it wouldn't know which TX/CSI
->>> entity to match against)
->>>
->>> So the way I see it is that all devices which currently register an async
->>> notifier should now register the match against the endpoint instead of the
->>> parent device:
->>>
->>>  - isd->asd.match.fwnode.fwnode = fwnode_graph_get_remote_port_parent(fwnode);
->>>  + isd->asd.match.fwnode.fwnode = fwnode;
->>>
->>> And then if we adapt the match to check against:
->>>    fwnode == fwnode || fwnode == fwnode_graph_get_remote_port_parent(fwnode);
->>
->> That's not enough as a master driver may use device node whereas the
->> sub-device driver uses endpoint node. You need to do it both ways.
->>
+Acked-by: Rob Herring <robh@kernel.org>
 
-I've worked through this and I'm convinced that it should not be both ways...
+If you're going to change the subject, "dt-bindings: media: ..." is 
+preferred.
 
-We are matching a Subdevice (SD) to an Async Subdevice Notifier (ASD)
-
-Bringing in 'endpoints' gives us the following match combinations
-
-
-  SD   ASD   : Result
-  ep   ep    : Match ... Subdevices can specify their endpoint node.
-                Notifiers can be updated to also specify the (remote) endpoint.
-
-  dev  ep    : Match  - We should take the parent of the ASD to match SD,
-                to support subdevices which default to their device node.
-
-  dev  dev   : Match - This is the current case for all other drivers
-                but Notifier ASDs can be converted to EP's
-
-  ep   dev   : No Match - We should *not* take the parent of the SD
-                If a subdevice has specified it's endpoint, (ADV748x)
-                Matching against the parent device is invalid.
-
-Finding and matching the parent of the SD would allow a driver to register a
-notifier ASD with a dev node, and expect to match a subdevice that has
-registered it's subdev with an EP node. This would erroneously allow drivers to
-register a notifier that would match against *both* of the ADV748x CSI2 entities.
-
-I have posted an implementation of this as:
- [PATCH v1 3/3] v4l: async: Match parent devices [0]
-
-I believe this to be correct - but I'm aware that I'm only really considering
-the OF side here... Please let me know if there's something I'm not taking into
-account.
-
-[0] https://www.spinics.net/lists/linux-media/msg115677.html
-
-Regards
---
-Kieran
+Rob
