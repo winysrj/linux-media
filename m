@@ -1,84 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41156 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751742AbdEDJtU (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57054 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750778AbdEaGkr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 May 2017 05:49:20 -0400
-Date: Thu, 4 May 2017 12:48:46 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Peter Rosin <peda@axentia.se>, Pavel Machek <pavel@ucw.cz>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v2 2/2] [media] platform: add video-multiplexer subdevice
- driver
-Message-ID: <20170504094845.GV7456@valkosipuli.retiisi.org.uk>
-References: <20170502150913.2168-1-p.zabel@pengutronix.de>
- <20170502150913.2168-2-p.zabel@pengutronix.de>
- <20170503192836.GN7456@valkosipuli.retiisi.org.uk>
- <1493881652.2381.6.camel@pengutronix.de>
- <20170504071703.GS7456@valkosipuli.retiisi.org.uk>
- <1493889978.2381.11.camel@pengutronix.de>
+        Wed, 31 May 2017 02:40:47 -0400
+Subject: Re: [RFC PATCH 6/7] drm: add support for DisplayPort
+ CEC-Tunneling-over-AUX
+To: Clint Taylor <clinton.a.taylor@intel.com>,
+        Daniel Vetter <daniel@ffwll.ch>
+Cc: Jani Nikula <jani.nikula@intel.com>,
+        intel-gfx@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+References: <20170525150626.29748-1-hverkuil@xs4all.nl>
+ <20170525150626.29748-7-hverkuil@xs4all.nl>
+ <20170526071856.v6sj4yv2vj5x73aq@phenom.ffwll.local>
+ <439ee1fd-8c2b-01ab-7b70-93d827ab30e7@intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0aa0ef0d-690d-7fc3-5571-6883fe59ec95@xs4all.nl>
+Date: Wed, 31 May 2017 08:40:42 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1493889978.2381.11.camel@pengutronix.de>
+In-Reply-To: <439ee1fd-8c2b-01ab-7b70-93d827ab30e7@intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
-
-On Thu, May 04, 2017 at 11:26:18AM +0200, Philipp Zabel wrote:
-> Hi Sakari,
+On 05/31/2017 01:57 AM, Clint Taylor wrote:
 > 
-> On Thu, 2017-05-04 at 10:17 +0300, Sakari Ailus wrote:
-> > Hi Philipp,
-> > 
-> > On Thu, May 04, 2017 at 09:07:32AM +0200, Philipp Zabel wrote:
-> > > On Wed, 2017-05-03 at 22:28 +0300, Sakari Ailus wrote:
-> > > > Hi Philipp,
-> > > > 
-> > > > Thanks for continuing working on this!
-> > > > 
-> > > > I have some minor comments below...
-> > > 
-> > > Thank you for the comments.
-> > > 
-> > > [...]
-> > > > Could you rebase this on the V4L2 fwnode patchset here, please?
-> > > > 
-> > > > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi>
-> > > >
-> > > > The conversion is rather simple, as shown here:
-> > > > 
-> > > > <URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=v4l2-acpi&id=679035e11bfdbea146fed5d52fb794b34dc9cea6>
-> > > 
-> > > What is the status of this patchset? Will this be merged soon?
-> > 
-> > I intend to send a pull request once the next rc1 tag is pulled on
-> > media-tree master. It depends on patches in linux-pm tree that aren't in
-> > media-tree yet.
 > 
-> I get conflicts trying to merge v4l2-acpi into v4.11 or media-tree
-> master. Could you provide an updated version?
+> On 05/26/2017 12:18 AM, Daniel Vetter wrote:
+>> On Thu, May 25, 2017 at 05:06:25PM +0200, Hans Verkuil wrote:
+>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>
+>>> This adds support for the DisplayPort CEC-Tunneling-over-AUX
+>>> feature that is part of the DisplayPort 1.3 standard.
+>>>
+>>> Unfortunately, not all DisplayPort/USB-C to HDMI adapters with a
+>>> chip that has this capability actually hook up the CEC pin, so
+>>> even though a CEC device is created, it may not actually work.
+>>>
+>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>> ---
+>>>    drivers/gpu/drm/Kconfig      |   3 +
+>>>    drivers/gpu/drm/Makefile     |   1 +
+>>>    drivers/gpu/drm/drm_dp_cec.c | 196 +++++++++++++++++++++++++++++++++++++++++++
+>>>    include/drm/drm_dp_helper.h  |  24 ++++++
+>>>    4 files changed, 224 insertions(+)
+>>>    create mode 100644 drivers/gpu/drm/drm_dp_cec.c
+>>>
+>>> diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+>>> index 78d7fc0ebb57..dd771ce8a3d0 100644
+>>> --- a/drivers/gpu/drm/Kconfig
+>>> +++ b/drivers/gpu/drm/Kconfig
+>>> @@ -120,6 +120,9 @@ config DRM_LOAD_EDID_FIRMWARE
+>>>    	  default case is N. Details and instructions how to build your own
+>>>    	  EDID data are given in Documentation/EDID/HOWTO.txt.
+>>>    
+>>> +config DRM_DP_CEC
+>>> +	bool
+>> We generally don't bother with a Kconfig for every little bit in drm, not
+>> worth the trouble (yes I know there's some exceptions, but somehow they're
+>> all from soc people). Just smash this into the KMS_HELPER one and live is
+>> much easier for drivers. Also allows you to drop the dummy inline
+>> functions.
+> All of the functions like cec_register_adapter() require
+> CONFIG_MEDIA_CEC_SUPPORT.
+> This will add a new dependency to the DRM drivers. All instances of
+> CONFIG_DRM_DP_CEC should be changed to CONFIG_MEDIA_CEC_SUPPORT so drm
+> can still be used without the media CEC drivers.
 
-What kind of conflicts? I wonder if something somewhere is out of sync. :-)
-My v4l2-acpi branch is on top of current media-tree master and appears to
-merge cleanly to v4.11 as well.
+This has changed in the next version. I realized the same thing and there
+are CEC core patches pending for 4.12 to solve this.
 
-It still wouldn't compile though as it depends on the fwnode graph patches.
+I plan on posting a new patch series for this later this week, and that
+will include those patches for 4.12 so it is easier to test this.
 
-I've merged those here:
+Regards,
 
-<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi-merge>
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Hans
