@@ -1,128 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:42028 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937812AbdEXAJ3 (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53738 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751041AbdEaM6j (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 May 2017 20:09:29 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2 2/2] media: entity: Add media_entity_pad_from_fwnode() function
-Date: Wed, 24 May 2017 02:09:07 +0200
-Message-Id: <20170524000907.13061-3-niklas.soderlund@ragnatech.se>
-In-Reply-To: <20170524000907.13061-1-niklas.soderlund@ragnatech.se>
-References: <20170524000907.13061-1-niklas.soderlund@ragnatech.se>
+        Wed, 31 May 2017 08:58:39 -0400
+Subject: Re: [PATCH] ARM: dts: exynos: Add HDMI CEC device to Exynos5 SoC
+ family
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <CGME20170531110029eucas1p14bb9468f72155d88364c0aa5093ac05d@eucas1p1.samsung.com>
+ <1496228417-31126-1-git-send-email-m.szyprowski@samsung.com>
+ <44c9e8c6-669c-848c-30df-eabad6dc1a39@xs4all.nl>
+ <2497f348-5d66-f10a-5591-c490b7ee8b4e@samsung.com>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0e11b430-b444-b1c0-5900-809193e32902@xs4all.nl>
+Date: Wed, 31 May 2017 14:58:32 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <2497f348-5d66-f10a-5591-c490b7ee8b4e@samsung.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+On 05/31/17 14:04, Marek Szyprowski wrote:
+> Hi Hans,
+> 
+> On 2017-05-31 13:17, Hans Verkuil wrote:
+>> On 05/31/17 13:00, Marek Szyprowski wrote:
+>>> Exynos5250 and Exynos542x SoCs have the same CEC hardware module as
+>>> Exynos4 SoC series, so enable support for it using the same compatible
+>>> string.
+>>>
+>>> Tested on Odroid XU3 (Exynos5422) and Google Snow (Exynos5250) boards.
+>> Thanks!
+>>
+>> Do you know if the CEC block is always on for these devices or only if there
+>> is a hotplug signal? That was a problem with the exynos4 odroid.
+> 
+> Odroid XU3 has exactly same wiring between SoC & HDMI connector (via 
+> IP4791CZ12
+> chip) as Odroid U3, so I expect the same issues.
+> 
+> I don't have schematic for Google Snow board, so I have no idea how it works
+> there.
+> 
+>> I have made a patch (not posted yet) to signal this in the device tree and
+>> added a CEC capability to signal this to the user.
+>>
+>> This capability will be added to 4.13 (see my patch 'cec: add CEC_CAP_NEEDS_HPD'
+>> from May 25th) since the DisplayPort CEC tunneling feature needs it as well.
+>>
+>> It's easy to test: don't connect an HDMI cable and run:
+>>
+>> cec-ctl --playback
+>> cec-ctl -t0 --image-view-on
+>>
+>> If this returns with a NACK error, then it is OK. If you get a kernel message
+>> that the transmit timed out, then you need this capability since CEC is disabled
+>> without HPD.
+> 
+> I've checked those commands, but on all tested boards (Odroid U3+, 
+> Odroid XU3 and
+> Google Snow) I get the following message:
+> 
+> Transmit from Unregistered to TV (255 to 0):
+> CEC_MSG_IMAGE_VIEW_ON (0x04)
+>          Sequence: 19 Tx Timestamp: 175.935s
+>          Tx, Error (1), Max Retries
+> 
+> I have never got a timeout message from the kernel. Do I need to enable 
+> some kind
+> of CEC debugs?
 
-This is a wrapper around the media entity pad_from_fwnode operation.
+Ah, that's right. CEC works, but the level shifter drops the CEC signal
+when there is no HPD. So this is actually quite hard to test.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/media-entity.c | 39 +++++++++++++++++++++++++++++++++++++++
- include/media/media-entity.h | 22 ++++++++++++++++++++++
- 2 files changed, 61 insertions(+)
+The easiest is to get a Pulse-Eight USB CEC adapter since then you can
+connect the odroid to the Pulse-Eight without connecting that to a TV
+in turn. Sending a CEC command would show up with the Pulse-Eight if CEC
+works without HPD.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index bc44193efa4798b4..c124754f739a8b94 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -18,6 +18,7 @@
- 
- #include <linux/bitmap.h>
- #include <linux/module.h>
-+#include <linux/property.h>
- #include <linux/slab.h>
- #include <media/media-entity.h>
- #include <media/media-device.h>
-@@ -386,6 +387,44 @@ struct media_entity *media_graph_walk_next(struct media_graph *graph)
- }
- EXPORT_SYMBOL_GPL(media_graph_walk_next);
- 
-+int media_entity_pad_from_fwnode(struct media_entity *entity,
-+				 struct fwnode_handle *fwnode,
-+				 int direction, unsigned int *pad)
-+{
-+	struct fwnode_endpoint endpoint;
-+	int i, tmp, ret;
-+
-+	if (!entity->ops || !entity->ops->pad_from_fwnode) {
-+		for (i = 0; i < entity->num_pads; i++) {
-+			if (entity->pads[i].flags & direction) {
-+				*pad = i;
-+				return 0;
-+			}
-+		}
-+
-+		return -ENXIO;
-+	}
-+
-+	ret = fwnode_graph_parse_endpoint(fwnode, &endpoint);
-+	if (ret)
-+		return ret;
-+
-+	ret = entity->ops->pad_from_fwnode(&endpoint, &tmp);
-+	if (ret)
-+		return ret;
-+
-+	if (tmp >= entity->num_pads)
-+		return -ENXIO;
-+
-+	if (!(entity->pads[tmp].flags & direction))
-+		return -ENXIO;
-+
-+	*pad = tmp;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(media_entity_pad_from_fwnode);
-+
- /* -----------------------------------------------------------------------------
-  * Pipeline management
-  */
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 2aea22b0409d1070..7507181609bec43c 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -822,6 +822,28 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
- struct media_entity *media_entity_get(struct media_entity *entity);
- 
- /**
-+ * media_entity_pad_from_fwnode - Get pad number from fwnode
-+ *
-+ * @entity: The entity
-+ * @fwnode: Pointer to fwnode_handle which should be used to find pad
-+ * @direction: Expected direction of the pad
-+ * @pad: Pointer to pad which will should be filled in
-+ *
-+ * This function can be used to resolve the media pad number from
-+ * a fwnode. This is useful for devices which uses more complex
-+ * mappings of media pads.
-+ *
-+ * If the entity do not implement the pad_from_fwnode() operation
-+ * this function searches the entity for the first pad that matches
-+ * the @direction.
-+ *
-+ * Return: return 0 on success.
-+ */
-+int media_entity_pad_from_fwnode(struct media_entity *entity,
-+				 struct fwnode_handle *fwnode,
-+				 int direction, unsigned int *pad);
-+
-+/**
-  * media_graph_walk_init - Allocate resources used by graph walk.
-  *
-  * @graph: Media graph structure that will be used to walk the graph
--- 
-2.13.0
+Regards,
+
+	Hans
