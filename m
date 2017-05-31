@@ -1,145 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36582 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754536AbdEKHzs (ORCPT
+Received: from relmlor3.renesas.com ([210.160.252.173]:62134 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750869AbdEaI6J (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 May 2017 03:55:48 -0400
-Date: Thu, 11 May 2017 10:55:12 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Rajmohan Mani <rajmohan.mani@intel.com>,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v4] dw9714: Initial driver for dw9714 VCM
-Message-ID: <20170511075511.GF3227@valkosipuli.retiisi.org.uk>
-References: <1494478820-22199-1-git-send-email-rajmohan.mani@intel.com>
- <CAAFQd5Ck3CKp-JR8d3d1X9-2cRS0oZG9GPwcpunBq50EY7qCtg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5Ck3CKp-JR8d3d1X9-2cRS0oZG9GPwcpunBq50EY7qCtg@mail.gmail.com>
+        Wed, 31 May 2017 04:58:09 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v6 1/7] media: v4l2-ctrls: Reserve controls for MAX217X
+Date: Wed, 31 May 2017 09:44:51 +0100
+Message-Id: <20170531084457.4800-2-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <20170531084457.4800-1-ramesh.shanmugasundaram@bp.renesas.com>
+References: <20170531084457.4800-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Reserve controls for MAX217X RF to Bits tuner family. These hybrid
+radio receiver chips are highly programmable and hence reserving 32
+controls.
 
-On Thu, May 11, 2017 at 02:30:31PM +0800, Tomasz Figa wrote:
-...
-> > +
-> > +/*
-> > + * This function sets the vcm position, so it consumes least current
-> > + * The lens position is gradually moved in units of DW9714_CTRL_STEPS,
-> > + * to make the movements smoothly.
-> > + */
-> > +static int dw9714_vcm_suspend(struct device *dev)
-> > +{
-> > +       struct i2c_client *client = to_i2c_client(dev);
-> > +       struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> > +       struct dw9714_device *dw9714_dev = container_of(sd,
-> > +                                                       struct dw9714_device,
-> > +                                                       sd);
-> > +       int ret, val;
-> > +
-> > +       for (val = dw9714_dev->current_val & ~(DW9714_CTRL_STEPS - 1);
-> > +            val >= 0; val -= DW9714_CTRL_STEPS) {
-> > +               ret = dw9714_i2c_write(client,
-> > +                                      DW9714_VAL((u16) val, DW9714_DEFAULT_S));
-> 
-> DW9714_VAL() already contains such cast. Anyway, I still think they
-> don't really give us anything and should be removed.
-> 
-> > +               if (ret)
-> > +                       dev_err(dev, "%s I2C failure: %d", __func__, ret);
-> 
-> I think we should just return an error code here and fail the suspend.
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/uapi/linux/v4l2-controls.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-The result from an error here is that the user would hear an audible click.
-I don't think it's worth failing system suspend. :-)
-
-But as no action is taken based on the error code, there could be quite a
-few of these messages. How about dev_err_once()? For resume I might use
-dev_err_ratelimited().
-
-> 
-> > +               usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
-> > +       }
-> > +       return 0;
-> > +}
-> > +
-> > +/*
-> > + * This function sets the vcm position to the value set by the user
-> > + * through v4l2_ctrl_ops s_ctrl handler
-> > + * The lens position is gradually moved in units of DW9714_CTRL_STEPS,
-> > + * to make the movements smoothly.
-> > + */
-> > +static int dw9714_vcm_resume(struct device *dev)
-> > +{
-> > +       struct i2c_client *client = to_i2c_client(dev);
-> > +       struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> > +       struct dw9714_device *dw9714_dev = container_of(sd,
-> > +                                                       struct dw9714_device,
-> > +                                                       sd);
-> > +       int ret, val;
-> > +
-> > +       for (val = dw9714_dev->current_val % DW9714_CTRL_STEPS;
-> > +            val < dw9714_dev->current_val + DW9714_CTRL_STEPS - 1;
-> > +            val += DW9714_CTRL_STEPS) {
-> > +               ret = dw9714_i2c_write(client,
-> > +                                      DW9714_VAL((u16) val, DW9714_DEFAULT_S));
-> 
-> Ditto.
-> 
-> > +               if (ret)
-> > +                       dev_err(dev, "%s I2C failure: %d", __func__, ret);
-> 
-> Ditto.
-> 
-> > +               usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
-> > +       }
-> > +
-> > +       /* restore v4l2 control values */
-> > +       ret = v4l2_ctrl_handler_setup(&dw9714_dev->ctrls_vcm);
-> > +       return ret;
-> 
-> Hmm, actually I believe v4l2_ctrl_handler_setup() will call .s_ctrl()
-> here and set the motor value again. If we just make .s_ctrl() do the
-> adjustment in steps properly, we can simplify the resume to simply
-> call v4l2_ctrl_handler_setup() alone.
-
-Or drop the v4l2_ctrl_handler_setup() here.
-
-The reason is that the driver uses direct drive method for the lens and is
-thus responsible for managing ringing compensation as well. Ringing
-compensation support could be added to the driver later on; I think another
-control will be needed to control the mode.
-
-> 
-> > +}
-> 
-> #endif
-> 
-> #ifdef CONFIG_PM
-> 
-> > +
-> > +static int dw9714_runtime_suspend(struct device *dev)
-> > +{
-> > +       return dw9714_vcm_suspend(dev);
-> > +}
-> > +
-> > +static int dw9714_runtime_resume(struct device *dev)
-> > +{
-> > +       return dw9714_vcm_resume(dev);
-> > +}
-> 
-> #endif
-> 
-> #ifdef CONFIG_PM_SLEEP
-
-It's hard to get these right, and in 99 % of the cases you'll have them
-anyway. __maybe_unused is quite useful in such cases.
-
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 0d2e1e01fbd5..83b28b41123f 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -180,6 +180,11 @@ enum v4l2_colorfx {
+  * We reserve 16 controls for this driver. */
+ #define V4L2_CID_USER_TC358743_BASE		(V4L2_CID_USER_BASE + 0x1080)
+ 
++/* The base for the max217x driver controls.
++ * We reserve 32 controls for this driver
++ */
++#define V4L2_CID_USER_MAX217X_BASE		(V4L2_CID_USER_BASE + 0x1090)
++
+ /* MPEG-class control IDs */
+ /* The MPEG controls are applicable to all codec controls
+  * and the 'MPEG' part of the define is historical */
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.12.2
