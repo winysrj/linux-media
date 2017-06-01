@@ -1,53 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:58857 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751126AbdFBMfm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Jun 2017 08:35:42 -0400
-Subject: Re: [PATCH 0/3] tc358743: minor driver fixes
-To: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Mats Randgaard <matrandg@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-References: <cover.1496397071.git.dave.stevenson@raspberrypi.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4dd94754-2a3c-532c-f07c-88ac3765efcf@xs4all.nl>
-Date: Fri, 2 Jun 2017 14:35:36 +0200
+Received: from mail-lf0-f47.google.com ([209.85.215.47]:33691 "EHLO
+        mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751013AbdFAHUU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Jun 2017 03:20:20 -0400
+Date: Thu, 1 Jun 2017 09:20:23 +0200
+From: Johan Hovold <johan@kernel.org>
+To: Sebastian <sebastian@iseclab.org>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: Null Pointer Dereference in mceusb
+Message-ID: <20170601072023.GM6735@localhost>
+References: <CAL8_TH8JTPd5ki-v-+T-Z+VGRg-vfsx=rYMjKq_vbUfTBPff3w@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <cover.1496397071.git.dave.stevenson@raspberrypi.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAL8_TH8JTPd5ki-v-+T-Z+VGRg-vfsx=rYMjKq_vbUfTBPff3w@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/02/17 14:18, Dave Stevenson wrote:
-> These 3 patches for TC358743 came out of trying to use the
-> existing driver with a new Raspberry Pi CSI-2 receiver driver.
+[ +CC: media list ]
 
-Nice! Doing that has been on my todo list for ages but I never got
-around to it. I have one of these and using the Raspberry Pi with
-the tc358743 would allow me to add a CEC driver as well.
-
-> A couple of the subdevice API calls were not implemented or
-> otherwise gave odd results. Those are fixed.
+On Wed, May 31, 2017 at 08:25:42PM +0200, Sebastian wrote:
+> Hi list,
 > 
-> The TC358743 interface board being used didn't have the IRQ
-> line wired up to the SoC. "interrupts" is listed as being
-> optional in the DT binding, but the driver didn't actually
-> function if it wasn't provided.
-> 
-> Dave Stevenson (3):
->   [media] tc358743: Add enum_mbus_code
->   [media] tc358743: Setup default mbus_fmt before registering
->   [media] tc358743: Add support for platforms without IRQ line
+> as kindly suggested by gregkh
+> (https://bugzilla.kernel.org/show_bug.cgi?id=195943), I am now sending
+> the mail to this mailing list.
+> I have set up the latest Ubuntu 17.04 server within a qemu/kvm virtual
+> machine and experienced the following bug in the mce_usb driver:
 
-All looks good, I'll take this for 4.12.
+What is the lsusb -v output for your device? And have you successfully
+used this device with this driver before?
+ 
+> [ 2873.734554] usb usb1-port1: unable to enumerate USB device
+> [ 2906.929123] BUG: unable to handle kernel NULL pointer dereference
+> at 0000000000000003
+> [ 2906.931178] IP: mce_request_packet+0x66/0x210 [mceusb]
+> [ 2906.932512] PGD 0
+> [ 2906.932514]
+> [ 2906.933561] Oops: 0000 [#1] SMP
+> [ 2906.934382] Modules linked in: kaweth zd1211rw ir_rc6_decoder
+> ir_lirc_codec lirc_dev rc_rc6_mce mceusb rc_core ftdi_sio usbserial
+> usb_storage usbhid hid at
+> 76c50x_usb mac80211 cfg80211 ppdev joydev input_leds i2c_piix4
+> parport_pc parport pvpanic mac_hid serio_raw ib_iser rdma_cm iw_cm
+> ib_cm ib_core configfs iscsi
+> _tcp libiscsi_tcp libiscsi scsi_transport_iscsi ip_tables x_tables
+> autofs4 btrfs raid10 raid456 async_raid6_recov async_memcpy async_pq
+> async_xor async_tx xor
+>  raid6_pq libcrc32c raid1 raid0 multipath linear cirrus ttm
+> drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops psmouse
+> drm e1000 floppy pata_acpi
+> [ 2906.950961] CPU: 0 PID: 3 Comm: kworker/0:0 Not tainted
+> 4.10.0-19-generic #21-Ubuntu
 
-Regards,
+Can you reproduce this with a more recent mainline kernel (e.g.
+4.11.3)?
 
-	Hans
+This looks like something which could happen if the device is lacking an
+OUT endpoint, and a sanity check to catch that recently went in (and was
+backported to the non-EOL stable trees).
 
-> 
->  drivers/media/i2c/tc358743.c | 59 +++++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 58 insertions(+), 1 deletion(-)
-> 
+Thanks,
+Johan
