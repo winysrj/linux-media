@@ -1,96 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:58449 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752136AbdF0QJN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 12:09:13 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v3 5/8] [media] s5p-jpeg: Split s5p_jpeg_parse_hdr()
-Date: Tue, 27 Jun 2017 18:08:51 +0200
-Message-Id: <1498579734-1594-6-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
-References: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+Received: from mx2.suse.de ([195.135.220.15]:42514 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751174AbdFAU7I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Jun 2017 16:59:08 -0400
+From: Takashi Iwai <tiwai@suse.de>
+To: alsa-devel@alsa-project.org
+Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
+        Mark Brown <broonie@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-usb@vger.kernel.org
+Subject: [PATCH v2 07/27] ALSA: rme32: Convert to the new PCM copy ops
+Date: Thu,  1 Jun 2017 22:58:30 +0200
+Message-Id: <20170601205850.24993-8-tiwai@suse.de>
+In-Reply-To: <20170601205850.24993-1-tiwai@suse.de>
+References: <20170601205850.24993-1-tiwai@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch moves the subsampling value decoding read from the jpeg
-header into its own function. This new function is called
-s5p_jpeg_subsampling_decode() and returns true if it successfully
-decodes the subsampling value, false otherwise.
+Replace the copy and the silence ops with the new ops.
+The conversion is straightforward with standard helper functions, and
+now we can drop the bytes <-> frames conversions in callbacks.
 
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 42 ++++++++++++++++-------------
- 1 file changed, 24 insertions(+), 18 deletions(-)
+ sound/pci/rme32.c | 65 ++++++++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 43 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 1769744..0783809 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1096,6 +1096,29 @@ static void skip(struct s5p_jpeg_buffer *buf, long len)
- 		get_byte(buf);
+diff --git a/sound/pci/rme32.c b/sound/pci/rme32.c
+index 96d15db65dfd..ce438c62b0b3 100644
+--- a/sound/pci/rme32.c
++++ b/sound/pci/rme32.c
+@@ -254,39 +254,46 @@ static inline unsigned int snd_rme32_pcm_byteptr(struct rme32 * rme32)
  }
  
-+static bool s5p_jpeg_subsampling_decode(struct s5p_jpeg_ctx *ctx,
-+					unsigned int subsampling)
-+{
-+	switch (subsampling) {
-+	case 0x11:
-+		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_444;
-+		break;
-+	case 0x21:
-+		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_422;
-+		break;
-+	case 0x22:
-+		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_420;
-+		break;
-+	case 0x33:
-+		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
-+		break;
-+	default:
-+		return false;
-+	}
+ /* silence callback for halfduplex mode */
+-static int snd_rme32_playback_silence(struct snd_pcm_substream *substream, int channel,	/* not used (interleaved data) */
+-				      snd_pcm_uframes_t pos,
+-				      snd_pcm_uframes_t count)
++static int snd_rme32_playback_silence(struct snd_pcm_substream *substream,
++				      int channel, unsigned long pos,
++				      unsigned long count)
+ {
+ 	struct rme32 *rme32 = snd_pcm_substream_chip(substream);
+-	count <<= rme32->playback_frlog;
+-	pos <<= rme32->playback_frlog;
 +
-+	return true;
+ 	memset_io(rme32->iobase + RME32_IO_DATA_BUFFER + pos, 0, count);
+ 	return 0;
+ }
+ 
+ /* copy callback for halfduplex mode */
+-static int snd_rme32_playback_copy(struct snd_pcm_substream *substream, int channel,	/* not used (interleaved data) */
+-				   snd_pcm_uframes_t pos,
+-				   void __user *src, snd_pcm_uframes_t count)
++static int snd_rme32_playback_copy(struct snd_pcm_substream *substream,
++				   int channel, unsigned long pos,
++				   void __user *src, unsigned long count)
+ {
+ 	struct rme32 *rme32 = snd_pcm_substream_chip(substream);
+-	count <<= rme32->playback_frlog;
+-	pos <<= rme32->playback_frlog;
++
+ 	if (copy_from_user_toio(rme32->iobase + RME32_IO_DATA_BUFFER + pos,
+-			    src, count))
++				src, count))
+ 		return -EFAULT;
+ 	return 0;
+ }
+ 
++static int snd_rme32_playback_copy_kernel(struct snd_pcm_substream *substream,
++					  int channel, unsigned long pos,
++					  void *src, unsigned long count)
++{
++	struct rme32 *rme32 = snd_pcm_substream_chip(substream);
++
++	memcpy_toio(rme32->iobase + RME32_IO_DATA_BUFFER + pos, src, count);
++	return 0;
 +}
 +
- static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
- 			       unsigned long buffer, unsigned long size,
- 			       struct s5p_jpeg_ctx *ctx)
-@@ -1207,26 +1230,9 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
- 		}
- 	}
+ /* copy callback for halfduplex mode */
+-static int snd_rme32_capture_copy(struct snd_pcm_substream *substream, int channel,	/* not used (interleaved data) */
+-				  snd_pcm_uframes_t pos,
+-				  void __user *dst, snd_pcm_uframes_t count)
++static int snd_rme32_capture_copy(struct snd_pcm_substream *substream,
++				  int channel, unsigned long pos,
++				  void __user *dst, unsigned long count)
+ {
+ 	struct rme32 *rme32 = snd_pcm_substream_chip(substream);
+-	count <<= rme32->capture_frlog;
+-	pos <<= rme32->capture_frlog;
++
+ 	if (copy_to_user_fromio(dst,
+ 			    rme32->iobase + RME32_IO_DATA_BUFFER + pos,
+ 			    count))
+@@ -294,6 +301,16 @@ static int snd_rme32_capture_copy(struct snd_pcm_substream *substream, int chann
+ 	return 0;
+ }
  
--	if (notfound || !sos)
-+	if (notfound || !sos || !s5p_jpeg_subsampling_decode(ctx, subsampling))
- 		return false;
++static int snd_rme32_capture_copy_kernel(struct snd_pcm_substream *substream,
++					 int channel, unsigned long pos,
++					 void *dst, unsigned long count)
++{
++	struct rme32 *rme32 = snd_pcm_substream_chip(substream);
++
++	memcpy_fromio(dst, rme32->iobase + RME32_IO_DATA_BUFFER + pos, count);
++	return 0;
++}
++
+ /*
+  * SPDIF I/O capabilities (half-duplex mode)
+  */
+@@ -1205,8 +1222,9 @@ static const struct snd_pcm_ops snd_rme32_playback_spdif_ops = {
+ 	.prepare =	snd_rme32_playback_prepare,
+ 	.trigger =	snd_rme32_pcm_trigger,
+ 	.pointer =	snd_rme32_playback_pointer,
+-	.copy =		snd_rme32_playback_copy,
+-	.silence =	snd_rme32_playback_silence,
++	.copy_user =	snd_rme32_playback_copy,
++	.copy_kernel =	snd_rme32_playback_copy_kernel,
++	.fill_silence =	snd_rme32_playback_silence,
+ 	.mmap =		snd_pcm_lib_mmap_iomem,
+ };
  
--	switch (subsampling) {
--	case 0x11:
--		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_444;
--		break;
--	case 0x21:
--		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_422;
--		break;
--	case 0x22:
--		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_420;
--		break;
--	case 0x33:
--		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
--		break;
--	default:
--		return false;
--	}
--
- 	result->w = width;
- 	result->h = height;
- 	result->sos = sos;
+@@ -1219,7 +1237,8 @@ static const struct snd_pcm_ops snd_rme32_capture_spdif_ops = {
+ 	.prepare =	snd_rme32_capture_prepare,
+ 	.trigger =	snd_rme32_pcm_trigger,
+ 	.pointer =	snd_rme32_capture_pointer,
+-	.copy =		snd_rme32_capture_copy,
++	.copy_user =	snd_rme32_capture_copy,
++	.copy_kernel =	snd_rme32_capture_copy_kernel,
+ 	.mmap =		snd_pcm_lib_mmap_iomem,
+ };
+ 
+@@ -1231,8 +1250,9 @@ static const struct snd_pcm_ops snd_rme32_playback_adat_ops = {
+ 	.prepare =	snd_rme32_playback_prepare,
+ 	.trigger =	snd_rme32_pcm_trigger,
+ 	.pointer =	snd_rme32_playback_pointer,
+-	.copy =		snd_rme32_playback_copy,
+-	.silence =	snd_rme32_playback_silence,
++	.copy_user =	snd_rme32_playback_copy,
++	.copy_kernel =	snd_rme32_playback_copy_kernel,
++	.fill_silence =	snd_rme32_playback_silence,
+ 	.mmap =		snd_pcm_lib_mmap_iomem,
+ };
+ 
+@@ -1244,7 +1264,8 @@ static const struct snd_pcm_ops snd_rme32_capture_adat_ops = {
+ 	.prepare =	snd_rme32_capture_prepare,
+ 	.trigger =	snd_rme32_pcm_trigger,
+ 	.pointer =	snd_rme32_capture_pointer,
+-	.copy =		snd_rme32_capture_copy,
++	.copy_user =	snd_rme32_capture_copy,
++	.copy_kernel =	snd_rme32_capture_copy_kernel,
+ 	.mmap =		snd_pcm_lib_mmap_iomem,
+ };
+ 
 -- 
-2.7.4
+2.13.0
