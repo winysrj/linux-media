@@ -1,106 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway30.websitewelcome.com ([192.185.197.25]:40682 "EHLO
-        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751131AbdFTWph (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Jun 2017 18:45:37 -0400
-Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
-        by gateway30.websitewelcome.com (Postfix) with ESMTP id 1E63D1CCA9
-        for <linux-media@vger.kernel.org>; Tue, 20 Jun 2017 16:57:57 -0500 (CDT)
-Date: Tue, 20 Jun 2017 16:57:56 -0500
-Message-ID: <20170620165756.Horde.6UeLYFz_bJ0D0W_butfuJS9@gator4166.hostgator.com>
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [media-pci-cx25821] question about value overwrite
-References: <20170518170709.Horde.zKHvDFB0L61Od1t7GtHytpR@gator4166.hostgator.com>
- <b170bdc6-8c36-936a-a960-2dcde3b64bc5@xs4all.nl>
-In-Reply-To: <b170bdc6-8c36-936a-a960-2dcde3b64bc5@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
-MIME-Version: 1.0
-Content-Disposition: inline
+Received: from mx2.suse.de ([195.135.220.15]:42525 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751029AbdFAU7I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Jun 2017 16:59:08 -0400
+From: Takashi Iwai <tiwai@suse.de>
+To: alsa-devel@alsa-project.org
+Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
+        Mark Brown <broonie@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-usb@vger.kernel.org
+Subject: [PATCH v2 09/27] ALSA: rme9652: Convert to the new PCM ops
+Date: Thu,  1 Jun 2017 22:58:32 +0200
+Message-Id: <20170601205850.24993-10-tiwai@suse.de>
+In-Reply-To: <20170601205850.24993-1-tiwai@suse.de>
+References: <20170601205850.24993-1-tiwai@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Replace the copy and the silence ops with the new PCM ops.
+The conversion is straightforward with standard helper functions.
 
-Quoting Hans Verkuil <hverkuil@xs4all.nl>:
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+---
+ sound/pci/rme9652/rme9652.c | 71 ++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 54 insertions(+), 17 deletions(-)
 
-> On 05/19/2017 12:07 AM, Gustavo A. R. Silva wrote:
->>
->> Hello everybody,
->>
->> While looking into Coverity ID 1226903 I ran into the following piece
->> of code at drivers/media/pci/cx25821/cx25821-medusa-video.c:393:
->>
->> 393int medusa_set_videostandard(struct cx25821_dev *dev)
->> 394{
->> 395        int status = 0;
->> 396        u32 value = 0, tmp = 0;
->> 397
->> 398        if (dev->tvnorm & V4L2_STD_PAL_BG || dev->tvnorm &  
->> V4L2_STD_PAL_DK)
->> 399                status = medusa_initialize_pal(dev);
->> 400        else
->> 401                status = medusa_initialize_ntsc(dev);
->> 402
->> 403        /* Enable DENC_A output */
->> 404        value = cx25821_i2c_read(&dev->i2c_bus[0], DENC_A_REG_4, &tmp);
->> 405        value = setBitAtPos(value, 4);
->> 406        status = cx25821_i2c_write(&dev->i2c_bus[0],  
->> DENC_A_REG_4, value);
->> 407
->> 408        /* Enable DENC_B output */
->> 409        value = cx25821_i2c_read(&dev->i2c_bus[0], DENC_B_REG_4, &tmp);
->> 410        value = setBitAtPos(value, 4);
->> 411        status = cx25821_i2c_write(&dev->i2c_bus[0],  
->> DENC_B_REG_4, value);
->> 412
->> 413        return status;
->> 414}
->>
->> The issue is that the value stored in variable _status_ at lines 399
->> and 401 is overwritten by the one stored at line 406 and then at line
->> 411, before it can be used.
->>
->> My question is if the original intention was to ORed the return
->> values, something like in the following patch:
->>
->> index 0a9db05..226d14f 100644
->> --- a/drivers/media/pci/cx25821/cx25821-medusa-video.c
->> +++ b/drivers/media/pci/cx25821/cx25821-medusa-video.c
->> @@ -403,12 +403,12 @@ int medusa_set_videostandard(struct cx25821_dev *dev)
->>          /* Enable DENC_A output */
->>          value = cx25821_i2c_read(&dev->i2c_bus[0], DENC_A_REG_4, &tmp);
->>          value = setBitAtPos(value, 4);
->> -       status = cx25821_i2c_write(&dev->i2c_bus[0], DENC_A_REG_4, value);
->> +       status |= cx25821_i2c_write(&dev->i2c_bus[0], DENC_A_REG_4, value);
->>
->>          /* Enable DENC_B output */
->>          value = cx25821_i2c_read(&dev->i2c_bus[0], DENC_B_REG_4, &tmp);
->>          value = setBitAtPos(value, 4);
->> -       status = cx25821_i2c_write(&dev->i2c_bus[0], DENC_B_REG_4, value);
->> +       status |= cx25821_i2c_write(&dev->i2c_bus[0], DENC_B_REG_4, value);
->>
->>          return status;
->>   }
->
-> This is a crappy driver, they just couldn't be bothered to check the  
-> error from
-> cx25821_i2c_read/write.
->
-> Strictly speaking the return value should be checked after every  
-> read/write and
-> returned in case of an error.
->
-
-Yeah, the same happens in functions medusa_initialize_pal() and  
-medusa_initialize_ntsc()
-
-> Not sure whether it is worth the effort fixing this.
->
-
-Thank you for your reply.
---
-Gustavo A. R. Silva
+diff --git a/sound/pci/rme9652/rme9652.c b/sound/pci/rme9652/rme9652.c
+index 55172c689991..59684bf5cac0 100644
+--- a/sound/pci/rme9652/rme9652.c
++++ b/sound/pci/rme9652/rme9652.c
+@@ -1883,13 +1883,14 @@ static char *rme9652_channel_buffer_location(struct snd_rme9652 *rme9652,
+ 	}
+ }
+ 
+-static int snd_rme9652_playback_copy(struct snd_pcm_substream *substream, int channel,
+-				     snd_pcm_uframes_t pos, void __user *src, snd_pcm_uframes_t count)
++static int snd_rme9652_playback_copy(struct snd_pcm_substream *substream,
++				     int channel, unsigned long pos,
++				     void __user *src, unsigned long count)
+ {
+ 	struct snd_rme9652 *rme9652 = snd_pcm_substream_chip(substream);
+ 	char *channel_buf;
+ 
+-	if (snd_BUG_ON(pos + count > RME9652_CHANNEL_BUFFER_BYTES / 4))
++	if (snd_BUG_ON(pos + count > RME9652_CHANNEL_BUFFER_BYTES))
+ 		return -EINVAL;
+ 
+ 	channel_buf = rme9652_channel_buffer_location (rme9652,
+@@ -1897,18 +1898,35 @@ static int snd_rme9652_playback_copy(struct snd_pcm_substream *substream, int ch
+ 						       channel);
+ 	if (snd_BUG_ON(!channel_buf))
+ 		return -EIO;
+-	if (copy_from_user(channel_buf + pos * 4, src, count * 4))
++	if (copy_from_user(channel_buf + pos, src, count))
+ 		return -EFAULT;
+-	return count;
++	return 0;
+ }
+ 
+-static int snd_rme9652_capture_copy(struct snd_pcm_substream *substream, int channel,
+-				    snd_pcm_uframes_t pos, void __user *dst, snd_pcm_uframes_t count)
++static int snd_rme9652_playback_copy_kernel(struct snd_pcm_substream *substream,
++					    int channel, unsigned long pos,
++					    void *src, unsigned long count)
+ {
+ 	struct snd_rme9652 *rme9652 = snd_pcm_substream_chip(substream);
+ 	char *channel_buf;
+ 
+-	if (snd_BUG_ON(pos + count > RME9652_CHANNEL_BUFFER_BYTES / 4))
++	channel_buf = rme9652_channel_buffer_location(rme9652,
++						      substream->pstr->stream,
++						      channel);
++	if (snd_BUG_ON(!channel_buf))
++		return -EIO;
++	memcpy(channel_buf + pos, src, count);
++	return 0;
++}
++
++static int snd_rme9652_capture_copy(struct snd_pcm_substream *substream,
++				    int channel, unsigned long pos,
++				    void __user *dst, unsigned long count)
++{
++	struct snd_rme9652 *rme9652 = snd_pcm_substream_chip(substream);
++	char *channel_buf;
++
++	if (snd_BUG_ON(pos + count > RME9652_CHANNEL_BUFFER_BYTES))
+ 		return -EINVAL;
+ 
+ 	channel_buf = rme9652_channel_buffer_location (rme9652,
+@@ -1916,13 +1934,30 @@ static int snd_rme9652_capture_copy(struct snd_pcm_substream *substream, int cha
+ 						       channel);
+ 	if (snd_BUG_ON(!channel_buf))
+ 		return -EIO;
+-	if (copy_to_user(dst, channel_buf + pos * 4, count * 4))
++	if (copy_to_user(dst, channel_buf + pos, count))
+ 		return -EFAULT;
+-	return count;
++	return 0;
+ }
+ 
+-static int snd_rme9652_hw_silence(struct snd_pcm_substream *substream, int channel,
+-				  snd_pcm_uframes_t pos, snd_pcm_uframes_t count)
++static int snd_rme9652_capture_copy_kernel(struct snd_pcm_substream *substream,
++					   int channel, unsigned long pos,
++					   void *dst, unsigned long count)
++{
++	struct snd_rme9652 *rme9652 = snd_pcm_substream_chip(substream);
++	char *channel_buf;
++
++	channel_buf = rme9652_channel_buffer_location(rme9652,
++						      substream->pstr->stream,
++						      channel);
++	if (snd_BUG_ON(!channel_buf))
++		return -EIO;
++	memcpy(dst, channel_buf + pos, count);
++	return 0;
++}
++
++static int snd_rme9652_hw_silence(struct snd_pcm_substream *substream,
++				  int channel, unsigned long pos,
++				  unsigned long count)
+ {
+ 	struct snd_rme9652 *rme9652 = snd_pcm_substream_chip(substream);
+ 	char *channel_buf;
+@@ -1932,8 +1967,8 @@ static int snd_rme9652_hw_silence(struct snd_pcm_substream *substream, int chann
+ 						       channel);
+ 	if (snd_BUG_ON(!channel_buf))
+ 		return -EIO;
+-	memset(channel_buf + pos * 4, 0, count * 4);
+-	return count;
++	memset(channel_buf + pos, 0, count);
++	return 0;
+ }
+ 
+ static int snd_rme9652_reset(struct snd_pcm_substream *substream)
+@@ -2376,8 +2411,9 @@ static const struct snd_pcm_ops snd_rme9652_playback_ops = {
+ 	.prepare =	snd_rme9652_prepare,
+ 	.trigger =	snd_rme9652_trigger,
+ 	.pointer =	snd_rme9652_hw_pointer,
+-	.copy =		snd_rme9652_playback_copy,
+-	.silence =	snd_rme9652_hw_silence,
++	.copy_user =	snd_rme9652_playback_copy,
++	.copy_kernel =	snd_rme9652_playback_copy_kernel,
++	.fill_silence =	snd_rme9652_hw_silence,
+ };
+ 
+ static const struct snd_pcm_ops snd_rme9652_capture_ops = {
+@@ -2388,7 +2424,8 @@ static const struct snd_pcm_ops snd_rme9652_capture_ops = {
+ 	.prepare =	snd_rme9652_prepare,
+ 	.trigger =	snd_rme9652_trigger,
+ 	.pointer =	snd_rme9652_hw_pointer,
+-	.copy =		snd_rme9652_capture_copy,
++	.copy_user =	snd_rme9652_capture_copy,
++	.copy_kernel =	snd_rme9652_capture_copy_kernel,
+ };
+ 
+ static int snd_rme9652_create_pcm(struct snd_card *card,
+-- 
+2.13.0
