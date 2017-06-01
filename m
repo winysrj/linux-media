@@ -1,65 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh03.mail.saunalahti.fi ([62.142.5.109]:47805 "EHLO
-        emh03.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751169AbdFDS16 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Jun 2017 14:27:58 -0400
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCH v1] [media] as3645a: Join string literals back
-Date: Sun,  4 Jun 2017 21:29:18 +0300
-Message-Id: <20170604182918.31476-1-andy.shevchenko@gmail.com>
+Received: from mail-it0-f68.google.com ([209.85.214.68]:36811 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751283AbdFAKMV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Jun 2017 06:12:21 -0400
+Received: by mail-it0-f68.google.com with SMTP id i206so5081938ita.3
+        for <linux-media@vger.kernel.org>; Thu, 01 Jun 2017 03:12:20 -0700 (PDT)
+Received: from ubuntu.windy (c122-106-153-7.carlnfd1.nsw.optusnet.com.au. [122.106.153.7])
+        by smtp.gmail.com with ESMTPSA id e124sm32870242pfc.64.2017.06.01.03.12.17
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 01 Jun 2017 03:12:18 -0700 (PDT)
+Date: Thu, 1 Jun 2017 20:12:33 +1000
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] small cleanup of build script
+Message-ID: <20170601101232.GB3212@ubuntu.windy>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no need to split long string literals.
-Join them back.
+Introduce a function for better tracing of system() calls
 
-No functional change intended.
+While debugging a recent issue I wanted more complete information
+about the sequencence of events in a series of
+system("foo") or die("BAR") calls.
+Adding this helper did that and cleaned things up a little.
 
-Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Signed-off-by: Vincent McIntyre <vincent.mcintyre@gmail.com>
 ---
- drivers/media/i2c/as3645a.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ build | 81 +++++++++++++++++++++++++++++++++++++++----------------------------
+ 1 file changed, 47 insertions(+), 34 deletions(-)
 
-diff --git a/drivers/media/i2c/as3645a.c b/drivers/media/i2c/as3645a.c
-index b6aeceea9850..af5db71a0888 100644
---- a/drivers/media/i2c/as3645a.c
-+++ b/drivers/media/i2c/as3645a.c
-@@ -294,8 +294,8 @@ static int as3645a_read_fault(struct as3645a *flash)
- 		dev_dbg(&client->dev, "Inductor Peak limit fault\n");
- 
- 	if (rval & AS_FAULT_INFO_INDICATOR_LED)
--		dev_dbg(&client->dev, "Indicator LED fault: "
--			"Short circuit or open loop\n");
-+		dev_dbg(&client->dev,
-+			"Indicator LED fault: Short circuit or open loop\n");
- 
- 	dev_dbg(&client->dev, "%u connected LEDs\n",
- 		rval & AS_FAULT_INFO_LED_AMOUNT ? 2 : 1);
-@@ -310,8 +310,8 @@ static int as3645a_read_fault(struct as3645a *flash)
- 		dev_dbg(&client->dev, "Short circuit fault\n");
- 
- 	if (rval & AS_FAULT_INFO_OVER_VOLTAGE)
--		dev_dbg(&client->dev, "Over voltage fault: "
--			"Indicates missing capacitor or open connection\n");
-+		dev_dbg(&client->dev,
-+			"Over voltage fault: Indicates missing capacitor or open connection\n");
- 
- 	return rval;
+diff --git a/build b/build
+index 4457a73..38ffd4f 100755
+--- a/build
++++ b/build
+@@ -342,6 +342,19 @@ sub which($)
+ 	return undef;
  }
-@@ -583,8 +583,8 @@ static int as3645a_registered(struct v4l2_subdev *sd)
  
- 	/* Verify the chip model and version. */
- 	if (model != 0x01 || rfu != 0x00) {
--		dev_err(&client->dev, "AS3645A not detected "
--			"(model %d rfu %d)\n", model, rfu);
-+		dev_err(&client->dev,
-+			"AS3645A not detected (model %d rfu %d)\n", model, rfu);
- 		rval = -ENODEV;
- 		goto power_off;
++sub run($$)
++{
++       my $cmd = shift;
++       my $err = shift;
++       $err = '' unless defined($err);
++
++       my ($pkg,$filename,$line) = caller;
++
++       print "\$ $cmd\n" if ($level);
++       system ($cmd) == 0
++               or die($err . " at $filename line $line\n");
++}
++
+ ######
+ # Main
+ ######
+@@ -406,11 +419,11 @@ if (@git == 2) {
+ 		if (!$local) {
+ 			print "Getting the latest Kernel tree. This will take some time\n";
+ 			if ($depth) {
+-				system("git clone --origin '$rname/$git[1]' git://linuxtv.org/media_tree.git media $depth") == 0
+-					or die "Can't clone from the upstream tree";
++				run("git clone --origin '$rname/$git[1]' git://linuxtv.org/media_tree.git media $depth",
++					"Can't clone from the upstream tree");
+ 			} else {
+-				system("git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git media $depth") == 0
+-					or die "Can't clone from the upstream tree";
++				run("git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git media $depth",
++					"Can't clone from the upstream tree");
+ 			}
+ 			system('git --git-dir media/.git config format.cc "Linux Media Mailing List <linux-media@vger.kernel.org>"');
+ 			system('git --git-dir media/.git config format.signoff true');
+@@ -419,56 +432,54 @@ if (@git == 2) {
+ 		} else {
+ 			if ($workdir ne "") {
+ 				print "Creating a new workdir from $git[0] at media\n";
+-				system("git new-workdir $git[0] media") == 0
+-					or die "Can't create a new workdir";
++				run("git new-workdir $git[0] media",
++					"Can't create a new workdir");
+ 			} else {
+ 				print "Creating a new clone\n";
+-				system("git clone -l $git[0] media $depth") == 0
+-					or die "Can't create a new clone";
++				run("git clone -l $git[0] media $depth",
++					"Can't create a new clone");
+ 			}
+ 		}
+ 	} elsif ($workdir eq "") {
+ 		if (check_git("remote", "$rname/$git[1]")) {
+-			system("git --git-dir media/.git remote update '$rname/$git[1]'") == 0
+-				or die "Can't update from the upstream tree";
++			run("git --git-dir media/.git remote update '$rname/$git[1]'",
++				"Can't update from the upstream tree");
+ 		} else {
+-			system("git --git-dir media/.git remote update origin") == 0
+-				or die "Can't update from the upstream tree";
++			run("git --git-dir media/.git remote update origin",
++				"Can't update from the upstream tree");
+ 		}
  	}
+ 
+ 	if ($workdir eq "") {
+ 		if (!check_git("remote", "$name")) {
+ 			print "adding remote $name to track $git[0]\n";
+-			printf "\$ git --git-dir media/.git remote add $name $git[0]\n" if ($level);
+-			system ("git --git-dir media/.git remote add $name $git[0]") == 0
+-				or die "Can't create remote $name";
++			run("git --git-dir media/.git remote add $name $git[0]",
++				"Can't create remote $name");
+ 		}
+ 		if (!$depth) {
+ 			print "updating remote $rname\n";
+-			system ("git --git-dir media/.git remote update $name") == 0
+-					or die "Can't update remote $name";
++			run("git --git-dir media/.git remote update $name",
++					"Can't update remote $name");
+ 			print "creating a local branch $rname\n";
+ 			if (!check_git("branch", "$rname/$git[1]")) {
+-				print "\$ (cd media; git checkout -b $rname/$git[1] remotes/$name/$git[1])\n" if ($level);
+-				system ("(cd media; git checkout -b $rname/$git[1] remotes/$name/$git[1])") == 0
+-					or die "Can't create local branch $rname";
++				run("(cd media; git checkout -b $rname/$git[1] remotes/$name/$git[1])",
++					"Can't create local branch $rname");
+ 			} else {
+-				system ("(cd media; git checkout $rname/$git[1])") == 0
+-						or die "Can't checkout to branch $rname";
+-				system ("(cd media; git pull . remotes/$name/$git[1])") == 0
+-						or die "Can't update local branch $name";
++				run("(cd media; git checkout $rname/$git[1])",
++						"Can't checkout to branch $rname");
++				run("(cd media; git pull . remotes/$name/$git[1])",
++						"Can't update local branch $name");
+ 			}
+ 		}
+ 	} else {
+ 		print "git checkout $git[1]\n";
+-		system ("(cd media; git checkout $git[1])") == 0
+-			or die "Can't checkout $git[1]";
++		run("(cd media; git checkout $git[1])",
++			"Can't checkout $git[1]");
+ 	}
+ 
+ 
+-	system ("make -C linux dir DIR=../media/") == 0
+-		or die "Can't link the building system to the media directory.";
++	run("make -C linux dir DIR=../media/",
++		"Can't link the building system to the media directory.");
+ } else {
+ 	print "\n";
+ 	print "************************************************************\n";
+@@ -486,8 +497,8 @@ if (@git == 2) {
+ 	print "****************************\n";
+ 	system("git pull git://linuxtv.org/media_build.git master");
+ 
+-	system ("make -C linux/ download") == 0 or die "Download failed";
+-	system ("make -C linux/ untar") == 0 or die "Untar failed";
++	run("make -C linux/ download", "Download failed");
++	run("make -C linux/ untar", "Untar failed");
+ }
+ 
+ print "**********************************************************\n";
+@@ -495,17 +506,19 @@ print "* Downloading firmwares from linuxtv.org.                *\n";
+ print "**********************************************************\n";
+ 
+ if (!stat $firmware_tarball) {
+-	system ("wget $firmware_url/$firmware_tarball -O $firmware_tarball") == 0 or die "Can't download $firmware_tarball";
++	run("wget $firmware_url/$firmware_tarball -O $firmware_tarball",
++		"Can't download $firmware_tarball");
+ }
+-system ("(cd v4l/firmware/; tar xvfj ../../$firmware_tarball)") == 0 or die "Can't extract $firmware_tarball";
++run("(cd v4l/firmware/; tar xvfj ../../$firmware_tarball)",
++		"Can't extract $firmware_tarball");
+ 
+ 
+ print "******************\n";
+ print "* Start building *\n";
+ print "******************\n";
+ 
+-system ("make allyesconfig") == 0 or die "can't select all drivers";
+-system ("make") == 0 or die "build failed";
++run("make allyesconfig", "can't select all drivers");
++run("make", "build failed");
+ 
+ print "**********************************************************\n";
+ print "* Compilation finished. Use 'make install' to install them\n";
 -- 
-2.13.0
+2.7.4
