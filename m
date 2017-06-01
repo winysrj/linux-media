@@ -1,81 +1,288 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f178.google.com ([209.85.161.178]:36048 "EHLO
-        mail-yw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752582AbdF0Ijq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 04:39:46 -0400
-Received: by mail-yw0-f178.google.com with SMTP id t127so9369481ywc.3
-        for <linux-media@vger.kernel.org>; Tue, 27 Jun 2017 01:39:45 -0700 (PDT)
-Received: from mail-yw0-f179.google.com (mail-yw0-f179.google.com. [209.85.161.179])
-        by smtp.gmail.com with ESMTPSA id t140sm981909ywe.6.2017.06.27.01.39.30
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 27 Jun 2017 01:39:30 -0700 (PDT)
-Received: by mail-yw0-f179.google.com with SMTP id t127so9369300ywc.3
-        for <linux-media@vger.kernel.org>; Tue, 27 Jun 2017 01:39:30 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1498488673-27900-1-git-send-email-jacob-chen@iotwrt.com>
-References: <1498488673-27900-1-git-send-email-jacob-chen@iotwrt.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Tue, 27 Jun 2017 17:39:09 +0900
-Message-ID: <CAAFQd5BHAiTq9f4nvwFiy5DzZ0Jep9d4K0saAkoxzaK86a8GJg@mail.gmail.com>
-Subject: Re: [PATCH 1/5] [media] rockchip/rga: v4l2 m2m support
-To: Jacob Chen <jacob-chen@iotwrt.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mx2.suse.de ([195.135.220.15]:42529 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751159AbdFAU7K (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Jun 2017 16:59:10 -0400
+From: Takashi Iwai <tiwai@suse.de>
+To: alsa-devel@alsa-project.org
+Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
+        Mark Brown <broonie@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-usb@vger.kernel.org
+Subject: [PATCH v2 18/27] ALSA: pcm: Shuffle codes
+Date: Thu,  1 Jun 2017 22:58:41 +0200
+Message-Id: <20170601205850.24993-19-tiwai@suse.de>
+In-Reply-To: <20170601205850.24993-1-tiwai@suse.de>
+References: <20170601205850.24993-1-tiwai@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacob,
+Just shuffle the codes, without any change otherwise.
 
-Please see my comments inline.
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+---
+ sound/core/pcm_lib.c | 212 +++++++++++++++++++++++++--------------------------
+ 1 file changed, 106 insertions(+), 106 deletions(-)
 
-On Mon, Jun 26, 2017 at 11:51 PM, Jacob Chen <jacob-chen@iotwrt.com> wrote:
-> Rockchip RGA is a separate 2D raster graphic acceleration unit. It
-> accelerates 2D graphics operations, such as point/line drawing, image
-> scaling, rotation, BitBLT, alpha blending and image blur/sharpness.
-[snip]
-> +static int rga_buf_init(struct vb2_buffer *vb)
-> +{
-> +       struct rga_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-> +       struct rockchip_rga *rga = ctx->rga;
-> +       struct sg_table *sgt;
-> +       struct scatterlist *sgl;
-> +       unsigned int *pages;
-> +       struct rga_buf *buf;
-> +       unsigned int address, len, i, p;
-> +       unsigned int mapped_size = 0;
-> +
-> +       /* Create local MMU table for RGA */
-> +       sgt = vb2_plane_cookie(vb, 0);
-> +
-> +       /*
-> +        * Alloc (2^3 * 4K) = 32K byte for storing pages, those space could
-> +        * cover 32K * 4K = 128M ram address.
-
-Unless I'm missing something, there is 1024 32-bit values in one 4K
-page, which can point to 4 MB of memory. The code allocates 8 of them,
-which in total allows at most 32 MB per buffer.
-
-> +        */
-> +       pages = (unsigned int *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, 3);
-
-This is rather unfortunate and you should expect failures here on
-actively used systems with uptime longer than few hours. Changing this
-to dma_alloc_coherent() and enabling CMA _might_ give you a bit better
-success rate, but...
-
-Normally, this kind of (scatter-gather capable) hardware would allow
-some kind of linking of separate pages, e.g. last entry in the page
-would point to the next page, or something like that. Doesn't this RGA
-block have something similar?
-
-Best regards,
-Tomasz
+diff --git a/sound/core/pcm_lib.c b/sound/core/pcm_lib.c
+index e4f5c43b6448..1f5251cca607 100644
+--- a/sound/core/pcm_lib.c
++++ b/sound/core/pcm_lib.c
+@@ -1991,6 +1991,10 @@ static int wait_for_avail(struct snd_pcm_substream *substream,
+ 	return err;
+ }
+ 	
++typedef int (*transfer_f)(struct snd_pcm_substream *substream, unsigned int hwoff,
++			  unsigned long data, unsigned int off,
++			  snd_pcm_uframes_t size);
++
+ static int snd_pcm_lib_write_transfer(struct snd_pcm_substream *substream,
+ 				      unsigned int hwoff,
+ 				      unsigned long data, unsigned int off,
+@@ -2013,9 +2017,68 @@ static int snd_pcm_lib_write_transfer(struct snd_pcm_substream *substream,
+ 	return 0;
+ }
+  
+-typedef int (*transfer_f)(struct snd_pcm_substream *substream, unsigned int hwoff,
+-			  unsigned long data, unsigned int off,
+-			  snd_pcm_uframes_t size);
++static int snd_pcm_lib_writev_transfer(struct snd_pcm_substream *substream,
++				       unsigned int hwoff,
++				       unsigned long data, unsigned int off,
++				       snd_pcm_uframes_t frames)
++{
++	struct snd_pcm_runtime *runtime = substream->runtime;
++	int err;
++	void __user **bufs = (void __user **)data;
++	int channels = runtime->channels;
++	char __user *buf;
++	int c;
++
++	if (substream->ops->copy_user) {
++		hwoff = samples_to_bytes(runtime, hwoff);
++		off = samples_to_bytes(runtime, off);
++		frames = samples_to_bytes(runtime, frames);
++		for (c = 0; c < channels; ++c, ++bufs) {
++			buf = *bufs + off;
++			if (!*bufs) {
++				if (snd_BUG_ON(!substream->ops->fill_silence))
++					return -EINVAL;
++				err = substream->ops->fill_silence(substream, c,
++								   hwoff,
++								   frames);
++			} else {
++				err = substream->ops->copy_user(substream, c,
++								hwoff, buf,
++								frames);
++			}
++			if (err < 0)
++				return err;
++		}
++	} else {
++		/* default transfer behaviour */
++		size_t dma_csize = runtime->dma_bytes / channels;
++		for (c = 0; c < channels; ++c, ++bufs) {
++			char *hwbuf = runtime->dma_area + (c * dma_csize) + samples_to_bytes(runtime, hwoff);
++			if (*bufs == NULL) {
++				snd_pcm_format_set_silence(runtime->format, hwbuf, frames);
++			} else {
++				char __user *buf = *bufs + samples_to_bytes(runtime, off);
++				if (copy_from_user(hwbuf, buf, samples_to_bytes(runtime, frames)))
++					return -EFAULT;
++			}
++		}
++	}
++	return 0;
++}
++
++/* sanity-check for read/write methods */
++static int pcm_sanity_check(struct snd_pcm_substream *substream)
++{
++	struct snd_pcm_runtime *runtime;
++	if (PCM_RUNTIME_CHECK(substream))
++		return -ENXIO;
++	runtime = substream->runtime;
++	if (snd_BUG_ON(!substream->ops->copy_user && !runtime->dma_area))
++		return -EINVAL;
++	if (runtime->status->state == SNDRV_PCM_STATE_OPEN)
++		return -EBADFD;
++	return 0;
++}
+ 
+ static int pcm_accessible_state(struct snd_pcm_runtime *runtime)
+ {
+@@ -2116,20 +2179,6 @@ static snd_pcm_sframes_t snd_pcm_lib_write1(struct snd_pcm_substream *substream,
+ 	return xfer > 0 ? (snd_pcm_sframes_t)xfer : err;
+ }
+ 
+-/* sanity-check for read/write methods */
+-static int pcm_sanity_check(struct snd_pcm_substream *substream)
+-{
+-	struct snd_pcm_runtime *runtime;
+-	if (PCM_RUNTIME_CHECK(substream))
+-		return -ENXIO;
+-	runtime = substream->runtime;
+-	if (snd_BUG_ON(!substream->ops->copy_user && !runtime->dma_area))
+-		return -EINVAL;
+-	if (runtime->status->state == SNDRV_PCM_STATE_OPEN)
+-		return -EBADFD;
+-	return 0;
+-}
+-
+ snd_pcm_sframes_t snd_pcm_lib_write(struct snd_pcm_substream *substream, const void __user *buf, snd_pcm_uframes_t size)
+ {
+ 	struct snd_pcm_runtime *runtime;
+@@ -2151,55 +2200,6 @@ snd_pcm_sframes_t snd_pcm_lib_write(struct snd_pcm_substream *substream, const v
+ 
+ EXPORT_SYMBOL(snd_pcm_lib_write);
+ 
+-static int snd_pcm_lib_writev_transfer(struct snd_pcm_substream *substream,
+-				       unsigned int hwoff,
+-				       unsigned long data, unsigned int off,
+-				       snd_pcm_uframes_t frames)
+-{
+-	struct snd_pcm_runtime *runtime = substream->runtime;
+-	int err;
+-	void __user **bufs = (void __user **)data;
+-	int channels = runtime->channels;
+-	char __user *buf;
+-	int c;
+-
+-	if (substream->ops->copy_user) {
+-		hwoff = samples_to_bytes(runtime, hwoff);
+-		off = samples_to_bytes(runtime, off);
+-		frames = samples_to_bytes(runtime, frames);
+-		for (c = 0; c < channels; ++c, ++bufs) {
+-			buf = *bufs + off;
+-			if (!*bufs) {
+-				if (snd_BUG_ON(!substream->ops->fill_silence))
+-					return -EINVAL;
+-				err = substream->ops->fill_silence(substream, c,
+-								   hwoff,
+-								   frames);
+-			} else {
+-				err = substream->ops->copy_user(substream, c,
+-								hwoff, buf,
+-								frames);
+-			}
+-			if (err < 0)
+-				return err;
+-		}
+-	} else {
+-		/* default transfer behaviour */
+-		size_t dma_csize = runtime->dma_bytes / channels;
+-		for (c = 0; c < channels; ++c, ++bufs) {
+-			char *hwbuf = runtime->dma_area + (c * dma_csize) + samples_to_bytes(runtime, hwoff);
+-			if (*bufs == NULL) {
+-				snd_pcm_format_set_silence(runtime->format, hwbuf, frames);
+-			} else {
+-				char __user *buf = *bufs + samples_to_bytes(runtime, off);
+-				if (copy_from_user(hwbuf, buf, samples_to_bytes(runtime, frames)))
+-					return -EFAULT;
+-			}
+-		}
+-	}
+-	return 0;
+-}
+- 
+ snd_pcm_sframes_t snd_pcm_lib_writev(struct snd_pcm_substream *substream,
+ 				     void __user **bufs,
+ 				     snd_pcm_uframes_t frames)
+@@ -2244,6 +2244,46 @@ static int snd_pcm_lib_read_transfer(struct snd_pcm_substream *substream,
+ 	return 0;
+ }
+ 
++static int snd_pcm_lib_readv_transfer(struct snd_pcm_substream *substream,
++				      unsigned int hwoff,
++				      unsigned long data, unsigned int off,
++				      snd_pcm_uframes_t frames)
++{
++	struct snd_pcm_runtime *runtime = substream->runtime;
++	int err;
++	void __user **bufs = (void __user **)data;
++	int channels = runtime->channels;
++	char __user *buf;
++	char *hwbuf;
++	int c;
++
++	if (substream->ops->copy_user) {
++		hwoff = samples_to_bytes(runtime, hwoff);
++		off = samples_to_bytes(runtime, off);
++		frames = samples_to_bytes(runtime, frames);
++		for (c = 0; c < channels; ++c, ++bufs) {
++			if (!*bufs)
++				continue;
++			err = substream->ops->copy_user(substream, c, hwoff,
++							*bufs + off, frames);
++			if (err < 0)
++				return err;
++		}
++	} else {
++		snd_pcm_uframes_t dma_csize = runtime->dma_bytes / channels;
++		for (c = 0; c < channels; ++c, ++bufs) {
++			if (*bufs == NULL)
++				continue;
++
++			hwbuf = runtime->dma_area + (c * dma_csize) + samples_to_bytes(runtime, hwoff);
++			buf = *bufs + samples_to_bytes(runtime, off);
++			if (copy_to_user(buf, hwbuf, samples_to_bytes(runtime, frames)))
++				return -EFAULT;
++		}
++	}
++	return 0;
++}
++
+ static snd_pcm_sframes_t snd_pcm_lib_read1(struct snd_pcm_substream *substream,
+ 					   unsigned long data,
+ 					   snd_pcm_uframes_t size,
+@@ -2352,46 +2392,6 @@ snd_pcm_sframes_t snd_pcm_lib_read(struct snd_pcm_substream *substream, void __u
+ 
+ EXPORT_SYMBOL(snd_pcm_lib_read);
+ 
+-static int snd_pcm_lib_readv_transfer(struct snd_pcm_substream *substream,
+-				      unsigned int hwoff,
+-				      unsigned long data, unsigned int off,
+-				      snd_pcm_uframes_t frames)
+-{
+-	struct snd_pcm_runtime *runtime = substream->runtime;
+-	int err;
+-	void __user **bufs = (void __user **)data;
+-	int channels = runtime->channels;
+-	char __user *buf;
+-	char *hwbuf;
+-	int c;
+-
+-	if (substream->ops->copy_user) {
+-		hwoff = samples_to_bytes(runtime, hwoff);
+-		off = samples_to_bytes(runtime, off);
+-		frames = samples_to_bytes(runtime, frames);
+-		for (c = 0; c < channels; ++c, ++bufs) {
+-			if (!*bufs)
+-				continue;
+-			err = substream->ops->copy_user(substream, c, hwoff,
+-							*bufs + off, frames);
+-			if (err < 0)
+-				return err;
+-		}
+-	} else {
+-		snd_pcm_uframes_t dma_csize = runtime->dma_bytes / channels;
+-		for (c = 0; c < channels; ++c, ++bufs) {
+-			if (*bufs == NULL)
+-				continue;
+-
+-			hwbuf = runtime->dma_area + (c * dma_csize) + samples_to_bytes(runtime, hwoff);
+-			buf = *bufs + samples_to_bytes(runtime, off);
+-			if (copy_to_user(buf, hwbuf, samples_to_bytes(runtime, frames)))
+-				return -EFAULT;
+-		}
+-	}
+-	return 0;
+-}
+- 
+ snd_pcm_sframes_t snd_pcm_lib_readv(struct snd_pcm_substream *substream,
+ 				    void __user **bufs,
+ 				    snd_pcm_uframes_t frames)
+-- 
+2.13.0
