@@ -1,215 +1,276 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:29294 "EHLO
-        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752116AbdFLNkB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 09:40:01 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v8 6/8] dt-bindings: media: Add Renesas R-Car DRIF binding
-Date: Mon, 12 Jun 2017 14:26:18 +0100
-Message-Id: <20170612132620.1024-7-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <20170612132620.1024-1-ramesh.shanmugasundaram@bp.renesas.com>
-References: <20170612132620.1024-1-ramesh.shanmugasundaram@bp.renesas.com>
+Received: from mx2.suse.de ([195.135.220.15]:42529 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751163AbdFAU7I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Jun 2017 16:59:08 -0400
+From: Takashi Iwai <tiwai@suse.de>
+To: alsa-devel@alsa-project.org
+Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
+        Mark Brown <broonie@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-usb@vger.kernel.org
+Subject: [PATCH v2 12/27] ALSA: sb: Convert to the new PCM ops
+Date: Thu,  1 Jun 2017 22:58:35 +0200
+Message-Id: <20170601205850.24993-13-tiwai@suse.de>
+In-Reply-To: <20170601205850.24993-1-tiwai@suse.de>
+References: <20170601205850.24993-1-tiwai@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add binding documentation for Renesas R-Car Digital Radio Interface
-(DRIF) controller.
+Replace the copy and the silence ops with the new PCM ops.
+For avoiding the code redundancy, slightly hackish macros are
+introduced.
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
 ---
- .../devicetree/bindings/media/renesas,drif.txt     | 176 +++++++++++++++++++++
- 1 file changed, 176 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
+ sound/isa/sb/emu8000_pcm.c | 190 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 109 insertions(+), 81 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,drif.txt b/Documentation/devicetree/bindings/media/renesas,drif.txt
-new file mode 100644
-index 000000000000..39516b94c28f
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
-@@ -0,0 +1,176 @@
-+Renesas R-Car Gen3 Digital Radio Interface controller (DRIF)
-+------------------------------------------------------------
+diff --git a/sound/isa/sb/emu8000_pcm.c b/sound/isa/sb/emu8000_pcm.c
+index c480024422af..2ee8d67871ec 100644
+--- a/sound/isa/sb/emu8000_pcm.c
++++ b/sound/isa/sb/emu8000_pcm.c
+@@ -422,121 +422,148 @@ do { \
+ 		return -EAGAIN;\
+ } while (0)
+ 
++enum {
++	COPY_USER, COPY_KERNEL, FILL_SILENCE,
++};
 +
-+R-Car Gen3 DRIF is a SPI like receive only slave device. A general
-+representation of DRIF interfacing with a master device is shown below.
++#define GET_VAL(sval, buf, mode)					\
++	do {								\
++		switch (mode) {						\
++		case FILL_SILENCE:					\
++			sval = 0;					\
++			break;						\
++		case COPY_KERNEL:					\
++			sval = *buf++;					\
++			break;						\
++		default:						\
++			if (get_user(sval, (unsigned short __user *)buf)) \
++				return -EFAULT;				\
++			buf++;						\
++			break;						\
++		}							\
++	} while (0)
+ 
+ #ifdef USE_NONINTERLEAVE
+-/* copy one channel block */
+-static int emu8k_transfer_block(struct snd_emu8000 *emu, int offset, unsigned short *buf, int count)
+-{
+-	EMU8000_SMALW_WRITE(emu, offset);
+-	while (count > 0) {
+-		unsigned short sval;
+-		CHECK_SCHEDULER();
+-		if (get_user(sval, buf))
+-			return -EFAULT;
+-		EMU8000_SMLD_WRITE(emu, sval);
+-		buf++;
+-		count--;
+-	}
+-	return 0;
+-}
+ 
++#define LOOP_WRITE(rec, offset, _buf, count, mode)		\
++	do {							\
++		struct snd_emu8000 *emu = (rec)->emu;		\
++		unsigned short *buf = (unsigned short *)(_buf); \
++		snd_emu8000_write_wait(emu, 1);			\
++		EMU8000_SMALW_WRITE(emu, offset);		\
++		while (count > 0) {				\
++			unsigned short sval;			\
++			CHECK_SCHEDULER();			\
++			GET_VAL(sval, buf, mode);		\
++			EMU8000_SMLD_WRITE(emu, sval);		\
++			count--;				\
++		}						\
++	} while (0)
 +
-++---------------------+                +---------------------+
-+|                     |-----SCK------->|CLK                  |
-+|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-+|                     |-----SD0------->|D0                   |
-+|                     |-----SD1------->|D1                   |
-++---------------------+                +---------------------+
++/* copy one channel block */
+ static int emu8k_pcm_copy(struct snd_pcm_substream *subs,
+-			  int voice,
+-			  snd_pcm_uframes_t pos,
+-			  void *src,
+-			  snd_pcm_uframes_t count)
++			  int voice, unsigned long pos,
++			  void __user *src, unsigned long count)
+ {
+ 	struct snd_emu8k_pcm *rec = subs->runtime->private_data;
+-	struct snd_emu8000 *emu = rec->emu;
+ 
+-	snd_emu8000_write_wait(emu, 1);
+-	return emu8k_transfer_block(emu, pos + rec->loop_start[voice], src,
+-				    count);
++	/* convert to word unit */
++	pos = (pos << 1) + rec->loop_start[voice];
++	count <<= 1;
++	LOOP_WRITE(rec, pos, src, count, COPY_UESR);
++	return 0;
+ }
+ 
+-/* make a channel block silence */
+-static int emu8k_silence_block(struct snd_emu8000 *emu, int offset, int count)
++static int emu8k_pcm_copy_kernel(struct snd_pcm_substream *subs,
++				 int voice, unsigned long pos,
++				 void *src, unsigned long count)
+ {
+-	EMU8000_SMALW_WRITE(emu, offset);
+-	while (count > 0) {
+-		CHECK_SCHEDULER();
+-		EMU8000_SMLD_WRITE(emu, 0);
+-		count--;
+-	}
++	struct snd_emu8k_pcm *rec = subs->runtime->private_data;
 +
-+As per datasheet, each DRIF channel (drifn) is made up of two internal
-+channels (drifn0 & drifn1). These two internal channels share the common
-+CLK & SYNC. Each internal channel has its own dedicated resources like
-+irq, dma channels, address space & clock. This internal split is not
-+visible to the external master device.
-+
-+The device tree model represents each internal channel as a separate node.
-+The internal channels sharing the CLK & SYNC are tied together by their
-+phandles using a property called "renesas,bonding". For the rest of
-+the documentation, unless explicitly stated, the word channel implies an
-+internal channel.
-+
-+When both internal channels are enabled they need to be managed together
-+as one (i.e.) they cannot operate alone as independent devices. Out of the
-+two, one of them needs to act as a primary device that accepts common
-+properties of both the internal channels. This channel is identified by a
-+property called "renesas,primary-bond".
-+
-+To summarize,
-+   - When both the internal channels that are bonded together are enabled,
-+     the zeroth channel is selected as primary-bond. This channels accepts
-+     properties common to all the members of the bond.
-+   - When only one of the bonded channels need to be enabled, the property
-+     "renesas,bonding" or "renesas,primary-bond" will have no effect. That
-+     enabled channel can act alone as any other independent device.
-+
-+Required properties of an internal channel:
-+-------------------------------------------
-+- compatible:	"renesas,r8a7795-drif" if DRIF controller is a part of R8A7795 SoC.
-+		"renesas,rcar-gen3-drif" for a generic R-Car Gen3 compatible device.
-+
-+		When compatible with the generic version, nodes must list the
-+		SoC-specific version corresponding to the platform first
-+		followed by the generic version.
-+
-+- reg: offset and length of that channel.
-+- interrupts: associated with that channel.
-+- clocks: phandle and clock specifier of that channel.
-+- clock-names: clock input name string: "fck".
-+- dmas: phandles to the DMA channels.
-+- dma-names: names of the DMA channel: "rx".
-+- renesas,bonding: phandle to the other channel.
-+
-+Optional properties of an internal channel:
-+-------------------------------------------
-+- power-domains: phandle to the respective power domain.
-+
-+Required properties of an internal channel when:
-+	- It is the only enabled channel of the bond (or)
-+	- If it acts as primary among enabled bonds
-+--------------------------------------------------------
-+- pinctrl-0: pin control group to be used for this channel.
-+- pinctrl-names: must be "default".
-+- renesas,primary-bond: empty property indicating the channel acts as primary
-+			among the bonded channels.
-+- port: child port node corresponding to the data input, in accordance with
-+	the video interface bindings defined in
-+	Documentation/devicetree/bindings/media/video-interfaces.txt. The port
-+	node must contain at least one endpoint.
-+
-+Optional endpoint property:
-+---------------------------
-+- sync-active: Indicates sync signal polarity, 0/1 for low/high respectively.
-+	       This property maps to SYNCAC bit in the hardware manual. The
-+	       default is 1 (active high).
-+
-+Example:
-+--------
-+
-+(1) Both internal channels enabled:
-+-----------------------------------
-+
-+When interfacing with a third party tuner device with two data pins as shown
-+below.
-+
-++---------------------+                +---------------------+
-+|                     |-----SCK------->|CLK                  |
-+|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-+|                     |-----SD0------->|D0                   |
-+|                     |-----SD1------->|D1                   |
-++---------------------+                +---------------------+
-+
-+	drif00: rif@e6f40000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f40000 0 0x64>;
-+		interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 515>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x20>, <&dmac2 0x20>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif01>;
-+		renesas,primary-bond;
-+		pinctrl-0 = <&drif0_pins>;
-+		pinctrl-names = "default";
-+		port {
-+			drif0_ep: endpoint {
-+			     remote-endpoint = <&tuner_ep>;
-+			};
-+		};
-+	};
-+
-+	drif01: rif@e6f50000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f50000 0 0x64>;
-+		interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 514>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x22>, <&dmac2 0x22>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif00>;
-+	};
++	/* convert to word unit */
++	pos = (pos << 1) + rec->loop_start[voice];
++	count <<= 1;
++	LOOP_WRITE(rec, pos, src, count, COPY_KERNEL);
+ 	return 0;
+ }
+ 
++/* make a channel block silence */
+ static int emu8k_pcm_silence(struct snd_pcm_substream *subs,
+-			     int voice,
+-			     snd_pcm_uframes_t pos,
+-			     snd_pcm_uframes_t count)
++			     int voice, unsigned long pos, unsigned long count)
+ {
+ 	struct snd_emu8k_pcm *rec = subs->runtime->private_data;
+-	struct snd_emu8000 *emu = rec->emu;
+ 
+-	snd_emu8000_write_wait(emu, 1);
+-	return emu8k_silence_block(emu, pos + rec->loop_start[voice], count);
++	/* convert to word unit */
++	pos = (pos << 1) + rec->loop_start[voice];
++	count <<= 1;
++	LOOP_WRITE(rec, pos, NULL, count, FILL_SILENCE);
++	return 0;
+ }
+ 
+ #else /* interleave */
+ 
++#define LOOP_WRITE(rec, pos, _buf, count, mode)				\
++	do {								\
++		struct snd_emu8000 *emu = rec->emu;			\
++		unsigned short *buf = (unsigned short *)(_buf);		\
++		snd_emu8000_write_wait(emu, 1);				\
++		EMU8000_SMALW_WRITE(emu, pos + rec->loop_start[0]);	\
++		if (rec->voices > 1)					\
++			EMU8000_SMARW_WRITE(emu, pos + rec->loop_start[1]); \
++		while (count > 0) {					\
++			unsigned short sval;				\
++			CHECK_SCHEDULER();				\
++			GET_VAL(sval, buf, mode);			\
++			EMU8000_SMLD_WRITE(emu, sval);			\
++			if (rec->voices > 1) {				\
++				CHECK_SCHEDULER();			\
++				GET_VAL(sval, buf, mode);		\
++				EMU8000_SMRD_WRITE(emu, sval);		\
++			}						\
++			count--;					\
++		}							\
++	} while (0)
 +
 +
-+(2) Internal channel 1 alone is enabled:
-+----------------------------------------
+ /*
+  * copy the interleaved data can be done easily by using
+  * DMA "left" and "right" channels on emu8k engine.
+  */
+ static int emu8k_pcm_copy(struct snd_pcm_substream *subs,
+-			  int voice,
+-			  snd_pcm_uframes_t pos,
+-			  void __user *src,
+-			  snd_pcm_uframes_t count)
++			  int voice, unsigned long pos,
++			  void __user *src, unsigned long count)
+ {
+ 	struct snd_emu8k_pcm *rec = subs->runtime->private_data;
+-	struct snd_emu8000 *emu = rec->emu;
+-	unsigned short __user *buf = src;
+ 
+-	snd_emu8000_write_wait(emu, 1);
+-	EMU8000_SMALW_WRITE(emu, pos + rec->loop_start[0]);
+-	if (rec->voices > 1)
+-		EMU8000_SMARW_WRITE(emu, pos + rec->loop_start[1]);
+-
+-	while (count-- > 0) {
+-		unsigned short sval;
+-		CHECK_SCHEDULER();
+-		if (get_user(sval, buf))
+-			return -EFAULT;
+-		EMU8000_SMLD_WRITE(emu, sval);
+-		buf++;
+-		if (rec->voices > 1) {
+-			CHECK_SCHEDULER();
+-			if (get_user(sval, buf))
+-				return -EFAULT;
+-			EMU8000_SMRD_WRITE(emu, sval);
+-			buf++;
+-		}
+-	}
++	/* convert to frames */
++	pos = bytes_to_frames(subs->runtime, pos);
++	count = bytes_to_frames(subs->runtime, count);
++	LOOP_WRITE(rec, pos, src, count, COPY_USER);
++	return 0;
++}
 +
-+When interfacing with a third party tuner device with one data pin as shown
-+below.
++static int emu8k_pcm_copy_kernel(struct snd_pcm_substream *subs,
++				 int voice, unsigned long pos,
++				 void *src, unsigned long count)
++{
++	struct snd_emu8k_pcm *rec = subs->runtime->private_data;
 +
-++---------------------+                +---------------------+
-+|                     |-----SCK------->|CLK                  |
-+|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-+|                     |                |D0 (unused)          |
-+|                     |-----SD-------->|D1                   |
-++---------------------+                +---------------------+
-+
-+	drif00: rif@e6f40000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f40000 0 0x64>;
-+		interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 515>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x20>, <&dmac2 0x20>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif01>;
-+	};
-+
-+	drif01: rif@e6f50000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f50000 0 0x64>;
-+		interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 514>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x22>, <&dmac2 0x22>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif00>;
-+		pinctrl-0 = <&drif0_pins>;
-+		pinctrl-names = "default";
-+		port {
-+			drif0_ep: endpoint {
-+			     remote-endpoint = <&tuner_ep>;
-+			     sync-active = <0>;
-+			};
-+		};
-+	};
++	/* convert to frames */
++	pos = bytes_to_frames(subs->runtime, pos);
++	count = bytes_to_frames(subs->runtime, count);
++	LOOP_WRITE(rec, pos, src, count, COPY_KERNEL);
+ 	return 0;
+ }
+ 
+ static int emu8k_pcm_silence(struct snd_pcm_substream *subs,
+-			     int voice,
+-			     snd_pcm_uframes_t pos,
+-			     snd_pcm_uframes_t count)
++			     int voice, unsigned long pos, unsigned long count)
+ {
+ 	struct snd_emu8k_pcm *rec = subs->runtime->private_data;
+-	struct snd_emu8000 *emu = rec->emu;
+ 
+-	snd_emu8000_write_wait(emu, 1);
+-	EMU8000_SMALW_WRITE(emu, rec->loop_start[0] + pos);
+-	if (rec->voices > 1)
+-		EMU8000_SMARW_WRITE(emu, rec->loop_start[1] + pos);
+-	while (count-- > 0) {
+-		CHECK_SCHEDULER();
+-		EMU8000_SMLD_WRITE(emu, 0);
+-		if (rec->voices > 1) {
+-			CHECK_SCHEDULER();
+-			EMU8000_SMRD_WRITE(emu, 0);
+-		}
+-	}
++	/* convert to frames */
++	pos = bytes_to_frames(subs->runtime, pos);
++	count = bytes_to_frames(subs->runtime, count);
++	LOOP_WRITE(rec, pos, NULL, count, FILL_SILENCE);
+ 	return 0;
+ }
+ #endif
+@@ -652,8 +679,9 @@ static struct snd_pcm_ops emu8k_pcm_ops = {
+ 	.prepare =	emu8k_pcm_prepare,
+ 	.trigger =	emu8k_pcm_trigger,
+ 	.pointer =	emu8k_pcm_pointer,
+-	.copy =		emu8k_pcm_copy,
+-	.silence =	emu8k_pcm_silence,
++	.copy_user =	emu8k_pcm_copy,
++	.copy_kernel =	emu8k_pcm_copy_kernel,
++	.fill_silence =	emu8k_pcm_silence,
+ };
+ 
+ 
 -- 
-2.12.2
+2.13.0
