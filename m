@@ -1,90 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f54.google.com ([74.125.83.54]:35717 "EHLO
-        mail-pg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751695AbdFHKFX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 06:05:23 -0400
-Received: by mail-pg0-f54.google.com with SMTP id k71so14580883pgd.2
-        for <linux-media@vger.kernel.org>; Thu, 08 Jun 2017 03:05:23 -0700 (PDT)
-From: Binoy Jayan <binoy.jayan@linaro.org>
-To: Binoy Jayan <binoy.jayan@linaro.org>
-Cc: linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
-        Rajendra <rnayak@codeaurora.org>,
+Received: from mx2.suse.de ([195.135.220.15]:42567 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751247AbdFAU7K (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Jun 2017 16:59:10 -0400
+From: Takashi Iwai <tiwai@suse.de>
+To: alsa-devel@alsa-project.org
+Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
         Mark Brown <broonie@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        "Michael S. Tsirkin" <mst@redhat.com>,
-        Cao jin <caoj.fnst@cn.fujitsu.com>, linux-media@vger.kernel.org
-Subject: [PATCH 3/3] media: ngene: Replace semaphore i2c_switch_mutex with mutex
-Date: Thu,  8 Jun 2017 15:34:58 +0530
-Message-Id: <1496916298-5909-4-git-send-email-binoy.jayan@linaro.org>
-In-Reply-To: <1496916298-5909-1-git-send-email-binoy.jayan@linaro.org>
-References: <1496916298-5909-1-git-send-email-binoy.jayan@linaro.org>
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-usb@vger.kernel.org
+Subject: [PATCH v2 16/27] ALSA: pcm: Drop the old copy and silence ops
+Date: Thu,  1 Jun 2017 22:58:39 +0200
+Message-Id: <20170601205850.24993-17-tiwai@suse.de>
+In-Reply-To: <20170601205850.24993-1-tiwai@suse.de>
+References: <20170601205850.24993-1-tiwai@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The semaphore 'i2c_switch_mutex' is used as a simple mutex, so
-it should be written as one. Semaphores are going away in the future.
+Now that all users of old copy and silence ops have been converted to
+the new PCM ops, the old stuff can be retired and go away.
 
-Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
 ---
- drivers/media/pci/ngene/ngene-core.c | 2 +-
- drivers/media/pci/ngene/ngene-i2c.c  | 6 +++---
- drivers/media/pci/ngene/ngene.h      | 2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ include/sound/pcm.h  |  5 -----
+ sound/core/pcm_lib.c | 38 +-------------------------------------
+ sound/soc/soc-pcm.c  |  2 --
+ 3 files changed, 1 insertion(+), 44 deletions(-)
 
-diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
-index 59f2e5f..ca0c0f8 100644
---- a/drivers/media/pci/ngene/ngene-core.c
-+++ b/drivers/media/pci/ngene/ngene-core.c
-@@ -1349,7 +1349,7 @@ static int ngene_start(struct ngene *dev)
- 	mutex_init(&dev->cmd_mutex);
- 	mutex_init(&dev->stream_mutex);
- 	sema_init(&dev->pll_mutex, 1);
--	sema_init(&dev->i2c_switch_mutex, 1);
-+	mutex_init(&dev->i2c_switch_mutex);
- 	spin_lock_init(&dev->cmd_lock);
- 	for (i = 0; i < MAX_STREAM; i++)
- 		spin_lock_init(&dev->channel[i].state_lock);
-diff --git a/drivers/media/pci/ngene/ngene-i2c.c b/drivers/media/pci/ngene/ngene-i2c.c
-index cf39fcf..fbf3635 100644
---- a/drivers/media/pci/ngene/ngene-i2c.c
-+++ b/drivers/media/pci/ngene/ngene-i2c.c
-@@ -118,7 +118,7 @@ static int ngene_i2c_master_xfer(struct i2c_adapter *adapter,
- 		(struct ngene_channel *)i2c_get_adapdata(adapter);
- 	struct ngene *dev = chan->dev;
- 
--	down(&dev->i2c_switch_mutex);
-+	mutex_lock(&dev->i2c_switch_mutex);
- 	ngene_i2c_set_bus(dev, chan->number);
- 
- 	if (num == 2 && msg[1].flags & I2C_M_RD && !(msg[0].flags & I2C_M_RD))
-@@ -136,11 +136,11 @@ static int ngene_i2c_master_xfer(struct i2c_adapter *adapter,
- 					    msg[0].buf, msg[0].len, 0))
- 			goto done;
- 
--	up(&dev->i2c_switch_mutex);
-+	mutex_unlock(&dev->i2c_switch_mutex);
- 	return -EIO;
- 
- done:
--	up(&dev->i2c_switch_mutex);
-+	mutex_unlock(&dev->i2c_switch_mutex);
- 	return num;
- }
- 
-diff --git a/drivers/media/pci/ngene/ngene.h b/drivers/media/pci/ngene/ngene.h
-index 0dd15d6..7c7cd21 100644
---- a/drivers/media/pci/ngene/ngene.h
-+++ b/drivers/media/pci/ngene/ngene.h
-@@ -765,7 +765,7 @@ struct ngene {
- 	struct mutex          cmd_mutex;
- 	struct mutex          stream_mutex;
- 	struct semaphore      pll_mutex;
--	struct semaphore      i2c_switch_mutex;
-+	struct mutex          i2c_switch_mutex;
- 	int                   i2c_current_channel;
- 	int                   i2c_current_bus;
- 	spinlock_t            cmd_lock;
+diff --git a/include/sound/pcm.h b/include/sound/pcm.h
+index a065415191d8..953ebfc83184 100644
+--- a/include/sound/pcm.h
++++ b/include/sound/pcm.h
+@@ -78,11 +78,6 @@ struct snd_pcm_ops {
+ 			struct timespec *system_ts, struct timespec *audio_ts,
+ 			struct snd_pcm_audio_tstamp_config *audio_tstamp_config,
+ 			struct snd_pcm_audio_tstamp_report *audio_tstamp_report);
+-	int (*copy)(struct snd_pcm_substream *substream, int channel,
+-		    snd_pcm_uframes_t pos,
+-		    void __user *buf, snd_pcm_uframes_t count);
+-	int (*silence)(struct snd_pcm_substream *substream, int channel, 
+-		       snd_pcm_uframes_t pos, snd_pcm_uframes_t count);
+ 	int (*fill_silence)(struct snd_pcm_substream *substream, int channel,
+ 			    unsigned long pos, unsigned long bytes);
+ 	int (*copy_user)(struct snd_pcm_substream *substream, int channel,
+diff --git a/sound/core/pcm_lib.c b/sound/core/pcm_lib.c
+index 9334fc2c20c8..0db8d4e0fca2 100644
+--- a/sound/core/pcm_lib.c
++++ b/sound/core/pcm_lib.c
+@@ -116,9 +116,6 @@ void snd_pcm_playback_silence(struct snd_pcm_substream *substream, snd_pcm_ufram
+ 								   frames_to_bytes(runtime, ofs),
+ 								   frames_to_bytes(runtime, transfer));
+ 				snd_BUG_ON(err < 0);
+-			} else if (substream->ops->silence) {
+-				err = substream->ops->silence(substream, -1, ofs, transfer);
+-				snd_BUG_ON(err < 0);
+ 			} else {
+ 				hwbuf = runtime->dma_area + frames_to_bytes(runtime, ofs);
+ 				snd_pcm_format_set_silence(runtime->format, hwbuf, transfer * runtime->channels);
+@@ -133,11 +130,6 @@ void snd_pcm_playback_silence(struct snd_pcm_substream *substream, snd_pcm_ufram
+ 									   samples_to_bytes(runtime, transfer));
+ 					snd_BUG_ON(err < 0);
+ 				}
+-			} else if (substream->ops->silence) {
+-				for (c = 0; c < channels; ++c) {
+-					err = substream->ops->silence(substream, c, ofs, transfer);
+-					snd_BUG_ON(err < 0);
+-				}
+ 			} else {
+ 				size_t dma_csize = runtime->dma_bytes / channels;
+ 				for (c = 0; c < channels; ++c) {
+@@ -2013,9 +2005,6 @@ static int snd_pcm_lib_write_transfer(struct snd_pcm_substream *substream,
+ 		err = substream->ops->copy_user(substream, 0, hwoff, buf, frames);
+ 		if (err < 0)
+ 			return err;
+-	} else if (substream->ops->copy) {
+-		if ((err = substream->ops->copy(substream, -1, hwoff, buf, frames)) < 0)
+-			return err;
+ 	} else {
+ 		char *hwbuf = runtime->dma_area + frames_to_bytes(runtime, hwoff);
+ 		if (copy_from_user(hwbuf, buf, frames_to_bytes(runtime, frames)))
+@@ -2137,8 +2126,7 @@ static int pcm_sanity_check(struct snd_pcm_substream *substream)
+ 	if (PCM_RUNTIME_CHECK(substream))
+ 		return -ENXIO;
+ 	runtime = substream->runtime;
+-	if (snd_BUG_ON(!substream->ops->copy_user && !substream->ops->copy
+-		       && !runtime->dma_area))
++	if (snd_BUG_ON(!substream->ops->copy_user && !runtime->dma_area))
+ 		return -EINVAL;
+ 	if (runtime->status->state == SNDRV_PCM_STATE_OPEN)
+ 		return -EBADFD;
+@@ -2198,19 +2186,6 @@ static int snd_pcm_lib_writev_transfer(struct snd_pcm_substream *substream,
+ 			if (err < 0)
+ 				return err;
+ 		}
+-	} else if (substream->ops->copy) {
+-		if (snd_BUG_ON(!substream->ops->silence))
+-			return -EINVAL;
+-		for (c = 0; c < channels; ++c, ++bufs) {
+-			if (*bufs == NULL) {
+-				if ((err = substream->ops->silence(substream, c, hwoff, frames)) < 0)
+-					return err;
+-			} else {
+-				buf = *bufs + samples_to_bytes(runtime, off);
+-				if ((err = substream->ops->copy(substream, c, hwoff, buf, frames)) < 0)
+-					return err;
+-			}
+-		}
+ 	} else {
+ 		/* default transfer behaviour */
+ 		size_t dma_csize = runtime->dma_bytes / channels;
+@@ -2264,9 +2239,6 @@ static int snd_pcm_lib_read_transfer(struct snd_pcm_substream *substream,
+ 		err = substream->ops->copy_user(substream, 0, hwoff, buf, frames);
+ 		if (err < 0)
+ 			return err;
+-	} else if (substream->ops->copy) {
+-		if ((err = substream->ops->copy(substream, -1, hwoff, buf, frames)) < 0)
+-			return err;
+ 	} else {
+ 		char *hwbuf = runtime->dma_area + frames_to_bytes(runtime, hwoff);
+ 		if (copy_to_user(buf, hwbuf, frames_to_bytes(runtime, frames)))
+@@ -2428,14 +2400,6 @@ static int snd_pcm_lib_readv_transfer(struct snd_pcm_substream *substream,
+ 			if (err < 0)
+ 				return err;
+ 		}
+-	} else if (substream->ops->copy) {
+-		for (c = 0; c < channels; ++c, ++bufs) {
+-			if (*bufs == NULL)
+-				continue;
+-			buf = *bufs + samples_to_bytes(runtime, off);
+-			if ((err = substream->ops->copy(substream, c, hwoff, buf, frames)) < 0)
+-				return err;
+-		}
+ 	} else {
+ 		snd_pcm_uframes_t dma_csize = runtime->dma_bytes / channels;
+ 		for (c = 0; c < channels; ++c, ++bufs) {
+diff --git a/sound/soc/soc-pcm.c b/sound/soc/soc-pcm.c
+index 8867ed9e5f56..dcc5ece08668 100644
+--- a/sound/soc/soc-pcm.c
++++ b/sound/soc/soc-pcm.c
+@@ -2746,8 +2746,6 @@ int soc_new_pcm(struct snd_soc_pcm_runtime *rtd, int num)
+ 		rtd->ops.copy_user	= platform->driver->ops->copy_user;
+ 		rtd->ops.copy_kernel	= platform->driver->ops->copy_kernel;
+ 		rtd->ops.fill_silence	= platform->driver->ops->fill_silence;
+-		rtd->ops.copy		= platform->driver->ops->copy;
+-		rtd->ops.silence	= platform->driver->ops->silence;
+ 		rtd->ops.page		= platform->driver->ops->page;
+ 		rtd->ops.mmap		= platform->driver->ops->mmap;
+ 	}
 -- 
-Binoy Jayan
+2.13.0
