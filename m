@@ -1,201 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50810 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39786 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751426AbdFZQdf (ORCPT
+        by vger.kernel.org with ESMTP id S1751180AbdFAK2f (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 12:33:35 -0400
-Date: Mon, 26 Jun 2017 19:33:30 +0300
+        Thu, 1 Jun 2017 06:28:35 -0400
+Date: Thu, 1 Jun 2017 13:27:59 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        " H. Nikolaus Schaller" <hns@goldelico.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>
-Subject: Re: [PATCH v1 4/6] [media] ov9650: use write_array() for resolution
- sequences
-Message-ID: <20170626163330.GR12407@valkosipuli.retiisi.org.uk>
-References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
- <1498143942-12682-5-git-send-email-hugues.fruchet@st.com>
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com
+Subject: Re: [PATCH 3/3] [media] intel-ipu3: cio2: Add new MIPI-CSI2 driver
+Message-ID: <20170601102758.GL1019@valkosipuli.retiisi.org.uk>
+References: <cover.1493479141.git.yong.zhi@intel.com>
+ <9cf19d01f6f85ac0e5969a2b2fcd5ad5ef8c1e22.1493479141.git.yong.zhi@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1498143942-12682-5-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <9cf19d01f6f85ac0e5969a2b2fcd5ad5ef8c1e22.1493479141.git.yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hugues,
+Hi Yong,
 
-On Thu, Jun 22, 2017 at 05:05:40PM +0200, Hugues Fruchet wrote:
-> Align resolution sequences on initialization sequence using
-> i2c_rv structure NULL terminated .This add flexibility
-> on resolution sequence size.
-> Document resolution related registers by using corresponding
-> define instead of hexa address/value.
-> 
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
-> ---
->  drivers/media/i2c/ov9650.c | 98 ++++++++++++++++++++++++++++++----------------
->  1 file changed, 64 insertions(+), 34 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-> index 4311da6..8b283c9 100644
-> --- a/drivers/media/i2c/ov9650.c
-> +++ b/drivers/media/i2c/ov9650.c
-> @@ -227,11 +227,16 @@ struct ov965x_ctrls {
->  	u8 update;
->  };
->  
-> +struct i2c_rv {
-> +	u8 addr;
-> +	u8 value;
-> +};
+On Sat, Apr 29, 2017 at 06:34:36PM -0500, Yong Zhi wrote:
+...
+> +static int cio2_pci_probe(struct pci_dev *pci_dev,
+> +			  const struct pci_device_id *id)
+> +{
+> +	struct cio2_device *cio2;
+> +	phys_addr_t phys;
+> +	void __iomem *const *iomap;
+> +	int i = -1, r = -ENODEV;
 > +
->  struct ov965x_framesize {
->  	u16 width;
->  	u16 height;
->  	u16 max_exp_lines;
-> -	const u8 *regs;
-> +	const struct i2c_rv *regs;
->  };
->  
->  struct ov965x_interval {
-> @@ -280,9 +285,11 @@ struct ov965x {
->  	u8 apply_frame_fmt;
->  };
->  
-> -struct i2c_rv {
-> -	u8 addr;
-> -	u8 value;
-> +struct ov965x_pixfmt {
-> +	u32 code;
-> +	u32 colorspace;
-> +	/* REG_TSLB value, only bits [3:2] may be set. */
-> +	u8 tslb_reg;
->  };
->  
->  static const struct i2c_rv ov965x_init_regs[] = {
-> @@ -342,30 +349,59 @@ struct i2c_rv {
->  	{ REG_NULL, 0 }
->  };
->  
-> -#define NUM_FMT_REGS 14
-> -/*
-> - * COM7,  COM3,  COM4, HSTART, HSTOP, HREF, VSTART, VSTOP, VREF,
-> - * EXHCH, EXHCL, ADC,  OCOM,   OFON
-> - */
-> -static const u8 frame_size_reg_addr[NUM_FMT_REGS] = {
-> -	0x12, 0x0c, 0x0d, 0x17, 0x18, 0x32, 0x19, 0x1a, 0x03,
-> -	0x2a, 0x2b, 0x37, 0x38, 0x39,
-> -};
-> -
-> -static const u8 ov965x_sxga_regs[NUM_FMT_REGS] = {
-> -	0x00, 0x00, 0x00, 0x1e, 0xbe, 0xbf, 0x01, 0x81, 0x12,
-> -	0x10, 0x34, 0x81, 0x93, 0x51,
-> +static const struct i2c_rv ov965x_sxga_regs[] = {
-> +	{ REG_COM7, 0x00 },
-> +	{ REG_COM3, 0x00 },
-> +	{ REG_COM4, 0x00 },
-> +	{ REG_HSTART, 0x1e },
-> +	{ REG_HSTOP, 0xbe },
-> +	{ 0x32, 0xbf },
-> +	{ REG_VSTART, 0x01 },
-> +	{ REG_VSTOP, 0x81 },
-> +	{ REG_VREF, 0x12 },
-> +	{ REG_EXHCH, 0x10 },
-> +	{ REG_EXHCL, 0x34 },
-> +	{ REG_ADC, 0x81 },
-> +	{ REG_ACOM, 0x93 },
-> +	{ REG_OFON, 0x51 },
-> +	{ REG_NULL, 0 },
->  };
->  
-> -static const u8 ov965x_vga_regs[NUM_FMT_REGS] = {
-> -	0x40, 0x04, 0x80, 0x26, 0xc6, 0xed, 0x01, 0x3d, 0x00,
-> -	0x10, 0x40, 0x91, 0x12, 0x43,
-> +static const struct i2c_rv ov965x_vga_regs[] = {
-> +	{ REG_COM7, 0x40 },
-> +	{ REG_COM3, 0x04 },
-> +	{ REG_COM4, 0x80 },
-> +	{ REG_HSTART, 0x26 },
-> +	{ REG_HSTOP, 0xc6 },
-> +	{ 0x32, 0xed },
-> +	{ REG_VSTART, 0x01 },
-> +	{ REG_VSTOP, 0x3d },
-> +	{ REG_VREF, 0x00 },
-> +	{ REG_EXHCH, 0x10 },
-> +	{ REG_EXHCL, 0x40 },
-> +	{ REG_ADC, 0x91 },
-> +	{ REG_ACOM, 0x12 },
-> +	{ REG_OFON, 0x43 },
-> +	{ REG_NULL, 0 },
->  };
->  
->  /* Determined empirically. */
-> -static const u8 ov965x_qvga_regs[NUM_FMT_REGS] = {
-> -	0x10, 0x04, 0x80, 0x25, 0xc5, 0xbf, 0x00, 0x80, 0x12,
-> -	0x10, 0x40, 0x91, 0x12, 0x43,
-> +static const struct i2c_rv ov965x_qvga_regs[] = {
-> +	{ REG_COM7, 0x10 },
-> +	{ REG_COM3, 0x04 },
-> +	{ REG_COM4, 0x80 },
-> +	{ REG_HSTART, 0x25 },
-> +	{ REG_HSTOP, 0xc5 },
-> +	{ 0x32, 0xbf },
-> +	{ REG_VSTART, 0x00 },
-> +	{ REG_VSTOP, 0x80 },
-> +	{ REG_VREF, 0x12 },
-> +	{ REG_EXHCH, 0x10 },
-> +	{ REG_EXHCL, 0x40 },
-> +	{ REG_ADC, 0x91 },
-> +	{ REG_ACOM, 0x12 },
-> +	{ REG_OFON, 0x43 },
-> +	{ REG_NULL, 0 },
->  };
->  
->  static const struct ov965x_framesize ov965x_framesizes[] = {
-> @@ -387,13 +423,6 @@ struct i2c_rv {
->  	},
->  };
->  
-> -struct ov965x_pixfmt {
-> -	u32 code;
-> -	u32 colorspace;
-> -	/* REG_TSLB value, only bits [3:2] may be set. */
-> -	u8 tslb_reg;
-> -};
-
-Any particular reason for moving struct ov965x_pixfmt definition?
-
-> -
->  static const struct ov965x_pixfmt ov965x_formats[] = {
->  	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_JPEG, 0x00},
->  	{ MEDIA_BUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_JPEG, 0x04},
-> @@ -1268,11 +1297,12 @@ static int ov965x_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config
->  
->  static int ov965x_set_frame_size(struct ov965x *ov965x)
->  {
-> -	int i, ret = 0;
-> +	int ret = 0;
+> +	cio2 = devm_kzalloc(&pci_dev->dev, sizeof(*cio2), GFP_KERNEL);
+> +	if (!cio2)
+> +		return -ENOMEM;
+> +	cio2->pci_dev = pci_dev;
 > +
-> +	v4l2_dbg(1, debug, ov965x->client, "%s\n", __func__);
->  
-> -	for (i = 0; ret == 0 && i < NUM_FMT_REGS; i++)
-> -		ret = ov965x_write(ov965x->client, frame_size_reg_addr[i],
-> -				   ov965x->frame_size->regs[i]);
-> +	ret = ov965x_write_array(ov965x->client,
-> +				 ov965x->frame_size->regs);
->  	return ret;
->  }
->  
+> +	r = pcim_enable_device(pci_dev);
+> +	if (r) {
+> +		dev_err(&pci_dev->dev, "failed to enable device (%d)\n", r);
+> +		return r;
+> +	}
+> +
+> +	dev_info(&pci_dev->dev, "device 0x%x (rev: 0x%x)\n",
+> +		 pci_dev->device, pci_dev->revision);
+> +
+> +	phys = pci_resource_start(pci_dev, CIO2_PCI_BAR);
+> +
+> +	r = pcim_iomap_regions(pci_dev, 1 << CIO2_PCI_BAR, pci_name(pci_dev));
+> +	if (r) {
+> +		dev_err(&pci_dev->dev, "failed to remap I/O memory (%d)\n", r);
+> +		return -ENODEV;
+> +	}
+> +
+> +	iomap = pcim_iomap_table(pci_dev);
+> +	if (!iomap) {
+> +		dev_err(&pci_dev->dev, "failed to iomap table\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	cio2->base = iomap[CIO2_PCI_BAR];
+> +
+> +	pci_set_drvdata(pci_dev, cio2);
+> +
+> +	pci_set_master(pci_dev);
+> +
+> +	r = pci_set_dma_mask(pci_dev, CIO2_DMA_MASK);
+> +	if (r) {
+> +		dev_err(&pci_dev->dev, "failed to set DMA mask (%d)\n", r);
+> +		return -ENODEV;
+> +	}
+> +
+> +	r = cio2_pci_config_setup(pci_dev);
+> +	if (r)
+> +		return -ENODEV;
+> +
+> +	mutex_init(&cio2->lock);
+> +
+> +	cio2->media_dev.dev = &cio2->pci_dev->dev;
+> +	strlcpy(cio2->media_dev.model, CIO2_DEVICE_NAME,
+> +		sizeof(cio2->media_dev.model));
+> +	snprintf(cio2->media_dev.bus_info, sizeof(cio2->media_dev.bus_info),
+> +		 "PCI:%s", pci_name(cio2->pci_dev));
+> +	cio2->media_dev.driver_version = KERNEL_VERSION(4, 11, 0);
+> +	cio2->media_dev.hw_revision = 0;
+> +
+> +	media_device_init(&cio2->media_dev);
+> +	r = media_device_register(&cio2->media_dev);
+> +	if (r < 0)
+> +		goto fail_mutex_destroy;
+> +
+> +	cio2->v4l2_dev.mdev = &cio2->media_dev;
+> +	r = v4l2_device_register(&pci_dev->dev, &cio2->v4l2_dev);
+> +	if (r) {
+> +		dev_err(&pci_dev->dev,
+> +			"failed to register V4L2 device (%d)\n", r);
+> +		goto fail_mutex_destroy;
+> +	}
+> +
+> +	for (i = 0; i < CIO2_QUEUES; i++) {
+> +		r = cio2_queue_init(cio2, &cio2->queue[i]);
+> +		if (r)
+> +			goto fail;
+> +	}
+> +
+> +	r = cio2_fbpt_init_dummy(cio2);
+> +	if (r)
+> +		goto fail;
+> +
+> +	/* Register notifier for subdevices we care */
+> +	r = cio2_notifier_init(cio2);
+> +	if (r)
+> +		goto fail;
+> +
+> +	r = devm_request_irq(&pci_dev->dev, pci_dev->irq, cio2_irq,
+> +			     IRQF_SHARED, CIO2_NAME, cio2);
+> +	if (r) {
+> +		dev_err(&pci_dev->dev, "failed to request IRQ (%d)\n", r);
+> +		goto fail;
+> +	}
+> +
+> +	pm_runtime_put_noidle(&pci_dev->dev);
+> +	pm_runtime_allow(&pci_dev->dev);
+
+For PCI devices pm_runtime_put_noidle() is enough. No need to call
+pm_runtime_allow(). Likewise, pm_runtime_get_noresume() is called in driver
+remove function.
+
+> +
+> +	return 0;
+> +
+> +fail:
+> +	cio2_notifier_exit(cio2);
+> +	cio2_fbpt_exit_dummy(cio2);
+> +	for (; i >= 0; i--)
+> +		cio2_queue_exit(cio2, &cio2->queue[i]);
+> +	v4l2_device_unregister(&cio2->v4l2_dev);
+> +	media_device_unregister(&cio2->media_dev);
+> +	media_device_cleanup(&cio2->media_dev);
+> +fail_mutex_destroy:
+> +	mutex_destroy(&cio2->lock);
+> +
+> +	return r;
+> +}
+> +
+> +static void cio2_pci_remove(struct pci_dev *pci_dev)
+> +{
+> +	struct cio2_device *cio2 = pci_get_drvdata(pci_dev);
+> +	unsigned int i;
+> +
+> +	cio2_notifier_exit(cio2);
+> +	cio2_fbpt_exit_dummy(cio2);
+> +	for (i = 0; i < CIO2_QUEUES; i++)
+> +		cio2_queue_exit(cio2, &cio2->queue[i]);
+> +	v4l2_device_unregister(&cio2->v4l2_dev);
+> +	media_device_unregister(&cio2->media_dev);
+> +	media_device_cleanup(&cio2->media_dev);
+> +	mutex_destroy(&cio2->lock);
+> +}
 
 -- 
 Regards,
