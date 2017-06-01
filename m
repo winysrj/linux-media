@@ -1,78 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:43957 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752090AbdFVOhi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Jun 2017 10:37:38 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Helen Koike <helen.koike@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.13] vimc: Virtual Media Control VPU's
-Message-ID: <14200459-ec9c-5700-901e-b2dcc9580193@xs4all.nl>
-Date: Thu, 22 Jun 2017 16:37:17 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from m12-13.163.com ([220.181.12.13]:47939 "EHLO m12-13.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751090AbdFADR2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 May 2017 23:17:28 -0400
+From: Jia-Ju Bai <baijiaju1990@163.com>
+To: awalls@md.metrocast.net, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Jia-Ju Bai <baijiaju1990@163.com>
+Subject: [PATCH] cx18: Fix a sleep-in-atomic bug in snd_cx18_pcm_hw_free
+Date: Thu,  1 Jun 2017 11:19:21 +0800
+Message-Id: <1496287161-17959-1-git-send-email-baijiaju1990@163.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The driver may sleep under a spin lock, and the function call path is:
+snd_cx18_pcm_hw_free (acquire the lock by spin_lock_irqsave)
+  vfree --> may sleep
 
-This will make vimc a lot more interesting as a test driver. Time to get
-this merged.
+To fix it, the "substream->runtime->dma_area" is passed to a temporary 
+value, and mark it NULL when holding the lock. The memory is freed by 
+vfree through the temporary value outside the lock holding.
 
-Helen, reviewing your API proposal on configuring the topology: once this is
-merged I plan to look at that next.
+Signed-off-by: Jia-Ju Bai <baijiaju1990@163.com>
+---
+ drivers/media/pci/cx18/cx18-alsa-pcm.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Regards,
-
-	Hans
-
-The following changes since commit 76724b30f222067faf00874dc277f6c99d03d800:
-
-   [media] media: venus: enable building with COMPILE_TEST (2017-06-20 10:57:08 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/hverkuil/media_tree.git vimc
-
-for you to fetch changes up to 571f6e3044b55ccbd892872750e3acf4d9c8e64d:
-
-   vimc: sen: Declare vimc_sen_video_ops as static (2017-06-22 16:20:44 +0200)
-
-----------------------------------------------------------------
-Helen Fornazier (12):
-       vimc: sen: Integrate the tpg on the sensor
-       vimc: Move common code from the core
-       vimc: common: Add vimc_ent_sd_* helper
-       vimc: common: Add vimc_pipeline_s_stream helper
-       vimc: common: Add vimc_link_validate
-       vimc: common: Add vimc_colorimetry_clamp
-       vimc: sen: Support several image formats
-       vimc: cap: Support several image formats
-       vimc: Subdevices as modules
-       vimc: deb: Add debayer filter
-       vimc: sca: Add scaler
-       vimc: sen: Declare vimc_sen_video_ops as static
-
-  drivers/media/platform/vimc/Kconfig        |   1 +
-  drivers/media/platform/vimc/Makefile       |  10 +-
-  drivers/media/platform/vimc/vimc-capture.c | 321 +++++++++++++++++-------------
-  drivers/media/platform/vimc/vimc-capture.h |  28 ---
-  drivers/media/platform/vimc/vimc-common.c  | 473 ++++++++++++++++++++++++++++++++++++++++++++
-  drivers/media/platform/vimc/vimc-common.h  | 229 ++++++++++++++++++++++
-  drivers/media/platform/vimc/vimc-core.c    | 610 +++++++++++++++------------------------------------------
-  drivers/media/platform/vimc/vimc-core.h    | 112 -----------
-  drivers/media/platform/vimc/vimc-debayer.c | 601 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  drivers/media/platform/vimc/vimc-scaler.c  | 455 ++++++++++++++++++++++++++++++++++++++++++
-  drivers/media/platform/vimc/vimc-sensor.c  | 321 ++++++++++++++++++++----------
-  drivers/media/platform/vimc/vimc-sensor.h  |  28 ---
-  12 files changed, 2325 insertions(+), 864 deletions(-)
-  delete mode 100644 drivers/media/platform/vimc/vimc-capture.h
-  create mode 100644 drivers/media/platform/vimc/vimc-common.c
-  create mode 100644 drivers/media/platform/vimc/vimc-common.h
-  delete mode 100644 drivers/media/platform/vimc/vimc-core.h
-  create mode 100644 drivers/media/platform/vimc/vimc-debayer.c
-  create mode 100644 drivers/media/platform/vimc/vimc-scaler.c
-  delete mode 100644 drivers/media/platform/vimc/vimc-sensor.h
+diff --git a/drivers/media/pci/cx18/cx18-alsa-pcm.c b/drivers/media/pci/cx18/cx18-alsa-pcm.c
+index 205a98d..ba83147 100644
+--- a/drivers/media/pci/cx18/cx18-alsa-pcm.c
++++ b/drivers/media/pci/cx18/cx18-alsa-pcm.c
+@@ -257,14 +257,16 @@ static int snd_cx18_pcm_hw_free(struct snd_pcm_substream *substream)
+ {
+ 	struct snd_cx18_card *cxsc = snd_pcm_substream_chip(substream);
+ 	unsigned long flags;
++	unsigned char *dma_area;
+ 
+ 	spin_lock_irqsave(&cxsc->slock, flags);
+ 	if (substream->runtime->dma_area) {
+ 		dprintk("freeing pcm capture region\n");
+-		vfree(substream->runtime->dma_area);
++		dma_area = substream->runtime->dma_area;
+ 		substream->runtime->dma_area = NULL;
+ 	}
+ 	spin_unlock_irqrestore(&cxsc->slock, flags);
++	vfree(dma_area);
+ 
+ 	return 0;
+ }
+-- 
+1.7.9.5
