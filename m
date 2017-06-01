@@ -1,48 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:33402 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752375AbdFPHje (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 03:39:34 -0400
-Received: by mail-pg0-f65.google.com with SMTP id a70so4544944pge.0
-        for <linux-media@vger.kernel.org>; Fri, 16 Jun 2017 00:39:34 -0700 (PDT)
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH 04/12] [media] uvc: enable subscriptions to other events
-Date: Fri, 16 Jun 2017 16:39:07 +0900
-Message-Id: <20170616073915.5027-5-gustavo@padovan.org>
-In-Reply-To: <20170616073915.5027-1-gustavo@padovan.org>
-References: <20170616073915.5027-1-gustavo@padovan.org>
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:34417 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751047AbdFAHqK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Jun 2017 03:46:10 -0400
+From: Johan Hovold <johan@kernel.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
+        linux-usb@vger.kernel.org, Johan Hovold <johan@kernel.org>,
+        stable <stable@vger.kernel.org>, Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH 1/2] [media] mceusb: fix memory leaks in error path
+Date: Thu,  1 Jun 2017 09:45:59 +0200
+Message-Id: <20170601074600.20548-1-johan@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Fix urb and transfer-buffer leaks in an urb-submission error path which
+may be hit when a device is disconnected.
 
-Call v4l2_ctrl_subscribe_event to subscribe to more events supported by
-v4l.
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Fixes: 66e89522aff7 ("V4L/DVB: IR: add mceusb IR receiver driver")
+Cc: stable <stable@vger.kernel.org>     # 2.6.36
+Cc: Jarod Wilson <jarod@redhat.com>
+Signed-off-by: Johan Hovold <johan@kernel.org>
 ---
- drivers/media/usb/uvc/uvc_v4l2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/rc/mceusb.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 3e7e283..dfa0ccd 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -1240,7 +1240,7 @@ static int uvc_ioctl_subscribe_event(struct v4l2_fh *fh,
- 	case V4L2_EVENT_CTRL:
- 		return v4l2_event_subscribe(fh, sub, 0, &uvc_ctrl_sub_ev_ops);
- 	default:
--		return -EINVAL;
-+		return v4l2_ctrl_subscribe_event(fh, sub);
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 93b16fe3ab38..0a16bd34ee4e 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -766,6 +766,8 @@ static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
+ 	res = usb_submit_urb(async_urb, GFP_ATOMIC);
+ 	if (res) {
+ 		dev_err(dev, "receive request FAILED! (res=%d)", res);
++		kfree(async_buf);
++		usb_free_urb(async_urb);
+ 		return;
  	}
- }
- 
+ 	dev_dbg(dev, "receive request complete (res=%d)", res);
 -- 
-2.9.4
+2.13.0
