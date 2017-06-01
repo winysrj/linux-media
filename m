@@ -1,53 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f53.google.com ([74.125.82.53]:38083 "EHLO
-        mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751046AbdFTNOC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Jun 2017 09:14:02 -0400
-Received: by mail-wm0-f53.google.com with SMTP id u195so19818966wmd.1
-        for <linux-media@vger.kernel.org>; Tue, 20 Jun 2017 06:14:01 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v2] media: venus: enable building with COMPILE_TEST
-Date: Tue, 20 Jun 2017 16:13:50 +0300
-Message-Id: <1497964430-28310-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from m12-12.163.com ([220.181.12.12]:39204 "EHLO m12-12.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751091AbdFAHP6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Jun 2017 03:15:58 -0400
+From: Jia-Ju Bai <baijiaju1990@163.com>
+To: awalls@md.metrocast.net, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Jia-Ju Bai <baijiaju1990@163.com>
+Subject: [PATCH] cx18: Fix a sleep-in-atomic bug in snd_cx18_pcm_hw_free
+Date: Thu,  1 Jun 2017 15:17:51 +0800
+Message-Id: <1496301472-2754-1-git-send-email-baijiaju1990@163.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We want all media drivers to build with COMPILE_TEST, as the
-Coverity instance we use on Kernel works only for x86. Also,
-our test workflow relies on it, in order to identify git
-bisect breakages.
+The driver may sleep under a spin lock, and the function call path is:
+snd_cx18_pcm_hw_free (acquire the lock by spin_lock_irqsave)
+  vfree --> may sleep
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To fix it, the "substream->runtime->dma_area" is passed to a temporary
+value, and mark it NULL when holding the lock. The memory is freed by
+vfree through the temporary value outside the lock holding.
+
+Signed-off-by: Jia-Ju Bai <baijiaju1990@163.com>
 ---
-Changes since v1:
- - select QCOM_MDT_LOADER and QCOM_SCM conditionally.
+ drivers/media/pci/cx18/cx18-alsa-pcm.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
- drivers/media/platform/Kconfig | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 6027dbd4e04d..b7381a4722e2 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -467,8 +467,9 @@ config VIDEO_TI_VPE_DEBUG
- config VIDEO_QCOM_VENUS
- 	tristate "Qualcomm Venus V4L2 encoder/decoder driver"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
--	depends on ARCH_QCOM && IOMMU_DMA
--	select QCOM_MDT_LOADER
-+	depends on (ARCH_QCOM && IOMMU_DMA) || COMPILE_TEST
-+	select QCOM_MDT_LOADER if (ARM || ARM64)
-+	select QCOM_SCM if (ARM || ARM64)
- 	select VIDEOBUF2_DMA_SG
- 	select V4L2_MEM2MEM_DEV
- 	---help---
+diff --git a/drivers/media/pci/cx18/cx18-alsa-pcm.c b/drivers/media/pci/cx18/cx18-alsa-pcm.c
+index 205a98d..8c51e4c 100644
+--- a/drivers/media/pci/cx18/cx18-alsa-pcm.c
++++ b/drivers/media/pci/cx18/cx18-alsa-pcm.c
+@@ -257,14 +257,17 @@ static int snd_cx18_pcm_hw_free(struct snd_pcm_substream *substream)
+ {
+ 	struct snd_cx18_card *cxsc = snd_pcm_substream_chip(substream);
+ 	unsigned long flags;
++	unsigned char *dma_area = NULL;
+ 
+ 	spin_lock_irqsave(&cxsc->slock, flags);
+ 	if (substream->runtime->dma_area) {
+ 		dprintk("freeing pcm capture region\n");
+-		vfree(substream->runtime->dma_area);
++		dma_area = substream->runtime->dma_area;
+ 		substream->runtime->dma_area = NULL;
+ 	}
+ 	spin_unlock_irqrestore(&cxsc->slock, flags);
++	if (dma_area)
++		vfree(dma_area);
+ 
+ 	return 0;
+ }
 -- 
-2.7.4
+1.7.9.5
