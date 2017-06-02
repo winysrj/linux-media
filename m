@@ -1,57 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45494 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751464AbdFGJwM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Jun 2017 05:52:12 -0400
-From: Kieran Bingham <kbingham@kernel.org>
-To: sakari.ailus@iki.fi, linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
-        linux-renesas-soc@vger.kernel.org, kieran.bingham@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v4] v4l: subdev: tolerate null in media_entity_to_v4l2_subdev
-Date: Wed,  7 Jun 2017 10:52:07 +0100
-Message-Id: <1496829127-28375-1-git-send-email-kbingham@kernel.org>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:37221 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750971AbdFBONb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Jun 2017 10:13:31 -0400
+Message-ID: <1496412801.2358.15.camel@pengutronix.de>
+Subject: Re: [PATCH 0/3] tc358743: minor driver fixes
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        Mats Randgaard <matrandg@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Date: Fri, 02 Jun 2017 16:13:21 +0200
+In-Reply-To: <99d7eba3-c5a8-ade3-54bc-18eb27ef0255@xs4all.nl>
+References: <cover.1496397071.git.dave.stevenson@raspberrypi.org>
+         <4dd94754-2a3c-532c-f07c-88ac3765efcf@xs4all.nl>
+         <CAAoAYcPWK1bLYSJDwM_Bp8szNkhXN38KRsx9j0xNWXwCH9qk3Q@mail.gmail.com>
+         <99d7eba3-c5a8-ade3-54bc-18eb27ef0255@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+On Fri, 2017-06-02 at 15:27 +0200, Hans Verkuil wrote:
+> On 06/02/17 15:03, Dave Stevenson wrote:
+> > Hi Hans.
+> > 
+> > On 2 June 2017 at 13:35, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >> On 06/02/17 14:18, Dave Stevenson wrote:
+> >>> These 3 patches for TC358743 came out of trying to use the
+> >>> existing driver with a new Raspberry Pi CSI-2 receiver driver.
+> >>
+> >> Nice! Doing that has been on my todo list for ages but I never got
+> >> around to it. I have one of these and using the Raspberry Pi with
+> >> the tc358743 would allow me to add a CEC driver as well.
+> > 
+> > It's been on my list for a while too! It's working, but just the final
+> > clean ups needed.
+> > I've got 1 v4l2-compliance failure still outstanding that needs
+> > digging into (subscribe_event), rebasing on top of the fwnode tree,
+> > and a couple of config things to tidy up. RFC hopefully next week.
+> > I'm testing with a demo board designed here at Pi Towers, but there
+> > are others successfully testing it using the auvidea.com B101 board.
+> > 
+> > Are you aware of the HDMI modes that the TC358743 driver has been used with?
+> > The comments mention 720P60 at 594MHz, but I have had to modify the
+> > fifo_level value from 16 to 110 to get VGA60 or 576P50 to work. (The
+> > value came out of Toshiba's spreadsheet for computing register
+> > settings). It increases the delay by 2.96usecs at 720P60 on 2 lanes,
+> > so not a huge change.
+> > Is it worth going to the effort of dynamically computing the delay, or
+> > is increasing the default acceptable?
+> 
+> I see that the fifo_level value of 16 was supplied by Philipp Zabel, so
+> I have CC-ed him as I am not sure where those values came from.
 
-Return NULL, if a null entity is parsed for it's v4l2_subdev
+I've just chosen a small delay that worked reliably. For 4-lane 1080p60
+and for 2-lane 720p60 at 594 Mbps lane speed, the Toshiba spreadsheet
+believes that it is ok to decrease the FIFO delay all the way down to 0
+(it is not). I think it should be fine to delay transmission for a few
+microseconds unconditionally, I'll test this next week.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> This driver is also used in a Cisco product, but we use platform_data for that.
+> Here are our settings that we use for reference:
+>
+>         static struct tc358743_platform_data tc358743_pdata = {
+>                 .refclk_hz = 27000000,
+>                 .ddc5v_delay = DDC5V_DELAY_100_MS,
+>                 .fifo_level = 300,
+>                 .pll_prd = 4,
+>                 .pll_fbd = 122,
+>                 /* CSI */
+>                 .lineinitcnt = 0x00001770,
+>                 .lptxtimecnt = 0x00000005,
+>                 .tclk_headercnt = 0x00001d04,
+>                 .ths_headercnt = 0x00000505,
+>                 .twakeup = 0x00004650,
+>                 .ths_trailcnt = 0x00000004,
+>                 .hstxvregcnt = 0x00000005,
+>                 /* HDMI PHY */
+>                 .hdmi_phy_auto_reset_tmds_detected = true,
+>                 .hdmi_phy_auto_reset_tmds_in_range = true,
+>                 .hdmi_phy_auto_reset_tmds_valid = true,
+>                 .hdmi_phy_auto_reset_hsync_out_of_range = true,
+>                 .hdmi_phy_auto_reset_vsync_out_of_range = true,
+>                 .hdmi_detection_delay = HDMI_MODE_DELAY_25_MS,
+>         };
+> 
+> I believe these are all calculated from the Toshiba spreadsheet.
+> 
+> Frankly, I have no idea what they mean :-)
+> 
+> I am fine with increasing the default if Philipp is OK as well. Since
+> Cisco uses a value of 300 I would expect that 16 is indeed too low.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> >>> A couple of the subdevice API calls were not implemented or
+> >>> otherwise gave odd results. Those are fixed.
+> >>>
+> >>> The TC358743 interface board being used didn't have the IRQ
+> >>> line wired up to the SoC. "interrupts" is listed as being
+> >>> optional in the DT binding, but the driver didn't actually
+> >>> function if it wasn't provided.
+> >>>
+> >>> Dave Stevenson (3):
+> >>>   [media] tc358743: Add enum_mbus_code
+> >>>   [media] tc358743: Setup default mbus_fmt before registering
+> >>>   [media] tc358743: Add support for platforms without IRQ line
+> >>
+> >> All looks good, I'll take this for 4.12.
+> > 
+> > Thanks.
+> > 
+> >> Regards,
+> >>
+> >>         Hans
+> >>
+> >>>
+> >>>  drivers/media/i2c/tc358743.c | 59 +++++++++++++++++++++++++++++++++++++++++++-
+> >>>  1 file changed, 58 insertions(+), 1 deletion(-)
+> >>>
+> >>
 
----
-Not sure if this patch ever made it out of my mailbox:
-
-Here's the respin with the parameter evaluated only once.
-
-v4:
- - Improve macro usage to evaluate ent only once
-
- include/media/v4l2-subdev.h | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index a40760174797..0f92ebd2d710 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -826,8 +826,15 @@ struct v4l2_subdev {
- 	struct v4l2_subdev_platform_data *pdata;
- };
- 
--#define media_entity_to_v4l2_subdev(ent) \
--	container_of(ent, struct v4l2_subdev, entity)
-+#define media_entity_to_v4l2_subdev(ent)				\
-+({									\
-+	typeof(ent) __me_sd_ent = (ent);				\
-+									\
-+	__me_sd_ent ?							\
-+		container_of(__me_sd_ent, struct v4l2_subdev, entity) :	\
-+		NULL;							\
-+})
-+
- #define vdev_to_v4l2_subdev(vdev) \
- 	((struct v4l2_subdev *)video_get_drvdata(vdev))
- 
--- 
-2.7.4
+regards
+Philipp
