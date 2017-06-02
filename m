@@ -1,67 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:14383 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751181AbdFEUjb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Jun 2017 16:39:31 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH 01/12] videodev2.h, v4l2-ioctl: add IPU3 meta buffer format
-Date: Mon,  5 Jun 2017 15:39:06 -0500
-Message-Id: <1496695157-19926-2-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:35171 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751135AbdFBTvQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 15:51:16 -0400
+Subject: Re: [PATCH 1/9] [media] s5p-jpeg: Reset the Codec before doing a soft
+ reset
+To: Thierry Escande <thierry.escande@collabora.com>,
+        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
+ <1496419376-17099-2-git-send-email-thierry.escande@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Message-ID: <359e198e-df2b-ef47-17b9-cefe4b7ff220@gmail.com>
+Date: Fri, 2 Jun 2017 21:50:31 +0200
+MIME-Version: 1.0
+In-Reply-To: <1496419376-17099-2-git-send-email-thierry.escande@collabora.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the IPU3 specific processing parameter format
-V4L2_META_FMT_IPU3_PARAMS and metadata formats
-for 3A and other statistics:
+Hi Thierry,
 
-  V4L2_META_FMT_IPU3_PARAMS
-  V4L2_META_FMT_IPU3_STAT_3A
-  V4L2_META_FMT_IPU3_STAT_DVS
-  V4L2_META_FMT_IPU3_STAT_LACE
+On 06/02/2017 06:02 PM, Thierry Escande wrote:
+> From: Abhilash Kesavan <a.kesavan@samsung.com>
+> 
+> This patch resets the encoding and decoding register bits before doing a
+> soft reset.
+> 
+> Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
+> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+> ---
+>  drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+> index a1d823a..9ad8f6d 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+> @@ -21,6 +21,10 @@ void exynos4_jpeg_sw_reset(void __iomem *base)
+>  	unsigned int reg;
+>  
+>  	reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
+> +	writel(reg & ~(EXYNOS4_DEC_MODE | EXYNOS4_ENC_MODE),
+> +	       base + EXYNOS4_JPEG_CNTL_REG);
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
- include/uapi/linux/videodev2.h       | 6 ++++++
- 2 files changed, 10 insertions(+)
+Why is it required? It would be nice if commit message explained that.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index fb1387f..919aa24 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1239,6 +1239,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_TCH_FMT_TU08:		descr = "8-bit unsigned touch data"; break;
- 	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
- 	case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
-+	case V4L2_META_FMT_IPU3_PARAMS:	descr = "IPU3 processing parameters"; break;
-+	case V4L2_META_FMT_IPU3_STAT_3A:	descr = "IPU3 3A statistics"; break;
-+	case V4L2_META_FMT_IPU3_STAT_DVS:	descr = "IPU3 DVS statistics"; break;
-+	case V4L2_META_FMT_IPU3_STAT_LACE:	descr = "IPU3 LACE statistics"; break;
- 
- 	default:
- 		/* Compressed formats */
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 7bfa6ad..fab8822 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -685,6 +685,12 @@ struct v4l2_pix_format {
- #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 1-D Histogram */
- #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */
- 
-+/* Vendor specific - used for IPU3 camera sub-system */
-+#define V4L2_META_FMT_IPU3_PARAMS	v4l2_fourcc('i', 'p', '3', 'p') /* IPU3 params */
-+#define V4L2_META_FMT_IPU3_STAT_3A	v4l2_fourcc('i', 'p', '3', 's') /* IPU3 3A statistics */
-+#define V4L2_META_FMT_IPU3_STAT_DVS	v4l2_fourcc('i', 'p', '3', 'd') /* IPU3 DVS statistics */
-+#define V4L2_META_FMT_IPU3_STAT_LACE	v4l2_fourcc('i', 'p', '3', 'l') /* IPU3 LACE statistics */
-+
- /* priv field value to indicates that subsequent fields are valid. */
- #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
- 
+> +	reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
+>  	writel(reg & ~EXYNOS4_SOFT_RESET_HI, base + EXYNOS4_JPEG_CNTL_REG);
+>  
+>  	udelay(100);
+> 
+
 -- 
-2.7.4
+Best regards,
+Jacek Anaszewski
