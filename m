@@ -1,124 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxout014.mail.hostpoint.ch ([217.26.49.174]:27254 "EHLO
-        mxout014.mail.hostpoint.ch" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750951AbdFTGNz (ORCPT
+Received: from gateway21.websitewelcome.com ([192.185.45.228]:34398 "EHLO
+        gateway21.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751126AbdFBDnp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Jun 2017 02:13:55 -0400
-Subject: Re: [PATCH v3 00/13] stv0367/ddbridge: support CTv6/FlexCT hardware
-To: "Jasmin J." <jasmin@anw.at>,
-        Daniel Scheller <d.scheller.oss@gmail.com>,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: liplianin@netup.ru, rjkm@metzlerbros.de, crope@iki.fi
-References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
- <20170412212327.5b75be19@macbox>
- <20170507174212.2e45ab71@audiostation.wuest.de>
- <20170528234537.3bed2dde@macbox> <20170619221821.022fc473@macbox>
- <f2f432f5-e594-4992-6af5-8006617abe30@anw.at>
-From: Thomas Kaiser <thomas@kaiser-linux.li>
-Message-ID: <ac5b4a7c-d266-d596-eebc-790ddb4fae35@kaiser-linux.li>
-Date: Tue, 20 Jun 2017 08:13:44 +0200
+        Thu, 1 Jun 2017 23:43:45 -0400
+Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
+        by gateway21.websitewelcome.com (Postfix) with ESMTP id DF68740105349
+        for <linux-media@vger.kernel.org>; Thu,  1 Jun 2017 22:43:42 -0500 (CDT)
+Date: Thu, 1 Jun 2017 22:43:41 -0500
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] media: platform: s3c-camif: fix arguments position in
+ function call
+Message-ID: <20170602034341.GA5349@embeddedgus>
 MIME-Version: 1.0
-In-Reply-To: <f2f432f5-e594-4992-6af5-8006617abe30@anw.at>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <da5c5727-628d-1887-368c-970d5308ee72@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 20.06.2017 00:14, Jasmin J. wrote:
-> Hello !
-> 
-> On 06/19/2017 10:18 PM, Daniel Scheller wrote:
->> Am Sun, 28 May 2017 23:45:37 +0200
->> schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
->>
->>> Am Sun, 7 May 2017 17:42:12 +0200
->>> schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
->>>
->>>> Am Wed, 12 Apr 2017 21:23:27 +0200
->>>> schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
->>>>    
->>>>> Am Wed, 29 Mar 2017 18:43:00 +0200
->>>>> schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
->>>>>      
->>>>>> From: Daniel Scheller <d.scheller@gmx.net>
->>>>>>
->>>>>> Third iteration of the DD CineCTv6/FlexCT support patches with
->>>>>> mostly all things cleaned up that popped up so far. Obsoletes V1
->>>>>> and V2 series.
->>>>>>
->>>>>> These patches enhance the functionality of dvb-frontends/stv0367
->>>>>> to work with Digital Devices hardware driven by the ST STV0367
->>>>>> demodulator chip and adds probe & attach bits to ddbridge to
->>>>>> make use of them, effectively enabling full support for
->>>>>> CineCTv6 PCIe bridges and (older) DuoFlex CT addon
->>>>>> modules.
->>>>>
->>>>> Since V1 was sent over five weeks ago: Ping? Anyone? I'd really
->>>>> like to get this upstreamed.
->>>>
->>>> Don't want to sound impatient, but V1 nears nine weeks, so: Second
->>>> Ping.
->>>
->>> Friendly third time Ping on this - Really, I'd like to have this
->>> merged so those quite aging (but still fine) DD CineCTv6 boards
->>> finally are supported without having to install out-of-tree drivers
->>> which even break the V4L-DVB subsystem...
->>
->> Well. From how things look, these and the cxd2841er+C2T2 ddbridge
->> support patches won't make it in time for the 4.13 merge window.
->> Also, unfortunately, the original owners and/or maintainers of the
->> affected drivers (besides cxd2841er), namely stv0367 and ddbridge,
->> either are MIA or not interested in reviewing or acking this.
->>
->> I have plenty of more work (patches) done, all building upon this CT
->> and C2T2 hardware support, which - together with the work Jasmin has
->> done regarding the en50221 and cxd2099 support - would finally bring
->> the in-tree ddbridge driver on par with the package Digital Devices'
->> provides, having addressed most of the critics the previous attempts to
->> bump the driver received (incremental changes which are more or less
->> easy to review, from what can be done by tearing tarballs without
->> proper changelogs apart).
->>
->> The original series of this will be four(!) months old soon :/
->>
->> Is there anything wrong with this? How to proceed with this?
->>
->> (Cc Hans since you also seem to be reviewing patches)
->>
->> That said, fourth ping.
-> 
-> May I add another aspect.
-> Daniel put a lot of effort into this and also other people in testing his
-> drivers. Daniel was highly motivated to bring this driver into the Kernel.
-> 
-> That sayd, waiting 4 months is pretty frustrating and might reduce the
-> motivation to continue.
-> 
-> There are 7 more patch series waiting to review and when each of then requires
-> 4 or more months to get into the Kernel, the project is dead before it really
-> started!
-> 
-> The community using the DD cards is growing and it is often frustrating using
-> the drivers provided by DD, when you plan to use other cards too, because
-> the DD drivers are simply not compatible.
-> Daniel made them working within the current media tree and a lot of people
-> (including me) would be very happy to see the DD cards supported out of the
-> box by the Kernel. Hopefully before the Kernel 5.x development hast started.
-> 
-> I hope there will be soon a review of this series, so that we can move forward
-> with our work!
-> 
-> BR,
->     Jasmin
-> 
+Hi Sylwester,
 
-Hello Reviewers
+Here is another patch in case you decide that it is
+better to apply this one.
 
-Me too, I would be very happy to see this driver included in the kernel.
+Thanks
+--
+Gustavo A. R. Silva
 
-Regards,
 
-Thomas
+==========
+
+Fix the position of the arguments in function call.
+
+Addresses-Coverity-ID: 1248800
+Addresses-Coverity-ID: 1269141
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+---
+ drivers/media/platform/s3c-camif/camif-capture.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+index 1b30be72..25c7a7d 100644
+--- a/drivers/media/platform/s3c-camif/camif-capture.c
++++ b/drivers/media/platform/s3c-camif/camif-capture.c
+@@ -80,7 +80,7 @@ static int s3c_camif_hw_init(struct camif_dev *camif, struct camif_vp *vp)
+ 	camif_hw_set_test_pattern(camif, camif->test_pattern);
+ 	if (variant->has_img_effect)
+ 		camif_hw_set_effect(camif, camif->colorfx,
+-				camif->colorfx_cb, camif->colorfx_cr);
++				camif->colorfx_cr, camif->colorfx_cb);
+ 	if (variant->ip_revision == S3C6410_CAMIF_IP_REV)
+ 		camif_hw_set_input_path(vp);
+ 	camif_cfg_video_path(vp);
+@@ -364,7 +364,7 @@ irqreturn_t s3c_camif_irq_handler(int irq, void *priv)
+ 		camif_hw_set_test_pattern(camif, camif->test_pattern);
+ 		if (camif->variant->has_img_effect)
+ 			camif_hw_set_effect(camif, camif->colorfx,
+-				    camif->colorfx_cb, camif->colorfx_cr);
++				    camif->colorfx_cr, camif->colorfx_cb);
+ 		vp->state &= ~ST_VP_CONFIG;
+ 	}
+ unlock:
+-- 
+2.5.0
