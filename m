@@ -1,124 +1,272 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:55445 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752191AbdFMGtM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 02:49:12 -0400
-Subject: Re: [RFC PATCH v3 09/11] [media] vimc: Subdevices as modules
-To: Helen Koike <helen.koike@collabora.com>,
-        linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Cc: jgebben@codeaurora.org, mchehab@osg.samsung.com,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
- <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
- <1496458714-16834-10-git-send-email-helen.koike@collabora.com>
- <a8fce901-ef34-0ebc-e0b9-90b930416965@xs4all.nl>
- <9fa2afbe-890a-7901-8980-5dcc1fbd36a7@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <eaf57f8b-6ae3-8286-5691-932638d88ca6@xs4all.nl>
-Date: Tue, 13 Jun 2017 08:49:07 +0200
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:57973 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751270AbdFBQDR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 12:03:17 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 6/9] [media] s5p-jpeg: Add support for resolution change event
+Date: Fri,  2 Jun 2017 18:02:53 +0200
+Message-Id: <1496419376-17099-7-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
+References: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
-In-Reply-To: <9fa2afbe-890a-7901-8980-5dcc1fbd36a7@collabora.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/12/2017 10:35 PM, Helen Koike wrote:
-> Hi Hans,
-> 
-> Thank you for your review. Please check my comments below
-> 
-> On 2017-06-12 07:37 AM, Hans Verkuil wrote:
->> On 06/03/2017 04:58 AM, Helen Koike wrote:
->>> +static struct component_match *vimc_add_subdevs(struct vimc_device
->>> *vimc)
->>> +{
->>> +    struct component_match *match = NULL;
->>> +    unsigned int i;
->>> +
->>> +    for (i = 0; i < vimc->pipe_cfg->num_ents; i++) {
->>> +        dev_dbg(&vimc->pdev.dev, "new pdev for %s\n",
->>> +            vimc->pipe_cfg->ents[i].drv);
->>> +
->>> +        /*
->>> +         * TODO: check if using platform_data is indeed the best way to
->>> +         * pass the name to the driver or if we should add the drv name
->>> +         * in the platform_device_id table
->>> +         */
->>
->> Didn't you set the drv name in the platform_device_id table already?
-> 
-> I refer to the name of the entity, there is the name that identifies the
-> driver as "vimc-sensor" that is set in the platform_device_id table but
-> there is also the custom name of the entity e.g. "My Sensor A" that I
-> need to inform to the vimc-sensor driver.
+From: henryhsu <henryhsu@chromium.org>
 
-Ah, so in the TODO you mean:
+This patch adds support for resolution change event to notify clients so
+they can prepare correct output buffer. When resolution change happened,
+G_FMT for CAPTURE should return old resolution and format before CAPTURE
+queues streamoff.
 
-"the best way to pass the entity name to the driver"
+Signed-off-by: Henry-Ruey Hsu <henryhsu@chromium.org>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 121 ++++++++++++++++++++--------
+ drivers/media/platform/s5p-jpeg/jpeg-core.h |   7 ++
+ 2 files changed, 95 insertions(+), 33 deletions(-)
 
-I got confused there.
-
-But in that case I still don't get what you mean with "add the drv name
-in the platform_device_id table". Do you mean "entity name" there as
-well?
-
-> 
->>
->> Using platform_data feels like an abuse to be honest.
-> 
-> Another option would be to make the vimc-sensor driver to populate the
-> entity name automatically as "Sensor x", where x could be the entity
-> number, but I don't think this is a good option.
-
-Why not? Well, probably not the entity number, but a simple instance
-counter would do fine (i.e. Sensor 1, 2, 3...).
-
-It can be made fancier later with dynamic reconfiguration where you
-might want to use the first unused instance number.
-
-> 
->>
->> Creating these components here makes sense. Wouldn't it also make sense
->> to use
->> v4l2_async to wait until they have all been bound? It would more closely
->> emulate
->> standard drivers. Apologies if I misunderstand what is happening here.
-> 
-> I am using linux/component.h for that, when all devices are present and
-> all modules are loaded, the component.h system brings up the core by
-> calling vimc_comp_bind() function, which calls component_bind_all() to
-> call the binding function of each module, then it finishes registering
-> the topology.
-> If any one of the components or module is unload, the component system
-> takes down the entire topology calling component_unbind_all which calls
-> the unbind functions from each module.
-> This makes sure that the media device, subdevices and video device are
-> only registered in the v4l2 system if all the modules are loaded.
-> 
-> I wans't familiar with v4l2-async.h, but from a quick look it seems that
-> it only works with struct v4l2_subdev, but I'll also need for struct
-> video_device (for the capture node for example).
-> And also, if a module is missing we would have vimc partially
-> registered, e.g. the debayer could be registered at /dev/subdevX but the
-> sensor not yet and the media wouldn't be ready, I am not sure if this is
-> a problem though.
-> 
-> Maybe we can use component.h for now, then I can implement
-> v4l2_async_{un}register_video_device and migrate to v4l2-sync.h latter.
-> What do you think?
-
-That's OK. The v4l2-async mechanism precedes the component API. We should
-probably investigate moving over to the component API. I seem to remember
-that it didn't have all the features we needed, but it's a long time ago
-since someone looked at that and whatever the objections were, they may
-no longer be true.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 5569b99..7a7acbc 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -24,6 +24,7 @@
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/string.h>
++#include <media/v4l2-event.h>
+ #include <media/v4l2-mem2mem.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/videobuf2-v4l2.h>
+@@ -1416,8 +1417,17 @@ static int s5p_jpeg_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 	q_data = get_q_data(ct, f->type);
+ 	BUG_ON(q_data == NULL);
+ 
+-	pix->width = q_data->w;
+-	pix->height = q_data->h;
++	if ((f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
++	     ct->mode == S5P_JPEG_ENCODE) ||
++	    (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT &&
++	     ct->mode == S5P_JPEG_DECODE)) {
++		pix->width = 0;
++		pix->height = 0;
++	} else {
++		pix->width = q_data->w;
++		pix->height = q_data->h;
++	}
++
+ 	pix->field = V4L2_FIELD_NONE;
+ 	pix->pixelformat = q_data->fmt->fourcc;
+ 	pix->bytesperline = 0;
+@@ -1677,8 +1687,6 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
+ 			FMT_TYPE_OUTPUT : FMT_TYPE_CAPTURE;
+ 
+ 	q_data->fmt = s5p_jpeg_find_format(ct, pix->pixelformat, f_type);
+-	q_data->w = pix->width;
+-	q_data->h = pix->height;
+ 	if (q_data->fmt->fourcc != V4L2_PIX_FMT_JPEG) {
+ 		/*
+ 		 * During encoding Exynos4x12 SoCs access wider memory area
+@@ -1686,6 +1694,8 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
+ 		 * the JPEG_IMAGE_SIZE register. In order to avoid sysmmu
+ 		 * page fault calculate proper buffer size in such a case.
+ 		 */
++		q_data->w = pix->width;
++		q_data->h = pix->height;
+ 		if (ct->jpeg->variant->hw_ex4_compat &&
+ 		    f_type == FMT_TYPE_OUTPUT && ct->mode == S5P_JPEG_ENCODE)
+ 			q_data->size = exynos4_jpeg_get_output_buffer_size(ct,
+@@ -1761,6 +1771,15 @@ static int s5p_jpeg_s_fmt_vid_out(struct file *file, void *priv,
+ 	return s5p_jpeg_s_fmt(fh_to_ctx(priv), f);
+ }
+ 
++static int s5p_jpeg_subscribe_event(struct v4l2_fh *fh,
++				    const struct v4l2_event_subscription *sub)
++{
++	if (sub->type == V4L2_EVENT_SOURCE_CHANGE)
++		return v4l2_src_change_event_subscribe(fh, sub);
++
++	return -EINVAL;
++}
++
+ static int exynos3250_jpeg_try_downscale(struct s5p_jpeg_ctx *ctx,
+ 				   struct v4l2_rect *r)
+ {
+@@ -2086,6 +2105,9 @@ static const struct v4l2_ioctl_ops s5p_jpeg_ioctl_ops = {
+ 
+ 	.vidioc_g_selection		= s5p_jpeg_g_selection,
+ 	.vidioc_s_selection		= s5p_jpeg_s_selection,
++
++	.vidioc_subscribe_event		= s5p_jpeg_subscribe_event,
++	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
+ 
+ /*
+@@ -2478,8 +2500,17 @@ static int s5p_jpeg_job_ready(void *priv)
+ {
+ 	struct s5p_jpeg_ctx *ctx = priv;
+ 
+-	if (ctx->mode == S5P_JPEG_DECODE)
++	if (ctx->mode == S5P_JPEG_DECODE) {
++		/*
++		 * We have only one input buffer and one output buffer. If there
++		 * is a resolution change event, no need to continue decoding.
++		 */
++		if (ctx->state == JPEGCTX_RESOLUTION_CHANGE)
++			return 0;
++
+ 		return ctx->hdr_parsed;
++	}
++
+ 	return 1;
+ }
+ 
+@@ -2558,6 +2589,21 @@ static int s5p_jpeg_buf_prepare(struct vb2_buffer *vb)
+ 	return 0;
+ }
+ 
++static void s5p_jpeg_set_capture_queue_data(struct s5p_jpeg_ctx *ctx)
++{
++	struct s5p_jpeg_q_data *q_data = &ctx->cap_q;
++
++	q_data->w = ctx->out_q.w;
++	q_data->h = ctx->out_q.h;
++
++	jpeg_bound_align_image(ctx, &q_data->w, S5P_JPEG_MIN_WIDTH,
++			       S5P_JPEG_MAX_WIDTH, q_data->fmt->h_align,
++			       &q_data->h, S5P_JPEG_MIN_HEIGHT,
++			       S5P_JPEG_MAX_HEIGHT, q_data->fmt->v_align);
++
++	q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
++}
++
+ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
+ {
+ 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+@@ -2565,9 +2611,20 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
+ 
+ 	if (ctx->mode == S5P_JPEG_DECODE &&
+ 	    vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-		struct s5p_jpeg_q_data tmp, *q_data;
+-
+-		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&tmp,
++		static const struct v4l2_event ev_src_ch = {
++			.type = V4L2_EVENT_SOURCE_CHANGE,
++			.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
++		};
++		struct vb2_queue *dst_vq;
++		u32 ori_w;
++		u32 ori_h;
++
++		dst_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx,
++					 V4L2_BUF_TYPE_VIDEO_CAPTURE);
++		ori_w = ctx->out_q.w;
++		ori_h = ctx->out_q.h;
++
++		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&ctx->out_q,
+ 		     (unsigned long)vb2_plane_vaddr(vb, 0),
+ 		     min((unsigned long)ctx->out_q.size,
+ 			 vb2_get_plane_payload(vb, 0)), ctx);
+@@ -2576,31 +2633,18 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
+ 			return;
+ 		}
+ 
+-		q_data = &ctx->out_q;
+-		q_data->w = tmp.w;
+-		q_data->h = tmp.h;
+-		q_data->sos = tmp.sos;
+-		memcpy(q_data->dht.marker, tmp.dht.marker,
+-		       sizeof(tmp.dht.marker));
+-		memcpy(q_data->dht.len, tmp.dht.len, sizeof(tmp.dht.len));
+-		q_data->dht.n = tmp.dht.n;
+-		memcpy(q_data->dqt.marker, tmp.dqt.marker,
+-		       sizeof(tmp.dqt.marker));
+-		memcpy(q_data->dqt.len, tmp.dqt.len, sizeof(tmp.dqt.len));
+-		q_data->dqt.n = tmp.dqt.n;
+-		q_data->sof = tmp.sof;
+-		q_data->sof_len = tmp.sof_len;
+-
+-		q_data = &ctx->cap_q;
+-		q_data->w = tmp.w;
+-		q_data->h = tmp.h;
+-
+-		jpeg_bound_align_image(ctx, &q_data->w, S5P_JPEG_MIN_WIDTH,
+-				       S5P_JPEG_MAX_WIDTH, q_data->fmt->h_align,
+-				       &q_data->h, S5P_JPEG_MIN_HEIGHT,
+-				       S5P_JPEG_MAX_HEIGHT, q_data->fmt->v_align
+-				      );
+-		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
++		/*
++		 * If there is a resolution change event, only update capture
++		 * queue when it is not streaming. Otherwise, update it in
++		 * STREAMOFF. See s5p_jpeg_stop_streaming for detail.
++		 */
++		if (ctx->out_q.w != ori_w || ctx->out_q.h != ori_h) {
++			v4l2_event_queue_fh(&ctx->fh, &ev_src_ch);
++			if (vb2_is_streaming(dst_vq))
++				ctx->state = JPEGCTX_RESOLUTION_CHANGE;
++			else
++				s5p_jpeg_set_capture_queue_data(ctx);
++		}
+ 	}
+ 
+ 	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+@@ -2620,6 +2664,17 @@ static void s5p_jpeg_stop_streaming(struct vb2_queue *q)
+ {
+ 	struct s5p_jpeg_ctx *ctx = vb2_get_drv_priv(q);
+ 
++	/*
++	 * STREAMOFF is an acknowledgment for resolution change event.
++	 * Before STREAMOFF, we still have to return the old resolution and
++	 * subsampling. Update capture queue when the stream is off.
++	 */
++	if (ctx->state == JPEGCTX_RESOLUTION_CHANGE &&
++	    q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++		s5p_jpeg_set_capture_queue_data(ctx);
++		ctx->state = JPEGCTX_RUNNING;
++	}
++
+ 	pm_runtime_put(ctx->jpeg->dev);
+ }
+ 
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+index 4492a35..9aa26bd 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+@@ -98,6 +98,11 @@ enum  exynos4_jpeg_img_quality_level {
+ 	QUALITY_LEVEL_4,	/* low */
+ };
+ 
++enum s5p_jpeg_ctx_state {
++	JPEGCTX_RUNNING = 0,
++	JPEGCTX_RESOLUTION_CHANGE,
++};
++
+ /**
+  * struct s5p_jpeg - JPEG IP abstraction
+  * @lock:		the mutex protecting this structure
+@@ -220,6 +225,7 @@ struct s5p_jpeg_q_data {
+  * @hdr_parsed:		set if header has been parsed during decompression
+  * @crop_altered:	set if crop rectangle has been altered by the user space
+  * @ctrl_handler:	controls handler
++ * @state:		state of the context
+  */
+ struct s5p_jpeg_ctx {
+ 	struct s5p_jpeg		*jpeg;
+@@ -235,6 +241,7 @@ struct s5p_jpeg_ctx {
+ 	bool			hdr_parsed;
+ 	bool			crop_altered;
+ 	struct v4l2_ctrl_handler ctrl_handler;
++	enum s5p_jpeg_ctx_state	state;
+ };
+ 
+ /**
+-- 
+2.7.4
