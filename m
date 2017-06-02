@@ -1,68 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:18960 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753323AbdFNCcQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 22:32:16 -0400
-From: "Zhi, Yong" <yong.zhi@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>,
-        "Mohandass, Divagar" <divagar.mohandass@intel.com>
-Subject: RE: [PATCH 3/3] intel-ipu3: cio2: Add new MIPI-CSI2 driver
-Date: Wed, 14 Jun 2017 02:32:14 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D0799EC0C@ORSMSX106.amr.corp.intel.com>
-References: <1497385036-1002-1-git-send-email-yong.zhi@intel.com>
- <1497385036-1002-4-git-send-email-yong.zhi@intel.com>
- <CAAFQd5BQsha1K3pCGpfJiuuA5Uy_ZAVhDbbUJqAumXSGpV=sWQ@mail.gmail.com>
-In-Reply-To: <CAAFQd5BQsha1K3pCGpfJiuuA5Uy_ZAVhDbbUJqAumXSGpV=sWQ@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:57955 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751169AbdFBQDP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 12:03:15 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 1/9] [media] s5p-jpeg: Reset the Codec before doing a soft reset
+Date: Fri,  2 Jun 2017 18:02:48 +0200
+Message-Id: <1496419376-17099-2-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
+References: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksIFRvbWFzeiwNCg0KVGhhbmtzIGZvciB5b3VyIGNvZGUgcmV2aWV3LCBzdGlsbCBuZWVkIG1v
-cmUgdGltZSB0byBzdHVkeSBhbmQgdGVzdCB0aGUgc29sdXRpb24gZm9yIHRoZSByZXN0IG9mIGNv
-bW1lbnRzLCBnb2luZyBmb3J3YXJkLCBJIHdpbGwgcmVzcG9uZCB0byB5b3VyIHJldmlldyBmaXJz
-dCBiZWZvcmUgc3VibWl0dGluZyBuZXcgdmVyc2lvbi4NCg0KVGhhbmtzLA0KDQpZb25nICANCg0K
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1tZWRpYS1vd25lckB2
-Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1tZWRpYS0NCj4gb3duZXJAdmdlci5rZXJuZWwu
-b3JnXSBPbiBCZWhhbGYgT2YgVG9tYXN6IEZpZ2ENCj4gU2VudDogVHVlc2RheSwgSnVuZSAxMywg
-MjAxNyA1OjAxIFBNDQo+IFRvOiBaaGksIFlvbmcgPHlvbmcuemhpQGludGVsLmNvbT4NCj4gQ2M6
-IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZzsgU2FrYXJpIEFpbHVzIDxzYWthcmkuYWlsdXNA
-bGludXguaW50ZWwuY29tPjsNCj4gWmhlbmcsIEppYW4gWHUgPGppYW4ueHUuemhlbmdAaW50ZWwu
-Y29tPjsgTWFuaSwgUmFqbW9oYW4NCj4gPHJham1vaGFuLm1hbmlAaW50ZWwuY29tPjsgVG9pdm9u
-ZW4sIFR1dWtrYQ0KPiA8dHV1a2thLnRvaXZvbmVuQGludGVsLmNvbT47IFlhbmcsIEh5dW5nd29v
-DQo+IDxoeXVuZ3dvby55YW5nQGludGVsLmNvbT47IE1vaGFuZGFzcywgRGl2YWdhcg0KPiA8ZGl2
-YWdhci5tb2hhbmRhc3NAaW50ZWwuY29tPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDMvM10gaW50
-ZWwtaXB1MzogY2lvMjogQWRkIG5ldyBNSVBJLUNTSTIgZHJpdmVyDQo+IA0KPiBIaSBZb25nLA0K
-PiANCj4gT24gV2VkLCBKdW4gMTQsIDIwMTcgYXQgNToxNyBBTSwgWW9uZyBaaGkgPHlvbmcuemhp
-QGludGVsLmNvbT4gd3JvdGU6DQo+ID4gVGhpcyBwYXRjaCBhZGRzIENJTzIgQ1NJLTIgZGV2aWNl
-IGRyaXZlciBmb3IgSW50ZWwncyBJUFUzIGNhbWVyYQ0KPiA+IHN1Yi1zeXN0ZW0gc3VwcG9ydC4N
-Cj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IFlvbmcgWmhpIDx5b25nLnpoaUBpbnRlbC5jb20+DQo+
-ID4gLS0tDQo+ID4gIGRyaXZlcnMvbWVkaWEvcGNpL0tjb25maWcgICAgICAgICAgICAgICAgfCAg
-ICAyICsNCj4gPiAgZHJpdmVycy9tZWRpYS9wY2kvTWFrZWZpbGUgICAgICAgICAgICAgICB8ICAg
-IDMgKy0NCj4gPiAgZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvTWFrZWZpbGUgICAgICAgICB8ICAg
-IDUgKw0KPiA+ICBkcml2ZXJzL21lZGlhL3BjaS9pbnRlbC9pcHUzL0tjb25maWcgICAgIHwgICAx
-NyArDQo+ID4gIGRyaXZlcnMvbWVkaWEvcGNpL2ludGVsL2lwdTMvTWFrZWZpbGUgICAgfCAgICAx
-ICsNCj4gPiAgZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvaXB1My9pcHUzLWNpbzIuYyB8IDE3NzkN
-Cj4gPiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysNCj4gPiBkcml2ZXJzL21lZGlhL3Bj
-aS9pbnRlbC9pcHUzL2lwdTMtY2lvMi5oIHwgIDQzNCArKysrKysrKw0KPiA+ICA3IGZpbGVzIGNo
-YW5nZWQsIDIyNDAgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKSAgY3JlYXRlIG1vZGUNCj4g
-PiAxMDA2NDQgZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvTWFrZWZpbGUgIGNyZWF0ZSBtb2RlIDEw
-MDY0NA0KPiA+IGRyaXZlcnMvbWVkaWEvcGNpL2ludGVsL2lwdTMvS2NvbmZpZw0KPiA+ICBjcmVh
-dGUgbW9kZSAxMDA2NDQgZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvaXB1My9NYWtlZmlsZQ0KPiA+
-ICBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvaXB1My9pcHUzLWNp
-bzIuYw0KPiA+ICBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvaXB1
-My9pcHUzLWNpbzIuaA0KPiA+DQo+IA0KPiBJIHF1aWNrbHkgY2hlY2tlZCB0aGUgY29kZSBhbmQg
-aXQgZG9lc24ndCBzZWVtIHRvIGhhdmUgbW9zdCBvZiBteSBjb21tZW50cw0KPiBmcm9tIHYyIGFk
-ZHJlc3NlZC4gSXQncyBub3QgYSB2ZXJ5IGdvb2QgcHJhY3RpY2UgdG8gc2VuZCBuZXcgdmVyc2lv
-biB3aXRob3V0DQo+IGFkZHJlc3Npbmcgb3IgYXQgbGVhc3QgcmVwbHlpbmcgdG8gYWxsIHRoZSBj
-b21tZW50cyAtIGl0J3MgdGhlIGJlc3Qgd2F5IHRvIGxvc2UNCj4gdHJhY2sgb2YgbmVjZXNzYXJ5
-IGNoYW5nZXMuIFBsZWFzZSBtYWtlIHN1cmUgdGhhdCBhbGwgdGhlIGNvbW1lbnRzIGFyZQ0KPiB0
-YWtlbiBjYXJlIG9mLg0KPiANCj4gQmVzdCByZWdhcmRzLA0KPiBUb21hc3oNCg==
+From: Abhilash Kesavan <a.kesavan@samsung.com>
+
+This patch resets the encoding and decoding register bits before doing a
+soft reset.
+
+Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+index a1d823a..9ad8f6d 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+@@ -21,6 +21,10 @@ void exynos4_jpeg_sw_reset(void __iomem *base)
+ 	unsigned int reg;
+ 
+ 	reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
++	writel(reg & ~(EXYNOS4_DEC_MODE | EXYNOS4_ENC_MODE),
++	       base + EXYNOS4_JPEG_CNTL_REG);
++
++	reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
+ 	writel(reg & ~EXYNOS4_SOFT_RESET_HI, base + EXYNOS4_JPEG_CNTL_REG);
+ 
+ 	udelay(100);
+-- 
+2.7.4
