@@ -1,65 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:55622 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751720AbdFIRyF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Jun 2017 13:54:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH 1/2] dt-bindings: add media/cec.txt
-Date: Fri,  9 Jun 2017 19:54:00 +0200
-Message-Id: <20170609175401.40204-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170609175401.40204-1-hverkuil@xs4all.nl>
-References: <20170609175401.40204-1-hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:38962 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750966AbdFBUE2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Jun 2017 16:04:28 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] staging: atomisp: Fix endless recursion in hmm_init
+Date: Fri,  2 Jun 2017 22:04:23 +0200
+Message-Id: <20170602200423.29229-1-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+hmm_init calls hmm_alloc to set dummy_ptr, hmm_alloc calls
+hmm_init when dummy_ptr is not yet set, which is the case in
+the call from hmm_init, so it calls hmm_init again, this continues
+until we have a stack overflow due to the recursion.
 
-Document common HDMI CEC bindings. Add this to the MAINTAINERS file
-as well.
+This commit fixes this by adding a separate flag for tracking if
+hmm_init has been called. Not pretty, but it gets the job done,
+eventually we should be able to remove the hmm_init call from
+hmm_alloc.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Andrzej Hajda <a.hajda@samsung.com>
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Cc: devicetree@vger.kernel.org
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- Documentation/devicetree/bindings/media/cec.txt | 8 ++++++++
- MAINTAINERS                                     | 1 +
- 2 files changed, 9 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cec.txt
+ drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/media/cec.txt b/Documentation/devicetree/bindings/media/cec.txt
-new file mode 100644
-index 000000000000..22d7aae3d3d7
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/cec.txt
-@@ -0,0 +1,8 @@
-+Common bindings for HDMI CEC adapters
-+
-+- hdmi-phandle: phandle to the HDMI controller.
-+
-+- needs-hpd: if present the CEC support is only available when the HPD
-+  is high. Some boards only let the CEC pin through if the HPD is high,
-+  for example if there is a level converter that uses the HPD to power
-+  up or down.
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 053c3bdd1fe5..4ac340d189a3 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3137,6 +3137,7 @@ F:	include/media/cec.h
- F:	include/media/cec-notifier.h
- F:	include/uapi/linux/cec.h
- F:	include/uapi/linux/cec-funcs.h
-+F:	Documentation/devicetree/bindings/media/cec.txt
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
+index 5729539..e79ca3c 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
+@@ -43,6 +43,7 @@ struct hmm_bo_device bo_device;
+ struct hmm_pool	dynamic_pool;
+ struct hmm_pool	reserved_pool;
+ static ia_css_ptr dummy_ptr;
++static bool hmm_initialized;
+ struct _hmm_mem_stat hmm_mem_stat;
  
- CELL BROADBAND ENGINE ARCHITECTURE
- M:	Arnd Bergmann <arnd@arndb.de>
+ /* p: private
+@@ -186,6 +187,8 @@ int hmm_init(void)
+ 	if (ret)
+ 		dev_err(atomisp_dev, "hmm_bo_device_init failed.\n");
+ 
++	hmm_initialized = true;
++
+ 	/*
+ 	 * As hmm use NULL to indicate invalid ISP virtual address,
+ 	 * and ISP_VM_START is defined to 0 too, so we allocate
+@@ -217,6 +220,7 @@ void hmm_cleanup(void)
+ 	dummy_ptr = 0;
+ 
+ 	hmm_bo_device_exit(&bo_device);
++	hmm_initialized = false;
+ }
+ 
+ ia_css_ptr hmm_alloc(size_t bytes, enum hmm_bo_type type,
+@@ -229,7 +233,7 @@ ia_css_ptr hmm_alloc(size_t bytes, enum hmm_bo_type type,
+ 	/* Check if we are initialized. In the ideal world we wouldn't need
+ 	   this but we can tackle it once the driver is a lot cleaner */
+ 
+-	if (!dummy_ptr)
++	if (!hmm_initialized)
+ 		hmm_init();
+ 	/*Get page number from size*/
+ 	pgnr = size_to_pgnr_ceil(bytes);
 -- 
-2.11.0
+2.9.4
