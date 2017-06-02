@@ -1,63 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f182.google.com ([209.85.128.182]:34126 "EHLO
-        mail-wr0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752739AbdFOQdj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 12:33:39 -0400
-Received: by mail-wr0-f182.google.com with SMTP id 77so25379050wrb.1
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 09:33:39 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v11 14/19] media: venus: hfi_msgs: fix set but not used variables
-Date: Thu, 15 Jun 2017 19:31:55 +0300
-Message-Id: <1497544320-2269-15-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from mail-pf0-f178.google.com ([209.85.192.178]:34333 "EHLO
+        mail-pf0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751147AbdFBVeo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 17:34:44 -0400
+Received: by mail-pf0-f178.google.com with SMTP id 9so57174754pfj.1
+        for <linux-media@vger.kernel.org>; Fri, 02 Jun 2017 14:34:44 -0700 (PDT)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: Sekhar Nori <nsekhar@ti.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 1/4] [media] davinci: vpif_capture: drop compliance hack
+Date: Fri,  2 Jun 2017 14:34:28 -0700
+Message-Id: <20170602213431.10777-2-khilman@baylibre.com>
+In-Reply-To: <20170602213431.10777-1-khilman@baylibre.com>
+References: <20170602213431.10777-1-khilman@baylibre.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes a warning found when building with gcc7:
+Capture driver silently overrides pixel format with a hack (according to
+the comments) to pass v4l2 compliance tests.  This isn't needed for
+normal functionality, and works for composite video and raw camera capture
+without.
 
-drivers/media/platform/qcom/venus/hfi_msgs.c:465:40:
-warning: variable 'domain' set but not used [-Wunused-but-set-variable]
-  u32 rem_bytes, num_props, codecs = 0, domain = 0;
-                                        ^~~~~~
-drivers/media/platform/qcom/venus/hfi_msgs.c:465:28:
-warning: variable 'codecs' set but not used [-Wunused-but-set-variable]
-  u32 rem_bytes, num_props, codecs = 0, domain = 0;
+In addition, the hack assumes that it only supports raw capture with a
+single format (SBGGR8) which isn't true.  VPIF can also capture 10- and
+12-bit raw formats as well.  Forthcoming patches will enable VPIF
+input with raw-camera support and has been tested with 10-bit format
+from the aptina,mt9v032 sensor.
 
-The warning is avoided by deleting the variables declaration.
+Any compliance failures should be fixed with a real fix.
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
 ---
- drivers/media/platform/qcom/venus/hfi_msgs.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/media/platform/davinci/vpif_capture.c | 15 ---------------
+ 1 file changed, 15 deletions(-)
 
-diff --git a/drivers/media/platform/qcom/venus/hfi_msgs.c b/drivers/media/platform/qcom/venus/hfi_msgs.c
-index 88898118f6af..f8841713e417 100644
---- a/drivers/media/platform/qcom/venus/hfi_msgs.c
-+++ b/drivers/media/platform/qcom/venus/hfi_msgs.c
-@@ -462,7 +462,7 @@ static u32 init_done_read_prop(struct venus_core *core, struct venus_inst *inst,
- 			       struct hfi_msg_session_init_done_pkt *pkt)
- {
- 	struct device *dev = core->dev;
--	u32 rem_bytes, num_props, codecs = 0, domain = 0;
-+	u32 rem_bytes, num_props;
- 	u32 ptype, next_offset = 0;
- 	u32 err;
- 	u8 *data;
-@@ -490,8 +490,6 @@ static u32 init_done_read_prop(struct venus_core *core, struct venus_inst *inst,
- 				(struct hfi_codec_mask_supported *)
- 				(data + next_offset);
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 128e92d1dd5a..fc5c7622660c 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -936,21 +936,6 @@ static int vpif_try_fmt_vid_cap(struct file *file, void *priv,
+ 	struct channel_obj *ch = video_get_drvdata(vdev);
+ 	struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
+ 	struct common_obj *common = &(ch->common[VPIF_VIDEO_INDEX]);
+-	struct vpif_params *vpif_params = &ch->vpifparams;
+-
+-	/*
+-	 * to supress v4l-compliance warnings silently correct
+-	 * the pixelformat
+-	 */
+-	if (vpif_params->iface.if_type == VPIF_IF_RAW_BAYER) {
+-		if (pixfmt->pixelformat != V4L2_PIX_FMT_SBGGR8)
+-			pixfmt->pixelformat = V4L2_PIX_FMT_SBGGR8;
+-	} else {
+-		if (pixfmt->pixelformat != V4L2_PIX_FMT_NV16)
+-			pixfmt->pixelformat = V4L2_PIX_FMT_NV16;
+-	}
+-
+-	common->fmt.fmt.pix.pixelformat = pixfmt->pixelformat;
  
--			codecs = masks->codecs;
--			domain = masks->video_domains;
- 			next_offset += sizeof(*masks);
- 			num_props--;
- 			break;
+ 	vpif_update_std_info(ch);
+ 
 -- 
-2.7.4
+2.9.3
