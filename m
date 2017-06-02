@@ -1,36 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:17301 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750829AbdF1IvU (ORCPT
+Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:42087 "EHLO
+        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751125AbdFBMSf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Jun 2017 04:51:20 -0400
-Subject: Re: [PATCH 2/3] media: ti-vpe: cal: use
- of_graph_get_remote_endpoint()
-To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        linux-media@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
-        Benoit Parrot <bparrot@ti.com>,
+        Fri, 2 Jun 2017 08:18:35 -0400
+Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
+        by mx07-00252a01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v52CDumC012139
+        for <linux-media@vger.kernel.org>; Fri, 2 Jun 2017 13:18:34 +0100
+Received: from mail-wm0-f71.google.com (mail-wm0-f71.google.com [74.125.82.71])
+        by mx07-00252a01.pphosted.com with ESMTP id 2apxuyawfb-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Fri, 02 Jun 2017 13:18:33 +0100
+Received: by mail-wm0-f71.google.com with SMTP id 139so16780361wmf.5
+        for <linux-media@vger.kernel.org>; Fri, 02 Jun 2017 05:18:33 -0700 (PDT)
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+To: Mats Randgaard <matrandg@cisco.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <edd9f256-ccd8-e9e1-ec9e-36e14d0953c3@samsung.com>
-Date: Wed, 28 Jun 2017 10:51:11 +0200
-MIME-version: 1.0
-In-reply-to: <87k23xez30.wl%kuninori.morimoto.gx@renesas.com>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <87mv8tez69.wl%kuninori.morimoto.gx@renesas.com>
-        <87k23xez30.wl%kuninori.morimoto.gx@renesas.com>
-        <CGME20170628085117epcas5p20400db1d5eb6613a2ef167d54024f716@epcas5p2.samsung.com>
+        linux-media@vger.kernel.org
+Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Subject: [PATCH 0/3] tc358743: minor driver fixes
+Date: Fri,  2 Jun 2017 13:18:11 +0100
+Message-Id: <cover.1496397071.git.dave.stevenson@raspberrypi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/28/2017 02:33 AM, Kuninori Morimoto wrote:
-> From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-> 
-> Now, we can use of_graph_get_remote_endpoint(). Let's use it.
-> 
-> Signed-off-by: Kuninori Morimoto<kuninori.morimoto.gx@renesas.com>
+These 3 patches for TC358743 came out of trying to use the
+existing driver with a new Raspberry Pi CSI-2 receiver driver.
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+A couple of the subdevice API calls were not implemented or
+otherwise gave odd results. Those are fixed.
+
+The TC358743 interface board being used didn't have the IRQ
+line wired up to the SoC. "interrupts" is listed as being
+optional in the DT binding, but the driver didn't actually
+function if it wasn't provided.
+
+Dave Stevenson (3):
+  [media] tc358743: Add enum_mbus_code
+  [media] tc358743: Setup default mbus_fmt before registering
+  [media] tc358743: Add support for platforms without IRQ line
+
+ drivers/media/i2c/tc358743.c | 59 +++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 58 insertions(+), 1 deletion(-)
+
+-- 
+2.7.4
