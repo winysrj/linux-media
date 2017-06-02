@@ -1,87 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:35393 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751532AbdF2UNE (ORCPT
+Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:27599 "EHLO
+        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751125AbdFBMSu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 16:13:04 -0400
-Subject: Re: [PATCH v3 4/8] [media] s5p-jpeg: Don't use temporary structure in
- s5p_jpeg_buf_queue
-To: Thierry Escande <thierry.escande@collabora.com>,
-        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
- <1498579734-1594-5-git-send-email-thierry.escande@collabora.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Message-ID: <414dfbec-8ef9-6ac5-153b-084c9a765410@gmail.com>
-Date: Thu, 29 Jun 2017 22:12:20 +0200
-MIME-Version: 1.0
-In-Reply-To: <1498579734-1594-5-git-send-email-thierry.escande@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+        Fri, 2 Jun 2017 08:18:50 -0400
+Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
+        by mx07-00252a01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v52CDLsZ011757
+        for <linux-media@vger.kernel.org>; Fri, 2 Jun 2017 13:18:49 +0100
+Received: from mail-wm0-f71.google.com (mail-wm0-f71.google.com [74.125.82.71])
+        by mx07-00252a01.pphosted.com with ESMTP id 2apxuyawfg-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Fri, 02 Jun 2017 13:18:49 +0100
+Received: by mail-wm0-f71.google.com with SMTP id r203so16818213wmb.2
+        for <linux-media@vger.kernel.org>; Fri, 02 Jun 2017 05:18:49 -0700 (PDT)
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+To: Mats Randgaard <matrandg@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Subject: [PATCH 1/3] [media] tc358743: Add enum_mbus_code
+Date: Fri,  2 Jun 2017 13:18:12 +0100
+Message-Id: <bca85f68840a079ca4702d5d859e1f02f7f55dcd.1496398217.git.dave.stevenson@raspberrypi.org>
+In-Reply-To: <cover.1496397071.git.dave.stevenson@raspberrypi.org>
+References: <cover.1496397071.git.dave.stevenson@raspberrypi.org>
+In-Reply-To: <cover.1496398217.git.dave.stevenson@raspberrypi.org>
+References: <cover.1496398217.git.dave.stevenson@raspberrypi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thierry,
+There was no way to query the supported mbus formats from this
+driver. enum_mbus_code is the function to expose that, so
+implement it.
 
-On 06/27/2017 06:08 PM, Thierry Escande wrote:
-> If s5p_jpeg_parse_hdr() fails to parse the JPEG header, the passed
-> s5p_jpeg_q_data structure is not modify so there is no need to use a
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+---
+ drivers/media/i2c/tc358743.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-s/modify/modified/
-
-> temporary structure and the field-by-field copy can be avoided.
-> 
-> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
-> ---
->  drivers/media/platform/s5p-jpeg/jpeg-core.c | 23 ++++-------------------
->  1 file changed, 4 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> index df3e5ee..1769744 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> @@ -2500,9 +2500,9 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
->  
->  	if (ctx->mode == S5P_JPEG_DECODE &&
->  	    vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> -		struct s5p_jpeg_q_data tmp, *q_data;
-> +		struct s5p_jpeg_q_data *q_data;
->  
-> -		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&tmp,
-> +		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&ctx->out_q,
->  		     (unsigned long)vb2_plane_vaddr(vb, 0),
->  		     min((unsigned long)ctx->out_q.size,
->  			 vb2_get_plane_payload(vb, 0)), ctx);
-> @@ -2511,24 +2511,9 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
->  			return;
->  		}
->  
-> -		q_data = &ctx->out_q;
-> -		q_data->w = tmp.w;
-> -		q_data->h = tmp.h;
-> -		q_data->sos = tmp.sos;
-> -		memcpy(q_data->dht.marker, tmp.dht.marker,
-> -		       sizeof(tmp.dht.marker));
-> -		memcpy(q_data->dht.len, tmp.dht.len, sizeof(tmp.dht.len));
-> -		q_data->dht.n = tmp.dht.n;
-> -		memcpy(q_data->dqt.marker, tmp.dqt.marker,
-> -		       sizeof(tmp.dqt.marker));
-> -		memcpy(q_data->dqt.len, tmp.dqt.len, sizeof(tmp.dqt.len));
-> -		q_data->dqt.n = tmp.dqt.n;
-> -		q_data->sof = tmp.sof;
-> -		q_data->sof_len = tmp.sof_len;
-> -
->  		q_data = &ctx->cap_q;
-> -		q_data->w = tmp.w;
-> -		q_data->h = tmp.h;
-> +		q_data->w = ctx->out_q.w;
-> +		q_data->h = ctx->out_q.h;
->  
->  		/*
->  		 * This call to jpeg_bound_align_image() takes care of width and
-> 
-
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 3251cba..06bfdca 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -1473,6 +1473,23 @@ static int tc358743_s_stream(struct v4l2_subdev *sd, int enable)
+ 
+ /* --------------- PAD OPS --------------- */
+ 
++static int tc358743_enum_mbus_code(struct v4l2_subdev *sd,
++		struct v4l2_subdev_pad_config *cfg,
++		struct v4l2_subdev_mbus_code_enum *code)
++{
++	switch (code->index) {
++	case 0:
++		code->code = MEDIA_BUS_FMT_RGB888_1X24;
++		break;
++	case 1:
++		code->code = MEDIA_BUS_FMT_UYVY8_1X16;
++		break;
++	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
+ static int tc358743_get_fmt(struct v4l2_subdev *sd,
+ 		struct v4l2_subdev_pad_config *cfg,
+ 		struct v4l2_subdev_format *format)
+@@ -1642,6 +1659,7 @@ static const struct v4l2_subdev_video_ops tc358743_video_ops = {
+ };
+ 
+ static const struct v4l2_subdev_pad_ops tc358743_pad_ops = {
++	.enum_mbus_code = tc358743_enum_mbus_code,
+ 	.set_fmt = tc358743_set_fmt,
+ 	.get_fmt = tc358743_get_fmt,
+ 	.get_edid = tc358743_g_edid,
 -- 
-Best regards,
-Jacek Anaszewski
+2.7.4
