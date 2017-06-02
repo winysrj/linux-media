@@ -1,53 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33273 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751976AbdFODbf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 23:31:35 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 10/15] af9015: enable 2nd TS flow control when dual mode
-Date: Thu, 15 Jun 2017 06:31:00 +0300
-Message-Id: <20170615033105.13517-10-crope@iki.fi>
-In-Reply-To: <20170615033105.13517-1-crope@iki.fi>
-References: <20170615033105.13517-1-crope@iki.fi>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:57978 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751250AbdFBQDR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 12:03:17 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 7/9] [media] s5p-jpeg: Change sclk_jpeg to 166MHz for Exynos5250
+Date: Fri,  2 Jun 2017 18:02:54 +0200
+Message-Id: <1496419376-17099-8-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
+References: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It needs to be enabled in order to get stream from slave af9013 demod.
+From: henryhsu <henryhsu@chromium.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+The default clock parent of jpeg on Exynos5250 is fin_pll, which is
+24MHz. We have to change the clock parent to CPLL, which is 333MHz,
+and set sclk_jpeg to 166MHz.
+
+Signed-off-by: Heng-Ruey Hsu <henryhsu@chromium.org>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
 ---
- drivers/media/usb/dvb-usb-v2/af9015.c | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 47 +++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9015.c b/drivers/media/usb/dvb-usb-v2/af9015.c
-index 54c1d47..ee0e354 100644
---- a/drivers/media/usb/dvb-usb-v2/af9015.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9015.c
-@@ -1131,10 +1131,21 @@ static int af9015_init_endpoint(struct dvb_usb_device *d)
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 7a7acbc..430e925 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -969,6 +969,44 @@ static void exynos4_jpeg_parse_q_tbl(struct s5p_jpeg_ctx *ctx)
+ 	}
+ }
+ 
++static int exynos4_jpeg_set_sclk_rate(struct s5p_jpeg *jpeg, struct clk *sclk)
++{
++	struct clk *mout_jpeg;
++	struct clk *sclk_cpll;
++	int ret;
++
++	mout_jpeg = clk_get(jpeg->dev, "mout_jpeg");
++	if (IS_ERR(mout_jpeg)) {
++		dev_err(jpeg->dev, "mout_jpeg clock not available: %ld\n",
++			PTR_ERR(mout_jpeg));
++		return PTR_ERR(mout_jpeg);
++	}
++
++	sclk_cpll = clk_get(jpeg->dev, "sclk_cpll");
++	if (IS_ERR(sclk_cpll)) {
++		dev_err(jpeg->dev, "sclk_cpll clock not available: %ld\n",
++			PTR_ERR(sclk_cpll));
++		clk_put(mout_jpeg);
++		return PTR_ERR(sclk_cpll);
++	}
++
++	ret = clk_set_parent(mout_jpeg, sclk_cpll);
++	clk_put(sclk_cpll);
++	clk_put(mout_jpeg);
++	if (ret) {
++		dev_err(jpeg->dev, "clk_set_parent failed: %d\n", ret);
++		return ret;
++	}
++
++	ret = clk_set_rate(sclk, 166500 * 1000);
++	if (ret) {
++		dev_err(jpeg->dev, "clk_set_rate failed: %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
+ #if defined(CONFIG_EXYNOS_IOMMU) && defined(CONFIG_ARM_DMA_USE_IOMMU)
+ static int jpeg_iommu_init(struct platform_device *pdev)
+ {
+@@ -2974,6 +3012,15 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 				jpeg->variant->clk_names[i]);
+ 			return PTR_ERR(jpeg->clocks[i]);
+ 		}
++
++		if (jpeg->variant->version == SJPEG_EXYNOS4 &&
++		    !strncmp(jpeg->variant->clk_names[i],
++			     "sclk", strlen("sclk"))) {
++			ret = exynos4_jpeg_set_sclk_rate(jpeg,
++							 jpeg->clocks[i]);
++			if (ret)
++				return ret;
++		}
  	}
  
- 	/* enable / disable mp2if2 */
--	if (state->dual_mode)
-+	if (state->dual_mode) {
- 		ret = af9015_set_reg_bit(d, 0xd50b, 0);
--	else
-+		if (ret)
-+			goto error;
-+		ret = af9015_set_reg_bit(d, 0xd520, 4);
-+		if (ret)
-+			goto error;
-+	} else {
- 		ret = af9015_clear_reg_bit(d, 0xd50b, 0);
-+		if (ret)
-+			goto error;
-+		ret = af9015_clear_reg_bit(d, 0xd520, 4);
-+		if (ret)
-+			goto error;
-+	}
- 
- error:
- 	if (ret)
+ 	/* v4l2 device */
 -- 
-http://palosaari.fi/
+2.7.4
