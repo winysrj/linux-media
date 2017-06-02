@@ -1,321 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:10432 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752954AbdF0PsM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 11:48:12 -0400
-Date: Tue, 27 Jun 2017 23:47:37 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [ragnatech:media-tree] BUILD INCOMPLETE
- 2748e76ddb2967c4030171342ebdd3faa6a5e8e8
-Message-ID: <59527e19.LYRw09J209YzMHTf%fengguang.wu@intel.com>
+Received: from mail-pg0-f43.google.com ([74.125.83.43]:35390 "EHLO
+        mail-pg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751180AbdFBVfD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 17:35:03 -0400
+Received: by mail-pg0-f43.google.com with SMTP id 8so12334334pgc.2
+        for <linux-media@vger.kernel.org>; Fri, 02 Jun 2017 14:35:03 -0700 (PDT)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: Sekhar Nori <nsekhar@ti.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 4/4] [media] davinci: vpif: adaptions for DT support
+Date: Fri,  2 Jun 2017 14:34:31 -0700
+Message-Id: <20170602213431.10777-5-khilman@baylibre.com>
+In-Reply-To: <20170602213431.10777-1-khilman@baylibre.com>
+References: <20170602213431.10777-1-khilman@baylibre.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-git://git.ragnatech.se/linux  media-tree
-2748e76ddb2967c4030171342ebdd3faa6a5e8e8  media: staging: cxd2099: Activate cxd2099 buffer mode
+The davinci VPIF is a single hardware block, but the existing driver
+is broken up into a common library (vpif.c), output (vpif_display.c) and
+intput (vpif_capture.c).
 
-TIMEOUT after 1687m
+When migrating to DT, to better model the hardware, and because
+registers, interrupts, etc. are all common,it was decided to
+have a single VPIF hardware node[1].
 
+Because davinci uses legacy, non-DT boot on several SoCs still, the
+platform_drivers need to remain.  But they are also needed in DT boot.
+Since there are no DT nodes for the display/capture parts in DT
+boot (there is a single node for the parent/common device) we need to
+create platform_devices somewhere to instansiate the platform_drivers.
 
-Sorry we cannot finish the testset for your branch within a reasonable time.
-It's our fault -- either some build server is down or some build worker is busy
-doing bisects for _other_ trees. The branch will get more complete coverage and
-possible error reports when our build infrastructure is restored or catches up.
-There will be no more build success notification for this branch head, but you
-can expect reasonably good test coverage after waiting for 1 day.
+When VPIF display/capture are needed for a DT boot, the VPIF node
+will have endpoints defined for its subdevs.  Therefore, vpif_probe()
+checks for the presence of endpoints, and if detected manually creates
+the platform_devices for the display and capture platform_drivers.
 
-configs tested: 286
+[1] Documentation/devicetree/bindings/media/ti,da850-vpif.txt
 
-x86_64                           allmodconfig
-sh                               allmodconfig
-sh                            titan_defconfig
-sh                          rsk7269_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                                allnoconfig
-parisc                        c3000_defconfig
-parisc                         b180_defconfig
-parisc                              defconfig
-alpha                               defconfig
-parisc                            allnoconfig
-x86_64                             acpi-redef
-x86_64                           allyesdebian
-x86_64                                nfsroot
-m68k                           sun3_defconfig
-m68k                          multi_defconfig
-m68k                       m5475evb_defconfig
-cris                 etrax-100lx_v2_defconfig
-blackfin                  TCM-BF537_defconfig
-blackfin            BF561-EZKIT-SMP_defconfig
-blackfin                BF533-EZKIT_defconfig
-blackfin                BF526-EZBRD_defconfig
-cris                          dev88_defconfig
-parisc                      default_defconfig
-sh                          urquell_defconfig
-arm                             pxa_defconfig
-ia64                             alldefconfig
-sh                           se7343_defconfig
-i386                   randconfig-c0-06271421
-i386                   randconfig-c0-06271823
-i386                   randconfig-c0-06272017
-powerpc                             defconfig
-powerpc                       ppc64_defconfig
-powerpc                           allnoconfig
-tile                              allnoconfig
-um                               allyesconfig
-x86_64                randconfig-in0-06271113
-mips                         bigsur_defconfig
-mips                           xway_defconfig
-powerpc                     tqm8541_defconfig
-arm                         iop13xx_defconfig
-mips                        bcm63xx_defconfig
-xtensa                    smp_lx200_defconfig
-powerpc                 mpc8313_rdb_defconfig
-powerpc                     pseries_defconfig
-sh                           sh2007_defconfig
-x86_64                randconfig-it0-06271030
-x86_64                randconfig-it0-06271753
-microblaze                       allyesconfig
-sh                          r7785rp_defconfig
-blackfin               BF518F-EZBRD_defconfig
-blackfin                  CM-BF537E_defconfig
-um                               alldefconfig
-s390                        default_defconfig
-x86_64                 randconfig-v0-06271504
-x86_64                 randconfig-v0-06271832
-x86_64                 randconfig-v0-06272127
-arm                         at91_dt_defconfig
-arm                               allnoconfig
-arm                           efm32_defconfig
-arm64                               defconfig
-arm                        multi_v5_defconfig
-arm                           sunxi_defconfig
-arm64                             allnoconfig
-arm                          exynos_defconfig
-arm                        shmobile_defconfig
-arm                        multi_v7_defconfig
-cris                    etrax-100lx_defconfig
-mips                            gpr_defconfig
-mips                       markeins_defconfig
-blackfin                BF609-EZKIT_defconfig
-powerpc                     tqm8560_defconfig
-sparc                            alldefconfig
-arm                           corgi_defconfig
-arm                        raumfeld_defconfig
-mips                         rt305x_defconfig
-x86_64                 randconfig-g0-06271423
-x86_64                 randconfig-g0-06271649
-x86_64                 randconfig-g0-06272052
-i386                             allmodconfig
-x86_64                 randconfig-x010-201726
-x86_64                 randconfig-x019-201726
-x86_64                 randconfig-x015-201726
-x86_64                 randconfig-x012-201726
-x86_64                 randconfig-x014-201726
-x86_64                 randconfig-x016-201726
-x86_64                 randconfig-x018-201726
-x86_64                 randconfig-x017-201726
-x86_64                 randconfig-x013-201726
-x86_64                 randconfig-x011-201726
-ia64                              allnoconfig
-ia64                                defconfig
-arm                              allmodconfig
-arm                                      arm5
-arm                                     arm67
-arm                       imx_v6_v7_defconfig
-arm                          ixp4xx_defconfig
-arm                        mvebu_v7_defconfig
-arm                       omap2plus_defconfig
-arm                                    sa1100
-arm                                   samsung
-arm                                        sh
-arm                           tegra_defconfig
-arm64                            alldefconfig
-arm64                            allmodconfig
-x86_64                                  kexec
-x86_64                                   rhel
-x86_64                               rhel-7.2
-i386                   randconfig-a0-06250447
-i386                   randconfig-a1-06250447
-i386                   randconfig-a0-06262357
-i386                   randconfig-a1-06262357
-x86_64                 randconfig-s0-06271622
-x86_64                 randconfig-s1-06271622
-x86_64                 randconfig-s2-06271622
-x86_64                 randconfig-s0-06271926
-x86_64                 randconfig-s1-06271926
-x86_64                 randconfig-s2-06271926
-x86_64                 randconfig-s0-06272103
-x86_64                 randconfig-s1-06272103
-x86_64                 randconfig-s2-06272103
-frv                                 defconfig
-mn10300                     asb2364_defconfig
-openrisc                    or1ksim_defconfig
-tile                         tilegx_defconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-c6x                        evmc6678_defconfig
-h8300                    h8300h-sim_defconfig
-m32r                       m32104ut_defconfig
-m32r                     mappi3.smp_defconfig
-m32r                         opsput_defconfig
-m32r                           usrv_defconfig
-nios2                         10m50_defconfig
-score                      spct6600_defconfig
-xtensa                       common_defconfig
-xtensa                          iss_defconfig
-frv                              allyesconfig
-mips                           jazz_defconfig
-mips                         mpc30x_defconfig
-h8300                       h8s-sim_defconfig
-mips                malta_qemu_32r6_defconfig
-microblaze                      mmu_defconfig
-mips                       rbtx49xx_defconfig
-mips                          rm200_defconfig
-sh                             shx3_defconfig
-i386                              allnoconfig
-i386                                defconfig
-i386                             alldefconfig
-i386                   randconfig-s0-06262349
-i386                   randconfig-s1-06262349
-x86_64                 randconfig-s3-06271548
-x86_64                 randconfig-s4-06271548
-x86_64                 randconfig-s5-06271548
-x86_64                 randconfig-s3-06271851
-x86_64                 randconfig-s4-06271851
-x86_64                 randconfig-s5-06271851
-x86_64                 randconfig-s3-06272148
-x86_64                 randconfig-s4-06272148
-x86_64                 randconfig-s5-06272148
-arm                            hisi_defconfig
-arm                           sama5_defconfig
-powerpc               corenet_basic_defconfig
-sh                     magicpanelr2_defconfig
-sh                ecovec24-romimage_defconfig
-sh                         apsh4a3a_defconfig
-tile                             allmodconfig
-mips                                   jz4740
-mips                      malta_kvm_defconfig
-mips                         64r6el_defconfig
-mips                           32r2_defconfig
-mips                              allnoconfig
-mips                      fuloong2e_defconfig
-mips                                     txx9
-x86_64                 randconfig-i0-06260516
-i386                   randconfig-b0-06271428
-i386                   randconfig-b0-06271757
-i386                   randconfig-b0-06272047
-sparc                               defconfig
-sparc64                           allnoconfig
-sparc64                             defconfig
-arm                            pleb_defconfig
-mips                      maltasmvp_defconfig
-arm                            qcom_defconfig
-blackfin                            defconfig
-mips                             allyesconfig
-microblaze                    nommu_defconfig
-i386                   randconfig-i1-06252058
-i386                   randconfig-i0-06252058
-x86_64                 randconfig-b0-06271453
-x86_64                 randconfig-b0-06271600
-x86_64                 randconfig-b0-06271828
-arm                          pxa3xx_defconfig
-powerpc                      ppc6xx_defconfig
-arm                          iop33x_defconfig
-blackfin                   CM-BF527_defconfig
-x86_64                 randconfig-u0-06271420
-x86_64                 randconfig-u0-06271459
-x86_64                 randconfig-u0-06271922
-x86_64                 randconfig-u0-06272102
-i386                 randconfig-x014-06251133
-i386                 randconfig-x016-06251133
-i386                 randconfig-x011-06251133
-i386                 randconfig-x010-06251133
-i386                 randconfig-x013-06251133
-i386                 randconfig-x017-06251133
-i386                 randconfig-x019-06251133
-i386                 randconfig-x018-06251133
-i386                 randconfig-x015-06251133
-i386                 randconfig-x012-06251133
-x86_64                                    lkp
-arm                        vexpress_defconfig
-arm                            zeus_defconfig
-ia64                        generic_defconfig
-mn10300                           allnoconfig
-powerpc                     taishan_defconfig
-sh                        apsh4ad0a_defconfig
-x86_64                randconfig-ne0-06271311
-x86_64                randconfig-ne0-06271822
-h8300                     edosk2674_defconfig
-powerpc                          g5_defconfig
-powerpc                     virtex5_defconfig
-mn10300                          allyesconfig
-powerpc                     ppa8548_defconfig
-blackfin             BF527-TLL6527M_defconfig
-sh                           se7722_defconfig
-x86_64                 randconfig-h0-06271319
-x86_64                 randconfig-h0-06271850
-x86_64                 randconfig-h0-06272159
-x86_64                 randconfig-n0-06272103
-alpha                            allyesconfig
-blackfin              BF561-ACVILON_defconfig
-powerpc                     pq2fads_defconfig
-arm                        mini2440_defconfig
-mips                       bmips_be_defconfig
-m32r                      mappi.smp_defconfig
-i386                  randconfig-sb0-06271221
-i386                  randconfig-sb0-06272106
-arm                       spear13xx_defconfig
-ia64                            zx1_defconfig
-sh                          polaris_defconfig
-mips                             alldefconfig
-powerpc                     asp8347_defconfig
-powerpc                     mpc5200_defconfig
-x86_64                randconfig-ws0-06271611
-x86_64                randconfig-ws0-06272105
-i386                 randconfig-x079-06251032
-i386                 randconfig-x078-06251032
-i386                 randconfig-x073-06251032
-i386                 randconfig-x077-06251032
-i386                 randconfig-x070-06251032
-i386                 randconfig-x072-06251032
-i386                 randconfig-x074-06251032
-i386                 randconfig-x076-06251032
-i386                 randconfig-x071-06251032
-i386                 randconfig-x075-06251032
-x86_64                 randconfig-x006-201726
-x86_64                 randconfig-x001-201726
-x86_64                 randconfig-x007-201726
-x86_64                 randconfig-x005-201726
-x86_64                 randconfig-x004-201726
-x86_64                 randconfig-x000-201726
-x86_64                 randconfig-x002-201726
-x86_64                 randconfig-x008-201726
-x86_64                 randconfig-x003-201726
-x86_64                 randconfig-x009-201726
-arm                          pxa168_defconfig
-mn10300                          allmodconfig
-arm                         lubbock_defconfig
-c6x                        evmc6474_defconfig
-sh                         microdev_defconfig
-xtensa                  cadence_csp_defconfig
-i386                 randconfig-x000-06251247
-i386                 randconfig-x001-06251247
-i386                 randconfig-x002-06251247
-i386                 randconfig-x003-06251247
-i386                 randconfig-x004-06251247
-i386                 randconfig-x005-06251247
-i386                 randconfig-x006-06251247
-i386                 randconfig-x007-06251247
-i386                 randconfig-x008-06251247
-i386                 randconfig-x009-06251247
-i386                   randconfig-x0-06271302
-i386                   randconfig-x0-06271716
-i386                   randconfig-x0-06272104
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+---
+ drivers/media/platform/davinci/vpif.c | 49 ++++++++++++++++++++++++++++++++++-
+ 1 file changed, 48 insertions(+), 1 deletion(-)
 
-Thanks,
-Fengguang
+diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+index 1b02a6363f77..502917abcb13 100644
+--- a/drivers/media/platform/davinci/vpif.c
++++ b/drivers/media/platform/davinci/vpif.c
+@@ -26,6 +26,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/spinlock.h>
+ #include <linux/v4l2-dv-timings.h>
++#include <linux/of_graph.h>
+ 
+ #include "vpif.h"
+ 
+@@ -423,7 +424,9 @@ EXPORT_SYMBOL(vpif_channel_getfid);
+ 
+ static int vpif_probe(struct platform_device *pdev)
+ {
+-	static struct resource	*res;
++	static struct resource	*res, *res_irq;
++	struct platform_device *pdev_capture, *pdev_display;
++	struct device_node *endpoint = NULL;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	vpif_base = devm_ioremap_resource(&pdev->dev, res);
+@@ -435,6 +438,50 @@ static int vpif_probe(struct platform_device *pdev)
+ 
+ 	spin_lock_init(&vpif_lock);
+ 	dev_info(&pdev->dev, "vpif probe success\n");
++
++	/*
++	 * If VPIF Node has endpoints, assume "new" DT support,
++	 * where capture and display drivers don't have DT nodes
++	 * so their devices need to be registered manually here
++	 * for their legacy platform_drivers to work.
++	 */
++	endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
++					      endpoint);
++	if (!endpoint) 
++		return 0;
++
++	/*
++	 * For DT platforms, manually create platform_devices for
++	 * capture/display drivers.
++	 */
++	res_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
++	if (!res_irq) {
++		dev_warn(&pdev->dev, "Missing IRQ resource.\n");
++		return -EINVAL;
++	}
++
++	pdev_capture = devm_kzalloc(&pdev->dev, sizeof(*pdev_capture),
++				    GFP_KERNEL);
++	pdev_capture->name = "vpif_capture";
++	pdev_capture->id = -1;
++	pdev_capture->resource = res_irq;
++	pdev_capture->num_resources = 1;
++	pdev_capture->dev.dma_mask = pdev->dev.dma_mask;
++	pdev_capture->dev.coherent_dma_mask = pdev->dev.coherent_dma_mask;
++	pdev_capture->dev.parent = &pdev->dev;
++	platform_device_register(pdev_capture);
++
++	pdev_display = devm_kzalloc(&pdev->dev, sizeof(*pdev_display),
++				    GFP_KERNEL);
++	pdev_display->name = "vpif_display";
++	pdev_display->id = -1;
++	pdev_display->resource = res_irq;
++	pdev_display->num_resources = 1;
++	pdev_display->dev.dma_mask = pdev->dev.dma_mask;
++	pdev_display->dev.coherent_dma_mask = pdev->dev.coherent_dma_mask;
++	pdev_display->dev.parent = &pdev->dev;
++	platform_device_register(pdev_display);
++
+ 	return 0;
+ }
+ 
+-- 
+2.9.3
