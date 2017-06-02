@@ -1,288 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:42529 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751159AbdFAU7K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Jun 2017 16:59:10 -0400
-From: Takashi Iwai <tiwai@suse.de>
-To: alsa-devel@alsa-project.org
-Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-        Mark Brown <broonie@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org
-Subject: [PATCH v2 18/27] ALSA: pcm: Shuffle codes
-Date: Thu,  1 Jun 2017 22:58:41 +0200
-Message-Id: <20170601205850.24993-19-tiwai@suse.de>
-In-Reply-To: <20170601205850.24993-1-tiwai@suse.de>
-References: <20170601205850.24993-1-tiwai@suse.de>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36803 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751184AbdFBV2i (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 17:28:38 -0400
+Subject: Re: [PATCH 2/9] [media] s5p-jpeg: Call jpeg_bound_align_image after
+ qbuf
+To: Thierry Escande <thierry.escande@collabora.com>,
+        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
+ <1496419376-17099-3-git-send-email-thierry.escande@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Message-ID: <563c5112-93f7-7b05-1601-c3644a2111ce@gmail.com>
+Date: Fri, 2 Jun 2017 23:27:54 +0200
+MIME-Version: 1.0
+In-Reply-To: <1496419376-17099-3-git-send-email-thierry.escande@collabora.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just shuffle the codes, without any change otherwise.
+Hi Thierry,
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
----
- sound/core/pcm_lib.c | 212 +++++++++++++++++++++++++--------------------------
- 1 file changed, 106 insertions(+), 106 deletions(-)
+Thanks for the patch.
 
-diff --git a/sound/core/pcm_lib.c b/sound/core/pcm_lib.c
-index e4f5c43b6448..1f5251cca607 100644
---- a/sound/core/pcm_lib.c
-+++ b/sound/core/pcm_lib.c
-@@ -1991,6 +1991,10 @@ static int wait_for_avail(struct snd_pcm_substream *substream,
- 	return err;
- }
- 	
-+typedef int (*transfer_f)(struct snd_pcm_substream *substream, unsigned int hwoff,
-+			  unsigned long data, unsigned int off,
-+			  snd_pcm_uframes_t size);
-+
- static int snd_pcm_lib_write_transfer(struct snd_pcm_substream *substream,
- 				      unsigned int hwoff,
- 				      unsigned long data, unsigned int off,
-@@ -2013,9 +2017,68 @@ static int snd_pcm_lib_write_transfer(struct snd_pcm_substream *substream,
- 	return 0;
- }
-  
--typedef int (*transfer_f)(struct snd_pcm_substream *substream, unsigned int hwoff,
--			  unsigned long data, unsigned int off,
--			  snd_pcm_uframes_t size);
-+static int snd_pcm_lib_writev_transfer(struct snd_pcm_substream *substream,
-+				       unsigned int hwoff,
-+				       unsigned long data, unsigned int off,
-+				       snd_pcm_uframes_t frames)
-+{
-+	struct snd_pcm_runtime *runtime = substream->runtime;
-+	int err;
-+	void __user **bufs = (void __user **)data;
-+	int channels = runtime->channels;
-+	char __user *buf;
-+	int c;
-+
-+	if (substream->ops->copy_user) {
-+		hwoff = samples_to_bytes(runtime, hwoff);
-+		off = samples_to_bytes(runtime, off);
-+		frames = samples_to_bytes(runtime, frames);
-+		for (c = 0; c < channels; ++c, ++bufs) {
-+			buf = *bufs + off;
-+			if (!*bufs) {
-+				if (snd_BUG_ON(!substream->ops->fill_silence))
-+					return -EINVAL;
-+				err = substream->ops->fill_silence(substream, c,
-+								   hwoff,
-+								   frames);
-+			} else {
-+				err = substream->ops->copy_user(substream, c,
-+								hwoff, buf,
-+								frames);
-+			}
-+			if (err < 0)
-+				return err;
-+		}
-+	} else {
-+		/* default transfer behaviour */
-+		size_t dma_csize = runtime->dma_bytes / channels;
-+		for (c = 0; c < channels; ++c, ++bufs) {
-+			char *hwbuf = runtime->dma_area + (c * dma_csize) + samples_to_bytes(runtime, hwoff);
-+			if (*bufs == NULL) {
-+				snd_pcm_format_set_silence(runtime->format, hwbuf, frames);
-+			} else {
-+				char __user *buf = *bufs + samples_to_bytes(runtime, off);
-+				if (copy_from_user(hwbuf, buf, samples_to_bytes(runtime, frames)))
-+					return -EFAULT;
-+			}
-+		}
-+	}
-+	return 0;
-+}
-+
-+/* sanity-check for read/write methods */
-+static int pcm_sanity_check(struct snd_pcm_substream *substream)
-+{
-+	struct snd_pcm_runtime *runtime;
-+	if (PCM_RUNTIME_CHECK(substream))
-+		return -ENXIO;
-+	runtime = substream->runtime;
-+	if (snd_BUG_ON(!substream->ops->copy_user && !runtime->dma_area))
-+		return -EINVAL;
-+	if (runtime->status->state == SNDRV_PCM_STATE_OPEN)
-+		return -EBADFD;
-+	return 0;
-+}
- 
- static int pcm_accessible_state(struct snd_pcm_runtime *runtime)
- {
-@@ -2116,20 +2179,6 @@ static snd_pcm_sframes_t snd_pcm_lib_write1(struct snd_pcm_substream *substream,
- 	return xfer > 0 ? (snd_pcm_sframes_t)xfer : err;
- }
- 
--/* sanity-check for read/write methods */
--static int pcm_sanity_check(struct snd_pcm_substream *substream)
--{
--	struct snd_pcm_runtime *runtime;
--	if (PCM_RUNTIME_CHECK(substream))
--		return -ENXIO;
--	runtime = substream->runtime;
--	if (snd_BUG_ON(!substream->ops->copy_user && !runtime->dma_area))
--		return -EINVAL;
--	if (runtime->status->state == SNDRV_PCM_STATE_OPEN)
--		return -EBADFD;
--	return 0;
--}
--
- snd_pcm_sframes_t snd_pcm_lib_write(struct snd_pcm_substream *substream, const void __user *buf, snd_pcm_uframes_t size)
- {
- 	struct snd_pcm_runtime *runtime;
-@@ -2151,55 +2200,6 @@ snd_pcm_sframes_t snd_pcm_lib_write(struct snd_pcm_substream *substream, const v
- 
- EXPORT_SYMBOL(snd_pcm_lib_write);
- 
--static int snd_pcm_lib_writev_transfer(struct snd_pcm_substream *substream,
--				       unsigned int hwoff,
--				       unsigned long data, unsigned int off,
--				       snd_pcm_uframes_t frames)
--{
--	struct snd_pcm_runtime *runtime = substream->runtime;
--	int err;
--	void __user **bufs = (void __user **)data;
--	int channels = runtime->channels;
--	char __user *buf;
--	int c;
--
--	if (substream->ops->copy_user) {
--		hwoff = samples_to_bytes(runtime, hwoff);
--		off = samples_to_bytes(runtime, off);
--		frames = samples_to_bytes(runtime, frames);
--		for (c = 0; c < channels; ++c, ++bufs) {
--			buf = *bufs + off;
--			if (!*bufs) {
--				if (snd_BUG_ON(!substream->ops->fill_silence))
--					return -EINVAL;
--				err = substream->ops->fill_silence(substream, c,
--								   hwoff,
--								   frames);
--			} else {
--				err = substream->ops->copy_user(substream, c,
--								hwoff, buf,
--								frames);
--			}
--			if (err < 0)
--				return err;
--		}
--	} else {
--		/* default transfer behaviour */
--		size_t dma_csize = runtime->dma_bytes / channels;
--		for (c = 0; c < channels; ++c, ++bufs) {
--			char *hwbuf = runtime->dma_area + (c * dma_csize) + samples_to_bytes(runtime, hwoff);
--			if (*bufs == NULL) {
--				snd_pcm_format_set_silence(runtime->format, hwbuf, frames);
--			} else {
--				char __user *buf = *bufs + samples_to_bytes(runtime, off);
--				if (copy_from_user(hwbuf, buf, samples_to_bytes(runtime, frames)))
--					return -EFAULT;
--			}
--		}
--	}
--	return 0;
--}
-- 
- snd_pcm_sframes_t snd_pcm_lib_writev(struct snd_pcm_substream *substream,
- 				     void __user **bufs,
- 				     snd_pcm_uframes_t frames)
-@@ -2244,6 +2244,46 @@ static int snd_pcm_lib_read_transfer(struct snd_pcm_substream *substream,
- 	return 0;
- }
- 
-+static int snd_pcm_lib_readv_transfer(struct snd_pcm_substream *substream,
-+				      unsigned int hwoff,
-+				      unsigned long data, unsigned int off,
-+				      snd_pcm_uframes_t frames)
-+{
-+	struct snd_pcm_runtime *runtime = substream->runtime;
-+	int err;
-+	void __user **bufs = (void __user **)data;
-+	int channels = runtime->channels;
-+	char __user *buf;
-+	char *hwbuf;
-+	int c;
-+
-+	if (substream->ops->copy_user) {
-+		hwoff = samples_to_bytes(runtime, hwoff);
-+		off = samples_to_bytes(runtime, off);
-+		frames = samples_to_bytes(runtime, frames);
-+		for (c = 0; c < channels; ++c, ++bufs) {
-+			if (!*bufs)
-+				continue;
-+			err = substream->ops->copy_user(substream, c, hwoff,
-+							*bufs + off, frames);
-+			if (err < 0)
-+				return err;
-+		}
-+	} else {
-+		snd_pcm_uframes_t dma_csize = runtime->dma_bytes / channels;
-+		for (c = 0; c < channels; ++c, ++bufs) {
-+			if (*bufs == NULL)
-+				continue;
-+
-+			hwbuf = runtime->dma_area + (c * dma_csize) + samples_to_bytes(runtime, hwoff);
-+			buf = *bufs + samples_to_bytes(runtime, off);
-+			if (copy_to_user(buf, hwbuf, samples_to_bytes(runtime, frames)))
-+				return -EFAULT;
-+		}
-+	}
-+	return 0;
-+}
-+
- static snd_pcm_sframes_t snd_pcm_lib_read1(struct snd_pcm_substream *substream,
- 					   unsigned long data,
- 					   snd_pcm_uframes_t size,
-@@ -2352,46 +2392,6 @@ snd_pcm_sframes_t snd_pcm_lib_read(struct snd_pcm_substream *substream, void __u
- 
- EXPORT_SYMBOL(snd_pcm_lib_read);
- 
--static int snd_pcm_lib_readv_transfer(struct snd_pcm_substream *substream,
--				      unsigned int hwoff,
--				      unsigned long data, unsigned int off,
--				      snd_pcm_uframes_t frames)
--{
--	struct snd_pcm_runtime *runtime = substream->runtime;
--	int err;
--	void __user **bufs = (void __user **)data;
--	int channels = runtime->channels;
--	char __user *buf;
--	char *hwbuf;
--	int c;
--
--	if (substream->ops->copy_user) {
--		hwoff = samples_to_bytes(runtime, hwoff);
--		off = samples_to_bytes(runtime, off);
--		frames = samples_to_bytes(runtime, frames);
--		for (c = 0; c < channels; ++c, ++bufs) {
--			if (!*bufs)
--				continue;
--			err = substream->ops->copy_user(substream, c, hwoff,
--							*bufs + off, frames);
--			if (err < 0)
--				return err;
--		}
--	} else {
--		snd_pcm_uframes_t dma_csize = runtime->dma_bytes / channels;
--		for (c = 0; c < channels; ++c, ++bufs) {
--			if (*bufs == NULL)
--				continue;
--
--			hwbuf = runtime->dma_area + (c * dma_csize) + samples_to_bytes(runtime, hwoff);
--			buf = *bufs + samples_to_bytes(runtime, off);
--			if (copy_to_user(buf, hwbuf, samples_to_bytes(runtime, frames)))
--				return -EFAULT;
--		}
--	}
--	return 0;
--}
-- 
- snd_pcm_sframes_t snd_pcm_lib_readv(struct snd_pcm_substream *substream,
- 				    void __user **bufs,
- 				    snd_pcm_uframes_t frames)
+On 06/02/2017 06:02 PM, Thierry Escande wrote:
+> From: Tony K Nadackal <tony.kn@samsung.com>
+> 
+> When queuing an OUTPUT buffer for decoder, s5p_jpeg_parse_hdr()
+> function parses the input jpeg file and takes the width and height
+> parameters from its header. These new width/height values will be used
+> for the calculation of stride. HX_JPEG Hardware needs the width and
+> height values aligned on a 16 bits boundary. This width/height alignment
+> is handled in the s5p_jpeg_s_fmt_vid_cap() function during the S_FMT
+> ioctl call.
+> 
+> But if user space calls the QBUF of OUTPUT buffer after the S_FMT of
+> CAPTURE buffer, these aligned values will be replaced by the values in
+> jpeg header.
+
+I assume that you may want to avoid re-setting the capture buf format
+when decoding a stream of JPEGs and you are certain that all of them
+have the same subsampling. Nonetheless, please keep in mind that in case
+of Exynos4x12 SoCs there is a risk of permanent decoder hangup if you'd
+try to decode to a YUV with lower subsampling than the one of input
+JPEG. s5p_jpeg_try_fmt_vid_cap() does a suitable adjustment to avoid the
+problem.
+
+I'd add a comment over this call to jpeg_bound_align_image() that
+resigning from executing S_FMT on capture buf for each JPEG image
+can result in a hardware hangup if forbidden decoding will be enforced.
+
+> If the width/height values of jpeg are not aligned, the
+> decoder output will be corrupted. So in this patch we call
+> jpeg_bound_align_image() to align the width/height values of Capture
+> buffer in s5p_jpeg_buf_queue().
+> 
+> Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
+> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+> ---
+>  drivers/media/platform/s5p-jpeg/jpeg-core.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> index 52dc794..6fb1ab4 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> @@ -2523,6 +2523,13 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
+>  		q_data = &ctx->cap_q;
+>  		q_data->w = tmp.w;
+>  		q_data->h = tmp.h;
+> +
+> +		jpeg_bound_align_image(ctx, &q_data->w, S5P_JPEG_MIN_WIDTH,
+> +				       S5P_JPEG_MAX_WIDTH, q_data->fmt->h_align,
+> +				       &q_data->h, S5P_JPEG_MIN_HEIGHT,
+> +				       S5P_JPEG_MAX_HEIGHT, q_data->fmt->v_align
+> +				      );
+> +		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
+>  	}
+>  
+>  	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+> 
+
 -- 
-2.13.0
+Best regards,
+Jacek Anaszewski
