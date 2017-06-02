@@ -1,59 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59269
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751469AbdFHUKx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 16:10:53 -0400
-Date: Thu, 8 Jun 2017 17:10:43 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Kieran Bingham <kbingham@kernel.org>, linux-media@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
-        linux-renesas-soc@vger.kernel.org, kieran.bingham@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: Re: [PATCH v4] v4l: subdev: tolerate null in
- media_entity_to_v4l2_subdev
-Message-ID: <20170608171043.73dd28aa@vento.lan>
-In-Reply-To: <20170608193210.GJ1019@valkosipuli.retiisi.org.uk>
-References: <1496829127-28375-1-git-send-email-kbingham@kernel.org>
-        <20170608150022.5f696e58@vento.lan>
-        <20170608193210.GJ1019@valkosipuli.retiisi.org.uk>
+Received: from youngberry.canonical.com ([91.189.89.112]:52883 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751189AbdFBJMT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 05:12:19 -0400
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>,
+        Arushi Singhal <arushisinghal19971997@gmail.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH][media] atomisp: make repool_pgnr and punit_ddr_dvfs_enable static
+Date: Fri,  2 Jun 2017 10:12:13 +0100
+Message-Id: <20170602091213.30250-1-colin.king@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 8 Jun 2017 22:32:10 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+From: Colin Ian King <colin.king@canonical.com>
 
-> Hi Mauro,
-> 
-> On Thu, Jun 08, 2017 at 03:00:22PM -0300, Mauro Carvalho Chehab wrote:
-> > Em Wed,  7 Jun 2017 10:52:07 +0100
-> > Kieran Bingham <kbingham@kernel.org> escreveu:
-> >   
-> > > From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> > > 
-> > > Return NULL, if a null entity is parsed for it's v4l2_subdev
-> > > 
-> > > Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>  
-> > 
-> > Could you please improve this patch description?
-> > 
-> > I'm unsure if this is a bug fix, or some sort of feature...
-> > 
-> > On what situations would a null entity be passed to this function?  
-> 
-> I actually proposed this patch. This change is simply for convenience ---
-> the caller doesn't need to make sure the subdev is non-NULL, possibly
-> obtained from e.g. media_entity_remote_pad() which returns NULL all links to
-> the pad are disabled. This is a recurring pattern, and making this change
-> avoids an additional check.
-> 
-> Having something along these lines in the patch description wouldn't hurt.
+integer repool_pgnr and function punit_ddr_dvfs_enable can be made
+static as they do not need to be in global scope.
 
-Patch added, with a description based on the above.
+Cleans up sparse warnings:
+ "symbol 'repool_pgnr' was not declared. Should it be static?"
+ "symbol 'punit_ddr_dvfs_enable' was not declared. Should it be static?"
 
-Thanks!
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Mauro
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+index a0478077a012..a543def739fc 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+@@ -56,7 +56,7 @@ module_param(skip_fwload, uint, 0644);
+ MODULE_PARM_DESC(skip_fwload, "Skip atomisp firmware load");
+ 
+ /* set reserved memory pool size in page */
+-unsigned int repool_pgnr;
++static unsigned int repool_pgnr;
+ module_param(repool_pgnr, uint, 0644);
+ MODULE_PARM_DESC(repool_pgnr,
+ 		"Set the reserved memory pool size in page (default:0)");
+@@ -384,7 +384,7 @@ static int atomisp_mrfld_pre_power_down(struct atomisp_device *isp)
+  * WA for DDR DVFS enable/disable
+  * By default, ISP will force DDR DVFS 1600MHz before disable DVFS
+  */
+-void punit_ddr_dvfs_enable(bool enable)
++static void punit_ddr_dvfs_enable(bool enable)
+ {
+ 	int reg = intel_mid_msgbus_read32(PUNIT_PORT, MRFLD_ISPSSDVFS);
+ 	int door_bell = 1 << 8;
+-- 
+2.11.0
