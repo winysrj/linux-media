@@ -1,127 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.47.9]:48417 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752661AbdF2Krh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 06:47:37 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        devicetree@vger.kernel.org
-Subject: [PATCH v5 4/4] dt-bindings: media: Document Synopsys Designware HDMI RX
-Date: Thu, 29 Jun 2017 11:46:58 +0100
-Message-Id: <df9f394c8ac7b2506d0ed8d7fa1f7b40d1563854.1498732993.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1498732993.git.joabreu@synopsys.com>
-References: <cover.1498732993.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1498732993.git.joabreu@synopsys.com>
-References: <cover.1498732993.git.joabreu@synopsys.com>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:42416 "EHLO
+        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751140AbdFBQyz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 12:54:55 -0400
+Date: Fri, 2 Jun 2017 17:54:47 +0100
+From: Mark Brown <broonie@kernel.org>
+To: Tim Harvey <tharvey@gateworks.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+Message-ID: <20170602165447.kflg2u6ovdrwcwjo@sirena.org.uk>
+References: <CAJ+vNU1TOOSf-PoXw1oGTVhGNp2w=X2KAmpYtT8c32GRju2kEQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="aftmt334f7tolisr"
+Content-Disposition: inline
+In-Reply-To: <CAJ+vNU1TOOSf-PoXw1oGTVhGNp2w=X2KAmpYtT8c32GRju2kEQ@mail.gmail.com>
+Subject: Re: regmap for i2c pages
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the bindings for the Synopsys Designware HDMI RX.
 
-Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-Cc: Carlos Palminha <palminha@synopsys.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sylwester Nawrocki <snawrocki@kernel.org>
-Cc: devicetree@vger.kernel.org
+--aftmt334f7tolisr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Changes from v4:
-	- Use "cfg" instead of "cfg-clk" (Rob)
-	- Change node names (Rob)
-Changes from v3:
-	- Document the new DT bindings suggested by Sylwester
-Changes from v2:
-	- Document edid-phandle property
----
- .../devicetree/bindings/media/snps,dw-hdmi-rx.txt  | 70 ++++++++++++++++++++++
- 1 file changed, 70 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+On Thu, Jun 01, 2017 at 11:37:43PM -0700, Tim Harvey wrote:
 
-diff --git a/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
-new file mode 100644
-index 0000000..449b8a2
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
-@@ -0,0 +1,70 @@
-+Synopsys DesignWare HDMI RX Decoder
-+===================================
-+
-+This document defines device tree properties for the Synopsys DesignWare HDMI
-+RX Decoder (DWC HDMI RX). It doesn't constitute a device tree binding
-+specification by itself but is meant to be referenced by platform-specific
-+device tree bindings.
-+
-+When referenced from platform device tree bindings the properties defined in
-+this document are defined as follows.
-+
-+- compatible: Shall be "snps,dw-hdmi-rx".
-+
-+- reg: Memory mapped base address and length of the DWC HDMI RX registers.
-+
-+- interrupts: Reference to the DWC HDMI RX interrupt and 5v sense interrupt.
-+
-+- clocks: Phandle to the config clock block.
-+
-+- clock-names: Shall be "cfg".
-+
-+- edid-phandle: phandle to the EDID handler block.
-+
-+- #address-cells: Shall be 1.
-+
-+- #size-cells: Shall be 0.
-+
-+You also have to create a subnode for phy driver. Phy properties are as follows.
-+
-+- compatible: Shall be "snps,dw-hdmi-phy-e405".
-+
-+- reg: Shall be JTAG address of phy.
-+
-+- clocks: Phandle for cfg clock.
-+
-+- clock-names:Shall be "cfg".
-+
-+A sample binding is now provided. The compatible string is for a SoC which has
-+has a Synopsys DesignWare HDMI RX decoder inside.
-+
-+Example:
-+
-+dw_hdmi_soc: dw-hdmi-soc@0 {
-+	compatible = "snps,dw-hdmi-soc";
-+	reg = <0x11c00 0x1000>; /* EDIDs */
-+	#address-cells = <1>;
-+	#size-cells = <1>;
-+	ranges;
-+
-+	hdmi-rx@0 {
-+		compatible = "snps,dw-hdmi-rx";
-+		reg = <0x0 0x10000>;
-+		interrupts = <1 2>;
-+		edid-phandle = <&dw_hdmi_soc>;
-+
-+		clocks = <&dw_hdmi_refclk>;
-+		clock-names = "cfg";
-+
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		hdmi-phy@fc {
-+			compatible = "snps,dw-hdmi-phy-e405";
-+			reg = <0xfc>;
-+
-+			clocks = <&dw_hdmi_refclk>;
-+			clock-names = "cfg";
-+		};
-+	};
-+};
--- 
-1.9.1
+> I believe this is a very common i2c register mechanism but I'm not
+> clear what the best way to use i2c regmap for this is. I'm reading
+> that regmap 'handles register pages' but I'm not clear if that's the
+> same thing I'm looking for. If so, are there any examples of this? I
+> see several i2c drivers that reference pages but it looks to me that
+> each page is a different i2c slave address which is something
+> different.
+
+You're looking for regmap_range (search for window in regmap.h).
+
+--aftmt334f7tolisr
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlkxmFMACgkQJNaLcl1U
+h9DNpwf/UPa0+48wnCqpY9pxU63YTKEzn6jEYFlXDJsMwJHxut4FM1CSoEi2aubn
+ntOpKSj7llZkhZR8c+pfOw/hLx7Gi1EevzEk5Tg7BtRbcaPXoG3j93Eah1tNawuc
+mAPwFdb4sQYD2UIxXN5Z6NYcntvB0hyCDcPJK18tHsvBp8UE/+WNGc2Azowg/3si
+reIzkT7t1f7ksTQEDClr7UoIgnuBgWbZ8mgFsYaTyMextFoHclBY+npk2DPeU1uB
+XVxnb6gjcUmlIaMZMDs3+1Ts1qe9VQEzrC/GkPwxZ7LpgnQZ59WFuYYoId4HGZFt
+XDSNc7AmqQvK4w0QPJcFHo3eJ24yPQ==
+=shLt
+-----END PGP SIGNATURE-----
+
+--aftmt334f7tolisr--
