@@ -1,49 +1,290 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f46.google.com ([74.125.83.46]:33140 "EHLO
-        mail-pg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750971AbdFBVei (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 17:34:38 -0400
-Received: by mail-pg0-f46.google.com with SMTP id u13so2870608pgb.0
-        for <linux-media@vger.kernel.org>; Fri, 02 Jun 2017 14:34:38 -0700 (PDT)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 0/4] [media] davinci: vpif_capture: raw camera support
-Date: Fri,  2 Jun 2017 14:34:27 -0700
-Message-Id: <20170602213431.10777-1-khilman@baylibre.com>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:35417 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750971AbdFBVyO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 17:54:14 -0400
+Subject: Re: [PATCH 6/9] [media] s5p-jpeg: Add support for resolution change
+ event
+To: Thierry Escande <thierry.escande@collabora.com>,
+        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
+ <1496419376-17099-7-git-send-email-thierry.escande@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Message-ID: <18b325de-ce2a-d303-957b-ad6c7518c5f4@gmail.com>
+Date: Fri, 2 Jun 2017 23:53:30 +0200
 MIME-Version: 1.0
+In-Reply-To: <1496419376-17099-7-git-send-email-thierry.escande@collabora.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series fixes/updates the support for raw camera input to the VPIF.
+Hi Thierry,
 
-Tested on da850-evm boards using the add-on UI board.  Tested with
-both composite video input (on-board tvp514x) and raw camera input
-using the camera board from On-Semi based on the aptina,mt9v032
-sensor[1], as this was the only camera board with the right connector
-for the da850-evm UI board.
+On 06/02/2017 06:02 PM, Thierry Escande wrote:
+> From: henryhsu <henryhsu@chromium.org>
+> 
+> This patch adds support for resolution change event to notify clients so
+> they can prepare correct output buffer. When resolution change happened,
+> G_FMT for CAPTURE should return old resolution and format before CAPTURE
+> queues streamoff.
 
-Verified that composite video capture is still working well after these
-updates.
+Do you have a use case for that?
 
-[1] http://www.mouser.com/search/ProductDetail.aspx?R=0virtualkey0virtualkeyMT9V032C12STCH-GEVB
+> 
+> Signed-off-by: Henry-Ruey Hsu <henryhsu@chromium.org>
+> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+> ---
+>  drivers/media/platform/s5p-jpeg/jpeg-core.c | 121 ++++++++++++++++++++--------
+>  drivers/media/platform/s5p-jpeg/jpeg-core.h |   7 ++
+>  2 files changed, 95 insertions(+), 33 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> index 5569b99..7a7acbc 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> @@ -24,6 +24,7 @@
+>  #include <linux/slab.h>
+>  #include <linux/spinlock.h>
+>  #include <linux/string.h>
+> +#include <media/v4l2-event.h>
+>  #include <media/v4l2-mem2mem.h>
+>  #include <media/v4l2-ioctl.h>
+>  #include <media/videobuf2-v4l2.h>
+> @@ -1416,8 +1417,17 @@ static int s5p_jpeg_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  	q_data = get_q_data(ct, f->type);
+>  	BUG_ON(q_data == NULL);
+>  
+> -	pix->width = q_data->w;
+> -	pix->height = q_data->h;
+> +	if ((f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+> +	     ct->mode == S5P_JPEG_ENCODE) ||
+> +	    (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT &&
+> +	     ct->mode == S5P_JPEG_DECODE)) {
+> +		pix->width = 0;
+> +		pix->height = 0;
+> +	} else {
+> +		pix->width = q_data->w;
+> +		pix->height = q_data->h;
+> +	}
+> +
 
-Kevin Hilman (4):
-  [media] davinci: vpif_capture: drop compliance hack
-  [media] davinci: vpif_capture: get subdevs from DT when available
-  [media] davinci: vpif_capture: cleanup raw camera support
-  [media] davinci: vpif: adaptions for DT support
+Is this change related to the patch subject?
 
- drivers/media/platform/davinci/vpif.c         |  49 +++++-
- drivers/media/platform/davinci/vpif_capture.c | 224 +++++++++++++++++++++++---
- drivers/media/platform/davinci/vpif_display.c |   5 +
- include/media/davinci/vpif_types.h            |   9 +-
- 4 files changed, 263 insertions(+), 24 deletions(-)
+>  	pix->field = V4L2_FIELD_NONE;
+>  	pix->pixelformat = q_data->fmt->fourcc;
+>  	pix->bytesperline = 0;
+> @@ -1677,8 +1687,6 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
+>  			FMT_TYPE_OUTPUT : FMT_TYPE_CAPTURE;
+>  
+>  	q_data->fmt = s5p_jpeg_find_format(ct, pix->pixelformat, f_type);
+> -	q_data->w = pix->width;
+> -	q_data->h = pix->height;
+>  	if (q_data->fmt->fourcc != V4L2_PIX_FMT_JPEG) {
+>  		/*
+>  		 * During encoding Exynos4x12 SoCs access wider memory area
+> @@ -1686,6 +1694,8 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
+>  		 * the JPEG_IMAGE_SIZE register. In order to avoid sysmmu
+>  		 * page fault calculate proper buffer size in such a case.
+>  		 */
+> +		q_data->w = pix->width;
+> +		q_data->h = pix->height;
+>  		if (ct->jpeg->variant->hw_ex4_compat &&
+>  		    f_type == FMT_TYPE_OUTPUT && ct->mode == S5P_JPEG_ENCODE)
+>  			q_data->size = exynos4_jpeg_get_output_buffer_size(ct,
+> @@ -1761,6 +1771,15 @@ static int s5p_jpeg_s_fmt_vid_out(struct file *file, void *priv,
+>  	return s5p_jpeg_s_fmt(fh_to_ctx(priv), f);
+>  }
+>  
+> +static int s5p_jpeg_subscribe_event(struct v4l2_fh *fh,
+> +				    const struct v4l2_event_subscription *sub)
+> +{
+> +	if (sub->type == V4L2_EVENT_SOURCE_CHANGE)
+> +		return v4l2_src_change_event_subscribe(fh, sub);
+> +
+> +	return -EINVAL;
+> +}
+> +
+>  static int exynos3250_jpeg_try_downscale(struct s5p_jpeg_ctx *ctx,
+>  				   struct v4l2_rect *r)
+>  {
+> @@ -2086,6 +2105,9 @@ static const struct v4l2_ioctl_ops s5p_jpeg_ioctl_ops = {
+>  
+>  	.vidioc_g_selection		= s5p_jpeg_g_selection,
+>  	.vidioc_s_selection		= s5p_jpeg_s_selection,
+> +
+> +	.vidioc_subscribe_event		= s5p_jpeg_subscribe_event,
+> +	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+>  };
+>  
+>  /*
+> @@ -2478,8 +2500,17 @@ static int s5p_jpeg_job_ready(void *priv)
+>  {
+>  	struct s5p_jpeg_ctx *ctx = priv;
+>  
+> -	if (ctx->mode == S5P_JPEG_DECODE)
+> +	if (ctx->mode == S5P_JPEG_DECODE) {
+> +		/*
+> +		 * We have only one input buffer and one output buffer. If there
+> +		 * is a resolution change event, no need to continue decoding.
+> +		 */
+> +		if (ctx->state == JPEGCTX_RESOLUTION_CHANGE)
+> +			return 0;
+> +
+>  		return ctx->hdr_parsed;
+> +	}
+> +
+>  	return 1;
+>  }
+>  
+> @@ -2558,6 +2589,21 @@ static int s5p_jpeg_buf_prepare(struct vb2_buffer *vb)
+>  	return 0;
+>  }
+>  
+> +static void s5p_jpeg_set_capture_queue_data(struct s5p_jpeg_ctx *ctx)
+> +{
+> +	struct s5p_jpeg_q_data *q_data = &ctx->cap_q;
+> +
+> +	q_data->w = ctx->out_q.w;
+> +	q_data->h = ctx->out_q.h;
+> +
+> +	jpeg_bound_align_image(ctx, &q_data->w, S5P_JPEG_MIN_WIDTH,
+> +			       S5P_JPEG_MAX_WIDTH, q_data->fmt->h_align,
+> +			       &q_data->h, S5P_JPEG_MIN_HEIGHT,
+> +			       S5P_JPEG_MAX_HEIGHT, q_data->fmt->v_align);
+> +
+> +	q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
+> +}
+> +
+>  static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
+>  {
+>  	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> @@ -2565,9 +2611,20 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
+>  
+>  	if (ctx->mode == S5P_JPEG_DECODE &&
+>  	    vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> -		struct s5p_jpeg_q_data tmp, *q_data;
+> -
+> -		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&tmp,
+> +		static const struct v4l2_event ev_src_ch = {
+> +			.type = V4L2_EVENT_SOURCE_CHANGE,
+> +			.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
+> +		};
+> +		struct vb2_queue *dst_vq;
+> +		u32 ori_w;
+> +		u32 ori_h;
+> +
+> +		dst_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx,
+> +					 V4L2_BUF_TYPE_VIDEO_CAPTURE);
+> +		ori_w = ctx->out_q.w;
+> +		ori_h = ctx->out_q.h;
+> +
+> +		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&ctx->out_q,
+>  		     (unsigned long)vb2_plane_vaddr(vb, 0),
+>  		     min((unsigned long)ctx->out_q.size,
+>  			 vb2_get_plane_payload(vb, 0)), ctx);
+> @@ -2576,31 +2633,18 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
+>  			return;
+>  		}
+>  
+> -		q_data = &ctx->out_q;
+> -		q_data->w = tmp.w;
+> -		q_data->h = tmp.h;
+> -		q_data->sos = tmp.sos;
+> -		memcpy(q_data->dht.marker, tmp.dht.marker,
+> -		       sizeof(tmp.dht.marker));
+> -		memcpy(q_data->dht.len, tmp.dht.len, sizeof(tmp.dht.len));
+> -		q_data->dht.n = tmp.dht.n;
+> -		memcpy(q_data->dqt.marker, tmp.dqt.marker,
+> -		       sizeof(tmp.dqt.marker));
+> -		memcpy(q_data->dqt.len, tmp.dqt.len, sizeof(tmp.dqt.len));
+> -		q_data->dqt.n = tmp.dqt.n;
+> -		q_data->sof = tmp.sof;
+> -		q_data->sof_len = tmp.sof_len;
+
+You're removing here quantization and Huffman table info, is it
+intentional?
+
+> -
+> -		q_data = &ctx->cap_q;
+> -		q_data->w = tmp.w;
+> -		q_data->h = tmp.h;
+> -
+> -		jpeg_bound_align_image(ctx, &q_data->w, S5P_JPEG_MIN_WIDTH,
+> -				       S5P_JPEG_MAX_WIDTH, q_data->fmt->h_align,
+> -				       &q_data->h, S5P_JPEG_MIN_HEIGHT,
+> -				       S5P_JPEG_MAX_HEIGHT, q_data->fmt->v_align
+> -				      );
+> -		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
+> +		/*
+> +		 * If there is a resolution change event, only update capture
+> +		 * queue when it is not streaming. Otherwise, update it in
+> +		 * STREAMOFF. See s5p_jpeg_stop_streaming for detail.
+> +		 */
+> +		if (ctx->out_q.w != ori_w || ctx->out_q.h != ori_h) {
+> +			v4l2_event_queue_fh(&ctx->fh, &ev_src_ch);
+> +			if (vb2_is_streaming(dst_vq))
+> +				ctx->state = JPEGCTX_RESOLUTION_CHANGE;
+> +			else
+> +				s5p_jpeg_set_capture_queue_data(ctx);
+> +		}
+>  	}
+>  
+>  	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+> @@ -2620,6 +2664,17 @@ static void s5p_jpeg_stop_streaming(struct vb2_queue *q)
+>  {
+>  	struct s5p_jpeg_ctx *ctx = vb2_get_drv_priv(q);
+>  
+> +	/*
+> +	 * STREAMOFF is an acknowledgment for resolution change event.
+> +	 * Before STREAMOFF, we still have to return the old resolution and
+> +	 * subsampling. Update capture queue when the stream is off.
+> +	 */
+> +	if (ctx->state == JPEGCTX_RESOLUTION_CHANGE &&
+> +	    q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+> +		s5p_jpeg_set_capture_queue_data(ctx);
+> +		ctx->state = JPEGCTX_RUNNING;
+> +	}
+> +
+>  	pm_runtime_put(ctx->jpeg->dev);
+>  }
+>  
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+> index 4492a35..9aa26bd 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+> @@ -98,6 +98,11 @@ enum  exynos4_jpeg_img_quality_level {
+>  	QUALITY_LEVEL_4,	/* low */
+>  };
+>  
+> +enum s5p_jpeg_ctx_state {
+> +	JPEGCTX_RUNNING = 0,
+> +	JPEGCTX_RESOLUTION_CHANGE,
+> +};
+> +
+>  /**
+>   * struct s5p_jpeg - JPEG IP abstraction
+>   * @lock:		the mutex protecting this structure
+> @@ -220,6 +225,7 @@ struct s5p_jpeg_q_data {
+>   * @hdr_parsed:		set if header has been parsed during decompression
+>   * @crop_altered:	set if crop rectangle has been altered by the user space
+>   * @ctrl_handler:	controls handler
+> + * @state:		state of the context
+>   */
+>  struct s5p_jpeg_ctx {
+>  	struct s5p_jpeg		*jpeg;
+> @@ -235,6 +241,7 @@ struct s5p_jpeg_ctx {
+>  	bool			hdr_parsed;
+>  	bool			crop_altered;
+>  	struct v4l2_ctrl_handler ctrl_handler;
+> +	enum s5p_jpeg_ctx_state	state;
+>  };
+>  
+>  /**
+> 
 
 -- 
-2.9.3
+Best regards,
+Jacek Anaszewski
