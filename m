@@ -1,71 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54616 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44042 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752399AbdFRVTQ (ORCPT
+        by vger.kernel.org with ESMTP id S1751162AbdFCV5t (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Jun 2017 17:19:16 -0400
-Date: Mon, 19 Jun 2017 00:18:38 +0300
+        Sat, 3 Jun 2017 17:57:49 -0400
+Date: Sun, 4 Jun 2017 00:57:09 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <snawrocki@kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Hans Verkuil <hansverk@cisco.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [RFC PATCH 1/2] v4l2-ioctl/exynos: fix G/S_SELECTION's type
- handling
-Message-ID: <20170618211837.GY12407@valkosipuli.retiisi.org.uk>
-References: <20170508143506.16448-1-hverkuil@xs4all.nl>
- <20170616125827.GQ12407@valkosipuli.retiisi.org.uk>
- <baf6fee6-3c65-5aea-f042-cfdd6698e4ba@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v7 16/34] [media] add Omnivision OV5640 sensor driver
+Message-ID: <20170603215709.GU1019@valkosipuli.retiisi.org.uk>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+ <1495672189-29164-17-git-send-email-steve_longerbeam@mentor.com>
+ <20170531195821.GA16962@amd>
+ <20170601082659.GJ1019@valkosipuli.retiisi.org.uk>
+ <755909bf-d1de-e0f3-1569-0d4b16e26817@gmail.com>
+ <20170603195139.GA3062@amd>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <baf6fee6-3c65-5aea-f042-cfdd6698e4ba@kernel.org>
+In-Reply-To: <20170603195139.GA3062@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
-
-On Sun, Jun 18, 2017 at 10:53:48PM +0200, Sylwester Nawrocki wrote:
-> >> + */
-> >> +static int v4l_g_selection(const struct v4l2_ioctl_ops *ops,
-> >> +			   struct file *file, void *fh, void *arg)
-> >> +{
-> >> +	struct v4l2_selection *p = arg;
-> >> +	u32 old_type = p->type;
-> >> +	int ret;
-> >> +
-> >> +	if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-> >> +		p->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> >> +	else if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-> >> +		p->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-> >> +	ret = ops->vidioc_g_selection(file, fh, p);
-> >> +	p->type = old_type;
-> >> +	return ret;
-> >> +}
-> >> +
-> >> +static int v4l_s_selection(const struct v4l2_ioctl_ops *ops,
-> >> +			   struct file *file, void *fh, void *arg)
-> >> +{
-> >> +	struct v4l2_selection *p = arg;
-> >> +	u32 old_type = p->type;
-> >> +	int ret;
-> >> +
-> >> +	if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-> >> +		p->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> >> +	else if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-> >> +		p->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-> >> +	ret = ops->vidioc_s_selection(file, fh, p);
-> > 
-> > Can it be that ops->vidioc_s_selection() is NULL here? I don't think it's
-> > checked anywhere. Same in v4l_g_selection().
+On Sat, Jun 03, 2017 at 09:51:39PM +0200, Pavel Machek wrote:
+> Hi!
 > 
-> I think it can't be, there is the valid_ioctls bitmap test before a call back 
-> to the driver, to see if driver actually implements an ioctl. And the bitmap 
-> is populated beforehand in determine_valid_ioctls().
+> > >>>+	/* Auto/manual exposure */
+> > >>>+	ctrls->auto_exp = v4l2_ctrl_new_std_menu(hdl, ops,
+> > >>>+						 V4L2_CID_EXPOSURE_AUTO,
+> > >>>+						 V4L2_EXPOSURE_MANUAL, 0,
+> > >>>+						 V4L2_EXPOSURE_AUTO);
+> > >>>+	ctrls->exposure = v4l2_ctrl_new_std(hdl, ops,
+> > >>>+					    V4L2_CID_EXPOSURE_ABSOLUTE,
+> > >>>+					    0, 65535, 1, 0);
+> > >>
+> > >>Is exposure_absolute supposed to be in microseconds...?
+> > >
+> > >Yes.
+> > 
+> > According to the docs V4L2_CID_EXPOSURE_ABSOLUTE is in 100 usec units.
+> > 
+> >  OTOH V4L2_CID_EXPOSURE has no defined unit, so it's a better fit IMO.
+> > >Way more drivers appear to be using EXPOSURE than EXPOSURE_ABSOLUTE, too.
+> > 
+> > Done, switched to V4L2_CID_EXPOSURE. It's true, this control is not
+> > taking 100 usec units, so unit-less is better.
+> 
+> Thanks. If you know the units, it would be of course better to use
+> right units...
 
-Ack. Looks good to me then.
+Steve: what's the unit in this case? Is it lines or something else?
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Pavel: we do need to make sure the user space will be able to know the unit,
+too. It's rather a case with a number of controls: the unit is known but
+there's no API to convey it to the user.
+
+The exposure is a bit special, too: granularity matters a lot on small
+values. On most other controls it does not.
 
 -- 
 Sakari Ailus
