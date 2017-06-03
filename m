@@ -1,70 +1,383 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:37980 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752013AbdF3OP7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Jun 2017 10:15:59 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v4 6/8] [media] s5p-jpeg: Decode 4:1:1 chroma subsampling format
-Date: Fri, 30 Jun 2017 16:15:45 +0200
-Message-Id: <1498832147-16316-7-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1498832147-16316-1-git-send-email-thierry.escande@collabora.com>
-References: <1498832147-16316-1-git-send-email-thierry.escande@collabora.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+Received: from mga03.intel.com ([134.134.136.65]:34677 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751077AbdFCISt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 3 Jun 2017 04:18:49 -0400
+From: Rajmohan Mani <rajmohan.mani@intel.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@kernel.org, hverkuil@xs4all.nl, tfiga@chromium.org,
+        sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+        tuukka.toivonen@intel.com, Rajmohan Mani <rajmohan.mani@intel.com>
+Subject: [PATCH v8] dw9714: Initial driver for dw9714 VCM
+Date: Sat,  3 Jun 2017 01:11:40 -0700
+Message-Id: <1496477500-4675-1-git-send-email-rajmohan.mani@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tony K Nadackal <tony.kn@samsung.com>
+DW9714 is a 10 bit DAC, designed for linear
+control of voice coil motor.
 
-This patch adds support for decoding 4:1:1 chroma subsampling in the
-jpeg header parsing function.
+This driver creates a V4L2 subdevice and
+provides control to set the desired focus.
 
-Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
-Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+Changes in v8:
+	- Set the PM runtime status as "active" before calling
+	pm_runtime_enable() in probe
+Changes in v7:
+	- Removed DW9714 ACPI hwid from ACPI match table, until
+	the correct ACPI id is available
+	- Added details in an error message
+Changes in v6:
+	- Addressed review comments from Sakari on v5 patch
+Changes in v5:
+	- Addressed review comments from Tomasz, Sakari and Sylwester on v4
+	of this patch
+Changes in v4:
+	- Addressed review comments from Tomasz
+Changes in v3:
+	- Addressed most of the review comments from Sakari
+	  on v1 of this patch
+Changes in v2:
+        - Addressed review comments from Hans Verkuil
+        - Fixed a debug message typo
+---
+ drivers/media/i2c/Kconfig  |  10 ++
+ drivers/media/i2c/Makefile |   1 +
+ drivers/media/i2c/dw9714.c | 291 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 302 insertions(+)
+ create mode 100644 drivers/media/i2c/dw9714.c
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 0783809..cca0fb8 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1099,6 +1099,8 @@ static void skip(struct s5p_jpeg_buffer *buf, long len)
- static bool s5p_jpeg_subsampling_decode(struct s5p_jpeg_ctx *ctx,
- 					unsigned int subsampling)
- {
-+	unsigned int version;
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index fd181c9..188ab15 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -300,6 +300,16 @@ config VIDEO_AD5820
+ 	  This is a driver for the AD5820 camera lens voice coil.
+ 	  It is used for example in Nokia N900 (RX-51).
+ 
++config VIDEO_DW9714
++	tristate "DW9714 lens voice coil support"
++	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
++	depends on VIDEO_V4L2_SUBDEV_API
++	---help---
++	  This is a driver for the DW9714 camera lens voice coil.
++	  DW9714 is a 10 bit DAC with 120mA output current sink
++	  capability. This is designed for linear control of
++	  voice coil motors, controlled via I2C serial interface.
 +
- 	switch (subsampling) {
- 	case 0x11:
- 		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_444;
-@@ -1112,6 +1114,19 @@ static bool s5p_jpeg_subsampling_decode(struct s5p_jpeg_ctx *ctx,
- 	case 0x33:
- 		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
- 		break;
-+	case 0x41:
-+		/*
-+		 * 4:1:1 subsampling only supported by 3250, 5420, and 5433
-+		 * variants
-+		 */
-+		version = ctx->jpeg->variant->version;
-+		if (version != SJPEG_EXYNOS3250 &&
-+		    version != SJPEG_EXYNOS5420 &&
-+		    version != SJPEG_EXYNOS5433)
-+			return false;
+ config VIDEO_SAA7110
+ 	tristate "Philips SAA7110 video decoder"
+ 	depends on VIDEO_V4L2 && I2C
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 62323ec..987bd1f 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -21,6 +21,7 @@ obj-$(CONFIG_VIDEO_SAA7127) += saa7127.o
+ obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
+ obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
+ obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
++obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
+ obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
+ obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
+ obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
+diff --git a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c
+new file mode 100644
+index 0000000..6a607d7
+--- /dev/null
++++ b/drivers/media/i2c/dw9714.c
+@@ -0,0 +1,291 @@
++/*
++ * Copyright (c) 2015--2017 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
 +
-+		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_411;
-+		break;
- 	default:
- 		return false;
- 	}
++#include <linux/acpi.h>
++#include <linux/delay.h>
++#include <linux/i2c.h>
++#include <linux/module.h>
++#include <linux/pm_runtime.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++
++#define DW9714_NAME		"dw9714"
++#define DW9714_MAX_FOCUS_POS	1023
++/*
++ * This acts as the minimum granularity of lens movement.
++ * Keep this value power of 2, so the control steps can be
++ * uniformly adjusted for gradual lens movement, with desired
++ * number of control steps.
++ */
++#define DW9714_CTRL_STEPS	16
++#define DW9714_CTRL_DELAY_US	1000
++/*
++ * S[3:2] = 0x00, codes per step for "Linear Slope Control"
++ * S[1:0] = 0x00, step period
++ */
++#define DW9714_DEFAULT_S 0x0
++#define DW9714_VAL(data, s) ((data) << 4 | (s))
++
++/* dw9714 device structure */
++struct dw9714_device {
++	struct i2c_client *client;
++	struct v4l2_ctrl_handler ctrls_vcm;
++	struct v4l2_subdev sd;
++	u16 current_val;
++};
++
++static inline struct dw9714_device *to_dw9714_vcm(struct v4l2_ctrl *ctrl)
++{
++	return container_of(ctrl->handler, struct dw9714_device, ctrls_vcm);
++}
++
++static inline struct dw9714_device *sd_to_dw9714_vcm(struct v4l2_subdev *subdev)
++{
++	return container_of(subdev, struct dw9714_device, sd);
++}
++
++static int dw9714_i2c_write(struct i2c_client *client, u16 data)
++{
++	int ret;
++	u16 val = cpu_to_be16(data);
++
++	ret = i2c_master_send(client, (const char *)&val, sizeof(val));
++	if (ret != sizeof(val)) {
++		dev_err(&client->dev, "I2C write fail\n");
++		return -EIO;
++	}
++	return 0;
++}
++
++static int dw9714_t_focus_vcm(struct dw9714_device *dw9714_dev, u16 val)
++{
++	struct i2c_client *client = dw9714_dev->client;
++
++	dw9714_dev->current_val = val;
++
++	return dw9714_i2c_write(client, DW9714_VAL(val, DW9714_DEFAULT_S));
++}
++
++static int dw9714_set_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct dw9714_device *dev_vcm = to_dw9714_vcm(ctrl);
++
++	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE)
++		return dw9714_t_focus_vcm(dev_vcm, ctrl->val);
++
++	return -EINVAL;
++}
++
++static const struct v4l2_ctrl_ops dw9714_vcm_ctrl_ops = {
++	.s_ctrl = dw9714_set_ctrl,
++};
++
++static int dw9714_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct dw9714_device *dw9714_dev = sd_to_dw9714_vcm(sd);
++	struct device *dev = &dw9714_dev->client->dev;
++	int rval;
++
++	rval = pm_runtime_get_sync(dev);
++	if (rval < 0) {
++		pm_runtime_put_noidle(dev);
++		return rval;
++	}
++
++	return 0;
++}
++
++static int dw9714_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct dw9714_device *dw9714_dev = sd_to_dw9714_vcm(sd);
++	struct device *dev = &dw9714_dev->client->dev;
++
++	pm_runtime_put(dev);
++
++	return 0;
++}
++
++static const struct v4l2_subdev_internal_ops dw9714_int_ops = {
++	.open = dw9714_open,
++	.close = dw9714_close,
++};
++
++static const struct v4l2_subdev_ops dw9714_ops = { };
++
++static void dw9714_subdev_cleanup(struct dw9714_device *dw9714_dev)
++{
++	v4l2_async_unregister_subdev(&dw9714_dev->sd);
++	v4l2_ctrl_handler_free(&dw9714_dev->ctrls_vcm);
++	media_entity_cleanup(&dw9714_dev->sd.entity);
++}
++
++static int dw9714_init_controls(struct dw9714_device *dev_vcm)
++{
++	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
++	const struct v4l2_ctrl_ops *ops = &dw9714_vcm_ctrl_ops;
++	struct i2c_client *client = dev_vcm->client;
++
++	v4l2_ctrl_handler_init(hdl, 1);
++
++	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
++			  0, DW9714_MAX_FOCUS_POS, DW9714_CTRL_STEPS, 0);
++
++	if (hdl->error)
++		dev_err(&client->dev, "%s fail error: 0x%x\n",
++			__func__, hdl->error);
++	dev_vcm->sd.ctrl_handler = hdl;
++	return hdl->error;
++}
++
++static int dw9714_probe(struct i2c_client *client,
++			const struct i2c_device_id *devid)
++{
++	struct dw9714_device *dw9714_dev;
++	int rval;
++
++	dw9714_dev = devm_kzalloc(&client->dev, sizeof(*dw9714_dev),
++				  GFP_KERNEL);
++	if (dw9714_dev == NULL)
++		return -ENOMEM;
++
++	dw9714_dev->client = client;
++
++	v4l2_i2c_subdev_init(&dw9714_dev->sd, client, &dw9714_ops);
++	dw9714_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	dw9714_dev->sd.internal_ops = &dw9714_int_ops;
++
++	rval = dw9714_init_controls(dw9714_dev);
++	if (rval)
++		goto err_cleanup;
++
++	rval = media_entity_pads_init(&dw9714_dev->sd.entity, 0, NULL);
++	if (rval < 0)
++		goto err_cleanup;
++
++	dw9714_dev->sd.entity.function = MEDIA_ENT_F_LENS;
++
++	rval = v4l2_async_register_subdev(&dw9714_dev->sd);
++	if (rval < 0)
++		goto err_cleanup;
++
++	pm_runtime_set_active(&client->dev);
++	pm_runtime_enable(&client->dev);
++
++	return 0;
++
++err_cleanup:
++	dw9714_subdev_cleanup(dw9714_dev);
++	dev_err(&client->dev, "Probe failed: %d\n", rval);
++	return rval;
++}
++
++static int dw9714_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct dw9714_device *dw9714_dev = sd_to_dw9714_vcm(sd);
++
++	pm_runtime_disable(&client->dev);
++	dw9714_subdev_cleanup(dw9714_dev);
++
++	return 0;
++}
++
++/*
++ * This function sets the vcm position, so it consumes least current
++ * The lens position is gradually moved in units of DW9714_CTRL_STEPS,
++ * to make the movements smoothly.
++ */
++static int __maybe_unused dw9714_vcm_suspend(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct dw9714_device *dw9714_dev = sd_to_dw9714_vcm(sd);
++	int ret, val;
++
++	for (val = dw9714_dev->current_val & ~(DW9714_CTRL_STEPS - 1);
++	     val >= 0; val -= DW9714_CTRL_STEPS) {
++		ret = dw9714_i2c_write(client,
++				       DW9714_VAL(val, DW9714_DEFAULT_S));
++		if (ret)
++			dev_err_once(dev, "%s I2C failure: %d", __func__, ret);
++		usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
++	}
++	return 0;
++}
++
++/*
++ * This function sets the vcm position to the value set by the user
++ * through v4l2_ctrl_ops s_ctrl handler
++ * The lens position is gradually moved in units of DW9714_CTRL_STEPS,
++ * to make the movements smoothly.
++ */
++static int  __maybe_unused dw9714_vcm_resume(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct dw9714_device *dw9714_dev = sd_to_dw9714_vcm(sd);
++	int ret, val;
++
++	for (val = dw9714_dev->current_val % DW9714_CTRL_STEPS;
++	     val < dw9714_dev->current_val + DW9714_CTRL_STEPS - 1;
++	     val += DW9714_CTRL_STEPS) {
++		ret = dw9714_i2c_write(client,
++				       DW9714_VAL(val, DW9714_DEFAULT_S));
++		if (ret)
++			dev_err_ratelimited(dev, "%s I2C failure: %d",
++						__func__, ret);
++		usleep_range(DW9714_CTRL_DELAY_US, DW9714_CTRL_DELAY_US + 10);
++	}
++
++	return 0;
++}
++
++#ifdef CONFIG_ACPI
++static const struct acpi_device_id dw9714_acpi_match[] = {
++	{},
++};
++MODULE_DEVICE_TABLE(acpi, dw9714_acpi_match);
++#endif
++
++static const struct i2c_device_id dw9714_id_table[] = {
++	{DW9714_NAME, 0},
++	{}
++};
++
++MODULE_DEVICE_TABLE(i2c, dw9714_id_table);
++
++static const struct dev_pm_ops dw9714_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(dw9714_vcm_suspend, dw9714_vcm_resume)
++	SET_RUNTIME_PM_OPS(dw9714_vcm_suspend, dw9714_vcm_resume, NULL)
++};
++
++static struct i2c_driver dw9714_i2c_driver = {
++	.driver = {
++		.name = DW9714_NAME,
++		.pm = &dw9714_pm_ops,
++		.acpi_match_table = ACPI_PTR(dw9714_acpi_match),
++	},
++	.probe = dw9714_probe,
++	.remove = dw9714_remove,
++	.id_table = dw9714_id_table,
++};
++
++module_i2c_driver(dw9714_i2c_driver);
++
++MODULE_AUTHOR("Tianshu Qiu <tian.shu.qiu@intel.com>");
++MODULE_AUTHOR("Jian Xu Zheng <jian.xu.zheng@intel.com>");
++MODULE_AUTHOR("Yuning Pu <yuning.pu@intel.com>");
++MODULE_AUTHOR("Jouni Ukkonen <jouni.ukkonen@intel.com>");
++MODULE_AUTHOR("Tommi Franttila <tommi.franttila@intel.com>");
++MODULE_DESCRIPTION("DW9714 VCM driver");
++MODULE_LICENSE("GPL v2");
 -- 
-2.7.4
+1.9.1
