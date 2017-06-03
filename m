@@ -1,84 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48957
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750884AbdFTL76 (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:54443 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750753AbdFCEaU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Jun 2017 07:59:58 -0400
-Date: Tue, 20 Jun 2017 08:59:51 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: Re: [GIT PULL FOR v4.13] Add qcom venus driver
-Message-ID: <20170620085951.11e5c8dd@vento.lan>
-In-Reply-To: <9a84a004-ebdc-fba7-2cee-b91857788599@xs4all.nl>
-References: <9a84a004-ebdc-fba7-2cee-b91857788599@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Sat, 3 Jun 2017 00:30:20 -0400
+Message-ID: <080a7e7841953a495bc7271c6b77efe4@smtp-cloud3.xs4all.net>
+Date: Sat, 03 Jun 2017 06:30:17 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 16 Jun 2017 10:19:46 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Hi Mauro,
-> 
-> Second attempt to add the venus driver.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit acec3630155763c170c7ae6508cf973355464508:
-> 
->    [media] s3c-camif: fix arguments position in a function call (2017-06-13 14:21:24 -0300)
-> 
-> are available in the git repository at:
-> 
->    git://linuxtv.org/hverkuil/media_tree.git venus
-> 
-> for you to fetch changes up to 3bf1c3aacb172db8fcbd25c62b042fc265c5a494:
-> 
->    media: venus: enable building with COMPILE_TEST (2017-06-16 09:59:36 +0200)
-> 
-> ----------------------------------------------------------------
-> Stanimir Varbanov (19):
->        media: v4l2-mem2mem: extend m2m APIs for more accurate buffer management
->        doc: DT: venus: binding document for Qualcomm video driver
->        MAINTAINERS: Add Qualcomm Venus video accelerator driver
->        media: venus: adding core part and helper functions
->        media: venus: vdec: add video decoder files
->        media: venus: venc: add video encoder files
->        media: venus: hfi: add Host Firmware Interface (HFI)
->        media: venus: hfi: add Venus HFI files
->        media: venus: enable building of Venus video driver
->        media: venus: hfi: fix mutex unlock
->        media: venus: hfi_cmds: fix variable dereferenced before check
->        media: venus: helpers: fix variable dereferenced before check
->        media: venus: hfi_venus: fix variable dereferenced before check
->        media: venus: hfi_msgs: fix set but not used variables
->        media: venus: vdec: fix compile error in vdec_close
->        media: venus: venc: fix compile error in venc_close
->        media: venus: vdec: add support for min buffers for capture
->        media: venus: update firmware path with linux-firmware place
+Results of the daily build of media_tree:
 
+date:			Sat Jun  3 05:00:21 CEST 2017
+media-tree git hash:	36bcba973ad478042d1ffc6e89afd92e8bd17030
+media_build git hash:	0d8b3274e29b597780719e7ce1b3b460241a5395
+v4l-utils git hash:	ef074cf5500b7dd62e6eb3527ec47a914c7189ca
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
->        media: venus: enable building with COMPILE_TEST
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12-rc1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-It is too early for this patch. I merged from 4.12-rc6, and it
-still complains about those missing symbols:
+Detailed results are available here:
 
-WARNING: "qcom_scm_is_available" [drivers/media/platform/qcom/venus/venus-core.ko] undefined!
-WARNING: "qcom_scm_pas_shutdown" [drivers/media/platform/qcom/venus/venus-core.ko] undefined!
-WARNING: "qcom_scm_set_remote_state" [drivers/media/platform/qcom/venus/venus-core.ko] undefined!
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Probably, some patch is needed somewhere to replace those functions
-by stubs if not the right arch, in order to make it build with
-COMPILE_TEST.
+Full logs are available here:
 
-For now, I'm excluding this patch on today's pull.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
 
-Thanks,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/index.html
