@@ -1,270 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:39429 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751524AbdFINLb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 09:11:31 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH] rcar-vin: add support for V4L2_FIELD_SEQ_{TB,BT}
-Date: Fri,  9 Jun 2017 15:10:17 +0200
-Message-Id: <20170609131017.31721-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:58833 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750707AbdFCC6w (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 22:58:52 -0400
+From: Helen Koike <helen.koike@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
+        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCH v3 00/11] [media]: vimc: Virtual Media Control VPU's
+Date: Fri,  2 Jun 2017 23:58:00 -0300
+Message-Id: <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
+In-Reply-To: <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
+References: <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The hardware do not support capturing the field types V4L2_FIELD_SEQ_TB
-and V4L2_FIELD_SEQ_BT. To capture in these formats the driver needs to
-change what field (top or bottom) is to be captured next and for every
-other capture adjust the offset of the capture buffer.
+This patch series improves the current video processing units in vimc
+(by adding more controls to the sensor and capture node, allowing the
+user to configure different frame formats) and also adds a debayer
+and a scaler node.
+The debayer transforms the bayer format image received in its sink pad
+to a bayer format by averaging the pixels within a mean window.
+The scaler only scales up the image for now.
 
-This patch adds support for these sequential fields with the limitation
-that continues capture mode is not supported. This limitation have no
-visibility for user-space and the driver can already be running in
-single capture mode for all other field types if the driver is not feed
-buffers quickly enough.
+In this version I added an optimization where the image can be generated
+direct in the capture device instead of being generated in the sensor
+and processed by each node in the topology.
+I also changed the approach to implement each node of the topology as a
+submodule to make the code component oriented, where new components
+won't need to touch vimc-core and won't need a header file.
+Please, let me know your view regarding this new approach.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
+Changes in v3:
+[media] vimc: sen: Integrate the tpg on the sensor
+	- Declare frame_size as a local variable
+	- Set tpg frame format before starting kthread
+	- s_stream(sd, 1): return 0 if stream is already enabled
+	- s_stream(sd, 0): return 0 if stream is already disabled
+	- s_stream: propagate error from kthread_stop
+	- coding style when calling tpg_s_bytesperline
+	- s/vimc_thread_sen/vimc_sen_tpg_thread
+	- fix multiline comment
+[media] vimc: Move common code from the core
+	- This is a new patch in the series
+[media] vimc: Add vimc_ent_sd_* helper functions
+	- add it in vimc-common.c instead in vimc-core.c
+	- fix vimc_ent_sd_register, use function parameter to assign
+	sd->entity.function instead of using a fixed value
+	- rename commit to add the "common" tag
+[media] vimc: Add vimc_pipeline_s_stream in the core
+	- add it in vimc-common instead of vimc-core
+	- rename commit with "common" tag
+[media] vimc: common: Add vimc_link_validate
+	- this is a new patch in the series
+[media] vimc: sen: Support several image formats
+	- remove support for V4L2_FIELD_ALTERNATE (left as TODO for now)
+	- clamp image size to an even dimension for height and width
+	- set default values for colorimetry using _DEFAULT macro
+	- reset all values of colorimetry to _DEFAULT if user tries to
+	set an invalid colorspace
+[media] vimc: cap: Support several image formats
+	- use *_DEFAULT macros for colorimetry in the default format
+	- clamp height and width of the image by an even value
+	- is user try to set colorspace to an invalid format, set all
+	colorimetry parameters to _DEFAULT
+	- remove V4L2_FMT_FLAG_COMPRESSED from vimc_cap_enum_fmt_vid_cap
+	- remove V4L2_BUF_TYPE_VIDEO_CAPTURE from vimc_cap_enum_fmt_vid_cap
+	- increase step_width and step_height to 2 instead of 1
+	- remove link validate function, use the one in vimc-common.c
+[media] vimc: Optimize frame generation through the pipe
+	- This is a new patch in the series
+[media] vimc: Subdevices as modules
+	- This is a new patch in the series
+[media] vimc: deb: Add debayer filter
+	- Declare frame_size as a local variable
+	- s_stream(sd, 1): return 0 if stream is already enabled
+	- s_stream(sd, 0): return 0 if stream is already disabled
+	- s_stream: add ret variable to propagate return errors
+	- structure code to be a module, use platform_driver and component system
+	- fix multiline comment
+	- s/thought/through
+	- s/RGB8888/RGB888
+	- clamp height and width of the image by an even value
+	- if user try to set colorspace to an invalid format, set all
+        colorimetry parameters to _DEFAULT
+	- uset _DEFAULT for colorimetry in the default format
+[media] vimc: sca: Add scaler
+	- Declare frame_size as a local variable
+	- s_stream(sd, 1): return 0 if stream is already enabled
+	- s_stream(sd, 0): return 0 if stream is already disabled
+	- s_stream: add ret variable to propagate return errors
+	- structure code to be a module, use platform_driver and component system
+	- s/thought/through
+	- clamp height and width of the image by an even value
+	- if user try to set colorspace to an invalid format, set all
+	    colorimetry parameters to _DEFAULT
+	- uset _DEFAULT for colorimetry in the default format
 
-Based on top of '[PATCH v4 00/27] rcar-vin: Add Gen3 with media 
-controller support'. Tested on Gen2 M2 Koelsch and Gen3 Salvator-X H3 
-and M3.
+Changes in v2:
+[media] vimc: sen: Integrate the tpg on the sensor
+	- Fix include location
+	- Select V4L2_TPG in Kconfig
+	- configure tpg on streamon only
+	- rm BUG_ON
+	- coding style
+	- remove V4L2_FIELD_ALTERNATE from tpg_s_field
+	- remove V4L2_STD_PAL from tpg_fill_plane_buffer
+[media] vimc: Add vimc_ent_sd_* helper functions
+	- Comments in vimc_ent_sd_init
+	- Update vimc_ent_sd_init with upstream code as media_entity_pads_init
+	(instead of media_entity_init), entity->function intead of entity->type
+	- Add missing vimc_pads_cleanup in vimc_ent_sd_cleanup
+	- remove subdevice v4l2_dev and dev fields
+	- change unregister order in vimc_ent_sd_cleanup
+	- rename vimc_ent_sd_{init,cleanup} to vimc_ent_sd_{register,unregister}
+	- remove struct vimc_ent_subdevice, use ved and sd directly
+	- don't impose struct vimc_sen_device to declare ved and sd struct first
+	- add kernel docs
+[media] vimc: Add vimc_pipeline_s_stream in the core
+	- Use is_media_entity_v4l2_subdev instead of comparing with the old
+	entity->type
+	- Fix comments style
+	- add kernel-docs
+	- call s_stream across all sink pads
+[media] vimc: sen: Support several image formats
+	- this is a new commit in the serie (the old one was splitted in two)
+	- add init_cfg to initialize try_fmt
+	- reorder code in vimc_sen_set_fmt
+	- allow user space to change all fields from struct v4l2_mbus_framefmt
+	  (e.g. colospace, quantization, field, xfer_func, ycbcr_enc)
+	- merge with patch for the enum_mbus_code and enum_frame_size
+	- change commit message
+	- add vimc_pix_map_by_index
+	- rename MIN/MAX macros
+	- check set_fmt default parameters for quantization, colorspace ...media] vimc: sen: Support several image formats
+[media] vimc: cap: Support several image formats
+	- this is a new commit in the serie (the old one was splitted in two)
+	- allow user space to change all fields from struct v4l2_pix_format
+	  (e.g. colospace, quantization, field, xfer_func, ycbcr_enc)
+	- link_validate and try_fmt: also checks colospace, quantization, field, xfer_func, ycbcr_enc
+	- add struct v4l2_pix_format fmt_default
+	- add enum_framesizes
+	- enum_fmt_vid_cap: enumerate all formats from vimc_pix_map_table
+	- add mode dev_dbg
+[media] vimc: deb: Add debayer filter
+	- Using MEDIA_ENT_F_ATV_DECODER in function
+	- remove v4l2_dev and dev from vimc_deb_device struct
+	- src fmt propagates from the sink
+	- coding style
+	- remove redundant else if statements
+	- check end of enum and remove BUG_ON
+	- enum frame size with min and max values
+	- set/try fmt
+	- remove unecessary include freezer.h
+	- check pad types on create
+	- return EBUSY when trying to set the format while stream is on
+	- remove vsd struct
+	- add IS_SRC and IS_SINK macros
+	- add deb_mean_win_size as a parameter of the module
+	- check set_fmt default parameters for quantization, colorspace ...
+	- add more dev_dbg
+[media] vimc: sca: Add scaler
+	- Add function MEDIA_ENT_F_IO_V4L
+	- remove v4l2_dev and dev
+	- s/sink_mbus_fmt/sink_fmt
+	- remove BUG_ON, remove redundant if else, rewrite TODO, check end of enum
+	- rm src_width/height, enum fsize with min and max values
+	- set/try fmt
+	- remove unecessary include freezer.h
+	- core: add bayer boolean in pixel table
+	- coding style
+	- fix bug in enum frame size
+	- check pad types on create
+	- return EBUSY when trying to set the format while stream is on
+	- remove vsd struct
+	- add IS_SRC and IS_SINK macros
+	- add sca_mult as a parameter of the module
+	- check set_fmt default parameters for quantization, colorspace ...
+	- add more dev_dbg
 
-Test procedure documented on http://elinux.org/R-Car/Tests:rcar-vin
+Helen Koike (11):
+  [media] vimc: sen: Integrate the tpg on the sensor
+  [media] vimc: Move common code from the core
+  [media] vimc: common: Add vimc_ent_sd_* helper
+  [media] vimc: common: Add vimc_pipeline_s_stream helper
+  [media] vimc: common: Add vimc_link_validate
+  [media] vimc: sen: Support several image formats
+  [media] vimc: cap: Support several image formats
+  [media] vimc: Optimize frame generation through the pipe
+  [media] vimc: Subdevices as modules
+  [media] vimc: deb: Add debayer filter
+  [media] vimc: sca: Add scaler
 
- drivers/media/platform/rcar-vin/rcar-dma.c  | 67 +++++++++++++++++++++++++++-
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 68 ++++++++++++++++++++++++-----
- 2 files changed, 124 insertions(+), 11 deletions(-)
+ drivers/media/platform/vimc/Kconfig                |   1 +
+ drivers/media/platform/vimc/Makefile               |  10 +-
+ drivers/media/platform/vimc/vimc-capture.c         | 488 ++++++++++------
+ drivers/media/platform/vimc/vimc-capture.h         |  28 -
+ drivers/media/platform/vimc/vimc-common.c          | 475 ++++++++++++++++
+ .../platform/vimc/{vimc-core.h => vimc-common.h}   |  88 ++-
+ drivers/media/platform/vimc/vimc-core.c            | 611 ++++++--------------
+ drivers/media/platform/vimc/vimc-debayer.c         | 615 +++++++++++++++++++++
+ drivers/media/platform/vimc/vimc-scaler.c          | 469 ++++++++++++++++
+ drivers/media/platform/vimc/vimc-sensor.c          | 348 ++++++++----
+ drivers/media/platform/vimc/vimc-sensor.h          |  28 -
+ 11 files changed, 2370 insertions(+), 791 deletions(-)
+ delete mode 100644 drivers/media/platform/vimc/vimc-capture.h
+ create mode 100644 drivers/media/platform/vimc/vimc-common.c
+ rename drivers/media/platform/vimc/{vimc-core.h => vimc-common.h} (54%)
+ create mode 100644 drivers/media/platform/vimc/vimc-debayer.c
+ create mode 100644 drivers/media/platform/vimc/vimc-scaler.c
+ delete mode 100644 drivers/media/platform/vimc/vimc-sensor.h
 
-
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index a4764907d2bdbfbc..3a2eeaf120414069 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -96,6 +96,7 @@
- #define VNMC_IM_ODD_EVEN	(1 << 3)
- #define VNMC_IM_EVEN		(2 << 3)
- #define VNMC_IM_FULL		(3 << 3)
-+#define VNMC_IM_MASK		0x18
- #define VNMC_BPS		(1 << 1)
- #define VNMC_ME			(1 << 0)
- 
-@@ -640,6 +641,12 @@ static int rvin_setup(struct rvin_dev *vin)
- 	case V4L2_FIELD_INTERLACED_BT:
- 		vnmc = VNMC_IM_FULL | VNMC_FOC;
- 		break;
-+	case V4L2_FIELD_SEQ_TB:
-+		vnmc = VNMC_IM_ODD;
-+		break;
-+	case V4L2_FIELD_SEQ_BT:
-+		vnmc = VNMC_IM_EVEN;
-+		break;
- 	case V4L2_FIELD_ALTERNATE:
- 	case V4L2_FIELD_NONE:
- 		if (vin->continuous) {
-@@ -895,6 +902,11 @@ static int rvin_capture_start(struct rvin_dev *vin)
- 	/* Continuous capture requires more buffers then there are HW slots */
- 	vin->continuous = bufs > HW_BUFFER_NUM;
- 
-+	/* We can't support continues mode for sequential field formats */
-+	if (vin->format.field == V4L2_FIELD_SEQ_TB ||
-+	    vin->format.field == V4L2_FIELD_SEQ_BT)
-+		vin->continuous = false;
-+
- 	if (!rvin_fill_hw(vin)) {
- 		vin_err(vin, "HW not ready to start, not enough buffers available\n");
- 		return -EINVAL;
-@@ -930,6 +942,55 @@ static void rvin_capture_stop(struct rvin_dev *vin)
- #define RVIN_TIMEOUT_MS 100
- #define RVIN_RETRIES 10
- 
-+static bool rvin_seq_field_done(struct rvin_dev *vin)
-+{
-+	dma_addr_t phys_addr;
-+	u32 vnmc, next;
-+
-+	/* Only handle sequential formats */
-+	if (vin->format.field != V4L2_FIELD_SEQ_TB &&
-+	    vin->format.field != V4L2_FIELD_SEQ_BT)
-+		return true;
-+
-+	/* Update field for next capture */
-+	vnmc = rvin_read(vin, VNMC_REG);
-+	next = (vnmc & VNMC_IM_MASK) == VNMC_IM_ODD ?
-+		VNMC_IM_EVEN : VNMC_IM_ODD;
-+
-+	vin_dbg(vin, "SEQ Mode: %s Cap: %s Next: %s\n",
-+		vin->format.field == V4L2_FIELD_SEQ_TB ? "TB" : "BT",
-+		(vnmc & VNMC_IM_MASK) == VNMC_IM_ODD ? "T" : "B",
-+		next == VNMC_IM_ODD ? "T" : "B");
-+
-+	vnmc = (vnmc & ~VNMC_IM_MASK) | next;
-+	rvin_write(vin, vnmc, VNMC_REG);
-+
-+	/* If capture is second part of frame signal frame done */
-+	if ((vin->format.field == V4L2_FIELD_SEQ_TB && next == VNMC_IM_ODD) ||
-+	    (vin->format.field == V4L2_FIELD_SEQ_BT && next == VNMC_IM_EVEN)) {
-+		vin_dbg(vin, "SEQ frame done\n");
-+		return true;
-+	}
-+
-+	/*
-+	 * Need to capture second half of the frame. Increment the
-+	 * offset for the capture buffer so it appends to the already
-+	 * captured first field. Start one new capture (in single mode)
-+	 * and signal that frame is not complete.
-+	 */
-+
-+	vin_dbg(vin, "SEQ frame need to capture other half, frame not done\n");
-+
-+	phys_addr =
-+		vb2_dma_contig_plane_dma_addr(&vin->queue_buf[0]->vb2_buf, 0) +
-+		vin->format.sizeimage / 2;
-+	rvin_set_slot_addr(vin, 0, phys_addr);
-+
-+	rvin_capture_on(vin);
-+
-+	return false;
-+}
-+
- static irqreturn_t rvin_irq(int irq, void *data)
- {
- 	struct rvin_dev *vin = data;
-@@ -962,7 +1023,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
- 	/* Prepare for capture and update state */
- 	vnms = rvin_read(vin, VNMS_REG);
- 	slot = rvin_get_active_slot(vin, vnms);
--	sequence = vin->sequence++;
-+	sequence = vin->sequence;
- 
- 	vin_dbg(vin, "IRQ %02d: %d\tbuf0: %c buf1: %c buf2: %c\tmore: %d\n",
- 		sequence, slot,
-@@ -975,12 +1036,16 @@ static irqreturn_t rvin_irq(int irq, void *data)
- 	if (WARN_ON((vin->queue_buf[slot] == NULL)))
- 		goto done;
- 
-+	if (!rvin_seq_field_done(vin))
-+		goto done;
-+
- 	/* Capture frame */
- 	vin->queue_buf[slot]->field = rvin_get_active_field(vin, vnms);
- 	vin->queue_buf[slot]->sequence = sequence;
- 	vin->queue_buf[slot]->vb2_buf.timestamp = ktime_get_ns();
- 	vb2_buffer_done(&vin->queue_buf[slot]->vb2_buf, VB2_BUF_STATE_DONE);
- 	vin->queue_buf[slot] = NULL;
-+	vin->sequence++;
- 
- 	/* Prepare for next frame */
- 	if (!rvin_fill_hw(vin)) {
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 236bf10c3dfac5a6..df2a1a7a6455cafc 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -89,10 +89,26 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
- 	return pix->bytesperline * pix->height;
- }
- 
--static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
-+static void __rvin_format_aling_update(struct rvin_dev *vin,
-+				       struct v4l2_pix_format *pix)
- {
- 	u32 walign;
- 
-+	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
-+	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
-+
-+	/* Limit to VIN capabilities */
-+	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-+			      &pix->height, 4, vin->info->max_height, 2, 0);
-+
-+	pix->bytesperline = rvin_format_bytesperline(pix);
-+	pix->sizeimage = rvin_format_sizeimage(pix);
-+}
-+
-+static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
-+{
-+	int width;
-+
- 	/* If requested format is not supported fallback to the default */
- 	if (!rvin_format_from_pixel(pix->pixelformat)) {
- 		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
-@@ -109,6 +125,44 @@ static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
- 	case V4L2_FIELD_INTERLACED_BT:
- 	case V4L2_FIELD_INTERLACED:
- 		break;
-+	case V4L2_FIELD_SEQ_TB:
-+	case V4L2_FIELD_SEQ_BT:
-+		/*
-+		 * Due to extra hardware alignment restrictions on
-+		 * buffer addresses for multi plane formats they
-+		 * are not (yet) supported. This would be much simpler
-+		 * once support for the UDS scaler is added.
-+		 *
-+		 * Support for multi plane formats could be supported
-+		 * by having a different partitioning strategy when
-+		 * capturing the second field (start capturing one
-+		 * quarter in to the buffer instead of one half).
-+		 */
-+
-+		if (pix->pixelformat == V4L2_PIX_FMT_NV16)
-+			pix->pixelformat = RVIN_DEFAULT_FORMAT;
-+
-+		/*
-+		 * For sequential formats it's needed to write to
-+		 * the same buffer two times to capture both the top
-+		 * and bottom field. The second time it is written
-+		 * an offset is needed as to not overwrite the
-+		 * previous captured field. Due to hardware limitations
-+		 * the offsets must be a multiple of 128. Try to
-+		 * increase the width of the image until a size is
-+		 * found which can satisfy this constraint.
-+		 */
-+
-+		width = pix->width;
-+		while (width < vin->info->max_width) {
-+			pix->width = width++;
-+
-+			__rvin_format_aling_update(vin, pix);
-+
-+			if (((pix->sizeimage / 2) & HW_BUFFER_MASK) == 0)
-+				break;
-+		}
-+		break;
- 	default:
- 		pix->field = V4L2_FIELD_NONE;
- 		break;
-@@ -118,15 +172,7 @@ static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
- 	if (!pix->colorspace || pix->colorspace >= 0xff)
- 		pix->colorspace = vin->format.colorspace;
- 
--	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
--	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
--
--	/* Limit to VIN capabilities */
--	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
--			      &pix->height, 4, vin->info->max_height, 2, 0);
--
--	pix->bytesperline = rvin_format_bytesperline(pix);
--	pix->sizeimage = rvin_format_sizeimage(pix);
-+	__rvin_format_aling_update(vin, pix);
- 
- 	if (vin->info->chip == RCAR_M1 &&
- 	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-@@ -199,6 +245,8 @@ int rvin_reset_format(struct rvin_dev *vin)
- 	case V4L2_FIELD_INTERLACED_TB:
- 	case V4L2_FIELD_INTERLACED_BT:
- 	case V4L2_FIELD_INTERLACED:
-+	case V4L2_FIELD_SEQ_TB:
-+	case V4L2_FIELD_SEQ_BT:
- 		break;
- 	default:
- 		vin->format.field = V4L2_FIELD_NONE;
 -- 
-2.13.1
+2.7.4
