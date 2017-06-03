@@ -1,130 +1,320 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43913 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750954AbdFRHfD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Jun 2017 03:35:03 -0400
-Message-ID: <291616fe907c5598ac48bbdfedf07d36@smtp-cloud2.xs4all.net>
-Date: Sun, 18 Jun 2017 09:34:19 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:58872 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750707AbdFCDA6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 23:00:58 -0400
+From: Helen Koike <helen.koike@collabora.com>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
+        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCH v3 05/11] [media] vimc: common: Add vimc_link_validate
+Date: Fri,  2 Jun 2017 23:58:05 -0300
+Message-Id: <1496458714-16834-6-git-send-email-helen.koike@collabora.com>
+In-Reply-To: <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
+References: <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
+ <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+All links will be checked in the same way. Adding a helper function for
+that
 
-Results of the daily build of media_tree:
+Signed-off-by: Helen Koike <helen.koike@collabora.com>
 
-date:			Sun Jun 18 05:00:17 CEST 2017
-media-tree git hash:	acec3630155763c170c7ae6508cf973355464508
-media_build git hash:	dbdc2495ec17a3e71d2ec56778eed10081bb718f
-v4l-utils git hash:	ce237eefc1f6dafafc0e1fe3a5fd9f075d3fd066
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+---
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+Changes in v3:
+[media] vimc: common: Add vimc_link_validate
+	- this is a new patch in the series
 
-Detailed results are available here:
+Changes in v2: None
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Full logs are available here:
+---
+ drivers/media/platform/vimc/vimc-capture.c |  78 +++---------------
+ drivers/media/platform/vimc/vimc-common.c  | 124 ++++++++++++++++++++++++++++-
+ drivers/media/platform/vimc/vimc-common.h  |  14 ++++
+ 3 files changed, 148 insertions(+), 68 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
+index 93f6a09..5bdecd1 100644
+--- a/drivers/media/platform/vimc/vimc-capture.c
++++ b/drivers/media/platform/vimc/vimc-capture.c
+@@ -64,6 +64,15 @@ static int vimc_cap_querycap(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++static void vimc_cap_get_format(struct vimc_ent_device *ved,
++				struct v4l2_pix_format *fmt)
++{
++	struct vimc_cap_device *vcap = container_of(ved, struct vimc_cap_device,
++						    ved);
++
++	*fmt = vcap->format;
++}
++
+ static int vimc_cap_fmt_vid_cap(struct file *file, void *priv,
+ 				  struct v4l2_format *f)
+ {
+@@ -231,74 +240,8 @@ static const struct vb2_ops vimc_cap_qops = {
+ 	.wait_finish		= vb2_ops_wait_finish,
+ };
+ 
+-/*
+- * NOTE: this function is a copy of v4l2_subdev_link_validate_get_format
+- * maybe the v4l2 function should be public
+- */
+-static int vimc_cap_v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+-						struct v4l2_subdev_format *fmt)
+-{
+-	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(pad->entity);
+-
+-	fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
+-	fmt->pad = pad->index;
+-
+-	return v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
+-}
+-
+-static int vimc_cap_link_validate(struct media_link *link)
+-{
+-	struct v4l2_subdev_format source_fmt;
+-	const struct vimc_pix_map *vpix;
+-	struct vimc_cap_device *vcap = container_of(link->sink->entity,
+-						    struct vimc_cap_device,
+-						    vdev.entity);
+-	struct v4l2_pix_format *sink_fmt = &vcap->format;
+-	int ret;
+-
+-	/*
+-	 * if it is a raw node from vimc-core, ignore the link for now
+-	 * TODO: remove this when there are no more raw nodes in the
+-	 * core and return error instead
+-	 */
+-	if (link->source->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
+-		return 0;
+-
+-	/* Get the the format of the subdev */
+-	ret = vimc_cap_v4l2_subdev_link_validate_get_format(link->source,
+-							    &source_fmt);
+-	if (ret)
+-		return ret;
+-
+-	dev_dbg(vcap->vdev.v4l2_dev->dev,
+-		"%s: link validate formats src:%dx%d %d sink:%dx%d %d\n",
+-		vcap->vdev.name,
+-		source_fmt.format.width, source_fmt.format.height,
+-		source_fmt.format.code,
+-		sink_fmt->width, sink_fmt->height,
+-		sink_fmt->pixelformat);
+-
+-	/* The width, height and code must match. */
+-	vpix = vimc_pix_map_by_pixelformat(sink_fmt->pixelformat);
+-	if (source_fmt.format.width != sink_fmt->width
+-	    || source_fmt.format.height != sink_fmt->height
+-	    || vpix->code != source_fmt.format.code)
+-		return -EPIPE;
+-
+-	/*
+-	 * The field order must match, or the sink field order must be NONE
+-	 * to support interlaced hardware connected to bridges that support
+-	 * progressive formats only.
+-	 */
+-	if (source_fmt.format.field != sink_fmt->field &&
+-	    sink_fmt->field != V4L2_FIELD_NONE)
+-		return -EPIPE;
+-
+-	return 0;
+-}
+-
+ static const struct media_entity_operations vimc_cap_mops = {
+-	.link_validate		= vimc_cap_link_validate,
++	.link_validate		= vimc_link_validate,
+ };
+ 
+ static void vimc_cap_destroy(struct vimc_ent_device *ved)
+@@ -434,6 +377,7 @@ struct vimc_ent_device *vimc_cap_create(struct v4l2_device *v4l2_dev,
+ 	vcap->ved.destroy = vimc_cap_destroy;
+ 	vcap->ved.ent = &vcap->vdev.entity;
+ 	vcap->ved.process_frame = vimc_cap_process_frame;
++	vcap->ved.vdev_get_format = vimc_cap_get_format;
+ 
+ 	/* Initialize the video_device struct */
+ 	vdev = &vcap->vdev;
+diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
+index f809a9d..83d4251 100644
+--- a/drivers/media/platform/vimc/vimc-common.c
++++ b/drivers/media/platform/vimc/vimc-common.c
+@@ -252,8 +252,130 @@ int vimc_pipeline_s_stream(struct media_entity *ent, int enable)
+ 	return 0;
+ }
+ 
++static void vimc_fmt_pix_to_mbus(struct v4l2_mbus_framefmt *mfmt,
++				 struct v4l2_pix_format *pfmt)
++{
++	const struct vimc_pix_map *vpix =
++		vimc_pix_map_by_pixelformat(pfmt->pixelformat);
++
++	mfmt->width = pfmt->width;
++	mfmt->height = pfmt->height;
++	mfmt->code = vpix->code;
++	mfmt->field = pfmt->field;
++	mfmt->colorspace = pfmt->colorspace;
++	mfmt->ycbcr_enc = pfmt->ycbcr_enc;
++	mfmt->quantization = pfmt->quantization;
++	mfmt->xfer_func = pfmt->xfer_func;
++}
++
++static int vimc_get_mbus_format(struct media_pad *pad,
++				struct v4l2_subdev_format *fmt)
++{
++	if (is_media_entity_v4l2_subdev(pad->entity)) {
++		struct v4l2_subdev *sd =
++			media_entity_to_v4l2_subdev(pad->entity);
++		int ret;
++
++		fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
++		fmt->pad = pad->index;
++
++		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
++		if (ret)
++			return ret;
++
++	} else if (is_media_entity_v4l2_video_device(pad->entity)) {
++		struct video_device *vdev = container_of(pad->entity,
++							 struct video_device,
++							 entity);
++		struct vimc_ent_device *ved = video_get_drvdata(vdev);
++		struct v4l2_pix_format vdev_fmt;
++
++		if (!ved->vdev_get_format)
++			return -ENOIOCTLCMD;
++
++		ved->vdev_get_format(ved, &vdev_fmt);
++		vimc_fmt_pix_to_mbus(&fmt->format, &vdev_fmt);
++	} else {
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++int vimc_link_validate(struct media_link *link)
++{
++	struct v4l2_subdev_format source_fmt, sink_fmt;
++	int ret;
++
++	/*
++	 * if it is a raw node from vimc-core, ignore the link for now
++	 * TODO: remove this when there are no more raw nodes in the
++	 * core and return error instead
++	 */
++	if (link->source->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
++		return 0;
++
++	ret = vimc_get_mbus_format(link->source, &source_fmt);
++	if (ret)
++		return ret;
++
++	ret = vimc_get_mbus_format(link->sink, &sink_fmt);
++	if (ret)
++		return ret;
++
++	pr_info("vimc link validate: "
++		"%s:src:%dx%d (0x%x, %d, %d, %d, %d) "
++		"%s:snk:%dx%d (0x%x, %d, %d, %d, %d)\n",
++		/* src */
++		link->source->entity->name,
++		source_fmt.format.width, source_fmt.format.height,
++		source_fmt.format.code, source_fmt.format.colorspace,
++		source_fmt.format.quantization, source_fmt.format.xfer_func,
++		source_fmt.format.ycbcr_enc,
++		/* sink */
++		link->sink->entity->name,
++		sink_fmt.format.width, sink_fmt.format.height,
++		sink_fmt.format.code, sink_fmt.format.colorspace,
++		sink_fmt.format.quantization, sink_fmt.format.xfer_func,
++		sink_fmt.format.ycbcr_enc);
++
++	/* The width, height, code and colorspace must match. */
++	if (source_fmt.format.width != sink_fmt.format.width
++	    || source_fmt.format.height != sink_fmt.format.height
++	    || source_fmt.format.code != sink_fmt.format.code
++	    || source_fmt.format.colorspace != sink_fmt.format.colorspace)
++		return -EPIPE;
++
++	/* Colorimetry must match if they are not set to DEFAULT */
++	if (source_fmt.format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
++	    && sink_fmt.format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
++	    && source_fmt.format.ycbcr_enc != sink_fmt.format.ycbcr_enc)
++		return -EPIPE;
++
++	if (source_fmt.format.quantization != V4L2_QUANTIZATION_DEFAULT
++	    && sink_fmt.format.quantization != V4L2_QUANTIZATION_DEFAULT
++	    && source_fmt.format.quantization != sink_fmt.format.quantization)
++		return -EPIPE;
++
++	if (source_fmt.format.xfer_func != V4L2_XFER_FUNC_DEFAULT
++	    && sink_fmt.format.xfer_func != V4L2_XFER_FUNC_DEFAULT
++	    && source_fmt.format.xfer_func != sink_fmt.format.xfer_func)
++		return -EPIPE;
++
++	/* The field order must match, or the sink field order must be NONE
++	 * to support interlaced hardware connected to bridges that support
++	 * progressive formats only.
++	 */
++	if (source_fmt.format.field != sink_fmt.format.field &&
++	    sink_fmt.format.field != V4L2_FIELD_NONE)
++		return -EPIPE;
++
++	return 0;
++}
++EXPORT_SYMBOL(vimc_link_validate);
++
+ static const struct media_entity_operations vimc_ent_sd_mops = {
+-	.link_validate = v4l2_subdev_link_validate,
++	.link_validate = vimc_link_validate,
+ };
+ 
+ int vimc_ent_sd_register(struct vimc_ent_device *ved,
+diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
+index 73e7e94..60ebde2 100644
+--- a/drivers/media/platform/vimc/vimc-common.h
++++ b/drivers/media/platform/vimc/vimc-common.h
+@@ -45,6 +45,9 @@ struct vimc_pix_map {
+  * @pads:		the list of pads of the node
+  * @destroy:		callback to destroy the node
+  * @process_frame:	callback send a frame to that node
++ * @vdev_get_format:	callback that returns the current format a pad, used
++ *			only when is_media_entity_v4l2_video_device(ent) returns
++ *			true
+  *
+  * Each node of the topology must create a vimc_ent_device struct. Depending on
+  * the node it will be of an instance of v4l2_subdev or video_device struct
+@@ -60,6 +63,8 @@ struct vimc_ent_device {
+ 	void (*destroy)(struct vimc_ent_device *);
+ 	void (*process_frame)(struct vimc_ent_device *ved,
+ 			      struct media_pad *sink, const void *frame);
++	void (*vdev_get_format)(struct vimc_ent_device *ved,
++			      struct v4l2_pix_format *fmt);
+ };
+ 
+ /**
+@@ -160,4 +165,13 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
+ void vimc_ent_sd_unregister(struct vimc_ent_device *ved,
+ 			    struct v4l2_subdev *sd);
+ 
++/**
++ * vimc_link_validate - validates a media link
++ *
++ * @link: pointer to &struct media_link
++ *
++ * This function calls validates if a media link is valid for streaming.
++ */
++int vimc_link_validate(struct media_link *link);
++
+ #endif
+-- 
+2.7.4
