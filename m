@@ -1,478 +1,323 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44010 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751014AbdFRSEe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Jun 2017 14:04:34 -0400
-From: Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: Re: [PATCH v3 2/4] [media] platform: Add Synopsys Designware HDMI RX
- Controller Driver
-To: Jose Abreu <Jose.Abreu@synopsys.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:58881 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750707AbdFCDBM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 23:01:12 -0400
+From: Helen Koike <helen.koike@collabora.com>
+To: linux-media@vger.kernel.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <cover.1497630695.git.joabreu@synopsys.com>
- <d7f507ccec6f25f9be457c1c3f2f802b55377a1f.1497630695.git.joabreu@synopsys.com>
-Message-ID: <fd65183f-b577-9ac6-a56e-689121e82e73@kernel.org>
-Date: Sun, 18 Jun 2017 20:04:28 +0200
-MIME-Version: 1.0
-In-Reply-To: <d7f507ccec6f25f9be457c1c3f2f802b55377a1f.1497630695.git.joabreu@synopsys.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        linux-kernel@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
+        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCH v3 06/11] [media] vimc: sen: Support several image formats
+Date: Fri,  2 Jun 2017 23:58:06 -0300
+Message-Id: <1496458714-16834-7-git-send-email-helen.koike@collabora.com>
+In-Reply-To: <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
+References: <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
+ <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/2017 06:38 PM, Jose Abreu wrote:
-> This is an initial submission for the Synopsys Designware HDMI RX
-> Controller Driver. This driver interacts with a phy driver so that
-> a communication between them is created and a video pipeline is
-> configured.
-> 
-> The controller + phy pipeline can then be integrated into a fully
-> featured system that can be able to receive video up to 4k@60Hz
-> with deep color 48bit RGB, depending on the platform. Although,
-> this initial version does not yet handle deep color modes.
+Allow user space to change the image format as the frame size, the
+media bus pixel format, colorspace, quantization, field YCbCr encoding
+and the transfer function
 
-> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+Signed-off-by: Helen Koike <helen.koike@collabora.com>
 
-> +static int dw_hdmi_phy_init(struct dw_hdmi_dev *dw_dev)
-> +{
-> +	struct dw_phy_pdata *phy = &dw_dev->phy_config;
-> +	struct platform_device_info pdevinfo;
-> +
-> +	memset(&pdevinfo, 0, sizeof(pdevinfo));
-> +
-> +	phy->funcs = &dw_hdmi_phy_funcs;
-> +	phy->funcs_arg = dw_dev;
-> +
-> +	pdevinfo.parent = dw_dev->dev;
-> +	pdevinfo.id = PLATFORM_DEVID_NONE;
-> +	pdevinfo.name = dw_dev->phy_drv;
-> +	pdevinfo.data = phy;
-> +	pdevinfo.size_data = sizeof(*phy);
-> +	pdevinfo.dma_mask = DMA_BIT_MASK(32);
-> +
-> +	request_module(pdevinfo.name);
-> +
-> +	dw_dev->phy_pdev = platform_device_register_full(&pdevinfo);
-> +	if (IS_ERR(dw_dev->phy_pdev)) {
-> +		dev_err(dw_dev->dev, "failed to register phy device\n");
-> +		return PTR_ERR(dw_dev->phy_pdev);
-> +	}
-> +
-> +	if (!dw_dev->phy_pdev->dev.driver) {
-> +		dev_err(dw_dev->dev, "failed to initialize phy driver\n");
-> +		goto err;
-> +	}
+---
 
-I think this is not safe because there is nothing preventing unbinding 
-or unloading the driver at this point.
+Changes in v3:
+[media] vimc: sen: Support several image formats
+	- remove support for V4L2_FIELD_ALTERNATE (left as TODO for now)
+	- clamp image size to an even dimension for height and width
+	- set default values for colorimetry using _DEFAULT macro
+	- reset all values of colorimetry to _DEFAULT if user tries to
+	set an invalid colorspace
 
-> +	if (!try_module_get(dw_dev->phy_pdev->dev.driver->owner)) {
-
-So dw_dev->phy_pdev->dev.driver may be already NULL here.
-
-> +		dev_err(dw_dev->dev, "failed to get phy module\n");
-> +		goto err;
-> +	}
-> +
-> +	dw_dev->phy_sd = dev_get_drvdata(&dw_dev->phy_pdev->dev);
-> +	if (!dw_dev->phy_sd) {
-> +		dev_err(dw_dev->dev, "failed to get phy subdev\n");
-> +		goto err_put;
-> +	}
-> +
-> +	if (v4l2_device_register_subdev(&dw_dev->v4l2_dev, dw_dev->phy_sd)) {
-> +		dev_err(dw_dev->dev, "failed to register phy subdev\n");
-> +		goto err_put;
-> +	}
-
-I'd suggest usign v4l2-async API, so we use a common pattern for sub-device
-registration.  And with recent change [1] you could handle this PHY subdev
-in a standard way.  That might be more complicated than it is now but should 
-make any future platform integration easier.
-
-[1] https://patchwork.linuxtv.org/patch/41834
-
-> +	module_put(dw_dev->phy_pdev->dev.driver->owner);
-> +	return 0;
-> +
-> +err_put:
-> +	module_put(dw_dev->phy_pdev->dev.driver->owner);
-> +err:
-> +	platform_device_unregister(dw_dev->phy_pdev);
-> +	return -EINVAL;
-> +}
-> +
-> +static void dw_hdmi_phy_exit(struct dw_hdmi_dev *dw_dev)
-> +{
-> +	if (!IS_ERR(dw_dev->phy_pdev))
-> +		platform_device_unregister(dw_dev->phy_pdev);
-> +}
-
-> +static int dw_hdmi_config_hdcp(struct dw_hdmi_dev *dw_dev)
-> +{
-
-> +	for (i = 0; i < DW_HDMI_HDCP14_KEYS_SIZE; i += 2) {
-> +		for (j = 0; j < key_write_tries; j++) {
-> +			if (is_hdcp14_key_write_allowed(dw_dev))
-> +				break;
-> +			mdelay(10);
-
-usleep_range()? I've seen more (busy waiting) mdelay() calls in this
-patch series.
+Changes in v2:
+[media] vimc: sen: Support several image formats
+	- this is a new commit in the serie (the old one was splitted in two)
+	- add init_cfg to initialize try_fmt
+	- reorder code in vimc_sen_set_fmt
+	- allow user space to change all fields from struct v4l2_mbus_framefmt
+	  (e.g. colospace, quantization, field, xfer_func, ycbcr_enc)
+	- merge with patch for the enum_mbus_code and enum_frame_size
+	- change commit message
+	- add vimc_pix_map_by_index
+	- rename MIN/MAX macros
+	- check set_fmt default parameters for quantization, colorspace ...media] vimc: sen: Support several image formats
 
 
-> +static int __dw_hdmi_power_on(struct dw_hdmi_dev *dw_dev, u32 input)
-> +{
-> +	unsigned long flags;
-> +	int ret;
-> +
-> +	ret = dw_hdmi_config(dw_dev, input);
-> +
-> +	spin_lock_irqsave(&dw_dev->lock, flags);
-> +	dw_dev->pending_config = false;
-> +	spin_unlock_irqrestore(&dw_dev->lock, flags);
-> +
-> +	return ret;
-> +}
-> +
-> +struct dw_hdmi_work_data {
-> +	struct dw_hdmi_dev *dw_dev;
-> +	struct work_struct work;
-> +	u32 input;
-> +};
-> +
-> +static void dw_hdmi_work_handler(struct work_struct *work)
-> +{
-> +	struct dw_hdmi_work_data *data = container_of(work,
-> +			struct dw_hdmi_work_data, work);
-> +
-> +	__dw_hdmi_power_on(data->dw_dev, data->input);
-> +	devm_kfree(data->dw_dev->dev, data);
-> +}
-> +
-> +static int dw_hdmi_power_on(struct dw_hdmi_dev *dw_dev, u32 input)
-> +{
-> +	struct dw_hdmi_work_data *data;
-> +	unsigned long flags;
-> +
-> +	data = devm_kzalloc(dw_dev->dev, sizeof(*data), GFP_KERNEL);
+---
+ drivers/media/platform/vimc/vimc-common.c |   8 ++
+ drivers/media/platform/vimc/vimc-common.h |  12 +++
+ drivers/media/platform/vimc/vimc-sensor.c | 145 ++++++++++++++++++++++++------
+ 3 files changed, 136 insertions(+), 29 deletions(-)
 
-Why use devm_{kzalloc, kfree} when dw_hdmi_power_on() is not only called
-in the device's probe() callback, but in other places, including interrupt 
-handler?  devm_* API is normally used when life time of a resource is more 
-or less equal to life time of struct device or its matched driver.  Were 
-there any specific reasons to not just use kzalloc()/kfree() ?
-
-> +	if (!data)
-> +		return -ENOMEM;
-> +
-> +	INIT_WORK(&data->work, dw_hdmi_work_handler);
-> +	data->dw_dev = dw_dev;
-> +	data->input = input;
-> +
-> +	spin_lock_irqsave(&dw_dev->lock, flags);
-> +	if (dw_dev->pending_config) {
-> +		devm_kfree(dw_dev->dev, data);
-> +		spin_unlock_irqrestore(&dw_dev->lock, flags);
-> +		return 0;
-> +	}
-> +
-> +	queue_work(dw_dev->wq, &data->work);
-> +	dw_dev->pending_config = true;
-> +	spin_unlock_irqrestore(&dw_dev->lock, flags);
-> +	return 0;
-> +}
-
-> +static irqreturn_t dw_hdmi_irq_handler(int irq, void *dev_data)
-> +{
-> +	struct dw_hdmi_dev *dw_dev = dev_data;
-> +	u32 hdmi_ists = dw_hdmi_get_int_val(dw_dev, HDMI_ISTS, HDMI_IEN);
-> +	u32 md_ists = dw_hdmi_get_int_val(dw_dev, HDMI_MD_ISTS, HDMI_MD_IEN);
-> +
-> +	dw_hdmi_clear_ints(dw_dev);
-> +
-> +	if ((hdmi_ists & HDMI_ISTS_CLK_CHANGE) ||
-> +	    (hdmi_ists & HDMI_ISTS_PLL_LCK_CHG) || md_ists) {
-> +		dw_hdmi_power_off(dw_dev);
-> +		if (has_signal(dw_dev, dw_dev->configured_input))
-> +			dw_hdmi_power_on(dw_dev, dw_dev->configured_input);
-
-> +	}
-> +	return IRQ_HANDLED;
-> +}
-
-> +static int dw_hdmi_registered(struct v4l2_subdev *sd)
-> +{
-> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-> +	int ret;
-> +
-> +	ret = cec_register_adapter(dw_dev->cec_adap, dw_dev->dev);
-> +	if (ret) {
-> +		dev_err(dw_dev->dev, "failed to register CEC adapter\n");
-> +		cec_delete_adapter(dw_dev->cec_adap);
-> +		return ret;
-> +	}
-> +
-> +	cec_register_cec_notifier(dw_dev->cec_adap, dw_dev->cec_notifier);
-> +	dw_dev->registered = true;
-> +	return ret;
-> +}
-> +
-> +static void dw_hdmi_unregistered(struct v4l2_subdev *sd)
-> +{
-> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-> +
-> +	cec_unregister_adapter(dw_dev->cec_adap);
-> +	cec_notifier_put(dw_dev->cec_notifier);
-> +}
-> +
-> +static const struct v4l2_subdev_core_ops dw_hdmi_sd_core_ops = {
-> +	.log_status = dw_hdmi_log_status,
-
-> +	.subscribe_event = dw_hdmi_subscribe_event,
-> +};
-> +
-> +static const struct v4l2_subdev_video_ops dw_hdmi_sd_video_ops = {
-> +	.s_routing = dw_hdmi_s_routing,
-> +	.g_input_status = dw_hdmi_g_input_status,
-> +	.g_parm = dw_hdmi_g_parm,
-> +	.g_dv_timings = dw_hdmi_g_dv_timings,
-> +	.query_dv_timings = dw_hdmi_query_dv_timings,
-> +};
-> +
-> +static const struct v4l2_subdev_pad_ops dw_hdmi_sd_pad_ops = {
-> +	.enum_mbus_code = dw_hdmi_enum_mbus_code,
-> +	.get_fmt = dw_hdmi_get_fmt,
-> +	.set_fmt = dw_hdmi_set_fmt,
-> +	.dv_timings_cap = dw_hdmi_dv_timings_cap,
-> +	.enum_dv_timings = dw_hdmi_enum_dv_timings,
-> +};
-> +
-> +static const struct v4l2_subdev_ops dw_hdmi_sd_ops = {
-> +	.core = &dw_hdmi_sd_core_ops,
-> +	.video = &dw_hdmi_sd_video_ops,
-> +	.pad = &dw_hdmi_sd_pad_ops,
-> +};
-> +
-> +static const struct v4l2_subdev_internal_ops dw_hdmi_internal_ops = {
-> +	.registered = dw_hdmi_registered,
-> +	.unregistered = dw_hdmi_unregistered,
-> +};
-> +
-> +static int dw_hdmi_parse_dt(struct dw_hdmi_dev *dw_dev)
-> +{
-> +	struct device_node *notifier, *np = dw_dev->of_node;
-> +	struct dw_phy_pdata *phy = &dw_dev->phy_config;
-> +
-> +	if (!np) {
-> +		dev_err(dw_dev->dev, "missing DT node\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* PHY properties parsing */
-> +	of_property_read_u8(np, "snps,hdmi-phy-jtag-addr",
-> +			&dw_dev->phy_jtag_addr);
-> +	if (!dw_dev->phy_jtag_addr) {
-> +		dev_err(dw_dev->dev, "missing hdmi-phy-jtag-addr in DT\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	of_property_read_u32(np, "snps,hdmi-phy-version", &phy->version);
-> +	if (!phy->version) {
-> +		dev_err(dw_dev->dev, "missing hdmi-phy-version in DT\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	of_property_read_u32(np, "snps,hdmi-phy-cfg-clk", &phy->cfg_clk);
-> +	if (!phy->cfg_clk) {
-> +		dev_err(dw_dev->dev, "missing hdmi-phy-cfg-clk in DT\n");
-> +		return -EINVAL;
-> +	}
-
-With changes as proposed in comments to patch "4/4 dt-bindings: ..." 
-you could use the common clk API for retrieving the clock rate, e.g. 
-devm_clk_get(), clk_get_rate().
-
-When the HDMI RX IP block gets integrated within some SoC I'd expect 
-the system clock controller to be already using the common clk DT 
-bindings. Unless for some reason the platform doesn't support CCF.
-
-
-> +	if (of_property_read_string_index(np, "snps,hdmi-phy-driver", 0,
-> +				&dw_dev->phy_drv) < 0) {
-> +		dev_err(dw_dev->dev, "missing hdmi-phy-driver in DT\n");
-
-I don't think we can put Linux driver names in DT like this, it seems rather 
-a serious abuse.  With proposed changes to the DT binding you could reference 
-the PHY device by DT phandle or child node.
-
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* Controller properties parsing */
-> +	of_property_read_u32(np, "snps,hdmi-ctl-cfg-clk", &dw_dev->cfg_clk);
-> +	if (!dw_dev->cfg_clk) {
-> +		dev_err(dw_dev->dev, "missing hdmi-ctl-cfg-clk in DT\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +#if IS_ENABLED(CONFIG_VIDEO_DWC_HDMI_RX_CEC)
-> +	/* Notifier device parsing */
-> +	notifier = of_parse_phandle(np, "edid-phandle", 0);
-> +	if (!notifier) {
-> +		dev_err(dw_dev->dev, "missing edid-phandle in DT\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	dw_dev->notifier_pdev = of_find_device_by_node(np);
-
-Shouldn't this be:
-	dw_dev->notifier_pdev = of_find_device_by_node(notifier);
-?
-
-The caller of dw_hdmi_parse_dt() already knows about the device 
-associated with np.
-
-> +	if (!dw_dev->notifier_pdev)
-> +		return -EPROBE_DEFER;
-> +#endif
-> +
-> +	return 0;
-> +}
-> +
-> +static int dw_hdmi_rx_probe(struct platform_device *pdev)
-> +{
-
-> +	/* Deferred work */
-> +	dw_dev->wq = create_workqueue(DW_HDMI_RX_DRVNAME);
-
-Have you considered using create_singlethread_workqueue() ? create_workqueue() 
-will spawn one thread per CPU.
-
-> +	if (!dw_dev->wq)
-> +		return -ENOMEM;
-> +
-> +	/* Registers mapping */
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-
-> +	if (!res) {
-> +		ret = -ENXIO;
-> +		goto err_wq;
-> +	}
-
-You can drop res testing here, devm_ioremap_resource() verifies internally 
-if res is valid and returns proper error code.
-
-> +	dw_dev->regs = devm_ioremap_resource(dev, res);
-> +	if (IS_ERR(dw_dev->regs)) {
-> +		ret = PTR_ERR(dw_dev->regs);
-> +		goto err_wq;
-> +	}
-
-
-> +	/* V4L2 initialization */
-> +	sd = &dw_dev->sd;
-> +	v4l2_subdev_init(sd, &dw_hdmi_sd_ops);
-> +	strlcpy(sd->name, DW_HDMI_RX_DRVNAME, sizeof(sd->name));
-
-sd->name should be unique, you could, for instance, do something like
-
-	strlcpy(sd->name, dev_name(&pdev->dev), sizeof(sd->name));
-
-> +	sd->internal_ops = &dw_hdmi_internal_ops;
-> +	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS;
-
-> +}
-> +
-> +static int dw_hdmi_rx_remove(struct platform_device *pdev)
-> +{
-> +	struct device *dev = &pdev->dev;
-> +	struct v4l2_subdev *sd = dev_get_drvdata(dev);
-> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-> +
-> +	dev_dbg(dev, "%s\n", __func__);
-> +
-> +	dw_hdmi_disable_ints(dw_dev);
-> +	dw_hdmi_disable_hpd(dw_dev);
-> +	dw_hdmi_disable_scdc(dw_dev);
-> +	dw_hdmi_power_off(dw_dev);
-> +	dw_hdmi_phy_s_power(dw_dev, false);
-> +	flush_workqueue(dw_dev->wq);
-> +	destroy_workqueue(dw_dev->wq);
-> +	v4l2_device_unregister(&dw_dev->v4l2_dev);
-> +	dw_hdmi_phy_exit(dw_dev);> +	dev_info(dev, "driver removed\n");
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver dw_hdmi_rx_driver = {
-> +	.probe = dw_hdmi_rx_probe,
-> +	.remove = dw_hdmi_rx_remove,
-
-I think we need also .of_match_table here.
-
-> +	.driver = {
-> +		.name = DW_HDMI_RX_DRVNAME,
-> +	}
-> +};
-> +module_platform_driver(dw_hdmi_rx_driver);
-
-> +#endif /* __DW_HDMI_RX_H__ */
-> diff --git a/include/media/dwc/dw-hdmi-rx-pdata.h b/include/media/dwc/dw-hdmi-rx-pdata.h
-> new file mode 100644
-> index 0000000..ff8554d
-> --- /dev/null
-> +++ b/include/media/dwc/dw-hdmi-rx-pdata.h
-> @@ -0,0 +1,63 @@
-
-> +#ifndef __DW_HDMI_RX_PDATA_H__
-> +#define __DW_HDMI_RX_PDATA_H__
-> +
-> +#define DW_HDMI_RX_DRVNAME			"dw-hdmi-rx"
-> +
-> +/* Notify events */
-> +#define DW_HDMI_NOTIFY_IS_OFF		1
-> +#define DW_HDMI_NOTIFY_INPUT_CHANGED	2
-> +#define DW_HDMI_NOTIFY_AUDIO_CHANGED	3
-> +#define DW_HDMI_NOTIFY_IS_STABLE	4
-> +
-> +/* HDCP 1.4 */
-> +#define DW_HDMI_HDCP14_BKSV_SIZE	2
-> +#define DW_HDMI_HDCP14_KEYS_SIZE	(2 * 40)
-> +
-> +struct dw_hdmi_hdcp14_key {
-> +	u32 seed;
-> +	u32 bksv[DW_HDMI_HDCP14_BKSV_SIZE];
-> +	u32 keys[DW_HDMI_HDCP14_KEYS_SIZE];
-> +	bool keys_valid;
-> +};
-> +
-> +struct dw_hdmi_rx_pdata {
-> +	/* Controller configuration */
-> +	unsigned int iref_clk; /* MHz */
-
-Is this field unused?
-
-> +	struct dw_hdmi_hdcp14_key hdcp14_keys;
-
-> +	/* 5V sense interface */
-> +	bool (*dw_5v_status)(void __iomem *regs, int input);
-> +	void (*dw_5v_clear)(void __iomem *regs);
-> +	void __iomem *dw_5v_arg;> +	/* Zcal interface */
-> +	void (*dw_zcal_reset)(void __iomem *regs);
-> +	bool (*dw_zcal_done)(void __iomem *regs);
-> +	void __iomem *dw_zcal_arg;
-
-I'm just wondering if these operations could be modeled with the regmap,
-so we could avoid callbacks in the platform data structure.
+diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
+index 83d4251..ff59e09 100644
+--- a/drivers/media/platform/vimc/vimc-common.c
++++ b/drivers/media/platform/vimc/vimc-common.c
+@@ -144,6 +144,14 @@ static const struct vimc_pix_map vimc_pix_map_list[] = {
+ 	},
+ };
  
-> +};
-
-> +#endif /* __DW_HDMI_RX_PDATA_H__ */
-
---
-Regards,
-Sylwester
++const struct vimc_pix_map *vimc_pix_map_by_index(unsigned int i)
++{
++	if (i >= ARRAY_SIZE(vimc_pix_map_list))
++		return NULL;
++
++	return &vimc_pix_map_list[i];
++}
++
+ const struct vimc_pix_map *vimc_pix_map_by_code(u32 code)
+ {
+ 	unsigned int i;
+diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
+index 60ebde2..2189fd6 100644
+--- a/drivers/media/platform/vimc/vimc-common.h
++++ b/drivers/media/platform/vimc/vimc-common.h
+@@ -22,6 +22,11 @@
+ #include <media/media-device.h>
+ #include <media/v4l2-device.h>
+ 
++#define VIMC_FRAME_MAX_WIDTH 4096
++#define VIMC_FRAME_MAX_HEIGHT 2160
++#define VIMC_FRAME_MIN_WIDTH 16
++#define VIMC_FRAME_MIN_HEIGHT 16
++
+ /**
+  * struct vimc_pix_map - maps media bus code with v4l2 pixel format
+  *
+@@ -113,6 +118,13 @@ static inline void vimc_pads_cleanup(struct media_pad *pads)
+ int vimc_pipeline_s_stream(struct media_entity *ent, int enable);
+ 
+ /**
++ * vimc_pix_map_by_index - get vimc_pix_map struct by its index
++ *
++ * @i:			index of the vimc_pix_map struct in vimc_pix_map_list
++ */
++const struct vimc_pix_map *vimc_pix_map_by_index(unsigned int i);
++
++/**
+  * vimc_pix_map_by_code - get vimc_pix_map struct by media bus code
+  *
+  * @code:		media bus format code defined by MEDIA_BUS_FMT_* macros
+diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+index 6386ac1..90c41c6 100644
+--- a/drivers/media/platform/vimc/vimc-sensor.c
++++ b/drivers/media/platform/vimc/vimc-sensor.c
+@@ -24,8 +24,6 @@
+ 
+ #include "vimc-sensor.h"
+ 
+-#define VIMC_SEN_FRAME_MAX_WIDTH 4096
+-
+ struct vimc_sen_device {
+ 	struct vimc_ent_device ved;
+ 	struct v4l2_subdev sd;
+@@ -36,18 +34,39 @@ struct vimc_sen_device {
+ 	struct v4l2_mbus_framefmt mbus_format;
+ };
+ 
++static const struct v4l2_mbus_framefmt fmt_default = {
++	.width = 640,
++	.height = 480,
++	.code = MEDIA_BUS_FMT_RGB888_1X24,
++	.field = V4L2_FIELD_NONE,
++	.colorspace = V4L2_COLORSPACE_SRGB,
++};
++
++static int vimc_sen_init_cfg(struct v4l2_subdev *sd,
++			     struct v4l2_subdev_pad_config *cfg)
++{
++	unsigned int i;
++
++	for (i = 0; i < sd->entity.num_pads; i++) {
++		struct v4l2_mbus_framefmt *mf;
++
++		mf = v4l2_subdev_get_try_format(sd, cfg, i);
++		*mf = fmt_default;
++	}
++
++	return 0;
++}
++
+ static int vimc_sen_enum_mbus_code(struct v4l2_subdev *sd,
+ 				   struct v4l2_subdev_pad_config *cfg,
+ 				   struct v4l2_subdev_mbus_code_enum *code)
+ {
+-	struct vimc_sen_device *vsen =
+-				container_of(sd, struct vimc_sen_device, sd);
++	const struct vimc_pix_map *vpix = vimc_pix_map_by_index(code->index);
+ 
+-	/* TODO: Add support for other codes */
+-	if (code->index)
++	if (!vpix)
+ 		return -EINVAL;
+ 
+-	code->code = vsen->mbus_format.code;
++	code->code = vpix->code;
+ 
+ 	return 0;
+ }
+@@ -56,33 +75,34 @@ static int vimc_sen_enum_frame_size(struct v4l2_subdev *sd,
+ 				    struct v4l2_subdev_pad_config *cfg,
+ 				    struct v4l2_subdev_frame_size_enum *fse)
+ {
+-	struct vimc_sen_device *vsen =
+-				container_of(sd, struct vimc_sen_device, sd);
++	const struct vimc_pix_map *vpix;
+ 
+-	/* TODO: Add support to other formats */
+ 	if (fse->index)
+ 		return -EINVAL;
+ 
+-	/* TODO: Add support for other codes */
+-	if (fse->code != vsen->mbus_format.code)
++	/* Only accept code in the pix map table */
++	vpix = vimc_pix_map_by_code(fse->code);
++	if (!vpix)
+ 		return -EINVAL;
+ 
+-	fse->min_width = vsen->mbus_format.width;
+-	fse->max_width = vsen->mbus_format.width;
+-	fse->min_height = vsen->mbus_format.height;
+-	fse->max_height = vsen->mbus_format.height;
++	fse->min_width = VIMC_FRAME_MIN_WIDTH;
++	fse->max_width = VIMC_FRAME_MAX_WIDTH;
++	fse->min_height = VIMC_FRAME_MIN_HEIGHT;
++	fse->max_height = VIMC_FRAME_MAX_HEIGHT;
+ 
+ 	return 0;
+ }
+ 
+ static int vimc_sen_get_fmt(struct v4l2_subdev *sd,
+ 			    struct v4l2_subdev_pad_config *cfg,
+-			    struct v4l2_subdev_format *format)
++			    struct v4l2_subdev_format *fmt)
+ {
+ 	struct vimc_sen_device *vsen =
+ 				container_of(sd, struct vimc_sen_device, sd);
+ 
+-	format->format = vsen->mbus_format;
++	fmt->format = fmt->which == V4L2_SUBDEV_FORMAT_TRY ?
++		      *v4l2_subdev_get_try_format(sd, cfg, fmt->pad) :
++		      vsen->mbus_format;
+ 
+ 	return 0;
+ }
+@@ -105,12 +125,85 @@ static void vimc_sen_tpg_s_format(struct vimc_sen_device *vsen)
+ 	tpg_s_xfer_func(&vsen->tpg, vsen->mbus_format.xfer_func);
+ }
+ 
++static void vimc_sen_adjust_fmt(struct v4l2_mbus_framefmt *fmt)
++{
++	const struct vimc_pix_map *vpix;
++
++	/* Only accept code in the pix map table */
++	vpix = vimc_pix_map_by_code(fmt->code);
++	if (!vpix)
++		fmt->code = fmt_default.code;
++
++	fmt->width = clamp_t(u32, fmt->width, VIMC_FRAME_MIN_WIDTH,
++			     VIMC_FRAME_MAX_WIDTH) & ~1;
++	fmt->height = clamp_t(u32, fmt->height, VIMC_FRAME_MIN_HEIGHT,
++			      VIMC_FRAME_MAX_HEIGHT) & ~1;
++
++	/* TODO: add support for V4L2_FIELD_ALTERNATE */
++	if (fmt->field == V4L2_FIELD_ANY || fmt->field == V4L2_FIELD_ALTERNATE)
++		fmt->field = fmt_default.field;
++
++	if (fmt->colorspace == V4L2_COLORSPACE_DEFAULT)
++		fmt->colorspace = fmt_default.colorspace;
++
++	/* Check if values are out of range */
++	if (fmt->colorspace > V4L2_COLORSPACE_DCI_P3) {
++		fmt->colorspace = fmt_default.colorspace;
++		fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
++		fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
++		fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
++	}
++	if (fmt->ycbcr_enc > V4L2_YCBCR_ENC_SMPTE240M)
++		fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
++	if (fmt->quantization > V4L2_QUANTIZATION_LIM_RANGE)
++		fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
++	if (fmt->xfer_func > V4L2_XFER_FUNC_SMPTE2084)
++		fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
++}
++
++static int vimc_sen_set_fmt(struct v4l2_subdev *sd,
++			    struct v4l2_subdev_pad_config *cfg,
++			    struct v4l2_subdev_format *fmt)
++{
++	struct vimc_sen_device *vsen = v4l2_get_subdevdata(sd);
++	struct v4l2_mbus_framefmt *mf;
++
++	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
++		/* Do not change the format while stream is on */
++		if (vsen->frame)
++			return -EBUSY;
++
++		mf = &vsen->mbus_format;
++	} else {
++		mf = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
++	}
++
++	/* Set the new format */
++	vimc_sen_adjust_fmt(&fmt->format);
++
++	dev_dbg(vsen->sd.v4l2_dev->mdev->dev, "%s: format update: "
++		"old:%dx%d (0x%x, %d, %d, %d, %d) "
++		"new:%dx%d (0x%x, %d, %d, %d, %d)\n", vsen->sd.name,
++		/* old */
++		mf->width, mf->height, mf->code,
++		mf->colorspace,	mf->quantization,
++		mf->xfer_func, mf->ycbcr_enc,
++		/* new */
++		fmt->format.width, fmt->format.height, fmt->format.code,
++		fmt->format.colorspace, fmt->format.quantization,
++		fmt->format.xfer_func, fmt->format.ycbcr_enc);
++
++	*mf = fmt->format;
++
++	return 0;
++}
++
+ static const struct v4l2_subdev_pad_ops vimc_sen_pad_ops = {
++	.init_cfg		= vimc_sen_init_cfg,
+ 	.enum_mbus_code		= vimc_sen_enum_mbus_code,
+ 	.enum_frame_size	= vimc_sen_enum_frame_size,
+ 	.get_fmt		= vimc_sen_get_fmt,
+-	/* TODO: Add support to other formats */
+-	.set_fmt		= vimc_sen_get_fmt,
++	.set_fmt		= vimc_sen_set_fmt,
+ };
+ 
+ static int vimc_sen_tpg_thread(void *data)
+@@ -247,19 +340,13 @@ struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
+ 	if (ret)
+ 		goto err_free_vsen;
+ 
+-	/* Set the active frame format (this is hardcoded for now) */
+-	vsen->mbus_format.width = 640;
+-	vsen->mbus_format.height = 480;
+-	vsen->mbus_format.code = MEDIA_BUS_FMT_RGB888_1X24;
+-	vsen->mbus_format.field = V4L2_FIELD_NONE;
+-	vsen->mbus_format.colorspace = V4L2_COLORSPACE_SRGB;
+-	vsen->mbus_format.quantization = V4L2_QUANTIZATION_FULL_RANGE;
+-	vsen->mbus_format.xfer_func = V4L2_XFER_FUNC_SRGB;
++	/* Initialize the frame format */
++	vsen->mbus_format = fmt_default;
+ 
+ 	/* Initialize the test pattern generator */
+ 	tpg_init(&vsen->tpg, vsen->mbus_format.width,
+ 		 vsen->mbus_format.height);
+-	ret = tpg_alloc(&vsen->tpg, VIMC_SEN_FRAME_MAX_WIDTH);
++	ret = tpg_alloc(&vsen->tpg, VIMC_FRAME_MAX_WIDTH);
+ 	if (ret)
+ 		goto err_unregister_ent_sd;
+ 
+-- 
+2.7.4
