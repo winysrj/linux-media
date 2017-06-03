@@ -1,89 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:39024 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751810AbdF3GD0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Jun 2017 02:03:26 -0400
-From: <sean.wang@mediatek.com>
-To: <mchehab@osg.samsung.com>, <sean@mess.org>, <hdegoede@redhat.com>,
-        <hkallweit1@gmail.com>, <robh+dt@kernel.org>,
-        <mark.rutland@arm.com>, <matthias.bgg@gmail.com>
-CC: <andi.shyti@samsung.com>, <hverkuil@xs4all.nl>,
-        <ivo.g.dimitrov.75@gmail.com>, <linux-media@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-mediatek@lists.infradead.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, Sean Wang <sean.wang@mediatek.com>
-Subject: [PATCH v1 3/4] media: rc: mtk-cir: add support for MediaTek MT7622 SoC
-Date: Fri, 30 Jun 2017 14:03:06 +0800
-Message-ID: <37ff7a2deabfddfd899613caf13209754e9ac68a.1498794408.git.sean.wang@mediatek.com>
-In-Reply-To: <cover.1498794408.git.sean.wang@mediatek.com>
-References: <cover.1498794408.git.sean.wang@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:58928 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751147AbdFCDFZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 23:05:25 -0400
+From: Helen Koike <helen.koike@collabora.com>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
+        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCH v3 01/11] [media] vimc: sen: Integrate the tpg on the sensor
+Date: Fri,  2 Jun 2017 23:58:01 -0300
+Message-Id: <1496458714-16834-2-git-send-email-helen.koike@collabora.com>
+In-Reply-To: <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
+References: <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
+ <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sean Wang <sean.wang@mediatek.com>
+Initialize the test pattern generator on the sensor
+Generate a colored bar image instead of a grey one
 
-This patch adds driver for CIR controller on MT7622 SoC. It has similar
-handling logic as the previously MT7623 does, but there are some
-differences in the register and field definition. So for ease portability
-and maintenance, those differences all are being kept inside the platform
-data as other drivers usually do. Currently testing successfully on NEC
-and SONY remote controller.
+Signed-off-by: Helen Koike <helen.koike@collabora.com>
 
-Signed-off-by: Sean Wang <sean.wang@mediatek.com>
 ---
- drivers/media/rc/mtk-cir.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
 
-diff --git a/drivers/media/rc/mtk-cir.c b/drivers/media/rc/mtk-cir.c
-index 32b1031..6672772 100644
---- a/drivers/media/rc/mtk-cir.c
-+++ b/drivers/media/rc/mtk-cir.c
-@@ -84,6 +84,13 @@ static const u32 mt7623_regs[] = {
- 	[MTK_IRINT_CLR_REG] =	0xd0,
+Changes in v3:
+[media] vimc: sen: Integrate the tpg on the sensor
+	- Declare frame_size as a local variable
+	- Set tpg frame format before starting kthread
+	- s_stream(sd, 1): return 0 if stream is already enabled
+	- s_stream(sd, 0): return 0 if stream is already disabled
+	- s_stream: propagate error from kthread_stop
+	- coding style when calling tpg_s_bytesperline
+	- s/vimc_thread_sen/vimc_sen_tpg_thread
+	- fix multiline comment
+
+Changes in v2:
+[media] vimc: sen: Integrate the tpg on the sensor
+	- Fix include location
+	- Select V4L2_TPG in Kconfig
+	- configure tpg on streamon only
+	- rm BUG_ON
+	- coding style
+	- remove V4L2_FIELD_ALTERNATE from tpg_s_field
+	- remove V4L2_STD_PAL from tpg_fill_plane_buffer
+
+
+---
+ drivers/media/platform/vimc/Kconfig       |  1 +
+ drivers/media/platform/vimc/vimc-sensor.c | 64 ++++++++++++++++++++++++-------
+ 2 files changed, 52 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/platform/vimc/Kconfig b/drivers/media/platform/vimc/Kconfig
+index a18f635..71c9fe7 100644
+--- a/drivers/media/platform/vimc/Kconfig
++++ b/drivers/media/platform/vimc/Kconfig
+@@ -2,6 +2,7 @@ config VIDEO_VIMC
+ 	tristate "Virtual Media Controller Driver (VIMC)"
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+ 	select VIDEOBUF2_VMALLOC
++	select VIDEO_V4L2_TPG
+ 	default n
+ 	---help---
+ 	  Skeleton driver for Virtual Media Controller
+diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+index 591f6a4..2e83487 100644
+--- a/drivers/media/platform/vimc/vimc-sensor.c
++++ b/drivers/media/platform/vimc/vimc-sensor.c
+@@ -20,17 +20,20 @@
+ #include <linux/v4l2-mediabus.h>
+ #include <linux/vmalloc.h>
+ #include <media/v4l2-subdev.h>
++#include <media/v4l2-tpg.h>
+ 
+ #include "vimc-sensor.h"
+ 
++#define VIMC_SEN_FRAME_MAX_WIDTH 4096
++
+ struct vimc_sen_device {
+ 	struct vimc_ent_device ved;
+ 	struct v4l2_subdev sd;
++	struct tpg_data tpg;
+ 	struct task_struct *kthread_sen;
+ 	u8 *frame;
+ 	/* The active format */
+ 	struct v4l2_mbus_framefmt mbus_format;
+-	int frame_size;
  };
  
-+static const u32 mt7622_regs[] = {
-+	[MTK_IRCLR_REG] =	0x18,
-+	[MTK_CHKDATA_REG] =	0x30,
-+	[MTK_IRINT_EN_REG] =	0x1c,
-+	[MTK_IRINT_CLR_REG] =	0x20,
-+};
+ static int vimc_sen_enum_mbus_code(struct v4l2_subdev *sd,
+@@ -84,6 +87,24 @@ static int vimc_sen_get_fmt(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
++static void vimc_sen_tpg_s_format(struct vimc_sen_device *vsen)
++{
++	const struct vimc_pix_map *vpix =
++				vimc_pix_map_by_code(vsen->mbus_format.code);
 +
- struct mtk_field_type {
- 	u32 reg;
- 	u8 offset;
-@@ -113,6 +120,11 @@ static const struct mtk_field_type mt7623_fields[] = {
- 	[MTK_HW_PERIOD] = {0x10, 0, GENMASK(7, 0)},
++	tpg_reset_source(&vsen->tpg, vsen->mbus_format.width,
++			 vsen->mbus_format.height, vsen->mbus_format.field);
++	tpg_s_bytesperline(&vsen->tpg, 0, vsen->mbus_format.width * vpix->bpp);
++	tpg_s_buf_height(&vsen->tpg, vsen->mbus_format.height);
++	tpg_s_fourcc(&vsen->tpg, vpix->pixelformat);
++	/* TODO: add support for V4L2_FIELD_ALTERNATE */
++	tpg_s_field(&vsen->tpg, vsen->mbus_format.field, false);
++	tpg_s_colorspace(&vsen->tpg, vsen->mbus_format.colorspace);
++	tpg_s_ycbcr_enc(&vsen->tpg, vsen->mbus_format.ycbcr_enc);
++	tpg_s_quantization(&vsen->tpg, vsen->mbus_format.quantization);
++	tpg_s_xfer_func(&vsen->tpg, vsen->mbus_format.xfer_func);
++}
++
+ static const struct v4l2_subdev_pad_ops vimc_sen_pad_ops = {
+ 	.enum_mbus_code		= vimc_sen_enum_mbus_code,
+ 	.enum_frame_size	= vimc_sen_enum_frame_size,
+@@ -97,7 +118,7 @@ static const struct media_entity_operations vimc_sen_mops = {
+ 	.link_validate = v4l2_subdev_link_validate,
  };
  
-+static const struct mtk_field_type mt7622_fields[] = {
-+	[MTK_CHK_PERIOD] = {0x24, 0, GENMASK(24, 0)},
-+	[MTK_HW_PERIOD] = {0x10, 0, GENMASK(24, 0)},
-+};
-+
- /*
-  * struct mtk_ir -	This is the main datasructure for holding the state
-  *			of the driver
-@@ -268,8 +280,17 @@ static const struct mtk_ir_data mt7623_data = {
- 	.div	= 4,
- };
+-static int vimc_thread_sen(void *data)
++static int vimc_sen_tpg_thread(void *data)
+ {
+ 	struct vimc_sen_device *vsen = data;
+ 	unsigned int i;
+@@ -110,7 +131,7 @@ static int vimc_thread_sen(void *data)
+ 		if (kthread_should_stop())
+ 			break;
  
-+static const struct mtk_ir_data mt7622_data = {
-+	.regs = mt7622_regs,
-+	.fields = mt7622_fields,
-+	.ok_count = 0xf,
-+	.hw_period = 0xffff,
-+	.div	= 32,
-+};
+-		memset(vsen->frame, 100, vsen->frame_size);
++		tpg_fill_plane_buffer(&vsen->tpg, 0, 0, vsen->frame);
+ 
+ 		/* Send the frame to all source pads */
+ 		for (i = 0; i < vsen->sd.entity.num_pads; i++)
+@@ -132,26 +153,31 @@ static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
+ 
+ 	if (enable) {
+ 		const struct vimc_pix_map *vpix;
++		unsigned int frame_size;
+ 
+ 		if (vsen->kthread_sen)
+-			return -EINVAL;
++			/* tpg is already executing */
++			return 0;
+ 
+ 		/* Calculate the frame size */
+ 		vpix = vimc_pix_map_by_code(vsen->mbus_format.code);
+-		vsen->frame_size = vsen->mbus_format.width * vpix->bpp *
+-				   vsen->mbus_format.height;
++		frame_size = vsen->mbus_format.width * vpix->bpp *
++			     vsen->mbus_format.height;
+ 
+ 		/*
+ 		 * Allocate the frame buffer. Use vmalloc to be able to
+ 		 * allocate a large amount of memory
+ 		 */
+-		vsen->frame = vmalloc(vsen->frame_size);
++		vsen->frame = vmalloc(frame_size);
+ 		if (!vsen->frame)
+ 			return -ENOMEM;
+ 
++		/* configure the test pattern generator */
++		vimc_sen_tpg_s_format(vsen);
 +
- static const struct of_device_id mtk_ir_match[] = {
- 	{ .compatible = "mediatek,mt7623-cir", .data = &mt7623_data},
-+	{ .compatible = "mediatek,mt7622-cir", .data = &mt7622_data},
- 	{},
- };
- MODULE_DEVICE_TABLE(of, mtk_ir_match);
+ 		/* Initialize the image generator thread */
+-		vsen->kthread_sen = kthread_run(vimc_thread_sen, vsen, "%s-sen",
+-						vsen->sd.v4l2_dev->name);
++		vsen->kthread_sen = kthread_run(vimc_sen_tpg_thread, vsen,
++					"%s-sen", vsen->sd.v4l2_dev->name);
+ 		if (IS_ERR(vsen->kthread_sen)) {
+ 			dev_err(vsen->sd.v4l2_dev->dev,
+ 				"%s: kernel_thread() failed\n",	vsen->sd.name);
+@@ -161,15 +187,17 @@ static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
+ 		}
+ 	} else {
+ 		if (!vsen->kthread_sen)
+-			return -EINVAL;
++			return 0;
+ 
+ 		/* Stop image generator */
+ 		ret = kthread_stop(vsen->kthread_sen);
+-		vsen->kthread_sen = NULL;
++		if (ret)
++			return ret;
+ 
++		vsen->kthread_sen = NULL;
+ 		vfree(vsen->frame);
+ 		vsen->frame = NULL;
+-		return ret;
++		return 0;
+ 	}
+ 
+ 	return 0;
+@@ -189,6 +217,7 @@ static void vimc_sen_destroy(struct vimc_ent_device *ved)
+ 	struct vimc_sen_device *vsen =
+ 				container_of(ved, struct vimc_sen_device, ved);
+ 
++	tpg_free(&vsen->tpg);
+ 	v4l2_device_unregister_subdev(&vsen->sd);
+ 	media_entity_cleanup(ved->ent);
+ 	kfree(vsen);
+@@ -254,17 +283,26 @@ struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
+ 	vsen->mbus_format.quantization = V4L2_QUANTIZATION_FULL_RANGE;
+ 	vsen->mbus_format.xfer_func = V4L2_XFER_FUNC_SRGB;
+ 
++	/* Initialize the test pattern generator */
++	tpg_init(&vsen->tpg, vsen->mbus_format.width,
++		 vsen->mbus_format.height);
++	ret = tpg_alloc(&vsen->tpg, VIMC_SEN_FRAME_MAX_WIDTH);
++	if (ret)
++		goto err_clean_m_ent;
++
+ 	/* Register the subdev with the v4l2 and the media framework */
+ 	ret = v4l2_device_register_subdev(v4l2_dev, &vsen->sd);
+ 	if (ret) {
+ 		dev_err(vsen->sd.v4l2_dev->dev,
+ 			"%s: subdev register failed (err=%d)\n",
+ 			vsen->sd.name, ret);
+-		goto err_clean_m_ent;
++		goto err_free_tpg;
+ 	}
+ 
+ 	return &vsen->ved;
+ 
++err_free_tpg:
++	tpg_free(&vsen->tpg);
+ err_clean_m_ent:
+ 	media_entity_cleanup(&vsen->sd.entity);
+ err_clean_pads:
 -- 
 2.7.4
