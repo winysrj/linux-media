@@ -1,85 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:33483 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751102AbdFTKwB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Jun 2017 06:52:01 -0400
-Subject: Re: [PATCH v2 5/6] [media] s5p-jpeg: Add support for resolution change
- event
-To: Thierry Escande <thierry.escande@collabora.com>
-Cc: Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Message-id: <25bfed86-d208-4f70-5b55-d3eb56ba9ed5@samsung.com>
-Date: Tue, 20 Jun 2017 12:51:55 +0200
-MIME-version: 1.0
-In-reply-to: <d214a1d2-bce4-ea46-866c-6e35d16f26c9@collabora.com>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-language: en-US
-Content-transfer-encoding: 7bit
-References: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
- <CGME20170612171431epcas5p19a448035865da056440a819f17875601@epcas5p1.samsung.com>
- <1497287605-20074-6-git-send-email-thierry.escande@collabora.com>
- <dd3fa8e9-48e2-ab1d-4b4e-da63900c08d6@samsung.com>
- <d214a1d2-bce4-ea46-866c-6e35d16f26c9@collabora.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35863 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750991AbdFCTvm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Jun 2017 15:51:42 -0400
+Date: Sat, 3 Jun 2017 21:51:39 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v7 16/34] [media] add Omnivision OV5640 sensor driver
+Message-ID: <20170603195139.GA3062@amd>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+ <1495672189-29164-17-git-send-email-steve_longerbeam@mentor.com>
+ <20170531195821.GA16962@amd>
+ <20170601082659.GJ1019@valkosipuli.retiisi.org.uk>
+ <755909bf-d1de-e0f3-1569-0d4b16e26817@gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="opJtzjQTFsWo+cga"
+Content-Disposition: inline
+In-Reply-To: <755909bf-d1de-e0f3-1569-0d4b16e26817@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thierry,
 
-W dniu 19.06.2017 o 15:50, Thierry Escande pisze:
-> Hi Andrzej,
-> 
-> On 16/06/2017 17:38, Andrzej Pietrasiewicz wrote:
->> Hi Thierry,
->>
->> Thank you for the patch.
->>
->> Can you give a use case for resolution change event?
-> Unfortunately, the original commit does not mention any clear use case.
-> I've asked to the patch author for more information.
+--opJtzjQTFsWo+cga
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Can you please share what you learn about it if the author gets back to you?
-Now that we don't know why to apply a patch I guess we should not do it.
+Hi!
 
-> 
+> >>>+	/* Auto/manual exposure */
+> >>>+	ctrls->auto_exp =3D v4l2_ctrl_new_std_menu(hdl, ops,
+> >>>+						 V4L2_CID_EXPOSURE_AUTO,
+> >>>+						 V4L2_EXPOSURE_MANUAL, 0,
+> >>>+						 V4L2_EXPOSURE_AUTO);
+> >>>+	ctrls->exposure =3D v4l2_ctrl_new_std(hdl, ops,
+> >>>+					    V4L2_CID_EXPOSURE_ABSOLUTE,
+> >>>+					    0, 65535, 1, 0);
+> >>
+> >>Is exposure_absolute supposed to be in microseconds...?
+> >
+> >Yes.
+>=20
+> According to the docs V4L2_CID_EXPOSURE_ABSOLUTE is in 100 usec units.
+>=20
+>  OTOH V4L2_CID_EXPOSURE has no defined unit, so it's a better fit IMO.
+> >Way more drivers appear to be using EXPOSURE than EXPOSURE_ABSOLUTE, too.
+>=20
+> Done, switched to V4L2_CID_EXPOSURE. It's true, this control is not
+> taking 100 usec units, so unit-less is better.
 
-<snip>
+Thanks. If you know the units, it would be of course better to use
+right units...
 
->>> @@ -2510,43 +2567,18 @@ static void s5p_jpeg_buf_queue(struct
->>> vb2_buffer *vb)
->>>                return;
->>>            }
->>> -        q_data = &ctx->out_q;
->>> -        q_data->w = tmp.w;
->>> -        q_data->h = tmp.h;
->>> -        q_data->sos = tmp.sos;
->>> -        memcpy(q_data->dht.marker, tmp.dht.marker,
->>> -               sizeof(tmp.dht.marker));
->>> -        memcpy(q_data->dht.len, tmp.dht.len, sizeof(tmp.dht.len));
->>> -        q_data->dht.n = tmp.dht.n;
->>> -        memcpy(q_data->dqt.marker, tmp.dqt.marker,
->>> -               sizeof(tmp.dqt.marker));
->>> -        memcpy(q_data->dqt.len, tmp.dqt.len, sizeof(tmp.dqt.len));
->>> -        q_data->dqt.n = tmp.dqt.n;
->>> -        q_data->sof = tmp.sof;
->>> -        q_data->sof_len = tmp.sof_len;
->>> -
->>> -        q_data = &ctx->cap_q;
->>> -        q_data->w = tmp.w;
->>> -        q_data->h = tmp.h;
->>
->>
->> Why is this part removed?
-> This has not been removed.
-> The &tmp s5p_jpeg_q_data struct was passed to s5p_jpeg_parse_hdr() and
-> then copied field-by-field into ctx->out_q (through q_data pointer).
-> With this change ctx->out_q is passed to s5p_jpeg_parse_hdr() and this
-> avoids the copy.
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-It seems that changing field-by-field copying to passing a pointer
-directly to s5p_jpeg_parse_hdr() is an unrelated change and as such
-should be in a separate patch.
+--opJtzjQTFsWo+cga
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Andrzej
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlkzE0sACgkQMOfwapXb+vJeTQCdF9aH5BvEXWZ5xpMOhFiSkPP7
+dUsAn1qJEWtiQpHhNWQiWi6JuiAD9VsK
+=VXOJ
+-----END PGP SIGNATURE-----
+
+--opJtzjQTFsWo+cga--
