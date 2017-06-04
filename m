@@ -1,45 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f175.google.com ([209.85.128.175]:34959 "EHLO
-        mail-wr0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752002AbdFKVjU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Jun 2017 17:39:20 -0400
-Received: by mail-wr0-f175.google.com with SMTP id q97so78078962wrb.2
-        for <linux-media@vger.kernel.org>; Sun, 11 Jun 2017 14:39:20 -0700 (PDT)
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: mchehab@kernel.org
-Cc: gregkh@linuxfoundation.org, davem@davemloft.net,
-        linux-kernel@vger.kernel.org, maintainers@bluecherrydvr.com,
-        anton@corp.bluecherry.net, andrey_utkin@fastmail.com,
-        linux-media@vger.kernel.org,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Subject: [PATCH 2/2] MAINTAINERS: solo6x10: update Andrey Utkin email
-Date: Sun, 11 Jun 2017 22:38:39 +0100
-Message-Id: <20170611213839.28585-2-andrey.utkin@corp.bluecherry.net>
-In-Reply-To: <20170611213839.28585-1-andrey.utkin@corp.bluecherry.net>
-References: <20170611213839.28585-1-andrey.utkin@corp.bluecherry.net>
+Received: from emh03.mail.saunalahti.fi ([62.142.5.109]:47805 "EHLO
+        emh03.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751169AbdFDS16 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Jun 2017 14:27:58 -0400
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: [PATCH v1] [media] as3645a: Join string literals back
+Date: Sun,  4 Jun 2017 21:29:18 +0300
+Message-Id: <20170604182918.31476-1-andy.shevchenko@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Updating my personal email address in solo6x10.
+There is no need to split long string literals.
+Join them back.
 
-Signed-off-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+No functional change intended.
+
+Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 ---
- MAINTAINERS | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/as3645a.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 026af206660b..885badfa4fa7 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -11966,7 +11966,7 @@ SOFTLOGIC 6x10 MPEG CODEC
- M:	Bluecherry Maintainers <maintainers@bluecherrydvr.com>
- M:	Anton Sviridenko <anton@corp.bluecherry.net>
- M:	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
--M:	Andrey Utkin <andrey.krieger.utkin@gmail.com>
-+M:	Andrey Utkin <andrey_utkin@fastmail.com>
- M:	Ismael Luceno <ismael@iodev.co.uk>
- L:	linux-media@vger.kernel.org
- S:	Supported
+diff --git a/drivers/media/i2c/as3645a.c b/drivers/media/i2c/as3645a.c
+index b6aeceea9850..af5db71a0888 100644
+--- a/drivers/media/i2c/as3645a.c
++++ b/drivers/media/i2c/as3645a.c
+@@ -294,8 +294,8 @@ static int as3645a_read_fault(struct as3645a *flash)
+ 		dev_dbg(&client->dev, "Inductor Peak limit fault\n");
+ 
+ 	if (rval & AS_FAULT_INFO_INDICATOR_LED)
+-		dev_dbg(&client->dev, "Indicator LED fault: "
+-			"Short circuit or open loop\n");
++		dev_dbg(&client->dev,
++			"Indicator LED fault: Short circuit or open loop\n");
+ 
+ 	dev_dbg(&client->dev, "%u connected LEDs\n",
+ 		rval & AS_FAULT_INFO_LED_AMOUNT ? 2 : 1);
+@@ -310,8 +310,8 @@ static int as3645a_read_fault(struct as3645a *flash)
+ 		dev_dbg(&client->dev, "Short circuit fault\n");
+ 
+ 	if (rval & AS_FAULT_INFO_OVER_VOLTAGE)
+-		dev_dbg(&client->dev, "Over voltage fault: "
+-			"Indicates missing capacitor or open connection\n");
++		dev_dbg(&client->dev,
++			"Over voltage fault: Indicates missing capacitor or open connection\n");
+ 
+ 	return rval;
+ }
+@@ -583,8 +583,8 @@ static int as3645a_registered(struct v4l2_subdev *sd)
+ 
+ 	/* Verify the chip model and version. */
+ 	if (model != 0x01 || rfu != 0x00) {
+-		dev_err(&client->dev, "AS3645A not detected "
+-			"(model %d rfu %d)\n", model, rfu);
++		dev_err(&client->dev,
++			"AS3645A not detected (model %d rfu %d)\n", model, rfu);
+ 		rval = -ENODEV;
+ 		goto power_off;
+ 	}
 -- 
 2.13.0
