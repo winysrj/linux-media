@@ -1,171 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelnx193.ext.ti.com ([198.47.27.77]:49066 "EHLO
-        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752311AbdF0TIV (ORCPT
+Received: from r0.smtpout1.alwaysdata.com ([176.31.58.0]:34874 "EHLO
+        r0.smtpout1.alwaysdata.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751159AbdFDN6j (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 15:08:21 -0400
-Subject: Re: [PATCH] rpmsg: Solve circular dependencies involving RPMSG_VIRTIO
-To: Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Ohad Ben-Cohen <ohad@wizery.com>,
-        Peter Griffin <peter.griffin@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Loic Pallardy <loic.pallardy@st.com>
-CC: Arnd Bergmann <arnd@arndb.de>, <linux-media@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-remoteproc@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>
-References: <20170627064309.16507-1-bjorn.andersson@linaro.org>
-From: Suman Anna <s-anna@ti.com>
-Message-ID: <d5e30779-00c0-6e56-e99e-811afbe28932@ti.com>
-Date: Tue, 27 Jun 2017 14:08:05 -0500
-MIME-Version: 1.0
-In-Reply-To: <20170627064309.16507-1-bjorn.andersson@linaro.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Sun, 4 Jun 2017 09:58:39 -0400
+From: Alexandre Macabies <web+oss@zopieux.com>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Alexandre Macabies <web+oss@zopieux.com>
+Subject: [PATCH] uvcvideo: Hardcoded CTRL_QUERY GET_LEN for a lying device
+Date: Sun,  4 Jun 2017 15:41:19 +0200
+Message-Id: <20170604134119.16936-1-web+oss@zopieux.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bjorn,
+Hello,
 
-Thanks for the patch.
+I sent this patch on the linux-uvc ML but it seems effectively dead nowadays.
+This thread comes after two others[1][2] about a similar issue.
 
-On 06/27/2017 01:43 AM, Bjorn Andersson wrote:
-> While it's very common to use RPMSG for communicating with firmware
-> running on these remoteprocs there is no functional dependency on RPMSG.
+I own a USB video microscope[3] from Dino-Lite. Even if the constructor does
+not advertise it as being supported on Linux, it is mostly a "good citizen"
+camera: it registers as a standard USB video device and as such, it is properly
+recognized by uvcvideo.
 
-This is not entirely accurate though. RPMSG is the IPC transport on
-these remoteprocs, you seem to suggest that there are alternatives for
-these remoteprocs. Without RPMSG, you can boot, but you will not be able
-to talk to the remoteprocs, so I would call it a functional dependency.
+This device is equipped with an integrated illuminator/lamp -- a set of LEDs.
+After some research (using a USB sniffer) I managed to identify the
+non-standard XU control used to switch this lamp on and off: one shall send
+either 80 01 f0 (off) or 80 01 f1 (on) to XU control unit 4 selector 3.
 
-> As such RPMSG should be selected by the system integrator and not
-> automatically by the remoteproc drivers.
-> 
-> This does solve problems reported with circular Kconfig dependencies for
-> Davinci and Keystone remoteproc drivers.
+So at first I tried to send a raw ctrl_set using:
 
-The Keystone one issue shows up on linux-next (and not on 4.12-rcX) due
-to the differing options on RESET_CONTROLLER on VIDEO_QCOM_VENUS
-(through QCOM_SCOM). This can also be resolved by changing the depends
-on RESET_CONTROLLER to a select RESET_CONTROLLER or dropping the line.
+    $ uvcdynctrl -S 4:3 8001f0
+    [...]
+    query control size of : 1
+    [...]
+    ERROR: Unable to set the control value: Invalid argument. (Code: 3)
 
-The davinci one is tricky though, as I did change it from using a select
-to a depends on dependency, and obviously ppc64_defconfig is something
-that I would not check.
+Indeed, the device reports this XU as being only 1 in length, but the payload
+has to be 3 bytes. So I assume there is a bug (or deliberate inaccuracy) in the
+GET_LEN reply from the device firmware. To overcome this issue, I compiled
+a patched version of uvcvideo in which uvc_query_ctrl[4] returns an hardcoded
+size of 3 for this specific device & UX control. I was finally able to switch
+the lamp on and off:
 
-This patch definitely resolves both issues, but it is not obvious that
-someone would also have to enable RPMSG_VIRTIO to have these remoteprocs
-useful when looking at either of the menuconfig help.
+    $ uvcdynctrl -S 4:3 8001f0
+    [39252.854261] uvcvideo: Fixing USB a168:0870 UX control 4/3 len: 1 -> 3
+    [...]
+    query control size of : 3
+    [...]
+    set value of          : (LE)0x8001f0  (BE)0xf00180
+    [lamp goes off]
 
-regards
-Suman
+You can find the patch below. I abstracted it in the spirit of
+uvc_ctrl_fixup_xu_info[5] so we can add more entries to the table in the
+future. What do you think, would it be relevant to merge? AFAICT there is no
+API in uvcvideo or v4l for controlling this kind of illuminator/lamp features,
+so giving userland the ability to control the devices via XU by lying seems to
+be the only solution.
 
-> 
-> Signed-off-by: Bjorn Andersson <bjorn.andersson@linaro.org>
-> ---
->  drivers/media/platform/Kconfig |  2 +-
->  drivers/remoteproc/Kconfig     |  4 ----
->  drivers/rpmsg/Kconfig          | 20 +++++++++-----------
->  3 files changed, 10 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index 1313cd533436..cb2f31cd0088 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -382,10 +382,10 @@ config VIDEO_STI_DELTA_DRIVER
->  	tristate
->  	depends on VIDEO_STI_DELTA
->  	depends on VIDEO_STI_DELTA_MJPEG
-> +	depends on RPMSG
->  	default VIDEO_STI_DELTA_MJPEG
->  	select VIDEOBUF2_DMA_CONTIG
->  	select V4L2_MEM2MEM_DEV
-> -	select RPMSG
->  
->  endif # VIDEO_STI_DELTA
->  
-> diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
-> index b950e6cd4ba2..3b16f422d30c 100644
-> --- a/drivers/remoteproc/Kconfig
-> +++ b/drivers/remoteproc/Kconfig
-> @@ -21,7 +21,6 @@ config OMAP_REMOTEPROC
->  	depends on REMOTEPROC
->  	select MAILBOX
->  	select OMAP2PLUS_MBOX
-> -	select RPMSG_VIRTIO
->  	help
->  	  Say y here to support OMAP's remote processors (dual M3
->  	  and DSP on OMAP4) via the remote processor framework.
-> @@ -53,7 +52,6 @@ config DA8XX_REMOTEPROC
->  	depends on ARCH_DAVINCI_DA8XX
->  	depends on REMOTEPROC
->  	depends on DMA_CMA
-> -	select RPMSG_VIRTIO
->  	help
->  	  Say y here to support DA8xx/OMAP-L13x remote processors via the
->  	  remote processor framework.
-> @@ -76,7 +74,6 @@ config KEYSTONE_REMOTEPROC
->  	depends on ARCH_KEYSTONE
->  	depends on RESET_CONTROLLER
->  	depends on REMOTEPROC
-> -	select RPMSG_VIRTIO
->  	help
->  	  Say Y here here to support Keystone remote processors (DSP)
->  	  via the remote processor framework.
-> @@ -133,7 +130,6 @@ config ST_REMOTEPROC
->  	depends on REMOTEPROC
->  	select MAILBOX
->  	select STI_MBOX
-> -	select RPMSG_VIRTIO
->  	help
->  	  Say y here to support ST's adjunct processors via the remote
->  	  processor framework.
-> diff --git a/drivers/rpmsg/Kconfig b/drivers/rpmsg/Kconfig
-> index 2a5d2b446de2..46f3f2431d68 100644
-> --- a/drivers/rpmsg/Kconfig
-> +++ b/drivers/rpmsg/Kconfig
-> @@ -1,8 +1,5 @@
-> -menu "Rpmsg drivers"
-> -
-> -# RPMSG always gets selected by whoever wants it
-> -config RPMSG
-> -	tristate
-> +menuconfig RPMSG
-> +	tristate "Rpmsg drivers"
->  
->  config RPMSG_CHAR
->  	tristate "RPMSG device interface"
-> @@ -15,7 +12,7 @@ config RPMSG_CHAR
->  
->  config RPMSG_QCOM_GLINK_RPM
->  	tristate "Qualcomm RPM Glink driver"
-> -	select RPMSG
-> +	depends on RPMSG
->  	depends on HAS_IOMEM
->  	depends on MAILBOX
->  	help
-> @@ -26,16 +23,17 @@ config RPMSG_QCOM_GLINK_RPM
->  config RPMSG_QCOM_SMD
->  	tristate "Qualcomm Shared Memory Driver (SMD)"
->  	depends on QCOM_SMEM
-> -	select RPMSG
-> +	depends on RPMSG
->  	help
->  	  Say y here to enable support for the Qualcomm Shared Memory Driver
->  	  providing communication channels to remote processors in Qualcomm
->  	  platforms.
->  
->  config RPMSG_VIRTIO
-> -	tristate
-> -	select RPMSG
-> +	tristate "Virtio remote processor messaging driver (RPMSG)"
-> +	depends on RPMSG
->  	select VIRTIO
->  	select VIRTUALIZATION
-> -
-> -endmenu
-> +	help
-> +	  Say y here to enable support for the Virtio remote processor
-> +	  messaging protocol (RPMSG).
-> 
+Best,
+
+Alexandre
+
+[1] "Dino-Lite uvc support", 2008, https://sourceforge.net/p/linux-uvc/mailman/message/29831153/
+[2] "switching light on device Dino-Lite Premier", 2013, https://sourceforge.net/p/linux-uvc/mailman/message/31219122/
+[3] https://www.dinolite.us/products/digital-microscopes/usb/basic/am4111t
+[4] http://elixir.free-electrons.com/linux/v4.11/source/drivers/media/usb/uvc/uvc_video.c#L72
+[5] http://elixir.free-electrons.com/linux/v4.11/source/drivers/media/usb/uvc/uvc_ctrl.c#L1593
+
+Signed-off-by: Alexandre Macabies <web+oss@zopieux.com>
+
+---
+ drivers/media/usb/uvc/uvc_video.c | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 07a6c833ef7b..839dc02b4f33 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -69,6 +69,40 @@ static const char *uvc_query_name(__u8 query)
+ 	}
+ }
+ 
++static void uvc_fixup_query_ctrl_len(const struct uvc_device *dev, __u8 unit,
++	__u8 cs, void *data)
++{
++	struct uvc_ctrl_fixup {
++		struct usb_device_id id;
++		u8 unit;
++		u8 selector;
++		u16 len;
++	};
++
++	static const struct uvc_ctrl_fixup fixups[] = {
++		// Dino-Lite Premier (AM4111T)
++		{ { USB_DEVICE(0xa168, 0x0870) }, 4, 3, 3 },
++	};
++
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(fixups); ++i) {
++		if (!usb_match_one_id(dev->intf, &fixups[i].id))
++			continue;
++
++		if (!(fixups[i].unit == unit && fixups[i].selector == cs))
++			continue;
++
++		uvc_trace(UVC_TRACE_CONTROL,
++			  "Fixing USB %04x:%04x %u/%u GET_LEN: %u -> %u",
++			  fixups[i].id.idVendor, fixups[i].id.idProduct,
++			  unit, cs,
++			  le16_to_cpup((__le16 *)data), fixups[i].len);
++		*((__le16 *)data) = cpu_to_le16(fixups[i].len);
++		break;
++	}
++}
++
+ int uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
+ 			__u8 intfnum, __u8 cs, void *data, __u16 size)
+ {
+@@ -83,6 +117,9 @@ int uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
+ 		return -EIO;
+ 	}
+ 
++	if (query == UVC_GET_LEN && size == 2)
++		uvc_fixup_query_ctrl_len(dev, unit, cs, data);
++
+ 	return 0;
+ }
+ 
+-- 
+2.13.0
