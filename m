@@ -1,90 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58489 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751797AbdFJHfP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Jun 2017 03:35:15 -0400
-Date: Sat, 10 Jun 2017 09:35:12 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v8 00/34] i.MX Media Driver
-Message-ID: <20170610073512.GA15980@amd>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
- <e7e4669c-2963-b9e1-edd7-02731a6e0f9c@xs4all.nl>
- <c0b69c93-b9cd-25e8-ea36-fc0600efdb69@gmail.com>
- <e4f152de-6e75-7654-178e-e6dcf9ad12f3@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="lrZ03NoBR/3+SXJZ"
-Content-Disposition: inline
-In-Reply-To: <e4f152de-6e75-7654-178e-e6dcf9ad12f3@xs4all.nl>
+Received: from mga05.intel.com ([192.55.52.43]:14383 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751181AbdFEUjb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Jun 2017 16:39:31 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
+        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
+        Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH 01/12] videodev2.h, v4l2-ioctl: add IPU3 meta buffer format
+Date: Mon,  5 Jun 2017 15:39:06 -0500
+Message-Id: <1496695157-19926-2-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add the IPU3 specific processing parameter format
+V4L2_META_FMT_IPU3_PARAMS and metadata formats
+for 3A and other statistics:
 
---lrZ03NoBR/3+SXJZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+  V4L2_META_FMT_IPU3_PARAMS
+  V4L2_META_FMT_IPU3_STAT_3A
+  V4L2_META_FMT_IPU3_STAT_DVS
+  V4L2_META_FMT_IPU3_STAT_LACE
 
-Hi!
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
+ include/uapi/linux/videodev2.h       | 6 ++++++
+ 2 files changed, 10 insertions(+)
 
-> >> Other than that everything is ready AFAICT.
-> >>
-> >=20
-> > But as Pavel pointed out, in fact we are missing many
-> > Acks still, for all of the dts source changes (patches
-> > 4-14), as well as really everything else (imx-media staging
-> > driver patches).
->=20
-> No Acks needed for the staging part. It's staging, so not held
-> to the same standards as non-staging parts. That doesn't mean
-> Acks aren't welcome, of course.
->=20
-> You don't need Greg's Ack for staging/media either, patches there
-> go in via us (generally at least) and we handle those, not Greg.
-
-Ok, good.
-
-Can you just apply the patches? This is staging, they can be
-reviewed/fixed there -- as expected for staging. They are already way
-beyond staging quality, we don't want to get to "series v17"
-here, and repeatedly sending them over the email does not really do
-them any good.
-
-Thanks,
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---lrZ03NoBR/3+SXJZ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlk7oTAACgkQMOfwapXb+vImTQCfQfqcjsZm/fd/uQuMKvk3x7js
-LGYAn0rpCrS/+9RhDB+RhR2HHtrx3dUy
-=5HU1
------END PGP SIGNATURE-----
-
---lrZ03NoBR/3+SXJZ--
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index fb1387f..919aa24 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1239,6 +1239,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_TCH_FMT_TU08:		descr = "8-bit unsigned touch data"; break;
+ 	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
+ 	case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
++	case V4L2_META_FMT_IPU3_PARAMS:	descr = "IPU3 processing parameters"; break;
++	case V4L2_META_FMT_IPU3_STAT_3A:	descr = "IPU3 3A statistics"; break;
++	case V4L2_META_FMT_IPU3_STAT_DVS:	descr = "IPU3 DVS statistics"; break;
++	case V4L2_META_FMT_IPU3_STAT_LACE:	descr = "IPU3 LACE statistics"; break;
+ 
+ 	default:
+ 		/* Compressed formats */
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 7bfa6ad..fab8822 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -685,6 +685,12 @@ struct v4l2_pix_format {
+ #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 1-D Histogram */
+ #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */
+ 
++/* Vendor specific - used for IPU3 camera sub-system */
++#define V4L2_META_FMT_IPU3_PARAMS	v4l2_fourcc('i', 'p', '3', 'p') /* IPU3 params */
++#define V4L2_META_FMT_IPU3_STAT_3A	v4l2_fourcc('i', 'p', '3', 's') /* IPU3 3A statistics */
++#define V4L2_META_FMT_IPU3_STAT_DVS	v4l2_fourcc('i', 'p', '3', 'd') /* IPU3 DVS statistics */
++#define V4L2_META_FMT_IPU3_STAT_LACE	v4l2_fourcc('i', 'p', '3', 'l') /* IPU3 LACE statistics */
++
+ /* priv field value to indicates that subsequent fields are valid. */
+ #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
+ 
+-- 
+2.7.4
