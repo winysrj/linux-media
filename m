@@ -1,240 +1,562 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:14944 "EHLO mga14.intel.com"
+Received: from mga05.intel.com ([192.55.52.43]:23329 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752439AbdFPPPw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 11:15:52 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: tfiga@chromium.org, yong.zhi@intel.com
-Subject: [RFC 1/2] v4l: Add support for V4L2_BUF_TYPE_META_OUTPUT
-Date: Fri, 16 Jun 2017 18:14:20 +0300
-Message-Id: <1497626061-2129-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1497626061-2129-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1497626061-2129-1-git-send-email-sakari.ailus@linux.intel.com>
+        id S1751305AbdFEUjn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Jun 2017 16:39:43 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
+        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
+        Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH 09/12] intel-ipu3: css hardware setup
+Date: Mon,  5 Jun 2017 15:39:14 -0500
+Message-Id: <1496695157-19926-10-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_BUF_TYPE_META_OUTPUT mirrors the V4L2_BUF_TYPE_META_CAPTURE with
-the exception that it is an OUTPUT type. The use case for this is to pass
-buffers to the device that are not image data but metadata. The formats,
-just as the metadata capture formats, are typically device specific and
-highly structured.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  2 ++
- drivers/media/v4l2-core/v4l2-ioctl.c          | 25 +++++++++++++++++++++++++
- drivers/media/v4l2-core/videobuf2-v4l2.c      |  1 +
- include/media/v4l2-ioctl.h                    | 17 +++++++++++++++++
- include/uapi/linux/videodev2.h                |  2 ++
- 5 files changed, 47 insertions(+)
+ drivers/media/pci/intel/ipu3/ipu3-css.c | 515 ++++++++++++++++++++++++++++++++
+ drivers/media/pci/intel/ipu3/ipu3-css.h |   5 +
+ 2 files changed, 520 insertions(+)
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css.c
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 6f52970..a0360fe 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -232,6 +232,7 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 	case V4L2_BUF_TYPE_SDR_OUTPUT:
- 		return get_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
- 	case V4L2_BUF_TYPE_META_CAPTURE:
-+	case V4L2_BUF_TYPE_META_OUTPUT:
- 		return get_v4l2_meta_format(&kp->fmt.meta, &up->fmt.meta);
- 	default:
- 		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
-@@ -281,6 +282,7 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 	case V4L2_BUF_TYPE_SDR_OUTPUT:
- 		return put_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
- 	case V4L2_BUF_TYPE_META_CAPTURE:
-+	case V4L2_BUF_TYPE_META_OUTPUT:
- 		return put_v4l2_meta_format(&kp->fmt.meta, &up->fmt.meta);
- 	default:
- 		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 4f27cfa..30dd814 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -156,6 +156,7 @@ const char *v4l2_type_names[] = {
- 	[V4L2_BUF_TYPE_SDR_CAPTURE]        = "sdr-cap",
- 	[V4L2_BUF_TYPE_SDR_OUTPUT]         = "sdr-out",
- 	[V4L2_BUF_TYPE_META_CAPTURE]       = "meta-cap",
-+	[V4L2_BUF_TYPE_META_OUTPUT]	   = "meta-out",
- };
- EXPORT_SYMBOL(v4l2_type_names);
- 
-@@ -328,6 +329,7 @@ static void v4l_print_format(const void *arg, bool write_only)
- 			(sdr->pixelformat >> 24) & 0xff);
- 		break;
- 	case V4L2_BUF_TYPE_META_CAPTURE:
-+	case V4L2_BUF_TYPE_META_OUTPUT:
- 		meta = &p->fmt.meta;
- 		pr_cont(", dataformat=%c%c%c%c, buffersize=%u\n",
- 			(meta->dataformat >>  0) & 0xff,
-@@ -958,6 +960,10 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
- 		if (is_vid && is_rx && ops->vidioc_g_fmt_meta_cap)
- 			return 0;
- 		break;
-+	case V4L2_BUF_TYPE_META_OUTPUT:
-+		if (is_vid && is_tx && ops->vidioc_g_fmt_meta_out)
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-css.c b/drivers/media/pci/intel/ipu3/ipu3-css.c
+new file mode 100644
+index 0000000..675be91
+--- /dev/null
++++ b/drivers/media/pci/intel/ipu3/ipu3-css.c
+@@ -0,0 +1,515 @@
++/*
++ * Copyright (c) 2017 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/delay.h>
++#include <linux/dma-mapping.h>
++#include "ipu3-css.h"
++#include "ipu3-css-fw.h"
++#include "ipu3-tables.h"
++
++/* IRQ configuration */
++#define IMGU_IRQCTRL_IRQ_MASK	(IMGU_IRQCTRL_IRQ_SP1 | \
++				 IMGU_IRQCTRL_IRQ_SP2 | \
++				 IMGU_IRQCTRL_IRQ_SW_PIN(0) | \
++				 IMGU_IRQCTRL_IRQ_SW_PIN(1))
++
++static void writes(void *mem, ssize_t len, void __iomem *reg)
++{
++	while (len >= 4) {
++		writel(*(u32 *)mem, reg);
++		mem += 4;
++		reg += 4;
++		len -= 4;
++	}
++}
++
++/******************* css hw *******************/
++
++/* Wait until register `reg', masked with `mask', becomes `cmp' */
++static int ipu3_css_hw_wait(struct ipu3_css *css, int reg, u32 mask, u32 cmp)
++{
++	static const unsigned int delay = 1000;
++	unsigned int maxloops = 1000000 / 10 / delay;
++
++	do {
++		if ((readl(css->base + reg) & mask) == cmp)
 +			return 0;
-+		break;
- 	default:
- 		break;
- 	}
-@@ -1349,6 +1355,11 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		ret = ops->vidioc_enum_fmt_meta_cap(file, fh, arg);
- 		break;
-+	case V4L2_BUF_TYPE_META_OUTPUT:
-+		if (unlikely(!is_tx || !is_vid || !ops->vidioc_enum_fmt_meta_out))
-+			break;
-+		ret = ops->vidioc_enum_fmt_meta_out(file, fh, arg);
-+		break;
- 	}
- 	if (ret == 0)
- 		v4l_fill_fmtdesc(p);
-@@ -1452,6 +1463,10 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_meta_cap))
- 			break;
- 		return ops->vidioc_g_fmt_meta_cap(file, fh, arg);
-+	case V4L2_BUF_TYPE_META_OUTPUT:
-+		if (unlikely(!is_tx || !is_vid || !ops->vidioc_g_fmt_meta_out))
-+			break;
-+		return ops->vidioc_g_fmt_meta_out(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-@@ -1562,6 +1577,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.meta);
- 		return ops->vidioc_s_fmt_meta_cap(file, fh, arg);
-+	case V4L2_BUF_TYPE_META_OUTPUT:
-+		if (unlikely(!is_tx || !is_vid || !ops->vidioc_s_fmt_meta_out))
-+			break;
-+		CLEAR_AFTER_FIELD(p, fmt.meta);
-+		return ops->vidioc_s_fmt_meta_out(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-@@ -1652,6 +1672,11 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.meta);
- 		return ops->vidioc_try_fmt_meta_cap(file, fh, arg);
-+	case V4L2_BUF_TYPE_META_OUTPUT:
-+		if (unlikely(!is_tx || !is_vid || !ops->vidioc_try_fmt_meta_out))
-+			break;
-+		CLEAR_AFTER_FIELD(p, fmt.meta);
-+		return ops->vidioc_try_fmt_meta_out(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 0c06699..f17f6d7 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -545,6 +545,7 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
- 		requested_sizes[0] = f->fmt.sdr.buffersize;
- 		break;
- 	case V4L2_BUF_TYPE_META_CAPTURE:
-+	case V4L2_BUF_TYPE_META_OUTPUT:
- 		requested_sizes[0] = f->fmt.meta.buffersize;
- 		break;
- 	default:
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index bd53121..696bd13 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -47,6 +47,9 @@ struct v4l2_fh;
-  * @vidioc_enum_fmt_meta_cap: pointer to the function that implements
-  *	:ref:`VIDIOC_ENUM_FMT <vidioc_enum_fmt>` ioctl logic
-  *	for metadata capture
-+ * @vidioc_enum_fmt_meta_out: pointer to the function that implements
-+ *	:ref:`VIDIOC_ENUM_FMT <vidioc_enum_fmt>` ioctl logic
-+ *	for metadata output
-  * @vidioc_g_fmt_vid_cap: pointer to the function that implements
-  *	:ref:`VIDIOC_G_FMT <vidioc_g_fmt>` ioctl logic for video capture
-  *	in single plane mode
-@@ -79,6 +82,8 @@ struct v4l2_fh;
-  *	Radio output
-  * @vidioc_g_fmt_meta_cap: pointer to the function that implements
-  *	:ref:`VIDIOC_G_FMT <vidioc_g_fmt>` ioctl logic for metadata capture
-+ * @vidioc_g_fmt_meta_out: pointer to the function that implements
-+ *	:ref:`VIDIOC_G_FMT <vidioc_g_fmt>` ioctl logic for metadata output
-  * @vidioc_s_fmt_vid_cap: pointer to the function that implements
-  *	:ref:`VIDIOC_S_FMT <vidioc_g_fmt>` ioctl logic for video capture
-  *	in single plane mode
-@@ -111,6 +116,8 @@ struct v4l2_fh;
-  *	Radio output
-  * @vidioc_s_fmt_meta_cap: pointer to the function that implements
-  *	:ref:`VIDIOC_S_FMT <vidioc_g_fmt>` ioctl logic for metadata capture
-+ * @vidioc_s_fmt_meta_out: pointer to the function that implements
-+ *	:ref:`VIDIOC_S_FMT <vidioc_g_fmt>` ioctl logic for metadata output
-  * @vidioc_try_fmt_vid_cap: pointer to the function that implements
-  *	:ref:`VIDIOC_TRY_FMT <vidioc_g_fmt>` ioctl logic for video capture
-  *	in single plane mode
-@@ -145,6 +152,8 @@ struct v4l2_fh;
-  *	Radio output
-  * @vidioc_try_fmt_meta_cap: pointer to the function that implements
-  *	:ref:`VIDIOC_TRY_FMT <vidioc_g_fmt>` ioctl logic for metadata capture
-+ * @vidioc_try_fmt_meta_out: pointer to the function that implements
-+ *	:ref:`VIDIOC_TRY_FMT <vidioc_g_fmt>` ioctl logic for metadata output
-  * @vidioc_reqbufs: pointer to the function that implements
-  *	:ref:`VIDIOC_REQBUFS <vidioc_reqbufs>` ioctl
-  * @vidioc_querybuf: pointer to the function that implements
-@@ -317,6 +326,8 @@ struct v4l2_ioctl_ops {
- 				       struct v4l2_fmtdesc *f);
- 	int (*vidioc_enum_fmt_meta_cap)(struct file *file, void *fh,
- 					struct v4l2_fmtdesc *f);
-+	int (*vidioc_enum_fmt_meta_out)(struct file *file, void *fh,
-+					struct v4l2_fmtdesc *f);
- 
- 	/* VIDIOC_G_FMT handlers */
- 	int (*vidioc_g_fmt_vid_cap)(struct file *file, void *fh,
-@@ -345,6 +356,8 @@ struct v4l2_ioctl_ops {
- 				    struct v4l2_format *f);
- 	int (*vidioc_g_fmt_meta_cap)(struct file *file, void *fh,
- 				     struct v4l2_format *f);
-+	int (*vidioc_g_fmt_meta_out)(struct file *file, void *fh,
-+				     struct v4l2_format *f);
- 
- 	/* VIDIOC_S_FMT handlers */
- 	int (*vidioc_s_fmt_vid_cap)(struct file *file, void *fh,
-@@ -373,6 +386,8 @@ struct v4l2_ioctl_ops {
- 				    struct v4l2_format *f);
- 	int (*vidioc_s_fmt_meta_cap)(struct file *file, void *fh,
- 				     struct v4l2_format *f);
-+	int (*vidioc_s_fmt_meta_out)(struct file *file, void *fh,
-+				     struct v4l2_format *f);
- 
- 	/* VIDIOC_TRY_FMT handlers */
- 	int (*vidioc_try_fmt_vid_cap)(struct file *file, void *fh,
-@@ -401,6 +416,8 @@ struct v4l2_ioctl_ops {
- 				      struct v4l2_format *f);
- 	int (*vidioc_try_fmt_meta_cap)(struct file *file, void *fh,
- 				       struct v4l2_format *f);
-+	int (*vidioc_try_fmt_meta_out)(struct file *file, void *fh,
-+				       struct v4l2_format *f);
- 
- 	/* Buffer handlers */
- 	int (*vidioc_reqbufs)(struct file *file, void *fh,
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 2b8feb8..b6c850a 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -144,6 +144,7 @@ enum v4l2_buf_type {
- 	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
- 	V4L2_BUF_TYPE_SDR_OUTPUT           = 12,
- 	V4L2_BUF_TYPE_META_CAPTURE         = 13,
-+	V4L2_BUF_TYPE_META_OUTPUT	   = 14,
- 	/* Deprecated, do not use */
- 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
++		usleep_range(delay, 2 * delay);
++	} while (--maxloops);
++
++	return -EIO;
++}
++
++/* Initialize the IPU3 CSS hardware and associated h/w blocks */
++
++int ipu3_css_set_powerup(struct ipu3_css *css)
++{
++	struct device *dev = css->dev;
++	void __iomem *const base = css->base;
++	u32 pm_ctrl, state;
++
++	/* Clear the CSS busy signal */
++	readl(base + IMGU_REG_GP_BUSY);
++	writel(0, base + IMGU_REG_GP_BUSY);
++
++	/* Wait for idle signal */
++	if (ipu3_css_hw_wait(css, IMGU_REG_STATE, IMGU_STATE_IDLE_STS,
++						IMGU_STATE_IDLE_STS))
++		dev_warn(dev, "failed to set CSS idle\n");
++
++	/* Reset the css */
++	writel(readl(base + IMGU_REG_PM_CTRL) | IMGU_PM_CTRL_FORCE_RESET,
++		base + IMGU_REG_PM_CTRL);
++
++	usleep_range(200, 300);
++
++	/** Prepare CSS */
++
++	pm_ctrl = readl(base + IMGU_REG_PM_CTRL);
++	state = readl(base + IMGU_REG_STATE);
++
++	dev_dbg(dev, "CSS pm_ctrl 0x%x state 0x%x (power %s)\n",
++		pm_ctrl, state, state & IMGU_STATE_POWER_DOWN ? "down" : "up");
++
++	/* Power up CSS using wrapper */
++	if (state & IMGU_STATE_POWER_DOWN) {
++		writel(IMGU_PM_CTRL_RACE_TO_HALT | IMGU_PM_CTRL_START,
++			base + IMGU_REG_PM_CTRL);
++		if (ipu3_css_hw_wait(css, IMGU_REG_PM_CTRL,
++					IMGU_PM_CTRL_START, 0))
++			dev_warn(dev, "failed to power up CSS\n");
++		usleep_range(2000, 3000);
++	} else {
++		writel(IMGU_PM_CTRL_RACE_TO_HALT, base + IMGU_REG_PM_CTRL);
++	}
++
++	/* Set the busy bit */
++	writel(readl(base + IMGU_REG_GP_BUSY) | 1, base + IMGU_REG_GP_BUSY);
++
++	return 0;
++}
++
++int ipu3_css_set_powerdown(struct ipu3_css *css)
++{
++	struct device *dev = css->dev;
++	void __iomem *const base = css->base;
++
++	/* Clear the CSS busy signal */
++	readl(base + IMGU_REG_GP_BUSY);
++	writel(0, base + IMGU_REG_GP_BUSY);
++
++	/* Wait for idle signal */
++	if (ipu3_css_hw_wait(css, IMGU_REG_STATE, IMGU_STATE_IDLE_STS,
++						IMGU_STATE_IDLE_STS))
++		dev_warn(dev, "failed to set CSS idle\n");
++
++	/* Reset the css */
++	writel(readl(base + IMGU_REG_PM_CTRL) | IMGU_PM_CTRL_CSS_PWRDN,
++		base + IMGU_REG_PM_CTRL);
++
++	return 0;
++}
++
++static int ipu3_css_hw_init(struct ipu3_css *css)
++{
++	/* For checking that streaming monitor statuses are valid */
++	static const struct {
++		u32 reg;
++		u32 mask;
++		const char *name;
++	} stream_monitors[] = {
++		{
++			IMGU_REG_GP_SP1_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_ISP_PORT_SP12ISP,
++			"ISP0 to SP0"
++		}, {
++			IMGU_REG_GP_ISP_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_SP1_PORT_ISP2SP1,
++			"SP0 to ISP0"
++		}, {
++			IMGU_REG_GP_MOD_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_MOD_PORT_ISP2DMA,
++			"ISP0 to DMA0"
++		}, {
++			IMGU_REG_GP_ISP_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_ISP_PORT_DMA2ISP,
++			"DMA0 to ISP0"
++		}, {
++			IMGU_REG_GP_MOD_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_MOD_PORT_CELLS2GDC,
++			"ISP0 to GDC0"
++		}, {
++			IMGU_REG_GP_MOD_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_MOD_PORT_GDC2CELLS,
++			"GDC0 to ISP0"
++		}, {
++			IMGU_REG_GP_MOD_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_MOD_PORT_SP12DMA,
++			"SP0 to DMA0"
++		}, {
++			IMGU_REG_GP_SP1_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_SP1_PORT_DMA2SP1,
++			"DMA0 to SP0"
++		}, {
++			IMGU_REG_GP_MOD_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_MOD_PORT_CELLS2GDC,
++			"SP0 to GDC0"
++		}, {
++			IMGU_REG_GP_MOD_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_MOD_PORT_GDC2CELLS,
++			"GDC0 to SP0"
++		},
++	};
++
++	static const unsigned int freq = 320;
++	struct device *dev = css->dev;
++	void __iomem *const base = css->base;
++	u32 pm_ctrl, val, i;
++
++	/* Set CSS clock frequency */
++
++	pm_ctrl = readl(base + IMGU_REG_PM_CTRL);
++	val = pm_ctrl & ~(IMGU_PM_CTRL_CSS_PWRDN | IMGU_PM_CTRL_RST_AT_EOF);
++	writel(val, base + IMGU_REG_PM_CTRL);
++	writel(0, base + IMGU_REG_GP_BUSY);
++	if (ipu3_css_hw_wait(css, IMGU_REG_STATE,
++				IMGU_STATE_PWRDNM_FSM_MASK, 0))
++		dev_err(dev, "failed to pwrdn CSS\n");
++	val = (freq / IMGU_SYSTEM_REQ_FREQ_DIVIDER) & IMGU_SYSTEM_REQ_FREQ_MASK;
++	writel(val, base + IMGU_REG_SYSTEM_REQ);
++	writel(1, base + IMGU_REG_GP_BUSY);
++	writel(readl(base + IMGU_REG_PM_CTRL) | IMGU_PM_CTRL_FORCE_HALT,
++		base + IMGU_REG_PM_CTRL);
++	if (ipu3_css_hw_wait(css, IMGU_REG_STATE, IMGU_STATE_HALT_STS,
++				IMGU_STATE_HALT_STS))
++		dev_err(dev, "failed to halt CSS\n");
++
++	writel(readl(base + IMGU_REG_PM_CTRL) | IMGU_PM_CTRL_START,
++		base + IMGU_REG_PM_CTRL);
++	if (ipu3_css_hw_wait(css, IMGU_REG_PM_CTRL, IMGU_PM_CTRL_START, 0))
++		dev_err(dev, "failed to start CSS\n");
++	writel(readl(base + IMGU_REG_PM_CTRL) | IMGU_PM_CTRL_FORCE_UNHALT,
++		base + IMGU_REG_PM_CTRL);
++
++	val = readl(base + IMGU_REG_PM_CTRL);	/* get pm_ctrl */
++	val &= ~(IMGU_PM_CTRL_CSS_PWRDN | IMGU_PM_CTRL_RST_AT_EOF);
++	val |= pm_ctrl & (IMGU_PM_CTRL_CSS_PWRDN | IMGU_PM_CTRL_RST_AT_EOF);
++	writel(val, base + IMGU_REG_PM_CTRL);
++
++	/* Set MMU L1 table address and flush TLB */
++
++	writel(css->mmu_l1_addr >> IMGU_MMU_PADDR_SHIFT,
++		base + IMGU_REG_L1_PHYS);
++
++	/* Set up interrupts */
++
++	/*
++	 * Enable IRQ on the SP which signals that SP goes to idle
++	 * (aka ready state) and set trigger to pulse
++	 */
++	val = readl(base + IMGU_REG_SP_CTRL(0)) | IMGU_CTRL_IRQ_READY;
++	writel(val, base + IMGU_REG_SP_CTRL(0));
++	writel(val | IMGU_CTRL_IRQ_CLEAR, base + IMGU_REG_SP_CTRL(0));
++
++	/* Enable IRQs from the IMGU wrapper */
++	writel(IMGU_REG_INT_CSS_IRQ, base + IMGU_REG_INT_ENABLE);
++	/* Clear */
++	writel(IMGU_REG_INT_CSS_IRQ, base + IMGU_REG_INT_STATUS);
++
++	/* Enable IRQs from main IRQ controller */
++	writel(~0, base + IMGU_REG_IRQCTRL_EDGE_NOT_PULSE(IMGU_IRQCTRL_MAIN));
++	writel(0, base + IMGU_REG_IRQCTRL_MASK(IMGU_IRQCTRL_MAIN));
++	writel(IMGU_IRQCTRL_IRQ_MASK,
++		base + IMGU_REG_IRQCTRL_EDGE(IMGU_IRQCTRL_MAIN));
++	writel(IMGU_IRQCTRL_IRQ_MASK,
++		base + IMGU_REG_IRQCTRL_ENABLE(IMGU_IRQCTRL_MAIN));
++	writel(IMGU_IRQCTRL_IRQ_MASK,
++		base + IMGU_REG_IRQCTRL_CLEAR(IMGU_IRQCTRL_MAIN));
++	writel(IMGU_IRQCTRL_IRQ_MASK,
++		base + IMGU_REG_IRQCTRL_MASK(IMGU_IRQCTRL_MAIN));
++	/* Wait for write complete */
++	readl(base + IMGU_REG_IRQCTRL_ENABLE(IMGU_IRQCTRL_MAIN));
++
++	/* Enable IRQs from SP0 and SP1 controllers */
++	for (i = IMGU_IRQCTRL_SP0; i <= IMGU_IRQCTRL_SP1; i++) {
++		writel(~0, base + IMGU_REG_IRQCTRL_EDGE_NOT_PULSE(i));
++		writel(0, base + IMGU_REG_IRQCTRL_MASK(i));
++		writel(IMGU_IRQCTRL_IRQ_MASK, base + IMGU_REG_IRQCTRL_EDGE(i));
++		writel(IMGU_IRQCTRL_IRQ_MASK,
++			base + IMGU_REG_IRQCTRL_ENABLE(i));
++		writel(IMGU_IRQCTRL_IRQ_MASK, base + IMGU_REG_IRQCTRL_CLEAR(i));
++		writel(IMGU_IRQCTRL_IRQ_MASK, base + IMGU_REG_IRQCTRL_MASK(i));
++		/* Wait for write complete */
++		readl(base + IMGU_REG_IRQCTRL_ENABLE(i));
++	}
++
++	/* Set instruction cache address and inv bit for ISP, SP, and SP1 */
++	for (i = 0; i < IMGU_NUM_SP; i++) {
++		struct imgu_fw_info *bi =
++			&css->fwp->binary_header[css->fw_sp[i]];
++
++		writel(css->binary[css->fw_sp[i]].daddr,
++			base + IMGU_REG_SP_ICACHE_ADDR(bi->type));
++		writel(readl(base + IMGU_REG_SP_CTRL(bi->type)) |
++			IMGU_CTRL_ICACHE_INV,
++			base + IMGU_REG_SP_CTRL(bi->type));
++	}
++	writel(css->binary[css->fw_bl].daddr, base + IMGU_REG_ISP_ICACHE_ADDR);
++	writel(readl(base + IMGU_REG_ISP_CTRL) | IMGU_CTRL_ICACHE_INV,
++		base + IMGU_REG_ISP_CTRL);
++
++	/* Check that IMGU hardware is ready */
++
++	if (!(readl(base + IMGU_REG_SP_CTRL(0)) & IMGU_CTRL_IDLE)) {
++		dev_err(dev, "SP is not idle\n");
++		return -EIO;
++	}
++	if (!(readl(base + IMGU_REG_ISP_CTRL) & IMGU_CTRL_IDLE)) {
++		dev_err(dev, "ISP is not idle\n");
++		return -EIO;
++	}
++
++	for (i = 0; i < ARRAY_SIZE(stream_monitors); i++) {
++		val = readl(base + stream_monitors[i].reg);
++		if (val & stream_monitors[i].mask) {
++			dev_err(dev, "error: Stream monitor %s is valid\n",
++				stream_monitors[i].name);
++			return -EIO;
++		}
++	}
++
++	/* Initialize GDC with default values */
++
++	for (i = 0; i < ARRAY_SIZE(ipu3_css_gdc_lut[0]); i++) {
++		u32 val0 = ipu3_css_gdc_lut[0][i] & IMGU_GDC_LUT_MASK;
++		u32 val1 = ipu3_css_gdc_lut[1][i] & IMGU_GDC_LUT_MASK;
++		u32 val2 = ipu3_css_gdc_lut[2][i] & IMGU_GDC_LUT_MASK;
++		u32 val3 = ipu3_css_gdc_lut[3][i] & IMGU_GDC_LUT_MASK;
++
++		writel(val0 | (val1 << 16),
++			base + IMGU_REG_GDC_LUT_BASE + i * 8);
++		writel(val2 | (val3 << 16),
++			base + IMGU_REG_GDC_LUT_BASE + i * 8 + 4);
++	};
++
++	return 0;
++}
++
++/* Boot the given IPU3 CSS SP */
++static int ipu3_css_hw_start_sp(struct ipu3_css *css, int sp)
++{
++	void __iomem *const base = css->base;
++	struct imgu_fw_info *bi = &css->fwp->binary_header[css->fw_sp[sp]];
++	struct imgu_abi_sp_init_dmem_cfg dmem_cfg = {
++		.ddr_data_addr = css->binary[css->fw_sp[sp]].daddr
++			+ bi->blob.data_source,
++		.dmem_data_addr = bi->blob.data_target,
++		.dmem_bss_addr = bi->blob.bss_target,
++		.data_size = bi->blob.data_size,
++		.bss_size = bi->blob.bss_size,
++		.sp_id = sp,
++	};
++
++	writes(&dmem_cfg, sizeof(dmem_cfg), base +
++		IMGU_REG_SP_DMEM_BASE(sp) + bi->info.sp.init_dmem_data);
++
++	writel(bi->info.sp.sp_entry, base + IMGU_REG_SP_START_ADDR(sp));
++
++	writel(readl(base + IMGU_REG_SP_CTRL(sp))
++		| IMGU_CTRL_START | IMGU_CTRL_RUN, base + IMGU_REG_SP_CTRL(sp));
++
++	if (ipu3_css_hw_wait(css, IMGU_REG_SP_DMEM_BASE(sp)
++				+ bi->info.sp.sw_state,
++				~0, IMGU_ABI_SP_SWSTATE_INITIALIZED))
++		return -EIO;
++
++	return 0;
++}
++
++/* Start the IPU3 CSS ImgU (Imaging Unit) and all the SPs */
++static int ipu3_css_hw_start(struct ipu3_css *css)
++{
++	static const u32 event_mask =
++		((1 << IMGU_ABI_EVTTYPE_OUT_FRAME_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_2ND_OUT_FRAME_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_VF_OUT_FRAME_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_2ND_VF_OUT_FRAME_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_3A_STATS_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_DIS_STATS_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_PIPELINE_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_FRAME_TAGGED) |
++		(1 << IMGU_ABI_EVTTYPE_INPUT_FRAME_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_METADATA_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_LACE_STATS_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_ACC_STAGE_COMPLETE))
++		<< IMGU_ABI_SP_COMM_EVENT_IRQ_MASK_OR_SHIFT;
++
++	void __iomem *const base = css->base;
++	struct imgu_fw_info *bi, *bl = &css->fwp->binary_header[css->fw_bl];
++	unsigned int i;
++
++	writel(IMGU_TLB_INVALIDATE, base + IMGU_REG_TLB_INVALIDATE);
++
++	/* Start bootloader */
++
++	writel(IMGU_ABI_BL_SWSTATE_BUSY,
++		base + IMGU_REG_ISP_DMEM_BASE + bl->info.bl.sw_state);
++	writel(IMGU_NUM_SP,
++		base + IMGU_REG_ISP_DMEM_BASE + bl->info.bl.num_dma_cmds);
++
++	for (i = 0; i < IMGU_NUM_SP; i++) {
++		int j = IMGU_NUM_SP - i - 1;	/* load sp1 first, then sp0 */
++		struct imgu_fw_info *sp =
++			&css->fwp->binary_header[css->fw_sp[j]];
++		struct imgu_abi_bl_dma_cmd_entry dma_cmd = {
++			.src_addr = css->binary[css->fw_sp[j]].daddr
++				+ sp->blob.text_source,
++			.size = sp->blob.text_size,
++			.dst_type = IMGU_ABI_BL_DMACMD_TYPE_SP_PMEM,
++			.dst_addr = IMGU_SP_PMEM_BASE(j),
++		};
++
++		writes(&dma_cmd, sizeof(dma_cmd),
++			base + IMGU_REG_ISP_DMEM_BASE + i * sizeof(dma_cmd) +
++			bl->info.bl.dma_cmd_list);
++	}
++
++	writel(bl->info.bl.bl_entry, base + IMGU_REG_ISP_START_ADDR);
++
++	writel(readl(base + IMGU_REG_ISP_CTRL)
++		| IMGU_CTRL_START | IMGU_CTRL_RUN, base + IMGU_REG_ISP_CTRL);
++	if (ipu3_css_hw_wait(css, IMGU_REG_ISP_DMEM_BASE + bl->info.bl.sw_state,
++				~0, IMGU_ABI_BL_SWSTATE_OK)) {
++		dev_err(css->dev, "failed to start bootloader\n");
++		return -EIO;
++	}
++
++	/* Start ISP */
++
++	memset(css->xmem_sp_group_ptrs.vaddr, 0,
++		sizeof(struct imgu_abi_sp_group));
++	dma_sync_single_for_device(css->dev,
++		css->xmem_sp_group_ptrs.daddr,
++		sizeof(struct imgu_abi_sp_group), DMA_TO_DEVICE);
++
++	bi = &css->fwp->binary_header[css->fw_sp[0]];
++
++	writel(css->xmem_sp_group_ptrs.daddr,
++		base + IMGU_REG_SP_DMEM_BASE(0) + bi->info.sp.per_frame_data);
++
++	writel(IMGU_ABI_SP_SWSTATE_TERMINATED,
++		base + IMGU_REG_SP_DMEM_BASE(0) + bi->info.sp.sw_state);
++	writel(1, base + IMGU_REG_SP_DMEM_BASE(0) + bi->info.sp.invalidate_tlb);
++
++	if (ipu3_css_hw_start_sp(css, 0))
++		return -EIO;
++
++	writel(0, base + IMGU_REG_SP_DMEM_BASE(0) + bi->info.sp.isp_started);
++	writel(0, base + IMGU_REG_SP_DMEM_BASE(0) +
++		bi->info.sp.host_sp_queues_initialized);
++	writel(0, base + IMGU_REG_SP_DMEM_BASE(0) + bi->info.sp.sleep_mode);
++	writel(0, base + IMGU_REG_SP_DMEM_BASE(0) + bi->info.sp.invalidate_tlb);
++	writel(IMGU_ABI_SP_COMM_COMMAND_READY, base + IMGU_REG_SP_DMEM_BASE(0)
++		+ bi->info.sp.host_sp_com + IMGU_ABI_SP_COMM_COMMAND);
++
++	/* Enable all events for all queues */
++
++	for (i = 0; i < IPU3_CSS_PIPE_ID_NUM; i++)
++		writel(event_mask, base + IMGU_REG_SP_DMEM_BASE(0)
++			+ bi->info.sp.host_sp_com
++			+ IMGU_ABI_SP_COMM_EVENT_IRQ_MASK(i));
++	writel(1, base + IMGU_REG_SP_DMEM_BASE(0) +
++		bi->info.sp.host_sp_queues_initialized);
++
++	/* Start SP1 */
++
++	bi = &css->fwp->binary_header[css->fw_sp[1]];
++
++	writel(IMGU_ABI_SP_SWSTATE_TERMINATED,
++		base + IMGU_REG_SP_DMEM_BASE(1) + bi->info.sp.sw_state);
++
++	if (ipu3_css_hw_start_sp(css, 1))
++		return -EIO;
++
++	writel(IMGU_ABI_SP_COMM_COMMAND_READY, base + IMGU_REG_SP_DMEM_BASE(1)
++		+ bi->info.sp.host_sp_com + IMGU_ABI_SP_COMM_COMMAND);
++
++	return 0;
++}
++
++static void ipu3_css_hw_cleanup(struct ipu3_css *css)
++{
++	void __iomem *const base = css->base;
++
++	/** Reset CSS **/
++
++	/* Clear the CSS busy signal */
++	readl(base + IMGU_REG_GP_BUSY);
++	writel(0, base + IMGU_REG_GP_BUSY);
++
++	/* Wait for idle signal */
++	if (ipu3_css_hw_wait(css, IMGU_REG_STATE, IMGU_STATE_IDLE_STS,
++				IMGU_STATE_IDLE_STS))
++		dev_err(css->dev, "failed to shut down hw cleanly\n");
++
++	/* Reset the css */
++	writel(readl(base + IMGU_REG_PM_CTRL) | IMGU_PM_CTRL_FORCE_RESET,
++		base + IMGU_REG_PM_CTRL);
++
++	usleep_range(200, 300);
++}
++
++int ipu3_css_irq_ack(struct ipu3_css *css)
++{
++	static const int NUM_SWIRQS = 3;
++	struct imgu_fw_info *bi = &css->fwp->binary_header[css->fw_sp[0]];
++	void __iomem *const base = css->base;
++	u32 irq_status[IMGU_IRQCTRL_NUM];
++	int i;
++
++	u32 imgu_status = readl(base + IMGU_REG_INT_STATUS);
++
++	for (i = 0; i < IMGU_IRQCTRL_NUM; i++)
++		irq_status[i] = readl(base + IMGU_REG_IRQCTRL_STATUS(i));
++
++	for (i = 0; i < NUM_SWIRQS; i++) {
++		if (irq_status[IMGU_IRQCTRL_SP0] & IMGU_IRQCTRL_IRQ_SW_PIN(i)) {
++			/* SP SW interrupt */
++			u32 cnt = readl(base + IMGU_REG_SP_DMEM_BASE(0) +
++					bi->info.sp.output);
++			u32 val = readl(base + IMGU_REG_SP_DMEM_BASE(0) +
++					bi->info.sp.output + 4 + 4 * i);
++
++			dev_dbg(css->dev, "%s: swirq %i cnt %i val 0x%x\n",
++				 __func__, i, cnt, val);
++		}
++	}
++
++	for (i = IMGU_IRQCTRL_NUM - 1; i >= 0; i--)
++		if (irq_status[i]) {
++			writel(irq_status[i], base + IMGU_REG_IRQCTRL_CLEAR(i));
++			/* Wait for write to complete */
++			readl(base + IMGU_REG_IRQCTRL_ENABLE(i));
++		}
++	writel(imgu_status, base + IMGU_REG_INT_STATUS);
++
++	dev_dbg(css->dev, "%s: imgu 0x%x main 0x%x sp0 0x%x sp1 0x%x\n",
++		__func__,
++		imgu_status, irq_status[IMGU_IRQCTRL_MAIN],
++		irq_status[IMGU_IRQCTRL_SP0], irq_status[IMGU_IRQCTRL_SP1]);
++
++	if (!imgu_status && !irq_status[IMGU_IRQCTRL_MAIN])
++		return -ENOMSG;
++
++	return 0;
++}
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-css.h b/drivers/media/pci/intel/ipu3/ipu3-css.h
+index 6416750..364d490 100644
+--- a/drivers/media/pci/intel/ipu3/ipu3-css.h
++++ b/drivers/media/pci/intel/ipu3/ipu3-css.h
+@@ -143,4 +143,9 @@ struct ipu3_css {
+ 	struct v4l2_rect rect[IPU3_CSS_RECTS];
  };
-@@ -457,6 +458,7 @@ struct v4l2_capability {
- #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
- #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
- #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
-+#define V4L2_CAP_META_OUTPUT		0x08000000  /* Is a metadata output device */
  
- #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
- 
++/******************* css hw *******************/
++int ipu3_css_set_powerup(struct ipu3_css *css);
++int ipu3_css_set_powerdown(struct ipu3_css *css);
++int ipu3_css_irq_ack(struct ipu3_css *css);
++
+ #endif
 -- 
 2.7.4
