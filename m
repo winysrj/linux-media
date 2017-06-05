@@ -1,427 +1,569 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35945 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751849AbdFGSfE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:35:04 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v8 16/34] platform: add video-multiplexer subdevice driver
-Date: Wed,  7 Jun 2017 11:33:55 -0700
-Message-Id: <1496860453-6282-17-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mga05.intel.com ([192.55.52.43]:14383 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751180AbdFEUjb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Jun 2017 16:39:31 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
+        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
+        Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH 02/12] intel-ipu3: mmu: implement driver
+Date: Mon,  5 Jun 2017 15:39:07 -0500
+Message-Id: <1496695157-19926-3-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+From: Tuukka Toivonen <tuukka.toivonen@intel.com>
 
-This driver can handle SoC internal and external video bus multiplexers,
-controlled by mux controllers provided by the mux controller framework,
-such as MMIO register bitfields or GPIOs. The subdevice passes through
-the mbus configuration of the active input to the output side.
+This driver translates Intel IPU3 internal virtual
+address to physical address.
 
-Since the mux framework is not yet merged, this driver contains
-temporary mmio-mux support to work without the framework. The driver
-should be converted to use the multiplexer API once the "mux: minimal
-mux subsystem" and "mux: mmio-based syscon mux controller" patches are
-merged.
-
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 ---
- drivers/media/platform/Kconfig     |   6 +
- drivers/media/platform/Makefile    |   2 +
- drivers/media/platform/video-mux.c | 334 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 342 insertions(+)
- create mode 100644 drivers/media/platform/video-mux.c
+ drivers/media/pci/intel/ipu3/Kconfig    |  11 +
+ drivers/media/pci/intel/ipu3/Makefile   |   1 +
+ drivers/media/pci/intel/ipu3/ipu3-mmu.c | 423 ++++++++++++++++++++++++++++++++
+ drivers/media/pci/intel/ipu3/ipu3-mmu.h |  73 ++++++
+ 4 files changed, 508 insertions(+)
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.h
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 288d3b0..1940d87 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -74,6 +74,12 @@ config VIDEO_M32R_AR_M64278
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called arv.
- 
-+config VIDEO_MUX
-+	tristate "Video Multiplexer"
-+	depends on OF && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
-+	help
-+	  This driver provides support for N:1 video bus multiplexers.
+diff --git a/drivers/media/pci/intel/ipu3/Kconfig b/drivers/media/pci/intel/ipu3/Kconfig
+index 2a895d6..ab2edcb 100644
+--- a/drivers/media/pci/intel/ipu3/Kconfig
++++ b/drivers/media/pci/intel/ipu3/Kconfig
+@@ -15,3 +15,14 @@ config VIDEO_IPU3_CIO2
+ 	Say Y or M here if you have a Skylake/Kaby Lake SoC with MIPI CSI-2
+ 	connected camera.
+ 	The module will be called ipu3-cio2.
 +
- config VIDEO_OMAP3
- 	tristate "OMAP 3 Camera support"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 231f3c2..a9ff99d 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -28,6 +28,8 @@ obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
- 
- obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
- 
-+obj-$(CONFIG_VIDEO_MUX)			+= video-mux.o
++config INTEL_IPU3_MMU
++	tristate "Intel ipu3-mmu driver"
++	select IOMMU_API
++	select IOMMU_IOVA
++	---help---
++	  For IPU3, this option enables its MMU driver to translate its internal
++	  virtual address to 39 bits wide physical address for 64GBytes space access.
 +
- obj-$(CONFIG_VIDEO_S3C_CAMIF) 		+= s3c-camif/
- obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS4_IS) 	+= exynos4-is/
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
-diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
++	  Say Y here if you have Skylake/Kaby Lake SoC with IPU3.
++	  Say N if un-sure.
+diff --git a/drivers/media/pci/intel/ipu3/Makefile b/drivers/media/pci/intel/ipu3/Makefile
+index 20186e3..2b669df 100644
+--- a/drivers/media/pci/intel/ipu3/Makefile
++++ b/drivers/media/pci/intel/ipu3/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_VIDEO_IPU3_CIO2) += ipu3-cio2.o
++obj-$(CONFIG_INTEL_IPU3_MMU) += ipu3-mmu.o
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-mmu.c b/drivers/media/pci/intel/ipu3/ipu3-mmu.c
 new file mode 100644
-index 0000000..6657447
+index 0000000..a9fb116
 --- /dev/null
-+++ b/drivers/media/platform/video-mux.c
-@@ -0,0 +1,334 @@
++++ b/drivers/media/pci/intel/ipu3/ipu3-mmu.c
+@@ -0,0 +1,423 @@
 +/*
-+ * video stream multiplexer controlled via mux control
-+ *
-+ * Copyright (C) 2013 Pengutronix, Sascha Hauer <kernel@pengutronix.de>
-+ * Copyright (C) 2016-2017 Pengutronix, Philipp Zabel <kernel@pengutronix.de>
++ * Copyright (c) 2017 Intel Corporation.
 + *
 + * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
 + * This program is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
 + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 + * GNU General Public License for more details.
++ *
 + */
 +
-+#include <linux/err.h>
++#include <asm/cacheflush.h>
 +#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/regmap.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/of.h>
-+#include <linux/of_graph.h>
-+#include <linux/platform_device.h>
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
++#include <linux/slab.h>
 +
-+struct video_mux {
-+	struct v4l2_subdev subdev;
-+	struct media_pad *pads;
-+	struct v4l2_mbus_framefmt *format_mbus;
-+	struct regmap_field *field;
-+	struct mutex lock;
-+	int active;
-+};
++#include "ipu3-mmu.h"
 +
-+static inline struct video_mux *v4l2_subdev_to_video_mux(struct v4l2_subdev *sd)
++/**
++ * ipu3_mmu_tlb_invalidate - invalidate translation look-aside buffer
++ * @addr: base address to access REG_TLB_INVALIDATE
++ *
++ * This function must be called when MMU has power
++ */
++static void ipu3_mmu_tlb_invalidate(void __iomem *addr)
 +{
-+	return container_of(sd, struct video_mux, subdev);
++	writel(TLB_INVALIDATE, addr + REG_TLB_INVALIDATE);
 +}
 +
-+static int video_mux_link_setup(struct media_entity *entity,
-+				const struct media_pad *local,
-+				const struct media_pad *remote, u32 flags)
++static int ipu3_mmu_add_device(struct device *dev)
 +{
-+	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-+	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
-+	int ret = 0;
++	struct ipu3_mmu *mmu = dev_get_drvdata(dev);
 +
-+	/*
-+	 * The mux state is determined by the enabled sink pad link.
-+	 * Enabling or disabling the source pad link has no effect.
-+	 */
-+	if (local->flags & MEDIA_PAD_FL_SOURCE)
++	/* mapping domain must be prepared */
++	if (!mmu->domain)
 +		return 0;
 +
-+	dev_dbg(sd->dev, "link setup '%s':%d->'%s':%d[%d]",
-+		remote->entity->name, remote->index, local->entity->name,
-+		local->index, flags & MEDIA_LNK_FL_ENABLED);
-+
-+	mutex_lock(&vmux->lock);
-+
-+	if (flags & MEDIA_LNK_FL_ENABLED) {
-+		if (vmux->active == local->index)
-+			goto out;
-+
-+		if (vmux->active >= 0) {
-+			ret = -EBUSY;
-+			goto out;
-+		}
-+
-+		dev_dbg(sd->dev, "setting %d active\n", local->index);
-+		ret = regmap_field_write(vmux->field, local->index);
-+		if (ret < 0)
-+			goto out;
-+		vmux->active = local->index;
-+	} else {
-+		if (vmux->active != local->index)
-+			goto out;
-+
-+		dev_dbg(sd->dev, "going inactive\n");
-+		vmux->active = -1;
-+	}
-+
-+out:
-+	mutex_unlock(&vmux->lock);
-+	return ret;
++	return iommu_attach_device(mmu->domain, dev);
 +}
 +
-+static const struct media_entity_operations video_mux_ops = {
-+	.link_setup = video_mux_link_setup,
-+	.link_validate = v4l2_subdev_link_validate,
-+};
-+
-+static int video_mux_s_stream(struct v4l2_subdev *sd, int enable)
++/**
++ * ipu3_mmu_alloc_page_table - get page to fill entries with dummy defaults
++ * @d: mapping domain to be worked on
++ * @l1: True for L1 page table, false for L2 page table.
++ *
++ * Index of L1 page table points to L2 tbl
++ *
++ * Return: Pointer to allocated page table
++ * or NULL on failure.
++ */
++static uint32_t *ipu3_mmu_alloc_page_table(struct ipu3_mmu_domain *d, bool l1)
 +{
-+	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
-+	struct v4l2_subdev *upstream_sd;
-+	struct media_pad *pad;
-+
-+	if (vmux->active == -1) {
-+		dev_err(sd->dev, "Can not start streaming on inactive mux\n");
-+		return -EINVAL;
-+	}
-+
-+	pad = media_entity_remote_pad(&sd->entity.pads[vmux->active]);
-+	if (!pad) {
-+		dev_err(sd->dev, "Failed to find remote source pad\n");
-+		return -ENOLINK;
-+	}
-+
-+	if (!is_media_entity_v4l2_subdev(pad->entity)) {
-+		dev_err(sd->dev, "Upstream entity is not a v4l2 subdev\n");
-+		return -ENODEV;
-+	}
-+
-+	upstream_sd = media_entity_to_v4l2_subdev(pad->entity);
-+
-+	return v4l2_subdev_call(upstream_sd, video, s_stream, enable);
-+}
-+
-+static const struct v4l2_subdev_video_ops video_mux_subdev_video_ops = {
-+	.s_stream = video_mux_s_stream,
-+};
-+
-+static struct v4l2_mbus_framefmt *
-+__video_mux_get_pad_format(struct v4l2_subdev *sd,
-+			   struct v4l2_subdev_pad_config *cfg,
-+			   unsigned int pad, u32 which)
-+{
-+	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
-+
-+	switch (which) {
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		return v4l2_subdev_get_try_format(sd, cfg, pad);
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		return &vmux->format_mbus[pad];
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+static int video_mux_get_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *sdformat)
-+{
-+	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
-+
-+	mutex_lock(&vmux->lock);
-+
-+	sdformat->format = *__video_mux_get_pad_format(sd, cfg, sdformat->pad,
-+						       sdformat->which);
-+
-+	mutex_unlock(&vmux->lock);
-+
-+	return 0;
-+}
-+
-+static int video_mux_set_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *sdformat)
-+{
-+	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
-+	struct v4l2_mbus_framefmt *mbusformat;
-+	struct media_pad *pad = &vmux->pads[sdformat->pad];
-+
-+	mbusformat = __video_mux_get_pad_format(sd, cfg, sdformat->pad,
-+					    sdformat->which);
-+	if (!mbusformat)
-+		return -EINVAL;
-+
-+	mutex_lock(&vmux->lock);
-+
-+	/* Source pad mirrors active sink pad, no limitations on sink pads */
-+	if ((pad->flags & MEDIA_PAD_FL_SOURCE) && vmux->active >= 0)
-+		sdformat->format = vmux->format_mbus[vmux->active];
-+
-+	*mbusformat = sdformat->format;
-+
-+	mutex_unlock(&vmux->lock);
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_pad_ops video_mux_pad_ops = {
-+	.get_fmt = video_mux_get_format,
-+	.set_fmt = video_mux_set_format,
-+};
-+
-+static const struct v4l2_subdev_ops video_mux_subdev_ops = {
-+	.pad = &video_mux_pad_ops,
-+	.video = &video_mux_subdev_video_ops,
-+};
-+
-+static int video_mux_probe_mmio_mux(struct video_mux *vmux)
-+{
-+	struct device *dev = vmux->subdev.dev;
-+	struct of_phandle_args args;
-+	struct reg_field field;
-+	struct regmap *regmap;
-+	u32 reg, mask;
-+	int ret;
-+
-+	ret = of_parse_phandle_with_args(dev->of_node, "mux-controls",
-+					 "#mux-control-cells", 0, &args);
-+	if (ret)
-+		return ret;
-+
-+	if (!of_device_is_compatible(args.np, "mmio-mux"))
-+		return -EINVAL;
-+
-+	regmap = syscon_node_to_regmap(args.np->parent);
-+	if (IS_ERR(regmap))
-+		return PTR_ERR(regmap);
-+
-+	ret = of_property_read_u32_index(args.np, "mux-reg-masks",
-+					 2 * args.args[0], &reg);
-+	if (!ret)
-+		ret = of_property_read_u32_index(args.np, "mux-reg-masks",
-+						 2 * args.args[0] + 1, &mask);
-+	if (ret < 0)
-+		return ret;
-+
-+	field.reg = reg;
-+	field.msb = fls(mask) - 1;
-+	field.lsb = ffs(mask) - 1;
-+
-+	vmux->field = devm_regmap_field_alloc(dev, regmap, field);
-+	if (IS_ERR(vmux->field))
-+		return PTR_ERR(vmux->field);
-+
-+	return 0;
-+}
-+
-+static int video_mux_probe(struct platform_device *pdev)
-+{
-+	struct device_node *np = pdev->dev.of_node;
-+	struct device *dev = &pdev->dev;
-+	struct device_node *ep;
-+	struct video_mux *vmux;
-+	unsigned int num_pads = 0;
-+	int ret;
++	uint32_t *pt = (uint32_t *)__get_free_page(GFP_KERNEL);
 +	int i;
 +
-+	vmux = devm_kzalloc(dev, sizeof(*vmux), GFP_KERNEL);
-+	if (!vmux)
-+		return -ENOMEM;
++	if (!pt)
++		return NULL;
 +
-+	platform_set_drvdata(pdev, vmux);
++	for (i = 0; i < IPU3_MMU_L1PT_PTES; i++)
++		pt[i] = l1 ? d->dummy_l2_tbl : d->dummy_page;
 +
-+	v4l2_subdev_init(&vmux->subdev, &video_mux_subdev_ops);
-+	snprintf(vmux->subdev.name, sizeof(vmux->subdev.name), "%s", np->name);
-+	vmux->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	vmux->subdev.dev = dev;
-+
-+	/*
-+	 * The largest numbered port is the output port. It determines
-+	 * total number of pads.
-+	 */
-+	for_each_endpoint_of_node(np, ep) {
-+		struct of_endpoint endpoint;
-+
-+		of_graph_parse_endpoint(ep, &endpoint);
-+		num_pads = max(num_pads, endpoint.port + 1);
-+	}
-+
-+	if (num_pads < 2) {
-+		dev_err(dev, "Not enough ports %d\n", num_pads);
-+		return -EINVAL;
-+	}
-+
-+	ret = video_mux_probe_mmio_mux(vmux);
-+	if (ret) {
-+		if (ret != -EPROBE_DEFER)
-+			dev_err(dev, "Failed to get mux: %d\n", ret);
-+		return ret;
-+	}
-+
-+	mutex_init(&vmux->lock);
-+	vmux->active = -1;
-+	vmux->pads = devm_kcalloc(dev, num_pads, sizeof(*vmux->pads),
-+				  GFP_KERNEL);
-+	vmux->format_mbus = devm_kcalloc(dev, num_pads,
-+					 sizeof(*vmux->format_mbus),
-+					 GFP_KERNEL);
-+
-+	for (i = 0; i < num_pads - 1; i++)
-+		vmux->pads[i].flags = MEDIA_PAD_FL_SINK;
-+	vmux->pads[num_pads - 1].flags = MEDIA_PAD_FL_SOURCE;
-+
-+	vmux->subdev.entity.function = MEDIA_ENT_F_VID_MUX;
-+	ret = media_entity_pads_init(&vmux->subdev.entity, num_pads,
-+				     vmux->pads);
-+	if (ret < 0)
-+		return ret;
-+
-+	vmux->subdev.entity.ops = &video_mux_ops;
-+
-+	return v4l2_async_register_subdev(&vmux->subdev);
++	return pt;
 +}
 +
-+static int video_mux_remove(struct platform_device *pdev)
++/**
++ * ipu3_mmu_domain_alloc - initialize and allocate pgt for domain
++ * @type: possible domain-types
++ *
++ * Allocate dummy page, L2 tbl and L1 tbl in that order
++ *
++ * Return: Pointer to allocated iommu_domain instance
++ * or NULL on failure.
++ */
++static struct iommu_domain *ipu3_mmu_domain_alloc(unsigned int type)
 +{
-+	struct video_mux *vmux = platform_get_drvdata(pdev);
-+	struct v4l2_subdev *sd = &vmux->subdev;
++	struct ipu3_mmu_domain *mmu_dom;
++	void *ptr;
 +
-+	v4l2_async_unregister_subdev(sd);
-+	media_entity_cleanup(&sd->entity);
++	if (type != IOMMU_DOMAIN_UNMANAGED)
++		return NULL;
++
++	mmu_dom = kzalloc(sizeof(*mmu_dom), GFP_KERNEL);
++	if (!mmu_dom)
++		return NULL;
++
++	mmu_dom->domain.geometry.aperture_start = 0;
++	mmu_dom->domain.geometry.aperture_end   =
++		DMA_BIT_MASK(IPU3_MMU_ADDRESS_BITS);
++	mmu_dom->domain.geometry.force_aperture = true;
++
++	ptr = (void *)__get_free_page(GFP_KERNEL);
++	if (!ptr)
++		goto fail_get_page;
++	mmu_dom->dummy_page = virt_to_phys(ptr) >> IPU3_MMU_PAGE_SHIFT;
++	ptr = ipu3_mmu_alloc_page_table(mmu_dom, false);
++	if (!ptr)
++		goto fail_page_table;
++
++	/*
++	 * We always map the L1 page table (a single page as well as
++	 * the L2 page tables).
++	 */
++	mmu_dom->dummy_l2_tbl = virt_to_phys(ptr) >> IPU3_MMU_PAGE_SHIFT;
++	mmu_dom->pgtbl = ipu3_mmu_alloc_page_table(mmu_dom, true);
++	if (!mmu_dom->pgtbl)
++		goto fail_page_table;
++
++	spin_lock_init(&mmu_dom->lock);
++	return &mmu_dom->domain;
++
++fail_page_table:
++	free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_page));
++	free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_l2_tbl));
++fail_get_page:
++	kfree(mmu_dom);
++	return NULL;
++}
++
++static void ipu3_mmu_domain_free(struct iommu_domain *dom)
++{
++	struct ipu3_mmu_domain *mmu_dom =
++		container_of(dom, struct ipu3_mmu_domain, domain);
++	uint32_t l1_idx;
++
++	for (l1_idx = 0; l1_idx < IPU3_MMU_L1PT_PTES; l1_idx++)
++		if (mmu_dom->pgtbl[l1_idx] != mmu_dom->dummy_l2_tbl)
++			free_page((unsigned long)
++				  TBL_VIRT_ADDR(mmu_dom->pgtbl[l1_idx]));
++
++	free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_page));
++	free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_l2_tbl));
++	free_page((unsigned long)mmu_dom->pgtbl);
++	kfree(mmu_dom);
++}
++
++/**
++ * ipu3_mmu_map - mapping iova allocated cache to phy addr
++ * @domain: iommu domain
++ * @iova: virtual address
++ * @paddr: physical address
++ * @size: size to be mapped
++ * Allocate L2 pgt if needed and establish the mapping between
++ * iova address space and pfn
++ *
++ * Return: 0 for success
++ * or negative on failure.
++ */
++static int ipu3_mmu_map(struct iommu_domain *domain, unsigned long iova,
++			phys_addr_t paddr, size_t size, int prot)
++{
++	struct ipu3_mmu_domain *mmu_dom =
++		container_of(domain, struct ipu3_mmu_domain, domain);
++	uint32_t iova_start = round_down(iova, IPU3_MMU_PAGE_SIZE);
++	uint32_t iova_end = ALIGN(iova + size, IPU3_MMU_PAGE_SIZE);
++	uint32_t l1_idx = iova >> IPU3_MMU_L1PT_SHIFT;
++	uint32_t l1_entry = mmu_dom->pgtbl[l1_idx];
++	uint32_t *l2_pt;
++	uint32_t l2_idx;
++	unsigned long flags;
++
++	/* map to single PAGE */
++	WARN_ON(size != IPU3_MMU_PAGE_SIZE);
++
++	dev_dbg(mmu_dom->mmu->dev,
++		"mapping iova 0x%8.8x--0x%8.8x, size %zu at paddr 0x%pa\n",
++		iova_start, iova_end, size, &paddr);
++	dev_dbg(mmu_dom->mmu->dev,
++		"mapping l2 page table for l1 index %u (iova 0x%8.8lx)\n",
++		l1_idx, iova);
++
++	if (l1_entry == mmu_dom->dummy_l2_tbl) {
++		uint32_t *l2_virt = ipu3_mmu_alloc_page_table(mmu_dom, false);
++
++		if (!l2_virt)
++			return -ENOMEM;
++
++		l1_entry = virt_to_phys(l2_virt) >> IPU3_MMU_PAGE_SHIFT;
++		dev_dbg(mmu_dom->mmu->dev,
++			"allocated page for l1_idx %u\n", l1_idx);
++
++		spin_lock_irqsave(&mmu_dom->lock, flags);
++		if (mmu_dom->pgtbl[l1_idx] == mmu_dom->dummy_l2_tbl) {
++			mmu_dom->pgtbl[l1_idx] = l1_entry;
++			clflush_cache_range(&mmu_dom->pgtbl[l1_idx],
++					    sizeof(mmu_dom->pgtbl[l1_idx]));
++		} else {
++			spin_unlock_irqrestore(&mmu_dom->lock, flags);
++			free_page((unsigned long)TBL_VIRT_ADDR(l1_entry));
++			spin_lock_irqsave(&mmu_dom->lock, flags);
++		}
++	} else {
++		spin_lock_irqsave(&mmu_dom->lock, flags);
++	}
++
++	l2_pt = TBL_VIRT_ADDR(mmu_dom->pgtbl[l1_idx]);
++
++	dev_dbg(mmu_dom->mmu->dev, "l2_pt at %p\n", l2_pt);
++
++	paddr = ALIGN(paddr, IPU3_MMU_PAGE_SIZE);
++
++	l2_idx = (iova_start & IPU3_MMU_L2PT_MASK) >> IPU3_MMU_L2PT_SHIFT;
++
++	dev_dbg(mmu_dom->mmu->dev,
++		"l2_idx %u, phys 0x%8.8x\n", l2_idx, l2_pt[l2_idx]);
++	if (l2_pt[l2_idx] != mmu_dom->dummy_page) {
++		spin_unlock_irqrestore(&mmu_dom->lock, flags);
++		return -EBUSY;
++	}
++
++	/* write 27 bit phy addr to L2 pgt*/
++	l2_pt[l2_idx] = paddr >> IPU3_MMU_PAGE_SHIFT;
++
++	spin_unlock_irqrestore(&mmu_dom->lock, flags);
++
++	clflush_cache_range(&l2_pt[l2_idx], sizeof(l2_pt[l2_idx]));
++
++	dev_dbg(mmu_dom->mmu->dev,
++		"l2 index %u mapped as 0x%8.8x\n", l2_idx, l2_pt[l2_idx]);
++
++	ipu3_mmu_tlb_invalidate(mmu_dom->mmu->base);
 +
 +	return 0;
 +}
 +
-+static const struct of_device_id video_mux_dt_ids[] = {
-+	{ .compatible = "video-mux", },
-+	{ /* sentinel */ }
++static size_t ipu3_mmu_unmap(struct iommu_domain *domain, unsigned long iova,
++			     size_t size)
++{
++	struct ipu3_mmu_domain *mmu_dom =
++		container_of(domain, struct ipu3_mmu_domain, domain);
++	uint32_t l1_idx = iova >> IPU3_MMU_L1PT_SHIFT;
++	uint32_t *l2_pt = TBL_VIRT_ADDR(mmu_dom->pgtbl[l1_idx]);
++	uint32_t iova_start = iova;
++	unsigned int l2_idx;
++	size_t unmapped = 0;
++
++	dev_dbg(mmu_dom->mmu->dev,
++		"unmapping l2 page table for l1 index %u (iova 0x%8.8lx)\n",
++		l1_idx, iova);
++
++	if (mmu_dom->pgtbl[l1_idx] == mmu_dom->dummy_l2_tbl)
++		return -EINVAL;
++
++	dev_dbg(mmu_dom->mmu->dev, "l2_pt at %p\n", l2_pt);
++
++	for (l2_idx = (iova_start & IPU3_MMU_L2PT_MASK) >> IPU3_MMU_L2PT_SHIFT;
++	     (iova_start & IPU3_MMU_L1PT_MASK) + (l2_idx << IPU3_MMU_PAGE_SHIFT)
++		      < iova_start + size && l2_idx < IPU3_MMU_L2PT_PTES;
++	      l2_idx++) {
++		unsigned long flags;
++
++		dev_dbg(mmu_dom->mmu->dev,
++			"l2 index %u unmapped, was 0x%10.10lx\n",
++			l2_idx, (unsigned long)TBL_PHYS_ADDR(l2_pt[l2_idx]));
++		spin_lock_irqsave(&mmu_dom->lock, flags);
++		l2_pt[l2_idx] = mmu_dom->dummy_page;
++		spin_unlock_irqrestore(&mmu_dom->lock, flags);
++		clflush_cache_range(&l2_pt[l2_idx], sizeof(l2_pt[l2_idx]));
++		unmapped++;
++	}
++
++	ipu3_mmu_tlb_invalidate(mmu_dom->mmu->base);
++
++	return unmapped << IPU3_MMU_PAGE_SHIFT;
++}
++
++static phys_addr_t ipu3_mmu_iova_to_phys(struct iommu_domain *domain,
++					 dma_addr_t iova)
++{
++	struct ipu3_mmu_domain *d =
++		container_of(domain, struct ipu3_mmu_domain, domain);
++	uint32_t *l2_pt = TBL_VIRT_ADDR(d->pgtbl[iova >> IPU3_MMU_L1PT_SHIFT]);
++
++	return (phys_addr_t)l2_pt[(iova & IPU3_MMU_L2PT_MASK)
++				>> IPU3_MMU_L2PT_SHIFT] << IPU3_MMU_PAGE_SHIFT;
++}
++
++static struct iommu_ops ipu3_mmu_ops = {
++	.add_device	= ipu3_mmu_add_device,
++	.domain_alloc   = ipu3_mmu_domain_alloc,
++	.domain_free    = ipu3_mmu_domain_free,
++	.map		= ipu3_mmu_map,
++	.unmap		= ipu3_mmu_unmap,
++	.iova_to_phys	= ipu3_mmu_iova_to_phys,
++	.pgsize_bitmap	= SZ_4K,
 +};
-+MODULE_DEVICE_TABLE(of, video_mux_dt_ids);
 +
-+static struct platform_driver video_mux_driver = {
-+	.probe		= video_mux_probe,
-+	.remove		= video_mux_remove,
-+	.driver		= {
-+		.of_match_table = video_mux_dt_ids,
-+		.name = "video-mux",
-+	},
++static int ipu3_mmu_bus_match(struct device *dev, struct device_driver *drv)
++{
++	return !strcmp(dev_name(dev), drv->name);
++}
++
++static int ipu3_mmu_bus_probe(struct device *dev)
++{
++	struct ipu3_mmu *mmu = dev_get_drvdata(dev);
++	struct ipu3_mmu_domain *mmu_domain;
++	int r;
++
++	r = bus_set_iommu(dev->bus, &ipu3_mmu_ops);
++	if (r)
++		return r;
++
++	/* mmu_domain allocated */
++	mmu->domain = iommu_domain_alloc(dev->bus);
++	if (!mmu->domain)
++		return -ENOMEM;
++
++	/* Write page table address */
++	mmu_domain = container_of(mmu->domain, struct ipu3_mmu_domain, domain);
++	/* Write L1 pgt addr to config reg*/
++	mmu_domain->mmu = mmu;
++
++	writel((phys_addr_t)virt_to_phys(mmu_domain->pgtbl)
++		>> IPU3_MMU_PAGE_SHIFT, mmu->base + REG_L1_PHYS);
++	ipu3_mmu_tlb_invalidate(mmu->base);
++	/* 4K page granularity, start and end pfn */
++	init_iova_domain(&mmu->iova_domain, SZ_4K, 1,
++			 dma_get_mask(dev) >> PAGE_SHIFT);
++
++	r = iova_cache_get();
++	if (r)
++		goto fail_cache;
++
++	return 0;
++
++fail_cache:
++	put_iova_domain(&mmu->iova_domain);
++	iommu_domain_free(mmu->domain);
++	return r;
++}
++
++static void ipu3_mmu_release(struct device *dev)
++{
++}
++
++static int ipu3_mmu_bus_remove(struct device *dev)
++{
++	struct ipu3_mmu *mmu = dev_get_drvdata(dev);
++
++	put_iova_domain(&mmu->iova_domain);
++	iova_cache_put();
++	iommu_domain_free(mmu->domain);
++
++	return 0;
++}
++
++static struct bus_type ipu3_mmu_bus = {
++	.name   = IPU3_MMU_BUS_NAME,
++	.match  = ipu3_mmu_bus_match,
++	.probe  = ipu3_mmu_bus_probe,
++	.remove = ipu3_mmu_bus_remove,
 +};
 +
-+module_platform_driver(video_mux_driver);
++static struct device ipu3_mmu_device = {
++	.bus     = &ipu3_mmu_bus,
++	.release = ipu3_mmu_release,
++};
 +
-+MODULE_DESCRIPTION("video stream multiplexer");
-+MODULE_AUTHOR("Sascha Hauer, Pengutronix");
-+MODULE_AUTHOR("Philipp Zabel, Pengutronix");
-+MODULE_LICENSE("GPL");
++static struct device_driver ipu3_mmu_driver = {
++	.name  = IPU3_MMU_NAME,
++	.owner = THIS_MODULE,
++	.bus   = &ipu3_mmu_bus,
++};
++
++int ipu3_mmu_init(struct ipu3_mmu *mmu, void __iomem *base, struct device *dev)
++{
++	struct ipu3_mmu_domain *mmu_dom;
++	int r;
++
++	mmu->base = base;
++	mmu->dev  = &ipu3_mmu_device;
++
++	r = bus_register(&ipu3_mmu_bus);
++	if (r)
++		goto fail_bus;
++
++	r = dev_set_name(mmu->dev, IPU3_MMU_NAME);
++	if (r)
++		goto fail_device;
++	if (dev->dma_mask) {
++		mmu->dma_mask = DMA_BIT_MASK(IPU3_MMU_ADDRESS_BITS);
++		mmu->dev->dma_mask = &mmu->dma_mask;
++	}
++	mmu->dev->coherent_dma_mask = mmu->dma_mask;
++	dev_set_drvdata(mmu->dev, mmu);
++	r = device_register(mmu->dev);
++	if (r) {
++		put_device(mmu->dev);
++		goto fail_device;
++	}
++
++	r = driver_register(&ipu3_mmu_driver);
++	if (r)
++		goto fail_driver;
++
++	mmu_dom = container_of(mmu->domain, struct ipu3_mmu_domain, domain);
++	mmu->pgtbl = virt_to_phys(mmu_dom->pgtbl);
++
++	return 0;
++
++fail_driver:
++	device_unregister(mmu->dev);
++fail_device:
++	bus_unregister(&ipu3_mmu_bus);
++fail_bus:
++	return r;
++}
++EXPORT_SYMBOL_GPL(ipu3_mmu_init);
++
++void ipu3_mmu_exit(struct ipu3_mmu *mmu)
++{
++	driver_unregister(&ipu3_mmu_driver);
++	device_unregister(mmu->dev);
++	bus_unregister(&ipu3_mmu_bus);
++}
++EXPORT_SYMBOL_GPL(ipu3_mmu_exit);
++
++MODULE_AUTHOR("Tuukka Toivonen <tuukka.toivonen@intel.com>");
++MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
++MODULE_AUTHOR("Samu Onkalo <samu.onkalo@intel.com>");
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("ipu3 mmu driver");
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-mmu.h b/drivers/media/pci/intel/ipu3/ipu3-mmu.h
+new file mode 100644
+index 0000000..45ad400
+--- /dev/null
++++ b/drivers/media/pci/intel/ipu3/ipu3-mmu.h
+@@ -0,0 +1,73 @@
++/*
++ * Copyright (c) 2017 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#ifndef __IPU3_MMU_H
++#define __IPU3_MMU_H
++
++#include <linux/iova.h>
++#include <linux/iommu.h>
++
++#define to_ipu3_mmu(dev)	dev_get_drvdata(dev)
++
++#define IPU3_MMU_NAME		"ipu3-mmu"
++#define IPU3_MMU_BUS_NAME	"ipu3-bus"
++
++#define IPU3_MMU_ADDRESS_BITS	32
++
++#define IPU3_MMU_PAGE_SHIFT	12
++#define IPU3_MMU_PAGE_SIZE	(1U << IPU3_MMU_PAGE_SHIFT)
++#define IPU3_MMU_PAGE_MASK	(~(IPU3_MMU_PAGE_SIZE - 1))
++
++#define IPU3_MMU_L1PT_SHIFT	22
++#define IPU3_MMU_L1PT_MASK	(~((1U << IPU3_MMU_L1PT_SHIFT) - 1))
++#define IPU3_MMU_L1PT_PTES	1024
++
++#define IPU3_MMU_L2PT_SHIFT	IPU3_MMU_PAGE_SHIFT
++#define IPU3_MMU_L2PT_MASK	(~(IPU3_MMU_L1PT_MASK | \
++				 (~(IPU3_MMU_PAGE_MASK))))
++#define IPU3_MMU_L2PT_PTES	1024
++
++#define REG_TLB_INVALIDATE	0x0300
++#define TLB_INVALIDATE		1
++#define IMGU_REG_BASE		0x4000
++#define REG_L1_PHYS		(IMGU_REG_BASE + 0x304) /* 27-bit pfn */
++
++#define TBL_VIRT_ADDR(a)	((a) ? phys_to_virt(TBL_PHYS_ADDR(a)) : NULL)
++#define TBL_PHYS_ADDR(a)	((phys_addr_t)(a) << \
++					IPU3_MMU_PAGE_SHIFT)
++
++struct ipu3_mmu_domain {
++	struct ipu3_mmu *mmu;
++	struct iommu_domain domain;
++	spinlock_t lock;
++
++	uint32_t __iomem *pgtbl;
++	uint32_t dummy_l2_tbl;
++	uint32_t dummy_page;
++};
++
++struct ipu3_mmu {
++	struct device *dev;
++	struct iommu_domain *domain;
++	struct iova_domain iova_domain;
++	phys_addr_t pgtbl;
++	u64 dma_mask;
++	void __iomem *base;
++};
++
++void ipu3_mmu_dump_page_table(struct ipu3_mmu *mmu);
++int ipu3_mmu_init(struct ipu3_mmu *mmu, void __iomem *base, struct device *dev);
++void ipu3_mmu_exit(struct ipu3_mmu *mmu);
++
++#endif
 -- 
 2.7.4
