@@ -1,2171 +1,1040 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:64487 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751235AbdFEUjj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Jun 2017 16:39:39 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH 07/12] intel-ipu3: css: firmware management
-Date: Mon,  5 Jun 2017 15:39:12 -0500
-Message-Id: <1496695157-19926-8-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+Received: from server9165.clearfield.co.nz ([210.48.107.165]:52998 "EHLO
+        zeus.clearfield.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751225AbdFEDpO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Jun 2017 23:45:14 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by zeus.clearfield.com (Postfix) with ESMTP id 9FB8C2581DDB
+        for <linux-media@vger.kernel.org>; Mon,  5 Jun 2017 15:36:45 +1200 (NZST)
+Received: from [192.168.12.178] (unknown [210.54.33.127])
+        (using TLSv1.2 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: jfp)
+        by zeus.clearfield.com (Postfix) with ESMTPSA id 9E6232581CCE
+        for <linux-media@vger.kernel.org>; Mon,  5 Jun 2017 15:36:33 +1200 (NZST)
+To: linux-media@vger.kernel.org
+From: Jean-Francois Pirus <jfp@clearfield.com>
+Subject: Updated frequencies for nz-AucklandInfill and nz-AucklandWaiatarua
+Message-ID: <713138de-c811-dcba-86cf-f806c0e4748c@clearfield.com>
+Date: Mon, 5 Jun 2017 15:36:33 +1200
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------EE838785377A207ABC2FAB62"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Functions to load and install imgu FW blobs
+This is a multi-part message in MIME format.
+--------------EE838785377A207ABC2FAB62
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
----
- drivers/media/pci/intel/ipu3/ipu3-abi.h    | 1572 ++++++++++++++++++++++++++++
- drivers/media/pci/intel/ipu3/ipu3-css-fw.c |  272 +++++
- drivers/media/pci/intel/ipu3/ipu3-css-fw.h |  215 ++++
- drivers/media/pci/intel/ipu3/ipu3-css.h    |   54 +
- 4 files changed, 2113 insertions(+)
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-abi.h
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.h
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css.h
 
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-abi.h b/drivers/media/pci/intel/ipu3/ipu3-abi.h
-new file mode 100644
-index 0000000..7a9237e
---- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-abi.h
-@@ -0,0 +1,1572 @@
-+/*
-+ * Copyright (c) 2017 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef __IPU3_ABI_H
-+#define __IPU3_ABI_H
-+
-+#include <uapi/linux/intel-ipu3.h>
-+
-+/******************* IMGU Hardware information *******************/
-+
-+#define IMGU_ISP_VMEM_ALIGN			128
-+#define IMGU_DVS_BLOCK_W			64
-+#define IMGU_DVS_BLOCK_H			32
-+#define IMGU_GDC_BUF_X				(2 * IMGU_DVS_BLOCK_W)
-+#define IMGU_GDC_BUF_Y				IMGU_DVS_BLOCK_H
-+/* n = 0..1 */
-+#define IMGU_SP_PMEM_BASE(n)			(0x20000 + (n) * 0x4000)
-+#define IMGU_MAX_BQ_GRID_WIDTH			80
-+#define IMGU_MAX_BQ_GRID_HEIGHT			60
-+#define IMGU_OBGRID_TILE_SIZE			16
-+#define IMGU_PIXELS_PER_WORD			50
-+#define IMGU_BYTES_PER_WORD			64
-+#define IMGU_STRIPE_FIXED_HALF_OVERLAP		2
-+#define IMGU_SHD_SETS				3
-+#define IMGU_BDS_MIN_CLIP_VAL			0
-+#define IMGU_BDS_MAX_CLIP_VAL			2
-+#define IPU3_ABI_AWB_MAX_CELLS_PER_SET		160
-+#define IPU3_ABI_AF_MAX_CELLS_PER_SET		32
-+#define IPU3_ABI_AWB_FR_MAX_CELLS_PER_SET	32
-+
-+#define IMGU_ABI_ACC_OP_IDLE			0
-+#define IMGU_ABI_ACC_OP_END_OF_ACK		1
-+#define IMGU_ABI_ACC_OP_END_OF_OPS		2
-+#define IMGU_ABI_ACC_OP_NO_OPS			3
-+
-+#define IMGU_ABI_ACC_OPTYPE_PROCESS_LINES	0
-+#define IMGU_ABI_ACC_OPTYPE_TRANSFER_DATA	1
-+
-+#define IMGU_MMU_PADDR_SHIFT			12
-+
-+/* Register definitions */
-+
-+/* PM_CTRL_0_5_0_IMGHMMADR */
-+#define IMGU_REG_PM_CTRL			0x0
-+#define IMGU_PM_CTRL_START			BIT(0)
-+#define IMGU_PM_CTRL_CFG_DONE			BIT(1)
-+#define IMGU_PM_CTRL_RACE_TO_HALT		BIT(2)
-+#define IMGU_PM_CTRL_NACK_ALL			BIT(3)
-+#define IMGU_PM_CTRL_CSS_PWRDN			BIT(4)
-+#define IMGU_PM_CTRL_RST_AT_EOF			BIT(5)
-+#define IMGU_PM_CTRL_FORCE_HALT			BIT(6)
-+#define IMGU_PM_CTRL_FORCE_UNHALT		BIT(7)
-+#define IMGU_PM_CTRL_FORCE_PWRDN		BIT(8)
-+#define IMGU_PM_CTRL_FORCE_RESET		BIT(9)
-+#define IMGU_PM_CTRL_RETURN_LICENSE_AT_EOF	BIT(10)
-+#define IMGU_PM_CTRL_POWER_DOWN_AT_EOF		(IMGU_PM_CTRL_CSS_PWRDN | \
-+					IMGU_PM_CTRL_RACE_TO_HALT | \
-+					IMGU_PM_CTRL_RETURN_LICENSE_AT_EOF)
-+#define IMGU_PM_CTRL_RESET_AT_EOF		(IMGU_PM_CTRL_RST_AT_EOF | \
-+					IMGU_PM_CTRL_RACE_TO_HALT | \
-+					IMGU_PM_CTRL_RETURN_LICENSE_AT_EOF)
-+/* SYSTEM_REQ_0_5_0_IMGHMMADR */
-+#define IMGU_REG_SYSTEM_REQ			0x18
-+#define IMGU_SYSTEM_REQ_FREQ_MASK		0x3f
-+#define IMGU_SYSTEM_REQ_FREQ_DIVIDER		25
-+#define IMGU_REG_INT_STATUS			0x30
-+#define IMGU_REG_INT_ENABLE			0x34
-+#define IMGU_REG_INT_CSS_IRQ			(1 << 31)
-+/* STATE_0_5_0_IMGHMMADR */
-+#define IMGU_REG_STATE				0x130
-+#define IMGU_STATE_HALT_STS			BIT(0)
-+#define IMGU_STATE_IDLE_STS			BIT(1)
-+#define IMGU_STATE_POWER_UP			BIT(2)
-+#define IMGU_STATE_POWER_DOWN			BIT(3)
-+#define IMGU_STATE_CSS_BUSY_MASK		0xc0
-+#define IMGU_STATE_PM_FSM_MASK			0x180
-+#define IMGU_STATE_PWRDNM_FSM_MASK		0x1E00000
-+/* PM_STS_0_5_0_IMGHMMADR */
-+#define IMGU_REG_PM_STS				0x140
-+
-+#define IMGU_REG_BASE				0x4000
-+
-+#define IMGU_REG_ISP_CTRL			(IMGU_REG_BASE + 0x00)
-+#define IMGU_CTRL_RST				BIT(0)
-+#define IMGU_CTRL_START				BIT(1)
-+#define IMGU_CTRL_BREAK				BIT(2)
-+#define IMGU_CTRL_RUN				BIT(3)
-+#define IMGU_CTRL_BROKEN			BIT(4)
-+#define IMGU_CTRL_IDLE				BIT(5)
-+#define IMGU_CTRL_SLEEPING			BIT(6)
-+#define IMGU_CTRL_STALLING			BIT(7)
-+#define IMGU_CTRL_IRQ_CLEAR			BIT(8)
-+#define IMGU_CTRL_IRQ_READY			BIT(10)
-+#define IMGU_CTRL_IRQ_SLEEPING			BIT(11)
-+#define IMGU_CTRL_ICACHE_INV			BIT(12)
-+#define IMGU_CTRL_IPREFETCH_EN			BIT(13)
-+#define IMGU_REG_ISP_START_ADDR			(IMGU_REG_BASE + 0x04)
-+#define IMGU_REG_ISP_ICACHE_ADDR		(IMGU_REG_BASE + 0x10)
-+#define IMGU_REG_ISP_PC				(IMGU_REG_BASE + 0x1c)
-+
-+/* SP Registers, sp = 0:SP0; 1:SP1 */
-+#define IMGU_REG_SP_CTRL(sp)		(IMGU_REG_BASE + (sp) * 0x100 + 0x100)
-+	/* For bits in IMGU_REG_SP_CTRL, see IMGU_CTRL_* */
-+#define IMGU_REG_SP_START_ADDR(sp)	(IMGU_REG_BASE + (sp) * 0x100 + 0x104)
-+#define IMGU_REG_SP_ICACHE_ADDR(sp)	(IMGU_REG_BASE + (sp) * 0x100 + 0x11c)
-+#define IMGU_REG_SP_CTRL_SINK(sp)	(IMGU_REG_BASE + (sp) * 0x100 + 0x130)
-+#define IMGU_REG_SP_PC(sp)		(IMGU_REG_BASE + (sp) * 0x100 + 0x134)
-+
-+#define IMGU_REG_TLB_INVALIDATE		(IMGU_REG_BASE + 0x300)
-+#define IMGU_TLB_INVALIDATE			1
-+#define IMGU_REG_L1_PHYS		(IMGU_REG_BASE + 0x304) /* 27-bit pfn */
-+
-+#define IMGU_REG_CIO_GATE_BURST_STATE	(IMGU_REG_BASE + 0x404)
-+
-+#define IMGU_REG_GP_BUSY		(IMGU_REG_BASE + 0x500)
-+#define IMGU_REG_GP_STARVING		(IMGU_REG_BASE + 0x504)
-+#define IMGU_REG_GP_WORKLOAD		(IMGU_REG_BASE + 0x508)
-+#define IMGU_REG_GP_IRQ(n)	(IMGU_REG_BASE + (n) * 4 + 0x50c) /* n = 0..4 */
-+#define IMGU_REG_GP_SP1_STRMON_STAT	(IMGU_REG_BASE + 0x520)
-+#define IMGU_REG_GP_SP2_STRMON_STAT	(IMGU_REG_BASE + 0x524)
-+#define IMGU_REG_GP_ISP_STRMON_STAT	(IMGU_REG_BASE + 0x528)
-+#define IMGU_REG_GP_MOD_STRMON_STAT	(IMGU_REG_BASE + 0x52c)
-+
-+/* Port definitions for the streaming monitors. */
-+/* For each definition there is signal pair : valid [bit 0]- accept [bit 1] */
-+#define IMGU_GP_STRMON_STAT_SP1_PORT_SP12DMA		BIT(0)
-+#define IMGU_GP_STRMON_STAT_SP1_PORT_DMA2SP1		BIT(2)
-+#define IMGU_GP_STRMON_STAT_SP1_PORT_SP12SP2		BIT(4)
-+#define IMGU_GP_STRMON_STAT_SP1_PORT_SP22SP1		BIT(6)
-+#define IMGU_GP_STRMON_STAT_SP1_PORT_SP12ISP		BIT(8)
-+#define IMGU_GP_STRMON_STAT_SP1_PORT_ISP2SP1		BIT(10)
-+#define IMGU_GP_STRMON_STAT_SP1_PORT_SP12GDC		BIT(12)
-+#define IMGU_GP_STRMON_STAT_SP1_PORT_GDC2SP1		BIT(14)
-+#define IMGU_GP_STRMON_STAT_SP1_PORT_SP12DECOMP		BIT(16)
-+#define IMGU_GP_STRMON_STAT_SP1_PORT_DECOMP2SP1		BIT(18)
-+#define IMGU_GP_STRMON_STAT_SP1_PORT_OUTFORMACC		BIT(20)
-+#define IMGU_GP_STRMON_STAT_SP1_PORT_OUTSCALER		BIT(22)
-+
-+#define IMGU_GP_STRMON_STAT_SP2_PORT_SP22DMA		BIT(0)
-+#define IMGU_GP_STRMON_STAT_SP2_PORT_DMA2SP2		BIT(2)
-+#define IMGU_GP_STRMON_STAT_SP2_PORT_SP22SP1		BIT(4)
-+#define IMGU_GP_STRMON_STAT_SP2_PORT_SP12SP2		BIT(6)
-+#define IMGU_GP_STRMON_STAT_SP2_PORT_SP22ISP		BIT(8)
-+#define IMGU_GP_STRMON_STAT_SP2_PORT_ISP2SP2		BIT(10)
-+#define IMGU_GP_STRMON_STAT_SP2_PORT_SP22GDC		BIT(12)
-+#define IMGU_GP_STRMON_STAT_SP2_PORT_GDC2SP2		BIT(14)
-+#define IMGU_GP_STRMON_STAT_SP2_PORT_SP22DECOMP		BIT(16)
-+#define IMGU_GP_STRMON_STAT_SP2_PORT_DECOMP2SP2		BIT(18)
-+#define IMGU_GP_STRMON_STAT_SP2_PORT_OUTFORMACC		BIT(20)
-+#define IMGU_GP_STRMON_STAT_SP2_PORT_OUTSCALER		BIT(22)
-+
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_ISP2DMA		BIT(0)
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_DMA2ISP		BIT(2)
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_ISP2SP1		BIT(4)
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_SP12ISP		BIT(6)
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_ISP2SP2		BIT(8)
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_SP22ISP		BIT(10)
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_ISP2GDC		BIT(12)
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_GDC2ISP		BIT(14)
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_ISP2DECOMP		BIT(16)
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_DECOMP2ISP		BIT(18)
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_S2V1		BIT(20)
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_S2V2		BIT(22)
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_S2V3		BIT(24)
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_S2V4		BIT(26)
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_S2V5		BIT(28)
-+#define IMGU_GP_STRMON_STAT_ISP_PORT_S2V6		BIT(30)
-+
-+/* Between the devices and the fifo */
-+#define IMGU_GP_STRMON_STAT_MOD_PORT_SP12DMA		BIT(0)
-+#define IMGU_GP_STRMON_STAT_MOD_PORT_DMA2SP1		BIT(2)
-+#define IMGU_GP_STRMON_STAT_MOD_PORT_SP22DMA		BIT(4)
-+#define IMGU_GP_STRMON_STAT_MOD_PORT_DMA2SP2		BIT(6)
-+#define IMGU_GP_STRMON_STAT_MOD_PORT_ISP2DMA		BIT(8)
-+#define IMGU_GP_STRMON_STAT_MOD_PORT_DMA2ISP		BIT(10)
-+#define IMGU_GP_STRMON_STAT_MOD_PORT_CELLS2GDC		BIT(12)
-+#define IMGU_GP_STRMON_STAT_MOD_PORT_GDC2CELLS		BIT(14)
-+#define IMGU_GP_STRMON_STAT_MOD_PORT_CELLS2DECOMP	BIT(16)
-+#define IMGU_GP_STRMON_STAT_MOD_PORT_DECOMP2CELLS	BIT(18)
-+/* n = 1..6 */
-+#define IMGU_GP_STRMON_STAT_MOD_PORT_S2V(n)	(1 << (((n) - 1) * 2 + 20))
-+
-+/* n = 1..15 */
-+#define IMGU_GP_STRMON_STAT_ACCS_PORT_ACC(n)		(1 << (((n) - 1) * 2))
-+
-+/* After FIFO and demux before SP1, n = 1..15 */
-+#define IMGU_GP_STRMON_STAT_ACCS2SP1_MON_PORT_ACC(n)	(1 << (((n) - 1) * 2))
-+
-+/* After FIFO and demux before SP2, n = 1..15 */
-+#define IMGU_GP_STRMON_STAT_ACCS2SP2_MON_PORT_ACC(n)	(1 << (((n) - 1) * 2))
-+
-+#define IMGU_REG_GP_MOD_ISP_STRMON_STAT			(IMGU_REG_BASE + 0x530)
-+#define IMGU_REG_GP_ACCS_STRMON_STAT			(IMGU_REG_BASE + 0x534)
-+#define IMGU_REG_GP_ACCS_SP1_STRMON_STAT		(IMGU_REG_BASE + 0x538)
-+#define IMGU_REG_GP_ACCS_SP2_STRMON_STAT		(IMGU_REG_BASE + 0x53c)
-+#define IMGU_REG_GP_SP1_STRMON_STAT_IRQ_COND		(IMGU_REG_BASE + 0x540)
-+#define IMGU_REG_GP_SP2_STRMON_STAT_IRQ_COND		(IMGU_REG_BASE + 0x544)
-+#define IMGU_REG_GP_ISP_STRMON_STAT_IRQ_COND		(IMGU_REG_BASE + 0x548)
-+#define IMGU_REG_GP_MOD_STRMON_STAT_IRQ_COND		(IMGU_REG_BASE + 0x54c)
-+#define IMGU_REG_GP_MOD_ISP_STRMON_STAT_IRQ_COND	(IMGU_REG_BASE + 0x550)
-+#define IMGU_REG_GP_ACCS_STRMON_STAT_IRQ_COND		(IMGU_REG_BASE + 0x554)
-+#define IMGU_REG_GP_ACCS_SP1_STRMON_STAT_IRQ_COND	(IMGU_REG_BASE + 0x558)
-+#define IMGU_REG_GP_ACCS_SP2_STRMON_STAT_IRQ_COND	(IMGU_REG_BASE + 0x55c)
-+#define IMGU_REG_GP_SP1_STRMON_STAT_IRQ_ENABLE		(IMGU_REG_BASE + 0x560)
-+#define IMGU_REG_GP_SP2_STRMON_STAT_IRQ_ENABLE		(IMGU_REG_BASE + 0x564)
-+#define IMGU_REG_GP_ISP_STRMON_STAT_IRQ_ENABLE		(IMGU_REG_BASE + 0x568)
-+#define IMGU_REG_GP_MOD_STRMON_STAT_IRQ_ENABLE		(IMGU_REG_BASE + 0x56c)
-+#define IMGU_REG_GP_MOD_ISP_STRMON_STAT_IRQ_ENABLE	(IMGU_REG_BASE + 0x570)
-+#define IMGU_REG_GP_ACCS_STRMON_STAT_IRQ_ENABLE		(IMGU_REG_BASE + 0x574)
-+#define IMGU_REG_GP_ACCS_SP1_STRMON_STAT_IRQ_ENABLE	(IMGU_REG_BASE + 0x578)
-+#define IMGU_REG_GP_ACCS_SP2_STRMON_STAT_IRQ_ENABLE_IDX (IMGU_REG_BASE + 0x57c)
-+#define IMGU_REG_GP_SWITCH_GDC				(IMGU_REG_BASE + 0x580)
-+#define IMGU_REG_GP_SWITCH_DECOMP			(IMGU_REG_BASE + 0x584)
-+#define IMGU_REG_GP_SWITCH_MAIN_IRQ_CTRL_MAIN		(IMGU_REG_BASE + 0x588)
-+#define IMGU_REG_GP_SWITCH_ACC1				(IMGU_REG_BASE + 0x58c)
-+#define IMGU_REG_GP_SWITCH_ACC2				(IMGU_REG_BASE + 0x590)
-+#define IMGU_REG_GP_SWITCH_ACC3				(IMGU_REG_BASE + 0x594)
-+#define IMGU_REG_GP_SWITCH_ACC4				(IMGU_REG_BASE + 0x598)
-+#define IMGU_REG_GP_SWITCH_ACC5				(IMGU_REG_BASE + 0x59c)
-+#define IMGU_REG_GP_SWITCH_ACC6				(IMGU_REG_BASE + 0x5a0)
-+#define IMGU_REG_GP_SWITCH_ACC7				(IMGU_REG_BASE + 0x5a4)
-+#define IMGU_REG_GP_SWITCH_ACC8				(IMGU_REG_BASE + 0x5a8)
-+#define IMGU_REG_GP_SWITCH_ACC9				(IMGU_REG_BASE + 0x5ac)
-+#define IMGU_REG_GP_SWITCH_ACC10			(IMGU_REG_BASE + 0x5b0)
-+#define IMGU_REG_GP_SWITCH_ACC11			(IMGU_REG_BASE + 0x5b4)
-+#define IMGU_REG_GP_SWITCH_ACC12			(IMGU_REG_BASE + 0x5b8)
-+#define IMGU_REG_GP_SWITCH_ACC13			(IMGU_REG_BASE + 0x5bc)
-+#define IMGU_REG_GP_SWITCH_ACC14			(IMGU_REG_BASE + 0x5c0)
-+#define IMGU_REG_GP_SWITCH_ACC15			(IMGU_REG_BASE + 0x5c4)
-+#define IMGU_REG_GP_SWITCH_OUT_FORM_ACC			(IMGU_REG_BASE + 0x5c8)
-+#define IMGU_REG_GP_SWITCH_OUT_FORM_SCALER		(IMGU_REG_BASE + 0x5cc)
-+#define IMGU_REG_GP_SRST				(IMGU_REG_BASE + 0x5d0)
-+#define IMGU_REG_GP_GACC_SRST				(IMGU_REG_BASE + 0x5d4)
-+#define IMGU_REG_GP_SLV_REG_SRST			(IMGU_REG_BASE + 0x5d8)
-+#define IMGU_REG_GP_HALT				(IMGU_REG_BASE + 0x5dc)
-+#define IMGU_REG_GP_HALTED				(IMGU_REG_BASE + 0x5e0)
-+
-+					/* n = 0..2 (main ctrl, SP0, SP1) */
-+#define IMGU_REG_IRQCTRL_BASE(n)	(IMGU_REG_BASE + (n) * 0x100 + 0x700)
-+#define IMGU_IRQCTRL_MAIN			0
-+#define IMGU_IRQCTRL_SP0			1
-+#define IMGU_IRQCTRL_SP1			2
-+#define IMGU_IRQCTRL_NUM			3
-+#define IMGU_IRQCTRL_IRQ_SP1			BIT(0)
-+#define IMGU_IRQCTRL_IRQ_SP2			BIT(1)
-+#define IMGU_IRQCTRL_IRQ_ISP			BIT(2)
-+#define IMGU_IRQCTRL_IRQ_SP1_STREAM_MON		BIT(3)
-+#define IMGU_IRQCTRL_IRQ_SP2_STREAM_MON		BIT(4)
-+#define IMGU_IRQCTRL_IRQ_ISP_STREAM_MON		BIT(5)
-+#define IMGU_IRQCTRL_IRQ_MOD_STREAM_MON		BIT(6)
-+#define IMGU_IRQCTRL_IRQ_MOD_ISP_STREAM_MON	BIT(7)
-+#define IMGU_IRQCTRL_IRQ_ACCS_STREAM_MON	BIT(8)
-+#define IMGU_IRQCTRL_IRQ_ACCS_SP1_STREAM_MON	BIT(9)
-+#define IMGU_IRQCTRL_IRQ_ACCS_SP2_STREAM_MON	BIT(10)
-+#define IMGU_IRQCTRL_IRQ_ISP_PMEM_ERROR		BIT(11)
-+#define IMGU_IRQCTRL_IRQ_ISP_BAMEM_ERROR	BIT(12)
-+#define IMGU_IRQCTRL_IRQ_ISP_VMEM_ERROR		BIT(13)
-+#define IMGU_IRQCTRL_IRQ_ISP_DMEM_ERROR		BIT(14)
-+#define IMGU_IRQCTRL_IRQ_SP1_ICACHE_MEM_ERROR	BIT(15)
-+#define IMGU_IRQCTRL_IRQ_SP1_DMEM_ERROR		BIT(16)
-+#define IMGU_IRQCTRL_IRQ_SP2_ICACHE_MEM_ERROR	BIT(17)
-+#define IMGU_IRQCTRL_IRQ_SP2_DMEM_ERROR		BIT(18)
-+#define IMGU_IRQCTRL_IRQ_ACCS_SCRATCH_MEM_ERROR	BIT(19)
-+#define IMGU_IRQCTRL_IRQ_GP_TIMER(n)		BIT(20 + (n)) /* n=0..1 */
-+#define IMGU_IRQCTRL_IRQ_DMA			BIT(22)
-+#define IMGU_IRQCTRL_IRQ_SW_PIN(n)		BIT(23 + (n)) /* n=0..4 */
-+#define IMGU_IRQCTRL_IRQ_ACC_SYS		BIT(28)
-+#define IMGU_IRQCTRL_IRQ_OUT_FORM_IRQ_CTRL	BIT(29)
-+#define IMGU_IRQCTRL_IRQ_SP1_IRQ_CTRL		BIT(30)
-+#define IMGU_IRQCTRL_IRQ_SP2_IRQ_CTRL		BIT(31)
-+#define IMGU_REG_IRQCTRL_EDGE(n)	(IMGU_REG_IRQCTRL_BASE(n) + 0x00)
-+#define IMGU_REG_IRQCTRL_MASK(n)	(IMGU_REG_IRQCTRL_BASE(n) + 0x04)
-+#define IMGU_REG_IRQCTRL_STATUS(n)	(IMGU_REG_IRQCTRL_BASE(n) + 0x08)
-+#define IMGU_REG_IRQCTRL_CLEAR(n)	(IMGU_REG_IRQCTRL_BASE(n) + 0x0c)
-+#define IMGU_REG_IRQCTRL_ENABLE(n)	(IMGU_REG_IRQCTRL_BASE(n) + 0x10)
-+#define IMGU_REG_IRQCTRL_EDGE_NOT_PULSE(n) (IMGU_REG_IRQCTRL_BASE(n) + 0x14)
-+#define IMGU_REG_IRQCTRL_STR_OUT_ENABLE(n) (IMGU_REG_IRQCTRL_BASE(n) + 0x18)
-+
-+#define IMGU_REG_GP_TIMER		(IMGU_REG_BASE + 0xa34)
-+
-+#define IMGU_REG_SP_DMEM_BASE(n)	(IMGU_REG_BASE + (n) * 0x4000 + 0x4000)
-+#define IMGU_REG_ISP_DMEM_BASE		(IMGU_REG_BASE + 0xc000)
-+
-+#define IMGU_REG_GDC_BASE		(IMGU_REG_BASE + 0x18000)
-+#define IMGU_REG_GDC_LUT_BASE		(IMGU_REG_GDC_BASE + 0x140)
-+#define IMGU_GDC_LUT_MASK		((1 << 12) - 1) /* Range -1024..+1024 */
-+
-+#define IMGU_SCALER_PHASES			32
-+#define IMGU_SCALER_COEFF_BITS			24
-+#define IMGU_SCALER_PHASE_COUNTER_PREC_REF	6
-+#define IMGU_SCALER_MAX_EXPONENT_SHIFT		3
-+#define IMGU_SCALER_FILTER_TAPS			4
-+#define IMGU_SCALER_TAPS_Y			IMGU_SCALER_FILTER_TAPS
-+#define IMGU_SCALER_TAPS_UV			(IMGU_SCALER_FILTER_TAPS / 2)
-+#define IMGU_SCALER_FIR_PHASES \
-+		(IMGU_SCALER_PHASES << IMGU_SCALER_PHASE_COUNTER_PREC_REF)
-+#define IMGU_OSYS_BLOCK_WIDTH			(2 * IPU3_UAPI_ISP_VEC_ELEMS)
-+#define IMGU_OSYS_BLOCK_HEIGHT			32
-+
-+/******************* imgu_abi_acc_param *******************/
-+
-+#define IMGU_ABI_BNR_LUT_SIZE			32
-+
-+/* number of elements in gamma correction LUT */
-+#define IMGU_ABI_GAMMA_CORR_LUT_ENTRIES		256
-+
-+#define IMGU_ABI_SHD_MAX_OPERATIONS \
-+		(IMGU_ABI_SHD_MAX_PROCESS_LINES + IMGU_ABI_SHD_MAX_TRANSFERS)
-+#define IMGU_ABI_SHD_MAX_PROCESS_LINES		31
-+#define IMGU_ABI_SHD_MAX_TRANSFERS		31
-+#define IMGU_ABI_SHD_MAX_CELLS_PER_SET		146
-+/* largest grid is 73x56 */
-+#define IMGU_ABI_SHD_MAX_CFG_SETS		(2 * 28)
-+
-+#define IMGU_ABI_DVS_STAT_L0_MD_ENTRIES		84
-+#define IMGU_ABI_DVS_STAT_PARTS_IN_MD_ENTRY	10
-+#define IMGU_ABI_DVS_STAT_L1_MD_ENTRIES		66
-+#define IMGU_ABI_DVS_STAT_L2_MD_ENTRIES		45
-+#define IMGU_ABI_DVS_STAT_MAX_OPERATIONS	100
-+#define IMGU_ABI_DVS_STAT_MAX_PROCESS_LINES	52
-+#define IMGU_ABI_DVS_STAT_MAX_TRANSFERS		52
-+
-+#define IMGU_ABI_YUVP2_YTM_LUT_ENTRIES		256
-+#define IMGU_ABI_YUVP2_TCC_MACC_TABLE_ELEMENTS	16
-+#define IMGU_ABI_YUVP2_TCC_INV_Y_LUT_ELEMENTS	14
-+#define IMGU_ABI_YUVP2_TCC_GAIN_PCWL_LUT_ELEMENTS	258
-+#define IMGU_ABI_YUVP2_TCC_R_SQR_LUT_ELEMENTS		24
-+
-+#define IMGU_ABI_DPC_COMMANDS_PER_TRANSFER	2
-+#define IMGU_ABI_DPC_MAX_SUPPORTED_HEIGHT	3840
-+#define IMGU_ABI_DPC_STRIPE_SIZE		50
-+#define IMGU_ABI_DPC_MAX_OPERATIONS \
-+	(IMGU_ABI_DPC_COMMANDS_PER_TRANSFER * IMGU_ABI_DPC_MAX_CFG_SETS)
-+#define IMGU_ABI_DPC_MAX_PROCESS_LINES		IMGU_ABI_DPC_MAX_CFG_SETS
-+#define IMGU_ABI_DPC_MAX_TRANSFERS		IMGU_ABI_DPC_MAX_CFG_SETS
-+#define IMGU_ABI_DPC_MAX_DP_FIRST_LINES_PAIR	70
-+#define IMGU_ABI_DPC_MAX_DP_PER_SET		192
-+#define IMGU_ABI_DPC_MAX_CFG_SETS \
-+	((IMGU_ABI_DPC_MAX_SUPPORTED_HEIGHT + IMGU_ABI_DPC_STRIPE_SIZE - 1) \
-+	/ IMGU_ABI_DPC_STRIPE_SIZE)
-+
-+#define IMGU_ABI_BDS_SAMPLE_PATTERN_ARRAY_SIZE	8
-+#define IMGU_ABI_BDS_PHASE_COEFFS_ARRAY_SIZE	32
-+
-+#define IMGU_ABI_ANR_LUT_SIZE			26
-+#define IMGU_ABI_ANR_PYRAMID_SIZE		22
-+
-+#define IMGU_ABI_AWB_FR_MAX_TRANSFERS		30
-+#define IMGU_ABI_AWB_FR_MAX_PROCESS_LINES	30
-+#define IMGU_ABI_AWB_FR_MAX_OPERATIONS \
-+	(IMGU_ABI_AWB_FR_MAX_TRANSFERS + IMGU_ABI_AWB_FR_MAX_PROCESS_LINES)
-+
-+#define IMGU_ABI_AE_WEIGHTS			96
-+
-+#define IMGU_ABI_AF_MAX_TRANSFERS		30
-+#define IMGU_ABI_AF_MAX_PROCESS_LINES		30
-+#define IMGU_ABI_AF_MAX_OPERATIONS \
-+		(IMGU_ABI_AF_MAX_TRANSFERS + IMGU_ABI_AF_MAX_PROCESS_LINES)
-+
-+#define IMGU_ABI_AWB_MAX_PROCESS_LINES		68
-+#define IMGU_ABI_AWB_MAX_TRANSFERS		68
-+#define IMGU_ABI_AWB_MAX_OPERATIONS \
-+		(IMGU_ABI_AWB_MAX_PROCESS_LINES + IMGU_ABI_AWB_MAX_TRANSFERS)
-+
-+#define IMGU_ABI_OSYS_PIN_VF			0
-+#define IMGU_ABI_OSYS_PIN_OUT			1
-+#define IMGU_ABI_OSYS_PINS			2
-+
-+typedef u32 imgu_addr_t;
-+
-+enum imgu_abi_frame_format {
-+	IMGU_ABI_FRAME_FORMAT_NV11,	/* 12 bit YUV 411, Y, UV plane */
-+	IMGU_ABI_FRAME_FORMAT_NV12,	/* 12 bit YUV 420, Y, UV plane */
-+	IMGU_ABI_FRAME_FORMAT_NV12_16,	/* 16 bit YUV 420, Y, UV plane */
-+	IMGU_ABI_FRAME_FORMAT_NV12_TILEY,/* 12 bit YUV 420,Intel tiled format */
-+	IMGU_ABI_FRAME_FORMAT_NV16,	/* 16 bit YUV 422, Y, UV plane */
-+	IMGU_ABI_FRAME_FORMAT_NV21,	/* 12 bit YUV 420, Y, VU plane */
-+	IMGU_ABI_FRAME_FORMAT_NV61,	/* 16 bit YUV 422, Y, VU plane */
-+	IMGU_ABI_FRAME_FORMAT_YV12,	/* 12 bit YUV 420, Y, V, U plane */
-+	IMGU_ABI_FRAME_FORMAT_YV16,	/* 16 bit YUV 422, Y, V, U plane */
-+	IMGU_ABI_FRAME_FORMAT_YUV420,	/* 12 bit YUV 420, Y, U, V plane */
-+	IMGU_ABI_FRAME_FORMAT_YUV420_16,/* yuv420, 16 bits per subpixel */
-+	IMGU_ABI_FRAME_FORMAT_YUV422,	/* 16 bit YUV 422, Y, U, V plane */
-+	IMGU_ABI_FRAME_FORMAT_YUV422_16,/* yuv422, 16 bits per subpixel */
-+	IMGU_ABI_FRAME_FORMAT_UYVY,	/* 16 bit YUV 422, UYVY interleaved */
-+	IMGU_ABI_FRAME_FORMAT_YUYV,	/* 16 bit YUV 422, YUYV interleaved */
-+	IMGU_ABI_FRAME_FORMAT_YUV444,	/* 24 bit YUV 444, Y, U, V plane */
-+	IMGU_ABI_FRAME_FORMAT_YUV_LINE,	/* Internal format, 2 y lines */
-+					/* followed by a uv-interleaved line */
-+	IMGU_ABI_FRAME_FORMAT_RAW,	/* RAW, 1 plane */
-+	IMGU_ABI_FRAME_FORMAT_RGB565,	/* 16 bit RGB, 1 plane. Each 3 sub
-+					 * pixels are packed into one 16 bit
-+					 * value, 5 bits for R, 6 bits for G
-+					 * and 5 bits for B.
-+					 */
-+	IMGU_ABI_FRAME_FORMAT_PLANAR_RGB888, /* 24 bit RGB, 3 planes */
-+	IMGU_ABI_FRAME_FORMAT_RGBA888,	/* 32 bit RGBA, 1 plane, A=Alpha
-+					 * (alpha is unused)
-+					 */
-+	IMGU_ABI_FRAME_FORMAT_QPLANE6,	/* Internal, for advanced ISP */
-+	IMGU_ABI_FRAME_FORMAT_BINARY_8,	/* byte stream, used for jpeg. For
-+					 * frames of this type, we set the
-+					 * height to 1 and the width to the
-+					 * number of allocated bytes.
-+					 */
-+	IMGU_ABI_FRAME_FORMAT_MIPI,	/* MIPI frame, 1 plane */
-+	IMGU_ABI_FRAME_FORMAT_RAW_PACKED,	 /* RAW, 1 plane, packed */
-+	IMGU_ABI_FRAME_FORMAT_CSI_MIPI_YUV420_8, /* 8 bit per Y/U/V. Y odd line
-+						  * UYVY interleaved even line
-+						  */
-+	IMGU_ABI_FRAME_FORMAT_CSI_MIPI_LEGACY_YUV420_8, /* Legacy YUV420.
-+							 * UY odd line;
-+							 * VY even line
-+							 */
-+	IMGU_ABI_FRAME_FORMAT_CSI_MIPI_YUV420_10,/* 10 bit per Y/U/V. Y odd
-+						  * line; UYVY interleaved
-+						  * even line
-+						  */
-+	IMGU_ABI_FRAME_FORMAT_YCgCo444_16, /* Internal format for ISP2.7,
-+					    * 16 bits per plane YUV 444,
-+					    * Y, U, V plane
-+					    */
-+	IMGU_ABI_FRAME_FORMAT_NUM
-+};
-+
-+enum imgu_abi_bayer_order {
-+	IMGU_ABI_BAYER_ORDER_GRBG,
-+	IMGU_ABI_BAYER_ORDER_RGGB,
-+	IMGU_ABI_BAYER_ORDER_BGGR,
-+	IMGU_ABI_BAYER_ORDER_GBRG
-+};
-+
-+enum imgu_abi_osys_format {
-+	IMGU_ABI_OSYS_FORMAT_YUV420,
-+	IMGU_ABI_OSYS_FORMAT_YV12,
-+	IMGU_ABI_OSYS_FORMAT_NV12,
-+	IMGU_ABI_OSYS_FORMAT_NV21,
-+	IMGU_ABI_OSYS_FORMAT_YUV_LINE,
-+	IMGU_ABI_OSYS_FORMAT_YUY2,	/* = IMGU_ABI_OSYS_FORMAT_YUYV */
-+	IMGU_ABI_OSYS_FORMAT_NV16,
-+	IMGU_ABI_OSYS_FORMAT_RGBA,
-+	IMGU_ABI_OSYS_FORMAT_BGRA
-+};
-+
-+enum imgu_abi_osys_tiling {
-+	IMGU_ABI_OSYS_TILING_NONE,
-+	IMGU_ABI_OSYS_TILING_Y,
-+	IMGU_ABI_OSYS_TILING_YF,
-+};
-+
-+struct imgu_abi_shd_grid_config {
-+	/* reg 0 */
-+	u32 grid_width:8;
-+	u32 grid_height:8;
-+	u32 block_width:3;
-+	u32 __reserved0:1;
-+	u32 block_height:3;
-+	u32 __reserved1:1;
-+	u32 grid_height_per_slice:8;
-+	/* reg 1 */
-+	s32 x_start:13;
-+	s32 __reserved2:3;
-+	s32 y_start:13;
-+	s32 __reserved3:3;
-+};
-+
-+struct imgu_abi_shd_general_config {
-+	u32 init_set_vrt_offst_ul:8;
-+	u32 shd_enable:1;
-+	/* aka 'gf' */
-+	u32 gain_factor:2;
-+	u32 __reserved:21;
-+};
-+
-+struct imgu_abi_shd_black_level_config {
-+	/* reg 0 */
-+	s32 bl_r:12;
-+	s32 __reserved0:4;
-+	s32 bl_gr:12;
-+	u32 __reserved1:1;
-+	/* aka 'nf' */
-+	u32 normalization_shift:3;
-+	/* reg 1 */
-+	s32 bl_gb:12;
-+	s32 __reserved2:4;
-+	s32 bl_b:12;
-+	s32 __reserved3:4;
-+};
-+
-+struct imgu_abi_shd_config_static {
-+	/* B0: Fixed order: one transfer to GAC */
-+	struct imgu_abi_shd_grid_config grid;
-+	struct imgu_abi_shd_general_config general;
-+	struct imgu_abi_shd_black_level_config black_level;
-+};
-+
-+struct imgu_abi_shd_lut_elem {
-+	u16 factors[2];
-+};
-+
-+struct imgu_abi_shd_lut_set {
-+	struct imgu_abi_shd_lut_elem elems[IMGU_ABI_SHD_MAX_CELLS_PER_SET]
-+		IMGU_ABI_PAD;
-+};
-+
-+struct imgu_abi_shd_lut {
-+	struct imgu_abi_shd_lut_set sets[IMGU_ABI_SHD_MAX_CFG_SETS];
-+};
-+
-+struct imgu_abi_shd_config {
-+	struct imgu_abi_shd_config_static shd IMGU_ABI_PAD;
-+	struct ipu3_uapi_shd_intra_frame_operations_data shd_ops IMGU_ABI_PAD;
-+	struct imgu_abi_shd_lut shd_lut IMGU_ABI_PAD;
-+};
-+
-+struct imgu_abi_dpc_param0 {
-+	u32 enable:1;
-+	u32 __reserved0:15;
-+	u32 grad_threshold:13;
-+	u32 __reserved1:3;
-+};
-+
-+struct imgu_abi_dpc_num_of_dp {
-+	u32 num_of_dp_gr:8;
-+	u32 num_of_dp_bg:8;
-+	u32 __reserved0:16;
-+};
-+
-+struct imgu_abi_dpc_params {
-+	struct imgu_abi_dpc_param0 enable_and_threshold;
-+	struct imgu_abi_dpc_num_of_dp num_of_dp_set0;
-+	struct imgu_abi_dpc_num_of_dp num_of_dp_set1;
-+	struct imgu_abi_dpc_num_of_dp num_of_dp_first_line_pair;
-+};
-+
-+/******************* Firmware ABI definitions *******************/
-+
-+/***** struct imgu_abi_sp_stage *****/
-+
-+#define IMGU_ABI_BINARY_MAX_OUTPUT_PORTS 2
-+
-+enum imgu_abi_queue_id {
-+	IMGU_ABI_QUEUE_EVENT_ID = -1,
-+	IMGU_ABI_QUEUE_A_ID = 0,
-+	IMGU_ABI_QUEUE_B_ID,
-+	IMGU_ABI_QUEUE_C_ID,
-+	IMGU_ABI_QUEUE_D_ID,
-+	IMGU_ABI_QUEUE_E_ID,
-+	IMGU_ABI_QUEUE_F_ID,
-+	IMGU_ABI_QUEUE_G_ID,
-+	IMGU_ABI_QUEUE_H_ID,		/* input frame queue for skycam */
-+	IMGU_ABI_QUEUE_NUM
-+};
-+
-+enum imgu_abi_buffer_type {
-+	IMGU_ABI_BUFFER_TYPE_INVALID = -1,
-+	IMGU_ABI_BUFFER_TYPE_3A_STATISTICS = 0,
-+	IMGU_ABI_BUFFER_TYPE_DIS_STATISTICS,
-+	IMGU_ABI_BUFFER_TYPE_LACE_STATISTICS,
-+	IMGU_ABI_BUFFER_TYPE_INPUT_FRAME,
-+	IMGU_ABI_BUFFER_TYPE_OUTPUT_FRAME,
-+	IMGU_ABI_BUFFER_TYPE_SEC_OUTPUT_FRAME,
-+	IMGU_ABI_BUFFER_TYPE_VF_OUTPUT_FRAME,
-+	IMGU_ABI_BUFFER_TYPE_SEC_VF_OUTPUT_FRAME,
-+	IMGU_ABI_BUFFER_TYPE_RAW_OUTPUT_FRAME,
-+	IMGU_ABI_BUFFER_TYPE_CUSTOM_INPUT,
-+	IMGU_ABI_BUFFER_TYPE_CUSTOM_OUTPUT,
-+	IMGU_ABI_BUFFER_TYPE_METADATA,
-+	IMGU_ABI_BUFFER_TYPE_PARAMETER_SET,
-+	IMGU_ABI_BUFFER_TYPE_PER_FRAME_PARAMETER_SET,
-+	IMGU_ABI_NUM_DYNAMIC_BUFFER_TYPE,
-+	IMGU_ABI_NUM_BUFFER_TYPE
-+};
-+
-+struct imgu_abi_crop_pos {
-+	u16 x;
-+	u16 y;
-+};
-+
-+struct imgu_abi_sp_resolution {
-+	u16 width;			/* Width of valid data in pixels */
-+	u16 height;			/* Height of valid data in lines */
-+};
-+
-+/*
-+ * Frame info struct. This describes the contents of an image frame buffer.
-+ */
-+struct imgu_abi_frame_sp_info {
-+	struct imgu_abi_sp_resolution res;
-+	u16 padded_width;		/* stride of line in memory
-+					 * (in pixels)
-+					 */
-+	u8 format;			/* format of the frame data */
-+	u8 raw_bit_depth;		/* number of valid bits per pixel,
-+					 * only valid for RAW bayer frames
-+					 */
-+	u8 raw_bayer_order;		/* bayer order, only valid
-+					 * for RAW bayer frames
-+					 */
-+	u8 raw_type;		/* To choose the proper raw frame type. for
-+				 * Legacy SKC pipes/Default is set to
-+				 * IMGU_ABI_RAW_TYPE_BAYER. For RGB IR sensor -
-+				 * driver should set it to:
-+				 * IronGr case - IMGU_ABI_RAW_TYPE_IR_ON_GR
-+				 * IronGb case - IMGU_ABI_RAW_TYPE_IR_ON_GB
-+				 */
-+#define IMGU_ABI_RAW_TYPE_BAYER		0
-+#define IMGU_ABI_RAW_TYPE_IR_ON_GR	1
-+#define IMGU_ABI_RAW_TYPE_IR_ON_GB	2
-+	u8 padding[2];			/* Extend to 32 bit multiple */
-+};
-+
-+struct imgu_abi_buffer_sp {
-+	union {
-+		imgu_addr_t xmem_addr;
-+		enum imgu_abi_queue_id queue_id;
-+	} buf_src;
-+	enum imgu_abi_buffer_type buf_type;
-+};
-+
-+struct imgu_abi_frame_sp_plane {
-+	u32 offset;		/* offset in bytes to start of frame data */
-+				/* offset is wrt data in imgu_abi_sp_sp_frame */
-+};
-+
-+struct imgu_abi_frame_sp_rgb_planes {
-+	struct imgu_abi_frame_sp_plane r;
-+	struct imgu_abi_frame_sp_plane g;
-+	struct imgu_abi_frame_sp_plane b;
-+};
-+struct imgu_abi_frame_sp_yuv_planes {
-+	struct imgu_abi_frame_sp_plane y;
-+	struct imgu_abi_frame_sp_plane u;
-+	struct imgu_abi_frame_sp_plane v;
-+};
-+struct imgu_abi_frame_sp_nv_planes {
-+	struct imgu_abi_frame_sp_plane y;
-+	struct imgu_abi_frame_sp_plane uv;
-+};
-+struct imgu_abi_frame_sp_plane6 {
-+	struct imgu_abi_frame_sp_plane r;
-+	struct imgu_abi_frame_sp_plane r_at_b;
-+	struct imgu_abi_frame_sp_plane gr;
-+	struct imgu_abi_frame_sp_plane gb;
-+	struct imgu_abi_frame_sp_plane b;
-+	struct imgu_abi_frame_sp_plane b_at_r;
-+};
-+struct imgu_abi_frame_sp_binary_plane {
-+	u32 size;
-+	struct imgu_abi_frame_sp_plane data;
-+};
-+
-+struct imgu_abi_frame_sp {
-+	struct imgu_abi_frame_sp_info info;
-+	struct imgu_abi_buffer_sp buf_attr;
-+	union {
-+		struct imgu_abi_frame_sp_plane raw;
-+		struct imgu_abi_frame_sp_plane rgb;
-+		struct imgu_abi_frame_sp_rgb_planes planar_rgb;
-+		struct imgu_abi_frame_sp_plane yuyv;
-+		struct imgu_abi_frame_sp_yuv_planes yuv;
-+		struct imgu_abi_frame_sp_nv_planes nv;
-+		struct imgu_abi_frame_sp_plane6 plane6;
-+		struct imgu_abi_frame_sp_binary_plane binary;
-+	} planes;
-+};
-+
-+struct imgu_abi_resolution {
-+	u32 width;
-+	u32 height;
-+};
-+
-+struct imgu_abi_frames_sp {
-+	struct imgu_abi_frame_sp in;
-+	struct imgu_abi_frame_sp out[IMGU_ABI_BINARY_MAX_OUTPUT_PORTS];
-+	struct imgu_abi_resolution effective_in_res;
-+	struct imgu_abi_frame_sp out_vf;
-+	struct imgu_abi_frame_sp_info internal_frame_info;
-+	struct imgu_abi_buffer_sp s3a_buf;
-+	struct imgu_abi_buffer_sp dvs_buf;
-+	struct imgu_abi_buffer_sp lace_buf;
-+};
-+
-+struct imgu_abi_uds_info {
-+	u16 curr_dx;
-+	u16 curr_dy;
-+	u16 xc;
-+	u16 yc;
-+};
-+
-+/* Information for a single pipeline stage */
-+struct imgu_abi_sp_stage {
-+	/* Multiple boolean flags can be stored in an integer */
-+	u8 num;				/* Stage number */
-+	u8 isp_online;
-+	u8 isp_copy_vf;
-+	u8 isp_copy_output;
-+	u8 sp_enable_xnr;
-+	u8 isp_deci_log_factor;
-+	u8 isp_vf_downscale_bits;
-+	u8 deinterleaved;
-+	/*
-+	 * NOTE: Programming the input circuit can only be done at the
-+	 * start of a session. It is illegal to program it during execution
-+	 * The input circuit defines the connectivity
-+	 */
-+	u8 program_input_circuit;
-+	u8 func;
-+#define IMGU_ABI_STAGE_FUNC_RAW_COPY	0
-+#define IMGU_ABI_STAGE_FUNC_BIN_COPY	1
-+#define IMGU_ABI_STAGE_FUNC_ISYS_COPY	2
-+#define IMGU_ABI_STAGE_FUNC_NO_FUNC	3
-+	u8 stage_type;			/* The type of the pipe-stage */
-+#define IMGU_ABI_STAGE_TYPE_SP		0
-+#define IMGU_ABI_STAGE_TYPE_ISP		1
-+	u8 num_stripes;
-+	u8 isp_pipe_version;
-+	struct {
-+		u8 vf_output;
-+		u8 s3a;
-+		u8 sdis;
-+		u8 dvs_stats;
-+		u8 lace_stats;
-+	} enable;
-+
-+	struct imgu_abi_crop_pos sp_out_crop_pos;
-+	struct imgu_abi_frames_sp frames;
-+	struct imgu_abi_resolution dvs_envelope;
-+	struct imgu_abi_uds_info uds;
-+	imgu_addr_t isp_stage_addr;
-+	imgu_addr_t xmem_bin_addr;
-+	imgu_addr_t xmem_map_addr;
-+
-+	u16 top_cropping;
-+	u16 row_stripes_height;
-+	u16 row_stripes_overlap_lines;
-+	u8 if_config_index;	/* Which should be applied by this stage. */
-+};
-+
-+/***** struct imgu_abi_isp_stage *****/
-+
-+#define IMGU_ABI_MAX_BINARY_NAME  64
-+
-+enum imgu_abi_memories {
-+	IMGU_ABI_MEM_ISP_PMEM0 = 0,
-+	IMGU_ABI_MEM_ISP_DMEM0,
-+	IMGU_ABI_MEM_ISP_VMEM0,
-+	IMGU_ABI_MEM_ISP_VAMEM0,
-+	IMGU_ABI_MEM_ISP_VAMEM1,
-+	IMGU_ABI_MEM_ISP_VAMEM2,
-+	IMGU_ABI_MEM_ISP_HMEM0,
-+	IMGU_ABI_MEM_SP0_DMEM0,
-+	IMGU_ABI_MEM_SP1_DMEM0,
-+	IMGU_ABI_MEM_DDR,
-+	IMGU_ABI_NUM_MEMORIES
-+};
-+
-+enum imgu_abi_param_class {
-+	IMGU_ABI_PARAM_CLASS_PARAM,	/* Late binding parameters, like 3A */
-+	IMGU_ABI_PARAM_CLASS_CONFIG,	/* Pipe config time parameters */
-+	IMGU_ABI_PARAM_CLASS_STATE,	/* State parameters, eg. buffer index */
-+	IMGU_ABI_PARAM_CLASS_NUM
-+};
-+
-+struct imgu_abi_isp_param_memory_offsets {
-+	u32 offsets[IMGU_ABI_PARAM_CLASS_NUM];	/* offset wrt hdr in bytes */
-+};
-+
-+/*
-+ * Blob descriptor.
-+ * This structure describes an SP or ISP blob.
-+ * It describes the test, data and bss sections as well as position in a
-+ * firmware file.
-+ * For convenience, it contains dynamic data after loading.
-+ */
-+struct imgu_abi_blob_info {
-+	/* Static blob data */
-+	u32 offset;			/* Blob offset in fw file */
-+	struct imgu_abi_isp_param_memory_offsets memory_offsets;
-+					/* offset wrt hdr in bytes */
-+	u32 prog_name_offset;		/* offset wrt hdr in bytes */
-+	u32 size;			/* Size of blob */
-+	u32 padding_size;		/* total cummulative of bytes added
-+					 * due to section alignment
-+					 */
-+	u32 icache_source;		/* Position of icache in blob */
-+	u32 icache_size;		/* Size of icache section */
-+	u32 icache_padding;	/* added due to icache section alignment */
-+	u32 text_source;		/* Position of text in blob */
-+	u32 text_size;			/* Size of text section */
-+	u32 text_padding;	/* bytes added due to text section alignment */
-+	u32 data_source;		/* Position of data in blob */
-+	u32 data_target;		/* Start of data in SP dmem */
-+	u32 data_size;			/* Size of text section */
-+	u32 data_padding;	/* bytes added due to data section alignment */
-+	u32 bss_target;		/* Start position of bss in SP dmem */
-+	u32 bss_size;			/* Size of bss section
-+					 * Dynamic data filled by loader
-+					 */
-+	const void *code __aligned(8);	/* Code section absolute pointer */
-+					/* within fw, code = icache + text */
-+	const void *data __aligned(8);	/* Data section absolute pointer */
-+					/* within fw, data = data + bss */
-+};
-+struct imgu_abi_binary_pipeline_info {
-+	u32 mode;
-+	u32 isp_pipe_version;
-+	u32 pipelining;
-+	u32 c_subsampling;
-+	u32 top_cropping;
-+	u32 left_cropping;
-+	u32 variable_resolution;
-+};
-+
-+struct imgu_abi_binary_input_info {
-+	u32 min_width;
-+	u32 min_height;
-+	u32 max_width;
-+	u32 max_height;
-+	u32 source;			/* memory, sensor, variable */
-+#define IMGU_ABI_BINARY_INPUT_SOURCE_SENSOR	0
-+#define IMGU_ABI_BINARY_INPUT_SOURCE_MEMORY	1
-+#define IMGU_ABI_BINARY_INPUT_SOURCE_VARIABLE	2
-+};
-+
-+struct imgu_abi_binary_output_info {
-+	u32 min_width;
-+	u32 min_height;
-+	u32 max_width;
-+	u32 max_height;
-+	u32 num_chunks;
-+	u32 variable_format;
-+};
-+
-+struct imgu_abi_binary_internal_info {
-+	u32 max_width;
-+	u32 max_height;
-+};
-+
-+struct imgu_abi_binary_bds_info {
-+	u32 supported_bds_factors;
-+/*
-+ * enumeration of the bayer downscale factors. When a binary supports multiple
-+ * factors, the OR of these defines is used to build the mask of supported
-+ * factors. The BDS factor is used in pre-processor expressions so we cannot
-+ * use an enum here.
-+ */
-+#define IMGU_ABI_BDS_FACTOR_1_00		BIT(0)
-+#define IMGU_ABI_BDS_FACTOR_1_25		BIT(1)
-+#define IMGU_ABI_BDS_FACTOR_1_50		BIT(2)
-+#define IMGU_ABI_BDS_FACTOR_2_00		BIT(3)
-+#define IMGU_ABI_BDS_FACTOR_2_25		BIT(4)
-+#define IMGU_ABI_BDS_FACTOR_2_50		BIT(5)
-+#define IMGU_ABI_BDS_FACTOR_3_00		BIT(6)
-+#define IMGU_ABI_BDS_FACTOR_4_00		BIT(7)
-+#define IMGU_ABI_BDS_FACTOR_4_50		BIT(8)
-+#define IMGU_ABI_BDS_FACTOR_5_00		BIT(9)
-+#define IMGU_ABI_BDS_FACTOR_6_00		BIT(10)
-+#define IMGU_ABI_BDS_FACTOR_8_00		BIT(11)
-+};
-+
-+struct imgu_abi_binary_dvs_info {
-+	u32 max_envelope_width;
-+	u32 max_envelope_height;
-+};
-+
-+struct imgu_abi_binary_vf_dec_info {
-+	u32 is_variable;
-+	u32 max_log_downscale;
-+};
-+
-+struct imgu_abi_binary_s3a_info {
-+	u32 s3atbl_use_dmem;
-+	u32 fixed_s3a_deci_log;
-+};
-+
-+struct imgu_abi_binary_dpc_info {
-+	u32 bnr_lite;			/* bnr lite enable flag */
-+};
-+
-+struct imgu_abi_binary_iterator_info {
-+	u32 num_stripes;
-+	u32 row_stripes_height;
-+	u32 row_stripes_overlap_lines;
-+};
-+
-+struct imgu_abi_binary_address_info {
-+	u32 isp_addresses;		/* Address in ISP dmem */
-+	u32 main_entry;			/* Address of entry fct */
-+	u32 in_frame;			/* Address in ISP dmem */
-+	u32 out_frame;			/* Address in ISP dmem */
-+	u32 in_data;			/* Address in ISP dmem */
-+	u32 out_data;			/* Address in ISP dmem */
-+	u32 sh_dma_cmd_ptr;		/* In ISP dmem */
-+};
-+
-+struct imgu_abi_binary_uds_info {
-+	u16 bpp;
-+	u16 use_bci;
-+	u16 use_str;
-+	u16 woix;
-+	u16 woiy;
-+	u16 extra_out_vecs;
-+	u16 vectors_per_line_in;
-+	u16 vectors_per_line_out;
-+	u16 vectors_c_per_line_in;
-+	u16 vectors_c_per_line_out;
-+	u16 vmem_gdc_in_block_height_y;
-+	u16 vmem_gdc_in_block_height_c;
-+};
-+
-+struct imgu_abi_binary_block_info {
-+	u32 block_width;
-+	u32 block_height;
-+	u32 output_block_height;
-+};
-+
-+struct imgu_abi_isp_data {
-+	imgu_addr_t address;		/* ISP address */
-+	u32 size;			/* Disabled if 0 */
-+};
-+
-+struct imgu_abi_isp_param_segments {
-+	struct imgu_abi_isp_data
-+			params[IMGU_ABI_PARAM_CLASS_NUM][IMGU_ABI_NUM_MEMORIES];
-+};
-+
-+struct imgu_abi_binary_info {
-+	u32 id __aligned(8);		/* IMGU_ABI_BINARY_ID_* */
-+	struct imgu_abi_binary_pipeline_info pipeline;
-+	struct imgu_abi_binary_input_info input;
-+	struct imgu_abi_binary_output_info output;
-+	struct imgu_abi_binary_internal_info internal;
-+	struct imgu_abi_binary_bds_info bds;
-+	struct imgu_abi_binary_dvs_info dvs;
-+	struct imgu_abi_binary_vf_dec_info vf_dec;
-+	struct imgu_abi_binary_s3a_info s3a;
-+	struct imgu_abi_binary_dpc_info dpc_bnr; /* DPC related binary info */
-+	struct imgu_abi_binary_iterator_info iterator;
-+	struct imgu_abi_binary_address_info addresses;
-+	struct imgu_abi_binary_uds_info uds;
-+	struct imgu_abi_binary_block_info block;
-+	struct imgu_abi_isp_param_segments mem_initializers;
-+	struct {
-+		u8 input_feeder;
-+		u8 output_system;
-+		u8 obgrid;
-+		u8 lin;
-+		u8 dpc_acc;
-+		u8 bds_acc;
-+		u8 shd_acc;
-+		u8 shd_ff;
-+		u8 stats_3a_raw_buffer;
-+		u8 acc_bayer_denoise;
-+		u8 bnr_ff;
-+		u8 awb_acc;
-+		u8 awb_fr_acc;
-+		u8 anr_acc;
-+		u8 rgbpp_acc;
-+		u8 rgbpp_ff;
-+		u8 demosaic_acc;
-+		u8 demosaic_ff;
-+		u8 dvs_stats;
-+		u8 lace_stats;
-+		u8 yuvp1_b0_acc;
-+		u8 yuvp1_c0_acc;
-+		u8 yuvp2_acc;
-+		u8 ae;
-+		u8 af;
-+		u8 dergb;
-+		u8 rgb2yuv;
-+		u8 high_quality;
-+		u8 kerneltest;
-+		u8 routing_shd_to_bnr;		/* connect SHD with BNR ACCs*/
-+		u8 routing_bnr_to_anr;		/* connect BNR with ANR ACCs*/
-+		u8 routing_anr_to_de;		/* connect ANR with DE ACCs */
-+		u8 routing_rgb_to_yuvp1;	/* connect RGB with YUVP1 ACCs*/
-+		u8 routing_yuvp1_to_yuvp2;    /* connect YUVP1 with YUVP2 ACCs*/
-+		u8 luma_only;
-+		u8 input_yuv;
-+		u8 input_raw;
-+		u8 reduced_pipe;
-+		u8 vf_veceven;
-+		u8 dis;
-+		u8 dvs_envelope;
-+		u8 uds;
-+		u8 dvs_6axis;
-+		u8 block_output;
-+		u8 streaming_dma;
-+		u8 ds;
-+		u8 bayer_fir_6db;
-+		u8 raw_binning;
-+		u8 continuous;
-+		u8 s3a;
-+		u8 fpnr;
-+		u8 sc;
-+		u8 macc;
-+		u8 output;
-+		u8 ref_frame;
-+		u8 tnr;
-+		u8 xnr;
-+		u8 params;
-+		u8 ca_gdc;
-+		u8 isp_addresses;
-+		u8 in_frame;
-+		u8 out_frame;
-+		u8 high_speed;
-+		u8 dpc;
-+		u8 padding[2];
-+		u8 rgbir;
-+	} enable;
-+	struct {
-+		/* DMA channel ID: [0,...,IMGU_NUM_DMA_CHANNELS> */
-+#define IMGU_NUM_DMA_CHANNELS		19
-+		u8 ref_y_channel;
-+		u8 ref_c_channel;
-+		u8 tnr_channel;
-+		u8 tnr_out_channel;
-+		u8 dvs_coords_channel;
-+		u8 output_channel;
-+		u8 c_channel;
-+		u8 vfout_channel;
-+		u8 vfout_c_channel;
-+		u8 vfdec_bits_per_pixel;
-+		u8 claimed_by_isp;
-+		u8 padding[2];
-+	} dma;
-+};
-+
-+struct imgu_abi_isp_stage {
-+	struct imgu_abi_blob_info blob_info;
-+	struct imgu_abi_binary_info binary_info;
-+	char binary_name[IMGU_ABI_MAX_BINARY_NAME];
-+	struct imgu_abi_isp_param_segments mem_initializers;
-+};
-+
-+/***** struct imgu_abi_ddr_address_map and parameter set *****/
-+
-+#define IMGU_ABI_ISP_DDR_WORD_BITS	256
-+#define IMGU_ABI_ISP_DDR_WORD_BYTES	(IMGU_ABI_ISP_DDR_WORD_BITS / 8)
-+#define IMGU_ABI_MAX_STAGES		3
-+
-+/* xmem address map allocation */
-+struct imgu_abi_ddr_address_map {
-+	imgu_addr_t isp_mem_param[IMGU_ABI_MAX_STAGES][IMGU_ABI_NUM_MEMORIES];
-+	imgu_addr_t obgrid_tbl[IPU3_UAPI_MAX_STRIPES];
-+	imgu_addr_t acc_cluster_params_for_sp;
-+	imgu_addr_t dvs_6axis_params_y;
-+};
-+
-+struct imgu_abi_parameter_set_info {
-+	/* Pointers to Parameters in ISP format IMPT */
-+	struct imgu_abi_ddr_address_map mem_map;
-+	/* Unique ID to track per-frame configurations */
-+	u32 isp_parameters_id;
-+	/* Output frame to which this config has to be applied (optional) */
-+	imgu_addr_t output_frame_ptr;
-+};
-+
-+/***** struct imgu_abi_sp_group *****/
-+
-+#define IMGU_ABI_MAX_IF_CONFIGS	3
-+
-+/* SP configuration information */
-+struct imgu_abi_sp_config {
-+	u8 no_isp_sync;		/* Signal host immediately after start */
-+	u8 enable_raw_pool_locking;    /* Enable Raw Buffer Locking for HALv3 */
-+	u8 lock_all;
-+	u8 disable_cont_vf;
-+	u8 disable_preview_on_capture;
-+};
-+
-+/* Information for a pipeline */
-+struct imgu_abi_sp_pipeline {
-+	u32 pipe_id;			/* the pipe ID */
-+	u32 pipe_num;			/* the dynamic pipe number */
-+	u32 thread_id;			/* the sp thread ID */
-+	u32 pipe_config;		/* the pipe config */
-+#define IMGU_ABI_PIPE_CONFIG_ACQUIRE_ISP	(1 << 31)
-+	u32 pipe_qos_config;		/* Bitmap of multiple QOS extension fw
-+					 * state, 0xffffffff indicates non
-+					 * QOS pipe.
-+					 */
-+	u32 inout_port_config;
-+#define IMGU_ABI_PORT_CONFIG_TYPE_INPUT_HOST		(1 << 0)
-+#define IMGU_ABI_PORT_CONFIG_TYPE_INPUT_COPYSINK	(1 << 1)
-+#define IMGU_ABI_PORT_CONFIG_TYPE_INPUT_TAGGERSINK	(1 << 2)
-+#define IMGU_ABI_PORT_CONFIG_TYPE_OUTPUT_HOST		(1 << 4)
-+#define IMGU_ABI_PORT_CONFIG_TYPE_OUTPUT_COPYSINK	(1 << 5)
-+#define IMGU_ABI_PORT_CONFIG_TYPE_OUTPUT_TAGGERSINK	(1 << 6)
-+	u32 required_bds_factor;
-+	u32 dvs_frame_delay;
-+	u32 num_stages;		/* the pipe config */
-+	u32 running;			/* needed for pipe termination */
-+	imgu_addr_t sp_stage_addr[IMGU_ABI_MAX_STAGES];
-+	imgu_addr_t scaler_pp_lut;	/* Early bound LUT */
-+	u32 stage;			/* stage ptr is only used on sp */
-+	s32 num_execs;			/* number of times to run if this is
-+					 * an acceleration pipe.
-+					 */
-+	union {
-+		struct {
-+			u32 bytes_available;
-+		} bin;
-+		struct {
-+			u32 height;
-+			u32 width;
-+			u32 padded_width;
-+			u32 max_input_width;
-+			u32 raw_bit_depth;
-+		} raw;
-+	} copy;
-+
-+	/* Parameters passed to Shading Correction kernel. */
-+	struct {
-+		/* Origin X (bqs) of internal frame on shading table */
-+		u32 internal_frame_origin_x_bqs_on_sctbl;
-+		/* Origin Y (bqs) of internal frame on shading table */
-+		u32 internal_frame_origin_y_bqs_on_sctbl;
-+	} shading;
-+};
-+
-+struct imgu_abi_sp_debug_command {
-+	/*
-+	 * The DMA software-mask,
-+	 *      Bit 31...24: unused.
-+	 *      Bit 23...16: unused.
-+	 *      Bit 15...08: reading-request enabling bits for DMA channel 7..0
-+	 *      Bit 07...00: writing-request enabling bits for DMA channel 7..0
-+	 *
-+	 * For example, "0...0 0...0 11111011 11111101" indicates that the
-+	 * writing request through DMA Channel 1 and the reading request
-+	 * through DMA channel 2 are both disabled. The others are enabled.
-+	 */
-+	u32 dma_sw_reg;
-+};
-+
-+#define IMGU_ABI_MAX_SP_THREADS	4
-+
-+/*
-+ * Group all host initialized SP variables into this struct.
-+ * This is initialized every stage through dma.
-+ * The stage part itself is transferred through imgu_abi_sp_stage.
-+ */
-+struct imgu_abi_sp_group {
-+	struct imgu_abi_sp_config config;
-+	struct imgu_abi_sp_pipeline pipe[IMGU_ABI_MAX_SP_THREADS];
-+	struct imgu_abi_sp_debug_command debug;
-+};
-+
-+/***** parameter and state class binary configurations *****/
-+
-+#define IMGU_ABI_FRAMES_REF		3
-+#define IMGU_ABI_FRAMES_TNR		4
-+#define IMGU_ABI_BUF_SETS_TNR		1
-+
-+struct imgu_abi_isp_iterator_config {
-+	struct imgu_abi_frame_sp_info input_info;
-+	struct imgu_abi_frame_sp_info internal_info;
-+	struct imgu_abi_frame_sp_info output_info;
-+	struct imgu_abi_frame_sp_info vf_info;
-+	struct imgu_abi_sp_resolution dvs_envelope;
-+};
-+
-+struct imgu_abi_dma_port_config {
-+	u8 crop, elems;
-+	u16 width;
-+	u32 stride;
-+};
-+
-+struct imgu_abi_isp_ref_config {
-+	u32 width_a_over_b;
-+	struct imgu_abi_dma_port_config port_b;
-+	u32 ref_frame_addr_y[IMGU_ABI_FRAMES_REF];
-+	u32 ref_frame_addr_c[IMGU_ABI_FRAMES_REF];
-+	u32 dvs_frame_delay;
-+};
-+
-+struct imgu_abi_isp_ref_dmem_state {
-+	u32 ref_in_buf_idx;
-+	u32 ref_out_buf_idx;
-+};
-+
-+struct imgu_abi_isp_dvs_config {
-+	u32 num_horizontal_blocks;
-+	u32 num_vertical_blocks;
-+};
-+
-+struct imgu_abi_isp_tnr3_config {
-+	u32 width_a_over_b;
-+	u32 frame_height;
-+	struct imgu_abi_dma_port_config port_b;
-+	u32 delay_frame;
-+	u32 frame_addr[IMGU_ABI_FRAMES_TNR];
-+};
-+
-+struct imgu_abi_isp_tnr3_dmem_state {
-+	u32 in_bufidx;
-+	u32 out_bufidx;
-+	u32 total_frame_counter;
-+	u32 buffer_frame_counter[IMGU_ABI_BUF_SETS_TNR];
-+	u32 bypass_filter;
-+};
-+
-+/***** DVS statistics metadata *****/
-+
-+#define IMGU_ABI_DVS_METADATA_L0_REGS		(84 * 10)
-+#define IMGU_ABI_DVS_METADATA_L1_REGS		(66 * 10)
-+#define IMGU_ABI_DVS_METADATA_L2_REGS		(45 * 10)
-+
-+struct imgu_abi_dvs_meta_data {
-+	u32 dvs_prev_frame_fe_l0[IMGU_ABI_DVS_METADATA_L0_REGS]
-+		__aligned(IMGU_ABI_ISP_DDR_WORD_BYTES);
-+	u32 dvs_prev_frame_fe_l1[IMGU_ABI_DVS_METADATA_L1_REGS]
-+		__aligned(IMGU_ABI_ISP_DDR_WORD_BYTES);
-+	u32 dvs_prev_frame_fe_l2[IMGU_ABI_DVS_METADATA_L2_REGS]
-+		__aligned(IMGU_ABI_ISP_DDR_WORD_BYTES);
-+};
-+
-+/***** Queues *****/
-+
-+#define IMGU_ABI_EVENT_BUFFER_ENQUEUED(thread, queue)	\
-+				(0 << 24 | (thread) << 16 | (queue) << 8)
-+#define IMGU_ABI_EVENT_BUFFER_DEQUEUED(queue)	(1 << 24 | (queue) << 8)
-+#define IMGU_ABI_EVENT_EVENT_DEQUEUED		(2 << 24)
-+#define IMGU_ABI_EVENT_START_STREAM		(3 << 24)
-+#define IMGU_ABI_EVENT_STOP_STREAM		(4 << 24)
-+#define IMGU_ABI_EVENT_MIPI_BUFFERS_READY	(5 << 24)
-+#define IMGU_ABI_EVENT_UNLOCK_RAW_BUFFER	(6 << 24)
-+#define IMGU_ABI_EVENT_STAGE_ENABLE_DISABLE	(7 << 24)
-+
-+#define IMGU_ABI_HOST2SP_BUFQ_SIZE	3
-+#define IMGU_ABI_SP2HOST_BUFQ_SIZE	(2 * IMGU_ABI_MAX_SP_THREADS)
-+#define IMGU_ABI_HOST2SP_EVTQ_SIZE	(IMGU_ABI_QUEUE_NUM * \
-+		IMGU_ABI_MAX_SP_THREADS * 2 + IMGU_ABI_MAX_SP_THREADS * 4)
-+#define IMGU_ABI_SP2HOST_EVTQ_SIZE	(6 * IMGU_ABI_MAX_SP_THREADS)
-+
-+#define IMGU_ABI_EVTTYPE_EVENT_SHIFT	0
-+#define IMGU_ABI_EVTTYPE_EVENT_MASK	(0xff << IMGU_ABI_EVTTYPE_EVENT_SHIFT)
-+#define IMGU_ABI_EVTTYPE_PIPE_SHIFT	8
-+#define IMGU_ABI_EVTTYPE_PIPE_MASK	(0xff << IMGU_ABI_EVTTYPE_PIPE_SHIFT)
-+#define IMGU_ABI_EVTTYPE_PIPEID_SHIFT	16
-+#define IMGU_ABI_EVTTYPE_PIPEID_MASK	(0xff << IMGU_ABI_EVTTYPE_PIPEID_SHIFT)
-+#define IMGU_ABI_EVTTYPE_MODULEID_SHIFT	8
-+#define IMGU_ABI_EVTTYPE_MODULEID_MASK (0xff << IMGU_ABI_EVTTYPE_MODULEID_SHIFT)
-+#define IMGU_ABI_EVTTYPE_LINENO_SHIFT	16
-+#define IMGU_ABI_EVTTYPE_LINENO_MASK   (0xffff << IMGU_ABI_EVTTYPE_LINENO_SHIFT)
-+
-+/* Output frame ready */
-+#define IMGU_ABI_EVTTYPE_OUT_FRAME_DONE			0
-+/* Second output frame ready */
-+#define IMGU_ABI_EVTTYPE_2ND_OUT_FRAME_DONE		1
-+/* Viewfinder Output frame ready */
-+#define IMGU_ABI_EVTTYPE_VF_OUT_FRAME_DONE		2
-+/* Second viewfinder Output frame ready */
-+#define IMGU_ABI_EVTTYPE_2ND_VF_OUT_FRAME_DONE		3
-+/* Indication that 3A statistics are available */
-+#define IMGU_ABI_EVTTYPE_3A_STATS_DONE			4
-+/* Indication that DIS statistics are available */
-+#define IMGU_ABI_EVTTYPE_DIS_STATS_DONE			5
-+/* Pipeline Done event, sent after last pipeline stage */
-+#define IMGU_ABI_EVTTYPE_PIPELINE_DONE			6
-+/* Frame tagged */
-+#define IMGU_ABI_EVTTYPE_FRAME_TAGGED			7
-+/* Input frame ready */
-+#define IMGU_ABI_EVTTYPE_INPUT_FRAME_DONE		8
-+/* Metadata ready */
-+#define IMGU_ABI_EVTTYPE_METADATA_DONE			9
-+/* Indication that LACE statistics are available */
-+#define IMGU_ABI_EVTTYPE_LACE_STATS_DONE		10
-+/* Extension stage executed */
-+#define IMGU_ABI_EVTTYPE_ACC_STAGE_COMPLETE		11
-+/* Timing measurement data */
-+#define IMGU_ABI_EVTTYPE_TIMER				12
-+/* End Of Frame event, sent when in buffered sensor mode */
-+#define IMGU_ABI_EVTTYPE_PORT_EOF			13
-+/* Performance warning encountered by FW */
-+#define IMGU_ABI_EVTTYPE_FW_WARNING			14
-+/* Assertion hit by FW */
-+#define IMGU_ABI_EVTTYPE_FW_ASSERT			15
-+
-+struct imgu_abi_queue_info {
-+	u8 size;		/* the maximum number of elements*/
-+	u8 step;		/* number of bytes per element */
-+	u8 start;		/* index of the oldest element */
-+	u8 end;			/* index at which to write the new element */
-+};
-+
-+struct imgu_abi_queues {
-+	/*
-+	 * Queues for the dynamic frame information,
-+	 * i.e. the "in_frame" buffer, the "out_frame"
-+	 * buffer and the "vf_out_frame" buffer.
-+	 */
-+	struct imgu_abi_queue_info host2sp_bufq_info
-+			[IMGU_ABI_MAX_SP_THREADS][IMGU_ABI_QUEUE_NUM];
-+	u32 host2sp_bufq[IMGU_ABI_MAX_SP_THREADS][IMGU_ABI_QUEUE_NUM]
-+			[IMGU_ABI_HOST2SP_BUFQ_SIZE];
-+	struct imgu_abi_queue_info sp2host_bufq_info[IMGU_ABI_QUEUE_NUM];
-+	u32 sp2host_bufq[IMGU_ABI_QUEUE_NUM][IMGU_ABI_SP2HOST_BUFQ_SIZE];
-+
-+	/*
-+	 * The queues for the events.
-+	 */
-+	struct imgu_abi_queue_info host2sp_evtq_info;
-+	u32 host2sp_evtq[IMGU_ABI_HOST2SP_EVTQ_SIZE];
-+	struct imgu_abi_queue_info sp2host_evtq_info;
-+	u32 sp2host_evtq[IMGU_ABI_SP2HOST_EVTQ_SIZE];
-+};
-+
-+/***** Buffer descriptor *****/
-+
-+struct imgu_abi_metadata_info {
-+	struct imgu_abi_resolution resolution;	/* Resolution */
-+	u32 stride;				/* Stride in bytes */
-+	u32 size;				/* Total size in bytes */
-+};
-+
-+struct imgu_abi_isp_3a_statistics {
-+	union {
-+		struct {
-+			imgu_addr_t s3a_tbl;
-+		} dmem;
-+		struct {
-+			imgu_addr_t s3a_tbl_hi;
-+			imgu_addr_t s3a_tbl_lo;
-+		} vmem;
-+	} data;
-+	struct {
-+		imgu_addr_t rgby_tbl;
-+	} data_hmem;
-+	u32 exp_id;	/* exposure id, to match statistics to a frame, */
-+	u32 isp_config_id;		/* Tracks per-frame configs */
-+	imgu_addr_t data_ptr;		/* pointer to base of all data */
-+	u32 size;			/* total size of all data */
-+	u32 dmem_size;
-+	u32 vmem_size;			/* both lo and hi have this size */
-+	u32 hmem_size;
-+};
-+
-+struct imgu_abi_isp_dvs_statistics {
-+	imgu_addr_t hor_proj;
-+	imgu_addr_t ver_proj;
-+	u32 hor_size;
-+	u32 ver_size;
-+	u32 exp_id;
-+	imgu_addr_t data_ptr;		/* base pointer containing all memory */
-+	u32 size;			/* size of memory in data_ptr */
-+};
-+
-+struct imgu_abi_metadata {
-+	struct imgu_abi_metadata_info info;	/* Layout info */
-+	imgu_addr_t address;		/* CSS virtual address */
-+	u32 exp_id;			/* Exposure ID */
-+};
-+
-+struct imgu_abi_time_meas {
-+	u32 start_timer_value;		/* measured time in ticks */
-+	u32 end_timer_value;		/* measured time in ticks */
-+};
-+
-+struct imgu_abi_buffer {
-+	union {
-+		struct imgu_abi_isp_3a_statistics s3a;
-+		struct imgu_abi_isp_dvs_statistics dis;
-+		imgu_addr_t skc_dvs_statistics;
-+		imgu_addr_t lace_stat;
-+		struct imgu_abi_metadata metadata;
-+		struct {
-+			imgu_addr_t frame_data;
-+			u32 flashed;
-+			u32 exp_id;
-+			u32 isp_parameters_id;   /* Tracks per-frame configs */
-+			u32 padded_width;
-+		} frame;
-+		imgu_addr_t ddr_ptrs;
-+	} payload;
-+	/*
-+	 * kernel_ptr is present for host administration purposes only.
-+	 * type is uint64_t in order to be 64-bit host compatible.
-+	 * uint64_t does not exist on SP/ISP.
-+	 * Size of the struct is checked by sp.hive.c.
-+	 */
-+	u64 cookie_ptr __aligned(8);
-+	u64 kernel_ptr;
-+	struct imgu_abi_time_meas timing_data;
-+	u32 isys_eof_clock_tick;
-+};
-+
-+#define IMGU_ABI_NUM_CONTINUOUS_FRAMES		10
-+#define IMGU_ABI_SP_COMM_COMMAND		0x00
-+
-+/*
-+ * The host2sp_cmd_ready command is the only command written by the SP
-+ * It acknowledges that is previous command has been received.
-+ * (this does not mean that the command has been executed)
-+ * It also indicates that a new command can be send (it is a queue
-+ * with depth 1).
-+ */
-+#define IMGU_ABI_SP_COMM_COMMAND_READY		1
-+/* Command written by the Host */
-+#define IMGU_ABI_SP_COMM_COMMAND_DUMMY		2	/* No action */
-+#define IMGU_ABI_SP_COMM_COMMAND_START_FLASH	3	/* Start the flash */
-+#define IMGU_ABI_SP_COMM_COMMAND_TERMINATE	4	/* Terminate */
-+
-+/* n = 0..IMGU_ABI_NUM_CONTINUOUS_FRAMES-1 */
-+#define IMGU_ABI_SP_COMM_OFFLINE_FRAME(n)	((n) * 4 + 0x04)
-+#define IMGU_ABI_SP_COMM_OFFLINE_METADATA(n)	((n) * 4 + 0x2c)
-+#define IMGU_ABI_SP_COMM_CONT_AVAIL_RAW_FRAMES	0x54
-+#define IMGU_ABI_SP_COMM_CONT_EXTRA_RAW_FRAMES	0x58
-+#define IMGU_ABI_SP_COMM_CONT_TARGET_RAW_FRAMES	0x5c
-+/* n = 0..IPU3_CSS_PIPE_ID_NUM-1 */
-+#define IMGU_ABI_SP_COMM_EVENT_IRQ_MASK(n)	((n) * 4 + 0x60)
-+#define IMGU_ABI_SP_COMM_EVENT_IRQ_MASK_OR_SHIFT	0
-+#define IMGU_ABI_SP_COMM_EVENT_IRQ_MASK_AND_SHIFT	16
-+
-+struct imgu_abi_bl_dma_cmd_entry {
-+	u32 src_addr;			/* virtual DDR address */
-+	u32 size;			/* number of bytes to transferred */
-+	u32 dst_type;
-+#define IMGU_ABI_BL_DMACMD_TYPE_SP_PMEM	1	/* sp_pmem */
-+	u32 dst_addr;			/* hmm address of xMEM or MMIO */
-+};
-+
-+struct imgu_abi_sp_init_dmem_cfg {
-+	u32 ddr_data_addr;		/* data segment address in ddr  */
-+	u32 dmem_data_addr;		/* data segment address in dmem */
-+	u32 dmem_bss_addr;		/* bss segment address in dmem  */
-+	u32 data_size;			/* data segment size            */
-+	u32 bss_size;			/* bss segment size             */
-+	u32 sp_id;			/* sp id */
-+};
-+
-+/***** For parameter computation *****/
-+
-+#define IMGU_SCALER_ELEMS_PER_VEC		0x10
-+#define IMGU_SCALER_FILTER_TAPS_Y		0x4
-+#define IMGU_SCALER_OUT_BPP			0x8
-+
-+#define IMGU_HIVE_OF_SYS_SCALER_TO_FA_OFFSET	0xC
-+#define IMGU_HIVE_OF_SYS_OF_TO_FA_OFFSET	0x8
-+
-+#define IMGU_SCALER_MS_TO_OUTFORMACC_SL_ADDR	0x400
-+#define IMGU_SCALER_TO_OF_ACK_FA_ADDR \
-+	(0xC00  + IMGU_HIVE_OF_SYS_SCALER_TO_FA_OFFSET)
-+#define IMGU_OF_TO_ACK_FA_ADDR (0xC00 + IMGU_HIVE_OF_SYS_OF_TO_FA_OFFSET)
-+#define IMGU_OUTFORMACC_MS_TO_SCALER_SL_ADDR 0
-+#define IMGU_OSYS_PHASES			0x20
-+#define IMGU_OSYS_FILTER_TAPS			0x4
-+#define IMGU_SCALER_INTR_BPP			10
-+
-+#define IMGU_PS_SNR_PRESERVE_BITS		3
-+#define IMGU_CNTX_BPP				11
-+#define IMGU_SCALER_FILTER_TAPS_UV	(IMGU_SCALER_FILTER_TAPS_Y/2)
-+
-+#define IMGU_VMEM2_ELEMS_PER_VEC	(IMGU_SCALER_ELEMS_PER_VEC)
-+#define IMGU_STRIDE_Y			(IMGU_SCALER_FILTER_TAPS_Y + 1)
-+#define IMGU_MAX_FRAME_WIDTH		3840
-+#define IMGU_VMEM3_ELEMS_PER_VEC	(IMGU_SCALER_ELEMS_PER_VEC)
-+
-+#define IMGU_VER_CNTX_WORDS		DIV_ROUND_UP((IMGU_SCALER_OUT_BPP + \
-+	IMGU_PS_SNR_PRESERVE_BITS), IMGU_CNTX_BPP)	/* 1 */
-+#define IMGU_MAX_INPUT_BLOCK_HEIGHT	64
-+#define IMGU_HOR_CNTX_WORDS		DIV_ROUND_UP((IMGU_SCALER_INTR_BPP + \
-+	IMGU_PS_SNR_PRESERVE_BITS), IMGU_CNTX_BPP)	/* 2 */
-+#define IMGU_MAX_OUTPUT_BLOCK_WIDTH		128
-+#define IMGU_CNTX_STRIDE_UV		(IMGU_SCALER_FILTER_TAPS_UV + 1)
-+
-+#define IMGU_OSYS_PHASE_COUNTER_PREC_REF	6
-+#define IMGU_VMEM1_Y_SIZE \
-+	(IMGU_OSYS_BLOCK_HEIGHT * IMGU_VMEM1_Y_STRIDE)
-+#define IMGU_VMEM1_UV_SIZE			(IMGU_VMEM1_Y_SIZE / 4)
-+#define IMGU_VMEM1_OUT_BUF_ADDR			(IMGU_VMEM1_INP_BUF_ADDR + \
-+	(IMGU_OSYS_NUM_INPUT_BUFFERS * IMGU_VMEM1_BUF_SIZE))
-+#define IMGU_OSYS_NUM_OUTPUT_BUFFERS		2
-+
-+/* transpose of input height */
-+#define IMGU_VMEM2_VECS_PER_LINE \
-+	(DIV_ROUND_UP(IMGU_OSYS_BLOCK_HEIGHT, IMGU_VMEM2_ELEMS_PER_VEC))
-+/* size in words (vectors)  */
-+#define IMGU_VMEM2_BUF_SIZE \
-+	(IMGU_VMEM2_VECS_PER_LINE * IMGU_VMEM2_LINES_PER_BLOCK)
-+#define IMGU_VMEM3_VER_Y_SIZE	\
-+			((IMGU_STRIDE_Y * IMGU_MAX_FRAME_WIDTH \
-+			 / IMGU_VMEM3_ELEMS_PER_VEC) * IMGU_VER_CNTX_WORDS)
-+#define IMGU_VMEM3_HOR_Y_SIZE \
-+	((IMGU_STRIDE_Y * IMGU_MAX_INPUT_BLOCK_HEIGHT \
-+	 / IMGU_VMEM3_ELEMS_PER_VEC) * IMGU_HOR_CNTX_WORDS)
-+#define IMGU_VMEM3_VER_Y_EXTRA \
-+	((IMGU_STRIDE_Y * IMGU_MAX_OUTPUT_BLOCK_WIDTH \
-+	 / IMGU_VMEM3_ELEMS_PER_VEC) * IMGU_VER_CNTX_WORDS)
-+#define IMGU_VMEM3_VER_U_SIZE \
-+	(((IMGU_CNTX_STRIDE_UV * IMGU_MAX_FRAME_WIDTH \
-+	 / IMGU_VMEM3_ELEMS_PER_VEC) * IMGU_VER_CNTX_WORDS) / 2)
-+#define IMGU_VMEM3_HOR_U_SIZE \
-+	(((IMGU_STRIDE_Y * IMGU_MAX_INPUT_BLOCK_HEIGHT \
-+	 / IMGU_VMEM3_ELEMS_PER_VEC) * IMGU_HOR_CNTX_WORDS) / 2)
-+#define IMGU_VMEM3_VER_U_EXTRA \
-+	(((IMGU_CNTX_STRIDE_UV * IMGU_MAX_OUTPUT_BLOCK_WIDTH \
-+	 / IMGU_VMEM3_ELEMS_PER_VEC) * IMGU_VER_CNTX_WORDS) / 2)
-+#define IMGU_VMEM3_VER_V_SIZE \
-+	(((IMGU_CNTX_STRIDE_UV * IMGU_MAX_FRAME_WIDTH \
-+	 / IMGU_VMEM3_ELEMS_PER_VEC) * IMGU_VER_CNTX_WORDS) / 2)
-+
-+#define IMGU_OSYS_DMA_CROP_W_LIMIT	64
-+#define IMGU_OSYS_DMA_CROP_H_LIMIT	4
-+
-+#define IMGU_ISP_VEC_NELEMS		64
-+#define IMGU_LUMA_TO_CHROMA_RATIO	2
-+#define IMGU_OSYS_FIR_PHASES \
-+	(IMGU_OSYS_PHASES << IMGU_OSYS_PHASE_COUNTER_PREC_REF)
-+#define IMGU_OSYS_TAPS_UV		(IMGU_OSYS_FILTER_TAPS / 2)
-+#define IMGU_INPUT_BLOCK_WIDTH			(128)
-+#define IMGU_OSYS_TAPS_Y		(IMGU_OSYS_FILTER_TAPS)
-+#define IMGU_FIFO_ADDR_SCALER_TO_FMT \
-+	(IMGU_SCALER_MS_TO_OUTFORMACC_SL_ADDR >> 2)
-+#define IMGU_FIFO_ADDR_SCALER_TO_SP	(IMGU_SCALER_TO_OF_ACK_FA_ADDR >> 2)
-+#define IMGU_VMEM1_INP_BUF_ADDR		0
-+#define IMGU_VMEM1_Y_STRIDE \
-+	(IMGU_OSYS_BLOCK_WIDTH / IMGU_VMEM1_ELEMS_PER_VEC)
-+#define IMGU_VMEM1_BUF_SIZE	(IMGU_VMEM1_V_OFFSET + IMGU_VMEM1_UV_SIZE)
-+
-+#define IMGU_VMEM1_U_OFFSET		(IMGU_VMEM1_Y_SIZE)
-+#define IMGU_VMEM1_V_OFFSET	(IMGU_VMEM1_U_OFFSET + IMGU_VMEM1_UV_SIZE)
-+#define IMGU_VMEM1_UV_STRIDE		(IMGU_VMEM1_Y_STRIDE / 2)
-+#define IMGU_OSYS_NUM_INPUT_BUFFERS	2
-+#define IMGU_VMEM1_INT_BUF_ADDR		(IMGU_VMEM1_OUT_BUF_ADDR + \
-+	(IMGU_OSYS_NUM_OUTPUT_BUFFERS * IMGU_VMEM1_BUF_SIZE))
-+
-+#define IMGU_VMEM1_ELEMS_PER_VEC	(IMGU_HIVE_OF_SYS_OF_SYSTEM_NWAYS)
-+#define IMGU_OSYS_NUM_INTERM_BUFFERS	2
-+#define IMGU_VMEM2_BUF_Y_ADDR		0
-+#define IMGU_VMEM2_BUF_Y_STRIDE		(IMGU_VMEM2_VECS_PER_LINE)
-+#define IMGU_VMEM2_BUF_U_ADDR \
-+	(IMGU_VMEM2_BUF_Y_ADDR + IMGU_VMEM2_BUF_SIZE)
-+#define IMGU_VMEM2_BUF_V_ADDR \
-+	(IMGU_VMEM2_BUF_U_ADDR + IMGU_VMEM2_BUF_SIZE/4)
-+#define IMGU_VMEM2_BUF_UV_STRIDE	(IMGU_VMEM2_VECS_PER_LINE/2)
-+/* 1.5 x depth of intermediate buffer */
-+#define IMGU_VMEM2_LINES_PER_BLOCK	192
-+#define IMGU_VMEM3_HOR_Y_ADDR \
-+	(IMGU_VMEM3_VER_Y_ADDR + IMGU_VMEM3_VER_Y_SIZE)
-+#define IMGU_VMEM3_HOR_U_ADDR \
-+	(IMGU_VMEM3_VER_U_ADDR + IMGU_VMEM3_VER_U_SIZE)
-+#define IMGU_VMEM3_HOR_V_ADDR \
-+	(IMGU_VMEM3_VER_V_ADDR + IMGU_VMEM3_VER_V_SIZE)
-+#define IMGU_VMEM3_VER_Y_ADDR		0
-+#define IMGU_VMEM3_VER_U_ADDR \
-+	(IMGU_VMEM3_VER_Y_ADDR + IMGU_VMEM3_VER_Y_SIZE + \
-+	max(IMGU_VMEM3_HOR_Y_SIZE, IMGU_VMEM3_VER_Y_EXTRA))
-+#define IMGU_VMEM3_VER_V_ADDR \
-+	(IMGU_VMEM3_VER_U_ADDR + IMGU_VMEM3_VER_U_SIZE + \
-+	max(IMGU_VMEM3_HOR_U_SIZE, IMGU_VMEM3_VER_U_EXTRA))
-+#define IMGU_HIVE_OF_SYS_OF_SYSTEM_NWAYS	32
-+#define IMGU_FIFO_ADDR_FMT_TO_SP	(IMGU_OF_TO_ACK_FA_ADDR >> 2)
-+#define IMGU_FIFO_ADDR_FMT_TO_SCALER (IMGU_OUTFORMACC_MS_TO_SCALER_SL_ADDR >> 2)
-+#define IMGU_VMEM1_HST_BUF_ADDR		(IMGU_VMEM1_INT_BUF_ADDR + \
-+	(IMGU_OSYS_NUM_INTERM_BUFFERS * IMGU_VMEM1_BUF_SIZE))
-+#define IMGU_VMEM1_HST_BUF_STRIDE	120
-+#define IMGU_VMEM1_HST_BUF_NLINES	3
-+
-+#endif
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-fw.c b/drivers/media/pci/intel/ipu3/ipu3-css-fw.c
-new file mode 100644
-index 0000000..55edbb8
---- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-css-fw.c
-@@ -0,0 +1,272 @@
-+/*
-+ * Copyright (c) 2017 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <asm/cacheflush.h>
-+#include <linux/device.h>
-+#include <linux/firmware.h>
-+#include <linux/slab.h>
-+
-+#include "ipu3-css.h"
-+#include "ipu3-css-fw.h"
-+
-+static void ipu3_css_fw_show_binary(struct device *dev,
-+			struct imgu_fw_info *bi, const char *name)
-+{
-+	int i;
-+
-+	dev_dbg(dev, "found firmware binary type %i size %i name %s\n",
-+		bi->type, bi->blob.size, name);
-+	if (bi->type != IMGU_FW_ISP_FIRMWARE)
-+		return;
-+
-+	dev_dbg(dev, "    id %i mode %i bds 0x%x veceven %i/%i out_pins %i\n",
-+		bi->info.isp.sp.id, bi->info.isp.sp.pipeline.mode,
-+		bi->info.isp.sp.bds.supported_bds_factors,
-+		bi->info.isp.sp.enable.vf_veceven,
-+		bi->info.isp.sp.vf_dec.is_variable,
-+		bi->info.isp.num_output_pins);
-+
-+	dev_dbg(dev, "    input (%i,%i)-(%i,%i) formats %s%s%s\n",
-+		bi->info.isp.sp.input.min_width,
-+		bi->info.isp.sp.input.min_height,
-+		bi->info.isp.sp.input.max_width,
-+		bi->info.isp.sp.input.max_height,
-+		bi->info.isp.sp.enable.input_yuv ? "yuv420 " : "",
-+		bi->info.isp.sp.enable.input_feeder ||
-+		bi->info.isp.sp.enable.input_raw ? "raw8 raw10 " : "",
-+		bi->info.isp.sp.enable.input_raw ? "raw12" : "");
-+
-+	dev_dbg(dev, "    internal (%i,%i)\n",
-+		bi->info.isp.sp.internal.max_width,
-+		bi->info.isp.sp.internal.max_height);
-+
-+	dev_dbg(dev, "    output (%i,%i)-(%i,%i) formats",
-+		bi->info.isp.sp.output.min_width,
-+		bi->info.isp.sp.output.min_height,
-+		bi->info.isp.sp.output.max_width,
-+		bi->info.isp.sp.output.max_height);
-+	for (i = 0; i < bi->info.isp.num_output_formats; i++)
-+		dev_dbg(dev, " %i", bi->info.isp.output_formats[i]);
-+	dev_dbg(dev, " vf");
-+	for (i = 0; i < bi->info.isp.num_vf_formats; i++)
-+		dev_dbg(dev, " %i", bi->info.isp.vf_formats[i]);
-+	dev_dbg(dev, "\n");
-+}
-+
-+const int ipu3_css_fw_obgrid_size(const struct imgu_fw_info *bi)
-+{
-+	unsigned int stripes = bi->info.isp.sp.iterator.num_stripes;
-+	unsigned int width, height, obgrid_size;
-+
-+	width = ALIGN(DIV_ROUND_UP(bi->info.isp.sp.internal.max_width,
-+		IMGU_OBGRID_TILE_SIZE * 2) + 1, IPU3_UAPI_ISP_VEC_ELEMS / 4);
-+	height = DIV_ROUND_UP(bi->info.isp.sp.internal.max_height,
-+		IMGU_OBGRID_TILE_SIZE * 2) + 1;
-+	obgrid_size = PAGE_ALIGN(width * height *
-+		sizeof(struct ipu3_uapi_obgrid_param)) * stripes;
-+
-+	return obgrid_size;
-+}
-+
-+void *ipu3_css_fw_pipeline_params(struct ipu3_css *css,
-+		enum imgu_abi_param_class c, enum imgu_abi_memories m,
-+		struct imgu_fw_isp_parameter *par, size_t par_size,
-+		void *binary_params)
-+{
-+	struct imgu_fw_info *bi = &css->fwp->binary_header[css->current_binary];
-+
-+	if (par->offset + par->size >
-+	    bi->info.isp.sp.mem_initializers.params[c][m].size)
-+		return NULL;
-+
-+	if (par->size != par_size)
-+		pr_warn("parameter size doesn't match defined size\n");
-+
-+	if (par->size < par_size)
-+		return NULL;
-+
-+	return binary_params + par->offset;
-+}
-+
-+void ipu3_css_fw_cleanup(struct ipu3_css *css)
-+{
-+	if (css->binary) {
-+		int i;
-+
-+		for (i = 0; i < css->fwp->file_header.binary_nr; i++)
-+			ipu3_css_dma_free(css->dev, &css->binary[i]);
-+		kfree(css->binary);
-+	}
-+	if (css->fw)
-+		release_firmware(css->fw);
-+
-+	css->binary = NULL;
-+	css->fw = NULL;
-+}
-+
-+int ipu3_css_fw_init(struct ipu3_css *css)
-+{
-+	static const u32 BLOCK_MAX = 65536;
-+	struct device *dev = css->dev;
-+	int binary_nr = 0;
-+	int i, j, r;
-+
-+	r = request_firmware(&css->fw, IMGU_FW_NAME, css->dev);
-+	if (r)
-+		return r;
-+
-+	/* Check and display fw header info */
-+
-+	css->fwp = (struct imgu_fw_header *)css->fw->data;
-+	if (css->fw->size < sizeof(struct imgu_fw_header *) ||
-+	    css->fwp->file_header.h_size != sizeof(struct imgu_fw_bi_file_h))
-+		goto bad_fw;
-+	if (sizeof(struct imgu_fw_bi_file_h) +
-+	    css->fwp->file_header.binary_nr * sizeof(struct imgu_fw_info) >
-+	    css->fw->size)
-+		goto bad_fw;
-+
-+	dev_info(dev, "loaded firmware version %.64s, %u binaries, %u bytes\n",
-+		 css->fwp->file_header.version, css->fwp->file_header.binary_nr,
-+		 (int)css->fw->size);
-+
-+	/* Validate and display info on fw binaries */
-+
-+	binary_nr = css->fwp->file_header.binary_nr;
-+
-+	css->fw_bl = css->fw_sp[0] = css->fw_sp[1] = -1;
-+	for (i = 0; i < binary_nr; i++) {
-+		struct imgu_fw_info *bi = &css->fwp->binary_header[i];
-+		const char *name = (void *)css->fwp + bi->blob.prog_name_offset;
-+		size_t len;
-+
-+		if (bi->blob.prog_name_offset >= css->fw->size)
-+			goto bad_fw;
-+		len = strnlen(name, css->fw->size - bi->blob.prog_name_offset);
-+		if (len + 1 >= css->fw->size - bi->blob.prog_name_offset ||
-+		    len + 1 >= IMGU_ABI_MAX_BINARY_NAME)
-+			goto bad_fw;
-+
-+		ipu3_css_fw_show_binary(dev, bi, name);
-+
-+		if (bi->blob.size != bi->blob.text_size + bi->blob.icache_size
-+		    + bi->blob.data_size + bi->blob.padding_size)
-+			goto bad_fw;
-+		if (bi->blob.offset + bi->blob.size > css->fw->size)
-+			goto bad_fw;
-+
-+		if (bi->type == IMGU_FW_BOOTLOADER_FIRMWARE) {
-+			css->fw_bl = i;
-+			if (bi->info.bl.sw_state >= css->iomem_length ||
-+			    bi->info.bl.num_dma_cmds >= css->iomem_length
-+			    || bi->info.bl.dma_cmd_list >=
-+			    css->iomem_length)
-+				goto bad_fw;
-+		}
-+		if (bi->type == IMGU_FW_SP_FIRMWARE ||
-+		    bi->type == IMGU_FW_SP1_FIRMWARE) {
-+			css->fw_sp[bi->type == IMGU_FW_SP_FIRMWARE ? 0 : 1] = i;
-+			if (bi->info.sp.per_frame_data >= css->iomem_length
-+			    || bi->info.sp.init_dmem_data >=
-+			    css->iomem_length
-+			    || bi->info.sp.host_sp_queue >=
-+			    css->iomem_length
-+			    || bi->info.sp.isp_started >= css->iomem_length
-+			    || bi->info.sp.sw_state >= css->iomem_length
-+			    || bi->info.sp.host_sp_queues_initialized >=
-+			    css->iomem_length
-+			    || bi->info.sp.sleep_mode >= css->iomem_length
-+			    || bi->info.sp.invalidate_tlb >=
-+			    css->iomem_length
-+			    || bi->info.sp.host_sp_com >= css->iomem_length
-+			    || bi->info.sp.output + 12 >=
-+			    css->iomem_length)
-+				goto bad_fw;
-+		}
-+		if (bi->type != IMGU_FW_ISP_FIRMWARE)
-+			continue;
-+
-+		if (bi->info.isp.sp.pipeline.mode >= IPU3_CSS_PIPE_ID_NUM)
-+			goto bad_fw;
-+
-+		if (bi->info.isp.sp.iterator.num_stripes >
-+		    IPU3_UAPI_MAX_STRIPES)
-+			goto bad_fw;
-+
-+		if (bi->info.isp.num_output_formats > IMGU_ABI_FRAME_FORMAT_NUM
-+		    || bi->info.isp.num_vf_formats > IMGU_ABI_FRAME_FORMAT_NUM)
-+			goto bad_fw;
-+
-+		for (j = 0; j < bi->info.isp.num_output_formats; j++)
-+			if (bi->info.isp.output_formats[j] < 0 ||
-+			    bi->info.isp.output_formats[j] >=
-+			    IMGU_ABI_FRAME_FORMAT_NUM)
-+				goto bad_fw;
-+		for (j = 0; j < bi->info.isp.num_vf_formats; j++)
-+			if (bi->info.isp.vf_formats[j] < 0 ||
-+			    bi->info.isp.vf_formats[j] >=
-+			    IMGU_ABI_FRAME_FORMAT_NUM)
-+				goto bad_fw;
-+
-+		if (bi->info.isp.sp.block.block_width <= 0 ||
-+		    bi->info.isp.sp.block.block_width > BLOCK_MAX ||
-+		    bi->info.isp.sp.block.output_block_height <= 0 ||
-+		    bi->info.isp.sp.block.output_block_height > BLOCK_MAX)
-+			goto bad_fw;
-+
-+		if (bi->blob.memory_offsets.offsets[IMGU_ABI_PARAM_CLASS_PARAM]
-+		    + sizeof(struct imgu_fw_param_memory_offsets)
-+		    > css->fw->size ||
-+		    bi->blob.memory_offsets.offsets[IMGU_ABI_PARAM_CLASS_CONFIG]
-+		    + sizeof(struct imgu_fw_config_memory_offsets)
-+		    > css->fw->size ||
-+		    bi->blob.memory_offsets.offsets[IMGU_ABI_PARAM_CLASS_STATE]
-+		    + sizeof(struct imgu_fw_state_memory_offsets)
-+		    > css->fw->size)
-+			goto bad_fw;
-+	}
-+
-+	if (css->fw_bl == -1 || css->fw_sp[0] == -1 || css->fw_sp[1] == -1)
-+		goto bad_fw;
-+
-+	/* Allocate and map fw binaries into IMGU */
-+
-+	css->binary = kcalloc(binary_nr, sizeof(*css->binary), GFP_KERNEL);
-+	if (!css->binary) {
-+		r = -ENOMEM;
-+		goto error_out;
-+	}
-+
-+	for (i = 0; i < css->fwp->file_header.binary_nr; i++) {
-+		struct imgu_fw_info *bi = &css->fwp->binary_header[i];
-+		void *blob = (void *)css->fwp + bi->blob.offset;
-+		size_t size = bi->blob.size;
-+
-+		if (ipu3_css_dma_alloc(dev, &css->binary[i], size)) {
-+			r = -ENOMEM;
-+			goto error_out;
-+		}
-+		memcpy(css->binary[i].vaddr, blob, size);
-+		clflush_cache_range(css->binary[i].vaddr, size);
-+	}
-+
-+	return 0;
-+
-+bad_fw:
-+	dev_err(dev, "invalid firmware binary, size %u\n", (int)css->fw->size);
-+	r = -ENODEV;
-+
-+error_out:
-+	ipu3_css_fw_cleanup(css);
-+	return r;
-+}
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-fw.h b/drivers/media/pci/intel/ipu3/ipu3-css-fw.h
-new file mode 100644
-index 0000000..5a247e3
---- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-css-fw.h
-@@ -0,0 +1,215 @@
-+/*
-+ * Copyright (c) 2017 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#ifndef __IPU3_CSS_FW_H
-+#define __IPU3_CSS_FW_H
-+
-+/******************* Firmware file definitions *******************/
-+
-+#define IMGU_FW_NAME			"ipu3-fw.bin"
-+
-+typedef u32 imgu_fw_ptr;
-+
-+enum imgu_fw_type {
-+	IMGU_FW_SP_FIRMWARE,	/* Firmware for the SP */
-+	IMGU_FW_SP1_FIRMWARE,	/* Firmware for the SP1 */
-+	IMGU_FW_ISP_FIRMWARE,	/* Firmware for the ISP */
-+	IMGU_FW_BOOTLOADER_FIRMWARE,	/* Firmware for the BootLoader */
-+	IMGU_FW_ACC_FIRMWARE	/* Firmware for accelerations */
-+};
-+
-+enum imgu_fw_acc_type {
-+	IMGU_FW_ACC_NONE,	/* Normal binary */
-+	IMGU_FW_ACC_OUTPUT,	/* Accelerator stage on output frame */
-+	IMGU_FW_ACC_VIEWFINDER,	/* Accelerator stage on viewfinder frame */
-+	IMGU_FW_ACC_STANDALONE,	/* Stand-alone acceleration */
-+};
-+
-+struct imgu_fw_isp_parameter {
-+	u32 offset;		/* Offset in isp_<mem>)parameters, etc. */
-+	u32 size;		/* Disabled if 0 */
-+};
-+
-+struct imgu_fw_param_memory_offsets {
-+	struct {
-+		struct imgu_fw_isp_parameter lin;	/* lin_vmem_params */
-+		struct imgu_fw_isp_parameter tnr3;	/* tnr3_vmem_params */
-+		struct imgu_fw_isp_parameter xnr3;	/* xnr3_vmem_params */
-+	} vmem;
-+	struct {
-+		struct imgu_fw_isp_parameter tnr;
-+		struct imgu_fw_isp_parameter tnr3;	/* tnr3_params */
-+		struct imgu_fw_isp_parameter xnr3;	/* xnr3_params */
-+		struct imgu_fw_isp_parameter plane_io_config;	/* 192 bytes */
-+		struct imgu_fw_isp_parameter rgbir;	/* rgbir_params */
-+	} dmem;
-+};
-+
-+struct imgu_fw_config_memory_offsets {
-+	struct {
-+		struct imgu_fw_isp_parameter iterator;
-+		struct imgu_fw_isp_parameter dvs;
-+		struct imgu_fw_isp_parameter output;
-+		struct imgu_fw_isp_parameter raw;
-+		struct imgu_fw_isp_parameter input_yuv;
-+		struct imgu_fw_isp_parameter tnr;
-+		struct imgu_fw_isp_parameter tnr3;
-+		struct imgu_fw_isp_parameter ref;
-+	} dmem;
-+};
-+
-+struct imgu_fw_state_memory_offsets {
-+	struct {
-+		struct imgu_fw_isp_parameter tnr;
-+		struct imgu_fw_isp_parameter tnr3;
-+		struct imgu_fw_isp_parameter ref;
-+	} dmem;
-+};
-+
-+union imgu_fw_all_memory_offsets {
-+	struct {
-+		struct imgu_fw_param_memory_offsets *param __aligned(8);
-+		struct imgu_fw_config_memory_offsets *config __aligned(8);
-+		struct imgu_fw_state_memory_offsets *state __aligned(8);
-+	} offsets;
-+	struct {
-+		void *ptr __aligned(8);
-+	} array[IMGU_ABI_PARAM_CLASS_NUM];
-+};
-+
-+struct imgu_fw_binary_xinfo {
-+	/* Part that is of interest to the SP. */
-+	struct imgu_abi_binary_info sp;
-+
-+	/* Rest of the binary info, only interesting to the host. */
-+	enum imgu_fw_acc_type type;
-+
-+	u32 num_output_formats __aligned(8);
-+	enum imgu_abi_frame_format output_formats[IMGU_ABI_FRAME_FORMAT_NUM];
-+
-+	/* number of supported vf formats */
-+	u32 num_vf_formats __aligned(8);
-+	/* types of supported vf formats */
-+	enum imgu_abi_frame_format vf_formats[IMGU_ABI_FRAME_FORMAT_NUM];
-+	u8 num_output_pins;
-+	imgu_fw_ptr xmem_addr;
-+
-+	const struct imgu_fw_blob_descr *blob __aligned(8);
-+	u32 blob_index __aligned(8);
-+	union imgu_fw_all_memory_offsets mem_offsets __aligned(8);
-+	struct imgu_fw_binary_xinfo *next __aligned(8);
-+};
-+
-+struct imgu_fw_sp_info {
-+	u32 init_dmem_data;	/* data sect config, stored to dmem */
-+	u32 per_frame_data;	/* Per frame data, stored to dmem */
-+	u32 group;		/* Per pipeline data, loaded by dma */
-+	u32 output;		/* SP output data, loaded by dmem */
-+	u32 host_sp_queue;	/* Host <-> SP queues */
-+	u32 host_sp_com;	/* Host <-> SP commands */
-+	u32 isp_started;	/* P'ed from sensor thread, csim only */
-+	u32 sw_state;		/* Polled from css */
-+#define IMGU_ABI_SP_SWSTATE_TERMINATED	0
-+#define IMGU_ABI_SP_SWSTATE_INITIALIZED	1
-+#define IMGU_ABI_SP_SWSTATE_CONNECTED	2
-+#define IMGU_ABI_SP_SWSTATE_RUNNING	3
-+	u32 host_sp_queues_initialized;	/* Polled from the SP */
-+	u32 sleep_mode;		/* different mode to halt SP */
-+	u32 invalidate_tlb;	/* inform SP to invalidate mmu TLB */
-+	u32 debug_buffer_ddr_address;	/* inform SP the addr of DDR debug
-+					 * queue
-+					 */
-+	/* input system perf count array */
-+	u32 perf_counter_input_system_error;
-+	u32 threads_stack;	/* sp thread's stack pointers */
-+	u32 threads_stack_size;	/* sp thread's stack sizes */
-+	u32 curr_binary_id;	/* current binary id */
-+	u32 raw_copy_line_count;	/* raw copy line counter */
-+	u32 ddr_parameter_address;	/* acc param ddrptr, sp dmem */
-+	u32 ddr_parameter_size;	/* acc param size, sp dmem */
-+	/* Entry functions */
-+	u32 sp_entry;		/* The SP entry function */
-+	u32 tagger_frames_addr;	/* Base address of tagger state */
-+};
-+
-+struct imgu_fw_bl_info {
-+	u32 num_dma_cmds;	/* Number of cmds sent by CSS */
-+	u32 dma_cmd_list;	/* Dma command list sent by CSS */
-+	u32 sw_state;		/* Polled from css */
-+#define IMGU_ABI_BL_SWSTATE_OK		0x100
-+#define IMGU_ABI_BL_SWSTATE_BUSY	(IMGU_ABI_BL_SWSTATE_OK + 1)
-+#define IMGU_ABI_BL_SWSTATE_ERR		(IMGU_ABI_BL_SWSTATE_OK + 2)
-+	/* Entry functions */
-+	u32 bl_entry;		/* The SP entry function */
-+};
-+
-+struct imgu_fw_acc_info {
-+	u32 per_frame_data;	/* Dummy for now */
-+};
-+
-+union imgu_fw_union {
-+	struct imgu_fw_binary_xinfo isp;	/* ISP info */
-+	struct imgu_fw_sp_info sp;	/* SP info */
-+	struct imgu_fw_sp_info sp1;	/* SP1 info */
-+	struct imgu_fw_bl_info bl;	/* Bootloader info */
-+	struct imgu_fw_acc_info acc;	/* Accelerator info */
-+};
-+
-+struct imgu_fw_info {
-+	size_t header_size;	/* size of fw header */
-+	enum imgu_fw_type type __aligned(8);
-+	union imgu_fw_union info;	/* Binary info */
-+	struct imgu_abi_blob_info blob;	/* Blob info */
-+	/* Dynamic part */
-+	struct imgu_fw_info *next;
-+
-+	u32 loaded __aligned(8);	/* Firmware has been loaded */
-+	const u8 *isp_code __aligned(8);	/* ISP pointer to code */
-+	/* Firmware handle between user space and kernel */
-+	u32 handle __aligned(8);
-+	/* Sections to copy from/to ISP */
-+	struct imgu_abi_isp_param_segments mem_initializers;
-+	/* Initializer for local ISP memories */
-+};
-+
-+struct imgu_fw_blob_descr {
-+	const unsigned char *blob;
-+	struct imgu_fw_info header;
-+	const char *name;
-+	union imgu_fw_all_memory_offsets mem_offsets;
-+};
-+
-+struct imgu_fw_bi_file_h {
-+	char version[64];	/* branch tag + week day + time */
-+	int binary_nr;		/* Number of binaries */
-+	unsigned int h_size;	/* sizeof(struct imgu_fw_bi_file_h) */
-+};
-+
-+struct imgu_fw_header {
-+	struct imgu_fw_bi_file_h file_header;
-+	struct imgu_fw_info binary_header[1];	/* binary_nr items */
-+};
-+
-+/******************* Firmware functions *******************/
-+
-+int ipu3_css_fw_init(struct ipu3_css *css);
-+void ipu3_css_fw_cleanup(struct ipu3_css *css);
-+
-+const int ipu3_css_fw_obgrid_size(const struct imgu_fw_info *bi);
-+void *ipu3_css_fw_pipeline_params(struct ipu3_css *css,
-+		enum imgu_abi_param_class c, enum imgu_abi_memories m,
-+		struct imgu_fw_isp_parameter *par, size_t par_size,
-+		void *binary_params);
-+
-+#endif
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-css.h b/drivers/media/pci/intel/ipu3/ipu3-css.h
-new file mode 100644
-index 0000000..411681d
---- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-css.h
-@@ -0,0 +1,54 @@
-+/*
-+ * Copyright (c) 2017 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef __IPU3_CSS_H
-+#define __IPU3_CSS_H
-+
-+#include "ipu3-abi.h"
-+#include "ipu3-css-pool.h"
-+
-+/* 2 stages for split isp pipeline, 1 for scaling */
-+#define IMGU_NUM_SP			2
-+#define IMGU_MAX_PIPELINE_NUM		20
-+
-+/*
-+ * The pipe id type, distinguishes the kind of pipes that
-+ * can be run in parallel.
-+ */
-+enum ipu3_css_pipe_id {
-+	IPU3_CSS_PIPE_ID_PREVIEW,
-+	IPU3_CSS_PIPE_ID_COPY,
-+	IPU3_CSS_PIPE_ID_VIDEO,
-+	IPU3_CSS_PIPE_ID_CAPTURE,
-+	IPU3_CSS_PIPE_ID_YUVPP,
-+	IPU3_CSS_PIPE_ID_ACC,
-+	IPU3_CSS_PIPE_ID_NUM
-+};
-+
-+/* IPU3 Camera Sub System structure */
-+struct ipu3_css {
-+	struct device *dev;
-+	void __iomem *base;
-+	dma_addr_t mmu_l1_addr;
-+	const struct firmware *fw;
-+	struct imgu_fw_header *fwp;
-+	int iomem_length;
-+	int fw_bl, fw_sp[IMGU_NUM_SP];	/* Indices of bl and SP binaries */
-+	struct ipu3_css_map *binary;	/* fw binaries mapped to device */
-+	int current_binary;	/* Currently selected binary or -1 */
-+	bool streaming;		/* true when streaming is enabled */
-+	long frame;	/* Latest frame not yet processed */
-+	enum ipu3_css_pipe_id pipe_id;  /* CSS pipe ID. */
-+};
-+
-+#endif
 -- 
-2.7.4
+Jean-Francois Pirus | Technical Manager
+francois@clearfield.com | Mob +64 21 640 779 | DDI +64 9 282 3401
+
+Clearfield Software Ltd | Ph +64 9 358 2081 | www.clearfield.com
+
+--------------EE838785377A207ABC2FAB62
+Content-Type: application/pdf;
+ name="DTT UHF Band Plan -Jan 2016-_.pdf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="DTT UHF Band Plan -Jan 2016-_.pdf"
+
+JVBERi0xLjUNJeLjz9MNCjEwODMgMCBvYmoNPDwvTGluZWFyaXplZCAxL0wgNTAwNDcvTyAx
+MDg1L0UgMzMyNDkvTiAxL1QgNDk2NDgvSCBbIDUxMCAyMDFdPj4NZW5kb2JqDSAgICAgICAg
+ICAgICAgDQoxMTAzIDAgb2JqDTw8L0RlY29kZVBhcm1zPDwvQ29sdW1ucyA0L1ByZWRpY3Rv
+ciAxMj4+L0ZpbHRlci9GbGF0ZURlY29kZS9JRFs8ODA5RURFMDEyRjcxNDk0MDlDQTE1QUND
+NEYzMzJCM0Y+PEM5QjVCNUFEQ0M0N0JCNDg4N0YzMzE2REUzMzc0MDMyPl0vSW5kZXhbMTA4
+MyAzN10vSW5mbyAxMDgyIDAgUi9MZW5ndGggOTYvUHJldiA0OTY0OS9Sb290IDEwODQgMCBS
+L1NpemUgMTEyMC9UeXBlL1hSZWYvV1sxIDIgMV0+PnN0cmVhbQ0KaN5iYmQQYGBiYNoOJBhX
+AwnWPUCCpQdEHAQRM4AEmxmIlQqSnQZilQIJ9iIQIQfSpgIkuKKBhNlZEDcOpGQJiBUAYq0C
+Eg2PGZgYWU4BWQwMjJQT//8e+AQQYAAp3RBLDQplbmRzdHJlYW0NZW5kb2JqDXN0YXJ0eHJl
+Zg0KMA0KJSVFT0YNCiAgICAgICAgIA0KMTExOSAwIG9iag08PC9DIDExMy9GaWx0ZXIvRmxh
+dGVEZWNvZGUvSSAxMzUvTGVuZ3RoIDEwNy9PIDk3L1MgMzg+PnN0cmVhbQ0KaN5iYGAQYmBg
+WskABHX5DKiAEYhZGDgakMWEoJiBUYWBjy/BrGG5U4mIh4nAneZAUYv4BQyc5peWMC9YwKDD
+JcF0AG5M40OocV+BmImBoekakOZmYNDfBTeYn4HhwH2IKkYhgAADAPC9Ex4NCmVuZHN0cmVh
+bQ1lbmRvYmoNMTA4NCAwIG9iag08PC9MYW5nKP7/AEUATgAtAE4AWikvTWFya0luZm88PC9N
+YXJrZWQgdHJ1ZT4+L01ldGFkYXRhIDEzIDAgUi9PdXRsaW5lcyAxNyAwIFIvUGFnZUxheW91
+dC9TaW5nbGVQYWdlL1BhZ2VzIDEwODEgMCBSL1N0cnVjdFRyZWVSb290IDIwIDAgUi9UeXBl
+L0NhdGFsb2c+Pg1lbmRvYmoNMTA4NSAwIG9iag08PC9Db250ZW50c1sxMDg3IDAgUiAxMDg4
+IDAgUiAxMDg5IDAgUiAxMDkwIDAgUiAxMDkxIDAgUiAxMDkyIDAgUiAxMDkzIDAgUiAxMDk0
+IDAgUl0vQ3JvcEJveFstMTEuOTkwNiAxMS45OTA2IDgyOS42ODkgMTIwMi4zOV0vTWVkaWFC
+b3hbLTExLjk5MDYgMTEuOTkwNiA4MjkuNjg5IDEyMDIuMzldL1BhcmVudCAxMDgxIDAgUi9S
+ZXNvdXJjZXM8PC9Db2xvclNwYWNlPDwvQ1MwIDExMDQgMCBSL0NTMSAxMTA1IDAgUi9DUzIg
+MTEwNiAwIFI+Pi9Gb250PDwvQzJfMCAxMTExIDAgUi9UVDAgMTExMyAwIFIvVFQxIDExMTUg
+MCBSL1RUMiAxMTE3IDAgUj4+L1BhdHRlcm48PC9QMCAxMTAwIDAgUi9QMSAxMTAyIDAgUi9Q
+MTAgMTEwMCAwIFIvUDExIDExMDIgMCBSL1AxMiAxMTAwIDAgUi9QMTMgMTEwMiAwIFIvUDE0
+IDExMDAgMCBSL1AxNSAxMTAyIDAgUi9QMTYgMTEwMCAwIFIvUDE3IDExMDIgMCBSL1AxOCAx
+MTAwIDAgUi9QMTkgMTEwMiAwIFIvUDIgMTEwMCAwIFIvUDIwIDExMDAgMCBSL1AyMSAxMTAy
+IDAgUi9QMjIgMTEwMCAwIFIvUDIzIDExMDIgMCBSL1AyNCAxMTAwIDAgUi9QMjUgMTEwMiAw
+IFIvUDI2IDExMDAgMCBSL1AyNyAxMTAyIDAgUi9QMjggMTEwMCAwIFIvUDI5IDExMDIgMCBS
+L1AzIDExMDIgMCBSL1AzMCAxMTAwIDAgUi9QMzEgMTEwMiAwIFIvUDMyIDExMDAgMCBSL1Az
+MyAxMTAyIDAgUi9QMzQgMTEwMCAwIFIvUDM1IDExMDIgMCBSL1AzNiAxMTAwIDAgUi9QMzcg
+MTEwMiAwIFIvUDM4IDExMDAgMCBSL1AzOSAxMTAyIDAgUi9QNCAxMTAwIDAgUi9QNDAgMTEw
+MCAwIFIvUDQxIDExMDIgMCBSL1A0MiAxMTAwIDAgUi9QNDMgMTEwMiAwIFIvUDQ0IDExMDAg
+MCBSL1A0NSAxMTAyIDAgUi9QNDYgMTEwMCAwIFIvUDQ3IDExMDIgMCBSL1A0OCAxMTAwIDAg
+Ui9QNDkgMTEwMiAwIFIvUDUgMTEwMiAwIFIvUDUwIDExMDAgMCBSL1A1MSAxMTAyIDAgUi9Q
+NTIgMTEwMCAwIFIvUDUzIDExMDIgMCBSL1A1NCAxMTAwIDAgUi9QNTUgMTEwMiAwIFIvUDU2
+IDExMDAgMCBSL1A1NyAxMTAyIDAgUi9QNTggMTEwMCAwIFIvUDU5IDExMDIgMCBSL1A2IDEx
+MDAgMCBSL1A2MCAxMTAwIDAgUi9QNjEgMTEwMiAwIFIvUDYyIDExMDIgMCBSL1A2MyAxMTAw
+IDAgUi9QNyAxMTAyIDAgUi9QOCAxMTAwIDAgUi9QOSAxMTAyIDAgUj4+Pj4vUm90YXRlIDAv
+U3RydWN0UGFyZW50cyAwL1RhYnMvUy9UeXBlL1BhZ2U+Pg1lbmRvYmoNMTA4NiAwIG9iag08
+PC9GaWx0ZXIvRmxhdGVEZWNvZGUvRmlyc3QgMTM1L0xlbmd0aCAxMDY0L04gMTUvVHlwZS9P
+YmpTdG0+PnN0cmVhbQ0KaN7sVttu2zgQ/RU+Ng9eXiSSElAYsJ2mNbBpgtrdLCDoQbVVR1hb
+MiQFaP5+ZyiSkRynSbwLbBfIw4DU3Hg4HB6RcxYSRjhnkggzKhKYURNpxohwJnASkyDACWdE
+BgonnMjQTARRCp15QCJtfELIFmicQV5hMnHIHPIIZ5oESoQ4i0ioI0kSOp/NplmTr2G1WAKi
+L2lCr7O2zesyHVqVsb5/T6/qdV4X5ebdfJ2XbdHen9Ev+aZo2vr+3WRdfcvP6OJuv9/mOzAT
+Nh5DzKRZ4QdnPKKzbP8pLza3LdFc0fO8M40CrejFNts0JKQXVdlOp9WPZKREZEywL8ZMfGqs
+F9mu2MJ6dZFtzzpNsc0FAtUI1Kg+Z7ucGpfRtNquL5dGu2jrvF3d0s9Vvcu2RnVj8TBG5222
+LVaTcrPNCaOLNt/9QXig6PJ+nxtfBFwX+7aq6Z92H5LHZpdYK3QZrjmbny/uG0g0L79X3REj
+QFAvq4/z88tsT10l6fkN7ABQDBfq+gGDFnffWgQCweiCoMQDNHqTBInQUSp5opROpUwU56mK
+EilVqkU3GCVBt0gYe6STIAjSUDHzmY7Hiek7e97Hd9Wd2zqDwoOt6RoUIX4oV9Ua2sNvavTJ
+w0akjC6rr2UBTjmeVrcvv4XXd0sgTmqXX6M3fLFuinJSNoX/vijqpp3dZjU50gxw8bFov2fW
+RUj5UOL6Ll+6WtuuKNbtbZNooIP/UqDjgMoCYJ6QQCMaiaKYaCGICDqbEdDJKPT+OKK4mOfE
+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
+KmL2xTyO9YvVx34U+0wSJlkmOR6HxCXGdcdNxHPic+OH479OcEpQJexNmEkMSmxOPJ5ESEpJ
+2pB0Q2onlUt3S2eSQ5KXJZ9OoadkpwynfJPqmapPPZYGpyWnbUy7vdB1oXbheDpIl6ZvTL+T
+IcioyfhDJjEzI3Mk8y9ZoqyWrLPZ3Ozi7D3ZT3Nic/pybuW65xpzT+Yx84ryduc9y4/L78+f
+XOS7aNmi8wXWBeqCI4WkwrzCnYWzi+MXb1o8XRRU1FV0fYlgScOSc0utl1Yt/aSYWSwrPlRC
+KMkv2VPygyxdNiqbLZWWvlc6I5fIN8sfKqIVA4oHyghlv/JeWURZf9l9VYRqo+pBeVT5YPkj
+tUQ9rP62Iqlie8WzyvTKDyt/rMqvOqAha0o0R7UcbaX2dLV9dUP1JZ2Xrks3WRNWs6lmRp+i
+31kL1S6pPWLg4T9TF4zuxpXGqbrIupG65/V59Yca2A3ahguNno1rGu81JTT9phltljefbHFs
+aW+ZWhazbEcr1FraerLNua2zbXp54vJd7dT2yvY/dfh19Hd8vyJ/xbFOu87lnXdXJq7c22XW
+pe+6sSp81fbV6Gr16ok1AWu2rHndrej+osevZ7Dnh1557xdrRWuH1v64rmzdRF9w37b1xPXa
+9dc3RG3Y1c/ub+q/uzFt4+EBbKB74PtNxZvODQYObt9M3WzcPDmU+k8ApAFb/pi4mSSZkJn8
+mmia1ZtCm6+cHJyJnPedZJ3SnkCerp8dn4uf+qBpoNihR6G2oiailqMGo3aj5qRWpMelOKWp
+phqmi6b9p26n4KhSqMSpN6mpqhyqj6sCq3Wr6axcrNCtRK24ri2uoa8Wr4uwALB1sOqxYLHW
+skuywrM4s660JbSctRO1irYBtnm28Ldot+C4WbjRuUq5wro7urW7LrunvCG8m70VvY++Cr6E
+vv+/er/1wHDA7MFnwePCX8Lbw1jD1MRRxM7FS8XIxkbGw8dBx7/IPci8yTrJuco4yrfLNsu2
+zDXMtc01zbXONs62zzfPuNA50LrRPNG+0j/SwdNE08bUSdTL1U7V0dZV1tjXXNfg2GTY6Nls
+2fHadtr724DcBdyK3RDdlt4c3qLfKd+v4DbgveFE4cziU+Lb42Pj6+Rz5PzlhOYN5pbnH+ep
+6DLovOlG6dDqW+rl63Dr++yG7RHtnO4o7rTvQO/M8Fjw5fFy8f/yjPMZ86f0NPTC9VD13vZt
+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
+UmfUEg1f3tqQdnupMwh2op29soVVOhB1VghqD9L+9LB4dOHTPwIMAJjMTy8NCmVuZHN0cmVh
+bQ1lbmRvYmoNMTA5OCAwIG9iag08PC9GaWx0ZXIvRmxhdGVEZWNvZGUvTGVuZ3RoIDI3OD4+
+c3RyZWFtDQpIiVyR3WqEMBCF7/MUc7l7sURd3d2CCF3Lghf9oXYfQJPRBmoMMV749o0Z2UIH
+EviYOcPhDC+rl0orB/zDjqJGB53S0uI0zlYgtNgrzeIEpBJuo/CLoTGMe3G9TA6HSncjy3Pg
+n745ObvA7lmOLe4Zf7cSrdI97O5lvQdez8b84IDaQQRFARI7v+i1MW/NgMCD7FBJ31duOXjN
+38TXYhCSwDGZEaPEyTQCbaN7ZHnkq4D85qtgqOW/fhyRrO3Ed2PD+NGPR1ESFSsdibKNzkRp
+oDQNdIqJLkQZ0ZXoQlQSPQXKEqIbEe08h51xGSbj0zWY3Vyttn268MhEzNb6OMIJQg5rAkrj
+40pmNOBV62O/AgwALSWIVw0KZW5kc3RyZWFtDWVuZG9iag0xMDk5IDAgb2JqDTw8L0JpdHNQ
+ZXJDb21wb25lbnQgOC9Db2xvclNwYWNlIDExMDYgMCBSL0ZpbHRlci9EQ1REZWNvZGUvSGVp
+Z2h0IDgvTGVuZ3RoIDc3Mi9OYW1lL1gvU3VidHlwZS9JbWFnZS9UeXBlL1hPYmplY3QvV2lk
+dGggOD4+c3RyZWFtDQr/2P/uAA5BZG9iZQBkAAAAAAH/2wDFAAwICAgICAwICAwQCwsLDA8O
+DQ0OFBIODhMTEhcUEhQUGhsXFBQbHh4nGxQkJycnJyQyNTU1Mjs7Ozs7Ozs7OzsBDQoKDAoM
+DgwMDhEODgwNERQUDw8RFBARGBEQFBQTFBUVFBMUFRUVFRUVFRoaGhoaGh4eHh4eIyMjIycn
+JywsLAINCgoMCgwODAwOEQ4ODA0RFBQPDxEUEBEYERAUFBMUFRUUExQVFRUVFRUVGhoaGhoa
+Hh4eHh4jIyMjJycnLCws/90ABAAB/8AAEQgACAAIAwAiAAERAQIRAv/EAaIAAAADCQAAAAAA
+AAAAAAAAAAAEBgECAwUHCAkKCwEAAQALAAAAAAAAAAAAAAAAAAECAwQFBgcICQoLEAAAAQID
+AQiTAAAAAAAAAAABAgMEERITAAUGITZBdbMHCAkKFBUWFxgZGiIjJCUmJygpKjEyMzQ1Nzg5
+OkJDREVGR0hJSlFSU1RVVldYWVphYmNkZWZnaGlqcXJzdHZ3eHl6gYKDhIWGh4iJipGSk5SV
+lpeYmZqhoqOkpaanqKmqsbK0tba3uLm6wcLDxMXGx8jJytHS09TV1tfY2drh4uPk5ebn6Onq
+8PHy8/T19vf4+foRAAAAAAABWkcAAAAAAAAAAAABAgMEBQYHCAkKERITFBUWFxgZGiEiIyQl
+JicoKSoxMjM0NTY3ODk6QUJDREVGR0hJSlFSU1RVVldYWVphYmNkZWZnaGlqcXJzdHV2d3h5
+eoGCg4SFhoeIiYqRkpOUlZaXmJmaoaKjpKWmp6ipqrGys7S1tre4ubrBwsPExcbHyMnK0dLT
+1NXW19jZ2uHi4+Tl5ufo6erw8fLz9PX29/j5+v/aAAwDAAABEQIRAD8AXps4t1kiEOdNnEMc
+NCUAkgrVqlImyySwKSUpJswppgICCTGDZxbrJEIc6bOIY4aEoBJBWrVKRNlklgUkpSTZhTTA
+QEEmMiwYZNL0tGINqiFwYMMml6WjEG1RC4AAAP/ZDQplbmRzdHJlYW0NZW5kb2JqDTExMDAg
+MCBvYmoNPDwvQkJveFswLjAgMC4wIDY0LjAgNjQuMF0vTGVuZ3RoIDM1L01hdHJpeFswLjk2
+IDAuMCAwLjAgLTAuOTYgMC4wIDExOTAuNF0vUGFpbnRUeXBlIDEvUGF0dGVyblR5cGUgMS9S
+ZXNvdXJjZXM8PC9Db2xvclNwYWNlPDwvQ1MwIDExMDYgMCBSPj4vRXh0R1N0YXRlPDwvR1Mw
+IDExMTggMCBSPj4vUHJvY1NldFsvUERGL0ltYWdlQ10vWE9iamVjdDw8L0ltMCAxMDk5IDAg
+Uj4+Pj4vVGlsaW5nVHlwZSAzL1R5cGUvUGF0dGVybi9YU3RlcCA4LjAvWVN0ZXAgOC4wPj5z
+dHJlYW0NCnEKL0dTMCBncwo4IDAgMCA4IDAgMCBjbQovSW0wIERvClEKDQplbmRzdHJlYW0N
+ZW5kb2JqDTExMDEgMCBvYmoNPDwvQml0c1BlckNvbXBvbmVudCA4L0NvbG9yU3BhY2UgMTEw
+NiAwIFIvRmlsdGVyL0RDVERlY29kZS9IZWlnaHQgOC9MZW5ndGggNzc4L05hbWUvWC9TdWJ0
+eXBlL0ltYWdlL1R5cGUvWE9iamVjdC9XaWR0aCA4Pj5zdHJlYW0NCv/Y/+4ADkFkb2JlAGQA
+AAAAAf/bAMUADAgICAgIDAgIDBALCwsMDw4NDQ4UEg4OExMSFxQSFBQaGxcUFBseHicbFCQn
+JycnJDI1NTUyOzs7Ozs7Ozs7OwENCgoMCgwODAwOEQ4ODA0RFBQPDxEUEBEYERAUFBMUFRUU
+ExQVFRUVFRUVGhoaGhoaHh4eHh4jIyMjJycnLCwsAg0KCgwKDA4MDA4RDg4MDREUFA8PERQQ
+ERgREBQUExQVFRQTFBUVFRUVFRUaGhoaGhoeHh4eHiMjIyMnJycsLCz/3QAEAAH/wAARCAAI
+AAgDACIAAREBAhEC/8QBogAAAAMJAAAAAAAAAAAAAAAAAAQHAQIDBQYICQoLAQAAAwkAAAAA
+AAAAAAAAAAAAAgQBAwUGBwgJCgsQAAAABAIEB5EAAAAAAAAAAAECAxIEEQAFBhMHFCE2QXWz
+CAkKFRYXGBkaIiMkJSYnKCkqMTIzNDU3ODk6QkNERUZHSElKUVJTVFVWV1hZWmFiY2RlZmdo
+aWpxcnN0dnd4eXqBgoOEhYaHiImKkZKTlJWWl5iZmqGio6SlpqeoqaqxsrS1tre4ubrBwsPE
+xcbHyMnK0dLT1NXW19jZ2uHi4+Tl5ufo6erw8fLz9PX29/j5+hEAAAAAAAVOTwAAAAAAAAAA
+AAERMWECAwQFBgcICQoSExQVFhcYGRohIiMkJSYnKCkqMjM0NTY3ODk6QUJDREVGR0hJSlFS
+U1RVVldYWVpiY2RlZmdoaWpxcnN0dXZ3eHl6gYKDhIWGh4iJipGSk5SVlpeYmZqhoqOkpaan
+qKmqsbKztLW2t7i5usHCw8TFxsfIycrR0tPU1dbX2Nna4eLj5OXm5+jp6vDx8vP09fb3+Pn6
+/9oADAMAAAERAhEAPwBRiZRjC6RCHKkyiGKEgjACKA884wYmOKOAc001NoCmmAIAgSZQTKMY
+XSIQ5UmUQxQkEYARQHnnGDExxRwDmmmptAU0wBAECTKQWVZsKnarQTYiKBZVmwqdqtBNiIoU
+BMEDiAYA/9kNCmVuZHN0cmVhbQ1lbmRvYmoNMTEwMiAwIG9iag08PC9CQm94WzAuMCAwLjAg
+NjQuMCA2NC4wXS9MZW5ndGggMzUvTWF0cml4WzAuOTYgMC4wIDAuMCAtMC45NiAwLjAgMTE5
+MC40XS9QYWludFR5cGUgMS9QYXR0ZXJuVHlwZSAxL1Jlc291cmNlczw8L0NvbG9yU3BhY2U8
+PC9DUzAgMTEwNiAwIFI+Pi9FeHRHU3RhdGU8PC9HUzAgMTExOCAwIFI+Pi9Qcm9jU2V0Wy9Q
+REYvSW1hZ2VDXS9YT2JqZWN0PDwvSW0wIDExMDEgMCBSPj4+Pi9UaWxpbmdUeXBlIDMvVHlw
+ZS9QYXR0ZXJuL1hTdGVwIDguMC9ZU3RlcCA4LjA+PnN0cmVhbQ0KcQovR1MwIGdzCjggMCAw
+IDggMCAwIGNtCi9JbTAgRG8KUQoNCmVuZHN0cmVhbQ1lbmRvYmoNMSAwIG9iag08PC9GaWx0
+ZXIvRmxhdGVEZWNvZGUvRmlyc3QgMTgvTGVuZ3RoIDE1MS9OIDMvVHlwZS9PYmpTdG0+PnN0
+cmVhbQ0KaN5EjLEKwjAURd+nvFEHSV6gtkIJiKJLQdEianHIkCEQEknSwZ9Xkzq4XA7cey7V
+yJEarAhphURLbFu28aNLSGxnQkyl5Xhinfpz/3pqdhiTNU5HKbOyLnqpjiroIte/oUlWz94f
+6EBBAg0xJ8IlU8hswIObTwfbgXhTTdL1dscFCSTBBbrR2gc7s73vvZRfAQYAkV8tkg0KZW5k
+c3RyZWFtDWVuZG9iag0yIDAgb2JqDTw8L0ZpbHRlci9GbGF0ZURlY29kZS9GaXJzdCA4Njgv
+TGVuZ3RoIDIxNDkvTiAxMDAvVHlwZS9PYmpTdG0+PnN0cmVhbQ0KaN6Mmd2K3MYWhV+l3qBr
+r12/YAzJMefGJBjbcC5CLiamsUPsdJjMQPL2Z5e6VXbSS9ImxF1dWrNVn7ak+TRCDDFAQisB
+CAL7okG0B6SAkgNyaJJtYwkNEQHVPpNtbvbZbb6HpkmDRvvsMaiVSlqDwj5bCqqhZZvUZJ+1
+BbV6xYqq1SsVwaKtSg9q9WopwfbcmmhIVq+VGJLV67GGZPV6TsF21WOUkJJ9phZSts+eQyqh
+i4VStc/Wg23qsOK21I6WQ46hqy0mi302CRmhJ1t8tnqp1mCle7Z1ZauXq+WsXrHjkq1eKZaz
+elUsZ/WqHRdbWh/rLFav2T/F6tlCQrF6ViCUFCTGaME8BrYbg5No/4VSx8AWVtoYdAt3G8BQ
+ahyDrqGKDdTg7RDZwIBsTRLHka2jcjKkOipnY6qjcjaoOioXo6qjcrGvdVSuo4mjcrUibVRu
+o+OjciujfzboxtZG5W4LtuJiK9NxVtjA8JpVttFozhgYoC1J7HQZh38MxnG0yqIG2DEG48jr
+GBhgt8qSRq9G5WTzfVTOBthH5WzV+qhcDLCPyqUtx81GVcf6Ru26rH0Ut1NvHJYxWphH+Y7l
+eIzRcqzKOJsxfqKO0XKw7X/Y3gbmGJVRy/YBjO8iY5THwsaVoEt9HaM81pHG6LpaG6U09jn2
+kRbusY+sA2HsIy9HcOyj2IXw4sXp9bjGYnh7evPweP796f3j+Tyut3/O/Hj+6+n1+e8gp7eX
+z+cfHv4Y1+KIvP/7j/Pp3dPj84cl9/ZyeXr5cqmq5Zp4ExCXwbvT/y6Pv/1yufy2JH58/vLn
+T3FczLbx52XqP58eHp9O//314/Pj+frlz0/n89Pp3fnD0+nVrw8fHx++rJvt6+fLx2+2//Dw
+4fHyzff3tuTvL3+dvrOS645Pry4fnr8Y0zLzNfzy5U+/P3/+HP71j7XN1hbYpm9CZTNkdyTH
+zzcWsrOIzGqks0JnQWeVziY6S/GV8ipFVcqmlC1RtkTZEjYPbKKAiQImCpgoYKKAiQImCpgp
+YKaAmQJmypYpW6ZsmbLlg/M0U8pMKQulLJSyUMpCKQulLJSybF+ShaIWClgoYKWAlQJWClgp
+YKWAdfsWVCllpYCVAlYK2Chgo4CNAjbdXHSjlI1SNgrYKGCjgI0CdgrYZXPRnVJ2StkpYKeA
+nQJ2CtgpYKeAw062WIav0B8Bn1Y+nfh05tOFT1c+3fg0R5UdVOGowlGFowpHFY4qHFU4qrSd
+xXNeRD7NUcFRwVHBUbkGyY74CDcf4a4jXHaE245w3RHuO8KFR7jxiG7fboWLj3DzEa4+wt1H
+uPwItx/h+iNcfYS7j6QdVK5Awh1IuAQJtyDhGiTcg4SLkHATEq5Ct238LOZGJFyJhJuQcBUS
+7kLCZUjKttQKdyLhUiTcioRrkXAlEu5EwqVI6s5tmLuRcDkSbkfC9Ui4Hwl3I+FyJNyOhOvR
+dRuXJOGWJFyThHuScEcSLknCLUm4Jknb+Y3DbUm4Lgn3JeGuJFyWhNuScF0S7kvStx9fhGuT
+cG8C9yZwZQJXJnBlAlcmxO3bMLg3gXsTuDeBexO4N4ErE7gygSsTZPs2DO5N4N4E7k3g3gSu
+TODKBK5M4MoEbD/TgHsTuDeBexO4MmHjz0NcmcCVCVyZoNu/ccC9CdybwL0JXJnAlQlcmcCV
+CWn7Nw64N4F7E7g3gXsTuDeBKxO4MiG1ncVzXu5N4N4E7k3g3gTuTeDKhLzzF0/uTeDeBO5N
+4N4E7k3g3gSuTCg79ybuTeDeBO5N4N4E7k3g3gSuTODKhLpzb+LeBO5N4N4E7k3g3gTuTeDK
+BK5MaDv3Ju5N4N4E7k3g3gTuTeDeBK5M4MqEnT8xgXsTuDeBexO4N4F7E7g3oW+8kNh4I7F9
+G1buTcq9Sbk3aUw7O+BvKLg3Kfcm5d6k3JtUNl7BcFTuTSrbF6xyeVLuTcq9Sbk3Kfcm5d6k
+3JsUG6+bti9Y5fKk3JuUe5Nyb1LuTcq9STfeq228WNt4s7b1ao1Tbrxc23i7tvF6TT2vEm/R
+bbdQ3X6k1R2h0iQ727C/NE07Z3tKRz/MD9OdbmmqR5XaUeDfB0dzPPiRO/vSO/HSO+fSO93S
+O9PSO8nSO7XSO6vSb4Tq5xcvTt+Nv6Zf376/Dun0JujVZU5vPo4t+fZe/v2r5fX7SF9/d1ta
+ZIn3g3hb42XErzazE6+3OHSJ60G8rPHqiudbXMUVT2s8u+K6xrsrjvWw+1BljftQ16ZmF2pZ
+u5pdqGXtanahlrWrxYVa1q4WF2pZu1p9qGtXqw917Wr1oa5dbcvVdDuFtuNrV1tzxdeudnji
+ee1qL674vFZjdOXrzLtgc5l5F23O81bjw00z7+NdWyvw8WLmfbwy8z7etbuiLt40b8Xq4k2z
+v8nFm2Z/07X+wa+GNPuboys/+5uTKz/7m5srP/tb4MrP/hYf7+xv9fHO/lYXr87+Vhevzv62
+6322HuRnf1t15Wd/u7jys789u/Kzv7278mt/EX28mHkf79pfiI83zryLF2t/cbv/tIN8m/nk
+yk+Zut1/jvLTpm73n6N8nvniyq/9RfLxzv4mH+/sb/Lxzv7m6/lz4LKY/c3Vk5fZ3yKu/Oxv
+ya787G/prvxXW3bxyuxv9fHO/jYf7+xvW86fdvBwILO/Pbrys789ufKzv7158nHtr0a48m3m
+XbyxzscVF28sM+/ijV8fh3y883no+nTW5CA/H4iuj2eH+bW/en0+O8zLzGdXPs58P873Ptub
+1BOf3U3VE5/NzeKJz97m7InP1mYX6uxsuZ452I/Pxpbmic++Vnjis621eOKzqy064m12tXlQ
+2+xq86C22dXuQW2zq/16zmw9Xf5fgAEA3CBCxQ0KZW5kc3RyZWFtDWVuZG9iag0zIDAgb2Jq
+DTw8L0V4dGVuZHMgMiAwIFIvRmlsdGVyL0ZsYXRlRGVjb2RlL0ZpcnN0IDg3NC9MZW5ndGgg
+OTk0L04gMTAwL1R5cGUvT2JqU3RtPj5zdHJlYW0NCmjejJdLrtRADEW3Ujt45X9ZQkhIzJgg
+YA/sfwdcJ8TDPE866dcnt+v6GKQm3msvYloauPBKxUUWKeGK+3NwtcViuPriw7jGEk5cz5Jw
+XHNpPSMbKUgTWkaIE17myBBZTsgTXW7IQ1Zs5ImvMORJrEjkyVlHkSe5TtYZNo6zr7PkQZ6C
+3QghxYf7IFHxpo5BijgKvNTzjB509XGkan0j4c9aX+F41K5MvFhFGMA6hW2EWX1cf7Z6k6fe
+LfKKN0R4FogHAmek6hLHC8Sg0JJ818Tw4ohIzIkcD2QgDF/MG3NGGG4cjzrGSlTxmOsFeizm
+jTB8zHx/IUa/kYy5wgGSg3CTdQRerDWAQLImkvE1bFKHQrIdJMMOOzRQINkj67yLAyIJbzjw
+KOG4sFoHR/LBEQiOOankIzmrytEleyMZobJrJKgttJEMMXKNFpsilEg+ifUoRblrT5CMw4nA
+MkaCG4QR9IpKDQnJikNRItmwaRUhFtfYljghGRrEMSTCkkhQDXLX5uHgG8lnR40WN1ajRXLi
+zwydkpDPWDVJxGPqSzeWiPGAbhyTUUlrDWvoetXFWmCXd5nBTY2NeCn64EZwU+PHaBQ0bgw3
+l0YkG0DG2qthHRgfq+8Si2THWn358vENa2z45/br4we+nz5+4shyvf/5txb6/uz3x5/vX7/+
+x7Vxm+DSeE5wfnCSCU6NxwTfD86TqtjHB59Uxcr8x2VfuL7j0bhOcG/8TPC2qjzB26r6BG+r
+NqraVm1Uta3aqGpb9UlVb6t+74y94201aIK31bAJ3lYjJ3hbPTLB2+oZVW2rOaraVnNUta3m
+qOpj1fakqmXj9874O/5YxX+REzwa9wn+WDXeE9wa1wmujY+qPlZNRlW58VHVx6rpqGpb1Xtn
+4hXXtqo5wduqyQRvqxYTvK06TfC26qOqbdVHVdtqjKq21bh35rzjbfXwBG+rxwe4tNXcE7yt
+pk7wtpqTqvJY9T2pKtb4qOpjFb82LjzfcWncJjg3nhP8seosE3w3HgOcH6suk6p8Gp9U5Wh8
+UpXbqk6qclvVa2dyv+Nt1XiCt1XzCd5WfU/wtuo6wduqT6pSW41JVWqrMalKbfVMqlJbPdfO
+JL3jbfXkBG+rKRO8rWZM8Mdq3D+zPsOp8VHV3fik6n6sBk2q7tP4pOp+rAbfO8PvuDfuE/yx
+GvfPrM9wbVwnuDR+Jnhb1VHVtqqjqm3VBlVPtlW7d0be8bZqOcHbqssEb6v3z6zP8LZ6/8z6
+DG+rMaraVmNUta2eUdW2ekZV22reO/P6e/Wctpo+wR+rZ+8JHo3rBPfGzyv+T4ABAK/fiYkN
+CmVuZHN0cmVhbQ1lbmRvYmoNNCAwIG9iag08PC9FeHRlbmRzIDIgMCBSL0ZpbHRlci9GbGF0
+ZURlY29kZS9GaXJzdCA4NzQvTGVuZ3RoIDk5MC9OIDEwMC9UeXBlL09ialN0bT4+c3RyZWFt
+DQpo3oyXTY4cNwyFr6IbjPgrETAMBPAuGyPJHXL/G+Sxe5rcVbiYKU3PV6/0+Mllm3mvvZhp
+6cGFVyguskgJV110L662WPDFvvgyrmcJB653ycFnWCvuYdlIQZrQMkKc8DJHnshyQp7ocruv
+rLMz09cx5MlZJ5And11FnsS6gTzd2A7ysJe4yFNetBHCig3ui0TFDgnbYDUsDjJxP2UPRh9i
+R6reRUKI1cDCkWs7+yHYCAtDMnZBtpFsSDZ8zIZkCyQbkh3xbEj2QDJuoIM9MrrQuUg2JF+0
+ZN85MSQ7kgNzYkdyHCTngzfmzDmR7Uh2hBLhmyOCALKng9yYv6aeTI5l4/evuWJTfLL2Bnyy
+JKrwyVHlVvMxlgPMQViaTDuuCedWIuHkJL9F/pBG8enNqeZAb/rNr5DXx1jkHVeX7Jd+wyKf
+gzuFcs4QI5S7w0kRpoQDi+yE54kQ4CAssiDGJ6/JQ69oFsQuxbJgINmyYCDZs2Ag2bMguoln
+QRwSOSgoG8knb91IviiI3WGRD9xIDhQU6JTIbeKoaR6bnKPum/BZSpLwxeIknEeYsxPOcA5S
+cGBVUBAtsUBBIVmqKJiVVD1hJBsljGTzhJHslDCS87ALRf6h8PXjx9cf62J+e/319ee6xF+/
+sUF9/fz73zzQ79/9/fXPr58/v3Et3Ce4fHDeE5wL1wlOhccLt2d8f3CRAY7z+MHPBL8fXGmC
+n8Jtgnvhk6qnrNqoalm1UdWy6qOqZdVfZ8b3M15Wz57gZfXoAPeyeu4EL6uXJ3hZvZOqXlZj
+UtXLaoyqltV4nxl/xj9WY8sE58LPBP9YDaIJvgu3AW5R+KSqfawGT6raKXxS1T5WQ96v1POM
+W+E+wT9W8S+RCV5WVSd4WdU7wcuqjaqWVZtU1bLqk6paVv19Zu4zXlY9JnhZPTLBy+o5E7ys
+XprgZfWOqpbVO6paVmNUtazG+8zEIy4fq7Q3T/jbvE/4UzztCe/N64S35kd9tXge9ZXmR325
+eBn1pebz8Oh+/mtEdvMx4Ln9qkz49qtnwrdfownffm3Sl9uvjfq2Xx/1bb8+6tt+D794eubb
+7/EJ337vHvDUfq9O+PZ774RvvzHpS+03Jn2p/OKFMuG1+VFfaf59fviZL79EMuGp+TPhyy8x
+DfgdzduEv81P+u7ySzLpu735Sd/dfnXUt/3q+/zIM99+bU/49ms64duv3Qnffr/fP4//az7R
+fr/fP//Dt99DE779Hpvw7ffEhG+/d9S3/d5R3/Ybo77tN0Z9yy9/v3/smd/N64C/0fyd8OWX
+iSf8ad4nfPllfu77nwADALtdkeANCmVuZHN0cmVhbQ1lbmRvYmoNNSAwIG9iag08PC9FeHRl
+bmRzIDIgMCBSL0ZpbHRlci9GbGF0ZURlY29kZS9GaXJzdCA4NzUvTGVuZ3RoIDI0NTcvTiAx
+MDAvVHlwZS9PYmpTdG0+PnN0cmVhbQ0KaN6kmM2KJbkRhV8lX8DTGVIoJMEw4MG7MbgZG7xo
+ejGGxgYbBvwD9ts7lPmde2vhUt/Biypl5g0dnfjPjFrO4zxqscNHLuWYkUs9zD1XP2yWXNtR
+fEnFUcYS60etSy6vx5Kbh9eUq2eipFy1o63f8lnrKVfrEYlVqx/Rl1w7ejkvjB5Lrh/Dltw4
+Riy5eUxLuTxzRsq5HXaeKeglL1pKejK0M0WTpllbsu2wci7hyIuljPfD6tnyYuRFLJmZetk8
+ajvzYjFridySXk0IazO3t0SO3FpbIvd1REvkHpYXiTwskVsij57ILZHn0rwl8hyJnHTLmRRq
+bihlKZEHl37mEVHzIsFqqlj6OivSruNcu5Zh16HRl4Xz0DRLmdeumRfpl9oTeeY5tSfyXG5a
+pjwtAXvKnWnc2vPPeuIscnWdfpk/lvBSKR1b+1jo+a8n1qjLhUllricjo8CuJ+Xwso4Y9XBf
+pktOua6f2vLxehKHzwU/+tEsLVoTotXlxzRE88SoqWSL5YuZETGWFhlO7SI/MyYsbVxnBkVd
+0TDbET7XkzgiVlzMfsRYes1x9HM5d86jW6rjedNXfPlpR/f83ZNTjzStp9X60svTeX32JdMy
+vq4ncYx6LpmMuKWXZ1QNX3qnG0bL2HA782IJm+XF0jvtOGLFttW8SJXd/Bg91fG0/lgh7Kn2
+6GkJt0QeGVGegTJGX4CJPJLht99++HUya5lvP374IYO0+IePF7n14OOfM7T58fcf/vCb775D
+3p/y4xX5+pCv5RX58pTvl3zs5e0h7/aK/PmUby/Ip8Ue8vMV+fGQb/UV+f6Uf0XfHg/5eEXf
+/vRvvKTv07/xkr5P//aX9H36t7+k79O/4yV9n/4dr+gbT/+OV/SNp3/nK/rGw79ZG5e8nXv5
+eMrHJW97+Yd/q934ZS/vT/kbv+7lH/7NpnzJ+16+POUv/9pX7PPwb73rg/W9/PmUv+qPzY38
+p94ufx29XWKfr42+DqrR9huDjf3Nxq9HVG50NrbnxnaH7thvLGysbzYuG9b+FaonG+25Mc4X
+NjrG8TfGibg29v1GjONvjHOVi9rrfiPG8TfG6Zc7uu83Yhx/Y5zeXtER4/gb4/QVOat57zZW
+jFPfGOcqQXWU/UaMU98YZ/i1cW/VinHqG+OMKwCm7TdinPrGOPMKgNhUmx8+1TsrjnJvzBUG
+pbLqvrEGcrrv3KNyGdx37oUvW57cT+7tvr+d9PlibGL5IzlfVVM+1bt6KXevF9V77ayD9cav
+dze43lHvtbBWVvA6eB28Dl4Hr4M3wBvgDfAGeAO8Ad4Ab4A3wBvgTfAmeBO8Cd4Eb0pfyYM7
+wZ3g3iF9vY7eq7EW1srqrI01WDvrYAXPwDPwDDwDz8Az8Aw8A8/As/n0c5Wff/rT375crv7+
++5///elXZt/MmYS0jjK/iTRYfk6Vb+r8/OF3H377039+/tc/7yB+RMzHoyh0/vjz3//6j798
++XKL/I+g+uHTel2+THaXss/vSRGg7V2h1x4tKGJ/e56RMP3/Pw8fVNqKUpPII5CIO2xB1BF0
+ijlSgMgl0IgP3HovZaNZbYQKCwFDvBAuRAvBcp9Bc7t724EygNFq70570LFb39KgHRCpFYjq
+c7OLlwiqJUnYSZpO0nSSppM0N0yedIsHNZoUCiosmURh6yQU9a2TVxFblUC8aVACg9IQU/ew
+ovKeUoJFZLmFLAtlg6rZTzVxbiHbdoGNrcQRUkOksBF1sIsz50vqPn9I+D6fWhzUSEpyUCJH
+3bCiXFOtQ+foACEDSTEPiv2QLoBIJWgI694kBdk0bcMKrdE2utzLY0ICZ0xxvx+jddDQFASY
+X7GAGxQSmNvOc8PKCBEjNiIUm43nldVZYUaPNtIliFMjbSJ0OuSIUFMaEaJm5zYJOIX0MuUV
+tSH4PRqnktL2SDhOfWScTpUWwpUWhXtpgfZ3p3vPhpR3oxcE9S8ogEEFDEpguOSJAaqXFWkH
+qyItYMV7W1AnrcgK+GbbhIy3OqNlGD0j6AhBSwh6QtAUgq5gVdrBli4T9Amrqnmwpe8EvcFo
+QEGTsLqrLAYbg42JDe+qgTYhbWAZaGWwDFibq0DDFpYBa4NlwNpgGbA237LF04anTZ5WXCme
+TM/FVux0D7um7gI7NQMiwoiIICKMiAgiwu6IeDerYNkkDUvlrnL20fJgqSxTNjZpI5aShyXZ
+FmSfkW1B9lnsXi1MuUdFalS9NtW21bc5RZWMyhVUNAtpJzxpKVbSVqyEi0/7tn5Sx406bhTw
+RuNodIxGq2hT8tJK+3jboT8Ytb3RGKxLe1h2WUEsd286Ru8zep/R+5pQ6JENuYZcQ86GtIId
+3bGxGu2xsRr9sbEaDbKx2hjb+CSnsZ3Jdnim0TuabI9Nm3wwpR1ssWnD5oZNGzY3bNqwuU29
+csJ27t49jXg04rGF2MKKntKI53Lqd+deco17yfNVTtw24rYQt424LeeuMpVTKNqNx/XmrVdv
+vXs3sUIbakShBjRqRTHtB9eEAysTHp8+tqtIxXSK0IkXqnajWjfXFwI2cO1DK9d+2FOPC3W2
+UZdLES7sitjzNVd275eFqluotoWe1OgtrepzBrb0kFYlj3b0uEIPa1VsYV81d4F91dxF7DV3
+2dXR4prGwEq6S2d6SkOrJq1ka02HZHNNh7B90ycotm+aDrm0hKWPLUt2PT4MYam4UjzRS5oi
+RnGsyFE8E0FFcU2EFH1c6pNcX5n6jm+7d6iiaNeno3JXOatcVY6eYqmvXliqRigrVSvIzqKa
+QRaWkBaaNuz7O6eqolBJnDro1L9CRfEpOX2iiyXzADpvoe46Fa9Qf31qvCHWsOzbLKIaF6qw
+00t86B4WVGUfYqF5gljAeoiFWMNiiDV5MMRaE5Rt9tDxCuyK2Im12IkVbMrQc1gNsRYrsRYr
+WNNxC+xd52+/LYt0mZLGlqFJDGzkcXkaD5cpbWA3xR52U9rpHPZ3nQd7TV6335yVrKlkTdX8
+krh1eoyTbU62OVnkZI+TNU62OFnimief2ywhNys5WTUl1dhKcysNrlwzNrFh2KZpKpWoaqpK
+JaqarlKJqqasmlHZLkuqSQq2msHSK5we4ZrduUaAYi9W0kKsJA8r6p9T5StdwqnyteyyxDVO
+xGa1CFVoQkGuSI7Bo+aXGmBqgvkYYYKnIaammDq3/qLJ6iIMwKYpvbNRA08xGVu7YMWHHru3
+dMcKLiv4uZXGw7Kh21aa3JIHNmPddwBQXC71uj1Ow2PN4/2XHicbvPN2+18BBgCApabDDQpl
+bmRzdHJlYW0NZW5kb2JqDTYgMCBvYmoNPDwvRXh0ZW5kcyAyIDAgUi9GaWx0ZXIvRmxhdGVE
+ZWNvZGUvRmlyc3QgODQwL0xlbmd0aCA1MTUvTiAxMDAvVHlwZS9PYmpTdG0+PnN0cmVhbQ0K
+aN7UlsuNHDEMRFNhBqsSvwIWe3IAhu38Y/HTwLe9zNF9GFBTLT2RLDbQsZctiy3TIWzzIbhl
+E8K6CGknCWVSENvkThxTbuIxtSx8gQDlsr1g+bbNnmDvDmgetgucp+2B52W+4Hmbc2FwsQc8
+P+YFLxa5wAuZH3j3meCFv85EcDbhBazmF6wPGnel2BNjSQ4RxzLh5aIoeKxz4JF7LXjpVtQU
+GVaXkWlV+WLX3DvaesHLsaY/kceanKIW3YFHrt3walsfeOU2gldhQ40Ba2AGtU/Dq7Y58Grs
+CF4dO/QsyO2QY9DLgxa97Qy8dtNaADmshQu3Wq1X2ViyuCcaT9YAbUxhEwtcEa4GLcQ2uIPF
+IvmYzYKNwQHpQKZM9kLGF20MioG86UgM5E0KQSraBzK9kwsyZjMIkA9kp83BYzl1BfXJOXoN
+4fLrDOQ7SXEgv7zjYt1mBU3TTSpwWbmwZ607WvjFHyUDkZSkxIHECSXlJqNDNcUCcilZQC6m
+LGmWClsTe1X0MZlHFWmm1h1WyBSgZnQTC9R3VpgZdd3hgdw0IIFqwCet0fA2JL5qGMBkEDU4
+nrw1Glr7+fnxk/k8vEy/Pn5//Pnx9fVP6rekekuKtyR/S9pvSXpLWu9IuPFN+l4j/X6MFM+R
+/NHSfrSk50jrKdL9JPg/pXm01A+Q/gowABUiQbYNCmVuZHN0cmVhbQ1lbmRvYmoNNyAwIG9i
+ag08PC9FeHRlbmRzIDIgMCBSL0ZpbHRlci9GbGF0ZURlY29kZS9GaXJzdCA4NDAvTGVuZ3Ro
+IDQ5MS9OIDEwMC9UeXBlL09ialN0bT4+c3RyZWFtDQpo3tSVyW1cMRBEU+kMhsVeCQg6OQDB
+Vv6x6HHsEHz5JxI9zddL1cfkXrYst0yHY5sPh1s2R1gXR9pJjjIpONvkJOwx5eY8ppalLxCg
+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
+78c53GZ1z+qeV49ZefPifrySzr+Lzfaa7fUfg7BSxv+gB+nTy1v0OFaFQ2oeiE+yzOvf3Ibm
+NjQlnT81Zi3MHj82SX8JMABdk9JwDQplbmRzdHJlYW0NZW5kb2JqDTEyIDAgb2JqDTw8L0V4
+dGVuZHMgMiAwIFIvRmlsdGVyL0ZsYXRlRGVjb2RlL0ZpcnN0IDU5Ny9MZW5ndGggNTI1L04g
+NjEvVHlwZS9PYmpTdG0+PnN0cmVhbQ0KaN7slcFu2zAMhl+FT5BIIkVKQFFg2XVDD91t6KGI
+gy6IEQNpe+jb9yebHYYN64JhaLb54OS3Jf4fSUl2TiVRopxKJqv+XyjXeMBUWnMhJBiFqFSr
+uFDSEsLINCY3ap1ddOrVBfvjHMpjw4nhXcKKMcDhxfiRMGPgpZsrpaxhwLg1DRcYNA6XTrmH
+s2BKD2fJVLJbJSlUSvNYQQEcpYhQkRIRFSoSFaVSI1MxKvri16AsVKdiyf1gUMxTSxUMU3UF
+hkWm1ZtUPAMUU1rtrsBo3bkVjB71VjA6wqDA6M0ZmMwpOwMtZE8NKkOZM7QQ5+QMlM85KleB
+UmdoJS7JGUiIS7RYDUqdoQ0qqsRk5uiugcHVGQYGN2cYGJKdgaJZxBkGhpgzsB24ZmcgISyW
+MwyMas4wMDQ5A5NZY43QdtYudHGxXN2ud3eH6XE/vJ/G6fA5LVptDRvnO3GzXI3Tevdu3N7t
+lx+3wzBullfLD7dP0+PD5eWft5KOdU6L3tVrgsCGk/Yjq9V0GDaHr5E4Ni/XzXHg+uEJk66n
+cTscn3z6sl3v9pv7e8qL9FomghKwFkgpd83ZQ+YkfpbEKy6GHYFXRVoo45RiXf2+/pctxQQ6
+Xic38ndiTzte8/k40/MxL8wvJvH3f+Leust43VT65pXzr2Z0ZqfzLL8fJ8XOw/PwPHzOw29z
+up8FGADpZhwFDQplbmRzdHJlYW0NZW5kb2JqDTEzIDAgb2JqDTw8L0xlbmd0aCAzNDM4L1N1
+YnR5cGUvWE1ML1R5cGUvTWV0YWRhdGE+PnN0cmVhbQ0KPD94cGFja2V0IGJlZ2luPSLvu78i
+IGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJh
+ZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS40LWMwMDUgNzguMTQ3
+MzI2LCAyMDEyLzA4LzIzLTEzOjAzOjAzICAgICAgICAiPgogICA8cmRmOlJERiB4bWxuczpy
+ZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAg
+ICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9
+Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOnhtcE1N
+PSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIgogICAgICAgICAgICB4bWxuczpk
+Yz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iCiAgICAgICAgICAgIHhtbG5z
+OnBkZj0iaHR0cDovL25zLmFkb2JlLmNvbS9wZGYvMS4zLyIKICAgICAgICAgICAgeG1sbnM6
+cGRmeD0iaHR0cDovL25zLmFkb2JlLmNvbS9wZGZ4LzEuMy8iPgogICAgICAgICA8eG1wOk1v
+ZGlmeURhdGU+MjAxNi0wMS0yNVQxNTozOTo0NisxMzowMDwveG1wOk1vZGlmeURhdGU+CiAg
+ICAgICAgIDx4bXA6Q3JlYXRlRGF0ZT4yMDE2LTAxLTE0VDE2OjE5OjA3KzEzOjAwPC94bXA6
+Q3JlYXRlRGF0ZT4KICAgICAgICAgPHhtcDpNZXRhZGF0YURhdGU+MjAxNi0wMS0yNVQxNToz
+OTo0NisxMzowMDwveG1wOk1ldGFkYXRhRGF0ZT4KICAgICAgICAgPHhtcDpDcmVhdG9yVG9v
+bD5BY3JvYmF0IFBERk1ha2VyIDExIGZvciBFeGNlbDwveG1wOkNyZWF0b3JUb29sPgogICAg
+ICAgICA8eG1wTU06RG9jdW1lbnRJRD51dWlkOjNjNWNjYjY0LTYyNjYtNDdlMy04ODc0LWM2
+ZjMwZjdjYmQ2MzwveG1wTU06RG9jdW1lbnRJRD4KICAgICAgICAgPHhtcE1NOkluc3RhbmNl
+SUQ+dXVpZDpiMDM5OTY3OC03MGMwLTQwMjUtYWM1OC1iMDc4ODk0MDIxZmM8L3htcE1NOklu
+c3RhbmNlSUQ+CiAgICAgICAgIDxkYzpmb3JtYXQ+YXBwbGljYXRpb24vcGRmPC9kYzpmb3Jt
+YXQ+CiAgICAgICAgIDxkYzpjcmVhdG9yPgogICAgICAgICAgICA8cmRmOlNlcT4KICAgICAg
+ICAgICAgICAgPHJkZjpsaT5JYW4gSHV0Y2hpbmdzPC9yZGY6bGk+CiAgICAgICAgICAgIDwv
+cmRmOlNlcT4KICAgICAgICAgPC9kYzpjcmVhdG9yPgogICAgICAgICA8cGRmOlByb2R1Y2Vy
+PkFkb2JlIFBERiBMaWJyYXJ5IDExLjA8L3BkZjpQcm9kdWNlcj4KICAgICAgICAgPHBkZng6
+Q29tcGFueT5NaW5pc3RyeSBvZiBFY29ub21pYyBEZXZlbG9wbWVudDwvcGRmeDpDb21wYW55
+PgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4K
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgIAo8P3hw
+YWNrZXQgZW5kPSJ3Ij8+DQplbmRzdHJlYW0NZW5kb2JqDTE0IDAgb2JqDTw8L0ZpbHRlci9G
+bGF0ZURlY29kZS9GaXJzdCA3L0xlbmd0aCA1NC9OIDEvVHlwZS9PYmpTdG0+PnN0cmVhbQ0K
+aN4yNLAwVDBQsLHRd84vzStRMNT3zkwpjjY0sDAFCgfF6odUFqTqBySmpxbb2QEEGAANlAyq
+DQplbmRzdHJlYW0NZW5kb2JqDTE1IDAgb2JqDTw8L0ZpbHRlci9GbGF0ZURlY29kZS9GaXJz
+dCA3L0xlbmd0aCAxODAvTiAxL1R5cGUvT2JqU3RtPj5zdHJlYW0NCmjeVM7RCoJAEIXhV5m7
+lCB31CwjgkijIKFXWNcxl3JHtjXq7dsggu5/vnNQLGMQsF5H29F1bIOjNHAYneq0udzDaMf9
+IM0rqLTRd2dfwC2Uig33WkFBD7rx0JNxvrQknWZTSEdBsYoFZgIxxQxzsZhiMhFi8q38zFZZ
+rqWDc7Gv5JUsIELLFsqnolsYVdz8OfEc50meZj/nbLkZFXmo4Zo+DJx0baV/iDgT4WbzFmAA
+eHdCXA0KZW5kc3RyZWFtDWVuZG9iag0xNiAwIG9iag08PC9EZWNvZGVQYXJtczw8L0NvbHVt
+bnMgNC9QcmVkaWN0b3IgMTI+Pi9GaWx0ZXIvRmxhdGVEZWNvZGUvSURbPDgwOUVERTAxMkY3
+MTQ5NDA5Q0ExNUFDQzRGMzMyQjNGPjxDOUI1QjVBRENDNDdCQjQ4ODdGMzMxNkRFMzM3NDAz
+Mj5dL0luZm8gMTA4MiAwIFIvTGVuZ3RoIDEzNi9Sb290IDEwODQgMCBSL1NpemUgMTA4My9U
+eXBlL1hSZWYvV1sxIDIgMV0+PnN0cmVhbQ0KaN5iYgACJsbGhwxMDIxfgQTncSDBEggkWH2B
+BBcnkGAqAhLMUSDWKZBsFYgbD2IlgsRqgATfHiDBMBlkihDQPHsBEJeBEUYw/kPhjhIjgGCc
+OxoGo3E+SozG+SgxGuejxGicjxKjcT5KjMb5KDEa56PEaJyPEqNxPsgJpiOgUGMACDAAHOgd
+iA0KZW5kc3RyZWFtDWVuZG9iag1zdGFydHhyZWYNCjExNg0KJSVFT0YNCg==
+--------------EE838785377A207ABC2FAB62
+Content-Type: text/plain; charset=UTF-8;
+ name="nz-AucklandWaiatarua"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="nz-AucklandWaiatarua"
+
+IyBXYWlhdGFydWEsIEF1Y2tsYW5kIE5aCiMKIyBIb3Jpem9udGFsIFBvbGFyaXNhdGlvbgoj
+CiMgQ2hhbm5lbCBhbGxvY2F0aW9uIGRldGFpbHMgZm9yIE5aIGNhbiBiZSBmb3VuZCBhdAoj
+IGh0dHA6Ly9lbi53aWtpcGVkaWEub3JnL3dpa2kvRnJlZXZpZXdfKE5ld19aZWFsYW5kKQoj
+aHR0cHM6Ly93d3cucnNtLmdvdnQubnovcHJvamVjdHMtYXVjdGlvbnMvY29tcGxldGVkL2Rp
+Z2l0YWwtc3dpdGNob3Zlci1hbmQtdGhlLWRpZ2l0YWwtZGl2aWRlbmQvZGlnaXRhbC10di1z
+d2l0Y2hvdmVyCiNodHRwczovL3d3dy5yc20uZ292dC5uei9vbmxpbmUtc2VydmljZXMtcmVz
+b3VyY2VzL3BkZi1hbmQtZG9jdW1lbnRzLWxpYnJhcnkvcHVibGljYXRpb25zLWFuZC1ndWlk
+ZXMvYnJvYWRjYXN0aW5nL2RpZ2l0YWwtdGVsZXZpc2lvbi1jaGFubmVsLXVzYWdlL3RhYmxl
+LW9mLWRpZ2l0YWwtdGVsZXZpc2lvbi1jaGFubmVsLXVzZWFnZQojCgojVFZOWgpbQ0hBTk5F
+TF0KCURFTElWRVJZX1NZU1RFTSA9IERWQlQKCUZSRVFVRU5DWSA9IDUzODAwMDAwMAoJQkFO
+RFdJRFRIX0haID0gODAwMDAwMAoJQ09ERV9SQVRFX0hQID0gMy80CglDT0RFX1JBVEVfTFAg
+PSBOT05FCglNT0RVTEFUSU9OID0gUUFNLzY0CglUUkFOU01JU1NJT05fTU9ERSA9IDhLCglH
+VUFSRF9JTlRFUlZBTCA9IDEvMTYKCUhJRVJBUkNIWSA9IE5PTkUKCUlOVkVSU0lPTiA9IEFV
+VE8KCiNNZWRpYVdvcmtzCltDSEFOTkVMXQoJREVMSVZFUllfU1lTVEVNID0gRFZCVAoJRlJF
+UVVFTkNZID0gNTcwMDAwMDAwCglCQU5EV0lEVEhfSFogPSA4MDAwMDAwCglDT0RFX1JBVEVf
+SFAgPSAzLzQKCUNPREVfUkFURV9MUCA9IE5PTkUKCU1PRFVMQVRJT04gPSBRQU0vNjQKCVRS
+QU5TTUlTU0lPTl9NT0RFID0gOEsKCUdVQVJEX0lOVEVSVkFMID0gMS8xNgoJSElFUkFSQ0hZ
+ID0gTk9ORQoJSU5WRVJTSU9OID0gQVVUTwoKI1dvcmxkVFYKW0NIQU5ORUxdCglERUxJVkVS
+WV9TWVNURU0gPSBEVkJUCglGUkVRVUVOQ1kgPSA1ODYwMDAwMDAKCUJBTkRXSURUSF9IWiA9
+IDgwMDAwMDAKCUNPREVfUkFURV9IUCA9IDMvNAoJQ09ERV9SQVRFX0xQID0gTk9ORQoJTU9E
+VUxBVElPTiA9IFFBTS82NAoJVFJBTlNNSVNTSU9OX01PREUgPSA4SwoJR1VBUkRfSU5URVJW
+QUwgPSAxLzE2CglISUVSQVJDSFkgPSBOT05FCglJTlZFUlNJT04gPSBBVVRPCgojS29yZGlh
+CltDSEFOTkVMXQoJREVMSVZFUllfU1lTVEVNID0gRFZCVAoJRlJFUVVFTkNZID0gNjAyMDAw
+MDAwCglCQU5EV0lEVEhfSFogPSA4MDAwMDAwCglDT0RFX1JBVEVfSFAgPSAzLzQKCUNPREVf
+UkFURV9MUCA9IE5PTkUKCU1PRFVMQVRJT04gPSBRQU0vNjQKCVRSQU5TTUlTU0lPTl9NT0RF
+ID0gOEsKCUdVQVJEX0lOVEVSVkFMID0gMS8xNgoJSElFUkFSQ0hZID0gTk9ORQoJSU5WRVJT
+SU9OID0gQVVUTwoK
+--------------EE838785377A207ABC2FAB62
+Content-Type: text/plain; charset=UTF-8;
+ name="nz-AucklandInfill"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="nz-AucklandInfill"
+
+IyBQaW5laGlsbCwgUmVtdWVyYSwgU2t5IFRvd2VyLCBBdWNrbGFuZCBJbmZpbGwsIEF1Y2ts
+YW5kIE5aCiMKIyBWZXJ0aWNhbCBQb2xhcmlzYXRpb24KIwojIENoYW5uZWwgYWxsb2NhdGlv
+biBkZXRhaWxzIGZvciBOWiBjYW4gYmUgZm91bmQgYXQKIyBodHRwOi8vZW4ud2lraXBlZGlh
+Lm9yZy93aWtpL0ZyZWV2aWV3XyhOZXdfWmVhbGFuZCkKI2h0dHBzOi8vd3d3LnJzbS5nb3Z0
+Lm56L3Byb2plY3RzLWF1Y3Rpb25zL2NvbXBsZXRlZC9kaWdpdGFsLXN3aXRjaG92ZXItYW5k
+LXRoZS1kaWdpdGFsLWRpdmlkZW5kL2RpZ2l0YWwtdHYtc3dpdGNob3ZlcgojaHR0cHM6Ly93
+d3cucnNtLmdvdnQubnovb25saW5lLXNlcnZpY2VzLXJlc291cmNlcy9wZGYtYW5kLWRvY3Vt
+ZW50cy1saWJyYXJ5L3B1YmxpY2F0aW9ucy1hbmQtZ3VpZGVzL2Jyb2FkY2FzdGluZy9kaWdp
+dGFsLXRlbGV2aXNpb24tY2hhbm5lbC11c2FnZS90YWJsZS1vZi1kaWdpdGFsLXRlbGV2aXNp
+b24tY2hhbm5lbC11c2VhZ2UKIwoKI1RWTloKW0NIQU5ORUxdCglERUxJVkVSWV9TWVNURU0g
+PSBEVkJUCglGUkVRVUVOQ1kgPSA1MzAwMDAwMDAKCUJBTkRXSURUSF9IWiA9IDgwMDAwMDAK
+CUNPREVfUkFURV9IUCA9IDMvNAoJQ09ERV9SQVRFX0xQID0gTk9ORQoJTU9EVUxBVElPTiA9
+IFFBTS82NAoJVFJBTlNNSVNTSU9OX01PREUgPSA4SwoJR1VBUkRfSU5URVJWQUwgPSAxLzE2
+CglISUVSQVJDSFkgPSBOT05FCglJTlZFUlNJT04gPSBBVVRPCgojTWVkaWFXb3JrcwpbQ0hB
+Tk5FTF0KCURFTElWRVJZX1NZU1RFTSA9IERWQlQKCUZSRVFVRU5DWSA9IDU2MjAwMDAwMAoJ
+QkFORFdJRFRIX0haID0gODAwMDAwMAoJQ09ERV9SQVRFX0hQID0gMy80CglDT0RFX1JBVEVf
+TFAgPSBOT05FCglNT0RVTEFUSU9OID0gUUFNLzY0CglUUkFOU01JU1NJT05fTU9ERSA9IDhL
+CglHVUFSRF9JTlRFUlZBTCA9IDEvMTYKCUhJRVJBUkNIWSA9IE5PTkUKCUlOVkVSU0lPTiA9
+IEFVVE8KCiNXb3JsZFRWCltDSEFOTkVMXQoJREVMSVZFUllfU1lTVEVNID0gRFZCVAoJRlJF
+UVVFTkNZID0gNTc4MDAwMDAwCglCQU5EV0lEVEhfSFogPSA4MDAwMDAwCglDT0RFX1JBVEVf
+SFAgPSAzLzQKCUNPREVfUkFURV9MUCA9IE5PTkUKCU1PRFVMQVRJT04gPSBRQU0vNjQKCVRS
+QU5TTUlTU0lPTl9NT0RFID0gOEsKCUdVQVJEX0lOVEVSVkFMID0gMS8xNgoJSElFUkFSQ0hZ
+ID0gTk9ORQoJSU5WRVJTSU9OID0gQVVUTwoKI0tvcmRpYQpbQ0hBTk5FTF0KCURFTElWRVJZ
+X1NZU1RFTSA9IERWQlQKCUZSRVFVRU5DWSA9IDU5NDAwMDAwMAoJQkFORFdJRFRIX0haID0g
+ODAwMDAwMAoJQ09ERV9SQVRFX0hQID0gMy80CglDT0RFX1JBVEVfTFAgPSBOT05FCglNT0RV
+TEFUSU9OID0gUUFNLzY0CglUUkFOU01JU1NJT05fTU9ERSA9IDhLCglHVUFSRF9JTlRFUlZB
+TCA9IDEvMTYKCUhJRVJBUkNIWSA9IE5PTkUKCUlOVkVSU0lPTiA9IEFVVE8KCg==
+--------------EE838785377A207ABC2FAB62--
