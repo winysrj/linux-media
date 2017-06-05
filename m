@@ -1,20 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway30.websitewelcome.com ([192.185.149.4]:13695 "EHLO
-        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751644AbdFPCVG (ORCPT
+Received: from gateway31.websitewelcome.com ([192.185.143.38]:40882 "EHLO
+        gateway31.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751112AbdFEPw6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 22:21:06 -0400
-Received: from cm15.websitewelcome.com (cm15.websitewelcome.com [100.42.49.9])
-        by gateway30.websitewelcome.com (Postfix) with ESMTP id A7E7D233D4
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 20:57:36 -0500 (CDT)
-Date: Thu, 15 Jun 2017 20:57:36 -0500
-Message-ID: <20170615205736.Horde.S1fREUR1Jdb2BaFvmp4ZiEO@gator4166.hostgator.com>
+        Mon, 5 Jun 2017 11:52:58 -0400
+Received: from cm12.websitewelcome.com (cm12.websitewelcome.com [100.42.49.8])
+        by gateway31.websitewelcome.com (Postfix) with ESMTP id 8D0B36384EF
+        for <linux-media@vger.kernel.org>; Mon,  5 Jun 2017 10:52:55 -0500 (CDT)
+Date: Mon, 05 Jun 2017 10:52:55 -0500
+Message-ID: <20170605105255.Horde.KZhhW9eKbZWevMwnFwN0QUW@gator4166.hostgator.com>
 From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
 To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linuxtv-commits@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [git:media_tree/master] [media] s3c-camif: fix arguments
- position in a function call
-In-Reply-To: <E1dKs0y-0002Hq-Vp@www.linuxtv.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: platform: s3c-camif: fix arguments position in
+ function call
+References: <CGME20170602034354epcas1p1bfea44bea994a5cbd8095a8f4da09cd0@epcas1p1.samsung.com>
+ <20170602034341.GA5349@embeddedgus>
+ <593b0303-7273-758c-cb6e-c6f97f66a4b9@samsung.com>
+In-Reply-To: <593b0303-7273-758c-cb6e-c6f97f66a4b9@samsung.com>
 Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
 MIME-Version: 1.0
 Content-Disposition: inline
@@ -23,26 +29,36 @@ List-ID: <linux-media.vger.kernel.org>
 
 Hi Sylwester,
 
-Quoting Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+Quoting Sylwester Nawrocki <s.nawrocki@samsung.com>:
 
-> This is an automatic generated email to let you know that the  
-> following patch were queued:
+> On 06/02/2017 05:43 AM, Gustavo A. R. Silva wrote:
+>> Hi Sylwester,
+>>
+>> Here is another patch in case you decide that it is
+>> better to apply this one.
 >
-> Subject: [media] s3c-camif: fix arguments position in a function call
-> Author:  Gustavo A. R. Silva <garsilva@embeddedor.com>
-> Date:    Fri Jun 2 00:43:41 2017 -0300
+> Thanks, I applied this patch.  In future please put any comments only after
+> the scissors ("---") line, the comments can be then discarded automatically
+> and there will be no need for manually editing the patch before applying.
 >
-> Fix the position of arguments so camif->colorfx_cb, camif->colorfx_cr
-> are passed in proper order to the camif_hw_set_effect() function.
->
-> Addresses-Coverity-ID: 1248800
-> Addresses-Coverity-ID: 1269141
->
-> [s.nawrocki@samsung.com: edited commit message ]
 
-Thank you for your editing of the commit message. I will elaborate  
-further in future patches.
+OK, I will do that.
 
-Best regards.
+> --
+> Regards,
+> Sylwester
+>
+>> Fix the position of the arguments in function call.
+>>
+>> Addresses-Coverity-ID: 1248800
+>> Addresses-Coverity-ID: 1269141
+>> Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+>> ---
+> ^^^^^
+>
+
+I got it.
+
+Thank you
 --
 Gustavo A. R. Silva
