@@ -1,104 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.163]:13047 "EHLO
-        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752669AbdFVPmA (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:38807 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751329AbdFFJOE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Jun 2017 11:42:00 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Subject: Re: [PATCH v1 0/6] Add support of OV9655 camera
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
-Date: Thu, 22 Jun 2017 17:41:11 +0200
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Discussions about the Letux Kernel
-        <letux-kernel@openphoenux.org>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <385A82AC-CC23-41BD-9F57-0232F713FED9@goldelico.com>
-References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
-To: Hugues Fruchet <hugues.fruchet@st.com>
+        Tue, 6 Jun 2017 05:14:04 -0400
+Subject: Re: [PATCH 00/12] Intel IPU3 ImgU patchset
+To: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
+        rajmohan.mani@intel.com, tuukka.toivonen@intel.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2fb8bd86-f856-8233-ad90-685f8d88999b@xs4all.nl>
+Date: Tue, 6 Jun 2017 11:14:00 +0200
+MIME-Version: 1.0
+In-Reply-To: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 05/06/17 22:39, Yong Zhi wrote:
+> This patchset adds support for the Intel IPU3 (Image Processing Unit)
+> ImgU which is essentially a modern memory-to-memory ISP. It implements
+> raw Bayer to YUV image format conversion as well as a large number of
+> other pixel processing algorithms for improving the image quality.
+> 
+> Meta data formats are defined for image statistics (3A, i.e. automatic
+> white balance, exposure and focus, histogram and local area contrast
+> enhancement) as well as for the pixel processing algorithm parameters.
+> The documentation for these formats is currently not included in the
+> patchset but will be added in a future version of this set.
+> 
+> The algorithm parameters need to be considered specific to a given frame
+> and typically a large number of these parameters change on frame to frame
+> basis. Additionally, the parameters are highly structured (and not a flat
+> space of independent configuration primitives). They also reflect the
+> data structures used by the firmware and the hardware. On top of that,
+> the algorithms require highly specialized user space to make meaningful
+> use of them. For these reasons it has been chosen video buffers to pass
+> the parameters to the device.
+> 
+> On individual patches:
+> 
+> The heart of ImgU is the CSS, or Camera Subsystem, which contains the
+> image processors and HW accelerators.
+> 
+> The 3A statistics and other firmware parameter computation related
+> functions are implemented in patch 8.
+> 
+> All h/w programming related code can be found in patch 9.
+> 
+> To access DDR via ImgU's own memory space, IPU3 is also equipped with
+> its own MMU unit, the driver is implemented in patch 2.
+> 
+> Patch 3 uses above driver for DMA mapping operation.
+> 
+> Patch 5-10 are basically IPU3 CSS specific implementations:
+> 
+> 6 and 7 provide some utility functions and manage IPU3 fw download and
+> install.
+> 
+> Patch 9 and 10 are of the same file, the latter implements interface
+> functions for access fw & hw capabilities defined in patch 8.
+> 
+> Patch 12 uses Kconfig and Makefile created by IPU3 cio2 patch set,
+> the code path, however is updated to drivers/media/pci/intel/ipu3.
+> The path change will be reflected in next revision of the cio2 patch as well.
 
-> Am 22.06.2017 um 17:05 schrieb Hugues Fruchet <hugues.fruchet@st.com>:
->=20
-> This patchset enables OV9655 camera support.
->=20
-> OV9655 support has been tested using STM32F4DIS-CAM extension board
-> plugged on connector P1 of STM32F746G-DISCO board.
-> Due to lack of OV9650/52 hardware support, the modified related code
-> could not have been checked for non-regression.
->=20
-> First patches upgrade current support of OV9650/52 to prepare then
-> introduction of OV9655 variant patch.
-> Because of OV9655 register set slightly different from OV9650/9652,
-> not all of the driver features are supported (controls). Supported
-> resolutions are limited to VGA, QVGA, QQVGA.
-> Supported format is limited to RGB565.
-> Controls are limited to color bar test pattern for test purpose.
->=20
-> OV9655 initial support is based on a driver written by H. Nikolaus =
-Schaller [1].
+I need to see the v4l2-compliance output for the various video devices that
+are created. Please compile directly from the https://git.linuxtv.org/v4l-utils.git/
+repository to be sure you use the latest code.
 
-Great!
+Just run 'v4l2-compliance -d /dev/videoX'.
 
-I will test as soon as possible.
+When you post v2 I'd like to see the output of that utility in the cover email.
 
-> OV9655 registers sequences come from STM32CubeF7 embedded software =
-[2].
+If the utility reports fails and you aren't clear what's going on, then just
+mail me (with a CC to Sakari).
 
-There is also a preliminary data sheet, e.g. here:
+It hasn't been used much (if at all) for video devices streaming metadata, so
+you may run into issues with that.
 
-http://electricstuff.co.uk/OV9655-datasheet-annotated.pdf
+Regards,
 
->=20
-> [1] =
-http://git.goldelico.com/?p=3Dgta04-kernel.git;a=3Dshortlog;h=3Drefs/heads=
-/work/hns/video/ov9655
-> [2] =
-https://developer.mbed.org/teams/ST/code/BSP_DISCO_F746NG/file/e1d9da7fe85=
-6/Drivers/BSP/Components/ov9655/ov9655.c
->=20
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> =3D history =3D
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> version 1:
->  - Initial submission.
->=20
-> H. Nikolaus Schaller (1):
->  DT bindings: add bindings for ov965x camera module
->=20
-> Hugues Fruchet (5):
->  [media] ov9650: add device tree support
->  [media] ov9650: select the nearest higher resolution
->  [media] ov9650: use write_array() for resolution sequences
->  [media] ov9650: add multiple variant support
->  [media] ov9650: add support of OV9655 variant
->=20
-> .../devicetree/bindings/media/i2c/ov965x.txt       |  37 +
-> drivers/media/i2c/Kconfig                          |   6 +-
-> drivers/media/i2c/ov9650.c                         | 792 =
-+++++++++++++++++----
-> 3 files changed, 704 insertions(+), 131 deletions(-)
-> create mode 100644 =
-Documentation/devicetree/bindings/media/i2c/ov965x.txt
->=20
-> --=20
-> 1.9.1
->=20
+	Hans
 
-BR and thanks,
-Nikolaus Schaller
+> 
+> Tuukka Toivonen (1):
+>   intel-ipu3: mmu: implement driver
+> 
+> Yong Zhi (11):
+>   videodev2.h, v4l2-ioctl: add IPU3 meta buffer format
+>   intel-ipu3: Add DMA API implementation
+>   intel-ipu3: Add user space ABI definitions
+>   intel-ipu3: css: tables
+>   intel-ipu3: css: imgu dma buff pool
+>   intel-ipu3: css: firmware management
+>   intel-ipu3: params: compute and program ccs
+>   intel-ipu3: css hardware setup
+>   intel-ipu3: css pipeline
+>   intel-ipu3: Add imgu v4l2 driver
+>   intel-ipu3: imgu top level pci device
+> 
+>  drivers/media/pci/intel/ipu3/Kconfig           |   32 +
+>  drivers/media/pci/intel/ipu3/Makefile          |    8 +
+>  drivers/media/pci/intel/ipu3/ipu3-abi.h        | 1572 ++++
+>  drivers/media/pci/intel/ipu3/ipu3-css-fw.c     |  272 +
+>  drivers/media/pci/intel/ipu3/ipu3-css-fw.h     |  215 +
+>  drivers/media/pci/intel/ipu3/ipu3-css-params.c | 3113 ++++++++
+>  drivers/media/pci/intel/ipu3/ipu3-css-params.h |  105 +
+>  drivers/media/pci/intel/ipu3/ipu3-css-pool.c   |  129 +
+>  drivers/media/pci/intel/ipu3/ipu3-css-pool.h   |   53 +
+>  drivers/media/pci/intel/ipu3/ipu3-css.c        | 2242 ++++++
+>  drivers/media/pci/intel/ipu3/ipu3-css.h        |  236 +
+>  drivers/media/pci/intel/ipu3/ipu3-dmamap.c     |  408 +
+>  drivers/media/pci/intel/ipu3/ipu3-dmamap.h     |   20 +
+>  drivers/media/pci/intel/ipu3/ipu3-mmu.c        |  423 ++
+>  drivers/media/pci/intel/ipu3/ipu3-mmu.h        |   73 +
+>  drivers/media/pci/intel/ipu3/ipu3-tables.c     | 9621 ++++++++++++++++++++++++
+>  drivers/media/pci/intel/ipu3/ipu3-tables.h     |   82 +
+>  drivers/media/pci/intel/ipu3/ipu3-v4l2.c       |  723 ++
+>  drivers/media/pci/intel/ipu3/ipu3.c            |  712 ++
+>  drivers/media/pci/intel/ipu3/ipu3.h            |  184 +
+>  drivers/media/v4l2-core/v4l2-ioctl.c           |    4 +
+>  include/uapi/linux/intel-ipu3.h                | 2182 ++++++
+>  include/uapi/linux/videodev2.h                 |    6 +
+>  23 files changed, 22415 insertions(+)
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-abi.h
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.c
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.h
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-params.c
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-params.h
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.c
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.h
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css.c
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css.h
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.c
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.h
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.c
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.h
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-tables.c
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-tables.h
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-v4l2.c
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3.c
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3.h
+>  create mode 100644 include/uapi/linux/intel-ipu3.h
+> 
