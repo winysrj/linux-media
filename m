@@ -1,76 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:58444 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752371AbdF0QJG (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:38734 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750755AbdFFHoQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 12:09:06 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v3 4/8] [media] s5p-jpeg: Don't use temporary structure in s5p_jpeg_buf_queue
-Date: Tue, 27 Jun 2017 18:08:50 +0200
-Message-Id: <1498579734-1594-5-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
-References: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
+        Tue, 6 Jun 2017 03:44:16 -0400
+Subject: Re: Question about Large Custom Coefficients for V4L2 sub-device
+ drivers
+To: Rohit Athavale <rohit.athavale@xilinx.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <866603A3C4C8F547969034C425C3995F494A3336@XSJ-PSEXMBX01.xlnx.xilinx.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <15c9f603-1fa9-da67-7779-ba8dfaf03822@xs4all.nl>
+Date: Tue, 6 Jun 2017 09:44:13 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+In-Reply-To: <866603A3C4C8F547969034C425C3995F494A3336@XSJ-PSEXMBX01.xlnx.xilinx.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If s5p_jpeg_parse_hdr() fails to parse the JPEG header, the passed
-s5p_jpeg_q_data structure is not modify so there is no need to use a
-temporary structure and the field-by-field copy can be avoided.
+On 05/06/17 18:32, Rohit Athavale wrote:
+> Hello Media Community,
+> 
+> I am working on a scaler and gamma correction V4L2 sub-device based drivers. A common theme to both of them is that
+> the kernel driver is expected bring-up these devices in a working (good) configuration. As it turns out these coefficients are tailor-made
+> or are fairly complex to generate dynamically at run-time.
+> 
+> This implies the driver has to store at least one set of coefficients for each supported configuration. This could easily become 10-20 KB of data stored as a large static array of shorts or integers.
+> 
+> I have a couple of questions to ask all here :
+> 
+> 1. What is the best practice for embedding large coefficients ( > 10 KB) into V4L2 sub-device based drivers ?
 
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 23 ++++-------------------
- 1 file changed, 4 insertions(+), 19 deletions(-)
+Typically it is just a static const array. For large arrays it is best to put them in a separate
+source so it doesn't overwhelm the actual driver code.
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index df3e5ee..1769744 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -2500,9 +2500,9 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
- 
- 	if (ctx->mode == S5P_JPEG_DECODE &&
- 	    vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
--		struct s5p_jpeg_q_data tmp, *q_data;
-+		struct s5p_jpeg_q_data *q_data;
- 
--		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&tmp,
-+		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&ctx->out_q,
- 		     (unsigned long)vb2_plane_vaddr(vb, 0),
- 		     min((unsigned long)ctx->out_q.size,
- 			 vb2_get_plane_payload(vb, 0)), ctx);
-@@ -2511,24 +2511,9 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
- 			return;
- 		}
- 
--		q_data = &ctx->out_q;
--		q_data->w = tmp.w;
--		q_data->h = tmp.h;
--		q_data->sos = tmp.sos;
--		memcpy(q_data->dht.marker, tmp.dht.marker,
--		       sizeof(tmp.dht.marker));
--		memcpy(q_data->dht.len, tmp.dht.len, sizeof(tmp.dht.len));
--		q_data->dht.n = tmp.dht.n;
--		memcpy(q_data->dqt.marker, tmp.dqt.marker,
--		       sizeof(tmp.dqt.marker));
--		memcpy(q_data->dqt.len, tmp.dqt.len, sizeof(tmp.dqt.len));
--		q_data->dqt.n = tmp.dqt.n;
--		q_data->sof = tmp.sof;
--		q_data->sof_len = tmp.sof_len;
--
- 		q_data = &ctx->cap_q;
--		q_data->w = tmp.w;
--		q_data->h = tmp.h;
-+		q_data->w = ctx->out_q.w;
-+		q_data->h = ctx->out_q.h;
- 
- 		/*
- 		 * This call to jpeg_bound_align_image() takes care of width and
--- 
-2.7.4
+> 2. How can user applications feed coefficients to the sub-device based V4L2 drivers ? I'm wondering if there is standard ioctl, write or mmap file op that can be performed to achieve this ?
+
+In most cases you can make an extended control (array or compound) for this. If the hardware
+supports some sort of DMA hardware to load the coefficients quickly into memory, then a video
+node can be created. But based on what you write that doesn't appear to be necessary.
+
+Regards,
+
+	Hans
+
+> 
+> All inputs will be greatly appreciated :)
+> 
+> Best Regards,
+> Rohit
+> 
+> 
+> 
+> This email and any attachments are intended for the sole use of the named recipient(s) and contain(s) confidential information that may be proprietary, privileged or copyrighted under applicable law. If you are not the intended recipient, do not read, copy, or forward this email message or any attachments. Delete this email message and any attachments immediately.
+> 
