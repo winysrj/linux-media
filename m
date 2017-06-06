@@ -1,118 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58908 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754449AbdFNHp4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 03:45:56 -0400
-Date: Wed, 14 Jun 2017 10:45:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Helen Koike <helen.koike@collabora.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2] [media] v4l2-subdev: check colorimetry in link
- validate
-Message-ID: <20170614074521.GF12407@valkosipuli.retiisi.org.uk>
-References: <fe95a0c2-aebc-c4a8-e771-6c4eb2d0f340@collabora.com>
- <1496941513-29040-1-git-send-email-helen.koike@collabora.com>
+Received: from mail-yb0-f170.google.com ([209.85.213.170]:34541 "EHLO
+        mail-yb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750755AbdFFEbE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Jun 2017 00:31:04 -0400
+Received: by mail-yb0-f170.google.com with SMTP id 4so12551687ybl.1
+        for <linux-media@vger.kernel.org>; Mon, 05 Jun 2017 21:31:04 -0700 (PDT)
+Received: from mail-yb0-f174.google.com (mail-yb0-f174.google.com. [209.85.213.174])
+        by smtp.gmail.com with ESMTPSA id x2sm15898573ywj.75.2017.06.05.21.31.02
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 05 Jun 2017 21:31:02 -0700 (PDT)
+Received: by mail-yb0-f174.google.com with SMTP id 4so12551557ybl.1
+        for <linux-media@vger.kernel.org>; Mon, 05 Jun 2017 21:31:02 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1496941513-29040-1-git-send-email-helen.koike@collabora.com>
+In-Reply-To: <CAAFQd5B6LiWgX+=-HJnO480FF-AXDa+UqtSs+SYUG=S+kGgNVg@mail.gmail.com>
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+ <1496695157-19926-2-git-send-email-yong.zhi@intel.com> <CAAFQd5B6LiWgX+=-HJnO480FF-AXDa+UqtSs+SYUG=S+kGgNVg@mail.gmail.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Tue, 6 Jun 2017 13:30:41 +0900
+Message-ID: <CAAFQd5DpzAGBi_kevEBp05yC4ytM3Q8WU2owZucsE3AZ=s=OoA@mail.gmail.com>
+Subject: Re: [PATCH 01/12] videodev2.h, v4l2-ioctl: add IPU3 meta buffer format
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Helen and Mauro,
+Uhm, +Laurent. Sorry for the noise.
 
-On Thu, Jun 08, 2017 at 02:05:08PM -0300, Helen Koike wrote:
-> colorspace, ycbcr_enc, quantization and xfer_func must match
-> across the link.
-> Check if they match in v4l2_subdev_link_validate_default
-> unless they are set as _DEFAULT.
-
-I think you could ignore my earlier comments on this --- the check will take
-place only iff both are not defaults, i.e. non-zero. And these values
-definitely should be zero unless explicitly set otherwise -- by the driver.
-I missed this on the previous review round.
-
-So I think it'd be fine to return an error on these.
-
-How about using dev_dbg() instead if dev_warn()? Using dev_warn() gives an
-easy way to flood the logs to the user. A debug level message is still
-important as it's next to impossible for the user to figure out what
-actually went wrong. Getting a single numeric error code from starting the
-pipeline isn't telling much...
-
-> 
-> Signed-off-by: Helen Koike <helen.koike@collabora.com>
-> 
-> ---
-> 
-> Hi,
-> 
-> As discussed previously, I added a warn message instead of returning
-> error to give drivers some time to adapt.
-> But the problem is that: as the format is set by userspace, it is
-> possible that userspace will set the wrong format at pads and see these
-> messages when there is no error in the driver's code at all (or maybe
-> this is not a problem, just noise in the log).
-> 
-> Helen
-> ---
->  drivers/media/v4l2-core/v4l2-subdev.c | 38 +++++++++++++++++++++++++++++++++++
->  1 file changed, 38 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index da78497..1a642c7 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -508,6 +508,44 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
->  	    || source_fmt->format.code != sink_fmt->format.code)
->  		return -EPIPE;
->  
-> +	/*
-> +	 * TODO: return -EPIPE instead of printing a warning in the following
-> +	 * checks. As colorimetry properties were added after most of the
-> +	 * drivers, only a warning was added to avoid potential regressions
-> +	 */
-> +
-> +	/* colorspace match. */
-> +	if (source_fmt->format.colorspace != sink_fmt->format.colorspace)
-> +		dev_warn(sd->v4l2_dev->dev,
-> +			 "colorspace doesn't match in link \"%s\":%d->\"%s\":%d\n",
-> +			link->source->entity->name, link->source->index,
-> +			link->sink->entity->name, link->sink->index);
-> +
-> +	/* Colorimetry must match if they are not set to DEFAULT */
-> +	if (source_fmt->format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
-> +	    && sink_fmt->format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
-> +	    && source_fmt->format.ycbcr_enc != sink_fmt->format.ycbcr_enc)
-> +		dev_warn(sd->v4l2_dev->dev,
-> +			 "YCbCr encoding doesn't match in link \"%s\":%d->\"%s\":%d\n",
-> +			link->source->entity->name, link->source->index,
-> +			link->sink->entity->name, link->sink->index);
-> +
-> +	if (source_fmt->format.quantization != V4L2_QUANTIZATION_DEFAULT
-> +	    && sink_fmt->format.quantization != V4L2_QUANTIZATION_DEFAULT
-> +	    && source_fmt->format.quantization != sink_fmt->format.quantization)
-> +		dev_warn(sd->v4l2_dev->dev,
-> +			 "quantization doesn't match in link \"%s\":%d->\"%s\":%d\n",
-> +			link->source->entity->name, link->source->index,
-> +			link->sink->entity->name, link->sink->index);
-> +
-> +	if (source_fmt->format.xfer_func != V4L2_XFER_FUNC_DEFAULT
-> +	    && sink_fmt->format.xfer_func != V4L2_XFER_FUNC_DEFAULT
-> +	    && source_fmt->format.xfer_func != sink_fmt->format.xfer_func)
-> +		dev_warn(sd->v4l2_dev->dev,
-> +			 "transfer function doesn't match in link \"%s\":%d->\"%s\":%d\n",
-> +			link->source->entity->name, link->source->index,
-> +			link->sink->entity->name, link->sink->index);
-> +
->  	/* The field order must match, or the sink field order must be NONE
->  	 * to support interlaced hardware connected to bridges that support
->  	 * progressive formats only.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+On Tue, Jun 6, 2017 at 1:30 PM, Tomasz Figa <tfiga@chromium.org> wrote:
+> Hi Yong,
+>
+> On Tue, Jun 6, 2017 at 5:39 AM, Yong Zhi <yong.zhi@intel.com> wrote:
+>> Add the IPU3 specific processing parameter format
+>> V4L2_META_FMT_IPU3_PARAMS and metadata formats
+>> for 3A and other statistics:
+>
+> Please see my comments inline.
+>
+>>
+>>   V4L2_META_FMT_IPU3_PARAMS
+>>   V4L2_META_FMT_IPU3_STAT_3A
+>>   V4L2_META_FMT_IPU3_STAT_DVS
+>>   V4L2_META_FMT_IPU3_STAT_LACE
+>>
+>> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
+>>  include/uapi/linux/videodev2.h       | 6 ++++++
+>>  2 files changed, 10 insertions(+)
+> [snip]
+>> +/* Vendor specific - used for IPU3 camera sub-system */
+>> +#define V4L2_META_FMT_IPU3_PARAMS      v4l2_fourcc('i', 'p', '3', 'p') /* IPU3 params */
+>> +#define V4L2_META_FMT_IPU3_STAT_3A     v4l2_fourcc('i', 'p', '3', 's') /* IPU3 3A statistics */
+>> +#define V4L2_META_FMT_IPU3_STAT_DVS    v4l2_fourcc('i', 'p', '3', 'd') /* IPU3 DVS statistics */
+>> +#define V4L2_META_FMT_IPU3_STAT_LACE   v4l2_fourcc('i', 'p', '3', 'l') /* IPU3 LACE statistics */
+>
+> We had some discussion about this with Laurent and if I remember
+> correctly, the conclusion was that it might make sense to define one
+> FourCC for a vendor specific format, ('v', 'n', 'd', 'r') for example,
+> and then have a V4L2-specific enum within the v4l2_pix_format(_mplane)
+> struct that specifies the exact vendor data type. It seems saner than
+> assigning a new FourCC whenever a new hardware revision comes out,
+> especially given that FourCCs tend to be used outside of the V4L2
+> world as well and being kind of (de facto) standardized (with existing
+> exceptions, unfortunately).
+>
+> Best regards,
+> Tomasz
