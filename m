@@ -1,51 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f171.google.com ([209.85.161.171]:33028 "EHLO
-        mail-yw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751450AbdFHIaL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 04:30:11 -0400
-Received: by mail-yw0-f171.google.com with SMTP id 63so10734331ywr.0
-        for <linux-media@vger.kernel.org>; Thu, 08 Jun 2017 01:30:10 -0700 (PDT)
-Received: from mail-yw0-f176.google.com (mail-yw0-f176.google.com. [209.85.161.176])
-        by smtp.gmail.com with ESMTPSA id t14sm2160391ywf.32.2017.06.08.01.30.09
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 08 Jun 2017 01:30:09 -0700 (PDT)
-Received: by mail-yw0-f176.google.com with SMTP id e142so2692714ywa.1
-        for <linux-media@vger.kernel.org>; Thu, 08 Jun 2017 01:30:09 -0700 (PDT)
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41164 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751426AbdFFUkt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Jun 2017 16:40:49 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.13] Various fixes/improvements
+Message-ID: <540feb54-cc87-548d-3365-d14fa27c0304@xs4all.nl>
+Date: Tue, 6 Jun 2017 22:40:47 +0200
 MIME-Version: 1.0
-In-Reply-To: <1496695157-19926-6-git-send-email-yong.zhi@intel.com>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com> <1496695157-19926-6-git-send-email-yong.zhi@intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 8 Jun 2017 17:29:48 +0900
-Message-ID: <CAAFQd5BH-MwPBdsJEmz1-fF3W0rQ5HwSbHWuu24RSeP7EjhR5Q@mail.gmail.com>
-Subject: Re: [PATCH 05/12] intel-ipu3: css: tables
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+The following changes since commit 6fb05e0dd32e566facb96ea61a48c7488daa5ac3:
 
-On Tue, Jun 6, 2017 at 5:39 AM, Yong Zhi <yong.zhi@intel.com> wrote:
-> Coeff, config parameters etc const definitions for
-> IPU3 programming.
->
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> ---
->  drivers/media/pci/intel/ipu3/ipu3-tables.c | 9621 ++++++++++++++++++++++++++++
->  drivers/media/pci/intel/ipu3/ipu3-tables.h |   82 +
->  2 files changed, 9703 insertions(+)
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-tables.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-tables.h
+  [media] saa7164: fix double fetch PCIe access condition (2017-06-06 16:55:50 -0300)
 
-I wonder if this patch really reached the mailing list. It seems to
-not be present on patchwork.linuxtv.org. Possibly due to size
-restrictions.
+are available in the git repository at:
 
-Best regards,
-Tomasz
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.13c
+
+for you to fetch changes up to 44cdbd59e84ad2562b760455ac24c7114672ca8f:
+
+  tc358743: Add support for platforms without IRQ line (2017-06-06 22:31:15 +0200)
+
+----------------------------------------------------------------
+Arvind Yadav (1):
+      tc358743: Handle return value of clk_prepare_enable
+
+Dave Stevenson (3):
+      tc358743: Add enum_mbus_code
+      tc358743: Setup default mbus_fmt before registering
+      tc358743: Add support for platforms without IRQ line
+
+Hans Verkuil (1):
+      cec: improve debug messages
+
+Hugues Fruchet (1):
+      atmel-isi: code cleanup
+
+Sakari Ailus (2):
+      v4l2-ctrls.c: Implement unlocked variant of v4l2_ctrl_handler_setup()
+      v4l2-ctrls: Correctly destroy mutex in v4l2_ctrl_handler_free()
+
+ drivers/media/cec/cec-adap.c             | 28 ++++++++++++++++------------
+ drivers/media/i2c/tc358743.c             | 65 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--
+ drivers/media/platform/atmel/atmel-isi.c | 24 ++++++++++--------------
+ drivers/media/v4l2-core/v4l2-ctrls.c     | 24 +++++++++++++++++++++---
+ include/media/v4l2-ctrls.h               | 13 +++++++++++++
+ 5 files changed, 123 insertions(+), 31 deletions(-)
