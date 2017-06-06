@@ -1,112 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:60632 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751016AbdFOOPF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 10:15:05 -0400
-Subject: Re: [RFC 2/2] [media] bcm2835-unicam: Driver for CCP2/CSI2 camera
- interface
-To: Dave Stevenson <dave.stevenson@raspberrypi.org>
-References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
- <e268d99095dea34a049d9cacf9c18e855050abe1.1497452006.git.dave.stevenson@raspberrypi.org>
- <ec774750-d6a9-d8b7-9b38-0fd97fe7678d@xs4all.nl>
- <CAAoAYcNPk==5=sNZRuVvShPv+ky=ewdg7O7G4xGp6qLFaMTvYQ@mail.gmail.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-rpi-kernel@lists.infradead.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <38437cd7-5703-11bb-ce3f-01c6315746ff@xs4all.nl>
-Date: Thu, 15 Jun 2017 16:14:59 +0200
+Received: from mga02.intel.com ([134.134.136.20]:45463 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751073AbdFFHZy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Jun 2017 03:25:54 -0400
+Date: Tue, 6 Jun 2017 10:25:19 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 01/12] videodev2.h, v4l2-ioctl: add IPU3 meta buffer
+ format
+Message-ID: <20170606072519.GF15419@paasikivi.fi.intel.com>
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+ <1496695157-19926-2-git-send-email-yong.zhi@intel.com>
+ <CAAFQd5B6LiWgX+=-HJnO480FF-AXDa+UqtSs+SYUG=S+kGgNVg@mail.gmail.com>
+ <CAAFQd5DpzAGBi_kevEBp05yC4ytM3Q8WU2owZucsE3AZ=s=OoA@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAAoAYcNPk==5=sNZRuVvShPv+ky=ewdg7O7G4xGp6qLFaMTvYQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5DpzAGBi_kevEBp05yC4ytM3Q8WU2owZucsE3AZ=s=OoA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/15/17 15:38, Dave Stevenson wrote:
-> Hi Hans.
+Hi Tomasz,
+
+On Tue, Jun 06, 2017 at 01:30:41PM +0900, Tomasz Figa wrote:
+> Uhm, +Laurent. Sorry for the noise.
 > 
-> "On 15 June 2017 at 08:12, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Hi Dave,
->>
->> Here is a quick review of this driver. Once a v2 is posted I'll do a more
->> thorough
->> check.
-> 
-> Thank you. I wasn't expecting such a quick response.
-> 
->> On 06/14/2017 05:15 PM, Dave Stevenson wrote:
->>>
->>> Add driver for the Unicam camera receiver block on
->>> BCM283x processors.
->>>
->>> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
->>> ---
->>>   drivers/media/platform/Kconfig                   |    1 +
->>>   drivers/media/platform/Makefile                  |    2 +
->>>   drivers/media/platform/bcm2835/Kconfig           |   14 +
->>>   drivers/media/platform/bcm2835/Makefile          |    3 +
->>>   drivers/media/platform/bcm2835/bcm2835-unicam.c  | 2100
->>> ++++++++++++++++++++++
->>>   drivers/media/platform/bcm2835/vc4-regs-unicam.h |  257 +++
->>>   6 files changed, 2377 insertions(+)
->>>   create mode 100644 drivers/media/platform/bcm2835/Kconfig
->>>   create mode 100644 drivers/media/platform/bcm2835/Makefile
->>>   create mode 100644 drivers/media/platform/bcm2835/bcm2835-unicam.c
->>>   create mode 100644 drivers/media/platform/bcm2835/vc4-regs-unicam.h
->>>
->>> +static int unicam_s_input(struct file *file, void *priv, unsigned int i)
->>> +{
->>> +       struct unicam_device *dev = video_drvdata(file);
->>> +       int ret;
->>> +
->>> +       if (v4l2_subdev_has_op(dev->sensor, video, s_routing))
->>> +               ret =  v4l2_subdev_call(dev->sensor, video, s_routing, i,
->>> 0, 0);
->>> +       else
->>> +               ret = -EINVAL;  /* v4l2-compliance insists on -EINVAL */
->>
->>
->> Drop this if-else entirely. s_routing makes really no sense when using a
->> device
->> tree. In this particular case there really is just one input, period.
-> 
-> I added this due to the ADV7282-M analogue to CSI bridge chip (uses
-> adv7180.c driver). It uses s_routing to select the physical input /
-> input type.
-> If this is dropped, what is the correct mechanism for selecting the
-> input? Unless I've missed it, s_routing is not a call that is exposed
-> to userspace, so we're stuck with composite input 1.
-> 
-> I had asked this question in previously [1], and whilst Sakari had
-> kindly replied with "s_routing() video op as it stands now is awful, I
-> hope no-one uses it", the fact is that it is used.
-> 
-> [1] http://www.spinics.net/lists/linux-media/msg115550.html
+> On Tue, Jun 6, 2017 at 1:30 PM, Tomasz Figa <tfiga@chromium.org> wrote:
+> > Hi Yong,
+> >
+> > On Tue, Jun 6, 2017 at 5:39 AM, Yong Zhi <yong.zhi@intel.com> wrote:
+> >> Add the IPU3 specific processing parameter format
+> >> V4L2_META_FMT_IPU3_PARAMS and metadata formats
+> >> for 3A and other statistics:
+> >
+> > Please see my comments inline.
+> >
+> >>
+> >>   V4L2_META_FMT_IPU3_PARAMS
+> >>   V4L2_META_FMT_IPU3_STAT_3A
+> >>   V4L2_META_FMT_IPU3_STAT_DVS
+> >>   V4L2_META_FMT_IPU3_STAT_LACE
+> >>
+> >> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> >> ---
+> >>  drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
+> >>  include/uapi/linux/videodev2.h       | 6 ++++++
+> >>  2 files changed, 10 insertions(+)
+> > [snip]
+> >> +/* Vendor specific - used for IPU3 camera sub-system */
+> >> +#define V4L2_META_FMT_IPU3_PARAMS      v4l2_fourcc('i', 'p', '3', 'p') /* IPU3 params */
+> >> +#define V4L2_META_FMT_IPU3_STAT_3A     v4l2_fourcc('i', 'p', '3', 's') /* IPU3 3A statistics */
+> >> +#define V4L2_META_FMT_IPU3_STAT_DVS    v4l2_fourcc('i', 'p', '3', 'd') /* IPU3 DVS statistics */
+> >> +#define V4L2_META_FMT_IPU3_STAT_LACE   v4l2_fourcc('i', 'p', '3', 'l') /* IPU3 LACE statistics */
+> >
+> > We had some discussion about this with Laurent and if I remember
+> > correctly, the conclusion was that it might make sense to define one
+> > FourCC for a vendor specific format, ('v', 'n', 'd', 'r') for example,
+> > and then have a V4L2-specific enum within the v4l2_pix_format(_mplane)
+> > struct that specifies the exact vendor data type. It seems saner than
+> > assigning a new FourCC whenever a new hardware revision comes out,
+> > especially given that FourCCs tend to be used outside of the V4L2
+> > world as well and being kind of (de facto) standardized (with existing
+> > exceptions, unfortunately).
 
-s_routing was developed for USB and PCI(e) devices and predates the device tree.
-Basically USB and PCI drivers will have card definitions where USB/PCI card IDs
-are mapped to card descriptions, and that includes information on the various
-inputs (composite, S-Video, etc) that are available on the backplane and how those
-physical connectors are hooked up to the pins on the video ICs.
+If we have four video nodes with different vendor specific formats, how does
+the user tell the formats apart? I presume the user space could use the
+entity names for instance, but that would essentially make them device
+specific.
 
-The enum/s/g_input ioctls all show the end-user view, i.e. they enumerate the
-inputs on the backpanel of the product. The s_routing op was created to map
-such inputs to actual pins on the ICs.
+I'm not sure if there would be any harm from that in practice though: the
+user will need to find the device nodes somehow and that will be very likely
+based on e.g. entity names.
 
-For platform devices we would do this in the device tree today, but some of
-the necessary bindings are still missing. Specifically those for connectors,
-AFAIK those are not yet defined. It's been discussed, but never finalized.
+How should the documentation be arranged? The documentation is arranged by
+fourccs currently; we'd probably need a separate section for vendor specific
+formats. I think the device name should be listed there as well.
 
-So if this was done correctly you would use the connector endpoints in the
-device tree to enumerate the inputs and use how they are connected to the
-other blocks as the routing information (i.e. pad number).
+I'd like to have perhaps Hans's comment on that as well.
 
-I would say that is the advanced course and to do this later.
+I don't really see a drawback in the current way of doing this either; we
+may get a few new fourcc codes occasionally of which I'm not really worried
+about. --- I'd rather ask why should there be an exception on how vendor
+specific formats are defined. And if we do make an exception, then how do
+you decide which one is and isn't vendor specific? There are raw bayer
+format variants that are just raw bayer data but the pixels are arranged
+differently (e.g. CIO2 driver).
 
-Do you even have hardware where you can switch between inputs?
-
+-- 
 Regards,
 
-	Hans
+Sakari Ailus
+sakari.ailus@linux.intel.com
