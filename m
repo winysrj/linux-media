@@ -1,73 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:44566 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752427AbdFOJSt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 05:18:49 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v4 0/2] media: entity: add operation to help map DT node to media pad
-Date: Thu, 15 Jun 2017 11:17:24 +0200
-Message-Id: <20170615091726.22370-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-it0-f52.google.com ([209.85.214.52]:38151 "EHLO
+        mail-it0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751345AbdFFNTm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Jun 2017 09:19:42 -0400
+Received: by mail-it0-f52.google.com with SMTP id r63so108537472itc.1
+        for <linux-media@vger.kernel.org>; Tue, 06 Jun 2017 06:19:36 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Steven Toth <stoth@kernellabs.com>
+Date: Tue, 6 Jun 2017 09:19:35 -0400
+Message-ID: <CALzAhNX3ncfu09k2ZaZ+5x28uNhy2kSCw4swatU89N+kJ=2PoQ@mail.gmail.com>
+Subject: [GIT PULL] [PATCH] saa7164: Bug - Double fetch PCIe access condition
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Mauro,
 
-This series add a new entity operation which will aid capture
-drivers to map a port/endpoint in DT to a media graph pad.
+A single commit.
 
-This series is implemented support for the ongoing ADV748x work by
-Kieran Bingham. In his work he have a driver which registers more then
-one subdevice. So when a driver finds this subdevice it must be able to
-ask the subdevice itself which pad number correspond to the DT endpoint
-the driver used to bind subdevice in the first place.
+https://github.com/stoth68000/media-tree/commit/354dd3924a2e43806774953de536257548b5002c
 
-This is tested on Renesas H3 and M3-W together with the Renesas CSI-2
-and VIN Gen3 driver (posted separately). It is based on top media-tree.
+This pull request addresses the concern raised by Pengfei Wang
+<wpengfeinudt@gmail.com> via
+https://bugzilla.kernel.org/show_bug.cgi?id=195559
 
-* Changes since v3
-- Rename argument direction to direction_flags and changed type from 
-  unsigned int to unsigned long for media_entity_get_fwnode_pad().
-- Changed loop data type from int to unsigned int.
-- Added Acked-by from Sakari, thanks!
+I've tested this patch with two different SAA7164 based cards in both
+analog and digital television modes for US and Europe, no regressions
+were found.
 
-* Changes since v2
-- Renamed pad_from_fwnode to get_fwnode_pad as suggested by Sakari.
-- Return pad number instead of passing it as a pointer to both
-  get_fwnode_pad() and media_entity_pad_from_fwnode().
-- Document possible flags of the direction argument to
-  media_entity_pad_from_fwnode().
-- Use unsigned int instead of int for bitmask.
-- Fix numerous spelling mistakes, thanks Hans!
-- Rebased to latest media-tree.
+$ git diff --stat master
+ drivers/media/pci/saa7164/saa7164-bus.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-* Changes since v1
-- Rebased work ontop of Sakaris fwnode branch and make use of the fwnode
-  instead of the raw DT port/reg numbers.
-- Do not assume DT port is equal to pad number if the driver do not
-  implement the lookup function. Instead search for the first pad with
-  the correct direction and use that. Thanks Sakari for the suggestion!
-- Use ENXIO instead of EINVAL to signal lookup error.
+Thanks!
 
-Niklas Söderlund (2):
-  media: entity: Add get_fwnode_pad entity operation
-  media: entity: Add media_entity_get_fwnode_pad() function
-
- drivers/media/media-entity.c | 36 ++++++++++++++++++++++++++++++++++++
- include/media/media-entity.h | 28 ++++++++++++++++++++++++++++
- 2 files changed, 64 insertions(+)
+- Steve
 
 -- 
-2.13.1
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
