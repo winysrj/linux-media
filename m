@@ -1,386 +1,265 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:57031 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751054AbdFSRtk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 13:49:40 -0400
-Subject: Re: [PATCH v2] [media] v4l2: add V4L2_CAP_IO_MC
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
- <1497415836-15142-1-git-send-email-helen.koike@collabora.com>
- <2327e555-118e-0882-f2f6-7c0f74985aee@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        jgebben@codeaurora.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Helen Koike <helen.koike@collabora.com>
-Message-ID: <44dda7f2-1bf7-6b4d-d215-35102612ba21@collabora.com>
-Date: Mon, 19 Jun 2017 14:49:26 -0300
+Received: from regular1.263xmail.com ([211.150.99.140]:34766 "EHLO
+        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750755AbdFFIXE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Jun 2017 04:23:04 -0400
+Subject: Re: [RFC] V4L2 unified low-level decoder API
+To: Hugues FRUCHET <hugues.fruchet@st.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        "florent.revest@free-electrons.com"
+        <florent.revest@free-electrons.com>,
+        "posciak@chromium.org" <posciak@chromium.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "jung.zhao@rock-chips.com" <jung.zhao@rock-chips.com>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <2890f845-eef2-5689-f154-fc76ae6abc8b@st.com>
+ <816ba2d8-f1e7-ce34-3524-b2a3f1bf3d74@xs4all.nl>
+ <fb4a4815-e1ff-081e-787a-0213e32a5405@st.com>
+ <8f93f4f2df49431cb2750963c2f7b168@SFHDAG5NODE2.st.com>
+ <48b04997-bd80-5640-4272-2c4d69c25a97@st.com>
+ <817c32e2-270c-0879-7f29-ec4eae0bcaa1@rock-chips.com>
+ <d5a75fdc-6417-7b05-039e-d6d2a8a49173@st.com>
+From: Randy Li <randy.li@rock-chips.com>
+Message-ID: <bba49c67-4805-2191-7967-38de4eb45075@rock-chips.com>
+Date: Tue, 6 Jun 2017 16:22:53 +0800
 MIME-Version: 1.0
-In-Reply-To: <2327e555-118e-0882-f2f6-7c0f74985aee@xs4all.nl>
+In-Reply-To: <d5a75fdc-6417-7b05-039e-d6d2a8a49173@st.com>
 Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-Thanks for reviewing this
 
-On 2017-06-19 08:15 AM, Hans Verkuil wrote:
-> On 06/14/2017 06:50 AM, Helen Koike wrote:
->> Add V4L2_CAP_IO_MC to be used in struct v4l2_capability to indicate that
->> input and output are controlled by the Media Controller instead of V4L2
->> API.
->> When this flag is set, ioctls for get, set and enum input and outputs
->> are automatically enabled and programmed to call helper function.
+On 06/06/2017 03:59 PM, Hugues FRUCHET wrote:
+> Hi Randy,
+> 
+> Did you get a chance to review interface ?
+Oh, I have had look a quick view on it yesterday. The video IP of that 
+platform doesn't come from the On2, right?
+> I would really appreciate your feedback in order that we move forward on
+> this topic and get at least one implementation merged.
+I am a little busy recently, I will give you a feedback before the next 
+Monday.
+btw, only the MPEG-2 is supported?
+I am not very familiar with MPEG-2 standard, I am more familiar with 
+MPEG-4 PART 10 or HEVC. As the MPEG-2 is more simple, I may not meet any 
+problem to understand it.
+> 
+> Best regards,
+> Hugues.
+> 
+> On 05/19/2017 10:15 AM, Randy Li wrote:
 >>
->> Signed-off-by: Helen Koike <helen.koike@collabora.com>
 >>
->> ---
+>> On 05/19/2017 04:08 PM, Hugues FRUCHET wrote:
+>>> Hi all,
+>>>
+>>> Here is the latest st-delta MPEG2 code:
+>>> [PATCH v6 0/3] Add support for MPEG-2 in DELTA video decoder
+>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg112067.html
+>>> [PATCH v2 0/3] Add a libv4l plugin for video bitstream parsing
+>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg112076.html
+>>>
+>> I would review it.
+>>> Before merging this work Hans would like to have feedback from peers, in
+>>> order to be sure that this is inline with other SoC vendors drivers
+>>> expectations.
+>>>
+>>> Thomasz, Pawel, could you give your view regarding ChromeOS and Rockchip
+>>> driver ?
+>> The work of the rockchip just re-start a few weeks age, I have just
+>> finished the driver probing type as I decide to make a clean beginning.
+>> The video IP of the rockchip is too complext with a different combine.
 >>
->> Changes in v2::
->>     - replace the type by capability
->>     - erase V4L2_INPUT_TYPE_DEFAULT
->>     - also consider output
->>     - plug helpers in the ops automatically so drivers doesn't need
->>     to set it by hand
->>     - update docs
->>     - commit message and title
->> ---
->>   Documentation/media/uapi/v4l/vidioc-querycap.rst |  3 +
->>   Documentation/media/videodev2.h.rst.exceptions   |  1 +
->>   drivers/media/v4l2-core/v4l2-dev.c               | 35 +++++++--
->>   drivers/media/v4l2-core/v4l2-ioctl.c             | 91
->> ++++++++++++++++++++++--
->>   include/uapi/linux/videodev2.h                   |  2 +
->>   5 files changed, 120 insertions(+), 12 deletions(-)
->>
->> diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst
->> b/Documentation/media/uapi/v4l/vidioc-querycap.rst
->> index 12e0d9a..2bd1223 100644
->> --- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
->> +++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
->> @@ -252,6 +252,9 @@ specification the ioctl returns an ``EINVAL``
->> error code.
->>       * - ``V4L2_CAP_TOUCH``
->>         - 0x10000000
->>         - This is a touch device.
->> +    * - ``V4L2_CAP_IO_MC``
->> +      - 0x20000000
->> +      - This device has its inputs and outputs controller by the
->> Media Controller
->
-> controller -> controlled
+>> The pixel format will begin in JPEG then AVC. I am now more familiar
+>> with those codec now.
+>>> Laurent, could you give your view regarding Renesas driver ?
+>>>
+>>> I have also added in appendice [7] the materials presented by Laurent at
+>>> ELC 2017 in Portland to introduce stateless video codecs and V4L2
+>>> request API, thanks for this presentation Laurent.
+>>>
+>>>
+>>> Best regards,
+>>> Hugues.
+>>>
+>>>> On 02/07/2017 08:21 AM, Hugues FRUCHET wrote:
+>>>> Hi,
+>>>>
+>>>> Here is an update regarding MPEG-2 implementation based on ST video decoder:
+>>>> * MPEG-2 API + DELTA kernel driver:
+>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg107405.html
+>>>> * libv4l-codecparsers plugin including MPEG-2 back-end:
+>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg107812.html
+>>>>
+>>>> Please note that this is implemented & functional using currently available V4L2 control framework (no Request API), assuming that user side keeps unicity of S_EXT_CTRL() / QBUF(OUTPUT) pair.
+>>>> Request API will remove this constraint, but the point here is to define control interface, as far as I have understood code, Request API will not affect those control definitions.
+>>>>
+>>>> Some updates inline thereafter regarding activities on this subject; me for MPEG-2 on ST platform and Randy Li, Nicolas Dufresne, Ayaka for H264 on Rockchip platform:
+>>>>
+>>>>
+>>>> On 11/14/2016 10:55 AM, Hans Verkuil wrote:
+>>>>> On 10/27/2016 09:42 AM, Hugues FRUCHET wrote:
+>>>>>> Hi,
+>>>>>>
+>>>>>> This RFC aims to start discussions in order to define the codec
+>>>>>> specific controls structures to fulfill the low-level decoder API
+>>>>>> needed by non "Stream API" based decoders ("stateless" or "Frame API" based decoders).
+>>>>>
+>>>>> Let's refer to this as 'stateful' decoders and 'stateless' decoders.
+>>>>> This is the preferred terminology (and much more descriptive than
+>>>>> 'Stream' vs 'Frame'). It's also not really a new API, although it does
+>>>>> rely on the Request API.
+>>>>>
+>>>>>> Several implementation exists now which runs on several SoC and
+>>>>>> various software frameworks.
+>>>>>> The idea is to find the communalities between all those
+>>>>>> implementations and SoC to define a single unified interface in V4L2 includes.
+>>>>>> Even if "Request API" is needed to pass those codec specific controls
+>>>>>> from userspace down to kernel on a per-buffer basis, we can start
+>>>>>> discussions and define the controls in parallel of its development.
+>>>>>> We can even propose some implementations based on existing V4L2
+>>>>>> control framework (which doesn't support "per-frame" basis) by
+>>>>>> ensuring atomicity of sequence S_EXT_CTRL(header[i])/QBUF(stream[i]).
+>>>>>> Constraint can then be relaxed when "Request API" is merged.
+>>>>>>
+>>>>>> I would like to propose to work on a "per-codec" basis, having at
+>>>>>> least
+>>>>>> 2 different SoC and 2 different frameworks to test and validate controls.
+>>>>>> To do so, I have tried to identify some people that have worked on
+>>>>>> this subject and have proposed some implementations, feel free to
+>>>>>> correct me and enhance the list if needed:
+>>>>>> * MPEG2/MPEG4
+>>>>>>         - Florent Revest for Allwinner A13 CedarX support [1] tested with
+>>>>>> VLC -> libVA + sunxi-cedrus-drv-video -> V4L2
+>>>>>>         - Myself for STMicroelectronics Delta support [2] tested with
+>>>>>> GStreamer V4L2 -> libv4l2 + libv4l-delta plugin -> V4L2
+>>>> Available on ST platform with [2] & [2.1] patchset series.
+>>>>
+>>>>>>
+>>>>>> * VP8
+>>>>>> - Pawel Osciak for Rockchip RK3288, RK3399? VPU Support [3] tested
+>>>>>> with Chromium -> V4L2
+>>>>>> - Jung Zhao for Rockchip RK3288 VPU support [4] <cannot find the
+>>>>>> framework used>
+>>>>>>
+>>>>>> * H264
+>>>>>> - Pawel Osciak for Rockchip RK3288, RK3399? VPU Support [5] tested
+>>>>>> with Chromium -> V4L2
+>>>>>> - Randy Li for Rockchip RK3288  VPU support [6] tested with VLC? ->
+>>>>>> libVA + rockchip-va-driver -> V4L2 VLC? -> libVDPAU +
+>>>>>> rockchip-va-driver -> V4L2
+>>>> Tested with Gstreamer -> VA-API element -> Rockchip VA-API driver -> V4L2 https://github.com/rockchip-linux/libvdpau-rockchip
+>>>>
+>>>> Study on-going for H264 userland/kernel partitioning in this thread:
+>>>> Request API: stateless VPU: the buffer mechanism and DPB management:
+>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg107165.html
+>>>>
+>>>>>>
+>>>>>> I can work to define MPEG2/MPEG4 controls and propose functional
+>>>>>> implementations for those codecs, and will be glad to co-work with
+>>>>>> you Florent.
+>>>>>> I can help on H264 on a code review basis based on the functional
+>>>>>> H264 setup I have in-house and codec knowledge, but I cannot provide
+>>>>>> implementation in a reasonable timeframe, same for VP8.
+>>>>>>
+>>>>>> Apart of very details of each codec, we have also to state about
+>>>>>> generic concerns such as:
+>>>>>> - new pixel format introduction (VP8 => VP8F, H264 => S264, MPG2 =>
+>>>>>> MG2F, MPG4 => MG4F)
+>>>>>> - new device caps to indicate that driver requires extra headers ?
+>>>>>> maybe not needed because redundant with new pixel format
+>>>>>
+>>>>> That's indeed typically signaled through the pixelformat.
+>>>>>
+>>>>
+>>>> [2] is implemented this way in [media] v4l: add parsed MPEG-2 support, two new pixel format MG1P and MG2P ("P" for "Parsed") have been introduced:
+>>>> +#define V4L2_PIX_FMT_MPEG1_PARSED v4l2_fourcc('M', 'G', '1', 'P') /*
+>>>> MPEG1 with parsing metadata given through controls */
+>>>> +#define V4L2_PIX_FMT_MPEG2_PARSED v4l2_fourcc('M', 'G', '2', 'P') /*
+>>>> MPEG2 with parsing metadata given through controls */
+>>>>
+>>>> libv4l plugin [2.1] intercepts the pixel format information negotiated
+>>>> between user and driver (enum_fmt/try_fmt/get_fmt/s_fmt) and selects the
+>>>> right parser to use to convert MPEG-2 compressed format to new "MPEG-2
+>>>> parsed" compressed format required by kernel driver.
+>>>> Plugin is designed to support several formats.
+>>>>
+>>>>
+>>>>>> - continue to modify v4l2-controls.h ? or do we add some new specific
+>>>>>> header files (H264 is huge!) ?
+>>>>>> - how to manage sequence header & picture header, optional/extended
+>>>>>> controls (MPEG2 sequence/picture extensions, H264 SEI, ...). Personally
+>>>>>> I have added flags inside a single control structure, H264 is done in a
+>>>>>> different way using several controls (SPS/PPS/SLICE/DECODE/...)
+>>>>>>
+>>>>>> Thanks you to all of you for your attention and feel free to react on
+>>>>>> this topic if you are interested to work on this subject.
+>>>>>
+>>>>> As long as the V4L2 driver underpins the various solutions I am happy :-)
+>>>>>
+>>>>> I do think that having a libv4l plugin will be useful since it will make
+>>>>> it easy for applications that support the stateful decoder to use the
+>>>>> same code for a stateless decoder by seamlessly using the plugin.
+>>>>>
+>>>>> This does not prevent other approaches at the same time, of course.
+>>>>>
+>>>>> Regards,
+>>>>>
+>>>>> Hans
+>>>>>
+>>>> [2] implements new extended controls for MPEG-2 in [media] v4l: add
+>>>> parsed MPEG-2 support
+>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg107406.html
+>>>> This has been done in uapi/linux/v4l2-controls.h as extension of already
+>>>> existing MPEG video controls, defining one control per "header" (so not
+>>>> using a single control with selection flag):
+>>>> #define V4L2_CID_MPEG_VIDEO_MPEG2_SEQ_HDR
+>>>> #define V4L2_CID_MPEG_VIDEO_MPEG2_SEQ_EXT
+>>>> #define V4L2_CID_MPEG_VIDEO_MPEG2_SEQ_DISPLAY_EXT
+>>>> #define V4L2_CID_MPEG_VIDEO_MPEG2_SEQ_MATRIX_EXT
+>>>> #define V4L2_CID_MPEG_VIDEO_MPEG2_PIC_HDR
+>>>> #define V4L2_CID_MPEG_VIDEO_MPEG2_PIC_EXT
+>>>>
+>>>> Those controls and their associated data structure have been defined
+>>>> based on MPEG-2 standard ISO/IEC 13818-2.
+>>>>
+>>>>>>
+>>>>>> Best regards,
+>>>>>> Hugues.
+>>>>>>
+>>>>>> [0] [ANN] Codec & Request API Brainstorm meeting Oct 10 &
+>>>>>> 11https://www.spinics.net/lists/linux-media/msg106699.html
+>>>>>> [1] MPEG2 A13 CedarXhttp://www.spinics.net/lists/linux-media/msg104823.html
+>>>>>> [1] MPEG4 A13 CedarXhttp://www.spinics.net/lists/linux-media/msg104817.html
+>>>>>> [2] MPEG2 STi4xx
+>>>>>> Deltahttp://www.spinics.net/lists/linux-media/msg106240.html
+>>>> [2] MPEG2 DELTA kernel driver: http://www.mail-archive.com/linux-
+>>>> media@vger.kernel.org/msg107405.html
+>>>> [2.1] MPEG2 libv4l plugin:
+>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg107812.html
+>>>>
+>>>>>> [2] MPEG4 STi4xx Delta is also supported but not yet pushed
+>>>>>> [3] VP8 Rockchip RK3288, RK3399?
+>>>>>> VPUhttps://chromium.googlesource.com/chromiumos/overlays/chromiumos-overlay/+/refs/heads/master/sys-kernel/linux-headers/files/0002-CHROMIUM-v4l-Add-VP8-low-level-decoder-API-controls.patch
+>>>>>> [4] VP8 Rockchip RK3288
+>>>>>> VPUhttp://www.spinics.net/lists/linux-media/msg97997.html
+>>>>>> [5] H264 Rockchip RK3288, RK3399?
+>>>>>> VPUhttps://chromium.googlesource.com/chromiumos/overlays/chromiumos-overlay/+/refs/heads/master/sys-kernel/linux-headers/files/0001-CHROMIUM-media-headers-Import-V4L2-headers-from-Chro.patch
+>>>>>> [6] H264 Rockchip RK3288
+>>>>>> VPUhttp://www.spinics.net/lists/linux-media/msg105095.html
+>>>> https://github.com/rockchip-linux/libvdpau-rockchip
+>>>> https://github.com/rockchip-linux/gstreamer-rockchip
+>>>> https://github.com/rockchip-linux/mpp
+>>> [7] "2017 is the Year of the Linux Video Codec Drivers" presentation
+>>> done by Laurent Pinchart @ ELC 2017 Portland
+>>> https://www.youtube.com/watch?v=Y5P8CE9RtFs
+>>> http://events.linuxfoundation.org/sites/events/files/slides/20170223-elc.pdf
+>>>
 
-Sorry, I'll remember to use a spell checker next time
-
->
-> But I would rephrase this a bit:
->
->     - The inputs and/or outputs of this device are controlled by the
-> Media Controller
->       (see: <add link to Part IV of the media documentation>).
->
-
-Sure, much better.
-In this document, almost all the flags start with "The device 
-supports..." or "The device has...", I was thinking to do something similar.
-
->>       * - ``V4L2_CAP_DEVICE_CAPS``
->>         - 0x80000000
->>         - The driver fills the ``device_caps`` field. This capability can
->> diff --git a/Documentation/media/videodev2.h.rst.exceptions
->> b/Documentation/media/videodev2.h.rst.exceptions
->> index a5cb0a8..0b48cd0 100644
->> --- a/Documentation/media/videodev2.h.rst.exceptions
->> +++ b/Documentation/media/videodev2.h.rst.exceptions
->> @@ -159,6 +159,7 @@ replace define V4L2_CAP_ASYNCIO device-capabilities
->>   replace define V4L2_CAP_STREAMING device-capabilities
->>   replace define V4L2_CAP_DEVICE_CAPS device-capabilities
->>   replace define V4L2_CAP_TOUCH device-capabilities
->> +replace define V4L2_CAP_IO_MC device-capabilities
->>     # V4L2 pix flags
->>   replace define V4L2_PIX_FMT_PRIV_MAGIC :c:type:`v4l2_pix_format`
->> diff --git a/drivers/media/v4l2-core/v4l2-dev.c
->> b/drivers/media/v4l2-core/v4l2-dev.c
->> index c647ba6..0f272fe 100644
->> --- a/drivers/media/v4l2-core/v4l2-dev.c
->> +++ b/drivers/media/v4l2-core/v4l2-dev.c
->> @@ -688,22 +688,34 @@ static void determine_valid_ioctls(struct
->> video_device *vdev)
->>           SET_VALID_IOCTL(ops, VIDIOC_G_STD, vidioc_g_std);
->>           if (is_rx) {
->>               SET_VALID_IOCTL(ops, VIDIOC_QUERYSTD, vidioc_querystd);
->> -            SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT, vidioc_enum_input);
->> -            SET_VALID_IOCTL(ops, VIDIOC_G_INPUT, vidioc_g_input);
->> -            SET_VALID_IOCTL(ops, VIDIOC_S_INPUT, vidioc_s_input);
->>               SET_VALID_IOCTL(ops, VIDIOC_ENUMAUDIO, vidioc_enumaudio);
->>               SET_VALID_IOCTL(ops, VIDIOC_G_AUDIO, vidioc_g_audio);
->>               SET_VALID_IOCTL(ops, VIDIOC_S_AUDIO, vidioc_s_audio);
->>               SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_TIMINGS,
->> vidioc_query_dv_timings);
->>               SET_VALID_IOCTL(ops, VIDIOC_S_EDID, vidioc_s_edid);
->> +            if (vdev->device_caps & V4L2_CAP_IO_MC) {
->> +                set_bit(_IOC_NR(VIDIOC_ENUMINPUT), valid_ioctls);
->> +                set_bit(_IOC_NR(VIDIOC_G_INPUT), valid_ioctls);
->> +                set_bit(_IOC_NR(VIDIOC_S_INPUT), valid_ioctls);
->> +            } else {
->> +                SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT,
->> vidioc_enum_input);
->> +                SET_VALID_IOCTL(ops, VIDIOC_G_INPUT, vidioc_g_input);
->> +                SET_VALID_IOCTL(ops, VIDIOC_S_INPUT, vidioc_s_input);
->> +            }
->>           }
->>           if (is_tx) {
->> -            SET_VALID_IOCTL(ops, VIDIOC_ENUMOUTPUT, vidioc_enum_output);
->> -            SET_VALID_IOCTL(ops, VIDIOC_G_OUTPUT, vidioc_g_output);
->> -            SET_VALID_IOCTL(ops, VIDIOC_S_OUTPUT, vidioc_s_output);
->>               SET_VALID_IOCTL(ops, VIDIOC_ENUMAUDOUT, vidioc_enumaudout);
->>               SET_VALID_IOCTL(ops, VIDIOC_G_AUDOUT, vidioc_g_audout);
->>               SET_VALID_IOCTL(ops, VIDIOC_S_AUDOUT, vidioc_s_audout);
->> +            if (vdev->device_caps & V4L2_CAP_IO_MC) {
->> +                set_bit(_IOC_NR(VIDIOC_ENUMOUTPUT), valid_ioctls);
->> +                set_bit(_IOC_NR(VIDIOC_G_OUTPUT), valid_ioctls);
->> +                set_bit(_IOC_NR(VIDIOC_S_OUTPUT), valid_ioctls);
->> +            } else {
->> +                SET_VALID_IOCTL(ops, VIDIOC_ENUMOUTPUT,
->> vidioc_enum_output);
->> +                SET_VALID_IOCTL(ops, VIDIOC_G_OUTPUT, vidioc_g_output);
->> +                SET_VALID_IOCTL(ops, VIDIOC_S_OUTPUT, vidioc_s_output);
->> +            }
->>           }
->>           if (ops->vidioc_g_parm || (vdev->vfl_type ==
->> VFL_TYPE_GRABBER &&
->>                       ops->vidioc_g_std))
->> @@ -945,6 +957,17 @@ int __video_register_device(struct video_device
->> *vdev, int type, int nr,
->>       video_device[vdev->minor] = vdev;
->>       mutex_unlock(&videodev_lock);
->>   +#if defined(CONFIG_MEDIA_CONTROLLER)
->> +    if (vdev->ioctl_ops
->> +        && !vdev->ioctl_ops->vidioc_enum_input
->> +        && !vdev->ioctl_ops->vidioc_s_input
->> +        && !vdev->ioctl_ops->vidioc_g_input
->> +        && !vdev->ioctl_ops->vidioc_enum_output
->> +        && !vdev->ioctl_ops->vidioc_s_output
->> +        && !vdev->ioctl_ops->vidioc_g_output)
->> +        vdev->device_caps |= V4L2_CAP_IO_MC;
->
-> No, this part should be dropped.
->
-> Let the driver set this capability explicitly. This code for example
-> would set the IO_MC
-> bit as well for radio devices, and that's not what you want.
-
-hmm, right, so we will need to update the drivers one by one in the end.
-
-I think I still don't fully understand the importance of the 
-V4L2_CAP_IO_MC flag (sorry to bring this up again, I just want to make 
-sure this is right), we don't have a flag to say that an output is an 
-HDMI, user space uses the VIDIOC_ENUMOUTPUT ioctl to figure that this is 
-an HDMI by its output's name, why this can't be the same for MC 
-controlled IOs?
-
->
-> The MC can also be used by regular drivers (there is nothing preventing
-> drivers from
-> doing that). So just leave this up to the driver.
->
->> +#endif
->> +
->>       if (vdev->ioctl_ops)
->>           determine_valid_ioctls(vdev);
->>   diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
->> b/drivers/media/v4l2-core/v4l2-ioctl.c
->> index e5a2187..9d8c645 100644
->> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
->> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
->> @@ -1019,6 +1019,70 @@ static int v4l_querycap(const struct
->> v4l2_ioctl_ops *ops,
->>       return ret;
->>   }
->>   +static int v4l2_ioctl_enum_input_mc(struct file *file, void *priv,
->> +                    struct v4l2_input *i)
->> +{
->> +    struct video_device *vfd = video_devdata(file);
->> +
->> +    if (i->index > 0)
->> +        return -EINVAL;
->> +
->> +    memset(i, 0, sizeof(*i));
->> +    strlcpy(i->name, vfd->name, sizeof(i->name));
->
->     i->type = V4L2_INPUT_TYPE_CAMERA;
->
->> +
->> +    return 0;
->> +}
->> +
->> +static int v4l2_ioctl_enum_output_mc(struct file *file, void *priv,
->> +                     struct v4l2_output *o)
->> +{
->> +    struct video_device *vfd = video_devdata(file);
->> +
->> +    if (o->index > 0)
->> +        return -EINVAL;
->> +
->> +    memset(o, 0, sizeof(*o));
->> +    strlcpy(o->name, vfd->name, sizeof(o->name));
->
->     o->type = V4L2_OUTPUT_TYPE_ANALOG;
->
->> +
->> +    return 0;
->> +}
->> +
->> +static int v4l2_ioctl_g_input_mc(struct file *file, void *priv,
->> unsigned int *i)
->> +{
->> +    *i = 0;
->> +    return 0;
->> +}
->> +#define v4l2_ioctl_g_output_mc v4l2_ioctl_g_input_mc
->> +
->> +static int v4l2_ioctl_s_input_mc(struct file *file, void *priv,
->> unsigned int i)
->> +{
->> +    return i ? -EINVAL : 0;
->> +}
->> +#define v4l2_ioctl_s_output_mc v4l2_ioctl_s_input_mc
->> +
->> +
->> +static int v4l_g_input(const struct v4l2_ioctl_ops *ops,
->> +               struct file *file, void *fh, void *arg)
->> +{
->> +    struct video_device *vfd = video_devdata(file);
->> +
->> +    if (vfd->device_caps & V4L2_CAP_IO_MC)
->> +        return v4l2_ioctl_g_input_mc(file, fh, arg);
->> +    else
->
-> 'else' is not needed.
-
-'else' is not needed but I thought it was easier to read the code this 
-way (and I believe the compiler optimizes this), anyway, I'll remove the 
-'else' then, no problem.
-
->
->> +        return ops->vidioc_g_input(file, fh, arg);
->> +}
->> +
->> +static int v4l_g_output(const struct v4l2_ioctl_ops *ops,
->> +               struct file *file, void *fh, void *arg)
->> +{
->> +    struct video_device *vfd = video_devdata(file);
->> +
->> +    if (vfd->device_caps & V4L2_CAP_IO_MC)
->> +        return v4l2_ioctl_g_output_mc(file, fh, arg);
->> +    else
->
-> 'else' is not needed. Same for the others below.
->
->> +        return ops->vidioc_g_output(file, fh, arg);
->> +}
->> +
->>   static int v4l_s_input(const struct v4l2_ioctl_ops *ops,
->>                   struct file *file, void *fh, void *arg)
->>   {
->> @@ -1028,13 +1092,22 @@ static int v4l_s_input(const struct
->> v4l2_ioctl_ops *ops,
->>       ret = v4l_enable_media_source(vfd);
->>       if (ret)
->>           return ret;
->> -    return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
->> +
->> +    if (vfd->device_caps & V4L2_CAP_IO_MC)
->> +        return v4l2_ioctl_s_input_mc(file, fh, *(unsigned int *)arg);
->> +    else
->> +        return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
->>   }
->>     static int v4l_s_output(const struct v4l2_ioctl_ops *ops,
->>                   struct file *file, void *fh, void *arg)
->>   {
->> -    return ops->vidioc_s_output(file, fh, *(unsigned int *)arg);
->> +    struct video_device *vfd = video_devdata(file);
->> +
->> +    if (vfd->device_caps & V4L2_CAP_IO_MC)
->> +        return v4l2_ioctl_s_output_mc(file, fh, *(unsigned int *)arg);
->> +    else
->> +        return ops->vidioc_s_output(file, fh, *(unsigned int *)arg);
->>   }
->>     static int v4l_g_priority(const struct v4l2_ioctl_ops *ops,
->> @@ -1077,7 +1150,10 @@ static int v4l_enuminput(const struct
->> v4l2_ioctl_ops *ops,
->>       if (is_valid_ioctl(vfd, VIDIOC_S_STD))
->>           p->capabilities |= V4L2_IN_CAP_STD;
->>   -    return ops->vidioc_enum_input(file, fh, p);
->> +    if (vfd->device_caps & V4L2_CAP_IO_MC)
->> +        return v4l2_ioctl_enum_input_mc(file, fh, p);
->> +    else
->> +        return ops->vidioc_enum_input(file, fh, p);
->>   }
->>     static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
->> @@ -1095,7 +1171,10 @@ static int v4l_enumoutput(const struct
->> v4l2_ioctl_ops *ops,
->>       if (is_valid_ioctl(vfd, VIDIOC_S_STD))
->>           p->capabilities |= V4L2_OUT_CAP_STD;
->>   -    return ops->vidioc_enum_output(file, fh, p);
->> +    if (vfd->device_caps & V4L2_CAP_IO_MC)
->> +        return v4l2_ioctl_enum_output_mc(file, fh, p);
->> +    else
->> +        return ops->vidioc_enum_output(file, fh, p);
->>   }
->>     static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
->> @@ -2534,11 +2613,11 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
->>       IOCTL_INFO_STD(VIDIOC_S_AUDIO, vidioc_s_audio, v4l_print_audio,
->> INFO_FL_PRIO),
->>       IOCTL_INFO_FNC(VIDIOC_QUERYCTRL, v4l_queryctrl,
->> v4l_print_queryctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_queryctrl, id)),
->>       IOCTL_INFO_FNC(VIDIOC_QUERYMENU, v4l_querymenu,
->> v4l_print_querymenu, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu,
->> index)),
->> -    IOCTL_INFO_STD(VIDIOC_G_INPUT, vidioc_g_input, v4l_print_u32, 0),
->> +    IOCTL_INFO_FNC(VIDIOC_G_INPUT, v4l_g_input, v4l_print_u32, 0),
->>       IOCTL_INFO_FNC(VIDIOC_S_INPUT, v4l_s_input, v4l_print_u32,
->> INFO_FL_PRIO),
->>       IOCTL_INFO_STD(VIDIOC_G_EDID, vidioc_g_edid, v4l_print_edid, 0),
->>       IOCTL_INFO_STD(VIDIOC_S_EDID, vidioc_s_edid, v4l_print_edid,
->> INFO_FL_PRIO),
->> -    IOCTL_INFO_STD(VIDIOC_G_OUTPUT, vidioc_g_output, v4l_print_u32, 0),
->> +    IOCTL_INFO_FNC(VIDIOC_G_OUTPUT, v4l_g_output, v4l_print_u32, 0),
->>       IOCTL_INFO_FNC(VIDIOC_S_OUTPUT, v4l_s_output, v4l_print_u32,
->> INFO_FL_PRIO),
->>       IOCTL_INFO_FNC(VIDIOC_ENUMOUTPUT, v4l_enumoutput,
->> v4l_print_enumoutput, INFO_FL_CLEAR(v4l2_output, index)),
->>       IOCTL_INFO_STD(VIDIOC_G_AUDOUT, vidioc_g_audout,
->> v4l_print_audioout, 0),
->> diff --git a/include/uapi/linux/videodev2.h
->> b/include/uapi/linux/videodev2.h
->> index 2b8feb8..94cb196 100644
->> --- a/include/uapi/linux/videodev2.h
->> +++ b/include/uapi/linux/videodev2.h
->> @@ -460,6 +460,8 @@ struct v4l2_capability {
->>     #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch
->> device */
->>   +#define V4L2_CAP_IO_MC            0x20000000  /* Is input/output
->> controlled by the media controler */
->
-> controler -> controller
->
->> +
->>   #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device
->> capabilities field */
->>     /*
->>
->
-> Regards,
->
->     Hans
-
-Thanks,
-Helen
+-- 
+Randy Li
