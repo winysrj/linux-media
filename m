@@ -1,85 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43625 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751677AbdFINQQ (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:44667 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751407AbdFFJdb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Jun 2017 09:16:16 -0400
-Message-ID: <1497014135.20356.12.camel@pengutronix.de>
-Subject: Re: [PATCH v8 19/34] media: Add i.MX media core driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Russell King <rmk+kernel@armlinux.org.uk>
-Date: Fri, 09 Jun 2017 15:15:35 +0200
-In-Reply-To: <1496860453-6282-20-git-send-email-steve_longerbeam@mentor.com>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
-         <1496860453-6282-20-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+        Tue, 6 Jun 2017 05:33:31 -0400
+Subject: Re: Support for RGB/YUV 10, 12 BPC(bits per color/component) image
+ data formats in kernel
+To: Ajay kumar <ajaynumb@gmail.com>, Sakari Ailus <sakari.ailus@iki.fi>
+References: <CAEC9eQNW1hHrn2p9Tu-WR3Kft62x71383HjwbJQSiq_iWebsnw@mail.gmail.com>
+ <20170603081817.GQ1019@valkosipuli.retiisi.org.uk>
+ <CAEC9eQM6Ns07qRF6ofy5OL6BOGjM8gNs9uzDFxjpdpev-Z3zYA@mail.gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <6a384c69-7980-9eeb-912f-a9ac26818a40@xs4all.nl>
+Date: Tue, 6 Jun 2017 11:33:27 +0200
+MIME-Version: 1.0
+In-Reply-To: <CAEC9eQM6Ns07qRF6ofy5OL6BOGjM8gNs9uzDFxjpdpev-Z3zYA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2017-06-07 at 11:33 -0700, Steve Longerbeam wrote:
-> Add the core media driver for i.MX SOC.
+On 06/06/17 08:35, Ajay kumar wrote:
+> Hi Sakari,
 > 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> On Sat, Jun 3, 2017 at 1:48 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+>> Hi Ajay,
+>>
+>> On Fri, Jun 02, 2017 at 06:38:53PM +0530, Ajay kumar wrote:
+>>> Hi all,
+>>>
+>>> I have tried searching for RGB/YUV 10, 12 BPC formats in videodev2.h,
+>>> media-bus-format.h and drm_fourcc.h
+>>> I could only find RGB 10BPC support in drm_fourcc.h.
+>>> I guess not much support is present for formats with (BPC > 8) in the kernel.
+>>
+>> What's "BPC"? Most YUV and RGB formats have only 8 bits per sample. More
+>> format definitions may be added if there's a driver that makes use of them.
+> BPC : Bits Per Color/Component
+> In my project, we have an image capture device which can capture 10 or
+> 12 bits for each of R, G, B colors, i.e:
+> R[0:9] G[0:9] B[0:9] and
+> R[0:11] G[0:11] B[0:11]
 > 
-> Switch from the v4l2_of_ APIs to the v4l2_fwnode_ APIs.
+> I want to define macros for the above formats in videodev2.h.
+> But, I am not getting the logic behind the naming convention used to
+> define v4l2_fourcc macros.
+> ex:
+> V4L2_PIX_FMT_ARGB32      v4l2_fourcc('A', 'R', '2', '4');
 > 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> How did they choose the characters 'A', 'R', '2', '4' in the above case?
 > 
-> Add the bayer formats to imx-media's list of supported pixel and bus
-> formats.
-> 
-> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-> ---
-[...]
-> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-> new file mode 100644
-> index 0000000..da694f6
-> --- /dev/null
-> +++ b/drivers/staging/media/imx/imx-media-dev.c
-> @@ -0,0 +1,666 @@
-[...]
-> +/*
-> + * adds given video device to given imx-media source pad vdev list.
-> + * Continues upstream from the pad entity's sink pads.
-> + */
-> +static int imx_media_add_vdev_to_pad(struct imx_media_dev *imxmd,
-> +				     struct imx_media_video_dev *vdev,
-> +				     struct media_pad *srcpad)
-> +{
-> +	struct media_entity *entity = srcpad->entity;
-> +	struct imx_media_subdev *imxsd;
-> +	struct imx_media_pad *imxpad;
-> +	struct media_link *link;
-> +	struct v4l2_subdev *sd;
-> +	int i, vdev_idx, ret;
-> +
-> +	if (!is_media_entity_v4l2_subdev(entity))
-> +		return -EINVAL;
+> I want to know the logic/naming convention behind that, so that I can create
+> new v4l2_fourcc defines for 10, 12 BPC formats and use in my driver.
 
-Could we make this return 0, to just skip non-v4l2_subdev entities?
-Currently, imx_media_probe_complete silently fails with this -EINVAL if
-there is a tvp5150 connected due to the separate media entities that the
-tvp5150 driver creates for the input connectors (Composite0, for
-example).
+A = has Alpha channel, R = uses RGB, 24 = uses 24 bits for the RGB part.
 
-regards
-Philipp
+So for 10 bit you'd get AR30 and for 12 bit per component it's AR36.
+If there is no alpha channel, then use XR30/XR36.
+
+In practice there isn't much of a system behind these formats.
+
+Regards,
+
+	Hans
+
+> 
+> Thanks,
+> Ajay Kumar
+>>>
+>>> Are there any plans to add fourcc defines for such formats?
+>>> Also, I wanted to how to define fourcc code for those formats?
+>>
+>> --
+>> Regards,
+>>
+>> Sakari Ailus
+>> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
