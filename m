@@ -1,13 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:34273 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751590AbdFIXSD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 19:18:03 -0400
-Subject: Re: [PATCH v8 00/34] i.MX Media Driver
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46720 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751545AbdFGMcG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Jun 2017 08:32:06 -0400
+Date: Wed, 7 Jun 2017 15:31:32 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
         nick@shmanahar.org, markus.heiser@darmarIT.de,
         p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
         bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
@@ -16,36 +18,70 @@ To: Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
         horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
         robert.jarzmik@free.fr, songjun.wu@microchip.com,
         andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
         devel@driverdev.osuosl.org,
         Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
- <e7e4669c-2963-b9e1-edd7-02731a6e0f9c@xs4all.nl>
- <c0b69c93-b9cd-25e8-ea36-fc0600efdb69@gmail.com>
-Message-ID: <f0dceb6e-fe1a-9c21-5abd-7a9472f76951@gmail.com>
-Date: Fri, 9 Jun 2017 16:17:59 -0700
+Subject: Re: [PATCH v7 16/34] [media] add Omnivision OV5640 sensor driver
+Message-ID: <20170607123131.GC1019@valkosipuli.retiisi.org.uk>
+References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
+ <1495672189-29164-17-git-send-email-steve_longerbeam@mentor.com>
+ <20170529155511.GI29527@valkosipuli.retiisi.org.uk>
+ <c50c3c5f-71cf-fa73-f5a8-a4b5f59a87dc@gmail.com>
+ <20170530065632.GK29527@valkosipuli.retiisi.org.uk>
+ <ab04379b-d005-1251-343b-5e490ee6e72d@gmail.com>
+ <3e953953-7bf4-912f-73f7-db568d5df504@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <c0b69c93-b9cd-25e8-ea36-fc0600efdb69@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3e953953-7bf4-912f-73f7-db568d5df504@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 06/09/2017 04:16 PM, Steve Longerbeam wrote:
+On Sun, Jun 04, 2017 at 11:00:14AM -0700, Steve Longerbeam wrote:
 > 
 > 
-> On 06/07/2017 12:02 PM, Hans Verkuil wrote:
->> We're still waiting for an Ack for patch 02/34, right?
->>
+> On 06/03/2017 11:02 AM, Steve Longerbeam wrote:
+> >Hi Sakari,
+> >
+> >
+> >On 05/29/2017 11:56 PM, Sakari Ailus wrote:
+> >>Hi Steve,
+> >>
+> >>On Mon, May 29, 2017 at 02:50:34PM -0700, Steve Longerbeam wrote:
+> >>>><snip>
+> >>>>
+> >>>>>+
+> >>>>>+static int ov5640_s_ctrl(struct v4l2_ctrl *ctrl)
+> >>>>>+{
+> >>>>>+    struct v4l2_subdev *sd = ctrl_to_sd(ctrl);
+> >>>>>+    struct ov5640_dev *sensor = to_ov5640_dev(sd);
+> >>>>>+    int ret = 0;
+> >>>>>+
+> >>>>>+    mutex_lock(&sensor->lock);
+> >>>>Could you use the same lock for the controls as you use for the
+> >>>>rest? Just
+> >>>>setting handler->lock after handler init does the trick.
+> >>>
+> >>>Can you please rephrase, I don't follow. "same lock for the controls as
+> >>>you use for the rest" - there's only one device lock owned by this
+> >>>driver
+> >>>and I am already using that same lock.
+> >>
+> >>There's another in the control handler. You could use your own lock for
+> >>the
+> >>control handler as well.
+> >
+> >I still don't understand.
+> >
 > 
-> Hi Hans, Rub 
+> Hi Sakari, sorry I see what you are referring to now. The lock
+> in 'struct v4l2_ctrl_handler' can be overridden by a caller's own
+> lock. Yes that's a good idea, I'll do that.
 
-damn, I really need to proof-read before hitting send.
-"Rob" (sorry Rob!).
+Ack, good! :-)
 
-Steve
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
