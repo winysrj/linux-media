@@ -1,47 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f178.google.com ([74.125.82.178]:34888 "EHLO
-        mail-ot0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751536AbdFGATR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Jun 2017 20:19:17 -0400
-Received: by mail-ot0-f178.google.com with SMTP id a2so24537648oth.2
-        for <linux-media@vger.kernel.org>; Tue, 06 Jun 2017 17:19:17 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <519d0131-b9a7-4afa-78d4-8bb6dccec1ad@xs4all.nl>
-References: <20170602213431.10777-1-khilman@baylibre.com> <519d0131-b9a7-4afa-78d4-8bb6dccec1ad@xs4all.nl>
-From: Kevin Hilman <khilman@baylibre.com>
-Date: Tue, 6 Jun 2017 17:19:16 -0700
-Message-ID: <CAOi56cX2wUvMOoCAGnay0b6weTSuS1+xeO2V7pryfe+aM3Jq8w@mail.gmail.com>
-Subject: Re: [PATCH 0/4] [media] davinci: vpif_capture: raw camera support
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sekhar Nori <nsekhar@ti.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:35691 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752080AbdFGSfb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:35:31 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v8 20/34] media: imx: Add a TODO file
+Date: Wed,  7 Jun 2017 11:33:59 -0700
+Message-Id: <1496860453-6282-21-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 6, 2017 at 1:34 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Kevin,
->
-> On 02/06/17 23:34, Kevin Hilman wrote:
->> This series fixes/updates the support for raw camera input to the VPIF.
->>
->> Tested on da850-evm boards using the add-on UI board.  Tested with
->> both composite video input (on-board tvp514x) and raw camera input
->> using the camera board from On-Semi based on the aptina,mt9v032
->> sensor[1], as this was the only camera board with the right connector
->> for the da850-evm UI board.
->>
->> Verified that composite video capture is still working well after these
->> updates.
->
-> Can you rebase this patch series against the latest media master branch?
->
-> Mauro merged a lot of patches, in particular the one switching v4l2_of_ to
-> v4l2_fwnode_. And that conflicts with patches 2 and 4.
+Add a TODO file.
 
-Rebased and resent as v2.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/TODO | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+ create mode 100644 drivers/staging/media/imx/TODO
 
-Kevin
+diff --git a/drivers/staging/media/imx/TODO b/drivers/staging/media/imx/TODO
+new file mode 100644
+index 0000000..0bee313
+--- /dev/null
++++ b/drivers/staging/media/imx/TODO
+@@ -0,0 +1,23 @@
++
++- Clean up and move the ov5642 subdev driver to drivers/media/i2c, or
++  merge support for OV5642 into drivers/media/i2c/ov5640.c, and create
++  the binding docs for it.
++
++- The Frame Interval Monitor could be exported to v4l2-core for
++  general use.
++
++- At driver load time, the device-tree node that is the original source
++  (the "sensor"), is parsed to record its media bus configuration, and
++  this info is required in imx-media-csi.c to setup the CSI.
++  Laurent Pinchart argues that instead the CSI subdev should call its
++  neighbor's g_mbus_config op (which should be propagated if necessary)
++  to get this info. However Hans Verkuil is planning to remove the
++  g_mbus_config op. For now this driver uses the parsed DT mbus config
++  method until this issue is resolved.
++
++- This media driver supports inheriting V4L2 controls to the
++  video capture devices, from the subdevices in the capture device's
++  pipeline. The controls for each capture device are updated in the
++  link_notify callback when the pipeline is modified. It should be
++  decided whether this feature is useful enough to make it generally
++  available by exporting to v4l2-core.
+-- 
+2.7.4
