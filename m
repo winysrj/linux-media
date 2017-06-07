@@ -1,40 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:60386 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752439AbdFPPP5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 11:15:57 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:44169 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751514AbdFGOqX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Jun 2017 10:46:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: tfiga@chromium.org, yong.zhi@intel.com
-Subject: [RFC 0/2] Add V4L2_BUF_TYPE_META_OUTPUT buffer type
-Date: Fri, 16 Jun 2017 18:14:19 +0300
-Message-Id: <1497626061-2129-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Andrzej Hajda <a.hajda@samsung.com>, devicetree@vger.kernel.org
+Subject: [PATCH 8/9] s5p_cec: set the CEC_CAP_NEEDS_HPD flag if needed
+Date: Wed,  7 Jun 2017 16:46:15 +0200
+Message-Id: <20170607144616.15247-9-hverkuil@xs4all.nl>
+In-Reply-To: <20170607144616.15247-1-hverkuil@xs4all.nl>
+References: <20170607144616.15247-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_BUF_TYPE_META_OUTPUT buffer type complements the metadata buffer
-types support for OUTPUT buffers, capture being already supported. This is
-intended for similar cases than V4L2_BUF_TYPE_META_CAPTURE but for output
-buffers, e.g. device parameters that may be complex and highly
-hierarchical data structure. Statistics are a current use case for
-metadata capture buffers.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-There's a warning related to references from make htmldocs; I'll fix that
-in v2 / non-RFC version.
+Use the needs-hpd DT property to determine if the CEC_CAP_NEEDS_HPD
+should be set.
 
-Sakari Ailus (2):
-  v4l: Add support for V4L2_BUF_TYPE_META_OUTPUT
-  docs-rst: v4l: Document V4L2_BUF_TYPE_META_OUTPUT interface
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Andrzej Hajda <a.hajda@samsung.com>
+Cc: devicetree@vger.kernel.org
+---
+ drivers/media/platform/s5p-cec/s5p_cec.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
- Documentation/media/uapi/v4l/buffer.rst          |  3 +++
- Documentation/media/uapi/v4l/dev-meta.rst        | 32 ++++++++++++++----------
- Documentation/media/uapi/v4l/vidioc-querycap.rst |  3 +++
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c    |  2 ++
- drivers/media/v4l2-core/v4l2-ioctl.c             | 25 ++++++++++++++++++
- drivers/media/v4l2-core/videobuf2-v4l2.c         |  1 +
- include/media/v4l2-ioctl.h                       | 17 +++++++++++++
- include/uapi/linux/videodev2.h                   |  2 ++
- 8 files changed, 72 insertions(+), 13 deletions(-)
-
+diff --git a/drivers/media/platform/s5p-cec/s5p_cec.c b/drivers/media/platform/s5p-cec/s5p_cec.c
+index 65a223e578ed..8e06071a7977 100644
+--- a/drivers/media/platform/s5p-cec/s5p_cec.c
++++ b/drivers/media/platform/s5p-cec/s5p_cec.c
+@@ -173,6 +173,7 @@ static int s5p_cec_probe(struct platform_device *pdev)
+ 	struct platform_device *hdmi_dev;
+ 	struct resource *res;
+ 	struct s5p_cec_dev *cec;
++	bool needs_hpd = of_property_read_bool(pdev->dev.of_node, "needs-hpd");
+ 	int ret;
+ 
+ 	np = of_parse_phandle(pdev->dev.of_node, "hdmi-phandle", 0);
+@@ -221,7 +222,8 @@ static int s5p_cec_probe(struct platform_device *pdev)
+ 	cec->adap = cec_allocate_adapter(&s5p_cec_adap_ops, cec,
+ 		CEC_NAME,
+ 		CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT |
+-		CEC_CAP_PASSTHROUGH | CEC_CAP_RC, 1);
++		CEC_CAP_PASSTHROUGH | CEC_CAP_RC |
++		(needs_hpd ? CEC_CAP_NEEDS_HPD : 0), 1);
+ 	ret = PTR_ERR_OR_ZERO(cec->adap);
+ 	if (ret)
+ 		return ret;
 -- 
-2.7.4
+2.11.0
