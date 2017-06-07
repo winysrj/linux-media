@@ -1,72 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:12015 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751499AbdFEKHa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Jun 2017 06:07:30 -0400
-Subject: Re: [PATCH] media: platform: s3c-camif: fix arguments position in
- function call
-To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <593b0303-7273-758c-cb6e-c6f97f66a4b9@samsung.com>
-Date: Mon, 05 Jun 2017 12:07:23 +0200
-MIME-version: 1.0
-In-reply-to: <20170602034341.GA5349@embeddedgus>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <CGME20170602034354epcas1p1bfea44bea994a5cbd8095a8f4da09cd0@epcas1p1.samsung.com>
-        <20170602034341.GA5349@embeddedgus>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:44637 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751814AbdFGS7e (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Jun 2017 14:59:34 -0400
+Subject: Re: [PATCH 9/9] ARM: dts: exynos: add needs-hpd to &hdmicec for
+ Odroid-U3
+To: Krzysztof Kozlowski <krzk@kernel.org>
+References: <20170607144616.15247-1-hverkuil@xs4all.nl>
+ <20170607144616.15247-10-hverkuil@xs4all.nl>
+ <20170607183645.tsjj3mb2k6fdnoei@kozik-lap>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Andrzej Hajda <a.hajda@samsung.com>, devicetree@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9963f9b7-f315-efd3-39cf-faf19c374869@xs4all.nl>
+Date: Wed, 7 Jun 2017 20:59:29 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170607183645.tsjj3mb2k6fdnoei@kozik-lap>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/02/2017 05:43 AM, Gustavo A. R. Silva wrote:
-> Hi Sylwester,
+On 07/06/17 20:36, Krzysztof Kozlowski wrote:
+> On Wed, Jun 07, 2017 at 04:46:16PM +0200, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> The Odroid-U3 board has an IP4791CZ12 level shifter that is
+>> disabled if the HPD is low, which means that the CEC pin is
+>> disabled as well.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Krzysztof Kozlowski <krzk@kernel.org>
+>> Cc: Andrzej Hajda <a.hajda@samsung.com>
+>> Cc: devicetree@vger.kernel.org
+>> ---
+>>  arch/arm/boot/dts/exynos4412-odroidu3.dts | 4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/exynos4412-odroidu3.dts b/arch/arm/boot/dts/exynos4412-odroidu3.dts
+>> index 7504a5aa538e..7209cb48fc2a 100644
+>> --- a/arch/arm/boot/dts/exynos4412-odroidu3.dts
+>> +++ b/arch/arm/boot/dts/exynos4412-odroidu3.dts
+>> @@ -131,3 +131,7 @@
+>>  	cs-gpios = <&gpb 5 GPIO_ACTIVE_HIGH>;
+>>  	status = "okay";
+>>  };
+>> +
+>> +&hdmicec {
+>> +	needs-hpd;
+>> +};
 > 
-> Here is another patch in case you decide that it is
-> better to apply this one.
+> All good, except we try to keep them sorted alphabetically (helps
+> avoiding conflicts and makes things easier to find)... which for this
+> particular file will be difficult as it is semi-sorted. :)
+> Anyway, how about putting this new node after &buck?
 
-Thanks, I applied this patch.  In future please put any comments only after
-the scissors ("---") line, the comments can be then discarded automatically
-and there will be no need for manually editing the patch before applying.
+Done!
 
---
-Regards,
-Sylwester
-
-> Fix the position of the arguments in function call.
-> 
-> Addresses-Coverity-ID: 1248800
-> Addresses-Coverity-ID: 1269141
-> Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
-> ---
-^^^^^
-
->   drivers/media/platform/s3c-camif/camif-capture.c | 4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
-> index 1b30be72..25c7a7d 100644
-> --- a/drivers/media/platform/s3c-camif/camif-capture.c
-> +++ b/drivers/media/platform/s3c-camif/camif-capture.c
-> @@ -80,7 +80,7 @@ static int s3c_camif_hw_init(struct camif_dev *camif, struct camif_vp *vp)
->   	camif_hw_set_test_pattern(camif, camif->test_pattern);
->   	if (variant->has_img_effect)
->   		camif_hw_set_effect(camif, camif->colorfx,
-> -				camif->colorfx_cb, camif->colorfx_cr);
-> +				camif->colorfx_cr, camif->colorfx_cb);
->   	if (variant->ip_revision == S3C6410_CAMIF_IP_REV)
->   		camif_hw_set_input_path(vp);
->   	camif_cfg_video_path(vp);
-> @@ -364,7 +364,7 @@ irqreturn_t s3c_camif_irq_handler(int irq, void *priv)
->   		camif_hw_set_test_pattern(camif, camif->test_pattern);
->   		if (camif->variant->has_img_effect)
->   			camif_hw_set_effect(camif, camif->colorfx,
-> -				    camif->colorfx_cb, camif->colorfx_cr);
-> +				    camif->colorfx_cr, camif->colorfx_cb);
->   		vp->state &= ~ST_VP_CONFIG;
->   	}
->   unlock:
+	Hans
