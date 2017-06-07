@@ -1,341 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f179.google.com ([209.85.192.179]:33699 "EHLO
-        mail-pf0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751768AbdFSDyF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Jun 2017 23:54:05 -0400
-Received: by mail-pf0-f179.google.com with SMTP id 83so48122732pfr.0
-        for <linux-media@vger.kernel.org>; Sun, 18 Jun 2017 20:54:04 -0700 (PDT)
-From: Tomasz Figa <tfiga@chromium.org>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tomasz Figa <tfiga@chromium.org>
-Subject: [PATCH] v4l2-core: Use kvmalloc() for potentially big allocations
-Date: Mon, 19 Jun 2017 12:53:43 +0900
-Message-Id: <20170619035343.38645-1-tfiga@chromium.org>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:36721 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751690AbdFGSeX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:34:23 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v8 00/34] i.MX Media Driver
+Date: Wed,  7 Jun 2017 11:33:39 -0700
+Message-Id: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are multiple places where arrays or otherwise variable sized
-buffer are allocated through V4L2 core code, including things like
-controls, memory pages, staging buffers for ioctls and so on. Such
-allocations can potentially require an order > 0 allocation from the
-page allocator, which is not guaranteed to be fulfilled and is likely to
-fail on a system with severe memory fragmentation (e.g. a system with
-very long uptime).
+In version 8:
 
-Since the memory being allocated is intended to be used by the CPU
-exclusively, we can consider using vmalloc() as a fallback and this is
-exactly what the recently merged kvmalloc() helpers do. A kmalloc() call
-is still attempted, even for order > 0 allocations, but it is done
-with __GFP_NORETRY and __GFP_NOWARN, with expectation of failing if
-requested memory is not available instantly. Only then the vmalloc()
-fallback is used. This should give us fast and more reliable allocations
-even on systems with higher memory pressure and/or more fragmentation,
-while still retaining the same performance level on systems not
-suffering from such conditions.
+- Switched to v4l2_fwnode APIs.
 
-While at it, replace explicit array size calculations on changed
-allocations with kvmalloc_array().
+- Always pass a valid CSI id to ipu_set_ic_src_mux() in imx-ic-prp, even
+  if the IC is receiving from the VDIC. The reason is due to a bug in the
+  i.MX6 reference manual: from experiment it is determined that the CSI id
+  select bit in IPU_CONF register selects which CSI is routed to either
+  the VDIC or the IC, and is independent of whether the IC is set to
+  receive from a CSI or the VDIC. Sugested by Marek Vasut <marex@denx.de>.
 
-Purposedly not touching videobuf1, as it is deprecated, has only few
-users remaining and would rather be seen removed instead.
+- ov5640: propagate error codes from all i2c register accesses.
+  Sugested by Sakari Ailus <sakari.ailus@iki.fi>.
 
-Signed-off-by: Tomasz Figa <tfiga@chromium.org>
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-Changes since RFC:
- - added explicit includes for <linux/mm.h>,
- - added Marek's and Sakari's Acked-by.
----
- drivers/media/v4l2-core/v4l2-async.c       |  5 +++--
- drivers/media/v4l2-core/v4l2-ctrls.c       | 26 ++++++++++++++------------
- drivers/media/v4l2-core/v4l2-event.c       |  8 +++++---
- drivers/media/v4l2-core/v4l2-ioctl.c       |  7 ++++---
- drivers/media/v4l2-core/v4l2-subdev.c      |  8 +++++---
- drivers/media/v4l2-core/videobuf2-dma-sg.c |  8 ++++----
- 6 files changed, 35 insertions(+), 27 deletions(-)
+- ov5640: drop the entity stream count check in ov5640_s_stream().
+  Sugested by Sakari Ailus <sakari.ailus@iki.fi>.
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index cbd919d4edd2..46fc8baf8a17 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -12,6 +12,7 @@
- #include <linux/err.h>
- #include <linux/i2c.h>
- #include <linux/list.h>
-+#include <linux/mm.h>
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/of.h>
-@@ -209,7 +210,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 	if (!notifier->v4l2_dev)
- 		return;
- 
--	dev = kmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
-+	dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
- 	if (!dev) {
- 		dev_err(notifier->v4l2_dev->dev,
- 			"Failed to allocate device cache!\n");
-@@ -265,7 +266,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 		}
- 		put_device(d);
- 	}
--	kfree(dev);
-+	kvfree(dev);
- 
- 	notifier->v4l2_dev = NULL;
- 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 5aed7bd20ad2..1e6363a650c0 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -19,6 +19,7 @@
-  */
- 
- #include <linux/ctype.h>
-+#include <linux/mm.h>
- #include <linux/slab.h>
- #include <linux/export.h>
- #include <media/v4l2-ioctl.h>
-@@ -1745,8 +1746,9 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
- 	INIT_LIST_HEAD(&hdl->ctrls);
- 	INIT_LIST_HEAD(&hdl->ctrl_refs);
- 	hdl->nr_of_buckets = 1 + nr_of_controls_hint / 8;
--	hdl->buckets = kcalloc(hdl->nr_of_buckets, sizeof(hdl->buckets[0]),
--			       GFP_KERNEL);
-+	hdl->buckets = kvmalloc_array(hdl->nr_of_buckets,
-+				      sizeof(hdl->buckets[0]),
-+				      GFP_KERNEL | __GFP_ZERO);
- 	hdl->error = hdl->buckets ? 0 : -ENOMEM;
- 	return hdl->error;
- }
-@@ -1773,9 +1775,9 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
- 		list_del(&ctrl->node);
- 		list_for_each_entry_safe(sev, next_sev, &ctrl->ev_subs, node)
- 			list_del(&sev->node);
--		kfree(ctrl);
-+		kvfree(ctrl);
- 	}
--	kfree(hdl->buckets);
-+	kvfree(hdl->buckets);
- 	hdl->buckets = NULL;
- 	hdl->cached = NULL;
- 	hdl->error = 0;
-@@ -2023,7 +2025,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		 is_array)
- 		sz_extra += 2 * tot_ctrl_size;
- 
--	ctrl = kzalloc(sizeof(*ctrl) + sz_extra, GFP_KERNEL);
-+	ctrl = kvzalloc(sizeof(*ctrl) + sz_extra, GFP_KERNEL);
- 	if (ctrl == NULL) {
- 		handler_set_err(hdl, -ENOMEM);
- 		return NULL;
-@@ -2072,7 +2074,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	}
- 
- 	if (handler_new_ref(hdl, ctrl)) {
--		kfree(ctrl);
-+		kvfree(ctrl);
- 		return NULL;
- 	}
- 	mutex_lock(hdl->lock);
-@@ -2842,8 +2844,8 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 		return class_check(hdl, cs->which);
- 
- 	if (cs->count > ARRAY_SIZE(helper)) {
--		helpers = kmalloc_array(cs->count, sizeof(helper[0]),
--					GFP_KERNEL);
-+		helpers = kvmalloc_array(cs->count, sizeof(helper[0]),
-+					 GFP_KERNEL);
- 		if (helpers == NULL)
- 			return -ENOMEM;
- 	}
-@@ -2895,7 +2897,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 	}
- 
- 	if (cs->count > ARRAY_SIZE(helper))
--		kfree(helpers);
-+		kvfree(helpers);
- 	return ret;
- }
- EXPORT_SYMBOL(v4l2_g_ext_ctrls);
-@@ -3097,8 +3099,8 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 		return class_check(hdl, cs->which);
- 
- 	if (cs->count > ARRAY_SIZE(helper)) {
--		helpers = kmalloc_array(cs->count, sizeof(helper[0]),
--					GFP_KERNEL);
-+		helpers = kvmalloc_array(cs->count, sizeof(helper[0]),
-+					 GFP_KERNEL);
- 		if (!helpers)
- 			return -ENOMEM;
- 	}
-@@ -3175,7 +3177,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 	}
- 
- 	if (cs->count > ARRAY_SIZE(helper))
--		kfree(helpers);
-+		kvfree(helpers);
- 	return ret;
- }
- 
-diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-index a75df6cb141f..968c2eb08b5a 100644
---- a/drivers/media/v4l2-core/v4l2-event.c
-+++ b/drivers/media/v4l2-core/v4l2-event.c
-@@ -21,6 +21,7 @@
- #include <media/v4l2-fh.h>
- #include <media/v4l2-event.h>
- 
-+#include <linux/mm.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/export.h>
-@@ -214,7 +215,8 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 	if (elems < 1)
- 		elems = 1;
- 
--	sev = kzalloc(sizeof(*sev) + sizeof(struct v4l2_kevent) * elems, GFP_KERNEL);
-+	sev = kvzalloc(sizeof(*sev) + sizeof(struct v4l2_kevent) * elems,
-+		       GFP_KERNEL);
- 	if (!sev)
- 		return -ENOMEM;
- 	for (i = 0; i < elems; i++)
-@@ -232,7 +234,7 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 
- 	if (found_ev) {
--		kfree(sev);
-+		kvfree(sev);
- 		return 0; /* Already listening */
- 	}
- 
-@@ -304,7 +306,7 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- 	if (sev && sev->ops && sev->ops->del)
- 		sev->ops->del(sev);
- 
--	kfree(sev);
-+	kvfree(sev);
- 
- 	return 0;
- }
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 4f27cfa134a1..a03a5ecbdd87 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -12,6 +12,7 @@
-  *              Mauro Carvalho Chehab <mchehab@infradead.org> (version 2)
-  */
- 
-+#include <linux/mm.h>
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/types.h>
-@@ -2814,7 +2815,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 			parg = sbuf;
- 		} else {
- 			/* too big to allocate from stack */
--			mbuf = kmalloc(_IOC_SIZE(cmd), GFP_KERNEL);
-+			mbuf = kvmalloc(_IOC_SIZE(cmd), GFP_KERNEL);
- 			if (NULL == mbuf)
- 				return -ENOMEM;
- 			parg = mbuf;
-@@ -2863,7 +2864,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 		 * array) fits into sbuf (so that mbuf will still remain
- 		 * unused up to here).
- 		 */
--		mbuf = kmalloc(array_size, GFP_KERNEL);
-+		mbuf = kvmalloc(array_size, GFP_KERNEL);
- 		err = -ENOMEM;
- 		if (NULL == mbuf)
- 			goto out_array_args;
-@@ -2908,7 +2909,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 	}
- 
- out:
--	kfree(mbuf);
-+	kvfree(mbuf);
- 	return err;
- }
- EXPORT_SYMBOL(video_usercopy);
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index da78497ae5ed..43fefa73e0a3 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -17,6 +17,7 @@
-  */
- 
- #include <linux/ioctl.h>
-+#include <linux/mm.h>
- #include <linux/slab.h>
- #include <linux/types.h>
- #include <linux/videodev2.h>
-@@ -577,13 +578,14 @@ v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
- 	if (!sd->entity.num_pads)
- 		return NULL;
- 
--	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
-+	cfg = kvmalloc_array(sd->entity.num_pads, sizeof(*cfg),
-+			     GFP_KERNEL | __GFP_ZERO);
- 	if (!cfg)
- 		return NULL;
- 
- 	ret = v4l2_subdev_call(sd, pad, init_cfg, cfg);
- 	if (ret < 0 && ret != -ENOIOCTLCMD) {
--		kfree(cfg);
-+		kvfree(cfg);
- 		return NULL;
- 	}
- 
-@@ -593,7 +595,7 @@ EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
- 
- void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg)
- {
--	kfree(cfg);
-+	kvfree(cfg);
- }
- EXPORT_SYMBOL_GPL(v4l2_subdev_free_pad_config);
- #endif /* CONFIG_MEDIA_CONTROLLER */
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 8e8798a74760..5defa1f22ca2 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -120,8 +120,8 @@ static void *vb2_dma_sg_alloc(struct device *dev, unsigned long dma_attrs,
- 	buf->num_pages = size >> PAGE_SHIFT;
- 	buf->dma_sgt = &buf->sg_table;
- 
--	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
--			     GFP_KERNEL);
-+	buf->pages = kvmalloc_array(buf->num_pages, sizeof(struct page *),
-+				    GFP_KERNEL | __GFP_ZERO);
- 	if (!buf->pages)
- 		goto fail_pages_array_alloc;
- 
-@@ -165,7 +165,7 @@ static void *vb2_dma_sg_alloc(struct device *dev, unsigned long dma_attrs,
- 	while (num_pages--)
- 		__free_page(buf->pages[num_pages]);
- fail_pages_alloc:
--	kfree(buf->pages);
-+	kvfree(buf->pages);
- fail_pages_array_alloc:
- 	kfree(buf);
- 	return ERR_PTR(-ENOMEM);
-@@ -187,7 +187,7 @@ static void vb2_dma_sg_put(void *buf_priv)
- 		sg_free_table(buf->dma_sgt);
- 		while (--i >= 0)
- 			__free_page(buf->pages[i]);
--		kfree(buf->pages);
-+		kvfree(buf->pages);
- 		put_device(buf->dev);
- 		kfree(buf);
- 	}
+- ov5640: Fix manual exposure control. The manual exposure setting
+  (in line periods) cannot exceed the max exposure value in registers
+  {0x380E, 0x380F} + {0x350C,0x350D}, however the max eposure value was
+  not being calcualted correctly.
+
+- ov5640: the video mode register tables require auto gain/exposure be
+  disabled before programming the register set. However auto gain/exp was
+  being disabled by direct register write. This caused the auto gain/exp
+  control values to be inconsistent with the actual hardware setting. Fixed
+  by going through v4l2-ctrl when disabling auto gain/exp.
+
+- ov5640: converted virtual channel macro to a module parameter, default
+  to channel 0.
+
+- ov5640: override the v4l2-ctl lock to use the ov5640 subdev driver's
+  lock. Sugested by Sakari Ailus <sakari.ailus@iki.fi>.
+
+- ov5640: switch to unit-less V4L2_CID_EXPOSURE. Using
+  V4L2_CID_EXPOSURE_ABSOLUTE will require converting from 100-usec units
+  to line periods and vice-versa. Sugested by Sakari Ailus and
+  Pavel Machek <pavel@ucw.cz>.
+
+- ov5640: drop dangling regulator_bulk_disable() from probe/remove.
+  Sugested by Sakari Ailus <sakari.ailus@iki.fi>.
+
+- FIM: move input capture channel selection out of the device-tree and
+  make this a V4L2 control. In order to support attaching a FIM to prpencvf,
+  the FIM cannot have any device-tree configuration, because prpencvf has
+  no device node. The FIM now is completely configurable via its V4L2
+  controls.
+
+- FIM: drop imx_media_fim_set_power(), and move the input capture channel
+  request to imx_media_fim_set_stream(). This allows to drop csi_s_power()
+  as well, since the latter only called imx_media_fim_set_power().
+
+- FIM: add a spinlock to protect the frame_interval_monitor() from the
+  setting of new control values. The frame_interval_monitor() is called
+  from interrupt context so a spinlock must be used.
+
+- Updated to version 8 video-mux patchset from Philipp Zabel
+  <p.zabel@pengutronix.de>.
+
+
+Marek Vasut (1):
+  media: imx: Drop warning upon multiple S_STREAM disable calls
+
+Philipp Zabel (8):
+  dt-bindings: Add bindings for video-multiplexer device
+  ARM: dts: imx6qdl: add multiplexer controls
+  ARM: dts: imx6qdl: Add video multiplexers, mipi_csi, and their
+    connections
+  add mux and video interface bridge entity functions
+  platform: add video-multiplexer subdevice driver
+  media: imx: csi: increase burst size for YUV formats
+  media: imx: csi: add frame skipping support
+  media: imx: csi: add sink selection rectangles
+
+Russell King (3):
+  media: imx: csi: add support for bayer formats
+  media: imx: csi: add frame size/interval enumeration
+  media: imx: capture: add frame sizes/interval enumeration
+
+Steve Longerbeam (22):
+  [media] dt-bindings: Add bindings for i.MX media driver
+  [media] dt/bindings: Add bindings for OV5640
+  ARM: dts: imx6qdl: Add compatible, clocks, irqs to MIPI CSI-2 node
+  ARM: dts: imx6qdl: add capture-subsystem device
+  ARM: dts: imx6qdl-sabrelite: remove erratum ERR006687 workaround
+  ARM: dts: imx6-sabrelite: add OV5642 and OV5640 camera sensors
+  ARM: dts: imx6-sabresd: add OV5642 and OV5640 camera sensors
+  ARM: dts: imx6-sabreauto: create i2cmux for i2c3
+  ARM: dts: imx6-sabreauto: add reset-gpios property for max7310_b
+  ARM: dts: imx6-sabreauto: add pinctrl for gpt input capture
+  ARM: dts: imx6-sabreauto: add the ADV7180 video decoder
+  [media] add Omnivision OV5640 sensor driver
+  media: Add userspace header file for i.MX
+  media: Add i.MX media core driver
+  media: imx: Add a TODO file
+  media: imx: Add Capture Device Interface
+  media: imx: Add CSI subdev driver
+  media: imx: Add VDIC subdev driver
+  media: imx: Add IC subdev drivers
+  media: imx: Add MIPI CSI-2 Receiver subdev driver
+  media: imx: set and propagate default field, colorimetry
+  ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
+
+ .../devicetree/bindings/media/i2c/ov5640.txt       |   45 +
+ Documentation/devicetree/bindings/media/imx.txt    |   47 +
+ .../devicetree/bindings/media/video-mux.txt        |   60 +
+ Documentation/media/uapi/mediactl/media-types.rst  |   21 +
+ Documentation/media/v4l-drivers/imx.rst            |  614 +++++
+ arch/arm/boot/dts/imx6dl-sabrelite.dts             |    5 +
+ arch/arm/boot/dts/imx6dl-sabresd.dts               |    5 +
+ arch/arm/boot/dts/imx6dl.dtsi                      |  189 ++
+ arch/arm/boot/dts/imx6q-sabrelite.dts              |    5 +
+ arch/arm/boot/dts/imx6q-sabresd.dts                |    5 +
+ arch/arm/boot/dts/imx6q.dtsi                       |  125 ++
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi           |  136 +-
+ arch/arm/boot/dts/imx6qdl-sabrelite.dtsi           |  152 +-
+ arch/arm/boot/dts/imx6qdl-sabresd.dtsi             |  114 +-
+ arch/arm/boot/dts/imx6qdl.dtsi                     |   20 +-
+ arch/arm/configs/imx_v6_v7_defconfig               |   11 +
+ drivers/media/i2c/Kconfig                          |   10 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/ov5640.c                         | 2344 ++++++++++++++++++++
+ drivers/media/platform/Kconfig                     |    6 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/video-mux.c                 |  334 +++
+ drivers/staging/media/Kconfig                      |    2 +
+ drivers/staging/media/Makefile                     |    1 +
+ drivers/staging/media/imx/Kconfig                  |   21 +
+ drivers/staging/media/imx/Makefile                 |   12 +
+ drivers/staging/media/imx/TODO                     |   23 +
+ drivers/staging/media/imx/imx-ic-common.c          |  113 +
+ drivers/staging/media/imx/imx-ic-prp.c             |  518 +++++
+ drivers/staging/media/imx/imx-ic-prpencvf.c        | 1309 +++++++++++
+ drivers/staging/media/imx/imx-ic.h                 |   38 +
+ drivers/staging/media/imx/imx-media-capture.c      |  775 +++++++
+ drivers/staging/media/imx/imx-media-csi.c          | 1816 +++++++++++++++
+ drivers/staging/media/imx/imx-media-dev.c          |  666 ++++++
+ drivers/staging/media/imx/imx-media-fim.c          |  494 +++++
+ drivers/staging/media/imx/imx-media-internal-sd.c  |  349 +++
+ drivers/staging/media/imx/imx-media-of.c           |  270 +++
+ drivers/staging/media/imx/imx-media-utils.c        |  896 ++++++++
+ drivers/staging/media/imx/imx-media-vdic.c         | 1009 +++++++++
+ drivers/staging/media/imx/imx-media.h              |  325 +++
+ drivers/staging/media/imx/imx6-mipi-csi2.c         |  698 ++++++
+ include/linux/imx-media.h                          |   29 +
+ include/media/imx.h                                |   15 +
+ include/uapi/linux/media.h                         |    6 +
+ include/uapi/linux/v4l2-controls.h                 |    4 +
+ 45 files changed, 13613 insertions(+), 27 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5640.txt
+ create mode 100644 Documentation/devicetree/bindings/media/imx.txt
+ create mode 100644 Documentation/devicetree/bindings/media/video-mux.txt
+ create mode 100644 Documentation/media/v4l-drivers/imx.rst
+ create mode 100644 drivers/media/i2c/ov5640.c
+ create mode 100644 drivers/media/platform/video-mux.c
+ create mode 100644 drivers/staging/media/imx/Kconfig
+ create mode 100644 drivers/staging/media/imx/Makefile
+ create mode 100644 drivers/staging/media/imx/TODO
+ create mode 100644 drivers/staging/media/imx/imx-ic-common.c
+ create mode 100644 drivers/staging/media/imx/imx-ic-prp.c
+ create mode 100644 drivers/staging/media/imx/imx-ic-prpencvf.c
+ create mode 100644 drivers/staging/media/imx/imx-ic.h
+ create mode 100644 drivers/staging/media/imx/imx-media-capture.c
+ create mode 100644 drivers/staging/media/imx/imx-media-csi.c
+ create mode 100644 drivers/staging/media/imx/imx-media-dev.c
+ create mode 100644 drivers/staging/media/imx/imx-media-fim.c
+ create mode 100644 drivers/staging/media/imx/imx-media-internal-sd.c
+ create mode 100644 drivers/staging/media/imx/imx-media-of.c
+ create mode 100644 drivers/staging/media/imx/imx-media-utils.c
+ create mode 100644 drivers/staging/media/imx/imx-media-vdic.c
+ create mode 100644 drivers/staging/media/imx/imx-media.h
+ create mode 100644 drivers/staging/media/imx/imx6-mipi-csi2.c
+ create mode 100644 include/linux/imx-media.h
+ create mode 100644 include/media/imx.h
+
 -- 
-2.13.1.518.g3df882009-goog
+2.7.4
