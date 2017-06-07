@@ -1,87 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:52084 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751694AbdFII1B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Jun 2017 04:27:01 -0400
-From: Tuukka Toivonen <tuukka.toivonen@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
-        Joerg Roedel <joro@8bytes.org>
-Subject: Re: [PATCH 02/12] intel-ipu3: mmu: implement driver
-Date: Fri, 09 Jun 2017 11:26:53 +0300
-Message-ID: <2207008.so7vZvfgDl@ttoivone-desk1>
-In-Reply-To: <CAAFQd5CdV4ZfAYHH7DBBfOY=c4_Lwnuf8COs=JUKRSjp1VTn7Q@mail.gmail.com>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com> <CAAFQd5BZGVBdbN-8L+pvAf4AkBkB9UFy7_mmMpusFUMxDugQDw@mail.gmail.com> <CAAFQd5CdV4ZfAYHH7DBBfOY=c4_Lwnuf8COs=JUKRSjp1VTn7Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:36742 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751690AbdFGSe2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:34:28 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v8 02/34] [media] dt-bindings: Add bindings for i.MX media driver
+Date: Wed,  7 Jun 2017 11:33:41 -0700
+Message-Id: <1496860453-6282-3-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Add bindings documentation for the i.MX media driver.
 
-Couple of small comments below.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ Documentation/devicetree/bindings/media/imx.txt | 47 +++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/imx.txt
 
-On Wednesday, June 07, 2017 17:35:13 Tomasz Figa wrote:
-> >> +static void ipu3_mmu_domain_free(struct iommu_domain *dom)
-> >> +{
-> >> +       struct ipu3_mmu_domain *mmu_dom =
-> >> +               container_of(dom, struct ipu3_mmu_domain, domain);
-> >> +       uint32_t l1_idx;
-> >> +
-> >> +       for (l1_idx = 0; l1_idx < IPU3_MMU_L1PT_PTES; l1_idx++)
-> >> +               if (mmu_dom->pgtbl[l1_idx] != mmu_dom-
->dummy_l2_tbl)
-> >> +                       free_page((unsigned long)
-> >> +                                 TBL_VIRT_ADDR(mmu_dom-
->pgtbl[l1_idx]));
-> >> +
-> >> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom-
->dummy_page));
-> >> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom-
->dummy_l2_tbl));
-> 
-> I might be overly paranoid, but reading back kernel virtual pointers
-> from device accessible memory doesn't seem safe to me. Other drivers
-> keep kernel pointers of page tables in a dedicated array (it's only 8K
-> of memory, but much better safety).
-
-They are accessible only to the IPU3 IOMMU, which can access whole 
-system memory anyway and always does a read-only access to the MMU 
-tables. So, I wouldn't worry too much, although extra copy for safety 
-wouldn't necessarily harm too much.
-
-<...>
-
-> >> +       ipu3_mmu_tlb_invalidate(mmu_dom->mmu->base);
-> >> +
-> >> +       return unmapped << IPU3_MMU_PAGE_SHIFT;
-> >> +}
-> >> +
-> >> +static phys_addr_t ipu3_mmu_iova_to_phys(struct iommu_domain 
-*domain,
-> >> +                                        dma_addr_t iova)
-> >> +{
-> >> +       struct ipu3_mmu_domain *d =
-> >> +               container_of(domain, struct ipu3_mmu_domain, 
-domain);
-> >> +       uint32_t *l2_pt = TBL_VIRT_ADDR(d->pgtbl[iova >> 
-IPU3_MMU_L1PT_SHIFT]);
-> >> +
-> >> +       return (phys_addr_t)l2_pt[(iova & IPU3_MMU_L2PT_MASK)
-> >> +                               >> IPU3_MMU_L2PT_SHIFT] << 
-IPU3_MMU_PAGE_SHIFT;
-> 
-> Could we avoid this TBL_VIRT_ADDR() here too? The memory cost to store
-> the page table CPU pointers is really small, but safety seems much
-> better. Moreover, it should make it possible to use the VT-d IOMMU to
-> further secure the system.
-
-IPU3 doesn't support VT-d and can't be enabled while VT-d is on.
-
-Regards,
-- Tuukka
+diff --git a/Documentation/devicetree/bindings/media/imx.txt b/Documentation/devicetree/bindings/media/imx.txt
+new file mode 100644
+index 0000000..c1e1e2b
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/imx.txt
+@@ -0,0 +1,47 @@
++Freescale i.MX Media Video Device
++=================================
++
++Video Media Controller node
++---------------------------
++
++This is the media controller node for video capture support. It is a
++virtual device that lists the camera serial interface nodes that the
++media device will control.
++
++Required properties:
++- compatible : "fsl,imx-capture-subsystem";
++- ports      : Should contain a list of phandles pointing to camera
++		sensor interface ports of IPU devices
++
++example:
++
++capture-subsystem {
++	compatible = "fsl,imx-capture-subsystem";
++	ports = <&ipu1_csi0>, <&ipu1_csi1>;
++};
++
++
++mipi_csi2 node
++--------------
++
++This is the device node for the MIPI CSI-2 Receiver, required for MIPI
++CSI-2 sensors.
++
++Required properties:
++- compatible	: "fsl,imx6-mipi-csi2", "snps,dw-mipi-csi2";
++- reg           : physical base address and length of the register set;
++- clocks	: the MIPI CSI-2 receiver requires three clocks: hsi_tx
++		  (the D-PHY clock), video_27m (D-PHY PLL reference
++		  clock), and eim_podf;
++- clock-names	: must contain "dphy", "ref", "pix";
++- port@*        : five port nodes must exist, containing endpoints
++		  connecting to the source and sink devices according to
++		  of_graph bindings. The first port is an input port,
++		  connecting with a MIPI CSI-2 source, and ports 1
++		  through 4 are output ports connecting with parallel
++		  bus sink endpoint nodes and correspond to the four
++		  MIPI CSI-2 virtual channel outputs.
++
++Optional properties:
++- interrupts	: must contain two level-triggered interrupts,
++		  in order: 100 and 101;
+-- 
+2.7.4
