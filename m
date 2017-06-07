@@ -1,57 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38260 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752234AbdFPPwJ (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:36146 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751454AbdFGOqV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 11:52:09 -0400
-Subject: Re: [RFC 0/2] Add V4L2_BUF_TYPE_META_OUTPUT buffer type
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: tfiga@chromium.org, yong.zhi@intel.com
-References: <1497626061-2129-1-git-send-email-sakari.ailus@linux.intel.com>
+        Wed, 7 Jun 2017 10:46:21 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <283ee3b2-f35c-f23f-6fdb-a8f0830f9b2c@xs4all.nl>
-Date: Fri, 16 Jun 2017 17:52:03 +0200
-MIME-Version: 1.0
-In-Reply-To: <1497626061-2129-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/9] cec: add cec_transmit_attempt_done helper function
+Date: Wed,  7 Jun 2017 16:46:10 +0200
+Message-Id: <20170607144616.15247-4-hverkuil@xs4all.nl>
+In-Reply-To: <20170607144616.15247-1-hverkuil@xs4all.nl>
+References: <20170607144616.15247-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+A simpler variant of cec_transmit_done to be used where the HW does
+just a single attempt at a transmit. So if the status indicates an
+error, then the corresponding error count will always be 1 and this
+function figures that out based on the status argument.
 
-On 06/16/2017 05:14 PM, Sakari Ailus wrote:
-> The V4L2_BUF_TYPE_META_OUTPUT buffer type complements the metadata buffer
-> types support for OUTPUT buffers, capture being already supported. This is
-> intended for similar cases than V4L2_BUF_TYPE_META_CAPTURE but for output
-> buffers, e.g. device parameters that may be complex and highly
-> hierarchical data structure. Statistics are a current use case for
-> metadata capture buffers.
-> 
-> There's a warning related to references from make htmldocs; I'll fix that
-> in v2 / non-RFC version.
-> 
-> Sakari Ailus (2):
->    v4l: Add support for V4L2_BUF_TYPE_META_OUTPUT
->    docs-rst: v4l: Document V4L2_BUF_TYPE_META_OUTPUT interface
-> 
->   Documentation/media/uapi/v4l/buffer.rst          |  3 +++
->   Documentation/media/uapi/v4l/dev-meta.rst        | 32 ++++++++++++++----------
->   Documentation/media/uapi/v4l/vidioc-querycap.rst |  3 +++
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c    |  2 ++
->   drivers/media/v4l2-core/v4l2-ioctl.c             | 25 ++++++++++++++++++
->   drivers/media/v4l2-core/videobuf2-v4l2.c         |  1 +
->   include/media/v4l2-ioctl.h                       | 17 +++++++++++++
->   include/uapi/linux/videodev2.h                   |  2 ++
->   8 files changed, 72 insertions(+), 13 deletions(-)
-> 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/kapi/cec-core.rst | 10 ++++++++++
+ drivers/media/cec/cec-adap.c          | 26 ++++++++++++++++++++++++++
+ include/media/cec.h                   |  6 ++++++
+ 3 files changed, 42 insertions(+)
 
-I would very much appreciate it if you can also provide patches for v4l2-ctl
-and v4l2-compliance. Should be quite easy, just follow what I did for the
-META_CAPTURE support.
-
-Regards,
-
-	Hans
+diff --git a/Documentation/media/kapi/cec-core.rst b/Documentation/media/kapi/cec-core.rst
+index 278b358b2f2e..8a65c69ed071 100644
+--- a/Documentation/media/kapi/cec-core.rst
++++ b/Documentation/media/kapi/cec-core.rst
+@@ -194,6 +194,11 @@ When a transmit finished (successfully or otherwise):
+ 	void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+ 		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
+ 
++or:
++
++.. c:function::
++	void cec_transmit_attempt_done(struct cec_adapter *adap, u8 status);
++
+ The status can be one of:
+ 
+ CEC_TX_STATUS_OK:
+@@ -231,6 +236,11 @@ to 1, if the hardware does support retry then either set these counters to
+ 0 if the hardware provides no feedback of which errors occurred and how many
+ times, or fill in the correct values as reported by the hardware.
+ 
++The cec_transmit_attempt_done() function is a helper for cases where the
++hardware never retries, so the transmit is always for just a single
++attempt. It will call cec_transmit_done() in turn, filling in 1 for the
++count argument corresponding to the status. Or all 0 if the status was OK.
++
+ When a CEC message was received:
+ 
+ .. c:function::
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index 61e39bbe3cf9..bd76c15ade4f 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -553,6 +553,32 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+ }
+ EXPORT_SYMBOL_GPL(cec_transmit_done);
+ 
++void cec_transmit_attempt_done(struct cec_adapter *adap, u8 status)
++{
++	switch (status) {
++	case CEC_TX_STATUS_OK:
++		cec_transmit_done(adap, status, 0, 0, 0, 0);
++		return;
++	case CEC_TX_STATUS_ARB_LOST:
++		cec_transmit_done(adap, status, 1, 0, 0, 0);
++		return;
++	case CEC_TX_STATUS_NACK:
++		cec_transmit_done(adap, status, 0, 1, 0, 0);
++		return;
++	case CEC_TX_STATUS_LOW_DRIVE:
++		cec_transmit_done(adap, status, 0, 0, 1, 0);
++		return;
++	case CEC_TX_STATUS_ERROR:
++		cec_transmit_done(adap, status, 0, 0, 0, 1);
++		return;
++	default:
++		/* Should never happen */
++		WARN(1, "cec-%s: invalid status 0x%02x\n", adap->name, status);
++		return;
++	}
++}
++EXPORT_SYMBOL_GPL(cec_transmit_attempt_done);
++
+ /*
+  * Called when waiting for a reply times out.
+  */
+diff --git a/include/media/cec.h b/include/media/cec.h
+index 3ce73951591e..a2e184d1df00 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -227,6 +227,12 @@ int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
+ /* Called by the adapter */
+ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+ 		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
++/*
++ * Simplified version of cec_transmit_done for hardware that doesn't retry
++ * failed transmits. So this is always just one attempt in which case
++ * the status is sufficient.
++ */
++void cec_transmit_attempt_done(struct cec_adapter *adap, u8 status);
+ void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
+ 
+ /**
+-- 
+2.11.0
