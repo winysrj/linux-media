@@ -1,1318 +1,2428 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:56931 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751105AbdFSRCD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 13:02:03 -0400
-From: Helen Koike <helen.koike@collabora.com>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
-        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v5 09/12] [media] vimc: Subdevices as modules
-Date: Mon, 19 Jun 2017 14:00:18 -0300
-Message-Id: <1497891629-1562-10-git-send-email-helen.koike@collabora.com>
-In-Reply-To: <1497891629-1562-1-git-send-email-helen.koike@collabora.com>
-References: <1497891629-1562-1-git-send-email-helen.koike@collabora.com>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:35638 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751849AbdFGSfO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:35:14 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v8 17/34] [media] add Omnivision OV5640 sensor driver
+Date: Wed,  7 Jun 2017 11:33:56 -0700
+Message-Id: <1496860453-6282-18-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change the core structure for adding subdevices in the topology.
-Instead of calling the specific create function for each subdevice,
-inject a child platform_device with the driver's name.
-Each type of node in the topology (sensor, capture, debayer, scaler)
-will register a platform_driver with the corresponding name through the
-component subsystem.
-Implementing a new subdevice type doesn't require vimc-core to be altered.
+This driver is based on ov5640_mipi.c from Freescale imx_3.10.17_1.0.0_beta
+branch, modified heavily to bring forward to latest interfaces and code
+cleanup.
 
-This facilitates future implementation of dynamic entities, where
-hotpluging an entity in the topology is just a matter of
-registering/unregistering a platform_device in the system.
-It also facilitates other implementations of different nodes without
-touching the core code and remove the need of a header file for each
-type of node.
-
-Signed-off-by: Helen Koike <helen.koike@collabora.com>
-
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
+ drivers/media/i2c/Kconfig  |   10 +
+ drivers/media/i2c/Makefile |    1 +
+ drivers/media/i2c/ov5640.c | 2344 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 2355 insertions(+)
+ create mode 100644 drivers/media/i2c/ov5640.c
 
-Changes in v5:
-[media] vimc: Subdevices as modules
-	- Fix vimc_add_subdevs in rollback case. The loop variable can
-	be negative, remove 'unsigned' from the loop variable and fix
-	warning from smatch tool
-
-Changes in v4:
-[media] vimc: Subdevices as modules
-	- Rebase without [media] vimc: Optimize frame generation the through
-	pipe
-	- s/EXPORT_SYMBOL/EXPORT_SYMBOL_GPL
-	- add struct vimc_platform_data to pass the entity's name to the
-	sudmodule
-	- Fix comment about vimc-input (remove vimc-output comment)
-
-Changes in v3:
-[media] vimc: Subdevices as modules
-	- This is a new patch in the series
-
-Changes in v2: None
-
-
----
- drivers/media/platform/vimc/Makefile       |   7 +-
- drivers/media/platform/vimc/vimc-capture.c |  99 ++++---
- drivers/media/platform/vimc/vimc-capture.h |  28 --
- drivers/media/platform/vimc/vimc-common.c  |  38 +--
- drivers/media/platform/vimc/vimc-common.h  |  29 ++-
- drivers/media/platform/vimc/vimc-core.c    | 405 +++++++++++------------------
- drivers/media/platform/vimc/vimc-sensor.c  |  93 +++++--
- drivers/media/platform/vimc/vimc-sensor.h  |  28 --
- 8 files changed, 339 insertions(+), 388 deletions(-)
- delete mode 100644 drivers/media/platform/vimc/vimc-capture.h
- delete mode 100644 drivers/media/platform/vimc/vimc-sensor.h
-
-diff --git a/drivers/media/platform/vimc/Makefile b/drivers/media/platform/vimc/Makefile
-index 6b6ddf4..0e5d5ce 100644
---- a/drivers/media/platform/vimc/Makefile
-+++ b/drivers/media/platform/vimc/Makefile
-@@ -1,3 +1,6 @@
--vimc-objs := vimc-core.o vimc-capture.o vimc-common.o vimc-sensor.o
-+vimc-objs := vimc-core.o
-+vimc_capture-objs := vimc-capture.o
-+vimc_common-objs := vimc-common.o
-+vimc_sensor-objs := vimc-sensor.o
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index c380e24..444e59e 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -548,6 +548,16 @@ config VIDEO_OV2659
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ov2659.
  
--obj-$(CONFIG_VIDEO_VIMC) += vimc.o
-+obj-$(CONFIG_VIDEO_VIMC) += vimc.o vimc_capture.o vimc_common.o vimc_sensor.o
-diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
-index 359f59e..14cb32e 100644
---- a/drivers/media/platform/vimc/vimc-capture.c
-+++ b/drivers/media/platform/vimc/vimc-capture.c
-@@ -15,15 +15,21 @@
-  *
-  */
- 
-+#include <linux/component.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/videobuf2-core.h>
- #include <media/videobuf2-vmalloc.h>
- 
--#include "vimc-capture.h"
-+#include "vimc-common.h"
++config VIDEO_OV5640
++	tristate "OmniVision OV5640 sensor support"
++	depends on OF
++	depends on GPIOLIB && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
++	depends on MEDIA_CAMERA_SUPPORT
++	select V4L2_FWNODE
++	---help---
++	  This is a Video4Linux2 sensor-level driver for the Omnivision
++	  OV5640 camera sensor with a MIPI CSI-2 interface.
 +
-+#define VIMC_CAP_DRV_NAME "vimc-capture"
- 
- struct vimc_cap_device {
- 	struct vimc_ent_device ved;
- 	struct video_device vdev;
-+	struct device *dev;
- 	struct v4l2_pix_format format;
- 	struct vb2_queue queue;
- 	struct list_head buf_list;
-@@ -131,7 +137,7 @@ static int vimc_cap_s_fmt_vid_cap(struct file *file, void *priv,
- 
- 	vimc_cap_try_fmt_vid_cap(file, priv, f);
- 
--	dev_dbg(vcap->vdev.v4l2_dev->dev, "%s: format update: "
-+	dev_dbg(vcap->dev, "%s: format update: "
- 		"old:%dx%d (0x%x, %d, %d, %d, %d) "
- 		"new:%dx%d (0x%x, %d, %d, %d, %d)\n", vcap->vdev.name,
- 		/* old */
-@@ -309,8 +315,7 @@ static int vimc_cap_buffer_prepare(struct vb2_buffer *vb)
- 	unsigned long size = vcap->format.sizeimage;
- 
- 	if (vb2_plane_size(vb, 0) < size) {
--		dev_err(vcap->vdev.v4l2_dev->dev,
--			"%s: buffer too small (%lu < %lu)\n",
-+		dev_err(vcap->dev, "%s: buffer too small (%lu < %lu)\n",
- 			vcap->vdev.name, vb2_plane_size(vb, 0), size);
- 		return -EINVAL;
- 	}
-@@ -335,8 +340,10 @@ static const struct media_entity_operations vimc_cap_mops = {
- 	.link_validate		= vimc_link_validate,
- };
- 
--static void vimc_cap_destroy(struct vimc_ent_device *ved)
-+static void vimc_cap_comp_unbind(struct device *comp, struct device *master,
-+				 void *master_data)
- {
-+	struct vimc_ent_device *ved = dev_get_drvdata(comp);
- 	struct vimc_cap_device *vcap = container_of(ved, struct vimc_cap_device,
- 						    ved);
- 
-@@ -385,42 +392,35 @@ static void vimc_cap_process_frame(struct vimc_ent_device *ved,
- 	vb2_buffer_done(&vimc_buf->vb2.vb2_buf, VB2_BUF_STATE_DONE);
- }
- 
--struct vimc_ent_device *vimc_cap_create(struct v4l2_device *v4l2_dev,
--					const char *const name,
--					u16 num_pads,
--					const unsigned long *pads_flag)
-+static int vimc_cap_comp_bind(struct device *comp, struct device *master,
-+			      void *master_data)
- {
-+	struct v4l2_device *v4l2_dev = master_data;
-+	struct vimc_platform_data *pdata = comp->platform_data;
- 	const struct vimc_pix_map *vpix;
- 	struct vimc_cap_device *vcap;
- 	struct video_device *vdev;
- 	struct vb2_queue *q;
- 	int ret;
- 
--	/*
--	 * Check entity configuration params
--	 * NOTE: we only support a single sink pad
--	 */
--	if (!name || num_pads != 1 || !pads_flag ||
--	    !(pads_flag[0] & MEDIA_PAD_FL_SINK))
--		return ERR_PTR(-EINVAL);
--
- 	/* Allocate the vimc_cap_device struct */
- 	vcap = kzalloc(sizeof(*vcap), GFP_KERNEL);
- 	if (!vcap)
--		return ERR_PTR(-ENOMEM);
-+		return -ENOMEM;
- 
- 	/* Allocate the pads */
--	vcap->ved.pads = vimc_pads_init(num_pads, pads_flag);
-+	vcap->ved.pads =
-+		vimc_pads_init(1, (const unsigned long[1]) {MEDIA_PAD_FL_SINK});
- 	if (IS_ERR(vcap->ved.pads)) {
- 		ret = PTR_ERR(vcap->ved.pads);
- 		goto err_free_vcap;
- 	}
- 
- 	/* Initialize the media entity */
--	vcap->vdev.entity.name = name;
-+	vcap->vdev.entity.name = pdata->entity_name;
- 	vcap->vdev.entity.function = MEDIA_ENT_F_IO_V4L;
- 	ret = media_entity_pads_init(&vcap->vdev.entity,
--				     num_pads, vcap->ved.pads);
-+				     1, vcap->ved.pads);
- 	if (ret)
- 		goto err_clean_pads;
- 
-@@ -441,9 +441,8 @@ struct vimc_ent_device *vimc_cap_create(struct v4l2_device *v4l2_dev,
- 
- 	ret = vb2_queue_init(q);
- 	if (ret) {
--		dev_err(vcap->vdev.v4l2_dev->dev,
--			"%s: vb2 queue init failed (err=%d)\n",
--			vcap->vdev.name, ret);
-+		dev_err(comp, "%s: vb2 queue init failed (err=%d)\n",
-+			pdata->entity_name, ret);
- 		goto err_clean_m_ent;
- 	}
- 
-@@ -459,10 +458,11 @@ struct vimc_ent_device *vimc_cap_create(struct v4l2_device *v4l2_dev,
- 				 vcap->format.height;
- 
- 	/* Fill the vimc_ent_device struct */
--	vcap->ved.destroy = vimc_cap_destroy;
- 	vcap->ved.ent = &vcap->vdev.entity;
- 	vcap->ved.process_frame = vimc_cap_process_frame;
- 	vcap->ved.vdev_get_format = vimc_cap_get_format;
-+	dev_set_drvdata(comp, &vcap->ved);
-+	vcap->dev = comp;
- 
- 	/* Initialize the video_device struct */
- 	vdev = &vcap->vdev;
-@@ -475,19 +475,18 @@ struct vimc_ent_device *vimc_cap_create(struct v4l2_device *v4l2_dev,
- 	vdev->queue = q;
- 	vdev->v4l2_dev = v4l2_dev;
- 	vdev->vfl_dir = VFL_DIR_RX;
--	strlcpy(vdev->name, name, sizeof(vdev->name));
-+	strlcpy(vdev->name, pdata->entity_name, sizeof(vdev->name));
- 	video_set_drvdata(vdev, &vcap->ved);
- 
- 	/* Register the video_device with the v4l2 and the media framework */
- 	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
- 	if (ret) {
--		dev_err(vcap->vdev.v4l2_dev->dev,
--			"%s: video register failed (err=%d)\n",
-+		dev_err(comp, "%s: video register failed (err=%d)\n",
- 			vcap->vdev.name, ret);
- 		goto err_release_queue;
- 	}
- 
--	return &vcap->ved;
-+	return 0;
- 
- err_release_queue:
- 	vb2_queue_release(q);
-@@ -498,5 +497,45 @@ struct vimc_ent_device *vimc_cap_create(struct v4l2_device *v4l2_dev,
- err_free_vcap:
- 	kfree(vcap);
- 
--	return ERR_PTR(ret);
-+	return ret;
- }
+ config VIDEO_OV5645
+ 	tristate "OmniVision OV5645 sensor support"
+ 	depends on OF
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 62323ec..dc6b0c4 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -58,6 +58,7 @@ obj-$(CONFIG_VIDEO_SONY_BTF_MPX) += sony-btf-mpx.o
+ obj-$(CONFIG_VIDEO_UPD64031A) += upd64031a.o
+ obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
+ obj-$(CONFIG_VIDEO_OV2640) += ov2640.o
++obj-$(CONFIG_VIDEO_OV5640) += ov5640.o
+ obj-$(CONFIG_VIDEO_OV5645) += ov5645.o
+ obj-$(CONFIG_VIDEO_OV5647) += ov5647.o
+ obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+new file mode 100644
+index 0000000..1f5b483
+--- /dev/null
++++ b/drivers/media/i2c/ov5640.c
+@@ -0,0 +1,2344 @@
++/*
++ * Copyright (C) 2011-2013 Freescale Semiconductor, Inc. All Rights Reserved.
++ * Copyright (C) 2014-2017 Mentor Graphics Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
 +
-+static const struct component_ops vimc_cap_comp_ops = {
-+	.bind = vimc_cap_comp_bind,
-+	.unbind = vimc_cap_comp_unbind,
-+};
-+
-+static int vimc_cap_probe(struct platform_device *pdev)
-+{
-+	return component_add(&pdev->dev, &vimc_cap_comp_ops);
-+}
-+
-+static int vimc_cap_remove(struct platform_device *pdev)
-+{
-+	component_del(&pdev->dev, &vimc_cap_comp_ops);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver vimc_cap_pdrv = {
-+	.probe		= vimc_cap_probe,
-+	.remove		= vimc_cap_remove,
-+	.driver		= {
-+		.name	= VIMC_CAP_DRV_NAME,
-+	},
-+};
-+
-+static const struct platform_device_id vimc_cap_driver_ids[] = {
-+	{
-+		.name           = VIMC_CAP_DRV_NAME,
-+	},
-+	{ }
-+};
-+
-+module_platform_driver(vimc_cap_pdrv);
-+
-+MODULE_DEVICE_TABLE(platform, vimc_cap_driver_ids);
-+
-+MODULE_DESCRIPTION("Virtual Media Controller Driver (VIMC) Capture");
-+MODULE_AUTHOR("Helen Mae Koike Fornazier <helen.fornazier@gmail.com>");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/platform/vimc/vimc-capture.h b/drivers/media/platform/vimc/vimc-capture.h
-deleted file mode 100644
-index 7e5c707..0000000
---- a/drivers/media/platform/vimc/vimc-capture.h
-+++ /dev/null
-@@ -1,28 +0,0 @@
--/*
-- * vimc-capture.h Virtual Media Controller Driver
-- *
-- * Copyright (C) 2015-2017 Helen Koike <helen.fornazier@gmail.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- */
--
--#ifndef _VIMC_CAPTURE_H_
--#define _VIMC_CAPTURE_H_
--
--#include "vimc-common.h"
--
--struct vimc_ent_device *vimc_cap_create(struct v4l2_device *v4l2_dev,
--					const char *const name,
--					u16 num_pads,
--					const unsigned long *pads_flag);
--
--#endif
-diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
-index b698055..da7f2b7 100644
---- a/drivers/media/platform/vimc/vimc-common.c
-+++ b/drivers/media/platform/vimc/vimc-common.c
-@@ -15,6 +15,9 @@
-  *
-  */
- 
++#include <linux/clk.h>
++#include <linux/clk-provider.h>
++#include <linux/clkdev.h>
++#include <linux/ctype.h>
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/i2c.h>
 +#include <linux/init.h>
 +#include <linux/module.h>
++#include <linux/of_device.h>
++#include <linux/slab.h>
++#include <linux/types.h>
++#include <linux/gpio/consumer.h>
++#include <linux/regulator/consumer.h>
++#include <media/v4l2-async.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-fwnode.h>
++#include <media/v4l2-subdev.h>
 +
- #include "vimc-common.h"
- 
- static const struct vimc_pix_map vimc_pix_map_list[] = {
-@@ -151,6 +154,7 @@ const struct vimc_pix_map *vimc_pix_map_by_index(unsigned int i)
- 
- 	return &vimc_pix_map_list[i];
- }
-+EXPORT_SYMBOL_GPL(vimc_pix_map_by_index);
- 
- const struct vimc_pix_map *vimc_pix_map_by_code(u32 code)
- {
-@@ -162,6 +166,7 @@ const struct vimc_pix_map *vimc_pix_map_by_code(u32 code)
- 	}
- 	return NULL;
- }
-+EXPORT_SYMBOL_GPL(vimc_pix_map_by_code);
- 
- const struct vimc_pix_map *vimc_pix_map_by_pixelformat(u32 pixelformat)
- {
-@@ -173,6 +178,7 @@ const struct vimc_pix_map *vimc_pix_map_by_pixelformat(u32 pixelformat)
- 	}
- 	return NULL;
- }
-+EXPORT_SYMBOL_GPL(vimc_pix_map_by_pixelformat);
- 
- int vimc_propagate_frame(struct media_pad *src, const void *frame)
- {
-@@ -207,6 +213,7 @@ int vimc_propagate_frame(struct media_pad *src, const void *frame)
- 
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(vimc_propagate_frame);
- 
- /* Helper function to allocate and initialize pads */
- struct media_pad *vimc_pads_init(u16 num_pads, const unsigned long *pads_flag)
-@@ -227,6 +234,7 @@ struct media_pad *vimc_pads_init(u16 num_pads, const unsigned long *pads_flag)
- 
- 	return pads;
- }
-+EXPORT_SYMBOL_GPL(vimc_pads_init);
- 
- int vimc_pipeline_s_stream(struct media_entity *ent, int enable)
- {
-@@ -242,14 +250,8 @@ int vimc_pipeline_s_stream(struct media_entity *ent, int enable)
- 		/* Start the stream in the subdevice direct connected */
- 		pad = media_entity_remote_pad(&ent->pads[i]);
- 
--		/*
--		 * if this is a raw node from vimc-core, then there is
--		 * nothing to activate
--		 * TODO: remove this when there are no more raw nodes in the
--		 * core and return error instead
--		 */
--		if (pad->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
--			continue;
-+		if (!is_media_entity_v4l2_subdev(pad->entity))
-+			return -EINVAL;
- 
- 		sd = media_entity_to_v4l2_subdev(pad->entity);
- 		ret = v4l2_subdev_call(sd, video, s_stream, enable);
-@@ -259,6 +261,7 @@ int vimc_pipeline_s_stream(struct media_entity *ent, int enable)
- 
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(vimc_pipeline_s_stream);
- 
- static int vimc_get_mbus_format(struct media_pad *pad,
- 				struct v4l2_subdev_format *fmt)
-@@ -301,14 +304,6 @@ int vimc_link_validate(struct media_link *link)
- 	struct v4l2_subdev_format source_fmt, sink_fmt;
- 	int ret;
- 
--	/*
--	 * if it is a raw node from vimc-core, ignore the link for now
--	 * TODO: remove this when there are no more raw nodes in the
--	 * core and return error instead
--	 */
--	if (link->source->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
--		return 0;
--
- 	ret = vimc_get_mbus_format(link->source, &source_fmt);
- 	if (ret)
- 		return ret;
-@@ -378,6 +373,7 @@ int vimc_link_validate(struct media_link *link)
- 
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(vimc_link_validate);
- 
- static const struct media_entity_operations vimc_ent_sd_mops = {
- 	.link_validate = vimc_link_validate,
-@@ -390,8 +386,7 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
- 			 u32 function,
- 			 u16 num_pads,
- 			 const unsigned long *pads_flag,
--			 const struct v4l2_subdev_ops *sd_ops,
--			 void (*sd_destroy)(struct vimc_ent_device *))
-+			 const struct v4l2_subdev_ops *sd_ops)
- {
- 	int ret;
- 
-@@ -401,7 +396,6 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
- 		return PTR_ERR(ved->pads);
- 
- 	/* Fill the vimc_ent_device struct */
--	ved->destroy = sd_destroy;
- 	ved->ent = &sd->entity;
- 
- 	/* Initialize the subdev */
-@@ -437,6 +431,7 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
- 	vimc_pads_cleanup(ved->pads);
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(vimc_ent_sd_register);
- 
- void vimc_ent_sd_unregister(struct vimc_ent_device *ved, struct v4l2_subdev *sd)
- {
-@@ -444,3 +439,8 @@ void vimc_ent_sd_unregister(struct vimc_ent_device *ved, struct v4l2_subdev *sd)
- 	media_entity_cleanup(ved->ent);
- 	vimc_pads_cleanup(ved->pads);
- }
-+EXPORT_SYMBOL_GPL(vimc_ent_sd_unregister);
++/* min/typical/max system clock (xclk) frequencies */
++#define OV5640_XCLK_MIN  6000000
++#define OV5640_XCLK_MAX 24000000
 +
-+MODULE_DESCRIPTION("Virtual Media Controller Driver (VIMC) Common");
-+MODULE_AUTHOR("Helen Koike <helen.fornazier@gmail.com>");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
-index fb3463c..a9c1cfd 100644
---- a/drivers/media/platform/vimc/vimc-common.h
-+++ b/drivers/media/platform/vimc/vimc-common.h
-@@ -1,5 +1,5 @@
- /*
-- * vimc-ccommon.h Virtual Media Controller Driver
-+ * vimc-common.h Virtual Media Controller Driver
-  *
-  * Copyright (C) 2015-2017 Helen Koike <helen.fornazier@gmail.com>
-  *
-@@ -54,6 +54,21 @@ do {									\
- } while (0)
- 
- /**
-+ * struct vimc_platform_data - platform data to components
-+ *
-+ * @entity_name:	The name of the entity to be created
-+ *
-+ * Board setup code will often provide additional information using the device's
-+ * platform_data field to hold additional information.
-+ * When injecting a new platform_device in the component system the core needs
-+ * to provide to the corresponding submodules the name of the entity that should
-+ * be used when registering the subdevice in the Media Controller system.
-+ */
-+struct vimc_platform_data {
-+	char entity_name[32];
++#define OV5640_DEFAULT_SLAVE_ID 0x3c
++
++#define OV5640_REG_CHIP_ID		0x300a
++#define OV5640_REG_PAD_OUTPUT00		0x3019
++#define OV5640_REG_SC_PLL_CTRL0		0x3034
++#define OV5640_REG_SC_PLL_CTRL1		0x3035
++#define OV5640_REG_SC_PLL_CTRL2		0x3036
++#define OV5640_REG_SC_PLL_CTRL3		0x3037
++#define OV5640_REG_SLAVE_ID		0x3100
++#define OV5640_REG_SYS_ROOT_DIVIDER	0x3108
++#define OV5640_REG_AWB_R_GAIN		0x3400
++#define OV5640_REG_AWB_G_GAIN		0x3402
++#define OV5640_REG_AWB_B_GAIN		0x3404
++#define OV5640_REG_AWB_MANUAL_CTRL	0x3406
++#define OV5640_REG_AEC_PK_EXPOSURE_HI	0x3500
++#define OV5640_REG_AEC_PK_EXPOSURE_MED	0x3501
++#define OV5640_REG_AEC_PK_EXPOSURE_LO	0x3502
++#define OV5640_REG_AEC_PK_MANUAL	0x3503
++#define OV5640_REG_AEC_PK_REAL_GAIN	0x350a
++#define OV5640_REG_AEC_PK_VTS		0x350c
++#define OV5640_REG_TIMING_HTS		0x380c
++#define OV5640_REG_TIMING_VTS		0x380e
++#define OV5640_REG_TIMING_TC_REG21	0x3821
++#define OV5640_REG_AEC_CTRL00		0x3a00
++#define OV5640_REG_AEC_B50_STEP		0x3a08
++#define OV5640_REG_AEC_B60_STEP		0x3a0a
++#define OV5640_REG_AEC_CTRL0D		0x3a0d
++#define OV5640_REG_AEC_CTRL0E		0x3a0e
++#define OV5640_REG_AEC_CTRL0F		0x3a0f
++#define OV5640_REG_AEC_CTRL10		0x3a10
++#define OV5640_REG_AEC_CTRL11		0x3a11
++#define OV5640_REG_AEC_CTRL1B		0x3a1b
++#define OV5640_REG_AEC_CTRL1E		0x3a1e
++#define OV5640_REG_AEC_CTRL1F		0x3a1f
++#define OV5640_REG_HZ5060_CTRL00	0x3c00
++#define OV5640_REG_HZ5060_CTRL01	0x3c01
++#define OV5640_REG_SIGMADELTA_CTRL0C	0x3c0c
++#define OV5640_REG_FRAME_CTRL01		0x4202
++#define OV5640_REG_MIPI_CTRL00		0x4800
++#define OV5640_REG_DEBUG_MODE		0x4814
++#define OV5640_REG_PRE_ISP_TEST_SET1	0x503d
++#define OV5640_REG_SDE_CTRL0		0x5580
++#define OV5640_REG_SDE_CTRL1		0x5581
++#define OV5640_REG_SDE_CTRL3		0x5583
++#define OV5640_REG_SDE_CTRL4		0x5584
++#define OV5640_REG_SDE_CTRL5		0x5585
++#define OV5640_REG_AVG_READOUT		0x56a1
++
++enum ov5640_mode_id {
++	OV5640_MODE_QCIF_176_144 = 0,
++	OV5640_MODE_QVGA_320_240,
++	OV5640_MODE_VGA_640_480,
++	OV5640_MODE_NTSC_720_480,
++	OV5640_MODE_PAL_720_576,
++	OV5640_MODE_XGA_1024_768,
++	OV5640_MODE_720P_1280_720,
++	OV5640_MODE_1080P_1920_1080,
++	OV5640_MODE_QSXGA_2592_1944,
++	OV5640_NUM_MODES,
 +};
 +
-+/**
-  * struct vimc_pix_map - maps media bus code with v4l2 pixel format
-  *
-  * @code:		media bus format code defined by MEDIA_BUS_FMT_* macros
-@@ -74,7 +89,6 @@ struct vimc_pix_map {
-  *
-  * @ent:		the pointer to struct media_entity for the node
-  * @pads:		the list of pads of the node
-- * @destroy:		callback to destroy the node
-  * @process_frame:	callback send a frame to that node
-  * @vdev_get_format:	callback that returns the current format a pad, used
-  *			only when is_media_entity_v4l2_video_device(ent) returns
-@@ -91,7 +105,6 @@ struct vimc_pix_map {
- struct vimc_ent_device {
- 	struct media_entity *ent;
- 	struct media_pad *pads;
--	void (*destroy)(struct vimc_ent_device *);
- 	void (*process_frame)(struct vimc_ent_device *ved,
- 			      struct media_pad *sink, const void *frame);
- 	void (*vdev_get_format)(struct vimc_ent_device *ved,
-@@ -176,7 +189,6 @@ const struct vimc_pix_map *vimc_pix_map_by_pixelformat(u32 pixelformat);
-  * @num_pads:	number of pads to initialize
-  * @pads_flag:	flags to use in each pad
-  * @sd_ops:	pointer to &struct v4l2_subdev_ops.
-- * @sd_destroy:	callback to destroy the node
-  *
-  * Helper function initialize and register the struct vimc_ent_device and struct
-  * v4l2_subdev which represents a subdev node in the topology
-@@ -188,14 +200,13 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
- 			 u32 function,
- 			 u16 num_pads,
- 			 const unsigned long *pads_flag,
--			 const struct v4l2_subdev_ops *sd_ops,
--			 void (*sd_destroy)(struct vimc_ent_device *));
-+			 const struct v4l2_subdev_ops *sd_ops);
- 
- /**
-- * vimc_ent_sd_register - initialize and register a subdev node
-+ * vimc_ent_sd_unregister - cleanup and unregister a subdev node
-  *
-- * @ved:	the vimc_ent_device struct to be initialize
-- * @sd:		the v4l2_subdev struct to be initialize and registered
-+ * @ved:	the vimc_ent_device struct to be cleaned up
-+ * @sd:		the v4l2_subdev struct to be unregistered
-  *
-  * Helper function cleanup and unregister the struct vimc_ent_device and struct
-  * v4l2_subdev which represents a subdev node in the topology
-diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
-index afc79e2..51c0eee 100644
---- a/drivers/media/platform/vimc/vimc-core.c
-+++ b/drivers/media/platform/vimc/vimc-core.c
-@@ -15,15 +15,14 @@
-  *
-  */
- 
-+#include <linux/component.h>
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
- #include <media/media-device.h>
- #include <media/v4l2-device.h>
- 
--#include "vimc-capture.h"
- #include "vimc-common.h"
--#include "vimc-sensor.h"
- 
- #define VIMC_PDEV_NAME "vimc"
- #define VIMC_MDEV_MODEL_NAME "VIMC MDEV"
-@@ -37,10 +36,10 @@
- }
- 
- struct vimc_device {
--	/*
--	 * The pipeline configuration
--	 * (filled before calling vimc_device_register)
--	 */
-+	/* The platform device */
-+	struct platform_device pdev;
++enum ov5640_frame_rate {
++	OV5640_15_FPS = 0,
++	OV5640_30_FPS,
++	OV5640_NUM_FRAMERATES,
++};
 +
-+	/* The pipeline configuration */
- 	const struct vimc_pipeline_config *pipe_cfg;
- 
- 	/* The Associated media_device parent */
-@@ -49,43 +48,14 @@ struct vimc_device {
- 	/* Internal v4l2 parent device*/
- 	struct v4l2_device v4l2_dev;
- 
--	/* Internal topology */
--	struct vimc_ent_device **ved;
--};
--
--/**
-- * enum vimc_ent_node - Select the functionality of a node in the topology
-- * @VIMC_ENT_NODE_SENSOR:	A node of type SENSOR simulates a camera sensor
-- *				generating internal images in bayer format and
-- *				propagating those images through the pipeline
-- * @VIMC_ENT_NODE_CAPTURE:	A node of type CAPTURE is a v4l2 video_device
-- *				that exposes the received image from the
-- *				pipeline to the user space
-- * @VIMC_ENT_NODE_INPUT:	A node of type INPUT is a v4l2 video_device that
-- *				receives images from the user space and
-- *				propagates them through the pipeline
-- * @VIMC_ENT_NODE_DEBAYER:	A node type DEBAYER expects to receive a frame
-- *				in bayer format converts it to RGB
-- * @VIMC_ENT_NODE_SCALER:	A node of type SCALER scales the received image
-- *				by a given multiplier
-- *
-- * This enum is used in the entity configuration struct to allow the definition
-- * of a custom topology specifying the role of each node on it.
-- */
--enum vimc_ent_node {
--	VIMC_ENT_NODE_SENSOR,
--	VIMC_ENT_NODE_CAPTURE,
--	VIMC_ENT_NODE_INPUT,
--	VIMC_ENT_NODE_DEBAYER,
--	VIMC_ENT_NODE_SCALER,
-+	/* Subdevices */
-+	struct platform_device **subdevs;
- };
- 
- /* Structure which describes individual configuration for each entity */
- struct vimc_ent_config {
- 	const char *name;
--	size_t pads_qty;
--	const unsigned long *pads_flag;
--	enum vimc_ent_node node;
-+	const char *drv;
- };
- 
- /* Structure which describes links between entities */
-@@ -112,60 +82,40 @@ struct vimc_pipeline_config {
- static const struct vimc_ent_config ent_config[] = {
- 	{
- 		.name = "Sensor A",
--		.pads_qty = 1,
--		.pads_flag = (const unsigned long[]){MEDIA_PAD_FL_SOURCE},
--		.node = VIMC_ENT_NODE_SENSOR,
-+		.drv = "vimc-sensor",
- 	},
- 	{
- 		.name = "Sensor B",
--		.pads_qty = 1,
--		.pads_flag = (const unsigned long[]){MEDIA_PAD_FL_SOURCE},
--		.node = VIMC_ENT_NODE_SENSOR,
-+		.drv = "vimc-sensor",
- 	},
- 	{
- 		.name = "Debayer A",
--		.pads_qty = 2,
--		.pads_flag = (const unsigned long[]){MEDIA_PAD_FL_SINK,
--						     MEDIA_PAD_FL_SOURCE},
--		.node = VIMC_ENT_NODE_DEBAYER,
-+		.drv = "vimc-debayer",
- 	},
- 	{
- 		.name = "Debayer B",
--		.pads_qty = 2,
--		.pads_flag = (const unsigned long[]){MEDIA_PAD_FL_SINK,
--						     MEDIA_PAD_FL_SOURCE},
--		.node = VIMC_ENT_NODE_DEBAYER,
-+		.drv = "vimc-debayer",
- 	},
- 	{
- 		.name = "Raw Capture 0",
--		.pads_qty = 1,
--		.pads_flag = (const unsigned long[]){MEDIA_PAD_FL_SINK},
--		.node = VIMC_ENT_NODE_CAPTURE,
-+		.drv = "vimc-capture",
- 	},
- 	{
- 		.name = "Raw Capture 1",
--		.pads_qty = 1,
--		.pads_flag = (const unsigned long[]){MEDIA_PAD_FL_SINK},
--		.node = VIMC_ENT_NODE_CAPTURE,
-+		.drv = "vimc-capture",
- 	},
- 	{
- 		.name = "RGB/YUV Input",
--		.pads_qty = 1,
--		.pads_flag = (const unsigned long[]){MEDIA_PAD_FL_SOURCE},
--		.node = VIMC_ENT_NODE_INPUT,
-+		/* TODO: change this to vimc-input when it is implemented */
-+		.drv = "vimc-sensor",
- 	},
- 	{
- 		.name = "Scaler",
--		.pads_qty = 2,
--		.pads_flag = (const unsigned long[]){MEDIA_PAD_FL_SINK,
--						     MEDIA_PAD_FL_SOURCE},
--		.node = VIMC_ENT_NODE_SCALER,
-+		.drv = "vimc-scaler",
- 	},
- 	{
- 		.name = "RGB/YUV Capture",
--		.pads_qty = 1,
--		.pads_flag = (const unsigned long[]){MEDIA_PAD_FL_SINK},
--		.node = VIMC_ENT_NODE_CAPTURE,
-+		.drv = "vimc-capture",
- 	},
- };
- 
-@@ -197,111 +147,40 @@ static const struct vimc_pipeline_config pipe_cfg = {
- 
- /* -------------------------------------------------------------------------- */
- 
--static void vimc_device_unregister(struct vimc_device *vimc)
-+static int vimc_create_links(struct vimc_device *vimc)
- {
- 	unsigned int i;
--
--	media_device_unregister(&vimc->mdev);
--	/* Cleanup (only initialized) entities */
--	for (i = 0; i < vimc->pipe_cfg->num_ents; i++) {
--		if (vimc->ved[i] && vimc->ved[i]->destroy)
--			vimc->ved[i]->destroy(vimc->ved[i]);
--
--		vimc->ved[i] = NULL;
--	}
--	v4l2_device_unregister(&vimc->v4l2_dev);
--	media_device_cleanup(&vimc->mdev);
--}
--
--/*
-- * TODO: remove this function when all the
-- * entities specific code are implemented
-- */
--static void vimc_raw_destroy(struct vimc_ent_device *ved)
--{
--	media_device_unregister_entity(ved->ent);
--
--	media_entity_cleanup(ved->ent);
--
--	vimc_pads_cleanup(ved->pads);
--
--	kfree(ved->ent);
--
--	kfree(ved);
--}
--
--/*
-- * TODO: remove this function when all the
-- * entities specific code are implemented
-- */
--static struct vimc_ent_device *vimc_raw_create(struct v4l2_device *v4l2_dev,
--					       const char *const name,
--					       u16 num_pads,
--					       const unsigned long *pads_flag)
--{
--	struct vimc_ent_device *ved;
- 	int ret;
- 
--	/* Allocate the main ved struct */
--	ved = kzalloc(sizeof(*ved), GFP_KERNEL);
--	if (!ved)
--		return ERR_PTR(-ENOMEM);
--
--	/* Allocate the media entity */
--	ved->ent = kzalloc(sizeof(*ved->ent), GFP_KERNEL);
--	if (!ved->ent) {
--		ret = -ENOMEM;
--		goto err_free_ved;
--	}
--
--	/* Allocate the pads */
--	ved->pads = vimc_pads_init(num_pads, pads_flag);
--	if (IS_ERR(ved->pads)) {
--		ret = PTR_ERR(ved->pads);
--		goto err_free_ent;
-+	/* Initialize the links between entities */
-+	for (i = 0; i < vimc->pipe_cfg->num_links; i++) {
-+		const struct vimc_ent_link *link = &vimc->pipe_cfg->links[i];
-+		/*
-+		 * TODO: Check another way of retrieving ved struct without
-+		 * relying on platform_get_drvdata
-+		 */
-+		struct vimc_ent_device *ved_src =
-+			platform_get_drvdata(vimc->subdevs[link->src_ent]);
-+		struct vimc_ent_device *ved_sink =
-+			platform_get_drvdata(vimc->subdevs[link->sink_ent]);
++/*
++ * FIXME: remove this when a subdev API becomes available
++ * to set the MIPI CSI-2 virtual channel.
++ */
++static unsigned int virtual_channel;
++module_param(virtual_channel, int, 0);
++MODULE_PARM_DESC(virtual_channel,
++		 "MIPI CSI-2 virtual channel (0..3), default 0");
 +
-+		ret = media_create_pad_link(ved_src->ent, link->src_pad,
-+					    ved_sink->ent, link->sink_pad,
-+					    link->flags);
++static const int ov5640_framerates[] = {
++	[OV5640_15_FPS] = 15,
++	[OV5640_30_FPS] = 30,
++};
++
++/* regulator supplies */
++static const char * const ov5640_supply_name[] = {
++	"DOVDD", /* Digital I/O (1.8V) suppply */
++	"DVDD",  /* Digital Core (1.5V) supply */
++	"AVDD",  /* Analog (2.8V) supply */
++};
++
++#define OV5640_NUM_SUPPLIES ARRAY_SIZE(ov5640_supply_name)
++
++/*
++ * Image size under 1280 * 960 are SUBSAMPLING
++ * Image size upper 1280 * 960 are SCALING
++ */
++enum ov5640_downsize_mode {
++	SUBSAMPLING,
++	SCALING,
++};
++
++struct reg_value {
++	u16 reg_addr;
++	u8 val;
++	u8 mask;
++	u32 delay_ms;
++};
++
++struct ov5640_mode_info {
++	enum ov5640_mode_id id;
++	enum ov5640_downsize_mode dn_mode;
++	u32 width;
++	u32 height;
++	const struct reg_value *reg_data;
++	u32 reg_data_size;
++};
++
++struct ov5640_ctrls {
++	struct v4l2_ctrl_handler handler;
++	struct {
++		struct v4l2_ctrl *auto_exp;
++		struct v4l2_ctrl *exposure;
++	};
++	struct {
++		struct v4l2_ctrl *auto_wb;
++		struct v4l2_ctrl *blue_balance;
++		struct v4l2_ctrl *red_balance;
++	};
++	struct {
++		struct v4l2_ctrl *auto_gain;
++		struct v4l2_ctrl *gain;
++	};
++	struct v4l2_ctrl *brightness;
++	struct v4l2_ctrl *saturation;
++	struct v4l2_ctrl *contrast;
++	struct v4l2_ctrl *hue;
++	struct v4l2_ctrl *test_pattern;
++};
++
++struct ov5640_dev {
++	struct i2c_client *i2c_client;
++	struct v4l2_subdev sd;
++	struct media_pad pad;
++	struct v4l2_fwnode_endpoint ep; /* the parsed DT endpoint info */
++	struct clk *xclk; /* system clock to OV5640 */
++	u32 xclk_freq;
++
++	struct regulator_bulk_data supplies[OV5640_NUM_SUPPLIES];
++	struct gpio_desc *reset_gpio;
++	struct gpio_desc *pwdn_gpio;
++
++	/* lock to protect all members below */
++	struct mutex lock;
++
++	int power_count;
++
++	struct v4l2_mbus_framefmt fmt;
++
++	const struct ov5640_mode_info *current_mode;
++	enum ov5640_frame_rate current_fr;
++	struct v4l2_fract frame_interval;
++
++	struct ov5640_ctrls ctrls;
++
++	u32 prev_sysclk, prev_hts;
++	u32 ae_low, ae_high, ae_target;
++
++	bool pending_mode_change;
++	bool streaming;
++};
++
++static inline struct ov5640_dev *to_ov5640_dev(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct ov5640_dev, sd);
++}
++
++static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
++{
++	return &container_of(ctrl->handler, struct ov5640_dev,
++			     ctrls.handler)->sd;
++}
++
++/*
++ * FIXME: all of these register tables are likely filled with
++ * entries that set the register to their power-on default values,
++ * and which are otherwise not touched by this driver. Those entries
++ * should be identified and removed to speed register load time
++ * over i2c.
++ */
++
++static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
++
++	{0x3103, 0x11, 0, 0}, {0x3008, 0x82, 0, 5}, {0x3008, 0x42, 0, 0},
++	{0x3103, 0x03, 0, 0}, {0x3017, 0x00, 0, 0}, {0x3018, 0x00, 0, 0},
++	{0x3034, 0x18, 0, 0}, {0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0},
++	{0x3037, 0x13, 0, 0}, {0x3108, 0x01, 0, 0}, {0x3630, 0x36, 0, 0},
++	{0x3631, 0x0e, 0, 0}, {0x3632, 0xe2, 0, 0}, {0x3633, 0x12, 0, 0},
++	{0x3621, 0xe0, 0, 0}, {0x3704, 0xa0, 0, 0}, {0x3703, 0x5a, 0, 0},
++	{0x3715, 0x78, 0, 0}, {0x3717, 0x01, 0, 0}, {0x370b, 0x60, 0, 0},
++	{0x3705, 0x1a, 0, 0}, {0x3905, 0x02, 0, 0}, {0x3906, 0x10, 0, 0},
++	{0x3901, 0x0a, 0, 0}, {0x3731, 0x12, 0, 0}, {0x3600, 0x08, 0, 0},
++	{0x3601, 0x33, 0, 0}, {0x302d, 0x60, 0, 0}, {0x3620, 0x52, 0, 0},
++	{0x371b, 0x20, 0, 0}, {0x471c, 0x50, 0, 0}, {0x3a13, 0x43, 0, 0},
++	{0x3a18, 0x00, 0, 0}, {0x3a19, 0xf8, 0, 0}, {0x3635, 0x13, 0, 0},
++	{0x3636, 0x03, 0, 0}, {0x3634, 0x40, 0, 0}, {0x3622, 0x01, 0, 0},
++	{0x3c01, 0xa4, 0, 0}, {0x3c04, 0x28, 0, 0}, {0x3c05, 0x98, 0, 0},
++	{0x3c06, 0x00, 0, 0}, {0x3c07, 0x08, 0, 0}, {0x3c08, 0x00, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
++	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
++	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
++	{0x380b, 0xe0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
++	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
++	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x3000, 0x00, 0, 0},
++	{0x3002, 0x1c, 0, 0}, {0x3004, 0xff, 0, 0}, {0x3006, 0xc3, 0, 0},
++	{0x300e, 0x45, 0, 0}, {0x302e, 0x08, 0, 0}, {0x4300, 0x3f, 0, 0},
++	{0x501f, 0x00, 0, 0}, {0x4713, 0x03, 0, 0}, {0x4407, 0x04, 0, 0},
++	{0x440e, 0x00, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x4837, 0x0a, 0, 0}, {0x4800, 0x04, 0, 0}, {0x3824, 0x02, 0, 0},
++	{0x5000, 0xa7, 0, 0}, {0x5001, 0xa3, 0, 0}, {0x5180, 0xff, 0, 0},
++	{0x5181, 0xf2, 0, 0}, {0x5182, 0x00, 0, 0}, {0x5183, 0x14, 0, 0},
++	{0x5184, 0x25, 0, 0}, {0x5185, 0x24, 0, 0}, {0x5186, 0x09, 0, 0},
++	{0x5187, 0x09, 0, 0}, {0x5188, 0x09, 0, 0}, {0x5189, 0x88, 0, 0},
++	{0x518a, 0x54, 0, 0}, {0x518b, 0xee, 0, 0}, {0x518c, 0xb2, 0, 0},
++	{0x518d, 0x50, 0, 0}, {0x518e, 0x34, 0, 0}, {0x518f, 0x6b, 0, 0},
++	{0x5190, 0x46, 0, 0}, {0x5191, 0xf8, 0, 0}, {0x5192, 0x04, 0, 0},
++	{0x5193, 0x70, 0, 0}, {0x5194, 0xf0, 0, 0}, {0x5195, 0xf0, 0, 0},
++	{0x5196, 0x03, 0, 0}, {0x5197, 0x01, 0, 0}, {0x5198, 0x04, 0, 0},
++	{0x5199, 0x6c, 0, 0}, {0x519a, 0x04, 0, 0}, {0x519b, 0x00, 0, 0},
++	{0x519c, 0x09, 0, 0}, {0x519d, 0x2b, 0, 0}, {0x519e, 0x38, 0, 0},
++	{0x5381, 0x1e, 0, 0}, {0x5382, 0x5b, 0, 0}, {0x5383, 0x08, 0, 0},
++	{0x5384, 0x0a, 0, 0}, {0x5385, 0x7e, 0, 0}, {0x5386, 0x88, 0, 0},
++	{0x5387, 0x7c, 0, 0}, {0x5388, 0x6c, 0, 0}, {0x5389, 0x10, 0, 0},
++	{0x538a, 0x01, 0, 0}, {0x538b, 0x98, 0, 0}, {0x5300, 0x08, 0, 0},
++	{0x5301, 0x30, 0, 0}, {0x5302, 0x10, 0, 0}, {0x5303, 0x00, 0, 0},
++	{0x5304, 0x08, 0, 0}, {0x5305, 0x30, 0, 0}, {0x5306, 0x08, 0, 0},
++	{0x5307, 0x16, 0, 0}, {0x5309, 0x08, 0, 0}, {0x530a, 0x30, 0, 0},
++	{0x530b, 0x04, 0, 0}, {0x530c, 0x06, 0, 0}, {0x5480, 0x01, 0, 0},
++	{0x5481, 0x08, 0, 0}, {0x5482, 0x14, 0, 0}, {0x5483, 0x28, 0, 0},
++	{0x5484, 0x51, 0, 0}, {0x5485, 0x65, 0, 0}, {0x5486, 0x71, 0, 0},
++	{0x5487, 0x7d, 0, 0}, {0x5488, 0x87, 0, 0}, {0x5489, 0x91, 0, 0},
++	{0x548a, 0x9a, 0, 0}, {0x548b, 0xaa, 0, 0}, {0x548c, 0xb8, 0, 0},
++	{0x548d, 0xcd, 0, 0}, {0x548e, 0xdd, 0, 0}, {0x548f, 0xea, 0, 0},
++	{0x5490, 0x1d, 0, 0}, {0x5580, 0x02, 0, 0}, {0x5583, 0x40, 0, 0},
++	{0x5584, 0x10, 0, 0}, {0x5589, 0x10, 0, 0}, {0x558a, 0x00, 0, 0},
++	{0x558b, 0xf8, 0, 0}, {0x5800, 0x23, 0, 0}, {0x5801, 0x14, 0, 0},
++	{0x5802, 0x0f, 0, 0}, {0x5803, 0x0f, 0, 0}, {0x5804, 0x12, 0, 0},
++	{0x5805, 0x26, 0, 0}, {0x5806, 0x0c, 0, 0}, {0x5807, 0x08, 0, 0},
++	{0x5808, 0x05, 0, 0}, {0x5809, 0x05, 0, 0}, {0x580a, 0x08, 0, 0},
++	{0x580b, 0x0d, 0, 0}, {0x580c, 0x08, 0, 0}, {0x580d, 0x03, 0, 0},
++	{0x580e, 0x00, 0, 0}, {0x580f, 0x00, 0, 0}, {0x5810, 0x03, 0, 0},
++	{0x5811, 0x09, 0, 0}, {0x5812, 0x07, 0, 0}, {0x5813, 0x03, 0, 0},
++	{0x5814, 0x00, 0, 0}, {0x5815, 0x01, 0, 0}, {0x5816, 0x03, 0, 0},
++	{0x5817, 0x08, 0, 0}, {0x5818, 0x0d, 0, 0}, {0x5819, 0x08, 0, 0},
++	{0x581a, 0x05, 0, 0}, {0x581b, 0x06, 0, 0}, {0x581c, 0x08, 0, 0},
++	{0x581d, 0x0e, 0, 0}, {0x581e, 0x29, 0, 0}, {0x581f, 0x17, 0, 0},
++	{0x5820, 0x11, 0, 0}, {0x5821, 0x11, 0, 0}, {0x5822, 0x15, 0, 0},
++	{0x5823, 0x28, 0, 0}, {0x5824, 0x46, 0, 0}, {0x5825, 0x26, 0, 0},
++	{0x5826, 0x08, 0, 0}, {0x5827, 0x26, 0, 0}, {0x5828, 0x64, 0, 0},
++	{0x5829, 0x26, 0, 0}, {0x582a, 0x24, 0, 0}, {0x582b, 0x22, 0, 0},
++	{0x582c, 0x24, 0, 0}, {0x582d, 0x24, 0, 0}, {0x582e, 0x06, 0, 0},
++	{0x582f, 0x22, 0, 0}, {0x5830, 0x40, 0, 0}, {0x5831, 0x42, 0, 0},
++	{0x5832, 0x24, 0, 0}, {0x5833, 0x26, 0, 0}, {0x5834, 0x24, 0, 0},
++	{0x5835, 0x22, 0, 0}, {0x5836, 0x22, 0, 0}, {0x5837, 0x26, 0, 0},
++	{0x5838, 0x44, 0, 0}, {0x5839, 0x24, 0, 0}, {0x583a, 0x26, 0, 0},
++	{0x583b, 0x28, 0, 0}, {0x583c, 0x42, 0, 0}, {0x583d, 0xce, 0, 0},
++	{0x5025, 0x00, 0, 0}, {0x3a0f, 0x30, 0, 0}, {0x3a10, 0x28, 0, 0},
++	{0x3a1b, 0x30, 0, 0}, {0x3a1e, 0x26, 0, 0}, {0x3a11, 0x60, 0, 0},
++	{0x3a1f, 0x14, 0, 0}, {0x3008, 0x02, 0, 0}, {0x3c00, 0x04, 0, 300},
++};
++
++static const struct reg_value ov5640_setting_30fps_VGA_640_480[] = {
++
++	{0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
++	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
++	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
++	{0x380b, 0xe0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
++	{0x380e, 0x04, 0, 0}, {0x380f, 0x38, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
++	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x0e, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0}, {0x3503, 0x00, 0, 0},
++};
++
++static const struct reg_value ov5640_setting_15fps_VGA_640_480[] = {
++	{0x3035, 0x22, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
++	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
++	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
++	{0x380b, 0xe0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
++	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
++	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
++};
++
++static const struct reg_value ov5640_setting_30fps_XGA_1024_768[] = {
++
++	{0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
++	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
++	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
++	{0x380b, 0xe0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
++	{0x380e, 0x04, 0, 0}, {0x380f, 0x38, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
++	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x0e, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0}, {0x3503, 0x00, 0, 0},
++	{0x3808, 0x04, 0, 0}, {0x3809, 0x00, 0, 0}, {0x380a, 0x03, 0, 0},
++	{0x380b, 0x00, 0, 0}, {0x3035, 0x12, 0, 0},
++};
++
++static const struct reg_value ov5640_setting_15fps_XGA_1024_768[] = {
++	{0x3035, 0x22, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
++	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
++	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
++	{0x380b, 0xe0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
++	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
++	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0}, {0x3808, 0x04, 0, 0},
++	{0x3809, 0x00, 0, 0}, {0x380a, 0x03, 0, 0}, {0x380b, 0x00, 0, 0},
++};
++
++static const struct reg_value ov5640_setting_30fps_QVGA_320_240[] = {
++	{0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
++	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
++	{0x3808, 0x01, 0, 0}, {0x3809, 0x40, 0, 0}, {0x380a, 0x00, 0, 0},
++	{0x380b, 0xf0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
++	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
++	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
++};
++
++static const struct reg_value ov5640_setting_15fps_QVGA_320_240[] = {
++	{0x3035, 0x22, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
++	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
++	{0x3808, 0x01, 0, 0}, {0x3809, 0x40, 0, 0}, {0x380a, 0x00, 0, 0},
++	{0x380b, 0xf0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
++	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
++	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
++};
++
++static const struct reg_value ov5640_setting_30fps_QCIF_176_144[] = {
++	{0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
++	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
++	{0x3808, 0x00, 0, 0}, {0x3809, 0xb0, 0, 0}, {0x380a, 0x00, 0, 0},
++	{0x380b, 0x90, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
++	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
++	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
++};
++static const struct reg_value ov5640_setting_15fps_QCIF_176_144[] = {
++	{0x3035, 0x22, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
++	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
++	{0x3808, 0x00, 0, 0}, {0x3809, 0xb0, 0, 0}, {0x380a, 0x00, 0, 0},
++	{0x380b, 0x90, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
++	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
++	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
++};
++
++static const struct reg_value ov5640_setting_30fps_NTSC_720_480[] = {
++	{0x3035, 0x12, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
++	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
++	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x01, 0, 0},
++	{0x380b, 0xe0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
++	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x3c, 0, 0},
++	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
++};
++
++static const struct reg_value ov5640_setting_15fps_NTSC_720_480[] = {
++	{0x3035, 0x22, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
++	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
++	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x01, 0, 0},
++	{0x380b, 0xe0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
++	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x3c, 0, 0},
++	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
++};
++
++static const struct reg_value ov5640_setting_30fps_PAL_720_576[] = {
++	{0x3035, 0x12, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
++	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
++	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x02, 0, 0},
++	{0x380b, 0x40, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
++	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x38, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
++	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
++};
++
++static const struct reg_value ov5640_setting_15fps_PAL_720_576[] = {
++	{0x3035, 0x22, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
++	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
++	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x02, 0, 0},
++	{0x380b, 0x40, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
++	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x38, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
++	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
++};
++
++static const struct reg_value ov5640_setting_30fps_720P_1280_720[] = {
++	{0x3008, 0x42, 0, 0},
++	{0x3035, 0x21, 0, 0}, {0x3036, 0x54, 0, 0}, {0x3c07, 0x07, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
++	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0xfa, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x06, 0, 0}, {0x3807, 0xa9, 0, 0},
++	{0x3808, 0x05, 0, 0}, {0x3809, 0x00, 0, 0}, {0x380a, 0x02, 0, 0},
++	{0x380b, 0xd0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x64, 0, 0},
++	{0x380e, 0x02, 0, 0}, {0x380f, 0xe4, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
++	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x02, 0, 0},
++	{0x3a03, 0xe4, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0xbc, 0, 0},
++	{0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x72, 0, 0}, {0x3a0e, 0x01, 0, 0},
++	{0x3a0d, 0x02, 0, 0}, {0x3a14, 0x02, 0, 0}, {0x3a15, 0xe4, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x02, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x37, 0, 0}, {0x460c, 0x20, 0, 0},
++	{0x3824, 0x04, 0, 0}, {0x5001, 0x83, 0, 0}, {0x4005, 0x1a, 0, 0},
++	{0x3008, 0x02, 0, 0}, {0x3503, 0,    0, 0},
++};
++
++static const struct reg_value ov5640_setting_15fps_720P_1280_720[] = {
++	{0x3035, 0x41, 0, 0}, {0x3036, 0x54, 0, 0}, {0x3c07, 0x07, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
++	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0xfa, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x06, 0, 0}, {0x3807, 0xa9, 0, 0},
++	{0x3808, 0x05, 0, 0}, {0x3809, 0x00, 0, 0}, {0x380a, 0x02, 0, 0},
++	{0x380b, 0xd0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x64, 0, 0},
++	{0x380e, 0x02, 0, 0}, {0x380f, 0xe4, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
++	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x02, 0, 0},
++	{0x3a03, 0xe4, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0xbc, 0, 0},
++	{0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x72, 0, 0}, {0x3a0e, 0x01, 0, 0},
++	{0x3a0d, 0x02, 0, 0}, {0x3a14, 0x02, 0, 0}, {0x3a15, 0xe4, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x02, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x37, 0, 0}, {0x460c, 0x20, 0, 0},
++	{0x3824, 0x04, 0, 0}, {0x5001, 0x83, 0, 0},
++};
++
++static const struct reg_value ov5640_setting_30fps_1080P_1920_1080[] = {
++	{0x3008, 0x42, 0, 0},
++	{0x3035, 0x21, 0, 0}, {0x3036, 0x54, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x40, 0, 0}, {0x3821, 0x06, 0, 0}, {0x3814, 0x11, 0, 0},
++	{0x3815, 0x11, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x00, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9f, 0, 0},
++	{0x3808, 0x0a, 0, 0}, {0x3809, 0x20, 0, 0}, {0x380a, 0x07, 0, 0},
++	{0x380b, 0x98, 0, 0}, {0x380c, 0x0b, 0, 0}, {0x380d, 0x1c, 0, 0},
++	{0x380e, 0x07, 0, 0}, {0x380f, 0xb0, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
++	{0x3618, 0x04, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x21, 0, 0},
++	{0x3709, 0x12, 0, 0}, {0x370c, 0x00, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0}, {0x4713, 0x03, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 0}, {0x3035, 0x11, 0, 0},
++	{0x3036, 0x54, 0, 0}, {0x3c07, 0x07, 0, 0}, {0x3c08, 0x00, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3800, 0x01, 0, 0}, {0x3801, 0x50, 0, 0}, {0x3802, 0x01, 0, 0},
++	{0x3803, 0xb2, 0, 0}, {0x3804, 0x08, 0, 0}, {0x3805, 0xef, 0, 0},
++	{0x3806, 0x05, 0, 0}, {0x3807, 0xf1, 0, 0}, {0x3808, 0x07, 0, 0},
++	{0x3809, 0x80, 0, 0}, {0x380a, 0x04, 0, 0}, {0x380b, 0x38, 0, 0},
++	{0x380c, 0x09, 0, 0}, {0x380d, 0xc4, 0, 0}, {0x380e, 0x04, 0, 0},
++	{0x380f, 0x60, 0, 0}, {0x3612, 0x2b, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3a02, 0x04, 0, 0}, {0x3a03, 0x60, 0, 0}, {0x3a08, 0x01, 0, 0},
++	{0x3a09, 0x50, 0, 0}, {0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x18, 0, 0},
++	{0x3a0e, 0x03, 0, 0}, {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x04, 0, 0},
++	{0x3a15, 0x60, 0, 0}, {0x4713, 0x02, 0, 0}, {0x4407, 0x04, 0, 0},
++	{0x460b, 0x37, 0, 0}, {0x460c, 0x20, 0, 0}, {0x3824, 0x04, 0, 0},
++	{0x4005, 0x1a, 0, 0}, {0x3008, 0x02, 0, 0},
++	{0x3503, 0, 0, 0},
++};
++
++static const struct reg_value ov5640_setting_15fps_1080P_1920_1080[] = {
++	{0x3008, 0x42, 0, 0},
++	{0x3035, 0x21, 0, 0}, {0x3036, 0x54, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x40, 0, 0}, {0x3821, 0x06, 0, 0}, {0x3814, 0x11, 0, 0},
++	{0x3815, 0x11, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x00, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9f, 0, 0},
++	{0x3808, 0x0a, 0, 0}, {0x3809, 0x20, 0, 0}, {0x380a, 0x07, 0, 0},
++	{0x380b, 0x98, 0, 0}, {0x380c, 0x0b, 0, 0}, {0x380d, 0x1c, 0, 0},
++	{0x380e, 0x07, 0, 0}, {0x380f, 0xb0, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
++	{0x3618, 0x04, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x21, 0, 0},
++	{0x3709, 0x12, 0, 0}, {0x370c, 0x00, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0}, {0x4713, 0x03, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 0}, {0x3035, 0x21, 0, 0},
++	{0x3036, 0x54, 0, 1}, {0x3c07, 0x07, 0, 0}, {0x3c08, 0x00, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3800, 0x01, 0, 0}, {0x3801, 0x50, 0, 0}, {0x3802, 0x01, 0, 0},
++	{0x3803, 0xb2, 0, 0}, {0x3804, 0x08, 0, 0}, {0x3805, 0xef, 0, 0},
++	{0x3806, 0x05, 0, 0}, {0x3807, 0xf1, 0, 0}, {0x3808, 0x07, 0, 0},
++	{0x3809, 0x80, 0, 0}, {0x380a, 0x04, 0, 0}, {0x380b, 0x38, 0, 0},
++	{0x380c, 0x09, 0, 0}, {0x380d, 0xc4, 0, 0}, {0x380e, 0x04, 0, 0},
++	{0x380f, 0x60, 0, 0}, {0x3612, 0x2b, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3a02, 0x04, 0, 0}, {0x3a03, 0x60, 0, 0}, {0x3a08, 0x01, 0, 0},
++	{0x3a09, 0x50, 0, 0}, {0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x18, 0, 0},
++	{0x3a0e, 0x03, 0, 0}, {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x04, 0, 0},
++	{0x3a15, 0x60, 0, 0}, {0x4713, 0x02, 0, 0}, {0x4407, 0x04, 0, 0},
++	{0x460b, 0x37, 0, 0}, {0x460c, 0x20, 0, 0}, {0x3824, 0x04, 0, 0},
++	{0x4005, 0x1a, 0, 0}, {0x3008, 0x02, 0, 0}, {0x3503, 0, 0, 0},
++};
++
++static const struct reg_value ov5640_setting_15fps_QSXGA_2592_1944[] = {
++	{0x3820, 0x40, 0, 0}, {0x3821, 0x06, 0, 0},
++	{0x3035, 0x21, 0, 0}, {0x3036, 0x54, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
++	{0x3820, 0x40, 0, 0}, {0x3821, 0x06, 0, 0}, {0x3814, 0x11, 0, 0},
++	{0x3815, 0x11, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
++	{0x3802, 0x00, 0, 0}, {0x3803, 0x00, 0, 0}, {0x3804, 0x0a, 0, 0},
++	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9f, 0, 0},
++	{0x3808, 0x0a, 0, 0}, {0x3809, 0x20, 0, 0}, {0x380a, 0x07, 0, 0},
++	{0x380b, 0x98, 0, 0}, {0x380c, 0x0b, 0, 0}, {0x380d, 0x1c, 0, 0},
++	{0x380e, 0x07, 0, 0}, {0x380f, 0xb0, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
++	{0x3618, 0x04, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x21, 0, 0},
++	{0x3709, 0x12, 0, 0}, {0x370c, 0x00, 0, 0}, {0x3a02, 0x03, 0, 0},
++	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
++	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
++	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
++	{0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0}, {0x4713, 0x03, 0, 0},
++	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 70},
++};
++
++/* power-on sensor init reg table */
++static const struct ov5640_mode_info ov5640_mode_init_data = {
++	0, SUBSAMPLING, 640, 480, ov5640_init_setting_30fps_VGA,
++	ARRAY_SIZE(ov5640_init_setting_30fps_VGA),
++};
++
++static const struct ov5640_mode_info
++ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
++	{
++		{OV5640_MODE_QCIF_176_144, SUBSAMPLING, 176, 144,
++		 ov5640_setting_15fps_QCIF_176_144,
++		 ARRAY_SIZE(ov5640_setting_15fps_QCIF_176_144)},
++		{OV5640_MODE_QVGA_320_240, SUBSAMPLING, 320,  240,
++		 ov5640_setting_15fps_QVGA_320_240,
++		 ARRAY_SIZE(ov5640_setting_15fps_QVGA_320_240)},
++		{OV5640_MODE_VGA_640_480, SUBSAMPLING, 640,  480,
++		 ov5640_setting_15fps_VGA_640_480,
++		 ARRAY_SIZE(ov5640_setting_15fps_VGA_640_480)},
++		{OV5640_MODE_NTSC_720_480, SUBSAMPLING, 720, 480,
++		 ov5640_setting_15fps_NTSC_720_480,
++		 ARRAY_SIZE(ov5640_setting_15fps_NTSC_720_480)},
++		{OV5640_MODE_PAL_720_576, SUBSAMPLING, 720, 576,
++		 ov5640_setting_15fps_PAL_720_576,
++		 ARRAY_SIZE(ov5640_setting_15fps_PAL_720_576)},
++		{OV5640_MODE_XGA_1024_768, SUBSAMPLING, 1024, 768,
++		 ov5640_setting_15fps_XGA_1024_768,
++		 ARRAY_SIZE(ov5640_setting_15fps_XGA_1024_768)},
++		{OV5640_MODE_720P_1280_720, SUBSAMPLING, 1280, 720,
++		 ov5640_setting_15fps_720P_1280_720,
++		 ARRAY_SIZE(ov5640_setting_15fps_720P_1280_720)},
++		{OV5640_MODE_1080P_1920_1080, SCALING, 1920, 1080,
++		 ov5640_setting_15fps_1080P_1920_1080,
++		 ARRAY_SIZE(ov5640_setting_15fps_1080P_1920_1080)},
++		{OV5640_MODE_QSXGA_2592_1944, SCALING, 2592, 1944,
++		 ov5640_setting_15fps_QSXGA_2592_1944,
++		 ARRAY_SIZE(ov5640_setting_15fps_QSXGA_2592_1944)},
++	}, {
++		{OV5640_MODE_QCIF_176_144, SUBSAMPLING, 176, 144,
++		 ov5640_setting_30fps_QCIF_176_144,
++		 ARRAY_SIZE(ov5640_setting_30fps_QCIF_176_144)},
++		{OV5640_MODE_QVGA_320_240, SUBSAMPLING, 320,  240,
++		 ov5640_setting_30fps_QVGA_320_240,
++		 ARRAY_SIZE(ov5640_setting_30fps_QVGA_320_240)},
++		{OV5640_MODE_VGA_640_480, SUBSAMPLING, 640,  480,
++		 ov5640_setting_30fps_VGA_640_480,
++		 ARRAY_SIZE(ov5640_setting_30fps_VGA_640_480)},
++		{OV5640_MODE_NTSC_720_480, SUBSAMPLING, 720, 480,
++		 ov5640_setting_30fps_NTSC_720_480,
++		 ARRAY_SIZE(ov5640_setting_30fps_NTSC_720_480)},
++		{OV5640_MODE_PAL_720_576, SUBSAMPLING, 720, 576,
++		 ov5640_setting_30fps_PAL_720_576,
++		 ARRAY_SIZE(ov5640_setting_30fps_PAL_720_576)},
++		{OV5640_MODE_XGA_1024_768, SUBSAMPLING, 1024, 768,
++		 ov5640_setting_30fps_XGA_1024_768,
++		 ARRAY_SIZE(ov5640_setting_30fps_XGA_1024_768)},
++		{OV5640_MODE_720P_1280_720, SUBSAMPLING, 1280, 720,
++		 ov5640_setting_30fps_720P_1280_720,
++		 ARRAY_SIZE(ov5640_setting_30fps_720P_1280_720)},
++		{OV5640_MODE_1080P_1920_1080, SCALING, 1920, 1080,
++		 ov5640_setting_30fps_1080P_1920_1080,
++		 ARRAY_SIZE(ov5640_setting_30fps_1080P_1920_1080)},
++		{OV5640_MODE_QSXGA_2592_1944, -1, 0, 0, NULL, 0},
++	},
++};
++
++static int ov5640_init_slave_id(struct ov5640_dev *sensor)
++{
++	struct i2c_client *client = sensor->i2c_client;
++	struct i2c_msg msg;
++	u8 buf[3];
++	int ret;
++
++	if (client->addr == OV5640_DEFAULT_SLAVE_ID)
++		return 0;
++
++	buf[0] = OV5640_REG_SLAVE_ID >> 8;
++	buf[1] = OV5640_REG_SLAVE_ID & 0xff;
++	buf[2] = client->addr << 1;
++
++	msg.addr = OV5640_DEFAULT_SLAVE_ID;
++	msg.flags = 0;
++	msg.buf = buf;
++	msg.len = sizeof(buf);
++
++	ret = i2c_transfer(client->adapter, &msg, 1);
++	if (ret < 0) {
++		dev_err(&client->dev, "%s: failed with %d\n", __func__, ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int ov5640_write_reg(struct ov5640_dev *sensor, u16 reg, u8 val)
++{
++	struct i2c_client *client = sensor->i2c_client;
++	struct i2c_msg msg;
++	u8 buf[3];
++	int ret;
++
++	buf[0] = reg >> 8;
++	buf[1] = reg & 0xff;
++	buf[2] = val;
++
++	msg.addr = client->addr;
++	msg.flags = client->flags;
++	msg.buf = buf;
++	msg.len = sizeof(buf);
++
++	ret = i2c_transfer(client->adapter, &msg, 1);
++	if (ret < 0) {
++		v4l2_err(&sensor->sd, "%s: error: reg=%x, val=%x\n",
++			__func__, reg, val);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int ov5640_read_reg(struct ov5640_dev *sensor, u16 reg, u8 *val)
++{
++	struct i2c_client *client = sensor->i2c_client;
++	struct i2c_msg msg[2];
++	u8 buf[2];
++	int ret;
++
++	buf[0] = reg >> 8;
++	buf[1] = reg & 0xff;
++
++	msg[0].addr = client->addr;
++	msg[0].flags = client->flags;
++	msg[0].buf = buf;
++	msg[0].len = sizeof(buf);
++
++	msg[1].addr = client->addr;
++	msg[1].flags = client->flags | I2C_M_RD;
++	msg[1].buf = buf;
++	msg[1].len = 1;
++
++	ret = i2c_transfer(client->adapter, msg, 2);
++	if (ret < 0)
++		return ret;
++
++	*val = buf[0];
++	return 0;
++}
++
++static int ov5640_read_reg16(struct ov5640_dev *sensor, u16 reg, u16 *val)
++{
++	u8 hi, lo;
++	int ret;
++
++	ret = ov5640_read_reg(sensor, reg, &hi);
++	if (ret)
++		return ret;
++	ret = ov5640_read_reg(sensor, reg+1, &lo);
++	if (ret)
++		return ret;
++
++	*val = ((u16)hi << 8) | (u16)lo;
++	return 0;
++}
++
++static int ov5640_write_reg16(struct ov5640_dev *sensor, u16 reg, u16 val)
++{
++	int ret;
++
++	ret = ov5640_write_reg(sensor, reg, val >> 8);
++	if (ret)
++		return ret;
++
++	return ov5640_write_reg(sensor, reg + 1, val & 0xff);
++}
++
++static int ov5640_mod_reg(struct ov5640_dev *sensor, u16 reg,
++			  u8 mask, u8 val)
++{
++	u8 readval;
++	int ret;
++
++	ret = ov5640_read_reg(sensor, reg, &readval);
++	if (ret)
++		return ret;
++
++	readval &= ~mask;
++	val &= mask;
++	val |= readval;
++
++	return ov5640_write_reg(sensor, reg, val);
++}
++
++/* download ov5640 settings to sensor through i2c */
++static int ov5640_load_regs(struct ov5640_dev *sensor,
++			    const struct ov5640_mode_info *mode)
++{
++	const struct reg_value *regs = mode->reg_data;
++	unsigned int i;
++	u32 delay_ms;
++	u16 reg_addr;
++	u8 mask, val;
++	int ret = 0;
++
++	for (i = 0; i < mode->reg_data_size; ++i, ++regs) {
++		delay_ms = regs->delay_ms;
++		reg_addr = regs->reg_addr;
++		val = regs->val;
++		mask = regs->mask;
++
++		if (mask)
++			ret = ov5640_mod_reg(sensor, reg_addr, mask, val);
++		else
++			ret = ov5640_write_reg(sensor, reg_addr, val);
++		if (ret)
++			break;
++
++		if (delay_ms)
++			usleep_range(1000*delay_ms, 1000*delay_ms+100);
++	}
++
++	return ret;
++}
++
++/* read exposure, in number of line periods */
++static int ov5640_get_exposure(struct ov5640_dev *sensor)
++{
++	int exp, ret;
++	u8 temp;
++
++	ret = ov5640_read_reg(sensor, OV5640_REG_AEC_PK_EXPOSURE_HI, &temp);
++	if (ret)
++		return ret;
++	exp = ((int)temp & 0x0f) << 16;
++	ret = ov5640_read_reg(sensor, OV5640_REG_AEC_PK_EXPOSURE_MED, &temp);
++	if (ret)
++		return ret;
++	exp |= ((int)temp << 8);
++	ret = ov5640_read_reg(sensor, OV5640_REG_AEC_PK_EXPOSURE_LO, &temp);
++	if (ret)
++		return ret;
++	exp |= (int)temp;
++
++	return exp >> 4;
++}
++
++/* write exposure, given number of line periods */
++static int ov5640_set_exposure(struct ov5640_dev *sensor, u32 exposure)
++{
++	int ret;
++
++	exposure <<= 4;
++
++	ret = ov5640_write_reg(sensor,
++			       OV5640_REG_AEC_PK_EXPOSURE_LO,
++			       exposure & 0xff);
++	if (ret)
++		return ret;
++	ret = ov5640_write_reg(sensor,
++			       OV5640_REG_AEC_PK_EXPOSURE_MED,
++			       (exposure >> 8) & 0xff);
++	if (ret)
++		return ret;
++	return ov5640_write_reg(sensor,
++				OV5640_REG_AEC_PK_EXPOSURE_HI,
++				(exposure >> 16) & 0x0f);
++}
++
++static int ov5640_get_gain(struct ov5640_dev *sensor)
++{
++	u16 gain;
++	int ret;
++
++	ret = ov5640_read_reg16(sensor, OV5640_REG_AEC_PK_REAL_GAIN, &gain);
++	if (ret)
++		return ret;
++
++	return gain & 0x3ff;
++}
++
++static int ov5640_set_stream(struct ov5640_dev *sensor, bool on)
++{
++	int ret;
++
++	ret = ov5640_mod_reg(sensor, OV5640_REG_MIPI_CTRL00, BIT(5),
++			     on ? 0 : BIT(5));
++	if (ret)
++		return ret;
++	ret = ov5640_write_reg(sensor, OV5640_REG_PAD_OUTPUT00,
++			       on ? 0x00 : 0x70);
++	if (ret)
++		return ret;
++
++	return ov5640_write_reg(sensor, OV5640_REG_FRAME_CTRL01,
++				on ? 0x00 : 0x0f);
++}
++
++static int ov5640_get_sysclk(struct ov5640_dev *sensor)
++{
++	 /* calculate sysclk */
++	u32 xvclk = sensor->xclk_freq / 10000;
++	u32 multiplier, prediv, VCO, sysdiv, pll_rdiv;
++	u32 sclk_rdiv_map[] = {1, 2, 4, 8};
++	u32 bit_div2x = 1, sclk_rdiv, sysclk;
++	u8 temp1, temp2;
++	int ret;
++
++	ret = ov5640_read_reg(sensor, OV5640_REG_SC_PLL_CTRL0, &temp1);
++	if (ret)
++		return ret;
++	temp2 = temp1 & 0x0f;
++	if (temp2 == 8 || temp2 == 10)
++		bit_div2x = temp2 / 2;
++
++	ret = ov5640_read_reg(sensor, OV5640_REG_SC_PLL_CTRL1, &temp1);
++	if (ret)
++		return ret;
++	sysdiv = temp1 >> 4;
++	if (sysdiv == 0)
++		sysdiv = 16;
++
++	ret = ov5640_read_reg(sensor, OV5640_REG_SC_PLL_CTRL2, &temp1);
++	if (ret)
++		return ret;
++	multiplier = temp1;
++
++	ret = ov5640_read_reg(sensor, OV5640_REG_SC_PLL_CTRL3, &temp1);
++	if (ret)
++		return ret;
++	prediv = temp1 & 0x0f;
++	pll_rdiv = ((temp1 >> 4) & 0x01) + 1;
++
++	ret = ov5640_read_reg(sensor, OV5640_REG_SYS_ROOT_DIVIDER, &temp1);
++	if (ret)
++		return ret;
++	temp2 = temp1 & 0x03;
++	sclk_rdiv = sclk_rdiv_map[temp2];
++
++	if (!prediv || !sysdiv || !pll_rdiv || !bit_div2x)
++		return -EINVAL;
++
++	VCO = xvclk * multiplier / prediv;
++
++	sysclk = VCO / sysdiv / pll_rdiv * 2 / bit_div2x / sclk_rdiv;
++
++	return sysclk;
++}
++
++static int ov5640_set_night_mode(struct ov5640_dev *sensor)
++{
++	 /* read HTS from register settings */
++	u8 mode;
++	int ret;
++
++	ret = ov5640_read_reg(sensor, OV5640_REG_AEC_CTRL00, &mode);
++	if (ret)
++		return ret;
++	mode &= 0xfb;
++	return ov5640_write_reg(sensor, OV5640_REG_AEC_CTRL00, mode);
++}
++
++static int ov5640_get_hts(struct ov5640_dev *sensor)
++{
++	/* read HTS from register settings */
++	u16 hts;
++	int ret;
++
++	ret = ov5640_read_reg16(sensor, OV5640_REG_TIMING_HTS, &hts);
++	if (ret)
++		return ret;
++	return hts;
++}
++
++static int ov5640_get_vts(struct ov5640_dev *sensor)
++{
++	u16 vts;
++	int ret;
++
++	ret = ov5640_read_reg16(sensor, OV5640_REG_TIMING_VTS, &vts);
++	if (ret)
++		return ret;
++	return vts;
++}
++
++static int ov5640_set_vts(struct ov5640_dev *sensor, int vts)
++{
++	return ov5640_write_reg16(sensor, OV5640_REG_TIMING_VTS, vts);
++}
++
++static int ov5640_get_light_freq(struct ov5640_dev *sensor)
++{
++	/* get banding filter value */
++	int ret, light_freq = 0;
++	u8 temp, temp1;
++
++	ret = ov5640_read_reg(sensor, OV5640_REG_HZ5060_CTRL01, &temp);
++	if (ret)
++		return ret;
++
++	if (temp & 0x80) {
++		/* manual */
++		ret = ov5640_read_reg(sensor, OV5640_REG_HZ5060_CTRL00,
++				      &temp1);
 +		if (ret)
 +			return ret;
- 	}
- 
--	/* Initialize the media entity */
--	ved->ent->name = name;
--	ved->ent->function = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
--	ret = media_entity_pads_init(ved->ent, num_pads, ved->pads);
--	if (ret)
--		goto err_cleanup_pads;
--
--	/* Register the media entity */
--	ret = media_device_register_entity(v4l2_dev->mdev, ved->ent);
--	if (ret)
--		goto err_cleanup_entity;
--
--	/* Fill out the destroy function and return */
--	ved->destroy = vimc_raw_destroy;
--	return ved;
--
--err_cleanup_entity:
--	media_entity_cleanup(ved->ent);
--err_cleanup_pads:
--	vimc_pads_cleanup(ved->pads);
--err_free_ent:
--	kfree(ved->ent);
--err_free_ved:
--	kfree(ved);
--
--	return ERR_PTR(ret);
-+	return 0;
- }
- 
--static int vimc_device_register(struct vimc_device *vimc)
-+static int vimc_comp_bind(struct device *master)
- {
--	unsigned int i;
-+	struct vimc_device *vimc = container_of(to_platform_device(master),
-+						struct vimc_device, pdev);
- 	int ret;
- 
--	/* Allocate memory for the vimc_ent_devices pointers */
--	vimc->ved = devm_kcalloc(vimc->mdev.dev, vimc->pipe_cfg->num_ents,
--				 sizeof(*vimc->ved), GFP_KERNEL);
--	if (!vimc->ved)
--		return -ENOMEM;
--
--	/* Link the media device within the v4l2_device */
--	vimc->v4l2_dev.mdev = &vimc->mdev;
-+	dev_dbg(master, "bind");
- 
- 	/* Register the v4l2 struct */
- 	ret = v4l2_device_register(vimc->mdev.dev, &vimc->v4l2_dev);
-@@ -311,66 +190,22 @@ static int vimc_device_register(struct vimc_device *vimc)
- 		return ret;
- 	}
- 
--	/* Initialize entities */
--	for (i = 0; i < vimc->pipe_cfg->num_ents; i++) {
--		struct vimc_ent_device *(*create_func)(struct v4l2_device *,
--						       const char *const,
--						       u16,
--						       const unsigned long *);
--
--		/* Register the specific node */
--		switch (vimc->pipe_cfg->ents[i].node) {
--		case VIMC_ENT_NODE_SENSOR:
--			create_func = vimc_sen_create;
--			break;
--
--		case VIMC_ENT_NODE_CAPTURE:
--			create_func = vimc_cap_create;
--			break;
--
--		/* TODO: Instantiate the specific topology node */
--		case VIMC_ENT_NODE_INPUT:
--		case VIMC_ENT_NODE_DEBAYER:
--		case VIMC_ENT_NODE_SCALER:
--		default:
--			/*
--			 * TODO: remove this when all the entities specific
--			 * code are implemented
--			 */
--			create_func = vimc_raw_create;
--			break;
--		}
--
--		vimc->ved[i] = create_func(&vimc->v4l2_dev,
--					   vimc->pipe_cfg->ents[i].name,
--					   vimc->pipe_cfg->ents[i].pads_qty,
--					   vimc->pipe_cfg->ents[i].pads_flag);
--		if (IS_ERR(vimc->ved[i])) {
--			ret = PTR_ERR(vimc->ved[i]);
--			vimc->ved[i] = NULL;
--			goto err;
--		}
--	}
--
--	/* Initialize the links between entities */
--	for (i = 0; i < vimc->pipe_cfg->num_links; i++) {
--		const struct vimc_ent_link *link = &vimc->pipe_cfg->links[i];
-+	/* Bind subdevices */
-+	ret = component_bind_all(master, &vimc->v4l2_dev);
-+	if (ret)
-+		goto err_v4l2_unregister;
- 
--		ret = media_create_pad_link(vimc->ved[link->src_ent]->ent,
--					    link->src_pad,
--					    vimc->ved[link->sink_ent]->ent,
--					    link->sink_pad,
--					    link->flags);
--		if (ret)
--			goto err;
--	}
-+	/* Initialize links */
-+	ret = vimc_create_links(vimc);
-+	if (ret)
-+		goto err_comp_unbind_all;
- 
- 	/* Register the media device */
- 	ret = media_device_register(&vimc->mdev);
- 	if (ret) {
- 		dev_err(vimc->mdev.dev,
- 			"media device register failed (err=%d)\n", ret);
--		return ret;
-+		goto err_comp_unbind_all;
- 	}
- 
- 	/* Expose all subdev's nodes*/
-@@ -379,32 +214,106 @@ static int vimc_device_register(struct vimc_device *vimc)
- 		dev_err(vimc->mdev.dev,
- 			"vimc subdev nodes registration failed (err=%d)\n",
- 			ret);
--		goto err;
-+		goto err_mdev_unregister;
- 	}
- 
- 	return 0;
- 
--err:
--	/* Destroy the so far created topology */
--	vimc_device_unregister(vimc);
-+err_mdev_unregister:
-+	media_device_unregister(&vimc->mdev);
-+err_comp_unbind_all:
-+	component_unbind_all(master, NULL);
-+err_v4l2_unregister:
-+	v4l2_device_unregister(&vimc->v4l2_dev);
- 
- 	return ret;
- }
- 
-+static void vimc_comp_unbind(struct device *master)
-+{
-+	struct vimc_device *vimc = container_of(to_platform_device(master),
-+						struct vimc_device, pdev);
++		if (temp1 & 0x04) {
++			/* 50Hz */
++			light_freq = 50;
++		} else {
++			/* 60Hz */
++			light_freq = 60;
++		}
++	} else {
++		/* auto */
++		ret = ov5640_read_reg(sensor, OV5640_REG_SIGMADELTA_CTRL0C,
++				      &temp1);
++		if (ret)
++			return ret;
 +
-+	dev_dbg(master, "unbind");
++		if (temp1 & 0x01) {
++			/* 50Hz */
++			light_freq = 50;
++		} else {
++			/* 60Hz */
++		}
++	}
 +
-+	media_device_unregister(&vimc->mdev);
-+	component_unbind_all(master, NULL);
-+	v4l2_device_unregister(&vimc->v4l2_dev);
++	return light_freq;
 +}
 +
-+static int vimc_comp_compare(struct device *comp, void *data)
++static int ov5640_set_bandingfilter(struct ov5640_dev *sensor)
 +{
-+	const struct platform_device *pdev = to_platform_device(comp);
-+	const char *name = data;
++	u32 band_step60, max_band60, band_step50, max_band50, prev_vts;
++	int ret;
 +
-+	return !strcmp(pdev->dev.platform_data, name);
++	/* read preview PCLK */
++	ret = ov5640_get_sysclk(sensor);
++	if (ret < 0)
++		return ret;
++	if (ret == 0)
++		return -EINVAL;
++	sensor->prev_sysclk = ret;
++	/* read preview HTS */
++	ret = ov5640_get_hts(sensor);
++	if (ret < 0)
++		return ret;
++	if (ret == 0)
++		return -EINVAL;
++	sensor->prev_hts = ret;
++
++	/* read preview VTS */
++	ret = ov5640_get_vts(sensor);
++	if (ret < 0)
++		return ret;
++	prev_vts = ret;
++
++
++	/* calculate banding filter */
++	/* 60Hz */
++	band_step60 = sensor->prev_sysclk * 100 / sensor->prev_hts * 100 / 120;
++	ret = ov5640_write_reg16(sensor, OV5640_REG_AEC_B60_STEP, band_step60);
++	if (ret)
++		return ret;
++	if (!band_step60)
++		return -EINVAL;
++	max_band60 = (int)((prev_vts - 4) / band_step60);
++	ret = ov5640_write_reg(sensor, OV5640_REG_AEC_CTRL0D, max_band60);
++	if (ret)
++		return ret;
++
++	/* 50Hz */
++	band_step50 = sensor->prev_sysclk * 100 / sensor->prev_hts;
++	ret = ov5640_write_reg16(sensor, OV5640_REG_AEC_B50_STEP, band_step50);
++	if (ret)
++		return ret;
++	if (!band_step50)
++		return -EINVAL;
++	max_band50 = (int)((prev_vts - 4) / band_step50);
++	return ov5640_write_reg(sensor, OV5640_REG_AEC_CTRL0E, max_band50);
 +}
 +
-+static struct component_match *vimc_add_subdevs(struct vimc_device *vimc)
++static int ov5640_set_ae_target(struct ov5640_dev *sensor, int target)
 +{
-+	struct component_match *match = NULL;
-+	struct vimc_platform_data pdata;
++	/* stable in high */
++	u32 fast_high, fast_low;
++	int ret;
++
++	sensor->ae_low = target * 23 / 25;	/* 0.92 */
++	sensor->ae_high = target * 27 / 25;	/* 1.08 */
++
++	fast_high = sensor->ae_high << 1;
++	if (fast_high > 255)
++		fast_high = 255;
++
++	fast_low = sensor->ae_low >> 1;
++
++	ret = ov5640_write_reg(sensor, OV5640_REG_AEC_CTRL0F, sensor->ae_high);
++	if (ret)
++		return ret;
++	ret = ov5640_write_reg(sensor, OV5640_REG_AEC_CTRL10, sensor->ae_low);
++	if (ret)
++		return ret;
++	ret = ov5640_write_reg(sensor, OV5640_REG_AEC_CTRL1B, sensor->ae_high);
++	if (ret)
++		return ret;
++	ret = ov5640_write_reg(sensor, OV5640_REG_AEC_CTRL1E, sensor->ae_low);
++	if (ret)
++		return ret;
++	ret = ov5640_write_reg(sensor, OV5640_REG_AEC_CTRL11, fast_high);
++	if (ret)
++		return ret;
++	return ov5640_write_reg(sensor, OV5640_REG_AEC_CTRL1F, fast_low);
++}
++
++static int ov5640_binning_on(struct ov5640_dev *sensor)
++{
++	u8 temp;
++	int ret;
++
++	ret = ov5640_read_reg(sensor, OV5640_REG_TIMING_TC_REG21, &temp);
++	if (ret)
++		return ret;
++	temp &= 0xfe;
++	return temp ? 1 : 0;
++}
++
++static int ov5640_set_virtual_channel(struct ov5640_dev *sensor)
++{
++	u8 temp, channel = virtual_channel;
++	int ret;
++
++	if (channel > 3)
++		return -EINVAL;
++
++	ret = ov5640_read_reg(sensor, OV5640_REG_DEBUG_MODE, &temp);
++	if (ret)
++		return ret;
++	temp &= ~(3 << 6);
++	temp |= (channel << 6);
++	return ov5640_write_reg(sensor, OV5640_REG_DEBUG_MODE, temp);
++}
++
++static const struct ov5640_mode_info *
++ov5640_find_mode(struct ov5640_dev *sensor, enum ov5640_frame_rate fr,
++		 int width, int height, bool nearest)
++{
++	const struct ov5640_mode_info *mode = NULL;
 +	int i;
 +
-+	for (i = 0; i < vimc->pipe_cfg->num_ents; i++) {
-+		dev_dbg(&vimc->pdev.dev, "new pdev for %s\n",
-+			vimc->pipe_cfg->ents[i].drv);
++	for (i = OV5640_NUM_MODES - 1; i >= 0; i--) {
++		mode = &ov5640_mode_data[fr][i];
 +
-+		strlcpy(pdata.entity_name, vimc->pipe_cfg->ents[i].name,
-+			sizeof(pdata.entity_name));
++		if (!mode->reg_data)
++			continue;
 +
-+		vimc->subdevs[i] = platform_device_register_data(&vimc->pdev.dev,
-+						vimc->pipe_cfg->ents[i].drv,
-+						PLATFORM_DEVID_AUTO,
-+						&pdata,
-+						sizeof(pdata));
-+		if (!vimc->subdevs[i]) {
-+			while (--i >= 0)
-+				platform_device_unregister(vimc->subdevs[i]);
++		if ((nearest && mode->width <= width &&
++		     mode->height <= height) ||
++		    (!nearest && mode->width == width &&
++		     mode->height == height))
++			break;
++	}
 +
-+			return ERR_PTR(-ENOMEM);
++	if (nearest && i < 0)
++		mode = &ov5640_mode_data[fr][0];
++
++	return mode;
++}
++
++/*
++ * sensor changes between scaling and subsampling, go through
++ * exposure calculation
++ */
++static int ov5640_set_mode_exposure_calc(
++	struct ov5640_dev *sensor, const struct ov5640_mode_info *mode)
++{
++	u32 prev_shutter, prev_gain16;
++	u32 cap_shutter, cap_gain16;
++	u32 cap_sysclk, cap_hts, cap_vts;
++	u32 light_freq, cap_bandfilt, cap_maxband;
++	u32 cap_gain16_shutter;
++	u8 average;
++	int ret;
++
++	if (mode->reg_data == NULL)
++		return -EINVAL;
++
++	/* read preview shutter */
++	ret = ov5640_get_exposure(sensor);
++	if (ret < 0)
++		return ret;
++	prev_shutter = ret;
++	ret = ov5640_binning_on(sensor);
++	if (ret < 0)
++		return ret;
++	if (ret && mode->id != OV5640_MODE_720P_1280_720 &&
++	    mode->id != OV5640_MODE_1080P_1920_1080)
++		prev_shutter *= 2;
++
++	/* read preview gain */
++	ret = ov5640_get_gain(sensor);
++	if (ret < 0)
++		return ret;
++	prev_gain16 = ret;
++
++	/* get average */
++	ret = ov5640_read_reg(sensor, OV5640_REG_AVG_READOUT, &average);
++	if (ret)
++		return ret;
++
++	/* turn off night mode for capture */
++	ret = ov5640_set_night_mode(sensor);
++	if (ret < 0)
++		return ret;
++
++	/* Write capture setting */
++	ret = ov5640_load_regs(sensor, mode);
++	if (ret < 0)
++		return ret;
++
++	/* read capture VTS */
++	ret = ov5640_get_vts(sensor);
++	if (ret < 0)
++		return ret;
++	cap_vts = ret;
++	ret = ov5640_get_hts(sensor);
++	if (ret < 0)
++		return ret;
++	if (ret == 0)
++		return -EINVAL;
++	cap_hts = ret;
++
++	ret = ov5640_get_sysclk(sensor);
++	if (ret < 0)
++		return ret;
++	if (ret == 0)
++		return -EINVAL;
++	cap_sysclk = ret;
++
++	/* calculate capture banding filter */
++	ret = ov5640_get_light_freq(sensor);
++	if (ret < 0)
++		return ret;
++	light_freq = ret;
++
++	if (light_freq == 60) {
++		/* 60Hz */
++		cap_bandfilt = cap_sysclk * 100 / cap_hts * 100 / 120;
++	} else {
++		/* 50Hz */
++		cap_bandfilt = cap_sysclk * 100 / cap_hts;
++	}
++
++	if (!sensor->prev_sysclk) {
++		ret = ov5640_get_sysclk(sensor);
++		if (ret < 0)
++			return ret;
++		if (ret == 0)
++			return -EINVAL;
++		sensor->prev_sysclk = ret;
++	}
++
++	if (!cap_bandfilt)
++		return -EINVAL;
++
++	cap_maxband = (int)((cap_vts - 4) / cap_bandfilt);
++
++	/* calculate capture shutter/gain16 */
++	if (average > sensor->ae_low && average < sensor->ae_high) {
++		/* in stable range */
++		cap_gain16_shutter =
++			prev_gain16 * prev_shutter *
++			cap_sysclk / sensor->prev_sysclk *
++			sensor->prev_hts / cap_hts *
++			sensor->ae_target / average;
++	} else {
++		cap_gain16_shutter =
++			prev_gain16 * prev_shutter *
++			cap_sysclk / sensor->prev_sysclk *
++			sensor->prev_hts / cap_hts;
++	}
++
++	/* gain to shutter */
++	if (cap_gain16_shutter < (cap_bandfilt * 16)) {
++		/* shutter < 1/100 */
++		cap_shutter = cap_gain16_shutter / 16;
++		if (cap_shutter < 1)
++			cap_shutter = 1;
++
++		cap_gain16 = cap_gain16_shutter / cap_shutter;
++		if (cap_gain16 < 16)
++			cap_gain16 = 16;
++	} else {
++		if (cap_gain16_shutter > (cap_bandfilt * cap_maxband * 16)) {
++			/* exposure reach max */
++			cap_shutter = cap_bandfilt * cap_maxband;
++			if (!cap_shutter)
++				return -EINVAL;
++
++			cap_gain16 = cap_gain16_shutter / cap_shutter;
++		} else {
++			/* 1/100 < (cap_shutter = n/100) =< max */
++			cap_shutter =
++				((int)(cap_gain16_shutter / 16 / cap_bandfilt))
++				* cap_bandfilt;
++			if (!cap_shutter)
++				return -EINVAL;
++
++			cap_gain16 = cap_gain16_shutter / cap_shutter;
++		}
++	}
++
++	/* set capture gain */
++	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.gain, cap_gain16);
++	if (ret)
++		return ret;
++
++	/* write capture shutter */
++	if (cap_shutter > (cap_vts - 4)) {
++		cap_vts = cap_shutter + 4;
++		ret = ov5640_set_vts(sensor, cap_vts);
++		if (ret < 0)
++			return ret;
++	}
++
++	/* set exposure */
++	return __v4l2_ctrl_s_ctrl(sensor->ctrls.exposure, cap_shutter);
++}
++
++/*
++ * if sensor changes inside scaling or subsampling
++ * change mode directly
++ */
++static int ov5640_set_mode_direct(struct ov5640_dev *sensor,
++				  const struct ov5640_mode_info *mode)
++{
++	int ret;
++
++	if (mode->reg_data == NULL)
++		return -EINVAL;
++
++	/* Write capture setting */
++	ret = ov5640_load_regs(sensor, mode);
++	if (ret < 0)
++		return ret;
++
++	/* turn auto gain/exposure back on for direct mode */
++	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_gain, 1);
++	if (ret)
++		return ret;
++	return __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, V4L2_EXPOSURE_AUTO);
++}
++
++static int ov5640_set_mode(struct ov5640_dev *sensor,
++			   const struct ov5640_mode_info *orig_mode)
++{
++	const struct ov5640_mode_info *mode = sensor->current_mode;
++	enum ov5640_downsize_mode dn_mode, orig_dn_mode;
++	int ret;
++
++	dn_mode = mode->dn_mode;
++	orig_dn_mode = orig_mode->dn_mode;
++
++	/* auto gain and exposure must be turned off when changing modes */
++	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_gain, 0);
++	if (ret)
++		return ret;
++	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, V4L2_EXPOSURE_MANUAL);
++	if (ret)
++		return ret;
++
++	if ((dn_mode == SUBSAMPLING && orig_dn_mode == SCALING) ||
++	    (dn_mode == SCALING && orig_dn_mode == SUBSAMPLING)) {
++		/*
++		 * change between subsampling and scaling
++		 * go through exposure calucation
++		 */
++		ret = ov5640_set_mode_exposure_calc(sensor, mode);
++	} else {
++		/*
++		 * change inside subsampling or scaling
++		 * download firmware directly
++		 */
++		ret = ov5640_set_mode_direct(sensor, mode);
++	}
++
++	if (ret < 0)
++		return ret;
++
++	ret = ov5640_set_ae_target(sensor, sensor->ae_target);
++	if (ret < 0)
++		return ret;
++	ret = ov5640_get_light_freq(sensor);
++	if (ret < 0)
++		return ret;
++	ret = ov5640_set_bandingfilter(sensor);
++	if (ret < 0)
++		return ret;
++	ret = ov5640_set_virtual_channel(sensor);
++	if (ret < 0)
++		return ret;
++
++	sensor->pending_mode_change = false;
++
++	return 0;
++}
++
++/* restore the last set video mode after chip power-on */
++static int ov5640_restore_mode(struct ov5640_dev *sensor)
++{
++	int ret;
++
++	/* first load the initial register values */
++	ret = ov5640_load_regs(sensor, &ov5640_mode_init_data);
++	if (ret < 0)
++		return ret;
++
++	/* now restore the last capture mode */
++	return ov5640_set_mode(sensor, &ov5640_mode_init_data);
++}
++
++static void ov5640_power(struct ov5640_dev *sensor, bool enable)
++{
++	if (sensor->pwdn_gpio)
++		gpiod_set_value(sensor->pwdn_gpio, enable ? 0 : 1);
++}
++
++static void ov5640_reset(struct ov5640_dev *sensor)
++{
++	if (!sensor->reset_gpio)
++		return;
++
++	gpiod_set_value(sensor->reset_gpio, 0);
++
++	/* camera power cycle */
++	ov5640_power(sensor, false);
++	usleep_range(5000, 10000);
++	ov5640_power(sensor, true);
++	usleep_range(5000, 10000);
++
++	gpiod_set_value(sensor->reset_gpio, 1);
++	usleep_range(1000, 2000);
++
++	gpiod_set_value(sensor->reset_gpio, 0);
++	usleep_range(5000, 10000);
++}
++
++static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
++{
++	int ret = 0;
++
++	if (on) {
++		clk_prepare_enable(sensor->xclk);
++
++		ret = regulator_bulk_enable(OV5640_NUM_SUPPLIES,
++					    sensor->supplies);
++		if (ret)
++			goto xclk_off;
++
++		ov5640_reset(sensor);
++		ov5640_power(sensor, true);
++
++		ret = ov5640_init_slave_id(sensor);
++		if (ret)
++			goto power_off;
++
++		ret = ov5640_restore_mode(sensor);
++		if (ret)
++			goto power_off;
++
++		/*
++		 * start streaming briefly followed by stream off in
++		 * order to coax the clock lane into LP-11 state.
++		 */
++		ret = ov5640_set_stream(sensor, true);
++		if (ret)
++			goto power_off;
++		usleep_range(1000, 2000);
++		ret = ov5640_set_stream(sensor, false);
++		if (ret)
++			goto power_off;
++
++		return 0;
++	}
++
++power_off:
++	ov5640_power(sensor, false);
++	regulator_bulk_disable(OV5640_NUM_SUPPLIES, sensor->supplies);
++xclk_off:
++	clk_disable_unprepare(sensor->xclk);
++	return ret;
++}
++
++/* --------------- Subdev Operations --------------- */
++
++static int ov5640_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++	int ret = 0;
++
++	mutex_lock(&sensor->lock);
++
++	/*
++	 * If the power count is modified from 0 to != 0 or from != 0 to 0,
++	 * update the power state.
++	 */
++	if (sensor->power_count == !on) {
++		ret = ov5640_set_power(sensor, !!on);
++		if (ret)
++			goto out;
++	}
++
++	/* Update the power count. */
++	sensor->power_count += on ? 1 : -1;
++	WARN_ON(sensor->power_count < 0);
++out:
++	mutex_unlock(&sensor->lock);
++
++	if (on && !ret && sensor->power_count == 1) {
++		/* restore controls */
++		ret = v4l2_ctrl_handler_setup(&sensor->ctrls.handler);
++	}
++
++	return ret;
++}
++
++static int ov5640_try_frame_interval(struct ov5640_dev *sensor,
++				     struct v4l2_fract *fi,
++				     u32 width, u32 height)
++{
++	const struct ov5640_mode_info *mode;
++	u32 minfps, maxfps, fps;
++	int ret;
++
++	minfps = ov5640_framerates[OV5640_15_FPS];
++	maxfps = ov5640_framerates[OV5640_30_FPS];
++
++	if (fi->numerator == 0) {
++		fi->denominator = maxfps;
++		fi->numerator = 1;
++		return OV5640_30_FPS;
++	}
++
++	fps = DIV_ROUND_CLOSEST(fi->denominator, fi->numerator);
++
++	fi->numerator = 1;
++	if (fps > maxfps)
++		fi->denominator = maxfps;
++	else if (fps < minfps)
++		fi->denominator = minfps;
++	else if (2 * fps >= 2 * minfps + (maxfps - minfps))
++		fi->denominator = maxfps;
++	else
++		fi->denominator = minfps;
++
++	ret = (fi->denominator == minfps) ? OV5640_15_FPS : OV5640_30_FPS;
++
++	mode = ov5640_find_mode(sensor, ret, width, height, false);
++	return mode ? ret : -EINVAL;
++}
++
++static int ov5640_get_fmt(struct v4l2_subdev *sd,
++			  struct v4l2_subdev_pad_config *cfg,
++			  struct v4l2_subdev_format *format)
++{
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++	struct v4l2_mbus_framefmt *fmt;
++
++	if (format->pad != 0)
++		return -EINVAL;
++
++	mutex_lock(&sensor->lock);
++
++	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
++		fmt = v4l2_subdev_get_try_format(&sensor->sd, cfg,
++						 format->pad);
++	else
++		fmt = &sensor->fmt;
++
++	format->format = *fmt;
++
++	mutex_unlock(&sensor->lock);
++
++	return 0;
++}
++
++static int ov5640_try_fmt_internal(struct v4l2_subdev *sd,
++				   struct v4l2_mbus_framefmt *fmt,
++				   enum ov5640_frame_rate fr,
++				   const struct ov5640_mode_info **new_mode)
++{
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++	const struct ov5640_mode_info *mode;
++
++	mode = ov5640_find_mode(sensor, fr, fmt->width, fmt->height, true);
++	if (!mode)
++		return -EINVAL;
++
++	fmt->width = mode->width;
++	fmt->height = mode->height;
++	fmt->code = sensor->fmt.code;
++
++	if (new_mode)
++		*new_mode = mode;
++	return 0;
++}
++
++static int ov5640_set_fmt(struct v4l2_subdev *sd,
++			  struct v4l2_subdev_pad_config *cfg,
++			  struct v4l2_subdev_format *format)
++{
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++	const struct ov5640_mode_info *new_mode;
++	int ret;
++
++	if (format->pad != 0)
++		return -EINVAL;
++
++	mutex_lock(&sensor->lock);
++
++	if (sensor->streaming) {
++		ret = -EBUSY;
++		goto out;
++	}
++
++	ret = ov5640_try_fmt_internal(sd, &format->format,
++				      sensor->current_fr, &new_mode);
++	if (ret)
++		goto out;
++
++	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
++		struct v4l2_mbus_framefmt *fmt =
++			v4l2_subdev_get_try_format(sd, cfg, 0);
++
++		*fmt = format->format;
++		goto out;
++	}
++
++	sensor->current_mode = new_mode;
++	sensor->fmt = format->format;
++	sensor->pending_mode_change = true;
++out:
++	mutex_unlock(&sensor->lock);
++	return ret;
++}
++
++
++/*
++ * Sensor Controls.
++ */
++
++static int ov5640_set_ctrl_hue(struct ov5640_dev *sensor, int value)
++{
++	int ret;
++
++	if (value) {
++		ret = ov5640_mod_reg(sensor, OV5640_REG_SDE_CTRL0,
++				     BIT(0), BIT(0));
++		if (ret)
++			return ret;
++		ret = ov5640_write_reg16(sensor, OV5640_REG_SDE_CTRL1, value);
++	} else {
++		ret = ov5640_mod_reg(sensor, OV5640_REG_SDE_CTRL0, BIT(0), 0);
++	}
++
++	return ret;
++}
++
++static int ov5640_set_ctrl_contrast(struct ov5640_dev *sensor, int value)
++{
++	int ret;
++
++	if (value) {
++		ret = ov5640_mod_reg(sensor, OV5640_REG_SDE_CTRL0,
++				     BIT(2), BIT(2));
++		if (ret)
++			return ret;
++		ret = ov5640_write_reg(sensor, OV5640_REG_SDE_CTRL5,
++				       value & 0xff);
++	} else {
++		ret = ov5640_mod_reg(sensor, OV5640_REG_SDE_CTRL0, BIT(2), 0);
++	}
++
++	return ret;
++}
++
++static int ov5640_set_ctrl_saturation(struct ov5640_dev *sensor, int value)
++{
++	int ret;
++
++	if (value) {
++		ret = ov5640_mod_reg(sensor, OV5640_REG_SDE_CTRL0,
++				     BIT(1), BIT(1));
++		if (ret)
++			return ret;
++		ret = ov5640_write_reg(sensor, OV5640_REG_SDE_CTRL3,
++				       value & 0xff);
++		if (ret)
++			return ret;
++		ret = ov5640_write_reg(sensor, OV5640_REG_SDE_CTRL4,
++				       value & 0xff);
++	} else {
++		ret = ov5640_mod_reg(sensor, OV5640_REG_SDE_CTRL0, BIT(1), 0);
++	}
++
++	return ret;
++}
++
++static int ov5640_set_ctrl_white_balance(struct ov5640_dev *sensor, int awb)
++{
++	int ret;
++
++	ret = ov5640_mod_reg(sensor, OV5640_REG_AWB_MANUAL_CTRL,
++			     BIT(0), awb ? 0 : 1);
++	if (ret)
++		return ret;
++
++	if (!awb) {
++		u16 red = (u16)sensor->ctrls.red_balance->val;
++		u16 blue = (u16)sensor->ctrls.blue_balance->val;
++
++		ret = ov5640_write_reg16(sensor, OV5640_REG_AWB_R_GAIN, red);
++		if (ret)
++			return ret;
++		ret = ov5640_write_reg16(sensor, OV5640_REG_AWB_B_GAIN, blue);
++	}
++
++	return ret;
++}
++
++static int ov5640_set_ctrl_exposure(struct ov5640_dev *sensor, int exp)
++{
++	struct ov5640_ctrls *ctrls = &sensor->ctrls;
++	bool auto_exposure = (exp == V4L2_EXPOSURE_AUTO);
++	int ret = 0;
++
++	if (ctrls->auto_exp->is_new) {
++		ret = ov5640_mod_reg(sensor, OV5640_REG_AEC_PK_MANUAL,
++				     BIT(0), auto_exposure ? 0 : BIT(0));
++		if (ret)
++			return ret;
++	}
++
++	if (!auto_exposure && ctrls->exposure->is_new) {
++		u16 max_exp;
++
++		ret = ov5640_read_reg16(sensor, OV5640_REG_AEC_PK_VTS,
++					&max_exp);
++		if (ret)
++			return ret;
++		ret = ov5640_get_vts(sensor);
++		if (ret < 0)
++			return ret;
++		max_exp += ret;
++
++		if (ctrls->exposure->val < max_exp)
++			ret = ov5640_set_exposure(sensor, ctrls->exposure->val);
++	}
++
++	return ret;
++}
++
++static int ov5640_set_ctrl_gain(struct ov5640_dev *sensor, int auto_gain)
++{
++	struct ov5640_ctrls *ctrls = &sensor->ctrls;
++	int ret = 0;
++
++	if (ctrls->auto_gain->is_new) {
++		ret = ov5640_mod_reg(sensor, OV5640_REG_AEC_PK_MANUAL,
++				     BIT(1), ctrls->auto_gain->val ? 0 : BIT(1));
++		if (ret)
++			return ret;
++	}
++
++	if (!auto_gain && ctrls->gain->is_new) {
++		u16 gain = (u16)ctrls->gain->val;
++
++		ret = ov5640_write_reg16(sensor, OV5640_REG_AEC_PK_REAL_GAIN,
++					 gain & 0x3ff);
++	}
++
++	return ret;
++}
++
++static int ov5640_set_ctrl_test_pattern(struct ov5640_dev *sensor, int value)
++{
++	return ov5640_mod_reg(sensor, OV5640_REG_PRE_ISP_TEST_SET1,
++			      0xa4, value ? 0xa4 : 0);
++}
++
++static int ov5640_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct v4l2_subdev *sd = ctrl_to_sd(ctrl);
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++	int val;
++
++	/* v4l2_ctrl_lock() locks our own mutex */
++
++	switch (ctrl->id) {
++	case V4L2_CID_AUTOGAIN:
++		if (!ctrl->val)
++			return 0;
++		val = ov5640_get_gain(sensor);
++		if (val < 0)
++			return val;
++		sensor->ctrls.gain->val = val;
++		break;
++	case V4L2_CID_EXPOSURE_AUTO:
++		if (ctrl->val == V4L2_EXPOSURE_MANUAL)
++			return 0;
++		val = ov5640_get_exposure(sensor);
++		if (val < 0)
++			return val;
++		sensor->ctrls.exposure->val = val;
++		break;
++	}
++
++	return 0;
++}
++
++static int ov5640_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct v4l2_subdev *sd = ctrl_to_sd(ctrl);
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++	int ret;
++
++	/* v4l2_ctrl_lock() locks our own mutex */
++
++	/*
++	 * If the device is not powered up by the host driver do
++	 * not apply any controls to H/W at this time. Instead
++	 * the controls will be restored right after power-up.
++	 */
++	if (sensor->power_count == 0)
++		return 0;
++
++	switch (ctrl->id) {
++	case V4L2_CID_AUTOGAIN:
++		ret = ov5640_set_ctrl_gain(sensor, ctrl->val);
++		break;
++	case V4L2_CID_EXPOSURE_AUTO:
++		ret = ov5640_set_ctrl_exposure(sensor, ctrl->val);
++		break;
++	case V4L2_CID_AUTO_WHITE_BALANCE:
++		ret = ov5640_set_ctrl_white_balance(sensor, ctrl->val);
++		break;
++	case V4L2_CID_HUE:
++		ret = ov5640_set_ctrl_hue(sensor, ctrl->val);
++		break;
++	case V4L2_CID_CONTRAST:
++		ret = ov5640_set_ctrl_contrast(sensor, ctrl->val);
++		break;
++	case V4L2_CID_SATURATION:
++		ret = ov5640_set_ctrl_saturation(sensor, ctrl->val);
++		break;
++	case V4L2_CID_TEST_PATTERN:
++		ret = ov5640_set_ctrl_test_pattern(sensor, ctrl->val);
++		break;
++	default:
++		ret = -EINVAL;
++		break;
++	}
++
++	return ret;
++}
++
++static const struct v4l2_ctrl_ops ov5640_ctrl_ops = {
++	.g_volatile_ctrl = ov5640_g_volatile_ctrl,
++	.s_ctrl = ov5640_s_ctrl,
++};
++
++static const char * const test_pattern_menu[] = {
++	"Disabled",
++	"Color bars",
++};
++
++static int ov5640_init_controls(struct ov5640_dev *sensor)
++{
++	const struct v4l2_ctrl_ops *ops = &ov5640_ctrl_ops;
++	struct ov5640_ctrls *ctrls = &sensor->ctrls;
++	struct v4l2_ctrl_handler *hdl = &ctrls->handler;
++	int ret;
++
++	v4l2_ctrl_handler_init(hdl, 32);
++
++	/* we can use our own mutex for the ctrl lock */
++	hdl->lock = &sensor->lock;
++
++	/* Auto/manual white balance */
++	ctrls->auto_wb = v4l2_ctrl_new_std(hdl, ops,
++					   V4L2_CID_AUTO_WHITE_BALANCE,
++					   0, 1, 1, 1);
++	ctrls->blue_balance = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_BLUE_BALANCE,
++						0, 4095, 1, 0);
++	ctrls->red_balance = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_RED_BALANCE,
++					       0, 4095, 1, 0);
++	/* Auto/manual exposure */
++	ctrls->auto_exp = v4l2_ctrl_new_std_menu(hdl, ops,
++						 V4L2_CID_EXPOSURE_AUTO,
++						 V4L2_EXPOSURE_MANUAL, 0,
++						 V4L2_EXPOSURE_AUTO);
++	ctrls->exposure = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_EXPOSURE,
++					    0, 65535, 1, 0);
++	/* Auto/manual gain */
++	ctrls->auto_gain = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_AUTOGAIN,
++					     0, 1, 1, 1);
++	ctrls->gain = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_GAIN,
++					0, 1023, 1, 0);
++
++	ctrls->saturation = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SATURATION,
++					      0, 255, 1, 64);
++	ctrls->hue = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_HUE,
++				       0, 359, 1, 0);
++	ctrls->contrast = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_CONTRAST,
++					    0, 255, 1, 0);
++	ctrls->test_pattern =
++		v4l2_ctrl_new_std_menu_items(hdl, ops, V4L2_CID_TEST_PATTERN,
++					     ARRAY_SIZE(test_pattern_menu) - 1,
++					     0, 0, test_pattern_menu);
++
++	if (hdl->error) {
++		ret = hdl->error;
++		goto free_ctrls;
++	}
++
++	ctrls->gain->flags |= V4L2_CTRL_FLAG_VOLATILE;
++	ctrls->exposure->flags |= V4L2_CTRL_FLAG_VOLATILE;
++
++	v4l2_ctrl_auto_cluster(3, &ctrls->auto_wb, 0, false);
++	v4l2_ctrl_auto_cluster(2, &ctrls->auto_gain, 0, true);
++	v4l2_ctrl_auto_cluster(2, &ctrls->auto_exp, 1, true);
++
++	sensor->sd.ctrl_handler = hdl;
++	return 0;
++
++free_ctrls:
++	v4l2_ctrl_handler_free(hdl);
++	return ret;
++}
++
++static int ov5640_enum_frame_size(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_frame_size_enum *fse)
++{
++	if (fse->pad != 0)
++		return -EINVAL;
++	if (fse->index >= OV5640_NUM_MODES)
++		return -EINVAL;
++
++	fse->min_width = fse->max_width =
++		ov5640_mode_data[0][fse->index].width;
++	fse->min_height = fse->max_height =
++		ov5640_mode_data[0][fse->index].height;
++
++	return 0;
++}
++
++static int ov5640_enum_frame_interval(
++	struct v4l2_subdev *sd,
++	struct v4l2_subdev_pad_config *cfg,
++	struct v4l2_subdev_frame_interval_enum *fie)
++{
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++	struct v4l2_fract tpf;
++	int ret;
++
++	if (fie->pad != 0)
++		return -EINVAL;
++	if (fie->index >= OV5640_NUM_FRAMERATES)
++		return -EINVAL;
++
++	tpf.numerator = 1;
++	tpf.denominator = ov5640_framerates[fie->index];
++
++	ret = ov5640_try_frame_interval(sensor, &tpf,
++					fie->width, fie->height);
++	if (ret < 0)
++		return -EINVAL;
++
++	fie->interval = tpf;
++	return 0;
++}
++
++static int ov5640_g_frame_interval(struct v4l2_subdev *sd,
++				   struct v4l2_subdev_frame_interval *fi)
++{
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++
++	mutex_lock(&sensor->lock);
++	fi->interval = sensor->frame_interval;
++	mutex_unlock(&sensor->lock);
++
++	return 0;
++}
++
++static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
++				   struct v4l2_subdev_frame_interval *fi)
++{
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++	const struct ov5640_mode_info *mode;
++	int frame_rate, ret = 0;
++
++	if (fi->pad != 0)
++		return -EINVAL;
++
++	mutex_lock(&sensor->lock);
++
++	if (sensor->streaming) {
++		ret = -EBUSY;
++		goto out;
++	}
++
++	mode = sensor->current_mode;
++
++	frame_rate = ov5640_try_frame_interval(sensor, &fi->interval,
++					       mode->width, mode->height);
++	if (frame_rate < 0)
++		frame_rate = OV5640_15_FPS;
++
++	sensor->current_fr = frame_rate;
++	sensor->frame_interval = fi->interval;
++	sensor->pending_mode_change = true;
++out:
++	mutex_unlock(&sensor->lock);
++	return ret;
++}
++
++static int ov5640_enum_mbus_code(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_mbus_code_enum *code)
++{
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++
++	if (code->pad != 0)
++		return -EINVAL;
++	if (code->index != 0)
++		return -EINVAL;
++
++	code->code = sensor->fmt.code;
++
++	return 0;
++}
++
++static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++	int ret = 0;
++
++	mutex_lock(&sensor->lock);
++
++	if (sensor->streaming == !enable) {
++		if (enable && sensor->pending_mode_change) {
++			ret = ov5640_set_mode(sensor, sensor->current_mode);
++			if (ret)
++				goto out;
 +		}
 +
-+		component_match_add(&vimc->pdev.dev, &match, vimc_comp_compare,
-+				    (void *)vimc->pipe_cfg->ents[i].name);
++		ret = ov5640_set_stream(sensor, enable);
++		if (!ret)
++			sensor->streaming = enable;
 +	}
-+
-+	return match;
-+}
-+
-+static void vimc_rm_subdevs(struct vimc_device *vimc)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < vimc->pipe_cfg->num_ents; i++)
-+		platform_device_unregister(vimc->subdevs[i]);
-+}
-+
-+static const struct component_master_ops vimc_comp_ops = {
-+	.bind = vimc_comp_bind,
-+	.unbind = vimc_comp_unbind,
-+};
-+
- static int vimc_probe(struct platform_device *pdev)
- {
--	struct vimc_device *vimc;
-+	struct vimc_device *vimc = container_of(pdev, struct vimc_device, pdev);
-+	struct component_match *match = NULL;
- 	int ret;
- 
--	/* Prepare the vimc topology structure */
-+	dev_dbg(&pdev->dev, "probe");
- 
--	/* Allocate memory for the vimc structure */
--	vimc = kzalloc(sizeof(*vimc), GFP_KERNEL);
--	if (!vimc)
-+	/* Create platform_device for each entity in the topology*/
-+	vimc->subdevs = devm_kcalloc(&vimc->pdev.dev, vimc->pipe_cfg->num_ents,
-+				     sizeof(*vimc->subdevs), GFP_KERNEL);
-+	if (!vimc->subdevs)
- 		return -ENOMEM;
- 
--	/* Set the pipeline configuration struct */
--	vimc->pipe_cfg = &pipe_cfg;
-+	match = vimc_add_subdevs(vimc);
-+	if (IS_ERR(match))
-+		return PTR_ERR(match);
-+
-+	/* Link the media device within the v4l2_device */
-+	vimc->v4l2_dev.mdev = &vimc->mdev;
- 
- 	/* Initialize media device */
- 	strlcpy(vimc->mdev.model, VIMC_MDEV_MODEL_NAME,
-@@ -412,28 +321,27 @@ static int vimc_probe(struct platform_device *pdev)
- 	vimc->mdev.dev = &pdev->dev;
- 	media_device_init(&vimc->mdev);
- 
--	/* Create vimc topology */
--	ret = vimc_device_register(vimc);
-+	/* Add self to the component system */
-+	ret = component_master_add_with_match(&pdev->dev, &vimc_comp_ops,
-+					      match);
- 	if (ret) {
--		dev_err(vimc->mdev.dev,
--			"vimc device registration failed (err=%d)\n", ret);
-+		media_device_cleanup(&vimc->mdev);
-+		vimc_rm_subdevs(vimc);
- 		kfree(vimc);
- 		return ret;
- 	}
- 
--	/* Link the topology object with the platform device object */
--	platform_set_drvdata(pdev, vimc);
--
- 	return 0;
- }
- 
- static int vimc_remove(struct platform_device *pdev)
- {
--	struct vimc_device *vimc = platform_get_drvdata(pdev);
-+	struct vimc_device *vimc = container_of(pdev, struct vimc_device, pdev);
- 
--	/* Destroy all the topology */
--	vimc_device_unregister(vimc);
--	kfree(vimc);
-+	dev_dbg(&pdev->dev, "remove");
-+
-+	component_master_del(&pdev->dev, &vimc_comp_ops);
-+	vimc_rm_subdevs(vimc);
- 
- 	return 0;
- }
-@@ -442,9 +350,12 @@ static void vimc_dev_release(struct device *dev)
- {
- }
- 
--static struct platform_device vimc_pdev = {
--	.name		= VIMC_PDEV_NAME,
--	.dev.release	= vimc_dev_release,
-+static struct vimc_device vimc_dev = {
-+	.pipe_cfg = &pipe_cfg,
-+	.pdev = {
-+		.name = VIMC_PDEV_NAME,
-+		.dev.release = vimc_dev_release,
-+	}
- };
- 
- static struct platform_driver vimc_pdrv = {
-@@ -459,29 +370,29 @@ static int __init vimc_init(void)
- {
- 	int ret;
- 
--	ret = platform_device_register(&vimc_pdev);
-+	ret = platform_device_register(&vimc_dev.pdev);
- 	if (ret) {
--		dev_err(&vimc_pdev.dev,
-+		dev_err(&vimc_dev.pdev.dev,
- 			"platform device registration failed (err=%d)\n", ret);
- 		return ret;
- 	}
- 
- 	ret = platform_driver_register(&vimc_pdrv);
- 	if (ret) {
--		dev_err(&vimc_pdev.dev,
-+		dev_err(&vimc_dev.pdev.dev,
- 			"platform driver registration failed (err=%d)\n", ret);
--
--		platform_device_unregister(&vimc_pdev);
-+		platform_driver_unregister(&vimc_pdrv);
-+		return ret;
- 	}
- 
--	return ret;
-+	return 0;
- }
- 
- static void __exit vimc_exit(void)
- {
- 	platform_driver_unregister(&vimc_pdrv);
- 
--	platform_device_unregister(&vimc_pdev);
-+	platform_device_unregister(&vimc_dev.pdev);
- }
- 
- module_init(vimc_init);
-diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
-index d4f9705..5ea7b08 100644
---- a/drivers/media/platform/vimc/vimc-sensor.c
-+++ b/drivers/media/platform/vimc/vimc-sensor.c
-@@ -15,18 +15,24 @@
-  *
-  */
- 
-+#include <linux/component.h>
- #include <linux/freezer.h>
- #include <linux/kthread.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
- #include <linux/v4l2-mediabus.h>
- #include <linux/vmalloc.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-tpg.h>
- 
--#include "vimc-sensor.h"
-+#include "vimc-common.h"
-+
-+#define VIMC_SEN_DRV_NAME "vimc-sensor"
- 
- struct vimc_sen_device {
- 	struct vimc_ent_device ved;
- 	struct v4l2_subdev sd;
-+	struct device *dev;
- 	struct tpg_data tpg;
- 	struct task_struct *kthread_sen;
- 	u8 *frame;
-@@ -166,7 +172,7 @@ static int vimc_sen_set_fmt(struct v4l2_subdev *sd,
- 	/* Set the new format */
- 	vimc_sen_adjust_fmt(&fmt->format);
- 
--	dev_dbg(vsen->sd.v4l2_dev->mdev->dev, "%s: format update: "
-+	dev_dbg(vsen->dev, "%s: format update: "
- 		"old:%dx%d (0x%x, %d, %d, %d, %d) "
- 		"new:%dx%d (0x%x, %d, %d, %d, %d)\n", vsen->sd.name,
- 		/* old */
-@@ -252,8 +258,8 @@ static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
- 		vsen->kthread_sen = kthread_run(vimc_sen_tpg_thread, vsen,
- 					"%s-sen", vsen->sd.v4l2_dev->name);
- 		if (IS_ERR(vsen->kthread_sen)) {
--			dev_err(vsen->sd.v4l2_dev->dev,
--				"%s: kernel_thread() failed\n",	vsen->sd.name);
-+			dev_err(vsen->dev, "%s: kernel_thread() failed\n",
-+				vsen->sd.name);
- 			vfree(vsen->frame);
- 			vsen->frame = NULL;
- 			return PTR_ERR(vsen->kthread_sen);
-@@ -285,8 +291,10 @@ static const struct v4l2_subdev_ops vimc_sen_ops = {
- 	.video = &vimc_sen_video_ops,
- };
- 
--static void vimc_sen_destroy(struct vimc_ent_device *ved)
-+static void vimc_sen_comp_unbind(struct device *comp, struct device *master,
-+				 void *master_data)
- {
-+	struct vimc_ent_device *ved = dev_get_drvdata(comp);
- 	struct vimc_sen_device *vsen =
- 				container_of(ved, struct vimc_sen_device, ved);
- 
-@@ -295,36 +303,31 @@ static void vimc_sen_destroy(struct vimc_ent_device *ved)
- 	kfree(vsen);
- }
- 
--struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
--					const char *const name,
--					u16 num_pads,
--					const unsigned long *pads_flag)
-+static int vimc_sen_comp_bind(struct device *comp, struct device *master,
-+			      void *master_data)
- {
-+	struct v4l2_device *v4l2_dev = master_data;
-+	struct vimc_platform_data *pdata = comp->platform_data;
- 	struct vimc_sen_device *vsen;
--	unsigned int i;
- 	int ret;
- 
--	/* NOTE: a sensor node may be created with more then one pad */
--	if (!name || !num_pads || !pads_flag)
--		return ERR_PTR(-EINVAL);
--
--	/* check if all pads are sources */
--	for (i = 0; i < num_pads; i++)
--		if (!(pads_flag[i] & MEDIA_PAD_FL_SOURCE))
--			return ERR_PTR(-EINVAL);
--
- 	/* Allocate the vsen struct */
- 	vsen = kzalloc(sizeof(*vsen), GFP_KERNEL);
- 	if (!vsen)
--		return ERR_PTR(-ENOMEM);
-+		return -ENOMEM;
- 
- 	/* Initialize ved and sd */
--	ret = vimc_ent_sd_register(&vsen->ved, &vsen->sd, v4l2_dev, name,
--				   MEDIA_ENT_F_CAM_SENSOR, num_pads, pads_flag,
--				   &vimc_sen_ops, vimc_sen_destroy);
-+	ret = vimc_ent_sd_register(&vsen->ved, &vsen->sd, v4l2_dev,
-+				   pdata->entity_name,
-+				   MEDIA_ENT_F_ATV_DECODER, 1,
-+				   (const unsigned long[1]) {MEDIA_PAD_FL_SOURCE},
-+				   &vimc_sen_ops);
- 	if (ret)
- 		goto err_free_vsen;
- 
-+	dev_set_drvdata(comp, &vsen->ved);
-+	vsen->dev = comp;
-+
- 	/* Initialize the frame format */
- 	vsen->mbus_format = fmt_default;
- 
-@@ -335,12 +338,52 @@ struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
- 	if (ret)
- 		goto err_unregister_ent_sd;
- 
--	return &vsen->ved;
-+	return 0;
- 
- err_unregister_ent_sd:
- 	vimc_ent_sd_unregister(&vsen->ved,  &vsen->sd);
- err_free_vsen:
- 	kfree(vsen);
- 
--	return ERR_PTR(ret);
++out:
++	mutex_unlock(&sensor->lock);
 +	return ret;
- }
-+
-+static const struct component_ops vimc_sen_comp_ops = {
-+	.bind = vimc_sen_comp_bind,
-+	.unbind = vimc_sen_comp_unbind,
-+};
-+
-+static int vimc_sen_probe(struct platform_device *pdev)
-+{
-+	return component_add(&pdev->dev, &vimc_sen_comp_ops);
 +}
 +
-+static int vimc_sen_remove(struct platform_device *pdev)
++static const struct v4l2_subdev_core_ops ov5640_core_ops = {
++	.s_power = ov5640_s_power,
++};
++
++static const struct v4l2_subdev_video_ops ov5640_video_ops = {
++	.g_frame_interval = ov5640_g_frame_interval,
++	.s_frame_interval = ov5640_s_frame_interval,
++	.s_stream = ov5640_s_stream,
++};
++
++static const struct v4l2_subdev_pad_ops ov5640_pad_ops = {
++	.enum_mbus_code = ov5640_enum_mbus_code,
++	.get_fmt = ov5640_get_fmt,
++	.set_fmt = ov5640_set_fmt,
++	.enum_frame_size = ov5640_enum_frame_size,
++	.enum_frame_interval = ov5640_enum_frame_interval,
++};
++
++static const struct v4l2_subdev_ops ov5640_subdev_ops = {
++	.core = &ov5640_core_ops,
++	.video = &ov5640_video_ops,
++	.pad = &ov5640_pad_ops,
++};
++
++static int ov5640_get_regulators(struct ov5640_dev *sensor)
 +{
-+	component_del(&pdev->dev, &vimc_sen_comp_ops);
++	int i;
++
++	for (i = 0; i < OV5640_NUM_SUPPLIES; i++)
++		sensor->supplies[i].supply = ov5640_supply_name[i];
++
++	return devm_regulator_bulk_get(&sensor->i2c_client->dev,
++				       OV5640_NUM_SUPPLIES,
++				       sensor->supplies);
++}
++
++static int ov5640_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	struct device *dev = &client->dev;
++	struct fwnode_handle *endpoint;
++	struct ov5640_dev *sensor;
++	int ret;
++
++	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
++	if (!sensor)
++		return -ENOMEM;
++
++	sensor->i2c_client = client;
++	sensor->fmt.code = MEDIA_BUS_FMT_UYVY8_2X8;
++	sensor->fmt.width = 640;
++	sensor->fmt.height = 480;
++	sensor->fmt.field = V4L2_FIELD_NONE;
++	sensor->frame_interval.numerator = 1;
++	sensor->frame_interval.denominator = ov5640_framerates[OV5640_30_FPS];
++	sensor->current_fr = OV5640_30_FPS;
++	sensor->current_mode =
++		&ov5640_mode_data[OV5640_30_FPS][OV5640_MODE_VGA_640_480];
++	sensor->pending_mode_change = true;
++
++	sensor->ae_target = 52;
++
++	endpoint = fwnode_graph_get_next_endpoint(
++		of_fwnode_handle(client->dev.of_node), NULL);
++	if (!endpoint) {
++		dev_err(dev, "endpoint node not found\n");
++		return -EINVAL;
++	}
++
++	ret = v4l2_fwnode_endpoint_parse(endpoint, &sensor->ep);
++	fwnode_handle_put(endpoint);
++	if (ret) {
++		dev_err(dev, "Could not parse endpoint\n");
++		return ret;
++	}
++
++	if (sensor->ep.bus_type != V4L2_MBUS_CSI2) {
++		dev_err(dev, "invalid bus type, must be MIPI CSI2\n");
++		return -EINVAL;
++	}
++
++	/* get system clock (xclk) */
++	sensor->xclk = devm_clk_get(dev, "xclk");
++	if (IS_ERR(sensor->xclk)) {
++		dev_err(dev, "failed to get xclk\n");
++		return PTR_ERR(sensor->xclk);
++	}
++
++	sensor->xclk_freq = clk_get_rate(sensor->xclk);
++	if (sensor->xclk_freq < OV5640_XCLK_MIN ||
++	    sensor->xclk_freq > OV5640_XCLK_MAX) {
++		dev_err(dev, "xclk frequency out of range: %d Hz\n",
++			sensor->xclk_freq);
++		return -EINVAL;
++	}
++
++	/* request optional power down pin */
++	sensor->pwdn_gpio = devm_gpiod_get_optional(dev, "powerdown",
++						    GPIOD_OUT_HIGH);
++	/* request optional reset pin */
++	sensor->reset_gpio = devm_gpiod_get_optional(dev, "reset",
++						     GPIOD_OUT_HIGH);
++
++	v4l2_i2c_subdev_init(&sensor->sd, client, &ov5640_subdev_ops);
++
++	sensor->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
++	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
++	sensor->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++	ret = media_entity_pads_init(&sensor->sd.entity, 1, &sensor->pad);
++	if (ret)
++		return ret;
++
++	ret = ov5640_get_regulators(sensor);
++	if (ret)
++		return ret;
++
++	mutex_init(&sensor->lock);
++
++	ret = ov5640_init_controls(sensor);
++	if (ret)
++		goto entity_cleanup;
++
++	ret = v4l2_async_register_subdev(&sensor->sd);
++	if (ret)
++		goto free_ctrls;
++
++	return 0;
++
++free_ctrls:
++	v4l2_ctrl_handler_free(&sensor->ctrls.handler);
++entity_cleanup:
++	mutex_destroy(&sensor->lock);
++	media_entity_cleanup(&sensor->sd.entity);
++	return ret;
++}
++
++static int ov5640_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++
++	v4l2_async_unregister_subdev(&sensor->sd);
++	mutex_destroy(&sensor->lock);
++	media_entity_cleanup(&sensor->sd.entity);
++	v4l2_ctrl_handler_free(&sensor->ctrls.handler);
 +
 +	return 0;
 +}
 +
-+static struct platform_driver vimc_sen_pdrv = {
-+	.probe		= vimc_sen_probe,
-+	.remove		= vimc_sen_remove,
-+	.driver		= {
-+		.name	= VIMC_SEN_DRV_NAME,
++static const struct i2c_device_id ov5640_id[] = {
++	{"ov5640", 0},
++	{},
++};
++MODULE_DEVICE_TABLE(i2c, ov5640_id);
++
++static const struct of_device_id ov5640_dt_ids[] = {
++	{ .compatible = "ovti,ov5640" },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, ov5640_dt_ids);
++
++static struct i2c_driver ov5640_i2c_driver = {
++	.driver = {
++		.name  = "ov5640",
++		.of_match_table	= ov5640_dt_ids,
 +	},
++	.id_table = ov5640_id,
++	.probe    = ov5640_probe,
++	.remove   = ov5640_remove,
 +};
 +
-+static const struct platform_device_id vimc_sen_driver_ids[] = {
-+	{
-+		.name           = VIMC_SEN_DRV_NAME,
-+	},
-+	{ }
-+};
++module_i2c_driver(ov5640_i2c_driver);
 +
-+module_platform_driver(vimc_sen_pdrv);
-+
-+MODULE_DEVICE_TABLE(platform, vimc_sen_driver_ids);
-+
-+MODULE_DESCRIPTION("Virtual Media Controller Driver (VIMC) Sensor");
-+MODULE_AUTHOR("Helen Mae Koike Fornazier <helen.fornazier@gmail.com>");
++MODULE_DESCRIPTION("OV5640 MIPI Camera Subdev Driver");
 +MODULE_LICENSE("GPL");
-diff --git a/drivers/media/platform/vimc/vimc-sensor.h b/drivers/media/platform/vimc/vimc-sensor.h
-deleted file mode 100644
-index 580dcec..0000000
---- a/drivers/media/platform/vimc/vimc-sensor.h
-+++ /dev/null
-@@ -1,28 +0,0 @@
--/*
-- * vimc-sensor.h Virtual Media Controller Driver
-- *
-- * Copyright (C) 2015-2017 Helen Koike <helen.fornazier@gmail.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- */
--
--#ifndef _VIMC_SENSOR_H_
--#define _VIMC_SENSOR_H_
--
--#include "vimc-common.h"
--
--struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
--					const char *const name,
--					u16 num_pads,
--					const unsigned long *pads_flag);
--
--#endif
 -- 
 2.7.4
