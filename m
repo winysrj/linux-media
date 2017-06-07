@@ -1,116 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:59505 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751413AbdFGOqV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Jun 2017 10:46:21 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/9] cec: add cec_s_phys_addr_from_edid helper function
-Date: Wed,  7 Jun 2017 16:46:08 +0200
-Message-Id: <20170607144616.15247-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170607144616.15247-1-hverkuil@xs4all.nl>
-References: <20170607144616.15247-1-hverkuil@xs4all.nl>
+Received: from mga03.intel.com ([134.134.136.65]:12957 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751422AbdFGWXH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Jun 2017 18:23:07 -0400
+Date: Thu, 8 Jun 2017 01:22:59 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        jian.xu.zheng@intel.com, tfiga@chromium.org,
+        rajmohan.mani@intel.com, tuukka.toivonen@intel.com
+Subject: Re: [PATCH 04/12] intel-ipu3: Add user space ABI definitions
+Message-ID: <20170607222259.GB21034@kekkonen.localdomain>
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+ <1496695157-19926-5-git-send-email-yong.zhi@intel.com>
+ <32e8b3e1-f5b2-5add-6060-928e2609b326@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <32e8b3e1-f5b2-5add-6060-928e2609b326@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-This function simplifies the integration of CEC in DRM drivers.
+On Tue, Jun 06, 2017 at 10:28:26AM +0200, Hans Verkuil wrote:
+> On 05/06/17 22:39, Yong Zhi wrote:
+> 
+> Commit message missing.
+> 
+> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > ---
+> >  include/uapi/linux/intel-ipu3.h | 2182 +++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 2182 insertions(+)
+> >  create mode 100644 include/uapi/linux/intel-ipu3.h
+> > 
+> > diff --git a/include/uapi/linux/intel-ipu3.h b/include/uapi/linux/intel-ipu3.h
+> > new file mode 100644
+> > index 0000000..9e90aec
+> > --- /dev/null
+> > +++ b/include/uapi/linux/intel-ipu3.h
+> > @@ -0,0 +1,2182 @@
+> > +/*
+> > + * Copyright (c) 2017 Intel Corporation.
+> > + *
+> > + * This program is free software; you can redistribute it and/or
+> > + * modify it under the terms of the GNU General Public License version
+> > + * 2 as published by the Free Software Foundation.
+> > + *
+> > + * This program is distributed in the hope that it will be useful,
+> > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > + * GNU General Public License for more details.
+> > + */
+> > +
+> > +#ifndef __IPU3_UAPI_H
+> > +#define __IPU3_UAPI_H
+> > +
+> > +#include <linux/types.h>
+> > +
+> > +#define IPU3_UAPI_ISP_VEC_ELEMS				64
+> > +
+> > +#define IMGU_ABI_PAD	__aligned(IPU3_UAPI_ISP_WORD_BYTES)
+> > +#define IPU3_ALIGN	__attribute__((aligned(IPU3_UAPI_ISP_WORD_BYTES)))
+> > +
+> > +#define IPU3_UAPI_ISP_WORD_BYTES			32
+> > +#define IPU3_UAPI_MAX_STRIPES				2
+> > +
+> > +/******************* ipu3_uapi_stats_3a *******************/
+> > +
+> > +#define IPU3_UAPI_MAX_BUBBLE_SIZE			10
+> > +
+> > +#define IPU3_UAPI_AE_COLORS				4
+> > +#define IPU3_UAPI_AE_BINS				256
+> > +
+> > +#define IPU3_UAPI_AWB_MD_ITEM_SIZE			8
+> > +#define IPU3_UAPI_AWB_MAX_SETS				60
+> > +#define IPU3_UAPI_AWB_SET_SIZE				0x500
+> > +#define IPU3_UAPI_AWB_SPARE_FOR_BUBBLES \
+> > +		(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
+> > +		 IPU3_UAPI_AWB_MD_ITEM_SIZE)
+> > +#define IPU3_UAPI_AWB_MAX_BUFFER_SIZE \
+> > +		(IPU3_UAPI_AWB_MAX_SETS * \
+> > +		 (IPU3_UAPI_AWB_SET_SIZE + IPU3_UAPI_AWB_SPARE_FOR_BUBBLES))
+> > +
+> > +#define IPU3_UAPI_AF_MAX_SETS				24
+> > +#define IPU3_UAPI_AF_MD_ITEM_SIZE			4
+> > +#define IPU3_UAPI_AF_SPARE_FOR_BUBBLES \
+> > +		(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
+> > +		 IPU3_UAPI_AF_MD_ITEM_SIZE)
+> > +#define IPU3_UAPI_AF_Y_TABLE_SET_SIZE			0x80
+> > +#define IPU3_UAPI_AF_Y_TABLE_MAX_SIZE \
+> > +	(IPU3_UAPI_AF_MAX_SETS * \
+> > +	 (IPU3_UAPI_AF_Y_TABLE_SET_SIZE + IPU3_UAPI_AF_SPARE_FOR_BUBBLES) * \
+> > +	 IPU3_UAPI_MAX_STRIPES)
+> > +
+> > +#define IPU3_UAPI_AWB_FR_MAX_SETS			24
+> > +#define IPU3_UAPI_AWB_FR_MD_ITEM_SIZE			8
+> > +#define IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE			0x100
+> > +#define IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES \
+> > +		(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
+> > +		IPU3_UAPI_AWB_FR_MD_ITEM_SIZE)
+> > +#define IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE \
+> > +	(IPU3_UAPI_AWB_FR_MAX_SETS * \
+> > +	(IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE + \
+> > +	 IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES) * \
+> > +	IPU3_UAPI_MAX_STRIPES)
+> > +
+> > +struct ipu3_uapi_grid_config {
+> > +	__u8 width;				/* 6 or 7 (rgbs_grd_cfg) bits */
+> > +	__u8 height;
+> > +	__u16 block_width_log2:3;
+> > +	__u16 block_height_log2:3;
+> > +	__u16 height_per_slice:8;			/* default value 1 */
+> > +	__u16 x_start;					/* 12 bits */
+> > +	__u16 y_start;
+> > +#define IPU3_UAPI_GRID_START_MASK			((1 << 12) - 1)
+> > +#define IPU3_UAPI_GRID_Y_START_EN			(1 << 15)
+> > +	__u16 x_end;					/* 12 bits */
+> > +	__u16 y_end;
+> > +};
+> 
+> You can't use bitfields in a public API. It is up to the compiler to
+> decide how to place bitfields, so this is not a stable API.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/kapi/cec-core.rst |  8 ++++++++
- drivers/media/cec/cec-adap.c          | 14 ++++++++++++++
- include/media/cec.h                   |  9 +++++++++
- 3 files changed, 31 insertions(+)
+We-ell --- it's ABI dependent, yes. The sheer number of structs with bit
+fields in the header will make using the definitions rather cumbersome if
+not unwieldy. Therefore it'd be very nice to continue using bit fields.
 
-diff --git a/Documentation/media/kapi/cec-core.rst b/Documentation/media/kapi/cec-core.rst
-index 7a04c5386dc8..278b358b2f2e 100644
---- a/Documentation/media/kapi/cec-core.rst
-+++ b/Documentation/media/kapi/cec-core.rst
-@@ -307,6 +307,14 @@ to another valid physical address, then this function will first set the
- address to CEC_PHYS_ADDR_INVALID before enabling the new physical address.
- 
- .. c:function::
-+	void cec_s_phys_addr_from_edid(struct cec_adapter *adap,
-+				       const struct edid *edid);
-+
-+A helper function that extracts the physical address from the edid struct
-+and calls cec_s_phys_addr() with that address, or CEC_PHYS_ADDR_INVALID
-+if the EDID did not contain a physical address or edid was a NULL pointer.
-+
-+.. c:function::
- 	int cec_s_log_addrs(struct cec_adapter *adap,
- 			    struct cec_log_addrs *log_addrs, bool block);
- 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index fd6d9cccade7..61e39bbe3cf9 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -28,6 +28,8 @@
- #include <linux/string.h>
- #include <linux/types.h>
- 
-+#include <drm/drm_edid.h>
-+
- #include "cec-priv.h"
- 
- static void cec_fill_msg_report_features(struct cec_adapter *adap,
-@@ -1408,6 +1410,18 @@ void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block)
- }
- EXPORT_SYMBOL_GPL(cec_s_phys_addr);
- 
-+void cec_s_phys_addr_from_edid(struct cec_adapter *adap,
-+			       const struct edid *edid)
-+{
-+	u16 pa = CEC_PHYS_ADDR_INVALID;
-+
-+	if (edid && edid->extensions)
-+		pa = cec_get_edid_phys_addr((const u8 *)edid,
-+				EDID_LENGTH * (edid->extensions + 1), NULL);
-+	cec_s_phys_addr(adap, pa, false);
-+}
-+EXPORT_SYMBOL_GPL(cec_s_phys_addr_from_edid);
-+
- /*
-  * Called from either the ioctl or a driver to set the logical addresses.
-  *
-diff --git a/include/media/cec.h b/include/media/cec.h
-index bfa88d4d67e1..a548b292eeb1 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -206,6 +206,8 @@ static inline bool cec_is_sink(const struct cec_adapter *adap)
- #define cec_phys_addr_exp(pa) \
- 	((pa) >> 12), ((pa) >> 8) & 0xf, ((pa) >> 4) & 0xf, (pa) & 0xf
- 
-+struct edid;
-+
- #if IS_ENABLED(CONFIG_CEC_CORE)
- struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 		void *priv, const char *name, u32 caps, u8 available_las);
-@@ -217,6 +219,8 @@ int cec_s_log_addrs(struct cec_adapter *adap, struct cec_log_addrs *log_addrs,
- 		    bool block);
- void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr,
- 		     bool block);
-+void cec_s_phys_addr_from_edid(struct cec_adapter *adap,
-+			       const struct edid *edid);
- int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
- 		     bool block);
- 
-@@ -326,6 +330,11 @@ static inline void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr,
- {
- }
- 
-+static inline void cec_s_phys_addr_from_edid(struct cec_adapter *adap,
-+					     const struct edid *edid)
-+{
-+}
-+
- static inline u16 cec_get_edid_phys_addr(const u8 *edid, unsigned int size,
- 					 unsigned int *offset)
- {
+There are certainly caveats with bit fields but using them in the user
+space interface is certainly not unforeseen. Just grep under
+/usr/include/linux .
+
+Endianness is a major factor here. That said, the Intel x86 / x86-64
+systems this driver works with are almost as certainly little endian as
+the world is round. It'd still be good to fail compilation if anyone
+attempts using the header in a big endian system.
+
+> 
+> The other thing that is broken here is 32 vs 64 bit: many of these
+> structures have different layouts depending on that. That's not going
+> to work either.
+
+__packed needs to be added to the structs, that's for sure. Some structs
+will need padding to maintain the current layout.
+
+> 
+> The third part is lack of documentation. Are there public datasheets?
+> If so, then you can point to that.
+
+There will be (format) documentation to be added to the patchset but
+unfortunately it's not available yet.
+
+> 
+> Sakari, how did we do that for the omap3? I believe part of the statistics
+> etc. was in closed documentation as well. Was it documented in the header
+> or did we just refer to that closed documentation?
+
+There are public TRMs for OMAP3 but I'm not sure if everything is
+documented there. I wonder if Laurent has some idea about that; let's
+check with him when he's back.
+
+There is documentation for the private IOCTLs the omap3isp driver
+implements in Documentation/media/v4l-drivers/omap3isp.rst as well as the
+header file include/uapi/linux/omap3isp.h .
+
 -- 
-2.11.0
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
