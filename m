@@ -1,53 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f175.google.com ([209.85.128.175]:35921 "EHLO
-        mail-wr0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754884AbdFLQaG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 12:30:06 -0400
-Received: by mail-wr0-f175.google.com with SMTP id v111so103604652wrc.3
-        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 09:30:05 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v10 16/18] media: venus: venc: fix compile error in venc_close
-Date: Mon, 12 Jun 2017 19:27:53 +0300
-Message-Id: <1497284875-19999-17-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1497284875-19999-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1497284875-19999-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:33214 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751901AbdFGSea (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:34:30 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v8 03/34] [media] dt/bindings: Add bindings for OV5640
+Date: Wed,  7 Jun 2017 11:33:42 -0700
+Message-Id: <1496860453-6282-4-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes the following compile error ocured when building
-with gcc7:
+Add device tree binding documentation for the OV5640 camera sensor.
 
-drivers/media/platform/qcom/venus/venc.c:1150
-venc_close() error: dereferencing freed memory 'inst'
-
-by moving kfree as a last call.
-
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Acked-by: Rob Herring <robh@kernel.org>
 ---
- drivers/media/platform/qcom/venus/venc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .../devicetree/bindings/media/i2c/ov5640.txt       | 45 ++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5640.txt
 
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index d5b4b5bf10a2..39748e7a08e4 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -1145,10 +1145,10 @@ static int venc_close(struct file *file)
- 	mutex_destroy(&inst->lock);
- 	v4l2_fh_del(&inst->fh);
- 	v4l2_fh_exit(&inst->fh);
--	kfree(inst);
- 
- 	pm_runtime_put_sync(inst->core->dev_enc);
- 
-+	kfree(inst);
- 	return 0;
- }
- 
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+new file mode 100644
+index 0000000..540b36c
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+@@ -0,0 +1,45 @@
++* Omnivision OV5640 MIPI CSI-2 sensor
++
++Required Properties:
++- compatible: should be "ovti,ov5640"
++- clocks: reference to the xclk input clock.
++- clock-names: should be "xclk".
++- DOVDD-supply: Digital I/O voltage supply, 1.8 volts
++- AVDD-supply: Analog voltage supply, 2.8 volts
++- DVDD-supply: Digital core voltage supply, 1.5 volts
++
++Optional Properties:
++- reset-gpios: reference to the GPIO connected to the reset pin, if any.
++	       This is an active low signal to the OV5640.
++- powerdown-gpios: reference to the GPIO connected to the powerdown pin,
++		   if any. This is an active high signal to the OV5640.
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++&i2c1 {
++	ov5640: camera@3c {
++		compatible = "ovti,ov5640";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5640>;
++		reg = <0x3c>;
++		clocks = <&clks IMX6QDL_CLK_CKO>;
++		clock-names = "xclk";
++		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
++		AVDD-supply = <&vgen3_reg>;  /* 2.8v */
++		DVDD-supply = <&vgen2_reg>;  /* 1.5v */
++		powerdown-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>;
++		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>;
++
++		port {
++			ov5640_to_mipi_csi2: endpoint {
++				remote-endpoint = <&mipi_csi2_from_ov5640>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++			};
++		};
++	};
++};
 -- 
 2.7.4
