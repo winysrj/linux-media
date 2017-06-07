@@ -1,75 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40300
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751489AbdFZMeo (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:45970 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751503AbdFGOqW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 08:34:44 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mike Isely <isely@pobox.com>
-Subject: [PATCH] media: pvrusb2: fix the retry logic
-Date: Mon, 26 Jun 2017 09:33:56 -0300
-Message-Id: <acd26dbca893cb72fb481dce3945c2831259c46a.1498480431.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Wed, 7 Jun 2017 10:46:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Andrzej Hajda <a.hajda@samsung.com>, devicetree@vger.kernel.org
+Subject: [PATCH 7/9] dt-bindings: media/s5p-cec.txt: document needs-hpd property
+Date: Wed,  7 Jun 2017 16:46:14 +0200
+Message-Id: <20170607144616.15247-8-hverkuil@xs4all.nl>
+In-Reply-To: <20170607144616.15247-1-hverkuil@xs4all.nl>
+References: <20170607144616.15247-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by this warning:
-	drivers/media/usb/pvrusb2/pvrusb2-encoder.c:263 pvr2_encoder_cmd() warn: continue to end of do { ... } while(0); loop
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-There's an issue at the retry logic there: the current logic is:
+Needed for boards that wire the CEC pin in such a way that it
+is unavailable when the HPD is low.
 
-	do {
-		if (need_to_retry)
-			continue;
-
-		some_code();
-	} while (0);
-
-Well, that won't work, as continue will make it test for zero, and
-abort the loop. So, change the loop to:
-
-	while (1) {
-		if (need_to_retry)
-			continue;
-
-		some_code();
-		break;
-	};
-
-With seems to be what's actually expected there.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Andrzej Hajda <a.hajda@samsung.com>
+Cc: devicetree@vger.kernel.org
 ---
- drivers/media/usb/pvrusb2/pvrusb2-encoder.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/devicetree/bindings/media/s5p-cec.txt | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-encoder.c b/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
-index ca637074fa1f..43e43404095f 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
-@@ -198,7 +198,7 @@ static int pvr2_encoder_cmd(void *ctxt,
- 	}
+diff --git a/Documentation/devicetree/bindings/media/s5p-cec.txt b/Documentation/devicetree/bindings/media/s5p-cec.txt
+index 4bb08d9d940b..261af4d1a791 100644
+--- a/Documentation/devicetree/bindings/media/s5p-cec.txt
++++ b/Documentation/devicetree/bindings/media/s5p-cec.txt
+@@ -17,6 +17,12 @@ Required properties:
+   - samsung,syscon-phandle - phandle to the PMU system controller
+   - hdmi-phandle - phandle to the HDMI controller
  
++Optional:
++  - needs-hpd : if present the CEC support is only available when the HPD
++    is high. Some boards only let the CEC pin through if the HPD is high, for
++    example if there is a level converter that uses the HPD to power up
++    or down.
++
+ Example:
  
--	LOCK_TAKE(hdw->ctl_lock); do {
-+	LOCK_TAKE(hdw->ctl_lock); while (1) {
- 
- 		if (!hdw->state_encoder_ok) {
- 			ret = -EIO;
-@@ -293,9 +293,9 @@ rdData[0]);
- 
- 		wrData[0] = 0x0;
- 		ret = pvr2_encoder_write_words(hdw,MBOX_BASE,wrData,1);
--		if (ret) break;
-+		break;
- 
--	} while(0); LOCK_GIVE(hdw->ctl_lock);
-+	}; LOCK_GIVE(hdw->ctl_lock);
- 
- 	return ret;
- }
+ hdmicec: cec@100B0000 {
 -- 
-2.9.4
+2.11.0
