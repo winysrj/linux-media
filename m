@@ -1,113 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36155 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750971AbdFBPTk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 11:19:40 -0400
-Date: Fri, 2 Jun 2017 17:19:36 +0200
-From: Krzysztof Kozlowski <krzk@kernel.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] ARM: dts: exynos: Add HDMI CEC device to Exynos5 SoC
- family
-Message-ID: <20170602151936.uhhdrqnlbtb3vhsb@kozik-lap>
-References: <CGME20170531110029eucas1p14bb9468f72155d88364c0aa5093ac05d@eucas1p1.samsung.com>
- <1496228417-31126-1-git-send-email-m.szyprowski@samsung.com>
- <20170531195517.2vjbc3voefdgq6sg@kozik-lap>
- <ae6be193-3bf2-868d-cd26-01d2749d33fa@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <ae6be193-3bf2-868d-cd26-01d2749d33fa@samsung.com>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:35896 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751849AbdFGSfI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:35:08 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Tim Harvey <tharvey@gateworks.com>
+Subject: [PATCH v8 14/34] ARM: dts: imx6-sabreauto: add the ADV7180 video decoder
+Date: Wed,  7 Jun 2017 11:33:53 -0700
+Message-Id: <1496860453-6282-15-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 01, 2017 at 08:19:23AM +0200, Marek Szyprowski wrote:
-> Hi Krzysztof,
-> 
-> On 2017-05-31 21:55, Krzysztof Kozlowski wrote:
-> > On Wed, May 31, 2017 at 01:00:17PM +0200, Marek Szyprowski wrote:
-> > > Exynos5250 and Exynos542x SoCs have the same CEC hardware module as
-> > > Exynos4 SoC series, so enable support for it using the same compatible
-> > > string.
-> > > 
-> > > Tested on Odroid XU3 (Exynos5422) and Google Snow (Exynos5250) boards.
-> > > 
-> > > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> > > ---
-> > >   arch/arm/boot/dts/exynos5250-pinctrl.dtsi          |  7 +++++++
-> > >   arch/arm/boot/dts/exynos5250-snow-common.dtsi      |  4 ++++
-> > >   arch/arm/boot/dts/exynos5250.dtsi                  | 13 +++++++++++++
-> > >   arch/arm/boot/dts/exynos5420-pinctrl.dtsi          |  7 +++++++
-> > >   arch/arm/boot/dts/exynos5420.dtsi                  | 13 +++++++++++++
-> > >   arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi |  4 ++++
-> > >   6 files changed, 48 insertions(+)
-> > > 
-> > > diff --git a/arch/arm/boot/dts/exynos5250-pinctrl.dtsi b/arch/arm/boot/dts/exynos5250-pinctrl.dtsi
-> > > index 2f6ab32b5954..1fd122db18e6 100644
-> > > --- a/arch/arm/boot/dts/exynos5250-pinctrl.dtsi
-> > > +++ b/arch/arm/boot/dts/exynos5250-pinctrl.dtsi
-> > > @@ -589,6 +589,13 @@
-> > >   		samsung,pin-pud = <EXYNOS_PIN_PULL_NONE>;
-> > >   		samsung,pin-drv = <EXYNOS4_PIN_DRV_LV1>;
-> > >   	};
-> > > +
-> > > +	hdmi_cec: hdmi-cec {
-> > > +		samsung,pins = "gpx3-6";
-> > > +		samsung,pin-function = <EXYNOS_PIN_FUNC_3>;
-> > > +		samsung,pin-pud = <EXYNOS_PIN_PULL_NONE>;
-> > > +		samsung,pin-drv = <EXYNOS4_PIN_DRV_LV1>;
-> > > +	};
-> > >   };
-> > >   &pinctrl_1 {
-> > > diff --git a/arch/arm/boot/dts/exynos5250-snow-common.dtsi b/arch/arm/boot/dts/exynos5250-snow-common.dtsi
-> > > index 8f3a80430748..e1d293dbbe5d 100644
-> > > --- a/arch/arm/boot/dts/exynos5250-snow-common.dtsi
-> > > +++ b/arch/arm/boot/dts/exynos5250-snow-common.dtsi
-> > > @@ -272,6 +272,10 @@
-> > >   	vdd_pll-supply = <&ldo8_reg>;
-> > >   };
-> > > +&hdmicec {
-> > > +	status = "okay";
-> > > +};
-> > > +
-> > >   &i2c_0 {
-> > >   	status = "okay";
-> > >   	samsung,i2c-sda-delay = <100>;
-> > > diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
-> > > index 79c9c885613a..fbdc1d53a2ce 100644
-> > > --- a/arch/arm/boot/dts/exynos5250.dtsi
-> > > +++ b/arch/arm/boot/dts/exynos5250.dtsi
-> > > @@ -689,6 +689,19 @@
-> > >   			samsung,syscon-phandle = <&pmu_system_controller>;
-> > >   		};
-> > > +		hdmicec: cec@101B0000 {
-> > > +			compatible = "samsung,s5p-cec";
-> > > +			reg = <0x101B0000 0x200>;
-> > > +			interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH>;
-> > > +			clocks = <&clock CLK_HDMI_CEC>;
-> > > +			clock-names = "hdmicec";
-> > > +			samsung,syscon-phandle = <&pmu_system_controller>;
-> > > +			hdmi-phandle = <&hdmi>;
-> > > +			pinctrl-names = "default";
-> > > +			pinctrl-0 = <&hdmi_cec>;
-> > > +			status = "disabled";
-> > > +		};
-> > What about Exynos5410? Is it applicable there as well? If yes, then this
-> > could be added to exynos5.dtsi... although then clocks and pinctrl
-> > should remain in SoC-specific DTSI. We're following such pattern in many
-> > places but I am not sure if this more readable.
-> 
-> Exynos5410 has the same HW module, but as for now, it doesn't have support
-> for
-> HDMI due to missing a few pieces (mainly clocks definitions). I'm not sure
-> if it makes sense to add only HDMICEC without HDMI itself. Maybe later, when
-> multimedia support is added to Exynos5410, this can be integrated to
-> exynos5.dtsi.
+Enables the ADV7180 decoder sensor. The ADV7180 connects to the
+parallel-bus mux input on ipu1_csi0_mux.
 
-Sounds fair, applied. Thanks!
+The ADV7180 power pin is via max7310_b port expander.
 
-Best regards,
-Krzysztof
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+
+- Use IRQ_TYPE_LEVEL_LOW instead of 0x8 for interrupt type for clarity.
+- For 8-bit parallel IPU1-CSI0 bus connection only data[12-19] are used.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 50 ++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
+
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 1212f82..c24af28 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -124,6 +124,21 @@
+ 			#size-cells = <0>;
+ 			reg = <1>;
+ 
++			adv7180: camera@21 {
++				compatible = "adi,adv7180";
++				reg = <0x21>;
++				powerdown-gpios = <&max7310_b 2 GPIO_ACTIVE_LOW>;
++				interrupt-parent = <&gpio1>;
++				interrupts = <27 IRQ_TYPE_LEVEL_LOW>;
++
++				port {
++					adv7180_to_ipu1_csi0_mux: endpoint {
++						remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++						bus-width = <8>;
++					};
++				};
++			};
++
+ 			max7310_a: gpio@30 {
+ 				compatible = "maxim,max7310";
+ 				reg = <0x30>;
+@@ -151,6 +166,25 @@
+ 	};
+ };
+ 
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <8>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&adv7180_to_ipu1_csi0_mux>;
++	bus-width = <8>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
++
++	/* enable frame interval monitor on this port */
++	fim {
++		status = "okay";
++	};
++};
++
+ &clks {
+ 	assigned-clocks = <&clks IMX6QDL_PLL4_BYPASS_SRC>,
+ 			  <&clks IMX6QDL_PLL4_BYPASS>,
+@@ -444,6 +478,22 @@
+ 			>;
+ 		};
+ 
++		pinctrl_ipu1_csi0: ipu1csi0grp {
++			fsl,pins = <
++				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19  0x1b0b0
++				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK 0x1b0b0
++				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC    0x1b0b0
++				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC   0x1b0b0
++			>;
++		};
++
+ 		pinctrl_max7310: max7310grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_SD2_DAT0__GPIO1_IO15 0x1b0b0
+-- 
+2.7.4
