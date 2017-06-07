@@ -1,347 +1,427 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35692 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751755AbdFOIYA (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57903 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751066AbdFGJdy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 04:24:00 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 6/6] v4l: vsp1: Add support for header display lists in continuous mode
-Date: Thu, 15 Jun 2017 11:24:09 +0300
-Message-Id: <20170615082409.9523-7-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20170615082409.9523-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20170615082409.9523-1-laurent.pinchart+renesas@ideasonboard.com>
+        Wed, 7 Jun 2017 05:33:54 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Peter Rosin <peda@axentia.se>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v8 3/3] [media] platform: add video-multiplexer subdevice driver
+Date: Wed,  7 Jun 2017 11:33:45 +0200
+Message-Id: <1496828025-4848-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1496828025-4848-1-git-send-email-p.zabel@pengutronix.de>
+References: <1496828025-4848-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VSP supports both header and headerless display lists. The latter is
-easier to use when the VSP feeds data directly to the DU in continuous
-mode, and the driver thus uses headerless display lists for DU operation
-and header display lists otherwise.
+This driver can handle SoC internal and external video bus multiplexers,
+controlled by mux controllers provided by the mux controller framework,
+such as MMIO register bitfields or GPIOs. The subdevice passes through
+the mbus configuration of the active input to the output side.
 
-Headerless display lists are only available on WPF.0. This has never
-been an issue so far, as only WPF.0 is connected to the DU. However, on
-H3 ES2.0, the VSP-DL instance has both WPF.0 and WPF.1 connected to the
-DU. We thus can't use headerless display lists unconditionally for DU
-operation.
+Since the mux framework is not yet merged, this driver contains
+temporary mmio-mux support to work without the framework. The driver
+should be converted to use the multiplexer API once the "mux: minimal
+mux subsystem" and "mux: mmio-based syscon mux controller" patches are
+merged.
 
-Implement support for continuous mode with header display lists, and use
-it for DU operation on WPF outputs that don't support headerless mode.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
- drivers/media/platform/vsp1/vsp1_dl.c | 206 ++++++++++++++++++++++------------
- 1 file changed, 136 insertions(+), 70 deletions(-)
+No changes since v7 [1]. No changes necessary for the recently merged V4L2
+fwnode API.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 534100581404..dea38de180e6 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -95,6 +95,7 @@ enum vsp1_dl_mode {
-  * struct vsp1_dl_manager - Display List manager
-  * @index: index of the related WPF
-  * @mode: display list operation mode (header or headerless)
-+ * @singleshot: execute the display list in single-shot mode
-  * @vsp1: the VSP1 device
-  * @lock: protects the free, active, queued, pending and gc_fragments lists
-  * @free: array of all free display lists
-@@ -107,6 +108,7 @@ enum vsp1_dl_mode {
- struct vsp1_dl_manager {
- 	unsigned int index;
- 	enum vsp1_dl_mode mode;
-+	bool singleshot;
- 	struct vsp1_device *vsp1;
+[1] https://patchwork.linuxtv.org/patch/41537/
+---
+ drivers/media/platform/Kconfig     |   6 +
+ drivers/media/platform/Makefile    |   2 +
+ drivers/media/platform/video-mux.c | 334 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 342 insertions(+)
+ create mode 100644 drivers/media/platform/video-mux.c
+
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index a4b7cefbde32d..23dfec53dc736 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -74,6 +74,12 @@ config VIDEO_M32R_AR_M64278
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called arv.
  
- 	spinlock_t lock;
-@@ -437,6 +439,7 @@ int vsp1_dl_list_add_chain(struct vsp1_dl_list *head,
++config VIDEO_MUX
++	tristate "Video Multiplexer"
++	depends on OF && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
++	help
++	  This driver provides support for N:1 video bus multiplexers.
++
+ config VIDEO_OMAP3
+ 	tristate "OMAP 3 Camera support"
+ 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 231f3c2894c9d..a9ff99d595b86 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -28,6 +28,8 @@ obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
  
- static void vsp1_dl_list_fill_header(struct vsp1_dl_list *dl, bool is_last)
- {
-+	struct vsp1_dl_manager *dlm = dl->dlm;
- 	struct vsp1_dl_header_list *hdr = dl->header->lists;
- 	struct vsp1_dl_body *dlb;
- 	unsigned int num_lists = 0;
-@@ -461,85 +464,154 @@ static void vsp1_dl_list_fill_header(struct vsp1_dl_list *dl, bool is_last)
+ obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
  
- 	dl->header->num_lists = num_lists;
- 
--	/*
--	 * If this display list's chain is not empty, we are on a list, where
--	 * the next item in the list is the display list entity which should be
--	 * automatically queued by the hardware.
--	 */
- 	if (!list_empty(&dl->chain) && !is_last) {
-+		/*
-+		 * If this display list's chain is not empty, we are on a list,
-+		 * and the next item is the display list that we must queue for
-+		 * automatic processing by the hardware.
-+		 */
- 		struct vsp1_dl_list *next = list_next_entry(dl, chain);
- 
- 		dl->header->next_header = next->dma;
- 		dl->header->flags = VSP1_DLH_AUTO_START;
-+	} else if (!dlm->singleshot) {
-+		/*
-+		 * if the display list manager works in continuous mode, the VSP
-+		 * should loop over the display list continuously until
-+		 * instructed to do otherwise.
-+		 */
-+		dl->header->next_header = dl->dma;
-+		dl->header->flags = VSP1_DLH_INT_ENABLE | VSP1_DLH_AUTO_START;
- 	} else {
-+		/*
-+		 * Otherwise, in mem-to-mem mode, we work in single-shot mode
-+		 * and the next display list must not be started automatically.
-+		 */
- 		dl->header->flags = VSP1_DLH_INT_ENABLE;
- 	}
- }
- 
--void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
-+static bool vsp1_dl_list_hw_update_pending(struct vsp1_dl_manager *dlm)
- {
--	struct vsp1_dl_manager *dlm = dl->dlm;
- 	struct vsp1_device *vsp1 = dlm->vsp1;
--	unsigned long flags;
--	bool update;
--
--	if (dl->dlm->mode == VSP1_DL_MODE_HEADER) {
--		struct vsp1_dl_list *dl_child;
- 
--		/*
--		 * In header mode the caller guarantees that the hardware is
--		 * idle at this point.
--		 */
-+	if (!dlm->queued)
-+		return false;
- 
--		/* Fill the header for the head and chained display lists. */
--		vsp1_dl_list_fill_header(dl, list_empty(&dl->chain));
--
--		list_for_each_entry(dl_child, &dl->chain, chain) {
--			bool last = list_is_last(&dl_child->chain, &dl->chain);
--
--			vsp1_dl_list_fill_header(dl_child, last);
--		}
--	}
-+	/*
-+	 * Check whether the VSP1 has taken the update. In headerless mode the
-+	 * hardware indicates this by clearing the UPD bit in the DL_BODY_SIZE
-+	 * register. In header mode it indicates this by programming the display
-+	 * list address in the DL_HDR_ADDR register.
-+	 */
-+	if (dlm->mode == VSP1_DL_MODE_HEADERLESS)
-+		return !!(vsp1_read(vsp1, VI6_DL_BODY_SIZE)
-+			  & VI6_DL_BODY_SIZE_UPD);
-+	else
-+		return vsp1_read(vsp1, VI6_DL_HDR_ADDR(dlm->index))
-+			== dlm->queued->dma;
-+}
- 
--	spin_lock_irqsave(&dlm->lock, flags);
-+static void vsp1_dl_list_hw_enqueue(struct vsp1_dl_list *dl)
++obj-$(CONFIG_VIDEO_MUX)			+= video-mux.o
++
+ obj-$(CONFIG_VIDEO_S3C_CAMIF) 		+= s3c-camif/
+ obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS4_IS) 	+= exynos4-is/
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
+diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
+new file mode 100644
+index 0000000000000..665744716f73b
+--- /dev/null
++++ b/drivers/media/platform/video-mux.c
+@@ -0,0 +1,334 @@
++/*
++ * video stream multiplexer controlled via mux control
++ *
++ * Copyright (C) 2013 Pengutronix, Sascha Hauer <kernel@pengutronix.de>
++ * Copyright (C) 2016-2017 Pengutronix, Philipp Zabel <kernel@pengutronix.de>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/err.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/regmap.h>
++#include <linux/mfd/syscon.h>
++#include <linux/of.h>
++#include <linux/of_graph.h>
++#include <linux/platform_device.h>
++#include <media/v4l2-async.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-subdev.h>
++
++struct video_mux {
++	struct v4l2_subdev subdev;
++	struct media_pad *pads;
++	struct v4l2_mbus_framefmt *format_mbus;
++	struct regmap_field *field;
++	struct mutex lock;
++	int active;
++};
++
++static inline struct video_mux *v4l2_subdev_to_video_mux(struct v4l2_subdev *sd)
 +{
-+	struct vsp1_dl_manager *dlm = dl->dlm;
-+	struct vsp1_dl_list *active = dlm->active;
-+	struct vsp1_device *vsp1 = dlm->vsp1;
- 
--	if (dl->dlm->mode == VSP1_DL_MODE_HEADER) {
-+	if (dlm->mode == VSP1_DL_MODE_HEADERLESS) {
- 		/*
--		 * Commit the head display list to hardware. Chained headers
--		 * will auto-start.
-+		 * In headerless mode, program the hardware directly with the
-+		 * display list body address and size and set the UPD bit. The
-+		 * bit will be cleared by the hardware when the display list
-+		 * processing starts.
-+		 */
-+		vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->body0.dma);
-+		vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
-+			   (dl->body0.num_entries * sizeof(*dl->header->lists)));
-+	} else if (!dlm->singleshot && active) {
-+		/*
-+		 * In header continuous mode, update the next_header pointer in
-+		 * the active list. We need a memory barrier to ensure that the
-+		 * new display list headers reach memory before setting the
-+		 * next_header pointer.
-+		 */
-+		wmb();
-+		active->header->next_header = dl->dma;
-+	} else {
-+		/*
-+		 * In single-shot mode, or if there's no active list, the
-+		 * hardware is idle. Just set the display list address, the
-+		 * hardware will be started independently.
- 		 */
- 		vsp1_write(vsp1, VI6_DL_HDR_ADDR(dlm->index), dl->dma);
--
--		dlm->active = dl;
--		goto done;
- 	}
++	return container_of(sd, struct video_mux, subdev);
 +}
 +
-+static void vsp1_dl_list_commit_continuous(struct vsp1_dl_list *dl)
++static int video_mux_link_setup(struct media_entity *entity,
++				const struct media_pad *local,
++				const struct media_pad *remote, u32 flags)
 +{
-+	struct vsp1_dl_manager *dlm = dl->dlm;
- 
- 	/*
--	 * Once the UPD bit has been set the hardware can start processing the
--	 * display list at any time and we can't touch the address and size
--	 * registers. In that case mark the update as pending, it will be
--	 * queued up to the hardware by the frame end interrupt handler.
-+	 * If a previous display list has been queued to the hardware but not
-+	 * processed yet, the VSP can start processing it at any time. In that
-+	 * case we can't replace the queued list by the new one, as we could
-+	 * race with the hardware. We thus mark the update as pending, it will
-+	 * be queued up to the hardware by the frame end interrupt handler.
- 	 */
--	update = !!(vsp1_read(vsp1, VI6_DL_BODY_SIZE) & VI6_DL_BODY_SIZE_UPD);
--	if (update) {
-+	if (vsp1_dl_list_hw_update_pending(dlm)) {
- 		__vsp1_dl_list_put(dlm->pending);
- 		dlm->pending = dl;
--		goto done;
-+		return;
- 	}
- 
- 	/*
--	 * Program the hardware with the display list body address and size.
--	 * The UPD bit will be cleared by the device when the display list is
--	 * processed.
-+	 * Pass the new display list to the hardware and mark it as queued. It
-+	 * will become active when the hardware starts processing it.
- 	 */
--	vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->body0.dma);
--	vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
--		   (dl->body0.num_entries * sizeof(*dl->header->lists)));
-+	vsp1_dl_list_hw_enqueue(dl);
- 
- 	__vsp1_dl_list_put(dlm->queued);
- 	dlm->queued = dl;
-+}
-+
-+static void vsp1_dl_list_commit_singleshot(struct vsp1_dl_list *dl)
-+{
-+	struct vsp1_dl_manager *dlm = dl->dlm;
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
++	int ret = 0;
 +
 +	/*
-+	 * When working in single-shot mode, the caller guarantees that the
-+	 * hardware is idle at this point. Just commit the head display list
-+	 * to hardware. Chained lists will be started automatically.
++	 * The mux state is determined by the enabled sink pad link.
++	 * Enabling or disabling the source pad link has no effect.
 +	 */
-+	vsp1_dl_list_hw_enqueue(dl);
++	if (local->flags & MEDIA_PAD_FL_SOURCE)
++		return 0;
 +
-+	dlm->active = dl;
-+}
++	dev_dbg(sd->dev, "link setup '%s':%d->'%s':%d[%d]",
++		remote->entity->name, remote->index, local->entity->name,
++		local->index, flags & MEDIA_LNK_FL_ENABLED);
 +
-+void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
-+{
-+	struct vsp1_dl_manager *dlm = dl->dlm;
-+	struct vsp1_dl_list *dl_child;
-+	unsigned long flags;
++	mutex_lock(&vmux->lock);
 +
-+	if (dlm->mode == VSP1_DL_MODE_HEADER) {
-+		/* Fill the header for the head and chained display lists. */
-+		vsp1_dl_list_fill_header(dl, list_empty(&dl->chain));
++	if (flags & MEDIA_LNK_FL_ENABLED) {
++		if (vmux->active == local->index)
++			goto out;
 +
-+		list_for_each_entry(dl_child, &dl->chain, chain) {
-+			bool last = list_is_last(&dl_child->chain, &dl->chain);
-+
-+			vsp1_dl_list_fill_header(dl_child, last);
++		if (vmux->active >= 0) {
++			ret = -EBUSY;
++			goto out;
 +		}
++
++		dev_dbg(sd->dev, "setting %d active\n", local->index);
++		ret = regmap_field_write(vmux->field, local->index);
++		if (ret < 0)
++			goto out;
++		vmux->active = local->index;
++	} else {
++		if (vmux->active != local->index)
++			goto out;
++
++		dev_dbg(sd->dev, "going inactive\n");
++		vmux->active = -1;
 +	}
 +
-+	spin_lock_irqsave(&dlm->lock, flags);
++out:
++	mutex_unlock(&vmux->lock);
++	return ret;
++}
 +
-+	if (dlm->singleshot)
-+		vsp1_dl_list_commit_singleshot(dl);
-+	else
-+		vsp1_dl_list_commit_continuous(dl);
- 
--done:
- 	spin_unlock_irqrestore(&dlm->lock, flags);
- }
- 
-@@ -565,28 +637,25 @@ void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm)
- 
- void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
- {
--	struct vsp1_device *vsp1 = dlm->vsp1;
--
- 	spin_lock(&dlm->lock);
- 
--	__vsp1_dl_list_put(dlm->active);
--	dlm->active = NULL;
--
- 	/*
--	 * Header mode is used for mem-to-mem pipelines only. We don't need to
--	 * perform any operation as there can't be any new display list queued
--	 * in that case.
-+	 * The mem-to-mem pipelines work in single-shot mode. No new display
-+	 * list can be queued, we don't have to do anything.
- 	 */
--	if (dlm->mode == VSP1_DL_MODE_HEADER)
-+	if (dlm->singleshot) {
-+		__vsp1_dl_list_put(dlm->active);
-+		dlm->active = NULL;
- 		goto done;
++static const struct media_entity_operations video_mux_ops = {
++	.link_setup = video_mux_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
++};
++
++static int video_mux_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
++	struct v4l2_subdev *upstream_sd;
++	struct media_pad *pad;
++
++	if (vmux->active == -1) {
++		dev_err(sd->dev, "Can not start streaming on inactive mux\n");
++		return -EINVAL;
 +	}
- 
- 	/*
--	 * The UPD bit set indicates that the commit operation raced with the
--	 * interrupt and occurred after the frame end event and UPD clear but
--	 * before interrupt processing. The hardware hasn't taken the update
--	 * into account yet, we'll thus skip one frame and retry.
-+	 * If the commit operation raced with the interrupt and occurred after
-+	 * the frame end event but before interrupt processing, the hardware
-+	 * hasn't taken the update into account yet. We have to skip one frame
-+	 * and retry.
- 	 */
--	if (vsp1_read(vsp1, VI6_DL_BODY_SIZE) & VI6_DL_BODY_SIZE_UPD)
-+	if (vsp1_dl_list_hw_update_pending(dlm))
- 		goto done;
- 
- 	/*
-@@ -594,23 +663,19 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
- 	 * frame end interrupt. The display list thus becomes active.
- 	 */
- 	if (dlm->queued) {
-+		__vsp1_dl_list_put(dlm->active);
- 		dlm->active = dlm->queued;
- 		dlm->queued = NULL;
- 	}
- 
- 	/*
--	 * Now that the UPD bit has been cleared we can queue the next display
--	 * list to the hardware if one has been prepared.
-+	 * Now that the VSP has started processing the queued display list, we
-+	 * can queue the pending display list to the hardware if one has been
-+	 * prepared.
- 	 */
- 	if (dlm->pending) {
--		struct vsp1_dl_list *dl = dlm->pending;
--
--		vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->body0.dma);
--		vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
--			   (dl->body0.num_entries *
--			    sizeof(*dl->header->lists)));
--
--		dlm->queued = dl;
-+		vsp1_dl_list_hw_enqueue(dlm->pending);
-+		dlm->queued = dlm->pending;
- 		dlm->pending = NULL;
- 	}
- 
-@@ -701,6 +766,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 	dlm->index = index;
- 	dlm->mode = index == 0 && !vsp1->info->uapi
- 		  ? VSP1_DL_MODE_HEADERLESS : VSP1_DL_MODE_HEADER;
-+	dlm->singleshot = vsp1->info->uapi;
- 	dlm->vsp1 = vsp1;
- 
- 	spin_lock_init(&dlm->lock);
++
++	pad = media_entity_remote_pad(&sd->entity.pads[vmux->active]);
++	if (!pad) {
++		dev_err(sd->dev, "Failed to find remote source pad\n");
++		return -ENOLINK;
++	}
++
++	if (!is_media_entity_v4l2_subdev(pad->entity)) {
++		dev_err(sd->dev, "Upstream entity is not a v4l2 subdev\n");
++		return -ENODEV;
++	}
++
++	upstream_sd = media_entity_to_v4l2_subdev(pad->entity);
++
++	return v4l2_subdev_call(upstream_sd, video, s_stream, enable);
++}
++
++static const struct v4l2_subdev_video_ops video_mux_subdev_video_ops = {
++	.s_stream = video_mux_s_stream,
++};
++
++static struct v4l2_mbus_framefmt *
++__video_mux_get_pad_format(struct v4l2_subdev *sd,
++			   struct v4l2_subdev_pad_config *cfg,
++			   unsigned int pad, u32 which)
++{
++	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
++
++	switch (which) {
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_format(sd, cfg, pad);
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &vmux->format_mbus[pad];
++	default:
++		return NULL;
++	}
++}
++
++static int video_mux_get_format(struct v4l2_subdev *sd,
++			    struct v4l2_subdev_pad_config *cfg,
++			    struct v4l2_subdev_format *sdformat)
++{
++	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
++
++	mutex_lock(&vmux->lock);
++
++	sdformat->format = *__video_mux_get_pad_format(sd, cfg, sdformat->pad,
++						       sdformat->which);
++
++	mutex_unlock(&vmux->lock);
++
++	return 0;
++}
++
++static int video_mux_set_format(struct v4l2_subdev *sd,
++			    struct v4l2_subdev_pad_config *cfg,
++			    struct v4l2_subdev_format *sdformat)
++{
++	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
++	struct v4l2_mbus_framefmt *mbusformat;
++	struct media_pad *pad = &vmux->pads[sdformat->pad];
++
++	mbusformat = __video_mux_get_pad_format(sd, cfg, sdformat->pad,
++					    sdformat->which);
++	if (!mbusformat)
++		return -EINVAL;
++
++	mutex_lock(&vmux->lock);
++
++	/* Source pad mirrors active sink pad, no limitations on sink pads */
++	if ((pad->flags & MEDIA_PAD_FL_SOURCE) && vmux->active >= 0)
++		sdformat->format = vmux->format_mbus[vmux->active];
++
++	*mbusformat = sdformat->format;
++
++	mutex_unlock(&vmux->lock);
++
++	return 0;
++}
++
++static const struct v4l2_subdev_pad_ops video_mux_pad_ops = {
++	.get_fmt = video_mux_get_format,
++	.set_fmt = video_mux_set_format,
++};
++
++static const struct v4l2_subdev_ops video_mux_subdev_ops = {
++	.pad = &video_mux_pad_ops,
++	.video = &video_mux_subdev_video_ops,
++};
++
++static int video_mux_probe_mmio_mux(struct video_mux *vmux)
++{
++	struct device *dev = vmux->subdev.dev;
++	struct of_phandle_args args;
++	struct reg_field field;
++	struct regmap *regmap;
++	u32 reg, mask;
++	int ret;
++
++	ret = of_parse_phandle_with_args(dev->of_node, "mux-controls",
++					 "#mux-control-cells", 0, &args);
++	if (ret)
++		return ret;
++
++	if (!of_device_is_compatible(args.np, "mmio-mux"))
++		return -EINVAL;
++
++	regmap = syscon_node_to_regmap(args.np->parent);
++	if (IS_ERR(regmap))
++		return PTR_ERR(regmap);
++
++	ret = of_property_read_u32_index(args.np, "mux-reg-masks",
++					 2 * args.args[0], &reg);
++	if (!ret)
++		ret = of_property_read_u32_index(args.np, "mux-reg-masks",
++						 2 * args.args[0] + 1, &mask);
++	if (ret < 0)
++		return ret;
++
++	field.reg = reg;
++	field.msb = fls(mask) - 1;
++	field.lsb = ffs(mask) - 1;
++
++	vmux->field = devm_regmap_field_alloc(dev, regmap, field);
++	if (IS_ERR(vmux->field))
++		return PTR_ERR(vmux->field);
++
++	return 0;
++}
++
++static int video_mux_probe(struct platform_device *pdev)
++{
++	struct device_node *np = pdev->dev.of_node;
++	struct device *dev = &pdev->dev;
++	struct device_node *ep;
++	struct video_mux *vmux;
++	unsigned int num_pads = 0;
++	int ret;
++	int i;
++
++	vmux = devm_kzalloc(dev, sizeof(*vmux), GFP_KERNEL);
++	if (!vmux)
++		return -ENOMEM;
++
++	platform_set_drvdata(pdev, vmux);
++
++	v4l2_subdev_init(&vmux->subdev, &video_mux_subdev_ops);
++	snprintf(vmux->subdev.name, sizeof(vmux->subdev.name), "%s", np->name);
++	vmux->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	vmux->subdev.dev = dev;
++
++	/*
++	 * The largest numbered port is the output port. It determines
++	 * total number of pads.
++	 */
++	for_each_endpoint_of_node(np, ep) {
++		struct of_endpoint endpoint;
++
++		of_graph_parse_endpoint(ep, &endpoint);
++		num_pads = max(num_pads, endpoint.port + 1);
++	}
++
++	if (num_pads < 2) {
++		dev_err(dev, "Not enough ports %d\n", num_pads);
++		return -EINVAL;
++	}
++
++	ret = video_mux_probe_mmio_mux(vmux);
++	if (ret) {
++		if (ret != -EPROBE_DEFER)
++			dev_err(dev, "Failed to get mux: %d\n", ret);
++		return ret;
++	}
++
++	mutex_init(&vmux->lock);
++	vmux->active = -1;
++	vmux->pads = devm_kcalloc(dev, num_pads, sizeof(*vmux->pads),
++				  GFP_KERNEL);
++	vmux->format_mbus = devm_kcalloc(dev, num_pads,
++					 sizeof(*vmux->format_mbus),
++					 GFP_KERNEL);
++
++	for (i = 0; i < num_pads - 1; i++)
++		vmux->pads[i].flags = MEDIA_PAD_FL_SINK;
++	vmux->pads[num_pads - 1].flags = MEDIA_PAD_FL_SOURCE;
++
++	vmux->subdev.entity.function = MEDIA_ENT_F_VID_MUX;
++	ret = media_entity_pads_init(&vmux->subdev.entity, num_pads,
++				     vmux->pads);
++	if (ret < 0)
++		return ret;
++
++	vmux->subdev.entity.ops = &video_mux_ops;
++
++	return v4l2_async_register_subdev(&vmux->subdev);
++}
++
++static int video_mux_remove(struct platform_device *pdev)
++{
++	struct video_mux *vmux = platform_get_drvdata(pdev);
++	struct v4l2_subdev *sd = &vmux->subdev;
++
++	v4l2_async_unregister_subdev(sd);
++	media_entity_cleanup(&sd->entity);
++
++	return 0;
++}
++
++static const struct of_device_id video_mux_dt_ids[] = {
++	{ .compatible = "video-mux", },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, video_mux_dt_ids);
++
++static struct platform_driver video_mux_driver = {
++	.probe		= video_mux_probe,
++	.remove		= video_mux_remove,
++	.driver		= {
++		.of_match_table = video_mux_dt_ids,
++		.name = "video-mux",
++	},
++};
++
++module_platform_driver(video_mux_driver);
++
++MODULE_DESCRIPTION("video stream multiplexer");
++MODULE_AUTHOR("Sascha Hauer, Pengutronix");
++MODULE_AUTHOR("Philipp Zabel, Pengutronix");
++MODULE_LICENSE("GPL");
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
