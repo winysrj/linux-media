@@ -1,305 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:36233 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752195AbdFGSfx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:35:53 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v8 32/34] media: imx: set and propagate default field, colorimetry
-Date: Wed,  7 Jun 2017 11:34:11 -0700
-Message-Id: <1496860453-6282-33-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:58012 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751257AbdFGJBJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Jun 2017 05:01:09 -0400
+Subject: Re: [PATCH v2] [media] vb2: core: Lower the log level of debug
+ outputs
+To: Joe Perches <joe@perches.com>, Hirokazu Honda <hiroh@chromium.org>
+References: <20170530094901.1807-1-hiroh@chromium.org>
+ <1496139572.2618.19.camel@perches.com>
+ <CAO5uPHO7GwxCTk2OqQA5NfrL0-Jyt5SB-jVpeUA_eCrqR7u5xA@mail.gmail.com>
+ <1496196991.2618.47.camel@perches.com>
+ <CAO5uPHPWGABuKf3FuAky2BRx+9E=n-QhZ94RPQ7wEuHAwC1qGg@mail.gmail.com>
+ <1496203602.2618.54.camel@perches.com>
+Cc: Pawel Osciak <pawel@osciak.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0eb529d9-a710-4305-f0e2-e2fcd5d5433a@xs4all.nl>
+Date: Wed, 7 Jun 2017 11:01:06 +0200
+MIME-Version: 1.0
+In-Reply-To: <1496203602.2618.54.camel@perches.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a call to imx_media_fill_default_mbus_fields() in the
-*_try_fmt() functions at the sink pads, to set empty field order and
-colorimetry parameters.
+On 31/05/17 06:06, Joe Perches wrote:
+> On Wed, 2017-05-31 at 12:28 +0900, Hirokazu Honda wrote:
+>> If I understand a bitmap correctly, it is necessary to change the log level
+>> for each message.
+>> I didn't mean a bitmap will take a long CPU time.
+>> I mean the work to change so takes a long time.
+> 
+> No, none of the messages or levels need change,
+> only the >= test changes to & so that for instance,
+> level 1 and level 3 messages could be emitted
+> without also emitting level 2 messages.
+> 
+> The patch suggested is all that would be required.
+> 
 
-If the field order is set to ANY, choose the currently set field order
-at the sink pad. If the colorspace is set to DEFAULT, choose the
-current colorspace at the sink pad.  If any of xfer_func, ycbcr_enc
-or quantization are set to DEFAULT, either choose the current sink pad
-setting, or the default setting for the new colorspace, if non-DEFAULT
-colorspace was given.
+I prefer the solution that Joe proposed as well.
 
-If a format is destined to be routed through the Image Converter,
-fixed quantization and Y`CbCr encoding must be set.
+It's more useful, esp. with a complex beast like vb2.
 
-Colorimetry is also propagated from sink to source pads anywhere
-this has not already been done.
+Regards,
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/staging/media/imx/imx-ic-prp.c      | 10 +++--
- drivers/staging/media/imx/imx-ic-prpencvf.c | 17 ++++++--
- drivers/staging/media/imx/imx-media-csi.c   | 14 ++++++-
- drivers/staging/media/imx/imx-media-utils.c | 62 +++++++++++++++++++++++++++++
- drivers/staging/media/imx/imx-media-vdic.c  |  8 +++-
- drivers/staging/media/imx/imx-media.h       |  4 +-
- 6 files changed, 103 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/staging/media/imx/imx-ic-prp.c b/drivers/staging/media/imx/imx-ic-prp.c
-index 54c879d..783a515 100644
---- a/drivers/staging/media/imx/imx-ic-prp.c
-+++ b/drivers/staging/media/imx/imx-ic-prp.c
-@@ -166,8 +166,8 @@ static int prp_set_fmt(struct v4l2_subdev *sd,
- 		       struct v4l2_subdev_format *sdformat)
- {
- 	struct prp_priv *priv = sd_to_priv(sd);
-+	struct v4l2_mbus_framefmt *fmt, *infmt;
- 	const struct imx_media_pixfmt *cc;
--	struct v4l2_mbus_framefmt *fmt;
- 	int ret = 0;
- 	u32 code;
- 
-@@ -181,6 +181,8 @@ static int prp_set_fmt(struct v4l2_subdev *sd,
- 		goto out;
- 	}
- 
-+	infmt = __prp_get_fmt(priv, cfg, PRP_SINK_PAD, sdformat->which);
-+
- 	switch (sdformat->pad) {
- 	case PRP_SINK_PAD:
- 		v4l_bound_align_image(&sdformat->format.width, MIN_W, MAX_W,
-@@ -194,12 +196,14 @@ static int prp_set_fmt(struct v4l2_subdev *sd,
- 			cc = imx_media_find_ipu_format(code, CS_SEL_ANY);
- 			sdformat->format.code = cc->codes[0];
- 		}
-+
-+		imx_media_fill_default_mbus_fields(&sdformat->format, infmt,
-+						   true);
- 		break;
- 	case PRP_SRC_PAD_PRPENC:
- 	case PRP_SRC_PAD_PRPVF:
- 		/* Output pads mirror input pad */
--		fmt = __prp_get_fmt(priv, cfg, PRP_SINK_PAD, sdformat->which);
--		sdformat->format = *fmt;
-+		sdformat->format = *infmt;
- 		break;
- 	}
- 
-diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
-index aef0387..5e9c817 100644
---- a/drivers/staging/media/imx/imx-ic-prpencvf.c
-+++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
-@@ -805,6 +805,8 @@ static void prp_try_fmt(struct prp_priv *priv,
- 			struct v4l2_subdev_format *sdformat,
- 			const struct imx_media_pixfmt **cc)
- {
-+	struct v4l2_mbus_framefmt *infmt;
-+
- 	*cc = imx_media_find_ipu_format(sdformat->format.code, CS_SEL_ANY);
- 	if (!*cc) {
- 		u32 code;
-@@ -814,22 +816,29 @@ static void prp_try_fmt(struct prp_priv *priv,
- 		sdformat->format.code = (*cc)->codes[0];
- 	}
- 
--	if (sdformat->pad == PRPENCVF_SRC_PAD) {
--		struct v4l2_mbus_framefmt *infmt =
--			__prp_get_fmt(priv, cfg, PRPENCVF_SINK_PAD,
--				      sdformat->which);
-+	infmt = __prp_get_fmt(priv, cfg, PRPENCVF_SINK_PAD, sdformat->which);
- 
-+	if (sdformat->pad == PRPENCVF_SRC_PAD) {
- 		if (sdformat->format.field != V4L2_FIELD_NONE)
- 			sdformat->format.field = infmt->field;
- 
- 		prp_bound_align_output(&sdformat->format, infmt,
- 				       priv->rot_mode);
-+
-+		/* propagate colorimetry from sink */
-+		sdformat->format.colorspace = infmt->colorspace;
-+		sdformat->format.xfer_func = infmt->xfer_func;
-+		sdformat->format.quantization = infmt->quantization;
-+		sdformat->format.ycbcr_enc = infmt->ycbcr_enc;
- 	} else {
- 		v4l_bound_align_image(&sdformat->format.width,
- 				      MIN_W_SINK, MAX_W_SINK, W_ALIGN_SINK,
- 				      &sdformat->format.height,
- 				      MIN_H_SINK, MAX_H_SINK, H_ALIGN_SINK,
- 				      S_ALIGN);
-+
-+		imx_media_fill_default_mbus_fields(&sdformat->format, infmt,
-+						   true);
- 	}
- }
- 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index c59224f..c6e8d2c 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -1243,11 +1243,11 @@ static void csi_try_fmt(struct csi_priv *priv,
- 	struct v4l2_mbus_framefmt *infmt;
- 	u32 code;
- 
-+	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, sdformat->which);
-+
- 	switch (sdformat->pad) {
- 	case CSI_SRC_PAD_DIRECT:
- 	case CSI_SRC_PAD_IDMAC:
--		infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD,
--				      sdformat->which);
- 		incc = imx_media_find_mbus_format(infmt->code,
- 						  CS_SEL_ANY, true);
- 
-@@ -1283,6 +1283,12 @@ static void csi_try_fmt(struct csi_priv *priv,
- 			sdformat->format.field =  (infmt->height == 480) ?
- 				V4L2_FIELD_SEQ_TB : V4L2_FIELD_SEQ_BT;
- 		}
-+
-+		/* propagate colorimetry from sink */
-+		sdformat->format.colorspace = infmt->colorspace;
-+		sdformat->format.xfer_func = infmt->xfer_func;
-+		sdformat->format.quantization = infmt->quantization;
-+		sdformat->format.ycbcr_enc = infmt->ycbcr_enc;
- 		break;
- 	case CSI_SINK_PAD:
- 		v4l_bound_align_image(&sdformat->format.width, MIN_W, MAX_W,
-@@ -1309,6 +1315,10 @@ static void csi_try_fmt(struct csi_priv *priv,
- 							CS_SEL_ANY, false);
- 			sdformat->format.code = (*cc)->codes[0];
- 		}
-+
-+		imx_media_fill_default_mbus_fields(
-+			&sdformat->format, infmt,
-+			priv->active_output_pad == CSI_SRC_PAD_DIRECT);
- 		break;
- 	}
- }
-diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
-index f718422..5952387 100644
---- a/drivers/staging/media/imx/imx-media-utils.c
-+++ b/drivers/staging/media/imx/imx-media-utils.c
-@@ -464,6 +464,68 @@ int imx_media_init_mbus_fmt(struct v4l2_mbus_framefmt *mbus,
- }
- EXPORT_SYMBOL_GPL(imx_media_init_mbus_fmt);
- 
-+/*
-+ * Check whether the field and colorimetry parameters in tryfmt are
-+ * uninitialized, and if so fill them with the values from fmt,
-+ * or if tryfmt->colorspace has been initialized, all the default
-+ * colorimetry params can be derived from tryfmt->colorspace.
-+ *
-+ * tryfmt->code must be set on entry.
-+ *
-+ * If this format is destined to be routed through the Image Converter,
-+ * quantization and Y`CbCr encoding must be fixed. The IC expects and
-+ * produces fixed quantization and Y`CbCr encoding at its input and output
-+ * (full range for RGB, limited range for YUV, and V4L2_YCBCR_ENC_601).
-+ */
-+void imx_media_fill_default_mbus_fields(struct v4l2_mbus_framefmt *tryfmt,
-+					struct v4l2_mbus_framefmt *fmt,
-+					bool ic_route)
-+{
-+	const struct imx_media_pixfmt *cc;
-+	bool is_rgb = false;
-+
-+	cc = imx_media_find_mbus_format(tryfmt->code, CS_SEL_ANY, true);
-+	if (!cc)
-+		cc = imx_media_find_ipu_format(tryfmt->code, CS_SEL_ANY);
-+	if (cc && cc->cs != IPUV3_COLORSPACE_YUV)
-+		is_rgb = true;
-+
-+	/* fill field if necessary */
-+	if (tryfmt->field == V4L2_FIELD_ANY)
-+		tryfmt->field = fmt->field;
-+
-+	/* fill colorimetry if necessary */
-+	if (tryfmt->colorspace == V4L2_COLORSPACE_DEFAULT) {
-+		tryfmt->colorspace = fmt->colorspace;
-+		tryfmt->xfer_func = fmt->xfer_func;
-+		tryfmt->ycbcr_enc = fmt->ycbcr_enc;
-+		tryfmt->quantization = fmt->quantization;
-+	} else {
-+		if (tryfmt->xfer_func == V4L2_XFER_FUNC_DEFAULT) {
-+			tryfmt->xfer_func =
-+				V4L2_MAP_XFER_FUNC_DEFAULT(tryfmt->colorspace);
-+		}
-+		if (tryfmt->ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT) {
-+			tryfmt->ycbcr_enc =
-+				V4L2_MAP_YCBCR_ENC_DEFAULT(tryfmt->colorspace);
-+		}
-+		if (tryfmt->quantization == V4L2_QUANTIZATION_DEFAULT) {
-+			tryfmt->quantization =
-+				V4L2_MAP_QUANTIZATION_DEFAULT(
-+					is_rgb, tryfmt->colorspace,
-+					tryfmt->ycbcr_enc);
-+		}
-+	}
-+
-+	if (ic_route) {
-+		tryfmt->quantization = is_rgb ?
-+			V4L2_QUANTIZATION_FULL_RANGE :
-+			V4L2_QUANTIZATION_LIM_RANGE;
-+		tryfmt->ycbcr_enc = V4L2_YCBCR_ENC_601;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(imx_media_fill_default_mbus_fields);
-+
- int imx_media_mbus_fmt_to_pix_fmt(struct v4l2_pix_format *pix,
- 				  struct v4l2_mbus_framefmt *mbus,
- 				  const struct imx_media_pixfmt *cc)
-diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
-index 3dedc47..c0b6d7f 100644
---- a/drivers/staging/media/imx/imx-media-vdic.c
-+++ b/drivers/staging/media/imx/imx-media-vdic.c
-@@ -603,10 +603,11 @@ static void vdic_try_fmt(struct vdic_priv *priv,
- 		sdformat->format.code = (*cc)->codes[0];
- 	}
- 
-+	infmt = __vdic_get_fmt(priv, cfg, priv->active_input_pad,
-+			       sdformat->which);
-+
- 	switch (sdformat->pad) {
- 	case VDIC_SRC_PAD_DIRECT:
--		infmt = __vdic_get_fmt(priv, cfg, priv->active_input_pad,
--				       sdformat->which);
- 		sdformat->format = *infmt;
- 		/* output is always progressive! */
- 		sdformat->format.field = V4L2_FIELD_NONE;
-@@ -618,6 +619,9 @@ static void vdic_try_fmt(struct vdic_priv *priv,
- 				      &sdformat->format.height,
- 				      MIN_H, MAX_H_VDIC, H_ALIGN, S_ALIGN);
- 
-+		imx_media_fill_default_mbus_fields(&sdformat->format, infmt,
-+						   true);
-+
- 		/* input must be interlaced! Choose SEQ_TB if not */
- 		if (!V4L2_FIELD_HAS_BOTH(sdformat->format.field))
- 			sdformat->format.field = V4L2_FIELD_SEQ_TB;
-diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
-index 0077c4c..d409170 100644
---- a/drivers/staging/media/imx/imx-media.h
-+++ b/drivers/staging/media/imx/imx-media.h
-@@ -209,7 +209,9 @@ int imx_media_enum_ipu_format(u32 *code, u32 index, enum codespace_sel cs_sel);
- int imx_media_init_mbus_fmt(struct v4l2_mbus_framefmt *mbus,
- 			    u32 width, u32 height, u32 code, u32 field,
- 			    const struct imx_media_pixfmt **cc);
--
-+void imx_media_fill_default_mbus_fields(struct v4l2_mbus_framefmt *tryfmt,
-+					struct v4l2_mbus_framefmt *fmt,
-+					bool ic_route);
- int imx_media_mbus_fmt_to_pix_fmt(struct v4l2_pix_format *pix,
- 				  struct v4l2_mbus_framefmt *mbus,
- 				  const struct imx_media_pixfmt *cc);
--- 
-2.7.4
+	Hans
