@@ -1,114 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35875 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753269AbdFWL6E (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Jun 2017 07:58:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Andreas =?ISO-8859-1?Q?F=E4rber?= <afaerber@suse.de>,
-        Suman Anna <s-anna@ti.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        devicetree <devicetree@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Discussions about the Letux Kernel
-        <letux-kernel@openphoenux.org>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Rob Herring <robh+dt@kernel.org>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH v1 1/6] DT bindings: add bindings for ov965x camera module
-Date: Fri, 23 Jun 2017 14:58:42 +0300
-Message-ID: <13144955.Kq5qljPvgI@avalon>
-In-Reply-To: <3E7B1344-ECE6-4CCC-9E9D-7521BB566CDE@goldelico.com>
-References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com> <d14b8c6e-b480-36f0-ed0a-684647617dbe@suse.de> <3E7B1344-ECE6-4CCC-9E9D-7521BB566CDE@goldelico.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:33997 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751845AbdFGSfH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:35:07 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v8 15/34] add mux and video interface bridge entity functions
+Date: Wed,  7 Jun 2017 11:33:54 -0700
+Message-Id: <1496860453-6282-16-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nikolaus,
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-On Friday 23 Jun 2017 12:59:24 H. Nikolaus Schaller wrote:
-> Am 23.06.2017 um 12:46 schrieb Andreas F=E4rber <afaerber@suse.de>:
-> > Am 23.06.2017 um 12:25 schrieb H. Nikolaus Schaller:
-> >>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov965x.t=
-xt
-> >>> b/Documentation/devicetree/bindings/media/i2c/ov965x.txt new file=
- mode
-> >>> 100644
-> >>> index 0000000..0e0de1f
-> >>> --- /dev/null
-> >>> +++ b/Documentation/devicetree/bindings/media/i2c/ov965x.txt
-> >>> @@ -0,0 +1,37 @@
-> >>> +* Omnivision OV9650/9652/9655 CMOS sensor
-> >>> +
-> >>> +The Omnivision OV965x sensor support multiple resolutions output=
-, such
-> >>> as
-> >>> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or r=
-aw RGB
-> >>> +output format.
-> >>> +
-> >>> +Required Properties:
-> >>> +- compatible: should be one of
-> >>> +=09"ovti,ov9650"
-> >>> +=09"ovti,ov9652"
-> >>> +=09"ovti,ov9655"
-> >>> +- clocks: reference to the mclk input clock.
-> >>=20
-> >> I wonder why you have removed the clock-frequency property?
-> >>=20
-> >> In some situations the camera driver must be able to tell the cloc=
-k
-> >> source which frequency it wants to see.
-> >=20
-> > That's what assigned-clock-rates property is for:
-> >=20
-> > https://www.kernel.org/doc/Documentation/devicetree/bindings/clock/=
-clock-b
-> > indings.txt
-> >=20
-> > AFAIU clock-frequency on devices is deprecated and equivalent to ha=
-ving
-> > a clocks property pointing to a fixed-clock, which is different fro=
-m a
-> > clock with varying rate.
->=20
-> I am not sure if that helps here. The OMAP3-ISP does not have a fixed=
- clock
-> rate so we can only have the driver define what it wants to see.
->=20
-> And common practise for OMAP3-ISP based camera modules (e.g. N900, N9=
-) is
-> that they do it in the driver.
->=20
-> Maybe ISP developers can comment?
+Add two new media entity function definitions for video multiplexers
+and video interface bridges.
 
-The OMAP3 ISP is a variable-frequency clock provider. The clock frequen=
-cy is=20
-controlled by the clock consumer. As such, it's up to the consumer to d=
-ecide=20
-whether to compute and request the clock rate dynamically at runtime, o=
-r use=20
-the assigned-clock-rates property in DT.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-Some ISPs include a clock generator, others don't. It should make no=20=
+- renamed MEDIA_ENT_F_MUX to MEDIA_ENT_F_VID_MUX
 
-difference whether the clock is provided by the ISP, by a dedicated clo=
-ck=20
-source in the SoC or by a discrete on-board adjustable clock source.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/media/uapi/mediactl/media-types.rst | 21 +++++++++++++++++++++
+ include/uapi/linux/media.h                        |  6 ++++++
+ 2 files changed, 27 insertions(+)
 
---=20
-Regards,
-
-Laurent Pinchart
+diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
+index 2a5164a..7107856 100644
+--- a/Documentation/media/uapi/mediactl/media-types.rst
++++ b/Documentation/media/uapi/mediactl/media-types.rst
+@@ -299,6 +299,27 @@ Types and flags used to represent the media graph elements
+ 	  received on its sink pad and outputs the statistics data on
+ 	  its source pad.
+ 
++    -  ..  row 29
++
++       ..  _MEDIA-ENT-F-VID-MUX:
++
++       -  ``MEDIA_ENT_F_VID_MUX``
++
++       - Video multiplexer. An entity capable of multiplexing must have at
++         least two sink pads and one source pad, and must pass the video
++         frame(s) received from the active sink pad to the source pad.
++
++    -  ..  row 30
++
++       ..  _MEDIA-ENT-F-VID-IF-BRIDGE:
++
++       -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
++
++       - Video interface bridge. A video interface bridge entity must have at
++         least one sink pad and at least one source pad. It receives video
++         frames on its sink pad from an input video bus of one type (HDMI, eDP,
++         MIPI CSI-2, ...), and outputs them on its source pad to an output
++         video bus of another type (eDP, MIPI CSI-2, parallel, ...).
+ 
+ ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
+ 
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 4890787..fac96c6 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -105,6 +105,12 @@ struct media_device_info {
+ #define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
+ 
+ /*
++ * Switch and bridge entitites
++ */
++#define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
++#define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
++
++/*
+  * Connectors
+  */
+ /* It is a responsibility of the entity drivers to add connectors and links */
+-- 
+2.7.4
