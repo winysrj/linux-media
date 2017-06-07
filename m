@@ -1,119 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36364 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752957AbdF3UvP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Jun 2017 16:51:15 -0400
-Received: by mail-wm0-f68.google.com with SMTP id y5so9855435wmh.3
-        for <linux-media@vger.kernel.org>; Fri, 30 Jun 2017 13:51:15 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: rjkm@metzlerbros.de, jasmin@anw.at
-Subject: [PATCH v2 04/10] [media] dvb-frontends/stv0910: Add demod-only signal strength reporting
-Date: Fri, 30 Jun 2017 22:51:00 +0200
-Message-Id: <20170630205106.1268-5-d.scheller.oss@gmail.com>
-In-Reply-To: <20170630205106.1268-1-d.scheller.oss@gmail.com>
-References: <20170630205106.1268-1-d.scheller.oss@gmail.com>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:34329 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752194AbdFGSfx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:35:53 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v8 34/34] ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
+Date: Wed,  7 Jun 2017 11:34:13 -0700
+Message-Id: <1496860453-6282-35-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Enable i.MX v4l2 media staging driver. For video capture on i.MX, the
+video multiplexer subdev is required. On the SabreAuto, the ADV7180
+video decoder is required along with i2c-mux-gpio. The Sabrelite
+and SabreSD require the OV5640 and the SabreLite requires PWM clocks
+for the OV5640.
 
-Original code at least has some signed/unsigned issues, resulting in
-values like 32dBm. Implement signal strength readout to work without
-asking the attached tuner, and use a lookup table instead of log calc.
-Values reported appear plausible, gathered from feedback from several
-testers.
+Increase max zoneorder to allow larger video buffer allocations.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/dvb-frontends/stv0910.c | 51 ++++++++++++++++++++++++++++++++---
- 1 file changed, 47 insertions(+), 4 deletions(-)
+ arch/arm/configs/imx_v6_v7_defconfig | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-index b9d6a61e6017..045f8f5305ab 100644
---- a/drivers/media/dvb-frontends/stv0910.c
-+++ b/drivers/media/dvb-frontends/stv0910.c
-@@ -136,7 +136,7 @@ struct sinit_table {
- 
- struct slookup {
- 	s16  value;
--	u16  reg_value;
-+	u32  reg_value;
- };
- 
- static inline int i2c_write(struct i2c_adapter *adap, u8 adr,
-@@ -328,6 +328,25 @@ struct slookup s2_sn_lookup[] = {
- 	{  510,    463  },  /*C/N=51.0dB*/
- };
- 
-+struct slookup padc_lookup[] = {
-+	{    0,  118000 }, /* PADC=+0dBm  */
-+	{ -100,  93600  }, /* PADC=-1dBm  */
-+	{ -200,  74500  }, /* PADC=-2dBm  */
-+	{ -300,  59100  }, /* PADC=-3dBm  */
-+	{ -400,  47000  }, /* PADC=-4dBm  */
-+	{ -500,  37300  }, /* PADC=-5dBm  */
-+	{ -600,  29650  }, /* PADC=-6dBm  */
-+	{ -700,  23520  }, /* PADC=-7dBm  */
-+	{ -900,  14850  }, /* PADC=-9dBm  */
-+	{ -1100, 9380   }, /* PADC=-11dBm */
-+	{ -1300, 5910   }, /* PADC=-13dBm */
-+	{ -1500, 3730   }, /* PADC=-15dBm */
-+	{ -1700, 2354   }, /* PADC=-17dBm */
-+	{ -1900, 1485   }, /* PADC=-19dBm */
-+	{ -2000, 1179   }, /* PADC=-20dBm */
-+	{ -2100, 1000   }, /* PADC=-21dBm */
-+};
-+
- /*********************************************************************
-  * Tracking carrier loop carrier QPSK 1/4 to 8PSK 9/10 long Frame
-  *********************************************************************/
-@@ -568,7 +587,7 @@ static int tracking_optimization(struct stv *state)
- }
- 
- static s32 table_lookup(struct slookup *table,
--		       int table_size, u16 reg_value)
-+		       int table_size, u32 reg_value)
- {
- 	s32 value;
- 	int imin = 0;
-@@ -1301,9 +1320,33 @@ static int read_ber(struct dvb_frontend *fe)
- 
- static void read_signal_strength(struct dvb_frontend *fe)
- {
--	/* FIXME: add signal strength algo */
-+	struct stv *state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *p = &state->fe.dtv_property_cache;
-+	s64 strength;
-+	u8 reg[2];
-+	u16 agc;
-+	s32 padc;
-+	s32 power = 0;
-+	int i;
- 
--	p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	read_regs(state, RSTV0910_P2_AGCIQIN1 + state->regoff, reg, 2);
-+
-+	agc = (((u32) reg[0]) << 8) | reg[1];
-+
-+	for (i = 0; i < 5; i += 1) {
-+		read_regs(state, RSTV0910_P2_POWERI + state->regoff, reg, 2);
-+		power += (u32) reg[0] * (u32) reg[0]
-+			+ (u32) reg[1] * (u32) reg[1];
-+		usleep_range(3000, 4000);
-+	}
-+	power /= 5;
-+
-+	padc = table_lookup(padc_lookup, ARRAY_SIZE(padc_lookup), power) + 352;
-+
-+	strength = (padc - agc);
-+
-+	p->strength.stat[0].scale = FE_SCALE_DECIBEL;
-+	p->strength.stat[0].uvalue = strength;
- }
- 
- static int read_status(struct dvb_frontend *fe, enum fe_status *status)
+diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
+index bb6fa56..63caf25 100644
+--- a/arch/arm/configs/imx_v6_v7_defconfig
++++ b/arch/arm/configs/imx_v6_v7_defconfig
+@@ -51,6 +51,7 @@ CONFIG_PREEMPT_VOLUNTARY=y
+ CONFIG_AEABI=y
+ CONFIG_HIGHMEM=y
+ CONFIG_CMA=y
++CONFIG_FORCE_MAX_ZONEORDER=14
+ CONFIG_CMDLINE="noinitrd console=ttymxc0,115200"
+ CONFIG_KEXEC=y
+ CONFIG_CPU_FREQ=y
+@@ -183,6 +184,7 @@ CONFIG_SERIAL_FSL_LPUART=y
+ CONFIG_SERIAL_FSL_LPUART_CONSOLE=y
+ # CONFIG_I2C_COMPAT is not set
+ CONFIG_I2C_CHARDEV=y
++CONFIG_I2C_MUX=y
+ CONFIG_I2C_MUX_GPIO=y
+ # CONFIG_I2C_HELPER_AUTO is not set
+ CONFIG_I2C_ALGOPCF=m
+@@ -223,14 +225,20 @@ CONFIG_REGULATOR_PFUZE100=y
+ CONFIG_MEDIA_SUPPORT=y
+ CONFIG_MEDIA_CAMERA_SUPPORT=y
+ CONFIG_MEDIA_RC_SUPPORT=y
++CONFIG_MEDIA_CONTROLLER=y
++CONFIG_VIDEO_V4L2_SUBDEV_API=y
+ CONFIG_RC_DEVICES=y
+ CONFIG_IR_GPIO_CIR=y
+ CONFIG_MEDIA_USB_SUPPORT=y
+ CONFIG_USB_VIDEO_CLASS=m
+ CONFIG_V4L_PLATFORM_DRIVERS=y
++CONFIG_VIDEO_MUX=y
+ CONFIG_SOC_CAMERA=y
+ CONFIG_V4L_MEM2MEM_DRIVERS=y
+ CONFIG_VIDEO_CODA=y
++# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
++CONFIG_VIDEO_ADV7180=m
++CONFIG_VIDEO_OV5640=m
+ CONFIG_SOC_CAMERA_OV2640=y
+ CONFIG_IMX_IPUV3_CORE=y
+ CONFIG_DRM=y
+@@ -340,6 +348,9 @@ CONFIG_FSL_EDMA=y
+ CONFIG_IMX_SDMA=y
+ CONFIG_MXS_DMA=y
+ CONFIG_STAGING=y
++CONFIG_STAGING_MEDIA=y
++CONFIG_VIDEO_IMX_MEDIA=y
++CONFIG_COMMON_CLK_PWM=y
+ CONFIG_IIO=y
+ CONFIG_VF610_ADC=y
+ CONFIG_MPL3115=y
 -- 
-2.13.0
+2.7.4
