@@ -1,79 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:53227 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751694AbdF0J1R (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 05:27:17 -0400
-Subject: Re: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
-To: Tony Lindgren <tony@atomide.com>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
- <20170414102512.48834-2-hverkuil@xs4all.nl>
- <4355dab4-9c70-77f7-f89b-9a1cf24976cf@ti.com>
- <20170626110711.GW3730@atomide.com>
- <701dbbfa-000a-2b93-405b-246aa90b6dd6@xs4all.nl>
- <20170627091421.GZ3730@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        Jyri Sarha <jsarha@ti.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1d970218-d24a-d460-7d95-b31102d735f2@xs4all.nl>
-Date: Tue, 27 Jun 2017 11:27:11 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170627091421.GZ3730@atomide.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:33459 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752055AbdFGSfU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:35:20 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v8 18/34] media: Add userspace header file for i.MX
+Date: Wed,  7 Jun 2017 11:33:57 -0700
+Message-Id: <1496860453-6282-19-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27/06/17 11:14, Tony Lindgren wrote:
-> * Hans Verkuil <hverkuil@xs4all.nl> [170627 01:39]:
->> On 26/06/17 13:07, Tony Lindgren wrote:
->>> Tomi,
->>>
->>> * Tomi Valkeinen <tomi.valkeinen@ti.com> [170428 04:15]:
->>>> On 14/04/17 13:25, Hans Verkuil wrote:
->>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>>
->>>>> The CEC pin was always pulled up, making it impossible to use it.
->>> ...
->>>
->>>> Tony, can you queue this? It's safe to apply separately from the rest of
->>>> the HDMI CEC work.
->>>
->>> So the dts changes are merged now but what's the status of the CEC driver
->>> changes? Were there some issues as I don't see them in next?
->>
->> Tomi advised me to wait until a 'hotplug-interrupt-handling series' for the
->> omap driver is merged to prevent conflicts. Last I heard (about 3 weeks ago)
->> this was still pending review.
-> 
-> OK thanks for the update.
-> 
-> Adding Jyri to Cc, hopefully the CEC support allows also setting the
-> HDMI audio volume level on devices implementing it? Or am I too
-> optimistic? :)
+This adds a header file for use by userspace programs wanting to interact
+with the i.MX media driver. It defines custom events and v4l2 controls for
+the i.MX v4l2 subdevices.
 
-I'm not quite sure what you mean. Do you want CEC to change the volume on the
-TV, or use the TV's remote to change the volume of the HDMI audio output of the
-omap4?
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ include/linux/imx-media.h | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+ create mode 100644 include/linux/imx-media.h
 
-Anyway, either is supported, but it requires a userspace implementation.
-
-Although TV remote control messages will be mapped to an input device, and if
-those are hooked up to the alsa audio volume, then this already works.
-
-Regards,
-
-	Hans
-
-> 
->> Tomi, any updates on this? It would be nice to get this in for 4.14.
-> 
-> Yeah seems like we have real mainline kernel user needs for this one.
-> 
-> Regards,
-> 
-> Tony
-> 
+diff --git a/include/linux/imx-media.h b/include/linux/imx-media.h
+new file mode 100644
+index 0000000..77221ec
+--- /dev/null
++++ b/include/linux/imx-media.h
+@@ -0,0 +1,29 @@
++/*
++ * Copyright (c) 2014-2017 Mentor Graphics Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the
++ * License, or (at your option) any later version
++ */
++
++#ifndef __LINUX_IMX_MEDIA_H__
++#define __LINUX_IMX_MEDIA_H__
++
++/*
++ * events from the subdevs
++ */
++#define V4L2_EVENT_IMX_CLASS                V4L2_EVENT_PRIVATE_START
++#define V4L2_EVENT_IMX_FRAME_INTERVAL_ERROR (V4L2_EVENT_IMX_CLASS + 1)
++
++enum imx_ctrl_id {
++	V4L2_CID_IMX_FIM_ENABLE = (V4L2_CID_USER_IMX_BASE + 0),
++	V4L2_CID_IMX_FIM_NUM,
++	V4L2_CID_IMX_FIM_TOLERANCE_MIN,
++	V4L2_CID_IMX_FIM_TOLERANCE_MAX,
++	V4L2_CID_IMX_FIM_NUM_SKIP,
++	V4L2_CID_IMX_FIM_ICAP_EDGE,
++	V4L2_CID_IMX_FIM_ICAP_CHANNEL,
++};
++
++#endif
+-- 
+2.7.4
