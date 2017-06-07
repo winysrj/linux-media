@@ -1,80 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58691
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751132AbdFHSAa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 14:00:30 -0400
-Date: Thu, 8 Jun 2017 15:00:22 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Kieran Bingham <kbingham@kernel.org>
-Cc: sakari.ailus@iki.fi, linux-media@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
-        linux-renesas-soc@vger.kernel.org, kieran.bingham@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: Re: [PATCH v4] v4l: subdev: tolerate null in
- media_entity_to_v4l2_subdev
-Message-ID: <20170608150022.5f696e58@vento.lan>
-In-Reply-To: <1496829127-28375-1-git-send-email-kbingham@kernel.org>
-References: <1496829127-28375-1-git-send-email-kbingham@kernel.org>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:50105 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751817AbdFGRpd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Jun 2017 13:45:33 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH for 4.12] cec: race fix: don't return -ENONET in cec_receive()
+Message-ID: <c468850e-262e-6131-e182-761bb9b4b4bf@xs4all.nl>
+Date: Wed, 7 Jun 2017 19:45:26 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  7 Jun 2017 10:52:07 +0100
-Kieran Bingham <kbingham@kernel.org> escreveu:
+When calling CEC_RECEIVE do not check if the adapter is configured.
+Typically CEC_RECEIVE is called after a select() and if that indicates
+that there are messages in the receive queue, then you should always be
+able to dequeue a message.
 
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> Return NULL, if a null entity is parsed for it's v4l2_subdev
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+The race condition here is that a message has been received and is
+queued, so select() tells userspace that a message is available. But
+before the application calls CEC_RECEIVE the adapter is unconfigured
+(e.g. the HDMI cable is removed). Now select will always report that
+there is a message, but calling CEC_RECEIVE will always return -ENONET
+because the adapter is no longer configured and so will never actually
+dequeue the message.
 
-Could you please improve this patch description?
+There is really no need for this check, and in fact the ENONET error
+code was never documented for CEC_RECEIVE. This may have been a left-over
+of old code that was never updated.
 
-I'm unsure if this is a bug fix, or some sort of feature...
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: <stable@vger.kernel.org>      # for v4.10 and up
+---
+ drivers/media/cec/cec-api.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-On what situations would a null entity be passed to this function?
+diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
+index 1359c3977101..f7eb4c54a354 100644
+--- a/drivers/media/cec/cec-api.c
++++ b/drivers/media/cec/cec-api.c
+@@ -272,16 +272,10 @@ static long cec_receive(struct cec_adapter *adap, struct cec_fh *fh,
+ 			bool block, struct cec_msg __user *parg)
+ {
+ 	struct cec_msg msg = {};
+-	long err = 0;
++	long err;
 
-Regards,
-Mauro
+ 	if (copy_from_user(&msg, parg, sizeof(msg)))
+ 		return -EFAULT;
+-	mutex_lock(&adap->lock);
+-	if (!adap->is_configured && fh->mode_follower < CEC_MODE_MONITOR)
+-		err = -ENONET;
+-	mutex_unlock(&adap->lock);
+-	if (err)
+-		return err;
 
-> 
-> ---
-> Not sure if this patch ever made it out of my mailbox:
-> 
-> Here's the respin with the parameter evaluated only once.
-> 
-> v4:
->  - Improve macro usage to evaluate ent only once
-> 
->  include/media/v4l2-subdev.h | 11 +++++++++--
->  1 file changed, 9 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index a40760174797..0f92ebd2d710 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -826,8 +826,15 @@ struct v4l2_subdev {
->  	struct v4l2_subdev_platform_data *pdata;
->  };
->  
-> -#define media_entity_to_v4l2_subdev(ent) \
-> -	container_of(ent, struct v4l2_subdev, entity)
-> +#define media_entity_to_v4l2_subdev(ent)				\
-> +({									\
-> +	typeof(ent) __me_sd_ent = (ent);				\
-> +									\
-> +	__me_sd_ent ?							\
-> +		container_of(__me_sd_ent, struct v4l2_subdev, entity) :	\
-> +		NULL;							\
-> +})
-> +
->  #define vdev_to_v4l2_subdev(vdev) \
->  	((struct v4l2_subdev *)video_get_drvdata(vdev))
->  
-
-
-
-Thanks,
-Mauro
+ 	err = cec_receive_msg(fh, &msg, block);
+ 	if (err)
+-- 
+2.11.0
