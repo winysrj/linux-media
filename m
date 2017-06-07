@@ -1,46 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34286 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750774AbdFOIiN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 04:38:13 -0400
-Date: Thu, 15 Jun 2017 11:37:39 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Alan Cox <gnomes@lxorguk.ukuu.org.uk>,
-        Yong Zhi <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        sakari.ailus@linux.intel.com, jian.xu.zheng@intel.com,
-        tfiga@chromium.org, Rajmohan Mani <rajmohan.mani@intel.com>,
-        tuukka.toivonen@intel.com
-Subject: Re: [PATCH 00/12] Intel IPU3 ImgU patchset
-Message-ID: <20170615083739.GA12407@valkosipuli.retiisi.org.uk>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
- <20170605214659.6678540b@lxorguk.ukuu.org.uk>
- <20170614222608.GU12407@valkosipuli.retiisi.org.uk>
- <CAHp75Vf7o8wO3Vpjni2dxyiHOX7Uy88R49RGzRB2SVVViWQR6A@mail.gmail.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52038
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751473AbdFGMjF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 08:39:05 -0400
+Date: Wed, 7 Jun 2017 09:38:57 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] sir_ir: annotate hardware config module
+ parameters
+Message-ID: <20170607093857.6a3a5249@vento.lan>
+In-Reply-To: <1496762299-29650-1-git-send-email-sean@mess.org>
+References: <1496762299-29650-1-git-send-email-sean@mess.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHp75Vf7o8wO3Vpjni2dxyiHOX7Uy88R49RGzRB2SVVViWQR6A@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 15, 2017 at 11:26:05AM +0300, Andy Shevchenko wrote:
-> On Thu, Jun 15, 2017 at 1:26 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > On Mon, Jun 05, 2017 at 09:46:59PM +0100, Alan Cox wrote:
-> 
-> >> and a pointer to the firmware (which ideally should go into the standard
-> >> Linux firmware git)
-> >
-> > Good question. Let me see what I can find.
-> 
-> Just a side note: it would be good to put it there. Hopefully the
-> firmware for IPUv3 is not going to be changed two times per day.
+Em Tue,  6 Jun 2017 16:18:19 +0100
+Sean Young <sean@mess.org> escreveu:
 
-This one is rather stable in terms of changes. If there are going to be
-changes they are very likely to be rare.
+> This module was merged after commit 5a8fc6a3cebb ("Annotate hardware
+> config module parameters in drivers/media/"), so add add the missing
+> hardware annotations.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+This patch seems wrong:
+
+drivers/media/rc/sir_ir.c:403:1: error: macro "module_param_hw" requires 4 arguments, but only 3 given
+drivers/media/rc/sir_ir.c:406:1: error: macro "module_param_hw" requires 4 arguments, but only 3 given
+drivers/media/tuners/r820t.c:2341 r820t_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
+drivers/media/rc/sir_ir.c:403:30: error: macro "module_param_hw" requires 4 arguments, but only 3 given
+ module_param_hw(io, int, 0444);
+                              ^
+drivers/media/rc/sir_ir.c:403:1: warning: data definition has no type or storage class
+ module_param_hw(io, int, 0444);
+ ^~~~~~~~~~~~~~~
+drivers/media/rc/sir_ir.c:403:1: error: type defaults to 'int' in declaration of 'module_param_hw' [-Werror=implicit-int]
+drivers/media/rc/sir_ir.c:406:31: error: macro "module_param_hw" requires 4 arguments, but only 3 given
+ module_param_hw(irq, int, 0444);
+                               ^
+drivers/media/rc/sir_ir.c:406:1: warning: data definition has no type or storage class
+ module_param_hw(irq, int, 0444);
+ ^~~~~~~~~~~~~~~
+drivers/media/rc/sir_ir.c:406:1: error: type defaults to 'int' in declaration of 'module_param_hw' [-Werror=implicit-int]
+
+Please check.
+
+Regards,
+Mauro
+
+Thanks,
+Mauro
