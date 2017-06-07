@@ -1,54 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34218 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751539AbdFIK4h (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Jun 2017 06:56:37 -0400
-Date: Fri, 9 Jun 2017 13:55:58 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
-Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, jian.xu.zheng@intel.com,
-        tfiga@chromium.org, rajmohan.mani@intel.com,
-        tuukka.toivonen@intel.com
-Subject: Re: [PATCH 01/12] videodev2.h, v4l2-ioctl: add IPU3 meta buffer
- format
-Message-ID: <20170609105558.GP1019@valkosipuli.retiisi.org.uk>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
- <1496695157-19926-2-git-send-email-yong.zhi@intel.com>
- <20170605214327.19b26021@lxorguk.ukuu.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170605214327.19b26021@lxorguk.ukuu.org.uk>
+Received: from mga03.intel.com ([134.134.136.65]:25742 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751436AbdFGBex (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Jun 2017 21:34:53 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
+        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
+        hverkuil@xs4all.nl, hyungwoo.yang@intel.com,
+        Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH v2 0/3]  [media] add IPU3 CIO2 CSI2 driver
+Date: Tue,  6 Jun 2017 20:34:36 -0500
+Message-Id: <1496799279-8774-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alan,
+This patch adds the driver for the CIO2 device found in some the Skylake
+and Kaby Kake SoCs. The CIO2 consists of four D-PHY receivers.
 
-On Mon, Jun 05, 2017 at 09:43:27PM +0100, Alan Cox wrote:
-> On Mon,  5 Jun 2017 15:39:06 -0500
-> Yong Zhi <yong.zhi@intel.com> wrote:
-> 
-> > Add the IPU3 specific processing parameter format
-> > V4L2_META_FMT_IPU3_PARAMS and metadata formats
-> > for 3A and other statistics:
-> > 
-> >   V4L2_META_FMT_IPU3_PARAMS
-> >   V4L2_META_FMT_IPU3_STAT_3A
-> >   V4L2_META_FMT_IPU3_STAT_DVS
-> >   V4L2_META_FMT_IPU3_STAT_LACE
-> 
-> Are these specific to IPU v3 or do they match other IPU versions ?
+The CIO2 driver exposes V4L2, V4L2 sub-device and Media controller
+interfaces to the user space.
 
-The parameters (V4L2_META_FMT_IPU3_PARAMS) are bound to be different (for
-previous versions had a private IOCTL to pass them). There could be
-similarities between different versions of the IPUs but they're still not
-exactly the same. The hardware tends to change quite a bit between the
-generations.
+===========
+= history =
+===========
+version 2:
+- remove all explicit DMA flush operations
+- change dma_free_noncoherent() to dma_free_coherent()
+- remove cio2_hw_mipi_lanes()
+- replace v4l2_g_ext_ctrls() with v4l2_ctrl_g_ctrl()
+  in cio2_csi2_calc_timing().
+- use ffs() to iterate the port_status in cio2_irq()
+- add static inline file_to_cio2_queue() function
+- comment dma_wmb(), cio2_rx_timing() and few other places
+- use ktime_get_ns() for vb2_buf.timestamp in cio2_buffer_done()
+- use of SET_RUNTIME_PM_OPS() macro for cio2_pm_ops
+- use BIT() macro for bit difinitions
+- remove un-used macros such as CIO2_QUEUE_WIDTH() in ipu3-cio2.h
+- move the MODULE_AUTHOR() to the end of the file
+- change file path to drivers/media/pci/intel/ipu3
+
+version 1:
+- Initial submission
+Yong Zhi (3):
+  [media] videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
+  [media] doc-rst: add IPU3 raw10 bayer pixel format definitions
+  [media] intel-ipu3: cio2: Add new MIPI-CSI2 driver
+
+ Documentation/media/uapi/v4l/pixfmt-rgb.rst        |    1 +
+ .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         |   62 +
+ drivers/media/pci/Kconfig                          |    2 +
+ drivers/media/pci/Makefile                         |    3 +-
+ drivers/media/pci/intel/Makefile                   |    5 +
+ drivers/media/pci/intel/ipu3/Kconfig               |   17 +
+ drivers/media/pci/intel/ipu3/Makefile              |    1 +
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c           | 1788 ++++++++++++++++++++
+ drivers/media/pci/intel/ipu3/ipu3-cio2.h           |  424 +++++
+ drivers/media/v4l2-core/v4l2-ioctl.c               |    4 +
+ include/uapi/linux/videodev2.h                     |    5 +
+ 11 files changed, 2311 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+ create mode 100644 drivers/media/pci/intel/Makefile
+ create mode 100644 drivers/media/pci/intel/ipu3/Kconfig
+ create mode 100644 drivers/media/pci/intel/ipu3/Makefile
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.h
 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
