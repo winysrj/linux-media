@@ -1,151 +1,288 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:57971 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751252AbdFBQDQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 12:03:16 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 5/9] [media] s5p-jpeg: Add IOMMU support
-Date: Fri,  2 Jun 2017 18:02:52 +0200
-Message-Id: <1496419376-17099-6-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
-References: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:33951 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751481AbdFGBAj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Jun 2017 21:00:39 -0400
+Received: by mail-pg0-f66.google.com with SMTP id v14so10727013pgn.1
+        for <linux-media@vger.kernel.org>; Tue, 06 Jun 2017 18:00:39 -0700 (PDT)
+Subject: Re: [PATCH] [media] imx: switch from V4L2 OF to V4L2 fwnode API
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, kernel@pengutronix.de
+References: <20170504133730.19934-1-p.zabel@pengutronix.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <59c1f567-d1d5-dbbd-284b-5ea810051f39@gmail.com>
+Date: Tue, 6 Jun 2017 18:00:36 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+In-Reply-To: <20170504133730.19934-1-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tony K Nadackal <tony.kn@samsung.com>
+Hi Philipp,
 
-This patch adds support for IOMMU s5p-jpeg driver if the Exynos IOMMU
-and ARM DMA IOMMU configurations are supported. The address space is
-created with size limited to 256M and base address set to 0x20000000.
+v4l2_fwnode patch has been merged to mediatree, so I've applied this
+to my imx-media-staging-md-v16 branch, thanks for the patch!
 
-Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 77 +++++++++++++++++++++++++++++
- 1 file changed, 77 insertions(+)
+However before I can submit version 8 of the patchset, the video-mux
+driver also needs conversion. Can you submit a version 8 of your
+video-mux patchset (your last was v7) containing the switch to
+v4l2-fwnode, and I will incorporate into the imx-media v8 patchset.
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 770a709..5569b99 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -28,6 +28,14 @@
- #include <media/v4l2-ioctl.h>
- #include <media/videobuf2-v4l2.h>
- #include <media/videobuf2-dma-contig.h>
-+#if defined(CONFIG_EXYNOS_IOMMU) && defined(CONFIG_ARM_DMA_USE_IOMMU)
-+#include <asm/dma-iommu.h>
-+#include <linux/dma-iommu.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/iommu.h>
-+#include <linux/kref.h>
-+#include <linux/of_platform.h>
-+#endif
- 
- #include "jpeg-core.h"
- #include "jpeg-hw-s5p.h"
-@@ -35,6 +43,10 @@
- #include "jpeg-hw-exynos3250.h"
- #include "jpeg-regs.h"
- 
-+#if defined(CONFIG_EXYNOS_IOMMU) && defined(CONFIG_ARM_DMA_USE_IOMMU)
-+static struct dma_iommu_mapping *mapping;
-+#endif
-+
- static struct s5p_jpeg_fmt sjpeg_formats[] = {
- 	{
- 		.name		= "JPEG JFIF",
-@@ -956,6 +968,60 @@ static void exynos4_jpeg_parse_q_tbl(struct s5p_jpeg_ctx *ctx)
- 	}
- }
- 
-+#if defined(CONFIG_EXYNOS_IOMMU) && defined(CONFIG_ARM_DMA_USE_IOMMU)
-+static int jpeg_iommu_init(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	int err;
-+
-+	mapping = arm_iommu_create_mapping(&platform_bus_type, 0x20000000,
-+					   SZ_512M);
-+	if (IS_ERR(mapping)) {
-+		dev_err(dev, "IOMMU mapping failed\n");
-+		return PTR_ERR(mapping);
-+	}
-+
-+	dev->dma_parms = devm_kzalloc(dev, sizeof(*dev->dma_parms), GFP_KERNEL);
-+	if (!dev->dma_parms) {
-+		err = -ENOMEM;
-+		goto error_alloc;
-+	}
-+
-+	err = dma_set_max_seg_size(dev, 0xffffffffu);
-+	if (err)
-+		goto error;
-+
-+	err = arm_iommu_attach_device(dev, mapping);
-+	if (err)
-+		goto error;
-+
-+	return 0;
-+
-+error:
-+	devm_kfree(dev, dev->dma_parms);
-+	dev->dma_parms = NULL;
-+
-+error_alloc:
-+	arm_iommu_release_mapping(mapping);
-+	mapping = NULL;
-+
-+	return err;
-+}
-+
-+static void jpeg_iommu_deinit(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+
-+	if (mapping) {
-+		arm_iommu_detach_device(dev);
-+		devm_kfree(dev, dev->dma_parms);
-+		dev->dma_parms = NULL;
-+		arm_iommu_release_mapping(mapping);
-+		mapping = NULL;
-+	}
-+}
-+#endif
-+
- /*
-  * ============================================================================
-  * Device file operations
-@@ -2816,6 +2882,13 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
- 	spin_lock_init(&jpeg->slock);
- 	jpeg->dev = &pdev->dev;
- 
-+#if defined(CONFIG_EXYNOS_IOMMU) && defined(CONFIG_ARM_DMA_USE_IOMMU)
-+	ret = jpeg_iommu_init(pdev);
-+	if (ret) {
-+		dev_err(&pdev->dev, "IOMMU Initialization failed\n");
-+		return ret;
-+	}
-+#endif
- 	/* memory-mapped registers */
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 
-@@ -2962,6 +3035,10 @@ static int s5p_jpeg_remove(struct platform_device *pdev)
- 			clk_disable_unprepare(jpeg->clocks[i]);
- 	}
- 
-+#if defined(CONFIG_EXYNOS_IOMMU) && defined(CONFIG_ARM_DMA_USE_IOMMU)
-+	jpeg_iommu_deinit(pdev);
-+#endif
-+
- 	return 0;
- }
- 
--- 
-2.7.4
+Thanks!
+Steve
+
+
+On 05/04/2017 06:37 AM, Philipp Zabel wrote:
+> Switch from the v4l2_of_ APIs to the v4l2_fwnode_ APIs so this driver
+> can work if the patch "v4l: Switch from V4L2 OF not V4L2 fwnode API"
+> is applied before it. Tested against
+> https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi-merge
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>   drivers/staging/media/imx/imx-media-capture.c |  2 +-
+>   drivers/staging/media/imx/imx-media-csi.c     | 10 +++++-----
+>   drivers/staging/media/imx/imx-media-dev.c     | 19 ++++++++++---------
+>   drivers/staging/media/imx/imx-media-fim.c     |  1 -
+>   drivers/staging/media/imx/imx-media-of.c      |  6 ++++--
+>   drivers/staging/media/imx/imx-media.h         |  4 ++--
+>   drivers/staging/media/imx/imx6-mipi-csi2.c    |  9 +++++----
+>   7 files changed, 27 insertions(+), 24 deletions(-)
+> 
+> diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
+> index 8b28dbc21566c..ddab4c249da25 100644
+> --- a/drivers/staging/media/imx/imx-media-capture.c
+> +++ b/drivers/staging/media/imx/imx-media-capture.c
+> @@ -21,8 +21,8 @@
+>   #include <media/v4l2-ctrls.h>
+>   #include <media/v4l2-device.h>
+>   #include <media/v4l2-event.h>
+> +#include <media/v4l2-fwnode.h>
+>   #include <media/v4l2-ioctl.h>
+> -#include <media/v4l2-of.h>
+>   #include <media/v4l2-mc.h>
+>   #include <media/v4l2-subdev.h>
+>   #include <media/videobuf2-dma-contig.h>
+> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> index 447c597111852..fdf90dc7d212e 100644
+> --- a/drivers/staging/media/imx/imx-media-csi.c
+> +++ b/drivers/staging/media/imx/imx-media-csi.c
+> @@ -17,8 +17,8 @@
+>   #include <media/v4l2-ctrls.h>
+>   #include <media/v4l2-device.h>
+>   #include <media/v4l2-event.h>
+> +#include <media/v4l2-fwnode.h>
+>   #include <media/v4l2-mc.h>
+> -#include <media/v4l2-of.h>
+>   #include <media/v4l2-subdev.h>
+>   #include <media/videobuf2-dma-contig.h>
+>   #include <video/imx-ipu-v3.h>
+> @@ -307,7 +307,7 @@ static void csi_idmac_unsetup_vb2_buf(struct csi_priv *priv,
+>   static int csi_idmac_setup_channel(struct csi_priv *priv)
+>   {
+>   	struct imx_media_video_dev *vdev = priv->vdev;
+> -	struct v4l2_of_endpoint *sensor_ep;
+> +	struct v4l2_fwnode_endpoint *sensor_ep;
+>   	struct v4l2_mbus_framefmt *infmt;
+>   	struct ipu_image image;
+>   	u32 passthrough_bits;
+> @@ -557,7 +557,7 @@ static int csi_setup(struct csi_priv *priv)
+>   {
+>   	struct v4l2_mbus_framefmt *infmt, *outfmt;
+>   	struct v4l2_mbus_config sensor_mbus_cfg;
+> -	struct v4l2_of_endpoint *sensor_ep;
+> +	struct v4l2_fwnode_endpoint *sensor_ep;
+>   	struct v4l2_mbus_framefmt if_fmt;
+>   	const struct csi_skip_desc *skip;
+>   
+> @@ -957,7 +957,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
+>   {
+>   	struct csi_priv *priv = v4l2_get_subdevdata(sd);
+>   	const struct imx_media_pixfmt *incc;
+> -	struct v4l2_of_endpoint *sensor_ep;
+> +	struct v4l2_fwnode_endpoint *sensor_ep;
+>   	struct imx_media_subdev *sensor;
+>   	bool is_csi2;
+>   	int ret;
+> @@ -1066,7 +1066,7 @@ static void csi_try_crop(struct csi_priv *priv,
+>   			 struct v4l2_mbus_framefmt *infmt,
+>   			 struct imx_media_subdev *sensor)
+>   {
+> -	struct v4l2_of_endpoint *sensor_ep;
+> +	struct v4l2_fwnode_endpoint *sensor_ep;
+>   
+>   	sensor_ep = &sensor->sensor_ep;
+>   
+> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+> index d149d2f222f10..488c4d24783d9 100644
+> --- a/drivers/staging/media/imx/imx-media-dev.c
+> +++ b/drivers/staging/media/imx/imx-media-dev.c
+> @@ -40,14 +40,15 @@ imx_media_find_async_subdev(struct imx_media_dev *imxmd,
+>   			    struct device_node *np,
+>   			    const char *devname)
+>   {
+> +	struct fwnode_handle *fwnode = np ? of_fwnode_handle(np) : NULL;
+>   	struct imx_media_subdev *imxsd;
+>   	int i;
+>   
+>   	for (i = 0; i < imxmd->subdev_notifier.num_subdevs; i++) {
+>   		imxsd = &imxmd->subdev[i];
+>   		switch (imxsd->asd.match_type) {
+> -		case V4L2_ASYNC_MATCH_OF:
+> -			if (np && imxsd->asd.match.of.node == np)
+> +		case V4L2_ASYNC_MATCH_FWNODE:
+> +			if (fwnode && imxsd->asd.match.fwnode.fwnode == fwnode)
+>   				return imxsd;
+>   			break;
+>   		case V4L2_ASYNC_MATCH_DEVNAME:
+> @@ -65,8 +66,8 @@ imx_media_find_async_subdev(struct imx_media_dev *imxmd,
+>   
+>   /*
+>    * Adds a subdev to the async subdev list. If np is non-NULL, adds
+> - * the async as a V4L2_ASYNC_MATCH_OF match type, otherwise as a
+> - * V4L2_ASYNC_MATCH_DEVNAME match type using the dev_name of the
+> + * the async as a V4L2_ASYNC_MATCH_FWNODE match type, otherwise as
+> + * a V4L2_ASYNC_MATCH_DEVNAME match type using the dev_name of the
+>    * given platform_device. This is called during driver load when
+>    * forming the async subdev list.
+>    */
+> @@ -101,8 +102,8 @@ imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+>   
+>   	asd = &imxsd->asd;
+>   	if (np) {
+> -		asd->match_type = V4L2_ASYNC_MATCH_OF;
+> -		asd->match.of.node = np;
+> +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> +		asd->match.fwnode.fwnode = of_fwnode_handle(np);
+>   	} else {
+>   		asd->match_type = V4L2_ASYNC_MATCH_DEVNAME;
+>   		strncpy(imxsd->devname, devname, sizeof(imxsd->devname));
+> @@ -114,7 +115,7 @@ imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+>   	imxmd->subdev_notifier.num_subdevs++;
+>   
+>   	dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
+> -		__func__, np ? np->name : devname, np ? "OF" : "DEVNAME");
+> +		__func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
+>   
+>   	return imxsd;
+>   }
+> @@ -194,11 +195,11 @@ static int imx_media_subdev_bound(struct v4l2_async_notifier *notifier,
+>   				  struct v4l2_async_subdev *asd)
+>   {
+>   	struct imx_media_dev *imxmd = notifier2dev(notifier);
+> +	struct device_node *np = to_of_node(dev_fwnode(sd->dev));
+>   	struct imx_media_subdev *imxsd;
+>   	int ret = -EINVAL;
+>   
+> -	imxsd = imx_media_find_async_subdev(imxmd, sd->of_node,
+> -					    dev_name(sd->dev));
+> +	imxsd = imx_media_find_async_subdev(imxmd, np, dev_name(sd->dev));
+>   	if (!imxsd)
+>   		goto out;
+>   
+> diff --git a/drivers/staging/media/imx/imx-media-fim.c b/drivers/staging/media/imx/imx-media-fim.c
+> index bd738ac9af8db..2cc7011cac036 100644
+> --- a/drivers/staging/media/imx/imx-media-fim.c
+> +++ b/drivers/staging/media/imx/imx-media-fim.c
+> @@ -13,7 +13,6 @@
+>   #include <linux/platform_device.h>
+>   #include <linux/slab.h>
+>   #include <media/v4l2-ctrls.h>
+> -#include <media/v4l2-of.h>
+>   #include <media/v4l2-subdev.h>
+>   #include <media/imx.h>
+>   #include "imx-media.h"
+> diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
+> index 1c7426fed979e..9e576ce8a0875 100644
+> --- a/drivers/staging/media/imx/imx-media-of.c
+> +++ b/drivers/staging/media/imx/imx-media-of.c
+> @@ -13,9 +13,10 @@
+>   #include <linux/of_platform.h>
+>   #include <media/v4l2-ctrls.h>
+>   #include <media/v4l2-device.h>
+> -#include <media/v4l2-of.h>
+> +#include <media/v4l2-fwnode.h>
+>   #include <media/v4l2-subdev.h>
+>   #include <media/videobuf2-dma-contig.h>
+> +#include <linux/of_graph.h>
+>   #include <video/imx-ipu-v3.h>
+>   #include "imx-media.h"
+>   
+> @@ -41,7 +42,8 @@ static void of_parse_sensor(struct imx_media_dev *imxmd,
+>   
+>   	endpoint = of_graph_get_next_endpoint(sensor_np, NULL);
+>   	if (endpoint) {
+> -		v4l2_of_parse_endpoint(endpoint, &sensor->sensor_ep);
+> +		v4l2_fwnode_endpoint_parse(of_fwnode_handle(endpoint),
+> +					   &sensor->sensor_ep);
+>   		of_node_put(endpoint);
+>   	}
+>   }
+> diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+> index 76b3d364275b3..3d7e8bb90e239 100644
+> --- a/drivers/staging/media/imx/imx-media.h
+> +++ b/drivers/staging/media/imx/imx-media.h
+> @@ -13,7 +13,7 @@
+>   
+>   #include <media/v4l2-ctrls.h>
+>   #include <media/v4l2-device.h>
+> -#include <media/v4l2-of.h>
+> +#include <media/v4l2-fwnode.h>
+>   #include <media/v4l2-subdev.h>
+>   #include <media/videobuf2-dma-contig.h>
+>   #include <video/imx-ipu-v3.h>
+> @@ -149,7 +149,7 @@ struct imx_media_subdev {
+>   	char devname[32];
+>   
+>   	/* if this is a sensor */
+> -	struct v4l2_of_endpoint sensor_ep;
+> +	struct v4l2_fwnode_endpoint sensor_ep;
+>   };
+>   
+>   struct imx_media_dev {
+> diff --git a/drivers/staging/media/imx/imx6-mipi-csi2.c b/drivers/staging/media/imx/imx6-mipi-csi2.c
+> index 4f778b7ef51c5..bb3150887ac08 100644
+> --- a/drivers/staging/media/imx/imx6-mipi-csi2.c
+> +++ b/drivers/staging/media/imx/imx6-mipi-csi2.c
+> @@ -14,9 +14,10 @@
+>   #include <linux/iopoll.h>
+>   #include <linux/irq.h>
+>   #include <linux/module.h>
+> +#include <linux/of_graph.h>
+>   #include <linux/platform_device.h>
+>   #include <media/v4l2-device.h>
+> -#include <media/v4l2-of.h>
+> +#include <media/v4l2-fwnode.h>
+>   #include <media/v4l2-subdev.h>
+>   #include "imx-media.h"
+>   
+> @@ -43,7 +44,7 @@ struct csi2_dev {
+>   	struct clk             *pllref_clk;
+>   	struct clk             *pix_clk; /* what is this? */
+>   	void __iomem           *base;
+> -	struct v4l2_of_bus_mipi_csi2 bus;
+> +	struct v4l2_fwnode_bus_mipi_csi2 bus;
+>   
+>   	/* lock to protect all members below */
+>   	struct mutex lock;
+> @@ -560,7 +561,7 @@ static int csi2_parse_endpoints(struct csi2_dev *csi2)
+>   {
+>   	struct device_node *node = csi2->dev->of_node;
+>   	struct device_node *epnode;
+> -	struct v4l2_of_endpoint ep;
+> +	struct v4l2_fwnode_endpoint ep;
+>   
+>   	epnode = of_graph_get_endpoint_by_regs(node, 0, -1);
+>   	if (!epnode) {
+> @@ -568,7 +569,7 @@ static int csi2_parse_endpoints(struct csi2_dev *csi2)
+>   		return -EINVAL;
+>   	}
+>   
+> -	v4l2_of_parse_endpoint(epnode, &ep);
+> +	v4l2_fwnode_endpoint_parse(of_fwnode_handle(epnode), &ep);
+>   	of_node_put(epnode);
+>   
+>   	if (ep.bus_type != V4L2_MBUS_CSI2) {
+> 
