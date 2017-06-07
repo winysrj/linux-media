@@ -1,50 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:60244 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753189AbdFLRNd (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:44662 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751491AbdFGOqW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 13:13:33 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2 1/6] [media] s5p-jpeg: Reset the Codec before doing a soft reset
-Date: Mon, 12 Jun 2017 19:13:20 +0200
-Message-Id: <1497287605-20074-2-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
-References: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+        Wed, 7 Jun 2017 10:46:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH 6/9] cec-ioc-adap-g-caps.rst: document CEC_CAP_NEEDS_HPD
+Date: Wed,  7 Jun 2017 16:46:13 +0200
+Message-Id: <20170607144616.15247-7-hverkuil@xs4all.nl>
+In-Reply-To: <20170607144616.15247-1-hverkuil@xs4all.nl>
+References: <20170607144616.15247-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Abhilash Kesavan <a.kesavan@samsung.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch resets the encoding and decoding register bits before doing a
-soft reset.
+Document the new CEC_CAP_NEEDS_HPD capability.
 
-Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Andrzej Hajda <a.hajda@samsung.com>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-index a1d823a..9ad8f6d 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-@@ -21,6 +21,10 @@ void exynos4_jpeg_sw_reset(void __iomem *base)
- 	unsigned int reg;
- 
- 	reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
-+	writel(reg & ~(EXYNOS4_DEC_MODE | EXYNOS4_ENC_MODE),
-+	       base + EXYNOS4_JPEG_CNTL_REG);
+diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
+index a0e961f11017..6d7bf7bef3eb 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
+@@ -113,6 +113,14 @@ returns the information to the application. The ioctl never fails.
+       - 0x00000020
+       - The CEC hardware can monitor all messages, not just directed and
+ 	broadcast messages.
++    * .. _`CEC-CAP-NEEDS-HPD`:
 +
-+	reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
- 	writel(reg & ~EXYNOS4_SOFT_RESET_HI, base + EXYNOS4_JPEG_CNTL_REG);
++      - ``CEC_CAP_NEEDS_HPD``
++      - 0x00000040
++      - The CEC hardware is only active if the HDMI Hotplug Detect pin is
++        high. This makes it impossible to use CEC to wake up displays that
++	set the HPD pin low when in standby mode, but keep the CEC bus
++	alive.
  
- 	udelay(100);
+ 
+ 
 -- 
-2.7.4
+2.11.0
