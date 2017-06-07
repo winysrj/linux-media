@@ -1,38 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:48405 "EHLO smtp5-g21.free.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753299AbdF2Pfh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 11:35:37 -0400
-Subject: Re: Trying to use IR driver for my SoC
-From: Mason <slash.tmp@free.fr>
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>
-References: <cf82988e-8be2-1ec8-b343-7c3c54110746@free.fr>
-Message-ID: <a49e0c85-f95b-b952-e972-6d9049725cd7@free.fr>
-Date: Thu, 29 Jun 2017 17:35:26 +0200
-MIME-Version: 1.0
-In-Reply-To: <cf82988e-8be2-1ec8-b343-7c3c54110746@free.fr>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:36210 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752147AbdFGSfq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:35:46 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v8 31/34] media: imx: capture: add frame sizes/interval enumeration
+Date: Wed,  7 Jun 2017 11:34:10 -0700
+Message-Id: <1496860453-6282-32-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29/06/2017 17:29, Mason wrote:
+From: Russell King <rmk+kernel@armlinux.org.uk>
 
-> I suppose I am missing some important piece of the puzzle?
-> I hope someone can point me in the right direction.
+Add support for enumerating frame sizes and frame intervals from the
+first subdev via the V4L2 interfaces.
 
-FWIW,
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-media-capture.c | 73 +++++++++++++++++++++++++++
+ 1 file changed, 73 insertions(+)
 
-$ ir-keytable -v
-Found device /sys/class/rc/rc0/
-Input sysfs node is /sys/class/rc/rc0/input0/
-Couldn't find any node at /sys/class/rc/rc0/input0/event*.
-Segmentation fault
-
-$ ir-keytable --version
-IR keytable control version 1.12.2
-
-Regards.
+diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
+index f07ed9a..ddab4c2 100644
+--- a/drivers/staging/media/imx/imx-media-capture.c
++++ b/drivers/staging/media/imx/imx-media-capture.c
+@@ -81,6 +81,76 @@ static int vidioc_querycap(struct file *file, void *fh,
+ 	return 0;
+ }
+ 
++static int capture_enum_framesizes(struct file *file, void *fh,
++				   struct v4l2_frmsizeenum *fsize)
++{
++	struct capture_priv *priv = video_drvdata(file);
++	const struct imx_media_pixfmt *cc;
++	struct v4l2_subdev_frame_size_enum fse = {
++		.index = fsize->index,
++		.pad = priv->src_sd_pad,
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
++	int ret;
++
++	cc = imx_media_find_format(fsize->pixel_format, CS_SEL_ANY, true);
++	if (!cc)
++		return -EINVAL;
++
++	fse.code = cc->codes[0];
++
++	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_size, NULL, &fse);
++	if (ret)
++		return ret;
++
++	if (fse.min_width == fse.max_width &&
++	    fse.min_height == fse.max_height) {
++		fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++		fsize->discrete.width = fse.min_width;
++		fsize->discrete.height = fse.min_height;
++	} else {
++		fsize->type = V4L2_FRMSIZE_TYPE_CONTINUOUS;
++		fsize->stepwise.min_width = fse.min_width;
++		fsize->stepwise.max_width = fse.max_width;
++		fsize->stepwise.min_height = fse.min_height;
++		fsize->stepwise.max_height = fse.max_height;
++		fsize->stepwise.step_width = 1;
++		fsize->stepwise.step_height = 1;
++	}
++
++	return 0;
++}
++
++static int capture_enum_frameintervals(struct file *file, void *fh,
++				       struct v4l2_frmivalenum *fival)
++{
++	struct capture_priv *priv = video_drvdata(file);
++	const struct imx_media_pixfmt *cc;
++	struct v4l2_subdev_frame_interval_enum fie = {
++		.index = fival->index,
++		.pad = priv->src_sd_pad,
++		.width = fival->width,
++		.height = fival->height,
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
++	int ret;
++
++	cc = imx_media_find_format(fival->pixel_format, CS_SEL_ANY, true);
++	if (!cc)
++		return -EINVAL;
++
++	fie.code = cc->codes[0];
++
++	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_interval, NULL, &fie);
++	if (ret)
++		return ret;
++
++	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++	fival->discrete = fie.interval;
++
++	return 0;
++}
++
+ static int capture_enum_fmt_vid_cap(struct file *file, void *fh,
+ 				    struct v4l2_fmtdesc *f)
+ {
+@@ -269,6 +339,9 @@ static int capture_s_parm(struct file *file, void *fh,
+ static const struct v4l2_ioctl_ops capture_ioctl_ops = {
+ 	.vidioc_querycap	= vidioc_querycap,
+ 
++	.vidioc_enum_framesizes = capture_enum_framesizes,
++	.vidioc_enum_frameintervals = capture_enum_frameintervals,
++
+ 	.vidioc_enum_fmt_vid_cap        = capture_enum_fmt_vid_cap,
+ 	.vidioc_g_fmt_vid_cap           = capture_g_fmt_vid_cap,
+ 	.vidioc_try_fmt_vid_cap         = capture_try_fmt_vid_cap,
+-- 
+2.7.4
