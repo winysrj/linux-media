@@ -1,96 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:36785 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751191AbdFYGpr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Jun 2017 02:45:47 -0400
-Received: by mail-pf0-f193.google.com with SMTP id z6so4958724pfk.3
-        for <linux-media@vger.kernel.org>; Sat, 24 Jun 2017 23:45:47 -0700 (PDT)
-Date: Sun, 25 Jun 2017 16:45:36 +1000
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [media_build] regression at 3a17e11 "update
- v4.10_sched_signal.patch"
-Message-ID: <20170625064534.GA30976@ubuntu.windy>
-References: <20170608131339.GA11167@ubuntu.windy>
- <20170608132826.GB11167@ubuntu.windy>
- <546c4974-5fbe-ce02-3a20-f8f2ecf5107f@xs4all.nl>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53173
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751423AbdFGQ5D (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 12:57:03 -0400
+Date: Wed, 7 Jun 2017 13:56:54 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>
+Cc: <laurent.pinchart@ideasonboard.com>,
+        <linux-renesas-soc@vger.kernel.org>,
+        <dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>,
+        <geert@linux-m68k.org>, <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH v2 1/2] v4l: vsp1: Add support for colorkey alpha
+ blending
+Message-ID: <20170607135654.067f4dda@vento.lan>
+In-Reply-To: <1494152007-30094-2-git-send-email-Alexandru_Gheorghe@mentor.com>
+References: <1494152007-30094-1-git-send-email-Alexandru_Gheorghe@mentor.com>
+        <1494152007-30094-2-git-send-email-Alexandru_Gheorghe@mentor.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <546c4974-5fbe-ce02-3a20-f8f2ecf5107f@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 08, 2017 at 04:42:30PM +0200, Hans Verkuil wrote:
-> On 08/06/17 15:28, Vincent McIntyre wrote:
-> > I managed to find the failing patch, not sure what the fix is.
-> > 
-> > $ cd linux/
-> > $ patch -f -N -p1 -i ../backports/v4.10_sched_signal.patch
-> > patching file drivers/media/dvb-core/dvb_ca_en50221.c
-> > Hunk #1 succeeded at 35 (offset 1 line).
-> > patching file drivers/media/dvb-core/dvb_demux.c
-> > Hunk #1 succeeded at 20 with fuzz 1 (offset 1 line).
-> > patching file drivers/media/dvb-core/dvb_frontend.c
-> > Hunk #1 succeeded at 30 (offset 1 line).
-> > patching file drivers/media/pci/cx18/cx18-driver.h
-> > patching file drivers/media/pci/ivtv/ivtv-driver.c
-> > patching file drivers/media/pci/ivtv/ivtv-driver.h
-> > Hunk #1 succeeded at 39 (offset 1 line).
-> > patching file drivers/media/pci/pt1/pt1.c
-> > patching file drivers/media/pci/pt3/pt3.c
-> > patching file drivers/media/pci/solo6x10/solo6x10-i2c.c
-> > patching file drivers/media/pci/zoran/zoran_device.c
-> > patching file drivers/media/platform/vivid/vivid-radio-rx.c
-> > patching file drivers/media/platform/vivid/vivid-radio-tx.c
-> > patching file drivers/media/rc/lirc_dev.c
-> > Hunk #1 FAILED at 18.
-> > 1 out of 1 hunk FAILED -- saving rejects to file drivers/media/rc/lirc_dev.c.rej
-> > patching file drivers/media/usb/cpia2/cpia2_core.c
-> > patching file drivers/media/usb/gspca/cpia1.c
-> > Hunk #1 succeeded at 28 (offset 1 line).
-> > patching file drivers/media/v4l2-core/videobuf-dma-sg.c
-> > patching file drivers/staging/media/lirc/lirc_zilog.c
-> > patching file include/media/v4l2-ioctl.h
-> > 
-> > $ cat drivers/media/rc/lirc_dev.c.rej
-> > --- drivers/media/rc/lirc_dev.c
-> > +++ drivers/media/rc/lirc_dev.c
-> > @@ -18,7 +18,7 @@
-> >  #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> >  
-> >  #include <linux/module.h>
-> > -#include <linux/sched/signal.h>
-> > +#include <linux/sched.h>
-> >  #include <linux/ioctl.h>
-> >  #include <linux/poll.h>
-> >  #include <linux/mutex.h>
-> > 
+Em Sun, 7 May 2017 13:13:26 +0300
+Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com> escreveu:
+
+> The vsp2 hw supports changing of the alpha of pixels that match a color
+> key, this patch adds support for this feature in order to be used by
+> the rcar-du driver.
+> The colorkey is interpreted different depending of the pixel format:
+> 	* RGB   - all color components have to match.
+> 	* YCbCr - only the Y component has to match.
 > 
-> Odd, it applies cleanly here.
+> Signed-off-by: Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>
+
+As most of the changes on this series are for DRM, from my side,
+feel free to merge this via DRM tree.
+
+Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+> ---
+>  drivers/media/platform/vsp1/vsp1_drm.c  |  3 +++
+>  drivers/media/platform/vsp1/vsp1_rpf.c  | 10 ++++++++--
+>  drivers/media/platform/vsp1/vsp1_rwpf.h |  3 +++
+>  include/media/vsp1.h                    |  3 +++
+>  4 files changed, 17 insertions(+), 2 deletions(-)
 > 
-> But don't bother, the media_build totally broke after the latest round of
-> commits to the master. We're looking into that, but it might take a bit
-> of time before it is resolved.
-> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+> index 3627f08..a4d0aee 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -393,6 +393,9 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
+>  	else
+>  		rpf->format.plane_fmt[1].bytesperline = cfg->pitch;
+>  	rpf->alpha = cfg->alpha;
+> +	rpf->colorkey = cfg->colorkey;
+> +	rpf->colorkey_en = cfg->colorkey_en;
+> +	rpf->colorkey_alpha = cfg->colorkey_alpha;
+>  	rpf->interlaced = cfg->interlaced;
+>  
+>  	if (soc_device_match(r8a7795es1) && rpf->interlaced) {
+> diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+> index a12d6f9..91f2a9f 100644
+> --- a/drivers/media/platform/vsp1/vsp1_rpf.c
+> +++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+> @@ -356,8 +356,14 @@ static void rpf_configure(struct vsp1_entity *entity,
+>  	}
+>  
+>  	vsp1_rpf_write(rpf, dl, VI6_RPF_MSK_CTRL, 0);
+> -	vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_CTRL, 0);
+> -
+> +	if (rpf->colorkey_en) {
+> +		vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_SET0,
+> +			       (rpf->colorkey_alpha << 24) | rpf->colorkey);
+> +		vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_CTRL,
+> +			       VI6_RPF_CKEY_CTRL_SAPE0);
+> +	} else {
+> +		vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_CTRL, 0);
+> +	}
+>  }
+>  
+>  static const struct vsp1_entity_operations rpf_entity_ops = {
+> diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+> index fbe6aa6..2d7f4b9 100644
+> --- a/drivers/media/platform/vsp1/vsp1_rwpf.h
+> +++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+> @@ -51,6 +51,9 @@ struct vsp1_rwpf {
+>  	unsigned int brs_input;
+>  
+>  	unsigned int alpha;
+> +	u32 colorkey;
+> +	bool colorkey_en;
+> +	u32 colorkey_alpha;
+>  
+>  	u32 mult_alpha;
+>  	u32 outfmt;
+> diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+> index 97265f7..65e3934 100644
+> --- a/include/media/vsp1.h
+> +++ b/include/media/vsp1.h
+> @@ -32,6 +32,9 @@ struct vsp1_du_atomic_config {
+>  	struct v4l2_rect dst;
+>  	unsigned int alpha;
+>  	unsigned int zpos;
+> +	u32 colorkey;
+> +	u32 colorkey_alpha;
+> +	bool colorkey_en;
+>  	bool interlaced;
+>  };
+>  
 
-Just to follow up on this.
-The build still fell over during patching if I ran
-   build --main-git --depth 1 -v 1
-but did not if I ran
-   build -v 1
-(which causes the tarball to download instead)
 
-This suggests an inconsistency between the two,
-which is surprising and likely unintended.
 
-I poked around a bit and found that the media subdir
-was out of date and the build script was not updating it;
---depth 1 appears to suppress that.
-
-Once I did a manual update, the patching succeeded.
-I'll try to work out a patch so 'build' avoids this issue in future.
-
-Vince
+Thanks,
+Mauro
