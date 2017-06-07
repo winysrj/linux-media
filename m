@@ -1,49 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway33.websitewelcome.com ([192.185.145.9]:40884 "EHLO
-        gateway33.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751578AbdFOQtT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 12:49:19 -0400
-Received: from cm17.websitewelcome.com (cm17.websitewelcome.com [100.42.49.20])
-        by gateway33.websitewelcome.com (Postfix) with ESMTP id 267BB6973A
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 11:49:16 -0500 (CDT)
-Date: Thu, 15 Jun 2017 11:49:14 -0500
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Mats Randgaard <matrandg@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] i2c: tc358743: remove useless variable assignment in
- tc358743_isr
-Message-ID: <20170615164914.GA23292@embeddedgus>
+Received: from mail-ot0-f178.google.com ([74.125.82.178]:34888 "EHLO
+        mail-ot0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751536AbdFGATR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Jun 2017 20:19:17 -0400
+Received: by mail-ot0-f178.google.com with SMTP id a2so24537648oth.2
+        for <linux-media@vger.kernel.org>; Tue, 06 Jun 2017 17:19:17 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <519d0131-b9a7-4afa-78d4-8bb6dccec1ad@xs4all.nl>
+References: <20170602213431.10777-1-khilman@baylibre.com> <519d0131-b9a7-4afa-78d4-8bb6dccec1ad@xs4all.nl>
+From: Kevin Hilman <khilman@baylibre.com>
+Date: Tue, 6 Jun 2017 17:19:16 -0700
+Message-ID: <CAOi56cX2wUvMOoCAGnay0b6weTSuS1+xeO2V7pryfe+aM3Jq8w@mail.gmail.com>
+Subject: Re: [PATCH 0/4] [media] davinci: vpif_capture: raw camera support
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sekhar Nori <nsekhar@ti.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove useless variable assignment in function tc358743_isr().
+On Tue, Jun 6, 2017 at 1:34 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Kevin,
+>
+> On 02/06/17 23:34, Kevin Hilman wrote:
+>> This series fixes/updates the support for raw camera input to the VPIF.
+>>
+>> Tested on da850-evm boards using the add-on UI board.  Tested with
+>> both composite video input (on-board tvp514x) and raw camera input
+>> using the camera board from On-Semi based on the aptina,mt9v032
+>> sensor[1], as this was the only camera board with the right connector
+>> for the da850-evm UI board.
+>>
+>> Verified that composite video capture is still working well after these
+>> updates.
+>
+> Can you rebase this patch series against the latest media master branch?
+>
+> Mauro merged a lot of patches, in particular the one switching v4l2_of_ to
+> v4l2_fwnode_. And that conflicts with patches 2 and 4.
 
-The value stored in variable _intstatus_ at line 1299 is
-overwritten at line 1302, just before it can be used.
+Rebased and resent as v2.
 
-Addresses-Coverity-ID: 1397678
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
----
- drivers/media/i2c/tc358743.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index 3251cba..e8b23f3 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -1296,7 +1296,6 @@ static int tc358743_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 			tc358743_csi_err_int_handler(sd, handled);
- 
- 		i2c_wr16(sd, INTSTATUS, MASK_CSI_INT);
--		intstatus &= ~MASK_CSI_INT;
- 	}
- 
- 	intstatus = i2c_rd16(sd, INTSTATUS);
--- 
-2.5.0
+Kevin
