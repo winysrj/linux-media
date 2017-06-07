@@ -1,66 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:37837 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751650AbdFIPdu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 11:33:50 -0400
-To: LMML <linux-media@vger.kernel.org>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PULL] Samsung SoC updates for v4.13
-Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Message-id: <f7a1b678-9df4-ff65-dd98-a1d52216dd87@samsung.com>
-Date: Fri, 09 Jun 2017 17:33:42 +0200
-MIME-version: 1.0
-Content-type: text/plain; charset="utf-8"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <CGME20170609153346epcas1p45c0c91fe7cd98d9b2a93aaf8a3089cda@epcas1p4.samsung.com>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:33827 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751927AbdFGSei (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:34:38 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: [PATCH v8 04/34] ARM: dts: imx6qdl: add multiplexer controls
+Date: Wed,  7 Jun 2017 11:33:43 -0700
+Message-Id: <1496860453-6282-5-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-The following changes since commit 36bcba973ad478042d1ffc6e89afd92e8bd17030:
+The IOMUXC General Purpose Register space contains various bitfields
+that control video bus multiplexers. Describe them using a mmio-mux
+node. The placement of the IPU CSI video mux controls differs between
+i.MX6D/Q and i.MX6S/DL.
 
-  [media] mtk_vcodec_dec: return error at mtk_vdec_pic_info_update() (2017-05-19 07:12:05 -0300)
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ arch/arm/boot/dts/imx6dl.dtsi  | 10 ++++++++++
+ arch/arm/boot/dts/imx6q.dtsi   | 10 ++++++++++
+ arch/arm/boot/dts/imx6qdl.dtsi |  7 ++++++-
+ 3 files changed, 26 insertions(+), 1 deletion(-)
 
-are available in the git repository at:
-
-  git://linuxtv.org/snawrocki/samsung.git for-v4.13/media/next
-
-for you to fetch changes up to b84da96956f6cfea1b48e60be9e6a0d3ba66a6b0:
-
-  s3c-camif: fix arguments position in a function call (2017-06-05 12:09:03 +0200)
-
-----------------------------------------------------------------
-Alexandre Courbot (1):
-      s5p-jpeg: fix recursive spinlock acquisition
-
-Benjamin Gaignard (1):
-      exynos4-is: use devm_of_platform_populate()
-
-Colin Ian King (1):
-      s5p-mfc: fix spelling mistake: "destionation" -> "destination"
-
-Gustavo A. R. Silva (1):
-      s3c-camif: fix arguments position in a function call
-
-Nicholas Mc Guire (1):
-      s5k6aa: set usleep_range() range greater than 0
-
-Thibault Saunier (1):
-      exynos-gsc: Use user configured colorspace if provided
-
- drivers/media/i2c/s5k6aa.c                     |  2 +-
- drivers/media/platform/exynos-gsc/gsc-core.c   |  9 ++++-----
- drivers/media/platform/exynos-gsc/gsc-core.h   |  1 +
- drivers/media/platform/exynos4-is/fimc-is.c    |  7 ++-----
- .../media/platform/s3c-camif/camif-capture.c   |  4 ++--
- drivers/media/platform/s5p-jpeg/jpeg-core.c    | 12 +++++++++---
- .../media/platform/s5p-mfc/s5p_mfc_opr_v5.c    |  2 +-
- .../media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |  2 +-
- 8 files changed, 21 insertions(+), 18 deletions(-)
-
---
-Thanks, 
-Sylwester
+diff --git a/arch/arm/boot/dts/imx6dl.dtsi b/arch/arm/boot/dts/imx6dl.dtsi
+index 7aa120f..10bc9d1 100644
+--- a/arch/arm/boot/dts/imx6dl.dtsi
++++ b/arch/arm/boot/dts/imx6dl.dtsi
+@@ -181,6 +181,16 @@
+ 		      "di0", "di1";
+ };
+ 
++&mux {
++	mux-reg-masks = <0x34 0x00000007>, /* IPU_CSI0_MUX */
++			<0x34 0x00000038>, /* IPU_CSI1_MUX */
++			<0x0c 0x0000000c>, /* HDMI_MUX_CTL */
++			<0x0c 0x000000c0>, /* LVDS0_MUX_CTL */
++			<0x0c 0x00000300>, /* LVDS1_MUX_CTL */
++			<0x28 0x00000003>, /* DCIC1_MUX_CTL */
++			<0x28 0x0000000c>; /* DCIC2_MUX_CTL */
++};
++
+ &vpu {
+ 	compatible = "fsl,imx6dl-vpu", "cnm,coda960";
+ };
+diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
+index e9a5d0b..a6962be 100644
+--- a/arch/arm/boot/dts/imx6q.dtsi
++++ b/arch/arm/boot/dts/imx6q.dtsi
+@@ -332,6 +332,16 @@
+ 	};
+ };
+ 
++&mux {
++	mux-reg-masks = <0x04 0x00080000>, /* MIPI_IPU1_MUX */
++			<0x04 0x00100000>, /* MIPI_IPU2_MUX */
++			<0x0c 0x0000000c>, /* HDMI_MUX_CTL */
++			<0x0c 0x000000c0>, /* LVDS0_MUX_CTL */
++			<0x0c 0x00000300>, /* LVDS1_MUX_CTL */
++			<0x28 0x00000003>, /* DCIC1_MUX_CTL */
++			<0x28 0x0000000c>; /* DCIC2_MUX_CTL */
++};
++
+ &vpu {
+ 	compatible = "fsl,imx6q-vpu", "cnm,coda960";
+ };
+diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+index e426faa..50534dd 100644
+--- a/arch/arm/boot/dts/imx6qdl.dtsi
++++ b/arch/arm/boot/dts/imx6qdl.dtsi
+@@ -808,8 +808,13 @@
+ 			};
+ 
+ 			gpr: iomuxc-gpr@020e0000 {
+-				compatible = "fsl,imx6q-iomuxc-gpr", "syscon";
++				compatible = "fsl,imx6q-iomuxc-gpr", "syscon", "simple-mfd";
+ 				reg = <0x020e0000 0x38>;
++
++				mux: mux-controller {
++					compatible = "mmio-mux";
++					#mux-control-cells = <1>;
++				};
+ 			};
+ 
+ 			iomuxc: iomuxc@020e0000 {
+-- 
+2.7.4
