@@ -1,37 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:36695 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752381AbdFNPUN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 11:20:13 -0400
-Date: Wed, 14 Jun 2017 10:20:11 -0500
-From: Rob Herring <robh@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
-        pavel@ucw.cz
-Subject: Re: [PATCH 2/8] dt: bindings: Add lens-focus binding for image
- sensors
-Message-ID: <20170614152011.a54sbcgnsgb6yhdk@rob-hp-laptop>
-References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
- <1497433639-13101-3-git-send-email-sakari.ailus@linux.intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52139
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751536AbdFGNRd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 09:17:33 -0400
+Date: Wed, 7 Jun 2017 10:17:21 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi,
+        chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v6 3/7] media: i2c: max2175: Add MAX2175 support
+Message-ID: <20170607101721.064aafe4@vento.lan>
+In-Reply-To: <20170531084457.4800-4-ramesh.shanmugasundaram@bp.renesas.com>
+References: <20170531084457.4800-1-ramesh.shanmugasundaram@bp.renesas.com>
+        <20170531084457.4800-4-ramesh.shanmugasundaram@bp.renesas.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1497433639-13101-3-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 14, 2017 at 12:47:13PM +0300, Sakari Ailus wrote:
-> The lens-focus property contains a phandle to the lens voice coil driver
-> that is associated to the sensor; typically both are contained in the same
-> camera module.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> ---
->  Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
->  1 file changed, 2 insertions(+)
+Em Wed, 31 May 2017 09:44:53 +0100
+Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com> escreveu:
 
-Acked-by: Rob Herring <robh@kernel.org>
+> +++ b/Documentation/media/v4l-drivers/max2175.rst
+> @@ -0,0 +1,60 @@
+> +Maxim Integrated MAX2175 RF to bits tuner driver
+> +================================================
+> +
+> +The MAX2175 driver implements the following driver-specific controls:
+> +
+> +``V4L2_CID_MAX2175_I2S_ENABLE``
+> +-------------------------------
+> +    Enable/Disable I2S output of the tuner.
+> +
+> +.. flat-table::
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +    :widths:       1 4
+> +
+> +    * - ``(0)``
+> +      - I2S output is disabled.
+> +    * - ``(1)``
+> +      - I2S output is enabled.
+
+Hmm... There are other drivers at the subsystem that use I2S
+(for audio - not for SDR - but I guess the issue is similar).
+
+On such drivers, the bridge driver controls it directly, being sure
+that I2S is enabled when it is expecting some data coming from the
+I2S bus.
+
+On some drivers, there are both I2S and A/D inputs at the
+bridge chipset. On such drivers, enabling/disabling I2S is
+done via VIDIOC_S_INPUT (and optionally via ALSA mixer), being
+transparent to the user if the stream comes from a tuner via I2S
+or from a directly connected A/D input.
+
+I don't think it is a good idea to enable it via a control, as,
+if the bridge driver is expecting data via I2S, disabling it will
+cause timeouts at the videobuf handling.
+
+Thanks,
+Mauro
