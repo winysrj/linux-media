@@ -1,43 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f193.google.com ([209.85.161.193]:35842 "EHLO
-        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753137AbdFROFz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Jun 2017 10:05:55 -0400
-Date: Sun, 18 Jun 2017 09:05:53 -0500
-From: Rob Herring <robh@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
-        pavel@ucw.cz
-Subject: Re: [PATCH 3/8] dt: bindings: Add a binding for referencing EEPROM
- from camera sensors
-Message-ID: <20170617003949.uq4qldmbzx227cj3@rob-hp-laptop>
-References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
- <1497433639-13101-4-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mga06.intel.com ([134.134.136.31]:51092 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751808AbdFGU42 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Jun 2017 16:56:28 -0400
+Subject: Re: [RFC v4 00/18] vb2: Handle user cache hints, allow drivers to
+ choose cache coherency
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        posciak@chromium.org, m.szyprowski@samsung.com,
+        kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+        sumit.semwal@linaro.org, robdclark@gmail.com,
+        daniel.vetter@ffwll.ch, labbott@redhat.com,
+        laurent.pinchart@ideasonboard.com
+References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20170607141334.4ec3b4a3@vento.lan>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <b201f845-39c0-5c56-1dc1-546e1b645e67@linux.intel.com>
+Date: Wed, 7 Jun 2017 23:56:19 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1497433639-13101-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170607141334.4ec3b4a3@vento.lan>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 14, 2017 at 12:47:14PM +0300, Sakari Ailus wrote:
-> Many camera sensor devices contain EEPROM chips that describe the
-> properties of a given unit --- the data is specific to a given unit can
-> thus is not stored e.g. in user space or the driver.
-> 
-> Some sensors embed the EEPROM chip and it can be accessed through the
-> sensor's I2C interface. This property is to be used for devices where the
-> EEPROM chip is accessed through a different I2C address than the sensor.
-> 
-> The intent is to later provide this information to the user space.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> ---
->  Documentation/devicetree/bindings/media/video-interfaces.txt | 3 +++
->  1 file changed, 3 insertions(+)
+Hi Mauro,
 
-Acked-by: Rob Herring <robh@kernel.org>
+Mauro Carvalho Chehab wrote:
+> Hi Sakari,
+>
+> Em Mon,  8 May 2017 18:03:12 +0300
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+>
+>> Hello,
+>>
+>> This is a rebased and partially reworked version of the vb2 cache hints
+>> support patch series posted by first myself, then Laurent and then myself
+>> again.
+>>
+>> I'm still posting this as RFC primarily because more testing and driver
+>> changes will be needed. In particular, a lot of platform drivers assume
+>> non-coherent memory but are not properly labelled as such.
+>
+> The main issue I see is that, if the driver doesn't "annotate" if it
+> is requiring coherent or non-coherent memory, VB2 should be preserving
+> its old behavior, as, otherwise, it will risk causing regressions.
+
+Some of the assumptions in VB2 mirror the particular design choices made 
+in ARM DMA API implementation. This was found out during the review. The 
+set requires further work in order to be mergeable to get around these 
+issues, until then this remains in RFC stage.
+
+I posted the three first patches separately --- these do not change how 
+cache management works.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
