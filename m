@@ -1,132 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:37221 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750971AbdFBONb (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51680 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751207AbdFGOqV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Jun 2017 10:13:31 -0400
-Message-ID: <1496412801.2358.15.camel@pengutronix.de>
-Subject: Re: [PATCH 0/3] tc358743: minor driver fixes
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Mats Randgaard <matrandg@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Date: Fri, 02 Jun 2017 16:13:21 +0200
-In-Reply-To: <99d7eba3-c5a8-ade3-54bc-18eb27ef0255@xs4all.nl>
-References: <cover.1496397071.git.dave.stevenson@raspberrypi.org>
-         <4dd94754-2a3c-532c-f07c-88ac3765efcf@xs4all.nl>
-         <CAAoAYcPWK1bLYSJDwM_Bp8szNkhXN38KRsx9j0xNWXwCH9qk3Q@mail.gmail.com>
-         <99d7eba3-c5a8-ade3-54bc-18eb27ef0255@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Wed, 7 Jun 2017 10:46:21 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Subject: [PATCH 0/9] cec improvements
+Date: Wed,  7 Jun 2017 16:46:07 +0200
+Message-Id: <20170607144616.15247-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2017-06-02 at 15:27 +0200, Hans Verkuil wrote:
-> On 06/02/17 15:03, Dave Stevenson wrote:
-> > Hi Hans.
-> > 
-> > On 2 June 2017 at 13:35, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >> On 06/02/17 14:18, Dave Stevenson wrote:
-> >>> These 3 patches for TC358743 came out of trying to use the
-> >>> existing driver with a new Raspberry Pi CSI-2 receiver driver.
-> >>
-> >> Nice! Doing that has been on my todo list for ages but I never got
-> >> around to it. I have one of these and using the Raspberry Pi with
-> >> the tc358743 would allow me to add a CEC driver as well.
-> > 
-> > It's been on my list for a while too! It's working, but just the final
-> > clean ups needed.
-> > I've got 1 v4l2-compliance failure still outstanding that needs
-> > digging into (subscribe_event), rebasing on top of the fwnode tree,
-> > and a couple of config things to tidy up. RFC hopefully next week.
-> > I'm testing with a demo board designed here at Pi Towers, but there
-> > are others successfully testing it using the auvidea.com B101 board.
-> > 
-> > Are you aware of the HDMI modes that the TC358743 driver has been used with?
-> > The comments mention 720P60 at 594MHz, but I have had to modify the
-> > fifo_level value from 16 to 110 to get VGA60 or 576P50 to work. (The
-> > value came out of Toshiba's spreadsheet for computing register
-> > settings). It increases the delay by 2.96usecs at 720P60 on 2 lanes,
-> > so not a huge change.
-> > Is it worth going to the effort of dynamically computing the delay, or
-> > is increasing the default acceptable?
-> 
-> I see that the fifo_level value of 16 was supplied by Philipp Zabel, so
-> I have CC-ed him as I am not sure where those values came from.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I've just chosen a small delay that worked reliably. For 4-lane 1080p60
-and for 2-lane 720p60 at 594 Mbps lane speed, the Toshiba spreadsheet
-believes that it is ok to decrease the FIFO delay all the way down to 0
-(it is not). I think it should be fine to delay transmission for a few
-microseconds unconditionally, I'll test this next week.
+This patch series adds several helper functions to ease writing
+drm or media CEC drivers.
 
-> This driver is also used in a Cisco product, but we use platform_data for that.
-> Here are our settings that we use for reference:
->
->         static struct tc358743_platform_data tc358743_pdata = {
->                 .refclk_hz = 27000000,
->                 .ddc5v_delay = DDC5V_DELAY_100_MS,
->                 .fifo_level = 300,
->                 .pll_prd = 4,
->                 .pll_fbd = 122,
->                 /* CSI */
->                 .lineinitcnt = 0x00001770,
->                 .lptxtimecnt = 0x00000005,
->                 .tclk_headercnt = 0x00001d04,
->                 .ths_headercnt = 0x00000505,
->                 .twakeup = 0x00004650,
->                 .ths_trailcnt = 0x00000004,
->                 .hstxvregcnt = 0x00000005,
->                 /* HDMI PHY */
->                 .hdmi_phy_auto_reset_tmds_detected = true,
->                 .hdmi_phy_auto_reset_tmds_in_range = true,
->                 .hdmi_phy_auto_reset_tmds_valid = true,
->                 .hdmi_phy_auto_reset_hsync_out_of_range = true,
->                 .hdmi_phy_auto_reset_vsync_out_of_range = true,
->                 .hdmi_detection_delay = HDMI_MODE_DELAY_25_MS,
->         };
-> 
-> I believe these are all calculated from the Toshiba spreadsheet.
-> 
-> Frankly, I have no idea what they mean :-)
-> 
-> I am fine with increasing the default if Philipp is OK as well. Since
-> Cisco uses a value of 300 I would expect that 16 is indeed too low.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> >>> A couple of the subdevice API calls were not implemented or
-> >>> otherwise gave odd results. Those are fixed.
-> >>>
-> >>> The TC358743 interface board being used didn't have the IRQ
-> >>> line wired up to the SoC. "interrupts" is listed as being
-> >>> optional in the DT binding, but the driver didn't actually
-> >>> function if it wasn't provided.
-> >>>
-> >>> Dave Stevenson (3):
-> >>>   [media] tc358743: Add enum_mbus_code
-> >>>   [media] tc358743: Setup default mbus_fmt before registering
-> >>>   [media] tc358743: Add support for platforms without IRQ line
-> >>
-> >> All looks good, I'll take this for 4.12.
-> > 
-> > Thanks.
-> > 
-> >> Regards,
-> >>
-> >>         Hans
-> >>
-> >>>
-> >>>  drivers/media/i2c/tc358743.c | 59 +++++++++++++++++++++++++++++++++++++++++++-
-> >>>  1 file changed, 58 insertions(+), 1 deletion(-)
-> >>>
-> >>
+It also adds support for the CEC_CAP_NEEDS_HPD capability which is
+needed for hardware that turns off the CEC support if the hotplug
+detect signal is low. Usually because the HPD is connected to some
+'power' or 'active' pin of the CEC hardware.
 
-regards
-Philipp
+One of those is the Odroid-U3, so add a 'needs-hpd' property that
+tells the driver whether or not CEC is available without HPD.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (9):
+  cec: add cec_s_phys_addr_from_edid helper function
+  cec: add cec_phys_addr_invalidate() helper function
+  cec: add cec_transmit_attempt_done helper function
+  stih-cec/vivid/pulse8/rainshadow: use cec_transmit_attempt_done
+  cec: add CEC_CAP_NEEDS_HPD
+  cec-ioc-adap-g-caps.rst: document CEC_CAP_NEEDS_HPD
+  dt-bindings: media/s5p-cec.txt: document needs-hpd property
+  s5p_cec: set the CEC_CAP_NEEDS_HPD flag if needed
+  ARM: dts: exynos: add needs-hpd to &hdmicec for Odroid-U3
+
+ .../devicetree/bindings/media/s5p-cec.txt          |  6 +++
+ Documentation/media/kapi/cec-core.rst              | 18 +++++++
+ .../media/uapi/cec/cec-ioc-adap-g-caps.rst         |  8 +++
+ arch/arm/boot/dts/exynos4412-odroidu3.dts          |  4 ++
+ drivers/media/cec/cec-adap.c                       | 60 +++++++++++++++++++---
+ drivers/media/cec/cec-api.c                        |  5 +-
+ drivers/media/cec/cec-core.c                       |  1 +
+ drivers/media/platform/s5p-cec/s5p_cec.c           |  4 +-
+ drivers/media/platform/sti/cec/stih-cec.c          |  9 ++--
+ drivers/media/platform/vivid/vivid-cec.c           |  6 +--
+ drivers/media/usb/pulse8-cec/pulse8-cec.c          |  9 ++--
+ drivers/media/usb/rainshadow-cec/rainshadow-cec.c  |  9 ++--
+ include/media/cec.h                                | 29 +++++++++++
+ include/uapi/linux/cec.h                           |  2 +
+ 14 files changed, 142 insertions(+), 28 deletions(-)
+
+-- 
+2.11.0
