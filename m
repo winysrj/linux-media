@@ -1,195 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f175.google.com ([209.85.128.175]:36435 "EHLO
-        mail-wr0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754833AbdFLQ3s (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 12:29:48 -0400
-Received: by mail-wr0-f175.google.com with SMTP id v111so103579456wrc.3
-        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 09:29:38 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v10 01/18] media: v4l2-mem2mem: extend m2m APIs for more accurate buffer management
-Date: Mon, 12 Jun 2017 19:27:38 +0300
-Message-Id: <1497284875-19999-2-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1497284875-19999-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1497284875-19999-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from mail-pg0-f54.google.com ([74.125.83.54]:35717 "EHLO
+        mail-pg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751695AbdFHKFX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 06:05:23 -0400
+Received: by mail-pg0-f54.google.com with SMTP id k71so14580883pgd.2
+        for <linux-media@vger.kernel.org>; Thu, 08 Jun 2017 03:05:23 -0700 (PDT)
+From: Binoy Jayan <binoy.jayan@linaro.org>
+To: Binoy Jayan <binoy.jayan@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+        Rajendra <rnayak@codeaurora.org>,
+        Mark Brown <broonie@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Cao jin <caoj.fnst@cn.fujitsu.com>, linux-media@vger.kernel.org
+Subject: [PATCH 3/3] media: ngene: Replace semaphore i2c_switch_mutex with mutex
+Date: Thu,  8 Jun 2017 15:34:58 +0530
+Message-Id: <1496916298-5909-4-git-send-email-binoy.jayan@linaro.org>
+In-Reply-To: <1496916298-5909-1-git-send-email-binoy.jayan@linaro.org>
+References: <1496916298-5909-1-git-send-email-binoy.jayan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this add functions for:
-  - remove buffers from src/dst queue by index
-  - remove exact buffer from src/dst queue
+The semaphore 'i2c_switch_mutex' is used as a simple mutex, so
+it should be written as one. Semaphores are going away in the future.
 
-also extends m2m API to iterate over a list of src/dst buffers
-in safely and non-safely manner.
-
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
 ---
- drivers/media/v4l2-core/v4l2-mem2mem.c | 37 ++++++++++++++
- include/media/v4l2-mem2mem.h           | 92 ++++++++++++++++++++++++++++++++++
- 2 files changed, 129 insertions(+)
+ drivers/media/pci/ngene/ngene-core.c | 2 +-
+ drivers/media/pci/ngene/ngene-i2c.c  | 6 +++---
+ drivers/media/pci/ngene/ngene.h      | 2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 6bc27e7b2a33..f62e68aa04c4 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -126,6 +126,43 @@ void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx)
- }
- EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove);
+diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
+index 59f2e5f..ca0c0f8 100644
+--- a/drivers/media/pci/ngene/ngene-core.c
++++ b/drivers/media/pci/ngene/ngene-core.c
+@@ -1349,7 +1349,7 @@ static int ngene_start(struct ngene *dev)
+ 	mutex_init(&dev->cmd_mutex);
+ 	mutex_init(&dev->stream_mutex);
+ 	sema_init(&dev->pll_mutex, 1);
+-	sema_init(&dev->i2c_switch_mutex, 1);
++	mutex_init(&dev->i2c_switch_mutex);
+ 	spin_lock_init(&dev->cmd_lock);
+ 	for (i = 0; i < MAX_STREAM; i++)
+ 		spin_lock_init(&dev->channel[i].state_lock);
+diff --git a/drivers/media/pci/ngene/ngene-i2c.c b/drivers/media/pci/ngene/ngene-i2c.c
+index cf39fcf..fbf3635 100644
+--- a/drivers/media/pci/ngene/ngene-i2c.c
++++ b/drivers/media/pci/ngene/ngene-i2c.c
+@@ -118,7 +118,7 @@ static int ngene_i2c_master_xfer(struct i2c_adapter *adapter,
+ 		(struct ngene_channel *)i2c_get_adapdata(adapter);
+ 	struct ngene *dev = chan->dev;
  
-+void v4l2_m2m_buf_remove_by_buf(struct v4l2_m2m_queue_ctx *q_ctx,
-+				struct vb2_v4l2_buffer *vbuf)
-+{
-+	struct v4l2_m2m_buffer *b;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
-+	b = container_of(vbuf, struct v4l2_m2m_buffer, vb);
-+	list_del(&b->list);
-+	q_ctx->num_rdy--;
-+	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove_by_buf);
-+
-+struct vb2_v4l2_buffer *
-+v4l2_m2m_buf_remove_by_idx(struct v4l2_m2m_queue_ctx *q_ctx, unsigned int idx)
-+
-+{
-+	struct v4l2_m2m_buffer *b, *tmp;
-+	struct vb2_v4l2_buffer *ret = NULL;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
-+	list_for_each_entry_safe(b, tmp, &q_ctx->rdy_queue, list) {
-+		if (b->vb.vb2_buf.index == idx) {
-+			list_del(&b->list);
-+			q_ctx->num_rdy--;
-+			ret = &b->vb;
-+			break;
-+		}
-+	}
-+	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove_by_idx);
-+
- /*
-  * Scheduling handlers
-  */
-diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-index 3ccd01bd245e..e157d5c9b224 100644
---- a/include/media/v4l2-mem2mem.h
-+++ b/include/media/v4l2-mem2mem.h
-@@ -437,6 +437,47 @@ static inline void *v4l2_m2m_next_dst_buf(struct v4l2_m2m_ctx *m2m_ctx)
+-	down(&dev->i2c_switch_mutex);
++	mutex_lock(&dev->i2c_switch_mutex);
+ 	ngene_i2c_set_bus(dev, chan->number);
+ 
+ 	if (num == 2 && msg[1].flags & I2C_M_RD && !(msg[0].flags & I2C_M_RD))
+@@ -136,11 +136,11 @@ static int ngene_i2c_master_xfer(struct i2c_adapter *adapter,
+ 					    msg[0].buf, msg[0].len, 0))
+ 			goto done;
+ 
+-	up(&dev->i2c_switch_mutex);
++	mutex_unlock(&dev->i2c_switch_mutex);
+ 	return -EIO;
+ 
+ done:
+-	up(&dev->i2c_switch_mutex);
++	mutex_unlock(&dev->i2c_switch_mutex);
+ 	return num;
  }
  
- /**
-+ * v4l2_m2m_for_each_dst_buf() - iterate over a list of destination ready
-+ * buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ */
-+#define v4l2_m2m_for_each_dst_buf(m2m_ctx, b)	\
-+	list_for_each_entry(b, &m2m_ctx->cap_q_ctx.rdy_queue, list)
-+
-+/**
-+ * v4l2_m2m_for_each_src_buf() - iterate over a list of source ready buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ */
-+#define v4l2_m2m_for_each_src_buf(m2m_ctx, b)	\
-+	list_for_each_entry(b, &m2m_ctx->out_q_ctx.rdy_queue, list)
-+
-+/**
-+ * v4l2_m2m_for_each_dst_buf_safe() - iterate over a list of destination ready
-+ * buffers safely
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ * @n: used as temporary storage
-+ */
-+#define v4l2_m2m_for_each_dst_buf_safe(m2m_ctx, b, n)	\
-+	list_for_each_entry_safe(b, n, &m2m_ctx->cap_q_ctx.rdy_queue, list)
-+
-+/**
-+ * v4l2_m2m_for_each_src_buf_safe() - iterate over a list of source ready
-+ * buffers safely
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ * @n: used as temporary storage
-+ */
-+#define v4l2_m2m_for_each_src_buf_safe(m2m_ctx, b, n)	\
-+	list_for_each_entry_safe(b, n, &m2m_ctx->out_q_ctx.rdy_queue, list)
-+
-+/**
-  * v4l2_m2m_get_src_vq() - return vb2_queue for source buffers
-  *
-  * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-@@ -488,6 +529,57 @@ static inline void *v4l2_m2m_dst_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
- 	return v4l2_m2m_buf_remove(&m2m_ctx->cap_q_ctx);
- }
- 
-+/**
-+ * v4l2_m2m_buf_remove_by_buf() - take off exact buffer from the list of ready
-+ * buffers
-+ *
-+ * @q_ctx: pointer to struct @v4l2_m2m_queue_ctx
-+ * @vbuf: the buffer to be removed
-+ */
-+void v4l2_m2m_buf_remove_by_buf(struct v4l2_m2m_queue_ctx *q_ctx,
-+				struct vb2_v4l2_buffer *vbuf);
-+
-+/**
-+ * v4l2_m2m_src_buf_remove_by_buf() - take off exact source buffer from the list
-+ * of ready buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @vbuf: the buffer to be removed
-+ */
-+static inline void v4l2_m2m_src_buf_remove_by_buf(struct v4l2_m2m_ctx *m2m_ctx,
-+						  struct vb2_v4l2_buffer *vbuf)
-+{
-+	v4l2_m2m_buf_remove_by_buf(&m2m_ctx->out_q_ctx, vbuf);
-+}
-+
-+/**
-+ * v4l2_m2m_dst_buf_remove_by_buf() - take off exact destination buffer from the
-+ * list of ready buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @vbuf: the buffer to be removed
-+ */
-+static inline void v4l2_m2m_dst_buf_remove_by_buf(struct v4l2_m2m_ctx *m2m_ctx,
-+						  struct vb2_v4l2_buffer *vbuf)
-+{
-+	v4l2_m2m_buf_remove_by_buf(&m2m_ctx->cap_q_ctx, vbuf);
-+}
-+
-+struct vb2_v4l2_buffer *
-+v4l2_m2m_buf_remove_by_idx(struct v4l2_m2m_queue_ctx *q_ctx, unsigned int idx);
-+
-+static inline struct vb2_v4l2_buffer *
-+v4l2_m2m_src_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
-+{
-+	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->out_q_ctx, idx);
-+}
-+
-+static inline struct vb2_v4l2_buffer *
-+v4l2_m2m_dst_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
-+{
-+	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->cap_q_ctx, idx);
-+}
-+
- /* v4l2 ioctl helpers */
- 
- int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
+diff --git a/drivers/media/pci/ngene/ngene.h b/drivers/media/pci/ngene/ngene.h
+index 0dd15d6..7c7cd21 100644
+--- a/drivers/media/pci/ngene/ngene.h
++++ b/drivers/media/pci/ngene/ngene.h
+@@ -765,7 +765,7 @@ struct ngene {
+ 	struct mutex          cmd_mutex;
+ 	struct mutex          stream_mutex;
+ 	struct semaphore      pll_mutex;
+-	struct semaphore      i2c_switch_mutex;
++	struct mutex          i2c_switch_mutex;
+ 	int                   i2c_current_channel;
+ 	int                   i2c_current_bus;
+ 	spinlock_t            cmd_lock;
 -- 
-2.7.4
+Binoy Jayan
