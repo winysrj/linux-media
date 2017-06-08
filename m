@@ -1,94 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.47.9]:52130 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752375AbdFPQjQ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36358 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750914AbdFHQo1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 12:39:16 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v3 4/4] dt-bindings: media: Document Synopsys Designware HDMI RX
-Date: Fri, 16 Jun 2017 17:38:33 +0100
-Message-Id: <51851d7b2335cc8a10fba17056314d7fa8ce88d1.1497630695.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1497630695.git.joabreu@synopsys.com>
-References: <cover.1497630695.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1497630695.git.joabreu@synopsys.com>
-References: <cover.1497630695.git.joabreu@synopsys.com>
+        Thu, 8 Jun 2017 12:44:27 -0400
+Date: Thu, 8 Jun 2017 19:43:51 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
+        Joerg Roedel <joro@8bytes.org>
+Subject: Re: [PATCH 02/12] intel-ipu3: mmu: implement driver
+Message-ID: <20170608164350.GH1019@valkosipuli.retiisi.org.uk>
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+ <1496695157-19926-3-git-send-email-yong.zhi@intel.com>
+ <CAAFQd5BZGVBdbN-8L+pvAf4AkBkB9UFy7_mmMpusFUMxDugQDw@mail.gmail.com>
+ <CAAFQd5CdV4ZfAYHH7DBBfOY=c4_Lwnuf8COs=JUKRSjp1VTn7Q@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5CdV4ZfAYHH7DBBfOY=c4_Lwnuf8COs=JUKRSjp1VTn7Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the bindings for the Synopsys Designware HDMI RX.
+Hi Tomasz,
 
-Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-Cc: Carlos Palminha <palminha@synopsys.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Jun 07, 2017 at 05:35:13PM +0900, Tomasz Figa wrote:
+> Hi Yong, Tuukka,
+> 
+> Continuing from yesterday. Please see comments inline.
+> 
+> > On Tue, Jun 6, 2017 at 5:39 AM, Yong Zhi <yong.zhi@intel.com> wrote:
+> [snip]
+> >> +       ptr = ipu3_mmu_alloc_page_table(mmu_dom, false);
+> >> +       if (!ptr)
+> >> +               goto fail_page_table;
+> >> +
+> >> +       /*
+> >> +        * We always map the L1 page table (a single page as well as
+> >> +        * the L2 page tables).
+> >> +        */
+> >> +       mmu_dom->dummy_l2_tbl = virt_to_phys(ptr) >> IPU3_MMU_PAGE_SHIFT;
+> >> +       mmu_dom->pgtbl = ipu3_mmu_alloc_page_table(mmu_dom, true);
+> >> +       if (!mmu_dom->pgtbl)
+> >> +               goto fail_page_table;
+> >> +
+> >> +       spin_lock_init(&mmu_dom->lock);
+> >> +       return &mmu_dom->domain;
+> >> +
+> >> +fail_page_table:
+> >> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_page));
+> >> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_l2_tbl));
+> >> +fail_get_page:
+> >> +       kfree(mmu_dom);
+> >> +       return NULL;
+> >> +}
+> >> +
+> >> +static void ipu3_mmu_domain_free(struct iommu_domain *dom)
+> >> +{
+> >> +       struct ipu3_mmu_domain *mmu_dom =
+> >> +               container_of(dom, struct ipu3_mmu_domain, domain);
+> >> +       uint32_t l1_idx;
+> >> +
+> >> +       for (l1_idx = 0; l1_idx < IPU3_MMU_L1PT_PTES; l1_idx++)
+> >> +               if (mmu_dom->pgtbl[l1_idx] != mmu_dom->dummy_l2_tbl)
+> >> +                       free_page((unsigned long)
+> >> +                                 TBL_VIRT_ADDR(mmu_dom->pgtbl[l1_idx]));
+> >> +
+> >> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_page));
+> >> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_l2_tbl));
+> 
+> I might be overly paranoid, but reading back kernel virtual pointers
+> from device accessible memory doesn't seem safe to me. Other drivers
+> keep kernel pointers of page tables in a dedicated array (it's only 8K
+> of memory, but much better safety).
 
-Changes from v2:
-	- Document edid-phandle property
----
- .../devicetree/bindings/media/snps,dw-hdmi-rx.txt  | 45 ++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+Do you happen to have an example of that?
 
-diff --git a/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
-new file mode 100644
-index 0000000..d30cc1e
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
-@@ -0,0 +1,45 @@
-+Synopsys DesignWare HDMI RX Decoder
-+===================================
-+
-+This document defines device tree properties for the Synopsys DesignWare HDMI
-+RX Decoder (DWC HDMI RX). It doesn't constitute a device tree binding
-+specification by itself but is meant to be referenced by platform-specific
-+device tree bindings.
-+
-+When referenced from platform device tree bindings the properties defined in
-+this document are defined as follows.
-+
-+- reg: Memory mapped base address and length of the DWC HDMI RX registers.
-+
-+- interrupts: Reference to the DWC HDMI RX interrupt and 5v sense interrupt.
-+
-+- snps,hdmi-phy-jtag-addr: JTAG address of the phy to be used.
-+
-+- snps,hdmi-phy-version: Version of the phy to be used.
-+
-+- snps,hdmi-phy-cfg-clk: Value of the cfg clk that is delivered to phy.
-+
-+- snps,hdmi-phy-driver: *Exact* name of the phy driver to be used.
-+
-+- snps,hdmi-ctl-cfg-clk: Value of the cfg clk that is delivered to the
-+controller.
-+
-+- edid-phandle: phandle to the EDID driver. It can be, for example, the main
-+wrapper driver.
-+
-+A sample binding is now provided. The compatible string is for a wrapper driver
-+which then instantiates the Synopsys Designware HDMI RX decoder driver.
-+
-+Example:
-+
-+dw_hdmi_wrapper: dw-hdmi-wrapper@0 {
-+	compatible = "snps,dw-hdmi-rx-wrapper";
-+	reg = <0x0 0x10000>; /* controller regbank */
-+	interrupts = <1 3>; /* controller interrupt + 5v sense interrupt */
-+	snps,hdmi-phy-driver = "dw-hdmi-phy-e405";
-+	snps,hdmi-phy-version = <405>;
-+	snps,hdmi-phy-cfg-clk = <25>; /* MHz */
-+	snps,hdmi-ctl-cfg-clk = <25>; /* MHz */
-+	snps,hdmi-phy-jtag-addr = /bits/ 8 <0xfc>;
-+	edid-phandle = <&dw_hdmi_wrapper>;
-+};
+All system memory typically is accessible for devices, I think you wanted to
+say that the device is intended to access that memory. Albeit for reading
+only.
+
+...
+
+> >> +static int ipu3_mmu_bus_remove(struct device *dev)
+> >> +{
+> >> +       struct ipu3_mmu *mmu = dev_get_drvdata(dev);
+> >> +
+> >> +       put_iova_domain(&mmu->iova_domain);
+> >> +       iova_cache_put();
+> 
+> Don't we need to set the L1 table address to something invalid and
+> invalidate the TLB, so that the IOMMU doesn't reference the page freed
+> below anymore?
+
+I think the expectation is that if a device gets removed, its memory is
+unmapped by that time. Unmapping that memory will cause explicit TLB flush.
+
 -- 
-1.9.1
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
