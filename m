@@ -1,79 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44042 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751162AbdFCV5t (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 3 Jun 2017 17:57:49 -0400
-Date: Sun, 4 Jun 2017 00:57:09 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+Received: from mail-wm0-f53.google.com ([74.125.82.53]:37150 "EHLO
+        mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751720AbdFHUZe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 16:25:34 -0400
+Received: by mail-wm0-f53.google.com with SMTP id d73so38101526wma.0
+        for <linux-media@vger.kernel.org>; Thu, 08 Jun 2017 13:25:33 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1496860453-6282-15-git-send-email-steve_longerbeam@mentor.com>
+References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com> <1496860453-6282-15-git-send-email-steve_longerbeam@mentor.com>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Thu, 8 Jun 2017 13:25:27 -0700
+Message-ID: <CAJ+vNU0C0=4hUq+g1P7yTzLzFPidfauQROPOVr4WQWKNZz_xmQ@mail.gmail.com>
+Subject: Re: [PATCH v8 14/34] ARM: dts: imx6-sabreauto: add the ADV7180 video decoder
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <kernel@pengutronix.de>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        mchehab@kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Nick Dyer <nick@shmanahar.org>, markus.heiser@darmarit.de,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, Arnd Bergmann <arnd@arndb.de>,
+        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        minghsiu.tsai@mediatek.com, Tiffany Lin <tiffany.lin@mediatek.com>,
+        Jean-Christophe TROTIN <jean-christophe.trotin@st.com>,
+        Simon Horman <horms+renesas@verge.net.au>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        linux-media <linux-media@vger.kernel.org>,
         devel@driverdev.osuosl.org,
         Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v7 16/34] [media] add Omnivision OV5640 sensor driver
-Message-ID: <20170603215709.GU1019@valkosipuli.retiisi.org.uk>
-References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
- <1495672189-29164-17-git-send-email-steve_longerbeam@mentor.com>
- <20170531195821.GA16962@amd>
- <20170601082659.GJ1019@valkosipuli.retiisi.org.uk>
- <755909bf-d1de-e0f3-1569-0d4b16e26817@gmail.com>
- <20170603195139.GA3062@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170603195139.GA3062@amd>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jun 03, 2017 at 09:51:39PM +0200, Pavel Machek wrote:
-> Hi!
-> 
-> > >>>+	/* Auto/manual exposure */
-> > >>>+	ctrls->auto_exp = v4l2_ctrl_new_std_menu(hdl, ops,
-> > >>>+						 V4L2_CID_EXPOSURE_AUTO,
-> > >>>+						 V4L2_EXPOSURE_MANUAL, 0,
-> > >>>+						 V4L2_EXPOSURE_AUTO);
-> > >>>+	ctrls->exposure = v4l2_ctrl_new_std(hdl, ops,
-> > >>>+					    V4L2_CID_EXPOSURE_ABSOLUTE,
-> > >>>+					    0, 65535, 1, 0);
-> > >>
-> > >>Is exposure_absolute supposed to be in microseconds...?
-> > >
-> > >Yes.
-> > 
-> > According to the docs V4L2_CID_EXPOSURE_ABSOLUTE is in 100 usec units.
-> > 
-> >  OTOH V4L2_CID_EXPOSURE has no defined unit, so it's a better fit IMO.
-> > >Way more drivers appear to be using EXPOSURE than EXPOSURE_ABSOLUTE, too.
-> > 
-> > Done, switched to V4L2_CID_EXPOSURE. It's true, this control is not
-> > taking 100 usec units, so unit-less is better.
-> 
-> Thanks. If you know the units, it would be of course better to use
-> right units...
+On Wed, Jun 7, 2017 at 11:33 AM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
+> Enables the ADV7180 decoder sensor. The ADV7180 connects to the
+> parallel-bus mux input on ipu1_csi0_mux.
+>
+> The ADV7180 power pin is via max7310_b port expander.
+>
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>
+> - Use IRQ_TYPE_LEVEL_LOW instead of 0x8 for interrupt type for clarity.
+> - For 8-bit parallel IPU1-CSI0 bus connection only data[12-19] are used.
+>
+> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+> ---
+>  arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 50 ++++++++++++++++++++++++++++++++
+>  1 file changed, 50 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+> index 1212f82..c24af28 100644
+> --- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+> +++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+> @@ -124,6 +124,21 @@
+>                         #size-cells = <0>;
+>                         reg = <1>;
+>
+> +                       adv7180: camera@21 {
+> +                               compatible = "adi,adv7180";
+> +                               reg = <0x21>;
+> +                               powerdown-gpios = <&max7310_b 2 GPIO_ACTIVE_LOW>;
+> +                               interrupt-parent = <&gpio1>;
+> +                               interrupts = <27 IRQ_TYPE_LEVEL_LOW>;
+> +
+> +                               port {
+> +                                       adv7180_to_ipu1_csi0_mux: endpoint {
+> +                                               remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
+> +                                               bus-width = <8>;
+> +                                       };
+> +                               };
+> +                       };
+> +
+>                         max7310_a: gpio@30 {
+>                                 compatible = "maxim,max7310";
+>                                 reg = <0x30>;
+> @@ -151,6 +166,25 @@
+>         };
+>  };
+>
+> +&ipu1_csi0_from_ipu1_csi0_mux {
+> +       bus-width = <8>;
+> +};
+> +
+> +&ipu1_csi0_mux_from_parallel_sensor {
+> +       remote-endpoint = <&adv7180_to_ipu1_csi0_mux>;
+> +       bus-width = <8>;
+> +};
+> +
+> +&ipu1_csi0 {
+> +       pinctrl-names = "default";
+> +       pinctrl-0 = <&pinctrl_ipu1_csi0>;
+> +
+> +       /* enable frame interval monitor on this port */
+> +       fim {
+> +               status = "okay";
+> +       };
 
-Steve: what's the unit in this case? Is it lines or something else?
+Steve,
 
-Pavel: we do need to make sure the user space will be able to know the unit,
-too. It's rather a case with a number of controls: the unit is known but
-there's no API to convey it to the user.
+You need to remove the fim node now that you've moved this to V4L2 controls.
 
-The exposure is a bit special, too: granularity matters a lot on small
-values. On most other controls it does not.
+Regards,
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Tim
