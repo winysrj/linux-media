@@ -1,47 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33355 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751972AbdFNJLn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 05:11:43 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v4 2/2] arm64: dts: renesas: salvator-x: Add ADV7482
- support
-References: <cover.d0545e32d322ca1b939fa2918694173629e680eb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
- <7d4b2333912ad23e62dbb8cc3792ad70e9cc1702.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
- <20170614090446.GG26958@verge.net.au>
-To: Simon Horman <horms@verge.net.au>,
-        Kieran Bingham <kbingham@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        sakari.ailus@iki.fi, niklas.soderlund@ragnatech.se
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <8ca8f22c-ce12-359e-31fc-ac1548998f01@ideasonboard.com>
-Date: Wed, 14 Jun 2017 10:11:37 +0100
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58671
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750822AbdFHRvo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 13:51:44 -0400
+Date: Thu, 8 Jun 2017 14:51:36 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Alexandre Courbot <acourbot@chromium.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] media-ioc-g-topology.rst: fix typos
+Message-ID: <20170608145136.601612be@vento.lan>
+In-Reply-To: <20170607093302.59312-1-acourbot@chromium.org>
+References: <20170607093302.59312-1-acourbot@chromium.org>
 MIME-Version: 1.0
-In-Reply-To: <20170614090446.GG26958@verge.net.au>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Simon,
+Em Wed,  7 Jun 2017 18:33:02 +0900
+Alexandre Courbot <acourbot@chromium.org> escreveu:
 
-On 14/06/17 10:04, Simon Horman wrote:
-> On Tue, Jun 13, 2017 at 01:35:08AM +0100, Kieran Bingham wrote:
->> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>
->> Provide ADV7482, and the needed connectors
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> Fix what seems to be a few typos induced by copy/paste.
 > 
-> I am marking this as deferred pending acceptance of the bindings.
+> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+> ---
+>  Documentation/media/uapi/mediactl/media-ioc-g-topology.rst | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+> index 48c9531f4db0..5f2d82756033 100644
+> --- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+> +++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+> @@ -241,7 +241,7 @@ desired arrays with the media graph elements.
+>  
+>  .. c:type:: media_v2_intf_devnode
+>  
+> -.. flat-table:: struct media_v2_interface
+> +.. flat-table:: struct media_v2_devnode
+>      :header-rows:  0
+>      :stub-columns: 0
+>      :widths: 1 2 8
 
-Good point - I didn't include RobH / DT-relevant lists on the mailing :)
-If only there was a script called get_maintainer.pl to remind me who to include :D
+Actually the fix is wrong here :-)
 
-Thanks for the heads up.
-I'll aim to send out a v5 today and include the required lists.
+I'll just fold the following diff to your patch:
 
---
-Kieran
+diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+index 5f2d82756033..add8281494f8 100644
+--- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
++++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+@@ -241,7 +241,7 @@ desired arrays with the media graph elements.
+ 
+ .. c:type:: media_v2_intf_devnode
+ 
+-.. flat-table:: struct media_v2_devnode
++.. flat-table:: struct media_v2_intf_devnode
+     :header-rows:  0
+     :stub-columns: 0
+     :widths: 1 2 8
+
+Thanks,
+Mauro
