@@ -1,63 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:44749 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751374AbdFYVhY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Jun 2017 17:37:24 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net, jasmin@anw.at
-Subject: [PATCH v2 5/7] [staging] cxd2099/cxd2099.c: Removed useless printing in cxd2099 driver
-Date: Sun, 25 Jun 2017 23:37:09 +0200
-Message-Id: <1498426631-17376-6-git-send-email-jasmin@anw.at>
-In-Reply-To: <1498426631-17376-1-git-send-email-jasmin@anw.at>
-References: <1498426631-17376-1-git-send-email-jasmin@anw.at>
+Received: from mail-yw0-f172.google.com ([209.85.161.172]:33519 "EHLO
+        mail-yw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750752AbdFHFZG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 01:25:06 -0400
+Received: by mail-yw0-f172.google.com with SMTP id 63so9766984ywr.0
+        for <linux-media@vger.kernel.org>; Wed, 07 Jun 2017 22:25:06 -0700 (PDT)
+Received: from mail-yb0-f172.google.com (mail-yb0-f172.google.com. [209.85.213.172])
+        by smtp.gmail.com with ESMTPSA id s199sm1606547ywg.11.2017.06.07.22.25.04
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 07 Jun 2017 22:25:04 -0700 (PDT)
+Received: by mail-yb0-f172.google.com with SMTP id 202so7311143ybd.0
+        for <linux-media@vger.kernel.org>; Wed, 07 Jun 2017 22:25:04 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1496898982.1929.7.camel@perches.com>
+References: <20170530094901.1807-1-hiroh@chromium.org> <1496139572.2618.19.camel@perches.com>
+ <CAO5uPHO7GwxCTk2OqQA5NfrL0-Jyt5SB-jVpeUA_eCrqR7u5xA@mail.gmail.com>
+ <1496196991.2618.47.camel@perches.com> <CAO5uPHPWGABuKf3FuAky2BRx+9E=n-QhZ94RPQ7wEuHAwC1qGg@mail.gmail.com>
+ <1496203602.2618.54.camel@perches.com> <0eb529d9-a710-4305-f0e2-e2fcd5d5433a@xs4all.nl>
+ <CAO5uPHOX=++z_YGFoCapH9fvhPwXpC5xr=gCCimAK=ZJ5pp7Hw@mail.gmail.com>
+ <CAAFQd5AnpjwgWkNL1RvOY1C2WR8gqVuCrPQmaRVCwjSvAM2u8Q@mail.gmail.com> <1496898982.1929.7.camel@perches.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 8 Jun 2017 14:24:43 +0900
+Message-ID: <CAAFQd5A2i+23F1piYbe1zk5Uy0+p+=wN9vyKJX=7JmaXF3Q9BQ@mail.gmail.com>
+Subject: Re: [PATCH v2] [media] vb2: core: Lower the log level of debug outputs
+To: Joe Perches <joe@perches.com>
+Cc: Hirokazu Honda <hiroh@chromium.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Pawel Osciak <pawel@osciak.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ralph Metzler <rjkm@metzlerbros.de>
+On Thu, Jun 8, 2017 at 2:16 PM, Joe Perches <joe@perches.com> wrote:
+> On Thu, 2017-06-08 at 13:39 +0900, Tomasz Figa wrote:
+>> On Thu, Jun 8, 2017 at 12:24 PM, Hirokazu Honda <hiroh@chromium.org> wrote:
+>> > Hi,
+>> >
+>> > I completely understand bitmask method now.
+>> > I agree to the idea, but it is necessary to change the specification of
+>> > a debug parameter.
+>> >  (We probably need to change a document about that?)
+>> > For example, there is maybe a user who set a debug parameter 3.
+>> > The user assume that logs whose levels are less than 4 are shown.
+>> > However, after the bitmask method is adopted, someday the logs whose
+>> > level is 1 or 2 are only shown, not 3 level logs are not shown.
+>> > This will be confusing to users.
+>>
+>> I think I have to agree with Hirokazu here. Even though it's only
+>> about debugging, there might be some automatic testing systems that
+>> actually rely on certain values here.
+>
+> I think it's a non-argument.
+>
+> If there automated systems that rely on specific levels, then
+> changing the levels of individual messages could also cause
+> those automated systems to fail.
 
-campoll and read_data are called very often and the printouts are very
-annoying and make the driver unusable. They seem to be left over from
-developing the buffer mode.
+Well, that might be true for some of them indeed. I was thinking about
+our use case, which relies on particular numbers to get expected
+verbosity levels not caring about particular messages. I guess the
+break all or none rule is going to apply here, so we should do the
+bitmap conversion indeed. :)
 
-Original code change by Ralph Metzler, modified by Jasmin Jessich to
-match current Kernel code.
+On the other hand, I think it would be still preferable to do the
+conversion in a separate patch.
 
-Signed-off-by: Ralph Metzler <rjkm@metzlerbros.de>
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
----
- drivers/staging/media/cxd2099/cxd2099.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
-index 60d8dd0..6426ff1 100644
---- a/drivers/staging/media/cxd2099/cxd2099.c
-+++ b/drivers/staging/media/cxd2099/cxd2099.c
-@@ -568,14 +568,10 @@ static int campoll(struct cxd *ci)
- 		return 0;
- 	write_reg(ci, 0x05, istat);
- 
--	if (istat & 0x40) {
-+	if (istat & 0x40)
- 		ci->dr = 1;
--		dev_info(&ci->i2c->dev, "DR\n");
--	}
--	if (istat & 0x20) {
-+	if (istat & 0x20)
- 		ci->write_busy = 0;
--		dev_info(&ci->i2c->dev, "WC\n");
--	}
- 
- 	if (istat & 2) {
- 		u8 slotstat;
-@@ -628,7 +624,6 @@ static int read_data(struct dvb_ca_en50221 *ca, int slot, u8 *ebuf, int ecount)
- 	campoll(ci);
- 	mutex_unlock(&ci->lock);
- 
--	dev_info(&ci->i2c->dev, "%s\n", __func__);
- 	if (!ci->dr)
- 		return 0;
- 
--- 
-2.7.4
+Best regards,
+Tomasz
