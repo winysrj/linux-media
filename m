@@ -1,59 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f182.google.com ([209.85.128.182]:34279 "EHLO
-        mail-wr0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751470AbdFZSlK (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57413 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751850AbdFHIzU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 14:41:10 -0400
-Received: by mail-wr0-f182.google.com with SMTP id 77so148819535wrb.1
-        for <linux-media@vger.kernel.org>; Mon, 26 Jun 2017 11:41:09 -0700 (PDT)
-Date: Mon, 26 Jun 2017 20:41:05 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Ralph Metzler <rjkm@metzlerbros.de>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        liplianin@netup.ru, crope@iki.fi, jasmin@anw.at,
-        Yasunari.Takiguchi@sony.com, tbird20d@gmail.com
-Subject: Re: DD support improvements (was: Re: [PATCH v3 00/13]
- stv0367/ddbridge: support CTv6/FlexCT hardware)
-Message-ID: <20170626204105.6397dcaa@audiostation.wuest.de>
-In-Reply-To: <22864.55204.841821.456223@morden.metzler>
-References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
-        <20170412212327.5b75be19@macbox>
-        <20170507174212.2e45ab71@audiostation.wuest.de>
-        <20170528234537.3bed2dde@macbox>
-        <20170619221821.022fc473@macbox>
-        <20170620093645.6f72fd1a@vento.lan>
-        <20170620204121.4cff42d1@macbox>
-        <20170620161043.1e6a1364@vento.lan>
-        <20170621225712.426d3a17@audiostation.wuest.de>
-        <22860.14367.464168.657791@morden.metzler>
-        <20170624135001.5bcafb64@vento.lan>
-        <22864.55204.841821.456223@morden.metzler>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Thu, 8 Jun 2017 04:55:20 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        kernel@pengutronix.de, patchwork-lst@pengutronix.de,
+        Lucas Stach <l.stach@pengutronix.de>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 1/3] [media] coda: use correct offset for mvcol buffer
+Date: Thu,  8 Jun 2017 10:55:11 +0200
+Message-Id: <20170608085513.26857-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mon, 26 Jun 2017 11:45:08 +0200
-schrieb Ralph Metzler <rjkm@metzlerbros.de>:
+From: Lucas Stach <l.stach@pengutronix.de>
 
-> Mauro Carvalho Chehab writes:
-> 
->  > Would it be possible to change things at the dddvb tree to make
->  > it to use our coding style (for example, replacing CamelCase by the
->  > kernel_style), in order to minimize the amount of work to sync from
->  > your tree?  
-> 
-> Yes
+The mvcol buffer needs to be placed behind the chroma plane(s), so
+use the real offset including any required rounding.
 
-Addmittedly, this might have been too quick, but I just couldn't
-resist :) (thankfully, tools exist for such jobs).
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+No changes since v1 [1].
 
-Ralph, please have a look at
-https://github.com/DigitalDevices/dddvb/pull/12 - if you're fine with the result, I will start a V2 series based on kernel_case naming.
+[1] https://patchwork.linuxtv.org/patch/40604
+---
+ drivers/media/platform/coda/coda-bit.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Best regards,
-Daniel Scheller
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 2ec41375a896f..325035bb0a777 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -427,14 +427,16 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx,
+ 
+ 	/* Register frame buffers in the parameter buffer */
+ 	for (i = 0; i < ctx->num_internal_frames; i++) {
+-		u32 y, cb, cr;
++		u32 y, cb, cr, mvcol;
+ 
+ 		/* Start addresses of Y, Cb, Cr planes */
+ 		y = ctx->internal_frames[i].paddr;
+ 		cb = y + ysize;
+ 		cr = y + ysize + ysize/4;
++		mvcol = y + ysize + ysize/4 + ysize/4;
+ 		if (ctx->tiled_map_type == GDI_TILED_FRAME_MB_RASTER_MAP) {
+ 			cb = round_up(cb, 4096);
++			mvcol = cb + ysize/2;
+ 			cr = 0;
+ 			/* Packed 20-bit MSB of base addresses */
+ 			/* YYYYYCCC, CCyyyyyc, cccc.... */
+@@ -448,9 +450,7 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx,
+ 		/* mvcol buffer for h.264 */
+ 		if (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 &&
+ 		    dev->devtype->product != CODA_DX6)
+-			coda_parabuf_write(ctx, 96 + i,
+-					   ctx->internal_frames[i].paddr +
+-					   ysize + ysize/4 + ysize/4);
++			coda_parabuf_write(ctx, 96 + i, mvcol);
+ 	}
+ 
+ 	/* mvcol buffer for mpeg4 */
 -- 
-https://github.com/herrnst
+2.11.0
