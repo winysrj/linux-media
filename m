@@ -1,179 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:21617 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753367AbdFSFZQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 01:25:16 -0400
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v5 09/12] [media] s5p-mfc: Add VP9 decoder support
-Date: Mon, 19 Jun 2017 10:40:52 +0530
-Message-id: <1497849055-26583-10-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
-References: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
-        <CGME20170619052514epcas1p45d4b590d673a0ff2a3cf0117d55e656a@epcas1p4.samsung.com>
+Received: from mail-yb0-f179.google.com ([209.85.213.179]:34857 "EHLO
+        mail-yb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751392AbdFHLyK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 07:54:10 -0400
+Received: by mail-yb0-f179.google.com with SMTP id f192so8945559yba.2
+        for <linux-media@vger.kernel.org>; Thu, 08 Jun 2017 04:54:10 -0700 (PDT)
+Received: from mail-yw0-f170.google.com (mail-yw0-f170.google.com. [209.85.161.170])
+        by smtp.gmail.com with ESMTPSA id f66sm1910499ywh.47.2017.06.08.04.54.07
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 08 Jun 2017 04:54:07 -0700 (PDT)
+Received: by mail-yw0-f170.google.com with SMTP id l75so11919417ywc.3
+        for <linux-media@vger.kernel.org>; Thu, 08 Jun 2017 04:54:07 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <17c4779b-1064-5e89-4f4c-b071e27f5f72@soulik.info>
+References: <2890f845-eef2-5689-f154-fc76ae6abc8b@st.com> <816ba2d8-f1e7-ce34-3524-b2a3f1bf3d74@xs4all.nl>
+ <fb4a4815-e1ff-081e-787a-0213e32a5405@st.com> <8f93f4f2df49431cb2750963c2f7b168@SFHDAG5NODE2.st.com>
+ <48b04997-bd80-5640-4272-2c4d69c25a97@st.com> <CACHYQ-pb9tRaWq9c0h7OXTmpUVH16i3d6-8B_Y+YSzAqWGPEqA@mail.gmail.com>
+ <CAPBb6MWtOaOKm5aaRTx2afFW=NOBk_NZz6-d2JiUS2DtXaW_EQ@mail.gmail.com>
+ <c0dfd7fb-112a-a395-452d-5bc15e1edb06@xs4all.nl> <17c4779b-1064-5e89-4f4c-b071e27f5f72@soulik.info>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 8 Jun 2017 20:53:46 +0900
+Message-ID: <CAAFQd5Dj42eZz=xvwWJUpwqLgrQMN360pgUaqwPLZxemNxm05Q@mail.gmail.com>
+Subject: Re: [RFC] V4L2 unified low-level decoder API
+To: ayaka <ayaka@soulik.info>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Hugues FRUCHET <hugues.fruchet@st.com>,
+        "florent.revest@free-electrons.com"
+        <florent.revest@free-electrons.com>,
+        "jung.zhao@rock-chips.com" <jung.zhao@rock-chips.com>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for codec definition and corresponding buffer
-requirements for VP9 decoder.
+On Thu, Jun 8, 2017 at 8:11 PM, ayaka <ayaka@soulik.info> wrote:
+>
+>
+> On 06/08/2017 06:56 PM, Hans Verkuil wrote:
+>>
+>> Hi Alexandre,
+>>
+>> On 08/06/17 11:59, Alexandre Courbot wrote:
+>>>
+>>> On Thu, Jun 8, 2017 at 5:56 PM, Pawel Osciak <posciak@chromium.org>
+>>> wrote:
+>>>>
+>>>> Hi,
+>>>>
+>>>> On Fri, May 19, 2017 at 1:08 AM, Hugues FRUCHET <hugues.fruchet@st.com>
+>>>> wrote:
+>>>>>
+>>>>> Before merging this work Hans would like to have feedback from peers,
+>>>>> in
+>>>>> order to be sure that this is inline with other SoC vendors drivers
+>>>>> expectations.
+>>>>>
+>>>>> Thomasz, Pawel, could you give your view regarding ChromeOS and
+>>>>> Rockchip
+>>>>> driver ?
+>>>>
+>>>> The drivers for Rockchip codecs are submitted to the public Chromium OS
+>>>> kernel
+>>>> and working on our RK-based platforms. We have also since added a VP9
+>>>> API as
+>
+> That driver still lacks a number of feature comparing to the rockchip
+> android driver, since google never requests them. Also the performance is
+> not as good as the android one.
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
----
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |  6 ++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |  3 +++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  7 +++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |  2 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 26 +++++++++++++++++++++++++
- 6 files changed, 45 insertions(+)
+I'm not sure exactly what features or performance problems you're
+mentioning, but that's not the point. It's a reasonably simple driver
+without too much complexity, written with good V4L2 codec API
+compliance in mind and proven in the industry. I see it as a good
+starting point.
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-index 953a073..6754477 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-@@ -18,6 +18,8 @@
- /* MFCv10 register definitions*/
- #define S5P_FIMV_MFC_CLOCK_OFF_V10			0x7120
- #define S5P_FIMV_MFC_STATE_V10				0x7124
-+#define S5P_FIMV_D_STATIC_BUFFER_ADDR_V10		0xF570
-+#define S5P_FIMV_D_STATIC_BUFFER_SIZE_V10		0xF574
- 
- /* MFCv10 Context buffer sizes */
- #define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)
-@@ -34,8 +36,12 @@
- 
- /* MFCv10 codec defines*/
- #define S5P_FIMV_CODEC_HEVC_DEC		17
-+#define S5P_FIMV_CODEC_VP9_DEC		18
- #define S5P_FIMV_CODEC_HEVC_ENC         26
- 
-+/* Decoder buffer size for MFC v10 */
-+#define DEC_VP9_STATIC_BUFFER_SIZE	20480
-+
- /* Encoder buffer size for MFC v10.0 */
- #define ENC_V100_BASE_SIZE(x, y) \
- 	(((x + 3) * (y + 3) * 8) \
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-index 76eca67..102b47e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-@@ -104,6 +104,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_HEVC_DEC:
- 		codec_type = S5P_FIMV_CODEC_HEVC_DEC;
- 		break;
-+	case S5P_MFC_CODEC_VP9_DEC:
-+		codec_type = S5P_FIMV_CODEC_VP9_DEC;
-+		break;
- 	case S5P_MFC_CODEC_H264_ENC:
- 		codec_type = S5P_FIMV_CODEC_H264_ENC_V6;
- 		break;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 828e07e..b49f220 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -73,6 +73,7 @@
- #define S5P_MFC_CODEC_VC1RCV_DEC	6
- #define S5P_MFC_CODEC_VP8_DEC		7
- #define S5P_MFC_CODEC_HEVC_DEC		17
-+#define S5P_MFC_CODEC_VP9_DEC		18
- 
- #define S5P_MFC_CODEC_H264_ENC		20
- #define S5P_MFC_CODEC_H264_MVC_ENC	21
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 4749355..5cf4d99 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -151,6 +151,13 @@ static struct s5p_mfc_fmt formats[] = {
- 		.num_planes	= 1,
- 		.versions	= MFC_V10_BIT,
- 	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_VP9,
-+		.codec_mode	= S5P_FIMV_CODEC_VP9_DEC,
-+		.type		= MFC_FMT_DEC,
-+		.num_planes	= 1,
-+		.versions	= MFC_V10_BIT,
-+	},
- };
- 
- #define NUM_FORMATS ARRAY_SIZE(formats)
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-index e7a2d46..57f4560 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-@@ -170,6 +170,8 @@ struct s5p_mfc_regs {
- 	void __iomem *d_used_dpb_flag_upper;/* v7 and v8 */
- 	void __iomem *d_used_dpb_flag_lower;/* v7 and v8 */
- 	void __iomem *d_min_scratch_buffer_size; /* v10 */
-+	void __iomem *d_static_buffer_addr; /* v10 */
-+	void __iomem *d_static_buffer_size; /* v10 */
- 
- 	/* encoder registers */
- 	void __iomem *e_frame_width;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index ed725db..f3d0a6f 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -226,6 +226,12 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 			ctx->scratch_buf_size +
- 			(ctx->mv_count * ctx->mv_size);
- 		break;
-+	case S5P_MFC_CODEC_VP9_DEC:
-+		mfc_debug(2, "Use min scratch buffer size\n");
-+		ctx->bank1.size =
-+			ctx->scratch_buf_size +
-+			DEC_VP9_STATIC_BUFFER_SIZE;
-+		break;
- 	case S5P_MFC_CODEC_H264_ENC:
- 		if (IS_MFCV10(dev)) {
- 			mfc_debug(2, "Use min scratch buffer size\n");
-@@ -336,6 +342,7 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_VC1_DEC:
- 	case S5P_MFC_CODEC_MPEG2_DEC:
- 	case S5P_MFC_CODEC_VP8_DEC:
-+	case S5P_MFC_CODEC_VP9_DEC:
- 		ctx->ctx.size = buf_size->other_dec_ctx;
- 		break;
- 	case S5P_MFC_CODEC_H264_ENC:
-@@ -566,6 +573,13 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 			buf_size1 -= frame_size_mv;
- 		}
- 	}
-+	if (ctx->codec_mode == S5P_FIMV_CODEC_VP9_DEC) {
-+		writel(buf_addr1, mfc_regs->d_static_buffer_addr);
-+		writel(DEC_VP9_STATIC_BUFFER_SIZE,
-+				mfc_regs->d_static_buffer_size);
-+		buf_addr1 += DEC_VP9_STATIC_BUFFER_SIZE;
-+		buf_size1 -= DEC_VP9_STATIC_BUFFER_SIZE;
-+	}
- 
- 	mfc_debug(2, "Buf1: %zx, buf_size1: %d (frames %d)\n",
- 			buf_addr1, buf_size1, ctx->total_dpb_count);
-@@ -2272,6 +2286,18 @@ const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev)
- 	R(e_h264_options, S5P_FIMV_E_H264_OPTIONS_V8);
- 	R(e_min_scratch_buffer_size, S5P_FIMV_E_MIN_SCRATCH_BUFFER_SIZE_V8);
- 
-+	if (!IS_MFCV10(dev))
-+		goto done;
-+
-+	/* Initialize registers used in MFC v10 only.
-+	 * Also, over-write the registers which have
-+	 * a different offset for MFC v10.
-+	 */
-+
-+	/* decoder registers */
-+	R(d_static_buffer_addr, S5P_FIMV_D_STATIC_BUFFER_ADDR_V10);
-+	R(d_static_buffer_size, S5P_FIMV_D_STATIC_BUFFER_SIZE_V10);
-+
- done:
- 	return &mfc_regs;
- #undef S5P_MFC_REG_ADDR
--- 
-2.7.4
+> That is why I start to write a new driver myself.
+
+I think it would make sense to work on incrementally adding those
+missing features and performance optimizations, instead of spending
+time on unnecessary effort of doing the same basic work, which is
+already done in our driver.
+
+> Also the rockchip platform is very complex, that driver won't be work on all
+> the SoCs without a large of modification(now only two chips are supported)
+
+This is another story. The rockchip-vpu driver in ChromeOS 4.4 should
+be actually refactored into generic V4L2 stateless codec helpers (most
+of the shared code in current driver) + few separate drivers using
+those helpers, one for each physical IP block. Current design is there
+only because we thought there is more similarity between those IP
+blocks and we didn't have more time to actually clean it up later,
+after we realized that the assumption was false.
+
+Best regards,
+Tomasz
