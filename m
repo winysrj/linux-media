@@ -1,126 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f43.google.com ([74.125.83.43]:35390 "EHLO
-        mail-pg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751180AbdFBVfD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 17:35:03 -0400
-Received: by mail-pg0-f43.google.com with SMTP id 8so12334334pgc.2
-        for <linux-media@vger.kernel.org>; Fri, 02 Jun 2017 14:35:03 -0700 (PDT)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 4/4] [media] davinci: vpif: adaptions for DT support
-Date: Fri,  2 Jun 2017 14:34:31 -0700
-Message-Id: <20170602213431.10777-5-khilman@baylibre.com>
-In-Reply-To: <20170602213431.10777-1-khilman@baylibre.com>
-References: <20170602213431.10777-1-khilman@baylibre.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from smtprelay0219.hostedemail.com ([216.40.44.219]:54167 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751513AbdFHFd4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Jun 2017 01:33:56 -0400
+Message-ID: <1496900032.1929.9.camel@perches.com>
+Subject: Re: [PATCH v2] [media] vb2: core: Lower the log level of debug
+ outputs
+From: Joe Perches <joe@perches.com>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Hirokazu Honda <hiroh@chromium.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Pawel Osciak <pawel@osciak.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Date: Wed, 07 Jun 2017 22:33:52 -0700
+In-Reply-To: <CAAFQd5A2i+23F1piYbe1zk5Uy0+p+=wN9vyKJX=7JmaXF3Q9BQ@mail.gmail.com>
+References: <20170530094901.1807-1-hiroh@chromium.org>
+         <1496139572.2618.19.camel@perches.com>
+         <CAO5uPHO7GwxCTk2OqQA5NfrL0-Jyt5SB-jVpeUA_eCrqR7u5xA@mail.gmail.com>
+         <1496196991.2618.47.camel@perches.com>
+         <CAO5uPHPWGABuKf3FuAky2BRx+9E=n-QhZ94RPQ7wEuHAwC1qGg@mail.gmail.com>
+         <1496203602.2618.54.camel@perches.com>
+         <0eb529d9-a710-4305-f0e2-e2fcd5d5433a@xs4all.nl>
+         <CAO5uPHOX=++z_YGFoCapH9fvhPwXpC5xr=gCCimAK=ZJ5pp7Hw@mail.gmail.com>
+         <CAAFQd5AnpjwgWkNL1RvOY1C2WR8gqVuCrPQmaRVCwjSvAM2u8Q@mail.gmail.com>
+         <1496898982.1929.7.camel@perches.com>
+         <CAAFQd5A2i+23F1piYbe1zk5Uy0+p+=wN9vyKJX=7JmaXF3Q9BQ@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The davinci VPIF is a single hardware block, but the existing driver
-is broken up into a common library (vpif.c), output (vpif_display.c) and
-intput (vpif_capture.c).
+On Thu, 2017-06-08 at 14:24 +0900, Tomasz Figa wrote:
+> On Thu, Jun 8, 2017 at 2:16 PM, Joe Perches <joe@perches.com> wrote:
+[]
+> > If there automated systems that rely on specific levels, then
+> > changing the levels of individual messages could also cause
+> > those automated systems to fail.
+> 
+> Well, that might be true for some of them indeed. I was thinking about
+> our use case, which relies on particular numbers to get expected
+> verbosity levels not caring about particular messages. I guess the
+> break all or none rule is going to apply here, so we should do the
+> bitmap conversion indeed. :)
+> 
+> On the other hand, I think it would be still preferable to do the
+> conversion in a separate patch.
 
-When migrating to DT, to better model the hardware, and because
-registers, interrupts, etc. are all common,it was decided to
-have a single VPIF hardware node[1].
-
-Because davinci uses legacy, non-DT boot on several SoCs still, the
-platform_drivers need to remain.  But they are also needed in DT boot.
-Since there are no DT nodes for the display/capture parts in DT
-boot (there is a single node for the parent/common device) we need to
-create platform_devices somewhere to instansiate the platform_drivers.
-
-When VPIF display/capture are needed for a DT boot, the VPIF node
-will have endpoints defined for its subdevs.  Therefore, vpif_probe()
-checks for the presence of endpoints, and if detected manually creates
-the platform_devices for the display and capture platform_drivers.
-
-[1] Documentation/devicetree/bindings/media/ti,da850-vpif.txt
-
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
----
- drivers/media/platform/davinci/vpif.c | 49 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 48 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
-index 1b02a6363f77..502917abcb13 100644
---- a/drivers/media/platform/davinci/vpif.c
-+++ b/drivers/media/platform/davinci/vpif.c
-@@ -26,6 +26,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/spinlock.h>
- #include <linux/v4l2-dv-timings.h>
-+#include <linux/of_graph.h>
- 
- #include "vpif.h"
- 
-@@ -423,7 +424,9 @@ EXPORT_SYMBOL(vpif_channel_getfid);
- 
- static int vpif_probe(struct platform_device *pdev)
- {
--	static struct resource	*res;
-+	static struct resource	*res, *res_irq;
-+	struct platform_device *pdev_capture, *pdev_display;
-+	struct device_node *endpoint = NULL;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	vpif_base = devm_ioremap_resource(&pdev->dev, res);
-@@ -435,6 +438,50 @@ static int vpif_probe(struct platform_device *pdev)
- 
- 	spin_lock_init(&vpif_lock);
- 	dev_info(&pdev->dev, "vpif probe success\n");
-+
-+	/*
-+	 * If VPIF Node has endpoints, assume "new" DT support,
-+	 * where capture and display drivers don't have DT nodes
-+	 * so their devices need to be registered manually here
-+	 * for their legacy platform_drivers to work.
-+	 */
-+	endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
-+					      endpoint);
-+	if (!endpoint) 
-+		return 0;
-+
-+	/*
-+	 * For DT platforms, manually create platform_devices for
-+	 * capture/display drivers.
-+	 */
-+	res_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+	if (!res_irq) {
-+		dev_warn(&pdev->dev, "Missing IRQ resource.\n");
-+		return -EINVAL;
-+	}
-+
-+	pdev_capture = devm_kzalloc(&pdev->dev, sizeof(*pdev_capture),
-+				    GFP_KERNEL);
-+	pdev_capture->name = "vpif_capture";
-+	pdev_capture->id = -1;
-+	pdev_capture->resource = res_irq;
-+	pdev_capture->num_resources = 1;
-+	pdev_capture->dev.dma_mask = pdev->dev.dma_mask;
-+	pdev_capture->dev.coherent_dma_mask = pdev->dev.coherent_dma_mask;
-+	pdev_capture->dev.parent = &pdev->dev;
-+	platform_device_register(pdev_capture);
-+
-+	pdev_display = devm_kzalloc(&pdev->dev, sizeof(*pdev_display),
-+				    GFP_KERNEL);
-+	pdev_display->name = "vpif_display";
-+	pdev_display->id = -1;
-+	pdev_display->resource = res_irq;
-+	pdev_display->num_resources = 1;
-+	pdev_display->dev.dma_mask = pdev->dev.dma_mask;
-+	pdev_display->dev.coherent_dma_mask = pdev->dev.coherent_dma_mask;
-+	pdev_display->dev.parent = &pdev->dev;
-+	platform_device_register(pdev_display);
-+
- 	return 0;
- }
- 
--- 
-2.9.3
+Right.  No worries.
