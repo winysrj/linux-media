@@ -1,65 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:50022 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752326AbdFMIjt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 04:39:49 -0400
-Date: Tue, 13 Jun 2017 10:39:47 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Peter Rosin <peda@axentia.se>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        kernel@pengutronix.de,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v8 2/3] [media] add mux and video interface bridge entity
- functions
-Message-ID: <20170613083947.GB17031@amd>
-References: <1496828025-4848-1-git-send-email-p.zabel@pengutronix.de>
- <1496828025-4848-2-git-send-email-p.zabel@pengutronix.de>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58691
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751132AbdFHSAa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 14:00:30 -0400
+Date: Thu, 8 Jun 2017 15:00:22 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: sakari.ailus@iki.fi, linux-media@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
+        linux-renesas-soc@vger.kernel.org, kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH v4] v4l: subdev: tolerate null in
+ media_entity_to_v4l2_subdev
+Message-ID: <20170608150022.5f696e58@vento.lan>
+In-Reply-To: <1496829127-28375-1-git-send-email-kbingham@kernel.org>
+References: <1496829127-28375-1-git-send-email-kbingham@kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="VrqPEDrXMn8OVzN4"
-Content-Disposition: inline
-In-Reply-To: <1496828025-4848-2-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Wed,  7 Jun 2017 10:52:07 +0100
+Kieran Bingham <kbingham@kernel.org> escreveu:
 
---VrqPEDrXMn8OVzN4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> Return NULL, if a null entity is parsed for it's v4l2_subdev
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-On Wed 2017-06-07 11:33:44, Philipp Zabel wrote:
-> Add two new media entity function definitions for video multiplexers
-> and video interface bridges.
->=20
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Could you please improve this patch description?
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+I'm unsure if this is a bug fix, or some sort of feature...
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+On what situations would a null entity be passed to this function?
 
---VrqPEDrXMn8OVzN4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Regards,
+Mauro
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> 
+> ---
+> Not sure if this patch ever made it out of my mailbox:
+> 
+> Here's the respin with the parameter evaluated only once.
+> 
+> v4:
+>  - Improve macro usage to evaluate ent only once
+> 
+>  include/media/v4l2-subdev.h | 11 +++++++++--
+>  1 file changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index a40760174797..0f92ebd2d710 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -826,8 +826,15 @@ struct v4l2_subdev {
+>  	struct v4l2_subdev_platform_data *pdata;
+>  };
+>  
+> -#define media_entity_to_v4l2_subdev(ent) \
+> -	container_of(ent, struct v4l2_subdev, entity)
+> +#define media_entity_to_v4l2_subdev(ent)				\
+> +({									\
+> +	typeof(ent) __me_sd_ent = (ent);				\
+> +									\
+> +	__me_sd_ent ?							\
+> +		container_of(__me_sd_ent, struct v4l2_subdev, entity) :	\
+> +		NULL;							\
+> +})
+> +
+>  #define vdev_to_v4l2_subdev(vdev) \
+>  	((struct v4l2_subdev *)video_get_drvdata(vdev))
+>  
 
-iEYEARECAAYFAlk/pNMACgkQMOfwapXb+vIBAQCeN/VSbFsyTrj7FvFP5ef011Ft
-WjcAoJLX7CXt+cg85mJtTosGVsRHgWzN
-=yTaO
------END PGP SIGNATURE-----
 
---VrqPEDrXMn8OVzN4--
+
+Thanks,
+Mauro
