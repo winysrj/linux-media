@@ -1,54 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54519
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751433AbdFGWtn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 18:49:43 -0400
-Date: Wed, 7 Jun 2017 19:49:34 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: "Jasmin J." <jasmin@anw.at>
-Cc: rjkm@metzlerbros.de, linux-media@vger.kernel.org,
-        max.kellermann@gmail.com, d.scheller@gmx.net
-Subject: Re: [PATCH 0/7] Add block read/write to en50221 CAM functions
-Message-ID: <20170607194934.00576613@vento.lan>
-In-Reply-To: <a8d025a0-b090-7c58-bb25-aed32111c1de@anw.at>
-References: <1494190313-18557-1-git-send-email-jasmin@anw.at>
-        <20170607125747.63d057c2@vento.lan>
-        <a8d025a0-b090-7c58-bb25-aed32111c1de@anw.at>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mout.kundenserver.de ([217.72.192.73]:60616 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750725AbdFHJCZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 05:02:25 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Fengguang Wu <fengguang.wu@intel.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] Revert "[media] et8ek8: Export OF device ID as module aliases"
+Date: Thu,  8 Jun 2017 11:01:37 +0200
+Message-Id: <20170608090156.2373326-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 7 Jun 2017 21:18:14 +0200
-"Jasmin J." <jasmin@anw.at> escreveu:
+This one got applied twice, causing a build error with clang:
 
-> Hello Mauro!
-> 
-> THX for looking into this!
-> 
->  > Hmm... from what I understood, the original author for those patches
->  > is Ralph, right?  
-> Yes. I re-formatted them into smaller pieces to be easier reviewed.
-> The goal of this series is to make the Kernel version equal to the official
-> DD version. But I wrote all of this already in the preamble of the series.
+drivers/media/i2c/et8ek8/et8ek8_driver.c:1499:1: error: redefinition of '__mod_of__et8ek8_of_table_device_table'
 
-The problem with this series is that, while you're saying it at the
-preamble, and the SOB on each patch seems to indicate it, the patches
-themselves are tagging you as the author of the patch series, and not Ralph.
-See the From: at the first line of each patch on it:
+Fixes: 9ae05fd1e791 ("[media] et8ek8: Export OF device ID as module aliases")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/i2c/et8ek8/et8ek8_driver.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-	https://patchwork.linuxtv.org/patch/41193/
-	https://patchwork.linuxtv.org/patch/41194/
-	https://patchwork.linuxtv.org/patch/41196/
-	https://patchwork.linuxtv.org/patch/41197/
-	...
-
-It should be, instead:
-	From: Ralph Metzler <km@metzlerbros.de>
-
-For all patches he wrote (even if you later rebased or splitted
-them).
-
-Thanks,
-Mauro
+diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+index 6e313d5243a0..f39f5179dd95 100644
+--- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
++++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+@@ -1496,7 +1496,6 @@ MODULE_DEVICE_TABLE(i2c, et8ek8_id_table);
+ static const struct dev_pm_ops et8ek8_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(et8ek8_suspend, et8ek8_resume)
+ };
+-MODULE_DEVICE_TABLE(of, et8ek8_of_table);
+ 
+ static struct i2c_driver et8ek8_i2c_driver = {
+ 	.driver		= {
+-- 
+2.9.0
