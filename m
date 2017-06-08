@@ -1,95 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36591
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752238AbdFXVpk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Jun 2017 17:45:40 -0400
-Date: Sat, 24 Jun 2017 18:45:32 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        liplianin@netup.ru, rjkm@metzlerbros.de, crope@iki.fi
-Subject: Re: [PATCH v2 4/4] [media] dvb-frontends/stv0367: DVB-C signal
- strength statistics
-Message-ID: <20170624184532.1fc087e7@vento.lan>
-In-Reply-To: <20170621194544.16949-5-d.scheller.oss@gmail.com>
-References: <20170621194544.16949-1-d.scheller.oss@gmail.com>
-        <20170621194544.16949-5-d.scheller.oss@gmail.com>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:34102 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751470AbdFHUgR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 16:36:17 -0400
+Subject: Re: [PATCH v8 14/34] ARM: dts: imx6-sabreauto: add the ADV7180 video
+ decoder
+To: Tim Harvey <tharvey@gateworks.com>
+Cc: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <kernel@pengutronix.de>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        mchehab@kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Nick Dyer <nick@shmanahar.org>, markus.heiser@darmarit.de,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, Arnd Bergmann <arnd@arndb.de>,
+        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        minghsiu.tsai@mediatek.com, Tiffany Lin <tiffany.lin@mediatek.com>,
+        Jean-Christophe TROTIN <jean-christophe.trotin@st.com>,
+        Simon Horman <horms+renesas@verge.net.au>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+ <1496860453-6282-15-git-send-email-steve_longerbeam@mentor.com>
+ <CAJ+vNU0C0=4hUq+g1P7yTzLzFPidfauQROPOVr4WQWKNZz_xmQ@mail.gmail.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <dd5b29b7-bf92-5f03-caef-1843a9f32cd3@gmail.com>
+Date: Thu, 8 Jun 2017 13:36:12 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <CAJ+vNU0C0=4hUq+g1P7yTzLzFPidfauQROPOVr4WQWKNZz_xmQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 21 Jun 2017 21:45:44 +0200
-Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
 
-> From: Daniel Scheller <d.scheller@gmx.net>
+
+On 06/08/2017 01:25 PM, Tim Harvey wrote:
 > 
-> Provide QAM/DVB-C signal strength in decibel scale. Values returned from
-> stv0367cab_get_rf_lvl() are good but need to be multiplied as they're in
-> 1dBm precision.
 > 
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
->  drivers/media/dvb-frontends/stv0367.c | 21 +++++++++++++++++++++
->  1 file changed, 21 insertions(+)
+> Steve,
 > 
-> diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-> index d3be25bc1002..bac6707957a3 100644
-> --- a/drivers/media/dvb-frontends/stv0367.c
-> +++ b/drivers/media/dvb-frontends/stv0367.c
-> @@ -2998,6 +2998,25 @@ static int stv0367ddb_set_frontend(struct dvb_frontend *fe)
->  	return -EINVAL;
->  }
->  
-> +static void stv0367ddb_read_signal_strength(struct dvb_frontend *fe)
-> +{
-> +	struct stv0367_state *state = fe->demodulator_priv;
-> +	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-> +	s32 signalstrength;
-> +
-> +	switch (state->activedemod) {
-> +	case demod_cab:
-> +		signalstrength = stv0367cab_get_rf_lvl(state) * 1000;
-> +		break;
-> +	default:
-> +		p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-> +		return;
-> +	}
-> +
-> +	p->strength.stat[0].scale = FE_SCALE_DECIBEL;
-> +	p->strength.stat[0].uvalue = signalstrength;
-> +}
-> +
->  static void stv0367ddb_read_snr(struct dvb_frontend *fe)
->  {
->  	struct stv0367_state *state = fe->demodulator_priv;
-> @@ -3075,12 +3094,14 @@ static int stv0367ddb_read_status(struct dvb_frontend *fe,
->  
->  	/* stop if demod isn't locked */
->  	if (!(*status & FE_HAS_LOCK)) {
-> +		p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> You need to remove the fim node now that you've moved this to V4L2 controls.
+> 
 
-Requiring full lock for signal strength sounds really wrong.
+Yep, I caught this just after sending the v8 patchset. I'll send
+a v9 of this patch.
 
-Are you sure that it won't work without locks?
-
-Regards,
-Mauro
-
->  		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
->  		p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
->  		return ret;
->  	}
->  
->  	stv0367ddb_read_snr(fe);
-> +	stv0367ddb_read_signal_strength(fe);
->  	stv0367ddb_read_ucblocks(fe);
->  
->  	return 0;
-
-
-
-Thanks,
-Mauro
+Steve
