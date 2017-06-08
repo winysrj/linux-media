@@ -1,80 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:56910 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750941AbdFSRBi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 13:01:38 -0400
-From: Helen Koike <helen.koike@collabora.com>
-To: linux-media@vger.kernel.org,
+Received: from www.zeus03.de ([194.117.254.33]:36642 "EHLO mail.zeus03.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752196AbdFHN6G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Jun 2017 09:58:06 -0400
+Date: Thu, 8 Jun 2017 15:57:57 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
-        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v5 06/12] [media] vimc: common: Add vimc_colorimetry_clamp
-Date: Mon, 19 Jun 2017 14:00:15 -0300
-Message-Id: <1497891629-1562-7-git-send-email-helen.koike@collabora.com>
-In-Reply-To: <1497891629-1562-1-git-send-email-helen.koike@collabora.com>
-References: <1497891629-1562-1-git-send-email-helen.koike@collabora.com>
+Subject: Re: [PATCH 6/7] [media] soc_camera: rcar_vin: use proper name for
+ the R-Car SoC
+Message-ID: <20170608135757.GA4205@katana>
+References: <20170528093051.11816-1-wsa+renesas@sang-engineering.com>
+ <20170528093051.11816-7-wsa+renesas@sang-engineering.com>
+ <a133a7f7-e887-5043-83d3-cccbec581487@cogentembedded.com>
+ <20170529120202.GC4342@katana>
+ <20170608082731.7cdf32dd@vento.lan>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="FCuugMFkClbJLl1L"
+Content-Disposition: inline
+In-Reply-To: <20170608082731.7cdf32dd@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Colorimetry value will always be checked in the same way. Adding a
-helper macro for that
 
-Signed-off-by: Helen Koike <helen.koike@collabora.com>
-
----
-
-Changes in v5: None
-Changes in v4:
-[media] vimc: common: Add vimc_colorimetry_clamp
-	- this is a new patch in the series
-
-Changes in v3: None
-Changes in v2: None
+--FCuugMFkClbJLl1L
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
 
----
- drivers/media/platform/vimc/vimc-common.h | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+> Btw, I'm seeing only patches 6 and 7 here at media ML (and patchwork).
+> As those are trivial changes, I'll just apply what I have.
 
-diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
-index 60ebde2..43483ee 100644
---- a/drivers/media/platform/vimc/vimc-common.h
-+++ b/drivers/media/platform/vimc/vimc-common.h
-@@ -23,6 +23,32 @@
- #include <media/v4l2-device.h>
- 
- /**
-+ * struct vimc_colorimetry_clamp - Adjust colorimetry parameters
-+ *
-+ * @fmt:		the pointer to struct v4l2_pix_format or
-+ *			struct v4l2_mbus_framefmt
-+ *
-+ * Entities must check if colorimetry given by the userspace is valid, if not
-+ * then set them as DEFAULT
-+ */
-+#define vimc_colorimetry_clamp(fmt)					\
-+do {									\
-+	if ((fmt)->colorspace == V4L2_COLORSPACE_DEFAULT		\
-+	    || (fmt)->colorspace > V4L2_COLORSPACE_DCI_P3) {		\
-+		(fmt)->colorspace = V4L2_COLORSPACE_DEFAULT;		\
-+		(fmt)->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;		\
-+		(fmt)->quantization = V4L2_QUANTIZATION_DEFAULT;	\
-+		(fmt)->xfer_func = V4L2_XFER_FUNC_DEFAULT;		\
-+	}								\
-+	if ((fmt)->ycbcr_enc > V4L2_YCBCR_ENC_SMPTE240M)		\
-+		(fmt)->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;		\
-+	if ((fmt)->quantization > V4L2_QUANTIZATION_LIM_RANGE)		\
-+		(fmt)->quantization = V4L2_QUANTIZATION_DEFAULT;	\
-+	if ((fmt)->xfer_func > V4L2_XFER_FUNC_SMPTE2084)		\
-+		(fmt)->xfer_func = V4L2_XFER_FUNC_DEFAULT;		\
-+} while (0)
-+
-+/**
-  * struct vimc_pix_map - maps media bus code with v4l2 pixel format
-  *
-  * @code:		media bus format code defined by MEDIA_BUS_FMT_* macros
--- 
-2.7.4
+Perfect, thanks!
+
+
+--FCuugMFkClbJLl1L
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlk5V90ACgkQFA3kzBSg
+Kba8ZRAAkB8Oj48j4i/AO9wZvm1lZA/MRk7KCG2CK/00GSWt6PNdCBarRY3elFnO
+yQpLYUWl6bhpA+ps3OdtCUEGaLYmJAboPGGDz00s1aHshh8zn8u8gwK7n3G1CxMv
+rt0V4GqHLnqbjncCjlDoqXAR6/VpxlJNoAbO1Nya3QUXxEoCqcG1HZuZ65Iy9LPB
+I+vprcvu91H6u+i1gg0+YSgInHIK4KWzPImkl9WKP6MTYC3Gdps3PQRM+AC5NNqM
+vg3nfYqb9E4N1uYo1qy1WSV2mHG+iOJgEglhkuuk1HObNVVpd6d9O93fugulUDmI
++5OopUMHiJTrYWRkEjRNZmPSRFI8yc3SBqyPqO3btQUhz8R4FnTpc+t7Zhs55Y6h
+Q1sIRvorxU6NMRfmpvhwN5CRdWKwVi+prcIjPqZ1sojf1m2Tn+hDCrIZY5qiY7On
+V+mrP4LN7KVtStrNGGt84p3jlCCIGi+SKufUcRjlfc3zWA1MOp7S3UwqjPzgZdrf
+0E8i3Bep3qi7sSUv42+TDFvHwUy+KTrCIdfPK3KqOLl33gaElqEN2e0ZkKrHK+6L
++QPvVxcf+0WAGGMI/dKkMb2a3Ggg3uorPpRPqlbDEk5NNvTCvmKxDH70l5lNnt0V
+o9HYj2bgDw5ZVRHpFVeV5uOUrZdMvhqcOM0oJi154cfN9dTplK8=
+=L4YH
+-----END PGP SIGNATURE-----
+
+--FCuugMFkClbJLl1L--
