@@ -1,121 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58297
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56543
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750919AbdFHQ0S (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 12:26:18 -0400
-Date: Thu, 8 Jun 2017 13:26:09 -0300
+        with ESMTP id S1750752AbdFHKX1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 06:23:27 -0400
+Date: Thu, 8 Jun 2017 07:23:17 -0300
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Tomasz Figa <tfiga@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        linux-media@vger.kernel.org,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pawel Osciak <pawel@osciak.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH RFC] v4l2-core: Use kvmalloc() for potentially big
- allocations
-Message-ID: <20170608132609.0a4748ec@vento.lan>
-In-Reply-To: <20170531130729.GH1019@valkosipuli.retiisi.org.uk>
-References: <CGME20170531065846epcas5p4d4cf5a7cb2bb86fe4e9d9151fc83a896@epcas5p4.samsung.com>
-        <20170531065837.30346-1-tfiga@chromium.org>
-        <d10f7660-f9d0-198a-f7ed-bc789fe53acc@samsung.com>
-        <CAAFQd5AzqZJsnhojEve0uNButxTSn3O573hf6DiNgQ792i6xdw@mail.gmail.com>
-        <20170531130729.GH1019@valkosipuli.retiisi.org.uk>
+To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Cc: "robh+dt@kernel.org" <robh+dt@kernel.org>,
+        "mark.rutland@arm.com" <mark.rutland@arm.com>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "crope@iki.fi" <crope@iki.fi>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "geert+renesas@glider.be" <geert+renesas@glider.be>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-renesas-soc@vger.kernel.org"
+        <linux-renesas-soc@vger.kernel.org>
+Subject: Re: [PATCH v6 3/7] media: i2c: max2175: Add MAX2175 support
+Message-ID: <20170608072317.2e018a90@vento.lan>
+In-Reply-To: <KL1PR0601MB20385C566733E32AC4DCA987C3C90@KL1PR0601MB2038.apcprd06.prod.outlook.com>
+References: <20170531084457.4800-1-ramesh.shanmugasundaram@bp.renesas.com>
+        <20170531084457.4800-4-ramesh.shanmugasundaram@bp.renesas.com>
+        <20170607101721.064aafe4@vento.lan>
+        <KL1PR0601MB20385C566733E32AC4DCA987C3C90@KL1PR0601MB2038.apcprd06.prod.outlook.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 31 May 2017 16:07:29 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Em Thu, 8 Jun 2017 09:42:43 +0000
+Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com> escreveu:
 
-> Hi Tomasz,
-> 
-> On Wed, May 31, 2017 at 09:46:05PM +0900, Tomasz Figa wrote:
-> > On Wed, May 31, 2017 at 9:09 PM, Marek Szyprowski
-> > <m.szyprowski@samsung.com> wrote:  
-> > > Hi Tomasz,
-> > >
-> > >
-> > > On 2017-05-31 08:58, Tomasz Figa wrote:  
-> > >>
-> > >> There are multiple places where arrays or otherwise variable sized
-> > >> buffer are allocated through V4L2 core code, including things like
-> > >> controls, memory pages, staging buffers for ioctls and so on. Such
-> > >> allocations can potentially require an order > 0 allocation from the
-> > >> page allocator, which is not guaranteed to be fulfilled and is likely to
-> > >> fail on a system with severe memory fragmentation (e.g. a system with
-> > >> very long uptime).
-> > >>
-> > >> Since the memory being allocated is intended to be used by the CPU
-> > >> exclusively, we can consider using vmalloc() as a fallback and this is
-> > >> exactly what the recently merged kvmalloc() helpers do. A kmalloc() call
-> > >> is still attempted, even for order > 0 allocations, but it is done
-> > >> with __GFP_NORETRY and __GFP_NOWARN, with expectation of failing if
-> > >> requested memory is not available instantly. Only then the vmalloc()
-> > >> fallback is used. This should give us fast and more reliable allocations
-> > >> even on systems with higher memory pressure and/or more fragmentation,
-> > >> while still retaining the same performance level on systems not
-> > >> suffering from such conditions.
-> > >>
-> > >> While at it, replace explicit array size calculations on changed
-> > >> allocations with kvmalloc_array().
-> > >>
-> > >> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
-> > >> ---
-> > >>   drivers/media/v4l2-core/v4l2-async.c       |  4 ++--
-> > >>   drivers/media/v4l2-core/v4l2-ctrls.c       | 25
-> > >> +++++++++++++------------
-> > >>   drivers/media/v4l2-core/v4l2-event.c       |  8 +++++---
-> > >>   drivers/media/v4l2-core/v4l2-ioctl.c       |  6 +++---
-> > >>   drivers/media/v4l2-core/v4l2-subdev.c      |  7 ++++---
-> > >>   drivers/media/v4l2-core/videobuf2-dma-sg.c |  8 ++++----  
-> > >
-> > >
-> > > For vb2:
-> > > Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>  
+> > Subject: Re: [PATCH v6 3/7] media: i2c: max2175: Add MAX2175 support
 > > 
-> > Thanks!
+> > Em Wed, 31 May 2017 09:44:53 +0100
+> > Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com> escreveu:
 > >   
-> > >
-> > > There are also a few vmalloc calls in old videobuf (v1) framework, which
-> > > might be converted to kvmalloc if you have a few spare minutes to take
-> > > a look.  
+> > > +++ b/Documentation/media/v4l-drivers/max2175.rst
+> > > @@ -0,0 +1,60 @@
+> > > +Maxim Integrated MAX2175 RF to bits tuner driver
+> > > +================================================
+> > > +
+> > > +The MAX2175 driver implements the following driver-specific controls:
+> > > +
+> > > +``V4L2_CID_MAX2175_I2S_ENABLE``
+> > > +-------------------------------
+> > > +    Enable/Disable I2S output of the tuner.
+> > > +
+> > > +.. flat-table::
+> > > +    :header-rows:  0
+> > > +    :stub-columns: 0
+> > > +    :widths:       1 4
+> > > +
+> > > +    * - ``(0)``
+> > > +      - I2S output is disabled.
+> > > +    * - ``(1)``
+> > > +      - I2S output is enabled.  
 > > 
-> > I was intending to convert those as well, but on the other hand I
-> > concluded that it's some very old code, which might be difficult to
-> > test and likely to introduce some long undiscovered regressions. If
-> > it's desired to update those as well, I can include those changes in
-> > the non-RFC version.  
+> > Hmm... There are other drivers at the subsystem that use I2S (for audio -
+> > not for SDR - but I guess the issue is similar).
+> > 
+> > On such drivers, the bridge driver controls it directly, being sure that
+> > I2S is enabled when it is expecting some data coming from the I2S bus.
+> > 
+> > On some drivers, there are both I2S and A/D inputs at the bridge chipset.
+> > On such drivers, enabling/disabling I2S is done via VIDIOC_S_INPUT (and
+> > optionally via ALSA mixer), being transparent to the user if the stream
+> > comes from a tuner via I2S or from a directly connected A/D input.
+> > 
+> > I don't think it is a good idea to enable it via a control, as, if the
+> > bridge driver is expecting data via I2S, disabling it will cause timeouts
+> > at the videobuf handling.  
 > 
-> I think it's better to leave videobuf1 as-is. I'd rather like to see it
-> removed instead.
+> The MAX2175 device is exposed as a v4l2 subdev with tuner ops and can interface with an SDR device. When the tuner is configured, the I2S output is enabled by default. From an independent tuner device perspective, this default behaviour is enough and this control may not be needed/used.
+> 
+> However, for the use case here, the R-Car DRIF device acts as the main SDR device and the Maxim MAX2175 provides a sub-dev interface with tuner ops.
+> 
+> +---------------------+                +---------------------+
+> |                     |-----SCK------->|CLK                  |   
+> |       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
+> |      (MAX2175)      |-----SD0------->|D0                   |   
+> |                     |-----SD1------->|D1                   |   
+> +---------------------+                +---------------------+
+> 
+> The DRIF device design is such that it involves separate register writes to enable Rx on each of the data line. To keep both the data lines in sync it expects the master device to enable output after both the data line Rx are enabled.
+> 
+> This level of control is exposed as a feature in the MAX2175 using this control. When interfaced with DRIF this control is used to achieve the desired functionality. When not interfaced with DRIF, the MAX2175 default behaviour does not have to change because of DRIF and hence this I2S control may be unused. Like MAX2175, DRIF is also an independent device and can interface with a different third party tuner. 
+> 
+> Hence, this I2S enable/disable is exposed as a user control. The end user application (knowing both these devices) is expected to use these controls appropriately. Please let me know if I need to explain anything in further detail.
 
-Agreed.
 
-There aren't much VB drivers anymore:
+The usecase is clear. That's exactly what other drivers with I2S do,
+except that, on those other drivers, they pass I2S control info via
+platform_data (they're not platform drivers).
 
-$ git grep -l VIDEOBUF_ |grep Kconfig
-drivers/media/common/saa7146/Kconfig
-drivers/media/pci/bt8xx/Kconfig
-drivers/media/pci/cx18/Kconfig
-drivers/media/platform/Kconfig
-drivers/media/platform/davinci/Kconfig
-drivers/media/platform/omap/Kconfig
-drivers/media/usb/cx231xx/Kconfig
-drivers/media/usb/tm6000/Kconfig
-drivers/media/usb/zr364xx/Kconfig
-drivers/media/v4l2-core/Kconfig
-drivers/staging/media/atomisp/pci/Kconfig
+With those drivers, generic applications work as-is via the standard
+video, radio or sdr devnodes, without knowing about I2S.
 
-(at platform/Kconfig, there are two drivers: via-camera and viu)
+The main difference here is that you're requiring an specialized
+application for this device to work, as a generic one won't be
+aware of this device-specific control, and may end by exposing this
+"internal" control to the end user. That is OK for embedded usage,
+but, as soon as this is used on some non-embedded usecase (with
+is likely, as there are several PC consumer products using other
+chips from Maxim), we'll have problems.
 
-Not sure how easy/hard would be to convert those remaining ones.
-
+I guess the solution here is to make such control visible only via the
+subdev interface.
 
 Thanks,
 Mauro
