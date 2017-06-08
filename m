@@ -1,49 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb0-f195.google.com ([209.85.213.195]:34800 "EHLO
-        mail-yb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752386AbdFLUKX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 16:10:23 -0400
-Received: by mail-yb0-f195.google.com with SMTP id o185so5104196yba.1
-        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 13:10:18 -0700 (PDT)
+Received: from mail-yw0-f171.google.com ([209.85.161.171]:35898 "EHLO
+        mail-yw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750725AbdFHEjn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 00:39:43 -0400
+Received: by mail-yw0-f171.google.com with SMTP id l75so9553293ywc.3
+        for <linux-media@vger.kernel.org>; Wed, 07 Jun 2017 21:39:43 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAJ+vNU07V9wR+11KJYqWg6JcfK7Wc45-c-Wf6fpTbTVAeKKDHw@mail.gmail.com>
-References: <CAJ+vNU07V9wR+11KJYqWg6JcfK7Wc45-c-Wf6fpTbTVAeKKDHw@mail.gmail.com>
-From: Alex Deucher <alexdeucher@gmail.com>
-Date: Mon, 12 Jun 2017 16:10:17 -0400
-Message-ID: <CADnq5_NKH1MkG6ghSGjWP0imSybahsVd5x8rPFogCM4ESxavoA@mail.gmail.com>
-Subject: Re: how to link up audio bus from media controller driver to soc dai bus?
-To: Tim Harvey <tharvey@gateworks.com>
-Cc: linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <CAO5uPHOX=++z_YGFoCapH9fvhPwXpC5xr=gCCimAK=ZJ5pp7Hw@mail.gmail.com>
+References: <20170530094901.1807-1-hiroh@chromium.org> <1496139572.2618.19.camel@perches.com>
+ <CAO5uPHO7GwxCTk2OqQA5NfrL0-Jyt5SB-jVpeUA_eCrqR7u5xA@mail.gmail.com>
+ <1496196991.2618.47.camel@perches.com> <CAO5uPHPWGABuKf3FuAky2BRx+9E=n-QhZ94RPQ7wEuHAwC1qGg@mail.gmail.com>
+ <1496203602.2618.54.camel@perches.com> <0eb529d9-a710-4305-f0e2-e2fcd5d5433a@xs4all.nl>
+ <CAO5uPHOX=++z_YGFoCapH9fvhPwXpC5xr=gCCimAK=ZJ5pp7Hw@mail.gmail.com>
+From: Tomasz Figa <tfiga@google.com>
+Date: Thu, 8 Jun 2017 13:39:22 +0900
+Message-ID: <CAAFQd5AnpjwgWkNL1RvOY1C2WR8gqVuCrPQmaRVCwjSvAM2u8Q@mail.gmail.com>
+Subject: Re: [PATCH v2] [media] vb2: core: Lower the log level of debug outputs
+To: Hirokazu Honda <hiroh@chromium.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Joe Perches <joe@perches.com>
+Cc: Pawel Osciak <pawel@osciak.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 12, 2017 at 3:15 PM, Tim Harvey <tharvey@gateworks.com> wrote:
-> Greetings,
+On Thu, Jun 8, 2017 at 12:24 PM, Hirokazu Honda <hiroh@chromium.org> wrote:
+> Hi,
 >
-> I'm working on a media controller driver for the tda1997x HDMI
-> receiver which provides an audio bus supporting I2S/SPDIF/OBA/HBR/DST.
-> I'm unclear how to bind the audio bus to a SoC's audio bus, for
-> example the IMX6 SSI (I2S) bus. I thought perhaps it was via a
-> simple-audio-card device-tree binding but that appears to require an
-> ALSA codec to bind to?
->
-> Can anyone point me to an example of a media controller device driver
-> that supports audio and video and how the audio is bound to a I2S bus?
+> I completely understand bitmask method now.
+> I agree to the idea, but it is necessary to change the specification of
+> a debug parameter.
+>  (We probably need to change a document about that?)
+> For example, there is maybe a user who set a debug parameter 3.
+> The user assume that logs whose levels are less than 4 are shown.
+> However, after the bitmask method is adopted, someday the logs whose
+> level is 1 or 2 are only shown, not 3 level logs are not shown.
+> This will be confusing to users.
 
-I'm not sure if this is what you are looking for now not, but on some
-AMD APUs, we have an i2s bus and codec attached to the GPU rather than
-as a standalone device.  The audio DMA engine and interrupts are
-controlled via the GPU's mmio aperture, but we expose the audio DMA
-engine and i2c interface via alsa.  We use the MFD (Multi-Function
-Device) kernel infrastructure to do this.  The GPU driver loads and
-probes the audio capabilities and triggers the hotplug of the i2s and
-audio dma engine.
+I think I have to agree with Hirokazu here. Even though it's only
+about debugging, there might be some automatic testing systems that
+actually rely on certain values here. It probably shouldn't be
+considered hard ABI, but that still could be a significant annoyance
+for everyone.
 
-For the GPU side see:
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/gpu/drm/amd/amdgpu/amdgpu_acp.c
-for the audio side:
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/sound/soc/amd/acp-pcm-dma.c
+However, one could add this in an incremental way, i.e. add a new
+debug_mask parameter that would be used by dprinkt(), while making the
+original debug parameter simply update the debug_mask whenever it's
+changed.
 
-Alex
+I still think that it should be made with a separate patch, though, as
+adjusting the levels and changing the filtering method are orthogonal.
+
+Best regards,
+Tomasz
