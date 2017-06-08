@@ -1,173 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43042 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753292AbdF0Uew (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 16:34:52 -0400
-Subject: Re: [PATCH v4 2/4] [media] platform: Add Synopsys Designware HDMI RX
- Controller Driver
-To: Jose Abreu <Jose.Abreu@synopsys.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <cover.1497978962.git.joabreu@synopsys.com>
- <314b7ae92c9924d0991e14ccad80ca937a2d7b07.1497978962.git.joabreu@synopsys.com>
- <e6f63454-2e87-6e93-50c3-2802e9357c2a@kernel.org>
- <2868c525-3edd-0fe1-cc6f-49a758f8c434@synopsys.com>
-From: Sylwester Nawrocki <snawrocki@kernel.org>
-Message-ID: <2153d8da-effc-fedd-a2ce-b1c9ee40a82c@kernel.org>
-Date: Tue, 27 Jun 2017 22:34:46 +0200
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:53459 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750937AbdFHK4c (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Jun 2017 06:56:32 -0400
+Subject: Re: [RFC] V4L2 unified low-level decoder API
+To: Alexandre Courbot <acourbot@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+References: <2890f845-eef2-5689-f154-fc76ae6abc8b@st.com>
+ <816ba2d8-f1e7-ce34-3524-b2a3f1bf3d74@xs4all.nl>
+ <fb4a4815-e1ff-081e-787a-0213e32a5405@st.com>
+ <8f93f4f2df49431cb2750963c2f7b168@SFHDAG5NODE2.st.com>
+ <48b04997-bd80-5640-4272-2c4d69c25a97@st.com>
+ <CACHYQ-pb9tRaWq9c0h7OXTmpUVH16i3d6-8B_Y+YSzAqWGPEqA@mail.gmail.com>
+ <CAPBb6MWtOaOKm5aaRTx2afFW=NOBk_NZz6-d2JiUS2DtXaW_EQ@mail.gmail.com>
+Cc: Hugues FRUCHET <hugues.fruchet@st.com>,
+        "florent.revest@free-electrons.com"
+        <florent.revest@free-electrons.com>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "randy.li@rock-chips.com" <randy.li@rock-chips.com>,
+        "jung.zhao@rock-chips.com" <jung.zhao@rock-chips.com>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c0dfd7fb-112a-a395-452d-5bc15e1edb06@xs4all.nl>
+Date: Thu, 8 Jun 2017 12:56:29 +0200
 MIME-Version: 1.0
-In-Reply-To: <2868c525-3edd-0fe1-cc6f-49a758f8c434@synopsys.com>
+In-Reply-To: <CAPBb6MWtOaOKm5aaRTx2afFW=NOBk_NZz6-d2JiUS2DtXaW_EQ@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jose,
+Hi Alexandre,
 
-On 06/27/2017 10:43 AM, Jose Abreu wrote:
-> On 25-06-2017 22:13, Sylwester Nawrocki wrote:
->> On 06/20/2017 07:26 PM, Jose Abreu wrote:
->>> This is an initial submission for the Synopsys Designware HDMI RX
->>> Controller Driver. This driver interacts with a phy driver so that
->>> a communication between them is created and a video pipeline is
->>> configured.
->>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-
->>> +static int dw_hdmi_phy_init(struct dw_hdmi_dev *dw_dev)
->>> +{
->>> +	struct dw_phy_pdata *phy = &dw_dev->phy_config;
->>> +	const struct of_device_id *of_id;
->>> +	struct of_dev_auxdata lookup;
->> 	struct of_dev_auxdata lookup = { };
+On 08/06/17 11:59, Alexandre Courbot wrote:
+> On Thu, Jun 8, 2017 at 5:56 PM, Pawel Osciak <posciak@chromium.org> wrote:
+>> Hi,
 >>
->> You could initialize to 0 here and...
+>> On Fri, May 19, 2017 at 1:08 AM, Hugues FRUCHET <hugues.fruchet@st.com> wrote:
+>>> Before merging this work Hans would like to have feedback from peers, in
+>>> order to be sure that this is inline with other SoC vendors drivers
+>>> expectations.
+>>>
+>>> Thomasz, Pawel, could you give your view regarding ChromeOS and Rockchip
+>>> driver ?
 >>
->>> +	struct device_node *child;
->>> +	const char *drvname;
->>> +	int ret;
->>> +
->>> +	child = dw_hdmi_get_phy_of_node(dw_dev, &of_id);
->>> +	if (!child || !of_id || !of_id->data) {
->>> +		dev_err(dw_dev->dev, "no supported phy found in DT\n");
->>> +		return -EINVAL;
->>> +	}
->>> +
->>> +	drvname = of_id->data;
->>> +	phy->funcs = &dw_hdmi_phy_funcs;
->>> +	phy->funcs_arg = dw_dev;
->>> +
->>> +	lookup.compatible = (char *)of_id->compatible;
->>> +	lookup.phys_addr = 0x0;
->>> +	lookup.name = NULL;
+>> The drivers for Rockchip codecs are submitted to the public Chromium OS kernel
+>> and working on our RK-based platforms. We have also since added a VP9 API as
+>> well, which is also working on devices that support it. This gives us
+>> a set of H.264,
+>> VP8 and VP9 APIs on both kernel and userspace side (in the open source
+>> Chromium browser) that are working currently and can be used for
+>> further testing.
 >>
->> ...drop these two assignments.
+>> We are interested in merging the API patches as well as these drivers upstream
+>> (they were posted on this list two years ago), however we've been blocked by the
+>> progress of request API, which is required for this. Alexandre Courbot
+>> is currently
+>> looking into creating a minimal version of the request API that would provide
+>> enough functionality for stateless codecs, and also plans to further work on
+>> re-submitting the particular codec API patches, once the request API
+>> is finalized.
 > 
-> Ok.
+> Hi everyone,
 > 
->>> +	lookup.platform_data = phy;
->>> +
->>> +	request_module(drvname);
->>
->> I'd say this request_module() is not needed when you use the v4l2-async
->> subnotifiers and the modules are properly installed in the file system.
->> I might be missing something though.
+> It is a bit scary to start hacking on V4L with something as disruptive
+> as the request API, so please bear with me as I will inevitably post
+> code that will go from cutely clueless to downright offensive.
+
+Yeah, you went straight into the deep end of the pool :-)
+
+I am very, very pleased to see Google picking up this work. We need more
+core V4L2 developers, so welcome!
+
+> Thankfully Pawel is not too far from my desk, and we (Pawel, Tomasz
+> and myself) had a very fruitful in-person brainstorming session last
+> week with Laurent, so this should limit the damage.
 > 
-> Hmm, well I didn't actually test without request_module but I
-> think its needed, otherwise I would have to do:
+> In any case, I think that everybody agrees that this needs to be
+> pushed forward. Chromium OS in particular has a big interest to see
+> this feature landing upstream, so I will dedicate some cycles to this.
+
+Absolutely!
+
+> From reading the meetings reports (e.g.
+> https://www.spinics.net/lists/linux-media/msg106699.html) I understand
+> that we want to support several use-cases with this and we already
+> have several proposals with code. Chromium in a first time is
+> interested in stateless codecs support, and this use-case also seems
+> to be the simplest to implement, so we would like to start pushing in
+> that direction first. This should give us a reasonably sized code base
+> to rely upon and implement the other use-cases as we see clearer
+> through this.
 > 
-> modprobe phy_module
-> modprobe controller_module
-> 
-> With request_module I just have to do:
-> 
-> modprobe controller_module
+> I still need to study a bit the existing proposals and to clearly lay
+> out the conclusions of our meeting with Laurent, but the general idea
+> has not changed too much, except maybe that we thought it may be nice
+> to make state management less explicit to userspace by default. I
+> would be interested in knowing whether there are updated versions of
+> the implementations mentioned in the meeting report above, and/or a
+> merge of these work? Also, if someone is actively working on this at
+> the moment, we will definitely want to sync on IRC or anywhere else.
 
-If you are sure you need it I'm not against that.  But assuming you have udev 
-in your system it should also work like this, without request_module():
+Laurent has been the last one working on this, but his code doesn't have
+the control handling :-(
 
-1. modprobe controller_module -> phy device is created in the kernel, uevent sent
-2. udev receives uevent, finds matching module and does modprobe phy_module
+My latest (well, December 2015) tree with the control request code
+is here:
 
-Remaining part is as before: phy_module registers the driver which gets matched with 
-phy device; probe() is called which registers v4l2 subdev which then is registered
-to v4l2_device through the v4l2-async mechanism.
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=requests2
 
-All this assumes udev is running and modules are installed in /lib/modules/$(uname -r).
-E.g. there should be your module alias as shown by modinfo phy_module in
-/lib/modules/$(uname -r)/modules.alias.
+It's AFAIK a slightly newer version from what ChromeOS uses.
 
->>> +	ret = of_platform_populate(dw_dev->of_node, NULL, &lookup, dw_dev->dev);
->>> +	if (ret) {
->>> +		dev_err(dw_dev->dev, "failed to populate phy driver\n");
->>> +		return ret;
->>> +	}
->>> +
->>> +	return 0;
->>> +}
->>> +
->>> +static void dw_hdmi_phy_exit(struct dw_hdmi_dev *dw_dev)
->>> +{
->>> +	of_platform_depopulate(dw_dev->dev);
->>> +}
+> Excited to work with you all! :)
 
->>> +static int dw_hdmi_v4l2_notify_complete(struct v4l2_async_notifier *notifier)
->>> +{
->>> +	struct dw_hdmi_dev *dw_dev = notifier_to_dw_dev(notifier);
->>> +	int ret;
->>> +
->>> +	ret = v4l2_device_register_subdev_nodes(&dw_dev->v4l2_dev);
->>
->> There shouldn't be multiple struct v4l2_device instances, instead we should
->> have only one created by the main driver. AFAIU, in your case it would be
->> driver associated with the dw-hdmi-soc DT node.  And normally such a top level
->> driver creates subdev device nodes when its all required sub-devices are
->> available.
->>
->> I think this patch could be useful for you:
->> https://patchwork.linuxtv.org/patch/41834
->>
->> With that the dw-hdmi-soc driver would have it's v4l2-async notifier's
->> notify_complete() callback called only when both the hdmi-rx and the
->> hdmi-phy subdevs are registered.
-> 
-> Yeah, I saw the patches. I just implemented this way because they
-> are not merged yet, right?
+Looking forward to your code!
 
-I think these patches will be merged in v4.14-rc1, so together with your driver.
-You could apply them locally and indicate that your series depends on them in 
-the cover letter.
-
->>> +	if (ret) {
->>> +		dev_err(dw_dev->dev, "failed to register subdev nodes\n");
->>> +		return ret;
->>> +	}
->>> +
->>> +	return 0;
->>> +}
-
->>> +static int dw_hdmi_rx_probe(struct platform_device *pdev)
->>> +{
->>> +	/* V4L2 initialization */
->>> +	sd = &dw_dev->sd;
->>> +	v4l2_subdev_init(sd, &dw_hdmi_sd_ops);
->>> +	strlcpy(sd->name, dev_name(dev), sizeof(sd->name));
->>> +	sd->dev = dev;
->>> +	sd->internal_ops = &dw_hdmi_internal_ops;
->>> +	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS;
->>
->> Don't you also need V4L2_SUBDEV_FL_HAS_DEVNODE flag set?
-> 
-> Ouch. Yes I need otherwise the subdev will not be associated with
-> the v4l2_device.
-
-This flag indicates that the v4l2 subdev device node (/dev/v4l-subdev?)
-should be created for this subdevice.
-
----
 Regards,
-Sylwester
- 
+
+	Hans
