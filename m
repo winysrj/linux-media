@@ -1,1890 +1,1779 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:42222 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751665AbdFIIo3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Jun 2017 04:44:29 -0400
-From: Hyungwoo Yang <hyungwoo.yang@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org, cedric.hsu@intel.com,
-        Hyungwoo Yang <hyungwoo.yang@intel.com>
-Subject: [PATCH v9 1/1] [media] i2c: add support for OV13858 sensor
-Date: Fri,  9 Jun 2017 01:43:40 -0700
-Message-Id: <1496997820-978-2-git-send-email-hyungwoo.yang@intel.com>
-In-Reply-To: <1496997820-978-1-git-send-email-hyungwoo.yang@intel.com>
-References: <1496997820-978-1-git-send-email-hyungwoo.yang@intel.com>
+Received: from relmlor4.renesas.com ([210.160.252.174]:10033 "EHLO
+        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751676AbdFIPVF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Jun 2017 11:21:05 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v7 3/7] media: i2c: max2175: Add MAX2175 support
+Date: Fri,  9 Jun 2017 16:07:34 +0100
+Message-Id: <20170609150738.56294-4-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <20170609150738.56294-1-ramesh.shanmugasundaram@bp.renesas.com>
+References: <20170609150738.56294-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds driver for Omnivision's ov13858
-sensor, the driver supports following features:
+This patch adds driver support for the MAX2175 chip. This is Maxim
+Integrated's RF to Bits tuner front end chip designed for software-defined
+radio solutions. This driver exposes the tuner as a sub-device instance
+with standard and custom controls to configure the device.
 
-- manual exposure/gain(analog and digital) control support
-- two link frequencies
-- VBLANK/HBLANK support
-- test pattern support
-- media controller support
-- runtime pm support
-- supported resolutions
-  + 4224x3136 at 30FPS
-  + 2112x1568 at 30FPS(default) and 60FPS
-  + 2112x1188 at 30FPS(default) and 60FPS
-  + 1056x784 at 30FPS(default) and 60FPS
-
-Signed-off-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
 ---
- drivers/media/i2c/Kconfig   |    8 +
- drivers/media/i2c/Makefile  |    1 +
- drivers/media/i2c/ov13858.c | 1811 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 1820 insertions(+)
- create mode 100644 drivers/media/i2c/ov13858.c
+v7:
+ - Made I2S enable/disable control as private (Mauro).
+ 
+v6:
+ - Addressed Sakari's comments. They are:
+	- Added uapi header file.
+	- Added newline at the end of the function before return.
+	- Cleaned up header file inclusion.
+	- Used fwnode_ apis whereever applicable.
+	- Cleaned up debug statements.
+	- Removed separate dir for max2175.
+v5:
+ - sck -> Sample clock is clarified in driver documentation (Hans)
+ - "refout-load-pF" is renamed to "refout-load" as per updated bindings.
+---
+ Documentation/media/v4l-drivers/index.rst   |    1 +
+ Documentation/media/v4l-drivers/max2175.rst |   62 ++
+ drivers/media/i2c/Kconfig                   |   12 +
+ drivers/media/i2c/Makefile                  |    2 +
+ drivers/media/i2c/max2175.c                 | 1453 +++++++++++++++++++++++++++
+ drivers/media/i2c/max2175.h                 |  109 ++
+ include/uapi/linux/max2175.h                |   28 +
+ 7 files changed, 1667 insertions(+)
+ create mode 100644 Documentation/media/v4l-drivers/max2175.rst
+ create mode 100644 drivers/media/i2c/max2175.c
+ create mode 100644 drivers/media/i2c/max2175.h
+ create mode 100644 include/uapi/linux/max2175.h
 
+diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
+index 90fe22a6414a..2e24d6806052 100644
+--- a/Documentation/media/v4l-drivers/index.rst
++++ b/Documentation/media/v4l-drivers/index.rst
+@@ -42,6 +42,7 @@ For more details see the file COPYING in the source distribution of Linux.
+ 	davinci-vpbe
+ 	fimc
+ 	ivtv
++	max2175
+ 	meye
+ 	omap3isp
+ 	omap4_camera
+diff --git a/Documentation/media/v4l-drivers/max2175.rst b/Documentation/media/v4l-drivers/max2175.rst
+new file mode 100644
+index 000000000000..04478c25d57a
+--- /dev/null
++++ b/Documentation/media/v4l-drivers/max2175.rst
+@@ -0,0 +1,62 @@
++Maxim Integrated MAX2175 RF to bits tuner driver
++================================================
++
++The MAX2175 driver implements the following driver-specific controls:
++
++``V4L2_CID_MAX2175_I2S_ENABLE``
++-------------------------------
++    Enable/Disable I2S output of the tuner. This is a private control
++    that can be accessed only using the subdev interface.
++    Refer to Documentation/media/kapi/v4l2-controls for more details.
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       1 4
++
++    * - ``(0)``
++      - I2S output is disabled.
++    * - ``(1)``
++      - I2S output is enabled.
++
++``V4L2_CID_MAX2175_HSLS``
++-------------------------
++    The high-side/low-side (HSLS) control of the tuner for a given band.
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       1 4
++
++    * - ``(0)``
++      - The LO frequency position is below the desired frequency.
++    * - ``(1)``
++      - The LO frequency position is above the desired frequency.
++
++``V4L2_CID_MAX2175_RX_MODE (menu)``
++-----------------------------------
++    The Rx mode controls a number of preset parameters of the tuner like
++    sample clock (sck), sampling rate etc. These multiple settings are
++    provided under one single label called Rx mode in the datasheet. The
++    list below shows the supported modes with a brief description.
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       1 4
++
++    * - ``"Europe modes"``
++    * - ``"FM 1.2" (0)``
++      - This configures FM band with a sample rate of 0.512 million
++        samples/sec with a 10.24 MHz sck.
++    * - ``"DAB 1.2" (1)``
++      - This configures VHF band with a sample rate of 2.048 million
++        samples/sec with a 32.768 MHz sck.
++
++    * - ``"North America modes"``
++    * - ``"FM 1.0" (0)``
++      - This configures FM band with a sample rate of 0.7441875 million
++        samples/sec with a 14.88375 MHz sck.
++    * - ``"DAB 1.2" (1)``
++      - This configures FM band with a sample rate of 0.372 million
++        samples/sec with a 7.441875 MHz sck.
 diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index c380e24..26a9a3c 100644
+index c380e2475c82..c0e6e78883b0 100644
 --- a/drivers/media/i2c/Kconfig
 +++ b/drivers/media/i2c/Kconfig
-@@ -600,6 +600,14 @@ config VIDEO_OV9650
- 	  This is a V4L2 sensor-level driver for the Omnivision
- 	  OV9650 and OV9652 camera sensors.
+@@ -796,6 +796,18 @@ config VIDEO_SAA6752HS
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called saa6752hs.
  
-+config VIDEO_OV13858
-+	tristate "OmniVision OV13858 sensor support"
-+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-+	depends on MEDIA_CAMERA_SUPPORT
-+	---help---
-+	  This is a Video4Linux2 sensor-level driver for the OmniVision
-+	  OV13858 camera.
++comment "SDR tuner chips"
 +
- config VIDEO_VS6624
- 	tristate "ST VS6624 sensor support"
- 	depends on VIDEO_V4L2 && I2C
++config SDR_MAX2175
++	tristate "Maxim 2175 RF to Bits tuner"
++	depends on VIDEO_V4L2 && MEDIA_SDR_SUPPORT && I2C
++	---help---
++	  Support for Maxim 2175 tuner. It is an advanced analog/digital
++	  radio receiver with RF-to-Bits front-end designed for SDR solutions.
++
++	  To compile this driver as a module, choose M here; the
++	  module will be called max2175.
++
+ comment "Miscellaneous helper chips"
+ 
+ config VIDEO_THS7303
 diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index 62323ec..3f4dc02 100644
+index 62323ec66be8..5a4a761f7383 100644
 --- a/drivers/media/i2c/Makefile
 +++ b/drivers/media/i2c/Makefile
-@@ -63,6 +63,7 @@ obj-$(CONFIG_VIDEO_OV5647) += ov5647.o
- obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
- obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
- obj-$(CONFIG_VIDEO_OV9650) += ov9650.o
-+obj-$(CONFIG_VIDEO_OV13858) += ov13858.o
- obj-$(CONFIG_VIDEO_MT9M032) += mt9m032.o
- obj-$(CONFIG_VIDEO_MT9M111) += mt9m111.o
- obj-$(CONFIG_VIDEO_MT9P031) += mt9p031.o
-diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+@@ -86,3 +86,5 @@ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
+ obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
+ obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
+ obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
++
++obj-$(CONFIG_SDR_MAX2175) += max2175.o
+diff --git a/drivers/media/i2c/max2175.c b/drivers/media/i2c/max2175.c
 new file mode 100644
-index 0000000..03652c6
+index 000000000000..ea4bd42c089f
 --- /dev/null
-+++ b/drivers/media/i2c/ov13858.c
-@@ -0,0 +1,1811 @@
++++ b/drivers/media/i2c/max2175.c
+@@ -0,0 +1,1453 @@
 +/*
-+ * Copyright (c) 2017 Intel Corporation.
++ * Maxim Integrated MAX2175 RF to Bits tuner driver
 + *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
++ * This driver & most of the hard coded values are based on the reference
++ * application delivered by Maxim for this device.
++ *
++ * Copyright (C) 2016 Maxim Integrated Products
++ * Copyright (C) 2017 Renesas Electronics Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2
++ * as published by the Free Software Foundation.
 + *
 + * This program is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
 + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 + * GNU General Public License for more details.
-+ *
 + */
 +
-+#include <linux/acpi.h>
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/errno.h>
 +#include <linux/i2c.h>
++#include <linux/kernel.h>
++#include <linux/math64.h>
++#include <linux/max2175.h>
 +#include <linux/module.h>
-+#include <linux/pm_runtime.h>
++#include <linux/of.h>
++#include <linux/regmap.h>
++#include <linux/slab.h>
 +#include <media/v4l2-ctrls.h>
 +#include <media/v4l2-device.h>
 +
-+#define OV13858_REG_VALUE_08BIT		1
-+#define OV13858_REG_VALUE_16BIT		2
-+#define OV13858_REG_VALUE_24BIT		3
++#include "max2175.h"
 +
-+#define OV13858_REG_MODE_SELECT		0x0100
-+#define OV13858_MODE_STANDBY		0x00
-+#define OV13858_MODE_STREAMING		0x01
++#define DRIVER_NAME "max2175"
 +
-+#define OV13858_REG_SOFTWARE_RST	0x0103
-+#define OV13858_SOFTWARE_RST		0x01
++#define mxm_dbg(ctx, fmt, arg...) dev_dbg(&ctx->client->dev, fmt, ## arg)
++#define mxm_err(ctx, fmt, arg...) dev_err(&ctx->client->dev, fmt, ## arg)
 +
-+/* PLL1 generates PCLK and MIPI_PHY_CLK */
-+#define OV13858_REG_PLL1_CTRL_0		0x0300
-+#define OV13858_REG_PLL1_CTRL_1		0x0301
-+#define OV13858_REG_PLL1_CTRL_2		0x0302
-+#define OV13858_REG_PLL1_CTRL_3		0x0303
-+#define OV13858_REG_PLL1_CTRL_4		0x0304
-+#define OV13858_REG_PLL1_CTRL_5		0x0305
-+
-+/* PLL2 generates DAC_CLK, SCLK and SRAM_CLK */
-+#define OV13858_REG_PLL2_CTRL_B		0x030b
-+#define OV13858_REG_PLL2_CTRL_C		0x030c
-+#define OV13858_REG_PLL2_CTRL_D		0x030d
-+#define OV13858_REG_PLL2_CTRL_E		0x030e
-+#define OV13858_REG_PLL2_CTRL_F		0x030f
-+#define OV13858_REG_PLL2_CTRL_12	0x0312
-+#define OV13858_REG_MIPI_SC_CTRL0	0x3016
-+#define OV13858_REG_MIPI_SC_CTRL1	0x3022
-+
-+/* Chip ID */
-+#define OV13858_REG_CHIP_ID		0x300a
-+#define OV13858_CHIP_ID			0x00d855
-+
-+/* V_TIMING internal */
-+#define OV13858_REG_VTS			0x380e
-+#define OV13858_VTS_30FPS		0x0c8e /* 30 fps */
-+#define OV13858_VTS_60FPS		0x0648 /* 60 fps */
-+#define OV13858_VTS_MAX			0x7fff
-+#define OV13858_VBLANK_MIN		56
-+
-+/* HBLANK control - read only */
-+#define OV13858_PPL_540MHZ		2244
-+#define OV13858_PPL_1080MHZ		4488
-+
-+/* Exposure control */
-+#define OV13858_REG_EXPOSURE		0x3500
-+#define OV13858_EXPOSURE_MIN		4
-+#define OV13858_EXPOSURE_MAX		(OV13858_VTS_MAX - 8)
-+#define OV13858_EXPOSURE_STEP		1
-+#define OV13858_EXPOSURE_DEFAULT	0x640
-+
-+/* Analog gain control */
-+#define OV13858_REG_ANALOG_GAIN		0x3508
-+#define OV13858_ANA_GAIN_MIN		0
-+#define OV13858_ANA_GAIN_MAX		0x1fff
-+#define OV13858_ANA_GAIN_STEP		1
-+#define OV13858_ANA_GAIN_DEFAULT	0x80
-+
-+/* Digital gain control */
-+#define OV13858_REG_DIGITAL_GAIN	0x350a
-+#define OV13858_DGTL_GAIN_MASK		0xf3
-+#define OV13858_DGTL_GAIN_SHIFT		2
-+#define OV13858_DGTL_GAIN_MIN		1
-+#define OV13858_DGTL_GAIN_MAX		4
-+#define OV13858_DGTL_GAIN_STEP		1
-+#define OV13858_DGTL_GAIN_DEFAULT	1
-+
-+/* Test Pattern Control */
-+#define OV13858_REG_TEST_PATTERN	0x4503
-+#define OV13858_TEST_PATTERN_ENABLE	BIT(7)
-+#define OV13858_TEST_PATTERN_MASK	0xfc
-+
-+/* Number of frames to skip */
-+#define OV13858_NUM_OF_SKIP_FRAMES	2
-+
-+struct ov13858_reg {
-+	u16 address;
-+	u8 val;
++/* Rx mode */
++struct max2175_rxmode {
++	enum max2175_band band;		/* Associated band */
++	u32 freq;			/* Default freq in Hz */
++	u8 i2s_word_size;		/* Bit value */
 +};
 +
-+struct ov13858_reg_list {
-+	u32 num_of_regs;
-+	const struct ov13858_reg *regs;
++/* Register map to define preset values */
++struct max2175_reg_map {
++	u8 idx;				/* Register index */
++	u8 val;				/* Register value */
 +};
 +
-+/* Link frequency config */
-+struct ov13858_link_freq_config {
-+	u32 pixel_rate;
-+	u32 pixels_per_line;
-+
-+	/* PLL registers for this link frequency */
-+	struct ov13858_reg_list reg_list;
++static const struct max2175_rxmode eu_rx_modes[] = {
++	/* EU modes */
++	[MAX2175_EU_FM_1_2] = { MAX2175_BAND_FM, 98256000, 1 },
++	[MAX2175_DAB_1_2]   = { MAX2175_BAND_VHF, 182640000, 0 },
 +};
 +
-+/* Mode : resolution and related config&values */
-+struct ov13858_mode {
-+	/* Frame width */
-+	u32 width;
-+	/* Frame height */
-+	u32 height;
-+
-+	/* V-timing */
-+	u32 vts;
-+
-+	/* Index of Link frequency config to be used */
-+	u32 link_freq_index;
-+	/* Default register values */
-+	struct ov13858_reg_list reg_list;
-+};
-+
-+/* 4224x3136 needs 1080Mbps/lane, 4 lanes */
-+static const struct ov13858_reg mipi_data_rate_1080mbps[] = {
-+	/* PLL1 registers */
-+	{OV13858_REG_PLL1_CTRL_0, 0x07},
-+	{OV13858_REG_PLL1_CTRL_1, 0x01},
-+	{OV13858_REG_PLL1_CTRL_2, 0xc2},
-+	{OV13858_REG_PLL1_CTRL_3, 0x00},
-+	{OV13858_REG_PLL1_CTRL_4, 0x00},
-+	{OV13858_REG_PLL1_CTRL_5, 0x01},
-+
-+	/* PLL2 registers */
-+	{OV13858_REG_PLL2_CTRL_B, 0x05},
-+	{OV13858_REG_PLL2_CTRL_C, 0x01},
-+	{OV13858_REG_PLL2_CTRL_D, 0x0e},
-+	{OV13858_REG_PLL2_CTRL_E, 0x05},
-+	{OV13858_REG_PLL2_CTRL_F, 0x01},
-+	{OV13858_REG_PLL2_CTRL_12, 0x01},
-+	{OV13858_REG_MIPI_SC_CTRL0, 0x72},
-+	{OV13858_REG_MIPI_SC_CTRL1, 0x01},
++static const struct max2175_rxmode na_rx_modes[] = {
++	/* NA modes */
++	[MAX2175_NA_FM_1_0] = { MAX2175_BAND_FM, 98255520, 1 },
++	[MAX2175_NA_FM_2_0] = { MAX2175_BAND_FM, 98255520, 6 },
 +};
 +
 +/*
-+ * 2112x1568, 2112x1188, 1056x784 need 540Mbps/lane,
-+ * 4 lanes
++ * Preset values:
++ * Based on Maxim MAX2175 Register Table revision: 130p10
 + */
-+static const struct ov13858_reg mipi_data_rate_540mbps[] = {
-+	/* PLL1 registers */
-+	{OV13858_REG_PLL1_CTRL_0, 0x07},
-+	{OV13858_REG_PLL1_CTRL_1, 0x01},
-+	{OV13858_REG_PLL1_CTRL_2, 0xc2},
-+	{OV13858_REG_PLL1_CTRL_3, 0x01},
-+	{OV13858_REG_PLL1_CTRL_4, 0x00},
-+	{OV13858_REG_PLL1_CTRL_5, 0x01},
-+
-+	/* PLL2 registers */
-+	{OV13858_REG_PLL2_CTRL_B, 0x05},
-+	{OV13858_REG_PLL2_CTRL_C, 0x01},
-+	{OV13858_REG_PLL2_CTRL_D, 0x0e},
-+	{OV13858_REG_PLL2_CTRL_E, 0x05},
-+	{OV13858_REG_PLL2_CTRL_F, 0x01},
-+	{OV13858_REG_PLL2_CTRL_12, 0x01},
-+	{OV13858_REG_MIPI_SC_CTRL0, 0x72},
-+	{OV13858_REG_MIPI_SC_CTRL1, 0x01},
++static const u8 full_fm_eu_1p0[] = {
++	0x15, 0x04, 0xb8, 0xe3, 0x35, 0x18, 0x7c, 0x00,
++	0x00, 0x7d, 0x40, 0x08, 0x70, 0x7a, 0x88, 0x91,
++	0x61, 0x61, 0x61, 0x61, 0x5a, 0x0f, 0x34, 0x1c,
++	0x14, 0x88, 0x33, 0x02, 0x00, 0x09, 0x00, 0x65,
++	0x9f, 0x2b, 0x80, 0x00, 0x95, 0x05, 0x2c, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40,
++	0x4a, 0x08, 0xa8, 0x0e, 0x0e, 0x2f, 0x7e, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0xab, 0x5e, 0xa9,
++	0xae, 0xbb, 0x57, 0x18, 0x3b, 0x03, 0x3b, 0x64,
++	0x40, 0x60, 0x00, 0x2a, 0xbf, 0x3f, 0xff, 0x9f,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00,
++	0xff, 0xfc, 0xef, 0x1c, 0x40, 0x00, 0x00, 0x02,
++	0x00, 0x00, 0xe0, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0xac, 0x40, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x75, 0x00, 0x00,
++	0x00, 0x47, 0x00, 0x00, 0x11, 0x3f, 0x22, 0x00,
++	0xf1, 0x00, 0x41, 0x03, 0xb0, 0x00, 0x00, 0x00,
++	0x1b,
 +};
 +
-+static const struct ov13858_reg mode_4224x3136_regs[] = {
-+	{0x3013, 0x32},
-+	{0x301b, 0xf0},
-+	{0x301f, 0xd0},
-+	{0x3106, 0x15},
-+	{0x3107, 0x23},
-+	{0x350a, 0x00},
-+	{0x350e, 0x00},
-+	{0x3510, 0x00},
-+	{0x3511, 0x02},
-+	{0x3512, 0x00},
-+	{0x3600, 0x2b},
-+	{0x3601, 0x52},
-+	{0x3602, 0x60},
-+	{0x3612, 0x05},
-+	{0x3613, 0xa4},
-+	{0x3620, 0x80},
-+	{0x3621, 0x10},
-+	{0x3622, 0x30},
-+	{0x3624, 0x1c},
-+	{0x3640, 0x10},
-+	{0x3641, 0x70},
-+	{0x3661, 0x80},
-+	{0x3662, 0x12},
-+	{0x3664, 0x73},
-+	{0x3665, 0xa7},
-+	{0x366e, 0xff},
-+	{0x366f, 0xf4},
-+	{0x3674, 0x00},
-+	{0x3679, 0x0c},
-+	{0x367f, 0x01},
-+	{0x3680, 0x0c},
-+	{0x3681, 0x50},
-+	{0x3682, 0x50},
-+	{0x3683, 0xa9},
-+	{0x3684, 0xa9},
-+	{0x3709, 0x5f},
-+	{0x3714, 0x24},
-+	{0x371a, 0x3e},
-+	{0x3737, 0x04},
-+	{0x3738, 0xcc},
-+	{0x3739, 0x12},
-+	{0x373d, 0x26},
-+	{0x3764, 0x20},
-+	{0x3765, 0x20},
-+	{0x37a1, 0x36},
-+	{0x37a8, 0x3b},
-+	{0x37ab, 0x31},
-+	{0x37c2, 0x04},
-+	{0x37c3, 0xf1},
-+	{0x37c5, 0x00},
-+	{0x37d8, 0x03},
-+	{0x37d9, 0x0c},
-+	{0x37da, 0xc2},
-+	{0x37dc, 0x02},
-+	{0x37e0, 0x00},
-+	{0x37e1, 0x0a},
-+	{0x37e2, 0x14},
-+	{0x37e3, 0x04},
-+	{0x37e4, 0x2a},
-+	{0x37e5, 0x03},
-+	{0x37e6, 0x04},
-+	{0x3800, 0x00},
-+	{0x3801, 0x00},
-+	{0x3802, 0x00},
-+	{0x3803, 0x00},
-+	{0x3804, 0x10},
-+	{0x3805, 0x9f},
-+	{0x3806, 0x0c},
-+	{0x3807, 0x5f},
-+	{0x3808, 0x10},
-+	{0x3809, 0x80},
-+	{0x380a, 0x0c},
-+	{0x380b, 0x40},
-+	{0x380c, 0x04},
-+	{0x380d, 0x62},
-+	{0x380e, 0x0c},
-+	{0x380f, 0x8e},
-+	{0x3811, 0x04},
-+	{0x3813, 0x05},
-+	{0x3814, 0x01},
-+	{0x3815, 0x01},
-+	{0x3816, 0x01},
-+	{0x3817, 0x01},
-+	{0x3820, 0xa8},
-+	{0x3821, 0x00},
-+	{0x3822, 0xc2},
-+	{0x3823, 0x18},
-+	{0x3826, 0x11},
-+	{0x3827, 0x1c},
-+	{0x3829, 0x03},
-+	{0x3832, 0x00},
-+	{0x3c80, 0x00},
-+	{0x3c87, 0x01},
-+	{0x3c8c, 0x19},
-+	{0x3c8d, 0x1c},
-+	{0x3c90, 0x00},
-+	{0x3c91, 0x00},
-+	{0x3c92, 0x00},
-+	{0x3c93, 0x00},
-+	{0x3c94, 0x40},
-+	{0x3c95, 0x54},
-+	{0x3c96, 0x34},
-+	{0x3c97, 0x04},
-+	{0x3c98, 0x00},
-+	{0x3d8c, 0x73},
-+	{0x3d8d, 0xc0},
-+	{0x3f00, 0x0b},
-+	{0x3f03, 0x00},
-+	{0x4001, 0xe0},
-+	{0x4008, 0x00},
-+	{0x4009, 0x0f},
-+	{0x4011, 0xf0},
-+	{0x4017, 0x08},
-+	{0x4050, 0x04},
-+	{0x4051, 0x0b},
-+	{0x4052, 0x00},
-+	{0x4053, 0x80},
-+	{0x4054, 0x00},
-+	{0x4055, 0x80},
-+	{0x4056, 0x00},
-+	{0x4057, 0x80},
-+	{0x4058, 0x00},
-+	{0x4059, 0x80},
-+	{0x405e, 0x20},
-+	{0x4500, 0x07},
-+	{0x4503, 0x00},
-+	{0x450a, 0x04},
-+	{0x4809, 0x04},
-+	{0x480c, 0x12},
-+	{0x481f, 0x30},
-+	{0x4833, 0x10},
-+	{0x4837, 0x0e},
-+	{0x4902, 0x01},
-+	{0x4d00, 0x03},
-+	{0x4d01, 0xc9},
-+	{0x4d02, 0xbc},
-+	{0x4d03, 0xd7},
-+	{0x4d04, 0xf0},
-+	{0x4d05, 0xa2},
-+	{0x5000, 0xfd},
-+	{0x5001, 0x01},
-+	{0x5040, 0x39},
-+	{0x5041, 0x10},
-+	{0x5042, 0x10},
-+	{0x5043, 0x84},
-+	{0x5044, 0x62},
-+	{0x5180, 0x00},
-+	{0x5181, 0x10},
-+	{0x5182, 0x02},
-+	{0x5183, 0x0f},
-+	{0x5200, 0x1b},
-+	{0x520b, 0x07},
-+	{0x520c, 0x0f},
-+	{0x5300, 0x04},
-+	{0x5301, 0x0c},
-+	{0x5302, 0x0c},
-+	{0x5303, 0x0f},
-+	{0x5304, 0x00},
-+	{0x5305, 0x70},
-+	{0x5306, 0x00},
-+	{0x5307, 0x80},
-+	{0x5308, 0x00},
-+	{0x5309, 0xa5},
-+	{0x530a, 0x00},
-+	{0x530b, 0xd3},
-+	{0x530c, 0x00},
-+	{0x530d, 0xf0},
-+	{0x530e, 0x01},
-+	{0x530f, 0x10},
-+	{0x5310, 0x01},
-+	{0x5311, 0x20},
-+	{0x5312, 0x01},
-+	{0x5313, 0x20},
-+	{0x5314, 0x01},
-+	{0x5315, 0x20},
-+	{0x5316, 0x08},
-+	{0x5317, 0x08},
-+	{0x5318, 0x10},
-+	{0x5319, 0x88},
-+	{0x531a, 0x88},
-+	{0x531b, 0xa9},
-+	{0x531c, 0xaa},
-+	{0x531d, 0x0a},
-+	{0x5405, 0x02},
-+	{0x5406, 0x67},
-+	{0x5407, 0x01},
-+	{0x5408, 0x4a},
++static const u8 full_fm_na_1p0[] = {
++	0x13, 0x08, 0x8d, 0xc0, 0x35, 0x18, 0x7d, 0x3f,
++	0x7d, 0x75, 0x40, 0x08, 0x70, 0x7a, 0x88, 0x91,
++	0x61, 0x61, 0x61, 0x61, 0x5c, 0x0f, 0x34, 0x1c,
++	0x14, 0x88, 0x33, 0x02, 0x00, 0x01, 0x00, 0x65,
++	0x9f, 0x2b, 0x80, 0x00, 0x95, 0x05, 0x2c, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40,
++	0x4a, 0x08, 0xa8, 0x0e, 0x0e, 0xaf, 0x7e, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0xab, 0x5e, 0xa9,
++	0xae, 0xbb, 0x57, 0x18, 0x3b, 0x03, 0x3b, 0x64,
++	0x40, 0x60, 0x00, 0x2a, 0xbf, 0x3f, 0xff, 0x9f,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00,
++	0xff, 0xfc, 0xef, 0x1c, 0x40, 0x00, 0x00, 0x02,
++	0x00, 0x00, 0xe0, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0xa6, 0x40, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x75, 0x00, 0x00,
++	0x00, 0x35, 0x00, 0x00, 0x11, 0x3f, 0x22, 0x00,
++	0xf1, 0x00, 0x41, 0x03, 0xb0, 0x00, 0x00, 0x00,
++	0x1b,
 +};
 +
-+static const struct ov13858_reg mode_2112x1568_regs[] = {
-+	{0x3013, 0x32},
-+	{0x301b, 0xf0},
-+	{0x301f, 0xd0},
-+	{0x3106, 0x15},
-+	{0x3107, 0x23},
-+	{0x350a, 0x00},
-+	{0x350e, 0x00},
-+	{0x3510, 0x00},
-+	{0x3511, 0x02},
-+	{0x3512, 0x00},
-+	{0x3600, 0x2b},
-+	{0x3601, 0x52},
-+	{0x3602, 0x60},
-+	{0x3612, 0x05},
-+	{0x3613, 0xa4},
-+	{0x3620, 0x80},
-+	{0x3621, 0x10},
-+	{0x3622, 0x30},
-+	{0x3624, 0x1c},
-+	{0x3640, 0x10},
-+	{0x3641, 0x70},
-+	{0x3661, 0x80},
-+	{0x3662, 0x10},
-+	{0x3664, 0x73},
-+	{0x3665, 0xa7},
-+	{0x366e, 0xff},
-+	{0x366f, 0xf4},
-+	{0x3674, 0x00},
-+	{0x3679, 0x0c},
-+	{0x367f, 0x01},
-+	{0x3680, 0x0c},
-+	{0x3681, 0x50},
-+	{0x3682, 0x50},
-+	{0x3683, 0xa9},
-+	{0x3684, 0xa9},
-+	{0x3709, 0x5f},
-+	{0x3714, 0x28},
-+	{0x371a, 0x3e},
-+	{0x3737, 0x08},
-+	{0x3738, 0xcc},
-+	{0x3739, 0x20},
-+	{0x373d, 0x26},
-+	{0x3764, 0x20},
-+	{0x3765, 0x20},
-+	{0x37a1, 0x36},
-+	{0x37a8, 0x3b},
-+	{0x37ab, 0x31},
-+	{0x37c2, 0x14},
-+	{0x37c3, 0xf1},
-+	{0x37c5, 0x00},
-+	{0x37d8, 0x03},
-+	{0x37d9, 0x0c},
-+	{0x37da, 0xc2},
-+	{0x37dc, 0x02},
-+	{0x37e0, 0x00},
-+	{0x37e1, 0x0a},
-+	{0x37e2, 0x14},
-+	{0x37e3, 0x08},
-+	{0x37e4, 0x38},
-+	{0x37e5, 0x03},
-+	{0x37e6, 0x08},
-+	{0x3800, 0x00},
-+	{0x3801, 0x00},
-+	{0x3802, 0x00},
-+	{0x3803, 0x00},
-+	{0x3804, 0x10},
-+	{0x3805, 0x9f},
-+	{0x3806, 0x0c},
-+	{0x3807, 0x5f},
-+	{0x3808, 0x08},
-+	{0x3809, 0x40},
-+	{0x380a, 0x06},
-+	{0x380b, 0x20},
-+	{0x380c, 0x04},
-+	{0x380d, 0x62},
-+	{0x380e, 0x0c},
-+	{0x380f, 0x8e},
-+	{0x3811, 0x04},
-+	{0x3813, 0x05},
-+	{0x3814, 0x03},
-+	{0x3815, 0x01},
-+	{0x3816, 0x03},
-+	{0x3817, 0x01},
-+	{0x3820, 0xab},
-+	{0x3821, 0x00},
-+	{0x3822, 0xc2},
-+	{0x3823, 0x18},
-+	{0x3826, 0x04},
-+	{0x3827, 0x90},
-+	{0x3829, 0x07},
-+	{0x3832, 0x00},
-+	{0x3c80, 0x00},
-+	{0x3c87, 0x01},
-+	{0x3c8c, 0x19},
-+	{0x3c8d, 0x1c},
-+	{0x3c90, 0x00},
-+	{0x3c91, 0x00},
-+	{0x3c92, 0x00},
-+	{0x3c93, 0x00},
-+	{0x3c94, 0x40},
-+	{0x3c95, 0x54},
-+	{0x3c96, 0x34},
-+	{0x3c97, 0x04},
-+	{0x3c98, 0x00},
-+	{0x3d8c, 0x73},
-+	{0x3d8d, 0xc0},
-+	{0x3f00, 0x0b},
-+	{0x3f03, 0x00},
-+	{0x4001, 0xe0},
-+	{0x4008, 0x00},
-+	{0x4009, 0x0d},
-+	{0x4011, 0xf0},
-+	{0x4017, 0x08},
-+	{0x4050, 0x04},
-+	{0x4051, 0x0b},
-+	{0x4052, 0x00},
-+	{0x4053, 0x80},
-+	{0x4054, 0x00},
-+	{0x4055, 0x80},
-+	{0x4056, 0x00},
-+	{0x4057, 0x80},
-+	{0x4058, 0x00},
-+	{0x4059, 0x80},
-+	{0x405e, 0x20},
-+	{0x4500, 0x07},
-+	{0x4503, 0x00},
-+	{0x450a, 0x04},
-+	{0x4809, 0x04},
-+	{0x480c, 0x12},
-+	{0x481f, 0x30},
-+	{0x4833, 0x10},
-+	{0x4837, 0x1c},
-+	{0x4902, 0x01},
-+	{0x4d00, 0x03},
-+	{0x4d01, 0xc9},
-+	{0x4d02, 0xbc},
-+	{0x4d03, 0xd7},
-+	{0x4d04, 0xf0},
-+	{0x4d05, 0xa2},
-+	{0x5000, 0xfd},
-+	{0x5001, 0x01},
-+	{0x5040, 0x39},
-+	{0x5041, 0x10},
-+	{0x5042, 0x10},
-+	{0x5043, 0x84},
-+	{0x5044, 0x62},
-+	{0x5180, 0x00},
-+	{0x5181, 0x10},
-+	{0x5182, 0x02},
-+	{0x5183, 0x0f},
-+	{0x5200, 0x1b},
-+	{0x520b, 0x07},
-+	{0x520c, 0x0f},
-+	{0x5300, 0x04},
-+	{0x5301, 0x0c},
-+	{0x5302, 0x0c},
-+	{0x5303, 0x0f},
-+	{0x5304, 0x00},
-+	{0x5305, 0x70},
-+	{0x5306, 0x00},
-+	{0x5307, 0x80},
-+	{0x5308, 0x00},
-+	{0x5309, 0xa5},
-+	{0x530a, 0x00},
-+	{0x530b, 0xd3},
-+	{0x530c, 0x00},
-+	{0x530d, 0xf0},
-+	{0x530e, 0x01},
-+	{0x530f, 0x10},
-+	{0x5310, 0x01},
-+	{0x5311, 0x20},
-+	{0x5312, 0x01},
-+	{0x5313, 0x20},
-+	{0x5314, 0x01},
-+	{0x5315, 0x20},
-+	{0x5316, 0x08},
-+	{0x5317, 0x08},
-+	{0x5318, 0x10},
-+	{0x5319, 0x88},
-+	{0x531a, 0x88},
-+	{0x531b, 0xa9},
-+	{0x531c, 0xaa},
-+	{0x531d, 0x0a},
-+	{0x5405, 0x02},
-+	{0x5406, 0x67},
-+	{0x5407, 0x01},
-+	{0x5408, 0x4a},
++/* DAB1.2 settings */
++static const struct max2175_reg_map dab12_map[] = {
++	{ 0x01, 0x13 }, { 0x02, 0x0d }, { 0x03, 0x15 }, { 0x04, 0x55 },
++	{ 0x05, 0x0a }, { 0x06, 0xa0 }, { 0x07, 0x40 }, { 0x08, 0x00 },
++	{ 0x09, 0x00 }, { 0x0a, 0x7d }, { 0x0b, 0x4a }, { 0x0c, 0x28 },
++	{ 0x0e, 0x43 }, { 0x0f, 0xb5 }, { 0x10, 0x31 }, { 0x11, 0x9e },
++	{ 0x12, 0x68 }, { 0x13, 0x9e }, { 0x14, 0x68 }, { 0x15, 0x58 },
++	{ 0x16, 0x2f }, { 0x17, 0x3f }, { 0x18, 0x40 }, { 0x1a, 0x88 },
++	{ 0x1b, 0xaa }, { 0x1c, 0x9a }, { 0x1d, 0x00 }, { 0x1e, 0x00 },
++	{ 0x23, 0x80 }, { 0x24, 0x00 }, { 0x25, 0x00 }, { 0x26, 0x00 },
++	{ 0x27, 0x00 }, { 0x32, 0x08 }, { 0x33, 0xf8 }, { 0x36, 0x2d },
++	{ 0x37, 0x7e }, { 0x55, 0xaf }, { 0x56, 0x3f }, { 0x57, 0xf8 },
++	{ 0x58, 0x99 }, { 0x76, 0x00 }, { 0x77, 0x00 }, { 0x78, 0x02 },
++	{ 0x79, 0x40 }, { 0x82, 0x00 }, { 0x83, 0x00 }, { 0x85, 0x00 },
++	{ 0x86, 0x20 },
 +};
 +
-+static const struct ov13858_reg mode_2112x1188_regs[] = {
-+	{0x3013, 0x32},
-+	{0x301b, 0xf0},
-+	{0x301f, 0xd0},
-+	{0x3106, 0x15},
-+	{0x3107, 0x23},
-+	{0x350a, 0x00},
-+	{0x350e, 0x00},
-+	{0x3510, 0x00},
-+	{0x3511, 0x02},
-+	{0x3512, 0x00},
-+	{0x3600, 0x2b},
-+	{0x3601, 0x52},
-+	{0x3602, 0x60},
-+	{0x3612, 0x05},
-+	{0x3613, 0xa4},
-+	{0x3620, 0x80},
-+	{0x3621, 0x10},
-+	{0x3622, 0x30},
-+	{0x3624, 0x1c},
-+	{0x3640, 0x10},
-+	{0x3641, 0x70},
-+	{0x3661, 0x80},
-+	{0x3662, 0x10},
-+	{0x3664, 0x73},
-+	{0x3665, 0xa7},
-+	{0x366e, 0xff},
-+	{0x366f, 0xf4},
-+	{0x3674, 0x00},
-+	{0x3679, 0x0c},
-+	{0x367f, 0x01},
-+	{0x3680, 0x0c},
-+	{0x3681, 0x50},
-+	{0x3682, 0x50},
-+	{0x3683, 0xa9},
-+	{0x3684, 0xa9},
-+	{0x3709, 0x5f},
-+	{0x3714, 0x28},
-+	{0x371a, 0x3e},
-+	{0x3737, 0x08},
-+	{0x3738, 0xcc},
-+	{0x3739, 0x20},
-+	{0x373d, 0x26},
-+	{0x3764, 0x20},
-+	{0x3765, 0x20},
-+	{0x37a1, 0x36},
-+	{0x37a8, 0x3b},
-+	{0x37ab, 0x31},
-+	{0x37c2, 0x14},
-+	{0x37c3, 0xf1},
-+	{0x37c5, 0x00},
-+	{0x37d8, 0x03},
-+	{0x37d9, 0x0c},
-+	{0x37da, 0xc2},
-+	{0x37dc, 0x02},
-+	{0x37e0, 0x00},
-+	{0x37e1, 0x0a},
-+	{0x37e2, 0x14},
-+	{0x37e3, 0x08},
-+	{0x37e4, 0x38},
-+	{0x37e5, 0x03},
-+	{0x37e6, 0x08},
-+	{0x3800, 0x00},
-+	{0x3801, 0x00},
-+	{0x3802, 0x01},
-+	{0x3803, 0x84},
-+	{0x3804, 0x10},
-+	{0x3805, 0x9f},
-+	{0x3806, 0x0a},
-+	{0x3807, 0xd3},
-+	{0x3808, 0x08},
-+	{0x3809, 0x40},
-+	{0x380a, 0x04},
-+	{0x380b, 0xa4},
-+	{0x380c, 0x04},
-+	{0x380d, 0x62},
-+	{0x380e, 0x0c},
-+	{0x380f, 0x8e},
-+	{0x3811, 0x08},
-+	{0x3813, 0x03},
-+	{0x3814, 0x03},
-+	{0x3815, 0x01},
-+	{0x3816, 0x03},
-+	{0x3817, 0x01},
-+	{0x3820, 0xab},
-+	{0x3821, 0x00},
-+	{0x3822, 0xc2},
-+	{0x3823, 0x18},
-+	{0x3826, 0x04},
-+	{0x3827, 0x90},
-+	{0x3829, 0x07},
-+	{0x3832, 0x00},
-+	{0x3c80, 0x00},
-+	{0x3c87, 0x01},
-+	{0x3c8c, 0x19},
-+	{0x3c8d, 0x1c},
-+	{0x3c90, 0x00},
-+	{0x3c91, 0x00},
-+	{0x3c92, 0x00},
-+	{0x3c93, 0x00},
-+	{0x3c94, 0x40},
-+	{0x3c95, 0x54},
-+	{0x3c96, 0x34},
-+	{0x3c97, 0x04},
-+	{0x3c98, 0x00},
-+	{0x3d8c, 0x73},
-+	{0x3d8d, 0xc0},
-+	{0x3f00, 0x0b},
-+	{0x3f03, 0x00},
-+	{0x4001, 0xe0},
-+	{0x4008, 0x00},
-+	{0x4009, 0x0d},
-+	{0x4011, 0xf0},
-+	{0x4017, 0x08},
-+	{0x4050, 0x04},
-+	{0x4051, 0x0b},
-+	{0x4052, 0x00},
-+	{0x4053, 0x80},
-+	{0x4054, 0x00},
-+	{0x4055, 0x80},
-+	{0x4056, 0x00},
-+	{0x4057, 0x80},
-+	{0x4058, 0x00},
-+	{0x4059, 0x80},
-+	{0x405e, 0x20},
-+	{0x4500, 0x07},
-+	{0x4503, 0x00},
-+	{0x450a, 0x04},
-+	{0x4809, 0x04},
-+	{0x480c, 0x12},
-+	{0x481f, 0x30},
-+	{0x4833, 0x10},
-+	{0x4837, 0x1c},
-+	{0x4902, 0x01},
-+	{0x4d00, 0x03},
-+	{0x4d01, 0xc9},
-+	{0x4d02, 0xbc},
-+	{0x4d03, 0xd7},
-+	{0x4d04, 0xf0},
-+	{0x4d05, 0xa2},
-+	{0x5000, 0xfd},
-+	{0x5001, 0x01},
-+	{0x5040, 0x39},
-+	{0x5041, 0x10},
-+	{0x5042, 0x10},
-+	{0x5043, 0x84},
-+	{0x5044, 0x62},
-+	{0x5180, 0x00},
-+	{0x5181, 0x10},
-+	{0x5182, 0x02},
-+	{0x5183, 0x0f},
-+	{0x5200, 0x1b},
-+	{0x520b, 0x07},
-+	{0x520c, 0x0f},
-+	{0x5300, 0x04},
-+	{0x5301, 0x0c},
-+	{0x5302, 0x0c},
-+	{0x5303, 0x0f},
-+	{0x5304, 0x00},
-+	{0x5305, 0x70},
-+	{0x5306, 0x00},
-+	{0x5307, 0x80},
-+	{0x5308, 0x00},
-+	{0x5309, 0xa5},
-+	{0x530a, 0x00},
-+	{0x530b, 0xd3},
-+	{0x530c, 0x00},
-+	{0x530d, 0xf0},
-+	{0x530e, 0x01},
-+	{0x530f, 0x10},
-+	{0x5310, 0x01},
-+	{0x5311, 0x20},
-+	{0x5312, 0x01},
-+	{0x5313, 0x20},
-+	{0x5314, 0x01},
-+	{0x5315, 0x20},
-+	{0x5316, 0x08},
-+	{0x5317, 0x08},
-+	{0x5318, 0x10},
-+	{0x5319, 0x88},
-+	{0x531a, 0x88},
-+	{0x531b, 0xa9},
-+	{0x531c, 0xaa},
-+	{0x531d, 0x0a},
-+	{0x5405, 0x02},
-+	{0x5406, 0x67},
-+	{0x5407, 0x01},
-+	{0x5408, 0x4a},
++/* EU FM 1.2 settings */
++static const struct max2175_reg_map fmeu1p2_map[] = {
++	{ 0x01, 0x15 }, { 0x02, 0x04 }, { 0x03, 0xb8 }, { 0x04, 0xe3 },
++	{ 0x05, 0x35 }, { 0x06, 0x18 }, { 0x07, 0x7c }, { 0x08, 0x00 },
++	{ 0x09, 0x00 }, { 0x0a, 0x73 }, { 0x0b, 0x40 }, { 0x0c, 0x08 },
++	{ 0x0e, 0x7a }, { 0x0f, 0x88 }, { 0x10, 0x91 }, { 0x11, 0x61 },
++	{ 0x12, 0x61 }, { 0x13, 0x61 }, { 0x14, 0x61 }, { 0x15, 0x5a },
++	{ 0x16, 0x0f }, { 0x17, 0x34 }, { 0x18, 0x1c }, { 0x1a, 0x88 },
++	{ 0x1b, 0x33 }, { 0x1c, 0x02 }, { 0x1d, 0x00 }, { 0x1e, 0x01 },
++	{ 0x23, 0x80 }, { 0x24, 0x00 }, { 0x25, 0x95 }, { 0x26, 0x05 },
++	{ 0x27, 0x2c }, { 0x32, 0x08 }, { 0x33, 0xa8 }, { 0x36, 0x2f },
++	{ 0x37, 0x7e }, { 0x55, 0xbf }, { 0x56, 0x3f }, { 0x57, 0xff },
++	{ 0x58, 0x9f }, { 0x76, 0xac }, { 0x77, 0x40 }, { 0x78, 0x00 },
++	{ 0x79, 0x00 }, { 0x82, 0x47 }, { 0x83, 0x00 }, { 0x85, 0x11 },
++	{ 0x86, 0x3f },
 +};
 +
-+static const struct ov13858_reg mode_1056x784_regs[] = {
-+	{0x3013, 0x32},
-+	{0x301b, 0xf0},
-+	{0x301f, 0xd0},
-+	{0x3106, 0x15},
-+	{0x3107, 0x23},
-+	{0x350a, 0x00},
-+	{0x350e, 0x00},
-+	{0x3510, 0x00},
-+	{0x3511, 0x02},
-+	{0x3512, 0x00},
-+	{0x3600, 0x2b},
-+	{0x3601, 0x52},
-+	{0x3602, 0x60},
-+	{0x3612, 0x05},
-+	{0x3613, 0xa4},
-+	{0x3620, 0x80},
-+	{0x3621, 0x10},
-+	{0x3622, 0x30},
-+	{0x3624, 0x1c},
-+	{0x3640, 0x10},
-+	{0x3641, 0x70},
-+	{0x3661, 0x80},
-+	{0x3662, 0x08},
-+	{0x3664, 0x73},
-+	{0x3665, 0xa7},
-+	{0x366e, 0xff},
-+	{0x366f, 0xf4},
-+	{0x3674, 0x00},
-+	{0x3679, 0x0c},
-+	{0x367f, 0x01},
-+	{0x3680, 0x0c},
-+	{0x3681, 0x50},
-+	{0x3682, 0x50},
-+	{0x3683, 0xa9},
-+	{0x3684, 0xa9},
-+	{0x3709, 0x5f},
-+	{0x3714, 0x30},
-+	{0x371a, 0x3e},
-+	{0x3737, 0x08},
-+	{0x3738, 0xcc},
-+	{0x3739, 0x20},
-+	{0x373d, 0x26},
-+	{0x3764, 0x20},
-+	{0x3765, 0x20},
-+	{0x37a1, 0x36},
-+	{0x37a8, 0x3b},
-+	{0x37ab, 0x31},
-+	{0x37c2, 0x2c},
-+	{0x37c3, 0xf1},
-+	{0x37c5, 0x00},
-+	{0x37d8, 0x03},
-+	{0x37d9, 0x06},
-+	{0x37da, 0xc2},
-+	{0x37dc, 0x02},
-+	{0x37e0, 0x00},
-+	{0x37e1, 0x0a},
-+	{0x37e2, 0x14},
-+	{0x37e3, 0x08},
-+	{0x37e4, 0x36},
-+	{0x37e5, 0x03},
-+	{0x37e6, 0x08},
-+	{0x3800, 0x00},
-+	{0x3801, 0x00},
-+	{0x3802, 0x00},
-+	{0x3803, 0x00},
-+	{0x3804, 0x10},
-+	{0x3805, 0x9f},
-+	{0x3806, 0x0c},
-+	{0x3807, 0x5f},
-+	{0x3808, 0x04},
-+	{0x3809, 0x20},
-+	{0x380a, 0x03},
-+	{0x380b, 0x10},
-+	{0x380c, 0x04},
-+	{0x380d, 0x62},
-+	{0x380e, 0x0c},
-+	{0x380f, 0x8e},
-+	{0x3811, 0x04},
-+	{0x3813, 0x05},
-+	{0x3814, 0x07},
-+	{0x3815, 0x01},
-+	{0x3816, 0x07},
-+	{0x3817, 0x01},
-+	{0x3820, 0xac},
-+	{0x3821, 0x00},
-+	{0x3822, 0xc2},
-+	{0x3823, 0x18},
-+	{0x3826, 0x04},
-+	{0x3827, 0x48},
-+	{0x3829, 0x03},
-+	{0x3832, 0x00},
-+	{0x3c80, 0x00},
-+	{0x3c87, 0x01},
-+	{0x3c8c, 0x19},
-+	{0x3c8d, 0x1c},
-+	{0x3c90, 0x00},
-+	{0x3c91, 0x00},
-+	{0x3c92, 0x00},
-+	{0x3c93, 0x00},
-+	{0x3c94, 0x40},
-+	{0x3c95, 0x54},
-+	{0x3c96, 0x34},
-+	{0x3c97, 0x04},
-+	{0x3c98, 0x00},
-+	{0x3d8c, 0x73},
-+	{0x3d8d, 0xc0},
-+	{0x3f00, 0x0b},
-+	{0x3f03, 0x00},
-+	{0x4001, 0xe0},
-+	{0x4008, 0x00},
-+	{0x4009, 0x05},
-+	{0x4011, 0xf0},
-+	{0x4017, 0x08},
-+	{0x4050, 0x02},
-+	{0x4051, 0x05},
-+	{0x4052, 0x00},
-+	{0x4053, 0x80},
-+	{0x4054, 0x00},
-+	{0x4055, 0x80},
-+	{0x4056, 0x00},
-+	{0x4057, 0x80},
-+	{0x4058, 0x00},
-+	{0x4059, 0x80},
-+	{0x405e, 0x20},
-+	{0x4500, 0x07},
-+	{0x4503, 0x00},
-+	{0x450a, 0x04},
-+	{0x4809, 0x04},
-+	{0x480c, 0x12},
-+	{0x481f, 0x30},
-+	{0x4833, 0x10},
-+	{0x4837, 0x1e},
-+	{0x4902, 0x02},
-+	{0x4d00, 0x03},
-+	{0x4d01, 0xc9},
-+	{0x4d02, 0xbc},
-+	{0x4d03, 0xd7},
-+	{0x4d04, 0xf0},
-+	{0x4d05, 0xa2},
-+	{0x5000, 0xfd},
-+	{0x5001, 0x01},
-+	{0x5040, 0x39},
-+	{0x5041, 0x10},
-+	{0x5042, 0x10},
-+	{0x5043, 0x84},
-+	{0x5044, 0x62},
-+	{0x5180, 0x00},
-+	{0x5181, 0x10},
-+	{0x5182, 0x02},
-+	{0x5183, 0x0f},
-+	{0x5200, 0x1b},
-+	{0x520b, 0x07},
-+	{0x520c, 0x0f},
-+	{0x5300, 0x04},
-+	{0x5301, 0x0c},
-+	{0x5302, 0x0c},
-+	{0x5303, 0x0f},
-+	{0x5304, 0x00},
-+	{0x5305, 0x70},
-+	{0x5306, 0x00},
-+	{0x5307, 0x80},
-+	{0x5308, 0x00},
-+	{0x5309, 0xa5},
-+	{0x530a, 0x00},
-+	{0x530b, 0xd3},
-+	{0x530c, 0x00},
-+	{0x530d, 0xf0},
-+	{0x530e, 0x01},
-+	{0x530f, 0x10},
-+	{0x5310, 0x01},
-+	{0x5311, 0x20},
-+	{0x5312, 0x01},
-+	{0x5313, 0x20},
-+	{0x5314, 0x01},
-+	{0x5315, 0x20},
-+	{0x5316, 0x08},
-+	{0x5317, 0x08},
-+	{0x5318, 0x10},
-+	{0x5319, 0x88},
-+	{0x531a, 0x88},
-+	{0x531b, 0xa9},
-+	{0x531c, 0xaa},
-+	{0x531d, 0x0a},
-+	{0x5405, 0x02},
-+	{0x5406, 0x67},
-+	{0x5407, 0x01},
-+	{0x5408, 0x4a},
++/* FM NA 1.0 settings */
++static const struct max2175_reg_map fmna1p0_map[] = {
++	{ 0x01, 0x13 }, { 0x02, 0x08 }, { 0x03, 0x8d }, { 0x04, 0xc0 },
++	{ 0x05, 0x35 }, { 0x06, 0x18 }, { 0x07, 0x7d }, { 0x08, 0x3f },
++	{ 0x09, 0x7d }, { 0x0a, 0x75 }, { 0x0b, 0x40 }, { 0x0c, 0x08 },
++	{ 0x0e, 0x7a }, { 0x0f, 0x88 }, { 0x10, 0x91 }, { 0x11, 0x61 },
++	{ 0x12, 0x61 }, { 0x13, 0x61 }, { 0x14, 0x61 }, { 0x15, 0x5c },
++	{ 0x16, 0x0f }, { 0x17, 0x34 }, { 0x18, 0x1c }, { 0x1a, 0x88 },
++	{ 0x1b, 0x33 }, { 0x1c, 0x02 }, { 0x1d, 0x00 }, { 0x1e, 0x01 },
++	{ 0x23, 0x80 }, { 0x24, 0x00 }, { 0x25, 0x95 }, { 0x26, 0x05 },
++	{ 0x27, 0x2c }, { 0x32, 0x08 }, { 0x33, 0xa8 }, { 0x36, 0xaf },
++	{ 0x37, 0x7e }, { 0x55, 0xbf }, { 0x56, 0x3f }, { 0x57, 0xff },
++	{ 0x58, 0x9f }, { 0x76, 0xa6 }, { 0x77, 0x40 }, { 0x78, 0x00 },
++	{ 0x79, 0x00 }, { 0x82, 0x35 }, { 0x83, 0x00 }, { 0x85, 0x11 },
++	{ 0x86, 0x3f },
 +};
 +
-+static const char * const ov13858_test_pattern_menu[] = {
-+	"Disabled",
-+	"Vertical Color Bar Type 1",
-+	"Vertical Color Bar Type 2",
-+	"Vertical Color Bar Type 3",
-+	"Vertical Color Bar Type 4"
++/* FM NA 2.0 settings */
++static const struct max2175_reg_map fmna2p0_map[] = {
++	{ 0x01, 0x13 }, { 0x02, 0x08 }, { 0x03, 0x8d }, { 0x04, 0xc0 },
++	{ 0x05, 0x35 }, { 0x06, 0x18 }, { 0x07, 0x7c }, { 0x08, 0x54 },
++	{ 0x09, 0xa7 }, { 0x0a, 0x55 }, { 0x0b, 0x42 }, { 0x0c, 0x48 },
++	{ 0x0e, 0x7a }, { 0x0f, 0x88 }, { 0x10, 0x91 }, { 0x11, 0x61 },
++	{ 0x12, 0x61 }, { 0x13, 0x61 }, { 0x14, 0x61 }, { 0x15, 0x5c },
++	{ 0x16, 0x0f }, { 0x17, 0x34 }, { 0x18, 0x1c }, { 0x1a, 0x88 },
++	{ 0x1b, 0x33 }, { 0x1c, 0x02 }, { 0x1d, 0x00 }, { 0x1e, 0x01 },
++	{ 0x23, 0x80 }, { 0x24, 0x00 }, { 0x25, 0x95 }, { 0x26, 0x05 },
++	{ 0x27, 0x2c }, { 0x32, 0x08 }, { 0x33, 0xa8 }, { 0x36, 0xaf },
++	{ 0x37, 0x7e }, { 0x55, 0xbf }, { 0x56, 0x3f }, { 0x57, 0xff },
++	{ 0x58, 0x9f }, { 0x76, 0xac }, { 0x77, 0xc0 }, { 0x78, 0x00 },
++	{ 0x79, 0x00 }, { 0x82, 0x6b }, { 0x83, 0x00 }, { 0x85, 0x11 },
++	{ 0x86, 0x3f },
 +};
 +
-+/* Configurations for supported link frequencies */
-+#define OV13858_NUM_OF_LINK_FREQS	2
-+#define OV13858_LINK_FREQ_1080MBPS	1080000000
-+#define OV13858_LINK_FREQ_540MBPS	540000000
-+#define OV13858_LINK_FREQ_INDEX_0	0
-+#define OV13858_LINK_FREQ_INDEX_1	1
-+
-+/* Menu items for LINK_FREQ V4L2 control */
-+static const const s64 link_freq_menu_items[OV13858_NUM_OF_LINK_FREQS] = {
-+	OV13858_LINK_FREQ_1080MBPS,
-+	OV13858_LINK_FREQ_540MBPS
++static const u16 ch_coeff_dab1[] = {
++	0x001c, 0x0007, 0xffcd, 0x0056, 0xffa4, 0x0033, 0x0027, 0xff61,
++	0x010e, 0xfec0, 0x0106, 0xffb8, 0xff1c, 0x023c, 0xfcb2, 0x039b,
++	0xfd4e, 0x0055, 0x036a, 0xf7de, 0x0d21, 0xee72, 0x1499, 0x6a51,
 +};
 +
-+/* Link frequency configs */
-+static const struct ov13858_link_freq_config
-+			link_freq_configs[OV13858_NUM_OF_LINK_FREQS] = {
++static const u16 ch_coeff_fmeu[] = {
++	0x0000, 0xffff, 0x0001, 0x0002, 0xfffa, 0xffff, 0x0015, 0xffec,
++	0xffde, 0x0054, 0xfff9, 0xff52, 0x00b8, 0x00a2, 0xfe0a, 0x00af,
++	0x02e3, 0xfc14, 0xfe89, 0x089d, 0xfa2e, 0xf30f, 0x25be, 0x4eb6,
++};
++
++static const u16 eq_coeff_fmeu1_ra02_m6db[] = {
++	0x0040, 0xffc6, 0xfffa, 0x002c, 0x000d, 0xff90, 0x0037, 0x006e,
++	0xffc0, 0xff5b, 0x006a, 0x00f0, 0xff57, 0xfe94, 0x0112, 0x0252,
++	0xfe0c, 0xfc6a, 0x0385, 0x0553, 0xfa49, 0xf789, 0x0b91, 0x1a10,
++};
++
++static const u16 ch_coeff_fmna[] = {
++	0x0001, 0x0003, 0xfffe, 0xfff4, 0x0000, 0x001f, 0x000c, 0xffbc,
++	0xffd3, 0x007d, 0x0075, 0xff33, 0xff01, 0x0131, 0x01ef, 0xfe60,
++	0xfc7a, 0x020e, 0x0656, 0xfd94, 0xf395, 0x02ab, 0x2857, 0x3d3f,
++};
++
++static const u16 eq_coeff_fmna1_ra02_m6db[] = {
++	0xfff1, 0xffe1, 0xffef, 0x000e, 0x0030, 0x002f, 0xfff6, 0xffa7,
++	0xff9d, 0x000a, 0x00a2, 0x00b5, 0xffea, 0xfed9, 0xfec5, 0x003d,
++	0x0217, 0x021b, 0xff5a, 0xfc2b, 0xfcbd, 0x02c4, 0x0ac3, 0x0e85,
++};
++
++static const u8 adc_presets[2][23] = {
 +	{
-+		.pixel_rate = 864000000,
-+		.pixels_per_line = OV13858_PPL_1080MHZ,
-+		.reg_list = {
-+			.num_of_regs = ARRAY_SIZE(mipi_data_rate_1080mbps),
-+			.regs = mipi_data_rate_1080mbps,
-+		}
++		0x83, 0x00, 0xcf, 0xb4, 0x0f, 0x2c, 0x0c, 0x49,
++		0x00, 0x00, 0x00, 0x8c,	0x02, 0x02, 0x00, 0x04,
++		0xec, 0x82, 0x4b, 0xcc, 0x01, 0x88, 0x0c,
 +	},
 +	{
-+		.pixel_rate = 432000000,
-+		.pixels_per_line = OV13858_PPL_540MHZ,
-+		.reg_list = {
-+			.num_of_regs = ARRAY_SIZE(mipi_data_rate_540mbps),
-+			.regs = mipi_data_rate_540mbps,
-+		}
-+	}
++		0x83, 0x00, 0xcf, 0xb4,	0x0f, 0x2c, 0x0c, 0x49,
++		0x00, 0x00, 0x00, 0x8c,	0x02, 0x20, 0x33, 0x8c,
++		0x57, 0xd7, 0x59, 0xb7,	0x65, 0x0e, 0x0c,
++	},
 +};
 +
-+/* Mode configs */
-+static const struct ov13858_mode supported_modes[] = {
-+	{
-+		.width = 4224,
-+		.height = 3136,
-+		.vts = OV13858_VTS_30FPS,
-+		.reg_list = {
-+			.num_of_regs = ARRAY_SIZE(mode_4224x3136_regs),
-+			.regs = mode_4224x3136_regs,
-+		},
-+		.link_freq_index = OV13858_LINK_FREQ_INDEX_0,
-+	},
-+	{
-+		.width = 2112,
-+		.height = 1568,
-+		.vts = OV13858_VTS_30FPS,
-+		.reg_list = {
-+			.num_of_regs = ARRAY_SIZE(mode_2112x1568_regs),
-+			.regs = mode_2112x1568_regs,
-+		},
-+		.link_freq_index = OV13858_LINK_FREQ_INDEX_1,
-+	},
-+	{
-+		.width = 2112,
-+		.height = 1188,
-+		.vts = OV13858_VTS_30FPS,
-+		.reg_list = {
-+			.num_of_regs = ARRAY_SIZE(mode_2112x1188_regs),
-+			.regs = mode_2112x1188_regs,
-+		},
-+		.link_freq_index = OV13858_LINK_FREQ_INDEX_1,
-+	},
-+	{
-+		.width = 1056,
-+		.height = 784,
-+		.vts = OV13858_VTS_30FPS,
-+		.reg_list = {
-+			.num_of_regs = ARRAY_SIZE(mode_1056x784_regs),
-+			.regs = mode_1056x784_regs,
-+		},
-+		.link_freq_index = OV13858_LINK_FREQ_INDEX_1,
-+	}
++/* Tuner bands */
++static const struct v4l2_frequency_band eu_bands_rf = {
++	.tuner = 0,
++	.type = V4L2_TUNER_RF,
++	.index = 0,
++	.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
++	.rangelow   = 65000000,
++	.rangehigh  = 240000000,
 +};
 +
-+struct ov13858 {
-+	struct v4l2_subdev sd;
-+	struct media_pad pad;
-+
-+	struct v4l2_ctrl_handler ctrl_handler;
-+	/* V4L2 Controls */
-+	struct v4l2_ctrl *link_freq;
-+	struct v4l2_ctrl *pixel_rate;
-+	struct v4l2_ctrl *vblank;
-+	struct v4l2_ctrl *hblank;
-+	struct v4l2_ctrl *exposure;
-+
-+	/* Current mode */
-+	const struct ov13858_mode *cur_mode;
-+
-+	/* Mutex for serialized access */
-+	struct mutex mutex;
-+
-+	/* Streaming on/off */
-+	bool streaming;
++static const struct v4l2_frequency_band na_bands_rf = {
++	.tuner = 0,
++	.type = V4L2_TUNER_RF,
++	.index = 0,
++	.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
++	.rangelow   = 65000000,
++	.rangehigh  = 108000000,
 +};
 +
-+#define to_ov13858(_sd)	container_of(_sd, struct ov13858, sd)
++/* Regmap settings */
++static const struct regmap_range max2175_regmap_volatile_range[] = {
++	regmap_reg_range(0x30, 0x35),
++	regmap_reg_range(0x3a, 0x45),
++	regmap_reg_range(0x59, 0x5e),
++	regmap_reg_range(0x73, 0x75),
++};
 +
-+/* Read registers up to 4 at a time */
-+static int ov13858_read_reg(struct ov13858 *ov13858, u16 reg, u32 len, u32 *val)
++static const struct regmap_access_table max2175_volatile_regs = {
++	.yes_ranges = max2175_regmap_volatile_range,
++	.n_yes_ranges = ARRAY_SIZE(max2175_regmap_volatile_range),
++};
++
++static const struct reg_default max2175_reg_defaults[] = {
++	{ 0x00, 0x07},
++};
++
++static const struct regmap_config max2175_regmap_config = {
++	.reg_bits = 8,
++	.val_bits = 8,
++	.max_register = 0xff,
++	.reg_defaults = max2175_reg_defaults,
++	.num_reg_defaults = ARRAY_SIZE(max2175_reg_defaults),
++	.volatile_table = &max2175_volatile_regs,
++	.cache_type = REGCACHE_FLAT,
++};
++
++struct max2175 {
++	struct v4l2_subdev sd;		/* Sub-device */
++	struct i2c_client *client;	/* I2C client */
++
++	/* Controls */
++	struct v4l2_ctrl_handler ctrl_hdl;
++	struct v4l2_ctrl *lna_gain;	/* LNA gain value */
++	struct v4l2_ctrl *if_gain;	/* I/F gain value */
++	struct v4l2_ctrl *pll_lock;	/* PLL lock */
++	struct v4l2_ctrl *i2s_en;	/* I2S output enable */
++	struct v4l2_ctrl *hsls;		/* High-side/Low-side polarity */
++	struct v4l2_ctrl *rx_mode;	/* Receive mode */
++
++	/* Regmap */
++	struct regmap *regmap;
++
++	/* Cached configuration */
++	u32 freq;			/* Tuned freq In Hz */
++	const struct max2175_rxmode *rx_modes;		/* EU or NA modes */
++	const struct v4l2_frequency_band *bands_rf;	/* EU or NA bands */
++
++	/* Device settings */
++	unsigned long xtal_freq;	/* Ref Oscillator freq in Hz */
++	u32 decim_ratio;
++	bool master;			/* Master/Slave */
++	bool am_hiz;			/* AM Hi-Z filter */
++
++	/* ROM values */
++	u8 rom_bbf_bw_am;
++	u8 rom_bbf_bw_fm;
++	u8 rom_bbf_bw_dab;
++
++	/* Driver private variables */
++	bool mode_resolved;		/* Flag to sanity check settings */
++};
++
++static inline struct max2175 *max2175_from_sd(struct v4l2_subdev *sd)
 +{
-+	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-+	struct i2c_msg msgs[2];
-+	u8 *data_be_p;
++	return container_of(sd, struct max2175, sd);
++}
++
++static inline struct max2175 *max2175_from_ctrl_hdl(struct v4l2_ctrl_handler *h)
++{
++	return container_of(h, struct max2175, ctrl_hdl);
++}
++
++/* Get bitval of a given val */
++static inline u8 max2175_get_bitval(u8 val, u8 msb, u8 lsb)
++{
++	return (val & GENMASK(msb, lsb)) >> lsb;
++}
++
++/* Read/Write bit(s) on top of regmap */
++static int max2175_read(struct max2175 *ctx, u8 idx, u8 *val)
++{
++	u32 regval;
 +	int ret;
-+	u32 data_be = 0;
-+	u16 reg_addr_be = cpu_to_be16(reg);
 +
-+	if (len > 4)
-+		return -EINVAL;
-+
-+	data_be_p = (u8 *)&data_be;
-+	/* Write register address */
-+	msgs[0].addr = client->addr;
-+	msgs[0].flags = 0;
-+	msgs[0].len = 2;
-+	msgs[0].buf = (u8 *)&reg_addr_be;
-+
-+	/* Read data from register */
-+	msgs[1].addr = client->addr;
-+	msgs[1].flags = I2C_M_RD;
-+	msgs[1].len = len;
-+	msgs[1].buf = &data_be_p[4 - len];
-+
-+	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
-+	if (ret != ARRAY_SIZE(msgs))
-+		return -EIO;
-+
-+	*val = be32_to_cpu(data_be);
-+
-+	return 0;
-+}
-+
-+/* Write registers up to 4 at a time */
-+static int ov13858_write_reg(struct ov13858 *ov13858, u16 reg, u32 len, u32 val)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-+	int buf_i, val_i;
-+	u8 buf[6], *val_p;
-+
-+	if (len > 4)
-+		return -EINVAL;
-+
-+	buf[0] = reg >> 8;
-+	buf[1] = reg & 0xff;
-+
-+	val = cpu_to_be32(val);
-+	val_p = (u8 *)&val;
-+	buf_i = 2;
-+	val_i = 4 - len;
-+
-+	while (val_i < 4)
-+		buf[buf_i++] = val_p[val_i++];
-+
-+	if (i2c_master_send(client, buf, len + 2) != len + 2)
-+		return -EIO;
-+
-+	return 0;
-+}
-+
-+/* Write a list of registers */
-+static int ov13858_write_regs(struct ov13858 *ov13858,
-+			      const struct ov13858_reg *regs, u32 len)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-+	int ret;
-+	u32 i;
-+
-+	for (i = 0; i < len; i++) {
-+		ret = ov13858_write_reg(ov13858, regs[i].address, 1,
-+					regs[i].val);
-+		if (ret) {
-+			dev_err_ratelimited(
-+				&client->dev,
-+				"Failed to write reg 0x%4.4x. error = %d\n",
-+				regs[i].address, ret);
-+
-+			return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int ov13858_write_reg_list(struct ov13858 *ov13858,
-+				  const struct ov13858_reg_list *r_list)
-+{
-+	return ov13858_write_regs(ov13858, r_list->regs, r_list->num_of_regs);
-+}
-+
-+/* Open sub-device */
-+static int ov13858_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct ov13858 *ov13858 = to_ov13858(sd);
-+	struct v4l2_mbus_framefmt *try_fmt = v4l2_subdev_get_try_format(sd,
-+									fh->pad,
-+									0);
-+
-+	mutex_lock(&ov13858->mutex);
-+
-+	/* Initialize try_fmt */
-+	try_fmt->width = ov13858->cur_mode->width;
-+	try_fmt->height = ov13858->cur_mode->height;
-+	try_fmt->code = MEDIA_BUS_FMT_SGRBG10_1X10;
-+	try_fmt->field = V4L2_FIELD_NONE;
-+
-+	/* No crop or compose */
-+	mutex_unlock(&ov13858->mutex);
-+
-+	return 0;
-+}
-+
-+static int ov13858_update_digital_gain(struct ov13858 *ov13858, u32 d_gain)
-+{
-+	int ret;
-+	u32 val;
-+
-+	if (d_gain == 3)
-+		return -EINVAL;
-+
-+	ret = ov13858_read_reg(ov13858, OV13858_REG_DIGITAL_GAIN,
-+			       OV13858_REG_VALUE_08BIT, &val);
++	ret = regmap_read(ctx->regmap, idx, &regval);
 +	if (ret)
-+		return ret;
++		mxm_err(ctx, "read ret(%d): idx 0x%02x\n", ret, idx);
++	else
++		*val = regval;
 +
-+	val &= OV13858_DGTL_GAIN_MASK;
-+	val |= (d_gain - 1) << OV13858_DGTL_GAIN_SHIFT;
-+
-+	return ov13858_write_reg(ov13858, OV13858_REG_DIGITAL_GAIN,
-+				 OV13858_REG_VALUE_08BIT, val);
++	return ret;
 +}
 +
-+static int ov13858_enable_test_pattern(struct ov13858 *ov13858, u32 pattern)
++static int max2175_write(struct max2175 *ctx, u8 idx, u8 val)
 +{
 +	int ret;
-+	u32 val;
 +
-+	ret = ov13858_read_reg(ov13858, OV13858_REG_TEST_PATTERN,
-+			       OV13858_REG_VALUE_08BIT, &val);
++	ret = regmap_write(ctx->regmap, idx, val);
 +	if (ret)
-+		return ret;
++		mxm_err(ctx, "write ret(%d): idx 0x%02x val 0x%02x\n",
++			ret, idx, val);
 +
-+	if (pattern) {
-+		val &= OV13858_TEST_PATTERN_MASK;
-+		val |= (pattern - 1) | OV13858_TEST_PATTERN_ENABLE;
-+	} else {
-+		val &= ~OV13858_TEST_PATTERN_ENABLE;
-+	}
-+
-+	return ov13858_write_reg(ov13858, OV13858_REG_TEST_PATTERN,
-+				 OV13858_REG_VALUE_08BIT, val);
++	return ret;
 +}
 +
-+static int ov13858_set_ctrl(struct v4l2_ctrl *ctrl)
++static u8 max2175_read_bits(struct max2175 *ctx, u8 idx, u8 msb, u8 lsb)
 +{
-+	struct ov13858 *ov13858 = container_of(ctrl->handler,
-+					       struct ov13858, ctrl_handler);
-+	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-+	s64 max;
-+	int ret;
++	u8 val;
 +
-+	/* Propagate change of current control to all related controls */
-+	switch (ctrl->id) {
-+	case V4L2_CID_VBLANK:
-+		/* Update max exposure while meeting expected vblanking */
-+		max = ov13858->cur_mode->height + ctrl->val - 8;
-+		__v4l2_ctrl_modify_range(ov13858->exposure,
-+					 ov13858->exposure->minimum,
-+					 max, ov13858->exposure->step, max);
-+		break;
-+	};
-+
-+	/*
-+	 * Applying V4L2 control value only happens
-+	 * when power is up for streaming
-+	 */
-+	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
++	if (max2175_read(ctx, idx, &val))
 +		return 0;
 +
-+	ret = 0;
-+	switch (ctrl->id) {
-+	case V4L2_CID_ANALOGUE_GAIN:
-+		ret = ov13858_write_reg(ov13858, OV13858_REG_ANALOG_GAIN,
-+					OV13858_REG_VALUE_16BIT, ctrl->val);
++	return max2175_get_bitval(val, msb, lsb);
++}
++
++static int max2175_write_bits(struct max2175 *ctx, u8 idx,
++			     u8 msb, u8 lsb, u8 newval)
++{
++	int ret = regmap_update_bits(ctx->regmap, idx, GENMASK(msb, lsb),
++				     newval << lsb);
++
++	if (ret)
++		mxm_err(ctx, "wbits ret(%d): idx 0x%02x\n", ret, idx);
++
++	return ret;
++}
++
++static int max2175_write_bit(struct max2175 *ctx, u8 idx, u8 bit, u8 newval)
++{
++	return max2175_write_bits(ctx, idx, bit, bit, newval);
++}
++
++/* Checks expected pattern every msec until timeout */
++static int max2175_poll_timeout(struct max2175 *ctx, u8 idx, u8 msb, u8 lsb,
++				u8 exp_bitval, u32 timeout_ms)
++{
++	unsigned int val;
++
++	return regmap_read_poll_timeout(ctx->regmap, idx, val,
++			(max2175_get_bitval(val, msb, lsb) == exp_bitval),
++			1000, timeout_ms * 1000);
++}
++
++static int max2175_poll_csm_ready(struct max2175 *ctx)
++{
++	int ret;
++
++	ret = max2175_poll_timeout(ctx, 69, 1, 1, 0, 50);
++	if (ret)
++		mxm_err(ctx, "csm not ready\n");
++
++	return ret;
++}
++
++#define MAX2175_IS_BAND_AM(ctx)		\
++	(max2175_read_bits(ctx, 5, 1, 0) == MAX2175_BAND_AM)
++
++#define MAX2175_IS_BAND_VHF(ctx)	\
++	(max2175_read_bits(ctx, 5, 1, 0) == MAX2175_BAND_VHF)
++
++#define MAX2175_IS_FM_MODE(ctx)		\
++	(max2175_read_bits(ctx, 12, 5, 4) == 0)
++
++#define MAX2175_IS_FMHD_MODE(ctx)	\
++	(max2175_read_bits(ctx, 12, 5, 4) == 1)
++
++#define MAX2175_IS_DAB_MODE(ctx)	\
++	(max2175_read_bits(ctx, 12, 5, 4) == 2)
++
++static int max2175_band_from_freq(u32 freq)
++{
++	if (freq >= 144000 && freq <= 26100000)
++		return MAX2175_BAND_AM;
++	else if (freq >= 65000000 && freq <= 108000000)
++		return MAX2175_BAND_FM;
++
++	return MAX2175_BAND_VHF;
++}
++
++static void max2175_i2s_enable(struct max2175 *ctx, bool enable)
++{
++	if (enable)
++		/* Stuff bits are zeroed */
++		max2175_write_bits(ctx, 104, 3, 0, 2);
++	else
++		/* Keep SCK alive */
++		max2175_write_bits(ctx, 104, 3, 0, 9);
++	mxm_dbg(ctx, "i2s %sabled\n", enable ? "en" : "dis");
++}
++
++static void max2175_set_filter_coeffs(struct max2175 *ctx, u8 m_sel,
++				      u8 bank, const u16 *coeffs)
++{
++	unsigned int i;
++	u8 coeff_addr, upper_address = 24;
++
++	mxm_dbg(ctx, "set_filter_coeffs: m_sel %d bank %d\n", m_sel, bank);
++	max2175_write_bits(ctx, 114, 5, 4, m_sel);
++
++	if (m_sel == 2)
++		upper_address = 12;
++
++	for (i = 0; i < upper_address; i++) {
++		coeff_addr = i + bank * 24;
++		max2175_write(ctx, 115, coeffs[i] >> 8);
++		max2175_write(ctx, 116, coeffs[i]);
++		max2175_write(ctx, 117, coeff_addr | 1 << 7);
++	}
++	max2175_write_bit(ctx, 117, 7, 0);
++}
++
++static void max2175_load_fmeu_1p2(struct max2175 *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(fmeu1p2_map); i++)
++		max2175_write(ctx, fmeu1p2_map[i].idx, fmeu1p2_map[i].val);
++
++	ctx->decim_ratio = 36;
++
++	/* Load the Channel Filter Coefficients into channel filter bank #2 */
++	max2175_set_filter_coeffs(ctx, MAX2175_CH_MSEL, 0, ch_coeff_fmeu);
++	max2175_set_filter_coeffs(ctx, MAX2175_EQ_MSEL, 0,
++				  eq_coeff_fmeu1_ra02_m6db);
++}
++
++static void max2175_load_dab_1p2(struct max2175 *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(dab12_map); i++)
++		max2175_write(ctx, dab12_map[i].idx, dab12_map[i].val);
++
++	ctx->decim_ratio = 1;
++
++	/* Load the Channel Filter Coefficients into channel filter bank #2 */
++	max2175_set_filter_coeffs(ctx, MAX2175_CH_MSEL, 2, ch_coeff_dab1);
++}
++
++static void max2175_load_fmna_1p0(struct max2175 *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(fmna1p0_map); i++)
++		max2175_write(ctx, fmna1p0_map[i].idx, fmna1p0_map[i].val);
++}
++
++static void max2175_load_fmna_2p0(struct max2175 *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(fmna2p0_map); i++)
++		max2175_write(ctx, fmna2p0_map[i].idx, fmna2p0_map[i].val);
++}
++
++static void max2175_set_bbfilter(struct max2175 *ctx)
++{
++	if (MAX2175_IS_BAND_AM(ctx)) {
++		max2175_write_bits(ctx, 12, 3, 0, ctx->rom_bbf_bw_am);
++		mxm_dbg(ctx, "set_bbfilter AM: rom %d\n", ctx->rom_bbf_bw_am);
++	} else if (MAX2175_IS_DAB_MODE(ctx)) {
++		max2175_write_bits(ctx, 12, 3, 0, ctx->rom_bbf_bw_dab);
++		mxm_dbg(ctx, "set_bbfilter DAB: rom %d\n", ctx->rom_bbf_bw_dab);
++	} else {
++		max2175_write_bits(ctx, 12, 3, 0, ctx->rom_bbf_bw_fm);
++		mxm_dbg(ctx, "set_bbfilter FM: rom %d\n", ctx->rom_bbf_bw_fm);
++	}
++}
++
++static bool max2175_set_csm_mode(struct max2175 *ctx,
++			  enum max2175_csm_mode new_mode)
++{
++	int ret = max2175_poll_csm_ready(ctx);
++
++	if (ret)
++		return ret;
++
++	max2175_write_bits(ctx, 0, 2, 0, new_mode);
++	mxm_dbg(ctx, "set csm new mode %d\n", new_mode);
++
++	/* Wait for a fixed settle down time depending on new mode */
++	switch (new_mode) {
++	case MAX2175_PRESET_TUNE:
++		usleep_range(51100, 51500);	/* 51.1ms */
 +		break;
-+	case V4L2_CID_GAIN:
-+		ret = ov13858_update_digital_gain(ov13858, ctrl->val);
++	/*
++	 * Other mode switches need different sleep values depending on band &
++	 * mode
++	 */
++	default:
 +		break;
-+	case V4L2_CID_EXPOSURE:
-+		ret = ov13858_write_reg(ov13858, OV13858_REG_EXPOSURE,
-+					OV13858_REG_VALUE_24BIT,
-+					ctrl->val << 4);
++	}
++
++	return max2175_poll_csm_ready(ctx);
++}
++
++static int max2175_csm_action(struct max2175 *ctx,
++			      enum max2175_csm_mode action)
++{
++	int ret;
++
++	mxm_dbg(ctx, "csm_action: %d\n", action);
++
++	/* Other actions can be added in future when needed */
++	ret = max2175_set_csm_mode(ctx, MAX2175_LOAD_TO_BUFFER);
++	if (ret)
++		return ret;
++
++	return max2175_set_csm_mode(ctx, MAX2175_PRESET_TUNE);
++}
++
++static int max2175_set_lo_freq(struct max2175 *ctx, u32 lo_freq)
++{
++	u8 lo_mult, loband_bits = 0, vcodiv_bits = 0;
++	u32 int_desired, frac_desired;
++	enum max2175_band band;
++	int ret;
++
++	band = max2175_read_bits(ctx, 5, 1, 0);
++	switch (band) {
++	case MAX2175_BAND_AM:
++		lo_mult = 16;
 +		break;
-+	case V4L2_CID_VBLANK:
-+		/* Update VTS that meets expected vertical blanking */
-+		ret = ov13858_write_reg(ov13858, OV13858_REG_VTS,
-+					OV13858_REG_VALUE_16BIT,
-+					ov13858->cur_mode->height
-+					  + ctrl->val);
++	case MAX2175_BAND_FM:
++		if (lo_freq <= 74700000) {
++			lo_mult = 16;
++		} else if (lo_freq > 74700000 && lo_freq <= 110000000) {
++			loband_bits = 1;
++			lo_mult = 8;
++		} else {
++			loband_bits = 1;
++			vcodiv_bits = 3;
++			lo_mult = 8;
++		}
 +		break;
-+	case V4L2_CID_TEST_PATTERN:
-+		ret = ov13858_enable_test_pattern(ov13858, ctrl->val);
++	case MAX2175_BAND_VHF:
++		if (lo_freq <= 210000000)
++			vcodiv_bits = 2;
++		else
++			vcodiv_bits = 1;
++
++		loband_bits = 2;
++		lo_mult = 4;
 +		break;
 +	default:
-+		dev_info(&client->dev,
-+			 "ctrl(id:0x%x,val:0x%x) is not handled\n",
-+			 ctrl->id, ctrl->val);
++		loband_bits = 3;
++		vcodiv_bits = 2;
++		lo_mult = 2;
 +		break;
-+	};
-+
-+	pm_runtime_put(&client->dev);
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_ctrl_ops ov13858_ctrl_ops = {
-+	.s_ctrl = ov13858_set_ctrl,
-+};
-+
-+static int ov13858_enum_mbus_code(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_pad_config *cfg,
-+				  struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	/* Only one bayer order(GRBG) is supported */
-+	if (code->index > 0)
-+		return -EINVAL;
-+
-+	code->code = MEDIA_BUS_FMT_SGRBG10_1X10;
-+
-+	return 0;
-+}
-+
-+static int ov13858_enum_frame_size(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_pad_config *cfg,
-+				   struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	if (fse->index >= ARRAY_SIZE(supported_modes))
-+		return -EINVAL;
-+
-+	if (fse->code != MEDIA_BUS_FMT_SGRBG10_1X10)
-+		return -EINVAL;
-+
-+	fse->min_width = supported_modes[fse->index].width;
-+	fse->max_width = fse->min_width;
-+	fse->min_height = supported_modes[fse->index].height;
-+	fse->max_height = fse->min_height;
-+
-+	return 0;
-+}
-+
-+static void ov13858_update_pad_format(const struct ov13858_mode *mode,
-+				      struct v4l2_subdev_format *fmt)
-+{
-+	fmt->format.width = mode->width;
-+	fmt->format.height = mode->height;
-+	fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
-+	fmt->format.field = V4L2_FIELD_NONE;
-+}
-+
-+static int ov13858_do_get_pad_format(struct ov13858 *ov13858,
-+				     struct v4l2_subdev_pad_config *cfg,
-+				     struct v4l2_subdev_format *fmt)
-+{
-+	struct v4l2_mbus_framefmt *framefmt;
-+	struct v4l2_subdev *sd = &ov13858->sd;
-+
-+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-+		fmt->format = *framefmt;
-+	} else {
-+		ov13858_update_pad_format(ov13858->cur_mode, fmt);
 +	}
 +
-+	return 0;
-+}
++	if (band == MAX2175_BAND_L)
++		lo_freq /= lo_mult;
++	else
++		lo_freq *= lo_mult;
 +
-+static int ov13858_get_pad_format(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_pad_config *cfg,
-+				  struct v4l2_subdev_format *fmt)
-+{
-+	struct ov13858 *ov13858 = to_ov13858(sd);
-+	int ret;
++	int_desired = lo_freq / ctx->xtal_freq;
++	frac_desired = div_u64((u64)(lo_freq % ctx->xtal_freq) << 20,
++			       ctx->xtal_freq);
 +
-+	mutex_lock(&ov13858->mutex);
-+	ret = ov13858_do_get_pad_format(ov13858, cfg, fmt);
-+	mutex_unlock(&ov13858->mutex);
-+
-+	return ret;
-+}
-+
-+/*
-+ * Calculate resolution distance
-+ */
-+static int
-+ov13858_get_resolution_dist(const struct ov13858_mode *mode,
-+			    struct v4l2_mbus_framefmt *framefmt)
-+{
-+	return abs(mode->width - framefmt->width) +
-+	       abs(mode->height - framefmt->height);
-+}
-+
-+/*
-+ * Find the closest supported resolution to the requested resolution
-+ */
-+static const struct ov13858_mode *
-+ov13858_find_best_fit(struct ov13858 *ov13858,
-+		      struct v4l2_subdev_format *fmt)
-+{
-+	int i, dist, cur_best_fit = 0, cur_best_fit_dist = -1;
-+	struct v4l2_mbus_framefmt *framefmt = &fmt->format;
-+
-+	for (i = 0; i < ARRAY_SIZE(supported_modes); i++) {
-+		dist = ov13858_get_resolution_dist(&supported_modes[i],
-+						   framefmt);
-+		if (cur_best_fit_dist == -1 || dist < cur_best_fit_dist) {
-+			cur_best_fit_dist = dist;
-+			cur_best_fit = i;
-+		}
-+	}
-+
-+	return &supported_modes[cur_best_fit];
-+}
-+
-+static int
-+ov13858_set_pad_format(struct v4l2_subdev *sd,
-+		       struct v4l2_subdev_pad_config *cfg,
-+		       struct v4l2_subdev_format *fmt)
-+{
-+	struct ov13858 *ov13858 = to_ov13858(sd);
-+	const struct ov13858_mode *mode;
-+	struct v4l2_mbus_framefmt *framefmt;
-+	s64 h_blank;
-+
-+	mutex_lock(&ov13858->mutex);
-+
-+	/* Only one raw bayer(GRBG) order is supported */
-+	if (fmt->format.code != MEDIA_BUS_FMT_SGRBG10_1X10)
-+		fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
-+
-+	mode = ov13858_find_best_fit(ov13858, fmt);
-+	ov13858_update_pad_format(mode, fmt);
-+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-+		*framefmt = fmt->format;
-+	} else {
-+		ov13858->cur_mode = mode;
-+		__v4l2_ctrl_s_ctrl(ov13858->link_freq, mode->link_freq_index);
-+		__v4l2_ctrl_s_ctrl_int64(
-+			ov13858->pixel_rate,
-+			link_freq_configs[mode->link_freq_index].pixel_rate);
-+		/* Update limits and set FPS to default */
-+		__v4l2_ctrl_modify_range(
-+			ov13858->vblank, OV13858_VBLANK_MIN,
-+			OV13858_VTS_MAX - ov13858->cur_mode->height, 1,
-+			ov13858->cur_mode->vts - ov13858->cur_mode->height);
-+		h_blank =
-+			link_freq_configs[mode->link_freq_index].pixels_per_line
-+			 - ov13858->cur_mode->width;
-+		__v4l2_ctrl_modify_range(ov13858->hblank, h_blank,
-+					 h_blank, 1, h_blank);
-+	}
-+
-+	mutex_unlock(&ov13858->mutex);
-+
-+	return 0;
-+}
-+
-+static int ov13858_get_skip_frames(struct v4l2_subdev *sd, u32 *frames)
-+{
-+	*frames = OV13858_NUM_OF_SKIP_FRAMES;
-+
-+	return 0;
-+}
-+
-+/* Start streaming */
-+static int ov13858_start_streaming(struct ov13858 *ov13858)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-+	const struct ov13858_reg_list *reg_list;
-+	int ret, link_freq_index;
-+
-+	/* Get out of from software reset */
-+	ret = ov13858_write_reg(ov13858, OV13858_REG_SOFTWARE_RST,
-+				OV13858_REG_VALUE_08BIT, OV13858_SOFTWARE_RST);
-+	if (ret) {
-+		dev_err(&client->dev, "%s failed to set powerup registers\n",
-+			__func__);
-+		return ret;
-+	}
-+
-+	/* Setup PLL */
-+	link_freq_index = ov13858->cur_mode->link_freq_index;
-+	reg_list = &link_freq_configs[link_freq_index].reg_list;
-+	ret = ov13858_write_reg_list(ov13858, reg_list);
-+	if (ret) {
-+		dev_err(&client->dev, "%s failed to set plls\n", __func__);
-+		return ret;
-+	}
-+
-+	/* Apply default values of current mode */
-+	reg_list = &ov13858->cur_mode->reg_list;
-+	ret = ov13858_write_reg_list(ov13858, reg_list);
-+	if (ret) {
-+		dev_err(&client->dev, "%s failed to set mode\n", __func__);
-+		return ret;
-+	}
-+
-+	/* Apply customized values from user */
-+	ret =  __v4l2_ctrl_handler_setup(ov13858->sd.ctrl_handler);
++	/* Check CSM is not busy */
++	ret = max2175_poll_csm_ready(ctx);
 +	if (ret)
 +		return ret;
 +
-+	return ov13858_write_reg(ov13858, OV13858_REG_MODE_SELECT,
-+				 OV13858_REG_VALUE_08BIT,
-+				 OV13858_MODE_STREAMING);
++	mxm_dbg(ctx, "lo_mult %u int %u  frac %u\n",
++		lo_mult, int_desired, frac_desired);
++
++	/* Write the calculated values to the appropriate registers */
++	max2175_write(ctx, 1, int_desired);
++	max2175_write_bits(ctx, 2, 3, 0, (frac_desired >> 16) & 0xf);
++	max2175_write(ctx, 3, frac_desired >> 8);
++	max2175_write(ctx, 4, frac_desired);
++	max2175_write_bits(ctx, 5, 3, 2, loband_bits);
++	max2175_write_bits(ctx, 6, 7, 6, vcodiv_bits);
++
++	return ret;
 +}
 +
-+/* Stop streaming */
-+static int ov13858_stop_streaming(struct ov13858 *ov13858)
++/*
++ * Helper similar to DIV_ROUND_CLOSEST but an inline function that accepts s64
++ * dividend and s32 divisor
++ */
++static inline s64 max2175_round_closest(s64 dividend, s32 divisor)
 +{
-+	return ov13858_write_reg(ov13858, OV13858_REG_MODE_SELECT,
-+				 OV13858_REG_VALUE_08BIT, OV13858_MODE_STANDBY);
++	if ((dividend > 0 && divisor > 0) || (dividend < 0 && divisor < 0))
++		return div_s64(dividend + divisor / 2, divisor);
++
++	return div_s64(dividend - divisor / 2, divisor);
 +}
 +
-+static int ov13858_set_stream(struct v4l2_subdev *sd, int enable)
++static int max2175_set_nco_freq(struct max2175 *ctx, s32 nco_freq)
 +{
-+	struct ov13858 *ov13858 = to_ov13858(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	int ret = 0;
++	s32 clock_rate = ctx->xtal_freq / ctx->decim_ratio;
++	u32 nco_reg, abs_nco_freq = abs(nco_freq);
++	s64 nco_val_desired;
++	int ret;
 +
-+	mutex_lock(&ov13858->mutex);
-+	if (ov13858->streaming == enable) {
-+		mutex_unlock(&ov13858->mutex);
++	if (abs_nco_freq < clock_rate / 2) {
++		nco_val_desired = 2 * nco_freq;
++	} else {
++		nco_val_desired = 2 * (clock_rate - abs_nco_freq);
++		if (nco_freq < 0)
++			nco_val_desired = -nco_val_desired;
++	}
++
++	nco_reg = max2175_round_closest(nco_val_desired << 20, clock_rate);
++
++	if (nco_freq < 0)
++		nco_reg += 0x200000;
++
++	/* Check CSM is not busy */
++	ret = max2175_poll_csm_ready(ctx);
++	if (ret)
++		return ret;
++
++	mxm_dbg(ctx, "freq %d desired %lld reg %u\n",
++		nco_freq, nco_val_desired, nco_reg);
++
++	/* Write the calculated values to the appropriate registers */
++	max2175_write_bits(ctx, 7, 4, 0, (nco_reg >> 16) & 0x1f);
++	max2175_write(ctx, 8, nco_reg >> 8);
++	max2175_write(ctx, 9, nco_reg);
++
++	return ret;
++}
++
++static int max2175_set_rf_freq_non_am_bands(struct max2175 *ctx, u64 freq,
++					    u32 lo_pos)
++{
++	s64 adj_freq, low_if_freq;
++	int ret;
++
++	mxm_dbg(ctx, "rf_freq: non AM bands\n");
++
++	if (MAX2175_IS_FM_MODE(ctx))
++		low_if_freq = 128000;
++	else if (MAX2175_IS_FMHD_MODE(ctx))
++		low_if_freq = 228000;
++	else
++		return max2175_set_lo_freq(ctx, freq);
++
++	if (MAX2175_IS_BAND_VHF(ctx) == (lo_pos == MAX2175_LO_ABOVE_DESIRED))
++		adj_freq = freq + low_if_freq;
++	else
++		adj_freq = freq - low_if_freq;
++
++	ret = max2175_set_lo_freq(ctx, adj_freq);
++	if (ret)
++		return ret;
++
++	return max2175_set_nco_freq(ctx, -low_if_freq);
++}
++
++static int max2175_set_rf_freq(struct max2175 *ctx, u64 freq, u32 lo_pos)
++{
++	int ret;
++
++	if (MAX2175_IS_BAND_AM(ctx))
++		ret = max2175_set_nco_freq(ctx, freq);
++	else
++		ret = max2175_set_rf_freq_non_am_bands(ctx, freq, lo_pos);
++
++	mxm_dbg(ctx, "set_rf_freq: ret %d freq %llu\n", ret, freq);
++
++	return ret;
++}
++
++static int max2175_tune_rf_freq(struct max2175 *ctx, u64 freq, u32 hsls)
++{
++	int ret;
++
++	ret = max2175_set_rf_freq(ctx, freq, hsls);
++	if (ret)
++		return ret;
++
++	ret = max2175_csm_action(ctx, MAX2175_BUFFER_PLUS_PRESET_TUNE);
++	if (ret)
++		return ret;
++
++	mxm_dbg(ctx, "tune_rf_freq: old %u new %llu\n", ctx->freq, freq);
++	ctx->freq = freq;
++
++	return ret;
++}
++
++static void max2175_set_hsls(struct max2175 *ctx, u32 lo_pos)
++{
++	mxm_dbg(ctx, "set_hsls: lo_pos %u\n", lo_pos);
++
++	if ((lo_pos == MAX2175_LO_BELOW_DESIRED) == MAX2175_IS_BAND_VHF(ctx))
++		max2175_write_bit(ctx, 5, 4, 1);
++	else
++		max2175_write_bit(ctx, 5, 4, 0);
++}
++
++static void max2175_set_eu_rx_mode(struct max2175 *ctx, u32 rx_mode)
++{
++	switch (rx_mode) {
++	case MAX2175_EU_FM_1_2:
++		max2175_load_fmeu_1p2(ctx);
++		break;
++
++	case MAX2175_DAB_1_2:
++		max2175_load_dab_1p2(ctx);
++		break;
++	}
++	/* Master is the default setting */
++	if (!ctx->master)
++		max2175_write_bit(ctx, 30, 7, 1);
++}
++
++static void max2175_set_na_rx_mode(struct max2175 *ctx, u32 rx_mode)
++{
++	switch (rx_mode) {
++	case MAX2175_NA_FM_1_0:
++		max2175_load_fmna_1p0(ctx);
++		break;
++	case MAX2175_NA_FM_2_0:
++		max2175_load_fmna_2p0(ctx);
++		break;
++	}
++	/* Master is the default setting */
++	if (!ctx->master)
++		max2175_write_bit(ctx, 30, 7, 1);
++
++	ctx->decim_ratio = 27;
++
++	/* Load the Channel Filter Coefficients into channel filter bank #2 */
++	max2175_set_filter_coeffs(ctx, MAX2175_CH_MSEL, 0, ch_coeff_fmna);
++	max2175_set_filter_coeffs(ctx, MAX2175_EQ_MSEL, 0,
++				  eq_coeff_fmna1_ra02_m6db);
++}
++
++static int max2175_set_rx_mode(struct max2175 *ctx, u32 rx_mode)
++{
++	mxm_dbg(ctx, "set_rx_mode: %u am_hiz %u\n", rx_mode, ctx->am_hiz);
++	if (ctx->xtal_freq == MAX2175_EU_XTAL_FREQ)
++		max2175_set_eu_rx_mode(ctx, rx_mode);
++	else
++		max2175_set_na_rx_mode(ctx, rx_mode);
++
++	if (ctx->am_hiz) {
++		mxm_dbg(ctx, "setting AM HiZ related config\n");
++		max2175_write_bit(ctx, 50, 5, 1);
++		max2175_write_bit(ctx, 90, 7, 1);
++		max2175_write_bits(ctx, 73, 1, 0, 2);
++		max2175_write_bits(ctx, 80, 5, 0, 33);
++	}
++
++	/* Load BB filter trim values saved in ROM */
++	max2175_set_bbfilter(ctx);
++
++	/* Set HSLS */
++	max2175_set_hsls(ctx, ctx->hsls->cur.val);
++
++	/* Use i2s enable settings */
++	max2175_i2s_enable(ctx, ctx->i2s_en->cur.val);
++
++	ctx->mode_resolved = true;
++
++	return 0;
++}
++
++static int max2175_rx_mode_from_freq(struct max2175 *ctx, u32 freq, u32 *mode)
++{
++	unsigned int i;
++	int band = max2175_band_from_freq(freq);
++
++	/* Pick the first match always */
++	for (i = 0; i <= ctx->rx_mode->maximum; i++) {
++		if (ctx->rx_modes[i].band == band) {
++			*mode = i;
++			mxm_dbg(ctx, "rx_mode_from_freq: freq %u mode %d\n",
++				freq, *mode);
++			return 0;
++		}
++	}
++
++	return -EINVAL;
++}
++
++static bool max2175_freq_rx_mode_valid(struct max2175 *ctx,
++					 u32 mode, u32 freq)
++{
++	int band = max2175_band_from_freq(freq);
++
++	return (ctx->rx_modes[mode].band == band);
++}
++
++static void max2175_load_adc_presets(struct max2175 *ctx)
++{
++	unsigned int i, j;
++
++	for (i = 0; i < ARRAY_SIZE(adc_presets); i++)
++		for (j = 0; j < ARRAY_SIZE(adc_presets[0]); j++)
++			max2175_write(ctx, 146 + j + i * 55, adc_presets[i][j]);
++}
++
++static int max2175_init_power_manager(struct max2175 *ctx)
++{
++	int ret;
++
++	/* Execute on-chip power-up/calibration */
++	max2175_write_bit(ctx, 99, 2, 0);
++	usleep_range(1000, 1500);
++	max2175_write_bit(ctx, 99, 2, 1);
++
++	/* Wait for the power manager to finish. */
++	ret = max2175_poll_timeout(ctx, 69, 7, 7, 1, 50);
++	if (ret)
++		mxm_err(ctx, "init pm failed\n");
++
++	return ret;
++}
++
++static int max2175_recalibrate_adc(struct max2175 *ctx)
++{
++	int ret;
++
++	/* ADC Re-calibration */
++	max2175_write(ctx, 150, 0xff);
++	max2175_write(ctx, 205, 0xff);
++	max2175_write(ctx, 147, 0x20);
++	max2175_write(ctx, 147, 0x00);
++	max2175_write(ctx, 202, 0x20);
++	max2175_write(ctx, 202, 0x00);
++
++	ret = max2175_poll_timeout(ctx, 69, 4, 3, 3, 50);
++	if (ret)
++		mxm_err(ctx, "adc recalibration failed\n");
++
++	return ret;
++}
++
++static u8 max2175_read_rom(struct max2175 *ctx, u8 row)
++{
++	u8 data = 0;
++
++	max2175_write_bit(ctx, 56, 4, 0);
++	max2175_write_bits(ctx, 56, 3, 0, row);
++
++	usleep_range(2000, 2500);
++	max2175_read(ctx, 58, &data);
++
++	max2175_write_bits(ctx, 56, 3, 0, 0);
++
++	mxm_dbg(ctx, "read_rom: row %d data 0x%02x\n", row, data);
++
++	return data;
++}
++
++static void max2175_load_from_rom(struct max2175 *ctx)
++{
++	u8 data = 0;
++
++	data = max2175_read_rom(ctx, 0);
++	ctx->rom_bbf_bw_am = data & 0x0f;
++	max2175_write_bits(ctx, 81, 3, 0, data >> 4);
++
++	data = max2175_read_rom(ctx, 1);
++	ctx->rom_bbf_bw_fm = data & 0x0f;
++	ctx->rom_bbf_bw_dab = data >> 4;
++
++	data = max2175_read_rom(ctx, 2);
++	max2175_write_bits(ctx, 82, 4, 0, data & 0x1f);
++	max2175_write_bits(ctx, 82, 7, 5, data >> 5);
++
++	data = max2175_read_rom(ctx, 3);
++	if (ctx->am_hiz) {
++		data &= 0x0f;
++		data |= max2175_read_rom(ctx, 7) & 0x40 >> 2;
++		if (!data)
++			data |= 2;
++	} else {
++		data = data & 0xf0 >> 4;
++		data |= max2175_read_rom(ctx, 7) & 0x80 >> 3;
++		if (!data)
++			data |= 30;
++	}
++	max2175_write_bits(ctx, 80, 5, 0, data + 31);
++
++	data = max2175_read_rom(ctx, 6);
++	max2175_write_bits(ctx, 81, 7, 6, data >> 6);
++}
++
++static void max2175_load_full_fm_eu_1p0(struct max2175 *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(full_fm_eu_1p0); i++)
++		max2175_write(ctx, i + 1, full_fm_eu_1p0[i]);
++
++	usleep_range(5000, 5500);
++	ctx->decim_ratio = 36;
++}
++
++static void max2175_load_full_fm_na_1p0(struct max2175 *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(full_fm_na_1p0); i++)
++		max2175_write(ctx, i + 1, full_fm_na_1p0[i]);
++
++	usleep_range(5000, 5500);
++	ctx->decim_ratio = 27;
++}
++
++static int max2175_core_init(struct max2175 *ctx, u32 refout_bits)
++{
++	int ret;
++
++	/* MAX2175 uses 36.864MHz clock for EU & 40.154MHz for NA region */
++	if (ctx->xtal_freq == MAX2175_EU_XTAL_FREQ)
++		max2175_load_full_fm_eu_1p0(ctx);
++	else
++		max2175_load_full_fm_na_1p0(ctx);
++
++	/* The default settings assume master */
++	if (!ctx->master)
++		max2175_write_bit(ctx, 30, 7, 1);
++
++	mxm_dbg(ctx, "refout_bits %u\n", refout_bits);
++
++	/* Set REFOUT */
++	max2175_write_bits(ctx, 56, 7, 5, refout_bits);
++
++	/* ADC Reset */
++	max2175_write_bit(ctx, 99, 1, 0);
++	usleep_range(1000, 1500);
++	max2175_write_bit(ctx, 99, 1, 1);
++
++	/* Load ADC preset values */
++	max2175_load_adc_presets(ctx);
++
++	/* Initialize the power management state machine */
++	ret = max2175_init_power_manager(ctx);
++	if (ret)
++		return ret;
++
++	/* Recalibrate ADC */
++	ret = max2175_recalibrate_adc(ctx);
++	if (ret)
++		return ret;
++
++	/* Load ROM values to appropriate registers */
++	max2175_load_from_rom(ctx);
++
++	if (ctx->xtal_freq == MAX2175_EU_XTAL_FREQ) {
++		/* Load FIR coefficients into bank 0 */
++		max2175_set_filter_coeffs(ctx, MAX2175_CH_MSEL, 0,
++					  ch_coeff_fmeu);
++		max2175_set_filter_coeffs(ctx, MAX2175_EQ_MSEL, 0,
++					  eq_coeff_fmeu1_ra02_m6db);
++	} else {
++		/* Load FIR coefficients into bank 0 */
++		max2175_set_filter_coeffs(ctx, MAX2175_CH_MSEL, 0,
++					  ch_coeff_fmna);
++		max2175_set_filter_coeffs(ctx, MAX2175_EQ_MSEL, 0,
++					  eq_coeff_fmna1_ra02_m6db);
++	}
++	mxm_dbg(ctx, "core initialized\n");
++
++	return 0;
++}
++
++static void max2175_s_ctrl_rx_mode(struct max2175 *ctx, u32 rx_mode)
++{
++	/* Load mode. Range check already done */
++	max2175_set_rx_mode(ctx, rx_mode);
++
++	mxm_dbg(ctx, "s_ctrl_rx_mode: %u curr freq %u\n", rx_mode, ctx->freq);
++
++	/* Check if current freq valid for mode & update */
++	if (max2175_freq_rx_mode_valid(ctx, rx_mode, ctx->freq))
++		max2175_tune_rf_freq(ctx, ctx->freq, ctx->hsls->cur.val);
++	else
++		/* Use default freq of mode if current freq is not valid */
++		max2175_tune_rf_freq(ctx, ctx->rx_modes[rx_mode].freq,
++				     ctx->hsls->cur.val);
++}
++
++static int max2175_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct max2175 *ctx = max2175_from_ctrl_hdl(ctrl->handler);
++
++	mxm_dbg(ctx, "s_ctrl: id 0x%x, val %u\n", ctrl->id, ctrl->val);
++	switch (ctrl->id) {
++	case V4L2_CID_MAX2175_I2S_ENABLE:
++		max2175_i2s_enable(ctx, ctrl->val);
++		break;
++	case V4L2_CID_MAX2175_HSLS:
++		max2175_set_hsls(ctx, ctrl->val);
++		break;
++	case V4L2_CID_MAX2175_RX_MODE:
++		max2175_s_ctrl_rx_mode(ctx, ctrl->val);
++		break;
++	}
++
++	return 0;
++}
++
++static u32 max2175_get_lna_gain(struct max2175 *ctx)
++{
++	enum max2175_band band = max2175_read_bits(ctx, 5, 1, 0);
++
++	switch (band) {
++	case MAX2175_BAND_AM:
++		return max2175_read_bits(ctx, 51, 3, 0);
++	case MAX2175_BAND_FM:
++		return max2175_read_bits(ctx, 50, 3, 0);
++	case MAX2175_BAND_VHF:
++		return max2175_read_bits(ctx, 52, 5, 0);
++	default:
 +		return 0;
 +	}
++}
 +
-+	if (enable) {
-+		ret = pm_runtime_get_sync(&client->dev);
-+		if (ret < 0) {
-+			pm_runtime_put_noidle(&client->dev);
-+			goto err_unlock;
++static int max2175_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct max2175 *ctx = max2175_from_ctrl_hdl(ctrl->handler);
++
++	switch (ctrl->id) {
++	case V4L2_CID_RF_TUNER_LNA_GAIN:
++		ctrl->val = max2175_get_lna_gain(ctx);
++		break;
++	case V4L2_CID_RF_TUNER_IF_GAIN:
++		ctrl->val = max2175_read_bits(ctx, 49, 4, 0);
++		break;
++	case V4L2_CID_RF_TUNER_PLL_LOCK:
++		ctrl->val = (max2175_read_bits(ctx, 60, 7, 6) == 3);
++		break;
++	}
++
++	return 0;
++};
++
++static int max2175_set_freq_and_mode(struct max2175 *ctx, u32 freq)
++{
++	u32 rx_mode;
++	int ret;
++
++	/* Get band from frequency */
++	ret = max2175_rx_mode_from_freq(ctx, freq, &rx_mode);
++	if (ret)
++		return ret;
++
++	mxm_dbg(ctx, "set_freq_and_mode: freq %u rx_mode %d\n", freq, rx_mode);
++
++	/* Load mode */
++	max2175_set_rx_mode(ctx, rx_mode);
++	ctx->rx_mode->cur.val = rx_mode;
++
++	/* Tune to the new freq given */
++	return max2175_tune_rf_freq(ctx, freq, ctx->hsls->cur.val);
++}
++
++static int max2175_s_frequency(struct v4l2_subdev *sd,
++			       const struct v4l2_frequency *vf)
++{
++	struct max2175 *ctx = max2175_from_sd(sd);
++	u32 freq;
++	int ret = 0;
++
++	mxm_dbg(ctx, "s_freq: new %u curr %u, mode_resolved %d\n",
++		vf->frequency, ctx->freq, ctx->mode_resolved);
++
++	if (vf->tuner != 0)
++		return -EINVAL;
++
++	freq = clamp(vf->frequency, ctx->bands_rf->rangelow,
++		     ctx->bands_rf->rangehigh);
++
++	/* Check new freq valid for rx_mode if already resolved */
++	if (ctx->mode_resolved &&
++	    max2175_freq_rx_mode_valid(ctx, ctx->rx_mode->cur.val, freq))
++		ret = max2175_tune_rf_freq(ctx, freq, ctx->hsls->cur.val);
++	else
++		/* Find default rx_mode for freq and tune to it */
++		ret = max2175_set_freq_and_mode(ctx, freq);
++
++	mxm_dbg(ctx, "s_freq: ret %d curr %u mode_resolved %d mode %u\n",
++		ret, ctx->freq, ctx->mode_resolved, ctx->rx_mode->cur.val);
++
++	return ret;
++}
++
++static int max2175_g_frequency(struct v4l2_subdev *sd,
++			       struct v4l2_frequency *vf)
++{
++	struct max2175 *ctx = max2175_from_sd(sd);
++	int ret = 0;
++
++	if (vf->tuner != 0)
++		return -EINVAL;
++
++	/* RF freq */
++	vf->type = V4L2_TUNER_RF;
++	vf->frequency = ctx->freq;
++
++	return ret;
++}
++
++static int max2175_enum_freq_bands(struct v4l2_subdev *sd,
++			    struct v4l2_frequency_band *band)
++{
++	struct max2175 *ctx = max2175_from_sd(sd);
++
++	if (band->tuner != 0 || band->index != 0)
++		return -EINVAL;
++
++	*band = *ctx->bands_rf;
++
++	return 0;
++}
++
++static int max2175_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
++{
++	struct max2175 *ctx = max2175_from_sd(sd);
++
++	if (vt->index > 0)
++		return -EINVAL;
++
++	strlcpy(vt->name, "RF", sizeof(vt->name));
++	vt->type = V4L2_TUNER_RF;
++	vt->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
++	vt->rangelow = ctx->bands_rf->rangelow;
++	vt->rangehigh = ctx->bands_rf->rangehigh;
++
++	return 0;
++}
++
++static int max2175_s_tuner(struct v4l2_subdev *sd, const struct v4l2_tuner *vt)
++{
++	/* Check tuner index is valid */
++	if (vt->index > 0)
++		return -EINVAL;
++
++	return 0;
++}
++
++static const struct v4l2_subdev_tuner_ops max2175_tuner_ops = {
++	.s_frequency = max2175_s_frequency,
++	.g_frequency = max2175_g_frequency,
++	.enum_freq_bands = max2175_enum_freq_bands,
++	.g_tuner = max2175_g_tuner,
++	.s_tuner = max2175_s_tuner,
++};
++
++static const struct v4l2_subdev_ops max2175_ops = {
++	.tuner = &max2175_tuner_ops,
++};
++
++static const struct v4l2_ctrl_ops max2175_ctrl_ops = {
++	.s_ctrl = max2175_s_ctrl,
++	.g_volatile_ctrl = max2175_g_volatile_ctrl,
++};
++
++/*
++ * I2S output enable/disable configuration. This is a private control.
++ * Refer to Documentation/media/v4l-drivers/max2175 for more details.
++ */
++static const struct v4l2_ctrl_config max2175_i2s_en = {
++	.ops = &max2175_ctrl_ops,
++	.id = V4L2_CID_MAX2175_I2S_ENABLE,
++	.name = "I2S Enable",
++	.type = V4L2_CTRL_TYPE_BOOLEAN,
++	.min = 0,
++	.max = 1,
++	.step = 1,
++	.def = 1,
++	.is_private = 1,
++};
++
++/*
++ * HSLS value control LO freq adjacent location configuration.
++ * Refer to Documentation/media/v4l-drivers/max2175 for more details.
++ */
++static const struct v4l2_ctrl_config max2175_hsls = {
++	.ops = &max2175_ctrl_ops,
++	.id = V4L2_CID_MAX2175_HSLS,
++	.name = "HSLS Above/Below Desired",
++	.type = V4L2_CTRL_TYPE_BOOLEAN,
++	.min = 0,
++	.max = 1,
++	.step = 1,
++	.def = 1,
++};
++
++/*
++ * Rx modes below are a set of preset configurations that decides the tuner's
++ * sck and sample rate of transmission. They are separate for EU & NA regions.
++ * Refer to Documentation/media/v4l-drivers/max2175 for more details.
++ */
++static const char * const max2175_ctrl_eu_rx_modes[] = {
++	[MAX2175_EU_FM_1_2]	= "EU FM 1.2",
++	[MAX2175_DAB_1_2]	= "DAB 1.2",
++};
++
++static const char * const max2175_ctrl_na_rx_modes[] = {
++	[MAX2175_NA_FM_1_0]	= "NA FM 1.0",
++	[MAX2175_NA_FM_2_0]	= "NA FM 2.0",
++};
++
++static const struct v4l2_ctrl_config max2175_eu_rx_mode = {
++	.ops = &max2175_ctrl_ops,
++	.id = V4L2_CID_MAX2175_RX_MODE,
++	.name = "RX Mode",
++	.type = V4L2_CTRL_TYPE_MENU,
++	.max = ARRAY_SIZE(max2175_ctrl_eu_rx_modes) - 1,
++	.def = 0,
++	.qmenu = max2175_ctrl_eu_rx_modes,
++};
++
++static const struct v4l2_ctrl_config max2175_na_rx_mode = {
++	.ops = &max2175_ctrl_ops,
++	.id = V4L2_CID_MAX2175_RX_MODE,
++	.name = "RX Mode",
++	.type = V4L2_CTRL_TYPE_MENU,
++	.max = ARRAY_SIZE(max2175_ctrl_na_rx_modes) - 1,
++	.def = 0,
++	.qmenu = max2175_ctrl_na_rx_modes,
++};
++
++static int max2175_refout_load_to_bits(struct i2c_client *client, u32 load,
++				       u32 *bits)
++{
++	if (load >= 0 && load <= 40)
++		*bits = load / 10;
++	else if (load >= 60 && load <= 70)
++		*bits = load / 10 - 1;
++	else
++		return -EINVAL;
++
++	return 0;
++}
++
++static int max2175_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	bool master = true, am_hiz = false;
++	u32 refout_load, refout_bits = 0;	/* REFOUT disabled */
++	struct v4l2_ctrl_handler *hdl;
++	struct fwnode_handle *fwnode;
++	struct device_node *np;
++	struct v4l2_subdev *sd;
++	struct regmap *regmap;
++	struct max2175 *ctx;
++	struct clk *clk;
++	int ret;
++
++	/* Parse DT properties */
++	np = of_parse_phandle(client->dev.of_node, "maxim,master", 0);
++	if (np) {
++		master = false;			/* Slave tuner */
++		of_node_put(np);
++	}
++
++	fwnode = of_fwnode_handle(client->dev.of_node);
++	if (fwnode_property_present(fwnode, "maxim,am-hiz-filter"))
++		am_hiz = true;
++
++	if (!fwnode_property_read_u32(fwnode, "maxim,refout-load",
++				      &refout_load)) {
++		ret = max2175_refout_load_to_bits(client, refout_load,
++						  &refout_bits);
++		if (ret) {
++			dev_err(&client->dev, "invalid refout_load %u\n",
++				refout_load);
++			return -EINVAL;
 +		}
-+
-+		/*
-+		 * Apply default & customized values
-+		 * and then start streaming.
-+		 */
-+		ret = ov13858_start_streaming(ov13858);
-+		if (ret)
-+			goto err_rpm_put;
-+	} else {
-+		ov13858_stop_streaming(ov13858);
-+		pm_runtime_put(&client->dev);
 +	}
 +
-+	ov13858->streaming = enable;
-+	mutex_unlock(&ov13858->mutex);
-+
-+	return ret;
-+
-+err_rpm_put:
-+	pm_runtime_put(&client->dev);
-+err_unlock:
-+	mutex_unlock(&ov13858->mutex);
-+
-+	return ret;
-+}
-+
-+static int __maybe_unused ov13858_suspend(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct ov13858 *ov13858 = to_ov13858(sd);
-+
-+	if (ov13858->streaming)
-+		ov13858_stop_streaming(ov13858);
-+
-+	return 0;
-+}
-+
-+static int __maybe_unused ov13858_resume(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct ov13858 *ov13858 = to_ov13858(sd);
-+	int ret;
-+
-+	if (ov13858->streaming) {
-+		ret = ov13858_start_streaming(ov13858);
-+		if (ret)
-+			goto error;
++	clk = devm_clk_get(&client->dev, NULL);
++	if (IS_ERR(clk)) {
++		ret = PTR_ERR(clk);
++		dev_err(&client->dev, "cannot get clock %d\n", ret);
++		return -ENODEV;
 +	}
 +
-+	return 0;
-+
-+error:
-+	ov13858_stop_streaming(ov13858);
-+	ov13858->streaming = 0;
-+	return ret;
-+}
-+
-+/* Verify chip ID */
-+static int ov13858_identify_module(struct ov13858 *ov13858)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-+	int ret;
-+	u32 val;
-+
-+	ret = ov13858_read_reg(ov13858, OV13858_REG_CHIP_ID,
-+			       OV13858_REG_VALUE_24BIT, &val);
-+	if (ret)
-+		return ret;
-+
-+	if (val != OV13858_CHIP_ID) {
-+		dev_err(&client->dev, "chip id mismatch: %x!=%x\n",
-+			OV13858_CHIP_ID, val);
-+		return -EIO;
++	regmap = devm_regmap_init_i2c(client, &max2175_regmap_config);
++	if (IS_ERR(regmap)) {
++		ret = PTR_ERR(regmap);
++		dev_err(&client->dev, "regmap init failed %d\n", ret);
++		return -ENODEV;
 +	}
 +
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_video_ops ov13858_video_ops = {
-+	.s_stream = ov13858_set_stream,
-+};
-+
-+static const struct v4l2_subdev_pad_ops ov13858_pad_ops = {
-+	.enum_mbus_code = ov13858_enum_mbus_code,
-+	.get_fmt = ov13858_get_pad_format,
-+	.set_fmt = ov13858_set_pad_format,
-+	.enum_frame_size = ov13858_enum_frame_size,
-+};
-+
-+static const struct v4l2_subdev_sensor_ops ov13858_sensor_ops = {
-+	.g_skip_frames = ov13858_get_skip_frames,
-+};
-+
-+static const struct v4l2_subdev_ops ov13858_subdev_ops = {
-+	.video = &ov13858_video_ops,
-+	.pad = &ov13858_pad_ops,
-+	.sensor = &ov13858_sensor_ops,
-+};
-+
-+static const struct media_entity_operations ov13858_subdev_entity_ops = {
-+	.link_validate = v4l2_subdev_link_validate,
-+};
-+
-+static const struct v4l2_subdev_internal_ops ov13858_internal_ops = {
-+	.open = ov13858_open,
-+};
-+
-+/* Initialize control handlers */
-+static int ov13858_init_controls(struct ov13858 *ov13858)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
-+	struct v4l2_ctrl_handler *ctrl_hdlr;
-+	int ret;
-+
-+	ctrl_hdlr = &ov13858->ctrl_handler;
-+	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 8);
-+	if (ret)
-+		return ret;
-+
-+	mutex_init(&ov13858->mutex);
-+	ctrl_hdlr->lock = &ov13858->mutex;
-+	ov13858->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr,
-+				&ov13858_ctrl_ops,
-+				V4L2_CID_LINK_FREQ,
-+				OV13858_NUM_OF_LINK_FREQS - 1,
-+				0,
-+				link_freq_menu_items);
-+	ov13858->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-+
-+	/* By default, PIXEL_RATE is read only */
-+	ov13858->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops,
-+					V4L2_CID_PIXEL_RATE, 0,
-+					link_freq_configs[0].pixel_rate, 1,
-+					link_freq_configs[0].pixel_rate);
-+
-+	ov13858->vblank = v4l2_ctrl_new_std(
-+				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_VBLANK,
-+				OV13858_VBLANK_MIN,
-+				OV13858_VTS_MAX - ov13858->cur_mode->height, 1,
-+				ov13858->cur_mode->vts
-+				  - ov13858->cur_mode->height);
-+
-+	ov13858->hblank = v4l2_ctrl_new_std(
-+				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_HBLANK,
-+				OV13858_PPL_1080MHZ - ov13858->cur_mode->width,
-+				OV13858_PPL_1080MHZ - ov13858->cur_mode->width,
-+				1,
-+				OV13858_PPL_1080MHZ - ov13858->cur_mode->width);
-+	ov13858->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-+
-+	ov13858->exposure = v4l2_ctrl_new_std(
-+				ctrl_hdlr, &ov13858_ctrl_ops,
-+				V4L2_CID_EXPOSURE, OV13858_EXPOSURE_MIN,
-+				OV13858_EXPOSURE_MAX, OV13858_EXPOSURE_STEP,
-+				OV13858_EXPOSURE_DEFAULT);
-+
-+	v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
-+			  OV13858_ANA_GAIN_MIN, OV13858_ANA_GAIN_MAX,
-+			  OV13858_ANA_GAIN_STEP, OV13858_ANA_GAIN_DEFAULT);
-+
-+	/* Digital gain */
-+	v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_GAIN,
-+			  OV13858_DGTL_GAIN_MIN, OV13858_DGTL_GAIN_MAX,
-+			  OV13858_DGTL_GAIN_STEP, OV13858_DGTL_GAIN_DEFAULT);
-+
-+	v4l2_ctrl_new_std_menu_items(ctrl_hdlr, &ov13858_ctrl_ops,
-+				     V4L2_CID_TEST_PATTERN,
-+				     ARRAY_SIZE(ov13858_test_pattern_menu) - 1,
-+				     0, 0, ov13858_test_pattern_menu);
-+	if (ctrl_hdlr->error) {
-+		ret = ctrl_hdlr->error;
-+		dev_err(&client->dev, "%s control init failed (%d)\n",
-+			__func__, ret);
-+		goto error;
-+	}
-+
-+	ov13858->sd.ctrl_handler = ctrl_hdlr;
-+
-+	return 0;
-+
-+error:
-+	v4l2_ctrl_handler_free(ctrl_hdlr);
-+	mutex_destroy(&ov13858->mutex);
-+
-+	return ret;
-+}
-+
-+static void ov13858_free_controls(struct ov13858 *ov13858)
-+{
-+	v4l2_ctrl_handler_free(ov13858->sd.ctrl_handler);
-+	mutex_destroy(&ov13858->mutex);
-+}
-+
-+static int ov13858_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *devid)
-+{
-+	struct ov13858 *ov13858;
-+	int ret;
-+
-+	ov13858 = devm_kzalloc(&client->dev, sizeof(*ov13858), GFP_KERNEL);
-+	if (!ov13858)
++	/* Alloc tuner context */
++	ctx = devm_kzalloc(&client->dev, sizeof(*ctx), GFP_KERNEL);
++	if (ctx == NULL)
 +		return -ENOMEM;
 +
-+	/* Initialize subdev */
-+	v4l2_i2c_subdev_init(&ov13858->sd, client, &ov13858_subdev_ops);
++	sd = &ctx->sd;
++	ctx->master = master;
++	ctx->am_hiz = am_hiz;
++	ctx->mode_resolved = false;
++	ctx->regmap = regmap;
++	ctx->xtal_freq = clk_get_rate(clk);
++	dev_info(&client->dev, "xtal freq %luHz\n", ctx->xtal_freq);
 +
-+	/* Check module identity */
-+	ret = ov13858_identify_module(ov13858);
-+	if (ret) {
-+		dev_err(&client->dev, "failed to find sensor: %d\n", ret);
-+		return ret;
-+	}
++	v4l2_i2c_subdev_init(sd, client, &max2175_ops);
++	ctx->client = client;
 +
-+	/* Set default mode to max resolution */
-+	ov13858->cur_mode = &supported_modes[0];
++	sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
 +
-+	ret = ov13858_init_controls(ov13858);
++	/* Controls */
++	hdl = &ctx->ctrl_hdl;
++	ret = v4l2_ctrl_handler_init(hdl, 7);
 +	if (ret)
 +		return ret;
 +
-+	/* Initialize subdev */
-+	ov13858->sd.internal_ops = &ov13858_internal_ops;
-+	ov13858->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	ov13858->sd.entity.ops = &ov13858_subdev_entity_ops;
-+	ov13858->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++	ctx->lna_gain = v4l2_ctrl_new_std(hdl, &max2175_ctrl_ops,
++					  V4L2_CID_RF_TUNER_LNA_GAIN,
++					  0, 63, 1, 0);
++	ctx->lna_gain->flags |= (V4L2_CTRL_FLAG_VOLATILE |
++				 V4L2_CTRL_FLAG_READ_ONLY);
++	ctx->if_gain = v4l2_ctrl_new_std(hdl, &max2175_ctrl_ops,
++					 V4L2_CID_RF_TUNER_IF_GAIN,
++					 0, 31, 1, 0);
++	ctx->if_gain->flags |= (V4L2_CTRL_FLAG_VOLATILE |
++				V4L2_CTRL_FLAG_READ_ONLY);
++	ctx->pll_lock = v4l2_ctrl_new_std(hdl, &max2175_ctrl_ops,
++					  V4L2_CID_RF_TUNER_PLL_LOCK,
++					  0, 1, 1, 0);
++	ctx->pll_lock->flags |= (V4L2_CTRL_FLAG_VOLATILE |
++				 V4L2_CTRL_FLAG_READ_ONLY);
++	ctx->i2s_en = v4l2_ctrl_new_custom(hdl, &max2175_i2s_en, NULL);
++	ctx->hsls = v4l2_ctrl_new_custom(hdl, &max2175_hsls, NULL);
 +
-+	/* Initialize source pad */
-+	ov13858->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	ret = media_entity_pads_init(&ov13858->sd.entity, 1, &ov13858->pad);
++	if (ctx->xtal_freq == MAX2175_EU_XTAL_FREQ) {
++		ctx->rx_mode = v4l2_ctrl_new_custom(hdl,
++						    &max2175_eu_rx_mode, NULL);
++		ctx->rx_modes = eu_rx_modes;
++		ctx->bands_rf = &eu_bands_rf;
++	} else {
++		ctx->rx_mode = v4l2_ctrl_new_custom(hdl,
++						    &max2175_na_rx_mode, NULL);
++		ctx->rx_modes = na_rx_modes;
++		ctx->bands_rf = &na_bands_rf;
++	}
++	ctx->sd.ctrl_handler = &ctx->ctrl_hdl;
++
++	/* Set the defaults */
++	ctx->freq = ctx->bands_rf->rangelow;
++
++	/* Register subdev */
++	ret = v4l2_async_register_subdev(sd);
 +	if (ret) {
-+		dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
-+		goto error_handler_free;
++		dev_err(&client->dev, "register subdev failed\n");
++		goto err_reg;
 +	}
 +
-+	ret = v4l2_async_register_subdev(&ov13858->sd);
-+	if (ret < 0)
-+		goto error_media_entity;
++	/* Initialize device */
++	ret = max2175_core_init(ctx, refout_bits);
++	if (ret)
++		goto err_init;
 +
-+	/*
-+	 * Device is already turned on by i2c-core with ACPI domain PM.
-+	 * Enable runtime PM and turn off the device.
-+	 */
-+	pm_runtime_get_noresume(&client->dev);
-+	pm_runtime_set_active(&client->dev);
-+	pm_runtime_enable(&client->dev);
-+	pm_runtime_put(&client->dev);
++	ret = v4l2_ctrl_handler_setup(hdl);
++	if (ret)
++		goto err_init;
 +
 +	return 0;
 +
-+error_media_entity:
-+	media_entity_cleanup(&ov13858->sd.entity);
-+
-+error_handler_free:
-+	ov13858_free_controls(ov13858);
-+	dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
++err_init:
++	v4l2_async_unregister_subdev(sd);
++err_reg:
++	v4l2_ctrl_handler_free(&ctx->ctrl_hdl);
 +
 +	return ret;
 +}
 +
-+static int ov13858_remove(struct i2c_client *client)
++static int max2175_remove(struct i2c_client *client)
 +{
 +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct ov13858 *ov13858 = to_ov13858(sd);
++	struct max2175 *ctx = max2175_from_sd(sd);
 +
++	v4l2_ctrl_handler_free(&ctx->ctrl_hdl);
 +	v4l2_async_unregister_subdev(sd);
-+	media_entity_cleanup(&sd->entity);
-+	ov13858_free_controls(ov13858);
-+
-+	/*
-+	 * Disable runtime PM but keep the device turned on.
-+	 * i2c-core with ACPI domain PM will turn off the device.
-+	 */
-+	pm_runtime_get_sync(&client->dev);
-+	pm_runtime_disable(&client->dev);
-+	pm_runtime_set_suspended(&client->dev);
-+	pm_runtime_put_noidle(&client->dev);
 +
 +	return 0;
 +}
 +
-+static const struct i2c_device_id ov13858_id_table[] = {
-+	{"ov13858", 0},
++static const struct i2c_device_id max2175_id[] = {
++	{ DRIVER_NAME, 0},
 +	{},
 +};
++MODULE_DEVICE_TABLE(i2c, max2175_id);
 +
-+MODULE_DEVICE_TABLE(i2c, ov13858_id_table);
-+
-+static const struct dev_pm_ops ov13858_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(ov13858_suspend, ov13858_resume)
++static const struct of_device_id max2175_of_ids[] = {
++	{ .compatible = "maxim,max2175", },
++	{ }
 +};
++MODULE_DEVICE_TABLE(of, max2175_of_ids);
 +
-+#ifdef CONFIG_ACPI
-+static const struct acpi_device_id ov13858_acpi_ids[] = {
-+	{"OVTID858"},
-+	{ /* sentinel */ }
-+};
-+
-+MODULE_DEVICE_TABLE(acpi, ov13858_acpi_ids);
-+#endif
-+
-+static struct i2c_driver ov13858_i2c_driver = {
++static struct i2c_driver max2175_driver = {
 +	.driver = {
-+		.name = "ov13858",
-+		.owner = THIS_MODULE,
-+		.pm = &ov13858_pm_ops,
-+		.acpi_match_table = ACPI_PTR(ov13858_acpi_ids),
++		.name	= DRIVER_NAME,
++		.of_match_table = max2175_of_ids,
 +	},
-+	.probe = ov13858_probe,
-+	.remove = ov13858_remove,
-+	.id_table = ov13858_id_table,
++	.probe		= max2175_probe,
++	.remove		= max2175_remove,
++	.id_table	= max2175_id,
 +};
 +
-+module_i2c_driver(ov13858_i2c_driver);
++module_i2c_driver(max2175_driver);
 +
-+MODULE_AUTHOR("Kan, Chris <chris.kan@intel.com>");
-+MODULE_AUTHOR("Rapolu, Chiranjeevi <chiranjeevi.rapolu@intel.com>");
-+MODULE_AUTHOR("Yang, Hyungwoo <hyungwoo.yang@intel.com>");
-+MODULE_DESCRIPTION("Omnivision ov13858 sensor driver");
++MODULE_DESCRIPTION("Maxim MAX2175 RF to Bits tuner driver");
 +MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>");
+diff --git a/drivers/media/i2c/max2175.h b/drivers/media/i2c/max2175.h
+new file mode 100644
+index 000000000000..eb43373ce7e2
+--- /dev/null
++++ b/drivers/media/i2c/max2175.h
+@@ -0,0 +1,109 @@
++/*
++ * Maxim Integrated MAX2175 RF to Bits tuner driver
++ *
++ * This driver & most of the hard coded values are based on the reference
++ * application delivered by Maxim for this device.
++ *
++ * Copyright (C) 2016 Maxim Integrated Products
++ * Copyright (C) 2017 Renesas Electronics Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2
++ * as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef __MAX2175_H__
++#define __MAX2175_H__
++
++#define MAX2175_EU_XTAL_FREQ	36864000	/* In Hz */
++#define MAX2175_NA_XTAL_FREQ	40186125	/* In Hz */
++
++enum max2175_region {
++	MAX2175_REGION_EU = 0,	/* Europe */
++	MAX2175_REGION_NA,	/* North America */
++};
++
++enum max2175_band {
++	MAX2175_BAND_AM = 0,
++	MAX2175_BAND_FM,
++	MAX2175_BAND_VHF,
++	MAX2175_BAND_L,
++};
++
++enum max2175_eu_mode {
++	/* EU modes */
++	MAX2175_EU_FM_1_2 = 0,
++	MAX2175_DAB_1_2,
++
++	/*
++	 * Other possible modes to add in future
++	 * MAX2175_DAB_1_0,
++	 * MAX2175_DAB_1_3,
++	 * MAX2175_EU_FM_2_2,
++	 * MAX2175_EU_FMHD_4_0,
++	 * MAX2175_EU_AM_1_0,
++	 * MAX2175_EU_AM_2_2,
++	 */
++};
++
++enum max2175_na_mode {
++	/* NA modes */
++	MAX2175_NA_FM_1_0 = 0,
++	MAX2175_NA_FM_2_0,
++
++	/*
++	 * Other possible modes to add in future
++	 * MAX2175_NA_FMHD_1_0,
++	 * MAX2175_NA_FMHD_1_2,
++	 * MAX2175_NA_AM_1_0,
++	 * MAX2175_NA_AM_1_2,
++	 */
++};
++
++/* Supported I2S modes */
++enum {
++	MAX2175_I2S_MODE0 = 0,
++	MAX2175_I2S_MODE1,
++	MAX2175_I2S_MODE2,
++	MAX2175_I2S_MODE3,
++	MAX2175_I2S_MODE4,
++};
++
++/* Coefficient table groups */
++enum {
++	MAX2175_CH_MSEL = 0,
++	MAX2175_EQ_MSEL,
++	MAX2175_AA_MSEL,
++};
++
++/* HSLS LO injection polarity */
++enum {
++	MAX2175_LO_BELOW_DESIRED = 0,
++	MAX2175_LO_ABOVE_DESIRED,
++};
++
++/* Channel FSM modes */
++enum max2175_csm_mode {
++	MAX2175_LOAD_TO_BUFFER = 0,
++	MAX2175_PRESET_TUNE,
++	MAX2175_SEARCH,
++	MAX2175_AF_UPDATE,
++	MAX2175_JUMP_FAST_TUNE,
++	MAX2175_CHECK,
++	MAX2175_LOAD_AND_SWAP,
++	MAX2175_END,
++	MAX2175_BUFFER_PLUS_PRESET_TUNE,
++	MAX2175_BUFFER_PLUS_SEARCH,
++	MAX2175_BUFFER_PLUS_AF_UPDATE,
++	MAX2175_BUFFER_PLUS_JUMP_FAST_TUNE,
++	MAX2175_BUFFER_PLUS_CHECK,
++	MAX2175_BUFFER_PLUS_LOAD_AND_SWAP,
++	MAX2175_NO_ACTION
++};
++
++#endif /* __MAX2175_H__ */
+diff --git a/include/uapi/linux/max2175.h b/include/uapi/linux/max2175.h
+new file mode 100644
+index 000000000000..3ef5d264440f
+--- /dev/null
++++ b/include/uapi/linux/max2175.h
+@@ -0,0 +1,28 @@
++/*
++ * max2175.h
++ *
++ * Maxim Integrated MAX2175 RF to Bits tuner driver - user space header file.
++ *
++ * Copyright (C) 2016 Maxim Integrated Products
++ * Copyright (C) 2017 Renesas Electronics Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2
++ * as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef __UAPI_MAX2175_H_
++#define __UAPI_MAX2175_H_
++
++#include <linux/v4l2-controls.h>
++
++#define V4L2_CID_MAX2175_I2S_ENABLE	(V4L2_CID_USER_MAX217X_BASE + 0x01)
++#define V4L2_CID_MAX2175_HSLS		(V4L2_CID_USER_MAX217X_BASE + 0x02)
++#define V4L2_CID_MAX2175_RX_MODE	(V4L2_CID_USER_MAX217X_BASE + 0x03)
++
++#endif /* __UAPI_MAX2175_H_ */
 -- 
-1.9.1
+2.12.2
