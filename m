@@ -1,78 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46881 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750820AbdFOWXE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 18:23:04 -0400
-Date: Fri, 16 Jun 2017 00:23:02 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: [PATCH] omap3isp: fix compilation
-Message-ID: <20170615222302.GB20714@amd>
-References: <20170302101603.GE27818@amd>
- <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
- <20170302123848.GA28230@amd>
- <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
- <20170306072323.GA23509@amd>
- <20170310225418.GJ3220@valkosipuli.retiisi.org.uk>
- <20170613122240.GA2803@amd>
- <20170613124748.GD12407@valkosipuli.retiisi.org.uk>
- <20170613210900.GA31456@amd>
- <20170614110634.GP12407@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="MfFXiAuoTsnnDAfZ"
-Content-Disposition: inline
-In-Reply-To: <20170614110634.GP12407@valkosipuli.retiisi.org.uk>
+Received: from mga03.intel.com ([134.134.136.65]:58597 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751527AbdFINXL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Jun 2017 09:23:11 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com
+Subject: [PATCH v2 0/2] Add explicit digital gain control, document gain controls better
+Date: Fri,  9 Jun 2017 16:21:45 +0300
+Message-Id: <1497014507-1835-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi folks,
 
---MfFXiAuoTsnnDAfZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This set includes two patches: one that adds digital gain control and
+another that better documents the relationship between the gain controls.
 
+changes since v1:
 
-Fix compilation of isp.c
-   =20
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
+- Say that the no-gain digital gain configuration is typically the
+  default. This was slightly unclear in the previous version and could
+  have been understood as the default being 0x100.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform=
-/omap3isp/isp.c
-index 4ca3fc9..b80debf 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2026,7 +2026,7 @@ static int isp_fwnode_parse(struct device *dev, struc=
-t fwnode_handle *fwnode,
-=20
- 	isd->bus =3D buscfg;
-=20
--	ret =3D v4l2_fwnode_endpoint_parse(fwn, vep);
-+	ret =3D v4l2_fwnode_endpoint_parse(fwnode, &vep);
- 	if (ret)
- 		return ret;
-=20
+Sakari Ailus (2):
+  v4l: ctrls: Add a control for digital gain
+  v4l: controls: Improve documentation for V4L2_CID_GAIN
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+ Documentation/media/uapi/v4l/control.rst           | 6 ++++++
+ Documentation/media/uapi/v4l/extended-controls.rst | 7 +++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c               | 1 +
+ include/uapi/linux/v4l2-controls.h                 | 2 +-
+ 4 files changed, 15 insertions(+), 1 deletion(-)
 
---MfFXiAuoTsnnDAfZ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAllDCMYACgkQMOfwapXb+vLZQACgoAeqa6pLadGBhn9N8/NgU+L8
-5PwAnjc7rVVqimIGneIEPnJ59noh2T4u
-=SGK/
------END PGP SIGNATURE-----
-
---MfFXiAuoTsnnDAfZ--
+-- 
+2.7.4
