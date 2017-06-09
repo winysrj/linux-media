@@ -1,90 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:35933 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753234AbdF0UPU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 16:15:20 -0400
+Received: from mail-yb0-f176.google.com ([209.85.213.176]:35482 "EHLO
+        mail-yb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751539AbdFIMLP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 08:11:15 -0400
+Received: by mail-yb0-f176.google.com with SMTP id f192so15326284yba.2
+        for <linux-media@vger.kernel.org>; Fri, 09 Jun 2017 05:11:14 -0700 (PDT)
+Received: from mail-yw0-f175.google.com (mail-yw0-f175.google.com. [209.85.161.175])
+        by smtp.gmail.com with ESMTPSA id u10sm270040ywa.53.2017.06.09.05.11.13
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 09 Jun 2017 05:11:13 -0700 (PDT)
+Received: by mail-yw0-f175.google.com with SMTP id e142so12427963ywa.1
+        for <linux-media@vger.kernel.org>; Fri, 09 Jun 2017 05:11:13 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1d7621d4-b7c6-b21b-f06e-ed6baa1b00ca@linaro.org>
-References: <20170627150310.719212-1-arnd@arndb.de> <20170627150310.719212-2-arnd@arndb.de>
- <1d7621d4-b7c6-b21b-f06e-ed6baa1b00ca@linaro.org>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 27 Jun 2017 22:15:18 +0200
-Message-ID: <CAK8P3a3cNZ8-Jkmnk4tSmXQA6yqsCfxPvJaUY8Zd007w1tRvDQ@mail.gmail.com>
-Subject: Re: [PATCH 2/3] [media] venus: don't abuse dma_alloc for non-DMA allocations
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+In-Reply-To: <2207008.so7vZvfgDl@ttoivone-desk1>
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+ <CAAFQd5BZGVBdbN-8L+pvAf4AkBkB9UFy7_mmMpusFUMxDugQDw@mail.gmail.com>
+ <CAAFQd5CdV4ZfAYHH7DBBfOY=c4_Lwnuf8COs=JUKRSjp1VTn7Q@mail.gmail.com> <2207008.so7vZvfgDl@ttoivone-desk1>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 9 Jun 2017 21:10:52 +0900
+Message-ID: <CAAFQd5Aw1DuhGK0d-uK5jr6_6np10pO8X6ArrymeF1MnwTG4qQ@mail.gmail.com>
+Subject: Re: [PATCH 02/12] intel-ipu3: mmu: implement driver
+To: Tuukka Toivonen <tuukka.toivonen@intel.com>
+Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
+        Joerg Roedel <joro@8bytes.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 27, 2017 at 9:39 PM, Stanimir Varbanov
-<stanimir.varbanov@linaro.org> wrote:
-> Hi Arnd,
+On Fri, Jun 9, 2017 at 5:26 PM, Tuukka Toivonen
+<tuukka.toivonen@intel.com> wrote:
+> Hi Tomasz,
 >
-> On 27.06.2017 18:02, Arnd Bergmann wrote:
->>
->> In venus_boot(), we pass a pointer to a phys_addr_t
->> into dmam_alloc_coherent, which the compiler warns about:
->>
->> platform/qcom/venus/firmware.c: In function 'venus_boot':
->> platform/qcom/venus/firmware.c:63:49: error: passing argument 3 of
->> 'dmam_alloc_coherent' from incompatible pointer type
->> [-Werror=incompatible-pointer-types]
->>
->> The returned DMA address is later passed on to a function that
->> takes a phys_addr_t, so it's clearly wrong to use the DMA
->> mapping interface here: the memory may be uncached, or the
->> address may be completely wrong if there is an IOMMU connected
->> to the device.
->>
->> My interpretation is that using dmam_alloc_coherent() had two
->> purposes:
->>
->>   a) get a chunk of consecutive memory that may be larger than
->>      the limit for kmalloc()
->>
->>   b) use the devres infrastructure to simplify the unwinding
->>      in the error case.
+> Couple of small comments below.
 >
+> On Wednesday, June 07, 2017 17:35:13 Tomasz Figa wrote:
+>> >> +static void ipu3_mmu_domain_free(struct iommu_domain *dom)
+>> >> +{
+>> >> +       struct ipu3_mmu_domain *mmu_dom =
+>> >> +               container_of(dom, struct ipu3_mmu_domain, domain);
+>> >> +       uint32_t l1_idx;
+>> >> +
+>> >> +       for (l1_idx = 0; l1_idx < IPU3_MMU_L1PT_PTES; l1_idx++)
+>> >> +               if (mmu_dom->pgtbl[l1_idx] != mmu_dom-
+>>dummy_l2_tbl)
+>> >> +                       free_page((unsigned long)
+>> >> +                                 TBL_VIRT_ADDR(mmu_dom-
+>>pgtbl[l1_idx]));
+>> >> +
+>> >> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom-
+>>dummy_page));
+>> >> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom-
+>>dummy_l2_tbl));
+>>
+>> I might be overly paranoid, but reading back kernel virtual pointers
+>> from device accessible memory doesn't seem safe to me. Other drivers
+>> keep kernel pointers of page tables in a dedicated array (it's only 8K
+>> of memory, but much better safety).
 >
-> The intension here is to use per-device memory which is removed from kernel
-> allocator, that memory is used by remote processor (Venus) for its code
-> section and system memory, the memory must not be mapped to kernel to avoid
-> any cache issues.
->
-> As the memory in subject is reserved per-device memory the only legal way to
-> allocate it is by dmam_alloc_coherent() -> dma_alloc_from_coherent().
->
-> For me the confusion comes from phys_addr_t which is passed to
-> qcom_mdt_load() and then the address passed to qcom_scm_pas_mem_setup()
-> which probably protects that physical memory. And the tz really expects
-> physical address.
->
-> The only solution I see is by casting dma_addr_t to phys_addr_t. Yes it is
-> ugly but what is proper solution then?
+> They are accessible only to the IPU3 IOMMU, which can access whole
+> system memory anyway and always does a read-only access to the MMU
+> tables. So, I wouldn't worry too much, although extra copy for safety
+> wouldn't necessarily harm too much.
 
-If you actually have a separate remote processor that accesses this memory,
-then qcom_mdt_load() is the wrong interface, as it takes a physical address,
-and we need to introduce another interface that can take a DMA address
-relative to a particular device.
+Fair enough. Thanks for explanation.
 
-You cannot cast between the two types because phys_addr_t is an address
-as seen from the CPU, and dma_addr_t is seen by a particular device,
-and can only be used together with that device pointer.
+>
+> <...>
+>
+>> >> +       ipu3_mmu_tlb_invalidate(mmu_dom->mmu->base);
+>> >> +
+>> >> +       return unmapped << IPU3_MMU_PAGE_SHIFT;
+>> >> +}
+>> >> +
+>> >> +static phys_addr_t ipu3_mmu_iova_to_phys(struct iommu_domain
+> *domain,
+>> >> +                                        dma_addr_t iova)
+>> >> +{
+>> >> +       struct ipu3_mmu_domain *d =
+>> >> +               container_of(domain, struct ipu3_mmu_domain,
+> domain);
+>> >> +       uint32_t *l2_pt = TBL_VIRT_ADDR(d->pgtbl[iova >>
+> IPU3_MMU_L1PT_SHIFT]);
+>> >> +
+>> >> +       return (phys_addr_t)l2_pt[(iova & IPU3_MMU_L2PT_MASK)
+>> >> +                               >> IPU3_MMU_L2PT_SHIFT] <<
+> IPU3_MMU_PAGE_SHIFT;
+>>
+>> Could we avoid this TBL_VIRT_ADDR() here too? The memory cost to store
+>> the page table CPU pointers is really small, but safety seems much
+>> better. Moreover, it should make it possible to use the VT-d IOMMU to
+>> further secure the system.
+>
+> IPU3 doesn't support VT-d and can't be enabled while VT-d is on.
 
-It looks like the pointer gets passed down to
-qcom_scm_call(dev, QCOM_SCM_SVC_PIL,
-QCOM_SCM_PAS_MEM_SETUP_CMD, ...), which in turn takes
-a 32-bit address, suggesting that this is indeed a dma address for that
-device (possibly going through an IOMMU), so maybe it just needs to
-all be changed to dma_addr_t.
+Got it. Thanks.
 
-Is there any official documentation for qcom_scm_call() that clarifies
-what address space the arguments are in?
-
-        Arnd
+Best regards,
+Tomasz
