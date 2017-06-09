@@ -1,161 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:42515 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751159AbdFAU7I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Jun 2017 16:59:08 -0400
-From: Takashi Iwai <tiwai@suse.de>
-To: alsa-devel@alsa-project.org
-Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-        Mark Brown <broonie@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org
-Subject: [PATCH v2 08/27] ALSA: rme96: Convert to the new PCM ops
-Date: Thu,  1 Jun 2017 22:58:31 +0200
-Message-Id: <20170601205850.24993-9-tiwai@suse.de>
-In-Reply-To: <20170601205850.24993-1-tiwai@suse.de>
-References: <20170601205850.24993-1-tiwai@suse.de>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:34430 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751558AbdFIXC7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 19:02:59 -0400
+Subject: Re: [PATCH v8 19/34] media: Add i.MX media core driver
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Russell King <rmk+kernel@armlinux.org.uk>
+References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+ <1496860453-6282-20-git-send-email-steve_longerbeam@mentor.com>
+ <1497014135.20356.12.camel@pengutronix.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <0df57159-78de-52a7-4fc2-d53e4682c8bb@gmail.com>
+Date: Fri, 9 Jun 2017 16:02:54 -0700
+MIME-Version: 1.0
+In-Reply-To: <1497014135.20356.12.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the copy and the silence ops with the new PCM ops.
-The conversion is straightforward with standard helper functions, and
-now we can drop the bytes <-> frames conversions in callbacks.
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
----
- sound/pci/rme96.c | 70 ++++++++++++++++++++++++++++++++++---------------------
- 1 file changed, 44 insertions(+), 26 deletions(-)
 
-diff --git a/sound/pci/rme96.c b/sound/pci/rme96.c
-index 05b9da30990d..24f1349a8e1b 100644
---- a/sound/pci/rme96.c
-+++ b/sound/pci/rme96.c
-@@ -327,13 +327,10 @@ snd_rme96_capture_ptr(struct rme96 *rme96)
- 
- static int
- snd_rme96_playback_silence(struct snd_pcm_substream *substream,
--			   int channel, /* not used (interleaved data) */
--			   snd_pcm_uframes_t pos,
--			   snd_pcm_uframes_t count)
-+			   int channel, unsigned long pos, unsigned long count)
- {
- 	struct rme96 *rme96 = snd_pcm_substream_chip(substream);
--	count <<= rme96->playback_frlog;
--	pos <<= rme96->playback_frlog;
-+
- 	memset_io(rme96->iobase + RME96_IO_PLAY_BUFFER + pos,
- 		  0, count);
- 	return 0;
-@@ -341,32 +338,49 @@ snd_rme96_playback_silence(struct snd_pcm_substream *substream,
- 
- static int
- snd_rme96_playback_copy(struct snd_pcm_substream *substream,
--			int channel, /* not used (interleaved data) */
--			snd_pcm_uframes_t pos,
--			void __user *src,
--			snd_pcm_uframes_t count)
-+			int channel, unsigned long pos,
-+			void __user *src, unsigned long count)
- {
- 	struct rme96 *rme96 = snd_pcm_substream_chip(substream);
--	count <<= rme96->playback_frlog;
--	pos <<= rme96->playback_frlog;
--	return copy_from_user_toio(rme96->iobase + RME96_IO_PLAY_BUFFER + pos, src,
--				   count);
-+
-+	return copy_from_user_toio(rme96->iobase + RME96_IO_PLAY_BUFFER + pos,
-+				   src, count);
-+}
-+
-+static int
-+snd_rme96_playback_copy_kernel(struct snd_pcm_substream *substream,
-+			       int channel, unsigned long pos,
-+			       void *src, unsigned long count)
-+{
-+	struct rme96 *rme96 = snd_pcm_substream_chip(substream);
-+
-+	memcpy_toio(rme96->iobase + RME96_IO_PLAY_BUFFER + pos, src, count);
-+	return 0;
- }
- 
- static int
- snd_rme96_capture_copy(struct snd_pcm_substream *substream,
--		       int channel, /* not used (interleaved data) */
--		       snd_pcm_uframes_t pos,
--		       void __user *dst,
--		       snd_pcm_uframes_t count)
-+		       int channel, unsigned long pos,
-+		       void __user *dst, unsigned long count)
- {
- 	struct rme96 *rme96 = snd_pcm_substream_chip(substream);
--	count <<= rme96->capture_frlog;
--	pos <<= rme96->capture_frlog;
--	return copy_to_user_fromio(dst, rme96->iobase + RME96_IO_REC_BUFFER + pos,
-+
-+	return copy_to_user_fromio(dst,
-+				   rme96->iobase + RME96_IO_REC_BUFFER + pos,
- 				   count);
- }
- 
-+static int
-+snd_rme96_capture_copy_kernel(struct snd_pcm_substream *substream,
-+			      int channel, unsigned long pos,
-+			      void *dst, unsigned long count)
-+{
-+	struct rme96 *rme96 = snd_pcm_substream_chip(substream);
-+
-+	memcpy_fromio(dst, rme96->iobase + RME96_IO_REC_BUFFER + pos, count);
-+	return 0;
-+}
-+
- /*
-  * Digital output capabilities (S/PDIF)
-  */
-@@ -1513,8 +1527,9 @@ static const struct snd_pcm_ops snd_rme96_playback_spdif_ops = {
- 	.prepare =	snd_rme96_playback_prepare,
- 	.trigger =	snd_rme96_playback_trigger,
- 	.pointer =	snd_rme96_playback_pointer,
--	.copy =		snd_rme96_playback_copy,
--	.silence =	snd_rme96_playback_silence,
-+	.copy_user =	snd_rme96_playback_copy,
-+	.copy_kernel =	snd_rme96_playback_copy_kernel,
-+	.fill_silence =	snd_rme96_playback_silence,
- 	.mmap =		snd_pcm_lib_mmap_iomem,
- };
- 
-@@ -1526,7 +1541,8 @@ static const struct snd_pcm_ops snd_rme96_capture_spdif_ops = {
- 	.prepare =	snd_rme96_capture_prepare,
- 	.trigger =	snd_rme96_capture_trigger,
- 	.pointer =	snd_rme96_capture_pointer,
--	.copy =		snd_rme96_capture_copy,
-+	.copy_user =	snd_rme96_capture_copy,
-+	.copy_kernel =	snd_rme96_capture_copy_kernel,
- 	.mmap =		snd_pcm_lib_mmap_iomem,
- };
- 
-@@ -1538,8 +1554,9 @@ static const struct snd_pcm_ops snd_rme96_playback_adat_ops = {
- 	.prepare =	snd_rme96_playback_prepare,
- 	.trigger =	snd_rme96_playback_trigger,
- 	.pointer =	snd_rme96_playback_pointer,
--	.copy =		snd_rme96_playback_copy,
--	.silence =	snd_rme96_playback_silence,
-+	.copy_user =	snd_rme96_playback_copy,
-+	.copy_kernel =	snd_rme96_playback_copy_kernel,
-+	.fill_silence =	snd_rme96_playback_silence,
- 	.mmap =		snd_pcm_lib_mmap_iomem,
- };
- 
-@@ -1551,7 +1568,8 @@ static const struct snd_pcm_ops snd_rme96_capture_adat_ops = {
- 	.prepare =	snd_rme96_capture_prepare,
- 	.trigger =	snd_rme96_capture_trigger,
- 	.pointer =	snd_rme96_capture_pointer,
--	.copy =		snd_rme96_capture_copy,
-+	.copy_user =	snd_rme96_capture_copy,
-+	.copy_kernel =	snd_rme96_capture_copy_kernel,
- 	.mmap =		snd_pcm_lib_mmap_iomem,
- };
- 
--- 
-2.13.0
+On 06/09/2017 06:15 AM, Philipp Zabel wrote:
+> On Wed, 2017-06-07 at 11:33 -0700, Steve Longerbeam wrote:
+>> Add the core media driver for i.MX SOC.
+>>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>>
+>> Switch from the v4l2_of_ APIs to the v4l2_fwnode_ APIs.
+>>
+>> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+>>
+>> Add the bayer formats to imx-media's list of supported pixel and bus
+>> formats.
+>>
+>> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+>> ---
+> [...]
+>> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+>> new file mode 100644
+>> index 0000000..da694f6
+>> --- /dev/null
+>> +++ b/drivers/staging/media/imx/imx-media-dev.c
+>> @@ -0,0 +1,666 @@
+> [...]
+>> +/*
+>> + * adds given video device to given imx-media source pad vdev list.
+>> + * Continues upstream from the pad entity's sink pads.
+>> + */
+>> +static int imx_media_add_vdev_to_pad(struct imx_media_dev *imxmd,
+>> +				     struct imx_media_video_dev *vdev,
+>> +				     struct media_pad *srcpad)
+>> +{
+>> +	struct media_entity *entity = srcpad->entity;
+>> +	struct imx_media_subdev *imxsd;
+>> +	struct imx_media_pad *imxpad;
+>> +	struct media_link *link;
+>> +	struct v4l2_subdev *sd;
+>> +	int i, vdev_idx, ret;
+>> +
+>> +	if (!is_media_entity_v4l2_subdev(entity))
+>> +		return -EINVAL;
+> 
+> Could we make this return 0, to just skip non-v4l2_subdev entities?
+> Currently, imx_media_probe_complete silently fails with this -EINVAL if
+> there is a tvp5150 connected due to the separate media entities that the
+> tvp5150 driver creates for the input connectors (Composite0, for
+> example).
+> 
+
+Right, I've made that change.
+
+Steve
