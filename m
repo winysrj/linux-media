@@ -1,113 +1,324 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58608
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751722AbdF3LNI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Jun 2017 07:13:08 -0400
-Date: Fri, 30 Jun 2017 08:12:58 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH 01/12] [media] vb2: add explicit fence user API
-Message-ID: <20170630081258.1abb8e78@vento.lan>
-In-Reply-To: <20170616073915.5027-2-gustavo@padovan.org>
-References: <20170616073915.5027-1-gustavo@padovan.org>
-        <20170616073915.5027-2-gustavo@padovan.org>
+Received: from mx1.redhat.com ([209.132.183.28]:46866 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751562AbdFIRqz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Jun 2017 13:46:55 -0400
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id E9A1D80C1D
+        for <linux-media@vger.kernel.org>; Fri,  9 Jun 2017 17:46:54 +0000 (UTC)
+From: =?UTF-8?q?Jaroslav=20=C5=A0karvada?= <jskarvad@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Jaroslav=20=C5=A0karvada?= <jskarvad@redhat.com>
+Subject: [PATCH] dvb-usb-af9035: load HID table
+Date: Fri,  9 Jun 2017 19:46:44 +0200
+Message-Id: <20170609174644.8735-1-jskarvad@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 16 Jun 2017 16:39:04 +0900
-Gustavo Padovan <gustavo@padovan.org> escreveu:
+Automatically load sniffed HID table from Windows driver if
+USB_VID_ITETECH:USB_PID_ITETECH_IT9135_9006 device is present (e.g. Evolveo
+Mars) or if module parameter force_hid_tab_load is set.
 
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> Turn the reserved2 field into fence_fd that we will use to send
-> an in-fence to the kernel and return an out-fence from the kernel to
-> userspace.
-> 
-> Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
-> when sending a fence to the kernel to be waited on, and
-> V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 ++--
->  drivers/media/v4l2-core/videobuf2-v4l2.c      | 2 +-
->  include/uapi/linux/videodev2.h                | 4 +++-
->  3 files changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index 6f52970..8f6ab85 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -367,7 +367,7 @@ struct v4l2_buffer32 {
->  		__s32		fd;
->  	} m;
->  	__u32			length;
-> -	__u32			reserved2;
-> +	__s32			fence_fd;
->  	__u32			reserved;
->  };
->  
-> @@ -530,7 +530,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
->  		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
->  		put_user(kp->sequence, &up->sequence) ||
-> -		put_user(kp->reserved2, &up->reserved2) ||
-> +		put_user(kp->fence_fd, &up->fence_fd) ||
->  		put_user(kp->reserved, &up->reserved) ||
->  		put_user(kp->length, &up->length))
->  			return -EFAULT;
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> index 0c06699..110fb45 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
->  	b->timestamp = ns_to_timeval(vb->timestamp);
->  	b->timecode = vbuf->timecode;
->  	b->sequence = vbuf->sequence;
-> -	b->reserved2 = 0;
-> +	b->fence_fd = -1;
->  	b->reserved = 0;
->  
->  	if (q->is_multiplanar) {
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 2b8feb8..750d511 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -916,7 +916,7 @@ struct v4l2_buffer {
->  		__s32		fd;
->  	} m;
->  	__u32			length;
-> -	__u32			reserved2;
-> +	__s32			fence_fd;
->  	__u32			reserved;
->  };
->  
-> @@ -953,6 +953,8 @@ struct v4l2_buffer {
->  #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
->  /* mem2mem encoder/decoder */
->  #define V4L2_BUF_FLAG_LAST			0x00100000
+Signed-off-by: Jaroslav Škarvada <jskarvad@redhat.com>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 266 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 266 insertions(+)
 
-> +#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
-> +#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
-
-Please document them at Documentation/media/uapi/v4l/buffer.rst.
-
-We'll also need a new chapter at the documentation, describing the
-explicit fences mechanism.
-
->  
->  /**
->   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
-
-
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 4df9486..5bbcc1e 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -24,6 +24,10 @@
+ /* Max transfer size done by I2C transfer functions */
+ #define MAX_XFER_SIZE  64
+ 
++static bool force_hid_tab_load;
++module_param(force_hid_tab_load, bool, 0644);
++MODULE_PARM_DESC(force_hid_tab_load, "force HID table loading");
++
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+ static u16 af9035_checksum(const u8 *buf, size_t len)
+@@ -1693,6 +1697,263 @@ static int af9035_tuner_detach(struct dvb_usb_adapter *adap)
+ 	return 0;
+ }
+ 
++static int ite9135_load_hid_tab(struct dvb_usb_device *d)
++{
++	struct usb_interface *intf = d->intf;
++	int ret, i;
++	struct reg_val hid_tab[] = {
++		{ 0x4a97, 0x02 },
++		{ 0x4a98, 0xbd },
++		{ 0x4a99, 0x0c },
++		{ 0x4a9a, 0xf3 },
++		{ 0x4a9b, 0x3d },
++		{ 0x4a9c, 0x00 },
++		{ 0x4a9d, 0x00 },
++		{ 0x4a9e, 0x02 },
++		{ 0x4a9f, 0xbd },
++		{ 0x4aa0, 0x00 },
++		{ 0x4aa1, 0xff },
++		{ 0x4aa2, 0x1e },
++		{ 0x4aa3, 0x00 },
++		{ 0x4aa4, 0x00 },
++		{ 0x4aa5, 0x02 },
++		{ 0x4aa6, 0xbd },
++		{ 0x4aa7, 0x01 },
++		{ 0x4aa8, 0xfe },
++		{ 0x4aa9, 0x1f },
++		{ 0x4aaa, 0x00 },
++		{ 0x4aab, 0x00 },
++		{ 0x4aac, 0x02 },
++		{ 0x4aad, 0xbd },
++		{ 0x4aae, 0x02 },
++		{ 0x4aaf, 0xfd },
++		{ 0x4ab0, 0x20 },
++		{ 0x4ab1, 0x00 },
++		{ 0x4ab2, 0x00 },
++		{ 0x4ab3, 0x02 },
++		{ 0x4ab4, 0xbd },
++		{ 0x4ab5, 0x03 },
++		{ 0x4ab6, 0xfc },
++		{ 0x4ab7, 0x21 },
++		{ 0x4ab8, 0x00 },
++		{ 0x4ab9, 0x00 },
++		{ 0x4aba, 0x02 },
++		{ 0x4abb, 0xbd },
++		{ 0x4abc, 0x04 },
++		{ 0x4abd, 0xfb },
++		{ 0x4abe, 0x22 },
++		{ 0x4abf, 0x00 },
++		{ 0x4ac0, 0x00 },
++		{ 0x4ac1, 0x02 },
++		{ 0x4ac2, 0xbd },
++		{ 0x4ac3, 0x05 },
++		{ 0x4ac4, 0xfa },
++		{ 0x4ac5, 0x23 },
++		{ 0x4ac6, 0x00 },
++		{ 0x4ac7, 0x00 },
++		{ 0x4ac8, 0x02 },
++		{ 0x4ac9, 0xbd },
++		{ 0x4aca, 0x06 },
++		{ 0x4acb, 0xf9 },
++		{ 0x4acc, 0x24 },
++		{ 0x4acd, 0x00 },
++		{ 0x4ace, 0x00 },
++		{ 0x4acf, 0x02 },
++		{ 0x4ad0, 0xbd },
++		{ 0x4ad1, 0x07 },
++		{ 0x4ad2, 0xf8 },
++		{ 0x4ad3, 0x25 },
++		{ 0x4ad4, 0x00 },
++		{ 0x4ad5, 0x00 },
++		{ 0x4ad6, 0x02 },
++		{ 0x4ad7, 0xbd },
++		{ 0x4ad8, 0x08 },
++		{ 0x4ad9, 0xf7 },
++		{ 0x4ada, 0x26 },
++		{ 0x4adb, 0x00 },
++		{ 0x4adc, 0x00 },
++		{ 0x4add, 0x02 },
++		{ 0x4ade, 0xbd },
++		{ 0x4adf, 0x09 },
++		{ 0x4ae0, 0xf6 },
++		{ 0x4ae1, 0x27 },
++		{ 0x4ae2, 0x00 },
++		{ 0x4ae3, 0x00 },
++		{ 0x4ae4, 0x02 },
++		{ 0x4ae5, 0xbd },
++		{ 0x4ae6, 0x0a },
++		{ 0x4ae7, 0xf5 },
++		{ 0x4ae8, 0x41 },
++		{ 0x4ae9, 0x00 },
++		{ 0x4aea, 0x00 },
++		{ 0x4aeb, 0x02 },
++		{ 0x4aec, 0xbd },
++		{ 0x4aed, 0x1c },
++		{ 0x4aee, 0xe3 },
++		{ 0x4aef, 0x2a },
++		{ 0x4af0, 0x00 },
++		{ 0x4af1, 0x00 },
++		{ 0x4af2, 0x02 },
++		{ 0x4af3, 0xbd },
++		{ 0x4af4, 0x1f },
++		{ 0x4af5, 0xe0 },
++		{ 0x4af6, 0x43 },
++		{ 0x4af7, 0x00 },
++		{ 0x4af8, 0x00 },
++		{ 0x4af9, 0x02 },
++		{ 0x4afa, 0xbd },
++		{ 0x4afb, 0x12 },
++		{ 0x4afc, 0xed },
++		{ 0x4afd, 0x52 },
++		{ 0x4afe, 0x00 },
++		{ 0x4aff, 0x00 },
++		{ 0x4b00, 0x02 },
++		{ 0x4b01, 0xbd },
++		{ 0x4b02, 0x11 },
++		{ 0x4b03, 0xee },
++		{ 0x4b04, 0x50 },
++		{ 0x4b05, 0x00 },
++		{ 0x4b06, 0x00 },
++		{ 0x4b07, 0x02 },
++		{ 0x4b08, 0xbd },
++		{ 0x4b09, 0x15 },
++		{ 0x4b0a, 0xea },
++		{ 0x4b0b, 0x28 },
++		{ 0x4b0c, 0x00 },
++		{ 0x4b0d, 0x00 },
++		{ 0x4b0e, 0x02 },
++		{ 0x4b0f, 0xbd },
++		{ 0x4b10, 0x10 },
++		{ 0x4b11, 0xef },
++		{ 0x4b12, 0x4f },
++		{ 0x4b13, 0x00 },
++		{ 0x4b14, 0x00 },
++		{ 0x4b15, 0x02 },
++		{ 0x4b16, 0xbd },
++		{ 0x4b17, 0x13 },
++		{ 0x4b18, 0xec },
++		{ 0x4b19, 0x51 },
++		{ 0x4b1a, 0x00 },
++		{ 0x4b1b, 0x00 },
++		{ 0x4b1c, 0x02 },
++		{ 0x4b1d, 0xbd },
++		{ 0x4b1e, 0x0e },
++		{ 0x4b1f, 0xf1 },
++		{ 0x4b20, 0x42 },
++		{ 0x4b21, 0x00 },
++		{ 0x4b22, 0x00 },
++		{ 0x4b23, 0x02 },
++		{ 0x4b24, 0xbd },
++		{ 0x4b25, 0x19 },
++		{ 0x4b26, 0xe6 },
++		{ 0x4b27, 0x15 },
++		{ 0x4b28, 0x01 },
++		{ 0x4b29, 0x00 },
++		{ 0x4b2a, 0x02 },
++		{ 0x4b2b, 0xbd },
++		{ 0x4b2c, 0x1e },
++		{ 0x4b2d, 0xe1 },
++		{ 0x4b2e, 0x13 },
++		{ 0x4b2f, 0x03 },
++		{ 0x4b30, 0x00 },
++		{ 0x4b31, 0x02 },
++		{ 0x4b32, 0xbd },
++		{ 0x4b33, 0x16 },
++		{ 0x4b34, 0xe9 },
++		{ 0x4b35, 0x16 },
++		{ 0x4b36, 0x01 },
++		{ 0x4b37, 0x00 },
++		{ 0x4b38, 0x02 },
++		{ 0x4b39, 0xbd },
++		{ 0x4b3a, 0x0b },
++		{ 0x4b3b, 0xf4 },
++		{ 0x4b3c, 0x28 },
++		{ 0x4b3d, 0x04 },
++		{ 0x4b3e, 0x00 },
++		{ 0x4b3f, 0x02 },
++		{ 0x4b40, 0xbd },
++		{ 0x4b41, 0x0f },
++		{ 0x4b42, 0xf0 },
++		{ 0x4b43, 0x3b },
++		{ 0x4b44, 0x00 },
++		{ 0x4b45, 0x00 },
++		{ 0x4b46, 0x02 },
++		{ 0x4b47, 0xbd },
++		{ 0x4b48, 0x18 },
++		{ 0x4b49, 0xe7 },
++		{ 0x4b4a, 0x2e },
++		{ 0x4b4b, 0x00 },
++		{ 0x4b4c, 0x00 },
++		{ 0x4b4d, 0x02 },
++		{ 0x4b4e, 0xbd },
++		{ 0x4b4f, 0x1a },
++		{ 0x4b50, 0xe5 },
++		{ 0x4b51, 0x2d },
++		{ 0x4b52, 0x00 },
++		{ 0x4b53, 0x00 },
++		{ 0x4b54, 0x02 },
++		{ 0x4b55, 0xbd },
++		{ 0x4b56, 0x17 },
++		{ 0x4b57, 0xe8 },
++		{ 0x4b58, 0x3e },
++		{ 0x4b59, 0x00 },
++		{ 0x4b5a, 0x00 },
++		{ 0x4b5b, 0x02 },
++		{ 0x4b5c, 0xbd },
++		{ 0x4b5d, 0x40 },
++		{ 0x4b5e, 0xbf },
++		{ 0x4b5f, 0x13 },
++		{ 0x4b60, 0x01 },
++		{ 0x4b61, 0x00 },
++		{ 0x4b62, 0x02 },
++		{ 0x4b63, 0xbd },
++		{ 0x4b64, 0x41 },
++		{ 0x4b65, 0xbe },
++		{ 0x4b66, 0x09 },
++		{ 0x4b67, 0x03 },
++		{ 0x4b68, 0x00 },
++		{ 0x4b69, 0x02 },
++		{ 0x4b6a, 0xbd },
++		{ 0x4b6b, 0x42 },
++		{ 0x4b6c, 0xbd },
++		{ 0x4b6d, 0x07 },
++		{ 0x4b6e, 0x03 },
++		{ 0x4b6f, 0x00 },
++		{ 0x4b70, 0x02 },
++		{ 0x4b71, 0xbd },
++		{ 0x4b72, 0x44 },
++		{ 0x4b73, 0xbb },
++		{ 0x4b74, 0x16 },
++		{ 0x4b75, 0x03 },
++		{ 0x4b76, 0x00 },
++		{ 0x4b77, 0x02 },
++		{ 0x4b78, 0xbd },
++		{ 0x4b79, 0x45 },
++		{ 0x4b7a, 0xba },
++		{ 0x4b7b, 0x45 },
++		{ 0x4b7c, 0x05 },
++		{ 0x4b7d, 0x00 },
++		{ 0x4b7e, 0x02 },
++		{ 0x4b7f, 0xbd },
++		{ 0x4b80, 0x14 },
++		{ 0x4b81, 0xeb },
++		{ 0x4b82, 0x45 },
++		{ 0x4b83, 0x03 },
++		{ 0x4b84, 0x00 },
++	};
++
++	for (i = 0; i < ARRAY_SIZE(hid_tab); i++) {
++		ret = af9035_wr_reg(d, hid_tab[i].reg, hid_tab[i].val);
++		if (ret < 0)
++			goto err;
++	}
++	dev_info(&intf->dev, "HID table successfully loaded\n");
++	return 0;
++err:
++	dev_info(&intf->dev, "loading HID table failed, item=%d, ret=%d\n", i, ret);
++	return ret;
++}
++
+ static int af9035_init(struct dvb_usb_device *d)
+ {
+ 	struct state *state = d_to_priv(d);
+@@ -1732,6 +1993,11 @@ static int af9035_init(struct dvb_usb_device *d)
+ 			goto err;
+ 	}
+ 
++	if (force_hid_tab_load || \
++		(le16_to_cpu(d->udev->descriptor.idVendor) == USB_VID_ITETECH && \
++		le16_to_cpu(d->udev->descriptor.idProduct) == USB_PID_ITETECH_IT9135_9006))
++			ite9135_load_hid_tab(d);
++
+ 	return 0;
+ 
+ err:
 -- 
-Thanks,
-Mauro
+2.9.4
