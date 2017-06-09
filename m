@@ -1,114 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:43153 "EHLO
-        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751646AbdFIPVB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33256 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751561AbdFIK15 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Jun 2017 11:21:01 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v7 2/7] dt-bindings: media: Add MAX2175 binding description
-Date: Fri,  9 Jun 2017 16:07:33 +0100
-Message-Id: <20170609150738.56294-3-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <20170609150738.56294-1-ramesh.shanmugasundaram@bp.renesas.com>
-References: <20170609150738.56294-1-ramesh.shanmugasundaram@bp.renesas.com>
+        Fri, 9 Jun 2017 06:27:57 -0400
+Date: Fri, 9 Jun 2017 13:27:52 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Kevin Hilman <khilman@baylibre.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sekhar Nori <nsekhar@ti.com>,
+        David Lechner <david@lechnology.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        Prabhakar Lad <prabhakar.csengg@gmail.com>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH v2 2/4] [media] davinci: vpif_capture: get subdevs from
+ DT when available
+Message-ID: <20170609102752.GO1019@valkosipuli.retiisi.org.uk>
+References: <20170606233741.26718-1-khilman@baylibre.com>
+ <20170606233741.26718-3-khilman@baylibre.com>
+ <f305d0fc-b5cd-591a-1d95-7ae66bfa72ec@xs4all.nl>
+ <CAOi56cV18wJce8hzTk0r0YKvr4vzLi8QDwu01Az1rae-9=wMRg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOi56cV18wJce8hzTk0r0YKvr4vzLi8QDwu01Az1rae-9=wMRg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree binding documentation for MAX2175 RF to bits tuner
-device.
+Hi Kevin,
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
- .../devicetree/bindings/media/i2c/max2175.txt      | 59 ++++++++++++++++++++++
- .../devicetree/bindings/property-units.txt         |  1 +
- 2 files changed, 60 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/max2175.txt
+On Thu, Jun 08, 2017 at 06:01:45PM -0700, Kevin Hilman wrote:
+> On Wed, Jun 7, 2017 at 11:29 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > On 07/06/17 01:37, Kevin Hilman wrote:
+> >> Enable  getting of subdevs from DT ports and endpoints.
+> >>
+> >> The _get_pdata() function was larely inspired by (i.e. stolen from)
+> >> am437x-vpfe.c
+> >>
+> >> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+> >> ---
+> >>  drivers/media/platform/davinci/vpif_capture.c | 126 +++++++++++++++++++++++++-
+> >>  drivers/media/platform/davinci/vpif_display.c |   5 +
+> >>  include/media/davinci/vpif_types.h            |   9 +-
+> >>  3 files changed, 134 insertions(+), 6 deletions(-)
+> >>
+> >> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+> >> index fc5c7622660c..b9d927d1e5a8 100644
+> >> --- a/drivers/media/platform/davinci/vpif_capture.c
+> >> +++ b/drivers/media/platform/davinci/vpif_capture.c
+> >> @@ -22,6 +22,8 @@
+> >>  #include <linux/slab.h>
+> >>
+> >>  #include <media/v4l2-ioctl.h>
+> >> +#include <media/v4l2-of.h>
+> >
+> > v4l2-of.h no longer exists, so this v2 is wrong. Unfortunately this patch has
+> > already been merged in our master. I'm not sure how this could have slipped past
+> > both my and Mauro's patch testing (and yours, for that matter).
+> 
+> I have that file in the various trees I tested agains.
+> 
+> > Can you fix this and post a patch on top of the media master that makes this
+> > compile again?
+> 
+> Sorry for the dumb question, but what tree are you referring to?  I
+> tried the master branch of both [1] and [2] and both seem to have that
+> include.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/max2175.txt b/Documentation/devicetree/bindings/media/i2c/max2175.txt
-new file mode 100644
-index 000000000000..02b4e9cd7b1b
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/max2175.txt
-@@ -0,0 +1,59 @@
-+Maxim Integrated MAX2175 RF to Bits tuner
-+-----------------------------------------
-+
-+The MAX2175 IC is an advanced analog/digital hybrid-radio receiver with
-+RF to Bits® front-end designed for software-defined radio solutions.
-+
-+Required properties:
-+--------------------
-+- compatible: "maxim,max2175" for MAX2175 RF-to-bits tuner.
-+- clocks: clock specifier.
-+- port: child port node corresponding to the I2S output, in accordance with
-+	the video interface bindings defined in
-+	Documentation/devicetree/bindings/media/video-interfaces.txt. The port
-+	node must contain at least one endpoint.
-+
-+Optional properties:
-+--------------------
-+- maxim,master	      : phandle to the master tuner if it is a slave. This
-+			is used to define two tuners in diversity mode
-+			(1 master, 1 slave). By default each tuner is an
-+			individual master.
-+- maxim,refout-load   : load capacitance value (in picofarads) on reference
-+			output drive level. The possible load values are:
-+			 0 (default - refout disabled)
-+			10
-+			20
-+			30
-+			40
-+			60
-+			70
-+- maxim,am-hiz-filter : empty property indicates the AM Hi-Z filter is used
-+			in this hardware for AM antenna input.
-+
-+Example:
-+--------
-+
-+Board specific DTS file
-+
-+/* Fixed XTAL clock node */
-+maxim_xtal: clock {
-+	compatible = "fixed-clock";
-+	#clock-cells = <0>;
-+	clock-frequency = <36864000>;
-+};
-+
-+/* A tuner device instance under i2c bus */
-+max2175_0: tuner@60 {
-+	compatible = "maxim,max2175";
-+	reg = <0x60>;
-+	clocks = <&maxim_xtal>;
-+	maxim,refout-load = <10>;
-+
-+	port {
-+		max2175_0_ep: endpoint {
-+			remote-endpoint = <&slave_rx_device>;
-+		};
-+	};
-+
-+};
-diff --git a/Documentation/devicetree/bindings/property-units.txt b/Documentation/devicetree/bindings/property-units.txt
-index 12278d79f6c0..7c9f6ee918f1 100644
---- a/Documentation/devicetree/bindings/property-units.txt
-+++ b/Documentation/devicetree/bindings/property-units.txt
-@@ -28,6 +28,7 @@ Electricity
- -ohms		: Ohms
- -micro-ohms	: micro Ohms
- -microvolt	: micro volts
-+-picofarads	: picofarads
- 
- Temperature
- ----------------------------------------
+These patches are now merged as well as the changes requested:
+
+<URL:https://git.linuxtv.org/media_tree.git/commit/?id=a2d17962c9ca7ac66a132bbbfc6054559856e14e>
+
 -- 
-2.12.2
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
