@@ -1,36 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47196
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751305AbdFFMfh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Jun 2017 08:35:37 -0400
-Date: Tue, 6 Jun 2017 09:35:24 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Stanimir Varbanov <svarbanov@mm-sol.com>
-Subject: Re: [GIT PULL FOR v4.13] Add qualcomm venus codec
-Message-ID: <20170606093518.43593fa8@vento.lan>
-In-Reply-To: <441c2430-ff9a-6212-4252-1502312248da@xs4all.nl>
-References: <441c2430-ff9a-6212-4252-1502312248da@xs4all.nl>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59488 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751601AbdFIJnf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Jun 2017 05:43:35 -0400
+Date: Fri, 9 Jun 2017 12:43:20 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
+Subject: Re: [PATCH 05/12] intel-ipu3: css: tables
+Message-ID: <20170609094303.GN1019@valkosipuli.retiisi.org.uk>
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+ <1496695157-19926-6-git-send-email-yong.zhi@intel.com>
+ <CAAFQd5BH-MwPBdsJEmz1-fF3W0rQ5HwSbHWuu24RSeP7EjhR5Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5BH-MwPBdsJEmz1-fF3W0rQ5HwSbHWuu24RSeP7EjhR5Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 22 May 2017 09:37:48 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> Hi Mauro,
+On Thu, Jun 08, 2017 at 05:29:48PM +0900, Tomasz Figa wrote:
+> Hi Yong,
 > 
-> This pull requests adds support for the Qualcomm venus codec driver.
+> On Tue, Jun 6, 2017 at 5:39 AM, Yong Zhi <yong.zhi@intel.com> wrote:
+> > Coeff, config parameters etc const definitions for
+> > IPU3 programming.
+> >
+> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > ---
+> >  drivers/media/pci/intel/ipu3/ipu3-tables.c | 9621 ++++++++++++++++++++++++++++
+> >  drivers/media/pci/intel/ipu3/ipu3-tables.h |   82 +
+> >  2 files changed, 9703 insertions(+)
+> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-tables.c
+> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-tables.h
+> 
+> I wonder if this patch really reached the mailing list. It seems to
+> not be present on patchwork.linuxtv.org. Possibly due to size
+> restrictions.
 
-What's the status of the firmware blobs required by this driver?
+Thanks for pointing this out.
 
-Are they already at linux-firmware?
+I'm pushing the CIO2 and ImgU driver patches here:
 
-Regards,
-Mauro
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=ipu3>
 
-Thanks,
-Mauro
+It'll take some time still to get there...
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
