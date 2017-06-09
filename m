@@ -1,91 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb0-f175.google.com ([209.85.213.175]:32849 "EHLO
-        mail-yb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751806AbdFHOgT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 10:36:19 -0400
-Received: by mail-yb0-f175.google.com with SMTP id 202so9958297ybd.0
-        for <linux-media@vger.kernel.org>; Thu, 08 Jun 2017 07:36:19 -0700 (PDT)
-Received: from mail-yb0-f170.google.com (mail-yb0-f170.google.com. [209.85.213.170])
-        by smtp.gmail.com with ESMTPSA id u10sm2018767ywa.53.2017.06.08.07.36.12
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 08 Jun 2017 07:36:12 -0700 (PDT)
-Received: by mail-yb0-f170.google.com with SMTP id f192so9940316yba.2
-        for <linux-media@vger.kernel.org>; Thu, 08 Jun 2017 07:36:12 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:52961 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751591AbdFIMLV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Jun 2017 08:11:21 -0400
 MIME-Version: 1.0
-In-Reply-To: <73992991-65a9-915b-a450-b23aeb3baaed@arm.com>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
- <1496695157-19926-4-git-send-email-yong.zhi@intel.com> <CAAFQd5CLXUsDv6H1C22tc4qjG9e7tm5jtxwYBjV5gx9qrDw50A@mail.gmail.com>
- <73992991-65a9-915b-a450-b23aeb3baaed@arm.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 8 Jun 2017 23:35:51 +0900
-Message-ID: <CAAFQd5AWGN_qSXGG32D-eWKZRoRme+XCD9v1r8qJ5bthtS9z9w@mail.gmail.com>
-Subject: Re: [PATCH 03/12] intel-ipu3: Add DMA API implementation
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        Joerg Roedel <joro@8bytes.org>,
-        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Fri, 09 Jun 2017 15:11:14 +0300
+From: Antti Palosaari <crope@iki.fi>
+To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-media-owner@vger.kernel.org
+In-Reply-To: <20170608165137.Horde.bWBBH3ahbuGABOWprQvJwWG@gator4166.hostgator.com>
+References: <20170608165137.Horde.bWBBH3ahbuGABOWprQvJwWG@gator4166.hostgator.com>
+Message-ID: <63d70a1e4783d95dac79746161f213a0@iki.fi>
+Subject: Re: [media-af9013] question about return value in function
+ af9013_wr_regs()
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 8, 2017 at 10:22 PM, Robin Murphy <robin.murphy@arm.com> wrote:
-> On 07/06/17 10:47, Tomasz Figa wrote:
->> Hi Yong,
->>
->> +Robin, Joerg, IOMMU ML
->>
->> Please see my comments inline.
->>
->> On Tue, Jun 6, 2017 at 5:39 AM, Yong Zhi <yong.zhi@intel.com> wrote:
-[snip]
->>> +
->>> +/* End of things adapted from arch/arm/mm/dma-mapping.c */
->>> +static void ipu3_dmamap_sync_single_for_cpu(struct device *dev,
->>> +                                           dma_addr_t dma_handle, size_t size,
->>> +                                           enum dma_data_direction dir)
->>> +{
->>> +       struct ipu3_mmu *mmu = to_ipu3_mmu(dev);
->>> +       dma_addr_t daddr = iommu_iova_to_phys(mmu->domain, dma_handle);
->>> +
->>> +       clflush_cache_range(phys_to_virt(daddr), size);
->>
->> You might need to consider another IOMMU on the way here. Generally,
->> given that daddr is your MMU DMA address (not necessarily CPU physical
->> address), you should be able to call
->>
->> dma_sync_single_for_cpu(<your pci device>, daddr, size, dir)
->
-> I'd hope that this IPU complex is some kind of embedded endpoint thing
-> that bypasses the VT-d IOMMU or is always using its own local RAM,
-> because it would be pretty much unworkable otherwise.
+Gustavo A. R. Silva kirjoitti 2017-06-09 00:51:
+> Hello everybody,
+> 
+> While looking into Coverity ID 1227035 I ran into the following piece
+> of code at drivers/media/dvb-frontends/af9013.c:595:
 
-It uses system RAM and, as far as my understanding goes, by default it
-operates without the VT-d IOMMU and that's how it's used right now.
-I'm suggesting VT-d IOMMU as a way to further strengthen the security
-and error resilience in future (due to the IPU complex being
-non-coherent and also running a closed source firmware).
+> The issue here is that the value stored in variable _ret_ at line 608,
+>  is not being evaluated as it happens at line 662, 667, 672 and 677.
+> Then after looking into function af9013_wr_regs(), I noticed that this
+>  function always returns zero, no matter what, as you can see below:
+> 
+> 121static int af9013_wr_regs(struct af9013_state *priv, u16 reg, const  
+> u8 *val,
+> 122        int len)
+> 123{
+> 124        int ret, i;
+> 125        u8 mbox = (0 << 7)|(0 << 6)|(1 << 1)|(1 << 0);
+> 126
+> 127        if ((priv->config.ts_mode == AF9013_TS_USB) &&
+> 128                ((reg & 0xff00) != 0xff00) && ((reg & 0xff00) != 
+> 0xae00)) {
+> 129                mbox |= ((len - 1) << 2);
+> 130                ret = af9013_wr_regs_i2c(priv, mbox, reg, val, len);
+> 131        } else {
+> 132                for (i = 0; i < len; i++) {
+> 133                        ret = af9013_wr_regs_i2c(priv, mbox, reg+i,
+>  val+i, 1);
+> 134                        if (ret)
+> 135                                goto err;
+> 136                }
+> 137        }
+> 138
+> 139err:
+> 140        return 0;
+> 141}
 
-> The whole
-> infrastructure isn't really capable of dealing with nested IOMMUs, and
-> nested DMA ops would be an equally horrible idea.
+That function should return error code on error case, not zero always.
 
-Could you elaborate a bit more on this? I think we should be able to
-deal with this in a way I suggested before:
 
-a) the PCI device would use the system DMA ops,
-b) the PCI device would implement a secondary bus for which it would
-provide its own DMA and IOMMU ops.
-c) a secondary device would be registered on the secondary bus,
-d) all memory for the IPU would be managed on behalf of the secondary device.
+regards
+Antti
 
-In fact, the driver already is designed in a way that all the points
-above are true. If I'm not missing something, the only significant
-missing point is calling into system DMA ops from IPU DMA ops.
 
-Best regards,
-Tomasz
+
+
+-- 
+http://palosaari.fi/
