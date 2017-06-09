@@ -1,127 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:36046 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751509AbdF1M33 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Jun 2017 08:29:29 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre TORGUE <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick FERTRE <yannick.fertre@st.com>,
-        Discussions about the Letux Kernel
-        <letux-kernel@openphoenux.org>
-Subject: Re: [PATCH v1 1/6] DT bindings: add bindings for ov965x camera module
-Date: Wed, 28 Jun 2017 12:28:31 +0000
-Message-ID: <2d916065-fd81-6f52-5d32-a46331e0c5ed@st.com>
-References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
- <1498143942-12682-2-git-send-email-hugues.fruchet@st.com>
- <D5629236-95D8-45B6-9719-E8B9796FEC90@goldelico.com>
- <64e3005d-31df-71f2-762b-2c1b1152fc2d@st.com>
- <5cd25a47-f3be-8c40-3940-29f26a245076@kernel.org>
- <39501C78-7B81-4803-94C1-25DFA06EA526@goldelico.com>
- <e2a9df8b-00f8-ae36-f4f3-63dcc98dea50@kernel.org>
- <CGME20170628091334epcas5p2071ae52aa3f9312b1099e37ffac20eb1@epcas5p2.samsung.com>
- <6F68CD33-70E6-47C1-9E89-5E2AA776879F@goldelico.com>
- <5bcc7ec0-4ae5-3703-3cee-ed644eef710a@samsung.com>
- <9D51AC4C-6CB7-46A5-B363-2AD6DA6C497F@goldelico.com>
-In-Reply-To: <9D51AC4C-6CB7-46A5-B363-2AD6DA6C497F@goldelico.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <29AEB76E89C20F42BE1AF53C84C02888@st.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from mga03.intel.com ([134.134.136.65]:45202 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751629AbdFINY1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Jun 2017 09:24:27 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com
+Subject: [PATCH v2 2/2] v4l: controls: Improve documentation for V4L2_CID_GAIN
+Date: Fri,  9 Jun 2017 16:21:47 +0300
+Message-Id: <1497014507-1835-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1497014507-1835-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1497014507-1835-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQoNCk9uIDA2LzI4LzIwMTcgMDE6MjQgUE0sIEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOg0K
-PiANCj4+IEFtIDI4LjA2LjIwMTcgdW0gMTI6NTAgc2NocmllYiBTeWx3ZXN0ZXIgTmF3cm9ja2kg
-PHMubmF3cm9ja2lAc2Ftc3VuZy5jb20+Og0KPj4NCj4+IE9uIDA2LzI4LzIwMTcgMTE6MTIgQU0s
-IEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOg0KPj4+PiBBbSAyOC4wNi4yMDE3IHVtIDAwOjU3
-IHNjaHJpZWIgU3lsd2VzdGVyIE5hd3JvY2tpIDxzbmF3cm9ja2lAa2VybmVsLm9yZz46DQo+Pj4+
-IE9uIDA2LzI3LzIwMTcgMDc6NDggQU0sIEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOg0KPj4+
-Pj4+IEFtIDI2LjA2LjIwMTcgdW0gMjI6MDQgc2NocmllYiBTeWx3ZXN0ZXIgTmF3cm9ja2kgPHNu
-YXdyb2NraUBrZXJuZWwub3JnPjoNCj4+Pj4+PiBPbiAwNi8yNi8yMDE3IDEyOjM1IFBNLCBIdWd1
-ZXMgRlJVQ0hFVCB3cm90ZToNCj4+Pj4+Pj4+IFdoYXQgSSBhbSBtaXNzaW5nIHRvIHN1cHBvcnQg
-dGhlIEdUQTA0IGNhbWVyYSBpcyB0aGUgY29udHJvbCBvZiB0aGUgb3B0aW9uYWwgInZhbmEtc3Vw
-cGx5Ii4NCj4+Pj4+Pj4+IFNvIHRoZSBkcml2ZXIgZG9lcyBub3QgcG93ZXIgdXAgdGhlIGNhbWVy
-YSBtb2R1bGUgd2hlbiBuZWVkZWQgYW5kIHRoZXJlZm9yZSBwcm9iaW5nIGZhaWxzLg0KPj4+Pj4+
-Pj4NCj4+Pj4+Pj4+ICAgICAtIHZhbmEtc3VwcGx5OiBhIHJlZ3VsYXRvciB0byBwb3dlciB1cCB0
-aGUgY2FtZXJhIG1vZHVsZS4NCj4+Pj4+Pj4+DQo+Pj4+Pj4+PiBEcml2ZXIgY29kZSBpcyBub3Qg
-Y29tcGxleCB0byBhZGQ6DQo+Pj4+Pj4NCj4+Pj4+Pj4gWWVzLCBJIHNhdyBpdCBpbiB5b3VyIGNv
-ZGUsIGJ1dCBhcyBJIGRvbid0IGhhdmUgYW55IHByb2dyYW1tYWJsZSBwb3dlcg0KPj4+Pj4+PiBz
-dXBwbHkgb24gbXkgc2V0dXAsIEkgaGF2ZSBub3QgcHVzaGVkIHRoaXMgY29tbWl0Lg0KPj4+Pj4+
-DQo+Pj4+Pj4gU2luY2UgeW91IGFyZSBhYm91dCB0byBhZGQgdm9sdGFnZSBzdXBwbGllcyB0byB0
-aGUgRFQgYmluZGluZyBJJ2Qgc3VnZ2VzdA0KPj4+Pj4+IHRvIGluY2x1ZGUgYWxsIHRocmVlIHZv
-bHRhZ2Ugc3VwcGxpZXMgb2YgdGhlIHNlbnNvciBjaGlwLiBMb29raW5nIGF0IHRoZSBPVjk2NTAN
-Cj4+Pj4+PiBhbmQgdGhlIE9WOTY1NSBkYXRhc2hlZXQgdGhlcmUgYXJlIGZvbGxvd2luZyBuYW1l
-cyB1c2VkIGZvciB0aGUgdm9sdGFnZSBzdXBwbHkNCj4+Pj4+PiBwaW5zOg0KPj4+Pj4+DQo+Pj4+
-Pj4gQVZERCAtIEFuYWxvZyBwb3dlciBzdXBwbHksDQo+Pj4+Pj4gRFZERCAtIFBvd2VyIHN1cHBs
-eSBmb3IgZGlnaXRhbCBjb3JlIGxvZ2ljLA0KPj4+Pj4+IERPVkREIC0gRGlnaXRhbCBwb3dlciBz
-dXBwbHkgZm9yIEkvTy4NCj4+Pj4+DQo+Pj4+PiBUaGUgbGF0dGVyIHR3byBhcmUgdXN1YWxseSBu
-b3QgaW5kZXBlbmRlbnRseSBzd2l0Y2hhYmxlIGZyb20gdGhlIFNvQyBwb3dlcg0KPj4+Pj4gdGhl
-IG1vZHVsZSBpcyBjb25uZWN0ZWQgdG8uDQo+Pj4+Pg0KPj4+Pj4gQW5kIHNvbWV0aW1lcyBEVkRE
-IGFuZCBET1ZERCBhcmUgY29ubmVjdGVkIHRvZ2V0aGVyLg0KPj4+Pj4NCj4+Pj4+IFNvIHRoZSBk
-cml2ZXIgY2FuJ3QgbWFrZSBtdWNoIHVzZSBvZiBrbm93aW5nIG9yIHJlcXVlc3RpbmcgdGhlbSBi
-ZWNhdXNlIHRoZQ0KPj4+Pj4gMS44ViBzdXBwbHkgaXMgYWx3YXlzIGFjdGl2ZSwgZXZlbiBkdXJp
-bmcgc3VzcGVuZC4NCj4+Pj4+DQo+Pj4+Pj4NCj4+Pj4+PiBJIGRvdWJ0IHRoZSBzZW5zb3IgY2Fu
-IHdvcmsgd2l0aG91dCBhbnkgb2YgdGhlc2Ugdm9sdGFnZSBzdXBwbGllcywgdGh1cw0KPj4+Pj4+
-IHJlZ3VsYXRvcl9nZXRfb3B0aW9uYWwoKSBzaG91bGQgbm90IGJlIHVzZWQuIEkgd291bGQganVz
-dCB1c2UgdGhlIHJlZ3VsYXRvcg0KPj4+Pj4+IGJ1bGsgQVBJIHRvIGhhbmRsZSBhbGwgdGhyZWUg
-cG93ZXIgc3VwcGxpZXMuDQo+Pj4+Pg0KPj4+Pj4gVGhlIGRpZ2l0YWwgcGFydCB3b3JrcyB3aXRo
-IEFWREQgdHVybmVkIG9mZi4gU28gdGhlIExETyBzdXBwbHlpbmcgQVZERCBzaG91bGQNCj4+Pj4+
-IGJlIHN3aXRjaGFibGUgdG8gc2F2ZSBwb3dlciAoJnZhdXgzIG9uIHRoZSBHVEEwNCBkZXZpY2Up
-Lj4NCj4+Pj4+IEJ1dCBub3QgYWxsIGRlc2lnbnMgY2FuIHN3aXRjaCBpdCBvZmYuIEhlbmNlIHRo
-ZSBpZGVhIHRvIGRlZmluZSBpdCBhcyBhbg0KPj4+Pj4gL29wdGlvbmFsLyByZWd1bGF0b3IuIElm
-IGl0IGlzIG5vdCBkZWZpbmVkIGJ5IERULCB0aGUgZHJpdmVyIHNpbXBseSBhc3N1bWVzDQo+Pj4+
-PiBpdCBpcyBhbHdheXMgcG93ZXJlZCBvbi4NCj4+Pj4NCj4+Pj4gSSBkaWRuJ3Qgc2F5IHdlIGNh
-bid0IGRlZmluZSByZWd1bGF0b3Igc3VwcGx5IHByb3BlcnRpZXMgYXMgb3B0aW9uYWwgaW4gdGhl
-IERUDQo+Pj4+IGJpbmRpbmcuICBJZiB3ZSBkZWZpbmUgdGhlbSBhcyBzdWNoIGFuZCBhbnkgb2Yg
-dGhlc2UgKi1zdXBwbHkgcHJvcGVydGllcyBpcw0KPj4+PiBtaXNzaW5nIGluIERUIHdpdGggcmVn
-dWxhdG9yX2dldCgpIHRoZSByZWd1bGF0b3IgY29yZSB3aWxsIHVzZSBkdW1teSByZWd1bGF0b3IN
-Cj4+Pj4gZm9yIHRoYXQgcGFydGljdWxhciB2b2x0YWdlIHN1cHBseS4gIFdoaWxlIHdpdGggcmVn
-dWxhdG9yX2dldF9vcHRpb25hbCgpDQo+Pj4+IC1FTk9ERVYgaXMgcmV0dXJuZWQgd2hlbiB0aGUg
-cmVndWxhdG9yIGNhbm5vdCBiZSBmb3VuZC4NCj4+Pg0KPj4+IEFoLCBvay4gSSBzZWUuDQo+Pj4N
-Cj4+PiBJIGhhZCB0aG91Z2h0IHRoYXQgaXQgaXMgdGhlIHJpZ2h0IHRoaW5nIHRvIGRvIGxpa2Ug
-ZGV2bV9ncGlvZF9nZXRfb3B0aW9uYWwoKS4NCj4+Pg0KPj4+IFRoYXQgb25lIGl0IGlzIGRlc2Ny
-aWJlZCBhczoNCj4+Pg0KPj4+ICIqIFRoaXMgaXMgZXF1aXZhbGVudCB0byBncGlvZF9nZXQoKSwg
-ZXhjZXB0IHRoYXQgd2hlbiBubyBHUElPIHdhcyBhc3NpZ25lZCB0bw0KPj4+ICAgKiB0aGUgcmVx
-dWVzdGVkIGZ1bmN0aW9uIGl0IHdpbGwgcmV0dXJuIE5VTEwuIFRoaXMgaXMgY29udmVuaWVudCBm
-b3IgZHJpdmVycw0KPj4+ICAgKiB0aGF0IG5lZWQgdG8gaGFuZGxlIG9wdGlvbmFsIEdQSU9zLiIN
-Cj4+Pg0KPj4+IFNlZW1zIHRvIGJlIGluY29uc2lzdGVudCBkZWZpbml0aW9uIG9mIHdoYXQgIm9w
-dGlvbmFsIiBtZWFucy4NCj4+DQo+PiBJbmRlZWQsIHRoaXMgY29tbWl0IGV4cGxhaW5zIGl0IGZ1
-cnRoZXI6DQo+Pg0KPj4gY29tbWl0IGRlMWRkOWZkMjE1Njg3NGI0NTgwMzI5OWIzYjI3ZTY1ZDVk
-ZWZkZDkNCj4+IHJlZ3VsYXRvcjogY29yZTogUHJvdmlkZSBoaW50cyB0byB0aGUgY29yZSBhYm91
-dCBvcHRpb25hbCBzdXBwbGllcw0KPj4NCj4+PiBTbyB3ZSBpbmRlZWQgc2hvdWxkIHVzZSBkZXZt
-X3JlZ3VsYXRvcl9nZXQoKSBpbiB0aGlzIGNhc2UuIFRoYW5rcyBmb3IgPiBwb2ludGluZyBvdXQh
-DQo+Pg0KPj4+Pj4gU28gaW4gc3VtbWFyeSB3ZSBvbmx5IG5lZWQgQVZERCBzd2l0Y2hlZCBmb3Ig
-dGhlIEdUQTA0IC0gYnV0IGl0IGRvZXMgbm90DQo+Pj4+PiBtYXR0ZXIgaWYgdGhlIG90aGVycyBh
-cmUgb3B0aW9uYWwgcHJvcGVydGllcy4gV2Ugd291bGQgbm90IHVzZSB0aGVtLg0KPj4+Pj4NCj4+
-Pj4+IEl0IGRvZXMgbWF0dGVyIGlmIHRoZXkgYXJlIG1hbmRhdG9yeSBiZWNhdXNlIGl0IGFkZHMg
-RFQgY29tcGxleGl0eSAoc2l6ZQ0KPj4+Pj4gYW5kIHByb2Nlc3NpbmcpIHdpdGhvdXQgYWRkZWQg
-ZnVuY3Rpb24uDQo+Pj4+DQo+Pj4+IFdlIHNob3VsZCBub3QgYmUgZGVmaW5pbmcgRFQgYmluZGlu
-ZyBvbmx5IHdpdGggc2VsZWN0ZWQgdXNlIGNhc2VzL2JvYXJkDQo+Pj4+IGRlc2lnbnMgaW4gbWlu
-ZC4gIElNTyBhbGwgdGhyZWUgdm9sdGFnZSBzdXBwbGllcyBzaG91bGQgYmUgbGlzdGVkIGluIHRo
-ZQ0KPj4+PiBiaW5kaW5nLCBwcmVzdW1hYmx5IGFsbCBjYW4gYmUgbWFkZSBvcHRpb25hbCwgd2l0
-aCBhbiBhc3N1bXB0aW9uIHRoYXQgd2hlbg0KPj4+PiB0aGUgcHJvcGVydHkgaXMgbWlzc2luZyBz
-ZWxlY3RlZCBwaW4gaXMgaG9va2VkIHVwIHRvIGEgZml4ZWQgcmVndWxhdG9yLg0KPj4+DQo+Pj4g
-T2ssIHRoZW4gaXQgc2hvdWxkIGp1c3QgYmUgZGVmaW5lZCBpbiB0aGUgYmluZGluZ3MgYnV0IG5v
-dCB1c2VkIGJ5DQo+Pj4gdGhlIGRyaXZlcj8NCj4+DQo+PiBZZXMsIEkgdGhpbmsgc28uIFNvIHdl
-IGhhdmUgYSBwb3NzaWJseSBjb21wbGV0ZSBiaW5kaW5nIHJpZ2h0IGZyb20gdGhlDQo+PiBiZWdp
-bm5pbmcuIEkgc29tZW9uZSBuZWVkcyBoYW5kbGluZyBvdGhlciBzdXBwbGllcyB0aGFuIEFWREQg
-dGhleSBjb3VsZA0KPj4gdXBkYXRlIHRoZSBkcml2ZXIgaW4gZnV0dXJlLg0KPiANCj4gRmluZSEg
-SSBoYXZlIHNlbnQgc29tZSBwYXRjaGVzIHRvIEh1Z2h1ZXMgc28gdGhhdCBoZSBjYW4gaW50ZWdy
-YXRlIGl0IGluDQo+IGhpcyBuZXh0IHZlcnNpb24gb2YgdGhlIHBhdGNoIHNlcmllcy4NCj4gDQo+
-IEJSIGFuZCB0aGFua3MsDQo+IE5pa29sYXVzDQo+IA0KDQpPSyBnb3QgaXQsIEknbGwgcHVzaCBp
-biB2Mi4=
+Elaborate the differences between V4L2_CID_GAIN and gain-type specific
+V4L2_CID_DIGITAL_GAIN and V4L2_CID_ANALOGUE_GAIN.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/media/uapi/v4l/control.rst | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/Documentation/media/uapi/v4l/control.rst b/Documentation/media/uapi/v4l/control.rst
+index 51112ba..c1e6adb 100644
+--- a/Documentation/media/uapi/v4l/control.rst
++++ b/Documentation/media/uapi/v4l/control.rst
+@@ -137,6 +137,12 @@ Control IDs
+ ``V4L2_CID_GAIN`` ``(integer)``
+     Gain control.
+ 
++    Primarily used to control gain on e.g. TV tuners but also on
++    webcams. Most devices control only digital gain with this control
++    but on some this could include analogue gain as well. Devices that
++    recognise the difference between digital and analogue gain use
++    controls ``V4L2_CID_DIGITAL_GAIN`` and ``V4L2_CID_ANALOGUE_GAIN``.
++
+ ``V4L2_CID_HFLIP`` ``(boolean)``
+     Mirror the picture horizontally.
+ 
+-- 
+2.7.4
