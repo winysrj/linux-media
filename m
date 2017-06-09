@@ -1,79 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:37964 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751649AbdF3OP5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Jun 2017 10:15:57 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v4 1/8] [media] s5p-jpeg: Call jpeg_bound_align_image after qbuf
-Date: Fri, 30 Jun 2017 16:15:40 +0200
-Message-Id: <1498832147-16316-2-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1498832147-16316-1-git-send-email-thierry.escande@collabora.com>
-References: <1498832147-16316-1-git-send-email-thierry.escande@collabora.com>
+Received: from mail-pg0-f52.google.com ([74.125.83.52]:36125 "EHLO
+        mail-pg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751956AbdFIQKd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 12:10:33 -0400
+Received: by mail-pg0-f52.google.com with SMTP id a70so27962751pge.3
+        for <linux-media@vger.kernel.org>; Fri, 09 Jun 2017 09:10:33 -0700 (PDT)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Sekhar Nori <nsekhar@ti.com>, David Lechner <david@lechnology.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        Prabhakar Lad <prabhakar.csengg@gmail.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v2] [media] davinci: vpif: adaptions for DT support
+Date: Fri,  9 Jun 2017 09:10:26 -0700
+Message-Id: <20170609161026.7582-1-khilman@baylibre.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tony K Nadackal <tony.kn@samsung.com>
+The davinci VPIF is a single hardware block, but the existing driver
+is broken up into a common library (vpif.c), output (vpif_display.c) and
+intput (vpif_capture.c).
 
-When queuing an OUTPUT buffer for decoder, s5p_jpeg_parse_hdr()
-function parses the input jpeg file and takes the width and height
-parameters from its header. These new width/height values will be used
-for the calculation of stride. HX_JPEG Hardware needs the width and
-height values aligned on a 16 bits boundary. This width/height alignment
-is handled in the s5p_jpeg_s_fmt_vid_cap() function during the S_FMT
-ioctl call.
+When migrating to DT, to better model the hardware, and because
+registers, interrupts, etc. are all common,it was decided to
+have a single VPIF hardware node[1].
 
-But if user space calls the QBUF of OUTPUT buffer after the S_FMT of
-CAPTURE buffer, these aligned values will be replaced by the values in
-jpeg header. If the width/height values of jpeg are not aligned, the
-decoder output will be corrupted. So in this patch we call
-jpeg_bound_align_image() to align the width/height values of Capture
-buffer in s5p_jpeg_buf_queue().
+Because davinci uses legacy, non-DT boot on several SoCs still, the
+platform_drivers need to remain.  But they are also needed in DT boot.
+Since there are no DT nodes for the display/capture parts in DT
+boot (there is a single node for the parent/common device) we need to
+create platform_devices somewhere to instansiate the platform_drivers.
 
-Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
-Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+When VPIF display/capture are needed for a DT boot, the VPIF node
+will have endpoints defined for its subdevs.  Therefore, vpif_probe()
+checks for the presence of endpoints, and if detected manually creates
+the platform_devices for the display and capture platform_drivers.
+
+[1] Documentation/devicetree/bindings/media/ti,da850-vpif.txt
+
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+Changes since v1:
+- added proper error checking to kzalloc calls
+- rebased onto media/master
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 52dc794..623508d 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -2523,6 +2523,25 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
- 		q_data = &ctx->cap_q;
- 		q_data->w = tmp.w;
- 		q_data->h = tmp.h;
-+
-+		/*
-+		 * This call to jpeg_bound_align_image() takes care of width and
-+		 * height values alignment when user space calls the QBUF of
-+		 * OUTPUT buffer after the S_FMT of CAPTURE buffer.
-+		 * Please note that on Exynos4x12 SoCs, resigning from executing
-+		 * S_FMT on capture buffer for each JPEG image can result in a
-+		 * hardware hangup if subsampling is lower than the one of input
-+		 * JPEG.
-+		 */
-+		jpeg_bound_align_image(ctx,
-+				       &q_data->w,
-+				       S5P_JPEG_MIN_WIDTH, S5P_JPEG_MAX_WIDTH,
-+				       q_data->fmt->h_align,
-+				       &q_data->h,
-+				       S5P_JPEG_MIN_HEIGHT, S5P_JPEG_MAX_HEIGHT,
-+				       q_data->fmt->v_align);
-+
-+		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
- 	}
+ drivers/media/platform/davinci/vpif.c | 57 ++++++++++++++++++++++++++++++++++-
+ 1 file changed, 56 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+index 1b02a6363f77..c2d214dfaa3e 100644
+--- a/drivers/media/platform/davinci/vpif.c
++++ b/drivers/media/platform/davinci/vpif.c
+@@ -26,6 +26,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/spinlock.h>
+ #include <linux/v4l2-dv-timings.h>
++#include <linux/of_graph.h>
  
- 	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+ #include "vpif.h"
+ 
+@@ -423,7 +424,9 @@ EXPORT_SYMBOL(vpif_channel_getfid);
+ 
+ static int vpif_probe(struct platform_device *pdev)
+ {
+-	static struct resource	*res;
++	static struct resource	*res, *res_irq;
++	struct platform_device *pdev_capture, *pdev_display;
++	struct device_node *endpoint = NULL;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	vpif_base = devm_ioremap_resource(&pdev->dev, res);
+@@ -435,6 +438,58 @@ static int vpif_probe(struct platform_device *pdev)
+ 
+ 	spin_lock_init(&vpif_lock);
+ 	dev_info(&pdev->dev, "vpif probe success\n");
++
++	/*
++	 * If VPIF Node has endpoints, assume "new" DT support,
++	 * where capture and display drivers don't have DT nodes
++	 * so their devices need to be registered manually here
++	 * for their legacy platform_drivers to work.
++	 */
++	endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
++					      endpoint);
++	if (!endpoint) 
++		return 0;
++
++	/*
++	 * For DT platforms, manually create platform_devices for
++	 * capture/display drivers.
++	 */
++	res_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
++	if (!res_irq) {
++		dev_warn(&pdev->dev, "Missing IRQ resource.\n");
++		return -EINVAL;
++	}
++
++	pdev_capture = devm_kzalloc(&pdev->dev, sizeof(*pdev_capture),
++				    GFP_KERNEL);
++	if (pdev_capture) {
++		pdev_capture->name = "vpif_capture";
++		pdev_capture->id = -1;
++		pdev_capture->resource = res_irq;
++		pdev_capture->num_resources = 1;
++		pdev_capture->dev.dma_mask = pdev->dev.dma_mask;
++		pdev_capture->dev.coherent_dma_mask = pdev->dev.coherent_dma_mask;
++		pdev_capture->dev.parent = &pdev->dev;
++		platform_device_register(pdev_capture);
++	} else {
++		dev_warn(&pdev->dev, "Unable to allocate memory for pdev_capture.\n");
++	}
++
++	pdev_display = devm_kzalloc(&pdev->dev, sizeof(*pdev_display),
++				    GFP_KERNEL);
++	if (pdev_display) {
++		pdev_display->name = "vpif_display";
++		pdev_display->id = -1;
++		pdev_display->resource = res_irq;
++		pdev_display->num_resources = 1;
++		pdev_display->dev.dma_mask = pdev->dev.dma_mask;
++		pdev_display->dev.coherent_dma_mask = pdev->dev.coherent_dma_mask;
++		pdev_display->dev.parent = &pdev->dev;
++		platform_device_register(pdev_display);
++	} else {
++		dev_warn(&pdev->dev, "Unable to allocate memory for pdev_display.\n");
++	}
++
+ 	return 0;
+ }
+ 
 -- 
-2.7.4
+2.9.3
