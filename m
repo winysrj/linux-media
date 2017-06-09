@@ -1,57 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:46757 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751382AbdFZJfw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 05:35:52 -0400
-Subject: Re: [PATCH 1/1] docs-rst: Document EBUSY for VIDIOC_S_FMT
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <1498469184-13280-1-git-send-email-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <58556bf7-ee79-a431-73d5-225d9252da02@xs4all.nl>
-Date: Mon, 26 Jun 2017 11:35:39 +0200
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:36680 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751519AbdFIKgn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 06:36:43 -0400
 MIME-Version: 1.0
-In-Reply-To: <1498469184-13280-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAHv-k_-AKvXqXVhxGKLr0R_UW6Tdc_4gm9DxcLXVamNhOrF9UQ@mail.gmail.com>
+References: <1496916298-5909-1-git-send-email-binoy.jayan@linaro.org>
+ <1496916298-5909-2-git-send-email-binoy.jayan@linaro.org> <CAK8P3a2huLuzaaHh-hw4S1pRa0BTPEywvp3Kw134j_dm8Lns6g@mail.gmail.com>
+ <CAHv-k_-AKvXqXVhxGKLr0R_UW6Tdc_4gm9DxcLXVamNhOrF9UQ@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 9 Jun 2017 12:36:41 +0200
+Message-ID: <CAK8P3a24uKE4wYTO123boOfs1pHzgjAjEc8imZT=J03Hsk=rcg@mail.gmail.com>
+Subject: Re: [PATCH 1/3] media: ngene: Replace semaphore cmd_mutex with mutex
+To: Binoy Jayan <binoy.jayan@linaro.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Rajendra <rnayak@codeaurora.org>,
+        Mark Brown <broonie@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Cao jin <caoj.fnst@cn.fujitsu.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/06/17 11:26, Sakari Ailus wrote:
-> VIDIOC_S_FMT may return EBUSY if the device is streaming or there are
-> buffers allocated. Document this.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+On Fri, Jun 9, 2017 at 6:37 AM, Binoy Jayan <binoy.jayan@linaro.org> wrote:
+> On 8 June 2017 at 20:40, Arnd Bergmann <arnd@arndb.de> wrote:
+>> On Thu, Jun 8, 2017 at 12:04 PM, Binoy Jayan <binoy.jayan@linaro.org> wrote:
+>>> The semaphore 'cmd_mutex' is used as a simple mutex, so
+>>> it should be written as one. Semaphores are going away in the future.
+>>>
+>>> Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
+>>> ---
+>>
+>>> @@ -1283,7 +1283,7 @@ static int ngene_load_firm(struct ngene *dev)
+>>>
+>>>  static void ngene_stop(struct ngene *dev)
+>>>  {
+>>> -       down(&dev->cmd_mutex);
+>>> +       mutex_lock(&dev->cmd_mutex);
+>>>         i2c_del_adapter(&(dev->channel[0].i2c_adapter));
+>>>         i2c_del_adapter(&(dev->channel[1].i2c_adapter));
+>>>         ngwritel(0, NGENE_INT_ENABLE);
+>>
+>> Are you sure about this one? There is only one mutex_lock() and
+>> then the structure gets freed without a corresponding mutex_unlock().
+>>
+>> I suspect this violates some rules of mutexes, either when compile
+>> testing with "make C=1", or when running with lockdep enabled.
+>>
+>> Can we actually have a concurrently held mutex at the time we
+>> get here? If not, using mutex_destroy() in place of the down()
+>> may be the right answer.
+>
+> I noticed the missing 'up' here, but may be semaphores do not have
+> to adhere to that rule?
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+The rules for semaphores are very lax, the up() and down() may
+be in completely separate contexts, the up() can even happen from
+an interrupt handler IIRC.
 
-Can you also add this to S_STD, S_INPUT, S_OUTPUT and S_CROP?
+I read up on the sparse annotations now and found that it only
+tracks spinlocks and rwlocks using the __acquires() annotation,
+but not semaphores or mutexes.
 
-And update the EBUSY description for S_DV_TIMINGS and S_SELECTION
-since this new description is much better than what is currently
-there.
+I'm still not sure whether lockdep requires the mutex to be released
+before it gets freed, the code may actually be fine, but it does
+seem odd.
 
-Thanks,
+> Thank you for pointing out that. I'll check the
+> concurrency part. By the way why do we need mutex_destoy?
+> To debug an aberrate condition?
 
-	Hans
+At first I suspected the down() here was added for the same
+purpose as a mutex_destroy: to ensure that we are in a sane
+state before we free the device structure, but the way they
+achieve that is completely different.
 
-> ---
->  Documentation/media/uapi/v4l/vidioc-g-fmt.rst | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/vidioc-g-fmt.rst b/Documentation/media/uapi/v4l/vidioc-g-fmt.rst
-> index b853e48..d082f9a 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-g-fmt.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-g-fmt.rst
-> @@ -147,3 +147,9 @@ appropriately. The generic error codes are described at the
->  EINVAL
->      The struct :c:type:`v4l2_format` ``type`` field is
->      invalid or the requested buffer type not supported.
-> +
-> +EBUSY
-> +    The device is busy and cannot change the format. This could be
-> +    because or the device is streaming or buffers are allocated or
-> +    queued to the driver. Relevant for :ref:`VIDIOC_S_FMT
-> +    <VIDIOC_G_FMT>` only.
-> 
+However, if there is any way that a command may still be in
+progress by the time we get to ngene_stop(), we may also
+be lacking reference counting on the ngene structure here.
+So far I haven't found any of those, and think the mutex_destroy()
+is sufficient here as a debugging help.
+
+       Arnd
