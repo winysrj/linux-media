@@ -1,61 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f182.google.com ([209.85.192.182]:33270 "EHLO
-        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750753AbdFCF0n (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Jun 2017 01:26:43 -0400
-Received: by mail-pf0-f182.google.com with SMTP id 83so2755158pfr.0
-        for <linux-media@vger.kernel.org>; Fri, 02 Jun 2017 22:26:43 -0700 (PDT)
-Date: Sat, 3 Jun 2017 15:26:51 +1000
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Olli Salonen <olli.salonen@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>, hans.verkuil@cisco.com
-Subject: Re: media_build: fails to install
-Message-ID: <20170603052648.GA15483@ubuntu.windy>
-References: <CAAZRmGw=S+SGAHUOOL7wYNj040n9h6B9qNtSakHqzLpJMCGx1A@mail.gmail.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58920 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751656AbdFII4a (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Jun 2017 04:56:30 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.13] Add stm32-cec driver
+Message-ID: <e6f0bb35-4eb7-1a94-3941-378bb92c5583@xs4all.nl>
+Date: Fri, 9 Jun 2017 10:56:21 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAZRmGw=S+SGAHUOOL7wYNj040n9h6B9qNtSakHqzLpJMCGx1A@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 31, 2017 at 03:57:04AM +0300, Olli Salonen wrote:
-> It seems that I'm able to build the media_build correctly on Ubuntu
-> 16.04.2 with kernel 4.8, but make install fails:
-> 
-> ~/src/media_build$ sudo make install
-> make -C /home/olli/src/media_build/v4l install
-> make[1]: Entering directory '/home/olli/src/media_build/v4l'
-> make[1]: *** No rule to make target 'media-install', needed by 'install'.  Stop.
-> make[1]: Leaving directory '/home/olli/src/media_build/v4l'
-> Makefile:15: recipe for target 'install' failed
-> make: *** [install] Error 2
-> 
+The following changes since commit 47f910f0e0deb880c2114811f7ea1ec115a19ee4:
 
-I can confirm this issue.
+  [media] v4l: subdev: tolerate null in media_entity_to_v4l2_subdev (2017-06-08 16:55:25 -0300)
 
-The reason is that scripts/make_makefile.pl aborts
+are available in the git repository at:
 
-make[1]: Entering directory '/home/me/git/clones/media_build/v4l'^M            
-scripts/make_makefile.pl^M                                                      
-Can't handle includes! In ../linux/drivers/staging/media/atomisp/pci/atomisp2/css2400/Makefile at scripts/          make_makefile.pl line 109, <GEN152> line 4.^M
+  git://linuxtv.org/hverkuil/media_tree.git stm32-cec
 
-because that css2400/Makefile includes another:
+for you to fetch changes up to bb4b9368c6836c21d76fa53aa425cd48ba0e94fb:
 
-$ cat ../linux/drivers/staging/media/atomisp/pci/atomisp2/css2400/Makefile
+  cec: add STM32 cec driver (2017-06-09 10:35:50 +0200)
 
-ccflags-y += -DISP2400B0
-ISP2400B0 := y
+----------------------------------------------------------------
+Benjamin Gaignard (2):
+      dt-bindings: media: stm32 cec driver
+      cec: add STM32 cec driver
 
-include $(srctree)/$(src)/../Makefile.common
-
-The abort of scripts/make_makefile.pl means that the v4l/Makefile
-does not get completely written out, in particular the rules for
-making the 'media-install' target.
-
-I am not sure how to fix this. The make_makefile.pl deliberately
-falls over when given an include to deal with, so there must be
-some other mechanism in the media_build framework that handles
-this kind of thing. But I am not aware of it. Hans, help pretty please?
-
-Vince
+ Documentation/devicetree/bindings/media/st,stm32-cec.txt |  19 +++
+ drivers/media/platform/Kconfig                           |  12 ++
+ drivers/media/platform/Makefile                          |   2 +
+ drivers/media/platform/stm32/Makefile                    |   1 +
+ drivers/media/platform/stm32/stm32-cec.c                 | 362 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 396 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
+ create mode 100644 drivers/media/platform/stm32/stm32-cec.c
