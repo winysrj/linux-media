@@ -1,85 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:34102 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752729AbdFPHjm (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:36773 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751555AbdFJS4c (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 03:39:42 -0400
-Received: by mail-pf0-f196.google.com with SMTP id d5so4719604pfe.1
-        for <linux-media@vger.kernel.org>; Fri, 16 Jun 2017 00:39:41 -0700 (PDT)
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH 05/12] [media] vivid: assign the specific device to the vb2_queue->dev
-Date: Fri, 16 Jun 2017 16:39:08 +0900
-Message-Id: <20170616073915.5027-6-gustavo@padovan.org>
-In-Reply-To: <20170616073915.5027-1-gustavo@padovan.org>
-References: <20170616073915.5027-1-gustavo@padovan.org>
+        Sat, 10 Jun 2017 14:56:32 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v9 02/34] [media] dt-bindings: Add bindings for i.MX media driver
+Date: Sat, 10 Jun 2017 11:56:24 -0700
+Message-Id: <1497120984-9739-1-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1496860453-6282-3-git-send-email-steve_longerbeam@mentor.com>
+References: <1496860453-6282-3-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Add bindings documentation for the i.MX media driver.
 
-Instead of assigning the global v4l2 device, assign the specific device.
-This was causing trouble when using using V4L2 events with vivid
-devices. The device's queue should be the same we opened in userspace.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Acked-by: Rob Herring <robh@kernel.org>
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- drivers/media/platform/vivid/vivid-core.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+Changes since v8 [1]:
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index ef344b9..8843170 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -1070,7 +1070,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
- 		q->lock = &dev->mutex;
--		q->dev = dev->v4l2_dev.dev;
-+		q->dev = &dev->vid_cap_dev.dev;
- 
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1090,7 +1090,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
- 		q->lock = &dev->mutex;
--		q->dev = dev->v4l2_dev.dev;
-+		q->dev = &dev->vid_out_dev.dev;
- 
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1110,7 +1110,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
- 		q->lock = &dev->mutex;
--		q->dev = dev->v4l2_dev.dev;
-+		q->dev = &dev->vbi_cap_dev.dev;
- 
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1130,7 +1130,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
- 		q->lock = &dev->mutex;
--		q->dev = dev->v4l2_dev.dev;
-+		q->dev = &dev->vbi_out_dev.dev;
- 
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1149,7 +1149,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 8;
- 		q->lock = &dev->mutex;
--		q->dev = dev->v4l2_dev.dev;
-+		q->dev = &dev->sdr_cap_dev.dev;
- 
- 		ret = vb2_queue_init(q);
- 		if (ret)
+- expand on description of the MIPI CSI-2 IP core in i.MX6, and
+  drop "snps,dw-mipi-csi2" compatibility for now.
+
+[1] https://patchwork.linuxtv.org/patch/41717/
+---
+ Documentation/devicetree/bindings/media/imx.txt | 53 +++++++++++++++++++++++++
+ 1 file changed, 53 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/imx.txt
+
+diff --git a/Documentation/devicetree/bindings/media/imx.txt b/Documentation/devicetree/bindings/media/imx.txt
+new file mode 100644
+index 0000000..77f4b0a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/imx.txt
+@@ -0,0 +1,53 @@
++Freescale i.MX Media Video Device
++=================================
++
++Video Media Controller node
++---------------------------
++
++This is the media controller node for video capture support. It is a
++virtual device that lists the camera serial interface nodes that the
++media device will control.
++
++Required properties:
++- compatible : "fsl,imx-capture-subsystem";
++- ports      : Should contain a list of phandles pointing to camera
++		sensor interface ports of IPU devices
++
++example:
++
++capture-subsystem {
++	compatible = "fsl,imx-capture-subsystem";
++	ports = <&ipu1_csi0>, <&ipu1_csi1>;
++};
++
++
++mipi_csi2 node
++--------------
++
++This is the device node for the MIPI CSI-2 Receiver core in the i.MX
++SoC. This is a Synopsys Designware MIPI CSI-2 host controller core
++combined with a D-PHY core mixed into the same register block. In
++addition this device consists of an i.MX-specific "CSI2IPU gasket"
++glue logic, also controlled from the same register block. The CSI2IPU
++gasket demultiplexes the four virtual channel streams from the host
++controller's 32-bit output image bus onto four 16-bit parallel busses
++to the i.MX IPU CSIs.
++
++Required properties:
++- compatible	: "fsl,imx6-mipi-csi2";
++- reg           : physical base address and length of the register set;
++- clocks	: the MIPI CSI-2 receiver requires three clocks: hsi_tx
++		  (the D-PHY clock), video_27m (D-PHY PLL reference
++		  clock), and eim_podf;
++- clock-names	: must contain "dphy", "ref", "pix";
++- port@*        : five port nodes must exist, containing endpoints
++		  connecting to the source and sink devices according to
++		  of_graph bindings. The first port is an input port,
++		  connecting with a MIPI CSI-2 source, and ports 1
++		  through 4 are output ports connecting with parallel
++		  bus sink endpoint nodes and correspond to the four
++		  MIPI CSI-2 virtual channel outputs.
++
++Optional properties:
++- interrupts	: must contain two level-triggered interrupts,
++		  in order: 100 and 101;
 -- 
-2.9.4
+2.7.4
