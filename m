@@ -1,66 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.zeus03.de ([194.117.254.33]:36642 "EHLO mail.zeus03.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752196AbdFHN6G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Jun 2017 09:58:06 -0400
-Date: Thu, 8 Jun 2017 15:57:57 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 6/7] [media] soc_camera: rcar_vin: use proper name for
- the R-Car SoC
-Message-ID: <20170608135757.GA4205@katana>
-References: <20170528093051.11816-1-wsa+renesas@sang-engineering.com>
- <20170528093051.11816-7-wsa+renesas@sang-engineering.com>
- <a133a7f7-e887-5043-83d3-cccbec581487@cogentembedded.com>
- <20170529120202.GC4342@katana>
- <20170608082731.7cdf32dd@vento.lan>
+Received: from mail-pg0-f50.google.com ([74.125.83.50]:36755 "EHLO
+        mail-pg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751641AbdFJCI2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 22:08:28 -0400
+Received: by mail-pg0-f50.google.com with SMTP id a70so31346875pge.3
+        for <linux-media@vger.kernel.org>; Fri, 09 Jun 2017 19:08:28 -0700 (PDT)
+Received: from ubuntu.windy (c122-106-153-7.carlnfd1.nsw.optusnet.com.au. [122.106.153.7])
+        by smtp.gmail.com with ESMTPSA id a28sm5232845pfl.25.2017.06.09.19.08.25
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 09 Jun 2017 19:08:26 -0700 (PDT)
+Date: Sat, 10 Jun 2017 12:08:40 +1000
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: [patch] [media_build] Small fix to build script (resend)
+Message-ID: <20170610020838.GA12764@ubuntu.windy>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="FCuugMFkClbJLl1L"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170608082731.7cdf32dd@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This seems to have fallen on the floor...
+Original send date: Thu, 1 Jun 2017 19:43:43 +1000
 
---FCuugMFkClbJLl1L
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Avoid going splat if --depth is not given
 
+Commit 6b4a9c5 indroduced the --depth parameter to limit the commit history
+pulled by when cloning, giving a nice speedup. But in the process it broke
+running without the --depth parameter. The first invocation of
+'./build --main-git' works fine, but the second falls over like so:
 
-> Btw, I'm seeing only patches 6 and 7 here at media ML (and patchwork).
-> As those are trivial changes, I'll just apply what I have.
+  fatal: No such remote or remote group: media_tree/master
+  Can't update from the upstream tree at ./build line 430.
 
-Perfect, thanks!
+The fix is to check whether that remote has been defined before trying
+to update from it.
 
+Signed-off-by: Vincent McIntyre <vincent.mcintyre@gmail.com>
+---
+ build | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---FCuugMFkClbJLl1L
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlk5V90ACgkQFA3kzBSg
-Kba8ZRAAkB8Oj48j4i/AO9wZvm1lZA/MRk7KCG2CK/00GSWt6PNdCBarRY3elFnO
-yQpLYUWl6bhpA+ps3OdtCUEGaLYmJAboPGGDz00s1aHshh8zn8u8gwK7n3G1CxMv
-rt0V4GqHLnqbjncCjlDoqXAR6/VpxlJNoAbO1Nya3QUXxEoCqcG1HZuZ65Iy9LPB
-I+vprcvu91H6u+i1gg0+YSgInHIK4KWzPImkl9WKP6MTYC3Gdps3PQRM+AC5NNqM
-vg3nfYqb9E4N1uYo1qy1WSV2mHG+iOJgEglhkuuk1HObNVVpd6d9O93fugulUDmI
-+5OopUMHiJTrYWRkEjRNZmPSRFI8yc3SBqyPqO3btQUhz8R4FnTpc+t7Zhs55Y6h
-Q1sIRvorxU6NMRfmpvhwN5CRdWKwVi+prcIjPqZ1sojf1m2Tn+hDCrIZY5qiY7On
-V+mrP4LN7KVtStrNGGt84p3jlCCIGi+SKufUcRjlfc3zWA1MOp7S3UwqjPzgZdrf
-0E8i3Bep3qi7sSUv42+TDFvHwUy+KTrCIdfPK3KqOLl33gaElqEN2e0ZkKrHK+6L
-+QPvVxcf+0WAGGMI/dKkMb2a3Ggg3uorPpRPqlbDEk5NNvTCvmKxDH70l5lNnt0V
-o9HYj2bgDw5ZVRHpFVeV5uOUrZdMvhqcOM0oJi154cfN9dTplK8=
-=L4YH
------END PGP SIGNATURE-----
-
---FCuugMFkClbJLl1L--
+diff --git a/build b/build
+index a4cd38e..d7f51c2 100755
+--- a/build
++++ b/build
+@@ -427,8 +427,13 @@ if (@git == 2) {
+ 			}
+ 		}
+ 	} elsif ($workdir eq "") {
+-		system("git --git-dir media/.git remote update '$rname/$git[1]'") == 0
+-			or die "Can't update from the upstream tree";
++		if (check_git("remote", "$rname/$git[1]")) {
++			system("git --git-dir media/.git remote update '$rname/$git[1]'") == 0
++				or die "Can't update from the upstream tree";
++		} else {
++			system("git --git-dir media/.git remote update origin") == 0
++				or die "Can't update from the upstream tree";
++		}
+ 	}
+ 
+ 	if ($workdir eq "") {
