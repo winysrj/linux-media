@@ -1,77 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:55512 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751027AbdFVEui (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Jun 2017 00:50:38 -0400
-Date: Thu, 22 Jun 2017 07:50:34 +0300
-From: Baruch Siach <baruch@tkos.co.il>
-To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] radio: wl1273: add check on core->write() return value
-Message-ID: <20170622045034.tkyksrbdm353xmdu@tarshish>
-References: <20170622040122.GA7161@embeddedgus>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48840 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751830AbdFJHyG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Jun 2017 03:54:06 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        geert@glider.be, kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH] media: fdp1: Support ES2 platforms
+Date: Sat, 10 Jun 2017 10:54:20 +0300
+Message-ID: <2460969.iCu4XJLJFm@avalon>
+In-Reply-To: <1497028548-24443-1-git-send-email-kbingham@kernel.org>
+References: <1497028548-24443-1-git-send-email-kbingham@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170622040122.GA7161@embeddedgus>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gustavi,
+Hi Kieran,
 
-On Wed, Jun 21, 2017 at 11:01:22PM -0500, Gustavo A. R. Silva wrote:
-> Check return value from call to core->write(), so in case of
-> error print error message, jump to goto label fail and eventually
-> return.
+Thank you for the patch.
+
+On Friday 09 Jun 2017 18:15:48 Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > 
-> Addresses-Coverity-ID: 1226943
-> Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+> The new Renesas R-Car H3 ES2.0 platforms have an updated hw version
+> register. Update the driver accordingly.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > ---
->  drivers/media/radio/radio-wl1273.c | 15 +++++++++++++--
->  1 file changed, 13 insertions(+), 2 deletions(-)
+>  drivers/media/platform/rcar_fdp1.c | 4 ++++
+>  1 file changed, 4 insertions(+)
 > 
-> diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
-> index 7240223..17e82a9 100644
-> --- a/drivers/media/radio/radio-wl1273.c
-> +++ b/drivers/media/radio/radio-wl1273.c
-> @@ -610,10 +610,21 @@ static int wl1273_fm_start(struct wl1273_device *radio, int new_mode)
->  			}
->  		}
->  
-> -		if (radio->rds_on)
-> +		if (radio->rds_on) {
->  			r = core->write(core, WL1273_RDS_DATA_ENB, 1);
-> -		else
-> +			if (r) {
-> +				dev_err(dev, "%s: RDS_DATA_ENB ON fails\n",
-> +					__func__);
-> +				goto fail;
-> +			}
-> +		} else {
->  			r = core->write(core, WL1273_RDS_DATA_ENB, 0);
-> +			if (r) {
-> +				dev_err(dev, "%s: RDS_DATA_ENB OFF fails\n",
-> +					__func__);
-> +				goto fail;
-> +			}
-> +		}
->  	} else {
->  		dev_warn(dev, "%s: Illegal mode.\n", __func__);
->  	}
+> diff --git a/drivers/media/platform/rcar_fdp1.c
+> b/drivers/media/platform/rcar_fdp1.c index 42f25d241edd..50b59995b817
+> 100644
+> --- a/drivers/media/platform/rcar_fdp1.c
+> +++ b/drivers/media/platform/rcar_fdp1.c
+> @@ -260,6 +260,7 @@ MODULE_PARM_DESC(debug, "activate debug info");
+>  #define FD1_IP_INTDATA			0x0800
+>  #define FD1_IP_H3			0x02010101
+>  #define FD1_IP_M3W			0x02010202
+> +#define FD1_IP_H3_ES2			0x02010203
 
-An alternative that duplicates less code (untested):
+Following our global policy of treating ES2 as the default, how about renaming 
+FDP1_IP_H3 to FDP1_IP_H3_ES1 and adding a new FD1_IP_H3 for ES2 ? The messages 
+below should be updated as well.
 
-	r = core->write(core, WL1273_RDS_DATA_ENB, !!radio->rds_on);
-	if (r) {
-		dev_err(dev, "%s: RDS_DATA_ENB %s fails\n",
-		     	__func__, radio->rds_on ? "ON" : "OFF");
-		goto fail;
-	}
+Apart from that the patch looks good to me, so
 
-baruch
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  /* LUTs */
+>  #define FD1_LUT_DIF_ADJ			0x1000
+> @@ -2365,6 +2366,9 @@ static int fdp1_probe(struct platform_device *pdev)
+>  	case FD1_IP_M3W:
+>  		dprintk(fdp1, "FDP1 Version R-Car M3-W\n");
+>  		break;
+> +	case FD1_IP_H3_ES2:
+> +		dprintk(fdp1, "FDP1 Version R-Car H3-ES2\n");
+> +		break;
+>  	default:
+>  		dev_err(fdp1->dev, "FDP1 Unidentifiable (0x%08x)\n",
+>  				hw_version);
 
 -- 
-     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.52.368.4656, http://www.tkos.co.il -
+Regards,
+
+Laurent Pinchart
