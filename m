@@ -1,51 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:33178 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751699AbdFAKoV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Jun 2017 06:44:21 -0400
-Received: by mail-it0-f66.google.com with SMTP id l145so5249158ita.0
-        for <linux-media@vger.kernel.org>; Thu, 01 Jun 2017 03:44:21 -0700 (PDT)
-Received: from ubuntu.windy (c122-106-153-7.carlnfd1.nsw.optusnet.com.au. [122.106.153.7])
-        by smtp.gmail.com with ESMTPSA id i17sm23663382pgn.60.2017.06.01.03.44.13
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 01 Jun 2017 03:44:14 -0700 (PDT)
-Date: Thu, 1 Jun 2017 20:44:29 +1000
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] build: make check_git() give more information in verbose mode
-Message-ID: <20170601104427.GD3212@ubuntu.windy>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48899 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751870AbdFJIm3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Jun 2017 04:42:29 -0400
+Subject: Re: [PATCH] media: fdp1: Support ES2 platforms
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Kieran Bingham <kbingham@kernel.org>
+References: <1497028548-24443-1-git-send-email-kbingham@kernel.org>
+ <2460969.iCu4XJLJFm@avalon>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        geert@glider.be,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <8b322d87-b640-faf3-f070-f04787290beb@ideasonboard.com>
+Date: Sat, 10 Jun 2017 09:42:24 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <2460969.iCu4XJLJFm@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While debugging another issue I found this change helpful.
+Hi Laurent,
 
-Signed-off-by: Vincent McIntyre <vincent.mcintyre@gmail.com>
----
- build | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+On 10/06/17 08:54, Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> Thank you for the patch.
+> 
+> On Friday 09 Jun 2017 18:15:48 Kieran Bingham wrote:
+>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>
+>> The new Renesas R-Car H3 ES2.0 platforms have an updated hw version
+>> register. Update the driver accordingly.
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>> ---
+>>  drivers/media/platform/rcar_fdp1.c | 4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> diff --git a/drivers/media/platform/rcar_fdp1.c
+>> b/drivers/media/platform/rcar_fdp1.c index 42f25d241edd..50b59995b817
+>> 100644
+>> --- a/drivers/media/platform/rcar_fdp1.c
+>> +++ b/drivers/media/platform/rcar_fdp1.c
+>> @@ -260,6 +260,7 @@ MODULE_PARM_DESC(debug, "activate debug info");
+>>  #define FD1_IP_INTDATA			0x0800
+>>  #define FD1_IP_H3			0x02010101
+>>  #define FD1_IP_M3W			0x02010202
+>> +#define FD1_IP_H3_ES2			0x02010203
+> 
+> Following our global policy of treating ES2 as the default, how about renaming 
+> FDP1_IP_H3 to FDP1_IP_H3_ES1 and adding a new FD1_IP_H3 for ES2 ? The messages 
+> below should be updated as well.
 
-diff --git a/build b/build
-index d7f51c2..4457a73 100755
---- a/build
-+++ b/build
-@@ -303,12 +303,13 @@ sub check_git($$)
- 	my $cmd = shift;
- 	my $remote = shift;
- 
--	print "\$ git --git-dir media/.git $cmd\n" if ($level);
-+	print "\$ git --git-dir media/.git $cmd (checking for '$remote')\n" if ($level);
- 	open IN, "git --git-dir media/.git $cmd|" or die "can't run git --git-dir media/.git $cmd";
- 	while (<IN>) {
- 		return 1 if (m/^[\*]*\s*($remote)\n$/);
- 	}
- 	close IN;
-+	print "check failed\n" if ($level);
- 	return 0;
- }
- 
--- 
-2.7.4
+Sorry, I didn't realise that was the case. I'll update and resend later when I'm
+back online.
+
+> Apart from that the patch looks good to me, so
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+
+Thanks
+
+Kieran
+
+>>  /* LUTs */
+>>  #define FD1_LUT_DIF_ADJ			0x1000
+>> @@ -2365,6 +2366,9 @@ static int fdp1_probe(struct platform_device *pdev)
+>>  	case FD1_IP_M3W:
+>>  		dprintk(fdp1, "FDP1 Version R-Car M3-W\n");
+>>  		break;
+>> +	case FD1_IP_H3_ES2:
+>> +		dprintk(fdp1, "FDP1 Version R-Car H3-ES2\n");
+>> +		break;
+>>  	default:
+>>  		dev_err(fdp1->dev, "FDP1 Unidentifiable (0x%08x)\n",
+>>  				hw_version);
+> 
