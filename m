@@ -1,52 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:32958 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751560AbdFIXQi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 19:16:38 -0400
-Subject: Re: [PATCH v8 00/34] i.MX Media Driver
-To: Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
- <e7e4669c-2963-b9e1-edd7-02731a6e0f9c@xs4all.nl>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <c0b69c93-b9cd-25e8-ea36-fc0600efdb69@gmail.com>
-Date: Fri, 9 Jun 2017 16:16:34 -0700
-MIME-Version: 1.0
-In-Reply-To: <e7e4669c-2963-b9e1-edd7-02731a6e0f9c@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mx2.suse.de ([195.135.220.15]:38168 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751870AbdFJJFz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Jun 2017 05:05:55 -0400
+From: Johannes Thumshirn <jthumshirn@suse.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-fbdev@vger.kernel.org,
+        Johannes Thumshirn <jthumshirn@suse.de>
+Subject: [PATCH 0/7] Introduce MEDIA_VERSION to end KENREL_VERSION abuse in media
+Date: Sat, 10 Jun 2017 11:05:29 +0200
+Message-Id: <20170610090536.12472-1-jthumshirn@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Currently the media subsystem has a very creative abuse of the
+KERNEL_VERSION macro to encode an arbitrary version triplet for media
+drivers and device hardware revisions.
 
+This series introduces a new macro called MEDIA_REVISION which encodes
+a version triplet like KERNEL_VERSION does, but clearly has media
+centric semantics and doesn't fool someone into thinking specific
+parts are defined for a specific kernel version only like in out of
+tree drivers.
 
-On 06/07/2017 12:02 PM, Hans Verkuil wrote:
-> We're still waiting for an Ack for patch 02/34, right?
-> 
+Johannes Thumshirn (7):
+  [media] media: introduce MEDIA_REVISION macro
+  video: fbdev: don't use KERNEL_VERSION macro for MEDIA_REVISION
+  [media] media: document the use of MEDIA_REVISION instead of
+    KERNEL_VERSION
+  [media] cx25821: use MEDIA_REVISION instead of KERNEL_VERSION
+  [media] media: s3c-camif: Use MEDIA_REVISON instead of KERNEL_VERSION
+  [media] media: bcm2048: use MEDIA_REVISION isntead of KERNEL_VERSION
+  staging/atomisp: use MEDIA_VERSION instead of KERNEL_VERSION
 
-Hi Hans, Rub has provided an Ack for patch 2.
+ Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst        | 2 +-
+ Documentation/media/uapi/mediactl/media-ioc-device-info.rst | 4 ++--
+ Documentation/media/uapi/v4l/vidioc-querycap.rst            | 6 +++---
+ drivers/media/pci/cx25821/cx25821.h                         | 2 +-
+ drivers/media/platform/s3c-camif/camif-core.c               | 2 +-
+ drivers/staging/media/atomisp/include/linux/atomisp.h       | 6 +++---
+ drivers/staging/media/bcm2048/radio-bcm2048.c               | 2 +-
+ drivers/video/fbdev/matrox/matroxfb_base.c                  | 3 ++-
+ include/media/media-device.h                                | 5 ++---
+ include/uapi/linux/media.h                                  | 4 +++-
+ 10 files changed, 19 insertions(+), 17 deletions(-)
 
-> Other than that everything is ready AFAICT.
-> 
-
-But as Pavel pointed out, in fact we are missing many
-Acks still, for all of the dts source changes (patches
-4-14), as well as really everything else (imx-media staging
-driver patches).
-
-Steve
+-- 
+2.12.3
