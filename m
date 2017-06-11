@@ -1,120 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48946 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751895AbdFUGai (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Jun 2017 02:30:38 -0400
-Subject: Re: [PATCH 3/4] [media] dvb-frontends/stv0367: SNR DVBv5 statistics
- for DVB-C and T
-To: Daniel Scheller <d.scheller.oss@gmail.com>,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: liplianin@netup.ru, rjkm@metzlerbros.de
-References: <20170620174506.7593-1-d.scheller.oss@gmail.com>
- <20170620174506.7593-4-d.scheller.oss@gmail.com>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <ee554f8e-b533-4b8b-5710-83e7ff40a3c2@iki.fi>
-Date: Wed, 21 Jun 2017 09:30:27 +0300
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:46452 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751764AbdFKI2m (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 11 Jun 2017 04:28:42 -0400
+Subject: Re: [PATCH v8 00/34] i.MX Media Driver
+To: Steve Longerbeam <slongerbeam@gmail.com>, p.zabel@pengutronix.de,
+        linux-media@vger.kernel.org
+References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d99752a4-35aa-33bb-b3d9-85268c38e761@xs4all.nl>
+Date: Sun, 11 Jun 2017 10:28:39 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170620174506.7593-4-d.scheller.oss@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Steve, Philipp,
 
+While preparing the pull request I noticed that the MAINTAINERS file wasn't
+updated. Steve, can you post a patch adding entries for the imx and ov5640 driver?
+Philipp, can you do the same for the video mux? I assume you're the maintainer
+for this?
 
-On 06/20/2017 08:45 PM, Daniel Scheller wrote:
-> From: Daniel Scheller <d.scheller@gmx.net>
-> 
-> Add signal-to-noise-ratio as provided by the demodulator in decibel scale.
-> QAM/DVB-C needs some intlog calculation to have usable dB values, OFDM/
-> DVB-T values from the demod look alright already and are provided as-is.
-> 
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
->   drivers/media/dvb-frontends/stv0367.c | 33 +++++++++++++++++++++++++++++++++
->   1 file changed, 33 insertions(+)
-> 
-> diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-> index bb498f942ebd..0b13a407df23 100644
-> --- a/drivers/media/dvb-frontends/stv0367.c
-> +++ b/drivers/media/dvb-frontends/stv0367.c
-> @@ -25,6 +25,8 @@
->   #include <linux/slab.h>
->   #include <linux/i2c.h>
->   
-> +#include "dvb_math.h"
-> +
->   #include "stv0367.h"
->   #include "stv0367_defs.h"
->   #include "stv0367_regs.h"
-> @@ -33,6 +35,9 @@
->   /* Max transfer size done by I2C transfer functions */
->   #define MAX_XFER_SIZE  64
->   
-> +/* snr logarithmic calc */
-> +#define INTLOG10X100(x) ((u32) (((u64) intlog10(x) * 100) >> 24))
-> +
->   static int stvdebug;
->   module_param_named(debug, stvdebug, int, 0644);
->   
-> @@ -3013,6 +3018,33 @@ static int stv0367ddb_read_status(struct dvb_frontend *fe,
->   	return -EINVAL;
->   }
->   
-> +static void stv0367ddb_read_snr(struct dvb_frontend *fe)
-> +{
-> +	struct stv0367_state *state = fe->demodulator_priv;
-> +	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-> +	int cab_pwr;
-> +	u32 regval, tmpval, snrval = 0;
-> +
-> +	switch (state->activedemod) {
-> +	case demod_ter:
-> +		snrval = stv0367ter_snr_readreg(fe);
-> +		break;
-> +	case demod_cab:
-> +		cab_pwr = stv0367cab_snr_power(fe);
-> +		regval = stv0367cab_snr_readreg(fe, 0);
-> +
-> +		tmpval = (cab_pwr * 320) / regval;
-> +		snrval = ((tmpval != 0) ? INTLOG10X100(tmpval) : 0) * 100;
+Thanks!
 
-How much there will be rounding errors due to that signal/noise 
-division? I would convert it to calculation of sums (tip logarithm 
-calculation rules).
+I also made it possible to compile-test this driver with this patch:
 
-Also, that INTLOG10X100 is pretty much useless. Use just what 
-intlog10/intlog2 offers without yet again another conversion.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
+index 7eff50bcea39..22f968cf32b1 100644
+--- a/drivers/staging/media/imx/Kconfig
++++ b/drivers/staging/media/imx/Kconfig
+@@ -1,6 +1,7 @@
+ config VIDEO_IMX_MEDIA
+ 	tristate "i.MX5/6 V4L2 media core driver"
+-	depends on MEDIA_CONTROLLER && VIDEO_V4L2 && ARCH_MXC && IMX_IPUV3_CORE
++	depends on MEDIA_CONTROLLER && VIDEO_V4L2
++	depends on (ARCH_MXC && IMX_IPUV3_CORE) || COMPILE_TEST
+ 	select V4L2_FWNODE
+ 	---help---
+ 	  Say yes here to enable support for video4linux media controller
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index c306146a4247..a2d26693912e 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -13,6 +13,7 @@
+ #include <linux/gcd.h>
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
++#include <linux/pinctrl/consumer.h>
+ #include <linux/platform_device.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
 
+Steve, if you're OK with that I was planning to just modify your original patch
+rather than adding another patch on top.
 
+Regards,
 
-> +		break;
-> +	default:
-> +		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-> +		return;
-> +	}
-> +
-> +	p->cnr.stat[0].scale = FE_SCALE_DECIBEL;
-> +	p->cnr.stat[0].uvalue = snrval;
-> +}
-> +
->   static void stv0367ddb_read_ucblocks(struct dvb_frontend *fe)
->   {
->   	struct stv0367_state *state = fe->demodulator_priv;
-> @@ -3069,6 +3101,7 @@ static int stv0367ddb_get_frontend(struct dvb_frontend *fe,
->   	}
->   
->   	stv0367ddb_read_ucblocks(fe);
-> +	stv0367ddb_read_snr(fe);
->   
->   	return 0;
->   }
-> 
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+	Hans
