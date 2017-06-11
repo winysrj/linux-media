@@ -1,208 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:47996 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752339AbdFZQqq (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36227 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751683AbdFKHps (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 12:46:46 -0400
-Subject: Re: [PATCH v4 1/4] [media] platform: Add Synopsys Designware HDMI RX
- PHY e405 Driver
-To: Sylwester Nawrocki <snawrocki@kernel.org>,
-        Jose Abreu <Jose.Abreu@synopsys.com>
-References: <cover.1497978962.git.joabreu@synopsys.com>
- <83bcf6996bfce22948df7963ddfe3c0cb56b96dc.1497978962.git.joabreu@synopsys.com>
- <eea50b14-73f2-ed7f-3928-2c394af02259@kernel.org>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <devicetree@vger.kernel.org>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <8e66df79-64dd-5a1b-4c30-77bf971e92cf@synopsys.com>
-Date: Mon, 26 Jun 2017 17:46:40 +0100
-MIME-Version: 1.0
-In-Reply-To: <eea50b14-73f2-ed7f-3928-2c394af02259@kernel.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+        Sun, 11 Jun 2017 03:45:48 -0400
+Message-ID: <8725717fc70cc5fc3c6160085fd36ff0@smtp-cloud2.xs4all.net>
+Date: Sun, 11 Jun 2017 09:45:22 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On 25-06-2017 22:13, Sylwester Nawrocki wrote:
-> Hi Jose,
->
-> Thank you for addressing my review comments. Couple more suggestions below.
->
-> On 06/20/2017 07:26 PM, Jose Abreu wrote:
->> This adds support for the Synopsys Designware HDMI RX PHY e405. This
->> phy receives and decodes HDMI video that is delivered to a controller.
->> +static int dw_phy_config(struct dw_phy_dev *dw_dev, unsigned char color_depth,
->> +		bool hdmi2, bool scrambling)
->> +{
->> +	phy_reset(dw_dev, 1);
->> +	phy_pddq(dw_dev, 1);
->> +	phy_svsmode(dw_dev, 1);
->> +
->> +	phy_zcal_reset(dw_dev);
->> +	do {
->> +		udelay(1000);
-> Could be mdelay(1) or better e.g. usleep_range(1000, 1100);
+date:			Sun Jun 11 05:00:17 CEST 2017
+media-tree git hash:	47f910f0e0deb880c2114811f7ea1ec115a19ee4
+media_build git hash:	170d3ce439eed9f2f43c5e02fc8d3ca201ca78e8
+v4l-utils git hash:	ce237eefc1f6dafafc0e1fe3a5fd9f075d3fd066
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-Ok.
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
->
->> +		zcal_done = phy_zcal_done(dw_dev);
->> +	} while (!zcal_done && timeout--);
->> +
->> +	if (!zcal_done) {
->> +		dev_err(dw_dev->dev, "Zcal calibration failed\n");
->> +		return -ETIMEDOUT;
->> +	}
->> +	return 0;
->> +}
->> +static int dw_phy_probe(struct platform_device *pdev)
->> +{
->> +	struct dw_phy_pdata *pdata = pdev->dev.platform_data;
->> +	struct device *dev = &pdev->dev;
->> +	struct dw_phy_dev *dw_dev;
->> +	struct v4l2_subdev *sd;
->> +	int ret;
->> +
->> +	dev_dbg(dev, "probe start\n");
->> +
->> +	/* Resource allocation */
-> This comment is not needed.
->
->> +	dw_dev = devm_kzalloc(dev, sizeof(*dw_dev), GFP_KERNEL);
->> +	if (!dw_dev)
->> +		return -ENOMEM;
->> +
->> +	/* Resource initialization */
-> Ditto.
+Detailed results are available here:
 
-Ok.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
->
->> +	if (!pdata) {
->> +		dev_err(dev, "no platform data suplied\n");
->> +		return -EINVAL;
->> +	}
->> +
->> +	dw_dev->dev = dev;
->> +	dw_dev->config = pdata;
->> +	dw_dev->version = 405;
-> How about storing the version number in the dw_hdmi_phy_e405_id[] table
-> and retrieving it here with of_device_get_match_data() ?
+Full logs are available here:
 
-Yeah, seems nice :)
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
->
->> +	mutex_init(&dw_dev->lock);
->> +
->> +	/* Get config clock value */
-> The comment is not needed, it's clear from the code we are getting the clock 
-> and its rate.
+The Media Infrastructure API from this daily build is here:
 
-Ok.
-
->
->> +	dw_dev->clk = devm_clk_get(dev, "cfg-clk");
-> As Rob suggested, it would be good to change name of the clock to just "cfg".
-
-Yes, I will change.
-
->
->> +	if (IS_ERR(dw_dev->clk)) {
->> +		dev_err(dev, "failed to get cfg-clk\n");
->> +		return PTR_ERR(dw_dev->clk);
->> +	}
->> +
->> +	ret = clk_prepare_enable(dw_dev->clk);
->> +	if (ret) {
->> +		dev_err(dev, "failed to enable cfg-clk\n");
->> +		return ret;
->> +	}
->> +
->> +	dw_dev->cfg_clk = clk_get_rate(dw_dev->clk) / 1000000;
-> 1000000U ?
-
-Ok.
-
->
->> +	if (!dw_dev->cfg_clk) {
->> +		dev_err(dev, "invalid cfg-clk frequency\n");> +		ret = -EINVAL;
->> +		goto err_clk;
->> +	}
->> +
->> +	/* V4L2 initialization */
->> +	sd = &dw_dev->sd;
->> +	v4l2_subdev_init(sd, &dw_phy_sd_ops);
->> +	strlcpy(sd->name, dev_name(dev), sizeof(sd->name));
->> +	sd->dev = dev;
->> +
->> +	/* Force phy disabling */
->> +	dw_dev->phy_enabled = true;
->> +	dw_phy_disable(dw_dev);
->> +
->> +	/* Register subdev */
->> +	ret = v4l2_async_register_subdev(sd);
->> +	if (ret) {
->> +		dev_err(dev, "failed to register subdev\n");
->> +		goto err_clk;
->> +	}
->> +
->> +	/* All done */
-> Superfluous comment.
-
-Ok.
-
->
->> +	dev_set_drvdata(dev, sd);
->> +	dev_info(dev, "driver probed (cfg-clk=%d)\n", dw_dev->cfg_clk);
-> This should be at dev_dbg() level.
-
-Ok.
-
->
->> +	return 0;
->> +
->> +err_clk:
->> +	clk_disable_unprepare(dw_dev->clk);
->> +	return ret;
->> +}
->> +
->> +static int dw_phy_remove(struct platform_device *pdev)
->> +{
->> +	struct device *dev = &pdev->dev;
-> The assignment here could be dropped and &pdev->dev used directly below.
-
-Ok.
-
->
->> +	struct v4l2_subdev *sd = dev_get_drvdata(dev);
->> +	struct dw_phy_dev *dw_dev = to_dw_dev(sd);
->> +
->> +	v4l2_async_unregister_subdev(sd);
->> +	clk_disable_unprepare(dw_dev->clk);
->> +	dev_info(dev, "driver removed\n");
-> This should be at dev_dbg() level or dropped entirely.
-
-Ok.
-
-Thanks for the review!
-
-Best regards,
-Jose Miguel Abreu
->
->> +	return 0;
->> +}
->> +
->> +static const struct of_device_id dw_hdmi_phy_e405_id[] = {
->> +	{ .compatible = "snps,dw-hdmi-phy-e405" },
->> +	{ },
->> +};
->> +MODULE_DEVICE_TABLE(of, dw_hdmi_phy_e405_id);
-> --
-> Regards,
-> Sylwester
+http://www.xs4all.nl/~hverkuil/spec/index.html
