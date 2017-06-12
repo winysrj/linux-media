@@ -1,209 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:52935 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751411AbdFZKHP (ORCPT
+Received: from relmlor3.renesas.com ([210.160.252.173]:29294 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752086AbdFLNkA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 06:07:15 -0400
-Subject: Re: [PATCH v1 3/5] [media] stm32-dcmi: crop sensor image to match
- user resolution
-To: Hugues FRUCHET <hugues.fruchet@st.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre TORGUE <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1498144371-13310-1-git-send-email-hugues.fruchet@st.com>
- <1498144371-13310-4-git-send-email-hugues.fruchet@st.com>
- <ee46bbd4-9343-7060-3c1b-455486eb7a9c@xs4all.nl>
- <8ae4c160-3137-0fa8-3d78-e4e1284521a4@st.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick FERTRE <yannick.fertre@st.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2844ed1a-d310-4381-c4a7-88ab4633f32f@xs4all.nl>
-Date: Mon, 26 Jun 2017 12:07:07 +0200
-MIME-Version: 1.0
-In-Reply-To: <8ae4c160-3137-0fa8-3d78-e4e1284521a4@st.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Mon, 12 Jun 2017 09:40:00 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v8 4/8] media: Add new SDR formats PC16, PC18 & PC20
+Date: Mon, 12 Jun 2017 14:26:16 +0100
+Message-Id: <20170612132620.1024-5-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <20170612132620.1024-1-ramesh.shanmugasundaram@bp.renesas.com>
+References: <20170612132620.1024-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/06/17 11:53, Hugues FRUCHET wrote:
-> Hi Hans, thanks for review.
-> 
-> Reply below.
-> 
-> BR
-> Hugues.
-> 
-> On 06/22/2017 05:19 PM, Hans Verkuil wrote:
->> On 06/22/2017 05:12 PM, Hugues Fruchet wrote:
->>> Add flexibility on supported resolutions by cropping sensor
->>> image to fit user resolution format request.
->>>
->>> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
->>> ---
->>>    drivers/media/platform/stm32/stm32-dcmi.c | 54 ++++++++++++++++++++++++++++++-
->>>    1 file changed, 53 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
->>> index 75d53aa..bc5e052 100644
->>> --- a/drivers/media/platform/stm32/stm32-dcmi.c
->>> +++ b/drivers/media/platform/stm32/stm32-dcmi.c
->>> @@ -131,6 +131,8 @@ struct stm32_dcmi {
->>>    	struct v4l2_async_notifier	notifier;
->>>    	struct dcmi_graph_entity	entity;
->>>    	struct v4l2_format		fmt;
->>> +	struct v4l2_rect		crop;
->>> +	bool				do_crop;
->>>    
->>>    	const struct dcmi_format	**user_formats;
->>>    	unsigned int			num_user_formats;
->>> @@ -538,6 +540,27 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
->>>    	if (dcmi->bus.flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
->>>    		val |= CR_PCKPOL;
->>>    
->>> +	if (dcmi->do_crop) {
->>> +		u32 size, start;
->>> +
->>> +		/* Crop resolution */
->>> +		size = ((dcmi->crop.height - 1) << 16) |
->>> +			((dcmi->crop.width << 1) - 1);
->>> +		reg_write(dcmi->regs, DCMI_CWSIZE, size);
->>> +
->>> +		/* Crop start point */
->>> +		start = ((dcmi->crop.top) << 16) |
->>> +			 ((dcmi->crop.left << 1));
->>> +		reg_write(dcmi->regs, DCMI_CWSTRT, start);
->>> +
->>> +		dev_dbg(dcmi->dev, "Cropping to %ux%u@%u:%u\n",
->>> +			dcmi->crop.width, dcmi->crop.height,
->>> +			dcmi->crop.left, dcmi->crop.top);
->>> +
->>> +		/* Enable crop */
->>> +		val |= CR_CROP;
->>> +	};
->>> +
->>>    	reg_write(dcmi->regs, DCMI_CR, val);
->>>    
->>>    	/* Enable dcmi */
->>> @@ -707,6 +730,8 @@ static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
->>>    		.which = V4L2_SUBDEV_FORMAT_TRY,
->>>    	};
->>>    	int ret;
->>> +	__u32 width, height;
->>> +	struct v4l2_mbus_framefmt *mf = &format.format;
->>>    
->>>    	dcmi_fmt = find_format_by_fourcc(dcmi, pixfmt->pixelformat);
->>>    	if (!dcmi_fmt) {
->>> @@ -724,8 +749,18 @@ static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
->>>    	if (ret < 0)
->>>    		return ret;
->>>    
->>> +	/* Align format on what sensor can do */
->>> +	width = pixfmt->width;
->>> +	height = pixfmt->height;
->>>    	v4l2_fill_pix_format(pixfmt, &format.format);
->>>    
->>> +	/* We can do any resolution thanks to crop */
->>> +	if ((mf->width > width) || (mf->height > height)) {
->>> +		/* Restore width/height */
->>> +		pixfmt->width = width;
->>> +		pixfmt->height = height;
->>> +	};
->>> +
->>>    	pixfmt->field = V4L2_FIELD_NONE;
->>>    	pixfmt->bytesperline = pixfmt->width * dcmi_fmt->bpp;
->>>    	pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height;
->>> @@ -741,6 +776,8 @@ static int dcmi_set_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f)
->>>    	struct v4l2_subdev_format format = {
->>>    		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
->>>    	};
->>> +	struct v4l2_mbus_framefmt *mf = &format.format;
->>> +	struct v4l2_pix_format *pixfmt = &f->fmt.pix;
->>>    	const struct dcmi_format *current_fmt;
->>>    	int ret;
->>>    
->>> @@ -748,13 +785,28 @@ static int dcmi_set_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f)
->>>    	if (ret)
->>>    		return ret;
->>>    
->>> -	v4l2_fill_mbus_format(&format.format, &f->fmt.pix,
->>> +	v4l2_fill_mbus_format(&format.format, pixfmt,
->>>    			      current_fmt->mbus_code);
->>>    	ret = v4l2_subdev_call(dcmi->entity.subdev, pad,
->>>    			       set_fmt, NULL, &format);
->>>    	if (ret < 0)
->>>    		return ret;
->>>    
->>> +	/* Enable crop if sensor resolution is larger than request */
->>> +	dcmi->do_crop = false;
->>> +	if ((mf->width > pixfmt->width) || (mf->height > pixfmt->height)) {
->>> +		dcmi->crop.width = pixfmt->width;
->>> +		dcmi->crop.height = pixfmt->height;
->>> +		dcmi->crop.left = (mf->width - pixfmt->width) / 2;
->>> +		dcmi->crop.top = (mf->height - pixfmt->height) / 2;
->>> +		dcmi->do_crop = true;
->>
->> Why not implement the selection API instead? I assume that you can crop from any
->> region of the sensor, not just the center part.
-> 
-> The point here was to add some flexibility for user in term of 
-> resolution and also less memory consumption.
-> For example here I want to make a 480x272 preview:
-> - without this change: S_FMT(480x272) returns VGA (the OV9655 larger 
-> discrete resolution), then app has to capture VGA frames then crop to 
-> fit 480x272 frame buffer.
-> - with this change: S_FMT(480x272) returns 480x272 (crop done by 
-> hardware), app can directly capture 480x272 then copy to framebuffer 
-> without any conversion.
-> 
-> Implementation of V4L2 crop using SELECTION API could also be used,
-> but I need to change app.
-> 
-> More generally, with a given couple ISP+sensor, will S_FMT()
-> return the sensor only supported resolutions ? or the supported 
-> resolutions of the couple ISP+sensor (ISP will downscale/upscale/crop
-> the sensor discrete resolution to fit user request) ?
-> 
-> Hans, what are your recommendations ?
+This patch adds support for the three new SDR formats. These formats
+were prefixed with "planar" indicating I & Q data are not interleaved
+as in other formats. Here, I & Q data constitutes the top half and bottom
+half of the received buffer respectively.
 
-This is not the way the V4L2 API works.
+V4L2_SDR_FMT_PCU16BE - 14-bit complex (I & Q) unsigned big-endian sample
+inside 16-bit. V4L2 FourCC: PC16
 
-Sensors report their supported resolutions through the ENUM_FRAMESIZES
-(and the related ENUM_FRAMEINTERVALS) ioctls.
+V4L2_SDR_FMT_PCU18BE - 16-bit complex (I & Q) unsigned big-endian sample
+inside 18-bit. V4L2 FourCC: PC18
 
-With S_FMT you pick the resolution you want.
+V4L2_SDR_FMT_PCU20BE - 18-bit complex (I & Q) unsigned big-endian sample
+inside 20-bit. V4L2 FourCC: PC20
 
-If you then want to crop the driver should implement the selection API
-(this will also automatically enable the G/S_CROP/CROPCAP ioctls) so the
-application can select which part of the image should be cropped. Assuming
-there is no scaler then after cropping the format size will be reduced
-to the size of the cropped image.
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 3 +++
+ include/uapi/linux/videodev2.h       | 3 +++
+ 2 files changed, 6 insertions(+)
 
-That's in a nutshell how these ioctls relate to one another.
-
-Regards,
-
-	Hans
-
-> 
->>
->> Regards,
->>
->> 	Hans
->>
->>> +
->>> +		dev_dbg(dcmi->dev, "%ux%u cropped to %ux%u@(%u,%u)\n",
->>> +			mf->width, mf->height,
->>> +			dcmi->crop.width, dcmi->crop.height,
->>> +			dcmi->crop.left, dcmi->crop.top);
->>> +	};
->>> +
->>>    	dcmi->fmt = *f;
->>>    	dcmi->current_fmt = current_fmt;
->>>    
->>>
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 4f27cfa134a1..ce40183d9daa 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1229,6 +1229,9 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
+ 	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
+ 	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
++	case V4L2_SDR_FMT_PCU16BE:	descr = "Planar Complex U16BE"; break;
++	case V4L2_SDR_FMT_PCU18BE:	descr = "Planar Complex U18BE"; break;
++	case V4L2_SDR_FMT_PCU20BE:	descr = "Planar Complex U20BE"; break;
+ 	case V4L2_TCH_FMT_DELTA_TD16:	descr = "16-bit signed deltas"; break;
+ 	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
+ 	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 2b8feb86d09e..45cf7359822c 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -669,6 +669,9 @@ struct v4l2_pix_format {
+ #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
+ #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
+ #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
++#define V4L2_SDR_FMT_PCU16BE	  v4l2_fourcc('P', 'C', '1', '6') /* planar complex u16be */
++#define V4L2_SDR_FMT_PCU18BE	  v4l2_fourcc('P', 'C', '1', '8') /* planar complex u18be */
++#define V4L2_SDR_FMT_PCU20BE	  v4l2_fourcc('P', 'C', '2', '0') /* planar complex u20be */
+ 
+ /* Touch formats - used for Touch devices */
+ #define V4L2_TCH_FMT_DELTA_TD16	v4l2_fourcc('T', 'D', '1', '6') /* 16-bit signed deltas */
+-- 
+2.12.2
