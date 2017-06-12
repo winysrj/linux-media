@@ -1,49 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:57955 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751169AbdFBQDP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 12:03:15 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/9] [media] s5p-jpeg: Reset the Codec before doing a soft reset
-Date: Fri,  2 Jun 2017 18:02:48 +0200
-Message-Id: <1496419376-17099-2-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
-References: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+Received: from mail-wr0-f173.google.com ([209.85.128.173]:36762 "EHLO
+        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752313AbdFLQ35 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Jun 2017 12:29:57 -0400
+Received: by mail-wr0-f173.google.com with SMTP id v111so103595710wrc.3
+        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 09:29:51 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v10 09/18] media: venus: enable building of Venus video driver
+Date: Mon, 12 Jun 2017 19:27:46 +0300
+Message-Id: <1497284875-19999-10-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1497284875-19999-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1497284875-19999-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Abhilash Kesavan <a.kesavan@samsung.com>
+This adds Venus driver Makefile and changes v4l2 platform
+Makefile/Kconfig in order to enable building of the driver.
 
-This patch resets the encoding and decoding register bits before doing a
-soft reset.
+Note that in this initial version the COMPILE_TEST-ing is not
+supported because the drivers specific to ARM builds are still
+in process of enabling the aforementioned compile testing.
+Once that disadvantage is fixed the Venus driver compile testing
+will be possible with follow-up changes.
 
-Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/platform/Kconfig             | 13 +++++++++++++
+ drivers/media/platform/Makefile            |  2 ++
+ drivers/media/platform/qcom/venus/Makefile | 11 +++++++++++
+ 3 files changed, 26 insertions(+)
+ create mode 100644 drivers/media/platform/qcom/venus/Makefile
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-index a1d823a..9ad8f6d 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-@@ -21,6 +21,10 @@ void exynos4_jpeg_sw_reset(void __iomem *base)
- 	unsigned int reg;
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 288d3b0dc812..017e42ce0ff9 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -464,6 +464,19 @@ config VIDEO_TI_VPE_DEBUG
+ 	---help---
+ 	  Enable debug messages on VPE driver.
  
- 	reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
-+	writel(reg & ~(EXYNOS4_DEC_MODE | EXYNOS4_ENC_MODE),
-+	       base + EXYNOS4_JPEG_CNTL_REG);
++config VIDEO_QCOM_VENUS
++	tristate "Qualcomm Venus V4L2 encoder/decoder driver"
++	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
++	depends on ARCH_QCOM && IOMMU_DMA
++	select QCOM_MDT_LOADER
++	select VIDEOBUF2_DMA_SG
++	select V4L2_MEM2MEM_DEV
++	---help---
++	  This is a V4L2 driver for Qualcomm Venus video accelerator
++	  hardware. It accelerates encoding and decoding operations
++	  on various Qualcomm SoCs.
++	  To compile this driver as a module choose m here.
 +
-+	reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
- 	writel(reg & ~EXYNOS4_SOFT_RESET_HI, base + EXYNOS4_JPEG_CNTL_REG);
+ endif # V4L_MEM2MEM_DRIVERS
  
- 	udelay(100);
+ # TI VIDEO PORT Helper Modules
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index c3588d570f5d..37053723fb03 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -79,3 +79,5 @@ obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC)	+= mtk-vcodec/
+ obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
+ 
+ obj-$(CONFIG_VIDEO_MEDIATEK_JPEG)	+= mtk-jpeg/
++
++obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
+diff --git a/drivers/media/platform/qcom/venus/Makefile b/drivers/media/platform/qcom/venus/Makefile
+new file mode 100644
+index 000000000000..0fe9afb83697
+--- /dev/null
++++ b/drivers/media/platform/qcom/venus/Makefile
+@@ -0,0 +1,11 @@
++# Makefile for Qualcomm Venus driver
++
++venus-core-objs += core.o helpers.o firmware.o \
++		   hfi_venus.o hfi_msgs.o hfi_cmds.o hfi.o
++
++venus-dec-objs += vdec.o vdec_ctrls.o
++venus-enc-objs += venc.o venc_ctrls.o
++
++obj-$(CONFIG_VIDEO_QCOM_VENUS) += venus-core.o
++obj-$(CONFIG_VIDEO_QCOM_VENUS) += venus-dec.o
++obj-$(CONFIG_VIDEO_QCOM_VENUS) += venus-enc.o
 -- 
 2.7.4
