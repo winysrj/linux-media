@@ -1,50 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay2.synopsys.com ([198.182.60.111]:46606 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750967AbdFPQjD (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:60247 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753751AbdFLRNd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 12:39:03 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>
-Subject: [PATCH v3 3/4] MAINTAINERS: Add entry for Synopsys Designware HDMI drivers
-Date: Fri, 16 Jun 2017 17:38:32 +0100
-Message-Id: <c8a09ab2f541cd29bd3322beffbfc5e1b6732b62.1497630695.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1497630695.git.joabreu@synopsys.com>
-References: <cover.1497630695.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1497630695.git.joabreu@synopsys.com>
-References: <cover.1497630695.git.joabreu@synopsys.com>
+        Mon, 12 Jun 2017 13:13:33 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2 2/6] [media] s5p-jpeg: Call jpeg_bound_align_image after qbuf
+Date: Mon, 12 Jun 2017 19:13:21 +0200
+Message-Id: <1497287605-20074-3-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
+References: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a entry for Synopsys Designware HDMI Receivers drivers
-and phys.
+From: Tony K Nadackal <tony.kn@samsung.com>
 
-Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-Cc: Carlos Palminha <palminha@synopsys.com>
+When queuing an OUTPUT buffer for decoder, s5p_jpeg_parse_hdr()
+function parses the input jpeg file and takes the width and height
+parameters from its header. These new width/height values will be used
+for the calculation of stride. HX_JPEG Hardware needs the width and
+height values aligned on a 16 bits boundary. This width/height alignment
+is handled in the s5p_jpeg_s_fmt_vid_cap() function during the S_FMT
+ioctl call.
+
+But if user space calls the QBUF of OUTPUT buffer after the S_FMT of
+CAPTURE buffer, these aligned values will be replaced by the values in
+jpeg header. If the width/height values of jpeg are not aligned, the
+decoder output will be corrupted. So in this patch we call
+jpeg_bound_align_image() to align the width/height values of Capture
+buffer in s5p_jpeg_buf_queue().
+
+Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
 ---
- MAINTAINERS | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 053c3bd..e798040 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -11294,6 +11294,13 @@ L:	netdev@vger.kernel.org
- S:	Supported
- F:	drivers/net/ethernet/synopsys/
- 
-+SYNOPSYS DESIGNWARE HDMI RECEIVERS AND PHY DRIVERS
-+M:	Jose Abreu <joabreu@synopsys.com>
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/platform/dwc/*
-+F:	include/media/dwc/*
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 52dc794..623508d 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -2523,6 +2523,25 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
+ 		q_data = &ctx->cap_q;
+ 		q_data->w = tmp.w;
+ 		q_data->h = tmp.h;
 +
- SYNOPSYS DESIGNWARE I2C DRIVER
- M:	Jarkko Nikula <jarkko.nikula@linux.intel.com>
- R:	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
++		/*
++		 * This call to jpeg_bound_align_image() takes care of width and
++		 * height values alignment when user space calls the QBUF of
++		 * OUTPUT buffer after the S_FMT of CAPTURE buffer.
++		 * Please note that on Exynos4x12 SoCs, resigning from executing
++		 * S_FMT on capture buffer for each JPEG image can result in a
++		 * hardware hangup if subsampling is lower than the one of input
++		 * JPEG.
++		 */
++		jpeg_bound_align_image(ctx,
++				       &q_data->w,
++				       S5P_JPEG_MIN_WIDTH, S5P_JPEG_MAX_WIDTH,
++				       q_data->fmt->h_align,
++				       &q_data->h,
++				       S5P_JPEG_MIN_HEIGHT, S5P_JPEG_MAX_HEIGHT,
++				       q_data->fmt->v_align);
++
++		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
+ 	}
+ 
+ 	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
 -- 
-1.9.1
+2.7.4
