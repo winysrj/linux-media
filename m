@@ -1,64 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f194.google.com ([74.125.82.194]:35340 "EHLO
-        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751591AbdFIOHV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 10:07:21 -0400
-Date: Fri, 9 Jun 2017 09:07:19 -0500
-From: Rob Herring <robh@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH 7/9] dt-bindings: media/s5p-cec.txt: document needs-hpd
- property
-Message-ID: <20170609140719.o2qzty6eyez66oxy@rob-hp-laptop>
-References: <20170607144616.15247-1-hverkuil@xs4all.nl>
- <20170607144616.15247-8-hverkuil@xs4all.nl>
+Received: from relmlor3.renesas.com ([210.160.252.173]:6577 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751955AbdFLNjs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Jun 2017 09:39:48 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v8 2/8] dt-bindings: media: Add MAX2175 binding description
+Date: Mon, 12 Jun 2017 14:26:14 +0100
+Message-Id: <20170612132620.1024-3-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <20170612132620.1024-1-ramesh.shanmugasundaram@bp.renesas.com>
+References: <20170612132620.1024-1-ramesh.shanmugasundaram@bp.renesas.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170607144616.15247-8-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 07, 2017 at 04:46:14PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Needed for boards that wire the CEC pin in such a way that it
-> is unavailable when the HPD is low.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Krzysztof Kozlowski <krzk@kernel.org>
-> Cc: Andrzej Hajda <a.hajda@samsung.com>
-> Cc: devicetree@vger.kernel.org
-> ---
->  Documentation/devicetree/bindings/media/s5p-cec.txt | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/s5p-cec.txt b/Documentation/devicetree/bindings/media/s5p-cec.txt
-> index 4bb08d9d940b..261af4d1a791 100644
-> --- a/Documentation/devicetree/bindings/media/s5p-cec.txt
-> +++ b/Documentation/devicetree/bindings/media/s5p-cec.txt
-> @@ -17,6 +17,12 @@ Required properties:
->    - samsung,syscon-phandle - phandle to the PMU system controller
->    - hdmi-phandle - phandle to the HDMI controller
->  
-> +Optional:
-> +  - needs-hpd : if present the CEC support is only available when the HPD
-> +    is high. Some boards only let the CEC pin through if the HPD is high, for
-> +    example if there is a level converter that uses the HPD to power up
-> +    or down.
+Add device tree binding documentation for MAX2175 RF to bits tuner
+device.
 
-Seems like something common. Can you document in a common location?
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Acked-by: Rob Herring <robh@kernel.org>
+---
+ .../devicetree/bindings/media/i2c/max2175.txt      | 59 ++++++++++++++++++++++
+ .../devicetree/bindings/property-units.txt         |  1 +
+ 2 files changed, 60 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/max2175.txt
 
-> +
->  Example:
->  
->  hdmicec: cec@100B0000 {
-> -- 
-> 2.11.0
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+diff --git a/Documentation/devicetree/bindings/media/i2c/max2175.txt b/Documentation/devicetree/bindings/media/i2c/max2175.txt
+new file mode 100644
+index 000000000000..02b4e9cd7b1b
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/max2175.txt
+@@ -0,0 +1,59 @@
++Maxim Integrated MAX2175 RF to Bits tuner
++-----------------------------------------
++
++The MAX2175 IC is an advanced analog/digital hybrid-radio receiver with
++RF to Bits® front-end designed for software-defined radio solutions.
++
++Required properties:
++--------------------
++- compatible: "maxim,max2175" for MAX2175 RF-to-bits tuner.
++- clocks: clock specifier.
++- port: child port node corresponding to the I2S output, in accordance with
++	the video interface bindings defined in
++	Documentation/devicetree/bindings/media/video-interfaces.txt. The port
++	node must contain at least one endpoint.
++
++Optional properties:
++--------------------
++- maxim,master	      : phandle to the master tuner if it is a slave. This
++			is used to define two tuners in diversity mode
++			(1 master, 1 slave). By default each tuner is an
++			individual master.
++- maxim,refout-load   : load capacitance value (in picofarads) on reference
++			output drive level. The possible load values are:
++			 0 (default - refout disabled)
++			10
++			20
++			30
++			40
++			60
++			70
++- maxim,am-hiz-filter : empty property indicates the AM Hi-Z filter is used
++			in this hardware for AM antenna input.
++
++Example:
++--------
++
++Board specific DTS file
++
++/* Fixed XTAL clock node */
++maxim_xtal: clock {
++	compatible = "fixed-clock";
++	#clock-cells = <0>;
++	clock-frequency = <36864000>;
++};
++
++/* A tuner device instance under i2c bus */
++max2175_0: tuner@60 {
++	compatible = "maxim,max2175";
++	reg = <0x60>;
++	clocks = <&maxim_xtal>;
++	maxim,refout-load = <10>;
++
++	port {
++		max2175_0_ep: endpoint {
++			remote-endpoint = <&slave_rx_device>;
++		};
++	};
++
++};
+diff --git a/Documentation/devicetree/bindings/property-units.txt b/Documentation/devicetree/bindings/property-units.txt
+index 12278d79f6c0..7c9f6ee918f1 100644
+--- a/Documentation/devicetree/bindings/property-units.txt
++++ b/Documentation/devicetree/bindings/property-units.txt
+@@ -28,6 +28,7 @@ Electricity
+ -ohms		: Ohms
+ -micro-ohms	: micro Ohms
+ -microvolt	: micro volts
++-picofarads	: picofarads
+ 
+ Temperature
+ ----------------------------------------
+-- 
+2.12.2
