@@ -1,50 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36439
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754804AbdFXUlN (ORCPT
+Received: from mail-qt0-f170.google.com ([209.85.216.170]:35550 "EHLO
+        mail-qt0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752102AbdFLMux (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Jun 2017 16:41:13 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Johannes Thumshirn <jthumshirn@suse.de>,
-        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        linux-samsung-soc@vger.kernel.org
-Subject: [PATCH 2/4] media: s3c-camif: use LINUX_VERSION_CODE for driver's version
-Date: Sat, 24 Jun 2017 17:40:25 -0300
-Message-Id: <3046b1093267f62c2f05b33941889cad7219eca4.1498336792.git.mchehab@s-opensource.com>
-In-Reply-To: <73980406b3bb4a6829a1d1bca69a555477234beb.1498336792.git.mchehab@s-opensource.com>
-References: <73980406b3bb4a6829a1d1bca69a555477234beb.1498336792.git.mchehab@s-opensource.com>
-In-Reply-To: <73980406b3bb4a6829a1d1bca69a555477234beb.1498336792.git.mchehab@s-opensource.com>
-References: <73980406b3bb4a6829a1d1bca69a555477234beb.1498336792.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Mon, 12 Jun 2017 08:50:53 -0400
+Received: by mail-qt0-f170.google.com with SMTP id w1so123621782qtg.2
+        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 05:50:52 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170609175401.40204-2-hverkuil@xs4all.nl>
+References: <20170609175401.40204-1-hverkuil@xs4all.nl> <20170609175401.40204-2-hverkuil@xs4all.nl>
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Date: Mon, 12 Jun 2017 14:50:51 +0200
+Message-ID: <CA+M3ks7SbgyvWCKbkJD2T9gdyhbKQ9PGyp9jY1M0sbuuNDtXLQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] dt-bindings: add media/cec.txt
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        devicetree@vger.kernel.org,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Andrzej Hajda <a.hajda@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We seldomly increment version numbers on drivers, because... we
-usually forget ;-)
+2017-06-09 19:54 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Document common HDMI CEC bindings. Add this to the MAINTAINERS file
+> as well.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Krzysztof Kozlowski <krzk@kernel.org>
+> Cc: Andrzej Hajda <a.hajda@samsung.com>
+> Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+> Cc: devicetree@vger.kernel.org
+> ---
+>  Documentation/devicetree/bindings/media/cec.txt | 8 ++++++++
+>  MAINTAINERS                                     | 1 +
+>  2 files changed, 9 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/cec.txt
+>
+> diff --git a/Documentation/devicetree/bindings/media/cec.txt b/Documentation/devicetree/bindings/media/cec.txt
+> new file mode 100644
+> index 000000000000..22d7aae3d3d7
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/cec.txt
+> @@ -0,0 +1,8 @@
+> +Common bindings for HDMI CEC adapters
+> +
+> +- hdmi-phandle: phandle to the HDMI controller.
+> +
+> +- needs-hpd: if present the CEC support is only available when the HPD
+> +  is high. Some boards only let the CEC pin through if the HPD is high,
+> +  for example if there is a level converter that uses the HPD to power
+> +  up or down.
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 053c3bdd1fe5..4ac340d189a3 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -3137,6 +3137,7 @@ F:        include/media/cec.h
+>  F:     include/media/cec-notifier.h
+>  F:     include/uapi/linux/cec.h
+>  F:     include/uapi/linux/cec-funcs.h
+> +F:     Documentation/devicetree/bindings/media/cec.txt
+>
+>  CELL BROADBAND ENGINE ARCHITECTURE
+>  M:     Arnd Bergmann <arnd@arndb.de>
+> --
+> 2.11.0
+>
 
-So, instead, just make it identical to the Kernel version, as what
-we do on all other drivers.
+Looks good for me
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/platform/s3c-camif/camif-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/s3c-camif/camif-core.c b/drivers/media/platform/s3c-camif/camif-core.c
-index ec4001970313..8f0414041e81 100644
---- a/drivers/media/platform/s3c-camif/camif-core.c
-+++ b/drivers/media/platform/s3c-camif/camif-core.c
-@@ -317,7 +317,7 @@ static int camif_media_dev_init(struct camif_dev *camif)
- 		 ip_rev == S3C6410_CAMIF_IP_REV ? "6410" : "244X");
- 	strlcpy(md->bus_info, "platform", sizeof(md->bus_info));
- 	md->hw_revision = ip_rev;
--	md->driver_version = KERNEL_VERSION(1, 0, 0);
-+	md->driver_version = LINUX_VERSION_CODE;
- 
- 	md->dev = camif->dev;
- 
--- 
-2.9.4
+Acked-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
