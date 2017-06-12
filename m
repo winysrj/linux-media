@@ -1,77 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:35131 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754968AbdFXQo7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Jun 2017 12:44:59 -0400
-Received: by mail-pg0-f68.google.com with SMTP id f127so9928105pgc.2
-        for <linux-media@vger.kernel.org>; Sat, 24 Jun 2017 09:44:58 -0700 (PDT)
-Subject: Re: [PATCH] media: imx.rst: add it to v4l-drivers book
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Kieran Bingham <kieran+renesas@ksquared.org.uk>
-References: <cc7036633839dfd82e3123fa025dd44b009910a8.1498321073.git.mchehab@s-opensource.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <6df72cba-7f3b-11d5-9583-c162dbf6c98d@gmail.com>
-Date: Sat, 24 Jun 2017 09:44:56 -0700
-MIME-Version: 1.0
-In-Reply-To: <cc7036633839dfd82e3123fa025dd44b009910a8.1498321073.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from mail.kernel.org ([198.145.29.99]:33374 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752476AbdFLKaV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Jun 2017 06:30:21 -0400
+From: Kieran Bingham <kbingham@kernel.org>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: geert@glider.be, laurent.pinchart@ideasonboard.com,
+        kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v2] media: fdp1: Support ES2 platforms
+Date: Mon, 12 Jun 2017 11:30:16 +0100
+Message-Id: <1497263416-17930-1-git-send-email-kbingham@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
+The new Renesas R-Car H3 ES2.0 platforms have a new hw version register.
+Update the driver accordingly, defaulting to the new hw revision, and
+differentiating the older revision as ES1
 
-On 06/24/2017 09:18 AM, Mauro Carvalho Chehab wrote:
-> Avoid the following warning when building documentation:
-> 	checking consistency... /devel/v4l/patchwork/Documentation/media/v4l-drivers/imx.rst:: WARNING: document isn't included in any toctree
->
-> While here, avoid placing all driver authors at just one line at
-> the html/pdf output.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/rcar_fdp1.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-Acked-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-
-Steve
-
-> ---
->   Documentation/media/v4l-drivers/imx.rst   | 7 ++++---
->   Documentation/media/v4l-drivers/index.rst | 1 +
->   2 files changed, 5 insertions(+), 3 deletions(-)
->
-> diff --git a/Documentation/media/v4l-drivers/imx.rst b/Documentation/media/v4l-drivers/imx.rst
-> index e0ee0f1aeb05..3c4f58bda178 100644
-> --- a/Documentation/media/v4l-drivers/imx.rst
-> +++ b/Documentation/media/v4l-drivers/imx.rst
-> @@ -607,8 +607,9 @@ References
->   
->   Authors
->   -------
-> -Steve Longerbeam <steve_longerbeam@mentor.com>
-> -Philipp Zabel <kernel@pengutronix.de>
-> -Russell King <linux@armlinux.org.uk>
-> +
-> +- Steve Longerbeam <steve_longerbeam@mentor.com>
-> +- Philipp Zabel <kernel@pengutronix.de>
-> +- Russell King <linux@armlinux.org.uk>
->   
->   Copyright (C) 2012-2017 Mentor Graphics Inc.
-> diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
-> index 2e24d6806052..10f2ce42ece2 100644
-> --- a/Documentation/media/v4l-drivers/index.rst
-> +++ b/Documentation/media/v4l-drivers/index.rst
-> @@ -41,6 +41,7 @@ For more details see the file COPYING in the source distribution of Linux.
->   	cx88
->   	davinci-vpbe
->   	fimc
-> +	imx
->   	ivtv
->   	max2175
->   	meye
+diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
+index 42f25d241edd..159786b052f3 100644
+--- a/drivers/media/platform/rcar_fdp1.c
++++ b/drivers/media/platform/rcar_fdp1.c
+@@ -258,8 +258,9 @@ MODULE_PARM_DESC(debug, "activate debug info");
+ 
+ /* Internal Data (HW Version) */
+ #define FD1_IP_INTDATA			0x0800
+-#define FD1_IP_H3			0x02010101
++#define FD1_IP_H3_ES1			0x02010101
+ #define FD1_IP_M3W			0x02010202
++#define FD1_IP_H3			0x02010203
+ 
+ /* LUTs */
+ #define FD1_LUT_DIF_ADJ			0x1000
+@@ -2359,12 +2360,15 @@ static int fdp1_probe(struct platform_device *pdev)
+ 
+ 	hw_version = fdp1_read(fdp1, FD1_IP_INTDATA);
+ 	switch (hw_version) {
+-	case FD1_IP_H3:
+-		dprintk(fdp1, "FDP1 Version R-Car H3\n");
++	case FD1_IP_H3_ES1:
++		dprintk(fdp1, "FDP1 Version R-Car H3 ES1\n");
+ 		break;
+ 	case FD1_IP_M3W:
+ 		dprintk(fdp1, "FDP1 Version R-Car M3-W\n");
+ 		break;
++	case FD1_IP_H3:
++		dprintk(fdp1, "FDP1 Version R-Car H3\n");
++		break;
+ 	default:
+ 		dev_err(fdp1->dev, "FDP1 Unidentifiable (0x%08x)\n",
+ 				hw_version);
+-- 
+2.7.4
