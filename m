@@ -1,94 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54064 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751407AbdFZLQZ (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:63199 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751494AbdFLM7W (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 07:16:25 -0400
-Date: Mon, 26 Jun 2017 13:16:21 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Hugues Fruchet <hugues.fruchet@st.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        devicetree <devicetree@vger.kernel.org>,
+        Mon, 12 Jun 2017 08:59:22 -0400
+Subject: Re: [PATCH 1/2] dt-bindings: add media/cec.txt
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
         Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Rob Herring <robh+dt@kernel.org>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-media@vger.kernel.org,
-        Discussions about the Letux Kernel
-        <letux-kernel@openphoenux.org>
-Subject: Re: omap3isp camera was Re: [PATCH v1 0/6] Add support of OV9655
- camera
-Message-ID: <20170626111621.GC11688@amd>
-References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
- <385A82AC-CC23-41BD-9F57-0232F713FED9@goldelico.com>
- <1E453955-0C1A-414B-BBB2-C64B6D0EF378@goldelico.com>
- <20170625091856.GA22791@amd>
- <EDFD663F-37F9-42C2-92A9-66C2508B361E@goldelico.com>
- <20170626083927.GB9621@amd>
- <5364AD62-5000-451E-B3F7-93D49A91EED5@goldelico.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="4jXrM3lyYWu4nBt5"
-Content-Disposition: inline
-In-Reply-To: <5364AD62-5000-451E-B3F7-93D49A91EED5@goldelico.com>
+        Rob Herring <robh+dt@kernel.org>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <a76d4eca-c9fa-a61c-dddf-435ff49af365@samsung.com>
+Date: Mon, 12 Jun 2017 14:59:08 +0200
+MIME-version: 1.0
+In-reply-to: <20170609175401.40204-2-hverkuil@xs4all.nl>
+Content-type: text/plain; charset="utf-8"; format="flowed"
+Content-language: en-GB
+Content-transfer-encoding: 7bit
+References: <20170609175401.40204-1-hverkuil@xs4all.nl>
+        <20170609175401.40204-2-hverkuil@xs4all.nl>
+        <CGME20170612125919epcas1p312a7ecbffd99e025a26ba8d4444f1a5b@epcas1p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 06/09/2017 07:54 PM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Document common HDMI CEC bindings. Add this to the MAINTAINERS file
+> as well.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
---4jXrM3lyYWu4nBt5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Hi!
+> ---
+>   Documentation/devicetree/bindings/media/cec.txt | 8 ++++++++
+>   MAINTAINERS                                     | 1 +
+>   2 files changed, 9 insertions(+)
+>   create mode 100644 Documentation/devicetree/bindings/media/cec.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/cec.txt b/Documentation/devicetree/bindings/media/cec.txt
+> new file mode 100644
+> index 000000000000..22d7aae3d3d7
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/cec.txt
+> @@ -0,0 +1,8 @@
+> +Common bindings for HDMI CEC adapters
+> +
+> +- hdmi-phandle: phandle to the HDMI controller.
 
-> > You may want to try this one:
-> >=20
-> > commit 0eae9d2a8f096f703cbc8f9a0ab155cd3cc14cef
-> > Author: Pavel <pavel@ucw.cz>
-> > Date:   Mon Feb 13 21:26:51 2017 +0100
-> >=20
-> >    omap3isp: fix VP2SDR bit so capture (not preview) works
-> >=20
-> >    This is neccessary for capture (not preview) to work properly on
-> >        N900. Why is unknown.
->=20
-> Ah, interesting. I will give it a try.
->=20
-> Do you please have a link to the repo where this commit can be
-> > found?
+For a common property I would rather make it "hdmi-controller", this
+"-phandle" part feels like appending "_pointer" to variable names in C code.
+But since you are just rearranging existing documentation and Rob agrees with
+that I have no objections.
 
-This branch, as mentioned before:
-
-https://git.kernel.org/pub/scm/linux/kernel/git/pavel/linux-n900.git/log/?h=
-=3Dcamera-fw5-6
-
-									Pavel
-								=09
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---4jXrM3lyYWu4nBt5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAllQ7QUACgkQMOfwapXb+vKIcwCgg3ewjLvWvqSo3rWAi+dadBJ5
-058AnRVDYSBMAYco7NYUW9hsoS6MnU00
-=Keaa
------END PGP SIGNATURE-----
-
---4jXrM3lyYWu4nBt5--
+> +- needs-hpd: if present the CEC support is only available when the HPD
+> +  is high. Some boards only let the CEC pin through if the HPD is high,
+> +  for example if there is a level converter that uses the HPD to power
+> +  up or down.
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 053c3bdd1fe5..4ac340d189a3 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -3137,6 +3137,7 @@ F:	include/media/cec.h
+>   F:	include/media/cec-notifier.h
+>   F:	include/uapi/linux/cec.h
+>   F:	include/uapi/linux/cec-funcs.h
+> +F:	Documentation/devicetree/bindings/media/cec.txt
+>   
+>   CELL BROADBAND ENGINE ARCHITECTURE
+>   M:	Arnd Bergmann <arnd@arndb.de
+--
+Regards,
+Sylwester
