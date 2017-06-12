@@ -1,67 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor4.renesas.com ([210.160.252.174]:58135 "EHLO
-        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752074AbdFLNkP (ORCPT
+Received: from mail-wr0-f169.google.com ([209.85.128.169]:33930 "EHLO
+        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754409AbdFLQaB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 09:40:15 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v8 8/8] MAINTAINERS: Add entry for R-Car DRIF & MAX2175 drivers
-Date: Mon, 12 Jun 2017 14:26:20 +0100
-Message-Id: <20170612132620.1024-9-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <20170612132620.1024-1-ramesh.shanmugasundaram@bp.renesas.com>
-References: <20170612132620.1024-1-ramesh.shanmugasundaram@bp.renesas.com>
+        Mon, 12 Jun 2017 12:30:01 -0400
+Received: by mail-wr0-f169.google.com with SMTP id g76so101843906wrd.1
+        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 09:30:00 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v10 13/18] media: venus: hfi_venus: fix variable dereferenced before check
+Date: Mon, 12 Jun 2017 19:27:50 +0300
+Message-Id: <1497284875-19999-14-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1497284875-19999-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1497284875-19999-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add maintainter entry for the R-Car DRIF and MAX2175 drivers.
+This fixes a warning found when building with gcc7:
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+drivers/media/platform/qcom/venus/hfi_venus.c:998
+venus_isr_thread() warn: variable dereferenced before check
+'hdev' (see line 994)
+
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- MAINTAINERS | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/media/platform/qcom/venus/hfi_venus.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 053c3bdd1fe5..cfa78fe5142a 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8031,6 +8031,16 @@ S:	Maintained
- F:	Documentation/hwmon/max20751
- F:	drivers/hwmon/max20751.c
+diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
+index ab209f3d9498..1caae8feaa36 100644
+--- a/drivers/media/platform/qcom/venus/hfi_venus.c
++++ b/drivers/media/platform/qcom/venus/hfi_venus.c
+@@ -991,13 +991,14 @@ static void venus_process_msg_sys_error(struct venus_hfi_device *hdev,
+ static irqreturn_t venus_isr_thread(struct venus_core *core)
+ {
+ 	struct venus_hfi_device *hdev = to_hfi_priv(core);
+-	const struct venus_resources *res = hdev->core->res;
++	const struct venus_resources *res;
+ 	void *pkt;
+ 	u32 msg_ret;
  
-+MAX2175 SDR TUNER DRIVER
-+M:	Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	Documentation/devicetree/bindings/media/i2c/max2175.txt
-+F:	Documentation/media/v4l-drivers/max2175.rst
-+F:	drivers/media/i2c/max2175*
-+F:	include/uapi/linux/max2175.h
-+
- MAX6650 HARDWARE MONITOR AND FAN CONTROLLER DRIVER
- L:	linux-hwmon@vger.kernel.org
- S:	Orphan
-@@ -8111,6 +8121,15 @@ L:	linux-iio@vger.kernel.org
- S:	Maintained
- F:	drivers/iio/dac/cio-dac.c
+ 	if (!hdev)
+ 		return IRQ_NONE;
  
-+MEDIA DRIVERS FOR RENESAS - DRIF
-+M:	Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-+L:	linux-media@vger.kernel.org
-+L:	linux-renesas-soc@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Supported
-+F:	Documentation/devicetree/bindings/media/renesas,drif.txt
-+F:	drivers/media/platform/rcar_drif.c
-+
- MEDIA DRIVERS FOR RENESAS - FCP
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-media@vger.kernel.org
++	res = hdev->core->res;
+ 	pkt = hdev->pkt_buf;
+ 
+ 	if (hdev->irq_status & WRAPPER_INTR_STATUS_A2HWD_MASK) {
 -- 
-2.12.2
+2.7.4
