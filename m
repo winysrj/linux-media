@@ -1,81 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f170.google.com ([209.85.216.170]:34488 "EHLO
-        mail-qt0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752193AbdFLMvS (ORCPT
+Received: from mail-wr0-f179.google.com ([209.85.128.179]:34693 "EHLO
+        mail-wr0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754207AbdFLQ3d (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 08:51:18 -0400
-Received: by mail-qt0-f170.google.com with SMTP id c10so123916243qtd.1
-        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 05:51:18 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170609175401.40204-3-hverkuil@xs4all.nl>
-References: <20170609175401.40204-1-hverkuil@xs4all.nl> <20170609175401.40204-3-hverkuil@xs4all.nl>
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Date: Mon, 12 Jun 2017 14:51:17 +0200
-Message-ID: <CA+M3ks74U-y7mdoW+khh8537+Ttz=ViiE0LyanwZzQV49s-TGg@mail.gmail.com>
-Subject: Re: [PATCH 2/2] dt-bindings: media/s5p-cec.txt, media/stih-cec.txt:
- refer to cec.txt
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        devicetree@vger.kernel.org,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Andrzej Hajda <a.hajda@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
+        Mon, 12 Jun 2017 12:29:33 -0400
+Received: by mail-wr0-f179.google.com with SMTP id g76so101831132wrd.1
+        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 09:29:32 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v10 03/18] MAINTAINERS: Add Qualcomm Venus video accelerator driver
+Date: Mon, 12 Jun 2017 19:27:40 +0300
+Message-Id: <1497284875-19999-4-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1497284875-19999-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1497284875-19999-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-06-09 19:54 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Now that there is a cec.txt with common CEC bindings, update the two
-> driver-specific bindings to refer to cec.txt.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Krzysztof Kozlowski <krzk@kernel.org>
-> Cc: Andrzej Hajda <a.hajda@samsung.com>
-> Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-> Cc: devicetree@vger.kernel.org
-> ---
->  Documentation/devicetree/bindings/media/s5p-cec.txt  | 6 ++----
->  Documentation/devicetree/bindings/media/stih-cec.txt | 2 +-
->  2 files changed, 3 insertions(+), 5 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/media/s5p-cec.txt b/Documentation/devicetree/bindings/media/s5p-cec.txt
-> index 261af4d1a791..1b1a10ba48ce 100644
-> --- a/Documentation/devicetree/bindings/media/s5p-cec.txt
-> +++ b/Documentation/devicetree/bindings/media/s5p-cec.txt
-> @@ -15,13 +15,11 @@ Required properties:
->    - clock-names : from common clock binding: must contain "hdmicec",
->                   corresponding to entry in the clocks property.
->    - samsung,syscon-phandle - phandle to the PMU system controller
-> -  - hdmi-phandle - phandle to the HDMI controller
-> +  - hdmi-phandle - phandle to the HDMI controller, see also cec.txt.
->
->  Optional:
->    - needs-hpd : if present the CEC support is only available when the HPD
-> -    is high. Some boards only let the CEC pin through if the HPD is high, for
-> -    example if there is a level converter that uses the HPD to power up
-> -    or down.
-> +               is high. See cec.txt for more details.
->
->  Example:
->
-> diff --git a/Documentation/devicetree/bindings/media/stih-cec.txt b/Documentation/devicetree/bindings/media/stih-cec.txt
-> index 289a08b33651..8be2a040c6c6 100644
-> --- a/Documentation/devicetree/bindings/media/stih-cec.txt
-> +++ b/Documentation/devicetree/bindings/media/stih-cec.txt
-> @@ -9,7 +9,7 @@ Required properties:
->   - pinctrl-names: Contains only one value - "default"
->   - pinctrl-0: Specifies the pin control groups used for CEC hardware.
->   - resets: Reference to a reset controller
-> - - hdmi-phandle: Phandle to the HDMI controller
-> + - hdmi-phandle: Phandle to the HDMI controller, see also cec.txt.
->
->  Example for STIH407:
->
-> --
-> 2.11.0
->
+Add an entry for Venus video encoder/decoder accelerator driver.
 
-Acked-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 053c3bdd1fe5..2cf03bb969b5 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10584,6 +10584,14 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rkuo/linux-hexagon-kernel.g
+ S:	Supported
+ F:	arch/hexagon/
+ 
++QUALCOMM VENUS VIDEO ACCELERATOR DRIVER
++M:	Stanimir Varbanov <stanimir.varbanov@linaro.org>
++L:	linux-media@vger.kernel.org
++L:	linux-arm-msm@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/platform/qcom/venus/
++
+ QUALCOMM WCN36XX WIRELESS DRIVER
+ M:	Eugene Krasnikov <k.eugene.e@gmail.com>
+ L:	wcn36xx@lists.infradead.org
+-- 
+2.7.4
