@@ -1,72 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:34498 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751184AbdFYL0w (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:48637 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751968AbdFLNuL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Jun 2017 07:26:52 -0400
-Received: by mail-wr0-f194.google.com with SMTP id k67so23865372wrc.1
-        for <linux-media@vger.kernel.org>; Sun, 25 Jun 2017 04:26:52 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: liplianin@netup.ru, rjkm@metzlerbros.de, crope@iki.fi
-Subject: [PATCH v3 3/4] [media] dvb-frontends/stv0367: DVB-C signal strength statistics
-Date: Sun, 25 Jun 2017 13:26:45 +0200
-Message-Id: <20170625112646.7973-4-d.scheller.oss@gmail.com>
-In-Reply-To: <20170625112646.7973-1-d.scheller.oss@gmail.com>
-References: <20170625112646.7973-1-d.scheller.oss@gmail.com>
+        Mon, 12 Jun 2017 09:50:11 -0400
+Subject: Re: [PATCH v8 3/8] media: i2c: max2175: Add MAX2175 support
+To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20170612132620.1024-1-ramesh.shanmugasundaram@bp.renesas.com>
+ <20170612132620.1024-4-ramesh.shanmugasundaram@bp.renesas.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4d8f40f9-e248-6d90-ab8d-a7a548201866@xs4all.nl>
+Date: Mon, 12 Jun 2017 15:50:02 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170612132620.1024-4-ramesh.shanmugasundaram@bp.renesas.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On 06/12/2017 03:26 PM, Ramesh Shanmugasundaram wrote:
+> This patch adds driver support for the MAX2175 chip. This is Maxim
+> Integrated's RF to Bits tuner front end chip designed for software-defined
+> radio solutions. This driver exposes the tuner as a sub-device instance
+> with standard and custom controls to configure the device.
+> 
+> Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
 
-Provide QAM/DVB-C signal strength in decibel scale. Values returned from
-stv0367cab_get_rf_lvl() are good but need to be multiplied as they're in
-1dBm precision.
+Sorry, got this sparse warning:
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/stv0367.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+/home/hans/work/build/media-git/drivers/media/i2c/max2175.c: In function 'max2175_poll_timeout':
+/home/hans/work/build/media-git/drivers/media/i2c/max2175.c:385:21: warning: '*' in boolean context, suggest '&&' instead 
+[-Wint-in-bool-context]
+     1000, timeout_ms * 1000);
+           ~~~~~~~~~~~^~~
 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index 138f859d0f25..6097752a93bc 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -3011,6 +3011,25 @@ static int stv0367ddb_set_frontend(struct dvb_frontend *fe)
- 	return -EINVAL;
- }
- 
-+static void stv0367ddb_read_signal_strength(struct dvb_frontend *fe)
-+{
-+	struct stv0367_state *state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-+	s32 signalstrength;
-+
-+	switch (state->activedemod) {
-+	case demod_cab:
-+		signalstrength = stv0367cab_get_rf_lvl(state) * 1000;
-+		break;
-+	default:
-+		p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		return;
-+	}
-+
-+	p->strength.stat[0].scale = FE_SCALE_DECIBEL;
-+	p->strength.stat[0].uvalue = signalstrength;
-+}
-+
- static void stv0367ddb_read_snr(struct dvb_frontend *fe)
- {
- 	struct stv0367_state *state = fe->demodulator_priv;
-@@ -3086,6 +3105,8 @@ static int stv0367ddb_read_status(struct dvb_frontend *fe,
- 	if (ret)
- 		return ret;
- 
-+	stv0367ddb_read_signal_strength(fe);
-+
- 	/* read carrier/noise when a carrier is detected */
- 	if (*status & FE_HAS_CARRIER)
- 		stv0367ddb_read_snr(fe);
--- 
-2.13.0
+The smatch warnings are now gone.
+
+If you can make a v9 for just this patch?
+
+Regards,
+
+	Hans
