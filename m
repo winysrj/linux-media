@@ -1,80 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:48405 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751855AbdF2Kr3 (ORCPT
+Received: from mail-wr0-f173.google.com ([209.85.128.173]:34181 "EHLO
+        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752086AbdFLTPQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 06:47:29 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: [PATCH v5 0/4] Synopsys Designware HDMI Video Capture Controller + PHY
-Date: Thu, 29 Jun 2017 11:46:54 +0100
-Message-Id: <cover.1498732993.git.joabreu@synopsys.com>
+        Mon, 12 Jun 2017 15:15:16 -0400
+Received: by mail-wr0-f173.google.com with SMTP id g76so107197387wrd.1
+        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 12:15:15 -0700 (PDT)
+MIME-Version: 1.0
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Mon, 12 Jun 2017 12:15:13 -0700
+Message-ID: <CAJ+vNU07V9wR+11KJYqWg6JcfK7Wc45-c-Wf6fpTbTVAeKKDHw@mail.gmail.com>
+Subject: how to link up audio bus from media controller driver to soc dai bus?
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Synopsys Designware HDMI RX controller is an HDMI receiver controller that
-is responsible to process digital data that comes from a phy. The final result
-is a stream of raw video data that can then be connected to a video DMA, for
-example, and transfered into RAM so that it can be displayed.
+Greetings,
 
-The controller + phy available in this series natively support all HDMI 1.4 and
-HDMI 2.0 modes, including deep color. Although, the driver is quite in its
-initial stage and unfortunatelly only non deep color modes are supported. Also,
-audio is not yet supported in the driver (the controller has several audio
-output interfaces).
+I'm working on a media controller driver for the tda1997x HDMI
+receiver which provides an audio bus supporting I2S/SPDIF/OBA/HBR/DST.
+I'm unclear how to bind the audio bus to a SoC's audio bus, for
+example the IMX6 SSI (I2S) bus. I thought perhaps it was via a
+simple-audio-card device-tree binding but that appears to require an
+ALSA codec to bind to?
 
-Version 5 addresses review comments from Sylwester Nawrocki and Rob Herring
-regarding device tree bindings, messages printing levels, sleep functions and
-uses the new v4l2_async_subnotifier_register() function.
+Can anyone point me to an example of a media controller device driver
+that supports audio and video and how the audio is bound to a I2S bus?
 
-This series depends on the patch at [1].
+Regards,
 
-This series was tested in a FPGA platform.
-
-Jose Abreu (4):
-  [media] platform: Add Synopsys Designware HDMI RX PHY e405 Driver
-  [media] platform: Add Synopsys Designware HDMI RX Controller Driver
-  MAINTAINERS: Add entry for Synopsys Designware HDMI drivers
-  dt-bindings: media: Document Synopsys Designware HDMI RX
-
-Cc: Carlos Palminha <palminha@synopsys.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Sylwester Nawrocki <snawrocki@kernel.org>
-
-[1] https://patchwork.linuxtv.org/patch/41834/
-
- .../devicetree/bindings/media/snps,dw-hdmi-rx.txt  |   70 +
- MAINTAINERS                                        |    7 +
- drivers/media/platform/Kconfig                     |    2 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/dwc/Kconfig                 |   23 +
- drivers/media/platform/dwc/Makefile                |    2 +
- drivers/media/platform/dwc/dw-hdmi-phy-e405.c      |  844 +++++++++
- drivers/media/platform/dwc/dw-hdmi-phy-e405.h      |   63 +
- drivers/media/platform/dwc/dw-hdmi-rx.c            | 1824 ++++++++++++++++++++
- drivers/media/platform/dwc/dw-hdmi-rx.h            |  441 +++++
- include/media/dwc/dw-hdmi-phy-pdata.h              |  128 ++
- include/media/dwc/dw-hdmi-rx-pdata.h               |   97 ++
- 12 files changed, 3503 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
- create mode 100644 drivers/media/platform/dwc/Kconfig
- create mode 100644 drivers/media/platform/dwc/Makefile
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.c
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.h
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.c
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.h
- create mode 100644 include/media/dwc/dw-hdmi-phy-pdata.h
- create mode 100644 include/media/dwc/dw-hdmi-rx-pdata.h
-
--- 
-1.9.1
+Tim
