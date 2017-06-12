@@ -1,49 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:34082 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751513AbdF0KG6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 06:06:58 -0400
-Date: Tue, 27 Jun 2017 03:06:54 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
-Message-ID: <20170627100654.GA3730@atomide.com>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
- <20170414102512.48834-2-hverkuil@xs4all.nl>
- <4355dab4-9c70-77f7-f89b-9a1cf24976cf@ti.com>
- <20170626110711.GW3730@atomide.com>
- <701dbbfa-000a-2b93-405b-246aa90b6dd6@xs4all.nl>
- <20170627091421.GZ3730@atomide.com>
- <1d970218-d24a-d460-7d95-b31102d735f2@xs4all.nl>
+Received: from mail-qt0-f170.google.com ([209.85.216.170]:34488 "EHLO
+        mail-qt0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752193AbdFLMvS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Jun 2017 08:51:18 -0400
+Received: by mail-qt0-f170.google.com with SMTP id c10so123916243qtd.1
+        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 05:51:18 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1d970218-d24a-d460-7d95-b31102d735f2@xs4all.nl>
+In-Reply-To: <20170609175401.40204-3-hverkuil@xs4all.nl>
+References: <20170609175401.40204-1-hverkuil@xs4all.nl> <20170609175401.40204-3-hverkuil@xs4all.nl>
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Date: Mon, 12 Jun 2017 14:51:17 +0200
+Message-ID: <CA+M3ks74U-y7mdoW+khh8537+Ttz=ViiE0LyanwZzQV49s-TGg@mail.gmail.com>
+Subject: Re: [PATCH 2/2] dt-bindings: media/s5p-cec.txt, media/stih-cec.txt:
+ refer to cec.txt
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        devicetree@vger.kernel.org,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Andrzej Hajda <a.hajda@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Hans Verkuil <hverkuil@xs4all.nl> [170627 02:27]:
-> On 27/06/17 11:14, Tony Lindgren wrote:
-> > Adding Jyri to Cc, hopefully the CEC support allows also setting the
-> > HDMI audio volume level on devices implementing it? Or am I too
-> > optimistic? :)
-> 
-> I'm not quite sure what you mean. Do you want CEC to change the volume on the
-> TV, or use the TV's remote to change the volume of the HDMI audio output of the
-> omap4?
+2017-06-09 19:54 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Now that there is a cec.txt with common CEC bindings, update the two
+> driver-specific bindings to refer to cec.txt.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Krzysztof Kozlowski <krzk@kernel.org>
+> Cc: Andrzej Hajda <a.hajda@samsung.com>
+> Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+> Cc: devicetree@vger.kernel.org
+> ---
+>  Documentation/devicetree/bindings/media/s5p-cec.txt  | 6 ++----
+>  Documentation/devicetree/bindings/media/stih-cec.txt | 2 +-
+>  2 files changed, 3 insertions(+), 5 deletions(-)
+>
+> diff --git a/Documentation/devicetree/bindings/media/s5p-cec.txt b/Documentation/devicetree/bindings/media/s5p-cec.txt
+> index 261af4d1a791..1b1a10ba48ce 100644
+> --- a/Documentation/devicetree/bindings/media/s5p-cec.txt
+> +++ b/Documentation/devicetree/bindings/media/s5p-cec.txt
+> @@ -15,13 +15,11 @@ Required properties:
+>    - clock-names : from common clock binding: must contain "hdmicec",
+>                   corresponding to entry in the clocks property.
+>    - samsung,syscon-phandle - phandle to the PMU system controller
+> -  - hdmi-phandle - phandle to the HDMI controller
+> +  - hdmi-phandle - phandle to the HDMI controller, see also cec.txt.
+>
+>  Optional:
+>    - needs-hpd : if present the CEC support is only available when the HPD
+> -    is high. Some boards only let the CEC pin through if the HPD is high, for
+> -    example if there is a level converter that uses the HPD to power up
+> -    or down.
+> +               is high. See cec.txt for more details.
+>
+>  Example:
+>
+> diff --git a/Documentation/devicetree/bindings/media/stih-cec.txt b/Documentation/devicetree/bindings/media/stih-cec.txt
+> index 289a08b33651..8be2a040c6c6 100644
+> --- a/Documentation/devicetree/bindings/media/stih-cec.txt
+> +++ b/Documentation/devicetree/bindings/media/stih-cec.txt
+> @@ -9,7 +9,7 @@ Required properties:
+>   - pinctrl-names: Contains only one value - "default"
+>   - pinctrl-0: Specifies the pin control groups used for CEC hardware.
+>   - resets: Reference to a reset controller
+> - - hdmi-phandle: Phandle to the HDMI controller
+> + - hdmi-phandle: Phandle to the HDMI controller, see also cec.txt.
+>
+>  Example for STIH407:
+>
+> --
+> 2.11.0
+>
 
-I'm hoping to change audio volume on a USB+HDMI lapdock from omap4.
-
-> Anyway, either is supported, but it requires a userspace implementation.
-> 
-> Although TV remote control messages will be mapped to an input device, and if
-> those are hooked up to the alsa audio volume, then this already works.
-
-OK great thanks,
-
-Tony
+Acked-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
