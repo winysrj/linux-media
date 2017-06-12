@@ -1,128 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:33378 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751094AbdFTRpM (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:60262 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753860AbdFLRNf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Jun 2017 13:45:12 -0400
-Received: by mail-wr0-f194.google.com with SMTP id x23so19170843wrb.0
-        for <linux-media@vger.kernel.org>; Tue, 20 Jun 2017 10:45:11 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: liplianin@netup.ru, rjkm@metzlerbros.de
-Subject: [PATCH 1/4] [media] dvb-frontends/stv0367: initial DDB DVBv5 stats, implement ucblocks
-Date: Tue, 20 Jun 2017 19:45:03 +0200
-Message-Id: <20170620174506.7593-2-d.scheller.oss@gmail.com>
-In-Reply-To: <20170620174506.7593-1-d.scheller.oss@gmail.com>
-References: <20170620174506.7593-1-d.scheller.oss@gmail.com>
+        Mon, 12 Jun 2017 13:13:35 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2 6/6] [media] s5p-jpeg: Add stream error handling for Exynos5420
+Date: Mon, 12 Jun 2017 19:13:25 +0200
+Message-Id: <1497287605-20074-7-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
+References: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+From: henryhsu <henryhsu@chromium.org>
 
-This adds the basics to stv0367ddb_get_frontend() to be able to properly
-provide signal statistics in DVBv5 format. Also adds UCB readout and
-provides those values.
+On Exynos5420, the STREAM_STAT bit raised on the JPGINTST register means
+there is a syntax error or an unrecoverable error on compressed file
+when ERR_INT_EN is set to 1.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Fix this case and report BUF_STATE_ERROR to videobuf2.
+
+Signed-off-by: Henry-Ruey Hsu <henryhsu@chromium.org>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
 ---
- drivers/media/dvb-frontends/stv0367.c | 59 ++++++++++++++++++++++++++++++++---
- 1 file changed, 55 insertions(+), 4 deletions(-)
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index e726c2e00460..5374d4eaabd6 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -2997,21 +2997,64 @@ static int stv0367ddb_read_status(struct dvb_frontend *fe,
- 	return -EINVAL;
- }
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 3d90a63..1a07a82 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -2790,6 +2790,7 @@ static irqreturn_t exynos3250_jpeg_irq(int irq, void *dev_id)
+ 	unsigned long payload_size = 0;
+ 	enum vb2_buffer_state state = VB2_BUF_STATE_DONE;
+ 	bool interrupt_timeout = false;
++	bool stream_error = false;
+ 	u32 irq_status;
  
-+static void stv0367ddb_read_ucblocks(struct dvb_frontend *fe)
-+{
-+	struct stv0367_state *state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-+	u32 ucblocks = 0;
-+
-+	switch (state->activedemod) {
-+	case demod_ter:
-+		stv0367ter_read_ucblocks(fe, &ucblocks);
-+		break;
-+	case demod_cab:
-+		stv0367cab_read_ucblcks(fe, &ucblocks);
-+		break;
-+	default:
-+		p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		return;
+ 	spin_lock(&jpeg->slock);
+@@ -2806,6 +2807,11 @@ static irqreturn_t exynos3250_jpeg_irq(int irq, void *dev_id)
+ 
+ 	jpeg->irq_status |= irq_status;
+ 
++	if (irq_status & EXYNOS3250_STREAM_STAT) {
++		stream_error = true;
++		dev_err(jpeg->dev, "Syntax error or unrecoverable error occurred.\n");
 +	}
 +
-+	p->block_error.stat[0].scale = FE_SCALE_COUNTER;
-+	p->block_error.stat[0].uvalue = ucblocks;
-+}
-+
- static int stv0367ddb_get_frontend(struct dvb_frontend *fe,
- 				   struct dtv_frontend_properties *p)
- {
- 	struct stv0367_state *state = fe->demodulator_priv;
-+	int ret = -EINVAL;
-+	enum fe_status status = 0;
+ 	curr_ctx = v4l2_m2m_get_curr_priv(jpeg->m2m_dev);
  
- 	switch (state->activedemod) {
- 	case demod_ter:
--		return stv0367ter_get_frontend(fe, p);
-+		ret = stv0367ter_get_frontend(fe, p);
-+		break;
- 	case demod_cab:
--		return stv0367cab_get_frontend(fe, p);
--	default:
-+		ret = stv0367cab_get_frontend(fe, p);
- 		break;
-+	default:
-+		p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		return ret;
- 	}
- 
--	return -EINVAL;
-+	/* read fe lock status */
-+	if (!ret)
-+		ret = stv0367ddb_read_status(fe, &status);
-+
-+	/* stop if get_frontend failed or if demod isn't locked */
-+	if (ret || !(status & FE_HAS_LOCK)) {
-+		p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		return ret;
-+	}
-+
-+	stv0367ddb_read_ucblocks(fe);
-+
-+	return 0;
- }
- 
- static int stv0367ddb_sleep(struct dvb_frontend *fe)
-@@ -3035,6 +3078,7 @@ static int stv0367ddb_sleep(struct dvb_frontend *fe)
- static int stv0367ddb_init(struct stv0367_state *state)
- {
- 	struct stv0367ter_state *ter_state = state->ter_state;
-+	struct dtv_frontend_properties *p = &state->fe.dtv_property_cache;
- 
- 	stv0367_writereg(state, R367TER_TOPCTRL, 0x10);
- 
-@@ -3109,6 +3153,13 @@ static int stv0367ddb_init(struct stv0367_state *state)
- 	ter_state->first_lock = 0;
- 	ter_state->unlock_counter = 2;
- 
-+	p->strength.len = 1;
-+	p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	p->cnr.len = 1;
-+	p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	p->block_error.len = 1;
-+	p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+
- 	return 0;
- }
- 
+ 	if (!curr_ctx)
+@@ -2822,7 +2828,7 @@ static irqreturn_t exynos3250_jpeg_irq(int irq, void *dev_id)
+ 				EXYNOS3250_RDMA_DONE |
+ 				EXYNOS3250_RESULT_STAT))
+ 		payload_size = exynos3250_jpeg_compressed_size(jpeg->regs);
+-	else if (interrupt_timeout)
++	else if (interrupt_timeout || stream_error)
+ 		state = VB2_BUF_STATE_ERROR;
+ 	else
+ 		goto exit_unlock;
 -- 
-2.13.0
+2.7.4
