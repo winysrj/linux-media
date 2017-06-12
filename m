@@ -1,73 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33396 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751771AbdFNJnU (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:60255 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753776AbdFLRNe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 05:43:20 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v4 2/2] arm64: dts: renesas: salvator-x: Add ADV7482
- support
-References: <cover.d0545e32d322ca1b939fa2918694173629e680eb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
- <7d4b2333912ad23e62dbb8cc3792ad70e9cc1702.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
- <CAMuHMdWVrqArGasrW8F8KOjRfRzFqQ_5hCskP30zGrTrxJ75hQ@mail.gmail.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>,
-        Kieran Bingham <kbingham@kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <51d9d2d7-de34-9ed3-5fa1-4db7cbcec47a@ideasonboard.com>
-Date: Wed, 14 Jun 2017 10:43:15 +0100
+        Mon, 12 Jun 2017 13:13:34 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2 3/6] [media] s5p-jpeg: Correct WARN_ON statement for checking subsampling
+Date: Mon, 12 Jun 2017 19:13:22 +0200
+Message-Id: <1497287605-20074-4-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
+References: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
-In-Reply-To: <CAMuHMdWVrqArGasrW8F8KOjRfRzFqQ_5hCskP30zGrTrxJ75hQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
+From: Tony K Nadackal <tony.kn@samsung.com>
 
-On 14/06/17 10:39, Geert Uytterhoeven wrote:
-> Hi Kieran,
-> 
-> On Tue, Jun 13, 2017 at 2:35 AM, Kieran Bingham <kbingham@kernel.org> wrote:
->> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>
->> Provide ADV7482, and the needed connectors
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> Thanks for your patch!
-> 
->> v4:
->>  - dt: Rebase to dts/renesas/salvator-x.dtsi
->>  - dt: Use AIN0-7 rather than AIN1-8
->>
->>  arch/arm64/boot/dts/renesas/salvator-x.dtsi | 123 +++++++++++++++++++++-
-> 
-> I believe all of this applies to both Salvator-X and Salvator-XS?
-> 
-> Hence it should be applied to salvator-common.dtsi instead of salvator-x.dtsi.
+Corrects the WARN_ON statement for subsampling based on the
+JPEG Hardware version.
 
-Hrm ... I don't have a salator-common.dtsi ... I'll need a new rebase.
+Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-But it sounds logical :)
-
---
-Thanks
-
-> 
-> Gr{oetje,eeting}s,
-> 
->                         Geert
-> 
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-> 
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
-> 
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 623508d..0d935f5 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -614,24 +614,26 @@ static inline struct s5p_jpeg_ctx *fh_to_ctx(struct v4l2_fh *fh)
+ 
+ static int s5p_jpeg_to_user_subsampling(struct s5p_jpeg_ctx *ctx)
+ {
+-	WARN_ON(ctx->subsampling > 3);
+-
+ 	switch (ctx->jpeg->variant->version) {
+ 	case SJPEG_S5P:
++		WARN_ON(ctx->subsampling > 3);
+ 		if (ctx->subsampling > 2)
+ 			return V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+ 		return ctx->subsampling;
+ 	case SJPEG_EXYNOS3250:
+ 	case SJPEG_EXYNOS5420:
++		WARN_ON(ctx->subsampling > 6);
+ 		if (ctx->subsampling > 3)
+ 			return V4L2_JPEG_CHROMA_SUBSAMPLING_411;
+ 		return exynos3250_decoded_subsampling[ctx->subsampling];
+ 	case SJPEG_EXYNOS4:
+ 	case SJPEG_EXYNOS5433:
++		WARN_ON(ctx->subsampling > 3);
+ 		if (ctx->subsampling > 2)
+ 			return V4L2_JPEG_CHROMA_SUBSAMPLING_420;
+ 		return exynos4x12_decoded_subsampling[ctx->subsampling];
+ 	default:
++		WARN_ON(ctx->subsampling > 3);
+ 		return V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+ 	}
+ }
+-- 
+2.7.4
