@@ -1,115 +1,340 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33613 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752947AbdF3UvL (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41294 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752475AbdFLJuv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Jun 2017 16:51:11 -0400
-Received: by mail-wm0-f67.google.com with SMTP id j85so9870477wmj.0
-        for <linux-media@vger.kernel.org>; Fri, 30 Jun 2017 13:51:10 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: rjkm@metzlerbros.de, jasmin@anw.at
-Subject: [PATCH v2 00/10] STV0910/STV6111 drivers, ddbridge CineS2 V7 support
-Date: Fri, 30 Jun 2017 22:50:56 +0200
-Message-Id: <20170630205106.1268-1-d.scheller.oss@gmail.com>
+        Mon, 12 Jun 2017 05:50:51 -0400
+Subject: Re: [RFC PATCH v3 05/11] [media] vimc: common: Add vimc_link_validate
+To: Helen Koike <helen.koike@collabora.com>,
+        linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Cc: jgebben@codeaurora.org, mchehab@osg.samsung.com,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
+ <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
+ <1496458714-16834-6-git-send-email-helen.koike@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1e189fc2-3574-ef52-1b2b-69f0a9e7c7ca@xs4all.nl>
+Date: Mon, 12 Jun 2017 11:50:45 +0200
+MIME-Version: 1.0
+In-Reply-To: <1496458714-16834-6-git-send-email-helen.koike@collabora.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On 06/03/2017 04:58 AM, Helen Koike wrote:
+> All links will be checked in the same way. Adding a helper function for
+> that
+> 
+> Signed-off-by: Helen Koike <helen.koike@collabora.com>
+> 
+> ---
+> 
+> Changes in v3:
+> [media] vimc: common: Add vimc_link_validate
+> 	- this is a new patch in the series
+> 
+> Changes in v2: None
+> 
+> 
+> ---
+>   drivers/media/platform/vimc/vimc-capture.c |  78 +++---------------
+>   drivers/media/platform/vimc/vimc-common.c  | 124 ++++++++++++++++++++++++++++-
+>   drivers/media/platform/vimc/vimc-common.h  |  14 ++++
+>   3 files changed, 148 insertions(+), 68 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
+> index 93f6a09..5bdecd1 100644
+> --- a/drivers/media/platform/vimc/vimc-capture.c
+> +++ b/drivers/media/platform/vimc/vimc-capture.c
+> @@ -64,6 +64,15 @@ static int vimc_cap_querycap(struct file *file, void *priv,
+>   	return 0;
+>   }
+>   
+> +static void vimc_cap_get_format(struct vimc_ent_device *ved,
+> +				struct v4l2_pix_format *fmt)
+> +{
+> +	struct vimc_cap_device *vcap = container_of(ved, struct vimc_cap_device,
+> +						    ved);
+> +
+> +	*fmt = vcap->format;
+> +}
+> +
+>   static int vimc_cap_fmt_vid_cap(struct file *file, void *priv,
+>   				  struct v4l2_format *f)
+>   {
+> @@ -231,74 +240,8 @@ static const struct vb2_ops vimc_cap_qops = {
+>   	.wait_finish		= vb2_ops_wait_finish,
+>   };
+>   
+> -/*
+> - * NOTE: this function is a copy of v4l2_subdev_link_validate_get_format
+> - * maybe the v4l2 function should be public
+> - */
+> -static int vimc_cap_v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+> -						struct v4l2_subdev_format *fmt)
+> -{
+> -	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(pad->entity);
+> -
+> -	fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> -	fmt->pad = pad->index;
+> -
+> -	return v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
+> -}
+> -
+> -static int vimc_cap_link_validate(struct media_link *link)
+> -{
+> -	struct v4l2_subdev_format source_fmt;
+> -	const struct vimc_pix_map *vpix;
+> -	struct vimc_cap_device *vcap = container_of(link->sink->entity,
+> -						    struct vimc_cap_device,
+> -						    vdev.entity);
+> -	struct v4l2_pix_format *sink_fmt = &vcap->format;
+> -	int ret;
+> -
+> -	/*
+> -	 * if it is a raw node from vimc-core, ignore the link for now
+> -	 * TODO: remove this when there are no more raw nodes in the
+> -	 * core and return error instead
+> -	 */
+> -	if (link->source->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
+> -		return 0;
+> -
+> -	/* Get the the format of the subdev */
+> -	ret = vimc_cap_v4l2_subdev_link_validate_get_format(link->source,
+> -							    &source_fmt);
+> -	if (ret)
+> -		return ret;
+> -
+> -	dev_dbg(vcap->vdev.v4l2_dev->dev,
+> -		"%s: link validate formats src:%dx%d %d sink:%dx%d %d\n",
+> -		vcap->vdev.name,
+> -		source_fmt.format.width, source_fmt.format.height,
+> -		source_fmt.format.code,
+> -		sink_fmt->width, sink_fmt->height,
+> -		sink_fmt->pixelformat);
+> -
+> -	/* The width, height and code must match. */
+> -	vpix = vimc_pix_map_by_pixelformat(sink_fmt->pixelformat);
+> -	if (source_fmt.format.width != sink_fmt->width
+> -	    || source_fmt.format.height != sink_fmt->height
+> -	    || vpix->code != source_fmt.format.code)
+> -		return -EPIPE;
+> -
+> -	/*
+> -	 * The field order must match, or the sink field order must be NONE
+> -	 * to support interlaced hardware connected to bridges that support
+> -	 * progressive formats only.
+> -	 */
+> -	if (source_fmt.format.field != sink_fmt->field &&
+> -	    sink_fmt->field != V4L2_FIELD_NONE)
+> -		return -EPIPE;
+> -
+> -	return 0;
+> -}
+> -
+>   static const struct media_entity_operations vimc_cap_mops = {
+> -	.link_validate		= vimc_cap_link_validate,
+> +	.link_validate		= vimc_link_validate,
+>   };
+>   
+>   static void vimc_cap_destroy(struct vimc_ent_device *ved)
+> @@ -434,6 +377,7 @@ struct vimc_ent_device *vimc_cap_create(struct v4l2_device *v4l2_dev,
+>   	vcap->ved.destroy = vimc_cap_destroy;
+>   	vcap->ved.ent = &vcap->vdev.entity;
+>   	vcap->ved.process_frame = vimc_cap_process_frame;
+> +	vcap->ved.vdev_get_format = vimc_cap_get_format;
+>   
+>   	/* Initialize the video_device struct */
+>   	vdev = &vcap->vdev;
+> diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
+> index f809a9d..83d4251 100644
+> --- a/drivers/media/platform/vimc/vimc-common.c
+> +++ b/drivers/media/platform/vimc/vimc-common.c
+> @@ -252,8 +252,130 @@ int vimc_pipeline_s_stream(struct media_entity *ent, int enable)
+>   	return 0;
+>   }
+>   
+> +static void vimc_fmt_pix_to_mbus(struct v4l2_mbus_framefmt *mfmt,
+> +				 struct v4l2_pix_format *pfmt)
+> +{
+> +	const struct vimc_pix_map *vpix =
+> +		vimc_pix_map_by_pixelformat(pfmt->pixelformat);
+> +
+> +	mfmt->width = pfmt->width;
+> +	mfmt->height = pfmt->height;
+> +	mfmt->code = vpix->code;
+> +	mfmt->field = pfmt->field;
+> +	mfmt->colorspace = pfmt->colorspace;
+> +	mfmt->ycbcr_enc = pfmt->ycbcr_enc;
+> +	mfmt->quantization = pfmt->quantization;
+> +	mfmt->xfer_func = pfmt->xfer_func;
 
-For Linux 4.14.
+You can use v4l2_fill_mbus_format() here.
 
-This series adds drivers for the ST STV0910 DVB-S/S2 demodulator ICs and
-the ST STV6111 DVB-S/S2 tuners, and utilises them to enable ddbridge to
-support the current line of Digital Devices DVB-S/S2 hardware (e.g. Cine
-S2 V7/V7A adapters, DuoFlex S2 V4 addon modules and maybe more, with
-similar components).
+> +}
+> +
+> +static int vimc_get_mbus_format(struct media_pad *pad,
+> +				struct v4l2_subdev_format *fmt)
+> +{
+> +	if (is_media_entity_v4l2_subdev(pad->entity)) {
+> +		struct v4l2_subdev *sd =
+> +			media_entity_to_v4l2_subdev(pad->entity);
+> +		int ret;
+> +
+> +		fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> +		fmt->pad = pad->index;
+> +
+> +		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
+> +		if (ret)
+> +			return ret;
+> +
+> +	} else if (is_media_entity_v4l2_video_device(pad->entity)) {
+> +		struct video_device *vdev = container_of(pad->entity,
+> +							 struct video_device,
+> +							 entity);
+> +		struct vimc_ent_device *ved = video_get_drvdata(vdev);
+> +		struct v4l2_pix_format vdev_fmt;
+> +
+> +		if (!ved->vdev_get_format)
+> +			return -ENOIOCTLCMD;
+> +
+> +		ved->vdev_get_format(ved, &vdev_fmt);
+> +		vimc_fmt_pix_to_mbus(&fmt->format, &vdev_fmt);
+> +	} else {
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +int vimc_link_validate(struct media_link *link)
+> +{
+> +	struct v4l2_subdev_format source_fmt, sink_fmt;
+> +	int ret;
+> +
+> +	/*
+> +	 * if it is a raw node from vimc-core, ignore the link for now
+> +	 * TODO: remove this when there are no more raw nodes in the
+> +	 * core and return error instead
+> +	 */
+> +	if (link->source->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
+> +		return 0;
+> +
+> +	ret = vimc_get_mbus_format(link->source, &source_fmt);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = vimc_get_mbus_format(link->sink, &sink_fmt);
+> +	if (ret)
+> +		return ret;
+> +
+> +	pr_info("vimc link validate: "
+> +		"%s:src:%dx%d (0x%x, %d, %d, %d, %d) "
+> +		"%s:snk:%dx%d (0x%x, %d, %d, %d, %d)\n",
+> +		/* src */
+> +		link->source->entity->name,
+> +		source_fmt.format.width, source_fmt.format.height,
+> +		source_fmt.format.code, source_fmt.format.colorspace,
+> +		source_fmt.format.quantization, source_fmt.format.xfer_func,
+> +		source_fmt.format.ycbcr_enc,
+> +		/* sink */
+> +		link->sink->entity->name,
+> +		sink_fmt.format.width, sink_fmt.format.height,
+> +		sink_fmt.format.code, sink_fmt.format.colorspace,
+> +		sink_fmt.format.quantization, sink_fmt.format.xfer_func,
+> +		sink_fmt.format.ycbcr_enc);
+> +
+> +	/* The width, height, code and colorspace must match. */
+> +	if (source_fmt.format.width != sink_fmt.format.width
+> +	    || source_fmt.format.height != sink_fmt.format.height
+> +	    || source_fmt.format.code != sink_fmt.format.code
+> +	    || source_fmt.format.colorspace != sink_fmt.format.colorspace)
 
-The two new drivers have been picked up from Digital Devices' vendor-
-provided dddvb driver package, as of release 0.9.29. Permission to reuse
-(and mainline) them was formally granted by Ralph Metzler
-<rjkm@metzlerbros.de>.
+Source and/or Sink may be COLORSPACE_DEFAULT. If that's the case, then
+you should skip comparing ycbcr_enc, quantization or xfer_func. If colorspace
+is DEFAULT, then that implies that the other fields are DEFAULT as well. Nothing
+else makes sense in that case.
 
-Drivers have been cleaned up alot (formatting fixes, dead code removal,
-features depending on not-yet-available API changes removed). Checkpatch
-complaints left:
+> +		return -EPIPE;
+> +
+> +	/* Colorimetry must match if they are not set to DEFAULT */
+> +	if (source_fmt.format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
+> +	    && sink_fmt.format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
+> +	    && source_fmt.format.ycbcr_enc != sink_fmt.format.ycbcr_enc)
+> +		return -EPIPE;
+> +
+> +	if (source_fmt.format.quantization != V4L2_QUANTIZATION_DEFAULT
+> +	    && sink_fmt.format.quantization != V4L2_QUANTIZATION_DEFAULT
+> +	    && source_fmt.format.quantization != sink_fmt.format.quantization)
+> +		return -EPIPE;
+> +
+> +	if (source_fmt.format.xfer_func != V4L2_XFER_FUNC_DEFAULT
+> +	    && sink_fmt.format.xfer_func != V4L2_XFER_FUNC_DEFAULT
+> +	    && source_fmt.format.xfer_func != sink_fmt.format.xfer_func)
+> +		return -EPIPE;
+> +
+> +	/* The field order must match, or the sink field order must be NONE
+> +	 * to support interlaced hardware connected to bridges that support
+> +	 * progressive formats only.
+> +	 */
+> +	if (source_fmt.format.field != sink_fmt.format.field &&
+> +	    sink_fmt.format.field != V4L2_FIELD_NONE)
+> +		return -EPIPE;
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(vimc_link_validate);
+> +
+>   static const struct media_entity_operations vimc_ent_sd_mops = {
+> -	.link_validate = v4l2_subdev_link_validate,
+> +	.link_validate = vimc_link_validate,
+>   };
+>   
+>   int vimc_ent_sd_register(struct vimc_ent_device *ved,
+> diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
+> index 73e7e94..60ebde2 100644
+> --- a/drivers/media/platform/vimc/vimc-common.h
+> +++ b/drivers/media/platform/vimc/vimc-common.h
+> @@ -45,6 +45,9 @@ struct vimc_pix_map {
+>    * @pads:		the list of pads of the node
+>    * @destroy:		callback to destroy the node
+>    * @process_frame:	callback send a frame to that node
+> + * @vdev_get_format:	callback that returns the current format a pad, used
+> + *			only when is_media_entity_v4l2_video_device(ent) returns
+> + *			true
+>    *
+>    * Each node of the topology must create a vimc_ent_device struct. Depending on
+>    * the node it will be of an instance of v4l2_subdev or video_device struct
+> @@ -60,6 +63,8 @@ struct vimc_ent_device {
+>   	void (*destroy)(struct vimc_ent_device *);
+>   	void (*process_frame)(struct vimc_ent_device *ved,
+>   			      struct media_pad *sink, const void *frame);
+> +	void (*vdev_get_format)(struct vimc_ent_device *ved,
+> +			      struct v4l2_pix_format *fmt);
+>   };
+>   
+>   /**
+> @@ -160,4 +165,13 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
+>   void vimc_ent_sd_unregister(struct vimc_ent_device *ved,
+>   			    struct v4l2_subdev *sd);
+>   
+> +/**
+> + * vimc_link_validate - validates a media link
+> + *
+> + * @link: pointer to &struct media_link
+> + *
+> + * This function calls validates if a media link is valid for streaming.
+> + */
+> +int vimc_link_validate(struct media_link *link);
+> +
+>   #endif
+> 
 
-  WARNING: please write a paragraph that describes the config symbol fully
-  #39: FILE: drivers/media/dvb-frontends/Kconfig:31:
-  +config DVB_STV0910
+Regards,
 
-Not sure what checkpatch demands, since a module description exists in
-Kconfig... Applies to the stv6111 aswell.
-
-  WARNING: added, moved or deleted file(s), does MAINTAINERS need updating?
-  #64:
-  new file mode 100644
-
-See below.
-
-  WARNING: 'VALIDE' may be misspelled - perhaps 'VALID'?
-  #3314: FILE: drivers/media/dvb-frontends/stv0910_regs.h:1467:
-  +#define FSTV0910_P2_NOSRAM_VALIDE  0xf30e0004
-
-Picked from upstream. Since I'm not sure if this really is a mistake
-(maybe the hardware vendor really wants to name the reg like this?) so
-kept as-is.
-
-CamelCase and ALLCAPS are changed into kernel_kase. Patches have been
-proposed to the vendor driver package maintainers to keep things synced
-as much as possible.
-
-Patch 2 is a fix for an issue found while preparing this series for
-posting, and was in parallel submitted to the vendor's GIT repository.
-
-Adding myself to MAINTAINERS for stv0910 and stv6111 as I'll keep track
-of any upstream (vendor provided package) changes and propose them
-for mainline inclusion.
-
-Mauro, I assume you're the one who reviews this (since these are new
-drivers). It'd be very great to have this in for 4.14 to tackle the
-ddbridge bump for 4.15. Of course awaiting review yet, this v2 should
-be a good candidate for merge.
-
-Changes from v1 to v2:
- - CamelCase and ALLCAPS changed to kernel_case
- - Signal statistics acquisition refactored to comply with standards
- - printk* and pr_* changed to dev_*
- - Add myself to MAINTAINERS for stv0910 and stv6111
-
-Daniel Scheller (10):
-  [media] dvb-frontends: add ST STV0910 DVB-S/S2 demodulator frontend
-    driver
-  [media] dvb-frontends/stv0910: Fix possible buffer overflow
-  [media] dvb-frontends/stv0910: add multistream (ISI) and PLS
-    capabilities
-  [media] dvb-frontends/stv0910: Add demod-only signal strength
-    reporting
-  [media] dvb-frontends/stv0910: Add missing set_frontend fe-op
-  [media] dvb-frontends: add ST STV6111 DVB-S/S2 tuner frontend driver
-  [media] ddbridge: return stv09xx id in port_has_stv0900_aa()
-  [media] ddbridge: support for CineS2 V7(A) and DuoFlex S2 V4 hardware
-  [media] ddbridge: stv0910 single demod mode module option
-  [media] MAINTAINERS: add entries for stv0910 and stv6111
-
- MAINTAINERS                                |   16 +
- drivers/media/dvb-frontends/Kconfig        |   18 +
- drivers/media/dvb-frontends/Makefile       |    2 +
- drivers/media/dvb-frontends/stv0910.c      | 1773 +++++++++++
- drivers/media/dvb-frontends/stv0910.h      |   32 +
- drivers/media/dvb-frontends/stv0910_regs.h | 4759 ++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/stv6111.c      |  673 ++++
- drivers/media/dvb-frontends/stv6111.h      |   20 +
- drivers/media/pci/ddbridge/Kconfig         |    4 +
- drivers/media/pci/ddbridge/ddbridge-core.c |  151 +-
- drivers/media/pci/ddbridge/ddbridge.h      |    2 +
- 11 files changed, 7442 insertions(+), 8 deletions(-)
- create mode 100644 drivers/media/dvb-frontends/stv0910.c
- create mode 100644 drivers/media/dvb-frontends/stv0910.h
- create mode 100644 drivers/media/dvb-frontends/stv0910_regs.h
- create mode 100644 drivers/media/dvb-frontends/stv6111.c
- create mode 100644 drivers/media/dvb-frontends/stv6111.h
-
--- 
-2.13.0
+	Hans
