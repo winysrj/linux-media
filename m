@@ -1,333 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:39255 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753711AbdFSLPh (ORCPT
+Received: from mail-wr0-f177.google.com ([209.85.128.177]:35986 "EHLO
+        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754873AbdFLQaF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 07:15:37 -0400
-Subject: Re: [PATCH v2] [media] v4l2: add V4L2_CAP_IO_MC
-To: Helen Koike <helen.koike@collabora.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        jgebben@codeaurora.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
- <1497415836-15142-1-git-send-email-helen.koike@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2327e555-118e-0882-f2f6-7c0f74985aee@xs4all.nl>
-Date: Mon, 19 Jun 2017 13:15:26 +0200
-MIME-Version: 1.0
-In-Reply-To: <1497415836-15142-1-git-send-email-helen.koike@collabora.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Mon, 12 Jun 2017 12:30:05 -0400
+Received: by mail-wr0-f177.google.com with SMTP id v111so103607918wrc.3
+        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 09:30:04 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v10 18/18] media: venus: enable building with COMPILE_TEST
+Date: Mon, 12 Jun 2017 19:27:55 +0300
+Message-Id: <1497284875-19999-19-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1497284875-19999-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1497284875-19999-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/14/2017 06:50 AM, Helen Koike wrote:
-> Add V4L2_CAP_IO_MC to be used in struct v4l2_capability to indicate that
-> input and output are controlled by the Media Controller instead of V4L2
-> API.
-> When this flag is set, ioctls for get, set and enum input and outputs
-> are automatically enabled and programmed to call helper function.
-> 
-> Signed-off-by: Helen Koike <helen.koike@collabora.com>
-> 
-> ---
-> 
-> Changes in v2::
-> 	- replace the type by capability
-> 	- erase V4L2_INPUT_TYPE_DEFAULT
-> 	- also consider output
-> 	- plug helpers in the ops automatically so drivers doesn't need
-> 	to set it by hand
-> 	- update docs
-> 	- commit message and title
-> ---
->   Documentation/media/uapi/v4l/vidioc-querycap.rst |  3 +
->   Documentation/media/videodev2.h.rst.exceptions   |  1 +
->   drivers/media/v4l2-core/v4l2-dev.c               | 35 +++++++--
->   drivers/media/v4l2-core/v4l2-ioctl.c             | 91 ++++++++++++++++++++++--
->   include/uapi/linux/videodev2.h                   |  2 +
->   5 files changed, 120 insertions(+), 12 deletions(-)
-> 
-> diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-> index 12e0d9a..2bd1223 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-> @@ -252,6 +252,9 @@ specification the ioctl returns an ``EINVAL`` error code.
->       * - ``V4L2_CAP_TOUCH``
->         - 0x10000000
->         - This is a touch device.
-> +    * - ``V4L2_CAP_IO_MC``
-> +      - 0x20000000
-> +      - This device has its inputs and outputs controller by the Media Controller
+We want all media drivers to build with COMPILE_TEST, as the
+Coverity instance we use on Kernel works only for x86. Also,
+our test workflow relies on it, in order to identify git
+bisect breakages.
 
-controller -> controlled
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-But I would rephrase this a bit:
-
-	- The inputs and/or outputs of this device are controlled by the Media Controller
-	  (see: <add link to Part IV of the media documentation>).
-
->       * - ``V4L2_CAP_DEVICE_CAPS``
->         - 0x80000000
->         - The driver fills the ``device_caps`` field. This capability can
-> diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-> index a5cb0a8..0b48cd0 100644
-> --- a/Documentation/media/videodev2.h.rst.exceptions
-> +++ b/Documentation/media/videodev2.h.rst.exceptions
-> @@ -159,6 +159,7 @@ replace define V4L2_CAP_ASYNCIO device-capabilities
->   replace define V4L2_CAP_STREAMING device-capabilities
->   replace define V4L2_CAP_DEVICE_CAPS device-capabilities
->   replace define V4L2_CAP_TOUCH device-capabilities
-> +replace define V4L2_CAP_IO_MC device-capabilities
->   
->   # V4L2 pix flags
->   replace define V4L2_PIX_FMT_PRIV_MAGIC :c:type:`v4l2_pix_format`
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index c647ba6..0f272fe 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -688,22 +688,34 @@ static void determine_valid_ioctls(struct video_device *vdev)
->   		SET_VALID_IOCTL(ops, VIDIOC_G_STD, vidioc_g_std);
->   		if (is_rx) {
->   			SET_VALID_IOCTL(ops, VIDIOC_QUERYSTD, vidioc_querystd);
-> -			SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT, vidioc_enum_input);
-> -			SET_VALID_IOCTL(ops, VIDIOC_G_INPUT, vidioc_g_input);
-> -			SET_VALID_IOCTL(ops, VIDIOC_S_INPUT, vidioc_s_input);
->   			SET_VALID_IOCTL(ops, VIDIOC_ENUMAUDIO, vidioc_enumaudio);
->   			SET_VALID_IOCTL(ops, VIDIOC_G_AUDIO, vidioc_g_audio);
->   			SET_VALID_IOCTL(ops, VIDIOC_S_AUDIO, vidioc_s_audio);
->   			SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings);
->   			SET_VALID_IOCTL(ops, VIDIOC_S_EDID, vidioc_s_edid);
-> +			if (vdev->device_caps & V4L2_CAP_IO_MC) {
-> +				set_bit(_IOC_NR(VIDIOC_ENUMINPUT), valid_ioctls);
-> +				set_bit(_IOC_NR(VIDIOC_G_INPUT), valid_ioctls);
-> +				set_bit(_IOC_NR(VIDIOC_S_INPUT), valid_ioctls);
-> +			} else {
-> +				SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT, vidioc_enum_input);
-> +				SET_VALID_IOCTL(ops, VIDIOC_G_INPUT, vidioc_g_input);
-> +				SET_VALID_IOCTL(ops, VIDIOC_S_INPUT, vidioc_s_input);
-> +			}
->   		}
->   		if (is_tx) {
-> -			SET_VALID_IOCTL(ops, VIDIOC_ENUMOUTPUT, vidioc_enum_output);
-> -			SET_VALID_IOCTL(ops, VIDIOC_G_OUTPUT, vidioc_g_output);
-> -			SET_VALID_IOCTL(ops, VIDIOC_S_OUTPUT, vidioc_s_output);
->   			SET_VALID_IOCTL(ops, VIDIOC_ENUMAUDOUT, vidioc_enumaudout);
->   			SET_VALID_IOCTL(ops, VIDIOC_G_AUDOUT, vidioc_g_audout);
->   			SET_VALID_IOCTL(ops, VIDIOC_S_AUDOUT, vidioc_s_audout);
-> +			if (vdev->device_caps & V4L2_CAP_IO_MC) {
-> +				set_bit(_IOC_NR(VIDIOC_ENUMOUTPUT), valid_ioctls);
-> +				set_bit(_IOC_NR(VIDIOC_G_OUTPUT), valid_ioctls);
-> +				set_bit(_IOC_NR(VIDIOC_S_OUTPUT), valid_ioctls);
-> +			} else {
-> +				SET_VALID_IOCTL(ops, VIDIOC_ENUMOUTPUT, vidioc_enum_output);
-> +				SET_VALID_IOCTL(ops, VIDIOC_G_OUTPUT, vidioc_g_output);
-> +				SET_VALID_IOCTL(ops, VIDIOC_S_OUTPUT, vidioc_s_output);
-> +			}
->   		}
->   		if (ops->vidioc_g_parm || (vdev->vfl_type == VFL_TYPE_GRABBER &&
->   					ops->vidioc_g_std))
-> @@ -945,6 +957,17 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
->   	video_device[vdev->minor] = vdev;
->   	mutex_unlock(&videodev_lock);
->   
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	if (vdev->ioctl_ops
-> +	    && !vdev->ioctl_ops->vidioc_enum_input
-> +	    && !vdev->ioctl_ops->vidioc_s_input
-> +	    && !vdev->ioctl_ops->vidioc_g_input
-> +	    && !vdev->ioctl_ops->vidioc_enum_output
-> +	    && !vdev->ioctl_ops->vidioc_s_output
-> +	    && !vdev->ioctl_ops->vidioc_g_output)
-> +		vdev->device_caps |= V4L2_CAP_IO_MC;
-
-No, this part should be dropped.
-
-Let the driver set this capability explicitly. This code for example would set the IO_MC
-bit as well for radio devices, and that's not what you want.
-
-The MC can also be used by regular drivers (there is nothing preventing drivers from
-doing that). So just leave this up to the driver.
-
-> +#endif
-> +
->   	if (vdev->ioctl_ops)
->   		determine_valid_ioctls(vdev);
->   
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index e5a2187..9d8c645 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1019,6 +1019,70 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
->   	return ret;
->   }
->   
-> +static int v4l2_ioctl_enum_input_mc(struct file *file, void *priv,
-> +				    struct v4l2_input *i)
-> +{
-> +	struct video_device *vfd = video_devdata(file);
-> +
-> +	if (i->index > 0)
-> +		return -EINVAL;
-> +
-> +	memset(i, 0, sizeof(*i));
-> +	strlcpy(i->name, vfd->name, sizeof(i->name));
-
-	i->type = V4L2_INPUT_TYPE_CAMERA;
-
-> +
-> +	return 0;
-> +}
-> +
-> +static int v4l2_ioctl_enum_output_mc(struct file *file, void *priv,
-> +				     struct v4l2_output *o)
-> +{
-> +	struct video_device *vfd = video_devdata(file);
-> +
-> +	if (o->index > 0)
-> +		return -EINVAL;
-> +
-> +	memset(o, 0, sizeof(*o));
-> +	strlcpy(o->name, vfd->name, sizeof(o->name));
-
-	o->type = V4L2_OUTPUT_TYPE_ANALOG;
-
-> +
-> +	return 0;
-> +}
-> +
-> +static int v4l2_ioctl_g_input_mc(struct file *file, void *priv, unsigned int *i)
-> +{
-> +	*i = 0;
-> +	return 0;
-> +}
-> +#define v4l2_ioctl_g_output_mc v4l2_ioctl_g_input_mc
-> +
-> +static int v4l2_ioctl_s_input_mc(struct file *file, void *priv, unsigned int i)
-> +{
-> +	return i ? -EINVAL : 0;
-> +}
-> +#define v4l2_ioctl_s_output_mc v4l2_ioctl_s_input_mc
-> +
-> +
-> +static int v4l_g_input(const struct v4l2_ioctl_ops *ops,
-> +		       struct file *file, void *fh, void *arg)
-> +{
-> +	struct video_device *vfd = video_devdata(file);
-> +
-> +	if (vfd->device_caps & V4L2_CAP_IO_MC)
-> +		return v4l2_ioctl_g_input_mc(file, fh, arg);
-> +	else
-
-'else' is not needed.
-
-> +		return ops->vidioc_g_input(file, fh, arg);
-> +}
-> +
-> +static int v4l_g_output(const struct v4l2_ioctl_ops *ops,
-> +		       struct file *file, void *fh, void *arg)
-> +{
-> +	struct video_device *vfd = video_devdata(file);
-> +
-> +	if (vfd->device_caps & V4L2_CAP_IO_MC)
-> +		return v4l2_ioctl_g_output_mc(file, fh, arg);
-> +	else
-
-'else' is not needed. Same for the others below.
-
-> +		return ops->vidioc_g_output(file, fh, arg);
-> +}
-> +
->   static int v4l_s_input(const struct v4l2_ioctl_ops *ops,
->   				struct file *file, void *fh, void *arg)
->   {
-> @@ -1028,13 +1092,22 @@ static int v4l_s_input(const struct v4l2_ioctl_ops *ops,
->   	ret = v4l_enable_media_source(vfd);
->   	if (ret)
->   		return ret;
-> -	return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
-> +
-> +	if (vfd->device_caps & V4L2_CAP_IO_MC)
-> +		return v4l2_ioctl_s_input_mc(file, fh, *(unsigned int *)arg);
-> +	else
-> +		return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
->   }
->   
->   static int v4l_s_output(const struct v4l2_ioctl_ops *ops,
->   				struct file *file, void *fh, void *arg)
->   {
-> -	return ops->vidioc_s_output(file, fh, *(unsigned int *)arg);
-> +	struct video_device *vfd = video_devdata(file);
-> +
-> +	if (vfd->device_caps & V4L2_CAP_IO_MC)
-> +		return v4l2_ioctl_s_output_mc(file, fh, *(unsigned int *)arg);
-> +	else
-> +		return ops->vidioc_s_output(file, fh, *(unsigned int *)arg);
->   }
->   
->   static int v4l_g_priority(const struct v4l2_ioctl_ops *ops,
-> @@ -1077,7 +1150,10 @@ static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
->   	if (is_valid_ioctl(vfd, VIDIOC_S_STD))
->   		p->capabilities |= V4L2_IN_CAP_STD;
->   
-> -	return ops->vidioc_enum_input(file, fh, p);
-> +	if (vfd->device_caps & V4L2_CAP_IO_MC)
-> +		return v4l2_ioctl_enum_input_mc(file, fh, p);
-> +	else
-> +		return ops->vidioc_enum_input(file, fh, p);
->   }
->   
->   static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
-> @@ -1095,7 +1171,10 @@ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
->   	if (is_valid_ioctl(vfd, VIDIOC_S_STD))
->   		p->capabilities |= V4L2_OUT_CAP_STD;
->   
-> -	return ops->vidioc_enum_output(file, fh, p);
-> +	if (vfd->device_caps & V4L2_CAP_IO_MC)
-> +		return v4l2_ioctl_enum_output_mc(file, fh, p);
-> +	else
-> +		return ops->vidioc_enum_output(file, fh, p);
->   }
->   
->   static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
-> @@ -2534,11 +2613,11 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
->   	IOCTL_INFO_STD(VIDIOC_S_AUDIO, vidioc_s_audio, v4l_print_audio, INFO_FL_PRIO),
->   	IOCTL_INFO_FNC(VIDIOC_QUERYCTRL, v4l_queryctrl, v4l_print_queryctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_queryctrl, id)),
->   	IOCTL_INFO_FNC(VIDIOC_QUERYMENU, v4l_querymenu, v4l_print_querymenu, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu, index)),
-> -	IOCTL_INFO_STD(VIDIOC_G_INPUT, vidioc_g_input, v4l_print_u32, 0),
-> +	IOCTL_INFO_FNC(VIDIOC_G_INPUT, v4l_g_input, v4l_print_u32, 0),
->   	IOCTL_INFO_FNC(VIDIOC_S_INPUT, v4l_s_input, v4l_print_u32, INFO_FL_PRIO),
->   	IOCTL_INFO_STD(VIDIOC_G_EDID, vidioc_g_edid, v4l_print_edid, 0),
->   	IOCTL_INFO_STD(VIDIOC_S_EDID, vidioc_s_edid, v4l_print_edid, INFO_FL_PRIO),
-> -	IOCTL_INFO_STD(VIDIOC_G_OUTPUT, vidioc_g_output, v4l_print_u32, 0),
-> +	IOCTL_INFO_FNC(VIDIOC_G_OUTPUT, v4l_g_output, v4l_print_u32, 0),
->   	IOCTL_INFO_FNC(VIDIOC_S_OUTPUT, v4l_s_output, v4l_print_u32, INFO_FL_PRIO),
->   	IOCTL_INFO_FNC(VIDIOC_ENUMOUTPUT, v4l_enumoutput, v4l_print_enumoutput, INFO_FL_CLEAR(v4l2_output, index)),
->   	IOCTL_INFO_STD(VIDIOC_G_AUDOUT, vidioc_g_audout, v4l_print_audioout, 0),
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 2b8feb8..94cb196 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -460,6 +460,8 @@ struct v4l2_capability {
->   
->   #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
->   
-> +#define V4L2_CAP_IO_MC			0x20000000  /* Is input/output controlled by the media controler */
-
-controler -> controller
-
-> +
->   #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
->   
->   /*
-> 
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 017e42ce0ff9..0898f63fa451 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -467,7 +467,7 @@ config VIDEO_TI_VPE_DEBUG
+ config VIDEO_QCOM_VENUS
+ 	tristate "Qualcomm Venus V4L2 encoder/decoder driver"
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
+-	depends on ARCH_QCOM && IOMMU_DMA
++	depends on (ARCH_QCOM && IOMMU_DMA) || COMPILE_TEST
+ 	select QCOM_MDT_LOADER
+ 	select VIDEOBUF2_DMA_SG
+ 	select V4L2_MEM2MEM_DEV
+-- 
+2.7.4
