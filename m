@@ -1,56 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f196.google.com ([209.85.217.196]:35025 "EHLO
-        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751038AbdFTMzl (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:60259 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753609AbdFLRNo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Jun 2017 08:55:41 -0400
-Received: by mail-ua0-f196.google.com with SMTP id j53so2328278uaa.2
-        for <linux-media@vger.kernel.org>; Tue, 20 Jun 2017 05:55:40 -0700 (PDT)
+        Mon, 12 Jun 2017 13:13:44 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2 4/6] [media] s5p-jpeg: Decode 4:1:1 chroma subsampling format
+Date: Mon, 12 Jun 2017 19:13:23 +0200
+Message-Id: <1497287605-20074-5-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
+References: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
-In-Reply-To: <20170609161026.7582-1-khilman@baylibre.com>
-References: <20170609161026.7582-1-khilman@baylibre.com>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Tue, 20 Jun 2017 13:55:09 +0100
-Message-ID: <CA+V-a8u49iwtp9G-J5i6omnrS9WGAcXjMsYFas7c0ECw5yOntw@mail.gmail.com>
-Subject: Re: [PATCH v2] [media] davinci: vpif: adaptions for DT support
-To: Kevin Hilman <khilman@baylibre.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-media <linux-media@vger.kernel.org>,
-        Sekhar Nori <nsekhar@ti.com>,
-        David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Benoit Parrot <bparrot@ti.com>,
-        LAK <linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 9, 2017 at 5:10 PM, Kevin Hilman <khilman@baylibre.com> wrote:
-> The davinci VPIF is a single hardware block, but the existing driver
-> is broken up into a common library (vpif.c), output (vpif_display.c) and
-> intput (vpif_capture.c).
->
-> When migrating to DT, to better model the hardware, and because
-> registers, interrupts, etc. are all common,it was decided to
-> have a single VPIF hardware node[1].
->
-> Because davinci uses legacy, non-DT boot on several SoCs still, the
-> platform_drivers need to remain.  But they are also needed in DT boot.
-> Since there are no DT nodes for the display/capture parts in DT
-> boot (there is a single node for the parent/common device) we need to
-> create platform_devices somewhere to instansiate the platform_drivers.
->
-> When VPIF display/capture are needed for a DT boot, the VPIF node
-> will have endpoints defined for its subdevs.  Therefore, vpif_probe()
-> checks for the presence of endpoints, and if detected manually creates
-> the platform_devices for the display and capture platform_drivers.
->
-> [1] Documentation/devicetree/bindings/media/ti,da850-vpif.txt
->
-> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+From: Tony K Nadackal <tony.kn@samsung.com>
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+This patch adds support for decoding 4:1:1 chroma subsampling in the
+jpeg header parsing function.
 
-Cheers,
---Prabhakar Lad
+Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 0d935f5..7ef7173 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1236,6 +1236,9 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
+ 	case 0x33:
+ 		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+ 		break;
++	case 0x41:
++		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_411;
++		break;
+ 	default:
+ 		return false;
+ 	}
+-- 
+2.7.4
