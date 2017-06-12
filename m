@@ -1,60 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35686 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750791AbdFOIXu (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33059 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754378AbdFLQhJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 04:23:50 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+        Mon, 12 Jun 2017 12:37:09 -0400
+Received: by mail-pf0-f195.google.com with SMTP id w12so6918422pfk.0
+        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 09:37:04 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 1/6] v4l: vsp1: Remove WPF vertical flip support on VSP2-B[CD] and VSP2-D
-Date: Thu, 15 Jun 2017 11:24:04 +0300
-Message-Id: <20170615082409.9523-2-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20170615082409.9523-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20170615082409.9523-1-laurent.pinchart+renesas@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH] MAINTAINERS: add entry for Freescale i.MX media driver
+Date: Mon, 12 Jun 2017 09:36:51 -0700
+Message-Id: <1497285411-9082-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The WPF vertical flip is only supported on Gen3 SoCs on the VSP2-I.
-Don't enable it on other VSP2 instances.
+Add maintainer entry for the imx-media driver.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/platform/vsp1/vsp1_drv.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ MAINTAINERS | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 048446af5ae7..239996cf882e 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -690,7 +690,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
- 		.version = VI6_IP_VERSION_MODEL_VSPBD_GEN3,
- 		.model = "VSP2-BD",
- 		.gen = 3,
--		.features = VSP1_HAS_BRU | VSP1_HAS_WPF_VFLIP,
-+		.features = VSP1_HAS_BRU,
- 		.rpf_count = 5,
- 		.wpf_count = 1,
- 		.num_bru_inputs = 5,
-@@ -700,7 +700,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
- 		.model = "VSP2-BC",
- 		.gen = 3,
- 		.features = VSP1_HAS_BRU | VSP1_HAS_CLU | VSP1_HAS_HGO
--			  | VSP1_HAS_LUT | VSP1_HAS_WPF_VFLIP,
-+			  | VSP1_HAS_LUT,
- 		.rpf_count = 5,
- 		.wpf_count = 1,
- 		.num_bru_inputs = 5,
-@@ -709,7 +709,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
- 		.version = VI6_IP_VERSION_MODEL_VSPD_GEN3,
- 		.model = "VSP2-D",
- 		.gen = 3,
--		.features = VSP1_HAS_BRU | VSP1_HAS_LIF | VSP1_HAS_WPF_VFLIP,
-+		.features = VSP1_HAS_BRU | VSP1_HAS_LIF,
- 		.rpf_count = 5,
- 		.wpf_count = 2,
- 		.num_bru_inputs = 5,
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 9c7f663..11adc51 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8111,6 +8111,18 @@ L:	linux-iio@vger.kernel.org
+ S:	Maintained
+ F:	drivers/iio/dac/cio-dac.c
+ 
++MEDIA DRIVERS FOR FREESCALE IMX
++M:	Steve Longerbeam <slongerbeam@gmail.com>
++M:	Philipp Zabel <p.zabel@pengutronix.de>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	Documentation/devicetree/bindings/media/imx.txt
++F:	Documentation/media/v4l-drivers/imx.rst
++F:	drivers/staging/media/imx/
++F:	include/linux/imx-media.h
++F:	include/media/imx.h
++
+ MEDIA DRIVERS FOR RENESAS - FCP
+ M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ L:	linux-media@vger.kernel.org
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
