@@ -1,126 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:34711 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751612AbdF2G5k (ORCPT
+Received: from mail-wr0-f173.google.com ([209.85.128.173]:36493 "EHLO
+        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753884AbdFLQ3h (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 02:57:40 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, mchehab@kernel.org, hans.verkuil@cisco.com,
-        ezequiel@vanguardiasur.com.ar, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH] [media]: usb: add const to v4l2_file_operations structures
-Date: Thu, 29 Jun 2017 12:25:23 +0530
-Message-Id: <1498719323-32586-1-git-send-email-bhumirks@gmail.com>
+        Mon, 12 Jun 2017 12:29:37 -0400
+Received: by mail-wr0-f173.google.com with SMTP id v111so103582425wrc.3
+        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 09:29:32 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Subject: [PATCH v10 02/18] doc: DT: venus: binding document for Qualcomm video driver
+Date: Mon, 12 Jun 2017 19:27:39 +0300
+Message-Id: <1497284875-19999-3-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1497284875-19999-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1497284875-19999-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Declare v4l2_file_operations structures as const as they are only stored
-in the fops field of video_device structures. This field is of type
-const, so declare v4l2_file_operations structures with similar properties
-as const.
+Add binding document for Venus video encoder/decoder driver
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: devicetree@vger.kernel.org
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/media/usb/au0828/au0828-video.c  | 2 +-
- drivers/media/usb/cx231xx/cx231xx-417.c  | 2 +-
- drivers/media/usb/go7007/go7007-v4l2.c   | 2 +-
- drivers/media/usb/gspca/gspca.c          | 2 +-
- drivers/media/usb/stk1160/stk1160-v4l.c  | 2 +-
- drivers/media/usb/stkwebcam/stk-webcam.c | 2 +-
- drivers/media/usb/tm6000/tm6000-video.c  | 2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+ .../devicetree/bindings/media/qcom,venus.txt       | 107 +++++++++++++++++++++
+ 1 file changed, 107 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 2a255bd..9342402 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -1740,7 +1740,7 @@ void au0828_v4l2_resume(struct au0828_dev *dev)
- 	}
- }
- 
--static struct v4l2_file_operations au0828_v4l_fops = {
-+static const struct v4l2_file_operations au0828_v4l_fops = {
- 	.owner      = THIS_MODULE,
- 	.open       = au0828_v4l2_open,
- 	.release    = au0828_v4l2_close,
-diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
-index 509d971..8d5eb99 100644
---- a/drivers/media/usb/cx231xx/cx231xx-417.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-417.c
-@@ -1843,7 +1843,7 @@ static int mpeg_mmap(struct file *file, struct vm_area_struct *vma)
- 	return videobuf_mmap_mapper(&fh->vidq, vma);
- }
- 
--static struct v4l2_file_operations mpeg_fops = {
-+static const struct v4l2_file_operations mpeg_fops = {
- 	.owner	       = THIS_MODULE,
- 	.open	       = mpeg_open,
- 	.release       = mpeg_release,
-diff --git a/drivers/media/usb/go7007/go7007-v4l2.c b/drivers/media/usb/go7007/go7007-v4l2.c
-index ed5ec97..445f17b 100644
---- a/drivers/media/usb/go7007/go7007-v4l2.c
-+++ b/drivers/media/usb/go7007/go7007-v4l2.c
-@@ -857,7 +857,7 @@ static int go7007_s_ctrl(struct v4l2_ctrl *ctrl)
- 	return 0;
- }
- 
--static struct v4l2_file_operations go7007_fops = {
-+static const struct v4l2_file_operations go7007_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= v4l2_fh_open,
- 	.release	= vb2_fop_release,
-diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-index 16bc1dd..0f14176 100644
---- a/drivers/media/usb/gspca/gspca.c
-+++ b/drivers/media/usb/gspca/gspca.c
-@@ -1964,7 +1964,7 @@ static ssize_t dev_read(struct file *file, char __user *data,
- 	return ret;
- }
- 
--static struct v4l2_file_operations dev_fops = {
-+static const struct v4l2_file_operations dev_fops = {
- 	.owner = THIS_MODULE,
- 	.open = dev_open,
- 	.release = dev_close,
-diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
-index a005d26..a132faa 100644
---- a/drivers/media/usb/stk1160/stk1160-v4l.c
-+++ b/drivers/media/usb/stk1160/stk1160-v4l.c
-@@ -326,7 +326,7 @@ static int stk1160_stop_streaming(struct stk1160 *dev)
- 	return 0;
- }
- 
--static struct v4l2_file_operations stk1160_fops = {
-+static const struct v4l2_file_operations stk1160_fops = {
- 	.owner = THIS_MODULE,
- 	.open = v4l2_fh_open,
- 	.release = vb2_fop_release,
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-index 90d4a08..93330be 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.c
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -1202,7 +1202,7 @@ static const struct v4l2_ctrl_ops stk_ctrl_ops = {
- 	.s_ctrl = stk_s_ctrl,
- };
- 
--static struct v4l2_file_operations v4l_stk_fops = {
-+static const struct v4l2_file_operations v4l_stk_fops = {
- 	.owner = THIS_MODULE,
- 	.open = v4l_stk_open,
- 	.release = v4l_stk_release,
-diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-index 7e960d0..cec1321 100644
---- a/drivers/media/usb/tm6000/tm6000-video.c
-+++ b/drivers/media/usb/tm6000/tm6000-video.c
-@@ -1532,7 +1532,7 @@ static int tm6000_mmap(struct file *file, struct vm_area_struct * vma)
- 	return res;
- }
- 
--static struct v4l2_file_operations tm6000_fops = {
-+static const struct v4l2_file_operations tm6000_fops = {
- 	.owner = THIS_MODULE,
- 	.open = tm6000_open,
- 	.release = tm6000_release,
+diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
+new file mode 100644
+index 000000000000..2693449daf73
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
+@@ -0,0 +1,107 @@
++* Qualcomm Venus video encoder/decoder accelerators
++
++- compatible:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Value should contain one of:
++		- "qcom,msm8916-venus"
++		- "qcom,msm8996-venus"
++- reg:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: Register base address and length of the register map.
++- interrupts:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: Should contain interrupt line number.
++- clocks:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A List of phandle and clock specifier pairs as listed
++		    in clock-names property.
++- clock-names:
++	Usage: required for msm8916
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "core"	Core video accelerator clock
++		- "iface"	Video accelerator AHB clock
++		- "bus"		Video accelerator AXI clock
++- clock-names:
++	Usage: required for msm8996
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "core"	Core video accelerator clock
++		- "iface"	Video accelerator AHB clock
++		- "bus"		Video accelerator AXI clock
++		- "mbus"	Video MAXI clock
++- power-domains:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A phandle and power domain specifier pairs to the
++		    power domain which is responsible for collapsing
++		    and restoring power to the peripheral.
++- iommus:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A list of phandle and IOMMU specifier pairs.
++- memory-region:
++	Usage: required
++	Value type: <phandle>
++	Definition: reference to the reserved-memory for the firmware
++		    memory region.
++
++* Subnodes
++The Venus video-codec node must contain two subnodes representing
++video-decoder and video-encoder.
++
++Every of video-encoder or video-decoder subnode should have:
++
++- compatible:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Value should contain "venus-decoder" or "venus-encoder"
++- clocks:
++	Usage: required for msm8996
++	Value type: <prop-encoded-array>
++	Definition: A List of phandle and clock specifier pairs as listed
++		    in clock-names property.
++- clock-names:
++	Usage: required for msm8996
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "core"	Subcore video accelerator clock
++
++- power-domains:
++	Usage: required for msm8996
++	Value type: <prop-encoded-array>
++	Definition: A phandle and power domain specifier pairs to the
++		    power domain which is responsible for collapsing
++		    and restoring power to the subcore.
++
++* An Example
++	video-codec@1d00000 {
++		compatible = "qcom,msm8916-venus";
++		reg = <0x01d00000 0xff000>;
++		interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&gcc GCC_VENUS0_VCODEC0_CLK>,
++			 <&gcc GCC_VENUS0_AHB_CLK>,
++			 <&gcc GCC_VENUS0_AXI_CLK>;
++		clock-names = "core", "iface", "bus";
++		power-domains = <&gcc VENUS_GDSC>;
++		iommus = <&apps_iommu 5>;
++		memory-region = <&venus_mem>;
++
++		video-decoder {
++			compatible = "venus-decoder";
++			clocks = <&mmcc VIDEO_SUBCORE0_CLK>;
++			clock-names = "core";
++			power-domains = <&mmcc VENUS_CORE0_GDSC>;
++		};
++
++		video-encoder {
++			compatible = "venus-encoder";
++			clocks = <&mmcc VIDEO_SUBCORE1_CLK>;
++			clock-names = "core";
++			power-domains = <&mmcc VENUS_CORE1_GDSC>;
++		};
++	};
 -- 
 2.7.4
