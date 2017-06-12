@@ -1,1937 +1,1780 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:64487 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751308AbdFEUjo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Jun 2017 16:39:44 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH 10/12] intel-ipu3: css pipeline
-Date: Mon,  5 Jun 2017 15:39:15 -0500
-Message-Id: <1496695157-19926-11-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+Received: from relmlor4.renesas.com ([210.160.252.174]:9565 "EHLO
+        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752086AbdFLNjw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Jun 2017 09:39:52 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v8 3/8] media: i2c: max2175: Add MAX2175 support
+Date: Mon, 12 Jun 2017 14:26:15 +0100
+Message-Id: <20170612132620.1024-4-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <20170612132620.1024-1-ramesh.shanmugasundaram@bp.renesas.com>
+References: <20170612132620.1024-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add css pipeline and v4l code
+This patch adds driver support for the MAX2175 chip. This is Maxim
+Integrated's RF to Bits tuner front end chip designed for software-defined
+radio solutions. This driver exposes the tuner as a sub-device instance
+with standard and custom controls to configure the device.
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
 ---
- drivers/media/pci/intel/ipu3/ipu3-css.c | 1739 ++++++++++++++++++++++++++++++-
- drivers/media/pci/intel/ipu3/ipu3-css.h |   85 ++
- 2 files changed, 1818 insertions(+), 6 deletions(-)
+v8:
+ - Fixed smatch warnings in max2175_load_from_rom().
+v7:
+ - Made I2S enable/disable control as private (Mauro).
+v6:
+ - Addressed Sakari's comments. They are:
+	- Added uapi header file.
+	- Added newline at the end of the function before return.
+	- Cleaned up header file inclusion.
+	- Used fwnode_ apis whereever applicable.
+	- Cleaned up debug statements.
+	- Removed separate dir for max2175.
+v5:
+ - sck -> Sample clock is clarified in driver documentation (Hans)
+ - "refout-load-pF" is renamed to "refout-load" as per updated bindings.
+---
+ Documentation/media/v4l-drivers/index.rst   |    1 +
+ Documentation/media/v4l-drivers/max2175.rst |   62 ++
+ drivers/media/i2c/Kconfig                   |   12 +
+ drivers/media/i2c/Makefile                  |    2 +
+ drivers/media/i2c/max2175.c                 | 1453 +++++++++++++++++++++++++++
+ drivers/media/i2c/max2175.h                 |  109 ++
+ include/uapi/linux/max2175.h                |   28 +
+ 7 files changed, 1667 insertions(+)
+ create mode 100644 Documentation/media/v4l-drivers/max2175.rst
+ create mode 100644 drivers/media/i2c/max2175.c
+ create mode 100644 drivers/media/i2c/max2175.h
+ create mode 100644 include/uapi/linux/max2175.h
 
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-css.c b/drivers/media/pci/intel/ipu3/ipu3-css.c
-index 675be91..b5c2b99 100644
---- a/drivers/media/pci/intel/ipu3/ipu3-css.c
-+++ b/drivers/media/pci/intel/ipu3/ipu3-css.c
-@@ -13,8 +13,15 @@
+diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
+index 90fe22a6414a..2e24d6806052 100644
+--- a/Documentation/media/v4l-drivers/index.rst
++++ b/Documentation/media/v4l-drivers/index.rst
+@@ -42,6 +42,7 @@ For more details see the file COPYING in the source distribution of Linux.
+ 	davinci-vpbe
+ 	fimc
+ 	ivtv
++	max2175
+ 	meye
+ 	omap3isp
+ 	omap4_camera
+diff --git a/Documentation/media/v4l-drivers/max2175.rst b/Documentation/media/v4l-drivers/max2175.rst
+new file mode 100644
+index 000000000000..04478c25d57a
+--- /dev/null
++++ b/Documentation/media/v4l-drivers/max2175.rst
+@@ -0,0 +1,62 @@
++Maxim Integrated MAX2175 RF to bits tuner driver
++================================================
++
++The MAX2175 driver implements the following driver-specific controls:
++
++``V4L2_CID_MAX2175_I2S_ENABLE``
++-------------------------------
++    Enable/Disable I2S output of the tuner. This is a private control
++    that can be accessed only using the subdev interface.
++    Refer to Documentation/media/kapi/v4l2-controls for more details.
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       1 4
++
++    * - ``(0)``
++      - I2S output is disabled.
++    * - ``(1)``
++      - I2S output is enabled.
++
++``V4L2_CID_MAX2175_HSLS``
++-------------------------
++    The high-side/low-side (HSLS) control of the tuner for a given band.
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       1 4
++
++    * - ``(0)``
++      - The LO frequency position is below the desired frequency.
++    * - ``(1)``
++      - The LO frequency position is above the desired frequency.
++
++``V4L2_CID_MAX2175_RX_MODE (menu)``
++-----------------------------------
++    The Rx mode controls a number of preset parameters of the tuner like
++    sample clock (sck), sampling rate etc. These multiple settings are
++    provided under one single label called Rx mode in the datasheet. The
++    list below shows the supported modes with a brief description.
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       1 4
++
++    * - ``"Europe modes"``
++    * - ``"FM 1.2" (0)``
++      - This configures FM band with a sample rate of 0.512 million
++        samples/sec with a 10.24 MHz sck.
++    * - ``"DAB 1.2" (1)``
++      - This configures VHF band with a sample rate of 2.048 million
++        samples/sec with a 32.768 MHz sck.
++
++    * - ``"North America modes"``
++    * - ``"FM 1.0" (0)``
++      - This configures FM band with a sample rate of 0.7441875 million
++        samples/sec with a 14.88375 MHz sck.
++    * - ``"DAB 1.2" (1)``
++      - This configures FM band with a sample rate of 0.372 million
++        samples/sec with a 7.441875 MHz sck.
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index c380e2475c82..c0e6e78883b0 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -796,6 +796,18 @@ config VIDEO_SAA6752HS
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called saa6752hs.
  
- #include <linux/delay.h>
- #include <linux/dma-mapping.h>
-+#include <linux/firmware.h>
-+#include <linux/gcd.h>
++comment "SDR tuner chips"
++
++config SDR_MAX2175
++	tristate "Maxim 2175 RF to Bits tuner"
++	depends on VIDEO_V4L2 && MEDIA_SDR_SUPPORT && I2C
++	---help---
++	  Support for Maxim 2175 tuner. It is an advanced analog/digital
++	  radio receiver with RF-to-Bits front-end designed for SDR solutions.
++
++	  To compile this driver as a module, choose M here; the
++	  module will be called max2175.
++
+ comment "Miscellaneous helper chips"
+ 
+ config VIDEO_THS7303
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 62323ec66be8..5a4a761f7383 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -86,3 +86,5 @@ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
+ obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
+ obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
+ obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
++
++obj-$(CONFIG_SDR_MAX2175) += max2175.o
+diff --git a/drivers/media/i2c/max2175.c b/drivers/media/i2c/max2175.c
+new file mode 100644
+index 000000000000..3634b3d133dd
+--- /dev/null
++++ b/drivers/media/i2c/max2175.c
+@@ -0,0 +1,1453 @@
++/*
++ * Maxim Integrated MAX2175 RF to Bits tuner driver
++ *
++ * This driver & most of the hard coded values are based on the reference
++ * application delivered by Maxim for this device.
++ *
++ * Copyright (C) 2016 Maxim Integrated Products
++ * Copyright (C) 2017 Renesas Electronics Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2
++ * as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/errno.h>
++#include <linux/i2c.h>
++#include <linux/kernel.h>
++#include <linux/math64.h>
++#include <linux/max2175.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/regmap.h>
 +#include <linux/slab.h>
-+#include <linux/string.h>
-+#include <linux/swab.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
 +
- #include "ipu3-css.h"
- #include "ipu3-css-fw.h"
-+#include "ipu3-css-params.h"
- #include "ipu3-tables.h"
- 
- /* IRQ configuration */
-@@ -23,6 +30,150 @@
- 				 IMGU_IRQCTRL_IRQ_SW_PIN(0) | \
- 				 IMGU_IRQCTRL_IRQ_SW_PIN(1))
- 
-+#define IPU3_CSS_FORMAT_BPP_DEN	50	/* Denominator */
++#include "max2175.h"
 +
-+/* Some sane limits for resolutions */
-+#define IPU3_CSS_MIN_RES	32
-+#define IPU3_CSS_MAX_RES	65535
++#define DRIVER_NAME "max2175"
 +
-+/* Formats supported by IPU3 Camera Sub System */
-+static const struct ipu3_css_format ipu3_css_formats[] = {
++#define mxm_dbg(ctx, fmt, arg...) dev_dbg(&ctx->client->dev, fmt, ## arg)
++#define mxm_err(ctx, fmt, arg...) dev_err(&ctx->client->dev, fmt, ## arg)
++
++/* Rx mode */
++struct max2175_rxmode {
++	enum max2175_band band;		/* Associated band */
++	u32 freq;			/* Default freq in Hz */
++	u8 i2s_word_size;		/* Bit value */
++};
++
++/* Register map to define preset values */
++struct max2175_reg_map {
++	u8 idx;				/* Register index */
++	u8 val;				/* Register value */
++};
++
++static const struct max2175_rxmode eu_rx_modes[] = {
++	/* EU modes */
++	[MAX2175_EU_FM_1_2] = { MAX2175_BAND_FM, 98256000, 1 },
++	[MAX2175_DAB_1_2]   = { MAX2175_BAND_VHF, 182640000, 0 },
++};
++
++static const struct max2175_rxmode na_rx_modes[] = {
++	/* NA modes */
++	[MAX2175_NA_FM_1_0] = { MAX2175_BAND_FM, 98255520, 1 },
++	[MAX2175_NA_FM_2_0] = { MAX2175_BAND_FM, 98255520, 6 },
++};
++
++/*
++ * Preset values:
++ * Based on Maxim MAX2175 Register Table revision: 130p10
++ */
++static const u8 full_fm_eu_1p0[] = {
++	0x15, 0x04, 0xb8, 0xe3, 0x35, 0x18, 0x7c, 0x00,
++	0x00, 0x7d, 0x40, 0x08, 0x70, 0x7a, 0x88, 0x91,
++	0x61, 0x61, 0x61, 0x61, 0x5a, 0x0f, 0x34, 0x1c,
++	0x14, 0x88, 0x33, 0x02, 0x00, 0x09, 0x00, 0x65,
++	0x9f, 0x2b, 0x80, 0x00, 0x95, 0x05, 0x2c, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40,
++	0x4a, 0x08, 0xa8, 0x0e, 0x0e, 0x2f, 0x7e, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0xab, 0x5e, 0xa9,
++	0xae, 0xbb, 0x57, 0x18, 0x3b, 0x03, 0x3b, 0x64,
++	0x40, 0x60, 0x00, 0x2a, 0xbf, 0x3f, 0xff, 0x9f,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00,
++	0xff, 0xfc, 0xef, 0x1c, 0x40, 0x00, 0x00, 0x02,
++	0x00, 0x00, 0xe0, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0xac, 0x40, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x75, 0x00, 0x00,
++	0x00, 0x47, 0x00, 0x00, 0x11, 0x3f, 0x22, 0x00,
++	0xf1, 0x00, 0x41, 0x03, 0xb0, 0x00, 0x00, 0x00,
++	0x1b,
++};
++
++static const u8 full_fm_na_1p0[] = {
++	0x13, 0x08, 0x8d, 0xc0, 0x35, 0x18, 0x7d, 0x3f,
++	0x7d, 0x75, 0x40, 0x08, 0x70, 0x7a, 0x88, 0x91,
++	0x61, 0x61, 0x61, 0x61, 0x5c, 0x0f, 0x34, 0x1c,
++	0x14, 0x88, 0x33, 0x02, 0x00, 0x01, 0x00, 0x65,
++	0x9f, 0x2b, 0x80, 0x00, 0x95, 0x05, 0x2c, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40,
++	0x4a, 0x08, 0xa8, 0x0e, 0x0e, 0xaf, 0x7e, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0xab, 0x5e, 0xa9,
++	0xae, 0xbb, 0x57, 0x18, 0x3b, 0x03, 0x3b, 0x64,
++	0x40, 0x60, 0x00, 0x2a, 0xbf, 0x3f, 0xff, 0x9f,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00,
++	0xff, 0xfc, 0xef, 0x1c, 0x40, 0x00, 0x00, 0x02,
++	0x00, 0x00, 0xe0, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0xa6, 0x40, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x75, 0x00, 0x00,
++	0x00, 0x35, 0x00, 0x00, 0x11, 0x3f, 0x22, 0x00,
++	0xf1, 0x00, 0x41, 0x03, 0xb0, 0x00, 0x00, 0x00,
++	0x1b,
++};
++
++/* DAB1.2 settings */
++static const struct max2175_reg_map dab12_map[] = {
++	{ 0x01, 0x13 }, { 0x02, 0x0d }, { 0x03, 0x15 }, { 0x04, 0x55 },
++	{ 0x05, 0x0a }, { 0x06, 0xa0 }, { 0x07, 0x40 }, { 0x08, 0x00 },
++	{ 0x09, 0x00 }, { 0x0a, 0x7d }, { 0x0b, 0x4a }, { 0x0c, 0x28 },
++	{ 0x0e, 0x43 }, { 0x0f, 0xb5 }, { 0x10, 0x31 }, { 0x11, 0x9e },
++	{ 0x12, 0x68 }, { 0x13, 0x9e }, { 0x14, 0x68 }, { 0x15, 0x58 },
++	{ 0x16, 0x2f }, { 0x17, 0x3f }, { 0x18, 0x40 }, { 0x1a, 0x88 },
++	{ 0x1b, 0xaa }, { 0x1c, 0x9a }, { 0x1d, 0x00 }, { 0x1e, 0x00 },
++	{ 0x23, 0x80 }, { 0x24, 0x00 }, { 0x25, 0x00 }, { 0x26, 0x00 },
++	{ 0x27, 0x00 }, { 0x32, 0x08 }, { 0x33, 0xf8 }, { 0x36, 0x2d },
++	{ 0x37, 0x7e }, { 0x55, 0xaf }, { 0x56, 0x3f }, { 0x57, 0xf8 },
++	{ 0x58, 0x99 }, { 0x76, 0x00 }, { 0x77, 0x00 }, { 0x78, 0x02 },
++	{ 0x79, 0x40 }, { 0x82, 0x00 }, { 0x83, 0x00 }, { 0x85, 0x00 },
++	{ 0x86, 0x20 },
++};
++
++/* EU FM 1.2 settings */
++static const struct max2175_reg_map fmeu1p2_map[] = {
++	{ 0x01, 0x15 }, { 0x02, 0x04 }, { 0x03, 0xb8 }, { 0x04, 0xe3 },
++	{ 0x05, 0x35 }, { 0x06, 0x18 }, { 0x07, 0x7c }, { 0x08, 0x00 },
++	{ 0x09, 0x00 }, { 0x0a, 0x73 }, { 0x0b, 0x40 }, { 0x0c, 0x08 },
++	{ 0x0e, 0x7a }, { 0x0f, 0x88 }, { 0x10, 0x91 }, { 0x11, 0x61 },
++	{ 0x12, 0x61 }, { 0x13, 0x61 }, { 0x14, 0x61 }, { 0x15, 0x5a },
++	{ 0x16, 0x0f }, { 0x17, 0x34 }, { 0x18, 0x1c }, { 0x1a, 0x88 },
++	{ 0x1b, 0x33 }, { 0x1c, 0x02 }, { 0x1d, 0x00 }, { 0x1e, 0x01 },
++	{ 0x23, 0x80 }, { 0x24, 0x00 }, { 0x25, 0x95 }, { 0x26, 0x05 },
++	{ 0x27, 0x2c }, { 0x32, 0x08 }, { 0x33, 0xa8 }, { 0x36, 0x2f },
++	{ 0x37, 0x7e }, { 0x55, 0xbf }, { 0x56, 0x3f }, { 0x57, 0xff },
++	{ 0x58, 0x9f }, { 0x76, 0xac }, { 0x77, 0x40 }, { 0x78, 0x00 },
++	{ 0x79, 0x00 }, { 0x82, 0x47 }, { 0x83, 0x00 }, { 0x85, 0x11 },
++	{ 0x86, 0x3f },
++};
++
++/* FM NA 1.0 settings */
++static const struct max2175_reg_map fmna1p0_map[] = {
++	{ 0x01, 0x13 }, { 0x02, 0x08 }, { 0x03, 0x8d }, { 0x04, 0xc0 },
++	{ 0x05, 0x35 }, { 0x06, 0x18 }, { 0x07, 0x7d }, { 0x08, 0x3f },
++	{ 0x09, 0x7d }, { 0x0a, 0x75 }, { 0x0b, 0x40 }, { 0x0c, 0x08 },
++	{ 0x0e, 0x7a }, { 0x0f, 0x88 }, { 0x10, 0x91 }, { 0x11, 0x61 },
++	{ 0x12, 0x61 }, { 0x13, 0x61 }, { 0x14, 0x61 }, { 0x15, 0x5c },
++	{ 0x16, 0x0f }, { 0x17, 0x34 }, { 0x18, 0x1c }, { 0x1a, 0x88 },
++	{ 0x1b, 0x33 }, { 0x1c, 0x02 }, { 0x1d, 0x00 }, { 0x1e, 0x01 },
++	{ 0x23, 0x80 }, { 0x24, 0x00 }, { 0x25, 0x95 }, { 0x26, 0x05 },
++	{ 0x27, 0x2c }, { 0x32, 0x08 }, { 0x33, 0xa8 }, { 0x36, 0xaf },
++	{ 0x37, 0x7e }, { 0x55, 0xbf }, { 0x56, 0x3f }, { 0x57, 0xff },
++	{ 0x58, 0x9f }, { 0x76, 0xa6 }, { 0x77, 0x40 }, { 0x78, 0x00 },
++	{ 0x79, 0x00 }, { 0x82, 0x35 }, { 0x83, 0x00 }, { 0x85, 0x11 },
++	{ 0x86, 0x3f },
++};
++
++/* FM NA 2.0 settings */
++static const struct max2175_reg_map fmna2p0_map[] = {
++	{ 0x01, 0x13 }, { 0x02, 0x08 }, { 0x03, 0x8d }, { 0x04, 0xc0 },
++	{ 0x05, 0x35 }, { 0x06, 0x18 }, { 0x07, 0x7c }, { 0x08, 0x54 },
++	{ 0x09, 0xa7 }, { 0x0a, 0x55 }, { 0x0b, 0x42 }, { 0x0c, 0x48 },
++	{ 0x0e, 0x7a }, { 0x0f, 0x88 }, { 0x10, 0x91 }, { 0x11, 0x61 },
++	{ 0x12, 0x61 }, { 0x13, 0x61 }, { 0x14, 0x61 }, { 0x15, 0x5c },
++	{ 0x16, 0x0f }, { 0x17, 0x34 }, { 0x18, 0x1c }, { 0x1a, 0x88 },
++	{ 0x1b, 0x33 }, { 0x1c, 0x02 }, { 0x1d, 0x00 }, { 0x1e, 0x01 },
++	{ 0x23, 0x80 }, { 0x24, 0x00 }, { 0x25, 0x95 }, { 0x26, 0x05 },
++	{ 0x27, 0x2c }, { 0x32, 0x08 }, { 0x33, 0xa8 }, { 0x36, 0xaf },
++	{ 0x37, 0x7e }, { 0x55, 0xbf }, { 0x56, 0x3f }, { 0x57, 0xff },
++	{ 0x58, 0x9f }, { 0x76, 0xac }, { 0x77, 0xc0 }, { 0x78, 0x00 },
++	{ 0x79, 0x00 }, { 0x82, 0x6b }, { 0x83, 0x00 }, { 0x85, 0x11 },
++	{ 0x86, 0x3f },
++};
++
++static const u16 ch_coeff_dab1[] = {
++	0x001c, 0x0007, 0xffcd, 0x0056, 0xffa4, 0x0033, 0x0027, 0xff61,
++	0x010e, 0xfec0, 0x0106, 0xffb8, 0xff1c, 0x023c, 0xfcb2, 0x039b,
++	0xfd4e, 0x0055, 0x036a, 0xf7de, 0x0d21, 0xee72, 0x1499, 0x6a51,
++};
++
++static const u16 ch_coeff_fmeu[] = {
++	0x0000, 0xffff, 0x0001, 0x0002, 0xfffa, 0xffff, 0x0015, 0xffec,
++	0xffde, 0x0054, 0xfff9, 0xff52, 0x00b8, 0x00a2, 0xfe0a, 0x00af,
++	0x02e3, 0xfc14, 0xfe89, 0x089d, 0xfa2e, 0xf30f, 0x25be, 0x4eb6,
++};
++
++static const u16 eq_coeff_fmeu1_ra02_m6db[] = {
++	0x0040, 0xffc6, 0xfffa, 0x002c, 0x000d, 0xff90, 0x0037, 0x006e,
++	0xffc0, 0xff5b, 0x006a, 0x00f0, 0xff57, 0xfe94, 0x0112, 0x0252,
++	0xfe0c, 0xfc6a, 0x0385, 0x0553, 0xfa49, 0xf789, 0x0b91, 0x1a10,
++};
++
++static const u16 ch_coeff_fmna[] = {
++	0x0001, 0x0003, 0xfffe, 0xfff4, 0x0000, 0x001f, 0x000c, 0xffbc,
++	0xffd3, 0x007d, 0x0075, 0xff33, 0xff01, 0x0131, 0x01ef, 0xfe60,
++	0xfc7a, 0x020e, 0x0656, 0xfd94, 0xf395, 0x02ab, 0x2857, 0x3d3f,
++};
++
++static const u16 eq_coeff_fmna1_ra02_m6db[] = {
++	0xfff1, 0xffe1, 0xffef, 0x000e, 0x0030, 0x002f, 0xfff6, 0xffa7,
++	0xff9d, 0x000a, 0x00a2, 0x00b5, 0xffea, 0xfed9, 0xfec5, 0x003d,
++	0x0217, 0x021b, 0xff5a, 0xfc2b, 0xfcbd, 0x02c4, 0x0ac3, 0x0e85,
++};
++
++static const u8 adc_presets[2][23] = {
 +	{
-+		.pixelformat = V4L2_PIX_FMT_NV12,
-+		.colorspace = V4L2_COLORSPACE_SRGB,
-+		.frame_format = IMGU_ABI_FRAME_FORMAT_NV12,
-+		.osys_format = IMGU_ABI_OSYS_FORMAT_NV12,
-+		.osys_tiling = IMGU_ABI_OSYS_TILING_NONE,
-+		.bytesperpixel_num = 1 * IPU3_CSS_FORMAT_BPP_DEN,
-+		.chroma_decim = 4,
-+		.width_align = IPU3_UAPI_ISP_VEC_ELEMS,
-+		.flags = IPU3_CSS_FORMAT_FL_OUT | IPU3_CSS_FORMAT_FL_VF,
-+	}, {	/* Parameter pseudo-format */
-+
-+		.pixelformat = V4L2_META_FMT_IPU3_PARAMS,
-+		.colorspace = V4L2_COLORSPACE_DEFAULT,
-+		.bytesperpixel_num = sizeof(struct ipu3_uapi_params) *
-+					IPU3_CSS_FORMAT_BPP_DEN,
-+		.width_align = 1,
-+		.flags = IPU3_CSS_FORMAT_FL_PARAMS,
-+
-+	}, {	/* Statistics pseudo-formats */
-+
-+		.pixelformat = V4L2_META_FMT_IPU3_STAT_3A,
-+		.colorspace = V4L2_COLORSPACE_DEFAULT,
-+		.bytesperpixel_num = sizeof(struct ipu3_uapi_stats_3a) *
-+					IPU3_CSS_FORMAT_BPP_DEN,
-+		.width_align = 1,
-+		.flags = IPU3_CSS_FORMAT_FL_STAT_3A,
-+	}, {
-+		.pixelformat = V4L2_META_FMT_IPU3_STAT_DVS,
-+		.colorspace = V4L2_COLORSPACE_DEFAULT,
-+		.bytesperpixel_num = sizeof(struct ipu3_uapi_stats_dvs) *
-+					IPU3_CSS_FORMAT_BPP_DEN,
-+		.width_align = 1,
-+		.flags = IPU3_CSS_FORMAT_FL_STAT_DVS,
-+	}, {
-+		.pixelformat = V4L2_META_FMT_IPU3_STAT_LACE,
-+		.colorspace = V4L2_COLORSPACE_DEFAULT,
-+		.bytesperpixel_num = sizeof(struct ipu3_uapi_stats_lace) *
-+					IPU3_CSS_FORMAT_BPP_DEN,
-+		.width_align = 1,
-+		.flags = IPU3_CSS_FORMAT_FL_STAT_LACE,
++		0x83, 0x00, 0xcf, 0xb4, 0x0f, 0x2c, 0x0c, 0x49,
++		0x00, 0x00, 0x00, 0x8c,	0x02, 0x02, 0x00, 0x04,
++		0xec, 0x82, 0x4b, 0xcc, 0x01, 0x88, 0x0c,
++	},
++	{
++		0x83, 0x00, 0xcf, 0xb4,	0x0f, 0x2c, 0x0c, 0x49,
++		0x00, 0x00, 0x00, 0x8c,	0x02, 0x20, 0x33, 0x8c,
++		0x57, 0xd7, 0x59, 0xb7,	0x65, 0x0e, 0x0c,
 +	},
 +};
 +
-+static const struct {
-+	enum imgu_abi_queue_id qid;
-+	size_t ptr_ofs;
-+} ipu3_css_queues[IPU3_CSS_QUEUES] = {
-+	[IPU3_CSS_QUEUE_IN] = {
-+		IMGU_ABI_QUEUE_C_ID,
-+		offsetof(struct imgu_abi_buffer, payload.frame.frame_data)
-+	},
-+	[IPU3_CSS_QUEUE_OUT] = {
-+		IMGU_ABI_QUEUE_D_ID,
-+		offsetof(struct imgu_abi_buffer, payload.frame.frame_data)
-+	},
-+	[IPU3_CSS_QUEUE_VF] = {
-+		IMGU_ABI_QUEUE_E_ID,
-+		offsetof(struct imgu_abi_buffer, payload.frame.frame_data)
-+	},
-+	[IPU3_CSS_QUEUE_STAT_3A] = {
-+		IMGU_ABI_QUEUE_F_ID,
-+		offsetof(struct imgu_abi_buffer, payload.s3a.data_ptr)
-+	},
-+	[IPU3_CSS_QUEUE_STAT_DVS] = {
-+		IMGU_ABI_QUEUE_G_ID,
-+		offsetof(struct imgu_abi_buffer, payload.skc_dvs_statistics)
-+	}
++/* Tuner bands */
++static const struct v4l2_frequency_band eu_bands_rf = {
++	.tuner = 0,
++	.type = V4L2_TUNER_RF,
++	.index = 0,
++	.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
++	.rangelow   = 65000000,
++	.rangehigh  = 240000000,
 +};
 +
-+/* Initialize queue based on given format, adjust format as needed */
-+static int ipu3_css_queue_init(struct ipu3_css_queue *queue,
-+			       struct v4l2_pix_format *fmt, u32 flags)
++static const struct v4l2_frequency_band na_bands_rf = {
++	.tuner = 0,
++	.type = V4L2_TUNER_RF,
++	.index = 0,
++	.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
++	.rangelow   = 65000000,
++	.rangehigh  = 108000000,
++};
++
++/* Regmap settings */
++static const struct regmap_range max2175_regmap_volatile_range[] = {
++	regmap_reg_range(0x30, 0x35),
++	regmap_reg_range(0x3a, 0x45),
++	regmap_reg_range(0x59, 0x5e),
++	regmap_reg_range(0x73, 0x75),
++};
++
++static const struct regmap_access_table max2175_volatile_regs = {
++	.yes_ranges = max2175_regmap_volatile_range,
++	.n_yes_ranges = ARRAY_SIZE(max2175_regmap_volatile_range),
++};
++
++static const struct reg_default max2175_reg_defaults[] = {
++	{ 0x00, 0x07},
++};
++
++static const struct regmap_config max2175_regmap_config = {
++	.reg_bits = 8,
++	.val_bits = 8,
++	.max_register = 0xff,
++	.reg_defaults = max2175_reg_defaults,
++	.num_reg_defaults = ARRAY_SIZE(max2175_reg_defaults),
++	.volatile_table = &max2175_volatile_regs,
++	.cache_type = REGCACHE_FLAT,
++};
++
++struct max2175 {
++	struct v4l2_subdev sd;		/* Sub-device */
++	struct i2c_client *client;	/* I2C client */
++
++	/* Controls */
++	struct v4l2_ctrl_handler ctrl_hdl;
++	struct v4l2_ctrl *lna_gain;	/* LNA gain value */
++	struct v4l2_ctrl *if_gain;	/* I/F gain value */
++	struct v4l2_ctrl *pll_lock;	/* PLL lock */
++	struct v4l2_ctrl *i2s_en;	/* I2S output enable */
++	struct v4l2_ctrl *hsls;		/* High-side/Low-side polarity */
++	struct v4l2_ctrl *rx_mode;	/* Receive mode */
++
++	/* Regmap */
++	struct regmap *regmap;
++
++	/* Cached configuration */
++	u32 freq;			/* Tuned freq In Hz */
++	const struct max2175_rxmode *rx_modes;		/* EU or NA modes */
++	const struct v4l2_frequency_band *bands_rf;	/* EU or NA bands */
++
++	/* Device settings */
++	unsigned long xtal_freq;	/* Ref Oscillator freq in Hz */
++	u32 decim_ratio;
++	bool master;			/* Master/Slave */
++	bool am_hiz;			/* AM Hi-Z filter */
++
++	/* ROM values */
++	u8 rom_bbf_bw_am;
++	u8 rom_bbf_bw_fm;
++	u8 rom_bbf_bw_dab;
++
++	/* Driver private variables */
++	bool mode_resolved;		/* Flag to sanity check settings */
++};
++
++static inline struct max2175 *max2175_from_sd(struct v4l2_subdev *sd)
 +{
-+	struct v4l2_pix_format *const f = &queue->pix_fmt;
-+	unsigned int i;
++	return container_of(sd, struct max2175, sd);
++}
 +
-+	INIT_LIST_HEAD(&queue->bufs);
++static inline struct max2175 *max2175_from_ctrl_hdl(struct v4l2_ctrl_handler *h)
++{
++	return container_of(h, struct max2175, ctrl_hdl);
++}
 +
-+	queue->css_fmt = NULL;	/* Disable */
-+	if (!fmt)
++/* Get bitval of a given val */
++static inline u8 max2175_get_bitval(u8 val, u8 msb, u8 lsb)
++{
++	return (val & GENMASK(msb, lsb)) >> lsb;
++}
++
++/* Read/Write bit(s) on top of regmap */
++static int max2175_read(struct max2175 *ctx, u8 idx, u8 *val)
++{
++	u32 regval;
++	int ret;
++
++	ret = regmap_read(ctx->regmap, idx, &regval);
++	if (ret)
++		mxm_err(ctx, "read ret(%d): idx 0x%02x\n", ret, idx);
++	else
++		*val = regval;
++
++	return ret;
++}
++
++static int max2175_write(struct max2175 *ctx, u8 idx, u8 val)
++{
++	int ret;
++
++	ret = regmap_write(ctx->regmap, idx, val);
++	if (ret)
++		mxm_err(ctx, "write ret(%d): idx 0x%02x val 0x%02x\n",
++			ret, idx, val);
++
++	return ret;
++}
++
++static u8 max2175_read_bits(struct max2175 *ctx, u8 idx, u8 msb, u8 lsb)
++{
++	u8 val;
++
++	if (max2175_read(ctx, idx, &val))
 +		return 0;
 +
-+	for (i = 0; i < ARRAY_SIZE(ipu3_css_formats); i++) {
-+		if (!(ipu3_css_formats[i].flags & flags))
-+			continue;
-+		queue->css_fmt = &ipu3_css_formats[i];
-+		if (ipu3_css_formats[i].pixelformat == fmt->pixelformat)
-+			break;
-+	}
-+	if (!queue->css_fmt)
-+		return -EINVAL;	/* Could not find any suitable format */
++	return max2175_get_bitval(val, msb, lsb);
++}
 +
-+	queue->pix_fmt = *fmt;
-+	queue->pix_fmt.pixelformat = queue->css_fmt->pixelformat;
-+	if (queue->css_fmt->flags & IPU3_CSS_FORMAT_FL_PSEUDO) {
-+		f->width = 1;
-+		f->height = 1;
-+	} else {
-+		f->width = ALIGN(clamp_t(u32, f->width,
-+				IPU3_CSS_MIN_RES, IPU3_CSS_MAX_RES), 2);
-+		f->height = ALIGN(clamp_t(u32, f->height,
-+				IPU3_CSS_MIN_RES, IPU3_CSS_MAX_RES), 2);
-+	}
-+	queue->width_pad = ALIGN(f->width, queue->css_fmt->width_align);
-+	if (queue->css_fmt->frame_format != IMGU_ABI_FRAME_FORMAT_RAW_PACKED)
-+		f->bytesperline = DIV_ROUND_UP(queue->width_pad *
-+					queue->css_fmt->bytesperpixel_num,
-+					IPU3_CSS_FORMAT_BPP_DEN);
++static int max2175_write_bits(struct max2175 *ctx, u8 idx,
++			     u8 msb, u8 lsb, u8 newval)
++{
++	int ret = regmap_update_bits(ctx->regmap, idx, GENMASK(msb, lsb),
++				     newval << lsb);
++
++	if (ret)
++		mxm_err(ctx, "wbits ret(%d): idx 0x%02x\n", ret, idx);
++
++	return ret;
++}
++
++static int max2175_write_bit(struct max2175 *ctx, u8 idx, u8 bit, u8 newval)
++{
++	return max2175_write_bits(ctx, idx, bit, bit, newval);
++}
++
++/* Checks expected pattern every msec until timeout */
++static int max2175_poll_timeout(struct max2175 *ctx, u8 idx, u8 msb, u8 lsb,
++				u8 exp_bitval, u32 timeout_ms)
++{
++	unsigned int val;
++
++	return regmap_read_poll_timeout(ctx->regmap, idx, val,
++			(max2175_get_bitval(val, msb, lsb) == exp_bitval),
++			1000, timeout_ms * 1000);
++}
++
++static int max2175_poll_csm_ready(struct max2175 *ctx)
++{
++	int ret;
++
++	ret = max2175_poll_timeout(ctx, 69, 1, 1, 0, 50);
++	if (ret)
++		mxm_err(ctx, "csm not ready\n");
++
++	return ret;
++}
++
++#define MAX2175_IS_BAND_AM(ctx)		\
++	(max2175_read_bits(ctx, 5, 1, 0) == MAX2175_BAND_AM)
++
++#define MAX2175_IS_BAND_VHF(ctx)	\
++	(max2175_read_bits(ctx, 5, 1, 0) == MAX2175_BAND_VHF)
++
++#define MAX2175_IS_FM_MODE(ctx)		\
++	(max2175_read_bits(ctx, 12, 5, 4) == 0)
++
++#define MAX2175_IS_FMHD_MODE(ctx)	\
++	(max2175_read_bits(ctx, 12, 5, 4) == 1)
++
++#define MAX2175_IS_DAB_MODE(ctx)	\
++	(max2175_read_bits(ctx, 12, 5, 4) == 2)
++
++static int max2175_band_from_freq(u32 freq)
++{
++	if (freq >= 144000 && freq <= 26100000)
++		return MAX2175_BAND_AM;
++	else if (freq >= 65000000 && freq <= 108000000)
++		return MAX2175_BAND_FM;
++
++	return MAX2175_BAND_VHF;
++}
++
++static void max2175_i2s_enable(struct max2175 *ctx, bool enable)
++{
++	if (enable)
++		/* Stuff bits are zeroed */
++		max2175_write_bits(ctx, 104, 3, 0, 2);
 +	else
-+		/* For packed raw, alignment for bpl is by 50 to the width */
-+		f->bytesperline = DIV_ROUND_UP(f->width,
-+					IPU3_CSS_FORMAT_BPP_DEN) *
-+					queue->css_fmt->bytesperpixel_num;
-+	f->sizeimage = f->height * f->bytesperline;
-+	if (queue->css_fmt->chroma_decim)
-+		f->sizeimage += 2 * f->sizeimage / queue->css_fmt->chroma_decim;
-+
-+	f->field = V4L2_FIELD_NONE;
-+	f->colorspace = queue->css_fmt->colorspace;
-+	f->priv = 0;
-+	f->flags = 0;
-+	f->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
-+	f->quantization = V4L2_QUANTIZATION_DEFAULT;
-+	f->xfer_func = V4L2_XFER_FUNC_DEFAULT;
-+
-+	return 0;
++		/* Keep SCK alive */
++		max2175_write_bits(ctx, 104, 3, 0, 9);
++	mxm_dbg(ctx, "i2s %sabled\n", enable ? "en" : "dis");
 +}
 +
-+static bool ipu3_css_queue_enabled(struct ipu3_css_queue *q)
++static void max2175_set_filter_coeffs(struct max2175 *ctx, u8 m_sel,
++				      u8 bank, const u16 *coeffs)
 +{
-+	return q->css_fmt != NULL;
++	unsigned int i;
++	u8 coeff_addr, upper_address = 24;
++
++	mxm_dbg(ctx, "set_filter_coeffs: m_sel %d bank %d\n", m_sel, bank);
++	max2175_write_bits(ctx, 114, 5, 4, m_sel);
++
++	if (m_sel == 2)
++		upper_address = 12;
++
++	for (i = 0; i < upper_address; i++) {
++		coeff_addr = i + bank * 24;
++		max2175_write(ctx, 115, coeffs[i] >> 8);
++		max2175_write(ctx, 116, coeffs[i]);
++		max2175_write(ctx, 117, coeff_addr | 1 << 7);
++	}
++	max2175_write_bit(ctx, 117, 7, 0);
 +}
 +
-+/******************* css hw *******************/
-+
- static void writes(void *mem, ssize_t len, void __iomem *reg)
- {
- 	while (len >= 4) {
-@@ -33,8 +184,6 @@ static void writes(void *mem, ssize_t len, void __iomem *reg)
- 	}
- }
- 
--/******************* css hw *******************/
--
- /* Wait until register `reg', masked with `mask', becomes `cmp' */
- static int ipu3_css_hw_wait(struct ipu3_css *css, int reg, u32 mask, u32 cmp)
- {
-@@ -398,9 +547,6 @@ static int ipu3_css_hw_start(struct ipu3_css *css)
- 
- 	memset(css->xmem_sp_group_ptrs.vaddr, 0,
- 		sizeof(struct imgu_abi_sp_group));
--	dma_sync_single_for_device(css->dev,
--		css->xmem_sp_group_ptrs.daddr,
--		sizeof(struct imgu_abi_sp_group), DMA_TO_DEVICE);
- 
- 	bi = &css->fwp->binary_header[css->fw_sp[0]];
- 
-@@ -469,6 +615,1587 @@ static void ipu3_css_hw_cleanup(struct ipu3_css *css)
- 	usleep_range(200, 300);
- }
- 
-+static void ipu3_css_pipeline_cleanup(struct ipu3_css *css)
++static void max2175_load_fmeu_1p2(struct max2175 *ctx)
 +{
-+	struct imgu_fw_info *bi = &css->fwp->binary_header[css->current_binary];
-+	int pipe = 0;
-+	int i;
++	unsigned int i;
 +
-+	if (css->current_binary < 0)
-+		return;
++	for (i = 0; i < ARRAY_SIZE(fmeu1p2_map); i++)
++		max2175_write(ctx, fmeu1p2_map[i].idx, fmeu1p2_map[i].val);
 +
-+	ipu3_css_pool_cleanup(css->dev, &css->pool.parameter_set_info);
-+	ipu3_css_pool_cleanup(css->dev, &css->pool.acc);
-+	ipu3_css_pool_cleanup(css->dev, &css->pool.gdc);
-+	ipu3_css_pool_cleanup(css->dev, &css->pool.obgrid);
-+	for (i = 0; i < IMGU_ABI_NUM_MEMORIES; i++)
-+		ipu3_css_pool_cleanup(css->dev, &css->pool.binary_params_p[i]);
++	ctx->decim_ratio = 36;
 +
-+	for (i = 0; i < bi->info.isp.sp.iterator.num_stripes; i++)
-+		ipu3_css_dma_free(css->dev, &css->dvs_meta_data[pipe][i]);
++	/* Load the Channel Filter Coefficients into channel filter bank #2 */
++	max2175_set_filter_coeffs(ctx, MAX2175_CH_MSEL, 0, ch_coeff_fmeu);
++	max2175_set_filter_coeffs(ctx, MAX2175_EQ_MSEL, 0,
++				  eq_coeff_fmeu1_ra02_m6db);
++}
++
++static void max2175_load_dab_1p2(struct max2175 *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(dab12_map); i++)
++		max2175_write(ctx, dab12_map[i].idx, dab12_map[i].val);
++
++	ctx->decim_ratio = 1;
++
++	/* Load the Channel Filter Coefficients into channel filter bank #2 */
++	max2175_set_filter_coeffs(ctx, MAX2175_CH_MSEL, 2, ch_coeff_dab1);
++}
++
++static void max2175_load_fmna_1p0(struct max2175 *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(fmna1p0_map); i++)
++		max2175_write(ctx, fmna1p0_map[i].idx, fmna1p0_map[i].val);
++}
++
++static void max2175_load_fmna_2p0(struct max2175 *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(fmna2p0_map); i++)
++		max2175_write(ctx, fmna2p0_map[i].idx, fmna2p0_map[i].val);
++}
++
++static void max2175_set_bbfilter(struct max2175 *ctx)
++{
++	if (MAX2175_IS_BAND_AM(ctx)) {
++		max2175_write_bits(ctx, 12, 3, 0, ctx->rom_bbf_bw_am);
++		mxm_dbg(ctx, "set_bbfilter AM: rom %d\n", ctx->rom_bbf_bw_am);
++	} else if (MAX2175_IS_DAB_MODE(ctx)) {
++		max2175_write_bits(ctx, 12, 3, 0, ctx->rom_bbf_bw_dab);
++		mxm_dbg(ctx, "set_bbfilter DAB: rom %d\n", ctx->rom_bbf_bw_dab);
++	} else {
++		max2175_write_bits(ctx, 12, 3, 0, ctx->rom_bbf_bw_fm);
++		mxm_dbg(ctx, "set_bbfilter FM: rom %d\n", ctx->rom_bbf_bw_fm);
++	}
++}
++
++static bool max2175_set_csm_mode(struct max2175 *ctx,
++			  enum max2175_csm_mode new_mode)
++{
++	int ret = max2175_poll_csm_ready(ctx);
++
++	if (ret)
++		return ret;
++
++	max2175_write_bits(ctx, 0, 2, 0, new_mode);
++	mxm_dbg(ctx, "set csm new mode %d\n", new_mode);
++
++	/* Wait for a fixed settle down time depending on new mode */
++	switch (new_mode) {
++	case MAX2175_PRESET_TUNE:
++		usleep_range(51100, 51500);	/* 51.1ms */
++		break;
++	/*
++	 * Other mode switches need different sleep values depending on band &
++	 * mode
++	 */
++	default:
++		break;
++	}
++
++	return max2175_poll_csm_ready(ctx);
++}
++
++static int max2175_csm_action(struct max2175 *ctx,
++			      enum max2175_csm_mode action)
++{
++	int ret;
++
++	mxm_dbg(ctx, "csm_action: %d\n", action);
++
++	/* Other actions can be added in future when needed */
++	ret = max2175_set_csm_mode(ctx, MAX2175_LOAD_TO_BUFFER);
++	if (ret)
++		return ret;
++
++	return max2175_set_csm_mode(ctx, MAX2175_PRESET_TUNE);
++}
++
++static int max2175_set_lo_freq(struct max2175 *ctx, u32 lo_freq)
++{
++	u8 lo_mult, loband_bits = 0, vcodiv_bits = 0;
++	u32 int_desired, frac_desired;
++	enum max2175_band band;
++	int ret;
++
++	band = max2175_read_bits(ctx, 5, 1, 0);
++	switch (band) {
++	case MAX2175_BAND_AM:
++		lo_mult = 16;
++		break;
++	case MAX2175_BAND_FM:
++		if (lo_freq <= 74700000) {
++			lo_mult = 16;
++		} else if (lo_freq > 74700000 && lo_freq <= 110000000) {
++			loband_bits = 1;
++			lo_mult = 8;
++		} else {
++			loband_bits = 1;
++			vcodiv_bits = 3;
++			lo_mult = 8;
++		}
++		break;
++	case MAX2175_BAND_VHF:
++		if (lo_freq <= 210000000)
++			vcodiv_bits = 2;
++		else
++			vcodiv_bits = 1;
++
++		loband_bits = 2;
++		lo_mult = 4;
++		break;
++	default:
++		loband_bits = 3;
++		vcodiv_bits = 2;
++		lo_mult = 2;
++		break;
++	}
++
++	if (band == MAX2175_BAND_L)
++		lo_freq /= lo_mult;
++	else
++		lo_freq *= lo_mult;
++
++	int_desired = lo_freq / ctx->xtal_freq;
++	frac_desired = div_u64((u64)(lo_freq % ctx->xtal_freq) << 20,
++			       ctx->xtal_freq);
++
++	/* Check CSM is not busy */
++	ret = max2175_poll_csm_ready(ctx);
++	if (ret)
++		return ret;
++
++	mxm_dbg(ctx, "lo_mult %u int %u  frac %u\n",
++		lo_mult, int_desired, frac_desired);
++
++	/* Write the calculated values to the appropriate registers */
++	max2175_write(ctx, 1, int_desired);
++	max2175_write_bits(ctx, 2, 3, 0, (frac_desired >> 16) & 0xf);
++	max2175_write(ctx, 3, frac_desired >> 8);
++	max2175_write(ctx, 4, frac_desired);
++	max2175_write_bits(ctx, 5, 3, 2, loband_bits);
++	max2175_write_bits(ctx, 6, 7, 6, vcodiv_bits);
++
++	return ret;
 +}
 +
 +/*
-+ * This function initializes various stages of the
-+ * IPU3 CSS ISP pipeline
++ * Helper similar to DIV_ROUND_CLOSEST but an inline function that accepts s64
++ * dividend and s32 divisor
 + */
-+static int ipu3_css_pipeline_init(struct ipu3_css *css)
++static inline s64 max2175_round_closest(s64 dividend, s32 divisor)
 +{
-+	static const unsigned int PIPE_ID = IPU3_CSS_PIPE_ID_VIDEO;
-+	static const int BYPC = 2;	/* Bytes per component */
-+	static const struct imgu_abi_buffer_sp buffer_sp_init = {
-+		.buf_src = {.queue_id = IMGU_ABI_QUEUE_EVENT_ID},
-+		.buf_type = IMGU_ABI_BUFFER_TYPE_INVALID,
-+	};
++	if ((dividend > 0 && divisor > 0) || (dividend < 0 && divisor < 0))
++		return div_s64(dividend + divisor / 2, divisor);
 +
-+	struct imgu_abi_isp_iterator_config *cfg_iter;
-+	struct imgu_abi_isp_ref_config *cfg_ref;
-+	struct imgu_abi_isp_dvs_config *cfg_dvs;
-+	struct imgu_abi_isp_tnr3_config *cfg_tnr;
-+	struct imgu_abi_isp_ref_dmem_state *cfg_ref_state;
-+	struct imgu_abi_isp_tnr3_dmem_state *cfg_tnr_state;
-+
-+	const int pipe = 0, stage = 0, thread = 0;
-+	int i;
-+
-+	const struct imgu_fw_info *bi =
-+	    &css->fwp->binary_header[css->current_binary];
-+	const unsigned int stripes = bi->info.isp.sp.iterator.num_stripes;
-+
-+	struct imgu_fw_config_memory_offsets *cofs = (void *)css->fwp +
-+	    bi->blob.memory_offsets.offsets[IMGU_ABI_PARAM_CLASS_CONFIG];
-+	struct imgu_fw_state_memory_offsets *sofs = (void *)css->fwp +
-+	    bi->blob.memory_offsets.offsets[IMGU_ABI_PARAM_CLASS_STATE];
-+
-+	struct imgu_abi_isp_stage *isp_stage;
-+	struct imgu_abi_sp_stage *sp_stage;
-+	struct imgu_abi_sp_group *sp_group;
-+
-+	const unsigned int bds_width_pad =
-+		ALIGN(css->rect[IPU3_CSS_RECT_BDS].width,
-+		2 * IPU3_UAPI_ISP_VEC_ELEMS);
-+
-+	enum imgu_abi_param_class c = IMGU_ABI_PARAM_CLASS_CONFIG;
-+	enum imgu_abi_memories m = IMGU_ABI_MEM_ISP_DMEM0;
-+
-+	if (css->current_binary == -1)
-+		return -EAGAIN;
-+
-+	/* Configure iterator */
-+
-+	cfg_iter = ipu3_css_fw_pipeline_params(
-+				css, c, m, &cofs->dmem.iterator,
-+				sizeof(*cfg_iter),
-+				css->binary_params_cs[c - 1][m].vaddr);
-+	if (!cfg_iter)
-+		goto bad_firmware;
-+
-+	cfg_iter->input_info.res.width =
-+	    css->queue[IPU3_CSS_QUEUE_IN].pix_fmt.width;
-+	cfg_iter->input_info.res.height =
-+	    css->queue[IPU3_CSS_QUEUE_IN].pix_fmt.height;
-+	cfg_iter->input_info.padded_width =
-+	    css->queue[IPU3_CSS_QUEUE_IN].width_pad;
-+	cfg_iter->input_info.format =
-+	    css->queue[IPU3_CSS_QUEUE_IN].css_fmt->frame_format;
-+	cfg_iter->input_info.raw_bit_depth =
-+	    css->queue[IPU3_CSS_QUEUE_IN].css_fmt->bit_depth;
-+	cfg_iter->input_info.raw_bayer_order =
-+	    css->queue[IPU3_CSS_QUEUE_IN].css_fmt->bayer_order;
-+	cfg_iter->input_info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
-+
-+	cfg_iter->internal_info.res.width =
-+			css->rect[IPU3_CSS_RECT_BDS].width;
-+	cfg_iter->internal_info.res.height =
-+			css->rect[IPU3_CSS_RECT_BDS].height;
-+	cfg_iter->internal_info.padded_width = bds_width_pad;
-+	cfg_iter->internal_info.format =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->frame_format;
-+	cfg_iter->internal_info.raw_bit_depth =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bit_depth;
-+	cfg_iter->internal_info.raw_bayer_order =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bayer_order;
-+	cfg_iter->internal_info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
-+
-+	cfg_iter->output_info.res.width =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].pix_fmt.width;
-+	cfg_iter->output_info.res.height =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].pix_fmt.height;
-+	cfg_iter->output_info.padded_width =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].width_pad;
-+	cfg_iter->output_info.format =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->frame_format;
-+	cfg_iter->output_info.raw_bit_depth =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bit_depth;
-+	cfg_iter->output_info.raw_bayer_order =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bayer_order;
-+	cfg_iter->output_info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
-+
-+	cfg_iter->vf_info.res.width =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].pix_fmt.width;
-+	cfg_iter->vf_info.res.height =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].pix_fmt.height;
-+	cfg_iter->vf_info.padded_width =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].width_pad;
-+	cfg_iter->vf_info.format =
-+	    css->queue[IPU3_CSS_QUEUE_VF].css_fmt->frame_format;
-+	cfg_iter->vf_info.raw_bit_depth =
-+	    css->queue[IPU3_CSS_QUEUE_VF].css_fmt->bit_depth;
-+	cfg_iter->vf_info.raw_bayer_order =
-+	    css->queue[IPU3_CSS_QUEUE_VF].css_fmt->bayer_order;
-+	cfg_iter->vf_info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
-+
-+	cfg_iter->dvs_envelope.width = css->rect[IPU3_CSS_RECT_ENVELOPE].width;
-+	cfg_iter->dvs_envelope.height =
-+		css->rect[IPU3_CSS_RECT_ENVELOPE].height;
-+
-+	/* Configure reference (delay) frames */
-+
-+	cfg_ref = ipu3_css_fw_pipeline_params(css, c, m, &cofs->dmem.ref,
-+					   sizeof(*cfg_ref),
-+					   css->binary_params_cs[c -
-+								 1][m].vaddr);
-+	if (!cfg_ref)
-+		goto bad_firmware;
-+
-+	cfg_ref->port_b.crop = 0;
-+	cfg_ref->port_b.elems = IMGU_ABI_ISP_DDR_WORD_BYTES / BYPC;
-+	cfg_ref->port_b.width  = css->rect[IPU3_CSS_RECT_BDS].width;
-+	cfg_ref->port_b.stride =
-+	    css->aux_frames[IPU3_CSS_AUX_FRAME_REF].bytesperline;
-+	cfg_ref->width_a_over_b =
-+	    IPU3_UAPI_ISP_VEC_ELEMS / cfg_ref->port_b.elems;
-+	cfg_ref->dvs_frame_delay = IPU3_CSS_AUX_FRAMES - 1;
-+	for (i = 0; i < IPU3_CSS_AUX_FRAMES; i++) {
-+		cfg_ref->ref_frame_addr_y[i] =
-+		    css->aux_frames[IPU3_CSS_AUX_FRAME_REF].mem[i].daddr;
-+		cfg_ref->ref_frame_addr_c[i] =
-+		    css->aux_frames[IPU3_CSS_AUX_FRAME_REF].mem[i].daddr +
-+		    css->aux_frames[IPU3_CSS_AUX_FRAME_REF].bytesperline *
-+		    css->aux_frames[IPU3_CSS_AUX_FRAME_REF].height;
-+	}
-+	for (; i < IMGU_ABI_FRAMES_REF; i++) {
-+		cfg_ref->ref_frame_addr_y[i] = 0;
-+		cfg_ref->ref_frame_addr_c[i] = 0;
-+	}
-+
-+	/* Configure DVS (digital video stabilization) */
-+
-+	cfg_dvs = ipu3_css_fw_pipeline_params(css, c, m,
-+				&cofs->dmem.dvs, sizeof(*cfg_dvs),
-+				css->binary_params_cs[c - 1][m].vaddr);
-+	if (!cfg_dvs)
-+		goto bad_firmware;
-+
-+	cfg_dvs->num_horizontal_blocks =
-+	    ALIGN(DIV_ROUND_UP(css->queue[IPU3_CSS_QUEUE_OUT].pix_fmt.width,
-+			       IMGU_DVS_BLOCK_W), 2);
-+	cfg_dvs->num_vertical_blocks =
-+	    DIV_ROUND_UP(css->queue[IPU3_CSS_QUEUE_OUT].pix_fmt.height,
-+			     IMGU_DVS_BLOCK_H);
-+
-+	if (cfg_dvs->num_horizontal_blocks * cfg_dvs->num_vertical_blocks < 0)
-+		return -EPROTO;
-+
-+	/* Configure TNR (temporal noise reduction) */
-+
-+	if (css->pipe_id == IPU3_CSS_PIPE_ID_VIDEO) {
-+		cfg_tnr = ipu3_css_fw_pipeline_params(css, c, m,
-+			&cofs->dmem.tnr3, sizeof(*cfg_tnr),
-+			css->binary_params_cs[c - 1][m].vaddr);
-+		if (!cfg_tnr)
-+			goto bad_firmware;
-+
-+		cfg_tnr->port_b.crop = 0;
-+		cfg_tnr->port_b.elems = IMGU_ABI_ISP_DDR_WORD_BYTES;
-+		cfg_tnr->port_b.width =
-+		    css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].width;
-+		cfg_tnr->port_b.stride =
-+		    css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].bytesperline;
-+		cfg_tnr->width_a_over_b =
-+		    IPU3_UAPI_ISP_VEC_ELEMS / cfg_tnr->port_b.elems;
-+		cfg_tnr->frame_height =
-+		    css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].height;
-+		cfg_tnr->delay_frame = IPU3_CSS_AUX_FRAMES - 1;
-+		for (i = 0; i < IPU3_CSS_AUX_FRAMES; i++)
-+			cfg_tnr->frame_addr[i] =
-+			    css->aux_frames[IPU3_CSS_AUX_FRAME_TNR]
-+			    .mem[i].daddr;
-+		for (; i < IMGU_ABI_FRAMES_TNR; i++)
-+			cfg_tnr->frame_addr[i] = 0;
-+	}
-+
-+	/* Configure ref dmem state parameters */
-+
-+	c = IMGU_ABI_PARAM_CLASS_STATE;
-+
-+	cfg_ref_state = ipu3_css_fw_pipeline_params(css, c, m,
-+				&sofs->dmem.ref, sizeof(*cfg_ref_state),
-+				css->binary_params_cs[c - 1][m].vaddr);
-+	if (!cfg_ref_state)
-+		goto bad_firmware;
-+
-+	cfg_ref_state->ref_in_buf_idx = 0;
-+	cfg_ref_state->ref_out_buf_idx = 1;
-+
-+	/* Configure tnr dmem state parameters */
-+	if (css->pipe_id == IPU3_CSS_PIPE_ID_VIDEO) {
-+		cfg_tnr_state = ipu3_css_fw_pipeline_params(css, c, m,
-+			&sofs->dmem.tnr3, sizeof(*cfg_tnr_state),
-+			css->binary_params_cs[c - 1][m].vaddr);
-+		if (!cfg_tnr_state)
-+			goto bad_firmware;
-+
-+		cfg_tnr_state->in_bufidx = 0;
-+		cfg_tnr_state->out_bufidx = 1;
-+		cfg_tnr_state->bypass_filter = 0;
-+		cfg_tnr_state->total_frame_counter = 0;
-+		for (i = 0; i < IMGU_ABI_BUF_SETS_TNR; i++)
-+			cfg_tnr_state->buffer_frame_counter[i] = 0;
-+	}
-+
-+	/* Configure ISP stage */
-+
-+	isp_stage = css->xmem_isp_stage_ptrs[pipe][stage].vaddr;
-+	memset(isp_stage, 0, sizeof(*isp_stage));
-+	isp_stage->blob_info = bi->blob;
-+	isp_stage->binary_info = bi->info.isp.sp;
-+	strcpy(isp_stage->binary_name,
-+	       (char *)css->fwp + bi->blob.prog_name_offset);
-+	isp_stage->mem_initializers = bi->info.isp.sp.mem_initializers;
-+	for (c = IMGU_ABI_PARAM_CLASS_CONFIG; c < IMGU_ABI_PARAM_CLASS_NUM; c++)
-+		for (m = 0; m < IMGU_ABI_NUM_MEMORIES; m++)
-+			isp_stage->mem_initializers.params[c][m].address =
-+			    css->binary_params_cs[c - 1][m].daddr;
-+
-+	/* Configure SP stage */
-+
-+	sp_stage = css->xmem_sp_stage_ptrs[pipe][stage].vaddr;
-+	memset(sp_stage, 0, sizeof(*sp_stage));
-+
-+	sp_stage->frames.in.buf_attr = buffer_sp_init;
-+	for (i = 0; i < IMGU_ABI_BINARY_MAX_OUTPUT_PORTS; i++)
-+		sp_stage->frames.out[i].buf_attr = buffer_sp_init;
-+	sp_stage->frames.out_vf.buf_attr = buffer_sp_init;
-+	sp_stage->frames.s3a_buf = buffer_sp_init;
-+	sp_stage->frames.dvs_buf = buffer_sp_init;
-+	sp_stage->frames.lace_buf = buffer_sp_init;
-+
-+	sp_stage->stage_type = IMGU_ABI_STAGE_TYPE_ISP;
-+	sp_stage->num = stage;
-+	sp_stage->isp_online = 0;
-+	sp_stage->isp_copy_vf = 0;
-+	sp_stage->isp_copy_output = 0;
-+
-+	/* Enable VF output only when VF or PV queue requested by user */
-+
-+	sp_stage->enable.vf_output = (css->vf_output_en != IPU3_NODE_VF_DISABLED);
-+
-+	sp_stage->frames.effective_in_res.width =
-+		css->rect[IPU3_CSS_RECT_EFFECTIVE].width;
-+	sp_stage->frames.effective_in_res.height =
-+		css->rect[IPU3_CSS_RECT_EFFECTIVE].height;
-+	sp_stage->frames.in.info.res.width =
-+	    css->queue[IPU3_CSS_QUEUE_IN].pix_fmt.width;
-+	sp_stage->frames.in.info.res.height =
-+	    css->queue[IPU3_CSS_QUEUE_IN].pix_fmt.height;
-+	sp_stage->frames.in.info.padded_width =
-+	    css->queue[IPU3_CSS_QUEUE_IN].width_pad;
-+	sp_stage->frames.in.info.format =
-+	    css->queue[IPU3_CSS_QUEUE_IN].css_fmt->frame_format;
-+	sp_stage->frames.in.info.raw_bit_depth =
-+	    css->queue[IPU3_CSS_QUEUE_IN].css_fmt->bit_depth;
-+	sp_stage->frames.in.info.raw_bayer_order =
-+	    css->queue[IPU3_CSS_QUEUE_IN].css_fmt->bayer_order;
-+	sp_stage->frames.in.info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
-+	sp_stage->frames.in.buf_attr.buf_src.queue_id = IMGU_ABI_QUEUE_C_ID;
-+	sp_stage->frames.in.buf_attr.buf_type =
-+	    IMGU_ABI_BUFFER_TYPE_INPUT_FRAME;
-+
-+	sp_stage->frames.out[0].info.res.width =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].pix_fmt.width;
-+	sp_stage->frames.out[0].info.res.height =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].pix_fmt.height;
-+	sp_stage->frames.out[0].info.padded_width =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].width_pad;
-+	sp_stage->frames.out[0].info.format =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->frame_format;
-+	sp_stage->frames.out[0].info.raw_bit_depth =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bit_depth;
-+	sp_stage->frames.out[0].info.raw_bayer_order =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bayer_order;
-+	sp_stage->frames.out[0].info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
-+	sp_stage->frames.out[0].planes.nv.uv.offset =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].width_pad *
-+	    css->queue[IPU3_CSS_QUEUE_OUT].pix_fmt.height;
-+	sp_stage->frames.out[0].buf_attr.buf_src.queue_id = IMGU_ABI_QUEUE_D_ID;
-+	sp_stage->frames.out[0].buf_attr.buf_type =
-+	    IMGU_ABI_BUFFER_TYPE_OUTPUT_FRAME;
-+
-+	sp_stage->frames.out[1].buf_attr.buf_src.queue_id =
-+	    IMGU_ABI_QUEUE_EVENT_ID;
-+
-+	sp_stage->frames.internal_frame_info.res.width =
-+					css->rect[IPU3_CSS_RECT_BDS].width;
-+	sp_stage->frames.internal_frame_info.res.height =
-+					css->rect[IPU3_CSS_RECT_BDS].height;
-+	sp_stage->frames.internal_frame_info.padded_width = bds_width_pad;
-+
-+	sp_stage->frames.internal_frame_info.format =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->frame_format;
-+	sp_stage->frames.internal_frame_info.raw_bit_depth =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bit_depth;
-+	sp_stage->frames.internal_frame_info.raw_bayer_order =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bayer_order;
-+	sp_stage->frames.internal_frame_info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
-+
-+	sp_stage->frames.out_vf.info.res.width =
-+	    css->queue[IPU3_CSS_QUEUE_VF].pix_fmt.width;
-+	sp_stage->frames.out_vf.info.res.height =
-+	    css->queue[IPU3_CSS_QUEUE_VF].pix_fmt.height;
-+	sp_stage->frames.out_vf.info.padded_width =
-+	    css->queue[IPU3_CSS_QUEUE_VF].width_pad;
-+	sp_stage->frames.out_vf.info.format =
-+	    css->queue[IPU3_CSS_QUEUE_VF].css_fmt->frame_format;
-+	sp_stage->frames.out_vf.info.raw_bit_depth =
-+	    css->queue[IPU3_CSS_QUEUE_VF].css_fmt->bit_depth;
-+	sp_stage->frames.out_vf.info.raw_bayer_order =
-+	    css->queue[IPU3_CSS_QUEUE_VF].css_fmt->bayer_order;
-+	sp_stage->frames.out_vf.info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
-+	sp_stage->frames.out_vf.planes.yuv.u.offset =
-+	    css->queue[IPU3_CSS_QUEUE_VF].width_pad *
-+	    css->queue[IPU3_CSS_QUEUE_VF].pix_fmt.height;
-+	sp_stage->frames.out_vf.planes.yuv.v.offset =
-+	    css->queue[IPU3_CSS_QUEUE_VF].width_pad *
-+	    css->queue[IPU3_CSS_QUEUE_VF].pix_fmt.height * 5 / 4;
-+	sp_stage->frames.out_vf.buf_attr.buf_src.queue_id = IMGU_ABI_QUEUE_E_ID;
-+	sp_stage->frames.out_vf.buf_attr.buf_type =
-+	    IMGU_ABI_BUFFER_TYPE_VF_OUTPUT_FRAME;
-+
-+	sp_stage->frames.s3a_buf.buf_src.queue_id = IMGU_ABI_QUEUE_F_ID;
-+	sp_stage->frames.s3a_buf.buf_type = IMGU_ABI_BUFFER_TYPE_3A_STATISTICS;
-+
-+	sp_stage->frames.dvs_buf.buf_src.queue_id = IMGU_ABI_QUEUE_G_ID;
-+	sp_stage->frames.dvs_buf.buf_type = IMGU_ABI_BUFFER_TYPE_DIS_STATISTICS;
-+
-+	sp_stage->dvs_envelope.width = css->rect[IPU3_CSS_RECT_ENVELOPE].width;
-+	sp_stage->dvs_envelope.height =
-+		css->rect[IPU3_CSS_RECT_ENVELOPE].height;
-+
-+	sp_stage->isp_pipe_version =
-+				bi->info.isp.sp.pipeline.isp_pipe_version;
-+	sp_stage->isp_deci_log_factor = clamp(
-+		max(fls(css->rect[IPU3_CSS_RECT_BDS].width /
-+					IMGU_MAX_BQ_GRID_WIDTH),
-+		    fls(css->rect[IPU3_CSS_RECT_BDS].height /
-+					IMGU_MAX_BQ_GRID_HEIGHT)) - 1, 3, 5);
-+	sp_stage->isp_vf_downscale_bits = 0;
-+	sp_stage->if_config_index = 255;
-+	sp_stage->sp_enable_xnr = 0;
-+	sp_stage->num_stripes = stripes;
-+	sp_stage->enable.s3a = 1;
-+	sp_stage->enable.dvs_stats = 1;
-+
-+	sp_stage->xmem_bin_addr = css->binary[css->current_binary].daddr;
-+	sp_stage->xmem_map_addr = css->sp_ddr_ptrs.daddr;
-+	sp_stage->isp_stage_addr = css->xmem_isp_stage_ptrs[pipe][stage].daddr;
-+
-+	/* Configure SP group */
-+
-+	sp_group = css->xmem_sp_group_ptrs.vaddr;
-+	memset(sp_group, 0, sizeof(*sp_group));
-+
-+	sp_group->pipe[thread].num_stages = 1;
-+	sp_group->pipe[thread].pipe_id = PIPE_ID;
-+	sp_group->pipe[thread].thread_id = thread;
-+	sp_group->pipe[thread].pipe_num = pipe;
-+	sp_group->pipe[thread].num_execs = -1;
-+	sp_group->pipe[thread].pipe_qos_config = -1;
-+	sp_group->pipe[thread].required_bds_factor = 0;
-+	sp_group->pipe[thread].dvs_frame_delay = IPU3_CSS_AUX_FRAMES - 1;
-+	sp_group->pipe[thread].inout_port_config =
-+	    IMGU_ABI_PORT_CONFIG_TYPE_INPUT_HOST |
-+	    IMGU_ABI_PORT_CONFIG_TYPE_OUTPUT_HOST;
-+	sp_group->pipe[thread].scaler_pp_lut = 0;
-+	sp_group->pipe[thread].shading.internal_frame_origin_x_bqs_on_sctbl = 0;
-+	sp_group->pipe[thread].shading.internal_frame_origin_y_bqs_on_sctbl = 0;
-+	sp_group->pipe[thread].sp_stage_addr[stage] =
-+	    css->xmem_sp_stage_ptrs[pipe][stage].daddr;
-+	sp_group->pipe[thread].pipe_config =
-+	    bi->info.isp.sp.enable.params ? (1 << thread) : 0;
-+	sp_group->pipe[thread].pipe_config |= IMGU_ABI_PIPE_CONFIG_ACQUIRE_ISP;
-+
-+	/* Allocate dvs statistics metadata */
-+
-+	for (i = 0; i < stripes; i++)
-+		if (ipu3_css_dma_alloc(css->dev, &css->dvs_meta_data[pipe][i],
-+				       sizeof(struct imgu_abi_dvs_meta_data)))
-+			goto out_of_memory;
-+
-+	/* Initialize parameter pools */
-+
-+	if (ipu3_css_pool_init(css->dev, &css->pool.parameter_set_info,
-+			       sizeof(struct imgu_abi_parameter_set_info)) ||
-+	    ipu3_css_pool_init(css->dev, &css->pool.acc,
-+			       sizeof(struct ipu3_uapi_acc_param)) ||
-+	    ipu3_css_pool_init(css->dev, &css->pool.gdc,
-+				sizeof(struct ipu3_uapi_gdc_warp_param) *
-+				3 * cfg_dvs->num_horizontal_blocks / 2 *
-+				cfg_dvs->num_vertical_blocks) ||
-+	    ipu3_css_pool_init(css->dev, &css->pool.obgrid,
-+				ipu3_css_fw_obgrid_size(
-+				&css->fwp->binary_header[css->current_binary])))
-+		goto out_of_memory;
-+
-+	for (m = 0; m < IMGU_ABI_NUM_MEMORIES; m++)
-+		if (ipu3_css_pool_init(css->dev, &css->pool.binary_params_p[m],
-+				       bi->info.isp.sp.mem_initializers.params
-+				       [IMGU_ABI_PARAM_CLASS_PARAM][m].size))
-+			goto out_of_memory;
-+
-+	return 0;
-+
-+bad_firmware:
-+	ipu3_css_pipeline_cleanup(css);
-+	return -EPROTO;
-+
-+out_of_memory:
-+	ipu3_css_pipeline_cleanup(css);
-+	return -ENOMEM;
++	return div_s64(dividend - divisor / 2, divisor);
 +}
 +
-+static u8 ipu3_css_queue_pos(struct ipu3_css *css, int queue, int thread)
++static int max2175_set_nco_freq(struct max2175 *ctx, s32 nco_freq)
 +{
-+	static const unsigned int sp;
-+	void __iomem *const base = css->base;
-+	struct imgu_fw_info *bi = &css->fwp->binary_header[css->fw_sp[sp]];
-+	struct imgu_abi_queues __iomem *q = base + IMGU_REG_SP_DMEM_BASE(sp) +
-+	    bi->info.sp.host_sp_queue;
++	s32 clock_rate = ctx->xtal_freq / ctx->decim_ratio;
++	u32 nco_reg, abs_nco_freq = abs(nco_freq);
++	s64 nco_val_desired;
++	int ret;
 +
-+	return queue >= 0 ? readb(&q->host2sp_bufq_info[thread][queue].end) :
-+	    readb(&q->host2sp_evtq_info.end);
-+}
-+
-+/* Sent data to sp using given buffer queue, or if queue < 0, event queue. */
-+static int ipu3_css_queue_data(struct ipu3_css *css,
-+			       int queue, int thread, u32 data)
-+{
-+	static const unsigned int sp;
-+	void __iomem *const base = css->base;
-+	struct imgu_fw_info *bi = &css->fwp->binary_header[css->fw_sp[sp]];
-+	struct imgu_abi_queues __iomem *q = base + IMGU_REG_SP_DMEM_BASE(sp) +
-+	    bi->info.sp.host_sp_queue;
-+	u8 size, start, end, end2;
-+
-+	if (queue >= 0) {
-+		size = readb(&q->host2sp_bufq_info[thread][queue].size);
-+		start = readb(&q->host2sp_bufq_info[thread][queue].start);
-+		end = readb(&q->host2sp_bufq_info[thread][queue].end);
++	if (abs_nco_freq < clock_rate / 2) {
++		nco_val_desired = 2 * nco_freq;
 +	} else {
-+		size = readb(&q->host2sp_evtq_info.size);
-+		start = readb(&q->host2sp_evtq_info.start);
-+		end = readb(&q->host2sp_evtq_info.end);
++		nco_val_desired = 2 * (clock_rate - abs_nco_freq);
++		if (nco_freq < 0)
++			nco_val_desired = -nco_val_desired;
 +	}
 +
-+	if (size == 0)
-+		return -EIO;
++	nco_reg = max2175_round_closest(nco_val_desired << 20, clock_rate);
 +
-+	end2 = (end + 1) % size;
-+	if (end2 == start)
-+		return -EBUSY;	/* Queue full */
++	if (nco_freq < 0)
++		nco_reg += 0x200000;
 +
-+	if (queue >= 0) {
-+		writel(data, &q->host2sp_bufq[thread][queue][end]);
-+		writeb(end2, &q->host2sp_bufq_info[thread][queue].end);
-+	} else {
-+		writel(data, &q->host2sp_evtq[end]);
-+		writeb(end2, &q->host2sp_evtq_info.end);
++	/* Check CSM is not busy */
++	ret = max2175_poll_csm_ready(ctx);
++	if (ret)
++		return ret;
++
++	mxm_dbg(ctx, "freq %d desired %lld reg %u\n",
++		nco_freq, nco_val_desired, nco_reg);
++
++	/* Write the calculated values to the appropriate registers */
++	max2175_write_bits(ctx, 7, 4, 0, (nco_reg >> 16) & 0x1f);
++	max2175_write(ctx, 8, nco_reg >> 8);
++	max2175_write(ctx, 9, nco_reg);
++
++	return ret;
++}
++
++static int max2175_set_rf_freq_non_am_bands(struct max2175 *ctx, u64 freq,
++					    u32 lo_pos)
++{
++	s64 adj_freq, low_if_freq;
++	int ret;
++
++	mxm_dbg(ctx, "rf_freq: non AM bands\n");
++
++	if (MAX2175_IS_FM_MODE(ctx))
++		low_if_freq = 128000;
++	else if (MAX2175_IS_FMHD_MODE(ctx))
++		low_if_freq = 228000;
++	else
++		return max2175_set_lo_freq(ctx, freq);
++
++	if (MAX2175_IS_BAND_VHF(ctx) == (lo_pos == MAX2175_LO_ABOVE_DESIRED))
++		adj_freq = freq + low_if_freq;
++	else
++		adj_freq = freq - low_if_freq;
++
++	ret = max2175_set_lo_freq(ctx, adj_freq);
++	if (ret)
++		return ret;
++
++	return max2175_set_nco_freq(ctx, -low_if_freq);
++}
++
++static int max2175_set_rf_freq(struct max2175 *ctx, u64 freq, u32 lo_pos)
++{
++	int ret;
++
++	if (MAX2175_IS_BAND_AM(ctx))
++		ret = max2175_set_nco_freq(ctx, freq);
++	else
++		ret = max2175_set_rf_freq_non_am_bands(ctx, freq, lo_pos);
++
++	mxm_dbg(ctx, "set_rf_freq: ret %d freq %llu\n", ret, freq);
++
++	return ret;
++}
++
++static int max2175_tune_rf_freq(struct max2175 *ctx, u64 freq, u32 hsls)
++{
++	int ret;
++
++	ret = max2175_set_rf_freq(ctx, freq, hsls);
++	if (ret)
++		return ret;
++
++	ret = max2175_csm_action(ctx, MAX2175_BUFFER_PLUS_PRESET_TUNE);
++	if (ret)
++		return ret;
++
++	mxm_dbg(ctx, "tune_rf_freq: old %u new %llu\n", ctx->freq, freq);
++	ctx->freq = freq;
++
++	return ret;
++}
++
++static void max2175_set_hsls(struct max2175 *ctx, u32 lo_pos)
++{
++	mxm_dbg(ctx, "set_hsls: lo_pos %u\n", lo_pos);
++
++	if ((lo_pos == MAX2175_LO_BELOW_DESIRED) == MAX2175_IS_BAND_VHF(ctx))
++		max2175_write_bit(ctx, 5, 4, 1);
++	else
++		max2175_write_bit(ctx, 5, 4, 0);
++}
++
++static void max2175_set_eu_rx_mode(struct max2175 *ctx, u32 rx_mode)
++{
++	switch (rx_mode) {
++	case MAX2175_EU_FM_1_2:
++		max2175_load_fmeu_1p2(ctx);
++		break;
++
++	case MAX2175_DAB_1_2:
++		max2175_load_dab_1p2(ctx);
++		break;
 +	}
++	/* Master is the default setting */
++	if (!ctx->master)
++		max2175_write_bit(ctx, 30, 7, 1);
++}
++
++static void max2175_set_na_rx_mode(struct max2175 *ctx, u32 rx_mode)
++{
++	switch (rx_mode) {
++	case MAX2175_NA_FM_1_0:
++		max2175_load_fmna_1p0(ctx);
++		break;
++	case MAX2175_NA_FM_2_0:
++		max2175_load_fmna_2p0(ctx);
++		break;
++	}
++	/* Master is the default setting */
++	if (!ctx->master)
++		max2175_write_bit(ctx, 30, 7, 1);
++
++	ctx->decim_ratio = 27;
++
++	/* Load the Channel Filter Coefficients into channel filter bank #2 */
++	max2175_set_filter_coeffs(ctx, MAX2175_CH_MSEL, 0, ch_coeff_fmna);
++	max2175_set_filter_coeffs(ctx, MAX2175_EQ_MSEL, 0,
++				  eq_coeff_fmna1_ra02_m6db);
++}
++
++static int max2175_set_rx_mode(struct max2175 *ctx, u32 rx_mode)
++{
++	mxm_dbg(ctx, "set_rx_mode: %u am_hiz %u\n", rx_mode, ctx->am_hiz);
++	if (ctx->xtal_freq == MAX2175_EU_XTAL_FREQ)
++		max2175_set_eu_rx_mode(ctx, rx_mode);
++	else
++		max2175_set_na_rx_mode(ctx, rx_mode);
++
++	if (ctx->am_hiz) {
++		mxm_dbg(ctx, "setting AM HiZ related config\n");
++		max2175_write_bit(ctx, 50, 5, 1);
++		max2175_write_bit(ctx, 90, 7, 1);
++		max2175_write_bits(ctx, 73, 1, 0, 2);
++		max2175_write_bits(ctx, 80, 5, 0, 33);
++	}
++
++	/* Load BB filter trim values saved in ROM */
++	max2175_set_bbfilter(ctx);
++
++	/* Set HSLS */
++	max2175_set_hsls(ctx, ctx->hsls->cur.val);
++
++	/* Use i2s enable settings */
++	max2175_i2s_enable(ctx, ctx->i2s_en->cur.val);
++
++	ctx->mode_resolved = true;
 +
 +	return 0;
 +}
 +
-+/* Receive data using given buffer queue, or if queue < 0, event queue. */
-+static int ipu3_css_dequeue_data(struct ipu3_css *css, int queue, u32 *data)
++static int max2175_rx_mode_from_freq(struct max2175 *ctx, u32 freq, u32 *mode)
 +{
-+	static const unsigned int sp;
-+	void __iomem *const base = css->base;
-+	struct imgu_fw_info *bi = &css->fwp->binary_header[css->fw_sp[sp]];
-+	struct imgu_abi_queues __iomem *q = base + IMGU_REG_SP_DMEM_BASE(sp) +
-+	    bi->info.sp.host_sp_queue;
-+	u8 size, start, end, start2;
++	unsigned int i;
++	int band = max2175_band_from_freq(freq);
 +
-+	if (queue >= 0) {
-+		size = readb(&q->sp2host_bufq_info[queue].size);
-+		start = readb(&q->sp2host_bufq_info[queue].start);
-+		end = readb(&q->sp2host_bufq_info[queue].end);
-+	} else {
-+		size = readb(&q->sp2host_evtq_info.size);
-+		start = readb(&q->sp2host_evtq_info.start);
-+		end = readb(&q->sp2host_evtq_info.end);
-+	}
-+
-+	if (size == 0)
-+		return -EIO;
-+
-+	if (end == start)
-+		return -EBUSY;	/* Queue empty */
-+
-+	start2 = (start + 1) % size;
-+
-+	if (queue >= 0) {
-+		*data = readl(&q->sp2host_bufq[queue][start]);
-+		writeb(start2, &q->sp2host_bufq_info[queue].start);
-+	} else {
-+		int r;
-+
-+		*data = readl(&q->sp2host_evtq[start]);
-+		writeb(start2, &q->sp2host_evtq_info.start);
-+
-+		/* Acknowledge events dequeued from event queue */
-+		r = ipu3_css_queue_data(css, queue, 0,
-+					IMGU_ABI_EVENT_EVENT_DEQUEUED);
-+		if (r < 0)
-+			return r;
-+	}
-+
-+	return 0;
-+}
-+
-+int ipu3_css_start_streaming(struct ipu3_css *css)
-+{
-+	u32 data;
-+	int r;
-+
-+	if (css->streaming)
-+		return -EPROTO;
-+
-+	r = ipu3_css_hw_init(css);
-+	if (r < 0)
-+		return r;
-+
-+	r = ipu3_css_hw_start(css);
-+	if (r < 0)
-+		goto fail;
-+
-+	r = ipu3_css_pipeline_init(css);
-+	if (r < 0)
-+		goto fail;
-+
-+	css->streaming = true;
-+	css->frame = 0;
-+
-+	/* Initialize parameters to default */
-+	r = ipu3_css_set_parameters(css, NULL, NULL, 0, NULL, 0);
-+	if (r < 0)
-+		goto fail;
-+
-+	while (!(r = ipu3_css_dequeue_data(css, IMGU_ABI_QUEUE_A_ID, &data)))
-+		;
-+	if (r != -EBUSY)
-+		goto fail;
-+
-+	while (!(r = ipu3_css_dequeue_data(css, IMGU_ABI_QUEUE_B_ID, &data)))
-+		;
-+	if (r != -EBUSY)
-+		goto fail;
-+
-+	r = ipu3_css_queue_data(css, IMGU_ABI_QUEUE_EVENT_ID, 0,
-+				IMGU_ABI_EVENT_START_STREAM);
-+	if (r < 0)
-+		goto fail;
-+
-+	return 0;
-+
-+fail:
-+	css->streaming = false;
-+	ipu3_css_hw_cleanup(css);
-+	ipu3_css_pipeline_cleanup(css);
-+
-+	return r;
-+}
-+
-+void ipu3_css_stop_streaming(struct ipu3_css *css)
-+{
-+	struct ipu3_css_buffer *b, *b0;
-+	int q;
-+
-+	ipu3_css_hw_cleanup(css);
-+
-+	ipu3_css_pipeline_cleanup(css);
-+
-+	for (q = 0; q < IPU3_CSS_QUEUES; q++)
-+		list_for_each_entry_safe(b, b0, &css->queue[q].bufs, list) {
-+			b->state = IPU3_CSS_BUFFER_FAILED;
-+			list_del(&b->list);
-+		}
-+
-+	css->streaming = false;
-+}
-+
-+/* Free binary-specific resources which were allocated in ipu3_css_fmt_set */
-+static void ipu3_css_binary_cleanup(struct ipu3_css *css)
-+{
-+	int i, j;
-+
-+	for (j = 0; j < IMGU_ABI_PARAM_CLASS_NUM - 1; j++)
-+		for (i = 0; i < IMGU_ABI_NUM_MEMORIES; i++)
-+			ipu3_css_dma_free(css->dev,
-+				&css->binary_params_cs[j][i]);
-+
-+	for (i = 0; i < IPU3_CSS_AUX_FRAMES; i++)
-+		ipu3_css_dma_free(css->dev,
-+			&css->aux_frames[IPU3_CSS_AUX_FRAME_REF].mem[i]);
-+
-+	for (i = 0; i < IPU3_CSS_AUX_FRAMES; i++)
-+		ipu3_css_dma_free(css->dev,
-+			&css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].mem[i]);
-+
-+	css->current_binary = -1;
-+}
-+
-+void ipu3_css_cleanup(struct ipu3_css *css)
-+{
-+	struct device *dev = css->dev;
-+	int p, q, i;
-+
-+	ipu3_css_stop_streaming(css);
-+	ipu3_css_binary_cleanup(css);
-+
-+	v4l2_ctrl_handler_free(&css->ctrls.handler);
-+
-+	for (q = 0; q < IPU3_CSS_QUEUES; q++)
-+		for (i = 0; i < ARRAY_SIZE(css->abi_buffers[q]); i++)
-+			ipu3_css_dma_free(dev, &css->abi_buffers[q][i]);
-+
-+	for (p = 0; p < IPU3_CSS_PIPE_ID_NUM; p++)
-+		for (i = 0; i < IMGU_ABI_MAX_STAGES; i++) {
-+			ipu3_css_dma_free(dev, &css->xmem_sp_stage_ptrs[p][i]);
-+			ipu3_css_dma_free(dev, &css->xmem_isp_stage_ptrs[p][i]);
-+		}
-+
-+	ipu3_css_dma_free(dev, &css->sp_ddr_ptrs);
-+	ipu3_css_dma_free(dev, &css->xmem_sp_group_ptrs);
-+
-+	ipu3_css_fw_cleanup(css);
-+}
-+
-+int ipu3_css_init(struct device *dev, struct ipu3_css *css,
-+		  void __iomem *base, dma_addr_t mmu_l1_addr, int length)
-+{
-+	int r, p, q, i;
-+
-+	/* Initialize main data structure */
-+
-+	css->dev = dev;
-+	css->base = base;
-+	css->mmu_l1_addr = mmu_l1_addr;
-+	css->iomem_length = length;
-+	css->current_binary = -1;
-+	css->pipe_id = IPU3_CSS_PIPE_ID_NUM;
-+
-+	for (q = 0; q < IPU3_CSS_QUEUES; q++) {
-+		r = ipu3_css_queue_init(&css->queue[q], NULL, 0);
-+		if (r)
-+			return r;
-+	}
-+
-+	r = ipu3_css_fw_init(css);
-+	if (r)
-+		return r;
-+
-+	/* Allocate and map common structures with imgu hardware */
-+
-+	for (p = 0; p < IPU3_CSS_PIPE_ID_NUM; p++)
-+		for (i = 0; i < IMGU_ABI_MAX_STAGES; i++) {
-+			if (ipu3_css_dma_alloc(dev,
-+						&css->xmem_sp_stage_ptrs[p][i],
-+						sizeof(struct imgu_abi_sp_stage)))
-+				goto error_no_memory;
-+			if (ipu3_css_dma_alloc(dev,
-+						&css->xmem_isp_stage_ptrs[p][i],
-+						sizeof(struct imgu_abi_isp_stage)))
-+				goto error_no_memory;
-+		}
-+
-+	if (ipu3_css_dma_alloc(dev, &css->sp_ddr_ptrs,
-+				ALIGN(sizeof(struct imgu_abi_ddr_address_map),
-+				IMGU_ABI_ISP_DDR_WORD_BYTES)))
-+		goto error_no_memory;
-+
-+	if (ipu3_css_dma_alloc(dev, &css->xmem_sp_group_ptrs,
-+				sizeof(struct imgu_abi_sp_group)))
-+		goto error_no_memory;
-+
-+	for (q = 0; q < IPU3_CSS_QUEUES; q++)
-+		for (i = 0; i < ARRAY_SIZE(css->abi_buffers[q]); i++)
-+			if (ipu3_css_dma_alloc(dev, &css->abi_buffers[q][i],
-+						sizeof(struct imgu_abi_buffer)))
-+				goto error_no_memory;
-+
-+	return 0;
-+
-+error_no_memory:
-+	ipu3_css_cleanup(css);
-+
-+	return -ENOMEM;
-+}
-+
-+static u32 ipu3_css_adjust(u32 res, u32 max, u32 align)
-+{
-+	if (res < IPU3_CSS_MIN_RES)
-+		res = IPU3_CSS_MIN_RES;
-+	res = roundclosest(res, align);
-+	if (res > max)
-+		res = round_down(max, align);
-+
-+	return res;
-+}
-+
-+/* Select a binary matching the required resolutions and formats */
-+static int ipu3_css_find_binary(struct ipu3_css *css,
-+				struct ipu3_css_queue queue[IPU3_CSS_QUEUES],
-+				struct v4l2_rect rects[IPU3_CSS_RECTS])
-+{
-+	const int binary_nr = css->fwp->file_header.binary_nr;
-+	const char *name;
-+
-+	const struct v4l2_pix_format *in = &queue[IPU3_CSS_QUEUE_IN].pix_fmt;
-+	const struct v4l2_pix_format *out = &queue[IPU3_CSS_QUEUE_OUT].pix_fmt;
-+	const struct v4l2_pix_format *vf = &queue[IPU3_CSS_QUEUE_VF].pix_fmt;
-+	unsigned int binary_mode = (css->pipe_id == IPU3_CSS_PIPE_ID_CAPTURE) ?
-+		IA_CSS_BINARY_MODE_PRIMARY : IA_CSS_BINARY_MODE_VIDEO;
-+
-+	int i, j;
-+	u32 stripe_w = 0;
-+	u32 stripe_h = 0;
-+
-+	if (!ipu3_css_queue_enabled(&queue[IPU3_CSS_QUEUE_IN]))
-+		return -EINVAL;
-+
-+	/* Find out the strip size boundary */
-+	for (i = 0; i < binary_nr; i++) {
-+		struct imgu_fw_info *bi = &css->fwp->binary_header[i];
-+
-+		u32 max_width = bi->info.isp.sp.output.max_width;
-+		u32 max_height = bi->info.isp.sp.output.max_height;
-+
-+		if (bi->info.isp.sp.iterator.num_stripes <= 1) {
-+			stripe_w = stripe_w ?
-+				min(stripe_w, max_width) : max_width;
-+			stripe_h = stripe_h ?
-+				min(stripe_h, max_height) : max_height;
++	/* Pick the first match always */
++	for (i = 0; i <= ctx->rx_mode->maximum; i++) {
++		if (ctx->rx_modes[i].band == band) {
++			*mode = i;
++			mxm_dbg(ctx, "rx_mode_from_freq: freq %u mode %d\n",
++				freq, *mode);
++			return 0;
 +		}
 +	}
 +
-+	for (i = 0; i < binary_nr; i++) {
-+		struct imgu_fw_info *bi = &css->fwp->binary_header[i];
-+		enum imgu_abi_frame_format q_fmt;
-+
-+		name = (void *)css->fwp + bi->blob.prog_name_offset;
-+
-+		/* Check that binary supports memory-to-memory processing */
-+		if (bi->info.isp.sp.input.source !=
-+		    IMGU_ABI_BINARY_INPUT_SOURCE_MEMORY)
-+			continue;
-+
-+		/* Check that binary supports raw10 input */
-+		if (!bi->info.isp.sp.enable.input_feeder &&
-+		    !bi->info.isp.sp.enable.input_raw)
-+			continue;
-+
-+		/* Check binary mode */
-+		if (bi->info.isp.sp.pipeline.mode != binary_mode)
-+			continue;
-+
-+		/* Since input is RGGB bayer, need to process colors */
-+		if (bi->info.isp.sp.enable.luma_only)
-+			continue;
-+
-+		if (in->width < bi->info.isp.sp.input.min_width ||
-+		    in->width > bi->info.isp.sp.input.max_width ||
-+		    in->height < bi->info.isp.sp.input.min_height ||
-+		    in->height > bi->info.isp.sp.input.max_height)
-+			continue;
-+
-+		q_fmt = queue[IPU3_CSS_QUEUE_OUT].css_fmt->frame_format;
-+
-+		if (ipu3_css_queue_enabled(&queue[IPU3_CSS_QUEUE_OUT])) {
-+			if (bi->info.isp.num_output_pins <= 0)
-+				continue;
-+			for (j = 0; j < bi->info.isp.num_output_formats; j++)
-+				if (bi->info.isp.output_formats[j] == q_fmt)
-+					break;
-+			if (j >= bi->info.isp.num_output_formats)
-+				continue;
-+
-+			if (out->width < bi->info.isp.sp.output.min_width ||
-+			    out->width > bi->info.isp.sp.output.max_width ||
-+			    out->height < bi->info.isp.sp.output.min_height ||
-+			    out->height > bi->info.isp.sp.output.max_height)
-+				continue;
-+
-+			if (out->width > bi->info.isp.sp.internal.max_width ||
-+			    out->height > bi->info.isp.sp.internal.max_height)
-+				continue;
-+
-+			/* Skip stripe binary if not necessary. */
-+			if ((out->width <= stripe_w &&
-+			    out->height <= stripe_h) &&
-+			    bi->info.isp.sp.iterator.num_stripes > 1)
-+				continue;
-+		}
-+
-+		q_fmt = queue[IPU3_CSS_QUEUE_VF].css_fmt->frame_format;
-+
-+		if (ipu3_css_queue_enabled(&queue[IPU3_CSS_QUEUE_VF])) {
-+			if (bi->info.isp.num_output_pins <= 1)
-+				continue;
-+			for (j = 0; j < bi->info.isp.num_output_formats; j++)
-+				if (bi->info.isp.output_formats[j] == q_fmt)
-+					break;
-+			if (j >= bi->info.isp.num_output_formats)
-+				continue;
-+
-+			if (vf->width < bi->info.isp.sp.output.min_width ||
-+			    vf->width > bi->info.isp.sp.output.max_width ||
-+			    vf->height < bi->info.isp.sp.output.min_height ||
-+			    vf->height > bi->info.isp.sp.output.max_height)
-+				continue;
-+
-+			/* Skip stripe binary if not necessary. */
-+			if (!ipu3_css_queue_enabled(
-+			    &queue[IPU3_CSS_QUEUE_OUT]) &&
-+			    (vf->width <= stripe_w &&
-+			    vf->height <= stripe_h) &&
-+			    bi->info.isp.sp.iterator.num_stripes > 1)
-+				continue;
-+		}
-+
-+		/* All checks passed, select the binary */
-+		dev_dbg(css->dev, "using binary %s\n", name);
-+		return i;
-+	}
-+
-+	/* Can not find suitable binary for these parameters */
 +	return -EINVAL;
 +}
 +
-+static int ipu3_css_fmt_try_calc(u32 in1, u32 in2, u32 out1, u32 out2,
-+				 u32 *eff1, u32 *eff2, u32 *bds1, u32 *bds2,
-+				 bool hor_first)
++static bool max2175_freq_rx_mode_valid(struct max2175 *ctx,
++					 u32 mode, u32 freq)
 +{
-+	static const u32 EFF_ALIGN_W = 2;
-+	static const u32 BDS_ALIGN_W = 4;
++	int band = max2175_band_from_freq(freq);
 +
-+	u32 sf;	/* Scale factor */
-+	u32 f;
-+	u32 g;
-+	u32 gran;
-+	u32 gsf;
-+	u32 n;
++	return (ctx->rx_modes[mode].band == band);
++}
 +
-+	f = DIV_ROUND_UP(out2, IMGU_BDS_GRANULARITY);
-+	sf = in2 / f;
-+	if (hor_first && !IS_ALIGNED(f, 2) && !IS_ALIGNED(sf, 2)) {
-+		/* Make either f or sf even */
-+		f++;
-+		sf = in2 / f;
-+	}
-+	*bds2 = f * IMGU_BDS_GRANULARITY;	/* For width, multiple of 4 */
-+	if (sf < IMGU_BDS_MIN_SF_INV) {
-+		/* Can not scale upwards, disable scaling */
-+		*eff1 = *bds1 = out1;
-+		*eff2 = *bds2 = out2;
++static void max2175_load_adc_presets(struct max2175 *ctx)
++{
++	unsigned int i, j;
++
++	for (i = 0; i < ARRAY_SIZE(adc_presets); i++)
++		for (j = 0; j < ARRAY_SIZE(adc_presets[0]); j++)
++			max2175_write(ctx, 146 + j + i * 55, adc_presets[i][j]);
++}
++
++static int max2175_init_power_manager(struct max2175 *ctx)
++{
++	int ret;
++
++	/* Execute on-chip power-up/calibration */
++	max2175_write_bit(ctx, 99, 2, 0);
++	usleep_range(1000, 1500);
++	max2175_write_bit(ctx, 99, 2, 1);
++
++	/* Wait for the power manager to finish. */
++	ret = max2175_poll_timeout(ctx, 69, 7, 7, 1, 50);
++	if (ret)
++		mxm_err(ctx, "init pm failed\n");
++
++	return ret;
++}
++
++static int max2175_recalibrate_adc(struct max2175 *ctx)
++{
++	int ret;
++
++	/* ADC Re-calibration */
++	max2175_write(ctx, 150, 0xff);
++	max2175_write(ctx, 205, 0xff);
++	max2175_write(ctx, 147, 0x20);
++	max2175_write(ctx, 147, 0x00);
++	max2175_write(ctx, 202, 0x20);
++	max2175_write(ctx, 202, 0x00);
++
++	ret = max2175_poll_timeout(ctx, 69, 4, 3, 3, 50);
++	if (ret)
++		mxm_err(ctx, "adc recalibration failed\n");
++
++	return ret;
++}
++
++static u8 max2175_read_rom(struct max2175 *ctx, u8 row)
++{
++	u8 data = 0;
++
++	max2175_write_bit(ctx, 56, 4, 0);
++	max2175_write_bits(ctx, 56, 3, 0, row);
++
++	usleep_range(2000, 2500);
++	max2175_read(ctx, 58, &data);
++
++	max2175_write_bits(ctx, 56, 3, 0, 0);
++
++	mxm_dbg(ctx, "read_rom: row %d data 0x%02x\n", row, data);
++
++	return data;
++}
++
++static void max2175_load_from_rom(struct max2175 *ctx)
++{
++	u8 data = 0;
++
++	data = max2175_read_rom(ctx, 0);
++	ctx->rom_bbf_bw_am = data & 0x0f;
++	max2175_write_bits(ctx, 81, 3, 0, data >> 4);
++
++	data = max2175_read_rom(ctx, 1);
++	ctx->rom_bbf_bw_fm = data & 0x0f;
++	ctx->rom_bbf_bw_dab = data >> 4;
++
++	data = max2175_read_rom(ctx, 2);
++	max2175_write_bits(ctx, 82, 4, 0, data & 0x1f);
++	max2175_write_bits(ctx, 82, 7, 5, data >> 5);
++
++	data = max2175_read_rom(ctx, 3);
++	if (ctx->am_hiz) {
++		data &= 0x0f;
++		data |= (max2175_read_rom(ctx, 7) & 0x40) >> 2;
++		if (!data)
++			data |= 2;
 +	} else {
-+		/* Calculate effective and bds resolutions */
-+		*eff2 = f * sf;		/* If this is width, it will be even */
-+
-+		g = gcd(IMGU_BDS_GRANULARITY, sf);
-+		gran = IMGU_BDS_GRANULARITY / g;
-+		gsf = sf / g;
-+		while (!hor_first &&
-+			(!IS_ALIGNED(gsf, EFF_ALIGN_W) ||
-+			!IS_ALIGNED(gran, BDS_ALIGN_W))) {
-+			gsf *= 2;
-+			gran *= 2;
-+		}
-+		/*
-+		 * Now gsf is even and gran multiple of 4. When these are used
-+		 * as multiplier to get effective and BDS resolution widths,
-+		 * respectively, the result will be also even and multiple of 4.
-+		 */
-+		n = DIV_ROUND_UP(out1, gran);
-+		*bds1 = n * gran;
-+		*eff1 = n * gsf;
++		data = (data & 0xf0) >> 4;
++		data |= (max2175_read_rom(ctx, 7) & 0x80) >> 3;
++		if (!data)
++			data |= 30;
 +	}
++	max2175_write_bits(ctx, 80, 5, 0, data + 31);
 +
-+	return *eff1 <= in1 && *bds1 >= out1 ? 0 : -EINVAL;
++	data = max2175_read_rom(ctx, 6);
++	max2175_write_bits(ctx, 81, 7, 6, data >> 6);
 +}
 +
-+/*
-+ * Check that there is a binary matching requirements. Parameters may be
-+ * NULL indicating disabled input/output. Return negative if given
-+ * parameters can not be supported or on error, zero or positive indicating
-+ * found binary number. May modify the given parameters if not exact match
-+ * is found.
-+ */
-+int ipu3_css_fmt_try(struct ipu3_css *css,
-+		     struct v4l2_pix_format *fmts[IPU3_CSS_QUEUES],
-+		     struct v4l2_rect *rects[IPU3_CSS_RECTS])
++static void max2175_load_full_fm_eu_1p0(struct max2175 *ctx)
 +{
-+	static const u32 EFF_ALIGN_W = 2;
-+	static const u32 BDS_ALIGN_W = 4;
-+	static const u32 OUT_ALIGN_W = 8;
-+	static const u32 OUT_ALIGN_H = 4;
-+	static const u32 VF_ALIGN_W  = 2;
-+	static const unsigned int ENVELOPE_WIDTH = 8;	/* Hard coded for now */
-+	static const unsigned int ENVELOPE_HEIGHT = 8;
-+	static const char *qnames[IPU3_CSS_QUEUES] = {
-+		[IPU3_CSS_QUEUE_IN] = "in",
-+		[IPU3_CSS_QUEUE_PARAMS]    = "params",
-+		[IPU3_CSS_QUEUE_OUT] = "out",
-+		[IPU3_CSS_QUEUE_VF] = "vf",
-+		[IPU3_CSS_QUEUE_STAT_3A]   = "3a",
-+		[IPU3_CSS_QUEUE_STAT_DVS]  = "dvs",
-+		[IPU3_CSS_QUEUE_STAT_LACE] = "lace",
-+	};
-+	static const char *rnames[IPU3_CSS_RECTS] = {
-+		[IPU3_CSS_RECT_EFFECTIVE] = "effective resolution",
-+		[IPU3_CSS_RECT_BDS]       = "bayer-domain scaled resolution",
-+		[IPU3_CSS_RECT_ENVELOPE]  = "DVS envelope size",
-+	};
-+	struct ipu3_css_queue q[IPU3_CSS_QUEUES];
-+	struct v4l2_rect r[IPU3_CSS_RECTS] = { };
-+	struct v4l2_pix_format *const in  = &q[IPU3_CSS_QUEUE_IN].pix_fmt;
-+	struct v4l2_pix_format *const out = &q[IPU3_CSS_QUEUE_OUT].pix_fmt;
-+	struct v4l2_pix_format *const vf  = &q[IPU3_CSS_QUEUE_VF].pix_fmt;
-+	struct v4l2_rect       *const eff = &r[IPU3_CSS_RECT_EFFECTIVE];
-+	struct v4l2_rect       *const bds = &r[IPU3_CSS_RECT_BDS];
-+	struct v4l2_rect       *const env = &r[IPU3_CSS_RECT_ENVELOPE];
-+	int binary, i;
++	unsigned int i;
 +
-+	/* Decide which pipe to use */
-+	if (css->vf_output_en == IPU3_NODE_PV_ENABLED)
-+		css->pipe_id = IPU3_CSS_PIPE_ID_CAPTURE;
-+	else if (css->vf_output_en == IPU3_NODE_VF_ENABLED)
-+		css->pipe_id = IPU3_CSS_PIPE_ID_VIDEO;
++	for (i = 0; i < ARRAY_SIZE(full_fm_eu_1p0); i++)
++		max2175_write(ctx, i + 1, full_fm_eu_1p0[i]);
 +
-+	/* Adjust all formats, get statistics buffer sizes and formats */
-+	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
-+		if (fmts[i])
-+			dev_dbg(css->dev, "%s %s: (%i,%i) fmt 0x%x\n", __func__,
-+				qnames[i], fmts[i]->width, fmts[i]->height,
-+				fmts[i]->pixelformat);
-+		else
-+			dev_dbg(css->dev, "%s %s: (not set)\n", __func__,
-+				qnames[i]);
-+		if (ipu3_css_queue_init(&q[i], fmts[i],
-+				IPU3_CSS_QUEUE_TO_FLAGS(i))) {
-+			dev_notice(css->dev, "can not initialize queue %s\n",
-+					qnames[i]);
-+			return -EINVAL;
-+		}
-+	}
-+	for (i = 0; i < IPU3_CSS_RECTS; i++) {
-+		if (rects[i]) {
-+			dev_dbg(css->dev, "%s %s: (%i,%i)\n", __func__,
-+				rnames[i], rects[i]->width, rects[i]->height);
-+			r[i].width  = rects[i]->width;
-+			r[i].height = rects[i]->height;
-+		} else {
-+			dev_dbg(css->dev, "%s %s: (not set)\n", __func__,
-+				rnames[i]);
-+		}
-+		/* For now, force known good resolutions */
-+		r[i].left = 0;
-+		r[i].top  = 0;
-+	}
-+
-+	/* Always require one input and vf only if out is also enabled */
-+	if (!ipu3_css_queue_enabled(&q[IPU3_CSS_QUEUE_IN]) ||
-+		(ipu3_css_queue_enabled(&q[IPU3_CSS_QUEUE_VF]) &&
-+		!ipu3_css_queue_enabled(&q[IPU3_CSS_QUEUE_OUT]))) {
-+		dev_dbg(css->dev, "required queues are disabled\n");
-+		return -EINVAL;
-+	}
-+
-+	if (!ipu3_css_queue_enabled(&q[IPU3_CSS_QUEUE_OUT])) {
-+		out->width = in->width;
-+		out->height = in->height;
-+	}
-+	if (eff->width <= 0 || eff->height <= 0) {
-+		eff->width = in->width;
-+		eff->height = in->height;
-+	}
-+	if (bds->width <= 0 || bds->height <= 0) {
-+		bds->width = out->width;
-+		bds->height = out->height;
-+	}
-+
-+	env->width  = ENVELOPE_WIDTH;
-+	env->height = ENVELOPE_HEIGHT;
-+
-+	in->width   = ipu3_css_adjust(in->width, IPU3_CSS_MAX_RES, 1);
-+	in->height  = ipu3_css_adjust(in->height, IPU3_CSS_MAX_RES, 1);
-+	eff->width  = ipu3_css_adjust(eff->width, in->width, EFF_ALIGN_W);
-+	eff->height = ipu3_css_adjust(eff->height, in->height, 1);
-+	bds->width  = ipu3_css_adjust(bds->width, eff->width, BDS_ALIGN_W);
-+	bds->height = ipu3_css_adjust(bds->height, eff->height, 1);
-+	out->width  = ipu3_css_adjust(out->width, bds->width, OUT_ALIGN_W);
-+	out->height = ipu3_css_adjust(out->height, bds->height, OUT_ALIGN_H);
-+	vf->width   = ipu3_css_adjust(vf->width, out->width, VF_ALIGN_W);
-+	vf->height  = ipu3_css_adjust(vf->height, out->height, 1);
-+	if (ipu3_css_fmt_try_calc(in->width, in->height, out->width,
-+		out->height, &eff->width, &eff->height, &bds->width,
-+		&bds->height, false))
-+		ipu3_css_fmt_try_calc(in->height, in->width, out->height,
-+			out->width, &eff->height, &eff->width,
-+			&bds->height, &bds->width, true);
-+
-+	binary = ipu3_css_find_binary(css, q, r);
-+	if (binary < 0) {
-+		dev_dbg(css->dev, "failed to find suitable binary\n");
-+		return -EINVAL;
-+	}
-+
-+	/* Final adjustment and set back the queried formats */
-+	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
-+		if (fmts[i]) {
-+			if (ipu3_css_queue_init(&q[i], &q[i].pix_fmt,
-+						IPU3_CSS_QUEUE_TO_FLAGS(i))) {
-+				dev_err(css->dev,
-+					"final resolution adjustment failed\n");
-+				return -EINVAL;
-+			}
-+			*fmts[i] = q[i].pix_fmt;
-+		}
-+	}
-+
-+	for (i = 0; i < IPU3_CSS_RECTS; i++)
-+		if (rects[i])
-+			*rects[i] = r[i];
-+
-+	dev_dbg(css->dev,
-+		"in (%u,%u) eff (%u,%u) bds (%u,%u) out (%u,%u) vf (%u,%u)\n",
-+		in->width, in->height, eff->width, eff->height,
-+		bds->width, bds->height, out->width, out->height,
-+		vf->width, vf->height);
-+
-+	return binary;
++	usleep_range(5000, 5500);
++	ctx->decim_ratio = 36;
 +}
 +
-+int ipu3_css_fmt_set(struct ipu3_css *css,
-+		     struct v4l2_pix_format *fmts[IPU3_CSS_QUEUES],
-+		     struct v4l2_rect *rects[IPU3_CSS_RECTS])
++static void max2175_load_full_fm_na_1p0(struct max2175 *ctx)
 +{
-+	static const int BYPC = 2;	/* Bytes per component */
-+	struct imgu_fw_info *bi;
-+	struct v4l2_rect rect_data[IPU3_CSS_RECTS];
-+	struct v4l2_rect *all_rects[IPU3_CSS_RECTS];
-+	int i, j, r;
-+	unsigned int w, h;
-+	int size;
++	unsigned int i;
 +
-+	ipu3_css_binary_cleanup(css);
-+	for (i = 0; i < IPU3_CSS_RECTS; i++) {
-+		if (rects[i])
-+			rect_data[i] = *rects[i];
-+		else
-+			memset(&rect_data[i], 0, sizeof(rect_data[i]));
-+		all_rects[i] = &rect_data[i];
++	for (i = 0; i < ARRAY_SIZE(full_fm_na_1p0); i++)
++		max2175_write(ctx, i + 1, full_fm_na_1p0[i]);
++
++	usleep_range(5000, 5500);
++	ctx->decim_ratio = 27;
++}
++
++static int max2175_core_init(struct max2175 *ctx, u32 refout_bits)
++{
++	int ret;
++
++	/* MAX2175 uses 36.864MHz clock for EU & 40.154MHz for NA region */
++	if (ctx->xtal_freq == MAX2175_EU_XTAL_FREQ)
++		max2175_load_full_fm_eu_1p0(ctx);
++	else
++		max2175_load_full_fm_na_1p0(ctx);
++
++	/* The default settings assume master */
++	if (!ctx->master)
++		max2175_write_bit(ctx, 30, 7, 1);
++
++	mxm_dbg(ctx, "refout_bits %u\n", refout_bits);
++
++	/* Set REFOUT */
++	max2175_write_bits(ctx, 56, 7, 5, refout_bits);
++
++	/* ADC Reset */
++	max2175_write_bit(ctx, 99, 1, 0);
++	usleep_range(1000, 1500);
++	max2175_write_bit(ctx, 99, 1, 1);
++
++	/* Load ADC preset values */
++	max2175_load_adc_presets(ctx);
++
++	/* Initialize the power management state machine */
++	ret = max2175_init_power_manager(ctx);
++	if (ret)
++		return ret;
++
++	/* Recalibrate ADC */
++	ret = max2175_recalibrate_adc(ctx);
++	if (ret)
++		return ret;
++
++	/* Load ROM values to appropriate registers */
++	max2175_load_from_rom(ctx);
++
++	if (ctx->xtal_freq == MAX2175_EU_XTAL_FREQ) {
++		/* Load FIR coefficients into bank 0 */
++		max2175_set_filter_coeffs(ctx, MAX2175_CH_MSEL, 0,
++					  ch_coeff_fmeu);
++		max2175_set_filter_coeffs(ctx, MAX2175_EQ_MSEL, 0,
++					  eq_coeff_fmeu1_ra02_m6db);
++	} else {
++		/* Load FIR coefficients into bank 0 */
++		max2175_set_filter_coeffs(ctx, MAX2175_CH_MSEL, 0,
++					  ch_coeff_fmna);
++		max2175_set_filter_coeffs(ctx, MAX2175_EQ_MSEL, 0,
++					  eq_coeff_fmna1_ra02_m6db);
 +	}
-+	r = ipu3_css_fmt_try(css, fmts, all_rects);
-+	if (r < 0)
-+		return r;
-+	css->current_binary = r;
-+	bi = &css->fwp->binary_header[r];
-+
-+	for (i = 0; i < IPU3_CSS_QUEUES; i++)
-+		if (ipu3_css_queue_init(&css->queue[i], fmts[i],
-+					IPU3_CSS_QUEUE_TO_FLAGS(i)))
-+			return -EINVAL;
-+	for (i = 0; i < IPU3_CSS_RECTS; i++) {
-+		css->rect[i] = rect_data[i];
-+		if (rects[i])
-+			*rects[i] = rect_data[i];
-+	}
-+
-+	/* Allocate parameter memory blocks for this binary */
-+
-+	for (j = IMGU_ABI_PARAM_CLASS_CONFIG; j < IMGU_ABI_PARAM_CLASS_NUM; j++)
-+		for (i = 0; i < IMGU_ABI_NUM_MEMORIES; i++)
-+			if (ipu3_css_dma_alloc(css->dev,
-+			    &css->binary_params_cs[j - 1][i],
-+			    bi->info.isp.sp.mem_initializers.params[j][i].size))
-+				goto out_of_memory;
-+
-+	/* Allocate internal frame buffers */
-+
-+	/* Reference frames for DVS, FRAME_FORMAT_YUV420_16 */
-+	css->aux_frames[IPU3_CSS_AUX_FRAME_REF].bytesperpixel = BYPC;
-+	css->aux_frames[IPU3_CSS_AUX_FRAME_REF].width =
-+	    css->queue[IPU3_CSS_QUEUE_OUT].pix_fmt.width;
-+	css->aux_frames[IPU3_CSS_AUX_FRAME_REF].height = h =
-+	    ALIGN(css->queue[IPU3_CSS_QUEUE_OUT].pix_fmt.height,
-+		  IMGU_DVS_BLOCK_H) + 2 * IMGU_GDC_BUF_Y;
-+	w = ALIGN(css->queue[IPU3_CSS_QUEUE_OUT].width_pad,
-+		  2 * IPU3_UAPI_ISP_VEC_ELEMS) + 2 * IMGU_GDC_BUF_X;
-+	css->aux_frames[IPU3_CSS_AUX_FRAME_REF].bytesperline =
-+	    css->aux_frames[IPU3_CSS_AUX_FRAME_REF].bytesperpixel * w;
-+	size = w * h * BYPC + (w / 2) * (h / 2) * BYPC * 2;
-+	for (i = 0; i < IPU3_CSS_AUX_FRAMES; i++)
-+		if (ipu3_css_dma_alloc(css->dev,
-+			&css->aux_frames[IPU3_CSS_AUX_FRAME_REF].mem[i], size))
-+			goto out_of_memory;
-+
-+	/* TNR frames for temporal noise reduction, FRAME_FORMAT_YUV_LINE */
-+	css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].bytesperpixel = 1;
-+	css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].width = w =
-+	    roundup(css->queue[IPU3_CSS_QUEUE_OUT].width_pad,
-+		    bi->info.isp.sp.block.block_width *
-+		    IPU3_UAPI_ISP_VEC_ELEMS);
-+	css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].height = h =
-+	    roundup(css->queue[IPU3_CSS_QUEUE_OUT].pix_fmt.height,
-+		    bi->info.isp.sp.block.output_block_height);
-+	css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].bytesperline = w;
-+	size = w * ALIGN(h * 3 / 2 + 3, 2);	/* +3 for vf_pp prefetch */
-+	for (i = 0; i < IPU3_CSS_AUX_FRAMES; i++)
-+		if (ipu3_css_dma_alloc(css->dev,
-+			&css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].mem[i], size))
-+			goto out_of_memory;
++	mxm_dbg(ctx, "core initialized\n");
 +
 +	return 0;
-+
-+out_of_memory:
-+	ipu3_css_binary_cleanup(css);
-+	return -ENOMEM;
 +}
 +
-+/*
-+ * Queue given buffer to CSS. ipu3_css_buf_prepare() must have been first
-+ * called for the buffer. May be called from interrupt context.
-+ * Returns 0 on success, -EBUSY if the buffer queue is full, or some other
-+ * code on error conditions.
-+ */
-+int ipu3_css_buf_queue(struct ipu3_css *css, struct ipu3_css_buffer *b)
++static void max2175_s_ctrl_rx_mode(struct max2175 *ctx, u32 rx_mode)
 +{
-+	static const int thread;
-+	struct imgu_abi_buffer *abi_buf;
-+	struct imgu_addr_t *buf_addr;
-+	u32 data;
-+	int r;
++	/* Load mode. Range check already done */
++	max2175_set_rx_mode(ctx, rx_mode);
 +
-+	if (!css->streaming)
-+		return -EPROTO;	/* CSS or buffer in wrong state */
++	mxm_dbg(ctx, "s_ctrl_rx_mode: %u curr freq %u\n", rx_mode, ctx->freq);
 +
-+	if (b->queue >= IPU3_CSS_QUEUES || !ipu3_css_queues[b->queue].qid)
-+		return -EINVAL;
++	/* Check if current freq valid for mode & update */
++	if (max2175_freq_rx_mode_valid(ctx, rx_mode, ctx->freq))
++		max2175_tune_rf_freq(ctx, ctx->freq, ctx->hsls->cur.val);
++	else
++		/* Use default freq of mode if current freq is not valid */
++		max2175_tune_rf_freq(ctx, ctx->rx_modes[rx_mode].freq,
++				     ctx->hsls->cur.val);
++}
 +
-+	b->queue_pos = ipu3_css_queue_pos(
-+				css, ipu3_css_queues[b->queue].qid, thread);
++static int max2175_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct max2175 *ctx = max2175_from_ctrl_hdl(ctrl->handler);
 +
-+	if (b->queue_pos >= ARRAY_SIZE(css->abi_buffers[b->queue]))
-+		return -EIO;
-+	abi_buf = css->abi_buffers[b->queue][b->queue_pos].vaddr;
-+
-+	/* Fill struct abi_buffer for firmware */
-+	memset(abi_buf, 0, sizeof(*abi_buf));
-+
-+	buf_addr = (void *)abi_buf + ipu3_css_queues[b->queue].ptr_ofs;
-+	*(imgu_addr_t *)buf_addr = b->daddr;
-+
-+	if (b->queue == IPU3_CSS_QUEUE_STAT_3A)
-+		abi_buf->payload.s3a.data.dmem.s3a_tbl = b->daddr;
-+
-+	if (b->queue == IPU3_CSS_QUEUE_OUT)
-+		abi_buf->payload.frame.padded_width =
-+			css->queue[IPU3_CSS_QUEUE_OUT].width_pad;
-+
-+	if (b->queue == IPU3_CSS_QUEUE_VF)
-+		abi_buf->payload.frame.padded_width =
-+			css->queue[IPU3_CSS_QUEUE_VF].width_pad;
-+
-+	list_add_tail(&b->list, &css->queue[b->queue].bufs);
-+	b->state = IPU3_CSS_BUFFER_QUEUED;
-+
-+	data = css->abi_buffers[b->queue][b->queue_pos].daddr;
-+	r = ipu3_css_queue_data(css, ipu3_css_queues[b->queue].qid,
-+				thread, data);
-+	if (r < 0)
-+		goto queueing_failed;
-+
-+	data = IMGU_ABI_EVENT_BUFFER_ENQUEUED(thread,
-+				ipu3_css_queues[b->queue].qid);
-+	r = ipu3_css_queue_data(css, IMGU_ABI_QUEUE_EVENT_ID,
-+				0, data);
-+	if (r < 0)
-+		goto queueing_failed;
-+
-+	dev_dbg(css->dev, "queued buffer %p to queue %i\n", b, b->queue);
++	mxm_dbg(ctx, "s_ctrl: id 0x%x, val %u\n", ctrl->id, ctrl->val);
++	switch (ctrl->id) {
++	case V4L2_CID_MAX2175_I2S_ENABLE:
++		max2175_i2s_enable(ctx, ctrl->val);
++		break;
++	case V4L2_CID_MAX2175_HSLS:
++		max2175_set_hsls(ctx, ctrl->val);
++		break;
++	case V4L2_CID_MAX2175_RX_MODE:
++		max2175_s_ctrl_rx_mode(ctx, ctrl->val);
++		break;
++	}
 +
 +	return 0;
-+
-+queueing_failed:
-+	b->state = (r == -EBUSY || r == -EAGAIN) ?
-+		IPU3_CSS_BUFFER_NEW : IPU3_CSS_BUFFER_FAILED;
-+	list_del(&b->list);
-+
-+	return r;
 +}
 +
-+/*
-+ * Get next ready CSS buffer. Returns -EAGAIN in which case the function
-+ * should be called again, or -EBUSY which means that there are no more
-+ * buffers available. May be called from interrupt context.
-+ */
-+struct ipu3_css_buffer *ipu3_css_buf_dequeue(struct ipu3_css *css)
++static u32 max2175_get_lna_gain(struct max2175 *ctx)
 +{
-+	static const int thread;
-+	static const unsigned char evtype_to_queue[] = {
-+		[IMGU_ABI_EVTTYPE_INPUT_FRAME_DONE] = IPU3_CSS_QUEUE_IN,
-+		[IMGU_ABI_EVTTYPE_OUT_FRAME_DONE] = IPU3_CSS_QUEUE_OUT,
-+		[IMGU_ABI_EVTTYPE_VF_OUT_FRAME_DONE] = IPU3_CSS_QUEUE_VF,
-+		[IMGU_ABI_EVTTYPE_3A_STATS_DONE] = IPU3_CSS_QUEUE_STAT_3A,
-+		[IMGU_ABI_EVTTYPE_DIS_STATS_DONE] = IPU3_CSS_QUEUE_STAT_DVS,
-+		[IMGU_ABI_EVTTYPE_LACE_STATS_DONE] = IPU3_CSS_QUEUE_STAT_LACE,
-+	};
-+	struct ipu3_css_buffer *b = ERR_PTR(-EAGAIN);
-+	u32 event, daddr;
-+	int evtype, pipe, pipeid, queue, qid, r;
++	enum max2175_band band = max2175_read_bits(ctx, 5, 1, 0);
 +
-+	if (!css->streaming)
-+		return ERR_PTR(-EPROTO);
-+
-+	r = ipu3_css_dequeue_data(css, IMGU_ABI_QUEUE_EVENT_ID, &event);
-+	if (r < 0)
-+		return ERR_PTR(r);
-+
-+	evtype = (event & IMGU_ABI_EVTTYPE_EVENT_MASK) >>
-+	    IMGU_ABI_EVTTYPE_EVENT_SHIFT;
-+
-+	switch (evtype) {
-+	case IMGU_ABI_EVTTYPE_OUT_FRAME_DONE:
-+	case IMGU_ABI_EVTTYPE_VF_OUT_FRAME_DONE:
-+	case IMGU_ABI_EVTTYPE_3A_STATS_DONE:
-+	case IMGU_ABI_EVTTYPE_DIS_STATS_DONE:
-+	case IMGU_ABI_EVTTYPE_INPUT_FRAME_DONE:
-+	case IMGU_ABI_EVTTYPE_LACE_STATS_DONE:
-+		pipe = (event & IMGU_ABI_EVTTYPE_PIPE_MASK) >>
-+		    IMGU_ABI_EVTTYPE_PIPE_SHIFT;
-+		pipeid = (event & IMGU_ABI_EVTTYPE_PIPEID_MASK) >>
-+		    IMGU_ABI_EVTTYPE_PIPEID_SHIFT;
-+		queue = evtype_to_queue[evtype];
-+		qid = ipu3_css_queues[queue].qid;
-+
-+		if (qid >= IMGU_ABI_QUEUE_NUM) {
-+			dev_err(css->dev, "Invalid qid: %i\n", qid);
-+			return ERR_PTR(-EIO);
-+		}
-+
-+		dev_dbg(css->dev,
-+			 "event: buffer done 0x%x queue %i pipe %i pipeid %i\n",
-+			 event, queue, pipe, pipeid);
-+
-+		r = ipu3_css_dequeue_data(css, qid, &daddr);
-+		if (r < 0) {
-+			dev_err(css->dev, "failed to dequeue buffer\n");
-+			/* Force real error, not -EBUSY */
-+			return ERR_PTR(-EIO);
-+		}
-+
-+		r = ipu3_css_queue_data(css, IMGU_ABI_QUEUE_EVENT_ID, thread,
-+					IMGU_ABI_EVENT_BUFFER_DEQUEUED(qid));
-+		if (r < 0) {
-+			dev_err(css->dev, "failed to queue event\n");
-+			return ERR_PTR(-EIO);
-+		}
-+
-+		if (list_empty(&css->queue[queue].bufs)) {
-+			dev_err(css->dev, "event on empty queue\n");
-+			return ERR_PTR(-EIO);
-+		}
-+		b = list_first_entry(&css->queue[queue].bufs,
-+				     struct ipu3_css_buffer, list);
-+		if (queue != b->queue ||
-+		    daddr != css->abi_buffers[b->queue][b->queue_pos].daddr) {
-+			dev_err(css->dev, "dequeued bad buffer 0x%x\n", daddr);
-+			return ERR_PTR(-EIO);
-+		}
-+		b->state = IPU3_CSS_BUFFER_DONE;
-+		list_del(&b->list);
-+		break;
-+	case IMGU_ABI_EVTTYPE_PIPELINE_DONE:
-+		dev_info(css->dev, "event: pipeline done 0x%x for frame %ld\n",
-+			 event, css->frame);
-+		if (css->frame == LONG_MAX)
-+			css->frame = 0;
-+		else
-+			css->frame++;
-+		break;
-+	case IMGU_ABI_EVTTYPE_TIMER:
-+		r = ipu3_css_dequeue_data(css, IMGU_ABI_QUEUE_EVENT_ID, &event);
-+		if (r < 0)
-+			return ERR_PTR(r);
-+
-+		if ((event & IMGU_ABI_EVTTYPE_EVENT_MASK) >>
-+		    IMGU_ABI_EVTTYPE_EVENT_SHIFT == IMGU_ABI_EVTTYPE_TIMER)
-+			dev_dbg(css->dev, "event: timer\n");
-+		else
-+			dev_warn(css->dev, "half of timer event missing\n");
-+		break;
-+	case IMGU_ABI_EVTTYPE_FW_WARNING:
-+		dev_warn(css->dev, "event: firmware warning 0x%x\n", event);
-+		break;
-+	case IMGU_ABI_EVTTYPE_FW_ASSERT:
-+		dev_err(css->dev,
-+			"event: firmware assert 0x%x module_id %i line_no %i\n",
-+			event,
-+			(event & IMGU_ABI_EVTTYPE_MODULEID_MASK) >>
-+			IMGU_ABI_EVTTYPE_MODULEID_SHIFT,
-+			swab16((event & IMGU_ABI_EVTTYPE_LINENO_MASK) >>
-+			       IMGU_ABI_EVTTYPE_LINENO_SHIFT));
-+		break;
++	switch (band) {
++	case MAX2175_BAND_AM:
++		return max2175_read_bits(ctx, 51, 3, 0);
++	case MAX2175_BAND_FM:
++		return max2175_read_bits(ctx, 50, 3, 0);
++	case MAX2175_BAND_VHF:
++		return max2175_read_bits(ctx, 52, 5, 0);
 +	default:
-+		dev_warn(css->dev, "received unknown event 0x%x\n", event);
++		return 0;
 +	}
-+
-+	return b;
 +}
 +
-+/*
-+ * Get a new set of parameters from pool and initialize them based on
-+ * the parameters params, gdc, and obgrid. Any of these may be NULL,
-+ * in which case the previously set parameters are used.
-+ * If parameters haven't been set previously, initialize from scratch.
-+ *
-+ * Return index to css->parameter_set_info which has the newly created
-+ * parameters or negative value on error.
-+ */
-+int ipu3_css_set_parameters(struct ipu3_css *css,
-+			    struct ipu3_uapi_params *set_params,
-+			    struct ipu3_uapi_gdc_warp_param *set_gdc,
-+			    unsigned int gdc_bytes,
-+			    struct ipu3_uapi_obgrid_param *set_obgrid,
-+			    unsigned int obgrid_bytes)
++static int max2175_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
 +{
-+	static const unsigned int queue_id = IMGU_ABI_QUEUE_A_ID;
-+	const int stage = 0, thread = 0;
-+	const struct imgu_fw_info *bi =
-+	    &css->fwp->binary_header[css->current_binary];
-+	const int obgrid_size = ipu3_css_fw_obgrid_size(bi);
-+	const unsigned int stripes = bi->info.isp.sp.iterator.num_stripes ? : 1;
-+	struct ipu3_uapi_flags *use = set_params ? &set_params->use : NULL;
++	struct max2175 *ctx = max2175_from_ctrl_hdl(ctrl->handler);
 +
-+	/* Destination buffers which are filled here */
-+	struct imgu_abi_parameter_set_info *param_set;
-+	struct ipu3_uapi_acc_param *acc = NULL;
-+	struct ipu3_uapi_gdc_warp_param *gdc = NULL;
-+	struct ipu3_uapi_obgrid_param *obgrid = NULL;
-+	const struct ipu3_css_map *map;
-+	void *vmem0 = NULL;
-+	void *dmem0 = NULL;
-+
-+	enum imgu_abi_memories m;
-+	int r = -EBUSY;
-+	int s;
-+
-+	if (!css->streaming)
-+		return -EPROTO;
-+
-+	/*
-+	 * Check that we can get a new parameter_set_info from the pool.
-+	 * If this succeeds, then all of the other pool_get() calls below
-+	 * should also succeed.
-+	 */
-+	if (ipu3_css_pool_get(&css->pool.parameter_set_info, css->frame) < 0)
-+		goto fail_no_put;
-+	param_set = ipu3_css_pool_last(&css->pool.parameter_set_info, 0)->vaddr;
-+
-+	/* Get a new acc only if new parameters given, or none yet */
-+	if (set_params || !ipu3_css_pool_last(&css->pool.acc, 0)->vaddr) {
-+		if (ipu3_css_pool_get(&css->pool.acc, css->frame) < 0)
-+			goto fail;
-+		acc = ipu3_css_pool_last(&css->pool.acc, 0)->vaddr;
++	switch (ctrl->id) {
++	case V4L2_CID_RF_TUNER_LNA_GAIN:
++		ctrl->val = max2175_get_lna_gain(ctx);
++		break;
++	case V4L2_CID_RF_TUNER_IF_GAIN:
++		ctrl->val = max2175_read_bits(ctx, 49, 4, 0);
++		break;
++	case V4L2_CID_RF_TUNER_PLL_LOCK:
++		ctrl->val = (max2175_read_bits(ctx, 60, 7, 6) == 3);
++		break;
 +	}
 +
-+	/* Get new VMEM0 only if needed, or none yet */
-+	m = IMGU_ABI_MEM_ISP_VMEM0;
-+	if (!ipu3_css_pool_last(&css->pool.binary_params_p[m], 0)->vaddr ||
-+	    (set_params && (set_params->use.lin_vmem_params ||
-+			    set_params->use.tnr3_vmem_params ||
-+			    set_params->use.xnr3_vmem_params))) {
-+		if (ipu3_css_pool_get(&css->pool.binary_params_p[m],
-+				      css->frame) < 0)
-+			goto fail;
-+		vmem0 = ipu3_css_pool_last(&css->pool.binary_params_p[m], 0)
-+		    ->vaddr;
++	return 0;
++};
++
++static int max2175_set_freq_and_mode(struct max2175 *ctx, u32 freq)
++{
++	u32 rx_mode;
++	int ret;
++
++	/* Get band from frequency */
++	ret = max2175_rx_mode_from_freq(ctx, freq, &rx_mode);
++	if (ret)
++		return ret;
++
++	mxm_dbg(ctx, "set_freq_and_mode: freq %u rx_mode %d\n", freq, rx_mode);
++
++	/* Load mode */
++	max2175_set_rx_mode(ctx, rx_mode);
++	ctx->rx_mode->cur.val = rx_mode;
++
++	/* Tune to the new freq given */
++	return max2175_tune_rf_freq(ctx, freq, ctx->hsls->cur.val);
++}
++
++static int max2175_s_frequency(struct v4l2_subdev *sd,
++			       const struct v4l2_frequency *vf)
++{
++	struct max2175 *ctx = max2175_from_sd(sd);
++	u32 freq;
++	int ret = 0;
++
++	mxm_dbg(ctx, "s_freq: new %u curr %u, mode_resolved %d\n",
++		vf->frequency, ctx->freq, ctx->mode_resolved);
++
++	if (vf->tuner != 0)
++		return -EINVAL;
++
++	freq = clamp(vf->frequency, ctx->bands_rf->rangelow,
++		     ctx->bands_rf->rangehigh);
++
++	/* Check new freq valid for rx_mode if already resolved */
++	if (ctx->mode_resolved &&
++	    max2175_freq_rx_mode_valid(ctx, ctx->rx_mode->cur.val, freq))
++		ret = max2175_tune_rf_freq(ctx, freq, ctx->hsls->cur.val);
++	else
++		/* Find default rx_mode for freq and tune to it */
++		ret = max2175_set_freq_and_mode(ctx, freq);
++
++	mxm_dbg(ctx, "s_freq: ret %d curr %u mode_resolved %d mode %u\n",
++		ret, ctx->freq, ctx->mode_resolved, ctx->rx_mode->cur.val);
++
++	return ret;
++}
++
++static int max2175_g_frequency(struct v4l2_subdev *sd,
++			       struct v4l2_frequency *vf)
++{
++	struct max2175 *ctx = max2175_from_sd(sd);
++	int ret = 0;
++
++	if (vf->tuner != 0)
++		return -EINVAL;
++
++	/* RF freq */
++	vf->type = V4L2_TUNER_RF;
++	vf->frequency = ctx->freq;
++
++	return ret;
++}
++
++static int max2175_enum_freq_bands(struct v4l2_subdev *sd,
++			    struct v4l2_frequency_band *band)
++{
++	struct max2175 *ctx = max2175_from_sd(sd);
++
++	if (band->tuner != 0 || band->index != 0)
++		return -EINVAL;
++
++	*band = *ctx->bands_rf;
++
++	return 0;
++}
++
++static int max2175_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
++{
++	struct max2175 *ctx = max2175_from_sd(sd);
++
++	if (vt->index > 0)
++		return -EINVAL;
++
++	strlcpy(vt->name, "RF", sizeof(vt->name));
++	vt->type = V4L2_TUNER_RF;
++	vt->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
++	vt->rangelow = ctx->bands_rf->rangelow;
++	vt->rangehigh = ctx->bands_rf->rangehigh;
++
++	return 0;
++}
++
++static int max2175_s_tuner(struct v4l2_subdev *sd, const struct v4l2_tuner *vt)
++{
++	/* Check tuner index is valid */
++	if (vt->index > 0)
++		return -EINVAL;
++
++	return 0;
++}
++
++static const struct v4l2_subdev_tuner_ops max2175_tuner_ops = {
++	.s_frequency = max2175_s_frequency,
++	.g_frequency = max2175_g_frequency,
++	.enum_freq_bands = max2175_enum_freq_bands,
++	.g_tuner = max2175_g_tuner,
++	.s_tuner = max2175_s_tuner,
++};
++
++static const struct v4l2_subdev_ops max2175_ops = {
++	.tuner = &max2175_tuner_ops,
++};
++
++static const struct v4l2_ctrl_ops max2175_ctrl_ops = {
++	.s_ctrl = max2175_s_ctrl,
++	.g_volatile_ctrl = max2175_g_volatile_ctrl,
++};
++
++/*
++ * I2S output enable/disable configuration. This is a private control.
++ * Refer to Documentation/media/v4l-drivers/max2175 for more details.
++ */
++static const struct v4l2_ctrl_config max2175_i2s_en = {
++	.ops = &max2175_ctrl_ops,
++	.id = V4L2_CID_MAX2175_I2S_ENABLE,
++	.name = "I2S Enable",
++	.type = V4L2_CTRL_TYPE_BOOLEAN,
++	.min = 0,
++	.max = 1,
++	.step = 1,
++	.def = 1,
++	.is_private = 1,
++};
++
++/*
++ * HSLS value control LO freq adjacent location configuration.
++ * Refer to Documentation/media/v4l-drivers/max2175 for more details.
++ */
++static const struct v4l2_ctrl_config max2175_hsls = {
++	.ops = &max2175_ctrl_ops,
++	.id = V4L2_CID_MAX2175_HSLS,
++	.name = "HSLS Above/Below Desired",
++	.type = V4L2_CTRL_TYPE_BOOLEAN,
++	.min = 0,
++	.max = 1,
++	.step = 1,
++	.def = 1,
++};
++
++/*
++ * Rx modes below are a set of preset configurations that decides the tuner's
++ * sck and sample rate of transmission. They are separate for EU & NA regions.
++ * Refer to Documentation/media/v4l-drivers/max2175 for more details.
++ */
++static const char * const max2175_ctrl_eu_rx_modes[] = {
++	[MAX2175_EU_FM_1_2]	= "EU FM 1.2",
++	[MAX2175_DAB_1_2]	= "DAB 1.2",
++};
++
++static const char * const max2175_ctrl_na_rx_modes[] = {
++	[MAX2175_NA_FM_1_0]	= "NA FM 1.0",
++	[MAX2175_NA_FM_2_0]	= "NA FM 2.0",
++};
++
++static const struct v4l2_ctrl_config max2175_eu_rx_mode = {
++	.ops = &max2175_ctrl_ops,
++	.id = V4L2_CID_MAX2175_RX_MODE,
++	.name = "RX Mode",
++	.type = V4L2_CTRL_TYPE_MENU,
++	.max = ARRAY_SIZE(max2175_ctrl_eu_rx_modes) - 1,
++	.def = 0,
++	.qmenu = max2175_ctrl_eu_rx_modes,
++};
++
++static const struct v4l2_ctrl_config max2175_na_rx_mode = {
++	.ops = &max2175_ctrl_ops,
++	.id = V4L2_CID_MAX2175_RX_MODE,
++	.name = "RX Mode",
++	.type = V4L2_CTRL_TYPE_MENU,
++	.max = ARRAY_SIZE(max2175_ctrl_na_rx_modes) - 1,
++	.def = 0,
++	.qmenu = max2175_ctrl_na_rx_modes,
++};
++
++static int max2175_refout_load_to_bits(struct i2c_client *client, u32 load,
++				       u32 *bits)
++{
++	if (load >= 0 && load <= 40)
++		*bits = load / 10;
++	else if (load >= 60 && load <= 70)
++		*bits = load / 10 - 1;
++	else
++		return -EINVAL;
++
++	return 0;
++}
++
++static int max2175_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	bool master = true, am_hiz = false;
++	u32 refout_load, refout_bits = 0;	/* REFOUT disabled */
++	struct v4l2_ctrl_handler *hdl;
++	struct fwnode_handle *fwnode;
++	struct device_node *np;
++	struct v4l2_subdev *sd;
++	struct regmap *regmap;
++	struct max2175 *ctx;
++	struct clk *clk;
++	int ret;
++
++	/* Parse DT properties */
++	np = of_parse_phandle(client->dev.of_node, "maxim,master", 0);
++	if (np) {
++		master = false;			/* Slave tuner */
++		of_node_put(np);
 +	}
 +
-+	/* Get new DMEM0 only if needed, or none yet */
-+	m = IMGU_ABI_MEM_ISP_DMEM0;
-+	if (!ipu3_css_pool_last(&css->pool.binary_params_p[m], 0)->vaddr ||
-+	    (set_params && (set_params->use.tnr3_dmem_params ||
-+			    set_params->use.xnr3_dmem_params))) {
-+		if (ipu3_css_pool_get(&css->pool.binary_params_p[m],
-+				      css->frame) < 0)
-+			goto fail;
-+		dmem0 = ipu3_css_pool_last(&css->pool.binary_params_p[m], 0)
-+		    ->vaddr;
-+	}
++	fwnode = of_fwnode_handle(client->dev.of_node);
++	if (fwnode_property_present(fwnode, "maxim,am-hiz-filter"))
++		am_hiz = true;
 +
-+	/* Configure acc parameter cluster */
-+	if (acc) {
-+		map = ipu3_css_pool_last(&css->pool.acc, 1);
-+		r = ipu3_css_cfg_acc(css, use, acc, map->vaddr,
-+				set_params ? &set_params->acc_param : NULL);
-+		if (r < 0)
-+			goto fail;
-+	}
-+
-+	/* Configure late binding parameters */
-+	if (vmem0) {
-+		m = IMGU_ABI_MEM_ISP_VMEM0;
-+		map = ipu3_css_pool_last(&css->pool.binary_params_p[m], 1);
-+		r = ipu3_css_cfg_vmem0(css, use, vmem0, map->vaddr, set_params);
-+		if (r < 0)
-+			goto fail;
-+	}
-+
-+	if (dmem0) {
-+		m = IMGU_ABI_MEM_ISP_DMEM0;
-+		map = ipu3_css_pool_last(&css->pool.binary_params_p[m], 1);
-+		r = ipu3_css_cfg_dmem0(css, use, dmem0, map->vaddr, set_params);
-+		if (r < 0)
-+			goto fail;
-+	}
-+
-+	/* Get a new gdc only if a new gdc is given, or none yet */
-+	if (bi->info.isp.sp.enable.dvs_6axis) {
-+		if (set_params && !set_params->use.gdc)
-+			set_gdc = NULL;
-+		if (set_gdc || !ipu3_css_pool_last(&css->pool.gdc, 0)->vaddr) {
-+			if (ipu3_css_pool_get(&css->pool.gdc, css->frame) < 0)
-+				goto fail;
-+
-+			map = ipu3_css_pool_last(&css->pool.gdc, 0);
-+			gdc =  map->vaddr;
-+			s = IPU3_CSS_AUX_FRAME_REF;
-+			/* Config geometric distortion correction table (gdc) */
-+			ipu3_css_cfg_gdc_table(gdc,
-+				css->aux_frames[s].bytesperline /
-+				css->aux_frames[s].bytesperpixel,
-+				css->aux_frames[s].height,
-+				css->queue[IPU3_CSS_QUEUE_OUT].pix_fmt.width,
-+				css->queue[IPU3_CSS_QUEUE_OUT].pix_fmt.height);
++	if (!fwnode_property_read_u32(fwnode, "maxim,refout-load",
++				      &refout_load)) {
++		ret = max2175_refout_load_to_bits(client, refout_load,
++						  &refout_bits);
++		if (ret) {
++			dev_err(&client->dev, "invalid refout_load %u\n",
++				refout_load);
++			return -EINVAL;
 +		}
 +	}
 +
-+	/* Get a new obgrid only if a new obgrid is given, or none yet */
-+	if (set_params && !set_params->use.obgrid)
-+		set_obgrid = NULL;
-+	if (set_obgrid && obgrid_bytes < obgrid_size / stripes)
-+		goto fail;
-+	if (set_obgrid || (set_params && set_params->use.obgrid_param) ||
-+		!ipu3_css_pool_last(&css->pool.obgrid, 0)->vaddr) {
-+		if (ipu3_css_pool_get(&css->pool.obgrid, css->frame) < 0)
-+			goto fail;
-+		map = ipu3_css_pool_last(&css->pool.obgrid, 0);
-+		obgrid = map->vaddr;
-+
-+		/* Configure optical black level grid (obgrid) */
-+		if (set_obgrid) {
-+			for (s = 0; s < stripes; s++)
-+				memcpy((void *)obgrid +
-+					(obgrid_size / stripes) * s, set_obgrid,
-+					obgrid_size / stripes);
-+
-+		} else if (set_params && set_params->use.obgrid_param) {
-+			for (s = 0; s < obgrid_size / sizeof(*obgrid); s++)
-+				obgrid[s] = set_params->obgrid_param;
-+		} else {
-+			memset(obgrid, 0, obgrid_size);
-+		}
++	clk = devm_clk_get(&client->dev, NULL);
++	if (IS_ERR(clk)) {
++		ret = PTR_ERR(clk);
++		dev_err(&client->dev, "cannot get clock %d\n", ret);
++		return -ENODEV;
 +	}
 +
-+	/* Configure parameter set info, queued to `queue_id' */
++	regmap = devm_regmap_init_i2c(client, &max2175_regmap_config);
++	if (IS_ERR(regmap)) {
++		ret = PTR_ERR(regmap);
++		dev_err(&client->dev, "regmap init failed %d\n", ret);
++		return -ENODEV;
++	}
 +
-+	memset(param_set, 0, sizeof(*param_set));
++	/* Alloc tuner context */
++	ctx = devm_kzalloc(&client->dev, sizeof(*ctx), GFP_KERNEL);
++	if (ctx == NULL)
++		return -ENOMEM;
 +
-+	param_set->mem_map.acc_cluster_params_for_sp =
-+	    ipu3_css_pool_last(&css->pool.acc, 0)->daddr;
++	sd = &ctx->sd;
++	ctx->master = master;
++	ctx->am_hiz = am_hiz;
++	ctx->mode_resolved = false;
++	ctx->regmap = regmap;
++	ctx->xtal_freq = clk_get_rate(clk);
++	dev_info(&client->dev, "xtal freq %luHz\n", ctx->xtal_freq);
 +
-+	param_set->mem_map.dvs_6axis_params_y =
-+	    ipu3_css_pool_last(&css->pool.gdc, 0)->daddr;
++	v4l2_i2c_subdev_init(sd, client, &max2175_ops);
++	ctx->client = client;
 +
-+	for (s = 0; s < stripes; s++)
-+		param_set->mem_map.obgrid_tbl[s] =
-+		    ipu3_css_pool_last(&css->pool.obgrid, 0)->daddr +
-+		    (obgrid_size / stripes) * s;
++	sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
 +
-+	for (m = 0; m < IMGU_ABI_NUM_MEMORIES; m++)
-+		param_set->mem_map.isp_mem_param[stage][m] =
-+		    ipu3_css_pool_last(&css->pool.binary_params_p[m], 0)
-+		    ->daddr;
++	/* Controls */
++	hdl = &ctx->ctrl_hdl;
++	ret = v4l2_ctrl_handler_init(hdl, 7);
++	if (ret)
++		return ret;
 +
-+	/* Then queue the new parameter buffer */
++	ctx->lna_gain = v4l2_ctrl_new_std(hdl, &max2175_ctrl_ops,
++					  V4L2_CID_RF_TUNER_LNA_GAIN,
++					  0, 63, 1, 0);
++	ctx->lna_gain->flags |= (V4L2_CTRL_FLAG_VOLATILE |
++				 V4L2_CTRL_FLAG_READ_ONLY);
++	ctx->if_gain = v4l2_ctrl_new_std(hdl, &max2175_ctrl_ops,
++					 V4L2_CID_RF_TUNER_IF_GAIN,
++					 0, 31, 1, 0);
++	ctx->if_gain->flags |= (V4L2_CTRL_FLAG_VOLATILE |
++				V4L2_CTRL_FLAG_READ_ONLY);
++	ctx->pll_lock = v4l2_ctrl_new_std(hdl, &max2175_ctrl_ops,
++					  V4L2_CID_RF_TUNER_PLL_LOCK,
++					  0, 1, 1, 0);
++	ctx->pll_lock->flags |= (V4L2_CTRL_FLAG_VOLATILE |
++				 V4L2_CTRL_FLAG_READ_ONLY);
++	ctx->i2s_en = v4l2_ctrl_new_custom(hdl, &max2175_i2s_en, NULL);
++	ctx->hsls = v4l2_ctrl_new_custom(hdl, &max2175_hsls, NULL);
 +
-+	r = ipu3_css_queue_data(css, queue_id, thread,
-+		ipu3_css_pool_last(&css->pool.parameter_set_info, 0)->daddr);
-+	if (r < 0)
-+		goto fail;
++	if (ctx->xtal_freq == MAX2175_EU_XTAL_FREQ) {
++		ctx->rx_mode = v4l2_ctrl_new_custom(hdl,
++						    &max2175_eu_rx_mode, NULL);
++		ctx->rx_modes = eu_rx_modes;
++		ctx->bands_rf = &eu_bands_rf;
++	} else {
++		ctx->rx_mode = v4l2_ctrl_new_custom(hdl,
++						    &max2175_na_rx_mode, NULL);
++		ctx->rx_modes = na_rx_modes;
++		ctx->bands_rf = &na_bands_rf;
++	}
++	ctx->sd.ctrl_handler = &ctx->ctrl_hdl;
 +
-+	r = ipu3_css_queue_data(css, IMGU_ABI_QUEUE_EVENT_ID, 0,
-+			IMGU_ABI_EVENT_BUFFER_ENQUEUED(thread, queue_id));
-+	if (r < 0)
-+		goto fail_no_put;
++	/* Set the defaults */
++	ctx->freq = ctx->bands_rf->rangelow;
 +
-+	/* Finally dequeue all old parameter buffers */
++	/* Register subdev */
++	ret = v4l2_async_register_subdev(sd);
++	if (ret) {
++		dev_err(&client->dev, "register subdev failed\n");
++		goto err_reg;
++	}
 +
-+	do {
-+		u32 daddr;
++	/* Initialize device */
++	ret = max2175_core_init(ctx, refout_bits);
++	if (ret)
++		goto err_init;
 +
-+		r = ipu3_css_dequeue_data(css, queue_id, &daddr);
-+		if (r == -EBUSY)
-+			break;
-+		if (r)
-+			goto fail_no_put;
-+		r = ipu3_css_queue_data(css, IMGU_ABI_QUEUE_EVENT_ID, thread,
-+					IMGU_ABI_EVENT_BUFFER_DEQUEUED
-+					(queue_id));
-+		if (r < 0) {
-+			dev_err(css->dev, "failed to queue parameter event\n");
-+			goto fail_no_put;
-+		}
-+	} while (1);
++	ret = v4l2_ctrl_handler_setup(hdl);
++	if (ret)
++		goto err_init;
 +
 +	return 0;
 +
-+fail:
++err_init:
++	v4l2_async_unregister_subdev(sd);
++err_reg:
++	v4l2_ctrl_handler_free(&ctx->ctrl_hdl);
++
++	return ret;
++}
++
++static int max2175_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct max2175 *ctx = max2175_from_sd(sd);
++
++	v4l2_ctrl_handler_free(&ctx->ctrl_hdl);
++	v4l2_async_unregister_subdev(sd);
++
++	return 0;
++}
++
++static const struct i2c_device_id max2175_id[] = {
++	{ DRIVER_NAME, 0},
++	{},
++};
++MODULE_DEVICE_TABLE(i2c, max2175_id);
++
++static const struct of_device_id max2175_of_ids[] = {
++	{ .compatible = "maxim,max2175", },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, max2175_of_ids);
++
++static struct i2c_driver max2175_driver = {
++	.driver = {
++		.name	= DRIVER_NAME,
++		.of_match_table = max2175_of_ids,
++	},
++	.probe		= max2175_probe,
++	.remove		= max2175_remove,
++	.id_table	= max2175_id,
++};
++
++module_i2c_driver(max2175_driver);
++
++MODULE_DESCRIPTION("Maxim MAX2175 RF to Bits tuner driver");
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>");
+diff --git a/drivers/media/i2c/max2175.h b/drivers/media/i2c/max2175.h
+new file mode 100644
+index 000000000000..eb43373ce7e2
+--- /dev/null
++++ b/drivers/media/i2c/max2175.h
+@@ -0,0 +1,109 @@
++/*
++ * Maxim Integrated MAX2175 RF to Bits tuner driver
++ *
++ * This driver & most of the hard coded values are based on the reference
++ * application delivered by Maxim for this device.
++ *
++ * Copyright (C) 2016 Maxim Integrated Products
++ * Copyright (C) 2017 Renesas Electronics Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2
++ * as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef __MAX2175_H__
++#define __MAX2175_H__
++
++#define MAX2175_EU_XTAL_FREQ	36864000	/* In Hz */
++#define MAX2175_NA_XTAL_FREQ	40186125	/* In Hz */
++
++enum max2175_region {
++	MAX2175_REGION_EU = 0,	/* Europe */
++	MAX2175_REGION_NA,	/* North America */
++};
++
++enum max2175_band {
++	MAX2175_BAND_AM = 0,
++	MAX2175_BAND_FM,
++	MAX2175_BAND_VHF,
++	MAX2175_BAND_L,
++};
++
++enum max2175_eu_mode {
++	/* EU modes */
++	MAX2175_EU_FM_1_2 = 0,
++	MAX2175_DAB_1_2,
++
 +	/*
-+	 * A failure, most likely the parameter queue was full.
-+	 * Return error but continue streaming. User can try submitting new
-+	 * parameters again later.
++	 * Other possible modes to add in future
++	 * MAX2175_DAB_1_0,
++	 * MAX2175_DAB_1_3,
++	 * MAX2175_EU_FM_2_2,
++	 * MAX2175_EU_FMHD_4_0,
++	 * MAX2175_EU_AM_1_0,
++	 * MAX2175_EU_AM_2_2,
 +	 */
-+
-+	ipu3_css_pool_put(&css->pool.parameter_set_info);
-+	if (acc)
-+		ipu3_css_pool_put(&css->pool.acc);
-+	if (gdc)
-+		ipu3_css_pool_put(&css->pool.gdc);
-+	if (obgrid)
-+		ipu3_css_pool_put(&css->pool.obgrid);
-+	if (vmem0)
-+		ipu3_css_pool_put(
-+			&css->pool.binary_params_p[IMGU_ABI_MEM_ISP_VMEM0]);
-+	if (dmem0)
-+		ipu3_css_pool_put(
-+			&css->pool.binary_params_p[IMGU_ABI_MEM_ISP_DMEM0]);
-+
-+fail_no_put:
-+	return r;
-+}
-+
- int ipu3_css_irq_ack(struct ipu3_css *css)
- {
- 	static const int NUM_SWIRQS = 3;
-@@ -479,6 +2206,7 @@ int ipu3_css_irq_ack(struct ipu3_css *css)
- 
- 	u32 imgu_status = readl(base + IMGU_REG_INT_STATUS);
- 
-+	writel(imgu_status, base + IMGU_REG_INT_STATUS);
- 	for (i = 0; i < IMGU_IRQCTRL_NUM; i++)
- 		irq_status[i] = readl(base + IMGU_REG_IRQCTRL_STATUS(i));
- 
-@@ -501,7 +2229,6 @@ int ipu3_css_irq_ack(struct ipu3_css *css)
- 			/* Wait for write to complete */
- 			readl(base + IMGU_REG_IRQCTRL_ENABLE(i));
- 		}
--	writel(imgu_status, base + IMGU_REG_INT_STATUS);
- 
- 	dev_dbg(css->dev, "%s: imgu 0x%x main 0x%x sp0 0x%x sp1 0x%x\n",
- 		__func__,
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-css.h b/drivers/media/pci/intel/ipu3/ipu3-css.h
-index 364d490..311410f 100644
---- a/drivers/media/pci/intel/ipu3/ipu3-css.h
-+++ b/drivers/media/pci/intel/ipu3/ipu3-css.h
-@@ -16,6 +16,8 @@
- 
- #include <linux/videodev2.h>
- #include <linux/types.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/videobuf2-core.h>
- #include "ipu3-abi.h"
- #include "ipu3-css-pool.h"
- 
-@@ -61,6 +63,33 @@ enum ipu3_css_pipe_id {
- 	IPU3_CSS_PIPE_ID_NUM
- };
- 
-+struct ipu3_css_resolution {
-+	u32 w;
-+	u32 h;
 +};
 +
-+enum ipu3_css_vf_status {
-+	IPU3_NODE_VF_ENABLED,
-+	IPU3_NODE_PV_ENABLED,
-+	IPU3_NODE_VF_DISABLED
++enum max2175_na_mode {
++	/* NA modes */
++	MAX2175_NA_FM_1_0 = 0,
++	MAX2175_NA_FM_2_0,
++
++	/*
++	 * Other possible modes to add in future
++	 * MAX2175_NA_FMHD_1_0,
++	 * MAX2175_NA_FMHD_1_2,
++	 * MAX2175_NA_AM_1_0,
++	 * MAX2175_NA_AM_1_2,
++	 */
 +};
 +
-+enum ipu3_css_buffer_state {
-+	IPU3_CSS_BUFFER_NEW,	/* Not yet queued */
-+	IPU3_CSS_BUFFER_QUEUED,	/* Queued, waiting to be filled */
-+	IPU3_CSS_BUFFER_DONE,	/* Finished processing, removed from queue */
-+	IPU3_CSS_BUFFER_FAILED,	/* Was not processed, removed from queue */
++/* Supported I2S modes */
++enum {
++	MAX2175_I2S_MODE0 = 0,
++	MAX2175_I2S_MODE1,
++	MAX2175_I2S_MODE2,
++	MAX2175_I2S_MODE3,
++	MAX2175_I2S_MODE4,
 +};
 +
-+struct ipu3_css_buffer {
-+	/* Private fields: user doesn't touch */
-+	dma_addr_t daddr;
-+	unsigned int queue;
-+	enum ipu3_css_buffer_state state;
-+	struct list_head list;
-+	u8 queue_pos;
++/* Coefficient table groups */
++enum {
++	MAX2175_CH_MSEL = 0,
++	MAX2175_EQ_MSEL,
++	MAX2175_AA_MSEL,
 +};
 +
- struct ipu3_css_format {
- 	u32 pixelformat;
- 	enum v4l2_colorspace colorspace;
-@@ -141,11 +170,67 @@ struct ipu3_css {
- 
- 	struct ipu3_css_queue queue[IPU3_CSS_QUEUES];
- 	struct v4l2_rect rect[IPU3_CSS_RECTS];
-+	struct ipu3_css_map abi_buffers[IPU3_CSS_QUEUES]
-+				    [IMGU_ABI_HOST2SP_BUFQ_SIZE];
++/* HSLS LO injection polarity */
++enum {
++	MAX2175_LO_BELOW_DESIRED = 0,
++	MAX2175_LO_ABOVE_DESIRED,
++};
 +
-+	struct ipu3_css_ctrls {
-+		struct v4l2_ctrl_handler handler;
-+	} ctrls;
++/* Channel FSM modes */
++enum max2175_csm_mode {
++	MAX2175_LOAD_TO_BUFFER = 0,
++	MAX2175_PRESET_TUNE,
++	MAX2175_SEARCH,
++	MAX2175_AF_UPDATE,
++	MAX2175_JUMP_FAST_TUNE,
++	MAX2175_CHECK,
++	MAX2175_LOAD_AND_SWAP,
++	MAX2175_END,
++	MAX2175_BUFFER_PLUS_PRESET_TUNE,
++	MAX2175_BUFFER_PLUS_SEARCH,
++	MAX2175_BUFFER_PLUS_AF_UPDATE,
++	MAX2175_BUFFER_PLUS_JUMP_FAST_TUNE,
++	MAX2175_BUFFER_PLUS_CHECK,
++	MAX2175_BUFFER_PLUS_LOAD_AND_SWAP,
++	MAX2175_NO_ACTION
++};
 +
-+	struct {
-+		struct ipu3_css_pool parameter_set_info;
-+		struct ipu3_css_pool acc;
-+		struct ipu3_css_pool gdc;
-+		struct ipu3_css_pool obgrid;
-+		/* PARAM_CLASS_PARAM parameters for binding while streaming */
-+		struct ipu3_css_pool binary_params_p[IMGU_ABI_NUM_MEMORIES];
-+	} pool;
++#endif /* __MAX2175_H__ */
+diff --git a/include/uapi/linux/max2175.h b/include/uapi/linux/max2175.h
+new file mode 100644
+index 000000000000..3ef5d264440f
+--- /dev/null
++++ b/include/uapi/linux/max2175.h
+@@ -0,0 +1,28 @@
++/*
++ * max2175.h
++ *
++ * Maxim Integrated MAX2175 RF to Bits tuner driver - user space header file.
++ *
++ * Copyright (C) 2016 Maxim Integrated Products
++ * Copyright (C) 2017 Renesas Electronics Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2
++ * as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
 +
-+	enum ipu3_css_vf_status vf_output_en;
- };
- 
-+/******************* css v4l *******************/
-+int ipu3_css_init(struct device *dev, struct ipu3_css *css,
-+		  void __iomem *base, dma_addr_t mmu_l1_addr, int length);
-+void ipu3_css_cleanup(struct ipu3_css *css);
-+int ipu3_css_fmt_try(struct ipu3_css *css,
-+		     struct v4l2_pix_format *fmts[IPU3_CSS_QUEUES],
-+		     struct v4l2_rect *rects[IPU3_CSS_RECTS]);
-+int ipu3_css_fmt_set(struct ipu3_css *css,
-+		     struct v4l2_pix_format *fmts[IPU3_CSS_QUEUES],
-+		     struct v4l2_rect *rects[IPU3_CSS_RECTS]);
-+int ipu3_css_buf_queue(struct ipu3_css *css, struct ipu3_css_buffer *b);
-+struct ipu3_css_buffer *ipu3_css_buf_dequeue(struct ipu3_css *css);
-+int ipu3_css_start_streaming(struct ipu3_css *css);
-+void ipu3_css_stop_streaming(struct ipu3_css *css);
++#ifndef __UAPI_MAX2175_H_
++#define __UAPI_MAX2175_H_
 +
- /******************* css hw *******************/
- int ipu3_css_set_powerup(struct ipu3_css *css);
- int ipu3_css_set_powerdown(struct ipu3_css *css);
- int ipu3_css_irq_ack(struct ipu3_css *css);
- 
-+/******************* set parameters ************/
-+int ipu3_css_set_parameters(struct ipu3_css *css,
-+		struct ipu3_uapi_params *set_params,
-+		struct ipu3_uapi_gdc_warp_param *set_gdc,
-+		unsigned int gdc_bytes,
-+		struct ipu3_uapi_obgrid_param *set_obgrid,
-+		unsigned int obgrid_bytes);
++#include <linux/v4l2-controls.h>
 +
-+/******************* css misc *******************/
-+static inline enum ipu3_css_buffer_state
-+ipu3_css_buf_state(struct ipu3_css_buffer *b)
-+{
-+	return b->state;
-+}
++#define V4L2_CID_MAX2175_I2S_ENABLE	(V4L2_CID_USER_MAX217X_BASE + 0x01)
++#define V4L2_CID_MAX2175_HSLS		(V4L2_CID_USER_MAX217X_BASE + 0x02)
++#define V4L2_CID_MAX2175_RX_MODE	(V4L2_CID_USER_MAX217X_BASE + 0x03)
 +
-+/* Initialize given buffer. May be called several times. */
-+static inline void ipu3_css_buf_init(struct ipu3_css_buffer *b,
-+				unsigned int queue, dma_addr_t daddr)
-+{
-+	b->state = IPU3_CSS_BUFFER_NEW;
-+	b->queue = queue;
-+	b->daddr = daddr;
-+}
-+
- #endif
++#endif /* __UAPI_MAX2175_H_ */
 -- 
-2.7.4
+2.12.2
