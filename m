@@ -1,51 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34320 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752230AbdFNJrd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 05:47:33 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org
-Cc: devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
-        robh@kernel.org, pavel@ucw.cz
-Subject: [PATCH 3/8] dt: bindings: Add a binding for referencing EEPROM from camera sensors
-Date: Wed, 14 Jun 2017 12:47:14 +0300
-Message-Id: <1497433639-13101-4-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail.kernel.org ([198.145.29.99]:52402 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752338AbdFLOgq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Jun 2017 10:36:46 -0400
+MIME-Version: 1.0
+In-Reply-To: <20170609175401.40204-2-hverkuil@xs4all.nl>
+References: <20170609175401.40204-1-hverkuil@xs4all.nl> <20170609175401.40204-2-hverkuil@xs4all.nl>
+From: Rob Herring <robh@kernel.org>
+Date: Mon, 12 Jun 2017 09:36:24 -0500
+Message-ID: <CAL_JsqKcabSk5knCwdiHx3QS56_tSTNpJi8tr6=5EzDoGKN1yA@mail.gmail.com>
+Subject: Re: [PATCH 1/2] dt-bindings: add media/cec.txt
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Many camera sensor devices contain EEPROM chips that describe the
-properties of a given unit --- the data is specific to a given unit can
-thus is not stored e.g. in user space or the driver.
+On Fri, Jun 9, 2017 at 12:54 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Document common HDMI CEC bindings. Add this to the MAINTAINERS file
+> as well.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Krzysztof Kozlowski <krzk@kernel.org>
+> Cc: Andrzej Hajda <a.hajda@samsung.com>
+> Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+> Cc: devicetree@vger.kernel.org
+> ---
+>  Documentation/devicetree/bindings/media/cec.txt | 8 ++++++++
+>  MAINTAINERS                                     | 1 +
+>  2 files changed, 9 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/cec.txt
 
-Some sensors embed the EEPROM chip and it can be accessed through the
-sensor's I2C interface. This property is to be used for devices where the
-EEPROM chip is accessed through a different I2C address than the sensor.
+Reviewed-by: Rob Herring <robh@kernel.org>
 
-The intent is to later provide this information to the user space.
+Thanks for doing this.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
----
- Documentation/devicetree/bindings/media/video-interfaces.txt | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index a18d9b2..ae259924 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -76,6 +76,9 @@ Optional properties
- 
- - lens-focus: A phandle to the node of the focus lens controller.
- 
-+- eeprom: A phandle to the node of the EEPROM describing the camera sensor
-+  (i.e. device specific calibration data), in case it differs from the
-+  sensor node.
- 
- Optional endpoint properties
- ----------------------------
--- 
-2.1.4
+Rob
