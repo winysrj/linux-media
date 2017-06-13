@@ -1,83 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33203 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750739AbdFGJNm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 05:13:42 -0400
-Subject: Re: [PATCH v4 3/3] media: mtk-mdp: Fix mdp device tree
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Houlong Wei <houlong.wei@mediatek.com>
-Cc: srv_heupstream@mediatek.com,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        Wu-Cheng Li <wuchengli@google.com>, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
-References: <1495509851-29159-1-git-send-email-minghsiu.tsai@mediatek.com>
- <1495509851-29159-4-git-send-email-minghsiu.tsai@mediatek.com>
- <e7996ad5-03a1-7b53-5d61-ae171473581f@gmail.com>
- <2407aa14-610d-0252-f264-edf22961752e@xs4all.nl>
- <59ac9ca0-3f2f-fa65-011d-c832e4ced265@gmail.com>
- <9ca0b2c5-db3d-4794-1431-89f5a093252f@xs4all.nl>
-From: Matthias Brugger <matthias.bgg@gmail.com>
-Message-ID: <35fb23dd-00e2-e0f1-c3ed-e317883ed007@gmail.com>
-Date: Wed, 7 Jun 2017 11:13:37 +0200
+Received: from mga05.intel.com ([192.55.52.43]:48451 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751753AbdFMI6p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Jun 2017 04:58:45 -0400
+From: Tuukka Toivonen <tuukka.toivonen@intel.com>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
+Subject: Re: [PATCH v2 3/3] [media] intel-ipu3: cio2: Add new MIPI-CSI2 driver
+Date: Tue, 13 Jun 2017 11:58:40 +0300
+Message-ID: <374342140.IzTenANyU8@ttoivone-desk1>
+In-Reply-To: <CAAFQd5Byemom138duZRpsKOzsb5204NfbFnjEdnDTu6wfLgnrQ@mail.gmail.com>
+References: <1496799279-8774-1-git-send-email-yong.zhi@intel.com> <1496799279-8774-4-git-send-email-yong.zhi@intel.com> <CAAFQd5Byemom138duZRpsKOzsb5204NfbFnjEdnDTu6wfLgnrQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <9ca0b2c5-db3d-4794-1431-89f5a093252f@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Tomasz,
 
+On Monday, June 12, 2017 18:59:18 Tomasz Figa wrote:
+> By any chance, doesn't the hardware provide some simple mode for
+> contiguous buffers? Since we have an MMU anyway, we could use
+> vb2_dma_contig and simplify the code significantly.
 
-On 07/06/17 11:11, Hans Verkuil wrote:
-> On 07/06/17 11:07, Matthias Brugger wrote:
->>
->>
->> On 07/06/17 10:56, Hans Verkuil wrote:
->>> On 07/06/17 10:44, Matthias Brugger wrote:
->>>> Hi Hans, hi Mauro,
->>>>
->>>> On 23/05/17 05:24, Minghsiu Tsai wrote:
->>>>> From: Daniel Kurtz <djkurtz@chromium.org>
->>>>>
->>>>> If the mdp_* nodes are under an mdp sub-node, their corresponding
->>>>> platform device does not automatically get its iommu assigned properly.
->>>>>
->>>>> Fix this by moving the mdp component nodes up a level such that they are
->>>>> siblings of mdp and all other SoC subsystems.  This also simplifies the
->>>>> device tree.
->>>>>
->>>>> Although it fixes iommu assignment issue, it also break compatibility
->>>>> with old device tree. So, the patch in driver is needed to iterate over
->>>>> sibling mdp device nodes, not child ones, to keep driver work properly.
->>>>>
->>>>> Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
->>>>> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
->>>>> Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
->>>>>
->>>>
->>>> Are you OK to take this patch, or do you have any further comments?
->>>
->>> Nope, it's all good. Queued for 4.13.
->>>
->>
->> Thanks!
->>
->> I queued the other two in v4.12-next/dts64
+In IPU3 the CIO2 (CSI-2 receiver) and the IMGU (image processing system) 
+are entirely separate PCI devices. The MMU is only in the IMGU device; 
+the CIO2 doesn't have MMU but has the FBPT (frame buffer pointer tables) 
+to handle discontinuous buffers.
+
+[...]
+
 > 
-> Media bindings normally go through the media subsystem, but you've taken
-> that one as well? I need to know, because then I drop it in my tree.
+> > +               pixelformat = V4L2_PIX_FMT_IPU3_SRGGB10;
+> > +
+> > +       alloc_devs[0] = &cio2->pci_dev->dev;
 > 
+> Hmm, so it doesn't go through the IPU MMU in the end?
 
-My fault, I'll drop it from my tree. After that I only queued patch 2/3.
+No, it doesn't.
 
-Sorry.
-Matthias
+> 
+> > +       szimage = cio2_bytesperline(width) * height;
+> > +
+> > +       if (*num_planes) {
+> > +               /*
+> > +                * Only single plane is supported
+> > +                */
+> > +               if (*num_planes != 1 || sizes[0] < szimage)
+> > +                       return -EINVAL;
+> 
+> S_FMT should validate this and then queue_setup should never get an
+> invalid value.
+> 
+> > +       }
+> > +
+> > +       *num_planes = 1;
+> > +       sizes[0] = szimage;
+> > +
+> > +       *num_buffers = clamp_val(*num_buffers, 1, CIO2_MAX_BUFFERS);
+> > +
+> > +       /* Initialize buffer queue */
+> > +       for (i = 0; i < CIO2_MAX_BUFFERS; i++) {
+> > +               q->bufs[i] = NULL;
+> > +               cio2_fbpt_entry_init_dummy(cio2, &q->fbpt[i * 
+CIO2_MAX_LOPS]);
+> > +       }
+> > +       atomic_set(&q->bufs_queued, 0);
+> > +       q->bufs_first = 0;
+> > +       q->bufs_next = 0;
+> > +
+> > +       return r;
+> > +}
+> > +
+> > +/* Called after each buffer is allocated */
+> > +static int cio2_vb2_buf_init(struct vb2_buffer *vb)
+> > +{
+> > +       struct cio2_device *cio2 = vb2_get_drv_priv(vb->vb2_queue);
+> > +       struct device *dev = &cio2->pci_dev->dev;
+> > +       struct cio2_buffer *b =
+> > +               container_of(vb, struct cio2_buffer, vbb.vb2_buf);
+> > +       unsigned int length = vb->planes[0].length;
+> > +       int lops  = DIV_ROUND_UP(DIV_ROUND_UP(length, PAGE_SIZE) + 
+1,
+> > +                                PAGE_SIZE / sizeof(u32));
+> > +       u32 *lop;
+> > +       struct sg_table *sg;
+> > +       struct sg_page_iter sg_iter;
+> > +
+> > +       if (lops <= 0 || lops > CIO2_MAX_LOPS) {
+> > +               dev_err(dev, "%s: bad buffer size (%i)\n", __func__, 
+length);
+> > +               return -ENOSPC;         /* Should never happen */
+> > +       }
+> > +
+> > +       /* Allocate LOP table */
+> > +       b->lop = lop = dma_alloc_noncoherent(dev, lops * PAGE_SIZE,
+> > +                                       &b->lop_bus_addr, 
+GFP_KERNEL);
+> 
+> _coherent?
+> 
+> > +       if (!lop)
+> > +               return -ENOMEM;
+> > +
+> > +       /* Fill LOP */
+> > +       sg = vb2_dma_sg_plane_desc(vb, 0);
+> > +       if (!sg)
+> > +               return -EFAULT;
+> 
+> I'd say -ENOMEM is better here. (But actually it should be impossible,
+> if allocation succeeded previously.)
+> 
+> > +
+> > +       for_each_sg_page(sg->sgl, &sg_iter, sg->nents, 0)
+> > +               *lop++ = sg_page_iter_dma_address(&sg_iter) >> 
+PAGE_SHIFT;
+> > +       *lop++ = cio2->dummy_page_bus_addr >> PAGE_SHIFT;
+> > +
+> > +       return 0;
+> > +}
+> > +
+> > +/* Transfer buffer ownership to cio2 */
+> > +static void cio2_vb2_buf_queue(struct vb2_buffer *vb)
+> > +{
+> > +       struct cio2_device *cio2 = vb2_get_drv_priv(vb->vb2_queue);
+> > +       struct cio2_queue *q =
+> > +               container_of(vb->vb2_queue, struct cio2_queue, vbq);
+> > +       struct cio2_buffer *b =
+> > +               container_of(vb, struct cio2_buffer, vbb.vb2_buf);
+> > +       struct cio2_fbpt_entry *entry;
+> > +       unsigned int next = q->bufs_next;
+> > +       int bufs_queued = atomic_inc_return(&q->bufs_queued);
+> > +
+> > +       if (vb2_start_streaming_called(&q->vbq)) {
+> 
+> Shouldn't it be vb2_is_streaming()? (There is not much difference,
+> though, except that vb2_start_streaming_called() returns true, even
+> before .start_streaming finished, while vb2_is_streaming() does so
+> only after it returns successfully.)
+> 
+> > +               u32 fbpt_rp =
+> > +                       (readl(cio2->base + 
+CIO2_REG_CDMARI(CIO2_DMA_CHAN))
+> > +                        >> CIO2_CDMARI_FBPT_RP_SHIFT)
+> > +                       & CIO2_CDMARI_FBPT_RP_MASK;
+> > +
+> > +               /*
+> > +                * fbpt_rp is the fbpt entry that the dma is 
+currently working
+> > +                * on, but since it could jump to next entry at any 
+time,
+> > +                * assume that we might already be there.
+> > +                */
+> > +               fbpt_rp = (fbpt_rp + 1) % CIO2_MAX_BUFFERS;
+> 
+> Hmm, this is really racy. This code can be pre-empted and not execute
+> for quite long time, depending on system load, resuming after the
+> hardware goes even further. Technically you could prevent this using
+> *_irq_save()/_irq_restore(), but I'd try to find a way that doesn't
+> rely on the timing, if possible.
+
+That is true, if the driver doesn't get executed in more than one frame 
+time. I don't think that's very common, but should be handled.
+
+Hmm. Actually the buffer has VALID bit which is set by driver to indicate
+that the HW can fill the buffer and cleared by HW to indicate that the
+buffer is filled. Probably the HW can not actually jump to the next
+buffer as suggested by the comment, because I think the VALID bit
+would be clear in that case. That should be checked.
+
+> 
+> > +
+> > +               if (bufs_queued <= 1)
+> > +                       next = fbpt_rp + 1;     /* Buffers were 
+drained */
+> > +               else if (fbpt_rp == next)
+> > +                       next++;
+> > +               next %= CIO2_MAX_BUFFERS;
+> > +       }
+> > +
+> > +       while (q->bufs[next]) {
+> > +               /* If the entry is used, get the next one,
+> > +                * We can not break here if all are filled,
+> > +                * Will wait for one free, otherwise it will crash
+> > +                */
+
+That comment should be fixed. "otherwise it will crash" doesn't
+tell much useful. Why would it crash?
+
+> > +               dev_dbg(&cio2->pci_dev->dev,
+> > +                       "entry %i was already full!\n", next);
+> > +               next = (next + 1) % CIO2_MAX_BUFFERS;
+> 
+> A busy waiting, possibly infinite, loop. Hmm.
+
+It's not really busy waiting. We have allocated CIO2_MAX_BUFFERS
+buffers (or actually just buffer entries in HW table) circularly for the
+hardware, and then the user has requested N buffer queue. The driver
+ensures N <= CIO2_MAX_BUFFERS and this guarantees that whenever user
+queues a buffer, there necessarily is a free buffer in the hardware
+circular buffer list. The loop above finds the first free buffer from the
+circular list, which necessarily exists. In practice it should be always
+the very first since that is the oldest one given to hardware.
+
+> 
+> I think we could do something smarter here, such as sleeping on a
+> wait_queue, which is woken up from the interrupt handler.
+
+I think that's a bit complicated for situation which should be never
+possible to happen.
+
+> Also, why do you think it will crash? I think you can just do return
+> the buffer to vb2 with _ERROR status and bail out, if you can't queue
+> due to some failure.
+
+Agree.
+
+- Tuukka
