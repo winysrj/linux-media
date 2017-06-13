@@ -1,74 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40810 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751416AbdFHUAB (ORCPT
+Received: from smtprelay2.synopsys.com ([198.182.60.111]:35863 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752814AbdFMKCC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Jun 2017 16:00:01 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hyungwoo.yang@intel.com
-Subject: [PATCH 1/1] v4l: ctrls: Add a control for digital gain
-Date: Thu,  8 Jun 2017 22:59:58 +0300
-Message-Id: <1496951998-30590-1-git-send-email-sakari.ailus@linux.intel.com>
+        Tue, 13 Jun 2017 06:02:02 -0400
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+To: devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Jose Abreu <Jose.Abreu@synopsys.com>
+Subject: [PATCH 3/4] MAINTAINERS: Add entry for Synopsys Designware HDMI drivers
+Date: Tue, 13 Jun 2017 11:01:17 +0100
+Message-Id: <d42119a9ac27cbee7dd53b083e3e19edba88ecc8.1497347657.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1497347657.git.joabreu@synopsys.com>
+References: <cover.1497347657.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1497347657.git.joabreu@synopsys.com>
+References: <cover.1497347657.git.joabreu@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add V4L2_CID_DIGITAL_GAIN to control explicitly digital gain.
+Add a entry for Synopsys Designware HDMI Receivers drivers
+and phys.
 
-We already have analogue gain control which the digital gain control
-complements. Typically higher quality images are obtained using analogue
-gain only as the digital gain does not add information to the image
-(rather it may remove it).
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Jose Abreu <joabreu@synopsys.com>
 ---
- Documentation/media/uapi/v4l/extended-controls.rst | 7 +++++++
- drivers/media/v4l2-core/v4l2-ctrls.c               | 1 +
- include/uapi/linux/v4l2-controls.h                 | 2 +-
- 3 files changed, 9 insertions(+), 1 deletion(-)
+ MAINTAINERS | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-index abb1057..60b73b0 100644
---- a/Documentation/media/uapi/v4l/extended-controls.rst
-+++ b/Documentation/media/uapi/v4l/extended-controls.rst
-@@ -3021,6 +3021,13 @@ Image Process Control IDs
-     The video deinterlacing mode (such as Bob, Weave, ...). The menu items are
-     driver specific and are documented in :ref:`v4l-drivers`.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 053c3bd..e798040 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -11294,6 +11294,13 @@ L:	netdev@vger.kernel.org
+ S:	Supported
+ F:	drivers/net/ethernet/synopsys/
  
-+``V4L2_CID_DIGITAL_GAIN (integer)``
-+    Digital gain is the value by which all colour components
-+    are multiplied by. Typically the digital gain applied is the
-+    control value divided by e.g. 0x100, meaning that to get no
-+    digital gain the control value needs to be 0x100. This is also
-+    typically the default.
++SYNOPSYS DESIGNWARE HDMI RECEIVERS AND PHY DRIVERS
++M:	Jose Abreu <joabreu@synopsys.com>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/platform/dwc/*
++F:	include/media/dwc/*
 +
- 
- .. _dv-controls:
- 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index ec42872..6318365 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -886,6 +886,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
- 	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
- 	case V4L2_CID_DEINTERLACING_MODE:	return "Deinterlacing Mode";
-+	case V4L2_CID_DIGITAL_GAIN:		return "Digital Gain";
- 
- 	/* DV controls */
- 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 0d2e1e0..0cdb8eb 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -893,7 +893,7 @@ enum v4l2_jpeg_chroma_subsampling {
- #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
- #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
- #define V4L2_CID_DEINTERLACING_MODE		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
--
-+#define V4L2_CID_DIGITAL_GAIN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 5)
- 
- /*  DV-class control IDs defined by V4L2 */
- #define V4L2_CID_DV_CLASS_BASE			(V4L2_CTRL_CLASS_DV | 0x900)
+ SYNOPSYS DESIGNWARE I2C DRIVER
+ M:	Jarkko Nikula <jarkko.nikula@linux.intel.com>
+ R:	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 -- 
-2.1.4
+1.9.1
