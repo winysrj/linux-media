@@ -1,375 +1,1937 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:35015 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752155AbdFUQxv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Jun 2017 12:53:51 -0400
-Received: by mail-wr0-f193.google.com with SMTP id z45so28009057wrb.2
-        for <linux-media@vger.kernel.org>; Wed, 21 Jun 2017 09:53:50 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: liplianin@netup.ru, rjkm@metzlerbros.de
-Subject: [PATCH] [media] ddbridge: use dev_* macros in favor of printk
-Date: Wed, 21 Jun 2017 18:53:47 +0200
-Message-Id: <20170621165347.19409-1-d.scheller.oss@gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:28158 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752285AbdFMGZJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Jun 2017 02:25:09 -0400
+From: Hyungwoo Yang <hyungwoo.yang@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, tfiga@chromium.org, cedric.hsu@intel.com,
+        Hyungwoo Yang <hyungwoo.yang@intel.com>
+Subject: [PATCH RESEND v10 1/1] [media] i2c: add support for OV13858 sensor
+Date: Mon, 12 Jun 2017 23:25:04 -0700
+Message-Id: <1497335104-26118-1-git-send-email-hyungwoo.yang@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+This patch adds driver for Omnivision's ov13858
+sensor, the driver supports following features:
 
-Side effect: KERN_DEBUG messages aren't written to the kernel log anymore.
-This also improves the tda18212_ping reporting a bit so users know that if
-pinging wasn't successful, bad things will happen.
+- manual exposure/gain(analog and digital) control support
+- two link frequencies
+- VBLANK/HBLANK support
+- test pattern support
+- media controller support
+- runtime pm support
+- supported resolutions
+  + 4224x3136 at 30FPS
+  + 2112x1568 at 30FPS(default) and 60FPS
+  + 2112x1188 at 30FPS(default) and 60FPS
+  + 1056x784 at 30FPS(default) and 60FPS
 
-Since in module_init_ddbridge() there's no dev yet, pr_info is used
-instead.
-
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
 ---
- drivers/media/pci/ddbridge/ddbridge-core.c | 78 ++++++++++++++++++------------
- 1 file changed, 46 insertions(+), 32 deletions(-)
+ drivers/media/i2c/Kconfig   |    8 +
+ drivers/media/i2c/Makefile  |    1 +
+ drivers/media/i2c/ov13858.c | 1860 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 1869 insertions(+)
+ create mode 100644 drivers/media/i2c/ov13858.c
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 9420479bee9a..540a121eadd6 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -17,6 +17,8 @@
-  * http://www.gnu.org/copyleft/gpl.html
-  */
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index c380e24..26a9a3c 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -600,6 +600,14 @@ config VIDEO_OV9650
+ 	  This is a V4L2 sensor-level driver for the Omnivision
+ 	  OV9650 and OV9652 camera sensors.
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++config VIDEO_OV13858
++	tristate "OmniVision OV13858 sensor support"
++	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	depends on MEDIA_CAMERA_SUPPORT
++	---help---
++	  This is a Video4Linux2 sensor-level driver for the OmniVision
++	  OV13858 camera.
 +
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/interrupt.h>
-@@ -124,10 +126,10 @@ static int ddb_i2c_cmd(struct ddb_i2c *i2c, u32 adr, u32 cmd)
- 	ddbwritel((adr << 9) | cmd, i2c->regs + I2C_COMMAND);
- 	stat = wait_event_timeout(i2c->wq, i2c->done == 1, HZ);
- 	if (stat == 0) {
--		printk(KERN_ERR "I2C timeout\n");
-+		dev_err(&dev->pdev->dev, "I2C timeout\n");
- 		{ /* MSI debugging*/
- 			u32 istat = ddbreadl(INTERRUPT_STATUS);
--			printk(KERN_ERR "IRS %08x\n", istat);
-+			dev_err(&dev->pdev->dev, "IRS %08x\n", istat);
- 			ddbwritel(istat, INTERRUPT_ACK);
- 		}
- 		return -EIO;
-@@ -533,7 +535,7 @@ static u32 ddb_input_avail(struct ddb_input *input)
- 	off = (stat & 0x7ff) << 7;
- 
- 	if (ctrl & 4) {
--		printk(KERN_ERR "IA %d %d %08x\n", idx, off, ctrl);
-+		dev_err(&dev->pdev->dev, "IA %d %d %08x\n", idx, off, ctrl);
- 		ddbwritel(input->stat, DMA_BUFFER_ACK(input->nr));
- 		return 0;
- 	}
-@@ -611,6 +613,7 @@ static int demod_attach_drxk(struct ddb_input *input)
- 	struct i2c_adapter *i2c = &input->port->i2c->adap;
- 	struct dvb_frontend *fe;
- 	struct drxk_config config;
-+	struct device *dev = &input->port->dev->pdev->dev;
- 
- 	memset(&config, 0, sizeof(config));
- 	config.microcode_name = "drxk_a3.mc";
-@@ -619,7 +622,7 @@ static int demod_attach_drxk(struct ddb_input *input)
- 
- 	fe = input->fe = dvb_attach(drxk_attach, &config, i2c);
- 	if (!input->fe) {
--		printk(KERN_ERR "No DRXK found!\n");
-+		dev_err(dev, "No DRXK found!\n");
- 		return -ENODEV;
- 	}
- 	fe->sec_priv = input;
-@@ -632,12 +635,13 @@ static int tuner_attach_tda18271(struct ddb_input *input)
- {
- 	struct i2c_adapter *i2c = &input->port->i2c->adap;
- 	struct dvb_frontend *fe;
-+	struct device *dev = &input->port->dev->pdev->dev;
- 
- 	if (input->fe->ops.i2c_gate_ctrl)
- 		input->fe->ops.i2c_gate_ctrl(input->fe, 1);
- 	fe = dvb_attach(tda18271c2dd_attach, input->fe, i2c, 0x60);
- 	if (!fe) {
--		printk(KERN_ERR "No TDA18271 found!\n");
-+		dev_err(dev, "No TDA18271 found!\n");
- 		return -ENODEV;
- 	}
- 	if (input->fe->ops.i2c_gate_ctrl)
-@@ -670,13 +674,14 @@ static struct stv0367_config ddb_stv0367_config[] = {
- static int demod_attach_stv0367(struct ddb_input *input)
- {
- 	struct i2c_adapter *i2c = &input->port->i2c->adap;
-+	struct device *dev = &input->port->dev->pdev->dev;
- 
- 	/* attach frontend */
- 	input->fe = dvb_attach(stv0367ddb_attach,
- 		&ddb_stv0367_config[(input->nr & 1)], i2c);
- 
- 	if (!input->fe) {
--		printk(KERN_ERR "stv0367ddb_attach failed (not found?)\n");
-+		dev_err(dev, "stv0367ddb_attach failed (not found?)\n");
- 		return -ENODEV;
- 	}
- 
-@@ -690,17 +695,19 @@ static int demod_attach_stv0367(struct ddb_input *input)
- static int tuner_tda18212_ping(struct ddb_input *input, unsigned short adr)
- {
- 	struct i2c_adapter *adapter = &input->port->i2c->adap;
-+	struct device *dev = &input->port->dev->pdev->dev;
+ config VIDEO_VS6624
+ 	tristate "ST VS6624 sensor support"
+ 	depends on VIDEO_V4L2 && I2C
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 62323ec..3f4dc02 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -63,6 +63,7 @@ obj-$(CONFIG_VIDEO_OV5647) += ov5647.o
+ obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
+ obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
+ obj-$(CONFIG_VIDEO_OV9650) += ov9650.o
++obj-$(CONFIG_VIDEO_OV13858) += ov13858.o
+ obj-$(CONFIG_VIDEO_MT9M032) += mt9m032.o
+ obj-$(CONFIG_VIDEO_MT9M111) += mt9m111.o
+ obj-$(CONFIG_VIDEO_MT9P031) += mt9p031.o
+diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+new file mode 100644
+index 0000000..6e1c280
+--- /dev/null
++++ b/drivers/media/i2c/ov13858.c
+@@ -0,0 +1,1860 @@
++/*
++ * Copyright (c) 2017 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ */
 +
- 	u8 tda_id[2];
- 	u8 subaddr = 0x00;
- 
--	printk(KERN_DEBUG "stv0367-tda18212 tuner ping\n");
-+	dev_dbg(dev, "stv0367-tda18212 tuner ping\n");
- 	if (input->fe->ops.i2c_gate_ctrl)
- 		input->fe->ops.i2c_gate_ctrl(input->fe, 1);
- 
- 	if (i2c_read_regs(adapter, adr, subaddr, tda_id, sizeof(tda_id)) < 0)
--		printk(KERN_DEBUG "tda18212 ping 1 fail\n");
-+		dev_dbg(dev, "tda18212 ping 1 fail\n");
- 	if (i2c_read_regs(adapter, adr, subaddr, tda_id, sizeof(tda_id)) < 0)
--		printk(KERN_DEBUG "tda18212 ping 2 fail\n");
-+		dev_warn(dev, "tda18212 ping failed, expect problems\n");
- 
- 	if (input->fe->ops.i2c_gate_ctrl)
- 		input->fe->ops.i2c_gate_ctrl(input->fe, 0);
-@@ -711,6 +718,7 @@ static int tuner_tda18212_ping(struct ddb_input *input, unsigned short adr)
- static int demod_attach_cxd28xx(struct ddb_input *input, int par, int osc24)
- {
- 	struct i2c_adapter *i2c = &input->port->i2c->adap;
-+	struct device *dev = &input->port->dev->pdev->dev;
- 	struct cxd2841er_config cfg;
- 
- 	/* the cxd2841er driver expects 8bit/shifted I2C addresses */
-@@ -728,7 +736,7 @@ static int demod_attach_cxd28xx(struct ddb_input *input, int par, int osc24)
- 	input->fe = dvb_attach(cxd2841er_attach_t_c, &cfg, i2c);
- 
- 	if (!input->fe) {
--		printk(KERN_ERR "No Sony CXD28xx found!\n");
-+		dev_err(dev, "No Sony CXD28xx found!\n");
- 		return -ENODEV;
- 	}
- 
-@@ -742,6 +750,7 @@ static int demod_attach_cxd28xx(struct ddb_input *input, int par, int osc24)
- static int tuner_attach_tda18212(struct ddb_input *input, u32 porttype)
- {
- 	struct i2c_adapter *adapter = &input->port->i2c->adap;
-+	struct device *dev = &input->port->dev->pdev->dev;
- 	struct i2c_client *client;
- 	struct tda18212_config config = {
- 		.fe = input->fe,
-@@ -786,7 +795,7 @@ static int tuner_attach_tda18212(struct ddb_input *input, u32 porttype)
- 
- 	return 0;
- err:
--	printk(KERN_INFO "TDA18212 tuner not found. Device is not fully operational.\n");
-+	dev_warn(dev, "TDA18212 tuner not found. Device is not fully operational.\n");
- 	return -ENODEV;
- }
- 
-@@ -847,19 +856,20 @@ static struct stv6110x_config stv6110b = {
- static int demod_attach_stv0900(struct ddb_input *input, int type)
- {
- 	struct i2c_adapter *i2c = &input->port->i2c->adap;
-+	struct device *dev = &input->port->dev->pdev->dev;
- 	struct stv090x_config *feconf = type ? &stv0900_aa : &stv0900;
- 
- 	input->fe = dvb_attach(stv090x_attach, feconf, i2c,
- 			       (input->nr & 1) ? STV090x_DEMODULATOR_1
- 			       : STV090x_DEMODULATOR_0);
- 	if (!input->fe) {
--		printk(KERN_ERR "No STV0900 found!\n");
-+		dev_err(dev, "No STV0900 found!\n");
- 		return -ENODEV;
- 	}
- 	if (!dvb_attach(lnbh24_attach, input->fe, i2c, 0,
- 			0, (input->nr & 1) ?
- 			(0x09 - type) : (0x0b - type))) {
--		printk(KERN_ERR "No LNBH24 found!\n");
-+		dev_err(dev, "No LNBH24 found!\n");
- 		return -ENODEV;
- 	}
- 	return 0;
-@@ -868,6 +878,7 @@ static int demod_attach_stv0900(struct ddb_input *input, int type)
- static int tuner_attach_stv6110(struct ddb_input *input, int type)
- {
- 	struct i2c_adapter *i2c = &input->port->i2c->adap;
-+	struct device *dev = &input->port->dev->pdev->dev;
- 	struct stv090x_config *feconf = type ? &stv0900_aa : &stv0900;
- 	struct stv6110x_config *tunerconf = (input->nr & 1) ?
- 		&stv6110b : &stv6110a;
-@@ -875,10 +886,10 @@ static int tuner_attach_stv6110(struct ddb_input *input, int type)
- 
- 	ctl = dvb_attach(stv6110x_attach, input->fe, tunerconf, i2c);
- 	if (!ctl) {
--		printk(KERN_ERR "No STV6110X found!\n");
-+		dev_err(dev, "No STV6110X found!\n");
- 		return -ENODEV;
- 	}
--	printk(KERN_INFO "attach tuner input %d adr %02x\n",
-+	dev_info(dev, "attach tuner input %d adr %02x\n",
- 			 input->nr, tunerconf->addr);
- 
- 	feconf->tuner_init          = ctl->tuner_init;
-@@ -1009,13 +1020,14 @@ static int dvb_input_attach(struct ddb_input *input)
- 	struct ddb_port *port = input->port;
- 	struct dvb_adapter *adap = &input->adap;
- 	struct dvb_demux *dvbdemux = &input->demux;
-+	struct device *dev = &input->port->dev->pdev->dev;
- 	int sony_osc24 = 0, sony_tspar = 0;
- 
- 	ret = dvb_register_adapter(adap, "DDBridge", THIS_MODULE,
- 				   &input->port->dev->pdev->dev,
- 				   adapter_nr);
- 	if (ret < 0) {
--		printk(KERN_ERR "ddbridge: Could not register adapter.Check if you enabled enough adapters in dvb-core!\n");
-+		dev_err(dev, "Could not register adapter. Check if you enabled enough adapters in dvb-core!\n");
- 		return ret;
- 	}
- 	input->attached = 1;
-@@ -1241,7 +1253,7 @@ static void input_tasklet(unsigned long data)
- 
- 	if (input->port->class == DDB_PORT_TUNER) {
- 		if (4&ddbreadl(DMA_BUFFER_CONTROL(input->nr)))
--			printk(KERN_ERR "Overflow input %d\n", input->nr);
-+			dev_err(&dev->pdev->dev, "Overflow input %d\n", input->nr);
- 		while (input->cbuf != ((input->stat >> 11) & 0x1f)
- 		       || (4&ddbreadl(DMA_BUFFER_CONTROL(input->nr)))) {
- 			dvb_dmx_swfilter_packets(&input->demux,
-@@ -1310,6 +1322,7 @@ static int ddb_ci_attach(struct ddb_port *port)
- 
- static int ddb_port_attach(struct ddb_port *port)
- {
-+	struct device *dev = &port->dev->pdev->dev;
- 	int ret = 0;
- 
- 	switch (port->class) {
-@@ -1326,7 +1339,7 @@ static int ddb_port_attach(struct ddb_port *port)
- 		break;
- 	}
- 	if (ret < 0)
--		printk(KERN_ERR "port_attach on port %d failed\n", port->nr);
-+		dev_err(dev, "port_attach on port %d failed\n", port->nr);
- 	return ret;
- }
- 
-@@ -1377,6 +1390,7 @@ static void ddb_ports_detach(struct ddb *dev)
- static int init_xo2(struct ddb_port *port)
- {
- 	struct i2c_adapter *i2c = &port->i2c->adap;
-+	struct device *dev = &port->dev->pdev->dev;
- 	u8 val, data[2];
- 	int res;
- 
-@@ -1385,7 +1399,7 @@ static int init_xo2(struct ddb_port *port)
- 		return res;
- 
- 	if (data[0] != 0x01)  {
--		pr_info("Port %d: invalid XO2\n", port->nr);
-+		dev_info(dev, "Port %d: invalid XO2\n", port->nr);
- 		return -1;
- 	}
- 
-@@ -1511,7 +1525,7 @@ static void ddb_port_probe(struct ddb_port *port)
- 		port->class = DDB_PORT_CI;
- 		ddbwritel(I2C_SPEED_400, port->i2c->regs + I2C_TIMING);
- 	} else if (port_has_xo2(port, &xo2_type, &xo2_id)) {
--		printk(KERN_INFO "Port %d (TAB %d): XO2 type: %d, id: %d\n",
-+		dev_dbg(&dev->pdev->dev, "Port %d (TAB %d): XO2 type: %d, id: %d\n",
- 			port->nr, port->nr+1, xo2_type, xo2_id);
- 
- 		ddbwritel(I2C_SPEED_400, port->i2c->regs + I2C_TIMING);
-@@ -1556,10 +1570,10 @@ static void ddb_port_probe(struct ddb_port *port)
- 			}
- 			break;
- 		case DDB_XO2_TYPE_CI:
--			printk(KERN_INFO "DuoFlex CI modules not supported\n");
-+			dev_info(&dev->pdev->dev, "DuoFlex CI modules not supported\n");
- 			break;
- 		default:
--			printk(KERN_INFO "Unknown XO2 DuoFlex module\n");
-+			dev_info(&dev->pdev->dev, "Unknown XO2 DuoFlex module\n");
- 			break;
- 		}
- 	} else if (port_has_cxd28xx(port, &cxd_id)) {
-@@ -1611,7 +1625,7 @@ static void ddb_port_probe(struct ddb_port *port)
- 		ddbwritel(I2C_SPEED_100, port->i2c->regs + I2C_TIMING);
- 	}
- 
--	printk(KERN_INFO "Port %d (TAB %d): %s\n",
-+	dev_info(&dev->pdev->dev, "Port %d (TAB %d): %s\n",
- 			 port->nr, port->nr+1, modname);
- }
- 
-@@ -1993,7 +2007,7 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 	dev->pdev = pdev;
- 	pci_set_drvdata(pdev, dev);
- 	dev->info = (struct ddb_info *) id->driver_data;
--	printk(KERN_INFO "DDBridge driver detected: %s\n", dev->info->name);
-+	dev_info(&pdev->dev, "Detected %s\n", dev->info->name);
- 
- 	dev->regs = ioremap(pci_resource_start(dev->pdev, 0),
- 			    pci_resource_len(dev->pdev, 0));
-@@ -2001,13 +2015,13 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 		stat = -ENOMEM;
- 		goto fail;
- 	}
--	printk(KERN_INFO "HW %08x FW %08x\n", ddbreadl(0), ddbreadl(4));
-+	dev_info(&pdev->dev, "HW %08x FW %08x\n", ddbreadl(0), ddbreadl(4));
- 
- #ifdef CONFIG_PCI_MSI
- 	if (pci_msi_enabled())
- 		stat = pci_enable_msi(dev->pdev);
- 	if (stat) {
--		printk(KERN_INFO ": MSI not available.\n");
-+		dev_info(&pdev->dev, "MSI not available.\n");
- 	} else {
- 		irq_flag = 0;
- 		dev->msi = 1;
-@@ -2040,7 +2054,7 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 		goto fail1;
- 	ddb_ports_init(dev);
- 	if (ddb_buffers_alloc(dev) < 0) {
--		printk(KERN_INFO ": Could not allocate buffer memory\n");
-+		dev_err(&pdev->dev, "Could not allocate buffer memory\n");
- 		goto fail2;
- 	}
- 	if (ddb_ports_attach(dev) < 0)
-@@ -2050,19 +2064,19 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 
- fail3:
- 	ddb_ports_detach(dev);
--	printk(KERN_ERR "fail3\n");
-+	dev_err(&pdev->dev, "fail3\n");
- 	ddb_ports_release(dev);
- fail2:
--	printk(KERN_ERR "fail2\n");
-+	dev_err(&pdev->dev, "fail2\n");
- 	ddb_buffers_free(dev);
- fail1:
--	printk(KERN_ERR "fail1\n");
-+	dev_err(&pdev->dev, "fail1\n");
- 	if (dev->msi)
- 		pci_disable_msi(dev->pdev);
- 	if (stat == 0)
- 		free_irq(dev->pdev->irq, dev);
- fail:
--	printk(KERN_ERR "fail\n");
-+	dev_err(&pdev->dev, "fail\n");
- 	ddb_unmap(dev);
- 	pci_set_drvdata(pdev, NULL);
- 	pci_disable_device(pdev);
-@@ -2242,7 +2256,7 @@ static __init int module_init_ddbridge(void)
- {
- 	int ret;
- 
--	printk(KERN_INFO "Digital Devices PCIE bridge driver, Copyright (C) 2010-11 Digital Devices GmbH\n");
-+	pr_info("Digital Devices PCIE bridge driver, Copyright (C) 2010-11 Digital Devices GmbH\n");
- 
- 	ret = ddb_class_create();
- 	if (ret < 0)
++#include <linux/acpi.h>
++#include <linux/i2c.h>
++#include <linux/module.h>
++#include <linux/pm_runtime.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++
++#define OV13858_REG_VALUE_08BIT		1
++#define OV13858_REG_VALUE_16BIT		2
++#define OV13858_REG_VALUE_24BIT		3
++
++#define OV13858_REG_MODE_SELECT		0x0100
++#define OV13858_MODE_STANDBY		0x00
++#define OV13858_MODE_STREAMING		0x01
++
++#define OV13858_REG_SOFTWARE_RST	0x0103
++#define OV13858_SOFTWARE_RST		0x01
++
++/* PLL1 generates PCLK and MIPI_PHY_CLK */
++#define OV13858_REG_PLL1_CTRL_0		0x0300
++#define OV13858_REG_PLL1_CTRL_1		0x0301
++#define OV13858_REG_PLL1_CTRL_2		0x0302
++#define OV13858_REG_PLL1_CTRL_3		0x0303
++#define OV13858_REG_PLL1_CTRL_4		0x0304
++#define OV13858_REG_PLL1_CTRL_5		0x0305
++
++/* PLL2 generates DAC_CLK, SCLK and SRAM_CLK */
++#define OV13858_REG_PLL2_CTRL_B		0x030b
++#define OV13858_REG_PLL2_CTRL_C		0x030c
++#define OV13858_REG_PLL2_CTRL_D		0x030d
++#define OV13858_REG_PLL2_CTRL_E		0x030e
++#define OV13858_REG_PLL2_CTRL_F		0x030f
++#define OV13858_REG_PLL2_CTRL_12	0x0312
++#define OV13858_REG_MIPI_SC_CTRL0	0x3016
++#define OV13858_REG_MIPI_SC_CTRL1	0x3022
++
++/* Chip ID */
++#define OV13858_REG_CHIP_ID		0x300a
++#define OV13858_CHIP_ID			0x00d855
++
++/* V_TIMING internal */
++#define OV13858_REG_VTS			0x380e
++#define OV13858_VTS_30FPS		0x0c8e /* 30 fps */
++#define OV13858_VTS_60FPS		0x0648 /* 60 fps */
++#define OV13858_VTS_MAX			0x7fff
++#define OV13858_VBLANK_MIN		56
++
++/* HBLANK control - read only */
++#define OV13858_PPL_540MHZ		2244
++#define OV13858_PPL_1080MHZ		4488
++
++/* Exposure control */
++#define OV13858_REG_EXPOSURE		0x3500
++#define OV13858_EXPOSURE_MIN		4
++#define OV13858_EXPOSURE_MAX		(OV13858_VTS_MAX - 8)
++#define OV13858_EXPOSURE_STEP		1
++#define OV13858_EXPOSURE_DEFAULT	0x640
++
++/* Analog gain control */
++#define OV13858_REG_ANALOG_GAIN		0x3508
++#define OV13858_ANA_GAIN_MIN		0
++#define OV13858_ANA_GAIN_MAX		0x1fff
++#define OV13858_ANA_GAIN_STEP		1
++#define OV13858_ANA_GAIN_DEFAULT	0x80
++
++/* Digital gain control */
++#define OV13858_REG_DIGITAL_GAIN	0x350a
++#define OV13858_DGTL_GAIN_MASK		0xf3
++#define OV13858_DGTL_GAIN_SHIFT		2
++#define OV13858_DGTL_GAIN_MIN		1
++#define OV13858_DGTL_GAIN_MAX		4
++#define OV13858_DGTL_GAIN_STEP		1
++#define OV13858_DGTL_GAIN_DEFAULT	1
++
++/* Test Pattern Control */
++#define OV13858_REG_TEST_PATTERN	0x4503
++#define OV13858_TEST_PATTERN_ENABLE	BIT(7)
++#define OV13858_TEST_PATTERN_MASK	0xfc
++
++/* Number of frames to skip */
++#define OV13858_NUM_OF_SKIP_FRAMES	2
++
++struct ov13858_reg {
++	u16 address;
++	u8 val;
++};
++
++struct ov13858_reg_list {
++	u32 num_of_regs;
++	const struct ov13858_reg *regs;
++};
++
++/* Link frequency config */
++struct ov13858_link_freq_config {
++	u32 pixel_rate;
++	u32 pixels_per_line;
++
++	/* PLL registers for this link frequency */
++	struct ov13858_reg_list reg_list;
++};
++
++/* Mode : resolution and related config&values */
++struct ov13858_mode {
++	/* Frame width */
++	u32 width;
++	/* Frame height */
++	u32 height;
++
++	/* V-timing */
++	u32 vts;
++
++	/* Index of Link frequency config to be used */
++	u32 link_freq_index;
++	/* Default register values */
++	struct ov13858_reg_list reg_list;
++};
++
++static const struct ov13858_reg mode_4224x3136_regs[] = {
++	{0x3013, 0x32},
++	{0x301b, 0xf0},
++	{0x301f, 0xd0},
++	{0x3106, 0x15},
++	{0x3107, 0x23},
++	{0x350a, 0x00},
++	{0x350e, 0x00},
++	{0x3510, 0x00},
++	{0x3511, 0x02},
++	{0x3512, 0x00},
++	{0x3600, 0x2b},
++	{0x3601, 0x52},
++	{0x3602, 0x60},
++	{0x3612, 0x05},
++	{0x3613, 0xa4},
++	{0x3620, 0x80},
++	{0x3621, 0x10},
++	{0x3622, 0x30},
++	{0x3624, 0x1c},
++	{0x3640, 0x10},
++	{0x3641, 0x70},
++	{0x3661, 0x80},
++	{0x3662, 0x12},
++	{0x3664, 0x73},
++	{0x3665, 0xa7},
++	{0x366e, 0xff},
++	{0x366f, 0xf4},
++	{0x3674, 0x00},
++	{0x3679, 0x0c},
++	{0x367f, 0x01},
++	{0x3680, 0x0c},
++	{0x3681, 0x50},
++	{0x3682, 0x50},
++	{0x3683, 0xa9},
++	{0x3684, 0xa9},
++	{0x3709, 0x5f},
++	{0x3714, 0x24},
++	{0x371a, 0x3e},
++	{0x3737, 0x04},
++	{0x3738, 0xcc},
++	{0x3739, 0x12},
++	{0x373d, 0x26},
++	{0x3764, 0x20},
++	{0x3765, 0x20},
++	{0x37a1, 0x36},
++	{0x37a8, 0x3b},
++	{0x37ab, 0x31},
++	{0x37c2, 0x04},
++	{0x37c3, 0xf1},
++	{0x37c5, 0x00},
++	{0x37d8, 0x03},
++	{0x37d9, 0x0c},
++	{0x37da, 0xc2},
++	{0x37dc, 0x02},
++	{0x37e0, 0x00},
++	{0x37e1, 0x0a},
++	{0x37e2, 0x14},
++	{0x37e3, 0x04},
++	{0x37e4, 0x2a},
++	{0x37e5, 0x03},
++	{0x37e6, 0x04},
++	{0x3800, 0x00},
++	{0x3801, 0x00},
++	{0x3802, 0x00},
++	{0x3803, 0x00},
++	{0x3804, 0x10},
++	{0x3805, 0x9f},
++	{0x3806, 0x0c},
++	{0x3807, 0x5f},
++	{0x3808, 0x10},
++	{0x3809, 0x80},
++	{0x380a, 0x0c},
++	{0x380b, 0x40},
++	{0x380c, 0x04},
++	{0x380d, 0x62},
++	{0x380e, 0x0c},
++	{0x380f, 0x8e},
++	{0x3811, 0x04},
++	{0x3813, 0x05},
++	{0x3814, 0x01},
++	{0x3815, 0x01},
++	{0x3816, 0x01},
++	{0x3817, 0x01},
++	{0x3820, 0xa8},
++	{0x3821, 0x00},
++	{0x3822, 0xc2},
++	{0x3823, 0x18},
++	{0x3826, 0x11},
++	{0x3827, 0x1c},
++	{0x3829, 0x03},
++	{0x3832, 0x00},
++	{0x3c80, 0x00},
++	{0x3c87, 0x01},
++	{0x3c8c, 0x19},
++	{0x3c8d, 0x1c},
++	{0x3c90, 0x00},
++	{0x3c91, 0x00},
++	{0x3c92, 0x00},
++	{0x3c93, 0x00},
++	{0x3c94, 0x40},
++	{0x3c95, 0x54},
++	{0x3c96, 0x34},
++	{0x3c97, 0x04},
++	{0x3c98, 0x00},
++	{0x3d8c, 0x73},
++	{0x3d8d, 0xc0},
++	{0x3f00, 0x0b},
++	{0x3f03, 0x00},
++	{0x4001, 0xe0},
++	{0x4008, 0x00},
++	{0x4009, 0x0f},
++	{0x4011, 0xf0},
++	{0x4017, 0x08},
++	{0x4050, 0x04},
++	{0x4051, 0x0b},
++	{0x4052, 0x00},
++	{0x4053, 0x80},
++	{0x4054, 0x00},
++	{0x4055, 0x80},
++	{0x4056, 0x00},
++	{0x4057, 0x80},
++	{0x4058, 0x00},
++	{0x4059, 0x80},
++	{0x405e, 0x20},
++	{0x4500, 0x07},
++	{0x4503, 0x00},
++	{0x450a, 0x04},
++	{0x4809, 0x04},
++	{0x480c, 0x12},
++	{0x481f, 0x30},
++	{0x4833, 0x10},
++	{0x4837, 0x0e},
++	{0x4902, 0x01},
++	{0x4d00, 0x03},
++	{0x4d01, 0xc9},
++	{0x4d02, 0xbc},
++	{0x4d03, 0xd7},
++	{0x4d04, 0xf0},
++	{0x4d05, 0xa2},
++	{0x5000, 0xfd},
++	{0x5001, 0x01},
++	{0x5040, 0x39},
++	{0x5041, 0x10},
++	{0x5042, 0x10},
++	{0x5043, 0x84},
++	{0x5044, 0x62},
++	{0x5180, 0x00},
++	{0x5181, 0x10},
++	{0x5182, 0x02},
++	{0x5183, 0x0f},
++	{0x5200, 0x1b},
++	{0x520b, 0x07},
++	{0x520c, 0x0f},
++	{0x5300, 0x04},
++	{0x5301, 0x0c},
++	{0x5302, 0x0c},
++	{0x5303, 0x0f},
++	{0x5304, 0x00},
++	{0x5305, 0x70},
++	{0x5306, 0x00},
++	{0x5307, 0x80},
++	{0x5308, 0x00},
++	{0x5309, 0xa5},
++	{0x530a, 0x00},
++	{0x530b, 0xd3},
++	{0x530c, 0x00},
++	{0x530d, 0xf0},
++	{0x530e, 0x01},
++	{0x530f, 0x10},
++	{0x5310, 0x01},
++	{0x5311, 0x20},
++	{0x5312, 0x01},
++	{0x5313, 0x20},
++	{0x5314, 0x01},
++	{0x5315, 0x20},
++	{0x5316, 0x08},
++	{0x5317, 0x08},
++	{0x5318, 0x10},
++	{0x5319, 0x88},
++	{0x531a, 0x88},
++	{0x531b, 0xa9},
++	{0x531c, 0xaa},
++	{0x531d, 0x0a},
++	{0x5405, 0x02},
++	{0x5406, 0x67},
++	{0x5407, 0x01},
++	{0x5408, 0x4a},
++};
++
++static const struct ov13858_reg mode_2112x1568_regs[] = {
++	{0x3013, 0x32},
++	{0x301b, 0xf0},
++	{0x301f, 0xd0},
++	{0x3106, 0x15},
++	{0x3107, 0x23},
++	{0x350a, 0x00},
++	{0x350e, 0x00},
++	{0x3510, 0x00},
++	{0x3511, 0x02},
++	{0x3512, 0x00},
++	{0x3600, 0x2b},
++	{0x3601, 0x52},
++	{0x3602, 0x60},
++	{0x3612, 0x05},
++	{0x3613, 0xa4},
++	{0x3620, 0x80},
++	{0x3621, 0x10},
++	{0x3622, 0x30},
++	{0x3624, 0x1c},
++	{0x3640, 0x10},
++	{0x3641, 0x70},
++	{0x3661, 0x80},
++	{0x3662, 0x10},
++	{0x3664, 0x73},
++	{0x3665, 0xa7},
++	{0x366e, 0xff},
++	{0x366f, 0xf4},
++	{0x3674, 0x00},
++	{0x3679, 0x0c},
++	{0x367f, 0x01},
++	{0x3680, 0x0c},
++	{0x3681, 0x50},
++	{0x3682, 0x50},
++	{0x3683, 0xa9},
++	{0x3684, 0xa9},
++	{0x3709, 0x5f},
++	{0x3714, 0x28},
++	{0x371a, 0x3e},
++	{0x3737, 0x08},
++	{0x3738, 0xcc},
++	{0x3739, 0x20},
++	{0x373d, 0x26},
++	{0x3764, 0x20},
++	{0x3765, 0x20},
++	{0x37a1, 0x36},
++	{0x37a8, 0x3b},
++	{0x37ab, 0x31},
++	{0x37c2, 0x14},
++	{0x37c3, 0xf1},
++	{0x37c5, 0x00},
++	{0x37d8, 0x03},
++	{0x37d9, 0x0c},
++	{0x37da, 0xc2},
++	{0x37dc, 0x02},
++	{0x37e0, 0x00},
++	{0x37e1, 0x0a},
++	{0x37e2, 0x14},
++	{0x37e3, 0x08},
++	{0x37e4, 0x38},
++	{0x37e5, 0x03},
++	{0x37e6, 0x08},
++	{0x3800, 0x00},
++	{0x3801, 0x00},
++	{0x3802, 0x00},
++	{0x3803, 0x00},
++	{0x3804, 0x10},
++	{0x3805, 0x9f},
++	{0x3806, 0x0c},
++	{0x3807, 0x5f},
++	{0x3808, 0x08},
++	{0x3809, 0x40},
++	{0x380a, 0x06},
++	{0x380b, 0x20},
++	{0x380c, 0x04},
++	{0x380d, 0x62},
++	{0x380e, 0x0c},
++	{0x380f, 0x8e},
++	{0x3811, 0x04},
++	{0x3813, 0x05},
++	{0x3814, 0x03},
++	{0x3815, 0x01},
++	{0x3816, 0x03},
++	{0x3817, 0x01},
++	{0x3820, 0xab},
++	{0x3821, 0x00},
++	{0x3822, 0xc2},
++	{0x3823, 0x18},
++	{0x3826, 0x04},
++	{0x3827, 0x90},
++	{0x3829, 0x07},
++	{0x3832, 0x00},
++	{0x3c80, 0x00},
++	{0x3c87, 0x01},
++	{0x3c8c, 0x19},
++	{0x3c8d, 0x1c},
++	{0x3c90, 0x00},
++	{0x3c91, 0x00},
++	{0x3c92, 0x00},
++	{0x3c93, 0x00},
++	{0x3c94, 0x40},
++	{0x3c95, 0x54},
++	{0x3c96, 0x34},
++	{0x3c97, 0x04},
++	{0x3c98, 0x00},
++	{0x3d8c, 0x73},
++	{0x3d8d, 0xc0},
++	{0x3f00, 0x0b},
++	{0x3f03, 0x00},
++	{0x4001, 0xe0},
++	{0x4008, 0x00},
++	{0x4009, 0x0d},
++	{0x4011, 0xf0},
++	{0x4017, 0x08},
++	{0x4050, 0x04},
++	{0x4051, 0x0b},
++	{0x4052, 0x00},
++	{0x4053, 0x80},
++	{0x4054, 0x00},
++	{0x4055, 0x80},
++	{0x4056, 0x00},
++	{0x4057, 0x80},
++	{0x4058, 0x00},
++	{0x4059, 0x80},
++	{0x405e, 0x20},
++	{0x4500, 0x07},
++	{0x4503, 0x00},
++	{0x450a, 0x04},
++	{0x4809, 0x04},
++	{0x480c, 0x12},
++	{0x481f, 0x30},
++	{0x4833, 0x10},
++	{0x4837, 0x1c},
++	{0x4902, 0x01},
++	{0x4d00, 0x03},
++	{0x4d01, 0xc9},
++	{0x4d02, 0xbc},
++	{0x4d03, 0xd7},
++	{0x4d04, 0xf0},
++	{0x4d05, 0xa2},
++	{0x5000, 0xfd},
++	{0x5001, 0x01},
++	{0x5040, 0x39},
++	{0x5041, 0x10},
++	{0x5042, 0x10},
++	{0x5043, 0x84},
++	{0x5044, 0x62},
++	{0x5180, 0x00},
++	{0x5181, 0x10},
++	{0x5182, 0x02},
++	{0x5183, 0x0f},
++	{0x5200, 0x1b},
++	{0x520b, 0x07},
++	{0x520c, 0x0f},
++	{0x5300, 0x04},
++	{0x5301, 0x0c},
++	{0x5302, 0x0c},
++	{0x5303, 0x0f},
++	{0x5304, 0x00},
++	{0x5305, 0x70},
++	{0x5306, 0x00},
++	{0x5307, 0x80},
++	{0x5308, 0x00},
++	{0x5309, 0xa5},
++	{0x530a, 0x00},
++	{0x530b, 0xd3},
++	{0x530c, 0x00},
++	{0x530d, 0xf0},
++	{0x530e, 0x01},
++	{0x530f, 0x10},
++	{0x5310, 0x01},
++	{0x5311, 0x20},
++	{0x5312, 0x01},
++	{0x5313, 0x20},
++	{0x5314, 0x01},
++	{0x5315, 0x20},
++	{0x5316, 0x08},
++	{0x5317, 0x08},
++	{0x5318, 0x10},
++	{0x5319, 0x88},
++	{0x531a, 0x88},
++	{0x531b, 0xa9},
++	{0x531c, 0xaa},
++	{0x531d, 0x0a},
++	{0x5405, 0x02},
++	{0x5406, 0x67},
++	{0x5407, 0x01},
++	{0x5408, 0x4a},
++};
++
++static const struct ov13858_reg mode_2112x1188_regs[] = {
++	{0x3013, 0x32},
++	{0x301b, 0xf0},
++	{0x301f, 0xd0},
++	{0x3106, 0x15},
++	{0x3107, 0x23},
++	{0x350a, 0x00},
++	{0x350e, 0x00},
++	{0x3510, 0x00},
++	{0x3511, 0x02},
++	{0x3512, 0x00},
++	{0x3600, 0x2b},
++	{0x3601, 0x52},
++	{0x3602, 0x60},
++	{0x3612, 0x05},
++	{0x3613, 0xa4},
++	{0x3620, 0x80},
++	{0x3621, 0x10},
++	{0x3622, 0x30},
++	{0x3624, 0x1c},
++	{0x3640, 0x10},
++	{0x3641, 0x70},
++	{0x3661, 0x80},
++	{0x3662, 0x10},
++	{0x3664, 0x73},
++	{0x3665, 0xa7},
++	{0x366e, 0xff},
++	{0x366f, 0xf4},
++	{0x3674, 0x00},
++	{0x3679, 0x0c},
++	{0x367f, 0x01},
++	{0x3680, 0x0c},
++	{0x3681, 0x50},
++	{0x3682, 0x50},
++	{0x3683, 0xa9},
++	{0x3684, 0xa9},
++	{0x3709, 0x5f},
++	{0x3714, 0x28},
++	{0x371a, 0x3e},
++	{0x3737, 0x08},
++	{0x3738, 0xcc},
++	{0x3739, 0x20},
++	{0x373d, 0x26},
++	{0x3764, 0x20},
++	{0x3765, 0x20},
++	{0x37a1, 0x36},
++	{0x37a8, 0x3b},
++	{0x37ab, 0x31},
++	{0x37c2, 0x14},
++	{0x37c3, 0xf1},
++	{0x37c5, 0x00},
++	{0x37d8, 0x03},
++	{0x37d9, 0x0c},
++	{0x37da, 0xc2},
++	{0x37dc, 0x02},
++	{0x37e0, 0x00},
++	{0x37e1, 0x0a},
++	{0x37e2, 0x14},
++	{0x37e3, 0x08},
++	{0x37e4, 0x38},
++	{0x37e5, 0x03},
++	{0x37e6, 0x08},
++	{0x3800, 0x00},
++	{0x3801, 0x00},
++	{0x3802, 0x01},
++	{0x3803, 0x84},
++	{0x3804, 0x10},
++	{0x3805, 0x9f},
++	{0x3806, 0x0a},
++	{0x3807, 0xd3},
++	{0x3808, 0x08},
++	{0x3809, 0x40},
++	{0x380a, 0x04},
++	{0x380b, 0xa4},
++	{0x380c, 0x04},
++	{0x380d, 0x62},
++	{0x380e, 0x0c},
++	{0x380f, 0x8e},
++	{0x3811, 0x08},
++	{0x3813, 0x03},
++	{0x3814, 0x03},
++	{0x3815, 0x01},
++	{0x3816, 0x03},
++	{0x3817, 0x01},
++	{0x3820, 0xab},
++	{0x3821, 0x00},
++	{0x3822, 0xc2},
++	{0x3823, 0x18},
++	{0x3826, 0x04},
++	{0x3827, 0x90},
++	{0x3829, 0x07},
++	{0x3832, 0x00},
++	{0x3c80, 0x00},
++	{0x3c87, 0x01},
++	{0x3c8c, 0x19},
++	{0x3c8d, 0x1c},
++	{0x3c90, 0x00},
++	{0x3c91, 0x00},
++	{0x3c92, 0x00},
++	{0x3c93, 0x00},
++	{0x3c94, 0x40},
++	{0x3c95, 0x54},
++	{0x3c96, 0x34},
++	{0x3c97, 0x04},
++	{0x3c98, 0x00},
++	{0x3d8c, 0x73},
++	{0x3d8d, 0xc0},
++	{0x3f00, 0x0b},
++	{0x3f03, 0x00},
++	{0x4001, 0xe0},
++	{0x4008, 0x00},
++	{0x4009, 0x0d},
++	{0x4011, 0xf0},
++	{0x4017, 0x08},
++	{0x4050, 0x04},
++	{0x4051, 0x0b},
++	{0x4052, 0x00},
++	{0x4053, 0x80},
++	{0x4054, 0x00},
++	{0x4055, 0x80},
++	{0x4056, 0x00},
++	{0x4057, 0x80},
++	{0x4058, 0x00},
++	{0x4059, 0x80},
++	{0x405e, 0x20},
++	{0x4500, 0x07},
++	{0x4503, 0x00},
++	{0x450a, 0x04},
++	{0x4809, 0x04},
++	{0x480c, 0x12},
++	{0x481f, 0x30},
++	{0x4833, 0x10},
++	{0x4837, 0x1c},
++	{0x4902, 0x01},
++	{0x4d00, 0x03},
++	{0x4d01, 0xc9},
++	{0x4d02, 0xbc},
++	{0x4d03, 0xd7},
++	{0x4d04, 0xf0},
++	{0x4d05, 0xa2},
++	{0x5000, 0xfd},
++	{0x5001, 0x01},
++	{0x5040, 0x39},
++	{0x5041, 0x10},
++	{0x5042, 0x10},
++	{0x5043, 0x84},
++	{0x5044, 0x62},
++	{0x5180, 0x00},
++	{0x5181, 0x10},
++	{0x5182, 0x02},
++	{0x5183, 0x0f},
++	{0x5200, 0x1b},
++	{0x520b, 0x07},
++	{0x520c, 0x0f},
++	{0x5300, 0x04},
++	{0x5301, 0x0c},
++	{0x5302, 0x0c},
++	{0x5303, 0x0f},
++	{0x5304, 0x00},
++	{0x5305, 0x70},
++	{0x5306, 0x00},
++	{0x5307, 0x80},
++	{0x5308, 0x00},
++	{0x5309, 0xa5},
++	{0x530a, 0x00},
++	{0x530b, 0xd3},
++	{0x530c, 0x00},
++	{0x530d, 0xf0},
++	{0x530e, 0x01},
++	{0x530f, 0x10},
++	{0x5310, 0x01},
++	{0x5311, 0x20},
++	{0x5312, 0x01},
++	{0x5313, 0x20},
++	{0x5314, 0x01},
++	{0x5315, 0x20},
++	{0x5316, 0x08},
++	{0x5317, 0x08},
++	{0x5318, 0x10},
++	{0x5319, 0x88},
++	{0x531a, 0x88},
++	{0x531b, 0xa9},
++	{0x531c, 0xaa},
++	{0x531d, 0x0a},
++	{0x5405, 0x02},
++	{0x5406, 0x67},
++	{0x5407, 0x01},
++	{0x5408, 0x4a},
++};
++
++static const struct ov13858_reg mode_1056x784_regs[] = {
++	{0x3013, 0x32},
++	{0x301b, 0xf0},
++	{0x301f, 0xd0},
++	{0x3106, 0x15},
++	{0x3107, 0x23},
++	{0x350a, 0x00},
++	{0x350e, 0x00},
++	{0x3510, 0x00},
++	{0x3511, 0x02},
++	{0x3512, 0x00},
++	{0x3600, 0x2b},
++	{0x3601, 0x52},
++	{0x3602, 0x60},
++	{0x3612, 0x05},
++	{0x3613, 0xa4},
++	{0x3620, 0x80},
++	{0x3621, 0x10},
++	{0x3622, 0x30},
++	{0x3624, 0x1c},
++	{0x3640, 0x10},
++	{0x3641, 0x70},
++	{0x3661, 0x80},
++	{0x3662, 0x08},
++	{0x3664, 0x73},
++	{0x3665, 0xa7},
++	{0x366e, 0xff},
++	{0x366f, 0xf4},
++	{0x3674, 0x00},
++	{0x3679, 0x0c},
++	{0x367f, 0x01},
++	{0x3680, 0x0c},
++	{0x3681, 0x50},
++	{0x3682, 0x50},
++	{0x3683, 0xa9},
++	{0x3684, 0xa9},
++	{0x3709, 0x5f},
++	{0x3714, 0x30},
++	{0x371a, 0x3e},
++	{0x3737, 0x08},
++	{0x3738, 0xcc},
++	{0x3739, 0x20},
++	{0x373d, 0x26},
++	{0x3764, 0x20},
++	{0x3765, 0x20},
++	{0x37a1, 0x36},
++	{0x37a8, 0x3b},
++	{0x37ab, 0x31},
++	{0x37c2, 0x2c},
++	{0x37c3, 0xf1},
++	{0x37c5, 0x00},
++	{0x37d8, 0x03},
++	{0x37d9, 0x06},
++	{0x37da, 0xc2},
++	{0x37dc, 0x02},
++	{0x37e0, 0x00},
++	{0x37e1, 0x0a},
++	{0x37e2, 0x14},
++	{0x37e3, 0x08},
++	{0x37e4, 0x36},
++	{0x37e5, 0x03},
++	{0x37e6, 0x08},
++	{0x3800, 0x00},
++	{0x3801, 0x00},
++	{0x3802, 0x00},
++	{0x3803, 0x00},
++	{0x3804, 0x10},
++	{0x3805, 0x9f},
++	{0x3806, 0x0c},
++	{0x3807, 0x5f},
++	{0x3808, 0x04},
++	{0x3809, 0x20},
++	{0x380a, 0x03},
++	{0x380b, 0x10},
++	{0x380c, 0x04},
++	{0x380d, 0x62},
++	{0x380e, 0x0c},
++	{0x380f, 0x8e},
++	{0x3811, 0x04},
++	{0x3813, 0x05},
++	{0x3814, 0x07},
++	{0x3815, 0x01},
++	{0x3816, 0x07},
++	{0x3817, 0x01},
++	{0x3820, 0xac},
++	{0x3821, 0x00},
++	{0x3822, 0xc2},
++	{0x3823, 0x18},
++	{0x3826, 0x04},
++	{0x3827, 0x48},
++	{0x3829, 0x03},
++	{0x3832, 0x00},
++	{0x3c80, 0x00},
++	{0x3c87, 0x01},
++	{0x3c8c, 0x19},
++	{0x3c8d, 0x1c},
++	{0x3c90, 0x00},
++	{0x3c91, 0x00},
++	{0x3c92, 0x00},
++	{0x3c93, 0x00},
++	{0x3c94, 0x40},
++	{0x3c95, 0x54},
++	{0x3c96, 0x34},
++	{0x3c97, 0x04},
++	{0x3c98, 0x00},
++	{0x3d8c, 0x73},
++	{0x3d8d, 0xc0},
++	{0x3f00, 0x0b},
++	{0x3f03, 0x00},
++	{0x4001, 0xe0},
++	{0x4008, 0x00},
++	{0x4009, 0x05},
++	{0x4011, 0xf0},
++	{0x4017, 0x08},
++	{0x4050, 0x02},
++	{0x4051, 0x05},
++	{0x4052, 0x00},
++	{0x4053, 0x80},
++	{0x4054, 0x00},
++	{0x4055, 0x80},
++	{0x4056, 0x00},
++	{0x4057, 0x80},
++	{0x4058, 0x00},
++	{0x4059, 0x80},
++	{0x405e, 0x20},
++	{0x4500, 0x07},
++	{0x4503, 0x00},
++	{0x450a, 0x04},
++	{0x4809, 0x04},
++	{0x480c, 0x12},
++	{0x481f, 0x30},
++	{0x4833, 0x10},
++	{0x4837, 0x1e},
++	{0x4902, 0x02},
++	{0x4d00, 0x03},
++	{0x4d01, 0xc9},
++	{0x4d02, 0xbc},
++	{0x4d03, 0xd7},
++	{0x4d04, 0xf0},
++	{0x4d05, 0xa2},
++	{0x5000, 0xfd},
++	{0x5001, 0x01},
++	{0x5040, 0x39},
++	{0x5041, 0x10},
++	{0x5042, 0x10},
++	{0x5043, 0x84},
++	{0x5044, 0x62},
++	{0x5180, 0x00},
++	{0x5181, 0x10},
++	{0x5182, 0x02},
++	{0x5183, 0x0f},
++	{0x5200, 0x1b},
++	{0x520b, 0x07},
++	{0x520c, 0x0f},
++	{0x5300, 0x04},
++	{0x5301, 0x0c},
++	{0x5302, 0x0c},
++	{0x5303, 0x0f},
++	{0x5304, 0x00},
++	{0x5305, 0x70},
++	{0x5306, 0x00},
++	{0x5307, 0x80},
++	{0x5308, 0x00},
++	{0x5309, 0xa5},
++	{0x530a, 0x00},
++	{0x530b, 0xd3},
++	{0x530c, 0x00},
++	{0x530d, 0xf0},
++	{0x530e, 0x01},
++	{0x530f, 0x10},
++	{0x5310, 0x01},
++	{0x5311, 0x20},
++	{0x5312, 0x01},
++	{0x5313, 0x20},
++	{0x5314, 0x01},
++	{0x5315, 0x20},
++	{0x5316, 0x08},
++	{0x5317, 0x08},
++	{0x5318, 0x10},
++	{0x5319, 0x88},
++	{0x531a, 0x88},
++	{0x531b, 0xa9},
++	{0x531c, 0xaa},
++	{0x531d, 0x0a},
++	{0x5405, 0x02},
++	{0x5406, 0x67},
++	{0x5407, 0x01},
++	{0x5408, 0x4a},
++};
++
++static const char * const ov13858_test_pattern_menu[] = {
++	"Disabled",
++	"Vertical Color Bar Type 1",
++	"Vertical Color Bar Type 2",
++	"Vertical Color Bar Type 3",
++	"Vertical Color Bar Type 4"
++};
++
++/*
++ * Two link frequencies are supported and
++ * the related configurations will be retrieved
++ * from platform specific data.
++ */
++#define OV13858_NUM_OF_LINK_FREQS	2
++#define OV13858_LINK_FREQ_INDEX_0	0
++#define OV13858_LINK_FREQ_INDEX_1	1
++
++/* Menu items for LINK_FREQ V4L2 control */
++static s64 link_freq_menu_items[OV13858_NUM_OF_LINK_FREQS];
++
++/* Link frequency configs */
++static struct ov13858_link_freq_config
++			link_freq_configs[OV13858_NUM_OF_LINK_FREQS];
++
++/* Mode configs */
++static const struct ov13858_mode supported_modes[] = {
++	{
++		.width = 4224,
++		.height = 3136,
++		.vts = OV13858_VTS_30FPS,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mode_4224x3136_regs),
++			.regs = mode_4224x3136_regs,
++		},
++		.link_freq_index = OV13858_LINK_FREQ_INDEX_0,
++	},
++	{
++		.width = 2112,
++		.height = 1568,
++		.vts = OV13858_VTS_30FPS,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mode_2112x1568_regs),
++			.regs = mode_2112x1568_regs,
++		},
++		.link_freq_index = OV13858_LINK_FREQ_INDEX_1,
++	},
++	{
++		.width = 2112,
++		.height = 1188,
++		.vts = OV13858_VTS_30FPS,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mode_2112x1188_regs),
++			.regs = mode_2112x1188_regs,
++		},
++		.link_freq_index = OV13858_LINK_FREQ_INDEX_1,
++	},
++	{
++		.width = 1056,
++		.height = 784,
++		.vts = OV13858_VTS_30FPS,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mode_1056x784_regs),
++			.regs = mode_1056x784_regs,
++		},
++		.link_freq_index = OV13858_LINK_FREQ_INDEX_1,
++	}
++};
++
++struct ov13858 {
++	struct v4l2_subdev sd;
++	struct media_pad pad;
++
++	struct v4l2_ctrl_handler ctrl_handler;
++	/* V4L2 Controls */
++	struct v4l2_ctrl *link_freq;
++	struct v4l2_ctrl *pixel_rate;
++	struct v4l2_ctrl *vblank;
++	struct v4l2_ctrl *hblank;
++	struct v4l2_ctrl *exposure;
++
++	/* Current mode */
++	const struct ov13858_mode *cur_mode;
++
++	/* Num of skip frames */
++	u32 num_of_skip_frames;
++
++	/* Mutex for serialized access */
++	struct mutex mutex;
++
++	/* Streaming on/off */
++	bool streaming;
++};
++
++#define to_ov13858(_sd)	container_of(_sd, struct ov13858, sd)
++
++/* Read registers up to 4 at a time */
++static int ov13858_read_reg(struct ov13858 *ov13858, u16 reg, u32 len, u32 *val)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
++	struct i2c_msg msgs[2];
++	u8 *data_be_p;
++	int ret;
++	u32 data_be = 0;
++	u16 reg_addr_be = cpu_to_be16(reg);
++
++	if (len > 4)
++		return -EINVAL;
++
++	data_be_p = (u8 *)&data_be;
++	/* Write register address */
++	msgs[0].addr = client->addr;
++	msgs[0].flags = 0;
++	msgs[0].len = 2;
++	msgs[0].buf = (u8 *)&reg_addr_be;
++
++	/* Read data from register */
++	msgs[1].addr = client->addr;
++	msgs[1].flags = I2C_M_RD;
++	msgs[1].len = len;
++	msgs[1].buf = &data_be_p[4 - len];
++
++	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
++	if (ret != ARRAY_SIZE(msgs))
++		return -EIO;
++
++	*val = be32_to_cpu(data_be);
++
++	return 0;
++}
++
++/* Write registers up to 4 at a time */
++static int ov13858_write_reg(struct ov13858 *ov13858, u16 reg, u32 len, u32 val)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
++	int buf_i, val_i;
++	u8 buf[6], *val_p;
++
++	if (len > 4)
++		return -EINVAL;
++
++	buf[0] = reg >> 8;
++	buf[1] = reg & 0xff;
++
++	val = cpu_to_be32(val);
++	val_p = (u8 *)&val;
++	buf_i = 2;
++	val_i = 4 - len;
++
++	while (val_i < 4)
++		buf[buf_i++] = val_p[val_i++];
++
++	if (i2c_master_send(client, buf, len + 2) != len + 2)
++		return -EIO;
++
++	return 0;
++}
++
++/* Write a list of registers */
++static int ov13858_write_regs(struct ov13858 *ov13858,
++			      const struct ov13858_reg *regs, u32 len)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
++	int ret;
++	u32 i;
++
++	for (i = 0; i < len; i++) {
++		ret = ov13858_write_reg(ov13858, regs[i].address, 1,
++					regs[i].val);
++		if (ret) {
++			dev_err_ratelimited(
++				&client->dev,
++				"Failed to write reg 0x%4.4x. error = %d\n",
++				regs[i].address, ret);
++
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++static int ov13858_write_reg_list(struct ov13858 *ov13858,
++				  const struct ov13858_reg_list *r_list)
++{
++	return ov13858_write_regs(ov13858, r_list->regs, r_list->num_of_regs);
++}
++
++/* Open sub-device */
++static int ov13858_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct ov13858 *ov13858 = to_ov13858(sd);
++	struct v4l2_mbus_framefmt *try_fmt = v4l2_subdev_get_try_format(sd,
++									fh->pad,
++									0);
++
++	mutex_lock(&ov13858->mutex);
++
++	/* Initialize try_fmt */
++	try_fmt->width = ov13858->cur_mode->width;
++	try_fmt->height = ov13858->cur_mode->height;
++	try_fmt->code = MEDIA_BUS_FMT_SGRBG10_1X10;
++	try_fmt->field = V4L2_FIELD_NONE;
++
++	/* No crop or compose */
++	mutex_unlock(&ov13858->mutex);
++
++	return 0;
++}
++
++static int ov13858_update_digital_gain(struct ov13858 *ov13858, u32 d_gain)
++{
++	int ret;
++	u32 val;
++
++	if (d_gain == 3)
++		return -EINVAL;
++
++	ret = ov13858_read_reg(ov13858, OV13858_REG_DIGITAL_GAIN,
++			       OV13858_REG_VALUE_08BIT, &val);
++	if (ret)
++		return ret;
++
++	val &= OV13858_DGTL_GAIN_MASK;
++	val |= (d_gain - 1) << OV13858_DGTL_GAIN_SHIFT;
++
++	return ov13858_write_reg(ov13858, OV13858_REG_DIGITAL_GAIN,
++				 OV13858_REG_VALUE_08BIT, val);
++}
++
++static int ov13858_enable_test_pattern(struct ov13858 *ov13858, u32 pattern)
++{
++	int ret;
++	u32 val;
++
++	ret = ov13858_read_reg(ov13858, OV13858_REG_TEST_PATTERN,
++			       OV13858_REG_VALUE_08BIT, &val);
++	if (ret)
++		return ret;
++
++	if (pattern) {
++		val &= OV13858_TEST_PATTERN_MASK;
++		val |= (pattern - 1) | OV13858_TEST_PATTERN_ENABLE;
++	} else {
++		val &= ~OV13858_TEST_PATTERN_ENABLE;
++	}
++
++	return ov13858_write_reg(ov13858, OV13858_REG_TEST_PATTERN,
++				 OV13858_REG_VALUE_08BIT, val);
++}
++
++static int ov13858_set_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct ov13858 *ov13858 = container_of(ctrl->handler,
++					       struct ov13858, ctrl_handler);
++	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
++	s64 max;
++	int ret;
++
++	/* Propagate change of current control to all related controls */
++	switch (ctrl->id) {
++	case V4L2_CID_VBLANK:
++		/* Update max exposure while meeting expected vblanking */
++		max = ov13858->cur_mode->height + ctrl->val - 8;
++		__v4l2_ctrl_modify_range(ov13858->exposure,
++					 ov13858->exposure->minimum,
++					 max, ov13858->exposure->step, max);
++		break;
++	};
++
++	/*
++	 * Applying V4L2 control value only happens
++	 * when power is up for streaming
++	 */
++	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
++		return 0;
++
++	ret = 0;
++	switch (ctrl->id) {
++	case V4L2_CID_ANALOGUE_GAIN:
++		ret = ov13858_write_reg(ov13858, OV13858_REG_ANALOG_GAIN,
++					OV13858_REG_VALUE_16BIT, ctrl->val);
++		break;
++	case V4L2_CID_GAIN:
++		ret = ov13858_update_digital_gain(ov13858, ctrl->val);
++		break;
++	case V4L2_CID_EXPOSURE:
++		ret = ov13858_write_reg(ov13858, OV13858_REG_EXPOSURE,
++					OV13858_REG_VALUE_24BIT,
++					ctrl->val << 4);
++		break;
++	case V4L2_CID_VBLANK:
++		/* Update VTS that meets expected vertical blanking */
++		ret = ov13858_write_reg(ov13858, OV13858_REG_VTS,
++					OV13858_REG_VALUE_16BIT,
++					ov13858->cur_mode->height
++					  + ctrl->val);
++		break;
++	case V4L2_CID_TEST_PATTERN:
++		ret = ov13858_enable_test_pattern(ov13858, ctrl->val);
++		break;
++	default:
++		dev_info(&client->dev,
++			 "ctrl(id:0x%x,val:0x%x) is not handled\n",
++			 ctrl->id, ctrl->val);
++		break;
++	};
++
++	pm_runtime_put(&client->dev);
++
++	return ret;
++}
++
++static const struct v4l2_ctrl_ops ov13858_ctrl_ops = {
++	.s_ctrl = ov13858_set_ctrl,
++};
++
++static int ov13858_enum_mbus_code(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_mbus_code_enum *code)
++{
++	/* Only one bayer order(GRBG) is supported */
++	if (code->index > 0)
++		return -EINVAL;
++
++	code->code = MEDIA_BUS_FMT_SGRBG10_1X10;
++
++	return 0;
++}
++
++static int ov13858_enum_frame_size(struct v4l2_subdev *sd,
++				   struct v4l2_subdev_pad_config *cfg,
++				   struct v4l2_subdev_frame_size_enum *fse)
++{
++	if (fse->index >= ARRAY_SIZE(supported_modes))
++		return -EINVAL;
++
++	if (fse->code != MEDIA_BUS_FMT_SGRBG10_1X10)
++		return -EINVAL;
++
++	fse->min_width = supported_modes[fse->index].width;
++	fse->max_width = fse->min_width;
++	fse->min_height = supported_modes[fse->index].height;
++	fse->max_height = fse->min_height;
++
++	return 0;
++}
++
++static void ov13858_update_pad_format(const struct ov13858_mode *mode,
++				      struct v4l2_subdev_format *fmt)
++{
++	fmt->format.width = mode->width;
++	fmt->format.height = mode->height;
++	fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
++	fmt->format.field = V4L2_FIELD_NONE;
++}
++
++static int ov13858_do_get_pad_format(struct ov13858 *ov13858,
++				     struct v4l2_subdev_pad_config *cfg,
++				     struct v4l2_subdev_format *fmt)
++{
++	struct v4l2_mbus_framefmt *framefmt;
++	struct v4l2_subdev *sd = &ov13858->sd;
++
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
++		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
++		fmt->format = *framefmt;
++	} else {
++		ov13858_update_pad_format(ov13858->cur_mode, fmt);
++	}
++
++	return 0;
++}
++
++static int ov13858_get_pad_format(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_format *fmt)
++{
++	struct ov13858 *ov13858 = to_ov13858(sd);
++	int ret;
++
++	mutex_lock(&ov13858->mutex);
++	ret = ov13858_do_get_pad_format(ov13858, cfg, fmt);
++	mutex_unlock(&ov13858->mutex);
++
++	return ret;
++}
++
++/*
++ * Calculate resolution distance
++ */
++static int
++ov13858_get_resolution_dist(const struct ov13858_mode *mode,
++			    struct v4l2_mbus_framefmt *framefmt)
++{
++	return abs(mode->width - framefmt->width) +
++	       abs(mode->height - framefmt->height);
++}
++
++/*
++ * Find the closest supported resolution to the requested resolution
++ */
++static const struct ov13858_mode *
++ov13858_find_best_fit(struct ov13858 *ov13858,
++		      struct v4l2_subdev_format *fmt)
++{
++	int i, dist, cur_best_fit = 0, cur_best_fit_dist = -1;
++	struct v4l2_mbus_framefmt *framefmt = &fmt->format;
++
++	for (i = 0; i < ARRAY_SIZE(supported_modes); i++) {
++		dist = ov13858_get_resolution_dist(&supported_modes[i],
++						   framefmt);
++		if (cur_best_fit_dist == -1 || dist < cur_best_fit_dist) {
++			cur_best_fit_dist = dist;
++			cur_best_fit = i;
++		}
++	}
++
++	return &supported_modes[cur_best_fit];
++}
++
++static int
++ov13858_set_pad_format(struct v4l2_subdev *sd,
++		       struct v4l2_subdev_pad_config *cfg,
++		       struct v4l2_subdev_format *fmt)
++{
++	struct ov13858 *ov13858 = to_ov13858(sd);
++	const struct ov13858_mode *mode;
++	struct v4l2_mbus_framefmt *framefmt;
++	s64 h_blank;
++
++	mutex_lock(&ov13858->mutex);
++
++	/* Only one raw bayer(GRBG) order is supported */
++	if (fmt->format.code != MEDIA_BUS_FMT_SGRBG10_1X10)
++		fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
++
++	mode = ov13858_find_best_fit(ov13858, fmt);
++	ov13858_update_pad_format(mode, fmt);
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
++		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
++		*framefmt = fmt->format;
++	} else {
++		ov13858->cur_mode = mode;
++		__v4l2_ctrl_s_ctrl(ov13858->link_freq, mode->link_freq_index);
++		__v4l2_ctrl_s_ctrl_int64(
++			ov13858->pixel_rate,
++			link_freq_configs[mode->link_freq_index].pixel_rate);
++		/* Update limits and set FPS to default */
++		__v4l2_ctrl_modify_range(
++			ov13858->vblank, OV13858_VBLANK_MIN,
++			OV13858_VTS_MAX - ov13858->cur_mode->height, 1,
++			ov13858->cur_mode->vts - ov13858->cur_mode->height);
++		h_blank =
++			link_freq_configs[mode->link_freq_index].pixels_per_line
++			 - ov13858->cur_mode->width;
++		__v4l2_ctrl_modify_range(ov13858->hblank, h_blank,
++					 h_blank, 1, h_blank);
++	}
++
++	mutex_unlock(&ov13858->mutex);
++
++	return 0;
++}
++
++static int ov13858_get_skip_frames(struct v4l2_subdev *sd, u32 *frames)
++{
++	*frames = OV13858_NUM_OF_SKIP_FRAMES;
++
++	return 0;
++}
++
++/* Start streaming */
++static int ov13858_start_streaming(struct ov13858 *ov13858)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
++	const struct ov13858_reg_list *reg_list;
++	int ret, link_freq_index;
++
++	/* Get out of from software reset */
++	ret = ov13858_write_reg(ov13858, OV13858_REG_SOFTWARE_RST,
++				OV13858_REG_VALUE_08BIT, OV13858_SOFTWARE_RST);
++	if (ret) {
++		dev_err(&client->dev, "%s failed to set powerup registers\n",
++			__func__);
++		return ret;
++	}
++
++	/* Setup PLL */
++	link_freq_index = ov13858->cur_mode->link_freq_index;
++	reg_list = &link_freq_configs[link_freq_index].reg_list;
++	ret = ov13858_write_reg_list(ov13858, reg_list);
++	if (ret) {
++		dev_err(&client->dev, "%s failed to set plls\n", __func__);
++		return ret;
++	}
++
++	/* Apply default values of current mode */
++	reg_list = &ov13858->cur_mode->reg_list;
++	ret = ov13858_write_reg_list(ov13858, reg_list);
++	if (ret) {
++		dev_err(&client->dev, "%s failed to set mode\n", __func__);
++		return ret;
++	}
++
++	/* Apply customized values from user */
++	ret =  __v4l2_ctrl_handler_setup(ov13858->sd.ctrl_handler);
++	if (ret)
++		return ret;
++
++	return ov13858_write_reg(ov13858, OV13858_REG_MODE_SELECT,
++				 OV13858_REG_VALUE_08BIT,
++				 OV13858_MODE_STREAMING);
++}
++
++/* Stop streaming */
++static int ov13858_stop_streaming(struct ov13858 *ov13858)
++{
++	return ov13858_write_reg(ov13858, OV13858_REG_MODE_SELECT,
++				 OV13858_REG_VALUE_08BIT, OV13858_MODE_STANDBY);
++}
++
++static int ov13858_set_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct ov13858 *ov13858 = to_ov13858(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	int ret = 0;
++
++	mutex_lock(&ov13858->mutex);
++	if (ov13858->streaming == enable) {
++		mutex_unlock(&ov13858->mutex);
++		return 0;
++	}
++
++	if (enable) {
++		ret = pm_runtime_get_sync(&client->dev);
++		if (ret < 0) {
++			pm_runtime_put_noidle(&client->dev);
++			goto err_unlock;
++		}
++
++		/*
++		 * Apply default & customized values
++		 * and then start streaming.
++		 */
++		ret = ov13858_start_streaming(ov13858);
++		if (ret)
++			goto err_rpm_put;
++	} else {
++		ov13858_stop_streaming(ov13858);
++		pm_runtime_put(&client->dev);
++	}
++
++	ov13858->streaming = enable;
++	mutex_unlock(&ov13858->mutex);
++
++	return ret;
++
++err_rpm_put:
++	pm_runtime_put(&client->dev);
++err_unlock:
++	mutex_unlock(&ov13858->mutex);
++
++	return ret;
++}
++
++static int __maybe_unused ov13858_suspend(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ov13858 *ov13858 = to_ov13858(sd);
++
++	if (ov13858->streaming)
++		ov13858_stop_streaming(ov13858);
++
++	return 0;
++}
++
++static int __maybe_unused ov13858_resume(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ov13858 *ov13858 = to_ov13858(sd);
++	int ret;
++
++	if (ov13858->streaming) {
++		ret = ov13858_start_streaming(ov13858);
++		if (ret)
++			goto error;
++	}
++
++	return 0;
++
++error:
++	ov13858_stop_streaming(ov13858);
++	ov13858->streaming = 0;
++	return ret;
++}
++
++/* Verify chip ID */
++static int ov13858_identify_module(struct ov13858 *ov13858)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
++	int ret;
++	u32 val;
++
++	ret = ov13858_read_reg(ov13858, OV13858_REG_CHIP_ID,
++			       OV13858_REG_VALUE_24BIT, &val);
++	if (ret)
++		return ret;
++
++	if (val != OV13858_CHIP_ID) {
++		dev_err(&client->dev, "chip id mismatch: %x!=%x\n",
++			OV13858_CHIP_ID, val);
++		return -EIO;
++	}
++
++	return 0;
++}
++
++static const struct v4l2_subdev_video_ops ov13858_video_ops = {
++	.s_stream = ov13858_set_stream,
++};
++
++static const struct v4l2_subdev_pad_ops ov13858_pad_ops = {
++	.enum_mbus_code = ov13858_enum_mbus_code,
++	.get_fmt = ov13858_get_pad_format,
++	.set_fmt = ov13858_set_pad_format,
++	.enum_frame_size = ov13858_enum_frame_size,
++};
++
++static const struct v4l2_subdev_sensor_ops ov13858_sensor_ops = {
++	.g_skip_frames = ov13858_get_skip_frames,
++};
++
++static const struct v4l2_subdev_ops ov13858_subdev_ops = {
++	.video = &ov13858_video_ops,
++	.pad = &ov13858_pad_ops,
++	.sensor = &ov13858_sensor_ops,
++};
++
++static const struct media_entity_operations ov13858_subdev_entity_ops = {
++	.link_validate = v4l2_subdev_link_validate,
++};
++
++static const struct v4l2_subdev_internal_ops ov13858_internal_ops = {
++	.open = ov13858_open,
++};
++
++/* Initialize control handlers */
++static int ov13858_init_controls(struct ov13858 *ov13858)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
++	struct v4l2_ctrl_handler *ctrl_hdlr;
++	int ret;
++
++	ctrl_hdlr = &ov13858->ctrl_handler;
++	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 8);
++	if (ret)
++		return ret;
++
++	mutex_init(&ov13858->mutex);
++	ctrl_hdlr->lock = &ov13858->mutex;
++	ov13858->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr,
++				&ov13858_ctrl_ops,
++				V4L2_CID_LINK_FREQ,
++				OV13858_NUM_OF_LINK_FREQS - 1,
++				0,
++				link_freq_menu_items);
++	ov13858->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
++
++	/* By default, PIXEL_RATE is read only */
++	ov13858->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops,
++					V4L2_CID_PIXEL_RATE, 0,
++					link_freq_configs[0].pixel_rate, 1,
++					link_freq_configs[0].pixel_rate);
++
++	ov13858->vblank = v4l2_ctrl_new_std(
++				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_VBLANK,
++				OV13858_VBLANK_MIN,
++				OV13858_VTS_MAX - ov13858->cur_mode->height, 1,
++				ov13858->cur_mode->vts
++				  - ov13858->cur_mode->height);
++
++	ov13858->hblank = v4l2_ctrl_new_std(
++				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_HBLANK,
++				OV13858_PPL_1080MHZ - ov13858->cur_mode->width,
++				OV13858_PPL_1080MHZ - ov13858->cur_mode->width,
++				1,
++				OV13858_PPL_1080MHZ - ov13858->cur_mode->width);
++	ov13858->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
++
++	ov13858->exposure = v4l2_ctrl_new_std(
++				ctrl_hdlr, &ov13858_ctrl_ops,
++				V4L2_CID_EXPOSURE, OV13858_EXPOSURE_MIN,
++				OV13858_EXPOSURE_MAX, OV13858_EXPOSURE_STEP,
++				OV13858_EXPOSURE_DEFAULT);
++
++	v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
++			  OV13858_ANA_GAIN_MIN, OV13858_ANA_GAIN_MAX,
++			  OV13858_ANA_GAIN_STEP, OV13858_ANA_GAIN_DEFAULT);
++
++	/* Digital gain */
++	v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_GAIN,
++			  OV13858_DGTL_GAIN_MIN, OV13858_DGTL_GAIN_MAX,
++			  OV13858_DGTL_GAIN_STEP, OV13858_DGTL_GAIN_DEFAULT);
++
++	v4l2_ctrl_new_std_menu_items(ctrl_hdlr, &ov13858_ctrl_ops,
++				     V4L2_CID_TEST_PATTERN,
++				     ARRAY_SIZE(ov13858_test_pattern_menu) - 1,
++				     0, 0, ov13858_test_pattern_menu);
++	if (ctrl_hdlr->error) {
++		ret = ctrl_hdlr->error;
++		dev_err(&client->dev, "%s control init failed (%d)\n",
++			__func__, ret);
++		goto error;
++	}
++
++	ov13858->sd.ctrl_handler = ctrl_hdlr;
++
++	return 0;
++
++error:
++	v4l2_ctrl_handler_free(ctrl_hdlr);
++	mutex_destroy(&ov13858->mutex);
++
++	return ret;
++}
++
++static void ov13858_free_controls(struct ov13858 *ov13858)
++{
++	v4l2_ctrl_handler_free(ov13858->sd.ctrl_handler);
++	mutex_destroy(&ov13858->mutex);
++}
++
++static int ov13858_read_platform_data(struct device *dev,
++				      struct ov13858 *ov13858)
++{
++	struct fwnode_handle *child, *fwn_freq;
++	struct ov13858_link_freq_config *freq_cfg;
++	struct ov13858_reg *pll_regs;
++	int i, freq_id = 0, ret, num_of_values, num_of_pairs;
++	u32 val, *val_array;
++
++	/* For now, platform data is only available from fwnode */
++	if (!dev_fwnode(dev)) {
++		dev_err(dev, "no platform data\n");
++		return -EINVAL;
++	}
++
++	ret = device_property_read_u32(dev, "skip-frames", &val);
++	if (ret)
++		return ret;
++	ov13858->num_of_skip_frames = val;
++
++	device_for_each_child_node(dev, child) {
++		if (!fwnode_property_present(child, "link"))
++			continue;
++
++		/* Limited number of link frequencies are allowed */
++		if (freq_id == OV13858_NUM_OF_LINK_FREQS) {
++			dev_err(dev, "no more than two freqs\n");
++			ret = -EINVAL;
++			goto error;
++		}
++
++		fwn_freq = fwnode_get_next_child_node(child, NULL);
++		if (!fwn_freq) {
++			ret = -EINVAL;
++			goto error;
++		}
++
++		/* Get link freq menu item for LINK_FREQ control */
++		ret = fwnode_property_read_u32(fwn_freq, "link-rate", &val);
++		if (ret) {
++			dev_err(dev, "link-rate error : %d\n",  ret);
++			goto error;
++		}
++		link_freq_menu_items[freq_id] = val;
++
++		freq_cfg = &link_freq_configs[freq_id];
++		ret = fwnode_property_read_u32(fwn_freq, "pixel-rate", &val);
++		if (ret) {
++			dev_err(dev, "pixel-rate error : %d\n",  ret);
++			goto error;
++		}
++		freq_cfg->pixel_rate = val;
++
++		num_of_values = fwnode_property_read_u32_array(fwn_freq,
++							       "pll-regs",
++							       NULL, 0);
++		if (num_of_values <= 0 || num_of_values & 0x01) {
++			dev_err(dev, "invalid pll-regs\n");
++			ret = -EINVAL;
++			goto error;
++		}
++
++		/* Get num of addr-value pairs */
++		num_of_pairs = num_of_values / 2;
++		val_array = devm_kzalloc(dev,
++					 sizeof(u32) * num_of_values,
++					 GFP_KERNEL);
++		if (!val_array) {
++			ret = -ENOMEM;
++			goto error;
++		}
++
++		pll_regs = devm_kzalloc(dev,
++					sizeof(*pll_regs) * num_of_pairs,
++					GFP_KERNEL);
++		if (!pll_regs) {
++			ret = -ENOMEM;
++			goto error;
++		}
++
++		fwnode_property_read_u32_array(fwn_freq, "pll-regs",
++					       val_array, num_of_values);
++		for (i = 0; i < num_of_pairs; i++) {
++			pll_regs[i].address = val_array[i * 2];
++			pll_regs[i].val = val_array[i * 2 + 1];
++		}
++
++		devm_kfree(dev, val_array);
++
++		freq_cfg->reg_list.num_of_regs = num_of_pairs;
++		freq_cfg->reg_list.regs = pll_regs;
++
++		freq_id++;
++	}
++
++	if (freq_id != OV13858_NUM_OF_LINK_FREQS)
++		return -EINVAL;
++
++	return 0;
++
++error:
++	fwnode_handle_put(child);
++	return ret;
++}
++
++static int ov13858_probe(struct i2c_client *client,
++			 const struct i2c_device_id *devid)
++{
++	struct ov13858 *ov13858;
++	int ret;
++
++	ov13858 = devm_kzalloc(&client->dev, sizeof(*ov13858), GFP_KERNEL);
++	if (!ov13858)
++		return -ENOMEM;
++
++	ret = ov13858_read_platform_data(&client->dev, ov13858);
++	if (ret)
++		return ret;
++
++	/* Initialize subdev */
++	v4l2_i2c_subdev_init(&ov13858->sd, client, &ov13858_subdev_ops);
++
++	/* Check module identity */
++	ret = ov13858_identify_module(ov13858);
++	if (ret) {
++		dev_err(&client->dev, "failed to find sensor: %d\n", ret);
++		return ret;
++	}
++
++	/* Set default mode to max resolution */
++	ov13858->cur_mode = &supported_modes[0];
++
++	ret = ov13858_init_controls(ov13858);
++	if (ret)
++		return ret;
++
++	/* Initialize subdev */
++	ov13858->sd.internal_ops = &ov13858_internal_ops;
++	ov13858->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	ov13858->sd.entity.ops = &ov13858_subdev_entity_ops;
++	ov13858->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++
++	/* Initialize source pad */
++	ov13858->pad.flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_pads_init(&ov13858->sd.entity, 1, &ov13858->pad);
++	if (ret) {
++		dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
++		goto error_handler_free;
++	}
++
++	ret = v4l2_async_register_subdev(&ov13858->sd);
++	if (ret < 0)
++		goto error_media_entity;
++
++	/*
++	 * Device is already turned on by i2c-core with ACPI domain PM.
++	 * Enable runtime PM and turn off the device.
++	 */
++	pm_runtime_get_noresume(&client->dev);
++	pm_runtime_set_active(&client->dev);
++	pm_runtime_enable(&client->dev);
++	pm_runtime_put(&client->dev);
++
++	return 0;
++
++error_media_entity:
++	media_entity_cleanup(&ov13858->sd.entity);
++
++error_handler_free:
++	ov13858_free_controls(ov13858);
++	dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
++
++	return ret;
++}
++
++static int ov13858_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ov13858 *ov13858 = to_ov13858(sd);
++
++	v4l2_async_unregister_subdev(sd);
++	media_entity_cleanup(&sd->entity);
++	ov13858_free_controls(ov13858);
++
++	/*
++	 * Disable runtime PM but keep the device turned on.
++	 * i2c-core with ACPI domain PM will turn off the device.
++	 */
++	pm_runtime_get_sync(&client->dev);
++	pm_runtime_disable(&client->dev);
++	pm_runtime_set_suspended(&client->dev);
++	pm_runtime_put_noidle(&client->dev);
++
++	return 0;
++}
++
++static const struct i2c_device_id ov13858_id_table[] = {
++	{"ov13858", 0},
++	{},
++};
++
++MODULE_DEVICE_TABLE(i2c, ov13858_id_table);
++
++static const struct dev_pm_ops ov13858_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(ov13858_suspend, ov13858_resume)
++};
++
++#ifdef CONFIG_ACPI
++static const struct acpi_device_id ov13858_acpi_ids[] = {
++	{"OVTID858"},
++	{ /* sentinel */ }
++};
++
++MODULE_DEVICE_TABLE(acpi, ov13858_acpi_ids);
++#endif
++
++static struct i2c_driver ov13858_i2c_driver = {
++	.driver = {
++		.name = "ov13858",
++		.owner = THIS_MODULE,
++		.pm = &ov13858_pm_ops,
++		.acpi_match_table = ACPI_PTR(ov13858_acpi_ids),
++	},
++	.probe = ov13858_probe,
++	.remove = ov13858_remove,
++	.id_table = ov13858_id_table,
++};
++
++module_i2c_driver(ov13858_i2c_driver);
++
++MODULE_AUTHOR("Kan, Chris <chris.kan@intel.com>");
++MODULE_AUTHOR("Rapolu, Chiranjeevi <chiranjeevi.rapolu@intel.com>");
++MODULE_AUTHOR("Yang, Hyungwoo <hyungwoo.yang@intel.com>");
++MODULE_DESCRIPTION("Omnivision ov13858 sensor driver");
++MODULE_LICENSE("GPL v2");
 -- 
-2.13.0
+1.9.1
