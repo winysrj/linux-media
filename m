@@ -1,442 +1,327 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:36089 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751565AbdF3Jd0 (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:36914 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753926AbdFMTg7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Jun 2017 05:33:26 -0400
-Received: by mail-wr0-f195.google.com with SMTP id 77so38649944wrb.3
-        for <linux-media@vger.kernel.org>; Fri, 30 Jun 2017 02:33:25 -0700 (PDT)
-From: Prabhakar <prabhakar.csengg@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>, Sekhar Nori <nsekhar@ti.com>,
-        Lad Prabhakar <prabhakar.csengg@gmail.com>
-Subject: [PATCH] media: platform: davinci: drop VPFE_CMD_S_CCDC_RAW_PARAMS
-Date: Fri, 30 Jun 2017 10:32:56 +0100
-Message-Id: <1498815176-16108-1-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Tue, 13 Jun 2017 15:36:59 -0400
+From: Helen Koike <helen.koike@collabora.com>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
+        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v4 05/11] [media] vimc: common: Add vimc_link_validate
+Date: Tue, 13 Jun 2017 16:35:33 -0300
+Message-Id: <1497382545-16408-6-git-send-email-helen.koike@collabora.com>
+In-Reply-To: <1497382545-16408-1-git-send-email-helen.koike@collabora.com>
+References: <1497382545-16408-1-git-send-email-helen.koike@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+All links will be checked in the same way. Adding a helper function for
+that
 
-For dm355 and dm644x the vpfe driver provided a ioctl to
-configure the raw bayer config using a IOCTL, but since
-the code was not properly implemented and aswell the
-IOCTL was marked as 'experimental ioctl that will change
-in future kernels', dropping this IOCTL.
+Signed-off-by: Helen Koike <helen.koike@collabora.com>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
-As discussed at [1], there wouldn’t be any possible users of
-the VPFE_CMD_S_CCDC_RAW_PARAMS IOCTL, but if someone complains
-we might end up reverting the removal and fix it differently.
 
-Note: This patch is on top of [1].
+Changes in v4:
+[media] vimc: common: Add vimc_link_validate
+	- remove vimc_fmt_pix_to_mbus(), replaced by
+	v4l2_fill_mbus_format()
+	- remove EXPORT_SYMBOL(vimc_link_validate), not necessary in
+	this patch, moved to submodules patch
+	- Fix multi-line comment style
+	- If colorspace is set to DEFAULT, then assume all the other
+	colorimetry parameters are also DEFAULT
 
-[1] https://patchwork.kernel.org/patch/9779385/
+Changes in v3:
+[media] vimc: common: Add vimc_link_validate
+	- this is a new patch in the series
 
- drivers/media/platform/davinci/ccdc_hw_device.h |  10 --
- drivers/media/platform/davinci/dm355_ccdc.c     |   1 -
- drivers/media/platform/davinci/dm644x_ccdc.c    | 151 ------------------------
- drivers/media/platform/davinci/vpfe_capture.c   |  93 ---------------
- include/media/davinci/dm644x_ccdc.h             |  12 --
- include/media/davinci/vpfe_capture.h            |  10 --
- 6 files changed, 277 deletions(-)
+Changes in v2: None
 
-diff --git a/drivers/media/platform/davinci/ccdc_hw_device.h b/drivers/media/platform/davinci/ccdc_hw_device.h
-index 8f6688a..f1b5210 100644
---- a/drivers/media/platform/davinci/ccdc_hw_device.h
-+++ b/drivers/media/platform/davinci/ccdc_hw_device.h
-@@ -42,16 +42,6 @@ struct ccdc_hw_ops {
- 	int (*set_hw_if_params) (struct vpfe_hw_if_param *param);
- 	/* get interface parameters */
- 	int (*get_hw_if_params) (struct vpfe_hw_if_param *param);
--	/*
--	 * Pointer to function to set parameters. Used
--	 * for implementing VPFE_S_CCDC_PARAMS
--	 */
--	int (*set_params) (void *params);
--	/*
--	 * Pointer to function to get parameter. Used
--	 * for implementing VPFE_G_CCDC_PARAMS
--	 */
--	int (*get_params) (void *params);
- 	/* Pointer to function to configure ccdc */
- 	int (*configure) (void);
- 
-diff --git a/drivers/media/platform/davinci/dm355_ccdc.c b/drivers/media/platform/davinci/dm355_ccdc.c
-index 73db166..4682f22 100644
---- a/drivers/media/platform/davinci/dm355_ccdc.c
-+++ b/drivers/media/platform/davinci/dm355_ccdc.c
-@@ -939,7 +939,6 @@ static struct ccdc_hw_device ccdc_hw_dev = {
- 		.enable = ccdc_enable,
- 		.enable_out_to_sdram = ccdc_enable_output_to_sdram,
- 		.set_hw_if_params = ccdc_set_hw_if_params,
--		.set_params = ccdc_set_params,
- 		.configure = ccdc_configure,
- 		.set_buftype = ccdc_set_buftype,
- 		.get_buftype = ccdc_get_buftype,
-diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
-index 1b42f50..1ec1886 100644
---- a/drivers/media/platform/davinci/dm644x_ccdc.c
-+++ b/drivers/media/platform/davinci/dm644x_ccdc.c
-@@ -216,106 +216,8 @@ static void ccdc_readregs(void)
- 	dev_notice(ccdc_cfg.dev, "\nReading 0x%x to VERT_LINES...\n", val);
- }
- 
--static int validate_ccdc_param(struct ccdc_config_params_raw *ccdcparam)
--{
--	if (ccdcparam->alaw.enable) {
--		u8 max_gamma = ccdc_gamma_width_max_bit(ccdcparam->alaw.gamma_wd);
--		u8 max_data = ccdc_data_size_max_bit(ccdcparam->data_sz);
--
--		if ((ccdcparam->alaw.gamma_wd > CCDC_GAMMA_BITS_09_0) ||
--		    (ccdcparam->alaw.gamma_wd < CCDC_GAMMA_BITS_15_6) ||
--		    (max_gamma > max_data)) {
--			dev_dbg(ccdc_cfg.dev, "\nInvalid data line select");
--			return -1;
--		}
--	}
--	return 0;
--}
--
--static int ccdc_update_raw_params(struct ccdc_config_params_raw *raw_params)
--{
--	struct ccdc_config_params_raw *config_params =
--				&ccdc_cfg.bayer.config_params;
--	unsigned int *fpc_virtaddr;
--	phys_addr_t fpc_physaddr;
--
--	memcpy(config_params, raw_params, sizeof(*raw_params));
--
--	/*
--	 * FIXME: the code to copy the fault_pxl settings was present
--	 *	  in the original version but clearly could never
--	 *	  work and will interpret user-provided data in
--	 * 	  dangerous ways. Let's disable it completely to be
--	 *        on the safe side.
--	 */
--	config_params->fault_pxl.enable = 0;
--	config_params->fault_pxl.fp_num = 0;
--	config_params->fault_pxl.fpc_table_addr = 0;
--
--	/*
--	 * allocate memory for fault pixel table and copy the user
--	 * values to the table
--	 */
--	if (!config_params->fault_pxl.enable)
--		return 0;
--
--	fpc_physaddr = config_params->fault_pxl.fpc_table_addr;
--	fpc_virtaddr = (unsigned int *)phys_to_virt(fpc_physaddr);
--	/*
--	 * Allocate memory for FPC table if current
--	 * FPC table buffer is not big enough to
--	 * accommodate FPC Number requested
--	 */
--	if (raw_params->fault_pxl.fp_num != config_params->fault_pxl.fp_num) {
--		if (fpc_physaddr) {
--			free_pages((unsigned long)fpc_virtaddr,
--				   get_order
--				   (config_params->fault_pxl.fp_num *
--				   FP_NUM_BYTES));
--		}
--
--		/* Allocate memory for FPC table */
--		fpc_virtaddr =
--			(unsigned int *)__get_free_pages(GFP_KERNEL | GFP_DMA,
--							 get_order(raw_params->
--							 fault_pxl.fp_num *
--							 FP_NUM_BYTES));
--
--		if (fpc_virtaddr) {
--			dev_dbg(ccdc_cfg.dev,
--				"\nUnable to allocate memory for FPC");
--			return -EFAULT;
--		}
--		fpc_physaddr = virt_to_phys(fpc_virtaddr);
--	}
--
--	/* Copy number of fault pixels and FPC table */
--	config_params->fault_pxl.fp_num = raw_params->fault_pxl.fp_num;
--	if (copy_from_user(fpc_virtaddr,
--			(void __user *)raw_params->fault_pxl.fpc_table_addr,
--			config_params->fault_pxl.fp_num * FP_NUM_BYTES)) {
--		dev_dbg(ccdc_cfg.dev, "\n copy_from_user failed");
--		return -EFAULT;
--	}
--	config_params->fault_pxl.fpc_table_addr = fpc_physaddr;
--	return 0;
--}
--
- static int ccdc_close(struct device *dev)
- {
--	struct ccdc_config_params_raw *config_params =
--				&ccdc_cfg.bayer.config_params;
--	phys_addr_t fpc_physaddr;
--	unsigned int *fpc_virtaddr;
--
--	fpc_physaddr = config_params->fault_pxl.fpc_table_addr;
--
--	if (fpc_physaddr) {
--		fpc_virtaddr = phys_to_virt(fpc_physaddr);
--		free_pages((unsigned long)fpc_virtaddr,
--			   get_order(config_params->fault_pxl.fp_num *
--			   FP_NUM_BYTES));
--	}
+
+---
+ drivers/media/platform/vimc/vimc-capture.c |  78 +++----------------
+ drivers/media/platform/vimc/vimc-common.c  | 121 ++++++++++++++++++++++++++++-
+ drivers/media/platform/vimc/vimc-common.h  |  14 ++++
+ 3 files changed, 145 insertions(+), 68 deletions(-)
+
+diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
+index 93f6a09..5bdecd1 100644
+--- a/drivers/media/platform/vimc/vimc-capture.c
++++ b/drivers/media/platform/vimc/vimc-capture.c
+@@ -64,6 +64,15 @@ static int vimc_cap_querycap(struct file *file, void *priv,
  	return 0;
  }
  
-@@ -349,29 +251,6 @@ static void ccdc_sbl_reset(void)
- 	vpss_clear_wbl_overflow(VPSS_PCR_CCDC_WBL_O);
- }
++static void vimc_cap_get_format(struct vimc_ent_device *ved,
++				struct v4l2_pix_format *fmt)
++{
++	struct vimc_cap_device *vcap = container_of(ved, struct vimc_cap_device,
++						    ved);
++
++	*fmt = vcap->format;
++}
++
+ static int vimc_cap_fmt_vid_cap(struct file *file, void *priv,
+ 				  struct v4l2_format *f)
+ {
+@@ -231,74 +240,8 @@ static const struct vb2_ops vimc_cap_qops = {
+ 	.wait_finish		= vb2_ops_wait_finish,
+ };
  
--/* Parameter operations */
--static int ccdc_set_params(void __user *params)
--{
--	struct ccdc_config_params_raw ccdc_raw_params;
--	int x;
--
--	if (ccdc_cfg.if_type != VPFE_RAW_BAYER)
--		return -EINVAL;
--
--	x = copy_from_user(&ccdc_raw_params, params, sizeof(ccdc_raw_params));
--	if (x) {
--		dev_dbg(ccdc_cfg.dev, "ccdc_set_params: error in copyingccdc params, %d\n",
--			x);
--		return -EFAULT;
--	}
--
--	if (!validate_ccdc_param(&ccdc_raw_params)) {
--		if (!ccdc_update_raw_params(&ccdc_raw_params))
--			return 0;
--	}
--	return -EINVAL;
--}
--
- /*
-  * ccdc_config_ycbcr()
-  * This function will configure CCDC for YCbCr video capture
-@@ -499,32 +378,6 @@ static void ccdc_config_black_compense(struct ccdc_black_compensation *bcomp)
- 	regw(val, CCDC_BLKCMP);
- }
- 
--static void ccdc_config_fpc(struct ccdc_fault_pixel *fpc)
--{
--	u32 val;
--
--	/* Initially disable FPC */
--	val = CCDC_FPC_DISABLE;
--	regw(val, CCDC_FPC);
--
--	if (!fpc->enable)
--		return;
--
--	/* Configure Fault pixel if needed */
--	regw(fpc->fpc_table_addr, CCDC_FPC_ADDR);
--	dev_dbg(ccdc_cfg.dev, "\nWriting 0x%lx to FPC_ADDR...\n",
--		       (fpc->fpc_table_addr));
--	/* Write the FPC params with FPC disable */
--	val = fpc->fp_num & CCDC_FPC_FPC_NUM_MASK;
--	regw(val, CCDC_FPC);
--
--	dev_dbg(ccdc_cfg.dev, "\nWriting 0x%x to FPC...\n", val);
--	/* read the FPC register */
--	val = regr(CCDC_FPC) | CCDC_FPC_ENABLE;
--	regw(val, CCDC_FPC);
--	dev_dbg(ccdc_cfg.dev, "\nWriting 0x%x to FPC...\n", val);
--}
--
- /*
-  * ccdc_config_raw()
-  * This function will configure CCDC for Raw capture mode
-@@ -579,9 +432,6 @@ static void ccdc_config_raw(void)
- 	/* Configure Black level compensation */
- 	ccdc_config_black_compense(&config_params->blk_comp);
- 
--	/* Configure Fault Pixel Correction */
--	ccdc_config_fpc(&config_params->fault_pxl);
--
- 	/* If data size is 8 bit then pack the data */
- 	if ((config_params->data_sz == CCDC_DATA_8BITS) ||
- 	     config_params->alaw.enable)
-@@ -939,7 +789,6 @@ static struct ccdc_hw_device ccdc_hw_dev = {
- 		.reset = ccdc_sbl_reset,
- 		.enable = ccdc_enable,
- 		.set_hw_if_params = ccdc_set_hw_if_params,
--		.set_params = ccdc_set_params,
- 		.configure = ccdc_configure,
- 		.set_buftype = ccdc_set_buftype,
- 		.get_buftype = ccdc_get_buftype,
-diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
-index e3fe3e0..b1bf4a7 100644
---- a/drivers/media/platform/davinci/vpfe_capture.c
-+++ b/drivers/media/platform/davinci/vpfe_capture.c
-@@ -281,45 +281,6 @@ void vpfe_unregister_ccdc_device(struct ccdc_hw_device *dev)
- EXPORT_SYMBOL(vpfe_unregister_ccdc_device);
- 
- /*
-- * vpfe_get_ccdc_image_format - Get image parameters based on CCDC settings
-- */
--static int vpfe_get_ccdc_image_format(struct vpfe_device *vpfe_dev,
--				 struct v4l2_format *f)
--{
--	struct v4l2_rect image_win;
--	enum ccdc_buftype buf_type;
--	enum ccdc_frmfmt frm_fmt;
--
--	memset(f, 0, sizeof(*f));
--	f->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	ccdc_dev->hw_ops.get_image_window(&image_win);
--	f->fmt.pix.width = image_win.width;
--	f->fmt.pix.height = image_win.height;
--	f->fmt.pix.bytesperline = ccdc_dev->hw_ops.get_line_length();
--	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
--				f->fmt.pix.height;
--	buf_type = ccdc_dev->hw_ops.get_buftype();
--	f->fmt.pix.pixelformat = ccdc_dev->hw_ops.get_pixel_format();
--	frm_fmt = ccdc_dev->hw_ops.get_frame_format();
--	if (frm_fmt == CCDC_FRMFMT_PROGRESSIVE)
--		f->fmt.pix.field = V4L2_FIELD_NONE;
--	else if (frm_fmt == CCDC_FRMFMT_INTERLACED) {
--		if (buf_type == CCDC_BUFTYPE_FLD_INTERLEAVED)
--			f->fmt.pix.field = V4L2_FIELD_INTERLACED;
--		else if (buf_type == CCDC_BUFTYPE_FLD_SEPARATED)
--			f->fmt.pix.field = V4L2_FIELD_SEQ_TB;
--		else {
--			v4l2_err(&vpfe_dev->v4l2_dev, "Invalid buf_type\n");
--			return -EINVAL;
--		}
--	} else {
--		v4l2_err(&vpfe_dev->v4l2_dev, "Invalid frm_fmt\n");
--		return -EINVAL;
--	}
--	return 0;
--}
--
 -/*
-  * vpfe_config_ccdc_image_format()
-  * For a pix format, configure ccdc to setup the capture
-  */
-@@ -1697,59 +1658,6 @@ static int vpfe_s_selection(struct file *file, void *priv,
- 	return ret;
- }
- 
--
--static long vpfe_param_handler(struct file *file, void *priv,
--		bool valid_prio, unsigned int cmd, void *param)
+- * NOTE: this function is a copy of v4l2_subdev_link_validate_get_format
+- * maybe the v4l2 function should be public
+- */
+-static int vimc_cap_v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+-						struct v4l2_subdev_format *fmt)
 -{
--	struct vpfe_device *vpfe_dev = video_drvdata(file);
+-	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(pad->entity);
+-
+-	fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
+-	fmt->pad = pad->index;
+-
+-	return v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
+-}
+-
+-static int vimc_cap_link_validate(struct media_link *link)
+-{
+-	struct v4l2_subdev_format source_fmt;
+-	const struct vimc_pix_map *vpix;
+-	struct vimc_cap_device *vcap = container_of(link->sink->entity,
+-						    struct vimc_cap_device,
+-						    vdev.entity);
+-	struct v4l2_pix_format *sink_fmt = &vcap->format;
 -	int ret;
 -
--	v4l2_dbg(2, debug, &vpfe_dev->v4l2_dev, "vpfe_param_handler\n");
+-	/*
+-	 * if it is a raw node from vimc-core, ignore the link for now
+-	 * TODO: remove this when there are no more raw nodes in the
+-	 * core and return error instead
+-	 */
+-	if (link->source->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
+-		return 0;
 -
--	if (vpfe_dev->started) {
--		/* only allowed if streaming is not started */
--		v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
--			"device already started\n");
--		return -EBUSY;
--	}
--
--	ret = mutex_lock_interruptible(&vpfe_dev->lock);
+-	/* Get the the format of the subdev */
+-	ret = vimc_cap_v4l2_subdev_link_validate_get_format(link->source,
+-							    &source_fmt);
 -	if (ret)
 -		return ret;
 -
--	switch (cmd) {
--	case VPFE_CMD_S_CCDC_RAW_PARAMS:
--		v4l2_warn(&vpfe_dev->v4l2_dev,
--			  "VPFE_CMD_S_CCDC_RAW_PARAMS: experimental ioctl\n");
--		if (ccdc_dev->hw_ops.set_params) {
--			ret = ccdc_dev->hw_ops.set_params(param);
--			if (ret) {
--				v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
--					"Error setting parameters in CCDC\n");
--				goto unlock_out;
--			}
--			ret = vpfe_get_ccdc_image_format(vpfe_dev,
--							 &vpfe_dev->fmt);
--			if (ret < 0) {
--				v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
--					"Invalid image format at CCDC\n");
--				goto unlock_out;
--			}
--		} else {
--			ret = -EINVAL;
--			v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
--				"VPFE_CMD_S_CCDC_RAW_PARAMS not supported\n");
--		}
--		break;
--	default:
--		ret = -ENOTTY;
--	}
--unlock_out:
--	mutex_unlock(&vpfe_dev->lock);
--	return ret;
+-	dev_dbg(vcap->vdev.v4l2_dev->dev,
+-		"%s: link validate formats src:%dx%d %d sink:%dx%d %d\n",
+-		vcap->vdev.name,
+-		source_fmt.format.width, source_fmt.format.height,
+-		source_fmt.format.code,
+-		sink_fmt->width, sink_fmt->height,
+-		sink_fmt->pixelformat);
+-
+-	/* The width, height and code must match. */
+-	vpix = vimc_pix_map_by_pixelformat(sink_fmt->pixelformat);
+-	if (source_fmt.format.width != sink_fmt->width
+-	    || source_fmt.format.height != sink_fmt->height
+-	    || vpix->code != source_fmt.format.code)
+-		return -EPIPE;
+-
+-	/*
+-	 * The field order must match, or the sink field order must be NONE
+-	 * to support interlaced hardware connected to bridges that support
+-	 * progressive formats only.
+-	 */
+-	if (source_fmt.format.field != sink_fmt->field &&
+-	    sink_fmt->field != V4L2_FIELD_NONE)
+-		return -EPIPE;
+-
+-	return 0;
 -}
 -
--
- /* vpfe capture ioctl operations */
- static const struct v4l2_ioctl_ops vpfe_ioctl_ops = {
- 	.vidioc_querycap	 = vpfe_querycap,
-@@ -1772,7 +1680,6 @@ static const struct v4l2_ioctl_ops vpfe_ioctl_ops = {
- 	.vidioc_cropcap		 = vpfe_cropcap,
- 	.vidioc_g_selection	 = vpfe_g_selection,
- 	.vidioc_s_selection	 = vpfe_s_selection,
--	.vidioc_default		 = vpfe_param_handler,
+ static const struct media_entity_operations vimc_cap_mops = {
+-	.link_validate		= vimc_cap_link_validate,
++	.link_validate		= vimc_link_validate,
  };
  
- static struct vpfe_device *vpfe_initialize(void)
-diff --git a/include/media/davinci/dm644x_ccdc.h b/include/media/davinci/dm644x_ccdc.h
-index 7c909da..6ea2ce2 100644
---- a/include/media/davinci/dm644x_ccdc.h
-+++ b/include/media/davinci/dm644x_ccdc.h
-@@ -103,16 +103,6 @@ struct ccdc_black_compensation {
- 	char gb;
+ static void vimc_cap_destroy(struct vimc_ent_device *ved)
+@@ -434,6 +377,7 @@ struct vimc_ent_device *vimc_cap_create(struct v4l2_device *v4l2_dev,
+ 	vcap->ved.destroy = vimc_cap_destroy;
+ 	vcap->ved.ent = &vcap->vdev.entity;
+ 	vcap->ved.process_frame = vimc_cap_process_frame;
++	vcap->ved.vdev_get_format = vimc_cap_get_format;
+ 
+ 	/* Initialize the video_device struct */
+ 	vdev = &vcap->vdev;
+diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
+index f809a9d..6ad77fd 100644
+--- a/drivers/media/platform/vimc/vimc-common.c
++++ b/drivers/media/platform/vimc/vimc-common.c
+@@ -252,8 +252,127 @@ int vimc_pipeline_s_stream(struct media_entity *ent, int enable)
+ 	return 0;
+ }
+ 
++static int vimc_get_mbus_format(struct media_pad *pad,
++				struct v4l2_subdev_format *fmt)
++{
++	if (is_media_entity_v4l2_subdev(pad->entity)) {
++		struct v4l2_subdev *sd =
++			media_entity_to_v4l2_subdev(pad->entity);
++		int ret;
++
++		fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
++		fmt->pad = pad->index;
++
++		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
++		if (ret)
++			return ret;
++
++	} else if (is_media_entity_v4l2_video_device(pad->entity)) {
++		struct video_device *vdev = container_of(pad->entity,
++							 struct video_device,
++							 entity);
++		struct vimc_ent_device *ved = video_get_drvdata(vdev);
++		const struct vimc_pix_map *vpix;
++		struct v4l2_pix_format vdev_fmt;
++
++		if (!ved->vdev_get_format)
++			return -ENOIOCTLCMD;
++
++		ved->vdev_get_format(ved, &vdev_fmt);
++		vpix = vimc_pix_map_by_pixelformat(vdev_fmt.pixelformat);
++		v4l2_fill_mbus_format(&fmt->format, &vdev_fmt, vpix->code);
++	} else {
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++int vimc_link_validate(struct media_link *link)
++{
++	struct v4l2_subdev_format source_fmt, sink_fmt;
++	int ret;
++
++	/*
++	 * if it is a raw node from vimc-core, ignore the link for now
++	 * TODO: remove this when there are no more raw nodes in the
++	 * core and return error instead
++	 */
++	if (link->source->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
++		return 0;
++
++	ret = vimc_get_mbus_format(link->source, &source_fmt);
++	if (ret)
++		return ret;
++
++	ret = vimc_get_mbus_format(link->sink, &sink_fmt);
++	if (ret)
++		return ret;
++
++	pr_info("vimc link validate: "
++		"%s:src:%dx%d (0x%x, %d, %d, %d, %d) "
++		"%s:snk:%dx%d (0x%x, %d, %d, %d, %d)\n",
++		/* src */
++		link->source->entity->name,
++		source_fmt.format.width, source_fmt.format.height,
++		source_fmt.format.code, source_fmt.format.colorspace,
++		source_fmt.format.quantization, source_fmt.format.xfer_func,
++		source_fmt.format.ycbcr_enc,
++		/* sink */
++		link->sink->entity->name,
++		sink_fmt.format.width, sink_fmt.format.height,
++		sink_fmt.format.code, sink_fmt.format.colorspace,
++		sink_fmt.format.quantization, sink_fmt.format.xfer_func,
++		sink_fmt.format.ycbcr_enc);
++
++	/* The width, height and code must match. */
++	if (source_fmt.format.width != sink_fmt.format.width
++	    || source_fmt.format.height != sink_fmt.format.height
++	    || source_fmt.format.code != sink_fmt.format.code)
++		return -EPIPE;
++
++	/*
++	 * The field order must match, or the sink field order must be NONE
++	 * to support interlaced hardware connected to bridges that support
++	 * progressive formats only.
++	 */
++	if (source_fmt.format.field != sink_fmt.format.field &&
++	    sink_fmt.format.field != V4L2_FIELD_NONE)
++		return -EPIPE;
++
++	/*
++	 * If colorspace is DEFAULT, then assume all the colorimetry is also
++	 * DEFAULT, return 0 to skip comparing the other colorimetry parameters
++	 */
++	if (source_fmt.format.colorspace == V4L2_COLORSPACE_DEFAULT
++	    || sink_fmt.format.colorspace == V4L2_COLORSPACE_DEFAULT)
++		return 0;
++
++	/* Colorspace must match. */
++	if (source_fmt.format.colorspace != sink_fmt.format.colorspace)
++		return -EPIPE;
++
++	/* Colorimetry must match if they are not set to DEFAULT */
++	if (source_fmt.format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
++	    && sink_fmt.format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
++	    && source_fmt.format.ycbcr_enc != sink_fmt.format.ycbcr_enc)
++		return -EPIPE;
++
++	if (source_fmt.format.quantization != V4L2_QUANTIZATION_DEFAULT
++	    && sink_fmt.format.quantization != V4L2_QUANTIZATION_DEFAULT
++	    && source_fmt.format.quantization != sink_fmt.format.quantization)
++		return -EPIPE;
++
++	if (source_fmt.format.xfer_func != V4L2_XFER_FUNC_DEFAULT
++	    && sink_fmt.format.xfer_func != V4L2_XFER_FUNC_DEFAULT
++	    && source_fmt.format.xfer_func != sink_fmt.format.xfer_func)
++		return -EPIPE;
++
++	return 0;
++}
++
+ static const struct media_entity_operations vimc_ent_sd_mops = {
+-	.link_validate = v4l2_subdev_link_validate,
++	.link_validate = vimc_link_validate,
  };
  
--/* structure for fault pixel correction */
--struct ccdc_fault_pixel {
--	/* Enable or Disable fault pixel correction */
--	unsigned char enable;
--	/* Number of fault pixel */
--	unsigned short fp_num;
--	/* Address of fault pixel table */
--	unsigned long fpc_table_addr;
--};
--
- /* Structure for CCDC configuration parameters for raw capture mode passed
-  * by application
-  */
-@@ -125,8 +115,6 @@ struct ccdc_config_params_raw {
- 	struct ccdc_black_clamp blk_clamp;
- 	/* Structure for Black Compensation */
- 	struct ccdc_black_compensation blk_comp;
--	/* Structure for Fault Pixel Module Configuration */
--	struct ccdc_fault_pixel fault_pxl;
+ int vimc_ent_sd_register(struct vimc_ent_device *ved,
+diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
+index 73e7e94..60ebde2 100644
+--- a/drivers/media/platform/vimc/vimc-common.h
++++ b/drivers/media/platform/vimc/vimc-common.h
+@@ -45,6 +45,9 @@ struct vimc_pix_map {
+  * @pads:		the list of pads of the node
+  * @destroy:		callback to destroy the node
+  * @process_frame:	callback send a frame to that node
++ * @vdev_get_format:	callback that returns the current format a pad, used
++ *			only when is_media_entity_v4l2_video_device(ent) returns
++ *			true
+  *
+  * Each node of the topology must create a vimc_ent_device struct. Depending on
+  * the node it will be of an instance of v4l2_subdev or video_device struct
+@@ -60,6 +63,8 @@ struct vimc_ent_device {
+ 	void (*destroy)(struct vimc_ent_device *);
+ 	void (*process_frame)(struct vimc_ent_device *ved,
+ 			      struct media_pad *sink, const void *frame);
++	void (*vdev_get_format)(struct vimc_ent_device *ved,
++			      struct v4l2_pix_format *fmt);
  };
  
+ /**
+@@ -160,4 +165,13 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
+ void vimc_ent_sd_unregister(struct vimc_ent_device *ved,
+ 			    struct v4l2_subdev *sd);
  
-diff --git a/include/media/davinci/vpfe_capture.h b/include/media/davinci/vpfe_capture.h
-index 8e1a4d8..f003533 100644
---- a/include/media/davinci/vpfe_capture.h
-+++ b/include/media/davinci/vpfe_capture.h
-@@ -183,14 +183,4 @@ struct vpfe_config_params {
- };
- 
- #endif				/* End of __KERNEL__ */
--/**
-- * VPFE_CMD_S_CCDC_RAW_PARAMS - EXPERIMENTAL IOCTL to set raw capture params
-- * This can be used to configure modules such as defect pixel correction,
-- * color space conversion, culling etc. This is an experimental ioctl that
-- * will change in future kernels. So use this ioctl with care !
-- * TODO: This is to be split into multiple ioctls and also explore the
-- * possibility of extending the v4l2 api to include this
-- **/
--#define VPFE_CMD_S_CCDC_RAW_PARAMS _IOW('V', BASE_VIDIOC_PRIVATE + 1, \
--					void *)
- #endif				/* _DAVINCI_VPFE_H */
++/**
++ * vimc_link_validate - validates a media link
++ *
++ * @link: pointer to &struct media_link
++ *
++ * This function calls validates if a media link is valid for streaming.
++ */
++int vimc_link_validate(struct media_link *link);
++
+ #endif
 -- 
 2.7.4
