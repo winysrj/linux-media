@@ -1,74 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:44608 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750899AbdFPP76 (ORCPT
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:50757 "EHLO
+        aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752956AbdFMKbO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 11:59:58 -0400
-Subject: Re: [PATCH v2 2/4] [media] platform: Add Synopsys Designware HDMI RX
+        Tue, 13 Jun 2017 06:31:14 -0400
+Subject: Re: [PATCH 2/4] [media] platform: Add Synopsys Designware HDMI RX
  Controller Driver
 To: Jose Abreu <Jose.Abreu@synopsys.com>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+        linux-kernel@vger.kernel.org
+References: <cover.1497347657.git.joabreu@synopsys.com>
+ <22ea8b160edaef464d7f5ad362b23a68a6e07633.1497347657.git.joabreu@synopsys.com>
+ <e1fb1420-28b1-c5ba-230e-3f1c3f9dfee0@synopsys.com>
 Cc: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>
-References: <cover.1497607315.git.joabreu@synopsys.com>
- <b4e209f41cc25285eb547cbd65f8fc6bf2a039cb.1497607315.git.joabreu@synopsys.com>
- <25d20060-f6b7-3a37-0509-39a734e6660a@xs4all.nl>
- <3a1abd40-4503-44f1-7cc5-ad757a7c5572@synopsys.com>
- <0ebac69e-8de3-e65e-d6f5-dfb4fed3585c@xs4all.nl>
- <900bfa50-2cc3-2b33-8531-2c65ebd3a981@synopsys.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ef24f72c-bb8e-8b9e-3cd5-e19d03fd4342@xs4all.nl>
-Date: Fri, 16 Jun 2017 17:59:46 +0200
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <c8d726a6-ebf2-cf05-2c30-62aae1b51304@cisco.com>
+Date: Tue, 13 Jun 2017 12:31:11 +0200
 MIME-Version: 1.0
-In-Reply-To: <900bfa50-2cc3-2b33-8531-2c65ebd3a981@synopsys.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+In-Reply-To: <e1fb1420-28b1-c5ba-230e-3f1c3f9dfee0@synopsys.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/2017 05:52 PM, Jose Abreu wrote:
+On 06/13/17 12:06, Jose Abreu wrote:
 > Hi Hans,
 > 
 > 
-> On 16-06-2017 14:44, Hans Verkuil wrote:
->>
->>>> <snip>
->>>>
->>>>> +	/* CEC */
->>>>> +	dw_dev->cec_adap = cec_allocate_adapter(&dw_hdmi_cec_adap_ops,
->>>>> +			dw_dev, dev_name(dev), CEC_CAP_TRANSMIT |
->>>>> +			CEC_CAP_PHYS_ADDR | CEC_CAP_LOG_ADDRS,
->>>> Add CEC_CAP_RC and CEC_CAP_PASSTHROUGH.
->>>>
->>>> I'm not sure about CEC_CAP_PHYS_ADDR. The problem here is that this driver
->>>> doesn't handle the EDID, but without that it doesn't know what physical
->>>> address to use.
->>>>
->>>> I wonder if the cec-notifier can be used for this, possibly with adaptations.
->>>> Relying on users to set the physical address is a last resort since it is very
->>>> painful to do so. cec-notifier was specifically designed to solve this.
->>> Yes, EDID ROM is not integrated into the controller so I can't
->>> add the code. How exactly can I use cec-notifier here?
->> drivers/media/platform/sti/cec/stih-cec.c is a good example. The notifier is
->> called by drivers/gpu/drm/sti/sti_hdmi.c.
+> On 13-06-2017 11:01, Jose Abreu wrote:
 > 
-> Done! Implemented and working :) I'm wondering if you want me to
-> wait some more time for other comments or just send the v3 now? I
-> also added support for SCDC read request (its a matter of
-> activating a bit).
+> [snip]
+>> Changes from RFC:
+>> 	- Added support for HDCP 1.4
+> 
+> [snip]
+>> +
+>> +/* HDCP 1.4 */
+>> +#define DW_HDMI_HDCP14_BKSV_SIZE	2
+>> +#define DW_HDMI_HDCP14_KEYS_SIZE	(2 * 40)
+>> +
+>> +struct dw_hdmi_hdcp14_key {
+>> +	u32 seed;
+>> +	u32 bksv[DW_HDMI_HDCP14_BKSV_SIZE];
+>> +	u32 keys[DW_HDMI_HDCP14_KEYS_SIZE];
+>> +	bool keys_valid;
+>> +};
+>> +
+>> +struct dw_hdmi_rx_pdata {
+>> +	/* Controller configuration */
+>> +	unsigned int iref_clk; /* MHz */
+>> +	struct dw_hdmi_hdcp14_key hdcp14_keys;
+>> +	/* 5V sense interface */
+>> +	bool (*dw_5v_status)(void __iomem *regs, int input);
+>> +	void (*dw_5v_clear)(void __iomem *regs);
+>> +	void __iomem *dw_5v_arg;
+>> +	/* Zcal interface */
+>> +	void (*dw_zcal_reset)(void __iomem *regs);
+>> +	bool (*dw_zcal_done)(void __iomem *regs);
+>> +	void __iomem *dw_zcal_arg;
+>> +};
+>> +
+>> +#endif /* __DW_HDMI_RX_PDATA_H__ */
+> 
+> I now have support for HDCP 1.4 in this driver. Can you send me
+> the patches about HDCP that you mentioned a while ago?
 
-Well, if it is ready, then just send a v3!
+This is what I have:
 
-> BTW, I used the DT node name "hdmi-phandle" but I don't know if
-> it is the best because it can cause confusion about the
-> hdmi-phandle that you documented in media/cec.txt
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=hdcp
 
-I had the same thought. It doesn't really fit for CEC adapters on
-HDMI receivers.
+This is very old and somewhat messy.
 
-Perhaps edid-phandle? Or something else?
+It uses ioctls for the bksv's, but I wonder if array/compound controls
+wouldn't be more appropriate (those didn't exist when this was written
+originally).
+
+It also needs to be checked against HDCP 2 so it can support that as well
+(or at least be easily extended for that).
 
 Regards,
 
