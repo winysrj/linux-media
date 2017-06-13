@@ -1,102 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f169.google.com ([209.85.128.169]:36020 "EHLO
-        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752866AbdFUQ5d (ORCPT
+Received: from relmlor4.renesas.com ([210.160.252.174]:25806 "EHLO
+        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753120AbdFMNrO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Jun 2017 12:57:33 -0400
-Received: by mail-wr0-f169.google.com with SMTP id c11so87455721wrc.3
-        for <linux-media@vger.kernel.org>; Wed, 21 Jun 2017 09:57:32 -0700 (PDT)
-Date: Wed, 21 Jun 2017 17:50:53 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com, liplianin@netup.ru, rjkm@metzlerbros.de
-Subject: Re: [PATCH 3/4] [media] dvb-frontends/stv0367: SNR DVBv5 statistics
- for DVB-C and T
-Message-ID: <20170621175053.2d1d26f2@audiostation.wuest.de>
-In-Reply-To: <ee554f8e-b533-4b8b-5710-83e7ff40a3c2@iki.fi>
-References: <20170620174506.7593-1-d.scheller.oss@gmail.com>
-        <20170620174506.7593-4-d.scheller.oss@gmail.com>
-        <ee554f8e-b533-4b8b-5710-83e7ff40a3c2@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Tue, 13 Jun 2017 09:47:14 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: broonie@kernel.org, hverkuil@xs4all.nl, mattw@codeaurora.org,
+        mitchelh@codeaurora.org, akpm@linux-foundation.org,
+        yamada.masahiro@socionext.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, chris.paterson2@renesas.com,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v2 1/2] iopoll: Avoid namespace collision within macros & tidyup
+Date: Tue, 13 Jun 2017 14:33:47 +0100
+Message-Id: <20170613133348.48044-2-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <20170613133348.48044-1-ramesh.shanmugasundaram@bp.renesas.com>
+References: <20170613133348.48044-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Wed, 21 Jun 2017 09:30:27 +0300
-schrieb Antti Palosaari <crope@iki.fi>:
+Renamed variable "timeout" to "__timeout" to avoid namespace collision.
+Tidy up macro arguments with paranthesis.
 
-> On 06/20/2017 08:45 PM, Daniel Scheller wrote:
-> > From: Daniel Scheller <d.scheller@gmx.net>
-> > 
-> > Add signal-to-noise-ratio as provided by the demodulator in decibel scale.
-> > QAM/DVB-C needs some intlog calculation to have usable dB values, OFDM/
-> > DVB-T values from the demod look alright already and are provided as-is.
-> > 
-> > Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> > ---
-> >   drivers/media/dvb-frontends/stv0367.c | 33 +++++++++++++++++++++++++++++++++
-> >   1 file changed, 33 insertions(+)
-> > 
-> > diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-> > index bb498f942ebd..0b13a407df23 100644
-> > --- a/drivers/media/dvb-frontends/stv0367.c
-> > +++ b/drivers/media/dvb-frontends/stv0367.c
-> > @@ -25,6 +25,8 @@
-> >   #include <linux/slab.h>
-> >   #include <linux/i2c.h>
-> >   
-> > +#include "dvb_math.h"
-> > +
-> >   #include "stv0367.h"
-> >   #include "stv0367_defs.h"
-> >   #include "stv0367_regs.h"
-> > @@ -33,6 +35,9 @@
-> >   /* Max transfer size done by I2C transfer functions */
-> >   #define MAX_XFER_SIZE  64
-> >   
-> > +/* snr logarithmic calc */
-> > +#define INTLOG10X100(x) ((u32) (((u64) intlog10(x) * 100) >> 24))
-> > +
-> >   static int stvdebug;
-> >   module_param_named(debug, stvdebug, int, 0644);
-> >   
-> > @@ -3013,6 +3018,33 @@ static int stv0367ddb_read_status(struct dvb_frontend *fe,
-> >   	return -EINVAL;
-> >   }
-> >   
-> > +static void stv0367ddb_read_snr(struct dvb_frontend *fe)
-> > +{
-> > +	struct stv0367_state *state = fe->demodulator_priv;
-> > +	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-> > +	int cab_pwr;
-> > +	u32 regval, tmpval, snrval = 0;
-> > +
-> > +	switch (state->activedemod) {
-> > +	case demod_ter:
-> > +		snrval = stv0367ter_snr_readreg(fe);
-> > +		break;
-> > +	case demod_cab:
-> > +		cab_pwr = stv0367cab_snr_power(fe);
-> > +		regval = stv0367cab_snr_readreg(fe, 0);
-> > +
-> > +		tmpval = (cab_pwr * 320) / regval;
-> > +		snrval = ((tmpval != 0) ? INTLOG10X100(tmpval) : 0) * 100;  
-> 
-> How much there will be rounding errors due to that signal/noise 
-> division? I would convert it to calculation of sums (tip logarithm 
-> calculation rules).
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+---
+ include/linux/iopoll.h | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-This is taken from stv0367dd aswell, the reported and calculated values are in 0.1dB precision. This and to not diverge any more from the "source" driver, I'd prefer to keep it how it is. These are just simple tuner cards anyway and by no means professional measurement gear, and should only give a more or less rough estimate on reception quality. E.g. my stv0367 cards report around 36dB SNR, whereas the cxd2841er reports ~37dB, compared to my DOCSIS modem, which reports 34dB on DOCSIS channels (another variant I had earlier even reported 39dB on the same channels), so... Even, we get way more precision than on the relative scale calc on the cab_read_snr functions which is in 10%-steps...
-
-> Also, that INTLOG10X100 is pretty much useless. Use just what 
-> intlog10/intlog2 offers without yet again another conversion.
-
-Will check and experiment. Again, taken from stv0367dd :-)
-
+diff --git a/include/linux/iopoll.h b/include/linux/iopoll.h
+index d29e1e21bf3f..e000172bee54 100644
+--- a/include/linux/iopoll.h
++++ b/include/linux/iopoll.h
+@@ -42,18 +42,19 @@
+  */
+ #define readx_poll_timeout(op, addr, val, cond, sleep_us, timeout_us)	\
+ ({ \
+-	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
++	ktime_t __timeout = ktime_add_us(ktime_get(), timeout_us); \
+ 	might_sleep_if(sleep_us); \
+ 	for (;;) { \
+ 		(val) = op(addr); \
+ 		if (cond) \
+ 			break; \
+-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
++		if ((timeout_us) && \
++		    ktime_compare(ktime_get(), __timeout) > 0) { \
+ 			(val) = op(addr); \
+ 			break; \
+ 		} \
+ 		if (sleep_us) \
+-			usleep_range((sleep_us >> 2) + 1, sleep_us); \
++			usleep_range(((sleep_us) >> 2) + 1, sleep_us); \
+ 	} \
+ 	(cond) ? 0 : -ETIMEDOUT; \
+ })
+@@ -77,12 +78,13 @@
+  */
+ #define readx_poll_timeout_atomic(op, addr, val, cond, delay_us, timeout_us) \
+ ({ \
+-	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
++	ktime_t __timeout = ktime_add_us(ktime_get(), timeout_us); \
+ 	for (;;) { \
+ 		(val) = op(addr); \
+ 		if (cond) \
+ 			break; \
+-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
++		if ((timeout_us) && \
++		    ktime_compare(ktime_get(), __timeout) > 0) { \
+ 			(val) = op(addr); \
+ 			break; \
+ 		} \
 -- 
-Best regards,
-Daniel Scheller
--- 
-https://github.com/herrnst
+2.12.2
