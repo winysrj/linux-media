@@ -1,82 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48899 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751870AbdFJIm3 (ORCPT
+Received: from smtprelay2.synopsys.com ([198.182.60.111]:35860 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752070AbdFMKBv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Jun 2017 04:42:29 -0400
-Subject: Re: [PATCH] media: fdp1: Support ES2 platforms
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Kieran Bingham <kbingham@kernel.org>
-References: <1497028548-24443-1-git-send-email-kbingham@kernel.org>
- <2460969.iCu4XJLJFm@avalon>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        geert@glider.be,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <8b322d87-b640-faf3-f070-f04787290beb@ideasonboard.com>
-Date: Sat, 10 Jun 2017 09:42:24 +0100
-MIME-Version: 1.0
-In-Reply-To: <2460969.iCu4XJLJFm@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Tue, 13 Jun 2017 06:01:51 -0400
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+To: devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
+        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Rob Herring <robh+dt@kernel.org>
+Subject: [PATCH 0/4] Synopsys Designware HDMI Video Capture Controller + PHY
+Date: Tue, 13 Jun 2017 11:01:14 +0100
+Message-Id: <cover.1497347657.git.joabreu@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+The Synopsys Designware HDMI RX controller is an HDMI receiver controller that
+is responsible to process digital data that comes from a phy. The final result
+is a stream of raw video data that can then be connected to a video DMA, for
+example, and transfered into RAM so that it can be displayed.
 
-On 10/06/17 08:54, Laurent Pinchart wrote:
-> Hi Kieran,
-> 
-> Thank you for the patch.
-> 
-> On Friday 09 Jun 2017 18:15:48 Kieran Bingham wrote:
->> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>
->> The new Renesas R-Car H3 ES2.0 platforms have an updated hw version
->> register. Update the driver accordingly.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->> ---
->>  drivers/media/platform/rcar_fdp1.c | 4 ++++
->>  1 file changed, 4 insertions(+)
->>
->> diff --git a/drivers/media/platform/rcar_fdp1.c
->> b/drivers/media/platform/rcar_fdp1.c index 42f25d241edd..50b59995b817
->> 100644
->> --- a/drivers/media/platform/rcar_fdp1.c
->> +++ b/drivers/media/platform/rcar_fdp1.c
->> @@ -260,6 +260,7 @@ MODULE_PARM_DESC(debug, "activate debug info");
->>  #define FD1_IP_INTDATA			0x0800
->>  #define FD1_IP_H3			0x02010101
->>  #define FD1_IP_M3W			0x02010202
->> +#define FD1_IP_H3_ES2			0x02010203
-> 
-> Following our global policy of treating ES2 as the default, how about renaming 
-> FDP1_IP_H3 to FDP1_IP_H3_ES1 and adding a new FD1_IP_H3 for ES2 ? The messages 
-> below should be updated as well.
+The controller + phy available in this series natively support all HDMI 1.4 and
+HDMI 2.0 modes, including deep color. Although, the driver is quite in its
+initial stage and unfortunatelly only non deep color modes are supported. Also,
+audio is not yet supported in the driver (the controller has several audio
+output interfaces).
 
-Sorry, I didn't realise that was the case. I'll update and resend later when I'm
-back online.
+Jose Abreu (4):
+  [media] platform: Add Synopsys Designware HDMI RX PHY e405 Driver
+  [media] platform: Add Synopsys Designware HDMI RX Controller Driver
+  MAINTAINERS: Add entry for Synopsys Designware HDMI drivers
+  dt-bindings: media: Document Synopsys Designware HDMI RX
 
-> Apart from that the patch looks good to me, so
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
+Cc: Carlos Palminha <palminha@synopsys.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Rob Herring <robh+dt@kernel.org>
 
-Thanks
+ .../devicetree/bindings/media/snps,dw-hdmi-rx.txt  |   41 +
+ MAINTAINERS                                        |    7 +
+ drivers/media/platform/Kconfig                     |    2 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/dwc/Kconfig                 |   17 +
+ drivers/media/platform/dwc/Makefile                |    2 +
+ drivers/media/platform/dwc/dw-hdmi-phy-e405.c      |  783 ++++++++++
+ drivers/media/platform/dwc/dw-hdmi-phy-e405.h      |   63 +
+ drivers/media/platform/dwc/dw-hdmi-rx.c            | 1496 ++++++++++++++++++++
+ drivers/media/platform/dwc/dw-hdmi-rx.h            |  376 +++++
+ include/media/dwc/dw-hdmi-phy-pdata.h              |  131 ++
+ include/media/dwc/dw-hdmi-rx-pdata.h               |   63 +
+ 12 files changed, 2983 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+ create mode 100644 drivers/media/platform/dwc/Kconfig
+ create mode 100644 drivers/media/platform/dwc/Makefile
+ create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.c
+ create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.h
+ create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.c
+ create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.h
+ create mode 100644 include/media/dwc/dw-hdmi-phy-pdata.h
+ create mode 100644 include/media/dwc/dw-hdmi-rx-pdata.h
 
-Kieran
-
->>  /* LUTs */
->>  #define FD1_LUT_DIF_ADJ			0x1000
->> @@ -2365,6 +2366,9 @@ static int fdp1_probe(struct platform_device *pdev)
->>  	case FD1_IP_M3W:
->>  		dprintk(fdp1, "FDP1 Version R-Car M3-W\n");
->>  		break;
->> +	case FD1_IP_H3_ES2:
->> +		dprintk(fdp1, "FDP1 Version R-Car H3-ES2\n");
->> +		break;
->>  	default:
->>  		dev_err(fdp1->dev, "FDP1 Unidentifiable (0x%08x)\n",
->>  				hw_version);
-> 
+-- 
+1.9.1
