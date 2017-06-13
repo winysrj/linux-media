@@ -1,78 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:10857 "EHLO smtp2-g21.free.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753025AbdF2TNK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 15:13:10 -0400
-Subject: Re: Trying to use IR driver for my SoC
-To: Sean Young <sean@mess.org>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>
-References: <cf82988e-8be2-1ec8-b343-7c3c54110746@free.fr>
- <20170629155557.GA12980@gofer.mess.org>
- <276e7aa2-0c98-5556-622a-65aab4b9d373@free.fr>
- <20170629175037.GA14390@gofer.mess.org>
-From: Mason <slash.tmp@free.fr>
-Message-ID: <204a429c-b886-63a7-4d59-522864f05030@free.fr>
-Date: Thu, 29 Jun 2017 21:12:48 +0200
+Received: from smtprelay.synopsys.com ([198.182.60.111]:35925 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752616AbdFMKGT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Jun 2017 06:06:19 -0400
+Subject: Re: [PATCH 2/4] [media] platform: Add Synopsys Designware HDMI RX
+ Controller Driver
+To: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+References: <cover.1497347657.git.joabreu@synopsys.com>
+ <22ea8b160edaef464d7f5ad362b23a68a6e07633.1497347657.git.joabreu@synopsys.com>
+CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <e1fb1420-28b1-c5ba-230e-3f1c3f9dfee0@synopsys.com>
+Date: Tue, 13 Jun 2017 11:06:11 +0100
 MIME-Version: 1.0
-In-Reply-To: <20170629175037.GA14390@gofer.mess.org>
-Content-Type: text/plain; charset=ISO-8859-15
+In-Reply-To: <22ea8b160edaef464d7f5ad362b23a68a6e07633.1497347657.git.joabreu@synopsys.com>
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29/06/2017 19:50, Sean Young wrote:
+Hi Hans,
 
-> On Thu, Jun 29, 2017 at 06:25:55PM +0200, Mason wrote:
->
->> $ ir-keytable -v -t
->> Found device /sys/class/rc/rc0/
->> Input sysfs node is /sys/class/rc/rc0/input0/
->> Event sysfs node is /sys/class/rc/rc0/input0/event0/
->> Parsing uevent /sys/class/rc/rc0/input0/event0/uevent
->> /sys/class/rc/rc0/input0/event0/uevent uevent MAJOR=13
->> /sys/class/rc/rc0/input0/event0/uevent uevent MINOR=64
->> /sys/class/rc/rc0/input0/event0/uevent uevent DEVNAME=input/event0
->> Parsing uevent /sys/class/rc/rc0/uevent
->> /sys/class/rc/rc0/uevent uevent NAME=rc-empty
->> input device is /dev/input/event0
->> /sys/class/rc/rc0/protocols protocol rc-5 (disabled)
->> /sys/class/rc/rc0/protocols protocol nec (disabled)
->> /sys/class/rc/rc0/protocols protocol rc-6 (disabled)
 
-I had overlooked this. Is it expected for these protocols
-to be marked as "disabled"?
+On 13-06-2017 11:01, Jose Abreu wrote:
 
->> Opening /dev/input/event0
->> Input Protocol version: 0x00010001
->> Testing events. Please, press CTRL-C to abort.
->> ^C
->>
->> Is rc-empty perhaps not the right choice?
-> 
-> rc-empty means there is no mapping from scancode to keycode. When you
-> run "ir-keytable -v -t" you should at see scancodes when the driver
-> generates them with rc_keydown().
+[snip]
+> Changes from RFC:
+> 	- Added support for HDCP 1.4
 
-So the mapping can be done either in the kernel, or in
-user-space by the application consuming the scancodes,
-right?
+[snip]
+> +
+> +/* HDCP 1.4 */
+> +#define DW_HDMI_HDCP14_BKSV_SIZE	2
+> +#define DW_HDMI_HDCP14_KEYS_SIZE	(2 * 40)
+> +
+> +struct dw_hdmi_hdcp14_key {
+> +	u32 seed;
+> +	u32 bksv[DW_HDMI_HDCP14_BKSV_SIZE];
+> +	u32 keys[DW_HDMI_HDCP14_KEYS_SIZE];
+> +	bool keys_valid;
+> +};
+> +
+> +struct dw_hdmi_rx_pdata {
+> +	/* Controller configuration */
+> +	unsigned int iref_clk; /* MHz */
+> +	struct dw_hdmi_hdcp14_key hdcp14_keys;
+> +	/* 5V sense interface */
+> +	bool (*dw_5v_status)(void __iomem *regs, int input);
+> +	void (*dw_5v_clear)(void __iomem *regs);
+> +	void __iomem *dw_5v_arg;
+> +	/* Zcal interface */
+> +	void (*dw_zcal_reset)(void __iomem *regs);
+> +	bool (*dw_zcal_done)(void __iomem *regs);
+> +	void __iomem *dw_zcal_arg;
+> +};
+> +
+> +#endif /* __DW_HDMI_RX_PDATA_H__ */
 
-> From a cursory glance at the driver I can't see anything wrong.
-> 
-> The only thing that stands out is RC5_TIME_BASE. If that is the bit
-> length or shortest pulse/space? In the latter case it should be 888 usec.
+I now have support for HDCP 1.4 in this driver. Can you send me
+the patches about HDCP that you mentioned a while ago?
 
-Need to locate some docs.
-
-> It might be worth trying nec, rc5 and rc6_0 and seeing if any of them decode.
-
-What do you mean? How do I try them?
-
-> Failing that some documentation would be great :)
-
-I will try finding some.
-
-Regards.
+Best regards,
+Jose Miguel Abreu
