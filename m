@@ -1,56 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40152 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752132AbdFQSn4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Jun 2017 14:43:56 -0400
-Date: Sat, 17 Jun 2017 21:43:48 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Yong Zhi <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        sakari.ailus@linux.intel.com, jian.xu.zheng@intel.com,
-        tfiga@chromium.org, Rajmohan Mani <rajmohan.mani@intel.com>,
-        tuukka.toivonen@intel.com
-Subject: Re: [PATCH v2 09/12] intel-ipu3: css hardware setup
-Message-ID: <20170617184348.GW12407@valkosipuli.retiisi.org.uk>
-References: <1497478767-10270-1-git-send-email-yong.zhi@intel.com>
- <1497478767-10270-10-git-send-email-yong.zhi@intel.com>
- <CAHp75VfK7qL5j+hDZj-QKcqf85_JiBDG7N8XET4a59Kfet5z1g@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHp75VfK7qL5j+hDZj-QKcqf85_JiBDG7N8XET4a59Kfet5z1g@mail.gmail.com>
+Received: from mga02.intel.com ([134.134.136.20]:48553 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753549AbdFMURa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Jun 2017 16:17:30 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
+        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
+        hyungwoo.yang@intel.com, divagar.mohandass@intel.com,
+        Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH v3 2/3] doc-rst: add IPU3 raw10 bayer pixel format definitions
+Date: Tue, 13 Jun 2017 15:17:15 -0500
+Message-Id: <1497385036-1002-3-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1497385036-1002-1-git-send-email-yong.zhi@intel.com>
+References: <1497385036-1002-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jun 17, 2017 at 01:54:51AM +0300, Andy Shevchenko wrote:
-> On Thu, Jun 15, 2017 at 1:19 AM, Yong Zhi <yong.zhi@intel.com> wrote:
-> 
-> Commit message.
-> 
-> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> 
-> > +static void writes(void *mem, ssize_t len, void __iomem *reg)
-> > +{
-> > +       while (len >= 4) {
-> > +               writel(*(u32 *)mem, reg);
-> > +               mem += 4;
-> > +               reg += 4;
-> > +               len -= 4;
-> > +       }
-> > +}
-> 
-> Again, I just looked into patches and first what I see is reinventing the wheel.
-> 
-> memcpy_toio()
+The formats added by this patch are:
 
-Hi Andy,
+    V4L2_PIX_FMT_IPU3_SBGGR10
+    V4L2_PIX_FMT_IPU3_SGBRG10
+    V4L2_PIX_FMT_IPU3_SGRBG10
+    V4L2_PIX_FMT_IPU3_SRGGB10
 
-That doesn't quite work: the hardware only supports 32-bit access.
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+---
+ Documentation/media/uapi/v4l/pixfmt-rgb.rst        |  1 +
+ .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         | 62 ++++++++++++++++++++++
+ 2 files changed, 63 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
 
-So the answer is writesl().
-
+diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+index b0f3513..6900d5c 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+@@ -16,5 +16,6 @@ RGB Formats
+     pixfmt-srggb10p
+     pixfmt-srggb10alaw8
+     pixfmt-srggb10dpcm8
++    pixfmt-srggb10-ipu3
+     pixfmt-srggb12
+     pixfmt-srggb16
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+new file mode 100644
+index 0000000..618e24a
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+@@ -0,0 +1,62 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2_PIX_FMT_IPU3_SBGGR10:
++.. _V4L2_PIX_FMT_IPU3_SGBRG10:
++.. _V4L2_PIX_FMT_IPU3_SGRBG10:
++.. _V4L2_PIX_FMT_IPU3_SRGGB10:
++
++**********************************************************************************************************************************************
++V4L2_PIX_FMT_IPU3_SBGGR10 ('ip3b'), V4L2_PIX_FMT_IPU3_SGBRG10 ('ip3g'), V4L2_PIX_FMT_IPU3_SGRBG10 ('ip3G'), V4L2_PIX_FMT_IPU3_SRGGB10 ('ip3r')
++**********************************************************************************************************************************************
++
++10-bit Bayer formats
++
++Description
++===========
++
++These four pixel formats are used by Intel IPU3 driver, they are raw
++sRGB / Bayer formats with 10 bits per sample with every 25 pixels packed
++to 32 bytes leaving 6 most significant bits padding in the last byte.
++The format is little endian.
++
++In other respects this format is similar to :ref:`V4L2-PIX-FMT-SRGGB10`.
++
++**Byte Order.**
++Each cell is one byte.
++
++.. raw:: latex
++
++    \newline\newline\begin{adjustbox}{width=\columnwidth}
++
++.. tabularcolumns:: |p{1.3cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|
++
++.. flat-table::
++
++    * - start + 0:
++      - B\ :sub:`00low`
++      - G\ :sub:`01low` \ (bits 7--2) B\ :sub:`00high`\ (bits 1--0)
++      - B\ :sub:`02low` \ (bits 7--4) G\ :sub:`01high`\ (bits 3--0)
++      - G\ :sub:`03low` \ (bits 7--6) B\ :sub:`02high`\ (bits 5--0)
++      - G\ :sub:`03high`
++    * - start + 5:
++      - G\ :sub:`10low`
++      - R\ :sub:`11low` \ (bits 7--2) G\ :sub:`10high`\ (bits 1--0)
++      - G\ :sub:`12low` \ (bits 7--4) R\ :sub:`11high`\ (bits 3--0)
++      - R\ :sub:`13low` \ (bits 7--6) G\ :sub:`12high`\ (bits 5--0)
++      - R\ :sub:`13high`
++    * - start + 10:
++      - B\ :sub:`20low`
++      - G\ :sub:`21low` \ (bits 7--2) B\ :sub:`20high`\ (bits 1--0)
++      - B\ :sub:`22low` \ (bits 7--4) G\ :sub:`21high`\ (bits 3--0)
++      - G\ :sub:`23low` \ (bits 7--6) B\ :sub:`22high`\ (bits 5--0)
++      - G\ :sub:`23high`
++    * - start + 15:
++      - G\ :sub:`30low`
++      - R\ :sub:`31low` \ (bits 7--2) G\ :sub:`30high`\ (bits 1--0)
++      - G\ :sub:`32low` \ (bits 7--4) R\ :sub:`31high`\ (bits 3--0)
++      - R\ :sub:`33low` \ (bits 7--6) G\ :sub:`32high`\ (bits 5--0)
++      - R\ :sub:`33high`
++
++.. raw:: latex
++
++    \end{adjustbox}\newline\newline
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
