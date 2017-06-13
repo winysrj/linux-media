@@ -1,77 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:60247 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753751AbdFLRNd (ORCPT
+Received: from mail-it0-f67.google.com ([209.85.214.67]:34015 "EHLO
+        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753053AbdFMJYC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 13:13:33 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2 2/6] [media] s5p-jpeg: Call jpeg_bound_align_image after qbuf
-Date: Mon, 12 Jun 2017 19:13:21 +0200
-Message-Id: <1497287605-20074-3-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
-References: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
+        Tue, 13 Jun 2017 05:24:02 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+In-Reply-To: <865b71d4fcf6ce407a94a10d5dcb06944ddb6dcb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.d0545e32d322ca1b939fa2918694173629e680eb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <865b71d4fcf6ce407a94a10d5dcb06944ddb6dcb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 13 Jun 2017 11:24:00 +0200
+Message-ID: <CAMuHMdXarryPs6Fq1ZxorztbqD15W3+0UYnHVQs4pNNVtV=XNw@mail.gmail.com>
+Subject: Re: [PATCH v4 1/2] media: i2c: adv748x: add adv748x driver
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tony K Nadackal <tony.kn@samsung.com>
+Hi Kieran,
 
-When queuing an OUTPUT buffer for decoder, s5p_jpeg_parse_hdr()
-function parses the input jpeg file and takes the width and height
-parameters from its header. These new width/height values will be used
-for the calculation of stride. HX_JPEG Hardware needs the width and
-height values aligned on a 16 bits boundary. This width/height alignment
-is handled in the s5p_jpeg_s_fmt_vid_cap() function during the S_FMT
-ioctl call.
+On Tue, Jun 13, 2017 at 2:35 AM, Kieran Bingham <kbingham@kernel.org> wrote=
+:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>
+> Provide support for the ADV7481 and ADV7482.
+>
+> The driver is modelled with 4 subdevices to allow simultaneous streaming
+> from the AFE (Analog front end) and HDMI inputs though two CSI TX
+> entities.
+>
+> The HDMI entity is linked to the TXA CSI bus, whilst the AFE is linked
+> to the TXB CSI bus.
+>
+> The driver is based on a prototype by Koji Matsuoka in the Renesas BSP,
+> and an earlier rework by Niklas S=C3=B6derlund.
+>
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-But if user space calls the QBUF of OUTPUT buffer after the S_FMT of
-CAPTURE buffer, these aligned values will be replaced by the values in
-jpeg header. If the width/height values of jpeg are not aligned, the
-decoder output will be corrupted. So in this patch we call
-jpeg_bound_align_image() to align the width/height values of Capture
-buffer in s5p_jpeg_buf_queue().
+> --- /dev/null
+> +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
 
-Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+> +static int adv748x_hdmi_set_pixelrate(struct adv748x_hdmi *hdmi)
+> +{
+> +       struct v4l2_subdev *tx;
+> +       struct v4l2_dv_timings timings;
+> +       struct v4l2_bt_timings *bt =3D &timings.bt;
+> +       unsigned int fps;
+> +
+> +       tx =3D adv748x_get_remote_sd(&hdmi->pads[ADV748X_HDMI_SOURCE]);
+> +       if (!tx)
+> +               return -ENOLINK;
+> +
+> +       adv748x_hdmi_query_dv_timings(&hdmi->sd, &timings);
+> +
+> +       fps =3D DIV_ROUND_CLOSEST(bt->pixelclock,
+> +                               V4L2_DV_BT_FRAME_WIDTH(bt) *
+> +                               V4L2_DV_BT_FRAME_HEIGHT(bt));
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 52dc794..623508d 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -2523,6 +2523,25 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
- 		q_data = &ctx->cap_q;
- 		q_data->w = tmp.w;
- 		q_data->h = tmp.h;
-+
-+		/*
-+		 * This call to jpeg_bound_align_image() takes care of width and
-+		 * height values alignment when user space calls the QBUF of
-+		 * OUTPUT buffer after the S_FMT of CAPTURE buffer.
-+		 * Please note that on Exynos4x12 SoCs, resigning from executing
-+		 * S_FMT on capture buffer for each JPEG image can result in a
-+		 * hardware hangup if subsampling is lower than the one of input
-+		 * JPEG.
-+		 */
-+		jpeg_bound_align_image(ctx,
-+				       &q_data->w,
-+				       S5P_JPEG_MIN_WIDTH, S5P_JPEG_MAX_WIDTH,
-+				       q_data->fmt->h_align,
-+				       &q_data->h,
-+				       S5P_JPEG_MIN_HEIGHT, S5P_JPEG_MAX_HEIGHT,
-+				       q_data->fmt->v_align);
-+
-+		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
- 	}
- 
- 	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
--- 
-2.7.4
+On arm32:
+
+    drivers/built-in.o: In function `adv748x_hdmi_set_pixelrate':
+    :(.text+0x1b8b1c): undefined reference to `__aeabi_uldivmod'
+
+v4l2_bt_timings.pixelclock is u64, so you should use DIV_ROUND_CLOSEST_ULL(=
+)
+instead.
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
+
+In personal conversations with technical people, I call myself a hacker. Bu=
+t
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
