@@ -1,302 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:56021 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750844AbdFSO4c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 10:56:32 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Cc: Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v2 14/19] camss: vfe: Add interface for scaling
-Date: Mon, 19 Jun 2017 17:48:34 +0300
-Message-Id: <1497883719-12410-15-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
-References: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
+Received: from mail-yw0-f169.google.com ([209.85.161.169]:36022 "EHLO
+        mail-yw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752019AbdFMJTI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Jun 2017 05:19:08 -0400
+Received: by mail-yw0-f169.google.com with SMTP id l75so46221670ywc.3
+        for <linux-media@vger.kernel.org>; Tue, 13 Jun 2017 02:19:08 -0700 (PDT)
+Received: from mail-yw0-f178.google.com (mail-yw0-f178.google.com. [209.85.161.178])
+        by smtp.gmail.com with ESMTPSA id e62sm4818996ywh.61.2017.06.13.02.19.07
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 13 Jun 2017 02:19:07 -0700 (PDT)
+Received: by mail-yw0-f178.google.com with SMTP id v7so29440728ywc.2
+        for <linux-media@vger.kernel.org>; Tue, 13 Jun 2017 02:19:07 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <374342140.IzTenANyU8@ttoivone-desk1>
+References: <1496799279-8774-1-git-send-email-yong.zhi@intel.com>
+ <1496799279-8774-4-git-send-email-yong.zhi@intel.com> <CAAFQd5Byemom138duZRpsKOzsb5204NfbFnjEdnDTu6wfLgnrQ@mail.gmail.com>
+ <374342140.IzTenANyU8@ttoivone-desk1>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Tue, 13 Jun 2017 18:18:46 +0900
+Message-ID: <CAAFQd5D20dz4LRhvUaUqZxeGBeXqHvi=mdGRmDbM9ofAscwwsA@mail.gmail.com>
+Subject: Re: [PATCH v2 3/3] [media] intel-ipu3: cio2: Add new MIPI-CSI2 driver
+To: Tuukka Toivonen <tuukka.toivonen@intel.com>
+Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add compose selection ioctls to handle scaling configuration.
+Hi Tuukka,
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
----
- drivers/media/platform/qcom/camss-8x16/vfe.c | 189 ++++++++++++++++++++++++++-
- drivers/media/platform/qcom/camss-8x16/vfe.h |   1 +
- 2 files changed, 188 insertions(+), 2 deletions(-)
+Thanks for your replies. Please see mine inline.
 
-diff --git a/drivers/media/platform/qcom/camss-8x16/vfe.c b/drivers/media/platform/qcom/camss-8x16/vfe.c
-index 433a54e..2d2bbcb 100644
---- a/drivers/media/platform/qcom/camss-8x16/vfe.c
-+++ b/drivers/media/platform/qcom/camss-8x16/vfe.c
-@@ -211,6 +211,8 @@
- #define CAMIF_TIMEOUT_SLEEP_US 1000
- #define CAMIF_TIMEOUT_ALL_US 1000000
- 
-+#define SCALER_RATIO_MAX 16
-+
- static const u32 vfe_formats[] = {
- 	MEDIA_BUS_FMT_UYVY8_2X8,
- 	MEDIA_BUS_FMT_VYUY8_2X8,
-@@ -1904,6 +1906,25 @@ static int vfe_set_stream(struct v4l2_subdev *sd, int enable)
- 	return &line->fmt[pad];
- }
- 
-+/*
-+ * __vfe_get_compose - Get pointer to compose selection structure
-+ * @line: VFE line
-+ * @cfg: V4L2 subdev pad configuration
-+ * @which: TRY or ACTIVE format
-+ *
-+ * Return pointer to TRY or ACTIVE compose rectangle structure
-+ */
-+static struct v4l2_rect *
-+__vfe_get_compose(struct vfe_line *line,
-+		  struct v4l2_subdev_pad_config *cfg,
-+		  enum v4l2_subdev_format_whence which)
-+{
-+	if (which == V4L2_SUBDEV_FORMAT_TRY)
-+		return v4l2_subdev_get_try_compose(&line->subdev, cfg,
-+						   MSM_VFE_PAD_SINK);
-+
-+	return &line->compose;
-+}
- 
- /*
-  * vfe_try_format - Handle try format by pad subdev method
-@@ -1950,7 +1971,14 @@ static void vfe_try_format(struct vfe_line *line,
- 		*fmt = *__vfe_get_format(line, cfg, MSM_VFE_PAD_SINK,
- 					 which);
- 
--		if (line->id == VFE_LINE_PIX)
-+		if (line->id == VFE_LINE_PIX) {
-+			struct v4l2_rect *rect;
-+
-+			rect = __vfe_get_compose(line, cfg, which);
-+
-+			fmt->width = rect->width;
-+			fmt->height = rect->height;
-+
- 			switch (fmt->code) {
- 			case MEDIA_BUS_FMT_YUYV8_2X8:
- 				if (code == MEDIA_BUS_FMT_YUYV8_1_5X8)
-@@ -1978,6 +2006,7 @@ static void vfe_try_format(struct vfe_line *line,
- 					fmt->code = MEDIA_BUS_FMT_VYUY8_2X8;
- 				break;
- 			}
-+		}
- 
- 		break;
- 	}
-@@ -1986,6 +2015,50 @@ static void vfe_try_format(struct vfe_line *line,
- }
- 
- /*
-+ * vfe_try_compose - Handle try compose selection by pad subdev method
-+ * @line: VFE line
-+ * @cfg: V4L2 subdev pad configuration
-+ * @rect: pointer to v4l2 rect structure
-+ * @which: wanted subdev format
-+ */
-+static void vfe_try_compose(struct vfe_line *line,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_rect *rect,
-+			    enum v4l2_subdev_format_whence which)
-+{
-+	struct v4l2_mbus_framefmt *fmt;
-+
-+	rect->width = rect->width - rect->left;
-+	rect->left = 0;
-+	rect->height = rect->height - rect->top;
-+	rect->top = 0;
-+
-+	fmt = __vfe_get_format(line, cfg, MSM_VFE_PAD_SINK, which);
-+
-+	if (rect->width > fmt->width)
-+		rect->width = fmt->width;
-+
-+	if (rect->height > fmt->height)
-+		rect->height = fmt->height;
-+
-+	if (fmt->width > rect->width * SCALER_RATIO_MAX)
-+		rect->width = (fmt->width + SCALER_RATIO_MAX - 1) /
-+							SCALER_RATIO_MAX;
-+
-+	rect->width &= ~0x1;
-+
-+	if (fmt->height > rect->height * SCALER_RATIO_MAX)
-+		rect->height = (fmt->height + SCALER_RATIO_MAX - 1) /
-+							SCALER_RATIO_MAX;
-+
-+	if (rect->width < 16)
-+		rect->width = 16;
-+
-+	if (rect->height < 4)
-+		rect->height = 4;
-+}
-+
-+/*
-  * vfe_enum_mbus_code - Handle pixel format enumeration
-  * @sd: VFE V4L2 subdevice
-  * @cfg: V4L2 subdev pad configuration
-@@ -2080,6 +2153,10 @@ static int vfe_get_format(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static int vfe_set_selection(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_pad_config *cfg,
-+			     struct v4l2_subdev_selection *sel);
-+
- /*
-  * vfe_set_format - Handle set format by pads subdev method
-  * @sd: VFE V4L2 subdevice
-@@ -2102,20 +2179,126 @@ static int vfe_set_format(struct v4l2_subdev *sd,
- 	vfe_try_format(line, cfg, fmt->pad, &fmt->format, fmt->which);
- 	*format = fmt->format;
- 
--	/* Propagate the format from sink to source */
- 	if (fmt->pad == MSM_VFE_PAD_SINK) {
-+		struct v4l2_subdev_selection sel = { 0 };
-+		int ret;
-+
-+		/* Propagate the format from sink to source */
- 		format = __vfe_get_format(line, cfg, MSM_VFE_PAD_SRC,
- 					  fmt->which);
- 
- 		*format = fmt->format;
- 		vfe_try_format(line, cfg, MSM_VFE_PAD_SRC, format,
- 			       fmt->which);
-+
-+		if (line->id != VFE_LINE_PIX)
-+			return 0;
-+
-+		/* Reset sink pad compose selection */
-+		sel.which = fmt->which;
-+		sel.pad = MSM_VFE_PAD_SINK;
-+		sel.target = V4L2_SEL_TGT_COMPOSE;
-+		sel.r.width = fmt->format.width;
-+		sel.r.height = fmt->format.height;
-+		ret = vfe_set_selection(sd, cfg, &sel);
-+		if (ret < 0)
-+			return ret;
- 	}
- 
- 	return 0;
- }
- 
- /*
-+ * vfe_get_selection - Handle get selection by pads subdev method
-+ * @sd: VFE V4L2 subdevice
-+ * @cfg: V4L2 subdev pad configuration
-+ * @sel: pointer to v4l2 subdev selection structure
-+ *
-+ * Return -EINVAL or zero on success
-+ */
-+static int vfe_get_selection(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_pad_config *cfg,
-+			     struct v4l2_subdev_selection *sel)
-+{
-+	struct vfe_line *line = v4l2_get_subdevdata(sd);
-+	struct v4l2_subdev_format fmt = { 0 };
-+	struct v4l2_rect *compose;
-+	int ret;
-+
-+	if (line->id != VFE_LINE_PIX || sel->pad != MSM_VFE_PAD_SINK)
-+		return -EINVAL;
-+
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-+		fmt.pad = sel->pad;
-+		fmt.which = sel->which;
-+		ret = vfe_get_format(sd, cfg, &fmt);
-+		if (ret < 0)
-+			return ret;
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		sel->r.width = fmt.format.width;
-+		sel->r.height = fmt.format.height;
-+		break;
-+	case V4L2_SEL_TGT_COMPOSE:
-+		compose = __vfe_get_compose(line, cfg, sel->which);
-+		if (compose == NULL)
-+			return -EINVAL;
-+
-+		sel->r = *compose;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * vfe_set_selection - Handle set selection by pads subdev method
-+ * @sd: VFE V4L2 subdevice
-+ * @cfg: V4L2 subdev pad configuration
-+ * @sel: pointer to v4l2 subdev selection structure
-+ *
-+ * Return -EINVAL or zero on success
-+ */
-+int vfe_set_selection(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_pad_config *cfg,
-+			     struct v4l2_subdev_selection *sel)
-+{
-+	struct vfe_line *line = v4l2_get_subdevdata(sd);
-+	struct v4l2_rect *compose;
-+	struct v4l2_subdev_format fmt = { 0 };
-+	int ret;
-+
-+	if (line->id != VFE_LINE_PIX || sel->pad != MSM_VFE_PAD_SINK)
-+		return -EINVAL;
-+
-+	if (sel->target != V4L2_SEL_TGT_COMPOSE)
-+		return -EINVAL;
-+
-+	compose = __vfe_get_compose(line, cfg, sel->which);
-+	if (compose == NULL)
-+		return -EINVAL;
-+
-+	vfe_try_compose(line, cfg, &sel->r, sel->which);
-+	*compose = sel->r;
-+
-+	/* Reset source pad format width and height */
-+	fmt.which = sel->which;
-+	fmt.pad = MSM_VFE_PAD_SRC;
-+	ret = vfe_get_format(sd, cfg, &fmt);
-+	if (ret < 0)
-+		return ret;
-+
-+	fmt.format.width = compose->width;
-+	fmt.format.height = compose->height;
-+	ret = vfe_set_format(sd, cfg, &fmt);
-+
-+	return ret;
-+}
-+
-+/*
-  * vfe_init_formats - Initialize formats on all pads
-  * @sd: VFE V4L2 subdevice
-  * @fh: V4L2 subdev file handle
-@@ -2308,6 +2491,8 @@ static int vfe_link_setup(struct media_entity *entity,
- 	.enum_frame_size = vfe_enum_frame_size,
- 	.get_fmt = vfe_get_format,
- 	.set_fmt = vfe_set_format,
-+	.get_selection = vfe_get_selection,
-+	.set_selection = vfe_set_selection,
- };
- 
- static const struct v4l2_subdev_ops vfe_v4l2_ops = {
-diff --git a/drivers/media/platform/qcom/camss-8x16/vfe.h b/drivers/media/platform/qcom/camss-8x16/vfe.h
-index 74ad2a6..1a0dc19 100644
---- a/drivers/media/platform/qcom/camss-8x16/vfe.h
-+++ b/drivers/media/platform/qcom/camss-8x16/vfe.h
-@@ -80,6 +80,7 @@ struct vfe_line {
- 	struct v4l2_subdev subdev;
- 	struct media_pad pads[MSM_VFE_PADS_NUM];
- 	struct v4l2_mbus_framefmt fmt[MSM_VFE_PADS_NUM];
-+	struct v4l2_rect compose;
- 	struct camss_video video_out;
- 	struct vfe_output output;
- };
--- 
-1.9.1
+On Tue, Jun 13, 2017 at 5:58 PM, Tuukka Toivonen
+<tuukka.toivonen@intel.com> wrote:
+> Hi Tomasz,
+>
+> On Monday, June 12, 2017 18:59:18 Tomasz Figa wrote:
+>> By any chance, doesn't the hardware provide some simple mode for
+>> contiguous buffers? Since we have an MMU anyway, we could use
+>> vb2_dma_contig and simplify the code significantly.
+>
+> In IPU3 the CIO2 (CSI-2 receiver) and the IMGU (image processing system)
+> are entirely separate PCI devices. The MMU is only in the IMGU device;
+> the CIO2 doesn't have MMU but has the FBPT (frame buffer pointer tables)
+> to handle discontinuous buffers.
+>
+> [...]
+>
+>>
+>> > +               pixelformat = V4L2_PIX_FMT_IPU3_SRGGB10;
+>> > +
+>> > +       alloc_devs[0] = &cio2->pci_dev->dev;
+>>
+>> Hmm, so it doesn't go through the IPU MMU in the end?
+>
+> No, it doesn't.
+
+Aha. I was confused by the fact that the driver calls
+dma_alloc_(non)coherent() with sizes likely greater than PAGE_SIZE.
+
+So, given the above, I believe we need to fix the LOP allocation to
+allocate one page at a time and stop relying on bus address
+contiguity.
+
+>> > +/* Called after each buffer is allocated */
+>> > +static int cio2_vb2_buf_init(struct vb2_buffer *vb)
+>> > +{
+>> > +       struct cio2_device *cio2 = vb2_get_drv_priv(vb->vb2_queue);
+>> > +       struct device *dev = &cio2->pci_dev->dev;
+>> > +       struct cio2_buffer *b =
+>> > +               container_of(vb, struct cio2_buffer, vbb.vb2_buf);
+>> > +       unsigned int length = vb->planes[0].length;
+>> > +       int lops  = DIV_ROUND_UP(DIV_ROUND_UP(length, PAGE_SIZE) +
+> 1,
+>> > +                                PAGE_SIZE / sizeof(u32));
+>> > +       u32 *lop;
+>> > +       struct sg_table *sg;
+>> > +       struct sg_page_iter sg_iter;
+>> > +
+>> > +       if (lops <= 0 || lops > CIO2_MAX_LOPS) {
+>> > +               dev_err(dev, "%s: bad buffer size (%i)\n", __func__,
+> length);
+>> > +               return -ENOSPC;         /* Should never happen */
+>> > +       }
+>> > +
+>> > +       /* Allocate LOP table */
+>> > +       b->lop = lop = dma_alloc_noncoherent(dev, lops * PAGE_SIZE,
+>> > +                                       &b->lop_bus_addr,
+> GFP_KERNEL);
+
+^^ Here is the offending allocation.
+
+>>
+>> > +               u32 fbpt_rp =
+>> > +                       (readl(cio2->base +
+> CIO2_REG_CDMARI(CIO2_DMA_CHAN))
+>> > +                        >> CIO2_CDMARI_FBPT_RP_SHIFT)
+>> > +                       & CIO2_CDMARI_FBPT_RP_MASK;
+>> > +
+>> > +               /*
+>> > +                * fbpt_rp is the fbpt entry that the dma is
+> currently working
+>> > +                * on, but since it could jump to next entry at any
+> time,
+>> > +                * assume that we might already be there.
+>> > +                */
+>> > +               fbpt_rp = (fbpt_rp + 1) % CIO2_MAX_BUFFERS;
+>>
+>> Hmm, this is really racy. This code can be pre-empted and not execute
+>> for quite long time, depending on system load, resuming after the
+>> hardware goes even further. Technically you could prevent this using
+>> *_irq_save()/_irq_restore(), but I'd try to find a way that doesn't
+>> rely on the timing, if possible.
+>
+> That is true, if the driver doesn't get executed in more than one frame
+> time. I don't think that's very common, but should be handled.
+>
+> Hmm. Actually the buffer has VALID bit which is set by driver to indicate
+> that the HW can fill the buffer and cleared by HW to indicate that the
+> buffer is filled. Probably the HW can not actually jump to the next
+> buffer as suggested by the comment, because I think the VALID bit
+> would be clear in that case. That should be checked.
+
+I think the problem here is that we keep all the entries valid and
+only point to dummy buffers if there are no buffers queued by
+userspace.
+
+>
+>>
+>> > +
+>> > +               if (bufs_queued <= 1)
+>> > +                       next = fbpt_rp + 1;     /* Buffers were
+> drained */
+>> > +               else if (fbpt_rp == next)
+>> > +                       next++;
+>> > +               next %= CIO2_MAX_BUFFERS;
+>> > +       }
+>> > +
+>> > +       while (q->bufs[next]) {
+>> > +               /* If the entry is used, get the next one,
+>> > +                * We can not break here if all are filled,
+>> > +                * Will wait for one free, otherwise it will crash
+>> > +                */
+>
+> That comment should be fixed. "otherwise it will crash" doesn't
+> tell much useful. Why would it crash?
+>
+>> > +               dev_dbg(&cio2->pci_dev->dev,
+>> > +                       "entry %i was already full!\n", next);
+>> > +               next = (next + 1) % CIO2_MAX_BUFFERS;
+>>
+>> A busy waiting, possibly infinite, loop. Hmm.
+>
+> It's not really busy waiting. We have allocated CIO2_MAX_BUFFERS
+> buffers (or actually just buffer entries in HW table) circularly for the
+> hardware, and then the user has requested N buffer queue. The driver
+> ensures N <= CIO2_MAX_BUFFERS and this guarantees that whenever user
+> queues a buffer, there necessarily is a free buffer in the hardware
+> circular buffer list. The loop above finds the first free buffer from the
+> circular list, which necessarily exists. In practice it should be always
+> the very first since that is the oldest one given to hardware.
+>
+>>
+>> I think we could do something smarter here, such as sleeping on a
+>> wait_queue, which is woken up from the interrupt handler.
+>
+> I think that's a bit complicated for situation which should be never
+> possible to happen.
+>
+>> Also, why do you think it will crash? I think you can just do return
+>> the buffer to vb2 with _ERROR status and bail out, if you can't queue
+>> due to some failure.
+>
+> Agree.
+
+Given your explanation, wouldn't it make sense to actually make the
+loop finite, limited by the number of buffers and if (due to some
+unforeseen condition, like a driver bug) there is no buffer available
+until then, error out?
+
+Best regards,
+Tomasz
