@@ -1,102 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb0-f179.google.com ([209.85.213.179]:34857 "EHLO
-        mail-yb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751392AbdFHLyK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 07:54:10 -0400
-Received: by mail-yb0-f179.google.com with SMTP id f192so8945559yba.2
-        for <linux-media@vger.kernel.org>; Thu, 08 Jun 2017 04:54:10 -0700 (PDT)
-Received: from mail-yw0-f170.google.com (mail-yw0-f170.google.com. [209.85.161.170])
-        by smtp.gmail.com with ESMTPSA id f66sm1910499ywh.47.2017.06.08.04.54.07
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 08 Jun 2017 04:54:07 -0700 (PDT)
-Received: by mail-yw0-f170.google.com with SMTP id l75so11919417ywc.3
-        for <linux-media@vger.kernel.org>; Thu, 08 Jun 2017 04:54:07 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <17c4779b-1064-5e89-4f4c-b071e27f5f72@soulik.info>
-References: <2890f845-eef2-5689-f154-fc76ae6abc8b@st.com> <816ba2d8-f1e7-ce34-3524-b2a3f1bf3d74@xs4all.nl>
- <fb4a4815-e1ff-081e-787a-0213e32a5405@st.com> <8f93f4f2df49431cb2750963c2f7b168@SFHDAG5NODE2.st.com>
- <48b04997-bd80-5640-4272-2c4d69c25a97@st.com> <CACHYQ-pb9tRaWq9c0h7OXTmpUVH16i3d6-8B_Y+YSzAqWGPEqA@mail.gmail.com>
- <CAPBb6MWtOaOKm5aaRTx2afFW=NOBk_NZz6-d2JiUS2DtXaW_EQ@mail.gmail.com>
- <c0dfd7fb-112a-a395-452d-5bc15e1edb06@xs4all.nl> <17c4779b-1064-5e89-4f4c-b071e27f5f72@soulik.info>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 8 Jun 2017 20:53:46 +0900
-Message-ID: <CAAFQd5Dj42eZz=xvwWJUpwqLgrQMN360pgUaqwPLZxemNxm05Q@mail.gmail.com>
-Subject: Re: [RFC] V4L2 unified low-level decoder API
-To: ayaka <ayaka@soulik.info>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Hugues FRUCHET <hugues.fruchet@st.com>,
-        "florent.revest@free-electrons.com"
-        <florent.revest@free-electrons.com>,
-        "jung.zhao@rock-chips.com" <jung.zhao@rock-chips.com>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mailout1.samsung.com ([203.254.224.24]:11012 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751921AbdFMFgN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Jun 2017 01:36:13 -0400
+Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
+        by mailout1.samsung.com (KnoxPortal) with ESMTP id 20170613053611epoutp0145a8f7c3118a4026a9ca81432103032b~Hl61RnO-o2607626076epoutp01c
+        for <linux-media@vger.kernel.org>; Tue, 13 Jun 2017 05:36:11 +0000 (GMT)
+Subject: Re: [Patch v4 00/12] Add MFC v10.10 support
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
+        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
+        m.szyprowski@samsung.com
+In-Reply-To: <95f6389c-4535-75c0-dcc9-6076b76777a0@samsung.com>
+Date: Tue, 13 Jun 2017 10:54:11 +0530
+Message-ID: <1497331451.22203.8.camel@smitha-fedora>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+References: <CGME20170406060957epcas1p36f883512ccfaf24359d1b31a6d199d87@epcas1p3.samsung.com>
+        <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
+        <95f6389c-4535-75c0-dcc9-6076b76777a0@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 8, 2017 at 8:11 PM, ayaka <ayaka@soulik.info> wrote:
->
->
-> On 06/08/2017 06:56 PM, Hans Verkuil wrote:
->>
->> Hi Alexandre,
->>
->> On 08/06/17 11:59, Alexandre Courbot wrote:
->>>
->>> On Thu, Jun 8, 2017 at 5:56 PM, Pawel Osciak <posciak@chromium.org>
->>> wrote:
->>>>
->>>> Hi,
->>>>
->>>> On Fri, May 19, 2017 at 1:08 AM, Hugues FRUCHET <hugues.fruchet@st.com>
->>>> wrote:
->>>>>
->>>>> Before merging this work Hans would like to have feedback from peers,
->>>>> in
->>>>> order to be sure that this is inline with other SoC vendors drivers
->>>>> expectations.
->>>>>
->>>>> Thomasz, Pawel, could you give your view regarding ChromeOS and
->>>>> Rockchip
->>>>> driver ?
->>>>
->>>> The drivers for Rockchip codecs are submitted to the public Chromium OS
->>>> kernel
->>>> and working on our RK-based platforms. We have also since added a VP9
->>>> API as
->
-> That driver still lacks a number of feature comparing to the rockchip
-> android driver, since google never requests them. Also the performance is
-> not as good as the android one.
+On Fri, 2017-06-09 at 19:36 +0200, Sylwester Nawrocki wrote:
+> On 04/06/2017 08:11 AM, Smitha T Murthy wrote:
+> > This patch series adds MFC v10.10 support. MFC v10.10 is used in some
+> > of Exynos7 variants.
+> > 
+> > This adds support for following:
+> > 
+> > * Add support for HEVC encoder and decoder
+> > * Add support for VP9 decoder
+> > * Update Documentation for control id definitions
+> > * Update computation of min scratch buffer size requirement for V8 onwards
+> Smitha, do you have any updates on this?  IIRC, there were few things
+> which needed corrections but we were rather close to the final version.
+> 
+> --
+> Thanks,
+> Sylwester
+> 
+Hi Sylwester,
 
-I'm not sure exactly what features or performance problems you're
-mentioning, but that's not the point. It's a reasonably simple driver
-without too much complexity, written with good V4L2 codec API
-compliance in mind and proven in the industry. I see it as a good
-starting point.
+Sorry, I am currently held up with some other work. I will try to make
+time and work on the next the updated patch series soon.
 
-> That is why I start to write a new driver myself.
-
-I think it would make sense to work on incrementally adding those
-missing features and performance optimizations, instead of spending
-time on unnecessary effort of doing the same basic work, which is
-already done in our driver.
-
-> Also the rockchip platform is very complex, that driver won't be work on all
-> the SoCs without a large of modification(now only two chips are supported)
-
-This is another story. The rockchip-vpu driver in ChromeOS 4.4 should
-be actually refactored into generic V4L2 stateless codec helpers (most
-of the shared code in current driver) + few separate drivers using
-those helpers, one for each physical IP block. Current design is there
-only because we thought there is more similarity between those IP
-blocks and we didn't have more time to actually clean it up later,
-after we realized that the assumption was false.
-
-Best regards,
-Tomasz
+Regards,
+Smitha
