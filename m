@@ -1,191 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:36811 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751283AbdFAKMV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Jun 2017 06:12:21 -0400
-Received: by mail-it0-f68.google.com with SMTP id i206so5081938ita.3
-        for <linux-media@vger.kernel.org>; Thu, 01 Jun 2017 03:12:20 -0700 (PDT)
-Received: from ubuntu.windy (c122-106-153-7.carlnfd1.nsw.optusnet.com.au. [122.106.153.7])
-        by smtp.gmail.com with ESMTPSA id e124sm32870242pfc.64.2017.06.01.03.12.17
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 01 Jun 2017 03:12:18 -0700 (PDT)
-Date: Thu, 1 Jun 2017 20:12:33 +1000
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] small cleanup of build script
-Message-ID: <20170601101232.GB3212@ubuntu.windy>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from relmlor4.renesas.com ([210.160.252.174]:25806 "EHLO
+        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753091AbdFMNrQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Jun 2017 09:47:16 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: broonie@kernel.org, hverkuil@xs4all.nl, mattw@codeaurora.org,
+        mitchelh@codeaurora.org, akpm@linux-foundation.org,
+        yamada.masahiro@socionext.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, chris.paterson2@renesas.com,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v2 2/2] regmap: Avoid namespace collision within macro & tidyup
+Date: Tue, 13 Jun 2017 14:33:48 +0100
+Message-Id: <20170613133348.48044-3-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <20170613133348.48044-1-ramesh.shanmugasundaram@bp.renesas.com>
+References: <20170613133348.48044-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Introduce a function for better tracing of system() calls
+Renamed variable "timeout" to "__timeout" & "pollret" to "__ret" to
+avoid namespace collision. Tidy up macro arguments with paranthesis.
 
-While debugging a recent issue I wanted more complete information
-about the sequencence of events in a series of
-system("foo") or die("BAR") calls.
-Adding this helper did that and cleaned things up a little.
-
-Signed-off-by: Vincent McIntyre <vincent.mcintyre@gmail.com>
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
 ---
- build | 81 +++++++++++++++++++++++++++++++++++++++----------------------------
- 1 file changed, 47 insertions(+), 34 deletions(-)
+ include/linux/regmap.h | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/build b/build
-index 4457a73..38ffd4f 100755
---- a/build
-+++ b/build
-@@ -342,6 +342,19 @@ sub which($)
- 	return undef;
- }
+diff --git a/include/linux/regmap.h b/include/linux/regmap.h
+index 86eeacc1425a..ebc7282abc80 100644
+--- a/include/linux/regmap.h
++++ b/include/linux/regmap.h
+@@ -120,23 +120,24 @@ struct reg_sequence {
+  */
+ #define regmap_read_poll_timeout(map, addr, val, cond, sleep_us, timeout_us) \
+ ({ \
+-	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
+-	int pollret; \
++	ktime_t __timeout = ktime_add_us(ktime_get(), timeout_us); \
++	int __ret; \
+ 	might_sleep_if(sleep_us); \
+ 	for (;;) { \
+-		pollret = regmap_read((map), (addr), &(val)); \
+-		if (pollret) \
++		__ret = regmap_read((map), (addr), &(val)); \
++		if (__ret) \
+ 			break; \
+ 		if (cond) \
+ 			break; \
+-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
+-			pollret = regmap_read((map), (addr), &(val)); \
++		if ((timeout_us) && \
++		    ktime_compare(ktime_get(), __timeout) > 0) { \
++			__ret = regmap_read((map), (addr), &(val)); \
+ 			break; \
+ 		} \
+ 		if (sleep_us) \
+-			usleep_range((sleep_us >> 2) + 1, sleep_us); \
++			usleep_range(((sleep_us) >> 2) + 1, sleep_us); \
+ 	} \
+-	pollret ?: ((cond) ? 0 : -ETIMEDOUT); \
++	__ret ?: ((cond) ? 0 : -ETIMEDOUT); \
+ })
  
-+sub run($$)
-+{
-+       my $cmd = shift;
-+       my $err = shift;
-+       $err = '' unless defined($err);
-+
-+       my ($pkg,$filename,$line) = caller;
-+
-+       print "\$ $cmd\n" if ($level);
-+       system ($cmd) == 0
-+               or die($err . " at $filename line $line\n");
-+}
-+
- ######
- # Main
- ######
-@@ -406,11 +419,11 @@ if (@git == 2) {
- 		if (!$local) {
- 			print "Getting the latest Kernel tree. This will take some time\n";
- 			if ($depth) {
--				system("git clone --origin '$rname/$git[1]' git://linuxtv.org/media_tree.git media $depth") == 0
--					or die "Can't clone from the upstream tree";
-+				run("git clone --origin '$rname/$git[1]' git://linuxtv.org/media_tree.git media $depth",
-+					"Can't clone from the upstream tree");
- 			} else {
--				system("git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git media $depth") == 0
--					or die "Can't clone from the upstream tree";
-+				run("git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git media $depth",
-+					"Can't clone from the upstream tree");
- 			}
- 			system('git --git-dir media/.git config format.cc "Linux Media Mailing List <linux-media@vger.kernel.org>"');
- 			system('git --git-dir media/.git config format.signoff true');
-@@ -419,56 +432,54 @@ if (@git == 2) {
- 		} else {
- 			if ($workdir ne "") {
- 				print "Creating a new workdir from $git[0] at media\n";
--				system("git new-workdir $git[0] media") == 0
--					or die "Can't create a new workdir";
-+				run("git new-workdir $git[0] media",
-+					"Can't create a new workdir");
- 			} else {
- 				print "Creating a new clone\n";
--				system("git clone -l $git[0] media $depth") == 0
--					or die "Can't create a new clone";
-+				run("git clone -l $git[0] media $depth",
-+					"Can't create a new clone");
- 			}
- 		}
- 	} elsif ($workdir eq "") {
- 		if (check_git("remote", "$rname/$git[1]")) {
--			system("git --git-dir media/.git remote update '$rname/$git[1]'") == 0
--				or die "Can't update from the upstream tree";
-+			run("git --git-dir media/.git remote update '$rname/$git[1]'",
-+				"Can't update from the upstream tree");
- 		} else {
--			system("git --git-dir media/.git remote update origin") == 0
--				or die "Can't update from the upstream tree";
-+			run("git --git-dir media/.git remote update origin",
-+				"Can't update from the upstream tree");
- 		}
- 	}
- 
- 	if ($workdir eq "") {
- 		if (!check_git("remote", "$name")) {
- 			print "adding remote $name to track $git[0]\n";
--			printf "\$ git --git-dir media/.git remote add $name $git[0]\n" if ($level);
--			system ("git --git-dir media/.git remote add $name $git[0]") == 0
--				or die "Can't create remote $name";
-+			run("git --git-dir media/.git remote add $name $git[0]",
-+				"Can't create remote $name");
- 		}
- 		if (!$depth) {
- 			print "updating remote $rname\n";
--			system ("git --git-dir media/.git remote update $name") == 0
--					or die "Can't update remote $name";
-+			run("git --git-dir media/.git remote update $name",
-+					"Can't update remote $name");
- 			print "creating a local branch $rname\n";
- 			if (!check_git("branch", "$rname/$git[1]")) {
--				print "\$ (cd media; git checkout -b $rname/$git[1] remotes/$name/$git[1])\n" if ($level);
--				system ("(cd media; git checkout -b $rname/$git[1] remotes/$name/$git[1])") == 0
--					or die "Can't create local branch $rname";
-+				run("(cd media; git checkout -b $rname/$git[1] remotes/$name/$git[1])",
-+					"Can't create local branch $rname");
- 			} else {
--				system ("(cd media; git checkout $rname/$git[1])") == 0
--						or die "Can't checkout to branch $rname";
--				system ("(cd media; git pull . remotes/$name/$git[1])") == 0
--						or die "Can't update local branch $name";
-+				run("(cd media; git checkout $rname/$git[1])",
-+						"Can't checkout to branch $rname");
-+				run("(cd media; git pull . remotes/$name/$git[1])",
-+						"Can't update local branch $name");
- 			}
- 		}
- 	} else {
- 		print "git checkout $git[1]\n";
--		system ("(cd media; git checkout $git[1])") == 0
--			or die "Can't checkout $git[1]";
-+		run("(cd media; git checkout $git[1])",
-+			"Can't checkout $git[1]");
- 	}
- 
- 
--	system ("make -C linux dir DIR=../media/") == 0
--		or die "Can't link the building system to the media directory.";
-+	run("make -C linux dir DIR=../media/",
-+		"Can't link the building system to the media directory.");
- } else {
- 	print "\n";
- 	print "************************************************************\n";
-@@ -486,8 +497,8 @@ if (@git == 2) {
- 	print "****************************\n";
- 	system("git pull git://linuxtv.org/media_build.git master");
- 
--	system ("make -C linux/ download") == 0 or die "Download failed";
--	system ("make -C linux/ untar") == 0 or die "Untar failed";
-+	run("make -C linux/ download", "Download failed");
-+	run("make -C linux/ untar", "Untar failed");
- }
- 
- print "**********************************************************\n";
-@@ -495,17 +506,19 @@ print "* Downloading firmwares from linuxtv.org.                *\n";
- print "**********************************************************\n";
- 
- if (!stat $firmware_tarball) {
--	system ("wget $firmware_url/$firmware_tarball -O $firmware_tarball") == 0 or die "Can't download $firmware_tarball";
-+	run("wget $firmware_url/$firmware_tarball -O $firmware_tarball",
-+		"Can't download $firmware_tarball");
- }
--system ("(cd v4l/firmware/; tar xvfj ../../$firmware_tarball)") == 0 or die "Can't extract $firmware_tarball";
-+run("(cd v4l/firmware/; tar xvfj ../../$firmware_tarball)",
-+		"Can't extract $firmware_tarball");
- 
- 
- print "******************\n";
- print "* Start building *\n";
- print "******************\n";
- 
--system ("make allyesconfig") == 0 or die "can't select all drivers";
--system ("make") == 0 or die "build failed";
-+run("make allyesconfig", "can't select all drivers");
-+run("make", "build failed");
- 
- print "**********************************************************\n";
- print "* Compilation finished. Use 'make install' to install them\n";
+ #ifdef CONFIG_REGMAP
 -- 
-2.7.4
+2.12.2
