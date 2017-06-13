@@ -1,148 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35230 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751727AbdFNKB5 (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40566 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753875AbdFMVJC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 06:01:57 -0400
-Date: Wed, 14 Jun 2017 13:01:50 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v3 2/2] media: entity: Add media_entity_get_fwnode_pad()
- function
-Message-ID: <20170614100149.GI12407@valkosipuli.retiisi.org.uk>
-References: <20170613143126.755-1-niklas.soderlund+renesas@ragnatech.se>
- <20170613143126.755-3-niklas.soderlund+renesas@ragnatech.se>
+        Tue, 13 Jun 2017 17:09:02 -0400
+Date: Tue, 13 Jun 2017 23:09:00 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: v4l2-fwnode: status, plans for merge, any branch to merge
+ against?
+Message-ID: <20170613210900.GA31456@amd>
+References: <2414221.XNA4JCFMRx@avalon>
+ <20170302090143.GB27818@amd>
+ <20170302101603.GE27818@amd>
+ <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
+ <20170302123848.GA28230@amd>
+ <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
+ <20170306072323.GA23509@amd>
+ <20170310225418.GJ3220@valkosipuli.retiisi.org.uk>
+ <20170613122240.GA2803@amd>
+ <20170613124748.GD12407@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="/9DWx/yDrRhgMJTb"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170613143126.755-3-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170613124748.GD12407@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
 
-Thanks for the update!
+--/9DWx/yDrRhgMJTb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jun 13, 2017 at 04:31:26PM +0200, Niklas Söderlund wrote:
-> This is a wrapper around the media entity get_fwnode_pad operation.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/media-entity.c | 35 +++++++++++++++++++++++++++++++++++
->  include/media/media-entity.h | 23 +++++++++++++++++++++++
->  2 files changed, 58 insertions(+)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index bc44193efa4798b4..35a15263793f71e1 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -18,6 +18,7 @@
->  
->  #include <linux/bitmap.h>
->  #include <linux/module.h>
-> +#include <linux/property.h>
->  #include <linux/slab.h>
->  #include <media/media-entity.h>
->  #include <media/media-device.h>
-> @@ -386,6 +387,40 @@ struct media_entity *media_graph_walk_next(struct media_graph *graph)
->  }
->  EXPORT_SYMBOL_GPL(media_graph_walk_next);
->  
-> +int media_entity_get_fwnode_pad(struct media_entity *entity,
-> +				struct fwnode_handle *fwnode,
-> +				unsigned int direction)
+Hi!
 
-media entity pad flags has unsigned long type. I think you should call this
-e.g. direction_flags or pad_direction_flags. It'd be clear that it's about
-pad flags and only the direction matters.
+> > Are there any news about the fwnode branch?
+> >=20
+> > I have quite usable camera, but it is still based on
+> > 982e8e40390d26430ef106fede41594139a4111c (that's v4.10). It would be
+> > good to see fwnode stuff upstream... are there any plans for that?
+> >=20
+> > Is there stable branch to which I could move the stuff?
+>=20
+> What's relevant for most V4L2 drivers is in linux-media right now.
+>=20
+> There are new features that will take some time to get in. The trouble has
+> been, and continue to be, that the patches need to go through various tre=
+es
+> so it'll take some time for them to be merged.
+>=20
+> I expect to have most of them in during the next merge window.
 
-> +{
-> +	struct fwnode_endpoint endpoint;
-> +	int i, ret;
+So git://linuxtv.org/media_tree.git branch master is the right one to
+work one?
 
-media entity num_pads field is u16. I guess unsigned int is fine, but it
-should be unsigned at least.
+Thanks,
+									Pavel
 
-With these,
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-> +
-> +	if (!entity->ops || !entity->ops->get_fwnode_pad) {
-> +		for (i = 0; i < entity->num_pads; i++) {
-> +			if (entity->pads[i].flags & direction)
-> +				return i;
-> +		}
-> +
-> +		return -ENXIO;
-> +	}
-> +
-> +	ret = fwnode_graph_parse_endpoint(fwnode, &endpoint);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = entity->ops->get_fwnode_pad(&endpoint);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	if (ret >= entity->num_pads)
-> +		return -ENXIO;
-> +
-> +	if (!(entity->pads[ret].flags & direction))
-> +		return -ENXIO;
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(media_entity_get_fwnode_pad);
-> +
->  /* -----------------------------------------------------------------------------
->   * Pipeline management
->   */
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 46eeb036aa330534..4114e06964824ec9 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -821,6 +821,29 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
->  struct media_entity *media_entity_get(struct media_entity *entity);
->  
->  /**
-> + * media_entity_get_fwnode_pad - Get pad number from fwnode
-> + *
-> + * @entity: The entity
-> + * @fwnode: Pointer to the fwnode_handle which should be used to find the pad
-> + * @direction: Expected direction of the pad, as defined in
-> + *	       :ref:`include/uapi/linux/media.h <media_header>`
-> + *	       (seek for ``MEDIA_PAD_FL_*``)
-> + *
-> + * This function can be used to resolve the media pad number from
-> + * a fwnode. This is useful for devices which use more complex
-> + * mappings of media pads.
-> + *
-> + * If the entity dose not implement the get_fwnode_pad() operation
-> + * then this function searches the entity for the first pad that
-> + * matches the @direction.
-> + *
-> + * Return: returns the pad number on success or a negative error code.
-> + */
-> +int media_entity_get_fwnode_pad(struct media_entity *entity,
-> +				struct fwnode_handle *fwnode,
-> +				unsigned int direction);
-> +
-> +/**
->   * media_graph_walk_init - Allocate resources used by graph walk.
->   *
->   * @graph: Media graph structure that will be used to walk the graph
+--/9DWx/yDrRhgMJTb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
--- 
-Kind regards,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+iEYEARECAAYFAllAVGwACgkQMOfwapXb+vL1ggCeLv9R21D653EHUH0xuS7PRI6T
+3IAAoJAso+qOcDdCuIPbCqyoZDKLgYNE
+=8M7z
+-----END PGP SIGNATURE-----
+
+--/9DWx/yDrRhgMJTb--
