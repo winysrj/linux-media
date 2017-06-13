@@ -1,74 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:56439 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751050AbdFYMcW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Jun 2017 08:32:22 -0400
-Subject: [PATCH 13/19] lirc_dev: remove the BUFLEN define
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, sean@mess.org
-Date: Sun, 25 Jun 2017 14:32:20 +0200
-Message-ID: <149839394084.28811.5942756570190479247.stgit@zeus.hardeman.nu>
-In-Reply-To: <149839373103.28811.9486751698665303339.stgit@zeus.hardeman.nu>
-References: <149839373103.28811.9486751698665303339.stgit@zeus.hardeman.nu>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59203 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751834AbdFMJcU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Jun 2017 05:32:20 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH v4 1/2] media: i2c: adv748x: add adv748x driver
+References: <cover.d0545e32d322ca1b939fa2918694173629e680eb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <865b71d4fcf6ce407a94a10d5dcb06944ddb6dcb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <CAMuHMdXarryPs6Fq1ZxorztbqD15W3+0UYnHVQs4pNNVtV=XNw@mail.gmail.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Kieran Bingham <kbingham@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <c80cbe50-047e-3e54-94ac-5d4fa2a8c6e4@ideasonboard.com>
+Date: Tue, 13 Jun 2017 10:32:15 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <CAMuHMdXarryPs6Fq1ZxorztbqD15W3+0UYnHVQs4pNNVtV=XNw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The define is only used in the lirc_zilog driver and once in lirc_dev.
 
-In lirc_dev it rather serves to make the limits on d->code_length less clear,
-so move the define to lirc_zilog.
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/lirc_dev.c             |    5 ++---
- drivers/staging/media/lirc/lirc_zilog.c |    3 +++
- include/media/lirc_dev.h                |    2 --
- 3 files changed, 5 insertions(+), 5 deletions(-)
+On 13/06/17 10:24, Geert Uytterhoeven wrote:
+> Hi Kieran,
+> 
+> On Tue, Jun 13, 2017 at 2:35 AM, Kieran Bingham <kbingham@kernel.org> wrote:
+>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>
+>> Provide support for the ADV7481 and ADV7482.
+>>
+>> The driver is modelled with 4 subdevices to allow simultaneous streaming
+>> from the AFE (Analog front end) and HDMI inputs though two CSI TX
+>> entities.
+>>
+>> The HDMI entity is linked to the TXA CSI bus, whilst the AFE is linked
+>> to the TXB CSI bus.
+>>
+>> The driver is based on a prototype by Koji Matsuoka in the Renesas BSP,
+>> and an earlier rework by Niklas Söderlund.
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+>> --- /dev/null
+>> +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> 
+>> +static int adv748x_hdmi_set_pixelrate(struct adv748x_hdmi *hdmi)
+>> +{
+>> +       struct v4l2_subdev *tx;
+>> +       struct v4l2_dv_timings timings;
+>> +       struct v4l2_bt_timings *bt = &timings.bt;
+>> +       unsigned int fps;
+>> +
+>> +       tx = adv748x_get_remote_sd(&hdmi->pads[ADV748X_HDMI_SOURCE]);
+>> +       if (!tx)
+>> +               return -ENOLINK;
+>> +
+>> +       adv748x_hdmi_query_dv_timings(&hdmi->sd, &timings);
+>> +
+>> +       fps = DIV_ROUND_CLOSEST(bt->pixelclock,
+>> +                               V4L2_DV_BT_FRAME_WIDTH(bt) *
+>> +                               V4L2_DV_BT_FRAME_HEIGHT(bt));
+> 
+> On arm32:
+> 
+>     drivers/built-in.o: In function `adv748x_hdmi_set_pixelrate':
+>     :(.text+0x1b8b1c): undefined reference to `__aeabi_uldivmod'
+> 
+> v4l2_bt_timings.pixelclock is u64, so you should use DIV_ROUND_CLOSEST_ULL()
+> instead.
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index d107ed6b634b..80944c2f7e91 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -145,9 +145,8 @@ int lirc_register_device(struct lirc_dev *d)
- 		return -EINVAL;
- 	}
- 
--	if (d->code_length < 1 || d->code_length > (BUFLEN * 8)) {
--		dev_err(d->dev, "code length must be less than %d bits\n",
--								BUFLEN * 8);
-+	if (d->code_length < 1 || d->code_length > 128) {
-+		dev_err(d->dev, "invalid code_length!\n");
- 		return -EBADRQC;
- 	}
- 
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index a8aefd033ad9..f54b66de4a27 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -64,6 +64,9 @@
- /* Max transfer size done by I2C transfer functions */
- #define MAX_XFER_SIZE  64
- 
-+/* LIRC buffer size */
-+#define BUFLEN            16
-+
- struct IR;
- 
- struct IR_rx {
-diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
-index 3f8edabfef88..21aac9494678 100644
---- a/include/media/lirc_dev.h
-+++ b/include/media/lirc_dev.h
-@@ -9,8 +9,6 @@
- #ifndef _LINUX_LIRC_DEV_H
- #define _LINUX_LIRC_DEV_H
- 
--#define BUFLEN            16
--
- #include <linux/slab.h>
- #include <linux/fs.h>
- #include <linux/ioctl.h>
+Aha, thanks.
+
+/me ponders why I didn't get spammed from the bot-builders about this?
+
+Fix applied locally ready for v5.
+
+Would you like the remote updated for renesas-drivers or will you patch locally?
+
+--
+Kieran
+
+> Gr{oetje,eeting}s,
+> 
+>                         Geert
+> 
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> 
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
+> 
