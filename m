@@ -1,59 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:62936 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750988AbdFQG6l (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37060 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752078AbdFMNhe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Jun 2017 02:58:41 -0400
-Subject: Re: [PATCH v2] [media] davinci: vpif: adaptions for DT support
-To: Kevin Hilman <khilman@baylibre.com>, linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sekhar Nori <nsekhar@ti.com>,
-        David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Benoit Parrot <bparrot@ti.com>,
-        Prabhakar Lad <prabhakar.csengg@gmail.com>,
-        linux-arm-kernel@lists.infradead.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <5085c24d-fec8-7ff0-e97f-ecbce1fbbe01@samsung.com>
-Date: Sat, 17 Jun 2017 08:58:32 +0200
-MIME-version: 1.0
-In-reply-to: <20170609161026.7582-1-khilman@baylibre.com>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <20170609161026.7582-1-khilman@baylibre.com>
-        <CGME20170617065837epcas5p49ffbc2fd9831b822ab6e368b86049025@epcas5p4.samsung.com>
+        Tue, 13 Jun 2017 09:37:34 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.13] CEC helper functions and CEC_CAP_NEEDS_HPD
+ capability
+Message-ID: <557bbead-4420-f029-c91a-351de5001560@xs4all.nl>
+Date: Tue, 13 Jun 2017 15:37:27 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/09/2017 06:10 PM, Kevin Hilman wrote:
-> The davinci VPIF is a single hardware block, but the existing driver
-> is broken up into a common library (vpif.c), output (vpif_display.c) and
-> intput (vpif_capture.c).
-> 
-> When migrating to DT, to better model the hardware, and because
-> registers, interrupts, etc. are all common,it was decided to
-> have a single VPIF hardware node[1].
-> 
-> Because davinci uses legacy, non-DT boot on several SoCs still, the
-> platform_drivers need to remain.  But they are also needed in DT boot.
-> Since there are no DT nodes for the display/capture parts in DT
-> boot (there is a single node for the parent/common device) we need to
-> create platform_devices somewhere to instansiate the platform_drivers.
-> 
-> When VPIF display/capture are needed for a DT boot, the VPIF node
-> will have endpoints defined for its subdevs.  Therefore, vpif_probe()
-> checks for the presence of endpoints, and if detected manually creates
-> the platform_devices for the display and capture platform_drivers.
-> 
-> [1] Documentation/devicetree/bindings/media/ti,da850-vpif.txt
-> 
-> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+This patch series adds various useful helper functions (esp. for
+upcoming CEC support in drm drivers).
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+The other addition is support for the new CEC_CAP_NEEDS_HPD capability: it
+turns out there is a lot of hardware out there that cannot use the CEC pin
+when there is no HPD. The CEC specification allows this in order to wake up
+displays that pull the HPD low when in standby, but CEC still works.
 
+But hardware like the Odroid U3 that hooks the HPD to a level-shifter and
+that powers it off when the HPD goes low will also block the CEC signal from
+reaching the SoC. So even though the SoC can handle this, the board design
+prevents it from working.
 
--- 
+There are more upcoming drivers (e.g. DisplayPort CEC-over-AUX tunneling)
+that have the same limitation, so this capability is needed for 4.13.
+
+The final two patches generalizes the CEC DT bindings at the request of Rob
+Herring.
+
 Regards,
-Sylwester
+
+	Hans
+
+The following changes since commit 47f910f0e0deb880c2114811f7ea1ec115a19ee4:
+
+  [media] v4l: subdev: tolerate null in media_entity_to_v4l2_subdev (2017-06-08 16:55:25 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git cec-hpd
+
+for you to fetch changes up to a1aba50d302888f607a2e50f9240dd64b9a2bea5:
+
+  dt-bindings: media/s5p-cec.txt, media/stih-cec.txt: refer to cec.txt (2017-06-13 15:00:22 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (10):
+      cec: add cec_s_phys_addr_from_edid helper function
+      cec: add cec_phys_addr_invalidate() helper function
+      cec: add cec_transmit_attempt_done helper function
+      stih-cec/vivid/pulse8/rainshadow: use cec_transmit_attempt_done
+      cec: add CEC_CAP_NEEDS_HPD
+      cec-ioc-adap-g-caps.rst: document CEC_CAP_NEEDS_HPD
+      dt-bindings: media/s5p-cec.txt: document needs-hpd property
+      s5p_cec: set the CEC_CAP_NEEDS_HPD flag if needed
+      dt-bindings: add media/cec.txt
+      dt-bindings: media/s5p-cec.txt, media/stih-cec.txt: refer to cec.txt
+
+ Documentation/devicetree/bindings/media/cec.txt      |  8 ++++++++
+ Documentation/devicetree/bindings/media/s5p-cec.txt  |  6 +++++-
+ Documentation/devicetree/bindings/media/stih-cec.txt |  2 +-
+ Documentation/media/kapi/cec-core.rst                | 18 ++++++++++++++++++
+ Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst |  8 ++++++++
+ MAINTAINERS                                          |  1 +
+ drivers/media/cec/cec-adap.c                         | 60 ++++++++++++++++++++++++++++++++++++++++++++++++++++++------
+ drivers/media/cec/cec-api.c                          |  5 ++++-
+ drivers/media/cec/cec-core.c                         |  1 +
+ drivers/media/platform/s5p-cec/s5p_cec.c             |  4 +++-
+ drivers/media/platform/sti/cec/stih-cec.c            |  9 ++++-----
+ drivers/media/platform/vivid/vivid-cec.c             |  6 +++---
+ drivers/media/usb/pulse8-cec/pulse8-cec.c            |  9 +++------
+ drivers/media/usb/rainshadow-cec/rainshadow-cec.c    |  9 +++------
+ include/media/cec.h                                  | 29 +++++++++++++++++++++++++++++
+ include/uapi/linux/cec.h                             |  2 ++
+ 16 files changed, 147 insertions(+), 30 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/cec.txt
