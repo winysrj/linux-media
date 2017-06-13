@@ -1,198 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-26.mail.aliyun.com ([115.124.20.26]:40714 "EHLO
-        out20-26.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751710AbdF3H4R (ORCPT
+Received: from mail-it0-f65.google.com ([209.85.214.65]:34310 "EHLO
+        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751834AbdFMJi5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Jun 2017 03:56:17 -0400
-Date: Fri, 30 Jun 2017 15:55:58 +0800
-From: Yong <yong.deng@magewell.com>
-To: Chen-Yu Tsai <wens@csie.org>
-Cc: Rob Herring <robh@kernel.org>, mchehab@kernel.org,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        hans.verkuil@cisco.com, peter.griffin@linaro.org,
-        hugues.fruchet@st.com, Krzysztof Kozlowski <krzk@kernel.org>,
-        bparrot@ti.com, Arnd Bergmann <arnd@arndb.de>,
-        jean-christophe.trotin@st.com, benjamin.gaignard@linaro.org,
-        tiffany.lin@mediatek.com, kamil@wypas.org,
-        kieran+renesas@ksquared.org.uk, andrew-ct.chen@mediatek.com,
+        Tue, 13 Jun 2017 05:38:57 -0400
+MIME-Version: 1.0
+In-Reply-To: <c80cbe50-047e-3e54-94ac-5d4fa2a8c6e4@ideasonboard.com>
+References: <cover.d0545e32d322ca1b939fa2918694173629e680eb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <865b71d4fcf6ce407a94a10d5dcb06944ddb6dcb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <CAMuHMdXarryPs6Fq1ZxorztbqD15W3+0UYnHVQs4pNNVtV=XNw@mail.gmail.com> <c80cbe50-047e-3e54-94ac-5d4fa2a8c6e4@ideasonboard.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 13 Jun 2017 11:38:54 +0200
+Message-ID: <CAMuHMdXtpnJcNLeG_TGHzsJve_JV2_oo+P4DbK0q6hbNcBh7ag@mail.gmail.com>
+Subject: Re: [PATCH v4 1/2] media: i2c: adv748x: add adv748x driver
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Kieran Bingham <kbingham@kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>
-Subject: Re: [PATCH RFC 2/2] dt-bindings: add binding documentation for
- Allwinner CSI
-Message-Id: <20170630155558.929bcdc7805a88bb2c467436@magewell.com>
-In-Reply-To: <CAGb2v66+xHR7xfBX_mPigZE_nvcRQfnpr4QAcKYEUhSGN7h61w@mail.gmail.com>
-References: <1498561654-14658-1-git-send-email-yong.deng@magewell.com>
-        <1498561654-14658-3-git-send-email-yong.deng@magewell.com>
-        <20170629211957.uz7jijkuoxr2vohc@rob-hp-laptop>
-        <CAGb2v66+xHR7xfBX_mPigZE_nvcRQfnpr4QAcKYEUhSGN7h61w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 30 Jun 2017 11:41:50 +0800
-Chen-Yu Tsai <wens@csie.org> wrote:
+Hi Kieran,
 
-> On Fri, Jun 30, 2017 at 5:19 AM, Rob Herring <robh@kernel.org> wrote:
-> > On Tue, Jun 27, 2017 at 07:07:34PM +0800, Yong Deng wrote:
-> >> Add binding documentation for Allwinner CSI.
-> >
-> > For the subject:
-> >
-> > dt-bindings: media: Add Allwinner Camera Sensor Interface (CSI)
-> >
-> > "binding documentation" is redundant.
+On Tue, Jun 13, 2017 at 11:32 AM, Kieran Bingham
+<kieran.bingham+renesas@ideasonboard.com> wrote:
+> On 13/06/17 10:24, Geert Uytterhoeven wrote:
+>> On Tue, Jun 13, 2017 at 2:35 AM, Kieran Bingham <kbingham@kernel.org> wr=
+ote:
+>>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>>
+>>> Provide support for the ADV7481 and ADV7482.
+>>>
+>>> The driver is modelled with 4 subdevices to allow simultaneous streamin=
+g
+>>> from the AFE (Analog front end) and HDMI inputs though two CSI TX
+>>> entities.
+>>>
+>>> The HDMI entity is linked to the TXA CSI bus, whilst the AFE is linked
+>>> to the TXB CSI bus.
+>>>
+>>> The driver is based on a prototype by Koji Matsuoka in the Renesas BSP,
+>>> and an earlier rework by Niklas S=C3=B6derlund.
+>>>
+>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>
+>>> --- /dev/null
+>>> +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+>>
+>>> +static int adv748x_hdmi_set_pixelrate(struct adv748x_hdmi *hdmi)
+>>> +{
+>>> +       struct v4l2_subdev *tx;
+>>> +       struct v4l2_dv_timings timings;
+>>> +       struct v4l2_bt_timings *bt =3D &timings.bt;
+>>> +       unsigned int fps;
+>>> +
+>>> +       tx =3D adv748x_get_remote_sd(&hdmi->pads[ADV748X_HDMI_SOURCE]);
+>>> +       if (!tx)
+>>> +               return -ENOLINK;
+>>> +
+>>> +       adv748x_hdmi_query_dv_timings(&hdmi->sd, &timings);
+>>> +
+>>> +       fps =3D DIV_ROUND_CLOSEST(bt->pixelclock,
+>>> +                               V4L2_DV_BT_FRAME_WIDTH(bt) *
+>>> +                               V4L2_DV_BT_FRAME_HEIGHT(bt));
+>>
+>> On arm32:
+>>
+>>     drivers/built-in.o: In function `adv748x_hdmi_set_pixelrate':
+>>     :(.text+0x1b8b1c): undefined reference to `__aeabi_uldivmod'
+>>
+>> v4l2_bt_timings.pixelclock is u64, so you should use DIV_ROUND_CLOSEST_U=
+LL()
+>> instead.
+>
+> Aha, thanks.
+>
+> /me ponders why I didn't get spammed from the bot-builders about this?
 
-OK.
+-EBUSY?
 
-> >
-> >>
-> >> Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> >> ---
-> >>  .../devicetree/bindings/media/sunxi-csi.txt        | 51 ++++++++++++++++++++++
-> >>  1 file changed, 51 insertions(+)
-> >>  create mode 100644 Documentation/devicetree/bindings/media/sunxi-csi.txt
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/media/sunxi-csi.txt b/Documentation/devicetree/bindings/media/sunxi-csi.txt
-> >> new file mode 100644
-> >> index 0000000..770be0e
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/media/sunxi-csi.txt
-> >> @@ -0,0 +1,51 @@
-> >> +Allwinner V3s Camera Sensor Interface
-> >> +------------------------------
-> >> +
-> >> +Required properties:
-> >> +  - compatible: value must be "allwinner,sun8i-v3s-csi"
-> >> +  - reg: base address and size of the memory-mapped region.
-> >> +  - interrupts: interrupt associated to this IP
-> >> +  - clocks: phandles to the clocks feeding the CSI
-> >> +    * ahb: the CSI interface clock
-> >> +    * mod: the CSI module clock
-> >> +    * ram: the CSI DRAM clock
-> >> +  - clock-names: the clock names mentioned above
-> >> +  - resets: phandles to the reset line driving the CSI
-> >> +
-> >> +- ports: A ports node with endpoint definitions as defined in
-> >> +  Documentation/devicetree/bindings/media/video-interfaces.txt. The
-> >> +  first port should be the input endpoints, the second one the outputs
-> >
-> > Is there more than one endpoint for each port? If so, need to define
-> > that numbering too.
+> Fix applied locally ready for v5.
+>
+> Would you like the remote updated for renesas-drivers or will you patch l=
+ocally?
 
-I made a mistake here.
-"The first port should be the input endpoints, the second one the outputs"
-is wrong and redundant.
+I'll patch it locally just to avoid receiving more spam from the builders s=
+oon
+(we don't use adv748x on arm32 boards).
 
-> 
-> It is possible to have multiple camera sensors connected to the same
-> bus. Think front and back cameras on a cell phone or tablet.
-> 
-> I don't think any kind of numbering makes much sense though. The
-> system is free to use just one sensor at a time, or use many with
-> some time multiplexing scheme. What might matter to the end user
-> is where the camera is placed. But using the position or orientation
-> as a numbering scheme might not work well either. Someone may end
-> up using two sensors with the same orientation for stereoscopic
-> vision.
+Gr{oetje,eeting}s,
 
-It is! But multiple sensors can't be working on the same bus 
-simultaneously. So, the driver should have capability to switch
-input device. But my driver does not support switching between 
-multiple camera sensors for now! The driver only pickup the first
-valid one. Maybe it's a feature to implement in the future.
+                        Geert
 
-Maybe like this:
-- port: A port node with endpoint definitions as defined in
-  Documentation/devicetree/bindings/media/video-interfaces.txt.
-  A CSI have only one port. But you can define multiple endpoint
-  under the port. The driver will pick up the first valid one.
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
 
-> 
-> >
-> >> +
-> >> +Example:
-> >> +
-> >> +     csi1: csi@01cb4000 {
-> >> +             compatible = "allwinner,sun8i-v3s-csi";
-> >> +             reg = <0x01cb4000 0x1000>;
-> 
-> Yong, the address range size is 0x4000, including the CCI (I2C)
-> controller at offset 0x3000. You should also consider this in
-> the device tree binding, and the driver.
-> 
-> ChenYu
-
-For V3s, the reg range <0x01cb0000 0x4000> of CSI0 have 4 module:
-  * <0x01cb0000 0x1000>	-- CSI0
-  * <0x01cb1000 0x1000>	-- MIPI-CSI
-  * <0x01cb2000 0x1000>	-- MIPI-DPHY
-  * <0x01cb3000 0x1000>	-- CCI
-the reg range <0x01cb4000 0x4000> of CSI1 have 1 module:
-  * <0x01cb4000 0x1000>	-- CSI1
-
-And, I think the CCI, MIPI-CSI, MIPI-DPHY should have their own
-device tree binding and driver.
-
-> 
-> >> +             interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-> >> +             clocks = <&ccu CLK_BUS_CSI>,
-> >> +                      <&ccu CLK_CSI1_SCLK>,
-> >> +                      <&ccu CLK_DRAM_CSI>;
-> >> +             clock-names = "ahb", "mod", "ram";
-> >> +             resets = <&ccu RST_BUS_CSI>;
-> >> +
-> >> +             port {
-> >> +                     #address-cells = <1>;
-> >> +                     #size-cells = <0>;
-> >> +
-> >> +                     /* Parallel bus endpoint */
-> >> +                     csi1_0: endpoint@0 {
-> >> +                             reg = <0>;
-> >
-> > Don't need this and everything associated with it for a single endpoint.
-
-Like this?
-            csi1_ep: endpoint {
-                remote-endpoint = <&adv7611_ep>;
-                bus-width = <16>;
-                data-shift = <0>;
-    
-                /* If hsync-active/vsync-active are missing,
-                   embedded BT.656 sync is used */
-                hsync-active = <0>; /* Active low */
-                vsync-active = <0>; /* Active low */
-                data-active = <1>;  /* Active high */
-                pclk-sample = <1>;  /* Rising */
-            };
-
-The property "remote" should be "remote-endpoint".
-Is there a mistake in video-interfaces.txt's example?
-
-> >
-> >> +                             remote = <&adv7611_1>;
-> >> +                             bus-width = <16>;
-> >> +                             data-shift = <0>;
-> >> +
-> >> +                             /* If hsync-active/vsync-active are missing,
-> >> +                                embedded BT.656 sync is used */
-> >> +                             hsync-active = <0>; /* Active low */
-> >> +                             vsync-active = <0>; /* Active low */
-> >> +                             data-active = <1>;  /* Active high */
-> >> +                             pclk-sample = <1>;  /* Rising */
-> >> +                     };
-> >> +             };
-> >> +     };
-> >> +
-> >> --
-> >> 1.8.3.1
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In personal conversations with technical people, I call myself a hacker. Bu=
+t
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
