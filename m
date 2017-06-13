@@ -1,130 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:20762 "EHLO smtp5-g21.free.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753149AbdF2Q0I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 12:26:08 -0400
-Subject: Re: Trying to use IR driver for my SoC
-To: Sean Young <sean@mess.org>
-Cc: linux-media <linux-media@vger.kernel.org>,
+Received: from mail-pg0-f41.google.com ([74.125.83.41]:34245 "EHLO
+        mail-pg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752265AbdFMI7E (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Jun 2017 04:59:04 -0400
+Received: by mail-pg0-f41.google.com with SMTP id v18so57641112pgb.1
+        for <linux-media@vger.kernel.org>; Tue, 13 Jun 2017 01:59:04 -0700 (PDT)
+From: Binoy Jayan <binoy.jayan@linaro.org>
+To: Binoy Jayan <binoy.jayan@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+        Rajendra <rnayak@codeaurora.org>,
+        Mark Brown <broonie@kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>
-References: <cf82988e-8be2-1ec8-b343-7c3c54110746@free.fr>
- <20170629155557.GA12980@gofer.mess.org>
-From: Mason <slash.tmp@free.fr>
-Message-ID: <276e7aa2-0c98-5556-622a-65aab4b9d373@free.fr>
-Date: Thu, 29 Jun 2017 18:25:55 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170629155557.GA12980@gofer.mess.org>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Cao jin <caoj.fnst@cn.fujitsu.com>, linux-media@vger.kernel.org
+Subject: [PATCH v2 1/3] media: ngene: Replace semaphore cmd_mutex with mutex
+Date: Tue, 13 Jun 2017 14:28:48 +0530
+Message-Id: <1497344330-13915-2-git-send-email-binoy.jayan@linaro.org>
+In-Reply-To: <1497344330-13915-1-git-send-email-binoy.jayan@linaro.org>
+References: <1497344330-13915-1-git-send-email-binoy.jayan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+The semaphore 'cmd_mutex' is used as a simple mutex, so
+it should be written as one. Also, replace down with
+mutex_destroy to ensure sane state when ngene_stop is
+called.
 
-On 29/06/2017 17:55, Sean Young wrote:
+Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
+---
+ drivers/media/pci/ngene/ngene-core.c | 12 ++++++------
+ drivers/media/pci/ngene/ngene.h      |  2 +-
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-> On Thu, Jun 29, 2017 at 05:29:01PM +0200, Mason wrote:
-> 
->> I'm trying to use an IR driver written for my SoC:
->> https://github.com/mansr/linux-tangox/blob/master/drivers/media/rc/tangox-ir.c
->>
->> I added these options to my defconfig:
->>
->> +CONFIG_MEDIA_SUPPORT=y
->> +CONFIG_MEDIA_RC_SUPPORT=y
->> +CONFIG_RC_DEVICES=y
->> +CONFIG_IR_TANGO=y
->>
->> (I don't think I need the RC decoders, because the HW is supposed
->> to support HW decoding of NEC, RC5, RC6).
-> 
-> I haven't seen this driver before, what hardware is this for?
-
-Sigma Designs tango3/tango4 (SMP86xx and SMP87xx)
-
->> These are the logs printed at boot:
->>
->> [    1.827842] IR NEC protocol handler initialized
->> [    1.832407] IR RC5(x/sz) protocol handler initialized
->> [    1.837491] IR RC6 protocol handler initialized
->> [    1.842049] IR JVC protocol handler initialized
->> [    1.846606] IR Sony protocol handler initialized
->> [    1.851248] IR SANYO protocol handler initialized
->> [    1.855979] IR Sharp protocol handler initialized
->> [    1.860708] IR MCE Keyboard/mouse protocol handler initialized
->> [    1.866575] IR XMP protocol handler initialized
->> [    1.871232] tango-ir 10518.ir: SMP86xx IR decoder at 0x10518/0x105e0 IRQ 21
->> [    1.878241] Registered IR keymap rc-empty
->> [    1.882457] input: tango-ir as /devices/platform/soc/10518.ir/rc/rc0/input0
->> [    1.889473] tango_ir_open
->> [    1.892105] rc rc0: tango-ir as /devices/platform/soc/10518.ir/rc/rc0
->>
->>
->> I was naively expecting some kind of dev/input/event0 node
->> I could cat to grab all the remote control key presses.
->>
->> But I don't see anything relevant in /dev
-> 
-> Do you have CONFIG_INPUT_EVDEV set? Is udev setup to create the devices?
-
-I was indeed missing CONFIG_INPUT_EVDEV.
-
-As for udev:
-[    2.199642] udevd[960]: starting eudev-3.2.1
-
-$ ls -l /dev/input/
-total 0
-drwxr-xr-x    2 root     root            60 Jan  1 00:00 by-path
-crw-rw----    1 root     input      13,  64 Jan  1 00:00 event0
-
-But still no cookie:
-$ cat /dev/input/event0
-remains mute :-(
-
-$ ir-keytable -v -t
-Found device /sys/class/rc/rc0/
-Input sysfs node is /sys/class/rc/rc0/input0/
-Event sysfs node is /sys/class/rc/rc0/input0/event0/
-Parsing uevent /sys/class/rc/rc0/input0/event0/uevent
-/sys/class/rc/rc0/input0/event0/uevent uevent MAJOR=13
-/sys/class/rc/rc0/input0/event0/uevent uevent MINOR=64
-/sys/class/rc/rc0/input0/event0/uevent uevent DEVNAME=input/event0
-Parsing uevent /sys/class/rc/rc0/uevent
-/sys/class/rc/rc0/uevent uevent NAME=rc-empty
-input device is /dev/input/event0
-/sys/class/rc/rc0/protocols protocol rc-5 (disabled)
-/sys/class/rc/rc0/protocols protocol nec (disabled)
-/sys/class/rc/rc0/protocols protocol rc-6 (disabled)
-Opening /dev/input/event0
-Input Protocol version: 0x00010001
-Testing events. Please, press CTRL-C to abort.
-^C
-
-Is rc-empty perhaps not the right choice?
-
-> By opening the /dev/input/event0 device, tango_ir_open() gets called which
-> presumably enables interrupts or IR decoding for the device. It's hard to
-> say without knowing anything about the soc.
-
-Actually tango_ir_open() is called at boot, before any process
-has a chance to open /dev/input/event0
-
-[    1.926730] [<c03cd9a4>] (tango_ir_open) from [<c03c8554>] (rc_open+0x44/0x6c)
-[    1.933994] [<c03c8554>] (rc_open) from [<c03be890>] (input_open_device+0x74/0xac)
-[    1.941610] [<c03be890>] (input_open_device) from [<c032f96c>] (kbd_connect+0x64/0x80)
-[    1.949570] [<c032f96c>] (kbd_connect) from [<c03bf0dc>] (input_attach_handler+0x1bc/0x1f4)
-[    1.957965] [<c03bf0dc>] (input_attach_handler) from [<c03bf58c>] (input_register_device+0x3b4/0x42c)
-[    1.967234] [<c03bf58c>] (input_register_device) from [<c03c9be8>] (rc_register_device+0x2d8/0x52c)
-[    1.976327] [<c03c9be8>] (rc_register_device) from [<c03cdcfc>] (tango_ir_probe+0x328/0x3a4)
-[    1.984815] [<c03cdcfc>] (tango_ir_probe) from [<c03508b0>] (platform_drv_probe+0x34/0x6c)
-[    1.993124] [<c03508b0>] (platform_drv_probe) from [<c034f360>] (really_probe+0x1c4/0x250)
-
-But I have a printk in the ISR, and it's obviously not called.
-
-> It would be nice to see this driver merged to mainline.
-
-+1 (especially if I can get it to work)
-
-Regards.
+diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
+index ce69e64..eeb61eb 100644
+--- a/drivers/media/pci/ngene/ngene-core.c
++++ b/drivers/media/pci/ngene/ngene-core.c
+@@ -336,9 +336,9 @@ int ngene_command(struct ngene *dev, struct ngene_command *com)
+ {
+ 	int result;
+ 
+-	down(&dev->cmd_mutex);
++	mutex_lock(&dev->cmd_mutex);
+ 	result = ngene_command_mutex(dev, com);
+-	up(&dev->cmd_mutex);
++	mutex_unlock(&dev->cmd_mutex);
+ 	return result;
+ }
+ 
+@@ -1283,7 +1283,7 @@ static int ngene_load_firm(struct ngene *dev)
+ 
+ static void ngene_stop(struct ngene *dev)
+ {
+-	down(&dev->cmd_mutex);
++	mutex_destroy(&dev->cmd_mutex);
+ 	i2c_del_adapter(&(dev->channel[0].i2c_adapter));
+ 	i2c_del_adapter(&(dev->channel[1].i2c_adapter));
+ 	ngwritel(0, NGENE_INT_ENABLE);
+@@ -1346,7 +1346,7 @@ static int ngene_start(struct ngene *dev)
+ 	init_waitqueue_head(&dev->cmd_wq);
+ 	init_waitqueue_head(&dev->tx_wq);
+ 	init_waitqueue_head(&dev->rx_wq);
+-	sema_init(&dev->cmd_mutex, 1);
++	mutex_init(&dev->cmd_mutex);
+ 	sema_init(&dev->stream_mutex, 1);
+ 	sema_init(&dev->pll_mutex, 1);
+ 	sema_init(&dev->i2c_switch_mutex, 1);
+@@ -1606,10 +1606,10 @@ static void ngene_unlink(struct ngene *dev)
+ 	com.in_len = 3;
+ 	com.out_len = 1;
+ 
+-	down(&dev->cmd_mutex);
++	mutex_lock(&dev->cmd_mutex);
+ 	ngwritel(0, NGENE_INT_ENABLE);
+ 	ngene_command_mutex(dev, &com);
+-	up(&dev->cmd_mutex);
++	mutex_unlock(&dev->cmd_mutex);
+ }
+ 
+ void ngene_shutdown(struct pci_dev *pdev)
+diff --git a/drivers/media/pci/ngene/ngene.h b/drivers/media/pci/ngene/ngene.h
+index 10d8f74..e600b70 100644
+--- a/drivers/media/pci/ngene/ngene.h
++++ b/drivers/media/pci/ngene/ngene.h
+@@ -762,7 +762,7 @@ struct ngene {
+ 
+ 	wait_queue_head_t     cmd_wq;
+ 	int                   cmd_done;
+-	struct semaphore      cmd_mutex;
++	struct mutex          cmd_mutex;
+ 	struct semaphore      stream_mutex;
+ 	struct semaphore      pll_mutex;
+ 	struct semaphore      i2c_switch_mutex;
+-- 
+Binoy Jayan
