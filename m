@@ -1,56 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40142 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751445AbdFHTcP (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48857
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752781AbdFMOiY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Jun 2017 15:32:15 -0400
-Date: Thu, 8 Jun 2017 22:32:10 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Kieran Bingham <kbingham@kernel.org>, linux-media@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
-        linux-renesas-soc@vger.kernel.org, kieran.bingham@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: Re: [PATCH v4] v4l: subdev: tolerate null in
- media_entity_to_v4l2_subdev
-Message-ID: <20170608193210.GJ1019@valkosipuli.retiisi.org.uk>
-References: <1496829127-28375-1-git-send-email-kbingham@kernel.org>
- <20170608150022.5f696e58@vento.lan>
+        Tue, 13 Jun 2017 10:38:24 -0400
+Date: Tue, 13 Jun 2017 11:38:14 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
+Cc: "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tbird20d@gmail.com" <tbird20d@gmail.com>,
+        "frowand.list@gmail.com" <frowand.list@gmail.com>,
+        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
+        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
+        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
+        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
+        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>
+Subject: Re: [PATCH v2 0/15] [dt-bindings] [media] Add document file and
+ driver for Sony CXD2880 DVB-T2/T tuner + demodulator
+Message-ID: <20170613113814.0094536f@vento.lan>
+In-Reply-To: <d7c70c53-3fb0-a045-5e1a-1a736bdeda1f@sony.com>
+References: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
+        <5188b958-9a34-4519-5845-a318273592e0@sony.com>
+        <d7c70c53-3fb0-a045-5e1a-1a736bdeda1f@sony.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170608150022.5f696e58@vento.lan>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Takiguchi-san,
 
-On Thu, Jun 08, 2017 at 03:00:22PM -0300, Mauro Carvalho Chehab wrote:
-> Em Wed,  7 Jun 2017 10:52:07 +0100
-> Kieran Bingham <kbingham@kernel.org> escreveu:
+Em Thu, 25 May 2017 15:15:39 +0900
+"Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com> escreveu:
+
+> Hi, all
 > 
-> > From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> > 
-> > Return NULL, if a null entity is parsed for it's v4l2_subdev
-> > 
-> > Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> Could you please improve this patch description?
-> 
-> I'm unsure if this is a bug fix, or some sort of feature...
-> 
-> On what situations would a null entity be passed to this function?
+> I sent the patch series of Sony CXD2880 DVB-T2/T tuner + demodulator driver on Apr/14.
+> Are there any comments, advices and review results for them?
 
-I actually proposed this patch. This change is simply for convenience ---
-the caller doesn't need to make sure the subdev is non-NULL, possibly
-obtained from e.g. media_entity_remote_pad() which returns NULL all links to
-the pad are disabled. This is a recurring pattern, and making this change
-avoids an additional check.
+Usually, reviewing drivers takes more time, as one needs to reserve a
+long period of time for reviewing. Sorry for the delay.
 
-Having something along these lines in the patch description wouldn't hurt.
+> I'd like to get better understanding of current review status for our codes.
 
--- 
-Regards,
+Just sent today a review. There are some things that need to be
+changed in order to get it into a better shape and make it easier
+to review. In particular, it should be using some Kernel internal APIs,
+instead of coming with re-implementation of existing core code. That's fine. 
+It is very unusual that the first contributions from a new Kernel
+developer to gets everything the way as it is expected mainstream ;-)
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+One thing that come into my mind, besides what was already commented,
+is that it seems you added an abstraction layer. We don't like such
+layers very much, as it makes harder to understand the driver, usually
+for very little benefit.
+
+On this first review, I didn't actually try to understand what's
+going on there. As the driver doesn't contain any comments inside,
+it makes harder to understand why some things were coded using
+such approach.
+
+Thanks,
+Mauro
