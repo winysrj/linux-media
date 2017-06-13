@@ -1,322 +1,357 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:42491 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751192AbdFAU7J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Jun 2017 16:59:09 -0400
-From: Takashi Iwai <tiwai@suse.de>
-To: alsa-devel@alsa-project.org
-Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-        Mark Brown <broonie@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org
-Subject: [PATCH v2 19/27] ALSA: pcm: Call directly the common read/write helpers
-Date: Thu,  1 Jun 2017 22:58:42 +0200
-Message-Id: <20170601205850.24993-20-tiwai@suse.de>
-In-Reply-To: <20170601205850.24993-1-tiwai@suse.de>
-References: <20170601205850.24993-1-tiwai@suse.de>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:32840 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752081AbdFMKRy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Jun 2017 06:17:54 -0400
+Date: Tue, 13 Jun 2017 13:17:45 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hyungwoo Yang <hyungwoo.yang@intel.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        jian.xu.zheng@intel.com, tfiga@chromium.org, cedric.hsu@intel.com
+Subject: Re: [PATCH v10 1/1] [media] i2c: add support for OV13858 sensor
+Message-ID: <20170613101745.GC12407@valkosipuli.retiisi.org.uk>
+References: <1497315360-29216-1-git-send-email-hyungwoo.yang@intel.com>
+ <1497315360-29216-2-git-send-email-hyungwoo.yang@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1497315360-29216-2-git-send-email-hyungwoo.yang@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make snd_pcm_lib_read() and *_write() static inline functions that
-call the common helper functions directly.  This reduces a slight
-amount of codes, and at the same time, it's a preparation for the
-further cleanups / fixes.
+Hi Hyungwoo,
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
----
- include/sound/pcm.h  |  43 +++++++++++---
- sound/core/pcm_lib.c | 156 ++++++++++++++++++---------------------------------
- 2 files changed, 89 insertions(+), 110 deletions(-)
+On Mon, Jun 12, 2017 at 05:56:00PM -0700, Hyungwoo Yang wrote:
+> This patch adds driver for Omnivision's ov13858
+> sensor, the driver supports following features:
+> 
+> - manual exposure/gain(analog and digital) control support
+> - two link frequencies
+> - VBLANK/HBLANK support
+> - test pattern support
+> - media controller support
+> - runtime pm support
+> - supported resolutions
+>   + 4224x3136 at 30FPS
+>   + 2112x1568 at 30FPS(default) and 60FPS
+>   + 2112x1188 at 30FPS(default) and 60FPS
+>   + 1056x784 at 30FPS(default) and 60FPS
+> 
+> Signed-off-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
+> ---
+>  drivers/media/i2c/Kconfig   |    8 +
+>  drivers/media/i2c/Makefile  |    1 +
+>  drivers/media/i2c/ov13858.c | 1920 +++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 1929 insertions(+)
+>  create mode 100644 drivers/media/i2c/ov13858.c
+> 
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index c380e24..26a9a3c 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -600,6 +600,14 @@ config VIDEO_OV9650
+>  	  This is a V4L2 sensor-level driver for the Omnivision
+>  	  OV9650 and OV9652 camera sensors.
+>  
+> +config VIDEO_OV13858
+> +	tristate "OmniVision OV13858 sensor support"
+> +	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+> +	depends on MEDIA_CAMERA_SUPPORT
 
-diff --git a/include/sound/pcm.h b/include/sound/pcm.h
-index 953ebfc83184..cb4eff8ffd2e 100644
---- a/include/sound/pcm.h
-+++ b/include/sound/pcm.h
-@@ -1088,15 +1088,40 @@ int snd_pcm_update_state(struct snd_pcm_substream *substream,
- int snd_pcm_update_hw_ptr(struct snd_pcm_substream *substream);
- void snd_pcm_playback_silence(struct snd_pcm_substream *substream, snd_pcm_uframes_t new_hw_ptr);
- void snd_pcm_period_elapsed(struct snd_pcm_substream *substream);
--snd_pcm_sframes_t snd_pcm_lib_write(struct snd_pcm_substream *substream,
--				    const void __user *buf,
--				    snd_pcm_uframes_t frames);
--snd_pcm_sframes_t snd_pcm_lib_read(struct snd_pcm_substream *substream,
--				   void __user *buf, snd_pcm_uframes_t frames);
--snd_pcm_sframes_t snd_pcm_lib_writev(struct snd_pcm_substream *substream,
--				     void __user **bufs, snd_pcm_uframes_t frames);
--snd_pcm_sframes_t snd_pcm_lib_readv(struct snd_pcm_substream *substream,
--				    void __user **bufs, snd_pcm_uframes_t frames);
-+snd_pcm_sframes_t __snd_pcm_lib_write(struct snd_pcm_substream *substream,
-+				      void *buf, bool interleaved,
-+				      snd_pcm_uframes_t frames);
-+snd_pcm_sframes_t __snd_pcm_lib_read(struct snd_pcm_substream *substream,
-+				     void *buf, bool interleaved,
-+				     snd_pcm_uframes_t frames);
-+
-+static inline snd_pcm_sframes_t
-+snd_pcm_lib_write(struct snd_pcm_substream *substream,
-+		  const void __user *buf, snd_pcm_uframes_t frames)
-+{
-+	return __snd_pcm_lib_write(substream, (void *)buf, true, frames);
-+}
-+
-+static inline snd_pcm_sframes_t
-+snd_pcm_lib_read(struct snd_pcm_substream *substream,
-+		 void __user *buf, snd_pcm_uframes_t frames)
-+{
-+	return __snd_pcm_lib_read(substream, (void *)buf, true, frames);
-+}
-+
-+static inline snd_pcm_sframes_t
-+snd_pcm_lib_writev(struct snd_pcm_substream *substream,
-+		   void __user **bufs, snd_pcm_uframes_t frames)
-+{
-+	return __snd_pcm_lib_write(substream, (void *)bufs, false, frames);
-+}
-+
-+static inline snd_pcm_sframes_t
-+snd_pcm_lib_readv(struct snd_pcm_substream *substream,
-+		  void __user **bufs, snd_pcm_uframes_t frames)
-+{
-+	return __snd_pcm_lib_read(substream, (void *)bufs, false, frames);
-+}
- 
- extern const struct snd_pcm_hw_constraint_list snd_pcm_known_rates;
- 
-diff --git a/sound/core/pcm_lib.c b/sound/core/pcm_lib.c
-index 1f5251cca607..1bd7244324d5 100644
---- a/sound/core/pcm_lib.c
-+++ b/sound/core/pcm_lib.c
-@@ -1992,12 +1992,12 @@ static int wait_for_avail(struct snd_pcm_substream *substream,
- }
- 	
- typedef int (*transfer_f)(struct snd_pcm_substream *substream, unsigned int hwoff,
--			  unsigned long data, unsigned int off,
-+			  void  *data, unsigned int off,
- 			  snd_pcm_uframes_t size);
- 
- static int snd_pcm_lib_write_transfer(struct snd_pcm_substream *substream,
- 				      unsigned int hwoff,
--				      unsigned long data, unsigned int off,
-+				      void *data, unsigned int off,
- 				      snd_pcm_uframes_t frames)
- {
- 	struct snd_pcm_runtime *runtime = substream->runtime;
-@@ -2019,7 +2019,7 @@ static int snd_pcm_lib_write_transfer(struct snd_pcm_substream *substream,
-  
- static int snd_pcm_lib_writev_transfer(struct snd_pcm_substream *substream,
- 				       unsigned int hwoff,
--				       unsigned long data, unsigned int off,
-+				       void *data, unsigned int off,
- 				       snd_pcm_uframes_t frames)
- {
- 	struct snd_pcm_runtime *runtime = substream->runtime;
-@@ -2096,21 +2096,39 @@ static int pcm_accessible_state(struct snd_pcm_runtime *runtime)
- 	}
- }
- 
--static snd_pcm_sframes_t snd_pcm_lib_write1(struct snd_pcm_substream *substream, 
--					    unsigned long data,
--					    snd_pcm_uframes_t size,
--					    int nonblock,
--					    transfer_f transfer)
-+snd_pcm_sframes_t __snd_pcm_lib_write(struct snd_pcm_substream *substream,
-+				      void *data, bool interleaved,
-+				      snd_pcm_uframes_t size)
- {
- 	struct snd_pcm_runtime *runtime = substream->runtime;
- 	snd_pcm_uframes_t xfer = 0;
- 	snd_pcm_uframes_t offset = 0;
- 	snd_pcm_uframes_t avail;
--	int err = 0;
-+	transfer_f transfer;
-+	bool nonblock;
-+	int err;
-+
-+	err = pcm_sanity_check(substream);
-+	if (err < 0)
-+		return err;
-+	runtime = substream->runtime;
-+
-+	if (interleaved) {
-+		if (runtime->access != SNDRV_PCM_ACCESS_RW_INTERLEAVED &&
-+		    runtime->channels > 1)
-+			return -EINVAL;
-+		transfer = snd_pcm_lib_write_transfer;
-+	} else {
-+		if (runtime->access != SNDRV_PCM_ACCESS_RW_NONINTERLEAVED)
-+			return -EINVAL;
-+		transfer = snd_pcm_lib_writev_transfer;
-+	}
- 
- 	if (size == 0)
- 		return 0;
- 
-+	nonblock = !!(substream->f_flags & O_NONBLOCK);
-+
- 	snd_pcm_stream_lock_irq(substream);
- 	err = pcm_accessible_state(runtime);
- 	if (err < 0)
-@@ -2178,53 +2196,11 @@ static snd_pcm_sframes_t snd_pcm_lib_write1(struct snd_pcm_substream *substream,
- 	snd_pcm_stream_unlock_irq(substream);
- 	return xfer > 0 ? (snd_pcm_sframes_t)xfer : err;
- }
--
--snd_pcm_sframes_t snd_pcm_lib_write(struct snd_pcm_substream *substream, const void __user *buf, snd_pcm_uframes_t size)
--{
--	struct snd_pcm_runtime *runtime;
--	int nonblock;
--	int err;
--
--	err = pcm_sanity_check(substream);
--	if (err < 0)
--		return err;
--	runtime = substream->runtime;
--	nonblock = !!(substream->f_flags & O_NONBLOCK);
--
--	if (runtime->access != SNDRV_PCM_ACCESS_RW_INTERLEAVED &&
--	    runtime->channels > 1)
--		return -EINVAL;
--	return snd_pcm_lib_write1(substream, (unsigned long)buf, size, nonblock,
--				  snd_pcm_lib_write_transfer);
--}
--
--EXPORT_SYMBOL(snd_pcm_lib_write);
--
--snd_pcm_sframes_t snd_pcm_lib_writev(struct snd_pcm_substream *substream,
--				     void __user **bufs,
--				     snd_pcm_uframes_t frames)
--{
--	struct snd_pcm_runtime *runtime;
--	int nonblock;
--	int err;
--
--	err = pcm_sanity_check(substream);
--	if (err < 0)
--		return err;
--	runtime = substream->runtime;
--	nonblock = !!(substream->f_flags & O_NONBLOCK);
--
--	if (runtime->access != SNDRV_PCM_ACCESS_RW_NONINTERLEAVED)
--		return -EINVAL;
--	return snd_pcm_lib_write1(substream, (unsigned long)bufs, frames,
--				  nonblock, snd_pcm_lib_writev_transfer);
--}
--
--EXPORT_SYMBOL(snd_pcm_lib_writev);
-+EXPORT_SYMBOL(__snd_pcm_lib_write);
- 
- static int snd_pcm_lib_read_transfer(struct snd_pcm_substream *substream, 
- 				     unsigned int hwoff,
--				     unsigned long data, unsigned int off,
-+				     void *data, unsigned int off,
- 				     snd_pcm_uframes_t frames)
- {
- 	struct snd_pcm_runtime *runtime = substream->runtime;
-@@ -2246,7 +2222,7 @@ static int snd_pcm_lib_read_transfer(struct snd_pcm_substream *substream,
- 
- static int snd_pcm_lib_readv_transfer(struct snd_pcm_substream *substream,
- 				      unsigned int hwoff,
--				      unsigned long data, unsigned int off,
-+				      void *data, unsigned int off,
- 				      snd_pcm_uframes_t frames)
- {
- 	struct snd_pcm_runtime *runtime = substream->runtime;
-@@ -2284,21 +2260,39 @@ static int snd_pcm_lib_readv_transfer(struct snd_pcm_substream *substream,
- 	return 0;
- }
- 
--static snd_pcm_sframes_t snd_pcm_lib_read1(struct snd_pcm_substream *substream,
--					   unsigned long data,
--					   snd_pcm_uframes_t size,
--					   int nonblock,
--					   transfer_f transfer)
-+snd_pcm_sframes_t __snd_pcm_lib_read(struct snd_pcm_substream *substream,
-+				     void *data, bool interleaved,
-+				     snd_pcm_uframes_t size)
- {
- 	struct snd_pcm_runtime *runtime = substream->runtime;
- 	snd_pcm_uframes_t xfer = 0;
- 	snd_pcm_uframes_t offset = 0;
- 	snd_pcm_uframes_t avail;
--	int err = 0;
-+	transfer_f transfer;
-+	bool nonblock;
-+	int err;
-+
-+	err = pcm_sanity_check(substream);
-+	if (err < 0)
-+		return err;
-+	runtime = substream->runtime;
-+
-+	if (interleaved) {
-+		if (runtime->access != SNDRV_PCM_ACCESS_RW_INTERLEAVED &&
-+		    runtime->channels > 1)
-+			return -EINVAL;
-+		transfer = snd_pcm_lib_read_transfer;
-+	} else {
-+		if (runtime->access != SNDRV_PCM_ACCESS_RW_NONINTERLEAVED)
-+			return -EINVAL;
-+		transfer = snd_pcm_lib_readv_transfer;
-+	}
- 
- 	if (size == 0)
- 		return 0;
- 
-+	nonblock = !!(substream->f_flags & O_NONBLOCK);
-+
- 	snd_pcm_stream_lock_irq(substream);
- 	err = pcm_accessible_state(runtime);
- 	if (err < 0)
-@@ -2373,47 +2367,7 @@ static snd_pcm_sframes_t snd_pcm_lib_read1(struct snd_pcm_substream *substream,
- 	snd_pcm_stream_unlock_irq(substream);
- 	return xfer > 0 ? (snd_pcm_sframes_t)xfer : err;
- }
--
--snd_pcm_sframes_t snd_pcm_lib_read(struct snd_pcm_substream *substream, void __user *buf, snd_pcm_uframes_t size)
--{
--	struct snd_pcm_runtime *runtime;
--	int nonblock;
--	int err;
--	
--	err = pcm_sanity_check(substream);
--	if (err < 0)
--		return err;
--	runtime = substream->runtime;
--	nonblock = !!(substream->f_flags & O_NONBLOCK);
--	if (runtime->access != SNDRV_PCM_ACCESS_RW_INTERLEAVED)
--		return -EINVAL;
--	return snd_pcm_lib_read1(substream, (unsigned long)buf, size, nonblock, snd_pcm_lib_read_transfer);
--}
--
--EXPORT_SYMBOL(snd_pcm_lib_read);
--
--snd_pcm_sframes_t snd_pcm_lib_readv(struct snd_pcm_substream *substream,
--				    void __user **bufs,
--				    snd_pcm_uframes_t frames)
--{
--	struct snd_pcm_runtime *runtime;
--	int nonblock;
--	int err;
--
--	err = pcm_sanity_check(substream);
--	if (err < 0)
--		return err;
--	runtime = substream->runtime;
--	if (runtime->status->state == SNDRV_PCM_STATE_OPEN)
--		return -EBADFD;
--
--	nonblock = !!(substream->f_flags & O_NONBLOCK);
--	if (runtime->access != SNDRV_PCM_ACCESS_RW_NONINTERLEAVED)
--		return -EINVAL;
--	return snd_pcm_lib_read1(substream, (unsigned long)bufs, frames, nonblock, snd_pcm_lib_readv_transfer);
--}
--
--EXPORT_SYMBOL(snd_pcm_lib_readv);
-+EXPORT_SYMBOL(__snd_pcm_lib_read);
- 
- /*
-  * standard channel mapping helpers
+select V4L2_FWNODE
+
+> +	---help---
+> +	  This is a Video4Linux2 sensor-level driver for the OmniVision
+> +	  OV13858 camera.
+> +
+>  config VIDEO_VS6624
+>  	tristate "ST VS6624 sensor support"
+>  	depends on VIDEO_V4L2 && I2C
+> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+> index 62323ec..3f4dc02 100644
+> --- a/drivers/media/i2c/Makefile
+> +++ b/drivers/media/i2c/Makefile
+> @@ -63,6 +63,7 @@ obj-$(CONFIG_VIDEO_OV5647) += ov5647.o
+>  obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
+>  obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
+>  obj-$(CONFIG_VIDEO_OV9650) += ov9650.o
+> +obj-$(CONFIG_VIDEO_OV13858) += ov13858.o
+>  obj-$(CONFIG_VIDEO_MT9M032) += mt9m032.o
+>  obj-$(CONFIG_VIDEO_MT9M111) += mt9m111.o
+>  obj-$(CONFIG_VIDEO_MT9P031) += mt9p031.o
+> diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+> new file mode 100644
+> index 0000000..0334cee
+> --- /dev/null
+> +++ b/drivers/media/i2c/ov13858.c
+
+...
+
+> +static int ov13858_read_platform_data(struct device *dev,
+> +				      struct ov13858 *ov13858)
+> +{
+> +	struct fwnode_handle *child, *fwn_freq;
+> +	struct ov13858_link_freq_config *freq_cfg;
+> +	struct ov13858_reg *pll_regs;
+> +	int i, freq_id = 0, ret, num_of_values, num_of_pairs;
+> +	u32 val, *val_array;
+> +
+> +	/* For now, platform data is only available from fwnode */
+> +	if (!dev_fwnode(dev)) {
+> +		dev_err(dev, "no platform data\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	ret = device_property_read_u32(dev, "skip-frames", &val);
+
+This is a property of the sensor (or its configuration), not the hardware
+platform. Please use a constant if the value does not depend on
+configuration.
+
+> +	if (ret)
+> +		return ret;
+> +	ov13858->num_of_skip_frames = val;
+> +
+> +	device_for_each_child_node(dev, child) {
+> +		if (!fwnode_property_present(child, "link"))
+> +			continue;
+
+You shouldn't need these here.
+
+> +
+> +		/* Limited number of link frequencies are allowed */
+> +		if (freq_id == OV13858_NUM_OF_LINK_FREQS) {
+> +			dev_err(dev, "no more than two freqs\n");
+> +			ret = -EINVAL;
+> +			goto error;
+> +		}
+> +
+> +		fwn_freq = fwnode_get_next_child_node(child, NULL);
+> +		if (!fwn_freq) {
+> +			ret = -EINVAL;
+> +			goto error;
+> +		}
+> +
+> +		/* Get link freq menu item for LINK_FREQ control */
+> +		ret = fwnode_property_read_u32(fwn_freq, "link-rate", &val);
+
+If you need to know the valid link frequencies (among other things), please
+use v4l2_fwnode_endpoint_alloc_parse() instead. It parses the firmware
+tables for you.
+
+> +		if (ret) {
+> +			dev_err(dev, "link-rate error : %d\n",  ret);
+> +			goto error;
+> +		}
+> +		link_freq_menu_items[freq_id] = val;
+> +
+> +		freq_cfg = &link_freq_configs[freq_id];
+> +		ret = fwnode_property_read_u32(fwn_freq, "pixel-rate", &val);
+
+This is something a sensor driver needs to know. It may not be present in
+device firmware.
+
+> +		if (ret) {
+> +			dev_err(dev, "pixel-rate error : %d\n",  ret);
+> +			goto error;
+> +		}
+> +		freq_cfg->pixel_rate = val;
+> +
+> +		num_of_values = fwnode_property_read_u32_array(fwn_freq,
+> +							       "pll-regs",
+
+This is something that could go to device firmware but I don't really see
+a reason for that at the moment. Can this continue to be a part of the
+driver for now?
+
+Could you also check that the external clock frequency matches with what
+your register lists assume? The property should be called "clock-frequency"
+and it's a u32.
+
+> +							       NULL, 0);
+> +		if (num_of_values <= 0 || num_of_values & 0x01) {
+> +			dev_err(dev, "invalid pll-regs\n");
+> +			ret = -EINVAL;
+> +			goto error;
+> +		}
+> +
+> +		/* Get num of addr-value pairs */
+> +		num_of_pairs = num_of_values / 2;
+> +		val_array = devm_kzalloc(dev,
+> +					 sizeof(u32) * num_of_values,
+> +					 GFP_KERNEL);
+> +		if (!val_array) {
+> +			ret = -ENOMEM;
+> +			goto error;
+> +		}
+> +
+> +		pll_regs = devm_kzalloc(dev,
+> +					sizeof(*pll_regs) * num_of_pairs,
+> +					GFP_KERNEL);
+> +		if (!pll_regs) {
+> +			ret = -ENOMEM;
+> +			goto error;
+> +		}
+> +
+> +		fwnode_property_read_u32_array(fwn_freq, "pll-regs",
+> +					       val_array, num_of_values);
+> +		for (i = 0; i < num_of_pairs; i++) {
+> +			pll_regs[i].address = val_array[i * 2];
+> +			pll_regs[i].val = val_array[i * 2 + 1];
+> +		}
+> +
+> +		devm_kfree(dev, val_array);
+> +
+> +		freq_cfg->reg_list.num_of_regs = num_of_pairs;
+> +		freq_cfg->reg_list.regs = pll_regs;
+> +
+> +		freq_id++;
+> +	}
+> +
+> +	if (freq_id != OV13858_NUM_OF_LINK_FREQS)
+> +		return -EINVAL;
+> +
+> +	return 0;
+> +
+> +error:
+> +	fwnode_handle_put(child);
+> +	return ret;
+> +}
+> +
+> +static int ov13858_probe(struct i2c_client *client,
+> +			 const struct i2c_device_id *devid)
+> +{
+> +	struct ov13858 *ov13858;
+> +	int ret;
+> +
+> +	ov13858 = devm_kzalloc(&client->dev, sizeof(*ov13858), GFP_KERNEL);
+> +	if (!ov13858)
+> +		return -ENOMEM;
+> +
+> +	ret = ov13858_read_platform_data(&client->dev, ov13858);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* Initialize subdev */
+> +	v4l2_i2c_subdev_init(&ov13858->sd, client, &ov13858_subdev_ops);
+> +
+> +	/* Check module identity */
+> +	ret = ov13858_identify_module(ov13858);
+> +	if (ret) {
+> +		dev_err(&client->dev, "failed to find sensor: %d\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	/* Set default mode to max resolution */
+> +	ov13858->cur_mode = &supported_modes[0];
+> +
+> +	ret = ov13858_init_controls(ov13858);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* Initialize subdev */
+> +	ov13858->sd.internal_ops = &ov13858_internal_ops;
+> +	ov13858->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	ov13858->sd.entity.ops = &ov13858_subdev_entity_ops;
+> +	ov13858->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
+> +
+> +	/* Initialize source pad */
+> +	ov13858->pad.flags = MEDIA_PAD_FL_SOURCE;
+> +	ret = media_entity_pads_init(&ov13858->sd.entity, 1, &ov13858->pad);
+> +	if (ret) {
+> +		dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
+> +		goto error_handler_free;
+> +	}
+> +
+> +	ret = v4l2_async_register_subdev(&ov13858->sd);
+> +	if (ret < 0)
+> +		goto error_media_entity;
+> +
+> +	/*
+> +	 * Device is already turned on by i2c-core with ACPI domain PM.
+> +	 * Enable runtime PM and turn off the device.
+> +	 */
+> +	pm_runtime_get_noresume(&client->dev);
+> +	pm_runtime_set_active(&client->dev);
+> +	pm_runtime_enable(&client->dev);
+> +	pm_runtime_put(&client->dev);
+> +
+> +	return 0;
+> +
+> +error_media_entity:
+> +	media_entity_cleanup(&ov13858->sd.entity);
+> +
+> +error_handler_free:
+> +	ov13858_free_controls(ov13858);
+> +	dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
+> +
+> +	return ret;
+> +}
+> +
+> +static int ov13858_remove(struct i2c_client *client)
+> +{
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +	struct ov13858 *ov13858 = to_ov13858(sd);
+> +
+> +	v4l2_async_unregister_subdev(sd);
+> +	media_entity_cleanup(&sd->entity);
+> +	ov13858_free_controls(ov13858);
+> +
+> +	/*
+> +	 * Disable runtime PM but keep the device turned on.
+> +	 * i2c-core with ACPI domain PM will turn off the device.
+> +	 */
+> +	pm_runtime_get_sync(&client->dev);
+> +	pm_runtime_disable(&client->dev);
+> +	pm_runtime_set_suspended(&client->dev);
+> +	pm_runtime_put_noidle(&client->dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct i2c_device_id ov13858_id_table[] = {
+> +	{"ov13858", 0},
+> +	{},
+> +};
+> +
+> +MODULE_DEVICE_TABLE(i2c, ov13858_id_table);
+> +
+> +static const struct dev_pm_ops ov13858_pm_ops = {
+> +	SET_SYSTEM_SLEEP_PM_OPS(ov13858_suspend, ov13858_resume)
+> +};
+> +
+> +#ifdef CONFIG_ACPI
+> +static const struct acpi_device_id ov13858_acpi_ids[] = {
+> +	{"OVTID858"},
+> +	{ /* sentinel */ }
+> +};
+> +
+> +MODULE_DEVICE_TABLE(acpi, ov13858_acpi_ids);
+> +#endif
+> +
+> +static struct i2c_driver ov13858_i2c_driver = {
+> +	.driver = {
+> +		.name = "ov13858",
+> +		.owner = THIS_MODULE,
+> +		.pm = &ov13858_pm_ops,
+> +		.acpi_match_table = ACPI_PTR(ov13858_acpi_ids),
+> +	},
+> +	.probe = ov13858_probe,
+> +	.remove = ov13858_remove,
+> +	.id_table = ov13858_id_table,
+> +};
+> +
+> +module_i2c_driver(ov13858_i2c_driver);
+> +
+> +MODULE_AUTHOR("Kan, Chris <chris.kan@intel.com>");
+> +MODULE_AUTHOR("Rapolu, Chiranjeevi <chiranjeevi.rapolu@intel.com>");
+> +MODULE_AUTHOR("Yang, Hyungwoo <hyungwoo.yang@intel.com>");
+> +MODULE_DESCRIPTION("Omnivision ov13858 sensor driver");
+> +MODULE_LICENSE("GPL v2");
+
 -- 
-2.13.0
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
