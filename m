@@ -1,112 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb0-f180.google.com ([209.85.213.180]:36767 "EHLO
-        mail-yb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751897AbdFSKmI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 06:42:08 -0400
-Received: by mail-yb0-f180.google.com with SMTP id t7so26626412yba.3
-        for <linux-media@vger.kernel.org>; Mon, 19 Jun 2017 03:42:08 -0700 (PDT)
-Received: from mail-yb0-f169.google.com (mail-yb0-f169.google.com. [209.85.213.169])
-        by smtp.gmail.com with ESMTPSA id m131sm4113792ywd.67.2017.06.19.03.42.06
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 19 Jun 2017 03:42:06 -0700 (PDT)
-Received: by mail-yb0-f169.google.com with SMTP id 84so26720661ybe.0
-        for <linux-media@vger.kernel.org>; Mon, 19 Jun 2017 03:42:06 -0700 (PDT)
+Received: from mail.kernel.org ([198.145.29.99]:45684 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753100AbdFMAfS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Jun 2017 20:35:18 -0400
+From: Kieran Bingham <kbingham@kernel.org>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+        niklas.soderlund@ragnatech.se,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v4 0/2] ADV748x HDMI/Analog video receiver
+Date: Tue, 13 Jun 2017 01:35:06 +0100
+Message-Id: <cover.d0545e32d322ca1b939fa2918694173629e680eb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <1671392.uVPDOvjJsA@avalon>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
- <20170616082510.GH12407@valkosipuli.retiisi.org.uk> <CAAFQd5CDG0QYDaD=4ono0Yahz+7+TJ_KLsc+K-bgN82yFr6qmg@mail.gmail.com>
- <1671392.uVPDOvjJsA@avalon>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Mon, 19 Jun 2017 19:41:45 +0900
-Message-ID: <CAAFQd5ConKk1KMdCvKnC5rOEi9tFPD0dj+=ktMsUpx8T=mMjWA@mail.gmail.com>
-Subject: Re: [PATCH 01/12] videodev2.h, v4l2-ioctl: add IPU3 meta buffer format
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Yong Zhi <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Thanks for looking at this!
+This is a driver for the Analog Devices ADV748x device, and follows on from a
+previous posting by Niklas Söderlund [0] of an earlier incarnation of this
+driver.
 
-On Mon, Jun 19, 2017 at 6:17 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Tomasz,
->
-> On Friday 16 Jun 2017 17:35:52 Tomasz Figa wrote:
->> On Fri, Jun 16, 2017 at 5:25 PM, Sakari Ailus wrote:
->> > On Fri, Jun 16, 2017 at 02:52:07PM +0900, Tomasz Figa wrote:
->> >> On Tue, Jun 6, 2017 at 7:09 PM, Tomasz Figa wrote:
->> >>> On Tue, Jun 6, 2017 at 5:04 PM, Hans Verkuil wrote:
->> >>>> On 06/06/17 09:25, Sakari Ailus wrote:
->> >>>>> On Tue, Jun 06, 2017 at 01:30:41PM +0900, Tomasz Figa wrote:
->> >>>>>> On Tue, Jun 6, 2017 at 1:30 PM, Tomasz Figa wrote:
->> >>>>>>> On Tue, Jun 6, 2017 at 5:39 AM, Yong Zhi wrote:
->> >>>>>>>> Add the IPU3 specific processing parameter format
->> >>>>>>>> V4L2_META_FMT_IPU3_PARAMS and metadata formats
->> >>>>>>>> for 3A and other statistics:
->> >>>>>>>
->> >>>>>>> Please see my comments inline.
->> >>>>>>>
->> >>>>>>>>   V4L2_META_FMT_IPU3_PARAMS
->> >>>>>>>>   V4L2_META_FMT_IPU3_STAT_3A
->> >>>>>>>>   V4L2_META_FMT_IPU3_STAT_DVS
->> >>>>>>>>   V4L2_META_FMT_IPU3_STAT_LACE
->> >>>>>>>>
->> >>>>>>>> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
->> >>>>>>>> ---
->> >>>>>>>>
->> >>>>>>>>  drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
->> >>>>>>>>  include/uapi/linux/videodev2.h       | 6 ++++++
->> >>>>>>>>  2 files changed, 10 insertions(+)
->> >>>>>>>
->> >>>>>>> [snip]
->> >>>>>>>
->> >>>>>>>> +/* Vendor specific - used for IPU3 camera sub-system */
->> >>>>>>>> +#define V4L2_META_FMT_IPU3_PARAMS      v4l2_fourcc('i', 'p', '3',
->> >>>>>>>> 'p') /* IPU3 params */
->> >>>>>>>> +#define V4L2_META_FMT_IPU3_STAT_3A     v4l2_fourcc('i', 'p', '3',
->> >>>>>>>> 's') /* IPU3 3A statistics */
->> >>>>>>>> +#define V4L2_META_FMT_IPU3_STAT_DVS    v4l2_fourcc('i', 'p', '3',
->> >>>>>>>> 'd') /* IPU3 DVS statistics */
->> >>>>>>>> +#define V4L2_META_FMT_IPU3_STAT_LACE   v4l2_fourcc('i', 'p', '3',
->> >>>>>>>> 'l') /* IPU3 LACE statistics */
->
-> This series is missing a documentation patch with a clear and detailed
-> description of the buffer contents for each of these formats. I'm not very
-> concerned about the three statistics formats (although that might change after
-> reading the documentation), but the "IPU3 params" format makes me feel nervous
-> already.
+Aside from a few bug fixes, and considerable refactoring this driver:
+ - is refactored to multiple object files
+ - defines multiple sub devices for the output paths.
+ - has independent controls for both HDMI and Analog video paths
 
-I guess this is a note addressed to patch authors. :)
+ - Specifies 'endpoint' matching instead of 'device' in async framework
 
->
->> >>>>>>> We had some discussion about this with Laurent and if I remember
->> >>>>>>> correctly, the conclusion was that it might make sense to define
->> >>>>>>> one FourCC for a vendor specific format, ('v', 'n', 'd', 'r') for
->> >>>>>>> example, and then have a V4L2-specific enum within the
->> >>>>>>> v4l2_pix_format(_mplane) struct that specifies the exact vendor data
->> >>>>>>> type.
->
-> If I recall correctly, I mentioned that v4l2_format now has a struct
-> v4l2_meta_format field that can be used to pass metadata-related parameters
-> the same way that v4l2_pix_format passes image-related parameters. The only
-> two metadata parameters currently defined are the data format (fourcc) and
-> buffer size, and more can be added if needed. However, I don't think the
-> v4l2_meta_format structure should be extended with vendor-specific fields.
+These patches are based up on Niklas' pending RVin work [1] and Sakari's fwnode
+series [2]
 
-Ah, then I got that wrong, sorry. But in general I believe we reached
-exactly the same conclusion with Hans and Sakari after that.
+This version is the culmination of large refactoring and development, and I
+believe is ready (or near) for mainline integration.
 
-Best regards,
-Tomasz
+ADV748x
+=======
+The ADV7481 and ADV7482 support two video pipelines which can run independently
+of each other, with each pipeline terminating in a CSI-2 output: TXA (4-Lane)
+and TXB (1-Lane)
+
+The ADV7480 (Not yet included here), ADV7481, and ADV7482 are all derivatives,
+with the following features
+
+            Analog   HDMI  MHL  4-Lane  1-Lane
+              In      In         CSI     CSI
+ ADV7480               X    X     X
+ ADV7481      X        X    X     X       X
+ ADV7482      X        X          X       X
+
+Implementation
+==============
+
+This RFC creates 4 entities. AFE (CVBS/Analog In), HDMI, TXA and TXB.  At probe
+time, the DT is parsed to identify the endpoints for each of these nodes, and
+those are used for async matching of the CSI2 (TXA/TXB) entities in the master
+driver. The HDMI and AFE entities are then registered after a successful
+registration of both the CSI2 entities.
+
+(Known) Future Todo's
+=====================
+
+Further potential development areas include:
+ - ADV7480 Support (No AFE)
+ - MHL support (Not present on ADV7482)
+ - EDID support
+ - CEC Support
+ - Configurable I2C addressing
+ - Interrupt handling for format changes and hotplug detect.
+
+However, this driver is functional without the above, and these developments
+can be written when required.
+
+References
+==========
+[0] http://www.mail-archive.com/linux-renesas-soc@vger.kernel.org/msg05196.html
+[1] https://git.ragnatech.se/linux rcar-vin-elinux-v7
+[2] https://www.mail-archive.com/linux-media@vger.kernel.org/msg111332.html
+
+v1/RFC:
+ - Initial posting
+
+v2:
+ - Reworked DT parsing and entities
+
+v3:
+ - Refreshed with lots of fixups from Sakari's review comments
+
+v4:
+ - Many changes all round, following Laurent's review and extensive development
+ - Now uses regmap
+ - AFE port numbering has been changed to match the entity pads
+ -
+
+Kieran Bingham (2):
+  media: i2c: adv748x: add adv748x driver
+  arm64: dts: renesas: salvator-x: Add ADV7482 support
+
+ Documentation/devicetree/bindings/media/i2c/adv748x.txt |  96 +-
+ MAINTAINERS                                             |   6 +-
+ arch/arm64/boot/dts/renesas/salvator-x.dtsi             | 123 +-
+ drivers/media/i2c/Kconfig                               |  11 +-
+ drivers/media/i2c/Makefile                              |   1 +-
+ drivers/media/i2c/adv748x/Makefile                      |   7 +-
+ drivers/media/i2c/adv748x/adv748x-afe.c                 | 571 ++++++-
+ drivers/media/i2c/adv748x/adv748x-core.c                | 907 +++++++++-
+ drivers/media/i2c/adv748x/adv748x-csi2.c                | 323 +++-
+ drivers/media/i2c/adv748x/adv748x-hdmi.c                | 652 ++++++-
+ drivers/media/i2c/adv748x/adv748x.h                     | 415 ++++-
+ 11 files changed, 3112 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/adv748x.txt
+ create mode 100644 drivers/media/i2c/adv748x/Makefile
+ create mode 100644 drivers/media/i2c/adv748x/adv748x-afe.c
+ create mode 100644 drivers/media/i2c/adv748x/adv748x-core.c
+ create mode 100644 drivers/media/i2c/adv748x/adv748x-csi2.c
+ create mode 100644 drivers/media/i2c/adv748x/adv748x-hdmi.c
+ create mode 100644 drivers/media/i2c/adv748x/adv748x.h
+
+base-commit: 287d20fda775908006c5d64a15cd65244578ed01
+-- 
+git-series 0.9.1
