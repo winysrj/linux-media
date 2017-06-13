@@ -1,76 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:42723 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752167AbdFMGhm (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:38691 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752456AbdFMKyU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 02:37:42 -0400
-Subject: Re: [RFC PATCH v3 05/11] [media] vimc: common: Add vimc_link_validate
-To: Helen Koike <helen.koike@collabora.com>,
-        linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Cc: jgebben@codeaurora.org, mchehab@osg.samsung.com,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
- <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
- <1496458714-16834-6-git-send-email-helen.koike@collabora.com>
- <1e189fc2-3574-ef52-1b2b-69f0a9e7c7ca@xs4all.nl>
- <9dc67446-6415-0639-0b48-989075f589ee@collabora.com>
+        Tue, 13 Jun 2017 06:54:20 -0400
+Subject: Re: [PATCH 2/4] [media] platform: Add Synopsys Designware HDMI RX
+ Controller Driver
+To: Hans Verkuil <hansverk@cisco.com>,
+        Jose Abreu <Jose.Abreu@synopsys.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <cover.1497347657.git.joabreu@synopsys.com>
+ <22ea8b160edaef464d7f5ad362b23a68a6e07633.1497347657.git.joabreu@synopsys.com>
+ <e1fb1420-28b1-c5ba-230e-3f1c3f9dfee0@synopsys.com>
+ <c8d726a6-ebf2-cf05-2c30-62aae1b51304@cisco.com>
+Cc: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <73152b7a-2d10-7a4d-ce09-e28ddb742f22@xs4all.nl>
-Date: Tue, 13 Jun 2017 08:37:36 +0200
+Message-ID: <5d374038-7a10-ebec-9d84-bfa3e07b3fe5@xs4all.nl>
+Date: Tue, 13 Jun 2017 12:54:13 +0200
 MIME-Version: 1.0
-In-Reply-To: <9dc67446-6415-0639-0b48-989075f589ee@collabora.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+In-Reply-To: <c8d726a6-ebf2-cf05-2c30-62aae1b51304@cisco.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/12/2017 07:20 PM, Helen Koike wrote:
-> Hi Hans,
-> 
-> Thanks for your review, just a question below
-> 
-> On 2017-06-12 06:50 AM, Hans Verkuil wrote:
->> On 06/03/2017 04:58 AM, Helen Koike wrote:
->>> +    /* The width, height, code and colorspace must match. */
->>> +    if (source_fmt.format.width != sink_fmt.format.width
->>> +        || source_fmt.format.height != sink_fmt.format.height
->>> +        || source_fmt.format.code != sink_fmt.format.code
->>> +        || source_fmt.format.colorspace != sink_fmt.format.colorspace)
+On 06/13/17 12:31, Hans Verkuil wrote:
+> On 06/13/17 12:06, Jose Abreu wrote:
+>> Hi Hans,
 >>
->> Source and/or Sink may be COLORSPACE_DEFAULT. If that's the case, then
->> you should skip comparing ycbcr_enc, quantization or xfer_func. If
->> colorspace
->> is DEFAULT, then that implies that the other fields are DEFAULT as well.
->> Nothing
->> else makes sense in that case.
+>>
+>> On 13-06-2017 11:01, Jose Abreu wrote:
+>>
+>> [snip]
+>>> Changes from RFC:
+>>> 	- Added support for HDCP 1.4
+>>
+>> [snip]
+>>> +
+>>> +/* HDCP 1.4 */
+>>> +#define DW_HDMI_HDCP14_BKSV_SIZE	2
+>>> +#define DW_HDMI_HDCP14_KEYS_SIZE	(2 * 40)
+>>> +
+>>> +struct dw_hdmi_hdcp14_key {
+>>> +	u32 seed;
+>>> +	u32 bksv[DW_HDMI_HDCP14_BKSV_SIZE];
+>>> +	u32 keys[DW_HDMI_HDCP14_KEYS_SIZE];
+>>> +	bool keys_valid;
+>>> +};
+>>> +
+>>> +struct dw_hdmi_rx_pdata {
+>>> +	/* Controller configuration */
+>>> +	unsigned int iref_clk; /* MHz */
+>>> +	struct dw_hdmi_hdcp14_key hdcp14_keys;
+>>> +	/* 5V sense interface */
+>>> +	bool (*dw_5v_status)(void __iomem *regs, int input);
+>>> +	void (*dw_5v_clear)(void __iomem *regs);
+>>> +	void __iomem *dw_5v_arg;
+>>> +	/* Zcal interface */
+>>> +	void (*dw_zcal_reset)(void __iomem *regs);
+>>> +	bool (*dw_zcal_done)(void __iomem *regs);
+>>> +	void __iomem *dw_zcal_arg;
+>>> +};
+>>> +
+>>> +#endif /* __DW_HDMI_RX_PDATA_H__ */
+>>
+>> I now have support for HDCP 1.4 in this driver. Can you send me
+>> the patches about HDCP that you mentioned a while ago?
 > 
-> I thought that the colorspace couldn't be COLORSPACE_DEFAULT, in the
-> documentation it is written "The default colorspace. This can be used by
-> applications to let the driver fill in the colorspace.", so the
-> colorspace is always set to something different from default no ?
-> I thought that the COLORSPACE_DEFAULT was only used by the userspace in
-> VIDIOC_{SUBDEV}_S_FMT so say "driver, use wherever colorspace you want",
-> but if usespace calls VIDIOC_{SUBDEV}_G_FMT, it would return which exact
-> colorspace the driver is using, no?
+> This is what I have:
+> 
+> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=hdcp
+> 
+> This is very old and somewhat messy.
+> 
+> It uses ioctls for the bksv's, but I wonder if array/compound controls
+> wouldn't be more appropriate (those didn't exist when this was written
+> originally).
+> 
+> It also needs to be checked against HDCP 2 so it can support that as well
 
-I don't think this rule works for the MC. For regular v4l2 devices the
-bridge driver knows what colorspace it receives so it can replace the
-colorspace DEFAULT with the real one.
+That's HDCP 2.2, of course.
 
-But a e.g. scaler subdev does not actually touch on the colorspace. And
-it doesn't know what colorspace it will receive or transmit.
+> (or at least be easily extended for that).
 
-I don't feel it makes sense to require userspace to set and propagate the
-colorspace information throughout the pipeline. Allowing it to be set to
-DEFAULT (i.e. 'don't care') makes sense to me.
+Just a follow-up: I would really appreciated it if someone (you?) could get
+this finalized. The code in the branch above worked for us, but was never
+actually used in any product. It was internal test code only. It also is
+HDCP 1.4 only.
 
-I might change my mind later on this. The simple fact is that the spec isn't
-clear what to do with MC devices. That's also where this vimc driver comes
-in, so we can try this out without requiring specialized hardware.
+For a proper API we should think about HDCP 1.4 and 2.2 support, and also
+look at how this works for DisplayPort. Hmm, looks like DP supports HDCP 1.3
+and 2.2. I'm not sure what the differences are (if any) between 1.3 and 1.4.
 
 Regards,
 
