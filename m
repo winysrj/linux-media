@@ -1,227 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:62833 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752602AbdFNWUJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 18:20:09 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v2 06/12] intel-ipu3: css: imgu dma buff pool
-Date: Wed, 14 Jun 2017 17:19:21 -0500
-Message-Id: <1497478767-10270-7-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1497478767-10270-1-git-send-email-yong.zhi@intel.com>
-References: <1497478767-10270-1-git-send-email-yong.zhi@intel.com>
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:40280 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753103AbdFMObq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Jun 2017 10:31:46 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v3 0/2] media: entity: add operation to help map DT node to media pad
+Date: Tue, 13 Jun 2017 16:31:24 +0200
+Message-Id: <20170613143126.755-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pools are used to store previous parameters set by
-user with the parameter queue. Due to pipelining,
-there needs to be multiple sets (up to four)
-of parameters which are queued in a host-to-sp queue.
+Hi,
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
----
- drivers/media/pci/intel/ipu3/ipu3-css-pool.c | 129 +++++++++++++++++++++++++++
- drivers/media/pci/intel/ipu3/ipu3-css-pool.h |  53 +++++++++++
- 2 files changed, 182 insertions(+)
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.h
+This series add a new entity operation which will aid capture
+drivers to map a port/endpoint in DT to a media graph pad.
 
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.c b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
-new file mode 100644
-index 0000000..436ecd8
---- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
-@@ -0,0 +1,129 @@
-+/*
-+ * Copyright (c) 2017 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/dma-mapping.h>
-+
-+#include "ipu3-css-pool.h"
-+
-+int ipu3_css_dma_alloc(struct device *dev,
-+			struct ipu3_css_map *map, size_t size)
-+{
-+	if (size == 0) {
-+		map->vaddr = NULL;
-+		return 0;
-+	}
-+
-+	map->vaddr = dma_alloc_coherent(dev, size, &map->daddr, GFP_KERNEL);
-+	if (!map->vaddr)
-+		return -ENOMEM;
-+	map->size = size;
-+
-+	return 0;
-+}
-+
-+void ipu3_css_dma_free(struct device *dev, struct ipu3_css_map *map)
-+{
-+	if (map->vaddr)
-+		dma_free_coherent(dev, map->size, map->vaddr, map->daddr);
-+	map->vaddr = NULL;
-+}
-+
-+void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool)
-+{
-+	int i;
-+
-+	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++)
-+		ipu3_css_dma_free(dev, &pool->entry[i].param);
-+}
-+
-+int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool, int size)
-+{
-+	int i;
-+
-+	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++) {
-+		pool->entry[i].framenum = INT_MIN;
-+		if (ipu3_css_dma_alloc(dev, &pool->entry[i].param, size))
-+			goto fail;
-+	}
-+
-+	pool->last = IPU3_CSS_POOL_SIZE;
-+
-+	return 0;
-+
-+fail:
-+	ipu3_css_pool_cleanup(dev, pool);
-+	return -ENOMEM;
-+}
-+
-+/*
-+ * Check that the following call to pool_get succeeds.
-+ * Return negative on error.
-+ */
-+static int ipu3_css_pool_check(struct ipu3_css_pool *pool, long framenum)
-+{
-+	/* Get the oldest entry */
-+	int n = (pool->last + 1) % IPU3_CSS_POOL_SIZE;
-+
-+	/*
-+	 * pool->entry[n].framenum stores the frame number where that
-+	 * entry was allocated. If that was allocated more than POOL_SIZE
-+	 * frames back, it is old enough that we know it is no more in
-+	 * use by firmware.
-+	 */
-+	if (pool->entry[n].framenum + IPU3_CSS_POOL_SIZE > framenum)
-+		return -ENOSPC;
-+
-+	return n;
-+}
-+
-+/*
-+ * Allocate a new parameter from pool at frame number `framenum'.
-+ * Release the oldest entry in the pool to make space for the new entry.
-+ * Return negative on error.
-+ */
-+int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum)
-+{
-+	int n = ipu3_css_pool_check(pool, framenum);
-+
-+	if (n < 0)
-+		return n;
-+
-+	pool->entry[n].framenum = framenum;
-+	pool->last = n;
-+
-+	return n;
-+}
-+
-+/*
-+ * Undo, for all practical purposes, the effect of pool_get().
-+ */
-+void ipu3_css_pool_put(struct ipu3_css_pool *pool)
-+{
-+	pool->entry[pool->last].framenum = INT_MIN;
-+	pool->last = (pool->last + IPU3_CSS_POOL_SIZE - 1) % IPU3_CSS_POOL_SIZE;
-+}
-+
-+const struct ipu3_css_map *
-+ipu3_css_pool_last(struct ipu3_css_pool *pool, unsigned int n)
-+{
-+	static const struct ipu3_css_map null_map = { 0 };
-+	int i = (pool->last + IPU3_CSS_POOL_SIZE - n) % IPU3_CSS_POOL_SIZE;
-+
-+	WARN_ON(n >= IPU3_CSS_POOL_SIZE);
-+
-+	if (pool->entry[i].framenum < 0)
-+		return &null_map;
-+
-+	return &pool->entry[i].param;
-+}
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.h b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
-new file mode 100644
-index 0000000..a2d2494
---- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
-@@ -0,0 +1,53 @@
-+/*
-+ * Copyright (c) 2017 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef __IPU3_UTIL_H
-+#define __IPU3_UTIL_H
-+
-+#include <linux/device.h>
-+
-+#define sqr(x)				((x) * (x))
-+#define DIV_ROUND_CLOSEST_DOWN(a, b)	(((a) + (b / 2) - 1) / (b))
-+#define roundclosest_down(a, b)		(DIV_ROUND_CLOSEST_DOWN(a, b) * (b))
-+#define roundclosest(n, di)				\
-+	({ typeof(n) __n = (n); typeof(di) __di = (di); \
-+	DIV_ROUND_CLOSEST(__n, __di) * __di; })
-+
-+#define IPU3_CSS_POOL_SIZE		4
-+
-+struct ipu3_css_map {
-+	size_t size;
-+	void *vaddr;
-+	dma_addr_t daddr;
-+};
-+
-+struct ipu3_css_pool {
-+	struct {
-+		struct ipu3_css_map param;
-+		long framenum;
-+	} entry[IPU3_CSS_POOL_SIZE];
-+	unsigned int last; /* Latest entry */
-+};
-+
-+int ipu3_css_dma_alloc(struct device *dev, struct ipu3_css_map *map,
-+			size_t size);
-+void ipu3_css_dma_free(struct device *dev, struct ipu3_css_map *map);
-+void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool);
-+int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool,
-+			int size);
-+int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum);
-+void ipu3_css_pool_put(struct ipu3_css_pool *pool);
-+const struct ipu3_css_map *ipu3_css_pool_last(struct ipu3_css_pool *pool,
-+						unsigned int last);
-+
-+#endif
+This series is implemented support for the ongoing ADV748x work by
+Kieran Bingham. In his work he have a driver which registers more then
+one subdevice. So when a driver finds this subdevice it must be able to
+ask the subdevice itself which pad number correspond to the DT endpoint
+the driver used to bind subdevice in the first place.
+
+This is tested on Renesas H3 and M3-W together with the Renesas CSI-2
+and VIN Gen3 driver (posted separately). It is based on top media-tree.
+
+* Changes since v2
+- Renamed pad_from_fwnode to get_fwnode_pad as suggested by Sakari.
+- Return pad number instead of passing it as a pointer to both 
+  get_fwnode_pad() and media_entity_pad_from_fwnode().
+- Document possible flags of the direction argument to 
+  media_entity_pad_from_fwnode().
+- Use unsigned int instead of int for bitmask.
+- Fix numerous spelling mistakes, thanks Hans!
+- Rebased to latest media-tree.
+
+* Changes since v1
+- Rebased work ontop of Sakaris fwnode branch and make use of the fwnode 
+  instead of the raw DT port/reg numbers.
+- Do not assume DT port is equal to pad number if the driver do not 
+  implement the lookup function. Instead search for the first pad with
+  the correct direction and use that. Thanks Sakari for the suggestion!
+- Use ENXIO instead of EINVAL to signal lookup error.
+
+Niklas Söderlund (2):
+  media: entity: Add get_fwnode_pad entity operation
+  media: entity: Add media_entity_get_fwnode_pad() function
+
+ drivers/media/media-entity.c | 35 +++++++++++++++++++++++++++++++++++
+ include/media/media-entity.h | 28 ++++++++++++++++++++++++++++
+ 2 files changed, 63 insertions(+)
+
 -- 
-2.7.4
+2.13.1
