@@ -1,119 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53074 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36008 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751600AbdFNWnK (ORCPT
+        by vger.kernel.org with ESMTP id S1752480AbdFMMsA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 18:43:10 -0400
-Date: Thu, 15 Jun 2017 01:43:05 +0300
+        Tue, 13 Jun 2017 08:48:00 -0400
+Date: Tue, 13 Jun 2017 15:47:49 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
 To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
-        robh@kernel.org
-Subject: Re: [PATCH 6/8] leds: as3645a: Add LED flash class driver
-Message-ID: <20170614224304.GW12407@valkosipuli.retiisi.org.uk>
-References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
- <1497433639-13101-7-git-send-email-sakari.ailus@linux.intel.com>
- <20170614213941.GC10200@amd>
- <20170614222135.GT12407@valkosipuli.retiisi.org.uk>
- <20170614222833.GA26406@amd>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: v4l2-fwnode: status, plans for merge, any branch to merge
+ against?
+Message-ID: <20170613124748.GD12407@valkosipuli.retiisi.org.uk>
+References: <20170215094228.GA8586@amd>
+ <2414221.XNA4JCFMRx@avalon>
+ <20170302090143.GB27818@amd>
+ <20170302101603.GE27818@amd>
+ <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
+ <20170302123848.GA28230@amd>
+ <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
+ <20170306072323.GA23509@amd>
+ <20170310225418.GJ3220@valkosipuli.retiisi.org.uk>
+ <20170613122240.GA2803@amd>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170614222833.GA26406@amd>
+In-Reply-To: <20170613122240.GA2803@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ahoy!
+Hi Pavel,
 
-On Thu, Jun 15, 2017 at 12:28:33AM +0200, Pavel Machek wrote:
+On Tue, Jun 13, 2017 at 02:22:40PM +0200, Pavel Machek wrote:
 > Hi!
 > 
-> > Thanks for the review!
+> Are there any news about the fwnode branch?
 > 
-> You are welcome :-).
+> I have quite usable camera, but it is still based on
+> 982e8e40390d26430ef106fede41594139a4111c (that's v4.10). It would be
+> good to see fwnode stuff upstream... are there any plans for that?
 > 
-> > On Wed, Jun 14, 2017 at 11:39:41PM +0200, Pavel Machek wrote:
-> > > Hi!
-> > > 
-> > > > From: Sakari Ailus <sakari.ailus@iki.fi>
-> > > 
-> > > That address no longer works, right?
-> > 
-> > Why wouldn't it work? Or... do you know something I don't? :-)
-> 
-> Aha. I thought I was removing it from source files because it was no
-> longer working, but maybe I'm misremembering? 
+> Is there stable branch to which I could move the stuff?
 
-That was probably my @maxwell.research.nokia.com address. :-) There are no
-occurrences of that in the kernel source anymore.
+What's relevant for most V4L2 drivers is in linux-media right now.
 
-> 
-> > > > +static unsigned int as3645a_current_to_reg(struct as3645a *flash, bool is_flash,
-> > > > +					   unsigned int ua)
-> > > > +{
-> > > > +	struct {
-> > > > +		unsigned int min;
-> > > > +		unsigned int max;
-> > > > +		unsigned int step;
-> > > > +	} __mms[] = {
-> > > > +		{
-> > > > +			AS_TORCH_INTENSITY_MIN,
-> > > > +			flash->cfg.assist_max_ua,
-> > > > +			AS_TORCH_INTENSITY_STEP
-> > > > +		},
-> > > > +		{
-> > > > +			AS_FLASH_INTENSITY_MIN,
-> > > > +			flash->cfg.flash_max_ua,
-> > > > +			AS_FLASH_INTENSITY_STEP
-> > > > +		},
-> > > > +	}, *mms = &__mms[is_flash];
-> > > > +
-> > > > +	if (ua < mms->min)
-> > > > +		ua = mms->min;
-> > > 
-> > > That's some... seriously interesting code. And you are forcing gcc to
-> > > create quite interesting structure on stack. Would it be easier to do
-> > > normal if()... without this magic?
-> > > 
-> > > > +	struct v4l2_flash_config cfg = {
-> > > > +		.torch_intensity = {
-> > > > +			.min = AS_TORCH_INTENSITY_MIN,
-> > > > +			.max = flash->cfg.assist_max_ua,
-> > > > +			.step = AS_TORCH_INTENSITY_STEP,
-> > > > +			.val = flash->cfg.assist_max_ua,
-> > > > +		},
-> > > > +		.indicator_intensity = {
-> > > > +			.min = AS_INDICATOR_INTENSITY_MIN,
-> > > > +			.max = flash->cfg.indicator_max_ua,
-> > > > +			.step = AS_INDICATOR_INTENSITY_STEP,
-> > > > +			.val = flash->cfg.indicator_max_ua,
-> > > > +		},
-> > > > +	};
-> > > 
-> > > Ugh. And here you have copy of the above struct, + .val. Can it be
-> > > somehow de-duplicated?
-> > 
-> > The flash_brightness_set callback uses micro-Amps as the unit and the driver
-> > needs to convert that to its own specific units. Yeah, there would be
-> > probably an easier way, too. But that'd likely require changes to the LED
-> > flash class.
-> 
-> Can as3645a_current_to_reg just access struct v4l2_flash_config so
-> that it does not have to recreate its look-alike on the fly?
+There are new features that will take some time to get in. The trouble has
+been, and continue to be, that the patches need to go through various trees
+so it'll take some time for them to be merged.
 
-struct v4l2_flash_config is only needed as an argument for
-v4l2_flash_init(). I'll split that into two functions in this occasion,
-it'll be nicer.
-
-We now have more or less the same conversion implemented in three or so
-times, there have to be ways to make that easier for drivers. I think that
-could be done later, as well as adding support for checking the flash
-strobe status.
+I expect to have most of them in during the next merge window.
 
 -- 
-Regards,
+Kind regards,
 
 Sakari Ailus
 e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
